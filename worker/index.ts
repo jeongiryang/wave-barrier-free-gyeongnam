@@ -19,7 +19,9 @@ type TransportProviderState = "connected" | "ready" | "error" | "missing";
 
 /** Vercel Functions에서는 서버 환경 변수만 읽는다. */
 function portableEnv(): Env {
-  const values = typeof process === "undefined" ? {} : process.env;
+  // process가 없는 런타임에서는 빈 객체로 떨어진다. 두 갈래를 같은 타입으로
+  // 받아 두지 않으면 아래 속성 접근이 빈 객체 쪽에서 타입 오류가 난다.
+  const values: Record<string, string | undefined> = typeof process === "undefined" ? {} : process.env;
   return {
     TOUR_API_SERVICE_KEY_ENCODED: values.TOUR_API_SERVICE_KEY_ENCODED,
     EXPRESSWAY_API_KEY: values.EXPRESSWAY_API_KEY,
