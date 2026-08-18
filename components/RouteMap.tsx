@@ -323,7 +323,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
   }
 
   function chooseKakaoPlace(place: KakaoPlace) {
-    choosePlace({ id: place.id, name: place.place_name, address: place.road_address_name || place.address_name, placeUrl: place.place_url, mapX: place.x, mapY: place.y, score: 0 });
+    choosePlace({ id: place.id, name: place.place_name, address: place.road_address_name || place.address_name, placeUrl: place.place_url?.replace(/^http:\/\//i, "https://"), mapX: place.x, mapY: place.y, score: 0 });
   }
 
   function setMapPointMode(mode: "origin" | "destination") {

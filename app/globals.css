@@ -418,6 +418,8 @@ audio { display: none; }
 .simple-footer { padding: 48px max(24px, calc((100vw - 1240px) / 2)); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px; color: #fff; background: #061a2c; }
 .simple-footer p { margin: 0; color: #b6c7d4; font-size: .82rem; }
 .simple-footer .source { text-align: right; font-size: .76rem; }
+.footer-notes { display: grid; gap: 6px; text-align: center; }
+.simple-footer .trust-notice { max-width: 520px; color: #829aab; font-size: .68rem; line-height: 1.5; }
 
 @media (max-width: 1100px) {
   :root { --content: min(94vw, 940px); }

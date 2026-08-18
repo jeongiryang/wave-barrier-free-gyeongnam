@@ -25,17 +25,17 @@ W.A.V.E는 경상남도 18개 시·군의 관광지, 무장애 편의정보, 교
 - 여행 기간에 맞는 지역 축제·행사와 숙박 정보 통합 조회
 - 공식 관광 사진 실시간 보강과 스켈레톤·브랜드 대체 화면
 - Neon Auth 기반 계정 연결과 처음 이용자를 위한 도움말
-- 반응형 화면, 다크 모드, 다국어, 스켈레톤 로딩
+- 반응형 화면, 다크 모드, 소개 화면 다국어와 주요 조작 라벨 번역, 스켈레톤 로딩
 
 ## 기술 구성
 
 - React 19, Next.js 16 App Router 호환 구조
 - Vinext, Vite 8, TypeScript
 - Vercel 프런트엔드·Functions 통합 배포
-- Neon Postgres 기반 서비스 영속 데이터 저장 예정
+- Neon Postgres 기반 공유 여행·접근성 제보 영속 저장
 - Nitro 기반 Vercel Build Output 생성
 - Leaflet 및 Kakao Maps JavaScript SDK
-- GitHub Actions CI
+- GitHub Actions CI·CD
 
 ## 로컬 실행
 
@@ -113,7 +113,7 @@ git push -u origin feat/기능명
 GitHub에서 Pull Request를 만들고 CI가 통과한 뒤 `main`에 병합합니다.
 병합 뒤 GitHub Actions CD가 공식 Vercel Production 환경을 자동 배포합니다.
 
-## GitHub Actions CI
+## GitHub Actions CI·CD
 
 `.github/workflows/ci.yml`은 Pull Request와 `main` push마다 다음 작업을
 실행합니다.
@@ -152,8 +152,8 @@ Vercel Production을 자동 배포합니다. 중복 배포를 막기 위해 Verc
 
 ## 데이터 보관
 
-- Vercel Functions의 메모리는 영구 저장소가 아니므로 공유 여행과 접근성 제보는
-  Neon Postgres로 이전합니다.
+- 공유 여행과 접근성 제보는 Neon Postgres에 저장하며 공유 여행은 30일 후
+  만료되도록 운영합니다.
 - Neon에는 서비스 자체 데이터와 사용자 생성 데이터만 저장합니다.
 - 한국관광공사 관광지·사진 데이터는 실시간 OpenAPI 호출을 원칙으로 합니다.
 - 세부 기준은 [공모전 운영·데이터 정책](docs/competition-operation-policy.md)을 따릅니다.

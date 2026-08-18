@@ -1,0 +1,60 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+async function source(path) {
+  return readFile(new URL(`../${path}`, import.meta.url), "utf8");
+}
+
+test("Vercel applies baseline browser security headers", async () => {
+  const config = JSON.parse(await source("vercel.json"));
+  const headers = Object.fromEntries(config.headers[0].headers.map(({ key, value }) => [key, value]));
+  assert.equal(headers["X-Content-Type-Options"], "nosniff");
+  assert.equal(headers["X-Frame-Options"], "DENY");
+  assert.equal(headers["Referrer-Policy"], "strict-origin-when-cross-origin");
+  assert.match(headers["Permissions-Policy"], /camera=\(\)/);
+});
+
+test("anonymous database writes validate origin, JSON and body size before storage", async () => {
+  const worker = await source("worker/index.ts");
+  assert.match(worker, /function readTrustedJson/);
+  assert.match(worker, /content-type/);
+  assert.match(worker, /sec-fetch-site/);
+  assert.match(worker, /origin !== requestUrl\.origin/);
+  assert.match(worker, /TextEncoder\(\)\.encode\(raw\)\.byteLength/);
+  assert.match(worker, /readTrustedJson\(request, 70000\)/);
+  assert.match(worker, /readTrustedJson\(request, 4000\)/);
+});
+
+test("external Kakao place links are upgraded to HTTPS", async () => {
+  const [worker, map] = await Promise.all([
+    source("worker/index.ts"),
+    source("components/RouteMap.tsx"),
+  ]);
+  assert.match(worker, /placeUrl: httpsUrl\(item\.place_url\)/);
+  assert.match(map, /place_url\?\.replace\(\/\^http:/);
+});
+
+test("account and footer copy describe real storage and independent operation", async () => {
+  const [account, landing, planner] = await Promise.all([
+    source("components/AccountMenu.tsx"),
+    source("app/page.tsx"),
+    source("app/planner/page.tsx"),
+  ]);
+  assert.doesNotMatch(account, /저장한 여행 조건과 즐겨찾기를 안전하게 관리/);
+  assert.match(account, /여행 보관함은 현재 이 브라우저에 저장/);
+  assert.match(landing, /공식 운영 서비스가 아닙니다/);
+  assert.match(planner, /공식 운영 서비스가 아닙니다/);
+  assert.match(account, /event\.key !== "Tab"/);
+  assert.match(planner, /placeDialogRef/);
+});
+
+test("deployment guide uses the current CI check name and Vercel uses Node 22", async () => {
+  const [guide, viteConfig] = await Promise.all([
+    source("docs/vercel-neon-setup.md"),
+    source("vite.config.ts"),
+  ]);
+  assert.match(guide, /\*\*CI \/ validate\*\*/);
+  assert.doesNotMatch(guide, /코드 품질 검사 \/ validate/);
+  assert.match(viteConfig, /runtime: "nodejs22\.x"/);
+});

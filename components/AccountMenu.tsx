@@ -12,13 +12,31 @@ export default function AccountMenu() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
-    window.addEventListener("keydown", close);
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : triggerRef.current;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = [...dialogRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener("keydown", handleKeyDown);
     window.setTimeout(() => dialogRef.current?.querySelector<HTMLInputElement>("input")?.focus(), 0);
-    return () => window.removeEventListener("keydown", close);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      previousFocus?.focus();
+    };
   }, [open]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -44,13 +62,13 @@ export default function AccountMenu() {
   if (session?.user) return <div className="account-menu signed-in"><span>{session.user.name || session.user.email}</span><button type="button" onClick={async () => { await authClient.signOut(); window.location.reload(); }}>로그아웃</button></div>;
 
   return <>
-    <button className="account-button" type="button" onClick={() => setOpen(true)} disabled={isPending}>{isPending ? "확인 중" : "로그인"}</button>
+    <button className="account-button" type="button" onClick={() => setOpen(true)} disabled={isPending} ref={triggerRef}>{isPending ? "확인 중" : "로그인"}</button>
     {open && <div className="modal-backdrop account-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
-      <div className="account-dialog" role="dialog" aria-modal="true" aria-labelledby="account-title" ref={dialogRef}>
+      <div className="account-dialog" role="dialog" aria-modal="true" aria-labelledby="account-title" aria-describedby="account-description" ref={dialogRef}>
         <button className="modal-close" type="button" onClick={() => setOpen(false)} aria-label="로그인 창 닫기">×</button>
         <span className="dialog-kicker">W.A.V.E ACCOUNT</span>
         <h2 id="account-title">{mode === "sign-in" ? "내 여행을 이어가세요." : "여행자 계정을 만들어요."}</h2>
-        <p>저장한 여행 조건과 즐겨찾기를 안전하게 관리할 수 있습니다.</p>
+        <p id="account-description">W.A.V.E 전용 계정으로 로그인합니다. 다른 기관의 계정이나 비밀번호를 요구하지 않습니다.</p>
         <form onSubmit={submit}>
           {mode === "sign-up" && <label>이름<input name="name" autoComplete="name" required minLength={2} /></label>}
           <label>이메일<input name="email" type="email" autoComplete="email" required /></label>
@@ -59,7 +77,7 @@ export default function AccountMenu() {
           <button className="account-submit" type="submit" disabled={submitting}>{submitting ? "처리 중…" : mode === "sign-in" ? "로그인" : "가입하기"}</button>
         </form>
         <button className="account-switch" type="button" onClick={() => { setMode((value) => value === "sign-in" ? "sign-up" : "sign-in"); setMessage(""); }}>{mode === "sign-in" ? "처음이신가요? 계정 만들기" : "이미 계정이 있나요? 로그인"}</button>
-        <small>현재 위치 좌표는 계정이나 서버에 저장하지 않습니다.</small>
+        <small>여행 보관함은 현재 이 브라우저에 저장되며, 공유 링크만 30일간 보관합니다. 현재 위치 좌표는 계정이나 서버에 저장하지 않습니다.</small>
       </div>
     </div>}
   </>;
