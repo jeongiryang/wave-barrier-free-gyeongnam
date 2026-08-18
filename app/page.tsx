@@ -37,10 +37,21 @@ type RegionPhoto = { id: string; title: string; image: string; location: string;
 
 function Intro({ close }: { close: () => void }) {
   const { t } = useSitePreferences();
+  const startButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    startButtonRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [close]);
+
   return (
-    <div className="brand-intro" role="dialog" aria-label="W.A.V.E 시작 화면">
+    <div className="brand-intro" role="dialog" aria-modal="true" aria-label="W.A.V.E 시작 화면">
       <WaveField className="brand-intro-canvas" tone="deep" mode="intro" wordmark="W.A.V.E" />
-      <button type="button" onClick={close}>{t("use", "바로 시작")}</button>
+      <button ref={startButtonRef} type="button" onClick={close}>{t("use", "바로 시작")}</button>
       <div className="brand-intro-copy">
         <p>TRAVEL WITHOUT BARRIERS</p>
         <h1 aria-label="W.A.V.E">W.A.V.E</h1>
@@ -62,6 +73,11 @@ export default function LandingPage() {
   const photoRequests = useRef(new Set<string>());
   const active = useMemo(() => regions.find((item) => item.name === activeRegion) ?? regions[10], [activeRegion]);
   const preview = useMemo(() => regions.find((item) => item.name === previewRegion) ?? null, [previewRegion]);
+
+  const finishIntro = useCallback(() => {
+    window.sessionStorage.setItem("wave-intro-seen-v2", "1");
+    setIntro(false);
+  }, []);
 
   const loadRegionPhoto = useCallback(async (region: string) => {
     if (photoRequests.current.has(region)) return;
@@ -85,7 +101,7 @@ export default function LandingPage() {
     }
     const timer = window.setTimeout(() => finishIntro(), 5500);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [finishIntro]);
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -122,11 +138,6 @@ export default function LandingPage() {
     nodes.forEach((node) => observer.observe(node));
     return () => observer.disconnect();
   }, []);
-
-  function finishIntro() {
-    window.sessionStorage.setItem("wave-intro-seen-v2", "1");
-    setIntro(false);
-  }
 
   function selectRegion(region: string) {
     const update = () => setActiveRegion(region);

@@ -11,6 +11,7 @@
     "build:vercel": "node scripts/build-portable.mjs vercel",
     "start": "vinext start",
     "test": "node --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vercel"
   },
   "dependencies": {

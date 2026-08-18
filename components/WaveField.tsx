@@ -86,8 +86,10 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
   const ripplesRef = useRef<Ripple[]>([]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const canvasElement = canvasRef.current;
+    if (!canvasElement) return;
+    // 중첩 콜백에서도 null이 아닌 캔버스로 유지되도록 명시적으로 좁힌다.
+    const canvas: HTMLCanvasElement = canvasElement;
     const context = canvas.getContext("2d", { alpha: false });
     if (!context) return;
 
@@ -113,6 +115,7 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
     let cellXs: Float32Array = new Float32Array(0);
     let cellYs: Float32Array = new Float32Array(0);
     let frame = 0;
+    let inViewport = true;
     let start = 0;
 
     /** 밝기 단계마다 문자 한 칸을 배경 위에 미리 합성해 불투명 픽셀 배열로 만든다.
@@ -315,6 +318,7 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
     }
 
     function draw(now: number) {
+      frame = 0;
       if (!start) start = now;
       const elapsed = (now - start) / 1000;
       const time = reduced ? 6 : elapsed;
@@ -436,14 +440,30 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
       // 오래된 물결은 버린다.
       if (ripples.length) ripplesRef.current = ripples.filter((ripple) => time - ripple.born < 2.6);
 
-      if (!reduced) frame = window.requestAnimationFrame(draw);
+      if (!reduced && inViewport && !document.hidden) frame = window.requestAnimationFrame(draw);
     }
 
     resize();
-    frame = window.requestAnimationFrame(draw);
+    const syncAnimation = () => {
+      if (reduced) return;
+      const shouldRun = !reduced && inViewport && !document.hidden;
+      if (shouldRun && !frame) frame = window.requestAnimationFrame(draw);
+      if (!shouldRun && frame) {
+        window.cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    };
+    if (reduced) frame = window.requestAnimationFrame(draw);
+    else syncAnimation();
 
     const observer = new ResizeObserver(() => resize());
     observer.observe(canvas);
+    const visibilityObserver = new IntersectionObserver(([entry]) => {
+      inViewport = entry?.isIntersecting ?? true;
+      syncAnimation();
+    });
+    visibilityObserver.observe(canvas);
+    document.addEventListener("visibilitychange", syncAnimation);
 
     let lastRipple = 0;
     function onPointerMove(event: PointerEvent) {
@@ -473,6 +493,8 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
     return () => {
       window.cancelAnimationFrame(frame);
       observer.disconnect();
+      visibilityObserver.disconnect();
+      document.removeEventListener("visibilitychange", syncAnimation);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointerleave", onPointerLeave);
