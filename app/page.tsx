@@ -33,6 +33,9 @@ const values = [
   { number: "03", title: "이동까지 연결", copy: "관광지를 고르는 데서 끝내지 않고 시간·요금·환승·도보를 비교해 하루의 이동을 설계합니다." },
 ];
 
+// 마지막 워드마크가 충분히 읽힌 뒤 0.5초 퇴장 애니메이션까지 마치는 시점이다.
+const INTRO_DURATION_MS = 6550;
+
 type RegionPhoto = { id: string; title: string; image: string; location: string; photographer: string; month: string };
 
 function Intro({ close }: { close: () => void }) {
@@ -100,7 +103,7 @@ export default function LandingPage() {
       const frame = window.requestAnimationFrame(() => setIntro(false));
       return () => window.cancelAnimationFrame(frame);
     }
-    const timer = window.setTimeout(() => finishIntro(), 5500);
+    const timer = window.setTimeout(() => finishIntro(), INTRO_DURATION_MS);
     return () => window.clearTimeout(timer);
   }, [finishIntro, motion]);
 

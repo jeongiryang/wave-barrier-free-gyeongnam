@@ -18,6 +18,17 @@ const localeOptions: Array<{ id: Locale; label: string; short: string }> = [
   { id: "ru", label: "Русский", short: "RU" },
 ];
 
+const motionCopy: Record<Locale, { on: string; off: string }> = {
+  ko: { on: "파동 효과 켜기", off: "파동 효과 끄기" },
+  en: { on: "Turn wave effects on", off: "Turn wave effects off" },
+  ja: { on: "波の効果をオン", off: "波の効果をオフ" },
+  "zh-Hans": { on: "开启波浪效果", off: "关闭波浪效果" },
+  "zh-Hant": { on: "開啟波浪效果", off: "關閉波浪效果" },
+  fr: { on: "Activer les vagues", off: "Désactiver les vagues" },
+  de: { on: "Welleneffekt einschalten", off: "Welleneffekt ausschalten" },
+  ru: { on: "Включить эффект волн", off: "Выключить эффект волн" },
+};
+
 const copy: Record<Locale, Record<string, string>> = {
   ko: {},
   en: {
@@ -95,16 +106,23 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const storedLocale = window.localStorage.getItem("wave-locale") as Locale | null;
-      const storedTheme = window.localStorage.getItem("wave-theme") as Theme | null;
-      if (storedLocale && localeOptions.some((item) => item.id === storedLocale)) setLocaleState(storedLocale);
-      if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
-      else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
-      // 저장된 선택이 없으면 운영체제의 동작 줄이기 설정을 그대로 따른다.
-      const storedMotion = window.localStorage.getItem("wave-motion") as Motion | null;
-      if (storedMotion === "full" || storedMotion === "calm") setMotion(storedMotion);
-      else if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setMotion("calm");
-      setHydrated(true);
+      try {
+        const storedLocale = window.localStorage.getItem("wave-locale") as Locale | null;
+        const storedTheme = window.localStorage.getItem("wave-theme") as Theme | null;
+        if (storedLocale && localeOptions.some((item) => item.id === storedLocale)) setLocaleState(storedLocale);
+        if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
+        else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
+        // 저장된 선택이 없으면 운영체제의 동작 줄이기 설정을 그대로 따른다.
+        const storedMotion = window.localStorage.getItem("wave-motion") as Motion | null;
+        if (storedMotion === "full" || storedMotion === "calm") setMotion(storedMotion);
+        else if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setMotion("calm");
+      } catch {
+        // 저장소를 읽을 수 없으면 기본값 또는 운영체제 테마를 사용한다.
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
+      } finally {
+        // 저장소 접근이 차단된 브라우저에서도 화면 설정 자체는 계속 동작해야 한다.
+        setHydrated(true);
+      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
@@ -115,9 +133,13 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.colorScheme = theme;
     document.documentElement.dataset.motion = motion;
     if (!hydrated) return;
-    window.localStorage.setItem("wave-theme", theme);
-    window.localStorage.setItem("wave-locale", locale);
-    window.localStorage.setItem("wave-motion", motion);
+    try {
+      window.localStorage.setItem("wave-theme", theme);
+      window.localStorage.setItem("wave-locale", locale);
+      window.localStorage.setItem("wave-motion", motion);
+    } catch {
+      // 사생활 보호 설정이 저장소를 막으면 현재 탭의 설정만 적용한다.
+    }
   }, [locale, theme, motion, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
@@ -141,9 +163,10 @@ export function useSitePreferences() {
 
 export function PreferenceControls() {
   const { locale, theme, motion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
+  const motionLabel = motion === "calm" ? motionCopy[locale].on : motionCopy[locale].off;
   return <div className="preference-controls">
     <label><span className="sr-only">{t("language", "언어")}</span><select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>{localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {item.label}</option>)}</select></label>
     <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")} title={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")}><span aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</span></button>
-    <button type="button" className="motion-toggle" onClick={toggleMotion} aria-pressed={motion === "calm"} aria-label={motion === "calm" ? t("motionOn", "파동 효과 켜기") : t("motionOff", "파동 효과 끄기")} title={motion === "calm" ? t("motionOn", "파동 효과 켜기") : t("motionOff", "파동 효과 끄기")}><span aria-hidden="true">{motion === "calm" ? "≋" : "≈"}</span></button>
+    <button type="button" className="motion-toggle" onClick={toggleMotion} aria-pressed={motion === "calm"} aria-label={motionLabel} title={motionLabel}><span aria-hidden="true">{motion === "calm" ? "≋" : "≈"}</span></button>
   </div>;
 }
