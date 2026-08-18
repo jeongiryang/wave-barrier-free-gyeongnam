@@ -4,6 +4,14 @@ W.A.V.E는 경상남도 18개 시·군의 관광지, 무장애 편의정보, 교
 사진과 날씨를 한 화면에서 비교하고 개인 조건에 맞는 여행지를 추천하는
 웹 서비스입니다.
 
+## 운영 기준
+
+- [공모전 운영·데이터 정책](docs/competition-operation-policy.md)
+- 공식 서비스는 Vercel Production 도메인 하나로 운영합니다.
+- 영속 데이터가 필요할 때는 Neon Postgres를 사용하되, 한국관광공사
+  OpenAPI 원본 응답은 저장하지 않고 실시간 호출합니다.
+- 사용자의 GPS 좌표는 브라우저 안에서만 사용하며 서버와 DB로 전송하지 않습니다.
+
 ## 주요 기능
 
 - 경남 18개 시·군 기반 관광지 추천
@@ -19,8 +27,9 @@ W.A.V.E는 경상남도 18개 시·군의 관광지, 무장애 편의정보, 교
 
 - React 19, Next.js 16 App Router 호환 구조
 - Vinext, Vite 8, TypeScript
-- Cloudflare Workers·D1 기반 ChatGPT Sites 배포
-- Nitro 기반 Vercel·Render 포터블 배포
+- Vercel 프런트엔드·Functions 통합 배포
+- Neon Postgres 기반 서비스 영속 데이터 저장 예정
+- Nitro 기반 Vercel Build Output 생성
 - Leaflet 및 Kakao Maps JavaScript SDK
 - GitHub Actions CI
 
@@ -83,13 +92,7 @@ npm run dev
 
 ```bash
 npm run lint
-npm run build:render
-```
-
-ChatGPT Sites용 전체 검사는 Linux·WSL 환경에서 실행합니다.
-
-```bash
-npm test
+npm run build:vercel
 ```
 
 ## 브랜치와 협업 규칙
@@ -104,7 +107,7 @@ git push -u origin feat/기능명
 ```
 
 GitHub에서 Pull Request를 만들고 CI가 통과한 뒤 `main`에 병합합니다.
-Vercel과 Render는 `main`의 CI 통과 이후 자동 배포하도록 설정합니다.
+Vercel은 병합된 `main` 커밋을 감지하여 공식 Production 환경을 자동 배포합니다.
 
 ## GitHub Actions CI
 
@@ -113,7 +116,7 @@ Vercel과 Render는 `main`의 CI 통과 이후 자동 배포하도록 설정합�
 
 1. 잠금 파일 기준 의존성 설치
 2. ESLint 정적 검사
-3. Render용 Node 프로덕션 빌드
+3. Vercel용 프로덕션 빌드
 
 저장소의 `Settings → Branches → Branch protection rules`에서 `main`에
 다음 규칙을 권장합니다.
@@ -137,29 +140,20 @@ Vercel과 Render는 `main`의 CI 통과 이후 자동 배포하도록 설정합�
 재정의하지 않습니다.
 이후 `main`에 병합되면 Vercel이 자동으로 다시 배포합니다.
 
+Render와 ChatGPT Sites는 공식 배포 대상으로 사용하지 않습니다. 기존 Render
+서비스가 남아 있다면 Render Dashboard에서 Auto-Deploy를 끄거나 서비스를
+삭제하여 중복 배포를 중단합니다.
+
 카카오 개발자 콘솔의 JavaScript SDK 도메인에는 Vercel의 실제
 `https://...vercel.app` 도메인과 사용하는 커스텀 도메인을 등록해야 합니다.
 
-## Render 배포
+## 데이터 보관
 
-1. Render Dashboard에서 `New → Blueprint`를 선택합니다.
-2. GitHub 저장소를 연결합니다.
-3. 저장소 루트의 `render.yaml`을 적용합니다.
-4. 생성 과정에서 `sync: false`로 표시되는 환경 변수 값을 입력합니다.
-5. Auto-Deploy가 `After CI Checks Pass`인지 확인합니다.
-
-Render는 `main` CI가 성공한 뒤 Node 웹 서비스를 자동 배포합니다.
-상태 확인 주소는 `/api/health`입니다.
-
-카카오 개발자 콘솔의 JavaScript SDK 도메인에는 Render의 실제
-`https://...onrender.com` 도메인도 등록해야 합니다.
-
-## 저장소별 데이터 보관 차이
-
-- ChatGPT Sites: D1에 여행 공유와 접근성 제보를 보관합니다.
-- Vercel·Render 기본 구성: 관광·지도·교통 기능은 동일하게 동작하지만,
-  여행 공유와 제보는 실행 인스턴스 메모리에 임시 보관됩니다.
-- 공유·제보를 영구 보관하려면 PostgreSQL 또는 외부 DB 연결이 필요합니다.
+- Vercel Functions의 메모리는 영구 저장소가 아니므로 공유 여행과 접근성 제보는
+  Neon Postgres로 이전합니다.
+- Neon에는 서비스 자체 데이터와 사용자 생성 데이터만 저장합니다.
+- 한국관광공사 관광지·사진 데이터는 실시간 OpenAPI 호출을 원칙으로 합니다.
+- 세부 기준은 [공모전 운영·데이터 정책](docs/competition-operation-policy.md)을 따릅니다.
 
 ## API 연결 확인
 
@@ -184,5 +178,5 @@ Render는 `main` CI가 성공한 뒤 Node 웹 서비스를 자동 배포합니�
 - [공공데이터포털](https://www.data.go.kr/)
 - [Kakao Maps API](https://apis.map.kakao.com/)
 - [Vercel 문서](https://vercel.com/docs)
-- [Render 문서](https://render.com/docs)
+- [Neon 문서](https://neon.com/docs)
 - [Vinext](https://github.com/cloudflare/vinext)
