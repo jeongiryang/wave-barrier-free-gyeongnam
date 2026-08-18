@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 보안 취약점 비공개 제보
+    url: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/security/advisories/new
+    about: 악용 가능한 보안 취약점은 공개 이슈 대신 비공개 보안 권고로 제보해 주세요.

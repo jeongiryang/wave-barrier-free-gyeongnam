@@ -57,3 +57,27 @@ test("pull requests must be revalidated against the latest main", async () => {
   assert.match(template, /최신 `origin\/main`/);
   assert.match(template, /npm run typecheck/);
 });
+
+test("new issues receive an owner and a safe default label", async () => {
+  const [workflow, rules] = await Promise.all([
+    source(".github/workflows/issue-triage.yml"),
+    source("CLAUDE.md"),
+  ]);
+  assert.match(workflow, /issues:\s*write/);
+  assert.match(workflow, /assignees: \["jeongiryang"\]/);
+  assert.match(workflow, /labels = \["enhancement"\]/);
+  assert.match(workflow, /labels = \["bug"\]/);
+  assert.match(workflow, /process\.env\.ISSUE_TITLE/);
+  assert.doesNotMatch(workflow, /const title = [`'"]\$\{\{/);
+  assert.match(rules, /최신 `main`을 기준으로 중복·적합성/);
+  assert.match(rules, /판단의 근거를 이슈 코멘트로 남긴다/);
+});
+
+test("autonomous work stays bounded and merges only after fresh checks", async () => {
+  const rules = await source("CLAUDE.md");
+  assert.match(rules, /최신 `main` 반영, 전체 로컬 검사와 새 HEAD의 CI 성공/);
+  assert.match(rules, /실패·대기 중 검사는 우회하지 않고/);
+  assert.match(rules, /선행 PR의 결과가 필요한\s*작업은 그 PR이 병합된 최신 `main`/);
+  assert.match(rules, /승인된 범위의 완료 조건/);
+  assert.doesNotMatch(rules, /모든 오류와 버그를 찾아내기 전에는/);
+});

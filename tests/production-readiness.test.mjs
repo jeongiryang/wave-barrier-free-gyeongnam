@@ -58,3 +58,14 @@ test("deployment guide uses the current CI check name and Vercel uses Node 22", 
   assert.doesNotMatch(guide, /코드 품질 검사 \/ validate/);
   assert.match(viteConfig, /runtime: "nodejs22\.x"/);
 });
+
+test("the place carousel is sized by its card instead of the viewport", async () => {
+  const css = await source("app/globals.css");
+  const rule = css.slice(css.lastIndexOf(".planner-page > .places-section .place-carousel"));
+  assert.match(css, /--card-pad-x: clamp\(/);
+  assert.match(rule, /\.planner-page > \.places-section \.place-carousel/);
+  assert.match(rule, /width: auto/);
+  assert.match(rule, /margin-inline: calc\(var\(--card-pad-x\) \* -1\)/);
+  assert.match(rule, /padding: 4px var\(--card-pad-x\) 28px/);
+  assert.doesNotMatch(rule, /100vw/);
+});
