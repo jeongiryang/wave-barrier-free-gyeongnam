@@ -65,7 +65,7 @@ function Intro({ close }: { close: () => void }) {
 }
 
 export default function LandingPage() {
-  const { t } = useSitePreferences();
+  const { t, motion } = useSitePreferences();
   const [intro, setIntro] = useState(true);
   const [activeRegion, setActiveRegion] = useState("창원");
   const [previewRegion, setPreviewRegion] = useState<string | null>(null);
@@ -96,7 +96,8 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // 파동 효과를 끈 이용자에게는 인트로 연출을 보여 주지 않는다(Refs #21).
+    const reduced = motion === "calm" || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const seen = window.sessionStorage.getItem("wave-intro-seen-v2");
     if (reduced || seen) {
       const frame = window.requestAnimationFrame(() => setIntro(false));
@@ -104,7 +105,7 @@ export default function LandingPage() {
     }
     const timer = window.setTimeout(() => finishIntro(), INTRO_DURATION_MS);
     return () => window.clearTimeout(timer);
-  }, [finishIntro]);
+  }, [finishIntro, motion]);
 
   useEffect(() => {
     let lastY = window.scrollY;

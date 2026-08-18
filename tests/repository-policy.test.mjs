@@ -95,3 +95,19 @@ test("saved preferences survive a reload", async () => {
   assert.ok(gateIndex < writeIndex, "hydrated 확인이 저장보다 먼저 와야 한다");
   assert.match(persistEffect, /try\s*\{[\s\S]*localStorage\.setItem\("wave-theme"[\s\S]*\}\s*catch/);
 });
+
+test("wave motion preference is persisted, localized and respects reduced motion", async () => {
+  const [preferences, wave, landing, css] = await Promise.all([
+    source("components/SitePreferences.tsx"),
+    source("components/WaveField.tsx"),
+    source("app/page.tsx"),
+    source("app/globals.css"),
+  ]);
+  assert.match(preferences, /localStorage\.getItem\("wave-motion"\)/);
+  assert.match(preferences, /localStorage\.setItem\("wave-motion", motion\)/);
+  assert.match(preferences, /aria-pressed=\{motion === "calm"\}/);
+  assert.match(preferences, /const motionCopy: Record<Locale/);
+  assert.match(wave, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(landing, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(css, /html\[data-motion="calm"\] \.hero-wave-canvas \{ display: none; \}/);
+});

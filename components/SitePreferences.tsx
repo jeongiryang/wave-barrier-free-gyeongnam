@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 export type Locale = "ko" | "en" | "ja" | "zh-Hans" | "zh-Hant" | "fr" | "de" | "ru";
 type Theme = "light" | "dark";
+/** full: 파동이 흐른다. calm: 정지 화면으로 대체한다. */
+export type Motion = "full" | "calm";
 
 const localeOptions: Array<{ id: Locale; label: string; short: string }> = [
   { id: "ko", label: "한국어", short: "KO" },
@@ -15,6 +17,17 @@ const localeOptions: Array<{ id: Locale; label: string; short: string }> = [
   { id: "de", label: "Deutsch", short: "DE" },
   { id: "ru", label: "Русский", short: "RU" },
 ];
+
+const motionCopy: Record<Locale, { on: string; off: string }> = {
+  ko: { on: "파동 효과 켜기", off: "파동 효과 끄기" },
+  en: { on: "Turn wave effects on", off: "Turn wave effects off" },
+  ja: { on: "波の効果をオン", off: "波の効果をオフ" },
+  "zh-Hans": { on: "开启波浪效果", off: "关闭波浪效果" },
+  "zh-Hant": { on: "開啟波浪效果", off: "關閉波浪效果" },
+  fr: { on: "Activer les vagues", off: "Désactiver les vagues" },
+  de: { on: "Welleneffekt einschalten", off: "Welleneffekt ausschalten" },
+  ru: { on: "Включить эффект волн", off: "Выключить эффект волн" },
+};
 
 const copy: Record<Locale, Record<string, string>> = {
   ko: {},
@@ -75,7 +88,9 @@ type PreferencesValue = {
   locale: Locale;
   theme: Theme;
   setLocale: (locale: Locale) => void;
+  motion: Motion;
   toggleTheme: () => void;
+  toggleMotion: () => void;
   t: (key: string, fallback: string) => string;
 };
 
@@ -84,6 +99,7 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("ko");
   const [theme, setTheme] = useState<Theme>("light");
+  const [motion, setMotion] = useState<Motion>("full");
   /* 저장된 설정을 아직 읽지 않았는데 기본값을 저장하면, 읽기보다 저장이 먼저
      끝나 이용자가 고른 값이 지워진다. 읽기가 끝난 뒤부터 저장한다. */
   const [hydrated, setHydrated] = useState(false);
@@ -96,6 +112,10 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
         if (storedLocale && localeOptions.some((item) => item.id === storedLocale)) setLocaleState(storedLocale);
         if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
         else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
+        // 저장된 선택이 없으면 운영체제의 동작 줄이기 설정을 그대로 따른다.
+        const storedMotion = window.localStorage.getItem("wave-motion") as Motion | null;
+        if (storedMotion === "full" || storedMotion === "calm") setMotion(storedMotion);
+        else if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setMotion("calm");
       } catch {
         // 저장소를 읽을 수 없으면 기본값 또는 운영체제 테마를 사용한다.
         if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
@@ -111,22 +131,26 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.theme = theme;
     document.documentElement.lang = locale === "zh-Hans" ? "zh-CN" : locale === "zh-Hant" ? "zh-TW" : locale;
     document.documentElement.style.colorScheme = theme;
+    document.documentElement.dataset.motion = motion;
     if (!hydrated) return;
     try {
       window.localStorage.setItem("wave-theme", theme);
       window.localStorage.setItem("wave-locale", locale);
+      window.localStorage.setItem("wave-motion", motion);
     } catch {
       // 사생활 보호 설정이 저장소를 막으면 현재 탭의 설정만 적용한다.
     }
-  }, [locale, theme, hydrated]);
+  }, [locale, theme, motion, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
     locale,
     theme,
     setLocale: setLocaleState,
+    motion,
     toggleTheme: () => setTheme((current) => current === "dark" ? "light" : "dark"),
+    toggleMotion: () => setMotion((current) => current === "calm" ? "full" : "calm"),
     t: (key, fallback) => copy[locale][key] || fallback,
-  }), [locale, theme]);
+  }), [locale, theme, motion]);
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }
@@ -138,9 +162,11 @@ export function useSitePreferences() {
 }
 
 export function PreferenceControls() {
-  const { locale, theme, setLocale, toggleTheme, t } = useSitePreferences();
+  const { locale, theme, motion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
+  const motionLabel = motion === "calm" ? motionCopy[locale].on : motionCopy[locale].off;
   return <div className="preference-controls">
     <label><span className="sr-only">{t("language", "언어")}</span><select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>{localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {item.label}</option>)}</select></label>
     <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")} title={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")}><span aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</span></button>
+    <button type="button" className="motion-toggle" onClick={toggleMotion} aria-pressed={motion === "calm"} aria-label={motionLabel} title={motionLabel}><span aria-hidden="true">{motion === "calm" ? "≋" : "≈"}</span></button>
   </div>;
 }
