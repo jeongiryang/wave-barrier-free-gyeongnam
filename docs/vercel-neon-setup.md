@@ -58,7 +58,7 @@ Secrets and variables → Actions에 다음 Repository secrets를 등록한다.
 
 - Pull Request를 통한 변경만 허용
 - 승인 1명 이상
-- 필수 상태 검사: **코드 품질 검사 / validate**
+- 필수 상태 검사: **CI / validate**
 - 병합 전 최신 `main` 반영
 - 강제 푸시와 브랜치 삭제 차단
 

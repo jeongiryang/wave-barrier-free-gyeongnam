@@ -118,6 +118,58 @@ function clean(value: unknown, max = 240) {
     .slice(0, max);
 }
 
+function httpsUrl(value: unknown) {
+  const text = clean(value, 500);
+  if (!text) return "";
+  try {
+    const url = new URL(text);
+    if (url.protocol === "http:") url.protocol = "https:";
+    return url.protocol === "https:" ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
+type JsonBodyResult =
+  | { body: Record<string, unknown>; response?: never }
+  | { body?: never; response: Response };
+
+async function readTrustedJson(request: Request, maxBytes: number): Promise<JsonBodyResult> {
+  const contentType = request.headers.get("content-type")?.toLowerCase() || "";
+  if (!contentType.startsWith("application/json")) {
+    return { response: json({ error: "JSON 형식의 요청만 지원합니다." }, 415) };
+  }
+
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+    return { response: json({ error: "요청 내용이 너무 큽니다." }, 413) };
+  }
+
+  const requestUrl = new URL(request.url);
+  const origin = request.headers.get("origin");
+  if (origin && origin !== requestUrl.origin) {
+    return { response: json({ error: "다른 사이트에서 보낸 저장 요청은 허용하지 않습니다." }, 403) };
+  }
+
+  const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase();
+  if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") {
+    return { response: json({ error: "다른 사이트에서 보낸 저장 요청은 허용하지 않습니다." }, 403) };
+  }
+
+  const raw = await request.text().catch(() => "");
+  if (!raw || new TextEncoder().encode(raw).byteLength > maxBytes) {
+    return { response: json({ error: raw ? "요청 내용이 너무 큽니다." : "요청 내용을 확인해 주세요." }, raw ? 413 : 400) };
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("invalid");
+    return { body: parsed as Record<string, unknown> };
+  } catch {
+    return { response: json({ error: "올바른 JSON 요청이 아닙니다." }, 400) };
+  }
+}
+
 function hasMeaningfulValue(value: unknown) {
   const text = clean(value);
   return Boolean(text && !/(없음|미제공|해당없음|정보 없음|불가)/.test(text));
@@ -420,7 +472,7 @@ async function handleLocationSearch(request: Request, env: Env) {
     const response = await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?${params.toString()}`, { signal: AbortSignal.timeout(7000), headers: { Authorization: `KakaoAK ${key}`, Accept: "application/json" } });
     if (!response.ok) throw new Error(`장소 검색 응답 ${response.status}`);
     const data = await response.json() as { documents?: Array<Record<string, string>> };
-    return json({ places: (data.documents || []).map((item) => ({ id: clean(item.id), name: clean(item.place_name), address: clean(item.road_address_name || item.address_name), category: clean(item.category_group_name || item.category_name), mapX: clean(item.x), mapY: clean(item.y), placeUrl: clean(item.place_url) })) }, 200, true);
+    return json({ places: (data.documents || []).map((item) => ({ id: clean(item.id), name: clean(item.place_name), address: clean(item.road_address_name || item.address_name), category: clean(item.category_group_name || item.category_name), mapX: clean(item.x), mapY: clean(item.y), placeUrl: httpsUrl(item.place_url) })) }, 200, true);
   } catch (error) {
     return json({ error: error instanceof Error ? clean(error.message, 120) : "장소를 검색하지 못했습니다." }, 502);
   }
@@ -1132,11 +1184,11 @@ async function ensureDb() {
 }
 
 async function handleTripsApi(request: Request, env: Env) {
-  const sql = await ensureDb();
   const url = new URL(request.url);
   const id = clean(url.pathname.split("/").filter(Boolean)[2], 64);
   if (request.method === "GET") {
     if (!id) return json({ error: "공유 여행 ID가 필요합니다." }, 400);
+    const sql = await ensureDb();
     if (!sql) return json({ error: "공유 여행 보관 기능을 준비 중입니다." }, 503);
     const rows = await sql`SELECT payload, created_at, expires_at FROM itineraries WHERE id = ${id} AND expires_at > ${Date.now()} LIMIT 1` as Array<{ payload: Record<string, unknown>; created_at: number | string; expires_at: number | string }>;
     const row = rows[0];
@@ -1153,14 +1205,37 @@ async function handleTripsApi(request: Request, env: Env) {
     return json({ id, ...saved, plan, createdAt: Number(row.created_at), expiresAt: Number(row.expires_at) }, 200, true);
   }
   if (request.method !== "POST") return json({ error: "지원하지 않는 요청입니다." }, 405);
+  const parsed = await readTrustedJson(request, 70000);
+  if (parsed.response) return parsed.response;
+  const body = parsed.body;
+  if (typeof body.selections !== "object" || !body.selections || Array.isArray(body.selections)) return json({ error: "저장할 여행 조건이 필요합니다." }, 400);
+
+  const rawSelections = body.selections as Record<string, unknown>;
+  const requestedRegion = clean(rawSelections.region, 20);
+  const requestedTheme = clean(rawSelections.theme, 20);
+  const requestedLocale = clean(rawSelections.locale || "ko", 20);
+  const rawProfiles = Array.isArray(rawSelections.profiles) ? rawSelections.profiles : [];
+  const rawAssignments = rawSelections.scheduleAssignments && typeof rawSelections.scheduleAssignments === "object" && !Array.isArray(rawSelections.scheduleAssignments)
+    ? rawSelections.scheduleAssignments as Record<string, unknown>
+    : {};
+  const date = (value: unknown) => /^\d{4}-\d{2}-\d{2}$/.test(clean(value, 10)) ? clean(value, 10) : "";
+  const selections = {
+    region: regionCodes[requestedRegion] ? requestedRegion : "창원",
+    theme: contentTypes[requestedTheme] ? requestedTheme : "nature",
+    profiles: [...new Set(rawProfiles.map((value) => clean(value, 20)).filter((value) => profileFields[value]))].slice(0, 6),
+    locale: languageServices[requestedLocale] ? requestedLocale : "ko",
+    travelStart: date(rawSelections.travelStart),
+    travelEnd: date(rawSelections.travelEnd),
+    scheduleAssignments: Object.fromEntries(Object.entries(rawAssignments).slice(0, 12).map(([placeId, assignedDate]) => [clean(placeId, 80), date(assignedDate)]).filter(([placeId, assignedDate]) => placeId && assignedDate)),
+  };
+
+  const sql = await ensureDb();
   if (!sql) return json({ error: "공유 여행 보관 기능을 준비 중입니다." }, 503);
-  const body = await request.json().catch(() => null) as Record<string, unknown> | null;
-  if (!body || typeof body.selections !== "object" || !body.selections) return json({ error: "저장할 여행 조건이 필요합니다." }, 400);
   const plan = (body.plan && typeof body.plan === "object" ? body.plan : {}) as Record<string, unknown>;
   const places = Array.isArray(plan.places) ? plan.places as Array<Record<string, unknown>> : [];
   const origin = (body.origin && typeof body.origin === "object" ? body.origin : {}) as Record<string, unknown>;
   const payloadObject = {
-    selections: body.selections,
+    selections,
     origin: { label: clean(origin.label || "선택 출발지", 80) },
     placeRefs: places.slice(0, 12).map((place, order) => ({ contentId: clean(place.id, 80), order })),
   };
@@ -1175,12 +1250,14 @@ async function handleTripsApi(request: Request, env: Env) {
 
 async function handleFeedbackApi(request: Request) {
   if (request.method !== "POST") return json({ error: "POST 요청만 지원합니다." }, 405);
-  const sql = await ensureDb();
-  if (!sql) return json({ error: "접근성 제보 보관 기능을 준비 중입니다." }, 503);
-  const body = await request.json().catch(() => null) as Record<string, unknown> | null;
+  const parsed = await readTrustedJson(request, 4000);
+  if (parsed.response) return parsed.response;
+  const body = parsed.body;
   const placeId = clean(body?.placeId, 80); const placeName = clean(body?.placeName, 100);
   const field = clean(body?.field || "접근성 정보", 60); const message = clean(body?.message, 800);
   if (!placeId || !placeName || message.length < 5) return json({ error: "장소와 5자 이상의 제보 내용을 입력해 주세요." }, 400);
+  const sql = await ensureDb();
+  if (!sql) return json({ error: "접근성 제보 보관 기능을 준비 중입니다." }, 503);
   const id = crypto.randomUUID();
   await sql`INSERT INTO place_feedback (id, place_id, place_name, field, message, status, created_at) VALUES (${id}, ${placeId}, ${placeName}, ${field}, ${message}, 'received', ${Date.now()})`;
   return json({ ok: true, id }, 201);

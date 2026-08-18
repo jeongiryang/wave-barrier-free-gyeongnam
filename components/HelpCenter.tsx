@@ -5,16 +5,34 @@ import { useEffect, useRef, useState } from "react";
 export default function HelpCenter() {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!open) return;
-    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
-    window.addEventListener("keydown", close);
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : triggerRef.current;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = [...dialogRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener("keydown", handleKeyDown);
     window.setTimeout(() => dialogRef.current?.querySelector<HTMLButtonElement>("button")?.focus(), 0);
-    return () => window.removeEventListener("keydown", close);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      previousFocus?.focus();
+    };
   }, [open]);
 
   return <>
-    <button className="help-button" type="button" onClick={() => setOpen(true)}>도움말 <span>?</span></button>
+    <button className="help-button" type="button" onClick={() => setOpen(true)} ref={triggerRef}>도움말 <span>?</span></button>
     {open && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
       <div className="help-dialog" role="dialog" aria-modal="true" aria-labelledby="help-title" ref={dialogRef}>
         <button className="modal-close" type="button" onClick={() => setOpen(false)} aria-label="도움말 닫기">×</button>

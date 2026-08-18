@@ -356,6 +356,7 @@ export default function PlannerPage() {
   const [placeSearchLoading, setPlaceSearchLoading] = useState(false);
   const cardsRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const placeDialogRef = useRef<HTMLElement>(null);
 
   const activeProfiles = useMemo(
     () => profiles.filter((profile) => selected.includes(profile.id)),
@@ -416,6 +417,31 @@ export default function PlannerPage() {
   useEffect(() => {
     window.localStorage.setItem("wave-saved-places", JSON.stringify(saved));
   }, [saved]);
+
+  useEffect(() => {
+    if (!selectedPlace) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setSelectedPlace(null);
+        return;
+      }
+      if (event.key !== "Tab" || !placeDialogRef.current) return;
+      const focusable = [...placeDialogRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    window.setTimeout(() => placeDialogRef.current?.querySelector<HTMLButtonElement>("button")?.focus(), 0);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      previousFocus?.focus();
+    };
+  }, [selectedPlace]);
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -1084,7 +1110,7 @@ export default function PlannerPage() {
 
       {selectedPlace && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setSelectedPlace(null)}>
-          <section className="place-modal" role="dialog" aria-modal="true" aria-labelledby="place-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+          <section className="place-modal" role="dialog" aria-modal="true" aria-labelledby="place-modal-title" onMouseDown={(event) => event.stopPropagation()} ref={placeDialogRef}>
             <button className="modal-close" type="button" onClick={() => setSelectedPlace(null)} aria-label="닫기">×</button>
             <div className="modal-visual" style={selectedPlace.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${selectedPlace.image}")` } : undefined}><span>{selectedPlace.city || region}</span><b>{selectedPlace.score}<small>W.A.V.E 적합도</small></b></div>
             <div className="modal-body">
@@ -1105,7 +1131,7 @@ export default function PlannerPage() {
 
       <footer className="simple-footer">
         <div className="brand footer-brand"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span></div>
-        <p>누구나 원하는 곳으로, 경남 무장애 여행 길잡이</p>
+        <div className="footer-notes"><p>누구나 원하는 곳으로, 경남 무장애 여행 길잡이</p><p className="trust-notice">2026 관광데이터 활용 공모전 출품용 독립 서비스이며 한국관광공사·경상남도의 공식 운영 서비스가 아닙니다.</p></div>
         <p className="source">출처: ⓒ한국관광공사 · ⓒ한국관광콘텐츠랩</p>
       </footer>
     </main>

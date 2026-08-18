@@ -7,6 +7,12 @@ export default defineConfig(async () => {
     server: {
       host: "0.0.0.0",
     },
-    plugins: [vinext(), nitro()],
+    plugins: [vinext(), nitro({
+      vercel: {
+        functions: {
+          runtime: "nodejs22.x",
+        },
+      },
+    })],
   };
 });
