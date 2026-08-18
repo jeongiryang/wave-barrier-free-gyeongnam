@@ -1545,6 +1545,66 @@ html[data-theme="dark"] .access-badge { background: var(--paper); }
 }
 html[data-motion="calm"] .hero-wave-canvas { display: none; }
 
+/* --- 단계별 도움말 투어 --------------------------------------------------
+   실제 포인터를 강제로 움직이지 않고 안내 포인터와 고정 하이라이트가 스크롤을
+   따라가도록 한다. 모달이 열린 동안 배경 조작은 shield가 막는다. */
+.help-tour-shield {
+  position: fixed; z-index: 180; inset: 0; width: 100%; height: 100%; padding: 0;
+  border: 0; border-radius: 0; background: transparent; cursor: default;
+}
+.help-tour-spotlight {
+  position: fixed; z-index: 181; pointer-events: none;
+  border: 4px solid var(--mint); border-radius: 24px;
+  box-shadow: 0 0 0 9999px rgba(2, 24, 35, .68), 0 0 0 7px rgba(111, 227, 208, .2), 0 18px 52px rgba(2, 34, 48, .28);
+  transition: top .45s cubic-bezier(.22,1,.36,1), left .45s cubic-bezier(.22,1,.36,1), width .45s cubic-bezier(.22,1,.36,1), height .45s cubic-bezier(.22,1,.36,1);
+}
+.help-tour-pointer {
+  position: fixed; z-index: 182; width: 42px; height: 42px; display: grid; place-items: center;
+  pointer-events: none; border: 2px solid #fff; border-radius: 50%; color: var(--abyss);
+  background: var(--mint); box-shadow: 0 10px 28px rgba(2,34,48,.35);
+  transform: translate(-50%,-50%) rotate(-35deg); transition: top .45s cubic-bezier(.22,1,.36,1), left .45s cubic-bezier(.22,1,.36,1);
+}
+.help-tour-dialog {
+  position: fixed; z-index: 183; right: clamp(16px,4vw,54px); bottom: clamp(16px,4vw,48px);
+  width: min(430px,calc(100vw - 32px)); padding: 28px;
+  border: 1px solid rgba(255,255,255,.72); border-radius: 26px;
+  color: var(--ink); background: rgba(250,253,255,.98); box-shadow: 0 28px 90px rgba(2,24,35,.42);
+}
+.help-tour-close { position: absolute; top: 15px; right: 15px; width: 44px; min-height: 44px; border: 0; border-radius: 50%; background: var(--sky); font-size: 1.35rem; }
+.help-tour-progress { margin: 0 54px 20px 0; display: flex; gap: 6px; }
+.help-tour-progress i { height: 5px; flex: 1; border-radius: 999px; background: var(--line); transition: background .25s ease; }
+.help-tour-progress i.active { background: var(--blue); }
+.help-tour-dialog .dialog-kicker { display: block; }
+.help-tour-dialog h2 { margin: 8px 36px 12px 0; font-size: clamp(1.55rem,4vw,2.15rem); line-height: 1.13; }
+.help-tour-dialog > p { margin: 0; color: var(--muted); line-height: 1.65; }
+.help-tour-dialog > small { margin-top: 14px; display: block; color: var(--blue-dark); font-size: .74rem; }
+.help-tour-actions { margin-top: 24px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 9px; }
+.help-tour-actions button { min-height: 48px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); background: #fff; font-weight: 850; }
+.help-tour-actions button.primary { color: #fff; border-color: var(--blue); background: var(--blue); }
+.help-tour-actions button:disabled { opacity: .42; }
+html[data-theme="dark"] .help-tour-dialog { color: #eaf5f9; border-color: #31596a; background: rgba(8,41,56,.98); }
+html[data-theme="dark"] .help-tour-dialog > p { color: #b4ccd6; }
+html[data-theme="dark"] .help-tour-dialog > small { color: #8fdde0; }
+html[data-theme="dark"] .help-tour-close, html[data-theme="dark"] .help-tour-actions button { color: #eaf5f9; border-color: #31596a; background: #0e3748; }
+html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; border-color: var(--mint); background: var(--mint); }
+
+/* 기존에는 980px 아래에서 도움말을 숨겼다. 모바일에서도 투어에 접근할 수 있도록
+   글자만 접고 44px 아이콘 버튼으로 유지한다. */
+@media (max-width: 980px) {
+  .landing-header-actions .help-button, .planner-header-actions .help-button { display: inline-flex; }
+  .help-button { width: 44px; min-width: 44px; min-height: 44px; padding: 0; justify-content: center; font-size: 0; }
+  .help-button span { width: 24px; height: 24px; font-size: .78rem; }
+}
+@media (max-width: 620px) {
+  .help-tour-dialog { right: 10px; bottom: 10px; width: calc(100vw - 20px); padding: 22px 18px 18px; border-radius: 20px; }
+  .help-tour-dialog h2 { margin-right: 42px; }
+  .help-tour-pointer { width: 36px; height: 36px; }
+  .help-tour-spotlight { border-width: 3px; border-radius: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .help-tour-spotlight, .help-tour-pointer, .help-tour-progress i { transition: none; }
+}
+
 /* --- 파동 효과 시각 피로 완화 (Refs #21) ---------------------------------
    히어로 배경의 물결이 본문과 함께 계속 눈에 들어와 피로하다는 지적이 있었다.
    문자 밀도와 속도는 컴포넌트에서 낮추고, 여기서는 배경으로 더 물러나게 한다. */
