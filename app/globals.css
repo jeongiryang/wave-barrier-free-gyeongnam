@@ -1533,3 +1533,13 @@ html[data-theme="dark"] .access-badge { background: var(--paper); }
   border-radius: 4px;
 }
 .brand-intro :focus-visible { outline-color: var(--mint); }
+
+/* --- 파동 효과 토글 (Refs #21) -------------------------------------------
+   효과를 끄면 캔버스는 정지 화면 한 장만 남는다. 배경으로만 쓰이는
+   히어로 캔버스는 아예 감춰 시선을 완전히 비운다. */
+.preference-controls .motion-toggle[aria-pressed="true"] {
+  color: var(--blue);
+  border-color: var(--blue);
+  background: var(--sky);
+}
+html[data-motion="calm"] .hero-wave-canvas { display: none; }

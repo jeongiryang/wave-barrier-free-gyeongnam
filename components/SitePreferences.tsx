@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 export type Locale = "ko" | "en" | "ja" | "zh-Hans" | "zh-Hant" | "fr" | "de" | "ru";
 type Theme = "light" | "dark";
+/** full: 파동이 흐른다. calm: 정지 화면으로 대체한다. */
+export type Motion = "full" | "calm";
 
 const localeOptions: Array<{ id: Locale; label: string; short: string }> = [
   { id: "ko", label: "한국어", short: "KO" },
@@ -75,7 +77,9 @@ type PreferencesValue = {
   locale: Locale;
   theme: Theme;
   setLocale: (locale: Locale) => void;
+  motion: Motion;
   toggleTheme: () => void;
+  toggleMotion: () => void;
   t: (key: string, fallback: string) => string;
 };
 
@@ -84,6 +88,7 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("ko");
   const [theme, setTheme] = useState<Theme>("light");
+  const [motion, setMotion] = useState<Motion>("full");
   /* 저장된 설정을 아직 읽지 않았는데 기본값을 저장하면, 읽기보다 저장이 먼저
      끝나 이용자가 고른 값이 지워진다. 읽기가 끝난 뒤부터 저장한다. */
   const [hydrated, setHydrated] = useState(false);
@@ -95,6 +100,10 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
       if (storedLocale && localeOptions.some((item) => item.id === storedLocale)) setLocaleState(storedLocale);
       if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
       else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
+      // 저장된 선택이 없으면 운영체제의 동작 줄이기 설정을 그대로 따른다.
+      const storedMotion = window.localStorage.getItem("wave-motion") as Motion | null;
+      if (storedMotion === "full" || storedMotion === "calm") setMotion(storedMotion);
+      else if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setMotion("calm");
       setHydrated(true);
     });
     return () => window.cancelAnimationFrame(frame);
@@ -104,18 +113,22 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.theme = theme;
     document.documentElement.lang = locale === "zh-Hans" ? "zh-CN" : locale === "zh-Hant" ? "zh-TW" : locale;
     document.documentElement.style.colorScheme = theme;
+    document.documentElement.dataset.motion = motion;
     if (!hydrated) return;
     window.localStorage.setItem("wave-theme", theme);
     window.localStorage.setItem("wave-locale", locale);
-  }, [locale, theme, hydrated]);
+    window.localStorage.setItem("wave-motion", motion);
+  }, [locale, theme, motion, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
     locale,
     theme,
     setLocale: setLocaleState,
+    motion,
     toggleTheme: () => setTheme((current) => current === "dark" ? "light" : "dark"),
+    toggleMotion: () => setMotion((current) => current === "calm" ? "full" : "calm"),
     t: (key, fallback) => copy[locale][key] || fallback,
-  }), [locale, theme]);
+  }), [locale, theme, motion]);
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }
@@ -127,9 +140,10 @@ export function useSitePreferences() {
 }
 
 export function PreferenceControls() {
-  const { locale, theme, setLocale, toggleTheme, t } = useSitePreferences();
+  const { locale, theme, motion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
   return <div className="preference-controls">
     <label><span className="sr-only">{t("language", "언어")}</span><select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>{localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {item.label}</option>)}</select></label>
     <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")} title={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")}><span aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</span></button>
+    <button type="button" className="motion-toggle" onClick={toggleMotion} aria-pressed={motion === "calm"} aria-label={motion === "calm" ? t("motionOn", "파동 효과 켜기") : t("motionOff", "파동 효과 끄기")} title={motion === "calm" ? t("motionOn", "파동 효과 켜기") : t("motionOff", "파동 효과 끄기")}><span aria-hidden="true">{motion === "calm" ? "≋" : "≈"}</span></button>
   </div>;
 }

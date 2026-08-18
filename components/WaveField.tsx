@@ -18,6 +18,7 @@
  */
 
 import { useEffect, useRef } from "react";
+import { useSitePreferences } from "./SitePreferences";
 
 const RAMP = [" ", "·", ":", "-", "~", "+", "x", "X", "#", "@"];
 
@@ -81,6 +82,8 @@ export type WaveFieldProps = {
 };
 
 export default function WaveField({ tone = "deep", mode = "ambient", wordmark = "W.A.V.E", className }: WaveFieldProps) {
+  // 이용자가 파동 효과를 끄면 정지 화면 한 장만 남긴다(Refs #21).
+  const { motion } = useSitePreferences();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerRef = useRef({ x: -9999, y: -9999, active: false });
   const ripplesRef = useRef<Ripple[]>([]);
@@ -93,7 +96,7 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
     const context = canvas.getContext("2d", { alpha: false });
     if (!context) return;
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = motion === "calm" || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const tints = tone === "deep" ? DEEP_TINTS : LIGHT_TINTS;
     const background = tone === "deep" ? "#04202f" : "#eef7fc";
 
@@ -499,7 +502,7 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointerleave", onPointerLeave);
     };
-  }, [mode, tone, wordmark]);
+  }, [mode, tone, wordmark, motion]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
 }
