@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function SmartSpotImage({ src, title, region, tag, rank }: { src?: string; title: string; region: string; tag: string; rank: number }) {
   const [image, setImage] = useState(src || "");
@@ -8,7 +8,7 @@ export default function SmartSpotImage({ src, title, region, tag, rank }: { src?
   const [failed, setFailed] = useState(false);
   const [retried, setRetried] = useState(false);
 
-  async function loadOfficialFallback(cancelled = () => false) {
+  const loadOfficialFallback = useCallback(async (cancelled = () => false) => {
     const params = new URLSearchParams({ action: "spot-photo", region, title });
     try {
       const response = await fetch(`/api/wave?${params.toString()}`, { headers: { Accept: "application/json" } });
@@ -19,20 +19,23 @@ export default function SmartSpotImage({ src, title, region, tag, rank }: { src?
     } catch {
       if (!cancelled()) { setFailed(true); setLoading(false); }
     }
-  }
+  }, [region, title]);
 
   useEffect(() => {
     let cancelled = false;
-    setImage(src || "");
-    setFailed(false);
-    setRetried(false);
-    setLoading(true);
-    if (src) return () => { cancelled = true; };
-    void loadOfficialFallback(() => cancelled);
-    return () => { cancelled = true; };
-  }, [src, title, region]);
+    const frame = window.requestAnimationFrame(() => {
+      setImage(src || "");
+      setFailed(false);
+      setRetried(false);
+      setLoading(true);
+      if (!src) void loadOfficialFallback(() => cancelled);
+    });
+    return () => { cancelled = true; window.cancelAnimationFrame(frame); };
+  }, [src, loadOfficialFallback]);
 
   return <div className={`smart-spot-image${loading ? " loading" : ""}${failed ? " failed" : ""}`}>
+    {/* 관광사진 OpenAPI가 반환하는 외부 URL은 Next 이미지 최적화 도메인을 사전 열거할 수 없다. */}
+    {/* eslint-disable-next-line @next/next/no-img-element */}
     {image && <img src={image} alt={`${title} 관광사진`} onLoad={() => setLoading(false)} onError={() => {
       if (!retried) { setImage(""); setLoading(true); void loadOfficialFallback(); }
       else { setImage(""); setFailed(true); setLoading(false); }

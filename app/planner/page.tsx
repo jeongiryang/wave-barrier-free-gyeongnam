@@ -512,14 +512,16 @@ export default function PlannerPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setWeatherLoading(true);
-    setWeather(null);
+    const frame = window.requestAnimationFrame(() => {
+      setWeatherLoading(true);
+      setWeather(null);
+    });
     void fetch(`/api/weather?region=${encodeURIComponent(region)}`, { headers: { Accept: "application/json" } })
       .then((response) => response.ok ? response.json() : null)
       .then((data) => { if (!cancelled && data) setWeather(data as WeatherData); })
       .catch(() => { /* 예보 실패 시 나머지 여행 기능은 유지한다. */ })
       .finally(() => { if (!cancelled) setWeatherLoading(false); });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; window.cancelAnimationFrame(frame); };
   }, [region]);
 
   async function searchLocations() {
