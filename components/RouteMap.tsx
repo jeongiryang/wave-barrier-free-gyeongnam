@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { Map as LeafletMap } from "leaflet";
 
 export type RoutePoint = { lat: number; lng: number };
@@ -226,8 +226,8 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
   const [roadviewPreviewOpen, setRoadviewPreviewOpen] = useState(false);
   const [measureMode, setMeasureMode] = useState<"POLYLINE" | "CIRCLE" | "POLYGON" | null>(null);
   const [measureSummary, setMeasureSummary] = useState("");
-  const crowdVisual = crowd && Number.isFinite(crowd.rate) ? describeCrowd(crowd.rate) : null;
-  const crowdPlace = crowdVisual ? (places.find((place) => place.id === crowdPlaceId) || places.find((place) => place.name === crowd?.place) || places[0]) : undefined;
+  const crowdVisual = useMemo(() => crowd && Number.isFinite(crowd.rate) ? describeCrowd(crowd.rate) : null, [crowd]);
+  const crowdPlace = useMemo(() => crowdVisual ? (places.find((place) => place.id === crowdPlaceId) || places.find((place) => place.name === crowd?.place) || places[0]) : undefined, [crowd?.place, crowdPlaceId, crowdVisual, places]);
 
   useEffect(() => { pickModeRef.current = pickMode; }, [pickMode]);
   useEffect(() => { roadviewSelectModeRef.current = roadviewSelectMode; }, [roadviewSelectMode]);
@@ -702,7 +702,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
       drawingManagerRef.current = null;
       clearCategoryMarkers();
     };
-  }, [origin.lat, origin.lng, places, route, retryNonce, crowd?.rate, crowdPlaceId, clearCategoryMarkers]);
+  }, [origin.lat, origin.lng, places, route, retryNonce, crowdVisual, crowdPlace?.id, clearCategoryMarkers]);
 
   const drawerOpen = toolPanel !== null;
   return <div ref={shellRef} className={`route-map-shell${drawerOpen ? " drawer-open" : ""}${expanded ? " expanded" : ""}`}>
