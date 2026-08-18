@@ -1,0 +1,27 @@
+name: 기능·개선 제안
+description: 새 기능, 접근성, 모바일 또는 문서 개선을 제안합니다.
+title: "feat: "
+labels: ["enhancement"]
+assignees: ["jeongiryang"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 해결하려는 문제
+      description: 기능 자체보다 사용자가 겪는 문제를 먼저 적어 주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 제안 내용
+      description: 공모전 지정과제, 기존 기능 및 모바일·접근성에 미치는 영향을 적어 주세요.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: 사전 확인
+      options:
+        - label: Secret·개인정보·GPS 좌표를 이슈 본문에 포함하지 않았습니다.
+          required: true

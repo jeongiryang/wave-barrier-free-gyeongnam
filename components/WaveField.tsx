@@ -19,18 +19,21 @@
 
 import { useEffect, useRef } from "react";
 
-const RAMP = [" ", "·", ":", "-", "~", "+", "x", "X", "#", "@"];
+/* 획이 많은 글자(#, @, x)는 칸마다 잔상을 남겨 화면 전체가 지글거린다.
+   점과 선 위주로 낮은 밀도부터 쌓고, 가장 밝은 단계에만 면적이 있는 글자를 둔다. */
+const RAMP = [" ", "·", "·", ":", ":", "-", "-", "~", "~", "="];
 
-/** 심연에서 포말까지. 어두운 배경 위에 밝은 물마루가 올라온다. */
+/** 심연에서 포말까지. 어두운 배경 위에 밝은 물마루가 올라온다.
+    가장 밝은 단계를 순백에서 내려 배경과의 대비를 완화한다. */
 const DEEP_TINTS = [
-  "#083a54", "#0a4a72", "#0a6baf", "#0f88c8", "#17b8d4",
-  "#3fd0d8", "#6fe3d0", "#a6efdf", "#d8f7f2", "#ffffff",
+  "#0a3a52", "#0d4a68", "#12587f", "#166b95", "#1a80a8",
+  "#2496b8", "#3aabc4", "#5cc2cf", "#86d6d8", "#b3e5e2",
 ];
 
 /** 연한 수면 위에 짙은 바다색으로 물결을 새긴다. */
 const LIGHT_TINTS = [
-  "#dcecf5", "#c6e0ef", "#a9d2e8", "#85c0de", "#5cabd2",
-  "#3396c5", "#1b83b8", "#0a6baf", "#0b5688", "#06304a",
+  "#e0eef6", "#d0e4f0", "#bcd8e9", "#a5cade", "#8bbad2",
+  "#71a9c5", "#5a97b6", "#4785a6", "#387395", "#2c6383",
 ];
 
 /* 셀마다 sin을 여러 번 부르면 프레임을 유지하지 못한다. 파형은 어차피 문자 10단계로
@@ -44,19 +47,20 @@ const fsin = (value: number) => SIN_TABLE[((value * SIN_SCALE) | 0) & SIN_MASK];
 
 type Wave = { k: number; speed: number; amp: number; dirX: number; dirY: number; phase: number };
 
-/** 진행 방향이 대체로 화면 오른쪽을 향하는 너울. 파장이 길수록 느리고 크게 움직인다. */
+/** 진행 방향이 대체로 화면 오른쪽을 향하는 너울. 파장이 길수록 느리고 크게 움직인다.
+    빠른 물결은 칸이 자주 바뀌어 잔상을 만들므로 전체 속도를 낮게 잡는다. */
 const WAVES: Wave[] = [
-  { k: 0.055, speed: 1.15, amp: 1.0, dirX: 0.99, dirY: 0.14, phase: 0 },
-  { k: 0.091, speed: 1.6, amp: 0.62, dirX: 0.94, dirY: -0.34, phase: 1.7 },
-  { k: 0.148, speed: 2.25, amp: 0.38, dirX: 0.86, dirY: 0.51, phase: 3.1 },
-  { k: 0.233, speed: 3.1, amp: 0.22, dirX: 0.99, dirY: -0.12, phase: 5.4 },
+  { k: 0.055, speed: 0.72, amp: 1.0, dirX: 0.99, dirY: 0.14, phase: 0 },
+  { k: 0.091, speed: 1.0, amp: 0.62, dirX: 0.94, dirY: -0.34, phase: 1.7 },
+  { k: 0.148, speed: 1.4, amp: 0.34, dirX: 0.86, dirY: 0.51, phase: 3.1 },
+  { k: 0.233, speed: 1.92, amp: 0.18, dirX: 0.99, dirY: -0.12, phase: 5.4 },
 ];
 
 /** 형상이 나타났다 사라지는 시각(초). 앞뒤가 겹쳐 형상끼리 자연스럽게 넘어간다. */
 const STAGES = [
   { in: [1.05, 1.85], out: [2.45, 3.0] },  // 파도
   { in: [2.7, 3.35], out: [3.95, 4.35] },  // 무장애 심볼
-  { in: [4.05, 4.6], out: [4.95, 5.25] },  // W.A.V.E
+  { in: [4.05, 4.6], out: [5.65, 6.05] },  // W.A.V.E — 읽을 시간을 조금 더 둔다.
 ];
 
 function stageWeight(time: number, stage: { in: number[]; out: number[] }) {
@@ -358,7 +362,7 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
         // 행에만 의존하는 값은 열 루프 밖으로 꺼낸다.
         const r0 = rowPhase[0][row] - p0, r1 = rowPhase[1][row] - p1;
         const r2 = rowPhase[2][row] - p2, r3 = rowPhase[3][row] - p3;
-        const churnRow = fsin(y * 0.31 + time * 2.1) * 2.6 - time * 7.5;
+        const churnRow = fsin(y * 0.31 + time * 1.3) * 2.2 - time * 3.8;
         const rowOffset = row * cols;
 
         for (let col = 0; col < cols; col += 1) {
@@ -385,20 +389,20 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
             const dx = x - ripple.x, dy = (y - ripple.y) * 1.6;
             const d2 = dx * dx + dy * dy;
             const age = time - ripple.born;
-            const front = age * 320;
+            const front = age * 240;
             const outer = front + 130;
             // 물결 띠 밖은 제곱 거리로 먼저 걸러 sqrt를 피한다.
             if (d2 > outer * outer) continue;
             const inner = front - 190;
             if (inner > 0 && d2 < inner * inner) continue;
             const dist = Math.sqrt(d2);
-            height += 1.15 * fsin(dist * 0.055 - age * 9) * Math.exp(-dist / 260) * Math.exp(-age * 1.5);
+            height += 0.95 * fsin(dist * 0.055 - age * 6) * Math.exp(-dist / 260) * Math.exp(-age * 1.4);
           }
 
           // 4. 부서지는 물마루 — 마루가 임계값을 넘으면 흐르는 난류가 얹힌다
           if (height > 0.34) {
             const crest = (height - 0.34) / 0.66;
-            height += crest * crest * fsin(x * 0.42 + churnRow) * 0.55;
+            height += crest * crest * fsin(x * 0.42 + churnRow) * 0.34;
           }
 
           // 마루 쪽으로 밝기를 몰아 물마루가 가늘고 선명하게 서게 만든다.

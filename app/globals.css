@@ -1177,7 +1177,7 @@ html[data-theme="dark"] .day-planner li,html[data-theme="dark"] .day-planner sel
   display: grid; place-items: center;
   overflow: hidden; color: #fff;
   background: var(--abyss);
-  animation: landingIntroOut .5s 5.05s cubic-bezier(.76,0,.24,1) forwards;
+  animation: landingIntroOut .5s 6.05s cubic-bezier(.76,0,.24,1) forwards;
 }
 .brand-intro::before, .brand-intro::after { content: none; }
 .brand-intro-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -1273,9 +1273,10 @@ html[data-theme="dark"] .day-planner li,html[data-theme="dark"] .day-planner sel
 .planner-page > .route-section,
 .planner-page > .data-section,
 .planner-page > .connection-diagnostics {
+  --card-pad-x: clamp(20px, 2.8vw, 46px);
   width: min(1560px, calc(100vw - var(--gutter) * 2));
   margin: 0 auto clamp(18px, 2.4vw, 32px);
-  padding: clamp(26px, 3.2vw, 52px) clamp(20px, 2.8vw, 46px);
+  padding: clamp(26px, 3.2vw, 52px) var(--card-pad-x);
   overflow: visible;
   border: 1px solid var(--line);
   border-radius: clamp(20px, 2.2vw, 28px);
@@ -1533,3 +1534,25 @@ html[data-theme="dark"] .access-badge { background: var(--paper); }
   border-radius: 4px;
 }
 .brand-intro :focus-visible { outline-color: var(--mint); }
+
+/* --- 파동 효과 시각 피로 완화 (Refs #21) ---------------------------------
+   히어로 배경의 물결이 본문과 함께 계속 눈에 들어와 피로하다는 지적이 있었다.
+   문자 밀도와 속도는 컴포넌트에서 낮추고, 여기서는 배경으로 더 물러나게 한다. */
+.hero-wave-canvas { opacity: .34; }
+@media (max-width: 1100px) { .hero-wave-canvas { opacity: .2; } }
+@media (max-width: 620px) { .hero-wave-canvas { opacity: .15; } }
+/* 인트로는 전면 연출이지만 대비를 조금 눌러 잔상을 줄인다. */
+.brand-intro-canvas { opacity: .82; }
+
+/* --- 추천 여행지 캐러셀 폭 -----------------------------------------------
+   캐러셀은 원래 화면 끝까지 흐르는 전체 폭 구역 안에 있어서 100vw 기준으로
+   폭을 잡았다. 구역이 기능 카드로 바뀌면서 컨테이너가 뷰포트보다 좁아졌고,
+   그대로 두니 문서가 가로로 밀려났다(960px에서 29px, 768px에서 33px).
+   카드 안쪽 여백만큼만 좌우로 빠져나가게 해 카드 끝까지 흐르는 모양은
+   유지하면서 뷰포트 기준 계산을 없앤다. */
+.planner-page > .places-section .place-carousel {
+  width: auto;
+  max-width: none;
+  margin-inline: calc(var(--card-pad-x) * -1);
+  padding: 4px var(--card-pad-x) 28px;
+}

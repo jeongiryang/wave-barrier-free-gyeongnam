@@ -90,12 +90,19 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const storedLocale = window.localStorage.getItem("wave-locale") as Locale | null;
-      const storedTheme = window.localStorage.getItem("wave-theme") as Theme | null;
-      if (storedLocale && localeOptions.some((item) => item.id === storedLocale)) setLocaleState(storedLocale);
-      if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
-      else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
-      setHydrated(true);
+      try {
+        const storedLocale = window.localStorage.getItem("wave-locale") as Locale | null;
+        const storedTheme = window.localStorage.getItem("wave-theme") as Theme | null;
+        if (storedLocale && localeOptions.some((item) => item.id === storedLocale)) setLocaleState(storedLocale);
+        if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
+        else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
+      } catch {
+        // 저장소를 읽을 수 없으면 기본값 또는 운영체제 테마를 사용한다.
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
+      } finally {
+        // 저장소 접근이 차단된 브라우저에서도 화면 설정 자체는 계속 동작해야 한다.
+        setHydrated(true);
+      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
@@ -105,8 +112,12 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = locale === "zh-Hans" ? "zh-CN" : locale === "zh-Hant" ? "zh-TW" : locale;
     document.documentElement.style.colorScheme = theme;
     if (!hydrated) return;
-    window.localStorage.setItem("wave-theme", theme);
-    window.localStorage.setItem("wave-locale", locale);
+    try {
+      window.localStorage.setItem("wave-theme", theme);
+      window.localStorage.setItem("wave-locale", locale);
+    } catch {
+      // 사생활 보호 설정이 저장소를 막으면 현재 탭의 설정만 적용한다.
+    }
   }, [locale, theme, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
