@@ -391,7 +391,12 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
 
   function saveRoute() {
     try {
-      window.localStorage.setItem("wave-saved-map", JSON.stringify({ origin, places, route, savedAt: new Date().toISOString() }));
+      // 현재 위치·경로 좌표는 기기 저장소에도 남기지 않는다. 재구성에 필요한 식별자와 요약만 보관한다.
+      window.localStorage.setItem("wave-saved-map", JSON.stringify({
+        places: places.slice(0, 12).map((place, order) => ({ id: place.id, name: place.name, order })),
+        route: route ? { id: route.id, label: route.label, provider: route.provider, totalTime: route.totalTime, totalDistance: route.totalDistance } : null,
+        savedAt: new Date().toISOString(),
+      }));
       setProviderDetail("현재 여행 경로를 이 기기에 저장했습니다.");
     } catch { setProviderDetail("브라우저 저장 공간을 사용할 수 없습니다."); }
   }

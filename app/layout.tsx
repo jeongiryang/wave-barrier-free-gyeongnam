@@ -5,7 +5,6 @@ import { SitePreferencesProvider } from "../components/SitePreferences";
 export const metadata: Metadata = {
   title: "W.A.V.E 여행 동행 안전 플랫폼",
   description: "누구나 편안하게 떠나는 경상남도 무장애 맞춤 여행 길잡이",
-  other: { "codex-preview": "development" },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

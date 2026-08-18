@@ -29,5 +29,8 @@ jobs:
       - name: 정적 검사
         run: npm run lint
 
+      - name: 회귀 테스트
+        run: npm test
+
       - name: Vercel용 빌드 검사
         run: npm run build:vercel

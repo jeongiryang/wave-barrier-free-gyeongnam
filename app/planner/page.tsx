@@ -13,6 +13,8 @@ import {
 import RouteMap, { type MapPlace, type RouteAlternative, type RoutePoint } from "../../components/RouteMap";
 import { PreferenceControls, useSitePreferences } from "../../components/SitePreferences";
 import SmartSpotImage from "../../components/SmartSpotImage";
+import AccountMenu from "../../components/AccountMenu";
+import HelpCenter from "../../components/HelpCenter";
 
 type ApiState = "live" | "empty" | "error" | "ready";
 
@@ -45,11 +47,11 @@ type KeyHealthItem = {
 type KeyHealth = { checkedAt: string; keys: KeyHealthItem[] };
 
 const transportStateLabel: Record<TransportProviderState, string> = {
-  connected: "실시간 연결",
-  ready: "인증 확인",
-  error: "호출 확인",
-  missing: "키 미등록",
-  checking: "연결 확인 중",
+  connected: "운행정보 확인",
+  ready: "이용 가능",
+  error: "잠시 지연",
+  missing: "준비 중",
+  checking: "확인 중",
 };
 
 const transportModes: Array<{ id: TransportMode; label: string; description: string }> = [
@@ -155,12 +157,29 @@ type EnrichmentData = {
   generatedAt: string;
   visitor: { total: number; byType: Record<string, number>; startYmd: string; endYmd: string };
   demand: Array<{ name: string; value: number; baseYm: string }>;
-  camping: RichSpot[]; pet: RichSpot[]; wellness: RichSpot[]; medical: RichSpot[]; language: RichSpot[]; awards: RichSpot[]; water: RichSpot[]; rests: RichSpot[];
+  camping: RichSpot[]; pet: RichSpot[]; wellness: RichSpot[]; medical: RichSpot[]; language: RichSpot[]; awards: RichSpot[]; water: RichSpot[]; rests: RichSpot[]; events: RichSpot[]; lodging: RichSpot[];
   statuses: ApiStatus[];
 };
 type WeatherDay = { date: string; code: number; label: string; max: number; min: number; rainProbability: number; rain: number; snow: number; uv: number; advice: string[] };
 type WeatherData = { region: string; updatedAt: string; source: string; current: { temperature: number; apparent: number; code: number; label: string; wind: number; precipitation: number; isDay: boolean }; days: WeatherDay[]; advice: string[] };
 type SearchPlace = { id: string; name: string; address: string; category: string; mapX: string; mapY: string; placeUrl?: string };
+
+function localDate(offset = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function dateRange(start: string, end: string) {
+  const first = new Date(`${start}T12:00:00`);
+  const last = new Date(`${end}T12:00:00`);
+  if (Number.isNaN(first.getTime()) || Number.isNaN(last.getTime()) || first > last) return [start];
+  const days: string[] = [];
+  for (let current = first; current <= last && days.length < 7; current = new Date(current.getTime() + 86400000)) {
+    days.push(`${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}-${String(current.getDate()).padStart(2, "0")}`);
+  }
+  return days;
+}
 
 const departurePresets: Array<{ id: string; name: string; detail: string; point: RoutePoint }> = [
   { id: "changwon", name: "창원중앙역", detail: "KTX·시내버스 환승", point: { lat: 35.2422, lng: 128.6982 } },
@@ -251,6 +270,8 @@ const apiMeta = [
 ];
 
 const richCatalog = [
+  { id: "events", label: "축제·행사", icon: "✦", description: "지금 열리는 지역 이야기" },
+  { id: "lodging", label: "숙박", icon: "⌂", description: "지역별 머물 곳" },
   { id: "wellness", label: "웰니스", icon: "◌", description: "자연·치유·명상" },
   { id: "camping", label: "캠핑", icon: "△", description: "야영장·휴양" },
   { id: "pet", label: "반려동물", icon: "♧", description: "동반 가능 여행" },
@@ -295,6 +316,9 @@ export default function PlannerPage() {
   const [notice, setNotice] = useState("조건을 선택한 뒤 실시간 관광 데이터를 불러오세요.");
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [saved, setSaved] = useState<string[]>([]);
+  const [travelStart, setTravelStart] = useState(localDate());
+  const [travelEnd, setTravelEnd] = useState(localDate(1));
+  const [scheduleAssignments, setScheduleAssignments] = useState<Record<string, string>>({});
   const [headerHidden, setHeaderHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -304,6 +328,7 @@ export default function PlannerPage() {
   const [audioDuration, setAudioDuration] = useState(0);
   const [origin, setOrigin] = useState<RoutePoint>(departurePresets[0].point);
   const [originLabel, setOriginLabel] = useState(departurePresets[0].name);
+  const [privateOrigin, setPrivateOrigin] = useState(false);
   const [routeAlternatives, setRouteAlternatives] = useState<RouteAlternative[]>([]);
   const [routeDestination, setRouteDestination] = useState<Place | null>(null);
   const [destinationCrowd, setDestinationCrowd] = useState<{ rate: number; baseYmd: string; place: string } | null>(null);
@@ -323,7 +348,7 @@ export default function PlannerPage() {
   const [feedbackState, setFeedbackState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [enrichment, setEnrichment] = useState<EnrichmentData | null>(null);
   const [enrichmentLoading, setEnrichmentLoading] = useState(false);
-  const [richMode, setRichMode] = useState<"camping" | "pet" | "wellness" | "medical" | "water" | "language" | "awards" | "rests">("wellness");
+  const [richMode, setRichMode] = useState<"events" | "lodging" | "camping" | "pet" | "wellness" | "medical" | "water" | "language" | "awards" | "rests">("events");
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [pointPicker, setPointPicker] = useState<"origin" | "destination" | null>(null);
@@ -358,7 +383,6 @@ export default function PlannerPage() {
   const activeRoute = sortedRouteAlternatives.find((item) => item.id === activeRouteId) ?? sortedRouteAlternatives[0] ?? null;
   const selectedDataset = transportContext?.datasets.find((item) => item.id === selectedTransportDataset) ?? null;
   const activeTransportMode = transportModes.find((item) => item.id === transportMode) ?? transportModes[0];
-  const coreKeyMissing = keyHealth?.keys.filter((item) => !item.optional && item.state === "missing").length ?? 0;
   const providerErrors = transportProviders.filter((item) => item.state === "error").length;
   const dataErrors = statuses.filter((status) => status.state === "error").length;
   const richItems = enrichment?.[richMode] ?? [];
@@ -366,6 +390,8 @@ export default function PlannerPage() {
     .sort(([, a], [, b]) => b - a)
     .slice(0, 4);
   const demandMax = Math.max(...(enrichment?.demand.map((item) => item.value) ?? [0]), 1);
+  const tripDays = useMemo(() => dateRange(travelStart, travelEnd), [travelEnd, travelStart]);
+  const savedPlaces = activePlaces.filter((place) => saved.includes(place.id));
 
   useEffect(() => {
     let cancelled = false;
@@ -381,30 +407,16 @@ export default function PlannerPage() {
       const queryRegion = new URLSearchParams(window.location.search).get("region");
       if (queryRegion && regions.includes(queryRegion)) setRegion(queryRegion);
       const storedSaved = window.localStorage.getItem("wave-saved-places");
-      const storedPlan = window.localStorage.getItem("wave-last-plan");
       if (storedSaved) {
         try { setSaved(JSON.parse(storedSaved) as string[]); } catch { /* ignore invalid device data */ }
       }
-      if (storedPlan) {
-        try {
-          const restoredPlan = JSON.parse(storedPlan) as PlanData;
-          setPlan(restoredPlan);
-          if (restoredPlan.places[0]) void loadRoutes(restoredPlan.places[0]);
-        } catch { /* ignore invalid device data */ }
-      }
     });
     return () => window.cancelAnimationFrame(frame);
-  // 저장된 코스 복원은 최초 마운트에서만 실행하며, 해당 시점의 기본 출발지를 사용합니다.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     window.localStorage.setItem("wave-saved-places", JSON.stringify(saved));
   }, [saved]);
-
-  useEffect(() => {
-    if (plan) window.localStorage.setItem("wave-last-plan", JSON.stringify(plan));
-  }, [plan]);
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -455,7 +467,7 @@ export default function PlannerPage() {
       : [...current, id]);
   }
 
-  async function loadRoutes(place: Place, nextOrigin = origin) {
+  async function loadRoutes(place: Place, nextOrigin = origin, nextOriginIsPrivate = privateOrigin) {
     const endLat = Number(place.mapY); const endLng = Number(place.mapX);
     if (!Number.isFinite(endLat) || !Number.isFinite(endLng)) {
       setRouteNotice("선택한 여행지에 좌표가 없어 경로를 계산할 수 없습니다.");
@@ -465,6 +477,12 @@ export default function PlannerPage() {
     setRouteLoading(true);
     setRouteDestination(place);
     setDestinationCrowd(null);
+    if (nextOriginIsPrivate) {
+      setRouteLoading(false);
+      setRouteAlternatives([]);
+      setRouteNotice("현재 위치는 이 지도에서만 표시합니다. 좌표를 서버로 보내지 않으므로 카카오 지도 앱에서 경로를 이어서 확인해 주세요.");
+      return;
+    }
     setRouteNotice(`${originLabel}에서 ${place.name}까지 이동 경로를 확인하고 있습니다.`);
     const crowdParams = new URLSearchParams({ action: "crowd", region, title: place.name });
     void fetch(`/api/wave?${crowdParams.toString()}`, { headers: { Accept: "application/json" } })
@@ -495,14 +513,14 @@ export default function PlannerPage() {
   const loadEnrichment = useCallback(async () => {
     setEnrichmentLoading(true);
     try {
-      const params = new URLSearchParams({ action: "enrich", region, theme, locale });
+      const params = new URLSearchParams({ action: "enrich", region, theme, locale, startDate: travelStart, endDate: travelEnd });
       const response = await fetch(`/api/wave?${params.toString()}`, { headers: { Accept: "application/json" } });
       const data = await response.json() as EnrichmentData & { error?: string };
       if (!response.ok) throw new Error(data.error || "확장 데이터를 불러오지 못했습니다.");
       setEnrichment(data);
     } catch { setEnrichment(null); }
     finally { setEnrichmentLoading(false); }
-  }, [region, theme, locale]);
+  }, [region, theme, locale, travelStart, travelEnd]);
 
   useEffect(() => {
     if (!plan) return;
@@ -543,9 +561,9 @@ export default function PlannerPage() {
     if (mode === "origin") {
       const next = { lat: Number(place.mapY), lng: Number(place.mapX) };
       if (!Number.isFinite(next.lat) || !Number.isFinite(next.lng)) return;
-      setOrigin(next); setOriginLabel(place.name);
-      if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], next);
-    } else if (mode === "destination") void loadRoutes(place);
+      setOrigin(next); setOriginLabel(place.name); setPrivateOrigin(false);
+      if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], next, false);
+    } else if (mode === "destination") void loadRoutes(place, origin, privateOrigin);
     setPointPicker(null); setPlaceQuery(""); setPlaceSearchResults([]);
   }
 
@@ -577,8 +595,9 @@ export default function PlannerPage() {
     setRouteNotice("현재 위치 권한을 확인하고 있습니다.");
     navigator.geolocation.getCurrentPosition((position) => {
       const next = { lat: position.coords.latitude, lng: position.coords.longitude };
-      setOrigin(next); setOriginLabel("현재 위치");
-      if (activePlaces[0]) void loadRoutes(activePlaces[0], next);
+      setOrigin(next); setOriginLabel("현재 위치"); setPrivateOrigin(true);
+      setRouteAlternatives([]);
+      setRouteNotice("현재 위치를 지도에 표시했습니다. 좌표는 서버나 저장소로 전송하지 않습니다.");
     }, () => setRouteNotice("위치 권한이 없어 출발 거점을 선택해 주세요."), { enableHighAccuracy: true, timeout: 8000 });
   }
 
@@ -599,7 +618,7 @@ export default function PlannerPage() {
     try {
       const response = await fetch("/api/trips", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ plan, selections: { region, theme, profiles: selected }, origin: { ...origin, label: originLabel } }),
+        body: JSON.stringify({ plan, selections: { region, theme, profiles: selected, locale, travelStart, travelEnd, scheduleAssignments }, origin: { label: originLabel } }),
       });
       const data = await response.json() as { url?: string; error?: string };
       if (!response.ok || !data.url) throw new Error(data.error || "공유 링크를 만들지 못했습니다.");
@@ -672,9 +691,14 @@ export default function PlannerPage() {
   }
 
   function toggleSaved(id: string) {
-    setSaved((current) => current.includes(id)
-      ? current.filter((item) => item !== id)
-      : [...current, id]);
+    setSaved((current) => {
+      if (current.includes(id)) {
+        setScheduleAssignments((assignments) => { const next = { ...assignments }; delete next[id]; return next; });
+        return current.filter((item) => item !== id);
+      }
+      setScheduleAssignments((assignments) => ({ ...assignments, [id]: assignments[id] || tripDays[0] || travelStart }));
+      return [...current, id];
+    });
   }
 
   async function toggleAudio() {
@@ -702,22 +726,22 @@ export default function PlannerPage() {
           <a href="#navigation">{t("route", "길찾기")}</a>
           <a href="#data">{t("evidence", "추천 근거")}</a>
         </nav>
-        <div className="planner-header-actions"><PreferenceControls /><button className="header-action" type="button" onClick={() => document.getElementById("places")?.scrollIntoView({ behavior: "smooth" })}>
+        <div className="planner-header-actions"><HelpCenter /><PreferenceControls /><AccountMenu /><button className="header-action" type="button" onClick={() => document.getElementById("places")?.scrollIntoView({ behavior: "smooth" })}>
           여행 보관함 <b>{saved.length}</b><span aria-hidden="true">↗</span>
         </button></div>
       </header>
 
-      <section className="tool-launch" id="top" aria-label="여행 설계 도구 상태">
-        <div><p className="service-breadcrumb"><a href="/">서비스 소개</a><span>›</span>기능</p><h1>TRIP STUDIO</h1></div>
-        <div className="tool-launch-status"><span><i /> 관광 API {liveCount || "대기"}</span><span><i /> 교통 API {transportProviders.filter((item) => item.configured).length || "대기"}</span><span>{locale.toUpperCase()}</span><button type="button" aria-expanded={diagnosticsOpen} onClick={() => setDiagnosticsOpen((open) => !open)}>{coreKeyMissing ? `필수 키 ${coreKeyMissing}개 확인` : "키·API 진단"}<b>{diagnosticsOpen ? "−" : "+"}</b></button></div>
+      <section className="tool-launch" id="top" aria-label="여행 만들기">
+        <div><p className="service-breadcrumb"><a href="/">서비스 소개</a><span>›</span>내 여행</p><h1>내 여행 만들기</h1></div>
+        <div className="tool-launch-status"><span><i /> 관광정보 {liveCount ? "확인됨" : "준비"}</span><span><i /> 교통정보 {transportProviders.some((item) => item.configured) ? "확인됨" : "준비"}</span><span>{locale.toUpperCase()}</span><button type="button" aria-expanded={diagnosticsOpen} onClick={() => setDiagnosticsOpen((open) => !open)}>서비스 상태<b>{diagnosticsOpen ? "−" : "+"}</b></button></div>
       </section>
 
-      {diagnosticsOpen && <section className="connection-diagnostics" aria-label="API 연결 진단">
-        <header><div><span>CONNECTION CENTER</span><h2>키 등록과 실제 응답을 구분해 확인합니다.</h2></div><p>{keyHealth?.checkedAt ? `확인 ${new Date(keyHealth.checkedAt).toLocaleString("ko-KR")}` : "환경 확인 중"}</p></header>
+      {diagnosticsOpen && <section className="connection-diagnostics" aria-label="서비스 상태">
+        <header><div><span>SERVICE STATUS</span><h2>관광·지도·교통정보 이용 상태</h2></div><p>{keyHealth?.checkedAt ? `확인 ${new Date(keyHealth.checkedAt).toLocaleString("ko-KR")}` : "확인 중"}</p></header>
         <div className="diagnostic-grid">
-          {(keyHealth?.keys || []).map((item) => <article key={item.id} className={item.state}><i /><div><strong>{item.name}</strong><p>{item.note}</p></div><span>{item.state === "configured" ? "등록됨" : item.state === "optional" ? "선택 연동" : "필수 누락"}</span></article>)}
+          {(keyHealth?.keys || []).map((item) => <article key={item.id} className={item.state}><i /><div><strong>{item.name}</strong><p>{item.note}</p></div><span>{item.state === "configured" ? "이용 가능" : item.state === "optional" ? "선택 기능" : "준비 필요"}</span></article>)}
         </div>
-        <footer><p><b>실제 호출:</b> {transportProviders.length ? `${transportProviders.filter((item) => item.state === "connected").length}개 교통 제공자 응답 · 오류 ${providerErrors}개` : "여행지를 선택하면 교통 제공기관까지 확인"}</p><p><b>콘텐츠:</b> {plan ? `실시간 ${liveCount}개 · 오류 ${dataErrors}개` : "코스 검색 후 관광 API별 응답 표시"}</p><p>KORAIL·TAGO는 별도 키를 재발급하지 않고 승인된 공공데이터포털 인증키를 함께 사용합니다.</p></footer>
+        <footer><p><b>교통정보:</b> {transportProviders.length ? `${transportProviders.filter((item) => item.state === "connected").length}개 제공기관 확인 · 지연 ${providerErrors}개` : "여행지를 선택하면 교통정보를 확인합니다."}</p><p><b>관광정보:</b> {plan ? `최신 정보 ${liveCount}개 · 확인 필요 ${dataErrors}개` : "코스를 찾으면 제공기관별 확인 상태를 보여드려요."}</p><p>일부 운행정보는 제공기관의 조회 조건에 따라 결과가 없을 수 있습니다.</p></footer>
       </section>}
 
       <section className="planner-section" id="planner">
@@ -733,8 +757,8 @@ export default function PlannerPage() {
               <div className="select-shell"><i aria-hidden="true">◎</i><select value={departurePresets.find((item) => item.name === originLabel)?.id || "current"} onChange={(event) => {
                 const preset = departurePresets.find((item) => item.id === event.target.value);
                 if (!preset) return;
-                setOrigin(preset.point); setOriginLabel(preset.name);
-                if (activePlaces[0]) void loadRoutes(activePlaces[0], preset.point);
+                setOrigin(preset.point); setOriginLabel(preset.name); setPrivateOrigin(false);
+                if (activePlaces[0]) void loadRoutes(activePlaces[0], preset.point, false);
               }} aria-label="출발 거점 선택"><option value="current" disabled>{originLabel === "현재 위치" ? "현재 위치" : "출발 거점 선택"}</option>{departurePresets.map((item) => <option value={item.id} key={item.id}>{item.name} · {item.detail}</option>)}</select><small>출발</small></div>
               <button type="button" onClick={useCurrentLocation}>{t("currentLocation", "현재 위치")}</button>
             </div>
@@ -762,8 +786,22 @@ export default function PlannerPage() {
             </div>
           </fieldset>
 
+          <div className="control-panel date-control">
+            <span className="step-label"><b>04</b> 언제 떠날까요?</span>
+            <div className="date-range-fields">
+              <label><span>출발일</span><input type="date" min={localDate()} value={travelStart} onChange={(event) => {
+                const next = event.target.value;
+                setTravelStart(next);
+                if (travelEnd < next) setTravelEnd(next);
+              }} /></label>
+              <i aria-hidden="true">→</i>
+              <label><span>도착일</span><input type="date" min={travelStart} value={travelEnd} onChange={(event) => setTravelEnd(event.target.value)} /></label>
+            </div>
+            <p>최대 7일 일정과 해당 기간에 열리는 축제·행사를 함께 보여드려요.</p>
+          </div>
+
           <div className="control-panel profile-panel">
-            <div className="preference-label"><span className="step-label"><b>04</b> {t("support", "어떤 편의가 필요할까요?")}</span><small>여러 개 선택 가능</small></div>
+            <div className="preference-label"><span className="step-label"><b>05</b> {t("support", "어떤 편의가 필요할까요?")}</span><small>여러 개 선택 가능</small></div>
             <div className="profile-grid" role="group" aria-label="여행 편의 조건 선택">
               {profiles.map((profile) => {
                 const active = selected.includes(profile.id);
@@ -816,6 +854,14 @@ export default function PlannerPage() {
             );
           })}
         </div>
+        {savedPlaces.length > 0 && <section className="day-planner" data-reveal aria-label="날짜별 여행 일정">
+          <header><div><span>나의 여행 일정</span><h3>보관한 장소를 날짜별로 정리하세요.</h3></div><p>장소 선택은 이 기기에만 저장되며 공유하기 전에는 서버로 전송되지 않습니다.</p></header>
+          <div className="day-planner-grid">{tripDays.map((day, dayIndex) => <article key={day}>
+            <div><small>DAY {String(dayIndex + 1).padStart(2, "0")}</small><strong>{new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" }).format(new Date(`${day}T12:00:00`))}</strong></div>
+            <ol>{savedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === day).map((place, index) => <li key={place.id}><span>{index + 1}</span><div><b>{place.name}</b><small>{place.address || place.city}</small></div><select aria-label={`${place.name} 여행 날짜`} value={scheduleAssignments[place.id] || tripDays[0]} onChange={(event) => setScheduleAssignments((current) => ({ ...current, [place.id]: event.target.value }))}>{tripDays.map((date, dateIndex) => <option key={date} value={date}>DAY {dateIndex + 1}</option>)}</select></li>)}</ol>
+            {!savedPlaces.some((place) => (scheduleAssignments[place.id] || tripDays[0]) === day) && <p>보관한 장소의 날짜를 이 날로 바꿔 추가하세요.</p>}
+          </article>)}</div>
+        </section>}
       </section>
 
       <section className="travel-layers" id="layers">
@@ -827,7 +873,7 @@ export default function PlannerPage() {
         <section className="weather-board" data-reveal aria-busy={weatherLoading} aria-label={`${region} 여행 날씨`}>
           {weatherLoading && <><div className="weather-current weather-skeleton"><i /><b /><span /></div><div className="weather-days">{[0,1,2,3,4,5,6].map((item) => <div className="weather-day weather-skeleton" key={item}><i /><b /><span /></div>)}</div></>}
           {!weatherLoading && weather && <>
-            <div className="weather-current"><small>LIVE WEATHER · {weather.source}</small><div><span className={`weather-symbol code-${weather.current.code}`} aria-hidden="true" /><strong>{Math.round(weather.current.temperature)}°</strong><p><b>{weather.current.label}</b><span>체감 {Math.round(weather.current.apparent)}° · 바람 {weather.current.wind.toFixed(1)}km/h</span></p></div><ul>{weather.advice.map((item) => <li key={item}>{item}</li>)}</ul></div>
+            <div className="weather-current"><small>현재 여행 날씨 · {weather.source}</small><div><span className={`weather-symbol code-${weather.current.code}`} aria-hidden="true" /><strong>{Math.round(weather.current.temperature)}°</strong><p><b>{weather.current.label}</b><span>체감 {Math.round(weather.current.apparent)}° · 바람 {weather.current.wind.toFixed(1)}km/h</span></p></div><ul>{weather.advice.map((item) => <li key={item}>{item}</li>)}</ul></div>
             <div className="weather-days">{weather.days.map((day, index) => <article className="weather-day" key={day.date}><small>{index === 0 ? "오늘" : new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(new Date(`${day.date}T12:00:00`))}</small><span className={`weather-symbol code-${day.code}`} aria-hidden="true" /><strong>{Math.round(day.max)}° <em>{Math.round(day.min)}°</em></strong><p>비 {Math.round(day.rainProbability)}% · UV {day.uv.toFixed(0)}</p>{day.snow > 0 && <b>눈 {day.snow.toFixed(1)}cm</b>}</article>)}</div>
           </>}
           {!weatherLoading && !weather && <div className="weather-empty"><strong>예보를 잠시 불러오지 못했습니다.</strong><span>관광 데이터와 경로 기능은 그대로 이용할 수 있어요.</span></div>}
@@ -835,7 +881,7 @@ export default function PlannerPage() {
 
         <div className="insight-board" data-reveal aria-busy={enrichmentLoading}>
           <article className="visitor-insight">
-            <div className="insight-label"><span>01</span><p>REGIONAL VISITOR PULSE</p></div>
+            <div className="insight-label"><span>01</span><p>지역 방문 흐름</p></div>
             {enrichmentLoading ? <div className="insight-skeleton" /> : <>
               <strong>{enrichment?.visitor.total ? enrichment.visitor.total.toLocaleString() : "—"}<small>{enrichment?.visitor.total ? "명" : "검색 후 표시"}</small></strong>
               <p>{enrichment?.visitor.startYmd && enrichment?.visitor.endYmd ? `${enrichment.visitor.startYmd}–${enrichment.visitor.endYmd} 지역 방문 흐름` : "지역별 방문자 API의 최신 가용 구간을 확인합니다."}</p>
@@ -846,7 +892,7 @@ export default function PlannerPage() {
           </article>
 
           <article className="demand-insight">
-            <div className="insight-label"><span>02</span><p>TOURISM DEMAND INDEX</p></div>
+            <div className="insight-label"><span>02</span><p>관광 수요 지표</p></div>
             <h3>사람들이 지금<br />무엇을 찾는지 봅니다.</h3>
             <div className="demand-list">
               {enrichmentLoading ? <><div className="insight-skeleton short" /><div className="insight-skeleton short" /></> : enrichment?.demand.length ? enrichment.demand.slice(0, 5).map((item) => <div key={`${item.name}-${item.baseYm}`}><span><b>{item.name}</b><em>{item.value.toFixed(1)}</em></span><i><b style={{ width: `${Math.max(5, (item.value / demandMax) * 100)}%` }} /></i></div>) : <p>지역 관광자원 수요지수의 최신 가용월을 조회합니다.</p>}
@@ -854,7 +900,7 @@ export default function PlannerPage() {
           </article>
 
           <aside className="layer-principle">
-            <span>W.A.V.E NOTE</span>
+            <span>W.A.V.E 여행 메모</span>
             <strong>많이 찾는 곳과<br />나에게 맞는 곳은<br />다를 수 있어요.</strong>
             <p>수요·방문량은 순위가 아니라 선택의 맥락으로만 사용합니다. 접근성 적합도와 혼잡 예측을 함께 보세요.</p>
           </aside>
@@ -900,14 +946,14 @@ export default function PlannerPage() {
           <div><span>KORAIL 운행계획</span><strong>{transportContext.korail.length ? `${transportContext.korail.length}개 열차 응답` : "승인 상태 확인"}</strong></div>
         </div>}
         {transportContext?.datasets?.length ? <div className="transport-dataset-grid" aria-label="승인된 교통 API 데이터 레이어">
-          {transportContext.datasets.map((dataset) => <button type="button" aria-pressed={selectedTransportDataset === dataset.id} key={dataset.id} className={`${dataset.state}${selectedTransportDataset === dataset.id ? " selected" : ""}`} onClick={() => { setSelectedTransportDataset(dataset.id); setTransportMode(transportDatasetMeta[dataset.id]?.mode || "all"); }}><i />{dataset.name}<small>{dataset.state === "live" ? "실시간" : dataset.state === "ready" ? "인증 확인" : dataset.state === "error" ? "호출 확인" : "키 미등록"}</small></button>)}
+            {transportContext.datasets.map((dataset) => <button type="button" aria-pressed={selectedTransportDataset === dataset.id} key={dataset.id} className={`${dataset.state}${selectedTransportDataset === dataset.id ? " selected" : ""}`} onClick={() => { setSelectedTransportDataset(dataset.id); setTransportMode(transportDatasetMeta[dataset.id]?.mode || "all"); }}><i />{dataset.name}<small>{dataset.state === "live" ? "운행 확인" : dataset.state === "ready" ? "이용 가능" : dataset.state === "error" ? "잠시 지연" : "준비 중"}</small></button>)}
         </div> : null}
         {officialBookingLinks.some((link) => (link.modes as readonly string[]).includes(transportMode)) && <div className="official-booking-strip" aria-label="공식 교통 승차권 예매">
           <span><b>공식 예매</b><small>운행정보 확인 후 제공기관에서 결제</small></span>
           {officialBookingLinks.filter((link) => (link.modes as readonly string[]).includes(transportMode)).map((link) => <a key={link.id} href={link.href} target="_blank" rel="noreferrer" onClick={() => void copyBookingRoute(link.label)}><i>↗</i><strong>{link.label}</strong><small>{link.detail} · 출발·도착 복사</small></a>)}
         </div>}
         {transportContext && selectedDataset && <section className="transport-data-panel" aria-live="polite">
-          <div className="transport-data-heading"><div><span>LIVE DATA VIEW</span><h3>{selectedDataset.name}</h3><p>{transportDatasetMeta[selectedDataset.id]?.description}</p></div><button type="button" onClick={() => activePlaces[0] && void loadRoutes(routeDestination || activePlaces[0])} disabled={routeLoading}>{routeLoading ? "조회 중" : "현재 조건 다시 조회"}</button></div>
+          <div className="transport-data-heading"><div><span>운행정보</span><h3>{selectedDataset.name}</h3><p>{transportDatasetMeta[selectedDataset.id]?.description}</p></div><button type="button" onClick={() => activePlaces[0] && void loadRoutes(routeDestination || activePlaces[0])} disabled={routeLoading || privateOrigin}>{routeLoading ? "확인 중" : "현재 조건 다시 확인"}</button></div>
           <div className="transport-data-results" aria-busy={routeLoading}>
             {routeLoading && [0, 1, 2, 3].map((item) => <article className="transport-result-skeleton" key={`transport-skeleton-${item}`} aria-hidden="true"><i /><b /><span /></article>)}
             {!routeLoading && <>
@@ -918,7 +964,7 @@ export default function PlannerPage() {
             {selectedDataset.id === "intercity" && <article><small>시외버스 터미널 카탈로그</small><strong>{transportContext.catalog.intercityTerminals.toLocaleString()}개</strong><span>전국 터미널 조회 응답</span></article>}
             {selectedDataset.id === "subway" && <article><small>철도 도시 데이터</small><strong>{transportContext.catalog.trainCities.toLocaleString()}개</strong><span>지역 선택 후 역·노선 조회 가능</span></article>}
             {((selectedDataset.id === "bus-stop" && !transportContext.nearbyStops.length) || (selectedDataset.id === "bus-arrival" && !transportContext.arrivals.length) || ((selectedDataset.id === "train" || selectedDataset.id === "korail-plan") && !transportContext.korail.length)) && <div className="transport-data-empty"><strong>현재 조건의 결과가 없습니다.</strong><span>목적지나 출발지를 바꾼 뒤 다시 조회해 보세요.</span></div>}
-            {!["bus-stop", "bus-arrival", "train", "korail-plan", "express", "intercity", "subway"].includes(selectedDataset.id) && <div className="transport-data-empty"><strong>{selectedDataset.state === "live" ? "실시간 응답이 연결되었습니다." : selectedDataset.state === "ready" ? "인증은 정상이며 조회 조건을 기다리고 있습니다." : "제공기관 호출 조건을 확인합니다."}</strong><span>도시·노선·정류소·터미널 조건을 선택하면 상세 결과를 조회하는 단계형 API입니다.</span></div>}
+            {!["bus-stop", "bus-arrival", "train", "korail-plan", "express", "intercity", "subway"].includes(selectedDataset.id) && <div className="transport-data-empty"><strong>{selectedDataset.state === "live" ? "현재 운행정보를 확인했습니다." : selectedDataset.state === "ready" ? "지역이나 노선을 선택해 주세요." : "제공기관 정보를 잠시 확인하고 있습니다."}</strong><span>도시·노선·정류소·터미널을 선택하면 자세한 운행정보가 표시됩니다.</span></div>}
             </>}
           </div>
         </section>}
@@ -930,15 +976,18 @@ export default function PlannerPage() {
               <div className="trip-point-comparison"><article><small>W.A.V.E 기본 추천</small><strong>{pointPicker === "origin" ? departurePresets[0].name : activePlaces[0]?.name || "검색 후 추천"}</strong><span>{pointPicker === "origin" ? departurePresets[0].detail : activePlaces[0]?.summary || "조건에 맞는 여행지를 계산합니다."}</span></article><article className="selected"><small>내 선택</small><strong>{pointPicker === "origin" ? originLabel : routeDestination?.name || "아직 선택하지 않음"}</strong><span>{pointPicker === "origin" ? "선택한 위치에서 경로 재계산" : "선택 즉시 혼잡·교통정보 갱신"}</span></article></div>
               <form onSubmit={(event) => { event.preventDefault(); void searchLocations(); }}><input value={placeQuery} onChange={(event) => setPlaceQuery(event.target.value)} placeholder="장소명·역·터미널·관광지를 직접 입력" aria-label="장소 검색" /><button type="submit" disabled={placeSearchLoading || placeQuery.trim().length < 2}>{placeSearchLoading ? "검색 중" : "검색"}</button></form>
               <div className="trip-point-list">
-                {pointPicker === "origin" && departurePresets.map((item) => <button type="button" key={item.id} onClick={() => { setOrigin(item.point); setOriginLabel(item.name); if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], item.point); setPointPicker(null); }}><i>S</i><span><strong>{item.name}</strong><small>{item.detail}</small></span></button>)}
+                {pointPicker === "origin" && departurePresets.map((item) => <button type="button" key={item.id} onClick={() => { setOrigin(item.point); setOriginLabel(item.name); setPrivateOrigin(false); if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], item.point, false); setPointPicker(null); }}><i>S</i><span><strong>{item.name}</strong><small>{item.detail}</small></span></button>)}
                 {activePlaces.slice(0, 8).map((place, index) => <button type="button" key={`${pointPicker}-${place.id}`} onClick={() => choosePoint(place)}><i>{index + 1}</i><span><strong>{place.name}</strong><small>{place.address || place.summary}</small></span>{index === 0 && <em>W.A.V.E 추천</em>}</button>)}
                 {placeSearchResults.map((item) => <button type="button" key={`search-${item.id}`} onClick={() => choosePoint(searchableToPlace(item))}><i>⌕</i><span><strong>{item.name}</strong><small>{item.address || item.category}</small></span><em>직접 검색</em></button>)}
                 {!placeSearchLoading && placeQuery && !placeSearchResults.length && <p>검색 버튼을 누르면 입력한 값으로 실제 장소를 찾습니다.</p>}
               </div>
             </section>}
             <RouteMap origin={origin} places={activePlaces.slice(0, 6)} route={activeRoute} crowd={routeDestination ? destinationCrowd : plan?.crowd} crowdPlaceId={(routeDestination || activePlaces[0])?.id} onOriginChange={(point, label) => {
-              setOrigin(point); setOriginLabel(label);
-              if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], point);
+              setOrigin(point); setOriginLabel(label); setPrivateOrigin(label === "현재 위치");
+              if (label === "현재 위치") {
+                setRouteAlternatives([]);
+                setRouteNotice("현재 위치를 지도에 표시했습니다. 좌표는 서버나 저장소로 전송하지 않습니다.");
+              } else if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], point, false);
             }} onDestinationChange={(mapPlace: MapPlace) => {
               const known = activePlaces.find((place) => place.id === mapPlace.id);
               const destination: Place = known || {
@@ -977,7 +1026,7 @@ export default function PlannerPage() {
           <div className="route-metrics">
             <div><small>추천 지점</small><strong>{activeStops.length}<em>곳</em></strong></div>
             <div><small>걷기 코스</small><strong>{plan?.course?.distance || "—"}<em>{plan?.course?.distance ? "km" : ""}</em></strong></div>
-            <div><small>연결 API</small><strong>{liveCount || "—"}<em>{liveCount ? "/ 17" : ""}</em></strong></div>
+            <div><small>확인한 정보</small><strong>{liveCount || "—"}<em>{liveCount ? "개" : ""}</em></strong></div>
           </div>
         </div>
 
@@ -994,7 +1043,7 @@ export default function PlannerPage() {
           </ol>
 
           <aside className="guide-player" aria-label="관광지 오디오 해설">
-            <div className="guide-top"><span>ODII AUDIO GUIDE</span><b>{plan?.audio ? "API" : "PREVIEW"}</b></div>
+            <div className="guide-top"><span>여행지 음성 해설</span><b>{plan?.audio ? "재생 가능" : "준비 중"}</b></div>
             <div className="guide-art"><span className={playing ? "sound playing" : "sound"}><i /><i /><i /><i /><i /></span><strong>{plan?.audio?.audioTitle || "여행지 이야기를\n음성과 대본으로"}</strong><small>{plan?.audio ? "실제 오디 해설 데이터" : "해설이 있는 관광지를 선택하면 연결됩니다."}</small></div>
             <audio ref={audioRef} src={plan?.audio?.audioUrl || undefined} onLoadedMetadata={(event) => setAudioDuration(event.currentTarget.duration || 0)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} onTimeUpdate={(event) => { const audio = event.currentTarget; setAudioTime(audio.currentTime); setAudioProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0); }} />
             <div className="player-progress"><span style={{ width: `${audioProgress}%` }} /><i style={{ left: `${audioProgress}%` }} /></div>
@@ -1014,22 +1063,22 @@ export default function PlannerPage() {
 
       <section className="data-section" id="data">
         <div className="data-heading" data-reveal>
-          <div><p className="section-kicker">OPEN DATA, VISIBLE EVIDENCE</p><h2>추천의 근거를<br />숨기지 않습니다.</h2></div>
-          <p>브라우저에는 인증키를 보내지 않고 W.A.V.E 서버가 한국관광공사 API를 호출합니다. 각 응답의 상태와 역할을 사용자가 직접 확인할 수 있습니다.</p>
+          <div><p className="section-kicker">믿을 수 있는 여행 추천</p><h2>왜 이곳을 추천했는지<br />쉽게 보여드려요.</h2></div>
+          <p>선택한 지역·관심사·편의 조건과 최신 관광정보를 함께 비교합니다. 제공기관과 확인 시점을 카드에서 바로 확인할 수 있어요.</p>
         </div>
         <div className="api-bento">
           {statuses.map((status, index) => (
             <article className={`api-card card-${index + 1}`} key={status.id} data-reveal>
-              <div><span className={`api-state ${status.state}`}><i />{status.state === "live" ? "응답 완료" : status.state === "empty" ? "결과 없음" : status.state === "error" ? "확인 필요" : "호출 대기"}</span><small>0{index + 1}</small></div>
+              <div><span className={`api-state ${status.state}`}><i />{status.state === "live" ? "최신 정보" : status.state === "empty" ? "정보 없음" : status.state === "error" ? "확인 필요" : "검색 전"}</span><small>0{index + 1}</small></div>
               <h3>{status.name}</h3>
               <p>{status.role}</p>
-              <footer><span>{status.note}</span><b>{status.count ? `${status.count}건` : "API"}</b></footer>
+              <footer><span>{status.note}</span><b>{status.count ? `${status.count}건` : "확인 중"}</b></footer>
             </article>
           ))}
           <aside className="trace-card" data-reveal>
-            <p>SERVER-SIDE DATA FLOW</p>
-            <div className="trace-flow"><span>여행 조건</span><i>→</i><span>24개 API</span><i>→</i><span>경로 비교</span><i>→</i><span>근거 있는 코스</span></div>
-            <dl><div><dt>지역 체계</dt><dd>법정동 시도 48 · 경상남도</dd></div><div><dt>관광 분류</dt><dd>콘텐츠 타입 12 · 14 · 28 · 39</dd></div><div><dt>중심지 기준월</dt><dd>{plan?.baseYm ? `${plan.baseYm.slice(0, 4)}.${plan.baseYm.slice(4)}` : "검색 시 최신 가용월 확인"}</dd></div><div><dt>호출 식별</dt><dd>MobileOS=WEB · MobileApp=WAVE</dd></div></dl>
+            <p>추천이 만들어지는 과정</p>
+            <div className="trace-flow"><span>내 여행 조건</span><i>→</i><span>최신 정보 확인</span><i>→</i><span>접근성 비교</span><i>→</i><span>맞춤 코스</span></div>
+            <dl><div><dt>여행 지역</dt><dd>경상남도 18개 시·군</dd></div><div><dt>관심사</dt><dd>자연 · 역사 · 레포츠 · 음식</dd></div><div><dt>정보 기준</dt><dd>{plan?.baseYm ? `${plan.baseYm.slice(0, 4)}.${plan.baseYm.slice(4)} 확인` : "검색할 때 최신 정보 확인"}</dd></div><div><dt>개인정보</dt><dd>현재 위치는 기기 안에서만 사용</dd></div></dl>
           </aside>
         </div>
       </section>
@@ -1049,7 +1098,7 @@ export default function PlannerPage() {
               <a className="place-external-review" href={`https://map.kakao.com/link/search/${encodeURIComponent(`${selectedPlace.name} ${selectedPlace.address || selectedPlace.city || region}`)}`} target="_blank" rel="noreferrer"><span><b>방문 후기·사진</b><small>카카오 장소 상세에서 최신 이용 후기를 확인합니다.</small></span><i>↗</i></a>
               <button type="button" onClick={() => { toggleSaved(selectedPlace.id); setSelectedPlace(null); }}>여행 보관함에 {saved.includes(selectedPlace.id) ? "빼기" : "담기"}<span>{saved.includes(selectedPlace.id) ? "−" : "+"}</span></button>
               <div className="feedback-box"><label htmlFor="feedback-message">현장 정보가 다른가요?</label><textarea id="feedback-message" value={feedbackText} onChange={(event) => { setFeedbackText(event.target.value); setFeedbackState("idle"); }} placeholder="달라진 접근로·화장실·승강기 정보를 알려주세요." rows={3} /><button type="button" onClick={submitFeedback} disabled={feedbackText.trim().length < 5 || feedbackState === "sending"}>{feedbackState === "sending" ? "접수 중" : feedbackState === "done" ? "접수 완료 ✓" : "정보 수정 제보"}</button>{feedbackState === "error" && <small>제보 저장 상태를 확인해 주세요.</small>}</div>
-              <small className="modal-note">W.A.V.E 적합도는 선택 조건과 OpenAPI 편의정보 일치도를 계산한 서비스 지표이며 공식 인증 점수가 아닙니다. 시설 운영상태는 방문 전에 다시 확인해 주세요.</small>
+              <small className="modal-note">W.A.V.E 적합도는 선택 조건과 최신 편의정보의 일치도를 계산한 서비스 지표이며 공식 인증 점수가 아닙니다. 시설 운영상태는 방문 전에 다시 확인해 주세요.</small>
             </div>
           </section>
         </div>
@@ -1058,7 +1107,7 @@ export default function PlannerPage() {
       <footer className="simple-footer">
         <div className="brand footer-brand"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span></div>
         <p>누구나 원하는 곳으로, 경남 무장애 여행 길잡이</p>
-        <p className="source">데이터 출처: 한국관광공사 TourAPI · 공모전 출품 프로토타입</p>
+        <p className="source">출처: ⓒ한국관광공사 · ⓒ한국관광콘텐츠랩</p>
       </footer>
     </main>
   );
