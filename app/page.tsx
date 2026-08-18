@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { PreferenceControls, useSitePreferences } from "../components/SitePreferences";
 import HelpCenter from "../components/HelpCenter";
+import WaveField from "../components/WaveField";
+import AccessIcon from "../components/AccessIcons";
 
 const regions = [
   { name: "거창", icon: "🎭", story: "수승대와 산골 무대", x: 19, y: 16 },
@@ -37,11 +39,13 @@ function Intro({ close }: { close: () => void }) {
   const { t } = useSitePreferences();
   return (
     <div className="brand-intro" role="dialog" aria-label="W.A.V.E 시작 화면">
+      <WaveField className="brand-intro-canvas" tone="deep" mode="intro" wordmark="W.A.V.E" />
       <button type="button" onClick={close}>{t("use", "바로 시작")}</button>
-      <div className="intro-tide" aria-hidden="true"><i /><i /><i /></div>
-      <p>TRAVEL WITHOUT BARRIERS</p>
-      <h1><span>W</span><span>.</span><span>A</span><span>.</span><span>V</span><span>.</span><span>E</span></h1>
-      <div className="intro-statement"><span>갈 수 있는 곳을 찾고</span><span>가고 싶은 하루를 만들고</span><strong>모두의 여행을 연결합니다.</strong></div>
+      <div className="brand-intro-copy">
+        <p>TRAVEL WITHOUT BARRIERS</p>
+        <h1 aria-label="W.A.V.E">W.A.V.E</h1>
+        <div className="intro-statement"><span>갈 수 있는 곳을 찾고</span><span>가고 싶은 하루를 만들고</span><strong>모두의 여행을 연결합니다.</strong></div>
+      </div>
     </div>
   );
 }
@@ -79,7 +83,7 @@ export default function LandingPage() {
       const frame = window.requestAnimationFrame(() => setIntro(false));
       return () => window.cancelAnimationFrame(frame);
     }
-    const timer = window.setTimeout(() => finishIntro(), 2600);
+    const timer = window.setTimeout(() => finishIntro(), 5500);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -153,10 +157,9 @@ export default function LandingPage() {
       </header>
 
       <section className="landing-hero" id="top">
-        <div className="hero-tide" aria-hidden="true"><i /><i /><i /></div>
-        <div className="landing-orbit orbit-a" aria-hidden="true" /><div className="landing-orbit orbit-b" aria-hidden="true" />
+        <WaveField className="hero-wave-canvas" tone="light" mode="ambient" />
         <div className="landing-hero-copy" data-land-reveal>
-          <p><span>{t("heroBadge", "경상남도 무장애 여행")}</span> 2026 TOUR DATA</p>
+          <p><span className="access-badge"><AccessIcon name="mark" size={18} />{t("heroBadge", "경상남도 무장애 여행")}</span> 2026 TOUR DATA</p>
           <h1>{t("heroTitle", "갈 수 있는 곳을 넘어,")}<br /><em>{t("heroEm", "가고 싶은 하루로.")}</em></h1>
           <span>{t("heroCopy", "W.A.V.E는 여행자의 이동 조건과 경남 관광 데이터를 연결해 장소 선택부터 실제 이동까지 설계하는 여행 동행 서비스입니다.")}</span>
           <div className="landing-actions"><a href="/planner">{t("plan", "내 여행 설계하기")} <b>→</b></a><a href="#story">{t("learn", "서비스 알아보기")}</a></div>
@@ -169,7 +172,6 @@ export default function LandingPage() {
       </section>
 
       <section className="manifesto" id="story">
-        <div className="section-tide" aria-hidden="true"><i /><i /></div>
         <p className="section-kicker" data-land-reveal>WHY W.A.V.E</p>
         <h2 data-land-reveal>{t("whyTitle", "여행 정보는 많지만, 내가 갈 수 있는지는 찾기 어렵습니다.")}</h2>
         <div className="manifesto-grid">
@@ -198,7 +200,6 @@ export default function LandingPage() {
       </section>
 
       <section className="evidence-story" id="evidence">
-        <div className="section-tide reverse" aria-hidden="true"><i /><i /></div>
         <div data-land-reveal><p className="section-kicker">VISIBLE EVIDENCE</p><h2>{t("evidenceTitle", "추천의 이유와 한계까지 보여줍니다.")}</h2></div>
         <div className="evidence-stack">
           <article data-land-reveal><span>01</span><div><h3>{t("evidence1", "관광지와 사진")}</h3><p>{t("evidence1Copy", "한국관광공사 관광·사진 데이터를 지역과 장소 기준으로 교차 확인합니다.")}</p></div></article>
