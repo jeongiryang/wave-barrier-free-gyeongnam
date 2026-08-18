@@ -84,14 +84,25 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("ko");
   const [theme, setTheme] = useState<Theme>("light");
+  /* 저장된 설정을 아직 읽지 않았는데 기본값을 저장하면, 읽기보다 저장이 먼저
+     끝나 이용자가 고른 값이 지워진다. 읽기가 끝난 뒤부터 저장한다. */
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const storedLocale = window.localStorage.getItem("wave-locale") as Locale | null;
-      const storedTheme = window.localStorage.getItem("wave-theme") as Theme | null;
-      if (storedLocale && localeOptions.some((item) => item.id === storedLocale)) setLocaleState(storedLocale);
-      if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
-      else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
+      try {
+        const storedLocale = window.localStorage.getItem("wave-locale") as Locale | null;
+        const storedTheme = window.localStorage.getItem("wave-theme") as Theme | null;
+        if (storedLocale && localeOptions.some((item) => item.id === storedLocale)) setLocaleState(storedLocale);
+        if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
+        else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
+      } catch {
+        // 저장소를 읽을 수 없으면 기본값 또는 운영체제 테마를 사용한다.
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
+      } finally {
+        // 저장소 접근이 차단된 브라우저에서도 화면 설정 자체는 계속 동작해야 한다.
+        setHydrated(true);
+      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
@@ -100,9 +111,14 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.theme = theme;
     document.documentElement.lang = locale === "zh-Hans" ? "zh-CN" : locale === "zh-Hant" ? "zh-TW" : locale;
     document.documentElement.style.colorScheme = theme;
-    window.localStorage.setItem("wave-theme", theme);
-    window.localStorage.setItem("wave-locale", locale);
-  }, [locale, theme]);
+    if (!hydrated) return;
+    try {
+      window.localStorage.setItem("wave-theme", theme);
+      window.localStorage.setItem("wave-locale", locale);
+    } catch {
+      // 사생활 보호 설정이 저장소를 막으면 현재 탭의 설정만 적용한다.
+    }
+  }, [locale, theme, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
     locale,

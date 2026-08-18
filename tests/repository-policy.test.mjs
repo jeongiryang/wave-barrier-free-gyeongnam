@@ -81,3 +81,17 @@ test("autonomous work stays bounded and merges only after fresh checks", async (
   assert.match(rules, /승인된 범위의 완료 조건/);
   assert.doesNotMatch(rules, /모든 오류와 버그를 찾아내기 전에는/);
 });
+
+test("saved preferences survive a reload", async () => {
+  const preferences = await source("components/SitePreferences.tsx");
+  // 저장된 값을 읽기 전에 기본값을 써 버리면 이용자가 고른 테마와 언어가 지워진다.
+  // 읽기가 끝났음을 알리는 표시가 있고, 저장이 그 뒤에만 일어나야 한다.
+  assert.match(preferences, /setHydrated\(true\)/);
+  assert.match(preferences, /finally\s*\{\s*\/\/[^\n]*\n\s*setHydrated\(true\)/);
+  const persistEffect = preferences.slice(preferences.indexOf("document.documentElement.dataset.theme"));
+  const gateIndex = persistEffect.indexOf("if (!hydrated) return;");
+  const writeIndex = persistEffect.indexOf('window.localStorage.setItem("wave-theme"');
+  assert.ok(gateIndex >= 0, "저장 전에 hydrated 확인이 있어야 한다");
+  assert.ok(gateIndex < writeIndex, "hydrated 확인이 저장보다 먼저 와야 한다");
+  assert.match(persistEffect, /try\s*\{[\s\S]*localStorage\.setItem\("wave-theme"[\s\S]*\}\s*catch/);
+});
