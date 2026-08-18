@@ -34,6 +34,16 @@ const localBindingConfig = {
 };
 
 export default defineConfig(async () => {
+  const portableTarget = process.env.WAVE_DEPLOY_TARGET === "portable";
+
+  if (portableTarget) {
+    const { nitro } = await import("nitro/vite");
+    return {
+      server: { host: "0.0.0.0" },
+      plugins: [vinext(), nitro()],
+    };
+  }
+
   // Keep Wrangler and Miniflare state project-local. These are non-secret tool
   // settings; application environment belongs in ignored `.env*` files.
   process.env.WRANGLER_WRITE_LOGS ??= "false";

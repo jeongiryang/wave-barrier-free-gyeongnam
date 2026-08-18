@@ -7,9 +7,12 @@
   },
   "scripts": {
     "install:ci": "bash scripts/install-ci.sh",
-    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite",
+    "dev": "vite",
     "build": "bash scripts/build-verified.sh",
-    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
+    "build:vercel": "node scripts/build-portable.mjs vercel",
+    "build:render": "node scripts/build-portable.mjs node",
+    "start": "vinext start",
+    "start:render": "node .output/server/index.mjs",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "validate:artifact": "bash scripts/validate-artifact.sh",
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
@@ -19,6 +22,7 @@
     "drizzle-orm": "0.45.2",
     "leaflet": "1.9.4",
     "next": "16.2.6",
+    "nitro": "3.0.260610-beta",
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },

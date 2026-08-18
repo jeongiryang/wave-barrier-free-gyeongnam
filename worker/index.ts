@@ -4,9 +4,9 @@ import handler from "vinext/server/app-router-entry";
 
 type KtoItem = Record<string, string | number | null | undefined>;
 
-interface Env {
-  ASSETS: Fetcher;
-  DB: D1Database;
+export interface Env {
+  ASSETS?: Fetcher;
+  DB?: D1Database;
   TOUR_API_SERVICE_KEY_ENCODED?: string;
   EXPRESSWAY_API_KEY?: string;
   ODSAY_API_KEY?: string;
@@ -14,7 +14,7 @@ interface Env {
   KAKAO_REST_API_KEY?: string;
   KORAIL_API_KEY?: string;
   TAGO_API_KEY?: string;
-  IMAGES: {
+  IMAGES?: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {
         output(options: { format: string; quality: number }): Promise<{ response(): Response }>;
@@ -31,6 +31,29 @@ interface ExecutionContext {
 type KtoResult = { items: KtoItem[]; total: number };
 type Attempt = { ok: true; value: KtoResult } | { ok: false; error: string };
 type TransportProviderState = "connected" | "ready" | "error" | "missing";
+
+type MemoryTrip = { payload: string; createdAt: number; expiresAt: number };
+
+const portableTrips = new Map<string, MemoryTrip>();
+const portableFeedback: Array<Record<string, string | number>> = [];
+
+/**
+ * Vercel·Render의 Node 런타임에서는 Cloudflare 바인딩 대신 프로세스 환경
+ * 변수를 사용한다. D1이 없는 경우 공유 링크와 제보는 인스턴스 메모리에만
+ * 보관되며, 관광·지도·교통 API는 동일하게 동작한다.
+ */
+function portableEnv(): Env {
+  const values = typeof process === "undefined" ? {} : process.env;
+  return {
+    TOUR_API_SERVICE_KEY_ENCODED: values.TOUR_API_SERVICE_KEY_ENCODED,
+    EXPRESSWAY_API_KEY: values.EXPRESSWAY_API_KEY,
+    ODSAY_API_KEY: values.ODSAY_API_KEY,
+    KAKAO_MAP_JAVASCRIPT_KEY: values.KAKAO_MAP_JAVASCRIPT_KEY,
+    KAKAO_REST_API_KEY: values.KAKAO_REST_API_KEY,
+    KORAIL_API_KEY: values.KORAIL_API_KEY,
+    TAGO_API_KEY: values.TAGO_API_KEY,
+  };
+}
 
 const regionCodes: Record<string, { legal: string[]; full: string[] }> = {
   "경남 전체": { legal: [], full: [] },
@@ -1035,6 +1058,7 @@ function handleHealthApi(env: Env) {
 }
 
 async function ensureDb(env: Env) {
+  if (!env.DB) return;
   await env.DB.batch([
     env.DB.prepare("CREATE TABLE IF NOT EXISTS itineraries (id TEXT PRIMARY KEY, payload TEXT NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL)"),
     env.DB.prepare("CREATE INDEX IF NOT EXISTS itineraries_expires_idx ON itineraries (expires_at)"),
@@ -1048,6 +1072,14 @@ async function handleTripsApi(request: Request, env: Env) {
   const id = clean(url.pathname.split("/").filter(Boolean)[2], 64);
   if (request.method === "GET") {
     if (!id) return json({ error: "공유 여행 ID가 필요합니다." }, 400);
+    if (!env.DB) {
+      const row = portableTrips.get(id);
+      if (!row || row.expiresAt <= Date.now()) {
+        portableTrips.delete(id);
+        return json({ error: "공유 여행을 찾을 수 없거나 보관 기간이 지났습니다." }, 404);
+      }
+      return json({ id, ...JSON.parse(row.payload), createdAt: row.createdAt, expiresAt: row.expiresAt }, 200, true);
+    }
     const row = await env.DB.prepare("SELECT payload, created_at, expires_at FROM itineraries WHERE id = ? AND expires_at > ?").bind(id, Date.now()).first<{ payload: string; created_at: number; expires_at: number }>();
     if (!row) return json({ error: "공유 여행을 찾을 수 없거나 보관 기간이 지났습니다." }, 404);
     return json({ id, ...JSON.parse(row.payload), createdAt: row.created_at, expiresAt: row.expires_at }, 200, true);
@@ -1060,7 +1092,11 @@ async function handleTripsApi(request: Request, env: Env) {
   const newId = crypto.randomUUID().replaceAll("-", "").slice(0, 12);
   const now = Date.now();
   const expiresAt = now + 1000 * 60 * 60 * 24 * 30;
-  await env.DB.prepare("INSERT INTO itineraries (id, payload, created_at, expires_at) VALUES (?, ?, ?, ?)").bind(newId, payload, now, expiresAt).run();
+  if (env.DB) {
+    await env.DB.prepare("INSERT INTO itineraries (id, payload, created_at, expires_at) VALUES (?, ?, ?, ?)").bind(newId, payload, now, expiresAt).run();
+  } else {
+    portableTrips.set(newId, { payload, createdAt: now, expiresAt });
+  }
   return json({ id: newId, url: `${url.origin}/trip/${newId}`, expiresAt }, 201);
 }
 
@@ -1072,7 +1108,11 @@ async function handleFeedbackApi(request: Request, env: Env) {
   const field = clean(body?.field || "접근성 정보", 60); const message = clean(body?.message, 800);
   if (!placeId || !placeName || message.length < 5) return json({ error: "장소와 5자 이상의 제보 내용을 입력해 주세요." }, 400);
   const id = crypto.randomUUID();
-  await env.DB.prepare("INSERT INTO place_feedback (id, place_id, place_name, field, message, status, created_at) VALUES (?, ?, ?, ?, ?, 'received', ?)").bind(id, placeId, placeName, field, message, Date.now()).run();
+  if (env.DB) {
+    await env.DB.prepare("INSERT INTO place_feedback (id, place_id, place_name, field, message, status, created_at) VALUES (?, ?, ?, ?, ?, 'received', ?)").bind(id, placeId, placeName, field, message, Date.now()).run();
+  } else {
+    portableFeedback.push({ id, placeId, placeName, field, message, status: "received", createdAt: Date.now() });
+  }
   return json({ ok: true, id }, 201);
 }
 
@@ -1114,31 +1154,47 @@ async function handleWaveApi(request: Request, env: Env) {
   }
 }
 
+export async function handlePortableApi(request: Request): Promise<Response> {
+  const env = portableEnv();
+  const url = new URL(request.url);
+
+  if (url.pathname === "/api/wave") return handleWaveApi(request, env);
+  if (url.pathname === "/api/weather") return handleWeatherApi(request);
+  if (url.pathname === "/api/location-search") return handleLocationSearch(request, env);
+  if (url.pathname === "/api/route") return handleRouteApi(request, env);
+  if (url.pathname === "/api/map-config") return handleMapConfig(env);
+  if (url.pathname === "/api/health") return handleHealthApi(env);
+  if (url.pathname === "/api/trips" || url.pathname.startsWith("/api/trips/")) return handleTripsApi(request, env);
+  if (url.pathname === "/api/feedback") return handleFeedbackApi(request, env);
+  return json({ error: "지원하지 않는 API 경로입니다." }, 404);
+}
+
 const worker = {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env | undefined, ctx: ExecutionContext): Promise<Response> {
+    const runtimeEnv = env ?? portableEnv();
     const url = new URL(request.url);
 
-    if (url.pathname === "/api/wave") return handleWaveApi(request, env);
+    if (url.pathname === "/api/wave") return handleWaveApi(request, runtimeEnv);
     if (url.pathname === "/api/weather") return handleWeatherApi(request);
-    if (url.pathname === "/api/location-search") return handleLocationSearch(request, env);
-    if (url.pathname === "/api/route") return handleRouteApi(request, env);
-    if (url.pathname === "/api/map-config") return handleMapConfig(env);
-    if (url.pathname === "/api/health") return handleHealthApi(env);
-    if (url.pathname === "/api/trips" || url.pathname.startsWith("/api/trips/")) return handleTripsApi(request, env);
-    if (url.pathname === "/api/feedback") return handleFeedbackApi(request, env);
+    if (url.pathname === "/api/location-search") return handleLocationSearch(request, runtimeEnv);
+    if (url.pathname === "/api/route") return handleRouteApi(request, runtimeEnv);
+    if (url.pathname === "/api/map-config") return handleMapConfig(runtimeEnv);
+    if (url.pathname === "/api/health") return handleHealthApi(runtimeEnv);
+    if (url.pathname === "/api/trips" || url.pathname.startsWith("/api/trips/")) return handleTripsApi(request, runtimeEnv);
+    if (url.pathname === "/api/feedback") return handleFeedbackApi(request, runtimeEnv);
 
-    if (url.pathname === "/_vinext/image") {
+    if (url.pathname === "/_vinext/image" && runtimeEnv.ASSETS && runtimeEnv.IMAGES) {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
       return handleImageOptimization(request, {
-        fetchAsset: (path) => env.ASSETS.fetch(new Request(new URL(path, request.url))),
+        fetchAsset: (path) => runtimeEnv.ASSETS!.fetch(new Request(new URL(path, request.url))),
         transformImage: async (body, { width, format, quality }) => {
-          const result = await env.IMAGES.input(body).transform(width > 0 ? { width } : {}).output({ format, quality });
+          const result = await runtimeEnv.IMAGES!.input(body).transform(width > 0 ? { width } : {}).output({ format, quality });
           return result.response();
         },
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    return handler.fetch(request, runtimeEnv, ctx);
   },
 };
 
