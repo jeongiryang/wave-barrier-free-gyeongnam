@@ -1,0 +1,33 @@
+name: 코드 품질 검사
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 소스 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 정적 검사
+        run: npm run lint
+
+      - name: Render용 빌드 검사
+        run: npm run build:render
