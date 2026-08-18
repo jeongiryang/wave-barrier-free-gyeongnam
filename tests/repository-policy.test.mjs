@@ -15,6 +15,9 @@ test("production configuration is Vercel-only", async () => {
   const content = `${vercel}\n${packageJson}\n${readme}`;
   assert.doesNotMatch(content, /chatgpt\.site|onrender\.com|wrangler\.toml|build:cloudflare/i);
   assert.match(vercel, /npm run build:vercel/);
+  const gitignore = await source(".gitignore");
+  assert.match(gitignore, /\/\.vinext\//);
+  assert.doesNotMatch(gitignore, /sites-runtime|wrangler/);
 });
 
 test("missing tourism images use official live lookup and a visual fallback", async () => {
