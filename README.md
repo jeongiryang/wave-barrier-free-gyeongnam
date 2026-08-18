@@ -2,11 +2,13 @@
 
 W.A.V.E는 경상남도 18개 시·군의 관광지, 무장애 편의정보, 교통, 혼잡도,
 사진과 날씨를 한 화면에서 비교하고 개인 조건에 맞는 여행지를 추천하는
-웹 서비스입니다.
+웹 서비스입니다. **2026 관광데이터 활용 공모전 ②-2 웹·앱 구현 부문**의
+**지정과제 1(여행 중 날씨·혼잡·동선 변화 대응)**에 반응형 웹으로 제출합니다.
 
 ## 운영 기준
 
 - [공모전 운영·데이터 정책](docs/competition-operation-policy.md)
+- [공모전 요구사항 정합성 점검](docs/contest-compliance.md)
 - [Vercel·Neon 배포 및 환경 설정](docs/vercel-neon-setup.md)
 - 공식 서비스는 Vercel Production 도메인 하나로 운영합니다.
 - 영속 데이터가 필요할 때는 Neon Postgres를 사용하되, 한국관광공사
@@ -95,7 +97,9 @@ npm run dev
 ### 5. 검사
 
 ```bash
+npm run typecheck
 npm run lint
+npm test
 npm run build:vercel
 ```
 
@@ -120,8 +124,9 @@ GitHub에서 Pull Request를 만들고 CI가 통과한 뒤 `main`에 병합합�
 
 1. 잠금 파일 기준 의존성 설치
 2. ESLint 정적 검사
-3. Vercel용 프로덕션 빌드
-4. 저장소 정책 회귀 테스트
+3. TypeScript 타입 검사
+4. 저장소 정책·기능 회귀 테스트
+5. Vercel용 프로덕션 빌드
 
 저장소의 `Settings → Branches → Branch protection rules`에서 `main`에
 다음 규칙을 권장합니다.

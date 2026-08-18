@@ -59,6 +59,29 @@ test("deployment guide uses the current CI check name and Vercel uses Node 22", 
   assert.match(viteConfig, /runtime: "nodejs22\.x"/);
 });
 
+test("contest category, selected task and live OpenAPI use are documented consistently", async () => {
+  const [readme, compliance, policy, landing, planner, worker] = await Promise.all([
+    source("README.md"),
+    source("docs/contest-compliance.md"),
+    source("docs/competition-operation-policy.md"),
+    source("app/page.tsx"),
+    source("app/planner/page.tsx"),
+    source("worker/index.ts"),
+  ]);
+  for (const content of [readme, compliance, policy, landing, planner]) {
+    assert.match(content, /②-2 웹·앱 구현 부문/);
+    assert.match(content, /지정과제 1/);
+  }
+  assert.match(compliance, /날씨 변화, 혼잡도 상승, 동선 꼬임/);
+  assert.match(compliance, /실시간 대화형 여행 가이드.+예시/);
+  assert.match(compliance, /TOUR_API_SERVICE_KEY_ENCODED/);
+  assert.match(worker, /KorService2/);
+  assert.match(worker, /KorWithService2/);
+  assert.match(worker, /PhotoGalleryService1/);
+  assert.match(worker, /LocgoHubTarService1/);
+  assert.match(worker, /TarRlteTarService1/);
+});
+
 test("the place carousel is sized by its card instead of the viewport", async () => {
   const css = await source("app/globals.css");
   const rule = css.slice(css.lastIndexOf(".planner-page > .places-section .place-carousel"));
