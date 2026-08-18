@@ -13,7 +13,6 @@ import {
 import RouteMap, { type MapPlace, type RouteAlternative, type RoutePoint } from "../../components/RouteMap";
 import { PreferenceControls, useSitePreferences } from "../../components/SitePreferences";
 import SmartSpotImage from "../../components/SmartSpotImage";
-import AccountMenu from "../../components/AccountMenu";
 import HelpCenter from "../../components/HelpCenter";
 
 type ApiState = "live" | "empty" | "error" | "ready";
@@ -726,7 +725,7 @@ export default function PlannerPage() {
           <a href="#navigation">{t("route", "길찾기")}</a>
           <a href="#data">{t("evidence", "추천 근거")}</a>
         </nav>
-        <div className="planner-header-actions"><HelpCenter /><PreferenceControls /><AccountMenu /><button className="header-action" type="button" onClick={() => document.getElementById("places")?.scrollIntoView({ behavior: "smooth" })}>
+        <div className="planner-header-actions"><HelpCenter /><PreferenceControls /><button className="header-action" type="button" onClick={() => document.getElementById("places")?.scrollIntoView({ behavior: "smooth" })}>
           여행 보관함 <b>{saved.length}</b><span aria-hidden="true">↗</span>
         </button></div>
       </header>

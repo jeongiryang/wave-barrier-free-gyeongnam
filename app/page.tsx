@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { PreferenceControls, useSitePreferences } from "../components/SitePreferences";
-import AccountMenu from "../components/AccountMenu";
 import HelpCenter from "../components/HelpCenter";
 
 const regions = [
@@ -150,7 +149,7 @@ export default function LandingPage() {
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span>
         </a>
         <nav aria-label="소개 메뉴"><a href="#story">{t("service", "서비스")}</a><a href="#regions">{t("regions", "경남 18개 지역")}</a><a href="#evidence">{t("data", "데이터")}</a></nav>
-        <div className="landing-header-actions"><HelpCenter /><PreferenceControls /><AccountMenu /><a className="landing-start" href="/planner">{t("use", "서비스 이용하기")} <span>↗</span></a></div>
+        <div className="landing-header-actions"><HelpCenter /><PreferenceControls /><a className="landing-start" href="/planner">{t("use", "서비스 이용하기")} <span>↗</span></a></div>
       </header>
 
       <section className="landing-hero" id="top">
