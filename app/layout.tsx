@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 
@@ -12,6 +12,16 @@ export const metadata: Metadata = {
   verification: {
     google: "M6Cy6rSLQKYJ5i-toLK3hQyoFOoZlMyvnZa-_W6dioo",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4fbff" },
+    { media: "(prefers-color-scheme: dark)", color: "#062736" },
+  ],
 };
 
 export default function RootLayout({
