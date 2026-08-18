@@ -1,4 +1,4 @@
-name: 코드 품질 검사
+name: CI
 
 on:
   pull_request:

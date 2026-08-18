@@ -1,8 +1,8 @@
-name: 프로덕션 배포
+name: CD
 
 on:
   workflow_run:
-    workflows: ["코드 품질 검사"]
+    workflows: ["CI"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
