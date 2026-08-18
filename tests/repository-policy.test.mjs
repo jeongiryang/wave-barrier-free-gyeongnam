@@ -46,3 +46,14 @@ test("transport provider placeholders settle even when health lookup fails", asy
   assert.match(planner, /setKeyHealthChecked\(true\)/);
   assert.match(planner, /effectiveProviders\.map/);
 });
+
+test("pull requests must be revalidated against the latest main", async () => {
+  const [rules, template] = await Promise.all([
+    source("CLAUDE.md"),
+    source(".github/pull_request_template.md"),
+  ]);
+  assert.match(rules, /git merge-base --is-ancestor origin\/main HEAD/);
+  assert.match(rules, /이전 커밋의 성공 결과는 재사용하지 않는다/);
+  assert.match(template, /최신 `origin\/main`/);
+  assert.match(template, /npm run typecheck/);
+});
