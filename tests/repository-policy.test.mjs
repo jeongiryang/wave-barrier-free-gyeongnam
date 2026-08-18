@@ -39,3 +39,10 @@ test("device location is not persisted with saved routes", async () => {
   assert.doesNotMatch(saveRoute, /origin\s*,|geometry|mapX|mapY|lat:|lng:/);
   assert.match(saveRoute, /places\.slice/);
 });
+
+test("transport provider placeholders settle even when health lookup fails", async () => {
+  const planner = await source("app/planner/page.tsx");
+  assert.match(planner, /keyHealthChecked \? "error" : "checking"/);
+  assert.match(planner, /setKeyHealthChecked\(true\)/);
+  assert.match(planner, /effectiveProviders\.map/);
+});

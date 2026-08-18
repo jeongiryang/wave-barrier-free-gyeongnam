@@ -9,7 +9,9 @@ export default function SmartSpotImage({ src, title, region, tag, rank }: { src?
   const [retried, setRetried] = useState(false);
   const settledRef = useRef(false);
 
-  const loadOfficialFallback = useCallback(async (cancelled = () => false) => {
+  // 기본값만 두면 매개변수 타입이 리터럴 `() => false`로 좁혀져
+  // 호출부의 `() => cancelled`를 받지 못한다.
+  const loadOfficialFallback = useCallback(async (cancelled: () => boolean = () => false) => {
     const params = new URLSearchParams({ action: "spot-photo", region, title, tag });
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 12000);

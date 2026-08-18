@@ -412,7 +412,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
     canvas.height = 1000;
     const context = canvas.getContext("2d");
     if (!context) return;
-    const dark = format === "jpeg" ? "#f7fbfe" : "#eef5fa";
+    const dark = format === "jpeg" ? "#f7fcfe" : "#e6f4fb";
     context.fillStyle = dark;
     context.fillRect(0, 0, canvas.width, canvas.height);
     const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -444,7 +444,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
     context.beginPath();
     points.forEach((point, index) => { const p = project(point); if (index) context.lineTo(p.x, p.y); else context.moveTo(p.x, p.y); });
     context.stroke();
-    context.strokeStyle = "#1769ff";
+    context.strokeStyle = "#0a6baf";
     context.lineWidth = 11;
     context.beginPath();
     points.forEach((point, index) => { const p = project(point); if (index) context.lineTo(p.x, p.y); else context.moveTo(p.x, p.y); });
@@ -453,27 +453,27 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
     const drawPin = (point: RoutePoint, label: string, rank: string, primary = false) => {
       const p = project(point);
       context.beginPath(); context.arc(p.x, p.y, primary ? 28 : 24, 0, Math.PI * 2);
-      context.fillStyle = primary ? "#071f35" : "#1769ff"; context.fill();
+      context.fillStyle = primary ? "#06304a" : "#0a6baf"; context.fill();
       context.lineWidth = 8; context.strokeStyle = "#ffffff"; context.stroke();
       context.fillStyle = "#ffffff"; context.font = "800 22px system-ui, sans-serif"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(rank, p.x, p.y + 1);
       const width = Math.min(340, Math.max(150, context.measureText(label).width + 42));
       const boxX = Math.min(1510 - width, Math.max(90, p.x - width / 2));
       const boxY = p.y < 300 ? p.y + 42 : p.y - 76;
       context.fillStyle = "rgba(255,255,255,.96)"; context.beginPath(); context.roundRect(boxX, boxY, width, 43, 13); context.fill();
-      context.fillStyle = "#12324b"; context.font = "750 18px system-ui, sans-serif"; context.fillText(label, boxX + width / 2, boxY + 22);
+      context.fillStyle = "#0f4f70"; context.font = "750 18px system-ui, sans-serif"; context.fillText(label, boxX + width / 2, boxY + 22);
     };
     drawPin({ lat: origin.lat, lng: origin.lng }, "출발지", "S", true);
     validPlaces.slice(0, 6).forEach((place, index) => drawPin({ lat: Number(place.mapY), lng: Number(place.mapX) }, place.name, String(index + 1)));
 
     context.textAlign = "left"; context.textBaseline = "alphabetic";
-    context.fillStyle = "#1769ff"; context.font = "900 22px system-ui, sans-serif"; context.fillText("W.A.V.E ROUTE MAP", 86, 70);
-    context.fillStyle = "#071f35"; context.font = "850 46px system-ui, sans-serif"; context.fillText("경남 무장애 여행 경로", 86, 124);
-    context.fillStyle = "#5e7587"; context.font = "650 20px system-ui, sans-serif";
+    context.fillStyle = "#0a6baf"; context.font = "900 22px system-ui, sans-serif"; context.fillText("W.A.V.E ROUTE MAP", 86, 70);
+    context.fillStyle = "#06304a"; context.font = "850 46px system-ui, sans-serif"; context.fillText("경남 무장애 여행 경로", 86, 124);
+    context.fillStyle = "#52788c"; context.font = "650 20px system-ui, sans-serif";
     const summary = [route?.label || "추천 경로", route?.totalTime ? `${route.totalTime}분` : null, route?.totalDistance ? `${(route.totalDistance / 1000).toFixed(1)}km` : null].filter(Boolean).join(" · ");
     context.fillText(summary, 86, 160);
     context.fillStyle = "rgba(7,31,53,.82)"; context.fillRect(80, 884, 1440, 70);
     context.fillStyle = "#ffffff"; context.font = "700 18px system-ui, sans-serif"; context.fillText(`${validPlaces.length}개 여행지 · ${route?.provider || "W.A.V.E 추천 경로"}`, 112, 927);
-    context.textAlign = "right"; context.fillStyle = "#b9d2e5"; context.font = "600 16px system-ui, sans-serif"; context.fillText("지도 배경 미포함 · 경로와 장소를 시각화한 공유용 이미지", 1480, 927);
+    context.textAlign = "right"; context.fillStyle = "#bcd9e8"; context.font = "600 16px system-ui, sans-serif"; context.fillText("지도 배경 미포함 · 경로와 장소를 시각화한 공유용 이미지", 1480, 927);
     canvas.toBlob((blob) => {
       if (!blob) return;
       const url = URL.createObjectURL(blob);
@@ -580,9 +580,9 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
             const manager = new K.drawing.DrawingManager({
               map,
               drawingMode: [K.drawing.OverlayType.POLYLINE, K.drawing.OverlayType.CIRCLE, K.drawing.OverlayType.POLYGON],
-              polylineOptions: { draggable: true, removable: true, editable: true, strokeWeight: 4, strokeOpacity: .9, strokeColor: "#1769ff", hintStrokeStyle: "dash", hintStrokeOpacity: .45 },
-              circleOptions: { draggable: true, removable: true, editable: true, strokeWeight: 3, strokeOpacity: .9, strokeColor: "#1769ff", fillColor: "#80e8c7", fillOpacity: .2 },
-              polygonOptions: { draggable: true, removable: true, editable: true, strokeWeight: 3, strokeOpacity: .9, strokeColor: "#1769ff", fillColor: "#80e8c7", fillOpacity: .22, hintStrokeStyle: "dash", hintStrokeOpacity: .45 },
+              polylineOptions: { draggable: true, removable: true, editable: true, strokeWeight: 4, strokeOpacity: .9, strokeColor: "#0a6baf", hintStrokeStyle: "dash", hintStrokeOpacity: .45 },
+              circleOptions: { draggable: true, removable: true, editable: true, strokeWeight: 3, strokeOpacity: .9, strokeColor: "#0a6baf", fillColor: "#6fe3d0", fillOpacity: .2 },
+              polygonOptions: { draggable: true, removable: true, editable: true, strokeWeight: 3, strokeOpacity: .9, strokeColor: "#0a6baf", fillColor: "#6fe3d0", fillOpacity: .22, hintStrokeStyle: "dash", hintStrokeOpacity: .45 },
             });
             manager.addListener("state_changed", () => setMeasureSummary(summarizeMeasurements(manager.getData())));
             drawingManagerRef.current = manager;
@@ -634,7 +634,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
             });
           });
           const geometry = route?.geometry?.length ? route.geometry : [{ lat: origin.lat, lng: origin.lng }, ...places.map((p) => ({ lat: Number(p.mapY), lng: Number(p.mapX) })).filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))];
-          if (geometry.length > 1) new K.Polyline({ map, path: geometry.map((point) => new K.LatLng(point.lat, point.lng)), strokeWeight: 6, strokeColor: route?.configured ? "#1769ff" : "#4a88c7", strokeOpacity: .82, strokeStyle: route?.configured ? "solid" : "shortdash" });
+          if (geometry.length > 1) new K.Polyline({ map, path: geometry.map((point) => new K.LatLng(point.lat, point.lng)), strokeWeight: 6, strokeColor: route?.configured ? "#0a6baf" : "#5aa3c4", strokeOpacity: .82, strokeStyle: route?.configured ? "solid" : "shortdash" });
           if (places.length) map.setBounds(bounds); else { map.setCenter(center); map.setLevel(9); }
           setProvider("kakao");
           setProviderDetail("Kakao Maps JavaScript SDK로 표시 중입니다.");
@@ -694,7 +694,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
         bounds.push([lat, lng]);
       });
       const geometry = route?.geometry?.length ? route.geometry : bounds.map(([lat, lng]) => ({ lat, lng }));
-      if (geometry.length > 1) L.polyline(geometry.map((point) => [point.lat, point.lng] as [number, number]), { color: route?.configured ? "#1769ff" : "#4a88c7", weight: 6, opacity: .82, dashArray: route?.configured ? undefined : "9 10", lineCap: "round" }).addTo(map);
+      if (geometry.length > 1) L.polyline(geometry.map((point) => [point.lat, point.lng] as [number, number]), { color: route?.configured ? "#0a6baf" : "#5aa3c4", weight: 6, opacity: .82, dashArray: route?.configured ? undefined : "9 10", lineCap: "round" }).addTo(map);
       if (bounds.length) map.fitBounds(bounds, { padding: [46, 46], maxZoom: 13 }); else map.setView([35.238, 128.692], 9);
       setProvider("osm");
     }

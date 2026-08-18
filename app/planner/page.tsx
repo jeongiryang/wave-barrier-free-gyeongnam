@@ -13,6 +13,7 @@ import {
 import RouteMap, { type MapPlace, type RouteAlternative, type RoutePoint } from "../../components/RouteMap";
 import { PreferenceControls, useSitePreferences } from "../../components/SitePreferences";
 import SmartSpotImage from "../../components/SmartSpotImage";
+import AccessIcon, { type AccessIconName } from "../../components/AccessIcons";
 import HelpCenter from "../../components/HelpCenter";
 
 type ApiState = "live" | "empty" | "error" | "ready";
@@ -188,13 +189,13 @@ const departurePresets: Array<{ id: string; name: string; detail: string; point:
   { id: "tongyeong", name: "통영종합버스터미널", detail: "통영 시내 출발", point: { lat: 34.8680, lng: 128.4155 } },
 ];
 
-const profiles = [
-  { id: "wheel", icon: "♿", label: "휠체어 이용", short: "주차·접근로·승강기" },
-  { id: "senior", icon: "◌", label: "걷기 불편", short: "짧은 동선·휴게 우선" },
-  { id: "baby", icon: "♧", label: "영유아 동반", short: "유모차·수유실" },
-  { id: "pregnant", icon: "♡", label: "임산부", short: "화장실·승강기 우선" },
-  { id: "visual", icon: "◉", label: "시각 정보 지원", short: "점자·음성 안내" },
-  { id: "hearing", icon: "◐", label: "청각 정보 지원", short: "수어·영상 안내" },
+const profiles: Array<{ id: string; icon: AccessIconName; label: string; short: string }> = [
+  { id: "wheel", icon: "wheel", label: "휠체어 이용", short: "주차·접근로·승강기" },
+  { id: "senior", icon: "senior", label: "걷기 불편", short: "짧은 동선·휴게 우선" },
+  { id: "baby", icon: "baby", label: "영유아 동반", short: "유모차·수유실" },
+  { id: "pregnant", icon: "pregnant", label: "임산부", short: "화장실·승강기 우선" },
+  { id: "visual", icon: "visual", label: "시각 정보 지원", short: "점자·음성 안내" },
+  { id: "hearing", icon: "hearing", label: "청각 정보 지원", short: "수어·영상 안내" },
 ];
 
 const regions = [
@@ -340,6 +341,7 @@ export default function PlannerPage() {
   const [transportProviders, setTransportProviders] = useState<TransportProvider[]>([]);
   const [transportContext, setTransportContext] = useState<TransportContext | null>(null);
   const [keyHealth, setKeyHealth] = useState<KeyHealth | null>(null);
+  const [keyHealthChecked, setKeyHealthChecked] = useState(false);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [shareState, setShareState] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [shareUrl, setShareUrl] = useState("");
@@ -371,7 +373,7 @@ export default function PlannerPage() {
      /api/health의 인증키 상태로 지금 말할 수 있는 만큼만 알린다. */
   const fallbackProviders = useMemo<TransportProvider[]>(() => {
     const stateOf = (id: string): TransportProviderState => {
-      if (!keyHealth) return "checking";
+      if (!keyHealth) return keyHealthChecked ? "error" : "checking";
       return keyHealth.keys.find((key) => key.id === id)?.state === "configured" ? "ready" : "missing";
     };
     return [
@@ -386,7 +388,7 @@ export default function PlannerPage() {
       const state = stateOf(key);
       return { ...provider, configured: state === "ready", state };
     });
-  }, [keyHealth]);
+  }, [keyHealth, keyHealthChecked]);
 
   // 경로 계산 뒤에는 실제 응답이, 그전에는 인증키 기준 상태가 쓰인다.
   const effectiveProviders = transportProviders.length ? transportProviders : fallbackProviders;
@@ -423,7 +425,8 @@ export default function PlannerPage() {
     void fetch("/api/health", { headers: { Accept: "application/json" } })
       .then((response) => response.ok ? response.json() : null)
       .then((data) => { if (!cancelled && data) setKeyHealth(data as KeyHealth); })
-      .catch(() => { /* 화면 기능은 계속 사용할 수 있다. */ });
+      .catch(() => { /* 화면 기능은 계속 사용할 수 있다. */ })
+      .finally(() => { if (!cancelled) setKeyHealthChecked(true); });
     return () => { cancelled = true; };
   }, []);
 
@@ -857,7 +860,7 @@ export default function PlannerPage() {
                 const active = selected.includes(profile.id);
                 return (
                   <button key={profile.id} type="button" className={active ? "profile-card active" : "profile-card"} aria-pressed={active} onClick={() => toggleProfile(profile.id)}>
-                    <span className="profile-icon" aria-hidden="true">{profile.icon}</span>
+                    <span className="profile-icon" aria-hidden="true"><AccessIcon name={profile.icon} size={24} /></span>
                     <span><strong>{profile.label}</strong><small>{profile.short}</small></span>
                     <i aria-hidden="true">{active ? "✓" : "+"}</i>
                   </button>
