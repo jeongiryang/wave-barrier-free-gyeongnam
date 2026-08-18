@@ -1,12 +1,9 @@
-/** Cloudflare Worker entry point for the W.A.V.E Sites application. */
-import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
-import handler from "vinext/server/app-router-entry";
+/** W.A.V.E Vercel Functions에서 공유하는 API 구현. */
+import { neon } from "@neondatabase/serverless";
 
 type KtoItem = Record<string, string | number | null | undefined>;
 
 export interface Env {
-  ASSETS?: Fetcher;
-  DB?: D1Database;
   TOUR_API_SERVICE_KEY_ENCODED?: string;
   EXPRESSWAY_API_KEY?: string;
   ODSAY_API_KEY?: string;
@@ -14,34 +11,13 @@ export interface Env {
   KAKAO_REST_API_KEY?: string;
   KORAIL_API_KEY?: string;
   TAGO_API_KEY?: string;
-  IMAGES?: {
-    input(stream: ReadableStream): {
-      transform(options: Record<string, unknown>): {
-        output(options: { format: string; quality: number }): Promise<{ response(): Response }>;
-      };
-    };
-  };
-}
-
-interface ExecutionContext {
-  waitUntil(promise: Promise<unknown>): void;
-  passThroughOnException(): void;
 }
 
 type KtoResult = { items: KtoItem[]; total: number };
 type Attempt = { ok: true; value: KtoResult } | { ok: false; error: string };
 type TransportProviderState = "connected" | "ready" | "error" | "missing";
 
-type MemoryTrip = { payload: string; createdAt: number; expiresAt: number };
-
-const portableTrips = new Map<string, MemoryTrip>();
-const portableFeedback: Array<Record<string, string | number>> = [];
-
-/**
- * Vercel·Render의 Node 런타임에서는 Cloudflare 바인딩 대신 프로세스 환경
- * 변수를 사용한다. D1이 없는 경우 공유 링크와 제보는 인스턴스 메모리에만
- * 보관되며, 관광·지도·교통 API는 동일하게 동작한다.
- */
+/** Vercel Functions에서는 서버 환경 변수만 읽는다. */
 function portableEnv(): Env {
   const values = typeof process === "undefined" ? {} : process.env;
   return {
@@ -345,16 +321,46 @@ async function fetchPhoto(env: Env, region: string) {
   }));
 }
 
-async function fetchSpotPhoto(env: Env, region: string, title: string) {
-  const keyword = clean(title || region, 80);
-  const [gallery, tour] = await Promise.all([
-    attempt(fetchKto(env, "PhotoGalleryService1", "gallerySearchList1", { ...commonParams("8"), arrange: "C", keyword })),
-    attempt(fetchKto(env, "KorService2", "searchKeyword2", { ...commonParams("8"), arrange: "Q", keyword })),
-  ]);
-  const galleryItem = gallery.ok ? gallery.value.items.find((item) => clean(item.galWebImageUrl)) : undefined;
-  const tourItem = tour.ok ? tour.value.items.find((item) => clean(item.firstimage || item.firstimage2)) : undefined;
-  const image = clean(galleryItem?.galWebImageUrl || tourItem?.firstimage || tourItem?.firstimage2).replace(/^http:\/\//, "https://");
-  return { image, source: galleryItem ? "한국관광공사 관광사진" : tourItem ? "한국관광공사 관광정보" : "", matchedTitle: clean(galleryItem?.galTitle || tourItem?.title || title), status: gallery.ok || tour.ok ? (image ? "live" : "empty") : "error" };
+async function fetchSpotPhoto(env: Env, region: string, title: string, tag = "") {
+  const normalizedTitle = clean(title, 80)
+    .replace(/\([^)]*\)|（[^）]*）/g, " ")
+    .replace(/\b(주식회사|유한회사)\b|\(주\)|지점|본점/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const keywords = [...new Set([
+    clean(title, 80),
+    normalizedTitle,
+    clean(`${region} ${normalizedTitle}`, 80),
+    clean(`${region} ${tag || "관광"}`, 80),
+    clean(regionPhotoKeywords[region] || `${region} 관광`, 80),
+  ].filter((value) => value.length >= 2))].slice(0, 5);
+  // 장소별로 순차 호출하면 사진이 없는 카드 하나가 수십 초 동안 로딩될 수 있다.
+  // 우선순위는 유지하되 후보 검색을 병렬화해 가장 먼저 그릴 수 있는 공식 사진을 고른다.
+  const searches = await Promise.all(keywords.map(async (keyword) => {
+    const [gallery, tour] = await Promise.all([
+      attempt(fetchKto(env, "PhotoGalleryService1", "gallerySearchList1", { ...commonParams("12"), arrange: "C", keyword })),
+      attempt(fetchKto(env, "KorService2", "searchKeyword2", { ...commonParams("12"), arrange: "Q", keyword })),
+    ]);
+    return { keyword, gallery, tour };
+  }));
+  const providerWorked = searches.some(({ gallery, tour }) => gallery.ok || tour.ok);
+
+  for (const { keyword, gallery, tour } of searches) {
+    const galleryItem = gallery.ok ? gallery.value.items.find((item) => clean(item.galWebImageUrl || item.galWebImageUrl2)) : undefined;
+    const tourItem = tour.ok ? tour.value.items.find((item) => clean(item.firstimage || item.firstimage2)) : undefined;
+    const image = clean(galleryItem?.galWebImageUrl || galleryItem?.galWebImageUrl2 || tourItem?.firstimage || tourItem?.firstimage2).replace(/^http:\/\//, "https://");
+    if (image) {
+      return {
+        image,
+        source: galleryItem ? "한국관광공사 관광사진" : "한국관광공사 관광정보",
+        matchedTitle: clean(galleryItem?.galTitle || tourItem?.title || title),
+        query: keyword,
+        status: "live",
+      };
+    }
+  }
+
+  return { image: "", source: "", matchedTitle: clean(title), status: providerWorked ? "empty" : "error" };
 }
 
 function weatherLabel(code: number) {
@@ -537,11 +543,16 @@ function courseFrom(result: Attempt) {
 }
 
 function richSpot(item: KtoItem, source: string) {
+  const eventStart = clean(item.eventstartdate || item.eventStartDate);
+  const eventEnd = clean(item.eventenddate || item.eventEndDate);
+  const eventPeriod = eventStart
+    ? `${eventStart.slice(0, 4)}.${eventStart.slice(4, 6)}.${eventStart.slice(6, 8)}${eventEnd && eventEnd !== eventStart ? ` – ${eventEnd.slice(0, 4)}.${eventEnd.slice(4, 6)}.${eventEnd.slice(6, 8)}` : ""}`
+    : "";
   return {
     id: clean(item.contentId || item.contentid || item.contentID || item.facltNm || item.koTitle || item.stdRestCd || item.serviceAreaCode || item.travelId || item.courseId || item.title),
     title: clean(item.title || item.contentTitle || item.facltNm || item.koTitle || item.stdRestNm || item.serviceAreaName || item.travelNm || item.travelName || item.courseNm || item.courseName || item.spotNm || item.tourNm || item.name || "이름 없는 콘텐츠"),
     address: clean(item.addr1 || item.baseAddr || item.address || item.addr || item.svarAddr || item.serviceAreaAddress || item.koFilmst || item.region),
-    summary: clean(item.overview || item.intro || item.lineIntro || item.course || item.contents || item.content || item.description || item.themeDetail || item.themeDtl || item.featureNm || item.koKeyword, 260),
+    summary: clean(eventPeriod || item.overview || item.intro || item.lineIntro || item.course || item.contents || item.content || item.description || item.themeDetail || item.themeDtl || item.featureNm || item.koKeyword, 260),
     image: clean(item.firstimage || item.firstImageUrl || item.orgImage || item.thumbImage || item.thumbnail || item.imageUrl || item.imgUrl || item.photoUrl).replace(/^http:\/\//, "https://"),
     mapX: clean(item.mapX || item.mapx || item.longitude),
     mapY: clean(item.mapY || item.mapy || item.latitude),
@@ -642,16 +653,46 @@ async function fetchThemeRests(env: Env): Promise<Attempt> {
   }
 }
 
+function todayYmd() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" })
+    .format(new Date())
+    .replaceAll("-", "");
+}
+
+function safeYmd(value: string | null, fallback: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value || "") ? String(value).replaceAll("-", "") : fallback;
+}
+
+async function fetchRegionalEvents(env: Env, region: string, startDate: string, endDate: string): Promise<Attempt> {
+  const districts = regionCodes[region].legal;
+  const base = { ...commonParams("16"), arrange: "A", lDongRegnCd: "48", eventStartDate: startDate, eventEndDate: endDate };
+  return provinceFallback(
+    fetchRegionalList(env, "KorService2", "searchFestival2", base, districts),
+    () => fetchRegionalList(env, "KorService2", "searchFestival2", base, []),
+  );
+}
+
+async function fetchRegionalLodging(env: Env, region: string): Promise<Attempt> {
+  const districts = regionCodes[region].legal;
+  const base = { ...commonParams("12"), arrange: "Q", lDongRegnCd: "48", contentTypeId: "32" };
+  return provinceFallback(
+    fetchRegionalList(env, "KorService2", "areaBasedList2", base, districts),
+    () => fetchRegionalList(env, "KorService2", "areaBasedList2", base, []),
+  );
+}
+
 async function buildEnrichment(request: Request, env: Env) {
   const url = new URL(request.url);
   const requested = clean(url.searchParams.get("region"), 20);
   const region = regionCodes[requested] ? requested : "창원";
   const theme = contentTypes[clean(url.searchParams.get("theme"), 20)] ? clean(url.searchParams.get("theme"), 20) : "nature";
   const locale = languageServices[clean(url.searchParams.get("locale"), 20)] ? clean(url.searchParams.get("locale"), 20) : "ko";
+  const eventStartDate = safeYmd(url.searchParams.get("startDate"), todayYmd());
+  const eventEndDate = safeYmd(url.searchParams.get("endDate"), eventStartDate);
   const language = languageServices[locale === "ko" ? "en" : locale];
   const districts = regionCodes[region].legal;
   const baseLocation = { ...commonParams("10"), arrange: "Q", lDongRegnCd: "48" };
-  const [visitorPack, camping, pet, wellness, medical, languageTour, awards, demandPack, waterCourses, waterPlaces, themeRests] = await Promise.all([
+  const [visitorPack, camping, pet, wellness, medical, languageTour, awards, demandPack, waterCourses, waterPlaces, themeRests, events, lodging] = await Promise.all([
     fetchVisitorInsight(env, region),
     fetchCamping(env, region),
     fetchRegionalList(env, "KorPetTourService2", "areaBasedList2", { ...baseLocation, contentTypeId: contentTypes[theme] || "12" }, districts),
@@ -672,6 +713,8 @@ async function buildEnrichment(request: Request, env: Env) {
     fetchWaterTravel(env, "01"),
     fetchWaterTravel(env, "02"),
     fetchThemeRests(env),
+    fetchRegionalEvents(env, region, eventStartDate, eventEndDate),
+    fetchRegionalLodging(env, region),
   ]);
   const visitorItems = visitorPack.result.ok ? visitorPack.result.value.items : [];
   const visitorTotal = Math.round(visitorItems.reduce((sum, item) => sum + Number(item.touNum || 0), 0));
@@ -693,6 +736,8 @@ async function buildEnrichment(request: Request, env: Env) {
     env.EXPRESSWAY_API_KEY?.trim()
       ? apiStatus("rest", "테마휴게소", "관광·문화·체험형 고속도로 휴식 지점", themeRests)
       : { id: "rest", name: "테마휴게소", role: "관광·문화·체험형 고속도로 휴식 지점", state: "ready", count: 0, note: "선택 기능 · 한국도로공사 전용키 연결 시 활성화" },
+    apiStatus("event", "축제·행사", "현재부터 열리는 지역 축제·공연·문화행사", events),
+    apiStatus("lodging", "숙박", "여행 지역의 숙박시설과 위치 정보", lodging),
   ];
   return {
     generatedAt: new Date().toISOString(),
@@ -702,6 +747,8 @@ async function buildEnrichment(request: Request, env: Env) {
     medical: spots(medical, "의료 관광"), language: spots(languageTour, language.source), awards: spots(awards, "관광공모전 수상작"),
     water: [...spots(waterCourses, "낙동강 수변 코스"), ...spots(waterPlaces, "낙동강 수변 명소")].slice(0, 8),
     rests: spots(themeRests, "한국도로공사 테마휴게소"),
+    events: spots(events, "지역 축제·행사"),
+    lodging: spots(lodging, "국문 관광정보 · 숙박"),
     statuses,
   };
 }
@@ -1057,62 +1104,85 @@ function handleHealthApi(env: Env) {
   });
 }
 
-async function ensureDb(env: Env) {
-  if (!env.DB) return;
-  await env.DB.batch([
-    env.DB.prepare("CREATE TABLE IF NOT EXISTS itineraries (id TEXT PRIMARY KEY, payload TEXT NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL)"),
-    env.DB.prepare("CREATE INDEX IF NOT EXISTS itineraries_expires_idx ON itineraries (expires_at)"),
-    env.DB.prepare("CREATE TABLE IF NOT EXISTS place_feedback (id TEXT PRIMARY KEY, place_id TEXT NOT NULL, place_name TEXT NOT NULL, field TEXT NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'received', created_at INTEGER NOT NULL)"),
-  ]);
+function database() {
+  const url = typeof process === "undefined" ? "" : process.env.DATABASE_URL?.trim();
+  return url ? neon(url) : null;
+}
+
+async function ensureDb() {
+  const sql = database();
+  if (!sql) return null;
+  await sql`CREATE TABLE IF NOT EXISTS itineraries (
+    id TEXT PRIMARY KEY,
+    payload JSONB NOT NULL,
+    created_at BIGINT NOT NULL,
+    expires_at BIGINT NOT NULL
+  )`;
+  await sql`CREATE INDEX IF NOT EXISTS itineraries_expires_idx ON itineraries (expires_at)`;
+  await sql`CREATE TABLE IF NOT EXISTS place_feedback (
+    id TEXT PRIMARY KEY,
+    place_id TEXT NOT NULL,
+    place_name TEXT NOT NULL,
+    field TEXT NOT NULL,
+    message TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'received',
+    created_at BIGINT NOT NULL
+  )`;
+  return sql;
 }
 
 async function handleTripsApi(request: Request, env: Env) {
-  await ensureDb(env);
+  const sql = await ensureDb();
   const url = new URL(request.url);
   const id = clean(url.pathname.split("/").filter(Boolean)[2], 64);
   if (request.method === "GET") {
     if (!id) return json({ error: "공유 여행 ID가 필요합니다." }, 400);
-    if (!env.DB) {
-      const row = portableTrips.get(id);
-      if (!row || row.expiresAt <= Date.now()) {
-        portableTrips.delete(id);
-        return json({ error: "공유 여행을 찾을 수 없거나 보관 기간이 지났습니다." }, 404);
-      }
-      return json({ id, ...JSON.parse(row.payload), createdAt: row.createdAt, expiresAt: row.expiresAt }, 200, true);
-    }
-    const row = await env.DB.prepare("SELECT payload, created_at, expires_at FROM itineraries WHERE id = ? AND expires_at > ?").bind(id, Date.now()).first<{ payload: string; created_at: number; expires_at: number }>();
+    if (!sql) return json({ error: "공유 여행 보관 기능을 준비 중입니다." }, 503);
+    const rows = await sql`SELECT payload, created_at, expires_at FROM itineraries WHERE id = ${id} AND expires_at > ${Date.now()} LIMIT 1` as Array<{ payload: Record<string, unknown>; created_at: number | string; expires_at: number | string }>;
+    const row = rows[0];
     if (!row) return json({ error: "공유 여행을 찾을 수 없거나 보관 기간이 지났습니다." }, 404);
-    return json({ id, ...JSON.parse(row.payload), createdAt: row.created_at, expiresAt: row.expires_at }, 200, true);
+    const saved = row.payload || {};
+    const selections = (saved.selections || {}) as Record<string, unknown>;
+    const params = new URLSearchParams({
+      region: clean(selections.region, 20),
+      theme: clean(selections.theme, 20),
+      profiles: Array.isArray(selections.profiles) ? selections.profiles.map((value) => clean(value, 20)).join(",") : "",
+      locale: clean(selections.locale || "ko", 20),
+    });
+    const plan = await buildPlan(new Request(`${url.origin}/api/wave?${params.toString()}`), env);
+    return json({ id, ...saved, plan, createdAt: Number(row.created_at), expiresAt: Number(row.expires_at) }, 200, true);
   }
   if (request.method !== "POST") return json({ error: "지원하지 않는 요청입니다." }, 405);
+  if (!sql) return json({ error: "공유 여행 보관 기능을 준비 중입니다." }, 503);
   const body = await request.json().catch(() => null) as Record<string, unknown> | null;
-  if (!body || typeof body.plan !== "object" || !body.plan) return json({ error: "저장할 여행 계획이 필요합니다." }, 400);
-  const payload = JSON.stringify({ plan: body.plan, selections: body.selections || {}, origin: body.origin || null });
+  if (!body || typeof body.selections !== "object" || !body.selections) return json({ error: "저장할 여행 조건이 필요합니다." }, 400);
+  const plan = (body.plan && typeof body.plan === "object" ? body.plan : {}) as Record<string, unknown>;
+  const places = Array.isArray(plan.places) ? plan.places as Array<Record<string, unknown>> : [];
+  const origin = (body.origin && typeof body.origin === "object" ? body.origin : {}) as Record<string, unknown>;
+  const payloadObject = {
+    selections: body.selections,
+    origin: { label: clean(origin.label || "선택 출발지", 80) },
+    placeRefs: places.slice(0, 12).map((place, order) => ({ contentId: clean(place.id, 80), order })),
+  };
+  const payload = JSON.stringify(payloadObject);
   if (payload.length > 65000) return json({ error: "여행 계획이 너무 큽니다." }, 413);
   const newId = crypto.randomUUID().replaceAll("-", "").slice(0, 12);
   const now = Date.now();
   const expiresAt = now + 1000 * 60 * 60 * 24 * 30;
-  if (env.DB) {
-    await env.DB.prepare("INSERT INTO itineraries (id, payload, created_at, expires_at) VALUES (?, ?, ?, ?)").bind(newId, payload, now, expiresAt).run();
-  } else {
-    portableTrips.set(newId, { payload, createdAt: now, expiresAt });
-  }
+  await sql`INSERT INTO itineraries (id, payload, created_at, expires_at) VALUES (${newId}, ${payload}::jsonb, ${now}, ${expiresAt})`;
   return json({ id: newId, url: `${url.origin}/trip/${newId}`, expiresAt }, 201);
 }
 
-async function handleFeedbackApi(request: Request, env: Env) {
+async function handleFeedbackApi(request: Request) {
   if (request.method !== "POST") return json({ error: "POST 요청만 지원합니다." }, 405);
-  await ensureDb(env);
+  const sql = await ensureDb();
+  if (!sql) return json({ error: "접근성 제보 보관 기능을 준비 중입니다." }, 503);
   const body = await request.json().catch(() => null) as Record<string, unknown> | null;
   const placeId = clean(body?.placeId, 80); const placeName = clean(body?.placeName, 100);
   const field = clean(body?.field || "접근성 정보", 60); const message = clean(body?.message, 800);
   if (!placeId || !placeName || message.length < 5) return json({ error: "장소와 5자 이상의 제보 내용을 입력해 주세요." }, 400);
   const id = crypto.randomUUID();
-  if (env.DB) {
-    await env.DB.prepare("INSERT INTO place_feedback (id, place_id, place_name, field, message, status, created_at) VALUES (?, ?, ?, ?, ?, 'received', ?)").bind(id, placeId, placeName, field, message, Date.now()).run();
-  } else {
-    portableFeedback.push({ id, placeId, placeName, field, message, status: "received", createdAt: Date.now() });
-  }
+  await sql`INSERT INTO place_feedback (id, place_id, place_name, field, message, status, created_at) VALUES (${id}, ${placeId}, ${placeName}, ${field}, ${message}, 'received', ${Date.now()})`;
   return json({ ok: true, id }, 201);
 }
 
@@ -1131,8 +1201,9 @@ async function handleWaveApi(request: Request, env: Env) {
     const requested = clean(url.searchParams.get("region"), 20);
     const region = regionCodes[requested] ? requested : "창원";
     const title = clean(url.searchParams.get("title"), 100);
+    const tag = clean(url.searchParams.get("tag"), 80);
     if (!title) return json({ error: "사진을 찾을 장소명이 필요합니다." }, 400);
-    return json(await fetchSpotPhoto(env, region, title), 200, true);
+    return json(await fetchSpotPhoto(env, region, title, tag), 200, true);
   }
   if (action === "crowd") {
     const requested = clean(url.searchParams.get("region"), 20);
@@ -1165,37 +1236,6 @@ export async function handlePortableApi(request: Request): Promise<Response> {
   if (url.pathname === "/api/map-config") return handleMapConfig(env);
   if (url.pathname === "/api/health") return handleHealthApi(env);
   if (url.pathname === "/api/trips" || url.pathname.startsWith("/api/trips/")) return handleTripsApi(request, env);
-  if (url.pathname === "/api/feedback") return handleFeedbackApi(request, env);
+  if (url.pathname === "/api/feedback") return handleFeedbackApi(request);
   return json({ error: "지원하지 않는 API 경로입니다." }, 404);
 }
-
-const worker = {
-  async fetch(request: Request, env: Env | undefined, ctx: ExecutionContext): Promise<Response> {
-    const runtimeEnv = env ?? portableEnv();
-    const url = new URL(request.url);
-
-    if (url.pathname === "/api/wave") return handleWaveApi(request, runtimeEnv);
-    if (url.pathname === "/api/weather") return handleWeatherApi(request);
-    if (url.pathname === "/api/location-search") return handleLocationSearch(request, runtimeEnv);
-    if (url.pathname === "/api/route") return handleRouteApi(request, runtimeEnv);
-    if (url.pathname === "/api/map-config") return handleMapConfig(runtimeEnv);
-    if (url.pathname === "/api/health") return handleHealthApi(runtimeEnv);
-    if (url.pathname === "/api/trips" || url.pathname.startsWith("/api/trips/")) return handleTripsApi(request, runtimeEnv);
-    if (url.pathname === "/api/feedback") return handleFeedbackApi(request, runtimeEnv);
-
-    if (url.pathname === "/_vinext/image" && runtimeEnv.ASSETS && runtimeEnv.IMAGES) {
-      const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
-      return handleImageOptimization(request, {
-        fetchAsset: (path) => runtimeEnv.ASSETS!.fetch(new Request(new URL(path, request.url))),
-        transformImage: async (body, { width, format, quality }) => {
-          const result = await runtimeEnv.IMAGES!.input(body).transform(width > 0 ? { width } : {}).output({ format, quality });
-          return result.response();
-        },
-      }, allowedWidths);
-    }
-
-    return handler.fetch(request, runtimeEnv, ctx);
-  },
-};
-
-export default worker;

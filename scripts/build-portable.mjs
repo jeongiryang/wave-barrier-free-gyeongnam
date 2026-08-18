@@ -2,8 +2,8 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const preset = process.argv[2];
-if (!preset) {
-  console.error("배포 프리셋이 필요합니다: vercel 또는 node");
+if (preset !== "vercel") {
+  console.error("Vercel 배포 프리셋이 필요합니다.");
   process.exit(1);
 }
 
@@ -12,7 +12,6 @@ const result = spawnSync(process.execPath, [viteCli, "build"], {
   stdio: "inherit",
   env: {
     ...process.env,
-    WAVE_DEPLOY_TARGET: "portable",
     NITRO_PRESET: preset,
   },
 });

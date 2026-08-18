@@ -24,8 +24,7 @@ W.A.V.E의 공식 서비스 주소는 Vercel Production 도메인 하나로 통�
 - 서버 함수: Vercel Functions
 - 영속 데이터베이스: Neon Postgres
 - 소스 및 CI: GitHub와 GitHub Actions
-- Render: 공식 서비스 구성에서 제외한다.
-- ChatGPT Sites: 공식 서비스 배포 및 테스트 주소로 사용하지 않는다.
+- 공식 배포 경로는 Vercel 하나만 유지해 중복 배포와 도메인 혼선을 방지한다.
 - Pull Request의 CI 통과를 `main` 병합 조건으로 두고, 병합된 커밋을 Vercel이
   Production으로 자동 배포한다.
 - Pull Request는 Vercel Preview와 CI로 검증한다.

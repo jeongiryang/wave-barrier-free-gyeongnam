@@ -7,6 +7,7 @@ W.A.V.E는 경상남도 18개 시·군의 관광지, 무장애 편의정보, 교
 ## 운영 기준
 
 - [공모전 운영·데이터 정책](docs/competition-operation-policy.md)
+- [Vercel·Neon 배포 및 환경 설정](docs/vercel-neon-setup.md)
 - 공식 서비스는 Vercel Production 도메인 하나로 운영합니다.
 - 영속 데이터가 필요할 때는 Neon Postgres를 사용하되, 한국관광공사
   OpenAPI 원본 응답은 저장하지 않고 실시간 호출합니다.
@@ -20,7 +21,10 @@ W.A.V.E는 경상남도 18개 시·군의 관광지, 무장애 편의정보, 교
 - 카카오맵, 자동차 경로, 로드뷰와 주변 장소 탐색
 - KORAIL·TAGO 기반 철도·버스·고속·시외 교통정보 조회
 - 관광지 집중률, 현재 날씨와 7일 예보 및 여행 준비 안내
-- 추천 여행지 비교, 출발지·목적지 선택, 여행 계획 공유
+- 추천 여행지 비교, 출발지·목적지 선택, 날짜별 여행 일정 구성·공유
+- 여행 기간에 맞는 지역 축제·행사와 숙박 정보 통합 조회
+- 공식 관광 사진 실시간 보강과 스켈레톤·브랜드 대체 화면
+- Neon Auth 기반 계정 연결과 처음 이용자를 위한 도움말
 - 반응형 화면, 다크 모드, 다국어, 스켈레톤 로딩
 
 ## 기술 구성
@@ -107,7 +111,7 @@ git push -u origin feat/기능명
 ```
 
 GitHub에서 Pull Request를 만들고 CI가 통과한 뒤 `main`에 병합합니다.
-Vercel은 병합된 `main` 커밋을 감지하여 공식 Production 환경을 자동 배포합니다.
+병합 뒤 GitHub Actions CD가 공식 Vercel Production 환경을 자동 배포합니다.
 
 ## GitHub Actions CI
 
@@ -117,6 +121,7 @@ Vercel은 병합된 `main` 커밋을 감지하여 공식 Production 환경을 �
 1. 잠금 파일 기준 의존성 설치
 2. ESLint 정적 검사
 3. Vercel용 프로덕션 빌드
+4. 저장소 정책 회귀 테스트
 
 저장소의 `Settings → Branches → Branch protection rules`에서 `main`에
 다음 규칙을 권장합니다.
@@ -138,11 +143,9 @@ Vercel은 병합된 `main` 커밋을 감지하여 공식 Production 환경을 �
 빌드 명령은 `npm run build:vercel`이며 Nitro가 Vercel Build Output API 규격의
 `.vercel/output`을 자동 생성합니다. Vercel의 Output Directory는 별도로
 재정의하지 않습니다.
-이후 `main`에 병합되면 Vercel이 자동으로 다시 배포합니다.
-
-Render와 ChatGPT Sites는 공식 배포 대상으로 사용하지 않습니다. 기존 Render
-서비스가 남아 있다면 Render Dashboard에서 Auto-Deploy를 끄거나 서비스를
-삭제하여 중복 배포를 중단합니다.
+이후 `main`에 병합되면 `.github/workflows/cd.yml`이 CI 성공을 확인한 뒤
+Vercel Production을 자동 배포합니다. 중복 배포를 막기 위해 Vercel 자체 Git
+배포는 `vercel.json`에서 비활성화되어 있습니다.
 
 카카오 개발자 콘솔의 JavaScript SDK 도메인에는 Vercel의 실제
 `https://...vercel.app` 도메인과 사용하는 커스텀 도메인을 등록해야 합니다.
@@ -155,7 +158,7 @@ Render와 ChatGPT Sites는 공식 배포 대상으로 사용하지 않습니다.
 - 한국관광공사 관광지·사진 데이터는 실시간 OpenAPI 호출을 원칙으로 합니다.
 - 세부 기준은 [공모전 운영·데이터 정책](docs/competition-operation-policy.md)을 따릅니다.
 
-## API 연결 확인
+## 서비스 연결 확인
 
 배포 후 다음 주소에서 환경 변수 인식 상태를 확인할 수 있습니다.
 
@@ -163,8 +166,8 @@ Render와 ChatGPT Sites는 공식 배포 대상으로 사용하지 않습니다.
 /api/health
 ```
 
-`configured`는 키가 런타임에 전달됐다는 의미입니다. 실제 제공기관의 응답은
-서비스의 API 진단 화면과 각 조회 기능에서 함께 확인합니다.
+응답의 `configured`는 필요한 환경 변수가 런타임에 전달됐다는 의미입니다.
+실제 제공기관 응답은 여행 검색과 교통 조회 기능에서 확인합니다.
 
 ## 보안 규칙
 
