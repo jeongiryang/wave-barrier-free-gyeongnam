@@ -69,3 +69,19 @@ test("the place carousel is sized by its card instead of the viewport", async ()
   assert.match(rule, /padding: 4px var\(--card-pad-x\) 28px/);
   assert.doesNotMatch(rule, /100vw/);
 });
+
+test("wave effects avoid dense glyphs and the extended intro timing stays synchronized", async () => {
+  const [wave, landing, css] = await Promise.all([
+    source("components/WaveField.tsx"),
+    source("app/page.tsx"),
+    source("app/globals.css"),
+  ]);
+  const ramp = wave.match(/const RAMP = \[(.*?)\];/)?.[1] ?? "";
+  assert.doesNotMatch(ramp, /[#@xX≡]/);
+  assert.match(wave, /out: \[5\.65, 6\.05\].*W\.A\.V\.E/);
+  assert.match(landing, /const INTRO_DURATION_MS = 6550/);
+  assert.match(landing, /setTimeout\(\(\) => finishIntro\(\), INTRO_DURATION_MS\)/);
+  assert.match(css, /landingIntroOut \.5s 6\.05s/);
+  assert.match(landing, /prefers-reduced-motion: reduce/);
+  assert.match(landing, /<button ref=\{startButtonRef\} type="button" onClick=\{close\}>/);
+});

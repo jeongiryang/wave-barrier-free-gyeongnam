@@ -1177,7 +1177,7 @@ html[data-theme="dark"] .day-planner li,html[data-theme="dark"] .day-planner sel
   display: grid; place-items: center;
   overflow: hidden; color: #fff;
   background: var(--abyss);
-  animation: landingIntroOut .5s 5.05s cubic-bezier(.76,0,.24,1) forwards;
+  animation: landingIntroOut .5s 6.05s cubic-bezier(.76,0,.24,1) forwards;
 }
 .brand-intro::before, .brand-intro::after { content: none; }
 .brand-intro-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -1534,6 +1534,15 @@ html[data-theme="dark"] .access-badge { background: var(--paper); }
   border-radius: 4px;
 }
 .brand-intro :focus-visible { outline-color: var(--mint); }
+
+/* --- 파동 효과 시각 피로 완화 (Refs #21) ---------------------------------
+   히어로 배경의 물결이 본문과 함께 계속 눈에 들어와 피로하다는 지적이 있었다.
+   문자 밀도와 속도는 컴포넌트에서 낮추고, 여기서는 배경으로 더 물러나게 한다. */
+.hero-wave-canvas { opacity: .34; }
+@media (max-width: 1100px) { .hero-wave-canvas { opacity: .2; } }
+@media (max-width: 620px) { .hero-wave-canvas { opacity: .15; } }
+/* 인트로는 전면 연출이지만 대비를 조금 눌러 잔상을 줄인다. */
+.brand-intro-canvas { opacity: .82; }
 
 /* --- 추천 여행지 캐러셀 폭 -----------------------------------------------
    캐러셀은 원래 화면 끝까지 흐르는 전체 폭 구역 안에 있어서 100vw 기준으로
