@@ -341,6 +341,7 @@ export default function PlannerPage() {
   const [transportProviders, setTransportProviders] = useState<TransportProvider[]>([]);
   const [transportContext, setTransportContext] = useState<TransportContext | null>(null);
   const [keyHealth, setKeyHealth] = useState<KeyHealth | null>(null);
+  const [keyHealthChecked, setKeyHealthChecked] = useState(false);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [shareState, setShareState] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [shareUrl, setShareUrl] = useState("");
@@ -367,6 +368,31 @@ export default function PlannerPage() {
   const activeStops = plan?.stops.length ? plan.stops : region === "창원" ? fallbackStops : [];
   const statuses = plan ? [...plan.statuses, ...(enrichment?.statuses || [])] : readyStatuses;
   const liveCount = statuses.filter((status) => status.state === "live").length;
+  /* 경로를 계산하기 전에는 제공기관별 운행 응답을 알 수 없다. 그렇다고 계속
+     "확인 중"으로 두면 끝나지 않는 조회가 도는 것처럼 보이므로, 이미 받아 둔
+     /api/health의 인증키 상태로 지금 말할 수 있는 만큼만 알린다. */
+  const fallbackProviders = useMemo<TransportProvider[]>(() => {
+    const stateOf = (id: string): TransportProviderState => {
+      if (!keyHealth) return keyHealthChecked ? "error" : "checking";
+      return keyHealth.keys.find((key) => key.id === id)?.state === "configured" ? "ready" : "missing";
+    };
+    return [
+      { id: "kakao-drive", name: "KAKAO DRIVE", role: "자동차 시간·거리·통행료", key: "kakao-route" },
+      { id: "odsay", name: "ODsay", role: "대중교통 경로", key: "odsay" },
+      { id: "korail", name: "KORAIL", role: "여객열차 운행계획", key: "public-transport" },
+      { id: "tago-bus", name: "TAGO BUS", role: "정류장·도착", key: "public-transport" },
+      { id: "tago-rail", name: "TAGO RAIL", role: "열차·지하철", key: "public-transport" },
+      { id: "tago-regional", name: "TAGO EXPRESS", role: "고속·시외버스", key: "public-transport" },
+      { id: "tago-mobility", name: "TAGO MOVE", role: "항공·선박·공유교통", key: "public-transport" },
+    ].map(({ key, ...provider }) => {
+      const state = stateOf(key);
+      return { ...provider, configured: state === "ready", state };
+    });
+  }, [keyHealth, keyHealthChecked]);
+
+  // 경로 계산 뒤에는 실제 응답이, 그전에는 인증키 기준 상태가 쓰인다.
+  const effectiveProviders = transportProviders.length ? transportProviders : fallbackProviders;
+
   const filteredRouteAlternatives = useMemo(() => routeAlternatives.filter((route) => {
     if (transportMode === "all") return true;
     if (transportMode === "car") return route.mode === "car";
@@ -399,7 +425,8 @@ export default function PlannerPage() {
     void fetch("/api/health", { headers: { Accept: "application/json" } })
       .then((response) => response.ok ? response.json() : null)
       .then((data) => { if (!cancelled && data) setKeyHealth(data as KeyHealth); })
-      .catch(() => { /* 화면 기능은 계속 사용할 수 있다. */ });
+      .catch(() => { /* 화면 기능은 계속 사용할 수 있다. */ })
+      .finally(() => { if (!cancelled) setKeyHealthChecked(true); });
     return () => { cancelled = true; };
   }, []);
 
@@ -759,7 +786,7 @@ export default function PlannerPage() {
 
       <section className="tool-launch" id="top" aria-label="여행 만들기">
         <div><p className="service-breadcrumb"><a href="/">서비스 소개</a><span>›</span>내 여행</p><h1>내 여행 만들기</h1></div>
-        <div className="tool-launch-status"><span><i /> 관광정보 {liveCount ? "확인됨" : "준비"}</span><span><i /> 교통정보 {transportProviders.some((item) => item.configured) ? "확인됨" : "준비"}</span><span>{locale.toUpperCase()}</span><button type="button" aria-expanded={diagnosticsOpen} onClick={() => setDiagnosticsOpen((open) => !open)}>서비스 상태<b>{diagnosticsOpen ? "−" : "+"}</b></button></div>
+        <div className="tool-launch-status"><span><i /> 관광정보 {liveCount ? "확인됨" : "준비"}</span><span><i /> 교통정보 {effectiveProviders.some((item) => item.configured) ? "확인됨" : "준비"}</span><span>{locale.toUpperCase()}</span><button type="button" aria-expanded={diagnosticsOpen} onClick={() => setDiagnosticsOpen((open) => !open)}>서비스 상태<b>{diagnosticsOpen ? "−" : "+"}</b></button></div>
       </section>
 
       {diagnosticsOpen && <section className="connection-diagnostics" aria-label="서비스 상태">
@@ -956,15 +983,7 @@ export default function PlannerPage() {
           {transportModes.map((mode) => <button type="button" role="tab" aria-selected={transportMode === mode.id} key={mode.id} className={transportMode === mode.id ? "active" : ""} onClick={() => setTransportMode(mode.id)}><b>{mode.label}</b><small>{mode.description}</small></button>)}
         </div>
         <div className="transport-provider-strip" aria-label="교통 데이터 연결 상태">
-          {(transportProviders.length ? transportProviders : [
-            { id: "kakao-drive", name: "KAKAO DRIVE", role: "자동차 시간·거리·통행료", configured: false, state: "checking" as const },
-            { id: "odsay", name: "ODsay", role: "대중교통 경로", configured: false, state: "checking" as const },
-            { id: "korail", name: "KORAIL", role: "여객열차 운행계획", configured: false, state: "checking" as const },
-            { id: "tago-bus", name: "TAGO BUS", role: "정류장·도착", configured: false, state: "checking" as const },
-            { id: "tago-rail", name: "TAGO RAIL", role: "열차·지하철", configured: false, state: "checking" as const },
-            { id: "tago-regional", name: "TAGO EXPRESS", role: "고속·시외버스", configured: false, state: "checking" as const },
-            { id: "tago-mobility", name: "TAGO MOVE", role: "항공·선박·공유교통", configured: false, state: "checking" as const },
-          ]).map((provider) => <span key={provider.id} className={provider.state} title={provider.detail || provider.role}><i /> <b>{provider.name}</b><small>{transportStateLabel[provider.state]}</small></span>)}
+          {effectiveProviders.map((provider) => <span key={provider.id} className={provider.state} title={provider.detail || provider.role}><i /> <b>{provider.name}</b><small>{transportStateLabel[provider.state]}</small></span>)}
         </div>
         {transportContext && (transportContext.nearbyStops.length > 0 || transportContext.arrivals.length > 0 || transportContext.korail.length > 0) && <div className="transport-live-rail" aria-live="polite">
           <div><span>도착지 인근 정류장</span><strong>{transportContext.nearbyStops.slice(0, 3).map((item) => item.name).join(" · ") || "조회 중"}</strong></div>
