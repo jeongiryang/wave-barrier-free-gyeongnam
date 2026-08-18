@@ -84,7 +84,7 @@ test("contest category, selected task and live OpenAPI use are documented consis
 
 test("the place carousel is sized by its card instead of the viewport", async () => {
   const css = await source("app/globals.css");
-  const rule = css.slice(css.lastIndexOf(".planner-page > .places-section .place-carousel"));
+  const rule = css.match(/\.planner-page > \.places-section \.place-carousel \{[^}]+\}/)?.[0] ?? "";
   assert.match(css, /--card-pad-x: clamp\(/);
   assert.match(rule, /\.planner-page > \.places-section \.place-carousel/);
   assert.match(rule, /width: auto/);
@@ -132,4 +132,20 @@ test("interactive help follows real sections and remains accessible on mobile", 
   assert.match(help, /previousFocus\?\.focus\(\)/);
   assert.match(css, /@media \(max-width: 980px\)[\s\S]*\.planner-header-actions \.help-button \{ display: inline-flex; \}/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.help-tour-spotlight/);
+});
+
+test("mobile screens keep controls touchable and content inside safe areas", async () => {
+  const [layout, css] = await Promise.all([
+    source("app/layout.tsx"),
+    source("app/globals.css"),
+  ]);
+  assert.match(layout, /width: "device-width"/);
+  assert.match(layout, /viewportFit: "cover"/);
+  assert.match(css, /@media \(max-width: 780px\)/);
+  assert.match(css, /top: calc\(8px \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(css, /input, select, textarea \{ font-size: 16px; \}/);
+  assert.match(css, /max-height: calc\(100svh - 20px\)/);
+  assert.match(css, /\.carousel-actions button,[\s\S]*min-height: 44px/);
+  assert.match(css, /@media \(max-width: 380px\)[\s\S]*width: calc\(100vw - 8px\)/);
+  assert.match(css, /@media \(max-height: 520px\) and \(orientation: landscape\)/);
 });

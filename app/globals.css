@@ -1500,7 +1500,7 @@ html[data-theme="dark"] .day-planner li,html[data-theme="dark"] .day-planner sel
 /* 조작 대상은 최소 44px — 접근성 기준 */
 button, .landing-start, .header-action,
 .tool-launch-status button, .preference-controls select, .preference-controls button {
-  min-height: 40px;
+  min-height: 44px;
 }
 .generate-button, .primary-button, .account-submit, .landing-start, .landing-cta a {
   min-height: 48px;
@@ -1625,4 +1625,67 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   max-width: none;
   margin-inline: calc(var(--card-pad-x) * -1);
   padding: 4px var(--card-pad-x) 28px;
+}
+
+/* --- 모바일·터치 접근성 최종 보정 ---------------------------------------
+   360/390/430px에서 고정 헤더가 넘치지 않고, 손가락 조작 대상은 최소 44px을
+   확보한다. iOS의 작은 입력 글꼴 자동 확대와 노치 영역도 함께 처리한다. */
+.landing-page, .planner-page, .shared-trip-page { max-width: 100%; overflow-x: clip; }
+
+@media (max-width: 780px) {
+  .landing-header, .site-header {
+    top: calc(8px + env(safe-area-inset-top, 0px));
+    width: calc(100vw - 16px); padding-inline: 8px; gap: 7px;
+  }
+  .landing-header > .brand > span:last-child,
+  .site-header > .brand > span:last-child { display: none; }
+  .landing-header-actions, .planner-header-actions, .preference-controls { min-width: 0; gap: 4px; }
+  .preference-controls select { width: 58px; max-width: 58px; padding: 7px 20px 7px 7px; }
+  .preference-controls button { width: 44px; min-width: 44px; }
+  .landing-start { width: 44px; min-width: 44px; padding-inline: 0; justify-content: center; }
+
+  input, select, textarea { font-size: 16px; }
+  .help-tour-dialog {
+    max-height: calc(100svh - 20px); overflow-y: auto;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .modal-backdrop { padding: max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px)); }
+  .help-dialog, .account-dialog, .place-modal { max-height: calc(100svh - 20px); }
+  .route-option dl { grid-template-columns: repeat(2,minmax(0,1fr)); }
+
+  .place-carousel, .rich-rail, .weather-days, .layer-tabs, .map-command-bar {
+    -webkit-overflow-scrolling: touch; scroll-padding-inline: 16px;
+  }
+
+  .carousel-actions button, .save-card, .place-actions button,
+  .sort-tabs button, .feedback-box button, .rich-card button, .rich-empty button,
+  .transport-dataset-grid > button, .transport-data-heading button,
+  .map-command-bar button, .map-type-switch button, .day-planner select {
+    min-height: 44px;
+  }
+  .map-tool-panel header > button, .map-poi-results header > button,
+  .map-roadview-panel header > button, .trip-point-picker header > button,
+  .roadview-pick-banner button, .kakao-number-marker {
+    width: 44px; min-width: 44px; height: 44px; min-height: 44px;
+  }
+  .landing-region-map > button, .region-marker, .map-provider-badge button { position: relative; }
+  .landing-region-map > button::after, .region-marker::after, .map-provider-badge button::after {
+    content: ""; position: absolute; inset: -8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .landing-header, .site-header { width: calc(100vw - 8px); }
+  .preference-controls select { width: 52px; max-width: 52px; }
+  .landing-header-actions, .planner-header-actions, .preference-controls { gap: 2px; }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .help-tour-dialog {
+    right: 6px; bottom: 6px; width: min(390px,48vw); max-height: calc(100dvh - 12px);
+    padding: 18px; border-radius: 18px;
+  }
+  .help-tour-dialog h2 { font-size: 1.35rem; }
+  .help-tour-dialog > small { display: none; }
+  .help-tour-actions { margin-top: 14px; }
 }
