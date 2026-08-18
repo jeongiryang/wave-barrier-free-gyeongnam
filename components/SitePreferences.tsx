@@ -84,6 +84,9 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("ko");
   const [theme, setTheme] = useState<Theme>("light");
+  /* 저장된 설정을 아직 읽지 않았는데 기본값을 저장하면, 읽기보다 저장이 먼저
+     끝나 이용자가 고른 값이 지워진다. 읽기가 끝난 뒤부터 저장한다. */
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -92,6 +95,7 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
       if (storedLocale && localeOptions.some((item) => item.id === storedLocale)) setLocaleState(storedLocale);
       if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
       else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
+      setHydrated(true);
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
@@ -100,9 +104,10 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.theme = theme;
     document.documentElement.lang = locale === "zh-Hans" ? "zh-CN" : locale === "zh-Hant" ? "zh-TW" : locale;
     document.documentElement.style.colorScheme = theme;
+    if (!hydrated) return;
     window.localStorage.setItem("wave-theme", theme);
     window.localStorage.setItem("wave-locale", locale);
-  }, [locale, theme]);
+  }, [locale, theme, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
     locale,
