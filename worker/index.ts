@@ -375,7 +375,21 @@ async function fetchPhoto(env: Env, region: string) {
   }));
 }
 
-async function fetchSpotPhoto(env: Env, region: string, title: string, tag = "") {
+function normalizedSearchText(value: unknown) {
+  return clean(value, 120).toLocaleLowerCase("ko-KR").replace(/[^\p{L}\p{N}]+/gu, "");
+}
+
+function scoreSpotPhotoTitle(candidate: unknown, requestedTitle: string) {
+  const candidateText = normalizedSearchText(candidate);
+  const requestedText = normalizedSearchText(requestedTitle);
+  if (!candidateText || !requestedText) return 0;
+  if (candidateText === requestedText) return 120;
+  if (candidateText.includes(requestedText) || requestedText.includes(candidateText)) return 90;
+  const requestedTokens = clean(requestedTitle, 120).split(/\s+/).map(normalizedSearchText).filter((token) => token.length >= 2);
+  return requestedTokens.reduce((score, token) => score + (candidateText.includes(token) ? 12 : 0), 0);
+}
+
+async function fetchSpotPhoto(env: Env, region: string, title: string, tag = "", contentId = "") {
   const normalizedTitle = clean(title, 80)
     .replace(/\([^)]*\)|（[^）]*）/g, " ")
     .replace(/\b(주식회사|유한회사)\b|\(주\)|지점|본점/g, " ")
@@ -388,26 +402,53 @@ async function fetchSpotPhoto(env: Env, region: string, title: string, tag = "")
     clean(`${region} ${tag || "관광"}`, 80),
     clean(regionPhotoKeywords[region] || `${region} 관광`, 80),
   ].filter((value) => value.length >= 2))].slice(0, 5);
-  // 장소별로 순차 호출하면 사진이 없는 카드 하나가 수십 초 동안 로딩될 수 있다.
-  // 우선순위는 유지하되 후보 검색을 병렬화해 가장 먼저 그릴 수 있는 공식 사진을 고른다.
-  const searches = await Promise.all(keywords.map(async (keyword) => {
+
+  let providerWorked = false;
+  if (/^\d{3,}$/.test(contentId)) {
+    const detail = await attempt(fetchKto(env, "KorService2", "detailCommon2", {
+      ...commonParams("1"), contentId,
+    }));
+    providerWorked ||= detail.ok;
+    const item = detail.ok ? detail.value.items[0] : undefined;
+    const image = httpsUrl(item?.firstimage || item?.firstimage2);
+    if (image) {
+      return {
+        image,
+        source: "한국관광공사 관광정보",
+        matchedTitle: clean(item?.title || title),
+        query: contentId,
+        status: "live",
+      };
+    }
+  }
+
+  // 정확한 장소명부터 순차 검색한다. 카드 3개가 동시에 열려도 처음부터 30건을
+  // 몰아 호출하지 않아 공공데이터 초당 호출 제한을 피할 수 있다.
+  for (const keyword of keywords) {
     const [gallery, tour] = await Promise.all([
       attempt(fetchKto(env, "PhotoGalleryService1", "gallerySearchList1", { ...commonParams("12"), arrange: "C", keyword })),
       attempt(fetchKto(env, "KorService2", "searchKeyword2", { ...commonParams("12"), arrange: "Q", keyword })),
     ]);
-    return { keyword, gallery, tour };
-  }));
-  const providerWorked = searches.some(({ gallery, tour }) => gallery.ok || tour.ok);
-
-  for (const { keyword, gallery, tour } of searches) {
-    const galleryItem = gallery.ok ? gallery.value.items.find((item) => clean(item.galWebImageUrl || item.galWebImageUrl2)) : undefined;
-    const tourItem = tour.ok ? tour.value.items.find((item) => clean(item.firstimage || item.firstimage2)) : undefined;
-    const image = clean(galleryItem?.galWebImageUrl || galleryItem?.galWebImageUrl2 || tourItem?.firstimage || tourItem?.firstimage2).replace(/^http:\/\//, "https://");
-    if (image) {
+    providerWorked ||= gallery.ok || tour.ok;
+    const candidates = [
+      ...(gallery.ok ? gallery.value.items.map((item) => ({
+        image: httpsUrl(item.galWebImageUrl || item.galWebImageUrl2),
+        title: clean(item.galTitle),
+        source: "한국관광공사 관광사진",
+      })) : []),
+      ...(tour.ok ? tour.value.items.map((item) => ({
+        image: httpsUrl(item.firstimage || item.firstimage2),
+        title: clean(item.title),
+        source: "한국관광공사 관광정보",
+      })) : []),
+    ].filter((candidate) => candidate.image)
+      .sort((left, right) => scoreSpotPhotoTitle(right.title, normalizedTitle) - scoreSpotPhotoTitle(left.title, normalizedTitle));
+    const best = candidates[0];
+    if (best) {
       return {
-        image,
-        source: galleryItem ? "한국관광공사 관광사진" : "한국관광공사 관광정보",
-        matchedTitle: clean(galleryItem?.galTitle || tourItem?.title || title),
+        image: best.image,
+        source: best.source,
+        matchedTitle: best.title || clean(title),
         query: keyword,
         status: "live",
       };
@@ -1281,8 +1322,9 @@ async function handleWaveApi(request: Request, env: Env) {
     const region = regionCodes[requested] ? requested : "창원";
     const title = clean(url.searchParams.get("title"), 100);
     const tag = clean(url.searchParams.get("tag"), 80);
+    const contentId = clean(url.searchParams.get("contentId"), 80);
     if (!title) return json({ error: "사진을 찾을 장소명이 필요합니다." }, 400);
-    return json(await fetchSpotPhoto(env, region, title, tag), 200, true);
+    return json(await fetchSpotPhoto(env, region, title, tag, contentId), 200, true);
   }
   if (action === "crowd") {
     const requested = clean(url.searchParams.get("region"), 20);

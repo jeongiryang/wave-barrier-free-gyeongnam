@@ -1,8 +1,30 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
-export default function SmartSpotImage({ src, title, region, tag, rank }: { src?: string; title: string; region: string; tag: string; rank: number }) {
+type SmartSpotImageProps = {
+  src?: string;
+  title: string;
+  region: string;
+  tag: string;
+  rank: number;
+  contentId?: string;
+  className?: string;
+  showMeta?: boolean;
+  children?: ReactNode;
+};
+
+export default function SmartSpotImage({
+  src,
+  title,
+  region,
+  tag,
+  rank,
+  contentId = "",
+  className = "",
+  showMeta = true,
+  children,
+}: SmartSpotImageProps) {
   const [image, setImage] = useState(src || "");
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -13,6 +35,7 @@ export default function SmartSpotImage({ src, title, region, tag, rank }: { src?
   // 호출부의 `() => cancelled`를 받지 못한다.
   const loadOfficialFallback = useCallback(async (cancelled: () => boolean = () => false) => {
     const params = new URLSearchParams({ action: "spot-photo", region, title, tag });
+    if (contentId) params.set("contentId", contentId);
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 12000);
     try {
@@ -26,7 +49,7 @@ export default function SmartSpotImage({ src, title, region, tag, rank }: { src?
     } finally {
       window.clearTimeout(timeout);
     }
-  }, [region, tag, title]);
+  }, [contentId, region, tag, title]);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,7 +70,7 @@ export default function SmartSpotImage({ src, title, region, tag, rank }: { src?
     return () => { cancelled = true; window.cancelAnimationFrame(frame); window.clearTimeout(slowImage); };
   }, [src, loadOfficialFallback]);
 
-  return <div className={`smart-spot-image${loading ? " loading" : ""}${failed ? " failed" : ""}`}>
+  return <div className={`smart-spot-image${className ? ` ${className}` : ""}${loading ? " loading" : ""}${failed ? " failed" : ""}`}>
     {/* 관광사진 OpenAPI가 반환하는 외부 URL은 Next 이미지 최적화 도메인을 사전 열거할 수 없다. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
     {image && <img src={image} alt={`${title} 관광사진`} onLoad={() => { settledRef.current = true; setLoading(false); }} onError={() => {
@@ -56,6 +79,7 @@ export default function SmartSpotImage({ src, title, region, tag, rank }: { src?
     }} />}
     {loading && <span className="smart-image-skeleton" role="status" aria-label={`${title} 관광사진 불러오는 중`}><i /><i /><i /><b /></span>}
     {failed && <span className="smart-image-fallback"><i aria-hidden="true" /><small>공식 사진 준비 중</small><b>{title}</b><span>{region} · {tag} 여행</span></span>}
-    <em>{tag}</em><strong>{String(rank).padStart(2, "0")}</strong>
+    {showMeta && <><em>{tag}</em><strong>{String(rank).padStart(2, "0")}</strong></>}
+    {children}
   </div>;
 }

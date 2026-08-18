@@ -8,7 +8,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
 } from "react";
 import RouteMap, { type MapPlace, type RouteAlternative, type RoutePoint } from "../../components/RouteMap";
 import { PreferenceControls, useSitePreferences } from "../../components/SitePreferences";
@@ -889,14 +888,22 @@ export default function PlannerPage() {
           {loading && [0, 1, 2].map((item) => <article className="place-card place-card-skeleton" key={`place-skeleton-${item}`} aria-hidden="true"><div className="skeleton-visual" /><div className="skeleton-copy"><i /><b /><span /><span /><em /></div></article>)}
           {!loading && !activePlaces.length && <div className="place-empty"><span>⌖</span><h3>{region}의 실시간 여행지를 아직 불러오지 않았습니다.</h3><p>위에서 조건을 선택하고 ‘공공데이터로 코스 찾기’를 눌러주세요.</p></div>}
           {!loading && activePlaces.map((place, index) => {
-            const visualStyle = place.image ? { "--place-image": `url("${place.image}")` } as CSSProperties : undefined;
             return (
               <article className="place-card" key={place.id} data-reveal>
-                <div className={`place-visual visual-${index % 4}`} style={visualStyle}>
+                <SmartSpotImage
+                  src={place.image}
+                  title={place.name}
+                  region={place.city || region}
+                  tag="관광지"
+                  rank={index + 1}
+                  contentId={place.id}
+                  className={`place-visual visual-${index % 4}`}
+                  showMeta={false}
+                >
                   <span className="city-chip">{place.city || region}</span>
                   <span className="place-rank">{String(index + 1).padStart(2, "0")}</span>
                   <button type="button" className={saved.includes(place.id) ? "save-card saved" : "save-card"} onClick={() => toggleSaved(place.id)} aria-label={`${place.name} 보관하기`}>{saved.includes(place.id) ? "♥" : "♡"}</button>
-                </div>
+                </SmartSpotImage>
                 <div className="place-content">
                   <div className="place-title"><div><h3>{place.name}</h3><p>{place.summary}</p></div><span className="score-badge"><b>{place.score}</b><small>W.A.V.E 적합도</small></span></div>
                   <div className="feature-list">{place.features.slice(0, 3).map((feature) => <span key={feature}>✓ {feature}</span>)}</div>
@@ -967,7 +974,7 @@ export default function PlannerPage() {
             {enrichmentLoading && [0, 1, 2].map((item) => <div className="rich-card rich-loading" key={item}><i /><span /><b /></div>)}
             {!enrichmentLoading && !richItems.length && <div className="rich-empty"><span>⌁</span><h3>{region}의 {richCatalog.find((item) => item.id === richMode)?.label} 결과를 찾는 중입니다.</h3><p>공공데이터의 지역별 제공 범위에 따라 결과가 없을 수 있습니다.</p><button type="button" onClick={() => void loadEnrichment()}>다시 조회</button></div>}
             {!enrichmentLoading && richItems.map((spot, index) => <article className="rich-card" key={`${spot.id}-${index}`}>
-              <SmartSpotImage src={spot.image} title={spot.title} region={region} tag={spot.tag} rank={index + 1} />
+              <SmartSpotImage src={spot.image} title={spot.title} region={region} tag={spot.tag} rank={index + 1} contentId={spot.id} />
               <section><small>{spot.source}</small><h3>{spot.title}</h3><p>{spot.address || spot.summary || `${region}에서 만나는 ${spot.tag} 여행 정보`}</p><button type="button" disabled={!spot.mapX || !spot.mapY} onClick={() => routeFromRichSpot(spot)}>{spot.mapX && spot.mapY ? "지도에서 경로 보기" : "위치 정보 확인 중"}<span>↗</span></button></section>
             </article>)}
           </div>

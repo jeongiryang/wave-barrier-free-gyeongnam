@@ -21,16 +21,24 @@ test("production configuration is Vercel-only", async () => {
 });
 
 test("missing tourism images use official live lookup and a visual fallback", async () => {
-  const [component, worker] = await Promise.all([
+  const [component, planner, worker] = await Promise.all([
     source("components/SmartSpotImage.tsx"),
+    source("app/planner/page.tsx"),
     source("worker/index.ts"),
   ]);
   assert.match(component, /action: "spot-photo"/);
+  assert.match(component, /contentId/);
   assert.match(component, /smart-image-skeleton/);
   assert.match(component, /공식 사진 준비 중/);
+  assert.match(planner, /className=\{`place-visual visual-/);
+  assert.match(planner, /region=\{place\.city \|\| region\}/);
+  assert.match(planner, /contentId=\{place\.id\}/);
   assert.match(worker, /PhotoGalleryService1/);
   assert.match(worker, /searchKeyword2/);
-  assert.match(worker, /Promise\.all\(keywords\.map/);
+  assert.match(worker, /detailCommon2/);
+  assert.match(worker, /scoreSpotPhotoTitle/);
+  assert.match(worker, /for \(const keyword of keywords\)/);
+  assert.doesNotMatch(worker, /Promise\.all\(keywords\.map/);
 });
 
 test("device location is not persisted with saved routes", async () => {
