@@ -85,3 +85,28 @@ test("wave effects avoid dense glyphs and the extended intro timing stays synchr
   assert.match(landing, /prefers-reduced-motion: reduce/);
   assert.match(landing, /<button ref=\{startButtonRef\} type="button" onClick=\{close\}>/);
 });
+
+test("interactive help follows real sections and remains accessible on mobile", async () => {
+  const [help, landing, planner, css] = await Promise.all([
+    source("components/HelpCenter.tsx"),
+    source("app/page.tsx"),
+    source("app/planner/page.tsx"),
+    source("app/globals.css"),
+  ]);
+  for (const selector of ["#top", "#story", "#regions", "#evidence", ".landing-cta"]) {
+    assert.match(help, new RegExp(`selector: "${selector.replace(".", "\\.")}"`));
+  }
+  for (const id of ["planner", "places", "layers", "navigation", "route", "data"]) {
+    assert.match(help, new RegExp(`selector: "#${id}"`));
+    assert.match(planner, new RegExp(`id="${id}"`));
+  }
+  assert.match(landing, /id="story"/);
+  assert.match(help, /window\.scrollTo\(\{ top: Math\.max\(0, targetTop\), behavior: reduced \? "auto" : "smooth" \}\)/);
+  assert.match(help, /help-tour-spotlight/);
+  assert.match(help, /help-tour-pointer/);
+  assert.match(help, /aria-modal="true"/);
+  assert.match(help, /event\.key === "Escape"/);
+  assert.match(help, /previousFocus\?\.focus\(\)/);
+  assert.match(css, /@media \(max-width: 980px\)[\s\S]*\.planner-header-actions \.help-button \{ display: inline-flex; \}/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.help-tour-spotlight/);
+});
