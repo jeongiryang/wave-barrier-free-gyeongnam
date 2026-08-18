@@ -1,0 +1,25 @@
+name: 버그·장애 제보
+description: 재현 가능한 오류, 보안 문제 또는 운영 장애를 기록합니다.
+title: "bug: "
+labels: ["bug"]
+assignees: ["jeongiryang"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 문제 현상
+      description: 기대한 결과와 실제 결과를 함께 적어 주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 재현 절차
+      description: 브라우저, 기기, 화면 크기와 순서를 적어 주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 증거와 추가 정보
+      description: 공개 가능한 로그나 스크린샷만 첨부하고 Secret과 개인정보는 제거해 주세요.
