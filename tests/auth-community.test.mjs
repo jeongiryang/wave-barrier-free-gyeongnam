@@ -68,8 +68,11 @@ test("formal auth pages use Neon Auth with accessible password and return flows"
 });
 
 test("community API derives identity from the session and enforces ownership", async () => {
-  const [route, repository, posts, comments, likes, ownership, database, session, requestGuard, migration] = await Promise.all([
+  const [route, postActions, commentActions, communityHttp, repository, posts, comments, likes, ownership, database, session, requestGuard, migration] = await Promise.all([
     source("app/api/community/[...path]/route.ts"),
+    source("features/community/server/post-actions.ts"),
+    source("features/community/server/comment-actions.ts"),
+    source("features/community/server/http.ts"),
     source("features/community/server/repository.ts"),
     source("features/community/server/posts-repository.ts"),
     source("features/community/server/comments-repository.ts"),
@@ -81,8 +84,9 @@ test("community API derives identity from the session and enforces ownership", a
     source("migrations/001_community.sql"),
   ]);
   assert.match(session, /auth\.getSession\(\)/);
-  assert.doesNotMatch(route, /body\.author/);
-  assert.match(route, /본인이 작성한.*수정하거나 삭제/);
+  const communityApi = `${route}\n${postActions}\n${commentActions}\n${communityHttp}`;
+  assert.doesNotMatch(communityApi, /body\.author/);
+  assert.match(communityHttp, /본인이 작성한.*수정하거나 삭제/);
   assert.match(repository, /export \* from "\.\/posts-repository"/);
   assert.match(repository, /export \* from "\.\/comments-repository"/);
   assert.match(repository, /export \* from "\.\/likes-repository"/);
@@ -91,8 +95,10 @@ test("community API derives identity from the session and enforces ownership", a
   assert.match(likes, /ON CONFLICT \(post_id,user_id\) DO NOTHING/);
   assert.match(ownership, /row.*author_id|rows\[0\]\.author_id/);
   assert.match(database, /CREATE TABLE IF NOT EXISTS community_posts/);
-  assert.match(route, /짧은 시간에 많은 글/);
-  assert.match(route, /readSameOriginJson\(request, 14000\)/);
+  assert.match(postActions, /짧은 시간에 많은 글/);
+  assert.match(postActions, /readSameOriginJson\(request, 14000\)/);
+  assert.match(commentActions, /readSameOriginJson\(request, 4000\)/);
+  assert.doesNotMatch(route, /validatePostInput|validateCommentInput|requiredCommunityUser/);
   assert.match(requestGuard, /sec-fetch-site/);
   assert.match(requestGuard, /origin !== requestUrl\.origin/);
   assert.match(requestGuard, /TextEncoder\(\)\.encode\(raw\)\.byteLength/);
