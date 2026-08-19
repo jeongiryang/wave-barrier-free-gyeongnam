@@ -78,14 +78,14 @@ test("the production toolchain pins patched React and the Vercel-compatible vine
 });
 
 test("anonymous database writes validate origin, JSON and body size before storage", async () => {
-  const [worker, http] = await Promise.all([source("worker/index.ts"), source("server/shared/http.ts")]);
+  const [trips, http] = await Promise.all([source("server/trips/handler.ts"), source("server/shared/http.ts")]);
   assert.match(http, /function readTrustedJson/);
   assert.match(http, /content-type/);
   assert.match(http, /sec-fetch-site/);
   assert.match(http, /origin !== requestUrl\.origin/);
   assert.match(http, /TextEncoder\(\)\.encode\(raw\)\.byteLength/);
-  assert.match(worker, /readTrustedJson\(request, 70000\)/);
-  assert.match(worker, /readTrustedJson\(request, 4000\)/);
+  assert.match(trips, /readTrustedJson\(request, 70000\)/);
+  assert.match(trips, /readTrustedJson\(request, 4000\)/);
 });
 
 test("external Kakao place links are upgraded to HTTPS", async () => {
@@ -315,9 +315,9 @@ test("accessibility evidence determines the first recommendation and itinerary l
 });
 
 test("shared trips recover from slow or malformed network responses", async () => {
-  const [page, worker] = await Promise.all([
+  const [page, trips] = await Promise.all([
     source("app/trip/[id]/page.tsx"),
-    source("worker/index.ts"),
+    source("server/trips/handler.ts"),
   ]);
   assert.match(page, /new AbortController\(\)/);
   assert.match(page, /controller\.abort\("timeout"\)/);
@@ -325,6 +325,6 @@ test("shared trips recover from slow or malformed network responses", async () =
   assert.match(page, /setRetry\(\(current\) => current \+ 1\)/);
   assert.match(page, /role="status"/);
   assert.match(page, /role="alert"/);
-  assert.match(worker, /공유 여행을 불러오는 중 연결이 지연됐습니다/);
-  assert.match(worker, /공유 여행을 저장하지 못했습니다/);
+  assert.match(trips, /공유 여행을 불러오는 중 연결이 지연됐습니다/);
+  assert.match(trips, /공유 여행을 저장하지 못했습니다/);
 });
