@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import CommunityEditor from "../../../../components/CommunityEditor";
+import CommunityEditor from "../../../../features/community/components/CommunityEditor";
 import CommunityHeader from "../../../../components/CommunityHeader";
 
 export const metadata: Metadata = { title: "여행자 이야기 수정", robots: { index: false, follow: false } };
