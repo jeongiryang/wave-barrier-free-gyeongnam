@@ -4,7 +4,8 @@ import type { ProviderAttempt as Attempt } from "../shared/provider-data";
 import { contentTypes, languageServices, regionCodes } from "./catalog";
 import { safeYmd, todayYmd } from "./date-utils";
 import { fetchEnrichmentSources } from "./enrichment-sources";
-import { apiStatus, richSpot } from "./models";
+import { richSpot } from "./content-model";
+import { apiStatus } from "./provider-model";
 
 export { fetchCrowd, fetchHub, fetchRelated } from "./concentration";
 

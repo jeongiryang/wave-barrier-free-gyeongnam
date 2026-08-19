@@ -8,7 +8,9 @@ import {
 } from "../shared/provider-data";
 import { contentTypes, languageServices, profileFields, regionCodes } from "./catalog";
 import { fetchCrowd, fetchHub, fetchRelated } from "./insights";
-import { apiStatus, audioFrom, courseFrom, mergePlaces, placeFrom } from "./models";
+import { placeFrom } from "./accessibility-model";
+import { audioFrom, courseFrom } from "./content-model";
+import { apiStatus, mergePlaces } from "./provider-model";
 import { fetchPhoto, photoFrom } from "./photos";
 
 export async function buildPlan(request: Request, env: Env) {

@@ -2,7 +2,7 @@ import type { Env } from "../shared/env";
 import { clean, json } from "../shared/http";
 import { regionCodes } from "./catalog";
 import { buildEnrichment, fetchCrowd } from "./insights";
-import { apiStatus } from "./models";
+import { apiStatus } from "./provider-model";
 import { buildPlan } from "./plan-builder";
 import { fetchPhoto, fetchSpotPhoto, photoFrom } from "./photos";
 
