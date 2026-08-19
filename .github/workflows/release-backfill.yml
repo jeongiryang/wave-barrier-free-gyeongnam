@@ -1,0 +1,31 @@
+name: Release Backfill
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/release-backfill.yml
+      - scripts/backfill-releases.mjs
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-backfill
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: PR별 태그와 릴리즈 생성
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/backfill-releases.mjs
