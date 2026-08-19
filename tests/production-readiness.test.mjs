@@ -184,6 +184,16 @@ test("travel conditions refresh the plan without requiring the submit button", a
   assert.match(planner, /결과 새로고침/);
 });
 
+test("planner never substitutes prototype places when official data fails", async () => {
+  const planner = await source("app/planner/page.tsx");
+  assert.doesNotMatch(planner, /demo-jinhae|demo-cable|demo-jinju/);
+  assert.doesNotMatch(planner, /fallbackPlaces|fallbackStops|제안서 기반 미리보기/);
+  assert.match(planner, /setPlanError\(message\)/);
+  assert.match(planner, /임의의 장소를 대신 표시하지 않습니다/);
+  assert.match(planner, /공식 데이터 다시 조회/);
+  assert.match(planner, /role=\{planError \? "alert" : "status"\}/);
+});
+
 test("shared trips recover from slow or malformed network responses", async () => {
   const [page, worker] = await Promise.all([
     source("app/trip/[id]/page.tsx"),

@@ -210,54 +210,6 @@ const themes = [
   { id: "food", label: "음식", code: "음식점 39" },
 ];
 
-const fallbackPlaces: Place[] = [
-  {
-    id: "demo-jinhae",
-    contentTypeId: "12",
-    city: "창원",
-    name: "진해해양공원",
-    address: "경상남도 창원시 진해구",
-    summary: "바다를 따라 이어지는 넓고 평탄한 산책 동선을 살펴보세요.",
-    image: "",
-    mapX: "128.716",
-    mapY: "35.091",
-    score: null,
-    features: ["공식 편의정보 확인 필요"],
-    details: ["실시간 조회가 복구되면 공식 편의정보를 다시 확인합니다.", "이동 전 시설 운영기관에 확인해 주세요."],
-    source: "제안서 기반 미리보기",
-  },
-  {
-    id: "demo-cable",
-    contentTypeId: "12",
-    city: "통영",
-    name: "통영케이블카",
-    address: "경상남도 통영시",
-    summary: "이동 부담을 줄이고 전망을 즐기는 통영 여행 후보입니다.",
-    image: "",
-    mapX: "128.425",
-    mapY: "34.826",
-    score: null,
-    features: ["공식 편의정보 확인 필요"],
-    details: ["실시간 조회가 복구되면 공식 편의정보를 다시 확인합니다.", "이동 전 시설 운영기관에 확인해 주세요."],
-    source: "제안서 기반 미리보기",
-  },
-  {
-    id: "demo-jinju",
-    contentTypeId: "12",
-    city: "진주",
-    name: "진주성",
-    address: "경상남도 진주시",
-    summary: "남강변의 역사와 관광 해설을 함께 만나는 여행 후보입니다.",
-    image: "",
-    mapX: "128.080",
-    mapY: "35.189",
-    score: null,
-    features: ["공식 편의정보 확인 필요"],
-    details: ["실시간 조회가 복구되면 공식 편의정보를 다시 확인합니다.", "이동 전 시설 운영기관에 확인해 주세요."],
-    source: "제안서 기반 미리보기",
-  },
-];
-
 const apiMeta = [
   { id: "barrierfree", name: "무장애 여행정보", role: "주차·접근로·휠체어·화장실 등 상세 편의정보" },
   { id: "tour", name: "국문 관광정보", role: "관광지 좌표·이미지·주소와 지역 기반 검색" },
@@ -289,16 +241,6 @@ const readyStatuses: ApiStatus[] = apiMeta.map((item) => ({
   note: "승인 완료 · 검색 시 호출",
 }));
 
-const fallbackStops: RouteStop[] = fallbackPlaces.map((place, index) => ({
-  title: place.name,
-  note: index === 0
-    ? "주차장에서 목적지까지 접근 가능한 이동 정보를 먼저 확인해요."
-    : index === 1
-      ? "화장실과 휴게 지점을 함께 살펴 이동 부담을 나눠요."
-      : "오디오 해설과 완만한 구간으로 하루를 마무리해요.",
-  source: "W.A.V.E 미리보기",
-}));
-
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "00:00";
   const minutes = Math.floor(seconds / 60);
@@ -313,6 +255,7 @@ export default function PlannerPage() {
   const [theme, setTheme] = useState("nature");
   const [plan, setPlan] = useState<PlanData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [planError, setPlanError] = useState("");
   const [notice, setNotice] = useState("조건을 바꾸면 실시간 관광 데이터가 자동으로 갱신됩니다.");
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [saved, setSaved] = useState<string[]>([]);
@@ -368,8 +311,8 @@ export default function PlannerPage() {
     () => profiles.filter((profile) => selected.includes(profile.id)),
     [selected],
   );
-  const activePlaces = plan?.places.length ? plan.places : region === "창원" ? fallbackPlaces : [];
-  const activeStops = plan?.stops.length ? plan.stops : region === "창원" ? fallbackStops : [];
+  const activePlaces = plan?.places ?? [];
+  const activeStops = plan?.stops ?? [];
   const statuses = plan ? [...plan.statuses, ...(enrichment?.statuses || [])] : readyStatuses;
   const liveCount = statuses.filter((status) => status.state === "live").length;
   /* 경로를 계산하기 전에는 제공기관별 운행 응답을 알 수 없다. 그렇다고 계속
@@ -743,6 +686,12 @@ export default function PlannerPage() {
     const controller = new AbortController();
     planRequestRef.current = controller;
     setLoading(true);
+    setPlanError("");
+    setPlan(null);
+    setRouteAlternatives([]);
+    setRouteDestination(null);
+    setTransportProviders([]);
+    setTransportContext(null);
     setNotice(revealResults ? "한국관광공사 8개 서비스에서 여행 근거를 모으고 있어요." : "바뀐 조건에 맞춰 여행지를 자동으로 갱신하고 있어요.");
     try {
       const params = new URLSearchParams({
@@ -765,21 +714,12 @@ export default function PlannerPage() {
       const available = data.statuses.filter((status) => status.state === "live").length;
       setNotice(available
         ? `${available}개 데이터 서비스의 응답을 코스에 반영했습니다.`
-        : "검색 결과가 없어 미리보기 여행지를 유지했습니다.");
+        : "공식 데이터에서 현재 조건에 맞는 결과를 확인하지 못했습니다.");
     } catch (error) {
       if (controller.signal.aborted) return;
-      setPlan({
-        mode: "fallback",
-        generatedAt: new Date().toISOString(),
-        baseYm: "",
-        places: fallbackPlaces,
-        course: null,
-        audio: null,
-        photo: null,
-        stops: fallbackStops,
-        statuses: apiMeta.map((item) => ({ ...item, state: "error", count: 0, note: "현재 호출 확인 필요" })),
-      });
-      setNotice(`현재 실시간 연결을 확인할 수 없어 안전한 미리보기 데이터로 보여드려요. ${error instanceof Error ? error.message : "연결 상태를 확인해 주세요."}`);
+      const message = error instanceof Error ? error.message : "연결 상태를 확인해 주세요.";
+      setPlanError(message);
+      setNotice(`공식 관광 데이터를 불러오지 못했습니다. 임의의 장소를 대신 표시하지 않습니다. ${message}`);
     } finally {
       if (planRequestRef.current === controller) {
         planRequestRef.current = null;
@@ -956,7 +896,7 @@ export default function PlannerPage() {
         </div>
         <div className="place-carousel" ref={cardsRef} aria-busy={loading}>
           {loading && [0, 1, 2].map((item) => <article className="place-card place-card-skeleton" key={`place-skeleton-${item}`} aria-hidden="true"><div className="skeleton-visual" /><div className="skeleton-copy"><i /><b /><span /><span /><em /></div></article>)}
-          {!loading && !activePlaces.length && <div className="place-empty"><span>⌖</span><h3>{region}의 실시간 여행지를 아직 불러오지 않았습니다.</h3><p>위에서 조건을 선택하고 ‘공공데이터로 코스 찾기’를 눌러주세요.</p></div>}
+          {!loading && !activePlaces.length && <div className={`place-empty${planError ? " error" : ""}`} role={planError ? "alert" : "status"}><span aria-hidden="true">{planError ? "!" : "⌖"}</span><h3>{planError ? "공식 관광정보 연결이 지연되고 있습니다." : `${region}에서 현재 조건에 맞는 장소를 찾지 못했습니다.`}</h3><p>{planError ? "기존 결과나 임시 장소를 섞지 않았습니다. 잠시 뒤 공식 데이터를 다시 조회해 주세요." : "지역·테마·편의 조건을 바꾸면 결과가 자동으로 다시 검색됩니다."}</p><button type="button" onClick={() => void generatePlan(false)} disabled={!selected.length}>공식 데이터 다시 조회</button></div>}
           {!loading && activePlaces.map((place, index) => {
             return (
               <article className="place-card" key={place.id} data-reveal>
