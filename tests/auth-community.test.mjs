@@ -130,6 +130,8 @@ test("community UI supports public reading, protected participation and place li
     ]).then((parts) => parts.join("\n")),
     Promise.all([
       source("features/community/components/CommunityDetail.tsx"),
+      source("features/community/components/CommunityPostArticle.tsx"),
+      source("features/community/components/CommunityComments.tsx"),
       source("features/community/hooks/useCommunityDetail.ts"),
     ]).then((parts) => parts.join("\n")),
     source("features/community/client/api.ts"),
