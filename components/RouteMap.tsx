@@ -713,18 +713,20 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
   return <div ref={shellRef} className={`route-map-shell${drawerOpen ? " drawer-open" : ""}${expanded ? " expanded" : ""}`}>
     <div className={`map-provider-badge ${provider}`} title={providerDetail}><span />{provider === "kakao" ? "Kakao Map" : provider === "osm" ? "대체 지도" : "지도 연결 중"}{provider === "osm" && <button type="button" onClick={() => setRetryNonce((value) => value + 1)}>Kakao 재연결</button>}</div>
     <nav className="map-command-bar" aria-label="지도 기능">
-      <div className="map-type-switch" aria-label="지도 유형">
-        <button type="button" className={baseMap === "roadmap" ? "active" : ""} onClick={() => changeBaseMap("roadmap")} disabled={provider !== "kakao"}>지도</button>
-        <button type="button" className={baseMap === "skyview" ? "active" : ""} onClick={() => changeBaseMap("skyview")} disabled={provider !== "kakao"}>스카이뷰</button>
+      <div className="map-command-scroll">
+        <div className="map-type-switch" aria-label="지도 유형">
+          <button type="button" className={baseMap === "roadmap" ? "active" : ""} onClick={() => changeBaseMap("roadmap")} disabled={provider !== "kakao"}>지도</button>
+          <button type="button" className={baseMap === "skyview" ? "active" : ""} onClick={() => changeBaseMap("skyview")} disabled={provider !== "kakao"}>스카이뷰</button>
+        </div>
+        <button type="button" className={toolPanel === "nearby" ? "active" : ""} onClick={() => setToolPanel((value) => value === "nearby" ? null : "nearby")} disabled={provider !== "kakao"}>⌖ 주변</button>
+        <button type="button" className={toolPanel === "route" ? "active" : ""} onClick={() => setToolPanel((value) => value === "route" ? null : "route")}>⇄ 출발·도착</button>
+        <button type="button" className={toolPanel === "layers" ? "active" : ""} onClick={() => setToolPanel((value) => value === "layers" ? null : "layers")} disabled={provider !== "kakao"}>▱ 레이어·측정</button>
+        <button type="button" className={roadviewSelectMode ? "active" : ""} onClick={beginRoadviewSelection} onMouseEnter={() => setRoadviewPreviewOpen(true)} onMouseLeave={() => setRoadviewPreviewOpen(false)} onFocus={() => setRoadviewPreviewOpen(true)} onBlur={() => setRoadviewPreviewOpen(false)} disabled={provider !== "kakao"}>◉ 로드뷰</button>
+        <button type="button" onClick={moveToCurrentLocation}>◎ 내 위치</button>
+        <button type="button" className={toolPanel === "export" ? "active" : ""} onClick={() => setToolPanel((value) => value === "export" ? null : "export")}>⇩ 이미지</button>
+        <button type="button" onClick={() => void shareRoute()}>↗ 공유</button>
       </div>
-      <button type="button" className={toolPanel === "nearby" ? "active" : ""} onClick={() => setToolPanel((value) => value === "nearby" ? null : "nearby")} disabled={provider !== "kakao"}>⌖ 주변</button>
-      <button type="button" className={toolPanel === "route" ? "active" : ""} onClick={() => setToolPanel((value) => value === "route" ? null : "route")}>⇄ 출발·도착</button>
-      <button type="button" className={toolPanel === "layers" ? "active" : ""} onClick={() => setToolPanel((value) => value === "layers" ? null : "layers")} disabled={provider !== "kakao"}>▱ 레이어·측정</button>
-      <button type="button" className={roadviewSelectMode ? "active" : ""} onClick={beginRoadviewSelection} onMouseEnter={() => setRoadviewPreviewOpen(true)} onMouseLeave={() => setRoadviewPreviewOpen(false)} onFocus={() => setRoadviewPreviewOpen(true)} onBlur={() => setRoadviewPreviewOpen(false)} disabled={provider !== "kakao"}>◉ 로드뷰</button>
-      <button type="button" onClick={moveToCurrentLocation}>◎ 내 위치</button>
-      <button type="button" className={toolPanel === "export" ? "active" : ""} onClick={() => setToolPanel((value) => value === "export" ? null : "export")}>⇩ 이미지</button>
-      <button type="button" onClick={() => void shareRoute()}>↗ 공유</button>
-      <button type="button" className="map-expand-button" onClick={() => void toggleExpanded()}>{expanded ? "× 닫기" : "⛶ 큰 지도"}</button>
+      <button type="button" className="map-expand-button" onClick={() => void toggleExpanded()}>{expanded ? "× 닫기" : "⛶ 전체보기"}</button>
     </nav>
 
     {roadviewSelectMode && <div className="roadview-pick-banner" role="status"><div><strong>로드뷰 위치 선택</strong><span>지도에서 확인할 도로나 장소를 클릭하세요.</span></div><button type="button" onClick={() => { setRoadviewSelectMode(false); setProviderDetail("로드뷰 위치 선택을 취소했습니다."); }} aria-label="로드뷰 위치 선택 취소">×</button></div>}
