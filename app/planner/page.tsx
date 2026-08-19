@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import RouteMap from "../../components/RouteMap";
-import type { MapPlace, RouteAlternative, RoutePoint } from "../../features/routing/types";
+import type { MapPlace } from "../../features/routing/types";
 import { PreferenceControls, useSitePreferences } from "../../components/SitePreferences";
 import SmartSpotImage from "../../components/SmartSpotImage";
 import AccessIcon from "../../components/AccessIcons";
@@ -21,7 +21,7 @@ import PlaceDecisionDialog from "../../features/planner/components/PlaceDecision
 import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
 import { useLocationSearch } from "../../features/planner/hooks/useLocationSearch";
 import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
-import { useRouteView } from "../../features/planner/hooks/useRouteView";
+import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
 import {
   departurePresets,
@@ -42,7 +42,6 @@ import type {
   Place,
   PlanData,
   RichSpot,
-  TransportContext,
   TransportProvider,
   TransportProviderState,
   WeatherData,
@@ -60,16 +59,6 @@ export default function PlannerPage() {
   const [planError, setPlanError] = useState("");
   const [notice, setNotice] = useState("조건을 바꾸면 실시간 관광 데이터가 자동으로 갱신됩니다.");
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const [origin, setOrigin] = useState<RoutePoint>(departurePresets[0].point);
-  const [originLabel, setOriginLabel] = useState(departurePresets[0].name);
-  const [privateOrigin, setPrivateOrigin] = useState(false);
-  const [routeAlternatives, setRouteAlternatives] = useState<RouteAlternative[]>([]);
-  const [routeDestination, setRouteDestination] = useState<Place | null>(null);
-  const [destinationCrowd, setDestinationCrowd] = useState<{ rate: number; baseYmd: string; place: string } | null>(null);
-  const [routeLoading, setRouteLoading] = useState(false);
-  const [routeNotice, setRouteNotice] = useState("여행지를 찾으면 출발지부터의 이동 경로를 비교합니다.");
-  const [transportProviders, setTransportProviders] = useState<TransportProvider[]>([]);
-  const [transportContext, setTransportContext] = useState<TransportContext | null>(null);
   const [keyHealth, setKeyHealth] = useState<KeyHealth | null>(null);
   const [keyHealthChecked, setKeyHealthChecked] = useState(false);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
@@ -85,7 +74,6 @@ export default function PlannerPage() {
   const cardsRef = useRef<HTMLDivElement>(null);
   const placeDialogRef = useRef<HTMLElement>(null);
   const planRequestRef = useRef<AbortController | null>(null);
-  const routeRequestRef = useRef<AbortController | null>(null);
   const enrichmentRequestRef = useRef<AbortController | null>(null);
 
   const activeProfiles = useMemo(
@@ -94,6 +82,14 @@ export default function PlannerPage() {
   );
   const activePlaces = useMemo(() => plan?.places ?? [], [plan]);
   const { headerHidden, scrolled } = usePlannerChrome(plan);
+  const {
+    origin, originLabel, privateOrigin, routeAlternatives, routeDestination,
+    destinationCrowd, routeLoading, routeNotice, transportProviders, transportContext,
+    loadRoutes, resetRouteData, setRouteNotice, updateOrigin, requestCurrentLocation,
+    setActiveRouteId, routeSort, setRouteSort, transportMode, setTransportMode,
+    selectedTransportDataset, setSelectedTransportDataset, sortedRouteAlternatives,
+    activeRoute, selectedDataset, activeTransportMode,
+  } = useRoutePlanning(region);
   const {
     audioRef, transcriptOpen, playing, audioProgress, audioTime, audioDuration,
     toggleTranscript, toggleAudio, seekAudio, handleLoadedMetadata, handleTimeUpdate,
@@ -107,11 +103,6 @@ export default function PlannerPage() {
     saved, travelStart, travelEnd, scheduleAssignments, tripDays, orderedSavedPlaces,
     orderExplanation, changeTravelStart, setTravelEnd, assignPlaceToDay, toggleSaved,
   } = useTripSelection({ activePlaces, origin, accessibilityProfileCount: selected.length });
-  const {
-    setActiveRouteId, routeSort, setRouteSort, transportMode,
-    setTransportMode, selectedTransportDataset, setSelectedTransportDataset,
-    sortedRouteAlternatives, activeRoute, selectedDataset, activeTransportMode,
-  } = useRouteView(routeAlternatives, transportContext);
   const activeStops = plan?.stops ?? [];
   const statuses = plan ? [...plan.statuses, ...(enrichment?.statuses || [])] : readyStatuses;
   const liveCount = statuses.filter((status) => status.state === "live").length;
@@ -208,60 +199,6 @@ export default function PlannerPage() {
       : [...current, id]);
   }
 
-  async function loadRoutes(place: Place, nextOrigin = origin, nextOriginIsPrivate = privateOrigin) {
-    routeRequestRef.current?.abort();
-    const controller = new AbortController();
-    routeRequestRef.current = controller;
-    const endLat = Number(place.mapY); const endLng = Number(place.mapX);
-    if (!Number.isFinite(endLat) || !Number.isFinite(endLng)) {
-      setRouteNotice("선택한 여행지에 좌표가 없어 경로를 계산할 수 없습니다.");
-      setRouteAlternatives([]);
-      routeRequestRef.current = null;
-      return;
-    }
-    setRouteLoading(true);
-    setRouteDestination(place);
-    setDestinationCrowd(null);
-    if (nextOriginIsPrivate) {
-      setRouteLoading(false);
-      setRouteAlternatives([]);
-      setRouteNotice("현재 위치는 이 지도에서만 표시합니다. 좌표를 서버로 보내지 않으므로 카카오 지도 앱에서 경로를 이어서 확인해 주세요.");
-      routeRequestRef.current = null;
-      return;
-    }
-    setRouteNotice(`${originLabel}에서 ${place.name}까지 이동 경로를 확인하고 있습니다.`);
-    const crowdParams = new URLSearchParams({ action: "crowd", region, title: place.name });
-    void optionalPlannerJson<{ crowd?: { rate: number; baseYmd: string; place: string } | null }>(`/api/wave?${crowdParams.toString()}`, { signal: controller.signal })
-      .then((data: { crowd?: { rate: number; baseYmd: string; place: string } | null } | null) => {
-        if (routeRequestRef.current === controller) setDestinationCrowd(data?.crowd || null);
-      })
-      .catch(() => {
-        if (!controller.signal.aborted && routeRequestRef.current === controller) setDestinationCrowd(null);
-      });
-    try {
-      const params = new URLSearchParams({
-        startLat: String(nextOrigin.lat), startLng: String(nextOrigin.lng), endLat: String(endLat), endLng: String(endLng),
-      });
-      const data = await plannerJson<{ alternatives?: RouteAlternative[]; providers?: TransportProvider[]; context?: TransportContext; configured?: boolean; message?: string }>(`/api/route?${params.toString()}`, { cache: "no-store", signal: controller.signal });
-      if (controller.signal.aborted || routeRequestRef.current !== controller) return;
-      const alternatives = data.alternatives || [];
-      setRouteAlternatives(alternatives);
-      setTransportProviders(data.providers || []);
-      setTransportContext(data.context || null);
-      setActiveRouteId(alternatives[0]?.id || "");
-      setRouteNotice(data.configured ? `${alternatives.length}개 실제 교통 경로와 운행 데이터를 비교합니다.` : (data.message || "직선 연결 미리보기입니다."));
-    } catch (error) {
-      if (controller.signal.aborted || routeRequestRef.current !== controller) return;
-      setRouteAlternatives([]);
-      setRouteNotice(error instanceof Error ? error.message : "경로 연결을 확인해 주세요.");
-    } finally {
-      if (routeRequestRef.current === controller) {
-        routeRequestRef.current = null;
-        setRouteLoading(false);
-      }
-    }
-  }
-
   const loadEnrichment = useCallback(async () => {
     enrichmentRequestRef.current?.abort();
     const controller = new AbortController();
@@ -307,8 +244,8 @@ export default function PlannerPage() {
     if (mode === "origin") {
       const next = { lat: Number(place.mapY), lng: Number(place.mapX) };
       if (!Number.isFinite(next.lat) || !Number.isFinite(next.lng)) return;
-      setOrigin(next); setOriginLabel(place.name); setPrivateOrigin(false);
-      if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], next, false);
+      updateOrigin(next, place.name);
+      if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], next, false, place.name);
     } else if (mode === "destination") void loadRoutes(place, origin, privateOrigin);
     clearLocationSearch();
   }
@@ -343,20 +280,6 @@ export default function PlannerPage() {
     if (!impactAlternative) return;
     void loadRoutes(impactAlternative);
     document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" });
-  }
-
-  function useCurrentLocation() {
-    if (!navigator.geolocation) {
-      setRouteNotice("이 브라우저는 현재 위치를 지원하지 않습니다.");
-      return;
-    }
-    setRouteNotice("현재 위치 권한을 확인하고 있습니다.");
-    navigator.geolocation.getCurrentPosition((position) => {
-      const next = { lat: position.coords.latitude, lng: position.coords.longitude };
-      setOrigin(next); setOriginLabel("현재 위치"); setPrivateOrigin(true);
-      setRouteAlternatives([]);
-      setRouteNotice("현재 위치를 지도에 표시했습니다. 좌표는 서버나 저장소로 전송하지 않습니다.");
-    }, () => setRouteNotice("위치 권한이 없어 출발 거점을 선택해 주세요."), { enableHighAccuracy: true, timeout: 8000 });
   }
 
   async function copyBookingRoute(provider: string) {
@@ -398,16 +321,12 @@ export default function PlannerPage() {
   async function generatePlan(revealResults = true) {
     if (!selected.length) return;
     planRequestRef.current?.abort();
-    routeRequestRef.current?.abort();
     const controller = new AbortController();
     planRequestRef.current = controller;
     setLoading(true);
     setPlanError("");
     setPlan(null);
-    setRouteAlternatives([]);
-    setRouteDestination(null);
-    setTransportProviders([]);
-    setTransportContext(null);
+    resetRouteData();
     setNotice(revealResults ? "한국관광공사 8개 서비스에서 여행 근거를 모으고 있어요." : "바뀐 조건에 맞춰 여행지를 자동으로 갱신하고 있어요.");
     try {
       const params = new URLSearchParams({
@@ -454,7 +373,6 @@ export default function PlannerPage() {
 
   useEffect(() => () => {
     planRequestRef.current?.abort();
-    routeRequestRef.current?.abort();
     enrichmentRequestRef.current?.abort();
   }, []);
 
@@ -509,10 +427,10 @@ export default function PlannerPage() {
               <div className="select-shell"><i aria-hidden="true">◎</i><select value={departurePresets.find((item) => item.name === originLabel)?.id || "current"} onChange={(event) => {
                 const preset = departurePresets.find((item) => item.id === event.target.value);
                 if (!preset) return;
-                setOrigin(preset.point); setOriginLabel(preset.name); setPrivateOrigin(false);
-                if (activePlaces[0]) void loadRoutes(activePlaces[0], preset.point, false);
+                updateOrigin(preset.point, preset.name);
+                if (activePlaces[0]) void loadRoutes(activePlaces[0], preset.point, false, preset.name);
               }} aria-label="출발 거점 선택"><option value="current" disabled>{originLabel === "현재 위치" ? "현재 위치" : "출발 거점 선택"}</option>{departurePresets.map((item) => <option value={item.id} key={item.id}>{item.name} · {item.detail}</option>)}</select><small>출발</small></div>
-              <button type="button" onClick={useCurrentLocation}>{t("currentLocation", "현재 위치")}</button>
+              <button type="button" onClick={requestCurrentLocation}>{t("currentLocation", "현재 위치")}</button>
             </div>
           </div>
 
@@ -756,24 +674,22 @@ export default function PlannerPage() {
               <div className="trip-point-comparison"><article><small>W.A.V.E 기본 추천</small><strong>{pointPicker === "origin" ? departurePresets[0].name : activePlaces[0]?.name || "검색 후 추천"}</strong><span>{pointPicker === "origin" ? departurePresets[0].detail : activePlaces[0]?.summary || "조건에 맞는 여행지를 계산합니다."}</span></article><article className="selected"><small>내 선택</small><strong>{pointPicker === "origin" ? originLabel : routeDestination?.name || "아직 선택하지 않음"}</strong><span>{pointPicker === "origin" ? "선택한 위치에서 경로 재계산" : "선택 즉시 혼잡·교통정보 갱신"}</span></article></div>
               <form onSubmit={(event) => { event.preventDefault(); void searchLocations(); }}><input value={placeQuery} onChange={(event) => setPlaceQuery(event.target.value)} placeholder="장소명·역·터미널·관광지를 직접 입력" aria-label="장소 검색" /><button type="submit" disabled={placeSearchLoading || placeQuery.trim().length < 2}>{placeSearchLoading ? "검색 중" : "검색"}</button></form>
               <div className="trip-point-list">
-                {pointPicker === "origin" && departurePresets.map((item) => <button type="button" key={item.id} onClick={() => { setOrigin(item.point); setOriginLabel(item.name); setPrivateOrigin(false); if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], item.point, false); setPointPicker(null); }}><i>S</i><span><strong>{item.name}</strong><small>{item.detail}</small></span></button>)}
+                {pointPicker === "origin" && departurePresets.map((item) => <button type="button" key={item.id} onClick={() => { updateOrigin(item.point, item.name); if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], item.point, false, item.name); setPointPicker(null); }}><i>S</i><span><strong>{item.name}</strong><small>{item.detail}</small></span></button>)}
                 {activePlaces.slice(0, 8).map((place, index) => <button type="button" key={`${pointPicker}-${place.id}`} onClick={() => choosePoint(place)}><i>{index + 1}</i><span><strong>{place.name}</strong><small>{place.address || place.summary}</small></span>{index === 0 && <em>W.A.V.E 추천</em>}</button>)}
                 {placeSearchResults.map((item) => <button type="button" key={`search-${item.id}`} onClick={() => choosePoint(searchableToPlace(item))}><i>⌕</i><span><strong>{item.name}</strong><small>{item.address || item.category}</small></span><em>직접 검색</em></button>)}
                 {!placeSearchLoading && placeQuery && !placeSearchResults.length && <p>검색 버튼을 누르면 입력한 값으로 실제 장소를 찾습니다.</p>}
               </div>
             </section>}
             <RouteMap origin={origin} places={activePlaces.slice(0, 6)} route={activeRoute} crowd={routeDestination ? destinationCrowd : plan?.crowd} crowdPlaceId={(routeDestination || activePlaces[0])?.id} onOriginChange={(point, label) => {
-              setOrigin(point); setOriginLabel(label); setPrivateOrigin(label === "현재 위치");
+              updateOrigin(point, label, label === "현재 위치");
               if (label === "현재 위치") {
-                setRouteAlternatives([]);
-                setRouteNotice("현재 위치를 지도에 표시했습니다. 좌표는 서버나 저장소로 전송하지 않습니다.");
-              } else if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], point, false);
+                return;
+              } else if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], point, false, label);
             }} onDestinationChange={(mapPlace: MapPlace) => {
               const known = activePlaces.find((place) => place.id === mapPlace.id);
               const destination: Place = known || {
                 id: mapPlace.id, contentTypeId: "12", city: region, name: mapPlace.name, address: mapPlace.address || "지도에서 선택한 위치", summary: mapPlace.summary || "지도에서 직접 선택한 목적지입니다.", image: mapPlace.image || "", mapX: mapPlace.mapX, mapY: mapPlace.mapY, score: mapPlace.score, features: [], details: ["선택한 좌표를 기준으로 교통 경로를 조회합니다."], source: "지도 직접 선택",
               };
-              setRouteDestination(destination);
               void loadRoutes(destination);
             }} />
             <div className="map-legend"><span><i className="origin" /> 출발지</span><span><i className="destination" /> 추천 여행지</span><span><i className={activeRoute?.configured ? "real" : "preview"} /> {activeRoute?.configured ? "실제 이동 구간" : "직선 미리보기"}</span></div>
