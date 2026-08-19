@@ -174,3 +174,17 @@ test("wave motion preference is persisted, localized and respects reduced motion
   assert.match(landing, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(css, /html\[data-motion="calm"\] \.hero-wave-canvas \{ display: none; \}/);
 });
+
+test("non-Korean locales are visibly marked Beta without breaking narrow headers", async () => {
+  const [preferences, css] = await Promise.all([
+    source("components/SitePreferences.tsx"),
+    source("app/globals.css"),
+  ]);
+  assert.match(preferences, /id: "ko"[^\n]+beta: false/);
+  assert.equal((preferences.match(/beta: true/g) || []).length, 7);
+  assert.match(preferences, /item\.beta \? " · Beta"/);
+  assert.match(preferences, /className="language-beta"/);
+  assert.match(css, /\.preference-controls select,.preference-controls button \{ min-height: 44px/);
+  assert.match(css, /@media \(max-width: 780px\)[\s\S]*\.preference-controls select \{ width: 58px/);
+  assert.match(css, /@media \(max-width: 380px\)[\s\S]*\.language-beta \{ position: absolute/);
+});

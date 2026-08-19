@@ -49,9 +49,12 @@ audio { display: none; }
 :focus-visible { outline: 3px solid #ffb800; outline-offset: 4px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .preference-controls,.landing-header-actions,.planner-header-actions { display: flex; align-items: center; gap: 8px; }
-.preference-controls select,.preference-controls button { min-height: 40px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.86); font-size: .75rem; font-weight: 820; }
-.preference-controls select { max-width: 132px; padding: 7px 29px 7px 11px; }
-.preference-controls button { width: 40px; display: grid; place-items: center; font-size: 1rem; }
+.preference-controls select,.preference-controls button { min-height: 44px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.86); font-size: .75rem; font-weight: 820; }
+.preference-controls select { width: 156px; max-width: 156px; padding: 7px 29px 7px 11px; }
+.preference-controls button { width: 44px; min-width: 44px; display: grid; place-items: center; font-size: 1rem; }
+.language-picker { min-width: 0; display: flex; align-items: center; gap: 5px; }
+.language-picker label { min-width: 0; display: flex; }
+.language-beta { min-height: 22px; padding: 3px 7px; display: inline-flex; align-items: center; border-radius: 999px; color: #075276; background: #dff4ff; font-size: .58rem; font-weight: 900; letter-spacing: .02em; white-space: nowrap; }
 
 .skip-link {
   position: fixed; z-index: 120; left: 18px; top: -80px;
@@ -646,6 +649,7 @@ html[data-theme="dark"] body,html[data-theme="dark"] .landing-page,html[data-the
 html[data-theme="dark"] .landing-hero,html[data-theme="dark"] .service-welcome { background: linear-gradient(135deg,#061f2b,#0a3143 54%,#0e3f55); }
 html[data-theme="dark"] .landing-header.scrolled,html[data-theme="dark"] .site-header.scrolled,html[data-theme="dark"] .shared-header { border-color: #284b5b; background: rgba(6,31,43,.9); }
 html[data-theme="dark"] .preference-controls select,html[data-theme="dark"] .preference-controls button,html[data-theme="dark"] .header-action,html[data-theme="dark"] .control-panel,html[data-theme="dark"] .planner-bento,html[data-theme="dark"] .place-card,html[data-theme="dark"] .route-compare-panel,html[data-theme="dark"] .route-option,html[data-theme="dark"] .rich-card,html[data-theme="dark"] .service-region-card,html[data-theme="dark"] .evidence-card,html[data-theme="dark"] .shared-places article { color: var(--ink); border-color: #284b5b; background: #0b2d3c; }
+html[data-theme="dark"] .language-beta { color: #9de4ff; background: #123d50; }
 html[data-theme="dark"] .select-shell,html[data-theme="dark"] .select-shell select,html[data-theme="dark"] .profile-card,html[data-theme="dark"] .sort-tabs button,html[data-theme="dark"] .feedback-box,html[data-theme="dark"] .feedback-box textarea { color: var(--ink); border-color: #30586a; background: #0f3749; }
 html[data-theme="dark"] .profile-card.active,html[data-theme="dark"] .sort-tabs button.active { color: #fff; background: var(--blue); }
 html[data-theme="dark"] .region-story { background: #092938; }
@@ -1689,7 +1693,9 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   .landing-header > .brand > span:last-child,
   .site-header > .brand > span:last-child { display: none; }
   .landing-header-actions, .planner-header-actions, .preference-controls { min-width: 0; gap: 4px; }
+  .language-picker { gap: 3px; }
   .preference-controls select { width: 58px; max-width: 58px; padding: 7px 20px 7px 7px; }
+  .language-beta { min-height: 20px; padding-inline: 5px; font-size: .52rem; }
   .preference-controls button { width: 44px; min-width: 44px; }
   .landing-start { width: 44px; min-width: 44px; padding-inline: 0; justify-content: center; }
 
@@ -1726,6 +1732,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 @media (max-width: 380px) {
   .landing-header, .site-header { width: calc(100vw - 8px); }
   .preference-controls select { width: 52px; max-width: 52px; }
+  .language-beta { position: absolute; width: 1px; height: 1px; min-height: 0; overflow: hidden; padding: 0; clip-path: inset(50%); }
   .landing-header-actions, .planner-header-actions, .preference-controls { gap: 2px; }
 }
 
