@@ -11,6 +11,7 @@ test("Vercel applies baseline browser security headers", async () => {
   const headers = Object.fromEntries(config.headers[0].headers.map(({ key, value }) => [key, value]));
   assert.equal(headers["X-Content-Type-Options"], "nosniff");
   assert.equal(headers["X-Frame-Options"], "DENY");
+  assert.match(headers["Content-Security-Policy"], /form-action 'self'/);
   assert.equal(headers["Referrer-Policy"], "strict-origin-when-cross-origin");
   assert.match(headers["Permissions-Policy"], /camera=\(\)/);
 });
@@ -83,17 +84,21 @@ test("external Kakao place links are upgraded to HTTPS", async () => {
   assert.match(map, /place_url\?\.replace\(\/\^http:/);
 });
 
-test("account and footer copy describe real storage and independent operation", async () => {
-  const [account, landing, planner] = await Promise.all([
+test("account, storage and footer copy describe real boundaries and independent operation", async () => {
+  const [account, authForm, landing, planner] = await Promise.all([
     source("components/AccountMenu.tsx"),
+    source("components/AuthForm.tsx"),
     source("app/page.tsx"),
     source("app/planner/page.tsx"),
   ]);
   assert.doesNotMatch(account, /저장한 여행 조건과 즐겨찾기를 안전하게 관리/);
-  assert.match(account, /여행 보관함은 현재 이 브라우저에 저장/);
+  assert.match(authForm, /커뮤니티 DB에 비밀번호를 저장하지 않습니다/);
+  assert.match(authForm, /여행 설계와 지도는 로그인 없이 이용/);
+  assert.match(authForm, /autoComplete=\{registering \? "new-password" : "current-password"\}/);
+  assert.match(authForm, /aria-describedby="auth-password-help auth-message"/);
+  assert.match(account, /authClient\.signOut/);
   assert.match(landing, /공식 운영 서비스가 아닙니다/);
   assert.match(planner, /공식 운영 서비스가 아닙니다/);
-  assert.match(account, /event\.key !== "Tab"/);
   assert.match(planner, /placeDialogRef/);
 });
 
@@ -154,7 +159,7 @@ test("wide screens use available viewport width without breaking mobile gutters"
   assert.match(css, /@media \(max-width: 780px\)[\s\S]*width: calc\(100vw - 16px\)/);
 });
 
-test("wave effects avoid dense glyphs and the extended intro timing stays synchronized", async () => {
+test("wave effects avoid dense glyphs and the short first-visit intro stays synchronized", async () => {
   const [wave, landing, css] = await Promise.all([
     source("components/WaveField.tsx"),
     source("app/page.tsx"),
@@ -162,10 +167,10 @@ test("wave effects avoid dense glyphs and the extended intro timing stays synchr
   ]);
   const ramp = wave.match(/const RAMP = \[(.*?)\];/)?.[1] ?? "";
   assert.doesNotMatch(ramp, /[#@xX≡]/);
-  assert.match(wave, /out: \[5\.65, 6\.05\].*W\.A\.V\.E/);
-  assert.match(landing, /const INTRO_DURATION_MS = 6550/);
+  assert.match(wave, /out: \[1\.78, 1\.96\].*W\.A\.V\.E/);
+  assert.match(landing, /const INTRO_DURATION_MS = 2450/);
   assert.match(landing, /setTimeout\(\(\) => finishIntro\(\), INTRO_DURATION_MS\)/);
-  assert.match(css, /landingIntroOut \.5s 6\.05s/);
+  assert.match(css, /landingIntroOut \.5s 1\.95s/);
   assert.match(landing, /prefers-reduced-motion: reduce/);
   assert.match(landing, /<button ref=\{startButtonRef\} type="button" onClick=\{close\}>/);
 });

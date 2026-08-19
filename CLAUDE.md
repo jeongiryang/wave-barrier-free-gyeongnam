@@ -87,6 +87,11 @@ Vercel 단일 배포, 실시간 OpenAPI 호출)에 맞게 다시 해석해서 �
    [`docs/ai-logs/TEMPLATE.md`](docs/ai-logs/TEMPLATE.md)를 기준으로 PR별 로그를
    만들고, 본문에는 무엇을 왜 고쳤는지와 어떻게 확인했는지를 쓴다.
 
+   PR 생성 직후 작성자를 assignee로 지정한다. 작성자가 아닌 기본 협업자
+   `syt83`, `unknownamed`를 모두 reviewer로 요청하고, 저장소에 이미 있는 라벨 중
+   변경 성격에 맞는 라벨을 하나 이상 붙인다. PR 작성자 본인은 reviewer로 넣지 않는다.
+   닫힌 과거 PR은 GitHub가 허용하는 assignee·label만 보완하고 무의미한 리뷰 요청은 하지 않는다.
+
 6. **하나가 끝나면 다음 작업 단위로 넘어간다.** 다시 1번부터.
 
 ### 병합 직전 최신 main 검증
@@ -130,11 +135,12 @@ GitHub CI가 성공해야 한다. 이전 커밋의 성공 결과는 재사용하
 
 main에 이미 반영된 의도적인 결정들입니다. 모르고 되돌리기 쉬우니 먼저 확인합니다.
 
-- **계정 로그인 폼을 두지 않는다.** (#12)
-  이메일·비밀번호 입력 폼이 Google Safe Browsing에서 피싱으로 오탐되어
-  경고가 떴습니다. `AccountMenu`는 어느 화면에서도 불러오지 않습니다.
-  로그인 UI를 다시 넣어야 한다면 Safe Browsing 대응 방법을 먼저 정하고,
-  별도 PR로 근거와 함께 올립니다.
+- **계정은 별도 정식 화면에서만 제공하고 핵심 여행 기능을 막지 않는다.** (#12 이력)
+  과거 헤더 모달형 이메일·비밀번호 폼은 Google Safe Browsing 피싱 오탐 이후
+  제거했다. 복원된 `/login`, `/register`는 W.A.V.E 전용 계정임을 명시하고 Neon
+  Auth의 same-origin 경로만 사용한다. 비밀번호를 서비스 DB에 저장하지 않으며,
+  의심스러운 외부 리디렉션을 추가하지 않는다. 관광 검색·추천·지도·일정은 항상
+  비로그인으로 이용할 수 있어야 한다.
 
 - **배포는 Vercel Production 하나로만 한다.**
   `vercel.json`에서 Vercel 자체 Git 배포를 끄고 GitHub Actions CD로만 배포합니다.

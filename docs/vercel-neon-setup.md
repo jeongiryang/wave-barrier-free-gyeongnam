@@ -22,9 +22,16 @@ W.A.V.E는 Vercel을 웹·서버 함수의 단일 운영 환경으로 사용하�
    `NEON_AUTH_COOKIE_SECRET`에 넣는다.
 5. 세 값은 Vercel Project Settings → Environment Variables에서 Production과
    Preview에 등록한다. 실제 값은 저장소에 커밋하지 않는다.
+6. Neon SQL Editor에서 `migrations/001_community.sql`을 실행한다. 이 마이그레이션은
+   게시글·댓글·좋아요 테이블, 소유자·관광지 조회 인덱스, 중복 좋아요 방지 제약을 만든다.
 
-현재 로그인은 Neon Auth 연결이 완료된 환경에서만 활성화된다. 데이터베이스가
-아직 준비되지 않은 Preview에서는 관광 검색·지도·교통 기능을 비회원으로 이용할 수 있다.
+`/login`과 `/register`는 Neon Auth 연결이 완료된 환경에서 활성화된다. `/community`는
+로그인 없이 읽을 수 있고 글·댓글·좋아요만 계정이 필요하다. 데이터베이스가 아직
+준비되지 않은 Preview에서도 관광 검색·지도·교통 기능은 비회원으로 계속 이용할 수 있다.
+
+W.A.V.E 커뮤니티 DB는 Neon Auth의 사용자 참조 ID와 표시 이름만 저장한다. 이메일과
+비밀번호는 커뮤니티 테이블에 저장하지 않는다. 로그인 화면은 공식 내비게이션과 같은
+브랜드·HTTPS 출처를 유지하고, 로그인 완료 후에는 검증된 내부 `next` 경로로만 이동한다.
 
 ## 3. 서비스 환경 변수
 
@@ -78,4 +85,4 @@ Windows PowerShell에서는 첫 줄 대신 다음 명령을 사용한다.
 Copy-Item .env.example .env.local
 ```
 
-PR을 올리기 전 `npm run lint`, `npm test`, `npm run build:vercel`을 모두 실행한다.
+PR을 올리기 전 `npm run lint`, `npm run typecheck`, `npm test`, `npm run build:vercel`을 모두 실행한다.

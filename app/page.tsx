@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-html-link-for-pages */
+
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { PreferenceControls, useSitePreferences } from "../components/SitePreferences";
 import HelpCenter from "../components/HelpCenter";
@@ -7,6 +9,8 @@ import WaveField from "../components/WaveField";
 import AccessIcon from "../components/AccessIcons";
 import { RegionMascot } from "../components/RegionMascot";
 import GithubFooterLink from "../components/GithubFooterLink";
+import AccountMenu from "../components/AccountMenu";
+import { LandingCommunityStory, LandingProductStories } from "../components/LandingStories";
 
 const regions = [
   { name: "거창", story: "수승대와 산골 무대", x: 19, y: 16 },
@@ -35,8 +39,8 @@ const values = [
   { number: "03", title: "이동까지 연결", copy: "관광지를 고르는 데서 끝내지 않고 시간·요금·환승·도보를 비교해 하루의 이동을 설계합니다." },
 ];
 
-// 마지막 워드마크가 충분히 읽힌 뒤 0.5초 퇴장 애니메이션까지 마치는 시점이다.
-const INTRO_DURATION_MS = 6550;
+// 첫 방문 연출은 브랜드를 전달하되 실제 여행 시작을 기다리게 하지 않는다.
+const INTRO_DURATION_MS = 2450;
 
 type RegionPhoto = { id: string; title: string; image: string; location: string; photographer: string; month: string };
 
@@ -189,8 +193,8 @@ export default function LandingPage() {
         <a className="brand" href="#top" aria-label="W.A.V.E 홈">
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span>
         </a>
-        <nav aria-label="소개 메뉴"><a href="#story">{t("service", "서비스")}</a><a href="#regions">{t("regions", "경남 18개 지역")}</a><a href="#evidence">{t("data", "데이터")}</a></nav>
-        <div className="landing-header-actions"><HelpCenter /><PreferenceControls /><a className="landing-start" href="/planner">{t("use", "서비스 이용하기")} <span>↗</span></a></div>
+        <nav aria-label="주요 메뉴"><a href="#story">{t("service", "서비스 소개")}</a><a href="/planner">{t("plan", "여행 설계")}</a><a href="/community">커뮤니티</a></nav>
+        <div className="landing-header-actions"><HelpCenter /><PreferenceControls /><AccountMenu /><a className="landing-start" href="/planner">{t("use", "서비스 이용하기")} <span>↗</span></a></div>
       </header>
 
       <section className="landing-hero" id="top">
@@ -216,6 +220,8 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <LandingProductStories />
+
       <section className="region-story" id="regions">
         <div className="region-story-copy" data-land-reveal>
           <p className="section-kicker">18 CITIES · 18 STORIES</p>
@@ -235,6 +241,8 @@ export default function LandingPage() {
           </div>}
         </div>
       </section>
+
+      <LandingCommunityStory />
 
       <section className="evidence-story" id="evidence">
         <div data-land-reveal><p className="section-kicker">VISIBLE EVIDENCE</p><h2>{t("evidenceTitle", "추천의 이유와 한계까지 보여줍니다.")}</h2></div>
