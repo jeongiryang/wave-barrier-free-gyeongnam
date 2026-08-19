@@ -375,12 +375,13 @@ test("planner ignores stale route, enrichment and location-search responses", as
 });
 
 test("planner state is divided into testable feature hooks without overwriting saved trips", async () => {
-  const [planner, planController, participation, tripSelection, routePlanning, routeView, signals, audioGuide, chrome] = await Promise.all([
+  const [planner, planController, participation, tripSelection, routePlanning, routeOrigin, routeView, signals, audioGuide, chrome] = await Promise.all([
     plannerProductSource(),
     source("features/planner/hooks/usePlannerPlan.ts"),
     source("features/planner/hooks/usePlannerParticipation.ts"),
     source("features/planner/hooks/useTripSelection.ts"),
     source("features/planner/hooks/useRoutePlanning.ts"),
+    source("features/planner/hooks/useRouteOrigin.ts"),
     source("features/planner/hooks/useRouteView.ts"),
     source("features/planner/hooks/usePlannerSignals.ts"),
     source("features/planner/hooks/useAudioGuide.ts"),
@@ -395,6 +396,10 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(tripSelection, /if \(!storageReady\) return;[\s\S]+localStorage\.setItem\(SAVED_PLACES_KEY/);
   assert.match(routeView, /routeSort === "walk"[\s\S]+a\.totalWalk - b\.totalWalk/);
   assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext\)/);
+  assert.match(routePlanning, /useRouteOrigin\(clearPrivateOriginRoutes\)/);
+  assert.match(routeOrigin, /navigator\.geolocation\.getCurrentPosition/);
+  assert.match(routeOrigin, /좌표는 서버나 저장소로 전송하지 않습니다/);
+  assert.doesNotMatch(routePlanning, /navigator\.geolocation/);
   assert.match(routePlanning, /nextOriginLabel/);
   assert.doesNotMatch(planner, /routeRequestRef|setRouteAlternatives\(/);
   assert.doesNotMatch(planner, /enrichmentRequestRef|setKeyHealth\(|setWeather\(/);

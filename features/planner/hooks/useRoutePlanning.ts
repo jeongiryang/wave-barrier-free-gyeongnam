@@ -1,23 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { RouteAlternative, RoutePoint } from "../../routing/types";
-import { departurePresets } from "../constants";
+import type { RouteAlternative } from "../../routing/types";
 import { optionalPlannerJson, plannerJson } from "../services/api";
 import type { DestinationCrowd, Place, TransportContext, TransportProvider } from "../types";
+import { useRouteOrigin } from "./useRouteOrigin";
 import { useRouteView } from "./useRouteView";
 
 export function useRoutePlanning(region: string) {
-  const [origin, setOrigin] = useState<RoutePoint>(departurePresets[0].point);
-  const [originLabel, setOriginLabel] = useState(departurePresets[0].name);
-  const [privateOrigin, setPrivateOrigin] = useState(false);
   const [routeAlternatives, setRouteAlternatives] = useState<RouteAlternative[]>([]);
   const [routeDestination, setRouteDestination] = useState<Place | null>(null);
   const [destinationCrowd, setDestinationCrowd] = useState<DestinationCrowd | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
-  const [routeNotice, setRouteNotice] = useState("여행지를 찾으면 출발지부터의 이동 경로를 비교합니다.");
   const [transportProviders, setTransportProviders] = useState<TransportProvider[]>([]);
   const [transportContext, setTransportContext] = useState<TransportContext | null>(null);
+  const clearPrivateOriginRoutes = useCallback(() => setRouteAlternatives([]), []);
+  const routeOrigin = useRouteOrigin(clearPrivateOriginRoutes);
+  const { origin, originLabel, privateOrigin, setRouteNotice } = routeOrigin;
   const routeRequestRef = useRef<AbortController | null>(null);
   const routeView = useRouteView(routeAlternatives, transportContext);
   const { setActiveRouteId } = routeView;
@@ -91,17 +90,7 @@ export function useRoutePlanning(region: string) {
         setRouteLoading(false);
       }
     }
-  }, [origin, originLabel, privateOrigin, region, setActiveRouteId]);
-
-  const updateOrigin = useCallback((point: RoutePoint, label: string, isPrivate = false) => {
-    setOrigin(point);
-    setOriginLabel(label);
-    setPrivateOrigin(isPrivate);
-    if (isPrivate) {
-      setRouteAlternatives([]);
-      setRouteNotice("현재 위치를 지도에 표시했습니다. 좌표는 서버나 저장소로 전송하지 않습니다.");
-    }
-  }, []);
+  }, [origin, originLabel, privateOrigin, region, setActiveRouteId, setRouteNotice]);
 
   const resetRouteData = useCallback(() => {
     routeRequestRef.current?.abort();
@@ -114,38 +103,18 @@ export function useRoutePlanning(region: string) {
     setRouteLoading(false);
   }, []);
 
-  const requestCurrentLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setRouteNotice("이 브라우저는 현재 위치를 지원하지 않습니다.");
-      return;
-    }
-    setRouteNotice("현재 위치 권한을 확인하고 있습니다.");
-    navigator.geolocation.getCurrentPosition((position) => {
-      updateOrigin({ lat: position.coords.latitude, lng: position.coords.longitude }, "현재 위치", true);
-    }, () => setRouteNotice("위치 권한이 없어 출발 거점을 선택해 주세요."), {
-      enableHighAccuracy: true,
-      timeout: 8000,
-    });
-  }, [updateOrigin]);
-
   useEffect(() => () => routeRequestRef.current?.abort(), []);
 
   return {
-    origin,
-    originLabel,
-    privateOrigin,
+    ...routeOrigin,
     routeAlternatives,
     routeDestination,
     destinationCrowd,
     routeLoading,
-    routeNotice,
     transportProviders,
     transportContext,
     loadRoutes,
     resetRouteData,
-    setRouteNotice,
-    updateOrigin,
-    requestCurrentLocation,
     ...routeView,
   };
 }
