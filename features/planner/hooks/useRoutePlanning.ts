@@ -4,10 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { RouteAlternative, RoutePoint } from "../../routing/types";
 import { departurePresets } from "../constants";
 import { optionalPlannerJson, plannerJson } from "../services/api";
-import type { Place, TransportContext, TransportProvider } from "../types";
+import type { DestinationCrowd, Place, TransportContext, TransportProvider } from "../types";
 import { useRouteView } from "./useRouteView";
-
-type DestinationCrowd = { rate: number; baseYmd: string; place: string };
 
 export function useRoutePlanning(region: string) {
   const [origin, setOrigin] = useState<RoutePoint>(departurePresets[0].point);

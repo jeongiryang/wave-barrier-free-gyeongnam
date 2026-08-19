@@ -87,3 +87,5 @@ export type EnrichmentData = {
 export type WeatherDay = { date: string; code: number; label: string; max: number; min: number; rainProbability: number; rain: number; snow: number; uv: number; advice: string[] };
 export type WeatherData = { region: string; updatedAt: string; source: string; current: { temperature: number; apparent: number; code: number; label: string; wind: number; precipitation: number; isDay: boolean }; days: WeatherDay[]; advice: string[] };
 export type SearchPlace = { id: string; name: string; address: string; category: string; mapX: string; mapY: string; placeUrl?: string };
+export type RichMode = "events" | "lodging" | "camping" | "pet" | "wellness" | "medical" | "water" | "language" | "awards" | "rests";
+export type DestinationCrowd = { rate: number; baseYmd: string; place: string };

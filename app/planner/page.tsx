@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-html-link-for-pages */
 
 import {
-  useEffect,
+  useCallback,
   useMemo,
   useRef,
   useState,
@@ -23,13 +23,15 @@ import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome"
 import { usePlannerParticipation } from "../../features/planner/hooks/usePlannerParticipation";
 import { usePlannerPlan } from "../../features/planner/hooks/usePlannerPlan";
 import { usePlannerSignals } from "../../features/planner/hooks/usePlannerSignals";
+import { usePlannerActions } from "../../features/planner/hooks/usePlannerActions";
+import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
+import { usePlannerAutoRefresh } from "../../features/planner/hooks/usePlannerAutoRefresh";
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
 import {
   departurePresets,
   officialBookingLinks,
   profiles,
-  readyStatuses,
   regions,
   richCatalog,
   themes,
@@ -37,14 +39,9 @@ import {
   transportModes,
   transportStateLabel,
 } from "../../features/planner/constants";
-import type {
-  Place,
-  RichSpot,
-  TransportProvider,
-  TransportProviderState,
-} from "../../features/planner/types";
+import type { Place } from "../../features/planner/types";
 import { formatTime, localDate, routeModeLabel } from "../../features/planner/utils";
-import { assessTripImpact } from "../../lib/trip-impact.js";
+import { buildPlannerViewModel } from "../../features/planner/view-model";
 
 export default function PlannerPage() {
   const { locale, t } = useSitePreferences();
@@ -55,7 +52,8 @@ export default function PlannerPage() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const cardsRef = useRef<HTMLDivElement>(null);
-  const placeDialogRef = useRef<HTMLElement>(null);
+  const closeSelectedPlace = useCallback(() => setSelectedPlace(null), []);
+  const placeDialogRef = usePlaceDialogFocus(Boolean(selectedPlace), closeSelectedPlace);
 
   const activeProfiles = useMemo(
     () => profiles.filter((profile) => selected.includes(profile.id)),
@@ -104,132 +102,49 @@ export default function PlannerPage() {
     originLabel,
     selectedPlace,
   });
-  const activeStops = plan?.stops ?? [];
-  const statuses = plan ? [...plan.statuses, ...(enrichment?.statuses || [])] : readyStatuses;
-  const liveCount = statuses.filter((status) => status.state === "live").length;
-  /* 경로를 계산하기 전에는 제공기관별 운행 응답을 알 수 없다. 그렇다고 계속
-     "확인 중"으로 두면 끝나지 않는 조회가 도는 것처럼 보이므로, 이미 받아 둔
-     /api/health의 인증키 상태로 지금 말할 수 있는 만큼만 알린다. */
-  const fallbackProviders = useMemo<TransportProvider[]>(() => {
-    const stateOf = (id: string): TransportProviderState => {
-      if (!keyHealth) return keyHealthChecked ? "error" : "checking";
-      return keyHealth.keys.find((key) => key.id === id)?.state === "configured" ? "ready" : "missing";
-    };
-    return [
-      { id: "kakao-drive", name: "KAKAO DRIVE", role: "자동차 시간·거리·통행료", key: "kakao-route" },
-      { id: "odsay", name: "ODsay", role: "대중교통 경로", key: "odsay" },
-      { id: "korail", name: "KORAIL", role: "여객열차 운행계획", key: "public-transport" },
-      { id: "tago-bus", name: "TAGO BUS", role: "정류장·도착", key: "public-transport" },
-      { id: "tago-rail", name: "TAGO RAIL", role: "열차·지하철", key: "public-transport" },
-      { id: "tago-regional", name: "TAGO EXPRESS", role: "고속·시외버스", key: "public-transport" },
-      { id: "tago-mobility", name: "TAGO MOVE", role: "항공·선박·공유교통", key: "public-transport" },
-    ].map(({ key, ...provider }) => {
-      const state = stateOf(key);
-      return { ...provider, configured: state === "ready", state };
-    });
-  }, [keyHealth, keyHealthChecked]);
-
-  // 경로 계산 뒤에는 실제 응답이, 그전에는 인증키 기준 상태가 쓰인다.
-  const effectiveProviders = transportProviders.length ? transportProviders : fallbackProviders;
-
-  const providerErrors = transportProviders.filter((item) => item.state === "error").length;
-  const dataErrors = statuses.filter((status) => status.state === "error").length;
-  const richItems = enrichment?.[richMode] ?? [];
-  const visitorTypes = Object.entries(enrichment?.visitor.byType ?? {})
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 4);
-  const demandMax = Math.max(...(enrichment?.demand.map((item) => item.value) ?? [0]), 1);
-  const travelWeather = weather?.days.find((day) => day.date === travelStart) ?? null;
-  const currentWeather = weather?.current;
-  const impactDestination = routeDestination ?? activePlaces[0] ?? null;
-  const impactAlternative = activePlaces.find((place) => place.id !== impactDestination?.id) ?? null;
-  const impactCrowd = destinationCrowd ?? plan?.crowd ?? null;
-  const tripImpact = assessTripImpact({
-    weatherDay: travelWeather,
-    current: currentWeather,
-    crowd: impactCrowd,
+  const {
+    activeStops,
+    statuses,
+    liveCount,
+    effectiveProviders,
+    providerErrors,
+    dataErrors,
+    richItems,
+    visitorTypes,
+    demandMax,
+    impactAlternative,
+    impactCrowd,
+    tripImpact,
+  } = buildPlannerViewModel({
+    plan,
+    enrichment,
+    richMode,
+    weather,
+    travelStart,
     theme,
-    destination: impactDestination?.name,
-    alternative: impactAlternative?.name,
+    activePlaces,
+    routeDestination,
+    destinationCrowd,
+    transportProviders,
+    keyHealth,
+    keyHealthChecked,
   });
-
-  useEffect(() => {
-    if (!selectedPlace) return;
-    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setSelectedPlace(null);
-        return;
-      }
-      if (event.key !== "Tab" || !placeDialogRef.current) return;
-      const focusable = [...placeDialogRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')];
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    window.setTimeout(() => placeDialogRef.current?.querySelector<HTMLButtonElement>("button")?.focus(), 0);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      previousFocus?.focus();
-    };
-  }, [selectedPlace]);
-
-  function choosePoint(place: Place, mode = pointPicker) {
-    if (mode === "origin") {
-      const next = { lat: Number(place.mapY), lng: Number(place.mapX) };
-      if (!Number.isFinite(next.lat) || !Number.isFinite(next.lng)) return;
-      updateOrigin(next, place.name);
-      if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], next, false, place.name);
-    } else if (mode === "destination") void loadRoutes(place, origin, privateOrigin);
-    clearLocationSearch();
-  }
-
-  function routeFromRichSpot(spot: RichSpot) {
-    const place: Place = {
-      id: spot.id,
-      contentTypeId: "",
-      city: region,
-      name: spot.title,
-      address: spot.address,
-      summary: spot.summary,
-      image: spot.image,
-      mapX: spot.mapX,
-      mapY: spot.mapY,
-      score: null,
-      features: [spot.tag],
-      details: [spot.summary],
-      source: spot.source,
-    };
-    void loadRoutes(place);
-    document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" });
-  }
-
-  function applyImpactAction(action: "culture" | "alternative") {
-    if (action === "culture") {
-      setTheme("history");
-      setNotice("강수 영향을 반영해 역사·문화 후보를 다시 확인합니다.");
-      window.setTimeout(() => document.getElementById("places")?.scrollIntoView({ behavior: "smooth" }), 700);
-      return;
-    }
-    if (!impactAlternative) return;
-    void loadRoutes(impactAlternative);
-    document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" });
-  }
-
-  async function copyBookingRoute(provider: string) {
-    const destination = routeDestination?.name || activePlaces[0]?.name || region;
-    const text = `${originLabel} → ${destination}`;
-    try {
-      await navigator.clipboard?.writeText(text);
-      setRouteNotice(`${provider} 공식 사이트를 열었습니다. 출발·도착 정보 “${text}”를 붙여넣을 수 있도록 복사했습니다.`);
-    } catch {
-      setRouteNotice(`${provider} 공식 사이트를 열었습니다. 출발 ${originLabel}, 도착 ${destination}을 선택해 주세요.`);
-    }
-  }
+  const { choosePoint, routeFromRichSpot, applyImpactAction, copyBookingRoute } = usePlannerActions({
+    region,
+    origin,
+    originLabel,
+    privateOrigin,
+    pointPicker,
+    routeDestination,
+    activePlaces,
+    impactAlternative,
+    updateOrigin,
+    loadRoutes,
+    clearLocationSearch,
+    setTheme,
+    setNotice,
+    setRouteNotice,
+  });
 
   async function generatePlan(revealResults = true) {
     await runPlan({
@@ -239,17 +154,12 @@ export default function PlannerPage() {
     }, revealResults);
   }
 
-  const planSignature = `${region}|${theme}|${locale}|${selected.join(",")}`;
-  const generatePlanRef = useRef(generatePlan);
-  useEffect(() => { generatePlanRef.current = generatePlan; });
-  useEffect(() => {
-    if (!selected.length) return;
-    const timer = window.setTimeout(() => void generatePlanRef.current(false), 550);
-    return () => {
-      window.clearTimeout(timer);
-      abortPlan();
-    };
-  }, [abortPlan, planSignature, selected.length]);
+  usePlannerAutoRefresh({
+    enabled: selected.length > 0,
+    signature: `${region}|${theme}|${locale}|${selected.join(",")}`,
+    refresh: generatePlan,
+    abort: abortPlan,
+  });
 
   function scrollCards(direction: number) {
     cardsRef.current?.scrollBy({ left: direction * Math.min(window.innerWidth * 0.78, 480), behavior: "smooth" });
@@ -661,7 +571,7 @@ export default function PlannerPage() {
         feedbackText={feedbackText}
         feedbackState={feedbackState}
         dialogRef={placeDialogRef}
-        onClose={() => setSelectedPlace(null)}
+        onClose={closeSelectedPlace}
         onToggleSaved={() => { toggleSaved(selectedPlace.id); setSelectedPlace(null); }}
         onFeedbackChange={changeFeedbackText}
         onSubmitFeedback={() => void submitFeedback()}
