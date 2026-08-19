@@ -486,9 +486,13 @@ test("the server entry delegates shared policy and provider domains to focused m
 });
 
 test("route-map rendering delegates controller, provider adapters, controls and domain helpers", async () => {
-  const [map, controller, commandBar, nearbyPanel, placePanel, planner, types, sdk, helpers, renderer, kakaoRenderer, leafletRenderer, imageExport] = await Promise.all([
+  const [map, controller, layers, drawing, nearby, roadview, commandBar, nearbyPanel, placePanel, planner, types, sdk, helpers, renderer, kakaoRenderer, leafletRenderer, imageExport] = await Promise.all([
     source("components/RouteMap.tsx"),
     source("features/routing/useRouteMapController.ts"),
+    source("features/routing/useMapLayers.ts"),
+    source("features/routing/useMapDrawingTools.ts"),
+    source("features/routing/useNearbyPlaces.ts"),
+    source("features/routing/useRoadviewController.ts"),
     source("features/routing/components/MapCommandBar.tsx"),
     source("features/routing/components/NearbyPlacesPanel.tsx"),
     source("features/routing/components/MapPlacePanel.tsx"),
@@ -505,6 +509,15 @@ test("route-map rendering delegates controller, provider adapters, controls and 
   assert.doesNotMatch(map, /useState|useEffect|useMapRenderer/);
   assert.match(controller, /import \{ exportRouteImage \} from "\.\/export-route-image"/);
   assert.match(controller, /useMapRenderer\(\{/);
+  assert.match(controller, /useMapLayers\(kakaoMapRef\)/);
+  assert.match(controller, /useMapDrawingTools\(\{ drawingManagerRef, setProviderDetail \}\)/);
+  assert.match(controller, /useNearbyPlaces\(\{ kakaoMapRef, choosePlace \}\)/);
+  assert.match(controller, /useRoadviewController\(\{ provider, setProviderDetail, setPickMode, setToolPanel \}\)/);
+  assert.doesNotMatch(controller, /categorySearch|manager\.select|RoadviewClient|addOverlayMapTypeId/);
+  assert.match(layers, /addOverlayMapTypeId/);
+  assert.match(drawing, /manager\.select/);
+  assert.match(nearby, /categorySearch/);
+  assert.match(roadview, /RoadviewClient/);
   assert.match(map, /<MapCommandBar/);
   assert.match(map, /<NearbyPlacesPanel/);
   assert.doesNotMatch(map, /className="map-command-scroll"|className="map-poi-list"|className="map-place-copy"/);
