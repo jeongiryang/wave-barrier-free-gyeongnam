@@ -160,3 +160,13 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
   assert.match(css, /\.map-command-scroll \{[^}]*overflow-x: auto/);
   assert.doesNotMatch(css.match(/\.map-command-bar \{[^}]+\}/)?.[0] ?? "", /overflow-x: auto/);
 });
+
+test("travel conditions refresh the plan without requiring the submit button", async () => {
+  const planner = await source("app/planner/page.tsx");
+  assert.match(planner, /const planSignature = `\$\{region\}\|\$\{theme\}\|\$\{locale\}\|\$\{selected\.join\(","\)\}`/);
+  assert.match(planner, /setTimeout\(\(\) => void generatePlanRef\.current\(false\), 550\)/);
+  assert.match(planner, /planRequestRef\.current\?\.abort\(\)/);
+  assert.match(planner, /signal: controller\.signal/);
+  assert.match(planner, /if \(revealResults\) window\.setTimeout/);
+  assert.match(planner, /결과 새로고침/);
+});
