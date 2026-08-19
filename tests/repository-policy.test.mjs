@@ -71,10 +71,10 @@ test("production configuration is Vercel-only", async () => {
 });
 
 test("missing tourism images use official live lookup and a visual fallback", async () => {
-  const [component, planner, worker] = await Promise.all([
+  const [component, planner, tourism] = await Promise.all([
     source("components/SmartSpotImage.tsx"),
     source("app/planner/page.tsx"),
-    source("worker/index.ts"),
+    source("server/tourism/handler.ts"),
   ]);
   assert.match(component, /action: "spot-photo"/);
   assert.match(component, /contentId/);
@@ -83,16 +83,16 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(planner, /className=\{`place-visual visual-/);
   assert.match(planner, /region=\{place\.city \|\| region\}/);
   assert.match(planner, /contentId=\{place\.id\}/);
-  assert.match(worker, /PhotoGalleryService1/);
-  assert.match(worker, /searchKeyword2/);
-  assert.match(worker, /detailCommon2/);
-  assert.match(worker, /scoreSpotPhotoTitle/);
-  assert.match(worker, /for \(const keyword of keywords\)/);
-  assert.doesNotMatch(worker, /Promise\.all\(keywords\.map/);
-  assert.match(worker, /regionPhotoFallbackKeywords/);
-  assert.match(worker, /남해 다랭이마을/);
-  assert.match(worker, /산청 황매산/);
-  const regionalPhoto = worker.slice(worker.indexOf("async function fetchPhoto"), worker.indexOf("function normalizedSearchText"));
+  assert.match(tourism, /PhotoGalleryService1/);
+  assert.match(tourism, /searchKeyword2/);
+  assert.match(tourism, /detailCommon2/);
+  assert.match(tourism, /scoreSpotPhotoTitle/);
+  assert.match(tourism, /for \(const keyword of keywords\)/);
+  assert.doesNotMatch(tourism, /Promise\.all\(keywords\.map/);
+  assert.match(tourism, /regionPhotoFallbackKeywords/);
+  assert.match(tourism, /남해 다랭이마을/);
+  assert.match(tourism, /산청 황매산/);
+  const regionalPhoto = tourism.slice(tourism.indexOf("async function fetchPhoto"), tourism.indexOf("function normalizedSearchText"));
   assert.match(regionalPhoto, /PhotoGalleryService1/);
   assert.match(regionalPhoto, /KorService2/);
   assert.match(regionalPhoto, /searchKeyword2/);
@@ -292,7 +292,7 @@ test("planner state is divided into testable feature hooks without overwriting s
 });
 
 test("the server entry delegates shared policy and provider domains to focused modules", async () => {
-  const [worker, env, http, providerData, weather, location, transport] = await Promise.all([
+  const [worker, env, http, providerData, weather, location, transport, tourism] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
@@ -300,15 +300,16 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/weather/handler.ts"),
     source("server/location/handler.ts"),
     source("server/transport/handler.ts"),
+    source("server/tourism/handler.ts"),
   ]);
   assert.match(worker, /import \{ portableEnv, type Env \} from "\.\.\/server\/shared\/env"/);
-  assert.match(worker, /import \{ clean, httpsUrl, json, readTrustedJson \} from "\.\.\/server\/shared\/http"/);
-  assert.match(worker, /fetchTourismData as fetchKto/);
+  assert.match(worker, /import \{ clean, json, readTrustedJson \} from "\.\.\/server\/shared\/http"/);
+  assert.match(worker, /handleWaveApi/);
   assert.match(worker, /handleHealthApi, handleMapConfig, handleRouteApi/);
   assert.match(worker, /if \(url\.pathname === "\/api\/weather"\) return handleWeatherApi\(request\)/);
   assert.match(worker, /if \(url\.pathname === "\/api\/location-search"\) return handleLocationSearch\(request, env\)/);
   assert.doesNotMatch(worker, /api\.open-meteo\.com|dapi\.kakao\.com/);
-  assert.doesNotMatch(worker, /async function fetchKto|async function fetchPublicTransport|function normalizeItems|async function handleRouteApi/);
+  assert.doesNotMatch(worker, /async function fetchKto|async function fetchPublicTransport|function normalizeItems|async function handleRouteApi|async function handleWaveApi/);
   assert.match(env, /typeof process === "undefined" \? \{\} : process\.env/);
   assert.match(http, /x-content-type-options/);
   assert.match(providerData, /export async function fetchTourismData/);
@@ -317,6 +318,9 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(transport, /export async function handleRouteApi/);
   assert.match(transport, /api\.odsay\.com\/v1\/api\/searchPubTransPathT/);
   assert.match(transport, /apis-navi\.kakaomobility\.com\/v1\/directions/);
+  assert.match(tourism, /export async function handleWaveApi/);
+  assert.match(tourism, /export async function buildPlan/);
+  assert.match(tourism, /calculateAccessibilityEvidence/);
   assert.match(providerData, /export function normalizeXmlItems/);
   assert.match(weather, /AbortSignal\.timeout\(8000\)/);
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
@@ -392,17 +396,18 @@ test("core controls keep 44px targets on every viewport and pointer type", async
 });
 
 test("shared trips restore saved places, order and date assignments from official IDs", async () => {
-  const [planner, worker, shared] = await Promise.all([
+  const [planner, worker, tourism, shared] = await Promise.all([
     source("app/planner/page.tsx"),
     source("worker/index.ts"),
+    source("server/tourism/handler.ts"),
     source("app/trip/[id]/page.tsx"),
   ]);
   assert.match(planner, /scheduleAssignments, selectedPlaceIds: saved/);
-  assert.match(worker, /async function restoreSharedPlan/);
-  assert.match(worker, /"KorService2", "detailCommon2"/);
-  assert.match(worker, /"KorWithService2", "detailWithTour2"/);
+  assert.match(tourism, /export async function restoreSharedPlan/);
+  assert.match(tourism, /"KorService2", "detailCommon2"/);
+  assert.match(tourism, /"KorWithService2", "detailWithTour2"/);
   assert.match(worker, /selectedIds\.size \? places\.filter/);
-  assert.match(worker, /restoration: \{ requested: refs\.length, restored: places\.length, missing, mode: "content-id" \}/);
+  assert.match(tourism, /restoration: \{ requested: refs\.length, restored: places\.length, missing, mode: "content-id" \}/);
   assert.match(shared, /저장 장소 최신 확인/);
   assert.match(shared, /날짜별 저장 일정/);
   assert.match(shared, /shared-restoration-notice/);

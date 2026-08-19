@@ -126,13 +126,13 @@ test("deployment guide uses the current CI check name and Vercel uses Node 22", 
 });
 
 test("contest category, selected task and live OpenAPI use are documented consistently", async () => {
-  const [readme, compliance, policy, landing, planner, worker] = await Promise.all([
+  const [readme, compliance, policy, landing, planner, tourism] = await Promise.all([
     source("README.md"),
     source("docs/contest-compliance.md"),
     source("docs/competition-operation-policy.md"),
     source("app/page.tsx"),
     source("app/planner/page.tsx"),
-    source("worker/index.ts"),
+    source("server/tourism/handler.ts"),
   ]);
   for (const content of [readme, compliance, policy, landing, planner]) {
     assert.match(content, /②-2 웹·앱 구현 부문/);
@@ -141,11 +141,11 @@ test("contest category, selected task and live OpenAPI use are documented consis
   assert.match(compliance, /날씨 변화, 혼잡도 상승, 동선 꼬임/);
   assert.match(compliance, /실시간 대화형 여행 가이드.+예시/);
   assert.match(compliance, /TOUR_API_SERVICE_KEY_ENCODED/);
-  assert.match(worker, /KorService2/);
-  assert.match(worker, /KorWithService2/);
-  assert.match(worker, /PhotoGalleryService1/);
-  assert.match(worker, /LocgoHubTarService1/);
-  assert.match(worker, /TarRlteTarService1/);
+  assert.match(tourism, /KorService2/);
+  assert.match(tourism, /KorWithService2/);
+  assert.match(tourism, /PhotoGalleryService1/);
+  assert.match(tourism, /LocgoHubTarService1/);
+  assert.match(tourism, /TarRlteTarService1/);
 });
 
 test("the place carousel is sized by its card instead of the viewport", async () => {
@@ -300,13 +300,13 @@ test("planner never substitutes prototype places when official data fails", asyn
 });
 
 test("accessibility evidence determines the first recommendation and itinerary labels", async () => {
-  const [planner, worker] = await Promise.all([
+  const [planner, tourism] = await Promise.all([
     source("app/planner/page.tsx"),
-    source("worker/index.ts"),
+    source("server/tourism/handler.ts"),
   ]);
-  assert.match(worker, /const leftVerified = left\.score === null \? 0 : 1/);
-  assert.match(worker, /rightVerified - leftVerified/);
-  assert.match(worker, /evidenceState: place\.score === null \? "limited" : "verified"/);
+  assert.match(tourism, /const leftVerified = left\.score === null \? 0 : 1/);
+  assert.match(tourism, /rightVerified - leftVerified/);
+  assert.match(tourism, /evidenceState: place\.score === null \? "limited" : "verified"/);
   assert.match(planner, /편의근거 확인/);
   assert.match(planner, /방문 전 확인/);
   assert.match(planner, /추천 맥락/);
