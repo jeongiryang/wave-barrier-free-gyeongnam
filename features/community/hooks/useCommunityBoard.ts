@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { authClient } from "../../../lib/auth/client";
 import type { CommunityPost } from "../../../lib/community/types";
-
-type ListResponse = { posts?: CommunityPost[]; page?: number; hasMore?: boolean; error?: string };
+import { listCommunityPosts } from "../client/api";
 
 export type PlaceFilter = { id: string; name: string; region: string };
 
@@ -30,12 +29,7 @@ export function useCommunityBoard(initialPlace: PlaceFilter | null) {
       if (category) params.set("category", category);
       if (query) params.set("search", query);
       if (placeFilter?.id) params.set("placeId", placeFilter.id);
-      const response = await fetch(`/api/community/posts?${params}`, {
-        headers: { Accept: "application/json" },
-        signal: controller.signal,
-      });
-      const payload = await response.json() as ListResponse;
-      if (!response.ok) throw new Error(payload.error || "목록을 불러오지 못했습니다.");
+      const payload = await listCommunityPosts(params, controller.signal);
       setPosts(payload.posts || []);
       setPage(nextPage);
       setHasMore(Boolean(payload.hasMore));
