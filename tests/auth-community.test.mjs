@@ -37,16 +37,22 @@ test("community comments and list parameters reject empty data and cap paginatio
 
 test("formal auth pages use Neon Auth with accessible password and return flows", async () => {
   const [form, shell, motionHeadline, authCss, authRoute, server] = await Promise.all([
-    source("components/AuthForm.tsx"), source("components/AuthShell.tsx"),
-    source("components/AuthMotionHeadline.tsx"), accountStyleSource(),
+    Promise.all([
+      source("features/auth/components/AuthForm.tsx"),
+      source("features/auth/hooks/useAuthForm.ts"),
+      source("features/auth/validation.ts"),
+    ]).then((parts) => parts.join("\n")),
+    source("features/auth/components/AuthShell.tsx"),
+    source("features/auth/components/AuthMotionHeadline.tsx"), accountStyleSource(),
     source("app/api/auth/[...path]/route.ts"), source("lib/auth/server.ts"),
   ]);
   assert.match(form, /authClient\.signIn\.email/);
   assert.match(form, /authClient\.signUp\.email/);
   assert.match(form, /confirmPassword/);
-  assert.match(form, /aria-pressed=\{showPassword\}/);
-  assert.match(form, /autoComplete=\{registering \? "new-password" : "current-password"\}/);
-  assert.match(form, /safeNext/);
+  assert.match(form, /aria-pressed=\{auth\.showPassword\}/);
+  assert.match(form, /autoComplete=\{auth\.registering \? "new-password" : "current-password"\}/);
+  assert.match(form, /safeAuthReturnPath/);
+  assert.match(form, /readAuthCredentials/);
   assert.match(shell, /로그인 없이 여행 설계/);
   assert.match(shell, /AuthMotionHeadline mode=\{mode\}/);
   assert.match(motionHeadline, /나에게 맞는 하루로/);

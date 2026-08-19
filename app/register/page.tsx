@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AuthShell from "../../components/AuthShell";
+import AuthShell from "../../features/auth/components/AuthShell";
 
 export const metadata: Metadata = {
   title: "회원가입",

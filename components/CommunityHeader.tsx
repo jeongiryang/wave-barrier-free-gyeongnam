@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-html-link-for-pages */
 
-import AccountMenu from "./AccountMenu";
+import AccountMenu from "../features/auth/components/AccountMenu";
 import { PreferenceControls } from "./SitePreferences";
 
 export default function CommunityHeader({ current = "community" }: { current?: "community" | "planner" }) {

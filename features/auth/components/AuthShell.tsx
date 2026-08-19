@@ -1,9 +1,10 @@
+import type { AuthMode } from "../types";
 import AuthForm from "./AuthForm";
 import AuthMotionHeadline from "./AuthMotionHeadline";
 
 /* eslint-disable @next/next/no-html-link-for-pages */
 
-export default function AuthShell({ mode, returnTo }: { mode: "login" | "register"; returnTo?: string }) {
+export default function AuthShell({ mode, returnTo }: { mode: AuthMode; returnTo?: string }) {
   const registering = mode === "register";
   return (
     <main className="auth-page">

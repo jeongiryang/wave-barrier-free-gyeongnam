@@ -161,15 +161,18 @@ test("external Kakao place links are upgraded to HTTPS", async () => {
 
 test("account, storage and footer copy describe real boundaries and independent operation", async () => {
   const [account, authForm, landing, planner] = await Promise.all([
-    source("components/AccountMenu.tsx"),
-    source("components/AuthForm.tsx"),
+    source("features/auth/components/AccountMenu.tsx"),
+    Promise.all([
+      source("features/auth/components/AuthForm.tsx"),
+      source("features/auth/hooks/useAuthForm.ts"),
+    ]).then((parts) => parts.join("\n")),
     landingProductSource(),
     plannerProductSource(),
   ]);
   assert.doesNotMatch(account, /저장한 여행 조건과 즐겨찾기를 안전하게 관리/);
   assert.match(authForm, /커뮤니티 DB에 비밀번호를 저장하지 않습니다/);
   assert.match(authForm, /여행 설계와 지도는 로그인 없이 이용/);
-  assert.match(authForm, /autoComplete=\{registering \? "new-password" : "current-password"\}/);
+  assert.match(authForm, /autoComplete=\{auth\.registering \? "new-password" : "current-password"\}/);
   assert.match(authForm, /aria-describedby="auth-password-help auth-message"/);
   assert.match(account, /authClient\.signOut/);
   assert.match(landing, /공식 운영 서비스가 아닙니다/);

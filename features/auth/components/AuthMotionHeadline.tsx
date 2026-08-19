@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSitePreferences } from "./SitePreferences";
+import { useSitePreferences } from "../../../components/SitePreferences";
+import type { AuthMode } from "../types";
 
 const copy = {
   login: {
@@ -18,7 +19,7 @@ const copy = {
   },
 } as const;
 
-export default function AuthMotionHeadline({ mode }: { mode: "login" | "register" }) {
+export default function AuthMotionHeadline({ mode }: { mode: AuthMode }) {
   const { motion } = useSitePreferences();
   const [phraseIndex, setPhraseIndex] = useState(0);
   const selected = copy[mode];

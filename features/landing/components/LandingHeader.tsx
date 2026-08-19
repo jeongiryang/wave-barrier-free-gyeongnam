@@ -1,5 +1,5 @@
 import Link from "next/link";
-import AccountMenu from "../../../components/AccountMenu";
+import AccountMenu from "../../auth/components/AccountMenu";
 import HelpCenter from "../../../components/HelpCenter";
 import { PreferenceControls } from "../../../components/SitePreferences";
 import type { LandingTranslate } from "../content";
