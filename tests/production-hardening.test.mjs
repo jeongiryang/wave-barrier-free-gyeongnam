@@ -39,10 +39,15 @@ test("landing region photos time out and can retry after transient failures", as
 });
 
 test("tourism images allow only normalized HTTPS URLs", async () => {
-  const image = await source("components/SmartSpotImage.tsx");
-  assert.match(image, /function safeImageUrl/);
+  const image = await Promise.all([
+    source("features/tourism/components/SmartSpotImage.tsx"),
+    source("features/tourism/hooks/useOfficialSpotImage.ts"),
+    source("features/tourism/client/spot-photo.ts"),
+    source("features/tourism/image-url.ts"),
+  ]).then((parts) => parts.join("\n"));
+  assert.match(image, /function safeTourismImageUrl/);
   assert.match(image, /if \(url\.protocol === "http:"\) url\.protocol = "https:"/);
   assert.match(image, /return url\.protocol === "https:" \? url\.toString\(\) : ""/);
-  assert.match(image, /const nextImage = safeImageUrl\(data\?\.image\)/);
-  assert.match(image, /const nextImage = safeImageUrl\(src\)/);
+  assert.match(image, /safeTourismImageUrl\(data\?\.image\)/);
+  assert.match(image, /safeTourismImageUrl\(src\)/);
 });
