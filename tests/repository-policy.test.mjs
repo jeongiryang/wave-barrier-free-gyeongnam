@@ -6,6 +6,19 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
+async function plannerProductSource() {
+  const paths = [
+    "app/planner/page.tsx",
+    "features/planner/components/PlannerServiceStatus.tsx",
+    "features/planner/components/PlannerConditionsPanel.tsx",
+    "features/planner/components/RecommendationWorkspace.tsx",
+    "features/planner/components/TravelSignalsPanel.tsx",
+    "features/planner/components/NavigationWorkspace.tsx",
+    "features/planner/components/PlannerResultsPanel.tsx",
+  ];
+  return (await Promise.all(paths.map(source))).join("\n");
+}
+
 async function styleSource() {
   const paths = [
     "app/globals.css",
@@ -103,7 +116,7 @@ test("production configuration is Vercel-only", async () => {
 test("missing tourism images use official live lookup and a visual fallback", async () => {
   const [component, planner, photos, catalog] = await Promise.all([
     source("components/SmartSpotImage.tsx"),
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     source("server/tourism/photos.ts"),
     source("server/tourism/catalog.ts"),
   ]);
@@ -154,7 +167,7 @@ test("device location is not persisted with saved routes", async () => {
 
 test("transport provider placeholders settle even when health lookup fails", async () => {
   const [planner, signals, viewModel] = await Promise.all([
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     source("features/planner/hooks/usePlannerSignals.ts"),
     source("features/planner/view-model.ts"),
   ]);
@@ -304,7 +317,7 @@ test("planner ignores stale route, enrichment and location-search responses", as
 
 test("planner state is divided into testable feature hooks without overwriting saved trips", async () => {
   const [planner, planController, participation, tripSelection, routePlanning, routeView, signals, audioGuide, chrome] = await Promise.all([
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     source("features/planner/hooks/usePlannerPlan.ts"),
     source("features/planner/hooks/usePlannerParticipation.ts"),
     source("features/planner/hooks/useTripSelection.ts"),
@@ -389,7 +402,7 @@ test("the server entry delegates shared policy and provider domains to focused m
 test("route-map rendering delegates provider lifecycle, SDK, domain helpers and image export", async () => {
   const [map, planner, types, sdk, helpers, renderer, imageExport] = await Promise.all([
     source("components/RouteMap.tsx"),
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     source("features/routing/types.ts"),
     source("features/routing/kakao-sdk.ts"),
     source("features/routing/map-utils.ts"),
@@ -399,7 +412,7 @@ test("route-map rendering delegates provider lifecycle, SDK, domain helpers and 
   assert.match(map, /import \{ exportRouteImage \} from "\.\.\/features\/routing\/export-route-image"/);
   assert.match(map, /useMapRenderer\(\{/);
   assert.doesNotMatch(map, /loadKakaoSdk|L\.tileLayer|new K\.Map|canvas\.width = 1600/);
-  assert.match(planner, /import type \{ MapPlace \} from "\.\.\/\.\.\/features\/routing\/types"/);
+  assert.match(planner, /import type \{ MapPlace \} from "\.\.\/\.\.\/routing\/types"/);
   assert.match(types, /export type RouteAlternative/);
   assert.match(sdk, /Kakao SDK load timed out/);
   assert.match(sdk, /data-wave-kakao/);
@@ -433,7 +446,7 @@ test("every user-facing footer exposes the repository with an accessible tooltip
   const [link, landing, planner, shared, css] = await Promise.all([
     source("components/GithubFooterLink.tsx"),
     source("app/page.tsx"),
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     source("app/trip/[id]/page.tsx"),
     styleSource(),
   ]);
@@ -461,7 +474,7 @@ test("core controls keep 44px targets on every viewport and pointer type", async
 
 test("shared trips restore saved places, order and date assignments from official IDs", async () => {
   const [planner, participation, trips, tourism, shared] = await Promise.all([
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     source("features/planner/hooks/usePlannerParticipation.ts"),
     source("server/trips/handler.ts"),
     source("server/tourism/handler.ts"),
