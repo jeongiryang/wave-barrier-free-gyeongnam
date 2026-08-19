@@ -15,6 +15,7 @@ import SmartSpotImage from "../../components/SmartSpotImage";
 import AccessIcon, { type AccessIconName } from "../../components/AccessIcons";
 import HelpCenter from "../../components/HelpCenter";
 import GithubFooterLink from "../../components/GithubFooterLink";
+import { assessTripImpact } from "../../lib/trip-impact.js";
 
 type ApiState = "live" | "empty" | "error" | "ready";
 
@@ -367,6 +368,19 @@ export default function PlannerPage() {
   const demandMax = Math.max(...(enrichment?.demand.map((item) => item.value) ?? [0]), 1);
   const tripDays = useMemo(() => dateRange(travelStart, travelEnd), [travelEnd, travelStart]);
   const savedPlaces = activePlaces.filter((place) => saved.includes(place.id));
+  const travelWeather = weather?.days.find((day) => day.date === travelStart) ?? null;
+  const currentWeather = weather?.current;
+  const impactDestination = routeDestination ?? activePlaces[0] ?? null;
+  const impactAlternative = activePlaces.find((place) => place.id !== impactDestination?.id) ?? null;
+  const impactCrowd = destinationCrowd ?? plan?.crowd ?? null;
+  const tripImpact = assessTripImpact({
+    weatherDay: travelWeather,
+    current: currentWeather,
+    crowd: impactCrowd,
+    theme,
+    destination: impactDestination?.name,
+    alternative: impactAlternative?.name,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -622,6 +636,18 @@ export default function PlannerPage() {
       source: spot.source,
     };
     void loadRoutes(place);
+    document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function applyImpactAction(action: "culture" | "alternative") {
+    if (action === "culture") {
+      setTheme("history");
+      setNotice("강수 영향을 반영해 역사·문화 후보를 다시 확인합니다.");
+      window.setTimeout(() => document.getElementById("places")?.scrollIntoView({ behavior: "smooth" }), 700);
+      return;
+    }
+    if (!impactAlternative) return;
+    void loadRoutes(impactAlternative);
     document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" });
   }
 
@@ -892,7 +918,7 @@ export default function PlannerPage() {
 
       <section className="places-section" id="places">
         <div className="workspace-heading" data-reveal>
-          <div><span>03</span><h2>{t("placesTitle", "추천 여행지")}</h2></div>
+          <div><span>02</span><h2>{t("placesTitle", "추천 여행지")}</h2></div>
           <div className="carousel-actions"><button type="button" onClick={() => scrollCards(-1)} aria-label="이전 여행지">←</button><button type="button" onClick={() => scrollCards(1)} aria-label="다음 여행지">→</button></div>
         </div>
         <div className="place-carousel" ref={cardsRef} aria-busy={loading}>
@@ -937,7 +963,7 @@ export default function PlannerPage() {
 
       <section className="travel-layers" id="layers">
         <div className="workspace-heading inverse" data-reveal>
-          <div><span>04</span><h2>{region} 데이터 탐색</h2></div>
+          <div><span>03</span><h2>{region} 상황과 여행 정보</h2></div>
           <p>방문 · 수요 · 테마</p>
         </div>
 
@@ -949,6 +975,33 @@ export default function PlannerPage() {
           </>}
           {!weatherLoading && !weather && <div className="weather-empty"><strong>예보를 잠시 불러오지 못했습니다.</strong><span>관광 데이터와 경로 기능은 그대로 이용할 수 있어요.</span></div>}
         </section>
+
+        {plan && <section className={`impact-response ${tripImpact.level}`} data-reveal aria-labelledby="impact-response-title">
+          <p className="sr-only" role="status" aria-live="polite">{tripImpact.headline}</p>
+          <header>
+            <div><small>상황 감지 → 일정 영향 → 대안</small><h3 id="impact-response-title">{tripImpact.headline}</h3></div>
+            <span className={`impact-level ${tripImpact.level}`}><i />{tripImpact.level === "critical" ? "변경 권장" : tripImpact.level === "warning" ? "대안 확인" : tripImpact.level === "watch" ? "준비 보완" : "일정 유지"}</span>
+          </header>
+          <div className="impact-signal-grid">
+            {tripImpact.signals.map((signal, index) => <article className={signal.level} key={signal.id}>
+              <span><b>{String(index + 1).padStart(2, "0")}</b>{signal.label}</span>
+              <strong>{signal.title}</strong>
+              <p>{signal.detail}</p>
+            </article>)}
+            <article className="action-card">
+              <span><b>{String(tripImpact.signals.length + 1).padStart(2, "0")}</b>지금 할 수 있는 일</span>
+              <strong>{tripImpact.actions.length ? "조건을 유지하면서 대안을 바로 비교합니다." : "현재 일정과 이동 경로를 계속 확인하세요."}</strong>
+              <div className="impact-actions">
+                {tripImpact.actions.map((action) => <button type="button" key={action.id} onClick={() => applyImpactAction(action.id as "culture" | "alternative")}>{action.label}<i aria-hidden="true">→</i></button>)}
+                {!tripImpact.actions.length && <button type="button" onClick={() => document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" })}>이동 경로 확인<i aria-hidden="true">→</i></button>}
+              </div>
+            </article>
+          </div>
+          <footer>
+            <span>날씨: {weather?.source || (weatherLoading ? "조회 중" : "조회 실패")}{weather?.updatedAt ? ` · ${new Date(weather.updatedAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} 조회` : ""}</span>
+            <span>{impactCrowd ? `관광 집중률: 한국관광공사 예측값 · 기준 ${impactCrowd.baseYmd || "최신값"} · 정확한 실시간 방문자 수가 아닙니다.` : "관광 집중률: 조회하지 못함 · 추천 장소와 경로는 계속 이용할 수 있습니다."}</span>
+          </footer>
+        </section>}
 
         <div className="insight-board" data-reveal aria-busy={enrichmentLoading}>
           <article className="visitor-insight">
@@ -994,7 +1047,7 @@ export default function PlannerPage() {
 
       <section className="navigation-section" id="navigation">
         <div className="workspace-heading" data-reveal>
-          <div><span>02</span><h2>{t("navigationTitle", "통합 길찾기")}</h2></div>
+          <div><span>04</span><h2>{t("navigationTitle", "통합 길찾기")}</h2></div>
           <p>시간 · 요금 · 환승 · 도보</p>
         </div>
         <div className="transport-mode-filter" role="tablist" aria-label="교통수단별 결과 필터">
@@ -1081,7 +1134,7 @@ export default function PlannerPage() {
       <section className={`route-section ${plan ? "revealed" : ""}`} id="route">
         <div className="route-intro" data-reveal>
           <div>
-            <p className="section-kicker">YOUR W.A.V.E ROUTE</p>
+            <p className="section-kicker">05 · YOUR W.A.V.E ROUTE</p>
             <span className={`route-status ${plan?.mode ?? "fallback"}`}><i />{plan?.mode === "live" ? "실시간 데이터 반영" : plan?.mode === "partial" ? "일부 데이터 반영" : "코스 미리보기"}</span>
             <h2>{activeProfiles.map((item) => item.label).slice(0, 2).join("·")} 조건으로 찾은<br />{region}의 하루</h2>
             <p>{region} · {activeTheme} · {activeProfiles.map((item) => item.label).join(" · ")}</p>
@@ -1126,7 +1179,7 @@ export default function PlannerPage() {
 
       <section className="data-section" id="data">
         <div className="data-heading" data-reveal>
-          <div><p className="section-kicker">믿을 수 있는 여행 추천</p><h2>왜 이곳을 추천했는지<br />쉽게 보여드려요.</h2></div>
+          <div><p className="section-kicker">06 · 믿을 수 있는 여행 추천</p><h2>왜 이곳을 추천했는지<br />쉽게 보여드려요.</h2></div>
           <p>선택한 지역·관심사·편의 조건과 최신 관광정보를 함께 비교합니다. 제공기관과 확인 시점을 카드에서 바로 확인할 수 있어요.</p>
         </div>
         <div className="api-bento">

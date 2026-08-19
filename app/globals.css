@@ -726,9 +726,9 @@ html[data-theme="dark"] .rich-card p,html[data-theme="dark"] .heading-side p,htm
 .planner-page { display: flex; flex-direction: column; }
 .planner-page > .tool-launch { order: 1; }
 .planner-page > .planner-section { order: 2; }
-.planner-page > .navigation-section { order: 3; }
-.planner-page > .places-section { order: 4; }
-.planner-page > .travel-layers { order: 5; }
+.planner-page > .places-section { order: 3; }
+.planner-page > .travel-layers { order: 4; }
+.planner-page > .navigation-section { order: 5; }
 .planner-page > .route-section { order: 6; }
 .planner-page > .data-section { order: 7; }
 .planner-page > .simple-footer { order: 9; }
@@ -1135,6 +1135,26 @@ html[data-theme="dark"] .trip-point-picker { color: #e7f3f8; border-color: #3059
 @media (max-width: 960px) { .weather-board { grid-template-columns: 1fr; }.weather-days { grid-template-columns: repeat(7,minmax(95px,1fr)); }.trip-point-list { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .weather-board { padding: 12px; }.weather-current { min-height: 150px; }.weather-days { padding-bottom: 5px; }.weather-day { min-height: 146px; }.trip-point-picker { width: calc(100% - 18px); left: 9px; top: 128px; max-height: 68vh; }.trip-point-comparison { grid-template-columns: 1fr; }.trip-point-list { max-height: 210px; }.map-toolbar .point-button,.map-toolbar .point-active { min-height: 48px; }.map-toolbar .recalculate-button { grid-column: 1 / -1; } }
 @media (prefers-reduced-motion: reduce) { .smart-image-skeleton,.weather-skeleton > *,.region-photo-skeleton,.region-photo-preview .loading-copy > * { animation: none !important; } }
+
+/* 실제 예보와 관광 집중률을 여행 행동으로 연결하는 상황 대응 */
+.impact-response { margin: 18px 0 34px; padding: 24px; border: 1px solid rgba(255,255,255,.16); border-radius: 24px; background: rgba(255,255,255,.055); }
+.impact-response.critical { border-color: rgba(255,132,132,.55); background: linear-gradient(135deg,rgba(173,40,68,.22),rgba(255,255,255,.045)); }
+.impact-response.warning { border-color: rgba(255,193,92,.42); background: linear-gradient(135deg,rgba(191,117,18,.16),rgba(255,255,255,.045)); }
+.impact-response > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.impact-response header small { color: #8bd8ff; font-size: .62rem; font-weight: 900; letter-spacing: .12em; }
+.impact-response h3 { margin: 7px 0 0; font-size: clamp(1.45rem,2.4vw,2.25rem); letter-spacing: -.035em; }
+.impact-level { min-height: 34px; padding: 7px 11px; display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; border-radius: 999px; color: #cde8f3; background: rgba(255,255,255,.08); font-size: .7rem; font-weight: 850; }
+.impact-level i { width: 8px; height: 8px; border-radius: 50%; background: #7debe9; }
+.impact-level.watch i { background: #f3c15b; }.impact-level.warning i { background: #ff9f43; }.impact-level.critical i { background: #ff6b7a; box-shadow: 0 0 0 5px rgba(255,107,122,.13); }
+.impact-signal-grid { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 10px; }
+.impact-signal-grid article { min-height: 176px; padding: 18px; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,.1); border-radius: 17px; background: rgba(5,35,48,.48); }
+.impact-signal-grid article > span { display: flex; align-items: center; gap: 8px; color: #a9c8d5; font-size: .65rem; font-weight: 850; }.impact-signal-grid article > span b { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 8px; color: #092f40; background: #82ddff; font-size: .58rem; }
+.impact-signal-grid article.warning > span b { background: #ffc66d; }.impact-signal-grid article.critical > span b { color: #fff; background: #e9586e; }.impact-signal-grid article.stable > span b { background: #7debe9; }
+.impact-signal-grid strong { margin-top: 18px; font-size: 1rem; line-height: 1.45; }.impact-signal-grid p { margin: auto 0 0; padding-top: 14px; color: #9db8c4; font-size: .72rem; line-height: 1.55; }
+.impact-signal-grid .action-card { background: linear-gradient(145deg,rgba(23,176,255,.17),rgba(125,235,233,.08)); }
+.impact-actions { margin-top: auto; padding-top: 14px; display: grid; gap: 7px; }.impact-actions button { min-height: 46px; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 0; border-radius: 11px; color: #073449; background: #fff; font: inherit; font-size: .72rem; font-weight: 900; text-align: left; cursor: pointer; }.impact-actions button:hover { background: #daf4ff; }.impact-actions button:focus-visible { outline: 3px solid #7debe9; outline-offset: 3px; }.impact-actions i { font-style: normal; }
+.impact-response > footer { margin-top: 16px; padding-top: 14px; display: flex; flex-wrap: wrap; gap: 8px 18px; border-top: 1px solid rgba(255,255,255,.09); color: #91afbc; font-size: .65rem; }
+@media (max-width: 620px) { .impact-response { padding: 18px 14px; }.impact-response > header { flex-direction: column; gap: 12px; }.impact-signal-grid { grid-template-columns: 1fr; }.impact-signal-grid article { min-height: 158px; }.impact-response > footer { flex-direction: column; } }
 
 /* W.A.V.E service identity — one continuous tide, clear and accessible controls */
 .brand-intro {
