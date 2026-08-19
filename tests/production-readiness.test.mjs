@@ -6,6 +6,15 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
+async function styleSource() {
+  const paths = [
+    "app/globals.css",
+    "app/styles/design-system.css",
+    "app/styles/experience-accessibility.css",
+  ];
+  return (await Promise.all(paths.map(source))).join("\n");
+}
+
 test("Vercel applies baseline browser security headers", async () => {
   const config = JSON.parse(await source("vercel.json"));
   const headers = Object.fromEntries(config.headers[0].headers.map(({ key, value }) => [key, value]));
@@ -43,7 +52,7 @@ test("route-level loading, error and not-found states provide recovery", async (
     source("app/loading.tsx"),
     source("app/error.tsx"),
     source("app/not-found.tsx"),
-    source("app/globals.css"),
+    styleSource(),
   ]);
   assert.match(loading, /role="status"/);
   assert.match(loading, /aria-live="polite"/);
@@ -136,7 +145,7 @@ test("contest category, selected task and live OpenAPI use are documented consis
 });
 
 test("the place carousel is sized by its card instead of the viewport", async () => {
-  const css = await source("app/globals.css");
+  const css = await styleSource();
   const rule = css.match(/\.planner-page > \.places-section \.place-carousel \{[^}]+\}/)?.[0] ?? "";
   assert.match(css, /--card-pad-x: clamp\(/);
   assert.match(rule, /\.planner-page > \.places-section \.place-carousel/);
@@ -147,7 +156,7 @@ test("the place carousel is sized by its card instead of the viewport", async ()
 });
 
 test("wide screens use available viewport width without breaking mobile gutters", async () => {
-  const css = await source("app/globals.css");
+  const css = await styleSource();
   assert.match(css, /--layout-max: 1840px/);
   assert.match(css, /--content: min\(var\(--layout-max\), calc\(100vw - var\(--gutter\) \* 2\)\)/);
   const wide = css.slice(css.indexOf("/* --- 유동형 와이드 레이아웃"), css.indexOf("/* --- 모바일·터치 접근성 최종 보정"));
@@ -165,7 +174,7 @@ test("wave effects avoid dense glyphs and the short first-visit intro stays sync
     source("features/motion/wave-model.ts"),
     source("app/page.tsx"),
     source("features/landing/useLandingIntro.ts"),
-    source("app/globals.css"),
+    styleSource(),
   ]);
   const ramp = model.match(/export const WAVE_RAMP = \[(.*?)\];/)?.[1] ?? "";
   assert.doesNotMatch(ramp, /[#@xX≡]/);
@@ -191,7 +200,7 @@ test("interactive help follows real sections and remains accessible on mobile", 
     source("components/HelpCenter.tsx"),
     source("app/page.tsx"),
     source("app/planner/page.tsx"),
-    source("app/globals.css"),
+    styleSource(),
   ]);
   for (const selector of ["#top", "#story", "#regions", "#evidence", ".landing-cta"]) {
     assert.match(help, new RegExp(`selector: "${selector.replace(".", "\\.")}"`));
@@ -222,7 +231,7 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
   const [layout, map, css] = await Promise.all([
     source("app/layout.tsx"),
     source("components/RouteMap.tsx"),
-    source("app/globals.css"),
+    styleSource(),
   ]);
   assert.match(layout, /width: "device-width"/);
   assert.match(layout, /viewportFit: "cover"/);
@@ -252,7 +261,7 @@ test("travel conditions refresh the plan without requiring the submit button", a
 test("planner visual order follows DOM and keyboard focus order", async () => {
   const [planner, css] = await Promise.all([
     source("app/planner/page.tsx"),
-    source("app/globals.css"),
+    styleSource(),
   ]);
   const sectionIds = ["planner", "places", "layers", "navigation", "route", "data"];
   const positions = sectionIds.map((id) => planner.indexOf(`id="${id}"`));
