@@ -1,5 +1,6 @@
 /** W.A.V.E Vercel Functions에서 공유하는 API 구현. */
 import { neon } from "@neondatabase/serverless";
+import { calculateAccessibilityEvidence } from "../lib/accessibility-score.js";
 
 type KtoItem = Record<string, string | number | null | undefined>;
 
@@ -638,11 +639,8 @@ function placeFrom(item: KtoItem, detail: KtoItem, region: string, profiles: str
     .map(([key, label]) => `${label}: ${clean(detail[key], 150)}`)
     .filter(Boolean)
     .slice(0, 5);
-  const total = Math.max(unique.length, 1);
-  const matchRate = matched.length / total;
-  const knownRate = known.length / total;
-  const score = Math.max(36, Math.min(98, Math.round(48 + matchRate * 39 + knownRate * 9 + (item.firstimage ? 2 : 0) - index)));
-  const confidence = Math.round(knownRate * 100);
+  const total = unique.length;
+  const { score, confidence } = calculateAccessibilityEvidence(matched.length, known.length, total);
   const address = clean(item.addr1 || item.addr2);
   const city = Object.keys(regionCodes).find((name) => name !== "경남 전체" && address.includes(name)) || (region === "경남 전체" ? "경남" : region);
   return {
@@ -658,7 +656,7 @@ function placeFrom(item: KtoItem, detail: KtoItem, region: string, profiles: str
     score,
     confidence,
     knownFields: known.length,
-    unknownFields: total - known.length,
+    unknownFields: Math.max(0, total - known.length),
     negativeFields: negative.length,
     checkedAt: new Date().toISOString(),
     features: featureLabels.length ? featureLabels.slice(0, 5) : ["상세 편의정보 확인 필요"],

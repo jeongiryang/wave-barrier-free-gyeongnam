@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-type SharedPlace = { id: string; name: string; city: string; summary: string; image: string; score: number; features: string[] };
+type SharedPlace = { id: string; name: string; city: string; summary: string; image: string; score: number | null; features: string[] };
 type SharedTrip = {
   plan: { generatedAt: string; places: SharedPlace[]; stops: Array<{ title: string; note: string; source: string }>; crowd?: { rate: number; place: string } | null };
   selections: { region?: string; theme?: string; profiles?: string[] };
@@ -36,7 +36,7 @@ export default function SharedTripPage() {
       {error && <section className="shared-error"><p className="section-kicker">SHARED TRIP</p><h1>이 여행 계획을 열 수 없습니다.</h1><p>{error}</p><a href="/planner">새 여행 만들기 →</a></section>}
       {trip && <>
         <section className="shared-hero"><div><p className="section-kicker">SHARED W.A.V.E ROUTE</p><h1>{trip.selections.region || "경남"}에서 만나는<br />장벽 없는 하루</h1><p>{trip.origin?.label || "선택 출발지"}에서 시작하는 맞춤 여행 계획입니다.</p><div><span>여행지 <b>{trip.plan.places.length}곳</b></span><span>공유 보관 <b>{new Date(trip.expiresAt).toLocaleDateString("ko-KR")}까지</b></span>{trip.plan.crowd && <span>집중률 <b>{trip.plan.crowd.rate.toFixed(1)}%</b></span>}</div></div></section>
-        <section className="shared-content"><div className="shared-places">{trip.plan.places.map((place, index) => <article key={place.id}><div style={place.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.7)), url("${place.image}")` } : undefined}><span>{String(index + 1).padStart(2, "0")}</span><b>{place.city}</b></div><section><h2>{place.name}</h2><p>{place.summary}</p><div>{place.features.slice(0, 3).map((feature) => <span key={feature}>✓ {feature}</span>)}</div><strong>{place.score}<small>W.A.V.E 적합도</small></strong></section></article>)}</div><aside><p className="section-kicker">ITINERARY</p><h2>여행 순서</h2><ol>{trip.plan.stops.map((stop, index) => <li key={`${stop.title}-${index}`}><span>{index + 1}</span><div><small>{stop.source}</small><h3>{stop.title}</h3><p>{stop.note}</p></div></li>)}</ol><a href={`/planner?region=${encodeURIComponent(trip.selections.region || "창원")}`}>이 조건으로 다시 설계하기 →</a></aside></section>
+        <section className="shared-content"><div className="shared-places">{trip.plan.places.map((place, index) => <article key={place.id}><div style={place.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.7)), url("${place.image}")` } : undefined}><span>{String(index + 1).padStart(2, "0")}</span><b>{place.city}</b></div><section><h2>{place.name}</h2><p>{place.summary}</p><div>{place.features.slice(0, 3).map((feature) => <span key={feature}>✓ {feature}</span>)}</div><strong className={place.score === null ? "pending" : ""}>{place.score === null ? "판단 보류" : `${place.score}%`}<small>{place.score === null ? "공식 편의근거 부족" : "선택 편의조건 일치"}</small></strong></section></article>)}</div><aside><p className="section-kicker">ITINERARY</p><h2>여행 순서</h2><ol>{trip.plan.stops.map((stop, index) => <li key={`${stop.title}-${index}`}><span>{index + 1}</span><div><small>{stop.source}</small><h3>{stop.title}</h3><p>{stop.note}</p></div></li>)}</ol><a href={`/planner?region=${encodeURIComponent(trip.selections.region || "창원")}`}>이 조건으로 다시 설계하기 →</a></aside></section>
       </>}
     </main>
   );
