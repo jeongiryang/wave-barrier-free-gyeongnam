@@ -1,21 +1,17 @@
 "use client";
 
-/* eslint-disable @next/next/no-html-link-for-pages */
-
 import {
   useCallback,
   useMemo,
   useState,
 } from "react";
-import { PreferenceControls, useSitePreferences } from "../../components/SitePreferences";
-import HelpCenter from "../../components/HelpCenter";
-import GithubFooterLink from "../../components/GithubFooterLink";
-import AccountMenu from "../../features/auth/components/AccountMenu";
+import { useSitePreferences } from "../../components/SitePreferences";
 import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
 import NavigationWorkspace from "../../features/planner/components/NavigationWorkspace";
 import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
 import PlannerConditionsPanel from "../../features/planner/components/PlannerConditionsPanel";
 import PlannerResultsPanel from "../../features/planner/components/PlannerResultsPanel";
+import { PlannerFooter, PlannerHeader } from "../../features/planner/components/PlannerHeader";
 import RecommendationWorkspace from "../../features/planner/components/RecommendationWorkspace";
 import TravelSignalsPanel from "../../features/planner/components/TravelSignalsPanel";
 import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
@@ -144,21 +140,7 @@ export default function PlannerPage() {
     <main className="planner-page">
       <a className="skip-link" href="#planner">{t("skip", "본문으로 바로가기")}</a>
       <div className="scroll-progress" aria-hidden="true" />
-      <header className={`site-header ${scrolled ? "scrolled" : ""} ${headerHidden ? "hidden" : ""}`}>
-        <a className="brand" href="/" aria-label="W.A.V.E 소개 홈">
-          <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
-          <span>W.A.V.E</span>
-        </a>
-        <nav aria-label="주요 메뉴">
-          <a href="#planner">{t("conditions", "여행 조건")}</a>
-          <a href="#navigation">{t("route", "길찾기")}</a>
-          <a href="#data">{t("evidence", "추천 근거")}</a>
-          <a href="/community">커뮤니티</a>
-        </nav>
-        <div className="planner-header-actions"><HelpCenter /><PreferenceControls /><AccountMenu loginHref="/login?next=%2Fplanner" /><button className="header-action" type="button" onClick={() => document.getElementById("places")?.scrollIntoView({ behavior: "smooth" })}>
-          여행 보관함 <b>{saved.length}</b><span aria-hidden="true">↗</span>
-        </button></div>
-      </header>
+      <PlannerHeader t={t} scrolled={scrolled} hidden={headerHidden} savedCount={saved.length} />
 
       <PlannerServiceStatus
         locale={locale}
@@ -243,11 +225,7 @@ export default function PlannerPage() {
         onSubmitFeedback={() => void submitFeedback()}
       />}
 
-      <footer className="simple-footer">
-        <div className="brand footer-brand"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span></div>
-        <div className="footer-notes"><p>누구나 원하는 곳으로, 경남 무장애 여행 길잡이</p><p className="trust-notice">2026 관광데이터 활용 공모전 ②-2 웹·앱 구현 부문 · 지정과제 1 출품용 독립 서비스이며 한국관광공사·경상남도의 공식 운영 서비스가 아닙니다.</p></div>
-        <div className="footer-meta"><p className="source">출처: ⓒ한국관광공사 · ⓒ한국관광콘텐츠랩</p><GithubFooterLink /></div>
-      </footer>
+      <PlannerFooter />
     </main>
   );
 }

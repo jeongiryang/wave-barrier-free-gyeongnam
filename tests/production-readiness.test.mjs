@@ -10,6 +10,7 @@ async function plannerProductSource() {
   const paths = [
     "app/planner/page.tsx",
     "features/planner/components/PlannerServiceStatus.tsx",
+    "features/planner/components/PlannerHeader.tsx",
     "features/planner/components/PlannerConditionsPanel.tsx",
     "features/planner/components/PlannerJourneyBasics.tsx",
     "features/planner/components/PlannerThemeDates.tsx",
