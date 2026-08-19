@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import SmartSpotImage from "../../../components/SmartSpotImage";
+import SmartSpotImage from "../../tourism/components/SmartSpotImage";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";

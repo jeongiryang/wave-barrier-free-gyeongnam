@@ -171,7 +171,11 @@ test("production configuration is Vercel-only", async () => {
 
 test("missing tourism images use official live lookup and a visual fallback", async () => {
   const [component, planner, photos, catalog] = await Promise.all([
-    source("components/SmartSpotImage.tsx"),
+    Promise.all([
+      source("features/tourism/components/SmartSpotImage.tsx"),
+      source("features/tourism/hooks/useOfficialSpotImage.ts"),
+      source("features/tourism/client/spot-photo.ts"),
+    ]).then((parts) => parts.join("\n")),
     plannerProductSource(),
     Promise.all([
       source("server/tourism/region-photo.ts"),

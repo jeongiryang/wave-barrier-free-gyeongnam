@@ -1,4 +1,4 @@
-import SmartSpotImage from "../../../components/SmartSpotImage";
+import SmartSpotImage from "../../tourism/components/SmartSpotImage";
 import { richCatalog } from "../constants";
 import type { RichMode, RichSpot } from "../types";
 
