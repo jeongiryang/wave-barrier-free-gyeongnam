@@ -56,6 +56,14 @@ async function plannerSignalsSource() {
   ].map(source))).join("\n");
 }
 
+async function plannerParticipationSource() {
+  return (await Promise.all([
+    "features/planner/hooks/usePlannerParticipation.ts",
+    "features/planner/hooks/useTripSharing.ts",
+    "features/planner/hooks/useAccessibilityFeedback.ts",
+  ].map(source))).join("\n");
+}
+
 async function routePlanningSource() {
   return (await Promise.all([
     "features/planner/hooks/useRoutePlanning.ts",
@@ -429,7 +437,7 @@ test("planner state is divided into testable feature hooks without overwriting s
   const [planner, planController, participation, tripSelection, savedPlaceIds, tripSchedule, optimizedTripOrder, routePlanning, routeOrigin, routeView, signals, audioGuide, chrome] = await Promise.all([
     plannerProductSource(),
     plannerPlanSource(),
-    source("features/planner/hooks/usePlannerParticipation.ts"),
+    plannerParticipationSource(),
     source("features/planner/hooks/useTripSelection.ts"),
     source("features/planner/hooks/useSavedPlaceIds.ts"),
     source("features/planner/hooks/useTripSchedule.ts"),
@@ -722,7 +730,7 @@ test("core controls keep 44px targets on every viewport and pointer type", async
 test("shared trips restore saved places, order and date assignments from official IDs", async () => {
   const [planner, participation, trips, restoration, shared] = await Promise.all([
     plannerProductSource(),
-    source("features/planner/hooks/usePlannerParticipation.ts"),
+    plannerParticipationSource(),
     source("server/trips/payload.ts"),
     source("server/tourism/shared-plan-restoration.ts"),
     Promise.all([
