@@ -448,7 +448,11 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/transport/kakao-route.ts"),
     source("server/transport/health.ts"),
     source("server/tourism/handler.ts"),
-    source("server/tourism/plan-builder.ts"),
+    Promise.all([
+      source("server/tourism/plan-builder.ts"),
+      source("server/tourism/plan-query.ts"),
+      source("server/tourism/plan-model.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("server/tourism/shared-plan-restoration.ts"),
     source("server/tourism/catalog.ts"),
     Promise.all([
@@ -505,6 +509,9 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(tourism, /export async function handleWaveApi/);
   assert.doesNotMatch(tourism, /export async function buildPlan|restoreSharedPlan|mergePlaces/);
   assert.match(planBuilder, /export async function buildPlan/);
+  assert.match(planBuilder, /export function readPlanQuery/);
+  assert.match(planBuilder, /export function buildPlanStops/);
+  assert.match(planBuilder, /export function buildPlanStatuses/);
   assert.match(restoration, /export async function restoreSharedPlan/);
   assert.doesNotMatch(`${tourism}\n${planBuilder}`, /regionPhotoKeywords|normalizeXmlItems|calculateAccessibilityEvidence/);
   assert.match(tourismCatalog, /export const regionCodes/);
