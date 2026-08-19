@@ -20,6 +20,8 @@ async function plannerProductSource() {
     "features/planner/components/NavigationWorkspace.tsx",
     "features/planner/components/TransportDataOverview.tsx",
     "features/planner/components/RouteMapWorkspace.tsx",
+    "features/planner/components/TripPointPicker.tsx",
+    "features/planner/components/RouteComparisonPanel.tsx",
     "features/planner/components/PlannerResultsPanel.tsx",
     "features/planner/components/PlannerRouteOverview.tsx",
     "features/planner/components/PlannerEvidencePanel.tsx",
