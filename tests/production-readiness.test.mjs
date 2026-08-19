@@ -55,12 +55,12 @@ test("route-level loading, error and not-found states provide recovery", async (
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{ \.route-state-wave i \{ animation: none; \} \}/);
 });
 
-test("the production toolchain pins patched React and vinext releases", async () => {
+test("the production toolchain pins patched React and the Vercel-compatible vinext release", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.equal(packageJson.dependencies.react, "19.2.8");
   assert.equal(packageJson.dependencies["react-dom"], "19.2.8");
   assert.equal(packageJson.devDependencies["react-server-dom-webpack"], "19.2.8");
-  assert.equal(packageJson.devDependencies.vinext, "1.0.0-beta.7");
+  assert.equal(packageJson.devDependencies.vinext, "0.0.50");
 });
 
 test("anonymous database writes validate origin, JSON and body size before storage", async () => {
