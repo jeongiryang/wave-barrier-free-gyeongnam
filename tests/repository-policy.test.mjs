@@ -105,7 +105,10 @@ test("semantic releases are created from merged main commits with least privileg
     source(".github/workflows/release-backfill.yml"),
     source(".github/workflows/release.yml"),
   ]);
-  assert.match(backfill, /\["v0\.7\.2", 37, "\$CURRENT"/);
+  assert.match(backfill, /\["v0\.7\.2", 37, "c71a9e9c25ec1f1b7491cf14c081f4c4e57dd3b1"/);
+  assert.match(backfill, /\["v0\.7\.3", 38, "\$CURRENT"/);
+  assert.match(backfill, /accidentalRef\?\.object\.sha === accidentalRelease\.sha/);
+  assert.match(backfill, /accidentalPublishedRelease\?\.body\?\.includes\(accidentalRelease\.bodyMarker\)/);
   assert.doesNotMatch(backfill, /github\("\/git\/refs",/);
   assert.match(backfill, /Release API가 target_commitish에 태그를 함께 만들게 한다/);
   assert.match(current, /subject\.startsWith\("feat:"\)/);
@@ -113,6 +116,7 @@ test("semantic releases are created from merged main commits with least privileg
   assert.match(current, /ref\.object\.sha !== process\.env\.GITHUB_SHA/);
   assert.match(backfillWorkflow, /permissions:\s*\n\s*contents: write/);
   assert.match(releaseWorkflow, /permissions:\s*\n\s*contents: write/);
+  assert.match(releaseWorkflow, /tests\/repository-policy\.test\.mjs/);
   assert.match(releaseWorkflow, /paths-ignore:/);
   assert.doesNotMatch(`${backfillWorkflow}\n${releaseWorkflow}`, /pull_request_target/);
 });

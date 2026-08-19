@@ -10,6 +10,7 @@ on:
       - scripts/release-current.mjs
       - docs/releases.md
       - docs/ai-logs/**
+      - tests/repository-policy.test.mjs
 
 permissions:
   contents: write

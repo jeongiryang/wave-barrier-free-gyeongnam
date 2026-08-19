@@ -32,8 +32,15 @@ const releases = [
   ["v0.6.1", 34, "db6a5fccf8163fa73543323423f36ce4bde66a4a", "fix: 남해·산청 관광사진 대체 조회 추가"],
   ["v0.7.0", 35, "9656426115d6f46f70bc8d44615f50e22423f960", "feat: 데스크톱 화면 폭을 활용하는 유동형 레이아웃 적용"],
   ["v0.7.1", 36, "81228cca8cc4a66f22658dc3d1a6df1ec66b61c7", "chore: PR별 시맨틱 버전 태그와 릴리즈 백필"],
-  ["v0.7.2", 37, "$CURRENT", "fix: 릴리즈 백필 권한 오류 수정"],
+  ["v0.7.2", 37, "c71a9e9c25ec1f1b7491cf14c081f4c4e57dd3b1", "fix: 릴리즈 백필 권한 오류 수정"],
+  ["v0.7.3", 38, "$CURRENT", "fix: 릴리즈 백필 경쟁 조건 수정"],
 ].map(([version, pr, sha, title]) => ({ version, pr, sha, title }));
+
+const accidentalRelease = {
+  version: "v0.1.1",
+  sha: "c71a9e9c25ec1f1b7491cf14c081f4c4e57dd3b1",
+  bodyMarker: "/pull/37)",
+};
 
 function versionParts(value) {
   const match = /^v(\d+)\.(\d+)\.(\d+)$/.exec(value);
@@ -92,6 +99,25 @@ async function backfill() {
     throw new Error("GITHUB_TOKEN, GITHUB_REPOSITORY, GITHUB_SHA가 필요합니다.");
   }
   validateManifest(process.env.GITHUB_SHA);
+
+  // PR #37에서 백필과 일반 릴리즈 워크플로가 동시에 시작되며 v0.1.1을
+  // 현재 커밋에 잘못 생성한 한 번의 경쟁 조건만 교정한다. 버전·SHA·본문을
+  // 모두 확인하므로 사용자가 만든 정상 릴리즈를 광범위하게 삭제하지 않는다.
+  const accidentalRef = await github(`/git/ref/tags/${encodeURIComponent(accidentalRelease.version)}`, {
+    allowMissing: true,
+  });
+  const accidentalPublishedRelease = await github(
+    `/releases/tags/${encodeURIComponent(accidentalRelease.version)}`,
+    { allowMissing: true },
+  );
+  if (
+    accidentalRef?.object.sha === accidentalRelease.sha
+    && accidentalPublishedRelease?.body?.includes(accidentalRelease.bodyMarker)
+  ) {
+    await github(`/releases/${accidentalPublishedRelease.id}`, { method: "DELETE" });
+    await github(`/git/refs/tags/${encodeURIComponent(accidentalRelease.version)}`, { method: "DELETE" });
+    console.log(`경쟁 조건 산출물 교정: ${accidentalRelease.version}`);
+  }
 
   for (const release of releases) {
     const target = release.sha === "$CURRENT" ? process.env.GITHUB_SHA : release.sha;
