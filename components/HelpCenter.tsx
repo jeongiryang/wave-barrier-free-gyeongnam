@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 
 type TourStep = {
   selector: string;
@@ -140,9 +141,7 @@ export default function HelpCenter() {
   const spotlightStyle = highlight ? ({ top: highlight.top, left: highlight.left, width: highlight.width, height: highlight.height } satisfies CSSProperties) : undefined;
   const pointerStyle = highlight ? ({ left: highlight.pointerX, top: highlight.pointerY } satisfies CSSProperties) : undefined;
 
-  return <>
-    <button className="help-button" type="button" onClick={startTour} ref={triggerRef}>도움말 <span>?</span></button>
-    {open && step && <>
+  const tourLayer = open && step ? <>
       <button className="help-tour-shield" type="button" onClick={() => setOpen(false)} aria-label="도움말 투어 닫기" />
       {highlight && <div className="help-tour-spotlight" style={spotlightStyle} aria-hidden="true" />}
       {highlight && <span className="help-tour-pointer" style={pointerStyle} aria-hidden="true">➤</span>}
@@ -163,6 +162,10 @@ export default function HelpCenter() {
           }}>{stepIndex === steps.length - 1 ? "투어 마치기" : "다음 영역"}</button>
         </div>
       </div>
-    </>}
+    </> : null;
+
+  return <>
+    <button className="help-button" type="button" onClick={startTour} ref={triggerRef}>도움말 <span>?</span></button>
+    {tourLayer && typeof document !== "undefined" ? createPortal(tourLayer, document.body) : null}
   </>;
 }
