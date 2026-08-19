@@ -285,7 +285,11 @@ test("interactive help follows real sections and remains accessible on mobile", 
   const [helpView, helpContent, helpController, landing, planner, css] = await Promise.all([
     source("components/HelpCenter.tsx"),
     source("features/help/tour-content.ts"),
-    source("features/help/useHelpTour.ts"),
+    Promise.all([
+      source("features/help/useHelpTour.ts"),
+      source("features/help/useHelpTourFocus.ts"),
+      source("features/help/useTourSpotlight.ts"),
+    ]).then((parts) => parts.join("\n")),
     landingProductSource(),
     plannerProductSource(),
     styleSource(),
