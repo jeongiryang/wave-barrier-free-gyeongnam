@@ -109,7 +109,14 @@ test("community API derives identity from the session and enforces ownership", a
 
 test("community UI supports public reading, protected participation and place linkage", async () => {
   const [list, detail, editor, planner, placeDialog, landing, sitemap] = await Promise.all([
-    source("features/community/components/CommunityBoard.tsx"), source("components/CommunityDetail.tsx"),
+    Promise.all([
+      source("features/community/components/CommunityBoard.tsx"),
+      source("features/community/hooks/useCommunityBoard.ts"),
+    ]).then((parts) => parts.join("\n")),
+    Promise.all([
+      source("features/community/components/CommunityDetail.tsx"),
+      source("features/community/hooks/useCommunityDetail.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("components/CommunityEditor.tsx"), source("app/planner/page.tsx"),
     source("features/planner/components/PlaceDecisionDialog.tsx"),
     source("components/LandingStories.tsx"), source("app/sitemap.ts"),

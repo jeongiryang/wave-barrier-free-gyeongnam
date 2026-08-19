@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import CommunityDetail from "../../../components/CommunityDetail";
+import CommunityDetail from "../../../features/community/components/CommunityDetail";
 import CommunityHeader from "../../../components/CommunityHeader";
 
 export const metadata: Metadata = { title: "여행자 이야기" };
