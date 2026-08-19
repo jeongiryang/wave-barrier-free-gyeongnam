@@ -146,7 +146,10 @@ test("community UI supports public reading, protected participation and place li
       source("features/planner/components/PlaceParticipationActions.tsx"),
     ]).then((parts) => parts.join("\n")),
     Promise.all([
-      source("components/LandingStories.tsx"),
+      source("features/landing/components/LandingProductStories.tsx"),
+      source("features/landing/components/LandingDiscoveryStories.tsx"),
+      source("features/landing/components/LandingJourneyStories.tsx"),
+      source("features/landing/components/LandingAdaptStory.tsx"),
       source("features/community/components/LandingCommunityStory.tsx"),
       source("features/community/hooks/useCommunityPreview.ts"),
     ]).then((parts) => parts.join("\n")), source("app/sitemap.ts"),
@@ -171,7 +174,10 @@ test("community UI supports public reading, protected participation and place li
 test("landing product story exposes previews and reduced-motion styles", async () => {
   const [stories, storyCss, accountCss] = await Promise.all([
     Promise.all([
-      source("components/LandingStories.tsx"),
+      source("features/landing/components/LandingProductStories.tsx"),
+      source("features/landing/components/LandingDiscoveryStories.tsx"),
+      source("features/landing/components/LandingJourneyStories.tsx"),
+      source("features/landing/components/LandingAdaptStory.tsx"),
       source("features/community/components/LandingCommunityStory.tsx"),
     ]).then((parts) => parts.join("\n")),
     source("app/styles/landing-stories.css"), accountStyleSource(),
