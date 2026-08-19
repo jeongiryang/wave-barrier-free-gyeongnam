@@ -247,34 +247,36 @@ test("non-Korean locales are visibly marked Beta without breaking narrow headers
 });
 
 test("planner ignores stale route, enrichment and location-search responses", async () => {
-  const [planner, locationSearch, service] = await Promise.all([
+  const [planner, routePlanning, locationSearch, service] = await Promise.all([
     source("app/planner/page.tsx"),
+    source("features/planner/hooks/useRoutePlanning.ts"),
     source("features/planner/hooks/useLocationSearch.ts"),
     source("features/planner/services/api.ts"),
   ]);
-  for (const request of ["routeRequestRef", "enrichmentRequestRef"]) {
-    assert.match(planner, new RegExp(`${request}\\.current\\?\\.abort\\(\\)`));
-    assert.match(planner, new RegExp(`${request}\\.current !== controller`));
-  }
+  assert.match(routePlanning, /routeRequestRef\.current\?\.abort\(\)/);
+  assert.match(routePlanning, /routeRequestRef\.current !== controller/);
+  assert.match(planner, /enrichmentRequestRef\.current\?\.abort\(\)/);
+  assert.match(planner, /enrichmentRequestRef\.current !== controller/);
   assert.match(locationSearch, /searchRequestRef\.current\?\.abort\(\)/);
   assert.match(locationSearch, /searchRequestRef\.current !== controller/);
-  assert.match(planner, /plannerJson<[^>]+>\(`\/api\/route\?\$\{params\.toString\(\)\}`,[^;]+signal: controller\.signal/);
+  assert.match(routePlanning, /`\/api\/route\?\$\{params\.toString\(\)\}`,[^;]+signal: controller\.signal/);
   assert.match(planner, /action: "enrich"[\s\S]+signal: controller\.signal/);
   assert.match(locationSearch, /\/api\/location-search\?q=[\s\S]+signal: controller\.signal/);
   assert.match(service, /parentSignal\?\.addEventListener\("abort"/);
   assert.match(service, /timeoutMs = 12000/);
-  assert.match(planner, /useEffect\(\(\) => \(\) => \{[\s\S]+routeRequestRef\.current\?\.abort\(\)/);
+  assert.match(routePlanning, /useEffect\(\(\) => \(\) => routeRequestRef\.current\?\.abort\(\)/);
 });
 
 test("planner state is divided into testable feature hooks without overwriting saved trips", async () => {
-  const [planner, tripSelection, routeView, audioGuide, chrome] = await Promise.all([
+  const [planner, tripSelection, routePlanning, routeView, audioGuide, chrome] = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/hooks/useTripSelection.ts"),
+    source("features/planner/hooks/useRoutePlanning.ts"),
     source("features/planner/hooks/useRouteView.ts"),
     source("features/planner/hooks/useAudioGuide.ts"),
     source("features/planner/hooks/usePlannerChrome.ts"),
   ]);
-  for (const hook of ["useTripSelection", "useRouteView", "useAudioGuide", "useLocationSearch", "usePlannerChrome"]) {
+  for (const hook of ["useTripSelection", "useRoutePlanning", "useAudioGuide", "useLocationSearch", "usePlannerChrome"]) {
     assert.match(planner, new RegExp(`${hook}\\(`));
   }
   assert.doesNotMatch(planner, /localStorage\.setItem\("wave-saved-places"/);
@@ -282,6 +284,9 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(tripSelection, /localStorage\.getItem\(SAVED_PLACES_KEY\)[\s\S]+setStorageReady\(true\)/);
   assert.match(tripSelection, /if \(!storageReady\) return;[\s\S]+localStorage\.setItem\(SAVED_PLACES_KEY/);
   assert.match(routeView, /routeSort === "walk"[\s\S]+a\.totalWalk - b\.totalWalk/);
+  assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext\)/);
+  assert.match(routePlanning, /nextOriginLabel/);
+  assert.doesNotMatch(planner, /routeRequestRef|setRouteAlternatives\(/);
   assert.match(audioGuide, /const resetAudio = useCallback/);
   assert.match(chrome, /window\.cancelAnimationFrame\(frame\)/);
 });
@@ -317,7 +322,7 @@ test("route-map rendering delegates SDK, domain helpers, types and image export"
   assert.match(map, /import \{ exportRouteImage \} from "\.\.\/features\/routing\/export-route-image"/);
   assert.match(map, /loadKakaoSdk/);
   assert.doesNotMatch(map, /document\.createElement\("script"\)|canvas\.width = 1600/);
-  assert.match(planner, /import type \{ MapPlace, RouteAlternative, RoutePoint \} from "\.\.\/\.\.\/features\/routing\/types"/);
+  assert.match(planner, /import type \{ MapPlace \} from "\.\.\/\.\.\/features\/routing\/types"/);
   assert.match(types, /export type RouteAlternative/);
   assert.match(sdk, /Kakao SDK load timed out/);
   assert.match(sdk, /data-wave-kakao/);
