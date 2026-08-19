@@ -6,8 +6,21 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
+test("landing route delegates section UI and browser effects to feature modules", async () => {
+  const [page, experience] = await Promise.all([
+    source("app/page.tsx"),
+    source("features/landing/hooks/useLandingExperience.ts"),
+  ]);
+  for (const component of ["LandingHeader", "LandingHero", "LandingManifesto", "LandingRegionStory", "LandingEvidenceStory", "LandingFooter"]) {
+    assert.match(page, new RegExp(`<${component}`));
+  }
+  assert.doesNotMatch(page, /useState|useEffect|IntersectionObserver|AbortController/);
+  assert.match(experience, /IntersectionObserver/);
+  assert.match(experience, /AbortController/);
+});
+
 test("landing intro traps keyboard focus and restores page scrolling", async () => {
-  const landing = await source("app/page.tsx");
+  const landing = await source("features/landing/components/LandingIntro.tsx");
   assert.match(landing, /const previousOverflow = document\.body\.style\.overflow/);
   assert.match(landing, /document\.body\.style\.overflow = "hidden"/);
   assert.match(landing, /event\.key === "Tab"/);
@@ -17,7 +30,7 @@ test("landing intro traps keyboard focus and restores page scrolling", async () 
 });
 
 test("landing region photos time out and can retry after transient failures", async () => {
-  const landing = await source("app/page.tsx");
+  const landing = await source("features/landing/hooks/useLandingExperience.ts");
   assert.match(landing, /const controller = new AbortController\(\)/);
   assert.match(landing, /setTimeout\(\(\) => controller\.abort\(\), 10000\)/);
   assert.match(landing, /signal: controller\.signal/);
