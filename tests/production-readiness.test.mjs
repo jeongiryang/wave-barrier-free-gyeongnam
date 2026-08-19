@@ -93,6 +93,19 @@ test("the place carousel is sized by its card instead of the viewport", async ()
   assert.doesNotMatch(rule, /100vw/);
 });
 
+test("wide screens use available viewport width without breaking mobile gutters", async () => {
+  const css = await source("app/globals.css");
+  assert.match(css, /--layout-max: 1840px/);
+  assert.match(css, /--content: min\(var\(--layout-max\), calc\(100vw - var\(--gutter\) \* 2\)\)/);
+  const wide = css.slice(css.indexOf("/* --- 유동형 와이드 레이아웃"), css.indexOf("/* --- 모바일·터치 접근성 최종 보정"));
+  assert.match(wide, /@media \(min-width: 1101px\)/);
+  assert.match(wide, /\.landing-header, \.site-header \{ width: var\(--content\)/);
+  assert.match(wide, /\.landing-page > section, \.landing-page > footer/);
+  assert.match(wide, /\.planner-page > \.navigation-section/);
+  assert.match(wide, /\.navigation-workspace, \.day-planner \{ width: 100%; max-width: none; \}/);
+  assert.match(css, /@media \(max-width: 780px\)[\s\S]*width: calc\(100vw - 16px\)/);
+});
+
 test("wave effects avoid dense glyphs and the extended intro timing stays synchronized", async () => {
   const [wave, landing, css] = await Promise.all([
     source("components/WaveField.tsx"),
