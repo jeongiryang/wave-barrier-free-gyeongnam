@@ -1,4 +1,5 @@
 import AuthForm from "./AuthForm";
+import AuthMotionHeadline from "./AuthMotionHeadline";
 
 /* eslint-disable @next/next/no-html-link-for-pages */
 
@@ -15,7 +16,7 @@ export default function AuthShell({ mode, returnTo }: { mode: "login" | "registe
       <div className="auth-layout">
         <section className="auth-story" aria-labelledby="auth-story-title">
           <p className="section-kicker">{registering ? "START YOUR W.A.V.E" : "WELCOME BACK"}</p>
-          <h2 id="auth-story-title">{registering ? <>여행의 조건도,<br />다녀온 경험도<br /><em>나답게 이어집니다.</em></> : <>내가 고른 장소에서<br />여행자의 이야기까지<br /><em>한 흐름으로.</em></>}</h2>
+          <AuthMotionHeadline mode={mode} />
           <p>계정은 커뮤니티 참여를 위한 선택입니다. 관광지 추천, 일정 설계, 지도와 이동 정보는 누구나 바로 이용할 수 있습니다.</p>
           <div className="auth-journey-preview" aria-label="계정으로 이어지는 서비스 가치">
             <span><i>01</i><b>관광지 이야기</b><small>장소와 지역을 연결해 질문하고 후기를 남겨요.</small></span>

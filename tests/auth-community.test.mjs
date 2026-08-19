@@ -27,8 +27,9 @@ test("community comments and list parameters reject empty data and cap paginatio
 });
 
 test("formal auth pages use Neon Auth with accessible password and return flows", async () => {
-  const [form, shell, authRoute, server] = await Promise.all([
+  const [form, shell, motionHeadline, authCss, authRoute, server] = await Promise.all([
     source("components/AuthForm.tsx"), source("components/AuthShell.tsx"),
+    source("components/AuthMotionHeadline.tsx"), source("app/styles/account-community.css"),
     source("app/api/auth/[...path]/route.ts"), source("lib/auth/server.ts"),
   ]);
   assert.match(form, /authClient\.signIn\.email/);
@@ -38,6 +39,20 @@ test("formal auth pages use Neon Auth with accessible password and return flows"
   assert.match(form, /autoComplete=\{registering \? "new-password" : "current-password"\}/);
   assert.match(form, /safeNext/);
   assert.match(shell, /로그인 없이 여행 설계/);
+  assert.match(shell, /AuthMotionHeadline mode=\{mode\}/);
+  assert.match(motionHeadline, /나에게 맞는 하루로/);
+  assert.match(motionHeadline, /더 편한 이동으로/);
+  assert.match(motionHeadline, /여행자의 이야기까지/);
+  assert.match(motionHeadline, /motion === "calm"/);
+  assert.match(motionHeadline, /setTimeout\(\(\) => setPhraseIndex\(1\), 2700\)/);
+  assert.match(motionHeadline, /setTimeout\(\(\) => setPhraseIndex\(2\), 5400\)/);
+  assert.match(motionHeadline, /clearTimeout\(second\)/);
+  assert.match(motionHeadline, /className="sr-only"/);
+  assert.match(motionHeadline, /aria-hidden="true"/);
+  assert.doesNotMatch(motionHeadline, /aria-live/);
+  assert.match(authCss, /\.auth-copy-phrase-shell \{ min-block-size:/);
+  assert.match(authCss, /html\[data-motion="calm"\][\s\S]*\.auth-copy-phrase/);
+  assert.match(authCss, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.auth-copy-phrase/);
   assert.match(authRoute, /getAuth\(\)\?\.handler/);
   assert.match(server, /secret\.length < 32/);
   assert.match(server, /sameSite: "lax"/);
