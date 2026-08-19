@@ -359,6 +359,9 @@ export default function PlannerPage() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const placeDialogRef = useRef<HTMLElement>(null);
   const planRequestRef = useRef<AbortController | null>(null);
+  const routeRequestRef = useRef<AbortController | null>(null);
+  const enrichmentRequestRef = useRef<AbortController | null>(null);
+  const searchRequestRef = useRef<AbortController | null>(null);
 
   const activeProfiles = useMemo(
     () => profiles.filter((profile) => selected.includes(profile.id)),
@@ -521,10 +524,14 @@ export default function PlannerPage() {
   }
 
   async function loadRoutes(place: Place, nextOrigin = origin, nextOriginIsPrivate = privateOrigin) {
+    routeRequestRef.current?.abort();
+    const controller = new AbortController();
+    routeRequestRef.current = controller;
     const endLat = Number(place.mapY); const endLng = Number(place.mapX);
     if (!Number.isFinite(endLat) || !Number.isFinite(endLng)) {
       setRouteNotice("선택한 여행지에 좌표가 없어 경로를 계산할 수 없습니다.");
       setRouteAlternatives([]);
+      routeRequestRef.current = null;
       return;
     }
     setRouteLoading(true);
@@ -534,20 +541,26 @@ export default function PlannerPage() {
       setRouteLoading(false);
       setRouteAlternatives([]);
       setRouteNotice("현재 위치는 이 지도에서만 표시합니다. 좌표를 서버로 보내지 않으므로 카카오 지도 앱에서 경로를 이어서 확인해 주세요.");
+      routeRequestRef.current = null;
       return;
     }
     setRouteNotice(`${originLabel}에서 ${place.name}까지 이동 경로를 확인하고 있습니다.`);
     const crowdParams = new URLSearchParams({ action: "crowd", region, title: place.name });
-    void fetch(`/api/wave?${crowdParams.toString()}`, { headers: { Accept: "application/json" } })
+    void fetch(`/api/wave?${crowdParams.toString()}`, { headers: { Accept: "application/json" }, signal: controller.signal })
       .then((response) => response.ok ? response.json() : null)
-      .then((data: { crowd?: { rate: number; baseYmd: string; place: string } | null } | null) => setDestinationCrowd(data?.crowd || null))
-      .catch(() => setDestinationCrowd(null));
+      .then((data: { crowd?: { rate: number; baseYmd: string; place: string } | null } | null) => {
+        if (routeRequestRef.current === controller) setDestinationCrowd(data?.crowd || null);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted && routeRequestRef.current === controller) setDestinationCrowd(null);
+      });
     try {
       const params = new URLSearchParams({
         startLat: String(nextOrigin.lat), startLng: String(nextOrigin.lng), endLat: String(endLat), endLng: String(endLng),
       });
-      const response = await fetch(`/api/route?${params.toString()}`, { cache: "no-store", headers: { Accept: "application/json" } });
+      const response = await fetch(`/api/route?${params.toString()}`, { cache: "no-store", headers: { Accept: "application/json" }, signal: controller.signal });
       const data = await response.json() as { alternatives?: RouteAlternative[]; providers?: TransportProvider[]; context?: TransportContext; configured?: boolean; message?: string; error?: string };
+      if (controller.signal.aborted || routeRequestRef.current !== controller) return;
       if (!response.ok) throw new Error(data.error || "경로를 찾지 못했습니다.");
       const alternatives = data.alternatives || [];
       setRouteAlternatives(alternatives);
@@ -556,29 +569,46 @@ export default function PlannerPage() {
       setActiveRouteId(alternatives[0]?.id || "");
       setRouteNotice(data.configured ? `${alternatives.length}개 실제 교통 경로와 운행 데이터를 비교합니다.` : (data.message || "직선 연결 미리보기입니다."));
     } catch (error) {
+      if (controller.signal.aborted || routeRequestRef.current !== controller) return;
       setRouteAlternatives([]);
       setRouteNotice(error instanceof Error ? error.message : "경로 연결을 확인해 주세요.");
     } finally {
-      setRouteLoading(false);
+      if (routeRequestRef.current === controller) {
+        routeRequestRef.current = null;
+        setRouteLoading(false);
+      }
     }
   }
 
   const loadEnrichment = useCallback(async () => {
+    enrichmentRequestRef.current?.abort();
+    const controller = new AbortController();
+    enrichmentRequestRef.current = controller;
     setEnrichmentLoading(true);
     try {
       const params = new URLSearchParams({ action: "enrich", region, theme, locale, startDate: travelStart, endDate: travelEnd });
-      const response = await fetch(`/api/wave?${params.toString()}`, { headers: { Accept: "application/json" } });
+      const response = await fetch(`/api/wave?${params.toString()}`, { headers: { Accept: "application/json" }, signal: controller.signal });
       const data = await response.json() as EnrichmentData & { error?: string };
+      if (controller.signal.aborted || enrichmentRequestRef.current !== controller) return;
       if (!response.ok) throw new Error(data.error || "확장 데이터를 불러오지 못했습니다.");
       setEnrichment(data);
-    } catch { setEnrichment(null); }
-    finally { setEnrichmentLoading(false); }
+    } catch {
+      if (!controller.signal.aborted && enrichmentRequestRef.current === controller) setEnrichment(null);
+    } finally {
+      if (enrichmentRequestRef.current === controller) {
+        enrichmentRequestRef.current = null;
+        setEnrichmentLoading(false);
+      }
+    }
   }, [region, theme, locale, travelStart, travelEnd]);
 
   useEffect(() => {
     if (!plan) return;
     const frame = window.requestAnimationFrame(() => void loadEnrichment());
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      enrichmentRequestRef.current?.abort();
+    };
   }, [plan, loadEnrichment]);
 
   useEffect(() => {
@@ -597,13 +627,23 @@ export default function PlannerPage() {
 
   async function searchLocations() {
     if (placeQuery.trim().length < 2) return;
+    searchRequestRef.current?.abort();
+    const controller = new AbortController();
+    searchRequestRef.current = controller;
     setPlaceSearchLoading(true);
     try {
-      const response = await fetch(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}`, { headers: { Accept: "application/json" } });
+      const response = await fetch(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}`, { headers: { Accept: "application/json" }, signal: controller.signal });
       const data = await response.json() as { places?: SearchPlace[] };
+      if (controller.signal.aborted || searchRequestRef.current !== controller) return;
       setPlaceSearchResults(response.ok ? data.places || [] : []);
-    } catch { setPlaceSearchResults([]); }
-    finally { setPlaceSearchLoading(false); }
+    } catch {
+      if (!controller.signal.aborted && searchRequestRef.current === controller) setPlaceSearchResults([]);
+    } finally {
+      if (searchRequestRef.current === controller) {
+        searchRequestRef.current = null;
+        setPlaceSearchLoading(false);
+      }
+    }
   }
 
   function searchableToPlace(item: SearchPlace): Place {
@@ -698,6 +738,7 @@ export default function PlannerPage() {
   async function generatePlan(revealResults = true) {
     if (!selected.length) return;
     planRequestRef.current?.abort();
+    routeRequestRef.current?.abort();
     const controller = new AbortController();
     planRequestRef.current = controller;
     setLoading(true);
@@ -758,6 +799,13 @@ export default function PlannerPage() {
       planRequestRef.current?.abort();
     };
   }, [planSignature, selected.length]);
+
+  useEffect(() => () => {
+    planRequestRef.current?.abort();
+    routeRequestRef.current?.abort();
+    enrichmentRequestRef.current?.abort();
+    searchRequestRef.current?.abort();
+  }, []);
 
   function scrollCards(direction: number) {
     cardsRef.current?.scrollBy({ left: direction * Math.min(window.innerWidth * 0.78, 480), behavior: "smooth" });
