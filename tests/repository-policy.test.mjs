@@ -216,3 +216,17 @@ test("every user-facing footer exposes the repository with an accessible tooltip
   assert.match(css, /\.github-footer-link \{ width: 44px; height: 44px/);
   assert.match(css, /\.github-footer-link:hover::after,.github-footer-link:focus-visible::after/);
 });
+
+test("core controls keep 44px targets on every viewport and pointer type", async () => {
+  const css = await source("app/globals.css");
+  const touchStart = css.indexOf("포인터 종류와 화면 폭에 관계없이");
+  const globalTouchRules = css.slice(touchStart, css.indexOf("@media (max-width: 780px)", touchStart));
+  for (const selector of [
+    ".play", ".save-card", ".player-controls button", ".map-command-bar button",
+    ".map-type-switch button", ".map-side-drawer header > button",
+    ".trip-point-picker header > button", ".transport-dataset-grid > button",
+    ".day-planner select", ".feedback-box button", ".help-button",
+  ]) assert.match(globalTouchRules, new RegExp(selector.replaceAll(".", "\\.").replaceAll(">", "\\>")));
+  assert.match(globalTouchRules, /min-height: 44px/);
+  assert.match(globalTouchRules, /\.landing-region-map > button::after[\s\S]+inset: -8px/);
+});

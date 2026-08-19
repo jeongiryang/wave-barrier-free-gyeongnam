@@ -1695,6 +1695,29 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
    확보한다. iOS의 작은 입력 글꼴 자동 확대와 노치 영역도 함께 처리한다. */
 .landing-page, .planner-page, .shared-trip-page { max-width: 100%; overflow-x: clip; }
 
+/* 포인터 종류와 화면 폭에 관계없이 핵심 조작은 44px 이상을 유지한다.
+   데스크톱 터치스크린과 확대 화면도 모바일과 같은 접근성 기준을 적용한다. */
+.play, .save-card, .player-controls button,
+.map-side-drawer header > button, .map-roadview-panel header > button,
+.trip-point-picker header > button, .roadview-pick-banner button,
+.kakao-number-marker {
+  width: 44px; min-width: 44px; height: 44px; min-height: 44px;
+}
+.region-preview > a, .day-planner select, .sort-tabs button,
+.feedback-box button, .rich-card button, .rich-empty button,
+.tool-launch-status button, .transport-dataset-grid > button,
+.transport-data-heading button, .map-toolbar .recalculate-button,
+.map-command-bar button, .map-type-switch button,
+.map-poi-results article > button, .help-button, .account-button,
+.shared-error button, .shared-error a {
+  min-height: 44px;
+}
+.map-poi-results article > button { display: flex; align-items: center; }
+.landing-region-map > button, .region-marker, .map-provider-badge button { position: relative; }
+.landing-region-map > button::after, .region-marker::after, .map-provider-badge button::after {
+  content: ""; position: absolute; inset: -8px;
+}
+
 @media (max-width: 780px) {
   .landing-header, .site-header {
     top: calc(8px + env(safe-area-inset-top, 0px));
@@ -1732,10 +1755,6 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   .map-roadview-panel header > button, .trip-point-picker header > button,
   .roadview-pick-banner button, .kakao-number-marker {
     width: 44px; min-width: 44px; height: 44px; min-height: 44px;
-  }
-  .landing-region-map > button, .region-marker, .map-provider-badge button { position: relative; }
-  .landing-region-map > button::after, .region-marker::after, .map-provider-badge button::after {
-    content: ""; position: absolute; inset: -8px;
   }
 }
 
