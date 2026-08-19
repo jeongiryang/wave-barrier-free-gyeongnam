@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { RouteAlternative } from "../../../components/RouteMap";
+import type { RouteAlternative } from "../../routing/types";
 import { transportModes } from "../constants";
 import type { TransportContext, TransportMode } from "../types";
 

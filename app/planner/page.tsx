@@ -9,7 +9,8 @@ import {
   useRef,
   useState,
 } from "react";
-import RouteMap, { type MapPlace, type RouteAlternative, type RoutePoint } from "../../components/RouteMap";
+import RouteMap from "../../components/RouteMap";
+import type { MapPlace, RouteAlternative, RoutePoint } from "../../features/routing/types";
 import { PreferenceControls, useSitePreferences } from "../../components/SitePreferences";
 import SmartSpotImage from "../../components/SmartSpotImage";
 import AccessIcon from "../../components/AccessIcons";

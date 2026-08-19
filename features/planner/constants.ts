@@ -1,5 +1,5 @@
 import type { AccessIconName } from "../../components/AccessIcons";
-import type { RoutePoint } from "../../components/RouteMap";
+import type { RoutePoint } from "../routing/types";
 import type { ApiStatus, TransportMode, TransportProviderState } from "./types";
 
 export const transportStateLabel: Record<TransportProviderState, string> = {

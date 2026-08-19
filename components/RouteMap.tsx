@@ -2,199 +2,26 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { Map as LeafletMap } from "leaflet";
-
-export type RoutePoint = { lat: number; lng: number };
-
-export type RouteAlternative = {
-  id: string;
-  label: string;
-  provider?: string;
-  mode?: "transit" | "walk" | "bicycle" | "car" | "train" | "bus" | "preview";
-  totalTime: number;
-  payment: number | null;
-  totalWalk: number;
-  transfers: number;
-  totalDistance: number;
-  configured: boolean;
-  segments: Array<{ type: "walk" | "bus" | "subway" | "intercity" | "train" | "bicycle" | "car"; name: string; minutes: number }>;
-  geometry: RoutePoint[];
-};
-
-export type MapPlace = { id: string; name: string; image?: string; address?: string; summary?: string; placeUrl?: string; mapX: string; mapY: string; score: number | null };
-export type CrowdSignal = { rate: number; baseYmd?: string; place?: string };
-type KakaoLatLng = { getLat(): number; getLng(): number };
-type KakaoMap = {
-  setBounds(bounds: unknown): void;
-  setCenter(position: unknown): void;
-  getCenter(): KakaoLatLng;
-  panTo(position: unknown): void;
-  setLevel(level: number): void;
-  setMapTypeId(type: unknown): void;
-  addOverlayMapTypeId(type: unknown): void;
-  removeOverlayMapTypeId(type: unknown): void;
-  relayout(): void;
-};
-type KakaoMarker = { setMap(map: KakaoMap | null): void };
-type KakaoPlace = { id: string; place_name: string; address_name: string; road_address_name: string; x: string; y: string; distance: string; place_url: string };
-type KakaoDrawingManager = {
-  cancel(): void;
-  select(type: unknown): void;
-  getOverlays(): Record<string, unknown[]>;
-  remove(overlay: unknown): void;
-  getData(): unknown;
-  addListener(event: string, callback: () => void): void;
-};
-type KakaoSdk = {
-  maps: {
-    load(callback: () => void): void;
-    Map: new (node: HTMLElement, options: Record<string, unknown>) => KakaoMap;
-    LatLng: new (lat: number, lng: number) => KakaoLatLng;
-    LatLngBounds: new () => { extend(position: KakaoLatLng): void };
-    Marker: new (options: Record<string, unknown>) => KakaoMarker;
-    CustomOverlay: new (options: { map: KakaoMap; position: KakaoLatLng; content: HTMLElement; yAnchor?: number; xAnchor?: number }) => { setMap(map: KakaoMap | null): void };
-    Polyline: new (options: Record<string, unknown>) => { setMap(map: KakaoMap): void };
-    Circle: new (options: Record<string, unknown>) => { setMap(map: KakaoMap | null): void };
-    MapTypeId: Record<"ROADMAP" | "SKYVIEW" | "HYBRID" | "TRAFFIC" | "TERRAIN" | "BICYCLE" | "BICYCLE_HYBRID" | "USE_DISTRICT", unknown>;
-    Roadview: new (node: HTMLElement) => { setPanoId(panoId: number, position: KakaoLatLng): void; relayout(): void };
-    RoadviewClient: new () => { getNearestPanoId(position: KakaoLatLng, radius: number, callback: (panoId: number | null) => void): void };
-    services?: {
-      Places: new (map: KakaoMap) => {
-        categorySearch(code: string, callback: (result: KakaoPlace[], status: string) => void, options: Record<string, unknown>): void;
-        keywordSearch(keyword: string, callback: (result: KakaoPlace[], status: string) => void, options: Record<string, unknown>): void;
-      };
-      Status: { OK: string };
-      SortBy: { DISTANCE: unknown };
-    };
-    drawing?: {
-      OverlayType: Record<"POLYLINE" | "CIRCLE" | "POLYGON", unknown>;
-      DrawingManager: new (options: Record<string, unknown>) => KakaoDrawingManager;
-    };
-    event?: { addListener(target: object, event: string, callback: (event: { latLng: KakaoLatLng }) => void): void };
-  };
-};
-
-declare global { interface Window { kakao?: KakaoSdk } }
-
-let kakaoSdkPromise: Promise<void> | null = null;
-
-function escapeHtml(value: string) {
-  return value.replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character] || character);
-}
-
-function safeImageUrl(value?: string) {
-  if (!value) return "";
-  try {
-    const parsed = new URL(value);
-    return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "";
-  } catch { return ""; }
-}
-
-function summarizeMeasurements(value: unknown) {
-  if (!value || typeof value !== "object") return "";
-  const data = value as Record<string, Array<Record<string, unknown>>>;
-  const toPoints = (item: Record<string, unknown>) => Array.isArray(item.points) ? item.points.filter((point): point is { x: number; y: number } => Boolean(point) && typeof point === "object" && Number.isFinite(Number((point as { x?: unknown }).x)) && Number.isFinite(Number((point as { y?: unknown }).y))).map((point) => ({ x: Number(point.x), y: Number(point.y) })) : [];
-  const distance = (points: Array<{ x: number; y: number }>) => points.slice(1).reduce((sum, point, index) => {
-    const previous = points[index];
-    const dLat = (point.y - previous.y) * Math.PI / 180;
-    const dLng = (point.x - previous.x) * Math.PI / 180;
-    const lat1 = previous.y * Math.PI / 180;
-    const lat2 = point.y * Math.PI / 180;
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-    return sum + 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  }, 0);
-  const formatDistance = (meters: number) => meters >= 1000 ? `${(meters / 1000).toFixed(2)}km` : `${Math.round(meters)}m`;
-  const lines = (data.polyline || []).map(toPoints).filter((points) => points.length > 1);
-  if (lines.length) return `거리 ${formatDistance(lines.reduce((sum, points) => sum + distance(points), 0))}`;
-  const circles = data.circle || [];
-  if (circles.length) {
-    const radius = circles.reduce((sum, item) => sum + Number(item.radius || 0), 0);
-    return `반경 ${formatDistance(radius)}`;
-  }
-  const polygons = (data.polygon || []).map(toPoints).filter((points) => points.length > 2);
-  if (polygons.length) {
-    const area = polygons.reduce((total, points) => {
-      const meanLat = points.reduce((sum, point) => sum + point.y, 0) / points.length * Math.PI / 180;
-      const projected = points.map((point) => ({ x: point.x * Math.PI / 180 * 6371000 * Math.cos(meanLat), y: point.y * Math.PI / 180 * 6371000 }));
-      return total + Math.abs(projected.reduce((sum, point, index) => { const next = projected[(index + 1) % projected.length]; return sum + point.x * next.y - next.x * point.y; }, 0)) / 2;
-    }, 0);
-    return area >= 1000000 ? `면적 ${(area / 1000000).toFixed(2)}km²` : `면적 ${Math.round(area).toLocaleString()}m²`;
-  }
-  return "";
-}
-
-function appendKakaoScript(key: string) {
-  if (window.kakao?.maps?.services) return Promise.resolve();
-  if (kakaoSdkPromise) return kakaoSdkPromise;
-
-  kakaoSdkPromise = new Promise<void>((resolve, reject) => {
-    let settled = false;
-    const finish = (error?: Error) => {
-      if (settled) return;
-      settled = true;
-      window.clearTimeout(timeoutId);
-      if (error) reject(error); else resolve();
-    };
-    const timeoutId = window.setTimeout(() => finish(new Error("Kakao SDK load timed out")), 12000);
-    let existing = document.querySelector<HTMLScriptElement>('script[data-wave-kakao="true"]');
-    if (existing && !window.kakao?.maps && (existing.dataset.loaded === "true" || existing.dataset.failed === "true")) {
-      existing.remove();
-      existing = null;
-    }
-    if (existing) {
-      if (existing.dataset.loaded === "true") {
-        finish(window.kakao?.maps ? undefined : new Error("Kakao SDK is unavailable for this domain"));
-        return;
-      }
-      if (existing.dataset.failed === "true") {
-        finish(new Error("Kakao SDK load failed"));
-        return;
-      }
-      existing.addEventListener("load", () => finish(), { once: true });
-      existing.addEventListener("error", () => finish(new Error("Kakao SDK load failed")), { once: true });
-      return;
-    }
-    const script = document.createElement("script");
-    script.dataset.waveKakao = "true";
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&autoload=false&libraries=services,drawing`;
-    script.async = true;
-    script.onload = () => { script.dataset.loaded = "true"; finish(); };
-    script.onerror = () => { script.dataset.failed = "true"; finish(new Error("Kakao SDK load failed")); };
-    document.head.appendChild(script);
-  });
-  void kakaoSdkPromise.catch(() => { kakaoSdkPromise = null; });
-  return kakaoSdkPromise;
-}
-
-const nearbyCategories = [
-  { id: "food", label: "음식점", icon: "🍴", code: "FD6" },
-  { id: "stay", label: "숙박", icon: "🛏", code: "AD5" },
-  { id: "attraction", label: "관광명소", icon: "✦", code: "AT4" },
-  { id: "bus", label: "버스", icon: "▣", keyword: "버스정류장" },
-  { id: "subway", label: "지하철", icon: "▤", code: "SW8" },
-  { id: "parking", label: "주차장", icon: "P", code: "PK6" },
-  { id: "pharmacy", label: "약국", icon: "✚", code: "PM9" },
-  { id: "hospital", label: "병원", icon: "H", code: "HP8" },
-  { id: "bank", label: "은행·ATM", icon: "₩", code: "BK9" },
-  { id: "cafe", label: "카페", icon: "☕", code: "CE7" },
-  { id: "store", label: "편의점", icon: "24", code: "CS2" },
-  { id: "mart", label: "대형마트", icon: "▦", code: "MT1" },
-  { id: "fuel", label: "주유·충전", icon: "⛽", code: "OL7" },
-  { id: "culture", label: "문화시설", icon: "▥", code: "CT1" },
-] as const;
-
-const overlayLayers = [
-  { id: "TRAFFIC", label: "교통정보", icon: "🚦" },
-  { id: "BICYCLE", label: "자전거", icon: "🚲" },
-  { id: "TERRAIN", label: "지형도", icon: "⛰" },
-  { id: "USE_DISTRICT", label: "지적편집도", icon: "◇" },
-] as const;
-
-function describeCrowd(rate: number) {
-  if (rate < 25) return { level: "low", label: "여유", color: "#18a974", soft: "rgba(24,169,116,.2)", radius: 950, message: "비교적 한적해 여유로운 관람이 예상돼요." };
-  if (rate < 50) return { level: "moderate", label: "보통", color: "#e5a11a", soft: "rgba(229,161,26,.21)", radius: 1350, message: "일반적인 방문 흐름입니다. 인기 시간대만 확인해 주세요." };
-  if (rate < 75) return { level: "busy", label: "붐빔", color: "#ee6b3b", soft: "rgba(238,107,59,.22)", radius: 1850, message: "방문객이 몰릴 수 있어 이른 시간 방문을 권해요." };
-  return { level: "very-busy", label: "매우 붐빔", color: "#d93d55", soft: "rgba(217,61,85,.23)", radius: 2400, message: "혼잡이 예상됩니다. 주변 대체 장소나 시간 변경을 권해요." };
-}
+import { nearbyCategories, overlayLayers } from "../features/routing/constants";
+import { exportRouteImage } from "../features/routing/export-route-image";
+import {
+  loadKakaoSdk,
+  type KakaoDrawingManager,
+  type KakaoMap,
+  type KakaoMarker,
+  type KakaoPlace,
+} from "../features/routing/kakao-sdk";
+import { describeCrowd, escapeMapHtml, safeMapImageUrl, summarizeMeasurements } from "../features/routing/map-utils";
+import type {
+  CrowdSignal,
+  MapPickMode,
+  MapPlace,
+  MapProvider,
+  MapToolPanel,
+  MeasurementMode,
+  RouteAlternative,
+  RoutePoint,
+} from "../features/routing/types";
 
 export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, onOriginChange, onDestinationChange }: { origin: RoutePoint; places: MapPlace[]; route: RouteAlternative | null; crowd?: CrowdSignal | null; crowdPlaceId?: string; onOriginChange?: (point: RoutePoint, label: string) => void; onDestinationChange?: (place: MapPlace) => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -203,16 +30,16 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
   const kakaoMapRef = useRef<KakaoMap | null>(null);
   const drawingManagerRef = useRef<KakaoDrawingManager | null>(null);
   const categoryMarkersRef = useRef<KakaoMarker[]>([]);
-  const [provider, setProvider] = useState<"kakao" | "osm" | "loading">("loading");
+  const [provider, setProvider] = useState<MapProvider>("loading");
   const [providerDetail, setProviderDetail] = useState("카카오 지도를 연결하고 있습니다.");
   const [retryNonce, setRetryNonce] = useState(0);
   const [baseMap, setBaseMap] = useState<"roadmap" | "skyview">("roadmap");
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
   const shellRef = useRef<HTMLDivElement>(null);
-  const [toolPanel, setToolPanel] = useState<"nearby" | "layers" | "export" | "route" | "place" | null>(null);
+  const [toolPanel, setToolPanel] = useState<MapToolPanel>(null);
   const [expanded, setExpanded] = useState(false);
-  const [pickMode, setPickMode] = useState<"origin" | "destination" | null>(null);
-  const pickModeRef = useRef<"origin" | "destination" | null>(null);
+  const [pickMode, setPickMode] = useState<MapPickMode>(null);
+  const pickModeRef = useRef<MapPickMode>(null);
   const onOriginChangeRef = useRef(onOriginChange);
   const onDestinationChangeRef = useRef(onDestinationChange);
   const [selectedMapPlace, setSelectedMapPlace] = useState<MapPlace | null>(places[0] || null);
@@ -224,7 +51,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
   const [roadviewSelectMode, setRoadviewSelectMode] = useState(false);
   const roadviewSelectModeRef = useRef(false);
   const [roadviewPreviewOpen, setRoadviewPreviewOpen] = useState(false);
-  const [measureMode, setMeasureMode] = useState<"POLYLINE" | "CIRCLE" | "POLYGON" | null>(null);
+  const [measureMode, setMeasureMode] = useState<MeasurementMode | null>(null);
   const [measureSummary, setMeasureSummary] = useState("");
   const crowdVisual = useMemo(() => crowd && Number.isFinite(crowd.rate) ? describeCrowd(crowd.rate) : null, [crowd]);
   const crowdPlace = useMemo(() => crowdVisual ? (places.find((place) => place.id === crowdPlaceId) || places.find((place) => place.name === crowd?.place) || places[0]) : undefined, [crowd?.place, crowdPlaceId, crowdVisual, places]);
@@ -368,7 +195,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
     });
   }
 
-  function selectMeasure(mode: "POLYLINE" | "CIRCLE" | "POLYGON") {
+  function selectMeasure(mode: MeasurementMode) {
     const sdk = window.kakao?.maps;
     const manager = drawingManagerRef.current;
     if (!manager || !sdk?.drawing) return;
@@ -399,91 +226,6 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
       }));
       setProviderDetail("현재 여행 경로를 이 기기에 저장했습니다.");
     } catch { setProviderDetail("브라우저 저장 공간을 사용할 수 없습니다."); }
-  }
-
-  function exportRouteImage(format: "png" | "jpeg") {
-    const validPlaces = places.filter((place) => Number.isFinite(Number(place.mapX)) && Number.isFinite(Number(place.mapY)));
-    const geometry = route?.geometry?.length
-      ? route.geometry
-      : [{ lat: origin.lat, lng: origin.lng }, ...validPlaces.map((place) => ({ lat: Number(place.mapY), lng: Number(place.mapX) }))];
-    const points = geometry.length > 1 ? geometry : [{ lat: origin.lat, lng: origin.lng }, { lat: origin.lat + .02, lng: origin.lng + .02 }];
-    const canvas = document.createElement("canvas");
-    canvas.width = 1600;
-    canvas.height = 1000;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    const dark = format === "jpeg" ? "#f7fcfe" : "#e6f4fb";
-    context.fillStyle = dark;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, "rgba(23,105,255,.16)");
-    gradient.addColorStop(.55, "rgba(128,232,199,.12)");
-    gradient.addColorStop(1, "rgba(7,31,53,.04)");
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.strokeStyle = "rgba(48,92,121,.11)";
-    context.lineWidth = 1;
-    for (let x = 80; x < canvas.width; x += 80) { context.beginPath(); context.moveTo(x, 150); context.lineTo(x, 900); context.stroke(); }
-    for (let y = 180; y < 900; y += 80) { context.beginPath(); context.moveTo(80, y); context.lineTo(1520, y); context.stroke(); }
-
-    const allPoints = [...points, ...validPlaces.map((place) => ({ lat: Number(place.mapY), lng: Number(place.mapX) }))];
-    const minLat = Math.min(...allPoints.map((point) => point.lat));
-    const maxLat = Math.max(...allPoints.map((point) => point.lat));
-    const minLng = Math.min(...allPoints.map((point) => point.lng));
-    const maxLng = Math.max(...allPoints.map((point) => point.lng));
-    const latSpan = Math.max(maxLat - minLat, .008);
-    const lngSpan = Math.max(maxLng - minLng, .008);
-    const project = (point: RoutePoint) => ({
-      x: 140 + ((point.lng - minLng) / lngSpan) * 1320,
-      y: 210 + (1 - (point.lat - minLat) / latSpan) * 610,
-    });
-    context.lineCap = "round";
-    context.lineJoin = "round";
-    context.strokeStyle = "rgba(7,31,53,.18)";
-    context.lineWidth = 20;
-    context.beginPath();
-    points.forEach((point, index) => { const p = project(point); if (index) context.lineTo(p.x, p.y); else context.moveTo(p.x, p.y); });
-    context.stroke();
-    context.strokeStyle = "#0a6baf";
-    context.lineWidth = 11;
-    context.beginPath();
-    points.forEach((point, index) => { const p = project(point); if (index) context.lineTo(p.x, p.y); else context.moveTo(p.x, p.y); });
-    context.stroke();
-
-    const drawPin = (point: RoutePoint, label: string, rank: string, primary = false) => {
-      const p = project(point);
-      context.beginPath(); context.arc(p.x, p.y, primary ? 28 : 24, 0, Math.PI * 2);
-      context.fillStyle = primary ? "#06304a" : "#0a6baf"; context.fill();
-      context.lineWidth = 8; context.strokeStyle = "#ffffff"; context.stroke();
-      context.fillStyle = "#ffffff"; context.font = "800 22px system-ui, sans-serif"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(rank, p.x, p.y + 1);
-      const width = Math.min(340, Math.max(150, context.measureText(label).width + 42));
-      const boxX = Math.min(1510 - width, Math.max(90, p.x - width / 2));
-      const boxY = p.y < 300 ? p.y + 42 : p.y - 76;
-      context.fillStyle = "rgba(255,255,255,.96)"; context.beginPath(); context.roundRect(boxX, boxY, width, 43, 13); context.fill();
-      context.fillStyle = "#0f4f70"; context.font = "750 18px system-ui, sans-serif"; context.fillText(label, boxX + width / 2, boxY + 22);
-    };
-    drawPin({ lat: origin.lat, lng: origin.lng }, "출발지", "S", true);
-    validPlaces.slice(0, 6).forEach((place, index) => drawPin({ lat: Number(place.mapY), lng: Number(place.mapX) }, place.name, String(index + 1)));
-
-    context.textAlign = "left"; context.textBaseline = "alphabetic";
-    context.fillStyle = "#0a6baf"; context.font = "900 22px system-ui, sans-serif"; context.fillText("W.A.V.E ROUTE MAP", 86, 70);
-    context.fillStyle = "#06304a"; context.font = "850 46px system-ui, sans-serif"; context.fillText("경남 무장애 여행 경로", 86, 124);
-    context.fillStyle = "#52788c"; context.font = "650 20px system-ui, sans-serif";
-    const summary = [route?.label || "추천 경로", route?.totalTime ? `${route.totalTime}분` : null, route?.totalDistance ? `${(route.totalDistance / 1000).toFixed(1)}km` : null].filter(Boolean).join(" · ");
-    context.fillText(summary, 86, 160);
-    context.fillStyle = "rgba(7,31,53,.82)"; context.fillRect(80, 884, 1440, 70);
-    context.fillStyle = "#ffffff"; context.font = "700 18px system-ui, sans-serif"; context.fillText(`${validPlaces.length}개 여행지 · ${route?.provider || "W.A.V.E 추천 경로"}`, 112, 927);
-    context.textAlign = "right"; context.fillStyle = "#bcd9e8"; context.font = "600 16px system-ui, sans-serif"; context.fillText("지도 배경 미포함 · 경로와 장소를 시각화한 공유용 이미지", 1480, 927);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `wave-route-map.${format === "jpeg" ? "jpg" : "png"}`;
-      anchor.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }, `image/${format}`, .94);
-    setProviderDetail(`${format === "jpeg" ? "JPG" : "PNG"} 경로 지도를 저장했습니다.`);
   }
 
   async function shareRoute() {
@@ -543,7 +285,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
 
       if (key && containerRef.current) {
         try {
-          await appendKakaoScript(key);
+          await loadKakaoSdk(key);
           if (cancelled || !containerRef.current) return;
           if (!window.kakao?.maps) throw new Error("Kakao SDK is unavailable for this domain");
           await new Promise<void>((resolve, reject) => {
@@ -599,7 +341,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
             if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
             const position = new K.LatLng(lat, lng);
             bounds.extend(position);
-            const image = safeImageUrl(place.image);
+            const image = safeMapImageUrl(place.image);
             const marker = document.createElement("button");
             marker.type = "button";
             const isCrowdPlace = Boolean(crowdVisual && crowdPlace?.id === place.id);
@@ -683,14 +425,14 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
       places.forEach((place, index) => {
         const lat = Number(place.mapY); const lng = Number(place.mapX);
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-        const image = safeImageUrl(place.image);
+        const image = safeMapImageUrl(place.image);
         const markerHtml = image
-          ? `<span class="photo-pin" style="background-image:url('${escapeHtml(image)}')"><b>${index + 1}</b></span>`
+          ? `<span class="photo-pin" style="background-image:url('${escapeMapHtml(image)}')"><b>${index + 1}</b></span>`
           : `<span class="number-pin">${index + 1}</span>`;
         const isCrowdPlace = Boolean(crowdVisual && crowdPlace?.id === place.id);
         const icon = L.divIcon({ className: `wave-map-icon place${image ? " has-photo" : ""}${isCrowdPlace ? ` crowd-aware crowd-${crowdVisual?.level}` : ""}`, html: markerHtml, iconSize: image ? [84, 92] : [44, 44], iconAnchor: image ? [42, 86] : [22, 22], popupAnchor: image ? [0, -78] : [0, -24] });
         const evidenceLabel = place.score === null ? "접근성 근거 확인 필요" : `편의조건 일치 ${place.score}%`;
-        L.marker([lat, lng], { icon, title: place.name }).addTo(map).bindPopup(`<strong>${escapeHtml(place.name)}</strong><br>${evidenceLabel}`).on("click", () => choosePlace(place));
+        L.marker([lat, lng], { icon, title: place.name }).addTo(map).bindPopup(`<strong>${escapeMapHtml(place.name)}</strong><br>${evidenceLabel}`).on("click", () => choosePlace(place));
         if (isCrowdPlace && crowdVisual) L.circle([lat, lng], { radius: crowdVisual.radius, color: crowdVisual.color, weight: 3, opacity: .78, dashArray: "7 8", fillColor: crowdVisual.color, fillOpacity: .13 }).addTo(map);
         bounds.push([lat, lng]);
       });
@@ -732,7 +474,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
 
     {roadviewSelectMode && <div className="roadview-pick-banner" role="status"><div><strong>로드뷰 위치 선택</strong><span>지도에서 확인할 도로나 장소를 클릭하세요.</span></div><button type="button" onClick={() => { setRoadviewSelectMode(false); setProviderDetail("로드뷰 위치 선택을 취소했습니다."); }} aria-label="로드뷰 위치 선택 취소">×</button></div>}
     {roadviewPreviewOpen && !roadviewSelectMode && !roadviewOpen && provider === "kakao" && <aside className="roadview-hover-preview" aria-label="로드뷰 위치 선택 미리보기">
-      {safeImageUrl(selectedMapPlace?.image || places[0]?.image) && <div style={{ backgroundImage: `url("${safeImageUrl(selectedMapPlace?.image || places[0]?.image).replace(/["\\]/g, "")}")` }} />}
+      {safeMapImageUrl(selectedMapPlace?.image || places[0]?.image) && <div style={{ backgroundImage: `url("${safeMapImageUrl(selectedMapPlace?.image || places[0]?.image).replace(/["\\]/g, "")}")` }} />}
       <small>관광사진 미리보기</small><strong>{selectedMapPlace?.name || places[0]?.name || "지도에서 위치 선택"}</strong><span>버튼을 누른 뒤 지도에서 로드뷰 위치를 선택합니다.</span>
     </aside>}
 
@@ -763,7 +505,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
 
     {toolPanel === "place" && selectedMapPlace && <section className="map-tool-panel map-side-drawer map-place-panel" aria-label={`${selectedMapPlace.name} 상세 정보`}>
       <header><div><strong>관광지 정보</strong><span>마커를 누르면 바로 확인</span></div><button type="button" onClick={() => setToolPanel(null)} aria-label="관광지 정보 닫기">×</button></header>
-      {safeImageUrl(selectedMapPlace.image) && <div className="map-place-photo" style={{ backgroundImage: `url("${safeImageUrl(selectedMapPlace.image)?.replace(/["\\]/g, "")}")` }} />}
+      {safeMapImageUrl(selectedMapPlace.image) && <div className="map-place-photo" style={{ backgroundImage: `url("${safeMapImageUrl(selectedMapPlace.image)?.replace(/["\\]/g, "")}")` }} />}
       <div className="map-place-copy"><small>{selectedMapPlace.address || "경상남도 관광지"}</small><h3>{selectedMapPlace.name}</h3>{selectedMapPlace.summary && <p>{selectedMapPlace.summary}</p>}</div>
       {selectedMapPlace.score !== null ? <div className="map-place-rating"><strong>{selectedMapPlace.score}%</strong><span>선택한 편의조건 중 공식 데이터 일치율</span></div> : <div className="map-place-rating unavailable"><strong>판단 보류</strong><span>공식 편의정보가 없어 숫자로 평가하지 않습니다.</span></div>}
       <div className="map-place-actions">
@@ -798,8 +540,8 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
       <div className="map-export-preview"><span>W.A.V.E</span><strong>여행 경로 지도</strong><small>1600 × 1000px</small></div>
       <p>브라우저 보안과 지도 저작권을 지키기 위해 카카오 배경 타일은 제외하고, 현재 경로와 장소를 읽기 쉬운 공유용 지도 이미지로 만듭니다.</p>
       <div className="map-export-actions">
-        <button type="button" onClick={() => exportRouteImage("png")}><i>PNG</i>투명도 없는 선명한 이미지</button>
-        <button type="button" onClick={() => exportRouteImage("jpeg")}><i>JPG</i>용량이 작은 공유용 이미지</button>
+        <button type="button" onClick={() => { if (exportRouteImage({ origin, places, route, format: "png" })) setProviderDetail("PNG 경로 지도를 저장했습니다."); }}><i>PNG</i>투명도 없는 선명한 이미지</button>
+        <button type="button" onClick={() => { if (exportRouteImage({ origin, places, route, format: "jpeg" })) setProviderDetail("JPG 경로 지도를 저장했습니다."); }}><i>JPG</i>용량이 작은 공유용 이미지</button>
       </div>
       <button type="button" className="map-share-wide" onClick={() => void shareRoute()}>현재 경로 공유하기 ↗</button>
     </section>}

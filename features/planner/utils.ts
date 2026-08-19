@@ -1,4 +1,4 @@
-import type { RouteAlternative } from "../../components/RouteMap";
+import type { RouteAlternative } from "../routing/types";
 
 export function localDate(offset = 0) {
   const date = new Date();
