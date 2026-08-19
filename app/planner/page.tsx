@@ -17,6 +17,11 @@ import HelpCenter from "../../components/HelpCenter";
 import GithubFooterLink from "../../components/GithubFooterLink";
 import AccountMenu from "../../components/AccountMenu";
 import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
+import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
+import { useLocationSearch } from "../../features/planner/hooks/useLocationSearch";
+import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
+import { useRouteView } from "../../features/planner/hooks/useRouteView";
+import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
 import {
   departurePresets,
   officialBookingLinks,
@@ -29,7 +34,6 @@ import {
   transportModes,
   transportStateLabel,
 } from "../../features/planner/constants";
-import { optimizeVisitOrder, explainVisitOrder } from "../../features/planner/optimization/visit-order.js";
 import { optionalPlannerJson, plannerJson } from "../../features/planner/services/api";
 import type {
   EnrichmentData,
@@ -37,14 +41,12 @@ import type {
   Place,
   PlanData,
   RichSpot,
-  SearchPlace,
   TransportContext,
-  TransportMode,
   TransportProvider,
   TransportProviderState,
   WeatherData,
 } from "../../features/planner/types";
-import { dateRange, formatTime, localDate, routeModeLabel } from "../../features/planner/utils";
+import { formatTime, localDate, routeModeLabel } from "../../features/planner/utils";
 import { assessTripImpact } from "../../lib/trip-impact.js";
 
 export default function PlannerPage() {
@@ -57,27 +59,12 @@ export default function PlannerPage() {
   const [planError, setPlanError] = useState("");
   const [notice, setNotice] = useState("조건을 바꾸면 실시간 관광 데이터가 자동으로 갱신됩니다.");
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const [saved, setSaved] = useState<string[]>([]);
-  const [travelStart, setTravelStart] = useState(localDate());
-  const [travelEnd, setTravelEnd] = useState(localDate(1));
-  const [scheduleAssignments, setScheduleAssignments] = useState<Record<string, string>>({});
-  const [headerHidden, setHeaderHidden] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [transcriptOpen, setTranscriptOpen] = useState(false);
-  const [playing, setPlaying] = useState(false);
-  const [audioProgress, setAudioProgress] = useState(0);
-  const [audioTime, setAudioTime] = useState(0);
-  const [audioDuration, setAudioDuration] = useState(0);
   const [origin, setOrigin] = useState<RoutePoint>(departurePresets[0].point);
   const [originLabel, setOriginLabel] = useState(departurePresets[0].name);
   const [privateOrigin, setPrivateOrigin] = useState(false);
   const [routeAlternatives, setRouteAlternatives] = useState<RouteAlternative[]>([]);
   const [routeDestination, setRouteDestination] = useState<Place | null>(null);
   const [destinationCrowd, setDestinationCrowd] = useState<{ rate: number; baseYmd: string; place: string } | null>(null);
-  const [activeRouteId, setActiveRouteId] = useState("");
-  const [routeSort, setRouteSort] = useState<"time" | "fare" | "transfer" | "walk">("time");
-  const [transportMode, setTransportMode] = useState<TransportMode>("all");
-  const [selectedTransportDataset, setSelectedTransportDataset] = useState("bus-arrival");
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeNotice, setRouteNotice] = useState("여행지를 찾으면 출발지부터의 이동 경로를 비교합니다.");
   const [transportProviders, setTransportProviders] = useState<TransportProvider[]>([]);
@@ -94,23 +81,36 @@ export default function PlannerPage() {
   const [richMode, setRichMode] = useState<"events" | "lodging" | "camping" | "pet" | "wellness" | "medical" | "water" | "language" | "awards" | "rests">("events");
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
-  const [pointPicker, setPointPicker] = useState<"origin" | "destination" | null>(null);
-  const [placeQuery, setPlaceQuery] = useState("");
-  const [placeSearchResults, setPlaceSearchResults] = useState<SearchPlace[]>([]);
-  const [placeSearchLoading, setPlaceSearchLoading] = useState(false);
   const cardsRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
   const placeDialogRef = useRef<HTMLElement>(null);
   const planRequestRef = useRef<AbortController | null>(null);
   const routeRequestRef = useRef<AbortController | null>(null);
   const enrichmentRequestRef = useRef<AbortController | null>(null);
-  const searchRequestRef = useRef<AbortController | null>(null);
 
   const activeProfiles = useMemo(
     () => profiles.filter((profile) => selected.includes(profile.id)),
     [selected],
   );
   const activePlaces = useMemo(() => plan?.places ?? [], [plan]);
+  const { headerHidden, scrolled } = usePlannerChrome(plan);
+  const {
+    audioRef, transcriptOpen, playing, audioProgress, audioTime, audioDuration,
+    toggleTranscript, toggleAudio, seekAudio, handleLoadedMetadata, handleTimeUpdate,
+    handlePlay, handlePause, resetAudio,
+  } = useAudioGuide(plan?.audio);
+  const {
+    pointPicker, setPointPicker, placeQuery, setPlaceQuery, placeSearchResults,
+    placeSearchLoading, searchLocations, clearLocationSearch, searchableToPlace,
+  } = useLocationSearch(region);
+  const {
+    saved, travelStart, travelEnd, scheduleAssignments, tripDays, orderedSavedPlaces,
+    orderExplanation, changeTravelStart, setTravelEnd, assignPlaceToDay, toggleSaved,
+  } = useTripSelection({ activePlaces, origin, accessibilityProfileCount: selected.length });
+  const {
+    setActiveRouteId, routeSort, setRouteSort, transportMode,
+    setTransportMode, selectedTransportDataset, setSelectedTransportDataset,
+    sortedRouteAlternatives, activeRoute, selectedDataset, activeTransportMode,
+  } = useRouteView(routeAlternatives, transportContext);
   const activeStops = plan?.stops ?? [];
   const statuses = plan ? [...plan.statuses, ...(enrichment?.statuses || [])] : readyStatuses;
   const liveCount = statuses.filter((status) => status.state === "live").length;
@@ -139,23 +139,6 @@ export default function PlannerPage() {
   // 경로 계산 뒤에는 실제 응답이, 그전에는 인증키 기준 상태가 쓰인다.
   const effectiveProviders = transportProviders.length ? transportProviders : fallbackProviders;
 
-  const filteredRouteAlternatives = useMemo(() => routeAlternatives.filter((route) => {
-    if (transportMode === "all") return true;
-    if (transportMode === "car") return route.mode === "car";
-    if (transportMode === "rail") return route.mode === "train" || /KORAIL|철도|열차/i.test(`${route.provider} ${route.label}`);
-    if (transportMode === "bus") return route.mode === "bus" || route.mode === "transit";
-    if (transportMode === "regional") return route.mode === "train" || /고속|시외/i.test(route.label);
-    return route.mode === "walk" || route.mode === "bicycle";
-  }), [routeAlternatives, transportMode]);
-  const sortedRouteAlternatives = useMemo(() => [...filteredRouteAlternatives].sort((a, b) => {
-    if (routeSort === "fare") return (a.payment ?? Number.MAX_SAFE_INTEGER) - (b.payment ?? Number.MAX_SAFE_INTEGER);
-    if (routeSort === "transfer") return a.transfers - b.transfers || a.totalTime - b.totalTime;
-    if (routeSort === "walk") return a.totalWalk - b.totalWalk || a.totalTime - b.totalTime;
-    return a.totalTime - b.totalTime;
-  }), [filteredRouteAlternatives, routeSort]);
-  const activeRoute = sortedRouteAlternatives.find((item) => item.id === activeRouteId) ?? sortedRouteAlternatives[0] ?? null;
-  const selectedDataset = transportContext?.datasets.find((item) => item.id === selectedTransportDataset) ?? null;
-  const activeTransportMode = transportModes.find((item) => item.id === transportMode) ?? transportModes[0];
   const providerErrors = transportProviders.filter((item) => item.state === "error").length;
   const dataErrors = statuses.filter((status) => status.state === "error").length;
   const richItems = enrichment?.[richMode] ?? [];
@@ -163,13 +146,6 @@ export default function PlannerPage() {
     .sort(([, a], [, b]) => b - a)
     .slice(0, 4);
   const demandMax = Math.max(...(enrichment?.demand.map((item) => item.value) ?? [0]), 1);
-  const tripDays = useMemo(() => dateRange(travelStart, travelEnd), [travelEnd, travelStart]);
-  const savedPlaces = useMemo(() => activePlaces.filter((place) => saved.includes(place.id)), [activePlaces, saved]);
-  const orderedSavedPlaces = useMemo(
-    () => optimizeVisitOrder(savedPlaces, { origin, accessibilityWeight: selected.length ? 0.12 : 0 }),
-    [origin, savedPlaces, selected.length],
-  );
-  const orderExplanation = useMemo(() => explainVisitOrder(orderedSavedPlaces, origin), [orderedSavedPlaces, origin]);
   const travelWeather = weather?.days.find((day) => day.date === travelStart) ?? null;
   const currentWeather = weather?.current;
   const impactDestination = routeDestination ?? activePlaces[0] ?? null;
@@ -196,17 +172,9 @@ export default function PlannerPage() {
     const frame = window.requestAnimationFrame(() => {
       const queryRegion = new URLSearchParams(window.location.search).get("region");
       if (queryRegion && regions.includes(queryRegion)) setRegion(queryRegion);
-      const storedSaved = window.localStorage.getItem("wave-saved-places");
-      if (storedSaved) {
-        try { setSaved(JSON.parse(storedSaved) as string[]); } catch { /* ignore invalid device data */ }
-      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem("wave-saved-places", JSON.stringify(saved));
-  }, [saved]);
 
   useEffect(() => {
     if (!selectedPlace) return;
@@ -232,49 +200,6 @@ export default function PlannerPage() {
       previousFocus?.focus();
     };
   }, [selectedPlace]);
-
-  useEffect(() => {
-    let lastY = window.scrollY;
-    let ticking = false;
-    const update = () => {
-      const y = window.scrollY;
-      const max = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
-      document.documentElement.style.setProperty("--scroll-progress", `${Math.min((y / max) * 100, 100)}%`);
-      document.documentElement.style.setProperty("--scroll-shift", `${Math.min(y, 900)}px`);
-      setScrolled(y > 24);
-      if (y > lastY + 9 && y > 130) setHeaderHidden(true);
-      if (y < lastY - 9 || y < 80) setHeaderHidden(false);
-      lastY = y;
-      ticking = false;
-    };
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        window.requestAnimationFrame(update);
-      }
-    };
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const nodes = document.querySelectorAll<HTMLElement>("[data-reveal]");
-    if (reduced) {
-      nodes.forEach((node) => node.classList.add("is-visible"));
-      return;
-    }
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        const node = entry.target as HTMLElement;
-        if (entry.isIntersecting) node.classList.add("is-visible");
-        else if (entry.boundingClientRect.top > 0) node.classList.remove("is-visible");
-      });
-    }, { threshold: 0.14, rootMargin: "0px 0px -7%" });
-    nodes.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
-  }, [plan]);
 
   function toggleProfile(id: string) {
     setSelected((current) => current.includes(id)
@@ -377,30 +302,6 @@ export default function PlannerPage() {
     return () => { cancelled = true; window.cancelAnimationFrame(frame); };
   }, [region]);
 
-  async function searchLocations() {
-    if (placeQuery.trim().length < 2) return;
-    searchRequestRef.current?.abort();
-    const controller = new AbortController();
-    searchRequestRef.current = controller;
-    setPlaceSearchLoading(true);
-    try {
-      const data = await optionalPlannerJson<{ places?: SearchPlace[] }>(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}`, { signal: controller.signal });
-      if (controller.signal.aborted || searchRequestRef.current !== controller) return;
-      setPlaceSearchResults(data?.places || []);
-    } catch {
-      if (!controller.signal.aborted && searchRequestRef.current === controller) setPlaceSearchResults([]);
-    } finally {
-      if (searchRequestRef.current === controller) {
-        searchRequestRef.current = null;
-        setPlaceSearchLoading(false);
-      }
-    }
-  }
-
-  function searchableToPlace(item: SearchPlace): Place {
-    return { id: item.id || `${item.name}-${item.mapX}`, contentTypeId: "12", city: region, name: item.name, address: item.address, summary: item.category || "사용자가 직접 검색한 장소입니다.", image: "", mapX: item.mapX, mapY: item.mapY, score: null, features: [], details: ["카카오 장소 검색 결과를 기준으로 경로를 계산합니다."], source: "사용자 장소 검색" };
-  }
-
   function choosePoint(place: Place, mode = pointPicker) {
     if (mode === "origin") {
       const next = { lat: Number(place.mapY), lng: Number(place.mapX) };
@@ -408,7 +309,7 @@ export default function PlannerPage() {
       setOrigin(next); setOriginLabel(place.name); setPrivateOrigin(false);
       if (routeDestination || activePlaces[0]) void loadRoutes(routeDestination || activePlaces[0], next, false);
     } else if (mode === "destination") void loadRoutes(place, origin, privateOrigin);
-    setPointPicker(null); setPlaceQuery(""); setPlaceSearchResults([]);
+    clearLocationSearch();
   }
 
   function routeFromRichSpot(spot: RichSpot) {
@@ -517,10 +418,7 @@ export default function PlannerPage() {
       });
       const data = await plannerJson<PlanData>(`/api/wave?${params.toString()}`, { signal: controller.signal });
       if (controller.signal.aborted) return;
-      setPlaying(false);
-      setAudioProgress(0);
-      setAudioTime(0);
-      setAudioDuration(0);
+      resetAudio();
       setPlan(data);
       if (data.places[0]) void loadRoutes(data.places[0]);
       const available = data.statuses.filter((status) => status.state === "live").length;
@@ -557,32 +455,10 @@ export default function PlannerPage() {
     planRequestRef.current?.abort();
     routeRequestRef.current?.abort();
     enrichmentRequestRef.current?.abort();
-    searchRequestRef.current?.abort();
   }, []);
 
   function scrollCards(direction: number) {
     cardsRef.current?.scrollBy({ left: direction * Math.min(window.innerWidth * 0.78, 480), behavior: "smooth" });
-  }
-
-  function toggleSaved(id: string) {
-    setSaved((current) => {
-      if (current.includes(id)) {
-        setScheduleAssignments((assignments) => { const next = { ...assignments }; delete next[id]; return next; });
-        return current.filter((item) => item !== id);
-      }
-      setScheduleAssignments((assignments) => ({ ...assignments, [id]: assignments[id] || tripDays[0] || travelStart }));
-      return [...current, id];
-    });
-  }
-
-  async function toggleAudio() {
-    const audio = audioRef.current;
-    if (!audio || !plan?.audio?.audioUrl) {
-      setTranscriptOpen(true);
-      return;
-    }
-    if (audio.paused) await audio.play();
-    else audio.pause();
   }
 
   const activeTheme = themes.find((item) => item.id === theme)?.label ?? "자연·휴양";
@@ -665,9 +541,7 @@ export default function PlannerPage() {
             <span className="step-label"><b>04</b> 언제 떠날까요?</span>
             <div className="date-range-fields">
               <label><span>출발일</span><input type="date" min={localDate()} value={travelStart} onChange={(event) => {
-                const next = event.target.value;
-                setTravelStart(next);
-                if (travelEnd < next) setTravelEnd(next);
+                changeTravelStart(event.target.value);
               }} /></label>
               <i aria-hidden="true">→</i>
               <label><span>도착일</span><input type="date" min={travelStart} value={travelEnd} onChange={(event) => setTravelEnd(event.target.value)} /></label>
@@ -741,7 +615,7 @@ export default function PlannerPage() {
           <header><div><span>나의 여행 일정</span><h3>이동 부담을 줄이는 순서로 정리했어요.</h3></div><p>{orderExplanation} 장소 선택은 공유하기 전까지 이 기기에만 저장됩니다.</p></header>
           <div className="day-planner-grid">{tripDays.map((day, dayIndex) => <article key={day}>
             <div><small>DAY {String(dayIndex + 1).padStart(2, "0")}</small><strong>{new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" }).format(new Date(`${day}T12:00:00`))}</strong></div>
-            <ol>{orderedSavedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === day).map((place, index) => <li key={place.id}><span>{index + 1}</span><div><b>{place.name}</b><small>{place.address || place.city}</small></div><select aria-label={`${place.name} 여행 날짜`} value={scheduleAssignments[place.id] || tripDays[0]} onChange={(event) => setScheduleAssignments((current) => ({ ...current, [place.id]: event.target.value }))}>{tripDays.map((date, dateIndex) => <option key={date} value={date}>DAY {dateIndex + 1}</option>)}</select></li>)}</ol>
+            <ol>{orderedSavedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === day).map((place, index) => <li key={place.id}><span>{index + 1}</span><div><b>{place.name}</b><small>{place.address || place.city}</small></div><select aria-label={`${place.name} 여행 날짜`} value={scheduleAssignments[place.id] || tripDays[0]} onChange={(event) => assignPlaceToDay(place.id, event.target.value)}>{tripDays.map((date, dateIndex) => <option key={date} value={date}>DAY {dateIndex + 1}</option>)}</select></li>)}</ol>
             {!orderedSavedPlaces.some((place) => (scheduleAssignments[place.id] || tripDays[0]) === day) && <p>보관한 장소의 날짜를 이 날로 바꿔 추가하세요.</p>}
           </article>)}</div>
         </section>}
@@ -950,11 +824,11 @@ export default function PlannerPage() {
           <aside className="guide-player" aria-label="관광지 오디오 해설">
             <div className="guide-top"><span>여행지 음성 해설</span><b>{plan?.audio ? "재생 가능" : "준비 중"}</b></div>
             <div className="guide-art"><span className={playing ? "sound playing" : "sound"}><i /><i /><i /><i /><i /></span><strong>{plan?.audio?.audioTitle || "여행지 이야기를\n음성과 대본으로"}</strong><small>{plan?.audio ? "실제 오디 해설 데이터" : "해설이 있는 관광지를 선택하면 연결됩니다."}</small></div>
-            <audio ref={audioRef} src={plan?.audio?.audioUrl || undefined} onLoadedMetadata={(event) => setAudioDuration(event.currentTarget.duration || 0)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} onTimeUpdate={(event) => { const audio = event.currentTarget; setAudioTime(audio.currentTime); setAudioProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0); }} />
+            <audio ref={audioRef} src={plan?.audio?.audioUrl || undefined} onLoadedMetadata={handleLoadedMetadata} onPlay={handlePlay} onPause={handlePause} onEnded={handlePause} onTimeUpdate={handleTimeUpdate} />
             <div className="player-progress"><span style={{ width: `${audioProgress}%` }} /><i style={{ left: `${audioProgress}%` }} /></div>
             <div className="player-time"><span>{formatTime(audioTime)}</span><span>{formatTime(Number(plan?.audio?.playTime || audioDuration || 0))}</span></div>
-            <div className="player-controls"><button type="button" aria-label="15초 뒤로" onClick={() => { if (audioRef.current) audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 15); }}>↶</button><button className="play-main" type="button" onClick={toggleAudio} aria-label={playing ? "일시정지" : "재생"}>{playing ? "Ⅱ" : "▶"}</button><button type="button" aria-label="15초 앞으로" onClick={() => { if (audioRef.current) audioRef.current.currentTime += 15; }}>↷</button></div>
-            <button className="transcript-button" type="button" onClick={() => setTranscriptOpen((value) => !value)}>전체 대본 {transcriptOpen ? "접기" : "보기"}<span>청각 정보 지원</span></button>
+            <div className="player-controls"><button type="button" aria-label="15초 뒤로" onClick={() => seekAudio(-15)}>↶</button><button className="play-main" type="button" onClick={() => void toggleAudio()} aria-label={playing ? "일시정지" : "재생"}>{playing ? "Ⅱ" : "▶"}</button><button type="button" aria-label="15초 앞으로" onClick={() => seekAudio(15)}>↷</button></div>
+            <button className="transcript-button" type="button" onClick={toggleTranscript}>전체 대본 {transcriptOpen ? "접기" : "보기"}<span>청각 정보 지원</span></button>
             {transcriptOpen && <div className="transcript" tabIndex={0}>{plan?.audio?.script || "현재 선택한 여행지의 오디 해설 대본이 없습니다. 실시간 검색 결과에서 해설이 확인되면 이곳에 전체 대본이 표시됩니다."}</div>}
           </aside>
         </div>

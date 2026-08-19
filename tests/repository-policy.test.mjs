@@ -197,17 +197,43 @@ test("non-Korean locales are visibly marked Beta without breaking narrow headers
 });
 
 test("planner ignores stale route, enrichment and location-search responses", async () => {
-  const [planner, service] = await Promise.all([source("app/planner/page.tsx"), source("features/planner/services/api.ts")]);
-  for (const request of ["routeRequestRef", "enrichmentRequestRef", "searchRequestRef"]) {
+  const [planner, locationSearch, service] = await Promise.all([
+    source("app/planner/page.tsx"),
+    source("features/planner/hooks/useLocationSearch.ts"),
+    source("features/planner/services/api.ts"),
+  ]);
+  for (const request of ["routeRequestRef", "enrichmentRequestRef"]) {
     assert.match(planner, new RegExp(`${request}\\.current\\?\\.abort\\(\\)`));
     assert.match(planner, new RegExp(`${request}\\.current !== controller`));
   }
+  assert.match(locationSearch, /searchRequestRef\.current\?\.abort\(\)/);
+  assert.match(locationSearch, /searchRequestRef\.current !== controller/);
   assert.match(planner, /plannerJson<[^>]+>\(`\/api\/route\?\$\{params\.toString\(\)\}`,[^;]+signal: controller\.signal/);
   assert.match(planner, /action: "enrich"[\s\S]+signal: controller\.signal/);
-  assert.match(planner, /\/api\/location-search\?q=[\s\S]+signal: controller\.signal/);
+  assert.match(locationSearch, /\/api\/location-search\?q=[\s\S]+signal: controller\.signal/);
   assert.match(service, /parentSignal\?\.addEventListener\("abort"/);
   assert.match(service, /timeoutMs = 12000/);
   assert.match(planner, /useEffect\(\(\) => \(\) => \{[\s\S]+routeRequestRef\.current\?\.abort\(\)/);
+});
+
+test("planner state is divided into testable feature hooks without overwriting saved trips", async () => {
+  const [planner, tripSelection, routeView, audioGuide, chrome] = await Promise.all([
+    source("app/planner/page.tsx"),
+    source("features/planner/hooks/useTripSelection.ts"),
+    source("features/planner/hooks/useRouteView.ts"),
+    source("features/planner/hooks/useAudioGuide.ts"),
+    source("features/planner/hooks/usePlannerChrome.ts"),
+  ]);
+  for (const hook of ["useTripSelection", "useRouteView", "useAudioGuide", "useLocationSearch", "usePlannerChrome"]) {
+    assert.match(planner, new RegExp(`${hook}\\(`));
+  }
+  assert.doesNotMatch(planner, /localStorage\.setItem\("wave-saved-places"/);
+  assert.match(tripSelection, /const \[storageReady, setStorageReady\] = useState\(false\)/);
+  assert.match(tripSelection, /localStorage\.getItem\(SAVED_PLACES_KEY\)[\s\S]+setStorageReady\(true\)/);
+  assert.match(tripSelection, /if \(!storageReady\) return;[\s\S]+localStorage\.setItem\(SAVED_PLACES_KEY/);
+  assert.match(routeView, /routeSort === "walk"[\s\S]+a\.totalWalk - b\.totalWalk/);
+  assert.match(audioGuide, /const resetAudio = useCallback/);
+  assert.match(chrome, /window\.cancelAnimationFrame\(frame\)/);
 });
 
 test("every user-facing footer exposes the repository with an accessible tooltip", async () => {
