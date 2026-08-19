@@ -9,6 +9,10 @@ async function source(path) {
 async function styleSource() {
   const paths = [
     "app/globals.css",
+    "app/styles/site-shell.css",
+    "app/styles/landing-explorer.css",
+    "app/styles/landing-route-data.css",
+    "app/styles/place-dialog.css",
     "app/styles/product-foundations.css",
     "app/styles/planner-workspace.css",
     "app/styles/map-experience.css",
@@ -20,9 +24,13 @@ async function styleSource() {
 }
 
 test("shared styles keep stable cascade boundaries", async () => {
-  const [layout, globalCss, productFoundations, plannerWorkspace, mapExperience, productRefinements, designSystem, experience] = await Promise.all([
+  const [layout, globalCss, siteShell, landingExplorer, landingRouteData, placeDialog, productFoundations, plannerWorkspace, mapExperience, productRefinements, designSystem, experience] = await Promise.all([
     source("app/layout.tsx"),
     source("app/globals.css"),
+    source("app/styles/site-shell.css"),
+    source("app/styles/landing-explorer.css"),
+    source("app/styles/landing-route-data.css"),
+    source("app/styles/place-dialog.css"),
     source("app/styles/product-foundations.css"),
     source("app/styles/planner-workspace.css"),
     source("app/styles/map-experience.css"),
@@ -32,6 +40,10 @@ test("shared styles keep stable cascade boundaries", async () => {
   ]);
   const imports = [
     'import "./globals.css"',
+    'import "./styles/site-shell.css"',
+    'import "./styles/landing-explorer.css"',
+    'import "./styles/landing-route-data.css"',
+    'import "./styles/place-dialog.css"',
     'import "./styles/product-foundations.css"',
     'import "./styles/planner-workspace.css"',
     'import "./styles/map-experience.css"',
@@ -42,6 +54,11 @@ test("shared styles keep stable cascade boundaries", async () => {
   ].map((statement) => layout.indexOf(statement));
   assert.ok(imports.every((index) => index >= 0));
   assert.deepEqual([...imports].sort((a, b) => a - b), imports);
+  assert.doesNotMatch(globalCss, /\/\* Intro \*\/|\/\* Hero \*\/|\/\* Route \*\/|\/\* Closing, modal, footer \*\//);
+  assert.match(siteShell, /\/\* Intro \*\/[\s\S]*\/\* Header \*\//);
+  assert.match(landingExplorer, /\/\* Hero \*\/[\s\S]*\/\* Places slider \*\//);
+  assert.match(landingRouteData, /\/\* Route \*\/[\s\S]*\/\* API bento \*\//);
+  assert.match(placeDialog, /\/\* Closing, modal, footer \*\//);
   assert.doesNotMatch(globalCss, /Marketing landing|Functional planner hierarchy|디자인 시스템 토큰과 패턴 통일|단계별 도움말 투어/);
   assert.match(productFoundations, /Marketing landing/);
   assert.match(productFoundations, /Functional planner hierarchy/);

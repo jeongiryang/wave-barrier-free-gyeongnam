@@ -1,0 +1,77 @@
+
+/* Intro */
+.intro {
+  position: fixed; z-index: 110; inset: 0;
+  display: grid; place-content: center; justify-items: center;
+  padding: 30px; overflow: hidden; color: #fff;
+  background: #052736;
+  animation: introExit .72s 2.15s cubic-bezier(.76, 0, .24, 1) forwards;
+}
+.intro::before, .intro::after {
+  content: ""; position: absolute; width: 62vw; aspect-ratio: 1;
+  border: 1px solid rgba(125,235,233, .22); border-radius: 44% 56% 53% 47%;
+  animation: introOrbit 10s linear infinite;
+}
+.intro::after { width: 42vw; border-color: rgba(80,197,255, .28); animation-direction: reverse; }
+.intro > button {
+  position: absolute; right: 28px; top: 25px;
+  min-width: 88px; min-height: 44px; padding: 8px 15px;
+  border: 1px solid rgba(255,255,255,.22); border-radius: 999px;
+  color: #fff; background: rgba(255,255,255,.06);
+  font-size: .875rem; font-weight: 750;
+}
+.intro-current { height: 52px; display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+.intro-current i { width: 7px; height: 20px; display: block; border-radius: 99px; background: var(--blue); animation: current 1s ease-in-out infinite alternate; }
+.intro-current i:nth-child(2) { height: 42px; animation-delay: -.8s; }
+.intro-current i:nth-child(3) { height: 30px; background: var(--mint); animation-delay: -.5s; }
+.intro-current i:nth-child(4) { height: 48px; animation-delay: -.25s; }
+.intro-current i:nth-child(5) { height: 24px; animation-delay: -.65s; }
+.intro > p { margin: 0 0 11px; color: #88b2c4; font-size: .76rem; font-weight: 800; letter-spacing: .18em; }
+.intro > h1 { position: relative; margin: 0; font-size: clamp(4.6rem, 15vw, 11rem); line-height: .9; letter-spacing: -.09em; }
+.intro > h1 span { display: inline-block; opacity: 0; transform: translateY(45px); animation: letterRise .58s forwards; }
+.intro > h1 span:nth-child(2) { animation-delay: .08s; color: var(--mint); }
+.intro > h1 span:nth-child(3) { animation-delay: .16s; }
+.intro > h1 span:nth-child(4) { animation-delay: .24s; color: var(--mint); }
+.intro > h1 span:nth-child(5) { animation-delay: .32s; }
+.intro > h1 span:nth-child(6) { animation-delay: .4s; color: var(--mint); }
+.intro > h1 span:nth-child(7) { animation-delay: .48s; }
+.intro-line { width: min(520px, 75vw); height: 2px; margin: 32px 0 18px; overflow: hidden; background: rgba(255,255,255,.12); }
+.intro-line i { display: block; width: 100%; height: 100%; transform-origin: left; background: linear-gradient(90deg, var(--blue), var(--mint)); animation: lineGrow 1.4s .35s both; }
+.intro > small { color: #b7cfda; font-size: .9rem; }
+@keyframes current { to { transform: scaleY(.35); opacity: .55; } }
+@keyframes letterRise { to { opacity: 1; transform: translateY(0); } }
+@keyframes lineGrow { from { transform: scaleX(0); } }
+@keyframes introOrbit { to { transform: rotate(1turn); } }
+@keyframes introExit { to { opacity: 0; visibility: hidden; transform: translateY(-100%); } }
+
+/* Header */
+.site-header {
+  position: fixed; z-index: 60; left: 50%; top: 16px; transform: translate(-50%, 0);
+  width: var(--content); min-height: 68px; padding: 0 20px 0 23px;
+  display: flex; align-items: center; justify-content: space-between; gap: 28px;
+  border: 1px solid transparent; border-radius: 20px;
+  transition: transform .42s cubic-bezier(.22,1,.36,1), background .25s, border-color .25s, box-shadow .25s;
+}
+.site-header.scrolled {
+  border-color: rgba(201,222,232, .86);
+  background: rgba(255,255,255,.88); backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: 0 12px 38px rgba(14,63,86, .11);
+}
+.site-header.hidden { transform: translate(-50%, -118%); }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-size: 1.18rem; font-weight: 950; letter-spacing: -.035em; }
+.brand-mark { width: 32px; height: 27px; display: inline-flex; align-items: flex-end; gap: 3px; transform: rotate(16deg); }
+.brand-mark i { width: 8px; display: block; border-radius: 8px 8px 3px 3px; background: var(--blue); }
+.brand-mark i:nth-child(1) { height: 14px; opacity: .45; }
+.brand-mark i:nth-child(2) { height: 21px; opacity: .72; }
+.brand-mark i:nth-child(3) { height: 27px; }
+.site-header nav { display: flex; align-items: center; gap: 30px; font-size: .91rem; font-weight: 760; }
+.site-header nav a { min-height: 44px; display: grid; place-items: center; position: relative; }
+.site-header nav a::after { content: ""; position: absolute; left: 50%; right: 50%; bottom: 4px; height: 2px; border-radius: 2px; background: var(--blue); transition: left .2s, right .2s; }
+.site-header nav a:hover::after, .site-header nav a:focus-visible::after { left: 0; right: 0; }
+.header-action {
+  min-height: 44px; padding: 8px 15px 8px 17px;
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: rgba(255,255,255,.82); font-size: .86rem; font-weight: 800;
+}
+.header-action b { min-width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--blue); font-size: .75rem; }
