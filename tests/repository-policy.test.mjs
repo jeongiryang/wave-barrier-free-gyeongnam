@@ -313,11 +313,11 @@ test("saved preferences survive a reload", async () => {
 });
 
 test("wave motion preference is persisted, localized and respects reduced motion", async () => {
-  const [storage, controls, translations, wave, intro, css] = await Promise.all([
+  const [storage, controls, translations, renderer, intro, css] = await Promise.all([
     source("features/preferences/storage.ts"),
     source("features/preferences/PreferenceControls.tsx"),
     source("features/preferences/translations.ts"),
-    source("components/WaveField.tsx"),
+    source("features/motion/useWaveFieldRenderer.ts"),
     source("features/landing/useLandingIntro.ts"),
     styleSource(),
   ]);
@@ -326,7 +326,7 @@ test("wave motion preference is persisted, localized and respects reduced motion
   assert.match(controls, /aria-pressed=\{motion === "calm"\}/);
   assert.match(controls, /<details className="preference-controls">/);
   assert.match(translations, /export const motionCopy: Record<Locale/);
-  assert.match(wave, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(renderer, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(intro, /motion === "calm" \|\| reducedMotion \|\| seen \? "hidden" : "show"/);
   assert.match(intro, /window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)\.matches/);
   assert.match(css, /html\[data-motion="calm"\] \.hero-wave-canvas \{ display: none; \}/);
@@ -507,15 +507,18 @@ test("route-map rendering delegates controller, provider lifecycle, controls and
   assert.match(imageExport, /URL\.revokeObjectURL/);
 });
 
-test("the wave canvas delegates reusable motion math and intro-mask rasterization", async () => {
-  const [wave, model, masks] = await Promise.all([
+test("the wave canvas delegates its renderer, motion math and intro-mask rasterization", async () => {
+  const [wave, renderer, model, masks] = await Promise.all([
     source("components/WaveField.tsx"),
+    source("features/motion/useWaveFieldRenderer.ts"),
     source("features/motion/wave-model.ts"),
     source("features/motion/intro-masks.ts"),
   ]);
-  assert.match(wave, /import \{ createIntroMasks \} from "\.\.\/features\/motion\/intro-masks"/);
-  assert.match(wave, /const \{ tints, background \} = wavePalette\(tone\)/);
-  assert.doesNotMatch(wave, /new Float32Array\(SIN_STEPS\)|target\.bezierCurveTo/);
+  assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion \}\)/);
+  assert.doesNotMatch(wave, /useEffect|requestAnimationFrame|createIntroMasks/);
+  assert.match(renderer, /import \{ createIntroMasks \} from "\.\/intro-masks"/);
+  assert.match(renderer, /const \{ tints, background \} = wavePalette\(tone\)/);
+  assert.doesNotMatch(renderer, /new Float32Array\(SIN_STEPS\)|target\.bezierCurveTo/);
   assert.match(model, /const SIN_STEPS = 4096/);
   assert.match(model, /export const fastSin/);
   assert.match(model, /export function stageWeight/);
