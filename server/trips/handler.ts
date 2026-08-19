@@ -1,10 +1,8 @@
 import { neon } from "@neondatabase/serverless";
 import type { Env } from "../shared/env";
 import { clean, json, readTrustedJson } from "../shared/http";
-import {
-  buildPlan,
-  restoreSharedPlan,
-} from "../tourism/handler";
+import { buildPlan } from "../tourism/plan-builder";
+import { restoreSharedPlan } from "../tourism/shared-plan-restoration";
 import { contentTypes, languageServices, profileFields, regionCodes } from "../tourism/catalog";
 
 function database() {

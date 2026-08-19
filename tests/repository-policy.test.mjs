@@ -405,7 +405,7 @@ test("planner state is divided into testable feature hooks without overwriting s
 });
 
 test("the server entry delegates shared policy and provider domains to focused modules", async () => {
-  const [worker, env, http, providerData, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources, visitorDemand, trips] = await Promise.all([
+  const [worker, env, http, providerData, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, planBuilder, restoration, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources, visitorDemand, trips] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
@@ -418,6 +418,8 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/transport/kakao-route.ts"),
     source("server/transport/health.ts"),
     source("server/tourism/handler.ts"),
+    source("server/tourism/plan-builder.ts"),
+    source("server/tourism/shared-plan-restoration.ts"),
     source("server/tourism/catalog.ts"),
     source("server/tourism/models.ts"),
     source("server/tourism/photos.ts"),
@@ -450,8 +452,10 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(kakaoRoute, /apis-navi\.kakaomobility\.com\/v1\/directions/);
   assert.match(transportHealth, /export function handleHealthApi/);
   assert.match(tourism, /export async function handleWaveApi/);
-  assert.match(tourism, /export async function buildPlan/);
-  assert.doesNotMatch(tourism, /regionPhotoKeywords|normalizeXmlItems|calculateAccessibilityEvidence/);
+  assert.doesNotMatch(tourism, /export async function buildPlan|restoreSharedPlan|mergePlaces/);
+  assert.match(planBuilder, /export async function buildPlan/);
+  assert.match(restoration, /export async function restoreSharedPlan/);
+  assert.doesNotMatch(`${tourism}\n${planBuilder}`, /regionPhotoKeywords|normalizeXmlItems|calculateAccessibilityEvidence/);
   assert.match(tourismCatalog, /export const regionCodes/);
   assert.match(tourismModels, /calculateAccessibilityEvidence/);
   assert.match(tourismPhotos, /export async function fetchSpotPhoto/);
@@ -565,20 +569,20 @@ test("core controls keep 44px targets on every viewport and pointer type", async
 });
 
 test("shared trips restore saved places, order and date assignments from official IDs", async () => {
-  const [planner, participation, trips, tourism, shared] = await Promise.all([
+  const [planner, participation, trips, restoration, shared] = await Promise.all([
     plannerProductSource(),
     source("features/planner/hooks/usePlannerParticipation.ts"),
     source("server/trips/handler.ts"),
-    source("server/tourism/handler.ts"),
+    source("server/tourism/shared-plan-restoration.ts"),
     source("app/trip/[id]/page.tsx"),
   ]);
   assert.match(planner, /scheduleAssignments,[\s\S]+selectedPlaceIds: saved/);
   assert.match(participation, /scheduleAssignments,[\s\S]+selectedPlaceIds/);
-  assert.match(tourism, /export async function restoreSharedPlan/);
-  assert.match(tourism, /"KorService2", "detailCommon2"/);
-  assert.match(tourism, /"KorWithService2", "detailWithTour2"/);
+  assert.match(restoration, /export async function restoreSharedPlan/);
+  assert.match(restoration, /"KorService2", "detailCommon2"/);
+  assert.match(restoration, /"KorWithService2", "detailWithTour2"/);
   assert.match(trips, /selectedIds\.size \? places\.filter/);
-  assert.match(tourism, /restoration: \{ requested: refs\.length, restored: places\.length, missing, mode: "content-id" \}/);
+  assert.match(restoration, /restoration: \{ requested: refs\.length, restored: places\.length, missing, mode: "content-id" \}/);
   assert.match(shared, /저장 장소 최신 확인/);
   assert.match(shared, /날짜별 저장 일정/);
   assert.match(shared, /shared-restoration-notice/);
