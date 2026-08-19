@@ -108,14 +108,15 @@ test("semantic releases are created from merged main commits with least privileg
   assert.match(backfill, /\["v0\.7\.2", 37, "c71a9e9c25ec1f1b7491cf14c081f4c4e57dd3b1"/);
   assert.match(backfill, /\["v0\.7\.3", 38, "c0cf3f37ab4b689494c34477f990d76422dae84c"/);
   assert.match(backfill, /\["v0\.7\.4", 39, "1e7031c156b6d6553e34bf565ec3ccb0e1355f62"/);
-  assert.match(backfill, /\["v0\.7\.5", 40, "\$CURRENT"/);
+  assert.match(backfill, /\["v0\.7\.5", 40, "950da810b013ab09b519cab438b8e557298f3b3a"/);
+  assert.match(backfill, /\["v0\.7\.6", 41, "\$CURRENT"/);
   assert.match(backfill, /accidentalRef\?\.object\.sha === accidentalRelease\.sha/);
   assert.match(backfill, /accidentalPublishedRelease\?\.body\?\.includes\(accidentalRelease\.bodyMarker\)/);
   assert.doesNotMatch(backfill, /github\("\/git\/refs",/);
   assert.match(backfill, /execFileSync\("git", \["push", "origin", `refs\/tags\/\$\{release\.version\}`\]/);
   assert.doesNotMatch(backfill, /target_commitish: target/);
   assert.match(current, /subject\.startsWith\("feat:"\)/);
-  assert.match(current, /BACKFILL_BASELINE = "v0\.7\.5"/);
+  assert.match(current, /BACKFILL_BASELINE = "v0\.7\.6"/);
   assert.match(current, /과거 릴리즈 백필/);
   assert.match(current, /target_commitish: process\.env\.GITHUB_SHA/);
   assert.match(current, /ref\.object\.sha !== process\.env\.GITHUB_SHA/);
