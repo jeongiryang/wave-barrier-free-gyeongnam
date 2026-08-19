@@ -1,11 +1,15 @@
-name: Release Backfill
+name: Release
 
 on:
   push:
     branches: [main]
-    paths:
+    paths-ignore:
       - .github/workflows/release-backfill.yml
+      - .github/workflows/release.yml
       - scripts/backfill-releases.mjs
+      - scripts/release-current.mjs
+      - docs/releases.md
+      - docs/ai-logs/**
 
 permissions:
   contents: write
@@ -15,9 +19,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  backfill:
+  release:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,7 +29,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: PR별 태그와 릴리즈 생성
+      - name: 현재 PR 태그와 릴리즈 생성
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/backfill-releases.mjs
+        run: node scripts/release-current.mjs
