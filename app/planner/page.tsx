@@ -12,243 +12,40 @@ import {
 import RouteMap, { type MapPlace, type RouteAlternative, type RoutePoint } from "../../components/RouteMap";
 import { PreferenceControls, useSitePreferences } from "../../components/SitePreferences";
 import SmartSpotImage from "../../components/SmartSpotImage";
-import AccessIcon, { type AccessIconName } from "../../components/AccessIcons";
+import AccessIcon from "../../components/AccessIcons";
 import HelpCenter from "../../components/HelpCenter";
 import GithubFooterLink from "../../components/GithubFooterLink";
+import AccountMenu from "../../components/AccountMenu";
+import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
+import {
+  departurePresets,
+  officialBookingLinks,
+  profiles,
+  readyStatuses,
+  regions,
+  richCatalog,
+  themes,
+  transportDatasetMeta,
+  transportModes,
+  transportStateLabel,
+} from "../../features/planner/constants";
+import { optimizeVisitOrder, explainVisitOrder } from "../../features/planner/optimization/visit-order.js";
+import { optionalPlannerJson, plannerJson } from "../../features/planner/services/api";
+import type {
+  EnrichmentData,
+  KeyHealth,
+  Place,
+  PlanData,
+  RichSpot,
+  SearchPlace,
+  TransportContext,
+  TransportMode,
+  TransportProvider,
+  TransportProviderState,
+  WeatherData,
+} from "../../features/planner/types";
+import { dateRange, formatTime, localDate, routeModeLabel } from "../../features/planner/utils";
 import { assessTripImpact } from "../../lib/trip-impact.js";
-
-type ApiState = "live" | "empty" | "error" | "ready";
-
-type ApiStatus = {
-  id: string;
-  name: string;
-  role: string;
-  state: ApiState;
-  count: number;
-  note: string;
-};
-
-type TransportProviderState = "connected" | "ready" | "error" | "missing" | "checking";
-type TransportProvider = { id: string; name: string; role: string; configured: boolean; state: TransportProviderState; detail?: string };
-type TransportMode = "all" | "car" | "rail" | "bus" | "regional" | "mobility";
-type TransportContext = {
-  nearbyStops: Array<{ id: string; name: string; cityCode: string }>;
-  arrivals: Array<{ route: string; minutes: number | null; stops: number }>;
-  korail: Array<{ trainNo: string; departure: string; arrival: string; departureTime: string }>;
-  catalog: { trainCities: number; expressTerminals: number; intercityTerminals: number };
-  datasets: Array<{ id: string; name: string; state: "live" | "ready" | "error" | "missing" }>;
-};
-type KeyHealthItem = {
-  id: string;
-  name: string;
-  state: "configured" | "missing" | "optional";
-  optional: boolean;
-  note: string;
-};
-type KeyHealth = { checkedAt: string; keys: KeyHealthItem[] };
-
-const transportStateLabel: Record<TransportProviderState, string> = {
-  connected: "운행정보 확인",
-  ready: "이용 가능",
-  error: "잠시 지연",
-  missing: "준비 중",
-  checking: "확인 중",
-};
-
-const transportModes: Array<{ id: TransportMode; label: string; description: string }> = [
-  { id: "all", label: "전체", description: "모든 교통 데이터" },
-  { id: "car", label: "자동차", description: "카카오 자동차 경로" },
-  { id: "rail", label: "기차·철도", description: "KORAIL·TAGO 철도" },
-  { id: "bus", label: "시내버스", description: "정류장·도착·노선" },
-  { id: "regional", label: "고속·시외", description: "터미널·도착 정보" },
-  { id: "mobility", label: "기타 이동", description: "항공·선박·공유 이동" },
-];
-
-const transportDatasetMeta: Record<string, { mode: TransportMode; description: string }> = {
-  "bus-stop": { mode: "bus", description: "목적지 좌표 주변의 시내버스 정류장을 조회합니다." },
-  "bus-route": { mode: "bus", description: "선택한 도시의 시내버스 노선 정보를 확인합니다." },
-  "bus-location": { mode: "bus", description: "노선을 선택하면 운행 중인 버스 위치를 확인할 수 있습니다." },
-  "bus-arrival": { mode: "bus", description: "가장 가까운 정류장의 버스 도착 예정 시간을 조회합니다." },
-  subway: { mode: "rail", description: "도시철도 역·노선 운행정보를 조회합니다." },
-  "express-arrival": { mode: "regional", description: "고속버스 도착과 터미널 정보를 확인합니다." },
-  train: { mode: "rail", description: "TAGO 열차 도시 코드와 철도 데이터 제공 범위를 확인합니다." },
-  express: { mode: "regional", description: "전국 고속버스 터미널 목록을 조회합니다." },
-  intercity: { mode: "regional", description: "전국 시외버스 터미널 목록을 조회합니다." },
-  air: { mode: "mobility", description: "국내 항공 운항정보 기능의 연결 상태를 확인합니다." },
-  ship: { mode: "mobility", description: "국내 여객선 운항정보 기능의 연결 상태를 확인합니다." },
-  carshare: { mode: "mobility", description: "카셰어링 제공 지역과 차량 정보를 확인합니다." },
-  pm: { mode: "mobility", description: "공유 퍼스널모빌리티 제공 현황을 확인합니다." },
-  "korail-plan": { mode: "rail", description: "한국철도공사 여객열차 운행계획을 조회합니다." },
-};
-
-const officialBookingLinks = [
-  { id: "korail", modes: ["all", "rail"], label: "코레일 승차권", detail: "KTX·일반열차 공식 예매", href: "https://www.korail.com/" },
-  { id: "kobus", modes: ["all", "regional"], label: "고속버스 통합예매", detail: "전국고속버스운송사업조합", href: "https://www.kobus.co.kr/main.do" },
-  { id: "bustago", modes: ["all", "regional"], label: "버스타고 시외버스", detail: "전국 시외버스 공식 예매", href: "https://www.bustago.or.kr/newweb/kr/index.do" },
-] as const;
-
-type Place = {
-  id: string;
-  contentTypeId: string;
-  city: string;
-  name: string;
-  address: string;
-  summary: string;
-  image: string;
-  mapX: string;
-  mapY: string;
-  score: number | null;
-  confidence?: number;
-  knownFields?: number;
-  unknownFields?: number;
-  negativeFields?: number;
-  checkedAt?: string;
-  features: string[];
-  details: string[];
-  source: string;
-};
-
-type Course = {
-  name: string;
-  distance: string;
-  minutes: string;
-  level: string;
-  summary: string;
-  sigun: string;
-};
-
-type AudioGuide = {
-  title: string;
-  audioTitle: string;
-  audioUrl: string;
-  script: string;
-  playTime: string;
-};
-
-type PhotoInfo = {
-  id: string;
-  title: string;
-  image: string;
-  location: string;
-  photographer: string;
-  month: string;
-};
-
-type RouteStop = {
-  title: string;
-  note: string;
-  source: string;
-  evidenceState?: "verified" | "limited" | "context";
-};
-
-type PlanData = {
-  mode: "live" | "partial" | "fallback";
-  generatedAt: string;
-  baseYm: string;
-  places: Place[];
-  course: Course | null;
-  audio: AudioGuide | null;
-  photo?: PhotoInfo | null;
-  crowd?: { rate: number; baseYmd: string; place: string } | null;
-  stops: RouteStop[];
-  statuses: ApiStatus[];
-};
-
-type RichSpot = { id: string; title: string; address: string; summary: string; image: string; mapX: string; mapY: string; tag: string; source: string };
-type EnrichmentData = {
-  generatedAt: string;
-  visitor: { total: number; byType: Record<string, number>; startYmd: string; endYmd: string };
-  demand: Array<{ name: string; value: number; baseYm: string }>;
-  camping: RichSpot[]; pet: RichSpot[]; wellness: RichSpot[]; medical: RichSpot[]; language: RichSpot[]; awards: RichSpot[]; water: RichSpot[]; rests: RichSpot[]; events: RichSpot[]; lodging: RichSpot[];
-  statuses: ApiStatus[];
-};
-type WeatherDay = { date: string; code: number; label: string; max: number; min: number; rainProbability: number; rain: number; snow: number; uv: number; advice: string[] };
-type WeatherData = { region: string; updatedAt: string; source: string; current: { temperature: number; apparent: number; code: number; label: string; wind: number; precipitation: number; isDay: boolean }; days: WeatherDay[]; advice: string[] };
-type SearchPlace = { id: string; name: string; address: string; category: string; mapX: string; mapY: string; placeUrl?: string };
-
-function localDate(offset = 0) {
-  const date = new Date();
-  date.setDate(date.getDate() + offset);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function dateRange(start: string, end: string) {
-  const first = new Date(`${start}T12:00:00`);
-  const last = new Date(`${end}T12:00:00`);
-  if (Number.isNaN(first.getTime()) || Number.isNaN(last.getTime()) || first > last) return [start];
-  const days: string[] = [];
-  for (let current = first; current <= last && days.length < 7; current = new Date(current.getTime() + 86400000)) {
-    days.push(`${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}-${String(current.getDate()).padStart(2, "0")}`);
-  }
-  return days;
-}
-
-const departurePresets: Array<{ id: string; name: string; detail: string; point: RoutePoint }> = [
-  { id: "changwon", name: "창원중앙역", detail: "KTX·시내버스 환승", point: { lat: 35.2422, lng: 128.6982 } },
-  { id: "masan", name: "마산역", detail: "KTX·시외 이동", point: { lat: 35.2361, lng: 128.5771 } },
-  { id: "jinju", name: "진주역", detail: "서부 경남 출발", point: { lat: 35.1516, lng: 128.1180 } },
-  { id: "gimhae", name: "김해공항", detail: "항공·경전철 환승", point: { lat: 35.1795, lng: 128.9382 } },
-  { id: "tongyeong", name: "통영종합버스터미널", detail: "통영 시내 출발", point: { lat: 34.8680, lng: 128.4155 } },
-];
-
-const profiles: Array<{ id: string; icon: AccessIconName; label: string; short: string }> = [
-  { id: "wheel", icon: "wheel", label: "휠체어 이용", short: "주차·접근로·승강기" },
-  { id: "senior", icon: "senior", label: "걷기 불편", short: "짧은 동선·휴게 우선" },
-  { id: "baby", icon: "baby", label: "영유아 동반", short: "유모차·수유실" },
-  { id: "pregnant", icon: "pregnant", label: "임산부", short: "화장실·승강기 우선" },
-  { id: "visual", icon: "visual", label: "시각 정보 지원", short: "점자·음성 안내" },
-  { id: "hearing", icon: "hearing", label: "청각 정보 지원", short: "수어·영상 안내" },
-];
-
-const regions = [
-  "경남 전체", "창원", "진주", "통영", "사천", "김해", "밀양", "거제", "양산",
-  "의령", "함안", "창녕", "고성", "남해", "하동", "산청", "함양", "거창", "합천",
-];
-
-const themes = [
-  { id: "nature", label: "자연·휴양", code: "관광지 12" },
-  { id: "history", label: "역사·문화", code: "문화시설 14" },
-  { id: "leisure", label: "레포츠", code: "레포츠 28" },
-  { id: "food", label: "음식", code: "음식점 39" },
-];
-
-const apiMeta = [
-  { id: "barrierfree", name: "무장애 여행정보", role: "주차·접근로·휠체어·화장실 등 상세 편의정보" },
-  { id: "tour", name: "국문 관광정보", role: "관광지 좌표·이미지·주소와 지역 기반 검색" },
-  { id: "audio", name: "관광지 오디오 가이드", role: "관광 해설 음원과 청각 지원용 전체 대본" },
-  { id: "durunubi", name: "두루누비 정보", role: "걷기 코스 거리·시간·난이도와 여행자 정보" },
-  { id: "hub", name: "기초지자체 중심 관광지", role: "지역 안에서 연결성이 높은 중심 관광지 순위" },
-  { id: "photo", name: "관광사진 정보", role: "지역·축제 키워드 기반 관광사진과 촬영 출처" },
-  { id: "related", name: "관광지별 연관 관광지", role: "함께 방문하기 좋은 관광·음식·숙박 후보" },
-  { id: "crowd", name: "관광지 집중률 예측", role: "향후 30일 혼잡도와 회피 근거" },
-];
-
-const richCatalog = [
-  { id: "events", label: "축제·행사", icon: "✦", description: "지금 열리는 지역 이야기" },
-  { id: "lodging", label: "숙박", icon: "⌂", description: "지역별 머물 곳" },
-  { id: "wellness", label: "웰니스", icon: "◌", description: "자연·치유·명상" },
-  { id: "camping", label: "캠핑", icon: "△", description: "야영장·휴양" },
-  { id: "pet", label: "반려동물", icon: "♧", description: "동반 가능 여행" },
-  { id: "water", label: "물과 여행", icon: "≈", description: "댐·하천·수변" },
-  { id: "medical", label: "의료관광", icon: "+", description: "의료·회복" },
-  { id: "awards", label: "수상 사진", icon: "▣", description: "공모전 시선" },
-  { id: "language", label: "글로벌", icon: "文", description: "선택 언어 관광" },
-  { id: "rests", label: "테마휴게소", icon: "↗", description: "고속도로 여행" },
-] as const;
-
-const readyStatuses: ApiStatus[] = apiMeta.map((item) => ({
-  ...item,
-  state: "ready",
-  count: 0,
-  note: "승인 완료 · 검색 시 호출",
-}));
-
-function formatTime(seconds: number) {
-  if (!Number.isFinite(seconds) || seconds < 0) return "00:00";
-  const minutes = Math.floor(seconds / 60);
-  const rest = Math.floor(seconds % 60);
-  return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
-}
 
 export default function PlannerPage() {
   const { locale, t } = useSitePreferences();
@@ -313,7 +110,7 @@ export default function PlannerPage() {
     () => profiles.filter((profile) => selected.includes(profile.id)),
     [selected],
   );
-  const activePlaces = plan?.places ?? [];
+  const activePlaces = useMemo(() => plan?.places ?? [], [plan]);
   const activeStops = plan?.stops ?? [];
   const statuses = plan ? [...plan.statuses, ...(enrichment?.statuses || [])] : readyStatuses;
   const liveCount = statuses.filter((status) => status.state === "live").length;
@@ -367,7 +164,12 @@ export default function PlannerPage() {
     .slice(0, 4);
   const demandMax = Math.max(...(enrichment?.demand.map((item) => item.value) ?? [0]), 1);
   const tripDays = useMemo(() => dateRange(travelStart, travelEnd), [travelEnd, travelStart]);
-  const savedPlaces = activePlaces.filter((place) => saved.includes(place.id));
+  const savedPlaces = useMemo(() => activePlaces.filter((place) => saved.includes(place.id)), [activePlaces, saved]);
+  const orderedSavedPlaces = useMemo(
+    () => optimizeVisitOrder(savedPlaces, { origin, accessibilityWeight: selected.length ? 0.12 : 0 }),
+    [origin, savedPlaces, selected.length],
+  );
+  const orderExplanation = useMemo(() => explainVisitOrder(orderedSavedPlaces, origin), [orderedSavedPlaces, origin]);
   const travelWeather = weather?.days.find((day) => day.date === travelStart) ?? null;
   const currentWeather = weather?.current;
   const impactDestination = routeDestination ?? activePlaces[0] ?? null;
@@ -384,10 +186,8 @@ export default function PlannerPage() {
 
   useEffect(() => {
     let cancelled = false;
-    void fetch("/api/health", { headers: { Accept: "application/json" } })
-      .then((response) => response.ok ? response.json() : null)
+    void optionalPlannerJson<KeyHealth>("/api/health")
       .then((data) => { if (!cancelled && data) setKeyHealth(data as KeyHealth); })
-      .catch(() => { /* 화면 기능은 계속 사용할 수 있다. */ })
       .finally(() => { if (!cancelled) setKeyHealthChecked(true); });
     return () => { cancelled = true; };
   }, []);
@@ -505,8 +305,7 @@ export default function PlannerPage() {
     }
     setRouteNotice(`${originLabel}에서 ${place.name}까지 이동 경로를 확인하고 있습니다.`);
     const crowdParams = new URLSearchParams({ action: "crowd", region, title: place.name });
-    void fetch(`/api/wave?${crowdParams.toString()}`, { headers: { Accept: "application/json" }, signal: controller.signal })
-      .then((response) => response.ok ? response.json() : null)
+    void optionalPlannerJson<{ crowd?: { rate: number; baseYmd: string; place: string } | null }>(`/api/wave?${crowdParams.toString()}`, { signal: controller.signal })
       .then((data: { crowd?: { rate: number; baseYmd: string; place: string } | null } | null) => {
         if (routeRequestRef.current === controller) setDestinationCrowd(data?.crowd || null);
       })
@@ -517,10 +316,8 @@ export default function PlannerPage() {
       const params = new URLSearchParams({
         startLat: String(nextOrigin.lat), startLng: String(nextOrigin.lng), endLat: String(endLat), endLng: String(endLng),
       });
-      const response = await fetch(`/api/route?${params.toString()}`, { cache: "no-store", headers: { Accept: "application/json" }, signal: controller.signal });
-      const data = await response.json() as { alternatives?: RouteAlternative[]; providers?: TransportProvider[]; context?: TransportContext; configured?: boolean; message?: string; error?: string };
+      const data = await plannerJson<{ alternatives?: RouteAlternative[]; providers?: TransportProvider[]; context?: TransportContext; configured?: boolean; message?: string }>(`/api/route?${params.toString()}`, { cache: "no-store", signal: controller.signal });
       if (controller.signal.aborted || routeRequestRef.current !== controller) return;
-      if (!response.ok) throw new Error(data.error || "경로를 찾지 못했습니다.");
       const alternatives = data.alternatives || [];
       setRouteAlternatives(alternatives);
       setTransportProviders(data.providers || []);
@@ -546,10 +343,8 @@ export default function PlannerPage() {
     setEnrichmentLoading(true);
     try {
       const params = new URLSearchParams({ action: "enrich", region, theme, locale, startDate: travelStart, endDate: travelEnd });
-      const response = await fetch(`/api/wave?${params.toString()}`, { headers: { Accept: "application/json" }, signal: controller.signal });
-      const data = await response.json() as EnrichmentData & { error?: string };
+      const data = await plannerJson<EnrichmentData>(`/api/wave?${params.toString()}`, { signal: controller.signal });
       if (controller.signal.aborted || enrichmentRequestRef.current !== controller) return;
-      if (!response.ok) throw new Error(data.error || "확장 데이터를 불러오지 못했습니다.");
       setEnrichment(data);
     } catch {
       if (!controller.signal.aborted && enrichmentRequestRef.current === controller) setEnrichment(null);
@@ -576,10 +371,8 @@ export default function PlannerPage() {
       setWeatherLoading(true);
       setWeather(null);
     });
-    void fetch(`/api/weather?region=${encodeURIComponent(region)}`, { headers: { Accept: "application/json" } })
-      .then((response) => response.ok ? response.json() : null)
+    void optionalPlannerJson<WeatherData>(`/api/weather?region=${encodeURIComponent(region)}`)
       .then((data) => { if (!cancelled && data) setWeather(data as WeatherData); })
-      .catch(() => { /* 예보 실패 시 나머지 여행 기능은 유지한다. */ })
       .finally(() => { if (!cancelled) setWeatherLoading(false); });
     return () => { cancelled = true; window.cancelAnimationFrame(frame); };
   }, [region]);
@@ -591,10 +384,9 @@ export default function PlannerPage() {
     searchRequestRef.current = controller;
     setPlaceSearchLoading(true);
     try {
-      const response = await fetch(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}`, { headers: { Accept: "application/json" }, signal: controller.signal });
-      const data = await response.json() as { places?: SearchPlace[] };
+      const data = await optionalPlannerJson<{ places?: SearchPlace[] }>(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}`, { signal: controller.signal });
       if (controller.signal.aborted || searchRequestRef.current !== controller) return;
-      setPlaceSearchResults(response.ok ? data.places || [] : []);
+      setPlaceSearchResults(data?.places || []);
     } catch {
       if (!controller.signal.aborted && searchRequestRef.current === controller) setPlaceSearchResults([]);
     } finally {
@@ -680,12 +472,11 @@ export default function PlannerPage() {
     if (!plan || shareState === "saving") return;
     setShareState("saving");
     try {
-      const response = await fetch("/api/trips", {
-        method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ plan, selections: { region, theme, profiles: selected, locale, travelStart, travelEnd, scheduleAssignments, selectedPlaceIds: saved }, origin: { label: originLabel } }),
+      const data = await plannerJson<{ url?: string }>("/api/trips", {
+        method: "POST",
+        body: { plan, selections: { region, theme, profiles: selected, locale, travelStart, travelEnd, scheduleAssignments, selectedPlaceIds: saved }, origin: { label: originLabel } },
       });
-      const data = await response.json() as { url?: string; error?: string };
-      if (!response.ok || !data.url) throw new Error(data.error || "공유 링크를 만들지 못했습니다.");
+      if (!data.url) throw new Error("공유 링크를 만들지 못했습니다.");
       setShareUrl(data.url); setShareState("done");
       await navigator.clipboard?.writeText(data.url);
     } catch {
@@ -697,11 +488,7 @@ export default function PlannerPage() {
     if (!selectedPlace || feedbackText.trim().length < 5 || feedbackState === "sending") return;
     setFeedbackState("sending");
     try {
-      const response = await fetch("/api/feedback", {
-        method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ placeId: selectedPlace.id, placeName: selectedPlace.name, field: "접근성 정보", message: feedbackText }),
-      });
-      if (!response.ok) throw new Error("feedback");
+      await plannerJson<{ ok?: boolean }>("/api/feedback", { method: "POST", body: { placeId: selectedPlace.id, placeName: selectedPlace.name, field: "접근성 정보", message: feedbackText } });
       setFeedbackText(""); setFeedbackState("done");
     } catch { setFeedbackState("error"); }
   }
@@ -728,10 +515,8 @@ export default function PlannerPage() {
         profiles: selected.join(","),
         locale,
       });
-      const response = await fetch(`/api/wave?${params.toString()}`, { signal: controller.signal, headers: { Accept: "application/json" } });
-      const data = await response.json() as PlanData & { error?: string };
+      const data = await plannerJson<PlanData>(`/api/wave?${params.toString()}`, { signal: controller.signal });
       if (controller.signal.aborted) return;
-      if (!response.ok) throw new Error(data.error || "API 응답을 불러오지 못했습니다.");
       setPlaying(false);
       setAudioProgress(0);
       setAudioTime(0);
@@ -814,8 +599,9 @@ export default function PlannerPage() {
           <a href="#planner">{t("conditions", "여행 조건")}</a>
           <a href="#navigation">{t("route", "길찾기")}</a>
           <a href="#data">{t("evidence", "추천 근거")}</a>
+          <a href="/community">커뮤니티</a>
         </nav>
-        <div className="planner-header-actions"><HelpCenter /><PreferenceControls /><button className="header-action" type="button" onClick={() => document.getElementById("places")?.scrollIntoView({ behavior: "smooth" })}>
+        <div className="planner-header-actions"><HelpCenter /><PreferenceControls /><AccountMenu loginHref="/login?next=%2Fplanner" /><button className="header-action" type="button" onClick={() => document.getElementById("places")?.scrollIntoView({ behavior: "smooth" })}>
           여행 보관함 <b>{saved.length}</b><span aria-hidden="true">↗</span>
         </button></div>
       </header>
@@ -938,7 +724,7 @@ export default function PlannerPage() {
                   showMeta={false}
                 >
                   <span className="city-chip">{place.city || region}</span>
-                  <span className="place-rank">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="place-rank">추천 {String(index + 1).padStart(2, "0")}</span>
                   <button type="button" className={saved.includes(place.id) ? "save-card saved" : "save-card"} onClick={() => toggleSaved(place.id)} aria-label={`${place.name} 보관하기`}>{saved.includes(place.id) ? "♥" : "♡"}</button>
                 </SmartSpotImage>
                 <div className="place-content">
@@ -951,12 +737,12 @@ export default function PlannerPage() {
             );
           })}
         </div>
-        {savedPlaces.length > 0 && <section className="day-planner" data-reveal aria-label="날짜별 여행 일정">
-          <header><div><span>나의 여행 일정</span><h3>보관한 장소를 날짜별로 정리하세요.</h3></div><p>장소 선택은 이 기기에만 저장되며 공유하기 전에는 서버로 전송되지 않습니다.</p></header>
+        {orderedSavedPlaces.length > 0 && <section className="day-planner" data-reveal aria-label="날짜별 여행 일정">
+          <header><div><span>나의 여행 일정</span><h3>이동 부담을 줄이는 순서로 정리했어요.</h3></div><p>{orderExplanation} 장소 선택은 공유하기 전까지 이 기기에만 저장됩니다.</p></header>
           <div className="day-planner-grid">{tripDays.map((day, dayIndex) => <article key={day}>
             <div><small>DAY {String(dayIndex + 1).padStart(2, "0")}</small><strong>{new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" }).format(new Date(`${day}T12:00:00`))}</strong></div>
-            <ol>{savedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === day).map((place, index) => <li key={place.id}><span>{index + 1}</span><div><b>{place.name}</b><small>{place.address || place.city}</small></div><select aria-label={`${place.name} 여행 날짜`} value={scheduleAssignments[place.id] || tripDays[0]} onChange={(event) => setScheduleAssignments((current) => ({ ...current, [place.id]: event.target.value }))}>{tripDays.map((date, dateIndex) => <option key={date} value={date}>DAY {dateIndex + 1}</option>)}</select></li>)}</ol>
-            {!savedPlaces.some((place) => (scheduleAssignments[place.id] || tripDays[0]) === day) && <p>보관한 장소의 날짜를 이 날로 바꿔 추가하세요.</p>}
+            <ol>{orderedSavedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === day).map((place, index) => <li key={place.id}><span>{index + 1}</span><div><b>{place.name}</b><small>{place.address || place.city}</small></div><select aria-label={`${place.name} 여행 날짜`} value={scheduleAssignments[place.id] || tripDays[0]} onChange={(event) => setScheduleAssignments((current) => ({ ...current, [place.id]: event.target.value }))}>{tripDays.map((date, dateIndex) => <option key={date} value={date}>DAY {dateIndex + 1}</option>)}</select></li>)}</ol>
+            {!orderedSavedPlaces.some((place) => (scheduleAssignments[place.id] || tripDays[0]) === day) && <p>보관한 장소의 날짜를 이 날로 바꿔 추가하세요.</p>}
           </article>)}</div>
         </section>}
       </section>
@@ -1053,17 +839,20 @@ export default function PlannerPage() {
         <div className="transport-mode-filter" role="tablist" aria-label="교통수단별 결과 필터">
           {transportModes.map((mode) => <button type="button" role="tab" aria-selected={transportMode === mode.id} key={mode.id} className={transportMode === mode.id ? "active" : ""} onClick={() => setTransportMode(mode.id)}><b>{mode.label}</b><small>{mode.description}</small></button>)}
         </div>
-        <div className="transport-provider-strip" aria-label="교통 데이터 연결 상태">
-          {effectiveProviders.map((provider) => <span key={provider.id} className={provider.state} title={provider.detail || provider.role}><i /> <b>{provider.name}</b><small>{transportStateLabel[provider.state]}</small></span>)}
-        </div>
         {transportContext && (transportContext.nearbyStops.length > 0 || transportContext.arrivals.length > 0 || transportContext.korail.length > 0) && <div className="transport-live-rail" aria-live="polite">
           <div><span>도착지 인근 정류장</span><strong>{transportContext.nearbyStops.slice(0, 3).map((item) => item.name).join(" · ") || "조회 중"}</strong></div>
           <div><span>버스 도착</span><strong>{transportContext.arrivals.slice(0, 3).map((item) => `${item.route} ${item.minutes ? `${item.minutes}분` : "운행 중"}`).join(" · ") || "도착 정보 없음"}</strong></div>
           <div><span>KORAIL 운행계획</span><strong>{transportContext.korail.length ? `${transportContext.korail.length}개 열차 응답` : "승인 상태 확인"}</strong></div>
         </div>}
-        {transportContext?.datasets?.length ? <div className="transport-dataset-grid" aria-label="승인된 교통 API 데이터 레이어">
+        <details className="transport-details">
+          <summary>교통정보 제공 범위 자세히 보기 <span>선택 사항</span></summary>
+          <div className="transport-provider-strip" aria-label="교통정보 연결 상태">
+            {effectiveProviders.map((provider) => <span key={provider.id} className={provider.state} title={provider.detail || provider.role}><i /> <b>{provider.role}</b><small>{transportStateLabel[provider.state]}</small></span>)}
+          </div>
+          {transportContext?.datasets?.length ? <div className="transport-dataset-grid" aria-label="교통정보 데이터 범위">
             {transportContext.datasets.map((dataset) => <button type="button" aria-pressed={selectedTransportDataset === dataset.id} key={dataset.id} className={`${dataset.state}${selectedTransportDataset === dataset.id ? " selected" : ""}`} onClick={() => { setSelectedTransportDataset(dataset.id); setTransportMode(transportDatasetMeta[dataset.id]?.mode || "all"); }}><i />{dataset.name}<small>{dataset.state === "live" ? "운행 확인" : dataset.state === "ready" ? "이용 가능" : dataset.state === "error" ? "잠시 지연" : "준비 중"}</small></button>)}
-        </div> : null}
+          </div> : null}
+        </details>
         {officialBookingLinks.some((link) => (link.modes as readonly string[]).includes(transportMode)) && <div className="official-booking-strip" aria-label="공식 교통 승차권 예매">
           <span><b>공식 예매</b><small>운행정보 확인 후 제공기관에서 결제</small></span>
           {officialBookingLinks.filter((link) => (link.modes as readonly string[]).includes(transportMode)).map((link) => <a key={link.id} href={link.href} target="_blank" rel="noreferrer" onClick={() => void copyBookingRoute(link.label)}><i>↗</i><strong>{link.label}</strong><small>{link.detail} · 출발·도착 복사</small></a>)}
@@ -1123,7 +912,7 @@ export default function PlannerPage() {
               {routeLoading && [0, 1, 2].map((item) => <div className="route-option-skeleton" key={`route-skeleton-${item}`} aria-hidden="true"><i /><div><b /><span /></div><em /></div>)}
               {!routeLoading && !sortedRouteAlternatives.length && <div className="route-empty"><span>↗</span><h3>{routeAlternatives.length ? `${activeTransportMode.label} 운행정보를 위에서 확인하세요.` : "경로를 계산할 여행지를 선택하세요."}</h3><p>{routeAlternatives.length ? "TAGO·KORAIL은 운행 데이터를 제공하며, 문 앞까지의 통합 경로는 경로 엔진이 연결된 교통수단만 표시됩니다." : "관광지를 검색한 뒤 카드의 ‘이곳까지 길찾기’를 누르면 비교 결과가 표시됩니다."}</p></div>}
               {!routeLoading && sortedRouteAlternatives.map((item, index) => <button type="button" key={item.id} className={(activeRoute?.id === item.id ? "active " : "") + "route-option"} onClick={() => setActiveRouteId(item.id)}>
-                <span className="route-option-rank">{String(index + 1).padStart(2, "0")}</span><div><strong>{item.label}</strong><small>{item.provider || (item.configured ? "실경로" : "미리보기")}</small></div><dl><div><dt>시간</dt><dd>{item.totalTime || "—"}분</dd></div><div><dt>예상 요금</dt><dd>{item.payment !== null ? `${item.payment.toLocaleString()}원` : "확인 중"}</dd></div><div><dt>환승</dt><dd>{item.configured ? `${item.transfers}회` : "—"}</dd></div><div><dt>도보</dt><dd>{item.configured ? `${item.totalWalk}m` : "—"}</dd></div></dl>
+                <span className="route-option-rank">{String(index + 1).padStart(2, "0")}</span><div><strong>{item.label}</strong><small>{routeModeLabel(item)}</small></div><dl><div><dt>시간</dt><dd>{item.totalTime || "—"}분</dd></div><div><dt>예상 요금</dt><dd>{item.payment !== null ? `${item.payment.toLocaleString()}원` : "정보 없음"}</dd></div><div><dt>환승</dt><dd>{item.configured ? `${item.transfers}회` : "—"}</dd></div><div><dt>도보</dt><dd>{item.configured ? `${item.totalWalk}m` : "—"}</dd></div></dl>
                 {item.segments.length > 0 && <span className="segment-summary">{item.segments.slice(0, 4).map((segment) => segment.name).join(" → ")}</span>}
               </button>)}
             </div>
@@ -1199,26 +988,18 @@ export default function PlannerPage() {
         </div>
       </section>
 
-      {selectedPlace && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={() => setSelectedPlace(null)}>
-          <section className="place-modal" role="dialog" aria-modal="true" aria-labelledby="place-modal-title" onMouseDown={(event) => event.stopPropagation()} ref={placeDialogRef}>
-            <button className="modal-close" type="button" onClick={() => setSelectedPlace(null)} aria-label="닫기">×</button>
-            <div className="modal-visual" style={selectedPlace.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${selectedPlace.image}")` } : undefined}><span>{selectedPlace.city || region}</span><b className={selectedPlace.score === null ? "pending" : ""}>{selectedPlace.score === null ? "판단 보류" : `${selectedPlace.score}%`}<small>{selectedPlace.score === null ? "공식 편의근거 부족" : "선택 편의조건 일치"}</small></b></div>
-            <div className="modal-body">
-              <p className="section-kicker">ACCESSIBILITY DETAIL</p>
-              <h2 id="place-modal-title">{selectedPlace.name}</h2>
-              <p>{selectedPlace.address || selectedPlace.summary}</p>
-              <ul>{selectedPlace.details.length ? selectedPlace.details.map((detail) => <li key={detail}><span>✓</span>{detail}</li>) : <li><span>i</span>상세 편의정보는 현장 방문 전 운영기관에 다시 확인해 주세요.</li>}</ul>
-              <div className="modal-data"><span><small>활용 데이터</small>{selectedPlace.source}</span><span><small>좌표</small>{selectedPlace.mapY && selectedPlace.mapX ? `${selectedPlace.mapY}, ${selectedPlace.mapX}` : "미제공"}</span></div>
-              {typeof selectedPlace.confidence === "number" && <div className="modal-confidence"><span><small>정보 확인률</small><b>{selectedPlace.confidence}%</b></span><span><small>확인된 항목</small><b>{selectedPlace.knownFields || 0}개</b></span><span><small>정보 없음</small><b>{selectedPlace.unknownFields || 0}개</b></span></div>}
-              <a className="place-external-review" href={`https://map.kakao.com/link/search/${encodeURIComponent(`${selectedPlace.name} ${selectedPlace.address || selectedPlace.city || region}`)}`} target="_blank" rel="noreferrer"><span><b>방문 후기·사진</b><small>카카오 장소 상세에서 최신 이용 후기를 확인합니다.</small></span><i>↗</i></a>
-              <button type="button" onClick={() => { toggleSaved(selectedPlace.id); setSelectedPlace(null); }}>여행 보관함에 {saved.includes(selectedPlace.id) ? "빼기" : "담기"}<span>{saved.includes(selectedPlace.id) ? "−" : "+"}</span></button>
-              <div className="feedback-box"><label htmlFor="feedback-message">현장 정보가 다른가요?</label><textarea id="feedback-message" value={feedbackText} onChange={(event) => { setFeedbackText(event.target.value); setFeedbackState("idle"); }} placeholder="달라진 접근로·화장실·승강기 정보를 알려주세요." rows={3} /><button type="button" onClick={submitFeedback} disabled={feedbackText.trim().length < 5 || feedbackState === "sending"}>{feedbackState === "sending" ? "접수 중" : feedbackState === "done" ? "접수 완료 ✓" : "정보 수정 제보"}</button>{feedbackState === "error" && <small>제보 저장 상태를 확인해 주세요.</small>}</div>
-              <small className="modal-note">편의조건 일치율은 선택한 조건 중 공식 데이터에서 긍정적으로 확인된 항목의 비율이며 공식 인증 점수가 아닙니다. 확인된 편의정보가 없으면 숫자를 만들지 않고 판단을 보류합니다. 시설 운영상태는 방문 전에 다시 확인해 주세요.</small>
-            </div>
-          </section>
-        </div>
-      )}
+      {selectedPlace && <PlaceDecisionDialog
+        place={selectedPlace}
+        region={region}
+        saved={saved.includes(selectedPlace.id)}
+        feedbackText={feedbackText}
+        feedbackState={feedbackState}
+        dialogRef={placeDialogRef}
+        onClose={() => setSelectedPlace(null)}
+        onToggleSaved={() => { toggleSaved(selectedPlace.id); setSelectedPlace(null); }}
+        onFeedbackChange={(value) => { setFeedbackText(value); setFeedbackState("idle"); }}
+        onSubmitFeedback={() => void submitFeedback()}
+      />}
 
       <footer className="simple-footer">
         <div className="brand footer-brand"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span></div>

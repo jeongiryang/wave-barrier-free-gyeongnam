@@ -87,6 +87,9 @@ test("pull requests must be revalidated against the latest main", async () => {
   assert.match(rules, /이전 커밋의 성공 결과는 재사용하지 않는다/);
   assert.match(template, /최신 `origin\/main`/);
   assert.match(template, /npm run typecheck/);
+  assert.match(rules, /`syt83`, `unknownamed`를 모두 reviewer/);
+  assert.match(template, /PR 작성자를 담당자\(assignee\)/);
+  assert.match(template, /기존 라벨/);
 });
 
 test("new issues receive an owner and a safe default label", async () => {
@@ -190,14 +193,16 @@ test("non-Korean locales are visibly marked Beta without breaking narrow headers
 });
 
 test("planner ignores stale route, enrichment and location-search responses", async () => {
-  const planner = await source("app/planner/page.tsx");
+  const [planner, service] = await Promise.all([source("app/planner/page.tsx"), source("features/planner/services/api.ts")]);
   for (const request of ["routeRequestRef", "enrichmentRequestRef", "searchRequestRef"]) {
     assert.match(planner, new RegExp(`${request}\\.current\\?\\.abort\\(\\)`));
     assert.match(planner, new RegExp(`${request}\\.current !== controller`));
   }
-  assert.match(planner, /fetch\(`\/api\/route\?\$\{params\.toString\(\)\}`,[^;]+signal: controller\.signal/);
+  assert.match(planner, /plannerJson<[^>]+>\(`\/api\/route\?\$\{params\.toString\(\)\}`,[^;]+signal: controller\.signal/);
   assert.match(planner, /action: "enrich"[\s\S]+signal: controller\.signal/);
   assert.match(planner, /\/api\/location-search\?q=[\s\S]+signal: controller\.signal/);
+  assert.match(service, /parentSignal\?\.addEventListener\("abort"/);
+  assert.match(service, /timeoutMs = 12000/);
   assert.match(planner, /useEffect\(\(\) => \(\) => \{[\s\S]+routeRequestRef\.current\?\.abort\(\)/);
 });
 

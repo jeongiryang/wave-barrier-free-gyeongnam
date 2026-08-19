@@ -1,12 +1,9 @@
-import { createNeonAuth } from "@neondatabase/auth/next/server";
+import { getAuth } from "../../../../lib/auth/server";
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
 function configuredHandlers() {
-  const baseUrl = process.env.NEON_AUTH_BASE_URL?.trim();
-  const secret = process.env.NEON_AUTH_COOKIE_SECRET?.trim();
-  if (!baseUrl || !secret || secret.length < 32) return null;
-  return createNeonAuth({ baseUrl, cookies: { secret } }).handler();
+  return getAuth()?.handler() ?? null;
 }
 
 async function unavailable() {
