@@ -28,6 +28,22 @@ async function routeMapProductSource() {
   ].map(source))).join("\n");
 }
 
+async function landingProductSource() {
+  const paths = [
+    "app/page.tsx",
+    "features/landing/content.ts",
+    "features/landing/hooks/useLandingExperience.ts",
+    "features/landing/components/LandingIntro.tsx",
+    "features/landing/components/LandingHeader.tsx",
+    "features/landing/components/LandingHero.tsx",
+    "features/landing/components/LandingManifesto.tsx",
+    "features/landing/components/LandingRegionStory.tsx",
+    "features/landing/components/LandingClosing.tsx",
+    "components/LandingStories.tsx",
+  ];
+  return (await Promise.all(paths.map(source))).join("\n");
+}
+
 async function styleSource() {
   const paths = [
     "app/globals.css",
@@ -139,7 +155,7 @@ test("account, storage and footer copy describe real boundaries and independent 
   const [account, authForm, landing, planner] = await Promise.all([
     source("components/AccountMenu.tsx"),
     source("components/AuthForm.tsx"),
-    source("app/page.tsx"),
+    landingProductSource(),
     plannerProductSource(),
   ]);
   assert.doesNotMatch(account, /저장한 여행 조건과 즐겨찾기를 안전하게 관리/);
@@ -168,7 +184,7 @@ test("contest category, selected task and live OpenAPI use are documented consis
     source("README.md"),
     source("docs/contest-compliance.md"),
     source("docs/competition-operation-policy.md"),
-    source("app/page.tsx"),
+    landingProductSource(),
     plannerProductSource(),
     source("server/tourism/handler.ts"),
     source("server/tourism/photos.ts"),
@@ -219,7 +235,7 @@ test("wave effects avoid dense glyphs and the short first-visit intro stays sync
   const [wave, model, landing, intro, css] = await Promise.all([
     source("components/WaveField.tsx"),
     source("features/motion/wave-model.ts"),
-    source("app/page.tsx"),
+    landingProductSource(),
     source("features/landing/useLandingIntro.ts"),
     styleSource(),
   ]);
@@ -235,7 +251,7 @@ test("wave effects avoid dense glyphs and the short first-visit intro stays sync
   assert.match(intro, /if \(!hydrated\) return;/);
   assert.match(intro, /sessionStorage\.getItem\("wave-intro-seen-v2"\)/);
   assert.match(intro, /setTimeout\(finishIntro, INTRO_DURATION_MS\)/);
-  assert.match(landing, /introState === "show" && <Intro/);
+  assert.match(landing, /introState === "show" && <LandingIntro/);
   assert.doesNotMatch(landing, /useState\(true\)/);
   assert.match(css, /landingIntroOut \.5s 1\.95s/);
   assert.match(landing, /prefers-reduced-motion: reduce/);
@@ -245,7 +261,7 @@ test("wave effects avoid dense glyphs and the short first-visit intro stays sync
 test("interactive help follows real sections and remains accessible on mobile", async () => {
   const [help, landing, planner, css] = await Promise.all([
     source("components/HelpCenter.tsx"),
-    source("app/page.tsx"),
+    landingProductSource(),
     plannerProductSource(),
     styleSource(),
   ]);
