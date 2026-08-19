@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 
-const BACKFILL_BASELINE = "v0.7.5";
+const BACKFILL_BASELINE = "v0.7.6";
 
 function parseVersion(value) {
   const match = /^v(\d+)\.(\d+)\.(\d+)$/.exec(value);
