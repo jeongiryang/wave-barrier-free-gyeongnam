@@ -71,11 +71,14 @@ test("travel signals compose independent weather, impact, insight and theme sect
 });
 
 test("navigation workspace delegates transport data and map route interactions", async () => {
-  const [workspace, transport, mapRoute] = await Promise.all([
+  const [workspace, transport, mapWorkspace, pointPicker, routeComparison] = await Promise.all([
     source("features/planner/components/NavigationWorkspace.tsx"),
     source("features/planner/components/TransportDataOverview.tsx"),
     source("features/planner/components/RouteMapWorkspace.tsx"),
+    source("features/planner/components/TripPointPicker.tsx"),
+    source("features/planner/components/RouteComparisonPanel.tsx"),
   ]);
+  const mapRoute = `${mapWorkspace}\n${pointPicker}\n${routeComparison}`;
 
   assert.match(workspace, /<TransportDataOverview/);
   assert.match(workspace, /<RouteMapWorkspace/);
