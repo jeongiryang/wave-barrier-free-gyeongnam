@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./styles/product-experience.css";
 import "./styles/design-system.css";
 import "./styles/experience-accessibility.css";
 import "./styles/account-community.css";

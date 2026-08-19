@@ -4,7 +4,7 @@
 새 화면이나 컴포넌트를 만들 때는 여기 있는 토큰을 먼저 찾아 쓰고,
 없을 때만 새 값을 만들되 이 문서에 함께 추가합니다.
 
-기본 색상·레이아웃 토큰은 [`app/globals.css`](../app/globals.css)에, 공통 간격·모서리·그림자·모션 토큰과 접근 가능한 공통 패턴은 [`app/styles/design-system.css`](../app/styles/design-system.css)에 선언합니다. 도움말·모션 감소·터치 영역·반응형 안전 영역 보정은 [`app/styles/experience-accessibility.css`](../app/styles/experience-accessibility.css)가 담당합니다.
+기본 색상·reset·초기 레이아웃은 [`app/globals.css`](../app/globals.css)에 두고, 랜딩·플래너·지도·데이터 화면의 제품 스타일과 후속 보정은 [`app/styles/product-experience.css`](../app/styles/product-experience.css)에 둡니다. 공통 간격·모서리·그림자·모션 토큰과 접근 가능한 공통 패턴은 [`app/styles/design-system.css`](../app/styles/design-system.css)에 선언합니다. 도움말·모션 감소·터치 영역·반응형 안전 영역 보정은 [`app/styles/experience-accessibility.css`](../app/styles/experience-accessibility.css)가 담당합니다.
 
 ---
 
