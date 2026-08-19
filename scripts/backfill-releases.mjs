@@ -36,7 +36,8 @@ const releases = [
   ["v0.7.3", 38, "c0cf3f37ab4b689494c34477f990d76422dae84c", "fix: 릴리즈 백필 경쟁 조건 수정"],
   ["v0.7.4", 39, "1e7031c156b6d6553e34bf565ec3ccb0e1355f62", "fix: 과거 커밋 태그 생성 방식 수정"],
   ["v0.7.5", 40, "950da810b013ab09b519cab438b8e557298f3b3a", "fix: 시맨틱 릴리즈 기준 태그 안전장치 추가"],
-  ["v0.7.6", 41, "$CURRENT", "docs: README를 최신 서비스 상태로 개편"],
+  ["v0.7.6", 41, "d4017fe0cd7654829a86695ff7338d456a1db526", "docs: README를 최신 서비스 상태로 개편"],
+  ["v0.8.0", 42, "$CURRENT", "feat: 경남 18개 지역 여행 친구 적용"],
 ].map(([version, pr, sha, title]) => ({ version, pr, sha, title }));
 
 const accidentalRelease = {

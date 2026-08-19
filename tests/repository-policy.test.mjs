@@ -49,6 +49,21 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(regionalPhoto, /for \(const keyword of keywords\)/);
 });
 
+test("all eighteen regions use original W.A.V.E travel characters instead of emoji markers", async () => {
+  const [landing, mascot] = await Promise.all([
+    source("app/page.tsx"),
+    source("components/RegionMascot.tsx"),
+  ]);
+  const names = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
+  for (const name of names) assert.match(mascot, new RegExp(`${name}:`));
+  const characterConfig = mascot.slice(mascot.indexOf("const regionCharacters"), mascot.indexOf("function MotifMark"));
+  assert.equal((characterConfig.match(/nickname: "/g) || []).length, 18);
+  assert.match(landing, /<RegionMascot region=\{region\.name\} size=\{25\}/);
+  assert.match(landing, /<RegionMascot region=\{active\.name\} size=\{54\}/);
+  const regionConfig = landing.slice(landing.indexOf("const regions"), landing.indexOf("const values"));
+  assert.doesNotMatch(regionConfig, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);
+});
+
 test("device location is not persisted with saved routes", async () => {
   const map = await source("components/RouteMap.tsx");
   const saveRoute = map.slice(map.indexOf("function saveRoute"), map.indexOf("function exportRouteImage"));
@@ -109,14 +124,15 @@ test("semantic releases are created from merged main commits with least privileg
   assert.match(backfill, /\["v0\.7\.3", 38, "c0cf3f37ab4b689494c34477f990d76422dae84c"/);
   assert.match(backfill, /\["v0\.7\.4", 39, "1e7031c156b6d6553e34bf565ec3ccb0e1355f62"/);
   assert.match(backfill, /\["v0\.7\.5", 40, "950da810b013ab09b519cab438b8e557298f3b3a"/);
-  assert.match(backfill, /\["v0\.7\.6", 41, "\$CURRENT"/);
+  assert.match(backfill, /\["v0\.7\.6", 41, "d4017fe0cd7654829a86695ff7338d456a1db526"/);
+  assert.match(backfill, /\["v0\.8\.0", 42, "\$CURRENT"/);
   assert.match(backfill, /accidentalRef\?\.object\.sha === accidentalRelease\.sha/);
   assert.match(backfill, /accidentalPublishedRelease\?\.body\?\.includes\(accidentalRelease\.bodyMarker\)/);
   assert.doesNotMatch(backfill, /github\("\/git\/refs",/);
   assert.match(backfill, /execFileSync\("git", \["push", "origin", `refs\/tags\/\$\{release\.version\}`\]/);
   assert.doesNotMatch(backfill, /target_commitish: target/);
   assert.match(current, /subject\.startsWith\("feat:"\)/);
-  assert.match(current, /BACKFILL_BASELINE = "v0\.7\.6"/);
+  assert.match(current, /BACKFILL_BASELINE = "v0\.8\.0"/);
   assert.match(current, /과거 릴리즈 백필/);
   assert.match(current, /target_commitish: process\.env\.GITHUB_SHA/);
   assert.match(current, /ref\.object\.sha !== process\.env\.GITHUB_SHA/);
