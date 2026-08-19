@@ -467,7 +467,11 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/tourism/photos.ts"),
     source("server/tourism/region-photo.ts"),
     source("server/tourism/spot-photo.ts"),
-    source("server/tourism/insights.ts"),
+    Promise.all([
+      source("server/tourism/insights.ts"),
+      source("server/tourism/enrichment-query.ts"),
+      source("server/tourism/enrichment-model.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("server/tourism/concentration.ts"),
     source("server/tourism/enrichment-sources.ts"),
     source("server/tourism/regional-enrichment.ts"),
@@ -527,6 +531,8 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(spotPhoto, /export async function fetchSpotPhoto/);
   assert.match(tourismInsights, /export async function buildEnrichment/);
   assert.match(tourismInsights, /fetchEnrichmentSources/);
+  assert.match(tourismInsights, /export function readEnrichmentQuery/);
+  assert.match(tourismInsights, /export function buildEnrichmentModel/);
   assert.doesNotMatch(tourismInsights, /GoCamping|DataLabService|TatsCnctrRateService/);
   assert.match(tourismConcentration, /TatsCnctrRateService/);
   assert.match(regionalEnrichment, /GoCamping/);
