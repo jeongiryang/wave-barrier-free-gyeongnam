@@ -14,9 +14,19 @@ export type CommunityDetailResponse = {
 };
 
 type CommunityMutationResponse = {
+  id?: string;
   error?: string;
   liked?: boolean;
   likeCount?: number;
+};
+
+export type CommunityPostInput = {
+  category: CommunityPost["category"];
+  title: string;
+  content: string;
+  region: string;
+  placeId: string;
+  placeName: string;
 };
 
 type CommunityResult<T> = { ok: boolean; status: number; payload: T };
@@ -36,12 +46,20 @@ export async function listCommunityPosts(params: URLSearchParams, signal: AbortS
   return result.payload;
 }
 
-export async function getCommunityPost(postId: string) {
-  const result = await communityRequest<CommunityDetailResponse>(`/api/community/posts/${postId}`);
+export async function getCommunityPost(postId: string, signal?: AbortSignal) {
+  const result = await communityRequest<CommunityDetailResponse>(`/api/community/posts/${postId}`, { signal });
   if (!result.ok || !result.payload.post) {
     throw new Error(result.payload.error || "게시글을 불러오지 못했습니다.");
   }
   return { ...result.payload, post: result.payload.post };
+}
+
+export function saveCommunityPost(postId: string | undefined, values: CommunityPostInput) {
+  return communityRequest<CommunityMutationResponse>(postId ? `/api/community/posts/${postId}` : "/api/community/posts", {
+    method: postId ? "PATCH" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(values),
+  });
 }
 
 export function setCommunityLike(postId: string, liked: boolean) {
