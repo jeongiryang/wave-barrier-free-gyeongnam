@@ -66,7 +66,7 @@ test("all eighteen regions use original W.A.V.E travel characters instead of emo
 
 test("device location is not persisted with saved routes", async () => {
   const map = await source("components/RouteMap.tsx");
-  const saveRoute = map.slice(map.indexOf("function saveRoute"), map.indexOf("function exportRouteImage"));
+  const saveRoute = map.slice(map.indexOf("function saveRoute"), map.indexOf("async function shareRoute"));
   assert.doesNotMatch(saveRoute, /origin\s*,|geometry|mapX|mapY|lat:|lng:/);
   assert.match(saveRoute, /places\.slice/);
 });
@@ -253,6 +253,28 @@ test("the server entry delegates shared policy, weather and place search to prov
   assert.match(http, /x-content-type-options/);
   assert.match(weather, /AbortSignal\.timeout\(8000\)/);
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
+});
+
+test("route-map rendering delegates SDK, domain helpers, types and image export", async () => {
+  const [map, planner, types, sdk, helpers, imageExport] = await Promise.all([
+    source("components/RouteMap.tsx"),
+    source("app/planner/page.tsx"),
+    source("features/routing/types.ts"),
+    source("features/routing/kakao-sdk.ts"),
+    source("features/routing/map-utils.ts"),
+    source("features/routing/export-route-image.ts"),
+  ]);
+  assert.match(map, /import \{ exportRouteImage \} from "\.\.\/features\/routing\/export-route-image"/);
+  assert.match(map, /loadKakaoSdk/);
+  assert.doesNotMatch(map, /document\.createElement\("script"\)|canvas\.width = 1600/);
+  assert.match(planner, /import type \{ MapPlace, RouteAlternative, RoutePoint \} from "\.\.\/\.\.\/features\/routing\/types"/);
+  assert.match(types, /export type RouteAlternative/);
+  assert.match(sdk, /Kakao SDK load timed out/);
+  assert.match(sdk, /data-wave-kakao/);
+  assert.match(helpers, /export function summarizeMeasurements/);
+  assert.match(helpers, /export function safeMapImageUrl/);
+  assert.match(imageExport, /canvas\.width = 1600/);
+  assert.match(imageExport, /URL\.revokeObjectURL/);
 });
 
 test("every user-facing footer exposes the repository with an accessible tooltip", async () => {

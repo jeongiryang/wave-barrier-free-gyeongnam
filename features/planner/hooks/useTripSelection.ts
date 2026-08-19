@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { RoutePoint } from "../../../components/RouteMap";
+import type { RoutePoint } from "../../routing/types";
 import { explainVisitOrder, optimizeVisitOrder } from "../optimization/visit-order.js";
 import type { Place } from "../types";
 import { dateRange, localDate } from "../utils";
