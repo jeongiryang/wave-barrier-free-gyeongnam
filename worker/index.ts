@@ -1241,6 +1241,53 @@ function handleHealthApi(env: Env) {
   });
 }
 
+async function restoreSharedPlan(
+  env: Env,
+  saved: Record<string, unknown>,
+  selections: Record<string, unknown>,
+  currentPlanPromise: Promise<Awaited<ReturnType<typeof buildPlan>>>,
+) {
+  const refs = (Array.isArray(saved.placeRefs) ? saved.placeRefs : [])
+    .map((value) => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {})
+    .map((value) => ({ contentId: clean(value.contentId, 80), order: Math.max(0, Math.trunc(Number(value.order) || 0)) }))
+    .filter((value) => value.contentId)
+    .sort((a, b) => a.order - b.order)
+    .slice(0, 6);
+  if (!refs.length) return { plan: await currentPlanPromise, restoration: { requested: 0, restored: 0, missing: 0, mode: "legacy" } };
+
+  const region = regionCodes[clean(selections.region, 20)] ? clean(selections.region, 20) : "창원";
+  const profiles = Array.isArray(selections.profiles)
+    ? selections.profiles.map((value) => clean(value, 20)).filter((value) => profileFields[value]).slice(0, 6)
+    : [];
+  const officialPlacesPromise = Promise.all(refs.map(async ({ contentId }, index) => {
+    const [common, barrier] = await Promise.all([
+      attempt(fetchKto(env, "KorService2", "detailCommon2", {
+        ...commonParams("1"), contentId, defaultYN: "Y", firstImageYN: "Y", areacodeYN: "Y", addrinfoYN: "Y", mapinfoYN: "Y", overviewYN: "Y",
+      })),
+      attempt(fetchKto(env, "KorWithService2", "detailWithTour2", { ...commonParams("1"), contentId })),
+    ]);
+    const item = common.ok ? common.value.items[0] : null;
+    return item ? placeFrom(item, barrier.ok ? barrier.value.items[0] || {} : {}, region, profiles, index) : null;
+  }));
+  const [currentPlan, officialPlaces] = await Promise.all([currentPlanPromise, officialPlacesPromise]);
+  const currentById = new Map(currentPlan.places.map((place) => [place.id, place]));
+  const restored = officialPlaces.map((place, index) => place || currentById.get(refs[index].contentId) || null);
+  const places = restored.filter((place): place is NonNullable<typeof place> => Boolean(place));
+  const missing = Math.max(0, refs.length - places.length);
+  if (!places.length) {
+    return { plan: currentPlan, restoration: { requested: refs.length, restored: 0, missing: refs.length, mode: "condition-fallback" } };
+  }
+  const stops = places.slice(0, 3).map((place, index) => ({
+    title: place.name,
+    note: index === 0 ? `${place.features.slice(0, 2).join("·")} 정보를 먼저 확인해요.` : place.summary,
+    source: place.source,
+  }));
+  return {
+    plan: { ...currentPlan, places, stops },
+    restoration: { requested: refs.length, restored: places.length, missing, mode: "content-id" },
+  };
+}
+
 function database() {
   const url = typeof process === "undefined" ? "" : process.env.DATABASE_URL?.trim();
   return url ? neon(url) : null;
@@ -1287,8 +1334,9 @@ async function handleTripsApi(request: Request, env: Env) {
       profiles: Array.isArray(selections.profiles) ? selections.profiles.map((value) => clean(value, 20)).join(",") : "",
       locale: clean(selections.locale || "ko", 20),
     });
-    const plan = await buildPlan(new Request(`${url.origin}/api/wave?${params.toString()}`), env);
-    return json({ id, ...saved, plan, createdAt: Number(row.created_at), expiresAt: Number(row.expires_at) }, 200, true);
+    const currentPlanPromise = buildPlan(new Request(`${url.origin}/api/wave?${params.toString()}`), env);
+    const restored = await restoreSharedPlan(env, saved, selections, currentPlanPromise);
+    return json({ id, ...saved, ...restored, createdAt: Number(row.created_at), expiresAt: Number(row.expires_at) }, 200, true);
   }
   if (request.method !== "POST") return json({ error: "지원하지 않는 요청입니다." }, 405);
   const parsed = await readTrustedJson(request, 70000);
@@ -1304,6 +1352,7 @@ async function handleTripsApi(request: Request, env: Env) {
   const rawAssignments = rawSelections.scheduleAssignments && typeof rawSelections.scheduleAssignments === "object" && !Array.isArray(rawSelections.scheduleAssignments)
     ? rawSelections.scheduleAssignments as Record<string, unknown>
     : {};
+  const rawSelectedPlaceIds = Array.isArray(rawSelections.selectedPlaceIds) ? rawSelections.selectedPlaceIds : [];
   const date = (value: unknown) => /^\d{4}-\d{2}-\d{2}$/.test(clean(value, 10)) ? clean(value, 10) : "";
   const selections = {
     region: regionCodes[requestedRegion] ? requestedRegion : "창원",
@@ -1313,6 +1362,7 @@ async function handleTripsApi(request: Request, env: Env) {
     travelStart: date(rawSelections.travelStart),
     travelEnd: date(rawSelections.travelEnd),
     scheduleAssignments: Object.fromEntries(Object.entries(rawAssignments).slice(0, 12).map(([placeId, assignedDate]) => [clean(placeId, 80), date(assignedDate)]).filter(([placeId, assignedDate]) => placeId && assignedDate)),
+    selectedPlaceIds: [...new Set(rawSelectedPlaceIds.map((value) => clean(value, 80)).filter(Boolean))].slice(0, 12),
   };
 
   const sql = await ensureDb();
@@ -1320,10 +1370,12 @@ async function handleTripsApi(request: Request, env: Env) {
   const plan = (body.plan && typeof body.plan === "object" ? body.plan : {}) as Record<string, unknown>;
   const places = Array.isArray(plan.places) ? plan.places as Array<Record<string, unknown>> : [];
   const origin = (body.origin && typeof body.origin === "object" ? body.origin : {}) as Record<string, unknown>;
+  const selectedIds = new Set(selections.selectedPlaceIds);
+  const selectedPlaces = selectedIds.size ? places.filter((place) => selectedIds.has(clean(place.id, 80))) : places;
   const payloadObject = {
     selections,
     origin: { label: clean(origin.label || "선택 출발지", 80) },
-    placeRefs: places.slice(0, 12).map((place, order) => ({ contentId: clean(place.id, 80), order })),
+    placeRefs: (selectedPlaces.length ? selectedPlaces : places).slice(0, 6).map((place, order) => ({ contentId: clean(place.id, 80), order })),
   };
   const payload = JSON.stringify(payloadObject);
   if (payload.length > 65000) return json({ error: "여행 계획이 너무 큽니다." }, 413);

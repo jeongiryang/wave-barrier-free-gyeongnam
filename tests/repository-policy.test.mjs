@@ -230,3 +230,20 @@ test("core controls keep 44px targets on every viewport and pointer type", async
   assert.match(globalTouchRules, /min-height: 44px/);
   assert.match(globalTouchRules, /\.landing-region-map > button::after[\s\S]+inset: -8px/);
 });
+
+test("shared trips restore saved places, order and date assignments from official IDs", async () => {
+  const [planner, worker, shared] = await Promise.all([
+    source("app/planner/page.tsx"),
+    source("worker/index.ts"),
+    source("app/trip/[id]/page.tsx"),
+  ]);
+  assert.match(planner, /scheduleAssignments, selectedPlaceIds: saved/);
+  assert.match(worker, /async function restoreSharedPlan/);
+  assert.match(worker, /"KorService2", "detailCommon2"/);
+  assert.match(worker, /"KorWithService2", "detailWithTour2"/);
+  assert.match(worker, /selectedIds\.size \? places\.filter/);
+  assert.match(worker, /restoration: \{ requested: refs\.length, restored: places\.length, missing, mode: "content-id" \}/);
+  assert.match(shared, /저장 장소 최신 확인/);
+  assert.match(shared, /날짜별 저장 일정/);
+  assert.match(shared, /shared-restoration-notice/);
+});
