@@ -1,0 +1,101 @@
+
+/* ==========================================================================
+   디자인 시스템 토큰과 패턴 통일 — docs/design-system.md 참조
+   ========================================================================== */
+
+:root {
+  /* 간격 — 8의 배수 */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 72px;
+
+  /* 모서리 */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: clamp(20px, 2.2vw, 28px);
+  --r-full: 999px;
+
+  /* 그림자 — 순수 검정 대신 파랑 기가 도는 잉크색 */
+  --shadow-1: 0 2px 10px rgba(6,48,74,.06);
+  --shadow-2: 0 16px 40px rgba(6,48,74,.055);
+  --shadow-3: 0 24px 56px rgba(6,48,74,.13);
+
+  /* 모션 */
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --ease-inout: cubic-bezier(.22,1,.36,1);
+  --dur-1: .2s;
+  --dur-2: .28s;
+  --dur-3: .55s;
+}
+
+/* --- 반복되는 형태를 하나의 규칙으로 모은다 ------------------------------- */
+
+/* 카드류: 테두리·모서리·그림자를 같은 값으로 통일 */
+.place-card, .rich-card, .route-option, .route-compare-panel, .evidence-card,
+.api-card, .service-region-card, .day-planner, .weather-day, .diagnostic-grid article,
+.transport-data-results article, .shared-places article, .insight-board > article {
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-1) ease;
+}
+.place-card:hover, .rich-card:hover, .service-region-card:hover {
+  box-shadow: var(--shadow-3);
+}
+
+/* 알약형 칩·배지 */
+.city-chip, .tool-launch-status span, .tool-launch-status button, .service-proof span,
+.transport-provider-strip > span,
+.place-card .stop-check {
+  border-radius: var(--r-full);
+}
+
+/* 입력·선택 요소는 같은 높이와 모서리를 쓴다 */
+.select-shell, .select-shell select, .date-range-fields input,
+.feedback-box textarea {
+  border-radius: var(--r-md);
+}
+
+/* 주요 액션 버튼 */
+.generate-button, .primary-button, .modal-body > button,
+.landing-cta a, .region-story-copy > a {
+  border-radius: var(--r-md);
+  transition: background var(--dur-1) ease, transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+
+/* 조작 대상은 최소 44px — 접근성 기준 */
+button, .landing-start, .header-action,
+.tool-launch-status button {
+  min-height: 44px;
+}
+.generate-button, .primary-button, .account-submit, .landing-start, .landing-cta a {
+  min-height: 48px;
+}
+
+/* --- 접근성 아이콘 -------------------------------------------------------- */
+.profile-icon svg { display: block; }
+.profile-icon {
+  color: var(--blue-dark);
+  border-radius: var(--r-md);
+}
+.profile-card.active .profile-icon { color: var(--blue); }
+
+/* 브랜드 마크 옆 무장애 표식 */
+.access-badge {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  min-height: 34px; padding: 6px 12px 6px 9px;
+  border: 1px solid var(--line); border-radius: var(--r-full);
+  color: var(--ink-soft); background: var(--white);
+  font-size: .76rem; font-weight: 820;
+}
+.access-badge svg { color: var(--blue); }
+html[data-theme="dark"] .access-badge { background: var(--paper); }
+
+/* --- 초점 표시 -----------------------------------------------------------
+   키보드 사용자가 지금 어디에 있는지 항상 보이게 한다. 무장애 서비스에서
+   초점 링을 지우는 것은 허용하지 않는다. */
+:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.brand-intro :focus-visible { outline-color: var(--mint); }

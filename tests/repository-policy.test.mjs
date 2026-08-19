@@ -6,6 +6,37 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
+async function styleSource() {
+  const paths = [
+    "app/globals.css",
+    "app/styles/design-system.css",
+    "app/styles/experience-accessibility.css",
+  ];
+  return (await Promise.all(paths.map(source))).join("\n");
+}
+
+test("shared styles keep stable cascade boundaries", async () => {
+  const [layout, globalCss, designSystem, experience] = await Promise.all([
+    source("app/layout.tsx"),
+    source("app/globals.css"),
+    source("app/styles/design-system.css"),
+    source("app/styles/experience-accessibility.css"),
+  ]);
+  const imports = [
+    'import "./globals.css"',
+    'import "./styles/design-system.css"',
+    'import "./styles/experience-accessibility.css"',
+    'import "./styles/account-community.css"',
+  ].map((statement) => layout.indexOf(statement));
+  assert.ok(imports.every((index) => index >= 0));
+  assert.deepEqual([...imports].sort((a, b) => a - b), imports);
+  assert.doesNotMatch(globalCss, /디자인 시스템 토큰과 패턴 통일|단계별 도움말 투어/);
+  assert.match(designSystem, /--shadow-3:/);
+  assert.match(designSystem, /:focus-visible/);
+  assert.match(experience, /html\[data-motion="calm"\] \.hero-wave-canvas/);
+  assert.match(experience, /포인터 종류와 화면 폭에 관계없이/);
+});
+
 test("production configuration is Vercel-only", async () => {
   const [vercel, packageJson, readme] = await Promise.all([
     source("vercel.json"),
@@ -169,7 +200,7 @@ test("wave motion preference is persisted, localized and respects reduced motion
     source("features/preferences/translations.ts"),
     source("components/WaveField.tsx"),
     source("features/landing/useLandingIntro.ts"),
-    source("app/globals.css"),
+    styleSource(),
   ]);
   assert.match(storage, /localStorage\.getItem\("wave-motion"\)/);
   assert.match(storage, /localStorage\.setItem\("wave-motion", preferences\.motion\)/);
@@ -300,7 +331,7 @@ test("every user-facing footer exposes the repository with an accessible tooltip
     source("app/page.tsx"),
     source("app/planner/page.tsx"),
     source("app/trip/[id]/page.tsx"),
-    source("app/globals.css"),
+    styleSource(),
   ]);
   assert.match(link, /https:\/\/github\.com\/jeongiryang\/wave-barrier-free-gyeongnam/);
   assert.match(link, /aria-label="W\.A\.V\.E GitHub 저장소 열기"/);
@@ -311,7 +342,7 @@ test("every user-facing footer exposes the repository with an accessible tooltip
 });
 
 test("core controls keep 44px targets on every viewport and pointer type", async () => {
-  const css = await source("app/globals.css");
+  const css = await styleSource();
   const touchStart = css.indexOf("포인터 종류와 화면 폭에 관계없이");
   const globalTouchRules = css.slice(touchStart, css.indexOf("@media (max-width: 780px)", touchStart));
   for (const selector of [
