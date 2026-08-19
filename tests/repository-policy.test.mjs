@@ -26,13 +26,22 @@ async function styleSource() {
     "app/styles/landing-explorer.css",
     "app/styles/landing-route-data.css",
     "app/styles/place-dialog.css",
-    "app/styles/product-foundations.css",
+    "app/styles/landing-foundations.css",
+    "app/styles/planner-foundations.css",
+    "app/styles/regional-explorer-foundations.css",
+    "app/styles/theme-itinerary-foundations.css",
     "app/styles/planner-workspace.css",
+    "app/styles/landing-motion.css",
+    "app/styles/workspace-responsive.css",
     "app/styles/map-experience.css",
     "app/styles/map-workspace.css",
     "app/styles/map-place-tools.css",
     "app/styles/map-live-signals.css",
-    "app/styles/product-refinements.css",
+    "app/styles/situation-identity-refinements.css",
+    "app/styles/ocean-intro-refinements.css",
+    "app/styles/ocean-landing-refinements.css",
+    "app/styles/ocean-planner-refinements.css",
+    "app/styles/ocean-responsive-refinements.css",
     "app/styles/design-system.css",
     "app/styles/experience-accessibility.css",
   ];
@@ -40,20 +49,29 @@ async function styleSource() {
 }
 
 test("shared styles keep stable cascade boundaries", async () => {
-  const [layout, globalCss, siteShell, landingExplorer, landingRouteData, placeDialog, productFoundations, plannerWorkspace, mapExperience, mapWorkspace, mapPlaceTools, mapLiveSignals, productRefinements, designSystem, experience] = await Promise.all([
+  const [layout, globalCss, siteShell, landingExplorer, landingRouteData, placeDialog, landingFoundations, plannerFoundations, regionalFoundations, themeItineraryFoundations, plannerWorkspace, landingMotion, workspaceResponsive, mapExperience, mapWorkspace, mapPlaceTools, mapLiveSignals, situationRefinements, oceanIntro, oceanLanding, oceanPlanner, oceanResponsive, designSystem, experience] = await Promise.all([
     source("app/layout.tsx"),
     source("app/globals.css"),
     source("app/styles/site-shell.css"),
     source("app/styles/landing-explorer.css"),
     source("app/styles/landing-route-data.css"),
     source("app/styles/place-dialog.css"),
-    source("app/styles/product-foundations.css"),
+    source("app/styles/landing-foundations.css"),
+    source("app/styles/planner-foundations.css"),
+    source("app/styles/regional-explorer-foundations.css"),
+    source("app/styles/theme-itinerary-foundations.css"),
     source("app/styles/planner-workspace.css"),
+    source("app/styles/landing-motion.css"),
+    source("app/styles/workspace-responsive.css"),
     source("app/styles/map-experience.css"),
     source("app/styles/map-workspace.css"),
     source("app/styles/map-place-tools.css"),
     source("app/styles/map-live-signals.css"),
-    source("app/styles/product-refinements.css"),
+    source("app/styles/situation-identity-refinements.css"),
+    source("app/styles/ocean-intro-refinements.css"),
+    source("app/styles/ocean-landing-refinements.css"),
+    source("app/styles/ocean-planner-refinements.css"),
+    source("app/styles/ocean-responsive-refinements.css"),
     source("app/styles/design-system.css"),
     source("app/styles/experience-accessibility.css"),
   ]);
@@ -63,13 +81,22 @@ test("shared styles keep stable cascade boundaries", async () => {
     'import "./styles/landing-explorer.css"',
     'import "./styles/landing-route-data.css"',
     'import "./styles/place-dialog.css"',
-    'import "./styles/product-foundations.css"',
+    'import "./styles/landing-foundations.css"',
+    'import "./styles/planner-foundations.css"',
+    'import "./styles/regional-explorer-foundations.css"',
+    'import "./styles/theme-itinerary-foundations.css"',
     'import "./styles/planner-workspace.css"',
+    'import "./styles/landing-motion.css"',
+    'import "./styles/workspace-responsive.css"',
     'import "./styles/map-experience.css"',
     'import "./styles/map-workspace.css"',
     'import "./styles/map-place-tools.css"',
     'import "./styles/map-live-signals.css"',
-    'import "./styles/product-refinements.css"',
+    'import "./styles/situation-identity-refinements.css"',
+    'import "./styles/ocean-intro-refinements.css"',
+    'import "./styles/ocean-landing-refinements.css"',
+    'import "./styles/ocean-planner-refinements.css"',
+    'import "./styles/ocean-responsive-refinements.css"',
     'import "./styles/design-system.css"',
     'import "./styles/experience-accessibility.css"',
     'import "./styles/account-auth.css"',
@@ -84,15 +111,22 @@ test("shared styles keep stable cascade boundaries", async () => {
   assert.match(landingRouteData, /\/\* Route \*\/[\s\S]*\/\* API bento \*\//);
   assert.match(placeDialog, /\/\* Closing, modal, footer \*\//);
   assert.doesNotMatch(globalCss, /Marketing landing|Functional planner hierarchy|디자인 시스템 토큰과 패턴 통일|단계별 도움말 투어/);
-  assert.match(productFoundations, /Marketing landing/);
-  assert.match(productFoundations, /Functional planner hierarchy/);
+  assert.match(landingFoundations, /Marketing landing/);
+  assert.match(plannerFoundations, /Functional planner hierarchy/);
+  assert.match(regionalFoundations, /Data-rich regional explorer/);
+  assert.match(themeItineraryFoundations, /User-selected color theme[\s\S]*Shared itinerary/);
   assert.match(plannerWorkspace, /V5 — tool-first workspace/);
+  assert.match(landingMotion, /stronger editorial motion/);
+  assert.match(workspaceResponsive, /@media \(max-width: 900px\)/);
   assert.match(mapExperience, /V6 — Kakao-first map/);
   assert.match(mapWorkspace, /V7 — Kakao map workspace/);
   assert.match(mapPlaceTools, /V8\.1 — point selection/);
   assert.match(mapLiveSignals, /V8\.4 — map-native crowd forecast/);
-  assert.match(productRefinements, /실제 예보와 관광 집중률/);
-  assert.match(productRefinements, /Deep Ocean 통합 레이어/);
+  assert.match(situationRefinements, /실제 예보와 관광 집중률/);
+  assert.match(oceanIntro, /Deep Ocean 통합 레이어[\s\S]*인트로/);
+  assert.match(oceanLanding, /랜딩: 섹션 경계 없는 단일 수면/);
+  assert.match(oceanPlanner, /플래너: 기능 단위로 끊어 읽는 구역/);
+  assert.match(oceanResponsive, /뷰포트: 창 절반 폭까지 무너지지 않게/);
   assert.match(designSystem, /--shadow-3:/);
   assert.match(designSystem, /:focus-visible/);
   assert.match(experience, /html\[data-motion="calm"\] \.hero-wave-canvas/);

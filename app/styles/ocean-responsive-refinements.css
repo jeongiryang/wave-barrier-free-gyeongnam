@@ -1,0 +1,136 @@
+
+/* --- 뷰포트: 창 절반 폭까지 무너지지 않게 ------------------------------- */
+@media (max-width: 1180px) {
+  .planner-section .planner-bento { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 1100px) {
+  .landing-hero { gap: clamp(28px, 5vh, 52px); align-content: center; }
+  .landing-signal { width: min(520px, 100%); margin-inline: auto; }
+  .region-story, .evidence-story { gap: clamp(28px, 4vw, 48px); }
+  .landing-region-map { min-height: clamp(360px, 52vw, 560px); }
+  .landing-region-map > img { max-height: none; }
+}
+@media (max-width: 960px) {
+  :root { --gutter: clamp(14px, 3.4vw, 26px); }
+  .landing-hero-copy h1 { font-size: clamp(2.6rem, 8.2vw, 4.4rem); }
+  .manifesto > h2, .region-story-copy h2, .evidence-story h2 { font-size: clamp(2rem, 6.4vw, 3.4rem); }
+  .landing-cta h2 { font-size: clamp(2.2rem, 8vw, 4rem); }
+  .manifesto, .region-story, .evidence-story, .landing-cta { padding-block: clamp(64px, 11vh, 104px); }
+  .manifesto-grid { grid-template-columns: 1fr; }
+  .manifesto-grid article, .manifesto-grid article + article { min-height: 0; padding: 24px; }
+  .evidence-stack article { grid-template-columns: 40px 1fr; gap: 16px; }
+  .planner-page > .planner-section, .planner-page > .places-section,
+  .planner-page > .navigation-section, .planner-page > .travel-layers,
+  .planner-page > .route-section, .planner-page > .data-section {
+    width: calc(100vw - var(--gutter) * 2);
+    padding: clamp(20px, 4vw, 30px) clamp(16px, 3.4vw, 26px);
+    border-radius: 20px;
+  }
+  .hero-wave-canvas { opacity: .68; }
+}
+@media (max-width: 620px) {
+  .brand-intro-copy { padding-block: clamp(64px, 12vh, 96px) clamp(32px, 6vh, 56px); }
+  .brand-intro > button { right: 12px; top: 12px; padding: 8px 13px; font-size: .76rem; }
+  .landing-hero { min-height: 92svh; }
+  .simple-footer { grid-template-columns: 1fr; text-align: center; }
+  .simple-footer .source, .simple-footer p { text-align: center; }
+  .simple-footer .footer-brand { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-intro { animation-delay: 1.6s; }
+  .brand-intro .intro-statement { animation: none; }
+}
+
+/* 인트로 카피가 물결 위에서 읽히도록 위아래에 심해 스크림을 깐다. */
+.brand-intro-copy::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(4,32,47,.92) 0, rgba(4,32,47,.35) 22%, transparent 38%),
+    linear-gradient(0deg, rgba(4,32,47,.94) 0, rgba(4,32,47,.4) 20%, transparent 36%);
+}
+.brand-intro-copy > p { text-shadow: 0 2px 14px rgba(4,32,47,.9); }
+.brand-intro .intro-statement span,
+.brand-intro .intro-statement strong { text-shadow: 0 2px 16px rgba(4,32,47,.95); }
+
+/* --- 히어로 가독성 보정 ------------------------------------------------- */
+/* 물결은 카피가 없는 오른쪽·아래로 물러나게 하고, 글자 뒤에서는 걷어낸다. */
+.hero-wave-canvas {
+  opacity: .5;
+  -webkit-mask-image:
+    linear-gradient(180deg, transparent 0, #000 15%, #000 64%, transparent 100%),
+    linear-gradient(90deg, transparent 0, transparent 28%, #000 60%);
+  mask-image:
+    linear-gradient(180deg, transparent 0, #000 15%, #000 64%, transparent 100%),
+    linear-gradient(90deg, transparent 0, transparent 28%, #000 60%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+/* 한글은 라틴보다 글자가 높아 .98 행간에서 줄이 서로 붙는다. */
+.landing-hero-copy h1 { line-height: 1.08; letter-spacing: -.045em; }
+.manifesto > h2, .region-story-copy h2, .evidence-story h2, .landing-cta h2 { line-height: 1.14; }
+.brand-intro-copy h1, .landing-cta h2 em { line-height: inherit; }
+
+/* 카피 뒤에 옅은 수면을 깔아 물결 위에서도 글이 또렷하게 읽히도록 한다. */
+.landing-hero-copy { position: relative; z-index: 1; }
+.landing-hero-copy::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  inset: -28px -56px -28px -40px;
+  border-radius: 36px;
+  background: radial-gradient(120% 100% at 22% 50%, var(--surface) 0, rgba(238,247,252,.92) 52%, transparent 100%);
+}
+.landing-hero-copy > span { color: var(--ink-soft); }
+
+@media (max-width: 1100px) {
+  /* 한 단으로 접히면 카피가 화면 전체를 쓰므로 가로 마스크를 걷고 세로로만 페이드한다. */
+  .hero-wave-canvas {
+    opacity: .34;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 22%, #000 70%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 22%, #000 70%, transparent 100%);
+    -webkit-mask-composite: source-over;
+    mask-composite: add;
+  }
+  .landing-hero-copy::before { inset: -20px -24px; }
+}
+
+/* 세로 장식 레일은 물결 위에서 잘린 글자처럼 보여 걷어낸다. */
+.landing-page .chapter-rail { display: none; }
+
+/* --- 마무리 보정 --------------------------------------------------------- */
+
+/* 배경색으로 구역을 나누지 않으므로 세로 여백이 그만큼 넓어 보인다. 리듬을 좁힌다. */
+.manifesto, .region-story, .evidence-story { padding-block: clamp(72px, 9vw, 118px); }
+.landing-cta { padding-block: clamp(84px, 10vw, 132px); }
+.manifesto-grid { margin-top: clamp(36px, 5vw, 62px); }
+
+/* 헤더 메뉴가 좁은 창에서 두 줄로 접히지 않게 한다. */
+.landing-header nav, .site-header nav { white-space: nowrap; }
+@media (max-width: 1080px) {
+  .landing-header nav, .site-header nav { gap: clamp(14px, 2.2vw, 24px); font-size: .86rem; }
+  .site-header .header-action { display: none; }
+}
+@media (max-width: 900px) {
+  .landing-header nav, .site-header nav { display: none; }
+}
+
+/* 앞선 미디어쿼리보다 뒤에 오도록 반응형 물결 농도를 다시 선언한다. */
+.hero-wave-canvas { opacity: .62; }
+@media (max-width: 1100px) { .hero-wave-canvas { opacity: .34; } }
+@media (max-width: 620px) { .hero-wave-canvas { opacity: .26; } }
+
+/* route-section·travel-layers는 원래 흰 글자를 쓰는 어두운 구역이다.
+   밝은 카드로 바꾸면 글자가 통째로 사라지므로 짙은 바다 카드로 유지한다. */
+.planner-page > .route-section { border-color: transparent; background: var(--ink); }
+.planner-page > .route-section .section-kicker { color: var(--mint); }
+
+/* 사진이 아직 없거나 밝은 사진이면 흰 순번·칩이 배경에 묻힌다.
+   사진 유무와 무관하게 읽히도록 아래쪽 스크림을 진하게 깐다. */
+.place-visual::after { background: linear-gradient(180deg, transparent 30%, rgba(4,32,47,.34) 62%, rgba(4,32,47,.68)); }
+.place-rank { z-index: 2; }
+.place-rank { text-shadow: 0 2px 12px rgba(4,32,47,.6); }
+
+/* 히어로 키커가 연한 수면 위에서 2.86:1로 흐렸다. 본문 대비 기준으로 올린다. */
+.landing-hero-copy > p { color: var(--muted); }
+
+/* 브레드크럼도 본문 대비 기준으로 올린다. */
+.service-breadcrumb, .service-breadcrumb a { color: var(--muted); }
