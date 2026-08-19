@@ -389,7 +389,7 @@ test("planner state is divided into testable feature hooks without overwriting s
 });
 
 test("the server entry delegates shared policy and provider domains to focused modules", async () => {
-  const [worker, env, http, providerData, weather, location, transport, tourism, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, trips] = await Promise.all([
+  const [worker, env, http, providerData, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, trips] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
@@ -397,6 +397,10 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/weather/handler.ts"),
     source("server/location/handler.ts"),
     source("server/transport/handler.ts"),
+    source("server/transport/public-context.ts"),
+    source("server/transport/odsay.ts"),
+    source("server/transport/kakao-route.ts"),
+    source("server/transport/health.ts"),
     source("server/tourism/handler.ts"),
     source("server/tourism/catalog.ts"),
     source("server/tourism/models.ts"),
@@ -418,8 +422,14 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(providerData, /export async function fetchPublicTransportData/);
   assert.match(providerData, /AbortSignal\.timeout\(9500\)/);
   assert.match(transport, /export async function handleRouteApi/);
-  assert.match(transport, /api\.odsay\.com\/v1\/api\/searchPubTransPathT/);
-  assert.match(transport, /apis-navi\.kakaomobility\.com\/v1\/directions/);
+  assert.match(transport, /fetchTransportContext/);
+  assert.match(transport, /Promise\.all\(\[/);
+  assert.doesNotMatch(transport, /api\.odsay\.com|apis-navi\.kakaomobility\.com|travelerTrainRunPlan2/);
+  assert.match(transportContext, /travelerTrainRunPlan2/);
+  assert.match(transportContext, /getCrdntPrxmtSttnList/);
+  assert.match(odsay, /api\.odsay\.com\/v1\/api\/searchPubTransPathT/);
+  assert.match(kakaoRoute, /apis-navi\.kakaomobility\.com\/v1\/directions/);
+  assert.match(transportHealth, /export function handleHealthApi/);
   assert.match(tourism, /export async function handleWaveApi/);
   assert.match(tourism, /export async function buildPlan/);
   assert.doesNotMatch(tourism, /regionPhotoKeywords|normalizeXmlItems|calculateAccessibilityEvidence/);
