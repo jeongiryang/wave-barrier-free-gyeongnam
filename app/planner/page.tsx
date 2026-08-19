@@ -3,7 +3,6 @@
 /* eslint-disable @next/next/no-html-link-for-pages */
 
 import {
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -21,6 +20,7 @@ import PlaceDecisionDialog from "../../features/planner/components/PlaceDecision
 import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
 import { useLocationSearch } from "../../features/planner/hooks/useLocationSearch";
 import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
+import { usePlannerSignals } from "../../features/planner/hooks/usePlannerSignals";
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
 import {
@@ -35,16 +35,13 @@ import {
   transportModes,
   transportStateLabel,
 } from "../../features/planner/constants";
-import { optionalPlannerJson, plannerJson } from "../../features/planner/services/api";
+import { plannerJson } from "../../features/planner/services/api";
 import type {
-  EnrichmentData,
-  KeyHealth,
   Place,
   PlanData,
   RichSpot,
   TransportProvider,
   TransportProviderState,
-  WeatherData,
 } from "../../features/planner/types";
 import { formatTime, localDate, routeModeLabel } from "../../features/planner/utils";
 import { assessTripImpact } from "../../lib/trip-impact.js";
@@ -59,22 +56,14 @@ export default function PlannerPage() {
   const [planError, setPlanError] = useState("");
   const [notice, setNotice] = useState("조건을 바꾸면 실시간 관광 데이터가 자동으로 갱신됩니다.");
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const [keyHealth, setKeyHealth] = useState<KeyHealth | null>(null);
-  const [keyHealthChecked, setKeyHealthChecked] = useState(false);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [shareState, setShareState] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [shareUrl, setShareUrl] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackState, setFeedbackState] = useState<"idle" | "sending" | "done" | "error">("idle");
-  const [enrichment, setEnrichment] = useState<EnrichmentData | null>(null);
-  const [enrichmentLoading, setEnrichmentLoading] = useState(false);
-  const [richMode, setRichMode] = useState<"events" | "lodging" | "camping" | "pet" | "wellness" | "medical" | "water" | "language" | "awards" | "rests">("events");
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [weatherLoading, setWeatherLoading] = useState(true);
   const cardsRef = useRef<HTMLDivElement>(null);
   const placeDialogRef = useRef<HTMLElement>(null);
   const planRequestRef = useRef<AbortController | null>(null);
-  const enrichmentRequestRef = useRef<AbortController | null>(null);
 
   const activeProfiles = useMemo(
     () => profiles.filter((profile) => selected.includes(profile.id)),
@@ -103,6 +92,10 @@ export default function PlannerPage() {
     saved, travelStart, travelEnd, scheduleAssignments, tripDays, orderedSavedPlaces,
     orderExplanation, changeTravelStart, setTravelEnd, assignPlaceToDay, toggleSaved,
   } = useTripSelection({ activePlaces, origin, accessibilityProfileCount: selected.length });
+  const {
+    keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
+    weather, weatherLoading, loadEnrichment,
+  } = usePlannerSignals({ plan, region, theme, locale, travelStart, travelEnd });
   const activeStops = plan?.stops ?? [];
   const statuses = plan ? [...plan.statuses, ...(enrichment?.statuses || [])] : readyStatuses;
   const liveCount = statuses.filter((status) => status.state === "live").length;
@@ -153,14 +146,6 @@ export default function PlannerPage() {
   });
 
   useEffect(() => {
-    let cancelled = false;
-    void optionalPlannerJson<KeyHealth>("/api/health")
-      .then((data) => { if (!cancelled && data) setKeyHealth(data as KeyHealth); })
-      .finally(() => { if (!cancelled) setKeyHealthChecked(true); });
-    return () => { cancelled = true; };
-  }, []);
-
-  useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       const queryRegion = new URLSearchParams(window.location.search).get("region");
       if (queryRegion && regions.includes(queryRegion)) setRegion(queryRegion);
@@ -198,47 +183,6 @@ export default function PlannerPage() {
       ? current.filter((item) => item !== id)
       : [...current, id]);
   }
-
-  const loadEnrichment = useCallback(async () => {
-    enrichmentRequestRef.current?.abort();
-    const controller = new AbortController();
-    enrichmentRequestRef.current = controller;
-    setEnrichmentLoading(true);
-    try {
-      const params = new URLSearchParams({ action: "enrich", region, theme, locale, startDate: travelStart, endDate: travelEnd });
-      const data = await plannerJson<EnrichmentData>(`/api/wave?${params.toString()}`, { signal: controller.signal });
-      if (controller.signal.aborted || enrichmentRequestRef.current !== controller) return;
-      setEnrichment(data);
-    } catch {
-      if (!controller.signal.aborted && enrichmentRequestRef.current === controller) setEnrichment(null);
-    } finally {
-      if (enrichmentRequestRef.current === controller) {
-        enrichmentRequestRef.current = null;
-        setEnrichmentLoading(false);
-      }
-    }
-  }, [region, theme, locale, travelStart, travelEnd]);
-
-  useEffect(() => {
-    if (!plan) return;
-    const frame = window.requestAnimationFrame(() => void loadEnrichment());
-    return () => {
-      window.cancelAnimationFrame(frame);
-      enrichmentRequestRef.current?.abort();
-    };
-  }, [plan, loadEnrichment]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const frame = window.requestAnimationFrame(() => {
-      setWeatherLoading(true);
-      setWeather(null);
-    });
-    void optionalPlannerJson<WeatherData>(`/api/weather?region=${encodeURIComponent(region)}`)
-      .then((data) => { if (!cancelled && data) setWeather(data as WeatherData); })
-      .finally(() => { if (!cancelled) setWeatherLoading(false); });
-    return () => { cancelled = true; window.cancelAnimationFrame(frame); };
-  }, [region]);
 
   function choosePoint(place: Place, mode = pointPicker) {
     if (mode === "origin") {
@@ -373,7 +317,6 @@ export default function PlannerPage() {
 
   useEffect(() => () => {
     planRequestRef.current?.abort();
-    enrichmentRequestRef.current?.abort();
   }, []);
 
   function scrollCards(direction: number) {

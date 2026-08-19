@@ -122,9 +122,12 @@ test("device location is not persisted with saved routes", async () => {
 });
 
 test("transport provider placeholders settle even when health lookup fails", async () => {
-  const planner = await source("app/planner/page.tsx");
+  const [planner, signals] = await Promise.all([
+    source("app/planner/page.tsx"),
+    source("features/planner/hooks/usePlannerSignals.ts"),
+  ]);
   assert.match(planner, /keyHealthChecked \? "error" : "checking"/);
-  assert.match(planner, /setKeyHealthChecked\(true\)/);
+  assert.match(signals, /setKeyHealthChecked\(true\)/);
   assert.match(planner, /effectiveProviders\.map/);
 });
 
@@ -247,20 +250,20 @@ test("non-Korean locales are visibly marked Beta without breaking narrow headers
 });
 
 test("planner ignores stale route, enrichment and location-search responses", async () => {
-  const [planner, routePlanning, locationSearch, service] = await Promise.all([
-    source("app/planner/page.tsx"),
+  const [plannerSignals, routePlanning, locationSearch, service] = await Promise.all([
+    source("features/planner/hooks/usePlannerSignals.ts"),
     source("features/planner/hooks/useRoutePlanning.ts"),
     source("features/planner/hooks/useLocationSearch.ts"),
     source("features/planner/services/api.ts"),
   ]);
   assert.match(routePlanning, /routeRequestRef\.current\?\.abort\(\)/);
   assert.match(routePlanning, /routeRequestRef\.current !== controller/);
-  assert.match(planner, /enrichmentRequestRef\.current\?\.abort\(\)/);
-  assert.match(planner, /enrichmentRequestRef\.current !== controller/);
+  assert.match(plannerSignals, /enrichmentRequestRef\.current\?\.abort\(\)/);
+  assert.match(plannerSignals, /enrichmentRequestRef\.current !== controller/);
   assert.match(locationSearch, /searchRequestRef\.current\?\.abort\(\)/);
   assert.match(locationSearch, /searchRequestRef\.current !== controller/);
   assert.match(routePlanning, /`\/api\/route\?\$\{params\.toString\(\)\}`,[^;]+signal: controller\.signal/);
-  assert.match(planner, /action: "enrich"[\s\S]+signal: controller\.signal/);
+  assert.match(plannerSignals, /action: "enrich"[\s\S]+signal: controller\.signal/);
   assert.match(locationSearch, /\/api\/location-search\?q=[\s\S]+signal: controller\.signal/);
   assert.match(service, /parentSignal\?\.addEventListener\("abort"/);
   assert.match(service, /timeoutMs = 12000/);
@@ -268,15 +271,16 @@ test("planner ignores stale route, enrichment and location-search responses", as
 });
 
 test("planner state is divided into testable feature hooks without overwriting saved trips", async () => {
-  const [planner, tripSelection, routePlanning, routeView, audioGuide, chrome] = await Promise.all([
+  const [planner, tripSelection, routePlanning, routeView, signals, audioGuide, chrome] = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/hooks/useTripSelection.ts"),
     source("features/planner/hooks/useRoutePlanning.ts"),
     source("features/planner/hooks/useRouteView.ts"),
+    source("features/planner/hooks/usePlannerSignals.ts"),
     source("features/planner/hooks/useAudioGuide.ts"),
     source("features/planner/hooks/usePlannerChrome.ts"),
   ]);
-  for (const hook of ["useTripSelection", "useRoutePlanning", "useAudioGuide", "useLocationSearch", "usePlannerChrome"]) {
+  for (const hook of ["useTripSelection", "useRoutePlanning", "usePlannerSignals", "useAudioGuide", "useLocationSearch", "usePlannerChrome"]) {
     assert.match(planner, new RegExp(`${hook}\\(`));
   }
   assert.doesNotMatch(planner, /localStorage\.setItem\("wave-saved-places"/);
@@ -287,6 +291,9 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext\)/);
   assert.match(routePlanning, /nextOriginLabel/);
   assert.doesNotMatch(planner, /routeRequestRef|setRouteAlternatives\(/);
+  assert.doesNotMatch(planner, /enrichmentRequestRef|setKeyHealth\(|setWeather\(/);
+  assert.match(signals, /optionalPlannerJson<KeyHealth>\("\/api\/health"\)/);
+  assert.match(signals, /optionalPlannerJson<WeatherData>/);
   assert.match(audioGuide, /const resetAudio = useCallback/);
   assert.match(chrome, /window\.cancelAnimationFrame\(frame\)/);
 });
