@@ -9,7 +9,12 @@ async function source(path) {
 test("landing route delegates section UI and browser effects to feature modules", async () => {
   const [page, experience] = await Promise.all([
     source("app/page.tsx"),
-    source("features/landing/hooks/useLandingExperience.ts"),
+    Promise.all([
+      source("features/landing/hooks/useLandingExperience.ts"),
+      source("features/landing/hooks/useLandingMotion.ts"),
+      source("features/landing/hooks/useLandingRegions.ts"),
+      source("features/landing/client/region-photo.ts"),
+    ]).then((parts) => parts.join("\n")),
   ]);
   for (const component of ["LandingHeader", "LandingHero", "LandingManifesto", "LandingRegionStory", "LandingEvidenceStory", "LandingFooter"]) {
     assert.match(page, new RegExp(`<${component}`));
@@ -30,10 +35,13 @@ test("landing intro traps keyboard focus and restores page scrolling", async () 
 });
 
 test("landing region photos time out and can retry after transient failures", async () => {
-  const landing = await source("features/landing/hooks/useLandingExperience.ts");
+  const landing = await Promise.all([
+    source("features/landing/hooks/useLandingRegions.ts"),
+    source("features/landing/client/region-photo.ts"),
+  ]).then((parts) => parts.join("\n"));
   assert.match(landing, /const controller = new AbortController\(\)/);
   assert.match(landing, /setTimeout\(\(\) => controller\.abort\(\), 10000\)/);
-  assert.match(landing, /signal: controller\.signal/);
+  assert.match(landing, /fetchRegionPhoto\(region, controller\.signal\)/);
   assert.match(landing, /photoRequests\.current\.delete\(region\)/);
   assert.match(landing, /window\.clearTimeout\(timeout\)/);
 });
