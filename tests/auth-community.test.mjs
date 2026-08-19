@@ -80,7 +80,12 @@ test("community API derives identity from the session and enforces ownership", a
     source("features/community/server/comment-actions.ts"),
     source("features/community/server/http.ts"),
     source("features/community/server/repository.ts"),
-    source("features/community/server/posts-repository.ts"),
+    Promise.all([
+      source("features/community/server/posts-repository.ts"),
+      source("features/community/server/post-read-repository.ts"),
+      source("features/community/server/post-write-repository.ts"),
+      source("features/community/server/post-mappers.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("features/community/server/comments-repository.ts"),
     source("features/community/server/likes-repository.ts"),
     source("features/community/server/ownership.ts"),
@@ -118,6 +123,7 @@ test("community UI supports public reading, protected participation and place li
     Promise.all([
       source("features/community/components/CommunityBoard.tsx"),
       source("features/community/hooks/useCommunityBoard.ts"),
+      source("features/community/hooks/useCommunityPostList.ts"),
     ]).then((parts) => parts.join("\n")),
     Promise.all([
       source("features/community/components/CommunityDetail.tsx"),
