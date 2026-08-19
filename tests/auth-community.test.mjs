@@ -122,6 +122,9 @@ test("community UI supports public reading, protected participation and place li
   const [list, detail, clientApi, editor, planner, placeDialog, landing, sitemap] = await Promise.all([
     Promise.all([
       source("features/community/components/CommunityBoard.tsx"),
+      source("features/community/components/CommunityHero.tsx"),
+      source("features/community/components/CommunityBoardToolbar.tsx"),
+      source("features/community/components/CommunityPostList.tsx"),
       source("features/community/hooks/useCommunityBoard.ts"),
       source("features/community/hooks/useCommunityPostList.ts"),
     ]).then((parts) => parts.join("\n")),
