@@ -263,12 +263,14 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
 });
 
 test("travel conditions refresh the plan without requiring the submit button", async () => {
-  const [planner, planController] = await Promise.all([
+  const [planner, planController, autoRefresh] = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/hooks/usePlannerPlan.ts"),
+    source("features/planner/hooks/usePlannerAutoRefresh.ts"),
   ]);
-  assert.match(planner, /const planSignature = `\$\{region\}\|\$\{theme\}\|\$\{locale\}\|\$\{selected\.join\(","\)\}`/);
-  assert.match(planner, /setTimeout\(\(\) => void generatePlanRef\.current\(false\), 550\)/);
+  assert.match(planner, /signature: `\$\{region\}\|\$\{theme\}\|\$\{locale\}\|\$\{selected\.join\(","\)\}`/);
+  assert.match(autoRefresh, /setTimeout\(\(\) => void refreshRef\.current\(false\), delay\)/);
+  assert.match(autoRefresh, /delay = 550/);
   assert.match(planController, /planRequestRef\.current\?\.abort\(\)/);
   assert.match(planController, /signal: controller\.signal/);
   assert.match(planController, /if \(revealResults\) window\.setTimeout/);

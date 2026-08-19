@@ -153,11 +153,12 @@ test("device location is not persisted with saved routes", async () => {
 });
 
 test("transport provider placeholders settle even when health lookup fails", async () => {
-  const [planner, signals] = await Promise.all([
+  const [planner, signals, viewModel] = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/hooks/usePlannerSignals.ts"),
+    source("features/planner/view-model.ts"),
   ]);
-  assert.match(planner, /keyHealthChecked \? "error" : "checking"/);
+  assert.match(viewModel, /keyHealthChecked \? "error" : "checking"/);
   assert.match(signals, /setKeyHealthChecked\(true\)/);
   assert.match(planner, /effectiveProviders\.map/);
 });

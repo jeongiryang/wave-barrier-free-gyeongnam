@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { optionalPlannerJson, plannerJson } from "../services/api";
-import type { EnrichmentData, KeyHealth, PlanData, WeatherData } from "../types";
-
-type RichMode = "events" | "lodging" | "camping" | "pet" | "wellness" | "medical" | "water" | "language" | "awards" | "rests";
+import type { EnrichmentData, KeyHealth, PlanData, RichMode, WeatherData } from "../types";
 
 interface PlannerSignalsOptions {
   plan: PlanData | null;
