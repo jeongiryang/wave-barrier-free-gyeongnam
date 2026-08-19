@@ -392,11 +392,14 @@ test("planner ignores stale route, enrichment and location-search responses", as
 });
 
 test("planner state is divided into testable feature hooks without overwriting saved trips", async () => {
-  const [planner, planController, participation, tripSelection, routePlanning, routeOrigin, routeView, signals, audioGuide, chrome] = await Promise.all([
+  const [planner, planController, participation, tripSelection, savedPlaceIds, tripSchedule, optimizedTripOrder, routePlanning, routeOrigin, routeView, signals, audioGuide, chrome] = await Promise.all([
     plannerProductSource(),
     plannerPlanSource(),
     source("features/planner/hooks/usePlannerParticipation.ts"),
     source("features/planner/hooks/useTripSelection.ts"),
+    source("features/planner/hooks/useSavedPlaceIds.ts"),
+    source("features/planner/hooks/useTripSchedule.ts"),
+    source("features/planner/hooks/useOptimizedTripOrder.ts"),
     source("features/planner/hooks/useRoutePlanning.ts"),
     source("features/planner/hooks/useRouteOrigin.ts"),
     source("features/planner/hooks/useRouteView.ts"),
@@ -408,9 +411,14 @@ test("planner state is divided into testable feature hooks without overwriting s
     assert.match(planner, new RegExp(`${hook}\\(`));
   }
   assert.doesNotMatch(planner, /localStorage\.setItem\("wave-saved-places"/);
-  assert.match(tripSelection, /const \[storageReady, setStorageReady\] = useState\(false\)/);
-  assert.match(tripSelection, /localStorage\.getItem\(SAVED_PLACES_KEY\)[\s\S]+setStorageReady\(true\)/);
-  assert.match(tripSelection, /if \(!storageReady\) return;[\s\S]+localStorage\.setItem\(SAVED_PLACES_KEY/);
+  assert.match(savedPlaceIds, /const \[storageReady, setStorageReady\] = useState\(false\)/);
+  assert.match(savedPlaceIds, /localStorage\.getItem\(SAVED_PLACES_KEY\)[\s\S]+setStorageReady\(true\)/);
+  assert.match(savedPlaceIds, /if \(!storageReady\) return;[\s\S]+localStorage\.setItem\(SAVED_PLACES_KEY/);
+  assert.match(tripSelection, /useSavedPlaceIds\(\)/);
+  assert.match(tripSelection, /useTripSchedule\(\)/);
+  assert.match(tripSelection, /useOptimizedTripOrder\(/);
+  assert.match(tripSchedule, /ensurePlaceAssignment/);
+  assert.match(optimizedTripOrder, /optimizeVisitOrder\(/);
   assert.match(routeView, /routeSort === "walk"[\s\S]+a\.totalWalk - b\.totalWalk/);
   assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext\)/);
   assert.match(routePlanning, /useRouteOrigin\(clearPrivateOriginRoutes\)/);
