@@ -21,7 +21,17 @@
 .auth-header-action { min-height: 44px; padding: 9px 14px; display: inline-flex; align-items: center; gap: 18px; border-radius: 12px; color: #fff; background: var(--ink); font-size: .78rem; font-weight: 850; }
 .auth-layout { width: min(1160px,calc(100% - 48px)); min-height: calc(100svh - 78px); margin: 0 auto; padding: 70px 0 90px; display: grid; grid-template-columns: minmax(0,1fr) minmax(390px,480px); align-items: center; gap: clamp(52px,8vw,120px); }
 .auth-story h2 { margin: 14px 0 24px; font-size: clamp(2.8rem,5vw,5.25rem); line-height: 1.06; letter-spacing: -.07em; }
-.auth-story h2 em { color: var(--blue); font-style: normal; }
+.auth-motion-visual,.auth-copy-lead,.auth-copy-phrase-shell,.auth-copy-signature { display: block; }
+.auth-copy-phrase-shell { min-block-size: 1.08em; overflow: hidden; color: #164f68; font-size: .82em; line-height: 1.3; letter-spacing: -.055em; white-space: nowrap; }
+.auth-copy-phrase { display: inline-block; position: relative; animation: authPhraseFlow .72s cubic-bezier(.2,.75,.24,1) both; }
+.auth-copy-phrase::after { content: ""; width: 45%; height: 2px; position: absolute; left: -52%; bottom: .05em; border-radius: 999px; background: linear-gradient(90deg,transparent,var(--mint),var(--blue),transparent); animation: authPhraseCurrent 1.05s cubic-bezier(.25,.7,.25,1) both; }
+.auth-copy-signature { width: fit-content; position: relative; color: var(--blue); font-style: normal; }
+.auth-copy-signature i { height: 5px; position: absolute; left: .03em; right: -.03em; bottom: -.09em; overflow: hidden; border-radius: 999px; opacity: .72; background: linear-gradient(90deg,var(--blue),var(--mint) 55%,var(--blue)); transform-origin: left center; animation: authSignatureWave .9s .35s cubic-bezier(.2,.75,.25,1) both; }
+.auth-copy-signature i::after { content: ""; width: 30%; height: 100%; position: absolute; left: -30%; top: 0; background: rgba(255,255,255,.75); transform: skewX(-28deg); animation: authSignatureGlint 1.1s .8s ease-out both; }
+@keyframes authPhraseFlow { from { opacity: 0; transform: translate3d(-.35em,.38em,0); filter: blur(3px); } to { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); } }
+@keyframes authPhraseCurrent { from { transform: translateX(0); opacity: 0; } 35% { opacity: .85; } to { transform: translateX(330%); opacity: 0; } }
+@keyframes authSignatureWave { from { transform: scaleX(0) skewX(-18deg); } 58% { transform: scaleX(1.04) skewX(3deg); } to { transform: scaleX(1) skewX(0); } }
+@keyframes authSignatureGlint { from { transform: translateX(0) skewX(-28deg); } to { transform: translateX(440%) skewX(-28deg); } }
 .auth-story > p:not(.section-kicker) { max-width: 570px; color: var(--muted); font-size: 1.02rem; line-height: 1.75; }
 .auth-journey-preview { max-width: 610px; margin-top: 38px; display: grid; gap: 10px; }
 .auth-journey-preview > span { padding: 16px 18px; display: grid; grid-template-columns: 34px 150px 1fr; align-items: center; gap: 12px; border: 1px solid rgba(38,112,144,.16); border-radius: 15px; background: rgba(255,255,255,.64); }
@@ -179,6 +189,9 @@ html[data-theme="dark"] .auth-card,html[data-theme="dark"] .community-workspace,
 html[data-theme="dark"] .auth-field input,html[data-theme="dark"] .community-editor input,html[data-theme="dark"] .community-editor select,html[data-theme="dark"] .community-editor textarea,html[data-theme="dark"] .community-controls input,html[data-theme="dark"] .comment-form textarea,html[data-theme="dark"] .comment-edit textarea { color: var(--ink); border-color: #31596a; background: #0d3546; }
 html[data-theme="dark"] .auth-trust,html[data-theme="dark"] .community-state,html[data-theme="dark"] .comment-form,html[data-theme="dark"] .community-place-tag { background: #0d3546; }
 html[data-theme="dark"] .community-principles span { background: #0a2d3c; }
+html[data-theme="dark"] .auth-copy-phrase-shell { color: #b7e9f8; }
+html[data-motion="calm"] .auth-copy-phrase,html[data-motion="calm"] .auth-copy-phrase::after,html[data-motion="calm"] .auth-copy-signature i,html[data-motion="calm"] .auth-copy-signature i::after { animation: none; }
+html[data-motion="calm"] .auth-copy-phrase::after { display: none; }
 
 @media (max-width: 980px) {
   .auth-header nav,.community-header nav { display: none; }
@@ -197,6 +210,7 @@ html[data-theme="dark"] .community-principles span { background: #0a2d3c; }
   .auth-header-action span { font-size: 1rem; }
   .auth-layout { width: calc(100% - 24px); padding: 38px 0 60px; }
   .auth-story h2 { font-size: clamp(2.5rem,12vw,4rem); }
+  .auth-copy-phrase-shell { min-block-size: 1.18em; font-size: clamp(1.9rem,9vw,3rem); line-height: 1.18; }
   .auth-journey-preview > span { grid-template-columns: 28px 1fr; }
   .auth-journey-preview small { grid-column: 2; }
   .auth-card { padding: 24px 18px; border-radius: 22px; }
@@ -229,7 +243,8 @@ html[data-theme="dark"] .community-principles span { background: #0a2d3c; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .account-loading i,.community-skeletons i,.community-detail-state i { animation: none; }
+  .account-loading i,.community-skeletons i,.community-detail-state i,.auth-copy-phrase,.auth-copy-phrase::after,.auth-copy-signature i,.auth-copy-signature i::after { animation: none; }
+  .auth-copy-phrase::after { display: none; }
   .community-list article { transition: none; }
   .community-list article:hover { transform: none; }
 }
