@@ -7,6 +7,15 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
+async function accountStyleSource() {
+  const paths = [
+    "app/styles/account-auth.css",
+    "app/styles/community.css",
+    "app/styles/account-community.css",
+  ];
+  return (await Promise.all(paths.map(source))).join("\n");
+}
+
 test("community post validation preserves plain text and enforces product limits", () => {
   const valid = validatePostInput({ category: "review", title: "남해 여행에서 확인한 접근로", content: "현장에서 직접 확인한 이동 경험을 공유합니다.", region: "남해", placeId: "123", placeName: "독일마을" });
   assert.deepEqual(valid.value, { category: "review", title: "남해 여행에서 확인한 접근로", content: "현장에서 직접 확인한 이동 경험을 공유합니다.", region: "남해", placeId: "123", placeName: "독일마을" });
@@ -29,7 +38,7 @@ test("community comments and list parameters reject empty data and cap paginatio
 test("formal auth pages use Neon Auth with accessible password and return flows", async () => {
   const [form, shell, motionHeadline, authCss, authRoute, server] = await Promise.all([
     source("components/AuthForm.tsx"), source("components/AuthShell.tsx"),
-    source("components/AuthMotionHeadline.tsx"), source("app/styles/account-community.css"),
+    source("components/AuthMotionHeadline.tsx"), accountStyleSource(),
     source("app/api/auth/[...path]/route.ts"), source("lib/auth/server.ts"),
   ]);
   assert.match(form, /authClient\.signIn\.email/);
@@ -101,7 +110,7 @@ test("community UI supports public reading, protected participation and place li
 });
 
 test("landing product story exposes previews and reduced-motion styles", async () => {
-  const [stories, storyCss, accountCss] = await Promise.all([source("components/LandingStories.tsx"), source("app/styles/landing-stories.css"), source("app/styles/account-community.css")]);
+  const [stories, storyCss, accountCss] = await Promise.all([source("components/LandingStories.tsx"), source("app/styles/landing-stories.css"), accountStyleSource()]);
   const css = `${storyCss}\n${accountCss}`;
   for (const chapter of ["DISCOVER", "ACCESS", "PLAN", "ROUTE", "ADAPT", "COMMUNITY"]) assert.match(stories, new RegExp(chapter));
   assert.match(stories, /기능 화면 미리보기/);
