@@ -7,10 +7,11 @@ async function source(path) {
 }
 
 test("planner page delegates derived data and browser lifecycles to feature modules", async () => {
-  const [page, viewModel, actions, dialogFocus, autoRefresh] = await Promise.all([
+  const [page, viewModel, actions, placeAdapters, dialogFocus, autoRefresh] = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/view-model.ts"),
     source("features/planner/hooks/usePlannerActions.ts"),
+    source("features/planner/place-adapters.ts"),
     source("features/planner/hooks/usePlaceDialogFocus.ts"),
     source("features/planner/hooks/usePlannerAutoRefresh.ts"),
   ]);
@@ -22,7 +23,9 @@ test("planner page delegates derived data and browser lifecycles to feature modu
   assert.doesNotMatch(page, /assessTripImpact|fallbackProviderDefinitions|addEventListener\("keydown"/);
   assert.match(viewModel, /buildFallbackTransportProviders/);
   assert.match(viewModel, /assessTripImpact/);
-  assert.match(actions, /richSpotToPlace/);
+  assert.match(actions, /import \{ mapPlaceToPlannerPlace, richSpotToPlace \}/);
+  assert.match(placeAdapters, /export function richSpotToPlace/);
+  assert.match(placeAdapters, /export function mapPlaceToPlannerPlace/);
   assert.match(dialogFocus, /previousFocus\?\.focus\(\)/);
   assert.match(autoRefresh, /window\.clearTimeout\(timer\)/);
 });
