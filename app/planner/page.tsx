@@ -137,6 +137,7 @@ type RouteStop = {
   title: string;
   note: string;
   source: string;
+  evidenceState?: "verified" | "limited" | "context";
 };
 
 type PlanData = {
@@ -1099,7 +1100,7 @@ export default function PlannerPage() {
                 <span className="stop-time">{["10:30", "12:20", "14:10", "16:00"][index]}</span>
                 <i className="stop-line" aria-hidden="true"><b>{index + 1}</b></i>
                 <div><small>{stop.source}</small><h3>{stop.title}</h3><p>{stop.note}</p></div>
-                <span className="stop-check">✓ 근거 연결</span>
+                <span className={`stop-check ${stop.evidenceState || "context"}`}>{stop.evidenceState === "verified" ? "✓ 편의근거 확인" : stop.evidenceState === "limited" ? "! 방문 전 확인" : "i 추천 맥락"}</span>
               </li>
             ))}
           </ol>
@@ -1131,7 +1132,7 @@ export default function PlannerPage() {
         <div className="api-bento">
           {statuses.map((status, index) => (
             <article className={`api-card card-${index + 1}`} key={status.id} data-reveal>
-              <div><span className={`api-state ${status.state}`}><i />{status.state === "live" ? "최신 정보" : status.state === "empty" ? "정보 없음" : status.state === "error" ? "확인 필요" : "검색 전"}</span><small>0{index + 1}</small></div>
+              <div><span className={`api-state ${status.state}`}><i />{status.state === "live" ? "최신 정보" : status.state === "empty" ? "정보 없음" : status.state === "error" ? "확인 필요" : "검색 전"}</span><small>{String(index + 1).padStart(2, "0")}</small></div>
               <h3>{status.name}</h3>
               <p>{status.role}</p>
               <footer><span>{status.note}</span><b>{status.count ? `${status.count}건` : "확인 중"}</b></footer>

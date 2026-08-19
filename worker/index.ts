@@ -932,7 +932,17 @@ async function buildPlan(request: Request, env: Env) {
   const details = await Promise.all(baseItems.map((item) => attempt(fetchKto(env, "KorWithService2", "detailWithTour2", {
     ...commonParams("1"), contentId: clean(item.contentid),
   }))));
-  const places = baseItems.map((item, index) => placeFrom(item, details[index]?.ok ? details[index].value.items[0] || {} : {}, region, profiles, index));
+  // 원본 API의 인기 정렬보다 사용자가 선택한 편의조건의 공식 확인 근거를
+  // 우선한다. 근거 없는 후보도 숨기지는 않되 첫 추천·자동 경로 뒤로 보낸다.
+  const places = baseItems
+    .map((item, index) => placeFrom(item, details[index]?.ok ? details[index].value.items[0] || {} : {}, region, profiles, index))
+    .sort((left, right) => {
+      const leftVerified = left.score === null ? 0 : 1;
+      const rightVerified = right.score === null ? 0 : 1;
+      return rightVerified - leftVerified
+        || (right.score ?? -1) - (left.score ?? -1)
+        || (right.knownFields ?? 0) - (left.knownFields ?? 0);
+    });
 
   const firstTitle = places[0]?.name || region;
   const [audio, relatedPack, crowd] = await Promise.all([
@@ -944,22 +954,29 @@ async function buildPlan(request: Request, env: Env) {
   const hubItems = hubPack.result.ok ? hubPack.result.value.items : [];
   const stops = places.slice(0, 3).map((place, index) => ({
     title: place.name,
-    note: index === 0 ? `${place.features.slice(0, 2).join("·")} 정보를 먼저 확인해요.` : place.summary,
+    note: place.score === null
+      ? "공식 편의정보가 부족한 후보입니다. 방문 전 시설 운영기관에 확인해 주세요."
+      : index === 0
+        ? `${place.features.slice(0, 2).join("·")} 편의정보가 공식 데이터에서 확인됐습니다.`
+        : place.summary,
     source: place.source,
+    evidenceState: place.score === null ? "limited" : "verified",
   }));
   hubItems.slice(0, Math.max(0, 3 - stops.length)).forEach((item) => stops.push({
     title: clean(item.hubTatsNm),
     note: `${clean(item.signguNm || region)} 중심관광지 ${clean(item.hubRank)}순위로 연결성이 높은 후보입니다.`,
     source: `기초지자체 중심 관광지 · ${hubPack.baseYm}`,
+    evidenceState: "context",
   }));
   if (stops.length < 4 && relatedPack.result.ok) {
     relatedPack.result.value.items.slice(0, 4 - stops.length).forEach((item) => stops.push({
       title: clean(item.rlteTatsNm),
       note: `${clean(item.tAtsNm || firstTitle)}와 함께 찾는 연관 관광지 ${clean(item.rlteRank || "")}순위 후보입니다.`,
       source: `연관 관광지 · ${relatedPack.baseYm}`,
+      evidenceState: "context",
     }));
   }
-  if (course && stops.length < 4) stops.push({ title: course.name, note: course.summary, source: "두루누비 걷기 코스" });
+  if (course && stops.length < 4) stops.push({ title: course.name, note: course.summary, source: "두루누비 걷기 코스", evidenceState: "context" });
 
   const statuses = [
     apiStatus("barrierfree", "무장애 여행정보", "주차·접근로·휠체어·화장실 등 상세 편의정보", barrier, details.filter((item) => item.ok && item.value.items.length).length),
