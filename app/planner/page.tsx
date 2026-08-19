@@ -10,7 +10,7 @@ import {
 import { PreferenceControls, useSitePreferences } from "../../components/SitePreferences";
 import HelpCenter from "../../components/HelpCenter";
 import GithubFooterLink from "../../components/GithubFooterLink";
-import AccountMenu from "../../components/AccountMenu";
+import AccountMenu from "../../features/auth/components/AccountMenu";
 import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
 import NavigationWorkspace from "../../features/planner/components/NavigationWorkspace";
 import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
