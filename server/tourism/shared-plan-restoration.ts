@@ -3,7 +3,7 @@ import { clean } from "../shared/http";
 import { attemptProvider as attempt, commonParams, fetchTourismData as fetchKto } from "../shared/provider-data";
 import { profileFields, regionCodes } from "./catalog";
 import { buildPlan } from "./plan-builder";
-import { placeFrom } from "./models";
+import { placeFrom } from "./accessibility-model";
 
 export async function restoreSharedPlan(
   env: Env,
