@@ -233,6 +233,33 @@ test("travel conditions refresh the plan without requiring the submit button", a
   assert.match(planner, /결과 새로고침/);
 });
 
+test("planner visual order follows DOM and keyboard focus order", async () => {
+  const [planner, css] = await Promise.all([
+    source("app/planner/page.tsx"),
+    source("app/globals.css"),
+  ]);
+  const sectionIds = ["planner", "places", "layers", "navigation", "route", "data"];
+  const positions = sectionIds.map((id) => planner.indexOf(`id="${id}"`));
+  assert.ok(positions.every((position) => position >= 0));
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions);
+  assert.match(css, /\.planner-page > \.planner-section \{ order: 2; \}/);
+  assert.match(css, /\.planner-page > \.places-section \{ order: 3; \}/);
+  assert.match(css, /\.planner-page > \.travel-layers \{ order: 4; \}/);
+  assert.match(css, /\.planner-page > \.navigation-section \{ order: 5; \}/);
+  assert.match(css, /\.planner-page > \.route-section \{ order: 6; \}/);
+  assert.match(css, /\.planner-page > \.data-section \{ order: 7; \}/);
+});
+
+test("weather and concentration signals lead to accessible, provenance-aware actions", async () => {
+  const planner = await source("app/planner/page.tsx");
+  assert.match(planner, /상황 감지 → 일정 영향 → 대안/);
+  assert.match(planner, /role="status" aria-live="polite"/);
+  assert.doesNotMatch(planner, /impact-response[^>]+aria-live/);
+  assert.match(planner, /정확한 실시간 방문자 수가 아닙니다/);
+  assert.match(planner, /관광 집중률: 조회하지 못함/);
+  assert.match(planner, /weatherLoading \? "조회 중" : "조회 실패"/);
+});
+
 test("planner never substitutes prototype places when official data fails", async () => {
   const planner = await source("app/planner/page.tsx");
   assert.doesNotMatch(planner, /demo-jinhae|demo-cable|demo-jinju/);
