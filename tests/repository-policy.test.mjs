@@ -39,6 +39,14 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(worker, /scoreSpotPhotoTitle/);
   assert.match(worker, /for \(const keyword of keywords\)/);
   assert.doesNotMatch(worker, /Promise\.all\(keywords\.map/);
+  assert.match(worker, /regionPhotoFallbackKeywords/);
+  assert.match(worker, /남해 다랭이마을/);
+  assert.match(worker, /산청 황매산/);
+  const regionalPhoto = worker.slice(worker.indexOf("async function fetchPhoto"), worker.indexOf("function normalizedSearchText"));
+  assert.match(regionalPhoto, /PhotoGalleryService1/);
+  assert.match(regionalPhoto, /KorService2/);
+  assert.match(regionalPhoto, /searchKeyword2/);
+  assert.match(regionalPhoto, /for \(const keyword of keywords\)/);
 });
 
 test("device location is not persisted with saved routes", async () => {

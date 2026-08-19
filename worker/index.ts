@@ -59,8 +59,13 @@ const regionPhotoKeywords: Record<string, string> = {
   창원: "진해 군항제", 진주: "진주 남강", 통영: "통영 한려수도", 사천: "사천 바다",
   김해: "김해 가야", 밀양: "밀양 영남루", 거제: "거제 바람의 언덕", 양산: "양산 통도사",
   의령: "의령", 함안: "함안 낙화놀이", 창녕: "창녕 우포늪", 고성: "고성 공룡",
-  남해: "남해 독일마을", 하동: "하동 야생차", 산청: "산청 동의보감촌", 함양: "함양 지리산",
+  남해: "남해 다랭이마을", 하동: "하동 야생차", 산청: "산청 동의보감촌", 함양: "함양 지리산",
   거창: "거창 수승대", 합천: "합천 황매산",
+};
+
+const regionPhotoFallbackKeywords: Record<string, string[]> = {
+  남해: ["남해 다랭이마을", "남해 관광"],
+  산청: ["산청 동의보감촌", "산청 황매산", "산청 관광"],
 };
 
 const regionCoordinates: Record<string, { lat: number; lng: number }> = {
@@ -368,11 +373,50 @@ async function fetchHub(env: Env, region: string) {
   return { result: last, baseYm: "" };
 }
 
-async function fetchPhoto(env: Env, region: string) {
-  const keyword = region === "경남 전체" ? "경상남도 관광" : (regionPhotoKeywords[region] || region);
-  return attempt(fetchKto(env, "PhotoGalleryService1", "gallerySearchList1", {
-    ...commonParams("12"), arrange: "C", keyword,
-  }));
+async function fetchPhoto(env: Env, region: string): Promise<Attempt> {
+  const primaryKeyword = region === "경남 전체" ? "경상남도 관광" : (regionPhotoKeywords[region] || region);
+  const keywords = [...new Set([
+    primaryKeyword,
+    ...(regionPhotoFallbackKeywords[region] || []),
+    region !== "경남 전체" ? `${region} 관광` : "",
+  ].filter(Boolean))];
+  let providerWorked = false;
+  let lastError = "관광사진 제공기관 응답을 확인하지 못했습니다.";
+
+  for (const keyword of keywords) {
+    const gallery = await attempt(fetchKto(env, "PhotoGalleryService1", "gallerySearchList1", {
+      ...commonParams("12"), arrange: "C", keyword,
+    }));
+    providerWorked ||= gallery.ok;
+    if (!gallery.ok) lastError = gallery.error;
+    if (gallery.ok) {
+      const usable = gallery.value.items.filter((item) => httpsUrl(item.galWebImageUrl || item.galWebImageUrl2));
+      if (usable.length) return { ok: true, value: { items: usable, total: usable.length } } as Attempt;
+    }
+
+    // 관광사진 API에 등록되지 않은 지역은 같은 한국관광공사의 관광정보
+    // 이미지로 보완한다. 외부 임의 이미지나 영구 저장본은 사용하지 않는다.
+    const tour = await attempt(fetchKto(env, "KorService2", "searchKeyword2", {
+      ...commonParams("12"), arrange: "Q", keyword,
+    }));
+    providerWorked ||= tour.ok;
+    if (!tour.ok) lastError = tour.error;
+    if (tour.ok) {
+      const normalized = tour.value.items.map((item) => ({
+        galContentId: item.contentid,
+        galTitle: item.title,
+        galWebImageUrl: httpsUrl(item.firstimage || item.firstimage2),
+        galPhotographyLocation: clean(item.addr1 || region),
+        galPhotographer: "한국관광공사",
+        galSearchKeyword: keyword,
+      })).filter((item) => item.galWebImageUrl);
+      if (normalized.length) return { ok: true, value: { items: normalized, total: normalized.length } } as Attempt;
+    }
+  }
+
+  return providerWorked
+    ? { ok: true, value: { items: [], total: 0 } }
+    : { ok: false, error: lastError };
 }
 
 function normalizedSearchText(value: unknown) {
