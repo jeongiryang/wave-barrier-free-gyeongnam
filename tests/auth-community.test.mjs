@@ -68,9 +68,14 @@ test("formal auth pages use Neon Auth with accessible password and return flows"
 });
 
 test("community API derives identity from the session and enforces ownership", async () => {
-  const [route, repository, session, requestGuard, migration] = await Promise.all([
+  const [route, repository, posts, comments, likes, ownership, database, session, requestGuard, migration] = await Promise.all([
     source("app/api/community/[...path]/route.ts"),
     source("features/community/server/repository.ts"),
+    source("features/community/server/posts-repository.ts"),
+    source("features/community/server/comments-repository.ts"),
+    source("features/community/server/likes-repository.ts"),
+    source("features/community/server/ownership.ts"),
+    source("features/community/server/database.ts"),
     source("features/community/server/session.ts"),
     source("lib/server-request.ts"),
     source("migrations/001_community.sql"),
@@ -78,7 +83,14 @@ test("community API derives identity from the session and enforces ownership", a
   assert.match(session, /auth\.getSession\(\)/);
   assert.doesNotMatch(route, /body\.author/);
   assert.match(route, /본인이 작성한.*수정하거나 삭제/);
-  assert.match(repository, /ON CONFLICT \(post_id,user_id\) DO NOTHING/);
+  assert.match(repository, /export \* from "\.\/posts-repository"/);
+  assert.match(repository, /export \* from "\.\/comments-repository"/);
+  assert.match(repository, /export \* from "\.\/likes-repository"/);
+  assert.match(posts, /export async function createCommunityPost/);
+  assert.match(comments, /export async function createCommunityComment/);
+  assert.match(likes, /ON CONFLICT \(post_id,user_id\) DO NOTHING/);
+  assert.match(ownership, /row.*author_id|rows\[0\]\.author_id/);
+  assert.match(database, /CREATE TABLE IF NOT EXISTS community_posts/);
   assert.match(route, /짧은 시간에 많은 글/);
   assert.match(route, /readSameOriginJson\(request, 14000\)/);
   assert.match(requestGuard, /sec-fetch-site/);
