@@ -173,7 +173,10 @@ test("missing tourism images use official live lookup and a visual fallback", as
   const [component, planner, photos, catalog] = await Promise.all([
     source("components/SmartSpotImage.tsx"),
     plannerProductSource(),
-    source("server/tourism/photos.ts"),
+    Promise.all([
+      source("server/tourism/region-photo.ts"),
+      source("server/tourism/spot-photo.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("server/tourism/catalog.ts"),
   ]);
   assert.match(component, /action: "spot-photo"/);
@@ -192,7 +195,7 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(photos, /regionPhotoFallbackKeywords/);
   assert.match(catalog, /남해 다랭이마을/);
   assert.match(catalog, /산청 황매산/);
-  const regionalPhoto = photos.slice(photos.indexOf("export async function fetchPhoto"), photos.indexOf("function normalizedSearchText"));
+  const regionalPhoto = await source("server/tourism/region-photo.ts");
   assert.match(regionalPhoto, /PhotoGalleryService1/);
   assert.match(regionalPhoto, /KorService2/);
   assert.match(regionalPhoto, /searchKeyword2/);
@@ -409,7 +412,7 @@ test("planner state is divided into testable feature hooks without overwriting s
 });
 
 test("the server entry delegates shared policy and provider domains to focused modules", async () => {
-  const [worker, env, http, providerFacade, providerNormalizers, tourismProvider, publicTransportProvider, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, planBuilder, restoration, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources, visitorDemand, trips, tripActions, tripDatabase, tripFeedback] = await Promise.all([
+  const [worker, env, http, providerFacade, providerNormalizers, tourismProvider, publicTransportProvider, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, planBuilder, restoration, tourismCatalog, tourismModels, tourismPhotos, regionPhoto, spotPhoto, tourismInsights, tourismConcentration, enrichmentSources, visitorDemand, trips, tripActions, tripDatabase, tripFeedback] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
@@ -430,6 +433,8 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/tourism/catalog.ts"),
     source("server/tourism/models.ts"),
     source("server/tourism/photos.ts"),
+    source("server/tourism/region-photo.ts"),
+    source("server/tourism/spot-photo.ts"),
     source("server/tourism/insights.ts"),
     source("server/tourism/concentration.ts"),
     source("server/tourism/enrichment-sources.ts"),
@@ -473,7 +478,9 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.doesNotMatch(`${tourism}\n${planBuilder}`, /regionPhotoKeywords|normalizeXmlItems|calculateAccessibilityEvidence/);
   assert.match(tourismCatalog, /export const regionCodes/);
   assert.match(tourismModels, /calculateAccessibilityEvidence/);
-  assert.match(tourismPhotos, /export async function fetchSpotPhoto/);
+  assert.match(tourismPhotos, /export \{ fetchPhoto, photoFrom \} from "\.\/region-photo"/);
+  assert.match(regionPhoto, /export async function fetchPhoto/);
+  assert.match(spotPhoto, /export async function fetchSpotPhoto/);
   assert.match(tourismInsights, /export async function buildEnrichment/);
   assert.match(tourismInsights, /fetchEnrichmentSources/);
   assert.doesNotMatch(tourismInsights, /GoCamping|DataLabService|TatsCnctrRateService/);

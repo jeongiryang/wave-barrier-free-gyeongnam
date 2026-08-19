@@ -196,7 +196,10 @@ test("contest category, selected task and live OpenAPI use are documented consis
     plannerProductSource(),
     source("server/tourism/handler.ts"),
     source("server/tourism/plan-builder.ts"),
-    source("server/tourism/photos.ts"),
+    Promise.all([
+      source("server/tourism/region-photo.ts"),
+      source("server/tourism/spot-photo.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("server/tourism/insights.ts"),
     source("server/tourism/concentration.ts"),
     source("server/tourism/enrichment-sources.ts"),
