@@ -417,7 +417,7 @@ test("planner state is divided into testable feature hooks without overwriting s
 });
 
 test("the server entry delegates shared policy and provider domains to focused modules", async () => {
-  const [worker, env, http, providerFacade, providerNormalizers, tourismProvider, publicTransportProvider, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, planBuilder, restoration, tourismCatalog, tourismModels, tourismPhotos, regionPhoto, spotPhoto, tourismInsights, tourismConcentration, enrichmentSources, visitorDemand, trips, tripActions, tripDatabase, tripFeedback] = await Promise.all([
+  const [worker, env, http, providerFacade, providerNormalizers, tourismProvider, publicTransportProvider, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, planBuilder, restoration, tourismCatalog, tourismModels, tourismPhotos, regionPhoto, spotPhoto, tourismInsights, tourismConcentration, enrichmentSources, regionalEnrichment, waterTravel, expresswayRests, visitorDemand, trips, tripActions, tripDatabase, tripFeedback] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
@@ -443,6 +443,9 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/tourism/insights.ts"),
     source("server/tourism/concentration.ts"),
     source("server/tourism/enrichment-sources.ts"),
+    source("server/tourism/regional-enrichment.ts"),
+    source("server/tourism/water-travel.ts"),
+    source("server/tourism/expressway-rests.ts"),
     source("server/tourism/visitor-demand.ts"),
     source("server/trips/handler.ts"),
     source("server/trips/itinerary-actions.ts"),
@@ -490,7 +493,10 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(tourismInsights, /fetchEnrichmentSources/);
   assert.doesNotMatch(tourismInsights, /GoCamping|DataLabService|TatsCnctrRateService/);
   assert.match(tourismConcentration, /TatsCnctrRateService/);
-  assert.match(enrichmentSources, /GoCamping/);
+  assert.match(regionalEnrichment, /GoCamping/);
+  assert.match(waterTravel, /B500001\/myportal\/travel/);
+  assert.match(expresswayRests, /data\.ex\.co\.kr\/openapi\/restinfo\/restThemeList/);
+  assert.doesNotMatch(enrichmentSources, /GoCamping|B500001|data\.ex\.co\.kr/);
   assert.match(visitorDemand, /DataLabService/);
   assert.match(trips, /export async function handleTripsApi/);
   assert.match(trips, /loadSharedTrip/);
