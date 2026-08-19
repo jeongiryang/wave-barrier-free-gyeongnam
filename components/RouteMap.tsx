@@ -20,7 +20,7 @@ export type RouteAlternative = {
   geometry: RoutePoint[];
 };
 
-export type MapPlace = { id: string; name: string; image?: string; address?: string; summary?: string; placeUrl?: string; mapX: string; mapY: string; score: number };
+export type MapPlace = { id: string; name: string; image?: string; address?: string; summary?: string; placeUrl?: string; mapX: string; mapY: string; score: number | null };
 export type CrowdSignal = { rate: number; baseYmd?: string; place?: string };
 type KakaoLatLng = { getLat(): number; getLng(): number };
 type KakaoMap = {
@@ -323,7 +323,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
   }
 
   function chooseKakaoPlace(place: KakaoPlace) {
-    choosePlace({ id: place.id, name: place.place_name, address: place.road_address_name || place.address_name, placeUrl: place.place_url?.replace(/^http:\/\//i, "https://"), mapX: place.x, mapY: place.y, score: 0 });
+    choosePlace({ id: place.id, name: place.place_name, address: place.road_address_name || place.address_name, placeUrl: place.place_url?.replace(/^http:\/\//i, "https://"), mapX: place.x, mapY: place.y, score: null });
   }
 
   function setMapPointMode(mode: "origin" | "destination") {
@@ -569,7 +569,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
             if (!mode) return;
             if (mode === "origin") onOriginChangeRef.current?.(point, "지도에서 선택한 출발지");
             else {
-              const customPlace = { id: `map-${point.lat.toFixed(6)}-${point.lng.toFixed(6)}`, name: "지도에서 선택한 목적지", address: `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`, mapX: String(point.lng), mapY: String(point.lat), score: 0 };
+              const customPlace = { id: `map-${point.lat.toFixed(6)}-${point.lng.toFixed(6)}`, name: "지도에서 선택한 목적지", address: `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`, mapX: String(point.lng), mapY: String(point.lat), score: null };
               setSelectedMapPlace(customPlace);
               onDestinationChangeRef.current?.(customPlace);
             }
@@ -608,7 +608,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
               marker.style.setProperty("--crowd-color", crowdVisual.color);
               marker.style.setProperty("--crowd-soft", crowdVisual.soft);
             }
-            marker.title = `${place.name} · W.A.V.E ${place.score}`;
+            marker.title = place.score === null ? `${place.name} · 접근성 근거 확인 필요` : `${place.name} · 편의조건 일치 ${place.score}%`;
             marker.setAttribute("aria-label", marker.title);
             if (image) {
               const photo = document.createElement("span");
@@ -668,7 +668,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
         const point = { lat: event.latlng.lat, lng: event.latlng.lng };
         if (mode === "origin") onOriginChangeRef.current?.(point, "지도에서 선택한 출발지");
         else {
-          const customPlace = { id: `map-${point.lat.toFixed(6)}-${point.lng.toFixed(6)}`, name: "지도에서 선택한 목적지", address: `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`, mapX: String(point.lng), mapY: String(point.lat), score: 0 };
+          const customPlace = { id: `map-${point.lat.toFixed(6)}-${point.lng.toFixed(6)}`, name: "지도에서 선택한 목적지", address: `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`, mapX: String(point.lng), mapY: String(point.lat), score: null };
           setSelectedMapPlace(customPlace);
           onDestinationChangeRef.current?.(customPlace);
         }
@@ -689,7 +689,8 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
           : `<span class="number-pin">${index + 1}</span>`;
         const isCrowdPlace = Boolean(crowdVisual && crowdPlace?.id === place.id);
         const icon = L.divIcon({ className: `wave-map-icon place${image ? " has-photo" : ""}${isCrowdPlace ? ` crowd-aware crowd-${crowdVisual?.level}` : ""}`, html: markerHtml, iconSize: image ? [84, 92] : [44, 44], iconAnchor: image ? [42, 86] : [22, 22], popupAnchor: image ? [0, -78] : [0, -24] });
-        L.marker([lat, lng], { icon, title: place.name }).addTo(map).bindPopup(`<strong>${escapeHtml(place.name)}</strong><br>접근성 평점 ★ ${(place.score / 20).toFixed(1)}`).on("click", () => choosePlace(place));
+        const evidenceLabel = place.score === null ? "접근성 근거 확인 필요" : `편의조건 일치 ${place.score}%`;
+        L.marker([lat, lng], { icon, title: place.name }).addTo(map).bindPopup(`<strong>${escapeHtml(place.name)}</strong><br>${evidenceLabel}`).on("click", () => choosePlace(place));
         if (isCrowdPlace && crowdVisual) L.circle([lat, lng], { radius: crowdVisual.radius, color: crowdVisual.color, weight: 3, opacity: .78, dashArray: "7 8", fillColor: crowdVisual.color, fillOpacity: .13 }).addTo(map);
         bounds.push([lat, lng]);
       });
@@ -764,7 +765,7 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
       <header><div><strong>관광지 정보</strong><span>마커를 누르면 바로 확인</span></div><button type="button" onClick={() => setToolPanel(null)} aria-label="관광지 정보 닫기">×</button></header>
       {safeImageUrl(selectedMapPlace.image) && <div className="map-place-photo" style={{ backgroundImage: `url("${safeImageUrl(selectedMapPlace.image)?.replace(/["\\]/g, "")}")` }} />}
       <div className="map-place-copy"><small>{selectedMapPlace.address || "경상남도 관광지"}</small><h3>{selectedMapPlace.name}</h3>{selectedMapPlace.summary && <p>{selectedMapPlace.summary}</p>}</div>
-      {selectedMapPlace.score > 0 ? <div className="map-place-rating"><strong>★ {(selectedMapPlace.score / 20).toFixed(1)}</strong><span>W.A.V.E 접근성 평점 · {selectedMapPlace.score}점</span></div> : <div className="map-place-rating unavailable"><strong>후기 확인</strong><span>공식 별점은 카카오 장소 페이지에서 확인</span></div>}
+      {selectedMapPlace.score !== null ? <div className="map-place-rating"><strong>{selectedMapPlace.score}%</strong><span>선택한 편의조건 중 공식 데이터 일치율</span></div> : <div className="map-place-rating unavailable"><strong>판단 보류</strong><span>공식 편의정보가 없어 숫자로 평가하지 않습니다.</span></div>}
       <div className="map-place-actions">
         <button type="button" onClick={() => { const point = { lat: Number(selectedMapPlace.mapY), lng: Number(selectedMapPlace.mapX) }; onOriginChange?.(point, selectedMapPlace.name); setProviderDetail(`${selectedMapPlace.name}을 출발지로 설정했습니다.`); }}>출발지로</button>
         <button type="button" onClick={() => { onDestinationChange?.(selectedMapPlace); setProviderDetail(`${selectedMapPlace.name}을 목적지로 설정했습니다.`); }}>목적지로</button>

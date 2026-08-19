@@ -95,7 +95,7 @@ type Place = {
   image: string;
   mapX: string;
   mapY: string;
-  score: number;
+  score: number | null;
   confidence?: number;
   knownFields?: number;
   unknownFields?: number;
@@ -220,9 +220,9 @@ const fallbackPlaces: Place[] = [
     image: "",
     mapX: "128.716",
     mapY: "35.091",
-    score: 92,
-    features: ["장애인 주차", "엘리베이터", "화장실"],
-    details: ["주차와 승강기 정보를 우선 확인합니다.", "이동 전 현장 운영정보를 다시 확인해 주세요."],
+    score: null,
+    features: ["공식 편의정보 확인 필요"],
+    details: ["실시간 조회가 복구되면 공식 편의정보를 다시 확인합니다.", "이동 전 시설 운영기관에 확인해 주세요."],
     source: "제안서 기반 미리보기",
   },
   {
@@ -235,9 +235,9 @@ const fallbackPlaces: Place[] = [
     image: "",
     mapX: "128.425",
     mapY: "34.826",
-    score: 88,
-    features: ["휠체어 이동", "유모차", "휴게 공간"],
-    details: ["탑승장 접근 경로와 승강기를 확인합니다.", "혼잡 시간과 휴게 지점을 함께 고려합니다."],
+    score: null,
+    features: ["공식 편의정보 확인 필요"],
+    details: ["실시간 조회가 복구되면 공식 편의정보를 다시 확인합니다.", "이동 전 시설 운영기관에 확인해 주세요."],
     source: "제안서 기반 미리보기",
   },
   {
@@ -250,9 +250,9 @@ const fallbackPlaces: Place[] = [
     image: "",
     mapX: "128.080",
     mapY: "35.189",
-    score: 84,
-    features: ["오디오 가이드", "완만한 경로", "화장실"],
-    details: ["완만한 진입 경로를 우선 안내합니다.", "해설 음원과 대본 제공 여부를 확인합니다."],
+    score: null,
+    features: ["공식 편의정보 확인 필요"],
+    details: ["실시간 조회가 복구되면 공식 편의정보를 다시 확인합니다.", "이동 전 시설 운영기관에 확인해 주세요."],
     source: "제안서 기반 미리보기",
   },
 ];
@@ -607,7 +607,7 @@ export default function PlannerPage() {
   }
 
   function searchableToPlace(item: SearchPlace): Place {
-    return { id: item.id || `${item.name}-${item.mapX}`, contentTypeId: "12", city: region, name: item.name, address: item.address, summary: item.category || "사용자가 직접 검색한 장소입니다.", image: "", mapX: item.mapX, mapY: item.mapY, score: 0, features: [], details: ["카카오 장소 검색 결과를 기준으로 경로를 계산합니다."], source: "사용자 장소 검색" };
+    return { id: item.id || `${item.name}-${item.mapX}`, contentTypeId: "12", city: region, name: item.name, address: item.address, summary: item.category || "사용자가 직접 검색한 장소입니다.", image: "", mapX: item.mapX, mapY: item.mapY, score: null, features: [], details: ["카카오 장소 검색 결과를 기준으로 경로를 계산합니다."], source: "사용자 장소 검색" };
   }
 
   function choosePoint(place: Place, mode = pointPicker) {
@@ -631,7 +631,7 @@ export default function PlannerPage() {
       image: spot.image,
       mapX: spot.mapX,
       mapY: spot.mapY,
-      score: 0,
+      score: null,
       features: [spot.tag],
       details: [spot.summary],
       source: spot.source,
@@ -926,7 +926,7 @@ export default function PlannerPage() {
                   <button type="button" className={saved.includes(place.id) ? "save-card saved" : "save-card"} onClick={() => toggleSaved(place.id)} aria-label={`${place.name} 보관하기`}>{saved.includes(place.id) ? "♥" : "♡"}</button>
                 </SmartSpotImage>
                 <div className="place-content">
-                  <div className="place-title"><div><h3>{place.name}</h3><p>{place.summary}</p></div><span className="score-badge"><b>{place.score}</b><small>W.A.V.E 적합도</small></span></div>
+                  <div className="place-title"><div><h3>{place.name}</h3><p>{place.summary}</p></div><span className={`score-badge ${place.score === null ? "pending" : ""}`}><b>{place.score === null ? "판단 보류" : `${place.score}%`}</b><small>{place.score === null ? "공식 편의근거 부족" : "선택 편의조건 일치"}</small></span></div>
                   <div className="feature-list">{place.features.slice(0, 3).map((feature) => <span key={feature}>✓ {feature}</span>)}</div>
                   {typeof place.confidence === "number" && <div className="confidence-row"><span>정보 확인률 <b>{place.confidence}%</b></span><span>정보 없음 {place.unknownFields || 0}개</span></div>}
                   <div className="place-actions"><button type="button" onClick={() => setSelectedPlace(place)}>접근성 상세 <span aria-hidden="true">↗</span></button><button type="button" onClick={() => { void loadRoutes(place); document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" }); }}>이곳까지 길찾기 <span aria-hidden="true">→</span></button></div>
@@ -1160,7 +1160,7 @@ export default function PlannerPage() {
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setSelectedPlace(null)}>
           <section className="place-modal" role="dialog" aria-modal="true" aria-labelledby="place-modal-title" onMouseDown={(event) => event.stopPropagation()} ref={placeDialogRef}>
             <button className="modal-close" type="button" onClick={() => setSelectedPlace(null)} aria-label="닫기">×</button>
-            <div className="modal-visual" style={selectedPlace.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${selectedPlace.image}")` } : undefined}><span>{selectedPlace.city || region}</span><b>{selectedPlace.score}<small>W.A.V.E 적합도</small></b></div>
+            <div className="modal-visual" style={selectedPlace.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${selectedPlace.image}")` } : undefined}><span>{selectedPlace.city || region}</span><b className={selectedPlace.score === null ? "pending" : ""}>{selectedPlace.score === null ? "판단 보류" : `${selectedPlace.score}%`}<small>{selectedPlace.score === null ? "공식 편의근거 부족" : "선택 편의조건 일치"}</small></b></div>
             <div className="modal-body">
               <p className="section-kicker">ACCESSIBILITY DETAIL</p>
               <h2 id="place-modal-title">{selectedPlace.name}</h2>
@@ -1171,7 +1171,7 @@ export default function PlannerPage() {
               <a className="place-external-review" href={`https://map.kakao.com/link/search/${encodeURIComponent(`${selectedPlace.name} ${selectedPlace.address || selectedPlace.city || region}`)}`} target="_blank" rel="noreferrer"><span><b>방문 후기·사진</b><small>카카오 장소 상세에서 최신 이용 후기를 확인합니다.</small></span><i>↗</i></a>
               <button type="button" onClick={() => { toggleSaved(selectedPlace.id); setSelectedPlace(null); }}>여행 보관함에 {saved.includes(selectedPlace.id) ? "빼기" : "담기"}<span>{saved.includes(selectedPlace.id) ? "−" : "+"}</span></button>
               <div className="feedback-box"><label htmlFor="feedback-message">현장 정보가 다른가요?</label><textarea id="feedback-message" value={feedbackText} onChange={(event) => { setFeedbackText(event.target.value); setFeedbackState("idle"); }} placeholder="달라진 접근로·화장실·승강기 정보를 알려주세요." rows={3} /><button type="button" onClick={submitFeedback} disabled={feedbackText.trim().length < 5 || feedbackState === "sending"}>{feedbackState === "sending" ? "접수 중" : feedbackState === "done" ? "접수 완료 ✓" : "정보 수정 제보"}</button>{feedbackState === "error" && <small>제보 저장 상태를 확인해 주세요.</small>}</div>
-              <small className="modal-note">W.A.V.E 적합도는 선택 조건과 최신 편의정보의 일치도를 계산한 서비스 지표이며 공식 인증 점수가 아닙니다. 시설 운영상태는 방문 전에 다시 확인해 주세요.</small>
+              <small className="modal-note">편의조건 일치율은 선택한 조건 중 공식 데이터에서 긍정적으로 확인된 항목의 비율이며 공식 인증 점수가 아닙니다. 확인된 편의정보가 없으면 숫자를 만들지 않고 판단을 보류합니다. 시설 운영상태는 방문 전에 다시 확인해 주세요.</small>
             </div>
           </section>
         </div>
