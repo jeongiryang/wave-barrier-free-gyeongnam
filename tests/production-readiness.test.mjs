@@ -160,15 +160,17 @@ test("wide screens use available viewport width without breaking mobile gutters"
 });
 
 test("wave effects avoid dense glyphs and the short first-visit intro stays synchronized", async () => {
-  const [wave, landing, intro, css] = await Promise.all([
+  const [wave, model, landing, intro, css] = await Promise.all([
     source("components/WaveField.tsx"),
+    source("features/motion/wave-model.ts"),
     source("app/page.tsx"),
     source("features/landing/useLandingIntro.ts"),
     source("app/globals.css"),
   ]);
-  const ramp = wave.match(/const RAMP = \[(.*?)\];/)?.[1] ?? "";
+  const ramp = model.match(/export const WAVE_RAMP = \[(.*?)\];/)?.[1] ?? "";
   assert.doesNotMatch(ramp, /[#@xX≡]/);
-  assert.match(wave, /out: \[1\.78, 1\.96\].*W\.A\.V\.E/);
+  assert.match(model, /out: \[1\.78, 1\.96\]/);
+  assert.match(wave, /stageWeight\(elapsed, INTRO_STAGES\[2\]\)/);
   assert.match(intro, /const INTRO_DURATION_MS = 2450/);
   assert.match(intro, /type IntroState = "checking" \| "show" \| "hidden"/);
   assert.match(intro, /useState<IntroState>\("checking"\)/);

@@ -18,62 +18,17 @@
  */
 
 import { useEffect, useRef } from "react";
+import { createIntroMasks } from "../features/motion/intro-masks";
+import {
+  fastSin,
+  INTRO_STAGES,
+  stageWeight,
+  WAVES,
+  WAVE_RAMP,
+  wavePalette,
+  type Ripple,
+} from "../features/motion/wave-model";
 import { useSitePreferences } from "./SitePreferences";
-
-/* 획이 많은 글자(#, @, x)는 칸마다 잔상을 남겨 화면 전체가 지글거린다.
-   점과 선 위주로 낮은 밀도부터 쌓고, 가장 밝은 단계에만 면적이 있는 글자를 둔다. */
-const RAMP = [" ", "·", "·", ":", ":", "-", "-", "~", "~", "="];
-
-/** 심연에서 포말까지. 어두운 배경 위에 밝은 물마루가 올라온다.
-    가장 밝은 단계를 순백에서 내려 배경과의 대비를 완화한다. */
-const DEEP_TINTS = [
-  "#0a3a52", "#0d4a68", "#12587f", "#166b95", "#1a80a8",
-  "#2496b8", "#3aabc4", "#5cc2cf", "#86d6d8", "#b3e5e2",
-];
-
-/** 연한 수면 위에 짙은 바다색으로 물결을 새긴다. */
-const LIGHT_TINTS = [
-  "#e0eef6", "#d0e4f0", "#bcd8e9", "#a5cade", "#8bbad2",
-  "#71a9c5", "#5a97b6", "#4785a6", "#387395", "#2c6383",
-];
-
-/* 셀마다 sin을 여러 번 부르면 프레임을 유지하지 못한다. 파형은 어차피 문자 10단계로
-   양자화되므로 룩업 테이블로 바꿔도 결과가 달라지지 않는다. */
-const SIN_STEPS = 4096;
-const SIN_MASK = SIN_STEPS - 1;
-const SIN_SCALE = SIN_STEPS / (Math.PI * 2);
-const SIN_TABLE = new Float32Array(SIN_STEPS);
-for (let i = 0; i < SIN_STEPS; i += 1) SIN_TABLE[i] = Math.sin((i / SIN_STEPS) * Math.PI * 2);
-const fsin = (value: number) => SIN_TABLE[((value * SIN_SCALE) | 0) & SIN_MASK];
-
-type Wave = { k: number; speed: number; amp: number; dirX: number; dirY: number; phase: number };
-
-/** 진행 방향이 대체로 화면 오른쪽을 향하는 너울. 파장이 길수록 느리고 크게 움직인다.
-    빠른 물결은 칸이 자주 바뀌어 잔상을 만들므로 전체 속도를 낮게 잡는다. */
-const WAVES: Wave[] = [
-  { k: 0.055, speed: 0.72, amp: 1.0, dirX: 0.99, dirY: 0.14, phase: 0 },
-  { k: 0.091, speed: 1.0, amp: 0.62, dirX: 0.94, dirY: -0.34, phase: 1.7 },
-  { k: 0.148, speed: 1.4, amp: 0.34, dirX: 0.86, dirY: 0.51, phase: 3.1 },
-  { k: 0.233, speed: 1.92, amp: 0.18, dirX: 0.99, dirY: -0.12, phase: 5.4 },
-];
-
-/** 형상이 나타났다 사라지는 시각(초). 앞뒤가 겹쳐 형상끼리 자연스럽게 넘어간다. */
-const STAGES = [
-  { in: [0.1, 0.4], out: [0.56, 0.76] },  // 파도
-  { in: [0.58, 0.86], out: [1.02, 1.2] },  // 무장애 심볼
-  { in: [1.02, 1.28], out: [1.78, 1.96] }, // W.A.V.E
-];
-
-function stageWeight(time: number, stage: { in: number[]; out: number[] }) {
-  const [inStart, inEnd] = stage.in;
-  const [outStart, outEnd] = stage.out;
-  if (time <= inStart || time >= outEnd) return 0;
-  if (time < inEnd) return (time - inStart) / (inEnd - inStart);
-  if (time <= outStart) return 1;
-  return 1 - (time - outStart) / (outEnd - outStart);
-}
-
-type Ripple = { x: number; y: number; born: number };
 
 export type WaveFieldProps = {
   /** deep: 어두운 심해 배경. light: 연한 수면 배경. */
@@ -101,8 +56,7 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
     if (!context) return;
 
     const reduced = motion === "calm" || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const tints = tone === "deep" ? DEEP_TINTS : LIGHT_TINTS;
-    const background = tone === "deep" ? "#04202f" : "#eef7fc";
+    const { tints, background } = wavePalette(tone);
 
     let cols = 0, rows = 0, cellW = 0, cellH = 0, dpr = 1;
     let deviceW = 0, deviceH = 0;
@@ -134,7 +88,7 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
       const cellContext = cell.getContext("2d", { willReadFrequently: true });
       if (!cellContext) return;
 
-      glyphs = RAMP.map((char, level) => {
+      glyphs = WAVE_RAMP.map((char, level) => {
         cellContext.fillStyle = background;
         cellContext.fillRect(0, 0, cellW, cellH);
         if (char.trim()) {
@@ -148,112 +102,6 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
       });
       // 배경 픽셀 값은 같은 경로로 뽑아 바이트 순서를 신경 쓰지 않는다.
       backgroundPixel = glyphs[0][0];
-    }
-
-    /** 인트로에서 차례로 떠오를 형상들을 격자 해상도의 0~1 마스크로 굽는다. */
-    function buildMasks() {
-      if (mode !== "intro") { masks = []; return; }
-      const offscreen = document.createElement("canvas");
-      offscreen.width = cols;
-      offscreen.height = rows;
-      const ctx = offscreen.getContext("2d", { willReadFrequently: true });
-      if (!ctx) { masks = []; return; }
-
-      // 한 셀은 가로가 세로보다 좁다. 마스크 공간에 그대로 그리면 화면에서 옆으로
-      // 눌리므로, 셀 비율의 역수만큼 가로로 늘린 좌표계에서 작업한다.
-      const stretch = cellH / cellW;
-      const viewW = cols / stretch;
-      const centerX = viewW / 2;
-      const centerY = rows / 2;
-
-      const rasterize = (paint: (target: CanvasRenderingContext2D) => void) => {
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, cols, rows);
-        ctx.setTransform(stretch, 0, 0, 1, 0, 0);
-        ctx.fillStyle = "#fff";
-        ctx.strokeStyle = "#fff";
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        paint(ctx);
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        const { data } = ctx.getImageData(0, 0, cols, rows);
-        const out = new Float32Array(cols * rows);
-        for (let i = 0; i < out.length; i += 1) out[i] = data[i * 4 + 3] / 255;
-        return out;
-      };
-
-      /* 형상은 중심을 원점으로 하는 100 단위 좌표로 그린다. 문자 격자에서는 가는 선이
-         뭉개지고 굵은 선은 안쪽 구멍을 메우므로, 선 두께를 형상 반지름의 20% 안쪽으로
-         유지하는 것이 형태를 읽히게 하는 관건이다. */
-      const span = Math.min(rows * 0.42, viewW * 0.32);
-      const unit = span / 100;
-      const ux = (value: number) => centerX + value * unit;
-      const uy = (value: number) => centerY - 4 * unit + value * unit;
-
-      // 1. 말려 부서지는 파도 — 솟아올라 앞으로 넘어가는 마루와 아래를 흐르는 물살.
-      const waveMask = rasterize((target) => {
-        target.lineWidth = 15 * unit;
-        target.beginPath();
-        target.moveTo(ux(-76), uy(44));
-        target.bezierCurveTo(ux(-58), uy(-16), ux(-10), uy(-48), ux(30), uy(-30));
-        target.bezierCurveTo(ux(64), uy(-15), ux(70), uy(24), ux(32), uy(32));
-        target.bezierCurveTo(ux(8), uy(37), ux(-2), uy(14), ux(18), uy(2));
-        target.stroke();
-        target.lineWidth = 8 * unit;
-        [[-64, 54, -18, 54], [-40, 68, 26, 68]].forEach(([x1, y1, x2, y2]) => {
-          target.beginPath();
-          target.moveTo(ux(x1), uy(y1));
-          target.lineTo(ux(x2), uy(y2));
-          target.stroke();
-        });
-      });
-
-      // 2. 무장애 심볼 — 바퀴를 밀며 앞으로 나아가는 자세.
-      const accessMask = rasterize((target) => {
-        // 바퀴는 아래쪽에 두고 테두리를 얇게 남겨 안쪽이 뚫려 보이게 한다.
-        target.lineWidth = 7 * unit;
-        target.beginPath();
-        target.arc(ux(6), uy(28), 30 * unit, 0, Math.PI * 2);
-        target.stroke();
-        // 머리 — 바퀴 위로 확실히 올려 상체가 먼저 읽히게 한다.
-        target.beginPath();
-        target.arc(ux(-26), uy(-46), 11 * unit, 0, Math.PI * 2);
-        target.fill();
-        // 앞으로 기운 몸통
-        target.lineWidth = 10 * unit;
-        target.beginPath();
-        target.moveTo(ux(-24), uy(-38));
-        target.lineTo(ux(-8), uy(-2));
-        target.stroke();
-        // 바퀴를 미는 팔
-        target.lineWidth = 8 * unit;
-        target.beginPath();
-        target.moveTo(ux(-19), uy(-23));
-        target.lineTo(ux(11), uy(-13));
-        target.stroke();
-        // 무릎에서 발판으로
-        target.lineWidth = 9 * unit;
-        target.beginPath();
-        target.moveTo(ux(-8), uy(-2));
-        target.lineTo(ux(19), uy(2));
-        target.lineTo(ux(13), uy(22));
-        target.stroke();
-      });
-
-      // 3. 워드마크.
-      const wordMask = rasterize((target) => {
-        if (!wordmark) return;
-        target.textAlign = "center";
-        target.textBaseline = "middle";
-        target.font = "900 100px system-ui, sans-serif";
-        const measured = target.measureText(wordmark).width / 100;
-        const widthFit = measured > 0 ? (viewW * 0.68) / measured : rows * 0.3;
-        const size = Math.max(6, Math.min(widthFit, rows * 0.3));
-        target.font = `900 ${size}px system-ui, sans-serif`;
-        target.fillText(wordmark, centerX, centerY);
-      });
-
-      masks = [waveMask, accessMask, wordMask];
     }
 
     function resize() {
@@ -292,7 +140,7 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
       framePixels = new ImageData(new Uint8ClampedArray(frameBuffer.buffer), deviceW, deviceH);
 
       buildGlyphs();
-      buildMasks();
+      masks = createIntroMasks({ mode, wordmark, cols, rows, cellW, cellH });
 
       // 물리 계산은 배율과 무관한 CSS 픽셀 좌표에서 한다.
       cellXs = new Float32Array(cols);
@@ -341,9 +189,9 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
           shapeW1 = 1;
         } else {
           materialize = Math.min(1, Math.max(0, (elapsed - 0.25) / 1.15));
-          shapeW0 = stageWeight(elapsed, STAGES[0]);
-          shapeW1 = stageWeight(elapsed, STAGES[1]);
-          shapeW2 = stageWeight(elapsed, STAGES[2]);
+          shapeW0 = stageWeight(elapsed, INTRO_STAGES[0]);
+          shapeW1 = stageWeight(elapsed, INTRO_STAGES[1]);
+          shapeW2 = stageWeight(elapsed, INTRO_STAGES[2]);
         }
       }
       const reveal = Math.min(1, shapeW0 + shapeW1 + shapeW2);
@@ -365,7 +213,7 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
         // 행에만 의존하는 값은 열 루프 밖으로 꺼낸다.
         const r0 = rowPhase[0][row] - p0, r1 = rowPhase[1][row] - p1;
         const r2 = rowPhase[2][row] - p2, r3 = rowPhase[3][row] - p3;
-        const churnRow = fsin(y * 0.31 + time * 1.3) * 2.2 - time * 3.8;
+        const churnRow = fastSin(y * 0.31 + time * 1.3) * 2.2 - time * 3.8;
         const rowOffset = row * cols;
 
         for (let col = 0; col < cols; col += 1) {
@@ -376,8 +224,8 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
           const x = cellXs[col];
 
           // 1. 너울 — 진행파의 합
-          let height = (w0.amp * fsin(c0[col] + r0) + w1.amp * fsin(c1[col] + r1)
-            + w2.amp * fsin(c2[col] + r2) + w3.amp * fsin(c3[col] + r3)) / 2.22;
+          let height = (w0.amp * fastSin(c0[col] + r0) + w1.amp * fastSin(c1[col] + r1)
+            + w2.amp * fastSin(c2[col] + r2) + w3.amp * fastSin(c3[col] + r3)) / 2.22;
 
           // 2. 포인터 융기 — 커서가 수면을 밀어 올린다
           if (pointer.active) {
@@ -399,13 +247,13 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
             const inner = front - 190;
             if (inner > 0 && d2 < inner * inner) continue;
             const dist = Math.sqrt(d2);
-            height += 0.95 * fsin(dist * 0.055 - age * 6) * Math.exp(-dist / 260) * Math.exp(-age * 1.4);
+            height += 0.95 * fastSin(dist * 0.055 - age * 6) * Math.exp(-dist / 260) * Math.exp(-age * 1.4);
           }
 
           // 4. 부서지는 물마루 — 마루가 임계값을 넘으면 흐르는 난류가 얹힌다
           if (height > 0.34) {
             const crest = (height - 0.34) / 0.66;
-            height += crest * crest * fsin(x * 0.42 + churnRow) * 0.34;
+            height += crest * crest * fastSin(x * 0.42 + churnRow) * 0.34;
           }
 
           // 마루 쪽으로 밝기를 몰아 물마루가 가늘고 선명하게 서게 만든다.
@@ -425,9 +273,9 @@ export default function WaveField({ tone = "deep", mode = "ambient", wordmark = 
             value *= 1 - reveal * 0.5 * (1 - inside);
           }
 
-          let level = (value * (RAMP.length - 1) + 0.5) | 0;
+          let level = (value * (WAVE_RAMP.length - 1) + 0.5) | 0;
           if (level < 0) level = 0;
-          else if (level > RAMP.length - 1) level = RAMP.length - 1;
+          else if (level > WAVE_RAMP.length - 1) level = WAVE_RAMP.length - 1;
           if (!level) continue;
 
           // 배경은 이미 칠해져 있으므로 문자 칸만 프레임 버퍼에 덮어쓴다.

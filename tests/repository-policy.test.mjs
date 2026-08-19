@@ -277,6 +277,23 @@ test("route-map rendering delegates SDK, domain helpers, types and image export"
   assert.match(imageExport, /URL\.revokeObjectURL/);
 });
 
+test("the wave canvas delegates reusable motion math and intro-mask rasterization", async () => {
+  const [wave, model, masks] = await Promise.all([
+    source("components/WaveField.tsx"),
+    source("features/motion/wave-model.ts"),
+    source("features/motion/intro-masks.ts"),
+  ]);
+  assert.match(wave, /import \{ createIntroMasks \} from "\.\.\/features\/motion\/intro-masks"/);
+  assert.match(wave, /const \{ tints, background \} = wavePalette\(tone\)/);
+  assert.doesNotMatch(wave, /new Float32Array\(SIN_STEPS\)|target\.bezierCurveTo/);
+  assert.match(model, /const SIN_STEPS = 4096/);
+  assert.match(model, /export const fastSin/);
+  assert.match(model, /export function stageWeight/);
+  assert.match(masks, /target\.bezierCurveTo/);
+  assert.match(masks, /target\.arc\(ux\(6\), uy\(28\)/);
+  assert.match(masks, /target\.fillText\(wordmark, centerX, centerY\)/);
+});
+
 test("every user-facing footer exposes the repository with an accessible tooltip", async () => {
   const [link, landing, planner, shared, css] = await Promise.all([
     source("components/GithubFooterLink.tsx"),
