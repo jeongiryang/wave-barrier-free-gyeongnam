@@ -14,6 +14,17 @@ type SmartSpotImageProps = {
   children?: ReactNode;
 };
 
+function safeImageUrl(value?: string) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    if (url.protocol === "http:") url.protocol = "https:";
+    return url.protocol === "https:" ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
 export default function SmartSpotImage({
   src,
   title,
@@ -25,7 +36,7 @@ export default function SmartSpotImage({
   showMeta = true,
   children,
 }: SmartSpotImageProps) {
-  const [image, setImage] = useState(src || "");
+  const [image, setImage] = useState(() => safeImageUrl(src));
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [retried, setRetried] = useState(false);
@@ -42,7 +53,8 @@ export default function SmartSpotImage({
       const response = await fetch(`/api/wave?${params.toString()}`, { headers: { Accept: "application/json" }, signal: controller.signal });
       const data = response.ok ? await response.json() as { image?: string } : null;
       if (cancelled()) return;
-      if (data?.image) { setImage(data.image); setRetried(true); setFailed(false); }
+      const nextImage = safeImageUrl(data?.image);
+      if (nextImage) { setImage(nextImage); setRetried(true); setFailed(false); }
       else { setFailed(true); setLoading(false); }
     } catch {
       if (!cancelled()) { setFailed(true); setLoading(false); }
@@ -53,16 +65,17 @@ export default function SmartSpotImage({
 
   useEffect(() => {
     let cancelled = false;
+    const nextImage = safeImageUrl(src);
     const frame = window.requestAnimationFrame(() => {
-      setImage(src || "");
+      setImage(nextImage);
       setFailed(false);
       setRetried(false);
       setLoading(true);
       settledRef.current = false;
-      if (!src) void loadOfficialFallback(() => cancelled);
+      if (!nextImage) void loadOfficialFallback(() => cancelled);
     });
     const slowImage = window.setTimeout(() => {
-      if (!cancelled && !settledRef.current && src) {
+      if (!cancelled && !settledRef.current && nextImage) {
         setImage("");
         void loadOfficialFallback(() => cancelled);
       }
@@ -71,7 +84,7 @@ export default function SmartSpotImage({
   }, [src, loadOfficialFallback]);
 
   return <div className={`smart-spot-image${className ? ` ${className}` : ""}${loading ? " loading" : ""}${failed ? " failed" : ""}`}>
-    {/* 관광사진 OpenAPI가 반환하는 외부 URL은 Next 이미지 최적화 도메인을 사전 열거할 수 없다. */}
+    {/* 관광사진 OpenAPI의 외부 URL은 HTTPS만 허용하고 Next 이미지 최적화 도메인 사전 열거 대신 직접 렌더링한다. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
     {image && <img src={image} alt={`${title} 관광사진`} onLoad={() => { settledRef.current = true; setLoading(false); }} onError={() => {
       if (!retried) { setImage(""); setLoading(true); void loadOfficialFallback(); }

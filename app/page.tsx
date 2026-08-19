@@ -45,12 +45,27 @@ function Intro({ close }: { close: () => void }) {
   const startButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     startButtonRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key === "Tab") {
+        event.preventDefault();
+        startButtonRef.current?.focus();
+      }
     };
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
   }, [close]);
 
   return (
@@ -87,13 +102,18 @@ export default function LandingPage() {
   const loadRegionPhoto = useCallback(async (region: string) => {
     if (photoRequests.current.has(region)) return;
     photoRequests.current.add(region);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 10000);
     try {
-      const response = await fetch(`/api/wave?action=photo&region=${encodeURIComponent(region)}`, { headers: { Accept: "application/json" } });
+      const response = await fetch(`/api/wave?action=photo&region=${encodeURIComponent(region)}`, { headers: { Accept: "application/json" }, signal: controller.signal });
       if (!response.ok) throw new Error("photo request failed");
       const payload = await response.json() as { photo?: RegionPhoto | null };
       setRegionPhotos((current) => ({ ...current, [region]: payload.photo || null }));
     } catch {
+      photoRequests.current.delete(region);
       setRegionPhotos((current) => ({ ...current, [region]: null }));
+    } finally {
+      window.clearTimeout(timeout);
     }
   }, []);
 
