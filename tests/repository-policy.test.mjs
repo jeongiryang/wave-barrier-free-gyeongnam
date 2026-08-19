@@ -16,6 +16,9 @@ async function styleSource() {
     "app/styles/product-foundations.css",
     "app/styles/planner-workspace.css",
     "app/styles/map-experience.css",
+    "app/styles/map-workspace.css",
+    "app/styles/map-place-tools.css",
+    "app/styles/map-live-signals.css",
     "app/styles/product-refinements.css",
     "app/styles/design-system.css",
     "app/styles/experience-accessibility.css",
@@ -24,7 +27,7 @@ async function styleSource() {
 }
 
 test("shared styles keep stable cascade boundaries", async () => {
-  const [layout, globalCss, siteShell, landingExplorer, landingRouteData, placeDialog, productFoundations, plannerWorkspace, mapExperience, productRefinements, designSystem, experience] = await Promise.all([
+  const [layout, globalCss, siteShell, landingExplorer, landingRouteData, placeDialog, productFoundations, plannerWorkspace, mapExperience, mapWorkspace, mapPlaceTools, mapLiveSignals, productRefinements, designSystem, experience] = await Promise.all([
     source("app/layout.tsx"),
     source("app/globals.css"),
     source("app/styles/site-shell.css"),
@@ -34,6 +37,9 @@ test("shared styles keep stable cascade boundaries", async () => {
     source("app/styles/product-foundations.css"),
     source("app/styles/planner-workspace.css"),
     source("app/styles/map-experience.css"),
+    source("app/styles/map-workspace.css"),
+    source("app/styles/map-place-tools.css"),
+    source("app/styles/map-live-signals.css"),
     source("app/styles/product-refinements.css"),
     source("app/styles/design-system.css"),
     source("app/styles/experience-accessibility.css"),
@@ -47,9 +53,14 @@ test("shared styles keep stable cascade boundaries", async () => {
     'import "./styles/product-foundations.css"',
     'import "./styles/planner-workspace.css"',
     'import "./styles/map-experience.css"',
+    'import "./styles/map-workspace.css"',
+    'import "./styles/map-place-tools.css"',
+    'import "./styles/map-live-signals.css"',
     'import "./styles/product-refinements.css"',
     'import "./styles/design-system.css"',
     'import "./styles/experience-accessibility.css"',
+    'import "./styles/account-auth.css"',
+    'import "./styles/community.css"',
     'import "./styles/account-community.css"',
   ].map((statement) => layout.indexOf(statement));
   assert.ok(imports.every((index) => index >= 0));
@@ -64,7 +75,9 @@ test("shared styles keep stable cascade boundaries", async () => {
   assert.match(productFoundations, /Functional planner hierarchy/);
   assert.match(plannerWorkspace, /V5 — tool-first workspace/);
   assert.match(mapExperience, /V6 — Kakao-first map/);
-  assert.match(mapExperience, /V8\.4 — map-native crowd forecast/);
+  assert.match(mapWorkspace, /V7 — Kakao map workspace/);
+  assert.match(mapPlaceTools, /V8\.1 — point selection/);
+  assert.match(mapLiveSignals, /V8\.4 — map-native crowd forecast/);
   assert.match(productRefinements, /실제 예보와 관광 집중률/);
   assert.match(productRefinements, /Deep Ocean 통합 레이어/);
   assert.match(designSystem, /--shadow-3:/);
