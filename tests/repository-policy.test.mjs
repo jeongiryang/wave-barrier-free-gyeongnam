@@ -236,6 +236,25 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(chrome, /window\.cancelAnimationFrame\(frame\)/);
 });
 
+test("the server entry delegates shared policy, weather and place search to provider modules", async () => {
+  const [worker, env, http, weather, location] = await Promise.all([
+    source("worker/index.ts"),
+    source("server/shared/env.ts"),
+    source("server/shared/http.ts"),
+    source("server/weather/handler.ts"),
+    source("server/location/handler.ts"),
+  ]);
+  assert.match(worker, /import \{ portableEnv, type Env \} from "\.\.\/server\/shared\/env"/);
+  assert.match(worker, /import \{ clean, httpsUrl, json, readTrustedJson \} from "\.\.\/server\/shared\/http"/);
+  assert.match(worker, /if \(url\.pathname === "\/api\/weather"\) return handleWeatherApi\(request\)/);
+  assert.match(worker, /if \(url\.pathname === "\/api\/location-search"\) return handleLocationSearch\(request, env\)/);
+  assert.doesNotMatch(worker, /api\.open-meteo\.com|dapi\.kakao\.com/);
+  assert.match(env, /typeof process === "undefined" \? \{\} : process\.env/);
+  assert.match(http, /x-content-type-options/);
+  assert.match(weather, /AbortSignal\.timeout\(8000\)/);
+  assert.match(location, /AbortSignal\.timeout\(7000\)/);
+});
+
 test("every user-facing footer exposes the repository with an accessible tooltip", async () => {
   const [link, landing, planner, shared, css] = await Promise.all([
     source("components/GithubFooterLink.tsx"),

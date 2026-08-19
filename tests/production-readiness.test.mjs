@@ -65,22 +65,22 @@ test("the production toolchain pins patched React and the Vercel-compatible vine
 });
 
 test("anonymous database writes validate origin, JSON and body size before storage", async () => {
-  const worker = await source("worker/index.ts");
-  assert.match(worker, /function readTrustedJson/);
-  assert.match(worker, /content-type/);
-  assert.match(worker, /sec-fetch-site/);
-  assert.match(worker, /origin !== requestUrl\.origin/);
-  assert.match(worker, /TextEncoder\(\)\.encode\(raw\)\.byteLength/);
+  const [worker, http] = await Promise.all([source("worker/index.ts"), source("server/shared/http.ts")]);
+  assert.match(http, /function readTrustedJson/);
+  assert.match(http, /content-type/);
+  assert.match(http, /sec-fetch-site/);
+  assert.match(http, /origin !== requestUrl\.origin/);
+  assert.match(http, /TextEncoder\(\)\.encode\(raw\)\.byteLength/);
   assert.match(worker, /readTrustedJson\(request, 70000\)/);
   assert.match(worker, /readTrustedJson\(request, 4000\)/);
 });
 
 test("external Kakao place links are upgraded to HTTPS", async () => {
-  const [worker, map] = await Promise.all([
-    source("worker/index.ts"),
+  const [location, map] = await Promise.all([
+    source("server/location/handler.ts"),
     source("components/RouteMap.tsx"),
   ]);
-  assert.match(worker, /placeUrl: httpsUrl\(item\.place_url\)/);
+  assert.match(location, /placeUrl: httpsUrl\(item\.place_url\)/);
   assert.match(map, /place_url\?\.replace\(\/\^http:/);
 });
 
