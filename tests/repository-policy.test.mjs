@@ -37,6 +37,8 @@ async function landingProductSource() {
     "features/landing/components/LandingRegionStory.tsx",
     "features/landing/components/LandingClosing.tsx",
     "components/LandingStories.tsx",
+    "features/community/components/LandingCommunityStory.tsx",
+    "features/community/hooks/useCommunityPreview.ts",
   ];
   return (await Promise.all(paths.map(source))).join("\n");
 }
