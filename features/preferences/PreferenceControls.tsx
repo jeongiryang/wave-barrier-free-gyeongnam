@@ -1,0 +1,42 @@
+"use client";
+
+import { useSitePreferences } from "./context";
+import { localeOptions, motionCopy } from "./translations";
+import type { Locale } from "./types";
+
+export function PreferenceControls() {
+  const { locale, theme, motion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
+  const motionLabel = motion === "calm" ? motionCopy[locale].on : motionCopy[locale].off;
+  const selectedLocale = localeOptions.find((item) => item.id === locale) ?? localeOptions[0];
+
+  return (
+    <details className="preference-controls">
+      <summary aria-label="환경설정 열기">
+        <span aria-hidden="true">Aa</span>
+        <b>환경설정</b>
+      </summary>
+      <div className="preference-panel">
+        <header>
+          <b>환경설정</b>
+          <small>읽기 편한 화면으로 조정합니다.</small>
+        </header>
+        <label className="preference-row">
+          <span><b>{t("language", "언어")}</b><small>{selectedLocale.beta ? "Beta 번역" : "한국어"}</small></span>
+          <select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>
+            {localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {item.label}{item.beta ? " · Beta" : ""}</option>)}
+          </select>
+        </label>
+        <button className="preference-row" type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")}>
+          <span><b>화면 색상</b><small>{theme === "dark" ? "어두운 화면" : "밝은 화면"}</small></span>
+          <em aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</em>
+        </button>
+        <button className="preference-row motion-toggle" type="button" onClick={toggleMotion} aria-pressed={motion === "calm"} aria-label={motionLabel}>
+          <span><b>동작 효과</b><small>{motion === "calm" ? "효과 줄임" : "기본 효과"}</small></span>
+          <em aria-hidden="true">{motion === "calm" ? "정지" : "흐름"}</em>
+        </button>
+        <p>운영체제의 동작 줄이기 설정을 기본으로 따릅니다.</p>
+      </div>
+    </details>
+  );
+}
+

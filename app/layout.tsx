@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./styles/account-community.css";
 import "./styles/landing-stories.css";
+import "./styles/preferences.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 
 const productionUrl = new URL("https://wave-barrier-free-gyeongnam.vercel.app");

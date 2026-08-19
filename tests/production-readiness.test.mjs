@@ -160,16 +160,25 @@ test("wide screens use available viewport width without breaking mobile gutters"
 });
 
 test("wave effects avoid dense glyphs and the short first-visit intro stays synchronized", async () => {
-  const [wave, landing, css] = await Promise.all([
+  const [wave, landing, intro, css] = await Promise.all([
     source("components/WaveField.tsx"),
     source("app/page.tsx"),
+    source("features/landing/useLandingIntro.ts"),
     source("app/globals.css"),
   ]);
   const ramp = wave.match(/const RAMP = \[(.*?)\];/)?.[1] ?? "";
   assert.doesNotMatch(ramp, /[#@xX≡]/);
   assert.match(wave, /out: \[1\.78, 1\.96\].*W\.A\.V\.E/);
-  assert.match(landing, /const INTRO_DURATION_MS = 2450/);
-  assert.match(landing, /setTimeout\(\(\) => finishIntro\(\), INTRO_DURATION_MS\)/);
+  assert.match(intro, /const INTRO_DURATION_MS = 2450/);
+  assert.match(intro, /type IntroState = "checking" \| "show" \| "hidden"/);
+  assert.match(intro, /useState<IntroState>\("checking"\)/);
+  assert.match(intro, /if \(!hydrated\) return "checking"/);
+  assert.match(intro, /motion === "calm" \|\| reducedMotion \|\| seen \? "hidden" : "show"/);
+  assert.match(intro, /if \(!hydrated\) return;/);
+  assert.match(intro, /sessionStorage\.getItem\("wave-intro-seen-v2"\)/);
+  assert.match(intro, /setTimeout\(finishIntro, INTRO_DURATION_MS\)/);
+  assert.match(landing, /introState === "show" && <Intro/);
+  assert.doesNotMatch(landing, /useState\(true\)/);
   assert.match(css, /landingIntroOut \.5s 1\.95s/);
   assert.match(landing, /prefers-reduced-motion: reduce/);
   assert.match(landing, /<button ref=\{startButtonRef\} type="button" onClick=\{close\}>/);
