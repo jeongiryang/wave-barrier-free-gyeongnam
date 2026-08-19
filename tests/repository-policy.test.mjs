@@ -469,8 +469,8 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
 });
 
-test("route-map rendering delegates controller, provider lifecycle, controls and domain helpers", async () => {
-  const [map, controller, commandBar, nearbyPanel, placePanel, planner, types, sdk, helpers, renderer, imageExport] = await Promise.all([
+test("route-map rendering delegates controller, provider adapters, controls and domain helpers", async () => {
+  const [map, controller, commandBar, nearbyPanel, placePanel, planner, types, sdk, helpers, renderer, kakaoRenderer, leafletRenderer, imageExport] = await Promise.all([
     source("components/RouteMap.tsx"),
     source("features/routing/useRouteMapController.ts"),
     source("features/routing/components/MapCommandBar.tsx"),
@@ -481,6 +481,8 @@ test("route-map rendering delegates controller, provider lifecycle, controls and
     source("features/routing/kakao-sdk.ts"),
     source("features/routing/map-utils.ts"),
     source("features/routing/useMapRenderer.ts"),
+    source("features/routing/kakao-map-renderer.ts"),
+    source("features/routing/leaflet-map-renderer.ts"),
     source("features/routing/export-route-image.ts"),
   ]);
   assert.match(map, /useRouteMapController\(props\)/);
@@ -500,8 +502,13 @@ test("route-map rendering delegates controller, provider lifecycle, controls and
   assert.match(sdk, /data-wave-kakao/);
   assert.match(helpers, /export function summarizeMeasurements/);
   assert.match(helpers, /export function safeMapImageUrl/);
-  assert.match(renderer, /loadKakaoSdk/);
-  assert.match(renderer, /OpenStreetMap contributors/);
+  assert.match(renderer, /renderKakaoMap\(key, context, isCancelled\)/);
+  assert.match(renderer, /renderLeafletMap\(context, isCancelled\)/);
+  assert.doesNotMatch(renderer, /loadKakaoSdk|L\.tileLayer|new K\.Map/);
+  assert.match(kakaoRenderer, /loadKakaoSdk/);
+  assert.match(kakaoRenderer, /new K\.Map/);
+  assert.match(leafletRenderer, /OpenStreetMap contributors/);
+  assert.match(leafletRenderer, /L\.tileLayer/);
   assert.match(renderer, /return \(\) => \{/);
   assert.match(imageExport, /canvas\.width = 1600/);
   assert.match(imageExport, /URL\.revokeObjectURL/);
