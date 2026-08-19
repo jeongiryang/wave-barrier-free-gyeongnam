@@ -200,7 +200,10 @@ test("contest category, selected task and live OpenAPI use are documented consis
     landingProductSource(),
     plannerProductSource(),
     source("server/tourism/handler.ts"),
-    source("server/tourism/plan-builder.ts"),
+    Promise.all([
+      source("server/tourism/plan-builder.ts"),
+      source("server/tourism/plan-model.ts"),
+    ]).then((parts) => parts.join("\n")),
     Promise.all([
       source("server/tourism/region-photo.ts"),
       source("server/tourism/spot-photo.ts"),
@@ -391,7 +394,10 @@ test("planner never substitutes prototype places when official data fails", asyn
 test("accessibility evidence determines the first recommendation and itinerary labels", async () => {
   const [planner, tourism] = await Promise.all([
     plannerProductSource(),
-    source("server/tourism/plan-builder.ts"),
+    Promise.all([
+      source("server/tourism/plan-builder.ts"),
+      source("server/tourism/plan-model.ts"),
+    ]).then((parts) => parts.join("\n")),
   ]);
   assert.match(tourism, /const leftVerified = left\.score === null \? 0 : 1/);
   assert.match(tourism, /rightVerified - leftVerified/);
