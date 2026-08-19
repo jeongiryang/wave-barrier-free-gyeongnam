@@ -6,6 +6,15 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
+async function plannerSignalsSource() {
+  return (await Promise.all([
+    "features/planner/hooks/usePlannerSignals.ts",
+    "features/planner/hooks/useServiceHealth.ts",
+    "features/planner/hooks/usePlannerEnrichment.ts",
+    "features/planner/hooks/useRegionWeather.ts",
+  ].map(source))).join("\n");
+}
+
 test("planner page delegates derived data and browser lifecycles to feature modules", async () => {
   const [page, viewModel, actions, placeAdapters, dialogFocus, autoRefresh] = await Promise.all([
     source("app/planner/page.tsx"),
@@ -73,7 +82,7 @@ test("planner domain types are shared across route and signal controllers", asyn
   const [types, routePlanning, signals] = await Promise.all([
     source("features/planner/types.ts"),
     source("features/planner/hooks/useRoutePlanning.ts"),
-    source("features/planner/hooks/usePlannerSignals.ts"),
+    plannerSignalsSource(),
   ]);
 
   assert.match(types, /export type DestinationCrowd/);
