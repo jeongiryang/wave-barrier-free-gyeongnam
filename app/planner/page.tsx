@@ -312,7 +312,7 @@ export default function PlannerPage() {
   const [theme, setTheme] = useState("nature");
   const [plan, setPlan] = useState<PlanData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [notice, setNotice] = useState("조건을 선택한 뒤 실시간 관광 데이터를 불러오세요.");
+  const [notice, setNotice] = useState("조건을 바꾸면 실시간 관광 데이터가 자동으로 갱신됩니다.");
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [saved, setSaved] = useState<string[]>([]);
   const [travelStart, setTravelStart] = useState(localDate());
@@ -358,6 +358,7 @@ export default function PlannerPage() {
   const cardsRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const placeDialogRef = useRef<HTMLElement>(null);
+  const planRequestRef = useRef<AbortController | null>(null);
 
   const activeProfiles = useMemo(
     () => profiles.filter((profile) => selected.includes(profile.id)),
@@ -694,10 +695,13 @@ export default function PlannerPage() {
     } catch { setFeedbackState("error"); }
   }
 
-  async function generatePlan() {
-    if (!selected.length || loading) return;
+  async function generatePlan(revealResults = true) {
+    if (!selected.length) return;
+    planRequestRef.current?.abort();
+    const controller = new AbortController();
+    planRequestRef.current = controller;
     setLoading(true);
-    setNotice("한국관광공사 8개 서비스에서 여행 근거를 모으고 있어요.");
+    setNotice(revealResults ? "한국관광공사 8개 서비스에서 여행 근거를 모으고 있어요." : "바뀐 조건에 맞춰 여행지를 자동으로 갱신하고 있어요.");
     try {
       const params = new URLSearchParams({
         action: "plan",
@@ -706,8 +710,9 @@ export default function PlannerPage() {
         profiles: selected.join(","),
         locale,
       });
-      const response = await fetch(`/api/wave?${params.toString()}`, { headers: { Accept: "application/json" } });
+      const response = await fetch(`/api/wave?${params.toString()}`, { signal: controller.signal, headers: { Accept: "application/json" } });
       const data = await response.json() as PlanData & { error?: string };
+      if (controller.signal.aborted) return;
       if (!response.ok) throw new Error(data.error || "API 응답을 불러오지 못했습니다.");
       setPlaying(false);
       setAudioProgress(0);
@@ -720,6 +725,7 @@ export default function PlannerPage() {
         ? `${available}개 데이터 서비스의 응답을 코스에 반영했습니다.`
         : "검색 결과가 없어 미리보기 여행지를 유지했습니다.");
     } catch (error) {
+      if (controller.signal.aborted) return;
       setPlan({
         mode: "fallback",
         generatedAt: new Date().toISOString(),
@@ -733,10 +739,25 @@ export default function PlannerPage() {
       });
       setNotice(`현재 실시간 연결을 확인할 수 없어 안전한 미리보기 데이터로 보여드려요. ${error instanceof Error ? error.message : "연결 상태를 확인해 주세요."}`);
     } finally {
-      setLoading(false);
-      window.setTimeout(() => document.getElementById("route")?.scrollIntoView({ behavior: "smooth" }), 80);
+      if (planRequestRef.current === controller) {
+        planRequestRef.current = null;
+        setLoading(false);
+        if (revealResults) window.setTimeout(() => document.getElementById("route")?.scrollIntoView({ behavior: "smooth" }), 80);
+      }
     }
   }
+
+  const planSignature = `${region}|${theme}|${locale}|${selected.join(",")}`;
+  const generatePlanRef = useRef(generatePlan);
+  useEffect(() => { generatePlanRef.current = generatePlan; });
+  useEffect(() => {
+    if (!selected.length) return;
+    const timer = window.setTimeout(() => void generatePlanRef.current(false), 550);
+    return () => {
+      window.clearTimeout(timer);
+      planRequestRef.current?.abort();
+    };
+  }, [planSignature, selected.length]);
 
   function scrollCards(direction: number) {
     cardsRef.current?.scrollBy({ left: direction * Math.min(window.innerWidth * 0.78, 480), behavior: "smooth" });
@@ -871,8 +892,8 @@ export default function PlannerPage() {
 
           <div className="selection-bar" aria-live="polite">
             <div><span className="pulse-dot" aria-hidden="true" /><p><b>{activeProfiles.length || "조건을"}개 선택</b><span>{activeProfiles.length ? activeProfiles.map((item) => item.label).join(" · ") : "원하는 여행 조건을 골라주세요"}</span></p></div>
-            <button className="generate-button" type="button" onClick={generatePlan} disabled={!selected.length || loading}>
-              {loading ? <><span className="button-loader" /> 데이터 연결 중</> : <>{t("search", "공공데이터로 코스 찾기")} <span aria-hidden="true">→</span></>}
+            <button className="generate-button" type="button" onClick={() => void generatePlan(true)} disabled={!selected.length || loading}>
+              {loading ? <><span className="button-loader" /> 자동 갱신 중</> : <>결과 새로고침 <span aria-hidden="true">↻</span></>}
             </button>
           </div>
           <p className="planner-notice" aria-live="polite">{notice}</p>
