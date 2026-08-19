@@ -357,6 +357,8 @@ html[data-theme="dark"] .route-state-page button,html[data-theme="dark"] .route-
 .itinerary-list h3 { margin: 5px 0 7px; font-size: 1.3rem; }
 .itinerary-list p { max-width: 570px; margin: 0; color: #a2b9c4; font-size: .88rem; }
 .stop-check { margin-top: 7px; padding: 5px 8px; border-radius: 999px; color: #8bdbda; background: rgba(125,235,233,.08); font-size: .72rem; font-weight: 800; }
+.stop-check.limited { color: #fbbf24; background: rgba(251,191,36,.1); }
+.stop-check.context { color: #b7c7cf; background: rgba(183,199,207,.08); }
 .guide-player { overflow: hidden; align-self: start; border: 1px solid rgba(255,255,255,.14); border-radius: 23px; background: rgba(255,255,255,.055); box-shadow: 0 28px 70px rgba(0,0,0,.18); }
 .guide-top { padding: 15px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,.1); }
 .guide-top span { color: #90b3c3; font-size: .7rem; font-weight: 900; letter-spacing: .13em; }

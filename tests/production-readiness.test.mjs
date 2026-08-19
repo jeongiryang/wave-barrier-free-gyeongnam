@@ -243,6 +243,21 @@ test("planner never substitutes prototype places when official data fails", asyn
   assert.match(planner, /role=\{planError \? "alert" : "status"\}/);
 });
 
+test("accessibility evidence determines the first recommendation and itinerary labels", async () => {
+  const [planner, worker] = await Promise.all([
+    source("app/planner/page.tsx"),
+    source("worker/index.ts"),
+  ]);
+  assert.match(worker, /const leftVerified = left\.score === null \? 0 : 1/);
+  assert.match(worker, /rightVerified - leftVerified/);
+  assert.match(worker, /evidenceState: place\.score === null \? "limited" : "verified"/);
+  assert.match(planner, /편의근거 확인/);
+  assert.match(planner, /방문 전 확인/);
+  assert.match(planner, /추천 맥락/);
+  assert.match(planner, /String\(index \+ 1\)\.padStart\(2, "0"\)/);
+  assert.doesNotMatch(planner, /<small>0\{index \+ 1\}<\/small>/);
+});
+
 test("shared trips recover from slow or malformed network responses", async () => {
   const [page, worker] = await Promise.all([
     source("app/trip/[id]/page.tsx"),
