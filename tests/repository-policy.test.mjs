@@ -88,10 +88,11 @@ test("production configuration is Vercel-only", async () => {
 });
 
 test("missing tourism images use official live lookup and a visual fallback", async () => {
-  const [component, planner, tourism] = await Promise.all([
+  const [component, planner, photos, catalog] = await Promise.all([
     source("components/SmartSpotImage.tsx"),
     source("app/planner/page.tsx"),
-    source("server/tourism/handler.ts"),
+    source("server/tourism/photos.ts"),
+    source("server/tourism/catalog.ts"),
   ]);
   assert.match(component, /action: "spot-photo"/);
   assert.match(component, /contentId/);
@@ -100,16 +101,16 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(planner, /className=\{`place-visual visual-/);
   assert.match(planner, /region=\{place\.city \|\| region\}/);
   assert.match(planner, /contentId=\{place\.id\}/);
-  assert.match(tourism, /PhotoGalleryService1/);
-  assert.match(tourism, /searchKeyword2/);
-  assert.match(tourism, /detailCommon2/);
-  assert.match(tourism, /scoreSpotPhotoTitle/);
-  assert.match(tourism, /for \(const keyword of keywords\)/);
-  assert.doesNotMatch(tourism, /Promise\.all\(keywords\.map/);
-  assert.match(tourism, /regionPhotoFallbackKeywords/);
-  assert.match(tourism, /남해 다랭이마을/);
-  assert.match(tourism, /산청 황매산/);
-  const regionalPhoto = tourism.slice(tourism.indexOf("async function fetchPhoto"), tourism.indexOf("function normalizedSearchText"));
+  assert.match(photos, /PhotoGalleryService1/);
+  assert.match(photos, /searchKeyword2/);
+  assert.match(photos, /detailCommon2/);
+  assert.match(photos, /scoreSpotPhotoTitle/);
+  assert.match(photos, /for \(const keyword of keywords\)/);
+  assert.doesNotMatch(photos, /Promise\.all\(keywords\.map/);
+  assert.match(photos, /regionPhotoFallbackKeywords/);
+  assert.match(catalog, /남해 다랭이마을/);
+  assert.match(catalog, /산청 황매산/);
+  const regionalPhoto = photos.slice(photos.indexOf("export async function fetchPhoto"), photos.indexOf("function normalizedSearchText"));
   assert.match(regionalPhoto, /PhotoGalleryService1/);
   assert.match(regionalPhoto, /KorService2/);
   assert.match(regionalPhoto, /searchKeyword2/);
@@ -325,7 +326,7 @@ test("planner state is divided into testable feature hooks without overwriting s
 });
 
 test("the server entry delegates shared policy and provider domains to focused modules", async () => {
-  const [worker, env, http, providerData, weather, location, transport, tourism, trips] = await Promise.all([
+  const [worker, env, http, providerData, weather, location, transport, tourism, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, trips] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
@@ -334,6 +335,10 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/location/handler.ts"),
     source("server/transport/handler.ts"),
     source("server/tourism/handler.ts"),
+    source("server/tourism/catalog.ts"),
+    source("server/tourism/models.ts"),
+    source("server/tourism/photos.ts"),
+    source("server/tourism/insights.ts"),
     source("server/trips/handler.ts"),
   ]);
   assert.match(worker, /import \{ portableEnv \} from "\.\.\/server\/shared\/env"/);
@@ -354,7 +359,11 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(transport, /apis-navi\.kakaomobility\.com\/v1\/directions/);
   assert.match(tourism, /export async function handleWaveApi/);
   assert.match(tourism, /export async function buildPlan/);
-  assert.match(tourism, /calculateAccessibilityEvidence/);
+  assert.doesNotMatch(tourism, /regionPhotoKeywords|normalizeXmlItems|calculateAccessibilityEvidence/);
+  assert.match(tourismCatalog, /export const regionCodes/);
+  assert.match(tourismModels, /calculateAccessibilityEvidence/);
+  assert.match(tourismPhotos, /export async function fetchSpotPhoto/);
+  assert.match(tourismInsights, /export async function buildEnrichment/);
   assert.match(trips, /export async function handleTripsApi/);
   assert.match(trips, /export async function handleFeedbackApi/);
   assert.match(trips, /CREATE TABLE IF NOT EXISTS itineraries/);
