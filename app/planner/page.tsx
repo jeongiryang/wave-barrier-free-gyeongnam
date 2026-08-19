@@ -712,7 +712,7 @@ export default function PlannerPage() {
     try {
       const response = await fetch("/api/trips", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ plan, selections: { region, theme, profiles: selected, locale, travelStart, travelEnd, scheduleAssignments }, origin: { label: originLabel } }),
+        body: JSON.stringify({ plan, selections: { region, theme, profiles: selected, locale, travelStart, travelEnd, scheduleAssignments, selectedPlaceIds: saved }, origin: { label: originLabel } }),
       });
       const data = await response.json() as { url?: string; error?: string };
       if (!response.ok || !data.url) throw new Error(data.error || "공유 링크를 만들지 못했습니다.");

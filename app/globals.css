@@ -443,6 +443,12 @@ audio { display: none; }
 .github-footer-link:hover,.github-footer-link:focus-visible { color: #061f2b; border-color: #7debe9; background: #7debe9; transform: translateY(-2px); }
 .github-footer-link:hover::after,.github-footer-link:focus-visible::after { opacity: 1; transform: translate(-50%,0); }
 .shared-footer { margin-top: auto; }
+.shared-restoration-notice { margin: 0; padding: 12px max(24px,calc((100vw - 1180px) / 2)); color: #684d00; background: #fff7da; font-size: .76rem; font-weight: 750; text-align: center; }
+.shared-schedule { margin: 22px 0 25px; display: grid; gap: 18px; }
+.shared-schedule > section > header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.shared-schedule > section > header small { color: var(--mint); font-weight: 900; letter-spacing: .08em; }
+.shared-schedule > section > header strong { color: #dcecf3; font-size: .72rem; }
+.shared-schedule ol { margin: 8px 0 0 !important; }
 
 @media (max-width: 1100px) {
   :root { --content: min(94vw, 940px); }
