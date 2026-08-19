@@ -71,6 +71,13 @@ async function routePlanningSource() {
   ].map(source))).join("\n");
 }
 
+async function locationSearchSource() {
+  return (await Promise.all([
+    "features/planner/hooks/useLocationSearch.ts",
+    "features/planner/hooks/useLocationSearchRequest.ts",
+  ].map(source))).join("\n");
+}
+
 async function landingProductSource() {
   const paths = [
     "app/page.tsx",
@@ -416,7 +423,7 @@ test("planner ignores stale route, enrichment and location-search responses", as
   const [plannerSignals, routePlanning, locationSearch, service] = await Promise.all([
     plannerSignalsSource(),
     routePlanningSource(),
-    source("features/planner/hooks/useLocationSearch.ts"),
+    locationSearchSource(),
     source("features/planner/services/api.ts"),
   ]);
   assert.match(routePlanning, /routeRequestRef\.current\?\.abort\(\)/);
