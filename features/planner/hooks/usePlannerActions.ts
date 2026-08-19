@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback } from "react";
-import type { MapPlace, RoutePoint } from "../../routing/types";
+import type { RoutePoint } from "../../routing/types";
 import type { PointPicker } from "./useLocationSearch";
-import type { Place, RichSpot } from "../types";
-import { mapPlaceToPlannerPlace, richSpotToPlace } from "../place-adapters";
+import type { Place } from "../types";
+import { useBookingRouteClipboard } from "./useBookingRouteClipboard";
+import { usePlannerImpactAction } from "./usePlannerImpactAction";
+import { usePlannerPointActions } from "./usePlannerPointActions";
 
 interface PlannerActionsOptions {
   region: string;
@@ -44,51 +45,8 @@ export function usePlannerActions({
   setNotice,
   setRouteNotice,
 }: PlannerActionsOptions) {
-  const choosePoint = useCallback((place: Place, mode = pointPicker) => {
-    if (mode === "origin") {
-      const next = { lat: Number(place.mapY), lng: Number(place.mapX) };
-      if (!Number.isFinite(next.lat) || !Number.isFinite(next.lng)) return;
-      updateOrigin(next, place.name);
-      const destination = routeDestination || activePlaces[0];
-      if (destination) void loadRoutes(destination, next, false, place.name);
-    } else if (mode === "destination") {
-      void loadRoutes(place, origin, privateOrigin);
-    }
-    clearLocationSearch();
-  }, [activePlaces, clearLocationSearch, loadRoutes, origin, pointPicker, privateOrigin, routeDestination, updateOrigin]);
-
-  const routeFromRichSpot = useCallback((spot: RichSpot) => {
-    void loadRoutes(richSpotToPlace(spot, region));
-    document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" });
-  }, [loadRoutes, region]);
-
-  const routeFromMapPlace = useCallback((mapPlace: MapPlace) => {
-    const known = activePlaces.find((place) => place.id === mapPlace.id);
-    void loadRoutes(known || mapPlaceToPlannerPlace(mapPlace, region));
-  }, [activePlaces, loadRoutes, region]);
-
-  const applyImpactAction = useCallback((action: "culture" | "alternative") => {
-    if (action === "culture") {
-      setTheme("history");
-      setNotice("강수 영향을 반영해 역사·문화 후보를 다시 확인합니다.");
-      window.setTimeout(() => document.getElementById("places")?.scrollIntoView({ behavior: "smooth" }), 700);
-      return;
-    }
-    if (!impactAlternative) return;
-    void loadRoutes(impactAlternative);
-    document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" });
-  }, [impactAlternative, loadRoutes, setNotice, setTheme]);
-
-  const copyBookingRoute = useCallback(async (provider: string) => {
-    const destination = routeDestination?.name || activePlaces[0]?.name || region;
-    const text = `${originLabel} → ${destination}`;
-    try {
-      await navigator.clipboard?.writeText(text);
-      setRouteNotice(`${provider} 공식 사이트를 열었습니다. 출발·도착 정보 “${text}”를 붙여넣을 수 있도록 복사했습니다.`);
-    } catch {
-      setRouteNotice(`${provider} 공식 사이트를 열었습니다. 출발 ${originLabel}, 도착 ${destination}을 선택해 주세요.`);
-    }
-  }, [activePlaces, originLabel, region, routeDestination, setRouteNotice]);
-
-  return { choosePoint, routeFromRichSpot, routeFromMapPlace, applyImpactAction, copyBookingRoute };
+  const points = usePlannerPointActions({ region, origin, privateOrigin, pointPicker, routeDestination, activePlaces, updateOrigin, loadRoutes, clearLocationSearch });
+  const impact = usePlannerImpactAction({ impactAlternative, loadRoutes, setTheme, setNotice });
+  const booking = useBookingRouteClipboard({ originLabel, region, routeDestination, activePlaces, setRouteNotice });
+  return { ...points, ...impact, ...booking };
 }
