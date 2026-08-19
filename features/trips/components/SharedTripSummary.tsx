@@ -1,0 +1,9 @@
+import type { SharedTrip } from "../types";
+
+export function SharedTripHero({ trip }: { trip: SharedTrip }) {
+  return <><section className="shared-hero"><div><p className="section-kicker">SHARED W.A.V.E ROUTE</p><h1>{trip.selections.region || "경남"}에서 만나는<br />장벽 없는 하루</h1><p>{trip.origin?.label || "선택 출발지"}에서 시작하는 맞춤 여행 계획입니다.</p><div><span>여행지 <b>{trip.plan.places.length}곳</b></span><span>공유 보관 <b>{new Date(trip.expiresAt).toLocaleDateString("ko-KR")}까지</b></span>{trip.restoration?.requested ? <span>저장 장소 최신 확인 <b>{trip.restoration.restored}/{trip.restoration.requested}</b></span> : null}{trip.plan.crowd && <span>집중률 <b>{trip.plan.crowd.rate.toFixed(1)}%</b></span>}</div></div></section>{trip.restoration?.missing ? <p className="shared-restoration-notice" role="status">저장한 장소 {trip.restoration.missing}곳은 공식 관광정보에서 현재 확인되지 않아 {trip.restoration.mode === "condition-fallback" ? "같은 여행 조건의 최신 후보를 대신 표시합니다." : "일정에서 제외했습니다."}</p> : null}</>;
+}
+
+export function SharedTripPlaces({ trip }: { trip: SharedTrip }) {
+  return <div className="shared-places">{trip.plan.places.map((place, index) => <article key={place.id}><div style={place.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.7)), url("${place.image}")` } : undefined}><span>{String(index + 1).padStart(2, "0")}</span><b>{place.city}</b></div><section><h2>{place.name}</h2><p>{place.summary}</p><div>{place.features.slice(0, 3).map((feature) => <span key={feature}>✓ {feature}</span>)}</div><strong className={place.score === null ? "pending" : ""}>{place.score === null ? "판단 보류" : `${place.score}%`}<small>{place.score === null ? "공식 편의근거 부족" : "선택 편의조건 일치"}</small></strong></section></article>)}</div>;
+}
