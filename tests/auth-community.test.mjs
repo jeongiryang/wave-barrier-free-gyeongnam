@@ -130,7 +130,11 @@ test("community UI supports public reading, protected participation and place li
     ]).then((parts) => parts.join("\n")),
     source("app/planner/page.tsx"),
     source("features/planner/components/PlaceDecisionDialog.tsx"),
-    source("components/LandingStories.tsx"), source("app/sitemap.ts"),
+    Promise.all([
+      source("components/LandingStories.tsx"),
+      source("features/community/components/LandingCommunityStory.tsx"),
+      source("features/community/hooks/useCommunityPreview.ts"),
+    ]).then((parts) => parts.join("\n")), source("app/sitemap.ts"),
   ]);
   assert.match(list, /로그인 없이 공개 글을 확인/);
   assert.match(list, /아직 등록된 이야기가 없습니다/);
@@ -150,7 +154,13 @@ test("community UI supports public reading, protected participation and place li
 });
 
 test("landing product story exposes previews and reduced-motion styles", async () => {
-  const [stories, storyCss, accountCss] = await Promise.all([source("components/LandingStories.tsx"), source("app/styles/landing-stories.css"), accountStyleSource()]);
+  const [stories, storyCss, accountCss] = await Promise.all([
+    Promise.all([
+      source("components/LandingStories.tsx"),
+      source("features/community/components/LandingCommunityStory.tsx"),
+    ]).then((parts) => parts.join("\n")),
+    source("app/styles/landing-stories.css"), accountStyleSource(),
+  ]);
   const css = `${storyCss}\n${accountCss}`;
   for (const chapter of ["DISCOVER", "ACCESS", "PLAN", "ROUTE", "ADAPT", "COMMUNITY"]) assert.match(stories, new RegExp(chapter));
   assert.match(stories, /기능 화면 미리보기/);
