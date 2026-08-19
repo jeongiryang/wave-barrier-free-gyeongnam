@@ -106,11 +106,13 @@ test("semantic releases are created from merged main commits with least privileg
     source(".github/workflows/release.yml"),
   ]);
   assert.match(backfill, /\["v0\.7\.2", 37, "c71a9e9c25ec1f1b7491cf14c081f4c4e57dd3b1"/);
-  assert.match(backfill, /\["v0\.7\.3", 38, "\$CURRENT"/);
+  assert.match(backfill, /\["v0\.7\.3", 38, "c0cf3f37ab4b689494c34477f990d76422dae84c"/);
+  assert.match(backfill, /\["v0\.7\.4", 39, "\$CURRENT"/);
   assert.match(backfill, /accidentalRef\?\.object\.sha === accidentalRelease\.sha/);
   assert.match(backfill, /accidentalPublishedRelease\?\.body\?\.includes\(accidentalRelease\.bodyMarker\)/);
   assert.doesNotMatch(backfill, /github\("\/git\/refs",/);
-  assert.match(backfill, /Release API가 target_commitish에 태그를 함께 만들게 한다/);
+  assert.match(backfill, /execFileSync\("git", \["push", "origin", `refs\/tags\/\$\{release\.version\}`\]/);
+  assert.doesNotMatch(backfill, /target_commitish: target/);
   assert.match(current, /subject\.startsWith\("feat:"\)/);
   assert.match(current, /target_commitish: process\.env\.GITHUB_SHA/);
   assert.match(current, /ref\.object\.sha !== process\.env\.GITHUB_SHA/);
