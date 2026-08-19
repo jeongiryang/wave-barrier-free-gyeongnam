@@ -125,9 +125,15 @@ test("interactive help follows real sections and remains accessible on mobile", 
   }
   assert.match(landing, /id="story"/);
   assert.match(help, /window\.scrollTo\(\{ top: Math\.max\(0, targetTop\), behavior: reduced \? "auto" : "smooth" \}\)/);
+  assert.match(help, /highlightSelector/);
+  assert.match(help, /setHighlight\(null\)/);
+  assert.match(help, /dialog\.top - gutter/);
+  assert.match(help, /new ResizeObserver\(queueUpdate\)/);
   assert.match(help, /help-tour-spotlight/);
   assert.match(help, /help-tour-pointer/);
   assert.match(help, /aria-modal="true"/);
+  const spotlightRule = css.match(/\.help-tour-spotlight \{[^}]+\}/)?.[0] ?? "";
+  assert.doesNotMatch(spotlightRule, /transition:/);
   assert.match(help, /event\.key === "Escape"/);
   assert.match(help, /previousFocus\?\.focus\(\)/);
   assert.match(css, /@media \(max-width: 980px\)[\s\S]*\.planner-header-actions \.help-button \{ display: inline-flex; \}/);
