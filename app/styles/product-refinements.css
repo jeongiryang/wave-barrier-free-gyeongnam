@@ -1,0 +1,377 @@
+
+/* 실제 예보와 관광 집중률을 여행 행동으로 연결하는 상황 대응 */
+.impact-response { margin: 18px 0 34px; padding: 24px; border: 1px solid rgba(255,255,255,.16); border-radius: 24px; background: rgba(255,255,255,.055); }
+.impact-response.critical { border-color: rgba(255,132,132,.55); background: linear-gradient(135deg,rgba(173,40,68,.22),rgba(255,255,255,.045)); }
+.impact-response.warning { border-color: rgba(255,193,92,.42); background: linear-gradient(135deg,rgba(191,117,18,.16),rgba(255,255,255,.045)); }
+.impact-response > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.impact-response header small { color: #8bd8ff; font-size: .62rem; font-weight: 900; letter-spacing: .12em; }
+.impact-response h3 { margin: 7px 0 0; font-size: clamp(1.45rem,2.4vw,2.25rem); letter-spacing: -.035em; }
+.impact-level { min-height: 34px; padding: 7px 11px; display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; border-radius: 999px; color: #cde8f3; background: rgba(255,255,255,.08); font-size: .7rem; font-weight: 850; }
+.impact-level i { width: 8px; height: 8px; border-radius: 50%; background: #7debe9; }
+.impact-level.watch i { background: #f3c15b; }.impact-level.warning i { background: #ff9f43; }.impact-level.critical i { background: #ff6b7a; box-shadow: 0 0 0 5px rgba(255,107,122,.13); }
+.impact-signal-grid { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 10px; }
+.impact-signal-grid article { min-height: 176px; padding: 18px; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,.1); border-radius: 17px; background: rgba(5,35,48,.48); }
+.impact-signal-grid article > span { display: flex; align-items: center; gap: 8px; color: #a9c8d5; font-size: .65rem; font-weight: 850; }.impact-signal-grid article > span b { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 8px; color: #092f40; background: #82ddff; font-size: .58rem; }
+.impact-signal-grid article.warning > span b { background: #ffc66d; }.impact-signal-grid article.critical > span b { color: #fff; background: #e9586e; }.impact-signal-grid article.stable > span b { background: #7debe9; }
+.impact-signal-grid strong { margin-top: 18px; font-size: 1rem; line-height: 1.45; }.impact-signal-grid p { margin: auto 0 0; padding-top: 14px; color: #9db8c4; font-size: .72rem; line-height: 1.55; }
+.impact-signal-grid .action-card { background: linear-gradient(145deg,rgba(23,176,255,.17),rgba(125,235,233,.08)); }
+.impact-actions { margin-top: auto; padding-top: 14px; display: grid; gap: 7px; }.impact-actions button { min-height: 46px; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 0; border-radius: 11px; color: #073449; background: #fff; font: inherit; font-size: .72rem; font-weight: 900; text-align: left; cursor: pointer; }.impact-actions button:hover { background: #daf4ff; }.impact-actions button:focus-visible { outline: 3px solid #7debe9; outline-offset: 3px; }.impact-actions i { font-style: normal; }
+.impact-response > footer { margin-top: 16px; padding-top: 14px; display: flex; flex-wrap: wrap; gap: 8px 18px; border-top: 1px solid rgba(255,255,255,.09); color: #91afbc; font-size: .65rem; }
+@media (max-width: 620px) { .impact-response { padding: 18px 14px; }.impact-response > header { flex-direction: column; gap: 12px; }.impact-signal-grid { grid-template-columns: 1fr; }.impact-signal-grid article { min-height: 158px; }.impact-response > footer { flex-direction: column; } }
+
+/* W.A.V.E service identity — one continuous tide, clear and accessible controls */
+.brand-intro {
+  isolation: isolate;
+  background: radial-gradient(circle at 70% 20%,rgba(23,176,255,.3),transparent 34%),linear-gradient(145deg,#02202e,#05425c 66%,#075473);
+}
+.brand-intro::before { width: min(900px,105vw); border-radius: 47% 53% 42% 58%; border-color: rgba(255,255,255,.15); }
+.intro-tide { position: absolute; z-index: -1; inset: auto -10vw -24vh; height: 62vh; }
+.intro-tide i { position: absolute; inset: auto 0 0; height: 75%; border-radius: 48% 52% 0 0 / 22% 24% 0 0; background: rgba(23,176,255,.22); animation: tideDrift 8s ease-in-out infinite alternate; }
+.intro-tide i:nth-child(2) { bottom: -10%; height: 62%; background: rgba(125,235,233,.18); animation-delay: -2.7s; }
+.intro-tide i:nth-child(3) { bottom: -23%; height: 58%; background: rgba(255,255,255,.09); animation-delay: -5.2s; }
+.brand-intro h1 { display: flex; gap: .01em; text-shadow: 0 22px 70px rgba(0,0,0,.22); }
+.brand-intro h1 span { display: inline-block; animation: introLetter 1s cubic-bezier(.16,1,.3,1) both; }
+.brand-intro h1 span:nth-child(2n) { color: var(--mint); animation-delay: .08s; }
+.brand-intro h1 span:nth-child(3) { animation-delay: .16s; }.brand-intro h1 span:nth-child(4) { animation-delay: .24s; }.brand-intro h1 span:nth-child(5) { animation-delay: .32s; }.brand-intro h1 span:nth-child(6) { animation-delay: .4s; }.brand-intro h1 span:nth-child(7) { animation-delay: .48s; }
+.intro-statement { margin-top: 24px; display: grid; justify-items: center; color: #b9d4e0; font-size: clamp(.82rem,1.4vw,1rem); line-height: 1.65; }
+.intro-statement strong { color: #fff; font-size: 1.06em; }
+@keyframes introLetter { from { opacity: 0; transform: translateY(55px) rotate(4deg); filter: blur(8px); } }
+@keyframes tideDrift { to { transform: translate3d(-3vw,-3vh,0) rotate(-1deg) scaleX(1.08); } }
+
+.landing-hero,.manifesto,.evidence-story,.landing-cta { position: relative; isolation: isolate; }
+.hero-tide,.section-tide { position: absolute; z-index: 0; inset: auto -8vw -2px; height: 180px; overflow: hidden; pointer-events: none; }
+.hero-tide i,.section-tide i { position: absolute; inset: 52px -5vw -80px; border-radius: 50% 50% 0 0 / 70% 70% 0 0; background: rgba(23,176,255,.075); animation: softTide 11s ease-in-out infinite alternate; }
+.hero-tide i:nth-child(2),.section-tide i:nth-child(2) { inset: 82px -12vw -95px; background: rgba(125,235,233,.1); animation-delay: -4s; }
+.hero-tide i:nth-child(3) { inset: 110px -16vw -110px; background: rgba(255,255,255,.5); animation-delay: -7s; }
+.section-tide { top: 0; bottom: auto; transform: translateY(-52%); }
+.section-tide.reverse { transform: translateY(-52%) scaleX(-1); }
+@keyframes softTide { to { transform: translateX(5vw) scaleY(1.2); } }
+
+.landing-hero-copy,.landing-signal,.manifesto > :not(.section-tide),.evidence-story > :not(.section-tide) { position: relative; z-index: 1; }
+.signal-core { overflow: hidden; border-radius: 47% 53% 56% 44% / 54% 42% 58% 46%; }
+.signal-core::after { content: ""; position: absolute; inset: 58% -25% -30%; border-radius: 50% 45% 0 0; background: rgba(125,235,233,.25); animation: coreWave 4.8s ease-in-out infinite alternate; }
+@keyframes coreWave { to { transform: translateX(12%) rotate(-4deg); } }
+
+.manifesto,.evidence-story { background: linear-gradient(180deg,#f8fdff,#eef7fb); }
+.manifesto-grid { gap: 14px; border: 0; }
+.manifesto-grid article,.manifesto-grid article + article { min-height: 300px; padding: 30px; overflow: hidden; position: relative; border: 1px solid rgba(45,114,144,.16); border-radius: 24px; background: rgba(255,255,255,.62); box-shadow: 0 16px 40px rgba(11,72,98,.055); backdrop-filter: blur(12px); }
+.manifesto-grid article::before { content: ""; position: absolute; inset: auto -18% -60% -18%; height: 76%; border-radius: 50% 50% 0 0; background: rgba(23,176,255,.07); transition: transform .55s cubic-bezier(.16,1,.3,1),background .4s; }
+.manifesto-grid article:hover { color: var(--ink); background: rgba(255,255,255,.82); transform: translateY(-10px); }
+.manifesto-grid article:hover::before { background: rgba(125,235,233,.18); transform: translateY(-30%) rotate(-2deg); }
+.manifesto-grid article:hover p { color: var(--muted); }
+.manifesto-grid h3 { position: relative; margin-top: 68px; }.manifesto-grid p,.manifesto-grid article > span { position: relative; }
+.evidence-stack article:hover { transform: translateX(-9px); box-shadow: 12px 16px 38px rgba(7,64,89,.08); }
+
+.help-button,.account-button,.account-menu button { min-height: 42px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.88); font-size: .74rem; font-weight: 850; }
+.help-button { display: inline-flex; align-items: center; gap: 7px; }.help-button span { width: 21px; height: 21px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--blue); }
+.account-menu { display: flex; align-items: center; gap: 7px; }.account-menu > span { max-width: 130px; overflow: hidden; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.help-dialog,.account-dialog { width: min(560px,100%); max-height: min(760px,calc(100vh - 40px)); overflow: auto; position: relative; padding: 34px; border: 1px solid rgba(255,255,255,.65); border-radius: 28px; color: var(--ink); background: rgba(250,253,255,.97); box-shadow: 0 32px 90px rgba(2,34,48,.32); }
+.dialog-kicker { color: var(--blue); font-size: .68rem; font-weight: 900; letter-spacing: .12em; }.help-dialog h2,.account-dialog h2 { margin: 8px 42px 9px 0; font-size: clamp(1.7rem,4vw,2.5rem); line-height: 1.1; }.help-dialog > p,.account-dialog > p { color: var(--muted); }
+.help-dialog ol { margin: 26px 0; padding: 0; display: grid; gap: 9px; list-style: none; }.help-dialog li { padding: 14px; display: grid; grid-template-columns: 34px 1fr; gap: 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }.help-dialog li > b { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; color: #fff; background: var(--blue); }.help-dialog li strong { display: block; }.help-dialog li p { margin: 2px 0 0; color: var(--muted); font-size: .82rem; }.help-dialog section { padding: 15px; border-radius: 16px; background: #eaf7f7; }.help-dialog section p { margin: 4px 0 0; color: #3d6466; font-size: .8rem; }.help-caution { font-size: .75rem; }
+.account-dialog form { display: grid; gap: 12px; margin-top: 22px; }.account-dialog label { display: grid; gap: 6px; font-size: .76rem; font-weight: 850; }.account-dialog input { min-height: 48px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 13px; background: #fff; font: inherit; }.account-submit { min-height: 48px; padding: 10px 15px; border: 0; border-radius: 13px; color: #fff; background: var(--blue); font-weight: 880; }.account-switch { width: 100%; min-height: 44px; margin-top: 9px; border: 0; color: var(--blue); background: transparent; font-weight: 820; }.account-message { margin: 0; color: #a13c49 !important; font-size: .78rem; }
+
+html[data-theme="dark"] .manifesto,html[data-theme="dark"] .evidence-story { background: linear-gradient(180deg,#061f2b,#082b3b); }
+html[data-theme="dark"] .manifesto-grid article,html[data-theme="dark"] .help-dialog,html[data-theme="dark"] .account-dialog { color: #eaf5f9; border-color: #284d5d; background: rgba(8,41,56,.95); }
+html[data-theme="dark"] .help-button,html[data-theme="dark"] .account-button,html[data-theme="dark"] .account-menu button { color: #eaf5f9; border-color: #30596b; background: #0a3244; }
+html[data-theme="dark"] .day-planner,html[data-theme="dark"] .day-planner-grid > article { color: var(--ink); border-color: #30596b; background: #0b2d3c; }
+html[data-theme="dark"] .day-planner li,html[data-theme="dark"] .day-planner select,html[data-theme="dark"] .date-control input { color: var(--ink); border-color: #30596b; background: #0f3749; }
+
+@media (max-width: 980px) { .landing-header-actions .help-button,.landing-header-actions .account-button,.landing-header-actions .account-menu { display: none; } }
+@media (max-width: 780px) { .manifesto-grid { gap: 10px; }.manifesto-grid article,.manifesto-grid article + article { min-height: 220px; padding: 24px; }.help-dialog,.account-dialog { padding: 25px 20px; border-radius: 22px; }.day-planner { padding: 20px 15px; }.day-planner > header { align-items: start; flex-direction: column; }.day-planner li { grid-template-columns: 24px minmax(0,1fr); }.day-planner li select { grid-column: 2; width: 100%; }.date-range-fields { align-items: stretch; grid-template-columns: 1fr; }.date-range-fields > i { display: none; } }
+@media (prefers-reduced-motion: reduce) { .intro-tide i,.brand-intro h1 span,.hero-tide i,.section-tide i,.signal-core::after { animation: none !important; } }
+
+/* Official-photo states: no blank cards, no oversized placeholder shapes. */
+.rich-card .smart-spot-image { min-height: 225px; border-radius: 0; background: #10445b; }
+.rich-card .smart-spot-image .smart-image-skeleton {
+  z-index: 1; inset: 0; padding: 24px; display: grid; align-content: end; gap: 10px;
+  border-radius: 0; background: linear-gradient(118deg,#10445b 8%,#1d6683 31%,#38849e 48%,#1d6683 65%,#10445b 90%);
+  background-size: 240% 100%; animation: region-photo-loading 1.25s linear infinite;
+}
+.rich-card .smart-image-skeleton::before,.rich-card .smart-image-skeleton::after {
+  content: ""; position: absolute; right: -12%; left: -12%; height: 54%; border-radius: 48% 52% 0 0 / 30% 34% 0 0;
+  background: rgba(125,235,233,.1); transform: rotate(-2deg);
+}
+.rich-card .smart-image-skeleton::before { bottom: -30%; }.rich-card .smart-image-skeleton::after { bottom: -39%; left: -25%; background: rgba(255,255,255,.08); transform: rotate(3deg); }
+.rich-card .smart-image-skeleton i { width: 68%; height: 11px; display: block; border-radius: 999px; background: rgba(255,255,255,.2); }
+.rich-card .smart-image-skeleton i:nth-child(2) { width: 46%; }.rich-card .smart-image-skeleton i:nth-child(3) { width: 82%; }
+.rich-card .smart-image-skeleton b { width: 108px; height: 28px; position: absolute; top: 22px; left: 22px; border-radius: 999px; background: rgba(255,255,255,.14); }
+.rich-card .smart-image-fallback {
+  z-index: 1; inset: 0; padding: 24px; display: flex; justify-content: center; align-items: flex-start; flex-direction: column;
+  border-radius: 0; background: radial-gradient(circle at 82% 17%,rgba(125,235,233,.32),transparent 31%),linear-gradient(145deg,#144f68,#09374c 62%,#156077);
+}
+.rich-card .smart-image-fallback::before,.rich-card .smart-image-fallback::after { content: ""; position: absolute; right: -18%; left: -18%; height: 50%; border-radius: 48% 52% 0 0 / 24% 28% 0 0; background: rgba(77,171,212,.28); }
+.rich-card .smart-image-fallback::before { bottom: -29%; transform: rotate(-3deg); }.rich-card .smart-image-fallback::after { bottom: -39%; background: rgba(125,235,233,.17); transform: rotate(4deg); }
+.rich-card .smart-image-fallback > i { width: 42px; height: 42px; margin-bottom: 16px; display: block; border: 2px solid rgba(255,255,255,.4); border-radius: 47% 53% 44% 56%; box-shadow: inset 0 -12px 0 rgba(125,235,233,.25); }
+.rich-card .smart-image-fallback small { color: #a7d4d9; letter-spacing: .04em; }.rich-card .smart-image-fallback b { z-index: 1; max-width: 88%; margin: 7px 0 4px; color: #fff; font-size: 1.2rem; line-height: 1.22; }
+.rich-card .smart-image-fallback span { z-index: 1; color: #a7c4d1; font-size: .66rem; }
+@media (prefers-reduced-motion: reduce) { .rich-card .smart-spot-image .smart-image-skeleton { animation: none !important; } }
+
+/* ==========================================================================
+   Deep Ocean 통합 레이어
+   앞선 규칙과 특정도가 같으므로 나중에 선언된 이 블록이 최종값이 된다.
+   ========================================================================== */
+
+/* --- 인트로: 경계 없는 하나의 심해 --------------------------------------- */
+.brand-intro {
+  position: fixed; z-index: 150; inset: 0;
+  display: grid; place-items: center;
+  overflow: hidden; color: #fff;
+  background: var(--abyss);
+  animation: landingIntroOut .5s 1.95s cubic-bezier(.76,0,.24,1) forwards;
+}
+.brand-intro::before, .brand-intro::after { content: none; }
+.brand-intro-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.brand-intro > button {
+  position: absolute; z-index: 3; right: var(--gutter); top: var(--gutter);
+  min-height: 44px; padding: 9px 17px;
+  border: 1px solid rgba(111,227,208,.38); border-radius: 999px;
+  color: #d8f7f2; background: rgba(4,32,47,.55); backdrop-filter: blur(8px);
+  font-size: .82rem; font-weight: 800;
+}
+.brand-intro > button:hover { color: var(--abyss); background: var(--mint); }
+.brand-intro-copy {
+  position: relative; z-index: 2;
+  width: min(1240px, calc(100vw - var(--gutter) * 2));
+  min-height: 100svh;
+  padding: clamp(76px, 13vh, 132px) 0 clamp(44px, 8vh, 92px);
+  display: grid; grid-template-rows: auto 1fr auto;
+  justify-items: center; text-align: center;
+}
+/* 워드마크는 캔버스가 물결로 그리므로 문서에는 대체 텍스트로만 남긴다. */
+.brand-intro-copy h1 {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap;
+}
+.brand-intro-copy > p {
+  align-self: start; margin: 0;
+  color: var(--mint); font-size: clamp(.6rem, 1.5vw, .78rem);
+  font-weight: 850; letter-spacing: .3em;
+}
+.brand-intro .intro-statement {
+  align-self: end; display: grid; gap: 3px;
+  animation: introCopyRise .55s .65s both;
+}
+.brand-intro .intro-statement span { color: #93bed2; font-size: clamp(.8rem, 1.7vw, .98rem); }
+.brand-intro .intro-statement strong { margin-top: 10px; color: #eaf8ff; font-size: clamp(1rem, 2.5vw, 1.45rem); letter-spacing: -.02em; }
+@keyframes introCopyRise { from { opacity: 0; transform: translateY(14px); } }
+
+/* --- 랜딩: 섹션 경계 없는 단일 수면 -------------------------------------- */
+.landing-page { background: var(--surface); }
+.landing-hero, .manifesto, .region-story, .evidence-story, .landing-cta,
+.landing-page .simple-footer { background: transparent; }
+.landing-page .landing-pointer-glow { display: none; }
+
+/* 모든 구역이 같은 세로 정렬선을 공유한다. */
+.landing-page > section, .landing-page > footer {
+  padding-inline: max(var(--gutter), calc((100vw - 1240px) / 2));
+}
+
+.hero-wave-canvas {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; display: block;
+  opacity: .82;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 18%, #000 68%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 18%, #000 68%, transparent 100%);
+}
+.landing-hero { min-height: 100svh; padding-block: clamp(120px, 16vh, 168px) clamp(64px, 10vh, 104px); }
+.landing-hero::before { content: none; }
+.landing-hero-copy, .landing-signal { position: relative; z-index: 1; }
+.landing-hero-copy > p span { background: rgba(255,255,255,.82); box-shadow: 0 2px 10px rgba(6,48,74,.08); }
+
+/* 밝은 바탕으로 넘어온 구역의 글자색을 되돌린다. */
+.region-story { color: var(--ink); }
+.region-story-copy > p:not(.section-kicker) { color: var(--muted); }
+.selected-region { border: 1px solid var(--line); background: rgba(255,255,255,.72); }
+.selected-region > span { background: rgba(111,227,208,.22); }
+.selected-region small, .selected-region p { color: var(--muted); }
+.region-story-copy > a { color: #fff; background: var(--blue); }
+.region-story-copy > a:hover { background: var(--blue-dark); }
+
+.manifesto, .evidence-story { background: transparent; }
+.manifesto-grid article, .manifesto-grid article + article {
+  border-color: rgba(10,107,175,.16); background: rgba(255,255,255,.66);
+}
+.manifesto-grid article:hover { background: rgba(255,255,255,.88); }
+.evidence-stack article, .evidence-stack article:last-child { border-color: var(--line); }
+
+.landing-cta { color: var(--ink); }
+.landing-cta > p { color: var(--blue); }
+.landing-cta h2 em { color: var(--blue); font-style: normal; }
+.landing-cta a { color: #fff; background: var(--blue); box-shadow: 0 18px 38px rgba(10,107,175,.26); }
+.landing-cta a:hover { background: var(--blue-dark); }
+
+.landing-page .simple-footer { border-top: 1px solid var(--line); color: var(--ink); }
+.landing-page .simple-footer p { color: var(--muted); }
+.landing-page .github-footer-link { color: var(--ink); border-color: var(--line); }
+.landing-page .github-footer-link:hover,.landing-page .github-footer-link:focus-visible { color: #061f2b; border-color: #7debe9; }
+
+/* --- 플래너: 기능 단위로 끊어 읽는 구역 ---------------------------------- */
+.planner-page { background: var(--surface); }
+.planner-page > .planner-section,
+.planner-page > .places-section,
+.planner-page > .navigation-section,
+.planner-page > .travel-layers,
+.planner-page > .route-section,
+.planner-page > .data-section,
+.planner-page > .connection-diagnostics {
+  --card-pad-x: clamp(20px, 2.8vw, 46px);
+  width: min(1560px, calc(100vw - var(--gutter) * 2));
+  margin: 0 auto clamp(18px, 2.4vw, 32px);
+  padding: clamp(26px, 3.2vw, 52px) var(--card-pad-x);
+  overflow: visible;
+  border: 1px solid var(--line);
+  border-radius: clamp(20px, 2.2vw, 28px);
+  background: var(--white);
+  box-shadow: 0 16px 40px rgba(6,48,74,.055);
+}
+.planner-page > .planner-section:first-of-type { margin-top: clamp(18px, 2.4vw, 32px); }
+.planner-page > .places-section { background: var(--paper); }
+/* 데이터 탐색은 의도적으로 짙은 바다 카드로 두어 기능 구분을 강하게 만든다. */
+.planner-page > .travel-layers { border-color: transparent; background: var(--ink); }
+.planner-page > .simple-footer { margin-top: clamp(18px, 2.4vw, 32px); border-top: 1px solid var(--line); }
+
+/* 카드가 좌우 여백을 담당하므로 개별 구역의 최대폭 제약을 푼다. */
+.navigation-section .workspace-heading, .navigation-section .transport-mode-filter,
+.navigation-section .transport-provider-strip, .navigation-section .transport-live-rail,
+.navigation-section .transport-dataset-grid, .navigation-section .transport-data-panel,
+.navigation-workspace, .planner-section .workspace-heading, .planner-section .planner-bento {
+  max-width: none;
+}
+.tool-launch { padding-inline: max(var(--gutter), calc((100vw - 1560px) / 2)); background: transparent; }
+
+/* --- 뷰포트: 창 절반 폭까지 무너지지 않게 ------------------------------- */
+@media (max-width: 1180px) {
+  .planner-section .planner-bento { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 1100px) {
+  .landing-hero { gap: clamp(28px, 5vh, 52px); align-content: center; }
+  .landing-signal { width: min(520px, 100%); margin-inline: auto; }
+  .region-story, .evidence-story { gap: clamp(28px, 4vw, 48px); }
+  .landing-region-map { min-height: clamp(360px, 52vw, 560px); }
+  .landing-region-map > img { max-height: none; }
+}
+@media (max-width: 960px) {
+  :root { --gutter: clamp(14px, 3.4vw, 26px); }
+  .landing-hero-copy h1 { font-size: clamp(2.6rem, 8.2vw, 4.4rem); }
+  .manifesto > h2, .region-story-copy h2, .evidence-story h2 { font-size: clamp(2rem, 6.4vw, 3.4rem); }
+  .landing-cta h2 { font-size: clamp(2.2rem, 8vw, 4rem); }
+  .manifesto, .region-story, .evidence-story, .landing-cta { padding-block: clamp(64px, 11vh, 104px); }
+  .manifesto-grid { grid-template-columns: 1fr; }
+  .manifesto-grid article, .manifesto-grid article + article { min-height: 0; padding: 24px; }
+  .evidence-stack article { grid-template-columns: 40px 1fr; gap: 16px; }
+  .planner-page > .planner-section, .planner-page > .places-section,
+  .planner-page > .navigation-section, .planner-page > .travel-layers,
+  .planner-page > .route-section, .planner-page > .data-section {
+    width: calc(100vw - var(--gutter) * 2);
+    padding: clamp(20px, 4vw, 30px) clamp(16px, 3.4vw, 26px);
+    border-radius: 20px;
+  }
+  .hero-wave-canvas { opacity: .68; }
+}
+@media (max-width: 620px) {
+  .brand-intro-copy { padding-block: clamp(64px, 12vh, 96px) clamp(32px, 6vh, 56px); }
+  .brand-intro > button { right: 12px; top: 12px; padding: 8px 13px; font-size: .76rem; }
+  .landing-hero { min-height: 92svh; }
+  .simple-footer { grid-template-columns: 1fr; text-align: center; }
+  .simple-footer .source, .simple-footer p { text-align: center; }
+  .simple-footer .footer-brand { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-intro { animation-delay: 1.6s; }
+  .brand-intro .intro-statement { animation: none; }
+}
+
+/* 인트로 카피가 물결 위에서 읽히도록 위아래에 심해 스크림을 깐다. */
+.brand-intro-copy::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(4,32,47,.92) 0, rgba(4,32,47,.35) 22%, transparent 38%),
+    linear-gradient(0deg, rgba(4,32,47,.94) 0, rgba(4,32,47,.4) 20%, transparent 36%);
+}
+.brand-intro-copy > p { text-shadow: 0 2px 14px rgba(4,32,47,.9); }
+.brand-intro .intro-statement span,
+.brand-intro .intro-statement strong { text-shadow: 0 2px 16px rgba(4,32,47,.95); }
+
+/* --- 히어로 가독성 보정 ------------------------------------------------- */
+/* 물결은 카피가 없는 오른쪽·아래로 물러나게 하고, 글자 뒤에서는 걷어낸다. */
+.hero-wave-canvas {
+  opacity: .5;
+  -webkit-mask-image:
+    linear-gradient(180deg, transparent 0, #000 15%, #000 64%, transparent 100%),
+    linear-gradient(90deg, transparent 0, transparent 28%, #000 60%);
+  mask-image:
+    linear-gradient(180deg, transparent 0, #000 15%, #000 64%, transparent 100%),
+    linear-gradient(90deg, transparent 0, transparent 28%, #000 60%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+/* 한글은 라틴보다 글자가 높아 .98 행간에서 줄이 서로 붙는다. */
+.landing-hero-copy h1 { line-height: 1.08; letter-spacing: -.045em; }
+.manifesto > h2, .region-story-copy h2, .evidence-story h2, .landing-cta h2 { line-height: 1.14; }
+.brand-intro-copy h1, .landing-cta h2 em { line-height: inherit; }
+
+/* 카피 뒤에 옅은 수면을 깔아 물결 위에서도 글이 또렷하게 읽히도록 한다. */
+.landing-hero-copy { position: relative; z-index: 1; }
+.landing-hero-copy::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  inset: -28px -56px -28px -40px;
+  border-radius: 36px;
+  background: radial-gradient(120% 100% at 22% 50%, var(--surface) 0, rgba(238,247,252,.92) 52%, transparent 100%);
+}
+.landing-hero-copy > span { color: var(--ink-soft); }
+
+@media (max-width: 1100px) {
+  /* 한 단으로 접히면 카피가 화면 전체를 쓰므로 가로 마스크를 걷고 세로로만 페이드한다. */
+  .hero-wave-canvas {
+    opacity: .34;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 22%, #000 70%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 22%, #000 70%, transparent 100%);
+    -webkit-mask-composite: source-over;
+    mask-composite: add;
+  }
+  .landing-hero-copy::before { inset: -20px -24px; }
+}
+
+/* 세로 장식 레일은 물결 위에서 잘린 글자처럼 보여 걷어낸다. */
+.landing-page .chapter-rail { display: none; }
+
+/* --- 마무리 보정 --------------------------------------------------------- */
+
+/* 배경색으로 구역을 나누지 않으므로 세로 여백이 그만큼 넓어 보인다. 리듬을 좁힌다. */
+.manifesto, .region-story, .evidence-story { padding-block: clamp(72px, 9vw, 118px); }
+.landing-cta { padding-block: clamp(84px, 10vw, 132px); }
+.manifesto-grid { margin-top: clamp(36px, 5vw, 62px); }
+
+/* 헤더 메뉴가 좁은 창에서 두 줄로 접히지 않게 한다. */
+.landing-header nav, .site-header nav { white-space: nowrap; }
+@media (max-width: 1080px) {
+  .landing-header nav, .site-header nav { gap: clamp(14px, 2.2vw, 24px); font-size: .86rem; }
+  .site-header .header-action { display: none; }
+}
+@media (max-width: 900px) {
+  .landing-header nav, .site-header nav { display: none; }
+}
+
+/* 앞선 미디어쿼리보다 뒤에 오도록 반응형 물결 농도를 다시 선언한다. */
+.hero-wave-canvas { opacity: .62; }
+@media (max-width: 1100px) { .hero-wave-canvas { opacity: .34; } }
+@media (max-width: 620px) { .hero-wave-canvas { opacity: .26; } }
+
+/* route-section·travel-layers는 원래 흰 글자를 쓰는 어두운 구역이다.
+   밝은 카드로 바꾸면 글자가 통째로 사라지므로 짙은 바다 카드로 유지한다. */
+.planner-page > .route-section { border-color: transparent; background: var(--ink); }
+.planner-page > .route-section .section-kicker { color: var(--mint); }
+
+/* 사진이 아직 없거나 밝은 사진이면 흰 순번·칩이 배경에 묻힌다.
+   사진 유무와 무관하게 읽히도록 아래쪽 스크림을 진하게 깐다. */
+.place-visual::after { background: linear-gradient(180deg, transparent 30%, rgba(4,32,47,.34) 62%, rgba(4,32,47,.68)); }
+.place-rank { z-index: 2; }
+.place-rank { text-shadow: 0 2px 12px rgba(4,32,47,.6); }
+
+/* 히어로 키커가 연한 수면 위에서 2.86:1로 흐렸다. 본문 대비 기준으로 올린다. */
+.landing-hero-copy > p { color: var(--muted); }
+
+/* 브레드크럼도 본문 대비 기준으로 올린다. */
+.service-breadcrumb, .service-breadcrumb a { color: var(--muted); }

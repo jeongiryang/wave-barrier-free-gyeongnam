@@ -9,7 +9,10 @@ async function source(path) {
 async function styleSource() {
   const paths = [
     "app/globals.css",
-    "app/styles/product-experience.css",
+    "app/styles/product-foundations.css",
+    "app/styles/planner-workspace.css",
+    "app/styles/map-experience.css",
+    "app/styles/product-refinements.css",
     "app/styles/design-system.css",
     "app/styles/experience-accessibility.css",
   ];
@@ -17,16 +20,22 @@ async function styleSource() {
 }
 
 test("shared styles keep stable cascade boundaries", async () => {
-  const [layout, globalCss, productExperience, designSystem, experience] = await Promise.all([
+  const [layout, globalCss, productFoundations, plannerWorkspace, mapExperience, productRefinements, designSystem, experience] = await Promise.all([
     source("app/layout.tsx"),
     source("app/globals.css"),
-    source("app/styles/product-experience.css"),
+    source("app/styles/product-foundations.css"),
+    source("app/styles/planner-workspace.css"),
+    source("app/styles/map-experience.css"),
+    source("app/styles/product-refinements.css"),
     source("app/styles/design-system.css"),
     source("app/styles/experience-accessibility.css"),
   ]);
   const imports = [
     'import "./globals.css"',
-    'import "./styles/product-experience.css"',
+    'import "./styles/product-foundations.css"',
+    'import "./styles/planner-workspace.css"',
+    'import "./styles/map-experience.css"',
+    'import "./styles/product-refinements.css"',
     'import "./styles/design-system.css"',
     'import "./styles/experience-accessibility.css"',
     'import "./styles/account-community.css"',
@@ -34,8 +43,13 @@ test("shared styles keep stable cascade boundaries", async () => {
   assert.ok(imports.every((index) => index >= 0));
   assert.deepEqual([...imports].sort((a, b) => a - b), imports);
   assert.doesNotMatch(globalCss, /Marketing landing|Functional planner hierarchy|디자인 시스템 토큰과 패턴 통일|단계별 도움말 투어/);
-  assert.match(productExperience, /Marketing landing/);
-  assert.match(productExperience, /Functional planner hierarchy/);
+  assert.match(productFoundations, /Marketing landing/);
+  assert.match(productFoundations, /Functional planner hierarchy/);
+  assert.match(plannerWorkspace, /V5 — tool-first workspace/);
+  assert.match(mapExperience, /V6 — Kakao-first map/);
+  assert.match(mapExperience, /V8\.4 — map-native crowd forecast/);
+  assert.match(productRefinements, /실제 예보와 관광 집중률/);
+  assert.match(productRefinements, /Deep Ocean 통합 레이어/);
   assert.match(designSystem, /--shadow-3:/);
   assert.match(designSystem, /:focus-visible/);
   assert.match(experience, /html\[data-motion="calm"\] \.hero-wave-canvas/);
