@@ -27,6 +27,21 @@ test("planner page delegates derived data and browser lifecycles to feature modu
   assert.match(autoRefresh, /window\.clearTimeout\(timer\)/);
 });
 
+test("planner route composes feature sections instead of owning their dense UI", async () => {
+  const page = await source("app/planner/page.tsx");
+  for (const component of [
+    "PlannerServiceStatus",
+    "PlannerConditionsPanel",
+    "RecommendationWorkspace",
+    "TravelSignalsPanel",
+    "NavigationWorkspace",
+    "PlannerResultsPanel",
+  ]) {
+    assert.match(page, new RegExp(`<${component}`));
+  }
+  assert.doesNotMatch(page, /className="planner-bento"|className="place-carousel"|className="weather-board"|className="navigation-workspace"|className="api-bento"/);
+});
+
 test("planner domain types are shared across route and signal controllers", async () => {
   const [types, routePlanning, signals] = await Promise.all([
     source("features/planner/types.ts"),

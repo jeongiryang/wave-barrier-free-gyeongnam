@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import type { RoutePoint } from "../../routing/types";
+import type { MapPlace, RoutePoint } from "../../routing/types";
 import type { PointPicker } from "./useLocationSearch";
 import type { Place, RichSpot } from "../types";
 
@@ -45,6 +45,24 @@ export function richSpotToPlace(spot: RichSpot, region: string): Place {
   };
 }
 
+export function mapPlaceToPlannerPlace(mapPlace: MapPlace, region: string): Place {
+  return {
+    id: mapPlace.id,
+    contentTypeId: "12",
+    city: region,
+    name: mapPlace.name,
+    address: mapPlace.address || "지도에서 선택한 위치",
+    summary: mapPlace.summary || "지도에서 직접 선택한 목적지입니다.",
+    image: mapPlace.image || "",
+    mapX: mapPlace.mapX,
+    mapY: mapPlace.mapY,
+    score: mapPlace.score,
+    features: [],
+    details: ["선택한 좌표를 기준으로 교통 경로를 조회합니다."],
+    source: "지도 직접 선택",
+  };
+}
+
 export function usePlannerActions({
   region,
   origin,
@@ -79,6 +97,11 @@ export function usePlannerActions({
     document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" });
   }, [loadRoutes, region]);
 
+  const routeFromMapPlace = useCallback((mapPlace: MapPlace) => {
+    const known = activePlaces.find((place) => place.id === mapPlace.id);
+    void loadRoutes(known || mapPlaceToPlannerPlace(mapPlace, region));
+  }, [activePlaces, loadRoutes, region]);
+
   const applyImpactAction = useCallback((action: "culture" | "alternative") => {
     if (action === "culture") {
       setTheme("history");
@@ -102,5 +125,5 @@ export function usePlannerActions({
     }
   }, [activePlaces, originLabel, region, routeDestination, setRouteNotice]);
 
-  return { choosePoint, routeFromRichSpot, applyImpactAction, copyBookingRoute };
+  return { choosePoint, routeFromRichSpot, routeFromMapPlace, applyImpactAction, copyBookingRoute };
 }

@@ -6,6 +6,19 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
+async function plannerProductSource() {
+  const paths = [
+    "app/planner/page.tsx",
+    "features/planner/components/PlannerServiceStatus.tsx",
+    "features/planner/components/PlannerConditionsPanel.tsx",
+    "features/planner/components/RecommendationWorkspace.tsx",
+    "features/planner/components/TravelSignalsPanel.tsx",
+    "features/planner/components/NavigationWorkspace.tsx",
+    "features/planner/components/PlannerResultsPanel.tsx",
+  ];
+  return (await Promise.all(paths.map(source))).join("\n");
+}
+
 async function styleSource() {
   const paths = [
     "app/globals.css",
@@ -109,7 +122,7 @@ test("account, storage and footer copy describe real boundaries and independent 
     source("components/AccountMenu.tsx"),
     source("components/AuthForm.tsx"),
     source("app/page.tsx"),
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
   ]);
   assert.doesNotMatch(account, /저장한 여행 조건과 즐겨찾기를 안전하게 관리/);
   assert.match(authForm, /커뮤니티 DB에 비밀번호를 저장하지 않습니다/);
@@ -138,7 +151,7 @@ test("contest category, selected task and live OpenAPI use are documented consis
     source("docs/contest-compliance.md"),
     source("docs/competition-operation-policy.md"),
     source("app/page.tsx"),
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     source("server/tourism/handler.ts"),
     source("server/tourism/photos.ts"),
     source("server/tourism/insights.ts"),
@@ -213,7 +226,7 @@ test("interactive help follows real sections and remains accessible on mobile", 
   const [help, landing, planner, css] = await Promise.all([
     source("components/HelpCenter.tsx"),
     source("app/page.tsx"),
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     styleSource(),
   ]);
   for (const selector of ["#top", "#story", "#regions", "#evidence", ".landing-cta"]) {
@@ -264,7 +277,7 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
 
 test("travel conditions refresh the plan without requiring the submit button", async () => {
   const [planner, planController, autoRefresh] = await Promise.all([
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     source("features/planner/hooks/usePlannerPlan.ts"),
     source("features/planner/hooks/usePlannerAutoRefresh.ts"),
   ]);
@@ -279,7 +292,7 @@ test("travel conditions refresh the plan without requiring the submit button", a
 
 test("planner visual order follows DOM and keyboard focus order", async () => {
   const [planner, css] = await Promise.all([
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     styleSource(),
   ]);
   const sectionIds = ["planner", "places", "layers", "navigation", "route", "data"];
@@ -295,7 +308,7 @@ test("planner visual order follows DOM and keyboard focus order", async () => {
 });
 
 test("weather and concentration signals lead to accessible, provenance-aware actions", async () => {
-  const planner = await source("app/planner/page.tsx");
+  const planner = await plannerProductSource();
   assert.match(planner, /상황 감지 → 일정 영향 → 대안/);
   assert.match(planner, /role="status" aria-live="polite"/);
   assert.doesNotMatch(planner, /impact-response[^>]+aria-live/);
@@ -306,7 +319,7 @@ test("weather and concentration signals lead to accessible, provenance-aware act
 
 test("planner never substitutes prototype places when official data fails", async () => {
   const [planner, planController] = await Promise.all([
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     source("features/planner/hooks/usePlannerPlan.ts"),
   ]);
   assert.doesNotMatch(planner, /demo-jinhae|demo-cable|demo-jinju/);
@@ -319,7 +332,7 @@ test("planner never substitutes prototype places when official data fails", asyn
 
 test("accessibility evidence determines the first recommendation and itinerary labels", async () => {
   const [planner, tourism] = await Promise.all([
-    source("app/planner/page.tsx"),
+    plannerProductSource(),
     source("server/tourism/handler.ts"),
   ]);
   assert.match(tourism, /const leftVerified = left\.score === null \? 0 : 1/);
