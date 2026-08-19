@@ -429,7 +429,12 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/shared/provider-normalizers.ts"),
     source("server/shared/tourism-provider.ts"),
     source("server/shared/public-transport-provider.ts"),
-    source("server/weather/handler.ts"),
+    Promise.all([
+      source("server/weather/handler.ts"),
+      source("server/weather/catalog.ts"),
+      source("server/weather/model.ts"),
+      source("server/weather/open-meteo.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("server/location/handler.ts"),
     source("server/transport/handler.ts"),
     source("server/transport/public-context.ts"),
@@ -509,6 +514,10 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(tripDatabase, /CREATE TABLE IF NOT EXISTS itineraries/);
   assert.match(providerNormalizers, /export function normalizeXmlItems/);
   assert.match(weather, /AbortSignal\.timeout\(8000\)/);
+  assert.match(weather, /export function resolveWeatherRegion/);
+  assert.match(weather, /export function normalizeWeatherForecast/);
+  assert.match(weather, /export async function fetchOpenMeteoForecast/);
+  assert.match(weather, /return json\(normalizeWeatherForecast\(raw, region\), 200, true\)/);
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
 });
 
