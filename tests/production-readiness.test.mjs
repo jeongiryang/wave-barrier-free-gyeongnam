@@ -9,6 +9,10 @@ async function source(path) {
 async function styleSource() {
   const paths = [
     "app/globals.css",
+    "app/styles/site-shell.css",
+    "app/styles/landing-explorer.css",
+    "app/styles/landing-route-data.css",
+    "app/styles/place-dialog.css",
     "app/styles/product-foundations.css",
     "app/styles/planner-workspace.css",
     "app/styles/map-experience.css",
