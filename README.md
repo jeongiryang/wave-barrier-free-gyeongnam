@@ -178,8 +178,8 @@ features/               Planner·Community 기능별 서비스·도메인 로직
 lib/auth/               Neon Auth 클라이언트·서버 세션 경계
 lib/community/          커뮤니티 공통 타입·입력 검증
 migrations/             Neon Postgres 정식 스키마 변경
-server/                 환경·HTTP·공공데이터 client와 날씨·장소 검색 제공기관 모듈
-worker/index.ts         관광·교통·저장 API 라우팅과 오케스트레이션
+server/                 환경·HTTP·공공데이터 client와 관광·교통·날씨·장소 제공기관 모듈
+worker/index.ts         관광·저장 API 라우팅과 최상위 오케스트레이션
 public/                 정적 SVG와 파비콘
 tests/                  운영 정책·기능 회귀 테스트
 scripts/                Vercel 빌드와 시맨틱 릴리즈 도구

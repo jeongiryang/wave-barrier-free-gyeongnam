@@ -291,28 +291,32 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(chrome, /window\.cancelAnimationFrame\(frame\)/);
 });
 
-test("the server entry delegates shared policy, weather and place search to provider modules", async () => {
-  const [worker, env, http, providerData, weather, location] = await Promise.all([
+test("the server entry delegates shared policy and provider domains to focused modules", async () => {
+  const [worker, env, http, providerData, weather, location, transport] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
     source("server/shared/provider-data.ts"),
     source("server/weather/handler.ts"),
     source("server/location/handler.ts"),
+    source("server/transport/handler.ts"),
   ]);
   assert.match(worker, /import \{ portableEnv, type Env \} from "\.\.\/server\/shared\/env"/);
   assert.match(worker, /import \{ clean, httpsUrl, json, readTrustedJson \} from "\.\.\/server\/shared\/http"/);
   assert.match(worker, /fetchTourismData as fetchKto/);
-  assert.match(worker, /fetchPublicTransportData as fetchPublicTransport/);
+  assert.match(worker, /handleHealthApi, handleMapConfig, handleRouteApi/);
   assert.match(worker, /if \(url\.pathname === "\/api\/weather"\) return handleWeatherApi\(request\)/);
   assert.match(worker, /if \(url\.pathname === "\/api\/location-search"\) return handleLocationSearch\(request, env\)/);
   assert.doesNotMatch(worker, /api\.open-meteo\.com|dapi\.kakao\.com/);
-  assert.doesNotMatch(worker, /async function fetchKto|async function fetchPublicTransport|function normalizeItems/);
+  assert.doesNotMatch(worker, /async function fetchKto|async function fetchPublicTransport|function normalizeItems|async function handleRouteApi/);
   assert.match(env, /typeof process === "undefined" \? \{\} : process\.env/);
   assert.match(http, /x-content-type-options/);
   assert.match(providerData, /export async function fetchTourismData/);
   assert.match(providerData, /export async function fetchPublicTransportData/);
   assert.match(providerData, /AbortSignal\.timeout\(9500\)/);
+  assert.match(transport, /export async function handleRouteApi/);
+  assert.match(transport, /api\.odsay\.com\/v1\/api\/searchPubTransPathT/);
+  assert.match(transport, /apis-navi\.kakaomobility\.com\/v1\/directions/);
   assert.match(providerData, /export function normalizeXmlItems/);
   assert.match(weather, /AbortSignal\.timeout\(8000\)/);
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
