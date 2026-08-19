@@ -183,3 +183,18 @@ test("travel conditions refresh the plan without requiring the submit button", a
   assert.match(planner, /if \(revealResults\) window\.setTimeout/);
   assert.match(planner, /결과 새로고침/);
 });
+
+test("shared trips recover from slow or malformed network responses", async () => {
+  const [page, worker] = await Promise.all([
+    source("app/trip/[id]/page.tsx"),
+    source("worker/index.ts"),
+  ]);
+  assert.match(page, /new AbortController\(\)/);
+  assert.match(page, /controller\.abort\("timeout"\)/);
+  assert.match(page, /response\.json\(\)\.catch\(\(\) => null\)/);
+  assert.match(page, /setRetry\(\(current\) => current \+ 1\)/);
+  assert.match(page, /role="status"/);
+  assert.match(page, /role="alert"/);
+  assert.match(worker, /공유 여행을 불러오는 중 연결이 지연됐습니다/);
+  assert.match(worker, /공유 여행을 저장하지 못했습니다/);
+});

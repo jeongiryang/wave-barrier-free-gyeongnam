@@ -1271,6 +1271,7 @@ async function ensureDb() {
 async function handleTripsApi(request: Request, env: Env) {
   const url = new URL(request.url);
   const id = clean(url.pathname.split("/").filter(Boolean)[2], 64);
+  try {
   if (request.method === "GET") {
     if (!id) return json({ error: "공유 여행 ID가 필요합니다." }, 400);
     const sql = await ensureDb();
@@ -1331,6 +1332,11 @@ async function handleTripsApi(request: Request, env: Env) {
   const expiresAt = now + 1000 * 60 * 60 * 24 * 30;
   await sql`INSERT INTO itineraries (id, payload, created_at, expires_at) VALUES (${newId}, ${payload}::jsonb, ${now}, ${expiresAt})`;
   return json({ id: newId, url: `${url.origin}/trip/${newId}`, expiresAt }, 201);
+  } catch {
+    return json({ error: request.method === "GET"
+      ? "공유 여행을 불러오는 중 연결이 지연됐습니다. 잠시 후 다시 시도해 주세요."
+      : "공유 여행을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." }, 502);
+  }
 }
 
 async function handleFeedbackApi(request: Request) {
