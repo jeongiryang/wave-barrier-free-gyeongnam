@@ -5,26 +5,27 @@ import { PreferenceControls, useSitePreferences } from "../components/SitePrefer
 import HelpCenter from "../components/HelpCenter";
 import WaveField from "../components/WaveField";
 import AccessIcon from "../components/AccessIcons";
+import { RegionMascot } from "../components/RegionMascot";
 
 const regions = [
-  { name: "거창", icon: "🎭", story: "수승대와 산골 무대", x: 19, y: 16 },
-  { name: "합천", icon: "🎬", story: "황매산과 영화 이야기", x: 46, y: 15 },
-  { name: "창녕", icon: "🌾", story: "우포늪과 낙동강 유채", x: 66, y: 20 },
-  { name: "밀양", icon: "🎶", story: "영남루와 아리랑", x: 79, y: 25 },
-  { name: "양산", icon: "⛰️", story: "통도사와 천성산", x: 91, y: 34 },
-  { name: "함양", icon: "🌱", story: "지리산과 산삼", x: 14, y: 38 },
-  { name: "산청", icon: "🌿", story: "동의보감촌과 약초", x: 31, y: 43 },
-  { name: "의령", icon: "⚔️", story: "홍의장군의 의병 정신", x: 51, y: 40 },
-  { name: "함안", icon: "🔥", story: "아라가야와 낙화놀이", x: 63, y: 47 },
-  { name: "김해", icon: "🏺", story: "가야 왕도와 분청도자", x: 84, y: 50 },
-  { name: "창원", icon: "🌸", story: "진해 벚꽃과 해양공원", x: 73, y: 58 },
-  { name: "하동", icon: "🍵", story: "섬진강과 천년 야생차", x: 18, y: 68 },
-  { name: "진주", icon: "🏮", story: "남강을 밝히는 유등", x: 42, y: 60 },
-  { name: "사천", icon: "✈️", story: "바다 위로 오르는 항공", x: 36, y: 73 },
-  { name: "고성", icon: "🦕", story: "공룡 발자국과 당항포", x: 55, y: 72 },
-  { name: "남해", icon: "🏘️", story: "다랭이마을과 독일마을", x: 28, y: 88 },
-  { name: "통영", icon: "⛵", story: "한려수도와 이순신", x: 56, y: 88 },
-  { name: "거제", icon: "🌼", story: "바람의 언덕과 섬꽃", x: 75, y: 87 },
+  { name: "거창", story: "수승대와 산골 무대", x: 19, y: 16 },
+  { name: "합천", story: "황매산과 영화 이야기", x: 46, y: 15 },
+  { name: "창녕", story: "우포늪과 낙동강 유채", x: 66, y: 20 },
+  { name: "밀양", story: "영남루와 아리랑", x: 79, y: 25 },
+  { name: "양산", story: "통도사와 천성산", x: 91, y: 34 },
+  { name: "함양", story: "지리산과 산삼", x: 14, y: 38 },
+  { name: "산청", story: "동의보감촌과 약초", x: 31, y: 43 },
+  { name: "의령", story: "홍의장군의 의병 정신", x: 51, y: 40 },
+  { name: "함안", story: "아라가야와 낙화놀이", x: 63, y: 47 },
+  { name: "김해", story: "가야 왕도와 분청도자", x: 84, y: 50 },
+  { name: "창원", story: "진해 벚꽃과 해양공원", x: 73, y: 58 },
+  { name: "하동", story: "섬진강과 천년 야생차", x: 18, y: 68 },
+  { name: "진주", story: "남강을 밝히는 유등", x: 42, y: 60 },
+  { name: "사천", story: "바다 위로 오르는 항공", x: 36, y: 73 },
+  { name: "고성", story: "공룡 발자국과 당항포", x: 55, y: 72 },
+  { name: "남해", story: "다랭이마을과 독일마을", x: 28, y: 88 },
+  { name: "통영", story: "한려수도와 이순신", x: 56, y: 88 },
+  { name: "거제", story: "바람의 언덕과 섬꽃", x: 75, y: 87 },
 ];
 
 const values = [
@@ -199,16 +200,16 @@ export default function LandingPage() {
           <p className="section-kicker">18 CITIES · 18 STORIES</p>
           <h2>{t("regionTitle", "경남의 경계 안에 열여덟 개의 이야기가 있습니다.")}</h2>
           <p>{t("regionCopy", "지역 표식을 눌러 대표 이야기를 살펴보고, 선택한 지역으로 바로 여행 설계를 시작하세요.")}</p>
-          <div className="selected-region">{regionPhotos[active.name]?.image ? <span className="selected-region-photo" style={{ backgroundImage: `url("${regionPhotos[active.name]!.image}")` }} aria-hidden="true" /> : <span>{active.icon}</span>}<div><small>{t("selected", "지금 선택한 지역")}</small><strong>{active.name}</strong><p>{active.story}</p></div></div>
+          <div className="selected-region">{regionPhotos[active.name]?.image ? <span className="selected-region-photo" style={{ backgroundImage: `url("${regionPhotos[active.name]!.image}")` }} aria-hidden="true" /> : <span className="selected-region-mascot"><RegionMascot region={active.name} size={54} /></span>}<div><small>{t("selected", "지금 선택한 지역")}</small><strong>{active.name}</strong><p>{active.story}</p></div></div>
           <a href={`/planner?region=${encodeURIComponent(active.name)}`}>{active.name} {t("makeTrip", "여행 만들기")} <b>→</b></a>
         </div>
         <div className="landing-region-map" data-land-reveal>
           {/* Public-domain administrative map from Wikimedia Commons. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="https://upload.wikimedia.org/wikipedia/commons/4/40/Map_Gyeosangnam-do.svg" alt="경상남도 시군 경계 지도" />
-          {regions.map((region, index) => <button key={region.name} type="button" className={activeRegion === region.name ? "active" : ""} style={{ left: `${region.x}%`, top: `${region.y}%`, "--region-index": index } as CSSProperties} onClick={() => selectRegion(region.name)} onPointerEnter={() => { setPreviewRegion(region.name); void loadRegionPhoto(region.name); }} onPointerLeave={() => setPreviewRegion(null)} onFocus={() => { setPreviewRegion(region.name); void loadRegionPhoto(region.name); }} onBlur={() => setPreviewRegion(null)} aria-label={`${region.name}: ${region.story}`}><span>{region.icon}</span><b>{region.name}</b></button>)}
+          {regions.map((region, index) => <button key={region.name} type="button" className={activeRegion === region.name ? "active" : ""} style={{ left: `${region.x}%`, top: `${region.y}%`, "--region-index": index } as CSSProperties} onClick={() => selectRegion(region.name)} onPointerEnter={() => { setPreviewRegion(region.name); void loadRegionPhoto(region.name); }} onPointerLeave={() => setPreviewRegion(null)} onFocus={() => { setPreviewRegion(region.name); void loadRegionPhoto(region.name); }} onBlur={() => setPreviewRegion(null)} aria-label={`${region.name}: ${region.story}`}><span><RegionMascot region={region.name} size={25} /></span><b>{region.name}</b></button>)}
           {preview && <div className={`region-photo-preview${regionPhotos[preview.name] === undefined ? " loading" : ""}`} style={{ left: `${preview.x}%`, top: `${preview.y}%` }} aria-live="polite">
-            {regionPhotos[preview.name]?.image ? <div style={{ backgroundImage: `linear-gradient(180deg,transparent 32%,rgba(3,24,41,.78)),url("${regionPhotos[preview.name]!.image}")` }} /> : regionPhotos[preview.name] === undefined ? <div className="region-photo-skeleton"><i /><i /></div> : <div className="region-photo-placeholder"><small>OFFICIAL PHOTO</small><strong>{preview.name}</strong></div>}
+            {regionPhotos[preview.name]?.image ? <div style={{ backgroundImage: `linear-gradient(180deg,transparent 32%,rgba(3,24,41,.78)),url("${regionPhotos[preview.name]!.image}")` }} /> : regionPhotos[preview.name] === undefined ? <div className="region-photo-skeleton"><i /><i /></div> : <div className="region-photo-placeholder"><RegionMascot region={preview.name} size={58} /><small>W.A.V.E REGION MATE</small><strong>{preview.name}</strong></div>}
             <section className={regionPhotos[preview.name] === undefined ? "loading-copy" : ""}><small>{regionPhotos[preview.name]?.location || "경상남도 관광사진"}</small><strong>{regionPhotos[preview.name]?.title || `${preview.name}의 여행 이야기`}</strong><span>{regionPhotos[preview.name] === undefined ? "공식 관광사진 불러오는 중" : preview.story}</span></section>
           </div>}
         </div>
