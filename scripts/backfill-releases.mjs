@@ -31,7 +31,8 @@ const releases = [
   ["v0.6.0", 33, "f3c19fa0a9c004b6692823ec08b215593072921b", "feat: 여행 조건 변경 시 코스 자동 갱신"],
   ["v0.6.1", 34, "db6a5fccf8163fa73543323423f36ce4bde66a4a", "fix: 남해·산청 관광사진 대체 조회 추가"],
   ["v0.7.0", 35, "9656426115d6f46f70bc8d44615f50e22423f960", "feat: 데스크톱 화면 폭을 활용하는 유동형 레이아웃 적용"],
-  ["v0.7.1", 36, "$CURRENT", "chore: PR별 시맨틱 버전 태그와 릴리즈 백필"],
+  ["v0.7.1", 36, "81228cca8cc4a66f22658dc3d1a6df1ec66b61c7", "chore: PR별 시맨틱 버전 태그와 릴리즈 백필"],
+  ["v0.7.2", 37, "$CURRENT", "fix: 릴리즈 백필 권한 오류 수정"],
 ].map(([version, pr, sha, title]) => ({ version, pr, sha, title }));
 
 function versionParts(value) {
@@ -98,14 +99,6 @@ async function backfill() {
     if (existingRef && existingRef.object.sha !== target) {
       throw new Error(`${release.version} 태그가 다른 커밋 ${existingRef.object.sha}을 가리킵니다.`);
     }
-    if (!existingRef) {
-      await github("/git/refs", {
-        method: "POST",
-        body: JSON.stringify({ ref: `refs/tags/${release.version}`, sha: target }),
-      });
-      console.log(`태그 생성: ${release.version} → ${target.slice(0, 7)}`);
-    }
-
     const existingRelease = await github(`/releases/tags/${encodeURIComponent(release.version)}`, { allowMissing: true });
     if (!existingRelease) {
       await github("/releases", {
@@ -128,7 +121,15 @@ async function backfill() {
           make_latest: release.version === releases.at(-1).version ? "true" : "false",
         }),
       });
-      console.log(`릴리즈 생성: ${release.version}`);
+      console.log(`태그·릴리즈 생성: ${release.version} → ${target.slice(0, 7)}`);
+    }
+
+    // Release API가 target_commitish에 태그를 함께 만들게 한다. Actions의
+    // GITHUB_TOKEN은 refs API를 연속 호출할 때 403이 날 수 있지만, 릴리즈
+    // 생성 권한은 정상적으로 허용된다. 생성 후 실제 태그 SHA를 다시 검증한다.
+    const createdRef = existingRef || await github(`/git/ref/tags/${encodeURIComponent(release.version)}`);
+    if (createdRef.object.sha !== target) {
+      throw new Error(`${release.version} 생성 결과가 예상 SHA ${target}과 다릅니다.`);
     }
   }
 }

@@ -98,6 +98,25 @@ test("autonomous work stays bounded and merges only after fresh checks", async (
   assert.doesNotMatch(rules, /모든 오류와 버그를 찾아내기 전에는/);
 });
 
+test("semantic releases are created from merged main commits with least privilege", async () => {
+  const [backfill, current, backfillWorkflow, releaseWorkflow] = await Promise.all([
+    source("scripts/backfill-releases.mjs"),
+    source("scripts/release-current.mjs"),
+    source(".github/workflows/release-backfill.yml"),
+    source(".github/workflows/release.yml"),
+  ]);
+  assert.match(backfill, /\["v0\.7\.2", 37, "\$CURRENT"/);
+  assert.doesNotMatch(backfill, /github\("\/git\/refs",/);
+  assert.match(backfill, /Release API가 target_commitish에 태그를 함께 만들게 한다/);
+  assert.match(current, /subject\.startsWith\("feat:"\)/);
+  assert.match(current, /target_commitish: process\.env\.GITHUB_SHA/);
+  assert.match(current, /ref\.object\.sha !== process\.env\.GITHUB_SHA/);
+  assert.match(backfillWorkflow, /permissions:\s*\n\s*contents: write/);
+  assert.match(releaseWorkflow, /permissions:\s*\n\s*contents: write/);
+  assert.match(releaseWorkflow, /paths-ignore:/);
+  assert.doesNotMatch(`${backfillWorkflow}\n${releaseWorkflow}`, /pull_request_target/);
+});
+
 test("saved preferences survive a reload", async () => {
   const preferences = await source("components/SitePreferences.tsx");
   // 저장된 값을 읽기 전에 기본값을 써 버리면 이용자가 고른 테마와 언어가 지워진다.
