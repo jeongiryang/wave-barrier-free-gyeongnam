@@ -405,11 +405,14 @@ test("planner state is divided into testable feature hooks without overwriting s
 });
 
 test("the server entry delegates shared policy and provider domains to focused modules", async () => {
-  const [worker, env, http, providerData, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, planBuilder, restoration, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources, visitorDemand, trips] = await Promise.all([
+  const [worker, env, http, providerFacade, providerNormalizers, tourismProvider, publicTransportProvider, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, planBuilder, restoration, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources, visitorDemand, trips] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
     source("server/shared/provider-data.ts"),
+    source("server/shared/provider-normalizers.ts"),
+    source("server/shared/tourism-provider.ts"),
+    source("server/shared/public-transport-provider.ts"),
     source("server/weather/handler.ts"),
     source("server/location/handler.ts"),
     source("server/transport/handler.ts"),
@@ -439,9 +442,14 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.doesNotMatch(worker, /async function fetchKto|async function fetchPublicTransport|function normalizeItems|async function handleRouteApi|async function handleWaveApi|async function handleTripsApi/);
   assert.match(env, /typeof process === "undefined" \? \{\} : process\.env/);
   assert.match(http, /x-content-type-options/);
-  assert.match(providerData, /export async function fetchTourismData/);
-  assert.match(providerData, /export async function fetchPublicTransportData/);
-  assert.match(providerData, /AbortSignal\.timeout\(9500\)/);
+  assert.match(providerFacade, /export \* from "\.\/provider-normalizers"/);
+  assert.match(providerFacade, /export \* from "\.\/tourism-provider"/);
+  assert.match(providerFacade, /export \* from "\.\/public-transport-provider"/);
+  assert.match(providerNormalizers, /export function normalizeXmlItems/);
+  assert.match(tourismProvider, /export async function fetchTourismData/);
+  assert.match(tourismProvider, /export async function fetchRegionalList/);
+  assert.match(publicTransportProvider, /export async function fetchPublicTransportData/);
+  assert.match(`${tourismProvider}\n${publicTransportProvider}`, /AbortSignal\.timeout\(9500\)/);
   assert.match(transport, /export async function handleRouteApi/);
   assert.match(transport, /fetchTransportContext/);
   assert.match(transport, /Promise\.all\(\[/);
@@ -468,7 +476,7 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(trips, /export async function handleTripsApi/);
   assert.match(trips, /export async function handleFeedbackApi/);
   assert.match(trips, /CREATE TABLE IF NOT EXISTS itineraries/);
-  assert.match(providerData, /export function normalizeXmlItems/);
+  assert.match(providerNormalizers, /export function normalizeXmlItems/);
   assert.match(weather, /AbortSignal\.timeout\(8000\)/);
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
 });
