@@ -1556,13 +1556,12 @@ html[data-motion="calm"] .hero-wave-canvas { display: none; }
   position: fixed; z-index: 181; pointer-events: none;
   border: 4px solid var(--mint); border-radius: 24px;
   box-shadow: 0 0 0 9999px rgba(2, 24, 35, .68), 0 0 0 7px rgba(111, 227, 208, .2), 0 18px 52px rgba(2, 34, 48, .28);
-  transition: top .45s cubic-bezier(.22,1,.36,1), left .45s cubic-bezier(.22,1,.36,1), width .45s cubic-bezier(.22,1,.36,1), height .45s cubic-bezier(.22,1,.36,1);
 }
 .help-tour-pointer {
   position: fixed; z-index: 182; width: 42px; height: 42px; display: grid; place-items: center;
   pointer-events: none; border: 2px solid #fff; border-radius: 50%; color: var(--abyss);
   background: var(--mint); box-shadow: 0 10px 28px rgba(2,34,48,.35);
-  transform: translate(-50%,-50%) rotate(-35deg); transition: top .45s cubic-bezier(.22,1,.36,1), left .45s cubic-bezier(.22,1,.36,1);
+  transform: translate(-50%,-50%) rotate(-35deg);
 }
 .help-tour-dialog {
   position: fixed; z-index: 183; right: clamp(16px,4vw,54px); bottom: clamp(16px,4vw,48px);
