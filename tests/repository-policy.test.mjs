@@ -188,3 +188,15 @@ test("non-Korean locales are visibly marked Beta without breaking narrow headers
   assert.match(css, /@media \(max-width: 780px\)[\s\S]*\.preference-controls select \{ width: 58px/);
   assert.match(css, /@media \(max-width: 380px\)[\s\S]*\.language-beta \{ position: absolute/);
 });
+
+test("planner ignores stale route, enrichment and location-search responses", async () => {
+  const planner = await source("app/planner/page.tsx");
+  for (const request of ["routeRequestRef", "enrichmentRequestRef", "searchRequestRef"]) {
+    assert.match(planner, new RegExp(`${request}\\.current\\?\\.abort\\(\\)`));
+    assert.match(planner, new RegExp(`${request}\\.current !== controller`));
+  }
+  assert.match(planner, /fetch\(`\/api\/route\?\$\{params\.toString\(\)\}`,[^;]+signal: controller\.signal/);
+  assert.match(planner, /action: "enrich"[\s\S]+signal: controller\.signal/);
+  assert.match(planner, /\/api\/location-search\?q=[\s\S]+signal: controller\.signal/);
+  assert.match(planner, /useEffect\(\(\) => \(\) => \{[\s\S]+routeRequestRef\.current\?\.abort\(\)/);
+});
