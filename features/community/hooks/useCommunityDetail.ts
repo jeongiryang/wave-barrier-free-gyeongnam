@@ -4,8 +4,14 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "../../../lib/auth/client";
 import type { CommunityComment, CommunityPost } from "../../../lib/community/types";
-
-type DetailResponse = { post?: CommunityPost; comments?: CommunityComment[]; error?: string };
+import {
+  createCommunityComment,
+  getCommunityPost,
+  removeCommunityComment,
+  removeCommunityPost,
+  setCommunityLike,
+  updateCommunityComment,
+} from "../client/api";
 
 export function useCommunityDetail(postId: string) {
   const router = useRouter();
@@ -22,9 +28,7 @@ export function useCommunityDetail(postId: string) {
   const load = useCallback(async () => {
     setState("loading");
     try {
-      const response = await fetch(`/api/community/posts/${postId}`, { headers: { Accept: "application/json" } });
-      const payload = await response.json() as DetailResponse;
-      if (!response.ok || !payload.post) throw new Error(payload.error || "게시글을 불러오지 못했습니다.");
+      const payload = await getCommunityPost(postId);
       setPost(payload.post);
       setComments(payload.comments || []);
       setState("ready");
@@ -46,13 +50,9 @@ export function useCommunityDetail(postId: string) {
   async function toggleLike() {
     if (!session?.user) { loginForCurrentPage(); return; }
     if (!post) return;
-    const response = await fetch(`/api/community/posts/${postId}/like`, {
-      method: post.likedByMe ? "DELETE" : "POST",
-      headers: { Accept: "application/json" },
-    });
-    const payload = await response.json() as { liked?: boolean; likeCount?: number; error?: string };
-    if (response.status === 401) { loginForCurrentPage(); return; }
-    if (!response.ok) { setMessage(payload.error || "좋아요를 반영하지 못했습니다."); return; }
+    const { ok, status, payload } = await setCommunityLike(postId, post.likedByMe);
+    if (status === 401) { loginForCurrentPage(); return; }
+    if (!ok) { setMessage(payload.error || "좋아요를 반영하지 못했습니다."); return; }
     setPost((current) => current ? {
       ...current,
       likedByMe: Boolean(payload.liked),
@@ -62,9 +62,8 @@ export function useCommunityDetail(postId: string) {
 
   async function deletePost() {
     if (!post || !window.confirm("이 게시글과 댓글을 모두 삭제할까요? 삭제 후 되돌릴 수 없습니다.")) return;
-    const response = await fetch(`/api/community/posts/${postId}`, { method: "DELETE", headers: { Accept: "application/json" } });
-    const payload = await response.json() as { error?: string };
-    if (!response.ok) { setMessage(payload.error || "게시글을 삭제하지 못했습니다."); return; }
+    const { ok, payload } = await removeCommunityPost(postId);
+    if (!ok) { setMessage(payload.error || "게시글을 삭제하지 못했습니다."); return; }
     router.push("/community");
   }
 
@@ -73,27 +72,17 @@ export function useCommunityDetail(postId: string) {
     if (!session?.user) { loginForCurrentPage(); return; }
     setCommentState("saving");
     setMessage("");
-    const response = await fetch(`/api/community/posts/${postId}/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ content: comment }),
-    });
-    const payload = await response.json() as { error?: string };
-    if (response.status === 401) { loginForCurrentPage(); return; }
-    if (!response.ok) { setMessage(payload.error || "댓글을 저장하지 못했습니다."); setCommentState("error"); return; }
+    const { ok, status, payload } = await createCommunityComment(postId, comment);
+    if (status === 401) { loginForCurrentPage(); return; }
+    if (!ok) { setMessage(payload.error || "댓글을 저장하지 못했습니다."); setCommentState("error"); return; }
     setComment("");
     setCommentState("idle");
     await load();
   }
 
   async function saveComment(commentId: string) {
-    const response = await fetch(`/api/community/posts/${postId}/comments/${commentId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ content: editingContent }),
-    });
-    const payload = await response.json() as { error?: string };
-    if (!response.ok) { setMessage(payload.error || "댓글을 수정하지 못했습니다."); return; }
+    const { ok, payload } = await updateCommunityComment(postId, commentId, editingContent);
+    if (!ok) { setMessage(payload.error || "댓글을 수정하지 못했습니다."); return; }
     setEditingComment(null);
     setEditingContent("");
     await load();
@@ -101,12 +90,8 @@ export function useCommunityDetail(postId: string) {
 
   async function deleteComment(commentId: string) {
     if (!window.confirm("이 댓글을 삭제할까요?")) return;
-    const response = await fetch(`/api/community/posts/${postId}/comments/${commentId}`, {
-      method: "DELETE",
-      headers: { Accept: "application/json" },
-    });
-    const payload = await response.json() as { error?: string };
-    if (!response.ok) { setMessage(payload.error || "댓글을 삭제하지 못했습니다."); return; }
+    const { ok, payload } = await removeCommunityComment(postId, commentId);
+    if (!ok) { setMessage(payload.error || "댓글을 삭제하지 못했습니다."); return; }
     await load();
   }
 

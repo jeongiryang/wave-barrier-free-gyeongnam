@@ -108,7 +108,7 @@ test("community API derives identity from the session and enforces ownership", a
 });
 
 test("community UI supports public reading, protected participation and place linkage", async () => {
-  const [list, detail, editor, planner, placeDialog, landing, sitemap] = await Promise.all([
+  const [list, detail, clientApi, editor, planner, placeDialog, landing, sitemap] = await Promise.all([
     Promise.all([
       source("features/community/components/CommunityBoard.tsx"),
       source("features/community/hooks/useCommunityBoard.ts"),
@@ -117,6 +117,7 @@ test("community UI supports public reading, protected participation and place li
       source("features/community/components/CommunityDetail.tsx"),
       source("features/community/hooks/useCommunityDetail.ts"),
     ]).then((parts) => parts.join("\n")),
+    source("features/community/client/api.ts"),
     source("components/CommunityEditor.tsx"), source("app/planner/page.tsx"),
     source("features/planner/components/PlaceDecisionDialog.tsx"),
     source("components/LandingStories.tsx"), source("app/sitemap.ts"),
@@ -125,6 +126,9 @@ test("community UI supports public reading, protected participation and place li
   assert.match(list, /아직 등록된 이야기가 없습니다/);
   assert.match(detail, /toggleLike/);
   assert.match(detail, /createComment|submitComment/);
+  assert.match(clientApi, /export async function listCommunityPosts/);
+  assert.match(clientApi, /export function createCommunityComment/);
+  assert.doesNotMatch(`${list}\n${detail}`, /fetch\(/);
   assert.match(editor, /본인이 작성한 글만 수정/);
   assert.match(planner, /PlaceDecisionDialog/);
   assert.match(placeDialog, /place-community-link/);
