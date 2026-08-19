@@ -3,12 +3,9 @@ import type { Env } from "../shared/env";
 import { clean, json, readTrustedJson } from "../shared/http";
 import {
   buildPlan,
-  contentTypes,
-  languageServices,
-  profileFields,
-  regionCodes,
   restoreSharedPlan,
 } from "../tourism/handler";
+import { contentTypes, languageServices, profileFields, regionCodes } from "../tourism/catalog";
 
 function database() {
   const url = typeof process === "undefined" ? "" : process.env.DATABASE_URL?.trim();
@@ -127,4 +124,3 @@ export async function handleFeedbackApi(request: Request) {
   await sql`INSERT INTO place_feedback (id, place_id, place_name, field, message, status, created_at) VALUES (${id}, ${placeId}, ${placeName}, ${field}, ${message}, 'received', ${Date.now()})`;
   return json({ ok: true, id }, 201);
 }
-

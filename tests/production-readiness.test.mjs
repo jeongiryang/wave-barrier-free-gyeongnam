@@ -130,14 +130,17 @@ test("deployment guide uses the current CI check name and Vercel uses Node 22", 
 });
 
 test("contest category, selected task and live OpenAPI use are documented consistently", async () => {
-  const [readme, compliance, policy, landing, planner, tourism] = await Promise.all([
+  const [readme, compliance, policy, landing, planner, tourismHandler, tourismPhotos, tourismInsights] = await Promise.all([
     source("README.md"),
     source("docs/contest-compliance.md"),
     source("docs/competition-operation-policy.md"),
     source("app/page.tsx"),
     source("app/planner/page.tsx"),
     source("server/tourism/handler.ts"),
+    source("server/tourism/photos.ts"),
+    source("server/tourism/insights.ts"),
   ]);
+  const tourism = `${tourismHandler}\n${tourismPhotos}\n${tourismInsights}`;
   for (const content of [readme, compliance, policy, landing, planner]) {
     assert.match(content, /②-2 웹·앱 구현 부문/);
     assert.match(content, /지정과제 1/);
