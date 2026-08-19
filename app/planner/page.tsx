@@ -11,7 +11,8 @@ import NavigationWorkspace from "../../features/planner/components/NavigationWor
 import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
 import PlannerConditionsPanel from "../../features/planner/components/PlannerConditionsPanel";
 import PlannerResultsPanel from "../../features/planner/components/PlannerResultsPanel";
-import { PlannerFooter, PlannerHeader } from "../../features/planner/components/PlannerHeader";
+import PlannerFooter from "../../features/planner/components/PlannerFooter";
+import { PlannerHeader } from "../../features/planner/components/PlannerHeader";
 import RecommendationWorkspace from "../../features/planner/components/RecommendationWorkspace";
 import TravelSignalsPanel from "../../features/planner/components/TravelSignalsPanel";
 import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
