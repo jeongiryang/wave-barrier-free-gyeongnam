@@ -1,7 +1,8 @@
 "use client";
 
 import { useSitePreferences } from "../components/SitePreferences";
-import { LandingCommunityStory, LandingProductStories } from "../components/LandingStories";
+import { LandingProductStories } from "../components/LandingStories";
+import LandingCommunityStory from "../features/community/components/LandingCommunityStory";
 import { LandingCallToAction, LandingEvidenceStory, LandingFooter } from "../features/landing/components/LandingClosing";
 import LandingHeader from "../features/landing/components/LandingHeader";
 import LandingHero from "../features/landing/components/LandingHero";
