@@ -330,24 +330,28 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
 });
 
-test("route-map rendering delegates SDK, domain helpers, types and image export", async () => {
-  const [map, planner, types, sdk, helpers, imageExport] = await Promise.all([
+test("route-map rendering delegates provider lifecycle, SDK, domain helpers and image export", async () => {
+  const [map, planner, types, sdk, helpers, renderer, imageExport] = await Promise.all([
     source("components/RouteMap.tsx"),
     source("app/planner/page.tsx"),
     source("features/routing/types.ts"),
     source("features/routing/kakao-sdk.ts"),
     source("features/routing/map-utils.ts"),
+    source("features/routing/useMapRenderer.ts"),
     source("features/routing/export-route-image.ts"),
   ]);
   assert.match(map, /import \{ exportRouteImage \} from "\.\.\/features\/routing\/export-route-image"/);
-  assert.match(map, /loadKakaoSdk/);
-  assert.doesNotMatch(map, /document\.createElement\("script"\)|canvas\.width = 1600/);
+  assert.match(map, /useMapRenderer\(\{/);
+  assert.doesNotMatch(map, /loadKakaoSdk|L\.tileLayer|new K\.Map|canvas\.width = 1600/);
   assert.match(planner, /import type \{ MapPlace \} from "\.\.\/\.\.\/features\/routing\/types"/);
   assert.match(types, /export type RouteAlternative/);
   assert.match(sdk, /Kakao SDK load timed out/);
   assert.match(sdk, /data-wave-kakao/);
   assert.match(helpers, /export function summarizeMeasurements/);
   assert.match(helpers, /export function safeMapImageUrl/);
+  assert.match(renderer, /loadKakaoSdk/);
+  assert.match(renderer, /OpenStreetMap contributors/);
+  assert.match(renderer, /return \(\) => \{/);
   assert.match(imageExport, /canvas\.width = 1600/);
   assert.match(imageExport, /URL\.revokeObjectURL/);
 });
