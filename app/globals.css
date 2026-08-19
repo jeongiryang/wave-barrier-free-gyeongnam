@@ -21,8 +21,9 @@
   --surface-deep: #e2f0f8;
   --scroll-progress: 0%;
   --scroll-shift: 0px;
-  --content: min(1240px, calc(100vw - 48px));
-  --gutter: clamp(18px, 4vw, 48px);
+  --layout-max: 1840px;
+  --gutter: clamp(12px, 1.5vw, 28px);
+  --content: min(var(--layout-max), calc(100vw - var(--gutter) * 2));
 }
 
 * { box-sizing: border-box; }
@@ -1625,6 +1626,36 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   max-width: none;
   margin-inline: calc(var(--card-pad-x) * -1);
   padding: 4px var(--card-pad-x) 28px;
+}
+
+/* --- 유동형 와이드 레이아웃 ---------------------------------------------
+   1440px 이상 화면에서도 1240px 안에 모든 콘텐츠를 가두지 않는다.
+   문단 자체의 읽기 폭은 기존 max-width로 유지하고, 섹션·지도·데이터 패널만
+   뷰포트 가까이 확장해 좌우 공간을 실제 정보와 인터랙션에 사용한다. */
+@media (min-width: 1101px) {
+  .landing-header, .site-header { width: var(--content); max-width: none; }
+  .brand-intro-copy { width: var(--content); }
+  .landing-page > section, .landing-page > footer,
+  .service-welcome, .tool-launch, .connection-diagnostics,
+  .shared-header, .shared-hero, .shared-content,
+  .simple-footer {
+    padding-inline: max(var(--gutter), calc((100vw - var(--layout-max)) / 2));
+  }
+  .planner-page > .planner-section,
+  .planner-page > .places-section,
+  .planner-page > .navigation-section,
+  .planner-page > .travel-layers,
+  .planner-page > .route-section,
+  .planner-page > .data-section,
+  .planner-page > .connection-diagnostics {
+    width: var(--content);
+    max-width: none;
+  }
+  .planner-section .workspace-heading, .planner-section .planner-bento,
+  .navigation-section .workspace-heading, .navigation-section .transport-mode-filter,
+  .navigation-section .transport-provider-strip, .navigation-section .transport-live-rail,
+  .navigation-section .transport-dataset-grid, .navigation-section .transport-data-panel,
+  .navigation-workspace, .day-planner { width: 100%; max-width: none; }
 }
 
 /* --- 모바일·터치 접근성 최종 보정 ---------------------------------------
