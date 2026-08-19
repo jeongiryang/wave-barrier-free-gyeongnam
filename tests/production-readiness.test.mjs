@@ -37,6 +37,24 @@ test("production metadata exposes canonical discovery and install routes", async
   assert.match(readme, /독일어·러시아어/);
 });
 
+test("route-level loading, error and not-found states provide recovery", async () => {
+  const [loading, error, notFound, css] = await Promise.all([
+    source("app/loading.tsx"),
+    source("app/error.tsx"),
+    source("app/not-found.tsx"),
+    source("app/globals.css"),
+  ]);
+  assert.match(loading, /role="status"/);
+  assert.match(loading, /aria-live="polite"/);
+  assert.match(error, /role="alert"/);
+  assert.match(error, /onClick=\{reset\}/);
+  assert.match(error, /<Link href="\/planner"/);
+  assert.match(notFound, /30일 보관 기간/);
+  assert.match(notFound, /새 여행 만들기/);
+  assert.match(css, /\.route-state-page button,.route-state-page a \{ min-height: 48px/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{ \.route-state-wave i \{ animation: none; \} \}/);
+});
+
 test("anonymous database writes validate origin, JSON and body size before storage", async () => {
   const worker = await source("worker/index.ts");
   assert.match(worker, /function readTrustedJson/);
