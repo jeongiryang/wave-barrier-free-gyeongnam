@@ -76,7 +76,10 @@ async function landingProductSource() {
     "features/landing/components/LandingManifesto.tsx",
     "features/landing/components/LandingRegionStory.tsx",
     "features/landing/components/LandingClosing.tsx",
-    "components/LandingStories.tsx",
+    "features/landing/components/LandingProductStories.tsx",
+    "features/landing/components/LandingDiscoveryStories.tsx",
+    "features/landing/components/LandingJourneyStories.tsx",
+    "features/landing/components/LandingAdaptStory.tsx",
     "features/community/components/LandingCommunityStory.tsx",
     "features/community/hooks/useCommunityPreview.ts",
   ];
