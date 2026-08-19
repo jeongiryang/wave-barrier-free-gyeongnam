@@ -20,6 +20,7 @@ import PlaceDecisionDialog from "../../features/planner/components/PlaceDecision
 import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
 import { useLocationSearch } from "../../features/planner/hooks/useLocationSearch";
 import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
+import { usePlannerPlan } from "../../features/planner/hooks/usePlannerPlan";
 import { usePlannerSignals } from "../../features/planner/hooks/usePlannerSignals";
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
@@ -38,7 +39,6 @@ import {
 import { plannerJson } from "../../features/planner/services/api";
 import type {
   Place,
-  PlanData,
   RichSpot,
   TransportProvider,
   TransportProviderState,
@@ -48,13 +48,10 @@ import { assessTripImpact } from "../../lib/trip-impact.js";
 
 export default function PlannerPage() {
   const { locale, t } = useSitePreferences();
-  const [selected, setSelected] = useState<string[]>(["wheel"]);
-  const [region, setRegion] = useState("창원");
-  const [theme, setTheme] = useState("nature");
-  const [plan, setPlan] = useState<PlanData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [planError, setPlanError] = useState("");
-  const [notice, setNotice] = useState("조건을 바꾸면 실시간 관광 데이터가 자동으로 갱신됩니다.");
+  const {
+    selected, region, setRegion, theme, setTheme, plan, loading,
+    planError, notice, setNotice, toggleProfile, runPlan, abortPlan,
+  } = usePlannerPlan(locale);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [shareState, setShareState] = useState<"idle" | "saving" | "done" | "error">("idle");
@@ -63,7 +60,6 @@ export default function PlannerPage() {
   const [feedbackState, setFeedbackState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const cardsRef = useRef<HTMLDivElement>(null);
   const placeDialogRef = useRef<HTMLElement>(null);
-  const planRequestRef = useRef<AbortController | null>(null);
 
   const activeProfiles = useMemo(
     () => profiles.filter((profile) => selected.includes(profile.id)),
@@ -146,14 +142,6 @@ export default function PlannerPage() {
   });
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      const queryRegion = new URLSearchParams(window.location.search).get("region");
-      if (queryRegion && regions.includes(queryRegion)) setRegion(queryRegion);
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
-
-  useEffect(() => {
     if (!selectedPlace) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -177,12 +165,6 @@ export default function PlannerPage() {
       previousFocus?.focus();
     };
   }, [selectedPlace]);
-
-  function toggleProfile(id: string) {
-    setSelected((current) => current.includes(id)
-      ? current.filter((item) => item !== id)
-      : [...current, id]);
-  }
 
   function choosePoint(place: Place, mode = pointPicker) {
     if (mode === "origin") {
@@ -263,44 +245,11 @@ export default function PlannerPage() {
   }
 
   async function generatePlan(revealResults = true) {
-    if (!selected.length) return;
-    planRequestRef.current?.abort();
-    const controller = new AbortController();
-    planRequestRef.current = controller;
-    setLoading(true);
-    setPlanError("");
-    setPlan(null);
-    resetRouteData();
-    setNotice(revealResults ? "한국관광공사 8개 서비스에서 여행 근거를 모으고 있어요." : "바뀐 조건에 맞춰 여행지를 자동으로 갱신하고 있어요.");
-    try {
-      const params = new URLSearchParams({
-        action: "plan",
-        region,
-        theme,
-        profiles: selected.join(","),
-        locale,
-      });
-      const data = await plannerJson<PlanData>(`/api/wave?${params.toString()}`, { signal: controller.signal });
-      if (controller.signal.aborted) return;
-      resetAudio();
-      setPlan(data);
-      if (data.places[0]) void loadRoutes(data.places[0]);
-      const available = data.statuses.filter((status) => status.state === "live").length;
-      setNotice(available
-        ? `${available}개 데이터 서비스의 응답을 코스에 반영했습니다.`
-        : "공식 데이터에서 현재 조건에 맞는 결과를 확인하지 못했습니다.");
-    } catch (error) {
-      if (controller.signal.aborted) return;
-      const message = error instanceof Error ? error.message : "연결 상태를 확인해 주세요.";
-      setPlanError(message);
-      setNotice(`공식 관광 데이터를 불러오지 못했습니다. 임의의 장소를 대신 표시하지 않습니다. ${message}`);
-    } finally {
-      if (planRequestRef.current === controller) {
-        planRequestRef.current = null;
-        setLoading(false);
-        if (revealResults) window.setTimeout(() => document.getElementById("route")?.scrollIntoView({ behavior: "smooth" }), 80);
-      }
-    }
+    await runPlan({
+      resetRouteData,
+      resetAudio,
+      loadFirstRoute: (place) => void loadRoutes(place),
+    }, revealResults);
   }
 
   const planSignature = `${region}|${theme}|${locale}|${selected.join(",")}`;
@@ -311,13 +260,9 @@ export default function PlannerPage() {
     const timer = window.setTimeout(() => void generatePlanRef.current(false), 550);
     return () => {
       window.clearTimeout(timer);
-      planRequestRef.current?.abort();
+      abortPlan();
     };
-  }, [planSignature, selected.length]);
-
-  useEffect(() => () => {
-    planRequestRef.current?.abort();
-  }, []);
+  }, [abortPlan, planSignature, selected.length]);
 
   function scrollCards(direction: number) {
     cardsRef.current?.scrollBy({ left: direction * Math.min(window.innerWidth * 0.78, 480), behavior: "smooth" });
