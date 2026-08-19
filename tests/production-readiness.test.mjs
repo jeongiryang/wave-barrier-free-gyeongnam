@@ -145,6 +145,7 @@ test("interactive help follows real sections and remains accessible on mobile", 
   assert.match(help, /help-tour-spotlight/);
   assert.match(help, /help-tour-pointer/);
   assert.match(help, /aria-modal="true"/);
+  assert.match(help, /createPortal\(tourLayer, document\.body\)/);
   const spotlightRule = css.match(/\.help-tour-spotlight \{[^}]+\}/)?.[0] ?? "";
   assert.doesNotMatch(spotlightRule, /transition:/);
   assert.match(help, /event\.key === "Escape"/);
