@@ -136,14 +136,18 @@ test("the production toolchain pins patched React and the Vercel-compatible vine
 });
 
 test("anonymous database writes validate origin, JSON and body size before storage", async () => {
-  const [trips, http] = await Promise.all([source("server/trips/handler.ts"), source("server/shared/http.ts")]);
+  const [trips, feedback, http] = await Promise.all([
+    source("server/trips/itinerary-actions.ts"),
+    source("server/trips/feedback-handler.ts"),
+    source("server/shared/http.ts"),
+  ]);
   assert.match(http, /function readTrustedJson/);
   assert.match(http, /content-type/);
   assert.match(http, /sec-fetch-site/);
   assert.match(http, /origin !== requestUrl\.origin/);
   assert.match(http, /TextEncoder\(\)\.encode\(raw\)\.byteLength/);
   assert.match(trips, /readTrustedJson\(request, 70000\)/);
-  assert.match(trips, /readTrustedJson\(request, 4000\)/);
+  assert.match(feedback, /readTrustedJson\(request, 4000\)/);
 });
 
 test("external Kakao place links are upgraded to HTTPS", async () => {

@@ -4,7 +4,8 @@ import { portableEnv } from "../server/shared/env";
 import { json } from "../server/shared/http";
 import { handleWaveApi } from "../server/tourism/handler";
 import { handleHealthApi, handleMapConfig, handleRouteApi } from "../server/transport/handler";
-import { handleFeedbackApi, handleTripsApi } from "../server/trips/handler";
+import { handleFeedbackApi } from "../server/trips/feedback-handler";
+import { handleTripsApi } from "../server/trips/handler";
 import { handleWeatherApi } from "../server/weather/handler";
 
 
