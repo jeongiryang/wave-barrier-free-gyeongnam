@@ -439,7 +439,11 @@ test("the server entry delegates shared policy and provider domains to focused m
     ]).then((parts) => parts.join("\n")),
     source("server/location/handler.ts"),
     source("server/transport/handler.ts"),
-    source("server/transport/public-context.ts"),
+    Promise.all([
+      source("server/transport/public-context.ts"),
+      source("server/transport/public-provider-queries.ts"),
+      source("server/transport/public-context-model.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("server/transport/odsay.ts"),
     source("server/transport/kakao-route.ts"),
     source("server/transport/health.ts"),
@@ -492,6 +496,9 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.doesNotMatch(transport, /api\.odsay\.com|apis-navi\.kakaomobility\.com|travelerTrainRunPlan2/);
   assert.match(transportContext, /travelerTrainRunPlan2/);
   assert.match(transportContext, /getCrdntPrxmtSttnList/);
+  assert.match(transportContext, /export async function fetchPublicTransportSnapshot/);
+  assert.match(transportContext, /export function buildPublicTransportContext/);
+  assert.match(transportContext, /return buildPublicTransportContext\(env, snapshot\)/);
   assert.match(odsay, /api\.odsay\.com\/v1\/api\/searchPubTransPathT/);
   assert.match(kakaoRoute, /apis-navi\.kakaomobility\.com\/v1\/directions/);
   assert.match(transportHealth, /export function handleHealthApi/);
