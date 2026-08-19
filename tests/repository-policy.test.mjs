@@ -292,7 +292,7 @@ test("planner state is divided into testable feature hooks without overwriting s
 });
 
 test("the server entry delegates shared policy and provider domains to focused modules", async () => {
-  const [worker, env, http, providerData, weather, location, transport, tourism] = await Promise.all([
+  const [worker, env, http, providerData, weather, location, transport, tourism, trips] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
@@ -301,15 +301,16 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/location/handler.ts"),
     source("server/transport/handler.ts"),
     source("server/tourism/handler.ts"),
+    source("server/trips/handler.ts"),
   ]);
-  assert.match(worker, /import \{ portableEnv, type Env \} from "\.\.\/server\/shared\/env"/);
-  assert.match(worker, /import \{ clean, json, readTrustedJson \} from "\.\.\/server\/shared\/http"/);
+  assert.match(worker, /import \{ portableEnv \} from "\.\.\/server\/shared\/env"/);
+  assert.match(worker, /import \{ json \} from "\.\.\/server\/shared\/http"/);
   assert.match(worker, /handleWaveApi/);
   assert.match(worker, /handleHealthApi, handleMapConfig, handleRouteApi/);
   assert.match(worker, /if \(url\.pathname === "\/api\/weather"\) return handleWeatherApi\(request\)/);
   assert.match(worker, /if \(url\.pathname === "\/api\/location-search"\) return handleLocationSearch\(request, env\)/);
   assert.doesNotMatch(worker, /api\.open-meteo\.com|dapi\.kakao\.com/);
-  assert.doesNotMatch(worker, /async function fetchKto|async function fetchPublicTransport|function normalizeItems|async function handleRouteApi|async function handleWaveApi/);
+  assert.doesNotMatch(worker, /async function fetchKto|async function fetchPublicTransport|function normalizeItems|async function handleRouteApi|async function handleWaveApi|async function handleTripsApi/);
   assert.match(env, /typeof process === "undefined" \? \{\} : process\.env/);
   assert.match(http, /x-content-type-options/);
   assert.match(providerData, /export async function fetchTourismData/);
@@ -321,6 +322,9 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(tourism, /export async function handleWaveApi/);
   assert.match(tourism, /export async function buildPlan/);
   assert.match(tourism, /calculateAccessibilityEvidence/);
+  assert.match(trips, /export async function handleTripsApi/);
+  assert.match(trips, /export async function handleFeedbackApi/);
+  assert.match(trips, /CREATE TABLE IF NOT EXISTS itineraries/);
   assert.match(providerData, /export function normalizeXmlItems/);
   assert.match(weather, /AbortSignal\.timeout\(8000\)/);
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
@@ -396,9 +400,9 @@ test("core controls keep 44px targets on every viewport and pointer type", async
 });
 
 test("shared trips restore saved places, order and date assignments from official IDs", async () => {
-  const [planner, worker, tourism, shared] = await Promise.all([
+  const [planner, trips, tourism, shared] = await Promise.all([
     source("app/planner/page.tsx"),
-    source("worker/index.ts"),
+    source("server/trips/handler.ts"),
     source("server/tourism/handler.ts"),
     source("app/trip/[id]/page.tsx"),
   ]);
@@ -406,7 +410,7 @@ test("shared trips restore saved places, order and date assignments from officia
   assert.match(tourism, /export async function restoreSharedPlan/);
   assert.match(tourism, /"KorService2", "detailCommon2"/);
   assert.match(tourism, /"KorWithService2", "detailWithTour2"/);
-  assert.match(worker, /selectedIds\.size \? places\.filter/);
+  assert.match(trips, /selectedIds\.size \? places\.filter/);
   assert.match(tourism, /restoration: \{ requested: refs\.length, restored: places\.length, missing, mode: "content-id" \}/);
   assert.match(shared, /저장 장소 최신 확인/);
   assert.match(shared, /날짜별 저장 일정/);
