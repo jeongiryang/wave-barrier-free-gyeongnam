@@ -15,6 +15,13 @@ async function plannerSignalsSource() {
   ].map(source))).join("\n");
 }
 
+async function routePlanningSource() {
+  return (await Promise.all([
+    "features/planner/hooks/useRoutePlanning.ts",
+    "features/planner/hooks/useRouteRequest.ts",
+  ].map(source))).join("\n");
+}
+
 test("planner page delegates derived data and browser lifecycles to feature modules", async () => {
   const [page, viewModel, actions, placeAdapters, dialogFocus, autoRefresh] = await Promise.all([
     source("app/planner/page.tsx"),
@@ -81,7 +88,7 @@ test("navigation workspace delegates transport data and map route interactions",
 test("planner domain types are shared across route and signal controllers", async () => {
   const [types, routePlanning, signals] = await Promise.all([
     source("features/planner/types.ts"),
-    source("features/planner/hooks/useRoutePlanning.ts"),
+    routePlanningSource(),
     plannerSignalsSource(),
   ]);
 
