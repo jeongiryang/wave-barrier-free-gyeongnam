@@ -435,9 +435,12 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
 });
 
-test("route-map rendering delegates provider lifecycle, SDK, domain helpers and image export", async () => {
-  const [map, planner, types, sdk, helpers, renderer, imageExport] = await Promise.all([
+test("route-map rendering delegates provider lifecycle, controls, SDK, domain helpers and image export", async () => {
+  const [map, commandBar, nearbyPanel, placePanel, planner, types, sdk, helpers, renderer, imageExport] = await Promise.all([
     source("components/RouteMap.tsx"),
+    source("features/routing/components/MapCommandBar.tsx"),
+    source("features/routing/components/NearbyPlacesPanel.tsx"),
+    source("features/routing/components/MapPlacePanel.tsx"),
     plannerProductSource(),
     source("features/routing/types.ts"),
     source("features/routing/kakao-sdk.ts"),
@@ -447,6 +450,12 @@ test("route-map rendering delegates provider lifecycle, SDK, domain helpers and 
   ]);
   assert.match(map, /import \{ exportRouteImage \} from "\.\.\/features\/routing\/export-route-image"/);
   assert.match(map, /useMapRenderer\(\{/);
+  assert.match(map, /<MapCommandBar/);
+  assert.match(map, /<NearbyPlacesPanel/);
+  assert.doesNotMatch(map, /className="map-command-scroll"|className="map-poi-list"|className="map-place-copy"/);
+  assert.match(commandBar, /className="map-command-scroll"/);
+  assert.match(nearbyPanel, /className="map-poi-list"/);
+  assert.match(placePanel, /className="map-place-copy"/);
   assert.doesNotMatch(map, /loadKakaoSdk|L\.tileLayer|new K\.Map|canvas\.width = 1600/);
   assert.match(planner, /import type \{ MapPlace \} from "\.\.\/\.\.\/routing\/types"/);
   assert.match(types, /export type RouteAlternative/);

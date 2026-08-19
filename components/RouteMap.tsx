@@ -1,7 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Map as LeafletMap } from "leaflet";
+import MapCommandBar from "../features/routing/components/MapCommandBar";
+import MapExportPanel from "../features/routing/components/MapExportPanel";
+import MapLayerPanel from "../features/routing/components/MapLayerPanel";
+import MapPlacePanel from "../features/routing/components/MapPlacePanel";
+import { MapCanvasStatusOverlays, RoadviewSelectionOverlays } from "../features/routing/components/MapStatusOverlays";
+import NearbyPlacesPanel from "../features/routing/components/NearbyPlacesPanel";
+import RoutePointPanel from "../features/routing/components/RoutePointPanel";
 import { nearbyCategories, overlayLayers } from "../features/routing/constants";
 import { exportRouteImage } from "../features/routing/export-route-image";
 import {
@@ -10,7 +17,7 @@ import {
   type KakaoMarker,
   type KakaoPlace,
 } from "../features/routing/kakao-sdk";
-import { describeCrowd, safeMapImageUrl } from "../features/routing/map-utils";
+import { describeCrowd } from "../features/routing/map-utils";
 import { useMapRenderer } from "../features/routing/useMapRenderer";
 import type {
   CrowdSignal,
@@ -300,109 +307,96 @@ export default function RouteMap({ origin, places, route, crowd, crowdPlaceId, o
 
   const drawerOpen = toolPanel !== null;
   return <div ref={shellRef} className={`route-map-shell${drawerOpen ? " drawer-open" : ""}${expanded ? " expanded" : ""}`}>
-    <div className={`map-provider-badge ${provider}`} title={providerDetail}><span />{provider === "kakao" ? "Kakao Map" : provider === "osm" ? "대체 지도" : "지도 연결 중"}{provider === "osm" && <button type="button" onClick={() => setRetryNonce((value) => value + 1)}>Kakao 재연결</button>}</div>
-    <nav className="map-command-bar" aria-label="지도 기능">
-      <div className="map-command-scroll">
-        <div className="map-type-switch" aria-label="지도 유형">
-          <button type="button" className={baseMap === "roadmap" ? "active" : ""} onClick={() => changeBaseMap("roadmap")} disabled={provider !== "kakao"}>지도</button>
-          <button type="button" className={baseMap === "skyview" ? "active" : ""} onClick={() => changeBaseMap("skyview")} disabled={provider !== "kakao"}>스카이뷰</button>
-        </div>
-        <button type="button" className={toolPanel === "nearby" ? "active" : ""} onClick={() => setToolPanel((value) => value === "nearby" ? null : "nearby")} disabled={provider !== "kakao"}>⌖ 주변</button>
-        <button type="button" className={toolPanel === "route" ? "active" : ""} onClick={() => setToolPanel((value) => value === "route" ? null : "route")}>⇄ 출발·도착</button>
-        <button type="button" className={toolPanel === "layers" ? "active" : ""} onClick={() => setToolPanel((value) => value === "layers" ? null : "layers")} disabled={provider !== "kakao"}>▱ 레이어·측정</button>
-        <button type="button" className={roadviewSelectMode ? "active" : ""} onClick={beginRoadviewSelection} onMouseEnter={() => setRoadviewPreviewOpen(true)} onMouseLeave={() => setRoadviewPreviewOpen(false)} onFocus={() => setRoadviewPreviewOpen(true)} onBlur={() => setRoadviewPreviewOpen(false)} disabled={provider !== "kakao"}>◉ 로드뷰</button>
-        <button type="button" onClick={moveToCurrentLocation}>◎ 내 위치</button>
-        <button type="button" className={toolPanel === "export" ? "active" : ""} onClick={() => setToolPanel((value) => value === "export" ? null : "export")}>⇩ 이미지</button>
-        <button type="button" onClick={() => void shareRoute()}>↗ 공유</button>
-      </div>
-      <button type="button" className="map-expand-button" onClick={() => void toggleExpanded()}>{expanded ? "× 닫기" : "⛶ 전체보기"}</button>
-    </nav>
+    <MapCommandBar
+      provider={provider}
+      providerDetail={providerDetail}
+      baseMap={baseMap}
+      toolPanel={toolPanel}
+      roadviewSelectMode={roadviewSelectMode}
+      expanded={expanded}
+      onRetry={() => setRetryNonce((value) => value + 1)}
+      onBaseMapChange={changeBaseMap}
+      onToolPanelChange={setToolPanel}
+      onRoadviewSelection={beginRoadviewSelection}
+      onRoadviewPreviewChange={setRoadviewPreviewOpen}
+      onCurrentLocation={moveToCurrentLocation}
+      onShare={() => void shareRoute()}
+      onToggleExpanded={() => void toggleExpanded()}
+    />
 
-    {roadviewSelectMode && <div className="roadview-pick-banner" role="status"><div><strong>로드뷰 위치 선택</strong><span>지도에서 확인할 도로나 장소를 클릭하세요.</span></div><button type="button" onClick={() => { setRoadviewSelectMode(false); setProviderDetail("로드뷰 위치 선택을 취소했습니다."); }} aria-label="로드뷰 위치 선택 취소">×</button></div>}
-    {roadviewPreviewOpen && !roadviewSelectMode && !roadviewOpen && provider === "kakao" && <aside className="roadview-hover-preview" aria-label="로드뷰 위치 선택 미리보기">
-      {safeMapImageUrl(selectedMapPlace?.image || places[0]?.image) && <div style={{ backgroundImage: `url("${safeMapImageUrl(selectedMapPlace?.image || places[0]?.image).replace(/["\\]/g, "")}")` }} />}
-      <small>관광사진 미리보기</small><strong>{selectedMapPlace?.name || places[0]?.name || "지도에서 위치 선택"}</strong><span>버튼을 누른 뒤 지도에서 로드뷰 위치를 선택합니다.</span>
-    </aside>}
+    <RoadviewSelectionOverlays
+      provider={provider}
+      roadviewSelectMode={roadviewSelectMode}
+      roadviewPreviewOpen={roadviewPreviewOpen}
+      roadviewOpen={roadviewOpen}
+      selectedMapPlace={selectedMapPlace}
+      places={places}
+      onCancelRoadviewSelection={() => {
+        setRoadviewSelectMode(false);
+        setProviderDetail("로드뷰 위치 선택을 취소했습니다.");
+      }}
+    />
 
-    {toolPanel === "nearby" && <section className="map-tool-panel map-side-drawer map-nearby-panel" aria-label="주변 장소 찾기">
-      <header><div><strong>주변 장소</strong><span>지도 중심 반경 10km · 거리순</span></div><button type="button" onClick={() => setToolPanel(null)} aria-label="주변 장소 닫기">×</button></header>
-      <div className="map-tool-grid">{nearbyCategories.map((category) => <button type="button" key={category.id} className={activeCategory === category.id ? "active" : ""} onClick={() => searchNearby(category)}><i>{category.icon}</i>{category.label}</button>)}</div>
-      {(categoryMessage || categoryPlaces.length > 0) && <div className="map-poi-results" aria-live="polite">
-        <div className="map-results-heading"><strong>{nearbyCategories.find((item) => item.id === activeCategory)?.label || "검색 결과"}</strong><span>{categoryMessage}</span></div>
-        <div className="map-poi-list">{categoryPlaces.slice(0, 12).map((place) => <article key={place.id}>
-          <div><strong>{place.place_name}</strong><span>{place.road_address_name || place.address_name}</span></div>
-          <small>{place.distance ? `${Number(place.distance).toLocaleString()}m` : "거리 정보 없음"}</small>
-          <button type="button" onClick={() => chooseKakaoPlace(place)}>지도에서 보기</button>
-          {place.place_url && <a href={place.place_url} target="_blank" rel="noreferrer">장소 상세·후기 ↗</a>}
-        </article>)}</div>
-      </div>}
-    </section>}
+    {toolPanel === "nearby" && <NearbyPlacesPanel
+      activeCategory={activeCategory}
+      categoryMessage={categoryMessage}
+      categoryPlaces={categoryPlaces}
+      onClose={() => setToolPanel(null)}
+      onSearch={searchNearby}
+      onChoosePlace={chooseKakaoPlace}
+    />}
 
-    {toolPanel === "route" && <section className="map-tool-panel map-side-drawer map-route-panel" aria-label="출발지와 목적지 설정">
-      <header><div><strong>출발지 · 목적지</strong><span>현재 위치 또는 지도 클릭으로 바로 설정</span></div><button type="button" onClick={() => { setToolPanel(null); setPickMode(null); }} aria-label="출발지 목적지 설정 닫기">×</button></header>
-      <div className="map-route-status"><span><b>S</b> 출발지</span><strong>{origin.lat.toFixed(5)}, {origin.lng.toFixed(5)}</strong></div>
-      <div className="map-route-actions">
-        <button type="button" onClick={moveToCurrentLocation}><i>◎</i><strong>현재 위치에서 출발</strong><small>위치 권한을 허용하면 지도에 표시</small></button>
-        <button type="button" className={pickMode === "origin" ? "active" : ""} onClick={() => setMapPointMode("origin")}><i>S</i><strong>지도에서 출발지 선택</strong><small>지도 위 원하는 지점을 클릭</small></button>
-        <button type="button" className={pickMode === "destination" ? "active" : ""} onClick={() => setMapPointMode("destination")}><i>G</i><strong>지도에서 목적지 선택</strong><small>관광지 마커도 바로 선택 가능</small></button>
-      </div>
-      {pickMode && <p className="map-pick-notice">지도의 원하는 지점을 클릭하세요. ESC 또는 닫기로 취소할 수 있습니다.</p>}
-    </section>}
+    {toolPanel === "route" && <RoutePointPanel
+      origin={origin}
+      pickMode={pickMode}
+      onClose={() => { setToolPanel(null); setPickMode(null); }}
+      onCurrentLocation={moveToCurrentLocation}
+      onSelectMode={setMapPointMode}
+    />}
 
-    {toolPanel === "place" && selectedMapPlace && <section className="map-tool-panel map-side-drawer map-place-panel" aria-label={`${selectedMapPlace.name} 상세 정보`}>
-      <header><div><strong>관광지 정보</strong><span>마커를 누르면 바로 확인</span></div><button type="button" onClick={() => setToolPanel(null)} aria-label="관광지 정보 닫기">×</button></header>
-      {safeMapImageUrl(selectedMapPlace.image) && <div className="map-place-photo" style={{ backgroundImage: `url("${safeMapImageUrl(selectedMapPlace.image)?.replace(/["\\]/g, "")}")` }} />}
-      <div className="map-place-copy"><small>{selectedMapPlace.address || "경상남도 관광지"}</small><h3>{selectedMapPlace.name}</h3>{selectedMapPlace.summary && <p>{selectedMapPlace.summary}</p>}</div>
-      {selectedMapPlace.score !== null ? <div className="map-place-rating"><strong>{selectedMapPlace.score}%</strong><span>선택한 편의조건 중 공식 데이터 일치율</span></div> : <div className="map-place-rating unavailable"><strong>판단 보류</strong><span>공식 편의정보가 없어 숫자로 평가하지 않습니다.</span></div>}
-      <div className="map-place-actions">
-        <button type="button" onClick={() => { const point = { lat: Number(selectedMapPlace.mapY), lng: Number(selectedMapPlace.mapX) }; onOriginChange?.(point, selectedMapPlace.name); setProviderDetail(`${selectedMapPlace.name}을 출발지로 설정했습니다.`); }}>출발지로</button>
-        <button type="button" onClick={() => { onDestinationChange?.(selectedMapPlace); setProviderDetail(`${selectedMapPlace.name}을 목적지로 설정했습니다.`); }}>목적지로</button>
-      </div>
-      <a className="map-place-review-link" href={selectedMapPlace.placeUrl || `https://map.kakao.com/link/search/${encodeURIComponent(selectedMapPlace.name)}`} target="_blank" rel="noreferrer">카카오 장소 상세·후기 보기 ↗</a>
-    </section>}
+    {toolPanel === "place" && selectedMapPlace && <MapPlacePanel
+      place={selectedMapPlace}
+      onClose={() => setToolPanel(null)}
+      onSetOrigin={(place) => {
+        onOriginChange?.({ lat: Number(place.mapY), lng: Number(place.mapX) }, place.name);
+        setProviderDetail(`${place.name}을 출발지로 설정했습니다.`);
+      }}
+      onSetDestination={(place) => {
+        onDestinationChange?.(place);
+        setProviderDetail(`${place.name}을 목적지로 설정했습니다.`);
+      }}
+    />}
 
-    {toolPanel === "layers" && <section className="map-tool-panel map-side-drawer map-layer-panel" aria-label="지도 레이어와 측정 도구">
-      <header><div><strong>지도 설정</strong><span>카카오 공식 지도 레이어</span></div><button type="button" onClick={() => setToolPanel(null)} aria-label="지도 설정 닫기">×</button></header>
-      <h4>레이어</h4>
-      <div className="map-tool-grid">{overlayLayers.map((layer) => <button type="button" key={layer.id} className={activeLayers.includes(layer.id) ? "active" : ""} onClick={() => toggleLayer(layer.id)}><i>{layer.icon}</i>{layer.label}</button>)}</div>
-      <h4>측정</h4>
-      <div className="map-tool-grid">
-        <button type="button" className={measureMode === "POLYLINE" ? "active" : ""} onClick={() => selectMeasure("POLYLINE")}><i>╱</i>거리</button>
-        <button type="button" className={measureMode === "CIRCLE" ? "active" : ""} onClick={() => selectMeasure("CIRCLE")}><i>○</i>반경</button>
-        <button type="button" className={measureMode === "POLYGON" ? "active" : ""} onClick={() => selectMeasure("POLYGON")}><i>△</i>면적</button>
-        <button type="button" onClick={clearMeasurements}><i>×</i>지우기</button>
-      </div>
-      {measureSummary && <p className="map-measure-summary">{measureSummary}</p>}
-      <h4>경로 도구</h4>
-      <div className="map-utility-actions">
-        <button type="button" onClick={saveRoute}><i>☆</i>저장</button>
-        <button type="button" onClick={() => window.print()}><i>▣</i>인쇄</button>
-        <button type="button" onClick={() => void shareRoute()}><i>↗</i>공유</button>
-      </div>
-    </section>}
+    {toolPanel === "layers" && <MapLayerPanel
+      activeLayers={activeLayers}
+      measureMode={measureMode}
+      measureSummary={measureSummary}
+      onClose={() => setToolPanel(null)}
+      onToggleLayer={toggleLayer}
+      onSelectMeasure={selectMeasure}
+      onClearMeasurements={clearMeasurements}
+      onSave={saveRoute}
+      onShare={() => void shareRoute()}
+    />}
 
-    {toolPanel === "export" && <section className="map-tool-panel map-side-drawer map-export-panel" aria-label="지도 이미지 저장">
-      <header><div><strong>지도 이미지 저장</strong><span>경로·장소·시간을 담은 고해상도 이미지</span></div><button type="button" onClick={() => setToolPanel(null)} aria-label="이미지 저장 닫기">×</button></header>
-      <div className="map-export-preview"><span>W.A.V.E</span><strong>여행 경로 지도</strong><small>1600 × 1000px</small></div>
-      <p>브라우저 보안과 지도 저작권을 지키기 위해 카카오 배경 타일은 제외하고, 현재 경로와 장소를 읽기 쉬운 공유용 지도 이미지로 만듭니다.</p>
-      <div className="map-export-actions">
-        <button type="button" onClick={() => { if (exportRouteImage({ origin, places, route, format: "png" })) setProviderDetail("PNG 경로 지도를 저장했습니다."); }}><i>PNG</i>투명도 없는 선명한 이미지</button>
-        <button type="button" onClick={() => { if (exportRouteImage({ origin, places, route, format: "jpeg" })) setProviderDetail("JPG 경로 지도를 저장했습니다."); }}><i>JPG</i>용량이 작은 공유용 이미지</button>
-      </div>
-      <button type="button" className="map-share-wide" onClick={() => void shareRoute()}>현재 경로 공유하기 ↗</button>
-    </section>}
+    {toolPanel === "export" && <MapExportPanel
+      onClose={() => setToolPanel(null)}
+      onExport={(format) => {
+        if (exportRouteImage({ origin, places, route, format })) setProviderDetail(`${format === "png" ? "PNG" : "JPG"} 경로 지도를 저장했습니다.`);
+      }}
+      onShare={() => void shareRoute()}
+    />}
 
     <div className="route-map-canvas" ref={containerRef} role="img" aria-label="출발지와 추천 여행지를 표시한 경로 지도" />
-    {crowdVisual && crowd && crowdPlace && !roadviewOpen && <aside className={`map-crowd-legend crowd-${crowdVisual.level}`} style={{ "--crowd-color": crowdVisual.color, "--crowd-soft": crowdVisual.soft } as CSSProperties} aria-label={`${crowdPlace.name} 혼잡 예측 ${crowdVisual.label}`}>
-      <span className="crowd-visual"><i /></span>
-      <div><small>30일 혼잡 예측 · {crowdPlace.name}</small><strong>{crowdVisual.label}</strong><p>{crowdVisual.message}</p></div>
-      <em>{crowd.rate.toFixed(1)}%</em>
-    </aside>}
-    {provider === "loading" && <div className="map-loading-skeleton" role="status" aria-label="지도 연결 중"><div><i /><i /><i /><span /></div><p><b />카카오 지도를 안전하게 연결하고 있습니다.</p></div>}
-    {roadviewOpen && <section className="map-roadview-panel" aria-label="카카오 로드뷰">
-      <header><strong>로드뷰</strong><button type="button" onClick={() => setRoadviewOpen(false)} aria-label="로드뷰 닫기">×</button></header>
-      <div ref={roadviewRef} />
-      {roadviewMessage && <p>{roadviewMessage}</p>}
-    </section>}
+    <MapCanvasStatusOverlays
+      provider={provider}
+      roadviewOpen={roadviewOpen}
+      roadviewMessage={roadviewMessage}
+      roadviewRef={roadviewRef}
+      crowd={crowd}
+      crowdPlace={crowdPlace}
+      crowdVisual={crowdVisual}
+      onCloseRoadview={() => setRoadviewOpen(false)}
+    />
   </div>;
 }

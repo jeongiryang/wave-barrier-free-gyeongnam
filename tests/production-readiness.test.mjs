@@ -21,6 +21,13 @@ async function plannerProductSource() {
   return (await Promise.all(paths.map(source))).join("\n");
 }
 
+async function routeMapProductSource() {
+  return (await Promise.all([
+    "components/RouteMap.tsx",
+    "features/routing/components/MapCommandBar.tsx",
+  ].map(source))).join("\n");
+}
+
 async function styleSource() {
   const paths = [
     "app/globals.css",
@@ -268,7 +275,7 @@ test("interactive help follows real sections and remains accessible on mobile", 
 test("mobile screens keep controls touchable and content inside safe areas", async () => {
   const [layout, map, css] = await Promise.all([
     source("app/layout.tsx"),
-    source("components/RouteMap.tsx"),
+    routeMapProductSource(),
     styleSource(),
   ]);
   assert.match(layout, /width: "device-width"/);
