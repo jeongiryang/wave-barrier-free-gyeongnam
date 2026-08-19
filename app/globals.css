@@ -436,6 +436,13 @@ audio { display: none; }
 .simple-footer .source { text-align: right; font-size: .76rem; }
 .footer-notes { display: grid; gap: 6px; text-align: center; }
 .simple-footer .trust-notice { max-width: 520px; color: #829aab; font-size: .68rem; line-height: 1.5; }
+.footer-meta { justify-self: end; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.github-footer-link { width: 44px; height: 44px; position: relative; display: grid; place-items: center; flex: 0 0 44px; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; color: #fff; text-decoration: none; transition: color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease; }
+.github-footer-link svg { width: 19px; height: 19px; }
+.github-footer-link::after { content: attr(data-tooltip); position: absolute; left: 50%; bottom: calc(100% + 9px); padding: 5px 8px; border-radius: 7px; color: #fff; background: #061f2b; box-shadow: 0 8px 20px rgba(2,23,33,.22); font-size: .65rem; font-weight: 800; line-height: 1; opacity: 0; pointer-events: none; transform: translate(-50%,5px); transition: opacity .16s ease, transform .16s ease; white-space: nowrap; }
+.github-footer-link:hover,.github-footer-link:focus-visible { color: #061f2b; border-color: #7debe9; background: #7debe9; transform: translateY(-2px); }
+.github-footer-link:hover::after,.github-footer-link:focus-visible::after { opacity: 1; transform: translate(-50%,0); }
+.shared-footer { margin-top: auto; }
 
 @media (max-width: 1100px) {
   :root { --content: min(94vw, 940px); }
@@ -494,6 +501,7 @@ audio { display: none; }
   .simple-footer { grid-template-columns: 1fr; text-align: center; }
   .simple-footer .brand { justify-content: center; }
   .simple-footer .source { text-align: center; }
+  .simple-footer .footer-meta { justify-self: center; justify-content: center; flex-wrap: wrap; }
 }
 
 @media (max-width: 520px) {
@@ -1287,6 +1295,8 @@ html[data-theme="dark"] .day-planner li,html[data-theme="dark"] .day-planner sel
 
 .landing-page .simple-footer { border-top: 1px solid var(--line); color: var(--ink); }
 .landing-page .simple-footer p { color: var(--muted); }
+.landing-page .github-footer-link { color: var(--ink); border-color: var(--line); }
+.landing-page .github-footer-link:hover,.landing-page .github-footer-link:focus-visible { color: #061f2b; border-color: #7debe9; }
 
 /* --- 플래너: 기능 단위로 끊어 읽는 구역 ---------------------------------- */
 .planner-page { background: var(--surface); }

@@ -200,3 +200,19 @@ test("planner ignores stale route, enrichment and location-search responses", as
   assert.match(planner, /\/api\/location-search\?q=[\s\S]+signal: controller\.signal/);
   assert.match(planner, /useEffect\(\(\) => \(\) => \{[\s\S]+routeRequestRef\.current\?\.abort\(\)/);
 });
+
+test("every user-facing footer exposes the repository with an accessible tooltip", async () => {
+  const [link, landing, planner, shared, css] = await Promise.all([
+    source("components/GithubFooterLink.tsx"),
+    source("app/page.tsx"),
+    source("app/planner/page.tsx"),
+    source("app/trip/[id]/page.tsx"),
+    source("app/globals.css"),
+  ]);
+  assert.match(link, /https:\/\/github\.com\/jeongiryang\/wave-barrier-free-gyeongnam/);
+  assert.match(link, /aria-label="W\.A\.V\.E GitHub 저장소 열기"/);
+  assert.match(link, /data-tooltip="GitHub"/);
+  for (const page of [landing, planner, shared]) assert.match(page, /<GithubFooterLink \/>/);
+  assert.match(css, /\.github-footer-link \{ width: 44px; height: 44px/);
+  assert.match(css, /\.github-footer-link:hover::after,.github-footer-link:focus-visible::after/);
+});
