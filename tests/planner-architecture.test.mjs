@@ -42,6 +42,15 @@ test("planner route composes feature sections instead of owning their dense UI",
   assert.doesNotMatch(page, /className="planner-bento"|className="place-carousel"|className="weather-board"|className="navigation-workspace"|className="api-bento"/);
 });
 
+test("travel signals compose independent weather, impact, insight and theme sections", async () => {
+  const signals = await source("features/planner/components/TravelSignalsPanel.tsx");
+  assert.match(signals, /<WeatherBoard/);
+  assert.match(signals, /<SituationImpactPanel/);
+  assert.match(signals, /<RegionalInsights/);
+  assert.match(signals, /<ThemeExplorer/);
+  assert.doesNotMatch(signals, /className="weather-current"|className="impact-signal-grid"|className="visitor-insight"|className="rich-card"/);
+});
+
 test("navigation workspace delegates transport data and map route interactions", async () => {
   const [workspace, transport, mapRoute] = await Promise.all([
     source("features/planner/components/NavigationWorkspace.tsx"),
