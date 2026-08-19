@@ -1,0 +1,5 @@
+import type { SharedTrip } from "../types";
+
+export default function SharedTripItinerary({ trip, scheduledDates }: { trip: SharedTrip; scheduledDates: string[] }) {
+  return <aside><p className="section-kicker">ITINERARY</p><h2>{scheduledDates.length ? "날짜별 저장 일정" : "여행 순서"}</h2>{scheduledDates.length ? <div className="shared-schedule">{scheduledDates.map((date, dayIndex) => <section key={date}><header><small>DAY {dayIndex + 1}</small><strong>{new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" }).format(new Date(`${date}T12:00:00`))}</strong></header><ol>{trip.plan.places.filter((place) => trip.selections.scheduleAssignments?.[place.id] === date).map((place, index) => <li key={place.id}><span>{index + 1}</span><div><small>저장한 여행지</small><h3>{place.name}</h3><p>{place.city}</p></div></li>)}</ol></section>)}</div> : <ol>{trip.plan.stops.map((stop, index) => <li key={`${stop.title}-${index}`}><span>{index + 1}</span><div><small>{stop.source}</small><h3>{stop.title}</h3><p>{stop.note}</p></div></li>)}</ol>}<a href={`/planner?region=${encodeURIComponent(trip.selections.region || "창원")}`}>이 조건으로 다시 설계하기 →</a></aside>;
+}
