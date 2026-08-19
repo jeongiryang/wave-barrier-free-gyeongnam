@@ -389,7 +389,7 @@ test("planner state is divided into testable feature hooks without overwriting s
 });
 
 test("the server entry delegates shared policy and provider domains to focused modules", async () => {
-  const [worker, env, http, providerData, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, trips] = await Promise.all([
+  const [worker, env, http, providerData, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources, visitorDemand, trips] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
@@ -406,6 +406,9 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/tourism/models.ts"),
     source("server/tourism/photos.ts"),
     source("server/tourism/insights.ts"),
+    source("server/tourism/concentration.ts"),
+    source("server/tourism/enrichment-sources.ts"),
+    source("server/tourism/visitor-demand.ts"),
     source("server/trips/handler.ts"),
   ]);
   assert.match(worker, /import \{ portableEnv \} from "\.\.\/server\/shared\/env"/);
@@ -437,6 +440,11 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(tourismModels, /calculateAccessibilityEvidence/);
   assert.match(tourismPhotos, /export async function fetchSpotPhoto/);
   assert.match(tourismInsights, /export async function buildEnrichment/);
+  assert.match(tourismInsights, /fetchEnrichmentSources/);
+  assert.doesNotMatch(tourismInsights, /GoCamping|DataLabService|TatsCnctrRateService/);
+  assert.match(tourismConcentration, /TatsCnctrRateService/);
+  assert.match(enrichmentSources, /GoCamping/);
+  assert.match(visitorDemand, /DataLabService/);
   assert.match(trips, /export async function handleTripsApi/);
   assert.match(trips, /export async function handleFeedbackApi/);
   assert.match(trips, /CREATE TABLE IF NOT EXISTS itineraries/);
