@@ -19,7 +19,7 @@ W.A.V.E는 정식 1.0 출시 전까지 `0.x.y` 버전을 사용한다. 병합된
 - 릴리즈 기준 태그 안전장치 PR #40 — `v0.7.5`
 - README 최신화 PR #41 — `v0.7.6`
 - 지역 여행 친구 PR #42 — `v0.8.0`
-- 총 37개 PR 기반 버전
+- 이후 병합 버전은 [GitHub Releases](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/releases)와 자동화된 태그를 단일 최신 이력으로 사용
 
 PR #37 병합 때 백필과 일반 릴리즈 워크플로가 동시에 실행돼 잘못 생성된
 `v0.1.1`은 PR #38의 제한적 교정 로직이 제거한 뒤, 원래 대상인 PR #3

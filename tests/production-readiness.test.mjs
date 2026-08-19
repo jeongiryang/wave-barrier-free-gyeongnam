@@ -15,6 +15,28 @@ test("Vercel applies baseline browser security headers", async () => {
   assert.match(headers["Permissions-Policy"], /camera=\(\)/);
 });
 
+test("production metadata exposes canonical discovery and install routes", async () => {
+  const [layout, robots, sitemap, manifest, readme] = await Promise.all([
+    source("app/layout.tsx"),
+    source("app/robots.ts"),
+    source("app/sitemap.ts"),
+    source("app/manifest.ts"),
+    source("README.md"),
+  ]);
+  assert.match(layout, /metadataBase: productionUrl/);
+  assert.match(layout, /alternates: \{ canonical: "\/" \}/);
+  assert.match(layout, /openGraph:/);
+  assert.match(layout, /twitter:/);
+  assert.match(layout, /manifest: "\/manifest\.webmanifest"/);
+  assert.match(robots, /disallow: \["\/api\/", "\/trip\/"\]/);
+  assert.match(robots, /sitemap: `\$\{origin\}\/sitemap\.xml`/);
+  assert.match(sitemap, /`\$\{origin\}\/planner`/);
+  assert.match(manifest, /display: "standalone"/);
+  assert.match(manifest, /purpose: "maskable"/);
+  assert.doesNotMatch(readme, /스페인어/);
+  assert.match(readme, /독일어·러시아어/);
+});
+
 test("anonymous database writes validate origin, JSON and body size before storage", async () => {
   const worker = await source("worker/index.ts");
   assert.match(worker, /function readTrustedJson/);
