@@ -37,3 +37,13 @@ export type MapProvider = "kakao" | "osm" | "loading";
 export type MapToolPanel = "nearby" | "layers" | "export" | "route" | "place" | null;
 export type MapPickMode = "origin" | "destination" | null;
 export type MeasurementMode = "POLYLINE" | "CIRCLE" | "POLYGON";
+
+export type RouteMapProps = {
+  origin: RoutePoint;
+  places: MapPlace[];
+  route: RouteAlternative | null;
+  crowd?: CrowdSignal | null;
+  crowdPlaceId?: string;
+  onOriginChange?: (point: RoutePoint, label: string) => void;
+  onDestinationChange?: (place: MapPlace) => void;
+};

@@ -195,7 +195,7 @@ test("all eighteen regions use original W.A.V.E travel characters instead of emo
 });
 
 test("device location is not persisted with saved routes", async () => {
-  const map = await source("components/RouteMap.tsx");
+  const map = await source("features/routing/useRouteMapController.ts");
   const saveRoute = map.slice(map.indexOf("function saveRoute"), map.indexOf("async function shareRoute"));
   assert.doesNotMatch(saveRoute, /origin\s*,|geometry|mapX|mapY|lat:|lng:/);
   assert.match(saveRoute, /places\.slice/);
@@ -435,9 +435,10 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
 });
 
-test("route-map rendering delegates provider lifecycle, controls, SDK, domain helpers and image export", async () => {
-  const [map, commandBar, nearbyPanel, placePanel, planner, types, sdk, helpers, renderer, imageExport] = await Promise.all([
+test("route-map rendering delegates controller, provider lifecycle, controls and domain helpers", async () => {
+  const [map, controller, commandBar, nearbyPanel, placePanel, planner, types, sdk, helpers, renderer, imageExport] = await Promise.all([
     source("components/RouteMap.tsx"),
+    source("features/routing/useRouteMapController.ts"),
     source("features/routing/components/MapCommandBar.tsx"),
     source("features/routing/components/NearbyPlacesPanel.tsx"),
     source("features/routing/components/MapPlacePanel.tsx"),
@@ -448,15 +449,17 @@ test("route-map rendering delegates provider lifecycle, controls, SDK, domain he
     source("features/routing/useMapRenderer.ts"),
     source("features/routing/export-route-image.ts"),
   ]);
-  assert.match(map, /import \{ exportRouteImage \} from "\.\.\/features\/routing\/export-route-image"/);
-  assert.match(map, /useMapRenderer\(\{/);
+  assert.match(map, /useRouteMapController\(props\)/);
+  assert.doesNotMatch(map, /useState|useEffect|useMapRenderer/);
+  assert.match(controller, /import \{ exportRouteImage \} from "\.\/export-route-image"/);
+  assert.match(controller, /useMapRenderer\(\{/);
   assert.match(map, /<MapCommandBar/);
   assert.match(map, /<NearbyPlacesPanel/);
   assert.doesNotMatch(map, /className="map-command-scroll"|className="map-poi-list"|className="map-place-copy"/);
   assert.match(commandBar, /className="map-command-scroll"/);
   assert.match(nearbyPanel, /className="map-poi-list"/);
   assert.match(placePanel, /className="map-place-copy"/);
-  assert.doesNotMatch(map, /loadKakaoSdk|L\.tileLayer|new K\.Map|canvas\.width = 1600/);
+  assert.doesNotMatch(`${map}\n${controller}`, /loadKakaoSdk|L\.tileLayer|new K\.Map|canvas\.width = 1600/);
   assert.match(planner, /import type \{ MapPlace \} from "\.\.\/\.\.\/routing\/types"/);
   assert.match(types, /export type RouteAlternative/);
   assert.match(sdk, /Kakao SDK load timed out/);
