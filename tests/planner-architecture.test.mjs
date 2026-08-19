@@ -42,6 +42,21 @@ test("planner route composes feature sections instead of owning their dense UI",
   assert.doesNotMatch(page, /className="planner-bento"|className="place-carousel"|className="weather-board"|className="navigation-workspace"|className="api-bento"/);
 });
 
+test("navigation workspace delegates transport data and map route interactions", async () => {
+  const [workspace, transport, mapRoute] = await Promise.all([
+    source("features/planner/components/NavigationWorkspace.tsx"),
+    source("features/planner/components/TransportDataOverview.tsx"),
+    source("features/planner/components/RouteMapWorkspace.tsx"),
+  ]);
+
+  assert.match(workspace, /<TransportDataOverview/);
+  assert.match(workspace, /<RouteMapWorkspace/);
+  assert.doesNotMatch(workspace, /transport-data-results|trip-point-picker|route-options/);
+  assert.match(transport, /transport-data-results/);
+  assert.match(mapRoute, /trip-point-picker/);
+  assert.match(mapRoute, /<RouteMap/);
+});
+
 test("planner domain types are shared across route and signal controllers", async () => {
   const [types, routePlanning, signals] = await Promise.all([
     source("features/planner/types.ts"),
