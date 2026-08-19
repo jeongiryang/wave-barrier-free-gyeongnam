@@ -214,7 +214,6 @@ html[data-motion="calm"] .auth-copy-phrase::after { display: none; }
   .auth-journey-preview > span { grid-template-columns: 28px 1fr; }
   .auth-journey-preview small { grid-column: 2; }
   .auth-card { padding: 24px 18px; border-radius: 22px; }
-  .community-header-actions .preference-controls { display: none; }
   .community-header .account-button,.community-header .account-loading,.community-header .account-menu > summary { min-width: 44px; padding-inline: 10px; }
   .community-hero { width: calc(100% - 32px); padding: 55px 0; gap: 32px; }
   .community-hero h1 { font-size: clamp(3.1rem,16vw,5rem); }

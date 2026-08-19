@@ -149,47 +149,51 @@ test("semantic releases are created from merged main commits with least privileg
 });
 
 test("saved preferences survive a reload", async () => {
-  const preferences = await source("components/SitePreferences.tsx");
+  const [context, storage] = await Promise.all([
+    source("features/preferences/context.tsx"),
+    source("features/preferences/storage.ts"),
+  ]);
   // 저장된 값을 읽기 전에 기본값을 써 버리면 이용자가 고른 테마와 언어가 지워진다.
   // 읽기가 끝났음을 알리는 표시가 있고, 저장이 그 뒤에만 일어나야 한다.
-  assert.match(preferences, /setHydrated\(true\)/);
-  assert.match(preferences, /finally\s*\{\s*\/\/[^\n]*\n\s*setHydrated\(true\)/);
-  const persistEffect = preferences.slice(preferences.indexOf("document.documentElement.dataset.theme"));
-  const gateIndex = persistEffect.indexOf("if (!hydrated) return;");
-  const writeIndex = persistEffect.indexOf('window.localStorage.setItem("wave-theme"');
-  assert.ok(gateIndex >= 0, "저장 전에 hydrated 확인이 있어야 한다");
-  assert.ok(gateIndex < writeIndex, "hydrated 확인이 저장보다 먼저 와야 한다");
-  assert.match(persistEffect, /try\s*\{[\s\S]*localStorage\.setItem\("wave-theme"[\s\S]*\}\s*catch/);
+  assert.match(context, /const stored = readStoredPreferences\(\)/);
+  assert.match(context, /setMotion\(stored\.motion\)[\s\S]*setHydrated\(true\)/);
+  assert.match(context, /if \(hydrated\) writeStoredPreferences/);
+  assert.match(storage, /localStorage\.getItem\("wave-theme"\)/);
+  assert.match(storage, /try\s*\{[\s\S]*localStorage\.setItem\("wave-theme"[\s\S]*\}\s*catch/);
 });
 
 test("wave motion preference is persisted, localized and respects reduced motion", async () => {
-  const [preferences, wave, landing, css] = await Promise.all([
-    source("components/SitePreferences.tsx"),
+  const [storage, controls, translations, wave, intro, css] = await Promise.all([
+    source("features/preferences/storage.ts"),
+    source("features/preferences/PreferenceControls.tsx"),
+    source("features/preferences/translations.ts"),
     source("components/WaveField.tsx"),
-    source("app/page.tsx"),
+    source("features/landing/useLandingIntro.ts"),
     source("app/globals.css"),
   ]);
-  assert.match(preferences, /localStorage\.getItem\("wave-motion"\)/);
-  assert.match(preferences, /localStorage\.setItem\("wave-motion", motion\)/);
-  assert.match(preferences, /aria-pressed=\{motion === "calm"\}/);
-  assert.match(preferences, /const motionCopy: Record<Locale/);
+  assert.match(storage, /localStorage\.getItem\("wave-motion"\)/);
+  assert.match(storage, /localStorage\.setItem\("wave-motion", preferences\.motion\)/);
+  assert.match(controls, /aria-pressed=\{motion === "calm"\}/);
+  assert.match(controls, /<details className="preference-controls">/);
+  assert.match(translations, /export const motionCopy: Record<Locale/);
   assert.match(wave, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
-  assert.match(landing, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(intro, /motion === "calm" \|\| reducedMotion \|\| seen \? "hidden" : "show"/);
+  assert.match(intro, /window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)\.matches/);
   assert.match(css, /html\[data-motion="calm"\] \.hero-wave-canvas \{ display: none; \}/);
 });
 
 test("non-Korean locales are visibly marked Beta without breaking narrow headers", async () => {
-  const [preferences, css] = await Promise.all([
-    source("components/SitePreferences.tsx"),
-    source("app/globals.css"),
+  const [translations, controls, css] = await Promise.all([
+    source("features/preferences/translations.ts"),
+    source("features/preferences/PreferenceControls.tsx"),
+    source("app/styles/preferences.css"),
   ]);
-  assert.match(preferences, /id: "ko"[^\n]+beta: false/);
-  assert.equal((preferences.match(/beta: true/g) || []).length, 7);
-  assert.match(preferences, /item\.beta \? " · Beta"/);
-  assert.match(preferences, /className="language-beta"/);
-  assert.match(css, /\.preference-controls select,.preference-controls button \{ min-height: 44px/);
-  assert.match(css, /@media \(max-width: 780px\)[\s\S]*\.preference-controls select \{ width: 58px/);
-  assert.match(css, /@media \(max-width: 380px\)[\s\S]*\.language-beta \{ position: absolute/);
+  assert.match(translations, /id: "ko"[^\n]+beta: false/);
+  assert.equal((translations.match(/beta: true/g) || []).length, 7);
+  assert.match(controls, /item\.beta \? " · Beta"/);
+  assert.match(controls, /selectedLocale\.beta \? "Beta 번역"/);
+  assert.match(css, /\.preference-controls > summary \{[\s\S]*min-height: 44px/);
+  assert.match(css, /@media \(max-width: 680px\)[\s\S]*\.preference-panel \{ position: fixed/);
 });
 
 test("planner ignores stale route, enrichment and location-search responses", async () => {

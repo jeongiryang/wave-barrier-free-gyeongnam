@@ -11,6 +11,7 @@ import { RegionMascot } from "../components/RegionMascot";
 import GithubFooterLink from "../components/GithubFooterLink";
 import AccountMenu from "../components/AccountMenu";
 import { LandingCommunityStory, LandingProductStories } from "../components/LandingStories";
+import { useLandingIntro } from "../features/landing/useLandingIntro";
 
 const regions = [
   { name: "거창", story: "수승대와 산골 무대", x: 19, y: 16 },
@@ -38,9 +39,6 @@ const values = [
   { number: "02", title: "근거를 함께", copy: "관광지 사진만 보여주지 않고 접근로·화장실·승강기와 데이터 기준 시점을 함께 표시합니다." },
   { number: "03", title: "이동까지 연결", copy: "관광지를 고르는 데서 끝내지 않고 시간·요금·환승·도보를 비교해 하루의 이동을 설계합니다." },
 ];
-
-// 첫 방문 연출은 브랜드를 전달하되 실제 여행 시작을 기다리게 하지 않는다.
-const INTRO_DURATION_MS = 2450;
 
 type RegionPhoto = { id: string; title: string; image: string; location: string; photographer: string; month: string };
 
@@ -86,8 +84,8 @@ function Intro({ close }: { close: () => void }) {
 }
 
 export default function LandingPage() {
-  const { t, motion } = useSitePreferences();
-  const [intro, setIntro] = useState(true);
+  const { t, motion, hydrated } = useSitePreferences();
+  const { introState, finishIntro } = useLandingIntro({ hydrated, motion });
   const [activeRegion, setActiveRegion] = useState("창원");
   const [previewRegion, setPreviewRegion] = useState<string | null>(null);
   const [regionPhotos, setRegionPhotos] = useState<Record<string, RegionPhoto | null | undefined>>({});
@@ -97,11 +95,6 @@ export default function LandingPage() {
   const photoRequests = useRef(new Set<string>());
   const active = useMemo(() => regions.find((item) => item.name === activeRegion) ?? regions[10], [activeRegion]);
   const preview = useMemo(() => regions.find((item) => item.name === previewRegion) ?? null, [previewRegion]);
-
-  const finishIntro = useCallback(() => {
-    window.sessionStorage.setItem("wave-intro-seen-v2", "1");
-    setIntro(false);
-  }, []);
 
   const loadRegionPhoto = useCallback(async (region: string) => {
     if (photoRequests.current.has(region)) return;
@@ -120,18 +113,6 @@ export default function LandingPage() {
       window.clearTimeout(timeout);
     }
   }, []);
-
-  useEffect(() => {
-    // 파동 효과를 끈 이용자에게는 인트로 연출을 보여 주지 않는다(Refs #21).
-    const reduced = motion === "calm" || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const seen = window.sessionStorage.getItem("wave-intro-seen-v2");
-    if (reduced || seen) {
-      const frame = window.requestAnimationFrame(() => setIntro(false));
-      return () => window.cancelAnimationFrame(frame);
-    }
-    const timer = window.setTimeout(() => finishIntro(), INTRO_DURATION_MS);
-    return () => window.clearTimeout(timer);
-  }, [finishIntro, motion]);
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -185,7 +166,7 @@ export default function LandingPage() {
       landingRef.current.style.setProperty("--pointer-rx", String((event.clientX / Math.max(window.innerWidth, 1) - .5) * 2));
       landingRef.current.style.setProperty("--pointer-ry", String((event.clientY / Math.max(window.innerHeight, 1) - .5) * 2));
     }}>
-      {intro && <Intro close={finishIntro} />}
+      {introState === "show" && <Intro close={finishIntro} />}
       <div className="landing-pointer-glow" aria-hidden="true" />
       <aside className="chapter-rail" aria-hidden="true"><span>INTRO</span><i><b /></i><span>GO</span></aside>
       <a className="skip-link" href="#story">{t("skip", "소개 바로가기")}</a>
