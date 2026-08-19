@@ -409,7 +409,7 @@ test("planner state is divided into testable feature hooks without overwriting s
 });
 
 test("the server entry delegates shared policy and provider domains to focused modules", async () => {
-  const [worker, env, http, providerFacade, providerNormalizers, tourismProvider, publicTransportProvider, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, planBuilder, restoration, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources, visitorDemand, trips] = await Promise.all([
+  const [worker, env, http, providerFacade, providerNormalizers, tourismProvider, publicTransportProvider, weather, location, transport, transportContext, odsay, kakaoRoute, transportHealth, tourism, planBuilder, restoration, tourismCatalog, tourismModels, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources, visitorDemand, trips, tripActions, tripDatabase, tripFeedback] = await Promise.all([
     source("worker/index.ts"),
     source("server/shared/env.ts"),
     source("server/shared/http.ts"),
@@ -435,6 +435,9 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/tourism/enrichment-sources.ts"),
     source("server/tourism/visitor-demand.ts"),
     source("server/trips/handler.ts"),
+    source("server/trips/itinerary-actions.ts"),
+    source("server/trips/database.ts"),
+    source("server/trips/feedback-handler.ts"),
   ]);
   assert.match(worker, /import \{ portableEnv \} from "\.\.\/server\/shared\/env"/);
   assert.match(worker, /import \{ json \} from "\.\.\/server\/shared\/http"/);
@@ -478,8 +481,10 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(enrichmentSources, /GoCamping/);
   assert.match(visitorDemand, /DataLabService/);
   assert.match(trips, /export async function handleTripsApi/);
-  assert.match(trips, /export async function handleFeedbackApi/);
-  assert.match(trips, /CREATE TABLE IF NOT EXISTS itineraries/);
+  assert.match(trips, /loadSharedTrip/);
+  assert.match(tripActions, /export async function saveSharedTrip/);
+  assert.match(tripFeedback, /export async function handleFeedbackApi/);
+  assert.match(tripDatabase, /CREATE TABLE IF NOT EXISTS itineraries/);
   assert.match(providerNormalizers, /export function normalizeXmlItems/);
   assert.match(weather, /AbortSignal\.timeout\(8000\)/);
   assert.match(location, /AbortSignal\.timeout\(7000\)/);
@@ -597,7 +602,7 @@ test("shared trips restore saved places, order and date assignments from officia
   const [planner, participation, trips, restoration, shared] = await Promise.all([
     plannerProductSource(),
     source("features/planner/hooks/usePlannerParticipation.ts"),
-    source("server/trips/handler.ts"),
+    source("server/trips/payload.ts"),
     source("server/tourism/shared-plan-restoration.ts"),
     source("app/trip/[id]/page.tsx"),
   ]);
@@ -606,7 +611,7 @@ test("shared trips restore saved places, order and date assignments from officia
   assert.match(restoration, /export async function restoreSharedPlan/);
   assert.match(restoration, /"KorService2", "detailCommon2"/);
   assert.match(restoration, /"KorWithService2", "detailWithTour2"/);
-  assert.match(trips, /selectedIds\.size \? places\.filter/);
+  assert.match(trips, /selectedIds\.size[\s\S]+places\.filter/);
   assert.match(restoration, /restoration: \{ requested: refs\.length, restored: places\.length, missing, mode: "content-id" \}/);
   assert.match(shared, /저장 장소 최신 확인/);
   assert.match(shared, /날짜별 저장 일정/);
