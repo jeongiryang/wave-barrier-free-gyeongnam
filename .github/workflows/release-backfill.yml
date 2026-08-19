@@ -1,14 +1,10 @@
 name: Release Backfill
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/release-backfill.yml
-      - scripts/backfill-releases.mjs
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: semantic-release
@@ -19,13 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: 백필 전용 토큰 확인
+        env:
+          RELEASE_GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+        run: test -n "$RELEASE_GITHUB_TOKEN" || { echo "RELEASE_GITHUB_TOKEN secret이 필요합니다."; exit 1; }
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: PR별 태그와 릴리즈 생성
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
         run: node scripts/backfill-releases.mjs

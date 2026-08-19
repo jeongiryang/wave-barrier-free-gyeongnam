@@ -16,7 +16,8 @@ W.A.V.E는 정식 1.0 출시 전까지 `0.x.y` 버전을 사용한다. 병합된
 - 백필 권한 수정 PR #37 — `v0.7.2`
 - 백필 경쟁 조건 수정 PR #38 — `v0.7.3`
 - 과거 커밋 태그 생성 수정 PR #39 — `v0.7.4`
-- 총 34개 PR 기반 버전
+- 릴리즈 기준 태그 안전장치 PR #40 — `v0.7.5`
+- 총 35개 PR 기반 버전
 
 PR #37 병합 때 백필과 일반 릴리즈 워크플로가 동시에 실행돼 잘못 생성된
 `v0.1.1`은 PR #38의 제한적 교정 로직이 제거한 뒤, 원래 대상인 PR #3
@@ -24,6 +25,13 @@ PR #37 병합 때 백필과 일반 릴리즈 워크플로가 동시에 실행돼
 조건 산출물과 모두 일치할 때만 수행한다. 교정은 성공했으며, 과거 커밋 태그는
 checkout이 보관한 Actions 토큰으로 lightweight tag를 먼저 push한 뒤 해당 태그에
 릴리즈를 연결한다.
+
+과거 커밋 중 GitHub Actions 워크플로 변경을 포함한 커밋은 기본
+`GITHUB_TOKEN`으로 태그를 만들 수 없다. 따라서 백필은 저장소 Secret
+`RELEASE_GITHUB_TOKEN`에 `Contents: read/write`와 `Workflows: read/write`
+권한이 있는 fine-grained token을 등록한 뒤 `Release Backfill`을 수동 실행한다.
+`v0.7.5`가 확인되기 전까지 일반 `Release`는 새 버전을 만들지 않아 불완전한
+이력 위에 잘못된 버전이 생기지 않는다.
 
 실제 전체 매핑은 검증·실행 가능한
 [`scripts/backfill-releases.mjs`](../scripts/backfill-releases.mjs)에 단일 원본으로 둔다.
