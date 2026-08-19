@@ -4,7 +4,7 @@
 새 화면이나 컴포넌트를 만들 때는 여기 있는 토큰을 먼저 찾아 쓰고,
 없을 때만 새 값을 만들되 이 문서에 함께 추가합니다.
 
-기본 색상·reset·초기 레이아웃은 [`app/globals.css`](../app/globals.css)에 둡니다. 제품 화면은 초기 랜딩·플래너 골격을 맡는 [`product-foundations.css`](../app/styles/product-foundations.css), 도구 중심 플래너 위계를 맡는 [`planner-workspace.css`](../app/styles/planner-workspace.css), 지도·경로·날씨 표현을 맡는 [`map-experience.css`](../app/styles/map-experience.css), 상황 대응과 최종 제품 보정을 맡는 [`product-refinements.css`](../app/styles/product-refinements.css) 순서로 불러옵니다. 공통 간격·모서리·그림자·모션 토큰과 접근 가능한 공통 패턴은 [`app/styles/design-system.css`](../app/styles/design-system.css)에 선언합니다. 도움말·모션 감소·터치 영역·반응형 안전 영역 보정은 [`app/styles/experience-accessibility.css`](../app/styles/experience-accessibility.css)가 담당합니다.
+기본 색상·reset·초기 레이아웃은 [`app/globals.css`](../app/globals.css)에 둡니다. 제품 골격은 랜딩, 플래너, 지역 탐색, 테마·일정 foundation으로 나뉘며 도구 위계는 [`planner-workspace.css`](../app/styles/planner-workspace.css)가 담당합니다. 랜딩 motion과 공통 반응형 보정도 별도 layer로 분리합니다. 지도·경로·날씨는 map feature layer에, 상황 대응과 Deep Ocean 보정은 situation/intro/landing/planner/responsive refinement layer에 둡니다. 실제 import 순서가 cascade 계약이며 [`app/layout.tsx`](../app/layout.tsx)와 repository policy test가 이를 고정합니다. 공통 간격·모서리·그림자·모션 토큰은 [`app/styles/design-system.css`](../app/styles/design-system.css), 도움말·모션 감소·터치 영역·안전 영역은 [`app/styles/experience-accessibility.css`](../app/styles/experience-accessibility.css)가 담당합니다.
 
 ---
 

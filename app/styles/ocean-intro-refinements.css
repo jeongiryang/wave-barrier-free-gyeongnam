@@ -1,0 +1,50 @@
+
+/* ==========================================================================
+   Deep Ocean 통합 레이어
+   앞선 규칙과 특정도가 같으므로 나중에 선언된 이 블록이 최종값이 된다.
+   ========================================================================== */
+
+/* --- 인트로: 경계 없는 하나의 심해 --------------------------------------- */
+.brand-intro {
+  position: fixed; z-index: 150; inset: 0;
+  display: grid; place-items: center;
+  overflow: hidden; color: #fff;
+  background: var(--abyss);
+  animation: landingIntroOut .5s 1.95s cubic-bezier(.76,0,.24,1) forwards;
+}
+.brand-intro::before, .brand-intro::after { content: none; }
+.brand-intro-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.brand-intro > button {
+  position: absolute; z-index: 3; right: var(--gutter); top: var(--gutter);
+  min-height: 44px; padding: 9px 17px;
+  border: 1px solid rgba(111,227,208,.38); border-radius: 999px;
+  color: #d8f7f2; background: rgba(4,32,47,.55); backdrop-filter: blur(8px);
+  font-size: .82rem; font-weight: 800;
+}
+.brand-intro > button:hover { color: var(--abyss); background: var(--mint); }
+.brand-intro-copy {
+  position: relative; z-index: 2;
+  width: min(1240px, calc(100vw - var(--gutter) * 2));
+  min-height: 100svh;
+  padding: clamp(76px, 13vh, 132px) 0 clamp(44px, 8vh, 92px);
+  display: grid; grid-template-rows: auto 1fr auto;
+  justify-items: center; text-align: center;
+}
+/* 워드마크는 캔버스가 물결로 그리므로 문서에는 대체 텍스트로만 남긴다. */
+.brand-intro-copy h1 {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap;
+}
+.brand-intro-copy > p {
+  align-self: start; margin: 0;
+  color: var(--mint); font-size: clamp(.6rem, 1.5vw, .78rem);
+  font-weight: 850; letter-spacing: .3em;
+}
+.brand-intro .intro-statement {
+  align-self: end; display: grid; gap: 3px;
+  animation: introCopyRise .55s .65s both;
+}
+.brand-intro .intro-statement span { color: #93bed2; font-size: clamp(.8rem, 1.7vw, .98rem); }
+.brand-intro .intro-statement strong { margin-top: 10px; color: #eaf8ff; font-size: clamp(1rem, 2.5vw, 1.45rem); letter-spacing: -.02em; }
+@keyframes introCopyRise { from { opacity: 0; transform: translateY(14px); } }

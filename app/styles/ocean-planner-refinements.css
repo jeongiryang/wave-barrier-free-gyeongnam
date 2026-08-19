@@ -1,0 +1,34 @@
+
+/* --- 플래너: 기능 단위로 끊어 읽는 구역 ---------------------------------- */
+.planner-page { background: var(--surface); }
+.planner-page > .planner-section,
+.planner-page > .places-section,
+.planner-page > .navigation-section,
+.planner-page > .travel-layers,
+.planner-page > .route-section,
+.planner-page > .data-section,
+.planner-page > .connection-diagnostics {
+  --card-pad-x: clamp(20px, 2.8vw, 46px);
+  width: min(1560px, calc(100vw - var(--gutter) * 2));
+  margin: 0 auto clamp(18px, 2.4vw, 32px);
+  padding: clamp(26px, 3.2vw, 52px) var(--card-pad-x);
+  overflow: visible;
+  border: 1px solid var(--line);
+  border-radius: clamp(20px, 2.2vw, 28px);
+  background: var(--white);
+  box-shadow: 0 16px 40px rgba(6,48,74,.055);
+}
+.planner-page > .planner-section:first-of-type { margin-top: clamp(18px, 2.4vw, 32px); }
+.planner-page > .places-section { background: var(--paper); }
+/* 데이터 탐색은 의도적으로 짙은 바다 카드로 두어 기능 구분을 강하게 만든다. */
+.planner-page > .travel-layers { border-color: transparent; background: var(--ink); }
+.planner-page > .simple-footer { margin-top: clamp(18px, 2.4vw, 32px); border-top: 1px solid var(--line); }
+
+/* 카드가 좌우 여백을 담당하므로 개별 구역의 최대폭 제약을 푼다. */
+.navigation-section .workspace-heading, .navigation-section .transport-mode-filter,
+.navigation-section .transport-provider-strip, .navigation-section .transport-live-rail,
+.navigation-section .transport-dataset-grid, .navigation-section .transport-data-panel,
+.navigation-workspace, .planner-section .workspace-heading, .planner-section .planner-bento {
+  max-width: none;
+}
+.tool-launch { padding-inline: max(var(--gutter), calc((100vw - 1560px) / 2)); background: transparent; }
