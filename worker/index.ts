@@ -2,15 +2,24 @@
 import { neon } from "@neondatabase/serverless";
 import { calculateAccessibilityEvidence } from "../lib/accessibility-score.js";
 import { handleLocationSearch } from "../server/location/handler";
+import {
+  attemptProvider as attempt,
+  commonParams,
+  fetchPublicTransportData as fetchPublicTransport,
+  fetchRegionalList,
+  fetchTourismData as fetchKto,
+  koreaYmd,
+  normalizeExpresswayItems,
+  normalizeItems,
+  normalizeXmlItems,
+  publicTransportKey,
+  transportProvider,
+  type ProviderAttempt as Attempt,
+  type ProviderItem as KtoItem,
+} from "../server/shared/provider-data";
 import { portableEnv, type Env } from "../server/shared/env";
 import { clean, httpsUrl, json, readTrustedJson } from "../server/shared/http";
 import { handleWeatherApi } from "../server/weather/handler";
-
-type KtoItem = Record<string, string | number | null | undefined>;
-
-type KtoResult = { items: KtoItem[]; total: number };
-type Attempt = { ok: true; value: KtoResult } | { ok: false; error: string };
-type TransportProviderState = "connected" | "ready" | "error" | "missing";
 
 const regionCodes: Record<string, { legal: string[]; full: string[] }> = {
   "경남 전체": { legal: [], full: [] },
@@ -74,16 +83,6 @@ const profileFields: Record<string, Array<[string, string]>> = {
   hearing: [["signguide", "수어안내"], ["videoguide", "영상안내"], ["hearingroom", "청각지원 객실"]],
 };
 
-function commonParams(rows = "12") {
-  return {
-    numOfRows: rows,
-    pageNo: "1",
-    MobileOS: "WEB",
-    MobileApp: "WAVE",
-    _type: "json",
-  };
-}
-
 function hasMeaningfulValue(value: unknown) {
   const text = clean(value);
   return Boolean(text && !/(없음|미제공|해당없음|정보 없음|불가)/.test(text));
@@ -94,165 +93,6 @@ function fieldState(value: unknown): "positive" | "negative" | "unknown" {
   if (!text || /(미제공|정보 없음|확인 필요|해당없음)/.test(text)) return "unknown";
   if (/(없음|불가|미설치|이용 불가능|지원 안)/.test(text)) return "negative";
   return "positive";
-}
-
-function normalizeItems(data: unknown): KtoResult {
-  const root = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
-  const response = (root.response && typeof root.response === "object" ? root.response : root) as Record<string, unknown>;
-  const header = (response.header && typeof response.header === "object" ? response.header : {}) as Record<string, unknown>;
-  const code = clean(header.resultCode);
-  if (code && !["0", "00", "0000"].includes(code)) {
-    throw new Error(clean(header.resultMsg || "한국관광공사 API 오류", 120));
-  }
-  const body = (response.body && typeof response.body === "object" ? response.body : {}) as Record<string, unknown>;
-  const itemsNode = body.items && typeof body.items === "object" ? body.items as Record<string, unknown> : {};
-  const item = itemsNode.item;
-  const items = Array.isArray(item) ? item : item && typeof item === "object" ? [item] : [];
-  return { items: items as KtoItem[], total: Number(body.totalCount || items.length || 0) };
-}
-
-function normalizeExpresswayItems(data: unknown): KtoResult {
-  const root = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
-  const list = root.list || root.items || root.data;
-  const items = Array.isArray(list) ? list : list && typeof list === "object" ? [list] : [];
-  return { items: items as KtoItem[], total: Number(root.count || root.totalCount || items.length || 0) };
-}
-
-function decodeXml(value: string) {
-  return value
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, "&");
-}
-
-/**
- * 일부 공공데이터 API는 JSON을 명시해도 XML만 반환한다. 외부 패키지 없이
- * 반복 item 노드의 직계 필드를 안전하게 평탄화해 기존 관광 데이터 모델로 넘긴다.
- */
-function normalizeXmlItems(xml: string): KtoResult {
-  const errorMessage = xml.match(/<(?:resultMsg|returnAuthMsg|errMsg)>([\s\S]*?)<\/(?:resultMsg|returnAuthMsg|errMsg)>/i)?.[1];
-  const resultCode = clean(xml.match(/<resultCode>([\s\S]*?)<\/resultCode>/i)?.[1]);
-  if (resultCode && !["0", "00", "0000"].includes(resultCode)) {
-    throw new Error(clean(decodeXml(errorMessage || "공공데이터 API 오류"), 120));
-  }
-  const blocks = [...xml.matchAll(/<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi)].map((match) => match[1]);
-  const items = blocks.map((block) => {
-    const item: KtoItem = {};
-    for (const field of block.matchAll(/<([A-Za-z_][\w.-]*)(?:\s[^>]*)?>([\s\S]*?)<\/\1>/g)) {
-      item[field[1]] = clean(decodeXml(field[2]), 2000);
-    }
-    return item;
-  });
-  const total = Number(clean(xml.match(/<totalCount>([\s\S]*?)<\/totalCount>/i)?.[1]) || items.length);
-  return { items, total };
-}
-
-async function fetchKto(env: Env, service: string, operation: string, params: Record<string, string>): Promise<KtoResult> {
-  const key = env.TOUR_API_SERVICE_KEY_ENCODED?.trim();
-  if (!key) throw new Error("서버 인증키가 등록되지 않았습니다.");
-  const query = new URLSearchParams(params).toString();
-  const url = `https://apis.data.go.kr/B551011/${service}/${operation}?serviceKey=${key}&${query}`;
-  const response = await fetch(url, {
-    headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(9500),
-  });
-  if (!response.ok) throw new Error(`관광 데이터 응답 ${response.status}`);
-  const raw = await response.text();
-  let data: unknown;
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    const message = raw.match(/<(?:returnAuthMsg|resultMsg)>([^<]+)</i)?.[1];
-    throw new Error(clean(message || "JSON 형식이 아닌 응답을 받았습니다.", 120));
-  }
-  return normalizeItems(data);
-}
-
-function publicTransportKey(env: Env) {
-  return env.TAGO_API_KEY?.trim()
-    || env.KORAIL_API_KEY?.trim()
-    || env.TOUR_API_SERVICE_KEY_ENCODED?.trim()
-    || "";
-}
-
-async function fetchPublicTransport(env: Env, serviceUrl: string, operation: string, params: Record<string, string> = {}): Promise<KtoResult> {
-  const key = publicTransportKey(env);
-  if (!key) throw new Error("공공데이터포털 인증키가 등록되지 않았습니다.");
-  const query = new URLSearchParams({ numOfRows: "30", pageNo: "1", _type: "json", ...params }).toString();
-  const response = await fetch(`${serviceUrl}/${operation}?serviceKey=${key}&${query}`, {
-    headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(9500),
-  });
-  const raw = await response.text();
-  if (!response.ok) {
-    let reason = raw.match(/<(?:returnAuthMsg|resultMsg|errMsg)>([^<]+)</i)?.[1] || "";
-    try {
-      const errorBody = JSON.parse(raw) as Record<string, unknown>;
-      const errorResponse = (errorBody.response || errorBody) as Record<string, unknown>;
-      const errorHeader = (errorResponse.header || errorResponse) as Record<string, unknown>;
-      reason = clean(errorHeader.resultMsg || errorHeader.message || reason, 80);
-    } catch { /* XML or text error bodies are handled above */ }
-    throw new Error(`교통 데이터 응답 ${response.status}${reason ? ` · ${clean(reason, 80)}` : ""}`);
-  }
-  let data: unknown;
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    const message = raw.match(/<(?:returnAuthMsg|resultMsg)>([^<]+)</i)?.[1];
-    throw new Error(clean(message || "교통 API가 JSON이 아닌 응답을 반환했습니다.", 120));
-  }
-  return normalizeItems(data);
-}
-
-function koreaYmd(offsetDays = 0) {
-  const date = new Date(Date.now() + (9 * 60 * 60 * 1000) + (offsetDays * 24 * 60 * 60 * 1000));
-  return `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, "0")}${String(date.getUTCDate()).padStart(2, "0")}`;
-}
-
-function transportProvider(
-  id: string,
-  name: string,
-  role: string,
-  hasKey: boolean,
-  result?: Attempt | null,
-) {
-  let state: TransportProviderState = "missing";
-  let detail = "인증키가 등록되지 않았습니다.";
-  if (hasKey && !result) {
-    state = "ready";
-    detail = "인증키가 연결되어 있으며 기능 요청 시 데이터를 조회합니다.";
-  } else if (hasKey && result?.ok) {
-    const count = Math.max(result.value.total, result.value.items.length);
-    state = count > 0 ? "connected" : "ready";
-    detail = count > 0 ? `${count}건의 응답을 확인했습니다.` : "인증은 정상이며 현재 조건의 결과가 없습니다.";
-  } else if (hasKey && result && !result.ok) {
-    state = "error";
-    detail = result.error || "제공기관 응답을 확인해 주세요.";
-  }
-  return { id, name, role, configured: hasKey, state, detail };
-}
-
-async function attempt(promise: Promise<KtoResult>): Promise<Attempt> {
-  try {
-    return { ok: true, value: await promise };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? clean(error.message, 120) : "호출 확인 필요" };
-  }
-}
-
-async function fetchRegionalList(env: Env, service: string, operation: string, params: Record<string, string>, districts: string[]) {
-  const calls = districts.length
-    ? districts.map((district) => attempt(fetchKto(env, service, operation, { ...params, lDongSignguCd: district })))
-    : [attempt(fetchKto(env, service, operation, params))];
-  const results = await Promise.all(calls);
-  const successes = results.filter((result): result is Extract<Attempt, { ok: true }> => result.ok);
-  if (!successes.length) return results[0];
-  const items = successes.flatMap((result) => result.value.items);
-  const unique = [...new Map(items.map((item) => [clean(item.contentid || item.title), item])).values()];
-  return { ok: true, value: { items: unique, total: unique.length } } as Attempt;
 }
 
 function previousMonth(offset = 2) {
