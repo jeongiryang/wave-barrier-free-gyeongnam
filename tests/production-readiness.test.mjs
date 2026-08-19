@@ -253,12 +253,15 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
 });
 
 test("travel conditions refresh the plan without requiring the submit button", async () => {
-  const planner = await source("app/planner/page.tsx");
+  const [planner, planController] = await Promise.all([
+    source("app/planner/page.tsx"),
+    source("features/planner/hooks/usePlannerPlan.ts"),
+  ]);
   assert.match(planner, /const planSignature = `\$\{region\}\|\$\{theme\}\|\$\{locale\}\|\$\{selected\.join\(","\)\}`/);
   assert.match(planner, /setTimeout\(\(\) => void generatePlanRef\.current\(false\), 550\)/);
-  assert.match(planner, /planRequestRef\.current\?\.abort\(\)/);
-  assert.match(planner, /signal: controller\.signal/);
-  assert.match(planner, /if \(revealResults\) window\.setTimeout/);
+  assert.match(planController, /planRequestRef\.current\?\.abort\(\)/);
+  assert.match(planController, /signal: controller\.signal/);
+  assert.match(planController, /if \(revealResults\) window\.setTimeout/);
   assert.match(planner, /결과 새로고침/);
 });
 
@@ -290,11 +293,14 @@ test("weather and concentration signals lead to accessible, provenance-aware act
 });
 
 test("planner never substitutes prototype places when official data fails", async () => {
-  const planner = await source("app/planner/page.tsx");
+  const [planner, planController] = await Promise.all([
+    source("app/planner/page.tsx"),
+    source("features/planner/hooks/usePlannerPlan.ts"),
+  ]);
   assert.doesNotMatch(planner, /demo-jinhae|demo-cable|demo-jinju/);
   assert.doesNotMatch(planner, /fallbackPlaces|fallbackStops|제안서 기반 미리보기/);
-  assert.match(planner, /setPlanError\(message\)/);
-  assert.match(planner, /임의의 장소를 대신 표시하지 않습니다/);
+  assert.match(planController, /setPlanError\(message\)/);
+  assert.match(planController, /임의의 장소를 대신 표시하지 않습니다/);
   assert.match(planner, /공식 데이터 다시 조회/);
   assert.match(planner, /role=\{planError \? "alert" : "status"\}/);
 });

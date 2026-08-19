@@ -271,8 +271,9 @@ test("planner ignores stale route, enrichment and location-search responses", as
 });
 
 test("planner state is divided into testable feature hooks without overwriting saved trips", async () => {
-  const [planner, tripSelection, routePlanning, routeView, signals, audioGuide, chrome] = await Promise.all([
+  const [planner, planController, tripSelection, routePlanning, routeView, signals, audioGuide, chrome] = await Promise.all([
     source("app/planner/page.tsx"),
+    source("features/planner/hooks/usePlannerPlan.ts"),
     source("features/planner/hooks/useTripSelection.ts"),
     source("features/planner/hooks/useRoutePlanning.ts"),
     source("features/planner/hooks/useRouteView.ts"),
@@ -280,7 +281,7 @@ test("planner state is divided into testable feature hooks without overwriting s
     source("features/planner/hooks/useAudioGuide.ts"),
     source("features/planner/hooks/usePlannerChrome.ts"),
   ]);
-  for (const hook of ["useTripSelection", "useRoutePlanning", "usePlannerSignals", "useAudioGuide", "useLocationSearch", "usePlannerChrome"]) {
+  for (const hook of ["usePlannerPlan", "useTripSelection", "useRoutePlanning", "usePlannerSignals", "useAudioGuide", "useLocationSearch", "usePlannerChrome"]) {
     assert.match(planner, new RegExp(`${hook}\\(`));
   }
   assert.doesNotMatch(planner, /localStorage\.setItem\("wave-saved-places"/);
@@ -292,6 +293,9 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(routePlanning, /nextOriginLabel/);
   assert.doesNotMatch(planner, /routeRequestRef|setRouteAlternatives\(/);
   assert.doesNotMatch(planner, /enrichmentRequestRef|setKeyHealth\(|setWeather\(/);
+  assert.doesNotMatch(planner, /setPlanError\(|planRequestRef/);
+  assert.match(planController, /plannerJson<PlanData>/);
+  assert.match(planController, /const abortPlan = useCallback/);
   assert.match(signals, /optionalPlannerJson<KeyHealth>\("\/api\/health"\)/);
   assert.match(signals, /optionalPlannerJson<WeatherData>/);
   assert.match(audioGuide, /const resetAudio = useCallback/);
