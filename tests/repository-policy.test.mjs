@@ -445,7 +445,12 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/tourism/plan-builder.ts"),
     source("server/tourism/shared-plan-restoration.ts"),
     source("server/tourism/catalog.ts"),
-    source("server/tourism/models.ts"),
+    Promise.all([
+      source("server/tourism/models.ts"),
+      source("server/tourism/accessibility-model.ts"),
+      source("server/tourism/content-model.ts"),
+      source("server/tourism/provider-model.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("server/tourism/photos.ts"),
     source("server/tourism/region-photo.ts"),
     source("server/tourism/spot-photo.ts"),
@@ -495,6 +500,9 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.doesNotMatch(`${tourism}\n${planBuilder}`, /regionPhotoKeywords|normalizeXmlItems|calculateAccessibilityEvidence/);
   assert.match(tourismCatalog, /export const regionCodes/);
   assert.match(tourismModels, /calculateAccessibilityEvidence/);
+  assert.match(tourismModels, /export \{ placeFrom \} from "\.\/accessibility-model"/);
+  assert.match(tourismModels, /export \{ audioFrom, courseFrom, richSpot \} from "\.\/content-model"/);
+  assert.match(tourismModels, /export \{ apiStatus, mergePlaces \} from "\.\/provider-model"/);
   assert.match(tourismPhotos, /export \{ fetchPhoto, photoFrom \} from "\.\/region-photo"/);
   assert.match(regionPhoto, /export async function fetchPhoto/);
   assert.match(spotPhoto, /export async function fetchSpotPhoto/);
