@@ -253,13 +253,14 @@ test("missing tourism images use official live lookup and a visual fallback", as
 });
 
 test("all eighteen regions use original W.A.V.E travel characters instead of emoji markers", async () => {
-  const [landing, mascot] = await Promise.all([
+  const [landing, mascot, characterConfig] = await Promise.all([
     landingProductSource(),
     source("components/RegionMascot.tsx"),
+    source("features/regions/character-config.ts"),
   ]);
   const names = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
-  for (const name of names) assert.match(mascot, new RegExp(`${name}:`));
-  const characterConfig = mascot.slice(mascot.indexOf("const regionCharacters"), mascot.indexOf("function MotifMark"));
+  assert.match(mascot, /<MotifMark motif=\{character\.motif\}/);
+  for (const name of names) assert.match(characterConfig, new RegExp(`${name}:`));
   assert.equal((characterConfig.match(/nickname: "/g) || []).length, 18);
   assert.match(landing, /<RegionMascot region=\{region\.name\} size=\{25\}/);
   assert.match(landing, /<RegionMascot region=\{active\.name\} size=\{54\}/);
