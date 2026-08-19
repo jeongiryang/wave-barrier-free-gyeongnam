@@ -20,6 +20,7 @@ import PlaceDecisionDialog from "../../features/planner/components/PlaceDecision
 import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
 import { useLocationSearch } from "../../features/planner/hooks/useLocationSearch";
 import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
+import { usePlannerParticipation } from "../../features/planner/hooks/usePlannerParticipation";
 import { usePlannerPlan } from "../../features/planner/hooks/usePlannerPlan";
 import { usePlannerSignals } from "../../features/planner/hooks/usePlannerSignals";
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
@@ -36,7 +37,6 @@ import {
   transportModes,
   transportStateLabel,
 } from "../../features/planner/constants";
-import { plannerJson } from "../../features/planner/services/api";
 import type {
   Place,
   RichSpot,
@@ -54,10 +54,6 @@ export default function PlannerPage() {
   } = usePlannerPlan(locale);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
-  const [shareState, setShareState] = useState<"idle" | "saving" | "done" | "error">("idle");
-  const [shareUrl, setShareUrl] = useState("");
-  const [feedbackText, setFeedbackText] = useState("");
-  const [feedbackState, setFeedbackState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const cardsRef = useRef<HTMLDivElement>(null);
   const placeDialogRef = useRef<HTMLElement>(null);
 
@@ -92,6 +88,22 @@ export default function PlannerPage() {
     keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
     weather, weatherLoading, loadEnrichment,
   } = usePlannerSignals({ plan, region, theme, locale, travelStart, travelEnd });
+  const {
+    shareState, shareUrl, feedbackText, feedbackState,
+    changeFeedbackText, sharePlan, submitFeedback,
+  } = usePlannerParticipation({
+    plan,
+    region,
+    theme,
+    profiles: selected,
+    locale,
+    travelStart,
+    travelEnd,
+    scheduleAssignments,
+    selectedPlaceIds: saved,
+    originLabel,
+    selectedPlace,
+  });
   const activeStops = plan?.stops ?? [];
   const statuses = plan ? [...plan.statuses, ...(enrichment?.statuses || [])] : readyStatuses;
   const liveCount = statuses.filter((status) => status.state === "live").length;
@@ -217,31 +229,6 @@ export default function PlannerPage() {
     } catch {
       setRouteNotice(`${provider} 공식 사이트를 열었습니다. 출발 ${originLabel}, 도착 ${destination}을 선택해 주세요.`);
     }
-  }
-
-  async function sharePlan() {
-    if (!plan || shareState === "saving") return;
-    setShareState("saving");
-    try {
-      const data = await plannerJson<{ url?: string }>("/api/trips", {
-        method: "POST",
-        body: { plan, selections: { region, theme, profiles: selected, locale, travelStart, travelEnd, scheduleAssignments, selectedPlaceIds: saved }, origin: { label: originLabel } },
-      });
-      if (!data.url) throw new Error("공유 링크를 만들지 못했습니다.");
-      setShareUrl(data.url); setShareState("done");
-      await navigator.clipboard?.writeText(data.url);
-    } catch {
-      setShareState("error");
-    }
-  }
-
-  async function submitFeedback() {
-    if (!selectedPlace || feedbackText.trim().length < 5 || feedbackState === "sending") return;
-    setFeedbackState("sending");
-    try {
-      await plannerJson<{ ok?: boolean }>("/api/feedback", { method: "POST", body: { placeId: selectedPlace.id, placeName: selectedPlace.name, field: "접근성 정보", message: feedbackText } });
-      setFeedbackText(""); setFeedbackState("done");
-    } catch { setFeedbackState("error"); }
   }
 
   async function generatePlan(revealResults = true) {
@@ -676,7 +663,7 @@ export default function PlannerPage() {
         dialogRef={placeDialogRef}
         onClose={() => setSelectedPlace(null)}
         onToggleSaved={() => { toggleSaved(selectedPlace.id); setSelectedPlace(null); }}
-        onFeedbackChange={(value) => { setFeedbackText(value); setFeedbackState("idle"); }}
+        onFeedbackChange={changeFeedbackText}
         onSubmitFeedback={() => void submitFeedback()}
       />}
 
