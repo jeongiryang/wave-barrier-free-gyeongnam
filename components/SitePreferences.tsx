@@ -7,15 +7,15 @@ type Theme = "light" | "dark";
 /** full: 파동이 흐른다. calm: 정지 화면으로 대체한다. */
 export type Motion = "full" | "calm";
 
-const localeOptions: Array<{ id: Locale; label: string; short: string }> = [
-  { id: "ko", label: "한국어", short: "KO" },
-  { id: "en", label: "English", short: "EN" },
-  { id: "ja", label: "日本語", short: "JA" },
-  { id: "zh-Hans", label: "简体中文", short: "简" },
-  { id: "zh-Hant", label: "繁體中文", short: "繁" },
-  { id: "fr", label: "Français", short: "FR" },
-  { id: "de", label: "Deutsch", short: "DE" },
-  { id: "ru", label: "Русский", short: "RU" },
+const localeOptions: Array<{ id: Locale; label: string; short: string; beta: boolean }> = [
+  { id: "ko", label: "한국어", short: "KO", beta: false },
+  { id: "en", label: "English", short: "EN", beta: true },
+  { id: "ja", label: "日本語", short: "JA", beta: true },
+  { id: "zh-Hans", label: "简体中文", short: "简", beta: true },
+  { id: "zh-Hant", label: "繁體中文", short: "繁", beta: true },
+  { id: "fr", label: "Français", short: "FR", beta: true },
+  { id: "de", label: "Deutsch", short: "DE", beta: true },
+  { id: "ru", label: "Русский", short: "RU", beta: true },
 ];
 
 const motionCopy: Record<Locale, { on: string; off: string }> = {
@@ -164,8 +164,9 @@ export function useSitePreferences() {
 export function PreferenceControls() {
   const { locale, theme, motion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
   const motionLabel = motion === "calm" ? motionCopy[locale].on : motionCopy[locale].off;
+  const selectedLocale = localeOptions.find((item) => item.id === locale) ?? localeOptions[0];
   return <div className="preference-controls">
-    <label><span className="sr-only">{t("language", "언어")}</span><select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>{localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {item.label}</option>)}</select></label>
+    <div className="language-picker"><label><span className="sr-only">{t("language", "언어")}</span><select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>{localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {item.label}{item.beta ? " · Beta" : ""}</option>)}</select></label>{selectedLocale.beta && <span className="language-beta" title="한국어 외 번역은 Beta입니다.">Beta</span>}</div>
     <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")} title={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")}><span aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</span></button>
     <button type="button" className="motion-toggle" onClick={toggleMotion} aria-pressed={motion === "calm"} aria-label={motionLabel} title={motionLabel}><span aria-hidden="true">{motion === "calm" ? "≋" : "≈"}</span></button>
   </div>;
