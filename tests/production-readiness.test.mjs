@@ -141,8 +141,9 @@ test("interactive help follows real sections and remains accessible on mobile", 
 });
 
 test("mobile screens keep controls touchable and content inside safe areas", async () => {
-  const [layout, css] = await Promise.all([
+  const [layout, map, css] = await Promise.all([
     source("app/layout.tsx"),
+    source("components/RouteMap.tsx"),
     source("app/globals.css"),
   ]);
   assert.match(layout, /width: "device-width"/);
@@ -154,4 +155,8 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
   assert.match(css, /\.carousel-actions button,[\s\S]*min-height: 44px/);
   assert.match(css, /@media \(max-width: 380px\)[\s\S]*width: calc\(100vw - 8px\)/);
   assert.match(css, /@media \(max-height: 520px\) and \(orientation: landscape\)/);
+  assert.match(map, /className="map-command-scroll"/);
+  assert.match(map, /className="map-expand-button"[\s\S]*⛶ 전체보기/);
+  assert.match(css, /\.map-command-scroll \{[^}]*overflow-x: auto/);
+  assert.doesNotMatch(css.match(/\.map-command-bar \{[^}]+\}/)?.[0] ?? "", /overflow-x: auto/);
 });

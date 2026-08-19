@@ -807,6 +807,8 @@ html[data-theme="dark"] .route-external { background: #0b2d3c; }
 
 /* V7 — Kakao map workspace: nearby places, layers, roadview and route utilities */
 .map-command-bar { z-index: 510; position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
+.map-command-scroll { min-width: 0; display: flex; gap: 6px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: none; }
+.map-command-scroll::-webkit-scrollbar { display: none; }
 .map-command-bar button { min-height: 35px; padding: 7px 11px; border: 1px solid rgba(10,52,71,.16); border-radius: 10px; color: #173f51; background: rgba(255,255,255,.94); box-shadow: 0 8px 22px rgba(4,46,64,.11); font: 800 .64rem/1 inherit; cursor: pointer; backdrop-filter: blur(14px); transition: transform .18s ease, color .18s, border-color .18s, background .18s; }
 .map-command-bar button:hover:not(:disabled),.map-command-bar button.active { color: #fff; border-color: #0a6baf; background: #0a6baf; transform: translateY(-2px); }
 .map-command-bar button:disabled { opacity: .48; cursor: not-allowed; box-shadow: none; }
@@ -844,7 +846,7 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 
 @media (max-width: 780px) {
   .map-provider-badge { top: 60px; }
-  .map-command-bar { left: 8px; right: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .map-command-bar { left: 8px; right: 8px; padding-bottom: 4px; }
   .map-command-bar button { flex: 0 0 auto; }
   .map-tool-panel { top: 58px; right: 8px; width: calc(100% - 16px); max-height: 63%; }
   .map-poi-results { right: 8px; bottom: 8px; width: calc(100% - 16px); max-height: 46%; }
@@ -868,8 +870,7 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .route-map-shell.drawer-open { grid-template-columns: minmax(0,1fr) minmax(340px,380px); }
 .route-map-canvas { height: 710px; min-width: 0; grid-column: 1; grid-row: 1; }
 .route-map-shell.drawer-open .map-command-bar { right: 396px; }
-.map-command-bar { max-width: calc(100% - 150px); overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: none; }
-.map-command-bar::-webkit-scrollbar { display: none; }
+.map-command-bar { max-width: calc(100% - 150px); }
 .map-command-bar .map-expand-button { color: #fff; border-color: #062736; background: #062736; }
 .map-command-bar .map-expand-button:hover { border-color: #0a6baf; background: #0a6baf; }
 
