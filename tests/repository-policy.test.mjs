@@ -25,6 +25,14 @@ async function plannerProductSource() {
   return (await Promise.all(paths.map(source))).join("\n");
 }
 
+async function plannerPlanSource() {
+  return (await Promise.all([
+    "features/planner/hooks/usePlannerPlan.ts",
+    "features/planner/hooks/usePlannerCriteria.ts",
+    "features/planner/hooks/usePlanRequest.ts",
+  ].map(source))).join("\n");
+}
+
 async function landingProductSource() {
   const paths = [
     "app/page.tsx",
@@ -386,7 +394,7 @@ test("planner ignores stale route, enrichment and location-search responses", as
 test("planner state is divided into testable feature hooks without overwriting saved trips", async () => {
   const [planner, planController, participation, tripSelection, routePlanning, routeOrigin, routeView, signals, audioGuide, chrome] = await Promise.all([
     plannerProductSource(),
-    source("features/planner/hooks/usePlannerPlan.ts"),
+    plannerPlanSource(),
     source("features/planner/hooks/usePlannerParticipation.ts"),
     source("features/planner/hooks/useTripSelection.ts"),
     source("features/planner/hooks/useRoutePlanning.ts"),

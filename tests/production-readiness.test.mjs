@@ -25,6 +25,14 @@ async function plannerProductSource() {
   return (await Promise.all(paths.map(source))).join("\n");
 }
 
+async function plannerPlanSource() {
+  return (await Promise.all([
+    "features/planner/hooks/usePlannerPlan.ts",
+    "features/planner/hooks/usePlannerCriteria.ts",
+    "features/planner/hooks/usePlanRequest.ts",
+  ].map(source))).join("\n");
+}
+
 async function routeMapProductSource() {
   return (await Promise.all([
     "components/RouteMap.tsx",
@@ -346,7 +354,7 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
 test("travel conditions refresh the plan without requiring the submit button", async () => {
   const [planner, planController, autoRefresh] = await Promise.all([
     plannerProductSource(),
-    source("features/planner/hooks/usePlannerPlan.ts"),
+    plannerPlanSource(),
     source("features/planner/hooks/usePlannerAutoRefresh.ts"),
   ]);
   assert.match(planner, /signature: `\$\{region\}\|\$\{theme\}\|\$\{locale\}\|\$\{selected\.join\(","\)\}`/);
@@ -388,7 +396,7 @@ test("weather and concentration signals lead to accessible, provenance-aware act
 test("planner never substitutes prototype places when official data fails", async () => {
   const [planner, planController] = await Promise.all([
     plannerProductSource(),
-    source("features/planner/hooks/usePlannerPlan.ts"),
+    plannerPlanSource(),
   ]);
   assert.doesNotMatch(planner, /demo-jinhae|demo-cable|demo-jinju/);
   assert.doesNotMatch(planner, /fallbackPlaces|fallbackStops|제안서 기반 미리보기/);
