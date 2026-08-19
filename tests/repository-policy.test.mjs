@@ -619,7 +619,7 @@ test("every user-facing footer exposes the repository with an accessible tooltip
     source("components/GithubFooterLink.tsx"),
     landingProductSource(),
     plannerProductSource(),
-    source("app/trip/[id]/page.tsx"),
+    source("features/trips/components/SharedTripScreen.tsx"),
     styleSource(),
   ]);
   assert.match(link, /https:\/\/github\.com\/jeongiryang\/wave-barrier-free-gyeongnam/);
@@ -650,7 +650,11 @@ test("shared trips restore saved places, order and date assignments from officia
     source("features/planner/hooks/usePlannerParticipation.ts"),
     source("server/trips/payload.ts"),
     source("server/tourism/shared-plan-restoration.ts"),
-    source("app/trip/[id]/page.tsx"),
+    Promise.all([
+      source("features/trips/components/SharedTripScreen.tsx"),
+      source("features/trips/components/SharedTripSummary.tsx"),
+      source("features/trips/components/SharedTripItinerary.tsx"),
+    ]).then((parts) => parts.join("\n")),
   ]);
   assert.match(planner, /scheduleAssignments,[\s\S]+selectedPlaceIds: saved/);
   assert.match(participation, /scheduleAssignments,[\s\S]+selectedPlaceIds/);

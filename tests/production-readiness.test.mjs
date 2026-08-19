@@ -403,7 +403,11 @@ test("accessibility evidence determines the first recommendation and itinerary l
 
 test("shared trips recover from slow or malformed network responses", async () => {
   const [page, trips] = await Promise.all([
-    source("app/trip/[id]/page.tsx"),
+    Promise.all([
+      source("features/trips/components/SharedTripScreen.tsx"),
+      source("features/trips/hooks/useSharedTrip.ts"),
+      source("features/trips/client/shared-trip.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("server/trips/handler.ts"),
   ]);
   assert.match(page, /new AbortController\(\)/);
