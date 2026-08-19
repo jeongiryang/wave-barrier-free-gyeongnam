@@ -1,5 +1,7 @@
 import { execFileSync } from "node:child_process";
 
+const BACKFILL_BASELINE = "v0.7.5";
+
 function parseVersion(value) {
   const match = /^v(\d+)\.(\d+)\.(\d+)$/.exec(value);
   return match ? match.slice(1).map(Number) : null;
@@ -34,6 +36,10 @@ async function releaseCurrent() {
   const versions = tags.map((tag) => ({ tag, parts: parseVersion(tag.name) })).filter((entry) => entry.parts)
     .sort((left, right) => left.parts[0] - right.parts[0] || left.parts[1] - right.parts[1] || left.parts[2] - right.parts[2]);
   if (!versions.length) throw new Error("기준 SemVer 태그가 없습니다.");
+  if (!versions.some((entry) => entry.tag.name === BACKFILL_BASELINE)) {
+    console.log(`과거 릴리즈 백필(${BACKFILL_BASELINE})이 끝나지 않아 자동 릴리즈를 건너뜁니다.`);
+    return;
+  }
   const alreadyTagged = versions.find((entry) => entry.tag.commit.sha === process.env.GITHUB_SHA);
   if (alreadyTagged) {
     console.log(`현재 커밋은 이미 ${alreadyTagged.tag.name}으로 릴리즈되었습니다.`);

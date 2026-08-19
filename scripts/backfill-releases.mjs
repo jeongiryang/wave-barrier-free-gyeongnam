@@ -34,7 +34,8 @@ const releases = [
   ["v0.7.1", 36, "81228cca8cc4a66f22658dc3d1a6df1ec66b61c7", "chore: PR별 시맨틱 버전 태그와 릴리즈 백필"],
   ["v0.7.2", 37, "c71a9e9c25ec1f1b7491cf14c081f4c4e57dd3b1", "fix: 릴리즈 백필 권한 오류 수정"],
   ["v0.7.3", 38, "c0cf3f37ab4b689494c34477f990d76422dae84c", "fix: 릴리즈 백필 경쟁 조건 수정"],
-  ["v0.7.4", 39, "$CURRENT", "fix: 과거 커밋 태그 생성 방식 수정"],
+  ["v0.7.4", 39, "1e7031c156b6d6553e34bf565ec3ccb0e1355f62", "fix: 과거 커밋 태그 생성 방식 수정"],
+  ["v0.7.5", 40, "$CURRENT", "fix: 시맨틱 릴리즈 기준 태그 안전장치 추가"],
 ].map(([version, pr, sha, title]) => ({ version, pr, sha, title }));
 
 const accidentalRelease = {
