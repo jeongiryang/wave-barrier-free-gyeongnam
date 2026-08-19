@@ -26,7 +26,12 @@ test("planner page delegates derived data and browser lifecycles to feature modu
   const [page, viewModel, actions, placeAdapters, dialogFocus, autoRefresh] = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/view-model.ts"),
-    source("features/planner/hooks/usePlannerActions.ts"),
+    Promise.all([
+      source("features/planner/hooks/usePlannerActions.ts"),
+      source("features/planner/hooks/usePlannerPointActions.ts"),
+      source("features/planner/hooks/usePlannerImpactAction.ts"),
+      source("features/planner/hooks/useBookingRouteClipboard.ts"),
+    ]).then((parts) => parts.join("\n")),
     source("features/planner/place-adapters.ts"),
     source("features/planner/hooks/usePlaceDialogFocus.ts"),
     source("features/planner/hooks/usePlannerAutoRefresh.ts"),
