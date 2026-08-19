@@ -33,6 +33,15 @@ async function plannerPlanSource() {
   ].map(source))).join("\n");
 }
 
+async function plannerSignalsSource() {
+  return (await Promise.all([
+    "features/planner/hooks/usePlannerSignals.ts",
+    "features/planner/hooks/useServiceHealth.ts",
+    "features/planner/hooks/usePlannerEnrichment.ts",
+    "features/planner/hooks/useRegionWeather.ts",
+  ].map(source))).join("\n");
+}
+
 async function landingProductSource() {
   const paths = [
     "app/page.tsx",
@@ -244,7 +253,7 @@ test("device location is not persisted with saved routes", async () => {
 test("transport provider placeholders settle even when health lookup fails", async () => {
   const [planner, signals, viewModel] = await Promise.all([
     plannerProductSource(),
-    source("features/planner/hooks/usePlannerSignals.ts"),
+    plannerSignalsSource(),
     source("features/planner/view-model.ts"),
   ]);
   assert.match(viewModel, /keyHealthChecked \? "error" : "checking"/);
@@ -372,7 +381,7 @@ test("non-Korean locales are visibly marked Beta without breaking narrow headers
 
 test("planner ignores stale route, enrichment and location-search responses", async () => {
   const [plannerSignals, routePlanning, locationSearch, service] = await Promise.all([
-    source("features/planner/hooks/usePlannerSignals.ts"),
+    plannerSignalsSource(),
     source("features/planner/hooks/useRoutePlanning.ts"),
     source("features/planner/hooks/useLocationSearch.ts"),
     source("features/planner/services/api.ts"),
@@ -403,7 +412,7 @@ test("planner state is divided into testable feature hooks without overwriting s
     source("features/planner/hooks/useRoutePlanning.ts"),
     source("features/planner/hooks/useRouteOrigin.ts"),
     source("features/planner/hooks/useRouteView.ts"),
-    source("features/planner/hooks/usePlannerSignals.ts"),
+    plannerSignalsSource(),
     source("features/planner/hooks/useAudioGuide.ts"),
     source("features/planner/hooks/usePlannerChrome.ts"),
   ]);
