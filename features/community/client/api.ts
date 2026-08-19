@@ -41,7 +41,7 @@ export async function getCommunityPost(postId: string) {
   if (!result.ok || !result.payload.post) {
     throw new Error(result.payload.error || "게시글을 불러오지 못했습니다.");
   }
-  return result.payload;
+  return { ...result.payload, post: result.payload.post };
 }
 
 export function setCommunityLike(postId: string, liked: boolean) {
