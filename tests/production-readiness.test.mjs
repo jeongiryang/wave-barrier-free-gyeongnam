@@ -180,19 +180,20 @@ test("deployment guide uses the current CI check name and Vercel uses Node 22", 
 });
 
 test("contest category, selected task and live OpenAPI use are documented consistently", async () => {
-  const [readme, compliance, policy, landing, planner, tourismHandler, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources] = await Promise.all([
+  const [readme, compliance, policy, landing, planner, tourismHandler, planBuilder, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources] = await Promise.all([
     source("README.md"),
     source("docs/contest-compliance.md"),
     source("docs/competition-operation-policy.md"),
     landingProductSource(),
     plannerProductSource(),
     source("server/tourism/handler.ts"),
+    source("server/tourism/plan-builder.ts"),
     source("server/tourism/photos.ts"),
     source("server/tourism/insights.ts"),
     source("server/tourism/concentration.ts"),
     source("server/tourism/enrichment-sources.ts"),
   ]);
-  const tourism = `${tourismHandler}\n${tourismPhotos}\n${tourismInsights}\n${tourismConcentration}\n${enrichmentSources}`;
+  const tourism = `${tourismHandler}\n${planBuilder}\n${tourismPhotos}\n${tourismInsights}\n${tourismConcentration}\n${enrichmentSources}`;
   for (const content of [readme, compliance, policy, landing, planner]) {
     assert.match(content, /②-2 웹·앱 구현 부문/);
     assert.match(content, /지정과제 1/);
@@ -369,7 +370,7 @@ test("planner never substitutes prototype places when official data fails", asyn
 test("accessibility evidence determines the first recommendation and itinerary labels", async () => {
   const [planner, tourism] = await Promise.all([
     plannerProductSource(),
-    source("server/tourism/handler.ts"),
+    source("server/tourism/plan-builder.ts"),
   ]);
   assert.match(tourism, /const leftVerified = left\.score === null \? 0 : 1/);
   assert.match(tourism, /rightVerified - leftVerified/);
