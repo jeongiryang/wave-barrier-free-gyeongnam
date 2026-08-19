@@ -42,6 +42,13 @@ async function plannerSignalsSource() {
   ].map(source))).join("\n");
 }
 
+async function routePlanningSource() {
+  return (await Promise.all([
+    "features/planner/hooks/useRoutePlanning.ts",
+    "features/planner/hooks/useRouteRequest.ts",
+  ].map(source))).join("\n");
+}
+
 async function landingProductSource() {
   const paths = [
     "app/page.tsx",
@@ -382,7 +389,7 @@ test("non-Korean locales are visibly marked Beta without breaking narrow headers
 test("planner ignores stale route, enrichment and location-search responses", async () => {
   const [plannerSignals, routePlanning, locationSearch, service] = await Promise.all([
     plannerSignalsSource(),
-    source("features/planner/hooks/useRoutePlanning.ts"),
+    routePlanningSource(),
     source("features/planner/hooks/useLocationSearch.ts"),
     source("features/planner/services/api.ts"),
   ]);
@@ -409,7 +416,7 @@ test("planner state is divided into testable feature hooks without overwriting s
     source("features/planner/hooks/useSavedPlaceIds.ts"),
     source("features/planner/hooks/useTripSchedule.ts"),
     source("features/planner/hooks/useOptimizedTripOrder.ts"),
-    source("features/planner/hooks/useRoutePlanning.ts"),
+    routePlanningSource(),
     source("features/planner/hooks/useRouteOrigin.ts"),
     source("features/planner/hooks/useRouteView.ts"),
     plannerSignalsSource(),
@@ -430,7 +437,7 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(optimizedTripOrder, /optimizeVisitOrder\(/);
   assert.match(routeView, /routeSort === "walk"[\s\S]+a\.totalWalk - b\.totalWalk/);
   assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext\)/);
-  assert.match(routePlanning, /useRouteOrigin\(clearPrivateOriginRoutes\)/);
+  assert.match(routePlanning, /useRouteOrigin\(clearRouteAlternatives\)/);
   assert.match(routeOrigin, /navigator\.geolocation\.getCurrentPosition/);
   assert.match(routeOrigin, /좌표는 서버나 저장소로 전송하지 않습니다/);
   assert.doesNotMatch(routePlanning, /navigator\.geolocation/);
