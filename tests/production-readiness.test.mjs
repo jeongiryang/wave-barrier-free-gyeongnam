@@ -264,12 +264,17 @@ test("wave effects avoid dense glyphs and the short first-visit intro stays sync
 });
 
 test("interactive help follows real sections and remains accessible on mobile", async () => {
-  const [help, landing, planner, css] = await Promise.all([
+  const [helpView, helpContent, helpController, landing, planner, css] = await Promise.all([
     source("components/HelpCenter.tsx"),
+    source("features/help/tour-content.ts"),
+    source("features/help/useHelpTour.ts"),
     landingProductSource(),
     plannerProductSource(),
     styleSource(),
   ]);
+  const help = `${helpView}\n${helpContent}\n${helpController}`;
+  assert.match(helpView, /useHelpTour\(\)/);
+  assert.doesNotMatch(helpView, /useEffect|ResizeObserver|window\.scrollTo/);
   for (const selector of ["#top", "#story", "#regions", "#evidence", ".landing-cta"]) {
     assert.match(help, new RegExp(`selector: "${selector.replace(".", "\\.")}"`));
   }
