@@ -14,6 +14,8 @@ async function plannerProductSource() {
     "features/planner/components/RecommendationWorkspace.tsx",
     "features/planner/components/TravelSignalsPanel.tsx",
     "features/planner/components/NavigationWorkspace.tsx",
+    "features/planner/components/TransportDataOverview.tsx",
+    "features/planner/components/RouteMapWorkspace.tsx",
     "features/planner/components/PlannerResultsPanel.tsx",
   ];
   return (await Promise.all(paths.map(source))).join("\n");
