@@ -149,7 +149,7 @@ test("anonymous database writes validate origin, JSON and body size before stora
 test("external Kakao place links are upgraded to HTTPS", async () => {
   const [location, map] = await Promise.all([
     source("server/location/handler.ts"),
-    source("features/routing/useRouteMapController.ts"),
+    source("features/routing/useNearbyPlaces.ts"),
   ]);
   assert.match(location, /placeUrl: httpsUrl\(item\.place_url\)/);
   assert.match(map, /place_url\?\.replace\(\/\^http:/);
