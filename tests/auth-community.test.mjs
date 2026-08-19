@@ -118,7 +118,11 @@ test("community UI supports public reading, protected participation and place li
       source("features/community/hooks/useCommunityDetail.ts"),
     ]).then((parts) => parts.join("\n")),
     source("features/community/client/api.ts"),
-    source("components/CommunityEditor.tsx"), source("app/planner/page.tsx"),
+    Promise.all([
+      source("features/community/components/CommunityEditor.tsx"),
+      source("features/community/hooks/useCommunityEditor.ts"),
+    ]).then((parts) => parts.join("\n")),
+    source("app/planner/page.tsx"),
     source("features/planner/components/PlaceDecisionDialog.tsx"),
     source("components/LandingStories.tsx"), source("app/sitemap.ts"),
   ]);
@@ -130,6 +134,7 @@ test("community UI supports public reading, protected participation and place li
   assert.match(clientApi, /export function createCommunityComment/);
   assert.doesNotMatch(`${list}\n${detail}`, /fetch\(/);
   assert.match(editor, /본인이 작성한 글만 수정/);
+  assert.doesNotMatch(editor, /fetch\(/);
   assert.match(planner, /PlaceDecisionDialog/);
   assert.match(placeDialog, /place-community-link/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
