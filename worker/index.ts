@@ -1,4 +1,5 @@
 /** W.A.V.E Vercel Functions에서 공유하는 API 구현. */
+import { handleAccessibilityScanApi } from "../server/accessibility/handler";
 import { handleLocationSearch } from "../server/location/handler";
 import { portableEnv } from "../server/shared/env";
 import { json } from "../server/shared/http";
@@ -22,5 +23,6 @@ export async function handlePortableApi(request: Request): Promise<Response> {
   if (url.pathname === "/api/health") return handleHealthApi(env);
   if (url.pathname === "/api/trips" || url.pathname.startsWith("/api/trips/")) return handleTripsApi(request, env);
   if (url.pathname === "/api/feedback") return handleFeedbackApi(request);
+  if (url.pathname === "/api/accessibility/scan") return handleAccessibilityScanApi(request, env);
   return json({ error: "지원하지 않는 API 경로입니다." }, 404);
 }

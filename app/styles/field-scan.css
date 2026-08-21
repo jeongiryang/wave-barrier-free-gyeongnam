@@ -1,0 +1,103 @@
+/* 현장 접근성 스캐너 — 공식 정보와 사진 판독을 나란히 두되 섞이지 않게 한다.
+   상태는 색만으로 말하지 않고 글자와 기호를 항상 함께 쓴다. */
+
+.field-scan { margin-top: 16px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-lg, 20px); background: var(--paper); }
+.field-scan-head h3 { margin: 0 0 6px; font-size: .92rem; font-weight: 850; color: var(--ink); }
+.field-scan-head p { margin: 0; color: var(--muted); font-size: .74rem; line-height: 1.55; }
+
+.field-scan-input { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.field-scan-actions { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+.field-scan-start { flex: 1 1 220px; min-height: 48px; padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 0; border-radius: var(--r-md, 14px); color: #fff; background: var(--blue); font-size: .84rem; font-weight: 850; cursor: pointer; transition: background .2s ease; }
+.field-scan-start:hover:not(:disabled) { background: var(--blue-dark); }
+.field-scan-start:disabled { background: #7ba3bd; cursor: progress; }
+.field-scan-reset { min-height: 48px; padding: 11px 16px; border: 1px solid var(--line); border-radius: var(--r-md, 14px); color: var(--ink-soft); background: transparent; font-size: .78rem; font-weight: 800; cursor: pointer; }
+
+.field-scan-privacy { margin: 10px 0 0; color: var(--muted); font-size: .7rem; line-height: 1.5; }
+
+.field-scan-status { margin-top: 10px; font-size: .78rem; color: var(--ink-soft); }
+.field-scan-status:empty { margin-top: 0; }
+.field-scan-warn { display: flex; align-items: flex-start; gap: 8px; padding: 11px 12px; border: 1px solid #e0b892; border-radius: 11px; background: #fff6ec; color: #7a4408; line-height: 1.5; }
+.field-scan-warn b { flex: 0 0 auto; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 6px; background: #f0d3b4; font-size: .74rem; }
+
+.field-scan-preview { margin-top: 12px; border-radius: 12px; overflow: hidden; }
+.field-scan-preview img { display: block; width: 100%; height: 150px; object-fit: cover; opacity: .55; }
+
+.field-scan-result { margin-top: 14px; }
+.field-scan-scene { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--white); color: var(--ink); font-size: .8rem; font-weight: 700; }
+
+.field-scan-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field-scan-columns > section { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: var(--white); }
+.field-scan-official { border-color: #bcd9c9 !important; background: #f1faf5 !important; }
+.field-scan-field { border-color: #bfd4e6 !important; background: #f2f8fd !important; }
+.field-scan-columns h4 { margin: 0 0 9px; display: flex; align-items: center; gap: 6px; font-size: .74rem; font-weight: 900; color: var(--ink); }
+.field-scan-columns h4 span { color: var(--ink-soft); }
+.field-scan-columns ul { margin: 0; padding: 0; display: grid; gap: 8px; list-style: none; }
+.field-scan-columns li { display: grid; grid-template-columns: 22px 1fr; gap: 7px; align-items: start; }
+.field-scan-columns li > span { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; font-size: .7rem; font-weight: 900; color: #0d5c4a; background: #d6f0e4; }
+.field-scan-columns li.is-barrier > span { color: #8a3208; background: #fbe0d0; }
+.field-scan-columns li.is-support > span { color: #0d5c4a; background: #d6f0e4; }
+.field-scan-columns li.is-unknown > span { color: #5c6d76; background: #e4ebef; }
+.field-scan-columns li b { display: block; font-size: .76rem; color: var(--ink); }
+.field-scan-columns li em { display: block; margin-top: 1px; font-style: normal; font-size: .7rem; font-weight: 800; color: var(--ink-soft); }
+.field-scan-columns li small { display: block; margin-top: 2px; color: var(--muted); font-size: .66rem; }
+.field-scan-columns li p { margin: 3px 0 0; color: var(--muted); font-size: .68rem; line-height: 1.45; }
+.field-scan-columns > section > small { display: block; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--muted); font-size: .65rem; }
+
+.field-scan-conflict { margin-top: 10px; padding: 12px 13px; border: 1px solid #e0b892; border-radius: 13px; background: #fff6ec; }
+.field-scan-conflict h4 { margin: 0 0 8px; display: flex; align-items: center; gap: 6px; font-size: .74rem; font-weight: 900; color: #7a4408; }
+.field-scan-conflict h4 span { width: 19px; height: 19px; display: grid; place-items: center; border-radius: 6px; background: #f0d3b4; font-size: .7rem; }
+.field-scan-conflict ul { margin: 0; padding: 0; display: grid; gap: 6px; list-style: none; }
+.field-scan-conflict li { color: #7a4408; font-size: .72rem; line-height: 1.5; }
+.field-scan-conflict small { display: block; margin-top: 8px; color: #8a6034; font-size: .66rem; }
+
+.field-scan-impacts { margin-top: 10px; padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: var(--white); }
+.field-scan-impacts h4 { margin: 0 0 9px; font-size: .74rem; font-weight: 900; color: var(--ink); }
+.field-scan-impacts ul { margin: 0; padding: 0; display: grid; gap: 8px; list-style: none; }
+.field-scan-impacts li { display: grid; grid-template-columns: 20px 1fr; gap: 9px; align-items: start; color: var(--ink-soft); }
+.field-scan-impacts li b { display: block; font-size: .76rem; color: var(--ink); }
+.field-scan-impacts li em { display: flex; align-items: center; gap: 5px; margin-top: 2px; font-style: normal; font-size: .71rem; font-weight: 800; }
+.field-scan-impacts li em i { width: 17px; height: 17px; display: grid; place-items: center; border-radius: 5px; font-style: normal; font-size: .64rem; font-weight: 900; color: #5c6d76; background: #e4ebef; }
+.field-scan-impacts li small { display: block; margin-top: 2px; color: var(--muted); font-size: .66rem; }
+.field-scan-impacts li.impact-high_risk em { color: #8a3208; }
+.field-scan-impacts li.impact-high_risk em i { color: #8a3208; background: #fbe0d0; }
+.field-scan-impacts li.impact-caution em { color: #7a5308; }
+.field-scan-impacts li.impact-caution em i { color: #7a5308; background: #f7e7c2; }
+.field-scan-impacts li.impact-clear em { color: #0d5c4a; }
+.field-scan-impacts li.impact-clear em i { color: #0d5c4a; background: #d6f0e4; }
+
+.field-scan-measure { margin: 10px 0 0; color: var(--muted); font-size: .69rem; }
+.field-scan-note { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: .7rem; line-height: 1.6; }
+
+@media (max-width: 720px) {
+  .field-scan-columns { grid-template-columns: 1fr; }
+  .field-scan-start { flex-basis: 100%; }
+}
+
+html[data-theme="dark"] .field-scan { border-color: #2c556a; background: #0d3346; }
+html[data-theme="dark"] .field-scan-head h3,
+html[data-theme="dark"] .field-scan-scene,
+html[data-theme="dark"] .field-scan-columns li b,
+html[data-theme="dark"] .field-scan-impacts li b,
+html[data-theme="dark"] .field-scan-columns h4,
+html[data-theme="dark"] .field-scan-impacts h4 { color: #eaf6fb; }
+html[data-theme="dark"] .field-scan-columns > section,
+html[data-theme="dark"] .field-scan-impacts,
+html[data-theme="dark"] .field-scan-scene { border-color: #2c556a; background: #10405a; }
+html[data-theme="dark"] .field-scan-official { border-color: #2f6350 !important; background: #103f3a !important; }
+html[data-theme="dark"] .field-scan-field { border-color: #2c556a !important; background: #10405a !important; }
+html[data-theme="dark"] .field-scan-head p,
+html[data-theme="dark"] .field-scan-privacy,
+html[data-theme="dark"] .field-scan-note,
+html[data-theme="dark"] .field-scan-measure,
+html[data-theme="dark"] .field-scan-columns li small,
+html[data-theme="dark"] .field-scan-columns li p,
+html[data-theme="dark"] .field-scan-impacts li small,
+html[data-theme="dark"] .field-scan-columns > section > small { color: #a8c6d4; }
+html[data-theme="dark"] .field-scan-columns li em,
+html[data-theme="dark"] .field-scan-reset,
+html[data-theme="dark"] .field-scan-status { color: #cfe5ef; }
+
+@media (prefers-reduced-motion: reduce) {
+  .field-scan-start { transition: none; }
+}

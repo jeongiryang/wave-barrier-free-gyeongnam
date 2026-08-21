@@ -216,6 +216,7 @@ export default function PlannerPage() {
       {selectedPlace && <PlaceDecisionDialog
         place={selectedPlace}
         region={region}
+        selectedProfileIds={selected}
         saved={saved.includes(selectedPlace.id)}
         feedbackText={feedbackText}
         feedbackState={feedbackState}
