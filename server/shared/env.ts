@@ -6,6 +6,8 @@ export interface Env {
   KAKAO_REST_API_KEY?: string;
   KORAIL_API_KEY?: string;
   TAGO_API_KEY?: string;
+  GEMINI_API_KEY?: string;
+  GEMINI_MODEL?: string;
 }
 
 /** Vercel Functions에서는 공개 클라이언트 값이 아닌 서버 환경 변수만 읽는다. */
@@ -19,5 +21,7 @@ export function portableEnv(): Env {
     KAKAO_REST_API_KEY: values.KAKAO_REST_API_KEY,
     KORAIL_API_KEY: values.KORAIL_API_KEY,
     TAGO_API_KEY: values.TAGO_API_KEY,
+    GEMINI_API_KEY: values.GEMINI_API_KEY,
+    GEMINI_MODEL: values.GEMINI_MODEL,
   };
 }

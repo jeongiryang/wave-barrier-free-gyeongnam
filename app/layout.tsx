@@ -27,6 +27,7 @@ import "./styles/community.css";
 import "./styles/account-community.css";
 import "./styles/landing-stories.css";
 import "./styles/preferences.css";
+import "./styles/field-scan.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 
 const productionUrl = new URL("https://wave-barrier-free-gyeongnam.vercel.app");
