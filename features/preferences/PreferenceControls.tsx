@@ -1,7 +1,7 @@
 "use client";
 
 import { useSitePreferences } from "./context";
-import { localeOptions, motionCopy } from "./translations";
+import { localeOptions, motionCopy } from "./locale-catalog";
 import type { Locale } from "./types";
 
 export function PreferenceControls() {
@@ -39,4 +39,3 @@ export function PreferenceControls() {
     </details>
   );
 }
-

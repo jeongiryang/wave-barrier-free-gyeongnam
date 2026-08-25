@@ -19,6 +19,7 @@ async function routePlanningSource() {
   return (await Promise.all([
     "features/planner/hooks/useRoutePlanning.ts",
     "features/planner/hooks/useRouteRequest.ts",
+    "features/planner/services/route-data.ts",
   ].map(source))).join("\n");
 }
 
@@ -110,4 +111,17 @@ test("planner domain types are shared across route and signal controllers", asyn
   assert.match(signals, /RichMode/);
   assert.doesNotMatch(routePlanning, /type DestinationCrowd =/);
   assert.doesNotMatch(signals, /type RichMode =/);
+});
+
+test("route request lifecycle delegates endpoint construction to the data service", async () => {
+  const [request, service] = await Promise.all([
+    source("features/planner/hooks/useRouteRequest.ts"),
+    source("features/planner/services/route-data.ts"),
+  ]);
+  assert.match(request, /fetchDestinationCrowd/);
+  assert.match(request, /fetchRouteData/);
+  assert.doesNotMatch(request, /new URLSearchParams|\/api\/route|\/api\/wave/);
+  assert.match(service, /new URLSearchParams/);
+  assert.match(service, /\/api\/route/);
+  assert.match(service, /action: "crowd"/);
 });
