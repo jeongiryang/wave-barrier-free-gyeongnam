@@ -21,6 +21,22 @@ async function plannerProductSource() {
   return (await Promise.all(paths.map(source))).join("\n");
 }
 
+async function landingProductSource() {
+  const paths = [
+    "app/page.tsx",
+    "features/landing/content.ts",
+    "features/landing/hooks/useLandingExperience.ts",
+    "features/landing/components/LandingIntro.tsx",
+    "features/landing/components/LandingHeader.tsx",
+    "features/landing/components/LandingHero.tsx",
+    "features/landing/components/LandingManifesto.tsx",
+    "features/landing/components/LandingRegionStory.tsx",
+    "features/landing/components/LandingClosing.tsx",
+    "components/LandingStories.tsx",
+  ];
+  return (await Promise.all(paths.map(source))).join("\n");
+}
+
 async function styleSource() {
   const paths = [
     "app/globals.css",
@@ -181,7 +197,7 @@ test("missing tourism images use official live lookup and a visual fallback", as
 
 test("all eighteen regions use original W.A.V.E travel characters instead of emoji markers", async () => {
   const [landing, mascot] = await Promise.all([
-    source("app/page.tsx"),
+    landingProductSource(),
     source("components/RegionMascot.tsx"),
   ]);
   const names = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
@@ -190,7 +206,7 @@ test("all eighteen regions use original W.A.V.E travel characters instead of emo
   assert.equal((characterConfig.match(/nickname: "/g) || []).length, 18);
   assert.match(landing, /<RegionMascot region=\{region\.name\} size=\{25\}/);
   assert.match(landing, /<RegionMascot region=\{active\.name\} size=\{54\}/);
-  const regionConfig = landing.slice(landing.indexOf("const regions"), landing.indexOf("const values"));
+  const regionConfig = landing.slice(landing.indexOf("export const landingRegions"), landing.indexOf("export const landingValues"));
   assert.doesNotMatch(regionConfig, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);
 });
 
@@ -511,7 +527,7 @@ test("the wave canvas delegates reusable motion math and intro-mask rasterizatio
 test("every user-facing footer exposes the repository with an accessible tooltip", async () => {
   const [link, landing, planner, shared, css] = await Promise.all([
     source("components/GithubFooterLink.tsx"),
-    source("app/page.tsx"),
+    landingProductSource(),
     plannerProductSource(),
     source("app/trip/[id]/page.tsx"),
     styleSource(),
