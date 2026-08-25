@@ -282,7 +282,7 @@ test("wide screens use available viewport width without breaking mobile gutters"
 
 test("wave effects avoid dense glyphs and the short first-visit intro stays synchronized", async () => {
   const [renderer, model, landing, intro, css] = await Promise.all([
-    source("features/motion/useWaveFieldRenderer.ts"),
+    source("features/motion/wave-field-engine.ts"),
     source("features/motion/wave-model.ts"),
     landingProductSource(),
     source("features/landing/useLandingIntro.ts"),

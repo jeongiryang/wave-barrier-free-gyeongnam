@@ -1,5 +1,5 @@
 import type { Locale, Motion, Theme } from "./types";
-import { localeOptions } from "./translations";
+import { localeOptions } from "./locale-catalog";
 
 export type StoredPreferences = {
   locale: Locale;
@@ -33,4 +33,3 @@ export function writeStoredPreferences(preferences: StoredPreferences) {
     // 사생활 보호 설정이 저장소를 막으면 현재 탭의 설정만 유지한다.
   }
 }
-

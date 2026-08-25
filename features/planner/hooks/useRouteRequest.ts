@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RouteAlternative, RoutePoint } from "../../routing/types";
-import { optionalPlannerJson, plannerJson } from "../services/api";
 import type { DestinationCrowd, Place, TransportContext, TransportProvider } from "../types";
+import { fetchDestinationCrowd, fetchRouteData } from "../services/route-data";
 
 interface RouteRequestOptions {
   place: Place;
@@ -55,28 +55,15 @@ export function useRouteRequest(region: string) {
       return;
     }
     onNotice(`${originLabel}에서 ${place.name}까지 이동 경로를 확인하고 있습니다.`);
-    const crowdParams = new URLSearchParams({ action: "crowd", region, title: place.name });
-    void optionalPlannerJson<{ crowd?: DestinationCrowd | null }>(`/api/wave?${crowdParams.toString()}`, { signal: controller.signal })
-      .then((data) => {
-        if (routeRequestRef.current === controller) setDestinationCrowd(data?.crowd || null);
+    void fetchDestinationCrowd(region, place, controller.signal)
+      .then((crowd) => {
+        if (routeRequestRef.current === controller) setDestinationCrowd(crowd);
       })
       .catch(() => {
         if (!controller.signal.aborted && routeRequestRef.current === controller) setDestinationCrowd(null);
       });
     try {
-      const params = new URLSearchParams({
-        startLat: String(origin.lat),
-        startLng: String(origin.lng),
-        endLat: String(endLat),
-        endLng: String(endLng),
-      });
-      const data = await plannerJson<{
-        alternatives?: RouteAlternative[];
-        providers?: TransportProvider[];
-        context?: TransportContext;
-        configured?: boolean;
-        message?: string;
-      }>(`/api/route?${params.toString()}`, { cache: "no-store", signal: controller.signal });
+      const data = await fetchRouteData(origin, { lat: endLat, lng: endLng }, controller.signal);
       if (controller.signal.aborted || routeRequestRef.current !== controller) return;
       const alternatives = data.alternatives || [];
       setRouteAlternatives(alternatives);

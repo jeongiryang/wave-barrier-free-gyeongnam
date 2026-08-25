@@ -69,6 +69,7 @@ async function routePlanningSource() {
   return (await Promise.all([
     "features/planner/hooks/useRoutePlanning.ts",
     "features/planner/hooks/useRouteRequest.ts",
+    "features/planner/services/route-data.ts",
   ].map(source))).join("\n");
 }
 
@@ -387,11 +388,11 @@ test("saved preferences survive a reload", async () => {
 });
 
 test("wave motion preference is persisted, localized and respects reduced motion", async () => {
-  const [storage, controls, translations, renderer, intro, css] = await Promise.all([
+  const [storage, controls, catalog, engine, intro, css] = await Promise.all([
     source("features/preferences/storage.ts"),
     source("features/preferences/PreferenceControls.tsx"),
-    source("features/preferences/translations.ts"),
-    source("features/motion/useWaveFieldRenderer.ts"),
+    source("features/preferences/locale-catalog.ts"),
+    source("features/motion/wave-field-engine.ts"),
     source("features/landing/useLandingIntro.ts"),
     styleSource(),
   ]);
@@ -399,21 +400,21 @@ test("wave motion preference is persisted, localized and respects reduced motion
   assert.match(storage, /localStorage\.setItem\("wave-motion", preferences\.motion\)/);
   assert.match(controls, /aria-pressed=\{motion === "calm"\}/);
   assert.match(controls, /<details className="preference-controls">/);
-  assert.match(translations, /export const motionCopy: Record<Locale/);
-  assert.match(renderer, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(catalog, /export const motionCopy: Record<Locale/);
+  assert.match(engine, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(intro, /motion === "calm" \|\| reducedMotion \|\| seen \? "hidden" : "show"/);
   assert.match(intro, /window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)\.matches/);
   assert.match(css, /html\[data-motion="calm"\] \.hero-wave-canvas \{ display: none; \}/);
 });
 
 test("non-Korean locales are visibly marked Beta without breaking narrow headers", async () => {
-  const [translations, controls, css] = await Promise.all([
-    source("features/preferences/translations.ts"),
+  const [catalog, controls, css] = await Promise.all([
+    source("features/preferences/locale-catalog.ts"),
     source("features/preferences/PreferenceControls.tsx"),
     source("app/styles/preferences.css"),
   ]);
-  assert.match(translations, /id: "ko"[^\n]+beta: false/);
-  assert.equal((translations.match(/beta: true/g) || []).length, 7);
+  assert.match(catalog, /id: "ko"[^\n]+beta: false/);
+  assert.equal((catalog.match(/beta: true/g) || []).length, 7);
   assert.match(controls, /item\.beta \? " · Beta"/);
   assert.match(controls, /selectedLocale\.beta \? "Beta 번역"/);
   assert.match(css, /\.preference-controls > summary \{[\s\S]*min-height: 44px/);
@@ -433,7 +434,8 @@ test("planner ignores stale route, enrichment and location-search responses", as
   assert.match(plannerSignals, /enrichmentRequestRef\.current !== controller/);
   assert.match(locationSearch, /searchRequestRef\.current\?\.abort\(\)/);
   assert.match(locationSearch, /searchRequestRef\.current !== controller/);
-  assert.match(routePlanning, /`\/api\/route\?\$\{params\.toString\(\)\}`,[^;]+signal: controller\.signal/);
+  assert.match(routePlanning, /fetchRouteData\([^;]+controller\.signal\)/);
+  assert.match(routePlanning, /plannerJson<RouteDataBundle>[\s\S]+signal,/);
   assert.match(plannerSignals, /action: "enrich"[\s\S]+signal: controller\.signal/);
   assert.match(locationSearch, /\/api\/location-search\?q=[\s\S]+signal: controller\.signal/);
   assert.match(service, /parentSignal\?\.addEventListener\("abort"/);
@@ -685,18 +687,21 @@ test("route-map rendering delegates controller, provider adapters, controls and 
   assert.match(imageExport, /URL\.revokeObjectURL/);
 });
 
-test("the wave canvas delegates its renderer, motion math and intro-mask rasterization", async () => {
-  const [wave, renderer, model, masks] = await Promise.all([
+test("the wave canvas delegates React lifecycle, canvas engine, motion math and intro masks", async () => {
+  const [wave, renderer, engine, model, masks] = await Promise.all([
     source("components/WaveField.tsx"),
     source("features/motion/useWaveFieldRenderer.ts"),
+    source("features/motion/wave-field-engine.ts"),
     source("features/motion/wave-model.ts"),
     source("features/motion/intro-masks.ts"),
   ]);
   assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion \}\)/);
   assert.doesNotMatch(wave, /useEffect|requestAnimationFrame|createIntroMasks/);
-  assert.match(renderer, /import \{ createIntroMasks \} from "\.\/intro-masks"/);
-  assert.match(renderer, /const \{ tints, background \} = wavePalette\(tone\)/);
-  assert.doesNotMatch(renderer, /new Float32Array\(SIN_STEPS\)|target\.bezierCurveTo/);
+  assert.match(renderer, /startWaveFieldRenderer\(canvas/);
+  assert.doesNotMatch(renderer, /requestAnimationFrame|createIntroMasks|putImageData/);
+  assert.match(engine, /import \{ createIntroMasks \} from "\.\/intro-masks"/);
+  assert.match(engine, /const \{ tints, background \} = wavePalette\(tone\)/);
+  assert.doesNotMatch(engine, /new Float32Array\(SIN_STEPS\)|target\.bezierCurveTo/);
   assert.match(model, /const SIN_STEPS = 4096/);
   assert.match(model, /export const fastSin/);
   assert.match(model, /export function stageWeight/);
