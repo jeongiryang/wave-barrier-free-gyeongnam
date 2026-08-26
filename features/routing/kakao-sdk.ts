@@ -104,7 +104,7 @@ export function loadKakaoSdk(key: string) {
     }
     const script = document.createElement("script");
     script.dataset.waveKakao = "true";
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&autoload=false&libraries=services,drawing`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&autoload=false&libraries=services`;
     script.async = true;
     script.onload = () => {
       script.dataset.loaded = "true";
