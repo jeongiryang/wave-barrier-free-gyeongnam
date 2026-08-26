@@ -103,6 +103,3 @@ jobs:
             npx --yes vercel@50.15.1 rollback --yes --token="${{ secrets.VERCEL_TOKEN }}"
             exit 1
           fi
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
