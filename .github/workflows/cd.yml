@@ -80,7 +80,8 @@ jobs:
         env:
           CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
           COMMUNITY_MIGRATION_TOKEN: ${{ steps.migration_token.outputs.value }}
-        run: curl --fail --silent --show-error --retry 3 --retry-all-errors --request POST --header "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN" "$CANDIDATE_URL/api/deployment/migrate"
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-all-errors --request POST --header "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN" "$CANDIDATE_URL/api/deployment/migrate"
 
       - name: 후보 health smoke test
         env:
@@ -103,6 +104,3 @@ jobs:
             npx --yes vercel@50.15.1 rollback --yes --token="${{ secrets.VERCEL_TOKEN }}"
             exit 1
           fi
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

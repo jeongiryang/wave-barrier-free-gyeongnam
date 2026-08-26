@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { load as loadYaml } from "js-yaml";
 import {
   productionEnvironmentErrors,
   REQUIRED_PRODUCTION_ENV,
@@ -20,6 +21,7 @@ test("production deployment rejects missing or unsafe account configuration", ()
 
 test("CD migrates an unpromoted candidate before production promotion", async () => {
   const workflow = await readFile(new URL("../.github/workflows/cd.yml", import.meta.url), "utf8");
+  assert.doesNotThrow(() => loadYaml(workflow));
   const build = workflow.indexOf("vercel@50.15.1 build");
   const candidate = workflow.indexOf("--skip-domain");
   const migration = workflow.indexOf("/api/deployment/migrate");
@@ -29,6 +31,8 @@ test("CD migrates an unpromoted candidate before production promotion", async ()
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
   assert.match(workflow, /vercel@50\.15\.1 rollback/);
   assert.doesNotMatch(workflow, /steps\.[a-z0-9_]+-[a-z0-9_-]+/i);
+  const finalHealthStep = workflow.slice(workflow.indexOf("- name: 프로덕션 health와 실패 시 rollback"));
+  assert.equal(finalHealthStep.match(/^        env:/gm)?.length, 1);
 });
 
 test("moderation migration is split into one atomic Neon transaction", async () => {
