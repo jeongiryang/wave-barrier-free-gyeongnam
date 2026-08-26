@@ -116,6 +116,25 @@ test("Vercel applies baseline browser security headers", async () => {
   assert.match(headers["Content-Security-Policy"], /form-action 'self'/);
   assert.equal(headers["Referrer-Policy"], "strict-origin-when-cross-origin");
   assert.match(headers["Permissions-Policy"], /camera=\(\)/);
+
+  // 스크립트 출처를 제한하지 않으면 나머지 지시어만으로는 주입된 코드를 막지 못한다.
+  const policy = Object.fromEntries(headers["Content-Security-Policy"]
+    .split(";")
+    .map((part) => part.trim().split(/\s+/))
+    .map(([name, ...values]) => [name, values]));
+  assert.ok(policy["default-src"], "default-src가 없으면 선언하지 않은 자원 종류가 무제한이 된다");
+  assert.deepEqual(policy["default-src"], ["'self'"]);
+  assert.deepEqual(policy["object-src"], ["'none'"]);
+  assert.deepEqual(policy["frame-ancestors"], ["'none'"]);
+  assert.ok(policy["script-src"], "script-src가 필요하다");
+  assert.ok(policy["script-src"].includes("'self'"));
+  assert.ok(!policy["script-src"].includes("*"), "스크립트 출처에 전체 와일드카드를 두지 않는다");
+  assert.ok(!policy["script-src"].includes("'unsafe-eval'"));
+  assert.ok(policy["script-src"].some((value) => value.includes("kakao")), "카카오 지도 SDK 출처가 필요하다");
+  // 관광 사진은 제공기관이 주는 임의의 https 호스트에서 온다.
+  assert.ok(policy["img-src"].includes("https:"));
+  // API 호출은 모두 같은 출처의 /api/* 를 지난다.
+  assert.ok(policy["connect-src"].includes("'self'"));
 });
 
 test("production metadata exposes canonical discovery and install routes", async () => {
