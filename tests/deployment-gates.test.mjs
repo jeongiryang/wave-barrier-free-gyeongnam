@@ -28,6 +28,7 @@ test("CD migrates an unpromoted candidate before production promotion", async ()
   assert.ok(candidate < migration && migration < promote);
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
   assert.match(workflow, /vercel@50\.15\.1 rollback/);
+  assert.doesNotMatch(workflow, /steps\.[a-z0-9_]+-[a-z0-9_-]+/i);
 });
 
 test("moderation migration is split into one atomic Neon transaction", async () => {
