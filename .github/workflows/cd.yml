@@ -62,17 +62,21 @@ jobs:
         id: migration_token
         run: |
           token="$(openssl rand -hex 32)"
+          cron_token="$(openssl rand -hex 32)"
           echo "::add-mask::$token"
+          echo "::add-mask::$cron_token"
           echo "value=$token" >> "$GITHUB_OUTPUT"
+          echo "cron_value=$cron_token" >> "$GITHUB_OUTPUT"
 
       - name: 승격 전 Production 후보 배포
         id: candidate
         env:
           COMMUNITY_MIGRATION_TOKEN: ${{ steps.migration_token.outputs.value }}
+          CRON_SECRET: ${{ steps.migration_token.outputs.cron_value }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          url="$(npx --yes vercel@50.15.1 deploy --prebuilt --prod --skip-domain --env COMMUNITY_MIGRATION_TOKEN="$COMMUNITY_MIGRATION_TOKEN" --token="${{ secrets.VERCEL_TOKEN }}" | tail -n 1)"
+          url="$(npx --yes vercel@50.15.1 deploy --prebuilt --prod --skip-domain --env COMMUNITY_MIGRATION_TOKEN="$COMMUNITY_MIGRATION_TOKEN" --env CRON_SECRET="$CRON_SECRET" --token="${{ secrets.VERCEL_TOKEN }}" | tail -n 1)"
           case "$url" in https://*.vercel.app) ;; *) echo "후보 배포 URL을 확인할 수 없습니다."; exit 1;; esac
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
