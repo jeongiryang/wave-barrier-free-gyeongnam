@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { parseModeratorUserIds, validateCommunityReport, validateModerationDecision } from "../lib/community/moderation.js";
 import { communityListParams, validateCommentInput, validatePostInput } from "../lib/community/validation.js";
 
 async function source(path) {
@@ -15,6 +16,13 @@ async function accountStyleSource() {
   ];
   return (await Promise.all(paths.map(source))).join("\n");
 }
+
+test("moderator IDs fail closed for empty, malformed and duplicate configuration", () => {
+  assert.deepEqual(parseModeratorUserIds(undefined), []);
+  assert.deepEqual(parseModeratorUserIds(" , \n, "), []);
+  assert.deepEqual(parseModeratorUserIds("user-1, user_2,user-1"), ["user-1", "user_2"]);
+  assert.deepEqual(parseModeratorUserIds(`valid-id,bad id,${"x".repeat(129)},line\nbreak`), ["valid-id"]);
+});
 
 test("community post validation preserves plain text and enforces product limits", () => {
   const valid = validatePostInput({ category: "review", title: "남해 여행에서 확인한 접근로", content: "현장에서 직접 확인한 이동 경험을 공유합니다.", region: "남해", placeId: "123", placeName: "독일마을" });
@@ -36,12 +44,13 @@ test("community comments and list parameters reject empty data and cap paginatio
 });
 
 test("formal auth pages use Neon Auth with accessible password and return flows", async () => {
-  const [form, shell, motionHeadline, authCss, authRoute, server] = await Promise.all([
+  const [form, hydratedSession, shell, motionHeadline, authCss, authRoute, server] = await Promise.all([
     Promise.all([
       source("features/auth/components/AuthForm.tsx"),
       source("features/auth/hooks/useAuthForm.ts"),
       source("features/auth/validation.ts"),
     ]).then((parts) => parts.join("\n")),
+    source("features/auth/hooks/useHydratedSession.ts"),
     source("features/auth/components/AuthShell.tsx"),
     source("features/auth/components/AuthMotionHeadline.tsx"), accountStyleSource(),
     source("app/api/auth/[...path]/route.ts"), source("lib/auth/server.ts"),
@@ -53,6 +62,10 @@ test("formal auth pages use Neon Auth with accessible password and return flows"
   assert.match(form, /autoComplete=\{auth\.registering \? "new-password" : "current-password"\}/);
   assert.match(form, /safeAuthReturnPath/);
   assert.match(form, /readAuthCredentials/);
+  assert.match(form, /useHydratedSession/);
+  assert.match(hydratedSession, /useSyncExternalStore/);
+  assert.match(hydratedSession, /data: hydrated \? session\.data : null/);
+  assert.match(hydratedSession, /isPending: !hydrated \|\| session\.isPending/);
   assert.match(shell, /로그인 없이 여행 설계/);
   assert.match(shell, /AuthMotionHeadline mode=\{mode\}/);
   assert.match(motionHeadline, /나에게 맞는 하루로/);
@@ -192,4 +205,45 @@ test("landing product story exposes previews and reduced-motion styles", async (
   assert.match(stories, /현재 예보처럼 오해하지 않도록/);
   assert.match(css, /\.product-story,.landing-community \{ min-height: 680px/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*community-skeletons/);
+});
+
+test("community moderation validates reports and restricts operator decisions", async () => {
+  assert.deepEqual(validateCommunityReport({ reason: "unsafe", details: "현장 공사 중" }), { value: { reason: "unsafe", details: "현장 공사 중" } });
+  assert.match(validateCommunityReport({ reason: "invalid" }).error, /신고 이유/);
+  assert.deepEqual(validateModerationDecision({ targetType: "post", targetId: "post-1", status: "hidden" }), { value: { targetType: "post", targetId: "post-1", status: "hidden" } });
+  assert.match(validateModerationDecision({ targetType: "post", targetId: "post-1", status: "deleted" }).error, /운영 처리 대상/);
+
+  const [route, actions, repository, reads, comments, migration, client] = await Promise.all([
+    source("app/api/community/[...path]/route.ts"),
+    source("features/community/server/moderation-actions.ts"),
+    source("features/community/server/moderation-repository.ts"),
+    source("features/community/server/post-read-repository.ts"),
+    source("features/community/server/comments-repository.ts"),
+    source("migrations/002_community_moderation.sql"),
+    Promise.all([
+      source("features/community/components/CommunityReportControl.tsx"),
+      source("features/community/components/CommunityModerationQueue.tsx"),
+    ]).then((parts) => parts.join("\n")),
+  ]);
+  assert.match(route, /reportCommunityTarget/);
+  assert.match(route, /listModerationQueue/);
+  assert.match(actions, /COMMUNITY_MODERATOR_USER_IDS/);
+  assert.match(actions, /parseModeratorUserIds/);
+  assert.match(actions, /authenticatedCommunityUser/);
+  assert.match(repository, /reporter_id,target_type,target_id/);
+  assert.match(repository, /reportCount >= 3/);
+  assert.match(repository, /moderation_status='active'/);
+  assert.match(repository, /RETURNING id/);
+  assert.match(actions, /"missing" in result/);
+  assert.match(reads, /moderation_status='active'/);
+  assert.match(repository, /r\.target_type='post' OR c\.id IS NOT NULL/);
+  assert.match(comments, /DELETE FROM community_reports WHERE target_type='comment'/);
+  assert.match(migration, /UNIQUE \(reporter_id, target_type, target_id\)/);
+  assert.match(migration, /community_posts_moderation_status_check/);
+  assert.match(migration, /community_comments_moderation_status_check/);
+  assert.match(migration, /NOT VALID/);
+  assert.match(migration, /VALIDATE CONSTRAINT/);
+  assert.match(client, /운영팀에 전달할 이유/);
+  assert.match(client, /공개 유지/);
+  assert.match(client, /숨김 처리/);
 });

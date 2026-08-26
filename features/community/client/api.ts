@@ -18,6 +18,8 @@ type CommunityMutationResponse = {
   error?: string;
   liked?: boolean;
   likeCount?: number;
+  reported?: boolean;
+  underReview?: boolean;
 };
 
 export type CommunityPostInput = {
@@ -27,6 +29,19 @@ export type CommunityPostInput = {
   region: string;
   placeId: string;
   placeName: string;
+};
+
+export type CommunityModerationReport = {
+  id: string;
+  postId: string;
+  targetType: "post" | "comment";
+  targetId: string;
+  reason: string;
+  details: string;
+  createdAt: number;
+  postTitle: string;
+  targetContent: string;
+  moderationStatus: string;
 };
 
 type CommunityResult<T> = { ok: boolean; status: number; payload: T };
@@ -91,5 +106,28 @@ export function updateCommunityComment(postId: string, commentId: string, conten
 export function removeCommunityComment(postId: string, commentId: string) {
   return communityRequest<CommunityMutationResponse>(`/api/community/posts/${postId}/comments/${commentId}`, {
     method: "DELETE",
+  });
+}
+
+export function reportCommunityContent(postId: string, targetType: "post" | "comment", targetId: string, reason: string) {
+  const path = targetType === "post"
+    ? `/api/community/posts/${postId}/report`
+    : `/api/community/posts/${postId}/comments/${targetId}/report`;
+  return communityRequest<CommunityMutationResponse>(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function getCommunityModerationQueue(signal?: AbortSignal) {
+  return communityRequest<{ reports?: CommunityModerationReport[]; error?: string }>("/api/community/moderation", { signal });
+}
+
+export function applyCommunityModeration(targetType: "post" | "comment", targetId: string, status: "active" | "hidden") {
+  return communityRequest<{ ok?: boolean; error?: string }>("/api/community/moderation", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ targetType, targetId, status }),
   });
 }

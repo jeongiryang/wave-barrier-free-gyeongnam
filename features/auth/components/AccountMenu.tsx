@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { authClient } from "../../../lib/auth/client";
+import { useHydratedSession } from "../hooks/useHydratedSession";
 
 export default function AccountMenu({ loginHref = "/login" }: { loginHref?: string }) {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending } = useHydratedSession();
   const [message, setMessage] = useState("");
   const [signingOut, setSigningOut] = useState(false);
 

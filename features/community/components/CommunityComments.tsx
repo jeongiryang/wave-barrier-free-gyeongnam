@@ -1,10 +1,12 @@
 import { communityDate } from "../../../lib/community/types";
 import type { useCommunityDetail } from "../hooks/useCommunityDetail";
+import CommunityReportControl from "./CommunityReportControl";
 
 export default function CommunityComments({ detail }: { detail: ReturnType<typeof useCommunityDetail> }) {
   const {
     comments, comment, setComment, commentState, editingComment, setEditingComment,
     editingContent, setEditingContent, session, submitComment, saveComment, deleteComment,
+    reportingTarget, reportTarget,
   } = detail;
   return <section className="comments" aria-labelledby="comments-title">
     <div className="comments-heading"><div><p className="section-kicker">CONVERSATION</p><h2 id="comments-title">댓글 {comments.length}</h2></div><p>서로의 이동 조건과 경험이 다를 수 있어요. 단정하기보다 직접 확인한 범위를 함께 적어 주세요.</p></div>
@@ -16,7 +18,7 @@ export default function CommunityComments({ detail }: { detail: ReturnType<typeo
     {comments.length === 0 ? <div className="comments-empty"><span aria-hidden="true">≈</span><p>아직 댓글이 없습니다. 첫 대화를 시작해 주세요.</p></div> : <ol className="comment-list">{comments.map((item) => <li key={item.id}>
       <header><strong>{item.authorName}</strong><time dateTime={new Date(item.createdAt).toISOString()}>{communityDate(item.createdAt)}</time></header>
       {editingComment === item.id ? <div className="comment-edit"><label className="sr-only" htmlFor={`comment-${item.id}`}>댓글 수정</label><textarea id={`comment-${item.id}`} value={editingContent} onChange={(event) => setEditingContent(event.target.value)} minLength={2} maxLength={1000} rows={4} /><div><button type="button" onClick={() => { setEditingComment(null); setEditingContent(""); }}>취소</button><button type="button" onClick={() => void saveComment(item.id)}>저장</button></div></div> : <p>{item.content}</p>}
-      {item.isOwner && editingComment !== item.id && <footer><button type="button" onClick={() => { setEditingComment(item.id); setEditingContent(item.content); }}>수정</button><button type="button" onClick={() => void deleteComment(item.id)}>삭제</button></footer>}
+      {editingComment !== item.id && <footer>{item.isOwner ? <><button type="button" onClick={() => { setEditingComment(item.id); setEditingContent(item.content); }}>수정</button><button type="button" onClick={() => void deleteComment(item.id)}>삭제</button></> : <CommunityReportControl label="댓글" busy={reportingTarget === `comment:${item.id}`} onReport={(reason) => reportTarget("comment", item.id, reason)} />}</footer>}
     </li>)}</ol>}
   </section>;
 }

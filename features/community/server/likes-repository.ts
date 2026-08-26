@@ -3,7 +3,7 @@ import { communityDatabase, type CommunityRow } from "./database";
 export async function setCommunityLike(postId: string, userId: string, remove: boolean) {
   const sql = await communityDatabase();
   if (!sql) return { unavailable: true as const };
-  const posts = await sql`SELECT id FROM community_posts WHERE id=${postId}` as CommunityRow[];
+  const posts = await sql`SELECT id FROM community_posts WHERE id=${postId} AND moderation_status='active'` as CommunityRow[];
   if (!posts[0]) return { missing: true as const };
   if (remove) {
     await sql`DELETE FROM community_likes WHERE post_id=${postId} AND user_id=${userId}`;

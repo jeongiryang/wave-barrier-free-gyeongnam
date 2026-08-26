@@ -2,14 +2,15 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { authClient } from "../../../lib/auth/client";
+import { useHydratedSession } from "../../auth/hooks/useHydratedSession";
 import { useCommunityCommentActions } from "./useCommunityCommentActions";
 import { useCommunityPostEngagement } from "./useCommunityPostEngagement";
 import { useCommunityPostResource } from "./useCommunityPostResource";
+import { useCommunityReport } from "./useCommunityReport";
 
 export function useCommunityDetail(postId: string) {
   const router = useRouter();
-  const { data: session, isPending: sessionPending } = authClient.useSession();
+  const { data: session, isPending: sessionPending } = useHydratedSession();
   const resource = useCommunityPostResource(postId, session?.user?.id);
   const loginForCurrentPage = useCallback(() => {
     router.push(`/login?next=${encodeURIComponent(`/community/${postId}`)}`);
@@ -30,6 +31,12 @@ export function useCommunityDetail(postId: string) {
     reload: resource.load,
     setMessage: resource.setMessage,
   });
+  const reporting = useCommunityReport({
+    postId,
+    authenticated: Boolean(session?.user),
+    onLogin: loginForCurrentPage,
+    setMessage: resource.setMessage,
+  });
 
-  return { ...resource, ...comments, ...engagement, session, sessionPending };
+  return { ...resource, ...comments, ...engagement, ...reporting, session, sessionPending };
 }

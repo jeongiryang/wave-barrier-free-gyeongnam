@@ -8,7 +8,7 @@ export async function createCommunityComment(
 ) {
   const sql = await communityDatabase();
   if (!sql) return { unavailable: true as const };
-  const posts = await sql`SELECT id FROM community_posts WHERE id=${postId}` as CommunityRow[];
+  const posts = await sql`SELECT id FROM community_posts WHERE id=${postId} AND moderation_status='active'` as CommunityRow[];
   if (!posts[0]) return { missing: true as const };
   const recent = await sql`SELECT COUNT(*) count FROM community_comments WHERE author_id=${userId} AND created_at>${Date.now() - 600000}` as CommunityRow[];
   if (Number(recent[0]?.count || 0) >= 20) return { rateLimited: true as const };
@@ -33,6 +33,9 @@ export async function updateCommunityComment(
 export async function deleteCommunityComment(postId: string, commentId: string, userId: string) {
   const sql = await communityDatabase();
   if (!sql) return false;
-  await sql`DELETE FROM community_comments WHERE id=${commentId} AND post_id=${postId} AND author_id=${userId}`;
+  const deleted = await sql`DELETE FROM community_comments WHERE id=${commentId} AND post_id=${postId} AND author_id=${userId} RETURNING id` as CommunityRow[];
+  if (deleted[0]) {
+    await sql`DELETE FROM community_reports WHERE target_type='comment' AND target_id=${commentId}`;
+  }
   return true;
 }

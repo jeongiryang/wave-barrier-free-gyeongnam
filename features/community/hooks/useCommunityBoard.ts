@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import { authClient } from "../../../lib/auth/client";
+import { useHydratedSession } from "../../auth/hooks/useHydratedSession";
 import { useCommunityPostList } from "./useCommunityPostList";
 
 export type PlaceFilter = { id: string; name: string; region: string };
 
 export function useCommunityBoard(initialPlace: PlaceFilter | null) {
-  const { data: session } = authClient.useSession();
+  const { data: session } = useHydratedSession();
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
