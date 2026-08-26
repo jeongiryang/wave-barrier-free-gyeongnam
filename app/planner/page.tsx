@@ -26,14 +26,16 @@ import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialog
 import { usePlannerAutoRefresh } from "../../features/planner/hooks/usePlannerAutoRefresh";
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
+import { regions } from "../../features/planner/constants";
 import type { Place } from "../../features/planner/types";
+import PhotoCourseRestore from "../../features/photo-course/PhotoCourseRestore";
 import { buildPlannerViewModel } from "../../features/planner/view-model";
 
 export default function PlannerPage() {
   const { locale, t } = useSitePreferences();
   const planController = usePlannerPlan(locale);
   const {
-    selected, region, theme, setTheme, plan,
+    selected, region, setRegion, theme, setTheme, plan,
     setNotice, runPlan, abortPlan,
   } = planController;
   const routePlanning = useRoutePlanning(region);
@@ -58,7 +60,14 @@ export default function PlannerPage() {
   } = locationSearch;
   const {
     saved, travelStart, travelEnd, scheduleAssignments, toggleSaved,
+    changeTravelStart, setTravelEnd,
   } = tripSelection;
+  // 사진 분석은 브라우저 안에서 끝나고, 여기로 넘어오는 것은 지역과 날짜뿐이다.
+  const applyPhotoCourse = useCallback((input: { region: string; travelStart: string; travelEnd: string }) => {
+    if (input.region && regions.includes(input.region)) setRegion(input.region);
+    if (input.travelStart) changeTravelStart(input.travelStart);
+    if (input.travelEnd) setTravelEnd(input.travelEnd);
+  }, [changeTravelStart, setRegion, setTravelEnd]);
   const {
     keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
     weather, weatherLoading, loadEnrichment,
@@ -155,6 +164,8 @@ export default function PlannerPage() {
         dataErrors={dataErrors}
         plan={plan}
       />
+
+      <PhotoCourseRestore onApply={applyPhotoCourse} />
 
       <PlannerConditionsPanel
         t={t}

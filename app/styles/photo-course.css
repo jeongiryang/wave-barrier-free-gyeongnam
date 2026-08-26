@@ -1,0 +1,91 @@
+/* 사진으로 코스 복원 — 플래너 조건 위쪽에 놓이는 선택적 도구 구역. */
+
+.photo-course {
+  width: var(--content); margin: 0 auto 28px; padding: clamp(20px, 2.4vw, 32px);
+  border: 1px solid var(--line); border-radius: 20px;
+  color: var(--ink); background: var(--white);
+  box-shadow: 0 10px 26px rgb(6 48 74 / 6%);
+}
+.photo-course-kicker { margin: 0 0 6px; color: var(--blue-dark); font-size: .82rem; font-weight: 850; letter-spacing: .08em; }
+.photo-course-header h2 { margin: 0 0 8px; font-size: clamp(1.12rem, 1.5vw, 1.42rem); line-height: 1.35; }
+.photo-course-lead { margin: 0 0 18px; max-width: 72ch; color: var(--ink-soft); line-height: 1.65; }
+.photo-course-lead strong { color: var(--ink); }
+
+.photo-course-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.photo-course-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.photo-course-pick,
+.photo-course-clear,
+.photo-course-apply button {
+  min-height: 48px; padding: 12px 20px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 13px; font: inherit; font-weight: 850; cursor: pointer;
+}
+.photo-course-pick { color: var(--white); background: var(--blue); border: 1px solid var(--blue-dark); }
+.photo-course-clear { color: var(--ink); background: var(--white); border: 1px solid var(--line); }
+.photo-course-input:focus-visible + .photo-course-pick { outline: 3px solid #ffb800; outline-offset: 4px; }
+.photo-course-limit { margin: 0; color: var(--muted); font-size: .88rem; }
+
+.photo-course-notice { margin: 14px 0 0; min-block-size: 1.6em; color: var(--ink-soft); line-height: 1.6; }
+
+.photo-course-days { margin: 20px 0 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+.photo-course-day { padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.photo-course-day-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.photo-course-day-head h3 { margin: 0; font-size: 1.02rem; }
+.photo-course-day-head p { margin: 0; color: var(--muted); font-size: .9rem; }
+
+.photo-course-stops { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+.photo-course-stop {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--white);
+}
+.photo-course-time { color: var(--blue-dark); font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.photo-course-name { display: block; min-width: 0; }
+.photo-course-name input {
+  width: 100%; min-height: 44px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 10px;
+  color: var(--ink); background: var(--white); font: inherit; font-size: 1rem;
+}
+.photo-course-meta { color: var(--muted); font-size: .86rem; white-space: nowrap; }
+.photo-course-badge { font-weight: 800; }
+.photo-course-badge.is-located { color: var(--blue-dark); }
+.photo-course-badge.is-located::before { content: "✓ "; }
+.photo-course-badge.is-unlocated { color: #8a4b12; }
+.photo-course-badge.is-unlocated::before { content: "? "; }
+
+.photo-course-apply { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 18px; }
+.photo-course-apply button { color: var(--white); background: var(--ink); border: 1px solid var(--ink); }
+.photo-course-apply p { margin: 0; color: var(--ink-soft); font-size: .92rem; line-height: 1.55; }
+.photo-course-applied { margin: 12px 0 0; padding: 12px 14px; border-radius: 12px; color: var(--ink); background: var(--sky); line-height: 1.6; }
+
+.photo-course-limits { margin-top: 18px; }
+.photo-course-limits summary { min-height: 44px; display: flex; align-items: center; color: var(--blue-dark); font-weight: 800; cursor: pointer; }
+.photo-course-limits ul { margin: 6px 0 0; padding-left: 20px; color: var(--ink-soft); line-height: 1.7; }
+.photo-course-limits strong { color: var(--ink); }
+
+@media (max-width: 720px) {
+  .photo-course-stop { grid-template-columns: minmax(0, 1fr); }
+  .photo-course-meta,
+  .photo-course-time { white-space: normal; }
+}
+
+html[data-theme="dark"] .photo-course { color: #eaf5f9; border-color: #2c5568; background: #0c303f; box-shadow: none; }
+html[data-theme="dark"] .photo-course-kicker,
+html[data-theme="dark"] .photo-course-time,
+html[data-theme="dark"] .photo-course-badge.is-located,
+html[data-theme="dark"] .photo-course-limits summary { color: var(--mint); }
+html[data-theme="dark"] .photo-course-lead,
+html[data-theme="dark"] .photo-course-notice,
+html[data-theme="dark"] .photo-course-apply p,
+html[data-theme="dark"] .photo-course-limits ul { color: #c4dde8; }
+html[data-theme="dark"] .photo-course-lead strong,
+html[data-theme="dark"] .photo-course-limits strong { color: #eaf5f9; }
+html[data-theme="dark"] .photo-course-day { border-color: #2c5568; background: #0a2735; }
+html[data-theme="dark"] .photo-course-day-head p,
+html[data-theme="dark"] .photo-course-meta,
+html[data-theme="dark"] .photo-course-limit { color: #9dbecb; }
+html[data-theme="dark"] .photo-course-stop { border-color: #2c5568; background: #0e3748; }
+html[data-theme="dark"] .photo-course-name input { color: #eaf5f9; border-color: #31596a; background: #0a2735; }
+html[data-theme="dark"] .photo-course-clear { color: #eaf5f9; border-color: #31596a; background: #0e3748; }
+html[data-theme="dark"] .photo-course-badge.is-unlocated { color: #f0c07a; }
+html[data-theme="dark"] .photo-course-apply button { color: #032331; border-color: var(--mint); background: var(--mint); }
+html[data-theme="dark"] .photo-course-applied { color: #eaf5f9; background: #123d4f; }
