@@ -30,6 +30,8 @@ test("CD migrates an unpromoted candidate before production promotion", async ()
   assert.ok(candidate < migration && migration < promote);
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
   assert.match(workflow, /vercel@50\.15\.1 rollback/);
+  assert.match(workflow, /promote[^\\n]+--scope="\\$VERCEL_ORG_ID"/);
+  assert.match(workflow, /rollback[^\\n]+--scope="\\$VERCEL_ORG_ID"/);
   assert.doesNotMatch(workflow, /steps\.[a-z0-9_]+-[a-z0-9_-]+/i);
   const finalHealthStep = workflow.slice(workflow.indexOf("- name: 프로덕션 health와 실패 시 rollback"));
   assert.equal(finalHealthStep.match(/^        env:/gm)?.length, 1);
