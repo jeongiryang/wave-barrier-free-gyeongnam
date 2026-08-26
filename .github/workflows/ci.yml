@@ -35,5 +35,11 @@ jobs:
       - name: 회귀 테스트
         run: npm test
 
+      - name: 브라우저 설치
+        run: npx playwright install --with-deps chromium
+
+      - name: 브라우저·접근성 회귀 테스트
+        run: npm run test:e2e
+
       - name: Vercel용 빌드 검사
         run: npm run build:vercel
