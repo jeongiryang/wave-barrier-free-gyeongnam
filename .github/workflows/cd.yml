@@ -80,7 +80,8 @@ jobs:
         env:
           CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
           COMMUNITY_MIGRATION_TOKEN: ${{ steps.migration_token.outputs.value }}
-        run: curl --fail --silent --show-error --retry 3 --retry-all-errors --request POST --header "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN" "$CANDIDATE_URL/api/deployment/migrate"
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-all-errors --request POST --header "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN" "$CANDIDATE_URL/api/deployment/migrate"
 
       - name: 후보 health smoke test
         env:
