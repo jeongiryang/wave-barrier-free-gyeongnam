@@ -385,19 +385,19 @@ test("travel conditions refresh the plan without requiring the submit button", a
 });
 
 test("planner visual order follows DOM and keyboard focus order", async () => {
-  const [planner, css] = await Promise.all([
-    plannerProductSource(),
+  const [page, css] = await Promise.all([
+    source("app/planner/page.tsx"),
     styleSource(),
   ]);
-  const sectionIds = ["planner", "places", "layers", "navigation", "route", "data"];
-  const positions = sectionIds.map((id) => planner.indexOf(`id="${id}"`));
+  const sections = ["PlannerConditionsPanel", "RecommendationWorkspace", "NavigationWorkspace", "PlannerResultsPanel", "TravelSignalsPanel"];
+  const positions = sections.map((component) => page.indexOf(`<${component}`));
   assert.ok(positions.every((position) => position >= 0));
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
   assert.match(css, /\.planner-page > \.planner-section \{ order: 2; \}/);
   assert.match(css, /\.planner-page > \.places-section \{ order: 3; \}/);
-  assert.match(css, /\.planner-page > \.travel-layers \{ order: 4; \}/);
-  assert.match(css, /\.planner-page > \.navigation-section \{ order: 5; \}/);
-  assert.match(css, /\.planner-page > \.route-section \{ order: 6; \}/);
+  assert.match(css, /\.planner-page > \.navigation-section \{ order: 4; \}/);
+  assert.match(css, /\.planner-page > \.route-section \{ order: 5; \}/);
+  assert.match(css, /\.planner-page > \.travel-layers \{ order: 6; \}/);
   assert.match(css, /\.planner-page > \.data-section \{ order: 7; \}/);
 });
 

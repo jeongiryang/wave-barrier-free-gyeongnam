@@ -7,10 +7,11 @@ import type {
   WeatherData,
 } from "../types";
 import type { TripImpact } from "../view-model";
-import RegionalInsights from "./RegionalInsights";
+import { lazy, Suspense } from "react";
 import SituationImpactPanel from "./SituationImpactPanel";
-import ThemeExplorer from "./ThemeExplorer";
 import WeatherBoard from "./WeatherBoard";
+
+const PlannerSecondaryInsights = lazy(() => import("./PlannerSecondaryInsights"));
 
 interface TravelSignalsPanelProps {
   region: string;
@@ -28,6 +29,8 @@ interface TravelSignalsPanelProps {
   onRichModeChange: (mode: RichMode) => void;
   richItems: RichSpot[];
   onReloadEnrichment: () => void;
+  secondaryOpen: boolean;
+  onSecondaryOpenChange: (open: boolean) => void;
   onRouteFromRichSpot: (spot: RichSpot) => void;
 }
 
@@ -47,12 +50,14 @@ export default function TravelSignalsPanel({
   onRichModeChange,
   richItems,
   onReloadEnrichment,
+  secondaryOpen,
+  onSecondaryOpenChange,
   onRouteFromRichSpot,
 }: TravelSignalsPanelProps) {
   return <section className="travel-layers" id="layers">
     <div className="workspace-heading inverse" data-reveal>
-      <div><span>03</span><h2>{region} 상황과 여행 정보</h2></div>
-      <p>방문 · 수요 · 테마</p>
+      <div><span>05</span><h2>{region} 상황과 여행 정보</h2></div>
+      <p>날씨 · 방문 경향 · 주변</p>
     </div>
 
     <WeatherBoard region={region} weather={weather} loading={weatherLoading} />
@@ -63,20 +68,22 @@ export default function TravelSignalsPanel({
       weatherLoading={weatherLoading}
       onImpactAction={onImpactAction}
     />}
-    <RegionalInsights
-      enrichment={enrichment}
-      loading={enrichmentLoading}
-      visitorTypes={visitorTypes}
-      demandMax={demandMax}
-    />
-    <ThemeExplorer
-      region={region}
-      loading={enrichmentLoading}
-      richMode={richMode}
-      onRichModeChange={onRichModeChange}
-      richItems={richItems}
-      onReload={onReloadEnrichment}
-      onRouteFromSpot={onRouteFromRichSpot}
-    />
+    <details className="planner-secondary-details" open={secondaryOpen} onToggle={(event) => onSecondaryOpenChange(event.currentTarget.open)}>
+      <summary><span>주변 여행 정보 펼치기</span><small>방문 경향 · 축제 · 숙박 · 테마 여행</small></summary>
+      {secondaryOpen && <Suspense fallback={<div className="planner-secondary-loading" role="status">주변 여행 정보를 준비하고 있어요.</div>}>
+        <PlannerSecondaryInsights
+          region={region}
+          enrichment={enrichment}
+          enrichmentLoading={enrichmentLoading}
+          visitorTypes={visitorTypes}
+          demandMax={demandMax}
+          richMode={richMode}
+          onRichModeChange={onRichModeChange}
+          richItems={richItems}
+          onReloadEnrichment={onReloadEnrichment}
+          onRouteFromRichSpot={onRouteFromRichSpot}
+        />
+      </Suspense>}
+    </details>
   </section>;
 }

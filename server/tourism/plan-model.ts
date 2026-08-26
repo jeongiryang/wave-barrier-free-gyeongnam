@@ -3,6 +3,10 @@ import type { ProviderAttempt, ProviderItem } from "../shared/provider-data";
 import { apiStatus } from "./provider-model";
 
 type EvidencePlace = {
+  id?: string;
+  contentTypeId?: string;
+  mapX?: string;
+  mapY?: string;
   name: string;
   score: number | null;
   knownFields?: number;
@@ -12,6 +16,16 @@ type EvidencePlace = {
 };
 
 type Course = { name: string; summary: string } | null;
+type PlanStop = {
+  id?: string;
+  contentTypeId?: string;
+  mapX?: string;
+  mapY?: string;
+  title: string;
+  note: string;
+  source: string;
+  evidenceState: "verified" | "limited" | "context";
+};
 
 export function sortPlacesByEvidence<T extends Pick<EvidencePlace, "score" | "knownFields">>(places: T[]) {
   return places.sort((left, right) => {
@@ -24,12 +38,16 @@ export function sortPlacesByEvidence<T extends Pick<EvidencePlace, "score" | "kn
 }
 
 export function buildPlanStops(places: EvidencePlace[], hubItems: ProviderItem[], related: ProviderAttempt, baseYm: string, region: string, firstTitle: string, course: Course) {
-  const stops = places.slice(0, 3).map((place, index) => ({
+  const stops: PlanStop[] = places.slice(0, 3).map((place, index) => ({
     title: place.name,
     note: place.score === null
       ? "공식 편의정보가 부족한 후보입니다. 방문 전 시설 운영기관에 확인해 주세요."
       : index === 0 ? `${place.features.slice(0, 2).join("·")} 편의정보가 공식 데이터에서 확인됐습니다.` : place.summary,
     source: place.source,
+    id: place.id,
+    contentTypeId: place.contentTypeId,
+    mapX: place.mapX,
+    mapY: place.mapY,
     evidenceState: place.score === null ? "limited" : "verified",
   }));
   hubItems.slice(0, Math.max(0, 3 - stops.length)).forEach((item) => stops.push({

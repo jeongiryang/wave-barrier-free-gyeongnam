@@ -5,6 +5,7 @@ import { fetchOdsayRoutes } from "./odsay";
 import { fetchTransportContext } from "./public-context";
 import { finiteCoordinate, haversine } from "./route-utils";
 import type { RouteApiAlternative } from "./types";
+import { recordOperationalEvent } from "../shared/observability";
 
 export { handleHealthApi, handleMapConfig } from "./health";
 
@@ -54,6 +55,12 @@ export async function handleRouteApi(request: Request, env: Env) {
   const hasRealRoute = alternatives.some((item) => item.configured);
   const hasTransportKey = providers.some((item) => item.configured);
   const hasTransportData = providers.some((item) => item.state === "connected" || item.state === "ready");
+  recordOperationalEvent("route_result", {
+    configured: hasRealRoute,
+    alternatives: alternatives.length,
+    providersConnected: providers.filter((item) => item.state === "connected").length,
+    providersDelayed: providers.filter((item) => item.state === "error").length,
+  });
   return json({
     configured: hasRealRoute,
     alternatives,

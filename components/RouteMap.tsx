@@ -129,7 +129,7 @@ export default function RouteMap(props: RouteMapProps) {
       onShare={() => void shareRoute()}
     />}
 
-    <div className="route-map-canvas" ref={containerRef} role="img" aria-label="출발지와 추천 여행지를 표시한 경로 지도" />
+    <div className="route-map-canvas" ref={containerRef} role="region" aria-label="출발지와 추천 여행지를 표시한 대화형 경로 지도" />
     <MapCanvasStatusOverlays
       provider={provider}
       roadviewOpen={roadviewOpen}

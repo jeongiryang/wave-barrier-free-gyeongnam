@@ -17,7 +17,7 @@
 .itinerary-layout { padding-top: 60px; display: grid; grid-template-columns: 1.18fr .82fr; gap: 75px; }
 .itinerary-list { margin: 0; padding: 0; list-style: none; }
 .itinerary-list li { min-height: 136px; display: grid; grid-template-columns: 65px 38px 1fr auto; gap: 16px; align-items: start; }
-.stop-time { padding-top: 6px; color: #a0bac5; font-size: .78rem; font-weight: 800; }
+.stop-time { padding-top: 6px; color: #a0bac5; font-size: .78rem; font-weight: 800; }.stop-time small { margin-top: 4px; display: block; color: #7796a3; font-size: .6rem; line-height: 1.35; letter-spacing: 0; }
 .stop-line { align-self: stretch; position: relative; display: flex; justify-content: center; font-style: normal; }
 .stop-line::after { content: ""; position: absolute; top: 34px; bottom: -2px; width: 1px; background: rgba(255,255,255,.17); }
 .itinerary-list li:last-child .stop-line::after { display: none; }

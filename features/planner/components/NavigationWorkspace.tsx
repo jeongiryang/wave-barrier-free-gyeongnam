@@ -30,7 +30,7 @@ export default function NavigationWorkspace({
 }: NavigationWorkspaceProps) {
   return <section className="navigation-section" id="navigation">
     <div className="workspace-heading" data-reveal>
-      <div><span>04</span><h2>{t("navigationTitle", "통합 길찾기")}</h2></div>
+      <div><span>03</span><h2>{t("navigationTitle", "통합 길찾기")}</h2></div>
       <p>시간 · 요금 · 환승 · 도보</p>
     </div>
     <TransportDataOverview

@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { plannerJson } from "../services/api";
 import type { EnrichmentData, PlanData } from "../types";
 
-export function usePlannerEnrichment({ plan, region, theme, locale, travelStart, travelEnd }: {
+export function usePlannerEnrichment({ plan, enabled, region, theme, locale, travelStart, travelEnd }: {
   plan: PlanData | null;
+  enabled: boolean;
   region: string;
   theme: string;
   locale: string;
@@ -21,6 +22,7 @@ export function usePlannerEnrichment({ plan, region, theme, locale, travelStart,
     const controller = new AbortController();
     enrichmentRequestRef.current = controller;
     setEnrichmentLoading(true);
+    setEnrichment(null);
     try {
       const params = new URLSearchParams({ action: "enrich", region, theme, locale, startDate: travelStart, endDate: travelEnd });
       const data = await plannerJson<EnrichmentData>(`/api/wave?${params.toString()}`, { signal: controller.signal });
@@ -37,13 +39,13 @@ export function usePlannerEnrichment({ plan, region, theme, locale, travelStart,
   }, [region, theme, locale, travelStart, travelEnd]);
 
   useEffect(() => {
-    if (!plan) return;
+    if (!plan || !enabled) return;
     const frame = window.requestAnimationFrame(() => void loadEnrichment());
     return () => {
       window.cancelAnimationFrame(frame);
       enrichmentRequestRef.current?.abort();
     };
-  }, [plan, loadEnrichment]);
+  }, [enabled, plan, loadEnrichment]);
 
   useEffect(() => () => enrichmentRequestRef.current?.abort(), []);
 

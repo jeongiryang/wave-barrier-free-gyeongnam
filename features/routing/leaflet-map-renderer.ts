@@ -24,6 +24,9 @@ export async function renderLeafletMap(
   const map = L.map(containerRef.current, {
     zoomControl: false,
     scrollWheelZoom: true,
+    // Markers and map controls remain independently keyboard reachable; the canvas itself
+    // must not become a focusable wrapper around those interactive descendants.
+    keyboard: false,
     attributionControl: true,
   });
   mapRef.current = map;
