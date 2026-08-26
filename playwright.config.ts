@@ -14,7 +14,7 @@ export default defineConfig({
   reporter: process.env.CI ? [["line"], ["html", { open: "never" }]] : "line",
   use: {
     baseURL,
-    launchOptions: executablePath ? { executablePath, args: ["--no-sandbox", "--single-process"] } : undefined,
+    launchOptions: executablePath ? { executablePath, args: ["--no-sandbox"] } : undefined,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     // Traces and screenshots keep failures debuggable without making ffmpeg a CI prerequisite.
