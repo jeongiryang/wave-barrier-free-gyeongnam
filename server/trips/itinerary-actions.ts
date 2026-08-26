@@ -2,7 +2,7 @@ import type { Env } from "../shared/env";
 import { clean, json, readTrustedJson } from "../shared/http";
 import { buildPlan } from "../tourism/plan-builder";
 import { restoreSharedPlan } from "../tourism/shared-plan-restoration";
-import { ensureTripDatabase } from "./database";
+import { ensureTripDatabase, sweepExpiredTrips } from "./database";
 import { normalizeTripSelections, storedTripPayload } from "./payload";
 import { sharedTripWriteRejection } from "./write-budget";
 
@@ -61,5 +61,8 @@ export async function saveSharedTrip(request: Request, url: URL) {
   const now = Date.now();
   const expiresAt = now + 1000 * 60 * 60 * 24 * 30;
   await sql`INSERT INTO itineraries (id, payload, created_at, expires_at) VALUES (${id}, ${payload}::jsonb, ${now}, ${expiresAt})`;
+  // 보관 기간이 지난 행을 저장 요청에 얹어 조금씩 지운다. 정리에 실패해도
+  // 방금 저장한 여행을 돌려주지 못할 이유는 없다.
+  await sweepExpiredTrips(sql, now).catch(() => 0);
   return json({ id, url: `${url.origin}/trip/${id}`, expiresAt }, 201);
 }
