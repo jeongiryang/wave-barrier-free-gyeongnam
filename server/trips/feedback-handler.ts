@@ -1,5 +1,6 @@
 import { clean, json, readTrustedJson } from "../shared/http";
 import { ensureTripDatabase } from "./database";
+import { feedbackWriteRejection } from "./write-budget";
 
 export async function handleFeedbackApi(request: Request) {
   if (request.method !== "POST") return json({ error: "POST 요청만 지원합니다." }, 405);
@@ -15,6 +16,8 @@ export async function handleFeedbackApi(request: Request) {
   }
   const sql = await ensureTripDatabase();
   if (!sql) return json({ error: "접근성 제보 보관 기능을 준비 중입니다." }, 503);
+  const rejection = await feedbackWriteRejection(sql);
+  if (rejection) return rejection;
   const id = crypto.randomUUID();
   await sql`INSERT INTO place_feedback (id, place_id, place_name, field, message, status, created_at) VALUES (${id}, ${placeId}, ${placeName}, ${field}, ${message}, 'received', ${Date.now()})`;
   return json({ ok: true, id }, 201);
