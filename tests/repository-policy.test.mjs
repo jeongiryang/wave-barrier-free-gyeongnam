@@ -305,7 +305,7 @@ test("transport provider placeholders settle even when health lookup fails", asy
 
 test("pull requests must be revalidated against the latest main", async () => {
   const [rules, template] = await Promise.all([
-    source("CLAUDE.md"),
+    source("docs/main-sync-review-policy.md"),
     source(".github/pull_request_template.md"),
   ]);
   assert.match(rules, /git merge-base --is-ancestor origin\/main HEAD/);
@@ -320,7 +320,7 @@ test("pull requests must be revalidated against the latest main", async () => {
 test("new issues receive an owner and a safe default label", async () => {
   const [workflow, rules] = await Promise.all([
     source(".github/workflows/issue-triage.yml"),
-    source("CLAUDE.md"),
+    source("docs/main-sync-review-policy.md"),
   ]);
   assert.match(workflow, /issues:\s*write/);
   assert.match(workflow, /assignees: \["jeongiryang"\]/);
@@ -333,7 +333,7 @@ test("new issues receive an owner and a safe default label", async () => {
 });
 
 test("autonomous work stays bounded and merges only after fresh checks", async () => {
-  const rules = await source("CLAUDE.md");
+  const rules = await source("docs/main-sync-review-policy.md");
   assert.match(rules, /최신 `main` 반영, 전체 로컬 검사와 새 HEAD의 CI 성공/);
   assert.match(rules, /실패·대기 중 검사는 우회하지 않고/);
   assert.match(rules, /선행 PR의 결과가 필요한\s*작업은 그 PR이 병합된 최신 `main`/);

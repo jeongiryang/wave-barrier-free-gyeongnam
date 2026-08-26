@@ -1,8 +1,6 @@
 import type { AuthCredentials, AuthMode } from "./types";
 
-export function safeAuthReturnPath(value: string | null | undefined) {
-  return value && value.startsWith("/") && !value.startsWith("//") ? value : "/community";
-}
+export { AUTH_FALLBACK_PATH, safeAuthReturnPath } from "../../lib/auth/return-path.js";
 
 export function friendlyAuthError(raw: string) {
   if (/fetch|network|503|unavailable/i.test(raw)) return "계정 서비스 연결이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.";

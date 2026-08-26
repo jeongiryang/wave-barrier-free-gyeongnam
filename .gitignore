@@ -40,3 +40,6 @@ next-env.d.ts
 /dist/
 /.output/
 /.vinext/
+
+# 개별 도구용 작업 지침 (저장소에 올리지 않는다)
+CLAUDE.md
