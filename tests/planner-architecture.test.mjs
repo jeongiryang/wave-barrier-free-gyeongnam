@@ -68,12 +68,18 @@ test("planner route composes feature sections instead of owning their dense UI",
 });
 
 test("travel signals compose independent weather, impact, insight and theme sections", async () => {
-  const signals = await source("features/planner/components/TravelSignalsPanel.tsx");
+  const [signals, secondary] = await Promise.all([
+    source("features/planner/components/TravelSignalsPanel.tsx"),
+    source("features/planner/components/PlannerSecondaryInsights.tsx"),
+  ]);
   assert.match(signals, /<WeatherBoard/);
   assert.match(signals, /<SituationImpactPanel/);
-  assert.match(signals, /<RegionalInsights/);
-  assert.match(signals, /<ThemeExplorer/);
+  assert.match(signals, /lazy\(\(\) => import\("\.\/PlannerSecondaryInsights"\)\)/);
+  assert.match(signals, /<Suspense/);
+  assert.match(secondary, /<RegionalInsights/);
+  assert.match(secondary, /<ThemeExplorer/);
   assert.doesNotMatch(signals, /className="weather-current"|className="impact-signal-grid"|className="visitor-insight"|className="rich-card"/);
+  assert.doesNotMatch(secondary, /className="weather-current"|className="impact-signal-grid"/);
 });
 
 test("navigation workspace delegates transport data and map route interactions", async () => {

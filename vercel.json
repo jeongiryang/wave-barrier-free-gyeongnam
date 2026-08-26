@@ -8,7 +8,7 @@
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Content-Security-Policy", "value": "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-inline' https://*.kakao.com https://*.daumcdn.net https://*.kakaocdn.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://*.kakao.com https://*.daumcdn.net https://*.kakaocdn.net https://*.tile.openstreetmap.org; frame-src 'self' https://*.kakao.com https://*.daumcdn.net; worker-src 'self' blob:; manifest-src 'self'" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self)" }
       ]

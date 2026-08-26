@@ -61,6 +61,7 @@ export default function PlannerPage() {
   } = tripSelection;
   const {
     keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
+    secondaryOpen, setSecondaryOpen,
     weather, weatherLoading, loadEnrichment,
   } = usePlannerSignals({ plan, region, theme, locale, travelStart, travelEnd });
   const participation = usePlannerParticipation({
@@ -174,24 +175,6 @@ export default function PlannerPage() {
         onGenerate={generatePlan}
         onSelectPlace={setSelectedPlace}
       />
-      <TravelSignalsPanel
-        region={region}
-        plan={plan}
-        weather={weather}
-        weatherLoading={weatherLoading}
-        tripImpact={tripImpact}
-        impactCrowd={impactCrowd}
-        onImpactAction={applyImpactAction}
-        enrichment={enrichment}
-        enrichmentLoading={enrichmentLoading}
-        visitorTypes={visitorTypes}
-        demandMax={demandMax}
-        richMode={richMode}
-        onRichModeChange={setRichMode}
-        richItems={richItems}
-        onReloadEnrichment={() => void loadEnrichment()}
-        onRouteFromRichSpot={routeFromRichSpot}
-      />
       <NavigationWorkspace
         t={t}
         activePlaces={activePlaces}
@@ -212,6 +195,26 @@ export default function PlannerPage() {
         liveCount={liveCount}
         audioGuide={audioGuide}
         participation={participation}
+      />
+      <TravelSignalsPanel
+        region={region}
+        plan={plan}
+        weather={weather}
+        weatherLoading={weatherLoading}
+        tripImpact={tripImpact}
+        impactCrowd={impactCrowd}
+        onImpactAction={applyImpactAction}
+        enrichment={enrichment}
+        enrichmentLoading={enrichmentLoading}
+        visitorTypes={visitorTypes}
+        demandMax={demandMax}
+        richMode={richMode}
+        onRichModeChange={setRichMode}
+        richItems={richItems}
+        onReloadEnrichment={() => void loadEnrichment()}
+        secondaryOpen={secondaryOpen}
+        onSecondaryOpenChange={setSecondaryOpen}
+        onRouteFromRichSpot={routeFromRichSpot}
       />
       {selectedPlace && <PlaceDecisionDialog
         place={selectedPlace}

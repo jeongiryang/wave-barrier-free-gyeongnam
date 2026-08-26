@@ -24,8 +24,9 @@ export function usePlannerSignals({
   travelEnd,
 }: PlannerSignalsOptions) {
   const [richMode, setRichMode] = useState<RichMode>("events");
+  const [secondaryOpen, setSecondaryOpen] = useState(false);
   const health = useServiceHealth();
-  const enrichment = usePlannerEnrichment({ plan, region, theme, locale, travelStart, travelEnd });
+  const enrichment = usePlannerEnrichment({ plan, enabled: secondaryOpen, region, theme, locale, travelStart, travelEnd });
   const weather = useRegionWeather(region);
 
   return {
@@ -33,6 +34,8 @@ export function usePlannerSignals({
     ...enrichment,
     richMode,
     setRichMode,
+    secondaryOpen,
+    setSecondaryOpen,
     ...weather,
   };
 }

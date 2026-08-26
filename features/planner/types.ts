@@ -52,7 +52,17 @@ export type Place = {
 export type Course = { name: string; distance: string; minutes: string; level: string; summary: string; sigun: string };
 export type AudioGuide = { title: string; audioTitle: string; audioUrl: string; script: string; playTime: string };
 export type PhotoInfo = { id: string; title: string; image: string; location: string; photographer: string; month: string };
-export type RouteStop = { title: string; note: string; source: string; evidenceState?: "verified" | "limited" | "context" };
+export type RouteStop = {
+  id?: string;
+  title: string;
+  note: string;
+  source: string;
+  contentTypeId?: string;
+  mapX?: string;
+  mapY?: string;
+  visitMinutes?: number;
+  evidenceState?: "verified" | "limited" | "context";
+};
 
 export type PlanData = {
   mode: "live" | "partial" | "fallback";

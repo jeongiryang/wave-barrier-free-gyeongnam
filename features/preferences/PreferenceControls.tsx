@@ -21,7 +21,7 @@ export function PreferenceControls() {
           <small>읽기 편한 화면으로 조정합니다.</small>
         </header>
         <label className="preference-row">
-          <span><b>{t("language", "언어")}</b><small>{selectedLocale.beta ? "Beta 번역" : "한국어"}</small></span>
+          <span><b>{t("language", "언어")}</b><small>{selectedLocale.beta ? "핵심 화면 부분 번역 · Beta" : "한국어 전체 지원"}</small></span>
           <select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>
             {localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {item.label}{item.beta ? " · Beta" : ""}</option>)}
           </select>
@@ -34,7 +34,7 @@ export function PreferenceControls() {
           <span><b>동작 효과</b><small>{motion === "calm" ? "효과 줄임" : "기본 효과"}</small></span>
           <em aria-hidden="true">{motion === "calm" ? "정지" : "흐름"}</em>
         </button>
-        <p>운영체제의 동작 줄이기 설정을 기본으로 따릅니다.</p>
+        <p>{selectedLocale.beta ? "관광지 원문과 일부 기능은 한국어로 표시될 수 있습니다. " : ""}운영체제의 동작 줄이기 설정을 기본으로 따릅니다.</p>
       </div>
     </details>
   );

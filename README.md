@@ -45,14 +45,14 @@ W.A.V.E는 “갈 수 있는 관광지” 목록에서 멈추지 않고, 여행�
 | --- | --- | --- |
 | 여행 조건 | 휠체어·보행·영유아·임산부·시각·청각 지원 조건의 다중 선택 | 운영 중 |
 | 관광 탐색 | 경남 18개 시·군 관광지, 공식 사진, 무장애 편의정보와 추천 근거 | 운영 중 |
-| 여행 설계 | 조건 변경 즉시 코스 갱신, 일정·장소 비교, 공유 링크 | 운영 중 |
+| 여행 설계 | 조건 변경 즉시 코스 갱신, 이동·체류시간 연쇄 계산, 일정·장소 비교, 공유 링크 | 운영 중 |
 | 지도·이동 | 카카오맵, 주변 장소, 자동차 경로, 로드뷰, Leaflet 경로 지도 | 키 설정 시 운영 |
 | 대중교통 | KORAIL·TAGO·ODsay 기반 철도·버스·환승 정보와 예상 시간·비용 | 승인된 키별 제공 |
 | 현장 대응 | 여행일 날씨·관광 집중률의 일정 영향 설명, 대체 테마·장소 경로 비교 | 운영 중 |
 | 접근성 | 키보드 탐색, 반응형 화면, 다크 모드, 동작 감소, 파동 효과 설정 | 운영 중 |
 | 다국어 | 한국어와 영어·일본어·중국어 간체·번체·프랑스어·독일어·러시아어 소개·주요 조작 | 비한국어 Beta |
 | 계정 | Neon Auth 이메일 로그인·회원가입·로그아웃 | 운영 중 · 여행 설계는 비로그인 가능 |
-| 여행자 이야기 | 공개 글 읽기, 로그인 글·댓글·좋아요, 지역·관광지 연결 | 운영 중 |
+| 여행자 이야기 | 공개 글 읽기, 로그인 글·댓글·좋아요·신고, 지역·관광지 연결 | 운영 중 |
 
 정식 계정 화면은 `/login`, `/register`, 여행자 이야기는 `/community`에서 이용합니다.
 계정은 글쓰기·댓글·좋아요에만 필요하며 관광 탐색·추천·지도·일정·공유는 로그인 없이
@@ -147,6 +147,7 @@ Copy-Item .env.example .env.local
 | `DATABASE_URL` | 저장 기능 | Neon pooled Postgres 연결 문자열 |
 | `NEON_AUTH_BASE_URL` | 계정 기능 | Neon Auth 엔드포인트 |
 | `NEON_AUTH_COOKIE_SECRET` | 계정 기능 | 32자 이상의 쿠키 서명 비밀값 |
+| `COMMUNITY_MODERATOR_USER_IDS` | 커뮤니티 운영 | 신고 목록을 처리할 Neon Auth 사용자 ID 목록 |
 
 전체 발급·배포 순서는 [Vercel·Neon 설정 안내](docs/vercel-neon-setup.md)를 참고하세요.
 
@@ -158,8 +159,13 @@ PR마다 `CI`가 다음 검사를 새 커밋 기준으로 실행합니다.
 npm run lint
 npm run typecheck
 npm test
+npm run test:e2e
 npm run build:vercel
 ```
+
+브라우저 회귀 테스트는 데스크톱·모바일 Chromium에서 랜딩·인트로·Planner·일정·
+오류 복구·로그인 경계·커뮤니티 접근 권한과 주요 접근성 규칙을 확인합니다. 지역별
+공식 사진 조회 범위는 `npm run check:photos`로 18개 시·군 표본을 점검할 수 있습니다.
 
 모든 검사가 성공하고 브랜치가 최신 `main`을 반영한 경우에만 squash merge합니다.
 병합 뒤 `CD`가 CI 성공을 확인하고 동일 커밋을 Vercel Production에 배포합니다.
@@ -181,7 +187,7 @@ migrations/             Neon Postgres 정식 스키마 변경
 server/                 환경·HTTP·공공데이터 client와 관광·교통·날씨·장소 제공기관 모듈
 worker/index.ts         도메인 handler만 연결하는 최상위 API 라우터
 public/                 정적 SVG와 파비콘
-tests/                  운영 정책·기능 회귀 테스트
+tests/, e2e/            순수 로직·운영 정책과 실제 브라우저 사용자 여정 회귀 테스트
 scripts/                Vercel 빌드와 시맨틱 릴리즈 도구
 docs/                   공모전·배포·정책·AI 작업 로그
 .github/workflows/      CI, CD, 릴리즈 자동화
@@ -206,6 +212,7 @@ App Router 메타데이터 라우트에서 프로덕션 주소를 단일 기준�
 
 - [공모전 요구사항 정합성](docs/contest-compliance.md)
 - [공모전 운영·데이터 정책](docs/competition-operation-policy.md)
+- [모바일 제공 형태 결정 기록](docs/mobile-app-decision.md)
 - [Vercel·Neon 배포 설정](docs/vercel-neon-setup.md)
 - [디자인 시스템](docs/design-system.md)
 - [시맨틱 버전 이력](docs/releases.md)

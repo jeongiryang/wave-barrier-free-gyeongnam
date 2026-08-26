@@ -13,6 +13,7 @@ import { buildPlanStatuses, buildPlanStops, sortPlacesByEvidence } from "./plan-
 import { readPlanQuery } from "./plan-query";
 import { mergePlaces } from "./provider-model";
 import { fetchPhoto, photoFrom } from "./photos";
+import { recordOperationalEvent } from "../shared/observability";
 
 export async function buildPlan(request: Request, env: Env) {
   const { region, locale, language, profiles, districts, locationParams } = readPlanQuery(request);
@@ -51,7 +52,7 @@ export async function buildPlan(request: Request, env: Env) {
     language,
   });
 
-  return {
+  const result = {
     mode,
     generatedAt: new Date().toISOString(),
     baseYm: hubPack.baseYm,
@@ -67,4 +68,14 @@ export async function buildPlan(request: Request, env: Env) {
     stops,
     statuses,
   };
+  recordOperationalEvent("tourism_plan", {
+    region,
+    locale,
+    mode,
+    places: places.length,
+    images: places.filter((place) => Boolean(place.image)).length,
+    providersOk: statuses.filter((status) => status.state === "live").length,
+    providersFailed: statuses.filter((status) => status.state === "error").length,
+  });
+  return result;
 }

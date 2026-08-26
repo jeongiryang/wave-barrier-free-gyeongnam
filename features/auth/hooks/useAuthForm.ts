@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { authClient } from "../../../lib/auth/client";
 import type { AuthMode } from "../types";
 import { friendlyAuthError, readAuthCredentials, safeAuthReturnPath } from "../validation";
+import { useHydratedSession } from "./useHydratedSession";
 
 export function useAuthForm(mode: AuthMode, returnTo?: string) {
   const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending } = useHydratedSession();
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");

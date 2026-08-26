@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { authClient } from "../../../lib/auth/client";
 import { COMMUNITY_REGIONS } from "../../../lib/community/types";
+import { useHydratedSession } from "../../auth/hooks/useHydratedSession";
 import {
   getCommunityPost,
   saveCommunityPost,
@@ -22,7 +22,7 @@ const emptyValues: CommunityPostInput = {
 export function useCommunityEditor(postId?: string) {
   const router = useRouter();
   const editing = Boolean(postId);
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending } = useHydratedSession();
   const [values, setValues] = useState<CommunityPostInput>(emptyValues);
   const [state, setState] = useState<"ready" | "loading" | "saving" | "error">(editing ? "loading" : "ready");
   const [message, setMessage] = useState("");

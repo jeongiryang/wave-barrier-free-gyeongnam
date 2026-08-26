@@ -59,3 +59,9 @@ test("tourism images allow only normalized HTTPS URLs", async () => {
   assert.match(image, /safeTourismImageUrl\(data\?\.image\)/);
   assert.match(image, /safeTourismImageUrl\(src\)/);
 });
+
+test("barrier-free place merging keeps an existing official photo when the primary field is empty", async () => {
+  const provider = await source("server/tourism/provider-model.ts");
+  assert.match(provider, /Object\.entries\(item\)\.filter\(\(\[, value\]\) => clean\(value\) !== ""\)/);
+  assert.doesNotMatch(provider, /\{ \.\.\.\(merged\.get\(id\) \|\| \{\}\), \.\.\.item \}/);
+});

@@ -37,8 +37,9 @@
 @supports (animation-timeline: view()) {
   .manifesto-grid article,.evidence-stack article { animation: native-scroll-rise linear both; animation-timeline: view(); animation-range: entry 3% cover 30%; }
   .landing-region-map { animation: native-scroll-map linear both; animation-timeline: view(); animation-range: entry 0% cover 38%; }
-  @keyframes native-scroll-rise { from { opacity: .15; transform: translateY(55px) scale(.96); filter: blur(7px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
-  @keyframes native-scroll-map { from { opacity: .25; transform: perspective(1000px) rotateX(7deg) translateY(65px); } to { opacity: 1; transform: perspective(1000px) rotateX(0) translateY(0); } }
+  /* Keep text fully opaque throughout scroll reveals so motion never lowers WCAG contrast. */
+  @keyframes native-scroll-rise { from { transform: translateY(55px) scale(.96); } to { transform: translateY(0) scale(1); } }
+  @keyframes native-scroll-map { from { transform: perspective(1000px) rotateX(7deg) translateY(65px); } to { transform: perspective(1000px) rotateX(0) translateY(0); } }
 }
 
 @media (max-width: 780px) {

@@ -22,11 +22,17 @@ W.A.V.E는 Vercel을 웹·서버 함수의 단일 운영 환경으로 사용하�
    `NEON_AUTH_COOKIE_SECRET`에 넣는다.
 5. 세 값은 Vercel Project Settings → Environment Variables에서 Production과
    Preview에 등록한다. 실제 값은 저장소에 커밋하지 않는다.
-6. Neon SQL Editor에서 `migrations/001_community.sql`을 실행한다. 이 마이그레이션은
-   게시글·댓글·좋아요 테이블, 소유자·관광지 조회 인덱스, 중복 좋아요 방지 제약을 만든다.
+6. Neon SQL Editor에서 `migrations/001_community.sql`,
+   `migrations/002_community_moderation.sql`을 번호 순서대로 실행한다. 첫 마이그레이션은
+   게시글·댓글·좋아요와 조회 인덱스를 만들고, 두 번째는 신고·검토 상태와 중복 신고
+   방지 제약을 추가한다.
+7. 커뮤니티 운영 담당자의 Neon Auth 사용자 ID를 `COMMUNITY_MODERATOR_USER_IDS`에
+   쉼표로 구분해 등록한다. 이 값은 서버에서만 읽으며 사용자 화면에 노출하지 않는다.
 
 `/login`과 `/register`는 Neon Auth 연결이 완료된 환경에서 활성화된다. `/community`는
-로그인 없이 읽을 수 있고 글·댓글·좋아요만 계정이 필요하다. 데이터베이스가 아직
+로그인 없이 읽을 수 있고 글·댓글·좋아요·신고만 계정이 필요하다. 신고 3건이 모인
+내용은 운영 검토 상태로 전환되어 공개 목록에서 잠시 숨겨지며, 지정 운영자가
+`/community/moderation`에서 공개 유지 또는 숨김을 결정한다. 데이터베이스가 아직
 준비되지 않은 Preview에서도 관광 검색·지도·교통 기능은 비회원으로 계속 이용할 수 있다.
 
 W.A.V.E 커뮤니티 DB는 Neon Auth의 사용자 참조 ID와 표시 이름만 저장한다. 이메일과
@@ -42,6 +48,7 @@ Vercel에 `.env.example`의 필요한 항목을 등록한다.
 - `KAKAO_REST_API_KEY`: 장소 검색·자동차 경로 서버 호출용 키
 - `KORAIL_API_KEY`, `TAGO_API_KEY`: 별도 발급 키가 있을 때만 등록
 - `ODSAY_API_KEY`, `EXPRESSWAY_API_KEY`: 선택 기능을 사용할 때 등록
+- `COMMUNITY_MODERATOR_USER_IDS`: 신고를 처리할 Neon Auth 사용자 ID 목록
 
 공공데이터포털의 동일 일반 인증키로 승인된 서비스는 KORAIL·TAGO 전용 항목을
 비워도 공통 키를 사용한다. 변수 변경 후에는 Vercel에서 Redeploy를 실행한다.
@@ -85,4 +92,5 @@ Windows PowerShell에서는 첫 줄 대신 다음 명령을 사용한다.
 Copy-Item .env.example .env.local
 ```
 
-PR을 올리기 전 `npm run lint`, `npm run typecheck`, `npm test`, `npm run build:vercel`을 모두 실행한다.
+PR을 올리기 전 `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:e2e`,
+`npm run build:vercel`을 모두 실행한다.

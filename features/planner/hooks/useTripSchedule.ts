@@ -6,6 +6,7 @@ import { dateRange, localDate } from "../utils";
 export function useTripSchedule() {
   const [travelStart, setTravelStart] = useState(localDate());
   const [travelEnd, setTravelEnd] = useState(localDate(1));
+  const [dayStartTime, setDayStartTime] = useState("10:00");
   const [scheduleAssignments, setScheduleAssignments] = useState<Record<string, string>>({});
   const tripDays = useMemo(() => dateRange(travelStart, travelEnd), [travelEnd, travelStart]);
 
@@ -36,10 +37,12 @@ export function useTripSchedule() {
   return {
     travelStart,
     travelEnd,
+    dayStartTime,
     scheduleAssignments,
     tripDays,
     changeTravelStart,
     setTravelEnd,
+    setDayStartTime,
     assignPlaceToDay,
     ensurePlaceAssignment,
     removePlaceAssignment,

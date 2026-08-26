@@ -8,8 +8,8 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
   } = route;
 
   return <aside className="route-compare-panel">
-    <div className="sort-tabs" role="tablist" aria-label="경로 정렬 기준">
-      {([['time', '가장 빠름'], ['fare', '가장 저렴함'], ['transfer', '환승 최소'], ['walk', '걷기 최소']] as const).map(([id, label]) => <button type="button" key={id} className={routeSort === id ? "active" : ""} onClick={() => setRouteSort(id)}>{label}</button>)}
+    <div className="sort-tabs" role="group" aria-label="경로 정렬 기준">
+      {([['time', '가장 빠름'], ['fare', '가장 저렴함'], ['transfer', '환승 최소'], ['walk', '걷기 최소']] as const).map(([id, label]) => <button type="button" key={id} aria-pressed={routeSort === id} className={routeSort === id ? "active" : ""} onClick={() => setRouteSort(id)}>{label}</button>)}
     </div>
     <p className="route-notice" aria-live="polite"><span className={activeRoute?.configured ? "live-dot" : "ready-dot"} />{routeNotice}</p>
     <div className="route-options" aria-busy={routeLoading}>

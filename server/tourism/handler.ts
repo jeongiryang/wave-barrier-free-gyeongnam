@@ -5,6 +5,7 @@ import { buildEnrichment, fetchCrowd } from "./insights";
 import { apiStatus } from "./provider-model";
 import { buildPlan } from "./plan-builder";
 import { fetchPhoto, fetchSpotPhoto, photoFrom } from "./photos";
+import { recordOperationalEvent } from "../shared/observability";
 
 function selectedRegion(url: URL) {
   const requested = clean(url.searchParams.get("region"), 20);
@@ -26,7 +27,9 @@ async function handleSpotPhoto(url: URL, env: Env) {
   const tag = clean(url.searchParams.get("tag"), 80);
   const contentId = clean(url.searchParams.get("contentId"), 80);
   if (!title) return json({ error: "사진을 찾을 장소명이 필요합니다." }, 400);
-  return json(await fetchSpotPhoto(env, region, title, tag, contentId), 200, true);
+  const result = await fetchSpotPhoto(env, region, title, tag, contentId);
+  recordOperationalEvent("tourism_photo", { region, status: result.status, source: result.source || "none" });
+  return json(result, 200, true);
 }
 
 async function handleCrowd(url: URL, env: Env) {

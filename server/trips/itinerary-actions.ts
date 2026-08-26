@@ -4,6 +4,7 @@ import { buildPlan } from "../tourism/plan-builder";
 import { restoreSharedPlan } from "../tourism/shared-plan-restoration";
 import { ensureTripDatabase } from "./database";
 import { normalizeTripSelections, storedTripPayload } from "./payload";
+import { sharedTripWriteRejection } from "./write-budget";
 
 type StoredTripRow = {
   payload: Record<string, unknown>;
@@ -51,6 +52,8 @@ export async function saveSharedTrip(request: Request, url: URL) {
   const selections = normalizeTripSelections(body.selections as Record<string, unknown>);
   const sql = await ensureTripDatabase();
   if (!sql) return json({ error: "공유 여행 보관 기능을 준비 중입니다." }, 503);
+  const rejection = await sharedTripWriteRejection(sql);
+  if (rejection) return rejection;
   const payload = JSON.stringify(storedTripPayload(body, selections));
   if (payload.length > 65000) return json({ error: "여행 계획이 너무 큽니다." }, 413);
 
