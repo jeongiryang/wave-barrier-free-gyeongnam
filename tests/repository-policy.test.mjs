@@ -527,7 +527,6 @@ test("the server entry delegates shared policy and provider domains to focused m
     source("server/tourism/shared-plan-restoration.ts"),
     source("server/tourism/catalog.ts"),
     Promise.all([
-      source("server/tourism/models.ts"),
       source("server/tourism/accessibility-model.ts"),
       source("server/tourism/content-model.ts"),
       source("server/tourism/provider-model.ts"),
@@ -591,9 +590,13 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.doesNotMatch(`${tourism}\n${planBuilder}`, /regionPhotoKeywords|normalizeXmlItems|calculateAccessibilityEvidence/);
   assert.match(tourismCatalog, /export const regionCodes/);
   assert.match(tourismModels, /calculateAccessibilityEvidence/);
-  assert.match(tourismModels, /export \{ placeFrom \} from "\.\/accessibility-model"/);
-  assert.match(tourismModels, /export \{ audioFrom, courseFrom, richSpot \} from "\.\/content-model"/);
-  assert.match(tourismModels, /export \{ apiStatus, mergePlaces \} from "\.\/provider-model"/);
+  // 도메인 모델은 배럴 없이 각 모듈에서 직접 가져다 쓴다.
+  assert.match(tourismModels, /export function placeFrom/);
+  assert.match(tourismModels, /export function audioFrom/);
+  assert.match(tourismModels, /export function courseFrom/);
+  assert.match(tourismModels, /export function richSpot/);
+  assert.match(tourismModels, /export function apiStatus/);
+  assert.match(tourismModels, /export function mergePlaces/);
   assert.match(tourismPhotos, /export \{ fetchPhoto, photoFrom \} from "\.\/region-photo"/);
   assert.match(regionPhoto, /export async function fetchPhoto/);
   assert.match(spotPhoto, /export async function fetchSpotPhoto/);
