@@ -93,7 +93,7 @@ jobs:
           CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx --yes vercel@50.15.1 promote "$CANDIDATE_URL" --yes --token="${{ secrets.VERCEL_TOKEN }}"
+        run: npx --yes vercel@50.15.1 promote "$CANDIDATE_URL" --yes --scope="$VERCEL_ORG_ID" --token="${{ secrets.VERCEL_TOKEN }}"
 
       - name: 프로덕션 health와 실패 시 rollback
         env:
@@ -101,6 +101,6 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if ! curl --fail --silent --show-error --retry 3 --retry-all-errors https://wave-barrier-free-gyeongnam.vercel.app/api/health; then
-            npx --yes vercel@50.15.1 rollback --yes --token="${{ secrets.VERCEL_TOKEN }}"
+            npx --yes vercel@50.15.1 rollback --yes --scope="$VERCEL_ORG_ID" --token="${{ secrets.VERCEL_TOKEN }}"
             exit 1
           fi
