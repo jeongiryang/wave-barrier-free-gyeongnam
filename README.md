@@ -212,6 +212,7 @@ App Router 메타데이터 라우트에서 프로덕션 주소를 단일 기준�
 
 - [공모전 요구사항 정합성](docs/contest-compliance.md)
 - [공모전 운영·데이터 정책](docs/competition-operation-policy.md)
+- [모바일 제공 형태 결정 기록](docs/mobile-app-decision.md)
 - [Vercel·Neon 배포 설정](docs/vercel-neon-setup.md)
 - [디자인 시스템](docs/design-system.md)
 - [시맨틱 버전 이력](docs/releases.md)
