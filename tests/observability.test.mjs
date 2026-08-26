@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { recordOperationalEvent } from "../server/shared/observability.ts";
+import { recordOperationalEvent } from "../server/shared/observability.js";
 
 test("operational events exclude coordinates, user identity and secrets", () => {
   const messages = [];
