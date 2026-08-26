@@ -18,15 +18,16 @@ test("production deployment rejects missing or unsafe account configuration", ()
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "same,same" }).join("\n"), /잘못되거나/);
 });
 
-test("CD validates env and applies migration before build and deploy", async () => {
+test("CD migrates an unpromoted candidate before production promotion", async () => {
   const workflow = await readFile(new URL("../.github/workflows/cd.yml", import.meta.url), "utf8");
-  const envCheck = workflow.indexOf("check-production-env.mjs");
-  const migration = workflow.indexOf("apply-community-moderation-migration.mjs");
   const build = workflow.indexOf("vercel@50.15.1 build");
-  const deploy = workflow.indexOf("vercel@50.15.1 deploy");
-  assert.ok(envCheck > 0 && envCheck < migration);
-  assert.ok(migration < build && build < deploy);
-  assert.match(workflow, /--env-file=\.vercel\/\.env\.production\.local/);
+  const candidate = workflow.indexOf("--skip-domain");
+  const migration = workflow.indexOf("/api/deployment/migrate");
+  const promote = workflow.indexOf("vercel@50.15.1 promote");
+  assert.ok(build > 0 && build < candidate);
+  assert.ok(candidate < migration && migration < promote);
+  assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
+  assert.match(workflow, /vercel@50\.15\.1 rollback/);
 });
 
 test("moderation migration is split into one atomic Neon transaction", async () => {
@@ -37,4 +38,16 @@ test("moderation migration is split into one atomic Neon transaction", async () 
   assert.ok(migration.split(/^-- migrate:split\s*$/m).filter((part) => part.trim()).length >= 9);
   assert.match(runner, /sql\.transaction\(statements\.map/);
   assert.doesNotMatch(runner, /console\.log\([^\n]*(?:DATABASE_URL|databaseUrl)/);
+});
+
+test("the migration endpoint is token-protected and uses the canonical SQL", async () => {
+  const [handler, worker] = await Promise.all([
+    readFile(new URL("../server/deployment/migration-handler.ts", import.meta.url), "utf8"),
+    readFile(new URL("../worker/index.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(handler, /VERCEL_ENV !== "production"/);
+  assert.match(handler, /COMMUNITY_MIGRATION_TOKEN/);
+  assert.match(handler, /002_community_moderation\.sql\?raw/);
+  assert.match(handler, /sql\.transaction\(statements\.map/);
+  assert.match(worker, /\/api\/deployment\/migrate/);
 });
