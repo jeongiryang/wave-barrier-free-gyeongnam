@@ -1,9 +1,11 @@
 ALTER TABLE community_posts
   ADD COLUMN IF NOT EXISTS moderation_status VARCHAR(20) NOT NULL DEFAULT 'active';
 
+-- migrate:split
 ALTER TABLE community_comments
   ADD COLUMN IF NOT EXISTS moderation_status VARCHAR(20) NOT NULL DEFAULT 'active';
 
+-- migrate:split
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -17,6 +19,7 @@ BEGIN
   END IF;
 END $$;
 
+-- migrate:split
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -30,11 +33,14 @@ BEGIN
   END IF;
 END $$;
 
+-- migrate:split
 ALTER TABLE community_posts
   VALIDATE CONSTRAINT community_posts_moderation_status_check;
+-- migrate:split
 ALTER TABLE community_comments
   VALIDATE CONSTRAINT community_comments_moderation_status_check;
 
+-- migrate:split
 CREATE TABLE IF NOT EXISTS community_reports (
   id TEXT PRIMARY KEY,
   reporter_id TEXT NOT NULL,
@@ -49,7 +55,9 @@ CREATE TABLE IF NOT EXISTS community_reports (
   UNIQUE (reporter_id, target_type, target_id)
 );
 
+-- migrate:split
 CREATE INDEX IF NOT EXISTS community_reports_status_created_idx
   ON community_reports (status, created_at DESC);
+-- migrate:split
 CREATE INDEX IF NOT EXISTS community_reports_target_idx
   ON community_reports (target_type, target_id, status);
