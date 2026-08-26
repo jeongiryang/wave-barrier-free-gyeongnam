@@ -624,7 +624,7 @@ test("the server entry delegates shared policy and provider domains to focused m
 });
 
 test("route-map rendering delegates controller, provider adapters, controls and domain helpers", async () => {
-  const [map, controller, layers, drawing, nearby, roadview, journeyActions, mapShell, commandBar, nearbyPanel, placePanel, planner, types, sdk, helpers, renderer, kakaoRenderer, leafletRenderer, imageExport] = await Promise.all([
+  const [map, controller, layers, drawing, nearby, roadview, journeyActions, mapShell, commandBar, layerPanel, nearbyPanel, placePanel, planner, types, sdk, helpers, renderer, kakaoRenderer, leafletRenderer, imageExport] = await Promise.all([
     source("components/RouteMap.tsx"),
     source("features/routing/useRouteMapController.ts"),
     source("features/routing/useMapLayers.ts"),
@@ -634,6 +634,7 @@ test("route-map rendering delegates controller, provider adapters, controls and 
     source("features/routing/useMapJourneyActions.ts"),
     source("features/routing/useMapShell.ts"),
     source("features/routing/components/MapCommandBar.tsx"),
+    source("features/routing/components/MapLayerPanel.tsx"),
     source("features/routing/components/NearbyPlacesPanel.tsx"),
     source("features/routing/components/MapPlacePanel.tsx"),
     plannerProductSource(),
@@ -652,6 +653,9 @@ test("route-map rendering delegates controller, provider adapters, controls and 
   assert.match(controller, /useMapRenderer\(\{/);
   assert.match(controller, /useMapLayers\(kakaoMapRef\)/);
   assert.match(controller, /useMapDrawingTools\(\{ drawingManagerRef, setProviderDetail \}\)/);
+  assert.doesNotMatch(sdk, /libraries=services,drawing/);
+  assert.match(layerPanel, /disabled=\{!measurementAvailable\}/);
+  assert.match(layerPanel, /안전한 브라우저 정책/);
   assert.match(controller, /useNearbyPlaces\(\{ kakaoMapRef, choosePlace \}\)/);
   assert.match(controller, /useRoadviewController\(\{ provider, setProviderDetail, setPickMode, setToolPanel \}\)/);
   assert.doesNotMatch(controller, /categorySearch|manager\.select|RoadviewClient|addOverlayMapTypeId/);
