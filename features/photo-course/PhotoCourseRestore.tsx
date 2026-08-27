@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- 한국관광공사 API가 반환하는 가변 HTTPS CDN URL을 서버에서 검증한 뒤 지연 렌더링한다. */
 import { useId, useRef } from "react";
 import { MAX_PHOTOS, usePhotoCourse } from "./usePhotoCourse";
 
