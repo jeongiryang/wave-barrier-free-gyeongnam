@@ -26,8 +26,9 @@ async function handleSpotPhoto(url: URL, env: Env) {
   const title = clean(url.searchParams.get("title"), 100);
   const tag = clean(url.searchParams.get("tag"), 80);
   const contentId = clean(url.searchParams.get("contentId"), 80);
+  const strict = url.searchParams.get("strict") === "1";
   if (!title) return json({ error: "사진을 찾을 장소명이 필요합니다." }, 400);
-  const result = await fetchSpotPhoto(env, region, title, tag, contentId);
+  const result = await fetchSpotPhoto(env, region, title, tag, contentId, strict);
   recordOperationalEvent("tourism_photo", { region, status: result.status, source: result.source || "none" });
   return json(result, 200, true);
 }
