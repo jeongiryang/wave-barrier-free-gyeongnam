@@ -43,6 +43,9 @@ function ifdWriter(entries, little) {
   };
 }
 
+/**
+ * @param {{ takenAt?: string, lat?: number | null, lng?: number | null, little?: boolean }} [options]
+ */
 export function buildExifJpeg({ takenAt = "", lat = null, lng = null, little = true } = {}) {
   const exifEntries = [];
   if (takenAt) exifEntries.push({ tag: 0x9003, type: TYPE_ASCII, count: takenAt.length + 1, bytes: asciiBytes(takenAt) });
