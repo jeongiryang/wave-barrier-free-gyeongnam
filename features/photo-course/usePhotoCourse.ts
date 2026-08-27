@@ -1,9 +1,14 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { changePhotoCourseDayDate, movePhotoCourseStop, photoCourseShareText, portablePhotoCourseExport } from "../../lib/photo-course.js";
+import {
+  buildPhotoCourse,
+  changePhotoCourseDayDate,
+  movePhotoCourseStop,
+  photoCourseShareText,
+  portablePhotoCourseExport,
+} from "../../lib/photo-course.js";
 import { MAX_PHOTOS, readPhotoMetadataFiles } from "../../lib/photo-import.js";
-import { buildPhotoCourse } from "../../lib/photo-course.js";
 import type { PhotoCourse, PhotoCourseApplied, PhotoCourseDay, PhotoCourseEnrichment, PhotoCourseStop } from "./types";
 
 export { MAX_PHOTOS };
