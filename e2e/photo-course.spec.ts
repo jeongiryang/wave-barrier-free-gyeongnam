@@ -22,13 +22,16 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
 
   await page.goto("/planner");
   await expect(page.getByRole("heading", { name: "다녀온 사진을 고르면 날짜별 코스를 다시 만듭니다" })).toBeVisible();
+  const input = page.locator("#photo-course-input");
+  await expect(input).toBeEnabled();
+  await expect(page.locator(".photo-course[data-client-ready='true']")).toBeAttached();
 
   const jpeg = Buffer.from(buildExifJpeg({
     takenAt: "2026:08:14 09:31:02",
     lat: 34.8377,
     lng: 127.8925,
   }));
-  await page.locator("#photo-course-input").setInputFiles({
+  await input.setInputFiles({
     name: "gyeongnam-trip.jpg",
     mimeType: "image/jpeg",
     buffer: jpeg,
