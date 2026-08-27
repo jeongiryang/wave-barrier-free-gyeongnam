@@ -137,17 +137,23 @@ test("only confirmed names dates and contentIds can leave the browser", async ()
   assert.match(exported.privacy, /GPS 좌표는 포함하지 않/);
 
   const hook = await source("features/photo-course/usePhotoCourse.ts");
-  assert.match(hook, /new URLSearchParams\(\{ action: "spot-photo", region, title \}\)/);
+  assert.match(hook, /new URLSearchParams\(\{ action: "spot-photo", region, title, strict: "1" \}\)/);
   assert.doesNotMatch(hook, /localStorage|sessionStorage|indexedDB/);
   assert.doesNotMatch(hook, /URLSearchParams\([^\n]*(lat|lng|point)/);
 });
 
 test("official enrichment uses KTO tourism search and public tourism photos", async () => {
-  const provider = await source("server/tourism/spot-photo.ts");
+  const [provider, handler] = await Promise.all([
+    source("server/tourism/spot-photo.ts"),
+    source("server/tourism/handler.ts"),
+  ]);
   assert.match(provider, /PhotoGalleryService1/);
   assert.match(provider, /searchKeyword2/);
   assert.match(provider, /contentId: clean\(item\.contentid/);
   assert.match(provider, /address: clean/);
+  assert.match(provider, /strict \? \[\] : fallbackKeywords/);
+  assert.match(provider, /candidate\.titleScore >= 90/);
+  assert.match(handler, /searchParams\.get\("strict"\) === "1"/);
   const component = await source("features/photo-course/PhotoCourseRestore.tsx");
   assert.match(component, /전체 장소 공식정보 확인/);
   assert.match(component, /contentId/);
