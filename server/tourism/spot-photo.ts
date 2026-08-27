@@ -42,11 +42,13 @@ export async function fetchSpotPhoto(env: Env, region: string, title: string, ta
     providerWorked ||= detail.ok;
     const item = detail.ok ? detail.value.items[0] : undefined;
     const image = httpsUrl(item?.firstimage || item?.firstimage2);
-    if (image) {
+    if (item) {
       return {
         image,
         source: "한국관광공사 관광정보",
-        matchedTitle: clean(item?.title || title),
+        matchedTitle: clean(item.title || title),
+        contentId: clean(item.contentid || contentId, 40),
+        address: clean([item.addr1, item.addr2].filter(Boolean).join(" "), 160),
         query: contentId,
         status: "live",
       };
@@ -65,25 +67,42 @@ export async function fetchSpotPhoto(env: Env, region: string, title: string, ta
         image: httpsUrl(item.galWebImageUrl || item.galWebImageUrl2),
         title: clean(item.galTitle),
         source: "한국관광공사 관광사진",
+        contentId: "",
+        address: "",
       })) : []),
       ...(tour.ok ? tour.value.items.map((item) => ({
         image: httpsUrl(item.firstimage || item.firstimage2),
         title: clean(item.title),
         source: "한국관광공사 관광정보",
+        contentId: clean(item.contentid, 40),
+        address: clean([item.addr1, item.addr2].filter(Boolean).join(" "), 160),
       })) : []),
-    ].filter((candidate) => candidate.image)
-      .sort((left, right) => scoreSpotPhotoTitle(right.title, normalizedTitle) - scoreSpotPhotoTitle(left.title, normalizedTitle));
+    ]
+      .map((candidate) => ({
+        ...candidate,
+        score: scoreSpotPhotoTitle(candidate.title, normalizedTitle) + (candidate.contentId ? 20 : 0),
+      }))
+      .filter((candidate) => candidate.score > 0 && (candidate.image || candidate.contentId))
+      .sort((left, right) => right.score - left.score);
+
     const best = candidates[0];
     if (best) {
+      // 관광정보 검색 결과에 사진이 없고 같은 검색어의 공공누리 사진이 있으면 사진만 보완한다.
+      const galleryFallback = candidates.find((candidate) => candidate.image && candidate.source === "한국관광공사 관광사진");
       return {
-        image: best.image,
+        image: best.image || galleryFallback?.image || "",
         source: best.source,
         matchedTitle: best.title || clean(title),
+        contentId: best.contentId,
+        address: best.address,
         query: keyword,
         status: "live",
       };
     }
   }
 
-  return { image: "", source: "", matchedTitle: clean(title), status: providerWorked ? "empty" : "error" };
+  return {
+    image: "", source: "", matchedTitle: clean(title), contentId: "", address: "", query: "",
+    status: providerWorked ? "empty" : "error",
+  };
 }
