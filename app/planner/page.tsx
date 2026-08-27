@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { useSitePreferences } from "../../components/SitePreferences";
+import PhotoCourseRestore from "../../features/photo-course/PhotoCourseRestore";
 import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
 import NavigationWorkspace from "../../features/planner/components/NavigationWorkspace";
 import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
@@ -33,7 +34,7 @@ export default function PlannerPage() {
   const { locale, t } = useSitePreferences();
   const planController = usePlannerPlan(locale);
   const {
-    selected, region, theme, setTheme, plan,
+    selected, region, setRegion, theme, setTheme, plan,
     setNotice, runPlan, abortPlan,
   } = planController;
   const routePlanning = useRoutePlanning(region);
@@ -58,6 +59,7 @@ export default function PlannerPage() {
   } = locationSearch;
   const {
     saved, travelStart, travelEnd, scheduleAssignments, toggleSaved,
+    changeTravelStart, setTravelEnd,
   } = tripSelection;
   const {
     keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
@@ -131,6 +133,17 @@ export default function PlannerPage() {
     }, revealResults);
   }
 
+  const applyPhotoCourse = useCallback(({ region: photoRegion, travelStart: photoStart, travelEnd: photoEnd }: {
+    region: string;
+    travelStart: string;
+    travelEnd: string;
+  }) => {
+    if (photoRegion) setRegion(photoRegion);
+    changeTravelStart(photoStart);
+    setTravelEnd(photoEnd);
+    setNotice("사진에서 복원한 지역과 여행 날짜를 반영했습니다. 추천 결과는 공식 관광정보 기준으로 다시 계산됩니다.");
+  }, [changeTravelStart, setNotice, setRegion, setTravelEnd]);
+
   usePlannerAutoRefresh({
     enabled: selected.length > 0,
     signature: `${region}|${theme}|${locale}|${selected.join(",")}`,
@@ -157,6 +170,7 @@ export default function PlannerPage() {
         plan={plan}
       />
 
+      <PhotoCourseRestore onApply={applyPhotoCourse} />
       <PlannerConditionsPanel
         t={t}
         activePlaces={activePlaces}

@@ -1,0 +1,75 @@
+/* 사진으로 코스 복원 — 개인정보 경계를 유지하는 선택형 플래너 도구. */
+.photo-course {
+  width: var(--content); margin: 0 auto 28px; padding: clamp(20px, 2.4vw, 32px);
+  border: 1px solid var(--line); border-radius: 20px; color: var(--ink); background: var(--white);
+  box-shadow: 0 10px 26px rgb(6 48 74 / 6%);
+}
+.photo-course-kicker { margin: 0 0 6px; color: var(--blue-dark); font-size: .82rem; font-weight: 850; letter-spacing: .08em; }
+.photo-course-header h2 { margin: 0 0 8px; font-size: clamp(1.12rem, 1.5vw, 1.42rem); line-height: 1.35; }
+.photo-course-lead { margin: 0 0 18px; max-width: 78ch; color: var(--ink-soft); line-height: 1.65; }
+.photo-course-actions, .photo-course-toolbar, .photo-course-apply, .photo-course-export { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.photo-course-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.photo-course-pick, .photo-course button, .photo-course select, .photo-course input { font: inherit; }
+.photo-course-pick, .photo-course-clear, .photo-course-toolbar button, .photo-course-apply button, .photo-course-export button, .photo-course-stop-meta button {
+  min-height: 48px; padding: 11px 16px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); border-radius: 13px; font-weight: 800; cursor: pointer; background: var(--white); color: var(--ink);
+}
+.photo-course-pick, .photo-course-apply button { color: var(--white); border-color: var(--blue-dark); background: var(--blue); }
+.photo-course-input:focus-visible + .photo-course-pick, .photo-course button:focus-visible, .photo-course input:focus-visible, .photo-course select:focus-visible { outline: 3px solid #ffb800; outline-offset: 3px; }
+.photo-course button:disabled { cursor: not-allowed; opacity: .5; }
+.photo-course-limit, .photo-course-toolbar p, .photo-course-apply p, .photo-course-export p { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.55; }
+.photo-course-notice { margin: 14px 0 0; min-block-size: 1.6em; color: var(--ink-soft); line-height: 1.6; }
+.photo-course-toolbar { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.photo-course-days { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+.photo-course-day { padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.photo-course-day-head { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; margin-bottom: 12px; }
+.photo-course-day-head label, .photo-course-name, .photo-course-region { display: grid; gap: 5px; color: var(--ink-soft); font-size: .84rem; font-weight: 750; }
+.photo-course-day-head input, .photo-course-name input, .photo-course-region select {
+  min-height: 44px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: var(--white); font-size: 1rem;
+}
+.photo-course-day-head p { margin: 0 0 11px; color: var(--muted); font-size: .9rem; }
+.photo-course-stops { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.photo-course-stop { padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: var(--white); }
+.photo-course-stop-main { display: grid; grid-template-columns: auto minmax(180px, 1.4fr) minmax(120px, .7fr); gap: 12px; align-items: end; }
+.photo-course-stop-order { display: flex; align-items: center; gap: 6px; min-height: 44px; }
+.photo-course-stop-order button { min-width: 44px; min-height: 44px; padding: 8px; }
+.photo-course-time { color: var(--blue-dark); font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.photo-course-stop-meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: .87rem; }
+.photo-course-stop-meta button { margin-left: auto; min-height: 44px; padding-block: 8px; }
+.photo-course-badge { font-weight: 800; }
+.photo-course-badge.is-located { color: var(--blue-dark); }
+.photo-course-badge.is-located::before { content: "✓ "; }
+.photo-course-badge.is-unlocated { color: #8a4b12; }
+.photo-course-badge.is-unlocated::before { content: "? "; }
+.photo-course-enrichment { margin-top: 10px; padding: 12px; display: flex; gap: 12px; border-radius: 12px; background: var(--surface); }
+.photo-course-enrichment img { width: 112px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 9px; }
+.photo-course-enrichment strong { display: block; margin-bottom: 4px; }
+.photo-course-enrichment p { margin: 3px 0 0; color: var(--ink-soft); line-height: 1.5; }
+.photo-course-enrichment.is-error { border: 1px solid #b75b52; }
+.photo-course-apply, .photo-course-export { margin-top: 18px; }
+.photo-course-export { padding-top: 16px; border-top: 1px solid var(--line); }
+.photo-course-applied { margin: 12px 0 0; padding: 12px 14px; border-radius: 12px; color: var(--ink); background: var(--sky); line-height: 1.6; }
+.photo-course-limits { margin-top: 18px; }
+.photo-course-limits summary { min-height: 44px; display: flex; align-items: center; color: var(--blue-dark); font-weight: 800; cursor: pointer; }
+.photo-course-limits ul { margin: 6px 0 0; padding-left: 20px; color: var(--ink-soft); line-height: 1.7; }
+
+@media (max-width: 760px) {
+  .photo-course { padding: 18px; }
+  .photo-course-stop-main { grid-template-columns: 1fr; }
+  .photo-course-stop-meta { grid-column: auto; }
+  .photo-course-stop-meta button { width: 100%; margin-left: 0; }
+  .photo-course-enrichment { flex-direction: column; }
+  .photo-course-enrichment img { width: min(100%, 280px); }
+  .photo-course-actions > *, .photo-course-toolbar button, .photo-course-apply button, .photo-course-export button { flex: 1 1 180px; }
+}
+
+html[data-theme="dark"] .photo-course { color: #eaf5f9; border-color: #2c5568; background: #0c303f; box-shadow: none; }
+html[data-theme="dark"] .photo-course-kicker, html[data-theme="dark"] .photo-course-time, html[data-theme="dark"] .photo-course-badge.is-located, html[data-theme="dark"] .photo-course-limits summary { color: var(--mint); }
+html[data-theme="dark"] .photo-course-lead, html[data-theme="dark"] .photo-course-notice, html[data-theme="dark"] .photo-course-toolbar p, html[data-theme="dark"] .photo-course-apply p, html[data-theme="dark"] .photo-course-export p, html[data-theme="dark"] .photo-course-limits ul { color: #c4dde8; }
+html[data-theme="dark"] .photo-course-day { border-color: #2c5568; background: #0a2735; }
+html[data-theme="dark"] .photo-course-stop, html[data-theme="dark"] .photo-course-pick ~ button, html[data-theme="dark"] .photo-course-toolbar button, html[data-theme="dark"] .photo-course-export button { color: #eaf5f9; border-color: #31596a; background: #0e3748; }
+html[data-theme="dark"] .photo-course-day-head input, html[data-theme="dark"] .photo-course-name input, html[data-theme="dark"] .photo-course-region select { color: #eaf5f9; border-color: #31596a; background: #0a2735; }
+html[data-theme="dark"] .photo-course-enrichment { background: #0a2735; }
+html[data-theme="dark"] .photo-course-enrichment p { color: #c4dde8; }
+html[data-theme="dark"] .photo-course-badge.is-unlocated { color: #f0c07a; }
+html[data-theme="dark"] .photo-course-applied { color: #eaf5f9; background: #123d4f; }

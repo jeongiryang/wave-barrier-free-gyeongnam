@@ -9,6 +9,7 @@ import "./styles/planner-foundations.css";
 import "./styles/regional-explorer-foundations.css";
 import "./styles/theme-itinerary-foundations.css";
 import "./styles/planner-workspace.css";
+import "./styles/photo-course.css";
 import "./styles/landing-motion.css";
 import "./styles/workspace-responsive.css";
 import "./styles/map-experience.css";
