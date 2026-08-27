@@ -1,10 +1,11 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- 한국관광공사 API가 반환하는 가변 HTTPS CDN URL을 서버에서 검증한 뒤 지연 렌더링한다. */
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useSyncExternalStore } from "react";
 import { MAX_PHOTOS, usePhotoCourse } from "./usePhotoCourse";
 
 const REGIONS = ["창원", "진주", "통영", "사천", "김해", "밀양", "거제", "양산", "의령", "함안", "창녕", "고성", "남해", "하동", "산청", "함양", "거창", "합천"];
+const subscribeClientReady = () => () => {};
 
 type Props = {
   onApply: (input: { region: string; travelStart: string; travelEnd: string }) => void;
@@ -18,9 +19,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
   } = usePhotoCourse(onApply);
   const inputRef = useRef<HTMLInputElement>(null);
   const headingId = useId();
-  const [clientReady, setClientReady] = useState(false);
-
-  useEffect(() => setClientReady(true), []);
+  const clientReady = useSyncExternalStore(subscribeClientReady, () => true, () => false);
 
   return (
     <section className="photo-course" aria-labelledby={headingId} data-client-ready={clientReady ? "true" : "false"}>
