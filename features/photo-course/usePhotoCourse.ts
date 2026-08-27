@@ -127,7 +127,6 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
       status: "loading", image: "", source: "", matchedTitle: title, contentId: "", address: "", query: "",
     } }));
     try {
-      // EXIF 좌표는 이미 course 구조에서 제거됐다. 서버에는 사용자가 확인한 지역·장소명만 보낸다.
       const query = new URLSearchParams({ action: "spot-photo", region, title, strict: "1" });
       const response = await fetch(`/api/wave?${query.toString()}`, { headers: { accept: "application/json" } });
       const data = await response.json() as EnrichmentResponse;
@@ -198,10 +197,11 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
   const share = useCallback(async () => {
     if (!course) return;
     const text = photoCourseShareText(course.days, names, enrichments);
+    const canShare = typeof navigator.share === "function";
     try {
-      if (navigator.share) await navigator.share({ title: "W.A.V.E 여행 코스", text });
+      if (canShare) await navigator.share({ title: "W.A.V.E 여행 코스", text });
       else await navigator.clipboard.writeText(text);
-      setExportNotice(navigator.share ? "기기의 공유 화면을 열었습니다." : "좌표가 제거된 코스를 클립보드에 복사했습니다.");
+      setExportNotice(canShare ? "기기의 공유 화면을 열었습니다." : "좌표가 제거된 코스를 클립보드에 복사했습니다.");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
       setExportNotice("공유하지 못했습니다. 기기 저장을 이용해 주세요.");
