@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- 한국관광공사 API가 반환하는 가변 HTTPS CDN URL을 서버에서 검증한 뒤 지연 렌더링한다. */
-import { useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { MAX_PHOTOS, usePhotoCourse } from "./usePhotoCourse";
 
 const REGIONS = ["창원", "진주", "통영", "사천", "김해", "밀양", "거제", "양산", "의령", "함안", "창녕", "고성", "남해", "하동", "산청", "함양", "거창", "합천"];
@@ -18,9 +18,12 @@ export default function PhotoCourseRestore({ onApply }: Props) {
   } = usePhotoCourse(onApply);
   const inputRef = useRef<HTMLInputElement>(null);
   const headingId = useId();
+  const [clientReady, setClientReady] = useState(false);
+
+  useEffect(() => setClientReady(true), []);
 
   return (
-    <section className="photo-course" aria-labelledby={headingId}>
+    <section className="photo-course" aria-labelledby={headingId} data-client-ready={clientReady ? "true" : "false"}>
       <header className="photo-course-header">
         <p className="photo-course-kicker">사진으로 코스 복원</p>
         <h2 id={headingId}>다녀온 사진을 고르면 날짜별 코스를 다시 만듭니다</h2>
@@ -38,12 +41,15 @@ export default function PhotoCourseRestore({ onApply }: Props) {
           type="file"
           accept="image/jpeg"
           multiple
+          disabled={!clientReady}
           onChange={(event) => {
             void readFiles(event.target.files);
             event.target.value = "";
           }}
         />
-        <label className="photo-course-pick" htmlFor="photo-course-input">사진 고르기</label>
+        <label className={`photo-course-pick${clientReady ? "" : " is-disabled"}`} aria-disabled={!clientReady} htmlFor="photo-course-input">
+          {clientReady ? "사진 고르기" : "사진 기능 준비 중"}
+        </label>
         {course && <button type="button" className="photo-course-clear" onClick={clear}>지우기</button>}
         <p className="photo-course-limit">JPEG 원본 최대 {MAX_PHOTOS}장 · 각 파일 앞 256KB만 판독</p>
       </div>
