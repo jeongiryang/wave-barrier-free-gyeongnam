@@ -128,7 +128,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
     } }));
     try {
       // EXIF 좌표는 이미 course 구조에서 제거됐다. 서버에는 사용자가 확인한 지역·장소명만 보낸다.
-      const query = new URLSearchParams({ action: "spot-photo", region, title });
+      const query = new URLSearchParams({ action: "spot-photo", region, title, strict: "1" });
       const response = await fetch(`/api/wave?${query.toString()}`, { headers: { accept: "application/json" } });
       const data = await response.json() as EnrichmentResponse;
       const status = response.ok && data.status === "live" ? "live" : response.ok && data.status === "empty" ? "empty" : "error";
