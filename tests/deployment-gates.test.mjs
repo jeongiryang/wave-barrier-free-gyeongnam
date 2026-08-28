@@ -13,25 +13,36 @@ validEnv.COMMUNITY_MODERATOR_USER_IDS = "user_a,user_b";
 
 test("production deployment rejects missing or unsafe account configuration", () => {
   assert.deepEqual(productionEnvironmentErrors(validEnv), []);
+  assert.deepEqual(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "" }), []);
+  assert.ok(!REQUIRED_PRODUCTION_ENV.includes("COMMUNITY_MODERATOR_USER_IDS"));
   assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "" }).join("\n"), /DATABASE_URL/);
   assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_COOKIE_SECRET: "short" }).join("\n"), /32자/);
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "valid,bad id" }).join("\n"), /잘못되거나/);
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "same,same" }).join("\n"), /잘못되거나/);
 });
 
-test("CD migrates an unpromoted candidate before production promotion", async () => {
+test("CD migrates an unpromoted protected candidate before production promotion", async () => {
   const workflow = await readFile(new URL("../.github/workflows/cd.yml", import.meta.url), "utf8");
   assert.doesNotThrow(() => loadYaml(workflow));
   const build = workflow.indexOf("vercel@50.15.1 build");
   const candidate = workflow.indexOf("--skip-domain");
-  const resolve = workflow.indexOf("후보 실제 URL 확인");
+  const candidateHealth = workflow.indexOf("후보 health smoke test");
   const migration = workflow.indexOf("/api/deployment/migrate");
   const promote = workflow.indexOf("vercel@50.15.1 promote");
   assert.ok(build > 0 && build < candidate);
-  assert.ok(candidate < resolve && resolve < migration && migration < promote);
+  assert.ok(candidate < candidateHealth && candidateHealth < migration && migration < promote);
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
-  assert.match(workflow, /--location --output \/dev\/null --write-out '%\{url_effective\}'/);
-  assert.match(workflow, /steps\.candidate_effective\.outputs\.url/);
+  // Native curl은 실제 curl 인자를 그대로 넘긴다. CI 인증과 프로젝트 선택은
+  // VERCEL_TOKEN/VERCEL_ORG_ID/VERCEL_PROJECT_ID 환경변수와 pull로 만든 링크에 맡긴다.
+  assert.match(workflow, /vercel@54\.14\.0 curl \/api\/health --deployment "\$CANDIDATE_URL"/);
+  assert.match(workflow, /vercel@54\.14\.0 curl \/api\/deployment\/migrate --deployment "\$CANDIDATE_URL"/);
+  assert.match(workflow, /-X POST -H "Authorization: Bearer \$COMMUNITY_MIGRATION_TOKEN"/);
+  assert.doesNotMatch(workflow, /vercel@54\.14\.0[^\n]+--(?:scope|token)[^\n]+curl/);
+  assert.doesNotMatch(workflow, /vercel@54\.14\.0 curl[^\n]+--(?:scope|token)/);
+  assert.match(workflow, /VERCEL_TOKEN: \$\{\{ secrets\.VERCEL_TOKEN \}\}/);
+  assert.match(workflow, /VERCEL_ORG_ID: \$\{\{ secrets\.VERCEL_ORG_ID \}\}/);
+  assert.match(workflow, /VERCEL_PROJECT_ID: \$\{\{ secrets\.VERCEL_PROJECT_ID \}\}/);
+  assert.match(workflow, /vercel@50\.15\.1 (?:pull|build|deploy|promote)/);
   assert.match(workflow, /grep -Fq '\"ok\":true'/);
   assert.match(workflow, /grep -Fq '\"004_community_seed\.sql\"'/);
   assert.match(workflow, /grep -Fq '\"checkedAt\"'/);
@@ -65,7 +76,8 @@ test("the migration endpoint is token-protected and uses the canonical SQL", asy
   assert.match(handler, /002_community_moderation\.sql\?raw/);
   assert.match(handler, /003_trips\.sql\?raw/);
   assert.match(handler, /004_community_seed\.sql\?raw/);
-  assert.match(handler, /\[moderationMigration, tripsMigration\]\.flatMap/);
+  assert.match(handler, /\[moderationMigration, tripsMigration/);
+  assert.match(handler, /communitySeedMigration/);
   assert.match(handler, /sql\.transaction\(statements\.map/);
   assert.match(worker, /\/api\/deployment\/migrate/);
 });
