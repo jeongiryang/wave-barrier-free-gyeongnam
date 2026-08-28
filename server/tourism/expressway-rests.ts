@@ -1,3 +1,4 @@
+import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "../shared/env";
 import { clean } from "../shared/http";
 import { normalizeExpresswayItems, type ProviderAttempt as Attempt } from "../shared/provider-data";
@@ -8,7 +9,7 @@ export async function fetchThemeRests(env: Env): Promise<Attempt> {
   try {
     const params = new URLSearchParams({ key, type: "json" });
     const response = await fetch(`https://data.ex.co.kr/openapi/restinfo/restThemeList?${params.toString()}`, {
-      signal: AbortSignal.timeout(9500),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
       headers: { Accept: "application/json" },
     });
     if (!response.ok) throw new Error(`테마휴게소 응답 ${response.status}`);

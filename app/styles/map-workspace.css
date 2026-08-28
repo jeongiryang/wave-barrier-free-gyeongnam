@@ -39,7 +39,8 @@ html[data-theme="dark"] .map-command-bar button,html[data-theme="dark"] .map-typ
 html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .map-poi-results article { color: #d7eaf2; border-color: #284b5b; background: #0f3445; }
 
 @media (max-width: 780px) {
-  .map-provider-badge { top: 60px; }
+  /* 명령 바는 y 12..68을 차지한다. 배지를 60px에 두면 윗변 8px이 그 아래로 들어간다. */
+  .map-provider-badge { top: 76px; }
   .map-command-bar { left: 8px; right: 8px; padding-bottom: 4px; }
   .map-command-bar button { flex: 0 0 auto; }
   .map-tool-panel { top: 58px; right: 8px; width: calc(100% - 16px); max-height: 63%; }
@@ -65,6 +66,14 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .route-map-canvas { height: 710px; min-width: 0; grid-column: 1; grid-row: 1; }
 .route-map-shell.drawer-open .map-command-bar { right: 396px; }
 .map-command-bar { max-width: calc(100% - 150px); }
+/* 대체 지도 상태에서는 배지에 "Kakao 재연결" 버튼이 붙어 왼쪽 171px를 차지한다.
+   예약이 150px뿐이라 명령 바 첫 버튼이 재연결 버튼의 오른쪽을 덮었고, 그 자리를
+   누르면 지도 유형이 대신 바뀌었다. Kakao 지도가 실패했을 때만 나타나는 복구
+   버튼이라 가장 필요한 순간에 눌리지 않았다. 780px 아래에서는 배지가 아랫줄로
+   내려가므로 이 예약이 필요 없다. */
+@media (min-width: 781px) {
+  .map-provider-badge.osm + .map-command-bar { max-width: calc(100% - 196px); }
+}
 .map-command-bar .map-expand-button { color: #fff; border-color: #062736; background: #062736; }
 .map-command-bar .map-expand-button:hover { border-color: #0a6baf; background: #0a6baf; }
 
@@ -130,7 +139,8 @@ html[data-theme="dark"] .map-side-drawer header > button { color: #e7f2f7; borde
   .route-map-canvas { height: 500px; }
   .map-command-bar { top: 9px; left: 8px; right: 8px; max-width: none; }
   .route-map-shell.drawer-open .map-command-bar { right: 8px; }
-  .map-provider-badge { top: 58px; left: 9px; }
+  /* 이 폭에서 명령 바는 y 9..65를 차지한다. */
+  .map-provider-badge { top: 74px; left: 9px; }
   .map-tool-panel > .map-tool-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .map-side-drawer { max-height: 70%; padding: 16px; }
   .map-side-drawer header { top: -16px; margin: -16px -16px 12px; }

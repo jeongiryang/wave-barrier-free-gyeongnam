@@ -1,3 +1,4 @@
+import { communitySearchPattern } from "../../../lib/community/validation.js";
 import { communityDatabase, type CommunityRow } from "./database";
 import { mapCommunityComment, mapCommunityPost } from "./post-mappers";
 import type { ListFilters } from "./types";
@@ -6,7 +7,7 @@ export async function listCommunityPosts(filters: ListFilters, userId: string) {
   const sql = await communityDatabase();
   if (!sql) return null;
   const { category, search, placeId, page, limit, offset } = filters;
-  const pattern = `%${search}%`;
+  const pattern = communitySearchPattern(search);
   const take = limit + 1;
   const rows = placeId
     ? await sql`SELECT p.*, (SELECT COUNT(*) FROM community_comments c WHERE c.post_id=p.id AND c.moderation_status='active') comment_count, (SELECT COUNT(*) FROM community_likes l WHERE l.post_id=p.id) like_count, EXISTS(SELECT 1 FROM community_likes l WHERE l.post_id=p.id AND l.user_id=${userId}) liked_by_me FROM community_posts p WHERE p.moderation_status='active' AND p.place_id=${placeId} ORDER BY p.created_at DESC LIMIT ${take} OFFSET ${offset}`

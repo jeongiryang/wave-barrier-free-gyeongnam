@@ -54,7 +54,11 @@ export default function PlannerPage() {
   const audioGuide = useAudioGuide(plan?.audio);
   const { resetAudio } = audioGuide;
   const { pointPicker, clearLocationSearch } = locationSearch;
-  const { saved, travelStart, travelEnd, scheduleAssignments, toggleSaved } = tripSelection;
+  const { saved, travelStart, travelEnd, scheduleAssignments, toggleSaved, savePlaceIds } = tripSelection;
+  const saveMapPlaces = useCallback(
+    (mapPlaces: { id: string }[]) => savePlaceIds(mapPlaces.map((place) => place.id)),
+    [savePlaceIds],
+  );
   const {
     keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
     secondaryOpen, setSecondaryOpen,
@@ -184,6 +188,7 @@ export default function PlannerPage() {
           onChoosePoint={choosePoint}
           onCopyBookingRoute={copyBookingRoute}
           onMapDestination={routeFromMapPlace}
+          onSaveMapPlaces={saveMapPlaces}
         />
         <PlannerResultsPanel
           plan={plan}

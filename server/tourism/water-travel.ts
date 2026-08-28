@@ -1,3 +1,4 @@
+import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "../shared/env";
 import { clean } from "../shared/http";
 import { normalizeItems, normalizeXmlItems, type ProviderAttempt as Attempt } from "../shared/provider-data";
@@ -8,7 +9,7 @@ export async function fetchWaterTravel(env: Env, searchTypeCd: "01" | "02") {
   const params = new URLSearchParams({ pageNo: "1", numOfRows: "8", searchTypeCd });
   try {
     const response = await fetch(`https://apis.data.go.kr/B500001/myportal/travel/travellist?serviceKey=${key}&${params.toString()}`, {
-      signal: AbortSignal.timeout(9500),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
       headers: { Accept: "application/json" },
     });
     if (!response.ok) throw new Error(`물과 여행 응답 ${response.status}`);

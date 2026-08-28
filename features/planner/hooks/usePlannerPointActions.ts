@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { scrollToSection } from "../../../lib/reduced-motion.js";
 import type { MapPlace, RoutePoint } from "../../routing/types";
 import { mapPlaceToPlannerPlace, richSpotToPlace } from "../place-adapters";
 import type { Place, RichSpot } from "../types";
@@ -32,7 +33,7 @@ export function usePlannerPointActions({ region, origin, privateOrigin, pointPic
 
   const routeFromRichSpot = useCallback((spot: RichSpot) => {
     void loadRoutes(richSpotToPlace(spot, region));
-    document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" });
+    scrollToSection("navigation");
   }, [loadRoutes, region]);
 
   const routeFromMapPlace = useCallback((mapPlace: MapPlace) => {

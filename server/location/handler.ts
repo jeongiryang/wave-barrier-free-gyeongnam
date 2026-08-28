@@ -1,3 +1,4 @@
+import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "../shared/env";
 import { clean, httpsUrl, json } from "../shared/http";
 
@@ -11,7 +12,7 @@ export async function handleLocationSearch(request: Request, env: Env) {
   try {
     const params = new URLSearchParams({ query, size: "10", sort: "accuracy" });
     const response = await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?${params.toString()}`, {
-      signal: AbortSignal.timeout(7000),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.location),
       headers: { Authorization: `KakaoAK ${key}`, Accept: "application/json" },
     });
     if (!response.ok) throw new Error(`장소 검색 응답 ${response.status}`);

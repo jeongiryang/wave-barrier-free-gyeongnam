@@ -1,6 +1,7 @@
+import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
+import { odsayProviderStatus, readOdsayResponse } from "../../lib/transport/odsay-response.js";
 import type { Env } from "../shared/env";
 import { clean } from "../shared/http";
-import { odsayProviderStatus, readOdsayResponse } from "../../lib/transport/odsay-response.js";
 import type { ProviderStatusUpdate, RouteApiAlternative, RouteGeometryPoint } from "./types";
 
 export async function fetchOdsayRoutes(
@@ -19,7 +20,7 @@ export async function fetchOdsayRoutes(
     const params = new URLSearchParams({ apiKey, output: "json", lang: "0", SX: String(startLng), SY: String(startLat), EX: String(endLng), EY: String(endLat), OPT: "0" });
     const response = await fetch(`https://api.odsay.com/v1/api/searchPubTransPathT?${params.toString()}`, {
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.transport),
     });
     if (!response.ok) {
       return {

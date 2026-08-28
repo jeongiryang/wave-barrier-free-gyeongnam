@@ -1,5 +1,6 @@
 "use client";
 
+import { CLIENT_BUDGET_MS } from "../../../lib/request-budget.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { optionalPlannerJson } from "../services/api";
 import type { Place, SearchPlace } from "../types";
@@ -17,7 +18,7 @@ export function useLocationSearchRequest(region: string) {
     searchRequestRef.current = controller;
     setPlaceSearchLoading(true);
     try {
-      const data = await optionalPlannerJson<{ places?: SearchPlace[] }>(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}`, { signal: controller.signal });
+      const data = await optionalPlannerJson<{ places?: SearchPlace[] }>(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.location });
       if (controller.signal.aborted || searchRequestRef.current !== controller) return;
       setPlaceSearchResults(data?.places || []);
     } catch {

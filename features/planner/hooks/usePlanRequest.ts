@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { CLIENT_BUDGET_MS } from "../../../lib/request-budget.js";
+import { scrollToSection } from "../../../lib/reduced-motion.js";
 import { plannerJson } from "../services/api";
 import type { Place, PlanData } from "../types";
 
@@ -30,7 +32,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     setNotice(revealResults ? "한국관광공사 8개 서비스에서 여행 근거를 모으고 있어요." : "바뀐 조건에 맞춰 여행지를 자동으로 갱신하고 있어요.");
     try {
       const params = new URLSearchParams({ action: "plan", region, theme, profiles: selected.join(","), locale });
-      const data = await plannerJson<PlanData>(`/api/wave?${params.toString()}`, { signal: controller.signal });
+      const data = await plannerJson<PlanData>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.plan });
       if (controller.signal.aborted) return;
       resetAudio();
       setPlan(data);
@@ -46,7 +48,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       if (planRequestRef.current === controller) {
         planRequestRef.current = null;
         setLoading(false);
-        if (revealResults) window.setTimeout(() => document.getElementById("route")?.scrollIntoView({ behavior: "smooth" }), 80);
+        if (revealResults) window.setTimeout(() => scrollToSection("route"), 80);
       }
     }
   }, [locale, region, selected, theme]);

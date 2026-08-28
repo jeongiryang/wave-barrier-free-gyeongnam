@@ -1,3 +1,4 @@
+import { scrollToSection } from "../../../lib/reduced-motion.js";
 import type { DestinationCrowd, WeatherData } from "../types";
 import type { TripImpact } from "../view-model";
 
@@ -39,7 +40,7 @@ export default function SituationImpactPanel({
         <strong>{tripImpact.actions.length ? "조건을 유지하면서 대안을 바로 비교합니다." : "현재 일정과 이동 경로를 계속 확인하세요."}</strong>
         <div className="impact-actions">
           {tripImpact.actions.map((action) => <button type="button" key={action.id} onClick={() => onImpactAction(action.id as "culture" | "alternative")}>{action.label}<i aria-hidden="true">→</i></button>)}
-          {!tripImpact.actions.length && <button type="button" onClick={() => document.getElementById("navigation")?.scrollIntoView({ behavior: "smooth" })}>이동 경로 확인<i aria-hidden="true">→</i></button>}
+          {!tripImpact.actions.length && <button type="button" onClick={() => scrollToSection("navigation")}>이동 경로 확인<i aria-hidden="true">→</i></button>}
         </div>
       </article>
     </div>
