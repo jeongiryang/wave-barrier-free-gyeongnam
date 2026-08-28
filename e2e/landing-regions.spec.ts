@@ -11,19 +11,14 @@ test("경남 18개 지역 표식이 지도와 같은 좌표계 안에 유지된�
   await expect(map).toBeVisible();
   const mapContract = await map.evaluate((element) => {
     const item = element as HTMLElement;
-    const style = getComputedStyle(item);
     return {
       width: item.getBoundingClientRect().width,
       height: item.getBoundingClientRect().height,
-      position: style.position,
-      aspectRatio: style.aspectRatio,
     };
   });
   expect(mapContract.width).toBeGreaterThan(0);
   expect(mapContract.height).toBeGreaterThan(0);
   expect(mapContract.width / mapContract.height).toBeCloseTo(600 / 433, 2);
-  expect(mapContract.position).toBe("relative");
-  expect(mapContract.aspectRatio).toMatch(/600\s*\/\s*433|1\.38/);
 
   const markers = page.locator("[data-region-marker]");
   await expect(markers).toHaveCount(18);
@@ -34,24 +29,21 @@ test("경남 18개 지역 표식이 지도와 같은 좌표계 안에 유지된�
     const contract = await marker.evaluate((element) => {
       const item = element as HTMLElement;
       const parent = item.parentElement;
-      const style = getComputedStyle(item);
       return {
         name: item.dataset.regionMarker || "",
         x: Number(item.dataset.regionX),
         y: Number(item.dataset.regionY),
         inlineLeft: item.style.left,
         inlineTop: item.style.top,
-        position: style.position,
-        transform: style.transform,
         parentIsCanvas: parent?.hasAttribute("data-region-map-canvas") ?? false,
       };
     });
 
+    // 절대배치/translate CSS 자체는 정적 회귀가 고정한다. 여기서는 hydration 뒤에도
+    // 18개 버튼이 지도 캔버스의 직접 자식이며 같은 % 좌표를 유지하는지 검증한다.
     expect(contract.parentIsCanvas).toBe(true);
-    expect(contract.position).toBe("absolute");
     expect(contract.inlineLeft).toBe(`${contract.x}%`);
     expect(contract.inlineTop).toBe(`${contract.y}%`);
-    expect(contract.transform).not.toBe("none");
     expect(contract.x).toBeGreaterThan(0);
     expect(contract.x).toBeLessThan(100);
     expect(contract.y).toBeGreaterThan(0);
