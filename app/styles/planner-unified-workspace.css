@@ -1,0 +1,123 @@
+/* 서비스 이용하기 — 조건·추천·이동·코스·상황을 하나의 작업 공간으로 연결한다. */
+.planner-page > .planner-journey-workspace { order: 2; }
+.planner-page > .simple-footer { order: 9; }
+
+.planner-journey-workspace {
+  width: var(--content);
+  margin: 34px auto 0;
+  overflow: hidden;
+  border: 1px solid #cbdfe8;
+  border-radius: clamp(22px, 3vw, 36px);
+  background: #f8fcfe;
+  box-shadow: 0 24px 70px rgb(6 48 74 / 9%);
+}
+.journey-workspace-hero {
+  min-height: 270px;
+  padding: clamp(28px, 4.5vw, 62px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+  align-items: end;
+  gap: 24px 50px;
+  color: #fff;
+  background: radial-gradient(circle at 82% 16%, rgb(77 199 216 / 28%), transparent 30%), linear-gradient(130deg,#062736 0%,#07567c 62%,#087e9c 100%);
+}
+.journey-workspace-hero > div p { margin: 0 0 8px; color: var(--mint); font-size: .72rem; font-weight: 900; letter-spacing: .18em; }
+.journey-workspace-hero h1 { margin: 0; font-size: clamp(2.6rem, 6vw, 5.7rem); line-height: .95; letter-spacing: -.07em; }
+.journey-workspace-hero > p { margin: 0; max-width: 52ch; color: #c5e2ec; font-size: clamp(.9rem, 1.15vw, 1.05rem); line-height: 1.75; }
+.journey-workspace-hero > a { grid-column: 2; justify-self: start; min-height: 44px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgb(255 255 255 / 23%); border-radius: 999px; color: #fff; background: rgb(255 255 255 / 8%); font-size: .78rem; font-weight: 850; text-decoration: none; transition: .2s ease; }
+.journey-workspace-hero > a:hover { background: rgb(255 255 255 / 15%); transform: translateY(-1px); }
+
+.journey-workspace-block { width: 100%; margin: 0; padding: clamp(34px, 4vw, 56px) clamp(20px, 4.2vw, 58px); border-top: 1px solid #d7e6ec; }
+.planner-journey-workspace .planner-bento,
+.planner-journey-workspace .place-carousel,
+.planner-journey-workspace .day-planner,
+.planner-journey-workspace .route-intro,
+.planner-journey-workspace .itinerary-layout,
+.planner-journey-workspace .share-strip,
+.planner-journey-workspace .course-strip,
+.planner-journey-workspace .weather-board,
+.planner-journey-workspace .impact-panel,
+.planner-journey-workspace .planner-secondary-details,
+.planner-journey-workspace .transport-mode-filter,
+.planner-journey-workspace .transport-details,
+.planner-journey-workspace .transport-live-rail,
+.planner-journey-workspace .transport-dataset-grid,
+.planner-journey-workspace .transport-data-panel,
+.planner-journey-workspace .navigation-workspace { max-width: none; }
+.planner-journey-workspace .places-section { padding-top: clamp(34px, 4vw, 56px); }
+.planner-journey-workspace .navigation-section { width: 100%; margin: 0; padding: clamp(34px, 4vw, 56px) clamp(20px, 4.2vw, 58px); border-top: 1px solid #d7e6ec; background: #eef5f8; }
+.planner-journey-workspace .route-section { padding-top: clamp(34px, 4vw, 56px); }
+.planner-journey-workspace .travel-layers { padding-top: clamp(34px, 4vw, 56px); }
+.planner-results-bridge { width: 100%; }
+
+.journey-subheading { margin: 0 0 24px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+.journey-subheading > div { display: flex; align-items: center; gap: 13px; }
+.journey-subheading > div > span { min-width: 70px; min-height: 32px; padding: 7px 10px; display: inline-grid; place-items: center; border-radius: 999px; color: var(--blue); background: var(--sky); font-size: .62rem; font-weight: 900; letter-spacing: .07em; }
+.journey-subheading h3 { margin: 0; color: var(--ink); font-size: clamp(1.45rem, 2.3vw, 2.2rem); letter-spacing: -.045em; }
+.journey-subheading > p { margin: 0; color: var(--muted); font-size: .76rem; font-weight: 760; }
+
+.planner-journey-workspace .route-section { color: inherit; background: linear-gradient(180deg,#f1f8fb,#e8f4f8); }
+.planner-journey-workspace .route-section .route-intro h2 { color: var(--ink); }
+.planner-journey-workspace .travel-layers { color: #fff; background: #062736; }
+.journey-subheading.inverse h3 { color: #fff; }
+.journey-subheading.inverse > div > span { color: var(--mint); background: rgb(125 235 233 / 10%); }
+.journey-subheading.inverse > p { color: #90b1c0; }
+
+/* 기존 최상위 전용 carousel 규칙을 통합 워크스페이스 안에서도 동일하게 유지한다. */
+.planner-journey-workspace > .places-section .place-carousel { width: auto; }
+
+/* 길찾기 결과는 목적이 아니라 이동수단별 최소 시간으로 먼저 비교한다. */
+.route-mode-sections { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.route-mode-sections button { min-height: 72px; padding: 12px 13px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; border: 1px solid #cfdee5; border-radius: 14px; color: var(--ink); background: #fff; text-align: left; cursor: pointer; transition: .2s ease; }
+.route-mode-sections button:hover { border-color: #82bbd2; transform: translateY(-1px); }
+.route-mode-sections button.active { color: #fff; border-color: #062736; background: #062736; box-shadow: 0 10px 24px rgb(6 39 54 / 16%); }
+.route-mode-sections button > span { color: #78939e; font-size: .58rem; font-weight: 900; }
+.route-mode-sections button.active > span { color: #8fc5d4; }
+.route-mode-sections button div { min-width: 0; display: grid; gap: 2px; }
+.route-mode-sections b { font-size: .83rem; }
+.route-mode-sections small { color: #708995; font-size: .62rem; }
+.route-mode-sections button.active small { color: #a9cbd6; }
+.route-mode-sections strong { color: var(--blue); font-size: .9rem; white-space: nowrap; }
+.route-mode-sections button.active strong { color: var(--mint); }
+.route-mode-order-note { margin: 9px 2px 13px; color: #708995; font-size: .64rem; line-height: 1.5; }
+.route-kakao-fallback a,.route-kakao-secondary { min-height: 44px; margin-top: 12px; padding: 10px 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 11px; color: #fff; background: var(--blue); font-size: .72rem; font-weight: 850; text-decoration: none; }
+.route-kakao-secondary { width: 100%; color: var(--blue); border: 1px solid #bfd8e3; background: #eef8fc; }
+
+/* 장소 상세에서 실제 존재하는 W.A.V.E 커뮤니티 글만 노출한다. */
+.place-community-stories { margin: 18px 0; padding: 15px; border: 1px solid #d2e3ea; border-radius: 15px; background: #f5fbfd; }
+.place-community-stories.is-loading { color: var(--muted); font-size: .72rem; }
+.place-community-stories > header { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+.place-community-stories header small { color: var(--blue); font-size: .56rem; font-weight: 900; letter-spacing: .1em; }
+.place-community-stories h3 { margin: 3px 0 0; font-size: .95rem; }
+.place-community-stories header > a { color: var(--blue); font-size: .66rem; font-weight: 850; }
+.place-community-story-list { margin-top: 10px; display: grid; gap: 7px; }
+.place-community-story-list > a { padding: 10px 11px; display: grid; gap: 3px; border-radius: 11px; color: var(--ink); background: #fff; text-decoration: none; }
+.place-community-story-list > a:hover { box-shadow: 0 7px 18px rgb(6 48 74 / 8%); transform: translateY(-1px); }
+.place-community-story-list span { color: var(--blue); font-size: .58rem; font-weight: 850; }
+.place-community-story-list strong { overflow: hidden; font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
+.place-community-story-list small { color: var(--muted); font-size: .6rem; }
+
+@media (max-width: 780px) {
+  .planner-journey-workspace { width: calc(100vw - 16px); margin-top: 16px; border-radius: 22px; }
+  .journey-workspace-hero { min-height: 0; padding: 28px 20px; grid-template-columns: 1fr; }
+  .journey-workspace-hero h1 { font-size: clamp(2.6rem, 14vw, 4.2rem); }
+  .journey-workspace-hero > a { grid-column: auto; }
+  .journey-workspace-block { padding: 30px 14px; }
+  .planner-journey-workspace .navigation-section { padding: 30px 14px; }
+  .journey-subheading { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .journey-subheading > div { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .route-mode-sections { grid-template-columns: 1fr; }
+  .place-community-stories > header { align-items: flex-start; flex-direction: column; }
+}
+
+html[data-theme="dark"] .planner-journey-workspace { border-color: #294e60; background: #092634; }
+html[data-theme="dark"] .journey-workspace-block { border-color: #294e60; }
+html[data-theme="dark"] .planner-journey-workspace .navigation-section { border-color: #294e60; background: #0b2d3c; }
+html[data-theme="dark"] .journey-subheading h3 { color: #edf7fb; }
+html[data-theme="dark"] .journey-subheading > p { color: #a6c2ce; }
+html[data-theme="dark"] .place-community-stories { border-color: #31596a; background: #0a2735; }
+html[data-theme="dark"] .place-community-story-list > a { color: #eaf5f9; background: #0e3748; }
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-workspace-hero > a,.route-mode-sections button,.place-community-story-list > a { transition: none; }
+}

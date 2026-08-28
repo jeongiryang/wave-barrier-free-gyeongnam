@@ -2,6 +2,7 @@
 
 import type { RefObject } from "react";
 import type { Place } from "../types";
+import PlaceCommunityStories from "./PlaceCommunityStories";
 import PlaceEvidenceSummary from "./PlaceEvidenceSummary";
 import PlaceParticipationActions from "./PlaceParticipationActions";
 
@@ -28,6 +29,7 @@ export default function PlaceDecisionDialog(props: Props) {
       <div className="modal-body">
         <p className="section-kicker">ACCESSIBILITY DETAIL</p><h2 id="place-modal-title">{place.name}</h2><p>{place.address || place.summary}</p>
         <PlaceEvidenceSummary place={place} />
+        <PlaceCommunityStories place={place} location={location} />
         <PlaceParticipationActions place={place} location={location} saved={props.saved} feedbackText={props.feedbackText} feedbackState={props.feedbackState} onToggleSaved={props.onToggleSaved} onFeedbackChange={props.onFeedbackChange} onSubmitFeedback={props.onSubmitFeedback} />
         <small className="modal-note">편의조건 일치율은 선택한 조건 중 공식 데이터에서 긍정적으로 확인된 항목의 비율이며 공식 인증 점수가 아닙니다. 확인된 편의정보가 없으면 숫자를 만들지 않고 판단을 보류합니다. 시설 운영상태는 방문 전에 다시 확인해 주세요.</small>
       </div>
