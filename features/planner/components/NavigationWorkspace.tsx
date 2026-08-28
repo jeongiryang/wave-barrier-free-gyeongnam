@@ -32,8 +32,8 @@ export default function NavigationWorkspace({
 }: NavigationWorkspaceProps) {
   return <section className="navigation-section" id="navigation">
     <div className="workspace-heading" data-reveal>
-      <div><span>03</span><h2>{t("navigationTitle", "통합 길찾기")}</h2></div>
-      <p>시간 · 요금 · 환승 · 도보</p>
+      <div><span>02</span><h2>{t("navigationTitle", "이동수단별 길찾기")}</h2></div>
+      <p>도보 · 자전거 · 대중교통 · 자동차 · 최소 시간순</p>
     </div>
     <TransportDataOverview
       activePlaces={activePlaces}

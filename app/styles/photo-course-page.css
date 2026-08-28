@@ -1,0 +1,23 @@
+/* 사진 코스는 메인 플래너와 분리된 선택형 도구 화면이다. */
+.photo-course-page { min-height: 100vh; padding: 18px 0 60px; background: linear-gradient(180deg,#eef8fc 0%,#f8fcfe 42%,#fff 100%); }
+.photo-course-page-header { width: var(--content); min-height: 64px; margin: 0 auto; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid #d3e5ed; border-radius: 18px; background: rgb(255 255 255 / 86%); backdrop-filter: blur(14px); }
+.photo-course-brand { color: var(--ink); font-size: 1rem; font-weight: 950; letter-spacing: .05em; text-decoration: none; }
+.photo-course-page-header nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.photo-course-page-header nav a { min-height: 42px; padding: 9px 12px; display: inline-flex; align-items: center; border-radius: 999px; color: var(--ink-soft); font-size: .72rem; font-weight: 820; text-decoration: none; }
+.photo-course-page-header nav a:hover { color: var(--blue); background: var(--sky); }
+.photo-course-page-intro { width: var(--content); min-height: 390px; margin: 16px auto 22px; padding: clamp(32px, 6vw, 82px); display: grid; align-content: end; border-radius: 30px; color: #fff; background: radial-gradient(circle at 76% 18%,rgb(125 235 233 / 24%),transparent 28%),linear-gradient(135deg,#062736,#07567c 62%,#0a879d); box-shadow: 0 28px 70px rgb(6 48 74 / 13%); }
+.photo-course-page-intro > p { margin: 0 0 10px; color: var(--mint); font-size: .7rem; font-weight: 900; letter-spacing: .16em; }
+.photo-course-page-intro h1 { margin: 0; max-width: 780px; font-size: clamp(2.7rem,6.7vw,6.2rem); line-height: .98; letter-spacing: -.072em; }
+.photo-course-page-intro > span { margin-top: 20px; max-width: 65ch; color: #c5e2ec; font-size: .88rem; line-height: 1.7; }
+.photo-course-page .photo-course { margin-top: 0; }
+.photo-course-page-footer { width: var(--content); margin: 20px auto 0; }
+.photo-course-page-footer a { min-height: 46px; display: inline-flex; align-items: center; color: var(--blue); font-size: .78rem; font-weight: 850; }
+@media (max-width: 780px) {
+  .photo-course-page { padding-top: 8px; }
+  .photo-course-page-header,.photo-course-page-intro,.photo-course-page .photo-course,.photo-course-page-footer { width: calc(100vw - 16px); }
+  .photo-course-page-header { align-items: flex-start; flex-direction: column; }
+  .photo-course-page-intro { min-height: 330px; padding: 28px 20px; border-radius: 22px; }
+}
+html[data-theme="dark"] .photo-course-page { background: #061f2b; }
+html[data-theme="dark"] .photo-course-page-header { border-color: #294f61; background: rgb(7 36 49 / 90%); }
+html[data-theme="dark"] .photo-course-brand,html[data-theme="dark"] .photo-course-page-header nav a { color: #eaf5f9; }
