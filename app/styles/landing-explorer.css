@@ -175,3 +175,13 @@ html[data-theme="dark"] .floating-card .photo-credit {
 .feature-list { min-height: 56px; padding: 16px 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; }
 .feature-list span { padding: 5px 8px; border-radius: 7px; color: #446979; background: #edf3f6; font-size: .72rem; font-weight: 750; }
 .place-content > button { width: 100%; min-height: 46px; padding: 10px 0 0; display: flex; align-items: center; justify-content: space-between; border: 0; border-top: 1px solid #e5edf1; background: transparent; font-size: .85rem; font-weight: 850; }
+
+/* 어두운 화면에서 "지금 선택한 지역" 칩이 밝게 남아 안쪽 글자가 묻혔다. */
+html[data-theme="dark"] .selected-region {
+  border-color: rgba(120,180,205,.28);
+  background: rgba(9,44,60,.72);
+}
+html[data-theme="dark"] .selected-region small,
+html[data-theme="dark"] .selected-region p {
+  color: #b6d0dc;
+}
