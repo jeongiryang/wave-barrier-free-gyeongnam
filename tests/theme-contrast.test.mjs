@@ -58,6 +58,29 @@ test("--ink 배경 위에 흰색을 직접 적지 않는다", async () => {
   assert.deepEqual(offenders, [], `--ink 배경에 고정된 흰 글자: ${offenders.join(" / ")}`);
 });
 
+test("--blue 배경 위에도 흰색을 직접 적지 않는다", async () => {
+  // 어두운 화면에서 --blue는 #0a6baf에서 #45aeea로 밝아진다. 기본 동작 버튼의
+  // 글자를 #fff로 고정해 두면 대비가 2.47까지 떨어진다.
+  const offenders = [];
+  for (const file of await styleFiles()) {
+    for (const rule of rules(await source(file))) {
+      if (!/background(?:-color)?:[^;]*var\(--blue(-dark)?\)/.test(rule.body)) continue;
+      const color = rule.body.match(/color:\s*([^;}]+)/)?.[1]?.trim();
+      if (color && LITERAL_WHITE.test(color)) {
+        offenders.push(`${file} :: ${rule.selector.slice(0, 60)}`);
+      }
+    }
+  }
+  assert.deepEqual(offenders, [], `--blue 배경에 고정된 흰 글자: ${offenders.join(" / ")}`);
+});
+
+test("--on-blue는 두 화면에서 서로 반대쪽 값을 가진다", async () => {
+  const globals = await source("app/globals.css");
+  const theme = await source("app/styles/theme-itinerary-foundations.css");
+  assert.match(globals, /--on-blue:\s*#fff/);
+  assert.match(theme, /--on-blue:\s*#04202f/);
+});
+
 test("--ink 배경에는 짝이 되는 토큰 글자색을 쓴다", async () => {
   // 배경만 토큰으로 두고 글자색을 비워도 상속된 색이 따라오지 않아 같은 사고가 난다.
   const missing = [];

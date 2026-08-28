@@ -28,7 +28,7 @@
 .selected-region { border: 1px solid var(--line); background: rgba(255,255,255,.72); }
 .selected-region > span { background: rgba(111,227,208,.22); }
 .selected-region small, .selected-region p { color: var(--muted); }
-.region-story-copy > a { color: #fff; background: var(--blue); }
+.region-story-copy > a { color: var(--on-blue); background: var(--blue); }
 .region-story-copy > a:hover { background: var(--blue-dark); }
 
 .manifesto, .evidence-story { background: transparent; }
@@ -41,7 +41,7 @@
 .landing-cta { color: var(--ink); }
 .landing-cta > p { color: var(--blue); }
 .landing-cta h2 em { color: var(--blue); font-style: normal; }
-.landing-cta a { color: #fff; background: var(--blue); box-shadow: 0 18px 38px rgba(10,107,175,.26); }
+.landing-cta a { color: var(--on-blue); background: var(--blue); box-shadow: 0 18px 38px rgba(10,107,175,.26); }
 .landing-cta a:hover { background: var(--blue-dark); }
 
 .landing-page .simple-footer { border-top: 1px solid var(--line); color: var(--ink); }

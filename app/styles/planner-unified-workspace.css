@@ -80,7 +80,7 @@
 .route-mode-sections strong { color: var(--blue); font-size: .9rem; white-space: nowrap; }
 .route-mode-sections button.active strong { color: var(--mint); }
 .route-mode-order-note { margin: 9px 2px 13px; color: #708995; font-size: .64rem; line-height: 1.5; }
-.route-kakao-fallback a,.route-kakao-secondary { min-height: 44px; margin-top: 12px; padding: 10px 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 11px; color: #fff; background: var(--blue); font-size: .72rem; font-weight: 850; text-decoration: none; }
+.route-kakao-fallback a,.route-kakao-secondary { min-height: 44px; margin-top: 12px; padding: 10px 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 11px; color: var(--on-blue); background: var(--blue); font-size: .72rem; font-weight: 850; text-decoration: none; }
 .route-kakao-secondary { width: 100%; color: var(--blue); border: 1px solid #bfd8e3; background: #eef8fc; }
 
 /* 장소 상세에서 실제 존재하는 W.A.V.E 커뮤니티 글만 노출한다. */

@@ -38,7 +38,7 @@
 .place-evidence > ul { margin: 0; padding: 2px 14px 14px; }
 .place-evidence .modal-data { margin: 0; padding: 0 14px 14px; }
 .place-external-review { margin: 0 0 10px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 14px; border: 1px solid #cee3ed; border-radius: 11px; color: #154358; background: #f3fafd; text-decoration: none; transition: transform .18s ease,border-color .18s,background .18s; }.place-external-review:hover { border-color: var(--blue); background: #edf9ff; transform: translateY(-2px); }.place-external-review span { display: grid; gap: 2px; }.place-external-review b { font-size: .8rem; }.place-external-review small { color: #718c98; font-size: .65rem; }.place-external-review i { color: var(--blue); font-style: normal; font-weight: 900; }
-.modal-body > button { width: 100%; min-height: 48px; padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; border: 0; border-radius: 11px; color: #fff; background: var(--blue); font-size: .86rem; font-weight: 850; }
+.modal-body > button { width: 100%; min-height: 48px; padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; border: 0; border-radius: 11px; color: var(--on-blue); background: var(--blue); font-size: .86rem; font-weight: 850; }
 .modal-note { display: block; margin-top: 12px; color: #8198a3; font-size: .74rem; line-height: 1.6; }
 .simple-footer { padding: 48px max(24px, calc((100vw - 1240px) / 2)); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px; color: #fff; background: #05202d; }
 .simple-footer p { margin: 0; color: #b5cbd5; font-size: .82rem; }

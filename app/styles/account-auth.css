@@ -50,7 +50,7 @@
 .password-field button { min-width: 60px; border: 1px solid #c7dce6; border-radius: 13px; color: var(--ink); background: #f4f9fb; font: inherit; font-size: .73rem; font-weight: 850; }
 .auth-message { min-height: 1.2em; margin: -4px 0 0; color: #a13c49; font-size: .76rem; line-height: 1.45; }
 .auth-message.success { color: #08705d; }
-.auth-submit,.auth-primary-link { min-height: 52px; padding: 11px 16px; display: flex; align-items: center; justify-content: center; gap: 24px; border: 0; border-radius: 13px; color: #fff; background: var(--blue); font: inherit; font-weight: 880; box-shadow: 0 12px 25px rgba(10,107,175,.2); }
+.auth-submit,.auth-primary-link { min-height: 52px; padding: 11px 16px; display: flex; align-items: center; justify-content: center; gap: 24px; border: 0; border-radius: 13px; color: var(--on-blue); background: var(--blue); font: inherit; font-weight: 880; box-shadow: 0 12px 25px rgba(10,107,175,.2); }
 .auth-submit:disabled { opacity: .65; cursor: wait; }
 .auth-switch { margin-top: 19px; text-align: center; color: var(--muted); font-size: .78rem; }
 .auth-switch a { margin-left: 5px; color: var(--blue); font-weight: 900; }
