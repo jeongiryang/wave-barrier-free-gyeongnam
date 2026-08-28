@@ -15,10 +15,11 @@ export const landingSteps: TourStep[] = [
 ];
 
 export const plannerSteps: TourStep[] = [
+  { selector: "#top", highlightSelector: "#top h1", eyebrow: "여행 시작", title: "내 여행 만들기에서 바로 시작합니다.", copy: "서비스 이용 화면의 첫 영역에서 현재 데이터 상태를 보고 곧바로 여행 조건을 고를 수 있습니다." },
   { selector: "#planner", highlightSelector: "#planner .workspace-heading", eyebrow: "1단계 · 여행 조건", title: "내게 필요한 여행 조건을 고르세요.", copy: "출발지, 지역, 날짜, 관심사와 휠체어·영유아·시청각 지원 같은 편의를 선택합니다." },
-  { selector: "#places", highlightSelector: "#places .workspace-heading", eyebrow: "2단계 · 추천 여행지", title: "접근성과 적합도를 비교하세요.", copy: "추천 카드에서 시설 정보, 확인률과 공식 관광사진을 보고 장소를 여행 보관함에 담습니다." },
-  { selector: "#layers", highlightSelector: "#layers .workspace-heading", eyebrow: "3단계 · 실시간 변수", title: "날씨와 지역 흐름을 함께 확인하세요.", copy: "여행 중 바뀔 수 있는 날씨, 방문 흐름과 테마 데이터를 확인해 계획을 조정합니다." },
-  { selector: "#navigation", highlightSelector: "#navigation .workspace-heading", eyebrow: "4단계 · 길찾기", title: "실제 이동 방법을 비교하세요.", copy: "출발지와 목적지를 정하고 지도, 예상 시간, 도보 부담과 이용 가능한 교통정보를 확인합니다." },
-  { selector: "#route", highlightSelector: "#route .route-intro", eyebrow: "5단계 · 하루 동선", title: "선택한 장소를 하루 일정으로 잇습니다.", copy: "추천 순서와 이동 구간을 검토하고 필요하면 장소나 출발지를 바꿔 다시 계산합니다." },
-  { selector: "#data", highlightSelector: "#data .data-heading", eyebrow: "6단계 · 데이터 근거", title: "마지막으로 출처를 확인하세요.", copy: "정보가 없거나 오래된 항목을 구분하고, 방문 전 운영기관의 최신 안내를 다시 확인해 주세요." },
+  { selector: "#journey", highlightSelector: "#journey .planner-journey-heading", eyebrow: "2단계 · 통합 여행 설계", title: "추천과 하루 코스, 상황 정보를 한 흐름에서 봅니다.", copy: "추천 여행지를 고른 뒤 일정과 날씨·혼잡·주변 여행정보를 같은 계획 안에서 이어서 확인합니다." },
+  { selector: "#places", highlightSelector: "#places .journey-subheading", eyebrow: "추천 여행지", title: "접근성과 적합도를 비교하세요.", copy: "추천 카드에서 공식 관광사진과 편의정보를 확인하고 장소를 여행 보관함에 담습니다." },
+  { selector: "#route", highlightSelector: "#route .route-intro", eyebrow: "하루 동선", title: "선택한 장소를 하루 일정으로 잇습니다.", copy: "추천 순서와 체류·이동 구간을 검토하고 필요하면 계획을 다시 조정합니다." },
+  { selector: "#layers", highlightSelector: "#layers .journey-subheading", eyebrow: "상황 정보", title: "날씨와 지역 흐름을 계획에 함께 반영하세요.", copy: "날씨, 관광 집중도와 주변 여행정보를 확인하고 필요할 때 대안을 적용합니다." },
+  { selector: "#navigation", highlightSelector: "#navigation .workspace-heading", eyebrow: "3단계 · 길찾기", title: "도보·자전거·대중교통·자동차를 비교하세요.", copy: "실제 API가 제공하는 예상 시간은 짧은 순으로 보고, 제공되지 않는 수단은 카카오맵 길찾기로 이어서 확인합니다." },
 ];
