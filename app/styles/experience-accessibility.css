@@ -38,7 +38,7 @@ html[data-motion="calm"] .hero-wave-canvas { display: none; }
 .help-tour-dialog > small { margin-top: 14px; display: block; color: var(--blue-dark); font-size: .74rem; }
 .help-tour-actions { margin-top: 24px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 9px; }
 .help-tour-actions button { min-height: 48px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); background: #fff; font-weight: 850; }
-.help-tour-actions button.primary { color: #fff; border-color: var(--blue); background: var(--blue); }
+.help-tour-actions button.primary { color: var(--on-blue); border-color: var(--blue); background: var(--blue); }
 .help-tour-actions button:disabled { opacity: .42; }
 html[data-theme="dark"] .help-tour-dialog { color: #eaf5f9; border-color: #31596a; background: rgba(8,41,56,.98); }
 html[data-theme="dark"] .help-tour-dialog > p { color: #b4ccd6; }

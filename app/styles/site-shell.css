@@ -74,4 +74,4 @@
   border: 1px solid var(--line); border-radius: 999px;
   background: rgba(255,255,255,.82); font-size: .86rem; font-weight: 800;
 }
-.header-action b { min-width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--blue); font-size: .75rem; }
+.header-action b { min-width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; color: var(--on-blue); background: var(--blue); font-size: .75rem; }
