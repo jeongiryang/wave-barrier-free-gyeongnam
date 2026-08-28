@@ -6,12 +6,11 @@ import {
   useState,
 } from "react";
 import { useSitePreferences } from "../../components/SitePreferences";
-import PhotoCourseRestore from "../../features/photo-course/PhotoCourseRestore";
 import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
 import NavigationWorkspace from "../../features/planner/components/NavigationWorkspace";
 import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
 import PlannerConditionsPanel from "../../features/planner/components/PlannerConditionsPanel";
-import PlannerResultsPanel from "../../features/planner/components/PlannerResultsPanel";
+import PlannerRouteOverview from "../../features/planner/components/PlannerRouteOverview";
 import PlannerFooter from "../../features/planner/components/PlannerFooter";
 import { PlannerHeader } from "../../features/planner/components/PlannerHeader";
 import RecommendationWorkspace from "../../features/planner/components/RecommendationWorkspace";
@@ -34,7 +33,7 @@ export default function PlannerPage() {
   const { locale, t } = useSitePreferences();
   const planController = usePlannerPlan(locale);
   const {
-    selected, region, setRegion, theme, setTheme, plan,
+    selected, region, theme, setTheme, plan,
     setNotice, runPlan, abortPlan,
   } = planController;
   const routePlanning = useRoutePlanning(region);
@@ -54,13 +53,8 @@ export default function PlannerPage() {
   const locationSearch = useLocationSearch(region);
   const audioGuide = useAudioGuide(plan?.audio);
   const { resetAudio } = audioGuide;
-  const {
-    pointPicker, clearLocationSearch,
-  } = locationSearch;
-  const {
-    saved, travelStart, travelEnd, scheduleAssignments, toggleSaved,
-    changeTravelStart, setTravelEnd,
-  } = tripSelection;
+  const { pointPicker, clearLocationSearch } = locationSearch;
+  const { saved, travelStart, travelEnd, scheduleAssignments, toggleSaved } = tripSelection;
   const {
     keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
     secondaryOpen, setSecondaryOpen,
@@ -79,11 +73,8 @@ export default function PlannerPage() {
     originLabel,
     selectedPlace,
   });
+  const { feedbackText, feedbackState, changeFeedbackText, submitFeedback } = participation;
   const {
-    feedbackText, feedbackState, changeFeedbackText, submitFeedback,
-  } = participation;
-  const {
-    statuses,
     liveCount,
     effectiveProviders,
     providerErrors,
@@ -133,17 +124,6 @@ export default function PlannerPage() {
     }, revealResults);
   }
 
-  const applyPhotoCourse = useCallback(({ region: photoRegion, travelStart: photoStart, travelEnd: photoEnd }: {
-    region: string;
-    travelStart: string;
-    travelEnd: string;
-  }) => {
-    if (photoRegion) setRegion(photoRegion);
-    changeTravelStart(photoStart);
-    setTravelEnd(photoEnd);
-    setNotice("사진에서 복원한 지역과 여행 날짜를 반영했습니다. 추천 결과는 공식 관광정보 기준으로 다시 계산됩니다.");
-  }, [changeTravelStart, setNotice, setRegion, setTravelEnd]);
-
   usePlannerAutoRefresh({
     enabled: selected.length > 0,
     signature: `${region}|${theme}|${locale}|${selected.join(",")}`,
@@ -170,25 +150,61 @@ export default function PlannerPage() {
         plan={plan}
       />
 
-      <PhotoCourseRestore onApply={applyPhotoCourse} />
-      <PlannerConditionsPanel
-        t={t}
-        activePlaces={activePlaces}
-        planController={planController}
-        route={routePlanning}
-        tripSelection={tripSelection}
-        onGenerate={generatePlan}
-      />
-      <RecommendationWorkspace
-        t={t}
-        region={region}
-        activePlaces={activePlaces}
-        planController={planController}
-        route={routePlanning}
-        tripSelection={tripSelection}
-        onGenerate={generatePlan}
-        onSelectPlace={setSelectedPlace}
-      />
+      <section className="planner-journey-workspace" id="planner" aria-labelledby="journey-workspace-title">
+        <header className="journey-workspace-hero" data-reveal>
+          <div><p>MAKE YOUR W.A.V.E</p><h1 id="journey-workspace-title">내 여행 만들기</h1></div>
+          <p>여행 조건을 정하고, 추천 여행지를 고른 뒤, 하루 코스와 날씨·현장 상황까지 한 화면에서 이어서 확인하세요.</p>
+          <a href="/photo-course">다녀온 사진으로 코스 복원 <span aria-hidden="true">↗</span></a>
+        </header>
+        <PlannerConditionsPanel
+          t={t}
+          activePlaces={activePlaces}
+          planController={planController}
+          route={routePlanning}
+          tripSelection={tripSelection}
+          onGenerate={generatePlan}
+        />
+        <RecommendationWorkspace
+          t={t}
+          region={region}
+          activePlaces={activePlaces}
+          planController={planController}
+          route={routePlanning}
+          tripSelection={tripSelection}
+          onGenerate={generatePlan}
+          onSelectPlace={setSelectedPlace}
+        />
+        <PlannerRouteOverview
+          plan={plan}
+          region={region}
+          theme={theme}
+          selectedProfileIds={selected}
+          liveCount={liveCount}
+          audioGuide={audioGuide}
+          participation={participation}
+        />
+        <TravelSignalsPanel
+          region={region}
+          plan={plan}
+          weather={weather}
+          weatherLoading={weatherLoading}
+          tripImpact={tripImpact}
+          impactCrowd={impactCrowd}
+          onImpactAction={applyImpactAction}
+          enrichment={enrichment}
+          enrichmentLoading={enrichmentLoading}
+          visitorTypes={visitorTypes}
+          demandMax={demandMax}
+          richMode={richMode}
+          onRichModeChange={setRichMode}
+          richItems={richItems}
+          onReloadEnrichment={() => void loadEnrichment()}
+          secondaryOpen={secondaryOpen}
+          onSecondaryOpenChange={setSecondaryOpen}
+          onRouteFromRichSpot={routeFromRichSpot}
+        />
+      </section>
+
       <NavigationWorkspace
         t={t}
         activePlaces={activePlaces}
@@ -200,36 +216,7 @@ export default function PlannerPage() {
         onCopyBookingRoute={copyBookingRoute}
         onMapDestination={routeFromMapPlace}
       />
-      <PlannerResultsPanel
-        plan={plan}
-        region={region}
-        theme={theme}
-        selectedProfileIds={selected}
-        statuses={statuses}
-        liveCount={liveCount}
-        audioGuide={audioGuide}
-        participation={participation}
-      />
-      <TravelSignalsPanel
-        region={region}
-        plan={plan}
-        weather={weather}
-        weatherLoading={weatherLoading}
-        tripImpact={tripImpact}
-        impactCrowd={impactCrowd}
-        onImpactAction={applyImpactAction}
-        enrichment={enrichment}
-        enrichmentLoading={enrichmentLoading}
-        visitorTypes={visitorTypes}
-        demandMax={demandMax}
-        richMode={richMode}
-        onRichModeChange={setRichMode}
-        richItems={richItems}
-        onReloadEnrichment={() => void loadEnrichment()}
-        secondaryOpen={secondaryOpen}
-        onSecondaryOpenChange={setSecondaryOpen}
-        onRouteFromRichSpot={routeFromRichSpot}
-      />
+
       {selectedPlace && <PlaceDecisionDialog
         place={selectedPlace}
         region={region}
