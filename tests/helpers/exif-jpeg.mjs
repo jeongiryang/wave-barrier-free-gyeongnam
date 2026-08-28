@@ -1,4 +1,4 @@
-/** 실제 사용자 사진을 저장소에 넣지 않고 EXIF 판독기를 검증하는 최소 JPEG 생성기. */
+/** 실제 사용자 사진을 저장소에 넣지 않고 EXIF 판독기를 검증하는 최소 이미지 생성기. */
 const TYPE_ASCII = 2;
 const TYPE_LONG = 4;
 const TYPE_RATIONAL = 5;
@@ -99,5 +99,41 @@ export function buildExifJpeg({ takenAt = "", lat = null, lng = null, little = t
   heap = zeroth.write(view, bytes, tiff, zerothStart, heap);
   heap = exif.write(view, bytes, tiff, exifStart, heap);
   gps.write(view, bytes, tiff, gpsStart, heap);
+  return bytes.buffer;
+}
+
+function tiffBytes(options) {
+  return new Uint8Array(buildExifJpeg(options)).slice(12);
+}
+
+export function buildExifTiff(options = {}) {
+  return tiffBytes(options).buffer;
+}
+
+export function buildExifPng(options = {}) {
+  const tiff = tiffBytes(options);
+  const bytes = new Uint8Array(8 + 4 + 4 + tiff.length + 4 + 12);
+  const view = new DataView(bytes.buffer);
+  bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0);
+  view.setUint32(8, tiff.length);
+  bytes.set([0x65, 0x58, 0x49, 0x66], 12); // eXIf
+  bytes.set(tiff, 16);
+  const next = 16 + tiff.length + 4; // CRC는 판독기가 사용하지 않는다.
+  view.setUint32(next, 0);
+  bytes.set([0x49, 0x45, 0x4e, 0x44], next + 4);
+  return bytes.buffer;
+}
+
+export function buildExifWebp(options = {}) {
+  const tiff = tiffBytes(options);
+  const padded = tiff.length + (tiff.length % 2);
+  const bytes = new Uint8Array(12 + 8 + padded);
+  const view = new DataView(bytes.buffer);
+  bytes.set([0x52, 0x49, 0x46, 0x46], 0); // RIFF
+  view.setUint32(4, bytes.length - 8, true);
+  bytes.set([0x57, 0x45, 0x42, 0x50], 8); // WEBP
+  bytes.set([0x45, 0x58, 0x49, 0x46], 12); // EXIF
+  view.setUint32(16, tiff.length, true);
+  bytes.set(tiff, 20);
   return bytes.buffer;
 }
