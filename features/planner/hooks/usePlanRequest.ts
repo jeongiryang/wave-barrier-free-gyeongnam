@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { scrollToSection } from "../../../lib/reduced-motion.js";
 import { plannerJson } from "../services/api";
 import type { Place, PlanData } from "../types";
 
@@ -46,7 +47,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       if (planRequestRef.current === controller) {
         planRequestRef.current = null;
         setLoading(false);
-        if (revealResults) window.setTimeout(() => document.getElementById("route")?.scrollIntoView({ behavior: "smooth" }), 80);
+        if (revealResults) window.setTimeout(() => scrollToSection("route"), 80);
       }
     }
   }, [locale, region, selected, theme]);
