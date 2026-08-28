@@ -32,7 +32,8 @@ test("CD migrates an unpromoted protected candidate before production promotion"
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
   assert.match(workflow, /vercel@50\.15\.1 curl \/api\/health --deployment "\$CANDIDATE_URL"/);
   assert.match(workflow, /vercel@50\.15\.1 curl \/api\/deployment\/migrate --deployment "\$CANDIDATE_URL"/);
-  assert.match(workflow, /-H "Authorization: Bearer \$COMMUNITY_MIGRATION_TOKEN"/);
+  assert.match(workflow, /-X POST -H "Authorization: Bearer \$COMMUNITY_MIGRATION_TOKEN"/);
+  assert.doesNotMatch(workflow, /vercel@50\.15\.1 curl[^\n]+--(?:fail|silent|show-error)/);
   assert.doesNotMatch(workflow, /--location --output \/dev\/null --write-out '%\{url_effective\}'/);
   assert.match(workflow, /grep -Fq '\"ok\":true'/);
   assert.match(workflow, /grep -Fq '\"004_community_seed\.sql\"'/);
