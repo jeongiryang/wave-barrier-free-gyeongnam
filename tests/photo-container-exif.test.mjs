@@ -39,7 +39,7 @@ function pngWithExif(tiff) {
 }
 
 function webpWithExif(tiff) {
-  const size = 8 + 8 + tiff.length + (tiff.length % 2);
+  const size = 20 + tiff.length + (tiff.length % 2);
   const result = new Uint8Array(size);
   const view = new DataView(result.buffer);
   result.set(new TextEncoder().encode("RIFF"), 0);
