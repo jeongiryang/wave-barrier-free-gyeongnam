@@ -55,6 +55,7 @@ const CASES = [
   ".adapt-preview > header > b",
   ".map-pin.pin-end",
 ];
+const NARROW_HIDDEN = new Set([".condition-preview > footer i"]);
 
 for (const theme of ["dark", "light"] as const) {
   test(`${theme === "dark" ? "어두운" : "밝은"} 랜딩의 미리보기 글자가 표면에 묻히지 않는다`, async ({ page }) => {
@@ -67,8 +68,10 @@ for (const theme of ["dark", "light"] as const) {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1_500);
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
+    const narrow = await page.evaluate(() => window.innerWidth <= 680);
 
     for (const selector of CASES) {
+      if (narrow && NARROW_HIDDEN.has(selector)) continue;
       const measured = await samples(page, selector);
       expect(measured, `${selector}을 찾지 못했다`).not.toEqual([]);
       for (const sample of measured) {
