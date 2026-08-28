@@ -15,6 +15,7 @@ interface NavigationWorkspaceProps {
   onChoosePoint: (place: Place) => void;
   onCopyBookingRoute: (provider: string) => Promise<void>;
   onMapDestination: (place: MapPlace) => void;
+  onSaveMapPlaces: (places: MapPlace[]) => number;
 }
 
 export default function NavigationWorkspace({
@@ -27,6 +28,7 @@ export default function NavigationWorkspace({
   onChoosePoint,
   onCopyBookingRoute,
   onMapDestination,
+  onSaveMapPlaces,
 }: NavigationWorkspaceProps) {
   return <section className="navigation-section" id="navigation">
     <div className="workspace-heading" data-reveal>
@@ -46,6 +48,7 @@ export default function NavigationWorkspace({
       locationSearch={locationSearch}
       onChoosePoint={onChoosePoint}
       onMapDestination={onMapDestination}
+      onSaveMapPlaces={onSaveMapPlaces}
     />
   </section>;
 }
