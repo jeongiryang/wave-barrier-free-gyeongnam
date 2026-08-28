@@ -1,3 +1,4 @@
+import { CLIENT_BUDGET_MS } from "../../../lib/request-budget.js";
 import type { RouteAlternative, RoutePoint } from "../../routing/types";
 import type {
   DestinationCrowd,
@@ -27,7 +28,7 @@ export async function fetchDestinationCrowd(
   });
   const data = await optionalPlannerJson<{ crowd?: DestinationCrowd | null }>(
     `/api/wave?${params.toString()}`,
-    { signal },
+    { signal, timeoutMs: CLIENT_BUDGET_MS.crowd },
   );
   return data?.crowd || null;
 }
@@ -46,5 +47,6 @@ export function fetchRouteData(
   return plannerJson<RouteDataBundle>(`/api/route?${params.toString()}`, {
     cache: "no-store",
     signal,
+    timeoutMs: CLIENT_BUDGET_MS.route,
   });
 }

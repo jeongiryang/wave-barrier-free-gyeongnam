@@ -1,5 +1,6 @@
 "use client";
 
+import { CLIENT_BUDGET_MS } from "../../../lib/request-budget.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { plannerJson } from "../services/api";
 import type { EnrichmentData, PlanData } from "../types";
@@ -25,7 +26,7 @@ export function usePlannerEnrichment({ plan, enabled, region, theme, locale, tra
     setEnrichment(null);
     try {
       const params = new URLSearchParams({ action: "enrich", region, theme, locale, startDate: travelStart, endDate: travelEnd });
-      const data = await plannerJson<EnrichmentData>(`/api/wave?${params.toString()}`, { signal: controller.signal });
+      const data = await plannerJson<EnrichmentData>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.enrich });
       if (controller.signal.aborted || enrichmentRequestRef.current !== controller) return;
       setEnrichment(data);
     } catch {

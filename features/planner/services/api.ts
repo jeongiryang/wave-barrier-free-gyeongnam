@@ -1,3 +1,8 @@
+import { CLIENT_BUDGET_MS } from "../../../lib/request-budget.js";
+
+/** 경로를 지정하지 않은 호출은 가장 긴 예산을 쓴다. 짧게 잡아 성공 응답을 버리는 쪽이 더 나쁘다. */
+const DEFAULT_TIMEOUT_MS = Math.max(...Object.values(CLIENT_BUDGET_MS));
+
 export class PlannerRequestError extends Error {
   constructor(message: string, readonly status: number) {
     super(message);
@@ -8,7 +13,7 @@ export class PlannerRequestError extends Error {
 type JsonRequest = Omit<RequestInit, "body"> & { body?: unknown; timeoutMs?: number };
 
 export async function plannerJson<T>(url: string, options: JsonRequest = {}): Promise<T> {
-  const { body, timeoutMs = 12000, signal: parentSignal, headers, ...init } = options;
+  const { body, timeoutMs = DEFAULT_TIMEOUT_MS, signal: parentSignal, headers, ...init } = options;
   const controller = new AbortController();
   const abort = () => controller.abort(parentSignal?.reason);
   parentSignal?.addEventListener("abort", abort, { once: true });

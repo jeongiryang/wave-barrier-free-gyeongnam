@@ -1,3 +1,4 @@
+import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "../shared/env";
 import type { ProviderStatusUpdate, RouteApiAlternative, RouteGeometryPoint } from "./types";
 
@@ -15,7 +16,7 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
     });
     const response = await fetch(`https://apis-navi.kakaomobility.com/v1/directions?${query.toString()}`, {
       headers: { Authorization: `KakaoAK ${apiKey}`, Accept: "application/json" },
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.transport),
     });
     if (!response.ok) {
       return { alternative: null, provider: { state: "error", detail: `카카오모빌리티 응답 ${response.status}` } };

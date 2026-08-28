@@ -440,7 +440,10 @@ test("planner ignores stale route, enrichment and location-search responses", as
   assert.match(plannerSignals, /action: "enrich"[\s\S]+signal: controller\.signal/);
   assert.match(locationSearch, /\/api\/location-search\?q=[\s\S]+signal: controller\.signal/);
   assert.match(service, /parentSignal\?\.addEventListener\("abort"/);
-  assert.match(service, /timeoutMs = 12000/);
+  // 예산 값은 lib/request-budget.js 한 곳에서 정하고, 클라이언트가 서버보다
+  // 늦게 끊는지는 tests/request-budget.test.mjs가 지킨다.
+  assert.match(service, /timeoutMs = DEFAULT_TIMEOUT_MS/);
+  assert.match(service, /CLIENT_BUDGET_MS/);
   assert.match(routePlanning, /useEffect\(\(\) => \(\) => routeRequestRef\.current\?\.abort\(\)/);
 });
 
@@ -568,7 +571,7 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(tourismProvider, /export async function fetchTourismData/);
   assert.match(tourismProvider, /export async function fetchRegionalList/);
   assert.match(publicTransportProvider, /export async function fetchPublicTransportData/);
-  assert.match(`${tourismProvider}\n${publicTransportProvider}`, /AbortSignal\.timeout\(9500\)/);
+  assert.match(`${tourismProvider}\n${publicTransportProvider}`, /AbortSignal\.timeout\(UPSTREAM_TIMEOUT_MS\.tourism\)/);
   assert.match(transport, /export async function handleRouteApi/);
   assert.match(transport, /fetchTransportContext/);
   assert.match(transport, /Promise\.all\(\[/);
@@ -618,12 +621,12 @@ test("the server entry delegates shared policy and provider domains to focused m
   assert.match(tripFeedback, /export async function handleFeedbackApi/);
   assert.match(tripDatabase, /CREATE TABLE IF NOT EXISTS itineraries/);
   assert.match(providerNormalizers, /export function normalizeXmlItems/);
-  assert.match(weather, /AbortSignal\.timeout\(8000\)/);
+  assert.match(weather, /AbortSignal\.timeout\(UPSTREAM_TIMEOUT_MS\.weather\)/);
   assert.match(weather, /export function resolveWeatherRegion/);
   assert.match(weather, /export function normalizeWeatherForecast/);
   assert.match(weather, /export async function fetchOpenMeteoForecast/);
   assert.match(weather, /return json\(normalizeWeatherForecast\(raw, region\), 200, true\)/);
-  assert.match(location, /AbortSignal\.timeout\(7000\)/);
+  assert.match(location, /AbortSignal\.timeout\(UPSTREAM_TIMEOUT_MS\.location\)/);
 });
 
 test("route-map rendering delegates controller, provider adapters, controls and domain helpers", async () => {

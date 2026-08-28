@@ -1,3 +1,4 @@
+import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "../shared/env";
 import { clean } from "../shared/http";
 import type { RouteApiAlternative, RouteGeometryPoint } from "./types";
@@ -10,7 +11,7 @@ export async function fetchOdsayRoutes(env: Env, startLat: number, startLng: num
     const params = new URLSearchParams({ apiKey, output: "json", lang: "0", SX: String(startLng), SY: String(startLat), EX: String(endLng), EY: String(endLat), OPT: "0" });
     const response = await fetch(`https://api.odsay.com/v1/api/searchPubTransPathT?${params.toString()}`, {
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.transport),
     });
     if (!response.ok) return [];
 

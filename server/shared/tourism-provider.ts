@@ -1,4 +1,5 @@
 import type { Env } from "./env";
+import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import { clean } from "./http";
 import { attemptProvider } from "./provider-attempt";
 import { normalizeItems } from "./provider-normalizers";
@@ -26,7 +27,7 @@ export async function fetchTourismData(
   const url = `https://apis.data.go.kr/B551011/${service}/${operation}?serviceKey=${key}&${query}`;
   const response = await fetch(url, {
     headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(9500),
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
   });
   if (!response.ok) throw new Error(`관광 데이터 응답 ${response.status}`);
   const raw = await response.text();

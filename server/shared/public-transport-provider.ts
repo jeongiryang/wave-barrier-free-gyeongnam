@@ -1,3 +1,4 @@
+import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "./env";
 import { clean } from "./http";
 import { normalizeItems } from "./provider-normalizers";
@@ -25,7 +26,7 @@ export async function fetchPublicTransportData(
   const query = new URLSearchParams({ numOfRows: "30", pageNo: "1", _type: "json", ...params }).toString();
   const response = await fetch(`${serviceUrl}/${operation}?serviceKey=${key}&${query}`, {
     headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(9500),
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
   });
   const raw = await response.text();
   if (!response.ok) {
