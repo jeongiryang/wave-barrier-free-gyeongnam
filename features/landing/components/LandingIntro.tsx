@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import WaveField from "../../../components/WaveField";
 
@@ -47,10 +47,10 @@ export default function LandingIntro({ close }: { close: () => void }) {
         <div className="intro-region-chapter">
           <p>18 CITIES · 18 STORIES</p>
           <div className="intro-region-beats" aria-label="경남 여행의 네 가지 흐름">
-            <span style={{ "--intro-beat": 0 } as React.CSSProperties}>바다와 섬</span>
-            <span style={{ "--intro-beat": 1 } as React.CSSProperties}>산과 자연</span>
-            <span style={{ "--intro-beat": 2 } as React.CSSProperties}>역사와 문화</span>
-            <span style={{ "--intro-beat": 3 } as React.CSSProperties}>모두를 위한 이동</span>
+            <span style={{ "--intro-beat": 0 } as CSSProperties}>바다와 섬</span>
+            <span style={{ "--intro-beat": 1 } as CSSProperties}>산과 자연</span>
+            <span style={{ "--intro-beat": 2 } as CSSProperties}>역사와 문화</span>
+            <span style={{ "--intro-beat": 3 } as CSSProperties}>모두를 위한 이동</span>
           </div>
           <strong>경남의 열여덟 도시를, 당신의 조건에서 시작합니다.</strong>
         </div>
