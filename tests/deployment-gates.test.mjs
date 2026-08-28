@@ -13,6 +13,8 @@ validEnv.COMMUNITY_MODERATOR_USER_IDS = "user_a,user_b";
 
 test("production deployment rejects missing or unsafe account configuration", () => {
   assert.deepEqual(productionEnvironmentErrors(validEnv), []);
+  assert.deepEqual(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "" }), []);
+  assert.ok(!REQUIRED_PRODUCTION_ENV.includes("COMMUNITY_MODERATOR_USER_IDS"));
   assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "" }).join("\n"), /DATABASE_URL/);
   assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_COOKIE_SECRET: "short" }).join("\n"), /32자/);
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "valid,bad id" }).join("\n"), /잘못되거나/);
