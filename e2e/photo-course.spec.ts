@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { buildExifJpeg } from "../tests/helpers/exif-jpeg.mjs";
+import { mockPlannerApi } from "./fixtures";
 
-test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식정보를 확인한다", async ({ page }) => {
+test("사진 EXIF 코스를 독립 도구에서 복원하고 좌표 없이 플래너로 전달한다", async ({ page }) => {
+  await mockPlannerApi(page);
   const outgoingSpotPhotoUrls: string[] = [];
   await page.route(/\/api\/wave\?.*action=spot-photo/, async (route) => {
     outgoingSpotPhotoUrls.push(route.request().url());
@@ -20,7 +22,7 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
     });
   });
 
-  await page.goto("/planner");
+  await page.goto("/photo-course");
   await expect(page.getByRole("heading", { name: "다녀온 사진을 고르면 날짜별 코스를 다시 만듭니다" })).toBeVisible();
   const input = page.locator("#photo-course-input");
   await expect(input).toBeEnabled();
@@ -53,5 +55,10 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
   expect(requestUrl.search).not.toMatch(/lat|lng|point|34\.8377|127\.8925/i);
 
   await page.getByRole("button", { name: "여행 조건에 반영하기" }).click();
-  await expect(page.getByText(/남해 · 2026-08-14 ~ 2026-08-14 · 1일 1곳을 여행 조건에 반영했습니다/)).toBeVisible();
+  await expect(page).toHaveURL(/\/planner\?region=%EB%82%A8%ED%95%B4&travelStart=2026-08-14&travelEnd=2026-08-14/);
+  await expect(page.getByLabel("여행 지역 선택")).toHaveValue("남해");
+  await expect(page.getByLabel("출발일")).toHaveValue("2026-08-14");
+  await expect(page.getByLabel("도착일")).toHaveValue("2026-08-14");
+  await expect(page.locator("#planner")).toBeVisible();
+  await expect(page.locator(".photo-course")).toHaveCount(0);
 });
