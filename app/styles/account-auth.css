@@ -58,3 +58,26 @@
 .auth-trust strong { font-size: .72rem; }
 .auth-trust p { margin: 5px 0 0; font-size: .67rem; line-height: 1.55; }
 .auth-signed-in { display: grid; gap: 16px; }
+
+/* 어두운 화면 — 이 파일의 표면 색은 흰색 계열로 고정돼 있다. 배경만 어둡게 바꾸고
+   글자를 두면 반대 사고가 나므로 배경과 글자를 함께 옮긴다.
+   .auth-card·.account-popover는 community.css의 다크 규칙이 이미 덮는다. */
+html[data-theme="dark"] .auth-journey-preview > span {
+  border-color: #2a5064;
+  background: rgba(9,44,60,.72);
+}
+html[data-theme="dark"] .password-field button {
+  color: var(--ink);
+  border-color: #2f5b6f;
+  background: #133b4d;
+}
+html[data-theme="dark"] .auth-trust {
+  color: #a8c8d6;
+}
+html[data-theme="dark"] .account-button,
+html[data-theme="dark"] .account-loading,
+html[data-theme="dark"] .account-menu > summary {
+  color: var(--ink);
+  border-color: #2a5064;
+  background: rgba(9,44,60,.9);
+}
