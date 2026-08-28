@@ -3,16 +3,17 @@
   min-height: 0;
   position: relative;
   display: block;
-  perspective: 1000px;
 }
 .landing-region-map-canvas {
   width: min(100%, 900px);
   aspect-ratio: 600 / 433;
+  height: auto;
+  min-height: 0;
   margin-inline: auto;
   position: relative;
   isolation: isolate;
   filter: drop-shadow(0 28px 52px rgba(6,66,92,.08));
-  transition: transform .55s cubic-bezier(.2,.8,.2,1), filter .5s;
+  transition: filter .5s;
 }
 .landing-region-map-canvas::before {
   content: "";
@@ -23,11 +24,13 @@
   background: radial-gradient(circle, rgba(86,192,239,.15), rgba(125,235,233,.06) 52%, transparent 72%);
   filter: blur(24px);
 }
+/* 이미지 자체가 정상 흐름에서 600:433 높이를 만든다. 좌표 캔버스에는 transform을 걸지 않는다. */
 .landing-region-map-canvas > img {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  inset: auto;
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 600 / 433;
   display: block;
   object-fit: fill;
   filter: invert(92%) sepia(15%) saturate(575%) hue-rotate(178deg) brightness(92%);
@@ -78,12 +81,15 @@
   outline: 3px solid #ffb800;
   outline-offset: 3px;
 }
+/* 좌표계는 고정하고 시각 반응은 그림자와 지도 명암에만 준다. */
 .landing-region-map:hover .landing-region-map-canvas {
-  transform: rotateX(1.2deg) rotateY(-1.2deg) scale(1.008);
   filter: drop-shadow(0 34px 58px rgba(6,66,92,.14));
 }
 .landing-region-map:hover .landing-region-map-canvas > img { opacity: .9; }
-.landing-region-map-canvas .region-photo-preview { z-index: 14; }
+.landing-region-map-canvas .region-photo-preview {
+  position: absolute;
+  z-index: 14;
+}
 
 @keyframes regionArrival {
   from { opacity: 0; scale: .35; }
@@ -103,11 +109,9 @@
     font-size: .58rem;
   }
   .landing-region-map-canvas > button svg { width: 20px; height: 20px; }
-  .landing-region-map:hover .landing-region-map-canvas { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .landing-region-map-canvas,
   .landing-region-map-canvas > img,
   .landing-region-map-canvas > button { animation: none; transition: none; }
-  .landing-region-map:hover .landing-region-map-canvas { transform: none; }
 }
