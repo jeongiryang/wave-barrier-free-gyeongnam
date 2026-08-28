@@ -67,7 +67,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
 
     if (!next.days.length) {
       setNotice(result.selectedCount === next.skipped.withoutDate
-        ? "선택한 사진에서 촬영 날짜를 찾지 못했습니다. 촬영 정보가 남아 있는 JPEG 원본을 사용해 주세요."
+        ? "선택한 사진에서 촬영 날짜를 찾지 못했습니다. EXIF 촬영 정보가 남아 있는 JPG·PNG·WebP·TIFF 원본을 사용해 주세요."
         : "코스를 만들 수 있는 사진이 없습니다.");
       return;
     }
