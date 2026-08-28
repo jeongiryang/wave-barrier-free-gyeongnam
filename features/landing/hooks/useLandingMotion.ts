@@ -2,6 +2,15 @@
 
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 
+const DRIFT_SELECTOR = [
+  ".manifesto > h2",
+  ".product-story-copy",
+  ".region-story-copy",
+  ".landing-community-copy",
+  ".evidence-story > div:first-child",
+  ".landing-cta h2",
+].join(",");
+
 export function useLandingMotion() {
   const [scrolled, setScrolled] = useState(false);
   const [scrollDirection, setScrollDirection] = useState<"up" | "down">("down");
@@ -10,6 +19,22 @@ export function useLandingMotion() {
   useEffect(() => {
     let lastY = window.scrollY;
     let ticking = false;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const driftNodes = Array.from(document.querySelectorAll<HTMLElement>(DRIFT_SELECTOR));
+
+    const updateDrift = () => {
+      if (reduced) return;
+      const viewportHeight = Math.max(window.innerHeight, 1);
+      for (const node of driftNodes) {
+        const rect = node.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > viewportHeight) continue;
+        const center = rect.top + (rect.height / 2);
+        const normalized = (viewportHeight / 2 - center) / viewportHeight;
+        const offset = Math.max(-16, Math.min(16, normalized * 32));
+        node.style.setProperty("--land-drift", `${offset.toFixed(2)}px`);
+      }
+    };
+
     const update = () => {
       const y = window.scrollY;
       const max = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
@@ -18,6 +43,7 @@ export function useLandingMotion() {
       if (y < lastY - 6) setScrollDirection("up");
       landingRef.current?.style.setProperty("--landing-progress", String(Math.min(y / max, 1)));
       landingRef.current?.style.setProperty("--hero-shift", `${Math.min(y, 820)}px`);
+      updateDrift();
       lastY = y;
       ticking = false;
     };
@@ -29,7 +55,11 @@ export function useLandingMotion() {
     };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
   useEffect(() => {
