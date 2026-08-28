@@ -1,3 +1,4 @@
+import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { WeatherPoint } from "./catalog";
 
 export async function fetchOpenMeteoForecast(point: WeatherPoint) {
@@ -10,7 +11,7 @@ export async function fetchOpenMeteoForecast(point: WeatherPoint) {
     daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,rain_sum,snowfall_sum,uv_index_max",
   });
   const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, {
-    signal: AbortSignal.timeout(8000),
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.weather),
     headers: { Accept: "application/json" },
   });
   if (!response.ok) throw new Error(`날씨 응답 ${response.status}`);
