@@ -25,7 +25,7 @@ export default function RecommendationCarousel({ t, region, activePlaces, planCo
   const scrollCards = (direction: number) => cardsRef.current?.scrollBy({ left: direction * Math.min(window.innerWidth * 0.78, 480), behavior: "smooth" });
 
   return <>
-    <div className="workspace-heading" data-reveal><div><span>02</span><h2>{t("placesTitle", "추천 여행지")}</h2></div><div className="carousel-actions"><button type="button" onClick={() => scrollCards(-1)} aria-label="이전 여행지">←</button><button type="button" onClick={() => scrollCards(1)} aria-label="다음 여행지">→</button></div></div>
+    <div className="journey-subheading" data-reveal><div><span>STEP 02</span><h3>{t("placesTitle", "추천 여행지 고르기")}</h3></div><div className="carousel-actions"><button type="button" onClick={() => scrollCards(-1)} aria-label="이전 여행지">←</button><button type="button" onClick={() => scrollCards(1)} aria-label="다음 여행지">→</button></div></div>
     <div className="place-carousel" ref={cardsRef} aria-busy={loading}>
       {loading && <p className="sr-only" role="status" aria-live="polite">여행 조건에 맞는 공식 관광정보를 불러오고 있어요.</p>}
       {loading && [0, 1, 2].map((item) => <article className="place-card place-card-skeleton" key={`place-skeleton-${item}`} aria-hidden="true"><div className="skeleton-visual" /><div className="skeleton-copy"><i /><b /><span /><span /><em /></div></article>)}

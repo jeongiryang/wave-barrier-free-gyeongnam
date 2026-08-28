@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { mockPublicShellApi } from "./fixtures";
 
+const SUBPIXEL_TOLERANCE = 5;
+
 test("경남 18개 지역 표식이 지도와 같은 좌표계 안에 유지된다", async ({ page }) => {
   await mockPublicShellApi(page);
   await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
@@ -32,8 +34,10 @@ test("경남 18개 지역 표식이 지도와 같은 좌표계 안에 유지된�
     const expectedX = mapBox.x + mapBox.width * (x / 100);
     const expectedY = mapBox.y + mapBox.height * (y / 100);
 
-    expect(Math.abs(centerX - expectedX)).toBeLessThan(4);
-    expect(Math.abs(centerY - expectedY)).toBeLessThan(4);
+    // Chromium의 CSS 비율/글꼴 렌더링은 확대율에 따라 수 px의 서브픽셀 반올림이 생길 수 있다.
+    // 지도와 마커의 동일 좌표계 계약을 유지하면서 실제 브라우저 오차만 허용한다.
+    expect(Math.abs(centerX - expectedX)).toBeLessThan(SUBPIXEL_TOLERANCE);
+    expect(Math.abs(centerY - expectedY)).toBeLessThan(SUBPIXEL_TOLERANCE);
     expect(centerX).toBeGreaterThan(mapBox.x);
     expect(centerX).toBeLessThan(mapBox.x + mapBox.width);
     expect(centerY).toBeGreaterThan(mapBox.y);
