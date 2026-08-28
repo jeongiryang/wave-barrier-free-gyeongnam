@@ -9,6 +9,31 @@ test("경남 18개 지역 표식이 지도와 같은 좌표계 안에 유지된�
   const map = page.locator("[data-region-map-canvas]");
   await map.scrollIntoViewIfNeeded();
   await expect(map).toBeVisible();
+
+  // 등장 애니메이션이 도는 동안에도 표식은 자기 앵커 위에 있어야 한다. 확대를 개별
+  // `scale` 속성으로 주면 중심을 맞추는 translate(-50%,-50%)까지 함께 줄어들어
+  // 표식이 최대 20px 넘게 밀린 자리에서 제자리로 미끄러져 들어온다. 애니메이션을
+  // 초반 구간에 세워 두고 재야 그 상태를 결정적으로 잡을 수 있다.
+  const driftDuringArrival = await page.evaluate(() => {
+    const canvas = document.querySelector("[data-region-map-canvas]")!.getBoundingClientRect();
+    return [...document.querySelectorAll<HTMLElement>("[data-region-marker]")].map((node) => {
+      node.getAnimations().forEach((animation) => {
+        animation.pause();
+        animation.currentTime = 100;
+      });
+      const box = node.getBoundingClientRect();
+      return Math.max(
+        Math.abs(box.x + box.width / 2 - (canvas.x + (canvas.width * Number(node.dataset.regionX)) / 100)),
+        Math.abs(box.y + box.height / 2 - (canvas.y + (canvas.height * Number(node.dataset.regionY)) / 100)),
+      );
+    });
+  });
+  expect(Math.max(...driftDuringArrival)).toBeLessThan(1);
+  await page.evaluate(() => {
+    document.querySelectorAll("[data-region-marker]").forEach((node) => {
+      node.getAnimations().forEach((animation) => animation.finish());
+    });
+  });
   await page.waitForTimeout(850);
 
   const mapBox = await map.boundingBox();

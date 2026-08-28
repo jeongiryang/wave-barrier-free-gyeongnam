@@ -61,7 +61,11 @@
   font-size: .64rem;
   font-weight: 850;
   white-space: nowrap;
-  animation: regionArrival .65s both;
+  /* 등장은 앵커를 고정한 채 확대한다. 개별 `scale` 속성은 `transform`보다 먼저
+     적용돼 중심을 맞추는 -50% 오프셋까지 함께 줄이므로 쓰지 않는다.
+     fill-mode는 backwards만 쓴다. forwards까지 쓰면 애니메이션이 끝난 뒤에도
+     그 transform이 남아 hover·active의 확대를 덮어쓴다. */
+  animation: regionArrival .65s backwards;
   animation-delay: calc(var(--region-index) * 32ms);
   transition: transform .22s cubic-bezier(.16,1,.3,1), background .2s, box-shadow .2s;
 }
@@ -94,8 +98,8 @@
 }
 
 @keyframes regionArrival {
-  from { opacity: 0; scale: .35; }
-  to { opacity: 1; scale: 1; }
+  from { opacity: 0; transform: translate(-50%,-50%) scale(.35); }
+  to { opacity: 1; transform: translate(-50%,-50%) scale(1); }
 }
 
 @media (max-width: 1100px) {
