@@ -156,7 +156,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
       <details className="photo-course-limits">
         <summary>이 기능이 할 수 있는 일과 할 수 없는 일</summary>
         <ul>
-          <li>촬영 시각과 좌표 EXIF가 남아 있는 <strong>JPG/JPEG · PNG · WebP · TIFF</strong> 원본에서 동작합니다. HEIC/HEIF는 브라우저별 메타데이터 구조 차이가 커 이번 버전에서 제외했습니다.</li>
+          <li>촬영 시각과 좌표 EXIF가 남아 있는 <strong>JPG/JPEG · PNG · WebP · TIFF</strong> 원본에서 동작합니다. HEIC는 이번 버전에서 지원하지 않습니다. HEIF 역시 브라우저별 메타데이터 구조 차이 때문에 제외했습니다.</li>
           <li>사진 전체가 아니라 각 파일 앞 256KB만 한 장씩 읽어 대용량 원본의 메모리 사용을 제한합니다.</li>
           <li>시·군 경계나 경남 바깥 인접 지역은 다르게 추론될 수 있습니다. 화면에서 시·군과 장소명을 직접 고칠 수 있습니다.</li>
           <li>사진에 없는 장소 이름을 지어내지 않습니다. 공식정보 확인 전 표시되는 이름은 순서용 제안입니다.</li>
