@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { RouteAlternative } from "../../routing/types";
 import { transportModes } from "../constants";
 import type { TransportContext, TransportMode } from "../types";
@@ -35,7 +35,7 @@ export function compareLegacyRoutePreference(routeSort: LegacyRouteSort, a: Rout
 
 export function useRouteView(routeAlternatives: RouteAlternative[], transportContext: TransportContext | null) {
   const [activeRouteId, setActiveRouteId] = useState("");
-  const [routeTravelMode, setRouteTravelMode] = useState<RouteTravelMode>("transit");
+  const [selectedTravelMode, setSelectedTravelMode] = useState<RouteTravelMode | null>(null);
   const [transportMode, setTransportMode] = useState<TransportMode>("all");
   const [selectedTransportDataset, setSelectedTransportDataset] = useState("bus-arrival");
 
@@ -51,15 +51,11 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
     return a.minutes - b.minutes || a.baseIndex - b.baseIndex;
   }), [routeAlternatives]);
 
-  useEffect(() => {
-    const fastestConfiguredMode = routeModeSummaries.find((mode) => mode.configured)?.id;
-    if (!fastestConfiguredMode) return;
-    const currentHasConfiguredRoute = routeAlternatives.some((route) => belongsToMode(route, routeTravelMode) && route.configured && route.totalTime > 0);
-    if (!currentHasConfiguredRoute) {
-      setRouteTravelMode(fastestConfiguredMode);
-      setActiveRouteId("");
-    }
-  }, [routeAlternatives, routeModeSummaries, routeTravelMode]);
+  const routeTravelMode = selectedTravelMode ?? routeModeSummaries.find((mode) => mode.configured)?.id ?? "transit";
+  const setRouteTravelMode = (mode: RouteTravelMode) => {
+    setSelectedTravelMode(mode);
+    setActiveRouteId("");
+  };
 
   const filteredRouteAlternatives = useMemo(() => routeAlternatives
     .filter((route) => belongsToMode(route, routeTravelMode))
