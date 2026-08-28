@@ -86,8 +86,9 @@ jobs:
           CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
         run: |
           health_url="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --location --output /dev/null --write-out '%{url_effective}' "$CANDIDATE_URL/api/health")"
-          case "$health_url" in https://*.vercel.app/api/health) ;; *) echo "후보 실제 URL을 검증할 수 없습니다."; exit 1;; esac
-          echo "url=${health_url%/api/health}" >> "$GITHUB_OUTPUT"
+          origin="$(node -e 'const u=new URL(process.argv[1]); if (u.protocol !== "https:" || !u.hostname.endsWith(".vercel.app")) process.exit(1); process.stdout.write(u.origin)' "$health_url")"
+          test -n "$origin" || { echo "후보 실제 URL을 검증할 수 없습니다."; exit 1; }
+          echo "url=$origin" >> "$GITHUB_OUTPUT"
 
       - name: 후보 환경 검증과 커뮤니티 migration
         env:
