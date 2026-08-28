@@ -1,5 +1,5 @@
 
-/* V6 — 서비스 소개 카피가 스크롤 흐름을 따라 움직이는 에디토리얼 모션 */
+/* V6 — stronger editorial motion: 서비스 소개 카피가 스크롤 흐름을 따라 움직이는 에디토리얼 모션 */
 .landing-page { --pointer-x: 50vw; --pointer-y: 50vh; --pointer-rx: 0; --pointer-ry: 0; --landing-progress: 0; --hero-shift: 0px; }
 .landing-pointer-glow { z-index: 1; position: fixed; width: 520px; height: 520px; left: var(--pointer-x); top: var(--pointer-y); border-radius: 50%; pointer-events: none; opacity: .22; background: radial-gradient(circle, rgba(81,197,255,.65), rgba(125,235,233,.18) 40%, transparent 70%); filter: blur(18px); transform: translate(-50%,-50%); transition: opacity .25s; mix-blend-mode: multiply; }
 .chapter-rail { z-index: 80; position: fixed; right: 19px; top: 50%; display: grid; justify-items: center; gap: 8px; color: #537888; font-size: .52rem; font-weight: 900; letter-spacing: .12em; transform: translateY(-50%); }
