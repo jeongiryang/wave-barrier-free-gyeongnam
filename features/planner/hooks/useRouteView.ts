@@ -6,6 +6,7 @@ import { transportModes } from "../constants";
 import type { TransportContext, TransportMode } from "../types";
 
 export type RouteTravelMode = "walk" | "bicycle" | "transit" | "car";
+export type LegacyRouteSort = "time" | "fare" | "transfer" | "walk";
 
 const routeModeMeta: Array<{ id: RouteTravelMode; label: string; description: string }> = [
   { id: "walk", label: "도보", description: "걸어서 이동" },
@@ -19,6 +20,17 @@ function belongsToMode(route: RouteAlternative, mode: RouteTravelMode) {
   if (mode === "bicycle") return route.mode === "bicycle";
   if (mode === "car") return route.mode === "car";
   return route.mode === "transit" || route.mode === "train" || route.mode === "bus";
+}
+
+/**
+ * 저장된 과거 비교 규칙의 순수 함수. 현재 UI는 이 정렬 탭을 노출하지 않고
+ * 이동수단별 최소 시간 비교를 사용하지만, 기존 저장 데이터·회귀 계약을 검증할 때만 재사용한다.
+ */
+export function compareLegacyRoutePreference(routeSort: LegacyRouteSort, a: RouteAlternative, b: RouteAlternative) {
+  if (routeSort === "fare") return (a.payment ?? Number.MAX_SAFE_INTEGER) - (b.payment ?? Number.MAX_SAFE_INTEGER);
+  if (routeSort === "transfer") return a.transfers - b.transfers || a.totalTime - b.totalTime;
+  if (routeSort === "walk") return a.totalWalk - b.totalWalk || a.totalTime - b.totalTime;
+  return a.totalTime - b.totalTime;
 }
 
 export function useRouteView(routeAlternatives: RouteAlternative[], transportContext: TransportContext | null) {
