@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { SCHEDULED_SWEEP_LIMIT } from "../../lib/trips/retention.js";
 
 const createSql = (url: string) => neon(url);
 export type TripSql = ReturnType<typeof createSql>;
@@ -39,10 +40,13 @@ export async function ensureTripDatabase() {
 
 /**
  * 보관 기간이 지난 공유 여행을 실제로 지운다. 읽을 때 걸러내기만 하면 행은
- * 영원히 남는다. 저장 요청에 얹어 조금씩 지우므로 별도 스케줄러가 필요 없고,
- * 한 요청이 오래 붙잡히지 않도록 한 번에 지우는 양을 제한한다.
+ * 영원히 남는다. 예약 작업과 저장 요청 두 곳에서 도는데, 저장 요청은 사람이
+ * 응답을 기다리는 경로다. 그래서 한 문장이 지우는 양을 반드시 묶는다.
+ * 남은 행은 다음 정리가 이어서 지운다.
  */
-export async function sweepExpiredTrips(sql: TripSql, now = Date.now()) {
-  const rows = await sql`DELETE FROM itineraries WHERE expires_at <= ${now} RETURNING id` as Array<{ id: string }>;
+export async function sweepExpiredTrips(sql: TripSql, now = Date.now(), limit = SCHEDULED_SWEEP_LIMIT) {
+  const rows = await sql`DELETE FROM itineraries WHERE id IN (
+    SELECT id FROM itineraries WHERE expires_at <= ${now} ORDER BY expires_at LIMIT ${limit}
+  ) RETURNING id` as Array<{ id: string }>;
   return rows.length;
 }

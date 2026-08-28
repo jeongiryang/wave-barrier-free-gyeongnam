@@ -15,11 +15,14 @@ test("shared trips are deleted when their retention window ends", async () => {
     source("vercel.json"),
     source(".github/workflows/cd.yml"),
   ]);
-  assert.match(database, /DELETE FROM itineraries WHERE expires_at <= \$\{now\}/);
+  // 만료 행은 읽을 때 거르는 데 그치지 않고 실제로 지운다. 다만 한 문장이
+  // 지우는 양은 묶는다 — 상한은 tests/retention-sweep.test.mjs가 지킨다.
+  assert.match(database, /DELETE FROM itineraries WHERE id IN \(/);
+  assert.match(database, /SELECT id FROM itineraries WHERE expires_at <= \$\{now\}/);
   assert.match(database, /expires_at <= \$\{now\}/);
-  assert.match(actions, /sweepExpiredTrips\(sql, now\)/);
+  assert.match(actions, /sweepExpiredTrips\(sql, now, SAVE_PATH_SWEEP_LIMIT\)/);
   assert.match(actions, /recordOperationalEvent\("trip_retention", \{ status: "failed", trigger: "save" \}\)/);
-  assert.match(actions, /INSERT INTO itineraries[\s\S]{0,400}?sweepExpiredTrips\(sql, now\)/);
+  assert.match(actions, /INSERT INTO itineraries[\s\S]{0,500}?sweepExpiredTrips\(sql, now, SAVE_PATH_SWEEP_LIMIT\)/);
   assert.match(retention, /CRON_SECRET/);
   assert.match(retention, /VERCEL_ENV !== "production"/);
   assert.match(retention, /sweepExpiredTrips\(sql\)/);
