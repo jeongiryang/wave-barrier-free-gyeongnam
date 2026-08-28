@@ -1,10 +1,19 @@
 import type { Env } from "../shared/env";
 import { clean } from "../shared/http";
-import type { RouteApiAlternative, RouteGeometryPoint } from "./types";
+import { odsayProviderStatus, readOdsayResponse } from "../../lib/transport/odsay-response.js";
+import type { ProviderStatusUpdate, RouteApiAlternative, RouteGeometryPoint } from "./types";
 
-export async function fetchOdsayRoutes(env: Env, startLat: number, startLng: number, endLat: number, endLng: number, straightDistance: number): Promise<RouteApiAlternative[]> {
+export async function fetchOdsayRoutes(
+  env: Env,
+  startLat: number,
+  startLng: number,
+  endLat: number,
+  endLng: number,
+  straightDistance: number,
+): Promise<{ routes: RouteApiAlternative[]; provider: ProviderStatusUpdate | null }> {
   const apiKey = env.ODSAY_API_KEY?.trim();
-  if (!apiKey) return [];
+  // 키가 없으면 기존 "선택 사항" 표시를 그대로 둔다. 실패가 아니다.
+  if (!apiKey) return { routes: [], provider: null };
 
   try {
     const params = new URLSearchParams({ apiKey, output: "json", lang: "0", SX: String(startLng), SY: String(startLat), EX: String(endLng), EY: String(endLat), OPT: "0" });
@@ -12,12 +21,19 @@ export async function fetchOdsayRoutes(env: Env, startLat: number, startLng: num
       headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(12000),
     });
-    if (!response.ok) return [];
+    if (!response.ok) {
+      return {
+        routes: [],
+        provider: odsayProviderStatus({ configured: true, failure: `ODsay 응답 ${response.status}` }),
+      };
+    }
 
-    const body = await response.json() as Record<string, unknown>;
-    const result = body.result as Record<string, unknown> | undefined;
-    const rawPaths = Array.isArray(result?.path) ? result.path as Array<Record<string, unknown>> : [];
-    return rawPaths.slice(0, 4).map((path, index) => {
+    // ODsay는 인증 실패·조회 범위 초과를 200 + 오류 봉투로 돌려준다.
+    const { paths: rawPaths, error } = readOdsayResponse(await response.json());
+    if (error) {
+      return { routes: [], provider: odsayProviderStatus({ configured: true, error }) };
+    }
+    const routes: RouteApiAlternative[] = rawPaths.slice(0, 4).map((path, index) => {
       const info = (path.info || {}) as Record<string, unknown>;
       const rawSegments = Array.isArray(path.subPath) ? path.subPath as Array<Record<string, unknown>> : [];
       const geometry: RouteGeometryPoint[] = [{ lat: startLat, lng: startLng }];
@@ -52,7 +68,11 @@ export async function fetchOdsayRoutes(env: Env, startLat: number, startLng: num
         geometry,
       };
     });
+    return { routes, provider: odsayProviderStatus({ configured: true, routeCount: routes.length }) };
   } catch {
-    return [];
+    return {
+      routes: [],
+      provider: odsayProviderStatus({ configured: true, failure: "ODsay 경로 요청을 완료하지 못했습니다." }),
+    };
   }
 }
