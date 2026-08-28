@@ -47,3 +47,32 @@ html[data-theme="dark"] .rich-card p,html[data-theme="dark"] .heading-side p,htm
 @media (prefers-reduced-motion: reduce) {
   [data-land-reveal],[data-land-reveal].is-visible { opacity: 1; transform: none; }.brand-intro { display: none; }
 }
+
+/* 어두운 화면에서도 밝게 남는 표면 — 기능 미리보기 카드 안의 작은 패널, 커뮤니티
+   푸터, 선택한 지역 칩처럼 의도적으로 밝은 조각들이다. 표면을 어둡게 바꾸면
+   미리보기가 실제 화면처럼 보이지 않으므로, 표면은 두고 안쪽 글자를 어둡게 한다. */
+html[data-theme="dark"] .community-footer p,
+html[data-theme="dark"] .community-footer a,
+html[data-theme="dark"] .community-tabs button,
+html[data-theme="dark"] .condition-preview > footer small,
+html[data-theme="dark"] .condition-preview > footer strong,
+html[data-theme="dark"] .adapt-preview > header small,
+html[data-theme="dark"] .adapt-preview > header strong,
+html[data-theme="dark"] .plan-preview ol li span,
+html[data-theme="dark"] .route-preview .active small,
+html[data-theme="dark"] .route-preview .active strong,
+html[data-theme="dark"] .selected-region small,
+html[data-theme="dark"] .selected-region strong,
+html[data-theme="dark"] .selected-region p {
+  color: #22414f;
+}
+/* --mint 칩 위의 글자. 민트는 두 화면에서 같은 밝기라 항상 어두운 글자가 짝이다. */
+html[data-theme="dark"] .adapt-preview > header b {
+  color: #0a3b33;
+}
+/* 반대로 어두운 표면 위에 남은 흐린 보조 문구는 밝게 올린다. */
+html[data-theme="dark"] .preview-note,
+html[data-theme="dark"] .access-preview > footer,
+html[data-theme="dark"] .landing-scroll {
+  color: #9fb9c4;
+}
