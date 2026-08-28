@@ -20,7 +20,10 @@ export async function buildPlan(request: Request, env: Env) {
 
   const [barrier, tour, durunubi, hubPack, photo] = await Promise.all([
     fetchRegionalList(env, "KorWithService2", "areaBasedList2", locationParams, districts),
-    fetchRegionalList(env, language.service, "areaBasedList2", locale === "ko" ? locationParams : { ...commonParams("12"), arrange: "Q", lDongRegnCd: "48" }, districts),
+    // 국문·다국어 서비스는 같은 조건으로 조회해야 한다. 다국어 쪽에서
+    // contentTypeId를 빼면 사용자가 고른 테마와 무관한 장소가 섞여 들어와,
+    // 테마를 바꿔도 결과가 그대로인 것처럼 보인다.
+    fetchRegionalList(env, language.service, "areaBasedList2", locationParams, districts),
     attempt(fetchKto(env, "Durunubi", "courseList", {
       ...commonParams("10"), brdDiv: "DNWW", crsLevel: "1", ...(region !== "경남 전체" ? { crsKorNm: region } : {}),
     })),
