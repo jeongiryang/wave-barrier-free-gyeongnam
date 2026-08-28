@@ -55,14 +55,25 @@
 .region-character { grid-row: 1 / 3; min-height: 68px; position: relative; overflow: hidden; display: grid; place-items: center; border-radius: 14px; background: linear-gradient(145deg, #e9f8ff, #d6fffd); background-size: cover; background-position: center; font-size: 2rem; }
 .region-character.has-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 35%, rgba(4,41,58,.46)); }
 .region-character span { position: relative; z-index: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,.18)); }
-.card-kicker { display: block; color: #7797a5; font-size: .66rem; font-weight: 900; letter-spacing: .09em; }
+.card-kicker { display: block; color: #526f7c; font-size: .66rem; font-weight: 900; letter-spacing: .09em; }
 .region-preview strong { display: block; margin: 1px 0; font-size: 1.15rem; }
 .region-preview p { margin: 0; color: var(--muted); font-size: .78rem; }
-.photo-credit { display: block; max-width: 210px; margin-top: 3px; overflow: hidden; color: #7f99a5; font-size: .61rem; text-overflow: ellipsis; white-space: nowrap; }
+.photo-credit { display: block; max-width: 210px; margin-top: 3px; overflow: hidden; color: #526f7c; font-size: .61rem; text-overflow: ellipsis; white-space: nowrap; }
 .region-preview > a { grid-column: 1 / -1; min-height: 38px; margin-top: 5px; padding: 7px 10px; display: flex; align-items: center; justify-content: space-between; border-radius: 10px; color: var(--white); background: var(--ink); font-size: .77rem; font-weight: 800; }
 .api-preview { right: -3px; top: 38px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; }
 .live-dot, .ready-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 6px rgba(125,235,233,.2); }
 .ready-dot { background: #77cffb; box-shadow: 0 0 0 6px rgba(119,207,251,.2); }
+
+html[data-theme="dark"] .floating-card,
+html[data-theme="dark"] .signal-node {
+  color: var(--ink);
+  border-color: #2b5363;
+  background: rgba(9,44,60,.94);
+}
+html[data-theme="dark"] .floating-card .card-kicker,
+html[data-theme="dark"] .floating-card .photo-credit {
+  color: #a8c3cf;
+}
 .api-preview small { display: block; color: #7897a5; font-size: .65rem; letter-spacing: .08em; }
 .api-preview b { display: block; font-size: .84rem; }
 .scroll-cue { position: absolute; z-index: 3; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 7px; color: #65899a; font-size: .64rem; font-weight: 850; letter-spacing: .14em; }
