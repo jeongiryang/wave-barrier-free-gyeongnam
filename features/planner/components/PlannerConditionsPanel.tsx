@@ -16,12 +16,12 @@ interface PlannerConditionsPanelProps {
 }
 
 export default function PlannerConditionsPanel(props: PlannerConditionsPanelProps) {
-  return <section className="planner-section" id="planner">
-    <div className="workspace-heading" data-reveal><div><span>01</span><h2>여행 조건</h2></div><p>출발지 · 지역 · 테마 · 편의</p></div>
+  return <div className="journey-workspace-block journey-conditions" id="conditions">
+    <div className="journey-subheading" data-reveal><div><span>STEP 01</span><h3>여행 조건 정하기</h3></div><p>출발지 · 지역 · 테마 · 편의</p></div>
     <div className="planner-bento" data-reveal>
       <PlannerJourneyBasics t={props.t} activePlaces={props.activePlaces} planController={props.planController} route={props.route} />
       <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} />
       <PlannerAccessibilityProfiles t={props.t} planController={props.planController} onGenerate={props.onGenerate} />
     </div>
-  </section>;
+  </div>;
 }
