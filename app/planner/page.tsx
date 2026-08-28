@@ -10,7 +10,7 @@ import PlaceDecisionDialog from "../../features/planner/components/PlaceDecision
 import NavigationWorkspace from "../../features/planner/components/NavigationWorkspace";
 import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
 import PlannerConditionsPanel from "../../features/planner/components/PlannerConditionsPanel";
-import PlannerRouteOverview from "../../features/planner/components/PlannerRouteOverview";
+import PlannerResultsPanel from "../../features/planner/components/PlannerResultsPanel";
 import PlannerFooter from "../../features/planner/components/PlannerFooter";
 import { PlannerHeader } from "../../features/planner/components/PlannerHeader";
 import RecommendationWorkspace from "../../features/planner/components/RecommendationWorkspace";
@@ -81,6 +81,7 @@ export default function PlannerPage() {
     feedbackText, feedbackState, changeFeedbackText, submitFeedback,
   } = participation;
   const {
+    statuses,
     liveCount,
     effectiveProviders,
     providerErrors,
@@ -181,11 +182,12 @@ export default function PlannerPage() {
           onGenerate={generatePlan}
           onSelectPlace={setSelectedPlace}
         />
-        <PlannerRouteOverview
+        <PlannerResultsPanel
           plan={plan}
           region={region}
           theme={theme}
           selectedProfileIds={selected}
+          statuses={statuses}
           liveCount={liveCount}
           audioGuide={audioGuide}
           participation={participation}
