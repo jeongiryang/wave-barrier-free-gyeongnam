@@ -3,13 +3,10 @@ import { findLowContrastText, formatFindings } from "./contrast";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
 /**
- * 화면 어디에나 있는 공통 요소(환경설정 토글, 지역 칩)와 랜딩·커뮤니티의 글자가
+ * 화면 어디에나 있는 공통 요소(환경설정 토글, 지역 칩)와 주요 공개 화면의 글자가
  * 두 테마 모두에서 읽혀야 한다.
- *
- * 여행 설계 화면은 아직 이 기준을 만족하지 못해 별도 작업 단위로 남긴다.
- * 여기에 섞으면 나머지 화면의 회귀를 잡지 못한다.
  */
-const PAGES = ["/", "/community", "/community/new", "/photo-course"];
+const PAGES = ["/", "/planner", "/community", "/community/new", "/photo-course"];
 
 for (const theme of ["light", "dark"] as const) {
   test(`${theme === "dark" ? "어두운" : "밝은"} 화면에서 읽기 어려운 글자가 없다`, async ({ page }) => {

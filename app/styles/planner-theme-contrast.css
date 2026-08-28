@@ -1,0 +1,184 @@
+/* 여행 설계의 작은 보조 글자는 일반 본문과 같은 4.5:1 기준을 지킨다. */
+.planner-journey-workspace .theme-grid small,
+.planner-journey-workspace .profile-card small,
+.planner-journey-workspace .date-range-fields label,
+.planner-journey-workspace .date-control > p,
+.planner-journey-workspace .derived-note,
+.planner-journey-workspace .planner-notice,
+.planner-journey-workspace .confidence-row,
+.planner-journey-workspace .map-legend,
+.planner-journey-workspace .route-notice,
+.planner-journey-workspace .route-mode-order-note,
+.planner-journey-workspace .route-mode-sections button > span,
+.planner-journey-workspace .route-mode-sections small,
+.planner-journey-workspace .route-option > div > small,
+.planner-journey-workspace .route-option dt,
+.planner-journey-workspace .segment-summary,
+.planner-journey-workspace .transport-details > summary span,
+.planner-journey-workspace .transport-provider-strip small,
+.planner-journey-workspace .transport-dataset-grid small,
+.planner-journey-workspace .transport-data-heading p,
+.planner-journey-workspace .transport-data-results small,
+.planner-journey-workspace .transport-data-results article > span,
+.planner-journey-workspace .official-booking-strip small {
+  color: #526f7c;
+}
+
+.planner-journey-workspace .transport-provider-strip .connected small,
+.planner-journey-workspace .transport-dataset-grid .live small {
+  color: #0f716c;
+}
+
+.planner-journey-workspace .map-crowd-legend small {
+  color: #526f7c;
+}
+
+.planner-journey-workspace .route-mode-sections button.active > span,
+.planner-journey-workspace .route-mode-sections button.active small {
+  color: #bcd9e8;
+}
+
+/* 혼잡도 원의 채도는 유지하되, 범례 글자는 각 표면에서 직접 읽히게 한다. */
+.planner-journey-workspace .map-crowd-legend.crowd-low em,
+.planner-journey-workspace .map-crowd-legend.crowd-low strong { color: #0e7a52; }
+.planner-journey-workspace .map-crowd-legend.crowd-moderate em,
+.planner-journey-workspace .map-crowd-legend.crowd-moderate strong { color: #8a6000; }
+.planner-journey-workspace .map-crowd-legend.crowd-busy em,
+.planner-journey-workspace .map-crowd-legend.crowd-busy strong { color: #b8431a; }
+.planner-journey-workspace .map-crowd-legend.crowd-very-busy em,
+.planner-journey-workspace .map-crowd-legend.crowd-very-busy strong { color: #b31f37; }
+
+/* 뒤에서 불러오는 작업공간 CSS가 초기 다크 테마 표면을 되돌리지 않게 한다. */
+html[data-theme="dark"] .planner-journey-workspace .theme-grid button,
+html[data-theme="dark"] .planner-journey-workspace .profile-card,
+html[data-theme="dark"] .planner-journey-workspace .date-range-fields input,
+html[data-theme="dark"] .planner-journey-workspace .departure-row > button,
+html[data-theme="dark"] .planner-journey-workspace .map-toolbar .point-button,
+html[data-theme="dark"] .planner-journey-workspace .route-mode-sections button,
+html[data-theme="dark"] .planner-journey-workspace .official-booking-strip a {
+  color: #e8f5fb;
+  border-color: #30586a;
+  background: #0f3749;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .map-toolbar,
+html[data-theme="dark"] .planner-journey-workspace .map-legend {
+  border-color: #30586a;
+  background: #0f3749;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .theme-grid button.active,
+html[data-theme="dark"] .planner-journey-workspace .profile-card.active {
+  color: #e8f5fb;
+  border-color: #3d83a2;
+  background: #075887;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .step-label b,
+html[data-theme="dark"] .planner-journey-workspace .route-option-rank {
+  color: #bcd9e8;
+  background: #15485c;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .theme-grid small,
+html[data-theme="dark"] .planner-journey-workspace .profile-card small,
+html[data-theme="dark"] .planner-journey-workspace .date-range-fields label,
+html[data-theme="dark"] .planner-journey-workspace .date-control > p,
+html[data-theme="dark"] .planner-journey-workspace .derived-note,
+html[data-theme="dark"] .planner-journey-workspace .planner-notice,
+html[data-theme="dark"] .planner-journey-workspace .confidence-row,
+html[data-theme="dark"] .planner-journey-workspace .map-legend,
+html[data-theme="dark"] .planner-journey-workspace .route-notice,
+html[data-theme="dark"] .planner-journey-workspace .route-mode-order-note,
+html[data-theme="dark"] .planner-journey-workspace .route-mode-sections button > span,
+html[data-theme="dark"] .planner-journey-workspace .route-mode-sections small,
+html[data-theme="dark"] .planner-journey-workspace .route-option > div > small,
+html[data-theme="dark"] .planner-journey-workspace .route-option dt,
+html[data-theme="dark"] .planner-journey-workspace .segment-summary,
+html[data-theme="dark"] .planner-journey-workspace .transport-details > summary span,
+html[data-theme="dark"] .planner-journey-workspace .transport-provider-strip small,
+html[data-theme="dark"] .planner-journey-workspace .transport-dataset-grid small,
+html[data-theme="dark"] .planner-journey-workspace .transport-data-heading p,
+html[data-theme="dark"] .planner-journey-workspace .transport-data-results small,
+html[data-theme="dark"] .planner-journey-workspace .transport-data-results article > span,
+html[data-theme="dark"] .planner-journey-workspace .official-booking-strip small,
+html[data-theme="dark"] .planner-journey-workspace .score-badge small {
+  color: #b6d0dc;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .select-shell small {
+  color: #b6d0dc;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .map-type-switch button,
+html[data-theme="dark"] .planner-journey-workspace .map-toolbar .point-button strong {
+  color: #e8f5fb;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .transport-details {
+  color: #e8f5fb;
+  border-color: #30586a;
+  background: #0b2d3c;
+}
+html[data-theme="dark"] .planner-journey-workspace .transport-details > summary {
+  color: #e8f5fb;
+  background: #0f3749;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .route-notice {
+  color: #b6d0dc;
+  background: #15485c;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .transport-provider-strip .ready small,
+html[data-theme="dark"] .planner-journey-workspace .transport-dataset-grid .ready,
+html[data-theme="dark"] .planner-journey-workspace .transport-dataset-grid .ready small {
+  color: #bcd9e8;
+}
+html[data-theme="dark"] .planner-journey-workspace .transport-provider-strip .connected small,
+html[data-theme="dark"] .planner-journey-workspace .transport-dataset-grid .live,
+html[data-theme="dark"] .planner-journey-workspace .transport-dataset-grid .live small {
+  color: #7fd9d0;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .transport-mode-filter button b,
+html[data-theme="dark"] .planner-journey-workspace .transport-mode-filter button small {
+  color: #b6d0dc;
+}
+html[data-theme="dark"] .planner-journey-workspace .transport-mode-filter button.active b,
+html[data-theme="dark"] .planner-journey-workspace .transport-mode-filter button.active small {
+  color: #2f5063;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .route-kakao-secondary {
+  color: #bcd9e8;
+  border-color: #3d7085;
+  background: #15485c;
+}
+html[data-theme="dark"] .planner-journey-workspace .generate-button {
+  color: #e8f5fb;
+  background: #075887;
+}
+html[data-theme="dark"] .planner-journey-workspace .score-badge.pending b {
+  color: #bcd9e8;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .map-toolbar .point-button span,
+html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend small {
+  color: #b6d0dc;
+}
+
+/* 선택 요약과 편의조건 칩은 밝은 표면을 유지하므로 안쪽 글자를 어둡게 둔다. */
+html[data-theme="dark"] .planner-journey-workspace .selection-bar p span,
+html[data-theme="dark"] .planner-journey-workspace .feature-list span {
+  color: #2f5063;
+}
+
+html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-low em,
+html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-low strong { color: #56d3a2; }
+html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-moderate em,
+html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-moderate strong { color: #f0bd5a; }
+html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-busy em,
+html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-busy strong { color: #ff9a6f; }
+html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-very-busy em,
+html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-very-busy strong { color: #ff8095; }
