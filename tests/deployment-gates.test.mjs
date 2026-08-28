@@ -24,11 +24,17 @@ test("CD migrates an unpromoted candidate before production promotion", async ()
   assert.doesNotThrow(() => loadYaml(workflow));
   const build = workflow.indexOf("vercel@50.15.1 build");
   const candidate = workflow.indexOf("--skip-domain");
+  const resolve = workflow.indexOf("후보 실제 URL 확인");
   const migration = workflow.indexOf("/api/deployment/migrate");
   const promote = workflow.indexOf("vercel@50.15.1 promote");
   assert.ok(build > 0 && build < candidate);
-  assert.ok(candidate < migration && migration < promote);
+  assert.ok(candidate < resolve && resolve < migration && migration < promote);
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
+  assert.match(workflow, /--location --output \/dev\/null --write-out '%\{url_effective\}'/);
+  assert.match(workflow, /steps\.candidate_effective\.outputs\.url/);
+  assert.match(workflow, /grep -Fq '\"ok\":true'/);
+  assert.match(workflow, /grep -Fq '\"004_community_seed\.sql\"'/);
+  assert.match(workflow, /grep -Fq '\"checkedAt\"'/);
   assert.match(workflow, /vercel@50\.15\.1 rollback/);
   assert.match(workflow, /promote[^\n]+--scope="\$VERCEL_ORG_ID"/);
   assert.match(workflow, /rollback[^\n]+--scope="\$VERCEL_ORG_ID"/);
@@ -58,6 +64,7 @@ test("the migration endpoint is token-protected and uses the canonical SQL", asy
   assert.match(handler, /COMMUNITY_MIGRATION_TOKEN/);
   assert.match(handler, /002_community_moderation\.sql\?raw/);
   assert.match(handler, /003_trips\.sql\?raw/);
+  assert.match(handler, /004_community_seed\.sql\?raw/);
   assert.match(handler, /\[moderationMigration, tripsMigration\]\.flatMap/);
   assert.match(handler, /sql\.transaction\(statements\.map/);
   assert.match(worker, /\/api\/deployment\/migrate/);
