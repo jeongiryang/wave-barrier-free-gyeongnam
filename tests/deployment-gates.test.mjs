@@ -19,23 +19,21 @@ test("production deployment rejects missing or unsafe account configuration", ()
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "same,same" }).join("\n"), /잘못되거나/);
 });
 
-test("CD migrates an unpromoted candidate before production promotion", async () => {
+test("CD migrates an unpromoted protected candidate before production promotion", async () => {
   const workflow = await readFile(new URL("../.github/workflows/cd.yml", import.meta.url), "utf8");
   assert.doesNotThrow(() => loadYaml(workflow));
   const build = workflow.indexOf("vercel@50.15.1 build");
   const candidate = workflow.indexOf("--skip-domain");
-  const resolve = workflow.indexOf("후보 실제 URL 확인");
+  const candidateHealth = workflow.indexOf("후보 health smoke test");
   const migration = workflow.indexOf("/api/deployment/migrate");
   const promote = workflow.indexOf("vercel@50.15.1 promote");
   assert.ok(build > 0 && build < candidate);
-  assert.ok(candidate < resolve && resolve < migration && migration < promote);
+  assert.ok(candidate < candidateHealth && candidateHealth < migration && migration < promote);
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
-  assert.match(workflow, /--location --output \/dev\/null --write-out '%\{url_effective\}'/);
-  assert.match(workflow, /new URL\(process\.argv\[1\]\)/);
-  assert.match(workflow, /u\.protocol !== "https:"/);
-  assert.match(workflow, /u\.hostname\.endsWith\("\.vercel\.app"\)/);
-  assert.match(workflow, /process\.stdout\.write\(u\.origin\)/);
-  assert.match(workflow, /steps\.candidate_effective\.outputs\.url/);
+  assert.match(workflow, /vercel@50\.15\.1 curl \/api\/health --deployment "\$CANDIDATE_URL"/);
+  assert.match(workflow, /vercel@50\.15\.1 curl \/api\/deployment\/migrate --deployment "\$CANDIDATE_URL"/);
+  assert.match(workflow, /-H "Authorization: Bearer \$COMMUNITY_MIGRATION_TOKEN"/);
+  assert.doesNotMatch(workflow, /--location --output \/dev\/null --write-out '%\{url_effective\}'/);
   assert.match(workflow, /grep -Fq '\"ok\":true'/);
   assert.match(workflow, /grep -Fq '\"004_community_seed\.sql\"'/);
   assert.match(workflow, /grep -Fq '\"checkedAt\"'/);
