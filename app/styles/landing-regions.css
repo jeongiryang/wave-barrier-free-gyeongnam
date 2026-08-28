@@ -3,6 +3,8 @@
   min-height: 0;
   position: relative;
   display: block;
+  animation: none;
+  transform: none;
 }
 .landing-region-map-canvas {
   width: min(100%, 900px);
