@@ -138,25 +138,24 @@ export default function PlannerPage() {
       <div className="scroll-progress" aria-hidden="true" />
       <PlannerHeader t={t} scrolled={scrolled} hidden={headerHidden} savedCount={saved.length} />
 
-      <PlannerServiceStatus
-        locale={locale}
-        open={diagnosticsOpen}
-        onToggle={() => setDiagnosticsOpen((open) => !open)}
-        keyHealth={keyHealth}
-        effectiveProviders={effectiveProviders}
-        transportProviders={transportProviders}
-        providerErrors={providerErrors}
-        liveCount={liveCount}
-        dataErrors={dataErrors}
-        plan={plan}
-      />
-
       <section className="planner-journey-workspace" id="planner" aria-labelledby="journey-workspace-title">
         <header className="journey-workspace-hero" data-reveal>
           <div><p>MAKE YOUR W.A.V.E</p><h1 id="journey-workspace-title">내 여행 만들기</h1></div>
           <p>여행 조건을 정하고, 추천 여행지를 고른 뒤, 이동수단과 하루 코스, 날씨·현장 상황까지 한 화면에서 이어서 확인하세요.</p>
           <a href="/photo-course">다녀온 사진으로 코스 복원 <span aria-hidden="true">↗</span></a>
         </header>
+        <PlannerServiceStatus
+          locale={locale}
+          open={diagnosticsOpen}
+          onToggle={() => setDiagnosticsOpen((open) => !open)}
+          keyHealth={keyHealth}
+          effectiveProviders={effectiveProviders}
+          transportProviders={transportProviders}
+          providerErrors={providerErrors}
+          liveCount={liveCount}
+          dataErrors={dataErrors}
+          plan={plan}
+        />
         <PlannerConditionsPanel
           t={t}
           activePlaces={activePlaces}
