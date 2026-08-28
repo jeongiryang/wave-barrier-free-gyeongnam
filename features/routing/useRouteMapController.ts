@@ -13,7 +13,7 @@ import { useMapShell } from "./useMapShell";
 import { useNearbyPlaces } from "./useNearbyPlaces";
 import { useRoadviewController } from "./useRoadviewController";
 
-export function useRouteMapController({ origin, places, route, crowd, crowdPlaceId, onOriginChange, onDestinationChange }: RouteMapProps) {
+export function useRouteMapController({ origin, places, route, crowd, crowdPlaceId, onOriginChange, onDestinationChange, onSavePlaces }: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const kakaoMapRef = useRef<KakaoMap | null>(null);
@@ -84,7 +84,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   }
 
   const { moveToCurrentLocation, saveRoute, shareRoute, exportRoute } = useMapJourneyActions({
-    origin, places, route, onOriginChange, kakaoMapRef, setPickMode, setProviderDetail,
+    origin, places, route, onOriginChange, onSavePlaces, kakaoMapRef, setPickMode, setProviderDetail,
   });
   const { shellRef, expanded, toggleExpanded } = useMapShell({
     kakaoMapRef,
