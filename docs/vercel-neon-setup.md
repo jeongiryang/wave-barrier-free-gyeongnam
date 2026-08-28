@@ -22,10 +22,10 @@ W.A.V.E는 Vercel을 웹·서버 함수의 단일 운영 환경으로 사용하�
    `NEON_AUTH_COOKIE_SECRET`에 넣는다.
 5. 세 값은 Vercel Project Settings → Environment Variables에서 Production과
    Preview에 등록한다. 실제 값은 저장소에 커밋하지 않는다.
-6. Neon SQL Editor에서 `migrations/001_community.sql`,
-   `migrations/002_community_moderation.sql`을 번호 순서대로 실행한다. 첫 마이그레이션은
-   게시글·댓글·좋아요와 조회 인덱스를 만들고, 두 번째는 신고·검토 상태와 중복 신고
-   방지 제약을 추가한다.
+6. 새 데이터베이스를 수동으로 준비할 때는 `migrations/001_community.sql`부터
+   `004_community_seed.sql`까지 번호 순서대로 적용한다. Production CD는 승격 전에
+   `002_community_moderation.sql`, `003_trips.sql`, `004_community_seed.sql`을
+   트랜잭션으로 다시 적용할 수 있게 작성되어 있어 이미 적용된 환경에서도 안전하다.
 7. 커뮤니티 운영 담당자의 Neon Auth 사용자 ID를 `COMMUNITY_MODERATOR_USER_IDS`에
    쉼표로 구분해 등록한다. 이 값은 서버에서만 읽으며 사용자 화면에 노출하지 않는다.
 
@@ -46,12 +46,19 @@ Vercel에 `.env.example`의 필요한 항목을 등록한다.
 - `TOUR_API_SERVICE_KEY_ENCODED`: 공공데이터포털 일반 인증키(Encoded)
 - `KAKAO_MAP_JAVASCRIPT_KEY`: 지도 브라우저 표시용 키
 - `KAKAO_REST_API_KEY`: 장소 검색·자동차 경로 서버 호출용 키
+- `DATABASE_URL`: 공유 여행·접근성 제보·커뮤니티용 Neon pooled 연결 문자열
+- `NEON_AUTH_BASE_URL`: Neon Auth 엔드포인트
+- `NEON_AUTH_COOKIE_SECRET`: 32자 이상의 쿠키 서명 비밀값
+- `CRON_SECRET`: **Vercel Production 프로젝트 환경에 저장하는 32자 이상의 비밀값.**
+  Vercel Cron이 이 값을 `Authorization: Bearer …`로 보내고 공유 여행 보관기간
+  정리 함수가 같은 값을 비교한다. 배포별 `--env` 값으로 덮어쓰지 않는다.
 - `KORAIL_API_KEY`, `TAGO_API_KEY`: 별도 발급 키가 있을 때만 등록
 - `ODSAY_API_KEY`, `EXPRESSWAY_API_KEY`: 선택 기능을 사용할 때 등록
 - `COMMUNITY_MODERATOR_USER_IDS`: 신고를 처리할 Neon Auth 사용자 ID 목록
 
 공공데이터포털의 동일 일반 인증키로 승인된 서비스는 KORAIL·TAGO 전용 항목을
-비워도 공통 키를 사용한다. 변수 변경 후에는 Vercel에서 Redeploy를 실행한다.
+비워도 공통 키를 사용한다. 변수 변경 후에는 새 Production 배포가 해당 환경을 읽도록
+Redeploy를 실행한다.
 
 ## 4. GitHub Actions 자동 배포
 
@@ -63,8 +70,14 @@ Secrets and variables → Actions에 다음 Repository secrets를 등록한다.
 - `VERCEL_PROJECT_ID`: 같은 파일의 `projectId`
 
 `.github/workflows/cd.yml`은 `main`의 코드 품질 검사가 성공한 뒤에만 Production을
-배포한다. Vercel 자체 Git 자동 배포와 중복되지 않도록 `vercel.json`의 Git 배포는
-비활성화되어 있다.
+배포한다. 배포 전에 Vercel **Production 프로젝트 환경**에 `CRON_SECRET`이 있는지
+확인하고, 없다면 64자리 hex 난수를 민감 환경 변수로 한 번 생성한 뒤 다시 프로젝트
+설정을 동기화한다. 이후 후보 배포에는 `CRON_SECRET`을 별도 `--env`로 주입하지 않는다.
+따라서 Vercel 스케줄러가 보내는 Bearer 값과 함수가 비교하는 런타임 값이 동일하게
+유지된다. `COMMUNITY_MIGRATION_TOKEN`만 배포 후보마다 일회성 값으로 생성한다.
+
+Vercel 자체 Git 자동 배포와 중복되지 않도록 `vercel.json`의 Git 배포는 비활성화되어
+있다.
 
 ## 5. GitHub Ruleset 권장값
 
