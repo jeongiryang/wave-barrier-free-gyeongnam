@@ -21,17 +21,20 @@ export async function handleRouteApi(request: Request, env: Env) {
   }
 
   const straightDistance = haversine(startLat, startLng, endLat, endLng);
-  const [{ providers, context }, odsayRoutes, kakaoResult] = await Promise.all([
+  const [{ providers, context }, odsayResult, kakaoResult] = await Promise.all([
     fetchTransportContext(env, endLat, endLng),
     fetchOdsayRoutes(env, startLat, startLng, endLat, endLng, straightDistance),
     fetchKakaoRoute(env, startLat, startLng, endLat, endLng, straightDistance),
   ]);
 
-  const alternatives: RouteApiAlternative[] = [...odsayRoutes];
+  const alternatives: RouteApiAlternative[] = [...odsayResult.routes];
   if (kakaoResult.alternative) alternatives.push(kakaoResult.alternative);
-  if (kakaoResult.provider) {
-    const provider = providers.find((item) => item.id === "kakao-drive");
-    if (provider) Object.assign(provider, kakaoResult.provider);
+  // 실제 호출 결과를 제공기관 상태에 옮긴다. 옮기지 않으면 키 미등록과 상류
+  // 장애가 화면에서 같은 문구로 보인다.
+  for (const [id, update] of [["kakao-drive", kakaoResult.provider], ["odsay", odsayResult.provider]] as const) {
+    if (!update) continue;
+    const provider = providers.find((item) => item.id === id);
+    if (provider) Object.assign(provider, update);
   }
 
   if (!alternatives.length) {
