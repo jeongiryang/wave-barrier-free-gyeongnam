@@ -1,9 +1,11 @@
+import { cacheControlHeader } from "../../lib/http-cache.js";
+
 export function json(data: unknown, status = 200, cache = false) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "cache-control": cache ? "public, max-age=300, s-maxage=1800" : "no-store",
+      "cache-control": cacheControlHeader(cache, status),
       "x-content-type-options": "nosniff",
     },
   });
