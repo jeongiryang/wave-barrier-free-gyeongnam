@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { dateRange, localDate } from "../utils";
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function useTripSchedule() {
   const [travelStart, setTravelStart] = useState(localDate());
@@ -9,6 +11,18 @@ export function useTripSchedule() {
   const [dayStartTime, setDayStartTime] = useState("10:00");
   const [scheduleAssignments, setScheduleAssignments] = useState<Record<string, string>>({});
   const tripDays = useMemo(() => dateRange(travelStart, travelEnd), [travelEnd, travelStart]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const params = new URLSearchParams(window.location.search);
+      const start = params.get("travelStart") || "";
+      const end = params.get("travelEnd") || "";
+      if (!ISO_DATE.test(start)) return;
+      setTravelStart(start);
+      setTravelEnd(ISO_DATE.test(end) && end >= start ? end : start);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   const changeTravelStart = useCallback((next: string) => {
     setTravelStart(next);
