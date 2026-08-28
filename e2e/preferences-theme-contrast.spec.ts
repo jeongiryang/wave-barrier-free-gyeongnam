@@ -52,12 +52,17 @@ for (const theme of ["light", "dark"] as const) {
   test(`${theme} 테마에서 움직임 줄이기 설정의 텍스트 대비를 지킨다`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await mockPublicShellApi(page);
+    await page.route("**/api/community/posts**", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ posts: [], page: 1, hasMore: false }),
+    }));
     await page.addInitScript((selectedTheme) => {
       window.sessionStorage.setItem("wave-intro-seen-v2", "1");
       window.localStorage.setItem("wave-theme", selectedTheme);
       window.localStorage.setItem("wave-motion", "calm");
     }, theme);
-    await page.goto("/login", { waitUntil: "domcontentloaded" });
+    await page.goto("/community", { waitUntil: "domcontentloaded" });
     await page.locator(".preference-controls > summary").click();
     await expect(page.locator(".motion-toggle")).toHaveAttribute("aria-pressed", "true");
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
