@@ -66,8 +66,12 @@ test("the trips migration matches the runtime bootstrap", async () => {
 });
 
 test("retention documentation states what actually happens", async () => {
-  const readme = await source("README.md");
+  const [readme, setup] = await Promise.all([
+    source("README.md"),
+    source("docs/vercel-neon-setup.md"),
+  ]);
   assert.match(readme, /30일/);
   assert.match(readme, /만료된 공유 여행은 매일 예약 정리/);
-  assert.match(readme, /CRON_SECRET/);
+  assert.match(setup, /CRON_SECRET/);
+  assert.match(setup, /배포별 `--env` 값으로 덮어쓰지 않는다/);
 });
