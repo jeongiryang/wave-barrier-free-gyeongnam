@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { RouteAlternative } from "../../routing/types";
 import { transportModes } from "../constants";
 import type { TransportContext, TransportMode } from "../types";
@@ -50,6 +50,16 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
     if (b.minutes === null) return -1;
     return a.minutes - b.minutes || a.baseIndex - b.baseIndex;
   }), [routeAlternatives]);
+
+  useEffect(() => {
+    const fastestConfiguredMode = routeModeSummaries.find((mode) => mode.configured)?.id;
+    if (!fastestConfiguredMode) return;
+    const currentHasConfiguredRoute = routeAlternatives.some((route) => belongsToMode(route, routeTravelMode) && route.configured && route.totalTime > 0);
+    if (!currentHasConfiguredRoute) {
+      setRouteTravelMode(fastestConfiguredMode);
+      setActiveRouteId("");
+    }
+  }, [routeAlternatives, routeModeSummaries, routeTravelMode]);
 
   const filteredRouteAlternatives = useMemo(() => routeAlternatives
     .filter((route) => belongsToMode(route, routeTravelMode))
