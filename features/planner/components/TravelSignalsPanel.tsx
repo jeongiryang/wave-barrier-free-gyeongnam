@@ -54,9 +54,9 @@ export default function TravelSignalsPanel({
   onSecondaryOpenChange,
   onRouteFromRichSpot,
 }: TravelSignalsPanelProps) {
-  return <section className="travel-layers" id="layers">
-    <div className="workspace-heading inverse" data-reveal>
-      <div><span>05</span><h2>{region} 상황과 여행 정보</h2></div>
+  return <div className="journey-workspace-block travel-layers" id="layers">
+    <div className="journey-subheading inverse" data-reveal>
+      <div><span>STEP 04</span><h3>{region} 상황과 여행 정보</h3></div>
       <p>날씨 · 방문 경향 · 주변</p>
     </div>
 
@@ -85,5 +85,5 @@ export default function TravelSignalsPanel({
         />
       </Suspense>}
     </details>
-  </section>;
+  </div>;
 }
