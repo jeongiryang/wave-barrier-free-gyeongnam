@@ -52,6 +52,24 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Production Cron secret 보장
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          env_listing="$(npx --yes vercel@50.15.1 env ls production --no-color --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN")"
+          if printf '%s\n' "$env_listing" | grep -Eq '(^|[[:space:]])CRON_SECRET([[:space:]]|$)'; then
+            echo "Vercel Production CRON_SECRET가 이미 설정되어 있습니다."
+          else
+            cron_secret="$(openssl rand -hex 32)"
+            echo "::add-mask::$cron_secret"
+            printf '%s\n' "$cron_secret" | npx --yes vercel@50.15.1 env add CRON_SECRET production --sensitive --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
+            echo "Vercel Production CRON_SECRET를 생성했습니다."
+          fi
+          # 새로 생성했거나 기존 값을 사용하든 build/deploy가 같은 프로젝트 환경을 읽도록 다시 동기화한다.
+          npx --yes vercel@50.15.1 pull --yes --environment=production --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
+
       - name: 프로덕션 빌드
         run: npx --yes vercel@50.15.1 build --prod --token="${{ secrets.VERCEL_TOKEN }}"
         env:
@@ -62,21 +80,17 @@ jobs:
         id: migration_token
         run: |
           token="$(openssl rand -hex 32)"
-          cron_token="$(openssl rand -hex 32)"
           echo "::add-mask::$token"
-          echo "::add-mask::$cron_token"
           echo "value=$token" >> "$GITHUB_OUTPUT"
-          echo "cron_value=$cron_token" >> "$GITHUB_OUTPUT"
 
       - name: 승격 전 Production 후보 배포
         id: candidate
         env:
           COMMUNITY_MIGRATION_TOKEN: ${{ steps.migration_token.outputs.value }}
-          CRON_SECRET: ${{ steps.migration_token.outputs.cron_value }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          url="$(npx --yes vercel@50.15.1 deploy --prebuilt --prod --skip-domain --env COMMUNITY_MIGRATION_TOKEN="$COMMUNITY_MIGRATION_TOKEN" --env CRON_SECRET="$CRON_SECRET" --token="${{ secrets.VERCEL_TOKEN }}" | tail -n 1)"
+          url="$(npx --yes vercel@50.15.1 deploy --prebuilt --prod --skip-domain --env COMMUNITY_MIGRATION_TOKEN="$COMMUNITY_MIGRATION_TOKEN" --token="${{ secrets.VERCEL_TOKEN }}" | tail -n 1)"
           case "$url" in https://*.vercel.app) ;; *) echo "후보 배포 URL을 확인할 수 없습니다."; exit 1;; esac
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
