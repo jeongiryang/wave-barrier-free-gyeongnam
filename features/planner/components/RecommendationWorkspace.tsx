@@ -17,8 +17,8 @@ interface RecommendationWorkspaceProps {
 }
 
 export default function RecommendationWorkspace(props: RecommendationWorkspaceProps) {
-  return <section className="places-section" id="places">
+  return <div className="places-section journey-workspace-part" id="places">
     <RecommendationCarousel {...props} />
     <TripDayPlanner tripSelection={props.tripSelection} route={props.route} />
-  </section>;
+  </div>;
 }
