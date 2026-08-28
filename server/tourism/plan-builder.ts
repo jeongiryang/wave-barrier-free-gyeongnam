@@ -20,7 +20,7 @@ export async function buildPlan(request: Request, env: Env) {
 
   const [barrier, tour, durunubi, hubPack, photo] = await Promise.all([
     fetchRegionalList(env, "KorWithService2", "areaBasedList2", locationParams, districts),
-    fetchRegionalList(env, language.service, "areaBasedList2", locale === "ko" ? locationParams : { ...commonParams("12"), arrange: "Q", lDongRegnCd: "48" }, districts),
+    fetchRegionalList(env, language.service, "areaBasedList2", locationParams, districts),
     attempt(fetchKto(env, "Durunubi", "courseList", {
       ...commonParams("10"), brdDiv: "DNWW", crsLevel: "1", ...(region !== "경남 전체" ? { crsKorNm: region } : {}),
     })),
@@ -32,8 +32,6 @@ export async function buildPlan(request: Request, env: Env) {
   const details = await Promise.all(baseItems.map((item) => attempt(fetchKto(env, "KorWithService2", "detailWithTour2", {
     ...commonParams("1"), contentId: clean(item.contentid),
   }))));
-  // 원본 API의 인기 정렬보다 사용자가 선택한 편의조건의 공식 확인 근거를
-  // 우선한다. 근거 없는 후보도 숨기지는 않되 첫 추천·자동 경로 뒤로 보낸다.
   const places = sortPlacesByEvidence(baseItems
     .map((item, index) => placeFrom(item, details[index]?.ok ? details[index].value.items[0] || {} : {}, region, profiles, index)));
 
