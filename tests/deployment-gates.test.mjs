@@ -31,6 +31,10 @@ test("CD migrates an unpromoted candidate before production promotion", async ()
   assert.ok(candidate < resolve && resolve < migration && migration < promote);
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
   assert.match(workflow, /--location --output \/dev\/null --write-out '%\{url_effective\}'/);
+  assert.match(workflow, /new URL\(process\.argv\[1\]\)/);
+  assert.match(workflow, /u\.protocol !== "https:"/);
+  assert.match(workflow, /u\.hostname\.endsWith\("\.vercel\.app"\)/);
+  assert.match(workflow, /process\.stdout\.write\(u\.origin\)/);
   assert.match(workflow, /steps\.candidate_effective\.outputs\.url/);
   assert.match(workflow, /grep -Fq '\"ok\":true'/);
   assert.match(workflow, /grep -Fq '\"004_community_seed\.sql\"'/);
@@ -65,7 +69,8 @@ test("the migration endpoint is token-protected and uses the canonical SQL", asy
   assert.match(handler, /002_community_moderation\.sql\?raw/);
   assert.match(handler, /003_trips\.sql\?raw/);
   assert.match(handler, /004_community_seed\.sql\?raw/);
-  assert.match(handler, /\[moderationMigration, tripsMigration\]\.flatMap/);
+  assert.match(handler, /\[moderationMigration, tripsMigration/);
+  assert.match(handler, /communitySeedMigration/);
   assert.match(handler, /sql\.transaction\(statements\.map/);
   assert.match(worker, /\/api\/deployment\/migrate/);
 });
