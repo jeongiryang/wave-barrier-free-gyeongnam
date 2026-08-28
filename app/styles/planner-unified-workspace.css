@@ -1,0 +1,79 @@
+/* 서비스 이용하기 — 조건·추천·코스·상황을 하나의 작업 공간으로 연결한다. */
+.planner-page > .planner-journey-workspace { order: 2; }
+.planner-page > .navigation-section { order: 3; }
+.planner-page > .simple-footer { order: 9; }
+
+.planner-journey-workspace {
+  width: var(--content);
+  margin: 34px auto 0;
+  overflow: hidden;
+  border: 1px solid #cbdfe8;
+  border-radius: clamp(22px, 3vw, 36px);
+  background: #f8fcfe;
+  box-shadow: 0 24px 70px rgb(6 48 74 / 9%);
+}
+.journey-workspace-hero {
+  min-height: 270px;
+  padding: clamp(28px, 4.5vw, 62px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+  align-items: end;
+  gap: 24px 50px;
+  color: #fff;
+  background: radial-gradient(circle at 82% 16%, rgb(77 199 216 / 28%), transparent 30%), linear-gradient(130deg,#062736 0%,#07567c 62%,#087e9c 100%);
+}
+.journey-workspace-hero > div p { margin: 0 0 8px; color: var(--mint); font-size: .72rem; font-weight: 900; letter-spacing: .18em; }
+.journey-workspace-hero h1 { margin: 0; font-size: clamp(2.6rem, 6vw, 5.7rem); line-height: .95; letter-spacing: -.07em; }
+.journey-workspace-hero > p { margin: 0; max-width: 52ch; color: #c5e2ec; font-size: clamp(.9rem, 1.15vw, 1.05rem); line-height: 1.75; }
+.journey-workspace-hero > a { grid-column: 2; justify-self: start; min-height: 44px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgb(255 255 255 / 23%); border-radius: 999px; color: #fff; background: rgb(255 255 255 / 8%); font-size: .78rem; font-weight: 850; text-decoration: none; }
+.journey-workspace-hero > a:hover { background: rgb(255 255 255 / 15%); transform: translateY(-1px); }
+
+.journey-workspace-block { width: 100%; margin: 0; padding: clamp(34px, 4vw, 56px) clamp(20px, 4.2vw, 58px); border-top: 1px solid #d7e6ec; }
+.planner-journey-workspace .planner-bento,
+.planner-journey-workspace .place-carousel,
+.planner-journey-workspace .day-planner,
+.planner-journey-workspace .route-intro,
+.planner-journey-workspace .itinerary-layout,
+.planner-journey-workspace .share-strip,
+.planner-journey-workspace .course-strip,
+.planner-journey-workspace .weather-board,
+.planner-journey-workspace .impact-panel,
+.planner-journey-workspace .planner-secondary-details { max-width: none; }
+.planner-journey-workspace .places-section { padding-top: clamp(34px, 4vw, 56px); }
+.planner-journey-workspace .route-section { padding-top: clamp(34px, 4vw, 56px); }
+.planner-journey-workspace .travel-layers { padding-top: clamp(34px, 4vw, 56px); }
+
+.journey-subheading { margin: 0 0 24px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+.journey-subheading > div { display: flex; align-items: center; gap: 13px; }
+.journey-subheading > div > span { min-width: 70px; min-height: 32px; padding: 7px 10px; display: inline-grid; place-items: center; border-radius: 999px; color: var(--blue); background: var(--sky); font-size: .62rem; font-weight: 900; letter-spacing: .07em; }
+.journey-subheading h3 { margin: 0; color: var(--ink); font-size: clamp(1.45rem, 2.3vw, 2.2rem); letter-spacing: -.045em; }
+.journey-subheading > p { margin: 0; color: var(--muted); font-size: .76rem; font-weight: 760; }
+
+.planner-journey-workspace .route-section { color: inherit; background: linear-gradient(180deg,#f1f8fb,#e8f4f8); }
+.planner-journey-workspace .route-section .route-intro h2 { color: var(--ink); }
+.planner-journey-workspace .travel-layers { color: #fff; background: #062736; }
+.journey-subheading.inverse h3 { color: #fff; }
+.journey-subheading.inverse > div > span { color: var(--mint); background: rgb(125 235 233 / 10%); }
+.journey-subheading.inverse > p { color: #90b1c0; }
+
+/* 기존 최상위 전용 carousel 규칙을 통합 워크스페이스 안에서도 동일하게 유지한다. */
+.planner-journey-workspace > .places-section .place-carousel { width: auto; }
+
+@media (max-width: 780px) {
+  .planner-journey-workspace { width: calc(100vw - 16px); margin-top: 16px; border-radius: 22px; }
+  .journey-workspace-hero { min-height: 0; padding: 28px 20px; grid-template-columns: 1fr; }
+  .journey-workspace-hero h1 { font-size: clamp(2.6rem, 14vw, 4.2rem); }
+  .journey-workspace-hero > a { grid-column: auto; }
+  .journey-workspace-block { padding: 30px 14px; }
+  .journey-subheading { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .journey-subheading > div { align-items: flex-start; flex-direction: column; gap: 8px; }
+}
+
+html[data-theme="dark"] .planner-journey-workspace { border-color: #294e60; background: #092634; }
+html[data-theme="dark"] .journey-workspace-block { border-color: #294e60; }
+html[data-theme="dark"] .journey-subheading h3 { color: #edf7fb; }
+html[data-theme="dark"] .journey-subheading > p { color: #a6c2ce; }
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-workspace-hero > a { transition: none; }
+}
