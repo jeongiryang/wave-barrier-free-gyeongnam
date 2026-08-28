@@ -58,7 +58,7 @@ test("planner starts with trip conditions and composes recommendation route and 
     "PlannerServiceStatus",
     "PlannerConditionsPanel",
     "RecommendationWorkspace",
-    "PlannerRouteOverview",
+    "PlannerResultsPanel",
     "TravelSignalsPanel",
     "NavigationWorkspace",
   ]) {
@@ -70,7 +70,7 @@ test("planner starts with trip conditions and composes recommendation route and 
   const journeyEnd = page.indexOf("</section>", journeyStart);
   const journey = page.slice(journeyStart, journeyEnd);
   assert.match(journey, /<RecommendationWorkspace/);
-  assert.match(journey, /<PlannerRouteOverview/);
+  assert.match(journey, /<PlannerResultsPanel/);
   assert.match(journey, /<TravelSignalsPanel/);
   assert.doesNotMatch(page, /PlannerEvidencePanel|믿을 수 있는 여행 추천|<PhotoCourseRestore/);
   assert.doesNotMatch(page, /className="planner-bento"|className="place-carousel"|className="weather-board"|className="navigation-workspace"|className="api-bento"/);
