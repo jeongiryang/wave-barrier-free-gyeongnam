@@ -24,7 +24,7 @@
   }
 }
 
-@media (max-width: 680px) and (pointer: coarse) {
+@media (max-width: 680px) {
   .landing-region-map-canvas > button {
     min-width: 44px;
     min-height: 44px;
