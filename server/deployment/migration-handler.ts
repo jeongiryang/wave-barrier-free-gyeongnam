@@ -36,7 +36,10 @@ export async function handleProductionMigration(request: Request) {
   const envErrors = productionEnvironmentErrors(process.env);
   if (envErrors.length > 0) return json({ error: "Production 환경 설정이 불완전합니다.", fields: envErrors }, 503);
 
-  const statements = [moderationMigration, tripsMigration, communitySeedMigration].flatMap(migrationStatements);
+  const statements = [
+    ...[moderationMigration, tripsMigration].flatMap(migrationStatements),
+    ...migrationStatements(communitySeedMigration),
+  ];
   const sql = neon(process.env.DATABASE_URL!.trim());
   await sql.transaction(statements.map((statement) => sql.query(statement)));
   return json({ ok: true, migrations: ["002_community_moderation.sql", "003_trips.sql", "004_community_seed.sql"], statements: statements.length });
