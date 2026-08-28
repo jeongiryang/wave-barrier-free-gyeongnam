@@ -35,11 +35,15 @@ export function useSavedPlaceIds() {
     }
   }, [saved, storageReady]);
 
+  const addSavedIds = useCallback((ids: string[]) => {
+    setSaved((current) => [...current, ...ids.filter((id) => !current.includes(id))]);
+  }, []);
+
   const toggleSavedId = useCallback((id: string) => {
     setSaved((current) => current.includes(id)
       ? current.filter((item) => item !== id)
       : [...current, id]);
   }, []);
 
-  return { saved, toggleSavedId };
+  return { saved, addSavedIds, toggleSavedId };
 }
