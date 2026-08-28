@@ -1,5 +1,5 @@
 
-/* V5 — stronger editorial motion on the service story */
+/* V6 — 서비스 소개 카피가 스크롤 흐름을 따라 움직이는 에디토리얼 모션 */
 .landing-page { --pointer-x: 50vw; --pointer-y: 50vh; --pointer-rx: 0; --pointer-ry: 0; --landing-progress: 0; --hero-shift: 0px; }
 .landing-pointer-glow { z-index: 1; position: fixed; width: 520px; height: 520px; left: var(--pointer-x); top: var(--pointer-y); border-radius: 50%; pointer-events: none; opacity: .22; background: radial-gradient(circle, rgba(81,197,255,.65), rgba(125,235,233,.18) 40%, transparent 70%); filter: blur(18px); transform: translate(-50%,-50%); transition: opacity .25s; mix-blend-mode: multiply; }
 .chapter-rail { z-index: 80; position: fixed; right: 19px; top: 50%; display: grid; justify-items: center; gap: 8px; color: #537888; font-size: .52rem; font-weight: 900; letter-spacing: .12em; transform: translateY(-50%); }
@@ -10,13 +10,127 @@
 .landing-page[data-scroll-direction="up"] .landing-hero-copy { translate: 0 -12px; }
 .landing-page[data-scroll-direction="down"] .landing-signal { scale: calc(1 - var(--landing-progress) * .12); }
 .landing-page[data-scroll-direction="up"] .signal-node { animation-duration: 2.7s; }
+
+/* 큰 카피는 뷰포트 중심을 지날 때 최대 ±16px만 천천히 떠다닌다. */
+.manifesto > h2,
+.product-story-copy,
+.region-story-copy,
+.landing-community-copy,
+.evidence-story > div:first-child,
+.landing-cta h2 {
+  --land-drift: 0px;
+  translate: 0 var(--land-drift);
+  will-change: translate;
+  transition: translate .18s linear;
+}
+
+/* 섹션 내부 카피를 한 덩어리로 띄우지 않고 읽는 순서대로 stagger한다. */
+.product-story .product-story-copy > *,
+.landing-community .landing-community-copy > *,
+.region-story-copy > *,
+.evidence-story > div:first-child > *,
+.landing-cta > * {
+  transition: opacity .65s ease, transform .72s cubic-bezier(.16,1,.3,1);
+}
+.product-story:not(.is-visible) .product-story-copy > *,
+.landing-community:not(.is-visible) .landing-community-copy > *,
+.region-story-copy:not(.is-visible) > *,
+.evidence-story > div:first-child:not(.is-visible) > *,
+.landing-cta:not(.is-visible) > * {
+  opacity: 0;
+  transform: translateY(24px);
+}
+.product-story.is-visible .product-story-copy > *,
+.landing-community.is-visible .landing-community-copy > *,
+.region-story-copy.is-visible > *,
+.evidence-story > div:first-child.is-visible > *,
+.landing-cta.is-visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+.product-story.is-visible .product-story-copy > :nth-child(1),
+.landing-community.is-visible .landing-community-copy > :nth-child(1),
+.region-story-copy.is-visible > :nth-child(1),
+.evidence-story > div:first-child.is-visible > :nth-child(1),
+.landing-cta.is-visible > :nth-child(1) { transition-delay: .04s; }
+.product-story.is-visible .product-story-copy > :nth-child(2),
+.landing-community.is-visible .landing-community-copy > :nth-child(2),
+.region-story-copy.is-visible > :nth-child(2),
+.evidence-story > div:first-child.is-visible > :nth-child(2),
+.landing-cta.is-visible > :nth-child(2) { transition-delay: .13s; }
+.product-story.is-visible .product-story-copy > :nth-child(3),
+.landing-community.is-visible .landing-community-copy > :nth-child(3),
+.region-story-copy.is-visible > :nth-child(3),
+.evidence-story > div:first-child.is-visible > :nth-child(3),
+.landing-cta.is-visible > :nth-child(3) { transition-delay: .23s; }
+.product-story.is-visible .product-story-copy > :nth-child(n+4),
+.landing-community.is-visible .landing-community-copy > :nth-child(n+4),
+.region-story-copy.is-visible > :nth-child(n+4),
+.landing-cta.is-visible > :nth-child(n+4) { transition-delay: .32s; }
+
+/* 키커의 짧은 파란 선이 텍스트 등장 후 따라 그려진다. */
+.section-kicker { width: fit-content; position: relative; }
+.section-kicker::after {
+  content: "";
+  width: 30px; height: 2px;
+  position: absolute; left: calc(100% + 10px); top: 50%;
+  border-radius: 99px;
+  background: linear-gradient(90deg,var(--blue),var(--mint));
+  transform: scaleX(0) translateY(-50%);
+  transform-origin: left center;
+  transition: transform .65s .24s cubic-bezier(.16,1,.3,1);
+}
+.is-visible > .section-kicker::after,
+.section-kicker.is-visible::after { transform: scaleX(1) translateY(-50%); }
+
+/* 강조어는 느린 수면 이동만 주어 계속 움직이되 읽기를 방해하지 않는다. */
+.product-story-copy h2 em,
+.landing-community-copy h2 em,
+.landing-cta h2 em {
+  color: var(--blue);
+  background: linear-gradient(105deg,var(--blue) 10%,#0c83be 42%,#25aaa8 58%,var(--blue) 90%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: landingTextCurrent 7.5s ease-in-out infinite;
+}
+.manifesto > h2[data-land-reveal] {
+  clip-path: inset(0 0 100% 0);
+  transition: opacity .8s ease, transform .85s cubic-bezier(.16,1,.3,1), clip-path .9s cubic-bezier(.16,1,.3,1);
+}
+.manifesto > h2[data-land-reveal].is-visible { clip-path: inset(0); }
 .manifesto-grid article { transition: transform .55s cubic-bezier(.16,1,.3,1), background .45s, color .45s; }
+.manifesto-grid article h3,.manifesto-grid article p { transition: transform .5s cubic-bezier(.16,1,.3,1), opacity .5s; }
+.manifesto-grid article:not(.is-visible) h3,.manifesto-grid article:not(.is-visible) p { opacity: 0; transform: translateY(15px); }
+.manifesto-grid article.is-visible h3,.manifesto-grid article.is-visible p { opacity: 1; transform: none; }
+.manifesto-grid article.is-visible p { transition-delay: .1s; }
 .manifesto-grid article:hover { z-index: 2; transform: translateY(-18px) scale(1.025); color: #fff; background: linear-gradient(145deg,#083950,#0a6baf); }
 .manifesto-grid article:hover p { color: #ceeaf8; }
-.landing-region-map { perspective: 1000px; transition: transform .55s cubic-bezier(.2,.8,.2,1), box-shadow .5s; }
-.landing-region-map:hover { transform: rotateX(2deg) rotateY(-2deg) scale(1.015); box-shadow: 0 40px 90px rgba(7,64,89,.2); }
-.landing-region-map > img { transition: filter .5s, transform .8s cubic-bezier(.16,1,.3,1); }.landing-region-map:hover > img { filter: drop-shadow(0 28px 30px rgba(6,66,92,.3)); transform: scale(1.025); }
-.landing-region-map > button { animation: regionArrival .65s both; animation-delay: calc(var(--region-index) * 32ms); }
-.landing-region-map > button:hover { z-index: 4; transform: translate(-50%,-50%) scale(1.35) rotate(-4deg); }
 .evidence-stack article { transition: transform .42s cubic-bezier(.16,1,.3,1), border-color .3s, box-shadow .3s; }.evidence-stack article:hover { transform: translateX(-22px); border-color: rgba(23,176,255,.42); box-shadow: 20px 22px 55px rgba(7,64,89,.12); }
-@keyframes regionArrival { from { opacity: 0; scale: .3; } to { opacity: 1; scale: 1; } }
+
+@keyframes landingTextCurrent {
+  0%,100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manifesto > h2,
+  .product-story-copy,
+  .region-story-copy,
+  .landing-community-copy,
+  .evidence-story > div:first-child,
+  .landing-cta h2 { translate: none !important; transition: none; }
+  .product-story .product-story-copy > *,
+  .landing-community .landing-community-copy > *,
+  .region-story-copy > *,
+  .evidence-story > div:first-child > *,
+  .landing-cta > *,
+  .manifesto-grid article h3,
+  .manifesto-grid article p { opacity: 1; transform: none; transition: none; }
+  .section-kicker::after { transform: scaleX(1) translateY(-50%); transition: none; }
+  .product-story-copy h2 em,
+  .landing-community-copy h2 em,
+  .landing-cta h2 em { animation: none; background-position: 0 50%; }
+  .manifesto > h2[data-land-reveal] { clip-path: none; transition: none; }
+}
