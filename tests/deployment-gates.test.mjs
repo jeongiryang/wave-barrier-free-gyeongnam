@@ -38,13 +38,17 @@ test("CD migrates an unpromoted candidate before production promotion", async ()
 });
 
 test("production migrations are split into atomic Neon transactions", async () => {
-  const [migration, trips, runner] = await Promise.all([
+  const [migration, trips, seed, runner] = await Promise.all([
     readFile(new URL("../migrations/002_community_moderation.sql", import.meta.url), "utf8"),
     readFile(new URL("../migrations/003_trips.sql", import.meta.url), "utf8"),
+    readFile(new URL("../migrations/004_community_seed.sql", import.meta.url), "utf8"),
     readFile(new URL("../scripts/apply-community-moderation-migration.mjs", import.meta.url), "utf8"),
   ]);
   assert.ok(migration.split(/^-- migrate:split\s*$/m).filter((part) => part.trim()).length >= 9);
   assert.equal(trips.split(/^-- migrate:split\s*$/m).filter((part) => part.trim()).length, 5);
+  assert.match(seed, /wave-demo-seed/);
+  assert.match(seed, /공모전 기능 시연용 샘플 글/);
+  assert.match(seed, /ON CONFLICT \(id\) DO UPDATE/);
   assert.match(runner, /sql\.transaction\(statements\.map/);
   assert.doesNotMatch(runner, /console\.log\([^\n]*(?:DATABASE_URL|databaseUrl)/);
 });
@@ -58,7 +62,8 @@ test("the migration endpoint is token-protected and uses the canonical SQL", asy
   assert.match(handler, /COMMUNITY_MIGRATION_TOKEN/);
   assert.match(handler, /002_community_moderation\.sql\?raw/);
   assert.match(handler, /003_trips\.sql\?raw/);
-  assert.match(handler, /\[moderationMigration, tripsMigration\]\.flatMap/);
+  assert.match(handler, /004_community_seed\.sql\?raw/);
+  assert.match(handler, /\[moderationMigration, tripsMigration, communitySeedMigration\]\.flatMap/);
   assert.match(handler, /sql\.transaction\(statements\.map/);
   assert.match(worker, /\/api\/deployment\/migrate/);
 });
