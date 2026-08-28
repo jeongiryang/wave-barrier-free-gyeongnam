@@ -80,17 +80,32 @@ jobs:
           case "$url" in https://*.vercel.app) ;; *) echo "후보 배포 URL을 확인할 수 없습니다."; exit 1;; esac
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
-      - name: 후보 환경 검증과 커뮤니티 migration
+      - name: 후보 실제 URL 확인
+        id: candidate_effective
         env:
           CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
+        run: |
+          health_url="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --location --output /dev/null --write-out '%{url_effective}' "$CANDIDATE_URL/api/health")"
+          case "$health_url" in https://*.vercel.app/api/health) ;; *) echo "후보 실제 URL을 검증할 수 없습니다."; exit 1;; esac
+          echo "url=${health_url%/api/health}" >> "$GITHUB_OUTPUT"
+
+      - name: 후보 환경 검증과 커뮤니티 migration
+        env:
+          CANDIDATE_URL: ${{ steps.candidate_effective.outputs.url }}
           COMMUNITY_MIGRATION_TOKEN: ${{ steps.migration_token.outputs.value }}
         run: |
-          curl --fail --silent --show-error --retry 3 --retry-all-errors --request POST --header "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN" "$CANDIDATE_URL/api/deployment/migrate"
+          response="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --request POST --header "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN" "$CANDIDATE_URL/api/deployment/migrate")"
+          printf '%s\n' "$response"
+          printf '%s' "$response" | grep -Fq '"ok":true'
+          printf '%s' "$response" | grep -Fq '"004_community_seed.sql"'
 
       - name: 후보 health smoke test
         env:
-          CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
-        run: curl --fail --silent --show-error --retry 3 --retry-all-errors "$CANDIDATE_URL/api/health"
+          CANDIDATE_URL: ${{ steps.candidate_effective.outputs.url }}
+        run: |
+          response="$(curl --fail --silent --show-error --retry 3 --retry-all-errors "$CANDIDATE_URL/api/health")"
+          printf '%s\n' "$response"
+          printf '%s' "$response" | grep -Fq '"checkedAt"'
 
       - name: 프로덕션 승격
         env:
