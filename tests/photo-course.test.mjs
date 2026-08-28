@@ -12,7 +12,7 @@ import {
 } from "../lib/photo-course.js";
 import { EXIF_HEAD_BYTES, MAX_PHOTOS, readPhotoMetadataFiles } from "../lib/photo-import.js";
 import { parseExifTimestamp, readPhotoExif } from "../lib/photo-exif.js";
-import { buildExifJpeg } from "./helpers/exif-jpeg.mjs";
+import { buildExifJpeg, buildExifPng, buildExifTiff, buildExifWebp } from "./helpers/exif-jpeg.mjs";
 
 async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
@@ -29,6 +29,15 @@ test("EXIF reading recovers capture time and coordinates from JPEG bytes", () =>
   assert.deepEqual(big.takenAt, { date: "2026-08-14", minutes: 665 });
   const south = readPhotoExif(buildExifJpeg({ takenAt: "2026:01:02 03:04:05", lat: -33.8688, lng: -70.6693 }));
   assert.ok(south.point.lat < 0 && south.point.lng < 0);
+});
+
+test("EXIF reading also supports PNG WebP and TIFF containers", () => {
+  for (const build of [buildExifPng, buildExifWebp, buildExifTiff]) {
+    const parsed = readPhotoExif(build({ takenAt: "2026:08:14 09:31:02", lat: 34.8377, lng: 127.8925 }));
+    assert.deepEqual(parsed.takenAt, { date: "2026-08-14", minutes: 571 });
+    assert.ok(Math.abs(parsed.point.lat - 34.8377) < 0.0005);
+    assert.ok(Math.abs(parsed.point.lng - 127.8925) < 0.0005);
+  }
 });
 
 test("EXIF reading invents nothing when metadata is absent or damaged", () => {
@@ -160,25 +169,38 @@ test("official enrichment uses KTO tourism search and public tourism photos", as
   assert.match(component, /원본 사진과 GPS는 포함되지 않습니다/);
 });
 
-test("photo course UI documents limitations and supports accessible correction", async () => {
-  const component = await source("features/photo-course/PhotoCourseRestore.tsx");
-  assert.match(component, /기기 안에서만/);
-  assert.match(component, /HEIC는 이번 버전에서 지원하지 않습니다/);
+test("photo course lives outside the main planner and supports multiple EXIF image containers", async () => {
+  const [component, page, planner] = await Promise.all([
+    source("features/photo-course/PhotoCourseRestore.tsx"),
+    source("app/photo-course/page.tsx"),
+    source("app/planner/page.tsx"),
+  ]);
+  assert.match(component, /JPG·JPEG·PNG·WebP·TIFF/);
+  assert.match(component, /image\/jpeg,image\/png,image\/webp,image\/tiff/);
+  assert.match(component, /HEIC·HEIF는 이번 버전에서 지원하지 않습니다/);
   assert.match(component, /type="date"/);
   assert.match(component, /순서를 위로/);
   assert.match(component, /<select/);
   assert.match(component, /role="status"/);
   assert.match(component, /aria-live="polite"/);
+  assert.match(page, /<PhotoCourseRestore/);
+  assert.match(page, /travelStart/);
+  assert.match(page, /travelEnd/);
+  assert.doesNotMatch(planner, /PhotoCourseRestore/);
 });
 
 test("photo course styles keep touch targets mobile layout and dark theme readable", async () => {
-  const css = await source("app/styles/photo-course.css");
+  const [css, journeyCss] = await Promise.all([
+    source("app/styles/photo-course.css"),
+    source("app/styles/planner-journey.css"),
+  ]);
   assert.match(css, /min-height: 48px/);
   assert.match(css, /min-height: 44px/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /\.photo-course-badge\.is-located::before \{ content: "✓ "; \}/);
   assert.match(css, /\.photo-course-badge\.is-unlocated::before \{ content: "\? "; \}/);
   assert.match(css, /html\[data-theme="dark"\] \.photo-course/);
+  assert.match(journeyCss, /\.photo-course-page/);
 });
 
 test("weather and browser region inference share one coordinate table", async () => {
