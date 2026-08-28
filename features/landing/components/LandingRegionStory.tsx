@@ -24,7 +24,7 @@ export default function LandingRegionStory({ t, activeRegion, active, preview, r
       <div className="selected-region">{regionPhotos[active.name]?.image ? <span className="selected-region-photo" style={{ backgroundImage: `url("${regionPhotos[active.name]!.image}")` }} aria-hidden="true" /> : <span className="selected-region-mascot"><RegionMascot region={active.name} size={54} /></span>}<div><small>{t("selected", "지금 선택한 지역")}</small><strong>{active.name}</strong><p>{active.story}</p></div></div>
       <Link href={`/planner?region=${encodeURIComponent(active.name)}`}>{active.name} {t("makeTrip", "여행 만들기")} <b>→</b></Link>
     </div>
-    <div className="landing-region-map" data-land-reveal aria-label="경상남도 18개 시·군 선택 지도">
+    <div className="landing-region-map" data-land-reveal role="group" aria-label="경상남도 18개 시·군 선택 지도">
       <div className="landing-region-map-canvas" data-region-map-canvas>
         {/* Public-domain administrative map from Wikimedia Commons, nominally 600 × 433. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
