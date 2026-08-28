@@ -34,10 +34,10 @@ test("trip schema bootstrap runs once per runtime instead of per request", async
     source("server/trips/database.ts"),
     source("features/community/server/database.ts"),
   ]);
-  // 커뮤니티와 같은 방식으로 캐싱한다.
-  assert.match(trips, /let schemaReady: Promise<TripSql \| null> \| null = null;/);
-  assert.match(trips, /if \(schemaReady\) return schemaReady;/);
-  assert.match(community, /if \(schemaReady\) return schemaReady;/);
+  // 커뮤니티와 같은 방식으로 캐싱한다. 준비 실행 횟수 자체는
+  // tests/schema-bootstrap.test.mjs가 동작으로 고정한다.
+  assert.ok(trips.includes("createSchemaBootstrap(async (): Promise<TripSql | null> =>"));
+  assert.ok(community.includes("createSchemaBootstrap(async (): Promise<CommunitySql | null> =>"));
 });
 
 test("the trips migration matches the runtime bootstrap", async () => {
