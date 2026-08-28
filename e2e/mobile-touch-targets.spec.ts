@@ -51,7 +51,6 @@ test("모바일 지도 명령은 44px 조작 영역과 수평 탐색 경로를 �
 
   const scroll = commandBar.locator(".map-command-scroll");
   const before = await scroll.evaluate((node) => ({
-    left: node.scrollLeft,
     width: node.clientWidth,
     scrollWidth: node.scrollWidth,
     scrollbarWidth: getComputedStyle(node).scrollbarWidth,
@@ -59,7 +58,7 @@ test("모바일 지도 명령은 44px 조작 영역과 수평 탐색 경로를 �
   expect(before.scrollWidth).toBeGreaterThan(before.width);
   expect(before.scrollbarWidth).not.toBe("none");
 
-  await scroll.evaluate((node) => node.scrollTo({ left: node.scrollWidth, behavior: "instant" }));
+  await scroll.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
   await expect.poll(() => scroll.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
   await expect(page.getByRole("button", { name: /공유/ })).toBeVisible();
 });
