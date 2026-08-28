@@ -144,15 +144,6 @@ export default function PlannerPage() {
       <div className="scroll-progress" aria-hidden="true" />
       <PlannerHeader t={t} scrolled={scrolled} hidden={headerHidden} savedCount={saved.length} />
 
-      <PlannerConditionsPanel
-        t={t}
-        activePlaces={activePlaces}
-        planController={planController}
-        route={routePlanning}
-        tripSelection={tripSelection}
-        onGenerate={generatePlan}
-      />
-
       <PlannerServiceStatus
         locale={locale}
         open={diagnosticsOpen}
@@ -164,6 +155,15 @@ export default function PlannerPage() {
         liveCount={liveCount}
         dataErrors={dataErrors}
         plan={plan}
+      />
+
+      <PlannerConditionsPanel
+        t={t}
+        activePlaces={activePlaces}
+        planController={planController}
+        route={routePlanning}
+        tripSelection={tripSelection}
+        onGenerate={generatePlan}
       />
 
       <section className="planner-journey-workspace" id="journey" aria-labelledby="journey-workspace-title">
