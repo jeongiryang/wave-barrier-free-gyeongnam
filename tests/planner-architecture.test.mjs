@@ -52,18 +52,27 @@ test("planner page delegates derived data and browser lifecycles to feature modu
   assert.match(autoRefresh, /window\.clearTimeout\(timer\)/);
 });
 
-test("planner route composes feature sections instead of owning their dense UI", async () => {
+test("planner starts with trip conditions and composes recommendation route and live context in one journey section", async () => {
   const page = await source("app/planner/page.tsx");
   for (const component of [
     "PlannerServiceStatus",
     "PlannerConditionsPanel",
     "RecommendationWorkspace",
+    "PlannerRouteOverview",
     "TravelSignalsPanel",
     "NavigationWorkspace",
-    "PlannerResultsPanel",
   ]) {
     assert.match(page, new RegExp(`<${component}`));
   }
+  assert.ok(page.indexOf("<PlannerConditionsPanel") < page.indexOf("<PlannerServiceStatus"));
+  assert.match(page, /<section className="planner-journey-workspace" id="journey"/);
+  const journeyStart = page.indexOf('<section className="planner-journey-workspace"');
+  const journeyEnd = page.indexOf("</section>", journeyStart);
+  const journey = page.slice(journeyStart, journeyEnd);
+  assert.match(journey, /<RecommendationWorkspace/);
+  assert.match(journey, /<PlannerRouteOverview/);
+  assert.match(journey, /<TravelSignalsPanel/);
+  assert.doesNotMatch(page, /PlannerEvidencePanel|믿을 수 있는 여행 추천|<PhotoCourseRestore/);
   assert.doesNotMatch(page, /className="planner-bento"|className="place-carousel"|className="weather-board"|className="navigation-workspace"|className="api-bento"/);
 });
 
@@ -98,10 +107,16 @@ test("navigation workspace delegates transport data and map route interactions",
 
   assert.match(workspace, /<TransportDataOverview/);
   assert.match(workspace, /<RouteMapWorkspace/);
-  assert.doesNotMatch(workspace, /transport-data-results|trip-point-picker|route-options/);
+  assert.match(workspace, /도보 · 자전거 · 대중교통 · 자동차/);
+  assert.doesNotMatch(workspace, /transport-data-results|trip-point-picker|route-mode-options/);
   assert.match(transport, /transport-data-results/);
   assert.match(mapRoute, /trip-point-picker/);
   assert.match(mapRoute, /<RouteMap/);
+  for (const label of ["도보", "자전거", "대중교통", "자동차"]) assert.match(routeComparison, new RegExp(label));
+  for (const kakaoMode of ["walk", "bicycle", "traffic", "car"]) assert.match(routeComparison, new RegExp(`kakaoMode: "${kakaoMode}"`));
+  assert.match(routeComparison, /a\.alternative\?\.totalTime/);
+  assert.match(routeComparison, /Number\.POSITIVE_INFINITY/);
+  assert.doesNotMatch(routeComparison, /가장 빠름|가장 저렴함|환승 최소|걷기 최소/);
 });
 
 test("planner domain types are shared across route and signal controllers", async () => {
