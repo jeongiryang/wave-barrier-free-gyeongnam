@@ -9,14 +9,17 @@ import {
 
 const validEnv = Object.fromEntries(REQUIRED_PRODUCTION_ENV.map((name) => [name, `${name.toLowerCase()}-configured-value`]));
 validEnv.NEON_AUTH_COOKIE_SECRET = "x".repeat(32);
+validEnv.CRON_SECRET = "y".repeat(64);
 validEnv.COMMUNITY_MODERATOR_USER_IDS = "user_a,user_b";
 
 test("production deployment rejects missing or unsafe account configuration", () => {
   assert.deepEqual(productionEnvironmentErrors(validEnv), []);
   assert.deepEqual(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "" }), []);
   assert.ok(!REQUIRED_PRODUCTION_ENV.includes("COMMUNITY_MODERATOR_USER_IDS"));
+  assert.ok(REQUIRED_PRODUCTION_ENV.includes("CRON_SECRET"));
   assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "" }).join("\n"), /DATABASE_URL/);
   assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_COOKIE_SECRET: "short" }).join("\n"), /32자/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, CRON_SECRET: "short" }).join("\n"), /CRON_SECRET.*32자/);
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "valid,bad id" }).join("\n"), /잘못되거나/);
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "same,same" }).join("\n"), /잘못되거나/);
 });
@@ -32,6 +35,12 @@ test("CD migrates an unpromoted protected candidate before production promotion"
   assert.ok(build > 0 && build < candidate);
   assert.ok(candidate < candidateHealth && candidateHealth < migration && migration < promote);
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
+  // Vercel Cron은 프로젝트 Production 환경의 CRON_SECRET을 Authorization Bearer로 보낸다.
+  // CD가 배포마다 별도 값을 --env로 덮으면 스케줄러와 함수가 서로 다른 값을 보게 된다.
+  assert.match(workflow, /vercel@50\.15\.1 env ls production/);
+  assert.match(workflow, /env add CRON_SECRET production --sensitive/);
+  assert.doesNotMatch(workflow, /--env CRON_SECRET=/);
+  assert.doesNotMatch(workflow, /cron_token|cron_value/);
   // Native curl은 실제 curl 인자를 그대로 넘긴다. CI 인증과 프로젝트 선택은
   // VERCEL_TOKEN/VERCEL_ORG_ID/VERCEL_PROJECT_ID 환경변수와 pull로 만든 링크에 맡긴다.
   assert.match(workflow, /vercel@54\.14\.0 curl \/api\/health --deployment "\$CANDIDATE_URL"/);
