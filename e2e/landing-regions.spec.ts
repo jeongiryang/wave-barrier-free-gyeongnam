@@ -27,22 +27,32 @@ test("경남 18개 지역 표식이 지도와 같은 좌표계 안에 유지된�
     const marker = markers.nth(index);
     const layout = await marker.evaluate((element) => {
       const item = element as HTMLElement;
-      const parent = item.offsetParent as HTMLElement | null;
+      const canvasElement = item.parentElement as HTMLElement | null;
+      const style = getComputedStyle(item);
       return {
         name: item.dataset.regionMarker || "",
         x: Number(item.dataset.regionX),
         y: Number(item.dataset.regionY),
-        left: item.offsetLeft,
-        top: item.offsetTop,
-        parentWidth: parent?.clientWidth ?? 0,
-        parentHeight: parent?.clientHeight ?? 0,
+        left: Number.parseFloat(style.left),
+        top: Number.parseFloat(style.top),
+        inlineLeft: item.style.left,
+        inlineTop: item.style.top,
+        parentWidth: canvasElement?.clientWidth ?? 0,
+        parentHeight: canvasElement?.clientHeight ?? 0,
+        isCanvas: canvasElement?.hasAttribute("data-region-map-canvas") ?? false,
       };
     });
 
+    expect(layout.isCanvas).toBe(true);
     expect(layout.parentWidth).toBe(canvas.width);
     expect(layout.parentHeight).toBe(canvas.height);
+    expect(layout.inlineLeft).toBe(`${layout.x}%`);
+    expect(layout.inlineTop).toBe(`${layout.y}%`);
+
     const expectedLeft = layout.parentWidth * (layout.x / 100);
     const expectedTop = layout.parentHeight * (layout.y / 100);
+    expect(Number.isFinite(layout.left)).toBe(true);
+    expect(Number.isFinite(layout.top)).toBe(true);
     expect(Math.abs(layout.left - expectedLeft)).toBeLessThan(LAYOUT_TOLERANCE);
     expect(Math.abs(layout.top - expectedTop)).toBeLessThan(LAYOUT_TOLERANCE);
     expect(layout.left).toBeGreaterThan(0);
