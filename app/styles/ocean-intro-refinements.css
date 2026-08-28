@@ -10,7 +10,7 @@
   display: grid; place-items: center;
   overflow: hidden; color: #fff;
   background: var(--abyss);
-  animation: landingIntroOut .5s 1.95s cubic-bezier(.76,0,.24,1) forwards;
+  animation: landingIntroOut .5s 6.9s cubic-bezier(.76,0,.24,1) forwards;
 }
 .brand-intro::before, .brand-intro::after { content: none; }
 .brand-intro-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -41,10 +41,56 @@
   color: var(--mint); font-size: clamp(.6rem, 1.5vw, .78rem);
   font-weight: 850; letter-spacing: .3em;
 }
+.intro-storyline {
+  grid-row: 3; align-self: end; position: relative;
+  width: min(760px, 92vw); min-height: clamp(142px, 19vh, 190px);
+  display: grid; place-items: end center;
+}
+.brand-intro .intro-statement,
+.brand-intro .intro-region-chapter {
+  position: absolute; inset: auto 0 0;
+  display: grid; justify-items: center;
+}
 .brand-intro .intro-statement {
-  align-self: end; display: grid; gap: 3px;
-  animation: introCopyRise .55s .65s both;
+  gap: 3px;
+  animation: introOpeningCopy 2.45s .55s cubic-bezier(.22,1,.36,1) both;
 }
 .brand-intro .intro-statement span { color: #93bed2; font-size: clamp(.8rem, 1.7vw, .98rem); }
 .brand-intro .intro-statement strong { margin-top: 10px; color: #eaf8ff; font-size: clamp(1rem, 2.5vw, 1.45rem); letter-spacing: -.02em; }
-@keyframes introCopyRise { from { opacity: 0; transform: translateY(14px); } }
+.brand-intro .intro-region-chapter {
+  gap: 12px;
+  animation: introRegionChapter 4.15s 2.72s cubic-bezier(.22,1,.36,1) both;
+}
+.intro-region-chapter > p {
+  margin: 0; color: var(--mint);
+  font-size: clamp(.64rem, 1.5vw, .82rem); font-weight: 900; letter-spacing: .22em;
+}
+.intro-region-chapter > strong {
+  max-width: 620px; color: #eaf8ff;
+  font-size: clamp(1rem, 2.4vw, 1.42rem); line-height: 1.45; letter-spacing: -.02em;
+}
+.intro-region-beats {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+}
+.intro-region-beats span {
+  min-height: 34px; padding: 7px 12px;
+  display: inline-flex; align-items: center;
+  border: 1px solid rgba(125,235,233,.22); border-radius: 999px;
+  color: #b8dbe6; background: rgba(4,32,47,.42); backdrop-filter: blur(8px);
+  font-size: clamp(.68rem, 1.35vw, .8rem); font-weight: 800;
+  animation: introRegionBeat .72s calc(3.05s + var(--intro-beat) * .32s) cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes introOpeningCopy {
+  0% { opacity: 0; transform: translateY(14px); }
+  18%, 70% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-14px); }
+}
+@keyframes introRegionChapter {
+  0% { opacity: 0; transform: translateY(18px); }
+  13%, 88% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes introRegionBeat {
+  from { opacity: 0; transform: translateY(12px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
