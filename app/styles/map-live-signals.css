@@ -87,3 +87,15 @@ html[data-theme="dark"] .trip-point-picker { color: #e7f3f8; border-color: #3059
 @media (max-width: 960px) { .weather-board { grid-template-columns: 1fr; }.weather-days { grid-template-columns: repeat(7,minmax(95px,1fr)); }.trip-point-list { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .weather-board { padding: 12px; }.weather-current { min-height: 150px; }.weather-days { padding-bottom: 5px; }.weather-day { min-height: 146px; }.trip-point-picker { width: calc(100% - 18px); left: 9px; top: 128px; max-height: 68vh; }.trip-point-comparison { grid-template-columns: 1fr; }.trip-point-list { max-height: 210px; }.map-toolbar .point-button,.map-toolbar .point-active { min-height: 48px; }.map-toolbar .recalculate-button { grid-column: 1 / -1; } }
 @media (prefers-reduced-motion: reduce) { .smart-image-skeleton,.weather-skeleton > *,.region-photo-skeleton,.region-photo-preview .loading-copy > * { animation: none !important; } }
+
+/* 혼잡도 색은 지도 원과 범례 글자가 함께 쓴다. 원에서는 잘 보이는 채도지만
+   범례 글자로 쓰면 밝은 화면에서 대비가 1.87까지 떨어진다. 원은 그대로 두고
+   범례 글자만 화면별로 맞춘다. */
+.map-crowd-legend.crowd-low em,.map-crowd-legend.crowd-low strong { color: #0e7a52; }
+.map-crowd-legend.crowd-moderate em,.map-crowd-legend.crowd-moderate strong { color: #8a6000; }
+.map-crowd-legend.crowd-busy em,.map-crowd-legend.crowd-busy strong { color: #b8431a; }
+.map-crowd-legend.crowd-very-busy em,.map-crowd-legend.crowd-very-busy strong { color: #b31f37; }
+html[data-theme="dark"] .map-crowd-legend.crowd-low em,html[data-theme="dark"] .map-crowd-legend.crowd-low strong { color: #56d3a2; }
+html[data-theme="dark"] .map-crowd-legend.crowd-moderate em,html[data-theme="dark"] .map-crowd-legend.crowd-moderate strong { color: #f0bd5a; }
+html[data-theme="dark"] .map-crowd-legend.crowd-busy em,html[data-theme="dark"] .map-crowd-legend.crowd-busy strong { color: #ff9a6f; }
+html[data-theme="dark"] .map-crowd-legend.crowd-very-busy em,html[data-theme="dark"] .map-crowd-legend.crowd-very-busy strong { color: #ff8095; }

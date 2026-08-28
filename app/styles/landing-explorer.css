@@ -105,7 +105,7 @@ html[data-theme="dark"] .floating-card .photo-credit {
 .theme-grid button:hover { transform: translateY(-2px); border-color: #89d7ff; }
 .theme-grid button.active { color: var(--white); border-color: var(--ink); background: var(--ink); box-shadow: 0 12px 22px rgba(8,47,65,.13); }
 .theme-grid span { font-size: .9rem; font-weight: 820; }
-.theme-grid small { margin-top: 4px; color: #7c98a5; font-size: .72rem; }
+.theme-grid small { margin-top: 4px; color: #4b6c7b; font-size: .72rem; }
 .theme-grid button.active small { color: var(--mint); }
 .profile-panel { grid-column: 1 / -1; }
 .date-control { grid-column: 1 / -1; }

@@ -47,3 +47,69 @@ html[data-theme="dark"] .rich-card p,html[data-theme="dark"] .heading-side p,htm
 @media (prefers-reduced-motion: reduce) {
   [data-land-reveal],[data-land-reveal].is-visible { opacity: 1; transform: none; }.brand-intro { display: none; }
 }
+
+/* 여행 설계 화면의 밝은 표면 — 흰 배경이 어두운 화면에서도 그대로 남아,
+   그 위에 얹힌 밝은 글자가 사라진다. 표면이 넓은 곳은 표면을 어둡게 내리고,
+   작은 강조 칩은 밝게 둔 채 안쪽 글자를 어둡게 맞춘다. */
+html[data-theme="dark"] .theme-grid button,
+html[data-theme="dark"] .transport-mode-filter button,
+html[data-theme="dark"] .map-toolbar,
+html[data-theme="dark"] .departure-row button,
+html[data-theme="dark"] .route-kakao-secondary,
+html[data-theme="dark"] .transport-details > summary {
+  color: var(--ink);
+  border-color: #2b5567;
+  background: #0b2d3c;
+}
+/* 상태가 뒤바뀐 버튼은 밝은 표면을 유지한다. 그래야 선택 상태가 구분된다. */
+html[data-theme="dark"] .theme-grid button.active,
+html[data-theme="dark"] .transport-mode-filter button.active {
+  color: var(--white);
+  background: var(--ink);
+}
+html[data-theme="dark"] .theme-grid button.active small,
+html[data-theme="dark"] .transport-mode-filter button.active small,
+html[data-theme="dark"] .transport-mode-filter button.active b,
+html[data-theme="dark"] .profile-card.active span small,
+html[data-theme="dark"] .step-label b,
+html[data-theme="dark"] .route-option-rank {
+  color: #22414f;
+}
+/* 어두운 표면 위에서 너무 흐린 보조 문구는 밝게 올린다. */
+html[data-theme="dark"] .select-shell small {
+  color: #9fbecd;
+}
+
+/* 이동수단 카드의 밝은 표면 — 고르지 않은 카드가 어두운 화면에서도 흰색으로
+   남아 안쪽 글자가 사라졌다. 표면을 내리고 고른 카드만 대비로 구분한다. */
+html[data-theme="dark"] .route-mode-sections button {
+  color: var(--ink);
+  border-color: #2b5567;
+  background: #0b2d3c;
+}
+html[data-theme="dark"] .route-mode-sections button > span {
+  color: #9fbecd;
+}
+html[data-theme="dark"] .route-mode-sections button.active {
+  color: #fff;
+  border-color: #7fc4dd;
+  background: #062736;
+}
+html[data-theme="dark"] .route-mode-sections button.active strong,
+html[data-theme="dark"] .route-mode-sections button.active b,
+html[data-theme="dark"] .route-mode-sections button strong,
+html[data-theme="dark"] .route-mode-sections button b {
+  color: inherit;
+}
+/* 편의조건 칩은 밝은 표면을 유지하므로 안쪽 글자를 어둡게 맞춘다. */
+html[data-theme="dark"] .feature-list span {
+  color: #22414f;
+  background: #dce8ed;
+}
+/* 밝게 유지되는 표면 안의 보조 문구 두 곳. */
+html[data-theme="dark"] .selection-bar p span {
+  color: #2f5063;
+}
+html[data-theme="dark"] .theme-grid button:not(.active) small {
+  color: #9fbecd;
+}
