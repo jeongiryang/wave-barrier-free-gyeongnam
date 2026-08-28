@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import RouteMap from "../../../components/RouteMap";
 import type { MapPlace } from "../../routing/types";
 import type { useLocationSearch } from "../hooks/useLocationSearch";
@@ -18,12 +19,16 @@ interface RouteMapWorkspaceProps {
 export default function RouteMapWorkspace({ activePlaces, planCrowd, route, locationSearch, onChoosePoint, onMapDestination }: RouteMapWorkspaceProps) {
   const { origin, originLabel, routeDestination, destinationCrowd, routeLoading, loadRoutes, updateOrigin, activeRoute } = route;
   const { pointPicker, setPointPicker } = locationSearch;
+  // 지도는 이 배열의 참조가 바뀔 때마다 통째로 다시 만들어진다. 매 렌더 새로
+  // 잘라 넘기면 스크롤로 헤더가 접히기만 해도 재생성돼 사용자가 맞춰 둔
+  // 확대·이동과 측정 도형이 사라진다. 추천 목록이 실제로 바뀔 때만 새 참조를 준다.
+  const mapPlaces = useMemo(() => activePlaces.slice(0, 6), [activePlaces]);
 
   return <div className="navigation-workspace" data-reveal>
     <div className="map-panel">
       <div className="map-toolbar"><button type="button" className={pointPicker === "origin" ? "point-active" : "point-button"} onClick={() => setPointPicker((value) => value === "origin" ? null : "origin")}><span>출발 · 눌러서 변경</span><strong>{originLabel}</strong></button><i>→</i><button type="button" className={pointPicker === "destination" ? "point-active" : "point-button"} onClick={() => setPointPicker((value) => value === "destination" ? null : "destination")}><span>도착 · 눌러서 변경</span><strong>{routeDestination?.name || activePlaces[0]?.name || "여행지 선택 전"}</strong></button><button type="button" className="recalculate-button" onClick={() => activePlaces[0] && void loadRoutes(routeDestination || activePlaces[0])} disabled={!activePlaces.length || routeLoading}>{routeLoading ? "경로 확인 중" : "다시 계산"}</button></div>
       <TripPointPicker activePlaces={activePlaces} route={route} locationSearch={locationSearch} onChoosePoint={onChoosePoint} />
-      <RouteMap origin={origin} places={activePlaces.slice(0, 6)} route={activeRoute} crowd={routeDestination ? destinationCrowd : planCrowd} crowdPlaceId={(routeDestination || activePlaces[0])?.id} onOriginChange={(point, label) => {
+      <RouteMap origin={origin} places={mapPlaces} route={activeRoute} crowd={routeDestination ? destinationCrowd : planCrowd} crowdPlaceId={(routeDestination || activePlaces[0])?.id} onOriginChange={(point, label) => {
         updateOrigin(point, label, label === "현재 위치");
         if (label !== "현재 위치" && (routeDestination || activePlaces[0])) void loadRoutes(routeDestination || activePlaces[0], point, false, label);
       }} onDestinationChange={onMapDestination} />
