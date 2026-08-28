@@ -27,6 +27,7 @@ import "./styles/account-auth.css";
 import "./styles/community.css";
 import "./styles/account-community.css";
 import "./styles/landing-stories.css";
+import "./styles/landing-regions.css";
 import "./styles/preferences.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 
