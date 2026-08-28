@@ -1,6 +1,5 @@
-/* 서비스 이용하기 — 조건·추천·코스·상황을 하나의 작업 공간으로 연결한다. */
+/* 서비스 이용하기 — 조건·추천·이동·코스·상황을 하나의 작업 공간으로 연결한다. */
 .planner-page > .planner-journey-workspace { order: 2; }
-.planner-page > .navigation-section { order: 3; }
 .planner-page > .simple-footer { order: 9; }
 
 .planner-journey-workspace {
@@ -38,10 +37,18 @@
 .planner-journey-workspace .course-strip,
 .planner-journey-workspace .weather-board,
 .planner-journey-workspace .impact-panel,
-.planner-journey-workspace .planner-secondary-details { max-width: none; }
+.planner-journey-workspace .planner-secondary-details,
+.planner-journey-workspace .transport-mode-filter,
+.planner-journey-workspace .transport-details,
+.planner-journey-workspace .transport-live-rail,
+.planner-journey-workspace .transport-dataset-grid,
+.planner-journey-workspace .transport-data-panel,
+.planner-journey-workspace .navigation-workspace { max-width: none; }
 .planner-journey-workspace .places-section { padding-top: clamp(34px, 4vw, 56px); }
+.planner-journey-workspace .navigation-section { width: 100%; margin: 0; padding: clamp(34px, 4vw, 56px) clamp(20px, 4.2vw, 58px); border-top: 1px solid #d7e6ec; background: #eef5f8; }
 .planner-journey-workspace .route-section { padding-top: clamp(34px, 4vw, 56px); }
 .planner-journey-workspace .travel-layers { padding-top: clamp(34px, 4vw, 56px); }
+.planner-results-bridge { width: 100%; }
 
 .journey-subheading { margin: 0 0 24px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
 .journey-subheading > div { display: flex; align-items: center; gap: 13px; }
@@ -96,6 +103,7 @@
   .journey-workspace-hero h1 { font-size: clamp(2.6rem, 14vw, 4.2rem); }
   .journey-workspace-hero > a { grid-column: auto; }
   .journey-workspace-block { padding: 30px 14px; }
+  .planner-journey-workspace .navigation-section { padding: 30px 14px; }
   .journey-subheading { align-items: flex-start; flex-direction: column; gap: 8px; }
   .journey-subheading > div { align-items: flex-start; flex-direction: column; gap: 8px; }
   .route-mode-sections { grid-template-columns: 1fr; }
@@ -104,6 +112,7 @@
 
 html[data-theme="dark"] .planner-journey-workspace { border-color: #294e60; background: #092634; }
 html[data-theme="dark"] .journey-workspace-block { border-color: #294e60; }
+html[data-theme="dark"] .planner-journey-workspace .navigation-section { border-color: #294e60; background: #0b2d3c; }
 html[data-theme="dark"] .journey-subheading h3 { color: #edf7fb; }
 html[data-theme="dark"] .journey-subheading > p { color: #a6c2ce; }
 html[data-theme="dark"] .place-community-stories { border-color: #31596a; background: #0a2735; }
