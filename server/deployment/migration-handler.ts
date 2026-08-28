@@ -1,6 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import moderationMigration from "../../migrations/002_community_moderation.sql?raw";
 import tripsMigration from "../../migrations/003_trips.sql?raw";
+import communitySeedMigration from "../../migrations/004_community_seed.sql?raw";
 import { productionEnvironmentErrors } from "../../lib/deployment/production-env.js";
 import { json } from "../shared/http";
 
@@ -35,8 +36,8 @@ export async function handleProductionMigration(request: Request) {
   const envErrors = productionEnvironmentErrors(process.env);
   if (envErrors.length > 0) return json({ error: "Production 환경 설정이 불완전합니다.", fields: envErrors }, 503);
 
-  const statements = [moderationMigration, tripsMigration].flatMap(migrationStatements);
+  const statements = [moderationMigration, tripsMigration, communitySeedMigration].flatMap(migrationStatements);
   const sql = neon(process.env.DATABASE_URL!.trim());
   await sql.transaction(statements.map((statement) => sql.query(statement)));
-  return json({ ok: true, migrations: ["002_community_moderation.sql", "003_trips.sql"], statements: statements.length });
+  return json({ ok: true, migrations: ["002_community_moderation.sql", "003_trips.sql", "004_community_seed.sql"], statements: statements.length });
 }
