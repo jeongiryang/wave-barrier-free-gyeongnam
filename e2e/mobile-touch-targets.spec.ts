@@ -60,5 +60,5 @@ test("모바일 지도 명령은 44px 조작 영역과 수평 탐색 경로를 �
 
   await scroll.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
   await expect.poll(() => scroll.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
-  await expect(page.getByRole("button", { name: /공유/ })).toBeVisible();
+  await expect(commandBar.getByRole("button", { name: "↗ 공유", exact: true })).toBeVisible();
 });
