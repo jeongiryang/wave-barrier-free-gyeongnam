@@ -52,3 +52,11 @@ html[data-theme="dark"] .preference-row select,html[data-theme="dark"] .preferen
 @media (prefers-reduced-motion: reduce) {
   .preference-controls > summary,.preference-panel,.preference-row { transition: none; }
 }
+
+/* 어두운 화면에서 켜진 "동작 효과" 토글이 밝은 배경으로 남아, 안쪽 글자가
+   대비 1.02로 사실상 보이지 않았다. 상태 선택자가 앞선 다크 규칙보다
+   구체적이라 이기므로 같은 구체성으로 다시 적는다. */
+html[data-theme="dark"] .preference-row.motion-toggle[aria-pressed="true"] {
+  border-color: #2f6b7d;
+  background: #123f52;
+}
