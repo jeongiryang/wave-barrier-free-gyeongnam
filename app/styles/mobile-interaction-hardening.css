@@ -1,0 +1,34 @@
+/* 최종 모바일 상호작용 보강 — 작은 시각 요소는 유지하되 실제 조작 영역은 44px 이상 확보한다. */
+
+@media (max-width: 780px) {
+  .map-command-scroll {
+    padding-bottom: 7px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+  .map-command-scroll::-webkit-scrollbar {
+    display: block;
+    height: 4px;
+  }
+  .map-command-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(15,79,112,.42);
+  }
+  .map-command-scroll > button,
+  .map-command-scroll > .map-type-switch {
+    scroll-snap-align: start;
+  }
+  .map-command-bar button,
+  .map-type-switch button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 680px) and (pointer: coarse) {
+  .landing-region-map-canvas > button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 4px 6px;
+    touch-action: manipulation;
+  }
+}
