@@ -104,6 +104,7 @@ async function styleSource() {
     "app/styles/ocean-responsive-refinements.css",
     "app/styles/design-system.css",
     "app/styles/experience-accessibility.css",
+    "app/styles/landing-regions.css",
   ];
   return (await Promise.all(paths.map(source))).join("\n");
 }
@@ -299,7 +300,19 @@ test("wide screens use available viewport width without breaking mobile gutters"
   assert.match(css, /@media \(max-width: 780px\)[\s\S]*width: calc\(100vw - 16px\)/);
 });
 
-test("wave effects avoid dense glyphs and the short first-visit intro stays synchronized", async () => {
+test("landing region markers share the rendered map coordinate space", async () => {
+  const [landing, css] = await Promise.all([landingProductSource(), styleSource()]);
+  assert.match(landing, /className="landing-region-map-canvas" data-region-map-canvas/);
+  assert.match(landing, /data-region-marker=\{region\.name\}/);
+  assert.match(landing, /width="600" height="433"/);
+  assert.match(landing, /name: "거창"[\s\S]*x: 22, y: 14/);
+  assert.match(landing, /name: "양산"[\s\S]*x: 90, y: 43/);
+  assert.match(css, /\.landing-region-map-canvas \{[\s\S]*aspect-ratio: 600 \/ 433/);
+  assert.match(css, /\.landing-region-map-canvas > img \{[\s\S]*width: 100%;[\s\S]*height: 100%/);
+  assert.match(css, /\.landing-region-map \{[\s\S]*min-height: 0/);
+});
+
+test("wave effects avoid dense glyphs and the extended first-visit intro stays synchronized", async () => {
   const [renderer, model, landing, intro, css] = await Promise.all([
     source("features/motion/wave-field-engine.ts"),
     source("features/motion/wave-model.ts"),
@@ -311,7 +324,7 @@ test("wave effects avoid dense glyphs and the short first-visit intro stays sync
   assert.doesNotMatch(ramp, /[#@xX≡]/);
   assert.match(model, /out: \[1\.78, 1\.96\]/);
   assert.match(renderer, /stageWeight\(elapsed, INTRO_STAGES\[2\]\)/);
-  assert.match(intro, /const INTRO_DURATION_MS = 2450/);
+  assert.match(intro, /const INTRO_DURATION_MS = 7450/);
   assert.match(intro, /type IntroState = "checking" \| "show" \| "hidden"/);
   assert.match(intro, /useState<IntroState>\("checking"\)/);
   assert.match(intro, /if \(!hydrated\) return "checking"/);
@@ -320,8 +333,11 @@ test("wave effects avoid dense glyphs and the short first-visit intro stays sync
   assert.match(intro, /sessionStorage\.getItem\("wave-intro-seen-v2"\)/);
   assert.match(intro, /setTimeout\(finishIntro, INTRO_DURATION_MS\)/);
   assert.match(landing, /introState === "show" && <LandingIntro/);
+  assert.match(landing, /intro-region-chapter/);
+  assert.match(landing, /18 CITIES · 18 STORIES/);
   assert.doesNotMatch(landing, /useState\(true\)/);
-  assert.match(css, /landingIntroOut \.5s 1\.95s/);
+  assert.match(css, /landingIntroOut \.5s 6\.9s/);
+  assert.match(css, /introRegionChapter 4\.15s 2\.72s/);
   assert.match(landing, /prefers-reduced-motion: reduce/);
   assert.match(landing, /<button ref=\{startButtonRef\} type="button" onClick=\{close\}>/);
 });

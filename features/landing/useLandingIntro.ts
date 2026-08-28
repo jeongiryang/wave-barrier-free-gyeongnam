@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Motion } from "../preferences/types";
 
-export const INTRO_DURATION_MS = 2450;
+export const INTRO_DURATION_MS = 7450;
 export type IntroState = "checking" | "show" | "hidden";
 
 export function decideIntroState({ hydrated, motion, reducedMotion, seen }: {
