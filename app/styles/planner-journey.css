@@ -1,0 +1,97 @@
+/* 핵심 여행 설계 흐름 — 추천·일정·상황을 하나의 작업 영역으로 묶는다. */
+.planner-page > .planner-journey-workspace {
+  order: 3;
+  padding: clamp(64px,7vw,110px) max(20px,3.4vw) clamp(76px,8vw,120px);
+  overflow: clip;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid rgba(6,39,54,.14);
+  background:
+    radial-gradient(circle at 92% 7%,rgba(125,235,233,.14),transparent 27%),
+    linear-gradient(180deg,#f7fcff 0%,#eef7fb 33%,#062736 68%,#062736 100%);
+}
+.planner-journey-heading {
+  width: min(100%,1440px);
+  margin: 0 auto 36px;
+  display: grid;
+  gap: 10px;
+}
+.planner-journey-heading h2 { margin: 0; max-width: 920px; font-size: clamp(2rem,4vw,4rem); line-height: 1.04; letter-spacing: -.06em; }
+.planner-journey-heading > p:last-child { margin: 0; max-width: 720px; color: var(--muted); font-size: clamp(.78rem,1.2vw,.95rem); line-height: 1.75; }
+.planner-journey-workspace .journey-workspace-part { width: min(100%,1760px); margin-inline: auto; }
+.planner-journey-workspace .places-section { padding-top: 22px; }
+.planner-journey-workspace .route-section { margin-top: 56px; padding-top: 64px; border-top: 1px solid rgba(10,75,101,.13); }
+.planner-journey-workspace .travel-layers { margin-top: 66px; padding-top: 66px; border-top: 1px solid rgba(255,255,255,.12); }
+.planner-journey-workspace .workspace-heading { max-width: none; }
+.planner-journey-workspace .journey-subheading > div > span { width: auto; min-width: 44px; padding-inline: 10px; }
+
+/* 이동수단 비교 — 실제 시간이 있는 수단부터 정렬하고 없는 값은 만들지 않는다. */
+.route-mode-heading { margin-bottom: 13px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.route-mode-heading small { color: var(--blue); font-size: .61rem; font-weight: 900; letter-spacing: .1em; }
+.route-mode-heading h3 { margin: 4px 0 0; color: var(--ink); font-size: 1.08rem; letter-spacing: -.025em; }
+.route-mode-heading > span { color: var(--muted); font-size: .6rem; font-weight: 760; text-align: right; }
+.route-mode-options { display: grid; gap: 9px; }
+.route-mode-card { padding: 15px; display: grid; gap: 12px; border: 1px solid #d3e3ea; border-radius: 16px; color: var(--ink); background: rgba(255,255,255,.9); box-shadow: 0 8px 24px rgba(6,39,54,.055); transition: transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+.route-mode-card:hover,.route-mode-card.active { border-color: rgba(23,176,255,.5); box-shadow: 0 14px 30px rgba(6,63,88,.1); transform: translateY(-2px); }
+.route-mode-card > header { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+.route-mode-card header > div { display: grid; gap: 2px; }
+.route-mode-card header strong { font-size: .82rem; }.route-mode-card header small { color: var(--muted); font-size: .6rem; }
+.route-mode-card header > b { font-size: .78rem; white-space: nowrap; }
+.route-time-live { color: #087e78; }.route-time-pending { color: #6e8792; }
+.route-mode-card > p { margin: 0; color: #66818d; font-size: .65rem; line-height: 1.6; }
+.route-mode-card dl { margin: 0; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }
+.route-mode-card dl > div { min-width: 0; padding: 8px; border-radius: 10px; background: #f3f8fa; }
+.route-mode-card dt { color: #7a929c; font-size: .54rem; }.route-mode-card dd { margin: 3px 0 0; overflow: hidden; color: #234b5d; font-size: .65rem; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.route-mode-actions { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+.route-mode-actions button,.route-mode-actions a { min-height: 40px; padding: 9px 12px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #bad8e5; border-radius: 10px; color: #075d88; background: #eef8fc; font-size: .64rem; font-weight: 850; text-decoration: none; cursor: pointer; }
+.route-mode-actions button,.route-mode-actions .route-mode-primary-link { color: #fff; border-color: #0a6baf; background: #0a6baf; }
+.route-mode-actions > span { color: var(--muted); font-size: .63rem; }
+
+/* 장소 상세 안에서 공식 정보와 여행자 경험을 분리해 함께 보여준다. */
+.place-community-stories { margin-top: 18px; padding: 15px; display: grid; gap: 11px; border: 1px solid #cfe3eb; border-radius: 16px; background: linear-gradient(145deg,#f4fbfe,#edf7fa); }
+.place-community-stories.is-loading { min-height: 80px; align-content: center; }
+.place-community-stories.is-loading span,.place-community-stories header span { color: var(--blue); font-size: .56rem; font-weight: 900; letter-spacing: .12em; }
+.place-community-stories.is-loading p { margin: 3px 0 0; color: var(--muted); font-size: .66rem; }
+.place-community-stories header { display: flex; align-items: end; justify-content: space-between; gap: 14px; }
+.place-community-stories h3 { margin: 3px 0 0; font-size: .9rem; }
+.place-community-stories header > a { color: var(--blue); font-size: .62rem; font-weight: 850; text-decoration: none; white-space: nowrap; }
+.place-community-stories ul { margin: 0; padding: 0; display: grid; gap: 7px; list-style: none; }
+.place-community-stories li a { padding: 10px 11px; display: grid; gap: 3px; border: 1px solid #d9e9ef; border-radius: 11px; color: inherit; background: #fff; text-decoration: none; transition: transform .18s ease,border-color .18s ease; }
+.place-community-stories li a:hover { border-color: rgba(23,176,255,.46); transform: translateX(3px); }
+.place-community-stories li small,.place-community-stories li span { color: #718b96; font-size: .56rem; }.place-community-stories li strong { font-size: .7rem; }.place-community-stories li p { margin: 0; color: #4f6e7c; font-size: .61rem; line-height: 1.5; }
+.place-community-disclaimer { margin: 0; color: #708a95; font-size: .56rem; line-height: 1.5; }
+
+/* 사진 복원은 핵심 플래너 밖의 독립 도구로 제공한다. */
+.photo-course-page { min-height: 100vh; padding: 24px max(18px,4vw) 80px; background: radial-gradient(circle at 85% 2%,rgba(125,235,233,.18),transparent 25%),linear-gradient(180deg,#eff9fd,#f8fcfe 36%,#edf6f9); }
+.photo-course-page-header { width: min(100%,1220px); margin: 0 auto 30px; padding: 18px 22px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 28px; border: 1px solid #d2e5ed; border-radius: 22px; background: rgba(255,255,255,.88); box-shadow: 0 18px 50px rgba(6,50,70,.08); backdrop-filter: blur(18px); }
+.photo-course-page-header > div { display: grid; gap: 3px; }.photo-course-page-header p { margin: 0; color: var(--blue); font-size: .56rem; font-weight: 900; letter-spacing: .14em; }.photo-course-page-header h1 { margin: 0; font-size: clamp(1.1rem,2vw,1.7rem); letter-spacing: -.04em; }.photo-course-page-header > div > span { color: var(--muted); font-size: .64rem; }
+.photo-course-back { min-height: 44px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 8px; border-radius: 12px; color: #fff; background: var(--ink); font-size: .66rem; font-weight: 850; text-decoration: none; }
+.photo-course-page-body { width: min(100%,1220px); margin: 0 auto; }
+.photo-course-page-body .photo-course { margin: 0; }
+
+html[data-theme="dark"] .planner-journey-workspace { background: radial-gradient(circle at 92% 7%,rgba(46,180,186,.13),transparent 27%),linear-gradient(180deg,#0b3344 0%,#0a3041 32%,#061f2c 67%,#061f2c 100%); }
+html[data-theme="dark"] .planner-journey-heading h2 { color: #eef9fd; } html[data-theme="dark"] .planner-journey-heading > p:last-child { color: #9cb8c4; }
+html[data-theme="dark"] .route-mode-heading h3 { color: #e7f4f8; } html[data-theme="dark"] .route-mode-card { color: #e6f2f7; border-color: #31586a; background: #0d3546; } html[data-theme="dark"] .route-mode-card dl > div { background: #123d4e; } html[data-theme="dark"] .route-mode-card dd { color: #d9edf4; }
+html[data-theme="dark"] .place-community-stories { border-color: #31586a; background: #0d3546; } html[data-theme="dark"] .place-community-stories li a { border-color: #31586a; background: #102f3d; } html[data-theme="dark"] .place-community-stories h3,html[data-theme="dark"] .place-community-stories li strong { color: #eef8fb; } html[data-theme="dark"] .place-community-stories li p { color: #b1c9d3; }
+html[data-theme="dark"] .photo-course-page { background: #061f2c; } html[data-theme="dark"] .photo-course-page-header { border-color: #31586a; background: rgba(9,44,58,.92); } html[data-theme="dark"] .photo-course-page-header h1 { color: #eef8fb; }
+
+@media (max-width: 900px) {
+  .planner-page > .planner-journey-workspace { padding-inline: 16px; }
+  .planner-journey-workspace .route-section,.planner-journey-workspace .travel-layers { margin-top: 42px; padding-top: 46px; }
+  .route-mode-card dl { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .photo-course-page-header { grid-template-columns: 1fr; gap: 15px; }
+  .photo-course-page-header .brand { width: fit-content; }
+  .photo-course-back { width: fit-content; }
+}
+@media (max-width: 560px) {
+  .planner-journey-heading h2 br { display: none; }
+  .route-mode-heading { align-items: flex-start; flex-direction: column; }.route-mode-heading > span { text-align: left; }
+  .route-mode-card > header { grid-template-columns: auto 1fr; }.route-mode-card header > b { grid-column: 2; }
+  .route-mode-card dl { grid-template-columns: 1fr 1fr; }
+  .route-mode-actions > * { width: 100%; }
+  .place-community-stories header { align-items: flex-start; flex-direction: column; }
+  .photo-course-page { padding-inline: 10px; }.photo-course-page-header { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-mode-card,.route-mode-actions button,.route-mode-actions a,.place-community-stories li a { transition: none; }
+  .route-mode-card:hover,.place-community-stories li a:hover { transform: none; }
+}
