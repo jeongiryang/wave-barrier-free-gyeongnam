@@ -286,10 +286,18 @@ test("all eighteen regions use original W.A.V.E travel characters instead of emo
 });
 
 test("device location is not persisted with saved routes", async () => {
-  const map = await source("features/routing/useMapJourneyActions.ts");
+  const [map, savedPlaceIds] = await Promise.all([
+    source("features/routing/useMapJourneyActions.ts"),
+    source("features/planner/hooks/useSavedPlaceIds.ts"),
+  ]);
   const saveRoute = map.slice(map.indexOf("const saveRoute"), map.indexOf("const shareRoute"));
   assert.doesNotMatch(saveRoute, /origin\s*,|geometry|mapX|mapY|lat:|lng:/);
-  assert.match(saveRoute, /places\.slice/);
+  // 지도는 저장소에 직접 쓰지 않고 여행 보관함에 넘긴다.
+  assert.doesNotMatch(saveRoute, /localStorage/);
+  assert.match(saveRoute, /onSavePlaces/);
+  // 보관함이 남기는 것은 장소 ID 문자열뿐이다. 좌표는 어느 경로로도 들어가지 않는다.
+  assert.match(savedPlaceIds, /typeof id === "string"/);
+  assert.doesNotMatch(savedPlaceIds, /mapX|mapY|lat|lng|coords/);
 });
 
 test("transport provider placeholders settle even when health lookup fails", async () => {

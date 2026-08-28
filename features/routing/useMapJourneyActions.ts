@@ -5,7 +5,7 @@ import { exportRouteImage } from "./export-route-image";
 import type { KakaoMap } from "./kakao-sdk";
 import type { MapPickMode, RouteMapProps } from "./types";
 
-type JourneyActionOptions = Pick<RouteMapProps, "origin" | "places" | "route" | "onOriginChange"> & {
+type JourneyActionOptions = Pick<RouteMapProps, "origin" | "places" | "route" | "onOriginChange" | "onSavePlaces"> & {
   kakaoMapRef: RefObject<KakaoMap | null>;
   setPickMode: (mode: MapPickMode) => void;
   setProviderDetail: (message: string) => void;
@@ -16,6 +16,7 @@ export function useMapJourneyActions({
   places,
   route,
   onOriginChange,
+  onSavePlaces,
   kakaoMapRef,
   setPickMode,
   setProviderDetail,
@@ -43,24 +44,19 @@ export function useMapJourneyActions({
     });
   }, [kakaoMapRef, onOriginChange, setPickMode, setProviderDetail]);
 
+  // 예전에는 아무도 읽지 않는 저장소 키에 써 놓고 "저장했습니다"라고만 알렸다.
+  // 사용자는 저장됐다고 믿고 다시 와서 아무것도 찾지 못했다. 이미 새로고침을
+  // 견디고 헤더에 개수가 보이는 여행 보관함에 담는다.
   const saveRoute = useCallback(() => {
-    try {
-      window.localStorage.setItem("wave-saved-map", JSON.stringify({
-        places: places.slice(0, 12).map((place, order) => ({ id: place.id, name: place.name, order })),
-        route: route ? {
-          id: route.id,
-          label: route.label,
-          provider: route.provider,
-          totalTime: route.totalTime,
-          totalDistance: route.totalDistance,
-        } : null,
-        savedAt: new Date().toISOString(),
-      }));
-      setProviderDetail("현재 여행 경로를 이 기기에 저장했습니다.");
-    } catch {
-      setProviderDetail("브라우저 저장 공간을 사용할 수 없습니다.");
+    if (!places.length) {
+      setProviderDetail("지도에 담을 여행지가 아직 없습니다.");
+      return;
     }
-  }, [places, route, setProviderDetail]);
+    const added = onSavePlaces?.(places) ?? 0;
+    setProviderDetail(added > 0
+      ? `지도에 표시된 ${added}곳을 여행 보관함에 담았습니다.`
+      : "지도에 표시된 여행지는 이미 보관함에 있습니다.");
+  }, [onSavePlaces, places, setProviderDetail]);
 
   const shareRoute = useCallback(async () => {
     const data = {

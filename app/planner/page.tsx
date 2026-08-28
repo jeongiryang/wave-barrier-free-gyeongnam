@@ -58,9 +58,13 @@ export default function PlannerPage() {
     pointPicker, clearLocationSearch,
   } = locationSearch;
   const {
-    saved, travelStart, travelEnd, scheduleAssignments, toggleSaved,
+    saved, travelStart, travelEnd, scheduleAssignments, toggleSaved, savePlaceIds,
     changeTravelStart, setTravelEnd,
   } = tripSelection;
+  const saveMapPlaces = useCallback(
+    (mapPlaces: { id: string }[]) => savePlaceIds(mapPlaces.map((place) => place.id)),
+    [savePlaceIds],
+  );
   const {
     keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
     secondaryOpen, setSecondaryOpen,
@@ -199,6 +203,7 @@ export default function PlannerPage() {
         onChoosePoint={choosePoint}
         onCopyBookingRoute={copyBookingRoute}
         onMapDestination={routeFromMapPlace}
+        onSaveMapPlaces={saveMapPlaces}
       />
       <PlannerResultsPanel
         plan={plan}

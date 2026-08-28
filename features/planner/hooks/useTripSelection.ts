@@ -12,7 +12,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
   origin: RoutePoint;
   accessibilityProfileCount: number;
 }) {
-  const { saved, toggleSavedId } = useSavedPlaceIds();
+  const { saved, addSavedIds, toggleSavedId } = useSavedPlaceIds();
   const schedule = useTripSchedule();
   const { ensurePlaceAssignment, removePlaceAssignment } = schedule;
   const optimized = useOptimizedTripOrder({ activePlaces, saved, origin, accessibilityProfileCount });
@@ -23,8 +23,17 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
     toggleSavedId(id);
   }, [ensurePlaceAssignment, removePlaceAssignment, saved, toggleSavedId]);
 
+  // 지도에서 한 번에 담을 때 쓴다. 이미 담긴 곳은 건너뛰고 실제로 더한 수를 돌려준다.
+  const savePlaceIds = useCallback((ids: string[]) => {
+    const additions = ids.filter((id) => !saved.includes(id));
+    additions.forEach(ensurePlaceAssignment);
+    addSavedIds(additions);
+    return additions.length;
+  }, [addSavedIds, ensurePlaceAssignment, saved]);
+
   return {
     saved,
+    savePlaceIds,
     ...schedule,
     ...optimized,
     toggleSaved,
