@@ -87,7 +87,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          response="$(npx --yes vercel@54.14.0 curl /api/health --deployment "$CANDIDATE_URL" --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN")"
+          response="$(npx --yes vercel@54.14.0 --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN" curl /api/health --deployment "$CANDIDATE_URL")"
           printf '%s\n' "$response"
           printf '%s' "$response" | grep -Fq '"checkedAt"'
 
@@ -99,7 +99,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          response="$(npx --yes vercel@54.14.0 curl /api/deployment/migrate --deployment "$CANDIDATE_URL" --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN" -X POST -H "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN")"
+          response="$(npx --yes vercel@54.14.0 --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN" curl /api/deployment/migrate --deployment "$CANDIDATE_URL" -X POST -H "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN")"
           printf '%s\n' "$response"
           printf '%s' "$response" | grep -Fq '"ok":true'
           printf '%s' "$response" | grep -Fq '"004_community_seed.sql"'
