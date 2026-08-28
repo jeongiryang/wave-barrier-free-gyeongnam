@@ -42,7 +42,7 @@
 .transport-mode-filter { max-width: 1240px; margin: -6px auto 16px; padding: 5px; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 5px; border: 1px solid #cee1ea; border-radius: 16px; background: rgba(255,255,255,.72); box-shadow: 0 12px 30px rgba(10,63,86,.06); }
 .transport-mode-filter button { min-width: 0; min-height: 58px; padding: 9px 10px; display: grid; align-content: center; gap: 2px; border: 1px solid transparent; border-radius: 11px; color: #52717f; background: transparent; text-align: left; transition: .22s ease; }
 .transport-mode-filter button:hover { color: var(--ink); background: #f2f8fb; transform: translateY(-1px); }
-.transport-mode-filter button.active { color: #fff; border-color: var(--ink); background: var(--ink); box-shadow: 0 9px 22px rgba(6,39,54,.18); }
+.transport-mode-filter button.active { color: var(--white); border-color: var(--ink); background: var(--ink); box-shadow: 0 9px 22px rgba(6,39,54,.18); }
 .transport-mode-filter b { overflow: hidden; font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }.transport-mode-filter small { overflow: hidden; color: #52788c; font-size: .58rem; text-overflow: ellipsis; white-space: nowrap; }.transport-mode-filter .active small { color: #a8c6d3; }
 .transport-provider-strip > span { min-width: 0; padding: 10px 11px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 7px; border: 1px solid #d7e4ea; border-radius: 12px; background: rgba(255,255,255,.8); }
 .transport-provider-strip b { overflow: hidden; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }.transport-provider-strip small { color: #8399a3; font-size: .6rem; }

@@ -81,7 +81,7 @@
 .api-card > p { margin: 0; color: var(--muted); font-size: .86rem; }
 .api-card footer { margin-top: auto; padding-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #e6eff3; color: #7994a1; font-size: .75rem; }
 .api-card footer b { color: var(--blue); }
-.trace-card { grid-column: 1 / -1; min-height: 265px; color: #fff; background: var(--ink); }
+.trace-card { grid-column: 1 / -1; min-height: 265px; color: var(--white); background: var(--ink); }
 .trace-card > p { margin: 0 0 24px; color: #8eafbe; font-size: .72rem; font-weight: 900; letter-spacing: .15em; }
 .trace-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; align-items: center; gap: 10px; }
 .trace-flow span { min-height: 70px; padding: 15px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.14); border-radius: 15px; background: rgba(255,255,255,.05); text-align: center; font-size: .9rem; font-weight: 850; }

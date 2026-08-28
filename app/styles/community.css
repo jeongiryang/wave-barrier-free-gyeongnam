@@ -26,10 +26,10 @@
 .community-controls { margin: 34px 0 22px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .community-tabs { display: flex; flex-wrap: wrap; gap: 7px; }
 .community-tabs button { min-height: 42px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: #fff; font: inherit; font-size: .75rem; font-weight: 820; }
-.community-tabs button[aria-pressed="true"] { color: #fff; border-color: var(--ink); background: var(--ink); }
+.community-tabs button[aria-pressed="true"] { color: var(--white); border-color: var(--ink); background: var(--ink); }
 .community-controls form { width: min(390px,100%); display: grid; grid-template-columns: 1fr auto; }
 .community-controls input { min-width: 0; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px 0 0 12px; font: inherit; }
-.community-controls form button { min-width: 66px; border: 0; border-radius: 0 12px 12px 0; color: #fff; background: var(--ink); font: inherit; font-size: .74rem; font-weight: 850; }
+.community-controls form button { min-width: 66px; border: 0; border-radius: 0 12px 12px 0; color: var(--white); background: var(--ink); font: inherit; font-size: .74rem; font-weight: 850; }
 .community-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 13px; }
 .community-list article { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: #fff; transition: transform .2s,border-color .2s,box-shadow .2s; }
 .community-list article:hover { transform: translateY(-4px); border-color: #87cde9; box-shadow: 0 18px 36px rgba(6,54,74,.1); }
@@ -50,11 +50,11 @@
 .community-state > span { color: var(--blue); font-size: 3rem; }
 .community-state b { font-size: 1.15rem; }
 .community-state p { max-width: 530px; margin: 8px 0 17px; color: var(--muted); line-height: 1.6; }
-.community-state button,.community-state a,.community-gate a { min-height: 44px; padding: 9px 14px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 11px; color: #fff; background: var(--ink); font: inherit; font-size: .76rem; font-weight: 850; }
+.community-state button,.community-state a,.community-gate a { min-height: 44px; padding: 9px 14px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 11px; color: var(--white); background: var(--ink); font: inherit; font-size: .76rem; font-weight: 850; }
 .community-pagination { margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 15px; }
 .community-pagination button { min-height: 42px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 11px; background: #fff; font: inherit; font-size: .74rem; font-weight: 820; }
 .community-pagination span { color: var(--muted); font-size: .72rem; }
-.community-footer { min-height: 140px; padding: 32px max(24px,calc((100vw - 1240px)/2)); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 34px; color: #fff; background: var(--ink); }
+.community-footer { min-height: 140px; padding: 32px max(24px,calc((100vw - 1240px)/2)); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 34px; color: var(--white); background: var(--ink); }
 .community-footer p { max-width: 700px; color: #abc2cc; font-size: .72rem; line-height: 1.55; }
 .community-footer a { color: var(--mint); font-size: .75rem; font-weight: 850; }
 
@@ -106,7 +106,7 @@
 .comment-form textarea,.comment-edit textarea { width: 100%; padding: 12px; border: 1px solid #c5dbe5; border-radius: 12px; background: #fff; font: inherit; line-height: 1.55; resize: vertical; }
 .comment-form > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .comment-form small { color: var(--muted); font-size: .65rem; }
-.comment-form button { min-height: 44px; padding: 8px 13px; border: 0; border-radius: 11px; color: #fff; background: var(--ink); font: inherit; font-size: .73rem; font-weight: 850; }
+.comment-form button { min-height: 44px; padding: 8px 13px; border: 0; border-radius: 11px; color: var(--white); background: var(--ink); font: inherit; font-size: .73rem; font-weight: 850; }
 .comment-list { margin: 0; padding: 0; list-style: none; }
 .comment-list li { padding: 22px 0; border-top: 1px solid var(--line); }
 .comment-list li > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

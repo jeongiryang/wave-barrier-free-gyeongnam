@@ -70,7 +70,7 @@ html[data-theme="dark"] .route-state-page button,html[data-theme="dark"] .route-
 .skip-link {
   position: fixed; z-index: 120; left: 18px; top: -80px;
   padding: 12px 18px; border-radius: 10px;
-  color: #fff; background: var(--ink);
+  color: var(--white); background: var(--ink);
   font-weight: 800; transition: top .2s ease;
 }
 .skip-link:focus { top: 18px; }

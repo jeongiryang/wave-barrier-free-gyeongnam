@@ -15,7 +15,7 @@
 .landing-header { position: fixed; z-index: 70; left: 50%; top: 18px; width: min(1240px, calc(100vw - 48px)); min-height: 70px; padding: 0 20px 0 24px; transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 28px; border: 1px solid transparent; border-radius: 20px; transition: background .25s, border-color .25s, box-shadow .25s; }
 .landing-header.scrolled { border-color: rgba(203,223,233,.9); background: rgba(255,255,255,.9); backdrop-filter: blur(18px); box-shadow: 0 14px 40px rgba(7,47,65,.1); }
 .landing-header nav { display: flex; gap: 32px; font-size: .92rem; font-weight: 780; }
-.landing-start { min-height: 46px; padding: 10px 15px; display: inline-flex; align-items: center; gap: 22px; border-radius: 12px; color: #fff; background: var(--ink); font-size: .85rem; font-weight: 850; }
+.landing-start { min-height: 46px; padding: 10px 15px; display: inline-flex; align-items: center; gap: 22px; border-radius: 12px; color: var(--white); background: var(--ink); font-size: .85rem; font-weight: 850; }
 .landing-hero { min-height: 100svh; position: relative; padding: 140px max(24px, calc((100vw - 1240px) / 2)) 90px; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 70px; background: radial-gradient(circle at 73% 34%, #d4f2ff 0, #effaff 28%, transparent 52%), linear-gradient(135deg,#f7fcff,#eaf8ff); }
 .landing-hero::before { content: ""; position: absolute; inset: auto -9vw -27vw auto; width: 48vw; aspect-ratio: 1; border-radius: 50%; background: rgba(23,176,255,.05); }
 .landing-orbit { position: absolute; pointer-events: none; border: 1px solid rgba(23,176,255,.16); border-radius: 50%; }
