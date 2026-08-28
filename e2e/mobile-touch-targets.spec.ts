@@ -12,11 +12,17 @@ test("모바일 경남 18개 지역 표식은 44px 조작 영역을 확보하고
 
   const markers = page.locator("[data-region-marker]");
   await expect(markers).toHaveCount(18);
-  await markers.first().scrollIntoViewIfNeeded();
 
   for (let index = 0; index < 18; index += 1) {
     const marker = markers.nth(index);
     const name = await marker.getAttribute("data-region-marker");
+
+    // 지역 선택은 상세 영역으로 화면을 이동시킬 수 있다. 다음 표식을 측정하기 전에
+    // 다시 지도 안으로 가져와 content-visibility 최적화에 의해 레이아웃 박스가
+    // 비활성화된 상태를 제품 결함으로 오인하지 않도록 한다.
+    await marker.scrollIntoViewIfNeeded();
+    await expect(marker, `${name} 표식이 보여야 한다`).toBeVisible();
+
     const box = await marker.boundingBox();
     expect(box, `${name} 표식의 크기를 읽을 수 있어야 한다`).not.toBeNull();
     expect(box!.width, `${name} 표식 너비`).toBeGreaterThanOrEqual(44);
