@@ -10,6 +10,7 @@ import "./styles/regional-explorer-foundations.css";
 import "./styles/theme-itinerary-foundations.css";
 import "./styles/planner-workspace.css";
 import "./styles/photo-course.css";
+import "./styles/photo-course-page.css";
 import "./styles/landing-motion.css";
 import "./styles/workspace-responsive.css";
 import "./styles/map-experience.css";
@@ -28,6 +29,8 @@ import "./styles/community.css";
 import "./styles/account-community.css";
 import "./styles/landing-stories.css";
 import "./styles/landing-regions.css";
+import "./styles/planner-unified-workspace.css";
+import "./styles/planner-service-status.css";
 import "./styles/preferences.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 
