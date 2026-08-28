@@ -30,14 +30,17 @@ test("CD migrates an unpromoted protected candidate before production promotion"
   assert.ok(build > 0 && build < candidate);
   assert.ok(candidate < candidateHealth && candidateHealth < migration && migration < promote);
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
-  // Native curl 모드에서는 path 뒤 인자가 system curl로 전달된다. Vercel global 옵션은
-  // 반드시 `curl` 서브커맨드 앞에 두어 CLI가 먼저 소비하게 한다.
-  assert.match(workflow, /vercel@54\.14\.0 --scope="\$VERCEL_ORG_ID" --token="\$VERCEL_TOKEN" curl \/api\/health --deployment "\$CANDIDATE_URL"/);
-  assert.match(workflow, /vercel@54\.14\.0 --scope="\$VERCEL_ORG_ID" --token="\$VERCEL_TOKEN" curl \/api\/deployment\/migrate --deployment "\$CANDIDATE_URL"/);
+  // Native curl은 실제 curl 인자를 그대로 넘긴다. CI 인증과 프로젝트 선택은
+  // VERCEL_TOKEN/VERCEL_ORG_ID/VERCEL_PROJECT_ID 환경변수와 pull로 만든 링크에 맡긴다.
+  assert.match(workflow, /vercel@54\.14\.0 curl \/api\/health --deployment "\$CANDIDATE_URL"/);
+  assert.match(workflow, /vercel@54\.14\.0 curl \/api\/deployment\/migrate --deployment "\$CANDIDATE_URL"/);
   assert.match(workflow, /-X POST -H "Authorization: Bearer \$COMMUNITY_MIGRATION_TOKEN"/);
+  assert.doesNotMatch(workflow, /vercel@54\.14\.0[^\n]+--(?:scope|token)[^\n]+curl/);
   assert.doesNotMatch(workflow, /vercel@54\.14\.0 curl[^\n]+--(?:scope|token)/);
+  assert.match(workflow, /VERCEL_TOKEN: \$\{\{ secrets\.VERCEL_TOKEN \}\}/);
+  assert.match(workflow, /VERCEL_ORG_ID: \$\{\{ secrets\.VERCEL_ORG_ID \}\}/);
+  assert.match(workflow, /VERCEL_PROJECT_ID: \$\{\{ secrets\.VERCEL_PROJECT_ID \}\}/);
   assert.match(workflow, /vercel@50\.15\.1 (?:pull|build|deploy|promote)/);
-  assert.doesNotMatch(workflow, /--location --output \/dev\/null --write-out '%\{url_effective\}'/);
   assert.match(workflow, /grep -Fq '\"ok\":true'/);
   assert.match(workflow, /grep -Fq '\"004_community_seed\.sql\"'/);
   assert.match(workflow, /grep -Fq '\"checkedAt\"'/);
