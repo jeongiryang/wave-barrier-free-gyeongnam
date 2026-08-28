@@ -10,7 +10,7 @@ import PlaceDecisionDialog from "../../features/planner/components/PlaceDecision
 import NavigationWorkspace from "../../features/planner/components/NavigationWorkspace";
 import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
 import PlannerConditionsPanel from "../../features/planner/components/PlannerConditionsPanel";
-import PlannerRouteOverview from "../../features/planner/components/PlannerRouteOverview";
+import PlannerResultsPanel from "../../features/planner/components/PlannerResultsPanel";
 import PlannerFooter from "../../features/planner/components/PlannerFooter";
 import { PlannerHeader } from "../../features/planner/components/PlannerHeader";
 import RecommendationWorkspace from "../../features/planner/components/RecommendationWorkspace";
@@ -75,6 +75,7 @@ export default function PlannerPage() {
   });
   const { feedbackText, feedbackState, changeFeedbackText, submitFeedback } = participation;
   const {
+    statuses,
     liveCount,
     effectiveProviders,
     providerErrors,
@@ -153,7 +154,7 @@ export default function PlannerPage() {
       <section className="planner-journey-workspace" id="planner" aria-labelledby="journey-workspace-title">
         <header className="journey-workspace-hero" data-reveal>
           <div><p>MAKE YOUR W.A.V.E</p><h1 id="journey-workspace-title">내 여행 만들기</h1></div>
-          <p>여행 조건을 정하고, 추천 여행지를 고른 뒤, 하루 코스와 날씨·현장 상황까지 한 화면에서 이어서 확인하세요.</p>
+          <p>여행 조건을 정하고, 추천 여행지를 고른 뒤, 이동수단과 하루 코스, 날씨·현장 상황까지 한 화면에서 이어서 확인하세요.</p>
           <a href="/photo-course">다녀온 사진으로 코스 복원 <span aria-hidden="true">↗</span></a>
         </header>
         <PlannerConditionsPanel
@@ -174,11 +175,23 @@ export default function PlannerPage() {
           onGenerate={generatePlan}
           onSelectPlace={setSelectedPlace}
         />
-        <PlannerRouteOverview
+        <NavigationWorkspace
+          t={t}
+          activePlaces={activePlaces}
+          planCrowd={plan?.crowd}
+          effectiveProviders={effectiveProviders}
+          route={routePlanning}
+          locationSearch={locationSearch}
+          onChoosePoint={choosePoint}
+          onCopyBookingRoute={copyBookingRoute}
+          onMapDestination={routeFromMapPlace}
+        />
+        <PlannerResultsPanel
           plan={plan}
           region={region}
           theme={theme}
           selectedProfileIds={selected}
+          statuses={statuses}
           liveCount={liveCount}
           audioGuide={audioGuide}
           participation={participation}
@@ -204,18 +217,6 @@ export default function PlannerPage() {
           onRouteFromRichSpot={routeFromRichSpot}
         />
       </section>
-
-      <NavigationWorkspace
-        t={t}
-        activePlaces={activePlaces}
-        planCrowd={plan?.crowd}
-        effectiveProviders={effectiveProviders}
-        route={routePlanning}
-        locationSearch={locationSearch}
-        onChoosePoint={choosePoint}
-        onCopyBookingRoute={copyBookingRoute}
-        onMapDestination={routeFromMapPlace}
-      />
 
       {selectedPlace && <PlaceDecisionDialog
         place={selectedPlace}
