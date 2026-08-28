@@ -29,7 +29,11 @@ test("shared trips are deleted when their retention window ends", async () => {
   assert.match(worker, /\/api\/maintenance\/trip-retention/);
   assert.match(vercel, /"path": "\/api\/maintenance\/trip-retention"/);
   assert.match(vercel, /"schedule": "17 3 \* \* \*"/);
-  assert.match(workflow, /--env CRON_SECRET="\$CRON_SECRET"/);
+  // Vercel Cron이 보내는 Bearer와 런타임이 비교하는 값은 프로젝트 Production
+  // CRON_SECRET 하나여야 한다. 배포별 --env override를 다시 만들지 않는다.
+  assert.match(workflow, /env ls production/);
+  assert.match(workflow, /env add CRON_SECRET production --sensitive/);
+  assert.doesNotMatch(workflow, /--env CRON_SECRET=/);
 });
 
 test("trip schema bootstrap runs once per runtime instead of per request", async () => {
@@ -65,4 +69,5 @@ test("retention documentation states what actually happens", async () => {
   const readme = await source("README.md");
   assert.match(readme, /30일/);
   assert.match(readme, /만료된 공유 여행은 매일 예약 정리/);
+  assert.match(readme, /CRON_SECRET/);
 });
