@@ -24,7 +24,7 @@ const statuses = [
 
 const plan = {
   mode: "live", generatedAt: "2026-08-26T02:00:00.000Z", baseYm: "202608", places,
-  course: null, audio: null, photo: null, crowd: { rate: 28, baseYmd: "20260826", place: "경남도립미술관" },
+  course: null, audio: null, photo: null, crowd: { rate: 24, baseYmd: "20260826", place: "경남도립미술관" },
   stops: places.map((place) => ({
     id: place.id, contentTypeId: place.contentTypeId, mapX: place.mapX, mapY: place.mapY,
     title: place.name, note: place.summary, source: place.source, evidenceState: "verified",
