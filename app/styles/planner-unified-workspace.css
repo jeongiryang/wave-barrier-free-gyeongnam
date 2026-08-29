@@ -121,3 +121,12 @@ html[data-theme="dark"] .place-community-story-list > a { color: #eaf5f9; backgr
 @media (prefers-reduced-motion: reduce) {
   .journey-workspace-hero > a,.route-mode-sections button,.place-community-story-list > a { transition: none; }
 }
+
+/* 시간을 확인하지 못한 이동수단. 값처럼 강조하지 않는다 — 파란 글자로 두면
+   숫자나 링크처럼 읽혀 "카카오 확인"이 예상 시간인 줄 알게 된다. */
+.route-mode-sections button .route-mode-unknown {
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 700;
+}
+html[data-theme="dark"] .route-mode-sections button .route-mode-unknown { color: #9fbecd; }
