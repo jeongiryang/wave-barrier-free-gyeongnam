@@ -40,7 +40,7 @@
 
 /* 혼잡도 원의 채도는 유지하되, 범례 글자는 각 표면에서 직접 읽히게 한다. */
 .planner-journey-workspace .map-crowd-legend.crowd-low em,
-.planner-journey-workspace .map-crowd-legend.crowd-low strong { color: #0e7a52; }
+.planner-journey-workspace .map-crowd-legend.crowd-low strong { color: #0b7049; }
 .planner-journey-workspace .map-crowd-legend.crowd-moderate em,
 .planner-journey-workspace .map-crowd-legend.crowd-moderate strong { color: #8a6000; }
 .planner-journey-workspace .map-crowd-legend.crowd-busy em,
