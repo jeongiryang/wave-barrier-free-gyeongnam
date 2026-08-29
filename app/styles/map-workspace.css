@@ -145,3 +145,28 @@ html[data-theme="dark"] .map-side-drawer header > button { color: #e7f2f7; borde
   .map-side-drawer { max-height: 70%; padding: 16px; }
   .map-side-drawer header { top: -16px; margin: -16px -16px 12px; }
 }
+
+/* 지도 도구는 8개라 가로 한 줄에 다 들어가지 않는다. 데스크톱에서는 스크롤바까지
+   숨겨 두어 "⇩ 이미지"와 "↗ 공유"가 아무 표시 없이 사라졌다. 줄바꿈으로 전부
+   펼치면 바가 지도의 22%를 가리므로, 모바일에 이미 쓰는 얇은 스크롤바를 모든
+   폭으로 넓혀 더 있다는 사실과 끌 수 있는 손잡이를 함께 보여 준다. */
+.map-command-scroll {
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15,79,112,.42) transparent;
+}
+.map-command-scroll::-webkit-scrollbar {
+  display: block;
+  height: 4px;
+}
+.map-command-scroll::-webkit-scrollbar-track { background: transparent; }
+.map-command-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(15,79,112,.42);
+}
+html[data-theme="dark"] .map-command-scroll {
+  scrollbar-color: rgba(159,190,205,.5) transparent;
+}
+html[data-theme="dark"] .map-command-scroll::-webkit-scrollbar-thumb {
+  background: rgba(159,190,205,.5);
+}
