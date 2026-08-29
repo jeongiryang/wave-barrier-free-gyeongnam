@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import SmartSpotImage from "../../tourism/components/SmartSpotImage";
 import { richCatalog } from "../constants";
+import { useTabListKeyboard } from "../hooks/useTabListKeyboard";
 import type { RichMode, RichSpot } from "../types";
 
 interface ThemeExplorerProps {
@@ -21,13 +23,15 @@ export default function ThemeExplorer({
   onReload,
   onRouteFromSpot,
 }: ThemeExplorerProps) {
+  const modeIds = useMemo(() => richCatalog.map((item) => item.id as RichMode), []);
+  const { listRef, onKeyDown, tabProps } = useTabListKeyboard(modeIds, richMode, onRichModeChange);
   return <div className="theme-explorer" data-reveal>
-    <div className="layer-tabs" role="tablist" aria-label="여행 테마 데이터 선택">
-      {richCatalog.map((item) => <button key={item.id} type="button" role="tab" aria-selected={richMode === item.id} className={richMode === item.id ? "active" : ""} onClick={() => onRichModeChange(item.id)}>
+    <div className="layer-tabs" role="tablist" aria-label="여행 테마 데이터 선택" ref={listRef} onKeyDown={onKeyDown}>
+      {richCatalog.map((item) => <button key={item.id} type="button" {...tabProps(item.id as RichMode)} id={`theme-tab-${item.id}`} aria-controls="theme-panel" className={richMode === item.id ? "active" : ""} onClick={() => onRichModeChange(item.id)}>
         <span>{item.icon}</span><b>{item.label}</b><small>{item.description}</small>
       </button>)}
     </div>
-    <div className="rich-rail" role="tabpanel">
+    <div className="rich-rail" role="tabpanel" id="theme-panel" aria-labelledby={`theme-tab-${richMode}`} tabIndex={-1}>
       {loading && [0, 1, 2].map((item) => <div className="rich-card rich-loading" key={item}><i /><span /><b /></div>)}
       {!loading && !richItems.length && <div className="rich-empty">
         <span>⌁</span>

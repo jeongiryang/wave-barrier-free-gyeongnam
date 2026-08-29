@@ -4,8 +4,13 @@ import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 export default function TransportModeSelector({ route }: { route: ReturnType<typeof useRoutePlanning> }) {
   const { transportContext, transportMode, setTransportMode } = route;
   return <>
-    <div className="transport-mode-filter" role="tablist" aria-label="교통수단별 결과 필터">
-      {transportModes.map((mode) => <button type="button" role="tab" aria-selected={transportMode === mode.id} key={mode.id} className={transportMode === mode.id ? "active" : ""} onClick={() => setTransportMode(mode.id)}><b>{mode.label}</b><small>{mode.description}</small></button>)}
+    {/*
+      탭 목록이 아니라 필터다. 고른 값이 아래 한 패널이 아니라 예매 안내·운행정보
+      패널·경로 목록 세 곳을 함께 바꾸므로 `aria-controls`로 가리킬 대상이 없다.
+      게시판 필터와 같은 `role="group"` + `aria-pressed`로 맞춘다.
+    */}
+    <div className="transport-mode-filter" role="group" aria-label="교통수단별 결과 필터">
+      {transportModes.map((mode) => <button type="button" aria-pressed={transportMode === mode.id} key={mode.id} className={transportMode === mode.id ? "active" : ""} onClick={() => setTransportMode(mode.id)}><b>{mode.label}</b><small>{mode.description}</small></button>)}
     </div>
     {transportContext && (transportContext.nearbyStops.length > 0 || transportContext.arrivals.length > 0 || transportContext.korail.length > 0) && <div className="transport-live-rail" aria-live="polite">
       <div><span>도착지 인근 정류장</span><strong>{transportContext.nearbyStops.slice(0, 3).map((item) => item.name).join(" · ") || "조회 중"}</strong></div>

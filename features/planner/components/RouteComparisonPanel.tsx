@@ -33,11 +33,15 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
   const selectedSummary = routeModeSummaries.find((item) => item.id === routeTravelMode);
 
   return <aside className="route-compare-panel">
-    <div className="route-mode-sections" role="tablist" aria-label="이동수단별 예상 시간">
+    {/*
+      탭 목록이 아니라 선택 버튼 묶음이다. 이 목록은 예상 시간이 도착하면 빠른
+      순서로 다시 정렬된다(바로 아래 안내 문구). 탭 목록은 화살표로 옆 탭에 가는
+      것이 표준인데, 고르는 순간 순서가 바뀌면 옆이 어디인지 말할 수 없다.
+    */}
+    <div className="route-mode-sections" role="group" aria-label="이동수단별 예상 시간">
       {routeModeSummaries.map((mode, index) => <button
         type="button"
-        role="tab"
-        aria-selected={routeTravelMode === mode.id}
+        aria-pressed={routeTravelMode === mode.id}
         key={mode.id}
         className={routeTravelMode === mode.id ? "active" : ""}
         onClick={() => setRouteTravelMode(mode.id)}
