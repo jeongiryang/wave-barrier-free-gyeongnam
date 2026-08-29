@@ -1,5 +1,40 @@
 /* 최종 모바일 상호작용 보강 — 작은 시각 요소는 유지하되 실제 조작 영역은 44px 이상 확보한다. */
 
+/*
+ * 44px 계약을 실제로 지키게 한다.
+ *
+ * `experience-accessibility.css`에 이미 44px 규칙이 있지만, 그 파일보다 나중에
+ * 로드되는 `account-auth.css`·`planner-service-status.css`가 같은 대상에 더 작은
+ * min-height를 다시 적어 조용히 덮고 있었다. 규칙은 있는데 화면에서는 지켜지지
+ * 않는 상태였다(계정 42px, 자세히 보기 40px, Kakao 재연결 40px).
+ *
+ * 마지막에 로드되는 이 파일에 두어 순서로 이기게 한다. 폭과 무관한 계약이므로
+ * 미디어 쿼리 밖에 둔다.
+ */
+.account-button,
+.account-loading,
+.account-menu > summary {
+  min-height: 44px;
+}
+
+/* 이쪽은 `.planner-service-status`가 앞에 붙은 선택자가 덮고 있어 특이도를 맞춘다. */
+.planner-service-status .tool-launch-status button {
+  min-height: 44px;
+}
+
+/*
+ * 지도 위 배지는 작게 유지해야 지도를 가리지 않는다. 보이는 크기는 그대로 두고
+ * 눌리는 영역만 아래로 넓힌다.
+ *
+ * 위로 넓히지 않는 이유: 좁은 폭에서 배지는 명령 바 바로 아래 9px 간격에 놓이도록
+ * 이미 자리를 잡아 뒀고(`map-workspace.css`), 명령 바가 z-index로 위에 있어 그쪽으로
+ * 넓힌 만큼은 그 바가 먹는다. 옆으로 넓히지 않는 이유: 가로는 이미 95px이고,
+ * 더 넓히면 오른쪽 도구 막대의 클릭을 가로챈다.
+ */
+.map-provider-badge button::after {
+  inset: -8px -8px -14px;
+}
+
 @media (max-width: 780px) {
   .map-command-scroll {
     padding-bottom: 7px;
