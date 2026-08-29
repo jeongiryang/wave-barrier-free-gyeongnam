@@ -11,7 +11,7 @@ export default function PlannerAccessibilityProfiles({ t, planController, onGene
   const activeProfiles = profiles.filter((profile) => selected.includes(profile.id));
   return <>
     <div className="control-panel profile-panel">
-      <div className="preference-label"><span className="step-label"><b>05</b> {t("support", "어떤 편의가 필요할까요?")}</span><small>여러 개 선택 가능</small></div>
+      <div className="preference-label"><span className="step-label">{t("support", "어떤 편의가 필요할까요?")}</span><small>여러 개 선택 가능</small></div>
       <div className="profile-grid" role="group" aria-label="여행 편의 조건 선택">
         {profiles.map((profile) => {
           const active = selected.includes(profile.id);
@@ -21,8 +21,8 @@ export default function PlannerAccessibilityProfiles({ t, planController, onGene
       <p className="derived-note">‘걷기 불편’과 ‘임산부’는 무장애 API의 접근로·승강기·화장실 항목을 W.A.V.E 기준으로 조합한 필터입니다.</p>
     </div>
     <div className="selection-bar" aria-live="polite">
-      <div><span className="pulse-dot" aria-hidden="true" /><p><b>{activeProfiles.length || "조건을"}개 선택</b><span>{activeProfiles.length ? activeProfiles.map((item) => item.label).join(" · ") : "원하는 여행 조건을 골라주세요"}</span></p></div>
-      <button className="generate-button" type="button" onClick={() => void onGenerate(true)} disabled={!selected.length || loading}>{loading ? <><span className="button-loader" /> 자동 갱신 중</> : <>결과 새로고침 <span aria-hidden="true">↻</span></>}</button>
+      <div><span className="pulse-dot" aria-hidden="true" /><p><b>{activeProfiles.length ? `편의 조건 ${activeProfiles.length}개 선택` : "선택한 편의 조건 없음"}</b><span>{activeProfiles.length ? activeProfiles.map((item) => item.label).join(" · ") : "원하는 여행 조건을 골라주세요"}</span></p></div>
+      <button className="generate-button" type="button" onClick={() => void onGenerate(true)} disabled={!selected.length || loading}>{loading ? <><span className="button-loader" /> 여행지 찾는 중</> : <>여행지 다시 찾기 <span aria-hidden="true">↻</span></>}</button>
     </div>
     <p className="planner-notice" aria-live="polite">{notice}</p>
   </>;
