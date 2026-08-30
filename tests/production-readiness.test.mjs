@@ -224,7 +224,10 @@ test("account, storage and footer copy describe real boundaries and independent 
   assert.match(authForm, /커뮤니티 DB에 비밀번호를 저장하지 않습니다/);
   assert.match(authForm, /여행 설계와 지도는 로그인 없이 이용/);
   assert.match(authForm, /autoComplete=\{auth\.registering \? "new-password" : "current-password"\}/);
-  assert.match(authForm, /aria-describedby="auth-password-help auth-message"/);
+  // 안내 문구는 문제가 된 칸에만 연결한다. 늘 비밀번호 칸에 붙여 두면 이메일이
+  // 틀렸을 때도 비밀번호 칸이 이메일 오류를 읽어 준다.
+  assert.match(authForm, /fieldProps\("password", "auth-password-help"\)/);
+  assert.match(authForm, /invalid \? "auth-message" : ""/);
   assert.match(account, /authClient\.signOut/);
   assert.match(landing, /공식 운영 서비스가 아닙니다/);
   assert.match(planner, /공식 운영 서비스가 아닙니다/);
@@ -416,7 +419,7 @@ test("travel conditions refresh the plan without requiring the submit button", a
   assert.match(planController, /planRequestRef\.current\?\.abort\(\)/);
   assert.match(planController, /signal: controller\.signal/);
   assert.match(planController, /if \(revealResults\) window\.setTimeout/);
-  assert.match(planner, /여행지 다시 찾기/);
+  assert.match(planner, /결과 새로고침/);
 });
 
 test("planner visual order follows DOM and keyboard focus order", async () => {
