@@ -28,7 +28,7 @@ export default function PlannerRouteOverview({ plan, region, theme, selectedProf
   const { shareState, shareUrl, sharePlan } = participation;
 
   return <div className={`journey-workspace-block route-section ${plan ? "revealed" : ""}`} id="route">
-    <div className="journey-subheading" data-reveal><div><span>STEP 03</span><h3>YOUR W.A.V.E ROUTE</h3></div><p>추천 장소를 하루 코스로 연결</p></div>
+    <div className="journey-subheading" data-reveal><div><span>STEP 03</span><h3>하루 코스 확인하기</h3></div><p>추천 장소를 하루 코스로 연결</p></div>
     <div className="route-intro" data-reveal>
       <div><span className={`route-status ${plan?.mode ?? "fallback"}`}><i />{plan?.mode === "live" ? "최신 여행정보 반영" : plan?.mode === "partial" ? "확인된 정보 우선 반영" : "코스 미리보기"}</span><h2>{activeProfiles.map((item) => item.label).slice(0, 2).join("·")} 조건으로 찾은<br />{region}의 하루</h2><p>{region} · {activeTheme} · {activeProfiles.map((item) => item.label).join(" · ")}</p></div>
       <div className="route-metrics"><div><small>추천 지점</small><strong>{activeStops.length}<em>곳</em></strong></div><div><small>걷기 코스</small><strong>{plan?.course?.distance || "—"}<em>{plan?.course?.distance ? "km" : ""}</em></strong></div><div><small>확인한 정보</small><strong>{liveCount || "—"}<em>{liveCount ? "개" : ""}</em></strong></div></div>

@@ -13,7 +13,7 @@ export default function PlannerJourneyBasics({ t, activePlaces, planController, 
   const { originLabel, updateOrigin, requestCurrentLocation, loadRoutes } = route;
   return <>
     <div className="control-panel departure-control">
-      <span className="step-label"><b>01</b> {t("startFrom", "어디서 출발할까요?")}</span>
+      <span className="step-label">{t("startFrom", "어디서 출발할까요?")}</span>
       <div className="departure-row">
         <div className="select-shell"><i aria-hidden="true">◎</i><select value={departurePresets.find((item) => item.name === originLabel)?.id || "current"} onChange={(event) => {
           const preset = departurePresets.find((item) => item.id === event.target.value);
@@ -25,7 +25,7 @@ export default function PlannerJourneyBasics({ t, activePlaces, planController, 
       </div>
     </div>
     <label className="control-panel region-control">
-      <span className="step-label"><b>02</b> {t("destination", "어디로 갈까요?")}</span>
+      <span className="step-label">{t("destination", "어디로 갈까요?")}</span>
       <div className="select-shell"><i aria-hidden="true">⌖</i><select value={region} onChange={(event) => setRegion(event.target.value)} aria-label="여행 지역 선택">{regions.map((item) => <option key={item}>{item}</option>)}</select><small>법정동 시도 48</small></div>
     </label>
   </>;

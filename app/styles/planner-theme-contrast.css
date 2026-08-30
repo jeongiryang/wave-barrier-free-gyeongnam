@@ -74,7 +74,6 @@ html[data-theme="dark"] .planner-journey-workspace .profile-card.active {
   background: #075887;
 }
 
-html[data-theme="dark"] .planner-journey-workspace .step-label b,
 html[data-theme="dark"] .planner-journey-workspace .route-option-rank {
   color: #bcd9e8;
   background: #15485c;
