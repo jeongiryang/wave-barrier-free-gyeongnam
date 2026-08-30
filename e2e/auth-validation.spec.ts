@@ -47,3 +47,31 @@ test("올바른 이메일은 형식 오류로 막지 않는다", async ({ page }
   await expect(alert).not.toHaveText(/이메일 형식/);
   await expect(alert).not.toHaveText(/이메일을 입력/);
 });
+
+test("오류가 난 칸으로 초점이 가고 그 칸이 표시된다", async ({ page }) => {
+  await submit(page, "/login", { password: "verylongpassword1" });
+  // 문구만 띄우면 어느 칸이 문제인지 되짚어 올라가야 한다.
+  await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("auth-email");
+  await expect(page.locator("#auth-email")).toHaveAttribute("aria-invalid", "true");
+  // 그 칸에서 안내 문구를 읽도록 연결돼야 화면 낭독기가 함께 읽어 준다.
+  await expect(page.locator("#auth-email")).toHaveAttribute("aria-describedby", /auth-message/);
+  await expect(page.locator("#auth-password")).not.toHaveAttribute("aria-invalid", "true");
+});
+
+test("가입 폼도 문제가 된 칸을 짚는다", async ({ page }) => {
+  await submit(page, "/register", {
+    name: "홍길동", email: "wave@example.com",
+    password: "verylongpassword1", confirmPassword: "different1234",
+  });
+  await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("auth-confirm-password");
+  await expect(page.locator("#auth-confirm-password")).toHaveAttribute("aria-invalid", "true");
+});
+
+test("고치기 시작하면 오류 표시를 걷는다", async ({ page }) => {
+  await submit(page, "/login", { password: "verylongpassword1" });
+  const email = page.locator("#auth-email");
+  await expect(email).toHaveAttribute("aria-invalid", "true");
+  await email.fill("wave@example.com");
+  // 아직 틀렸다고 계속 말하면 방금 고친 것이 반영되지 않은 줄 안다.
+  await expect(email).not.toHaveAttribute("aria-invalid", "true");
+});
