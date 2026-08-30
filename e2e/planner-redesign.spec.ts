@@ -5,14 +5,15 @@ test("통합 플래너는 실제 시간순 이동수단을 먼저 보여주고 �
   await mockPlannerApi(page);
   await page.goto("/planner");
   await expect(page.getByRole("heading", { name: "내 여행 만들기" })).toBeVisible();
-  const modes = page.locator(".route-mode-sections [role='tab']");
+  // 이 목록은 예상 시간이 오면 빠른 순서로 다시 정렬돼 탭 목록이 아니라 선택 버튼 묶음이다.
+  const modes = page.locator(".route-mode-sections button");
   await expect(modes).toHaveCount(4);
   await expect(modes.first()).toContainText("자동차");
   await expect(modes.first()).toContainText("25분");
   await expect(page.getByText("가장 저렴함")).toHaveCount(0);
   await expect(page.getByText("환승 최소")).toHaveCount(0);
 
-  await page.getByRole("tab", { name: /도보/ }).click();
+  await modes.filter({ hasText: "도보" }).first().click();
   const kakaoWalk = page.getByRole("link", { name: /카카오맵에서 도보 확인/ });
   await expect(kakaoWalk).toBeVisible();
   await expect(kakaoWalk).toHaveAttribute("href", /https:\/\/map\.kakao\.com\/link\/to\//);
