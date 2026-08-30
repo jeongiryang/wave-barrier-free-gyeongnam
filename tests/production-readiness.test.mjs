@@ -419,7 +419,7 @@ test("travel conditions refresh the plan without requiring the submit button", a
   assert.match(planController, /planRequestRef\.current\?\.abort\(\)/);
   assert.match(planController, /signal: controller\.signal/);
   assert.match(planController, /if \(revealResults\) window\.setTimeout/);
-  assert.match(planner, /결과 새로고침/);
+  assert.match(planner, /여행지 다시 찾기/);
 });
 
 test("planner visual order follows DOM and keyboard focus order", async () => {
