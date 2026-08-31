@@ -50,8 +50,9 @@ test("경로 카드는 예상 시간·요금·환승·도보를 그대로 보여
   await page.waitForTimeout(2_200);
 
   const first = page.locator(".route-option").first();
-  for (const label of ["예상 시간", "예상 요금", "환승", "도보"]) {
+  for (const label of ["예상 시간", "통행료", "환승", "도보"]) {
     await expect(first.getByText(label, { exact: true })).toBeVisible();
   }
   await expect(first.getByText("25분")).toBeVisible();
+  await expect(first.getByText("통행료 없음", { exact: true })).toBeVisible();
 });
