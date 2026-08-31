@@ -32,6 +32,7 @@ import "./styles/landing-regions.css";
 import "./styles/planner-unified-workspace.css";
 import "./styles/planner-service-status.css";
 import "./styles/planner-theme-contrast.css";
+import "./styles/departure-readiness.css";
 import "./styles/preferences.css";
 import "./styles/mobile-interaction-hardening.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";

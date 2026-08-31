@@ -83,4 +83,15 @@ test("모바일 지도 명령은 44px 조작 영역과 수평 탐색 경로를 �
   await scroll.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
   await expect.poll(() => scroll.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
   await expect(commandBar.getByRole("button", { name: "↗ 공유", exact: true })).toBeVisible();
+
+  const readinessActions = page.locator(".readiness-actions button");
+  await expect(readinessActions).toHaveCount(2);
+  const readinessSizes = await readinessActions.evaluateAll((nodes) => nodes.map((node) => {
+    const rect = (node as HTMLElement).getBoundingClientRect();
+    return { text: node.textContent?.trim() || "button", width: rect.width, height: rect.height };
+  }));
+  for (const size of readinessSizes) {
+    expect(size.height, `${size.text} 높이`).toBeGreaterThanOrEqual(44);
+    expect(size.width, `${size.text} 너비`).toBeGreaterThanOrEqual(44);
+  }
 });

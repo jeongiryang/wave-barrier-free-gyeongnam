@@ -44,6 +44,8 @@ const CASES: Array<{ path: string; selector: string; name: string }> = [
   { path: "/community", selector: ".community-write", name: "새 이야기 쓰기 (기본 동작 버튼)" },
   { path: "/login", selector: ".auth-submit", name: "로그인 제출 (기본 동작 버튼)" },
   { path: "/login", selector: ".auth-header-action", name: "로그인 헤더 버튼" },
+  { path: "/planner", selector: ".departure-readiness h2", name: "출발 준비 카드 제목" },
+  { path: "/planner", selector: ".readiness-overall", name: "출발 준비 전체 상태" },
 ];
 
 test("어두운 화면에서 짙은 배경 위 글자가 배경에 묻히지 않는다", async ({ page }) => {
