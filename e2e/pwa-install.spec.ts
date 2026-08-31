@@ -12,13 +12,19 @@ test("설치 프롬프트는 환경설정에서 사용자가 설치 버튼을 �
   await page.evaluate(() => {
     const testWindow = window as Window & { __waveInstallPromptCalls?: number };
     testWindow.__waveInstallPromptCalls = 0;
-    const event = new Event("beforeinstallprompt", { cancelable: true });
-    Object.defineProperties(event, {
-      prompt: { value: async () => { testWindow.__waveInstallPromptCalls = (testWindow.__waveInstallPromptCalls || 0) + 1; } },
-      userChoice: { value: Promise.resolve({ outcome: "accepted", platform: "web" }) },
-    });
-    window.dispatchEvent(event);
   });
+  await expect.poll(async () => {
+    await page.evaluate(() => {
+      const testWindow = window as Window & { __waveInstallPromptCalls?: number };
+      const event = new Event("beforeinstallprompt", { cancelable: true });
+      Object.defineProperties(event, {
+        prompt: { value: async () => { testWindow.__waveInstallPromptCalls = (testWindow.__waveInstallPromptCalls || 0) + 1; } },
+        userChoice: { value: Promise.resolve({ outcome: "accepted", platform: "web" }) },
+      });
+      window.dispatchEvent(event);
+    });
+    return page.locator("button[aria-label='W.A.V.E 앱 설치']").count();
+  }).toBe(1);
   await expect.poll(() => page.evaluate(() => (window as Window & { __waveInstallPromptCalls?: number }).__waveInstallPromptCalls)).toBe(0);
 
   await page.locator("summary[aria-label='환경설정 열기']").first().click();
