@@ -2,6 +2,7 @@ import Link from "next/link";
 import { COMMUNITY_CATEGORY_LABELS, communityDate } from "../../../lib/community/types";
 import type { useCommunityDetail } from "../hooks/useCommunityDetail";
 import CommunityReportControl from "./CommunityReportControl";
+import CommunityFieldReport from "./CommunityFieldReport";
 
 export default function CommunityPostArticle({ detail }: { detail: ReturnType<typeof useCommunityDetail> }) {
   const { post, message, sessionPending, toggleLike, deletePost, reportingTarget, reportTarget } = detail;
@@ -9,12 +10,13 @@ export default function CommunityPostArticle({ detail }: { detail: ReturnType<ty
   return <>
     <header>
       <Link href="/community" className="detail-back">← 여행자 이야기</Link>
-      <div className="community-card-meta"><span className={`category-${post.category}`}>{COMMUNITY_CATEGORY_LABELS[post.category]}</span><time dateTime={new Date(post.createdAt).toISOString()}>{communityDate(post.createdAt)}</time></div>
+      <div className="community-card-meta"><span className={`category-${post.category}`}>{COMMUNITY_CATEGORY_LABELS[post.category]}</span>{post.isSample && <span className="sample-badge">샘플</span>}<time dateTime={new Date(post.createdAt).toISOString()}>{communityDate(post.createdAt)}</time></div>
       <h1>{post.title}</h1>
       <div className="detail-byline"><strong>{post.authorName}</strong>{post.updatedAt > post.createdAt && <small>수정됨</small>}</div>
       {(post.region || post.placeName) && <Link className="detail-place" href={`/planner?region=${encodeURIComponent(post.region || "창원")}`}><span aria-hidden="true">⌖</span><div><small>연결된 여행지</small><strong>{post.region}{post.placeName ? `${post.region ? " · " : ""}${post.placeName}` : ""}</strong></div><i aria-hidden="true">→</i></Link>}
     </header>
     <div className="detail-content">{post.content.split(/\n{2,}/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
+    <CommunityFieldReport post={post} />
     <footer className="detail-actions">
       <button type="button" className={post.likedByMe ? "liked" : ""} aria-pressed={post.likedByMe} onClick={() => void toggleLike()} disabled={sessionPending}><span aria-hidden="true">♥</span>{post.likedByMe ? "공감했어요" : "도움이 됐어요"} <b>{post.likeCount}</b></button>
       {!post.isOwner && <CommunityReportControl label="게시글" busy={reportingTarget === `post:${post.id}`} onReport={(reason) => reportTarget("post", post.id, reason)} />}

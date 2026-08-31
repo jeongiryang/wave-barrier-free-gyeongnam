@@ -117,6 +117,7 @@ jobs:
           printf '%s\n' "$response"
           printf '%s' "$response" | grep -Fq '"ok":true'
           printf '%s' "$response" | grep -Fq '"004_community_seed.sql"'
+          printf '%s' "$response" | grep -Fq '"005_community_field_reports.sql"'
 
       - name: 프로덕션 승격
         env:

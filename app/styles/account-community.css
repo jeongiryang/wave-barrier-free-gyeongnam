@@ -39,6 +39,12 @@ html[data-motion="calm"] .auth-copy-phrase::after { display: none; }
   .community-form-page > section,.community-detail-page > section { padding: 35px 12px 70px; }
   .community-editor,.community-detail { padding: 22px 16px; border-radius: 20px; }
   .editor-grid,.comments-heading { grid-template-columns: 1fr; }
+  .editor-journal-places,.editor-field-report > header,.detail-field-report > header { grid-template-columns: 1fr; }
+  .editor-journal-places ol,.editor-field-grid,.detail-field-report ul { grid-template-columns: 1fr; }
+  .detail-field-report dl { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .detail-journal li { grid-template-columns: 28px 1fr; }
+  .detail-journal li a { grid-column: 2; padding-left: 0; }
+  .editor-field-grid fieldset { grid-template-columns: 1fr; }
   .editor-actions { align-items: stretch; flex-direction: column-reverse; }
   .editor-actions a,.editor-actions button { width: 100%; }
   .detail-actions { align-items: stretch; flex-direction: column; }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import { buildTravelJournalHref } from "../../../lib/community/field-report.js";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import { buildItinerarySchedule, routeMinutesForOriginLeg } from "../optimization/itinerary-schedule.js";
@@ -30,6 +32,11 @@ export default function TripDayPlanner({ tripSelection, route }: {
     origin: route.origin,
     routeMinutesByPlaceId,
   }), [dayStartTime, orderedSavedPlaces, route.origin, routeMinutesByPlaceId, scheduleAssignments, tripDays]);
+  const journalHref = useMemo(() => buildTravelJournalHref({
+    places: orderedSavedPlaces.map((place) => ({ id: place.id, name: place.name, day: scheduleAssignments[place.id] || tripDays[0] })),
+    region: orderedSavedPlaces[0]?.city || "",
+    visitDate: tripDays[0],
+  }), [orderedSavedPlaces, scheduleAssignments, tripDays]);
   if (!orderedSavedPlaces.length) return null;
   return <section className="day-planner" data-reveal aria-label="날짜별 여행 일정">
     <header><div><span>나의 여행 일정</span><h3>이동과 체류시간을 이어서 계산했어요.</h3></div><div className="day-start-control"><label htmlFor="day-start-time">하루 시작</label><input id="day-start-time" type="time" value={dayStartTime} onChange={(event) => setDayStartTime(event.target.value)} /><small>길찾기를 확인하면 해당 장소의 실제 이동시간이 자동 반영됩니다.</small></div></header>
@@ -48,5 +55,6 @@ export default function TripDayPlanner({ tripSelection, route }: {
       </li>; })}</ol>
       {!entries.length && <p>보관한 장소의 날짜를 이 날로 바꿔 추가하세요.</p>}
     </article>)}</div>
+    <div className="day-journal-action"><div><strong>다녀온 뒤 여행일지로 이어가기</strong><p>현재 순서·날짜와 장소 ID만 초안에 연결합니다. 글과 현장 제보는 로그인 후 직접 확인해 공개합니다.</p></div><Link href={journalHref}>여행일지 초안 만들기 <span aria-hidden="true">→</span></Link></div>
   </section>;
 }

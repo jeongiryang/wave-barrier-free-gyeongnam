@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { COMMUNITY_REGIONS } from "../../../lib/community/types";
+import { parseTravelJournalDraft } from "../../../lib/community/field-report.js";
 import { useHydratedSession } from "../../auth/hooks/useHydratedSession";
 import {
   getCommunityPost,
@@ -17,6 +18,9 @@ const emptyValues: CommunityPostInput = {
   region: "",
   placeId: "",
   placeName: "",
+  visitDate: "",
+  fieldReports: [],
+  journalPlaces: [],
 };
 
 export function useCommunityEditor(postId?: string) {
@@ -35,15 +39,22 @@ export function useCommunityEditor(postId?: string) {
     const params = new URLSearchParams(window.location.search);
     const placeId = params.get("placeId") || "";
     const placeName = params.get("placeName") || "";
+    const requestedCategory = params.get("category");
     const requestedRegion = params.get("region") || "";
     const region = COMMUNITY_REGIONS.includes(requestedRegion as typeof COMMUNITY_REGIONS[number])
       ? requestedRegion
       : "";
+    const draft = parseTravelJournalDraft(params);
     const timer = window.setTimeout(() => setValues((current) => ({
       ...current,
-      placeId,
-      placeName,
+      category: draft || requestedCategory === "review" ? "review" : current.category,
+      title: draft ? `${region || "경남"} ${draft.journalPlaces.length}곳 무장애 여행일지` : current.title,
+      content: draft ? "장소별 이동 동선과 실제로 확인한 편의정보를 기록해 주세요.\n\n공식 정보와 달랐던 점이나 다음 여행자에게 필요한 준비사항도 함께 남겨 주세요." : current.content,
+      placeId: draft?.placeId || placeId,
+      placeName: draft?.placeName || placeName,
       region,
+      visitDate: draft?.visitDate || "",
+      journalPlaces: draft?.journalPlaces || [],
     })), 0);
     return () => window.clearTimeout(timer);
   }, [editing]);
@@ -60,6 +71,9 @@ export function useCommunityEditor(postId?: string) {
         region: payload.post.region || "",
         placeId: payload.post.placeId || "",
         placeName: payload.post.placeName || "",
+        visitDate: payload.post.visitDate || "",
+        fieldReports: payload.post.fieldReports,
+        journalPlaces: payload.post.journalPlaces,
       });
       setState("ready");
     }).catch((error) => {

@@ -2,6 +2,7 @@ import { neon } from "@neondatabase/serverless";
 import moderationMigration from "../../migrations/002_community_moderation.sql?raw";
 import tripsMigration from "../../migrations/003_trips.sql?raw";
 import communitySeedMigration from "../../migrations/004_community_seed.sql?raw";
+import communityFieldReportsMigration from "../../migrations/005_community_field_reports.sql?raw";
 import { productionEnvironmentErrors } from "../../lib/deployment/production-env.js";
 import { json } from "../shared/http";
 
@@ -38,9 +39,9 @@ export async function handleProductionMigration(request: Request) {
 
   const statements = [
     ...[moderationMigration, tripsMigration].flatMap(migrationStatements),
-    ...migrationStatements(communitySeedMigration),
+    ...[communitySeedMigration, communityFieldReportsMigration].flatMap(migrationStatements),
   ];
   const sql = neon(process.env.DATABASE_URL!.trim());
   await sql.transaction(statements.map((statement) => sql.query(statement)));
-  return json({ ok: true, migrations: ["002_community_moderation.sql", "003_trips.sql", "004_community_seed.sql"], statements: statements.length });
+  return json({ ok: true, migrations: ["002_community_moderation.sql", "003_trips.sql", "004_community_seed.sql", "005_community_field_reports.sql"], statements: statements.length });
 }
