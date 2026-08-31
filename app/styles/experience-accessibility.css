@@ -130,6 +130,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 }
 .region-preview > a, .day-planner select, .day-order-toolbar button, .day-order-buttons button, .sort-tabs button,
 .feedback-box button, .rich-card button, .rich-empty button,
+.travel-profile-actions button, .travel-profile-clear,
 .tool-launch-status button, .transport-dataset-grid > button,
 .transport-data-heading button, .map-toolbar .recalculate-button,
 .map-command-bar button, .map-type-switch button,
