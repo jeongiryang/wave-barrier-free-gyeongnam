@@ -19,7 +19,7 @@ test("통합 플래너는 실제 시간순 이동수단을 먼저 보여주고 �
   await expect(kakaoWalk).toHaveAttribute("href", /https:\/\/map\.kakao\.com\/link\/to\//);
 });
 
-test("장소 상세는 카카오 후기와 관련 W.A.V.E 커뮤니티 글을 함께 보여준다", async ({ page }) => {
+test("장소 상세는 카카오 후기와 정확히 연결된 W.A.V.E 커뮤니티 글을 함께 보여준다", async ({ page }) => {
   await mockPlannerApi(page);
   const post = {
     id: "seed-changwon-access",
@@ -36,6 +36,7 @@ test("장소 상세는 카카오 후기와 관련 W.A.V.E 커뮤니티 글을 �
     likeCount: 2,
     likedByMe: false,
     isOwner: false,
+    isSample: true,
   };
   await page.route("**/api/community/posts?placeId=1001**", (route) => route.fulfill({
     status: 200,
@@ -47,6 +48,6 @@ test("장소 상세는 카카오 후기와 관련 W.A.V.E 커뮤니티 글을 �
   await page.getByRole("button", { name: "접근성 상세" }).first().click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("link", { name: /방문 후기·사진/ })).toHaveAttribute("href", /map\.kakao\.com\/link\/search/);
-  await expect(dialog.getByRole("heading", { name: "이 장소·지역의 여행자 이야기" })).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "이 장소의 여행자 현장 이야기" })).toBeVisible();
   await expect(dialog.getByText("[샘플] 창원 미술관 접근 동선 메모")).toBeVisible();
 });

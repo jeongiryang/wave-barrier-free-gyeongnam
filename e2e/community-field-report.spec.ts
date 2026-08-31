@@ -63,9 +63,10 @@ test("여행일지 초안은 일정 장소를 연결하되 사용자가 공개 �
     { id: "1002", name: "용지호수공원", day: "2026-09-01" },
   ]));
   await page.goto(`/community/new?draft=journal&category=review&region=%EC%B0%BD%EC%9B%90&visitDate=2026-09-01&journal=${journal}`);
-  await expect(page.getByText("일정에서 연결한 장소 2곳")).toBeVisible();
-  await expect(page.getByText("경남도립미술관")).toBeVisible();
-  await expect(page.getByText("용지호수공원")).toBeVisible();
+  const journalDraft = page.locator(".editor-journal-places");
+  await expect(journalDraft.getByText("일정에서 연결한 장소 2곳")).toBeVisible();
+  await expect(journalDraft.getByText("경남도립미술관")).toBeVisible();
+  await expect(journalDraft.getByText("용지호수공원")).toBeVisible();
   await expect(page.getByLabel("제목")).toHaveValue("창원 2곳 무장애 여행일지");
   await expect(page.getByRole("button", { name: "이야기 등록" })).toBeVisible();
 });
