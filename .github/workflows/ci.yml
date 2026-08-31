@@ -32,9 +32,6 @@ jobs:
       - name: 타입 검사
         run: npm run typecheck
 
-      - name: 회귀 테스트
-        run: npm test
-
       - name: 브라우저 설치
         run: npx playwright install --with-deps chromium
 
@@ -43,6 +40,9 @@ jobs:
         env:
           README_SCREENSHOT_LOG_BASE64: "1"
         run: npm run capture:readme
+
+      - name: 회귀 테스트
+        run: npm test
 
       - name: 브라우저·접근성 회귀 테스트
         run: npm run test:e2e
