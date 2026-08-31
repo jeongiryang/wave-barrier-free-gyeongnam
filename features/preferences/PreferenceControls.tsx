@@ -3,11 +3,13 @@
 import { useSitePreferences } from "./context";
 import { localeOptions, motionCopy } from "./locale-catalog";
 import type { Locale } from "./types";
+import { useAppInstall } from "./useAppInstall";
 
 export function PreferenceControls() {
   const { locale, theme, motion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
   const motionLabel = motion === "calm" ? motionCopy[locale].on : motionCopy[locale].off;
   const selectedLocale = localeOptions.find((item) => item.id === locale) ?? localeOptions[0];
+  const appInstall = useAppInstall();
 
   return (
     <details className="preference-controls">
@@ -34,6 +36,13 @@ export function PreferenceControls() {
           <span><b>동작 효과</b><small>{motion === "calm" ? "효과 줄임" : "기본 효과"}</small></span>
           <em aria-hidden="true">{motion === "calm" ? "정지" : "흐름"}</em>
         </button>
+        {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label="W.A.V.E 앱 설치">
+          <span><b>앱으로 설치</b><small>홈 화면에서 전체 화면으로 열기</small></span>
+          <em aria-hidden="true">{appInstall.state === "installing" ? "준비 중" : "설치"}</em>
+        </button> : <div className="preference-row app-install-note">
+          <span><b>{appInstall.state === "installed" ? "앱 설치됨" : "홈 화면에 추가"}</b><small>{appInstall.state === "installed" ? "현재 설치된 W.A.V.E로 이용 중" : "브라우저 메뉴에서 ‘홈 화면에 추가’를 선택하세요."}</small></span>
+          <em aria-hidden="true">{appInstall.state === "installed" ? "완료" : "안내"}</em>
+        </div>}
         <p>{selectedLocale.beta ? "관광지 원문과 일부 기능은 한국어로 표시될 수 있습니다. " : ""}운영체제의 동작 줄이기 설정을 기본으로 따릅니다.</p>
       </div>
     </details>
