@@ -12,10 +12,18 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
   origin: RoutePoint;
   accessibilityProfileCount: number;
 }) {
-  const { saved, addSavedIds, toggleSavedId } = useSavedPlaceIds();
+  const { saved, storageReady: savedStorageReady, addSavedIds, toggleSavedId } = useSavedPlaceIds();
   const schedule = useTripSchedule();
   const { ensurePlaceAssignment, removePlaceAssignment } = schedule;
-  const optimized = useOptimizedTripOrder({ activePlaces, saved, origin, accessibilityProfileCount });
+  const optimized = useOptimizedTripOrder({
+    activePlaces,
+    saved,
+    savedStorageReady,
+    origin,
+    accessibilityProfileCount,
+    scheduleAssignments: schedule.scheduleAssignments,
+    defaultDay: schedule.tripDays[0] || schedule.travelStart,
+  });
 
   const toggleSaved = useCallback((id: string) => {
     if (saved.includes(id)) removePlaceAssignment(id);

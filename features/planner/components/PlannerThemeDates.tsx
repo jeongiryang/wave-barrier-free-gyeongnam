@@ -9,7 +9,7 @@ export default function PlannerThemeDates({ t, planController, tripSelection }: 
   tripSelection: ReturnType<typeof useTripSelection>;
 }) {
   const { theme, setTheme } = planController;
-  const { travelStart, travelEnd, changeTravelStart, setTravelEnd } = tripSelection;
+  const { travelStart, travelEnd, changeTravelStart, changeTravelEnd } = tripSelection;
   return <>
     <fieldset className="control-panel theme-control">
       <legend className="step-label">{t("enjoy", "무엇을 즐길까요?")}</legend>
@@ -17,7 +17,7 @@ export default function PlannerThemeDates({ t, planController, tripSelection }: 
     </fieldset>
     <div className="control-panel date-control">
       <span className="step-label">언제 떠날까요?</span>
-      <div className="date-range-fields"><label><span>출발일</span><input type="date" min={localDate()} value={travelStart} onChange={(event) => changeTravelStart(event.target.value)} /></label><i aria-hidden="true">→</i><label><span>도착일</span><input type="date" min={travelStart} value={travelEnd} onChange={(event) => setTravelEnd(event.target.value)} /></label></div>
+      <div className="date-range-fields"><label><span>출발일</span><input type="date" min={localDate()} value={travelStart} onChange={(event) => changeTravelStart(event.target.value)} /></label><i aria-hidden="true">→</i><label><span>도착일</span><input type="date" min={travelStart} value={travelEnd} onChange={(event) => changeTravelEnd(event.target.value)} /></label></div>
       <p>최대 7일 일정과 해당 기간에 열리는 축제·행사를 함께 보여드려요.</p>
     </div>
   </>;

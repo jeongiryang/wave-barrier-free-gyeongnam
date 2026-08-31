@@ -12,6 +12,7 @@ export interface TripSharingOptions {
   locale: string;
   travelStart: string;
   travelEnd: string;
+  dayStartTime: string;
   scheduleAssignments: Record<string, string>;
   selectedPlaceIds: string[];
   originLabel: string;
@@ -35,6 +36,7 @@ export function useTripSharing(options: TripSharingOptions) {
             locale: options.locale,
             travelStart: options.travelStart,
             travelEnd: options.travelEnd,
+            dayStartTime: options.dayStartTime,
             scheduleAssignments: options.scheduleAssignments,
             selectedPlaceIds: options.selectedPlaceIds,
           },

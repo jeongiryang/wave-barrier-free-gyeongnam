@@ -26,6 +26,9 @@ export function normalizeTripSelections(rawSelections: Record<string, unknown>) 
     locale: languageServices[requestedLocale] ? requestedLocale : "ko",
     travelStart: date(rawSelections.travelStart),
     travelEnd: date(rawSelections.travelEnd),
+    dayStartTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(clean(rawSelections.dayStartTime, 5))
+      ? clean(rawSelections.dayStartTime, 5)
+      : "10:00",
     scheduleAssignments: Object.fromEntries(Object.entries(rawAssignments)
       .slice(0, 12)
       .map(([placeId, assignedDate]) => [clean(placeId, 80), date(assignedDate)])
@@ -40,9 +43,9 @@ export function storedTripPayload(body: Record<string, unknown>, selections: Ret
   const plan = (body.plan && typeof body.plan === "object" ? body.plan : {}) as Record<string, unknown>;
   const places = Array.isArray(plan.places) ? plan.places as Array<Record<string, unknown>> : [];
   const origin = (body.origin && typeof body.origin === "object" ? body.origin : {}) as Record<string, unknown>;
-  const selectedIds = new Set(selections.selectedPlaceIds);
-  const selectedPlaces = selectedIds.size
-    ? places.filter((place) => selectedIds.has(clean(place.id, 80)))
+  const placesById = new Map(places.map((place) => [clean(place.id, 80), place]));
+  const selectedPlaces = selections.selectedPlaceIds.length
+    ? selections.selectedPlaceIds.map((id) => placesById.get(id)).filter((place): place is Record<string, unknown> => Boolean(place))
     : places;
   return {
     selections,

@@ -45,5 +45,5 @@ export function useSavedPlaceIds() {
       : [...current, id]);
   }, []);
 
-  return { saved, addSavedIds, toggleSavedId };
+  return { saved, storageReady, addSavedIds, toggleSavedId };
 }
