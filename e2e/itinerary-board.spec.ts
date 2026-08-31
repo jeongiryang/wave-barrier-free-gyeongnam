@@ -48,7 +48,7 @@ test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순�
   await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).locator(".day-planner-grid article").nth(1)).toContainText("경남도립미술관");
 
   await page.getByRole("button", { name: "경남도립미술관 일정에서 제거" }).click();
-  await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).getByText(/경남도립미술관/)).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).locator("li").filter({ hasText: "경남도립미술관" })).toHaveCount(0);
 });
 
 test("한 장소 일정은 불가능한 순서 동작을 모두 비활성화한다", async ({ page }) => {
