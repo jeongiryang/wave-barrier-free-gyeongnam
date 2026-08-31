@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { plannerJson } from "../services/api";
 import type { PlanData } from "../types";
 
@@ -21,10 +21,13 @@ export interface TripSharingOptions {
 export function useTripSharing(options: TripSharingOptions) {
   const [shareState, setShareState] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [shareUrl, setShareUrl] = useState("");
-  const sharePlan = useCallback(async () => {
-    if (!options.plan || shareState === "saving") return;
+  const pendingShare = useRef<Promise<string> | null>(null);
+  const ensureShareUrl = useCallback(async () => {
+    if (shareUrl) return shareUrl;
+    if (pendingShare.current) return pendingShare.current;
+    if (!options.plan) throw new Error("공유할 여행 계획이 없습니다.");
     setShareState("saving");
-    try {
+    const request = (async () => {
       const data = await plannerJson<{ url?: string }>("/api/trips", {
         method: "POST",
         body: {
@@ -45,12 +48,29 @@ export function useTripSharing(options: TripSharingOptions) {
       });
       if (!data.url) throw new Error("공유 링크를 만들지 못했습니다.");
       setShareUrl(data.url);
+      setShareState("idle");
+      return data.url;
+    })();
+    pendingShare.current = request;
+    try {
+      return await request;
+    } catch (error) {
+      setShareState("error");
+      throw error;
+    } finally {
+      pendingShare.current = null;
+    }
+  }, [options, shareUrl]);
+
+  const sharePlan = useCallback(async () => {
+    try {
+      const url = await ensureShareUrl();
+      await navigator.clipboard?.writeText(url);
       setShareState("done");
-      await navigator.clipboard?.writeText(data.url);
     } catch {
       setShareState("error");
     }
-  }, [options, shareState]);
+  }, [ensureShareUrl]);
 
-  return { shareState, shareUrl, sharePlan };
+  return { shareState, shareUrl, sharePlan, ensureShareUrl };
 }

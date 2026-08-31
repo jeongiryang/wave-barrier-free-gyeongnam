@@ -19,7 +19,7 @@ async function walk(relative) {
   for (const entry of entries) {
     const path = `${relative}/${entry.name}`;
     if (entry.isDirectory()) found.push(...await walk(path));
-    else if (CODE.test(entry.name)) found.push(path);
+    else if (CODE.test(entry.name) && !entry.name.endsWith(".d.ts")) found.push(path);
   }
   return found;
 }

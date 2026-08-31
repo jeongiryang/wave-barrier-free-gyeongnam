@@ -14,6 +14,7 @@ import PlannerResultsPanel from "../../features/planner/components/PlannerResult
 import PlannerFooter from "../../features/planner/components/PlannerFooter";
 import { PlannerHeader } from "../../features/planner/components/PlannerHeader";
 import RecommendationWorkspace from "../../features/planner/components/RecommendationWorkspace";
+import DepartureReadinessCard from "../../features/planner/components/DepartureReadinessCard";
 import TravelSignalsPanel from "../../features/planner/components/TravelSignalsPanel";
 import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
 import { useLocationSearch } from "../../features/planner/hooks/useLocationSearch";
@@ -62,7 +63,7 @@ export default function PlannerPage() {
   const {
     keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
     secondaryOpen, setSecondaryOpen,
-    weather, weatherLoading, loadEnrichment,
+    weather, weatherLoading, reloadWeather, loadEnrichment,
   } = usePlannerSignals({ plan, region, theme, locale, travelStart, travelEnd });
   const participation = usePlannerParticipation({
     plan,
@@ -178,6 +179,16 @@ export default function PlannerPage() {
           tripSelection={tripSelection}
           onGenerate={generatePlan}
           onSelectPlace={setSelectedPlace}
+        />
+        <DepartureReadinessCard
+          region={region}
+          plan={plan}
+          weather={weather}
+          weatherLoading={weatherLoading}
+          transportProviders={effectiveProviders}
+          tripSelection={tripSelection}
+          participation={participation}
+          onRefresh={() => { reloadWeather(); return generatePlan(false); }}
         />
         <NavigationWorkspace
           t={t}

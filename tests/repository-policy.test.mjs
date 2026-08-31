@@ -19,6 +19,7 @@ async function plannerProductSource() {
     "features/planner/components/RecommendationWorkspace.tsx",
     "features/planner/components/RecommendationCarousel.tsx",
     "features/planner/components/TripDayPlanner.tsx",
+    "features/planner/components/DepartureReadinessCard.tsx",
     "features/planner/components/TravelSignalsPanel.tsx",
     "features/planner/components/WeatherBoard.tsx",
     "features/planner/components/SituationImpactPanel.tsx",
@@ -490,7 +491,8 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(planController, /const abortPlan = useCallback/);
   assert.match(participation, /plannerJson<\{ url\?: string \}>\("\/api\/trips"/);
   assert.match(participation, /plannerJson<\{ ok\?: boolean \}>\("\/api\/feedback"/);
-  assert.match(participation, /navigator\.clipboard\?\.writeText\(data\.url\)/);
+  assert.match(participation, /const ensureShareUrl = useCallback/);
+  assert.match(participation, /navigator\.clipboard\?\.writeText\(url\)/);
   assert.match(signals, /optionalPlannerJson<KeyHealth>\("\/api\/health"\)/);
   assert.match(signals, /optionalPlannerJson<WeatherData>/);
   assert.match(audioGuide, /const resetAudio = useCallback/);
