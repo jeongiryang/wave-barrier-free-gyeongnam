@@ -42,7 +42,8 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
     });
     geometry.push({ lat: endLat, lng: endLng });
     const durationSeconds = Number(summary.duration || 0);
-    const toll = Number(fare.toll || 0);
+    const rawToll = fare.toll;
+    const toll = rawToll === undefined || rawToll === null || rawToll === "" ? null : Number(rawToll);
     return {
       alternative: {
         id: "kakao-car",
@@ -50,7 +51,8 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
         provider: "Kakao Mobility",
         mode: "car",
         totalTime: Math.max(1, Math.round(durationSeconds / 60)),
-        payment: Number.isFinite(toll) ? toll : null,
+        payment: toll !== null && Number.isFinite(toll) ? Math.max(0, toll) : null,
+        paymentType: "toll",
         totalWalk: 0,
         transfers: 0,
         totalDistance: Math.round(Number(summary.distance || straightDistance)),

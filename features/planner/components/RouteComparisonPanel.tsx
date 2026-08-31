@@ -15,6 +15,13 @@ function segmentSummary(route: { label: string; segments: Array<{ name: string }
   return names.length === 1 && route.label.includes(names[0]) ? "" : summary;
 }
 
+function paymentDetails(route: { payment: number | null; paymentType?: "fare" | "toll" }) {
+  const label = route.paymentType === "toll" ? "통행료" : "예상 요금";
+  if (route.paymentType === "toll" && route.payment === 0) return { label, value: "통행료 없음" };
+  if (route.payment === null || route.payment <= 0) return { label, value: "제공기관 미제공" };
+  return { label, value: `${route.payment.toLocaleString()}원` };
+}
+
 export default function RouteComparisonPanel({ route }: { route: ReturnType<typeof useRoutePlanning> }) {
   const {
     routeAlternatives, routeLoading, routeNotice, setActiveRouteId,
@@ -57,10 +64,10 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
       {routeLoading && [0, 1, 2].map((item) => <div className="route-option-skeleton" key={`route-skeleton-${item}`} aria-hidden="true"><i /><div><b /><span /></div><em /></div>)}
       {!routeLoading && !routeDestination && <div className="route-empty"><span>↗</span><h3>경로를 계산할 여행지를 선택하세요.</h3><p>관광지 카드의 ‘이곳까지 길찾기’를 누르면 도보·자전거·대중교통·자동차를 시간순으로 비교합니다.</p></div>}
       {!routeLoading && routeDestination && !configuredRoutes.length && <div className="route-empty route-kakao-fallback"><span>↗</span><h3>{selectedSummary?.label || "선택한 이동수단"} 경로는 현재 API에서 직접 계산하지 못했습니다.</h3><p>없는 시간을 임의로 만들지 않습니다. 카카오맵에서 도착지를 그대로 열어 해당 이동수단 경로를 확인하세요.</p><a href={kakaoHref} target="_blank" rel="noreferrer">카카오맵에서 {selectedSummary?.label || "경로"} 확인 <b>↗</b></a></div>}
-      {!routeLoading && configuredRoutes.map((item, index) => <button type="button" key={item.id} className={(activeRoute?.id === item.id ? "active " : "") + "route-option"} onClick={() => setActiveRouteId(item.id)}>
-        <span className="route-option-rank">{String(index + 1).padStart(2, "0")}</span><div><strong>{item.label}</strong>{modeNote(item) && <small>{modeNote(item)}</small>}</div><dl><div><dt>예상 시간</dt><dd>{item.totalTime}분</dd></div><div><dt>예상 요금</dt><dd>{item.payment !== null ? `${item.payment.toLocaleString()}원` : "정보 없음"}</dd></div><div><dt>환승</dt><dd>{`${item.transfers}회`}</dd></div><div><dt>도보</dt><dd>{`${item.totalWalk}m`}</dd></div></dl>
+      {!routeLoading && configuredRoutes.map((item, index) => { const payment = paymentDetails(item); return <button type="button" key={item.id} className={(activeRoute?.id === item.id ? "active " : "") + "route-option"} onClick={() => setActiveRouteId(item.id)}>
+        <span className="route-option-rank">{String(index + 1).padStart(2, "0")}</span><div><strong>{item.label}</strong>{modeNote(item) && <small>{modeNote(item)}</small>}</div><dl><div><dt>예상 시간</dt><dd>{item.totalTime}분</dd></div><div><dt>{payment.label}</dt><dd>{payment.value}</dd></div><div><dt>환승</dt><dd>{`${item.transfers}회`}</dd></div><div><dt>도보</dt><dd>{`${item.totalWalk}m`}</dd></div></dl>
         {segmentSummary(item) && <span className="segment-summary">{segmentSummary(item)}</span>}
-      </button>)}
+      </button>; })}
       {!routeLoading && configuredRoutes.length > 0 && <a className="route-kakao-secondary" href={kakaoHref} target="_blank" rel="noreferrer">카카오맵에서도 경로 확인 ↗</a>}
       {!routeLoading && routeAlternatives.length > 0 && !configuredRoutes.length && !routeDestination && <p className="sr-only">현재 경로 데이터는 미리보기만 제공합니다.</p>}
     </div>

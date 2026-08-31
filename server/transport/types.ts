@@ -9,6 +9,7 @@ export type RouteApiAlternative = {
   mode: "transit" | "car" | "preview";
   totalTime: number;
   payment: number | null;
+  paymentType?: "fare" | "toll";
   totalWalk: number;
   transfers: number;
   totalDistance: number;

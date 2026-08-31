@@ -7,6 +7,7 @@ export type RouteAlternative = {
   mode?: "transit" | "walk" | "bicycle" | "car" | "train" | "bus" | "preview";
   totalTime: number;
   payment: number | null;
+  paymentType?: "fare" | "toll";
   totalWalk: number;
   transfers: number;
   totalDistance: number;

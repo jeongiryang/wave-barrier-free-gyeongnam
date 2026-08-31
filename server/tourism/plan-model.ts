@@ -1,6 +1,5 @@
-import { clean } from "../shared/http";
-import type { ProviderAttempt, ProviderItem } from "../shared/provider-data";
 import { apiStatus } from "./provider-model";
+import type { ProviderAttempt } from "../shared/provider-data";
 
 type EvidencePlace = {
   id?: string;
@@ -15,7 +14,6 @@ type EvidencePlace = {
   features: string[];
 };
 
-type Course = { name: string; summary: string } | null;
 type PlanStop = {
   id?: string;
   contentTypeId?: string;
@@ -27,6 +25,17 @@ type PlanStop = {
   evidenceState: "verified" | "limited" | "context";
 };
 
+export function hasPositiveOfficialEvidence(place: Pick<EvidencePlace, "score" | "knownFields">) {
+  return typeof place.score === "number" && place.score > 0 && (place.knownFields ?? 0) > 0;
+}
+
+export function partitionPlacesByEvidence<T extends Pick<EvidencePlace, "score" | "knownFields">>(places: T[]) {
+  return places.reduce<{ recommended: T[]; exploration: T[] }>((groups, place) => {
+    groups[hasPositiveOfficialEvidence(place) ? "recommended" : "exploration"].push(place);
+    return groups;
+  }, { recommended: [], exploration: [] });
+}
+
 export function sortPlacesByEvidence<T extends Pick<EvidencePlace, "score" | "knownFields">>(places: T[]) {
   return places.sort((left, right) => {
     const leftVerified = left.score === null ? 0 : 1;
@@ -37,32 +46,17 @@ export function sortPlacesByEvidence<T extends Pick<EvidencePlace, "score" | "kn
   });
 }
 
-export function buildPlanStops(places: EvidencePlace[], hubItems: ProviderItem[], related: ProviderAttempt, baseYm: string, region: string, firstTitle: string, course: Course) {
-  const stops: PlanStop[] = places.slice(0, 3).map((place, index) => ({
+export function buildPlanStops(places: EvidencePlace[]) {
+  const stops: PlanStop[] = places.filter(hasPositiveOfficialEvidence).slice(0, 4).map((place, index) => ({
     title: place.name,
-    note: place.score === null
-      ? "공식 편의정보가 부족한 후보입니다. 방문 전 시설 운영기관에 확인해 주세요."
-      : index === 0 ? `${place.features.slice(0, 2).join("·")} 편의정보가 공식 데이터에서 확인됐습니다.` : place.summary,
+    note: index === 0 ? `${place.features.slice(0, 2).join("·")} 편의정보가 공식 데이터에서 확인됐습니다.` : place.summary,
     source: place.source,
     id: place.id,
     contentTypeId: place.contentTypeId,
     mapX: place.mapX,
     mapY: place.mapY,
-    evidenceState: place.score === null ? "limited" : "verified",
+    evidenceState: "verified",
   }));
-  hubItems.slice(0, Math.max(0, 3 - stops.length)).forEach((item) => stops.push({
-    title: clean(item.hubTatsNm),
-    note: `${clean(item.signguNm || region)} 중심관광지 ${clean(item.hubRank)}순위로 연결성이 높은 후보입니다.`,
-    source: `기초지자체 중심 관광지 · ${baseYm}`,
-    evidenceState: "context",
-  }));
-  if (stops.length < 4 && related.ok) related.value.items.slice(0, 4 - stops.length).forEach((item) => stops.push({
-    title: clean(item.rlteTatsNm),
-    note: `${clean(item.tAtsNm || firstTitle)}와 함께 찾는 연관 관광지 ${clean(item.rlteRank || "")}순위 후보입니다.`,
-    source: `연관 관광지 · ${baseYm}`,
-    evidenceState: "context",
-  }));
-  if (course && stops.length < 4) stops.push({ title: course.name, note: course.summary, source: "두루누비 걷기 코스", evidenceState: "context" });
   return stops;
 }
 

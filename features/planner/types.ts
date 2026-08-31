@@ -69,6 +69,7 @@ export type PlanData = {
   generatedAt: string;
   baseYm: string;
   places: Place[];
+  explorationPlaces?: Place[];
   course: Course | null;
   audio: AudioGuide | null;
   photo?: PhotoInfo | null;
