@@ -223,7 +223,7 @@ html[data-theme="dark"] .day-place-copy .day-evidence { color: #c5f6e5; backgrou
 .travel-profile-actions button.delete { color: #963849; border-color: #e1bdc5; background: #fff7f8; }
 .travel-profile-actions button:disabled,.travel-profile-clear:disabled { opacity: .45; cursor: not-allowed; }
 .travel-profile-clear { width: 100%; margin-top: 8px; }
-.travel-profile-privacy { display: block; margin-top: 12px; color: #617f8c; font-size: .63rem; line-height: 1.55; }
+.travel-profile-privacy { display: block; margin-top: 12px; color: #3f6270; font-size: .63rem; line-height: 1.55; }
 .travel-profile-notice { min-height: 1em; margin: 7px 0 0; color: #325f70; font-size: .66rem; font-weight: 750; }
 html[data-theme="dark"] .travel-profile-card { color: #e8f5fa; border-color: #315a6b; background: #0e3445; }
 html[data-theme="dark"] .travel-profile-card > p:not(.travel-profile-notice),html[data-theme="dark"] .travel-profile-privacy,html[data-theme="dark"] .travel-profile-card time { color: #b5cfda; }
