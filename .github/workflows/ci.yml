@@ -38,6 +38,12 @@ jobs:
       - name: 브라우저 설치
         run: npx playwright install --with-deps chromium
 
+      - name: README용 Production 화면 캡처
+        if: github.event_name == 'pull_request' && github.head_ref == 'codex/212-readme-demo'
+        env:
+          README_SCREENSHOT_LOG_BASE64: "1"
+        run: npm run capture:readme
+
       - name: 브라우저·접근성 회귀 테스트
         run: npm run test:e2e
 

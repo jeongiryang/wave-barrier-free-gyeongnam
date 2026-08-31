@@ -8,6 +8,7 @@ const logBase64 = process.env.README_SCREENSHOT_LOG_BASE64 === "1";
 
 async function save(locator, fileName) {
   const filePath = path.join(outputDirectory, fileName);
+  await locator.evaluate((node) => node.classList.add("is-visible"));
   await locator.screenshot({ path: filePath, animations: "disabled" });
   if (logBase64) console.log(`READMESHOT:${fileName}:${(await readFile(filePath)).toString("base64")}`);
 }
