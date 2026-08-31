@@ -31,6 +31,9 @@
 .preference-row select { min-width: 122px; min-height: 40px; padding: 7px 28px 7px 9px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: #fff; font-size: .72rem; font-weight: 800; }
 .preference-row em { min-width: 48px; min-height: 34px; padding: 5px 8px; display: grid; place-items: center; border-radius: 9px; color: var(--blue); background: #fff; font-size: .68rem; font-style: normal; font-weight: 850; }
 .preference-row.motion-toggle[aria-pressed="true"] { border-color: #a5dce9; background: #e9f8fb; }
+.preference-row.app-install { border-color: #b8ddcf; background: #effaf6; }
+.preference-row.app-install-note { cursor: default; }
+.preference-row.app-install:disabled { opacity: .68; cursor: wait; }
 .preference-panel > p { margin: 2px 5px 1px; line-height: 1.5; }
 
 html[data-theme="dark"] .preference-controls > summary,html[data-theme="dark"] .preference-panel { color: var(--ink); border-color: #31596a; background: rgba(10,45,60,.98); }
@@ -39,6 +42,7 @@ html[data-theme="dark"] .preference-row { color: var(--ink); background: #0d3546
 html[data-theme="dark"] .preference-row:hover { border-color: #3b6677; background: #123f51; }
 html[data-theme="dark"] .preference-row.motion-toggle[aria-pressed="true"] { color: var(--ink); border-color: #3f7185; background: #15485c; }
 html[data-theme="dark"] .preference-row.motion-toggle[aria-pressed="true"] small { color: #a8c3cf; }
+html[data-theme="dark"] .preference-row.app-install { border-color: #376d5d; background: #123e35; }
 html[data-theme="dark"] .preference-row select,html[data-theme="dark"] .preference-row em { color: var(--ink); border-color: #31596a; background: #0a2d3c; }
 
 @media (max-width: 1100px) {

@@ -13,6 +13,7 @@
     "test": "node --test tests/*.test.mjs",
     "test:e2e": "playwright test",
     "test:e2e:list": "playwright test --list",
+    "capture:readme": "node scripts/capture-readme-screenshots.mjs",
     "check:photos": "node scripts/check-photo-coverage.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vercel"
