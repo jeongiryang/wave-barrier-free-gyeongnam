@@ -17,8 +17,9 @@ async function waitForPlanner(page) {
   await page.getByRole("heading", { name: "내 여행 만들기" }).waitFor();
   await page.locator(".place-card").first().waitFor({ state: "visible", timeout: 30_000 });
   const saveButton = page.locator(".place-card button[aria-label$='보관하기']").first();
-  if (await saveButton.isVisible()) await saveButton.click();
-  await page.locator(".day-planner").waitFor({ state: "visible", timeout: 15_000 });
+  await saveButton.waitFor({ state: "visible", timeout: 30_000 });
+  await saveButton.click({ force: true });
+  await page.locator(".day-planner").waitFor({ state: "visible", timeout: 30_000 });
 }
 
 await mkdir(outputDirectory, { recursive: true });
