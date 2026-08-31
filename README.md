@@ -67,7 +67,7 @@ W.A.V.E는 “갈 수 있는 관광지 목록”이 아니라, **내 이동 조�
 | 사진 코스 | [`/photo-course`](https://wave-barrier-free-gyeongnam.vercel.app/photo-course) | 사진 EXIF를 기기에서 읽어 방문 순서를 복원하고 공식 장소를 다시 확인 | 운영 중 |
 | 여행자 이야기 | [`/community`](https://wave-barrier-free-gyeongnam.vercel.app/community) | 공개 읽기, 로그인 글·댓글·좋아요·신고, 장소별 구조화 제보·다중 장소 여행일지 | 운영 중 |
 | 접근성·설치 | `환경설정` | 키보드, 44px 조작, 다크 모드, 동작 감소, 명시적 PWA 설치 버튼 | 운영 중 |
-| 다국어·계정 | `/login`, `/register` | 한국어 전체 지원, 비한국어 주요 조작 Beta, Neon Auth 계정 | 비한국어 Beta |
+| 다국어·계정 | `/login`, `/register` | 한국어 전체 지원, 영어·일본어·중국어·프랑스어·독일어·러시아어 주요 조작 Beta, Neon Auth 계정 | 비한국어 Beta |
 
 계정은 글쓰기·댓글·좋아요에만 필요합니다. 관광 탐색·추천·지도·일정·출발 준비·
 공유는 로그인 없이 사용할 수 있습니다.
