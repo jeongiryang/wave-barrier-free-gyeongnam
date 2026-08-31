@@ -488,6 +488,7 @@ test("transport and itinerary labels distinguish confirmed, estimated and unavai
     Promise.all([
       source("features/planner/components/PlannerRouteOverview.tsx"),
       source("features/planner/components/RouteComparisonPanel.tsx"),
+      source("features/planner/components/TripDayPlanner.tsx"),
     ]).then((parts) => parts.join("\n")),
     source("features/planner/components/PlannerServiceStatus.tsx"),
     source("server/transport/kakao-route.ts"),
@@ -500,6 +501,7 @@ test("transport and itinerary labels distinguish confirmed, estimated and unavai
   assert.match(planner, /통행료 없음/);
   assert.match(planner, /제공기관 미제공/);
   assert.doesNotMatch(planner, /기본 이동/);
+  assert.doesNotMatch(planner, /기본 예상/);
   assert.match(service, /state === "connected"/);
   assert.match(service, /인증키 연결과 실제 시간·운행정보 확인은 다른 상태입니다/);
   assert.match(kakao, /rawToll === undefined \|\| rawToll === null \|\| rawToll === "" \? null/);
