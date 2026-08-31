@@ -745,7 +745,8 @@ test("core controls keep 44px targets on every viewport and pointer type", async
     ".play", ".save-card", ".player-controls button", ".map-command-bar button",
     ".map-type-switch button", ".map-side-drawer header > button",
     ".trip-point-picker header > button", ".transport-dataset-grid > button",
-    ".day-planner select", ".feedback-box button", ".help-button",
+    ".day-planner select", ".day-order-toolbar button", ".day-order-buttons button",
+    ".feedback-box button", ".help-button",
   ]) assert.match(globalTouchRules, new RegExp(selector.replaceAll(".", "\\.").replaceAll(">", "\\>")));
   assert.match(globalTouchRules, /min-height: 44px/);
   assert.match(globalTouchRules, /\.landing-region-map > button::after[\s\S]+inset: -8px/);
@@ -763,14 +764,36 @@ test("shared trips restore saved places, order and date assignments from officia
       source("features/trips/components/SharedTripItinerary.tsx"),
     ]).then((parts) => parts.join("\n")),
   ]);
-  assert.match(planner, /scheduleAssignments,[\s\S]+selectedPlaceIds: saved/);
+  assert.match(planner, /dayStartTime,[\s\S]+scheduleAssignments,[\s\S]+selectedPlaceIds: orderedPlaceIds/);
   assert.match(participation, /scheduleAssignments,[\s\S]+selectedPlaceIds/);
   assert.match(restoration, /export async function restoreSharedPlan/);
   assert.match(restoration, /"KorService2", "detailCommon2"/);
   assert.match(restoration, /"KorWithService2", "detailWithTour2"/);
-  assert.match(trips, /selectedIds\.size[\s\S]+places\.filter/);
+  assert.match(trips, /selections\.selectedPlaceIds\.map\(\(id\) => placesById\.get\(id\)\)/);
   assert.match(restoration, /restoration: \{ requested: refs\.length, restored: places\.length, missing, mode: "content-id" \}/);
   assert.match(shared, /저장 장소 최신 확인/);
   assert.match(shared, /날짜별 저장 일정/);
+  assert.match(shared, /사용자 순서/);
   assert.match(shared, /shared-restoration-notice/);
+});
+
+test("saved itinerary supports accessible manual order and local restoration", async () => {
+  const [planner, order, schedule] = await Promise.all([
+    plannerProductSource(),
+    source("features/planner/hooks/useOptimizedTripOrder.ts"),
+    source("features/planner/hooks/useTripSchedule.ts"),
+  ]);
+  assert.match(planner, /자동 순서로 되돌리기/);
+  assert.match(planner, /같은 날 앞 순서로 이동/);
+  assert.match(planner, /같은 날 뒤 순서로 이동/);
+  assert.match(planner, /일정에서 제거/);
+  assert.match(planner, /disabled=\{!movement\.up\}/);
+  assert.match(planner, /disabled=\{!movement\.down\}/);
+  assert.match(planner, /role="status" aria-live="polite"/);
+  assert.match(order, /wave-trip-order-v1/);
+  assert.match(order, /movePlaceWithinDay/);
+  assert.match(order, /orderMode === "manual"/);
+  assert.match(schedule, /wave-trip-schedule-v1/);
+  assert.match(schedule, /scheduleAssignments/);
+  assert.match(schedule, /dayStartTime/);
 });

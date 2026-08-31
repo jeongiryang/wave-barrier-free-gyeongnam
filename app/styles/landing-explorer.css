@@ -184,3 +184,29 @@ html[data-theme="dark"] .selected-region small,
 html[data-theme="dark"] .selected-region p {
   color: #b6d0dc;
 }
+
+/* 날짜별 일정은 드래그 없이도 순서·날짜·제거를 모두 편집할 수 있다. */
+.day-order-toolbar { margin-top: 16px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+.day-order-toolbar > div { min-width: 0; }
+.day-order-toolbar strong { color: var(--blue); font-size: .74rem; }
+.day-order-toolbar .day-planner-explanation { margin-top: 4px; }
+.day-order-toolbar button { flex: 0 0 auto; padding: 8px 14px; border: 1px solid var(--blue); border-radius: 11px; color: var(--blue); background: #fff; font-size: .7rem; font-weight: 850; }
+.day-order-help { margin: 7px 0 0; color: #597786; font-size: .68rem; }
+.day-place-copy { min-width: 0; }
+.day-place-copy .day-evidence { width: fit-content; margin-top: 6px; padding: 4px 7px; border-radius: 999px; color: #235d4c; background: #dff5eb; font-weight: 850; }
+.day-place-editor { width: 250px; display: grid; gap: 6px; }
+.day-place-editor select { width: 100%; padding-inline: 8px; }
+.day-order-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+.day-order-buttons button { min-width: 0; padding: 7px 8px; border: 1px solid #bfd6e0; border-radius: 9px; color: var(--ink); background: #f7fbfd; font-size: .65rem; font-weight: 850; }
+.day-order-buttons button.remove { color: #963849; border-color: #e4bdc5; background: #fff7f8; }
+.day-order-buttons button:disabled { opacity: .42; cursor: not-allowed; }
+html[data-theme="dark"] .day-order-toolbar button,html[data-theme="dark"] .day-order-buttons button { color: #e8f5fa; border-color: #477287; background: #123e50; }
+html[data-theme="dark"] .day-order-buttons button.remove { color: #ffd4dc; border-color: #84515d; background: #492b35; }
+html[data-theme="dark"] .day-order-help { color: #b4cdd8; }
+html[data-theme="dark"] .day-place-copy .day-evidence { color: #c5f6e5; background: #174f43; }
+@media (max-width: 780px) {
+  .day-order-toolbar { align-items: stretch; flex-direction: column; gap: 10px; }
+  .day-order-toolbar button { width: 100%; }
+  .day-place-editor { width: auto; grid-column: 2; }
+  .day-order-buttons { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}

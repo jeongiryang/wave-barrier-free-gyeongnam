@@ -128,7 +128,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 .kakao-number-marker {
   width: 44px; min-width: 44px; height: 44px; min-height: 44px;
 }
-.region-preview > a, .day-planner select, .sort-tabs button,
+.region-preview > a, .day-planner select, .day-order-toolbar button, .day-order-buttons button, .sort-tabs button,
 .feedback-box button, .rich-card button, .rich-empty button,
 .tool-launch-status button, .transport-dataset-grid > button,
 .transport-data-heading button, .map-toolbar .recalculate-button,
@@ -169,7 +169,8 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   .carousel-actions button, .save-card, .place-actions button,
   .sort-tabs button, .feedback-box button, .rich-card button, .rich-empty button,
   .transport-dataset-grid > button, .transport-data-heading button,
-  .map-command-bar button, .map-type-switch button, .day-planner select {
+  .map-command-bar button, .map-type-switch button, .day-planner select,
+  .day-order-toolbar button, .day-order-buttons button {
     min-height: 44px;
   }
   .map-tool-panel header > button, .map-poi-results header > button,

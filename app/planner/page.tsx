@@ -54,7 +54,7 @@ export default function PlannerPage() {
   const audioGuide = useAudioGuide(plan?.audio);
   const { resetAudio } = audioGuide;
   const { pointPicker, clearLocationSearch } = locationSearch;
-  const { saved, travelStart, travelEnd, scheduleAssignments, toggleSaved, savePlaceIds } = tripSelection;
+  const { saved, orderedPlaceIds, travelStart, travelEnd, dayStartTime, scheduleAssignments, toggleSaved, savePlaceIds } = tripSelection;
   const saveMapPlaces = useCallback(
     (mapPlaces: { id: string }[]) => savePlaceIds(mapPlaces.map((place) => place.id)),
     [savePlaceIds],
@@ -72,8 +72,9 @@ export default function PlannerPage() {
     locale,
     travelStart,
     travelEnd,
+    dayStartTime,
     scheduleAssignments,
-    selectedPlaceIds: saved,
+    selectedPlaceIds: orderedPlaceIds,
     originLabel,
     selectedPlace,
   });

@@ -1,0 +1,62 @@
+import { expect, test } from "@playwright/test";
+import { mockPlannerApi } from "./fixtures";
+
+test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순서를 보존한다", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockPlannerApi(page);
+  let sharedSelections: Record<string, unknown> | null = null;
+  await page.route("**/api/trips", async (requestRoute) => {
+    sharedSelections = (requestRoute.request().postDataJSON() as { selections?: Record<string, unknown> }).selections || null;
+    await requestRoute.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify({ url: "https://wave.test/trip/manual-order" }),
+    });
+  });
+
+  await page.goto("/planner?travelStart=2026-09-01&travelEnd=2026-09-02");
+  await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
+  await page.getByRole("button", { name: "경남도립미술관 보관하기" }).click();
+  await page.getByRole("button", { name: "용지호수공원 보관하기" }).click();
+
+  const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
+  const firstDay = itinerary.locator(".day-planner-grid article").first();
+  const museum = firstDay.locator("li").filter({ hasText: "경남도립미술관" });
+  await museum.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동" }).click();
+  await expect(firstDay.locator("li").first()).toContainText("용지호수공원");
+  await expect(firstDay.locator("li").first().getByRole("button", { name: /같은 날 앞 순서로 이동/ })).toBeDisabled();
+  await expect(firstDay.locator("li").last().getByRole("button", { name: /같은 날 뒤 순서로 이동/ })).toBeDisabled();
+  await itinerary.getByLabel("하루 시작").fill("08:30");
+
+  await page.getByRole("button", { name: "공유 링크 만들기" }).click();
+  await expect.poll(() => sharedSelections).not.toBeNull();
+  expect(sharedSelections).toMatchObject({
+    dayStartTime: "08:30",
+    selectedPlaceIds: ["1002", "1001"],
+  });
+
+  await page.reload();
+  const restored = page.getByRole("region", { name: "날짜별 여행 일정" });
+  await expect(restored.getByText("내가 정한 순서", { exact: true })).toBeVisible();
+  await expect(restored.locator(".day-planner-grid article").first().locator("li").first()).toContainText("용지호수공원");
+  await expect(restored.getByLabel("하루 시작")).toHaveValue("08:30");
+
+  const restoredMuseum = restored.locator("li").filter({ hasText: "경남도립미술관" });
+  await restoredMuseum.getByLabel("경남도립미술관 여행 날짜").selectOption("2026-09-02");
+  await expect(restored.locator(".day-planner-grid article").nth(1)).toContainText("경남도립미술관");
+  await page.reload();
+  await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).locator(".day-planner-grid article").nth(1)).toContainText("경남도립미술관");
+
+  await page.getByRole("button", { name: "경남도립미술관 일정에서 제거" }).click();
+  await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).locator("li").filter({ hasText: "경남도립미술관" })).toHaveCount(0);
+});
+
+test("한 장소 일정은 불가능한 순서 동작을 모두 비활성화한다", async ({ page }) => {
+  await mockPlannerApi(page);
+  await page.goto("/planner");
+  await page.getByRole("button", { name: "경남도립미술관 보관하기" }).click();
+  const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
+  await expect(itinerary.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동" })).toBeDisabled();
+  await expect(itinerary.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동" })).toBeDisabled();
+  await expect(itinerary.getByText(/공식 편의근거 100%/)).toBeVisible();
+});
