@@ -746,7 +746,7 @@ test("core controls keep 44px targets on every viewport and pointer type", async
     ".map-type-switch button", ".map-side-drawer header > button",
     ".trip-point-picker header > button", ".transport-dataset-grid > button",
     ".day-planner select", ".day-order-toolbar button", ".day-order-buttons button",
-    ".feedback-box button", ".help-button",
+    ".travel-profile-actions button", ".travel-profile-clear", ".feedback-box button", ".help-button",
   ]) assert.match(globalTouchRules, new RegExp(selector.replaceAll(".", "\\.").replaceAll(">", "\\>")));
   assert.match(globalTouchRules, /min-height: 44px/);
   assert.match(globalTouchRules, /\.landing-region-map > button::after[\s\S]+inset: -8px/);
@@ -774,7 +774,30 @@ test("shared trips restore saved places, order and date assignments from officia
   assert.match(shared, /저장 장소 최신 확인/);
   assert.match(shared, /날짜별 저장 일정/);
   assert.match(shared, /사용자 순서/);
+  assert.match(shared, /사용자가 직접 선택한 편의조건/);
+  assert.match(shared, /계획 생성/);
   assert.match(shared, /shared-restoration-notice/);
+});
+
+test("travel preference profile is local, explicit and contains only selected catalog IDs", async () => {
+  const [planner, criteria, profile, model] = await Promise.all([
+    plannerProductSource(),
+    source("features/planner/hooks/usePlannerCriteria.ts"),
+    source("features/planner/hooks/useTravelPreferenceProfile.ts"),
+    source("features/planner/profile/travel-profile.js"),
+  ]);
+  assert.match(planner, /나의 무장애 여행 프로필/);
+  assert.match(planner, /저장 프로필 적용/);
+  assert.match(planner, /현재 선택으로 덮어쓰기/);
+  assert.match(planner, /저장 프로필 삭제/);
+  assert.match(planner, /현재 선택 전체 해제/);
+  assert.match(planner, /진단명·계정 정보·위치는 저장하거나 추론하지 않습니다/);
+  assert.match(criteria, /if \(!travelProfile\.savedProfile\) return false/);
+  assert.match(profile, /wave-travel-profile-v1/);
+  assert.match(profile, /localStorage\.setItem/);
+  assert.match(profile, /localStorage\.removeItem/);
+  assert.match(model, /allowed\.has\(id\)/);
+  assert.match(model, /TRAVEL_PROFILE_VERSION/);
 });
 
 test("saved itinerary supports accessible manual order and local restoration", async () => {

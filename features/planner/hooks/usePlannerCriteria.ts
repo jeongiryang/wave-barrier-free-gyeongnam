@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { regions } from "../constants";
+import { useTravelPreferenceProfile } from "./useTravelPreferenceProfile";
 
 export function usePlannerCriteria() {
   const [selected, setSelected] = useState<string[]>(["wheel"]);
   const [region, setRegion] = useState("창원");
   const [theme, setTheme] = useState("nature");
+  const travelProfile = useTravelPreferenceProfile();
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -20,5 +22,25 @@ export function usePlannerCriteria() {
     setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   }, []);
 
-  return { selected, setSelected, region, setRegion, theme, setTheme, toggleProfile };
+  const applyTravelProfile = useCallback(() => {
+    if (!travelProfile.savedProfile) return false;
+    setSelected(travelProfile.savedProfile.selectedIds);
+    travelProfile.announceProfileApplied();
+    return true;
+  }, [travelProfile]);
+
+  const clearSelectedProfiles = useCallback(() => setSelected([]), []);
+
+  return {
+    selected,
+    setSelected,
+    region,
+    setRegion,
+    theme,
+    setTheme,
+    toggleProfile,
+    clearSelectedProfiles,
+    applyTravelProfile,
+    ...travelProfile,
+  };
 }
