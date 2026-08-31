@@ -29,11 +29,13 @@ test("출발 준비 카드는 부분 성공을 구분하고 키보드로 한국 
   const card = page.getByRole("region", { name: "출발 준비를 한 장에서 확인하세요." });
   await expect(card).toBeVisible();
   await expect(card.getByText("오늘 출발")).toBeVisible();
-  await expect(card.getByText("전체 일부 확인")).toBeVisible();
+  await expect(card.getByText("전체 재확인 필요")).toBeVisible();
+  await expect(card.getByText("일정에 보관한 장소가 없습니다.")).toBeVisible();
   await expect(card.getByText(/예측값이며 실시간 방문자 수가 아닙니다/)).toBeVisible();
   await expect(card.getByRole("button", { name: "캘린더(.ics) 저장", exact: true })).toBeDisabled();
 
   await page.getByRole("button", { name: "경남도립미술관 보관하기" }).click();
+  await expect(card.getByText("전체 확인됨")).toBeVisible();
   const calendarButton = card.getByRole("button", { name: "캘린더(.ics) 저장", exact: true });
   await expect(calendarButton).toBeEnabled();
   await calendarButton.focus();
@@ -64,7 +66,7 @@ test("지난 일정과 조회 실패는 출발 가능 상태로 표시하지 않
   await page.route("**/api/weather**", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "지연" }) }));
   await page.goto("/planner");
   const card = page.getByRole("region", { name: "출발 준비를 한 장에서 확인하세요." });
-  await expect(card.getByText("지난 일정")).toBeVisible();
+  await expect(card.getByText("BEFORE YOU GO · 지난 일정", { exact: true })).toBeVisible();
   await expect(card.getByText("전체 재확인 필요")).toBeVisible();
   await expect(card.getByText(/해당 날짜 예보가 없거나/)).toBeVisible();
   await expect(card.getByRole("button", { name: "캘린더(.ics) 저장", exact: true })).toBeDisabled();
