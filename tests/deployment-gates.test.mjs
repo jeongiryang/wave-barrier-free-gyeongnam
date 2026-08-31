@@ -54,6 +54,7 @@ test("CD migrates an unpromoted protected candidate before production promotion"
   assert.match(workflow, /vercel@50\.15\.1 (?:pull|build|deploy|promote)/);
   assert.match(workflow, /grep -Fq '\"ok\":true'/);
   assert.match(workflow, /grep -Fq '\"004_community_seed\.sql\"'/);
+  assert.match(workflow, /grep -Fq '\"005_community_field_reports\.sql\"'/);
   assert.match(workflow, /grep -Fq '\"checkedAt\"'/);
   assert.match(workflow, /vercel@50\.15\.1 rollback/);
   assert.match(workflow, /promote[^\n]+--scope="\$VERCEL_ORG_ID"/);
@@ -64,13 +65,15 @@ test("CD migrates an unpromoted protected candidate before production promotion"
 });
 
 test("production migrations are split into atomic Neon transactions", async () => {
-  const [migration, trips, runner] = await Promise.all([
+  const [migration, trips, fieldReports, runner] = await Promise.all([
     readFile(new URL("../migrations/002_community_moderation.sql", import.meta.url), "utf8"),
     readFile(new URL("../migrations/003_trips.sql", import.meta.url), "utf8"),
+    readFile(new URL("../migrations/005_community_field_reports.sql", import.meta.url), "utf8"),
     readFile(new URL("../scripts/apply-community-moderation-migration.mjs", import.meta.url), "utf8"),
   ]);
   assert.ok(migration.split(/^-- migrate:split\s*$/m).filter((part) => part.trim()).length >= 9);
   assert.equal(trips.split(/^-- migrate:split\s*$/m).filter((part) => part.trim()).length, 5);
+  assert.equal(fieldReports.split(/^-- migrate:split\s*$/m).filter((part) => part.trim()).length, 4);
   assert.match(runner, /sql\.transaction\(statements\.map/);
   assert.doesNotMatch(runner, /console\.log\([^\n]*(?:DATABASE_URL|databaseUrl)/);
 });
@@ -85,6 +88,7 @@ test("the migration endpoint is token-protected and uses the canonical SQL", asy
   assert.match(handler, /002_community_moderation\.sql\?raw/);
   assert.match(handler, /003_trips\.sql\?raw/);
   assert.match(handler, /004_community_seed\.sql\?raw/);
+  assert.match(handler, /005_community_field_reports\.sql\?raw/);
   assert.match(handler, /\[moderationMigration, tripsMigration/);
   assert.match(handler, /communitySeedMigration/);
   assert.match(handler, /sql\.transaction\(statements\.map/);

@@ -129,6 +129,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   width: 44px; min-width: 44px; height: 44px; min-height: 44px;
 }
 .region-preview > a, .day-planner select, .day-order-toolbar button, .day-order-buttons button, .sort-tabs button,
+.day-journal-action a,
 .feedback-box button, .rich-card button, .rich-empty button,
 .travel-profile-actions button, .travel-profile-clear,
 .tool-launch-status button, .transport-dataset-grid > button,

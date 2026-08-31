@@ -16,6 +16,6 @@ export default function CommunityPage({ initialPlace = null }: { initialPlace?: 
       <CommunityBoardToolbar board={board} />
       <CommunityPostList board={board} />
     </section>
-    <footer className="community-footer"><strong>W.A.V.E</strong><p>커뮤니티에는 W.A.V.E 사용자가 직접 작성한 경험이 표시됩니다. 공식 관광·접근성 정보는 여행 설계 화면에서 별도로 확인해 주세요.</p><a href="/planner">여행 설계로 돌아가기 →</a></footer>
+    <footer className="community-footer"><strong>W.A.V.E</strong><p>제목과 배지에 ‘샘플’이 붙은 글은 기능 확인용이며 실제 여행자 경험이 아닙니다. 여행자 현장 제보는 공식 관광·접근성 근거와 분리해 표시합니다.</p><a href="/planner">여행 설계로 돌아가기 →</a></footer>
   </main>;
 }

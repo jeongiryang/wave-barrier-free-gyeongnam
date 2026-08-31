@@ -26,7 +26,7 @@ test("moderator IDs fail closed for empty, malformed and duplicate configuration
 
 test("community post validation preserves plain text and enforces product limits", () => {
   const valid = validatePostInput({ category: "review", title: "남해 여행에서 확인한 접근로", content: "현장에서 직접 확인한 이동 경험을 공유합니다.", region: "남해", placeId: "123", placeName: "독일마을" });
-  assert.deepEqual(valid.value, { category: "review", title: "남해 여행에서 확인한 접근로", content: "현장에서 직접 확인한 이동 경험을 공유합니다.", region: "남해", placeId: "123", placeName: "독일마을" });
+  assert.deepEqual(valid.value, { category: "review", title: "남해 여행에서 확인한 접근로", content: "현장에서 직접 확인한 이동 경험을 공유합니다.", region: "남해", placeId: "123", placeName: "독일마을", visitDate: null, fieldReports: [], journalPlaces: [] });
   assert.match(validatePostInput({ category: "other", title: "충분한 제목", content: "충분한 내용입니다." }).error, /게시판/);
   assert.match(validatePostInput({ category: "place", title: "짧음", content: "충분한 내용입니다." }).error, /제목/);
   assert.match(validatePostInput({ category: "place", title: "충분한 제목입니다", content: "충분한 내용입니다.", placeId: "123" }).error, /함께/);

@@ -82,6 +82,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   await expect(itinerary.getByText(/09:25 · 경남도립미술관/)).toBeVisible();
 
   await page.getByRole("button", { name: "용지호수공원 보관하기" }).click();
+  await expect(itinerary.getByRole("link", { name: /여행일지 초안 만들기/ })).toHaveAttribute("href", /draft=journal/);
   await expect(itinerary.getByText(/용지호수공원/)).toBeVisible();
   await page.getByRole("button", { name: "용지호수공원 보관함에서 빼기" }).click();
   await expect(itinerary.getByText(/용지호수공원/)).toHaveCount(0);

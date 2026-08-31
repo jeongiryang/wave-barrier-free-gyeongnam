@@ -5,6 +5,9 @@ export type PostValue = {
   region: string | null;
   placeId: string | null;
   placeName: string | null;
+  visitDate: string | null;
+  fieldReports: Array<{ field: string; status: string; note: string }>;
+  journalPlaces: Array<{ id: string; name: string; day: string }>;
 };
 
 export type ListFilters = {

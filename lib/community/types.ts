@@ -13,7 +13,19 @@ export type CommunityPost = {
   likeCount: number;
   likedByMe: boolean;
   isOwner: boolean;
+  isSample: boolean;
+  visitDate: string | null;
+  fieldReports: AccessibilityFieldReport[];
+  journalPlaces: CommunityJournalPlace[];
 };
+
+export type AccessibilityFieldReport = {
+  field: "entrance" | "elevator" | "toilet" | "parking" | "seating" | "visual" | "hearing";
+  status: "confirmed" | "changed" | "not_checked";
+  note: string;
+};
+
+export type CommunityJournalPlace = { id: string; name: string; day: string };
 
 export type CommunityComment = {
   id: string;

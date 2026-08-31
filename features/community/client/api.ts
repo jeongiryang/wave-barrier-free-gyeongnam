@@ -29,6 +29,9 @@ export type CommunityPostInput = {
   region: string;
   placeId: string;
   placeName: string;
+  visitDate: string;
+  fieldReports: CommunityPost["fieldReports"];
+  journalPlaces: CommunityPost["journalPlaces"];
 };
 
 export type CommunityModerationReport = {
