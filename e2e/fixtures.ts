@@ -36,12 +36,12 @@ const route = {
   configured: true,
   alternatives: [{
     id: "car-fast", label: "추천 자동차 경로", provider: "Kakao Mobility", mode: "car",
-    totalTime: 25, payment: 0, totalWalk: 0, transfers: 0, totalDistance: 8800, configured: true,
+    totalTime: 25, payment: 0, paymentType: "toll", totalWalk: 0, transfers: 0, totalDistance: 8800, configured: true,
     segments: [{ type: "car", name: "추천 자동차 경로", minutes: 25 }],
     geometry: [{ lat: 35.227, lng: 128.681 }, { lat: 35.238, lng: 128.691 }],
   }, {
     id: "car-calm", label: "여유 자동차 경로", provider: "Kakao Mobility", mode: "car",
-    totalTime: 40, payment: 0, totalWalk: 0, transfers: 0, totalDistance: 10100, configured: true,
+    totalTime: 40, payment: 0, paymentType: "toll", totalWalk: 0, transfers: 0, totalDistance: 10100, configured: true,
     segments: [{ type: "car", name: "여유 자동차 경로", minutes: 40 }],
     geometry: [{ lat: 35.227, lng: 128.681 }, { lat: 35.232, lng: 128.686 }, { lat: 35.238, lng: 128.691 }],
   }],
@@ -76,7 +76,7 @@ export async function mockPublicShellApi(page: Page) {
   }));
 }
 
-export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean } = {}) {
+export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean } = {}) {
   let enrichmentRequestCount = 0;
   await page.route(/https:\/\/[abc]\.tile\.openstreetmap\.org\/.*/, (requestRoute) => requestRoute.fulfill({
     status: 200,
@@ -90,7 +90,19 @@ export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; 
     if (url.pathname === "/api/wave" && action === "plan") {
       if (options.slowPlan) await new Promise((resolve) => setTimeout(resolve, 650));
       if (options.failPlan) return requestRoute.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "여행 정보를 잠시 확인할 수 없습니다." }) });
-      return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(plan) });
+      const responsePlan = options.explorationOnly ? {
+        ...plan,
+        places: [],
+        stops: [],
+        explorationPlaces: places.map((place, index) => ({
+          ...place,
+          score: index === 0 ? 0 : null,
+          knownFields: index === 0 ? 3 : 0,
+          features: ["상세 편의정보 확인 필요"],
+          details: ["제공된 편의정보가 제한적이므로 방문 전 시설 운영기관에 확인해 주세요."],
+        })),
+      } : plan;
+      return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(responsePlan) });
     }
     if (url.pathname === "/api/wave" && action === "spot-photo") {
       return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ image: "", status: "empty" }) });

@@ -9,7 +9,7 @@ import {
 import { fetchCrowd, fetchHub, fetchRelated } from "./insights";
 import { placeFrom } from "./accessibility-model";
 import { audioFrom, courseFrom } from "./content-model";
-import { buildPlanStatuses, buildPlanStops, sortPlacesByEvidence } from "./plan-model";
+import { buildPlanStatuses, buildPlanStops, partitionPlacesByEvidence, sortPlacesByEvidence } from "./plan-model";
 import { readPlanQuery } from "./plan-query";
 import { mergePlaces } from "./provider-model";
 import { fetchPhoto, photoFrom } from "./photos";
@@ -49,10 +49,13 @@ export async function buildPlan(request: Request, env: Env) {
     () => baseItems.map(overBudget),
   );
   // 원본 API의 인기 정렬보다 사용자가 선택한 편의조건의 공식 확인 근거를 우선한다.
-  const places = sortPlacesByEvidence(baseItems
+  const rankedPlaces = sortPlacesByEvidence(baseItems
     .map((item, index) => placeFrom(item, details[index]?.ok ? details[index].value.items[0] || {} : {}, region, profiles, index)));
+  // 0%는 공식 정보가 없다는 뜻일 수도, 선택 조건과 맞지 않는다는 뜻일 수도 있다.
+  // 어느 쪽도 기본 추천으로 부르지 않고 별도의 추가 탐색 후보로 보낸다.
+  const { recommended: places, exploration: explorationPlaces } = partitionPlacesByEvidence(rankedPlaces);
 
-  const firstTitle = places[0]?.name || region;
+  const firstTitle = places[0]?.name || explorationPlaces[0]?.name || region;
   const [audio, relatedPack, crowd] = await withinBudget(Promise.all([
     attempt(fetchKto(env, "Odii", "storySearchList", { ...commonParams("5"), langCode: language.audio, keyword: firstTitle })),
     fetchRelated(env, region, hubPack.baseYm),
@@ -63,8 +66,7 @@ export async function buildPlan(request: Request, env: Env) {
     overBudget(),
   ] as const);
   const course = courseFrom(durunubi);
-  const hubItems = hubPack.result.ok ? hubPack.result.value.items : [];
-  const stops = buildPlanStops(places, hubItems, relatedPack.result, relatedPack.baseYm, region, firstTitle, course);
+  const stops = buildPlanStops(places);
   const { statuses, mode } = buildPlanStatuses({
     barrier, tour, audio, durunubi, hub: hubPack.result, photo, related: relatedPack.result, crowd,
     detailCount: details.filter((item) => item.ok && item.value.items.length).length,
@@ -76,6 +78,7 @@ export async function buildPlan(request: Request, env: Env) {
     generatedAt: new Date().toISOString(),
     baseYm: hubPack.baseYm,
     places,
+    explorationPlaces,
     course,
     audio: audioFrom(audio),
     photo: photoFrom(photo, region),
@@ -92,6 +95,7 @@ export async function buildPlan(request: Request, env: Env) {
     locale,
     mode,
     places: places.length,
+    explorationPlaces: explorationPlaces.length,
     images: places.filter((place) => Boolean(place.image)).length,
     providersOk: statuses.filter((status) => status.state === "live").length,
     providersFailed: statuses.filter((status) => status.state === "error").length,

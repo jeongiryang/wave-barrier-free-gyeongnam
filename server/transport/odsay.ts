@@ -36,6 +36,7 @@ export async function fetchOdsayRoutes(
     }
     const routes: RouteApiAlternative[] = rawPaths.slice(0, 4).map((path, index) => {
       const info = (path.info || {}) as Record<string, unknown>;
+      const payment = Number(info.payment);
       const rawSegments = Array.isArray(path.subPath) ? path.subPath as Array<Record<string, unknown>> : [];
       const geometry: RouteGeometryPoint[] = [{ lat: startLat, lng: startLng }];
       const segments = rawSegments.map((segment) => {
@@ -60,7 +61,9 @@ export async function fetchOdsayRoutes(
         provider: "ODsay",
         mode: "transit",
         totalTime: Number(info.totalTime || 0),
-        payment: Number.isFinite(Number(info.payment)) ? Number(info.payment) : null,
+        // 0원은 무료 확인이 아니라 누락값일 수 있으므로 실제 양수 요금만 노출한다.
+        payment: Number.isFinite(payment) && payment > 0 ? payment : null,
+        paymentType: "fare",
         totalWalk: Number(info.totalWalk || 0),
         transfers: Number(info.busTransitCount || 0) + Number(info.subwayTransitCount || 0),
         totalDistance: Number(info.totalDistance || info.trafficDistance || straightDistance),

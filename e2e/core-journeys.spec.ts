@@ -73,7 +73,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
   await expect(itinerary).toBeVisible();
   await expect(itinerary.getByText(/10:25 · 경남도립미술관/)).toBeVisible();
-  await expect(itinerary.getByText(/실제 경로 이동 25분/)).toBeVisible();
+  await expect(itinerary.getByText(/확인된 경로 이동 25분/)).toBeVisible();
   await page.getByRole("button", { name: /여유 자동차 경로/ }).click();
   await expect(itinerary.getByText(/10:40 · 경남도립미술관/)).toBeVisible();
   await page.getByRole("button", { name: /추천 자동차 경로/ }).click();

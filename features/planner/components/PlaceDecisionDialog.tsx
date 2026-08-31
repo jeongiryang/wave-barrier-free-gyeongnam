@@ -22,10 +22,13 @@ type Props = {
 export default function PlaceDecisionDialog(props: Props) {
   const { place, region, dialogRef, onClose } = props;
   const location = place.city || region;
+  const badgePending = place.score === null || place.score === 0;
+  const scoreLabel = place.score === null ? "판단 보류" : `${place.score}%`;
+  const scoreDescription = place.score === null ? "공식 편의근거 부족" : place.score === 0 ? "선택 조건 일치 항목 없음" : "선택 편의조건 일치";
   return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
     <section className="place-modal" role="dialog" aria-modal="true" aria-labelledby="place-modal-title" onMouseDown={(event) => event.stopPropagation()} ref={dialogRef}>
       <button className="modal-close" type="button" onClick={onClose} aria-label="닫기">×</button>
-      <div className="modal-visual" style={place.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${place.image}")` } : undefined}><span>{location}</span><b className={place.score === null ? "pending" : ""}>{place.score === null ? "판단 보류" : `${place.score}%`}<small>{place.score === null ? "공식 편의근거 부족" : "선택 편의조건 일치"}</small></b></div>
+      <div className="modal-visual" style={place.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${place.image}")` } : undefined}><span>{location}</span><b className={badgePending ? "pending" : ""}>{scoreLabel}<small>{scoreDescription}</small></b></div>
       <div className="modal-body">
         <p className="section-kicker">ACCESSIBILITY DETAIL</p><h2 id="place-modal-title">{place.name}</h2><p>{place.address || place.summary}</p>
         <PlaceEvidenceSummary place={place} />
