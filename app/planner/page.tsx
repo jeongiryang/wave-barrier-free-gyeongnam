@@ -7,15 +7,14 @@ import {
 } from "react";
 import { useSitePreferences } from "../../components/SitePreferences";
 import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
-import NavigationWorkspace from "../../features/planner/components/NavigationWorkspace";
 import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
 import PlannerConditionsPanel from "../../features/planner/components/PlannerConditionsPanel";
-import PlannerResultsPanel from "../../features/planner/components/PlannerResultsPanel";
 import PlannerFooter from "../../features/planner/components/PlannerFooter";
 import { PlannerHeader } from "../../features/planner/components/PlannerHeader";
 import RecommendationWorkspace from "../../features/planner/components/RecommendationWorkspace";
 import DepartureReadinessCard from "../../features/planner/components/DepartureReadinessCard";
 import TravelSignalsPanel from "../../features/planner/components/TravelSignalsPanel";
+import PlannerItineraryWorkspace from "../../features/planner/components/PlannerItineraryWorkspace";
 import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
 import { useLocationSearch } from "../../features/planner/hooks/useLocationSearch";
 import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
@@ -39,7 +38,6 @@ export default function PlannerPage() {
   } = planController;
   const routePlanning = useRoutePlanning(region);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const closeSelectedPlace = useCallback(() => setSelectedPlace(null), []);
   const placeDialogRef = usePlaceDialogFocus(Boolean(selectedPlace), closeSelectedPlace);
 
@@ -81,7 +79,6 @@ export default function PlannerPage() {
   });
   const { feedbackText, feedbackState, changeFeedbackText, submitFeedback } = participation;
   const {
-    statuses,
     liveCount,
     effectiveProviders,
     providerErrors,
@@ -146,29 +143,16 @@ export default function PlannerPage() {
 
       <section className="planner-journey-workspace" id="planner" aria-labelledby="journey-workspace-title">
         <header className="journey-workspace-hero" data-reveal>
-          <div><p>MAKE YOUR W.A.V.E</p><h1 id="journey-workspace-title">내 여행 만들기</h1></div>
-          <p>여행 조건을 정하고, 추천 여행지를 고른 뒤, 이동수단과 하루 코스, 날씨·현장 상황까지 한 화면에서 이어서 확인하세요.</p>
-          <a href="/photo-course">다녀온 사진으로 코스 복원 <span aria-hidden="true">↗</span></a>
+          <div><p>W.A.V.E 여행 계획</p><h1 id="journey-workspace-title">나에게 맞는 여행을<br />4단계로 완성하세요.</h1></div>
+          <p>조건을 고르고, 여행지를 일정에 추가한 뒤 이동 경로와 출발 전 정보만 확인하면 됩니다.</p>
+          <nav aria-label="여행 계획 단계"><a href="#conditions">1 조건</a><a href="#places">2 여행지</a><a href="#itinerary">3 내 일정</a><a href="#departure-readiness">4 출발 전 확인</a></nav>
         </header>
-        <PlannerServiceStatus
-          locale={locale}
-          open={diagnosticsOpen}
-          onToggle={() => setDiagnosticsOpen((open) => !open)}
-          keyHealth={keyHealth}
-          effectiveProviders={effectiveProviders}
-          transportProviders={transportProviders}
-          providerErrors={providerErrors}
-          liveCount={liveCount}
-          dataErrors={dataErrors}
-          plan={plan}
-        />
         <PlannerConditionsPanel
           t={t}
           activePlaces={activePlaces}
           planController={planController}
           route={routePlanning}
           tripSelection={tripSelection}
-          onGenerate={generatePlan}
         />
         <RecommendationWorkspace
           t={t}
@@ -180,37 +164,30 @@ export default function PlannerPage() {
           onGenerate={generatePlan}
           onSelectPlace={setSelectedPlace}
         />
-        <DepartureReadinessCard
-          region={region}
+        <PlannerItineraryWorkspace
           plan={plan}
+          activePlaces={activePlaces}
+          planCrowd={plan?.crowd}
+          effectiveProviders={effectiveProviders}
+          route={routePlanning}
+          locationSearch={locationSearch}
+          tripSelection={tripSelection}
+          audioGuide={audioGuide}
+          participation={participation}
+          onChoosePoint={choosePoint}
+          onCopyBookingRoute={copyBookingRoute}
+          onMapDestination={routeFromMapPlace}
+          onSaveMapPlaces={saveMapPlaces}
+        />
+        <DepartureReadinessCard
+          plan={plan}
+          region={region}
           weather={weather}
           weatherLoading={weatherLoading}
           transportProviders={effectiveProviders}
           tripSelection={tripSelection}
           participation={participation}
           onRefresh={() => { reloadWeather(); return generatePlan(false); }}
-        />
-        <NavigationWorkspace
-          t={t}
-          activePlaces={activePlaces}
-          planCrowd={plan?.crowd}
-          effectiveProviders={effectiveProviders}
-          route={routePlanning}
-          locationSearch={locationSearch}
-          onChoosePoint={choosePoint}
-          onCopyBookingRoute={copyBookingRoute}
-          onMapDestination={routeFromMapPlace}
-          onSaveMapPlaces={saveMapPlaces}
-        />
-        <PlannerResultsPanel
-          plan={plan}
-          region={region}
-          theme={theme}
-          selectedProfileIds={selected}
-          statuses={statuses}
-          liveCount={liveCount}
-          audioGuide={audioGuide}
-          participation={participation}
         />
         <TravelSignalsPanel
           region={region}
@@ -231,6 +208,16 @@ export default function PlannerPage() {
           secondaryOpen={secondaryOpen}
           onSecondaryOpenChange={setSecondaryOpen}
           onRouteFromRichSpot={routeFromRichSpot}
+        />
+        <PlannerServiceStatus
+          locale={locale}
+          keyHealth={keyHealth}
+          effectiveProviders={effectiveProviders}
+          transportProviders={transportProviders}
+          providerErrors={providerErrors}
+          liveCount={liveCount}
+          dataErrors={dataErrors}
+          plan={plan}
         />
       </section>
 

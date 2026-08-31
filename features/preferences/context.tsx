@@ -25,11 +25,12 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     document.documentElement.dataset.theme = theme;
     document.documentElement.lang = locale === "zh-Hans" ? "zh-CN" : locale === "zh-Hant" ? "zh-TW" : locale;
     document.documentElement.style.colorScheme = theme;
     document.documentElement.dataset.motion = motion;
-    if (hydrated) writeStoredPreferences({ locale, theme, motion });
+    writeStoredPreferences({ locale, theme, motion });
   }, [locale, theme, motion, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({

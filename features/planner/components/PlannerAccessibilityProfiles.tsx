@@ -2,10 +2,9 @@ import AccessIcon from "../../../components/AccessIcons";
 import { profiles } from "../constants";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 
-export default function PlannerAccessibilityProfiles({ t, planController, onGenerate }: {
+export default function PlannerAccessibilityProfiles({ t, planController }: {
   t: (key: string, fallback: string) => string;
   planController: ReturnType<typeof usePlannerPlan>;
-  onGenerate: (revealResults?: boolean) => void | Promise<void>;
 }) {
   const {
     selected, loading, notice, toggleProfile, clearSelectedProfiles,
@@ -23,17 +22,19 @@ export default function PlannerAccessibilityProfiles({ t, planController, onGene
         })}
       </div>
       <p className="derived-note">‘걷기 불편’과 ‘임산부’는 무장애 API의 접근로·승강기·화장실 항목을 W.A.V.E 기준으로 조합한 필터입니다.</p>
-      <section className="travel-profile-card" aria-labelledby="travel-profile-title">
-        <header><div><small>이 기기에만 저장</small><h3 id="travel-profile-title">나의 무장애 여행 프로필</h3></div>{savedProfile && <time dateTime={new Date(savedProfile.updatedAt).toISOString()}>최근 저장 {new Date(savedProfile.updatedAt).toLocaleDateString("ko-KR")}</time>}</header>
-        {savedProfile ? <><p>{savedProfiles.map((profile) => profile.label).join(" · ")}</p><div className="travel-profile-actions"><button type="button" onClick={applyTravelProfile}>저장 프로필 적용</button><button type="button" onClick={() => saveTravelProfile(selected)} disabled={!selected.length}>현재 선택으로 덮어쓰기</button><button type="button" className="delete" onClick={deleteTravelProfile}>저장 프로필 삭제</button></div></> : <><p>지금 고른 편의조건을 다음 여행에서 다시 불러올 수 있습니다.</p><div className="travel-profile-actions"><button type="button" onClick={() => saveTravelProfile(selected)} disabled={!selected.length}>현재 선택 저장</button></div></>}
-        <button type="button" className="travel-profile-clear" onClick={clearSelectedProfiles} disabled={!selected.length}>현재 선택 전체 해제</button>
-        <small className="travel-profile-privacy">사용자가 고른 편의조건 ID만 저장합니다. 진단명·계정 정보·위치는 저장하거나 추론하지 않습니다.</small>
-        <p className="travel-profile-notice" role="status" aria-live="polite">{profileNotice}</p>
-      </section>
+      <details className="travel-profile-card">
+        <summary><span><small>선택 사항 · 이 기기에만 저장</small><strong>편의 조건 저장·불러오기</strong></span><b aria-hidden="true">+</b></summary>
+        <div className="travel-profile-content">
+          {savedProfile ? <><p><b>저장한 조건</b> {savedProfiles.map((profile) => profile.label).join(" · ")}</p><div className="travel-profile-actions"><button type="button" onClick={applyTravelProfile}>저장한 조건 불러오기</button><button type="button" onClick={() => saveTravelProfile(selected)} disabled={!selected.length}>지금 선택으로 바꾸기</button><button type="button" className="delete" onClick={deleteTravelProfile}>저장 삭제</button></div></> : <><p>지금 고른 편의 조건을 다음 여행에서도 빠르게 불러올 수 있습니다.</p><div className="travel-profile-actions"><button type="button" onClick={() => saveTravelProfile(selected)} disabled={!selected.length}>이 조건 저장</button></div></>}
+          <button type="button" className="travel-profile-clear" onClick={clearSelectedProfiles} disabled={!selected.length}>선택한 조건 모두 해제</button>
+          <small className="travel-profile-privacy">선택한 편의 조건만 저장합니다. 건강 상태나 장애 유형을 추론하지 않습니다.</small>
+        </div>
+      </details>
+      <p className="travel-profile-notice" role="status" aria-live="polite">{profileNotice}</p>
     </div>
     <div className="selection-bar" aria-live="polite">
       <div><span className="pulse-dot" aria-hidden="true" /><p><b>{activeProfiles.length ? `편의 조건 ${activeProfiles.length}개 선택` : "선택한 편의 조건 없음"}</b><span>{activeProfiles.length ? activeProfiles.map((item) => item.label).join(" · ") : "원하는 여행 조건을 골라주세요"}</span></p></div>
-      <button className="generate-button" type="button" onClick={() => void onGenerate(true)} disabled={!selected.length || loading}>{loading ? <><span className="button-loader" /> 여행지 찾는 중</> : <>여행지 다시 찾기 <span aria-hidden="true">↻</span></>}</button>
+      <p className="auto-refresh-note">{loading ? <><span className="button-loader" /> 추천을 업데이트하고 있어요.</> : selected.length ? "조건을 바꾸면 추천이 자동으로 업데이트됩니다." : "편의 조건을 하나 이상 선택하면 추천을 시작합니다."}</p>
     </div>
     <p className="planner-notice" aria-live="polite">{notice}</p>
   </>;

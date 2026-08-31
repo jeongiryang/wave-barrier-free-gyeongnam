@@ -24,9 +24,9 @@ export function useTravelPreferenceProfile() {
         if (!raw) return;
         const profile = sanitizeTravelProfile(JSON.parse(raw), allowedProfileIds) as TravelPreferenceProfile | null;
         if (profile) setSavedProfile(profile);
-        else setProfileNotice("저장된 여행 프로필이 손상되어 적용하지 않았습니다. 현재 선택은 그대로 유지됩니다.");
+        else setProfileNotice("저장한 편의 조건이 손상되어 적용하지 않았습니다. 현재 선택은 그대로 유지됩니다.");
       } catch {
-        setProfileNotice("저장된 여행 프로필을 읽지 못했습니다. 현재 선택은 그대로 유지됩니다.");
+        setProfileNotice("저장한 편의 조건을 읽지 못했습니다. 현재 선택은 그대로 유지됩니다.");
       }
     });
     return () => window.cancelAnimationFrame(frame);
@@ -41,10 +41,10 @@ export function useTravelPreferenceProfile() {
     try {
       window.localStorage.setItem(TRAVEL_PROFILE_KEY, JSON.stringify(profile));
       setSavedProfile(profile);
-      setProfileNotice("현재 편의조건을 이 기기의 여행 프로필로 저장했습니다.");
+      setProfileNotice("현재 편의 조건을 이 기기에 저장했습니다.");
       return true;
     } catch {
-      setProfileNotice("이 브라우저에서는 여행 프로필을 저장할 수 없습니다. 현재 선택은 이 화면에서 계속 사용할 수 있습니다.");
+      setProfileNotice("이 브라우저에서는 편의 조건을 저장할 수 없습니다. 현재 선택은 이 화면에서 계속 사용할 수 있습니다.");
       return false;
     }
   }, []);
@@ -53,10 +53,10 @@ export function useTravelPreferenceProfile() {
     try {
       window.localStorage.removeItem(TRAVEL_PROFILE_KEY);
       setSavedProfile(null);
-      setProfileNotice("이 기기에 저장된 여행 프로필을 삭제했습니다.");
+      setProfileNotice("이 기기에 저장한 편의 조건을 삭제했습니다.");
       return true;
     } catch {
-      setProfileNotice("저장된 여행 프로필을 삭제하지 못했습니다. 브라우저 저장소 설정을 확인해 주세요.");
+      setProfileNotice("저장한 편의 조건을 삭제하지 못했습니다. 브라우저 저장소 설정을 확인해 주세요.");
       return false;
     }
   }, []);

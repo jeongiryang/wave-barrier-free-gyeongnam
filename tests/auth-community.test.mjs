@@ -167,7 +167,7 @@ test("community UI supports public reading, protected participation and place li
     ]).then((parts) => parts.join("\n")), source("app/sitemap.ts"),
   ]);
   assert.match(list, /로그인 없이 공개 글을 확인/);
-  assert.match(list, /아직 등록된 이야기가 없습니다/);
+  assert.match(list, /아직 등록된 후기나 질문이 없습니다/);
   assert.match(detail, /toggleLike/);
   assert.match(detail, /createComment|submitComment/);
   assert.match(clientApi, /export async function listCommunityPosts/);

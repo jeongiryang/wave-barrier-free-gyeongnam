@@ -41,7 +41,7 @@ test("장소 후기에서 구조화 현장 제보를 작성하고 개별 경험�
   await page.getByLabel("출입 경로 확인 상태").selectOption("changed");
   await page.getByLabel("출입 경로 메모").fill("정문 경사로가 공사 중이었습니다.");
   expect((await new AxeBuilder({ page }).analyze()).violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);
-  await page.getByRole("button", { name: "이야기 등록" }).click();
+  await page.getByRole("button", { name: "후기 등록" }).click();
   await expect(page).toHaveURL(/\/community\/field-post$/);
   expect(submitted).toMatchObject({
     category: "review", placeId: "1001", visitDate: "2026-08-30",
@@ -68,5 +68,5 @@ test("여행일지 초안은 일정 장소를 연결하되 사용자가 공개 �
   await expect(journalDraft.getByText("경남도립미술관")).toBeVisible();
   await expect(journalDraft.getByText("용지호수공원")).toBeVisible();
   await expect(page.getByLabel("제목")).toHaveValue("창원 2곳 무장애 여행일지");
-  await expect(page.getByRole("button", { name: "이야기 등록" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "후기 등록" })).toBeVisible();
 });

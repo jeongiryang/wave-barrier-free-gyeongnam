@@ -12,16 +12,15 @@ interface PlannerConditionsPanelProps {
   planController: ReturnType<typeof usePlannerPlan>;
   route: ReturnType<typeof useRoutePlanning>;
   tripSelection: ReturnType<typeof useTripSelection>;
-  onGenerate: (revealResults?: boolean) => void | Promise<void>;
 }
 
 export default function PlannerConditionsPanel(props: PlannerConditionsPanelProps) {
   return <div className="journey-workspace-block journey-conditions" id="conditions">
-    <div className="journey-subheading" data-reveal><div><span>STEP 01</span><h3>여행 조건 정하기</h3></div><p>출발지 · 지역 · 테마 · 편의</p></div>
+    <div className="journey-subheading" data-reveal><div><span aria-hidden="true">1</span><h2>여행 조건 정하기</h2></div><p>출발지, 날짜, 테마와 필요한 편의를 고르세요.</p></div>
     <div className="planner-bento" data-reveal>
       <PlannerJourneyBasics t={props.t} activePlaces={props.activePlaces} planController={props.planController} route={props.route} />
       <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} />
-      <PlannerAccessibilityProfiles t={props.t} planController={props.planController} onGenerate={props.onGenerate} />
+      <PlannerAccessibilityProfiles t={props.t} planController={props.planController} />
     </div>
   </div>;
 }

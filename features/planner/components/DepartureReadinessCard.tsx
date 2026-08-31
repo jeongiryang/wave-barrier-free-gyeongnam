@@ -92,12 +92,12 @@ export default function DepartureReadinessCard({
     }
   }
 
-  return <section className={`departure-readiness ${assessment.state}`} aria-labelledby="departure-readiness-title" data-reveal>
+  return <section className={`departure-readiness ${assessment.state}`} id="departure-readiness" aria-labelledby="departure-readiness-title" data-reveal>
     <header>
       <div>
-        <span>BEFORE YOU GO · {assessment.phase.label}</span>
-        <h2 id="departure-readiness-title">출발 준비를 한 장에서 확인하세요.</h2>
-        <p>성공한 조회만 확인됨으로 표시합니다. 일부 확인과 재확인 필요 항목은 아래 출처와 다음 행동을 확인하세요.</p>
+        <span><b aria-hidden="true">4</b> 출발 전 확인 · {assessment.phase.label}</span>
+        <h2 id="departure-readiness-title">출발 전에 이것만 다시 확인하세요.</h2>
+        <p>실제로 조회된 정보만 ‘확인됨’으로 표시합니다. 나머지는 출발 전에 최신 정보를 확인하세요.</p>
       </div>
       <strong className={`readiness-overall ${assessment.state}`}><i aria-hidden="true" />전체 {statusLabel[assessment.state as keyof typeof statusLabel]}</strong>
     </header>
@@ -112,11 +112,11 @@ export default function DepartureReadinessCard({
     <footer>
       <div>
         <strong>{assessment.phase.id === "past" ? "지난 일정은 현재 정보로 다시 설계해 주세요." : "캘린더에도 출발 전 재확인 안내를 넣습니다."}</strong>
-        <p>{orderedSavedPlaces.length ? `${travelStart} ${dayStartTime} 출발 · ${orderedSavedPlaces.length}곳 · 공유 일정 URL 포함` : "먼저 장소를 보관하면 공유 일정과 캘린더를 만들 수 있습니다."}</p>
+        <p>{orderedSavedPlaces.length ? `${travelStart} ${dayStartTime} 출발 · ${orderedSavedPlaces.length}곳 · 공유 일정 URL 포함` : "먼저 장소를 일정에 추가하면 공유 일정과 캘린더를 만들 수 있습니다."}</p>
         <span className="sr-only" role="status" aria-live="polite">{calendarState === "done" ? "캘린더 파일을 저장했습니다." : calendarState === "error" ? "공유 링크 또는 캘린더 파일을 만들지 못했습니다." : ""}</span>
       </div>
       <div className="readiness-actions">
-        <button type="button" className="secondary" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? "다시 조회 중" : "여행 정보 다시 조회"}</button>
+        <button type="button" className="secondary" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? "최신 정보 확인 중" : "최신 정보 확인"}</button>
         <button type="button" onClick={() => void downloadCalendar()} disabled={calendarDisabled}>{calendarState === "saving" ? "캘린더 준비 중" : calendarState === "done" ? "캘린더 다시 저장" : "캘린더(.ics) 저장"}</button>
       </div>
       {calendarState === "error" && <p className="readiness-error" role="alert">공유 링크를 만들지 못해 캘린더를 저장하지 않았습니다. 잠시 뒤 다시 시도해 주세요.</p>}

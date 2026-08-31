@@ -24,14 +24,10 @@ test("landing route delegates section UI and browser effects to feature modules"
   assert.match(experience, /AbortController/);
 });
 
-test("landing intro traps keyboard focus and restores page scrolling", async () => {
-  const landing = await source("features/landing/components/LandingIntro.tsx");
-  assert.match(landing, /const previousOverflow = document\.body\.style\.overflow/);
-  assert.match(landing, /document\.body\.style\.overflow = "hidden"/);
-  assert.match(landing, /event\.key === "Tab"/);
-  assert.match(landing, /event\.preventDefault\(\)[\s\S]*startButtonRef\.current\?\.focus\(\)/);
-  assert.match(landing, /document\.body\.style\.overflow = previousOverflow/);
-  assert.match(landing, /previousFocus\?\.focus\(\)/);
+test("landing opens directly without a blocking intro", async () => {
+  const landing = await source("app/page.tsx");
+  assert.doesNotMatch(landing, /LandingIntro|useLandingIntro|role="dialog"/);
+  assert.match(landing, /<LandingHero/);
 });
 
 test("landing region photos time out and can retry after transient failures", async () => {

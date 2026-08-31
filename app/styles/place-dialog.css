@@ -67,10 +67,7 @@
   .gyeongnam-map { inset: 0 4% 7%; }
   .planner-bento { grid-template-columns: 1fr; }
   .profile-panel, .selection-bar, .planner-notice { grid-column: auto; }
-  .itinerary-layout { grid-template-columns: 1fr; gap: 35px; }
   .guide-player { width: min(600px, 100%); margin: auto; }
-  .route-intro { align-items: flex-start; flex-direction: column; }
-  .data-heading { grid-template-columns: 1fr; align-items: start; gap: 25px; }
 }
 
 @media (max-width: 780px) {
@@ -92,25 +89,16 @@
   .region-preview { left: 0; width: min(330px, 82%); }
   .api-preview { top: 12px; right: 0; }
   .scroll-cue { display: none; }
-  .planner-section, .places-section, .route-section, .data-section { padding: 88px 20px; }
+  .places-section { padding: 88px 20px; }
   .section-heading { margin-bottom: 38px; }
-  .section-heading h2, .data-heading h2, .closing-section h2 { font-size: clamp(2.3rem, 11vw, 3.6rem); }
+  .section-heading h2, .closing-section h2 { font-size: clamp(2.3rem, 11vw, 3.6rem); }
   .theme-grid { grid-template-columns: 1fr 1fr; }
   .profile-grid { grid-template-columns: 1fr 1fr; }
   .selection-bar { align-items: stretch; flex-direction: column; }
-  .generate-button { justify-content: space-between; }
+  .selection-bar .auto-refresh-note { max-width: none; text-align: left; }
   .split-heading { grid-template-columns: 1fr; gap: 25px; }
   .place-carousel { width: calc(100vw - 20px); padding-right: 20px; }
   .place-card { flex-basis: min(380px, 86vw); }
-  .route-metrics { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
-  .route-metrics div { min-width: 0; padding: 13px 10px; }
-  .itinerary-list li { grid-template-columns: 55px 32px 1fr; gap: 10px; }
-  .stop-check { display: none; }
-  .course-strip { grid-template-columns: 1fr; gap: 15px; }
-  .api-card, .api-card:nth-child(4), .api-card:nth-child(5) { grid-column: span 3; }
-  .trace-flow { grid-template-columns: 1fr 1fr; }
-  .trace-flow i { display: none; }
-  .trace-card dl { grid-template-columns: 1fr 1fr; }
   .place-modal { grid-template-columns: 1fr; }
   .modal-visual { min-height: 260px; }
   .simple-footer { grid-template-columns: 1fr; text-align: center; }
@@ -136,13 +124,6 @@
   .theme-grid, .profile-grid { grid-template-columns: 1fr; }
   .profile-card { min-height: 74px; }
   .place-visual { height: 215px; }
-  .route-metrics { grid-template-columns: 1fr; }
-  .route-metrics div { display: flex; align-items: center; justify-content: space-between; }
-  .route-metrics small { margin: 0; }
-  .itinerary-list li { grid-template-columns: 45px 28px 1fr; }
-  .api-card, .api-card:nth-child(4), .api-card:nth-child(5) { grid-column: 1 / -1; }
-  .trace-card dl { grid-template-columns: 1fr; }
-  .course-strip dl { justify-content: space-between; }
   .modal-backdrop { padding: 10px; }
   .modal-body { padding: 34px 22px 25px; }
 }

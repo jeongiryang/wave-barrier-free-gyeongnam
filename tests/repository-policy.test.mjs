@@ -18,6 +18,7 @@ async function plannerProductSource() {
     "features/planner/components/PlannerAccessibilityProfiles.tsx",
     "features/planner/components/RecommendationWorkspace.tsx",
     "features/planner/components/RecommendationCarousel.tsx",
+    "features/planner/components/PlannerItineraryWorkspace.tsx",
     "features/planner/components/TripDayPlanner.tsx",
     "features/planner/components/DepartureReadinessCard.tsx",
     "features/planner/components/TravelSignalsPanel.tsx",
@@ -33,9 +34,6 @@ async function plannerProductSource() {
     "features/planner/components/RouteMapWorkspace.tsx",
     "features/planner/components/TripPointPicker.tsx",
     "features/planner/components/RouteComparisonPanel.tsx",
-    "features/planner/components/PlannerResultsPanel.tsx",
-    "features/planner/components/PlannerRouteOverview.tsx",
-    "features/planner/components/PlannerEvidencePanel.tsx",
     "features/planner/components/AudioGuidePlayer.tsx",
   ];
   return (await Promise.all(paths.map(source))).join("\n");
@@ -89,7 +87,6 @@ async function landingProductSource() {
     "features/landing/hooks/useLandingMotion.ts",
     "features/landing/hooks/useLandingRegions.ts",
     "features/landing/client/region-photo.ts",
-    "features/landing/components/LandingIntro.tsx",
     "features/landing/components/LandingHeader.tsx",
     "features/landing/components/LandingHero.tsx",
     "features/landing/components/LandingManifesto.tsx",
@@ -117,6 +114,7 @@ async function styleSource() {
     "app/styles/regional-explorer-foundations.css",
     "app/styles/theme-itinerary-foundations.css",
     "app/styles/planner-workspace.css",
+    "app/styles/planner-unified-workspace.css",
     "app/styles/landing-motion.css",
     "app/styles/workspace-responsive.css",
     "app/styles/map-experience.css",
@@ -124,7 +122,6 @@ async function styleSource() {
     "app/styles/map-place-tools.css",
     "app/styles/map-live-signals.css",
     "app/styles/situation-identity-refinements.css",
-    "app/styles/ocean-intro-refinements.css",
     "app/styles/ocean-landing-refinements.css",
     "app/styles/ocean-planner-refinements.css",
     "app/styles/ocean-responsive-refinements.css",
@@ -135,7 +132,7 @@ async function styleSource() {
 }
 
 test("shared styles keep stable cascade boundaries", async () => {
-  const [layout, globalCss, siteShell, landingExplorer, landingRouteData, placeDialog, landingFoundations, plannerFoundations, regionalFoundations, themeItineraryFoundations, plannerWorkspace, landingMotion, workspaceResponsive, mapExperience, mapWorkspace, mapPlaceTools, mapLiveSignals, situationRefinements, oceanIntro, oceanLanding, oceanPlanner, oceanResponsive, designSystem, experience] = await Promise.all([
+  const [layout, globalCss, siteShell, landingExplorer, landingRouteData, placeDialog, landingFoundations, plannerFoundations, regionalFoundations, themeItineraryFoundations, plannerWorkspace, landingMotion, workspaceResponsive, mapExperience, mapWorkspace, mapPlaceTools, mapLiveSignals, situationRefinements, oceanLanding, oceanPlanner, oceanResponsive, designSystem, experience] = await Promise.all([
     source("app/layout.tsx"),
     source("app/globals.css"),
     source("app/styles/site-shell.css"),
@@ -154,7 +151,6 @@ test("shared styles keep stable cascade boundaries", async () => {
     source("app/styles/map-place-tools.css"),
     source("app/styles/map-live-signals.css"),
     source("app/styles/situation-identity-refinements.css"),
-    source("app/styles/ocean-intro-refinements.css"),
     source("app/styles/ocean-landing-refinements.css"),
     source("app/styles/ocean-planner-refinements.css"),
     source("app/styles/ocean-responsive-refinements.css"),
@@ -179,7 +175,6 @@ test("shared styles keep stable cascade boundaries", async () => {
     'import "./styles/map-place-tools.css"',
     'import "./styles/map-live-signals.css"',
     'import "./styles/situation-identity-refinements.css"',
-    'import "./styles/ocean-intro-refinements.css"',
     'import "./styles/ocean-landing-refinements.css"',
     'import "./styles/ocean-planner-refinements.css"',
     'import "./styles/ocean-responsive-refinements.css"',
@@ -194,7 +189,9 @@ test("shared styles keep stable cascade boundaries", async () => {
   assert.doesNotMatch(globalCss, /\/\* Intro \*\/|\/\* Hero \*\/|\/\* Route \*\/|\/\* Closing, modal, footer \*\//);
   assert.match(siteShell, /\/\* Intro \*\/[\s\S]*\/\* Header \*\//);
   assert.match(landingExplorer, /\/\* Hero \*\/[\s\S]*\/\* Places slider \*\//);
-  assert.match(landingRouteData, /\/\* Route \*\/[\s\S]*\/\* API bento \*\//);
+  assert.match(landingRouteData, /Planner audio guide/);
+  assert.match(landingRouteData, /\.guide-player/);
+  assert.doesNotMatch(landingRouteData, /\.route-section|\.itinerary-list|\.api-bento/);
   assert.match(placeDialog, /\/\* Closing, modal, footer \*\//);
   assert.doesNotMatch(globalCss, /Marketing landing|Functional planner hierarchy|디자인 시스템 토큰과 패턴 통일|단계별 도움말 투어/);
   assert.match(landingFoundations, /Marketing landing/);
@@ -209,7 +206,6 @@ test("shared styles keep stable cascade boundaries", async () => {
   assert.match(mapPlaceTools, /V8\.1 — point selection/);
   assert.match(mapLiveSignals, /V8\.4 — map-native crowd forecast/);
   assert.match(situationRefinements, /실제 예보와 관광 집중률/);
-  assert.match(oceanIntro, /Deep Ocean 통합 레이어[\s\S]*인트로/);
   assert.match(oceanLanding, /랜딩: 섹션 경계 없는 단일 수면/);
   assert.match(oceanPlanner, /플래너: 기능 단위로 끊어 읽는 구역/);
   assert.match(oceanResponsive, /뷰포트: 창 절반 폭까지 무너지지 않게/);
@@ -383,28 +379,28 @@ test("saved preferences survive a reload", async () => {
   // 읽기가 끝났음을 알리는 표시가 있고, 저장이 그 뒤에만 일어나야 한다.
   assert.match(context, /const stored = readStoredPreferences\(\)/);
   assert.match(context, /setMotion\(stored\.motion\)[\s\S]*setHydrated\(true\)/);
-  assert.match(context, /if \(hydrated\) writeStoredPreferences/);
+  assert.match(context, /if \(!hydrated\) return;[\s\S]*writeStoredPreferences/);
   assert.match(storage, /localStorage\.getItem\("wave-theme"\)/);
   assert.match(storage, /try\s*\{[\s\S]*localStorage\.setItem\("wave-theme"[\s\S]*\}\s*catch/);
 });
 
 test("wave motion preference is persisted, localized and respects reduced motion", async () => {
-  const [storage, controls, catalog, engine, intro, css] = await Promise.all([
+  const [storage, controls, catalog, engine, layout, css] = await Promise.all([
     source("features/preferences/storage.ts"),
     source("features/preferences/PreferenceControls.tsx"),
     source("features/preferences/locale-catalog.ts"),
     source("features/motion/wave-field-engine.ts"),
-    source("features/landing/useLandingIntro.ts"),
+    source("app/layout.tsx"),
     styleSource(),
   ]);
   assert.match(storage, /localStorage\.getItem\("wave-motion"\)/);
   assert.match(storage, /localStorage\.setItem\("wave-motion", preferences\.motion\)/);
   assert.match(controls, /aria-pressed=\{motion === "calm"\}/);
-  assert.match(controls, /<details className="preference-controls">/);
+  assert.match(controls, /<details className="preference-controls" suppressHydrationWarning>/);
   assert.match(catalog, /export const motionCopy: Record<Locale/);
   assert.match(engine, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
-  assert.match(intro, /motion === "calm" \|\| reducedMotion \|\| seen \? "hidden" : "show"/);
-  assert.match(intro, /window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)\.matches/);
+  assert.match(layout, /prefers-reduced-motion: reduce/);
+  assert.doesNotMatch(layout, /LandingIntro|wave-intro-seen/);
   assert.match(css, /html\[data-motion="calm"\] \.hero-wave-canvas \{ display: none; \}/);
 });
 
@@ -788,12 +784,12 @@ test("travel preference profile is local, explicit and contains only selected ca
     source("features/planner/hooks/useTravelPreferenceProfile.ts"),
     source("features/planner/profile/travel-profile.js"),
   ]);
-  assert.match(planner, /나의 무장애 여행 프로필/);
-  assert.match(planner, /저장 프로필 적용/);
-  assert.match(planner, /현재 선택으로 덮어쓰기/);
-  assert.match(planner, /저장 프로필 삭제/);
-  assert.match(planner, /현재 선택 전체 해제/);
-  assert.match(planner, /진단명·계정 정보·위치는 저장하거나 추론하지 않습니다/);
+  assert.match(planner, /편의 조건 저장·불러오기/);
+  assert.match(planner, /저장한 조건 불러오기/);
+  assert.match(planner, /지금 선택으로 바꾸기/);
+  assert.match(planner, /저장 삭제/);
+  assert.match(planner, /선택한 편의 조건만 저장합니다/);
+  assert.match(planner, /건강 상태나 장애 유형을 추론하지 않습니다/);
   assert.match(criteria, /if \(!travelProfile\.savedProfile\) return false/);
   assert.match(profile, /wave-travel-profile-v1/);
   assert.match(profile, /localStorage\.setItem/);
@@ -808,7 +804,7 @@ test("saved itinerary supports accessible manual order and local restoration", a
     source("features/planner/hooks/useOptimizedTripOrder.ts"),
     source("features/planner/hooks/useTripSchedule.ts"),
   ]);
-  assert.match(planner, /자동 순서로 되돌리기/);
+  assert.match(planner, /추천 순서로 정렬/);
   assert.match(planner, /같은 날 앞 순서로 이동/);
   assert.match(planner, /같은 날 뒤 순서로 이동/);
   assert.match(planner, /일정에서 제거/);

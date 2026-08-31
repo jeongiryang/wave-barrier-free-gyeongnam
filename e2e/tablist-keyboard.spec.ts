@@ -17,7 +17,7 @@ async function openPlanner(page: import("@playwright/test").Page) {
   await page.goto("/planner");
   // 테마 탭은 접힌 ‘주변 여행 정보’ 안에 있고, 열어야 그때 불러온다. 펼치는 것은
   // React 상태라 하이드레이션 전에 누르면 <details>만 열리고 내용은 오지 않는다.
-  const summary = page.locator("details.planner-secondary-details summary");
+  const summary = page.locator("details.travel-layers > summary");
   await expect(async () => {
     if (await page.locator(".layer-tabs").count()) return;
     await summary.click();

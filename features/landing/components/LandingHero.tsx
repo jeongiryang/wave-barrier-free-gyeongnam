@@ -10,7 +10,7 @@ export default function LandingHero({ t }: { t: LandingTranslate }) {
       <p><span className="access-badge"><AccessIcon name="mark" size={18} />{t("heroBadge", "경상남도 무장애 여행")}</span> 2026 TOUR DATA</p>
       <h1>{t("heroTitle", "갈 수 있는 곳을 넘어,")}<br /><em>{t("heroEm", "가고 싶은 하루로.")}</em></h1>
       <span>{t("heroCopy", "W.A.V.E는 여행자의 이동 조건과 경남 관광 데이터를 연결해 장소 선택부터 실제 이동까지 설계하는 여행 동행 서비스입니다.")}</span>
-      <div className="landing-actions"><Link href="/planner">{t("plan", "내 여행 설계하기")} <b>→</b></Link><a href="#story">{t("learn", "서비스 알아보기")}</a></div>
+      <div className="landing-actions"><Link href="/planner">여행 계획 만들기 <b>→</b></Link><a href="#story">{t("learn", "서비스 알아보기")}</a></div>
     </div>
     <div className="landing-signal" aria-label="서비스 데이터 흐름" data-land-reveal>
       <div className="signal-core"><span>W.A.V.E</span><small>TRAVEL ENGINE</small></div>

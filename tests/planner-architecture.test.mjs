@@ -58,9 +58,9 @@ test("planner route composes feature sections instead of owning their dense UI",
     "PlannerServiceStatus",
     "PlannerConditionsPanel",
     "RecommendationWorkspace",
+    "PlannerItineraryWorkspace",
+    "DepartureReadinessCard",
     "TravelSignalsPanel",
-    "NavigationWorkspace",
-    "PlannerResultsPanel",
   ]) {
     assert.match(page, new RegExp(`<${component}`));
   }

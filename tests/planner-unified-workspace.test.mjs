@@ -4,25 +4,25 @@ import test from "node:test";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("planner keeps photo restore separate and unifies journey decisions", async () => {
-  const [page, header, photoPage, results] = await Promise.all([
+test("planner keeps photo restore secondary and uses one saved-place itinerary", async () => {
+  const [page, header, photoPage, itinerary] = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/components/PlannerHeader.tsx"),
     source("app/photo-course/page.tsx"),
-    source("features/planner/components/PlannerResultsPanel.tsx"),
+    source("features/planner/components/PlannerItineraryWorkspace.tsx"),
   ]);
   assert.doesNotMatch(page, /PhotoCourseRestore/);
   assert.match(page, /className="planner-journey-workspace"/);
-  assert.match(page, /내 여행 만들기/);
+  assert.match(page, /4단계로 완성하세요/);
   assert.match(page, /<PlannerConditionsPanel/);
   assert.match(page, /<RecommendationWorkspace/);
-  assert.match(page, /<NavigationWorkspace/);
-  assert.match(page, /<PlannerResultsPanel/);
+  assert.match(page, /<PlannerItineraryWorkspace/);
+  assert.match(page, /<DepartureReadinessCard/);
   assert.match(page, /<TravelSignalsPanel/);
-  assert.doesNotMatch(page, /PlannerEvidencePanel/);
-  assert.match(results, /<PlannerRouteOverview/);
-  assert.doesNotMatch(results, /06 · 믿을 수 있는 여행 추천/);
-  assert.match(header, /href="\/photo-course"/);
+  assert.doesNotMatch(page, /PlannerResultsPanel|PlannerRouteOverview|PlannerEvidencePanel/);
+  assert.match(itinerary, /<TripDayPlanner/);
+  assert.match(itinerary, /<NavigationWorkspace/);
+  assert.doesNotMatch(header, /href="\/photo-course"/);
   assert.match(photoPage, /<PhotoCourseRestore/);
 });
 

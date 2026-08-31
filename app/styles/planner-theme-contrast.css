@@ -154,10 +154,6 @@ html[data-theme="dark"] .planner-journey-workspace .route-kakao-secondary {
   border-color: #3d7085;
   background: #15485c;
 }
-html[data-theme="dark"] .planner-journey-workspace .generate-button {
-  color: #e8f5fb;
-  background: #075887;
-}
 html[data-theme="dark"] .planner-journey-workspace .score-badge.pending b {
   color: #bcd9e8;
 }
@@ -172,6 +168,7 @@ html[data-theme="dark"] .planner-journey-workspace .selection-bar p span,
 html[data-theme="dark"] .planner-journey-workspace .feature-list span {
   color: #2f5063;
 }
+html[data-theme="dark"] .planner-journey-workspace .selection-bar .auto-refresh-note { color: #2f5063; }
 
 html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-low em,
 html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-low strong { color: #56d3a2; }

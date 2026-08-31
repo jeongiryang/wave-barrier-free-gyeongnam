@@ -2,12 +2,9 @@
 /* V5 — tool-first workspace */
 .planner-page { display: flex; flex-direction: column; }
 .planner-page > .tool-launch { order: 1; }
-.planner-page > .planner-section { order: 2; }
 .planner-page > .places-section { order: 3; }
 .planner-page > .navigation-section { order: 4; }
-.planner-page > .route-section { order: 5; }
 .planner-page > .travel-layers { order: 6; }
-.planner-page > .data-section { order: 7; }
 .planner-page > .simple-footer { order: 9; }
 .tool-launch { min-height: 124px; padding: 80px max(24px, calc((100vw - 1240px) / 2)) 20px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--white) 94%, var(--blue) 6%); }
 .tool-launch h1 { margin: 4px 0 0; font-size: clamp(1.4rem,2.2vw,2.2rem); letter-spacing: -.045em; }
@@ -31,13 +28,11 @@
 .navigation-section { padding-top: 55px; background: #eef5f8; }
 .places-section { padding-top: 72px; }
 .travel-layers { padding-top: 72px; }
-.planner-secondary-details,.evidence-details { margin-top: 28px; border: 1px solid rgba(151,190,205,.32); border-radius: 18px; background: rgba(255,255,255,.055); }
-.evidence-details { border-color: var(--line); background: var(--paper); }
-.planner-secondary-details > summary,.evidence-details > summary { min-height: 60px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 18px; cursor: pointer; list-style-position: inside; font-weight: 850; }
-.planner-secondary-details > summary { color: #fff; }.planner-secondary-details > summary small { color: #91b4c3; }.evidence-details > summary { color: var(--ink); }.evidence-details > summary small { color: var(--muted); }
-.planner-secondary-details > summary small,.evidence-details > summary small { font-size: .68rem; font-weight: 720; text-align: right; }
-.planner-secondary-content { padding: 0 18px 24px; }.planner-secondary-loading { min-height: 180px; display: grid; place-items: center; color: #91b4c3; font-size: .76rem; font-weight: 820; }.evidence-details .api-bento { padding: 0 18px 18px; }
-@media (max-width: 780px) { .planner-secondary-details > summary,.evidence-details > summary { align-items: flex-start; flex-direction: column; gap: 4px; }.planner-secondary-details > summary small,.evidence-details > summary small { text-align: left; }.planner-secondary-content,.evidence-details .api-bento { padding-inline: 10px; } }
+.planner-secondary-details { margin-top: 28px; border: 1px solid rgba(151,190,205,.32); border-radius: 18px; background: rgba(255,255,255,.055); }
+.planner-secondary-details > summary { min-height: 60px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 18px; cursor: pointer; color: #fff; list-style-position: inside; font-weight: 850; }
+.planner-secondary-details > summary small { color: #91b4c3; font-size: .68rem; font-weight: 720; text-align: right; }
+.planner-secondary-content { padding: 0 18px 24px; }.planner-secondary-loading { min-height: 180px; display: grid; place-items: center; color: #91b4c3; font-size: .76rem; font-weight: 820; }
+@media (max-width: 780px) { .planner-secondary-details > summary { align-items: flex-start; flex-direction: column; gap: 4px; }.planner-secondary-details > summary small { text-align: left; }.planner-secondary-content { padding-inline: 10px; } }
 .transport-provider-strip { max-width: 1240px; margin: -8px auto 14px; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 7px; }
 .transport-mode-filter { max-width: 1240px; margin: -6px auto 16px; padding: 5px; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 5px; border: 1px solid #cee1ea; border-radius: 16px; background: rgba(255,255,255,.72); box-shadow: 0 12px 30px rgba(10,63,86,.06); }
 .transport-mode-filter button { min-width: 0; min-height: 58px; padding: 9px 10px; display: grid; align-content: center; gap: 2px; border: 1px solid transparent; border-radius: 11px; color: #52717f; background: transparent; text-align: left; transition: .22s ease; }

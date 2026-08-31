@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import CommunityDetail from "../../../features/community/components/CommunityDetail";
 import CommunityHeader from "../../../components/CommunityHeader";
 
-export const metadata: Metadata = { title: "여행자 이야기" };
+export const metadata: Metadata = { title: "여행 후기" };
 
 export default async function CommunityPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

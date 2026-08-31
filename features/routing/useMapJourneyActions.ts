@@ -45,7 +45,7 @@ export function useMapJourneyActions({
   }, [kakaoMapRef, onOriginChange, setPickMode, setProviderDetail]);
 
   // 예전에는 아무도 읽지 않는 저장소 키에 써 놓고 "저장했습니다"라고만 알렸다.
-  // 현재 지도에 노출한 장소만 기존 여행 보관함으로 넘기며, 위치 좌표 자체는 저장하지 않는다.
+  // 현재 지도에 노출한 장소만 내 일정으로 넘기며, 위치 좌표 자체는 저장하지 않는다.
   const saveRoute = useCallback(() => {
     if (!places.length) {
       setProviderDetail("지도에 담을 여행지가 아직 없습니다.");
@@ -54,8 +54,8 @@ export function useMapJourneyActions({
     const visiblePlaces = places.slice(0, 12);
     const added = onSavePlaces?.(visiblePlaces) ?? 0;
     setProviderDetail(added > 0
-      ? `지도에 표시된 ${added}곳을 여행 보관함에 담았습니다.`
-      : "지도에 표시된 여행지는 이미 보관함에 있습니다.");
+      ? `지도에 표시된 ${added}곳을 내 일정에 추가했습니다.`
+      : "지도에 표시된 여행지는 이미 내 일정에 있습니다.");
   }, [onSavePlaces, places, setProviderDetail]);
 
   const shareRoute = useCallback(async () => {

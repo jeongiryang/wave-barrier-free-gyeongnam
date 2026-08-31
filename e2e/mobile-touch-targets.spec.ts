@@ -9,6 +9,7 @@ test("모바일 경남 18개 지역 표식은 44px 조작 영역과 선택 가�
   await mockPublicShellApi(page);
   await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
   await page.goto("/");
+  await expect(page.locator(".region-story-copy")).toHaveClass(/is-visible/);
 
   const markers = page.locator("[data-region-marker]");
   await expect(markers).toHaveCount(18);
@@ -44,9 +45,7 @@ test("모바일 경남 18개 지역 표식은 44px 조작 영역과 선택 가�
   // map 렌더 루프와 동일 onClick 계약을 사용하며, 이름/좌표의 고유성은 위와 기존
   // landing-regions 회귀가 18개 모두 검증한다.
   const representativeName = markerState[0].name;
-  const representative = page.locator(`[data-region-marker="${representativeName}"]`);
-  await representative.scrollIntoViewIfNeeded();
-  await representative.click();
+  await page.locator(`[data-region-marker="${representativeName}"]`).click();
   await expect(page.locator(`[data-region-marker="${representativeName}"]`)).toHaveClass(/active/);
 });
 

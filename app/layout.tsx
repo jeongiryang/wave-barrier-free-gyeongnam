@@ -18,7 +18,6 @@ import "./styles/map-workspace.css";
 import "./styles/map-place-tools.css";
 import "./styles/map-live-signals.css";
 import "./styles/situation-identity-refinements.css";
-import "./styles/ocean-intro-refinements.css";
 import "./styles/ocean-landing-refinements.css";
 import "./styles/ocean-planner-refinements.css";
 import "./styles/ocean-responsive-refinements.css";
@@ -38,6 +37,7 @@ import "./styles/mobile-interaction-hardening.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 
 const productionUrl = new URL("https://wave-barrier-free-gyeongnam.vercel.app");
+const preferenceBootScript = `(()=>{try{const d=document.documentElement;const m=matchMedia('(prefers-color-scheme: dark)').matches;const r=matchMedia('(prefers-reduced-motion: reduce)').matches;const t=localStorage.getItem('wave-theme');const l=localStorage.getItem('wave-locale')||'ko';const o=localStorage.getItem('wave-motion');d.dataset.theme=t==='dark'||t==='light'?t:(m?'dark':'light');d.dataset.motion=o==='calm'||o==='full'?o:(r?'calm':'full');d.lang=l==='zh-Hans'?'zh-CN':l==='zh-Hant'?'zh-TW':l;d.style.colorScheme=d.dataset.theme}catch{}})()`;
 
 export const metadata: Metadata = {
   metadataBase: productionUrl,
@@ -95,7 +95,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: preferenceBootScript }} /></head>
       <body className="antialiased">
         <SitePreferencesProvider>{children}</SitePreferencesProvider>
       </body>

@@ -1,4 +1,4 @@
-/* 서비스 이용하기 — 조건·추천·이동·코스·상황을 하나의 작업 공간으로 연결한다. */
+/* 4단계 여행 계획 — 조건·여행지·내 일정·출발 전 확인 */
 .planner-page > .planner-journey-workspace { order: 2; }
 .planner-page > .simple-footer { order: 9; }
 
@@ -24,17 +24,14 @@
 .journey-workspace-hero > div p { margin: 0 0 8px; color: var(--mint); font-size: .72rem; font-weight: 900; letter-spacing: .18em; }
 .journey-workspace-hero h1 { margin: 0; font-size: clamp(2.6rem, 6vw, 5.7rem); line-height: .95; letter-spacing: -.07em; }
 .journey-workspace-hero > p { margin: 0; max-width: 52ch; color: #c5e2ec; font-size: clamp(.9rem, 1.15vw, 1.05rem); line-height: 1.75; }
-.journey-workspace-hero > a { grid-column: 2; justify-self: start; min-height: 44px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgb(255 255 255 / 23%); border-radius: 999px; color: #fff; background: rgb(255 255 255 / 8%); font-size: .78rem; font-weight: 850; text-decoration: none; transition: .2s ease; }
-.journey-workspace-hero > a:hover { background: rgb(255 255 255 / 15%); transform: translateY(-1px); }
+.journey-workspace-hero > nav { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; }
+.journey-workspace-hero > nav a { min-height: 44px; padding: 10px 13px; display: inline-flex; align-items: center; border: 1px solid rgb(255 255 255 / 23%); border-radius: 999px; color: #fff; background: rgb(255 255 255 / 8%); font-size: .75rem; font-weight: 850; text-decoration: none; transition: .2s ease; }
+.journey-workspace-hero > nav a:hover { background: rgb(255 255 255 / 15%); transform: translateY(-1px); }
 
-.journey-workspace-block { width: 100%; margin: 0; padding: clamp(34px, 4vw, 56px) clamp(20px, 4.2vw, 58px); border-top: 1px solid #d7e6ec; }
+.journey-workspace-block { width: 100%; margin: 0; padding: clamp(34px, 4vw, 56px) clamp(20px, 4.2vw, 58px); scroll-margin-top: 96px; border-top: 1px solid #d7e6ec; }
 .planner-journey-workspace .planner-bento,
 .planner-journey-workspace .place-carousel,
 .planner-journey-workspace .day-planner,
-.planner-journey-workspace .route-intro,
-.planner-journey-workspace .itinerary-layout,
-.planner-journey-workspace .share-strip,
-.planner-journey-workspace .course-strip,
 .planner-journey-workspace .weather-board,
 .planner-journey-workspace .impact-panel,
 .planner-journey-workspace .planner-secondary-details,
@@ -45,26 +42,43 @@
 .planner-journey-workspace .transport-data-panel,
 .planner-journey-workspace .navigation-workspace { max-width: none; }
 .planner-journey-workspace .places-section { padding-top: clamp(34px, 4vw, 56px); }
-.planner-journey-workspace .navigation-section { width: 100%; margin: 0; padding: clamp(34px, 4vw, 56px) clamp(20px, 4.2vw, 58px); border-top: 1px solid #d7e6ec; background: #eef5f8; }
-.planner-journey-workspace .route-section { padding-top: clamp(34px, 4vw, 56px); }
-.planner-journey-workspace .travel-layers { padding-top: clamp(34px, 4vw, 56px); }
-.planner-results-bridge { width: 100%; }
+.planner-journey-workspace .itinerary-stage { background: #eef5f8; }
+.planner-journey-workspace .navigation-section { width: 100%; margin: 28px 0 0; padding: 28px 0 0; border-top: 1px solid #cfdee5; background: transparent; }
 
 .journey-subheading { margin: 0 0 24px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
 .journey-subheading > div { display: flex; align-items: center; gap: 13px; }
 .journey-subheading > div > span { min-width: 70px; min-height: 32px; padding: 7px 10px; display: inline-grid; place-items: center; border-radius: 999px; color: var(--blue); background: var(--sky); font-size: .62rem; font-weight: 900; letter-spacing: .07em; }
-.journey-subheading h3 { margin: 0; color: var(--ink); font-size: clamp(1.45rem, 2.3vw, 2.2rem); letter-spacing: -.045em; }
+.journey-subheading h2 { margin: 0; color: var(--ink); font-size: clamp(1.45rem, 2.3vw, 2.2rem); letter-spacing: -.045em; }
 .journey-subheading > p { margin: 0; color: var(--muted); font-size: .76rem; font-weight: 760; }
-
-.planner-journey-workspace .route-section { color: inherit; background: linear-gradient(180deg,#f1f8fb,#e8f4f8); }
-.planner-journey-workspace .route-section .route-intro h2 { color: var(--ink); }
-.planner-journey-workspace .travel-layers { color: #fff; background: #062736; }
-.journey-subheading.inverse h3 { color: #fff; }
-.journey-subheading.inverse > div > span { color: var(--mint); background: rgb(125 235 233 / 10%); }
-.journey-subheading.inverse > p { color: #90b1c0; }
+.stage-guidance { margin: -14px 0 22px; color: var(--muted); font-size: .82rem; }
 
 /* 기존 최상위 전용 carousel 규칙을 통합 워크스페이스 안에서도 동일하게 유지한다. */
 .planner-journey-workspace > .places-section .place-carousel { width: auto; }
+.planner-journey-workspace .save-card { width: auto; min-width: 106px; height: 44px; padding: 0 13px; border-radius: 999px; font-size: .7rem; font-weight: 900; }
+.planner-journey-workspace .save-card.saved { color: #87384a; }
+
+/* 내 일정만 일정의 source of truth로 사용한다. */
+.itinerary-empty-state { min-height: 210px; padding: 30px; display: grid; place-content: center; justify-items: center; text-align: center; }
+.itinerary-empty-state > span { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; color: var(--blue); background: var(--sky); font-size: 1.4rem; }
+.itinerary-empty-state h3 { margin: 16px 0 7px; font-size: 1.25rem; }.itinerary-empty-state p { max-width: 520px; margin: 0; color: var(--muted); line-height: 1.65; }
+.itinerary-primary-actions { margin-top: 18px; padding: 18px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 7px 16px; border: 1px solid #b8d9d0; border-radius: 16px; background: #eef9f4; }
+.itinerary-primary-actions strong,.itinerary-primary-actions p { display: block; }.itinerary-primary-actions p { margin: 4px 0 0; color: var(--muted); font-size: .72rem; }
+.itinerary-primary-actions button,.itinerary-primary-actions a { min-height: 44px; padding: 10px 13px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 11px; color: var(--on-blue); background: var(--blue); font: inherit; font-size: .72rem; font-weight: 900; }
+.itinerary-primary-actions a,.itinerary-primary-actions small { grid-column: 2; }.itinerary-primary-actions a { color: var(--blue); border: 1px solid #b8d4df; background: #fff; }
+.itinerary-primary-actions small { color: #a62f48; }
+.itinerary-secondary-actions { margin-top: 14px; border: 1px solid #cbdfe7; border-radius: 16px; background: #f8fcfe; }
+.itinerary-secondary-actions > summary { min-height: 52px; padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; font-size: .78rem; font-weight: 900; }
+.itinerary-secondary-actions > summary span { color: var(--muted); font-size: .65rem; font-weight: 700; }
+.itinerary-secondary-actions[open] { padding-bottom: 14px; }.itinerary-secondary-actions[open] > :not(summary) { margin-inline: 14px; }
+.itinerary-course { margin-top: 12px; padding: 15px; border-radius: 13px; background: var(--sky); }.itinerary-course p { margin: 5px 0; color: var(--muted); font-size: .72rem; }.itinerary-course span { font-size: .66rem; font-weight: 800; }
+
+.navigation-section .workspace-heading { margin-bottom: 18px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+.navigation-section .workspace-heading > div { display: flex; align-items: center; gap: 10px; }.navigation-section .workspace-heading span { color: var(--blue); }.navigation-section .workspace-heading h3 { margin: 0; font-size: 1.25rem; }.navigation-section .workspace-heading > p { max-width: 560px; margin: 0; color: var(--muted); font-size: .75rem; }
+
+/* 출발 전 상세 신호와 시스템 진단은 기본 흐름에서 접는다. */
+.planner-journey-workspace .travel-layers { padding: 0; color: var(--ink); background: #f8fcfe; }
+.travel-layers > summary { min-height: 68px; padding: 14px clamp(20px,4.2vw,58px); display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; font-weight: 900; }
+.travel-layers > summary small { color: var(--muted); font-weight: 700; }.travel-signal-content { padding: 0 clamp(20px,4.2vw,58px) 36px; }
 
 /* 길찾기 결과는 목적이 아니라 이동수단별 최소 시간으로 먼저 비교한다. */
 .route-mode-sections { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
@@ -103,26 +117,33 @@
   .planner-journey-workspace { width: calc(100vw - 16px); margin-top: 16px; border-radius: 22px; }
   .journey-workspace-hero { min-height: 0; padding: 28px 20px; grid-template-columns: 1fr; }
   .journey-workspace-hero h1 { font-size: clamp(2.6rem, 14vw, 4.2rem); }
-  .journey-workspace-hero > a { grid-column: auto; }
+  .journey-workspace-hero > nav { grid-column: auto; }
   .journey-workspace-block { padding: 30px 14px; }
-  .planner-journey-workspace .navigation-section { padding: 30px 14px; }
+  .planner-journey-workspace .navigation-section { padding: 24px 0 0; }
   .journey-subheading { align-items: flex-start; flex-direction: column; gap: 8px; }
   .journey-subheading > div { align-items: flex-start; flex-direction: column; gap: 8px; }
   .route-mode-sections { grid-template-columns: 1fr; }
   .place-community-stories > header { align-items: flex-start; flex-direction: column; }
+  .stage-guidance { margin-top: -12px; }
+  .itinerary-primary-actions { grid-template-columns: 1fr; }.itinerary-primary-actions a,.itinerary-primary-actions small { grid-column: 1; }
+  .navigation-section .workspace-heading,.travel-layers > summary { align-items: flex-start; flex-direction: column; }
+  .travel-layers > summary { padding: 16px 14px; }.travel-signal-content { padding: 0 14px 24px; }
 }
 
 html[data-theme="dark"] .planner-journey-workspace { border-color: #294e60; background: #092634; }
 html[data-theme="dark"] .journey-workspace-block { border-color: #294e60; }
+html[data-theme="dark"] .planner-journey-workspace .itinerary-stage { background: #0b2d3c; }
 html[data-theme="dark"] .planner-journey-workspace .navigation-section { border-color: #294e60; background: #0b2d3c; }
-html[data-theme="dark"] .journey-subheading h3 { color: #edf7fb; }
+html[data-theme="dark"] .journey-subheading h2 { color: #edf7fb; }
 html[data-theme="dark"] .journey-subheading > p { color: #a6c2ce; }
+html[data-theme="dark"] .itinerary-primary-actions { border-color: #376d5d; background: #123e35; }
+html[data-theme="dark"] .itinerary-secondary-actions,html[data-theme="dark"] .planner-journey-workspace .travel-layers { color: #edf7fb; border-color: #31596a; background: #0b2d3c; }
 html[data-theme="dark"] .place-community-stories { border-color: #31596a; background: #0a2735; }
 html[data-theme="dark"] .place-community-story-list > a { color: #eaf5f9; background: #0e3748; }
 html[data-theme="dark"] .place-community-empty { background: #0e3748; }html[data-theme="dark"] .place-field-report-link { color: #eaf5f9; border-color: #376d5d; background: #123e35; }html[data-theme="dark"] .place-field-report-link i { color: #8ee5c8; }
 
 @media (prefers-reduced-motion: reduce) {
-  .journey-workspace-hero > a,.route-mode-sections button,.place-community-story-list > a { transition: none; }
+  .journey-workspace-hero > nav a,.route-mode-sections button,.place-community-story-list > a { transition: none; }
 }
 
 /* 시간을 확인하지 못한 이동수단. 값처럼 강조하지 않는다 — 파란 글자로 두면
