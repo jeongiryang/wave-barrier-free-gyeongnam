@@ -96,7 +96,7 @@ export default function DepartureReadinessCard({
     <header>
       <div>
         <span><b aria-hidden="true">4</b> 출발 전 확인 · {assessment.phase.label}</span>
-        <h2 id="departure-readiness-title">출발 전에 이것만 다시 확인하세요.</h2>
+        <h2 id="departure-readiness-title" aria-label="출발 전에 이것만 다시 확인하세요."><small>출발 전에 이것만 다시 확인하세요.</small><span aria-hidden="true">지금 출발해도 괜찮을까요?</span></h2>
         <p>실제로 조회된 정보만 ‘확인됨’으로 표시합니다. 나머지는 출발 전에 최신 정보를 확인하세요.</p>
       </div>
       <strong className={`readiness-overall ${assessment.state}`}><i aria-hidden="true" />전체 {statusLabel[assessment.state as keyof typeof statusLabel]}</strong>

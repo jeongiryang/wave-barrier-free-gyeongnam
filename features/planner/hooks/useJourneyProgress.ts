@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { scrollToSection } from "../../../lib/reduced-motion.js";
 import type { Motion } from "../../preferences/types";
 
@@ -16,6 +16,9 @@ export interface JourneyStep {
 
 interface JourneyProgressOptions {
   motion: Motion;
+  observeSections?: boolean;
+  activeStepId: JourneyStepId;
+  onActiveStepChange: (id: JourneyStepId) => void;
   selectedProfileCount: number;
   recommendedCount: number;
   savedCount: number;
@@ -26,15 +29,15 @@ interface JourneyProgressOptions {
 const STEP_IDS: JourneyStepId[] = ["conditions", "places", "itinerary", "departure-readiness"];
 
 export function useJourneyProgress({
-  motion,
+  motion, observeSections = true,
+  activeStepId,
+  onActiveStepChange,
   selectedProfileCount,
   recommendedCount,
   savedCount,
   routeDestinationName,
   weatherReady,
 }: JourneyProgressOptions) {
-  const [activeStepId, setActiveStepId] = useState<JourneyStepId>("conditions");
-
   const steps = useMemo<JourneyStep[]>(() => [
     {
       id: "conditions",
@@ -67,23 +70,29 @@ export function useJourneyProgress({
   ], [recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady]);
 
   useEffect(() => {
+    if (!observeSections) return;
     const sections = STEP_IDS.map((id) => document.getElementById(id)).filter((section): section is HTMLElement => Boolean(section));
     if (!sections.length || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver((entries) => {
+      if (document.querySelector<HTMLElement>(".journey-stage-stream")?.dataset.view !== "overview") return;
       const visible = entries
         .filter((entry) => entry.isIntersecting)
         .sort((left, right) => Math.abs(left.boundingClientRect.top) - Math.abs(right.boundingClientRect.top));
       const id = visible[0]?.target.id as JourneyStepId | undefined;
-      if (id && STEP_IDS.includes(id)) setActiveStepId(id);
+      if (id && STEP_IDS.includes(id)) onActiveStepChange(id);
     }, { rootMargin: "-18% 0px -64%", threshold: [0, 0.08, 0.2] });
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
-  }, []);
+  }, [observeSections, onActiveStepChange]);
 
   const goToStep = useCallback((id: JourneyStepId) => {
-    setActiveStepId(id);
-    return scrollToSection(id, motion === "calm");
-  }, [motion]);
+    onActiveStepChange(id);
+    if (typeof window === "undefined") return false;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => scrollToSection(id, motion === "calm"));
+    });
+    return true;
+  }, [motion, onActiveStepChange]);
 
   const completedCount = steps.filter((step) => step.complete).length;
   const nextStep = steps.find((step) => !step.complete) || steps.at(-1)!;
