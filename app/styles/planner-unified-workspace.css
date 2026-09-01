@@ -53,7 +53,8 @@
 .journey-subheading { margin: 0 0 24px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
 .journey-subheading > div { display: flex; align-items: center; gap: 13px; }
 .journey-subheading > div > span { min-width: 70px; min-height: 32px; padding: 7px 10px; display: inline-grid; place-items: center; border-radius: 999px; color: var(--blue); background: var(--sky); font-size: .62rem; font-weight: 900; letter-spacing: .07em; }
-.journey-subheading h2 { margin: 0; color: var(--ink); font-size: clamp(1.45rem, 2.3vw, 2.2rem); letter-spacing: -.045em; }
+.journey-subheading h2 { margin: 0; display: grid; gap: 4px; color: var(--ink); font-size: clamp(1.45rem, 2.3vw, 2.2rem); letter-spacing: -.045em; }
+.journey-subheading h2 small { color: var(--blue); font-size: .58rem; font-weight: 900; letter-spacing: .08em; }
 .journey-subheading > p { margin: 0; color: var(--muted); font-size: .76rem; font-weight: 760; }
 .stage-guidance { margin: -14px 0 22px; color: var(--muted); font-size: .82rem; }
 
@@ -140,6 +141,7 @@ html[data-theme="dark"] .journey-workspace-block { border-color: #294e60; }
 html[data-theme="dark"] .planner-journey-workspace .itinerary-stage { background: #0b2d3c; }
 html[data-theme="dark"] .planner-journey-workspace .navigation-section { border-color: #294e60; background: #0b2d3c; }
 html[data-theme="dark"] .journey-subheading h2 { color: #edf7fb; }
+html[data-theme="dark"] .journey-subheading h2 small { color: #76d5e5; }
 html[data-theme="dark"] .journey-subheading > p { color: #a6c2ce; }
 html[data-theme="dark"] .itinerary-primary-actions { border-color: #376d5d; background: #123e35; }
 html[data-theme="dark"] .itinerary-secondary-actions,html[data-theme="dark"] .planner-journey-workspace .travel-layers { color: #edf7fb; border-color: #31596a; background: #0b2d3c; }
