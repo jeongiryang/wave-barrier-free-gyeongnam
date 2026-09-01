@@ -68,3 +68,27 @@ test("모바일 여정 레일은 44px 하단 탐색과 수평 안전 영역을 �
   expect(overflow).toBeLessThanOrEqual(1);
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
 });
+
+test("한 단계씩 보기에서는 질문 하나만 보여 주고 전체 보기로 즉시 전환한다", async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockPublicShellApi(page);
+  await mockPlannerApi(page, { plannerView: "guided" });
+  await page.goto("/planner");
+
+  const mode = page.getByRole("group", { name: "여행 설계 보기 방식" });
+  await expect(mode.getByRole("button", { name: /한 단계씩/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".guided-stage-prompt").getByRole("heading", { name: "어떤 여행이 편안할까요?" })).toBeVisible();
+  await expect(page.locator("#places")).toBeHidden();
+
+  await page.getByRole("navigation", { name: "여행 계획 단계 이동" }).getByRole("button", { name: /여행지/ }).click();
+  await expect(page.locator(".guided-stage-prompt").getByRole("heading", { name: "왜 이 장소가 나에게 맞을까요?" })).toBeVisible();
+  await expect(page.locator("#places")).toBeVisible();
+  await expect(page.locator("#conditions")).toBeHidden();
+
+  await page.getByRole("button", { name: "전체 정보 한눈에 보기" }).click();
+  await expect(mode.getByRole("button", { name: /전체 보기/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#conditions")).toBeVisible();
+  await expect(page.locator("#itinerary")).toBeVisible();
+  await expect(page.locator("#departure-readiness")).toBeVisible();
+});
