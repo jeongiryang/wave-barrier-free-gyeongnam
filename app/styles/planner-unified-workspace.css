@@ -5,7 +5,12 @@
 .planner-journey-workspace {
   width: var(--content);
   margin: 34px auto 0;
-  overflow: hidden;
+  /*
+   * `hidden`은 이 요소를 스크롤 컨테이너로 만들어 안쪽 Journey Control의
+   * sticky 기준을 가로챈다. `clip`은 둥근 워크스페이스 경계는 유지하면서
+   * 데스크톱 레일이 문서 스크롤에 붙도록 한다.
+   */
+  overflow: clip;
   border: 1px solid #cbdfe8;
   border-radius: clamp(22px, 3vw, 36px);
   background: #f8fcfe;
