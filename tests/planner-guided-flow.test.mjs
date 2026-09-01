@@ -14,11 +14,14 @@ test("새 여행자는 한 단계씩 보고 필요하면 전체 보기로 전환
 
   assert.match(viewHook, /useSyncExternalStore\(subscribe, currentView, serverView\)/);
   assert.match(viewHook, /wave-planner-stage-view-v1/);
+  assert.match(viewHook, /wave-planner-active-step-v1/);
   assert.match(modeToggle, /aria-pressed=\{view === "guided"\}/);
   assert.match(modeToggle, /aria-pressed=\{view === "overview"\}/);
   assert.match(stageFrame, /hidden=\{view === "guided" && !active\}/);
   assert.equal((page.match(/<PlannerStageFrame/g) ?? []).length, 4);
   assert.match(page, /observeSections: stageView\.view === "overview"/);
+  assert.match(page, /activeStepId: stageView\.activeStepId/);
+  assert.match(page, /onActiveStepChange: stageView\.changeStep/);
 });
 
 test("네 단계는 기능명이 아니라 여행자의 질문으로 이어진다", async () => {
