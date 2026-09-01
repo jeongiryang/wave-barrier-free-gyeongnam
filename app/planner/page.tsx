@@ -35,7 +35,7 @@ import PlannerStageFrame from "../../features/planner/components/PlannerStageFra
 import { usePlannerStageView } from "../../features/planner/hooks/usePlannerStageView";
 
 export default function PlannerPage() {
-  const { locale, motion, t } = useSitePreferences();
+  const { hydrated, locale, motion, t } = useSitePreferences();
   const planController = usePlannerPlan(locale);
   const {
     selected, region, theme, setTheme, plan,
@@ -176,8 +176,8 @@ export default function PlannerPage() {
               <div><dt>일정</dt><dd>{saved.length ? `${saved.length}곳 저장` : "장소 선택 전"}</dd></div>
               <div><dt>경로</dt><dd>{routeDestination?.name || "목적지 미확인"}</dd></div>
             </dl>
-            <PlannerJourneyModeToggle view={stageView.view} onChange={stageView.changeView} />
-            <button type="button" onClick={() => { stageView.changeView("guided"); journey.goToStep(journey.nextStep.id); }}>{stageView.view === "guided" ? "다음 질문" : "한 단계씩 이어가기"}: {journey.nextStep.label}<span aria-hidden="true">→</span></button>
+            <PlannerJourneyModeToggle view={stageView.view} interactive={hydrated} onChange={stageView.changeView} />
+            <button type="button" disabled={!hydrated} onClick={() => { stageView.changeView("guided"); journey.goToStep(journey.nextStep.id); }}>{stageView.view === "guided" ? "다음 질문" : "한 단계씩 이어가기"}: {journey.nextStep.label}<span aria-hidden="true">→</span></button>
           </div>
           <div className="journey-trust-legend" aria-label="정보 상태 안내">
             <span data-state="confirmed"><i aria-hidden="true" />확인됨 <small>공식 근거·실제 응답</small></span>
@@ -188,13 +188,14 @@ export default function PlannerPage() {
         <div className="journey-control-layout">
           <PlannerJourneyRail
             journey={journey}
+            interactive={hydrated}
             selectedProfileCount={selected.length}
             recommendedCount={activePlaces.length}
             savedCount={saved.length}
             routeDestinationName={routeDestination?.name || ""}
           />
           <div className="journey-stage-stream" data-view={stageView.view}>
-            <PlannerStageFrame view={stageView.view} step={journey.steps[0]} steps={journey.steps} activeStepId={journey.activeStepId} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
+            <PlannerStageFrame view={stageView.view} step={journey.steps[0]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerConditionsPanel
                 t={t}
                 activePlaces={activePlaces}
@@ -203,7 +204,7 @@ export default function PlannerPage() {
                 tripSelection={tripSelection}
               />
             </PlannerStageFrame>
-            <PlannerStageFrame view={stageView.view} step={journey.steps[1]} steps={journey.steps} activeStepId={journey.activeStepId} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
+            <PlannerStageFrame view={stageView.view} step={journey.steps[1]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <RecommendationWorkspace
                 t={t}
                 region={region}
@@ -215,7 +216,7 @@ export default function PlannerPage() {
                 onSelectPlace={setSelectedPlace}
               />
             </PlannerStageFrame>
-            <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
+            <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerItineraryWorkspace
                 plan={plan}
                 activePlaces={activePlaces}
@@ -232,7 +233,7 @@ export default function PlannerPage() {
                 onSaveMapPlaces={saveMapPlaces}
               />
             </PlannerStageFrame>
-            <PlannerStageFrame view={stageView.view} step={journey.steps[3]} steps={journey.steps} activeStepId={journey.activeStepId} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
+            <PlannerStageFrame view={stageView.view} step={journey.steps[3]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <DepartureReadinessCard
                 plan={plan}
                 region={region}
