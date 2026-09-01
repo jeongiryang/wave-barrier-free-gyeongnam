@@ -82,7 +82,11 @@ export function useJourneyProgress({
 
   const goToStep = useCallback((id: JourneyStepId) => {
     setActiveStepId(id);
-    return scrollToSection(id, motion === "calm");
+    if (typeof window === "undefined") return false;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => scrollToSection(id, motion === "calm"));
+    });
+    return true;
   }, [motion]);
 
   const completedCount = steps.filter((step) => step.complete).length;
