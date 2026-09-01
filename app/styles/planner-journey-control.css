@@ -158,6 +158,18 @@
 html[data-theme="dark"] .journey-stage-stream { background: #071f2b; }
 html[data-theme="dark"] .journey-stage-stream .itinerary-stage { background: #0a2937; }
 
+/*
+ * 고정 여정 레일을 더한 뒤에는 뷰포트가 아니라 실제 작업 영역 폭으로 지도 레이아웃을
+ * 판단해야 한다. 1440px 화면에서도 오른쪽 단계가 차지한 폭 때문에 지도+경로 2열은
+ * 약 1,000px 안에 눌린다. 이 구간은 지도를 위에, 이동 비교를 아래에 배치해 지도 명령을
+ * 작은 가로 창에 몰아넣지 않는다. 더 넓은 화면에서는 기존 2열 비교를 유지한다.
+ */
+@media (max-width: 1560px) {
+  .journey-stage-stream .navigation-workspace { grid-template-columns: minmax(0,1fr); }
+  .journey-stage-stream .map-panel { border-right: 0; border-bottom: 1px solid #d3e3ea; }
+  .journey-stage-stream .route-compare-panel { max-height: none; }
+}
+
 html[data-motion="calm"] { scroll-behavior: auto; }
 html[data-motion="calm"] .journey-progress i,
 html[data-motion="calm"] .journey-briefing-progress i,
