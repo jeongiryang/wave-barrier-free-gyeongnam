@@ -17,7 +17,7 @@ test("플래너의 일정은 로컬 여행집에서 기록하고 다시 복원�
   await itinerary.getByRole("link", { name: /내 여행집 열기/ }).click();
   await expect(page).toHaveURL(/\/travel-book$/);
   await expect(page.getByRole("heading", { name: "창원 1곳 여행" })).toBeVisible();
-  await expect(page.getByText("이 기기에만 보관해요.")).toBeVisible();
+  await expect(page.getByText("내 기기 안에만 보관해요.")).toBeVisible();
   await expect(page.getByText("경남도립미술관")).toBeVisible();
   await expect(page.getByRole("link", { name: "사진으로 코스 되살리기" })).toHaveAttribute("href", "/photo-course");
   await expect(page.getByRole("link", { name: "여행 후기 초안" })).toHaveAttribute("href", /draft=journal/);
