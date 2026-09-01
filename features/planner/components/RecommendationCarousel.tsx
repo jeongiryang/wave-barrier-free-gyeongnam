@@ -26,7 +26,7 @@ export default function RecommendationCarousel({ t, region, activePlaces, planCo
   const scrollCards = (direction: number) => cardsRef.current?.scrollBy({ left: direction * Math.min(window.innerWidth * 0.78, 480), behavior: "smooth" });
 
   return <>
-    <div className="journey-subheading" data-reveal><div><span aria-hidden="true">2</span><h2>{t("placesTitle", "여행지 고르기")}</h2></div><div className="carousel-actions"><button type="button" onClick={() => scrollCards(-1)} aria-label="이전 여행지">←</button><button type="button" onClick={() => scrollCards(1)} aria-label="다음 여행지">→</button></div></div>
+    <div className="journey-subheading" data-reveal><div><span aria-hidden="true">2</span><h2><small>{t("placesTitle", "여행지 고르기")}</small>왜 이 장소가 나에게 맞을까요?</h2></div><div className="carousel-actions"><button type="button" onClick={() => scrollCards(-1)} aria-label="이전 여행지">←</button><button type="button" onClick={() => scrollCards(1)} aria-label="다음 여행지">→</button></div></div>
     <p className="stage-guidance">선택한 조건이 공식 정보에서 확인된 장소만 추천합니다. 마음에 드는 장소를 내 일정에 추가하세요.</p>
     <div className="place-carousel" ref={cardsRef} aria-busy={loading}>
       {loading && <p className="sr-only" role="status" aria-live="polite">여행 조건에 맞는 공식 관광정보를 불러오고 있어요.</p>}
