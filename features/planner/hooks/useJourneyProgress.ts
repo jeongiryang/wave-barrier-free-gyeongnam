@@ -16,6 +16,7 @@ export interface JourneyStep {
 
 interface JourneyProgressOptions {
   motion: Motion;
+  observeSections?: boolean;
   selectedProfileCount: number;
   recommendedCount: number;
   savedCount: number;
@@ -26,7 +27,7 @@ interface JourneyProgressOptions {
 const STEP_IDS: JourneyStepId[] = ["conditions", "places", "itinerary", "departure-readiness"];
 
 export function useJourneyProgress({
-  motion,
+  motion, observeSections = true,
   selectedProfileCount,
   recommendedCount,
   savedCount,
@@ -67,6 +68,7 @@ export function useJourneyProgress({
   ], [recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady]);
 
   useEffect(() => {
+    if (!observeSections) return;
     const sections = STEP_IDS.map((id) => document.getElementById(id)).filter((section): section is HTMLElement => Boolean(section));
     if (!sections.length || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver((entries) => {
@@ -78,7 +80,7 @@ export function useJourneyProgress({
     }, { rootMargin: "-18% 0px -64%", threshold: [0, 0.08, 0.2] });
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
-  }, []);
+  }, [observeSections]);
 
   const goToStep = useCallback((id: JourneyStepId) => {
     setActiveStepId(id);
