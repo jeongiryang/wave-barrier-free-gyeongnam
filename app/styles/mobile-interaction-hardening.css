@@ -22,6 +22,14 @@
   min-height: 44px;
 }
 
+/* select 자체가 앞선 `.select-shell select { outline: 0 }`에 덮이지 않게 한다. */
+.select-shell select:focus-visible,
+.date-range-fields input:focus-visible,
+.planner-page textarea:focus-visible {
+  outline: 3px solid #ffb800;
+  outline-offset: 3px;
+}
+
 /*
  * 지도 위 배지는 작게 유지해야 지도를 가리지 않는다. 보이는 크기는 그대로 두고
  * 눌리는 영역만 아래로 넓힌다.

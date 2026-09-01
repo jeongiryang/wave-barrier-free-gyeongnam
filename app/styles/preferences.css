@@ -28,7 +28,8 @@
 .preference-row:hover { border-color: var(--line); background: var(--sky); }
 .preference-row > span { min-width: 0; display: grid; gap: 1px; }
 .preference-row b { font-size: .78rem; }
-.preference-row select { min-width: 122px; min-height: 40px; padding: 7px 28px 7px 9px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: #fff; font-size: .72rem; font-weight: 800; }
+.preference-row select { min-width: 122px; min-height: 44px; padding: 7px 28px 7px 9px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: #fff; font-size: .72rem; font-weight: 800; }
+.preference-row select:focus-visible { outline: 3px solid #ffb800; outline-offset: 3px; }
 .preference-row em { min-width: 48px; min-height: 34px; padding: 5px 8px; display: grid; place-items: center; border-radius: 9px; color: var(--blue); background: #fff; font-size: .68rem; font-style: normal; font-weight: 850; }
 .preference-row.motion-toggle[aria-pressed="true"] { border-color: #a5dce9; background: #e9f8fb; }
 .preference-row.app-install { border-color: #b8ddcf; background: #effaf6; }

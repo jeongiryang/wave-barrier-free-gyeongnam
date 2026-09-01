@@ -26,11 +26,13 @@ import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialog
 import { usePlannerAutoRefresh } from "../../features/planner/hooks/usePlannerAutoRefresh";
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
+import { useJourneyProgress } from "../../features/planner/hooks/useJourneyProgress";
 import type { Place } from "../../features/planner/types";
 import { buildPlannerViewModel } from "../../features/planner/view-model";
+import PlannerJourneyRail from "../../features/planner/components/PlannerJourneyRail";
 
 export default function PlannerPage() {
-  const { locale, t } = useSitePreferences();
+  const { locale, motion, t } = useSitePreferences();
   const planController = usePlannerPlan(locale);
   const {
     selected, region, theme, setTheme, plan,
@@ -78,6 +80,14 @@ export default function PlannerPage() {
     selectedPlace,
   });
   const { feedbackText, feedbackState, changeFeedbackText, submitFeedback } = participation;
+  const journey = useJourneyProgress({
+    motion,
+    selectedProfileCount: selected.length,
+    recommendedCount: activePlaces.length,
+    savedCount: saved.length,
+    routeDestinationName: routeDestination?.name || "",
+    weatherReady: Boolean(weather && !weatherLoading),
+  });
   const {
     liveCount,
     effectiveProviders,
@@ -146,82 +156,110 @@ export default function PlannerPage() {
 
       <section className="planner-journey-workspace" id="planner" aria-labelledby="journey-workspace-title">
         <header className="journey-workspace-hero" data-reveal>
-          <div><p>W.A.V.E 여행 계획</p><h1 id="journey-workspace-title">나에게 맞는 여행을<br />4단계로 완성하세요.</h1></div>
-          <p>조건을 고르고, 여행지를 일정에 추가한 뒤 이동 경로와 출발 전 정보만 확인하면 됩니다.</p>
-          <nav aria-label="여행 계획 단계"><a href="#conditions">1 조건</a><a href="#places">2 여행지</a><a href="#itinerary">3 내 일정</a><a href="#departure-readiness">4 출발 전 확인</a></nav>
+          <div className="journey-hero-copy">
+            <p>W.A.V.E JOURNEY CONTROL</p>
+            <h1 id="journey-workspace-title">나에게 맞는 여행을<br />4단계로 완성하세요.</h1>
+            <span>조건부터 출발 직전까지, 확인된 근거와 다음 행동을 한 흐름으로 연결합니다.</span>
+          </div>
+          <div className="journey-briefing-card" aria-label="현재 여행 브리핑">
+            <div><span>현재 준비도</span><strong>{journey.progress}%</strong></div>
+            <div className="journey-briefing-progress" aria-hidden="true"><i style={{ width: `${journey.progress}%` }} /></div>
+            <dl>
+              <div><dt>필요 편의</dt><dd>{selected.length ? `${selected.length}개 선택` : "선택 전"}</dd></div>
+              <div><dt>일정</dt><dd>{saved.length ? `${saved.length}곳 저장` : "장소 선택 전"}</dd></div>
+              <div><dt>경로</dt><dd>{routeDestination?.name || "목적지 미확인"}</dd></div>
+            </dl>
+            <button type="button" onClick={() => journey.goToStep(journey.nextStep.id)}>다음: {journey.nextStep.label}<span aria-hidden="true">→</span></button>
+          </div>
+          <div className="journey-trust-legend" aria-label="정보 상태 안내">
+            <span data-state="confirmed"><i aria-hidden="true" />확인됨 <small>공식 근거·실제 응답</small></span>
+            <span data-state="partial"><i aria-hidden="true" />일부 확인 <small>확인 범위 제한</small></span>
+            <span data-state="recheck"><i aria-hidden="true" />재확인 필요 <small>예측·미조회·변경 가능</small></span>
+          </div>
         </header>
-        <PlannerConditionsPanel
-          t={t}
-          activePlaces={activePlaces}
-          planController={planController}
-          route={routePlanning}
-          tripSelection={tripSelection}
-        />
-        <RecommendationWorkspace
-          t={t}
-          region={region}
-          activePlaces={activePlaces}
-          planController={planController}
-          route={routePlanning}
-          tripSelection={tripSelection}
-          onGenerate={generatePlan}
-          onSelectPlace={setSelectedPlace}
-        />
-        <PlannerItineraryWorkspace
-          plan={plan}
-          activePlaces={activePlaces}
-          planCrowd={plan?.crowd}
-          effectiveProviders={effectiveProviders}
-          route={routePlanning}
-          locationSearch={locationSearch}
-          tripSelection={tripSelection}
-          audioGuide={audioGuide}
-          participation={participation}
-          onChoosePoint={choosePoint}
-          onCopyBookingRoute={copyBookingRoute}
-          onMapDestination={routeFromMapPlace}
-          onSaveMapPlaces={saveMapPlaces}
-        />
-        <DepartureReadinessCard
-          plan={plan}
-          region={region}
-          weather={weather}
-          weatherLoading={weatherLoading}
-          transportProviders={effectiveProviders}
-          tripSelection={tripSelection}
-          participation={participation}
-          onRefresh={() => { reloadWeather(); return generatePlan(false); }}
-        />
-        <TravelSignalsPanel
-          region={region}
-          plan={plan}
-          weather={weather}
-          weatherLoading={weatherLoading}
-          tripImpact={tripImpact}
-          impactCrowd={impactCrowd}
-          onImpactAction={applyImpactAction}
-          enrichment={enrichment}
-          enrichmentLoading={enrichmentLoading}
-          visitorTypes={visitorTypes}
-          demandMax={demandMax}
-          richMode={richMode}
-          onRichModeChange={setRichMode}
-          richItems={richItems}
-          onReloadEnrichment={() => void loadEnrichment()}
-          secondaryOpen={secondaryOpen}
-          onSecondaryOpenChange={setSecondaryOpen}
-          onRouteFromRichSpot={routeFromRichSpot}
-        />
-        <PlannerServiceStatus
-          locale={locale}
-          keyHealth={keyHealth}
-          effectiveProviders={effectiveProviders}
-          transportProviders={transportProviders}
-          providerErrors={providerErrors}
-          liveCount={liveCount}
-          dataErrors={dataErrors}
-          plan={plan}
-        />
+        <div className="journey-control-layout">
+          <PlannerJourneyRail
+            journey={journey}
+            selectedProfileCount={selected.length}
+            recommendedCount={activePlaces.length}
+            savedCount={saved.length}
+            routeDestinationName={routeDestination?.name || ""}
+          />
+          <div className="journey-stage-stream">
+            <PlannerConditionsPanel
+              t={t}
+              activePlaces={activePlaces}
+              planController={planController}
+              route={routePlanning}
+              tripSelection={tripSelection}
+            />
+            <RecommendationWorkspace
+              t={t}
+              region={region}
+              activePlaces={activePlaces}
+              planController={planController}
+              route={routePlanning}
+              tripSelection={tripSelection}
+              onGenerate={generatePlan}
+              onSelectPlace={setSelectedPlace}
+            />
+            <PlannerItineraryWorkspace
+              plan={plan}
+              activePlaces={activePlaces}
+              planCrowd={plan?.crowd}
+              effectiveProviders={effectiveProviders}
+              route={routePlanning}
+              locationSearch={locationSearch}
+              tripSelection={tripSelection}
+              audioGuide={audioGuide}
+              participation={participation}
+              onChoosePoint={choosePoint}
+              onCopyBookingRoute={copyBookingRoute}
+              onMapDestination={routeFromMapPlace}
+              onSaveMapPlaces={saveMapPlaces}
+            />
+            <DepartureReadinessCard
+              plan={plan}
+              region={region}
+              weather={weather}
+              weatherLoading={weatherLoading}
+              transportProviders={effectiveProviders}
+              tripSelection={tripSelection}
+              participation={participation}
+              onRefresh={() => { reloadWeather(); return generatePlan(false); }}
+            />
+            <TravelSignalsPanel
+              region={region}
+              plan={plan}
+              weather={weather}
+              weatherLoading={weatherLoading}
+              tripImpact={tripImpact}
+              impactCrowd={impactCrowd}
+              onImpactAction={applyImpactAction}
+              enrichment={enrichment}
+              enrichmentLoading={enrichmentLoading}
+              visitorTypes={visitorTypes}
+              demandMax={demandMax}
+              richMode={richMode}
+              onRichModeChange={setRichMode}
+              richItems={richItems}
+              onReloadEnrichment={() => void loadEnrichment()}
+              secondaryOpen={secondaryOpen}
+              onSecondaryOpenChange={setSecondaryOpen}
+              onRouteFromRichSpot={routeFromRichSpot}
+            />
+            <PlannerServiceStatus
+              locale={locale}
+              keyHealth={keyHealth}
+              effectiveProviders={effectiveProviders}
+              transportProviders={transportProviders}
+              providerErrors={providerErrors}
+              liveCount={liveCount}
+              dataErrors={dataErrors}
+              plan={plan}
+            />
+          </div>
+        </div>
       </section>
 
       {selectedPlace && <PlaceDecisionDialog

@@ -29,6 +29,7 @@ import "./styles/account-community.css";
 import "./styles/landing-stories.css";
 import "./styles/landing-regions.css";
 import "./styles/planner-unified-workspace.css";
+import "./styles/planner-journey-control.css";
 import "./styles/planner-service-status.css";
 import "./styles/planner-theme-contrast.css";
 import "./styles/departure-readiness.css";
