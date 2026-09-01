@@ -18,6 +18,7 @@ test("새 여행자는 한 단계씩 보고 필요하면 전체 보기로 전환
   assert.match(modeToggle, /aria-pressed=\{view === "overview"\}/);
   assert.match(stageFrame, /hidden=\{view === "guided" && !active\}/);
   assert.equal((page.match(/<PlannerStageFrame/g) ?? []).length, 4);
+  assert.match(page, /observeSections: stageView\.view === "overview"/);
 });
 
 test("네 단계는 기능명이 아니라 여행자의 질문으로 이어진다", async () => {
