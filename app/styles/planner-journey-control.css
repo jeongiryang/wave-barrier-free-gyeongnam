@@ -85,6 +85,10 @@
 .journey-mode-toggle button i { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 7px; color: #92b9c6; background: rgb(255 255 255 / 8%); font-size: .56rem; font-style: normal; }
 .journey-mode-toggle button[aria-pressed="true"] { color: #042b38; border-color: var(--mint); background: var(--mint); box-shadow: 0 8px 18px rgb(2 24 35 / 18%); }
 .journey-mode-toggle button[aria-pressed="true"] i { color: #fff; background: #087086; }
+.journey-mode-toggle button:disabled,
+.journey-briefing-card > button:disabled,
+.journey-rail button:disabled,
+.guided-stage-actions button:disabled { cursor: wait; opacity: .62; }
 .journey-briefing-card > button {
   width: 100%; min-height: 50px; margin-top: 18px; padding: 11px 15px;
   display: flex; align-items: center; justify-content: space-between;
