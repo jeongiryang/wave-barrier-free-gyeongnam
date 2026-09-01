@@ -5,7 +5,8 @@
 .departure-readiness > header { display: flex; align-items: start; justify-content: space-between; gap: 24px; }
 .departure-readiness > header span { color: var(--blue-dark); font-size: .65rem; font-weight: 900; letter-spacing: .13em; }
 .departure-readiness > header span b { width: 32px; height: 32px; margin-right: 8px; display: inline-grid; place-items: center; border-radius: 50%; color: var(--on-blue); background: var(--blue); letter-spacing: 0; }
-.departure-readiness h2 { margin: 6px 0 0; font-size: clamp(1.45rem,2.5vw,2.2rem); letter-spacing: -.035em; }
+.departure-readiness h2 { margin: 6px 0 0; display: grid; gap: 5px; font-size: clamp(1.45rem,2.5vw,2.2rem); letter-spacing: -.035em; }
+.departure-readiness h2 small { color: var(--blue); font-size: .58rem; font-weight: 900; letter-spacing: .08em; }
 .departure-readiness > header p { max-width: 760px; margin: 8px 0 0; color: var(--muted); font-size: .78rem; }
 .readiness-overall { min-height: 44px; padding: 10px 14px; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; font-size: .72rem; }
 .readiness-overall i,.readiness-grid article > div strong i { width: 8px; height: 8px; display: inline-block; border-radius: 50%; background: currentColor; }
