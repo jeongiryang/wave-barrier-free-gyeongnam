@@ -69,9 +69,6 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 .hero-wave-canvas { opacity: .34; }
 @media (max-width: 1100px) { .hero-wave-canvas { opacity: .2; } }
 @media (max-width: 620px) { .hero-wave-canvas { opacity: .15; } }
-/* 인트로는 전면 연출이지만 대비를 조금 눌러 잔상을 줄인다. */
-.brand-intro-canvas { opacity: .82; }
-
 /* --- 추천 여행지 캐러셀 폭 -----------------------------------------------
    캐러셀은 원래 화면 끝까지 흐르는 전체 폭 구역 안에 있어서 100vw 기준으로
    폭을 잡았다. 구역이 기능 카드로 바뀌면서 컨테이너가 뷰포트보다 좁아졌고,
@@ -91,19 +88,15 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
    뷰포트 가까이 확장해 좌우 공간을 실제 정보와 인터랙션에 사용한다. */
 @media (min-width: 1101px) {
   .landing-header, .site-header { width: var(--content); max-width: none; }
-  .brand-intro-copy { width: var(--content); }
   .landing-page > section, .landing-page > footer,
   .service-welcome, .tool-launch, .connection-diagnostics,
   .shared-header, .shared-hero, .shared-content,
   .simple-footer {
     padding-inline: max(var(--gutter), calc((100vw - var(--layout-max)) / 2));
   }
-  .planner-page > .planner-section,
   .planner-page > .places-section,
   .planner-page > .navigation-section,
   .planner-page > .travel-layers,
-  .planner-page > .route-section,
-  .planner-page > .data-section,
   .planner-page > .connection-diagnostics {
     width: var(--content);
     max-width: none;

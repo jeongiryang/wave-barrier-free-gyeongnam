@@ -13,7 +13,7 @@ html[data-theme="dark"] .select-shell,html[data-theme="dark"] .select-shell sele
 html[data-theme="dark"] .profile-card.active,html[data-theme="dark"] .sort-tabs button.active { color: var(--on-blue); background: var(--blue); }
 html[data-theme="dark"] .region-story { background: #092938; }
 html[data-theme="dark"] .landing-region-map { background: radial-gradient(circle,#14506c,#092b3b 70%); }
-html[data-theme="dark"] .simple-footer,html[data-theme="dark"] .data-section,html[data-theme="dark"] .navigation-section { background: #051c26; }
+html[data-theme="dark"] .simple-footer,html[data-theme="dark"] .navigation-section { background: #051c26; }
 html[data-theme="dark"] .rich-card p,html[data-theme="dark"] .heading-side p,html[data-theme="dark"] .service-welcome > div > p { color: #a8c3cf; }
 
 /* Shared itinerary */
@@ -40,7 +40,7 @@ html[data-theme="dark"] .rich-card p,html[data-theme="dark"] .heading-side p,htm
 @media (max-width: 780px) {
   .landing-header { top: 8px; width: calc(100vw - 24px); min-height: 60px; padding: 0 12px; }.landing-header nav { display: none; }.landing-start { min-width: 44px; padding: 8px 11px; font-size: 0; }.landing-start span { font-size: 1rem; }.planner-header-actions .header-action { display: none; }
   .landing-hero { min-height: 920px; padding: 125px 20px 70px; gap: 20px; }.landing-hero-copy h1 { font-size: clamp(3.4rem,15vw,5.2rem); }.landing-signal { width: 100%; }.signal-core { width: 170px; }.manifesto,.region-story,.evidence-story { padding: 95px 20px; }.manifesto-grid { grid-template-columns: 1fr; }.manifesto-grid article,.manifesto-grid article + article { min-height: auto; padding: 26px 0; border-right: 0; border-bottom: 1px solid var(--line); }.manifesto-grid h3 { margin: 30px 0 8px; }.landing-region-map { min-height: 520px; }.landing-region-map > button { width: 27px; min-width: 27px; height: 27px; padding: 0; justify-content: center; }.landing-region-map > button b { position: absolute; top: 100%; padding: 2px 4px; border-radius: 4px; color: #fff; background: rgba(3,53,75,.85); font-size: .55rem; }.evidence-story { gap: 45px; }.landing-cta { padding: 100px 20px; }
-  .service-welcome { min-height: 0; padding: 125px 20px 65px; }.service-welcome h1 { font-size: clamp(3rem,13vw,4.4rem); }.navigation-section { padding: 88px 20px; }.navigation-heading { gap: 22px; }.navigation-workspace { border-radius: 20px; }.route-map-canvas { height: 430px; }.map-toolbar { grid-template-columns: 1fr auto 1fr; }.map-toolbar > button { grid-column: 1 / -1; }.map-legend { flex-wrap: wrap; }.share-strip { grid-template-columns: 1fr; }.share-strip > button,.share-strip > small,.share-strip > a { grid-column: 1; grid-row: auto; }.share-strip > a { text-align: left; }.departure-row { grid-template-columns: 1fr; }.departure-row > button { min-height: 46px; }.shared-content { padding: 55px 20px; }.shared-places article { grid-template-columns: 1fr; }.shared-places article > div { min-height: 190px; }
+  .service-welcome { min-height: 0; padding: 125px 20px 65px; }.service-welcome h1 { font-size: clamp(3rem,13vw,4.4rem); }.navigation-section { padding: 88px 20px; }.navigation-heading { gap: 22px; }.navigation-workspace { border-radius: 20px; }.route-map-canvas { height: 430px; }.map-toolbar { grid-template-columns: 1fr auto 1fr; }.map-toolbar > button { grid-column: 1 / -1; }.map-legend { flex-wrap: wrap; }.departure-row { grid-template-columns: 1fr; }.departure-row > button { min-height: 46px; }.shared-content { padding: 55px 20px; }.shared-places article { grid-template-columns: 1fr; }.shared-places article > div { min-height: 190px; }
   .travel-layers { padding: 92px 20px; }.insight-board { grid-template-columns: 1fr; }.insight-board > article,.layer-principle { min-height: 340px; }.layer-principle { grid-column: auto; min-height: 270px; }.layer-tabs { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; }.layer-tabs button { flex: 0 0 150px; scroll-snap-align: start; }.theme-explorer { margin-top: 48px; }
 }
 
@@ -50,5 +50,5 @@ html[data-theme="dark"] .rich-card p,html[data-theme="dark"] .heading-side p,htm
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-land-reveal],[data-land-reveal].is-visible { opacity: 1; transform: none; }.brand-intro { display: none; }
+  [data-land-reveal],[data-land-reveal].is-visible { opacity: 1; transform: none; }
 }

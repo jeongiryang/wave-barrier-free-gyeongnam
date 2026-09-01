@@ -12,7 +12,7 @@ export function PreferenceControls() {
   const appInstall = useAppInstall();
 
   return (
-    <details className="preference-controls">
+    <details className="preference-controls" suppressHydrationWarning>
       <summary aria-label="환경설정 열기">
         <span aria-hidden="true">Aa</span>
         <b>환경설정</b>

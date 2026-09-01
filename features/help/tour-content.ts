@@ -15,10 +15,8 @@ export const landingSteps: TourStep[] = [
 ];
 
 export const plannerSteps: TourStep[] = [
-  { selector: "#planner", highlightSelector: "#planner .workspace-heading", eyebrow: "1단계 · 여행 조건", title: "내게 필요한 여행 조건을 고르세요.", copy: "출발지, 지역, 날짜, 관심사와 휠체어·영유아·시청각 지원 같은 편의를 선택합니다." },
-  { selector: "#places", highlightSelector: "#places .workspace-heading", eyebrow: "2단계 · 추천 여행지", title: "접근성과 적합도를 비교하세요.", copy: "추천 카드에서 시설 정보, 확인률과 공식 관광사진을 보고 장소를 여행 보관함에 담습니다." },
-  { selector: "#layers", highlightSelector: "#layers .workspace-heading", eyebrow: "3단계 · 실시간 변수", title: "날씨와 지역 흐름을 함께 확인하세요.", copy: "여행 중 바뀔 수 있는 날씨, 방문 흐름과 테마 데이터를 확인해 계획을 조정합니다." },
-  { selector: "#navigation", highlightSelector: "#navigation .workspace-heading", eyebrow: "4단계 · 길찾기", title: "실제 이동 방법을 비교하세요.", copy: "출발지와 목적지를 정하고 지도, 예상 시간, 도보 부담과 이용 가능한 교통정보를 확인합니다." },
-  { selector: "#route", highlightSelector: "#route .route-intro", eyebrow: "5단계 · 하루 동선", title: "선택한 장소를 하루 일정으로 잇습니다.", copy: "추천 순서와 이동 구간을 검토하고 필요하면 장소나 출발지를 바꿔 다시 계산합니다." },
-  { selector: "#data", highlightSelector: "#data .data-heading", eyebrow: "6단계 · 데이터 근거", title: "마지막으로 출처를 확인하세요.", copy: "정보가 없거나 오래된 항목을 구분하고, 방문 전 운영기관의 최신 안내를 다시 확인해 주세요." },
+  { selector: "#conditions", highlightSelector: "#conditions .journey-subheading", eyebrow: "1단계 · 여행 조건", title: "내게 필요한 여행 조건을 고르세요.", copy: "출발지, 지역, 날짜, 관심사와 필요한 편의시설을 선택합니다." },
+  { selector: "#places", highlightSelector: "#places .journey-subheading", eyebrow: "2단계 · 여행지", title: "추천 이유를 확인하고 일정에 추가하세요.", copy: "공식 정보에서 확인된 편의시설과 확인이 필요한 항목을 구분해 보여 줍니다." },
+  { selector: "#itinerary", highlightSelector: "#itinerary .journey-subheading", eyebrow: "3단계 · 내 일정", title: "추가한 장소의 날짜와 순서를 정하세요.", copy: "추천 순서로 시작해 직접 순서를 바꾸고 실제 이동 경로와 예상 시간을 비교할 수 있습니다." },
+  { selector: "#departure-readiness", highlightSelector: "#departure-readiness > header", eyebrow: "4단계 · 출발 전 확인", title: "최신 정보와 저장 방법을 확인하세요.", copy: "날씨, 혼잡, 교통과 편의시설 정보 중 다시 확인할 항목을 보고 일정 공유와 캘린더 저장을 마칩니다." },
 ];

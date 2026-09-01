@@ -1,17 +1,6 @@
 
 /* Marketing landing */
 .landing-page { background: #f8fdff; }
-.brand-intro { position: fixed; z-index: 150; inset: 0; display: grid; place-content: center; justify-items: center; overflow: hidden; color: #fff; background: #032331; animation: landingIntroOut .7s 2s cubic-bezier(.76,0,.24,1) forwards; }
-.brand-intro::before { content: ""; position: absolute; width: min(780px, 90vw); aspect-ratio: 1; border: 1px solid rgba(125,235,233,.23); border-radius: 44% 56% 48% 52%; animation: introOrbit 11s linear infinite; }
-.brand-intro > button { position: absolute; right: 28px; top: 24px; min-height: 44px; padding: 8px 16px; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; color: #fff; background: rgba(255,255,255,.06); }
-.brand-intro p { margin: 22px 0 4px; color: #8eb1c1; font-size: .76rem; font-weight: 850; letter-spacing: .2em; }
-.brand-intro h1 { position: relative; margin: 0; font-size: clamp(5rem, 17vw, 12rem); line-height: .9; letter-spacing: -.09em; }
-.brand-intro > span { margin-top: 25px; color: #c0d4dd; font-size: .95rem; }
-.intro-wave { height: 54px; display: flex; align-items: center; gap: 6px; }
-.intro-wave i { width: 6px; height: 18px; border-radius: 99px; background: #4cc2ff; animation: current .8s ease-in-out infinite alternate; }
-.intro-wave i:nth-child(2), .intro-wave i:nth-child(5) { height: 40px; animation-delay: -.2s; }.intro-wave i:nth-child(3) { height: 52px; background: var(--mint); animation-delay: -.5s; }.intro-wave i:nth-child(4) { height: 30px; animation-delay: -.7s; }
-@keyframes landingIntroOut { to { opacity: 0; visibility: hidden; transform: translateY(-100%); } }
-
 .landing-header { position: fixed; z-index: 70; left: 50%; top: 18px; width: min(1240px, calc(100vw - 48px)); min-height: 70px; padding: 0 20px 0 24px; transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 28px; border: 1px solid transparent; border-radius: 20px; transition: background .25s, border-color .25s, box-shadow .25s; }
 .landing-header.scrolled { border-color: rgba(203,223,233,.9); background: rgba(255,255,255,.9); backdrop-filter: blur(18px); box-shadow: 0 14px 40px rgba(7,47,65,.1); }
 .landing-header nav { display: flex; gap: 32px; font-size: .92rem; font-weight: 780; }

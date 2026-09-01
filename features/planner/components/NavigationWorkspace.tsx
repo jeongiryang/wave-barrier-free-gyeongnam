@@ -6,7 +6,6 @@ import RouteMapWorkspace from "./RouteMapWorkspace";
 import TransportDataOverview from "./TransportDataOverview";
 
 interface NavigationWorkspaceProps {
-  t: (key: string, fallback: string) => string;
   activePlaces: Place[];
   planCrowd: PlanData["crowd"];
   effectiveProviders: TransportProvider[];
@@ -19,7 +18,6 @@ interface NavigationWorkspaceProps {
 }
 
 export default function NavigationWorkspace({
-  t,
   activePlaces,
   planCrowd,
   effectiveProviders,
@@ -32,8 +30,8 @@ export default function NavigationWorkspace({
 }: NavigationWorkspaceProps) {
   return <section className="navigation-section" id="navigation">
     <div className="workspace-heading" data-reveal>
-      <div><span>02</span><h2>{t("navigationTitle", "이동수단별 길찾기")}</h2></div>
-      <p>도보 · 자전거 · 대중교통 · 자동차 · 최소 시간순</p>
+      <div><span aria-hidden="true">↗</span><h3>이동 경로 확인</h3></div>
+      <p>출발지와 도착지를 고르면 실제로 확인된 시간, 환승과 도보 구간을 비교합니다.</p>
     </div>
     <TransportDataOverview
       activePlaces={activePlaces}

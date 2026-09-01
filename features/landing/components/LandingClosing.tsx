@@ -15,7 +15,7 @@ export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
 
 export function LandingCallToAction({ t }: { t: LandingTranslate }) {
   return <section className="landing-cta" data-land-reveal>
-    <p>READY TO TRAVEL?</p><h2>{t("ctaTitle", "소개는 여기까지.")}<br /><em>{t("ctaEm", "이제 실제 여행을 설계하세요.")}</em></h2><Link href="/planner">{t("start", "W.A.V.E 시작하기")} <span>↗</span></Link>
+    <p>여행 준비가 되셨나요?</p><h2>{t("ctaTitle", "소개는 여기까지.")}<br /><em>{t("ctaEm", "이제 실제 여행을 설계하세요.")}</em></h2><Link href="/planner">여행 계획 만들기 <span>↗</span></Link>
   </section>;
 }
 

@@ -3,7 +3,7 @@ import { mockPlannerApi } from "./fixtures";
 
 /**
  * 지도 도구의 "저장"은 예전에 아무도 읽지 않는 저장소 키에 써 놓고
- * "저장했습니다"라고만 알렸다. 이제는 새로고침을 견디는 여행 보관함에 담는다.
+ * "저장했습니다"라고만 알렸다. 이제는 새로고침을 견디는 내 일정에 추가한다.
  *
  * 이 패널은 Kakao 지도가 연결된 상태에서만 열리므로, 실제 SDK 대신 최소 스텁을
  * 넣어 그 상태를 만든다. loadKakaoSdk는 `window.kakao.maps.services`가 이미 있으면
@@ -56,7 +56,7 @@ async function savedCount(page: Page) {
   return Number((label || "").replace(/[^0-9]/g, "") || "0");
 }
 
-test("지도에서 저장하면 여행 보관함에 담기고 새로고침 뒤에도 남는다", async ({ page }) => {
+test("지도에서 저장하면 내 일정에 추가되고 새로고침 뒤에도 남는다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await withKakaoStub(page);
@@ -69,7 +69,7 @@ test("지도에서 저장하면 여행 보관함에 담기고 새로고침 뒤�
 
   await page.getByRole("button", { name: "레이어·측정" }).click();
   const layerPanel = page.getByRole("region", { name: "지도 레이어와 측정 도구" });
-  await layerPanel.getByRole("button", { name: "☆ 저장", exact: true }).click();
+  await layerPanel.getByRole("button", { name: "＋ 내 일정에 추가", exact: true }).click();
 
   // 담은 개수가 화면에 바로 보인다.
   await expect.poll(() => savedCount(page)).toBeGreaterThan(0);
@@ -98,12 +98,12 @@ test("이미 담긴 여행지를 다시 저장해도 중복으로 쌓이지 않�
   await page.getByRole("button", { name: "레이어·측정" }).click();
   const layerPanel = page.getByRole("region", { name: "지도 레이어와 측정 도구" });
 
-  await layerPanel.getByRole("button", { name: "☆ 저장", exact: true }).click();
+  await layerPanel.getByRole("button", { name: "＋ 내 일정에 추가", exact: true }).click();
   await expect.poll(() => savedCount(page)).toBeGreaterThan(0);
   const first = await savedCount(page);
 
   // 안내 문구는 지도가 다시 그려질 때 덮이므로(별도 작업 단위), 남는 결과로 확인한다.
-  await layerPanel.getByRole("button", { name: "☆ 저장", exact: true }).click();
+  await layerPanel.getByRole("button", { name: "＋ 내 일정에 추가", exact: true }).click();
   await page.waitForTimeout(800);
   expect(await savedCount(page)).toBe(first);
   const ids = await page.evaluate(() => JSON.parse(window.localStorage.getItem("wave-saved-places") || "[]"));

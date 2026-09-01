@@ -16,8 +16,8 @@ test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순�
 
   await page.goto("/planner?travelStart=2026-09-01&travelEnd=2026-09-02");
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
-  await page.getByRole("button", { name: "경남도립미술관 보관하기" }).click();
-  await page.getByRole("button", { name: "용지호수공원 보관하기" }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
+  await page.getByRole("button", { name: "용지호수공원 일정에 추가" }).click();
 
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
   const firstDay = itinerary.locator(".day-planner-grid article").first();
@@ -54,9 +54,9 @@ test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순�
 test("한 장소 일정은 불가능한 순서 동작을 모두 비활성화한다", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
-  await page.getByRole("button", { name: "경남도립미술관 보관하기" }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
   await expect(itinerary.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동" })).toBeDisabled();
   await expect(itinerary.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동" })).toBeDisabled();
-  await expect(itinerary.getByText(/공식 편의근거 100%/)).toBeVisible();
+  await expect(itinerary.getByText(/확인된 편의시설 100%/)).toBeVisible();
 });

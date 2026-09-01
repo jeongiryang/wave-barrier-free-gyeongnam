@@ -47,6 +47,6 @@ export type RouteMapProps = {
   crowdPlaceId?: string;
   onOriginChange?: (point: RoutePoint, label: string) => void;
   onDestinationChange?: (place: MapPlace) => void;
-  /** 지도에 표시된 여행지를 여행 보관함에 담는다. 담은 개수를 돌려준다. */
+  /** 지도에 표시된 여행지를 내 일정에 추가하고 추가된 개수를 돌려준다. */
   onSavePlaces?: (places: MapPlace[]) => number;
 };

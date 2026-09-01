@@ -47,19 +47,24 @@ test("편의 조건을 고르기 전후 모두 요약 문장이 완결된다", a
     await toggleUntilPressed(cards.nth(index), false);
   }
   await expect(summary).toHaveText("선택한 편의 조건 없음");
-  await expect(page.locator(".generate-button")).toBeDisabled();
+  await expect(page.locator(".generate-button")).toHaveCount(0);
+  await expect(page.getByText("편의 조건을 하나 이상 선택하면 추천을 시작합니다.")).toBeVisible();
 
   await toggleUntilPressed(cards.first(), true);
   await expect(summary).toHaveText(/^편의 조건 \d+개 선택$/);
-  await expect(page.locator(".generate-button")).toBeEnabled();
+  await expect(page.locator(".generate-button")).toHaveCount(0);
+  await expect(page.getByText("조건을 바꾸면 추천이 자동으로 업데이트됩니다.")).toBeVisible();
 });
 
 test("단계 제목이 모두 한국어로 읽힌다", async ({ page }) => {
   await openPlanner(page);
-  const headings = await page.locator(".journey-subheading h3").allInnerTexts();
+  const headings = await page.locator(".journey-subheading h2").allInnerTexts();
   expect(headings.length).toBeGreaterThan(0);
   for (const heading of headings) {
     expect(heading.trim(), "한글이 한 글자도 없는 제목").toMatch(/[가-힣]/);
   }
-  await expect(page.locator(".journey-subheading h3", { hasText: "하루 코스 확인하기" })).toBeVisible();
+  await expect(page.locator(".journey-subheading h2", { hasText: "여행 조건 정하기" })).toBeVisible();
+  await expect(page.locator(".journey-subheading h2", { hasText: "여행지 고르기" })).toBeVisible();
+  await expect(page.locator(".journey-subheading h2", { hasText: "내 일정 만들기" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "출발 전에 이것만 다시 확인하세요." })).toBeVisible();
 });

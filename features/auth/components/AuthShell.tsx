@@ -10,7 +10,7 @@ export default function AuthShell({ mode, returnTo }: { mode: AuthMode; returnTo
       <a className="skip-link" href="#auth-title">계정 입력으로 바로가기</a>
       <header className="auth-header">
         <Link className="brand" href="/" aria-label="W.A.V.E 홈"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span></Link>
-        <nav aria-label="주요 메뉴"><Link href="/">서비스 소개</Link><Link href="/planner">여행 설계</Link><Link href="/community">커뮤니티</Link></nav>
+        <nav aria-label="주요 메뉴"><Link href="/">서비스 소개</Link><Link href="/planner">여행 계획</Link><Link href="/community">여행 후기</Link></nav>
         <Link className="auth-header-action" href="/planner">로그인 없이 여행 설계 <span aria-hidden="true">↗</span></Link>
       </header>
       <div className="auth-layout">

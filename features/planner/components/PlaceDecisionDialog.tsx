@@ -24,7 +24,7 @@ export default function PlaceDecisionDialog(props: Props) {
   const location = place.city || region;
   const badgePending = place.score === null || place.score === 0;
   const scoreLabel = place.score === null ? "판단 보류" : `${place.score}%`;
-  const scoreDescription = place.score === null ? "공식 편의근거 부족" : place.score === 0 ? "선택 조건 일치 항목 없음" : "선택 편의조건 일치";
+  const scoreDescription = place.score === null ? "편의시설 정보 확인 필요" : place.score === 0 ? "선택한 편의와 일치하지 않음" : "필요한 편의와 일치";
   return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
     <section className="place-modal" role="dialog" aria-modal="true" aria-labelledby="place-modal-title" onMouseDown={(event) => event.stopPropagation()} ref={dialogRef}>
       <button className="modal-close" type="button" onClick={onClose} aria-label="닫기">×</button>

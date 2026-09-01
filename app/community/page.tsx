@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import CommunityBoard from "../../features/community/components/CommunityBoard";
 
 export const metadata: Metadata = {
-  title: "여행자 이야기",
+  title: "여행자 후기",
   description: "경남 관광지의 접근성 질문과 실제 여행 경험을 공식 정보와 구분해 나누는 W.A.V.E 커뮤니티입니다.",
 };
 

@@ -18,7 +18,9 @@ async function plannerProductSource() {
     "features/planner/components/PlannerAccessibilityProfiles.tsx",
     "features/planner/components/RecommendationWorkspace.tsx",
     "features/planner/components/RecommendationCarousel.tsx",
+    "features/planner/components/PlannerItineraryWorkspace.tsx",
     "features/planner/components/TripDayPlanner.tsx",
+    "features/planner/components/DepartureReadinessCard.tsx",
     "features/planner/components/TravelSignalsPanel.tsx",
     "features/planner/components/WeatherBoard.tsx",
     "features/planner/components/SituationImpactPanel.tsx",
@@ -32,9 +34,6 @@ async function plannerProductSource() {
     "features/planner/components/RouteMapWorkspace.tsx",
     "features/planner/components/TripPointPicker.tsx",
     "features/planner/components/RouteComparisonPanel.tsx",
-    "features/planner/components/PlannerResultsPanel.tsx",
-    "features/planner/components/PlannerRouteOverview.tsx",
-    "features/planner/components/PlannerEvidencePanel.tsx",
     "features/planner/components/AudioGuidePlayer.tsx",
   ];
   return (await Promise.all(paths.map(source))).join("\n");
@@ -63,7 +62,6 @@ async function landingProductSource() {
     "features/landing/hooks/useLandingMotion.ts",
     "features/landing/hooks/useLandingRegions.ts",
     "features/landing/client/region-photo.ts",
-    "features/landing/components/LandingIntro.tsx",
     "features/landing/components/LandingHeader.tsx",
     "features/landing/components/LandingHero.tsx",
     "features/landing/components/LandingManifesto.tsx",
@@ -91,6 +89,7 @@ async function styleSource() {
     "app/styles/regional-explorer-foundations.css",
     "app/styles/theme-itinerary-foundations.css",
     "app/styles/planner-workspace.css",
+    "app/styles/planner-unified-workspace.css",
     "app/styles/landing-motion.css",
     "app/styles/workspace-responsive.css",
     "app/styles/map-experience.css",
@@ -98,7 +97,6 @@ async function styleSource() {
     "app/styles/map-place-tools.css",
     "app/styles/map-live-signals.css",
     "app/styles/situation-identity-refinements.css",
-    "app/styles/ocean-intro-refinements.css",
     "app/styles/ocean-landing-refinements.css",
     "app/styles/ocean-planner-refinements.css",
     "app/styles/ocean-responsive-refinements.css",
@@ -315,34 +313,21 @@ test("landing region markers share the rendered map coordinate space", async () 
   assert.match(css, /\.landing-region-map \{[\s\S]*min-height: 0/);
 });
 
-test("wave effects avoid dense glyphs and the extended first-visit intro stays synchronized", async () => {
-  const [renderer, model, landing, intro, css] = await Promise.all([
+test("wave effects avoid dense glyphs and landing opens without a blocking intro", async () => {
+  const [renderer, model, landing, css] = await Promise.all([
     source("features/motion/wave-field-engine.ts"),
     source("features/motion/wave-model.ts"),
     landingProductSource(),
-    source("features/landing/useLandingIntro.ts"),
     styleSource(),
   ]);
   const ramp = model.match(/export const WAVE_RAMP = \[(.*?)\];/)?.[1] ?? "";
   assert.doesNotMatch(ramp, /[#@xX≡]/);
   assert.match(model, /out: \[1\.78, 1\.96\]/);
   assert.match(renderer, /stageWeight\(elapsed, INTRO_STAGES\[2\]\)/);
-  assert.match(intro, /const INTRO_DURATION_MS = 7450/);
-  assert.match(intro, /type IntroState = "checking" \| "show" \| "hidden"/);
-  assert.match(intro, /useState<IntroState>\("checking"\)/);
-  assert.match(intro, /if \(!hydrated\) return "checking"/);
-  assert.match(intro, /motion === "calm" \|\| reducedMotion \|\| seen \? "hidden" : "show"/);
-  assert.match(intro, /if \(!hydrated\) return;/);
-  assert.match(intro, /sessionStorage\.getItem\("wave-intro-seen-v2"\)/);
-  assert.match(intro, /setTimeout\(finishIntro, INTRO_DURATION_MS\)/);
-  assert.match(landing, /introState === "show" && <LandingIntro/);
-  assert.match(landing, /intro-region-chapter/);
+  assert.doesNotMatch(landing, /LandingIntro|useLandingIntro|introState/);
   assert.match(landing, /18 CITIES · 18 STORIES/);
   assert.doesNotMatch(landing, /useState\(true\)/);
-  assert.match(css, /landingIntroOut \.5s 6\.9s/);
-  assert.match(css, /introRegionChapter 4\.15s 2\.72s/);
-  assert.match(landing, /prefers-reduced-motion: reduce/);
-  assert.match(landing, /<button ref=\{startButtonRef\} type="button" onClick=\{close\}>/);
+  assert.doesNotMatch(css, /brand-intro|landingIntroOut|introRegionChapter/);
 });
 
 test("interactive help follows real sections and remains accessible on mobile", async () => {
@@ -364,7 +349,7 @@ test("interactive help follows real sections and remains accessible on mobile", 
   for (const selector of ["#top", "#story", "#regions", "#evidence", ".landing-cta"]) {
     assert.match(help, new RegExp(`selector: "${selector.replace(".", "\\.")}"`));
   }
-  for (const id of ["planner", "places", "layers", "navigation", "route", "data"]) {
+  for (const id of ["conditions", "places", "itinerary", "departure-readiness"]) {
     assert.match(help, new RegExp(`selector: "#${id}"`));
     assert.match(planner, new RegExp(`id="${id}"`));
   }
@@ -419,7 +404,8 @@ test("travel conditions refresh the plan without requiring the submit button", a
   assert.match(planController, /planRequestRef\.current\?\.abort\(\)/);
   assert.match(planController, /signal: controller\.signal/);
   assert.match(planController, /if \(revealResults\) window\.setTimeout/);
-  assert.match(planner, /여행지 다시 찾기/);
+  assert.match(planner, /조건을 바꾸면 추천이 자동으로 업데이트됩니다/);
+  assert.doesNotMatch(planner, /generate-button|여행지 다시 찾기/);
 });
 
 test("planner visual order follows DOM and keyboard focus order", async () => {
@@ -427,16 +413,12 @@ test("planner visual order follows DOM and keyboard focus order", async () => {
     source("app/planner/page.tsx"),
     styleSource(),
   ]);
-  const sections = ["PlannerConditionsPanel", "RecommendationWorkspace", "NavigationWorkspace", "PlannerResultsPanel", "TravelSignalsPanel"];
+  const sections = ["PlannerConditionsPanel", "RecommendationWorkspace", "PlannerItineraryWorkspace", "DepartureReadinessCard", "TravelSignalsPanel", "PlannerServiceStatus"];
   const positions = sections.map((component) => page.indexOf(`<${component}`));
   assert.ok(positions.every((position) => position >= 0));
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
-  assert.match(css, /\.planner-page > \.planner-section \{ order: 2; \}/);
-  assert.match(css, /\.planner-page > \.places-section \{ order: 3; \}/);
-  assert.match(css, /\.planner-page > \.navigation-section \{ order: 4; \}/);
-  assert.match(css, /\.planner-page > \.route-section \{ order: 5; \}/);
-  assert.match(css, /\.planner-page > \.travel-layers \{ order: 6; \}/);
-  assert.match(css, /\.planner-page > \.data-section \{ order: 7; \}/);
+  assert.match(css, /\.planner-journey-workspace \.itinerary-stage/);
+  assert.match(css, /\.planner-journey-workspace \.travel-layers/);
 });
 
 test("weather and concentration signals lead to accessible, provenance-aware actions", async () => {
@@ -476,9 +458,10 @@ test("only positive official accessibility evidence becomes a recommendation or 
   assert.match(tourism, /recommended: places, exploration: explorationPlaces/);
   assert.match(tourism, /places\.filter\(hasPositiveOfficialEvidence\)/);
   assert.match(tourism, /evidenceState: "verified"/);
-  assert.match(planner, /일반 추천과 자동 일정에는 넣지 않았습니다/);
-  assert.match(planner, /자동 일정을 만들지 않았습니다/);
-  assert.match(planner, /공식 편의근거 확인/);
+  assert.match(planner, /일반 추천과 내 일정에는 넣지 않았습니다/);
+  assert.match(planner, /아직 일정에 추가한 장소가 없어요/);
+  assert.match(planner, /공식 정보 확인 필요/);
+  assert.doesNotMatch(planner, /PlannerRouteOverview|PlannerResultsPanel/);
   assert.match(planner, /String\(index \+ 1\)\.padStart\(2, "0"\)/);
   assert.doesNotMatch(planner, /<small>0\{index \+ 1\}<\/small>/);
 });
@@ -486,7 +469,6 @@ test("only positive official accessibility evidence becomes a recommendation or 
 test("transport and itinerary labels distinguish confirmed, estimated and unavailable values", async () => {
   const [planner, service, kakao, odsay] = await Promise.all([
     Promise.all([
-      source("features/planner/components/PlannerRouteOverview.tsx"),
       source("features/planner/components/RouteComparisonPanel.tsx"),
       source("features/planner/components/TripDayPlanner.tsx"),
     ]).then((parts) => parts.join("\n")),
@@ -497,7 +479,7 @@ test("transport and itinerary labels distinguish confirmed, estimated and unavai
   assert.match(planner, /확인된 경로/);
   assert.match(planner, /직선거리 기반 추정/);
   assert.match(planner, /경로 미확인 · 임시/);
-  assert.match(planner, /공식 정보 미제공/);
+  assert.match(planner, /시간 정보 없음/);
   assert.match(planner, /통행료 없음/);
   assert.match(planner, /제공기관 미제공/);
   assert.doesNotMatch(planner, /기본 이동/);

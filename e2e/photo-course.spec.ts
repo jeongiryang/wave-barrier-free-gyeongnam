@@ -55,7 +55,7 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
 
   await page.getByRole("button", { name: "여행 조건에 반영하기" }).click();
   await expect(page).toHaveURL(/\/planner\?[^#]*region=%EB%82%A8%ED%95%B4/);
-  await expect(page.getByRole("heading", { name: "내 여행 만들기" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /나에게 맞는 여행을.*4단계로 완성하세요/ })).toBeVisible();
   await expect(page.getByLabel("여행 지역 선택")).toHaveValue("남해");
   await expect(page.getByLabel("출발일")).toHaveValue("2026-08-14");
   await expect(page.getByLabel("도착일")).toHaveValue("2026-08-14");

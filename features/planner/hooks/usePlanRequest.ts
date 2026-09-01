@@ -9,7 +9,7 @@ import type { Place, PlanData } from "../types";
 interface PlanRunOptions {
   resetRouteData: () => void;
   resetAudio: () => void;
-  loadFirstRoute: (place: Place) => void;
+  loadInitialRoute: (places: Place[]) => void;
 }
 
 export function usePlanRequest({ locale, region, selected, theme }: { locale: string; region: string; selected: string[]; theme: string }) {
@@ -20,7 +20,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   const planRequestRef = useRef<AbortController | null>(null);
 
   const abortPlan = useCallback(() => { planRequestRef.current?.abort(); }, []);
-  const runPlan = useCallback(async ({ resetRouteData, resetAudio, loadFirstRoute }: PlanRunOptions, revealResults = true) => {
+  const runPlan = useCallback(async ({ resetRouteData, resetAudio, loadInitialRoute }: PlanRunOptions, revealResults = true) => {
     if (!selected.length) return;
     planRequestRef.current?.abort();
     const controller = new AbortController();
@@ -29,16 +29,16 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     setPlanError("");
     setPlan(null);
     resetRouteData();
-    setNotice(revealResults ? "한국관광공사 8개 서비스에서 여행 근거를 모으고 있어요." : "바뀐 조건에 맞춰 여행지를 자동으로 갱신하고 있어요.");
+    setNotice(revealResults ? "공식 관광정보에서 맞는 여행지를 찾고 있어요." : "바뀐 조건에 맞춰 여행지를 자동으로 갱신하고 있어요.");
     try {
       const params = new URLSearchParams({ action: "plan", region, theme, profiles: selected.join(","), locale });
       const data = await plannerJson<PlanData>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.plan });
       if (controller.signal.aborted) return;
       resetAudio();
       setPlan(data);
-      if (data.places[0]) loadFirstRoute(data.places[0]);
-      const available = data.statuses.filter((status) => status.state === "live").length;
-      setNotice(available ? `${available}개 데이터 서비스의 응답을 코스에 반영했습니다.` : "공식 데이터에서 현재 조건에 맞는 결과를 확인하지 못했습니다.");
+      if (data.places.length) loadInitialRoute(data.places);
+      const available = data.statuses.some((status) => status.state === "live");
+      setNotice(available ? "공식 관광정보를 확인해 추천을 업데이트했습니다." : "공식 데이터에서 현재 조건에 맞는 결과를 확인하지 못했습니다.");
     } catch (error) {
       if (controller.signal.aborted) return;
       const message = error instanceof Error ? error.message : "연결 상태를 확인해 주세요.";
@@ -48,7 +48,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       if (planRequestRef.current === controller) {
         planRequestRef.current = null;
         setLoading(false);
-        if (revealResults) window.setTimeout(() => scrollToSection("route"), 80);
+        if (revealResults) window.setTimeout(() => scrollToSection("places"), 80);
       }
     }
   }, [locale, region, selected, theme]);

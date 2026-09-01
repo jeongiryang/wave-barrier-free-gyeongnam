@@ -54,23 +54,18 @@ export default function TravelSignalsPanel({
   onSecondaryOpenChange,
   onRouteFromRichSpot,
 }: TravelSignalsPanelProps) {
-  return <div className="journey-workspace-block travel-layers" id="layers">
-    <div className="journey-subheading inverse" data-reveal>
-      <div><span>STEP 04</span><h3>{region} 상황과 여행 정보</h3></div>
-      <p>날씨 · 방문 경향 · 주변</p>
-    </div>
-
-    <WeatherBoard region={region} weather={weather} loading={weatherLoading} />
-    {plan && <SituationImpactPanel
-      tripImpact={tripImpact}
-      impactCrowd={impactCrowd}
-      weather={weather}
-      weatherLoading={weatherLoading}
-      onImpactAction={onImpactAction}
-    />}
-    <details className="planner-secondary-details" open={secondaryOpen} onToggle={(event) => onSecondaryOpenChange(event.currentTarget.open)}>
-      <summary><span>주변 여행 정보 펼치기</span><small>방문 경향 · 축제 · 숙박 · 테마 여행</small></summary>
-      {secondaryOpen && <Suspense fallback={<div className="planner-secondary-loading" role="status">주변 여행 정보를 준비하고 있어요.</div>}>
+  return <details className="journey-workspace-block travel-layers" id="layers" suppressHydrationWarning onToggle={(event) => onSecondaryOpenChange(event.currentTarget.open)}>
+    <summary><span>날씨·혼잡과 주변 정보 자세히 보기</span><small>선택 사항 · 일정에 영향을 줄 때만 확인하세요.</small></summary>
+    {secondaryOpen && <div className="travel-signal-content">
+      <WeatherBoard region={region} weather={weather} loading={weatherLoading} />
+      {plan && <SituationImpactPanel
+        tripImpact={tripImpact}
+        impactCrowd={impactCrowd}
+        weather={weather}
+        weatherLoading={weatherLoading}
+        onImpactAction={onImpactAction}
+      />}
+      <Suspense fallback={<div className="planner-secondary-loading" role="status">주변 여행 정보를 준비하고 있어요.</div>}>
         <PlannerSecondaryInsights
           region={region}
           enrichment={enrichment}
@@ -83,7 +78,7 @@ export default function TravelSignalsPanel({
           onReloadEnrichment={onReloadEnrichment}
           onRouteFromRichSpot={onRouteFromRichSpot}
         />
-      </Suspense>}
-    </details>
-  </div>;
+      </Suspense>
+    </div>}
+  </details>;
 }

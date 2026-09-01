@@ -36,18 +36,20 @@ test("편의 조건을 고르지 않은 상태에서도 문장이 끊기지 않�
 });
 
 test("단계 제목을 한국어로 읽을 수 있다", async () => {
-  const overview = await source("features/planner/components/PlannerRouteOverview.tsx");
-  assert.doesNotMatch(overview, /YOUR W\.A\.V\.E ROUTE/);
-  assert.match(overview, /<h3>하루 코스 확인하기<\/h3>/);
+  const files = await Promise.all([
+    source("app/planner/page.tsx"),
+    source("features/planner/components/PlannerConditionsPanel.tsx"),
+    source("features/planner/components/RecommendationCarousel.tsx"),
+    source("features/planner/components/PlannerItineraryWorkspace.tsx"),
+    source("features/planner/components/DepartureReadinessCard.tsx"),
+  ]).then((parts) => parts.join("\n"));
+  for (const title of ["여행 조건 정하기", "여행지 고르기", "내 일정 만들기", "출발 전에 이것만 다시 확인하세요"]) assert.match(files, new RegExp(title));
 });
 
-test("직접 누른 버튼이 자동 갱신이라고 말하지 않는다", async () => {
+test("추천 갱신 방식은 자동 하나로 설명한다", async () => {
   const file = await source("features/planner/components/PlannerAccessibilityProfiles.tsx");
-  // generate-button은 사용자가 직접 누르는 버튼이다. 누른 뒤 "자동 갱신 중"은 사실이 아니다.
-  const button = file.slice(file.indexOf("generate-button"));
-  assert.doesNotMatch(button, /자동 갱신 중/);
-  assert.match(button, /여행지 찾는 중/);
-  assert.match(button, /여행지 다시 찾기/);
+  assert.match(file, /조건을 바꾸면 추천이 자동으로 업데이트됩니다/);
+  assert.doesNotMatch(file, /generate-button|여행지 다시 찾기/);
 });
 
 test("쓰이지 않는 번호 배지 스타일을 남겨 두지 않는다", async () => {

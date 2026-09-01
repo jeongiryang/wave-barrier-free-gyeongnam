@@ -32,7 +32,7 @@
 
 /* 카드류: 테두리·모서리·그림자를 같은 값으로 통일 */
 .place-card, .rich-card, .route-option, .route-compare-panel, .evidence-card,
-.api-card, .service-region-card, .day-planner, .weather-day, .diagnostic-grid article,
+.service-region-card, .day-planner, .weather-day, .diagnostic-grid article,
 .transport-data-results article, .shared-places article, .insight-board > article {
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-1);
@@ -56,7 +56,7 @@
 }
 
 /* 주요 액션 버튼 */
-.generate-button, .primary-button, .modal-body > button,
+.primary-button, .modal-body > button,
 .landing-cta a, .region-story-copy > a {
   border-radius: var(--r-md);
   transition: background var(--dur-1) ease, transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
@@ -67,7 +67,7 @@ button, .landing-start, .header-action,
 .tool-launch-status button {
   min-height: 44px;
 }
-.generate-button, .primary-button, .account-submit, .landing-start, .landing-cta a {
+.primary-button, .account-submit, .landing-start, .landing-cta a {
   min-height: 48px;
 }
 
@@ -98,4 +98,3 @@ html[data-theme="dark"] .access-badge { background: var(--paper); }
   outline-offset: 3px;
   border-radius: 4px;
 }
-.brand-intro :focus-visible { outline-color: var(--mint); }

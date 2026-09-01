@@ -26,25 +26,22 @@ test.afterEach(async ({ page }) => {
   expect(pageErrors.get(page) || []).toEqual([]);
 });
 
-test("landing intro appears once, remains keyboard usable and has no serious accessibility violations", async ({ page }) => {
+test("landing opens directly with one clear planning action and no serious accessibility violations", async ({ page }) => {
   await mockPublicShellApi(page);
   await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "W.A.V.E 시작 화면" });
-  await expect(intro).toBeVisible();
-  await expect(page.getByRole("button", { name: "바로 시작" })).toBeFocused();
-  await page.keyboard.press("Enter");
-  await expect(intro).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /내 여행 설계하기/ }).first()).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /여행 계획 만들기/ }).first()).toBeVisible();
   await page.reload();
-  await expect(intro).toHaveCount(0);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.waitForTimeout(1_500);
   await expectNoSeriousA11yIssues(page);
 });
 
-test("reduced motion skips the intro before it mounts", async ({ page }) => {
+test("reduced motion keeps the landing immediately usable", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.getByRole("dialog", { name: "W.A.V.E 시작 화면" })).toHaveCount(0);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /여행 계획 만들기/ }).first()).toBeVisible();
 });
 
 test("planner supports decision, save, route-aware schedule and focus restoration", async ({ page }) => {
@@ -56,7 +53,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   await expect(museumCard.getByRole("img", { name: "경남도립미술관 관광사진" })).toBeVisible();
   await expect(parkCard.getByText("공식 사진 준비 중")).toBeVisible();
 
-  const detailButton = page.getByRole("button", { name: "접근성 상세" }).first();
+  const detailButton = page.getByRole("button", { name: "편의시설 보기" }).first();
   await detailButton.focus();
   await detailButton.click();
   const dialog = page.getByRole("dialog");
@@ -69,7 +66,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   await expect(dialog).toHaveCount(0);
   await expect(detailButton).toBeFocused();
 
-  await page.getByRole("button", { name: "경남도립미술관 보관하기" }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
   await expect(itinerary).toBeVisible();
   await expect(itinerary.getByText(/10:25 · 경남도립미술관/)).toBeVisible();
@@ -81,14 +78,15 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   await itinerary.getByLabel("하루 시작").fill("09:00");
   await expect(itinerary.getByText(/09:25 · 경남도립미술관/)).toBeVisible();
 
-  await page.getByRole("button", { name: "용지호수공원 보관하기" }).click();
-  await expect(itinerary.getByRole("link", { name: /여행일지 초안 만들기/ })).toHaveAttribute("href", /draft=journal/);
+  await page.getByRole("button", { name: "용지호수공원 일정에 추가" }).click();
+  await itinerary.locator(".itinerary-secondary-actions > summary").click();
+  await expect(itinerary.getByRole("link", { name: /후기 초안 만들기/ })).toHaveAttribute("href", /draft=journal/);
   await expect(itinerary.getByText(/용지호수공원/)).toBeVisible();
-  await page.getByRole("button", { name: "용지호수공원 보관함에서 빼기" }).click();
+  await page.getByRole("button", { name: "용지호수공원 일정에서 빼기" }).click();
   await expect(itinerary.getByText(/용지호수공원/)).toHaveCount(0);
-  await page.getByRole("button", { name: "용지호수공원 보관하기" }).click();
+  await page.getByRole("button", { name: "용지호수공원 일정에 추가" }).click();
   expect(api.enrichmentRequestCount()).toBe(0);
-  await page.locator(".planner-secondary-details > summary").click();
+  await page.locator(".travel-layers > summary").click();
   await expect(page.getByRole("heading", { name: /사람들이 지금/ })).toBeVisible();
   await expect.poll(api.enrichmentRequestCount).toBe(1);
   await page.reload();
@@ -117,9 +115,9 @@ test("community remains readable without login and protects writing", async ({ p
   await page.route("**/api/auth/get-session", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: "null" }));
   await page.route("**/api/community/posts**", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ posts: [], page: 1, hasMore: false }) }));
   await page.goto("/community");
-  await expect(page.getByText("아직 등록된 이야기가 없습니다.")).toBeVisible();
+  await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.")).toBeVisible();
   await expectNoSeriousA11yIssues(page);
-  await page.getByRole("link", { name: /새 이야기 쓰기/ }).click();
+  await page.getByRole("link", { name: "후기 작성", exact: true }).first().click();
   await expect(page).toHaveURL(/\/login\?next=%2Fcommunity%2Fnew/);
   await expect(page.getByLabel("이메일")).toBeVisible();
   await expect(page.getByLabel("비밀번호", { exact: true })).toBeVisible();
@@ -191,12 +189,12 @@ test("authenticated travelers can publish, like and comment without losing sessi
   });
 
   await page.goto("/community/new");
-  await expect(page.getByRole("heading", { name: "경남 여행 이야기를 남겨 주세요" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "경남 여행 후기와 질문을 남겨 주세요" })).toBeVisible();
   await page.getByLabel("게시판").selectOption("review");
   await page.getByLabel("지역").selectOption("창원");
   await page.getByLabel("제목").fill("휠체어로 둘러본 미술관 동선");
   await page.getByLabel("내용").fill("입구에서 전시장까지 직접 이동해 본 경험을 공유합니다.");
-  await page.getByRole("button", { name: "이야기 등록" }).click();
+  await page.getByRole("button", { name: "후기 등록" }).click();
   await expect(page).toHaveURL(/\/community\/owned-post$/);
   await expect(page.getByRole("heading", { name: "휠체어로 둘러본 미술관 동선" })).toBeVisible();
 
