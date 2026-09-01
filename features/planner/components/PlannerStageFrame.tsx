@@ -7,6 +7,7 @@ interface PlannerStageFrameProps {
   step: JourneyStep;
   steps: JourneyStep[];
   activeStepId: JourneyStepId;
+  interactive: boolean;
   onStepChange: (id: JourneyStepId) => void;
   onShowOverview: () => void;
   children: ReactNode;
@@ -36,7 +37,7 @@ const questions: Record<JourneyStepId, { eyebrow: string; question: string; deta
 };
 
 export default function PlannerStageFrame({
-  view, step, steps, activeStepId, onStepChange, onShowOverview, children,
+  view, step, steps, activeStepId, interactive, onStepChange, onShowOverview, children,
 }: PlannerStageFrameProps) {
   const active = activeStepId === step.id;
   const previous = steps[step.index - 2];
@@ -58,12 +59,12 @@ export default function PlannerStageFrame({
     {view === "guided" && <footer className="guided-stage-actions" aria-label={`${step.label} 단계 이동`}>
       <div>
         <span>{step.complete ? "이 단계의 준비를 마쳤어요." : "선택 내용은 이 기기에서 바로 반영돼요."}</span>
-        <button type="button" onClick={onShowOverview}>전체 정보 한눈에 보기</button>
+        <button type="button" disabled={!interactive} onClick={onShowOverview}>전체 정보 한눈에 보기</button>
       </div>
       <nav aria-label="이전 또는 다음 여행 단계">
-        {previous && <button type="button" className="secondary" onClick={() => onStepChange(previous.id)}><span aria-hidden="true">←</span> 이전: {previous.label}</button>}
-        {next && <button type="button" onClick={() => onStepChange(next.id)}>다음 질문: {next.label} <span aria-hidden="true">→</span></button>}
-        {!next && <button type="button" onClick={onShowOverview}>완성된 여행 전체 보기 <span aria-hidden="true">↗</span></button>}
+        {previous && <button type="button" className="secondary" disabled={!interactive} onClick={() => onStepChange(previous.id)}><span aria-hidden="true">←</span> 이전: {previous.label}</button>}
+        {next && <button type="button" disabled={!interactive} onClick={() => onStepChange(next.id)}>다음 질문: {next.label} <span aria-hidden="true">→</span></button>}
+        {!next && <button type="button" disabled={!interactive} onClick={onShowOverview}>완성된 여행 전체 보기 <span aria-hidden="true">↗</span></button>}
       </nav>
     </footer>}
   </div>;
