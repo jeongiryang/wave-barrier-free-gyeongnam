@@ -30,6 +30,9 @@ import { useJourneyProgress } from "../../features/planner/hooks/useJourneyProgr
 import type { Place } from "../../features/planner/types";
 import { buildPlannerViewModel } from "../../features/planner/view-model";
 import PlannerJourneyRail from "../../features/planner/components/PlannerJourneyRail";
+import PlannerJourneyModeToggle from "../../features/planner/components/PlannerJourneyModeToggle";
+import PlannerStageFrame from "../../features/planner/components/PlannerStageFrame";
+import { usePlannerStageView } from "../../features/planner/hooks/usePlannerStageView";
 
 export default function PlannerPage() {
   const { locale, motion, t } = useSitePreferences();
@@ -88,6 +91,7 @@ export default function PlannerPage() {
     routeDestinationName: routeDestination?.name || "",
     weatherReady: Boolean(weather && !weatherLoading),
   });
+  const stageView = usePlannerStageView();
   const {
     liveCount,
     effectiveProviders,
@@ -158,8 +162,8 @@ export default function PlannerPage() {
         <header className="journey-workspace-hero" data-reveal>
           <div className="journey-hero-copy">
             <p>W.A.V.E JOURNEY CONTROL</p>
-            <h1 id="journey-workspace-title">나에게 맞는 여행을<br />4단계로 완성하세요.</h1>
-            <span>조건부터 출발 직전까지, 확인된 근거와 다음 행동을 한 흐름으로 연결합니다.</span>
+            <h1 id="journey-workspace-title" aria-label="나에게 맞는 여행을 4단계로 완성하세요.">어떤 여행이<br />편안할까요?</h1>
+            <span>나에게 맞는 여행을 4단계로 완성하세요. 한 번에 한 가지 질문만 따라가도 확인된 근거와 다음 행동이 자연스럽게 이어집니다.</span>
           </div>
           <div className="journey-briefing-card" aria-label="현재 여행 브리핑">
             <div><span>현재 준비도</span><strong>{journey.progress}%</strong></div>
@@ -169,7 +173,8 @@ export default function PlannerPage() {
               <div><dt>일정</dt><dd>{saved.length ? `${saved.length}곳 저장` : "장소 선택 전"}</dd></div>
               <div><dt>경로</dt><dd>{routeDestination?.name || "목적지 미확인"}</dd></div>
             </dl>
-            <button type="button" onClick={() => journey.goToStep(journey.nextStep.id)}>다음: {journey.nextStep.label}<span aria-hidden="true">→</span></button>
+            <PlannerJourneyModeToggle view={stageView.view} onChange={stageView.changeView} />
+            <button type="button" onClick={() => { stageView.changeView("guided"); journey.goToStep(journey.nextStep.id); }}>{stageView.view === "guided" ? "다음 질문" : "한 단계씩 이어가기"}: {journey.nextStep.label}<span aria-hidden="true">→</span></button>
           </div>
           <div className="journey-trust-legend" aria-label="정보 상태 안내">
             <span data-state="confirmed"><i aria-hidden="true" />확인됨 <small>공식 근거·실제 응답</small></span>
@@ -185,79 +190,87 @@ export default function PlannerPage() {
             savedCount={saved.length}
             routeDestinationName={routeDestination?.name || ""}
           />
-          <div className="journey-stage-stream">
-            <PlannerConditionsPanel
-              t={t}
-              activePlaces={activePlaces}
-              planController={planController}
-              route={routePlanning}
-              tripSelection={tripSelection}
-            />
-            <RecommendationWorkspace
-              t={t}
-              region={region}
-              activePlaces={activePlaces}
-              planController={planController}
-              route={routePlanning}
-              tripSelection={tripSelection}
-              onGenerate={generatePlan}
-              onSelectPlace={setSelectedPlace}
-            />
-            <PlannerItineraryWorkspace
-              plan={plan}
-              activePlaces={activePlaces}
-              planCrowd={plan?.crowd}
-              effectiveProviders={effectiveProviders}
-              route={routePlanning}
-              locationSearch={locationSearch}
-              tripSelection={tripSelection}
-              audioGuide={audioGuide}
-              participation={participation}
-              onChoosePoint={choosePoint}
-              onCopyBookingRoute={copyBookingRoute}
-              onMapDestination={routeFromMapPlace}
-              onSaveMapPlaces={saveMapPlaces}
-            />
-            <DepartureReadinessCard
-              plan={plan}
-              region={region}
-              weather={weather}
-              weatherLoading={weatherLoading}
-              transportProviders={effectiveProviders}
-              tripSelection={tripSelection}
-              participation={participation}
-              onRefresh={() => { reloadWeather(); return generatePlan(false); }}
-            />
-            <TravelSignalsPanel
-              region={region}
-              plan={plan}
-              weather={weather}
-              weatherLoading={weatherLoading}
-              tripImpact={tripImpact}
-              impactCrowd={impactCrowd}
-              onImpactAction={applyImpactAction}
-              enrichment={enrichment}
-              enrichmentLoading={enrichmentLoading}
-              visitorTypes={visitorTypes}
-              demandMax={demandMax}
-              richMode={richMode}
-              onRichModeChange={setRichMode}
-              richItems={richItems}
-              onReloadEnrichment={() => void loadEnrichment()}
-              secondaryOpen={secondaryOpen}
-              onSecondaryOpenChange={setSecondaryOpen}
-              onRouteFromRichSpot={routeFromRichSpot}
-            />
-            <PlannerServiceStatus
-              locale={locale}
-              keyHealth={keyHealth}
-              effectiveProviders={effectiveProviders}
-              transportProviders={transportProviders}
-              providerErrors={providerErrors}
-              liveCount={liveCount}
-              dataErrors={dataErrors}
-              plan={plan}
-            />
+          <div className="journey-stage-stream" data-view={stageView.view}>
+            <PlannerStageFrame view={stageView.view} step={journey.steps[0]} steps={journey.steps} activeStepId={journey.activeStepId} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
+              <PlannerConditionsPanel
+                t={t}
+                activePlaces={activePlaces}
+                planController={planController}
+                route={routePlanning}
+                tripSelection={tripSelection}
+              />
+            </PlannerStageFrame>
+            <PlannerStageFrame view={stageView.view} step={journey.steps[1]} steps={journey.steps} activeStepId={journey.activeStepId} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
+              <RecommendationWorkspace
+                t={t}
+                region={region}
+                activePlaces={activePlaces}
+                planController={planController}
+                route={routePlanning}
+                tripSelection={tripSelection}
+                onGenerate={generatePlan}
+                onSelectPlace={setSelectedPlace}
+              />
+            </PlannerStageFrame>
+            <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
+              <PlannerItineraryWorkspace
+                plan={plan}
+                activePlaces={activePlaces}
+                planCrowd={plan?.crowd}
+                effectiveProviders={effectiveProviders}
+                route={routePlanning}
+                locationSearch={locationSearch}
+                tripSelection={tripSelection}
+                audioGuide={audioGuide}
+                participation={participation}
+                onChoosePoint={choosePoint}
+                onCopyBookingRoute={copyBookingRoute}
+                onMapDestination={routeFromMapPlace}
+                onSaveMapPlaces={saveMapPlaces}
+              />
+            </PlannerStageFrame>
+            <PlannerStageFrame view={stageView.view} step={journey.steps[3]} steps={journey.steps} activeStepId={journey.activeStepId} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
+              <DepartureReadinessCard
+                plan={plan}
+                region={region}
+                weather={weather}
+                weatherLoading={weatherLoading}
+                transportProviders={effectiveProviders}
+                tripSelection={tripSelection}
+                participation={participation}
+                onRefresh={() => { reloadWeather(); return generatePlan(false); }}
+              />
+              <TravelSignalsPanel
+                region={region}
+                plan={plan}
+                weather={weather}
+                weatherLoading={weatherLoading}
+                tripImpact={tripImpact}
+                impactCrowd={impactCrowd}
+                onImpactAction={applyImpactAction}
+                enrichment={enrichment}
+                enrichmentLoading={enrichmentLoading}
+                visitorTypes={visitorTypes}
+                demandMax={demandMax}
+                richMode={richMode}
+                onRichModeChange={setRichMode}
+                richItems={richItems}
+                onReloadEnrichment={() => void loadEnrichment()}
+                secondaryOpen={secondaryOpen}
+                onSecondaryOpenChange={setSecondaryOpen}
+                onRouteFromRichSpot={routeFromRichSpot}
+              />
+              <PlannerServiceStatus
+                locale={locale}
+                keyHealth={keyHealth}
+                effectiveProviders={effectiveProviders}
+                transportProviders={transportProviders}
+                providerErrors={providerErrors}
+                liveCount={liveCount}
+                dataErrors={dataErrors}
+                plan={plan}
+              />
+            </PlannerStageFrame>
           </div>
         </div>
       </section>
