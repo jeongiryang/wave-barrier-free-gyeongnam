@@ -2,6 +2,7 @@ import type { ReturnTypeOfUseJourneyProgress } from "../journey-progress-types";
 
 interface PlannerJourneyRailProps {
   journey: ReturnTypeOfUseJourneyProgress;
+  interactive: boolean;
   selectedProfileCount: number;
   recommendedCount: number;
   savedCount: number;
@@ -10,12 +11,13 @@ interface PlannerJourneyRailProps {
 
 export default function PlannerJourneyRail({
   journey,
+  interactive,
   selectedProfileCount,
   recommendedCount,
   savedCount,
   routeDestinationName,
 }: PlannerJourneyRailProps) {
-  return <aside className="journey-rail" aria-label="여행 계획 진행 상황">
+  return <aside className="journey-rail" aria-label="여행 계획 진행 상황" aria-busy={!interactive}>
     <div className="journey-rail-inner">
       <header>
         <p>JOURNEY CONTROL</p>
@@ -30,6 +32,7 @@ export default function PlannerJourneyRail({
           return <li key={step.id}>
             <button
               type="button"
+              disabled={!interactive}
               className={step.complete ? "complete" : ""}
               data-active={active || undefined}
               aria-current={active ? "step" : undefined}
@@ -49,7 +52,7 @@ export default function PlannerJourneyRail({
         <div><dt>내 일정</dt><dd>{savedCount ? `${savedCount}곳` : "비어 있음"}</dd></div>
         <div><dt>현재 경로</dt><dd>{routeDestinationName || "미확인"}</dd></div>
       </dl>
-      <button className="journey-next-action" type="button" onClick={() => journey.goToStep(journey.nextStep.id)}>
+      <button className="journey-next-action" type="button" disabled={!interactive} onClick={() => journey.goToStep(journey.nextStep.id)}>
         <span>다음 행동</span><strong>{journey.nextStep.label}</strong><i aria-hidden="true">↘</i>
       </button>
     </div>
