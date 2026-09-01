@@ -16,7 +16,7 @@ interface PlannerConditionsPanelProps {
 
 export default function PlannerConditionsPanel(props: PlannerConditionsPanelProps) {
   return <div className="journey-workspace-block journey-conditions" id="conditions">
-    <div className="journey-subheading" data-reveal><div><span aria-hidden="true">1</span><h2>여행 조건 정하기</h2></div><p>출발지, 날짜, 테마와 필요한 편의를 고르세요.</p></div>
+    <div className="journey-subheading" data-reveal><div><span aria-hidden="true">1</span><h2><small>여행 조건 정하기</small>어떤 여행이 편안할까요?</h2></div><p>출발지, 날짜, 취향과 필요한 편의를 순서와 관계없이 고르세요.</p></div>
     <div className="planner-bento" data-reveal>
       <PlannerJourneyBasics t={props.t} activePlaces={props.activePlaces} planController={props.planController} route={props.route} />
       <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} />
