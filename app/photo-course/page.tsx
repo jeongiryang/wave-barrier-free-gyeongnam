@@ -13,6 +13,7 @@ export default function PhotoCoursePage() {
       <Link href="/" className="photo-course-brand" aria-label="W.A.V.E 홈">W.A.V.E</Link>
       <nav aria-label="사진 코스 화면 이동">
         <Link href="/planner">여행 계획</Link>
+        <Link href="/travel-book">내 여행집</Link>
         <Link href="/community">여행 후기</Link>
       </nav>
     </header>
@@ -26,7 +27,7 @@ export default function PhotoCoursePage() {
       router.push(`/planner?${query.toString()}`);
     }} />
     <footer className="photo-course-page-footer">
-      <Link href="/planner">← 여행 계획으로 돌아가기</Link>
+      <Link href="/travel-book">← 내 여행집으로 돌아가기</Link>
     </footer>
   </main>;
 }

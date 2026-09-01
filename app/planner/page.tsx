@@ -33,6 +33,7 @@ import PlannerJourneyRail from "../../features/planner/components/PlannerJourney
 import PlannerJourneyModeToggle from "../../features/planner/components/PlannerJourneyModeToggle";
 import PlannerStageFrame from "../../features/planner/components/PlannerStageFrame";
 import { usePlannerStageView } from "../../features/planner/hooks/usePlannerStageView";
+import { profiles as accessibilityProfiles, themes as travelThemes } from "../../features/planner/constants";
 
 export default function PlannerPage() {
   const { hydrated, locale, motion, t } = useSitePreferences();
@@ -227,6 +228,11 @@ export default function PlannerPage() {
                 tripSelection={tripSelection}
                 audioGuide={audioGuide}
                 participation={participation}
+                archiveContext={{
+                  region,
+                  theme: travelThemes.find((item) => item.id === theme)?.label || theme,
+                  profiles: selected.map((id) => accessibilityProfiles.find((item) => item.id === id)?.label || id),
+                }}
                 onChoosePoint={choosePoint}
                 onCopyBookingRoute={copyBookingRoute}
                 onMapDestination={routeFromMapPlace}

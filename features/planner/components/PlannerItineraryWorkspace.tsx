@@ -21,6 +21,7 @@ interface PlannerItineraryWorkspaceProps {
   tripSelection: ReturnType<typeof useTripSelection>;
   audioGuide: ReturnType<typeof useAudioGuide>;
   participation: ReturnType<typeof usePlannerParticipation>;
+  archiveContext: { region: string; theme: string; profiles: string[] };
   onChoosePoint: (place: Place) => void;
   onCopyBookingRoute: (provider: string) => Promise<void>;
   onMapDestination: (place: MapPlace) => void;
@@ -63,6 +64,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       route={props.route}
       audioGuide={props.audioGuide}
       participation={props.participation}
+      archiveContext={props.archiveContext}
     />
     <NavigationWorkspace
       activePlaces={navigationPlaces}

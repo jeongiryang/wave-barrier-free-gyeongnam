@@ -9,14 +9,16 @@ import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import { buildItinerarySchedule, routeMinutesForOriginLeg } from "../optimization/itinerary-schedule.js";
 import type { PlanData } from "../types";
+import TravelBookArchiveAction from "../../travel-book/TravelBookArchiveAction";
 import AudioGuidePlayer from "./AudioGuidePlayer";
 
-export default function TripDayPlanner({ plan, tripSelection, route, audioGuide, participation }: {
+export default function TripDayPlanner({ plan, tripSelection, route, audioGuide, participation, archiveContext }: {
   plan: PlanData | null;
   tripSelection: ReturnType<typeof useTripSelection>;
   route: ReturnType<typeof useRoutePlanning>;
   audioGuide: ReturnType<typeof useAudioGuide>;
   participation: ReturnType<typeof usePlannerParticipation>;
+  archiveContext: { region: string; theme: string; profiles: string[] };
 }) {
   const {
     scheduleAssignments, tripDays, orderedSavedPlaces, orderExplanation,
@@ -71,6 +73,16 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
       {shareUrl && <a href={shareUrl}>공유 일정 열기</a>}
       {shareState === "error" && <small role="alert">공유 링크를 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요.</small>}
     </div>
+    <TravelBookArchiveAction
+      places={orderedSavedPlaces}
+      region={archiveContext.region}
+      theme={archiveContext.theme}
+      profiles={archiveContext.profiles}
+      travelStart={tripSelection.travelStart}
+      travelEnd={tripSelection.travelEnd}
+      dayStartTime={dayStartTime}
+      scheduleAssignments={scheduleAssignments}
+    />
     <details className="itinerary-secondary-actions">
       <summary>오디오 가이드와 여행 후기 <span>선택 사항</span></summary>
       <AudioGuidePlayer audio={plan?.audio} controller={audioGuide} />

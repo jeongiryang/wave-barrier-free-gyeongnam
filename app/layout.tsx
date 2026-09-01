@@ -11,6 +11,7 @@ import "./styles/theme-itinerary-foundations.css";
 import "./styles/planner-workspace.css";
 import "./styles/photo-course.css";
 import "./styles/photo-course-page.css";
+import "./styles/travel-book.css";
 import "./styles/landing-motion.css";
 import "./styles/workspace-responsive.css";
 import "./styles/map-experience.css";
