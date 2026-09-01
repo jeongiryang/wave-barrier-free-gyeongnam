@@ -26,6 +26,11 @@ W.A.V.E는 “갈 수 있는 관광지 목록”이 아니라, **내 이동 조�
 근거로 고르고 실제 이동·일정·출발 직전 확인까지 이어 주는 경남 무장애 여행 설계
 플랫폼**입니다.
 
+플래너의 **Journey Control Center**는 네 단계를 긴 문서처럼 흩어 놓지 않습니다.
+데스크톱에서는 현재 단계·완료 조건·다음 행동을 왼쪽 레일에 고정하고, 모바일에서는
+44px 하단 단계 탐색으로 바꿉니다. 상단 브리핑은 편의조건, 공식 추천, 저장한 장소,
+현재 경로를 요약하며 `확인됨 / 일부 확인 / 재확인 필요`의 의미를 먼저 설명합니다.
+
 | 여행자가 묻는 것 | W.A.V.E의 결정 화면 | 거짓 확신을 막는 기준 |
 | --- | --- | --- |
 | 내가 갈 수 있는가? | 선택한 편의조건과 장소별 일치 근거 | 공식 긍정 근거가 없으면 일반 추천·자동 일정에서 분리 |
@@ -58,6 +63,7 @@ W.A.V.E는 “갈 수 있는 관광지 목록”이 아니라, **내 이동 조�
 
 | 영역 | 실제 화면 | 제공 기능 | 운영 상태 |
 | --- | --- | --- | --- |
+| Journey Control Center | [`/planner`](https://wave-barrier-free-gyeongnam.vercel.app/planner) | 현재 단계·준비도·다음 행동·정보 상태 범례, 데스크톱 고정 레일과 모바일 하단 탐색 | 운영 중 |
 | 여행 조건·프로필 | [`/planner#conditions`](https://wave-barrier-free-gyeongnam.vercel.app/planner#conditions) | 휠체어·보행·영유아·임산부·시각·청각 조건 다중 선택, 이 기기에만 저장하는 재사용 프로필 | 운영 중 |
 | 관광 탐색 | [`/planner#places`](https://wave-barrier-free-gyeongnam.vercel.app/planner#places) | 경남 18개 시·군 공식 관광사진·무장애 편의정보·근거 있는 추천과 추가 탐색 분리 | 운영 중 |
 | 일정 보드 | [`/planner#places`](https://wave-barrier-free-gyeongnam.vercel.app/planner#places) | 날짜·시작 시각·장소 순서 직접 편집, 이동·체류시간 연쇄 계산, 공유·여행일지 초안 | 운영 중 |
@@ -85,6 +91,10 @@ flowchart TB
 조건을 바꾸면 별도의 제출 버튼을 다시 누르지 않아도 추천 코스가 갱신됩니다.
 각 결과에는 공식 데이터와 W.A.V.E가 조합한 판단을 구분하고, 가능한 경우
 업데이트 시각·신뢰도·제공기관 상태를 함께 표시합니다.
+
+교통 제공기관이나 데이터셋에서 응답을 받았다는 사실은 실제 출발지→목적지 경로가
+확인됐다는 뜻이 아닙니다. 출발 준비 화면은 제공기관 응답 수와 실제 이동 경로를
+분리하고, 실제 시간은 이동 화면에서 수단별로 확인하게 합니다.
 
 ### 3분 데모
 
@@ -278,6 +288,7 @@ App Router 메타데이터 라우트에서 프로덕션 주소를 단일 기준�
 ## 관련 문서
 
 - [3분 시연 동선과 실패 대안](docs/demo-script.md)
+- [역대 수상작 참고 레포 선별·적용 기록](docs/award-reference-review.md)
 - [공모전 요구사항 정합성](docs/contest-compliance.md)
 - [공모전 운영·데이터 정책](docs/competition-operation-policy.md)
 - [모바일 제공 형태 결정 기록](docs/mobile-app-decision.md)

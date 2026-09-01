@@ -32,6 +32,10 @@ test("부분 API 성공을 전체 확인됨으로 올리지 않는다", () => {
   assert.equal(result.items.find((item) => item.id === "weather")?.state, "confirmed");
   assert.equal(result.items.find((item) => item.id === "crowd")?.state, "confirmed");
   assert.equal(result.items.find((item) => item.id === "transport")?.state, "partial");
+  const transportSummary = result.items.find((item) => item.id === "transport")?.summary || "";
+  assert.match(transportSummary, /제공기관·데이터 응답 확인/);
+  assert.match(transportSummary, /실제 경로 수와는 다릅니다/);
+  assert.doesNotMatch(transportSummary, /개 실제 경로 확인/);
 });
 
 test("날씨 조회 실패와 근거 없는 장소는 재확인 필요로 남긴다", () => {

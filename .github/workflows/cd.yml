@@ -23,12 +23,12 @@ jobs:
       contents: read
     steps:
       - name: 배포할 소스 체크아웃
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Node.js 설정
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22.13.0
           cache: npm
