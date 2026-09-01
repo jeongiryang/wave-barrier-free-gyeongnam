@@ -22,6 +22,8 @@ test("새 여행자는 한 단계씩 보고 필요하면 전체 보기로 전환
   assert.match(page, /observeSections: stageView\.view === "overview"/);
   assert.match(page, /activeStepId: stageView\.activeStepId/);
   assert.match(page, /onActiveStepChange: stageView\.changeStep/);
+  assert.match(page, /interactive=\{hydrated\}/);
+  assert.match(modeToggle, /disabled=\{!interactive\}/);
 });
 
 test("네 단계는 기능명이 아니라 여행자의 질문으로 이어진다", async () => {
