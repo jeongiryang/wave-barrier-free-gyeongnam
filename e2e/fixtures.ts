@@ -76,8 +76,11 @@ export async function mockPublicShellApi(page: Page) {
   }));
 }
 
-export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean } = {}) {
+export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview" } = {}) {
   let enrichmentRequestCount = 0;
+  await page.addInitScript((plannerView) => {
+    window.localStorage.setItem("wave-planner-stage-view-v1", plannerView);
+  }, options.plannerView || "overview");
   await page.route(/https:\/\/[abc]\.tile\.openstreetmap\.org\/.*/, (requestRoute) => requestRoute.fulfill({
     status: 200,
     contentType: "image/svg+xml",
