@@ -21,7 +21,7 @@ test("390px·768px·1440px에서 네 단계 계획 흐름과 단일 일정이 �
     await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toHaveCount(0);
     await expect(page.getByRole("region", { name: "내 일정", exact: true })).toHaveCount(1);
 
-    await page.getByRole("navigation", { name: "여행 계획 단계" }).getByRole("link", { name: "3 내 일정" }).click();
+    await page.getByRole("navigation", { name: "여행 계획 단계 이동" }).getByRole("button", { name: /내 일정/ }).click();
     await expect.poll(() => page.locator("#itinerary").evaluate((node) => node.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
