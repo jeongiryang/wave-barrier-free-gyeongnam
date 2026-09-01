@@ -87,6 +87,8 @@ export default function PlannerPage() {
   const journey = useJourneyProgress({
     motion,
     observeSections: stageView.view === "overview",
+    activeStepId: stageView.activeStepId,
+    onActiveStepChange: stageView.changeStep,
     selectedProfileCount: selected.length,
     recommendedCount: activePlaces.length,
     savedCount: saved.length,
