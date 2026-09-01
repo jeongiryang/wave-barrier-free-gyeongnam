@@ -83,15 +83,16 @@ export default function PlannerPage() {
     selectedPlace,
   });
   const { feedbackText, feedbackState, changeFeedbackText, submitFeedback } = participation;
+  const stageView = usePlannerStageView();
   const journey = useJourneyProgress({
     motion,
+    observeSections: stageView.view === "overview",
     selectedProfileCount: selected.length,
     recommendedCount: activePlaces.length,
     savedCount: saved.length,
     routeDestinationName: routeDestination?.name || "",
     weatherReady: Boolean(weather && !weatherLoading),
   });
-  const stageView = usePlannerStageView();
   const {
     liveCount,
     effectiveProviders,
