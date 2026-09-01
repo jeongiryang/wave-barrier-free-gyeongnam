@@ -24,6 +24,11 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   await expect(page.getByLabel("정보 상태 안내")).toContainText("일부 확인");
   await expect(page.getByLabel("정보 상태 안내")).toContainText("재확인 필요");
 
+  await page.evaluate(() => window.scrollTo(0, 1_000));
+  await expect.poll(async () => Math.round(await rail.locator(".journey-rail-inner").evaluate(
+    (element) => element.getBoundingClientRect().top,
+  ))).toBe(104);
+
   const departureSelect = page.getByLabel("출발 거점 선택");
   await departureSelect.focus();
   await expect(departureSelect).toBeFocused();
