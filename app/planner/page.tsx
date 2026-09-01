@@ -124,7 +124,10 @@ export default function PlannerPage() {
     await runPlan({
       resetRouteData,
       resetAudio,
-      loadFirstRoute: (place) => void loadRoutes(place),
+      loadInitialRoute: (places) => {
+        const destination = places.find((place) => saved.includes(place.id)) || places[0];
+        if (destination) void loadRoutes(destination);
+      },
     }, revealResults);
   }
 

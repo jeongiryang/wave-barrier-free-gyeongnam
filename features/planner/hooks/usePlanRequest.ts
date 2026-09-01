@@ -9,7 +9,7 @@ import type { Place, PlanData } from "../types";
 interface PlanRunOptions {
   resetRouteData: () => void;
   resetAudio: () => void;
-  loadFirstRoute: (place: Place) => void;
+  loadInitialRoute: (places: Place[]) => void;
 }
 
 export function usePlanRequest({ locale, region, selected, theme }: { locale: string; region: string; selected: string[]; theme: string }) {
@@ -20,7 +20,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   const planRequestRef = useRef<AbortController | null>(null);
 
   const abortPlan = useCallback(() => { planRequestRef.current?.abort(); }, []);
-  const runPlan = useCallback(async ({ resetRouteData, resetAudio, loadFirstRoute }: PlanRunOptions, revealResults = true) => {
+  const runPlan = useCallback(async ({ resetRouteData, resetAudio, loadInitialRoute }: PlanRunOptions, revealResults = true) => {
     if (!selected.length) return;
     planRequestRef.current?.abort();
     const controller = new AbortController();
@@ -36,7 +36,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       if (controller.signal.aborted) return;
       resetAudio();
       setPlan(data);
-      if (data.places[0]) loadFirstRoute(data.places[0]);
+      if (data.places.length) loadInitialRoute(data.places);
       const available = data.statuses.some((status) => status.state === "live");
       setNotice(available ? "공식 관광정보를 확인해 추천을 업데이트했습니다." : "공식 데이터에서 현재 조건에 맞는 결과를 확인하지 못했습니다.");
     } catch (error) {
