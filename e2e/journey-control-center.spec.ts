@@ -81,7 +81,15 @@ test("한 단계씩 보기에서는 질문 하나만 보여 주고 전체 보기
   await expect(page.locator(".guided-stage-prompt").getByRole("heading", { name: "어떤 여행이 편안할까요?" })).toBeVisible();
   await expect(page.locator("#places")).toBeHidden();
 
-  await page.getByRole("navigation", { name: "여행 계획 단계 이동" }).getByRole("button", { name: /여행지/ }).click();
+  const journeyNavigation = page.getByRole("navigation", { name: "여행 계획 단계 이동" });
+  const placesStep = journeyNavigation.getByRole("button", { name: /여행지/ });
+  await placesStep.click();
+  await expect.poll(
+    () => page.evaluate(() => window.sessionStorage.getItem("wave-planner-active-step-v1")),
+    { message: "여행지 단계 선택은 현재 탭의 단계 상태에 즉시 반영돼야 한다." },
+  ).toBe("places");
+  await expect(mode.getByRole("button", { name: /한 단계씩/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(placesStep).toHaveAttribute("aria-current", "step");
   await expect(page.locator(".guided-stage-prompt").getByRole("heading", { name: "왜 이 장소가 나에게 맞을까요?" })).toBeVisible();
   await expect(page.locator("#places")).toBeVisible();
   await expect(page.locator("#conditions")).toBeHidden();
