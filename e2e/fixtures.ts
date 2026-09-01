@@ -80,6 +80,7 @@ export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; 
   let enrichmentRequestCount = 0;
   await page.addInitScript((plannerView) => {
     window.localStorage.setItem("wave-planner-stage-view-v1", plannerView);
+    window.sessionStorage.setItem("wave-planner-active-step-v1", "conditions");
   }, options.plannerView || "overview");
   await page.route(/https:\/\/[abc]\.tile\.openstreetmap\.org\/.*/, (requestRoute) => requestRoute.fulfill({
     status: 200,
