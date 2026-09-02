@@ -15,7 +15,9 @@ test("커뮤니티와 여행집 도움말은 페이지 맥락을 설명하고 �
     { path: "/travel-book", title: "갈 여행과 다녀온 여행을 모아 보세요." },
   ]) {
     await page.goto(journey.path);
-    await page.getByRole("button", { name: "도움말" }).click();
+    const helpButton = page.getByRole("button", { name: "도움말" });
+    await expect(helpButton).toBeEnabled();
+    await helpButton.click();
     const dialog = page.getByRole("dialog", { name: journey.title });
     await expect(dialog).toBeVisible();
     await expect(page.locator(".help-tour-spotlight")).toBeVisible();

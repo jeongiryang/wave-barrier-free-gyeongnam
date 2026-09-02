@@ -1,9 +1,13 @@
 "use client";
 
 import { createPortal } from "react-dom";
+import { useSyncExternalStore } from "react";
 import { useHelpTour } from "../features/help/useHelpTour";
 
+const subscribeClientReady = () => () => undefined;
+
 export default function HelpCenter() {
+  const ready = useSyncExternalStore(subscribeClientReady, () => true, () => false);
   const {
     open,
     steps,
@@ -39,7 +43,7 @@ export default function HelpCenter() {
   </> : null;
 
   return <>
-    <button className="help-button" type="button" onClick={startTour} ref={triggerRef}>도움말 <span>?</span></button>
+    <button className="help-button" type="button" onClick={startTour} ref={triggerRef} disabled={!ready} aria-busy={!ready}>도움말 <span>?</span></button>
     {tourLayer && typeof document !== "undefined" ? createPortal(tourLayer, document.body) : null}
   </>;
 }
