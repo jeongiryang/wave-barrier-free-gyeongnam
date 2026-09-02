@@ -15,7 +15,7 @@ interface MapLayerPanelProps {
 
 export default function MapLayerPanel({ activeLayers, measureMode, measureSummary, onClose, onToggleLayer, onSelectMeasure, onClearMeasurements, onSave, onShare }: MapLayerPanelProps) {
   const measurementAvailable = typeof window !== "undefined" && Boolean(window.kakao?.maps.drawing);
-  return <section id="map-panel-layers" className="map-tool-panel map-side-drawer map-layer-panel" aria-label="지도 레이어와 측정 도구" tabIndex={-1}>
+  return <section id="map-panel-layers" className="map-tool-panel map-side-drawer map-layer-panel" role="region" aria-label="지도 레이어와 측정 도구" tabIndex={-1}>
     <header><div><strong>지도 설정</strong><span>카카오 공식 지도 레이어</span></div><button type="button" onClick={onClose} aria-label="지도 설정 닫기">×</button></header>
     <h4>레이어</h4>
     <div className="map-tool-grid">{overlayLayers.map((layer) => <button type="button" key={layer.id} aria-pressed={activeLayers.includes(layer.id)} className={activeLayers.includes(layer.id) ? "active" : ""} onClick={() => onToggleLayer(layer.id)}><i aria-hidden="true">{layer.icon}</i>{layer.label}</button>)}</div>
