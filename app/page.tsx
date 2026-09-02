@@ -28,7 +28,7 @@ export default function LandingPage() {
 
   return <main ref={landingRef} className="landing-page" data-scroll-direction={scrollDirection} onPointerMove={handlePointerMove}>
     <div className="landing-pointer-glow" aria-hidden="true" />
-    <aside className="chapter-rail" aria-hidden="true"><span>INTRO</span><i><b /></i><span>GO</span></aside>
+    <aside className="chapter-rail" aria-hidden="true"><span>처음</span><i><b /></i><span>시작</span></aside>
     <a className="skip-link" href="#story">{t("skip", "소개 바로가기")}</a>
     <LandingHeader scrolled={scrolled} t={t} />
     <LandingHero t={t} />

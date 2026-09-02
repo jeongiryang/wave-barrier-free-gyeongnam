@@ -28,6 +28,7 @@ import "./styles/account-auth.css";
 import "./styles/community.css";
 import "./styles/account-community.css";
 import "./styles/landing-stories.css";
+import "./styles/landing-feature-motion.css";
 import "./styles/landing-regions.css";
 import "./styles/planner-unified-workspace.css";
 import "./styles/planner-journey-control.css";

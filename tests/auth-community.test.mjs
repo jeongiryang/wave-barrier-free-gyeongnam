@@ -162,8 +162,8 @@ test("community UI supports public reading, protected participation and place li
       source("features/landing/components/LandingDiscoveryStories.tsx"),
       source("features/landing/components/LandingJourneyStories.tsx"),
       source("features/landing/components/LandingAdaptStory.tsx"),
+      source("features/landing/components/LandingTravelBookStory.tsx"),
       source("features/community/components/LandingCommunityStory.tsx"),
-      source("features/community/hooks/useCommunityPreview.ts"),
     ]).then((parts) => parts.join("\n")), source("app/sitemap.ts"),
   ]);
   assert.match(list, /로그인 없이 공개 글을 확인/);
@@ -178,29 +178,45 @@ test("community UI supports public reading, protected participation and place li
   assert.match(planner, /PlaceDecisionDialog/);
   assert.match(placeDialog, /place-community-link/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
-  assert.match(landing, /실제 사용자가 작성한 글만 표시/);
+  assert.match(landing, /className="[^"]*community-feature-preview/);
+  assert.match(landing, /className="[^"]*community-feature-card/);
+  assert.doesNotMatch(landing, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   assert.doesNotMatch(landing, /김철수|홍길동|test user/i);
   assert.match(sitemap, /`\$\{origin\}\/community`/);
 });
 
-test("landing product story exposes previews and reduced-motion styles", async () => {
-  const [stories, storyCss, accountCss] = await Promise.all([
+test("landing product story exposes six Korean, non-interactive and motion-safe previews", async () => {
+  const [stories, storyCss, featureMotionCss, accountCss] = await Promise.all([
     Promise.all([
       source("features/landing/components/LandingProductStories.tsx"),
       source("features/landing/components/LandingDiscoveryStories.tsx"),
       source("features/landing/components/LandingJourneyStories.tsx"),
       source("features/landing/components/LandingAdaptStory.tsx"),
+      source("features/landing/components/LandingTravelBookStory.tsx"),
       source("features/community/components/LandingCommunityStory.tsx"),
     ]).then((parts) => parts.join("\n")),
-    source("app/styles/landing-stories.css"), accountStyleSource(),
+    source("app/styles/landing-stories.css"), source("app/styles/landing-feature-motion.css"), accountStyleSource(),
   ]);
-  const css = `${storyCss}\n${accountCss}`;
-  for (const chapter of ["DISCOVER", "ACCESS", "PLAN", "ROUTE", "ADAPT", "COMMUNITY"]) assert.match(stories, new RegExp(chapter));
-  assert.match(stories, /기능 화면 미리보기/);
+  const css = `${storyCss}\n${featureMotionCss}\n${accountCss}`;
+  const labels = [...stories.matchAll(/className="section-kicker">(\d{2} · [^<]+)</g)].map((match) => match[1]);
+  assert.deepEqual(labels, ["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 여행 기록"]);
+  assert.doesNotMatch(stories, /DISCOVER|ACCESS|PLAN|ROUTE|ADAPT|REMEMBER|COMMUNITY/);
+  assert.equal((stories.match(/<div className="product-preview[^>]+role="img"[^>]+aria-label=/g) || []).length, 6);
+  assert.equal((stories.match(/className="feature-preview-stage" aria-hidden="true"/g) || []).length, 6);
+  assert.doesNotMatch(stories, /기능 화면 미리보기/);
   assert.match(stories, /정보 없음은 시설 없음과 다릅니다/);
   assert.match(stories, /현재 예보처럼 오해하지 않도록/);
-  assert.match(css, /\.product-story,.landing-community \{ min-height: 680px/);
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*community-skeletons/);
+  assert.doesNotMatch(stories, /<button\b/);
+  assert.match(stories, /className="[^"]*route-demo-path/);
+  assert.match(stories, /className="[^"]*route-demo-vehicle/);
+  assert.match(stories, /className="[^"]*community-feature-preview/);
+  assert.match(stories, /className="[^"]*community-feature-card/);
+  assert.doesNotMatch(stories, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
+  assert.match(css, /\.product-story,.landing-community \{ min-height: 0; padding-block: clamp\(/);
+  for (const selector of ["route-demo-path", "route-demo-vehicle"]) {
+    assert.match(css, new RegExp(`html\\[data-motion="calm"\\][\\s\\S]{0,400}\\.${selector}[\\s\\S]{0,300}animation: none`));
+    assert.match(css, new RegExp(`@media \\(prefers-reduced-motion: reduce\\)[\\s\\S]*\\.${selector}[\\s\\S]{0,300}animation: none`));
+  }
 });
 
 test("community moderation validates reports and restricts operator decisions", async () => {

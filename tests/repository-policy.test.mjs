@@ -96,8 +96,8 @@ async function landingProductSource() {
     "features/landing/components/LandingDiscoveryStories.tsx",
     "features/landing/components/LandingJourneyStories.tsx",
     "features/landing/components/LandingAdaptStory.tsx",
+    "features/landing/components/LandingTravelBookStory.tsx",
     "features/community/components/LandingCommunityStory.tsx",
-    "features/community/hooks/useCommunityPreview.ts",
   ];
   return (await Promise.all(paths.map(source))).join("\n");
 }
@@ -266,19 +266,18 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(regionalPhoto, /for \(const keyword of keywords\)/);
 });
 
-test("all eighteen regions use original W.A.V.E travel characters instead of emoji markers", async () => {
-  const [landing, mascot, characterConfig] = await Promise.all([
-    landingProductSource(),
-    source("components/RegionMascot.tsx"),
-    source("features/regions/character-config.ts"),
-  ]);
+test("all eighteen regions are text controls without mascot or remote map dependencies", async () => {
+  const landing = await landingProductSource();
   const names = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
-  assert.match(mascot, /<MotifMark motif=\{character\.motif\}/);
-  for (const name of names) assert.match(characterConfig, new RegExp(`${name}:`));
-  assert.equal((characterConfig.match(/nickname: "/g) || []).length, 18);
-  assert.match(landing, /<RegionMascot region=\{region\.name\} size=\{25\}/);
-  assert.match(landing, /<RegionMascot region=\{active\.name\} size=\{54\}/);
   const regionConfig = landing.slice(landing.indexOf("export const landingRegions"), landing.indexOf("export const landingValues"));
+  for (const name of names) assert.match(regionConfig, new RegExp(`name: "${name}"`));
+  assert.equal((regionConfig.match(/\{ name: "/g) || []).length, 18);
+  assert.match(landing, /landingRegions\.map\(\(region, index\) => <button/);
+  assert.match(landing, /className="region-marker-dot"/);
+  assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
+  assert.match(landing, /<b>\{region\.name\}<\/b>/);
+  assert.doesNotMatch(landing, /RegionMascot/);
+  assert.doesNotMatch(landing, /upload\.wikimedia\.org|wikimedia commons/i);
   assert.doesNotMatch(regionConfig, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);
 });
 

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mockPublicShellApi } from "./fixtures";
 
-test("경남 18개 지역 표식이 지도와 같은 좌표계 안에 유지된다", async ({ page }) => {
+test("경남 18개 지역은 텍스트 선택 버튼으로 지도 좌표계 안에 유지된다", async ({ page }) => {
   await mockPublicShellApi(page);
   await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
   await page.goto("/");
@@ -25,8 +25,17 @@ test("경남 18개 지역 표식이 지도와 같은 좌표계 안에 유지된�
   expect(mapContract.position).toBe("relative");
   expect(mapContract.aspectRatio).toMatch(/600\s*\/\s*433|1\.38/);
 
-  const markers = page.locator("[data-region-marker]");
+  const markers = page.locator("button[data-region-marker]");
   await expect(markers).toHaveCount(18);
+  await expect(page.locator(".region-marker-dot")).toHaveCount(18);
+  await expect(page.locator('[data-region-marker] svg, [data-region-marker] img')).toHaveCount(0);
+  await expect(page.locator('img[src*="wikimedia.org"]')).toHaveCount(0);
+
+  const expectedNames = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
+  expect((await markers.allTextContents()).map((value) => value.trim())).toEqual(expectedNames);
+  const initialPressed = await markers.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("aria-pressed")));
+  expect(initialPressed.filter((value) => value === "true")).toHaveLength(1);
+  expect(initialPressed.filter((value) => value === "false")).toHaveLength(17);
 
   // 등장 애니메이션이 도는 동안에도 표식은 자기 앵커 위에 있어야 한다. 확대를 개별
   // `scale` 속성으로 주면 중심을 맞추는 translate(-50%,-50%)까지 함께 줄어들어
@@ -90,4 +99,29 @@ test("경남 18개 지역 표식이 지도와 같은 좌표계 안에 유지된�
   expect(positions["합천"].x).toBeLessThan(positions["창녕"].x);
   expect(positions["창녕"].x).toBeLessThan(positions["양산"].x);
   expect(positions["거창"].y).toBeLessThan(positions["남해"].y);
+
+  const geochang = markers.filter({ hasText: "거창" });
+  await geochang.click();
+  await expect(geochang).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".selected-region strong")).toHaveText("거창");
+});
+
+test("랜딩 기능 데모는 한국어 순서와 비대화형 미리보기 계약을 지킨다", async ({ page }) => {
+  let communityRequests = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/community/posts") communityRequests += 1;
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockPublicShellApi(page);
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const labels = await page.locator(".product-stories .section-kicker").allTextContents();
+  expect(labels.map((value) => value.trim())).toEqual(["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 여행 기록"]);
+  await expect(page.locator(".product-preview button")).toHaveCount(0);
+  await expect(page.locator(".route-demo-path")).toHaveCount(1);
+  await expect(page.locator(".route-demo-vehicle")).toHaveCount(1);
+  await expect(page.locator(".community-feature-preview")).toHaveCount(1);
+  expect(await page.locator(".community-feature-preview .community-feature-card").count()).toBeGreaterThan(0);
+  expect(communityRequests).toBe(0);
 });

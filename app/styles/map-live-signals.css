@@ -60,7 +60,6 @@ html[data-theme="dark"] .map-crowd-legend p { color: #b7cdd7; }
 .region-photo-preview .region-photo-skeleton { padding: 20px; display: grid; align-content: end; gap: 10px; background: linear-gradient(105deg,#124359 18%,#26637d 38%,#124359 58%); background-size: 220% 100%; animation: region-photo-loading 1.15s linear infinite; }
 .region-photo-skeleton i { height: 12px; display: block; border-radius: 999px; background: rgba(255,255,255,.22); }.region-photo-skeleton i:last-child { width: 62%; }
 .region-photo-placeholder { padding: 18px; align-content: end; justify-items: start; background: radial-gradient(circle at 80% 12%,rgba(125,235,233,.32),transparent 42%),linear-gradient(145deg,#17526b,#093549) !important; }
-.region-photo-placeholder .region-mascot { margin-bottom: auto; }
 .region-photo-placeholder small,.region-photo-placeholder strong { display: block; }.region-photo-placeholder small { color: #7debe9; font-size: .52rem; letter-spacing: .13em; }.region-photo-placeholder strong { margin-top: 4px; color: #fff; font-size: 1.05rem; }
 .region-photo-preview .loading-copy > * { color: transparent; border-radius: 999px; background: linear-gradient(105deg,#16475d,#296078,#16475d); background-size: 220% 100%; animation: region-photo-loading 1.15s linear infinite; }.region-photo-preview .loading-copy small { width: 48%; }.region-photo-preview .loading-copy strong { width: 76%; height: 15px; margin: 4px 0; }.region-photo-preview .loading-copy span { width: 88%; }
 

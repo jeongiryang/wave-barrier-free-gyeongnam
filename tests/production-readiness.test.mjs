@@ -71,8 +71,8 @@ async function landingProductSource() {
     "features/landing/components/LandingDiscoveryStories.tsx",
     "features/landing/components/LandingJourneyStories.tsx",
     "features/landing/components/LandingAdaptStory.tsx",
+    "features/landing/components/LandingTravelBookStory.tsx",
     "features/community/components/LandingCommunityStory.tsx",
-    "features/community/hooks/useCommunityPreview.ts",
   ];
   return (await Promise.all(paths.map(source))).join("\n");
 }
@@ -243,12 +243,11 @@ test("deployment guide uses the current CI check name and Vercel uses Node 22", 
 });
 
 test("contest category, selected task and live OpenAPI use are documented consistently", async () => {
-  const [readme, compliance, policy, landing, planner, tourismHandler, planBuilder, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources] = await Promise.all([
+  const [readme, compliance, policy, landing, tourismHandler, planBuilder, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources] = await Promise.all([
     source("README.md"),
     source("docs/contest-compliance.md"),
     source("docs/competition-operation-policy.md"),
     landingProductSource(),
-    plannerProductSource(),
     source("server/tourism/handler.ts"),
     Promise.all([
       source("server/tourism/plan-builder.ts"),
@@ -263,10 +262,11 @@ test("contest category, selected task and live OpenAPI use are documented consis
     source("server/tourism/enrichment-sources.ts"),
   ]);
   const tourism = `${tourismHandler}\n${planBuilder}\n${tourismPhotos}\n${tourismInsights}\n${tourismConcentration}\n${enrichmentSources}`;
-  for (const content of [readme, compliance, policy, landing, planner]) {
+  for (const content of [readme, compliance, policy]) {
     assert.match(content, /②-2 웹·앱 구현 부문/);
     assert.match(content, /지정과제 1/);
   }
+  assert.doesNotMatch(landing, /②-2 웹·앱 구현 부문|지정과제 1|공모전 출품/);
   assert.match(compliance, /날씨 변화, 혼잡도 상승, 동선 꼬임/);
   assert.match(compliance, /실시간 대화형 여행 가이드.+예시/);
   assert.match(compliance, /TOUR_API_SERVICE_KEY_ENCODED/);
@@ -301,16 +301,49 @@ test("wide screens use available viewport width without breaking mobile gutters"
   assert.match(css, /@media \(max-width: 780px\)[\s\S]*width: calc\(100vw - 16px\)/);
 });
 
-test("landing region markers share the rendered map coordinate space", async () => {
+test("landing region controls share the rendered map coordinate space without a remote base map", async () => {
   const [landing, css] = await Promise.all([landingProductSource(), styleSource()]);
   assert.match(landing, /className="landing-region-map-canvas" data-region-map-canvas/);
   assert.match(landing, /data-region-marker=\{region\.name\}/);
-  assert.match(landing, /width="600" height="433"/);
+  assert.match(landing, /className="region-marker-dot"/);
+  assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
+  assert.doesNotMatch(landing, /RegionMascot|upload\.wikimedia\.org/i);
   assert.match(landing, /name: "거창"[\s\S]*x: 22, y: 14/);
   assert.match(landing, /name: "양산"[\s\S]*x: 90, y: 43/);
   assert.match(css, /\.landing-region-map-canvas \{[\s\S]*aspect-ratio: 600 \/ 433/);
-  assert.match(css, /\.landing-region-map-canvas > img \{[\s\S]*width: 100%;[\s\S]*height: 100%/);
   assert.match(css, /\.landing-region-map \{[\s\S]*min-height: 0/);
+});
+
+test("landing feature demos are ordered, static and motion-safe", async () => {
+  const [stories, storyCss, featureMotionCss, accountCss] = await Promise.all([
+    Promise.all([
+      source("features/landing/components/LandingDiscoveryStories.tsx"),
+      source("features/landing/components/LandingJourneyStories.tsx"),
+      source("features/landing/components/LandingAdaptStory.tsx"),
+      source("features/landing/components/LandingTravelBookStory.tsx"),
+      source("features/community/components/LandingCommunityStory.tsx"),
+    ]).then((parts) => parts.join("\n")),
+    source("app/styles/landing-stories.css"),
+    source("app/styles/landing-feature-motion.css"),
+    source("app/styles/account-community.css"),
+  ]);
+  const css = `${storyCss}\n${featureMotionCss}\n${accountCss}`;
+  const labels = [...stories.matchAll(/className="section-kicker">(\d{2} · [^<]+)</g)].map((match) => match[1]);
+  assert.deepEqual(labels, ["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 여행 기록"]);
+  assert.doesNotMatch(stories, /DISCOVER|ACCESS|PLAN|ROUTE|ADAPT|REMEMBER|COMMUNITY/);
+  assert.equal((stories.match(/<div className="product-preview[^>]+role="img"[^>]+aria-label=/g) || []).length, 6);
+  assert.equal((stories.match(/className="feature-preview-stage" aria-hidden="true"/g) || []).length, 6);
+  assert.doesNotMatch(stories, /기능 화면 미리보기/);
+  assert.doesNotMatch(stories, /<button\b/);
+  for (const hook of ["route-demo-path", "route-demo-vehicle", "community-feature-preview", "community-feature-card"]) {
+    assert.match(stories, new RegExp(`className="[^"]*${hook}`));
+  }
+  const community = await source("features/community/components/LandingCommunityStory.tsx");
+  assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
+  for (const selector of ["route-demo-path", "route-demo-vehicle"]) {
+    assert.match(css, new RegExp(`html\\[data-motion="calm"\\][\\s\\S]{0,400}\\.${selector}[\\s\\S]{0,300}animation: none`));
+    assert.match(css, new RegExp(`@media \\(prefers-reduced-motion: reduce\\)[\\s\\S]*\\.${selector}[\\s\\S]{0,300}animation: none`));
+  }
 });
 
 test("wave effects avoid dense glyphs and landing opens without a blocking intro", async () => {
@@ -325,7 +358,8 @@ test("wave effects avoid dense glyphs and landing opens without a blocking intro
   assert.match(model, /out: \[1\.78, 1\.96\]/);
   assert.match(renderer, /stageWeight\(elapsed, INTRO_STAGES\[2\]\)/);
   assert.doesNotMatch(landing, /LandingIntro|useLandingIntro|introState/);
-  assert.match(landing, /18 CITIES · 18 STORIES/);
+  assert.match(landing, /경남 18개 시·군/);
+  assert.doesNotMatch(landing, /18 CITIES · 18 STORIES/);
   assert.doesNotMatch(landing, /useState\(true\)/);
   assert.doesNotMatch(css, /brand-intro|landingIntroOut|introRegionChapter/);
 });
