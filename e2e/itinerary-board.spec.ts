@@ -77,3 +77,44 @@ test("다른 지역으로 이동해도 이전 지역 장소가 날짜별 일정�
   await expect(itinerary).toContainText("경남도립미술관");
   await expect(itinerary.getByText("2곳을 날짜별로 정리했어요.")).toBeVisible();
 });
+
+for (const width of [1440, 960, 390]) {
+  test(`${width}px에서 일정 편집 조작이 장소 설명을 가리지 않는다`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await mockPlannerApi(page);
+    await page.goto("/planner");
+    await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
+    await page.getByRole("button", { name: "용지호수공원 일정에 추가" }).click();
+
+    const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
+    const cards = itinerary.locator(".day-planner-grid li");
+    const layout = await cards.evaluateAll((items) => items.map((item) => {
+      const card = item.getBoundingClientRect();
+      const copy = item.querySelector(".day-place-copy")?.getBoundingClientRect();
+      const editor = item.querySelector(".day-place-editor")?.getBoundingClientRect();
+      const targets = [...item.querySelectorAll(".day-place-editor select,.day-place-editor button")].map((target) => {
+        const rect = target.getBoundingClientRect();
+        return { width: rect.width, height: rect.height };
+      });
+      return {
+        card: { left: card.left, right: card.right },
+        copyBottom: copy?.bottom || 0,
+        editor: { left: editor?.left || 0, right: editor?.right || 0, top: editor?.top || 0 },
+        targets,
+      };
+    }));
+
+    expect(layout.length).toBe(2);
+    for (const item of layout) {
+      expect(item.editor.top, "편집 영역은 장소 설명 아래에 놓인다").toBeGreaterThanOrEqual(item.copyBottom - 1);
+      expect(item.editor.left, "편집 영역 왼쪽이 카드 안에 있다").toBeGreaterThanOrEqual(item.card.left);
+      expect(item.editor.right, "편집 영역 오른쪽이 카드 안에 있다").toBeLessThanOrEqual(item.card.right);
+      for (const target of item.targets) {
+        expect(target.height, "날짜·순서·제거 조작 높이").toBeGreaterThanOrEqual(44);
+        expect(target.width, "날짜·순서·제거 조작 너비").toBeGreaterThanOrEqual(44);
+      }
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
+  });
+}
