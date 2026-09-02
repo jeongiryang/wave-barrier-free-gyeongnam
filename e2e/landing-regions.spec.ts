@@ -9,17 +9,19 @@ test("경남 18개 지역은 텍스트 선택 버튼으로 지도 좌표계 안�
   await page.evaluate(async () => { await document.fonts.ready; });
 
   const map = page.locator("[data-region-map-canvas]");
+  let mapContract = { width: 0, height: 0, position: "", aspectRatio: "" };
+  await expect.poll(async () => {
+    mapContract = await page.evaluate(() => {
+    const element = document.querySelector<HTMLElement>("[data-region-map-canvas]");
+    element?.scrollIntoView({ block: "center" });
+    if (!element) return { width: 0, height: 0, position: "", aspectRatio: "" };
+    const style = getComputedStyle(element);
+    const box = element.getBoundingClientRect();
+    return { width: box.width, height: box.height, position: style.position, aspectRatio: style.aspectRatio };
+    });
+    return mapContract.width;
+  }).toBeGreaterThan(0);
   await expect(map).toBeVisible();
-  const mapContract = await map.evaluate((element) => {
-    const item = element as HTMLElement;
-    const style = getComputedStyle(item);
-    return {
-      width: item.getBoundingClientRect().width,
-      height: item.getBoundingClientRect().height,
-      position: style.position,
-      aspectRatio: style.aspectRatio,
-    };
-  });
   expect(mapContract.width).toBeGreaterThan(0);
   expect(mapContract.height).toBeGreaterThan(0);
   expect(mapContract.width / mapContract.height).toBeCloseTo(600 / 433, 2);

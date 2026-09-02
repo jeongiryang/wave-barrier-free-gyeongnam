@@ -30,7 +30,7 @@ test("landing opens directly with one clear planning action and no serious acces
   await mockPublicShellApi(page);
   await page.goto("/");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /여행 계획 만들기/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /내 조건으로 시작하기|여행 계획 만들기/ }).first()).toBeVisible();
   await page.reload();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.waitForTimeout(1_500);
@@ -41,7 +41,7 @@ test("reduced motion keeps the landing immediately usable", async ({ page }) => 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /여행 계획 만들기/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /내 조건으로 시작하기|여행 계획 만들기/ }).first()).toBeVisible();
 });
 
 test("planner supports decision, save, route-aware schedule and focus restoration", async ({ page }) => {
