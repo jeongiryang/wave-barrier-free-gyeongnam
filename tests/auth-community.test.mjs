@@ -119,12 +119,25 @@ test("community API derives identity from the session and enforces ownership", a
   assert.match(postActions, /readSameOriginJson\(request, 14000\)/);
   assert.match(commentActions, /readSameOriginJson\(request, 4000\)/);
   assert.doesNotMatch(route, /validatePostInput|validateCommentInput|requiredCommunityUser/);
+  assert.match(requestGuard, /verifySameOriginMutation/);
   assert.match(requestGuard, /sec-fetch-site/);
   assert.match(requestGuard, /origin !== requestUrl\.origin/);
   assert.match(requestGuard, /TextEncoder\(\)\.encode\(raw\)\.byteLength/);
   assert.match(migration, /REFERENCES community_posts\(id\) ON DELETE CASCADE/);
   assert.match(migration, /PRIMARY KEY \(post_id, user_id\)/);
   assert.match(migration, /community_posts_place_created_idx/);
+});
+
+test("authentication mutations are same-origin, bounded and do not expose unknown provider errors", async () => {
+  const [route, validation] = await Promise.all([
+    source("app/api/auth/[...path]/route.ts"),
+    source("features/auth/validation.ts"),
+  ]);
+  assert.match(route, /verifySameOriginMutation\(request, AUTH_BODY_LIMIT\)/);
+  assert.match(route, /64 \* 1024/);
+  assert.match(route, /"POST" \| "PUT" \| "PATCH" \| "DELETE"/);
+  assert.doesNotMatch(validation, /return raw \|\|/);
+  assert.match(validation, /요청을 완료하지 못했습니다/);
 });
 
 test("community UI supports public reading, protected participation and place linkage", async () => {

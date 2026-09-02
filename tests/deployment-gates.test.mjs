@@ -8,6 +8,8 @@ import {
 } from "../lib/deployment/production-env.js";
 
 const validEnv = Object.fromEntries(REQUIRED_PRODUCTION_ENV.map((name) => [name, `${name.toLowerCase()}-configured-value`]));
+validEnv.DATABASE_URL = "postgresql://wave:secret@ep-wave.us-east-2.aws.neon.tech/wave?sslmode=require";
+validEnv.NEON_AUTH_BASE_URL = "https://ep-wave.neonauth.us-east-2.aws.neon.tech/neondb/auth";
 validEnv.NEON_AUTH_COOKIE_SECRET = "x".repeat(32);
 validEnv.CRON_SECRET = "y".repeat(64);
 validEnv.COMMUNITY_MODERATOR_USER_IDS = "user_a,user_b";
@@ -18,6 +20,10 @@ test("production deployment rejects missing or unsafe account configuration", ()
   assert.ok(!REQUIRED_PRODUCTION_ENV.includes("COMMUNITY_MODERATOR_USER_IDS"));
   assert.ok(REQUIRED_PRODUCTION_ENV.includes("CRON_SECRET"));
   assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "" }).join("\n"), /DATABASE_URL/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "mysql://db.example.com/wave" }).join("\n"), /postgres/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "postgresql://wave:secret@db.example.com/wave?sslmode=disable" }).join("\n"), /TLS/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_BASE_URL: "http://ep-wave.neon.tech/auth" }).join("\n"), /HTTPS/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_BASE_URL: "https://neon.tech.attacker.example/auth" }).join("\n"), /HTTPS/);
   assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_COOKIE_SECRET: "short" }).join("\n"), /32자/);
   assert.match(productionEnvironmentErrors({ ...validEnv, CRON_SECRET: "short" }).join("\n"), /CRON_SECRET.*32자/);
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "valid,bad id" }).join("\n"), /잘못되거나/);

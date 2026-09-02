@@ -3,12 +3,15 @@ import { likePost } from "../../../../features/community/server/engagement-actio
 import { communityResponse } from "../../../../features/community/server/http";
 import { listModerationQueue, moderateCommunityTarget, reportCommunityTarget } from "../../../../features/community/server/moderation-actions";
 import { createPost, deletePost, listPosts, readPost, updatePost } from "../../../../features/community/server/post-actions";
+import { verifySameOriginMutation } from "../../../../lib/server-request";
 
 export const dynamic = "force-dynamic";
 type RouteContext = { params: Promise<{ path: string[] }> };
 
 async function handle(request: Request, context: RouteContext) {
   try {
+    const guard = await verifySameOriginMutation(request);
+    if (guard) return guard;
     const path = (await context.params).path || [];
     if (path[0] === "moderation") {
       if (path.length === 1 && request.method === "GET") return listModerationQueue();
@@ -48,5 +51,6 @@ async function handle(request: Request, context: RouteContext) {
 
 export const GET = handle;
 export const POST = handle;
+export const PUT = handle;
 export const PATCH = handle;
 export const DELETE = handle;

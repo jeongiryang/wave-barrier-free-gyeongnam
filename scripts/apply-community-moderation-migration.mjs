@@ -1,9 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { neon } from "@neondatabase/serverless";
+import { securePostgresUrl } from "../lib/deployment/environment-validation.js";
 
-const databaseUrl = process.env.DATABASE_URL?.trim();
+const databaseUrl = securePostgresUrl(process.env.DATABASE_URL, { allowLocalhost: true });
 if (!databaseUrl) {
-  console.error("DATABASE_URL이 없어 migration을 적용할 수 없습니다.");
+  console.error("TLS가 적용된 DATABASE_URL이 없어 migration을 적용할 수 없습니다.");
   process.exit(1);
 }
 

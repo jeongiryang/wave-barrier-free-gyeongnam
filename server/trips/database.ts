@@ -1,6 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { createSchemaBootstrap } from "../../lib/schema-bootstrap.js";
 import { SCHEDULED_SWEEP_LIMIT } from "../../lib/trips/retention.js";
+import { securePostgresUrl } from "../../lib/deployment/environment-validation.js";
 
 const createSql = (url: string) => neon(url);
 export type TripSql = ReturnType<typeof createSql>;
@@ -11,7 +12,9 @@ export type TripSql = ReturnType<typeof createSql>;
  * 성공한 준비만 재사용하고, 일시적인 실패는 다음 요청이 다시 시도한다.
  */
 export const ensureTripDatabase = createSchemaBootstrap(async (): Promise<TripSql | null> => {
-  const url = typeof process === "undefined" ? "" : process.env.DATABASE_URL?.trim();
+  const url = typeof process === "undefined" ? null : securePostgresUrl(process.env.DATABASE_URL, {
+    allowLocalhost: process.env.NODE_ENV !== "production",
+  });
   if (!url) return null;
   const sql = createSql(url);
   await sql`CREATE TABLE IF NOT EXISTS itineraries (
