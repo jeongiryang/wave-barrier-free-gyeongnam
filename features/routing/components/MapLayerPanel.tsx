@@ -30,7 +30,7 @@ export default function MapLayerPanel({ activeLayers, measureMode, measureSummar
     {measureSummary && <p className="map-measure-summary">{measureSummary}</p>}
     <h4>경로 도구</h4>
     <div className="map-utility-actions">
-      <button type="button" onClick={onSave}><i>＋</i>내 일정에 추가</button>
+      <button type="button" onClick={onSave}><i>＋</i>이 기기 일정에 추가</button>
       <button type="button" onClick={() => window.print()}><i>▣</i>인쇄</button>
       <button type="button" onClick={onShare}><i>↗</i>공유</button>
     </div>

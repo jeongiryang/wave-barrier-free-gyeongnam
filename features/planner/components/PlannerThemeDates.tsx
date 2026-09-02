@@ -13,7 +13,7 @@ export default function PlannerThemeDates({ t, planController, tripSelection }: 
   return <>
     <fieldset className="control-panel theme-control">
       <legend className="step-label">{t("enjoy", "무엇을 즐길까요?")}</legend>
-      <div className="theme-grid">{themes.map((item) => <button key={item.id} type="button" className={theme === item.id ? "active" : ""} onClick={() => setTheme(item.id)} aria-pressed={theme === item.id}><span>{item.label}</span><small>{item.code}</small></button>)}</div>
+      <div className="theme-grid">{themes.map((item) => <button key={item.id} type="button" className={theme === item.id ? "active" : ""} onClick={() => setTheme(item.id)} aria-pressed={theme === item.id}><span>{item.label}</span><small>{item.description}</small></button>)}</div>
     </fieldset>
     <div className="control-panel date-control">
       <span className="step-label">언제 떠날까요?</span>

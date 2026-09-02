@@ -17,7 +17,7 @@ W.A.V.E에는 수상작에서 반복되는 코스 만들기, 지도, 날씨, 개
 | 참고 레포 | 확인한 강점 | W.A.V.E 적용 | 적용하지 않은 이유 |
 | --- | --- | --- | --- |
 | [NEXPOT](https://github.com/jeongiryang/Nexpot) | 영상·장소·코스·지도·리뷰 요약을 한 화면에서 스캔 | 상단 여행 브리핑, 상태 요약, 근거 중심 카드 위계 | 영상·리뷰 양을 공식 접근성 근거처럼 사용하지 않음 |
-| [TAGO](https://github.com/jeongiryang/tago) | 코스 상세, 나만의 여행, 둘러보기와 참여 흐름 | 4단계 진행 상태, 내 일정, 현재 단계의 다음 행동, 여행 전후를 잇는 로컬 여행집 | 챗봇은 근거 없는 답변 위험과 기존 시각 플래너 중복 때문에 제외 |
+| [TAGO](https://github.com/jeongiryang/tago) | 코스 상세, 나만의 여행, 둘러보기와 참여 흐름 | 4단계 진행 상태, 이 기기 일정, 현재 단계의 다음 행동, 여행 전후를 잇는 로컬 여행집 | 챗봇은 근거 없는 답변 위험과 기존 시각 플래너 중복 때문에 제외 |
 | [Drivel-client](https://github.com/jeongiryang/Drivel-client) | 문제→서비스→화면을 이어 주는 시연 중심 소개 | README의 1분 소개, 실제 화면, 3분 시연 문서 | 발표 이미지를 제품 UI로 복제하지 않음 |
 | [AlongTheBlue](https://github.com/jeongiryang/AlongTheBlue_SERVER) | 지역 정체성이 분명한 브랜드와 결과물 연결 | Deep Ocean 브랜드, 서비스·문서·Production 연결 | 제주 바다 표현을 경남 전역 서비스에 그대로 차용하지 않음 |
 | [야구행](https://github.com/jeongiryang/Yaguhang_BE) | 일정·날씨·주변 관광지를 한 맥락으로 연결 | 일정과 날씨·혼잡·이동을 출발 준비로 결합 | 경기 스크랩·알림은 W.A.V.E 핵심 문제와 무관해 제외 |

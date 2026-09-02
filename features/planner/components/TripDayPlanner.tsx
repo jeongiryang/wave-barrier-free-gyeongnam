@@ -47,11 +47,11 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
     visitDate: tripDays[0],
   }), [orderedSavedPlaces, scheduleAssignments, tripDays]);
   const { shareState, shareUrl, sharePlan } = participation;
-  if (!orderedSavedPlaces.length) return <section className="day-planner empty" data-reveal aria-label="내 일정">
+  if (!orderedSavedPlaces.length) return <section className="day-planner empty" data-reveal aria-label="이 기기 일정">
     <div className="itinerary-empty-state"><span aria-hidden="true">+</span><h3>아직 일정에 추가한 장소가 없어요.</h3><p>위 추천 여행지에서 ‘일정에 추가’를 누르면 이곳에서 날짜, 순서와 이동시간을 정리할 수 있습니다.</p></div>
   </section>;
   return <section className="day-planner" data-reveal aria-label="날짜별 여행 일정">
-    <header><div><span>내 일정</span><h3>{orderedSavedPlaces.length}곳을 날짜별로 정리했어요.</h3></div><div className="day-start-control"><label htmlFor="day-start-time">하루 시작</label><input id="day-start-time" type="time" value={dayStartTime} onChange={(event) => setDayStartTime(event.target.value)} /><small>확인한 실제 경로가 있으면 이동시간에 반영합니다.</small></div></header>
+    <header><div><span>이 기기 일정</span><h3>{orderedSavedPlaces.length}곳을 날짜별로 정리했어요.</h3></div><div className="day-start-control"><label htmlFor="day-start-time">하루 시작</label><input id="day-start-time" type="time" value={dayStartTime} onChange={(event) => setDayStartTime(event.target.value)} /><small>확인한 실제 경로가 있으면 이동시간에 반영합니다.</small></div></header>
     <div className="day-order-toolbar"><div><strong>{orderMode === "manual" ? "내가 정한 순서" : "추천 순서"}</strong><p className="day-planner-explanation">{orderExplanation} 날짜와 순서는 이 기기와 공유 일정에 저장됩니다.</p></div>{orderMode === "manual" && <button type="button" onClick={() => { restoreAutoOrder(); setEditNotice(""); }}>추천 순서로 정렬</button>}</div>
     <p className="day-order-help">위·아래 버튼은 같은 날짜 안에서만 움직입니다. 첫 장소의 ‘앞으로’와 마지막 장소의 ‘뒤로’는 사용할 수 없습니다.</p>
     <p className="sr-only" role="status" aria-live="polite">{editNotice || orderNotice}</p>

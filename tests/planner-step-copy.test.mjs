@@ -43,7 +43,7 @@ test("단계 제목을 한국어로 읽을 수 있다", async () => {
     source("features/planner/components/PlannerItineraryWorkspace.tsx"),
     source("features/planner/components/DepartureReadinessCard.tsx"),
   ]).then((parts) => parts.join("\n"));
-  for (const title of ["여행 조건 정하기", "여행지 고르기", "내 일정 만들기", "출발 전에 이것만 다시 확인하세요"]) assert.match(files, new RegExp(title));
+  for (const title of ["여행 조건 정하기", "여행지 고르기", "이 기기 일정 만들기", "출발 전에 이것만 다시 확인하세요"]) assert.match(files, new RegExp(title));
 });
 
 test("추천 갱신 방식은 자동 하나로 설명한다", async () => {

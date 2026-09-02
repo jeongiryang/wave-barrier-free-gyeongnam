@@ -27,7 +27,7 @@ export default function RecommendationCarousel({ t, region, activePlaces, planCo
 
   return <>
     <div className="journey-subheading" data-reveal><div><span aria-hidden="true">2</span><h2><small>{t("placesTitle", "여행지 고르기")}</small>왜 이 장소가 나에게 맞을까요?</h2></div><div className="carousel-actions"><button type="button" onClick={() => scrollCards(-1)} aria-label="이전 여행지">←</button><button type="button" onClick={() => scrollCards(1)} aria-label="다음 여행지">→</button></div></div>
-    <p className="stage-guidance">선택한 조건이 공식 정보에서 확인된 장소만 추천합니다. 마음에 드는 장소를 내 일정에 추가하세요.</p>
+    <p className="stage-guidance">선택한 조건이 공식 정보에서 확인된 장소만 추천합니다. 마음에 드는 장소를 이 기기 일정에 추가하세요.</p>
     <div className="place-carousel" ref={cardsRef} aria-busy={loading}>
       {loading && <p className="sr-only" role="status" aria-live="polite">여행 조건에 맞는 공식 관광정보를 불러오고 있어요.</p>}
       {loading && [0, 1, 2].map((item) => <article className="place-card place-card-skeleton" key={`place-skeleton-${item}`} aria-hidden="true"><div className="skeleton-visual" /><div className="skeleton-copy"><i /><b /><span /><span /><em /></div></article>)}
@@ -38,7 +38,7 @@ export default function RecommendationCarousel({ t, region, activePlaces, planCo
       </article>)}
     </div>
     {!loading && explorationPlaces.length > 0 && <section className="exploration-places" aria-labelledby="exploration-places-title">
-      <header><div><span>확인 후 방문 추천</span><h4 id="exploration-places-title">편의시설 정보를 더 확인해야 하는 장소</h4></div><p>공식 근거가 부족해 일반 추천과 내 일정에는 넣지 않았습니다. 운영기관에서 최신 정보를 확인한 뒤 방문을 결정하세요.</p></header>
+      <header><div><span>확인 후 방문 추천</span><h4 id="exploration-places-title">편의시설 정보를 더 확인해야 하는 장소</h4></div><p>공식 근거가 부족해 일반 추천과 이 기기 일정에는 넣지 않았습니다. 운영기관에서 최신 정보를 확인한 뒤 방문을 결정하세요.</p></header>
       <div>{explorationPlaces.map((place) => <article key={`explore-${place.id}`}>
         <div><small>{place.city || region}</small><h5>{place.name}</h5><p>{place.summary}</p></div>
         <span className={place.score === 0 ? "mismatch" : "unknown"}>{place.score === 0 ? "선택한 편의와 불일치" : "공식 정보 확인 필요"}</span>

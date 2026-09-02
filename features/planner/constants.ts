@@ -65,10 +65,10 @@ export const regions = [
 ];
 
 export const themes = [
-  { id: "nature", label: "자연·휴양", code: "관광지 12" },
-  { id: "history", label: "역사·문화", code: "문화시설 14" },
-  { id: "leisure", label: "레포츠", code: "레포츠 28" },
-  { id: "food", label: "음식", code: "음식점 39" },
+  { id: "nature", label: "자연·휴양", description: "공원·정원·자연 명소" },
+  { id: "history", label: "역사·문화", description: "박물관·전시·문화 공간" },
+  { id: "leisure", label: "레포츠", description: "체험·야외 활동" },
+  { id: "food", label: "음식", description: "지역 음식·식당" },
 ];
 
 export const apiMeta = [

@@ -59,7 +59,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
 
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
     <div className="journey-subheading" data-reveal>
-      <div><span aria-hidden="true">3</span><h2 id="itinerary-stage-title"><small>내 일정 만들기</small>어떤 순서로 움직이면 편할까요?</h2></div>
+      <div><span aria-hidden="true">3</span><h2 id="itinerary-stage-title"><small>이 기기 일정 만들기</small>어떤 순서로 움직이면 편할까요?</h2></div>
       <p>추가한 장소의 날짜와 순서를 정하고 이동 경로를 확인하세요.</p>
     </div>
     <TripDayPlanner
