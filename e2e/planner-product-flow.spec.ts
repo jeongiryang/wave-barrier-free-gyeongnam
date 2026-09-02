@@ -61,7 +61,10 @@ test("랜딩 딥링크와 플래너 헤더는 안내형 보기에서도 실제 �
     await expect(conditionsLink).toBeInViewport();
     await conditionsLink.click();
     await expect(page.locator("#conditions")).toBeVisible();
-    await page.locator(".header-action").click();
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    const itineraryAction = page.locator(".header-action");
+    await expect(itineraryAction).toBeInViewport();
+    await itineraryAction.click();
     await expect(page.locator("#itinerary")).toBeVisible();
   }
 });
