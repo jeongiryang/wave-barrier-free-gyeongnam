@@ -194,9 +194,9 @@ html[data-theme="dark"] .selected-region p {
 .day-place-copy .day-evidence { width: fit-content; margin-top: 6px; padding: 4px 7px; border-radius: 999px; color: #235d4c; background: #dff5eb; font-weight: 850; }
 .day-place-editor { width: 100%; min-width: 0; display: grid; grid-column: 2; gap: 6px; }
 .day-place-editor select { width: 100%; padding-inline: 8px; }
-.day-order-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+.day-order-buttons { display: grid; grid-template-columns: repeat(2,minmax(44px,1fr)); gap: 5px; }
 .day-order-buttons button { min-width: 0; padding: 7px 8px; border: 1px solid #bfd6e0; border-radius: 9px; color: var(--ink); background: #f7fbfd; font-size: .65rem; font-weight: 850; }
-.day-order-buttons button.remove { color: #963849; border-color: #e4bdc5; background: #fff7f8; }
+.day-order-buttons button.remove { grid-column: 1 / -1; color: #963849; border-color: #e4bdc5; background: #fff7f8; }
 .day-order-buttons button:disabled { opacity: .42; cursor: not-allowed; }
 .day-journal-action { margin-top: 14px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid #b8dbcf; border-radius: 14px; background: #f0faf6; }.day-journal-action strong { font-size: .78rem; }.day-journal-action p { margin: 4px 0 0; color: var(--muted); font-size: .66rem; line-height: 1.5; }.day-journal-action a { min-height: 44px; padding: 9px 13px; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 12px; border-radius: 11px; color: #174f3f; background: #ccefe1; font-size: .7rem; font-weight: 880; }
 html[data-theme="dark"] .day-order-toolbar button,html[data-theme="dark"] .day-order-buttons button { color: #e8f5fa; border-color: #477287; background: #123e50; }
@@ -208,7 +208,7 @@ html[data-theme="dark"] .day-journal-action { border-color: #376d5d; background:
   .day-order-toolbar { align-items: stretch; flex-direction: column; gap: 10px; }
   .day-order-toolbar button { width: 100%; }
   .day-place-editor { width: 100%; }
-  .day-order-buttons { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .day-order-buttons { grid-template-columns: repeat(2,minmax(44px,1fr)); }
   .day-journal-action { align-items: stretch; flex-direction: column; }.day-journal-action a { justify-content: space-between; }
 }
 
