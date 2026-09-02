@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS community_posts (
   CHECK ((place_id IS NULL AND place_name IS NULL) OR (place_id IS NOT NULL AND place_name IS NOT NULL))
 );
 
+-- migrate:split
+
 CREATE TABLE IF NOT EXISTS community_comments (
   id TEXT PRIMARY KEY,
   post_id TEXT NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE,
@@ -23,6 +25,8 @@ CREATE TABLE IF NOT EXISTS community_comments (
   updated_at BIGINT NOT NULL
 );
 
+-- migrate:split
+
 CREATE TABLE IF NOT EXISTS community_likes (
   post_id TEXT NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE,
   user_id TEXT NOT NULL,
@@ -30,9 +34,16 @@ CREATE TABLE IF NOT EXISTS community_likes (
   PRIMARY KEY (post_id, user_id)
 );
 
+-- migrate:split
+
 CREATE INDEX IF NOT EXISTS community_posts_created_idx ON community_posts (created_at DESC);
+-- migrate:split
 CREATE INDEX IF NOT EXISTS community_posts_category_created_idx ON community_posts (category, created_at DESC);
+-- migrate:split
 CREATE INDEX IF NOT EXISTS community_posts_place_created_idx ON community_posts (place_id, created_at DESC) WHERE place_id IS NOT NULL;
+-- migrate:split
 CREATE INDEX IF NOT EXISTS community_posts_author_created_idx ON community_posts (author_id, created_at DESC);
+-- migrate:split
 CREATE INDEX IF NOT EXISTS community_comments_post_created_idx ON community_comments (post_id, created_at ASC);
+-- migrate:split
 CREATE INDEX IF NOT EXISTS community_comments_author_created_idx ON community_comments (author_id, created_at DESC);

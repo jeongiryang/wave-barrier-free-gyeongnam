@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { createCommunityComment, removeCommunityComment, updateCommunityComment } from "../client/api";
+import { communityErrorMessage, createCommunityComment, removeCommunityComment, updateCommunityComment } from "../client/api";
 
 export function useCommunityCommentActions({ postId, authenticated, onLogin, reload, setMessage }: {
   postId: string;
@@ -20,27 +20,41 @@ export function useCommunityCommentActions({ postId, authenticated, onLogin, rel
     if (!authenticated) { onLogin(); return; }
     setCommentState("saving");
     setMessage("");
-    const { ok, status, payload } = await createCommunityComment(postId, comment);
-    if (status === 401) { onLogin(); return; }
-    if (!ok) { setMessage(payload.error || "댓글을 저장하지 못했습니다."); setCommentState("error"); return; }
-    setComment("");
-    setCommentState("idle");
-    await reload();
+    try {
+      const { ok, status, payload } = await createCommunityComment(postId, comment);
+      if (status === 401) { onLogin(); return; }
+      if (!ok) { setMessage(payload.error || "댓글을 저장하지 못했습니다."); setCommentState("error"); return; }
+      setComment("");
+      await reload();
+    } catch (error) {
+      setMessage(communityErrorMessage(error, "댓글을 저장하지 못했습니다."));
+      setCommentState("error");
+    } finally {
+      setCommentState((current) => current === "saving" ? "idle" : current);
+    }
   }
 
   async function saveComment(commentId: string) {
-    const { ok, payload } = await updateCommunityComment(postId, commentId, editingContent);
-    if (!ok) { setMessage(payload.error || "댓글을 수정하지 못했습니다."); return; }
-    setEditingComment(null);
-    setEditingContent("");
-    await reload();
+    try {
+      const { ok, payload } = await updateCommunityComment(postId, commentId, editingContent);
+      if (!ok) { setMessage(payload.error || "댓글을 수정하지 못했습니다."); return; }
+      setEditingComment(null);
+      setEditingContent("");
+      await reload();
+    } catch (error) {
+      setMessage(communityErrorMessage(error, "댓글을 수정하지 못했습니다."));
+    }
   }
 
   async function deleteComment(commentId: string) {
     if (!window.confirm("이 댓글을 삭제할까요?")) return;
-    const { ok, payload } = await removeCommunityComment(postId, commentId);
-    if (!ok) { setMessage(payload.error || "댓글을 삭제하지 못했습니다."); return; }
-    await reload();
+    try {
+      const { ok, payload } = await removeCommunityComment(postId, commentId);
+      if (!ok) { setMessage(payload.error || "댓글을 삭제하지 못했습니다."); return; }
+      await reload();
+    } catch (error) {
+      setMessage(communityErrorMessage(error, "댓글을 삭제하지 못했습니다."));
+    }
   }
 
   return { comment, setComment, commentState, editingComment, setEditingComment, editingContent, setEditingContent, submitComment, saveComment, deleteComment };

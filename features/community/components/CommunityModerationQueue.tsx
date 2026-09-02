@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { applyCommunityModeration, getCommunityModerationQueue, type CommunityModerationReport } from "../client/api";
+import { applyCommunityModeration, communityErrorMessage, getCommunityModerationQueue, isCommunityRequestError, type CommunityModerationReport } from "../client/api";
 
 const reasonLabels: Record<string, string> = {
   incorrect: "사실과 다른 정보", unsafe: "여행 안전 우려", spam: "광고·도배",
@@ -16,9 +16,14 @@ export default function CommunityModerationQueue() {
 
   const load = useCallback(async (signal?: AbortSignal, announce = false) => {
     if (announce) setState("loading");
-    const result = await getCommunityModerationQueue(signal).catch(() => null);
+    const result = await getCommunityModerationQueue(signal).catch((error) => {
+      if (isCommunityRequestError(error) && error.kind === "aborted") return null;
+      setMessage(communityErrorMessage(error, "운영 목록을 불러오지 못했습니다."));
+      return null;
+    });
+    if (signal?.aborted) return;
     if (!result || !result.ok) {
-      setMessage(result?.payload.error || "운영 목록을 불러오지 못했습니다.");
+      if (result) setMessage(result.payload.error || "운영 목록을 불러오지 못했습니다.");
       setState("error");
       return;
     }
@@ -34,10 +39,14 @@ export default function CommunityModerationQueue() {
   }, [load]);
 
   async function decide(report: CommunityModerationReport, status: "active" | "hidden") {
-    const result = await applyCommunityModeration(report.targetType, report.targetId, status);
-    if (!result.ok) { setMessage(result.payload.error || "운영 처리를 반영하지 못했습니다."); return; }
-    setReports((current) => current.filter((item) => !(item.targetType === report.targetType && item.targetId === report.targetId)));
-    setMessage(status === "hidden" ? "해당 내용을 숨겼습니다." : "신고를 기각하고 내용을 유지했습니다.");
+    try {
+      const result = await applyCommunityModeration(report.targetType, report.targetId, status);
+      if (!result.ok) { setMessage(result.payload.error || "운영 처리를 반영하지 못했습니다."); return; }
+      setReports((current) => current.filter((item) => !(item.targetType === report.targetType && item.targetId === report.targetId)));
+      setMessage(status === "hidden" ? "해당 내용을 숨겼습니다." : "신고를 기각하고 내용을 유지했습니다.");
+    } catch (error) {
+      setMessage(communityErrorMessage(error, "운영 처리를 반영하지 못했습니다."));
+    }
   }
 
   return <section className="moderation-queue" aria-labelledby="moderation-title">

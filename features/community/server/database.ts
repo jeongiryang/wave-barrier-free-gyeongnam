@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { createSchemaBootstrap } from "../../../lib/schema-bootstrap.js";
+import { securePostgresUrl } from "../../../lib/deployment/environment-validation.js";
 
 export type CommunityRow = Record<string, unknown>;
 const createSql = (url: string) => neon(url);
@@ -7,7 +8,9 @@ export type CommunitySql = ReturnType<typeof createSql>;
 
 /** Runtime DDL keeps fresh previews usable; the migration remains the source of truth. */
 export const communityDatabase = createSchemaBootstrap(async (): Promise<CommunitySql | null> => {
-  const databaseUrl = process.env.DATABASE_URL?.trim();
+  const databaseUrl = securePostgresUrl(process.env.DATABASE_URL, {
+    allowLocalhost: process.env.NODE_ENV !== "production",
+  });
   if (!databaseUrl) return null;
   const sql = createSql(databaseUrl);
   await sql`CREATE TABLE IF NOT EXISTS community_posts (id TEXT PRIMARY KEY, author_id TEXT NOT NULL, author_name TEXT NOT NULL, category TEXT NOT NULL CHECK (category IN ('general', 'place', 'review')), title VARCHAR(120) NOT NULL, content TEXT NOT NULL, region VARCHAR(20), place_id VARCHAR(100), place_name VARCHAR(120), created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL, CHECK ((place_id IS NULL AND place_name IS NULL) OR (place_id IS NOT NULL AND place_name IS NOT NULL)))`;

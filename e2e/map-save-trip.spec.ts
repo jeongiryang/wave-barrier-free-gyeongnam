@@ -69,7 +69,9 @@ test("지도에서 저장하면 이 기기 일정에 추가되고 새로고침 �
 
   await page.getByRole("button", { name: "레이어·측정" }).click();
   const layerPanel = page.getByRole("region", { name: "지도 레이어와 측정 도구" });
-  await layerPanel.getByRole("button", { name: "＋ 이 기기 일정에 추가", exact: true }).click();
+  const saveButton = layerPanel.getByRole("button", { name: "이 기기 일정에 추가", exact: true });
+  await saveButton.focus();
+  await saveButton.press("Enter");
 
   // 담은 개수가 화면에 바로 보인다.
   await expect.poll(() => savedCount(page)).toBeGreaterThan(0);
@@ -95,15 +97,20 @@ test("이미 담긴 여행지를 다시 저장해도 중복으로 쌓이지 않�
   await page.goto("/planner");
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
-  await page.getByRole("button", { name: "레이어·측정" }).click();
+  const layerTrigger = page.getByRole("button", { name: "레이어·측정" });
+  await expect(layerTrigger).toBeEnabled();
+  await layerTrigger.click();
   const layerPanel = page.getByRole("region", { name: "지도 레이어와 측정 도구" });
 
-  await layerPanel.getByRole("button", { name: "＋ 이 기기 일정에 추가", exact: true }).click();
+  const saveButton = layerPanel.getByRole("button", { name: "이 기기 일정에 추가", exact: true });
+  await saveButton.focus();
+  await saveButton.press("Enter");
   await expect.poll(() => savedCount(page)).toBeGreaterThan(0);
   const first = await savedCount(page);
 
   // 안내 문구는 지도가 다시 그려질 때 덮이므로(별도 작업 단위), 남는 결과로 확인한다.
-  await layerPanel.getByRole("button", { name: "＋ 이 기기 일정에 추가", exact: true }).click();
+  await saveButton.focus();
+  await saveButton.press("Enter");
   await page.waitForTimeout(800);
   expect(await savedCount(page)).toBe(first);
   const ids = await page.evaluate(() => JSON.parse(window.localStorage.getItem("wave-saved-places") || "[]"));

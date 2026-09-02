@@ -19,12 +19,12 @@ export const localeOptions: LocaleOption[] = [
 ];
 
 export const motionCopy: Record<Locale, { on: string; off: string }> = {
-  ko: { on: "파동 효과 켜기", off: "파동 효과 끄기" },
-  en: { on: "Turn wave effects on", off: "Turn wave effects off" },
-  ja: { on: "波の効果をオン", off: "波の効果をオフ" },
-  "zh-Hans": { on: "开启波浪效果", off: "关闭波浪效果" },
-  "zh-Hant": { on: "開啟波浪效果", off: "關閉波浪效果" },
-  fr: { on: "Activer les vagues", off: "Désactiver les vagues" },
-  de: { on: "Welleneffekt einschalten", off: "Welleneffekt ausschalten" },
-  ru: { on: "Включить эффект волн", off: "Выключить эффект волн" },
+  ko: { on: "동작 효과 켜기", off: "동작 효과 줄이기" },
+  en: { on: "Turn motion effects on", off: "Reduce motion effects" },
+  ja: { on: "動きの効果をオン", off: "動きの効果を減らす" },
+  "zh-Hans": { on: "开启动态效果", off: "减少动态效果" },
+  "zh-Hant": { on: "開啟動態效果", off: "減少動態效果" },
+  fr: { on: "Activer les animations", off: "Réduire les animations" },
+  de: { on: "Bewegungseffekte einschalten", off: "Bewegungseffekte reduzieren" },
+  ru: { on: "Включить анимацию", off: "Уменьшить анимацию" },
 };

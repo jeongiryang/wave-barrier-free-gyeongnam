@@ -13,7 +13,7 @@ export default function CommunityFieldReport({ post }: { post: CommunityPost }) 
   const journalPlaces = post.journalPlaces || [];
   if (!fieldReports.length && !journalPlaces.length && !post.isSample) return null;
   return <>
-    {post.isSample && <aside className="community-sample-notice"><strong>기능 확인용 샘플</strong><p>실제 여행자가 작성한 현장 후기가 아닙니다. 샘플에는 구조화 현장 제보를 표시하지 않습니다.</p></aside>}
+    {post.isSample && <aside className="community-sample-notice"><strong>여행 이야기 이용 예시</strong><p>실제 여행자가 작성한 글이 아닙니다. 샘플에는 구조화 현장 제보를 표시하지 않습니다.</p></aside>}
     {journalPlaces.length > 1 && <section className="detail-journal" aria-labelledby="detail-journal-title"><header><small>TRAVEL JOURNAL</small><h2 id="detail-journal-title">이 여행일지의 장소</h2></header><ol>{journalPlaces.map((place, index) => <li key={place.id}><span>{index + 1}</span><div><b>{place.name}</b><small>{place.day || "방문일 미입력"}</small></div><Link href={`/community?placeId=${encodeURIComponent(place.id)}&placeName=${encodeURIComponent(place.name)}`}>이 장소 이야기</Link></li>)}</ol></section>}
     {fieldReports.length > 0 && !post.isSample && <section className="detail-field-report" aria-labelledby="detail-field-report-title">
       <header><div><small>TRAVELER FIELD REPORT</small><h2 id="detail-field-report-title">여행자 현장 제보</h2></div><p>작성자 1명이 남긴 개별 경험입니다. 공식 편의근거 점수에는 반영하지 않습니다.</p></header>

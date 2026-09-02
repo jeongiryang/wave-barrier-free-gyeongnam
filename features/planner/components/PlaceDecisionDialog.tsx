@@ -30,7 +30,7 @@ export default function PlaceDecisionDialog(props: Props) {
       <button className="modal-close" type="button" onClick={onClose} aria-label="닫기">×</button>
       <div className="modal-visual" style={place.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${place.image}")` } : undefined}><span>{location}</span><b className={badgePending ? "pending" : ""}>{scoreLabel}<small>{scoreDescription}</small></b></div>
       <div className="modal-body">
-        <p className="section-kicker">ACCESSIBILITY DETAIL</p><h2 id="place-modal-title">{place.name}</h2><p>{place.address || place.summary}</p>
+        <p className="section-kicker">편의정보 자세히 보기</p><h2 id="place-modal-title">{place.name}</h2><p>{place.address || place.summary}</p>
         <PlaceEvidenceSummary place={place} />
         <PlaceCommunityStories place={place} location={location} />
         <PlaceParticipationActions place={place} location={location} saved={props.saved} feedbackText={props.feedbackText} feedbackState={props.feedbackState} onToggleSaved={props.onToggleSaved} onFeedbackChange={props.onFeedbackChange} onSubmitFeedback={props.onSubmitFeedback} />

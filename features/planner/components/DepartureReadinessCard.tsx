@@ -6,6 +6,7 @@ import type { usePlannerParticipation } from "../hooks/usePlannerParticipation";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { PlanData, TransportProvider, WeatherData } from "../types";
 import { localDate } from "../utils";
+import { sameOriginHttpUrl } from "../../../lib/security/same-origin-url.js";
 
 interface DepartureReadinessCardProps {
   region: string;
@@ -68,7 +69,8 @@ export default function DepartureReadinessCard({
     setCalendarState("saving");
     try {
       const rawShareUrl = await participation.ensureShareUrl();
-      const shareUrl = new URL(rawShareUrl, window.location.origin).href;
+      const shareUrl = sameOriginHttpUrl(rawShareUrl, window.location.origin);
+      if (!shareUrl) throw new Error("공유 링크를 확인하지 못했습니다.");
       const contents = buildTripCalendarIcs({
         travelStart,
         travelEnd,

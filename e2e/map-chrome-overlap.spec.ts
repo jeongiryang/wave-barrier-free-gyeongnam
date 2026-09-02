@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
 
 /**
- * Kakao 지도 연결이 실패하면 배지에 "Kakao 재연결" 버튼이 붙는다. 지도 명령 바가
+ * 지도 연결이 실패하면 배지에 "기본 지도 다시 연결" 버튼이 붙는다. 지도 명령 바가
  * 배지 자리를 충분히 비우지 않으면 이 버튼의 오른쪽이 명령 바 첫 버튼에 덮이고,
  * 그 자리를 누르면 지도 유형이 대신 바뀐다. 복구 수단이 가장 필요한 순간에
  * 눌리지 않는 셈이므로, 어느 폭에서도 겹치지 않아야 한다.
@@ -17,7 +17,7 @@ test("대체 지도 재연결 버튼을 지도 명령 바가 덮지 않는다", 
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/planner");
     await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
-    await expect(page.getByRole("button", { name: "Kakao 재연결" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "기본 지도 다시 연결" })).toBeVisible();
     await page.waitForTimeout(900);
 
     const result = await page.evaluate(() => {

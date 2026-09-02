@@ -40,7 +40,7 @@
 .auth-journey-preview small { color: var(--muted); line-height: 1.5; }
 .auth-card { padding: clamp(28px,4vw,44px); border: 1px solid rgba(255,255,255,.85); border-radius: 30px; background: rgba(255,255,255,.94); box-shadow: 0 30px 75px rgba(7,52,72,.18); backdrop-filter: blur(18px); }
 .auth-kicker { margin: 0; color: var(--blue); font-size: .68rem; font-weight: 900; letter-spacing: .14em; }
-.auth-card h1 { margin: 9px 0 9px; font-size: clamp(2rem,3.4vw,2.8rem); line-height: 1.12; letter-spacing: -.05em; }
+.auth-card h2 { margin: 9px 0 9px; font-size: clamp(2rem,3.4vw,2.8rem); line-height: 1.12; letter-spacing: -.05em; }
 .auth-description,.auth-signed-in > p { margin: 0; color: var(--muted); font-size: .85rem; line-height: 1.65; }
 .auth-card form { margin-top: 28px; display: grid; gap: 17px; }
 .auth-field,.community-editor > label,.editor-grid label { display: grid; gap: 7px; font-size: .78rem; font-weight: 850; }
@@ -68,10 +68,12 @@ html[data-theme="dark"] .auth-message.success { color: #7ce0c8; }
 .auth-submit,.auth-primary-link { min-height: 52px; padding: 11px 16px; display: flex; align-items: center; justify-content: center; gap: 24px; border: 0; border-radius: 13px; color: var(--on-blue); background: var(--blue); font: inherit; font-weight: 880; box-shadow: 0 12px 25px rgba(10,107,175,.2); }
 .auth-submit:disabled { opacity: .65; cursor: wait; }
 .auth-switch { margin-top: 19px; text-align: center; color: var(--muted); font-size: .78rem; }
-.auth-switch a { margin-left: 5px; color: var(--blue); font-weight: 900; }
+.auth-switch a { min-height: 44px; margin: -10px 0 -10px 5px; padding: 10px 2px; display: inline-flex; align-items: center; color: var(--blue); font-weight: 900; }
 .auth-trust { margin-top: 25px; padding: 15px; border-radius: 13px; color: #496d7e; background: #edf7fb; }
 .auth-trust strong { font-size: .72rem; }
 .auth-trust p { margin: 5px 0 0; font-size: .67rem; line-height: 1.55; }
+.auth-trust > div { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.auth-trust a { min-height: 44px; padding-block: 10px; display: inline-flex; align-items: center; color: var(--blue-dark); font-size: .7rem; font-weight: 850; text-decoration: underline; text-underline-offset: 3px; }
 .auth-signed-in { display: grid; gap: 16px; }
 
 /* 어두운 화면 — 이 파일의 표면 색은 흰색 계열로 고정돼 있다. 배경만 어둡게 바꾸고

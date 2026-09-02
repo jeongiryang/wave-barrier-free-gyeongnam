@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { useSitePreferences } from "../../components/SitePreferences";
+import SkipLink from "../../components/SkipLink";
 import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
 import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
 import PlannerConditionsPanel from "../../features/planner/components/PlannerConditionsPanel";
@@ -158,7 +159,7 @@ export default function PlannerPage() {
 
   return (
     <main className="planner-page">
-      <a className="skip-link" href="#planner">{t("skip", "본문으로 바로가기")}</a>
+      <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>
       <div className="scroll-progress" aria-hidden="true" />
       <PlannerHeader t={t} scrolled={scrolled} hidden={headerHidden} savedCount={saved.length} onNavigate={journey.goToStep} />
 
@@ -219,6 +220,7 @@ export default function PlannerPage() {
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerItineraryWorkspace
+                mapEnabled={stageView.view === "overview" || journey.activeStepId === "itinerary"}
                 plan={plan}
                 activePlaces={activePlaces}
                 planCrowd={plan?.crowd}

@@ -29,7 +29,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         <h2 id={headingId}>다녀온 사진을 고르면 날짜별 코스를 다시 만듭니다</h2>
         <p className="photo-course-lead">
           촬영 시각과 GPS는 <strong>기기 안에서만</strong> 읽습니다. 사진 파일과 좌표는 서버로 전송되지 않습니다.
-          장소를 직접 확인한 뒤에만 지역·장소명을 한국관광공사 API로 보내 공식 관광정보와 공공누리 사진을 찾습니다.
+          장소를 직접 확인한 뒤에만 선택한 지역·장소명을 한국관광공사 관광정보 조회에 사용해 공식 정보와 공공누리 사진을 찾습니다.
         </p>
       </header>
 
@@ -51,7 +51,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
           {clientReady ? "사진 고르기" : "사진 기능 준비 중"}
         </label>
         {course && <button type="button" className="photo-course-clear" onClick={clear}>지우기</button>}
-        <p className="photo-course-limit">JPG · PNG · WebP · TIFF 원본 최대 {MAX_PHOTOS}장 · 각 파일 앞 256KB만 판독</p>
+        <p className="photo-course-limit">JPG · PNG · WebP · TIFF 원본 최대 {MAX_PHOTOS}장 · 필요한 촬영 정보만 기기에서 확인</p>
       </div>
 
       <p className="photo-course-notice" role="status" aria-live="polite" aria-busy={reading}>
@@ -61,7 +61,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
       {course && course.days.length > 0 && <>
         <div className="photo-course-toolbar">
           <button type="button" onClick={() => void enrichAll()}>전체 장소 공식정보 확인</button>
-          <p>확인은 한 장소씩 순차 호출해 공공 API 호출량을 제한합니다.</p>
+          <p>한 장소씩 차례로 확인해 공식 관광정보를 안정적으로 불러옵니다.</p>
         </div>
 
         <ol className="photo-course-days">
@@ -114,11 +114,11 @@ export default function PhotoCourseRestore({ onApply }: Props) {
 
                       {enrichment && enrichment.status !== "loading" && <div className={`photo-course-enrichment is-${enrichment.status}`} role="status">
                         {enrichment.status === "live" ? <>
-                          {enrichment.image && <img src={enrichment.image} alt={`${enrichment.matchedTitle || name} 한국관광공사 관광사진`} loading="lazy" />}
+                          {enrichment.image && <img src={enrichment.image} alt={`${enrichment.matchedTitle || name} 한국관광공사 관광사진`} width="448" height="336" loading="lazy" decoding="async" />}
                           <div>
                             <strong>{enrichment.matchedTitle || name}</strong>
                             {enrichment.address && <p>{enrichment.address}</p>}
-                            <p>{enrichment.source || "한국관광공사 관광정보"}{enrichment.contentId ? ` · contentId ${enrichment.contentId}` : ""}</p>
+                            <p>{enrichment.source || "한국관광공사 관광정보"}{enrichment.contentId ? ` · 공식정보 번호 ${enrichment.contentId}` : ""}</p>
                           </div>
                         </> : <p>
                           {enrichment.status === "empty"
@@ -148,7 +148,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         <div className="photo-course-export">
           <button type="button" onClick={saveToDevice}>좌표 없이 기기에 저장</button>
           <button type="button" onClick={() => void share()}>좌표 없이 코스 공유</button>
-          <p>저장·공유 파일에는 날짜, 직접 확인한 장소명, 확인된 한국관광공사 contentId만 들어가며 원본 사진과 GPS는 포함되지 않습니다.</p>
+          <p>저장·공유 파일에는 날짜, 직접 확인한 장소명, 확인된 한국관광공사 공식정보 번호만 들어가며 원본 사진과 GPS는 포함되지 않습니다.</p>
         </div>
         {exportNotice && <p className="photo-course-applied" role="status" aria-live="polite">{exportNotice}</p>}
       </>}
@@ -157,7 +157,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         <summary>이 기능이 할 수 있는 일과 할 수 없는 일</summary>
         <ul>
           <li>촬영 시각과 좌표 EXIF가 남아 있는 <strong>JPG/JPEG · PNG · WebP · TIFF</strong> 원본에서 동작합니다. HEIC는 이번 버전에서 지원하지 않습니다. HEIF 역시 브라우저별 메타데이터 구조 차이 때문에 제외했습니다.</li>
-          <li>사진 전체가 아니라 각 파일 앞 256KB만 한 장씩 읽어 대용량 원본의 메모리 사용을 제한합니다.</li>
+          <li>촬영 정보가 담긴 부분만 한 장씩 읽어 대용량 원본을 한꺼번에 메모리에 올리지 않습니다.</li>
           <li>시·군 경계나 경남 바깥 인접 지역은 다르게 추론될 수 있습니다. 화면에서 시·군과 장소명을 직접 고칠 수 있습니다.</li>
           <li>사진에 없는 장소 이름을 지어내지 않습니다. 공식정보 확인 전 표시되는 이름은 순서용 제안입니다.</li>
           <li>새로 고치면 분석 결과는 사라집니다. 별도 저장을 누르기 전에는 브라우저 저장소에도 기록하지 않습니다.</li>

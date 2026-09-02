@@ -58,12 +58,12 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
         <strong className={mode.minutes !== null ? "" : "route-mode-unknown"}>{mode.minutes !== null ? `${mode.minutes}분` : "시간 정보 없음"}</strong>
       </button>)}
     </div>
-    <p className="route-mode-order-note">실제 API 예상 시간이 있는 이동수단부터 빠른 순서로 정렬합니다. 시간이 없으면 카카오맵에서 이어서 확인합니다.</p>
+    <p className="route-mode-order-note">확인된 예상 시간이 있는 이동수단부터 빠른 순서로 정렬합니다. 시간이 없으면 카카오맵에서 이어서 확인합니다.</p>
     <p className="route-notice" aria-live="polite"><span className={activeRoute?.configured ? "live-dot" : "ready-dot"} />{routeNotice}</p>
     <div className="route-options" aria-busy={routeLoading}>
       {routeLoading && [0, 1, 2].map((item) => <div className="route-option-skeleton" key={`route-skeleton-${item}`} aria-hidden="true"><i /><div><b /><span /></div><em /></div>)}
       {!routeLoading && !routeDestination && <div className="route-empty"><span>↗</span><h3>경로를 계산할 여행지를 선택하세요.</h3><p>여행지 카드의 ‘길찾기’를 누르면 도보·자전거·대중교통·자동차를 시간순으로 비교합니다.</p></div>}
-      {!routeLoading && routeDestination && !configuredRoutes.length && <div className="route-empty route-kakao-fallback"><span>↗</span><h3>{selectedSummary?.label || "선택한 이동수단"} 경로는 현재 API에서 직접 계산하지 못했습니다.</h3><p>없는 시간을 임의로 만들지 않습니다. 카카오맵에서 도착지를 그대로 열어 해당 이동수단 경로를 확인하세요.</p><a href={kakaoHref} target="_blank" rel="noreferrer">카카오맵에서 {selectedSummary?.label || "경로"} 확인 <b>↗</b></a></div>}
+      {!routeLoading && routeDestination && !configuredRoutes.length && <div className="route-empty route-kakao-fallback"><span>↗</span><h3>{selectedSummary?.label || "선택한 이동수단"} 예상 시간을 확인하지 못했습니다.</h3><p>확인되지 않은 시간을 임의로 표시하지 않습니다. 카카오맵에서 도착지를 그대로 열어 해당 이동수단 경로를 확인하세요.</p><a href={kakaoHref} target="_blank" rel="noreferrer">카카오맵에서 {selectedSummary?.label || "경로"} 확인 <b>↗</b></a></div>}
       {!routeLoading && configuredRoutes.map((item, index) => { const payment = paymentDetails(item); return <button type="button" key={item.id} className={(activeRoute?.id === item.id ? "active " : "") + "route-option"} onClick={() => setActiveRouteId(item.id)}>
         <span className="route-option-rank">{String(index + 1).padStart(2, "0")}</span><div><strong>{item.label}</strong>{modeNote(item) && <small>{modeNote(item)}</small>}</div><dl><div><dt>예상 시간</dt><dd>{item.totalTime}분</dd></div><div><dt>{payment.label}</dt><dd>{payment.value}</dd></div><div><dt>환승</dt><dd>{`${item.transfers}회`}</dd></div><div><dt>도보</dt><dd>{`${item.totalWalk}m`}</dd></div></dl>
         {segmentSummary(item) && <span className="segment-summary">{segmentSummary(item)}</span>}

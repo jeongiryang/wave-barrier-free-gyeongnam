@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSitePreferences } from "../../../components/SitePreferences";
+import { prefersReducedMotion } from "../../../lib/reduced-motion.js";
 import type { PlanData } from "../types";
 
 export function usePlannerChrome(plan: PlanData | null) {
+  const { motion } = useSitePreferences();
   const [headerHidden, setHeaderHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -24,16 +27,21 @@ export function usePlannerChrome(plan: PlanData | null) {
     const onScroll = () => {
       if (!frame) frame = window.requestAnimationFrame(update);
     };
+    const restoreForKeyboard = (event: FocusEvent) => {
+      if ((event.target as HTMLElement | null)?.closest(".site-header")) setHeaderHidden(false);
+    };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("focusin", restoreForKeyboard);
     return () => {
       window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("focusin", restoreForKeyboard);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
 
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = prefersReducedMotion();
     const nodes = document.querySelectorAll<HTMLElement>("[data-reveal]");
     if (reduced) {
       nodes.forEach((node) => node.classList.add("is-visible"));
@@ -48,7 +56,7 @@ export function usePlannerChrome(plan: PlanData | null) {
     }, { threshold: 0.14, rootMargin: "0px 0px -7%" });
     nodes.forEach((node) => observer.observe(node));
     return () => observer.disconnect();
-  }, [plan]);
+  }, [motion, plan]);
 
   return { headerHidden, scrolled };
 }

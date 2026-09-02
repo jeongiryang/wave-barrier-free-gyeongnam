@@ -101,7 +101,8 @@ test("navigation workspace delegates transport data and map route interactions",
   assert.doesNotMatch(workspace, /transport-data-results|trip-point-picker|route-options/);
   assert.match(transport, /transport-data-results/);
   assert.match(mapRoute, /trip-point-picker/);
-  assert.match(mapRoute, /<RouteMap/);
+  assert.match(mapRoute, /lazy\(\(\) => import\("\.\.\/\.\.\/\.\.\/components\/RouteMap"\)\)/);
+  assert.match(mapRoute, /<DeferredRouteMap/);
 });
 
 test("planner domain types are shared across route and signal controllers", async () => {

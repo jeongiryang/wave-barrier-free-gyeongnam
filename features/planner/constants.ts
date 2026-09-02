@@ -90,7 +90,7 @@ export const richCatalog = [
   { id: "pet", label: "반려동물", icon: "♧", description: "동반 가능 여행" },
   { id: "water", label: "물과 여행", icon: "≈", description: "댐·하천·수변" },
   { id: "medical", label: "의료관광", icon: "+", description: "의료·회복" },
-  { id: "awards", label: "수상 사진", icon: "▣", description: "공모전 시선" },
+  { id: "awards", label: "추천 사진", icon: "▣", description: "계절별 여행 풍경" },
   { id: "language", label: "글로벌", icon: "文", description: "선택 언어 관광" },
   { id: "rests", label: "테마휴게소", icon: "↗", description: "고속도로 여행" },
 ] as const;

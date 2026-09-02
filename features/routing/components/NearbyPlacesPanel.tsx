@@ -11,9 +11,9 @@ interface NearbyPlacesPanelProps {
 }
 
 export default function NearbyPlacesPanel({ activeCategory, categoryMessage, categoryPlaces, onClose, onSearch, onChoosePlace }: NearbyPlacesPanelProps) {
-  return <section className="map-tool-panel map-side-drawer map-nearby-panel" aria-label="주변 장소 찾기">
+  return <section id="map-panel-nearby" className="map-tool-panel map-side-drawer map-nearby-panel" aria-label="주변 장소 찾기" tabIndex={-1}>
     <header><div><strong>주변 장소</strong><span>지도 중심 반경 10km · 거리순</span></div><button type="button" onClick={onClose} aria-label="주변 장소 닫기">×</button></header>
-    <div className="map-tool-grid">{nearbyCategories.map((category) => <button type="button" key={category.id} className={activeCategory === category.id ? "active" : ""} onClick={() => onSearch(category)}><i>{category.icon}</i>{category.label}</button>)}</div>
+    <div className="map-tool-grid">{nearbyCategories.map((category) => <button type="button" key={category.id} aria-pressed={activeCategory === category.id} className={activeCategory === category.id ? "active" : ""} onClick={() => onSearch(category)}><i aria-hidden="true">{category.icon}</i>{category.label}</button>)}</div>
     {(categoryMessage || categoryPlaces.length > 0) && <div className="map-poi-results" aria-live="polite">
       <div className="map-results-heading"><strong>{nearbyCategories.find((item) => item.id === activeCategory)?.label || "검색 결과"}</strong><span>{categoryMessage}</span></div>
       <div className="map-poi-list">{categoryPlaces.slice(0, 12).map((place) => <article key={place.id}>

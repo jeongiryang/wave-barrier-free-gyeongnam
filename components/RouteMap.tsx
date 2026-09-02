@@ -8,6 +8,7 @@ import { MapCanvasStatusOverlays, RoadviewSelectionOverlays } from "../features/
 import NearbyPlacesPanel from "../features/routing/components/NearbyPlacesPanel";
 import RoutePointPanel from "../features/routing/components/RoutePointPanel";
 import type { RouteMapProps } from "../features/routing/types";
+import { useMapAccessibility } from "../features/routing/useMapAccessibility";
 import { useRouteMapController } from "../features/routing/useRouteMapController";
 
 export default function RouteMap(props: RouteMapProps) {
@@ -58,6 +59,10 @@ export default function RouteMap(props: RouteMapProps) {
     closeRoadview,
   } = useRouteMapController(props);
   const drawerOpen = toolPanel !== null;
+  const mapA11y = useMapAccessibility({
+    toolPanel, expanded, roadviewOpen, roadviewSelectMode, setToolPanel,
+    beginRoadviewSelection, cancelRoadviewSelection, closeRoadview, toggleExpanded,
+  });
 
   return <div ref={shellRef} className={`route-map-shell${drawerOpen ? " drawer-open" : ""}${expanded ? " expanded" : ""}`}>
     <MapCommandBar
@@ -66,15 +71,16 @@ export default function RouteMap(props: RouteMapProps) {
       baseMap={baseMap}
       toolPanel={toolPanel}
       roadviewSelectMode={roadviewSelectMode}
+      roadviewOpen={roadviewOpen}
       expanded={expanded}
       onRetry={retryProvider}
       onBaseMapChange={changeBaseMap}
-      onToolPanelChange={setToolPanel}
-      onRoadviewSelection={beginRoadviewSelection}
+      onToolPanelChange={mapA11y.changeToolPanel}
+      onRoadviewSelection={mapA11y.beginRoadviewFromTrigger}
       onRoadviewPreviewChange={setRoadviewPreviewOpen}
       onCurrentLocation={moveToCurrentLocation}
       onShare={() => void shareRoute()}
-      onToggleExpanded={() => void toggleExpanded()}
+      onToggleExpanded={mapA11y.toggleExpandedFromTrigger}
     />
 
     <RoadviewSelectionOverlays
@@ -129,7 +135,7 @@ export default function RouteMap(props: RouteMapProps) {
       onShare={() => void shareRoute()}
     />}
 
-    <div className="route-map-canvas" ref={containerRef} role="region" aria-label="출발지와 추천 여행지를 표시한 대화형 경로 지도" />
+    <div id="route-map-canvas" className="route-map-canvas" ref={containerRef} role="region" aria-label="출발지와 추천 여행지를 표시한 대화형 경로 지도" />
     <MapCanvasStatusOverlays
       provider={provider}
       roadviewOpen={roadviewOpen}
@@ -138,7 +144,7 @@ export default function RouteMap(props: RouteMapProps) {
       crowd={crowd}
       crowdPlace={crowdPlace}
       crowdVisual={crowdVisual}
-      onCloseRoadview={closeRoadview}
+      onCloseRoadview={mapA11y.closeRoadviewAndRestoreFocus}
     />
   </div>;
 }

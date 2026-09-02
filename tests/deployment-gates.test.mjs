@@ -6,8 +6,15 @@ import {
   productionEnvironmentErrors,
   REQUIRED_PRODUCTION_ENV,
 } from "../lib/deployment/production-env.js";
+import {
+  orderedMigrationStatements,
+  PRODUCTION_MIGRATION_NAMES,
+  splitMigrationStatements,
+} from "../lib/deployment/migrations.js";
 
 const validEnv = Object.fromEntries(REQUIRED_PRODUCTION_ENV.map((name) => [name, `${name.toLowerCase()}-configured-value`]));
+validEnv.DATABASE_URL = "postgresql://wave:secret@ep-wave.us-east-2.aws.neon.tech/wave?sslmode=require";
+validEnv.NEON_AUTH_BASE_URL = "https://ep-wave.neonauth.us-east-2.aws.neon.tech/neondb/auth";
 validEnv.NEON_AUTH_COOKIE_SECRET = "x".repeat(32);
 validEnv.CRON_SECRET = "y".repeat(64);
 validEnv.COMMUNITY_MODERATOR_USER_IDS = "user_a,user_b";
@@ -18,6 +25,13 @@ test("production deployment rejects missing or unsafe account configuration", ()
   assert.ok(!REQUIRED_PRODUCTION_ENV.includes("COMMUNITY_MODERATOR_USER_IDS"));
   assert.ok(REQUIRED_PRODUCTION_ENV.includes("CRON_SECRET"));
   assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "" }).join("\n"), /DATABASE_URL/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "mysql://db.example.com/wave" }).join("\n"), /postgres/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "postgresql://wave:secret@db.example.com/wave?sslmode=disable" }).join("\n"), /TLS/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "postgresql://wave:secret@db.example.com/wave?sslmode=require&sslmode=disable" }).join("\n"), /TLS/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, DATABASE_URL: "postgresql://wave:secret@127.0.0.1/wave?sslmode=require" }).join("\n"), /TLS/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_BASE_URL: "http://ep-wave.neon.tech/auth" }).join("\n"), /HTTPS/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_BASE_URL: "https://neon.tech/auth" }).join("\n"), /HTTPS/);
+  assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_BASE_URL: "https://neon.tech.attacker.example/auth" }).join("\n"), /HTTPS/);
   assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_COOKIE_SECRET: "short" }).join("\n"), /32자/);
   assert.match(productionEnvironmentErrors({ ...validEnv, CRON_SECRET: "short" }).join("\n"), /CRON_SECRET.*32자/);
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "valid,bad id" }).join("\n"), /잘못되거나/);
@@ -53,6 +67,9 @@ test("CD migrates an unpromoted protected candidate before production promotion"
   assert.match(workflow, /VERCEL_PROJECT_ID: \$\{\{ secrets\.VERCEL_PROJECT_ID \}\}/);
   assert.match(workflow, /vercel@50\.15\.1 (?:pull|build|deploy|promote)/);
   assert.match(workflow, /grep -Fq '\"ok\":true'/);
+  assert.match(workflow, /grep -Fq '\"001_community\.sql\"'/);
+  assert.match(workflow, /grep -Fq '\"002_community_moderation\.sql\"'/);
+  assert.match(workflow, /grep -Fq '\"003_trips\.sql\"'/);
   assert.match(workflow, /grep -Fq '\"004_community_seed\.sql\"'/);
   assert.match(workflow, /grep -Fq '\"005_community_field_reports\.sql\"'/);
   assert.match(workflow, /grep -Fq '\"checkedAt\"'/);
@@ -64,16 +81,27 @@ test("CD migrates an unpromoted protected candidate before production promotion"
   assert.equal(finalHealthStep.match(/^        env:/gm)?.length, 1);
 });
 
-test("production migrations are split into atomic Neon transactions", async () => {
-  const [migration, trips, fieldReports, runner] = await Promise.all([
-    readFile(new URL("../migrations/002_community_moderation.sql", import.meta.url), "utf8"),
-    readFile(new URL("../migrations/003_trips.sql", import.meta.url), "utf8"),
-    readFile(new URL("../migrations/005_community_field_reports.sql", import.meta.url), "utf8"),
+test("fresh databases receive the complete idempotent migration chain in one transaction", async () => {
+  const [sources, runner] = await Promise.all([
+    Promise.all(PRODUCTION_MIGRATION_NAMES.map((name) => (
+      readFile(new URL(`../migrations/${name}`, import.meta.url), "utf8")
+    ))),
     readFile(new URL("../scripts/apply-community-moderation-migration.mjs", import.meta.url), "utf8"),
   ]);
-  assert.ok(migration.split(/^-- migrate:split\s*$/m).filter((part) => part.trim()).length >= 9);
-  assert.equal(trips.split(/^-- migrate:split\s*$/m).filter((part) => part.trim()).length, 5);
-  assert.equal(fieldReports.split(/^-- migrate:split\s*$/m).filter((part) => part.trim()).length, 4);
+  assert.deepEqual(sources.map((source) => splitMigrationStatements(source).length), [9, 9, 5, 1, 4]);
+  const statements = orderedMigrationStatements(sources);
+  assert.match(statements[0], /CREATE TABLE IF NOT EXISTS community_posts/);
+  assert.match(statements[1], /CREATE TABLE IF NOT EXISTS community_comments/);
+  assert.match(statements[2], /CREATE TABLE IF NOT EXISTS community_likes/);
+  assert.ok(statements.findIndex((statement) => /ALTER TABLE community_posts/.test(statement)) >= 9);
+  assert.ok(statements.findIndex((statement) => /INSERT INTO community_posts/.test(statement)) > statements.findIndex((statement) => /CREATE TABLE IF NOT EXISTS itineraries/.test(statement)));
+  assert.ok(splitMigrationStatements(sources[0]).every((statement) => /IF NOT EXISTS/.test(statement)));
+  assert.ok(splitMigrationStatements(sources[2]).every((statement) => /IF NOT EXISTS/.test(statement)));
+  assert.match(sources[3], /ON CONFLICT \(id\) DO UPDATE/);
+  assert.ok(splitMigrationStatements(sources[4]).every((statement) => /IF NOT EXISTS/.test(statement)));
+  assert.deepEqual(orderedMigrationStatements(sources), statements);
+  assert.match(runner, /PRODUCTION_MIGRATION_NAMES/);
+  assert.match(runner, /orderedMigrationStatements\(migrations\)/);
   assert.match(runner, /sql\.transaction\(statements\.map/);
   assert.doesNotMatch(runner, /console\.log\([^\n]*(?:DATABASE_URL|databaseUrl)/);
 });
@@ -85,12 +113,15 @@ test("the migration endpoint is token-protected and uses the canonical SQL", asy
   ]);
   assert.match(handler, /VERCEL_ENV !== "production"/);
   assert.match(handler, /COMMUNITY_MIGRATION_TOKEN/);
+  assert.match(handler, /001_community\.sql\?raw/);
   assert.match(handler, /002_community_moderation\.sql\?raw/);
   assert.match(handler, /003_trips\.sql\?raw/);
   assert.match(handler, /004_community_seed\.sql\?raw/);
   assert.match(handler, /005_community_field_reports\.sql\?raw/);
-  assert.match(handler, /\[moderationMigration, tripsMigration/);
+  assert.match(handler, /orderedMigrationStatements\(\[/);
+  assert.match(handler, /communityMigration,\s*moderationMigration,\s*tripsMigration/);
   assert.match(handler, /communitySeedMigration/);
+  assert.match(handler, /PRODUCTION_MIGRATION_NAMES/);
   assert.match(handler, /sql\.transaction\(statements\.map/);
   assert.match(worker, /\/api\/deployment\/migrate/);
 });

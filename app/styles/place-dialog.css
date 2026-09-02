@@ -44,6 +44,8 @@
 .simple-footer p { margin: 0; color: #b5cbd5; font-size: .82rem; }
 .simple-footer .source { text-align: right; font-size: .76rem; }
 .footer-notes { display: grid; gap: 6px; text-align: center; }
+.policy-footer-links { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 14px; }
+.policy-footer-links a { min-height: 44px; padding: 9px 3px; display: inline-flex; align-items: center; color: inherit; font-size: .72rem; font-weight: 820; text-decoration: underline; text-underline-offset: 3px; }
 .simple-footer .trust-notice { max-width: 520px; color: #829aab; font-size: .68rem; line-height: 1.5; }
 .footer-meta { justify-self: end; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
 .github-footer-link { width: 44px; height: 44px; position: relative; display: grid; place-items: center; flex: 0 0 44px; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; color: #fff; text-decoration: none; transition: color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease; }

@@ -44,7 +44,7 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
   await placeName.fill("남해 독일마을");
 
   await page.getByRole("button", { name: "공식정보 확인", exact: true }).first().click();
-  await expect(page.getByText("contentId 123456")).toBeVisible();
+  await expect(page.getByText(/공식정보 번호 123456/)).toBeVisible();
   expect(outgoingSpotPhotoUrls).toHaveLength(1);
   const requestUrl = new URL(outgoingSpotPhotoUrls[0]);
   expect(requestUrl.searchParams.get("action")).toBe("spot-photo");

@@ -1,4 +1,4 @@
-import { clean } from "../shared/http";
+import { clean, httpsUrl } from "../shared/http";
 import type { ProviderAttempt as Attempt, ProviderItem as KtoItem } from "../shared/provider-data";
 
 function hasMeaningfulValue(value: unknown) {
@@ -28,7 +28,7 @@ export function richSpot(item: KtoItem, source: string) {
     title: clean(item.title || item.contentTitle || item.facltNm || item.koTitle || item.stdRestNm || item.serviceAreaName || item.travelNm || item.travelName || item.courseNm || item.courseName || item.spotNm || item.tourNm || item.name || "이름 없는 콘텐츠"),
     address: clean(item.addr1 || item.baseAddr || item.address || item.addr || item.svarAddr || item.serviceAreaAddress || item.koFilmst || item.region),
     summary: clean(eventPeriod || item.overview || item.intro || item.lineIntro || item.course || item.contents || item.content || item.description || item.themeDetail || item.themeDtl || item.featureNm || item.koKeyword, 260),
-    image: clean(item.firstimage || item.firstImageUrl || item.orgImage || item.thumbImage || item.thumbnail || item.imageUrl || item.imgUrl || item.photoUrl).replace(/^http:\/\//, "https://"),
+    image: httpsUrl(item.firstimage || item.firstImageUrl || item.orgImage || item.thumbImage || item.thumbnail || item.imageUrl || item.imgUrl || item.photoUrl),
     mapX: clean(item.mapX || item.mapx || item.longitude), mapY: clean(item.mapY || item.mapy || item.latitude),
     tag: clean(item.wellnessThemaNm || item.induty || item.themeName || item.themeNm || item.koWnprzDiz || item.petTursmInfo || item.searchType || source, 80), source,
   };
@@ -39,7 +39,7 @@ export function audioFrom(result: Attempt) {
   const item = result.value.items.find((value) => hasMeaningfulValue(value.audioUrl)) || result.value.items[0];
   return {
     title: clean(item.title), audioTitle: clean(item.audioTitle || item.title),
-    audioUrl: clean(item.audioUrl).replace(/^http:\/\//, "https://"),
+    audioUrl: httpsUrl(item.audioUrl),
     script: clean(item.script, 5000), playTime: clean(item.playTime),
   };
 }

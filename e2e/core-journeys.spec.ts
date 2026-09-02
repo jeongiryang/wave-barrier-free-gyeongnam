@@ -30,7 +30,7 @@ test("landing opens directly with one clear planning action and no serious acces
   await mockPublicShellApi(page);
   await page.goto("/");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /여행 계획 만들기/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /내 조건으로 시작하기|여행 계획 만들기/ }).first()).toBeVisible();
   await page.reload();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.waitForTimeout(1_500);
@@ -41,7 +41,7 @@ test("reduced motion keeps the landing immediately usable", async ({ page }) => 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /여행 계획 만들기/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /내 조건으로 시작하기|여행 계획 만들기/ }).first()).toBeVisible();
 });
 
 test("planner supports decision, save, route-aware schedule and focus restoration", async ({ page }) => {
@@ -132,7 +132,15 @@ test("community reporting requires login and moderation does not leak to public 
   };
   await page.route("**/api/community/posts/post-1", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ post, comments: [] }) }));
   await page.goto("/community/post-1");
-  await page.getByRole("button", { name: "신고" }).click();
+  const report = page.getByRole("button", { name: "신고" });
+  await report.click();
+  await expect(report).toHaveAttribute("aria-expanded", "true");
+  await expect(report).toHaveAttribute("aria-controls", /community-report-/);
+  await expect(page.getByRole("button", { name: "사실과 다른 정보" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(report).toHaveAttribute("aria-expanded", "false");
+  await expect(report).toBeFocused();
+  await report.click();
   await page.getByRole("button", { name: "여행 안전 우려" }).click();
   await expect(page).toHaveURL(/\/login\?next=%2Fcommunity%2Fpost-1/);
 

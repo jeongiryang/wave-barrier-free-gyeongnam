@@ -7,7 +7,7 @@
 
 /* 모든 구역이 같은 세로 정렬선을 공유한다. */
 .landing-page > section, .landing-page > footer {
-  padding-inline: max(var(--gutter), calc((100vw - 1240px) / 2));
+  padding-inline: max(var(--gutter), calc((100vw - var(--landing-max, 1760px)) / 2));
 }
 
 .hero-wave-canvas {

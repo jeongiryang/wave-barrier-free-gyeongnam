@@ -14,6 +14,11 @@ test("PWA 설치는 기존 manifest와 환경설정 안의 명시적 요청만 �
     source("app/styles/preferences.css"),
   ]);
   assert.match(manifest, /display: "standalone"/);
+  for (const size of ["192x192", "512x512"]) {
+    assert.match(manifest, new RegExp(`src: "\\/app-icon\\.svg", sizes: "${size}"[\\s\\S]*?purpose: "any"`));
+    assert.match(manifest, new RegExp(`src: "\\/maskable-icon\\.svg", sizes: "${size}"[\\s\\S]*?purpose: "maskable"`));
+  }
+  assert.doesNotMatch(manifest, /favicon\.svg[\s\S]*purpose: "maskable"/);
   assert.match(hook, /addEventListener\("beforeinstallprompt"/);
   assert.match(hook, /event\.preventDefault\(\)/);
   assert.match(hook, /const install = useCallback\(async \(\) =>/);

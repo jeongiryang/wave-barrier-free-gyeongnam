@@ -11,8 +11,8 @@ export type PreferencesValue = {
   hydrated: boolean;
   setLocale: (locale: Locale) => void;
   motion: Motion;
+  systemReducedMotion: boolean;
   toggleTheme: () => void;
   toggleMotion: () => void;
   t: (key: string, fallback: string) => string;
 };
-

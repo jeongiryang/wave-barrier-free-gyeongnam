@@ -36,24 +36,36 @@ test("landing region photos time out and can retry after transient failures", as
     source("features/landing/client/region-photo.ts"),
   ]).then((parts) => parts.join("\n"));
   assert.match(landing, /const controller = new AbortController\(\)/);
-  assert.match(landing, /setTimeout\(\(\) => controller\.abort\(\), 10000\)/);
+  assert.match(landing, /let timedOut = false/);
+  assert.match(landing, /timedOut = true;\s*controller\.abort\(\)/);
+  assert.match(landing, /if \(timedOut \|\| !controller\.signal\.aborted\)/);
   assert.match(landing, /fetchRegionPhoto\(region, controller\.signal\)/);
   assert.match(landing, /photoRequests\.current\.delete\(region\)/);
   assert.match(landing, /window\.clearTimeout\(timeout\)/);
 });
 
 test("tourism images allow only normalized HTTPS URLs", async () => {
-  const image = await Promise.all([
-    source("features/tourism/components/SmartSpotImage.tsx"),
-    source("features/tourism/hooks/useOfficialSpotImage.ts"),
-    source("features/tourism/client/spot-photo.ts"),
-    source("features/tourism/image-url.ts"),
-  ]).then((parts) => parts.join("\n"));
+  const [image, serverMedia] = await Promise.all([
+    Promise.all([
+      source("features/tourism/components/SmartSpotImage.tsx"),
+      source("features/tourism/hooks/useOfficialSpotImage.ts"),
+      source("features/tourism/client/spot-photo.ts"),
+      source("features/tourism/image-url.ts"),
+    ]).then((parts) => parts.join("\n")),
+    Promise.all([
+      source("server/tourism/accessibility-model.ts"),
+      source("server/tourism/content-model.ts"),
+      source("server/tourism/region-photo.ts"),
+    ]).then((parts) => parts.join("\n")),
+  ]);
   assert.match(image, /function safeTourismImageUrl/);
   assert.match(image, /if \(url\.protocol === "http:"\) url\.protocol = "https:"/);
   assert.match(image, /return url\.protocol === "https:" \? url\.toString\(\) : ""/);
   assert.match(image, /safeTourismImageUrl\(data\?\.image\)/);
   assert.match(image, /safeTourismImageUrl\(src\)/);
+  assert.match(serverMedia, /image: httpsUrl\(/);
+  assert.match(serverMedia, /audioUrl: httpsUrl\(/);
+  assert.doesNotMatch(serverMedia, /image: clean\([^\n]+\.replace\(\/\^http/);
 });
 
 test("barrier-free place merging keeps an existing official photo when the primary field is empty", async () => {

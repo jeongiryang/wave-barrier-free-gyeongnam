@@ -6,8 +6,8 @@ import type { Locale } from "./types";
 import { useAppInstall } from "./useAppInstall";
 
 export function PreferenceControls() {
-  const { locale, theme, motion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
-  const motionLabel = motion === "calm" ? motionCopy[locale].on : motionCopy[locale].off;
+  const { locale, theme, motion, systemReducedMotion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
+  const motionLabel = systemReducedMotion ? "운영체제 설정에 따라 동작 효과 줄임" : motion === "calm" ? motionCopy[locale].on : motionCopy[locale].off;
   const selectedLocale = localeOptions.find((item) => item.id === locale) ?? localeOptions[0];
   const appInstall = useAppInstall();
 
@@ -23,18 +23,18 @@ export function PreferenceControls() {
           <small>읽기 편한 화면으로 조정합니다.</small>
         </header>
         <label className="preference-row">
-          <span><b>{t("language", "언어")}</b><small>{selectedLocale.beta ? "핵심 화면 부분 번역 · Beta" : "한국어 전체 지원"}</small></span>
+          <span><b>{t("language", "언어")}</b><small>{selectedLocale.beta ? "핵심 화면 부분 번역" : "한국어 전체 지원"}</small></span>
           <select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>
-            {localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {item.label}{item.beta ? " · Beta" : ""}</option>)}
+            {localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {item.label}{item.beta ? " · 부분 지원" : ""}</option>)}
           </select>
         </label>
         <button className="preference-row" type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")}>
           <span><b>화면 색상</b><small>{theme === "dark" ? "어두운 화면" : "밝은 화면"}</small></span>
           <em aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</em>
         </button>
-        <button className="preference-row motion-toggle" type="button" onClick={toggleMotion} aria-pressed={motion === "calm"} aria-label={motionLabel}>
-          <span><b>동작 효과</b><small>{motion === "calm" ? "효과 줄임" : "기본 효과"}</small></span>
-          <em aria-hidden="true">{motion === "calm" ? "정지" : "흐름"}</em>
+        <button className="preference-row motion-toggle" type="button" onClick={systemReducedMotion ? undefined : toggleMotion} aria-disabled={systemReducedMotion || undefined} aria-pressed={motion === "calm"} aria-label={motionLabel}>
+          <span><b>동작 효과</b><small>{systemReducedMotion ? "운영체제 설정 적용 중" : motion === "calm" ? "효과 줄임" : "기본 효과"}</small></span>
+          <em aria-hidden="true">{systemReducedMotion ? "OS" : motion === "calm" ? "정지" : "흐름"}</em>
         </button>
         {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label="W.A.V.E 앱 설치">
           <span><b>앱으로 설치</b><small>홈 화면에서 전체 화면으로 열기</small></span>

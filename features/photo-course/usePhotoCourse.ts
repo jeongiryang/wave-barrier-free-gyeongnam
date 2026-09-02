@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   buildPhotoCourse,
   changePhotoCourseDayDate,
@@ -40,11 +40,25 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
   const [applied, setApplied] = useState<PhotoCourseApplied | null>(null);
   const [exportNotice, setExportNotice] = useState("");
   const runId = useRef(0);
+  const enrichmentRequests = useRef(new Map<string, AbortController>());
+
+  const abortEnrichment = useCallback((stopId?: string) => {
+    if (stopId) {
+      enrichmentRequests.current.get(stopId)?.abort();
+      enrichmentRequests.current.delete(stopId);
+      return;
+    }
+    enrichmentRequests.current.forEach((controller) => controller.abort());
+    enrichmentRequests.current.clear();
+  }, []);
+
+  useEffect(() => () => abortEnrichment(), [abortEnrichment]);
 
   const readFiles = useCallback(async (fileList: FileList | null) => {
     if (!fileList?.length) return;
     const run = runId.current + 1;
     runId.current = run;
+    abortEnrichment();
     setReading(true);
     setProgress(0);
     setNotice("");
@@ -52,34 +66,40 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
     setExportNotice("");
     setEnrichments({});
 
-    const result = await readPhotoMetadataFiles(fileList, {
-      onProgress: (done: number, total: number) => {
-        if (runId.current === run) setProgress(total ? Math.round((done / total) * 100) : 0);
-      },
-    });
-    if (runId.current !== run) return;
+    try {
+      const result = await readPhotoMetadataFiles(fileList, {
+        onProgress: (done: number, total: number) => {
+          if (runId.current === run) setProgress(total ? Math.round((done / total) * 100) : 0);
+        },
+      });
+      if (runId.current !== run) return;
 
-    const next = buildPhotoCourse(result.photos) as PhotoCourse;
-    setCourse(next);
-    setNames({});
-    setReading(false);
-    setProgress(100);
+      const next = buildPhotoCourse(result.photos) as PhotoCourse;
+      setCourse(next);
+      setNames({});
+      setProgress(100);
 
-    if (!next.days.length) {
-      setNotice(result.selectedCount === next.skipped.withoutDate
-        ? "선택한 사진에서 촬영 날짜를 찾지 못했습니다. EXIF 촬영 정보가 남아 있는 JPG·PNG·WebP·TIFF 원본을 사용해 주세요."
-        : "코스를 만들 수 있는 사진이 없습니다.");
-      return;
+      if (!next.days.length) {
+        setNotice(result.selectedCount === next.skipped.withoutDate
+          ? "선택한 사진에서 촬영 날짜를 찾지 못했습니다. EXIF 촬영 정보가 남아 있는 JPG·PNG·WebP·TIFF 원본을 사용해 주세요."
+          : "코스를 만들 수 있는 사진이 없습니다.");
+        return;
+      }
+      const parts = [`사진 ${next.photoCount}장에서 ${next.days.length}일치 코스를 만들었습니다.`];
+      if (next.skipped.withoutDate) parts.push(`촬영 날짜가 없는 ${next.skipped.withoutDate}장은 제외했습니다.`);
+      if (next.skipped.withoutPoint) parts.push(`위치 정보가 없는 ${next.skipped.withoutPoint}장은 시간만으로 묶었습니다.`);
+      if (result.unreadable) parts.push(`읽을 수 없는 파일 ${result.unreadable}개는 건너뛰었습니다.`);
+      if (result.truncated) parts.push(`한 번에 ${MAX_PHOTOS}장까지만 읽어 ${result.truncated}장은 이번 분석에서 제외했습니다.`);
+      setNotice(parts.join(" "));
+    } catch {
+      if (runId.current === run) setNotice("사진 촬영 정보를 읽지 못했습니다. 파일을 다시 선택해 주세요.");
+    } finally {
+      if (runId.current === run) setReading(false);
     }
-    const parts = [`사진 ${next.photoCount}장에서 ${next.days.length}일치 코스를 만들었습니다.`];
-    if (next.skipped.withoutDate) parts.push(`촬영 날짜가 없는 ${next.skipped.withoutDate}장은 제외했습니다.`);
-    if (next.skipped.withoutPoint) parts.push(`위치 정보가 없는 ${next.skipped.withoutPoint}장은 시간만으로 묶었습니다.`);
-    if (result.unreadable) parts.push(`읽을 수 없는 파일 ${result.unreadable}개는 건너뛰었습니다.`);
-    if (result.truncated) parts.push(`한 번에 ${MAX_PHOTOS}장까지만 읽어 ${result.truncated}장은 이번 분석에서 제외했습니다.`);
-    setNotice(parts.join(" "));
-  }, []);
+  }, [abortEnrichment]);
 
   const renameStop = useCallback((id: string, value: string) => {
+    abortEnrichment(id);
     setNames((current) => ({ ...current, [id]: value.slice(0, 80) }));
     setEnrichments((current) => {
       if (!current[id]) return current;
@@ -87,7 +107,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
       delete next[id];
       return next;
     });
-  }, []);
+  }, [abortEnrichment]);
 
   const changeDayDate = useCallback((dayIndex: number, date: string) => {
     setCourse((current) => current ? courseWithDays(current, changePhotoCourseDayDate(current.days, dayIndex, date) as PhotoCourseDay[]) : current);
@@ -98,6 +118,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
   }, []);
 
   const changeStopRegion = useCallback((dayIndex: number, stopId: string, region: string) => {
+    abortEnrichment(stopId);
     setCourse((current) => {
       if (!current) return current;
       const days = current.days.map((day, index) => {
@@ -112,9 +133,10 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
       delete next[stopId];
       return next;
     });
-  }, []);
+  }, [abortEnrichment]);
 
   const requestEnrichment = useCallback(async (day: PhotoCourseDay, stop: PhotoCourseStop) => {
+    abortEnrichment(stop.id);
     const region = stop.region || day.region;
     const title = String(names[stop.id] ?? stop.suggestedName ?? "").trim().slice(0, 80);
     if (!region) {
@@ -123,13 +145,24 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
       } }));
       return;
     }
+    const controller = new AbortController();
+    enrichmentRequests.current.set(stop.id, controller);
+    let timedOut = false;
+    const timeout = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort(new DOMException("Photo course enrichment timed out", "TimeoutError"));
+    }, 12_000);
     setEnrichments((current) => ({ ...current, [stop.id]: {
       status: "loading", image: "", source: "", matchedTitle: title, contentId: "", address: "", query: "",
     } }));
     try {
       const query = new URLSearchParams({ action: "spot-photo", region, title, strict: "1" });
-      const response = await fetch(`/api/wave?${query.toString()}`, { headers: { accept: "application/json" } });
+      const response = await fetch(`/api/wave?${query.toString()}`, {
+        headers: { accept: "application/json" },
+        signal: controller.signal,
+      });
       const data = await response.json() as EnrichmentResponse;
+      if (enrichmentRequests.current.get(stop.id) !== controller) return;
       const status = response.ok && data.status === "live" ? "live" : response.ok && data.status === "empty" ? "empty" : "error";
       setEnrichments((current) => ({ ...current, [stop.id]: {
         status,
@@ -141,11 +174,15 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
         query: typeof data.query === "string" ? data.query : "",
       } }));
     } catch {
+      if (enrichmentRequests.current.get(stop.id) !== controller || (controller.signal.aborted && !timedOut)) return;
       setEnrichments((current) => ({ ...current, [stop.id]: {
         status: "error", image: "", source: "", matchedTitle: title, contentId: "", address: "", query: "",
       } }));
+    } finally {
+      window.clearTimeout(timeout);
+      if (enrichmentRequests.current.get(stop.id) === controller) enrichmentRequests.current.delete(stop.id);
     }
-  }, [names]);
+  }, [abortEnrichment, names]);
 
   const enrichStop = useCallback((day: PhotoCourseDay, stop: PhotoCourseStop) => {
     void requestEnrichment(day, stop);
@@ -153,13 +190,18 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
 
   const enrichAll = useCallback(async () => {
     if (!course) return;
+    const run = runId.current;
     for (const day of course.days) {
-      for (const stop of day.stops) await requestEnrichment(day, stop);
+      for (const stop of day.stops) {
+        if (runId.current !== run) return;
+        await requestEnrichment(day, stop);
+      }
     }
   }, [course, requestEnrichment]);
 
   const clear = useCallback(() => {
     runId.current += 1;
+    abortEnrichment();
     setCourse(null);
     setNames({});
     setEnrichments({});
@@ -168,7 +210,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
     setNotice("");
     setApplied(null);
     setExportNotice("");
-  }, []);
+  }, [abortEnrichment]);
 
   const apply = useCallback(() => {
     if (!course?.days.length) return;

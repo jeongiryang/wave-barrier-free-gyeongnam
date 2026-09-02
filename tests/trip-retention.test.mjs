@@ -71,7 +71,7 @@ test("retention documentation states what actually happens", async () => {
     source("docs/vercel-neon-setup.md"),
   ]);
   assert.match(readme, /30일/);
-  assert.match(readme, /만료된 공유 여행은 매일 예약 정리/);
+  assert.match(readme, /매일 `03:17 UTC`에 실행/);
   assert.match(setup, /CRON_SECRET/);
   assert.match(setup, /배포별 `--env` 값으로 덮어쓰지 않는다/);
 });

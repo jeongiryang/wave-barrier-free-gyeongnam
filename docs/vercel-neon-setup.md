@@ -23,9 +23,9 @@ W.A.V.E는 Vercel을 웹·서버 함수의 단일 운영 환경으로 사용하�
 5. 세 값은 Vercel Project Settings → Environment Variables에서 Production과
    Preview에 등록한다. 실제 값은 저장소에 커밋하지 않는다.
 6. 새 데이터베이스를 수동으로 준비할 때는 `migrations/001_community.sql`부터
-   `004_community_seed.sql`까지 번호 순서대로 적용한다. Production CD는 승격 전에
-   `002_community_moderation.sql`, `003_trips.sql`, `004_community_seed.sql`을
-   트랜잭션으로 다시 적용할 수 있게 작성되어 있어 이미 적용된 환경에서도 안전하다.
+   `005_community_field_reports.sql`까지 번호 순서대로 적용한다. Production CD도
+   승격 전에 같은 001~005 체인을 하나의 트랜잭션으로 적용하므로 빈 데이터베이스와
+   이미 준비된 데이터베이스 모두 같은 순서로 복구할 수 있다.
 7. 커뮤니티 운영 담당자의 Neon Auth 사용자 ID를 `COMMUNITY_MODERATOR_USER_IDS`에
    쉼표로 구분해 등록한다. 이 값은 서버에서만 읽으며 사용자 화면에 노출하지 않는다.
 
@@ -107,3 +107,6 @@ Copy-Item .env.example .env.local
 
 PR을 올리기 전 `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:e2e`,
 `npm run build:vercel`을 모두 실행한다.
+
+Neon 백업 보존기간과 복원 작업은 이 저장소에서 설정하지 않는다. Production을 열기
+전에 [운영·보안·개인정보 안내](operations.md)의 백업·복구 확인표를 별도로 완료한다.

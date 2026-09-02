@@ -27,6 +27,6 @@ test("교통·요금·임시 이동값은 확인 범위를 그대로 말한다",
   await expect(page.getByText("통행료 없음", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("시간 정보 없음", { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: /도보 걸어서 이동 시간 정보 없음/ }).click();
-  await expect(page.getByText("없는 시간을 임의로 만들지 않습니다.")).toBeVisible();
+  await expect(page.getByText(/확인되지 않은 시간을 임의로 표시하지 않습니다/)).toBeVisible();
   await expect(page.getByRole("link", { name: /카카오맵에서 도보 확인/ })).toBeVisible();
 });

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CommunityPost } from "../../../lib/community/types";
-import { listCommunityPosts } from "../client/api";
+import { communityErrorMessage, isCommunityRequestError, listCommunityPosts } from "../client/api";
 
 export function useCommunityPostList({ category, query, placeId }: { category: string; query: string; placeId?: string }) {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
@@ -18,7 +18,6 @@ export function useCommunityPostList({ category, query, placeId }: { category: s
     requestRef.current = controller;
     setState("loading");
     setMessage("");
-    const timer = window.setTimeout(() => controller.abort(), 12000);
     try {
       const params = new URLSearchParams({ page: String(nextPage), limit: "12" });
       if (category) params.set("category", category);
@@ -32,12 +31,10 @@ export function useCommunityPostList({ category, query, placeId }: { category: s
       setState("ready");
     } catch (error) {
       if (requestRef.current !== controller) return;
-      setMessage(error instanceof DOMException && error.name === "AbortError"
-        ? "여행자 이야기를 불러오는 데 시간이 걸리고 있습니다. 다시 시도해 주세요."
-        : error instanceof Error ? error.message : "목록을 불러오지 못했습니다.");
+      if (isCommunityRequestError(error) && error.kind === "aborted") return;
+      setMessage(communityErrorMessage(error, "목록을 불러오지 못했습니다."));
       setState("error");
     } finally {
-      window.clearTimeout(timer);
       if (requestRef.current === controller) requestRef.current = null;
     }
   }, [category, placeId, query]);

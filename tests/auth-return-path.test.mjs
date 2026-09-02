@@ -9,7 +9,11 @@ test("login return paths keep same-origin destinations intact", () => {
 });
 
 test("login return paths reject values that resolve outside the site", () => {
-  for (const value of ["/\\evil.example", "//evil.example", "https://evil.example", "javascript:alert(1)", "evil.example", ""]) {
+  for (const value of [
+    "/\\evil.example", "//evil.example", "/%5cevil.example", "/%2f%2fevil.example",
+    "/..//evil.example", "/safe/..//evil.example", "https://evil.example",
+    "javascript:alert(1)", "evil.example", "/planner%0d%0aLocation:%20https://evil.example", "",
+  ]) {
     assert.equal(safeAuthReturnPath(value), AUTH_FALLBACK_PATH);
   }
   assert.equal(safeAuthReturnPath(null), AUTH_FALLBACK_PATH);

@@ -1,4 +1,5 @@
 import { cacheControlHeader } from "../../lib/http-cache.js";
+import { verifySameOriginMutation } from "../../lib/security/request-boundaries.js";
 
 export function json(data: unknown, status = 200, cache = false) {
   return new Response(JSON.stringify(data), {
@@ -39,25 +40,12 @@ type JsonBodyResult =
   | { body?: never; response: Response };
 
 export async function readTrustedJson(request: Request, maxBytes: number): Promise<JsonBodyResult> {
+  const guard = await verifySameOriginMutation(request, maxBytes);
+  if (guard) return { response: guard };
+
   const contentType = request.headers.get("content-type")?.toLowerCase() || "";
   if (!contentType.startsWith("application/json")) {
     return { response: json({ error: "JSON 형식의 요청만 지원합니다." }, 415) };
-  }
-
-  const contentLength = Number(request.headers.get("content-length") || 0);
-  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
-    return { response: json({ error: "요청 내용이 너무 큽니다." }, 413) };
-  }
-
-  const requestUrl = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== requestUrl.origin) {
-    return { response: json({ error: "다른 사이트에서 보낸 저장 요청은 허용하지 않습니다." }, 403) };
-  }
-
-  const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase();
-  if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") {
-    return { response: json({ error: "다른 사이트에서 보낸 저장 요청은 허용하지 않습니다." }, 403) };
   }
 
   const raw = await request.text().catch(() => "");

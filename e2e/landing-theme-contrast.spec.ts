@@ -42,20 +42,20 @@ async function samples(page: Page, selector: string) {
 
 const CASES = [
   ".landing-scroll",
-  ".preview-note",
-  ".access-preview > footer",
+  ".condition-preview .feature-preview-stage > header span",
+  ".access-preview .feature-preview-stage > footer",
   ".signal-node",
-  ".condition-preview > footer small",
-  ".condition-preview > footer i",
+  ".condition-preview .feature-preview-stage > footer small",
+  ".condition-preview .feature-preview-stage > footer i",
   ".plan-preview li:not(.transfer) > i",
   ".plan-preview li > span",
-  ".route-preview > footer span.active small",
-  ".route-preview > footer span.active strong",
-  ".adapt-preview > header small",
-  ".adapt-preview > header > b",
+  ".route-preview .feature-preview-stage > footer span.active small",
+  ".route-preview .feature-preview-stage > footer span.active strong",
+  ".adapt-preview .feature-preview-stage > header small",
+  ".adapt-preview .feature-preview-stage > header > b",
   ".map-pin.pin-end",
 ];
-const NARROW_HIDDEN = new Set([".condition-preview > footer i"]);
+const NARROW_HIDDEN = new Set([".condition-preview .feature-preview-stage > footer i"]);
 
 for (const theme of ["dark", "light"] as const) {
   test(`${theme === "dark" ? "어두운" : "밝은"} 랜딩의 미리보기 글자가 표면에 묻히지 않는다`, async ({ page }) => {

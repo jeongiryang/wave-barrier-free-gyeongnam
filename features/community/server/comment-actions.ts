@@ -1,4 +1,5 @@
 import { validateCommentInput } from "../../../lib/community/validation.js";
+import { rateLimitResponse } from "../../../lib/rate-limit-response.js";
 import { readSameOriginJson } from "../../../lib/server-request";
 import {
   createCommunityComment,
@@ -31,7 +32,7 @@ export async function createComment(request: Request, postId: string) {
   if ("unavailable" in result) return databaseUnavailable("댓글");
   if ("missing" in result) return communityResponse({ error: "게시글을 찾을 수 없습니다." }, 404);
   if ("rateLimited" in result) {
-    return communityResponse({ error: "짧은 시간에 많은 댓글이 작성되었습니다. 잠시 후 다시 시도해 주세요." }, 429);
+    return rateLimitResponse("짧은 시간에 많은 댓글이 작성되었습니다. 잠시 후 다시 시도해 주세요.", result.retryAfter ?? 600);
   }
   return communityResponse({ id: result.id }, 201);
 }

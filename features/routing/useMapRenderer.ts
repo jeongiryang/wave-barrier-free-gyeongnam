@@ -82,11 +82,11 @@ export function useMapRenderer(options: UseMapRendererOptions) {
           if (rendered || cancelled) return;
         } catch (error) {
           setProviderDetail(error instanceof Error && error.message.includes("domain")
-            ? "Kakao JavaScript SDK 도메인 등록을 확인해 주세요. 대체 지도를 표시합니다."
-            : "Kakao 지도 연결이 지연되어 대체 지도를 표시합니다.");
+            ? "기본 지도를 불러오지 못해 대체 지도를 표시합니다."
+            : "기본 지도 연결이 지연되어 대체 지도를 표시합니다.");
         }
       } else {
-        setProviderDetail("Kakao JavaScript 키가 없어 대체 지도를 표시합니다.");
+        setProviderDetail("기본 지도를 불러오지 못해 대체 지도를 표시합니다.");
       }
       await renderLeafletMap(context, isCancelled);
     }

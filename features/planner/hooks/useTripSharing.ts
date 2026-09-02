@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { plannerJson } from "../services/api";
 import type { PlanData } from "../types";
+import { sameOriginHttpUrl } from "../../../lib/security/same-origin-url.js";
 
 export interface TripSharingOptions {
   plan: PlanData | null;
@@ -46,10 +47,11 @@ export function useTripSharing(options: TripSharingOptions) {
           origin: { label: options.originLabel },
         },
       });
-      if (!data.url) throw new Error("공유 링크를 만들지 못했습니다.");
-      setShareUrl(data.url);
+      const safeUrl = sameOriginHttpUrl(data.url, window.location.origin);
+      if (!safeUrl) throw new Error("공유 링크를 만들지 못했습니다.");
+      setShareUrl(safeUrl);
       setShareState("idle");
-      return data.url;
+      return safeUrl;
     })();
     pendingShare.current = request;
     try {

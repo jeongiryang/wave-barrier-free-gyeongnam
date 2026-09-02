@@ -96,8 +96,8 @@ async function landingProductSource() {
     "features/landing/components/LandingDiscoveryStories.tsx",
     "features/landing/components/LandingJourneyStories.tsx",
     "features/landing/components/LandingAdaptStory.tsx",
+    "features/landing/components/LandingTravelBookStory.tsx",
     "features/community/components/LandingCommunityStory.tsx",
-    "features/community/hooks/useCommunityPreview.ts",
   ];
   return (await Promise.all(paths.map(source))).join("\n");
 }
@@ -266,19 +266,18 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(regionalPhoto, /for \(const keyword of keywords\)/);
 });
 
-test("all eighteen regions use original W.A.V.E travel characters instead of emoji markers", async () => {
-  const [landing, mascot, characterConfig] = await Promise.all([
-    landingProductSource(),
-    source("components/RegionMascot.tsx"),
-    source("features/regions/character-config.ts"),
-  ]);
+test("all eighteen regions are text controls without mascot or remote map dependencies", async () => {
+  const landing = await landingProductSource();
   const names = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
-  assert.match(mascot, /<MotifMark motif=\{character\.motif\}/);
-  for (const name of names) assert.match(characterConfig, new RegExp(`${name}:`));
-  assert.equal((characterConfig.match(/nickname: "/g) || []).length, 18);
-  assert.match(landing, /<RegionMascot region=\{region\.name\} size=\{25\}/);
-  assert.match(landing, /<RegionMascot region=\{active\.name\} size=\{54\}/);
   const regionConfig = landing.slice(landing.indexOf("export const landingRegions"), landing.indexOf("export const landingValues"));
+  for (const name of names) assert.match(regionConfig, new RegExp(`name: "${name}"`));
+  assert.equal((regionConfig.match(/\{ name: "/g) || []).length, 18);
+  assert.match(landing, /landingRegions\.map\(\(region, index\) => <button/);
+  assert.match(landing, /className="region-marker-dot"/);
+  assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
+  assert.match(landing, /<b>\{region\.name\}<\/b>/);
+  assert.doesNotMatch(landing, /RegionMascot/);
+  assert.doesNotMatch(landing, /upload\.wikimedia\.org|wikimedia commons/i);
   assert.doesNotMatch(regionConfig, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);
 });
 
@@ -378,7 +377,7 @@ test("saved preferences survive a reload", async () => {
   // 저장된 값을 읽기 전에 기본값을 써 버리면 이용자가 고른 테마와 언어가 지워진다.
   // 읽기가 끝났음을 알리는 표시가 있고, 저장이 그 뒤에만 일어나야 한다.
   assert.match(context, /const stored = readStoredPreferences\(\)/);
-  assert.match(context, /setMotion\(stored\.motion\)[\s\S]*setHydrated\(true\)/);
+  assert.match(context, /setMotionPreference\(stored\.motion\)[\s\S]*setHydrated\(true\)/);
   assert.match(context, /if \(!hydrated\) return;[\s\S]*writeStoredPreferences/);
   assert.match(storage, /localStorage\.getItem\("wave-theme"\)/);
   assert.match(storage, /try\s*\{[\s\S]*localStorage\.setItem\("wave-theme"[\s\S]*\}\s*catch/);
@@ -400,11 +399,12 @@ test("wave motion preference is persisted, localized and respects reduced motion
   assert.match(catalog, /export const motionCopy: Record<Locale/);
   assert.match(engine, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(layout, /prefers-reduced-motion: reduce/);
+  assert.match(layout, /d\.dataset\.motion=r\|\|o==='calm'\?'calm':'full'/);
   assert.doesNotMatch(layout, /LandingIntro|wave-intro-seen/);
   assert.match(css, /html\[data-motion="calm"\] \.hero-wave-canvas \{ display: none; \}/);
 });
 
-test("non-Korean locales are visibly marked Beta without breaking narrow headers", async () => {
+test("non-Korean locales are visibly marked as partial without breaking narrow headers", async () => {
   const [catalog, controls, css] = await Promise.all([
     source("features/preferences/locale-catalog.ts"),
     source("features/preferences/PreferenceControls.tsx"),
@@ -412,8 +412,8 @@ test("non-Korean locales are visibly marked Beta without breaking narrow headers
   ]);
   assert.match(catalog, /id: "ko"[^\n]+beta: false/);
   assert.equal((catalog.match(/beta: true/g) || []).length, 7);
-  assert.match(controls, /item\.beta \? " · Beta"/);
-  assert.match(controls, /selectedLocale\.beta \? "핵심 화면 부분 번역 · Beta"/);
+  assert.match(controls, /item\.beta \? " · 부분 지원"/);
+  assert.match(controls, /selectedLocale\.beta \? "핵심 화면 부분 번역"/);
   assert.match(controls, /관광지 원문과 일부 기능은 한국어로 표시될 수 있습니다/);
   assert.match(css, /\.preference-controls > summary \{[\s\S]*min-height: 44px/);
   assert.match(css, /@media \(max-width: 680px\)[\s\S]*\.preference-panel \{ position: fixed/);

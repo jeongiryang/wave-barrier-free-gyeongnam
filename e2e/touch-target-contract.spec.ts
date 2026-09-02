@@ -14,7 +14,7 @@ import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 const CONTRACT: Array<{ path: string; selector: string; name: string }> = [
   { path: "/", selector: ".account-button", name: "계정" },
   { path: "/", selector: ".help-button", name: "도움말" },
-  { path: "/planner", selector: ".tool-launch-status button", name: "자세히 보기" },
+  { path: "/planner", selector: ".journey-briefing-card > button", name: "다음 여행 단계" },
   { path: "/planner", selector: ".map-provider-badge button", name: "지도 제공자 재연결" },
   { path: "/planner", selector: ".map-command-bar button", name: "지도 도구" },
   { path: "/planner", selector: ".map-type-switch button", name: "지도 종류" },
@@ -64,8 +64,11 @@ for (const width of [1440, 390]) {
 
       for (const target of CONTRACT.filter((item) => item.path === path)) {
         const locator = page.locator(target.selector).first();
-        // 화면 폭에 따라 숨는 조작 대상이 있다. 있는 것만 잰다.
-        if (!(await locator.count()) || !(await locator.isVisible())) continue;
+        // selector가 사라진 것을 "숨은 대상"으로 오인하면 계약 전체가 조용히
+        // 무력화된다. DOM 존재 여부는 즉시 실패시키고, 반응형으로 실제 숨겨진
+        // 대상만 hit-area 측정에서 제외한다.
+        expect(await locator.count(), `${target.name}: ${target.selector} selector가 DOM에 있어야 한다`).toBe(1);
+        if (!(await locator.isVisible())) continue;
         checked += 1;
         const area = await hitArea(locator);
         if (area.covered) {

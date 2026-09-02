@@ -48,7 +48,7 @@ test("place detail can surface WAVE community stories", async () => {
   assert.match(dialog, /<PlaceCommunityStories/);
   assert.match(stories, /listCommunityPosts/);
   assert.match(stories, /W\.A\.V\.E COMMUNITY/);
-  assert.match(seed, /실제 개인 후기가 아닌 기능 확인용 샘플/);
+  assert.match(seed, /실제 여행자가 작성한 글이 아닌 이용 예시/);
   assert.match(migration, /004_community_seed\.sql/);
 });
 

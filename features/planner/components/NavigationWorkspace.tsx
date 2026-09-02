@@ -6,6 +6,7 @@ import RouteMapWorkspace from "./RouteMapWorkspace";
 import TransportDataOverview from "./TransportDataOverview";
 
 interface NavigationWorkspaceProps {
+  mapEnabled: boolean;
   activePlaces: Place[];
   planCrowd: PlanData["crowd"];
   effectiveProviders: TransportProvider[];
@@ -18,6 +19,7 @@ interface NavigationWorkspaceProps {
 }
 
 export default function NavigationWorkspace({
+  mapEnabled,
   activePlaces,
   planCrowd,
   effectiveProviders,
@@ -40,6 +42,7 @@ export default function NavigationWorkspace({
       onCopyBookingRoute={onCopyBookingRoute}
     />
     <RouteMapWorkspace
+      mapEnabled={mapEnabled}
       activePlaces={activePlaces}
       planCrowd={planCrowd}
       route={route}
