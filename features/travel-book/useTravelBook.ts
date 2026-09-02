@@ -13,6 +13,7 @@ import {
   type TravelBook,
   type TravelBookInput,
 } from "../../lib/travel-book.js";
+import { SAVED_PLACE_CATALOG_KEY, sanitizeSavedPlaceCatalog } from "../../lib/saved-place-catalog.js";
 
 const SAVED_PLACES_KEY = "wave-saved-places";
 const TRIP_SCHEDULE_KEY = "wave-trip-schedule-v1";
@@ -63,6 +64,7 @@ export function useTravelBook() {
     if (!payload) return;
     try {
       window.localStorage.setItem(SAVED_PLACES_KEY, JSON.stringify(payload.savedPlaceIds));
+      window.localStorage.setItem(SAVED_PLACE_CATALOG_KEY, JSON.stringify(sanitizeSavedPlaceCatalog(payload.savedPlaces)));
       window.localStorage.setItem(TRIP_SCHEDULE_KEY, JSON.stringify(payload.schedule));
     } catch {
       return;
