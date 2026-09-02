@@ -21,8 +21,8 @@ function readStoredOrder(): { mode: OrderMode; ids: string[] } {
   }
 }
 
-export function useOptimizedTripOrder({ activePlaces, saved, savedStorageReady, origin, accessibilityProfileCount, scheduleAssignments, defaultDay }: {
-  activePlaces: Place[];
+export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, origin, accessibilityProfileCount, scheduleAssignments, defaultDay }: {
+  savedPlaces: Place[];
   saved: string[];
   savedStorageReady: boolean;
   origin: RoutePoint;
@@ -45,10 +45,6 @@ export function useOptimizedTripOrder({ activePlaces, saved, savedStorageReady, 
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  const savedPlaces = useMemo(
-    () => activePlaces.filter((place) => saved.includes(place.id)),
-    [activePlaces, saved],
-  );
   const autoOrderedPlaces = useMemo(
     () => optimizeVisitOrder(savedPlaces, { origin, accessibilityWeight: accessibilityProfileCount ? 0.12 : 0 }),
     [accessibilityProfileCount, origin, savedPlaces],
@@ -60,9 +56,9 @@ export function useOptimizedTripOrder({ activePlaces, saved, savedStorageReady, 
   );
   const activeOrderIds = useMemo(
     () => orderMode === "manual"
-      ? reconciledManualOrder.filter((id) => activePlaces.some((place) => place.id === id))
+      ? reconciledManualOrder.filter((id) => savedPlaces.some((place) => place.id === id))
       : autoOrderIds,
-    [activePlaces, autoOrderIds, orderMode, reconciledManualOrder],
+    [autoOrderIds, orderMode, reconciledManualOrder, savedPlaces],
   );
   const orderedSavedPlaces = useMemo(() => {
     const byId = new Map(savedPlaces.map((place) => [place.id, place]));
@@ -83,9 +79,9 @@ export function useOptimizedTripOrder({ activePlaces, saved, savedStorageReady, 
     if (next.every((id, index) => id === activeOrderIds[index])) return false;
     setManualOrder(reconcilePlaceOrder(saved, next));
     setOrderMode("manual");
-    setOrderNotice(`${activePlaces.find((place) => place.id === placeId)?.name || "장소"} 순서를 ${direction === "up" ? "앞으로" : "뒤로"} 옮겼습니다.`);
+    setOrderNotice(`${savedPlaces.find((place) => place.id === placeId)?.name || "장소"} 순서를 ${direction === "up" ? "앞으로" : "뒤로"} 옮겼습니다.`);
     return true;
-  }, [activeOrderIds, activePlaces, defaultDay, saved, scheduleAssignments]);
+  }, [activeOrderIds, defaultDay, saved, savedPlaces, scheduleAssignments]);
 
   const movementFor = useCallback((placeId: string) => (
     placeMoveAvailability(activeOrderIds, placeId, scheduleAssignments, defaultDay)

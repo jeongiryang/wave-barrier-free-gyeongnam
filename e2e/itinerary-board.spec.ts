@@ -60,3 +60,20 @@ test("한 장소 일정은 불가능한 순서 동작을 모두 비활성화한�
   await expect(itinerary.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동" })).toBeDisabled();
   await expect(itinerary.getByText(/확인된 편의시설 100%/)).toBeVisible();
 });
+
+test("다른 지역으로 이동해도 이전 지역 장소가 날짜별 일정에 남는다", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("wave-saved-places", JSON.stringify(["jinju-1", "1001"]));
+    window.localStorage.setItem("wave-saved-place-catalog-v1", JSON.stringify([{
+      id: "jinju-1", name: "진주 수목원", city: "진주", address: "경상남도 진주시",
+      image: "", score: 75, knownFields: 3, source: "공식 관광정보",
+    }]));
+  });
+  await mockPlannerApi(page);
+  await page.goto("/planner");
+
+  const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
+  await expect(itinerary).toContainText("진주 수목원");
+  await expect(itinerary).toContainText("경남도립미술관");
+  await expect(itinerary.getByText("2곳을 날짜별로 정리했어요.")).toBeVisible();
+});

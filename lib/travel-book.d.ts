@@ -40,4 +40,4 @@ export function upsertTravelBook(current: unknown, input: unknown, now?: string)
 export function patchTravelBook(current: unknown, id: string, patch: Partial<Pick<TravelBook, "status" | "note" | "title">>, now?: string): TravelBook[];
 export function removeTravelBook(current: unknown, id: string): TravelBook[];
 export function buildTravelBookPlannerHref(book: unknown): string;
-export function travelBookRestorePayload(book: unknown): { savedPlaceIds: string[]; schedule: { travelStart: string; travelEnd: string; dayStartTime: string; scheduleAssignments: Record<string, string> }; href: string } | null;
+export function travelBookRestorePayload(book: unknown): { savedPlaceIds: string[]; savedPlaces: TravelBookPlace[]; schedule: { travelStart: string; travelEnd: string; dayStartTime: string; scheduleAssignments: Record<string, string> }; href: string } | null;

@@ -29,11 +29,15 @@ interface PlannerItineraryWorkspaceProps {
 }
 
 export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspaceProps) {
-  const itineraryPlaces = useMemo(
-    () => props.activePlaces.filter((place) => props.tripSelection.saved.includes(place.id)),
-    [props.activePlaces, props.tripSelection.saved],
+  const itineraryPlaces = props.tripSelection.orderedSavedPlaces;
+  const routableItineraryPlaces = useMemo(
+    () => itineraryPlaces.filter((place) => (
+      place.mapX.trim() !== "" && place.mapY.trim() !== ""
+      && Number.isFinite(Number(place.mapX)) && Number.isFinite(Number(place.mapY))
+    )),
+    [itineraryPlaces],
   );
-  const navigationPlaces = itineraryPlaces.length ? itineraryPlaces : props.activePlaces;
+  const navigationPlaces = routableItineraryPlaces.length ? routableItineraryPlaces : props.activePlaces;
   const routeDestinationId = props.route.routeDestination?.id;
   const routeLoading = props.route.routeLoading;
   const loadRoutes = props.route.loadRoutes;
@@ -41,17 +45,17 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   const previousSavedSignature = useRef("");
 
   useEffect(() => {
-    if (!itineraryPlaces.length) {
+    if (!routableItineraryPlaces.length) {
       previousSavedSignature.current = savedSignature;
       return;
     }
     if (previousSavedSignature.current === savedSignature || routeLoading) return;
     const previousSaved = new Set(previousSavedSignature.current.split(",").filter(Boolean));
     previousSavedSignature.current = savedSignature;
-    if (itineraryPlaces.some((place) => place.id === routeDestinationId)) return;
-    const addedPlace = itineraryPlaces.find((place) => !previousSaved.has(place.id));
-    void loadRoutes(addedPlace || itineraryPlaces[0]);
-  }, [itineraryPlaces, loadRoutes, routeDestinationId, routeLoading, savedSignature]);
+    if (routableItineraryPlaces.some((place) => place.id === routeDestinationId)) return;
+    const addedPlace = routableItineraryPlaces.find((place) => !previousSaved.has(place.id));
+    void loadRoutes(addedPlace || routableItineraryPlaces[0]);
+  }, [loadRoutes, routeDestinationId, routeLoading, routableItineraryPlaces, savedSignature]);
 
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
     <div className="journey-subheading" data-reveal>
