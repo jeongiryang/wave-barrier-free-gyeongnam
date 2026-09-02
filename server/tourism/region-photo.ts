@@ -64,7 +64,7 @@ export function photoFrom(result: Attempt, region = "") {
   return {
     id: clean(item.galContentId),
     title: clean(item.galTitle),
-    image: clean(item.galWebImageUrl).replace(/^http:\/\//, "https://"),
+    image: httpsUrl(item.galWebImageUrl),
     location: clean(item.galPhotographyLocation),
     photographer: clean(item.galPhotographer),
     month: clean(item.galPhotographyMonth),

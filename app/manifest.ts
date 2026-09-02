@@ -2,9 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "W.A.V.E 여행 동행 안전 플랫폼",
+    id: "/",
+    name: "W.A.V.E 경남 무장애 여행 길잡이",
     short_name: "W.A.V.E",
-    description: "경남 18개 시·군의 데이터 기반 무장애 맞춤 여행 길잡이",
+    description: "경남 18개 시·군의 관광·무장애·교통 근거로 여행을 준비하는 길잡이",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -13,8 +14,10 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "ko-KR",
     categories: ["travel", "navigation", "lifestyle"],
     icons: [
-      { src: "/favicon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-      { src: "/favicon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
+      { src: "/app-icon.svg", sizes: "192x192", type: "image/svg+xml", purpose: "any" },
+      { src: "/app-icon.svg", sizes: "512x512", type: "image/svg+xml", purpose: "any" },
+      { src: "/maskable-icon.svg", sizes: "192x192", type: "image/svg+xml", purpose: "maskable" },
+      { src: "/maskable-icon.svg", sizes: "512x512", type: "image/svg+xml", purpose: "maskable" },
     ],
   };
 }

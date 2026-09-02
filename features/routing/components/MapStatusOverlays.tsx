@@ -50,7 +50,7 @@ export function MapCanvasStatusOverlays({ provider, roadviewOpen, roadviewMessag
       <em>{crowd.rate.toFixed(1)}%</em>
     </aside>}
     {provider === "loading" && <div className="map-loading-skeleton" role="status" aria-label="지도 연결 중"><div><i /><i /><i /><span /></div><p><b />카카오 지도를 안전하게 연결하고 있습니다.</p></div>}
-    {roadviewOpen && <section className="map-roadview-panel" aria-label="카카오 로드뷰">
+    {roadviewOpen && <section id="map-roadview-panel" className="map-roadview-panel" aria-label="카카오 로드뷰" tabIndex={-1}>
       <header><strong>로드뷰</strong><button type="button" onClick={onCloseRoadview} aria-label="로드뷰 닫기">×</button></header>
       <div ref={roadviewRef} />
       {roadviewMessage && <p>{roadviewMessage}</p>}

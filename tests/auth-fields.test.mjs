@@ -50,6 +50,7 @@ test("화면이 초점 이동과 오류 표시를 실제로 붙인다", async ()
   assert.match(hook, /\.focus\(\)/, "오류가 난 칸으로 초점을 옮기지 않는다");
   assert.match(hook, /setInvalidField\(/);
   assert.match(form, /aria-invalid/, "어느 칸이 문제인지 표시하지 않는다");
-  // 고치기 시작하면 표시를 걷어야 한다.
-  assert.match(form, /onInput=\{auth\.clearInvalid\}/);
+  // 고치기 시작하면 표시와 오래된 오류 문구를 함께 걷어야 한다.
+  assert.match(form, /onInput=\{auth\.clearError\}/);
+  assert.match(hook, /setMessage\(""\)/);
 });

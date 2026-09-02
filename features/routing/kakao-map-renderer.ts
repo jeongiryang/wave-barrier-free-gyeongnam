@@ -131,6 +131,6 @@ export async function renderKakaoMap(
     map.setLevel(9);
   }
   setProvider("kakao");
-  setProviderDetail("Kakao Maps JavaScript SDK로 표시 중입니다.");
+  setProviderDetail("카카오 지도로 표시 중입니다.");
   return true;
 }

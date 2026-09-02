@@ -32,6 +32,7 @@
 .preference-row select:focus-visible { outline: 3px solid #ffb800; outline-offset: 3px; }
 .preference-row em { min-width: 48px; min-height: 34px; padding: 5px 8px; display: grid; place-items: center; border-radius: 9px; color: var(--blue); background: #fff; font-size: .68rem; font-style: normal; font-weight: 850; }
 .preference-row.motion-toggle[aria-pressed="true"] { border-color: #a5dce9; background: #e9f8fb; }
+.preference-row.motion-toggle[aria-disabled="true"] { cursor: not-allowed; }
 .preference-row.app-install { border-color: #b8ddcf; background: #effaf6; }
 .preference-row.app-install-note { cursor: default; }
 .preference-row.app-install:disabled { opacity: .68; cursor: wait; }

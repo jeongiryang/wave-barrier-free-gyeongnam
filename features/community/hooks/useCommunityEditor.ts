@@ -6,7 +6,9 @@ import { COMMUNITY_REGIONS } from "../../../lib/community/types";
 import { parseTravelJournalDraft } from "../../../lib/community/field-report.js";
 import { useHydratedSession } from "../../auth/hooks/useHydratedSession";
 import {
+  communityErrorMessage,
   getCommunityPost,
+  isCommunityRequestError,
   saveCommunityPost,
   type CommunityPostInput,
 } from "../client/api";
@@ -77,8 +79,8 @@ export function useCommunityEditor(postId?: string) {
       });
       setState("ready");
     }).catch((error) => {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      setMessage(error instanceof Error ? error.message : "게시글을 불러오지 못했습니다.");
+      if (isCommunityRequestError(error) && error.kind === "aborted") return;
+      setMessage(communityErrorMessage(error, "게시글을 불러오지 못했습니다."));
       setState("error");
     });
     return () => controller.abort();
@@ -91,13 +93,14 @@ export function useCommunityEditor(postId?: string) {
     try {
       const { ok, status, payload } = await saveCommunityPost(postId, values);
       if (status === 401) {
+        setState("ready");
         router.push(`/login?next=${encodeURIComponent(currentPath)}`);
         return;
       }
       if (!ok) throw new Error(payload.error || "이야기를 저장하지 못했습니다.");
       router.push(`/community/${postId || payload.id}`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "이야기를 저장하지 못했습니다.");
+      setMessage(communityErrorMessage(error, "이야기를 저장하지 못했습니다."));
       setState("error");
     }
   }

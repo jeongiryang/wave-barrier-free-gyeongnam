@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties, type RefObject } from "react";
 import type { TourStep } from "./tour-content";
+import { prefersReducedMotion } from "../../lib/reduced-motion.js";
 
 export type TourHighlight = { top: number; left: number; width: number; height: number };
 
@@ -15,7 +16,7 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
     const target = step ? document.querySelector<HTMLElement>(step.highlightSelector) || section : null;
     if (!section || !target) return;
     section.dataset.helpTourActive = "true";
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = prefersReducedMotion();
     const targetTop = window.scrollY + target.getBoundingClientRect().top - Math.min(104, window.innerHeight * 0.16);
     window.scrollTo({ top: Math.max(0, targetTop), behavior: reduced ? "auto" : "smooth" });
 

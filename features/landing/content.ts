@@ -3,9 +3,8 @@ export type RegionPhoto = { id: string; title: string; image: string; location: 
 export type LandingTranslate = (key: string, fallback: string) => string;
 
 /**
- * Wikimedia 경상남도 행정지도(600×433) 위에 표시할 시·군 대표 위치.
- * lib/gyeongnam-regions.js의 대표 위경도 분포를 지도 좌표계에 맞춰 정규화했다.
- * 지도와 마커는 LandingRegionStory의 동일한 600:433 캔버스를 기준으로 렌더한다.
+ * 경상남도 시·군의 대표 위치를 600×433 안내도 좌표계에 맞춰 정규화했다.
+ * 실제 경계·축척 지도 대신 지역의 대략적인 상대 위치를 설명하는 랜딩 안내에만 쓴다.
  */
 export const landingRegions: LandingRegion[] = [
   { name: "거창", story: "수승대와 산골 무대", x: 22, y: 14 },

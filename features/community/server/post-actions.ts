@@ -1,4 +1,5 @@
 import { communityListParams, validatePostInput } from "../../../lib/community/validation.js";
+import { rateLimitResponse } from "../../../lib/rate-limit-response.js";
 import { readSameOriginJson } from "../../../lib/server-request";
 import {
   createCommunityPost,
@@ -34,7 +35,7 @@ export async function createPost(request: Request) {
   const result = await createCommunityPost(auth.user.id, communityAuthorName(auth.user), validated.value);
   if ("unavailable" in result) return databaseUnavailable();
   if ("rateLimited" in result) {
-    return communityResponse({ error: "짧은 시간에 많은 글이 작성되었습니다. 잠시 후 다시 시도해 주세요." }, 429);
+    return rateLimitResponse("짧은 시간에 많은 글이 작성되었습니다. 잠시 후 다시 시도해 주세요.", result.retryAfter ?? 600);
   }
   return communityResponse({ id: result.id }, 201);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useSitePreferences } from "../components/SitePreferences";
+import SkipLink from "../components/SkipLink";
 import { LandingProductStories } from "../features/landing/components/LandingProductStories";
 import LandingCommunityStory from "../features/community/components/LandingCommunityStory";
 import { LandingCallToAction, LandingEvidenceStory, LandingFooter } from "../features/landing/components/LandingClosing";
@@ -20,16 +21,16 @@ export default function LandingPage() {
     regionPhotos,
     scrolled,
     scrollDirection,
-    setPreviewRegion,
-    loadRegionPhoto,
+    showRegionPreview,
+    hideRegionPreview,
     selectRegion,
     handlePointerMove,
   } = useLandingExperience();
 
   return <main ref={landingRef} className="landing-page" data-scroll-direction={scrollDirection} onPointerMove={handlePointerMove}>
     <div className="landing-pointer-glow" aria-hidden="true" />
-    <aside className="chapter-rail" aria-hidden="true"><span>INTRO</span><i><b /></i><span>GO</span></aside>
-    <a className="skip-link" href="#story">{t("skip", "소개 바로가기")}</a>
+    <aside className="chapter-rail" aria-hidden="true"><span>처음</span><i><b /></i><span>시작</span></aside>
+    <SkipLink href="#story">{t("skip", "소개 바로가기")}</SkipLink>
     <LandingHeader scrolled={scrolled} t={t} />
     <LandingHero t={t} />
     <LandingManifesto t={t} />
@@ -40,8 +41,8 @@ export default function LandingPage() {
       active={active}
       preview={preview}
       regionPhotos={regionPhotos}
-      setPreviewRegion={setPreviewRegion}
-      loadRegionPhoto={loadRegionPhoto}
+      showRegionPreview={showRegionPreview}
+      hideRegionPreview={hideRegionPreview}
       selectRegion={selectRegion}
     />
     <LandingCommunityStory />

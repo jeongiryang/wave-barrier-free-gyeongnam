@@ -1,7 +1,16 @@
 {
-  "name": "wave-tourism-safety",
+  "name": "wave-barrier-free-gyeongnam",
   "version": "0.1.0",
   "private": true,
+  "description": "경남 18개 시·군의 관광·무장애·교통 근거를 연결하는 W.A.V.E 여행 길잡이",
+  "homepage": "https://wave-barrier-free-gyeongnam.vercel.app/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeongiryang/wave-barrier-free-gyeongnam.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues"
+  },
   "engines": {
     "node": ">=22.13.0"
   },
@@ -15,6 +24,7 @@
     "test:e2e:list": "playwright test --list",
     "capture:readme": "node scripts/capture-readme-screenshots.mjs",
     "check:photos": "node scripts/check-photo-coverage.mjs",
+    "check:performance": "node scripts/check-performance-budget.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vercel"
   },
@@ -47,5 +57,5 @@
     "vite": "8.0.16"
   },
   "type": "module",
-  "displayName": "W.A.V.E 여행 동행 안전 플랫폼"
+  "displayName": "W.A.V.E 경남 무장애 여행 길잡이"
 }

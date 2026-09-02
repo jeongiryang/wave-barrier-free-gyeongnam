@@ -1,0 +1,20 @@
+.policy-page { min-height: 100svh; padding: clamp(28px,5vw,72px) max(20px,calc((100vw - 1320px)/2)); color: var(--ink); background: radial-gradient(circle at 80% 8%,rgba(23,184,212,.13),transparent 28%),linear-gradient(145deg,#f8fdff,#eaf6fb); }
+.policy-page > nav,.policy-page > footer { display: flex; flex-wrap: wrap; gap: 10px; }
+.policy-page > nav a,.policy-page > footer a { min-height: 44px; padding: 10px 14px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.82); font-size: .8rem; font-weight: 850; }
+.policy-page > header { max-width: 980px; padding: clamp(70px,10vw,144px) 0 clamp(54px,7vw,92px); }
+.policy-page > header p { margin: 0 0 18px; color: var(--blue); font-size: .72rem; font-weight: 900; letter-spacing: .14em; }
+.policy-page > header h1 { margin: 0; font-size: clamp(2.8rem,6vw,6rem); line-height: 1.02; letter-spacing: -.07em; }
+.policy-page > header span { margin-top: 24px; display: block; color: var(--muted); font-size: .78rem; }
+.policy-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); border-top: 1px solid var(--line); }
+.policy-grid section { min-height: 260px; padding: clamp(28px,4vw,52px); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: rgba(255,255,255,.58); }
+.policy-grid section:nth-child(2n) { border-right: 0; }
+.policy-grid h2 { margin: 0 0 20px; font-size: clamp(1.35rem,2vw,2rem); letter-spacing: -.035em; }
+.policy-grid p { max-width: 62ch; margin: 0; color: var(--muted); line-height: 1.85; }
+.policy-grid a { color: var(--blue-dark); font-weight: 850; text-decoration: underline; text-underline-offset: 3px; }
+.policy-page > footer { padding-top: 42px; }
+.policy-page > footer a:first-child { color: var(--on-blue); border-color: var(--blue); background: var(--blue); }
+html[data-theme="dark"] .policy-page { color: #eaf6fa; background: radial-gradient(circle at 80% 8%,rgba(41,192,204,.12),transparent 28%),#061f2b; }
+html[data-theme="dark"] .policy-grid section,html[data-theme="dark"] .policy-page > nav a,html[data-theme="dark"] .policy-page > footer a { border-color: #31596a; background: rgba(10,48,65,.86); }
+html[data-theme="dark"] .policy-grid p,html[data-theme="dark"] .policy-page > header span { color: #b3ccd6; }
+html[data-theme="dark"] .policy-grid a { color: #8be9e0; }
+@media (max-width: 720px) { .policy-grid { grid-template-columns: 1fr; }.policy-grid section { min-height: 0; border-right: 0; }.policy-page > header h1 br { display: none; } }

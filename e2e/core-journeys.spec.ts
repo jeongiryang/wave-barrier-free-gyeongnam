@@ -132,7 +132,15 @@ test("community reporting requires login and moderation does not leak to public 
   };
   await page.route("**/api/community/posts/post-1", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ post, comments: [] }) }));
   await page.goto("/community/post-1");
-  await page.getByRole("button", { name: "신고" }).click();
+  const report = page.getByRole("button", { name: "신고" });
+  await report.click();
+  await expect(report).toHaveAttribute("aria-expanded", "true");
+  await expect(report).toHaveAttribute("aria-controls", /community-report-/);
+  await expect(page.getByRole("button", { name: "사실과 다른 정보" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(report).toHaveAttribute("aria-expanded", "false");
+  await expect(report).toBeFocused();
+  await report.click();
   await page.getByRole("button", { name: "여행 안전 우려" }).click();
   await expect(page).toHaveURL(/\/login\?next=%2Fcommunity%2Fpost-1/);
 

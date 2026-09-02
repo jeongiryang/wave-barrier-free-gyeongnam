@@ -5,7 +5,7 @@ export async function createCommunityPost(userId: string, name: string, value: P
   const sql = await communityDatabase();
   if (!sql) return { unavailable: true as const };
   const recent = await sql`SELECT COUNT(*) count FROM community_posts WHERE author_id=${userId} AND created_at>${Date.now() - 600000}` as CommunityRow[];
-  if (Number(recent[0]?.count || 0) >= 5) return { rateLimited: true as const };
+  if (Number(recent[0]?.count || 0) >= 5) return { rateLimited: true as const, retryAfter: 600 };
   const id = crypto.randomUUID();
   const now = Date.now();
   const fieldReports = JSON.stringify(value.fieldReports);

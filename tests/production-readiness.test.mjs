@@ -71,8 +71,8 @@ async function landingProductSource() {
     "features/landing/components/LandingDiscoveryStories.tsx",
     "features/landing/components/LandingJourneyStories.tsx",
     "features/landing/components/LandingAdaptStory.tsx",
+    "features/landing/components/LandingTravelBookStory.tsx",
     "features/community/components/LandingCommunityStory.tsx",
-    "features/community/hooks/useCommunityPreview.ts",
   ];
   return (await Promise.all(paths.map(source))).join("\n");
 }
@@ -112,6 +112,7 @@ test("Vercel applies baseline browser security headers", async () => {
   const headers = Object.fromEntries(config.headers[0].headers.map(({ key, value }) => [key, value]));
   assert.equal(headers["X-Content-Type-Options"], "nosniff");
   assert.equal(headers["X-Frame-Options"], "DENY");
+  assert.equal(headers["Strict-Transport-Security"], "max-age=31536000");
   assert.match(headers["Content-Security-Policy"], /form-action 'self'/);
   assert.equal(headers["Referrer-Policy"], "strict-origin-when-cross-origin");
   assert.match(headers["Permissions-Policy"], /camera=\(\)/);
@@ -136,9 +137,15 @@ test("Vercel applies baseline browser security headers", async () => {
   assert.ok(policy["connect-src"].includes("'self'"));
 });
 
-test("production metadata exposes canonical discovery and install routes", async () => {
-  const [layout, robots, sitemap, manifest, readme] = await Promise.all([
+test("production metadata gives each route a canonical, social card and indexing boundary", async () => {
+  const [layout, siteMetadata, planner, community, login, register, trip, robots, sitemap, manifest, readme] = await Promise.all([
     source("app/layout.tsx"),
+    source("lib/site-metadata.ts"),
+    source("app/planner/layout.tsx"),
+    source("app/community/page.tsx"),
+    source("app/login/page.tsx"),
+    source("app/register/page.tsx"),
+    source("app/trip/[id]/page.tsx"),
     source("app/robots.ts"),
     source("app/sitemap.ts"),
     source("app/manifest.ts"),
@@ -148,12 +155,27 @@ test("production metadata exposes canonical discovery and install routes", async
   assert.match(layout, /alternates: \{ canonical: "\/" \}/);
   assert.match(layout, /openGraph:/);
   assert.match(layout, /twitter:/);
+  assert.match(layout, /card: "summary_large_image"/);
+  assert.match(siteMetadata, /images: \[\{ url: SOCIAL_IMAGE/);
+  assert.match(siteMetadata, /index: false, follow: false, noarchive: true/);
+  for (const [route, content] of [["/planner", planner], ["/community", community], ["/login", login], ["/register", register]]) {
+    assert.ok(content.includes(`path: "${route}"`), `${route} canonical metadata가 필요합니다.`);
+  }
+  assert.match(login, /index: false/);
+  assert.match(register, /index: false/);
+  assert.match(trip, /path: `\/trip\/\$\{encodeURIComponent\(id\)\}`/);
+  assert.match(trip, /index: false/);
   assert.match(layout, /manifest: "\/manifest\.webmanifest"/);
-  assert.match(robots, /disallow: \["\/api\/", "\/trip\/"\]/);
+  assert.match(robots, /disallow: \["\/api\/"\]/);
+  assert.doesNotMatch(robots, /"\/trip\/"/);
   assert.match(robots, /sitemap: `\$\{origin\}\/sitemap\.xml`/);
   assert.match(sitemap, /`\$\{origin\}\/planner`/);
+  assert.match(sitemap, /`\$\{origin\}\/travel-book`/);
+  assert.match(sitemap, /`\$\{origin\}\/photo-course`/);
+  assert.doesNotMatch(sitemap, /`\$\{origin\}\/(?:login|register|trip)/);
   assert.match(manifest, /display: "standalone"/);
-  assert.match(manifest, /purpose: "maskable"/);
+  assert.match(manifest, /src: "\/app-icon\.svg", sizes: "192x192"[\s\S]*src: "\/app-icon\.svg", sizes: "512x512"/);
+  assert.match(manifest, /src: "\/maskable-icon\.svg", sizes: "192x192"[\s\S]*src: "\/maskable-icon\.svg", sizes: "512x512"/);
   assert.doesNotMatch(readme, /스페인어/);
   assert.match(readme, /독일어·러시아어/);
 });
@@ -185,15 +207,18 @@ test("the production toolchain pins patched React and the Vercel-compatible vine
 });
 
 test("anonymous database writes validate origin, JSON and body size before storage", async () => {
-  const [trips, feedback, http] = await Promise.all([
+  const [trips, feedback, http, requestBoundary] = await Promise.all([
     source("server/trips/itinerary-actions.ts"),
     source("server/trips/feedback-handler.ts"),
     source("server/shared/http.ts"),
+    source("lib/security/request-boundaries.js"),
   ]);
+  const requestGuard = `${http}\n${requestBoundary}`;
   assert.match(http, /function readTrustedJson/);
   assert.match(http, /content-type/);
-  assert.match(http, /sec-fetch-site/);
-  assert.match(http, /origin !== requestUrl\.origin/);
+  assert.match(http, /verifySameOriginMutation\(request, maxBytes\)/);
+  assert.match(requestGuard, /sec-fetch-site/);
+  assert.match(requestGuard, /origin !== requestUrl\.origin/);
   assert.match(http, /TextEncoder\(\)\.encode\(raw\)\.byteLength/);
   assert.match(trips, /readTrustedJson\(request, 70000\)/);
   assert.match(feedback, /readTrustedJson\(request, 4000\)/);
@@ -219,8 +244,9 @@ test("account, storage and footer copy describe real boundaries and independent 
     plannerProductSource(),
   ]);
   assert.doesNotMatch(account, /저장한 여행 조건과 즐겨찾기를 안전하게 관리/);
-  assert.match(authForm, /커뮤니티 DB에 비밀번호를 저장하지 않습니다/);
+  assert.match(authForm, /커뮤니티 데이터에 저장하지 않습니다/);
   assert.match(authForm, /여행 설계와 지도는 로그인 없이 이용/);
+  assert.match(authForm, /비밀번호 재설정과 계정 탈퇴는 아직 지원하지 않습니다/);
   assert.match(authForm, /autoComplete=\{auth\.registering \? "new-password" : "current-password"\}/);
   // 안내 문구는 문제가 된 칸에만 연결한다. 늘 비밀번호 칸에 붙여 두면 이메일이
   // 틀렸을 때도 비밀번호 칸이 이메일 오류를 읽어 준다.
@@ -242,11 +268,9 @@ test("deployment guide uses the current CI check name and Vercel uses Node 22", 
   assert.match(viteConfig, /runtime: "nodejs22\.x"/);
 });
 
-test("contest category, selected task and live OpenAPI use are documented consistently", async () => {
-  const [readme, compliance, policy, landing, planner, tourismHandler, planBuilder, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources] = await Promise.all([
+test("public product copy is release-ready and tourism data remains live", async () => {
+  const [readme, landing, planner, tourismHandler, planBuilder, tourismPhotos, tourismInsights, tourismConcentration, enrichmentSources] = await Promise.all([
     source("README.md"),
-    source("docs/contest-compliance.md"),
-    source("docs/competition-operation-policy.md"),
     landingProductSource(),
     plannerProductSource(),
     source("server/tourism/handler.ts"),
@@ -263,13 +287,8 @@ test("contest category, selected task and live OpenAPI use are documented consis
     source("server/tourism/enrichment-sources.ts"),
   ]);
   const tourism = `${tourismHandler}\n${planBuilder}\n${tourismPhotos}\n${tourismInsights}\n${tourismConcentration}\n${enrichmentSources}`;
-  for (const content of [readme, compliance, policy, landing, planner]) {
-    assert.match(content, /②-2 웹·앱 구현 부문/);
-    assert.match(content, /지정과제 1/);
-  }
-  assert.match(compliance, /날씨 변화, 혼잡도 상승, 동선 꼬임/);
-  assert.match(compliance, /실시간 대화형 여행 가이드.+예시/);
-  assert.match(compliance, /TOUR_API_SERVICE_KEY_ENCODED/);
+  assert.doesNotMatch(`${readme}\n${landing}\n${planner}`, /공모전|심사용|출품용|기능 시연용/);
+  assert.match(readme, /TOUR_API_SERVICE_KEY_ENCODED/);
   assert.match(tourism, /KorService2/);
   assert.match(tourism, /KorWithService2/);
   assert.match(tourism, /PhotoGalleryService1/);
@@ -301,16 +320,49 @@ test("wide screens use available viewport width without breaking mobile gutters"
   assert.match(css, /@media \(max-width: 780px\)[\s\S]*width: calc\(100vw - 16px\)/);
 });
 
-test("landing region markers share the rendered map coordinate space", async () => {
+test("landing region controls share the rendered map coordinate space without a remote base map", async () => {
   const [landing, css] = await Promise.all([landingProductSource(), styleSource()]);
   assert.match(landing, /className="landing-region-map-canvas" data-region-map-canvas/);
   assert.match(landing, /data-region-marker=\{region\.name\}/);
-  assert.match(landing, /width="600" height="433"/);
+  assert.match(landing, /className="region-marker-dot"/);
+  assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
+  assert.doesNotMatch(landing, /RegionMascot|upload\.wikimedia\.org/i);
   assert.match(landing, /name: "거창"[\s\S]*x: 22, y: 14/);
   assert.match(landing, /name: "양산"[\s\S]*x: 90, y: 43/);
   assert.match(css, /\.landing-region-map-canvas \{[\s\S]*aspect-ratio: 600 \/ 433/);
-  assert.match(css, /\.landing-region-map-canvas > img \{[\s\S]*width: 100%;[\s\S]*height: 100%/);
   assert.match(css, /\.landing-region-map \{[\s\S]*min-height: 0/);
+});
+
+test("landing feature demos are ordered, static and motion-safe", async () => {
+  const [stories, storyCss, featureMotionCss, accountCss] = await Promise.all([
+    Promise.all([
+      source("features/landing/components/LandingDiscoveryStories.tsx"),
+      source("features/landing/components/LandingJourneyStories.tsx"),
+      source("features/landing/components/LandingAdaptStory.tsx"),
+      source("features/landing/components/LandingTravelBookStory.tsx"),
+      source("features/community/components/LandingCommunityStory.tsx"),
+    ]).then((parts) => parts.join("\n")),
+    source("app/styles/landing-stories.css"),
+    source("app/styles/landing-feature-motion.css"),
+    source("app/styles/account-community.css"),
+  ]);
+  const css = `${storyCss}\n${featureMotionCss}\n${accountCss}`;
+  const labels = [...stories.matchAll(/className="section-kicker">(\d{2} · [^<]+)</g)].map((match) => match[1]);
+  assert.deepEqual(labels, ["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 여행 기록"]);
+  assert.doesNotMatch(stories, /DISCOVER|ACCESS|PLAN|ROUTE|ADAPT|REMEMBER|COMMUNITY/);
+  assert.equal((stories.match(/<div className="product-preview[^>]+role="img"[^>]+aria-label=/g) || []).length, 6);
+  assert.equal((stories.match(/className="feature-preview-stage" aria-hidden="true"/g) || []).length, 6);
+  assert.doesNotMatch(stories, /기능 화면 미리보기/);
+  assert.doesNotMatch(stories, /<button\b/);
+  for (const hook of ["route-demo-path", "route-demo-vehicle", "community-feature-preview", "community-feature-card"]) {
+    assert.match(stories, new RegExp(`className="[^"]*${hook}`));
+  }
+  const community = await source("features/community/components/LandingCommunityStory.tsx");
+  assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
+  for (const selector of ["route-demo-path", "route-demo-vehicle"]) {
+    assert.match(css, new RegExp(`html\\[data-motion="calm"\\][\\s\\S]{0,400}\\.${selector}[\\s\\S]{0,300}animation: none`));
+    assert.match(css, new RegExp(`@media \\(prefers-reduced-motion: reduce\\)[\\s\\S]*\\.${selector}[\\s\\S]{0,300}animation: none`));
+  }
 });
 
 test("wave effects avoid dense glyphs and landing opens without a blocking intro", async () => {
@@ -325,7 +377,8 @@ test("wave effects avoid dense glyphs and landing opens without a blocking intro
   assert.match(model, /out: \[1\.78, 1\.96\]/);
   assert.match(renderer, /stageWeight\(elapsed, INTRO_STAGES\[2\]\)/);
   assert.doesNotMatch(landing, /LandingIntro|useLandingIntro|introState/);
-  assert.match(landing, /18 CITIES · 18 STORIES/);
+  assert.match(landing, /경남 18개 시·군/);
+  assert.doesNotMatch(landing, /18 CITIES · 18 STORIES/);
   assert.doesNotMatch(landing, /useState\(true\)/);
   assert.doesNotMatch(css, /brand-intro|landingIntroOut|introRegionChapter/);
 });

@@ -78,7 +78,7 @@ test("여행자 제보는 공식 근거와 별도 저장·표시되고 샘플을
   assert.match(mapper, /isSample: row\.author_id === "wave-seed"/);
   assert.match(editor, /공식 편의근거 점수에 합산되지 않고/);
   assert.match(detail, /작성자 1명이 남긴 개별 경험/);
-  assert.match(board, /‘샘플’이 붙은 글/);
+  assert.match(board, /‘샘플’이 붙은 글은 이용 예시/);
   assert.match(planner, /buildTravelJournalHref/);
   assert.match(migration, /community_posts_journal_places_idx/);
 });

@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PhotoCourseRestore from "../../features/photo-course/PhotoCourseRestore";
+import SkipLink from "../../components/SkipLink";
 
 export default function PhotoCoursePage() {
   const router = useRouter();
 
   return <main className="photo-course-page">
-    <a className="skip-link" href="#photo-course-main">본문으로 바로가기</a>
+    <SkipLink href="#photo-course-main">본문으로 바로가기</SkipLink>
     <header className="photo-course-page-header">
       <Link href="/" className="photo-course-brand" aria-label="W.A.V.E 홈">W.A.V.E</Link>
       <nav aria-label="사진 코스 화면 이동">

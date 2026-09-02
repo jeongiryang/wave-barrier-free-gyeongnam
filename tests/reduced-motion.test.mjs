@@ -12,6 +12,18 @@ test("설정을 읽을 수 없는 환경에서는 기본 동작을 유지한다"
   assert.equal(scrollToSection("route"), false);
 });
 
+test("앱에서 calm을 고르면 OS 설정과 같은 즉시 이동 계약을 쓴다", () => {
+  globalThis.window = { matchMedia: () => ({ matches: false }) };
+  globalThis.document = { documentElement: { dataset: { motion: "calm" } } };
+  try {
+    assert.equal(prefersReducedMotion(), true);
+    assert.equal(scrollBehavior(), "auto");
+  } finally {
+    delete globalThis.window;
+    delete globalThis.document;
+  }
+});
+
 test("구역 이동은 설정을 그대로 scrollIntoView에 넘긴다", () => {
   const calls = [];
   const target = { scrollIntoView: (options) => calls.push(options) };

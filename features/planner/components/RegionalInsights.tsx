@@ -15,7 +15,7 @@ export default function RegionalInsights({ enrichment, loading, visitorTypes, de
       <div className="insight-label"><span>01</span><p>지역 방문 흐름</p></div>
       {loading ? <div className="insight-skeleton" /> : <>
         <strong>{enrichment?.visitor.total ? enrichment.visitor.total.toLocaleString() : "—"}<small>{enrichment?.visitor.total ? "명" : "검색 후 표시"}</small></strong>
-        <p>{enrichment?.visitor.startYmd && enrichment?.visitor.endYmd ? `${enrichment.visitor.startYmd}–${enrichment.visitor.endYmd} 지역 방문 흐름` : "지역별 방문자 API의 최신 가용 구간을 확인합니다."}</p>
+        <p>{enrichment?.visitor.startYmd && enrichment?.visitor.endYmd ? `${enrichment.visitor.startYmd}–${enrichment.visitor.endYmd} 지역 방문 흐름` : "지역별 방문 통계의 최신 제공 구간을 확인합니다."}</p>
         <div className="visitor-bars">
           {visitorTypes.length ? visitorTypes.map(([name, value]) => <div key={name}>
             <span>{name}</span>

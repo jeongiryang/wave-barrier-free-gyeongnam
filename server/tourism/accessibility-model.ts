@@ -1,5 +1,5 @@
 import { calculateAccessibilityEvidence } from "../../lib/accessibility-score.js";
-import { clean } from "../shared/http";
+import { clean, httpsUrl } from "../shared/http";
 import type { ProviderItem as KtoItem } from "../shared/provider-data";
 import { profileFields, regionCodes } from "./catalog";
 
@@ -26,7 +26,7 @@ export function placeFrom(item: KtoItem, detail: KtoItem, region: string, profil
     id: clean(item.contentid || `${item.title}-${index}`), contentTypeId: clean(item.contenttypeid), city,
     name: clean(item.title || "이름 없는 관광지"), address,
     summary: clean(item.overview || address || "한국관광공사 관광정보에서 찾은 여행 후보입니다.", 155),
-    image: clean(item.firstimage || item.firstimage2).replace(/^http:\/\//, "https://"),
+    image: httpsUrl(item.firstimage || item.firstimage2),
     mapX: clean(item.mapx), mapY: clean(item.mapy), score, confidence,
     knownFields: known.length, unknownFields: Math.max(0, total - known.length), negativeFields: negative.length,
     checkedAt: new Date().toISOString(),

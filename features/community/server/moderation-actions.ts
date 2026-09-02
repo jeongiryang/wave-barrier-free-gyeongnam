@@ -1,4 +1,5 @@
 import { parseModeratorUserIds, validateCommunityReport, validateModerationDecision } from "../../../lib/community/moderation.js";
+import { rateLimitResponse } from "../../../lib/rate-limit-response.js";
 import { readSameOriginJson } from "../../../lib/server-request";
 import { authenticatedCommunityUser, communityResponse, databaseUnavailable } from "./http";
 import { applyCommunityModeration, createCommunityReport, listOpenCommunityReports } from "./moderation-repository";
@@ -25,7 +26,7 @@ export async function reportCommunityTarget(request: Request, postId: string, ta
   if ("unavailable" in result) return databaseUnavailable("신고");
   if ("missing" in result) return communityResponse({ error: "신고할 내용을 찾을 수 없습니다." }, 404);
   if ("ownContent" in result) return communityResponse({ error: "본인이 작성한 내용은 신고할 수 없습니다." }, 400);
-  if ("rateLimited" in result) return communityResponse({ error: "신고 횟수가 많습니다. 잠시 후 다시 시도해 주세요." }, 429);
+  if ("rateLimited" in result) return rateLimitResponse("신고 횟수가 많습니다. 잠시 후 다시 시도해 주세요.", result.retryAfter ?? 86_400);
   if ("duplicate" in result) return communityResponse({ error: "이미 운영팀에 전달한 내용입니다." }, 409);
   return communityResponse({ reported: true, underReview: result.underReview }, 201);
 }

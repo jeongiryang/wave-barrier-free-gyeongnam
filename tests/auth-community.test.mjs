@@ -59,6 +59,7 @@ test("formal auth pages use Neon Auth with accessible password and return flows"
   assert.match(form, /authClient\.signUp\.email/);
   assert.match(form, /confirmPassword/);
   assert.match(form, /aria-pressed=\{auth\.showPassword\}/);
+  assert.match(form, /aria-controls=\{auth\.registering/);
   assert.match(form, /autoComplete=\{auth\.registering \? "new-password" : "current-password"\}/);
   assert.match(form, /safeAuthReturnPath/);
   assert.match(form, /readAuthCredentials/);
@@ -103,28 +104,56 @@ test("community API derives identity from the session and enforces ownership", a
     source("features/community/server/ownership.ts"),
     source("features/community/server/database.ts"),
     source("features/community/server/session.ts"),
-    source("lib/server-request.ts"),
+    Promise.all([
+      source("lib/server-request.ts"),
+      source("lib/security/request-boundaries.js"),
+    ]).then((parts) => parts.join("\n")),
     source("migrations/001_community.sql"),
   ]);
   assert.match(session, /auth\.getSession\(\)/);
   const communityApi = `${route}\n${postActions}\n${commentActions}\n${communityHttp}`;
-  assert.doesNotMatch(communityApi, /body\.author/);
+  assert.doesNotMatch(communityApi, /body\.(?:author|authorId|user|userId)/);
   assert.match(communityHttp, /본인이 작성한.*수정하거나 삭제/);
   assert.match(posts, /export async function createCommunityPost/);
   assert.match(comments, /export async function createCommunityComment/);
   assert.match(likes, /ON CONFLICT \(post_id,user_id\) DO NOTHING/);
   assert.match(ownership, /row.*author_id|rows\[0\]\.author_id/);
+  assert.match(posts, /WHERE id=\$\{postId\} AND author_id=\$\{userId\}/);
+  assert.match(comments, /WHERE id=\$\{commentId\} AND post_id=\$\{postId\} AND author_id=\$\{userId\}/);
+  assert.doesNotMatch(`${posts}\n${comments}\n${likes}\n${ownership}`, /sql\.query\(/);
   assert.match(database, /CREATE TABLE IF NOT EXISTS community_posts/);
   assert.match(postActions, /짧은 시간에 많은 글/);
+  assert.match(postActions, /rateLimitResponse/);
+  assert.match(commentActions, /rateLimitResponse/);
   assert.match(postActions, /readSameOriginJson\(request, 14000\)/);
   assert.match(commentActions, /readSameOriginJson\(request, 4000\)/);
   assert.doesNotMatch(route, /validatePostInput|validateCommentInput|requiredCommunityUser/);
+  assert.doesNotMatch(route, /error\.message|console\.error/);
+  assert.match(route, /recordOperationalEvent/);
+  assert.match(requestGuard, /verifySameOriginMutation/);
   assert.match(requestGuard, /sec-fetch-site/);
   assert.match(requestGuard, /origin !== requestUrl\.origin/);
   assert.match(requestGuard, /TextEncoder\(\)\.encode\(raw\)\.byteLength/);
   assert.match(migration, /REFERENCES community_posts\(id\) ON DELETE CASCADE/);
   assert.match(migration, /PRIMARY KEY \(post_id, user_id\)/);
   assert.match(migration, /community_posts_place_created_idx/);
+});
+
+test("authentication mutations are same-origin, bounded and do not expose unknown provider errors", async () => {
+  const [route, validation] = await Promise.all([
+    source("app/api/auth/[...path]/route.ts"),
+    Promise.all([
+      source("features/auth/validation.ts"),
+      source("lib/auth/error-message.js"),
+    ]).then((parts) => parts.join("\n")),
+  ]);
+  assert.match(route, /verifySameOriginMutation\(request, AUTH_BODY_LIMIT\)/);
+  assert.match(route, /64 \* 1024/);
+  assert.match(route, /"POST" \| "PUT" \| "PATCH" \| "DELETE"/);
+  assert.doesNotMatch(validation, /already|duplicate/i);
+  assert.match(validation, /입력한 계정 정보를 확인/);
+  assert.match(route, /response\.status >= 500 \? failed\(\) : privateAuthResponse\(response\)/);
+  assert.match(route, /if \(guard\) return privateAuthResponse\(guard\)/);
 });
 
 test("community UI supports public reading, protected participation and place linkage", async () => {
@@ -162,8 +191,8 @@ test("community UI supports public reading, protected participation and place li
       source("features/landing/components/LandingDiscoveryStories.tsx"),
       source("features/landing/components/LandingJourneyStories.tsx"),
       source("features/landing/components/LandingAdaptStory.tsx"),
+      source("features/landing/components/LandingTravelBookStory.tsx"),
       source("features/community/components/LandingCommunityStory.tsx"),
-      source("features/community/hooks/useCommunityPreview.ts"),
     ]).then((parts) => parts.join("\n")), source("app/sitemap.ts"),
   ]);
   assert.match(list, /로그인 없이 공개 글을 확인/);
@@ -173,34 +202,51 @@ test("community UI supports public reading, protected participation and place li
   assert.match(clientApi, /export async function listCommunityPosts/);
   assert.match(clientApi, /export function createCommunityComment/);
   assert.doesNotMatch(`${list}\n${detail}`, /fetch\(/);
+  assert.doesNotMatch(`${list}\n${detail}\n${editor}`, /dangerouslySetInnerHTML|innerHTML\s*=/);
   assert.match(editor, /본인이 작성한 글만 수정/);
   assert.doesNotMatch(editor, /fetch\(/);
   assert.match(planner, /PlaceDecisionDialog/);
   assert.match(placeDialog, /place-community-link/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
-  assert.match(landing, /실제 사용자가 작성한 글만 표시/);
+  assert.match(landing, /className="[^"]*community-feature-preview/);
+  assert.match(landing, /className="[^"]*community-feature-card/);
+  assert.doesNotMatch(landing, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   assert.doesNotMatch(landing, /김철수|홍길동|test user/i);
   assert.match(sitemap, /`\$\{origin\}\/community`/);
 });
 
-test("landing product story exposes previews and reduced-motion styles", async () => {
-  const [stories, storyCss, accountCss] = await Promise.all([
+test("landing product story exposes six Korean, non-interactive and motion-safe previews", async () => {
+  const [stories, storyCss, featureMotionCss, accountCss] = await Promise.all([
     Promise.all([
       source("features/landing/components/LandingProductStories.tsx"),
       source("features/landing/components/LandingDiscoveryStories.tsx"),
       source("features/landing/components/LandingJourneyStories.tsx"),
       source("features/landing/components/LandingAdaptStory.tsx"),
+      source("features/landing/components/LandingTravelBookStory.tsx"),
       source("features/community/components/LandingCommunityStory.tsx"),
     ]).then((parts) => parts.join("\n")),
-    source("app/styles/landing-stories.css"), accountStyleSource(),
+    source("app/styles/landing-stories.css"), source("app/styles/landing-feature-motion.css"), accountStyleSource(),
   ]);
-  const css = `${storyCss}\n${accountCss}`;
-  for (const chapter of ["DISCOVER", "ACCESS", "PLAN", "ROUTE", "ADAPT", "COMMUNITY"]) assert.match(stories, new RegExp(chapter));
-  assert.match(stories, /기능 화면 미리보기/);
+  const css = `${storyCss}\n${featureMotionCss}\n${accountCss}`;
+  const labels = [...stories.matchAll(/className="section-kicker">(\d{2} · [^<]+)</g)].map((match) => match[1]);
+  assert.deepEqual(labels, ["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 여행 기록"]);
+  assert.doesNotMatch(stories, /DISCOVER|ACCESS|PLAN|ROUTE|ADAPT|REMEMBER|COMMUNITY/);
+  assert.equal((stories.match(/<div className="product-preview[^>]+role="img"[^>]+aria-label=/g) || []).length, 6);
+  assert.equal((stories.match(/className="feature-preview-stage" aria-hidden="true"/g) || []).length, 6);
+  assert.doesNotMatch(stories, /기능 화면 미리보기/);
   assert.match(stories, /정보 없음은 시설 없음과 다릅니다/);
   assert.match(stories, /현재 예보처럼 오해하지 않도록/);
-  assert.match(css, /\.product-story,.landing-community \{ min-height: 680px/);
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*community-skeletons/);
+  assert.doesNotMatch(stories, /<button\b/);
+  assert.match(stories, /className="[^"]*route-demo-path/);
+  assert.match(stories, /className="[^"]*route-demo-vehicle/);
+  assert.match(stories, /className="[^"]*community-feature-preview/);
+  assert.match(stories, /className="[^"]*community-feature-card/);
+  assert.doesNotMatch(stories, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
+  assert.match(css, /\.product-story,.landing-community \{ min-height: 0; padding-block: clamp\(/);
+  for (const selector of ["route-demo-path", "route-demo-vehicle"]) {
+    assert.match(css, new RegExp(`html\\[data-motion="calm"\\][\\s\\S]{0,400}\\.${selector}[\\s\\S]{0,300}animation: none`));
+    assert.match(css, new RegExp(`@media \\(prefers-reduced-motion: reduce\\)[\\s\\S]*\\.${selector}[\\s\\S]{0,300}animation: none`));
+  }
 });
 
 test("community moderation validates reports and restricts operator decisions", async () => {

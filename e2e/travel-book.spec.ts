@@ -55,8 +55,19 @@ test("여행집의 주요 조작은 44px 이상이고 삭제는 확인을 거친
     expect(box?.height || 0).toBeGreaterThanOrEqual(44);
   }
   await page.getByRole("button", { name: "여행집에서 삭제" }).click();
+  const deleteTrigger = page.getByRole("button", { name: "여행집에서 삭제" });
+  await expect(deleteTrigger).toHaveAttribute("aria-expanded", "true");
+  await expect(deleteTrigger).toHaveAttribute("aria-controls", /travel-book-delete-/);
   await expect(page.getByText("이 기기에서 이 여행을 지울까요?")).toBeVisible();
-  await page.getByRole("button", { name: "취소" }).click();
+  await expect(page.getByRole("button", { name: "삭제 확인" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(deleteTrigger).toHaveAttribute("aria-expanded", "false");
+  await expect(deleteTrigger).toBeFocused();
+
+  const note = page.getByRole("textbox", { name: "출발 전에 기억할 점" });
+  await note.fill("출발 전 운영시간 확인");
+  await note.blur();
+  await expect(page.getByRole("status").filter({ hasText: "메모를 이 기기에 저장했습니다" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "창원 한 곳 여행" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
 });

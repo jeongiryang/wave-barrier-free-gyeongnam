@@ -16,7 +16,7 @@ export async function createCommunityReport(input: {
   if (!target[0]) return { missing: true as const };
   if (target[0].author_id === input.reporterId) return { ownContent: true as const };
   const recent = await sql`SELECT COUNT(*) count FROM community_reports WHERE reporter_id=${input.reporterId} AND created_at>${Date.now() - 86400000}` as CommunityRow[];
-  if (Number(recent[0]?.count || 0) >= 10) return { rateLimited: true as const };
+  if (Number(recent[0]?.count || 0) >= 10) return { rateLimited: true as const, retryAfter: 86_400 };
 
   const inserted = await sql`INSERT INTO community_reports (id,reporter_id,post_id,target_type,target_id,reason,details,status,created_at) VALUES (${crypto.randomUUID()},${input.reporterId},${input.postId},${input.targetType},${input.targetId},${input.reason},${input.details || null},'open',${Date.now()}) ON CONFLICT (reporter_id,target_type,target_id) DO NOTHING RETURNING id` as CommunityRow[];
   if (!inserted[0]) return { duplicate: true as const };

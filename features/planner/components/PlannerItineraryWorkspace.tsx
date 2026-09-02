@@ -12,6 +12,7 @@ import NavigationWorkspace from "./NavigationWorkspace";
 import TripDayPlanner from "./TripDayPlanner";
 
 interface PlannerItineraryWorkspaceProps {
+  mapEnabled: boolean;
   plan: PlanData | null;
   activePlaces: Place[];
   planCrowd: PlanData["crowd"];
@@ -71,6 +72,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       archiveContext={props.archiveContext}
     />
     <NavigationWorkspace
+      mapEnabled={props.mapEnabled}
       activePlaces={navigationPlaces}
       planCrowd={props.planCrowd}
       effectiveProviders={props.effectiveProviders}

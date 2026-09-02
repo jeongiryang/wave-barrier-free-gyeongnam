@@ -9,7 +9,6 @@ export type StoredPreferences = {
 
 export function readStoredPreferences(): StoredPreferences {
   const systemTheme: Theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  const systemMotion: Motion = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "calm" : "full";
   try {
     const storedLocale = window.localStorage.getItem("wave-locale") as Locale | null;
     const storedTheme = window.localStorage.getItem("wave-theme") as Theme | null;
@@ -17,10 +16,13 @@ export function readStoredPreferences(): StoredPreferences {
     return {
       locale: storedLocale && localeOptions.some((item) => item.id === storedLocale) ? storedLocale : "ko",
       theme: storedTheme === "light" || storedTheme === "dark" ? storedTheme : systemTheme,
-      motion: storedMotion === "full" || storedMotion === "calm" ? storedMotion : systemMotion,
+      // The OS setting is applied as a separate, stronger runtime constraint.
+      // Keeping the user's own preference here lets it resume if the OS setting
+      // is later turned off, instead of permanently overwriting it with "calm".
+      motion: storedMotion === "full" || storedMotion === "calm" ? storedMotion : "full",
     };
   } catch {
-    return { locale: "ko", theme: systemTheme, motion: systemMotion };
+    return { locale: "ko", theme: systemTheme, motion: "full" };
   }
 }
 

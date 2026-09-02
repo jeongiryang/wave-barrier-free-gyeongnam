@@ -43,6 +43,102 @@
   inset: -8px -8px -14px;
 }
 
+/* Production 실측에서 브랜드·소개 링크·지역 표식이 20~40px에 머물렀다.
+   포인터 종류나 화면 폭과 무관하게 실제 보이는 조작 면적을 44px로 맞춘다. */
+:where(button, summary, select) {
+  min-block-size: 44px;
+  min-inline-size: 44px;
+}
+:where(.brand, .landing-header nav a, .site-header nav a, .community-header nav a,
+  .auth-header nav a, .landing-actions a, .community-write,
+  .community-state a, .landing-community-copy a) {
+  min-block-size: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+:where(.landing-header nav a, .site-header nav a, .community-header nav a,
+  .auth-header nav a) {
+  min-inline-size: 44px;
+  justify-content: center;
+}
+.landing-region-map-canvas > button,
+.landing-region-map > button,
+.region-marker {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* 스크롤로 숨은 헤더 안에 키보드 초점이 들어오면 그 즉시 화면으로 복귀한다. */
+.site-header.hidden:focus-within {
+  transform: translate(-50%, 0);
+}
+
+/* 저장한 calm과 OS reduced-motion 중 하나라도 켜지면 같은 정적 계약을 쓴다. */
+html[data-motion="calm"] {
+  scroll-behavior: auto;
+}
+html[data-motion="calm"] *,
+html[data-motion="calm"] *::before,
+html[data-motion="calm"] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+/* 좁은 공개 화면에서 데스크톱 nav가 사라질 때 제공되는 키보드 메뉴. */
+.public-mobile-nav { display: none; position: relative; flex: none; }
+.auth-header-actions { display: flex; align-items: center; gap: 8px; }
+
+@media (max-width: 980px) {
+  .public-mobile-nav { display: block; }
+  .public-mobile-nav-trigger {
+    width: 44px; min-width: 44px; height: 44px; padding: 0;
+    display: grid; place-items: center;
+    border: 1px solid var(--line); border-radius: 999px;
+    color: var(--ink); background: rgba(255,255,255,.94);
+    font-size: 1.05rem; font-weight: 900;
+  }
+  .public-mobile-nav-trigger[aria-expanded="true"] {
+    color: var(--on-blue); border-color: var(--blue); background: var(--blue);
+  }
+  .landing-header nav.public-mobile-nav-panel,
+  .site-header nav.public-mobile-nav-panel,
+  .public-mobile-nav-panel {
+    width: min(320px,calc(100vw - 16px)); max-height: calc(100svh - 86px);
+    padding: 8px; position: fixed; z-index: 230;
+    top: calc(70px + env(safe-area-inset-top,0px)); right: 8px;
+    overflow-y: auto; display: grid; gap: 4px;
+    border: 1px solid var(--line); border-radius: 18px;
+    color: var(--ink); background: rgba(255,255,255,.98);
+    box-shadow: 0 24px 60px rgba(4,32,47,.22); backdrop-filter: blur(18px);
+  }
+  .public-mobile-nav-panel a {
+    min-height: 48px; padding: 11px 13px; display: flex; align-items: center;
+    border-radius: 12px; font-size: .84rem; font-weight: 820;
+  }
+  .public-mobile-nav-panel a:hover,
+  .public-mobile-nav-panel a[aria-current="page"] { color: var(--blue); background: var(--sky); }
+  html[data-theme="dark"] .public-mobile-nav-trigger,
+  html[data-theme="dark"] .public-mobile-nav-panel {
+    color: #eaf5f9; border-color: #31596a; background: rgba(8,40,54,.98);
+  }
+  html[data-theme="dark"] .public-mobile-nav-trigger[aria-expanded="true"] {
+    color: #032331; border-color: var(--mint); background: var(--mint);
+  }
+  html[data-theme="dark"] .public-mobile-nav-panel a:hover,
+  html[data-theme="dark"] .public-mobile-nav-panel a[aria-current="page"] { color: #9ee8ea; background: #123f51; }
+}
+
 @media (max-width: 780px) {
   .map-command-scroll {
     padding-bottom: 7px;
@@ -63,8 +159,31 @@
   }
   .map-command-bar button,
   .map-type-switch button {
+    min-width: 44px;
     min-height: 44px;
   }
+}
+
+@media (max-width: 430px) {
+  .landing-start { display: none; }
+  .community-header .brand > span:last-child,
+  .auth-header .brand > span:last-child { display: none; }
+  .community-header-actions,.auth-header-actions { min-width: 0; gap: 4px; }
+}
+
+/* 320px와 200% 확대에서도 긴 상태·외부 데이터 문구가 화면을 밀지 않는다. */
+:where(p, li, dd, small, label, .map-tool-panel, .preference-panel) {
+  overflow-wrap: anywhere;
+}
+main small:not(.sr-only) {
+  font-size: max(.75rem, .9em) !important;
+  line-height: 1.45;
+}
+:where(img, video, canvas, svg) { max-inline-size: 100%; }
+@media (max-width: 400px) {
+  :root { --gutter: 10px; }
+  .landing-header,.site-header { max-width: calc(100vw - 8px); }
+  .preference-panel,.public-mobile-nav-panel { max-width: calc(100vw - 16px); }
 }
 
 @media (max-width: 680px) {

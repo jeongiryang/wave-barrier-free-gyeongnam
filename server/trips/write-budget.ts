@@ -4,21 +4,10 @@ import {
   FEEDBACK_WRITE_BUDGET,
   TRIP_WRITE_BUDGET,
 } from "../../lib/trips/write-budget.js";
+import { rateLimitResponse } from "../../lib/rate-limit-response.js";
 import type { TripSql } from "./database";
 
 type WindowRow = { burst: number | string; sustained: number | string };
-
-function tooManyWrites(retryAfter: number, message: string) {
-  return new Response(JSON.stringify({ error: message, retryAfter }), {
-    status: 429,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store",
-      "x-content-type-options": "nosniff",
-      "retry-after": String(retryAfter),
-    },
-  });
-}
 
 /**
  * 익명 저장 경로는 작성자가 없어 커뮤니티처럼 계정별 제한을 걸 수 없다.
@@ -35,9 +24,9 @@ export async function sharedTripWriteRejection(sql: TripSql) {
     sustained: Number(rows[0]?.sustained || 0),
   });
   if (!window) return null;
-  return tooManyWrites(
-    retryAfterSeconds(TRIP_WRITE_BUDGET, window),
+  return rateLimitResponse(
     "지금은 여행 공유 저장이 몰려 있습니다. 잠시 후 다시 시도해 주세요.",
+    retryAfterSeconds(TRIP_WRITE_BUDGET, window),
   );
 }
 
@@ -52,8 +41,8 @@ export async function feedbackWriteRejection(sql: TripSql) {
     sustained: Number(rows[0]?.sustained || 0),
   });
   if (!window) return null;
-  return tooManyWrites(
-    retryAfterSeconds(FEEDBACK_WRITE_BUDGET, window),
+  return rateLimitResponse(
     "지금은 접근성 제보가 몰려 있습니다. 잠시 후 다시 시도해 주세요.",
+    retryAfterSeconds(FEEDBACK_WRITE_BUDGET, window),
   );
 }

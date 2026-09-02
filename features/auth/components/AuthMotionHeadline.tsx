@@ -38,7 +38,7 @@ export default function AuthMotionHeadline({ mode }: { mode: AuthMode }) {
   }, [mode, motion]);
 
   return (
-    <h2 id="auth-story-title" className="auth-motion-headline">
+    <h1 id="auth-story-title" className="auth-motion-headline">
       <span className="sr-only">{selected.accessible}</span>
       <span className="auth-motion-visual" aria-hidden="true">
         <span className="auth-copy-lead">{selected.lead}</span>
@@ -47,6 +47,6 @@ export default function AuthMotionHeadline({ mode }: { mode: AuthMode }) {
         </span>
         <em className="auth-copy-signature">{selected.signature}<i /></em>
       </span>
-    </h2>
+    </h1>
   );
 }

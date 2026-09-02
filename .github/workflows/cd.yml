@@ -116,6 +116,9 @@ jobs:
           response="$(npx --yes vercel@54.14.0 curl /api/deployment/migrate --deployment "$CANDIDATE_URL" -X POST -H "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN")"
           printf '%s\n' "$response"
           printf '%s' "$response" | grep -Fq '"ok":true'
+          printf '%s' "$response" | grep -Fq '"001_community.sql"'
+          printf '%s' "$response" | grep -Fq '"002_community_moderation.sql"'
+          printf '%s' "$response" | grep -Fq '"003_trips.sql"'
           printf '%s' "$response" | grep -Fq '"004_community_seed.sql"'
           printf '%s' "$response" | grep -Fq '"005_community_field_reports.sql"'
 

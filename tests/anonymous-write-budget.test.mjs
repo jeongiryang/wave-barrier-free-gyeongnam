@@ -7,6 +7,7 @@ import {
   FEEDBACK_WRITE_BUDGET,
   TRIP_WRITE_BUDGET,
 } from "../lib/trips/write-budget.js";
+import { rateLimitResponse } from "../lib/rate-limit-response.js";
 
 async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
@@ -38,6 +39,15 @@ test("rejected writes tell the caller how long the window is", () => {
   assert.equal(retryAfterSeconds(FEEDBACK_WRITE_BUDGET, "burst"), 60);
 });
 
+test("all rate limits expose a no-store 429 contract", async () => {
+  const response = rateLimitResponse("잠시 후 다시 시도해 주세요.", 600);
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get("retry-after"), "600");
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.deepEqual(await response.json(), { error: "잠시 후 다시 시도해 주세요.", retryAfter: 600 });
+});
+
 test("anonymous storage paths check the budget before inserting", async () => {
   const [itinerary, feedback, guard, database] = await Promise.all([
     source("server/trips/itinerary-actions.ts"),
@@ -48,8 +58,7 @@ test("anonymous storage paths check the budget before inserting", async () => {
   // 예산 확인이 INSERT보다 앞에 있어야 의미가 있다.
   assert.ok(itinerary.indexOf("sharedTripWriteRejection") < itinerary.indexOf("INSERT INTO itineraries"));
   assert.ok(feedback.indexOf("feedbackWriteRejection") < feedback.indexOf("INSERT INTO place_feedback"));
-  assert.match(guard, /status: 429/);
-  assert.match(guard, /"retry-after"/);
+  assert.match(guard, /rateLimitResponse/);
   // 세는 것은 저장소 전체의 최근 쓰기량뿐이다. 요청자 식별값은 남기지 않는다.
   assert.doesNotMatch(guard, /x-forwarded-for|x-real-ip|cf-connecting-ip|user-agent/i);
   assert.match(database, /itineraries_created_idx/);

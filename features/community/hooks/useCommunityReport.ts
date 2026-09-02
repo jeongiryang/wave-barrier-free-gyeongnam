@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { reportCommunityContent } from "../client/api";
+import { communityErrorMessage, reportCommunityContent } from "../client/api";
 
 export function useCommunityReport({ postId, authenticated, onLogin, setMessage }: {
   postId: string;
@@ -22,6 +22,9 @@ export function useCommunityReport({ postId, authenticated, onLogin, setMessage 
       if (!ok) { setMessage(payload.error || "신고를 전달하지 못했습니다."); return false; }
       setMessage(payload.underReview ? "운영팀 검토를 위해 잠시 숨김 처리했습니다." : "운영팀에 신고를 전달했습니다.");
       return true;
+    } catch (error) {
+      setMessage(communityErrorMessage(error, "신고를 전달하지 못했습니다."));
+      return false;
     } finally {
       setReportingTarget("");
     }
