@@ -19,6 +19,8 @@ const CONTRACT: Array<{ path: string; selector: string; name: string }> = [
   { path: "/planner", selector: ".map-command-bar button", name: "지도 도구" },
   { path: "/planner", selector: ".map-type-switch button", name: "지도 종류" },
   { path: "/community", selector: ".account-button", name: "계정(커뮤니티)" },
+  { path: "/community", selector: ".help-button", name: "도움말(커뮤니티)" },
+  { path: "/travel-book", selector: ".help-button", name: "도움말(여행집)" },
 ];
 
 /** 중심에서 바깥으로 넓히며 실제 클릭 판정이 유지되는 범위를 잰다. */

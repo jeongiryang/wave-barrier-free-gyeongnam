@@ -160,7 +160,7 @@ export default function PlannerPage() {
     <main className="planner-page">
       <a className="skip-link" href="#planner">{t("skip", "본문으로 바로가기")}</a>
       <div className="scroll-progress" aria-hidden="true" />
-      <PlannerHeader t={t} scrolled={scrolled} hidden={headerHidden} savedCount={saved.length} />
+      <PlannerHeader t={t} scrolled={scrolled} hidden={headerHidden} savedCount={saved.length} onNavigate={journey.goToStep} />
 
       <section className="planner-journey-workspace" id="planner" aria-labelledby="journey-workspace-title">
         <header className="journey-workspace-hero" data-reveal>

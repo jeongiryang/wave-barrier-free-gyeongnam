@@ -26,7 +26,7 @@ export default function PlannerJourneyBasics({ t, activePlaces, planController, 
     </div>
     <label className="control-panel region-control">
       <span className="step-label">{t("destination", "어디로 갈까요?")}</span>
-      <div className="select-shell"><i aria-hidden="true">⌖</i><select value={region} onChange={(event) => setRegion(event.target.value)} aria-label="여행 지역 선택">{regions.map((item) => <option key={item}>{item}</option>)}</select><small>법정동 시도 48</small></div>
+      <div className="select-shell"><i aria-hidden="true">⌖</i><select value={region} onChange={(event) => setRegion(event.target.value)} aria-label="여행 지역 선택">{regions.map((item) => <option key={item}>{item}</option>)}</select><small>경상남도 · 18개 시·군</small></div>
     </label>
   </>;
 }

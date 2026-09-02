@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { prefersReducedMotion, scrollToSection } from "../../../lib/reduced-motion.js";
 import type { JourneyStepId } from "./useJourneyProgress";
 
 export type PlannerStageView = "guided" | "overview";
@@ -12,6 +13,15 @@ let fallbackView: PlannerStageView = "guided";
 let fallbackStep: JourneyStepId = "conditions";
 
 const STEP_IDS: JourneyStepId[] = ["conditions", "places", "itinerary", "departure-readiness"];
+const HASH_STEPS: Record<string, { step: JourneyStepId; target: string }> = {
+  conditions: { step: "conditions", target: "conditions" },
+  places: { step: "places", target: "places" },
+  itinerary: { step: "itinerary", target: "itinerary" },
+  route: { step: "itinerary", target: "itinerary" },
+  navigation: { step: "itinerary", target: "navigation" },
+  "departure-readiness": { step: "departure-readiness", target: "departure-readiness" },
+  layers: { step: "departure-readiness", target: "layers" },
+};
 
 function currentView(): PlannerStageView {
   try {
@@ -76,6 +86,21 @@ export function usePlannerStageView() {
     }
     listeners.forEach((listener) => listener());
   }, []);
+
+  useEffect(() => {
+    const destination = HASH_STEPS[window.location.hash.slice(1)];
+    if (!destination) return;
+    changeStep(destination.step);
+    let firstFrame = 0;
+    let secondFrame = 0;
+    firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => scrollToSection(destination.target, prefersReducedMotion()));
+    });
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+  }, [changeStep]);
 
   return { view, activeStepId, changeView, changeStep };
 }

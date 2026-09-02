@@ -3,7 +3,7 @@
 import { useEffect, useState, type CSSProperties, type RefObject } from "react";
 import type { TourStep } from "./tour-content";
 
-export type TourHighlight = { top: number; left: number; width: number; height: number; pointerX: number; pointerY: number };
+export type TourHighlight = { top: number; left: number; width: number; height: number };
 
 export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: number, dialogRef: RefObject<HTMLDivElement | null>) {
   const [highlight, setHighlight] = useState<TourHighlight | null>(null);
@@ -37,7 +37,7 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
         setHighlight(null);
         return;
       }
-      setHighlight({ top, left, width, height, pointerX: Math.min(window.innerWidth - 26, Math.max(20, right - 34)), pointerY: Math.min(window.innerHeight - 26, Math.max(20, top + Math.min(32, height / 2))) });
+      setHighlight({ top, left, width, height });
     };
     const queueUpdate = () => { if (!frame) frame = window.requestAnimationFrame(updateHighlight); };
     queueUpdate();
@@ -57,6 +57,5 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
   }, [dialogRef, open, stepIndex, steps]);
 
   const spotlightStyle = highlight ? ({ top: highlight.top, left: highlight.left, width: highlight.width, height: highlight.height } satisfies CSSProperties) : undefined;
-  const pointerStyle = highlight ? ({ left: highlight.pointerX, top: highlight.pointerY } satisfies CSSProperties) : undefined;
-  return { highlight, setHighlight, spotlightStyle, pointerStyle };
+  return { highlight, setHighlight, spotlightStyle };
 }

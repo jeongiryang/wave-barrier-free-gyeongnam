@@ -49,7 +49,7 @@ export default function PlannerJourneyRail({
       <dl className="journey-live-summary">
         <div><dt>편의 조건</dt><dd>{selectedProfileCount ? `${selectedProfileCount}개` : "선택 전"}</dd></div>
         <div><dt>공식 추천</dt><dd>{recommendedCount ? `${recommendedCount}곳` : "불러오는 중"}</dd></div>
-        <div><dt>내 일정</dt><dd>{savedCount ? `${savedCount}곳` : "비어 있음"}</dd></div>
+        <div><dt>이 기기 일정</dt><dd>{savedCount ? `${savedCount}곳` : "비어 있음"}</dd></div>
         <div><dt>현재 경로</dt><dd>{routeDestinationName || "미확인"}</dd></div>
       </dl>
       <button className="journey-next-action" type="button" disabled={!interactive} onClick={() => journey.goToStep(journey.nextStep.id)}>

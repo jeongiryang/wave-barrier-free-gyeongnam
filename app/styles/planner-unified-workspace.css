@@ -1,4 +1,4 @@
-/* 4단계 여행 계획 — 조건·여행지·내 일정·출발 전 확인 */
+/* 4단계 여행 계획 — 조건·여행지·이 기기 일정·출발 전 확인 */
 .planner-page > .planner-journey-workspace { order: 2; }
 .planner-page > .simple-footer { order: 9; }
 
@@ -63,7 +63,7 @@
 .planner-journey-workspace .save-card { width: auto; min-width: 106px; height: 44px; padding: 0 13px; border-radius: 999px; font-size: .7rem; font-weight: 900; }
 .planner-journey-workspace .save-card.saved { color: #87384a; }
 
-/* 내 일정만 일정의 source of truth로 사용한다. */
+/* 이 기기 일정만 일정의 source of truth로 사용한다. */
 .itinerary-empty-state { min-height: 210px; padding: 30px; display: grid; place-content: center; justify-items: center; text-align: center; }
 .itinerary-empty-state > span { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; color: var(--blue); background: var(--sky); font-size: 1.4rem; }
 .itinerary-empty-state h3 { margin: 16px 0 7px; font-size: 1.25rem; }.itinerary-empty-state p { max-width: 520px; margin: 0; color: var(--muted); line-height: 1.65; }

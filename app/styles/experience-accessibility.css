@@ -5,8 +5,8 @@
 html[data-motion="calm"] .hero-wave-canvas { display: none; }
 
 /* --- 단계별 도움말 투어 --------------------------------------------------
-   실제 포인터를 강제로 움직이지 않고 안내 포인터와 고정 하이라이트가 스크롤을
-   따라가도록 한다. 모달이 열린 동안 배경 조작은 shield가 막는다. */
+   고정 하이라이트가 설명 중인 실제 영역을 따라간다. 모달이 열린 동안 배경
+   조작은 shield가 막는다. */
 .help-tour-shield {
   position: fixed; z-index: 180; inset: 0; width: 100%; height: 100%; padding: 0;
   border: 0; border-radius: 0; background: transparent; cursor: default;
@@ -15,12 +15,6 @@ html[data-motion="calm"] .hero-wave-canvas { display: none; }
   position: fixed; z-index: 181; pointer-events: none;
   border: 4px solid var(--mint); border-radius: 24px;
   box-shadow: 0 0 0 9999px rgba(2, 24, 35, .68), 0 0 0 7px rgba(111, 227, 208, .2), 0 18px 52px rgba(2, 34, 48, .28);
-}
-.help-tour-pointer {
-  position: fixed; z-index: 182; width: 42px; height: 42px; display: grid; place-items: center;
-  pointer-events: none; border: 2px solid #fff; border-radius: 50%; color: var(--abyss);
-  background: var(--mint); box-shadow: 0 10px 28px rgba(2,34,48,.35);
-  transform: translate(-50%,-50%) rotate(-35deg);
 }
 .help-tour-dialog {
   position: fixed; z-index: 183; right: clamp(16px,4vw,54px); bottom: clamp(16px,4vw,48px);
@@ -56,11 +50,10 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 @media (max-width: 620px) {
   .help-tour-dialog { right: 10px; bottom: 10px; width: calc(100vw - 20px); padding: 22px 18px 18px; border-radius: 20px; }
   .help-tour-dialog h2 { margin-right: 42px; }
-  .help-tour-pointer { width: 36px; height: 36px; }
   .help-tour-spotlight { border-width: 3px; border-radius: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .help-tour-spotlight, .help-tour-pointer, .help-tour-progress i { transition: none; }
+  .help-tour-spotlight, .help-tour-progress i { transition: none; }
 }
 
 /* --- 파동 효과 시각 피로 완화 (Refs #21) ---------------------------------

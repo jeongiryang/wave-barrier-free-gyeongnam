@@ -330,8 +330,8 @@ test("wave effects avoid dense glyphs and landing opens without a blocking intro
   assert.doesNotMatch(css, /brand-intro|landingIntroOut|introRegionChapter/);
 });
 
-test("interactive help follows real sections and remains accessible on mobile", async () => {
-  const [helpView, helpContent, helpController, landing, planner, css] = await Promise.all([
+test("interactive help follows real sections on every public journey and remains accessible on mobile", async () => {
+  const [helpView, helpContent, helpController, communityHeader, landing, planner, css] = await Promise.all([
     source("components/HelpCenter.tsx"),
     source("features/help/tour-content.ts"),
     Promise.all([
@@ -339,6 +339,7 @@ test("interactive help follows real sections and remains accessible on mobile", 
       source("features/help/useHelpTourFocus.ts"),
       source("features/help/useTourSpotlight.ts"),
     ]).then((parts) => parts.join("\n")),
+    source("components/CommunityHeader.tsx"),
     landingProductSource(),
     plannerProductSource(),
     styleSource(),
@@ -353,6 +354,10 @@ test("interactive help follows real sections and remains accessible on mobile", 
     assert.match(help, new RegExp(`selector: "#${id}"`));
     assert.match(planner, new RegExp(`id="${id}"`));
   }
+  for (const selector of [".community-page", "#community-list", ".community-footer", ".travel-book-page", ".travel-book-privacy", ".travel-book-list, .travel-book-empty"]) {
+    assert.match(help, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.match(communityHeader, /<HelpCenter \/>/);
   assert.match(landing, /id="story"/);
   assert.match(help, /window\.scrollTo\(\{ top: Math\.max\(0, targetTop\), behavior: reduced \? "auto" : "smooth" \}\)/);
   assert.match(help, /highlightSelector/);
@@ -360,7 +365,8 @@ test("interactive help follows real sections and remains accessible on mobile", 
   assert.match(help, /dialog\.top - gutter/);
   assert.match(help, /new ResizeObserver\(queueUpdate\)/);
   assert.match(help, /help-tour-spotlight/);
-  assert.match(help, /help-tour-pointer/);
+  assert.doesNotMatch(help, /help-tour-pointer/);
+  assert.match(helpView, /강조된 테두리가 현재 설명하는 영역을 표시합니다/);
   assert.match(help, /aria-modal="true"/);
   assert.match(help, /createPortal\(tourLayer, document\.body\)/);
   const spotlightRule = css.match(/\.help-tour-spotlight \{[^}]+\}/)?.[0] ?? "";
@@ -458,7 +464,7 @@ test("only positive official accessibility evidence becomes a recommendation or 
   assert.match(tourism, /recommended: places, exploration: explorationPlaces/);
   assert.match(tourism, /places\.filter\(hasPositiveOfficialEvidence\)/);
   assert.match(tourism, /evidenceState: "verified"/);
-  assert.match(planner, /일반 추천과 내 일정에는 넣지 않았습니다/);
+  assert.match(planner, /일반 추천과 이 기기 일정에는 넣지 않았습니다/);
   assert.match(planner, /아직 일정에 추가한 장소가 없어요/);
   assert.match(planner, /공식 정보 확인 필요/);
   assert.doesNotMatch(planner, /PlannerRouteOverview|PlannerResultsPanel/);
