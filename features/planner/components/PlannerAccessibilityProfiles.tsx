@@ -22,7 +22,7 @@ export default function PlannerAccessibilityProfiles({ t, planController }: {
         })}
       </div>
       <p className="derived-note">‘걷기 불편’과 ‘임산부’는 공식 무장애 관광정보의 접근로·승강기·화장실 항목을 W.A.V.E 기준으로 조합한 조건입니다.</p>
-      <details className="travel-profile-card">
+      <details className="travel-profile-card" suppressHydrationWarning>
         <summary><span><small>선택 사항 · 이 기기에만 저장</small><strong>편의 조건 저장·불러오기</strong></span><b aria-hidden="true">+</b></summary>
         <div className="travel-profile-content">
           {savedProfile ? <><p><b>저장한 조건</b> {savedProfiles.map((profile) => profile.label).join(" · ")}</p><div className="travel-profile-actions"><button type="button" onClick={applyTravelProfile}>저장한 조건 불러오기</button><button type="button" onClick={() => saveTravelProfile(selected)} disabled={!selected.length}>지금 선택으로 바꾸기</button><button type="button" className="delete" onClick={deleteTravelProfile}>저장 삭제</button></div></> : <><p>지금 고른 편의 조건을 다음 여행에서도 빠르게 불러올 수 있습니다.</p><div className="travel-profile-actions"><button type="button" onClick={() => saveTravelProfile(selected)} disabled={!selected.length}>이 조건 저장</button></div></>}
