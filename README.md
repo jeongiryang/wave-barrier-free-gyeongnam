@@ -45,7 +45,7 @@ W.A.V.E는 여행자가 실제로 내리는 결정을 네 단계로 나눕니다
 | 여행 상황 비교 | [`/planner#layers`](https://wave-barrier-free-gyeongnam.vercel.app/planner#layers) | 여행일 날씨와 관광 집중률 예측, 일정 영향, 다른 주제·장소 후보 |
 | 내 여행집 | [`/travel-book`](https://wave-barrier-free-gyeongnam.vercel.app/travel-book) | 이 브라우저에 최대 20개 여행의 일정·상태·메모를 보관하고 플래너로 복원 |
 | 사진 코스 | [`/photo-course`](https://wave-barrier-free-gyeongnam.vercel.app/photo-course) | 사진 파일 앞부분의 EXIF를 기기에서 읽어 날짜·위치 순서를 복원하고 좌표를 뺀 JSON·공유문 생성 |
-| 여행자 이야기 | [`/community`](https://wave-barrier-free-gyeongnam.vercel.app/community) | 공개 읽기, 계정 기반 글·댓글·좋아요·신고, 장소별 현장 제보와 여러 장소 여행일지 |
+| 여행자 이야기 | [`/community`](https://wave-barrier-free-gyeongnam.vercel.app/community) | 실제 이용자 작성 글의 공개 읽기, 계정 기반 글·댓글·좋아요·신고, 장소별 현장 제보와 여러 장소 여행일지 |
 | 공유 여행 | `/trip/{id}` | 선택 조건과 공식 장소 식별자를 30일간 보관하고 열 때 최신 관광정보로 다시 구성 |
 | 환경설정과 설치 | 화면 오른쪽 위 `환경설정` | 밝은·어두운 화면, 동작 감소, 언어 선택, 지원 브라우저의 명시적 앱 설치 요청 |
 

@@ -121,6 +121,7 @@ jobs:
           printf '%s' "$response" | grep -Fq '"003_trips.sql"'
           printf '%s' "$response" | grep -Fq '"004_community_seed.sql"'
           printf '%s' "$response" | grep -Fq '"005_community_field_reports.sql"'
+          printf '%s' "$response" | grep -Fq '"006_retire_community_seed.sql"'
 
       - name: 프로덕션 승격
         env:

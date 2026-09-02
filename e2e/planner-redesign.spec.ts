@@ -22,21 +22,23 @@ test("통합 플래너는 실제 시간순 이동수단을 먼저 보여주고 �
 test("장소 상세는 카카오 후기와 정확히 연결된 W.A.V.E 커뮤니티 글을 함께 보여준다", async ({ page }) => {
   await mockPlannerApi(page);
   const post = {
-    id: "seed-changwon-access",
+    id: "traveler-changwon-access",
     category: "place",
-    title: "[샘플] 창원 미술관 접근 동선 메모",
-    content: "실제 개인 후기가 아닌 기능 확인용 샘플입니다.",
+    title: "창원 미술관 접근 동선 메모",
+    content: "입구부터 전시실까지 이동하며 확인한 내용을 남깁니다.",
     region: "창원",
     placeId: "1001",
     placeName: "경남도립미술관",
-    authorName: "W.A.V.E 샘플 여행자",
+    authorName: "현장 여행자",
     createdAt: Date.now(),
     updatedAt: Date.now(),
     commentCount: 1,
     likeCount: 2,
     likedByMe: false,
     isOwner: false,
-    isSample: true,
+    visitDate: "2026-08-30",
+    fieldReports: [],
+    journalPlaces: [],
   };
   await page.route("**/api/community/posts?placeId=1001**", (route) => route.fulfill({
     status: 200,
@@ -49,5 +51,5 @@ test("장소 상세는 카카오 후기와 정확히 연결된 W.A.V.E 커뮤니
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("link", { name: /방문 후기·사진/ })).toHaveAttribute("href", /map\.kakao\.com\/link\/search/);
   await expect(dialog.getByRole("heading", { name: "이 장소의 여행자 현장 이야기" })).toBeVisible();
-  await expect(dialog.getByText("[샘플] 창원 미술관 접근 동선 메모")).toBeVisible();
+  await expect(dialog.getByText("창원 미술관 접근 동선 메모")).toBeVisible();
 });

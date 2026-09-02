@@ -17,7 +17,6 @@ export function mapCommunityPost(row: CommunityRow, userId = "") {
     likeCount: Number(row.like_count || 0),
     likedByMe: Boolean(row.liked_by_me),
     isOwner: Boolean(userId && row.author_id === userId),
-    isSample: row.author_id === "wave-seed",
     visitDate: row.visit_date ? String(row.visit_date) : null,
     fieldReports: normalizeAccessibilityReports(row.field_reports),
     journalPlaces: normalizeJournalPlaces(row.journal_places),

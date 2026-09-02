@@ -115,6 +115,11 @@ test("community API derives identity from the session and enforces ownership", a
   assert.doesNotMatch(communityApi, /body\.(?:author|authorId|user|userId)/);
   assert.match(communityHttp, /본인이 작성한.*수정하거나 삭제/);
   assert.match(posts, /export async function createCommunityPost/);
+  assert.equal(
+    (posts.match(/p\.author_id <> 'wave-seed'/g) || []).length,
+    6,
+    "all public community list and detail reads must exclude retired seed posts",
+  );
   assert.match(comments, /export async function createCommunityComment/);
   assert.match(likes, /ON CONFLICT \(post_id,user_id\) DO NOTHING/);
   assert.match(ownership, /row.*author_id|rows\[0\]\.author_id/);
@@ -197,6 +202,7 @@ test("community UI supports public reading, protected participation and place li
   ]);
   assert.match(list, /로그인 없이 공개 글을 확인/);
   assert.match(list, /아직 등록된 후기나 질문이 없습니다/);
+  assert.doesNotMatch(list, /샘플/);
   assert.match(detail, /toggleLike/);
   assert.match(detail, /createComment|submitComment/);
   assert.match(clientApi, /export async function listCommunityPosts/);

@@ -23,7 +23,7 @@ export const plannerSteps: TourStep[] = [
 
 export const communitySteps: TourStep[] = [
   { selector: ".community-page", highlightSelector: ".community-hero", eyebrow: "여행 후기", title: "여행자의 현장 경험을 살펴보세요.", copy: "공식 관광정보와 여행자가 직접 남긴 경험을 구분해 읽을 수 있습니다." },
-  { selector: "#community-list", highlightSelector: "#community-list", eyebrow: "후기 목록", title: "실제 후기와 샘플을 구분합니다.", copy: "샘플 콘텐츠에는 배지를 표시하고, 장소와 편의조건으로 필요한 경험을 찾아볼 수 있습니다." },
+  { selector: "#community-list", highlightSelector: "#community-list", eyebrow: "후기 목록", title: "필요한 여행 경험을 찾아봅니다.", copy: "장소와 편의조건으로 후기를 찾고, 여행자 경험과 공식 관광정보를 구분해 확인할 수 있습니다." },
   { selector: ".community-footer", highlightSelector: ".community-footer", eyebrow: "정보 원칙", title: "후기는 공식 정보의 대체물이 아닙니다.", copy: "방문 전에는 운영기관의 최신 편의시설 정보를 다시 확인해 주세요." },
 ];
 

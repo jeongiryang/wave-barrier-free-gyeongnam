@@ -60,12 +60,11 @@ test("일정 초안은 최대 여섯 장소와 유효한 날짜만 왕복한다"
   assert.equal(validCommunityDate("2026-02-29"), "");
 });
 
-test("여행자 제보는 공식 근거와 별도 저장·표시되고 샘플을 명시한다", async () => {
-  const [database, writes, reads, mapper, editor, detail, board, planner, migration] = await Promise.all([
+test("여행자 제보는 공식 근거와 별도 저장·표시되고 실제 공개 글만 조회한다", async () => {
+  const [database, writes, reads, editor, detail, board, planner, migration] = await Promise.all([
     source("features/community/server/database.ts"),
     source("features/community/server/post-write-repository.ts"),
     source("features/community/server/post-read-repository.ts"),
-    source("features/community/server/post-mappers.ts"),
     source("features/community/components/CommunityFieldReportEditor.tsx"),
     source("features/community/components/CommunityFieldReport.tsx"),
     source("features/community/components/CommunityBoard.tsx"),
@@ -75,10 +74,11 @@ test("여행자 제보는 공식 근거와 별도 저장·표시되고 샘플을
   assert.match(database, /field_reports JSONB/);
   assert.match(writes, /field_reports.*journal_places/);
   assert.match(reads, /journal_places @>/);
-  assert.match(mapper, /isSample: row\.author_id === "wave-seed"/);
+  assert.match(reads, /p\.author_id <> 'wave-seed'/);
   assert.match(editor, /공식 편의근거 점수에 합산되지 않고/);
   assert.match(detail, /작성자 1명이 남긴 개별 경험/);
-  assert.match(board, /‘샘플’이 붙은 글은 이용 예시/);
+  assert.match(board, /여행자 후기는 작성자 한 명의 경험/);
+  assert.doesNotMatch(board, /샘플/);
   assert.match(planner, /buildTravelJournalHref/);
   assert.match(migration, /community_posts_journal_places_idx/);
 });
