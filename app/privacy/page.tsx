@@ -20,7 +20,7 @@ export default function PrivacyPage() {
 
     <article className="policy-article">
       <section id="privacy-purpose"><p className="policy-section-kicker">01 · PURPOSE</p><h2>처리 목적과 항목</h2><p className="policy-lead">W.A.V.E 운영팀은 회원 인증, 커뮤니티 운영, 여행 공유, 장소 편의정보 개선과 보안 대응에 필요한 범위에서만 정보를 처리합니다.</p>
-        <div className="policy-table-wrap"><table><thead><tr><th scope="col">기능</th><th scope="col">처리 항목</th><th scope="col">목적</th></tr></thead><tbody>
+        <div className="policy-table-wrap" role="region" aria-label="기능별 개인정보 처리 항목 표" tabIndex={0}><table><thead><tr><th scope="col">기능</th><th scope="col">처리 항목</th><th scope="col">목적</th></tr></thead><tbody>
           <tr><th scope="row">계정·인증</th><td>이메일, 인증정보, 세션정보, 인증 제공처 사용자 ID</td><td>가입, 로그인, 비밀번호 재설정, 계정 관리</td></tr>
           <tr><th scope="row">커뮤니티</th><td>사용자 ID, 표시 이름, 게시글·댓글·좋아요·신고 내용과 처리 상태, 작성 시각</td><td>콘텐츠 공개, 작성자 권한 확인, 신고 검토</td></tr>
           <tr><th scope="row">공유 여행</th><td>무작위 공유 ID, 선택 지역·여행 조건·날짜·장소 식별자, 출발지 표시 이름</td><td>링크로 여행 계획 열기와 최신 정보 복원</td></tr>
@@ -40,7 +40,7 @@ export default function PrivacyPage() {
       </section>
 
       <section id="privacy-providers"><p className="policy-section-kicker">03 · PROVIDERS</p><h2>외부 제공처와 처리 경계</h2>
-        <div className="policy-table-wrap"><table><thead><tr><th scope="col">제공처</th><th scope="col">이용 목적</th><th scope="col">전달·처리될 수 있는 정보</th></tr></thead><tbody>
+        <div className="policy-table-wrap" role="region" aria-label="외부 제공처별 개인정보 처리 경계 표" tabIndex={0}><table><thead><tr><th scope="col">제공처</th><th scope="col">이용 목적</th><th scope="col">전달·처리될 수 있는 정보</th></tr></thead><tbody>
           <tr><th scope="row">Vercel</th><td>웹 호스팅과 서버 함수 실행</td><td>접속 IP, 요청·브라우저 메타데이터, 오류 기록</td></tr>
           <tr><th scope="row">Neon</th><td>계정 인증과 서비스 데이터베이스</td><td>이메일·인증정보·세션, 사용자 ID와 서비스 저장 항목</td></tr>
           <tr><th scope="row">Kakao·ODsay</th><td>지도, 장소 검색, 자동차·대중교통 경로</td><td>검색어, 선택 장소와 출발·도착 좌표</td></tr>

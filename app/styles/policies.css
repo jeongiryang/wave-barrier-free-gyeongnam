@@ -43,6 +43,7 @@
 .policy-detail-grid p { margin: 0; }
 .policy-detail-grid ul { margin: 0; padding-left: 1.25rem; }
 .policy-table-wrap { width: 100%; max-width: 100%; margin: 32px 0 24px; overflow-x: auto; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.68); }
+.policy-table-wrap:focus-visible { outline: 3px solid #ffb800; outline-offset: 4px; }
 .policy-table-wrap table { width: 100%; min-width: 720px; border-collapse: collapse; text-align: left; }
 .policy-table-wrap th,.policy-table-wrap td { padding: 18px 20px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.68; }
 .policy-table-wrap thead th { color: var(--blue-dark); background: rgba(213,239,247,.7); font-size: .72rem; letter-spacing: .04em; }

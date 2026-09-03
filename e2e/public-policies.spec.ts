@@ -11,6 +11,9 @@ test("공개 정책을 찾고 읽고 서로 이동할 수 있다", async ({ page
   await page.getByRole("link", { name: "개인정보처리방침", exact: true }).first().click();
   await expect(page).toHaveURL(/\/privacy$/);
   await expect(page.getByRole("heading", { name: /필요한 정보만/ })).toBeVisible();
+  const processingTable = page.getByRole("region", { name: "기능별 개인정보 처리 항목 표" });
+  await processingTable.focus();
+  await expect(processingTable).toBeFocused();
   const violations = (await new AxeBuilder({ page }).analyze()).violations
     .filter((item) => item.impact === "critical" || item.impact === "serious");
   expect(violations).toEqual([]);

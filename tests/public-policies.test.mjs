@@ -25,6 +25,8 @@ test("개인정보처리방침은 구현된 처리·보관·권리 경계를 공
     "정확한 현재 위치와 사진 원본은 서버에 저장하지",
   ]) assert.match(privacy, new RegExp(phrase));
   assert.match(privacy, /자동 탈퇴를 지원하지 않는 상태에서는 운영 문의로 수동 처리/);
+  assert.equal((privacy.match(/className="policy-table-wrap" role="region"/g) || []).length, 2);
+  assert.equal((privacy.match(/tabIndex=\{0\}/g) || []).length, 2);
 });
 
 test("이용약관은 정보 서비스의 한계와 사용자 콘텐츠 권리를 분명히 한다", async () => {
