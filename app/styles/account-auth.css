@@ -12,6 +12,7 @@
 .account-popover { width: 230px; padding: 15px; position: absolute; z-index: 100; top: calc(100% + 9px); right: 0; display: grid; gap: 7px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: 0 20px 48px rgba(4,38,53,.2); }
 .account-popover strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .84rem; }
 .account-popover small { color: var(--muted); }
+.account-popover > a { min-height: 42px; padding: 10px 11px; display: flex; align-items: center; border-radius: 11px; color: var(--blue-dark); background: var(--blue-soft); font-size: .75rem; font-weight: 850; }
 .account-popover button { min-height: 42px; margin-top: 4px; border: 0; border-radius: 11px; color: var(--white); background: var(--ink); font: inherit; font-size: .75rem; font-weight: 850; }
 .account-popover p { margin: 0; color: #a13c49; font-size: .7rem; }
 
@@ -69,12 +70,27 @@ html[data-theme="dark"] .auth-message.success { color: #7ce0c8; }
 .auth-submit:disabled { opacity: .65; cursor: wait; }
 .auth-switch { margin-top: 19px; text-align: center; color: var(--muted); font-size: .78rem; }
 .auth-switch a { min-height: 44px; margin: -10px 0 -10px 5px; padding: 10px 2px; display: inline-flex; align-items: center; color: var(--blue); font-weight: 900; }
+.auth-recovery-link { margin-top: 12px; text-align: right; font-size: .75rem; }
+.auth-recovery-link a { min-height: 44px; padding-block: 10px; display: inline-flex; align-items: center; color: var(--blue-dark); font-weight: 850; text-decoration: underline; text-underline-offset: 3px; }
 .auth-trust { margin-top: 25px; padding: 15px; border-radius: 13px; color: #496d7e; background: #edf7fb; }
 .auth-trust strong { font-size: .72rem; }
 .auth-trust p { margin: 5px 0 0; font-size: .67rem; line-height: 1.55; }
 .auth-trust > div { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .auth-trust a { min-height: 44px; padding-block: 10px; display: inline-flex; align-items: center; color: var(--blue-dark); font-size: .7rem; font-weight: 850; text-decoration: underline; text-underline-offset: 3px; }
 .auth-signed-in { display: grid; gap: 16px; }
+.auth-utility-layout .auth-story h1 { margin: 14px 0 24px; font-size: clamp(2.8rem,5vw,5.25rem); line-height: 1.06; letter-spacing: -.07em; }
+.auth-utility-layout .auth-story h1 span { color: var(--blue); }
+.auth-utility-card { align-self: center; }
+.auth-account-status { min-height: 120px; display: grid; place-items: center; color: var(--muted); }
+.account-settings { display: grid; gap: 24px; }
+.account-settings > section { padding-top: 22px; border-top: 1px solid var(--line); }
+.account-settings h3 { margin: 0 0 6px; font-size: 1.06rem; }
+.account-settings section > p { margin: 0; color: var(--muted); font-size: .72rem; line-height: 1.55; }
+.account-settings form { margin-top: 17px; gap: 12px; }
+.account-danger { padding: 20px; border: 1px solid #d9a7ad; border-radius: 16px; background: #fff7f7; }
+.account-danger h3 { color: #8b2f3c; }
+.account-delete-button { min-height: 50px; padding: 11px 16px; border: 1px solid #8b2f3c; border-radius: 13px; color: #fff; background: #8b2f3c; font: inherit; font-weight: 880; }
+.account-delete-button:disabled { opacity: .62; cursor: wait; }
 
 /* 어두운 화면 — 이 파일의 표면 색은 흰색 계열로 고정돼 있다. 배경만 어둡게 바꾸고
    글자를 두면 반대 사고가 나므로 배경과 글자를 함께 옮긴다.
@@ -97,4 +113,12 @@ html[data-theme="dark"] .account-menu > summary {
   color: var(--ink);
   border-color: #2a5064;
   background: rgba(9,44,60,.9);
+}
+html[data-theme="dark"] .account-danger { border-color: #905864; background: #321d25; }
+html[data-theme="dark"] .account-danger h3 { color: #ffb9c1; }
+html[data-theme="dark"] .account-popover > a { color: var(--ink); background: #163f52; }
+
+@media (max-width: 860px) {
+  .auth-utility-layout { grid-template-columns: 1fr; }
+  .auth-utility-layout .auth-story { display: none; }
 }
