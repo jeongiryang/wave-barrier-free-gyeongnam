@@ -42,10 +42,16 @@ checks.push(await jsonCheck("location", "/api/location-search?q=%EC%B0%BD%EC%9B%
   Array.isArray(body?.places) && body.places.length > 0));
 checks.push(await jsonCheck("map-config", "/api/map-config", (body) =>
   body?.provider === "kakao" && typeof body?.javascriptKey === "string" && body.javascriptKey.length > 0, 30_000));
-checks.push(await jsonCheck("route", "/api/route?startLng=128.6818&startLat=35.2280&endLng=128.6921&endLat=35.2385", (body) =>
-  body?.configured === true
-  && Array.isArray(body?.alternatives)
-  && body.alternatives.some((route) => route.provider === "Kakao Mobility" && route.configured), 90_000));
+checks.push(await jsonCheck("route", "/api/route?startLng=128.6818&startLat=35.2280&endLng=128.6921&endLat=35.2385", (body) => {
+  const providers = new Map(Array.isArray(body?.providers) ? body.providers.map((provider) => [provider.id, provider]) : []);
+  const connectedPublicIds = ["tago-bus-stop", "tago-bus-arrival", "tago-rail-catalog", "tago-express-catalog", "tago-intercity-catalog"];
+  return body?.configured === true
+    && Array.isArray(body?.alternatives)
+    && body.alternatives.some((route) => route.provider === "Kakao Mobility" && route.configured)
+    && providers.get("korail")?.configured === true
+    && ["ready", "connected"].includes(providers.get("korail")?.state)
+    && connectedPublicIds.every((id) => providers.get(id)?.state === "connected");
+}, 90_000));
 checks.push(await jsonCheck("tourism:ko", "/api/wave?action=plan&region=%EA%B2%BD%EB%82%A8%20%EC%A0%84%EC%B2%B4&theme=nature&profiles=wheel&locale=ko", (body) =>
   Array.isArray(body?.statuses)
   && body.statuses.some((status) => status.id === "barrierfree" && status.state === "live")
