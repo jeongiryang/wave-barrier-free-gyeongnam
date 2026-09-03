@@ -6,12 +6,22 @@ if (baseUrl.protocol !== "https:" || (baseUrl.hostname !== "wave-barrier-free-gy
 }
 
 async function fetchResponse(path, timeoutMs = 65_000) {
-  const response = await fetch(new URL(path, `${baseUrl}/`), {
-    headers: { Accept: path.startsWith("/api/") ? "application/json" : "text/html" },
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  if (!response.ok) throw new Error(`${path} 응답 ${response.status}`);
-  return response;
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const response = await fetch(new URL(path, `${baseUrl}/`), {
+        headers: { Accept: path.startsWith("/api/") ? "application/json" : "text/html" },
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (response.ok) return response;
+      lastError = new Error(`${path} 응답 ${response.status}`);
+      if (response.status < 500 && response.status !== 429) break;
+    } catch (error) {
+      lastError = error;
+    }
+    if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+  }
+  throw lastError instanceof Error ? lastError : new Error(`${path} 응답을 확인하지 못했습니다.`);
 }
 
 async function jsonCheck(name, path, validate, timeoutMs) {
