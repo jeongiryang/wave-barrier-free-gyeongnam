@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { createSchemaBootstrap } from "../../lib/schema-bootstrap.js";
-import { SCHEDULED_SWEEP_LIMIT } from "../../lib/trips/retention.js";
+import { FEEDBACK_RETENTION_MS, SCHEDULED_SWEEP_LIMIT } from "../../lib/trips/retention.js";
 import { securePostgresUrl } from "../../lib/deployment/environment-validation.js";
 
 const createSql = (url: string) => neon(url);
@@ -47,6 +47,14 @@ export const ensureTripDatabase = createSchemaBootstrap(async (): Promise<TripSq
 export async function sweepExpiredTrips(sql: TripSql, now = Date.now(), limit = SCHEDULED_SWEEP_LIMIT) {
   const rows = await sql`DELETE FROM itineraries WHERE id IN (
     SELECT id FROM itineraries WHERE expires_at <= ${now} ORDER BY expires_at LIMIT ${limit}
+  ) RETURNING id` as Array<{ id: string }>;
+  return rows.length;
+}
+
+export async function sweepExpiredFeedback(sql: TripSql, now = Date.now(), limit = SCHEDULED_SWEEP_LIMIT) {
+  const cutoff = now - FEEDBACK_RETENTION_MS;
+  const rows = await sql`DELETE FROM place_feedback WHERE id IN (
+    SELECT id FROM place_feedback WHERE created_at <= ${cutoff} ORDER BY created_at LIMIT ${limit}
   ) RETURNING id` as Array<{ id: string }>;
   return rows.length;
 }

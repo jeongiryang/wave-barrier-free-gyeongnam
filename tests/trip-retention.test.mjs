@@ -26,6 +26,8 @@ test("shared trips are deleted when their retention window ends", async () => {
   assert.match(retention, /CRON_SECRET/);
   assert.match(retention, /VERCEL_ENV !== "production"/);
   assert.match(retention, /sweepExpiredTrips\(sql\)/);
+  assert.match(retention, /sweepExpiredFeedback\(sql\)/);
+  assert.match(retention, /deletedFeedback/);
   assert.match(worker, /\/api\/maintenance\/trip-retention/);
   assert.match(vercel, /"path": "\/api\/maintenance\/trip-retention"/);
   assert.match(vercel, /"schedule": "17 3 \* \* \*"/);
@@ -66,12 +68,14 @@ test("the trips migration matches the runtime bootstrap", async () => {
 });
 
 test("retention documentation states what actually happens", async () => {
-  const [readme, setup] = await Promise.all([
+  const [readme, setup, operations] = await Promise.all([
     source("README.md"),
     source("docs/vercel-neon-setup.md"),
+    source("docs/operations.md"),
   ]);
   assert.match(readme, /30일/);
   assert.match(readme, /매일 `03:17 UTC`에 실행/);
   assert.match(setup, /CRON_SECRET/);
   assert.match(setup, /배포별 `--env` 값으로 덮어쓰지 않는다/);
+  assert.match(operations, /`place_feedback`[\s\S]*작성 1년 뒤/);
 });
