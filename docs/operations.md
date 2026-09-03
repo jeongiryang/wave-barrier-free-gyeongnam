@@ -94,8 +94,8 @@ Kakao·ODsay에 전달될 수 있습니다. W.A.V.E 데이터베이스와 운영
 4. 후보를 production으로 승격합니다.
 5. production `/api/health`가 재시도 뒤에도 실패하면 Vercel rollback을 실행합니다.
 
-매일 실행되는 `Production API Smoke`는 날씨, Kakao 장소·자동차 경로, 국문·영문
-관광 추천, 관광 확장정보, 커뮤니티, 인증 세션과 주요 공개 화면의 실제 응답을
+매일 실행되는 `Production API Smoke`는 날씨, Kakao 지도 설정·장소·자동차 경로,
+국문·영문 관광 추천, 관광 확장정보·지역/장소 사진·혼잡도, 커뮤니티, 인증 세션과 주요 공개 화면의 실제 응답을
 확인합니다. 실패 기록은 GitHub Actions 실행 이력에 남으며 API 키 값이나 원본 응답은
 출력하지 않습니다.
 
