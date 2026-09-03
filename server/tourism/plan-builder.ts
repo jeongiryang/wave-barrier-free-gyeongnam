@@ -20,15 +20,14 @@ type Attempt = Awaited<ReturnType<typeof fetchCrowd>>;
 const overBudget = (): Attempt => ({ ok: false, error: "예산 시간 안에 확인하지 못했습니다." });
 
 export async function buildPlan(request: Request, env: Env) {
-  const { region, locale, language, profiles, districts, locationParams } = readPlanQuery(request);
+  const { region, locale, language, profiles, districts, barrierLocationParams, localizedLocationParams } = readPlanQuery(request);
   // 월별 반복 조회를 포함한 전체 상류 작업을 하나의 요청 예산으로 묶는다.
   // 시간이 모자라면 이미 확인한 공식 결과만 사용하고 나머지는 확인 필요로 남긴다.
   const remaining = budgetClock(PLAN_TOTAL_BUDGET_MS);
 
   const [barrier, tour, durunubi, hubPack, photo] = await withinBudget(Promise.all([
-    fetchRegionalList(env, "KorWithService2", "areaBasedList2", locationParams, districts),
-    // 다국어 TourAPI도 한국어와 동일한 지역·테마 조건을 사용한다(PR #169).
-    fetchRegionalList(env, language.service, "areaBasedList2", locationParams, districts),
+    fetchRegionalList(env, "KorWithService2", "areaBasedList2", barrierLocationParams, districts),
+    fetchRegionalList(env, language.service, "areaBasedList2", localizedLocationParams, districts),
     attempt(fetchKto(env, "Durunubi", "courseList", {
       ...commonParams("10"), brdDiv: "DNWW", crsLevel: "1", ...(region !== "경남 전체" ? { crsKorNm: region } : {}),
     })),

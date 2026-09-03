@@ -39,6 +39,15 @@ export const contentTypes: Record<string, string> = {
   food: "39",
 };
 
+// TourAPI의 다국어 서비스는 국문 서비스와 다른 콘텐츠 유형 코드를 쓴다.
+// 지역·테마 조건은 유지하되 서비스 계열에 맞는 코드로 조회해야 한다.
+export const multilingualContentTypes: Record<string, string> = {
+  nature: "76",
+  history: "78",
+  leisure: "75",
+  food: "80",
+};
+
 export const languageServices: Record<string, { service: string; name: string; source: string; audio: string }> = {
   ko: { service: "KorService2", name: "국문 관광정보", source: "한국어", audio: "ko" },
   en: { service: "EngService2", name: "영문 관광정보", source: "English", audio: "en" },
