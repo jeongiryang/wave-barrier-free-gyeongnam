@@ -42,8 +42,9 @@ export default function AuthForm({ mode, returnTo }: { mode: AuthMode; returnTo?
         <p id="auth-message" className={`auth-message${auth.success ? " success" : ""}`} role={auth.message ? "alert" : undefined} aria-live="polite">{auth.message}</p>
         <button className="auth-submit" type="submit" disabled={auth.submitting || auth.isPending || auth.success}>{auth.success ? "이동하는 중…" : auth.submitting ? "안전하게 처리하는 중…" : auth.registering ? "가입하고 시작하기" : "로그인"}</button>
       </form>
+      {!auth.registering && <div className="auth-recovery-link"><a href="/forgot-password">비밀번호를 잊으셨나요?</a></div>}
       <div className="auth-switch">{auth.registering ? "이미 계정이 있나요?" : "처음 방문하셨나요?"} <a href={`${auth.registering ? "/login" : "/register"}?next=${encodeURIComponent(auth.next)}`}>{auth.registering ? "로그인" : "회원가입"}</a></div>
-      <aside className="auth-trust" aria-label="계정과 개인정보 안내"><strong>계정 보안과 기능 범위</strong><p>비밀번호는 W.A.V.E의 커뮤니티 데이터에 저장하지 않습니다. 현재 계정은 가입·로그인·로그아웃만 제공하며, 비밀번호 재설정과 계정 탈퇴는 아직 지원하지 않습니다. 여행 설계와 지도는 로그인 없이 이용할 수 있고 현재 위치는 기기 안에서만 사용합니다.</p><div><a href="/privacy">개인정보 안내</a><a href="/terms">이용 안내</a></div></aside>
+      <aside className="auth-trust" aria-label="계정과 개인정보 안내"><strong>계정 보안과 기능 범위</strong><p>비밀번호는 W.A.V.E의 커뮤니티 데이터에 저장하지 않습니다. 비밀번호 재설정과 계정 관리는 본인 확인 후 제공하며, 여행 설계와 지도는 로그인 없이 이용할 수 있습니다. 현재 위치는 기기 안에서만 사용합니다.</p><div><a href="/privacy">개인정보 안내</a><a href="/terms">이용 안내</a></div></aside>
     </section>
   );
 }

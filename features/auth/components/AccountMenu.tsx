@@ -35,6 +35,7 @@ export default function AccountMenu({ loginHref = "/login" }: { loginHref?: stri
       <summary role="button" aria-label={`${label} 계정 메뉴`}><span>{label}</span><i aria-hidden="true">⌄</i></summary>
       <div className="account-popover">
         <strong>{label}</strong><small>W.A.V.E 계정</small>
+        <a href="/account">계정 관리</a>
         <button type="button" disabled={signingOut} onClick={signOut}>{signingOut ? "로그아웃 중…" : "로그아웃"}</button>
         {message && <p role="alert">{message}</p>}
       </div>

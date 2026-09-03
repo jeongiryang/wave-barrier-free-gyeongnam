@@ -22,6 +22,7 @@ export const communityDatabase = createSchemaBootstrap(async (): Promise<Communi
   await sql`ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS journal_places JSONB NOT NULL DEFAULT '[]'::jsonb`;
   await sql`ALTER TABLE community_comments ADD COLUMN IF NOT EXISTS moderation_status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (moderation_status IN ('active', 'under_review', 'hidden'))`;
   await sql`CREATE TABLE IF NOT EXISTS community_reports (id TEXT PRIMARY KEY, reporter_id TEXT NOT NULL, post_id TEXT NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE, target_type VARCHAR(10) NOT NULL CHECK (target_type IN ('post', 'comment')), target_id TEXT NOT NULL, reason VARCHAR(20) NOT NULL CHECK (reason IN ('incorrect', 'unsafe', 'spam', 'abuse', 'privacy', 'other')), details VARCHAR(500), status VARCHAR(20) NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'resolved', 'dismissed')), created_at BIGINT NOT NULL, resolved_at BIGINT, UNIQUE (reporter_id, target_type, target_id))`;
+  await sql`CREATE TABLE IF NOT EXISTS account_deletion_grants (token_hash CHAR(64) PRIMARY KEY, user_id TEXT NOT NULL UNIQUE, created_at BIGINT NOT NULL, expires_at BIGINT NOT NULL)`;
   await sql`CREATE INDEX IF NOT EXISTS community_posts_created_idx ON community_posts (created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS community_posts_category_created_idx ON community_posts (category, created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS community_posts_place_created_idx ON community_posts (place_id, created_at DESC) WHERE place_id IS NOT NULL`;
@@ -31,5 +32,6 @@ export const communityDatabase = createSchemaBootstrap(async (): Promise<Communi
   await sql`CREATE INDEX IF NOT EXISTS community_comments_author_created_idx ON community_comments (author_id, created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS community_reports_status_created_idx ON community_reports (status, created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS community_reports_target_idx ON community_reports (target_type, target_id, status)`;
+  await sql`CREATE INDEX IF NOT EXISTS account_deletion_grants_expires_idx ON account_deletion_grants (expires_at)`;
   return sql;
 });

@@ -246,7 +246,7 @@ test("account, storage and footer copy describe real boundaries and independent 
   assert.doesNotMatch(account, /저장한 여행 조건과 즐겨찾기를 안전하게 관리/);
   assert.match(authForm, /커뮤니티 데이터에 저장하지 않습니다/);
   assert.match(authForm, /여행 설계와 지도는 로그인 없이 이용/);
-  assert.match(authForm, /비밀번호 재설정과 계정 탈퇴는 아직 지원하지 않습니다/);
+  assert.match(authForm, /비밀번호 재설정과 계정 관리는 본인 확인 후 제공/);
   assert.match(authForm, /autoComplete=\{auth\.registering \? "new-password" : "current-password"\}/);
   // 안내 문구는 문제가 된 칸에만 연결한다. 늘 비밀번호 칸에 붙여 두면 이메일이
   // 틀렸을 때도 비밀번호 칸이 이메일 오류를 읽어 준다.

@@ -6,12 +6,22 @@ if (baseUrl.protocol !== "https:" || (baseUrl.hostname !== "wave-barrier-free-gy
 }
 
 async function fetchResponse(path, timeoutMs = 65_000) {
-  const response = await fetch(new URL(path, `${baseUrl}/`), {
-    headers: { Accept: path.startsWith("/api/") ? "application/json" : "text/html" },
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  if (!response.ok) throw new Error(`${path} 응답 ${response.status}`);
-  return response;
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const response = await fetch(new URL(path, `${baseUrl}/`), {
+        headers: { Accept: path.startsWith("/api/") ? "application/json" : "text/html" },
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (response.ok) return response;
+      lastError = new Error(`${path} 응답 ${response.status}`);
+      if (response.status < 500 && response.status !== 429) break;
+    } catch (error) {
+      lastError = error;
+    }
+    if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+  }
+  throw lastError instanceof Error ? lastError : new Error(`${path} 응답을 확인하지 못했습니다.`);
 }
 
 async function jsonCheck(name, path, validate, timeoutMs) {
@@ -70,7 +80,21 @@ checks.push(await jsonCheck("tourism:crowd", "/api/wave?action=crowd&region=%EC%
 checks.push(await jsonCheck("community", "/api/community/posts?page=1", (body) => Array.isArray(body?.posts), 30_000));
 checks.push(await jsonCheck("auth", "/api/auth/get-session", (body) => body === null || Boolean(body?.user), 30_000));
 
-const pages = ["/", "/planner", "/travel-book", "/photo-course", "/community", "/login", "/register", "/privacy", "/terms"];
+const pages = [
+  "/",
+  "/planner",
+  "/travel-book",
+  "/photo-course",
+  "/community",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/account",
+  "/account/delete-complete",
+  "/privacy",
+  "/terms",
+];
 checks.push(...await Promise.all(pages.map(pageCheck)));
 
 console.log(JSON.stringify({ ok: true, checkedAt: new Date().toISOString(), baseUrl: baseUrl.origin, checks }, null, 2));
