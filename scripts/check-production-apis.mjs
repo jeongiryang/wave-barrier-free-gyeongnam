@@ -70,7 +70,21 @@ checks.push(await jsonCheck("tourism:crowd", "/api/wave?action=crowd&region=%EC%
 checks.push(await jsonCheck("community", "/api/community/posts?page=1", (body) => Array.isArray(body?.posts), 30_000));
 checks.push(await jsonCheck("auth", "/api/auth/get-session", (body) => body === null || Boolean(body?.user), 30_000));
 
-const pages = ["/", "/planner", "/travel-book", "/photo-course", "/community", "/login", "/register", "/privacy", "/terms"];
+const pages = [
+  "/",
+  "/planner",
+  "/travel-book",
+  "/photo-course",
+  "/community",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/account",
+  "/account/delete-complete",
+  "/privacy",
+  "/terms",
+];
 checks.push(...await Promise.all(pages.map(pageCheck)));
 
 console.log(JSON.stringify({ ok: true, checkedAt: new Date().toISOString(), baseUrl: baseUrl.origin, checks }, null, 2));
