@@ -28,6 +28,9 @@ W.A.V.E는 Vercel을 웹·서버 함수의 단일 운영 환경으로 사용하�
    이미 준비된 데이터베이스 모두 같은 순서로 복구할 수 있다.
 7. 커뮤니티 운영 담당자의 Neon Auth 사용자 ID를 `COMMUNITY_MODERATOR_USER_IDS`에
    쉼표로 구분해 등록한다. 이 값은 서버에서만 읽으며 사용자 화면에 노출하지 않는다.
+8. Neon Auth 사용자 자체 삭제가 운영 인스턴스에서 허용되는지 실제 테스트 계정으로
+   확인한다. `/api/account`가 `503 ACCOUNT_DELETION_NOT_CONFIGURED`를 반환하면
+   비밀번호 문제가 아니라 Auth 공급자 설정 또는 지원 상태를 확인해야 한다.
 
 `/login`과 `/register`는 Neon Auth 연결이 완료된 환경에서 활성화된다. `/community`는
 로그인 없이 읽을 수 있고 글·댓글·좋아요·신고만 계정이 필요하다. 신고 3건이 모인
