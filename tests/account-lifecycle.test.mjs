@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { classifyAccountDeletionError } from "../lib/auth/account-deletion-error.js";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -33,6 +34,7 @@ test("계정 탈퇴는 본인 재확인과 일회용 정리 권한 뒤 모든 �
   assert.match(route, /readSameOriginJson\(request, 2_048\)/);
   assert.match(route, /confirmation !== "계정 삭제"/);
   assert.match(route, /auth\.deleteUser\(\{ password, callbackURL \}\)/);
+  assert.match(route, /classifyAccountDeletionError\(result\.error\)/);
   assert.match(route, /Verification email sent/);
   assert.match(route, /cleanupPending: true, cleanupToken: prepared\.token/);
   assert.match(route, /인증 계정은 이미 삭제됐다/);
@@ -50,6 +52,20 @@ test("계정 탈퇴는 본인 재확인과 일회용 정리 권한 뒤 모든 �
   assert.match(settings, /account\/delete-complete\?token=/);
   assert.match(completionPage, /referrer: "no-referrer"/);
   assert.match(completionClient, /useSearchParams/);
+});
+
+test("계정 탈퇴 공급자 설정 오류를 비밀번호 오류로 오인시키지 않는다", () => {
+  assert.deepEqual(classifyAccountDeletionError({ status: 404, code: "NOT_FOUND" }), {
+    status: 503,
+    code: "ACCOUNT_DELETION_NOT_CONFIGURED",
+    message: "계정 탈퇴 기능을 현재 사용할 수 없습니다. 입력한 비밀번호는 저장되지 않았습니다.",
+  });
+  assert.equal(classifyAccountDeletionError({ status: 502, code: "NETWORK_ERROR" }).status, 502);
+  assert.deepEqual(classifyAccountDeletionError({ status: 400, code: "INVALID_PASSWORD" }), {
+    status: 400,
+    code: "ACCOUNT_DELETION_REJECTED",
+    message: "현재 비밀번호와 계정 상태를 확인한 뒤 다시 시도해 주세요.",
+  });
 });
 
 test("계정 메뉴와 정책은 구현된 복구·관리·데이터 삭제 범위를 안내한다", async () => {
