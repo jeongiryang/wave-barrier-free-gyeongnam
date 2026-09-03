@@ -77,8 +77,8 @@ test("계정 메뉴와 정책은 구현된 복구·관리·데이터 삭제 범�
     source("scripts/check-production-apis.mjs"),
   ]);
   assert.match(menu, /href="\/account"/);
-  assert.match(privacy, /계정 관리에서 탈퇴하면/);
-  assert.match(terms, /등록 이메일을 통한 비밀번호 재설정/);
+  assert.match(privacy, /계정 관리에서 비밀번호 변경과 탈퇴를 요청/);
+  assert.match(terms, /등록 이메일로 비밀번호를 재설정/);
   assert.match(retention, /sweepExpiredAccountDeletionGrants/);
   for (const path of ["/forgot-password", "/reset-password", "/account", "/account/delete-complete"]) {
     assert.match(productionCheck, new RegExp(path.replaceAll("/", "\\/")));

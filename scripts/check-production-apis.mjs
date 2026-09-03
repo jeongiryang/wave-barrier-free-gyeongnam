@@ -92,6 +92,7 @@ const pages = [
   "/reset-password",
   "/account",
   "/account/delete-complete",
+  "/policies",
   "/privacy",
   "/terms",
 ];

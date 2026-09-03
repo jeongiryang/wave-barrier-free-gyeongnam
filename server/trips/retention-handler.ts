@@ -2,7 +2,7 @@ import { json } from "../shared/http";
 import { recordOperationalEvent } from "../shared/observability";
 import { sweepExpiredAccountDeletionGrants } from "../../features/community/server/account-repository";
 import { communityDatabase } from "../../features/community/server/database";
-import { ensureTripDatabase, sweepExpiredTrips } from "./database";
+import { ensureTripDatabase, sweepExpiredFeedback, sweepExpiredTrips } from "./database";
 
 async function sameToken(actual: string, expected: string) {
   const encoder = new TextEncoder();
@@ -28,12 +28,13 @@ export async function handleTripRetention(request: Request) {
   const [sql, communitySql] = await Promise.all([ensureTripDatabase(), communityDatabase()]);
   if (!sql || !communitySql) return json({ error: "보관 기간 정리 기능을 준비 중입니다." }, 503);
   try {
-    const [deleted, expiredAccountDeletionGrants] = await Promise.all([
+    const [deleted, deletedFeedback, expiredAccountDeletionGrants] = await Promise.all([
       sweepExpiredTrips(sql),
+      sweepExpiredFeedback(sql),
       sweepExpiredAccountDeletionGrants(communitySql),
     ]);
-    recordOperationalEvent("trip_retention", { status: "success", trigger: "cron", deleted, expiredAccountDeletionGrants });
-    return json({ ok: true, deleted, expiredAccountDeletionGrants });
+    recordOperationalEvent("trip_retention", { status: "success", trigger: "cron", deleted, deletedFeedback, expiredAccountDeletionGrants });
+    return json({ ok: true, deleted, deletedFeedback, expiredAccountDeletionGrants });
   } catch {
     recordOperationalEvent("trip_retention", { status: "failed", trigger: "cron" });
     return json({ error: "공유 여행 보관 기간 정리에 실패했습니다." }, 500);

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
+  FEEDBACK_RETENTION_MS,
   SAVE_PATH_SWEEP_LIMIT,
   SCHEDULED_SWEEP_LIMIT,
   sweepLimitFor,
@@ -37,6 +38,16 @@ test("저장 요청은 작은 상한을 명시해서 부른다", async () => {
 test("예약 작업은 기본 상한을 그대로 쓴다", async () => {
   const retention = await source("server/trips/retention-handler.ts");
   assert.match(retention, /sweepExpiredTrips\(sql\)/);
+  assert.match(retention, /sweepExpiredFeedback\(sql\)/);
+});
+
+test("장소 편의 제보는 1년 뒤 상한을 두고 삭제한다", async () => {
+  assert.equal(FEEDBACK_RETENTION_MS, 365 * 24 * 60 * 60 * 1_000);
+  const database = await source("server/trips/database.ts");
+  const sweep = database.slice(database.indexOf("export async function sweepExpiredFeedback"));
+  assert.match(sweep, /DELETE FROM place_feedback WHERE id IN/);
+  assert.match(sweep, /created_at <= \$\{cutoff\}/);
+  assert.match(sweep, /ORDER BY created_at LIMIT \$\{limit\}/);
 });
 
 test("주석이 코드와 어긋나지 않는다", async () => {
