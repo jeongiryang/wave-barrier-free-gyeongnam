@@ -17,11 +17,14 @@ test("Production 점검은 실제 사용자 경로와 핵심 외부 응답을 �
     source(".github/workflows/production-api-smoke.yml"),
     source("package.json"),
   ]);
-  for (const path of ["/api/health", "/api/weather", "/api/location-search", "/api/route", "/api/wave", "/api/community/posts", "/api/auth/get-session"]) {
+  for (const path of ["/api/health", "/api/weather", "/api/location-search", "/api/map-config", "/api/route", "/api/wave", "/api/community/posts", "/api/auth/get-session"]) {
     assert.match(script, new RegExp(path.replaceAll("/", "\\/")));
   }
   assert.match(script, /locale=en/);
   assert.match(script, /status\.id === "tour" && status\.state === "live" && status\.count > 0/);
+  assert.match(script, /action=photo/);
+  assert.match(script, /action=spot-photo/);
+  assert.match(script, /action=crowd/);
   assert.match(script, /AbortSignal\.timeout/);
   assert.match(script, /hostname\.endsWith\("\.vercel\.app"\)/);
   assert.match(workflow, /schedule:[\s\S]*cron: "0 21 \* \* \*"/);
