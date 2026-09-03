@@ -14,6 +14,10 @@ test("공개 정책을 찾고 읽고 서로 이동할 수 있다", async ({ page
   const violations = (await new AxeBuilder({ page }).analyze()).violations
     .filter((item) => item.impact === "critical" || item.impact === "serious");
   expect(violations).toEqual([]);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  const layout = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(layout.scrollWidth, JSON.stringify(layout)).toBeLessThanOrEqual(layout.clientWidth);
   expect(errors).toEqual([]);
 });
