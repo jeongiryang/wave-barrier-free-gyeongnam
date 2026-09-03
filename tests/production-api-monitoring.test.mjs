@@ -29,6 +29,8 @@ test("Production 점검은 실제 사용자 경로와 핵심 외부 응답을 �
   assert.match(script, /tago-rail-catalog/);
   assert.match(script, /providers\.get\("korail"\)\?\.configured === true/);
   assert.match(script, /AbortSignal\.timeout/);
+  assert.match(script, /attempt <= 3/);
+  assert.match(script, /response\.status < 500 && response\.status !== 429/);
   assert.match(script, /hostname\.endsWith\("\.vercel\.app"\)/);
   assert.match(workflow, /schedule:[\s\S]*cron: "0 21 \* \* \*"/);
   assert.match(workflow, /npm run check:production/);
