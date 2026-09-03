@@ -50,12 +50,12 @@ test("짧게 스친 지역 표식은 사진 요청을 만들지 않는다", asyn
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ photo: null }) });
   });
   await page.goto("/");
+  await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   const marker = page.locator("[data-region-marker]").first();
   await marker.scrollIntoViewIfNeeded();
   await marker.hover();
-  await page.waitForTimeout(80);
   await page.mouse.move(0, 0);
-  await page.waitForTimeout(180);
+  await page.waitForTimeout(250);
   expect(photoRequests).toBe(0);
 
   await marker.hover();
