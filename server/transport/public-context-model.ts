@@ -4,15 +4,17 @@ import { transportProvider } from "../shared/provider-data";
 import type { PublicTransportSnapshot } from "./public-provider-queries";
 
 export function buildPublicTransportContext(env: Env, snapshot: PublicTransportSnapshot) {
-  const { korailKey, tagoKey, korailPlans, nearbyStops, trainCatalog, expressCatalog, intercityCatalog, arrivalItems } = snapshot;
+  const { korailKey, tagoKey, korailPlans, nearbyStops, trainCatalog, expressCatalog, intercityCatalog, arrivals } = snapshot;
+  const arrivalItems = arrivals?.ok ? arrivals.value.items : [];
   const providers = [
     transportProvider("kakao-drive", "KAKAO DRIVE", "자동차 시간·거리·통행료", Boolean(env.KAKAO_REST_API_KEY?.trim())),
     transportProvider("odsay", "ODsay", "대중교통 시간·요금·환승", Boolean(env.ODSAY_API_KEY?.trim())),
     transportProvider("korail", "KORAIL", "여객열차 운행계획", korailKey, korailPlans),
-    transportProvider("tago-bus", "TAGO BUS", `정류장·도착 ${arrivalItems.length ? `${arrivalItems.length}건` : ""}`.trim(), tagoKey, nearbyStops),
-    transportProvider("tago-rail", "TAGO RAIL", "열차·지하철", tagoKey, trainCatalog),
-    transportProvider("tago-regional", "TAGO EXPRESS", "고속·시외버스", tagoKey, expressCatalog?.ok ? expressCatalog : intercityCatalog),
-    transportProvider("tago-mobility", "TAGO MOVE", "항공·선박·카셰어링·PM", tagoKey),
+    transportProvider("tago-bus-stop", "TAGO BUS", "목적지 주변 버스정류장", tagoKey, nearbyStops),
+    transportProvider("tago-bus-arrival", "TAGO ARRIVAL", "가까운 정류장 도착 예정", tagoKey, arrivals),
+    transportProvider("tago-rail-catalog", "TAGO RAIL", "철도 지역코드", tagoKey, trainCatalog),
+    transportProvider("tago-express-catalog", "TAGO EXPRESS", "고속버스 터미널", tagoKey, expressCatalog),
+    transportProvider("tago-intercity-catalog", "TAGO INTERCITY", "시외버스 터미널", tagoKey, intercityCatalog),
   ];
 
   const context = {
@@ -37,18 +39,10 @@ export function buildPublicTransportContext(env: Env, snapshot: PublicTransportS
     },
     datasets: [
       { id: "bus-stop", name: "버스정류소", state: nearbyStops?.ok ? (nearbyStops.value.items.length ? "live" : "ready") : tagoKey ? "error" : "missing" },
-      { id: "bus-route", name: "버스노선", state: tagoKey ? "ready" : "missing" },
-      { id: "bus-location", name: "버스위치", state: tagoKey ? "ready" : "missing" },
-      { id: "bus-arrival", name: "버스도착", state: arrivalItems.length ? "live" : tagoKey ? "ready" : "missing" },
-      { id: "subway", name: "지하철", state: tagoKey ? "ready" : "missing" },
-      { id: "express-arrival", name: "고속버스도착", state: tagoKey ? "ready" : "missing" },
-      { id: "train", name: "열차", state: trainCatalog?.ok ? (trainCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing" },
-      { id: "express", name: "고속버스", state: expressCatalog?.ok ? (expressCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing" },
-      { id: "intercity", name: "시외버스", state: intercityCatalog?.ok ? (intercityCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing" },
-      { id: "air", name: "국내항공", state: tagoKey ? "ready" : "missing" },
-      { id: "ship", name: "국내선박", state: tagoKey ? "ready" : "missing" },
-      { id: "carshare", name: "카셰어링", state: tagoKey ? "ready" : "missing" },
-      { id: "pm", name: "공유PM", state: tagoKey ? "ready" : "missing" },
+      { id: "bus-arrival", name: "버스도착", state: arrivals?.ok ? (arrivalItems.length ? "live" : "ready") : arrivals ? "error" : tagoKey ? "ready" : "missing" },
+      { id: "train", name: "철도 지역코드", state: trainCatalog?.ok ? (trainCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing" },
+      { id: "express", name: "고속버스 터미널", state: expressCatalog?.ok ? (expressCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing" },
+      { id: "intercity", name: "시외버스 터미널", state: intercityCatalog?.ok ? (intercityCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing" },
       { id: "korail-plan", name: "KORAIL 운행계획", state: korailPlans?.ok ? (korailPlans.value.total ? "live" : "ready") : korailKey ? "error" : "missing" },
     ],
   };

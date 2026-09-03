@@ -6,7 +6,6 @@ import {
   koreaYmd,
   publicTransportKey,
   type ProviderAttempt,
-  type ProviderItem,
 } from "../shared/provider-data";
 
 export type PublicTransportSnapshot = {
@@ -17,7 +16,7 @@ export type PublicTransportSnapshot = {
   trainCatalog: ProviderAttempt | null;
   expressCatalog: ProviderAttempt | null;
   intercityCatalog: ProviderAttempt | null;
-  arrivalItems: ProviderItem[];
+  arrivals: ProviderAttempt | null;
 };
 
 export async function fetchPublicTransportSnapshot(env: Env, endLat: number, endLng: number): Promise<PublicTransportSnapshot> {
@@ -37,15 +36,14 @@ export async function fetchPublicTransportSnapshot(env: Env, endLat: number, end
       ])
     : [null, null, null, null, null];
 
-  let arrivalItems: ProviderItem[] = [];
+  let arrivals: ProviderAttempt | null = null;
   if (nearbyStops?.ok && nearbyStops.value.items.length) {
     const stop = nearbyStops.value.items[0];
     const cityCode = clean(stop.citycode || stop.cityCode);
     const nodeId = clean(stop.nodeid || stop.nodeId);
     if (cityCode && nodeId) {
-      const arrival = await attempt(fetchPublicTransport(env, "https://apis.data.go.kr/1613000/ArvlInfoInqireService", "getSttnAcctoArvlPrearngeInfoList", { cityCode, nodeId, numOfRows: "8" }));
-      if (arrival.ok) arrivalItems = arrival.value.items;
+      arrivals = await attempt(fetchPublicTransport(env, "https://apis.data.go.kr/1613000/ArvlInfoInqireService", "getSttnAcctoArvlPrearngeInfoList", { cityCode, nodeId, numOfRows: "8" }));
     }
   }
-  return { korailKey, tagoKey, korailPlans, nearbyStops, trainCatalog, expressCatalog, intercityCatalog, arrivalItems };
+  return { korailKey, tagoKey, korailPlans, nearbyStops, trainCatalog, expressCatalog, intercityCatalog, arrivals };
 }

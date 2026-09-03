@@ -12,12 +12,11 @@ export default function TransportDatasetPanel({ activePlaces, route }: { activeP
       {!routeLoading && <>
       {selectedDataset.id === "bus-stop" && transportContext.nearbyStops.map((item) => <article key={item.id || item.name}><small>도착지 주변 정류장</small><strong>{item.name}</strong><span>버스 도착정보에서 운행 여부를 확인하세요.</span></article>)}
       {selectedDataset.id === "bus-arrival" && transportContext.arrivals.map((item, index) => <article key={`${item.route}-${index}`}><small>도착 예정</small><strong>{item.route}</strong><span>{item.minutes ? `${item.minutes}분 후` : "운행 중"} · {item.stops ? `${item.stops}개 정류장 전` : "정류장 접근 중"}</span></article>)}
-      {(selectedDataset.id === "train" || selectedDataset.id === "korail-plan") && transportContext.korail.map((item, index) => <article key={`${item.trainNo}-${index}`}><small>{item.departureTime || "운행계획"}</small><strong>{item.trainNo || "여객열차"}</strong><span>{item.departure || "출발역"} → {item.arrival || "도착역"}</span></article>)}
-      {selectedDataset.id === "express" && <article><small>고속버스</small><strong>터미널과 운행편 확인</strong><span>출발·도착 터미널을 고른 뒤 공식 예매 사이트에서 확인하세요.</span></article>}
-      {selectedDataset.id === "intercity" && <article><small>시외버스</small><strong>터미널과 운행편 확인</strong><span>출발·도착 터미널을 고른 뒤 공식 예매 사이트에서 확인하세요.</span></article>}
-      {selectedDataset.id === "subway" && <article><small>도시철도</small><strong>역과 노선 확인</strong><span>여행 지역과 가까운 역을 고르면 운행정보를 확인할 수 있습니다.</span></article>}
-      {((selectedDataset.id === "bus-stop" && !transportContext.nearbyStops.length) || (selectedDataset.id === "bus-arrival" && !transportContext.arrivals.length) || ((selectedDataset.id === "train" || selectedDataset.id === "korail-plan") && !transportContext.korail.length)) && <div className="transport-data-empty"><strong>현재 조건의 결과가 없습니다.</strong><span>목적지나 출발지를 바꾼 뒤 다시 조회해 보세요.</span></div>}
-      {!['bus-stop', 'bus-arrival', 'train', 'korail-plan', 'express', 'intercity', 'subway'].includes(selectedDataset.id) && <div className="transport-data-empty"><strong>{selectedDataset.state === "live" ? "현재 운행정보를 확인했습니다." : selectedDataset.state === "ready" ? "지역이나 노선을 선택해 주세요." : "제공기관 정보를 잠시 확인하고 있습니다."}</strong><span>도시·노선·정류소·터미널을 선택하면 자세한 운행정보가 표시됩니다.</span></div>}
+      {selectedDataset.id === "korail-plan" && transportContext.korail.map((item, index) => <article key={`${item.trainNo}-${index}`}><small>{item.departureTime || "운행계획"}</small><strong>{item.trainNo || "여객열차"}</strong><span>{item.departure || "출발역"} → {item.arrival || "도착역"}</span></article>)}
+      {selectedDataset.id === "train" && <article><small>TAGO 철도</small><strong>지역코드 {transportContext.catalog.trainCities}개 확인</strong><span>열차 운행편은 KORAIL 운행계획과 공식 예매에서 확인하세요.</span></article>}
+      {selectedDataset.id === "express" && <article><small>고속버스</small><strong>터미널 {transportContext.catalog.expressTerminals}개 확인</strong><span>실제 운행편과 좌석은 공식 예매에서 확인하세요.</span></article>}
+      {selectedDataset.id === "intercity" && <article><small>시외버스</small><strong>터미널 {transportContext.catalog.intercityTerminals}개 확인</strong><span>실제 운행편과 좌석은 공식 예매에서 확인하세요.</span></article>}
+      {((selectedDataset.id === "bus-stop" && !transportContext.nearbyStops.length) || (selectedDataset.id === "bus-arrival" && !transportContext.arrivals.length) || (selectedDataset.id === "korail-plan" && !transportContext.korail.length)) && <div className="transport-data-empty"><strong>현재 조건의 결과가 없습니다.</strong><span>목적지나 출발지를 바꾼 뒤 다시 조회해 보세요.</span></div>}
       </>}
     </div>
   </section>;
