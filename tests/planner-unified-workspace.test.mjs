@@ -38,18 +38,19 @@ test("route comparison is grouped by travel mode and ordered by time", async () 
   assert.match(panel, /map\.kakao\.com\/link\/to/);
 });
 
-test("place detail can surface WAVE community stories", async () => {
-  const [dialog, stories, seed, migration] = await Promise.all([
+test("place detail can surface only real public WAVE community stories", async () => {
+  const [dialog, stories, reads, retirement] = await Promise.all([
     source("features/planner/components/PlaceDecisionDialog.tsx"),
     source("features/planner/components/PlaceCommunityStories.tsx"),
-    source("migrations/004_community_seed.sql"),
-    source("server/deployment/migration-handler.ts"),
+    source("features/community/server/post-read-repository.ts"),
+    source("migrations/006_retire_community_seed.sql"),
   ]);
   assert.match(dialog, /<PlaceCommunityStories/);
   assert.match(stories, /listCommunityPosts/);
   assert.match(stories, /W\.A\.V\.E COMMUNITY/);
-  assert.match(seed, /실제 여행자가 작성한 글이 아닌 이용 예시/);
-  assert.match(migration, /004_community_seed\.sql/);
+  assert.doesNotMatch(stories, /샘플/);
+  assert.match(reads, /p\.author_id <> 'wave-seed'/);
+  assert.match(retirement, /moderation_status = 'hidden'/);
 });
 
 test("photo course accepts common EXIF-capable web image containers", async () => {

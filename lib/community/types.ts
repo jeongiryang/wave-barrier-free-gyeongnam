@@ -13,7 +13,6 @@ export type CommunityPost = {
   likeCount: number;
   likedByMe: boolean;
   isOwner: boolean;
-  isSample: boolean;
   visitDate: string | null;
   fieldReports: AccessibilityFieldReport[];
   journalPlaces: CommunityJournalPlace[];

@@ -38,7 +38,7 @@ export default function PlaceCommunityStories({ place, location }: { place: Plac
     <header><div><small>W.A.V.E COMMUNITY · 공식 점수 미반영</small><h3 id="place-community-title">이 장소의 여행자 현장 이야기</h3></div><Link href={`/community?placeId=${encodeURIComponent(place.id)}&placeName=${encodeURIComponent(place.name)}&region=${encodeURIComponent(location)}`}>전체 보기 →</Link></header>
     {posts.length ? <div className="place-community-story-list">
       {posts.map((post) => <Link key={post.id} href={`/community/${encodeURIComponent(post.id)}`}>
-        <span>{post.isSample ? "샘플" : post.visitDate ? `방문 ${post.visitDate}` : "작성 시각 표시"}</span>
+        <span>{post.visitDate ? `방문 ${post.visitDate}` : "작성 시각 표시"}</span>
         <strong>{post.title}</strong>
         <small>{post.authorName} · 현장 항목 {post.fieldReports?.length || 0}개 · 댓글 {post.commentCount}</small>
       </Link>)}

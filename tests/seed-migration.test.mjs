@@ -4,10 +4,14 @@ import test from "node:test";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("community seed is idempotent and explicitly marked as sample content", async () => {
-  const sql = await source("migrations/004_community_seed.sql");
-  assert.match(sql, /ON CONFLICT \(id\) DO UPDATE/);
-  assert.match(sql, /\[샘플\]/);
-  assert.match(sql, /실제 여행자가 작성한 글이 아닌 이용 예시/);
-  assert.match(sql, /'active'/);
+test("legacy community seeds are preserved for rollback but retired from public use", async () => {
+  const [seed, retirement] = await Promise.all([
+    source("migrations/004_community_seed.sql"),
+    source("migrations/006_retire_community_seed.sql"),
+  ]);
+  assert.match(seed, /ON CONFLICT \(id\) DO UPDATE/);
+  assert.match(retirement, /UPDATE community_posts/);
+  assert.match(retirement, /author_id = 'wave-seed'/);
+  assert.match(retirement, /moderation_status = 'hidden'/);
+  assert.doesNotMatch(retirement, /DELETE FROM/);
 });

@@ -24,7 +24,7 @@ test("장소 후기에서 구조화 현장 제보를 작성하고 개별 경험�
           post: {
             id: "field-post", category: "review", title: "미술관 현장 접근성 확인", content: "입구부터 전시실까지 직접 이동하며 확인했습니다.",
             region: "창원", placeId: "1001", placeName: "경남도립미술관", authorName: "현장 여행자", createdAt: now, updatedAt: now,
-            commentCount: 0, likeCount: 0, likedByMe: false, isOwner: true, isSample: false, visitDate: "2026-08-30",
+            commentCount: 0, likeCount: 0, likedByMe: false, isOwner: true, visitDate: "2026-08-30",
             fieldReports: [{ field: "entrance", status: "changed", note: "정문 경사로가 공사 중이었습니다." }], journalPlaces: [],
           }, comments: [],
         }),

@@ -4,6 +4,7 @@ import moderationMigration from "../../migrations/002_community_moderation.sql?r
 import tripsMigration from "../../migrations/003_trips.sql?raw";
 import communitySeedMigration from "../../migrations/004_community_seed.sql?raw";
 import communityFieldReportsMigration from "../../migrations/005_community_field_reports.sql?raw";
+import communitySeedRetirementMigration from "../../migrations/006_retire_community_seed.sql?raw";
 import { productionEnvironmentErrors } from "../../lib/deployment/production-env.js";
 import { securePostgresUrl } from "../../lib/deployment/environment-validation.js";
 import { orderedMigrationStatements, PRODUCTION_MIGRATION_NAMES } from "../../lib/deployment/migrations.js";
@@ -39,6 +40,7 @@ export async function handleProductionMigration(request: Request) {
     tripsMigration,
     communitySeedMigration,
     communityFieldReportsMigration,
+    communitySeedRetirementMigration,
   ]);
   const databaseUrl = securePostgresUrl(process.env.DATABASE_URL);
   if (!databaseUrl) return json({ error: "Production 데이터베이스 연결 설정이 안전하지 않습니다." }, 503);
