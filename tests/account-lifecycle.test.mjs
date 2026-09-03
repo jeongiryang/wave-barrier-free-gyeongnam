@@ -15,18 +15,20 @@ test("비밀번호 복구는 계정 존재 여부를 노출하지 않고 일회�
   assert.doesNotMatch(requestForm, /계정이 없습니다|등록되지 않은/);
   assert.match(requestForm, /redirectTo: `\$\{window\.location\.origin\}\/reset-password`/);
   assert.match(resetForm, /authClient\.resetPassword\(\{ newPassword, token \}\)/);
+  assert.match(resetForm, /useSearchParams/);
   assert.match(resetForm, /!token/);
   assert.match(loginForm, /href="\/forgot-password"/);
 });
 
 test("계정 탈퇴는 본인 재확인과 일회용 정리 권한 뒤 모든 연결 데이터를 삭제한다", async () => {
-  const [route, completionRoute, repository, migration, settings, completionPage] = await Promise.all([
+  const [route, completionRoute, repository, migration, settings, completionPage, completionClient] = await Promise.all([
     source("app/api/account/route.ts"),
     source("app/api/account/complete-deletion/route.ts"),
     source("features/community/server/account-repository.ts"),
     source("migrations/007_account_deletion.sql"),
     source("features/auth/components/AccountSettings.tsx"),
     source("app/account/delete-complete/page.tsx"),
+    source("features/auth/components/AccountDeletionComplete.tsx"),
   ]);
   assert.match(route, /readSameOriginJson\(request, 2_048\)/);
   assert.match(route, /confirmation !== "계정 삭제"/);
@@ -47,6 +49,7 @@ test("계정 탈퇴는 본인 재확인과 일회용 정리 권한 뒤 모든 �
   assert.match(settings, /이 기기에만 저장된 여행집과 환경설정은 남습니다/);
   assert.match(settings, /account\/delete-complete\?token=/);
   assert.match(completionPage, /referrer: "no-referrer"/);
+  assert.match(completionClient, /useSearchParams/);
 });
 
 test("계정 메뉴와 정책은 구현된 복구·관리·데이터 삭제 범위를 안내한다", async () => {
