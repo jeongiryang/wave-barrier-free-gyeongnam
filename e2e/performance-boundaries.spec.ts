@@ -51,8 +51,7 @@ test("짧게 스친 지역 표식은 사진 요청을 만들지 않는다", asyn
   });
   await page.goto("/");
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  const marker = page.locator("[data-region-marker]").first();
-  await marker.scrollIntoViewIfNeeded();
+  const marker = page.locator('[data-region-marker="거창"]');
   await marker.hover();
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
