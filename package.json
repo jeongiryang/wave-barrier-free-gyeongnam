@@ -24,6 +24,7 @@
     "test:e2e:list": "playwright test --list",
     "capture:readme": "node scripts/capture-readme-screenshots.mjs",
     "check:photos": "node scripts/check-photo-coverage.mjs",
+    "check:production": "node scripts/check-production-apis.mjs",
     "check:performance": "node scripts/check-performance-budget.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vercel"

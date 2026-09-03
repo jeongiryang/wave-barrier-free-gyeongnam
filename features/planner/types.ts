@@ -26,7 +26,7 @@ export type KeyHealthItem = {
   optional: boolean;
   note: string;
 };
-export type KeyHealth = { checkedAt: string; keys: KeyHealthItem[] };
+export type KeyHealth = { ok?: boolean; scope?: "configuration"; checkedAt: string; keys: KeyHealthItem[] };
 
 export type Place = {
   id: string;
