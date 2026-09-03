@@ -3,6 +3,7 @@ import {
   prepareCommunityAccountDeletion,
   revokeCommunityAccountDeletion,
 } from "../../../features/community/server/account-repository";
+import { classifyAccountDeletionError } from "../../../lib/auth/account-deletion-error.js";
 import { getAuth } from "../../../lib/auth/server";
 import { readSameOriginJson } from "../../../lib/server-request";
 
@@ -37,7 +38,8 @@ export async function POST(request: Request) {
   }
   if (result.error || !result.data?.success) {
     await revokeCommunityAccountDeletion(prepared.sql, prepared.hash).catch(() => undefined);
-    return response({ error: "현재 비밀번호와 계정 상태를 확인한 뒤 다시 시도해 주세요." }, 400);
+    const failure = classifyAccountDeletionError(result.error);
+    return response({ error: failure.message, code: failure.code }, failure.status);
   }
   if (result.data.message === "Verification email sent") {
     return response({ ok: true, pendingVerification: true });
