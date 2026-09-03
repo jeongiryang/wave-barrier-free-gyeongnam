@@ -13,26 +13,17 @@ export const transportStateLabel: Record<TransportProviderState, string> = {
 export const transportModes: Array<{ id: TransportMode; label: string; description: string }> = [
   { id: "all", label: "전체", description: "가능한 이동수단 비교" },
   { id: "car", label: "자동차", description: "도로 경로와 예상 시간" },
-  { id: "rail", label: "기차·철도", description: "열차·도시철도 운행정보" },
+  { id: "rail", label: "기차·철도", description: "열차 운행계획·철도 지역코드" },
   { id: "bus", label: "시내버스", description: "정류장·도착 예정" },
-  { id: "regional", label: "고속·시외", description: "터미널·도착 정보" },
-  { id: "mobility", label: "기타 이동", description: "항공·선박·공유 이동" },
+  { id: "regional", label: "고속·시외", description: "터미널·공식 예매" },
 ];
 
 export const transportDatasetMeta: Record<string, { mode: TransportMode; description: string }> = {
   "bus-stop": { mode: "bus", description: "목적지 좌표 주변의 시내버스 정류장을 조회합니다." },
-  "bus-route": { mode: "bus", description: "선택한 도시의 시내버스 노선 정보를 확인합니다." },
-  "bus-location": { mode: "bus", description: "노선을 선택하면 운행 중인 버스 위치를 확인할 수 있습니다." },
   "bus-arrival": { mode: "bus", description: "가장 가까운 정류장의 버스 도착 예정 시간을 조회합니다." },
-  subway: { mode: "rail", description: "도시철도 역·노선 운행정보를 조회합니다." },
-  "express-arrival": { mode: "regional", description: "고속버스 도착과 터미널 정보를 확인합니다." },
   train: { mode: "rail", description: "TAGO 열차 도시 코드와 철도 데이터 제공 범위를 확인합니다." },
   express: { mode: "regional", description: "전국 고속버스 터미널 목록을 조회합니다." },
   intercity: { mode: "regional", description: "전국 시외버스 터미널 목록을 조회합니다." },
-  air: { mode: "mobility", description: "국내 항공 운항정보 기능의 연결 상태를 확인합니다." },
-  ship: { mode: "mobility", description: "국내 여객선 운항정보 기능의 연결 상태를 확인합니다." },
-  carshare: { mode: "mobility", description: "카셰어링 제공 지역과 차량 정보를 확인합니다." },
-  pm: { mode: "mobility", description: "공유 퍼스널모빌리티 제공 현황을 확인합니다." },
   "korail-plan": { mode: "rail", description: "한국철도공사 여객열차 운행계획을 조회합니다." },
 };
 
