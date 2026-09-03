@@ -1,9 +1,12 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { authClient } from "../../../lib/auth/client";
 
-export default function ResetPasswordForm({ token }: { token?: string }) {
+export default function ResetPasswordForm({ token: serverToken }: { token?: string }) {
+  const searchParams = useSearchParams();
+  const token = serverToken || searchParams.get("token") || undefined;
   const [message, setMessage] = useState(token ? "" : "유효한 재설정 링크가 필요합니다. 이메일에서 받은 링크를 다시 열어 주세요.");
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
