@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-export default function AccountDeletionComplete({ token }: { token?: string }) {
+export default function AccountDeletionComplete({ token: serverToken }: { token?: string }) {
+  const searchParams = useSearchParams();
+  const token = serverToken || searchParams.get("token") || undefined;
   const [state, setState] = useState<"working" | "done" | "error">(token ? "working" : "error");
 
   useEffect(() => {
