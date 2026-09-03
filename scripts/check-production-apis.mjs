@@ -40,6 +40,8 @@ checks.push(await jsonCheck("weather", "/api/weather?region=%EC%B0%BD%EC%9B%90",
   body?.source === "Open-Meteo" && Array.isArray(body?.days) && body.days.length >= 3));
 checks.push(await jsonCheck("location", "/api/location-search?q=%EC%B0%BD%EC%9B%90%EC%8B%9C%EC%B2%AD", (body) =>
   Array.isArray(body?.places) && body.places.length > 0));
+checks.push(await jsonCheck("map-config", "/api/map-config", (body) =>
+  body?.provider === "kakao" && typeof body?.javascriptKey === "string" && body.javascriptKey.length > 0, 30_000));
 checks.push(await jsonCheck("route", "/api/route?startLng=128.6818&startLat=35.2280&endLng=128.6921&endLat=35.2385", (body) =>
   body?.configured === true
   && Array.isArray(body?.alternatives)
@@ -53,6 +55,12 @@ checks.push(await jsonCheck("tourism:en", "/api/wave?action=plan&region=%EA%B2%B
   && body.statuses.some((status) => status.id === "tour" && status.state === "live" && status.count > 0), 90_000));
 checks.push(await jsonCheck("tourism:enrichment", "/api/wave?action=enrich&region=%EC%B0%BD%EC%9B%90&theme=nature&locale=ko", (body) =>
   Array.isArray(body?.statuses) && body.statuses.some((status) => status.state === "live"), 90_000));
+checks.push(await jsonCheck("tourism:region-photo", "/api/wave?action=photo&region=%EC%B0%BD%EC%9B%90", (body) =>
+  Boolean(body?.photo) && body?.status?.state === "live", 30_000));
+checks.push(await jsonCheck("tourism:spot-photo", "/api/wave?action=spot-photo&region=%EC%B0%BD%EC%9B%90&title=%EA%B2%BD%EB%82%A8%EB%8F%84%EB%A6%BD%EB%AF%B8%EC%88%A0%EA%B4%80", (body) =>
+  body?.status === "live" && typeof body?.image === "string" && body.image.startsWith("https://"), 30_000));
+checks.push(await jsonCheck("tourism:crowd", "/api/wave?action=crowd&region=%EC%B0%BD%EC%9B%90&title=%EA%B2%BD%EB%82%A8%EB%8F%84%EB%A6%BD%EB%AF%B8%EC%88%A0%EA%B4%80", (body) =>
+  body?.status?.state === "live", 30_000));
 checks.push(await jsonCheck("community", "/api/community/posts?page=1", (body) => Array.isArray(body?.posts), 30_000));
 checks.push(await jsonCheck("auth", "/api/auth/get-session", (body) => body === null || Boolean(body?.user), 30_000));
 
