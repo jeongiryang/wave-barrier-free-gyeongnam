@@ -11,7 +11,7 @@ export type ApiStatus = {
 
 export type TransportProviderState = "connected" | "ready" | "error" | "missing" | "checking";
 export type TransportProvider = { id: string; name: string; role: string; configured: boolean; state: TransportProviderState; detail?: string };
-export type TransportMode = "all" | "car" | "rail" | "bus" | "regional" | "mobility";
+export type TransportMode = "all" | "car" | "rail" | "bus" | "regional";
 export type TransportContext = {
   nearbyStops: Array<{ id: string; name: string; cityCode: string }>;
   arrivals: Array<{ route: string; minutes: number | null; stops: number }>;
