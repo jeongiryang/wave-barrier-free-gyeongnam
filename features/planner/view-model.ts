@@ -16,10 +16,11 @@ const fallbackProviderDefinitions = [
   { id: "kakao-drive", name: "KAKAO DRIVE", role: "자동차 시간·거리·통행료", key: "kakao-route" },
   { id: "odsay", name: "ODsay", role: "대중교통 경로", key: "odsay" },
   { id: "korail", name: "KORAIL", role: "여객열차 운행계획", key: "public-transport" },
-  { id: "tago-bus", name: "TAGO BUS", role: "정류장·도착", key: "public-transport" },
-  { id: "tago-rail", name: "TAGO RAIL", role: "열차·지하철", key: "public-transport" },
-  { id: "tago-regional", name: "TAGO EXPRESS", role: "고속·시외버스", key: "public-transport" },
-  { id: "tago-mobility", name: "TAGO MOVE", role: "항공·선박·공유교통", key: "public-transport" },
+  { id: "tago-bus-stop", name: "TAGO BUS", role: "목적지 주변 버스정류장", key: "public-transport" },
+  { id: "tago-bus-arrival", name: "TAGO ARRIVAL", role: "가까운 정류장 도착 예정", key: "public-transport" },
+  { id: "tago-rail-catalog", name: "TAGO RAIL", role: "철도 지역코드", key: "public-transport" },
+  { id: "tago-express-catalog", name: "TAGO EXPRESS", role: "고속버스 터미널", key: "public-transport" },
+  { id: "tago-intercity-catalog", name: "TAGO INTERCITY", role: "시외버스 터미널", key: "public-transport" },
 ] as const;
 
 export function buildFallbackTransportProviders(
