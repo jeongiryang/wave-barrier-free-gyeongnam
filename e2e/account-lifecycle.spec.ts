@@ -2,6 +2,10 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPublicShellApi } from "./fixtures";
 
+async function waitForHydration(page: import("@playwright/test").Page) {
+  await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
+}
+
 test("비밀번호 재설정 요청은 계정 존재 여부를 구분하지 않는다", async ({ page }) => {
   await mockPublicShellApi(page);
   let requests = 0;
@@ -10,6 +14,7 @@ test("비밀번호 재설정 요청은 계정 존재 여부를 구분하지 않�
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: true }) });
   });
   await page.goto("/forgot-password");
+  await waitForHydration(page);
   await page.locator("#recovery-email").fill("invalid");
   await page.getByRole("button", { name: "재설정 메일 보내기" }).click();
   await expect(page.locator("#recovery-message")).toContainText("이메일 형식");
@@ -31,6 +36,7 @@ test("일회용 링크에서 새 비밀번호 확인 뒤 재설정한다", async
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: true }) });
   });
   await page.goto("/reset-password?token=valid-reset-token");
+  await waitForHydration(page);
   await page.locator("#reset-password").fill("new-password-123");
   await page.locator("#reset-confirm-password").fill("different-password");
   await page.getByRole("button", { name: "새 비밀번호 저장" }).click();
@@ -59,6 +65,7 @@ test("로그인 계정은 비밀번호를 변경하고 명시적 확인 뒤 탈�
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, deleted: true }) });
   });
   await page.goto("/account");
+  await waitForHydration(page);
   await expect(page.getByText("계정 여행자", { exact: false }).first()).toBeVisible();
 
   await page.locator("#account-current-password").fill("current-password");
