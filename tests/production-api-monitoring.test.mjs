@@ -25,6 +25,9 @@ test("Production 점검은 실제 사용자 경로와 핵심 외부 응답을 �
   assert.match(script, /action=photo/);
   assert.match(script, /action=spot-photo/);
   assert.match(script, /action=crowd/);
+  assert.match(script, /tago-bus-arrival/);
+  assert.match(script, /tago-rail-catalog/);
+  assert.match(script, /providers\.get\("korail"\)\?\.configured === true/);
   assert.match(script, /AbortSignal\.timeout/);
   assert.match(script, /hostname\.endsWith\("\.vercel\.app"\)/);
   assert.match(workflow, /schedule:[\s\S]*cron: "0 21 \* \* \*"/);
