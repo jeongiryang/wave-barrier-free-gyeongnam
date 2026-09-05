@@ -32,7 +32,7 @@ export default function PlannerJourneyRail({
           return <li key={step.id}>
             <button
               type="button"
-              disabled={!interactive}
+              disabled={!interactive || !step.available}
               className={step.complete ? "complete" : ""}
               data-active={active || undefined}
               aria-current={active ? "step" : undefined}

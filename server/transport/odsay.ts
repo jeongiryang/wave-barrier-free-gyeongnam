@@ -68,7 +68,8 @@ export async function fetchOdsayRoutes(
         payment: Number.isFinite(payment) && payment > 0 ? payment : null,
         paymentType: "fare",
         totalWalk: Number(info.totalWalk || 0),
-        transfers: Number(info.busTransitCount || 0) + Number(info.subwayTransitCount || 0),
+        // Each boarded vehicle is a ride, not a transfer. One bus means zero changes.
+        transfers: Math.max(0, rawSegments.filter((segment) => [1, 2].includes(Number(segment.trafficType))).length - 1),
         totalDistance: Number(info.totalDistance || info.trafficDistance || straightDistance),
         configured: true,
         segments,

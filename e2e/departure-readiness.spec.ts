@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 test("출발 준비 카드는 부분 성공을 구분하고 키보드로 한국 시간대 캘린더를 저장한다", async ({ page }) => {
   const now = new Date();
@@ -27,6 +27,7 @@ test("출발 준비 카드는 부분 성공을 구분하고 키보드로 한국 
     status: 201, contentType: "application/json", body: JSON.stringify({ url: "/trip/share-123" }),
   }));
   await page.goto("/planner");
+  await chooseTripConditions(page);
 
   const card = page.getByRole("region", { name: "출발 전에 이것만 다시 확인하세요." });
   await expect(card).toBeVisible();
@@ -67,6 +68,7 @@ test("지난 일정과 조회 실패는 출발 가능 상태로 표시하지 않
   await mockPlannerApi(page);
   await page.route("**/api/weather**", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "지연" }) }));
   await page.goto("/planner");
+  await chooseTripConditions(page);
   const card = page.getByRole("region", { name: "출발 전에 이것만 다시 확인하세요." });
   await expect(card.getByText(/출발 전 확인 · 지난 일정/)).toBeVisible();
   await expect(card.getByText("전체 재확인 필요")).toBeVisible();

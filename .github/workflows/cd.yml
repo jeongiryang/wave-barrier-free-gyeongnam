@@ -30,7 +30,8 @@ jobs:
       - name: Node.js 설정
         uses: actions/setup-node@v7
         with:
-          node-version: 22.13.0
+          node-version: 22
+          check-latest: true
           cache: npm
 
       - name: Vercel 연결 정보 확인
@@ -123,6 +124,7 @@ jobs:
           printf '%s' "$response" | grep -Fq '"005_community_field_reports.sql"'
           printf '%s' "$response" | grep -Fq '"006_retire_community_seed.sql"'
           printf '%s' "$response" | grep -Fq '"007_account_deletion.sql"'
+          printf '%s' "$response" | grep -Fq '"008_review_date_integrity.sql"'
 
       - name: 프로덕션 승격
         env:

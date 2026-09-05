@@ -21,7 +21,7 @@ export default function PlannerAccessibilityProfiles({ t, planController }: {
           return <button key={profile.id} type="button" className={active ? "profile-card active" : "profile-card"} aria-pressed={active} onClick={() => toggleProfile(profile.id)}><span className="profile-icon" aria-hidden="true"><AccessIcon name={profile.icon} size={24} /></span><span><strong>{profile.label}</strong><small>{profile.short}</small></span><i aria-hidden="true">{active ? "✓" : "+"}</i></button>;
         })}
       </div>
-      <p className="derived-note">‘걷기 불편’과 ‘임산부’는 공식 무장애 관광정보의 접근로·승강기·화장실 항목을 W.A.V.E 기준으로 조합한 조건입니다.</p>
+      <p className="derived-note">선택한 시설의 제공 여부를 확인합니다. 건강 상태를 분류하거나 짧은 동선·안전한 이동을 보장하지 않습니다.</p>
       <details className="travel-profile-card" suppressHydrationWarning>
         <summary><span><small>선택 사항 · 이 기기에만 저장</small><strong>편의 조건 저장·불러오기</strong></span><b aria-hidden="true">+</b></summary>
         <div className="travel-profile-content">
@@ -34,7 +34,7 @@ export default function PlannerAccessibilityProfiles({ t, planController }: {
     </div>
     <div className="selection-bar" aria-live="polite">
       <div><span className="pulse-dot" aria-hidden="true" /><p><b>{activeProfiles.length ? `편의 조건 ${activeProfiles.length}개 선택` : "선택한 편의 조건 없음"}</b><span>{activeProfiles.length ? activeProfiles.map((item) => item.label).join(" · ") : "원하는 여행 조건을 골라주세요"}</span></p></div>
-      <p className="auto-refresh-note">{loading ? <><span className="button-loader" /> 추천을 업데이트하고 있어요.</> : selected.length ? "조건을 바꾸면 추천이 자동으로 업데이트됩니다." : "편의 조건을 하나 이상 선택하면 추천을 시작합니다."}</p>
+      <p className="auto-refresh-note">{loading ? <><span className="button-loader" /> 여행지를 찾고 있어요.</> : selected.length ? "선택을 마치고 여행지 찾기를 눌러주세요." : "필요한 편의를 하나 이상 골라주세요."}</p>
     </div>
     <p className="planner-notice" aria-live="polite">{notice}</p>
   </>;

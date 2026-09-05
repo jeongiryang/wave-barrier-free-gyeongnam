@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
 
 async function openPlanner(page: import("@playwright/test").Page, width: number, height: number) {
   await page.setViewportSize({ width, height });
@@ -19,17 +19,16 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   await openPlanner(page, 1366, 900);
   const rail = page.getByRole("complementary", { name: "여행 계획 진행 상황" });
   await expect(rail).toBeVisible();
-  await expect(rail.getByRole("button", { name: /조건/ })).toHaveAttribute("aria-current", "step");
-  await expect(page.getByLabel("정보 상태 안내")).toContainText("확인됨");
-  await expect(page.getByLabel("정보 상태 안내")).toContainText("일부 확인");
-  await expect(page.getByLabel("정보 상태 안내")).toContainText("재확인 필요");
+  await expect(rail.locator("nav").getByRole("button", { name: /조건/ })).toHaveAttribute("aria-current", "step");
+  await expect(rail.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
+  await expect(page.getByText("선택한 편의 조건 없음", { exact: true })).toBeVisible();
 
   await page.evaluate(() => window.scrollTo(0, 1_000));
   await expect.poll(async () => Math.round(await rail.locator(".journey-rail-inner").evaluate(
     (element) => element.getBoundingClientRect().top,
   ))).toBe(104);
 
-  const departureSelect = page.getByLabel("출발 거점 선택");
+  const departureSelect = page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "경남 전체", exact: true });
   await departureSelect.focus();
   await expect(departureSelect).toBeFocused();
   const focusStyle = await departureSelect.evaluate((element) => {
@@ -78,11 +77,14 @@ test("한 단계씩 보기에서는 질문 하나만 보여 주고 전체 보기
 
   const mode = page.getByRole("group", { name: "여행 설계 보기 방식" });
   await expect(mode.getByRole("button", { name: /한 단계씩/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator(".guided-stage-prompt").getByRole("heading", { name: "어떤 여행이 편안할까요?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "어디로 갈까요?", exact: true })).toBeVisible();
   await expect(page.locator("#places")).toBeHidden();
 
   const journeyNavigation = page.getByRole("navigation", { name: "여행 계획 단계 이동" });
   const placesStep = journeyNavigation.getByRole("button", { name: /여행지/ });
+  await expect(placesStep).toBeDisabled();
+  await chooseTripConditions(page);
+  await expect(page.getByRole("heading", { name: "경남도립미술관", exact: true })).toBeVisible();
   await placesStep.click();
   await expect.poll(
     () => page.evaluate(() => window.sessionStorage.getItem("wave-planner-active-step-v1")),

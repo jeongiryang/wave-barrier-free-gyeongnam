@@ -14,7 +14,7 @@ export default function MapPlacePanel({ place, onClose, onSetOrigin, onSetDestin
     <header><div><strong>관광지 정보</strong><span>마커를 누르면 바로 확인</span></div><button type="button" onClick={onClose} aria-label="관광지 정보 닫기">×</button></header>
     {image && <div className="map-place-photo" style={{ backgroundImage: `url("${image.replace(/["\\]/g, "")}")` }} />}
     <div className="map-place-copy"><small>{place.address || "경상남도 관광지"}</small><h3>{place.name}</h3>{place.summary && <p>{place.summary}</p>}</div>
-    {place.score !== null ? <div className="map-place-rating"><strong>{place.score}%</strong><span>선택한 편의조건 중 공식 데이터 일치율</span></div> : <div className="map-place-rating unavailable"><strong>판단 보류</strong><span>공식 편의정보가 없어 숫자로 평가하지 않습니다.</span></div>}
+    <div className="map-place-rating unavailable"><strong>방문 전 확인</strong><span>이 마커는 장소의 위치입니다. 출입구·승강기 등 편의시설과 실제 이동 가능 여부는 시설 상세에서 확인해 주세요.</span></div>
     <div className="map-place-actions">
       <button type="button" onClick={() => onSetOrigin(place)}>출발지로</button>
       <button type="button" onClick={() => onSetDestination(place)}>목적지로</button>

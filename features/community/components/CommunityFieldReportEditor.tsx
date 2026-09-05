@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import {
   ACCESSIBILITY_REPORT_FIELDS,
   ACCESSIBILITY_REPORT_STATUSES,
+  communityToday,
 } from "../../../lib/community/field-report.js";
 import type { CommunityPostInput } from "../client/api";
 
@@ -30,7 +31,7 @@ export default function CommunityFieldReportEditor({ values, setValues }: {
       <div><small>TRAVELER FIELD REPORT · 선택</small><h2 id="field-report-title">여행자 현장 접근성 제보</h2></div>
       <p>직접 확인한 항목만 선택하세요. 이 정보는 공식 편의근거 점수에 합산되지 않고 작성 시각과 함께 별도로 표시됩니다.</p>
     </header>
-    <label className="editor-visit-date">방문일 (선택)<input type="date" value={values.visitDate} onChange={(event) => setValues((current) => ({ ...current, visitDate: event.target.value }))} /><small>방문일을 기억하지 못하면 비워 두세요.</small></label>
+    <label className="editor-visit-date">방문일 (선택)<input type="date" max={communityToday()} value={values.visitDate} onChange={(event) => setValues((current) => ({ ...current, visitDate: event.target.value }))} /><small>미래 방문 계획은 후기로 게시할 수 없습니다. 방문일을 기억하지 못하면 비워 두세요.</small></label>
     {!values.placeId && <p className="editor-field-empty" role="status">여행 설계의 장소 상세에서 글쓰기를 열거나 여행일지 초안을 만들면 장소별 현장 제보를 추가할 수 있습니다.</p>}
     {values.placeId && <div className="editor-field-grid">
       {ACCESSIBILITY_REPORT_FIELDS.map((field) => {

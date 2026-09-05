@@ -1,6 +1,7 @@
 "use client";
 
 import type { RefObject } from "react";
+import { useSitePreferences } from "../../../components/SitePreferences";
 import type { Place } from "../types";
 import PlaceCommunityStories from "./PlaceCommunityStories";
 import PlaceEvidenceSummary from "./PlaceEvidenceSummary";
@@ -10,9 +11,10 @@ type Props = {
   place: Place;
   region: string;
   saved: boolean;
+  canSave?: boolean;
   feedbackText: string;
   feedbackState: "idle" | "sending" | "done" | "error";
-  dialogRef: RefObject<HTMLElement | null>;
+  dialogRef: RefObject<HTMLDialogElement | null>;
   onClose: () => void;
   onToggleSaved: () => void;
   onFeedbackChange: (value: string) => void;
@@ -21,21 +23,18 @@ type Props = {
 
 export default function PlaceDecisionDialog(props: Props) {
   const { place, region, dialogRef, onClose } = props;
+  const { locale } = useSitePreferences();
+  const en = locale === "en";
   const location = place.city || region;
-  const badgePending = place.score === null || place.score === 0;
-  const scoreLabel = place.score === null ? "판단 보류" : `${place.score}%`;
-  const scoreDescription = place.score === null ? "편의시설 정보 확인 필요" : place.score === 0 ? "선택한 편의와 일치하지 않음" : "필요한 편의와 일치";
-  return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-    <section className="place-modal" role="dialog" aria-modal="true" aria-labelledby="place-modal-title" onMouseDown={(event) => event.stopPropagation()} ref={dialogRef}>
-      <button className="modal-close" type="button" onClick={onClose} aria-label="닫기">×</button>
-      <div className="modal-visual" style={place.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${place.image}")` } : undefined}><span>{location}</span><b className={badgePending ? "pending" : ""}>{scoreLabel}<small>{scoreDescription}</small></b></div>
+  return <dialog className="place-modal native-place-dialog" aria-labelledby="place-modal-title" ref={dialogRef}>
+      <button className="modal-close" type="button" onClick={onClose} aria-label={en ? "Close" : "닫기"}>×</button>
+      <div className="modal-visual" style={place.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${place.image}")` } : undefined}><span>{location}</span></div>
       <div className="modal-body">
-        <p className="section-kicker">편의정보 자세히 보기</p><h2 id="place-modal-title">{place.name}</h2><p>{place.address || place.summary}</p>
+        <p className="section-kicker">{en ? "Facility information" : "편의정보 자세히 보기"}</p><h2 id="place-modal-title" tabIndex={-1}>{place.name}</h2><p>{place.address || place.summary}</p>
         <PlaceEvidenceSummary place={place} />
         <PlaceCommunityStories place={place} location={location} />
-        <PlaceParticipationActions place={place} location={location} saved={props.saved} feedbackText={props.feedbackText} feedbackState={props.feedbackState} onToggleSaved={props.onToggleSaved} onFeedbackChange={props.onFeedbackChange} onSubmitFeedback={props.onSubmitFeedback} />
-        <small className="modal-note">편의조건 일치율은 선택한 조건 중 공식 데이터에서 긍정적으로 확인된 항목의 비율이며 공식 인증 점수가 아닙니다. 확인된 편의정보가 없으면 숫자를 만들지 않고 판단을 보류합니다. 시설 운영상태는 방문 전에 다시 확인해 주세요.</small>
+        <PlaceParticipationActions place={place} location={location} saved={props.saved} canSave={props.canSave} feedbackText={props.feedbackText} feedbackState={props.feedbackState} onToggleSaved={props.onToggleSaved} onFeedbackChange={props.onFeedbackChange} onSubmitFeedback={props.onSubmitFeedback} />
+        <small className="modal-note">{en ? "Facility records are not a safety certification. Missing information does not mean a facility is absent. Confirm current conditions with the venue before visiting." : "공식 시설 정보는 안전 인증이나 접근 가능성 보장이 아닙니다. 미확인은 시설이 없다는 뜻이 아닙니다. 방문 전 시설에 현재 운영 상태를 확인해 주세요."}</small>
       </div>
-    </section>
-  </div>;
+  </dialog>;
 }

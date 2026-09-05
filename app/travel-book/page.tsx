@@ -90,7 +90,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
         {days.map((day, dayIndex) => <section key={day}>
           <header><small>DAY {String(dayIndex + 1).padStart(2, "0")}</small><strong>{formatDate(day, shortDateFormatter)} · {book.dayStartTime} 시작</strong></header>
           <ol>{book.places.filter((place) => book.scheduleAssignments[place.id] === day).map((place, placeIndex) => <li key={place.id}>
-            <span>{placeIndex + 1}</span><div><strong>{place.name}</strong><small>{place.address || place.city}</small></div><em>{place.score && place.score > 0 ? `공식 편의 ${place.score}%` : "방문 전 재확인"}</em>
+            <span>{placeIndex + 1}</span><div><strong>{place.name}</strong><small>{place.address || place.city}</small></div><em>방문 전 재확인</em>
           </li>)}</ol>
         </section>)}
       </div>
