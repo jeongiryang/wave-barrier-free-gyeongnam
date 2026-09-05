@@ -43,6 +43,11 @@ export default function PlannerStageFrame({
   const previous = steps[step.index - 2];
   const next = steps[step.index];
   const prompt = questions[step.id];
+  const nextLockMessage = next?.id === "places"
+    ? "지역·필요한 편의·여행 취향을 고른 뒤 여행지를 찾아 주세요."
+    : next?.id === "itinerary"
+      ? "여행지를 한 곳 이상 일정에 추가해 주세요."
+      : "일정의 날짜·순서와 이동 구간을 확인해 주세요.";
 
   return <div
     className="journey-stage-panel"
@@ -63,7 +68,7 @@ export default function PlannerStageFrame({
       </div>
       <nav aria-label="이전 또는 다음 여행 단계">
         {previous && <button type="button" className="secondary" disabled={!interactive} onClick={() => onStepChange(previous.id)}><span aria-hidden="true">←</span> 이전: {previous.label}</button>}
-        {next && <><button type="button" disabled={!interactive || !next.available} aria-describedby={!next.available ? `locked-${step.id}` : undefined} onClick={() => onStepChange(next.id)}>다음: {next.label} <span aria-hidden="true">→</span></button>{!next.available && <small id={`locked-${step.id}`}>현재 조건에 맞는 여행지를 찾고 일정에 한 곳 이상 추가해 주세요.</small>}</>}
+        {next && <><button type="button" disabled={!interactive || !next.available} aria-describedby={!next.available ? `locked-${step.id}` : undefined} onClick={() => onStepChange(next.id)}>다음: {next.label} <span aria-hidden="true">→</span></button>{!next.available && <small id={`locked-${step.id}`}>{nextLockMessage}</small>}</>}
         {!next && <button type="button" disabled={!interactive} onClick={onShowOverview}>완성된 여행 전체 보기 <span aria-hidden="true">↗</span></button>}
       </nav>
     </footer>}

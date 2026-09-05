@@ -27,6 +27,40 @@ test("first visit stays neutral and later stages are locked without a search", a
   await expect(page.locator(".planner-progress-status")).toHaveText("4단계 중 0단계 완료 · 4단계 남음");
 });
 
+test("a returning user can open an existing device itinerary before a new search", async ({ page }) => {
+  await mockPlannerApi(page, { plannerView: "guided" });
+  await page.addInitScript(() => {
+    window.localStorage.setItem("wave-saved-places", JSON.stringify(["legacy-place"]));
+    window.localStorage.setItem("wave-saved-place-catalog-v1", JSON.stringify([{
+      id: "legacy-place",
+      name: "기존 저장 여행지",
+      city: "창원",
+      address: "경상남도 창원시",
+      mapX: "128.6811",
+      mapY: "35.2279",
+      score: 60,
+      knownFields: 1,
+      source: "기존 저장 정보",
+    }]));
+  });
+  await page.goto("/planner");
+  const itineraryStep = page.getByRole("navigation", { name: "여행 계획 단계 이동" })
+    .getByRole("button", { name: /이 기기 일정/ });
+  await expect(itineraryStep).toBeEnabled();
+  await itineraryStep.click();
+  await expect(page.getByRole("heading", { name: "이 기기 일정 만들기" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toContainText("기존 저장 여행지");
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "0");
+  await page.getByRole("navigation", { name: "여행 계획 단계 이동" })
+    .getByRole("button", { name: /^조건/ }).click();
+  await chooseTripConditions(page);
+  // The new results do not include the stored legacy place. It stays editable,
+  // but must not satisfy the current recommendation-selection milestone.
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "25");
+  await itineraryStep.click();
+  await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toContainText("기존 저장 여행지");
+});
+
 test("guided search failures stay visible with choices preserved and allow retry", async ({ page }) => {
   await mockPlannerApi(page, { plannerView: "guided", failPlan: true });
   await page.goto("/planner");
@@ -36,41 +70,27 @@ test("guided search failures stay visible with choices preserved and allow retry
   await expect(page.locator("#places")).toBeHidden();
 });
 
-test("intro replays without blocking the planning link or moving keyboard focus", async ({ page }) => {
+test("intro keeps one clear planning action and never blocks the page", async ({ page }) => {
   const errors = trackRuntimeErrors(page);
   const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
   await page.setViewportSize({ width, height: 960 });
   await mockPlannerApi(page);
   await page.goto("/");
-  const replay = page.getByRole("button", { name: "인트로 다시보기" });
-  await replay.focus();
-  await replay.press("Enter");
-  await expect(replay).toBeFocused();
+  await expect(page.getByRole("button", { name: "인트로 다시보기" })).toHaveCount(0);
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.locator(".landing-actions").getByRole("link", { name: /내 여행 설계하기/ })).toBeVisible();
-  const originalReplay = await replay.elementHandle();
+  const planning = page.locator(".landing-actions").getByRole("link", { name: /내 여행 설계하기/ });
+  await expect(planning).toBeVisible();
+  await planning.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
-  await expect(replay).toBeFocused();
-  expect(await originalReplay!.evaluate((element) => element.isConnected && document.activeElement === element)).toBe(true);
-  await replay.press("Enter");
-  await expect(replay).toBeFocused();
+  await expect(planning).toBeFocused();
   // Root overflow clipping must not hide a wider hero grid on mobile.
-  for (const element of await page.locator(".landing-hero-copy, .landing-hero h1, .landing-actions a, .intro-motion-note, .landing-signal").all()) {
+  for (const element of await page.locator(".landing-hero-copy, .landing-hero h1, .landing-actions a, .landing-signal").all()) {
     const box = await element.boundingBox();
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width).toBeLessThanOrEqual(width);
   }
   await page.screenshot({ path: test.info().outputPath(`intro-calm-${width}.png`) });
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
-  await expect(replay).toBeFocused();
-  expect(await originalReplay!.evaluate((element) => element.isConnected && document.activeElement === element)).toBe(true);
-  const planning = page.locator(".landing-actions").getByRole("link", { name: /내 여행 설계하기/ });
-  await planning.focus();
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
-  await expect(planning).toBeFocused();
   await expectNoOverflow(page);
   expect(errors).toEqual([]);
 });
@@ -231,7 +251,7 @@ test("guided itinerary unlocks the same dated journeys and transport control aft
   await expectNoOverflow(page);
 });
 
-test("clearing the last theme invalidates previous results and locks later stages without losing saved places", async ({ page }) => {
+test("clearing the last theme invalidates previous results without locking an existing itinerary", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
   await chooseTripConditions(page);
@@ -239,7 +259,7 @@ test("clearing the last theme invalidates previous results and locks later stage
   await page.getByRole("button", { name: /자연·휴양 공원/ }).click();
   await expect(page.getByText("조건이 변경됐어요.", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true })).toBeDisabled();
-  await expect(page.locator(".journey-rail nav button").nth(2)).toBeDisabled();
+  await expect(page.locator(".journey-rail nav button").nth(2)).toBeEnabled();
   await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "0");
   await expect(page.locator(".day-planner-grid li")).toContainText("경남도립미술관");
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);

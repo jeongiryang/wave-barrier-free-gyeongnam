@@ -70,6 +70,12 @@ html[data-theme="dark"] .signal-node {
   border-color: #2b5363;
   background: rgba(9,44,60,.94);
 }
+html[data-theme="dark"] .signal-demo {
+  border-color: #2b5363;
+  background: #092c3c;
+}
+html[data-theme="dark"] .signal-demo header span { color: #8ed9fa; }
+html[data-theme="dark"] .signal-demo header b { color: #fff; }
 html[data-theme="dark"] .floating-card .card-kicker,
 html[data-theme="dark"] .floating-card .photo-credit {
   color: #a8c3cf;

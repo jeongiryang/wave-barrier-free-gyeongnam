@@ -32,8 +32,6 @@ export default function RouteMap(props: RouteMapProps) {
     roadviewMessage,
     roadviewSelectMode,
     roadviewPreviewOpen,
-    measureMode,
-    measureSummary,
     crowdVisual,
     crowdPlace,
     retryProvider,
@@ -52,8 +50,6 @@ export default function RouteMap(props: RouteMapProps) {
     setPlaceAsOrigin,
     setPlaceAsDestination,
     toggleLayer,
-    selectMeasure,
-    clearMeasurements,
     saveRoute,
     exportRoute,
     closeRoadview,
@@ -119,12 +115,8 @@ export default function RouteMap(props: RouteMapProps) {
 
     {toolPanel === "layers" && <MapLayerPanel
       activeLayers={activeLayers}
-      measureMode={measureMode}
-      measureSummary={measureSummary}
       onClose={() => setToolPanel(null)}
       onToggleLayer={toggleLayer}
-      onSelectMeasure={selectMeasure}
-      onClearMeasurements={clearMeasurements}
       onSave={saveRoute}
       onShare={() => void shareRoute()}
     />}
