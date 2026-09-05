@@ -160,7 +160,7 @@
   background: #f8fcfe;
 }
 .guided-stage-actions > div { display: grid; gap: 6px; }
-.guided-stage-actions > div span { color: #5e7b88; font-size: .67rem; font-weight: 720; }
+.guided-stage-actions > div span { color: #426574; font-size: .67rem; font-weight: 720; }
 .guided-stage-actions > div button { min-height: 44px; padding: 0; border: 0; color: #087086; background: transparent; font-size: .7rem; font-weight: 850; text-align: left; text-decoration: underline; text-underline-offset: 4px; }
 .guided-stage-actions nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .guided-stage-actions nav button { min-height: 48px; padding: 11px 15px; border: 1px solid #086d86; border-radius: 13px; color: #fff; background: #086d86; font-size: .72rem; font-weight: 880; }

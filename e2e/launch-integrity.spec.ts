@@ -227,6 +227,7 @@ test("guided itinerary unlocks the same dated journeys and transport control aft
   await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
   await coverage.getByRole("checkbox").check();
   await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "75");
+  expect((await new AxeBuilder({ page }).include(".guided-stage-actions").analyze()).violations).toEqual([]);
   await expectNoOverflow(page);
 });
 
