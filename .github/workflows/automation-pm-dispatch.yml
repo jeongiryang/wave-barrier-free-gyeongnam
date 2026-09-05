@@ -1,0 +1,61 @@
+name: PM Agent Dispatcher
+"on":
+  issues:
+    types:
+      - opened
+      - reopened
+      - labeled
+  workflow_run:
+    workflows:
+      - CI
+      - CD
+      - Release
+      - Production API Smoke
+      - Automation Failure Router
+      - Codex Engineering Worker
+      - Independent AI QA Reviewer
+      - Post-Deploy Production QA
+    types:
+      - completed
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+concurrency:
+  group: pm-evidence-${{ github.event.issue.number || github.event.workflow_run.id }}
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    # Subscription-only policy: archived API path; do not enable.
+    if: >-
+      false && (github.event_name == 'workflow_run' || ((github.event.action == 'opened' || github.event.action == 'reopened') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)) || (github.event.action == 'labeled' && github.event.label.name == 'status:triage'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trusted workflow source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Deliver exact GitHub evidence to the current Work PM
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # actions/github-script@v8
+        env:
+          WAVE_PM_AGENT_TRIGGER_ID: ${{ secrets.WAVE_PM_AGENT_TRIGGER_ID }}
+          WAVE_PM_AGENT_ACCESS_TOKEN: ${{ secrets.WAVE_PM_AGENT_ACCESS_TOKEN }}
+        with:
+          script: |-
+            const { notifyFromWorkflow } = require(process.env.GITHUB_WORKSPACE + '/.github/automation/pm-notify.cjs');
+            const run = context.payload.workflow_run;
+            if (run) {
+              const paths = new Set(['.github/workflows/ci.yml','.github/workflows/cd.yml','.github/workflows/release.yml','.github/workflows/production-api-smoke.yml','.github/workflows/automation-failure-router.yml','.github/workflows/automation-codex-worker.yml','.github/workflows/automation-independent-qa.yml','.github/workflows/automation-post-deploy-qa.yml']);
+              const actual = (await github.rest.actions.getWorkflowRun({...context.repo, run_id:run.id})).data;
+              if (!paths.has(actual.path) || actual.repository.full_name !== context.payload.repository.full_name) throw new Error('Unexpected upstream workflow');
+              await notifyFromWorkflow({core,context},{kind:'workflow',identity:[actual.id,actual.run_attempt],conversation:'wave-github-run-'+actual.id,message:'Workflow '+actual.name+' conclusion '+actual.conclusion+'; SHA '+actual.head_sha+'; evidence '+actual.html_url+'. Fetch current PR HEAD and all checks before updating PM Release Gate; stale/fork results are evidence only.'});
+            } else {
+              const issue = (await github.rest.issues.get({...context.repo,issue_number:context.issue.number})).data;
+              if (issue.state !== 'open') return;
+              const labels = issue.labels.map(l => typeof l === 'string' ? l : l.name);
+              if (context.payload.action === 'labeled' && !labels.includes('status:triage')) return;
+              await notifyFromWorkflow({core,context},{kind:'issue',identity:[issue.number,context.payload.action,context.payload.issue.updated_at],conversation:'wave-github-issue-'+issue.number,message:'Issue #'+issue.number+' requires PM triage. Fetch it from GitHub. Post a new trusted <!-- wave-pm-task:v1 --> handoff with DECISION, PRIORITY, ALLOW_SENSITIVE_AUTOMATION_CHANGES, SCOPE, ACCEPTANCE_CRITERIA, VALIDATION and CONSTRAINTS before setting ready-for-dev. The executing GitHub actor and handoff author must match WAVE_PM_GITHUB_ACTORS configured by the user; never assume a connector impersonates the owner.'});
+            }

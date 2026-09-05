@@ -13,7 +13,7 @@ async function plannerProductSource() {
     "features/planner/components/PlannerHeader.tsx",
     "features/planner/components/PlannerFooter.tsx",
     "features/planner/components/PlannerConditionsPanel.tsx",
-    "features/planner/components/PlannerJourneyBasics.tsx",
+    "components/GyeongnamRegionPicker.tsx",
     "features/planner/components/PlannerThemeDates.tsx",
     "features/planner/components/PlannerAccessibilityProfiles.tsx",
     "features/planner/components/RecommendationWorkspace.tsx",
@@ -287,7 +287,8 @@ test("public product copy is release-ready and tourism data remains live", async
     source("server/tourism/enrichment-sources.ts"),
   ]);
   const tourism = `${tourismHandler}\n${planBuilder}\n${tourismPhotos}\n${tourismInsights}\n${tourismConcentration}\n${enrichmentSources}`;
-  assert.doesNotMatch(`${readme}\n${landing}\n${planner}`, /공모전|심사용|출품용|기능 시연용/);
+  assert.doesNotMatch(`${landing}\n${planner}`, /공모전|심사용|출품용|기능 시연용/);
+  assert.match(readme, /docs\/contest-compliance.md/);
   assert.match(readme, /TOUR_API_SERVICE_KEY_ENCODED/);
   assert.match(tourism, /KorService2/);
   assert.match(tourism, /KorWithService2/);
@@ -451,20 +452,15 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
   assert.doesNotMatch(css.match(/\.map-command-bar \{[^}]+\}/)?.[0] ?? "", /overflow-x: auto/);
 });
 
-test("travel conditions refresh the plan without requiring the submit button", async () => {
-  const [planner, planController, autoRefresh] = await Promise.all([
-    plannerProductSource(),
-    plannerPlanSource(),
-    source("features/planner/hooks/usePlannerAutoRefresh.ts"),
-  ]);
-  assert.match(planner, /signature: `\$\{region\}\|\$\{theme\}\|\$\{locale\}\|\$\{selected\.join\(","\)\}`/);
-  assert.match(autoRefresh, /setTimeout\(\(\) => void refreshRef\.current\(false\), delay\)/);
-  assert.match(autoRefresh, /delay = 550/);
-  assert.match(planController, /planRequestRef\.current\?\.abort\(\)/);
-  assert.match(planController, /signal: controller\.signal/);
-  assert.match(planController, /if \(revealResults\) window\.setTimeout/);
-  assert.match(planner, /조건을 바꾸면 추천이 자동으로 업데이트됩니다/);
-  assert.doesNotMatch(planner, /generate-button|여행지 다시 찾기/);
+test("travel conditions require explicit search and keep previous results during changes", async () => {
+  const [planner, request] = await Promise.all([plannerProductSource(), plannerPlanSource()]);
+  assert.doesNotMatch(planner, /usePlannerAutoRefresh/);
+  assert.match(planner, /props.onGenerate/);
+  assert.match(request, /planRequestRef\.current\?\.abort\(\)/);
+  assert.match(request, /signal: controller\.signal/);
+  assert.match(request, /resultSignature !== signature/);
+  assert.match(request, /if \(!region \|\| !requestedTheme \|\| !selected.length \|\| loading\) return false/);
+  assert.doesNotMatch(request, /setPlan\(null\)/);
 });
 
 test("planner visual order follows DOM and keyboard focus order", async () => {
@@ -498,9 +494,9 @@ test("planner never substitutes prototype places when official data fails", asyn
   assert.doesNotMatch(planner, /demo-jinhae|demo-cable|demo-jinju/);
   assert.doesNotMatch(planner, /fallbackPlaces|fallbackStops|제안서 기반 미리보기/);
   assert.match(planController, /setPlanError\(message\)/);
-  assert.match(planController, /임의의 장소를 대신 표시하지 않습니다/);
-  assert.match(planner, /공식 데이터 다시 조회/);
-  assert.match(planner, /role=\{planError \? "alert" : "status"\}/);
+  assert.doesNotMatch(planController, /fallbackPlaces|demoPlaces/);
+  assert.match(planner, /다시 시도/);
+  assert.match(planner, /planError &&.*role="alert"/);
 });
 
 test("only positive official accessibility evidence becomes a recommendation or itinerary stop", async () => {
@@ -517,11 +513,11 @@ test("only positive official accessibility evidence becomes a recommendation or 
   assert.match(tourism, /recommended: places, exploration: explorationPlaces/);
   assert.match(tourism, /places\.filter\(hasPositiveOfficialEvidence\)/);
   assert.match(tourism, /evidenceState: "verified"/);
-  assert.match(planner, /일반 추천과 이 기기 일정에는 넣지 않았습니다/);
+  assert.match(planner, /추천과 일정 추가에서 제외/);
   assert.match(planner, /아직 일정에 추가한 장소가 없어요/);
-  assert.match(planner, /공식 정보 확인 필요/);
+  assert.match(planner, /정보 미확인/);
   assert.doesNotMatch(planner, /PlannerRouteOverview|PlannerResultsPanel/);
-  assert.match(planner, /String\(index \+ 1\)\.padStart\(2, "0"\)/);
+  assert.match(planner, /rank=\{index \+ 1\}/);
   assert.doesNotMatch(planner, /<small>0\{index \+ 1\}<\/small>/);
 });
 

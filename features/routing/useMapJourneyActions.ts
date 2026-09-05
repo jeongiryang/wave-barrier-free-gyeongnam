@@ -2,6 +2,7 @@
 
 import { useCallback, type RefObject } from "react";
 import { exportRouteImage } from "./export-route-image";
+import { confirmMapLocationUse } from "../../lib/location-consent.js";
 import type { KakaoMap } from "./kakao-sdk";
 import type { MapPickMode, RouteMapProps } from "./types";
 
@@ -28,6 +29,7 @@ export function useMapJourneyActions({
       setProviderDetail("현재 브라우저에서 위치 기능을 사용할 수 없습니다.");
       return;
     }
+    if (!confirmMapLocationUse()) return;
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       if (map && sdk) {
         const position = new sdk.LatLng(coords.latitude, coords.longitude);

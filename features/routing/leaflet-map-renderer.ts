@@ -82,7 +82,7 @@ export async function renderLeafletMap(
       iconAnchor: image ? [42, 86] : [22, 22],
       popupAnchor: image ? [0, -78] : [0, -24],
     });
-    const evidenceLabel = place.score === null ? "접근성 근거 확인 필요" : `편의조건 일치 ${place.score}%`;
+    const evidenceLabel = "편의시설과 실제 이동 가능 여부는 방문 전 확인";
     L.marker([lat, lng], { icon, title: place.name })
       .addTo(map)
       .bindPopup(`<strong>${escapeMapHtml(place.name)}</strong><br>${evidenceLabel}`)

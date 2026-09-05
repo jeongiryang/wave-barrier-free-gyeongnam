@@ -54,7 +54,7 @@ export default function TravelSignalsPanel({
   onSecondaryOpenChange,
   onRouteFromRichSpot,
 }: TravelSignalsPanelProps) {
-  return <details className="journey-workspace-block travel-layers" id="layers" suppressHydrationWarning onToggle={(event) => onSecondaryOpenChange(event.currentTarget.open)}>
+  return <details open={secondaryOpen} className="journey-workspace-block travel-layers" id="layers" suppressHydrationWarning onToggle={(event) => { if (secondaryOpen !== event.currentTarget.open) onSecondaryOpenChange(event.currentTarget.open); }}>
     <summary><span>날씨·혼잡과 주변 정보 자세히 보기</span><small>선택 사항 · 일정에 영향을 줄 때만 확인하세요.</small></summary>
     {secondaryOpen && <div className="travel-signal-content">
       <WeatherBoard region={region} weather={weather} loading={weatherLoading} />
