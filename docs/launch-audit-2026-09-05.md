@@ -32,6 +32,10 @@
 
 ## 검증 현황
 
+- PR [#287](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/287), 체크포인트 `cb6c6da` → `e44ecc1`. 아직 초안이며 병합·배포 전이다.
+- 첫 Chromium 전체 CI #640: 168 통과, 54 실패, 1 flaky, 1 skipped. 자동 추천·옛 UI 기대값 불일치와 실제 대비 결함을 분리해 수정 중이다. 녹색 완료로 판정하지 않는다.
+- 시설 상세 설명 대비 3.36:1, 다크 테마 빈 결과/경로 안내의 대비 결함을 로그에서 확인하고 원본 스타일을 수정했다.
+- 후속 로컬 lint·typecheck·270개 단위/계약 테스트 통과. 보고서와 캡처를 나눠 중복 trace로 700MB가 되던 검증 자료를 줄인다.
 - 단위·계약 269/269 통과(추가 수정 전 중간 체크포인트).
 - lint·typecheck·Vercel build·번들 성능 예산 통과.
 - 핵심 P0와 280~2560px 레이아웃 Playwright 테스트 추가.

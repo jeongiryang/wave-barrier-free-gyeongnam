@@ -22,13 +22,14 @@ test("390px·768px·1440px에서 네 단계 계획 흐름과 단일 일정이 �
     await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toHaveCount(0);
     await expect(page.getByRole("region", { name: "이 기기 일정", exact: true })).toHaveCount(1);
 
-    await page.getByRole("navigation", { name: "여행 계획 단계 이동" }).getByRole("button", { name: /이 기기 일정/ }).click();
-    await expect.poll(() => page.locator("#itinerary").evaluate((node) => node.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
+    await expect(page.getByRole("navigation", { name: "여행 계획 단계 이동" }).getByRole("button", { name: /이 기기 일정/ })).toBeDisabled();
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${width}px 화면의 가로 넘침`).toBeLessThanOrEqual(1);
 
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
+    await page.getByRole("navigation", { name: "여행 계획 단계 이동" }).getByRole("button", { name: /이 기기 일정/ }).click();
+    await expect.poll(() => page.locator("#itinerary").evaluate((node) => node.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
     const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
     await expect(itinerary).toHaveCount(1);
     await itinerary.scrollIntoViewIfNeeded();
@@ -50,7 +51,11 @@ test("랜딩 딥링크와 플래너 헤더는 안내형 보기에서도 실제 �
   await expect(page.getByRole("link", { name: /일정 구성해 보기/ })).toHaveAttribute("href", "/planner#itinerary");
 
   await page.goto("/planner#navigation");
+  await expect(page.locator("#conditions")).toBeVisible();
+  await expect(page.locator("#itinerary")).toBeHidden();
   await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("navigation", { name: "여행 계획 단계 이동" }).getByRole("button", { name: /이 기기 일정/ }).click();
   await expect(page.locator(".journey-stage-stream")).toHaveAttribute("data-view", "guided");
   await expect(page.locator("#itinerary")).toBeVisible();
   await expect(page.locator("#navigation")).toBeVisible();

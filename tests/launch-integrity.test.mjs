@@ -70,3 +70,11 @@ test("public community reads exclude future field experiences without deleting u
   assert.match(migration, /SET moderation_status = 'under_review'/);
   assert.doesNotMatch(migration, /DELETE FROM|DROP TABLE/);
 });
+test("failed shared-place restoration never substitutes unrelated recommendations", async () => {
+  const restoration = await source("server/tourism/shared-plan-restoration.ts");
+  assert.match(restoration, /plan: \{ \.\.\.currentPlan, places: \[\], stops: \[\] \}/);
+  assert.doesNotMatch(restoration, /places\.slice\(0, 3\)|mode: "condition-fallback"/);
+  for (const path of ["features/planner/components/TripDayPlanner.tsx", "features/trips/components/SharedTripSummary.tsx", "features/routing/components/MapPlacePanel.tsx", "app/travel-book/page.tsx"]) {
+    assert.doesNotMatch(await source(path), /score\}%/);
+  }
+});

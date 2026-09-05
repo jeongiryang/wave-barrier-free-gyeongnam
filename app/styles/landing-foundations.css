@@ -1,5 +1,7 @@
 
 /* Marketing landing */
+.intro-replay { min-height: 44px; margin-top: 20px; padding: 8px 12px; display: inline-flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: var(--white); font-size: .85rem; }
+.intro-motion-note { display: block; margin-top: 8px; color: var(--muted); }
 .landing-page { --landing-max: 1760px; background: #f8fdff; }
 .landing-header { position: fixed; z-index: 70; left: 50%; top: 18px; width: min(var(--landing-max), calc(100vw - clamp(32px,5vw,88px))); min-height: 70px; padding: 0 20px 0 24px; transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 28px; border: 1px solid transparent; border-radius: 20px; transition: background .25s, border-color .25s, box-shadow .25s; }
 .landing-header.scrolled { border-color: rgba(203,223,233,.9); background: rgba(255,255,255,.9); backdrop-filter: blur(18px); box-shadow: 0 14px 40px rgba(7,47,65,.1); }

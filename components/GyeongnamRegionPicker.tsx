@@ -23,7 +23,6 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
       const next = event.key === "Home" ? 0 : event.key === "End" ? names.length - 1 : direction ? (index + direction + names.length) % names.length : -1;
       if (next < 0) return;
       event.preventDefault();
-      onChange(names[next]);
       event.currentTarget.parentElement?.querySelectorAll("button")[next]?.focus();
     }} aria-pressed={value === name}>{label(name)}{value === name && <span aria-hidden="true"> ✓</span>}</button>)}</div></div>
   </div>;

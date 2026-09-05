@@ -10,6 +10,7 @@ test("이동수단 카드의 시간 자리에 안내문을 값처럼 넣지 않�
   await mockPlannerApi(page);
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
   await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.waitForTimeout(2_200);
 
   const values = await page.evaluate(() =>
@@ -29,6 +30,7 @@ test("경로 카드가 같은 이름을 반복하지 않는다", async ({ page }
   await mockPlannerApi(page);
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
   await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.waitForTimeout(2_200);
 
   const cards = await page.evaluate(() =>
@@ -50,6 +52,7 @@ test("경로 카드는 예상 시간·요금·환승·도보를 그대로 보여
   await mockPlannerApi(page);
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
   await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.waitForTimeout(2_200);
 
   const first = page.locator(".route-option").first();

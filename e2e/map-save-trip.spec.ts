@@ -74,8 +74,11 @@ test("지도에서 저장하면 이 기기 일정에 추가되고 새로고침 �
   await saveButton.focus();
   await saveButton.press("Enter");
 
-  // 담은 개수가 화면에 바로 보인다.
-  await expect.poll(() => savedCount(page)).toBeGreaterThan(0);
+  // 미선택 추천이나 임의의 지도 중심을 실제 일정으로 저장하지 않는다.
+  expect(await savedCount(page)).toBe(0);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await expect.poll(() => savedCount(page)).toBe(1);
+  await saveButton.press("Enter");
   const afterSave = await savedCount(page);
 
   const stored = await page.evaluate(() => ({
@@ -86,7 +89,7 @@ test("지도에서 저장하면 이 기기 일정에 추가되고 새로고침 �
   expect(JSON.parse(stored.places || "[]").length).toBe(afterSave);
 
   await page.reload();
-  await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
+  await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toContainText("경남도립미술관");
   await expect.poll(() => savedCount(page)).toBe(afterSave);
 });
 
@@ -98,6 +101,7 @@ test("이미 담긴 여행지를 다시 저장해도 중복으로 쌓이지 않�
   await page.goto("/planner");
   await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
   const layerTrigger = page.getByRole("button", { name: "레이어·측정" });
   await expect(layerTrigger).toBeEnabled();

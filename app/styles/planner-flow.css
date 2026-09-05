@@ -15,6 +15,7 @@
 .condition-actions .secondary { color: #075469; background: white; }
 .condition-actions button:disabled { opacity: .5; cursor: not-allowed; }
 .condition-scope,.date-scope-note,.route-scope-note { margin: 18px 0; font-size: .9rem; line-height: 1.65; color: #426574; }
+.route-scope-note { padding: 12px; border-radius: 8px; background: var(--paper); }
 .region-picker { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: 24px; }
 .region-picker-visual { padding: 20px; border-radius: 24px; background: #e3f0f1; text-align: center; color: #285565; }
 .region-picker-visual > span,.region-picker-visual > small { display: block; line-height: 1.5; }

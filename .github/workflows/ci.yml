@@ -53,9 +53,18 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: browser-regression
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: 화면 캡처와 오류 문맥 보관
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: browser-screenshots
           path: |
-            playwright-report/
-            test-results/
+            test-results/**/*.png
+            test-results/**/*.md
           retention-days: 7
           if-no-files-found: ignore
 

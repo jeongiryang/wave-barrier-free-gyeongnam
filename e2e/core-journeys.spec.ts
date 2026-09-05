@@ -100,15 +100,15 @@ test("planner exposes honest recovery when the official plan request fails", asy
   await mockPlannerApi(page, { failPlan: true });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await expect(page.getByRole("alert")).toContainText("공식 관광정보 연결이 지연되고 있습니다");
-  await expect(page.getByRole("button", { name: "공식 데이터 다시 조회" })).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("여행지를 불러오지 못했어요.");
+  await expect(page.getByRole("button", { name: "다시 시도", exact: true })).toBeVisible();
 });
 
 test("planner announces a delayed request and replaces its skeleton with official results", async ({ page }) => {
   await mockPlannerApi(page, { slowPlan: true });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await expect(page.getByRole("status").filter({ hasText: "공식 관광정보를 불러오고 있어요" })).toBeAttached();
+  await expect(page.getByRole("status").filter({ hasText: "여행지를 찾고 있어요." })).toBeAttached();
   await expect(page.locator(".place-carousel")).toHaveAttribute("aria-busy", "true");
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   await expect(page.locator(".place-carousel")).toHaveAttribute("aria-busy", "false");

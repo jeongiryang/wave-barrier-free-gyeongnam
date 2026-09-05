@@ -42,7 +42,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   const navigationPlaces = routableItineraryPlaces;
   const loadRoutes = props.route.loadRoutes;
   const resetRouteData = props.route.resetRouteData;
-  const savedSignature = `${activeDay}|${itineraryPlaces.map((place) => place.id).join(",")}`;
+  const savedSignature = `${activeDay}|${itineraryPlaces.map((place) => `${place.id}:${place.mapX}:${place.mapY}`).join(",")}|${props.route.origin.lat},${props.route.origin.lng}|${props.route.privateOrigin}`;
   const previousSavedSignature = useRef("");
 
   useEffect(() => {

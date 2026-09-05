@@ -107,6 +107,11 @@ test("스크롤로 숨은 플래너 헤더는 키보드 초점이 오면 복귀�
   await page.getByRole("heading", { name: "경남도립미술관" }).first().waitFor();
 
   const header = page.locator(".site-header");
+  // Result navigation can place the viewport below 1500px. Establish a downward
+  // scroll after that navigation, rather than accidentally testing an upward one.
+  await page.waitForTimeout(200);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await page.evaluate(() => window.scrollTo(0, 1_500));
   await expect(header).toHaveClass(/hidden/);
   await header.getByRole("link", { name: "W.A.V.E 소개 홈" }).focus();

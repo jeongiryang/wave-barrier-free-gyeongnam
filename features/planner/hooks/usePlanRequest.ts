@@ -4,13 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CLIENT_BUDGET_MS } from "../../../lib/request-budget.js";
 import { scrollToSection } from "../../../lib/reduced-motion.js";
 import { plannerJson } from "../services/api";
-import type { Place, PlanData } from "../types";
+import type { PlanData } from "../types";
 import { criteriaSignature } from "../../../lib/planner-criteria.js";
 
 interface PlanRunOptions {
   resetRouteData: () => void;
   resetAudio: () => void;
-  loadInitialRoute: (places: Place[]) => void;
 }
 
 export function usePlanRequest({ locale, region, selected, theme }: { locale: string; region: string; selected: string[]; theme: string }) {
@@ -42,6 +41,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       setResultSignature(signature);
       const available = data.statuses.some((status) => status.state === "live");
       setNotice(available ? "공식 관광정보를 확인해 추천을 업데이트했습니다." : "공식 데이터에서 현재 조건에 맞는 결과를 확인하지 못했습니다.");
+      if (revealResults) window.setTimeout(() => scrollToSection("places"), 80);
       return true;
     } catch (error) {
       if (controller.signal.aborted) return false;
@@ -53,7 +53,6 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       if (planRequestRef.current === controller) {
         planRequestRef.current = null;
         setLoading(false);
-        if (revealResults) window.setTimeout(() => scrollToSection("places"), 80);
       }
     }
   }, [locale, region, selected, theme, signature, loading]);

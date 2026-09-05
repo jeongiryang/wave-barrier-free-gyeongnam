@@ -27,7 +27,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
   const labels = en ? ["Region", "Facilities", "Interests"] : ["지역", "필요한 편의", "여행 취향"];
   const [requestedQuestion, setQuestion] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
-  const { region, setRegion, selected, themes, loading } = props.planController;
+  const { region, setRegion, selected, themes, loading, planError } = props.planController;
   const question = Math.min(requestedQuestion, !region ? 0 : !selected.length ? 1 : 2);
   const guided = props.view === "guided";
   useEffect(() => {
@@ -57,6 +57,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
       {(!guided || question === 2) && <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="themes" />}
     </div>
     <p className="condition-scope">{en ? "Choose dates when adding places to your itinerary. Dates affect forecasts and events, not facility matching." : "날짜는 장소를 고른 뒤 내 일정에서 정해요. 여행 날짜는 날씨·행사 조회에 반영되며, 편의시설 추천 조건은 아닙니다."}</p>
+    {guided && planError && <p role="alert">{en ? "We couldn't load places. Your choices are kept. Check your connection and try again." : "여행지를 불러오지 못했어요. 선택한 조건은 유지됩니다. 연결을 확인하고 다시 찾아 주세요."}</p>}
     <div className="condition-actions">
       {guided && question > 0 && <button type="button" className="secondary" onClick={() => go(question - 1)}>{en ? "Previous" : "이전"}</button>}
       {guided && question < 2 ? <button type="button" disabled={!region || question === 1 && !selected.length} onClick={() => go(question + 1)}>{en ? "Continue" : "다음"} →</button> : <button type="button" disabled={!region || !themes.length || !selected.length || loading} onClick={() => void props.onGenerate()}>{loading ? en ? "Finding places…" : "여행지 찾는 중…" : en ? "Find places for my trip" : "내 조건에 맞는 여행지 찾기"} →</button>}

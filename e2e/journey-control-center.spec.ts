@@ -19,7 +19,7 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   await openPlanner(page, 1366, 900);
   const rail = page.getByRole("complementary", { name: "여행 계획 진행 상황" });
   await expect(rail).toBeVisible();
-  await expect(rail.getByRole("button", { name: /조건/ })).toHaveAttribute("aria-current", "step");
+  await expect(rail.locator("nav").getByRole("button", { name: /조건/ })).toHaveAttribute("aria-current", "step");
   await expect(rail.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
   await expect(page.getByText("선택한 편의 조건 없음", { exact: true })).toBeVisible();
 

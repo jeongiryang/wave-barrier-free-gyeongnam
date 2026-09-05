@@ -57,16 +57,16 @@ export async function restoreSharedPlan(
   const missing = Math.max(0, refs.length - places.length);
   if (!places.length) {
     return {
-      plan: currentPlan,
+      plan: { ...currentPlan, places: [], stops: [] },
       restoration: {
         requested: refs.length,
         restored: 0,
         missing: refs.length,
-        mode: "condition-fallback",
+        mode: "unavailable",
       },
     };
   }
-  const stops = places.slice(0, 3).map((place, index) => ({
+  const stops = places.map((place, index) => ({
     title: place.name,
     note: index === 0 ? `${place.features.slice(0, 2).join("·")} 정보를 먼저 확인해요.` : place.summary,
     source: place.source,
