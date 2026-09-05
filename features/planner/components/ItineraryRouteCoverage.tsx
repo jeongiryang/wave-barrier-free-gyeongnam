@@ -1,6 +1,7 @@
 "use client";
 
 import { useSitePreferences } from "../../../components/SitePreferences";
+import { useId } from "react";
 import { usableLegRoutes } from "../../../lib/itinerary-legs.js";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
@@ -15,12 +16,13 @@ export default function ItineraryRouteCoverage({ coverage, route, trip, reviewed
 }) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
+  const transportLabelId = useId();
   if (!coverage.legs.length) return null;
   return <section className="itinerary-route-coverage" aria-labelledby="route-coverage-title">
     <h3 id="route-coverage-title">{en ? "Check every journey" : "일정의 모든 이동 구간 확인"}</h3>
     <p>{en ? "Each day starts from the departure point shown below. Review your actual starting point. Route availability does not confirm wheelchair access, slopes, low-floor buses or working lifts." : "각 날짜는 아래 출발 거점에서 시작합니다. 실제 출발지와 맞는지 먼저 확인하세요. 경로가 있어도 휠체어 통행, 경사, 저상버스나 승강기 운행을 보장하지 않습니다."}</p>
     <p><strong>{en ? "Daily starting point" : "하루 출발 거점"}: {route.originLabel}</strong></p>
-    <label>{en ? "Transport" : "이동수단"}<select value={route.routeTravelMode} onChange={(event) => route.setRouteTravelMode(event.target.value as typeof route.routeTravelMode)}>
+    <label><span id={transportLabelId}>{en ? "Transport" : "이동수단"}</span><select aria-labelledby={transportLabelId} value={route.routeTravelMode} onChange={(event) => route.setRouteTravelMode(event.target.value as typeof route.routeTravelMode)}>
       <option value="car">{en ? "Car" : "자동차"}</option><option value="transit">{en ? "Public transport" : "대중교통"}</option><option value="walk">{en ? "Walking — external check" : "도보 — 외부 지도 확인"}</option><option value="bicycle">{en ? "Cycling — external check" : "자전거 — 외부 지도 확인"}</option>
     </select></label>
     <div className="coverage-actions"><button type="button" onClick={() => void coverage.checkRoutes()} disabled={coverage.loading}>{coverage.loading ? (en ? "Checking…" : "구간 확인 중…") : (en ? "Check all journeys" : "모든 구간 조회하기")}</button>{coverage.loading && <button type="button" onClick={coverage.cancel}>{en ? "Cancel" : "확인 중단"}</button>}</div>

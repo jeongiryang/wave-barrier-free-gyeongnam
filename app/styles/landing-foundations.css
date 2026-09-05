@@ -12,7 +12,7 @@
 .landing-orbit { position: absolute; pointer-events: none; border: 1px solid rgba(23,176,255,.16); border-radius: 50%; }
 .orbit-a { width: 38vw; aspect-ratio: 1; right: 5vw; top: 19vh; animation: landingOrbit 14s linear infinite; }.orbit-b { width: 24vw; aspect-ratio: 1; right: 12vw; top: 30vh; border-style: dashed; animation: landingOrbit 10s linear reverse infinite; }
 @keyframes landingOrbit { to { transform: rotate(1turn); } }
-.landing-hero-copy { position: relative; z-index: 2; max-width: 760px; }
+.landing-hero-copy { position: relative; z-index: 2; min-width: 0; max-width: 760px; overflow-wrap: anywhere; }
 .landing-hero-copy > p { margin: 0 0 22px; color: #7797a5; font-size: .78rem; font-weight: 850; }.landing-hero-copy > p span { margin-right: 10px; padding: 8px 12px; display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; color: var(--blue); background: #fff; letter-spacing: 0; }
 .landing-hero-copy h1 { margin: 0; font-size: clamp(3.8rem, 5.4vw, 6.7rem); line-height: .98; letter-spacing: -.075em; }.landing-hero-copy h1 em { color: var(--blue); font-style: normal; }
 .landing-hero-copy > span { max-width: 620px; margin-top: 30px; display: block; color: var(--muted); font-size: 1.04rem; }

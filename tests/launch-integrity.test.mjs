@@ -20,6 +20,9 @@ test("legacy and multiple themes retain valid, unique choices", () => {
   assert.deepEqual(normalizeThemes("food,nature,food,invalid"), ["food", "nature"]);
   assert.deepEqual(normalizeThemes("invalid"), ["nature"]);
   assert.equal(criteriaSignature({ region: "창원", themes: "food,nature", selected: ["wheel", "visual"], locale: "ko" }), criteriaSignature({ region: "창원", themes: "nature,food", selected: ["visual", "wheel"], locale: "ko" }));
+  const criteria = { region: "창원", selected: ["wheel"], locale: "ko" };
+  assert.notEqual(criteriaSignature({ ...criteria, themes: "" }), criteriaSignature({ ...criteria, themes: "nature" }));
+  assert.equal(criteriaSignature({ ...criteria, themes: [] }), criteriaSignature({ ...criteria, themes: "" }));
 });
 test("multi-theme results interleave fairly and remove duplicate place IDs", () => {
   assert.deepEqual(mergeThemeResults([[{ contentid: "1" }, { contentid: "2" }], [], [{ contentid: "1" }, { contentid: "3" }], [{ contentid: "4" }]], 4).map((item) => item.contentid), ["1", "4", "2", "3"]);
@@ -70,7 +73,7 @@ test("native place dialog makes the background inert and restores focus", async 
   assert.doesNotMatch(dialog, /place.score.*%/);
 });
 test("public community reads exclude future field experiences without deleting user content", async () => {
-  const [reads, migration] = await Promise.all([source("features/community/server/post-read-repository.ts"), source("migrations/007_review_date_integrity.sql")]);
+  const [reads, migration] = await Promise.all([source("features/community/server/post-read-repository.ts"), source("migrations/008_review_date_integrity.sql")]);
   assert.match(reads, /p.visit_date <= to_char/);
   assert.match(reads, /NOT EXISTS.*jsonb_array_elements/);
   assert.match(migration, /SET moderation_status = 'under_review'/);

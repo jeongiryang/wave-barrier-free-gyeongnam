@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, startTransition, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { copy } from "./translations";
 import { readStoredPreferences, writeStoredPreferences } from "./storage";
 import type { Locale, Motion, PreferencesValue, Theme } from "./types";
@@ -18,31 +18,27 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       const stored = readStoredPreferences();
-      setLocaleState(stored.locale);
-      setTheme(stored.theme);
-      setMotionPreference(stored.motion);
-      setSystemReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-      setHydrated(true);
+      // Let streamed children finish hydrating before changing their context.
+      // An urgent update can replace the server DOM and discard keyboard focus.
+      startTransition(() => {
+        setLocaleState(stored.locale);
+        setTheme(stored.theme);
+        setMotionPreference(stored.motion);
+        setSystemReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+        setHydrated(true);
+      });
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let focusFrame = 0;
     const syncSystemMotion = () => {
-      const focused = document.activeElement;
-      setSystemReducedMotion(query.matches);
-      window.cancelAnimationFrame(focusFrame);
-      focusFrame = window.requestAnimationFrame(() => {
-        // Updating OS motion preferences must not drop keyboard users onto body.
-        // Preserve a still-mounted control only; never override a new user focus.
-        if (document.activeElement === document.body && focused instanceof HTMLElement && focused !== document.body && focused.isConnected) focused.focus({ preventScroll: true });
-      });
+      startTransition(() => setSystemReducedMotion(query.matches));
     };
     syncSystemMotion();
     query.addEventListener("change", syncSystemMotion);
-    return () => { query.removeEventListener("change", syncSystemMotion); window.cancelAnimationFrame(focusFrame); };
+    return () => query.removeEventListener("change", syncSystemMotion);
   }, []);
 
   useEffect(() => {

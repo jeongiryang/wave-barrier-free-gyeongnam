@@ -1,6 +1,17 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
+
+function trackRuntimeErrors(page: Page) {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  return errors;
+}
+
+async function expectNoOverflow(page: Page) {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+}
 
 test("first visit stays neutral and later stages are locked without a search", async ({ page }) => {
   let requests = 0;
@@ -26,6 +37,9 @@ test("guided search failures stay visible with choices preserved and allow retry
 });
 
 test("intro replays without blocking the planning link or moving keyboard focus", async ({ page }) => {
+  const errors = trackRuntimeErrors(page);
+  const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
+  await page.setViewportSize({ width, height: 960 });
   await mockPlannerApi(page);
   await page.goto("/");
   const replay = page.getByRole("button", { name: "인트로 다시보기" });
@@ -34,16 +48,31 @@ test("intro replays without blocking the planning link or moving keyboard focus"
   await expect(replay).toBeFocused();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator(".landing-actions").getByRole("link", { name: /내 여행 설계하기/ })).toBeVisible();
-  await page.evaluate(() => {
-    const focused = document.activeElement;
-    const logFocus = () => console.info("motion-focus", JSON.stringify({ previousConnected: focused?.isConnected, previousClass: (focused as HTMLElement)?.className, currentClass: (document.activeElement as HTMLElement)?.className, currentTag: document.activeElement?.tagName }));
-    matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", () => requestAnimationFrame(logFocus), { once: true });
-  });
+  const originalReplay = await replay.elementHandle();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(replay).toBeFocused();
+  expect(await originalReplay!.evaluate((element) => element.isConnected && document.activeElement === element)).toBe(true);
   await replay.press("Enter");
   await expect(replay).toBeFocused();
+  // Root overflow clipping must not hide a wider hero grid on mobile.
+  for (const element of await page.locator(".landing-hero-copy, .landing-hero h1, .landing-actions a, .intro-motion-note, .landing-signal").all()) {
+    const box = await element.boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+  }
+  await page.screenshot({ path: test.info().outputPath(`intro-calm-${width}.png`) });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
+  await expect(replay).toBeFocused();
+  expect(await originalReplay!.evaluate((element) => element.isConnected && document.activeElement === element)).toBe(true);
+  const planning = page.locator(".landing-actions").getByRole("link", { name: /내 여행 설계하기/ });
+  await planning.focus();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(planning).toBeFocused();
+  await expectNoOverflow(page);
+  expect(errors).toEqual([]);
 });
 
 test("one saved place does not complete the trip and the dialog contains keyboard focus", async ({ page }) => {
@@ -129,6 +158,9 @@ test("a confirmed crowd alternative replaces the itinerary instead of an unrelat
 });
 
 test("trip completion requires every ordered leg and separate itinerary and departure reviews", async ({ page }) => {
+  const errors = trackRuntimeErrors(page);
+  const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
+  await page.setViewportSize({ width, height: 960 });
   await mockPlannerApi(page);
   const requests: URL[] = [];
   page.on("request", (request) => { if (request.url().includes("/api/route?")) requests.push(new URL(request.url())); });
@@ -139,6 +171,14 @@ test("trip completion requires every ordered leg and separate itinerary and depa
   const move = page.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동", exact: true });
   if (await move.isEnabled()) await move.click();
   const coverage = page.locator(".itinerary-route-coverage");
+  await expect(page.getByLabel("여행 시작일", { exact: true })).toHaveValue("2026-10-08");
+  await expect(page.getByLabel("경남도립미술관 여행 날짜", { exact: true })).toHaveValue("2026-10-08");
+  await expect(page.getByLabel("용지호수공원 여행 날짜", { exact: true })).toHaveValue("2026-10-08");
+  await expect(coverage.getByRole("listitem")).toHaveText([
+    /2026-10-08 · 창원중앙역 → 경남도립미술관/,
+    /2026-10-08 · 경남도립미술관 → 용지호수공원/,
+  ]);
+  await expect(coverage.getByRole("combobox", { name: "이동수단", exact: true })).toBeVisible();
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
   await expect(coverage.getByRole("checkbox")).toBeDisabled();
   await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "50");
@@ -149,6 +189,9 @@ test("trip completion requires every ordered leg and separate itinerary and depa
   await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "75");
   await page.getByRole("checkbox", { name: /일정과 출발 전 다시 확인할 항목/ }).check();
   await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "100");
+  await expectNoOverflow(page);
+  expect((await new AxeBuilder({ page }).include(".itinerary-route-coverage").analyze()).violations).toEqual([]);
+  await coverage.screenshot({ path: test.info().outputPath(`all-journeys-${width}.png`) });
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("transit");
   await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
   await expect(coverage.getByRole("checkbox")).not.toBeChecked();
@@ -156,4 +199,47 @@ test("trip completion requires every ordered leg and separate itinerary and depa
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
   await page.getByLabel("용지호수공원 여행 날짜").selectOption("2026-10-09");
   await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
+  await expect(coverage.getByRole("listitem").nth(1)).toContainText("2026-10-09 · 창원중앙역 → 용지호수공원");
+  await expect(page.getByRole("checkbox", { name: /일정과 출발 전 다시 확인할 항목/ })).not.toBeChecked();
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "50");
+  expect(errors).toEqual([]);
+});
+
+test("guided itinerary unlocks the same dated journeys and transport control after saving places", async ({ page }) => {
+  await mockPlannerApi(page, { plannerView: "guided" });
+  await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
+  const itineraryStep = page.locator(".journey-rail nav button").nth(2);
+  await expect(itineraryStep).toBeDisabled();
+  await chooseTripConditions(page);
+  await expect(itineraryStep).toBeDisabled();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
+  await expect(itineraryStep).toBeEnabled();
+  await itineraryStep.click();
+  await page.getByLabel("용지호수공원 여행 날짜", { exact: true }).selectOption("2026-10-09");
+  const coverage = page.locator(".itinerary-route-coverage");
+  await expect(coverage.getByRole("listitem")).toHaveText([
+    /2026-10-08 · 창원중앙역 → 경남도립미술관/,
+    /2026-10-09 · 창원중앙역 → 용지호수공원/,
+  ]);
+  await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
+  await coverage.getByRole("button", { name: "모든 구간 조회하기", exact: true }).click();
+  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
+  await coverage.getByRole("checkbox").check();
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "75");
+  await expectNoOverflow(page);
+});
+
+test("clearing the last theme invalidates previous results and locks later stages without losing saved places", async ({ page }) => {
+  await mockPlannerApi(page);
+  await page.goto("/planner");
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: /자연·휴양 공원/ }).click();
+  await expect(page.getByText("조건이 변경됐어요.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true })).toBeDisabled();
+  await expect(page.locator(".journey-rail nav button").nth(2)).toBeDisabled();
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "0");
+  await expect(page.locator(".day-planner-grid li")).toContainText("경남도립미술관");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
 });

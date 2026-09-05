@@ -124,6 +124,7 @@ jobs:
           printf '%s' "$response" | grep -Fq '"005_community_field_reports.sql"'
           printf '%s' "$response" | grep -Fq '"006_retire_community_seed.sql"'
           printf '%s' "$response" | grep -Fq '"007_account_deletion.sql"'
+          printf '%s' "$response" | grep -Fq '"008_review_date_integrity.sql"'
 
       - name: 프로덕션 승격
         env:

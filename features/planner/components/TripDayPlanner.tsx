@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { buildTravelJournalHref } from "../../../lib/community/field-report.js";
 import type { useAudioGuide } from "../hooks/useAudioGuide";
@@ -9,8 +9,9 @@ import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import { buildItinerarySchedule, routeMinutesForOriginLeg } from "../optimization/itinerary-schedule.js";
 import type { PlanData } from "../types";
-import TravelBookArchiveAction from "../../travel-book/TravelBookArchiveAction";
 import AudioGuidePlayer from "./AudioGuidePlayer";
+
+const TravelBookArchiveAction = lazy(() => import("../../travel-book/TravelBookArchiveAction"));
 
 export default function TripDayPlanner({ plan, tripSelection, route, audioGuide, participation, archiveContext, itineraryRouteMinutes = {} }: {
   itineraryRouteMinutes?: Record<string, number>;
@@ -78,7 +79,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
       {shareUrl && <a href={shareUrl}>공유 일정 열기</a>}
       {shareState === "error" && <small role="alert">공유 링크를 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요.</small>}
     </div>
-    <TravelBookArchiveAction
+    <Suspense fallback={<p role="status">여행집 보관 기능을 준비하고 있어요.</p>}><TravelBookArchiveAction
       places={orderedSavedPlaces}
       region={archiveContext.region}
       theme={archiveContext.theme}
@@ -87,7 +88,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
       travelEnd={tripSelection.travelEnd}
       dayStartTime={dayStartTime}
       scheduleAssignments={scheduleAssignments}
-    />
+    /></Suspense>
     <details className="itinerary-secondary-actions">
       <summary>오디오 가이드와 여행 후기 <span>선택 사항</span></summary>
       <AudioGuidePlayer audio={plan?.audio} controller={audioGuide} />
