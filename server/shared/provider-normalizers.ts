@@ -16,13 +16,6 @@ export function normalizeItems(data: unknown): ProviderResult {
   return { items: items as ProviderItem[], total: Number(body.totalCount || items.length || 0) };
 }
 
-export function normalizeExpresswayItems(data: unknown): ProviderResult {
-  const root = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
-  const list = root.list || root.items || root.data;
-  const items = Array.isArray(list) ? list : list && typeof list === "object" ? [list] : [];
-  return { items: items as ProviderItem[], total: Number(root.count || root.totalCount || items.length || 0) };
-}
-
 function decodeXml(value: string) {
   return value
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")

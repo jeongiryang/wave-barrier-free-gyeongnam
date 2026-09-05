@@ -41,11 +41,15 @@ async function pageCheck(path) {
 }
 
 const checks = [];
-checks.push(await jsonCheck("configuration", "/api/health", (body) =>
-  body?.ok === true
-  && body?.scope === "configuration"
-  && Array.isArray(body?.keys)
-  && body.keys.every((key) => key.optional || key.state === "configured")));
+let configuredKeys = new Set();
+checks.push(await jsonCheck("configuration", "/api/health", (body) => {
+  const valid = body?.ok === true
+    && body?.scope === "configuration"
+    && Array.isArray(body?.keys)
+    && body.keys.every((key) => key.optional || key.state === "configured");
+  if (valid) configuredKeys = new Set(body.keys.filter((key) => key.state === "configured").map((key) => key.id));
+  return valid;
+}));
 checks.push(await jsonCheck("weather", "/api/weather?region=%EC%B0%BD%EC%9B%90", (body) =>
   body?.source === "Open-Meteo" && Array.isArray(body?.days) && body.days.length >= 3));
 checks.push(await jsonCheck("location", "/api/location-search?q=%EC%B0%BD%EC%9B%90%EC%8B%9C%EC%B2%AD", (body) =>
@@ -60,17 +64,23 @@ checks.push(await jsonCheck("route", "/api/route?startLng=128.6818&startLat=35.2
     && body.alternatives.some((route) => route.provider === "Kakao Mobility" && route.configured)
     && providers.get("korail")?.configured === true
     && ["ready", "connected"].includes(providers.get("korail")?.state)
-    && connectedPublicIds.every((id) => providers.get(id)?.state === "connected");
+    && connectedPublicIds.every((id) => providers.get(id)?.state === "connected")
+    && (!configuredKeys.has("odsay") || ["ready", "connected"].includes(providers.get("odsay")?.state));
 }, 90_000));
 checks.push(await jsonCheck("tourism:ko", "/api/wave?action=plan&region=%EA%B2%BD%EB%82%A8%20%EC%A0%84%EC%B2%B4&theme=nature&profiles=wheel&locale=ko", (body) =>
   Array.isArray(body?.statuses)
   && body.statuses.some((status) => status.id === "barrierfree" && status.state === "live")
+  && body.statuses.every((status) => status.state !== "error")
   && ((body?.places?.length || 0) + (body?.explorationPlaces?.length || 0) > 0), 90_000));
 checks.push(await jsonCheck("tourism:en", "/api/wave?action=plan&region=%EA%B2%BD%EB%82%A8%20%EC%A0%84%EC%B2%B4&theme=nature&profiles=wheel&locale=en", (body) =>
   Array.isArray(body?.statuses)
+  && body.statuses.every((status) => status.state !== "error")
   && body.statuses.some((status) => status.id === "tour" && status.state === "live" && status.count > 0), 90_000));
 checks.push(await jsonCheck("tourism:enrichment", "/api/wave?action=enrich&region=%EC%B0%BD%EC%9B%90&theme=nature&locale=ko", (body) =>
-  Array.isArray(body?.statuses) && body.statuses.some((status) => status.state === "live"), 90_000));
+  Array.isArray(body?.statuses)
+  && body.statuses.some((status) => status.state === "live")
+  && body.statuses.every((status) => status.state !== "error")
+  && (!configuredKeys.has("expressway") || ["live", "empty"].includes(body.statuses.find((status) => status.id === "rest")?.state)), 90_000));
 checks.push(await jsonCheck("tourism:region-photo", "/api/wave?action=photo&region=%EC%B0%BD%EC%9B%90", (body) =>
   Boolean(body?.photo) && body?.status?.state === "live", 30_000));
 checks.push(await jsonCheck("tourism:spot-photo", "/api/wave?action=spot-photo&region=%EC%B0%BD%EC%9B%90&title=%EA%B2%BD%EB%82%A8%EB%8F%84%EB%A6%BD%EB%AF%B8%EC%88%A0%EA%B4%80", (body) =>

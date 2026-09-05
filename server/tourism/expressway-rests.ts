@@ -1,7 +1,8 @@
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
+import { normalizeExpresswayResponse } from "../../lib/tourism/expressway-response.js";
 import type { Env } from "../shared/env";
 import { clean } from "../shared/http";
-import { normalizeExpresswayItems, type ProviderAttempt as Attempt } from "../shared/provider-data";
+import type { ProviderAttempt as Attempt, ProviderResult } from "../shared/provider-data";
 
 export async function fetchThemeRests(env: Env): Promise<Attempt> {
   const key = env.EXPRESSWAY_API_KEY?.trim();
@@ -13,7 +14,7 @@ export async function fetchThemeRests(env: Env): Promise<Attempt> {
       headers: { Accept: "application/json" },
     });
     if (!response.ok) throw new Error(`테마휴게소 응답 ${response.status}`);
-    return { ok: true, value: normalizeExpresswayItems(await response.json()) };
+    return { ok: true, value: normalizeExpresswayResponse(await response.json()) as ProviderResult };
   } catch (error) {
     return {
       ok: false,
