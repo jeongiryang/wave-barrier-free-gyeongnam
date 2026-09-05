@@ -2,6 +2,17 @@
 
 이 파일은 W.A.V.E 저장소에서 작업하는 모든 AI 에이전트와 자동화가 공유하는 최상위 운영 계약입니다.
 
+## 현재 실행 경계
+
+- 비용은 현재 ChatGPT/Codex 구독 포함 사용량만 허용한다. 별도 모델 API 키·종량제 호출·추가 크레딧·신규 유료 서비스는 금지한다.
+- 보존된 API 자동화 workflow를 활성화하거나 실행하지 않는다. 구독 인증은 로컬에만 두고 GitHub Actions·저장소·로그로 복사하지 않는다.
+- 구독 한도 또는 인증 문제가 발생하면 중단·대기한다. API 전환, 자동 충전, 재시도 폭주를 하지 않는다.
+
+- 유일한 PM 관제 채널은 사용자가 관리하는 현재 ChatGPT Work PM 채팅이다. 별도 자동화 구축 채팅을 만들지 않는다.
+- Engineering/Integration/QA Executor는 승인된 GitHub·코드·CI/CD·Production 기술 검증만 수행한다.
+- 공식 Notion/Gmail 조사, Compliance Matrix, 제품 우선순위/AC, Notion Control Center, 다음 작업 승인과 최종 GO는 PM 소관이다.
+- 필수 리뷰/branch protection 우회, Workspace Agent 생성·게시, Admin Access token 발급, 계정 설정, 법적 판단, 최종 제출, Release GO는 자동 완료하지 않는다.
+
 ## 권한 구조
 
 - **정이량 (`jeongiryang`)은 Repository Owner, Product Owner, PM, Release Authority다.**

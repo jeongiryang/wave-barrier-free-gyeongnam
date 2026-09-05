@@ -1,17 +1,14 @@
 name: CI
-
-on:
-  pull_request:
+'on':
+  pull_request: null
   push:
-    branches: [main]
-
+    branches:
+      - main
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
-
 permissions:
   contents: read
-
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -19,35 +16,41 @@ jobs:
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v7
-
       - name: Node.js 설정
         uses: actions/setup-node@v7
         with:
           node-version: 22
           check-latest: true
           cache: npm
-
       - name: 의존성 설치
         run: npm ci
+      - name: Workflow YAML, expressions and shell static checks
+        shell: bash
+        run: >-
+          set -euo pipefail
 
+          curl --fail --silent --show-error --location
+          https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz -o
+          "$RUNNER_TEMP/actionlint.tar.gz"
+
+          printf '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  %s\n' "$RUNNER_TEMP/actionlint.tar.gz" | sha256sum
+          --check
+
+          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
+
+          "$RUNNER_TEMP/actionlint" -oneline
       - name: 운영 의존성 보안 감사
         run: npm audit --omit=dev --audit-level=high
-
       - name: 정적 검사
         run: npm run lint
-
       - name: 타입 검사
         run: npm run typecheck
-
       - name: 회귀 테스트
         run: npm test
-
       - name: 브라우저 설치
         run: npx playwright install --with-deps chromium
-
       - name: 브라우저·접근성 회귀 테스트
         run: npm run test:e2e
-
       - name: 브라우저 검증 보고서 보관
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
@@ -56,7 +59,6 @@ jobs:
           path: playwright-report/
           retention-days: 7
           if-no-files-found: ignore
-
       - name: 화면 캡처와 오류 문맥 보관
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
@@ -67,9 +69,7 @@ jobs:
             test-results/**/*.md
           retention-days: 7
           if-no-files-found: ignore
-
       - name: Vercel용 빌드 검사
         run: npm run build:vercel
-
       - name: 빌드 성능 예산 검사
         run: npm run check:performance

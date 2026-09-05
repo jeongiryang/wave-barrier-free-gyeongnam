@@ -1,17 +1,25 @@
 version: 1
+cost_policy:
+  mode: subscription_included_usage_only
+  paid_model_api: prohibited
+  additional_credits: prohibited
+  subscription_credentials_in_ci: prohibited
+  api_automation: disabled
+  quota_or_auth_failure: stop_without_paid_fallback
+  scheduled_local_execution: not_verified
 project:
   name: W.A.V.E
   repository: jeongiryang/wave-barrier-free-gyeongnam
   production_url: https://wave-barrier-free-gyeongnam.vercel.app/
-
 authority:
   repository_owner: jeongiryang
   product_owner: jeongiryang
   pm: jeongiryang
   release_authority: jeongiryang
   contributors:
-    policy: "팀원은 Issue/PR/Review를 제출할 수 있으나 제품 정책·우선순위·Release Gate를 임의 변경하지 않는다."
-
+    policy: 팀원은 Issue/PR/Review를 제출할 수 있으나 제품 정책·우선순위·Release Gate를 임의 변경하지 않는다.
+  pm_control_channel: current_user_managed_chatgpt_work_pm_chat
+  separate_automation_chat: false
 sources_of_truth:
   execution: github
   pm_dashboard: notion
@@ -20,10 +28,9 @@ sources_of_truth:
     - gmail
     - official_announcements
   product_runtime: production
-
 agents:
   pm:
-    role: "PM Assistant / Orchestrator"
+    role: PM Assistant / Orchestrator
     responsibilities:
       - issue_triage
       - priority_and_scope
@@ -35,7 +42,7 @@ agents:
       - override_product_owner
       - claim_human_gate_complete_without_evidence
   engineering:
-    role: "Codex / Engineering Agent"
+    role: Codex / Engineering Agent
     responsibilities:
       - implement_ready_issues
       - tests
@@ -45,8 +52,14 @@ agents:
       - change_product_policy_without_issue_decision
       - bypass_required_checks
       - self_approve_final_release
+      - create_or_publish_workspace_agent
+      - issue_admin_access_token
+      - configure_gmail_notion_accounts
+      - final_legal_judgment
+      - final_competition_submission
+      - declare_release_go
   qa:
-    role: "Independent QA Agent"
+    role: Independent QA Agent
     responsibilities:
       - pr_validation
       - production_journey_validation
@@ -55,20 +68,19 @@ agents:
     prohibited:
       - mark_unverified_work_as_pass
   compliance:
-    role: "Competition Compliance Agent"
+    role: Competition Compliance Agent
     responsibilities:
       - monitor_official_sources
       - maintain_compliance_matrix
       - create_or_update_blockers
   submission:
-    role: "Submission Agent"
+    role: Submission Agent
     responsibilities:
       - readme_consistency
       - service_description
       - demo_script
       - presentation_inputs
       - submission_checklist
-
 issue_lifecycle:
   states:
     - reported
@@ -84,21 +96,18 @@ issue_lifecycle:
     - blocked-external
     - deferred
     - rejected
-
 priorities:
-  P0: "Launch/submission blocker, severe trust/security/accessibility/core-journey failure"
-  P1: "Must fix before submission"
-  P2: "Meaningful quality improvement"
-  P3: "Polish / follow-up"
-
+  P0: Launch/submission blocker, severe trust/security/accessibility/core-journey failure
+  P1: Must fix before submission
+  P2: Meaningful quality improvement
+  P3: Polish / follow-up
 handoff:
   primary_transport: github
   rules:
-    - "Issue 번호가 개발 작업의 기본 handoff token이다."
-    - "PR 번호가 구현 검토/QA의 기본 handoff token이다."
-    - "사람에게 프롬프트 복사·붙여넣기를 요구하는 방식은 fallback으로만 사용한다."
-    - "채팅 context보다 GitHub 기록과 .wave 상태를 우선한다."
-
+    - Issue 번호가 개발 작업의 기본 handoff token이다.
+    - PR 번호가 구현 검토/QA의 기본 handoff token이다.
+    - 사람에게 프롬프트 복사·붙여넣기를 요구하는 방식은 fallback으로만 사용한다.
+    - 채팅 context보다 GitHub 기록과 .wave 상태를 우선한다.
 human_gates:
   - final_competition_submission
   - participant_eligibility_confirmation
@@ -107,7 +116,6 @@ human_gates:
   - destructive_data_operation
   - legal_final_judgment
   - branch_protection_bypass
-
 release_status:
   allowed:
     - NO_GO

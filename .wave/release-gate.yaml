@@ -2,12 +2,10 @@ version: 1
 status: NO_GO
 last_evaluated_at: null
 last_evaluated_commit: null
-
 policy:
   go_requires_all_required_gates: true
   unknown_required_gate_blocks_go: true
   human_gate_cannot_be_auto_completed: true
-
 gates:
   blockers:
     required: true
@@ -18,24 +16,32 @@ gates:
       submission_required_p1_open:
         operator: equals
         expected: 0
-
   engineering:
     required: true
     checks:
+      ci: UNKNOWN
+      build: UNKNOWN
+      dependency_security: UNKNOWN
+      e2e: UNKNOWN
+      accessibility_automated: UNKNOWN
+    expected:
       ci: PASS
       build: PASS
       dependency_security: PASS
       e2e: PASS
       accessibility_automated: PASS
-
   production:
     required: true
     checks:
+      deployment: UNKNOWN
+      health: UNKNOWN
+      api_smoke: UNKNOWN
+      critical_journey_qa: UNKNOWN
+    expected:
       deployment: PASS
       health: PASS
       api_smoke: PASS
       critical_journey_qa: PASS
-
   compliance:
     required: true
     checks:
@@ -45,7 +51,6 @@ gates:
       tourism_data_usage: UNKNOWN
       copyright_and_licenses: UNKNOWN
       privacy_and_terms: UNKNOWN
-
   submission:
     required: true
     checks:
@@ -55,7 +60,6 @@ gates:
       demo_script: UNKNOWN
       presentation: UNKNOWN
       final_checklist: UNKNOWN
-
   human:
     required: true
     auto_complete: false
@@ -64,18 +68,18 @@ gates:
       actual_application_category: WAITING
       final_real_device_visual_check: WAITING
       final_submission_and_receipt: WAITING
-
 status_rules:
   NO_GO:
-    - "required gate has FAIL"
-    - "P0 > 0"
-    - "critical compliance requirement unresolved and submission cannot safely proceed"
+    - required gate has FAIL
+    - P0 > 0
+    - critical compliance requirement unresolved and submission cannot safely proceed
   CONDITIONAL_GO:
-    - "automated/technical gates pass but one or more explicit human/external gates remain"
-    - "non-critical UNKNOWN remains with documented owner"
+    - automated/technical gates pass but one or more explicit human/external gates remain
+    - non-critical UNKNOWN remains with documented owner
   GO:
-    - "all required automated gates PASS"
-    - "P0 = 0"
-    - "submission-required P1 = 0"
-    - "all required compliance checks PASS"
-    - "all required human gates confirmed"
+    - all required automated gates PASS
+    - P0 = 0
+    - submission-required P1 = 0
+    - all required compliance checks PASS
+    - all required human gates confirmed
+authority: Current user-managed ChatGPT Work PM chat; Engineering supplies evidence, never GO
