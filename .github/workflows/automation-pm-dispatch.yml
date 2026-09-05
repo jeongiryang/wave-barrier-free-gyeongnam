@@ -15,8 +15,10 @@ concurrency:
 jobs:
   dispatch:
     if: >-
-      github.event.action == 'opened' ||
-      github.event.action == 'reopened' ||
+      (
+        (github.event.action == 'opened' || github.event.action == 'reopened') &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+      ) ||
       (github.event.action == 'labeled' && github.event.label.name == 'status:triage')
     runs-on: ubuntu-latest
     timeout-minutes: 5
