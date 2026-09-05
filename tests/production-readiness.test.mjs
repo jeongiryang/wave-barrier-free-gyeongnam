@@ -459,7 +459,7 @@ test("travel conditions require explicit search and keep previous results during
   assert.match(request, /planRequestRef\.current\?\.abort\(\)/);
   assert.match(request, /signal: controller\.signal/);
   assert.match(request, /resultSignature !== signature/);
-  assert.match(request, /if \(!region \|\| !theme \|\| !selected.length \|\| loading\) return false/);
+  assert.match(request, /if \(!region \|\| !requestedTheme \|\| !selected.length \|\| loading\) return false/);
   assert.doesNotMatch(request, /setPlan\(null\)/);
 });
 

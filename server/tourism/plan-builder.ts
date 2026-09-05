@@ -14,7 +14,7 @@ import { readPlanQuery } from "./plan-query";
 import { mergePlaces } from "./provider-model";
 import { fetchPhoto, photoFrom } from "./photos";
 import { recordOperationalEvent } from "../shared/observability";
-import { PLAN_TOTAL_BUDGET_MS, budgetClock, withinBudget } from "../../lib/request-budget.js";
+import { PLAN_TOTAL_BUDGET_MS, budgetClock, withinBudget, eachWithinBudget } from "../../lib/request-budget.js";
 import { mergeThemeResults } from "../../lib/planner-criteria.js";
 import { contentTypes, multilingualContentTypes } from "./catalog";
 
@@ -26,38 +26,40 @@ export async function buildPlan(request: Request, env: Env) {
   // 월별 반복 조회를 포함한 전체 상류 작업을 하나의 요청 예산으로 묶는다.
   // 시간이 모자라면 이미 확인한 공식 결과만 사용하고 나머지는 확인 필요로 남긴다.
   const remaining = budgetClock(PLAN_TOTAL_BUDGET_MS);
+  const startedAt = Date.now();
+  const optionalRemaining = budgetClock(2_000);
 
   const fetchThemes = async (service: string, params: typeof barrierLocationParams, localized = false): Promise<Attempt> => {
-    const results = await Promise.all(themes.map((theme) => fetchRegionalList(env, service, "areaBasedList2", {
+    const results = await eachWithinBudget(themes.map((theme) => fetchRegionalList(env, service, "areaBasedList2", {
       ...params, contentTypeId: localized && locale !== "ko" ? multilingualContentTypes[theme] : contentTypes[theme],
-    }, districts)));
+    }, districts)), Math.min(6_000, remaining()), overBudget);
     const successes = results.filter((result) => result.ok);
     if (!successes.length) return results[0] || overBudget();
     const items = mergeThemeResults(successes.map((result) => result.ok ? result.value.items : []));
     return { ok: true, value: { items, total: items.length } };
   };
 
-  const [barrier, tour, durunubi, hubPack, photo] = await withinBudget(Promise.all([
+  // 사진·통계가 느려도 장소 목록과 편의시설 상세 조회는 곧바로 이어진다.
+  const optionalSources = Promise.all([
+    withinBudget(attempt(fetchKto(env, "Durunubi", "courseList", {
+      ...commonParams("10"), brdDiv: "DNWW", crsLevel: "1", ...(region !== "경남 전체" ? { crsKorNm: region } : {}),
+    })), optionalRemaining(), overBudget),
+    withinBudget(fetchHub(env, region, optionalRemaining), optionalRemaining(), () => ({ result: overBudget(), baseYm: "" })),
+    withinBudget(fetchPhoto(env, region), optionalRemaining(), overBudget),
+    withinBudget(fetchRelated(env, region, "", optionalRemaining), optionalRemaining(), () => ({ result: overBudget(), baseYm: "" })),
+  ]);
+  const [barrier, tour] = await eachWithinBudget([
     fetchThemes("KorWithService2", barrierLocationParams),
     fetchThemes(language.service, localizedLocationParams, true),
-    attempt(fetchKto(env, "Durunubi", "courseList", {
-      ...commonParams("10"), brdDiv: "DNWW", crsLevel: "1", ...(region !== "경남 전체" ? { crsKorNm: region } : {}),
-    })),
-    fetchHub(env, region),
-    fetchPhoto(env, region),
-  ]), remaining(), () => [
-    overBudget(), overBudget(), overBudget(),
-    { result: overBudget(), baseYm: "" },
-    overBudget(),
-  ] as const);
+  ], Math.min(6_000, remaining()), overBudget);
 
   const baseItems = mergePlaces(barrier.ok ? barrier.value.items : [], tour.ok ? tour.value.items : []).slice(0, 12);
-  const details = await withinBudget(
-    Promise.all(baseItems.map((item) => attempt(fetchKto(env, "KorWithService2", "detailWithTour2", {
+  const details = await eachWithinBudget(
+    baseItems.map((item) => attempt(fetchKto(env, "KorWithService2", "detailWithTour2", {
       ...commonParams("1"), contentId: clean(item.contentid),
-    })))),
+    }))),
     remaining(),
-    () => baseItems.map(overBudget),
+    overBudget,
   );
   // 원본 API의 인기 정렬보다 사용자가 선택한 편의조건의 공식 확인 근거를 우선한다.
   const rankedPlaces = sortPlacesByEvidence(baseItems
@@ -67,15 +69,11 @@ export async function buildPlan(request: Request, env: Env) {
   const { recommended: places, exploration: explorationPlaces } = partitionPlacesByEvidence(rankedPlaces);
 
   const firstTitle = places[0]?.name || explorationPlaces[0]?.name || region;
-  const [audio, relatedPack, crowd] = await withinBudget(Promise.all([
+  const [audio, crowd] = await eachWithinBudget([
     attempt(fetchKto(env, "Odii", "storySearchList", { ...commonParams("5"), langCode: language.audio, keyword: firstTitle })),
-    fetchRelated(env, region, hubPack.baseYm),
     fetchCrowd(env, region, firstTitle),
-  ]), remaining(), () => [
-    overBudget(),
-    { result: overBudget(), baseYm: hubPack.baseYm },
-    overBudget(),
-  ] as const);
+  ], Math.min(2_000, remaining()), overBudget);
+  const [durunubi, hubPack, photo, relatedPack] = await optionalSources;
   const course = courseFrom(durunubi);
   const stops = buildPlanStops(places);
   const { statuses, mode } = buildPlanStatuses({
@@ -111,6 +109,7 @@ export async function buildPlan(request: Request, env: Env) {
     images: places.filter((place) => Boolean(place.image)).length,
     providersOk: statuses.filter((status) => status.state === "live").length,
     providersFailed: statuses.filter((status) => status.state === "error").length,
+    elapsedMs: Date.now() - startedAt,
   });
   return result;
 }

@@ -705,7 +705,7 @@ test("the wave canvas delegates React lifecycle, canvas engine, motion math and 
     source("features/motion/wave-model.ts"),
     source("features/motion/intro-masks.ts"),
   ]);
-  assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion \}\)/);
+  assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion \}, replay\)/);
   assert.doesNotMatch(wave, /useEffect|requestAnimationFrame|createIntroMasks/);
   assert.match(renderer, /startWaveFieldRenderer\(canvas/);
   assert.doesNotMatch(renderer, /requestAnimationFrame|createIntroMasks|putImageData/);

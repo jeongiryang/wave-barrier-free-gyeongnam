@@ -10,7 +10,7 @@ export default function LandingHero({ t }: { t: LandingTranslate }) {
   const [sequence, setSequence] = useState(0);
   const en = locale === "en";
   return <section className="landing-hero" id="top">
-    <WaveField key={sequence} className="hero-wave-canvas" tone="light" mode="intro" />
+    <WaveField replay={sequence} className="hero-wave-canvas" tone="light" mode="intro" />
     <div className="landing-hero-copy" data-land-reveal>
       <p><span className="access-badge"><AccessIcon name="mark" size={18} />{t("heroBadge", "경남 무장애 여행 설계")}</span></p>
       <h1>{t("heroTitle", "내 조건에서 시작해,")}<br /><em>{t("heroEm", "갈 수 있는 하루를 설계합니다.")}</em></h1>

@@ -119,6 +119,7 @@ export default function PlannerPage() {
     travelStart,
     theme,
     activePlaces,
+    savedPlaceIds: saved,
     routeDestination,
     destinationCrowd,
     transportProviders,
@@ -133,12 +134,29 @@ export default function PlannerPage() {
     pointPicker,
     routeDestination,
     activePlaces,
-    impactAlternative,
+    onCultureSearch: async () => {
+      if (planController.loading) return;
+      setTheme("history");
+      stageView.changeStep("conditions");
+      const success = await runPlan({ resetRouteData, resetAudio, requestedTheme: "history" });
+      if (success) stageView.changeStep("places");
+    },
+    onReplaceAlternative: () => {
+      const target = tripSelection.orderedSavedPlaces.find((place) => (scheduleAssignments[place.id] || tripSelection.tripDays[0]) === tripSelection.activeDay);
+      if (!target || !impactAlternative || !planController.resultCurrent) return;
+      const message = locale === "en"
+        ? `Replace ${target.name} with ${impactAlternative.name}? The date and order will stay the same. Lower crowd levels and accessibility are not confirmed for this alternative; check its facility information before visiting.`
+        : `${target.name} 대신 ${impactAlternative.name}을 일정에 넣을까요? 날짜와 순서는 유지합니다. 대안의 혼잡도와 이동 편의가 더 낫다는 뜻은 아니므로 방문 전에 시설 정보를 확인해 주세요.`;
+      if (!window.confirm(message)) return;
+      if (tripSelection.replaceSavedPlace(target.id, impactAlternative)) {
+        resetRouteData();
+        setNotice(locale === "en" ? "Place replaced. Check the updated itinerary and route." : "선택한 장소로 바꿨어요. 갱신된 일정과 경로를 확인해 주세요.");
+        stageView.changeStep("itinerary");
+      }
+    },
     updateOrigin,
     loadRoutes,
     clearLocationSearch,
-    setTheme,
-    setNotice,
     setRouteNotice,
   });
 

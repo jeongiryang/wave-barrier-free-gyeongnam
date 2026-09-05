@@ -99,6 +99,14 @@ export function useTripSchedule() {
     });
   }, []);
 
+  const replacePlaceAssignment = useCallback((previousId: string, nextId: string) => {
+    setScheduleAssignments((current) => {
+      const next = { ...current, [nextId]: current[previousId] || tripDays[0] || travelStart };
+      delete next[previousId];
+      return next;
+    });
+  }, [travelStart, tripDays]);
+
   return {
     travelStart,
     travelEnd,
@@ -111,5 +119,6 @@ export function useTripSchedule() {
     assignPlaceToDay,
     ensurePlaceAssignment,
     removePlaceAssignment,
+    replacePlaceAssignment,
   };
 }

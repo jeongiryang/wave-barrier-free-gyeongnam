@@ -35,6 +35,8 @@ test("intro replays without blocking the planning link or moving keyboard focus"
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator(".landing-actions").getByRole("link", { name: /내 여행 설계하기/ })).toBeVisible();
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(replay).toBeFocused();
   await replay.press("Enter");
   await expect(replay).toBeFocused();
 });
@@ -78,7 +80,45 @@ for (const width of [280, 320, 390, 768, 1024, 1366, 1920, 2560]) {
     await mockPlannerApi(page, { plannerView: "guided" });
     await page.goto("/planner");
     await expect(page.getByRole("heading", { name: "어디로 갈까요?", exact: true })).toBeVisible();
+    const header = await page.locator(".site-header").boundingBox();
+    const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
+    expect(heading!.y).toBeGreaterThanOrEqual(header!.y + header!.height);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: test.info().outputPath(`questions-${width}.png`), fullPage: true });
   });
 }
+
+test("rain response runs a new search and preserves accessibility needs and saved places", async ({ page }) => {
+  await mockPlannerApi(page);
+  await page.route("**/api/weather?*", async (route) => route.fulfill({ json: {
+    source: "기상 정보", updatedAt: "2026-09-05T09:00:00Z",
+    current: { temperature: 23, apparent: 23, code: 61, label: "비", wind: 2, precipitation: 3, isDay: true },
+    days: [{ date: "2026-10-08", code: 61, label: "비", max: 24, min: 20, rainProbability: 80, rain: 3, snow: 0, uv: 2, advice: [] }], advice: [],
+  } }));
+  await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.locator("#layers > summary").click();
+  const request = page.waitForRequest((item) => item.url().includes("action=plan") && new URL(item.url()).searchParams.get("themes") === "history");
+  await page.getByRole("button", { name: /역사·문화 후보로 다시 찾기/ }).click();
+  expect(new URL((await request).url()).searchParams.get("profiles")).toBe("wheel");
+  await expect(page.getByRole("button", { name: "경남도립미술관 일정에서 제거", exact: true }).first()).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
+});
+
+test("a confirmed crowd alternative replaces the itinerary instead of an unrelated map-only route", async ({ page }) => {
+  await mockPlannerApi(page);
+  await page.route("**/api/wave?action=crowd*", (route) => route.fulfill({ json: { crowd: { rate: 80, baseYmd: "20260905", place: "경남도립미술관" } } }));
+  await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.locator("#layers > summary").click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: /용지호수공원.*교체 검토/ }).click();
+  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await expect(page.locator(".day-planner-grid li")).toContainText("용지호수공원");
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1002"]);
+  const schedule = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-trip-schedule-v1") || "{}"));
+  expect(schedule.scheduleAssignments).toEqual({ "1002": "2026-10-08" });
+  await expect(page.locator(".route-scope-note").first()).toContainText("일정 1곳");
+});

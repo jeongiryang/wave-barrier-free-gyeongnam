@@ -8,10 +8,11 @@ import {
 import { regionCodes } from "./catalog";
 import { previousMonth } from "./date-utils";
 
-export async function fetchHub(env: Env, region: string) {
+export async function fetchHub(env: Env, region: string, remaining: () => number = () => Infinity) {
   const codes = regionCodes[region]?.full?.length ? regionCodes[region].full : regionCodes["창원"].full;
   let last: Attempt = { ok: true, value: { items: [], total: 0 } };
   for (let offset = 2; offset <= 14; offset += 1) {
+    if (remaining() <= 0) break;
     const baseYm = previousMonth(offset);
     const results = await Promise.all(codes.map((code) => attempt(fetchKto(env, "LocgoHubTarService1", "areaBasedList1", {
       ...commonParams("6"), baseYm, areaCd: "48", signguCd: code,
@@ -26,11 +27,12 @@ export async function fetchHub(env: Env, region: string) {
   return { result: last, baseYm: "" };
 }
 
-export async function fetchRelated(env: Env, region: string, preferredYm = "") {
+export async function fetchRelated(env: Env, region: string, preferredYm = "", remaining: () => number = () => Infinity) {
   const codes = regionCodes[region]?.full?.length ? regionCodes[region].full : regionCodes["창원"].full;
   const months = [...new Set([preferredYm, ...Array.from({ length: 12 }, (_, index) => previousMonth(index + 2))].filter(Boolean))];
   let last: Attempt = { ok: true, value: { items: [], total: 0 } };
   for (const baseYm of months) {
+    if (remaining() <= 0) break;
     const results = await Promise.all(codes.map((code) => attempt(fetchKto(env, "TarRlteTarService1", "areaBasedList1", {
       ...commonParams("10"), baseYm, areaCd: "48", signguCd: code,
     }))));

@@ -60,7 +60,8 @@ test("한 장소 일정은 불가능한 순서 동작을 모두 비활성화한�
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
   await expect(itinerary.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동" })).toBeDisabled();
   await expect(itinerary.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동" })).toBeDisabled();
-  await expect(itinerary.getByText(/확인된 편의시설 100%/)).toBeVisible();
+  await expect(itinerary.getByText(/공식 정보 4개 기록 · 방문 전 재확인/)).toBeVisible();
+  await expect(itinerary.locator(".day-evidence")).not.toContainText("%");
 });
 
 test("다른 지역으로 이동해도 이전 지역 장소가 날짜별 일정에 남는다", async ({ page }) => {

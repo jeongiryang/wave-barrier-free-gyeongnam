@@ -10,6 +10,7 @@ import { criteriaSignature } from "../../../lib/planner-criteria.js";
 interface PlanRunOptions {
   resetRouteData: () => void;
   resetAudio: () => void;
+  requestedTheme?: string;
 }
 
 export function usePlanRequest({ locale, region, selected, theme }: { locale: string; region: string; selected: string[]; theme: string }) {
@@ -21,24 +22,27 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   const signature = criteriaSignature({ region, themes: theme, selected, locale });
   const dirty = Boolean(plan && resultSignature !== signature);
   const planRequestRef = useRef<AbortController | null>(null);
+  const requestSignatureRef = useRef("");
 
   const abortPlan = useCallback(() => { planRequestRef.current?.abort(); }, []);
-  const runPlan = useCallback(async ({ resetRouteData, resetAudio }: PlanRunOptions, revealResults = true) => {
-    if (!region || !theme || !selected.length || loading) return false;
+  const runPlan = useCallback(async ({ resetRouteData, resetAudio, requestedTheme = theme }: PlanRunOptions, revealResults = true) => {
+    if (!region || !requestedTheme || !selected.length || loading) return false;
     planRequestRef.current?.abort();
     const controller = new AbortController();
     planRequestRef.current = controller;
+    const requestedSignature = criteriaSignature({ region, themes: requestedTheme, selected, locale });
+    requestSignatureRef.current = requestedSignature;
     setLoading(true);
     setPlanError("");
     setNotice(locale === "en" ? "Finding places with information about your needs." : "필요한 편의가 확인된 여행지를 찾고 있어요.");
     try {
-      const params = new URLSearchParams({ action: "plan", region, themes: theme, profiles: selected.join(","), locale });
+      const params = new URLSearchParams({ action: "plan", region, themes: requestedTheme, profiles: selected.join(","), locale });
       const data = await plannerJson<PlanData>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.plan });
       if (controller.signal.aborted) return false;
       resetAudio();
       resetRouteData();
       setPlan(data);
-      setResultSignature(signature);
+      setResultSignature(requestedSignature);
       const available = data.statuses.some((status) => status.state === "live");
       setNotice(available ? "공식 관광정보를 확인해 추천을 업데이트했습니다." : "공식 데이터에서 현재 조건에 맞는 결과를 확인하지 못했습니다.");
       if (revealResults) window.setTimeout(() => scrollToSection("places"), 80);
@@ -55,10 +59,10 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
         setLoading(false);
       }
     }
-  }, [locale, region, selected, theme, signature, loading]);
+  }, [locale, region, selected, theme, loading]);
 
   useEffect(() => {
-    planRequestRef.current?.abort();
+    if (requestSignatureRef.current !== signature) planRequestRef.current?.abort();
   }, [signature]);
 
   useEffect(() => () => { planRequestRef.current?.abort(); }, []);
