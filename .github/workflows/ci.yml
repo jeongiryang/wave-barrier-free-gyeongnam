@@ -29,6 +29,9 @@ jobs:
       - name: 운영 의존성 보안 감사
         run: npm audit --omit=dev --audit-level=high
 
+      - name: 전체 개발 도구 보안 감사
+        run: npm audit --audit-level=moderate
+
       - name: 정적 검사
         run: npm run lint
 
