@@ -1,0 +1,92 @@
+name: Automation Failure Router
+
+on:
+  workflow_run:
+    workflows: ["CI", "CD", "Production API Smoke"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+concurrency:
+  group: automation-failure-router-${{ github.event.workflow_run.name }}
+  cancel-in-progress: false
+
+jobs:
+  route-failure:
+    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 실패를 GitHub Issue로 환류
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const marker = `<!-- wave-automation-failure:${run.name} -->`;
+            const title = `[Automation][${run.name}] workflow failure`;
+            const occurredAt = run.updated_at || run.created_at || new Date().toISOString();
+            const details = [
+              marker,
+              "## 자동 감지된 workflow 실패",
+              "",
+              `- Workflow: **${run.name}**`,
+              `- Conclusion: **${run.conclusion || "unknown"}**`,
+              `- Event: \`${run.event || "unknown"}\``,
+              `- Branch: \`${run.head_branch || "unknown"}\``,
+              `- SHA: \`${run.head_sha || "unknown"}\``,
+              `- 발생/갱신 시각: ${occurredAt}`,
+              `- Run: ${run.html_url}`,
+              "",
+              "이 Issue는 GitHub Actions가 자동 생성/갱신했습니다.",
+              "Secret 또는 전체 로그 원문은 복제하지 않습니다. 원인 분석은 Run 링크와 저장소 상태를 기준으로 수행하세요.",
+              "",
+              "### 다음 처리",
+              "1. PM/QA가 실패가 실제 Release 영향이 있는지 triage",
+              "2. 코드 수정이 필요하면 Engineering queue로 전달",
+              "3. 수정 PR의 최신 CI와 Production 영향 검증",
+              "4. 성공한 단일 재실행만으로 이 Issue를 자동 종료하지 않음",
+            ].join("\n");
+
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              ...context.repo,
+              state: "open",
+              labels: "bug",
+              per_page: 100,
+            });
+
+            const existing = openIssues.find((issue) =>
+              !issue.pull_request &&
+              issue.title === title &&
+              (issue.body || "").includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: existing.number,
+                body: [
+                  "## 반복 실패 감지",
+                  "",
+                  `- Conclusion: **${run.conclusion || "unknown"}**`,
+                  `- Branch: \`${run.head_branch || "unknown"}\``,
+                  `- SHA: \`${run.head_sha || "unknown"}\``,
+                  `- 시각: ${occurredAt}`,
+                  `- Run: ${run.html_url}`,
+                ].join("\n"),
+              });
+              core.info(`기존 Issue #${existing.number}에 반복 실패를 기록했습니다.`);
+              return;
+            }
+
+            const created = await github.rest.issues.create({
+              ...context.repo,
+              title,
+              body: details,
+              labels: ["bug"],
+              assignees: ["jeongiryang"],
+            });
+
+            core.info(`Issue #${created.data.number}를 생성했습니다.`);
