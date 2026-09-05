@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Issue lifecycle과 Agent queue 동기화
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # actions/github-script@v8
         with:
           script: |
             const issueNumber = context.issue.number;
@@ -146,15 +146,13 @@ jobs:
             }
 
             if (action === "opened" || action === "reopened") {
-              await routeStatus("status:triage");
+              const current = await currentLabelNames();
+              if (!current.some(name => name.startsWith('status:'))) await routeStatus("status:triage");
 
               const names = await currentLabelNames();
               const hasPriority = names.some((name) => name.startsWith("priority:"));
               if (!hasPriority) {
-                const match = (context.payload.issue.title || "").match(/\[P([0-3])\]/i);
-                const priority = match
-                  ? `priority:P${match[1]}`
-                  : "priority:untriaged";
+                const priority = "priority:untriaged";
                 await github.rest.issues.addLabels({
                   ...context.repo,
                   issue_number: issueNumber,
@@ -165,5 +163,8 @@ jobs:
             }
 
             if (action === "labeled" && eventLabel.startsWith("status:")) {
+              // An older queued label event must not overwrite a newer PM state.
+              const names = await currentLabelNames();
+              if (!names.includes(eventLabel)) return;
               await routeStatus(eventLabel);
             }
