@@ -12,14 +12,16 @@ export function useRegionWeather(region: string) {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     const frame = window.requestAnimationFrame(() => {
+      if (!region) { setWeather(null); setWeatherLoading(false); return; }
       setWeatherLoading(true);
       setWeather(null);
-      void optionalPlannerJson<WeatherData>(`/api/weather?region=${encodeURIComponent(region)}`)
+      void optionalPlannerJson<WeatherData>(`/api/weather?region=${encodeURIComponent(region)}`, { signal: controller.signal })
         .then((data) => { if (!cancelled && data) setWeather(data); })
         .finally(() => { if (!cancelled) setWeatherLoading(false); });
     });
-    return () => { cancelled = true; window.cancelAnimationFrame(frame); };
+    return () => { cancelled = true; controller.abort(); window.cancelAnimationFrame(frame); };
   }, [region, requestVersion]);
 
   return { weather, weatherLoading, reloadWeather };

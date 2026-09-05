@@ -12,6 +12,7 @@ export interface JourneyStep {
   label: string;
   detail: string;
   complete: boolean;
+  available: boolean;
 }
 
 interface JourneyProgressOptions {
@@ -24,6 +25,9 @@ interface JourneyProgressOptions {
   savedCount: number;
   routeDestinationName: string;
   weatherReady: boolean;
+  searched?: boolean;
+  reviewed?: boolean;
+  itineraryReviewed?: boolean;
 }
 
 const STEP_IDS: JourneyStepId[] = ["conditions", "places", "itinerary", "departure-readiness"];
@@ -37,6 +41,9 @@ export function useJourneyProgress({
   savedCount,
   routeDestinationName,
   weatherReady,
+  searched = false,
+  reviewed = false,
+  itineraryReviewed = false,
 }: JourneyProgressOptions) {
   const steps = useMemo<JourneyStep[]>(() => [
     {
@@ -44,30 +51,34 @@ export function useJourneyProgress({
       index: 1,
       label: "조건",
       detail: selectedProfileCount ? `편의 ${selectedProfileCount}개 선택` : "필요한 편의를 선택",
-      complete: selectedProfileCount > 0,
+      complete: searched,
+      available: true,
     },
     {
       id: "places",
       index: 2,
       label: "여행지",
       detail: recommendedCount ? `공식 근거 추천 ${recommendedCount}곳` : "공식 추천을 확인",
-      complete: savedCount > 0,
+      complete: recommendedCount > 0 && savedCount > 0,
+      available: searched,
     },
     {
       id: "itinerary",
       index: 3,
       label: "이 기기 일정",
       detail: savedCount ? `${savedCount}곳을 일정에 저장` : "장소를 일정에 추가",
-      complete: savedCount > 0 && Boolean(routeDestinationName),
+      complete: savedCount > 0 && itineraryReviewed,
+      available: searched && recommendedCount > 0 && savedCount > 0,
     },
     {
       id: "departure-readiness",
       index: 4,
       label: "출발 확인",
       detail: weatherReady && routeDestinationName ? "날씨·경로를 불러옴" : "최신 정보를 재확인",
-      complete: savedCount > 0 && Boolean(routeDestinationName) && weatherReady,
+      complete: savedCount > 0 && itineraryReviewed && reviewed,
+      available: searched && recommendedCount > 0 && savedCount > 0,
     },
-  ], [recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady]);
+  ], [recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady, searched, reviewed, itineraryReviewed]);
 
   useEffect(() => {
     if (!observeSections) return;
@@ -86,13 +97,23 @@ export function useJourneyProgress({
   }, [observeSections, onActiveStepChange]);
 
   const goToStep = useCallback((id: JourneyStepId) => {
+    if (!observeSections && !steps.find((step) => step.id === id)?.available) return false;
     onActiveStepChange(id);
     if (typeof window === "undefined") return false;
+    if (window.location.hash !== `#${id}`) {
+      const url = new URL(window.location.href);
+      url.hash = id;
+      window.history.pushState(null, "", url);
+    }
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => scrollToSection(id, motion === "calm"));
     });
     return true;
-  }, [motion, onActiveStepChange]);
+  }, [motion, onActiveStepChange, observeSections, steps]);
+
+  useEffect(() => {
+    if (!observeSections && !steps.find((step) => step.id === activeStepId)?.available) onActiveStepChange(searched ? "places" : "conditions");
+  }, [activeStepId, observeSections, onActiveStepChange, searched, steps]);
 
   const completedCount = steps.filter((step) => step.complete).length;
   const nextStep = steps.find((step) => !step.complete) || steps.at(-1)!;

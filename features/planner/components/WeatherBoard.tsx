@@ -1,4 +1,5 @@
 import type { WeatherData } from "../types";
+import WeatherVisual from "./WeatherVisual";
 
 interface WeatherBoardProps {
   region: string;
@@ -18,7 +19,7 @@ export default function WeatherBoard({ region, weather, loading }: WeatherBoardP
       <div className="weather-current">
         <small>현재 여행 날씨 · {weather.source}</small>
         <div>
-          <span className={`weather-symbol code-${weather.current.code}`} aria-hidden="true" />
+          <WeatherVisual code={weather.current.code} />
           <strong>{Math.round(weather.current.temperature)}°</strong>
           <p><b>{weather.current.label}</b><span>체감 {Math.round(weather.current.apparent)}° · 바람 {weather.current.wind.toFixed(1)}km/h</span></p>
         </div>
@@ -27,7 +28,7 @@ export default function WeatherBoard({ region, weather, loading }: WeatherBoardP
       <div className="weather-days">{weather.days.map((day, index) => (
         <article className="weather-day" key={day.date}>
           <small>{index === 0 ? "오늘" : new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(new Date(`${day.date}T12:00:00`))}</small>
-          <span className={`weather-symbol code-${day.code}`} aria-hidden="true" />
+          <WeatherVisual code={day.code} />
           <strong>{Math.round(day.max)}° <em>{Math.round(day.min)}°</em></strong>
           <p>비 {Math.round(day.rainProbability)}% · UV {day.uv.toFixed(0)}</p>
           {day.snow > 0 && <b>눈 {day.snow.toFixed(1)}cm</b>}

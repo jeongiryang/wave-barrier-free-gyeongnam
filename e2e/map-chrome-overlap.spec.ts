@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 /**
  * 지도 연결이 실패하면 배지에 "기본 지도 다시 연결" 버튼이 붙는다. 지도 명령 바가
@@ -16,6 +16,7 @@ test("대체 지도 재연결 버튼을 지도 명령 바가 덮지 않는다", 
   for (const width of WIDTHS) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/planner");
+  await chooseTripConditions(page);
     await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
     await expect(page.getByRole("button", { name: "기본 지도 다시 연결" })).toBeVisible();
     await page.waitForTimeout(900);

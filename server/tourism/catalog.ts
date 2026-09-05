@@ -51,12 +51,6 @@ export const multilingualContentTypes: Record<string, string> = {
 export const languageServices: Record<string, { service: string; name: string; source: string; audio: string }> = {
   ko: { service: "KorService2", name: "국문 관광정보", source: "한국어", audio: "ko" },
   en: { service: "EngService2", name: "영문 관광정보", source: "English", audio: "en" },
-  ja: { service: "JpnService2", name: "일문 관광정보", source: "日本語", audio: "ja" },
-  "zh-Hans": { service: "ChsService2", name: "중문 간체 관광정보", source: "简体中文", audio: "zh" },
-  "zh-Hant": { service: "ChtService2", name: "중문 번체 관광정보", source: "繁體中文", audio: "zh" },
-  fr: { service: "FreService2", name: "불문 관광정보", source: "Français", audio: "en" },
-  de: { service: "GerService2", name: "독문 관광정보", source: "Deutsch", audio: "en" },
-  ru: { service: "RusService2", name: "노어 관광정보", source: "Русский", audio: "ru" },
 };
 
 export const profileFields: Record<string, Array<[string, string]>> = {

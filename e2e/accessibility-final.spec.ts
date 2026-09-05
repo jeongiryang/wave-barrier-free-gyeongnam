@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
 
 test("OS 동작 줄이기는 저장된 full보다 우선하고 부분 번역 중 문서 언어는 한국어를 유지한다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -81,6 +81,7 @@ test("지도 도구 패널은 컨트롤 관계와 Escape 초점 복귀를 유지
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await chooseTripConditions(page);
 
   const trigger = page.locator(".map-command-bar").getByRole("button", { name: /출발·도착/ });
   await trigger.scrollIntoViewIfNeeded();
@@ -102,9 +103,18 @@ test("스크롤로 숨은 플래너 헤더는 키보드 초점이 오면 복귀�
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await page.getByRole("heading", { name: "경남도립미술관" }).first().waitFor();
 
   const header = page.locator(".site-header");
+  // Result navigation can place the viewport below 1500px. Establish a downward
+  // scroll after that navigation, rather than accidentally testing an upward one.
+  await page.waitForTimeout(200);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  // The header's animation-frame scroll handler must observe the reset before
+  // the next scroll; scrollY changes synchronously before that handler runs.
+  await expect(header).not.toHaveClass(/scrolled/);
   await page.evaluate(() => window.scrollTo(0, 1_500));
   await expect(header).toHaveClass(/hidden/);
   await header.getByRole("link", { name: "W.A.V.E 소개 홈" }).focus();
