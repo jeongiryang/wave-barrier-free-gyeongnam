@@ -46,6 +46,7 @@ interface PlannerViewModelInput {
   travelStart: string;
   theme: string;
   activePlaces: Place[];
+  savedPlaceIds?: string[];
   routeDestination: Place | null;
   destinationCrowd: DestinationCrowd | null;
   transportProviders: TransportProvider[];
@@ -61,6 +62,7 @@ export function buildPlannerViewModel({
   travelStart,
   theme,
   activePlaces,
+  savedPlaceIds = [],
   routeDestination,
   destinationCrowd,
   transportProviders,
@@ -72,8 +74,9 @@ export function buildPlannerViewModel({
   const effectiveProviders = transportProviders.length ? transportProviders : fallbackProviders;
   const travelWeather = weather?.days.find((day) => day.date === travelStart) ?? null;
   const impactDestination = routeDestination ?? activePlaces[0] ?? null;
-  const impactAlternative = activePlaces.find((place) => place.id !== impactDestination?.id) ?? null;
-  const impactCrowd = destinationCrowd ?? plan?.crowd ?? null;
+  const impactAlternative = activePlaces.find((place) => place.id !== impactDestination?.id && !savedPlaceIds.includes(place.id)) ?? null;
+  const impactCrowd = destinationCrowd?.place === impactDestination?.name ? destinationCrowd
+    : plan?.crowd?.place === impactDestination?.name ? plan.crowd : null;
 
   return {
     activeStops: plan?.stops ?? [],

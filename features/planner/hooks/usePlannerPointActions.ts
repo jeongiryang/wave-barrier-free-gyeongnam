@@ -7,7 +7,7 @@ import { mapPlaceToPlannerPlace, richSpotToPlace } from "../place-adapters";
 import type { Place, RichSpot } from "../types";
 import type { PointPicker } from "./useLocationSearch";
 
-export function usePlannerPointActions({ region, origin, privateOrigin, pointPicker, routeDestination, activePlaces, updateOrigin, loadRoutes, clearLocationSearch }: {
+export function usePlannerPointActions({ region, origin, privateOrigin, pointPicker, routeDestination, activePlaces, updateOrigin, loadRoutes, clearLocationSearch, onSelectDestination }: {
   region: string;
   origin: RoutePoint;
   privateOrigin: boolean;
@@ -17,6 +17,7 @@ export function usePlannerPointActions({ region, origin, privateOrigin, pointPic
   updateOrigin: (point: RoutePoint, label: string, isPrivate?: boolean) => void;
   loadRoutes: (place: Place, nextOrigin?: RoutePoint, nextOriginIsPrivate?: boolean, nextOriginLabel?: string) => Promise<void>;
   clearLocationSearch: () => void;
+  onSelectDestination: (place: Place) => boolean;
 }) {
   const choosePoint = useCallback((place: Place, mode = pointPicker) => {
     if (mode === "origin") {
@@ -26,20 +27,25 @@ export function usePlannerPointActions({ region, origin, privateOrigin, pointPic
       const destination = routeDestination || activePlaces[0];
       if (destination) void loadRoutes(destination, next, false, place.name);
     } else if (mode === "destination") {
+      if (!onSelectDestination(place)) return;
       void loadRoutes(place, origin, privateOrigin);
     }
     clearLocationSearch();
-  }, [activePlaces, clearLocationSearch, loadRoutes, origin, pointPicker, privateOrigin, routeDestination, updateOrigin]);
+  }, [activePlaces, clearLocationSearch, loadRoutes, origin, pointPicker, privateOrigin, routeDestination, updateOrigin, onSelectDestination]);
 
   const routeFromRichSpot = useCallback((spot: RichSpot) => {
-    void loadRoutes(richSpotToPlace(spot, region));
+    const place = richSpotToPlace(spot, region);
+    if (!onSelectDestination(place)) return;
+    void loadRoutes(place);
     scrollToSection("navigation");
-  }, [loadRoutes, region]);
+  }, [loadRoutes, region, onSelectDestination]);
 
   const routeFromMapPlace = useCallback((mapPlace: MapPlace) => {
     const known = activePlaces.find((place) => place.id === mapPlace.id);
-    void loadRoutes(known || mapPlaceToPlannerPlace(mapPlace, region));
-  }, [activePlaces, loadRoutes, region]);
+    const place = known || mapPlaceToPlannerPlace(mapPlace, region);
+    if (!onSelectDestination(place)) return;
+    void loadRoutes(place);
+  }, [activePlaces, loadRoutes, region, onSelectDestination]);
 
   return { choosePoint, routeFromRichSpot, routeFromMapPlace };
 }

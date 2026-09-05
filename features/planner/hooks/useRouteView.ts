@@ -75,7 +75,7 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
     selectedTransportDataset,
     setSelectedTransportDataset,
     sortedRouteAlternatives: filteredRouteAlternatives,
-    activeRoute: filteredRouteAlternatives.find((item) => item.id === activeRouteId) ?? filteredRouteAlternatives[0] ?? routeAlternatives[0] ?? null,
+    activeRoute: filteredRouteAlternatives.find((item) => item.id === activeRouteId) ?? filteredRouteAlternatives[0] ?? null,
     selectedDataset: transportContext?.datasets.find((item) => item.id === selectedTransportDataset) ?? null,
     activeTransportMode: transportModes.find((item) => item.id === transportMode) ?? transportModes[0],
   };

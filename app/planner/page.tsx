@@ -24,9 +24,9 @@ import { usePlannerPlan } from "../../features/planner/hooks/usePlannerPlan";
 import { usePlannerSignals } from "../../features/planner/hooks/usePlannerSignals";
 import { usePlannerActions } from "../../features/planner/hooks/usePlannerActions";
 import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
-import { usePlannerAutoRefresh } from "../../features/planner/hooks/usePlannerAutoRefresh";
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
+import { useItineraryRoutes } from "../../features/planner/hooks/useItineraryRoutes";
 import { useJourneyProgress } from "../../features/planner/hooks/useJourneyProgress";
 import type { Place } from "../../features/planner/types";
 import { buildPlannerViewModel } from "../../features/planner/view-model";
@@ -41,7 +41,7 @@ export default function PlannerPage() {
   const planController = usePlannerPlan(locale);
   const {
     selected, region, theme, setTheme, plan,
-    setNotice, runPlan, abortPlan,
+    setNotice, runPlan,
   } = planController;
   const routePlanning = useRoutePlanning(region);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -56,6 +56,7 @@ export default function PlannerPage() {
     loadRoutes, resetRouteData, setRouteNotice, updateOrigin,
   } = routePlanning;
   const tripSelection = useTripSelection({ activePlaces, origin, accessibilityProfileCount: selected.length });
+  const itineraryRoutes = useItineraryRoutes(tripSelection, routePlanning);
   const locationSearch = useLocationSearch(region);
   const audioGuide = useAudioGuide(plan?.audio);
   const { resetAudio } = audioGuide;
@@ -86,14 +87,22 @@ export default function PlannerPage() {
   });
   const { feedbackText, feedbackState, changeFeedbackText, submitFeedback } = participation;
   const stageView = usePlannerStageView();
+  const [reviewedTrip, setReviewedTrip] = useState("");
+  const [reviewedItinerary, setReviewedItinerary] = useState("");
+  const itinerarySignature = JSON.stringify([itineraryRoutes.signature, routePlanning.routeTravelMode, dayStartTime]);
+  const itineraryReviewed = reviewedItinerary === itinerarySignature && itineraryRoutes.complete && !itineraryRoutes.loading;
+  const reviewSignature = JSON.stringify([region, theme, selected, orderedPlaceIds, travelStart, travelEnd, scheduleAssignments, origin, routePlanning.activeRoute?.id, dayStartTime, itinerarySignature, weather?.updatedAt]);
   const journey = useJourneyProgress({
+    searched: planController.resultCurrent,
+    reviewed: reviewedTrip === reviewSignature,
+    itineraryReviewed,
     motion,
     observeSections: stageView.view === "overview",
     activeStepId: stageView.activeStepId,
     onActiveStepChange: stageView.changeStep,
     selectedProfileCount: selected.length,
     recommendedCount: activePlaces.length,
-    savedCount: saved.length,
+    savedCount: planController.resultCurrent ? activePlaces.filter((place) => saved.includes(place.id)).length : 0,
     routeDestinationName: routeDestination?.name || "",
     weatherReady: Boolean(weather && !weatherLoading),
   });
@@ -116,6 +125,7 @@ export default function PlannerPage() {
     travelStart,
     theme,
     activePlaces,
+    savedPlaceIds: saved,
     routeDestination,
     destinationCrowd,
     transportProviders,
@@ -130,32 +140,55 @@ export default function PlannerPage() {
     pointPicker,
     routeDestination,
     activePlaces,
-    impactAlternative,
+    onCultureSearch: async () => {
+      if (planController.loading) return;
+      setTheme("history");
+      stageView.changeStep("conditions");
+      const success = await runPlan({ resetRouteData, resetAudio, requestedTheme: "history" });
+      if (success) stageView.changeStep("places");
+    },
+    onSelectDestination: (place) => {
+      if (!saved.includes(place.id)) {
+        if (!window.confirm(locale === "en" ? `Add ${place.name} to ${tripSelection.activeDay} and check the route? Facility access still needs verification.` : `${place.name}을(를) ${tripSelection.activeDay} 일정에 추가하고 경로를 확인할까요? 편의시설 정보는 별도로 확인해야 합니다.`)) return false;
+        toggleSaved(place.id, place);
+        tripSelection.assignPlaceToDay(place.id, tripSelection.activeDay);
+      } else {
+        const day = scheduleAssignments[place.id] || tripSelection.tripDays[0];
+        if (!tripSelection.tripDays.includes(day)) {
+          setNotice(locale === "en" ? "This place is stored outside the trip dates. Move it into this trip first." : "이 장소는 현재 여행 기간 밖에 보관되어 있습니다. 일정에서 날짜를 먼저 옮겨주세요.");
+          return false;
+        }
+        tripSelection.setActiveDay(day);
+      }
+      stageView.changeStep("itinerary");
+      return true;
+    },
+    onReplaceAlternative: () => {
+      const target = tripSelection.orderedSavedPlaces.find((place) => (scheduleAssignments[place.id] || tripSelection.tripDays[0]) === tripSelection.activeDay);
+      if (!target || !impactAlternative || !planController.resultCurrent) return;
+      const message = locale === "en"
+        ? `Replace ${target.name} with ${impactAlternative.name}? The date and order will stay the same. Lower crowd levels and accessibility are not confirmed for this alternative; check its facility information before visiting.`
+        : `${target.name} 대신 ${impactAlternative.name}을 일정에 넣을까요? 날짜와 순서는 유지합니다. 대안의 혼잡도와 이동 편의가 더 낫다는 뜻은 아니므로 방문 전에 시설 정보를 확인해 주세요.`;
+      if (!window.confirm(message)) return;
+      if (tripSelection.replaceSavedPlace(target.id, impactAlternative)) {
+        resetRouteData();
+        setNotice(locale === "en" ? "Place replaced. Check the updated itinerary and route." : "선택한 장소로 바꿨어요. 갱신된 일정과 경로를 확인해 주세요.");
+        stageView.changeStep("itinerary");
+      }
+    },
     updateOrigin,
     loadRoutes,
     clearLocationSearch,
-    setTheme,
-    setNotice,
     setRouteNotice,
   });
 
   async function generatePlan(revealResults = true) {
-    await runPlan({
+    const success = await runPlan({
       resetRouteData,
       resetAudio,
-      loadInitialRoute: (places) => {
-        const destination = places.find((place) => saved.includes(place.id)) || places[0];
-        if (destination) void loadRoutes(destination);
-      },
     }, revealResults);
+    if (success && revealResults) stageView.changeStep("places");
   }
-
-  usePlannerAutoRefresh({
-    enabled: selected.length > 0,
-    signature: `${region}|${theme}|${locale}|${selected.join(",")}`,
-    refresh: generatePlan,
-    abort: abortPlan,
-  });
 
   return (
     <main className="planner-page">
@@ -164,28 +197,11 @@ export default function PlannerPage() {
       <PlannerHeader t={t} scrolled={scrolled} hidden={headerHidden} savedCount={saved.length} onNavigate={journey.goToStep} />
 
       <section className="planner-journey-workspace" id="planner" aria-labelledby="journey-workspace-title">
-        <header className="journey-workspace-hero" data-reveal>
-          <div className="journey-hero-copy">
-            <p>W.A.V.E JOURNEY CONTROL</p>
-            <h1 id="journey-workspace-title" aria-label="나에게 맞는 여행을 4단계로 완성하세요.">어떤 여행이<br />편안할까요?</h1>
-            <span>나에게 맞는 여행을 4단계로 완성하세요. 한 번에 한 가지 질문만 따라가도 확인된 근거와 다음 행동이 자연스럽게 이어집니다.</span>
-          </div>
-          <div className="journey-briefing-card" aria-label="현재 여행 브리핑">
-            <div><span>현재 준비도</span><strong>{journey.progress}%</strong></div>
-            <div className="journey-briefing-progress" aria-hidden="true"><i style={{ width: `${journey.progress}%` }} /></div>
-            <dl>
-              <div><dt>필요 편의</dt><dd>{selected.length ? `${selected.length}개 선택` : "선택 전"}</dd></div>
-              <div><dt>일정</dt><dd>{saved.length ? `${saved.length}곳 저장` : "장소 선택 전"}</dd></div>
-              <div><dt>경로</dt><dd>{routeDestination?.name || "목적지 미확인"}</dd></div>
-            </dl>
-            <PlannerJourneyModeToggle view={stageView.view} interactive={hydrated} onChange={stageView.changeView} />
-            <button type="button" disabled={!hydrated} onClick={() => { stageView.changeView("guided"); journey.goToStep(journey.nextStep.id); }}>{stageView.view === "guided" ? "다음 질문" : "한 단계씩 이어가기"}: {journey.nextStep.label}<span aria-hidden="true">→</span></button>
-          </div>
-          <div className="journey-trust-legend" aria-label="정보 상태 안내">
-            <span data-state="confirmed"><i aria-hidden="true" />확인됨 <small>공식 근거·실제 응답</small></span>
-            <span data-state="partial"><i aria-hidden="true" />일부 확인 <small>확인 범위 제한</small></span>
-            <span data-state="recheck"><i aria-hidden="true" />재확인 필요 <small>예측·미조회·변경 가능</small></span>
-          </div>
+        <header className="planner-intro">
+          <div><h1 id="journey-workspace-title">{locale === "en" ? "A trip that works for you." : "나에게 맞는 경남 여행"}</h1>
+          <p>{locale === "en" ? "Choose your needs. Check the evidence. Make the final choice." : "필요한 편의를 고르고, 확인된 정보를 보고, 직접 선택하세요."}</p>
+          <p className="planner-progress-status" role="status">{locale === "en" ? `${journey.completedCount} of 4 steps complete · ${4 - journey.completedCount} remaining` : `4단계 중 ${journey.completedCount}단계 완료 · ${4 - journey.completedCount}단계 남음`}</p></div>
+          <PlannerJourneyModeToggle view={stageView.view} interactive={hydrated} onChange={stageView.changeView} />
         </header>
         <div className="journey-control-layout">
           <PlannerJourneyRail
@@ -199,6 +215,8 @@ export default function PlannerPage() {
           <div className="journey-stage-stream" data-view={stageView.view}>
             <PlannerStageFrame view={stageView.view} step={journey.steps[0]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerConditionsPanel
+                view={stageView.view}
+                onGenerate={generatePlan}
                 t={t}
                 activePlaces={activePlaces}
                 planController={planController}
@@ -220,6 +238,9 @@ export default function PlannerPage() {
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerItineraryWorkspace
+                coverage={itineraryRoutes}
+                reviewed={itineraryReviewed}
+                onReview={(checked) => setReviewedItinerary(checked ? itinerarySignature : "")}
                 mapEnabled={stageView.view === "overview" || journey.activeStepId === "itinerary"}
                 plan={plan}
                 activePlaces={activePlaces}
@@ -252,6 +273,9 @@ export default function PlannerPage() {
                 participation={participation}
                 onRefresh={() => { reloadWeather(); return generatePlan(false); }}
               />
+              {!itineraryReviewed && <p role="status">{locale === "en" ? "First review every journey in your itinerary. Unverified journeys do not count as complete." : "일정에서 각 이동 구간을 먼저 확인해 주세요. 미확인 구간이 있으면 여행 준비 완료로 표시하지 않습니다."}</p>}
+              <label className="departure-review-check"><input type="checkbox" disabled={!itineraryReviewed} checked={itineraryReviewed && reviewedTrip === reviewSignature} onChange={(event) => setReviewedTrip(event.target.checked ? reviewSignature : "")} />{locale === "en" ? "I reviewed the itinerary and the information to check before leaving. This is not a safety guarantee." : "일정과 출발 전 다시 확인할 항목을 살펴봤어요. 이 확인은 안전 보증이 아닙니다."}</label>
+              <button type="button" className="signals-shortcut" onClick={() => { setSecondaryOpen(true); window.requestAnimationFrame(() => document.getElementById("layers")?.scrollIntoView({ behavior: motion === "calm" ? "instant" : "smooth", block: "start" })); }}>{locale === "en" ? "View weather and visitor forecasts" : "날씨·방문 경향 바로 확인하기"}</button>
               <TravelSignalsPanel
                 region={region}
                 plan={plan}
@@ -291,11 +315,12 @@ export default function PlannerPage() {
         place={selectedPlace}
         region={region}
         saved={saved.includes(selectedPlace.id)}
+        canSave={planController.resultCurrent && activePlaces.some((place) => place.id === selectedPlace.id)}
         feedbackText={feedbackText}
         feedbackState={feedbackState}
         dialogRef={placeDialogRef}
         onClose={closeSelectedPlace}
-        onToggleSaved={() => { toggleSaved(selectedPlace.id); setSelectedPlace(null); }}
+        onToggleSaved={() => { if (saved.includes(selectedPlace.id) || planController.resultCurrent && activePlaces.some((place) => place.id === selectedPlace.id)) toggleSaved(selectedPlace.id, selectedPlace); setSelectedPlace(null); }}
         onFeedbackChange={changeFeedbackText}
         onSubmitFeedback={() => void submitFeedback()}
       />}

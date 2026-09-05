@@ -93,6 +93,12 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
     setOrderNotice("이동 부담을 고려한 자동 순서로 되돌렸습니다.");
   }, [autoOrderIds, saved]);
 
+  const replacePlaceOrder = useCallback((previousId: string, nextId: string) => {
+    setManualOrder(activeOrderIds.map((id) => id === previousId ? nextId : id));
+    setOrderMode("manual");
+    setOrderNotice("선택한 대안으로 장소를 바꾸고 기존 방문 순서는 유지했습니다.");
+  }, [activeOrderIds]);
+
   const orderExplanation = useMemo(
     () => orderMode === "manual"
       ? "내가 정한 방문 순서입니다. 날짜별 이동시간은 순서가 바뀔 때마다 다시 계산합니다."
@@ -109,5 +115,6 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
     movePlace,
     movementFor,
     restoreAutoOrder,
+    replacePlaceOrder,
   };
 }
