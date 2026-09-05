@@ -59,7 +59,7 @@ export function useJourneyProgress({
       index: 2,
       label: "여행지",
       detail: recommendedCount ? `공식 근거 추천 ${recommendedCount}곳` : "공식 추천을 확인",
-      complete: recommendedCount > 0 && savedCount > 0,
+      complete: searched && recommendedCount > 0 && savedCount > 0,
       available: searched,
     },
     {
