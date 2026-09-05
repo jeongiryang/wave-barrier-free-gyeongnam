@@ -56,12 +56,19 @@ Vercel에 `.env.example`의 필요한 항목을 등록한다.
   Vercel Cron이 이 값을 `Authorization: Bearer …`로 보내고 공유 여행 보관기간
   정리 함수가 같은 값을 비교한다. 배포별 `--env` 값으로 덮어쓰지 않는다.
 - `KORAIL_API_KEY`, `TAGO_API_KEY`: 별도 발급 키가 있을 때만 등록
-- `ODSAY_API_KEY`, `EXPRESSWAY_API_KEY`: 선택 기능을 사용할 때 등록
+- `ODSAY_API_KEY`: ODsay의 Web/URI 플랫폼 키. 허용 URI에
+  `https://wave-barrier-free-gyeongnam.vercel.app`을 등록한 뒤 Production에 저장
+- `EXPRESSWAY_API_KEY`: 한국도로공사 테마휴게소 선택 기능을 사용할 때 등록
 - `COMMUNITY_MODERATOR_USER_IDS`: 신고를 처리할 Neon Auth 사용자 ID 목록
 
 공공데이터포털의 동일 일반 인증키로 승인된 서비스는 KORAIL·TAGO 전용 항목을
 비워도 공통 키를 사용한다. 변수 변경 후에는 새 Production 배포가 해당 환경을 읽도록
 Redeploy를 실행한다.
+
+Vercel Functions는 송신 IP가 유동적이므로 ODsay Server/IP 키를 기준으로 구성하지
+않는다. W.A.V.E의 서버 호출은 등록된 Web/URI 키가 Production 도메인을 확인할 수
+있도록 `Referer`를 보낸다. 전체 등록·실응답 현황은
+[API·환경 변수 전수조사](api-integration-audit.md)를 따른다.
 
 ## 4. GitHub Actions 자동 배포
 
