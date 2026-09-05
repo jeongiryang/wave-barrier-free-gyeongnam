@@ -12,6 +12,7 @@ test("vinext의 취약 전이 의존성을 검증된 호환 버전으로 고정�
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
   const imageSizePackage = readJson("node_modules/vinext/node_modules/image-size/package.json");
+  const ciWorkflow = readFileSync(resolve(projectRoot, ".github/workflows/ci.yml"), "utf8");
   const lockedPackages = packageLock.packages;
 
   assert.equal(packageJson.devDependencies.vinext, "0.0.50");
@@ -29,6 +30,10 @@ test("vinext의 취약 전이 의존성을 검증된 호환 버전으로 고정�
   for (const script of ["preinstall", "install", "postinstall"]) {
     assert.equal(imageSizePackage.scripts?.[script], undefined);
   }
+  assert.match(
+    ciWorkflow,
+    /운영 의존성 보안 감사[\s\S]*npm audit --omit=dev --audit-level=high[\s\S]*전체 개발 도구 보안 감사[\s\S]*npm audit --audit-level=moderate/,
+  );
 });
 
 test("vinext가 불러오는 이미지 판독기는 정상 입력을 처리하고 조작된 입력에서 종료한다", () => {

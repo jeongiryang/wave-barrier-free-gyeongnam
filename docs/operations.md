@@ -86,7 +86,8 @@ Kakao·ODsay에 전달될 수 있습니다. W.A.V.E 데이터베이스와 운영
 - `@shuding/opentype.js` 아래 `fflate`는 호환 패치인 `0.7.5`로 정확히 고정한다.
 - 회귀 검사는 정상 PNG 판독과 조작된 ICNS/JXL/HEIF 입력의 제한시간 내 종료,
   실제 vinext Vercel 빌드, 전체 audit을 함께 확인한다. 이 예외는 개발·빌드 도구
-  범위이며 배포 함수의 Production 의존성에는 포함되지 않는다.
+  범위이며 배포 함수의 Production 의존성에는 포함되지 않는다. 필수 CI는 운영
+  의존성 High 감사와 개발 도구를 포함한 Moderate 이상 감사를 별도 단계로 실행한다.
 - upstream vinext 안정판이 취약 패키지를 제거하거나 공식 수정판을 채택하면 이
   override를 제거한 후보를 먼저 빌드·Preview smoke로 검증한다. Vercel 런타임
   회귀가 생기면 Production을 승격하지 않고 기존 검증 조합을 유지한다.
