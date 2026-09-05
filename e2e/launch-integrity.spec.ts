@@ -50,6 +50,15 @@ test("a returning user can open an existing device itinerary before a new search
   await itineraryStep.click();
   await expect(page.getByRole("heading", { name: "이 기기 일정 만들기" })).toBeVisible();
   await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toContainText("기존 저장 여행지");
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "0");
+  await page.getByRole("navigation", { name: "여행 계획 단계 이동" })
+    .getByRole("button", { name: /^조건/ }).click();
+  await chooseTripConditions(page);
+  // The new results do not include the stored legacy place. It stays editable,
+  // but must not satisfy the current recommendation-selection milestone.
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "25");
+  await itineraryStep.click();
+  await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toContainText("기존 저장 여행지");
 });
 
 test("guided search failures stay visible with choices preserved and allow retry", async ({ page }) => {

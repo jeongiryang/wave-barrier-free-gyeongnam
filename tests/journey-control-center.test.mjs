@@ -20,6 +20,8 @@ test("Journey Control Center가 네 단계와 실제 여행 상태를 연결한�
   assert.match(rail, /aria-current=\{active \? "step"/);
   assert.match(rail, /role="progressbar"/);
   assert.match(page, /savedCount: tripSelection\.orderedSavedPlaces\.length/);
+  assert.match(page, /currentSavedCount: planController\.resultCurrent \? activePlaces\.filter\(\(place\) => saved\.includes\(place\.id\)\)\.length : 0/);
+  assert.match(hook, /id: "places"[\s\S]*complete: searched && recommendedCount > 0 && currentSavedCount > 0/);
   assert.match(hook, /id: "itinerary"[\s\S]*available: savedCount > 0/);
   assert.match(hook, /id: "departure-readiness"[\s\S]*available: savedCount > 0/);
   assert.match(styles, /grid-template-columns: minmax\(220px,260px\)/);

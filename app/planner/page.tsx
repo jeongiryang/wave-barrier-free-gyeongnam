@@ -106,6 +106,9 @@ export default function PlannerPage() {
     // exists on this device.  Use the resolved catalogue, not the current
     // recommendation response, so returning users can continue their trip.
     savedCount: tripSelection.orderedSavedPlaces.length,
+    // Device storage unlocks editing; only a saved current recommendation
+    // contributes to preparation completion for the selected conditions.
+    currentSavedCount: planController.resultCurrent ? activePlaces.filter((place) => saved.includes(place.id)).length : 0,
     routeDestinationName: routeDestination?.name || "",
     weatherReady: Boolean(weather && !weatherLoading),
   });

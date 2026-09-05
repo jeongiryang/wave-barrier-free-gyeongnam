@@ -23,6 +23,7 @@ interface JourneyProgressOptions {
   selectedProfileCount: number;
   recommendedCount: number;
   savedCount: number;
+  currentSavedCount: number;
   routeDestinationName: string;
   weatherReady: boolean;
   searched?: boolean;
@@ -39,6 +40,7 @@ export function useJourneyProgress({
   selectedProfileCount,
   recommendedCount,
   savedCount,
+  currentSavedCount,
   routeDestinationName,
   weatherReady,
   searched = false,
@@ -59,7 +61,7 @@ export function useJourneyProgress({
       index: 2,
       label: "여행지",
       detail: recommendedCount ? `공식 근거 추천 ${recommendedCount}곳` : "공식 추천을 확인",
-      complete: searched && recommendedCount > 0 && savedCount > 0,
+      complete: searched && recommendedCount > 0 && currentSavedCount > 0,
       available: searched,
     },
     {
@@ -67,7 +69,7 @@ export function useJourneyProgress({
       index: 3,
       label: "이 기기 일정",
       detail: savedCount ? `${savedCount}곳을 일정에 저장` : "장소를 일정에 추가",
-      complete: savedCount > 0 && itineraryReviewed,
+      complete: searched && currentSavedCount > 0 && itineraryReviewed,
       available: savedCount > 0,
     },
     {
@@ -75,10 +77,10 @@ export function useJourneyProgress({
       index: 4,
       label: "출발 확인",
       detail: weatherReady && routeDestinationName ? "날씨·경로를 불러옴" : "최신 정보를 재확인",
-      complete: savedCount > 0 && itineraryReviewed && reviewed,
+      complete: searched && currentSavedCount > 0 && itineraryReviewed && reviewed,
       available: savedCount > 0,
     },
-  ], [recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady, searched, reviewed, itineraryReviewed]);
+  ], [currentSavedCount, recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady, searched, reviewed, itineraryReviewed]);
 
   useEffect(() => {
     if (!observeSections) return;
