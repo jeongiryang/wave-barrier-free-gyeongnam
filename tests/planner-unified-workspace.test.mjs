@@ -13,7 +13,7 @@ test("planner keeps photo restore secondary and uses one saved-place itinerary",
   ]);
   assert.doesNotMatch(page, /PhotoCourseRestore/);
   assert.match(page, /className="planner-journey-workspace"/);
-  assert.match(page, /4단계로 완성하세요/);
+  assert.match(page, /나에게 맞는 경남 여행/);
   assert.match(page, /<PlannerConditionsPanel/);
   assert.match(page, /<RecommendationWorkspace/);
   assert.match(page, /<PlannerItineraryWorkspace/);

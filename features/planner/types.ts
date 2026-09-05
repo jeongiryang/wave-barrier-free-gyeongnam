@@ -44,6 +44,7 @@ export type Place = {
   unknownFields?: number;
   negativeFields?: number;
   checkedAt?: string;
+  accessibility?: Array<{ key: string; label: string; state: "confirmed" | "unknown" | "negative"; detail: string }>;
   features: string[];
   details: string[];
   source: string;

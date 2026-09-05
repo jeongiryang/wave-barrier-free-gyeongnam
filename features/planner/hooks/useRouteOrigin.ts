@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import type { RoutePoint } from "../../routing/types";
 import { departurePresets } from "../constants";
+import { confirmMapLocationUse } from "../../../lib/location-consent.js";
 
 export function useRouteOrigin(onPrivateOrigin?: () => void) {
   const [origin, setOrigin] = useState<RoutePoint>(departurePresets[0].point);
@@ -14,9 +15,9 @@ export function useRouteOrigin(onPrivateOrigin?: () => void) {
     setOrigin(point);
     setOriginLabel(label);
     setPrivateOrigin(isPrivate);
+    onPrivateOrigin?.();
     if (isPrivate) {
-      onPrivateOrigin?.();
-      setRouteNotice("현재 위치를 지도에 표시했습니다. 좌표는 서버나 저장소로 전송하지 않습니다.");
+      setRouteNotice("현재 위치를 표시했습니다. W.A.V.E 경로 API로 좌표를 보내거나 저장하지 않습니다. 지도 제공처에는 화면 영역·접속 정보가 전달될 수 있습니다.");
     }
   }, [onPrivateOrigin]);
 
@@ -25,11 +26,12 @@ export function useRouteOrigin(onPrivateOrigin?: () => void) {
       setRouteNotice("이 브라우저는 현재 위치를 지원하지 않습니다.");
       return;
     }
+    if (!confirmMapLocationUse()) return;
     setRouteNotice("현재 위치 권한을 확인하고 있습니다.");
     navigator.geolocation.getCurrentPosition((position) => {
       updateOrigin({ lat: position.coords.latitude, lng: position.coords.longitude }, "현재 위치", true);
     }, () => setRouteNotice("위치 권한이 없어 출발 거점을 선택해 주세요."), {
-      enableHighAccuracy: true,
+      enableHighAccuracy: false,
       timeout: 8000,
     });
   }, [updateOrigin]);

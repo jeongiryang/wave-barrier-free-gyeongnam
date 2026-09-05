@@ -11,7 +11,7 @@ import test from "node:test";
  */
 
 const FIELD_FILES = [
-  "features/planner/components/PlannerJourneyBasics.tsx",
+  "features/planner/components/PlannerConditionsPanel.tsx",
   "features/planner/components/PlannerThemeDates.tsx",
   "features/planner/components/PlannerAccessibilityProfiles.tsx",
 ];
@@ -43,13 +43,14 @@ test("단계 제목을 한국어로 읽을 수 있다", async () => {
     source("features/planner/components/PlannerItineraryWorkspace.tsx"),
     source("features/planner/components/DepartureReadinessCard.tsx"),
   ]).then((parts) => parts.join("\n"));
-  for (const title of ["여행 조건 정하기", "여행지 고르기", "이 기기 일정 만들기", "출발 전에 이것만 다시 확인하세요"]) assert.match(files, new RegExp(title));
+  for (const title of ["여행 조건 정하기", "내 조건에 맞는 여행지", "이 기기 일정 만들기", "출발 전에 이것만 다시 확인하세요"]) assert.match(files, new RegExp(title));
 });
 
-test("추천 갱신 방식은 자동 하나로 설명한다", async () => {
-  const file = await source("features/planner/components/PlannerAccessibilityProfiles.tsx");
-  assert.match(file, /조건을 바꾸면 추천이 자동으로 업데이트됩니다/);
-  assert.doesNotMatch(file, /generate-button|여행지 다시 찾기/);
+test("추천 조회는 사용자가 명시적으로 시작한다", async () => {
+  const file = await source("features/planner/components/PlannerConditionsPanel.tsx");
+  assert.match(file, /onClick=\{\(\) => void props\.onGenerate\(\)\}/);
+  assert.match(file, /내 조건에 맞는 여행지 찾기/);
+  assert.doesNotMatch(file, /추천이 자동으로 업데이트/);
 });
 
 test("쓰이지 않는 번호 배지 스타일을 남겨 두지 않는다", async () => {
