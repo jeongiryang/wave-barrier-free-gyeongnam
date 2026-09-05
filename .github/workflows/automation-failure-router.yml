@@ -21,15 +21,20 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: 실패를 GitHub Issue로 환류
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # actions/github-script@v8
         with:
           script: |
-            const run = context.payload.workflow_run;
-            const marker = `<!-- wave-automation-failure:${run.name} -->`;
-            const title = `[Automation][${run.name}] workflow failure`;
+            const run = (await github.rest.actions.getWorkflowRun({...context.repo,run_id:context.payload.workflow_run.id})).data;
+            const expected = new Map([['CI','.github/workflows/ci.yml'],['CD','.github/workflows/cd.yml'],['Production API Smoke','.github/workflows/production-api-smoke.yml'],['Post-Deploy Production QA','.github/workflows/automation-post-deploy-qa.yml']]);
+            if (expected.get(run.name) !== run.path || run.repository.full_name !== context.payload.repository.full_name || run.conclusion === 'success') return;
+            const scope = run.pull_requests?.[0]?.number ? 'pr-'+run.pull_requests[0].number : 'branch-'+String(run.head_branch).replace(/[^a-zA-Z0-9/_-]/g,'_');
+            const receipt = '<!-- wave-failure-run:'+run.id+':'+run.run_attempt+' -->';
+            const marker = `<!-- wave-automation-failure:${run.name}:${scope} -->`;
+            const title = `[Automation][${run.name}][${scope}] workflow failure`;
             const occurredAt = run.updated_at || run.created_at || new Date().toISOString();
             const details = [
               marker,
+              receipt,
               "## 자동 감지된 workflow 실패",
               "",
               `- Workflow: **${run.name}**`,
@@ -59,15 +64,19 @@ jobs:
 
             const existing = openIssues.find((issue) =>
               !issue.pull_request &&
+              issue.user?.login === "github-actions[bot]" &&
               issue.title === title &&
               (issue.body || "").includes(marker)
             );
 
             if (existing) {
+              const comments = await github.paginate(github.rest.issues.listComments,{...context.repo,issue_number:existing.number,per_page:100});
+              if ((existing.body || '').includes(receipt) || comments.some(c=>c.user?.login === 'github-actions[bot]' && (c.body || '').includes(receipt))) return;
               await github.rest.issues.createComment({
                 ...context.repo,
                 issue_number: existing.number,
                 body: [
+                  receipt,
                   "## 반복 실패 감지",
                   "",
                   `- Conclusion: **${run.conclusion || "unknown"}**`,
