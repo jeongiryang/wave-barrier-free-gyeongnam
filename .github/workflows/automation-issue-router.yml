@@ -1,0 +1,169 @@
+name: Automation Issue Router
+
+on:
+  issues:
+    types: [opened, reopened, labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: automation-issue-router-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  route:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Issue lifecycle과 Agent queue 동기화
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const action = context.payload.action;
+            const eventLabel = context.payload.label?.name || "";
+
+            const labelDefs = [
+              ["status:triage", "5319e7", "PM triage 대기"],
+              ["status:ready-for-dev", "0e8a16", "Engineering 구현 가능"],
+              ["status:in-progress", "1d76db", "구현 진행 중"],
+              ["status:in-review", "8250df", "PR/검토 진행 중"],
+              ["status:ready-for-qa", "d4c5f9", "독립 QA 대기"],
+              ["status:verified", "0e8a16", "QA/검증 완료, PM 종료 확인 대기"],
+              ["status:blocked-human", "b60205", "사람의 확인/행동 필요"],
+              ["status:blocked-external", "d93f0b", "외부 제공처/기관/서비스 대기"],
+              ["status:deferred", "cfd3d7", "현재 Release 범위 밖으로 보류"],
+              ["status:rejected", "6e7781", "근거를 기록하고 미채택"],
+              ["agent:pm", "7057ff", "PM Assistant / Orchestrator queue"],
+              ["agent:engineering", "008672", "Codex / Engineering queue"],
+              ["agent:qa", "a371f7", "Independent QA queue"],
+              ["agent:compliance", "fbca04", "Competition Compliance queue"],
+              ["agent:submission", "fef2c0", "Submission material queue"],
+              ["agent:human", "b60205", "정이량 PM 또는 사람 조치 필요"],
+              ["priority:P0", "b60205", "Launch/submission blocker"],
+              ["priority:P1", "d93f0b", "제출 전 반드시 해결"],
+              ["priority:P2", "fbca04", "유의미한 품질 개선"],
+              ["priority:P3", "cfd3d7", "Polish / 후속 개선"],
+              ["priority:untriaged", "ededed", "PM priority triage 필요"],
+              ["release-blocker", "b60205", "Release Gate를 막는 항목"],
+              ["human-gate", "b60205", "자동 완료 금지: 사람 확인 필요"],
+            ];
+
+            const existingLabels = await github.paginate(github.rest.issues.listLabelsForRepo, {
+              ...context.repo,
+              per_page: 100,
+            });
+            const existingNames = new Set(existingLabels.map((label) => label.name));
+
+            for (const [name, color, description] of labelDefs) {
+              if (existingNames.has(name)) continue;
+              try {
+                await github.rest.issues.createLabel({
+                  ...context.repo,
+                  name,
+                  color,
+                  description,
+                });
+                existingNames.add(name);
+              } catch (error) {
+                if (error.status !== 422) throw error;
+              }
+            }
+
+            async function currentLabelNames() {
+              const current = await github.rest.issues.get({
+                ...context.repo,
+                issue_number: issueNumber,
+              });
+              return current.data.labels.map((label) =>
+                typeof label === "string" ? label : label.name
+              );
+            }
+
+            async function removeLabelIfPresent(name, names) {
+              if (!names.includes(name)) return;
+              try {
+                await github.rest.issues.removeLabel({
+                  ...context.repo,
+                  issue_number: issueNumber,
+                  name,
+                });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+              }
+            }
+
+            async function syncExclusive(prefix, target) {
+              const names = await currentLabelNames();
+              for (const name of names) {
+                if (name.startsWith(prefix) && name !== target) {
+                  await removeLabelIfPresent(name, names);
+                }
+              }
+              const refreshed = await currentLabelNames();
+              if (!refreshed.includes(target)) {
+                await github.rest.issues.addLabels({
+                  ...context.repo,
+                  issue_number: issueNumber,
+                  labels: [target],
+                });
+              }
+            }
+
+            async function routeStatus(statusLabel) {
+              const agentByStatus = {
+                "status:triage": "agent:pm",
+                "status:ready-for-dev": "agent:engineering",
+                "status:in-progress": "agent:engineering",
+                "status:in-review": "agent:qa",
+                "status:ready-for-qa": "agent:qa",
+                "status:verified": "agent:pm",
+                "status:blocked-human": "agent:human",
+                "status:blocked-external": "agent:pm",
+                "status:deferred": "agent:pm",
+                "status:rejected": "agent:pm",
+              };
+              const targetAgent = agentByStatus[statusLabel];
+              if (!targetAgent) return;
+
+              await syncExclusive("status:", statusLabel);
+              await syncExclusive("agent:", targetAgent);
+
+              const names = await currentLabelNames();
+              if (statusLabel === "status:blocked-human") {
+                if (!names.includes("human-gate")) {
+                  await github.rest.issues.addLabels({
+                    ...context.repo,
+                    issue_number: issueNumber,
+                    labels: ["human-gate"],
+                  });
+                }
+              } else {
+                await removeLabelIfPresent("human-gate", names);
+              }
+            }
+
+            if (action === "opened" || action === "reopened") {
+              await routeStatus("status:triage");
+
+              const names = await currentLabelNames();
+              const hasPriority = names.some((name) => name.startsWith("priority:"));
+              if (!hasPriority) {
+                const match = (context.payload.issue.title || "").match(/\[P([0-3])\]/i);
+                const priority = match
+                  ? `priority:P${match[1]}`
+                  : "priority:untriaged";
+                await github.rest.issues.addLabels({
+                  ...context.repo,
+                  issue_number: issueNumber,
+                  labels: [priority],
+                });
+              }
+              return;
+            }
+
+            if (action === "labeled" && eventLabel.startsWith("status:")) {
+              await routeStatus(eventLabel);
+            }
