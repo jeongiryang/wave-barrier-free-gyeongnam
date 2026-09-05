@@ -4,7 +4,7 @@
 
 .planner-journey-workspace {
   width: var(--content);
-  margin: 34px auto 0;
+  margin: 108px auto 0;
   /*
    * `hidden`은 이 요소를 스크롤 컨테이너로 만들어 안쪽 Journey Control의
    * sticky 기준을 가로챈다. `clip`은 둥근 워크스페이스 경계는 유지하면서
@@ -120,7 +120,7 @@
 .place-field-report-link { margin-top: 9px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #b9ddcf; border-radius: 13px; color: var(--ink); background: #eef9f4; }.place-field-report-link b,.place-field-report-link small { display: block; }.place-field-report-link small { margin-top: 3px; color: var(--muted); font-size: .67rem; }.place-field-report-link i { color: #27775e; font-style: normal; }
 
 @media (max-width: 780px) {
-  .planner-journey-workspace { width: calc(100vw - 16px); margin-top: 16px; border-radius: 22px; }
+  .planner-journey-workspace { width: calc(100vw - 16px); margin-top: 84px; border-radius: 22px; }
   .journey-workspace-hero { min-height: 0; padding: 28px 20px; grid-template-columns: 1fr; }
   .journey-workspace-hero h1 { font-size: clamp(2.6rem, 14vw, 4.2rem); }
   .journey-workspace-hero > nav { grid-column: auto; }

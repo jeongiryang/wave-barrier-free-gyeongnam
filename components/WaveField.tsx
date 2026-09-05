@@ -11,6 +11,7 @@ export type WaveFieldProps = {
   /** 마지막에 떠오를 글자. */
   wordmark?: string;
   className?: string;
+  replay?: number;
 };
 
 export default function WaveField({
@@ -18,9 +19,10 @@ export default function WaveField({
   mode = "ambient",
   wordmark = "W.A.V.E",
   className,
+  replay = 0,
 }: WaveFieldProps) {
   const { motion } = useSitePreferences();
-  const canvasRef = useWaveFieldRenderer({ tone, mode, wordmark, motion });
+  const canvasRef = useWaveFieldRenderer({ tone, mode, wordmark, motion }, replay);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
 }
