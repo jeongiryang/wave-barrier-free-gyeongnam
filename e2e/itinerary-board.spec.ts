@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순서를 보존한다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -15,6 +15,7 @@ test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순�
   });
 
   await page.goto("/planner?travelStart=2026-09-01&travelEnd=2026-09-02");
+  await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
   await page.getByRole("button", { name: "용지호수공원 일정에 추가" }).click();
@@ -54,11 +55,13 @@ test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순�
 test("한 장소 일정은 불가능한 순서 동작을 모두 비활성화한다", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
   await expect(itinerary.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동" })).toBeDisabled();
   await expect(itinerary.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동" })).toBeDisabled();
-  await expect(itinerary.getByText(/확인된 편의시설 100%/)).toBeVisible();
+  await expect(itinerary.getByText(/공식 정보 4개 기록 · 방문 전 재확인/)).toBeVisible();
+  await expect(itinerary.locator(".day-evidence")).not.toContainText("%");
 });
 
 test("다른 지역으로 이동해도 이전 지역 장소가 날짜별 일정에 남는다", async ({ page }) => {
@@ -71,6 +74,7 @@ test("다른 지역으로 이동해도 이전 지역 장소가 날짜별 일정�
   });
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await chooseTripConditions(page);
 
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
   await expect(itinerary).toContainText("진주 수목원");
@@ -84,6 +88,7 @@ for (const width of [1440, 960, 390]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await mockPlannerApi(page);
     await page.goto("/planner");
+  await chooseTripConditions(page);
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
     await page.getByRole("button", { name: "용지호수공원 일정에 추가" }).click();
 

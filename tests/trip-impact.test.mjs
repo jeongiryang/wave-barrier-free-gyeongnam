@@ -5,7 +5,7 @@ import { assessTripImpact } from "../lib/trip-impact.js";
 test("rain on an outdoor-oriented plan offers a real culture re-search action", () => {
   const impact = assessTripImpact({
     weatherDay: { code: 61, label: "비", max: 25, rainProbability: 80, rain: 9, snow: 0, uv: 2 },
-    theme: "nature",
+    theme: "food,nature",
   });
   assert.equal(impact.level, "warning");
   assert.match(impact.signals[0].detail, /강수 확률 80%/);
@@ -20,7 +20,7 @@ test("high tourism concentration offers the next official recommendation for com
   });
   assert.equal(impact.level, "critical");
   assert.match(impact.signals[0].detail, /78\.4%/);
-  assert.deepEqual(impact.actions, [{ id: "alternative", label: "두 번째 장소 경로와 비교" }]);
+  assert.deepEqual(impact.actions, [{ id: "alternative", label: "두 번째 장소(으)로 교체 검토" }]);
 });
 
 test("missing external signals stays explicitly unknown instead of inventing safety", () => {

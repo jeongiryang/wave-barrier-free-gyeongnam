@@ -24,7 +24,7 @@ async function routePlanningSource() {
 }
 
 test("planner page delegates derived data and browser lifecycles to feature modules", async () => {
-  const [page, viewModel, actions, placeAdapters, dialogFocus, autoRefresh] = await Promise.all([
+  const [page, viewModel, actions, placeAdapters, dialogFocus, requestFlow] = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/view-model.ts"),
     Promise.all([
@@ -35,21 +35,22 @@ test("planner page delegates derived data and browser lifecycles to feature modu
     ]).then((parts) => parts.join("\n")),
     source("features/planner/place-adapters.ts"),
     source("features/planner/hooks/usePlaceDialogFocus.ts"),
-    source("features/planner/hooks/usePlannerAutoRefresh.ts"),
+    source("features/planner/hooks/usePlanRequest.ts"),
   ]);
 
   assert.match(page, /buildPlannerViewModel/);
   assert.match(page, /usePlannerActions/);
   assert.match(page, /usePlaceDialogFocus/);
-  assert.match(page, /usePlannerAutoRefresh/);
+  assert.doesNotMatch(page, /usePlannerAutoRefresh/);
   assert.doesNotMatch(page, /assessTripImpact|fallbackProviderDefinitions|addEventListener\("keydown"/);
   assert.match(viewModel, /buildFallbackTransportProviders/);
   assert.match(viewModel, /assessTripImpact/);
   assert.match(actions, /import \{ mapPlaceToPlannerPlace, richSpotToPlace \}/);
   assert.match(placeAdapters, /export function richSpotToPlace/);
   assert.match(placeAdapters, /export function mapPlaceToPlannerPlace/);
-  assert.match(dialogFocus, /previousFocus\?\.focus\(\)/);
-  assert.match(autoRefresh, /window\.clearTimeout\(timer\)/);
+  assert.match(dialogFocus, /previousFocus\.focus\(\)/);
+  assert.match(dialogFocus, /dialog.showModal\(\)/);
+  assert.match(requestFlow, /planRequestRef\.current\?\.abort\(\)/);
 });
 
 test("planner route composes feature sections instead of owning their dense UI", async () => {
