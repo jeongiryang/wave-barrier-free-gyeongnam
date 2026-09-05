@@ -1,9 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import { validateProductionOrigin } from "./lib/production-read-only";
 
-const baseURL = process.env.E2E_BASE_URL || "https://wave-barrier-free-gyeongnam.vercel.app";
+const baseURL = validateProductionOrigin(process.env.E2E_BASE_URL);
 
 export default defineConfig({
   testDir: "./e2e-production",
+  outputDir: "test-results-production",
   fullyParallel: false,
   forbidOnly: true,
   retries: 1,
@@ -16,6 +18,7 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "off",
+    serviceWorkers: "block",
   },
   projects: [
     {

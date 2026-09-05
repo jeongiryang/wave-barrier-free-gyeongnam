@@ -1,9 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { type Page } from "@playwright/test";
+import { expect, test } from "./read-only-fixtures";
 
 async function expectHealthyPage(page: Page, path: string) {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => { if (message.type() === "error") pageErrors.push(message.text()); });
 
   const response = await page.goto(path, { waitUntil: "domcontentloaded" });
   expect(response, `${path} navigation should return a response`).not.toBeNull();
@@ -34,6 +36,9 @@ test("production health endpoint is ready", async ({ request }) => {
   expect(response.status()).toBe(200);
   const body = await response.json();
   expect(body).toHaveProperty("checkedAt");
+  expect(body.ok).toBe(true);
+  expect(body.scope).toBe("configuration");
+  expect(body.keys.every((key: { optional: boolean; state: string }) => key.optional || key.state === "configured")).toBe(true);
 });
 
 test("landing leads into the real planner without layout or accessibility blockers", async ({ page }) => {
