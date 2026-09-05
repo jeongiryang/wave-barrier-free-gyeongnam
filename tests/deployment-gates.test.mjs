@@ -89,7 +89,7 @@ test("fresh databases receive the complete idempotent migration chain in one tra
     ))),
     readFile(new URL("../scripts/apply-community-moderation-migration.mjs", import.meta.url), "utf8"),
   ]);
-  assert.deepEqual(sources.map((source) => splitMigrationStatements(source).length), [9, 9, 5, 1, 4, 1, 2]);
+  assert.deepEqual(sources.map((source) => splitMigrationStatements(source).length), [9, 9, 5, 1, 4, 1, 2, 1]);
   const statements = orderedMigrationStatements(sources);
   assert.match(statements[0], /CREATE TABLE IF NOT EXISTS community_posts/);
   assert.match(statements[1], /CREATE TABLE IF NOT EXISTS community_comments/);
@@ -104,6 +104,9 @@ test("fresh databases receive the complete idempotent migration chain in one tra
   assert.match(sources[5], /moderation_status = 'hidden'/);
   assert.match(sources[6], /CREATE TABLE IF NOT EXISTS account_deletion_grants/);
   assert.ok(splitMigrationStatements(sources[6]).every((statement) => /IF NOT EXISTS/.test(statement)));
+  assert.match(sources[7], /SET moderation_status = 'under_review'/);
+  assert.match(sources[7], /WHERE p.moderation_status = 'active'/);
+  assert.doesNotMatch(sources[7], /DELETE FROM|DROP TABLE/);
   assert.deepEqual(orderedMigrationStatements(sources), statements);
   assert.match(runner, /PRODUCTION_MIGRATION_NAMES/);
   assert.match(runner, /orderedMigrationStatements\(migrations\)/);
@@ -125,6 +128,8 @@ test("the migration endpoint is token-protected and uses the canonical SQL", asy
   assert.match(handler, /005_community_field_reports\.sql\?raw/);
   assert.match(handler, /006_retire_community_seed\.sql\?raw/);
   assert.match(handler, /007_account_deletion\.sql\?raw/);
+  assert.match(handler, /008_review_date_integrity\.sql\?raw/);
+  assert.match(handler, /accountDeletionMigration,\s*reviewDateIntegrityMigration,/);
   assert.match(handler, /orderedMigrationStatements\(\[/);
   assert.match(handler, /communityMigration,\s*moderationMigration,\s*tripsMigration/);
   assert.match(handler, /communitySeedMigration/);

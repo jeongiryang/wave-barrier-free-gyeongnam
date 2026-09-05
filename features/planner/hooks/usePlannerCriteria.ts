@@ -3,11 +3,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { regions } from "../constants";
 import { useTravelPreferenceProfile } from "./useTravelPreferenceProfile";
+import { normalizeThemes } from "../../../lib/planner-criteria.js";
 
 export function usePlannerCriteria() {
-  const [selected, setSelected] = useState<string[]>(["wheel"]);
-  const [region, setRegion] = useState("창원");
-  const [theme, setTheme] = useState("nature");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [region, setRegion] = useState("");
+  const [themes, setThemes] = useState<string[]>([]);
+  const theme = themes.join(",");
+  const setTheme = useCallback((value: string) => setThemes(normalizeThemes(value)), []);
+  const toggleTheme = useCallback((id: string) => setThemes((current) => current.includes(id)
+    ? current.filter((item) => item !== id)
+    : normalizeThemes([...current, id])), []);
   const travelProfile = useTravelPreferenceProfile();
 
   useEffect(() => {
@@ -38,6 +44,8 @@ export function usePlannerCriteria() {
     setRegion,
     theme,
     setTheme,
+    themes,
+    toggleTheme,
     toggleProfile,
     clearSelectedProfiles,
     applyTravelProfile,

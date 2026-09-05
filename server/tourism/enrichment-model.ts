@@ -32,11 +32,11 @@ export function buildEnrichmentModel(sources: EnrichmentSources, expresswayConfi
     apiStatus("wellness", "웰니스 관광", "휴식·명상·스파·자연치유 여행 후보", wellness),
     apiStatus("medical", "의료 관광", "의료 관광시설과 안전 보조 정보", medical),
     apiStatus("language", language.name, `${language.source} 공식 관광 안내`, languageTour),
-    apiStatus("award", "관광공모전 수상사진", "수상작 이미지와 촬영지·저작권 정보", awards),
+    apiStatus("award", "관광공모전 수상사진", "조회된 사진 중 경남 촬영지가 확인된 자료", awards),
     apiStatus("demand", "관광 자원 수요", "SNS·소비·내비게이션 기반 지역 수요 지표", demandPack.result, demandItems.length),
     apiStatus("water", "물과 여행", "낙동강 수변 코스와 주요 명소", waterCourses.ok || waterPlaces.ok ? { ok: true, value: { items: [...(waterCourses.ok ? waterCourses.value.items : []), ...(waterPlaces.ok ? waterPlaces.value.items : [])], total: 0 } } : waterCourses),
     expresswayConfigured
-      ? apiStatus("rest", "테마휴게소", "관광·문화·체험형 고속도로 휴식 지점", themeRests)
+      ? apiStatus("rest", "테마휴게소", "조회된 휴게소 중 경남 주소가 확인된 휴식 지점", themeRests)
       : { id: "rest", name: "테마휴게소", role: "관광·문화·체험형 고속도로 휴식 지점", state: "ready", count: 0, note: "선택 기능 · 한국도로공사 전용키 연결 시 활성화" },
     apiStatus("event", "축제·행사", "현재부터 열리는 지역 축제·공연·문화행사", events),
     apiStatus("lodging", "숙박", "여행 지역의 숙박시설과 위치 정보", lodging),

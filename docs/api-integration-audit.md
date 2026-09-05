@@ -6,10 +6,16 @@
 이 문서는 키 값을 기록하지 않는다. `/api/health`의 설정 상태, 실제 Production 응답,
 성공한 CI/CD와 코드의 환경 변수 소비 경로만 대조한다.
 
+## 현재 상태 (2026-09-05)
+
+Production smoke 27/27은 응답 경계 검사이며 모든 사용자 흐름의 정상 동작 보장이 아니다.
+특히 광역 외 사진·휴게소, 환승 횟수, 날짜·지도 정합성은 [런칭 검증 기록](launch-audit-2026-09-05.md)에서 별도로 추적한다.
+과거 8개 언어 실호출 기록과 달리 이번 작업의 지원 언어는 한국어·영어 두 가지다.
+
 ## 결론
 
 - 필수 외부 API와 서비스 기반 환경 변수는 모두 등록되어 실제 기능이 동작한다.
-- 새로 등록할 API 키는 `ODSAY_API_KEY`, `EXPRESSWAY_API_KEY` 두 개다.
+- `ODSAY_API_KEY`, `EXPRESSWAY_API_KEY`는 사용자 등록·수정 후 Production 호출이 확인됐다. 현재 추가 발급이 필요한 런타임 API 키는 없다.
 - `KORAIL_API_KEY`, `TAGO_API_KEY`는 현재 공공데이터포털 일반 인증키로 각 API가
   실제 동작하므로 중복 등록하지 않는다.
 - `COMMUNITY_MODERATOR_USER_IDS`와 Neon 사용자 자체 삭제는 API 키가 아니라 운영 설정이다.
@@ -24,8 +30,8 @@
 | TAGO 버스·철도·고속·시외 | 공통 키 또는 `TAGO_API_KEY` | 등록·정상 | 인근 정류장 31건, 도착 4건, 철도 코드 15건, 고속 터미널 453건, 시외 터미널 340건 확인 |
 | Kakao 지도 SDK | `KAKAO_MAP_JAVASCRIPT_KEY` | 등록·정상 | 지도 설정 응답과 Production 지도 공급자 확인 |
 | Kakao 로컬 검색·자동차 경로 | `KAKAO_REST_API_KEY` | 등록·정상 | 장소 검색 및 76개 좌표점의 실제 자동차 경로·시간·거리·통행료 확인 |
-| ODsay 문전 대중교통 경로 | `ODSAY_API_KEY` | **미등록** | 현재 시내버스·환승의 전체 경로·시간·요금은 제공하지 못하고 KORAIL·TAGO 맥락 정보와 외부 지도 안내만 제공 |
-| 한국도로공사 테마휴게소 | `EXPRESSWAY_API_KEY` | **미등록** | 선택 기능 비활성, 다른 관광 추천에는 영향 없음 |
+| ODsay 대중교통 경로 | `ODSAY_API_KEY` | 등록·응답 확인 | 시간·요금·정류장 응답 확인. 환승 계산 수정과 무장애 이동 미확인 범위는 별도 검증 중 |
+| 한국도로공사 테마휴게소 | `EXPRESSWAY_API_KEY` | 등록·응답 확인 | 데이터 응답 정상. 경남 외 휴게소 혼입 여부와 지역 필터는 수정·검증 진행 |
 | Open-Meteo 날씨 | 없음 | 정상 | 창원 3일 이상 예보 응답 확인 |
 | OpenStreetMap 대체 타일 | 없음 | 준비됨 | Kakao SDK를 사용할 수 없을 때의 공개 지도 fallback |
 
@@ -49,7 +55,7 @@
 ### 1. ODsay
 
 1. ODsay LAB에서 애플리케이션을 만들고 **Web/URI 플랫폼**을 선택한다.
-2. 허용 URI에 `https://wave-barrier-free-gyeongnam.vercel.app`을 등록한다.
+2. 허용 URI에 프로토콜 없이 `wave-barrier-free-gyeongnam.vercel.app`을 등록한다.
 3. 발급된 Web API 키를 Vercel 프로젝트의 **Production** 환경 변수
    `ODSAY_API_KEY`에 저장한다.
 4. Production을 다시 배포한다.

@@ -13,7 +13,7 @@ test("Journey Control Center가 네 단계와 실제 여행 상태를 연결한�
   ]);
   assert.match(page, /<PlannerJourneyRail/);
   assert.match(page, /journey-control-layout/);
-  assert.match(page, /journey-trust-legend/);
+  assert.match(page, /reviewed: reviewedTrip === reviewSignature/);
   for (const id of ["conditions", "places", "itinerary", "departure-readiness"]) {
     assert.match(hook, new RegExp(`id: "${id}"`));
   }
