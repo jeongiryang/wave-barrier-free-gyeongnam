@@ -17,6 +17,7 @@ interface PlannerActionsOptions {
   activePlaces: Place[];
   onCultureSearch: () => Promise<void>;
   onReplaceAlternative: () => void;
+  onSelectDestination: (place: Place) => boolean;
   updateOrigin: (point: RoutePoint, label: string, isPrivate?: boolean) => void;
   loadRoutes: (
     place: Place,
@@ -38,12 +39,13 @@ export function usePlannerActions({
   activePlaces,
   onCultureSearch,
   onReplaceAlternative,
+  onSelectDestination,
   updateOrigin,
   loadRoutes,
   clearLocationSearch,
   setRouteNotice,
 }: PlannerActionsOptions) {
-  const points = usePlannerPointActions({ region, origin, privateOrigin, pointPicker, routeDestination, activePlaces, updateOrigin, loadRoutes, clearLocationSearch });
+  const points = usePlannerPointActions({ region, origin, privateOrigin, pointPicker, routeDestination, activePlaces, updateOrigin, loadRoutes, clearLocationSearch, onSelectDestination });
   const impact = usePlannerImpactAction({ onCultureSearch, onReplaceAlternative });
   const booking = useBookingRouteClipboard({ originLabel, region, routeDestination, activePlaces, setRouteNotice });
   return { ...points, ...impact, ...booking };

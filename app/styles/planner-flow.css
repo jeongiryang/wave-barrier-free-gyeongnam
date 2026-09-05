@@ -41,6 +41,14 @@
 .itinerary-day-tabs button[aria-pressed="true"] { background: #075469; color: #fff; }
 .departure-review-check { padding: 18px; display: flex; align-items: flex-start; gap: 12px; border: 1px solid #9fbec8; border-radius: 14px; line-height: 1.7; }
 .departure-review-check input { min-width: 24px; width: 24px; height: 24px; margin-top: 2px; }
+.itinerary-route-coverage { margin: 24px 0; padding: clamp(16px,3vw,28px); border: 1px solid var(--line); border-radius: 16px; background: var(--white); color: var(--ink); }
+.itinerary-route-coverage h3 { margin: 0; }
+.itinerary-route-coverage ol { padding-left: 24px; }
+.itinerary-route-coverage li { padding: 16px 0; border-top: 1px solid var(--line); }
+.itinerary-route-coverage li > span,.itinerary-route-coverage li > strong { display: block; overflow-wrap: anywhere; }
+.itinerary-route-coverage button,.itinerary-route-coverage select { min-height: 44px; margin: 8px 8px 0 0; max-width: 100%; padding: 8px 12px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+.itinerary-route-coverage label { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.itinerary-route-coverage .departure-review-check { flex-wrap: nowrap; align-items: flex-start; }
 .weather-illustration { width: 80px; height: 80px; flex-shrink: 0; }
 .facility-caution { font-size: .86rem; line-height: 1.5; color: #536b74; }
 .place-address { min-height: 2.8em; }

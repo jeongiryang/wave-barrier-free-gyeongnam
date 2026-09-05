@@ -7,6 +7,7 @@ import {
 } from "../shared/provider-data";
 import { regionCodes } from "./catalog";
 import { previousMonth } from "./date-utils";
+import { verifiedCrowdItem } from "../../lib/tourism/crowd-integrity.js";
 
 export async function fetchHub(env: Env, region: string, remaining: () => number = () => Infinity) {
   const codes = regionCodes[region]?.full?.length ? regionCodes[region].full : regionCodes["창원"].full;
@@ -48,7 +49,10 @@ export async function fetchRelated(env: Env, region: string, preferredYm = "", r
 
 export async function fetchCrowd(env: Env, region: string, title: string) {
   const code = regionCodes[region]?.full?.[0] || regionCodes["창원"].full[0];
-  return attempt(fetchKto(env, "TatsCnctrRateService", "tatsCnctrRatedList", {
+  const result = await attempt(fetchKto(env, "TatsCnctrRateService", "tatsCnctrRatedList", {
     ...commonParams("10"), areaCd: "48", signguCd: code, ...(title ? { tAtsNm: title } : {}),
   }));
+  if (!result.ok) return result;
+  const items = result.value.items.filter((item) => verifiedCrowdItem(item, title));
+  return { ok: true as const, value: { ...result.value, items, total: items.length } };
 }

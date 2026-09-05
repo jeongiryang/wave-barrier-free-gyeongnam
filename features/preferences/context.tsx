@@ -29,10 +29,20 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncSystemMotion = () => setSystemReducedMotion(query.matches);
+    let focusFrame = 0;
+    const syncSystemMotion = () => {
+      const focused = document.activeElement;
+      setSystemReducedMotion(query.matches);
+      window.cancelAnimationFrame(focusFrame);
+      focusFrame = window.requestAnimationFrame(() => {
+        // Updating OS motion preferences must not drop keyboard users onto body.
+        // Preserve a still-mounted control only; never override a new user focus.
+        if (document.activeElement === document.body && focused instanceof HTMLElement && focused !== document.body && focused.isConnected) focused.focus({ preventScroll: true });
+      });
+    };
     syncSystemMotion();
     query.addEventListener("change", syncSystemMotion);
-    return () => query.removeEventListener("change", syncSystemMotion);
+    return () => { query.removeEventListener("change", syncSystemMotion); window.cancelAnimationFrame(focusFrame); };
   }, []);
 
   useEffect(() => {

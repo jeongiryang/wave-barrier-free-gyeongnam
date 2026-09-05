@@ -26,6 +26,7 @@ import { usePlannerActions } from "../../features/planner/hooks/usePlannerAction
 import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
+import { useItineraryRoutes } from "../../features/planner/hooks/useItineraryRoutes";
 import { useJourneyProgress } from "../../features/planner/hooks/useJourneyProgress";
 import type { Place } from "../../features/planner/types";
 import { buildPlannerViewModel } from "../../features/planner/view-model";
@@ -55,6 +56,7 @@ export default function PlannerPage() {
     loadRoutes, resetRouteData, setRouteNotice, updateOrigin,
   } = routePlanning;
   const tripSelection = useTripSelection({ activePlaces, origin, accessibilityProfileCount: selected.length });
+  const itineraryRoutes = useItineraryRoutes(tripSelection, routePlanning);
   const locationSearch = useLocationSearch(region);
   const audioGuide = useAudioGuide(plan?.audio);
   const { resetAudio } = audioGuide;
@@ -86,10 +88,14 @@ export default function PlannerPage() {
   const { feedbackText, feedbackState, changeFeedbackText, submitFeedback } = participation;
   const stageView = usePlannerStageView();
   const [reviewedTrip, setReviewedTrip] = useState("");
-  const reviewSignature = JSON.stringify([region, theme, selected, orderedPlaceIds, travelStart, travelEnd, scheduleAssignments, origin, routePlanning.activeRoute?.id, dayStartTime]);
+  const [reviewedItinerary, setReviewedItinerary] = useState("");
+  const itinerarySignature = JSON.stringify([itineraryRoutes.signature, routePlanning.routeTravelMode, dayStartTime]);
+  const itineraryReviewed = reviewedItinerary === itinerarySignature && itineraryRoutes.complete && !itineraryRoutes.loading;
+  const reviewSignature = JSON.stringify([region, theme, selected, orderedPlaceIds, travelStart, travelEnd, scheduleAssignments, origin, routePlanning.activeRoute?.id, dayStartTime, itinerarySignature, weather?.updatedAt]);
   const journey = useJourneyProgress({
     searched: planController.resultCurrent,
     reviewed: reviewedTrip === reviewSignature,
+    itineraryReviewed,
     motion,
     observeSections: stageView.view === "overview",
     activeStepId: stageView.activeStepId,
@@ -140,6 +146,22 @@ export default function PlannerPage() {
       stageView.changeStep("conditions");
       const success = await runPlan({ resetRouteData, resetAudio, requestedTheme: "history" });
       if (success) stageView.changeStep("places");
+    },
+    onSelectDestination: (place) => {
+      if (!saved.includes(place.id)) {
+        if (!window.confirm(locale === "en" ? `Add ${place.name} to ${tripSelection.activeDay} and check the route? Facility access still needs verification.` : `${place.name}을(를) ${tripSelection.activeDay} 일정에 추가하고 경로를 확인할까요? 편의시설 정보는 별도로 확인해야 합니다.`)) return false;
+        toggleSaved(place.id, place);
+        tripSelection.assignPlaceToDay(place.id, tripSelection.activeDay);
+      } else {
+        const day = scheduleAssignments[place.id] || tripSelection.tripDays[0];
+        if (!tripSelection.tripDays.includes(day)) {
+          setNotice(locale === "en" ? "This place is stored outside the trip dates. Move it into this trip first." : "이 장소는 현재 여행 기간 밖에 보관되어 있습니다. 일정에서 날짜를 먼저 옮겨주세요.");
+          return false;
+        }
+        tripSelection.setActiveDay(day);
+      }
+      stageView.changeStep("itinerary");
+      return true;
     },
     onReplaceAlternative: () => {
       const target = tripSelection.orderedSavedPlaces.find((place) => (scheduleAssignments[place.id] || tripSelection.tripDays[0]) === tripSelection.activeDay);
@@ -216,6 +238,9 @@ export default function PlannerPage() {
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerItineraryWorkspace
+                coverage={itineraryRoutes}
+                reviewed={itineraryReviewed}
+                onReview={(checked) => setReviewedItinerary(checked ? itinerarySignature : "")}
                 mapEnabled={stageView.view === "overview" || journey.activeStepId === "itinerary"}
                 plan={plan}
                 activePlaces={activePlaces}
@@ -248,7 +273,8 @@ export default function PlannerPage() {
                 participation={participation}
                 onRefresh={() => { reloadWeather(); return generatePlan(false); }}
               />
-              <label className="departure-review-check"><input type="checkbox" checked={reviewedTrip === reviewSignature} onChange={(event) => setReviewedTrip(event.target.checked ? reviewSignature : "")} />{locale === "en" ? "I reviewed the itinerary and the information to check before leaving. This is not a safety guarantee." : "일정과 출발 전 다시 확인할 항목을 살펴봤어요. 이 확인은 안전 보증이 아닙니다."}</label>
+              {!itineraryReviewed && <p role="status">{locale === "en" ? "First review every journey in your itinerary. Unverified journeys do not count as complete." : "일정에서 각 이동 구간을 먼저 확인해 주세요. 미확인 구간이 있으면 여행 준비 완료로 표시하지 않습니다."}</p>}
+              <label className="departure-review-check"><input type="checkbox" disabled={!itineraryReviewed} checked={itineraryReviewed && reviewedTrip === reviewSignature} onChange={(event) => setReviewedTrip(event.target.checked ? reviewSignature : "")} />{locale === "en" ? "I reviewed the itinerary and the information to check before leaving. This is not a safety guarantee." : "일정과 출발 전 다시 확인할 항목을 살펴봤어요. 이 확인은 안전 보증이 아닙니다."}</label>
               <button type="button" className="signals-shortcut" onClick={() => { setSecondaryOpen(true); window.requestAnimationFrame(() => document.getElementById("layers")?.scrollIntoView({ behavior: motion === "calm" ? "instant" : "smooth", block: "start" })); }}>{locale === "en" ? "View weather and visitor forecasts" : "날씨·방문 경향 바로 확인하기"}</button>
               <TravelSignalsPanel
                 region={region}

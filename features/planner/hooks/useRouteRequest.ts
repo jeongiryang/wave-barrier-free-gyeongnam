@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { RouteAlternative, RoutePoint } from "../../routing/types";
 import type { DestinationCrowd, Place, TransportContext, TransportProvider } from "../types";
 import { fetchDestinationCrowd, fetchRouteData } from "../services/route-data";
+import type { RouteDataBundle } from "../services/route-data";
 
 interface RouteRequestOptions {
   place: Place;
@@ -22,6 +23,8 @@ export function useRouteRequest(region: string) {
   const [transportProviders, setTransportProviders] = useState<TransportProvider[]>([]);
   const [transportContext, setTransportContext] = useState<TransportContext | null>(null);
   const routeRequestRef = useRef<AbortController | null>(null);
+  const [routeStart, setRouteStart] = useState<RoutePoint | null>(null);
+  const [routeStartLabel, setRouteStartLabel] = useState("");
 
   const clearRouteAlternatives = useCallback(() => {
     routeRequestRef.current?.abort();
@@ -31,6 +34,8 @@ export function useRouteRequest(region: string) {
     setTransportProviders([]);
     setTransportContext(null);
     setRouteLoading(false);
+    setRouteStart(null);
+    setRouteStartLabel("");
   }, []);
 
   const loadRouteData = useCallback(async ({
@@ -44,6 +49,8 @@ export function useRouteRequest(region: string) {
     routeRequestRef.current?.abort();
     const controller = new AbortController();
     routeRequestRef.current = controller;
+    setRouteStart(origin);
+    setRouteStartLabel(originLabel);
     const endLat = Number(place.mapY);
     const endLng = Number(place.mapX);
     if (!place.mapX.trim() || !place.mapY.trim() || !Number.isFinite(endLat) || !Number.isFinite(endLng)) {
@@ -109,6 +116,21 @@ export function useRouteRequest(region: string) {
     setTransportProviders([]);
     setTransportContext(null);
     setRouteLoading(false);
+    setRouteStart(null);
+    setRouteStartLabel("");
+  }, []);
+
+  const displayRouteData = useCallback((place: Place, start: RoutePoint, label: string, bundle: RouteDataBundle) => {
+    routeRequestRef.current?.abort();
+    routeRequestRef.current = null;
+    setRouteLoading(false);
+    setRouteDestination(place);
+    setRouteStart(start);
+    setRouteStartLabel(label);
+    setRouteAlternatives(bundle.alternatives || []);
+    setTransportProviders(bundle.providers || []);
+    setTransportContext(bundle.context || null);
+    setDestinationCrowd(null);
   }, []);
 
   useEffect(() => () => routeRequestRef.current?.abort(), []);
@@ -123,5 +145,8 @@ export function useRouteRequest(region: string) {
     clearRouteAlternatives,
     loadRouteData,
     resetRouteData,
+    routeStart,
+    routeStartLabel,
+    displayRouteData,
   };
 }

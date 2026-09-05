@@ -7,8 +7,14 @@ import { communityToday } from "../lib/community/field-report.js";
 import { validatePostInput } from "../lib/community/validation.js";
 import { buildItinerarySchedule } from "../features/planner/optimization/itinerary-schedule.js";
 import { filterGyeongnamResult, isGyeongnamItem } from "../lib/tourism/regional-scope.js";
+import { verifiedCrowdItem } from "../lib/tourism/crowd-integrity.js";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+test("crowd signals require the selected attraction and a real numeric rate", () => {
+  for (const rate of [null, undefined, "", " ", "미확인", -1, 101]) assert.equal(verifiedCrowdItem({ tAtsNm: "경남도립미술관", cnctrRate: rate }, "경남도립미술관"), false);
+  assert.equal(verifiedCrowdItem({ tAtsNm: "경남도립미술관", cnctrRate: "0" }, "경남도립미술관"), true);
+  assert.equal(verifiedCrowdItem({ tAtsNm: "다른 장소", cnctrRate: "10" }, "경남도립미술관"), false);
+});
 test("legacy and multiple themes retain valid, unique choices", () => {
   assert.deepEqual(normalizeThemes("nature"), ["nature"]);
   assert.deepEqual(normalizeThemes("food,nature,food,invalid"), ["food", "nature"]);

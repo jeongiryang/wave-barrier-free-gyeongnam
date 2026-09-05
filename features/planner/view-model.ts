@@ -75,7 +75,8 @@ export function buildPlannerViewModel({
   const travelWeather = weather?.days.find((day) => day.date === travelStart) ?? null;
   const impactDestination = routeDestination ?? activePlaces[0] ?? null;
   const impactAlternative = activePlaces.find((place) => place.id !== impactDestination?.id && !savedPlaceIds.includes(place.id)) ?? null;
-  const impactCrowd = destinationCrowd ?? plan?.crowd ?? null;
+  const impactCrowd = destinationCrowd?.place === impactDestination?.name ? destinationCrowd
+    : plan?.crowd?.place === impactDestination?.name ? plan.crowd : null;
 
   return {
     activeStops: plan?.stops ?? [],

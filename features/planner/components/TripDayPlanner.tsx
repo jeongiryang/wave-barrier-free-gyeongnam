@@ -12,7 +12,8 @@ import type { PlanData } from "../types";
 import TravelBookArchiveAction from "../../travel-book/TravelBookArchiveAction";
 import AudioGuidePlayer from "./AudioGuidePlayer";
 
-export default function TripDayPlanner({ plan, tripSelection, route, audioGuide, participation, archiveContext }: {
+export default function TripDayPlanner({ plan, tripSelection, route, audioGuide, participation, archiveContext, itineraryRouteMinutes = {} }: {
+  itineraryRouteMinutes?: Record<string, number>;
   plan: PlanData | null;
   tripSelection: ReturnType<typeof useTripSelection>;
   route: ReturnType<typeof useRoutePlanning>;
@@ -27,13 +28,13 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
   } = tripSelection;
   const [editNotice, setEditNotice] = useState("");
   const outsideDates = orderedSavedPlaces.filter((place) => scheduleAssignments[place.id] && !tripDays.includes(scheduleAssignments[place.id]));
-  const routeMinutesByPlaceId = useMemo(() => routeMinutesForOriginLeg({
+  const routeMinutesByPlaceId = useMemo(() => ({ ...routeMinutesForOriginLeg({
     places: orderedSavedPlaces,
     days: tripDays,
     assignments: scheduleAssignments,
     destinationId: route.routeDestination?.id,
-    routeMinutes: route.activeRoute?.configured ? route.activeRoute.totalTime : undefined,
-  }), [orderedSavedPlaces, route.activeRoute, route.routeDestination, scheduleAssignments, tripDays]);
+    routeMinutes: route.activeRoute?.configured && (!route.routeStart || route.routeStart.lat === route.origin.lat && route.routeStart.lng === route.origin.lng) ? route.activeRoute.totalTime : undefined,
+  }), ...itineraryRouteMinutes }), [orderedSavedPlaces, route.activeRoute, route.routeDestination, route.routeStart, route.origin, scheduleAssignments, tripDays, itineraryRouteMinutes]);
   const schedule = useMemo(() => buildItinerarySchedule({
     places: orderedSavedPlaces,
     days: tripDays,

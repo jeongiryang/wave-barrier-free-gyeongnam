@@ -34,6 +34,11 @@ test("intro replays without blocking the planning link or moving keyboard focus"
   await expect(replay).toBeFocused();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator(".landing-actions").getByRole("link", { name: /내 여행 설계하기/ })).toBeVisible();
+  await page.evaluate(() => {
+    const focused = document.activeElement;
+    const logFocus = () => console.info("motion-focus", JSON.stringify({ previousConnected: focused?.isConnected, previousClass: (focused as HTMLElement)?.className, currentClass: (document.activeElement as HTMLElement)?.className, currentTag: document.activeElement?.tagName }));
+    matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", () => requestAnimationFrame(logFocus), { once: true });
+  });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(replay).toBeFocused();
@@ -121,4 +126,34 @@ test("a confirmed crowd alternative replaces the itinerary instead of an unrelat
   const schedule = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-trip-schedule-v1") || "{}"));
   expect(schedule.scheduleAssignments).toEqual({ "1002": "2026-10-08" });
   await expect(page.locator(".route-scope-note").first()).toContainText("일정 1곳");
+});
+
+test("trip completion requires every ordered leg and separate itinerary and departure reviews", async ({ page }) => {
+  await mockPlannerApi(page);
+  const requests: URL[] = [];
+  page.on("request", (request) => { if (request.url().includes("/api/route?")) requests.push(new URL(request.url())); });
+  await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
+  const move = page.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동", exact: true });
+  if (await move.isEnabled()) await move.click();
+  const coverage = page.locator(".itinerary-route-coverage");
+  await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
+  await expect(coverage.getByRole("checkbox")).toBeDisabled();
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "50");
+  await coverage.getByRole("button", { name: "모든 구간 조회하기", exact: true }).click();
+  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
+  expect(requests.some((url) => url.searchParams.get("startLat") === "35.238" && url.searchParams.get("startLng") === "128.691" && url.searchParams.get("endLat") === "35.229")).toBe(true);
+  await coverage.getByRole("checkbox").check();
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "75");
+  await page.getByRole("checkbox", { name: /일정과 출발 전 다시 확인할 항목/ }).check();
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "100");
+  await coverage.getByLabel("이동수단", { exact: true }).selectOption("transit");
+  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
+  await expect(coverage.getByRole("checkbox")).not.toBeChecked();
+  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "50");
+  await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
+  await page.getByLabel("용지호수공원 여행 날짜").selectOption("2026-10-09");
+  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
 });

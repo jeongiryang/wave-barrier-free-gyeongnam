@@ -21,6 +21,8 @@ const DeferredRouteMap = lazy(() => import("../../../components/RouteMap"));
 
 export default function RouteMapWorkspace({ mapEnabled, activePlaces, planCrowd, route, locationSearch, onChoosePoint, onMapDestination, onSaveMapPlaces }: RouteMapWorkspaceProps) {
   const { origin, originLabel, routeDestination, destinationCrowd, routeLoading, loadRoutes, updateOrigin, activeRoute } = route;
+  const displayOrigin = route.routeStart || origin;
+  const displayOriginLabel = route.routeStartLabel || originLabel;
   const { pointPicker, setPointPicker } = locationSearch;
   const mapPlaces = useMemo(() => activePlaces, [activePlaces]);
   const pointPickerTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -35,10 +37,10 @@ export default function RouteMapWorkspace({ mapEnabled, activePlaces, planCrowd,
 
   return <div className="navigation-workspace" data-reveal>
     <div className="map-panel">
-      <div className="map-toolbar"><button type="button" aria-expanded={pointPicker === "origin"} aria-controls="trip-point-picker" className={pointPicker === "origin" ? "point-active" : "point-button"} onClick={(event) => togglePointPicker("origin", event.currentTarget)}><span>출발 · 눌러서 변경</span><strong>{originLabel}</strong></button><i aria-hidden="true">→</i><button type="button" aria-expanded={pointPicker === "destination"} aria-controls="trip-point-picker" className={pointPicker === "destination" ? "point-active" : "point-button"} onClick={(event) => togglePointPicker("destination", event.currentTarget)}><span>도착 · 눌러서 변경</span><strong>{routeDestination?.name || activePlaces[0]?.name || "여행지 선택 전"}</strong></button><button type="button" className="recalculate-button" onClick={() => activePlaces[0] && void loadRoutes(routeDestination || activePlaces[0])} disabled={!activePlaces.length || routeLoading}>{routeLoading ? "경로 확인 중" : "다시 계산"}</button></div>
+      <div className="map-toolbar"><button type="button" aria-expanded={pointPicker === "origin"} aria-controls="trip-point-picker" className={pointPicker === "origin" ? "point-active" : "point-button"} onClick={(event) => togglePointPicker("origin", event.currentTarget)}><span>출발 · 눌러서 변경</span><strong>{displayOriginLabel}</strong></button><i aria-hidden="true">→</i><button type="button" aria-expanded={pointPicker === "destination"} aria-controls="trip-point-picker" className={pointPicker === "destination" ? "point-active" : "point-button"} onClick={(event) => togglePointPicker("destination", event.currentTarget)}><span>도착 · 눌러서 변경</span><strong>{routeDestination?.name || activePlaces[0]?.name || "여행지 선택 전"}</strong></button><button type="button" className="recalculate-button" onClick={() => activePlaces[0] && void loadRoutes(routeDestination || activePlaces[0], displayOrigin, route.privateOrigin && displayOrigin === origin, displayOriginLabel)} disabled={!activePlaces.length || routeLoading}>{routeLoading ? "경로 확인 중" : "다시 계산"}</button></div>
       <TripPointPicker activePlaces={activePlaces} route={route} locationSearch={locationSearch} onChoosePoint={onChoosePoint} onClose={closePointPicker} />
       {mapEnabled ? <Suspense fallback={<div className="map-load-placeholder" role="status">대화형 지도를 준비하고 있습니다.</div>}>
-        <DeferredRouteMap origin={origin} places={mapPlaces} route={activeRoute} crowd={routeDestination ? destinationCrowd : planCrowd} crowdPlaceId={(routeDestination || activePlaces[0])?.id} onOriginChange={(point, label) => {
+        <DeferredRouteMap origin={displayOrigin} places={mapPlaces} route={activeRoute} crowd={routeDestination ? destinationCrowd : planCrowd} crowdPlaceId={(routeDestination || activePlaces[0])?.id} onOriginChange={(point, label) => {
           updateOrigin(point, label, label === "현재 위치");
           if (label !== "현재 위치" && (routeDestination || activePlaces[0])) void loadRoutes(routeDestination || activePlaces[0], point, false, label);
         }} onDestinationChange={onMapDestination} onSavePlaces={onSaveMapPlaces} />
