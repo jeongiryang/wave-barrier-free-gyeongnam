@@ -1,64 +1,59 @@
 version: 1
 service:
-  name: "W.A.V.E"
-  display_name: "W.A.V.E 경남 무장애 여행 길잡이"
-  production_url: "https://wave-barrier-free-gyeongnam.vercel.app/"
-  problem_statement: "여행자가 자신에게 필요한 편의를 기준으로 경남 여행지를 찾고 일정·이동·출발 전 정보를 한 흐름에서 확인하기 어렵다."
-  solution_statement: "경남 관광·무장애·교통 데이터를 연결해 필요한 편의를 기준으로 여행지를 탐색하고, 일정과 이동 및 출발 전 재확인 정보를 한 흐름으로 제공한다."
-  truthfulness_rule: "확인된 공식 정보, 미확인 정보, 조회 실패, 여행자 제보, W.A.V.E 계산·예측을 서로 구분한다."
-
+  name: W.A.V.E
+  display_name: W.A.V.E 경남 무장애 여행 길잡이
+  production_url: https://wave-barrier-free-gyeongnam.vercel.app/
+  problem_statement: 여행자가 자신에게 필요한 편의를 기준으로 경남 여행지를 찾고 일정·이동·출발 전 정보를 한 흐름에서 확인하기 어렵다.
+  solution_statement: 경남 관광·무장애·교통 데이터를 연결해 필요한 편의를 기준으로 여행지를 탐색하고, 일정과 이동 및 출발 전 재확인 정보를 한 흐름으로 제공한다.
+  truthfulness_rule: 확인된 공식 정보, 미확인 정보, 조회 실패, 여행자 제보, W.A.V.E 계산·예측을 서로 구분한다.
 competition:
-  category: "웹·앱 개발"
+  category: 웹·앱 개발
   category_status: PASS
-  first_function_review_deadline: "2026-09-21T16:00:00+09:00"
+  first_function_review_deadline: '2026-09-21T16:00:00+09:00'
   confirmed_submission_items:
-    - "한국관광공사 OpenAPI 활용 정보"
-    - "기능설명서(공식 양식)"
+    - 한국관광공사 OpenAPI 활용 정보
+    - 기능설명서(공식 양식)
   unresolved:
     exact_task_or_track: UNKNOWN
     exact_official_function_description_form: UNKNOWN
-
 canonical_sources:
   runtime_truth:
-    - "Production URL"
-    - "Post-Deploy Production QA"
+    - Production URL
+    - Post-Deploy Production QA
   implementation_truth:
-    - "main branch code"
-    - "CI / E2E / API smoke"
-    - "package.json"
-    - "README.md"
+    - main branch code
+    - CI / E2E / API smoke
+    - package.json
+    - README.md
   compliance_truth:
-    - ".wave/compliance.yaml"
-    - "official Gmail"
-    - "official competition Notion/forms"
+    - .wave/compliance.yaml
+    - official Gmail
+    - official competition Notion/forms
   supporting_docs:
-    - "docs/demo-script.md"
-    - "docs/api-integration-audit.md"
-    - "docs/contest-compliance.md"
-    - "docs/assets-and-licenses.md"
-    - "docs/operations.md"
-
+    - docs/demo-script.md
+    - docs/api-integration-audit.md
+    - docs/contest-compliance.md
+    - docs/assets-and-licenses.md
+    - docs/operations.md
 stable_user_journey:
-  - "서비스 가치 이해"
-  - "여행 지역/필요한 편의/취향 선택"
-  - "내 조건에 맞는 여행지 탐색과 근거 확인"
-  - "내 일정 구성"
-  - "지도·이동 정보 확인"
-  - "날씨·이용·이동 정보를 출발 전에 재확인"
-
+  - 서비스 가치 이해
+  - 여행 지역/필요한 편의/취향 선택
+  - 내 조건에 맞는 여행지 탐색과 근거 확인
+  - 내 일정 구성
+  - 지도·이동 정보 확인
+  - 날씨·이용·이동 정보를 출발 전에 재확인
 claims_policy:
   rules:
-    - "Production에서 직접 시연할 수 없는 기능은 제출자료의 현재 기능으로 쓰지 않는다."
-    - "테스트 통과 수, 최신 commit, PR 번호처럼 자주 바뀌는 값은 생성 시 GitHub에서 읽고 이 파일에 고정하지 않는다."
-    - "KTO OpenAPI 데이터와 외부 API 데이터는 출처를 구분한다."
-    - "공식 편의정보와 여행자 경험/제보를 같은 근거로 합치지 않는다."
-    - "장소 편의 확인과 이동 경로 접근성 확인 범위를 같은 것으로 표현하지 않는다."
-    - "미확인 정보를 없음 또는 가능으로 추정하지 않는다."
-    - "AI가 만든 소개문/발표문은 코드·Production·공식 규정보다 우선할 수 없다."
-
+    - Production에서 직접 시연할 수 없는 기능은 제출자료의 현재 기능으로 쓰지 않는다.
+    - 테스트 통과 수, 최신 commit, PR 번호처럼 자주 바뀌는 값은 생성 시 GitHub에서 읽고 이 파일에 고정하지 않는다.
+    - KTO OpenAPI 데이터와 외부 API 데이터는 출처를 구분한다.
+    - 공식 편의정보와 여행자 경험/제보를 같은 근거로 합치지 않는다.
+    - 장소 편의 확인과 이동 경로 접근성 확인 범위를 같은 것으로 표현하지 않는다.
+    - 미확인 정보를 없음 또는 가능으로 추정하지 않는다.
+    - AI가 만든 소개문/발표문은 코드·Production·공식 규정보다 우선할 수 없다.
 artifacts:
   readme_consistency:
-    source: "README.md"
+    source: README.md
     status: NEEDS_DYNAMIC_AUDIT
   short_service_description:
     status: GENERATED_ON_DEMAND
@@ -68,9 +63,9 @@ artifacts:
     status: GENERATED_ON_DEMAND
   function_description_draft:
     status: BLOCKED_PARTIAL
-    blocker: "최신 공식 양식 및 세부 과제 mapping 확인 필요"
+    blocker: 최신 공식 양식 및 세부 과제 mapping 확인 필요
   demo_script:
-    source: "docs/demo-script.md"
+    source: docs/demo-script.md
     status: NEEDS_DYNAMIC_AUDIT
   presentation_outline:
     status: GENERATED_ON_DEMAND
@@ -80,11 +75,15 @@ artifacts:
     status: GENERATED_ON_DEMAND
   final_submission_checklist:
     status: GENERATED_ON_DEMAND
-
 human_gates:
-  - "실제 세부 과제/선택 과제 확인"
-  - "최신 공식 기능설명서 양식 확인"
-  - "실제 참가자/팀 정보 입력"
-  - "공식 제출 페이지 최종 업로드/제출"
-  - "접수번호/접수내역 보관"
-  - "최종 Submission GO"
+  - 실제 세부 과제/선택 과제 확인
+  - 최신 공식 기능설명서 양식 확인
+  - 실제 참가자/팀 정보 입력
+  - 공식 제출 페이지 최종 업로드/제출
+  - 접수번호/접수내역 보관
+  - 최종 Submission GO
+execution:
+  kind: document_contract_only
+  active: false
+  owner: current_user_managed_chatgpt_work_pm_chat
+  evidence: No executable workflow or configured external channel in this PR. PM must reconcile official facts before use.
