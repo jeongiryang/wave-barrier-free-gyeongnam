@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 async function recordScrollIntoViewBehavior(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
@@ -25,6 +25,7 @@ test("움직임 줄이기를 켜면 여행지 이동이 애니메이션 없이 �
   await recordScrollIntoViewBehavior(page);
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "길찾기" }).first().click();
@@ -37,6 +38,7 @@ test("기본 설정에서는 부드러운 이동을 유지한다", async ({ page
   await recordScrollIntoViewBehavior(page);
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "길찾기" }).first().click();

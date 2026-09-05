@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
 
 const pageErrors = new WeakMap<import("@playwright/test").Page, string[]>();
 
@@ -47,6 +47,7 @@ test("reduced motion keeps the landing immediately usable", async ({ page }) => 
 test("planner supports decision, save, route-aware schedule and focus restoration", async ({ page }) => {
   const api = await mockPlannerApi(page);
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   const museumCard = page.locator(".place-card").filter({ has: page.getByRole("heading", { name: "경남도립미술관" }) });
   const parkCard = page.locator(".place-card").filter({ has: page.getByRole("heading", { name: "용지호수공원" }) });
@@ -98,6 +99,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
 test("planner exposes honest recovery when the official plan request fails", async ({ page }) => {
   await mockPlannerApi(page, { failPlan: true });
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("alert")).toContainText("공식 관광정보 연결이 지연되고 있습니다");
   await expect(page.getByRole("button", { name: "공식 데이터 다시 조회" })).toBeVisible();
 });
@@ -105,6 +107,7 @@ test("planner exposes honest recovery when the official plan request fails", asy
 test("planner announces a delayed request and replaces its skeleton with official results", async ({ page }) => {
   await mockPlannerApi(page, { slowPlan: true });
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("status").filter({ hasText: "공식 관광정보를 불러오고 있어요" })).toBeAttached();
   await expect(page.locator(".place-carousel")).toHaveAttribute("aria-busy", "true");
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();

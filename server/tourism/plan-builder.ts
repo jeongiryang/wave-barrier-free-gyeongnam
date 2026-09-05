@@ -15,19 +15,31 @@ import { mergePlaces } from "./provider-model";
 import { fetchPhoto, photoFrom } from "./photos";
 import { recordOperationalEvent } from "../shared/observability";
 import { PLAN_TOTAL_BUDGET_MS, budgetClock, withinBudget } from "../../lib/request-budget.js";
+import { mergeThemeResults } from "../../lib/planner-criteria.js";
+import { contentTypes, multilingualContentTypes } from "./catalog";
 
 type Attempt = Awaited<ReturnType<typeof fetchCrowd>>;
 const overBudget = (): Attempt => ({ ok: false, error: "예산 시간 안에 확인하지 못했습니다." });
 
 export async function buildPlan(request: Request, env: Env) {
-  const { region, locale, language, profiles, districts, barrierLocationParams, localizedLocationParams } = readPlanQuery(request);
+  const { region, themes, locale, language, profiles, districts, barrierLocationParams, localizedLocationParams } = readPlanQuery(request);
   // 월별 반복 조회를 포함한 전체 상류 작업을 하나의 요청 예산으로 묶는다.
   // 시간이 모자라면 이미 확인한 공식 결과만 사용하고 나머지는 확인 필요로 남긴다.
   const remaining = budgetClock(PLAN_TOTAL_BUDGET_MS);
 
+  const fetchThemes = async (service: string, params: typeof barrierLocationParams, localized = false): Promise<Attempt> => {
+    const results = await Promise.all(themes.map((theme) => fetchRegionalList(env, service, "areaBasedList2", {
+      ...params, contentTypeId: localized && locale !== "ko" ? multilingualContentTypes[theme] : contentTypes[theme],
+    }, districts)));
+    const successes = results.filter((result) => result.ok);
+    if (!successes.length) return results[0] || overBudget();
+    const items = mergeThemeResults(successes.map((result) => result.ok ? result.value.items : []));
+    return { ok: true, value: { items, total: items.length } };
+  };
+
   const [barrier, tour, durunubi, hubPack, photo] = await withinBudget(Promise.all([
-    fetchRegionalList(env, "KorWithService2", "areaBasedList2", barrierLocationParams, districts),
-    fetchRegionalList(env, language.service, "areaBasedList2", localizedLocationParams, districts),
+    fetchThemes("KorWithService2", barrierLocationParams),
+    fetchThemes(language.service, localizedLocationParams, true),
     attempt(fetchKto(env, "Durunubi", "courseList", {
       ...commonParams("10"), brdDiv: "DNWW", crsLevel: "1", ...(region !== "경남 전체" ? { crsKorNm: region } : {}),
     })),
@@ -39,7 +51,7 @@ export async function buildPlan(request: Request, env: Env) {
     overBudget(),
   ] as const);
 
-  const baseItems = mergePlaces(barrier.ok ? barrier.value.items : [], tour.ok ? tour.value.items : []).slice(0, 6);
+  const baseItems = mergePlaces(barrier.ok ? barrier.value.items : [], tour.ok ? tour.value.items : []).slice(0, 12);
   const details = await withinBudget(
     Promise.all(baseItems.map((item) => attempt(fetchKto(env, "KorWithService2", "detailWithTour2", {
       ...commonParams("1"), contentId: clean(item.contentid),
@@ -74,6 +86,7 @@ export async function buildPlan(request: Request, env: Env) {
 
   const result = {
     mode,
+    criteria: { region, themes, profiles, locale },
     generatedAt: new Date().toISOString(),
     baseYm: hubPack.baseYm,
     places,

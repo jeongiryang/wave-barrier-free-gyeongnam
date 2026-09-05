@@ -26,6 +26,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
     orderMode, orderNotice, movePlace, movementFor, restoreAutoOrder, toggleSaved,
   } = tripSelection;
   const [editNotice, setEditNotice] = useState("");
+  const outsideDates = orderedSavedPlaces.filter((place) => scheduleAssignments[place.id] && !tripDays.includes(scheduleAssignments[place.id]));
   const routeMinutesByPlaceId = useMemo(() => routeMinutesForOriginLeg({
     places: orderedSavedPlaces,
     days: tripDays,
@@ -51,6 +52,9 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
     <div className="itinerary-empty-state"><span aria-hidden="true">+</span><h3>아직 일정에 추가한 장소가 없어요.</h3><p>위 추천 여행지에서 ‘일정에 추가’를 누르면 이곳에서 날짜, 순서와 이동시간을 정리할 수 있습니다.</p></div>
   </section>;
   return <section className="day-planner" data-reveal aria-label="날짜별 여행 일정">
+    <div className="date-range-fields"><label>여행 시작일<input type="date" value={tripSelection.travelStart} onChange={(event) => tripSelection.changeTravelStart(event.target.value)} /></label><label>여행 마지막 날<input type="date" min={tripSelection.travelStart} value={tripSelection.travelEnd} onChange={(event) => tripSelection.changeTravelEnd(event.target.value)} /></label></div>
+    <p className="date-scope-note">여행 날짜는 날씨·행사 조회에 반영됩니다. 날짜 변경으로 장소의 편의시설 정보가 달라지는 것은 아닙니다.</p>
+    {outsideDates.length > 0 && <section className="outside-trip-dates" aria-label="다른 날짜에 보관된 장소"><h4>이 기간 밖에 보관된 장소 {outsideDates.length}곳</h4><p>날짜를 바꿔도 이전 일정은 자동으로 옮기지 않습니다. 이번 여행에 넣을 장소만 직접 이동하세요.</p><ul>{outsideDates.map((place) => <li key={place.id}><span>{place.name} · {scheduleAssignments[place.id]}</span><select aria-label={`${place.name} 이번 여행 날짜로 이동`} value="" onChange={(event) => assignPlaceToDay(place.id, event.target.value)}><option value="" disabled>날짜 선택</option>{tripDays.map((day) => <option key={day} value={day}>{day}</option>)}</select><button type="button" onClick={() => toggleSaved(place.id)}>일정에서 제거</button></li>)}</ul></section>}
     <header><div><span>이 기기 일정</span><h3>{orderedSavedPlaces.length}곳을 날짜별로 정리했어요.</h3></div><div className="day-start-control"><label htmlFor="day-start-time">하루 시작</label><input id="day-start-time" type="time" value={dayStartTime} onChange={(event) => setDayStartTime(event.target.value)} /><small>확인한 실제 경로가 있으면 이동시간에 반영합니다.</small></div></header>
     <div className="day-order-toolbar"><div><strong>{orderMode === "manual" ? "내가 정한 순서" : "추천 순서"}</strong><p className="day-planner-explanation">{orderExplanation} 날짜와 순서는 이 기기와 공유 일정에 저장됩니다.</p></div>{orderMode === "manual" && <button type="button" onClick={() => { restoreAutoOrder(); setEditNotice(""); }}>추천 순서로 정렬</button>}</div>
     <p className="day-order-help">위·아래 버튼은 같은 날짜 안에서만 움직입니다. 첫 장소의 ‘앞으로’와 마지막 장소의 ‘뒤로’는 사용할 수 없습니다.</p>

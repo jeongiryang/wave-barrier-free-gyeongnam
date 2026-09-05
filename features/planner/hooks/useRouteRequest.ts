@@ -23,7 +23,15 @@ export function useRouteRequest(region: string) {
   const [transportContext, setTransportContext] = useState<TransportContext | null>(null);
   const routeRequestRef = useRef<AbortController | null>(null);
 
-  const clearRouteAlternatives = useCallback(() => setRouteAlternatives([]), []);
+  const clearRouteAlternatives = useCallback(() => {
+    routeRequestRef.current?.abort();
+    routeRequestRef.current = null;
+    setRouteAlternatives([]);
+    setDestinationCrowd(null);
+    setTransportProviders([]);
+    setTransportContext(null);
+    setRouteLoading(false);
+  }, []);
 
   const loadRouteData = useCallback(async ({
     place,
@@ -38,19 +46,27 @@ export function useRouteRequest(region: string) {
     routeRequestRef.current = controller;
     const endLat = Number(place.mapY);
     const endLng = Number(place.mapX);
-    if (!Number.isFinite(endLat) || !Number.isFinite(endLng)) {
+    if (!place.mapX.trim() || !place.mapY.trim() || !Number.isFinite(endLat) || !Number.isFinite(endLng)) {
       onNotice("선택한 여행지에 좌표가 없어 경로를 계산할 수 없습니다.");
       setRouteAlternatives([]);
+      setRouteDestination(place);
+      setRouteLoading(false);
+      setTransportContext(null);
+      setTransportProviders([]);
+      setDestinationCrowd(null);
       routeRequestRef.current = null;
       return;
     }
     setRouteLoading(true);
+    setRouteAlternatives([]);
     setRouteDestination(place);
     setDestinationCrowd(null);
+    setTransportContext(null);
+    setTransportProviders([]);
     if (privateOrigin) {
       setRouteLoading(false);
       setRouteAlternatives([]);
-      onNotice("현재 위치는 이 지도에서만 표시합니다. 좌표를 서버로 보내지 않으므로 카카오 지도 앱에서 경로를 이어서 확인해 주세요.");
+      onNotice("현재 위치 좌표는 W.A.V.E 경로 API에 보내지 않습니다. 경로를 비교하려면 공개 출발 거점을 선택하거나 카카오 지도 앱에서 직접 확인해 주세요. 지도 제공처의 화면 영역·접속 정보 처리는 개인정보처리방침을 확인해 주세요.");
       routeRequestRef.current = null;
       return;
     }
@@ -79,7 +95,6 @@ export function useRouteRequest(region: string) {
       onNotice(error instanceof Error ? error.message : "경로 연결을 확인해 주세요.");
     } finally {
       if (routeRequestRef.current === controller) {
-        routeRequestRef.current = null;
         setRouteLoading(false);
       }
     }

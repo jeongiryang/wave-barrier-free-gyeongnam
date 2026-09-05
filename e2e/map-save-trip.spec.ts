@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 /**
  * 지도 도구의 "저장"은 예전에 아무도 읽지 않는 저장소 키에 써 놓고
@@ -62,6 +62,7 @@ test("지도에서 저장하면 이 기기 일정에 추가되고 새로고침 �
   await withKakaoStub(page);
 
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
   await expect(page.getByRole("button", { name: "레이어·측정" })).toBeEnabled();
@@ -95,6 +96,7 @@ test("이미 담긴 여행지를 다시 저장해도 중복으로 쌓이지 않�
   await withKakaoStub(page);
 
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
   const layerTrigger = page.getByRole("button", { name: "레이어·측정" });

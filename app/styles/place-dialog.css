@@ -6,7 +6,10 @@
 .closing-section > span { display: block; margin: 23px 0 30px; color: var(--muted); }
 .closing-section a { min-height: 50px; padding: 11px 18px; display: inline-flex; align-items: center; gap: 28px; border-radius: 12px; color: var(--white); background: var(--ink); font-size: .88rem; font-weight: 850; }
 .modal-backdrop { position: fixed; z-index: 90; inset: 0; padding: 24px; display: grid; place-items: center; background: rgba(3,25,35,.74); backdrop-filter: blur(9px); }
-.place-modal { position: relative; width: min(920px, 100%); max-height: 90vh; overflow: auto; display: grid; grid-template-columns: .75fr 1fr; border-radius: 25px; background: #fff; box-shadow: 0 42px 100px rgba(0,0,0,.3); }
+.place-modal { position: fixed; inset: 0; margin: auto; padding: 0; border: 0; width: min(980px, calc(100% - 24px)); max-height: calc(100dvh - 24px); overflow: auto; grid-template-columns: .65fr 1fr; border-radius: 25px; color: #123b4b; background: #fff; box-shadow: 0 42px 100px rgba(0,0,0,.3); }
+.place-modal[open] { display: grid; }
+.place-modal:not([open]) { display: none; }
+.place-modal::backdrop { background: rgb(2 20 32 / 74%); }
 .modal-close { position: absolute; z-index: 2; right: 16px; top: 16px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(255,255,255,.94); font-size: 1.5rem; }
 .modal-visual { min-height: 520px; position: relative; background: linear-gradient(155deg, #b8eaff 0 44%, #61bbdf 44% 62%, #42829c 62% 66%, #7db8a4 66%); background-size: cover; background-position: center; }
 .modal-visual::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 28%, rgba(4,38,53,.5)); }

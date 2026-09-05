@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
 
 test("공개 랜딩은 첫 화면에서 인증 세션을 요청하지 않고 계정 의도 뒤에 연결한다", async ({ page }) => {
   await mockPublicShellApi(page);
@@ -31,6 +31,7 @@ test("안내형 플래너의 숨은 지도는 일정 단계가 열릴 때까지 
   });
 
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await page.waitForTimeout(500);
   expect(mapConfigRequests).toBe(0);

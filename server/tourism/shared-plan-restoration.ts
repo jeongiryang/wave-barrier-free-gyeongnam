@@ -16,7 +16,7 @@ export async function restoreSharedPlan(
     .map((value) => ({ contentId: clean(value.contentId, 80), order: Math.max(0, Math.trunc(Number(value.order) || 0)) }))
     .filter((value) => value.contentId)
     .sort((left, right) => left.order - right.order)
-    .slice(0, 6);
+    .slice(0, 12);
   if (!refs.length) {
     return {
       plan: await currentPlanPromise,

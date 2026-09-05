@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { CLIENT_BUDGET_MS, SERVER_BUDGET_MS } from "../lib/request-budget.js";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 /**
  * 상류가 느렸을 뿐 서버가 정상 응답한 결과를 클라이언트가 버리면 안 된다.
@@ -40,6 +40,7 @@ test("느리지만 성공한 경로 응답을 버리지 않는다", async ({ pag
   });
 
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   await expect(page.getByText("느린 자동차 경로").first()).toBeVisible({ timeout: 25_000 });
 });

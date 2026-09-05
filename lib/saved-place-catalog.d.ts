@@ -3,7 +3,7 @@ import type { Place } from "../features/planner/types";
 export const SAVED_PLACE_CATALOG_KEY: string;
 export const SAVED_PLACE_CATALOG_MAX_ITEMS: number;
 
-export type SavedPlaceSnapshot = Pick<Place, "id" | "name" | "city" | "address" | "image" | "score" | "knownFields" | "source">;
+export type SavedPlaceSnapshot = Pick<Place, "id" | "name" | "city" | "address" | "image" | "score" | "knownFields" | "source" | "mapX" | "mapY">;
 
 export function sanitizeSavedPlaceSnapshot(value: unknown): SavedPlaceSnapshot | null;
 export function sanitizeSavedPlaceCatalog(value: unknown): SavedPlaceSnapshot[];

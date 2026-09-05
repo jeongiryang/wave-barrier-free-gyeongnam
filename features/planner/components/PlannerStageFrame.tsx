@@ -50,20 +50,20 @@ export default function PlannerStageFrame({
     data-active={active || undefined}
     hidden={view === "guided" && !active}
   >
-    {view === "guided" && <header className="guided-stage-prompt">
+    {view === "guided" && step.id !== "conditions" && <header className="guided-stage-prompt">
       <span><b>{String(step.index).padStart(2, "0")}</b> {prompt.eyebrow}</span>
       <h2>{prompt.question}</h2>
       <p>{prompt.detail}</p>
     </header>}
     {children}
-    {view === "guided" && <footer className="guided-stage-actions" aria-label={`${step.label} 단계 이동`}>
+    {view === "guided" && step.id !== "conditions" && <footer className="guided-stage-actions" aria-label={`${step.label} 단계 이동`}>
       <div>
         <span>{step.complete ? "이 단계의 준비를 마쳤어요." : "선택 내용은 이 기기에서 바로 반영돼요."}</span>
         <button type="button" disabled={!interactive} onClick={onShowOverview}>전체 정보 한눈에 보기</button>
       </div>
       <nav aria-label="이전 또는 다음 여행 단계">
         {previous && <button type="button" className="secondary" disabled={!interactive} onClick={() => onStepChange(previous.id)}><span aria-hidden="true">←</span> 이전: {previous.label}</button>}
-        {next && <button type="button" disabled={!interactive} onClick={() => onStepChange(next.id)}>다음 질문: {next.label} <span aria-hidden="true">→</span></button>}
+        {next && <><button type="button" disabled={!interactive || !next.available} aria-describedby={!next.available ? `locked-${step.id}` : undefined} onClick={() => onStepChange(next.id)}>다음: {next.label} <span aria-hidden="true">→</span></button>{!next.available && <small id={`locked-${step.id}`}>현재 조건에 맞는 여행지를 찾고 일정에 한 곳 이상 추가해 주세요.</small>}</>}
         {!next && <button type="button" disabled={!interactive} onClick={onShowOverview}>완성된 여행 전체 보기 <span aria-hidden="true">↗</span></button>}
       </nav>
     </footer>}

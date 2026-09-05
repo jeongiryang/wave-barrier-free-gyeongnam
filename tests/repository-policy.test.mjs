@@ -13,7 +13,7 @@ async function plannerProductSource() {
     "features/planner/components/PlannerHeader.tsx",
     "features/planner/components/PlannerFooter.tsx",
     "features/planner/components/PlannerConditionsPanel.tsx",
-    "features/planner/components/PlannerJourneyBasics.tsx",
+    "components/GyeongnamRegionPicker.tsx",
     "features/planner/components/PlannerThemeDates.tsx",
     "features/planner/components/PlannerAccessibilityProfiles.tsx",
     "features/planner/components/RecommendationWorkspace.tsx",
@@ -247,7 +247,7 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(component, /contentId/);
   assert.match(component, /smart-image-skeleton/);
   assert.match(component, /공식 사진 준비 중/);
-  assert.match(planner, /className=\{`place-visual visual-/);
+  assert.match(planner, /className="place-visual"/);
   assert.match(planner, /region=\{place\.city \|\| region\}/);
   assert.match(planner, /contentId=\{place\.id\}/);
   assert.match(photos, /PhotoGalleryService1/);
@@ -411,7 +411,7 @@ test("non-Korean locales are visibly marked as partial without breaking narrow h
     source("app/styles/preferences.css"),
   ]);
   assert.match(catalog, /id: "ko"[^\n]+beta: false/);
-  assert.equal((catalog.match(/beta: true/g) || []).length, 7);
+  assert.equal((catalog.match(/beta: true/g) || []).length, 1);
   assert.match(controls, /item\.beta \? " · 부분 지원"/);
   assert.match(controls, /selectedLocale\.beta \? "핵심 화면 부분 번역"/);
   assert.match(controls, /관광지 원문과 일부 기능은 한국어로 표시될 수 있습니다/);
@@ -476,7 +476,8 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext\)/);
   assert.match(routePlanning, /useRouteOrigin\(clearRouteAlternatives\)/);
   assert.match(routeOrigin, /navigator\.geolocation\.getCurrentPosition/);
-  assert.match(routeOrigin, /좌표는 서버나 저장소로 전송하지 않습니다/);
+  assert.match(routeOrigin, /W.A.V.E 경로 API로 좌표를 보내거나 저장하지 않습니다/);
+  assert.match(routeOrigin, /지도 제공처/);
   assert.doesNotMatch(routePlanning, /navigator\.geolocation/);
   assert.match(routePlanning, /nextOriginLabel/);
   assert.doesNotMatch(planner, /routeRequestRef|setRouteAlternatives\(/);
@@ -767,7 +768,8 @@ test("shared trips restore saved places, order and date assignments from officia
   assert.match(restoration, /export async function restoreSharedPlan/);
   assert.match(restoration, /"KorService2", "detailCommon2"/);
   assert.match(restoration, /"KorWithService2", "detailWithTour2"/);
-  assert.match(trips, /selections\.selectedPlaceIds\.map\(\(id\) => placesById\.get\(id\)\)/);
+  assert.match(trips, /const selectedIds = selections\.selectedPlaceIds\.length/);
+  assert.match(trips, /selectedIds\.slice\(0, 12\)/);
   assert.match(restoration, /restoration: \{ requested: refs\.length, restored: places\.length, missing, mode: "content-id" \}/);
   assert.match(shared, /저장 장소 최신 확인/);
   assert.match(shared, /날짜별 저장 일정/);

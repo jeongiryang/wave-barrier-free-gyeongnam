@@ -22,7 +22,7 @@ const DeferredRouteMap = lazy(() => import("../../../components/RouteMap"));
 export default function RouteMapWorkspace({ mapEnabled, activePlaces, planCrowd, route, locationSearch, onChoosePoint, onMapDestination, onSaveMapPlaces }: RouteMapWorkspaceProps) {
   const { origin, originLabel, routeDestination, destinationCrowd, routeLoading, loadRoutes, updateOrigin, activeRoute } = route;
   const { pointPicker, setPointPicker } = locationSearch;
-  const mapPlaces = useMemo(() => activePlaces.slice(0, 6), [activePlaces]);
+  const mapPlaces = useMemo(() => activePlaces, [activePlaces]);
   const pointPickerTriggerRef = useRef<HTMLButtonElement | null>(null);
   const togglePointPicker = useCallback((value: "origin" | "destination", trigger: HTMLButtonElement) => {
     pointPickerTriggerRef.current = trigger;
@@ -43,7 +43,8 @@ export default function RouteMapWorkspace({ mapEnabled, activePlaces, planCrowd,
           if (label !== "현재 위치" && (routeDestination || activePlaces[0])) void loadRoutes(routeDestination || activePlaces[0], point, false, label);
         }} onDestinationChange={onMapDestination} onSavePlaces={onSaveMapPlaces} />
       </Suspense> : <div className="map-load-placeholder" role="status">일정과 이동 단계에서 대화형 지도를 불러옵니다.</div>}
-      <div className="map-legend"><span><i className="origin" /> 출발지</span><span><i className="destination" /> 추천 여행지</span><span><i className={activeRoute?.configured ? "real" : "preview"} /> {activeRoute?.configured ? "실제 이동 구간" : "직선 미리보기"}</span></div>
+      <div className="map-legend"><span><i className="origin" /> 출발지</span><span><i className="destination" /> 선택 날짜의 일정</span><span><i className={activeRoute?.configured ? "real" : "preview"} /> {activeRoute?.provider === "ODsay" ? "정류장 연결 개요 · 실제 도로선 아님" : activeRoute?.configured ? "선택한 한 구간의 경로" : "직선 미리보기"}</span></div>
+      <p className="route-scope-note">예상 시간은 현재 출발지 → 도착지 한 구간의 값입니다. 일정 전체 시간이나 휠체어 이동 가능 여부를 보장하지 않습니다. 도보·자전거 경로는 외부 지도에서 확인해 주세요.</p>
     </div>
     <RouteComparisonPanel route={route} />
   </div>;

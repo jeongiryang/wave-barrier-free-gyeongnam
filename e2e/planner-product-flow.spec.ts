@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
 
 test("390px·768px·1440px에서 네 단계 계획 흐름과 단일 일정이 유지된다", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "대표 Chromium 프로젝트에서 세 뷰포트를 직접 확인합니다.");
@@ -14,6 +14,7 @@ test("390px·768px·1440px에서 네 단계 계획 흐름과 단일 일정이 �
   for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     await page.goto("/planner");
+  await chooseTripConditions(page);
     await expect(page.getByRole("heading", { name: "여행 조건 정하기" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "여행지 고르기" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "이 기기 일정 만들기" })).toBeVisible();
@@ -49,6 +50,7 @@ test("랜딩 딥링크와 플래너 헤더는 안내형 보기에서도 실제 �
   await expect(page.getByRole("link", { name: /일정 구성해 보기/ })).toHaveAttribute("href", "/planner#itinerary");
 
   await page.goto("/planner#navigation");
+  await chooseTripConditions(page);
   await expect(page.locator(".journey-stage-stream")).toHaveAttribute("data-view", "guided");
   await expect(page.locator("#itinerary")).toBeVisible();
   await expect(page.locator("#navigation")).toBeVisible();

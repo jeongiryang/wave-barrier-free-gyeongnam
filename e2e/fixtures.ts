@@ -76,6 +76,17 @@ export async function mockPublicShellApi(page: Page) {
   }));
 }
 
+/** Real UI actions; tests no longer rely on automatic disability assumptions. */
+export async function chooseTripConditions(page: Page) {
+  await page.getByRole("group", { name: "여행 설계 보기 방식" }).getByRole("button", { name: "전체 보기", exact: true }).click();
+  await page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "창원", exact: true }).click();
+  const needs = page.getByRole("group", { name: "여행 편의 조건 선택" }).getByRole("button", { name: /휠체어 편의시설/ });
+  if (await needs.getAttribute("aria-pressed") !== "true") await needs.click();
+  const nature = page.getByRole("button", { name: /자연·휴양 공원/ });
+  if (await nature.getAttribute("aria-pressed") !== "true") await nature.click();
+  await page.getByRole("button", { name: "내 조건에 맞는 여행지 찾기 →", exact: true }).click();
+}
+
 export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview" } = {}) {
   let enrichmentRequestCount = 0;
   await page.addInitScript((plannerView) => {

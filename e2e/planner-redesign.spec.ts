@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 test("통합 플래너는 실제 시간순 이동수단을 먼저 보여주고 없는 수단은 카카오로 연결한다", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: /나에게 맞는 여행을.*4단계로 완성하세요/ })).toBeVisible();
   // 이 목록은 예상 시간이 오면 빠른 순서로 다시 정렬돼 탭 목록이 아니라 선택 버튼 묶음이다.
   const modes = page.locator(".route-mode-sections button");
@@ -47,6 +48,7 @@ test("장소 상세는 카카오 후기와 정확히 연결된 W.A.V.E 커뮤니
   }));
 
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await page.getByRole("button", { name: "편의시설 보기" }).first().click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("link", { name: /방문 후기·사진/ })).toHaveAttribute("href", /map\.kakao\.com\/link\/search/);

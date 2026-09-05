@@ -1,0 +1,70 @@
+/* Components for explicit trip questions and evidence-led place selection. */
+.planner-intro { padding: 30px clamp(16px,4vw,56px); display: flex; align-items: center; justify-content: space-between; gap: 24px; background: #073345; color: #fff; }
+.planner-intro h1 { margin: 0; font-size: clamp(1.45rem,3vw,2.5rem); letter-spacing: -.045em; }
+.planner-intro p { margin: 10px 0 0; max-width: 58ch; color: #c9e5ed; font-size: 1rem; line-height: 1.6; }
+.planner-intro .journey-mode-toggle { margin: 0; flex: 0 0 255px; }
+.condition-progress { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.condition-progress button { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid #b8ced7; border-radius: 30px; background: white; color: #244b5a; }
+.condition-progress button[aria-current] { background: #075469; border-color: #075469; color: white; }
+.condition-progress button:disabled { opacity: .55; cursor: not-allowed; }
+.condition-progress span { font-variant-numeric: tabular-nums; }
+.condition-heading { margin: 0 0 24px; font-size: clamp(1.65rem,3vw,2.6rem); letter-spacing: -.04em; scroll-margin-top: 112px; }
+.condition-inputs { min-width: 0; }
+.condition-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+.condition-actions button,.result-notice button,.outside-trip-dates button { min-height: 48px; padding: 12px 20px; border: 1px solid #075469; border-radius: 12px; background: #075469; color: #fff; font-weight: 750; }
+.condition-actions .secondary { color: #075469; background: white; }
+.condition-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.condition-scope,.date-scope-note,.route-scope-note { margin: 18px 0; font-size: .9rem; line-height: 1.65; color: #426574; }
+.region-picker { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: 24px; }
+.region-picker-visual { padding: 20px; border-radius: 24px; background: #e3f0f1; text-align: center; color: #285565; }
+.region-picker-visual > span,.region-picker-visual > small { display: block; line-height: 1.5; }
+.region-picker svg { display: block; width: 100%; max-height: 400px; overflow: visible; margin: 12px auto; }
+.region-picker path { fill: #a0c9c4; stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; transition: fill .2s; }
+.region-picker g { cursor: pointer; }
+.region-picker g:hover path,.region-picker g[aria-pressed="true"] path { fill: #075469; }
+.region-picker circle { fill: #174f5a; pointer-events: none; }
+.region-picker g[aria-pressed="true"] circle { fill: #fff; }
+.region-picker text { fill: #042b3c; stroke: #fff; stroke-width: 6; paint-order: stroke; font-size: 30px; font-weight: 900; pointer-events: none; }
+.region-picker-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.region-picker-list button { min-width: 0; min-height: 48px; padding: 10px 4px; border: 1px solid #a9c6cc; border-radius: 12px; color: #164a59; background: #fff; font-size: .95rem; font-weight: 700; overflow-wrap: anywhere; }
+.region-picker-list button[aria-pressed="true"] { color: #fff; background: #075469; border-color: #075469; }
+.date-range-fields { display: flex; flex-wrap: wrap; gap: 16px; }
+.date-range-fields label { display: grid; gap: 7px; min-width: 0; flex: 1 1 180px; }
+.date-range-fields input { width: 100%; min-width: 0; min-height: 46px; border: 1px solid #8eb0bc; border-radius: 9px; padding: 10px; background: white; color: #123b4b; }
+.outside-trip-dates,.result-notice { margin: 20px 0; padding: 20px; border: 1px solid #aabec5; border-radius: 14px; background: #edf6f7; }
+.outside-trip-dates ul { padding: 0; list-style: none; display: grid; gap: 14px; }
+.outside-trip-dates li { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.outside-trip-dates select { min-height: 44px; max-width: 100%; }
+.itinerary-day-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; }
+.itinerary-day-tabs button { min-height: 44px; min-width: 74px; border: 1px solid #a9c6cc; border-radius: 9px; color: #164a59; background: white; }
+.itinerary-day-tabs button[aria-pressed="true"] { background: #075469; color: #fff; }
+.departure-review-check { padding: 18px; display: flex; align-items: flex-start; gap: 12px; border: 1px solid #9fbec8; border-radius: 14px; line-height: 1.7; }
+.departure-review-check input { min-width: 24px; width: 24px; height: 24px; margin-top: 2px; }
+.weather-visual { width: 80px; height: 80px; flex-shrink: 0; }
+.facility-caution { font-size: .86rem; line-height: 1.5; color: #536b74; }
+.place-address { min-height: 2.8em; }
+.evidence-counts { display: flex; flex-wrap: wrap; gap: 8px; padding: 18px 0; }
+.evidence-counts span { background: #e8f2f5; color: #204c5a; padding: 8px 12px; border-radius: 8px; }
+.facility-evidence-list { display: grid; gap: 10px; }
+.facility-evidence-list > div { padding: 14px; border: 1px solid #b8cdd5; border-radius: 10px; }
+.facility-evidence-list dt { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; font-weight: 800; }
+.facility-evidence-list dd { margin: 10px 0 0; line-height: 1.6; }
+html[data-theme="dark"] .condition-heading { color: #edf8fa; }
+html[data-theme="dark"] .condition-scope,html[data-theme="dark"] .date-scope-note,html[data-theme="dark"] .route-scope-note,html[data-theme="dark"] .facility-caution { color: #b8d7e0; }
+html[data-theme="dark"] .result-notice,html[data-theme="dark"] .outside-trip-dates { background: #0d3545; color: #e6f3f8; }
+@media (max-width: 900px) {
+  .planner-intro { align-items: stretch; flex-direction: column; gap: 16px; }
+  .planner-intro .journey-mode-toggle { flex-basis: auto; }
+  .planner-intro .journey-mode-toggle > div:first-child { display: none; }
+}
+@media (max-width: 600px) {
+  .region-picker { grid-template-columns: 1fr; gap: 16px; }
+  .region-picker svg { max-height: 240px; }
+  .region-picker-visual { padding: 12px; }
+  .region-picker-list { gap: 8px; }
+  .condition-progress { gap: 5px; }
+  .condition-progress button { padding: 8px; font-size: .82rem; }
+  .condition-actions { flex-wrap: wrap; }
+  .condition-actions button { flex: 1; }
+  .place-modal .modal-body { padding-bottom: max(26px,env(safe-area-inset-bottom)); }
+}

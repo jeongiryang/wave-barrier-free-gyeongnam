@@ -23,12 +23,6 @@ function readStoredSchedule(): StoredSchedule {
   }
 }
 
-function assignmentsWithinDays(assignments: Record<string, string>, days: string[]) {
-  const validDays = new Set(days);
-  return Object.fromEntries(Object.entries(assignments)
-    .map(([id, day]) => [id, validDays.has(day) ? day : days[0]]));
-}
-
 export function useTripSchedule() {
   const [travelStart, setTravelStart] = useState(localDate());
   const [travelEnd, setTravelEnd] = useState(localDate(1));
@@ -54,7 +48,7 @@ export function useTripSchedule() {
       setTravelStart(start);
       setTravelEnd(end);
       setDayStartTime(typeof stored.dayStartTime === "string" && TIME_PATTERN.test(stored.dayStartTime) ? stored.dayStartTime : "10:00");
-      setScheduleAssignments(assignmentsWithinDays(assignments as Record<string, string>, dateRange(start, end)));
+      setScheduleAssignments(assignments as Record<string, string>);
       setStorageReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
@@ -75,16 +69,15 @@ export function useTripSchedule() {
   }, [dayStartTime, scheduleAssignments, storageReady, travelEnd, travelStart]);
 
   const changeTravelStart = useCallback((next: string) => {
+    if (!DATE_PATTERN.test(next)) return;
     const nextEnd = travelEnd < next ? next : travelEnd;
     setTravelStart(next);
     setTravelEnd(nextEnd);
-    setScheduleAssignments((current) => assignmentsWithinDays(current, dateRange(next, nextEnd)));
   }, [travelEnd]);
 
   const changeTravelEnd = useCallback((next: string) => {
-    if (next < travelStart) return;
+    if (!DATE_PATTERN.test(next) || next < travelStart) return;
     setTravelEnd(next);
-    setScheduleAssignments((current) => assignmentsWithinDays(current, dateRange(travelStart, next)));
   }, [travelStart]);
 
   const assignPlaceToDay = useCallback((placeId: string, day: string) => {

@@ -11,11 +11,13 @@ test("사용자가 고른 테마는 서비스 계열에 맞는 콘텐츠 유형�
   const regionalCalls = [...builder.matchAll(/fetchRegionalList\(env, ([^,]+), "areaBasedList2", ([^,]+),/g)]
     .map(([, service, params]) => ({ service: service.trim(), params: params.trim() }));
 
-  assert.equal(regionalCalls.length, 2, "지역 목록 조회는 무장애·언어 두 서비스에서 온다");
+  assert.equal(regionalCalls.length, 1, "공통 조회 함수가 선택된 테마마다 호출된다");
   assert.deepEqual(regionalCalls, [
-    { service: '"KorWithService2"', params: "barrierLocationParams" },
-    { service: "language.service", params: "localizedLocationParams" },
+    { service: "service", params: "{\n      ...params" },
   ]);
+  assert.match(builder, /themes\.map/);
+  assert.match(builder, /fetchThemes\("KorWithService2", barrierLocationParams\)/);
+  assert.match(builder, /fetchThemes\(language.service, localizedLocationParams, true\)/);
 });
 
 test("국문과 다국어 콘텐츠 유형 코드는 섞이지 않는다", async () => {

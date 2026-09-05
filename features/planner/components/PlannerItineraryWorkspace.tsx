@@ -30,7 +30,8 @@ interface PlannerItineraryWorkspaceProps {
 }
 
 export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspaceProps) {
-  const itineraryPlaces = props.tripSelection.orderedSavedPlaces;
+  const { activeDay, setActiveDay, tripDays, scheduleAssignments } = props.tripSelection;
+  const itineraryPlaces = useMemo(() => props.tripSelection.orderedSavedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === activeDay), [props.tripSelection.orderedSavedPlaces, activeDay, scheduleAssignments, tripDays]);
   const routableItineraryPlaces = useMemo(
     () => itineraryPlaces.filter((place) => (
       place.mapX.trim() !== "" && place.mapY.trim() !== ""
@@ -38,25 +39,23 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     )),
     [itineraryPlaces],
   );
-  const navigationPlaces = routableItineraryPlaces.length ? routableItineraryPlaces : props.activePlaces;
-  const routeDestinationId = props.route.routeDestination?.id;
-  const routeLoading = props.route.routeLoading;
+  const navigationPlaces = routableItineraryPlaces;
   const loadRoutes = props.route.loadRoutes;
-  const savedSignature = props.tripSelection.saved.join(",");
+  const resetRouteData = props.route.resetRouteData;
+  const savedSignature = `${activeDay}|${itineraryPlaces.map((place) => place.id).join(",")}`;
   const previousSavedSignature = useRef("");
 
   useEffect(() => {
     if (!routableItineraryPlaces.length) {
+      resetRouteData();
       previousSavedSignature.current = savedSignature;
       return;
     }
-    if (previousSavedSignature.current === savedSignature || routeLoading) return;
-    const previousSaved = new Set(previousSavedSignature.current.split(",").filter(Boolean));
+    if (previousSavedSignature.current === savedSignature) return;
     previousSavedSignature.current = savedSignature;
-    if (routableItineraryPlaces.some((place) => place.id === routeDestinationId)) return;
-    const addedPlace = routableItineraryPlaces.find((place) => !previousSaved.has(place.id));
-    void loadRoutes(addedPlace || routableItineraryPlaces[0]);
-  }, [loadRoutes, routeDestinationId, routeLoading, routableItineraryPlaces, savedSignature]);
+    resetRouteData();
+    void loadRoutes(routableItineraryPlaces[0]);
+  }, [loadRoutes, routableItineraryPlaces, savedSignature, resetRouteData]);
 
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
     <div className="journey-subheading" data-reveal>
@@ -71,6 +70,9 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       participation={props.participation}
       archiveContext={props.archiveContext}
     />
+    <nav className="itinerary-day-tabs" aria-label="지도에 표시할 날짜">{tripDays.map((day) => <button type="button" key={day} aria-pressed={activeDay === day} onClick={() => setActiveDay(day)}>{day.slice(5).replace("-", "/")}</button>)}</nav>
+    <p className="route-scope-note">{activeDay} · 일정 {itineraryPlaces.length}곳 중 지도에 표시할 수 있는 장소 {navigationPlaces.length}곳</p>
+    {itineraryPlaces.some((place) => !routableItineraryPlaces.includes(place)) && <p role="status">좌표를 확인하지 못한 장소: {itineraryPlaces.filter((place) => !routableItineraryPlaces.includes(place)).map((place) => place.name).join(", ")}. 일정에는 그대로 보관하며 지도에서는 제외합니다.</p>}
     <NavigationWorkspace
       mapEnabled={props.mapEnabled}
       activePlaces={navigationPlaces}
