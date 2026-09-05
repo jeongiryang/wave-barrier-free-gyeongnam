@@ -68,7 +68,7 @@ export function useJourneyProgress({
       label: "이 기기 일정",
       detail: savedCount ? `${savedCount}곳을 일정에 저장` : "장소를 일정에 추가",
       complete: savedCount > 0 && itineraryReviewed,
-      available: searched && recommendedCount > 0 && savedCount > 0,
+      available: savedCount > 0,
     },
     {
       id: "departure-readiness",
@@ -76,7 +76,7 @@ export function useJourneyProgress({
       label: "출발 확인",
       detail: weatherReady && routeDestinationName ? "날씨·경로를 불러옴" : "최신 정보를 재확인",
       complete: savedCount > 0 && itineraryReviewed && reviewed,
-      available: searched && recommendedCount > 0 && savedCount > 0,
+      available: savedCount > 0,
     },
   ], [recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady, searched, reviewed, itineraryReviewed]);
 

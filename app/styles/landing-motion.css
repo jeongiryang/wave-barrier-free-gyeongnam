@@ -5,10 +5,10 @@
 .chapter-rail { z-index: 80; position: fixed; right: 19px; top: 50%; display: grid; justify-items: center; gap: 8px; color: #537888; font-size: .52rem; font-weight: 900; letter-spacing: .12em; transform: translateY(-50%); }
 .chapter-rail i { width: 2px; height: 150px; overflow: hidden; border-radius: 99px; background: rgba(70,112,131,.18); }.chapter-rail b { width: 100%; height: calc(var(--landing-progress) * 100%); display: block; border-radius: inherit; background: linear-gradient(var(--blue),var(--mint)); transition: height .1s linear; }
 .landing-hero-copy { will-change: transform; transform: translate3d(calc(var(--pointer-rx) * -10px), calc(var(--pointer-ry) * -6px), 0); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
-.landing-signal { will-change: transform; transform: perspective(1000px) rotateY(calc(var(--pointer-rx) * 7deg)) rotateX(calc(var(--pointer-ry) * -5deg)) translate3d(calc(var(--pointer-rx) * 12px), calc(var(--pointer-ry) * 10px), 0); transition: transform .32s cubic-bezier(.2,.8,.2,1); }
+.landing-signal { transform: none; }
 .landing-page[data-scroll-direction="down"] .landing-hero-copy { translate: 0 min(var(--hero-shift), 80px); opacity: calc(1 - var(--landing-progress) * .75); }
 .landing-page[data-scroll-direction="up"] .landing-hero-copy { translate: 0 -12px; }
-.landing-page[data-scroll-direction="down"] .landing-signal { scale: calc(1 - var(--landing-progress) * .12); }
+.landing-page[data-scroll-direction="down"] .landing-signal { scale: 1; }
 .landing-page[data-scroll-direction="up"] .signal-node { animation-duration: 2.7s; }
 
 /* 첫 화면은 조건에서 출발해 근거·일정·상황 대응으로 이어지는 흐름을 직접 보여준다. */
@@ -138,7 +138,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .landing-pointer-glow,.chapter-rail { display: none; }
-  .signal-route-current,.signal-traveler,.signal-node,.landing-scroll i::after { animation: none !important; }
+  .signal-route-current,.signal-traveler,.signal-node { animation: none !important; }
   .signal-traveler { transform: translate3d(75cqw,-25cqw,0) !important; }
   .manifesto > h2,
   .product-story-copy,
@@ -167,7 +167,6 @@ html[data-motion="calm"] .landing-signal { translate: none !important; transform
 html[data-motion="calm"] .signal-route-current,
 html[data-motion="calm"] .signal-traveler,
 html[data-motion="calm"] .signal-node,
-html[data-motion="calm"] .landing-scroll i::after,
 html[data-motion="calm"] .product-story-copy h2 em,
 html[data-motion="calm"] .landing-community-copy h2 em,
 html[data-motion="calm"] .landing-cta h2 em { animation: none !important; }

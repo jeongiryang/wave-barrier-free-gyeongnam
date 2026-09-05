@@ -102,7 +102,10 @@ export default function PlannerPage() {
     onActiveStepChange: stageView.changeStep,
     selectedProfileCount: selected.length,
     recommendedCount: activePlaces.length,
-    savedCount: planController.resultCurrent ? activePlaces.filter((place) => saved.includes(place.id)).length : 0,
+    // A new search must not become the gate for an itinerary that already
+    // exists on this device.  Use the resolved catalogue, not the current
+    // recommendation response, so returning users can continue their trip.
+    savedCount: tripSelection.orderedSavedPlaces.length,
     routeDestinationName: routeDestination?.name || "",
     weatherReady: Boolean(weather && !weatherLoading),
   });
