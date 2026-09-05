@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 test("플래너의 일정은 로컬 여행집에서 기록하고 다시 복원할 수 있다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner?travelStart=2026-09-01&travelEnd=2026-09-02");
+  await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
   await itinerary.getByRole("button", { name: "여행집에 보관" }).click();

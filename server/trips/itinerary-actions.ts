@@ -26,7 +26,7 @@ export async function loadSharedTrip(request: Request, env: Env, id: string, url
   const selections = (saved.selections || {}) as Record<string, unknown>;
   const params = new URLSearchParams({
     region: clean(selections.region, 20),
-    theme: clean(selections.theme, 20),
+    themes: Array.isArray(selections.themes) ? selections.themes.join(",") : clean(selections.theme, 100),
     profiles: Array.isArray(selections.profiles)
       ? selections.profiles.map((value) => clean(value, 20)).join(",")
       : "",

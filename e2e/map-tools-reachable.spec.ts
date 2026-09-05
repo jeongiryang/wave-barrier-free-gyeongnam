@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 /**
  * 지도 도구는 8개라 가로 한 줄에 다 들어가지 않는다. 예전에는 데스크톱에서
@@ -46,6 +46,7 @@ test("가려진 지도 도구가 있으면 스크롤 손잡이를 보여 준다"
   for (const width of WIDTHS) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/planner", { waitUntil: "domcontentloaded" });
+  await chooseTripConditions(page);
     await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
     await page.waitForTimeout(1_500);
 
@@ -70,6 +71,7 @@ test("가려진 지도 도구도 끝까지 끌면 모두 드러난다", async ({
   await withKakaoStub(page);
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
+  await chooseTripConditions(page);
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
   await page.waitForTimeout(1_500);
 
@@ -109,6 +111,7 @@ test("키보드로 넘기면 가려진 지도 도구가 화면 안으로 들어�
   await withKakaoStub(page);
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
+  await chooseTripConditions(page);
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
   await page.waitForTimeout(1_500);
 

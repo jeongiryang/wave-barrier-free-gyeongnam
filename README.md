@@ -15,15 +15,26 @@
   </p>
 </div>
 
+## 문서 바로가기
+
+[서비스 소개](#핵심-사용자-여정) · [기능과 데이터](#기능과-데이터-신뢰) ·
+[API·키 설정](docs/api-integration-audit.md) · [Vercel·Neon 배포](docs/vercel-neon-setup.md) ·
+[운영·장애 대응](docs/operations.md) · [공모전·제출 부문 확인](docs/contest-compliance.md) ·
+[시연](docs/demo-script.md) · [이미지·지도 출처](docs/assets-and-licenses.md) ·
+[진행 중 검증](docs/launch-audit-2026-09-05.md)
+
+> 런칭 개편 검증 중입니다. 현재 브랜치의 수정과 Production 반영 여부는 검증 기록에서 구분합니다.
+> 실제 공모전 지원 부문은 신청 내역 확인이 필요합니다. 기존 문서의 ②-2 확정 표기를 제출 근거로 사용하지 마세요.
+
 ## 핵심 사용자 여정
 
 W.A.V.E는 여행자가 실제로 내리는 결정을 네 단계로 나눕니다. 처음에는 한 단계씩
 진행하고, 익숙해지면 전체 보기에서 지도와 교통 도구를 한꺼번에 사용할 수 있습니다.
 관광 탐색, 일정 작성, 출발 준비와 공유는 로그인 없이 이용할 수 있으며 계정은
 커뮤니티 글·댓글·좋아요·신고에만 필요합니다. 등록 이메일로 비밀번호를 복구하고
-로그인 뒤 계정 관리에서 비밀번호 변경과 탈퇴를 직접 처리할 수 있습니다.
+로그인 뒤 계정 관리에서 비밀번호를 변경할 수 있습니다. 자동 탈퇴는 Neon 제공처 설정 문제로 최종 검증이 필요합니다.
 
-1. [이동·편의 조건과 날짜를 고릅니다.](https://wave-barrier-free-gyeongnam.vercel.app/planner#conditions)
+1. [지역·필요한 편의·여행 취향을 직접 고르고 여행지를 찾습니다.](https://wave-barrier-free-gyeongnam.vercel.app/planner#conditions)
 2. [공식 편의근거가 확인된 장소와 추가 확인이 필요한 장소를 구분해 봅니다.](https://wave-barrier-free-gyeongnam.vercel.app/planner#places)
 3. [날짜·시각·순서를 편집하고 실제 경로와 추정 이동을 비교합니다.](https://wave-barrier-free-gyeongnam.vercel.app/planner#itinerary)
 4. [날씨·관광 집중률·교통·장소 근거를 다시 확인한 뒤 일정을 보관하거나 공유합니다.](https://wave-barrier-free-gyeongnam.vercel.app/planner#departure-readiness)
