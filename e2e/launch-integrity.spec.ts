@@ -242,7 +242,7 @@ test("guided itinerary unlocks the same dated journeys and transport control aft
   await expectNoOverflow(page);
 });
 
-test("clearing the last theme invalidates previous results and locks later stages without losing saved places", async ({ page }) => {
+test("clearing the last theme invalidates previous results without locking an existing itinerary", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
   await chooseTripConditions(page);
@@ -250,7 +250,7 @@ test("clearing the last theme invalidates previous results and locks later stage
   await page.getByRole("button", { name: /자연·휴양 공원/ }).click();
   await expect(page.getByText("조건이 변경됐어요.", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true })).toBeDisabled();
-  await expect(page.locator(".journey-rail nav button").nth(2)).toBeDisabled();
+  await expect(page.locator(".journey-rail nav button").nth(2)).toBeEnabled();
   await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "0");
   await expect(page.locator(".day-planner-grid li")).toContainText("경남도립미술관");
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
