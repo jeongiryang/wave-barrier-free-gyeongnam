@@ -98,6 +98,11 @@ export function useJourneyProgress({
     if (!observeSections && !steps.find((step) => step.id === id)?.available) return false;
     onActiveStepChange(id);
     if (typeof window === "undefined") return false;
+    if (window.location.hash !== `#${id}`) {
+      const url = new URL(window.location.href);
+      url.hash = id;
+      window.history.pushState(null, "", url);
+    }
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => scrollToSection(id, motion === "calm"));
     });

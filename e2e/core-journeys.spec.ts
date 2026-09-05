@@ -59,10 +59,10 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   await detailButton.click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "닫기" })).toBeFocused();
+  await expect(dialog.getByRole("heading", { name: "경남도립미술관", exact: true })).toBeFocused();
   await page.keyboard.press("Shift+Tab");
   expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
-  await expect(dialog.getByText("잘 맞는 이유")).toBeVisible();
+  await expect(dialog.getByText(/현장 접근 가능성을 보장하지 않습니다/)).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(detailButton).toBeFocused();

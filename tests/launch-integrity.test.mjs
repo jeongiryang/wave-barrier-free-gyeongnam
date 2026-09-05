@@ -6,6 +6,7 @@ import { accessibilityFieldState, buildAccessibilityItems } from "../lib/accessi
 import { communityToday } from "../lib/community/field-report.js";
 import { validatePostInput } from "../lib/community/validation.js";
 import { buildItinerarySchedule } from "../features/planner/optimization/itinerary-schedule.js";
+import { filterGyeongnamResult, isGyeongnamItem } from "../lib/tourism/regional-scope.js";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("legacy and multiple themes retain valid, unique choices", () => {
@@ -18,10 +19,17 @@ test("multi-theme results interleave fairly and remove duplicate place IDs", () 
   assert.deepEqual(mergeThemeResults([[{ contentid: "1" }, { contentid: "2" }], [], [{ contentid: "1" }, { contentid: "3" }], [{ contentid: "4" }]], 4).map((item) => item.contentid), ["1", "4", "2", "3"]);
 });
 test("unknown facility information never becomes negative evidence", () => {
-  for (const value of ["", "정보 없음", "미확인", "해당 없음", "확인 필요", null]) assert.equal(accessibilityFieldState(value), "unknown");
+  for (const value of ["", "정보 없음", "정보 없음 (시설 문의 필요)", "미확인", "해당 없음", "확인 필요", null]) assert.equal(accessibilityFieldState(value), "unknown");
   assert.equal(accessibilityFieldState("엘리베이터 없음"), "negative");
   assert.equal(accessibilityFieldState("엘리베이터 설치"), "confirmed");
   assert.equal(buildAccessibilityItems([["elevator", "승강기"], ["elevator", "승강기"]], { elevator: "미확인" }).length, 1);
+});
+test("regional content requires a verified province, not a matching town name or ignored request filter", () => {
+  const items = [{ address: "강원특별자치도 고성군", lDongRegnCd: "48" }, { koFilmst: "경상남도 고성군" }, { svarAddr: "경남 함안군" }, { title: "고성의 아침" }, { lDongRegnCd: "48" }];
+  assert.deepEqual(items.map(isGyeongnamItem), [false, true, true, false, true]);
+  assert.deepEqual(filterGyeongnamResult({ ok: true, value: { items, total: 99 } }), { ok: true, value: { items: [items[1], items[2], items[4]], total: 3 } });
+  const failure = { ok: false, error: "provider unavailable" };
+  assert.equal(filterGyeongnamResult(failure), failure);
 });
 test("review date validation uses Korea date and rejects future visits including journal items", () => {
   const now = Date.parse("2026-09-05T15:00:00Z");

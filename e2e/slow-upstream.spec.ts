@@ -41,6 +41,7 @@ test("느리지만 성공한 경로 응답을 버리지 않는다", async ({ pag
 
   await page.goto("/planner");
   await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   await expect(page.getByText("느린 자동차 경로").first()).toBeVisible({ timeout: 25_000 });
 });

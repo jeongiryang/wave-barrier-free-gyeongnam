@@ -40,7 +40,7 @@
 .itinerary-day-tabs button[aria-pressed="true"] { background: #075469; color: #fff; }
 .departure-review-check { padding: 18px; display: flex; align-items: flex-start; gap: 12px; border: 1px solid #9fbec8; border-radius: 14px; line-height: 1.7; }
 .departure-review-check input { min-width: 24px; width: 24px; height: 24px; margin-top: 2px; }
-.weather-visual { width: 80px; height: 80px; flex-shrink: 0; }
+.weather-illustration { width: 80px; height: 80px; flex-shrink: 0; }
 .facility-caution { font-size: .86rem; line-height: 1.5; color: #536b74; }
 .place-address { min-height: 2.8em; }
 .evidence-counts { display: flex; flex-wrap: wrap; gap: 8px; padding: 18px 0; }

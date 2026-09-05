@@ -25,9 +25,10 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
   const { locale } = useSitePreferences();
   const en = locale === "en";
   const labels = en ? ["Region", "Facilities", "Interests"] : ["지역", "필요한 편의", "여행 취향"];
-  const [question, setQuestion] = useState(0);
+  const [requestedQuestion, setQuestion] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const { region, setRegion, selected, themes, loading } = props.planController;
+  const question = Math.min(requestedQuestion, !region ? 0 : !selected.length ? 1 : 2);
   const guided = props.view === "guided";
   useEffect(() => {
     const sync = () => {
