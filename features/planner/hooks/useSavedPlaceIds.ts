@@ -64,5 +64,10 @@ export function useSavedPlaceIds() {
     setCatalog((current) => mergeSavedPlaceCatalog(current, places));
   }, []);
 
-  return { saved, catalog, storageReady, addSavedIds, removeSavedId, rememberSavedPlaces };
+  const replaceSavedId = useCallback((previousId: string, place: Place) => {
+    setSaved((current) => current.map((id) => id === previousId ? place.id : id));
+    setCatalog((current) => mergeSavedPlaceCatalog(removeSavedPlaceSnapshot(current, previousId), [place]));
+  }, []);
+
+  return { saved, catalog, storageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId };
 }

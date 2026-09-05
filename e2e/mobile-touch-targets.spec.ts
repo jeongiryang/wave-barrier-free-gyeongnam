@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
 
 const MOBILE = { width: 390, height: 844 };
 
@@ -54,6 +54,7 @@ test("모바일 지도 명령은 44px 조작 영역과 수평 탐색 경로를 �
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await chooseTripConditions(page);
 
   const commandBar = page.locator("nav.map-command-bar");
   await commandBar.scrollIntoViewIfNeeded();

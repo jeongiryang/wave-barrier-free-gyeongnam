@@ -88,15 +88,23 @@ export function usePlannerStageView() {
   }, []);
 
   useEffect(() => {
-    const destination = HASH_STEPS[window.location.hash.slice(1)];
-    if (!destination) return;
-    changeStep(destination.step);
     let firstFrame = 0;
     let secondFrame = 0;
-    firstFrame = window.requestAnimationFrame(() => {
-      secondFrame = window.requestAnimationFrame(() => scrollToSection(destination.target, prefersReducedMotion()));
-    });
+    const sync = () => {
+      const destination = HASH_STEPS[window.location.hash.slice(1)] || HASH_STEPS.conditions;
+      changeStep(destination.step);
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+      firstFrame = window.requestAnimationFrame(() => {
+        secondFrame = window.requestAnimationFrame(() => scrollToSection(destination.target, prefersReducedMotion()));
+      });
+    };
+    if (window.location.hash) sync();
+    window.addEventListener("popstate", sync);
+    window.addEventListener("hashchange", sync);
     return () => {
+      window.removeEventListener("popstate", sync);
+      window.removeEventListener("hashchange", sync);
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
     };
