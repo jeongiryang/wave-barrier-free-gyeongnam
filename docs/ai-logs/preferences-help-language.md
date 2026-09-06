@@ -37,3 +37,12 @@
 실제 영어 관광 데이터/추천·일정·경로·인증 폼·정책 본문 번역과 전체 200%/실기기 QA는 남는다.
 Preview·008 운영 사전 점검·필수 사람 리뷰·Production 반영 전이다. 구독 API 자동화를 활성화하지
 않았으며 모델 키/자격 증명을 사용하거나 옮기지 않았다. 최종 Release GO와 제출은 사람 판단이다.
+# 통합 후보의 도움말 재열기 포커스 후속 검증
+
+통합 458bf7d 전체에서 기존 `English help covers visible areas, traps focus and returns it on each public page`가 첫 화면 도움말을 다시 연 직후 Shift+Tab 검사에 실패했다(368 pass/1 fail/기존 skip 1). 실패 당시 evaluate는 dialog 밖 포커스를 읽었으나 이후 캡처는 Close help에 포커스가 도착한 상태였다. 지연된 0ms 타이머와 일치한다.
+
+현재 제품 aa48328에서 DOM에 dialog가 나타날 때 포커스가 안에 있는지 관찰하는 KO/EN·desktop/mobile 신규 4건을 모두 재현 실패했다. 첫 조사 worktree는 #318이었으나 최신 Help UI는 #319에 있으므로 기존 변경을 보존한 채 8eb38c5로 fast-forward했다. #318에서 버튼 이름을 찾지 못한 초기 시험은 제품 회귀 증거에 포함하지 않는다. #318 원격 수정 없음.
+
+`useHelpTourFocus`에서 layout effect로 표시 전에 포커스·키보드 처리를 설정하고 지연 타이머를 제거했다. 포커스가 예외적으로 밖에 있어도 Tab/Shift+Tab은 dialog 내부 첫/마지막 조작으로 진입한다. 닫을 때 기존 위치로 복귀한다. 신규 테스트는 4개 공개 페이지의 첫 열기/재열기, 즉시 역방향 Tab, Escape/복귀를 검증한다.
+
+신규 및 기존 도움말·환경설정 회귀 **14/14 PASS**, lint/typecheck, unit·contract **280/280**, Vercel build/performance PASS. 전체와 새 HEAD CI는 실행 중이며 운영 반영·Issue 종료로 표시하지 않는다. 신규 skip/기준 완화/timeout 증가 없음.
