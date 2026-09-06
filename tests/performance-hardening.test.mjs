@@ -57,8 +57,12 @@ test("숨은 플래너 지도와 원격 이미지는 초기 네트워크 비용�
   assert.match(planner, /mapEnabled=\{stageView\.view === "overview" \|\| journey\.activeStepId === "itinerary"\}/);
   assert.match(workspace, /lazy\(\(\) => import\("\.\.\/\.\.\/\.\.\/components\/RouteMap"\)\)/);
   assert.match(workspace, /mapEnabled \? <Suspense/);
-  assert.doesNotMatch(regionStory, /<img|Wikimedia|upload\.wikimedia\.org/);
-  assert.match(regionStory, /<RegionMapSurface \/>/);
+  assert.doesNotMatch(regionStory, /Wikimedia|upload\.wikimedia\.org/);
+  assert.equal((regionStory.match(/<img\b/g) || []).length, 1);
+  assert.match(regionStory, /<img src="\/maps\/korea-sgis-2020\.svg" width="120" height="114" loading="lazy" decoding="async"/);
+  const boundary = await source("features/landing/components/LandingBoundaryMap.tsx");
+  assert.match(boundary, /new IntersectionObserver/);
+  assert.match(boundary, /import\("\.\/RegionBoundarySurface"\)/);
   for (const image of [smartImage, photoCourse]) {
     assert.match(image, /loading="lazy"/);
     assert.match(image, /decoding="async"/);

@@ -65,8 +65,7 @@ for (const theme of ["dark", "light"] as const) {
       window.localStorage.setItem("wave-theme", value as string);
     }, theme);
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1_500);
-    expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     await expect(page.locator(".product-preview").first()).toBeHidden();
     await expect(page.locator(".community-live-preview")).toBeHidden();
 

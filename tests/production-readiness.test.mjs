@@ -321,16 +321,18 @@ test("wide screens use available viewport width without breaking mobile gutters"
   assert.match(css, /@media \(max-width: 780px\)[\s\S]*width: calc\(100vw - 16px\)/);
 });
 
-test("landing region controls share the rendered map coordinate space without a remote base map", async () => {
+test("landing region controls and real geometry share selection without a remote base map", async () => {
   const [landing, css] = await Promise.all([landingProductSource(), styleSource()]);
-  assert.match(landing, /className="landing-region-map-canvas" data-region-map-canvas/);
+  assert.match(landing, /className="landing-region-map-canvas region-boundary-list" data-region-map-canvas/);
   assert.match(landing, /data-region-marker=\{region\.name\}/);
   assert.match(landing, /className="region-marker-dot"/);
   assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
   assert.doesNotMatch(landing, /RegionMascot|upload\.wikimedia\.org/i);
-  assert.match(landing, /name: "거창"[\s\S]*x: 22, y: 14/);
-  assert.match(landing, /name: "양산"[\s\S]*x: 90, y: 43/);
-  assert.match(css, /\.landing-region-map-canvas \{[\s\S]*aspect-ratio: 600 \/ 433/);
+  assert.match(landing, /LandingBoundaryMap selected=\{activeRegion\}/);
+  const surface = await source("features/landing/components/RegionBoundarySurface.tsx");
+  assert.match(surface, /viewBox="0 0 800 814"/);
+  assert.match(surface, /data-region-boundary=\{region\.name\} data-selected=\{region\.name === selected\}/);
+  assert.match(css, /\.landing-region-map-canvas\.region-boundary-list > button \{[^}]*position: static;[^}]*animation: none;[^}]*min-height: 44px/);
   assert.match(css, /\.landing-region-map \{[\s\S]*min-height: 0/);
 });
 
