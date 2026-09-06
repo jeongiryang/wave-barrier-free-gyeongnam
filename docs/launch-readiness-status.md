@@ -6,80 +6,42 @@
 ## 기준과 판정 방법
 
 - main·Production: `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포 ID `6278499275`.
-- 현재 열린 Issue **47개**, PR **23개**다. 후속 수정 #312~#321과 팀원의 #320을 포함한다. 새 변경 발생 시 다시 조회한다.
+- 현재 열린 Issue **47개**, PR **25개**다. 후속 수정 #312~#323과 팀원의 #320을 포함한다. 새 변경 발생 시 다시 조회한다.
 - #287 `b803b80` → #307 `8b0257c` → #311 `93d1058` 제품 후보와 #309 `a9cf9db` 보안 변경,
   #289→#306 자동화 stack을 격리 worktree `audit/launch-integration-20260906`에서 합성했다.
 - 승인 0/3은 병합의 실제 차단이다. #287에 syt83·unknownamed와 세 번째 협업자 ginaginaring의 리뷰를 요청했다.
   보호 규칙을 낮추거나 관리자 우회하지 않는다. 구현·문서·로컬 검증은 계속한다.
 - 완료는 구현·회귀·문서·배포·운영 증거가 함께 있을 때만 사용한다. 아래의 코드·테스트 경로는
   구현 근거이며, 파일 존재를 해당 Issue 전체 AC 충족으로 해석하지 않는다.
-- 이번 통합에서 lint·typecheck·단위/계약 306/306·전체 audit 0·Vercel build·성능 예산은 통과했다.
-  첫 전체 Playwright는 **222 pass / 17 fail / 기존 skip 1**이었다. #311 문구·DOM 변경을 실제 화면과
-  대조해 선택자를 보정한 뒤 **239 pass / 기존 skip 1**. #311 새 HEAD의 [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34022005546)도 성공했다.
-  timeout·접근성 기준·완료 상태 assertion을 완화하지 않았다.
-- 후속 #312의 전체 회귀는 **237 pass / 2 fail / 기존 skip 1**. 인증 폼 hydration 전 기본 GET 제출로
-  민감 입력이 URL로 이동하는 별도 결함을 #314 `2ef2fa5`에서 수정했다. 추가 회귀 포함 **247 pass / 기존 skip 1**, 새 HEAD CI 성공.
-- #315는 환경설정의 실제 인트로 재생·초점·동작 감소 계약, #316 `a4ce81e`는 공공교통 전용 키와 미조회 상태를 수정한다.
-  #316 행동 회귀 6/6·전체 단위 286/286·브라우저 239 pass/기존 skip 1. 모두 미병합·미배포다.
-- 통합 `eee1208`은 전체 unit/contract **313/313**, Playwright·axe **249 pass / 기존 skip 1**,
-  lint/typecheck·Vercel build/performance·actionlint PASS, shellcheck 47개 실패 0, 전체 audit 0이었다.
-- 후속 #311 `93d1058`은 활동 미선택/날짜 Gate·영어 접근성 이름과 활동 카드 대비를 보완했다.
-  관련 E2E 50/50, 전체 247 pass / 기존 skip 1. #314 `6f9fc54`는 인증 화면 위치 처리 문구도 바로잡았다.
-  #313 `b94559a`는 PDF 태그·문서 언어·제목·대체 설명을 보완하고 9쪽을 렌더링 검수했다.
-  #289 `acb7dab`는 기존 구독 예약 receipt와 #309 보안 후보를 문서에 반영했다. 모두 원격에 보존했다.
-- 위 변경을 합성한 `5db27a2bdffe9e50b6031b781feaf8154e1d703e`: unit/contract **313/313**,
-  전체 Playwright·axe **257 pass / 기존 skip 1**, lint/typecheck·Vercel production build·성능 예산 PASS,
-  전체 audit **0**. 앞선 결과와 SHA를 구분한다. 이는 로컬 후보 검증이며 Preview/Production 증거가 아니다.
-- Production 27개 진단 중 23개 통과, route·관광 추천 KO/EN·관광 보강 실패다. Kakao·ODsay의 실제 경로 응답은 보존됐다.
-  #312 `7af38df`는 HTTP 200 안의 제공처 오류까지 CDN 캐시되는 결함을 수정했으며 미배포다.
-  최종 런칭/제출 가능 판정은 하지 않는다.
-- 10:25 UTC 마지막 Production 재진단은 **20/27 통과**로 바뀌었다. 지역 사진·장소 사진·집중률도
-  실패했다. 앞선 23/27은 08시 이력이다. 최신 상세는 [API 감사](api-integration-audit.md)에 기록한다.
-- 통합 5db27a2의 11개 viewport(320×568~2560×1440) 랜딩/중립 플래너 22화면은
-  콘솔 오류·가로 넘침·자동 추천 요청 0, h1 폭 잘림 0이었다. 대표 320/768/2560 화면을 직접 확인했다.
-  모든 단계·테마·언어·확대·실기기 QA를 완료했다는 의미는 아니다.
-- #317 `6f4d999`는 영어 편의/활동/날짜와 저장/검색 상태를 수정했다. unit 280/280,
-  전체 Playwright·axe 253 pass/기존 skip 1, [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34028553188).
-  포함 통합 `311de6ceab72456ca83d68db88467a3ad2ef2fa1`: unit/contract 313/313,
-  전체 Playwright·axe 263 pass/기존 skip 1, lint/typecheck·Vercel build·성능 예산 PASS, audit 0.
-  모두 로컬/CI 후보이며 Production 반영은 아니다.
-- #318 `7e6c1ed`는 내비게이션 KO/EN·추천 상태·줄바꿈을 보완하고 기존 #314 인증 보호를 merge했다.
-  unit 280/280, 전체 267 pass/기존 skip 1, [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34029670552).
-  포함 통합 `b13f5c7`: unit 313/313, 전체 269 pass/기존 skip 1, lint/typecheck/build/performance/audit PASS.
-- #319 `8eb38c5`는 환경설정/공개 4페이지 도움말 KO/EN, 실제 보이는 단계, ARIA 진행 그래픽,
-  도움말 지연 import/실패 복구, 모바일 설정 패널 위치를 보완한다. 기존 #315 재생/초점을 merge했다.
-  unit 280/280, 관련 E2E 56/56, 전체 279 pass/기존 skip 1, lint/typecheck/build/performance PASS.
-  플래너 JS gzip 270.82 KiB 초과를 268.55 KiB로 줄였으며 기존 270 KiB 예산은 유지한다.
-- 11:36:55 UTC Production 재진단도 **20/27, 동일 7건 실패**다. main/배포 SHA는 그대로다.
-- 최종 합성 `3bc4abe8dacbf57d55784baddd93aec01022ebb5`: unit/contract **313/313**, 전체
-  Playwright·axe **279 pass / 기존 skip 1**, lint/typecheck·Vercel build·성능 예산 PASS, audit **0**.
-  #319 [CI 34030742378](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34030742378)는 성공했다. 위 로컬 성공을 실제 Preview나 Production 성공으로 계산하지 않는다.
-- #321 `272bf681a2a7c41fdd66eca0360d29b272998498`: 추천 상세의 영어 조작·원문 안내, 후기 오류/빈 결과/재시도,
-  공식 정보와 제보 분리, light/dark 상·하단 대비를 수정했다. 관련 56/56, 최종 새 회귀 16/16,
-  전체 Playwright·axe **295 pass / 기존 skip 1**, unit 280/280, lint/typecheck/build/performance PASS.
-  후기 지연 로딩으로 초기 planner JS gzip 270.07→268.25 KiB. 16개 화면에서 콘솔/넘침/경계 오류 0.
-  #319 기반이며 [CI 34032622064](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34032622064)를 별도로 확인한다.
-- #321 포함 통합 `5fdd1e6c82aa0ff3f5c018ba00485277b5289dbb`: unit/contract **313/313**, 전체
-  Playwright·axe **295 pass / 기존 skip 1**, lint/typecheck/Vercel build/performance PASS, audit **0**.
-- 팀원 #320 `8782798`은 CSS와 작업 로그 2개 파일 변경이다. PM 리뷰의 잘못된 로그 번호(P2)는
-  수정됐으나 모든 기능 비주얼 숨김(P1)은 남았다. 다른 작업자의 진행 브랜치를 덮어쓰지 않고
-  통합을 보류한다. 작은 의미 있는 비주얼과 390/768/1366/1440·light/dark·키보드 회귀 증거가 필요하다.
-  [CI 34032458832](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34032458832)는
-  데스크톱·모바일/light·dark 4건 실패다. 숨겨진 condition-preview의 필수 시각 요소를 찾지 못했다.
-- 위 #320 상태는 보완 전 이력이다. 팀원의 `507c85e` 테스트 조정과 `b1eb3c0` hero 대비를 모두
-  보존해 `bfeda5f54206a66d7d97ae1532df5854760ecc00`을 같은 원격 브랜치에 fast-forward push했다.
-  작은 여정 도식 7개와 의미·대비·반응형·키보드 검증을 추가했다. 관련 8/8, 최종 추가 4/4,
-  전체 Playwright·axe **251 pass / 기존 skip 1**, unit 280/280, lint/typecheck/build/performance PASS.
-  390/768/960/1366/1440×light/dark의 고유 20화면과 CTA 가림 없음도 검증했다.
-  [성공한 CI 34034203872](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34034203872)와
-  합성 후보도 통과했다. PM 디자인 재검토·필수 사람 리뷰는 남는다. 운영 반영 완료가 아니다.
-- #321 [CI 34032622064](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34032622064)는
-  성공했으며 Ready for review다. 부모 PR의 main 반영과 필수 리뷰를 건너뛰어 병합하지 않는다.
-- #320까지 포함한 `a4e6b61d7731ae0325170dc1f8787c44970259ed`: lint/typecheck/unit 313/313,
-  Vercel build/performance PASS, audit 0. 전체 Playwright·axe **299 pass / 기존 skip 1 / 실패 0 (7.1분)**.
-- 12:12:45 UTC 운영 실패 응답 추가 진단: route는 Kakao/ODsay 연결·실제 경로를 반환했지만
-  KORAIL/TAGO 일부가 timeout 상태였다. 국문 추천은 HTTP 200/cache MISS에서도 `fallback`,
-  장소·탐색 0개, 8개 제공처 error였다. 두 응답 분석은 전체 27개 검사의 새 성공 결과가 아니다.
+- 최신 검증 후보 `bf2cfe87fc94709b1453cdc81318133e64bbabac`는 #320~#323과 제품·보안·자동화를 합성했다.
+  lint/typecheck, unit·contract **313/313**, Vercel build/performance PASS, audit **0**,
+  전체 Playwright·axe **319 pass / 기존 skip 1 / 실패 0 (8.1분)**. CSS gzip 69.61/70 KiB,
+  planner JS 265.40/270 KiB다. Preview나 Production 검증으로 세지 않는다.
+- #321 `272bf68`: 추천 상세 KO/EN·원문 언어·후기 오류/빈 결과/재시도·dark/light 대비.
+  unit 280, 전체 295 pass/기존 skip 1, [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34032622064), Ready.
+- 팀원 #320 `bfeda5f`: 팀원의 간결한 3/2/1열 구성과 추가 커밋을 보존하고 도식 7개·한영 설명을 보완했다.
+  모든 비주얼을 숨겼던 P1의 보완 코드이며 PM 디자인 재검토는 남는다. unit 280, 전체 251 pass/기존 skip 1,
+  390/768/960/1366/1440×light/dark 고유 20화면·키보드·44px·포커스 가림·axe,
+  [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34034203872), Ready.
+- #322 `0b916a4`: 일정 변경 뒤 옛 공유 URL 재사용·늦은 응답·복사 성공 오표시를 수정했다.
+  저장 중 포커스와 dark 대비도 보완했다. 재현 4 fail → 최종 8/8, 전체 303 pass/기존 skip 1,
+  unit 280, [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34036478371), Ready.
+  이미 발행한 공유 링크나 사용자 데이터를 삭제하지 않았다.
+- #323 `be79d0c`: 일정 KO/EN·저장 안내·원문 언어·선택 해설·실제 지연 로딩과 대비를 보완했다.
+  320px 캡처에서 확인한 DAY 2/Earlier 잘림도 수정했다. unit 280, 관련 72/72, 최종 새 회귀 12/12,
+  전체 **315 pass/기존 skip 1/실패 0 (8.0분)**, lint/typecheck/build/performance PASS.
+  [CI 34037880762](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34037880762)는 별도 확인한다.
+- #313 `ecf90b3` 문서 [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34035647731).
+  이전 후보별 수치·수정 과정은 [체크포인트](ai-logs/launch-execution-checkpoint-20260906.md)와
+  [이전 실행표 커밋](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/blob/ecf90b3674f561a8e50fa2606333c83adeb6c293/docs/launch-readiness-status.md)에 보존했다.
+- 최신 전체 Production 진단은 **2026-09-06 14:02:46 UTC 22/27**, 실패 5건이다.
+  route·추천 KO/EN·관광 보강·집중률이 실패했고 지역/장소 사진 응답은 계약을 통과했다.
+  08시의 23/27과 11:36의 20/27은 과거 이력이다.
+  12:12 추가 분석에서는 Kakao/ODsay 경로가 연결됐지만 KORAIL/TAGO 일부 timeout, KO 추천은
+  HTTP 200/cache MISS에서도 장소 0·8개 제공처 error였다. 12:46 로컬 공통 호스트 진단도 timeout이었다.
+  이 추가 분석을 전체 성공이나 공식 상류 장애 확인으로 해석하지 않는다. [API 감사](api-integration-audit.md).
+- 기존 11개 viewport의 랜딩/중립 플래너 22화면, 영어 중립 24화면, 설정/도움말 16화면,
+  추천 상세 16화면의 로컬 증거가 있다. 전체 상태·200% 확대·실기기·화면 낭독기·운영 검수를 대신하지 않는다.
 
 ## 요구사항 → 이슈 → 구현·근거 → 남은 조치
 
@@ -88,7 +50,7 @@
 
 | Issue | 담당 | 상태 | 관련 PR·코드·검증 | 남은 조치·의존성 |
 | --- | --- | --- | --- | --- |
-| #251 일정·지도·날씨·언어 | Engineering/QA | 진행 중 | #287/#307/#311, `e2e/launch-integrity.spec.ts`, `tests/weather-integrity.test.mjs` | KO/EN 전체 여정·Production 재검증 |
+| #251 일정·지도·날씨·언어 | Engineering/QA | 진행 중 | #287/#307/#311/#317~#319/#321~#323, `e2e/itinerary-language.spec.ts`, `tests/weather-integrity.test.mjs` | 경로 상세·출발 확인·인증/정책 영어, Production 재검증 |
 | #252 복수 테마 | Engineering/QA | 진행 중 | #287, `tests/plan-locale-theme.test.mjs`, `server/tourism/` | 다중 테마·부분 실패 실호출 및 운영 저장·복원 |
 | #253 단계형 조건 | Engineering/QA | 진행 중 | #287/#311, `PlannerConditionsPanel.tsx`, `e2e/fixtures.ts` | 지역→편의→활동→날짜→명시적 검색 최종 회귀 |
 | #254 빈 추천·단계 잠금 | Engineering/QA | 진행 중 | #287/#307, `useJourneyProgress.ts`, `e2e/evidence-truthfulness.spec.ts` | 기존 일정 열람과 현재 추천 준비율을 구분해 AC 정리 |

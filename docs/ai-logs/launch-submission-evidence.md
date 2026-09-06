@@ -65,3 +65,21 @@ unit/contract 313/313, Vercel build/performance, audit 0, 전체 Playwright·axe
 12:12 UTC 실제 운영 route/KO plan 상태를 값·Secret 없이 다시 조사했다. Kakao/ODsay 연결은
 있으나 KORAIL/TAGO timeout, 관광 추천 fallback/0개/8개 error다. 전체 API 정상으로 세지 않는다.
 이번 문서 변경은 lint/typecheck/unit 280/build/performance 및 상대 링크를 검증했다.
+
+## 공유·영어 일정 후속과 14:02 운영 재검증
+
+앞의 #320 P1/CI 실패는 보완 전 이력이다. 팀원의 추가 커밋을 보존한 bfeda5f는 작은 도식 7개와
+반응형/키보드 검증을 갖췄고 CI 34034203872가 성공했다. #322 0b916a4는 옛 공유 링크 재사용,
+늦은 응답, 복사·포커스·대비를 수정했으며 전체 303 pass/기존 skip 1, CI 34036478371 성공이다.
+두 PR과 #321을 포함한 c904ec0 합성도 unit 313/313·전체 307 pass/기존 skip 1·audit 0·
+lint/typecheck/build/performance를 통과했다. 모두 Ready이지만 미병합·미배포다.
+
+#323 be79d0c의 영어 일정/오디오/지연 로딩·대비·320px 레이블 수정은 unit 280/280, 관련 72/72,
+최종 새 회귀 12/12, 전체 Playwright·axe 315 pass/기존 skip 1/실패 0을 통과했다.
+bf2cfe8 합성은 unit 313/313, 전체 319 pass/기존 skip 1/실패 0, lint/typecheck/build/performance PASS,
+audit 0이다. CI 34037880762는 별도로 확인한다. 기존 사용자의 변경·브랜치·파일을 보존했다.
+
+14:02:46 UTC 운영 진단은 **22/27**이다. 지역/장소 사진은 이번 응답 계약을 통과했고
+route·관광 추천 KO/EN·보강·집중률 5건이 실패했다. 이 결과를 API 감사와 실행표, 제출 원고에 반영했다.
+PDF는 10:25 당시 화면/실패 표를 가진 검토 초안이므로 최종 제출 전에 새 배포·표·캡처와 재검수가 필요하다.
+현재 실행표에서는 지난 후보들의 긴 결과 나열을 기존 커밋/체크포인트 링크로 옮겨 최신 상태를 먼저 보여준다.

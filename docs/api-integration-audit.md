@@ -1,6 +1,6 @@
 # W.A.V.E API·환경 변수 전수조사
 
-최신 전체 검증: **2026-09-06 11:36 UTC**, 실패 응답 추가 분석: **12:12 UTC**, 로컬 호스트 진단: **12:46 UTC**
+최신 전체 검증: **2026-09-06 14:02 UTC**, 실패 응답 추가 분석: **12:12 UTC**, 로컬 호스트 진단: **12:46 UTC**
 
 대상: `main` / Vercel Production `34e6021265b16d046dca24feaa3ec2101fc977e2`
 
@@ -15,20 +15,28 @@ Production smoke 27/27은 응답 경계 검사이며 모든 사용자 흐름의 
 
 ## 2026-09-06 재검증 — 이전 정상 결과와 구분
 
+**최신 14:02:46 UTC는 22/27 통과, 5건 실패**다. route(9.7초), 관광 추천 KO/EN(각 12.2초),
+관광 보강(67.1초)이 응답 계약을 충족하지 못했고 집중률(30.7초)은 HTTP/전송 실패였다.
+지역 사진과 장소 사진은 이번 응답에서 live/이미지 계약을 통과했다. 모든 원천 제공처의 새 실호출이나
+장기 안정성까지 확인한 것은 아니다. 설정·날씨·장소 검색·지도 설정·공개 커뮤니티·세션 경계와
+14개 페이지는 통과했다. 본문/키/사용자 정보는 출력하지 않았으며 기존 timeout·재시도·assertion을 유지했다.
+이하 20/27은 이전 이력이다. 검토 PDF의 10:25 사진 실패 표시는 당시 상태이며, 최신 제출본을 만들 때
+이 결과와 새 운영 캡처를 다시 반영해야 한다. 아직 제출 확정본이나 정상화 완료로 판정하지 않는다.
+
 **12:12:45 UTC 두 응답의 추가 분석**: route HTTP 200/cache MISS/9.9초에서 Kakao 자동차와 ODsay는
 `connected`, 실제 경로 5개에 geometry가 있었다. KORAIL, TAGO 정류장·철도·고속·시외 목록은
 `error`와 timeout 안내였다. TAGO 도착정보의 `ready`는 정류장 실패 뒤 미조회이며 정상 연결로 세지 않는다
 (이 경계는 미배포 #316에서 보완). 국문 추천은 HTTP 200/cache MISS/12.3초지만 `mode=fallback`,
 추천·탐색 장소 각 0개, 8개 제공처 모두 error였다. API의 키 존재·200·일부 경로 성공만으로 전체 정상이라
 판정하지 않는다. 원본 응답·키를 출력/저장하지 않고 상태/개수/시간과 오류 유형만 기록했다.
-공개 상태만으로 관광 실패의 인증·호출 제한·상류 연결 원인을 확정할 수 없다. 아래 20/27이 최신 전체 결과다.
+공개 상태만으로 관광 실패의 인증·호출 제한·상류 연결 원인을 확정할 수 없다. 이 분석은 위 14:02 전체 결과와 구분한다.
 
 12:46:39 UTC 로컬에서 `https://apis.data.go.kr/`의 자격 증명 없는 단일 접근도 10.0초 뒤
 TimeoutError였다. 이 호스트는 코드상 KTO/KORAIL/TAGO가 공유한다. 키 값·개인 좌표·응답 본문을
 사용하거나 기록하지 않았다. 공통 호스트 연결 경계를 조사할 근거일 뿐이며, Production API나
 인증 성공 검사 또는 전체 제공처 장애의 공식 확인으로 해석하지 않는다. 서비스 timeout 기준은 바꾸지 않았다.
 
-**마지막 진단 11:36:55 UTC는 20/27 통과, 7건 실패**다. route, 관광 추천 KO/EN, 관광 보강,
+**이전 진단 11:36:55 UTC는 20/27 통과, 7건 실패**였다. route, 관광 추천 KO/EN, 관광 보강,
 지역 사진, 장소 사진, 관광 집중률이 모두 실패했다. 경로 약 9.7초, KO/EN 추천 각 12.2초,
 관광 보강은 기존 재시도를 포함해 181.8초 후 계약 실패였다. 지역 사진은 91.5초 후 HTTP/전송 실패,
 장소 사진은 61.8초 후 계약 실패, 집중률은 30.7초 후 HTTP/전송 실패였다. 검사의 timeout이나
@@ -79,7 +87,7 @@ enrich는 11.28초 뒤 방문자·고캠핑·관광 수요·휴게소 live와 �
 | `KorWithService2 / areaBasedList2, detailWithTour2` | `plan-builder.ts`, `shared-plan-restoration.ts` | 추천·편의 근거·공유 복원 | plan error, 최종 실호출·복원 필요 |
 | `KorService2 / areaBasedList2, detailCommon2, searchKeyword2, searchFestival2` | `plan-builder.ts`, `spot-photo.ts`, `region-photo.ts`, `regional-enrichment.ts` | 국문 추천·사진 대안·행사·숙박 | plan/enrich error, 사진 응답 성공은 개별 원천 전체 성공 보장 아님 |
 | `EngService2 / areaBasedList2` | `catalog.ts`, `plan-builder.ts`, `enrichment-sources.ts` | 영문 관광 정보 | 영문 plan 계약 실패 |
-| `PhotoGalleryService1 / gallerySearchList1` | `region-photo.ts`, `spot-photo.ts` | 랜딩 지역·관광지 사진 | 08시 계약 통과 → 10:25 지역/장소 사진 계약 실패. 원천별 오류·출처 재대조 |
+| `PhotoGalleryService1 / gallerySearchList1` | `region-photo.ts`, `spot-photo.ts` | 랜딩 지역·관광지 사진 | 10:25 실패 → 14:02 지역/장소 사진 응답 계약 통과. 원천별 호출·출처 재대조 |
 | `Odii / storySearchList` | `plan-builder.ts` | 오디오 가이드 | plan error |
 | `Durunubi / courseList` | `plan-builder.ts` | 걷기 코스 | plan error |
 | `LocgoHubTarService1 / areaBasedList1` | `concentration.ts` | 중심 관광지 | plan error |
