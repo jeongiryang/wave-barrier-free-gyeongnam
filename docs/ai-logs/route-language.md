@@ -24,4 +24,12 @@ UI 메시지는 KO/EN을 함께 보관하여 런타임 언어 변경 후에도 �
 
 ## 남은 범위
 
+### CI 34045028862 후속 수정
+
+초기 c3d7287 전체 로컬은 365 pass/기존 skip 1이었으나 CI는 361 pass/4 fail/기존 skip 1이었다. 4개 light/dark·desktop/mobile 사례 모두 320px 이동수단 셀의 이름 잘림 검사에서 실패했고 기존 1회 재시도에서도 실패했다. 로그·실패 화면·error-context 및 보고서 artifact를 내려받았다. 화면은 검사 당시 스크롤된 위치이므로 해당 캡처만으로 셀 배치를 확정하지 않았다.
+
+넓은 대체 글꼴로 로컬 재현 시 이름에 필요한 72px에 대해 58px만 남는 2건 실패를 확인했다. `Time unavailable`의 nowrap을 해제하고 너비를 제한하여 이름과 시간 모두 영역 안에서 줄바꿈하도록 수정했다. 기존 잘림 assertion은 유지하며 대체 글꼴 경계 검사 2건을 추가했다. 관련 30/30, lint/typecheck, unit 285/285, Vercel build/performance PASS. CSS 69.27/70 KiB, planner 268.55/270 KiB. 새 HEAD CI와 전체 회귀 결과는 PR에 이어서 기록한다.
+
+통합 후보 458bf7d는 별도의 도움말 재열기 focus trap 1건으로 368 pass/1 fail/기존 skip 1이었다. 이전 f78e11e의 353 pass 결과와 구분하고 #318에서 원인을 조사한다.
+
 지도 조작/출발·도착 검색, 교통·날씨/혼잡 상세, 인증/정책 본문의 영어는 후속 범위다. 실제 Provider 호출·오류 원인은 별도 Production 진단을 따른다. main/Production `34e6021`, 필수 리뷰 0/3, Preview/008 운영 스키마·영향/백업·복원 접근은 미해결이다. 모델 API workflow 3개 비활성 유지, 유료 호출/인증 복사/새 예약/운영 쓰기 없음.
