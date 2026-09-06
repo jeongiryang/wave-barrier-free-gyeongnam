@@ -31,6 +31,12 @@ JavaScript가 꺼지거나 지연되면 입력 준비 안내·비회원 대안�
 
 ## 남은 조치
 
+추가 문구 대조: 인증 화면의 “현재 위치는 기기 안에서만 사용”은 실제 지도 SDK·타일·주변 검색
+경계 및 /privacy 설명과 달랐다. 동의 후 사용과 외부 지도 제공처의 위치 관련 처리 가능성을
+명시하고 자세한 개인정보 안내로 연결했다. 위치정보 법적 적합성을 확정하지 않는다.
+문구 변경 후 lint/typecheck·관련 단위 계약 16/16, 인증 lifecycle/hydration 16/16,
+validation/dark contrast 24/24, Vercel build/performance PASS. 전체 회귀는 통합 후보에서 재실행한다.
+
 #311/#312/#309 및 자동화 stack에 합성한 새 후보를 검증한다. 기존 Production에는
 아직 반영되지 않았다. 보호 규칙·필수 리뷰 3건을 유지한다. 실제 메일 수신·Neon 삭제
 관리 설정은 별도 Human Gate이며 이 수정의 로컬 인증 fixture 성공과 구분한다.
