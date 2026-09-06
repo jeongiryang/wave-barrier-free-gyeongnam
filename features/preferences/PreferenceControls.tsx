@@ -11,7 +11,7 @@ const browserReady = () => true;
 const serverReady = () => false;
 
 export function PreferenceControls({ onReplayIntro }: { onReplayIntro?: () => void } = {}) {
-  const [replayed, setReplayed] = useState(false);
+  const [replayCount, setReplayCount] = useState(0);
   const replayReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
   const { locale, theme, motion, systemReducedMotion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
   const en = locale === "en";
@@ -44,14 +44,15 @@ export function PreferenceControls({ onReplayIntro }: { onReplayIntro?: () => vo
           <span><b>{en ? "Motion" : "동작 효과"}</b><small>{systemReducedMotion ? en ? "Following device settings" : "운영체제 설정 적용 중" : motion === "calm" ? en ? "Reduced motion" : "효과 줄임" : en ? "Full motion" : "기본 효과"}</small></span>
           <em aria-hidden="true">{systemReducedMotion ? en ? "Device" : "OS" : motion === "calm" ? en ? "Reduced" : "정지" : en ? "Full" : "흐름"}</em>
         </button>
-        {onReplayIntro && <button className="preference-row" type="button" disabled={!replayReady} onClick={() => { onReplayIntro(); setReplayed(true); }} aria-label={locale === "en" ? "Replay intro" : "인트로 다시보기"}>
+        {onReplayIntro && <button className="preference-row" type="button" disabled={!replayReady} onClick={() => { onReplayIntro(); setReplayCount((count) => count + 1); }} aria-label={locale === "en" ? "Replay intro" : "인트로 다시보기"}>
           <span><b>{locale === "en" ? "Replay intro" : "인트로 다시보기"}</b><small>{locale === "en" ? "Keeps your focus and motion preferences" : "현재 초점과 동작 설정을 유지합니다"}</small></span>
           <em aria-hidden="true">↻</em>
         </button>}
-        {onReplayIntro && <p role="status" aria-live="polite">{replayed ? (locale === "en" ? "Intro shown again with your motion preferences." : "설정한 동작 효과로 인트로를 다시 표시했습니다.") : ""}</p>}
+        {onReplayIntro && <p role="status" aria-live="polite" aria-atomic="true">{replayCount > 0 ? (locale === "en" ? "Intro shown again with your motion preferences." : "설정한 동작 효과로 인트로를 다시 표시했습니다.") : ""}{replayCount > 1 ? (locale === "en" ? ` (${replayCount} replays)` : ` (${replayCount}회)`) : ""}</p>}
         {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label={en ? "Install W.A.V.E" : "W.A.V.E 앱 설치"}>
           <span><b>{en ? "Install as an app" : "앱으로 설치"}</b><small>{en ? "Open from your home screen" : "홈 화면에서 전체 화면으로 열기"}</small></span>
           <em aria-hidden="true">{appInstall.state === "installing" ? en ? "Preparing" : "준비 중" : en ? "Install" : "설치"}</em>
+
         </button> : <div className="preference-row app-install-note">
           <span><b>{appInstall.state === "installed" ? en ? "App installed" : "앱 설치됨" : en ? "Add to home screen" : "홈 화면에 추가"}</b><small>{appInstall.state === "installed" ? en ? "Using your installed W.A.V.E app" : "현재 설치된 W.A.V.E로 이용 중" : en ? "Choose 'Add to home screen' in your browser menu." : "브라우저 메뉴에서 ‘홈 화면에 추가’를 선택하세요."}</small></span>
           <em aria-hidden="true">{appInstall.state === "installed" ? en ? "Done" : "완료" : en ? "Help" : "안내"}</em>

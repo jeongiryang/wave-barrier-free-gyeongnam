@@ -124,9 +124,14 @@ test("intro replays without blocking the planning link or moving keyboard focus"
   await page.screenshot({ path: test.info().outputPath("intro-replay-settings.png") });
   await page.keyboard.press("Space");
   await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", "2");
+  await expect(settingsPanel.getByRole("status")).toHaveText("설정한 동작 효과로 인트로를 다시 표시했습니다. (2회)");
   await expect(replay).toBeFocused();
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
+  await expect(replay).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", "3");
+  await expect(settingsPanel.getByRole("status")).toHaveText("설정한 동작 효과로 인트로를 다시 표시했습니다. (3회)");
   await expect(replay).toBeFocused();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획 만들기", exact: true });
@@ -139,6 +144,26 @@ test("intro replays without blocking the planning link or moving keyboard focus"
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/planner/);
   expect(errors).toEqual([]);
+});
+
+test("English repeated intro replay announces each keyboard activation", async ({ page }) => {
+  await mockPlannerApi(page);
+  await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const preferences = page.locator(".preference-controls:visible");
+  await expect(preferences).toHaveAttribute("aria-busy", "false");
+  await preferences.locator("summary").click();
+  const replay = preferences.getByRole("button", { name: "Replay intro", exact: true });
+  await replay.focus();
+  for (const [index, key] of ["Enter", "Space", "Enter"].entries()) {
+    await page.keyboard.press(key);
+    const count = index + 1;
+    await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", String(count));
+    await expect(preferences.getByRole("status")).toHaveText(`Intro shown again with your motion preferences.${count > 1 ? ` (${count} replays)` : ""}`);
+    await expect(replay).toBeFocused();
+  }
+  expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
 });
 
 test("one saved place does not complete the trip and the dialog contains keyboard focus", async ({ page }) => {
