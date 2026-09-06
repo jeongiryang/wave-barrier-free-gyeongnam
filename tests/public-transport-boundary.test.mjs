@@ -100,6 +100,39 @@ test("정류장 실패로 조회하지 못한 도착정보를 준비됨으로 �
 
 const publicResponse = (body, resultCode = "00") => ({ response: { header: { resultCode }, body } });
 
+test("정류장 식별자가 없으면 도착 조회를 실행하지 않고 의존 실패를 전파한다", async () => {
+  for (const stop of [{ nodenm: "정류장" }, { nodeid: "STOP" }, { citycode: "38030" }, { nodeid: " ", citycode: "38030" }]) {
+    const calls = [];
+    const load = loadServer(async (input) => {
+      const url = new URL(input);
+      calls.push(url.pathname);
+      return Response.json(publicResponse(url.pathname.includes("BusSttnInfo")
+        ? { totalCount: 1, items: { item: [stop] } } : { totalCount: 0, items: [] }));
+    });
+    const env = { TAGO_API_KEY: "fixture-only" };
+    const snapshot = await load("server/transport/public-provider-queries.ts").fetchPublicTransportSnapshot(env, 35.2, 128.6);
+    assert.equal(snapshot.nearbyStops.ok, true);
+    assert.equal(snapshot.arrivals?.ok, false);
+    assert.ok(calls.every((path) => !path.includes("ArvlInfo")));
+    const { providers, context } = load("server/transport/public-context-model.ts").buildPublicTransportContext(env, snapshot);
+    assert.equal(providers.find((item) => item.id === "tago-bus-arrival").state, "error");
+    assert.match(providers.find((item) => item.id === "tago-bus-arrival").detail, /식별정보.*조회하지/);
+    assert.equal(context.datasets.find((item) => item.id === "bus-arrival").state, "error");
+    assert.deepEqual(context.arrivals, []);
+  }
+});
+
+test("기존 snapshot도 정류장 식별자 누락을 도착 준비됨으로 바꾸지 않는다", () => {
+  const load = loadServer(() => { throw new Error("The model must not make network calls"); });
+  const { providers, context } = load("server/transport/public-context-model.ts").buildPublicTransportContext({}, {
+    tagoKey: true, korailKey: false, korailPlans: null, trainCatalog: null, expressCatalog: null, intercityCatalog: null,
+    nearbyStops: { ok: true, value: { total: 1, items: [{ nodenm: "정류장" }] } }, arrivals: null,
+  });
+  assert.equal(providers.find((item) => item.id === "tago-bus-arrival").state, "error");
+  assert.equal(context.datasets.find((item) => item.id === "bus-arrival").state, "error");
+  assert.deepEqual(context.arrivals, []);
+});
+
 test("HTTP 200이어도 공공교통 응답 구조가 불명확하면 정상 0건으로 처리하지 않는다", async () => {
   const invalid = [
     null, {}, [], { message: "denied" },
