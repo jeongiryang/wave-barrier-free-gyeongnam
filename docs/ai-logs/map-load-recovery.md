@@ -19,6 +19,7 @@
 - 신규 테스트의 변수명 `module`은 lint 규칙에 따라 `compiledModule`로 수정했다. 규칙 예외/disable은 추가하지 않았다.
 - 1366px light English와390px dark English 실패 안내 캡처 직접 확인. 기본 지도 조작/혼잡 범례의 기존 한국어는 후속 번역 범위다.
 - 전체 source Playwright·axe와 새 HEAD CI는 진행 상태를 PR에 연결한다. 이전 HEAD의 성공을 새 HEAD 결과로 세지 않는다.
+- 최초 전체 검사는427 pass/6 fail/skip1이었다. 6건 모두 지연 지도 fixture가 실제 `RouteMap.tsx?t=…` 요청을 가로채지 못했다. trace의200 응답과 사라진 placeholder로 확인했다. 모듈 경로의 query를 허용하고 실제 가로채기 수 assertion을 추가했으며, 기존 레이아웃/held-click/포커스/axe assertion과 timeout은 그대로 유지했다. 관련20/20 PASS 후 전체 검사를 다시 실행한다.
 
 ## 운영과 인계
 
