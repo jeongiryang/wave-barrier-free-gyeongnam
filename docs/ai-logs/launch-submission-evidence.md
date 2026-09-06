@@ -16,6 +16,12 @@ README와 운영 안내의 언어 범위/위치정보 과장, 공모전 부문�
 사용했으며 새 후보의 미배포 화면을 운영 화면이라고 표시하지 않았다.
 PDF 9쪽을 렌더링해 배치 오류를 수정하고 검수했다.
 
+PM의 PDF 검토에서 기존 비태그 PDF·일반 PowerPoint 제목·언어 없음이 확인됐다.
+원고를 의미 있는 heading/table/figure HTML로 구성하고 Chromium tagged PDF로 다시 출력했다.
+PDF 자체의 `/Lang ko`, `/MarkInfo /Marked true`, `/StructTreeRoot`, H1 1/H2 8,
+Table 10/TH 40/TD 39, 이미지 대체 설명 4개를 검사했다. 제목도 W.A.V.E 검토 초안으로 변경했다.
+9쪽 모두 렌더링 확인, 셀 넘침 0. PDF/UA·실제 낭독기 확인·최종 Production 캡처는 미완료다.
+
 ## 검증
 
 - lint·typecheck PASS, 단위·계약 280/280, Vercel production build PASS.
