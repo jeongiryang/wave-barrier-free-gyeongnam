@@ -65,7 +65,7 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
   await mockPublicShellApi(page);
   await page.goto("/");
 
-  const targets = page.locator(".landing-header .brand, .landing-header nav a, .landing-actions a, [data-region-marker]");
+  const targets = page.locator(".landing-header .brand, .landing-header nav a, .landing-header .landing-start, .landing-actions a, [data-region-marker]");
   const sizes = await targets.evaluateAll((nodes) => nodes.map((node) => {
     const rect = node.getBoundingClientRect();
     return { name: node.textContent?.trim() || node.getAttribute("aria-label") || "조작", width: rect.width, height: rect.height };

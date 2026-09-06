@@ -38,7 +38,7 @@ test("안내형 플래너의 숨은 지도는 일정 단계가 열릴 때까지 
   await expect(page.locator(".route-map-canvas")).toHaveCount(0);
 
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.getByRole("navigation", { name: "여행 계획 단계 이동" }).getByRole("button", { name: /이 기기 일정/ }).click();
+  await page.getByRole("navigation", { name: "여행 계획 단계 이동" }).getByRole("button", { name: /내 일정/ }).click();
   await expect(page.locator(".route-map-canvas")).toBeVisible();
   await expect.poll(() => mapConfigRequests).toBeGreaterThan(0);
 });

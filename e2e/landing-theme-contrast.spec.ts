@@ -43,7 +43,9 @@ async function samples(page: Page, selector: string) {
 const CASES = [
   ".condition-preview .feature-preview-stage > header span",
   ".access-preview .feature-preview-stage > footer",
-  ".signal-node",
+  ".landing-journey-summary li span",
+  ".landing-journey-summary li b",
+  ".landing-journey-summary p",
   ".condition-preview .feature-preview-stage > footer small",
   ".condition-preview .feature-preview-stage > footer i",
   ".plan-preview li:not(.transfer) > i",

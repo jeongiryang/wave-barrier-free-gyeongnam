@@ -13,7 +13,7 @@ test("공식 편의근거가 없는 장소는 추천과 이 기기 일정에서 
   await expect(exploration.locator("article")).toHaveCount(2);
   await expect(exploration.getByText("조건 불일치", { exact: true })).toBeVisible();
   await expect(exploration.getByText("정보 미확인", { exact: true })).toBeVisible();
-  await expect(page.getByRole("region", { name: "이 기기 일정", exact: true }).getByText("아직 일정에 추가한 장소가 없어요.")).toBeVisible();
+  await expect(page.getByRole("region", { name: "내 일정", exact: true }).getByText("아직 일정에 추가한 장소가 없어요.")).toBeVisible();
 
   await exploration.getByRole("button", { name: "이용 정보 확인" }).first().click();
   const dialog = page.getByRole("dialog");

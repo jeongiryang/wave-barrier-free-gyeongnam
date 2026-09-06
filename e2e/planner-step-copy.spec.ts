@@ -65,6 +65,6 @@ test("단계 제목이 모두 한국어로 읽힌다", async ({ page }) => {
   }
   await expect(page.getByRole("heading", { name: "여행 조건 정하기", exact: true })).toBeVisible();
   await expect(page.locator(".journey-subheading h2", { hasText: "내 조건에 맞는 여행지" })).toBeVisible();
-  await expect(page.locator(".journey-subheading h2", { hasText: "이 기기 일정 만들기" })).toBeVisible();
+  await expect(page.locator(".journey-subheading h2", { hasText: "내 일정" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "출발 전에 이것만 다시 확인하세요." })).toBeVisible();
 });

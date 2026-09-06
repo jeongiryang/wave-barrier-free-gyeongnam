@@ -8,14 +8,14 @@ test("플래너의 일정은 로컬 여행집에서 기록하고 다시 복원�
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
-  await itinerary.getByRole("button", { name: "여행집에 보관" }).click();
-  await expect(itinerary.locator(".travel-book-archive-action [role=status]")).toContainText("여행집에 보관했습니다");
+  await itinerary.getByRole("button", { name: "내 일정에 저장", exact: true }).click();
+  await expect(itinerary.locator(".travel-book-archive-action [role=status]")).toContainText("내 일정에 저장했어요");
 
   const serialized = await page.evaluate(() => window.localStorage.getItem("wave-travel-book-v1") || "");
   expect(serialized).toContain("경남도립미술관");
   expect(serialized).not.toMatch(/mapX|mapY|128\.691|35\.238/);
 
-  await itinerary.getByRole("link", { name: /내 여행집 열기/ }).click();
+  await itinerary.getByRole("link", { name: /저장한 일정 보기/ }).click();
   await expect(page).toHaveURL(/\/travel-book$/);
   await expect(page.getByRole("heading", { name: "창원 1곳 여행" })).toBeVisible();
   await expect(page.getByText("내 기기 안에만 보관해요.")).toBeVisible();
