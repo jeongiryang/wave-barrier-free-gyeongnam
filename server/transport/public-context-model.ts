@@ -1,10 +1,11 @@
 import type { Env } from "../shared/env";
 import { clean } from "../shared/http";
 import { transportProvider } from "../shared/provider-data";
-import type { PublicTransportSnapshot } from "./public-provider-queries";
+import { arrivalDependencyFailure, type PublicTransportSnapshot } from "./public-provider-queries";
 
 export function buildPublicTransportContext(env: Env, snapshot: PublicTransportSnapshot) {
-  const { korailKey, tagoKey, korailPlans, nearbyStops, trainCatalog, expressCatalog, intercityCatalog, arrivals } = snapshot;
+  const { korailKey, tagoKey, korailPlans, nearbyStops, trainCatalog, expressCatalog, intercityCatalog } = snapshot;
+  const arrivals = snapshot.arrivals ?? arrivalDependencyFailure(nearbyStops);
   const arrivalItems = arrivals?.ok ? arrivals.value.items : [];
   const arrivalProvider = transportProvider("tago-bus-arrival", "TAGO ARRIVAL", "가까운 정류장 도착 예정", tagoKey, arrivals);
   if (tagoKey && !arrivals && nearbyStops?.ok) {

@@ -63,3 +63,13 @@ Production `34e6021`의 KORAIL/TAGO 지연과, 호출하지 않은 도착정보�
 공통 키를 쓰는 것으로 알려져 있어 전용 키 충돌 재현과 운영 장애 원인을 구분한다.
 새 배포 후 제공처별 응답·실패 복구·도착정보 실제 조회를 다시 확인해야 한다.
 필수 사람 승인 3건·008 점검·#309 보안 통합과 유료 모델 API 차단을 유지한다.
+# RC-15: 정류장 식별자 누락의 의존 실패 — 2026-09-06
+
+독립 검토가 지적한 `nearbyStops.ok=true`, 항목은 있으나 `cityCode/nodeId`가 없는 경계는 이전 `9792cbf`에도 남아 있었다. 실제 query→snapshot과 기존 snapshot→model 신규 회귀 2건이 실패했다(기존 관련 12건 통과). API envelope 검사만으로 개별 정류장의 도착 조회 가능성을 증명하지 못한다.
+
+`arrivalDependencyFailure`를 query와 model에서 공통 적용해 provider·dataset 모두 error로 전파한다. 정류장 검색 성공 0건은 기존 미조회 안내를 보존하고, 유효한 정류장 뒤 실제 도착 조회 0건과도 구분한다. 필수 식별자 없는 응답에서는 도착 API 호출 0건을 검증했다. 새 외부 호출·키·요금·운영 상태 변경은 없다.
+
+- 관련 계약 14/14, 전체 unit·contract 292/292, lint/typecheck, Vercel build/performance PASS.
+- CSS gzip 68.70/70 KiB, planner initial JS gzip 266.36/270 KiB. 기준·기존 테스트 유지.
+- 전체 브라우저·axe와 새 HEAD CI는 실행 후 PR #316 및 공용 대기열에 연결한다. 기존 HEAD의 247 pass/1 skip를 새 HEAD 결과로 사용하지 않는다.
+- RC-15는 코드 수정/검증 후보이며 독립 재검토·승인·병합·Production 확인 전 해결 완료가 아니다.
