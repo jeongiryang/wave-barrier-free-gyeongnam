@@ -13,15 +13,15 @@
 | 보존된 #312 | 7af38df, 부분 제공처 실패 캐시 차단 | CI 성공, 미배포 |
 | 보존된 #315 | a62886a, 실제 인트로 다시보기·focus 유지 | CI 34025137035 성공, 미배포 |
 | 보존된 #316 | a4ce81e, 공공교통 키·미조회 상태 | CI 34024622262 성공, 미배포 |
-| wave-submission-docs / #313 | f4e8c97 이후 최신 실행표·운영 응답 보완 | CI 34031103075 성공. 이 체크포인트는 후속 문서 변경 |
+| wave-submission-docs / #313 | 4a9bccb 이후 최신 실행표·운영 응답 보완 | CI 34033195363 성공. 이 체크포인트는 후속 문서 변경 |
 | 보존된 #317 | 6f4d999, 영어 조건·저장/검색 안내 | unit 280, 전체 253 pass/기존 skip 1, CI 34028553188 성공 |
 | 보존된 #318 | 7e6c1ed, 내비게이션 언어·추천 상태 | #314 포함. unit 280, 전체 267 pass/기존 skip 1, CI 34029670552 성공 |
 | 보존된 #319 | 8eb38c5, 설정·도움말 언어/접근성/성능 | #315 포함. unit 280, 전체 279 pass/기존 skip 1, CI 34030742378 성공 |
-| wave-transport-integrity / #321 | 272bf681a2a7c41fdd66eca0360d29b272998498, 추천 상세·후기 실패·대비 | #319 기반. unit 280, 전체 295 pass/기존 skip 1, CI 34032622064 재조회 |
-| 팀원 #320 (별도 진행, 통합 제외) | 8782798, 랜딩 설명 간결화 | 로그 번호 P2 수정. 모든 기능 비주얼 숨김 P1·시각 회귀 미해결 |
+| wave-transport-integrity / #321 | 272bf681a2a7c41fdd66eca0360d29b272998498, 추천 상세·후기 실패·대비 | #319 기반. unit 280, 전체 295 pass/기존 skip 1, CI 34032622064 성공·Ready |
+| wave-landing-compact / #320 | bfeda5f54206a66d7d97ae1532df5854760ecc00, 팀원 변경과 도식·시각 보완 | 로컬 fix/compact-landing-visual-audit → 원격 feat/compact-landing-content push. unit 280, 전체 251 pass/기존 skip 1, CI 34034203872 성공·Ready |
 | wave-integration-audit / #289 | acb7dab, 기존 예약 receipt·비용 문서 | 단위 287/287; API workflow 활성화 없음 |
 | wave-automation-stack / #306 | d78b2e2, 자동화 stack 보존 | 기존 green, 미병합/미활성 |
-| wave-launch-integration | 5fdd1e6c82aa0ff3f5c018ba00485277b5289dbb | #321까지 #309/자동화 전체와 merge 합성, 원격 push. #320 제외 |
+| wave-launch-integration | a4e6b61d7731ae0325170dc1f8787c44970259ed | #320/#321·#309/자동화 전체와 최신 문서를 merge 합성, 원격 push |
 
 최신 원격 확인 후 재개한다. 다른 작업자가 추가한 커밋은 보존한다. 개별 브랜치를 force push하지 않는다.
 통합 브랜치는 검증용이며 거대 대체 PR을 만들거나 기존 PR을 닫지 않았다. 사람 리뷰 비용을 줄이려고
@@ -41,6 +41,12 @@
   콘솔/document·dialog overflow/화면 밖 배치 0. 초기 JS 270.07→268.25/270 KiB.
 - 12:12:45 UTC 운영 부분 응답 확인: Kakao/ODsay 경로는 연결, KORAIL/TAGO 일부 timeout.
   KO 추천 HTTP 200/cache MISS는 장소 0개·8개 제공처 error의 fallback. 전체 성공 재검증이 아니다.
+- 최신 #320 합성 **a4e6b61d7731ae0325170dc1f8787c44970259ed**: unit 313/313,
+  lint/typecheck/build/performance PASS, audit 0. CSS gzip 69.38/70 KiB, landing JS 114.19/155 KiB,
+  planner JS 268.26/270 KiB. 전체 Playwright·axe **299 pass / 기존 skip 1 / 실패 0 (7.1분)**.
+- #320 단독 전체 251 pass/기존 skip 1. 원격이 진행 중이어서 507c85e·b1eb3c0을 먼저 보존했다.
+  충돌한 대비 selector는 두 쪽 모두 유지했다. 기존 비주얼을 숨기는 검사만 두지 않고 새 도식 7개의
+  의미·caption 대비·5개 폭·44px·포커스 가림·axe·20개 고유 화면을 추가했다. PM 디자인 재검토는 남는다.
 - 이전 5db27a2의 요청된 11개 viewport 랜딩/중립 플래너 22화면: 콘솔/넘침/자동 추천 0, h1 폭 안에 표시.
   320/768/2560 대표 화면 직접 확인. 전체 상태/200%/실기기 검수는 계속 필요하다.
 - **최신 Production 재진단 11:36:55 UTC: 20/27**, 실패 7건(route, KO/EN 추천, 보강, 지역/장소 사진, 집중률).
@@ -74,8 +80,9 @@
    #314 CI 34026490814, #311 CI 34026760202, #289 CI 34026711165는 모두 성공했다.
    wave-transport-integrity의 #321 fix/recommendation-language는 272bf68로 clean/push 상태다.
    같은 SHA에서 로컬 fix/itinerary-language를 준비했으나 아직 수정하지 않았다.
-   #321 CI 34032622064를 확인한다. #319/#313의 이전 HEAD CI는 성공했다.
-   #320은 팀원 진행 브랜치이므로 새 커밋을 다시 조회한다. PM의 비주얼 P1 해소 전에는 통합하지 않는다.
+   #321 CI 34032622064는 성공·Ready다. #319/#313(4a9bccb) CI도 성공했다.
+   #320은 팀원 변경과 P1 보완을 같은 PR에 보존했다. bfeda5f의 CI 34034203872는 성공했다. 추가 원격 커밋과
+   PM 디자인 재검토를 확인한다. 이 보완 이후 합성에 포함했으며 이전 P1 미해결 이력과 구분한다.
 2. #317~#319/#321의 조건·내비게이션·설정·도움말·추천 상세를 중복 구현하지 않는다.
    다음 영어 범위는 일정·모든 이동 구간 → 인증 폼·정책 본문이다. 원문 관광 데이터가
    한국어만 제공되는 경우 UI 번역과 구분하고 그 사실을 표시한다. 전체 언어 여정을 완료 처리하지 않는다.
