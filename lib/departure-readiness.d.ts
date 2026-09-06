@@ -11,13 +11,15 @@ export type ReadinessItem = {
   label: string;
   state: ReadinessState;
   summary: string;
+  subject?: string;
   source: string;
   checkedAt: string;
   href: string;
 };
 
-export function assessTripDatePhase(travelStart: string, today: string): TripDatePhase;
+export function assessTripDatePhase(travelStart: string, today: string, locale?: "ko" | "en"): TripDatePhase;
 export function assessDepartureReadiness(options?: {
+  locale?: "ko" | "en";
   travelStart?: string;
   today?: string;
   weather?: WeatherData | null;
@@ -30,6 +32,7 @@ export function assessDepartureReadiness(options?: {
 export function escapeIcsText(value: unknown): string;
 export function foldIcsLine(line: string): string;
 export function buildTripCalendarIcs(options?: {
+  locale?: "ko" | "en";
   travelStart: string;
   travelEnd: string;
   dayStartTime?: string;
