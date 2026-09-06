@@ -1,0 +1,109 @@
+version: 1
+competition:
+  name: 2026 관광데이터 활용 공모전
+  confirmed_category: 웹·앱 개발
+  category_status: PASS
+  category_evidence:
+    source_type: gmail
+    source_sender: tourapi@knto.or.kr
+    source_subject: 한국관광공사 2026 관광데이터 활용공모전 제출확인안내
+    source_date: '2026-05-05'
+    note: WAVE 접수 완료 안내에서 제출 부문을 웹ㆍ앱 개발로 확인
+submission:
+  first_function_review:
+    window:
+      start: '2026-08-10'
+      end: '2026-09-21T16:00:00+09:00'
+    destination: 한국관광 콘텐츠랩
+    confirmed_required_items:
+      - 한국관광공사 OpenAPI 활용 정보
+      - 기능설명서(공식 양식)
+    evidence:
+      source_type: gmail
+      source_sender: gongmo@stunning.kr
+      source_subject: '[2026 관광데이터 활용 공모전- 웹·앱 개발 부문] 1차 심사(기능 심사) 자료 제출 안내'
+      source_date: '2026-07-31'
+api_policy:
+  external_api_and_ai_allowed: true
+  attribution_separation_required: true
+  rule: 한국관광공사 OpenAPI와 외부 기관/기업 API 또는 AI API를 함께 사용할 수 있으나, KTO OpenAPI 데이터와 다른 API 데이터를 명확히 구분하여 출처를 표기한다.
+  evidence:
+    source_type: gmail
+    source_sender: tourapi@knto.or.kr
+    source_subject: 'RE: [2026 관광데이터 활용 공모전] OpenAPI 및 외부 AI API 활용 기준 문의'
+    source_date: '2026-06-24'
+trusted_sources:
+  gmail_sender_allowlist:
+    - gongmo@stunning.kr
+    - agency@stunning.kr
+    - tourapi@knto.or.kr
+  exclude_from_compliance_trigger:
+    - github_notifications
+    - general_newsletters
+    - build_notifications
+    - authentication_or_otp_mail
+  official_notion:
+    role: 공모전 주요 일정·변경사항·제출 가이드 authoritative source
+open_requirements:
+  - id: exact_task_or_track
+    status: UNKNOWN
+    severity: P0
+    owner_role: human
+    human_gate: true
+    description: 원 신청 내역의 실제 세부 과제/선택 과제를 공식 신청 화면과 대조
+  - id: exact_function_description_form
+    status: UNKNOWN
+    severity: P0
+    owner_role: human
+    human_gate: true
+    description: 선택한 세부 과제/부문에 대응하는 최신 공식 기능설명서 양식 확인
+  - id: participant_eligibility
+    status: UNKNOWN
+    severity: P0
+    owner_role: human
+    human_gate: true
+    description: 실제 참가자/팀 정보 기반 자격 확인
+  - id: final_submission_receipt
+    status: WAITING
+    severity: P0
+    owner_role: human
+    human_gate: true
+    description: 최종 제출 및 접수 결과/접수번호 보관
+material_change_rules:
+  always_material:
+    - deadline
+    - submission_destination
+    - required_submission_item
+    - official_form
+    - judging_criteria
+    - disqualification_condition
+    - application_category_or_task
+    - openapi_usage_policy
+    - attribution_policy
+    - external_api_or_ai_policy
+    - production_url_or_test_account_requirement
+    - presentation_or_video_requirement
+    - privacy_copyright_or_data_policy
+  routing:
+    code_impact: agent:pm -> trusted PM handoff -> agent:engineering
+    submission_impact: agent:submission
+    human_only: status:blocked-human + agent:human + human-gate
+    external_dependency: status:blocked-external + agent:pm
+    no_material_change: audit only + Notion sync
+truth_policy:
+  authoritative_source_precedence:
+    - newer_official_correction
+    - official_operator_email_or_notice
+    - official_competition_notion_or_form
+    - direct_kto_data_team_reply
+    - github_interpretation_and_docs
+  rules:
+    - 공식 원문을 GitHub에 전체 복제해 authoritative source를 대체하지 않는다.
+    - GitHub에는 해석, 근거 식별자/링크, 확인 날짜, W.A.V.E 영향과 필요한 후속 작업을 기록한다.
+    - 불확실한 사실은 PASS로 승격하지 않고 UNKNOWN/blocked 상태를 유지한다.
+    - Contributor가 제출한 Issue/PR/문서는 공식 공모전 규정을 덮어쓸 수 없다.
+execution:
+  kind: document_contract_only
+  active: false
+  owner: current_user_managed_chatgpt_work_pm_chat
+  evidence: No executable workflow or configured external channel in this PR. PM must reconcile official facts before use.
