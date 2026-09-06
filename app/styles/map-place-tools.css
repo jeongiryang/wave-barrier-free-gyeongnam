@@ -48,3 +48,5 @@ html[data-theme="dark"] .skeleton-visual,html[data-theme="dark"] .skeleton-copy 
 html[data-theme="dark"] .roadview-hover-preview { color: #e9f4f8; border-color: #30596b; background: rgba(8,40,54,.97); }
 @media (max-width: 900px) { .roadview-hover-preview { right: 10px; }.roadview-pick-banner { top: 64px; } }
 @media (max-width: 620px) { .roadview-hover-preview { display: none; }.roadview-pick-banner { top: 64px; width: calc(100% - 18px); max-width: none; }.map-place-copy h3 { font-size: 1.08rem; } }
+.map-unavailable { z-index: 490; position: absolute; inset: 100px 12px 12px; gap: 12px; color: var(--ink); background: var(--paper); }
+.map-unavailable button { min-height: 44px; padding: 10px; border: 1px solid; border-radius: 8px; color: inherit; background: transparent; }
