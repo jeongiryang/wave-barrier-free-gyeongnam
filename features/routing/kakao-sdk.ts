@@ -51,7 +51,7 @@ export type KakaoSdk = {
         categorySearch(code: string, callback: (result: KakaoPlace[], status: string) => void, options: Record<string, unknown>): void;
         keywordSearch(keyword: string, callback: (result: KakaoPlace[], status: string) => void, options: Record<string, unknown>): void;
       };
-      Status: { OK: string };
+      Status: { OK: string; ZERO_RESULT: string; ERROR: string };
       SortBy: { DISTANCE: unknown };
     };
     drawing?: {

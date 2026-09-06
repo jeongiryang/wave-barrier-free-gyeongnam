@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { nearbyCategories } from "./constants";
 import type { KakaoMap, KakaoMarker, KakaoPlace } from "./kakao-sdk";
 import type { MutableRef } from "./map-renderer-context";
 import type { MapPlace } from "./types";
+import { useSitePreferences } from "../../components/SitePreferences";
+import { nearbyCategoryLabel, parseNearbyPlaces } from "./nearby-place-data";
 
 interface NearbyPlacesOptions {
   kakaoMapRef: MutableRef<KakaoMap | null>;
@@ -12,57 +14,80 @@ interface NearbyPlacesOptions {
 }
 
 export function useNearbyPlaces({ kakaoMapRef, choosePlace }: NearbyPlacesOptions) {
+  const { locale } = useSitePreferences();
+  const english = locale === "en";
   const categoryMarkersRef = useRef<KakaoMarker[]>([]);
+  const generation = useRef(0);
+  const timeout = useRef<number | null>(null);
+  const pending = useRef(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [categoryPlaces, setCategoryPlaces] = useState<KakaoPlace[]>([]);
-  const [categoryMessage, setCategoryMessage] = useState("");
+  const [result, setResult] = useState<{ state: "idle" | "loading" | "success" | "empty" | "error"; places: KakaoPlace[]; omitted: number }>({ state: "idle", places: [], omitted: 0 });
 
   const clearCategoryMarkers = useCallback(() => {
-    categoryMarkersRef.current.forEach((marker) => marker.setMap(null));
+    generation.current++;
+    pending.current = false;
+    if (timeout.current !== null) window.clearTimeout(timeout.current);
+    timeout.current = null;
+    categoryMarkersRef.current.forEach((marker) => { try { marker.setMap(null); } catch { /* A destroyed map may already have detached its markers. */ } });
     categoryMarkersRef.current = [];
   }, []);
+  const cancelNearby = useCallback(() => {
+    clearCategoryMarkers();
+    setActiveCategory(null);
+    setResult({ state: "idle", places: [], omitted: 0 });
+  }, [clearCategoryMarkers]);
+  useEffect(() => clearCategoryMarkers, [clearCategoryMarkers]);
 
-  function searchNearby(category: (typeof nearbyCategories)[number]) {
-    const map = kakaoMapRef.current;
-    const sdk = window.kakao?.maps;
-    if (!map || !sdk?.services) return;
-    if (activeCategory === category.id) {
-      clearCategoryMarkers();
-      setActiveCategory(null);
-      setCategoryPlaces([]);
-      setCategoryMessage("");
-      return;
-    }
+  function searchNearby(category: (typeof nearbyCategories)[number], retry = false) {
+    if (retry && pending.current) return;
+    if (!retry && activeCategory === category.id) { cancelNearby(); return; }
     clearCategoryMarkers();
     setActiveCategory(category.id);
-    setCategoryPlaces([]);
-    setCategoryMessage(`${category.label} 검색 중`);
-    const service = new sdk.services.Places(map);
-    const callback = (result: KakaoPlace[], status: string) => {
-      if (status !== sdk.services!.Status.OK) {
-        setCategoryMessage("현재 지도 범위에서 결과를 찾지 못했습니다.");
-        return;
+    setResult({ state: "loading", places: [], omitted: 0 });
+    const map = kakaoMapRef.current;
+    const sdk = window.kakao?.maps;
+    if (!map || !sdk?.services) { setResult({ state: "error", places: [], omitted: 0 }); return; }
+    const id = generation.current;
+    pending.current = true;
+    let settled = false;
+    const current = () => !settled && generation.current === id && kakaoMapRef.current === map;
+    const finish = (next: typeof result) => {
+      if (!current()) return;
+      settled = true;
+      pending.current = false;
+      if (timeout.current !== null) window.clearTimeout(timeout.current);
+      timeout.current = null;
+      setResult(next);
+    };
+    const fail = () => finish({ state: "error", places: [], omitted: 0 });
+    timeout.current = window.setTimeout(fail, 10_000);
+    const callback = (value: unknown, status: string) => {
+      if (!current()) return;
+      if (status === sdk.services!.Status.ZERO_RESULT) { finish({ state: "empty", places: [], omitted: 0 }); return; }
+      if (status !== sdk.services!.Status.OK) { fail(); return; }
+      const parsed = parseNearbyPlaces(value);
+      if (!parsed || (!parsed.places.length && parsed.omitted)) { fail(); return; }
+      const markers: KakaoMarker[] = [];
+      try {
+        for (const item of parsed.places) markers.push(new sdk.Marker({ map, position: new sdk.LatLng(Number(item.y), Number(item.x)), title: item.place_name }));
+        categoryMarkersRef.current = markers;
+        finish({ state: parsed.places.length ? "success" : "empty", ...parsed });
+      } catch {
+        markers.forEach((marker) => { try { marker.setMap(null); } catch { /* Already detached. */ } });
+        fail();
       }
-      const valid = result.filter((item) => Number.isFinite(Number(item.y)) && Number.isFinite(Number(item.x)));
-      categoryMarkersRef.current = valid.map((item) => new sdk.Marker({
-        map,
-        position: new sdk.LatLng(Number(item.y), Number(item.x)),
-        title: item.place_name,
-      }));
-      setCategoryPlaces(valid);
-      setCategoryMessage(`${valid.length}곳을 거리순으로 표시했습니다.`);
     };
-    const options = {
-      location: map.getCenter(),
-      radius: 10000,
-      size: 15,
-      sort: sdk.services.SortBy.DISTANCE,
-    };
-    if ("code" in category) service.categorySearch(category.code, callback, options);
-    else service.keywordSearch(category.keyword, callback, options);
+    try {
+      const service = new sdk.services.Places(map);
+      const options = { location: map.getCenter(), radius: 10000, size: 15, sort: sdk.services.SortBy.DISTANCE };
+      if ("code" in category) service.categorySearch(category.code, callback, options);
+      else service.keywordSearch(category.keyword, callback, options);
+    } catch { fail(); }
   }
 
   function chooseKakaoPlace(place: KakaoPlace) {
+    if (!result.places.some((item) => item.id === place.id)) return;
+    cancelNearby();
     choosePlace({
       id: place.id,
       name: place.place_name,
@@ -73,12 +98,21 @@ export function useNearbyPlaces({ kakaoMapRef, choosePlace }: NearbyPlacesOption
       score: null,
     });
   }
+  const category = nearbyCategories.find((item) => item.id === activeCategory);
+  const label = category ? nearbyCategoryLabel(category, english) : (english ? "Places" : "주변 장소");
+  const categoryMessage = result.state === "loading" ? (english ? `Searching for ${label.toLowerCase()}…` : `${label} 검색 중`)
+    : result.state === "error" ? (english ? "Places could not be loaded. Please try again." : "주변 장소를 불러오지 못했습니다. 다시 시도해 주세요.")
+    : result.state === "empty" ? (english ? "No places were found within 10 km of the search centre. Try another category or move the map and search again." : "검색 중심 반경 10km에서 결과를 찾지 못했습니다. 다른 분류를 선택하거나 지도를 옮겨 다시 검색해 주세요.")
+    : result.state === "success" ? (english ? `${result.places.length} places shown by distance.${result.omitted ? " Some incomplete results could not be displayed." : ""}` : `${result.places.length}곳을 거리순으로 표시했습니다.${result.omitted ? " 확인할 수 없는 일부 장소는 제외했습니다." : ""}`) : "";
 
   return {
     activeCategory,
-    categoryPlaces,
+    categoryPlaces: result.places,
+    categoryState: result.state,
     categoryMessage,
     clearCategoryMarkers,
+    cancelNearby,
+    retryNearby: () => { if (category) searchNearby(category, true); },
     searchNearby,
     chooseKakaoPlace,
   };

@@ -30,6 +30,7 @@ export default function RouteMap(props: RouteMapProps) {
     activeCategory,
     categoryPlaces,
     categoryMessage,
+    categoryState,
     roadviewOpen,
     roadviewMessage,
     roadviewSelectMode,
@@ -46,6 +47,7 @@ export default function RouteMap(props: RouteMapProps) {
     toggleExpanded,
     cancelRoadviewSelection,
     searchNearby,
+    retryNearby,
     chooseKakaoPlace,
     closeRoutePanel,
     setMapPointMode,
@@ -96,9 +98,11 @@ export default function RouteMap(props: RouteMapProps) {
     {toolPanel === "nearby" && <NearbyPlacesPanel
       activeCategory={activeCategory}
       categoryMessage={categoryMessage}
+      categoryState={categoryState}
       categoryPlaces={categoryPlaces}
       onClose={() => setToolPanel(null)}
       onSearch={searchNearby}
+      onRetry={retryNearby}
       onChoosePlace={chooseKakaoPlace}
     />}
 
