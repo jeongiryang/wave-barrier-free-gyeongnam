@@ -23,6 +23,8 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   const onDestinationChangeRef = useRef(onDestinationChange);
 
   const [provider, setProvider] = useState<MapProvider>("loading");
+  const providerRef = useRef<MapProvider>("loading");
+  const isMapAvailable = useCallback(() => providerRef.current !== "error", []);
   const [providerDetail, setProviderDetail] = useState("카카오 지도를 연결하고 있습니다.");
   const [retryNonce, setRetryNonce] = useState(0);
   const [toolPanel, setToolPanel] = useState<MapToolPanel>(null);
@@ -33,10 +35,11 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   const crowdPlace = useMemo(() => crowdVisual ? (places.find((place) => place.id === crowdPlaceId) || places.find((place) => place.name === crowd?.place) || places[0]) : undefined, [crowd?.place, crowdPlaceId, crowdVisual, places]);
 
   useEffect(() => { pickModeRef.current = pickMode; }, [pickMode]);
-  useEffect(() => { onOriginChangeRef.current = onOriginChange; }, [onOriginChange]);
-  useEffect(() => { onDestinationChangeRef.current = onDestinationChange; }, [onDestinationChange]);
+  useEffect(() => { onOriginChangeRef.current = (point, label) => { if (isMapAvailable()) onOriginChange?.(point, label); }; }, [isMapAvailable, onOriginChange]);
+  useEffect(() => { onDestinationChangeRef.current = (place) => { if (isMapAvailable()) onDestinationChange?.(place); }; }, [isMapAvailable, onDestinationChange]);
 
   const choosePlace = useCallback((place: MapPlace) => {
+    if (!isMapAvailable()) return;
     setSelectedMapPlace(place);
     setToolPanel("place");
     const map = kakaoMapRef.current;
@@ -44,7 +47,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     const lat = Number(place.mapY);
     const lng = Number(place.mapX);
     if (map && sdk && Number.isFinite(lat) && Number.isFinite(lng)) map.panTo(new sdk.LatLng(lat, lng));
-  }, []);
+  }, [isMapAvailable]);
 
   const { baseMap, activeLayers, changeBaseMap, toggleLayer } = useMapLayers(kakaoMapRef);
   const {
@@ -78,13 +81,14 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   } = useRoadviewController({ provider, setProviderDetail, setPickMode, setToolPanel });
 
   function setMapPointMode(mode: "origin" | "destination") {
+    if (!isMapAvailable()) return;
     setPickMode(mode);
     setToolPanel("route");
     setProviderDetail(mode === "origin" ? "지도에서 새 출발지를 클릭하세요." : "지도에서 새 목적지를 클릭하세요.");
   }
 
   const { moveToCurrentLocation, saveRoute, shareRoute, exportRoute, actionNotice, actionPending } = useMapJourneyActions({
-    origin, places, route, onOriginChange, onSavePlaces, kakaoMapRef, setPickMode, setProviderDetail,
+    origin, places, route, onOriginChange, onSavePlaces, kakaoMapRef, setPickMode, setProviderDetail, isMapAvailable,
   });
   const { shellRef, expanded, toggleExpanded } = useMapShell({
     kakaoMapRef,
@@ -95,6 +99,35 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     setRoadviewSelectMode,
     layoutKey: `${toolPanel || "closed"}:${categoryPlaces.length}`,
   });
+
+  const updateProvider = useCallback((next: MapProvider) => {
+    providerRef.current = next;
+    if (next === "error") {
+      const focused = document.activeElement;
+      const affectedFocus = focused instanceof HTMLElement && shellRef.current?.contains(focused)
+        && Boolean(focused.closest(".map-tool-panel:not(#map-panel-export),.map-roadview-panel,.roadview-pick-banner"));
+      pickModeRef.current = null;
+      roadviewSelectModeRef.current = false;
+      setPickMode(null);
+      setRoadviewSelectMode(false);
+      setRoadviewPreviewOpen(false);
+      closeRoadview();
+      setToolPanel((current) => current === "export" ? current : null);
+      mapRef.current?.remove();
+      mapRef.current = null;
+      kakaoMapRef.current = null;
+      drawingManagerRef.current = null;
+      clearCategoryMarkers();
+      if (affectedFocus) window.requestAnimationFrame(() => {
+        if (document.activeElement === focused || document.activeElement === document.body) {
+          const recovery = shellRef.current?.querySelector<HTMLButtonElement>(".map-unavailable button");
+          recovery?.focus({ preventScroll: true });
+          recovery?.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+        }
+      });
+    }
+    setProvider(next);
+  }, [clearCategoryMarkers, closeRoadview, roadviewSelectModeRef, setRoadviewPreviewOpen, setRoadviewSelectMode, shellRef]);
 
   useMapRenderer({
     containerRef,
@@ -114,7 +147,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     openRoadviewAt,
     choosePlace,
     clearCategoryMarkers,
-    setProvider,
+    setProvider: updateProvider,
     setProviderDetail,
     setSelectedMapPlace,
     setPickMode,
@@ -164,10 +197,12 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     },
     setMapPointMode,
     setPlaceAsOrigin: (place: MapPlace) => {
+      if (!isMapAvailable()) return;
       onOriginChange?.({ lat: Number(place.mapY), lng: Number(place.mapX) }, place.name);
       setProviderDetail(`${place.name}을 출발지로 설정했습니다.`);
     },
     setPlaceAsDestination: (place: MapPlace) => {
+      if (!isMapAvailable()) return;
       onDestinationChange?.(place);
       setProviderDetail(`${place.name}을 목적지로 설정했습니다.`);
     },

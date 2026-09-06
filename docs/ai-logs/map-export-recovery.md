@@ -1,5 +1,13 @@
 # 지도 이미지·페이지 링크의 실제 결과와 복구
 
+## 부모 #329 P1 후속 통합
+
+첫 `b456754` 전체 source457 pass/기존skip1/실패0(10.3분)를 확인했다. 그 뒤 #329 독립 리뷰의 열린 panel/늦은 위치 응답 결함을 수정한 `7f53de47eb035c398d5b4bdb1baa2cc5d1537da0`을 병합한다. controller의 actionNotice/actionPending 반환과 isMapAvailable 인수 충돌은 양쪽을 모두 보존해 해결했다. 기존 전체457 결과를 이 새 merge HEAD의 결과로 세지 않고 기본검사·관련·전체·CI를 다시 확인한다.
+
+첫 부모 통합 관련37 pass/1 fail은 새 tablet/mobile drawer 배치에서 focus 복구 버튼이 고정 하단 내비게이션 뒤로 가려지는 실제 hit-test 실패였다. 스크린샷으로 확인했고 내부 focus를 복구할 때 브라우저 기본 스크롤 대신 버튼을 즉시 화면 가운데로 드러낸다. 외부 focus는 건드리지 않는다. 기존 hit-test assertion/timeout을 유지해 재검증한다.
+
+보완 후 관련38/38 PASS(56초), unit316/316·lint/typecheck/Vercel build/performance PASS. CSS69.46/70·planner268.80/270 KiB. 이 merge HEAD의 전체/CI는 별도 진행하며 과거457 결과와 구분한다.
+
 - 기준: #329 `3022fc222f8298ec6642c0c52f41a0a4f08852cd`, 격리 `wave-map-export-recovery` / `fix/map-export-recovery`.
 - 관련: #251 #277 #282 #285 #286. 사람은 요구·필수 승인·Release 판단, Engineering은 재현·수정·자동 검사와 실제 캡처 검토를 담당했다.
 
