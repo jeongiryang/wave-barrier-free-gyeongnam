@@ -64,7 +64,7 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .map-panel { --route-map-height: 710px; }
 .route-map-shell { min-height: var(--route-map-height, 710px); display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); overflow: hidden; isolation: isolate; background: #dce9ef; transition: grid-template-columns .32s cubic-bezier(.16,1,.3,1); }
 .route-map-shell.drawer-open { grid-template-columns: minmax(0,1fr) minmax(340px,380px); }
-.route-map-canvas { height: var(--route-map-height, 710px); min-width: 0; grid-column: 1; grid-row: 1; }
+.route-map-canvas { isolation: isolate; height: var(--route-map-height, 710px); min-width: 0; grid-column: 1; grid-row: 1; }
 .route-map-shell.drawer-open .map-command-bar { right: 396px; }
 .map-command-bar { max-width: calc(100% - 330px); }
 /* 대체 지도 상태에서는 배지에 기본 지도 재연결 버튼이 붙어 왼쪽 공간을 차지한다.
@@ -98,7 +98,7 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .map-poi-results article:hover { border-color: rgba(23,176,255,.38); box-shadow: 0 10px 24px rgba(10,63,86,.08); transform: translateX(-3px); }
 .map-poi-results article strong { font-size: .72rem; }.map-poi-results article span,.map-poi-results article small,.map-poi-results article a { font-size: .6rem; }
 
-.map-export-panel > p { margin: 15px 0; color: #65828f; font-size: .68rem; line-height: 1.65; }
+.map-export-panel header span,.map-export-panel > p { margin: 15px 0; color: var(--muted); font-size: .68rem; line-height: 1.65; white-space: normal; }
 .map-tool-panel > .map-export-preview { min-height: 170px; padding: 20px; display: grid; grid-template-columns: 1fr; place-content: end start; gap: 2px; border-radius: 18px; color: #fff; background: radial-gradient(circle at 85% 15%,rgba(125,235,233,.44),transparent 35%),linear-gradient(145deg,#062736,#0a6baf); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
 .map-export-preview span { color: #7debe9; font-size: .62rem; font-weight: 900; letter-spacing: .14em; }.map-export-preview strong { font-size: 1.35rem; }.map-export-preview small { color: #c8e2ee; font-size: .62rem; }
 .map-tool-panel > .map-export-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
@@ -130,7 +130,7 @@ html[data-theme="dark"] .map-side-drawer header > button { color: #e7f2f7; borde
   .route-map-shell,.route-map-shell.drawer-open { min-height: var(--route-map-height, 560px); grid-template-columns: minmax(0,1fr); }
   .map-panel { --route-map-height: 560px; }
   .route-map-canvas { height: var(--route-map-height, 560px); }
-  .map-side-drawer { width: auto; max-height: 68%; position: absolute; inset: auto 8px 8px; display: block; border: 1px solid #c9dce5; border-radius: 20px; box-shadow: 0 24px 64px rgba(5,47,65,.24); }
+  .map-side-drawer { grid-column: 1 / -1; width: auto; max-height: 68%; position: absolute; inset: auto 8px 8px; display: block; border: 1px solid #c9dce5; border-radius: 20px; box-shadow: 0 24px 64px rgba(5,47,65,.24); }
   .map-side-drawer header { top: -20px; border-radius: 20px 20px 0 0; }
   .route-map-shell.drawer-open .map-command-bar,.route-map-shell:fullscreen.drawer-open .map-command-bar,.route-map-shell.expanded.drawer-open .map-command-bar { right: 8px; }
   .route-map-shell:fullscreen .map-side-drawer,.route-map-shell.expanded .map-side-drawer { height: auto; }
