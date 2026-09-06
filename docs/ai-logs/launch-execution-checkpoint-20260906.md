@@ -3,7 +3,44 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 현재 재개 우선점 — 2026-09-06 18:39 UTC
+## 현재 재개 우선점 — 2026-09-06
+
+- 최신 통합 **b05bc78dea3d3f2a0bdd3c1e67cd19bbfb208862**, clean/push. unit334/334·lint/typecheck/build/performance PASS·audit0.
+  CSS69.80/70·planner268.85/270KiB. 전체437 pass/기존skip1/실패0(9.8분).
+- #328 **84491e58e92cb32b7e77d536441d4102d8cac8be**, wave-weather-language / fix/weather-language, clean/push·Ready.
+  관련92·unit304·전체source425 pass/기존skip1·CI34053139108도425 pass/기존skip1/flaky0 성공.
+  이전 통합42ecfae 전체429 pass/기존skip1/실패0(9.7분), unit331/audit0. 새 P1/P2 후속은 이 결과에 포함되지 않는다.
+- #325 **a461c8bd8dc40862bf823c3ed7ef0d4f392c90ef**, wave-route-language / fix/route-language:
+  RC-14 같은 이동수단 숨은 활성 경로 수정. baseline2FAIL·관련94·unit286·전체source373 pass/기존skip1(8.2분).
+  CI34054721820도373 pass/기존skip1/flaky0(16.7분) 성공. 실제 확인된 유한 양수 시간만 표시·집계·선택·일정 구간에서 사용한다.
+- #316 **c6e0354baeb9c023f253521d0c641f318e47125f**, wave-transport-response / fix/transport-response-validation:
+  remote fix/public-transport-provider-boundary. RC-15 정류장 식별자 누락의 query/model 의존 실패 수정.
+  baseline2FAIL·관련14·unit292·CI34054278433 247 pass/기존skip1/flaky0(10.1분). 실제 도착 API 미호출 fixture 포함.
+- #315 **8c8f85aae5838449e205f76ff1ce01a4ea20c15a**, wave-intro-status / fix/intro-replay-focus:
+  반복 status 안내 P2 수정. baseline2FAIL·관련44 및 추가 영어 포함intro6·unit280·기본검사PASS.
+  CI34054686832 251 pass/기존skip1/flaky0(10.0분) 성공·Ready. 첫 exact 문구/포커스/reduced-motion/44px/axe 유지, 2·3회 live-region 실제 변경 확인.
+- 새 PR은 늘리지 않았다. 기존 리뷰 thread에 수정/실행 근거를 답했고 독립 리뷰를 임의 resolve하지 않았다.
+  모든 열린 PR 담당자·라벨·적격 검토자3명 요청을 보완했다. 승인 수를 바꾸거나 보호 규칙을 우회하지 않았다.
+- 공식 Chrome ChatGPT Scheduled에서 기존5개·현재 활성 상태·최근 queue/PR검수 결과를 직접 읽었다.
+  queue 매시간·실행 중, PR 이벤트 감시 대기0/최근#327 결과. 공지/위치정보센터/배포점검도 모니터링 중.
+  #294 갱신. 새 예약·계정 설정·모델 API 실행 없음. 웹 검수→GitHub/Notion 기록과 로컬 구현/독립 테스트 자동화를 구분한다.
+- 현재 원자적 작업은 wave-map-controls-language / fix/map-load-recovery(#328 84491e5 기반), 아직 미커밋·미PR다.
+  대체 지도 모듈까지 실패하면 unhandled rejection이 조건 조작까지 가리는 baseline2FAIL. 명시적 오류/KO·EN 재로딩,
+  저장 일정 유지·stale 요청 무효화 수정 후 새 UI8/8·실제 renderer effect 계약3/3 PASS. 관련/전체 검증 진행 중이다.
+  map-load-before.log/아티팩트, 첫4pass4fail의 화면 밖 환경설정 locator 이력, map-load-final-ui.log(8PASS)을 보존한다.
+  다음은 관련/전체·lint/typecheck/unit/build/perf→현재 수정 diff/화면 확인→커밋/PR/CI→통합이다. 지도 영어와 행정경계는 별개다.
+- 소유 테스트 서버는 통합4187과 지도 실패 복구4199다. 날씨4193·경로4195·인트로4197 및 이전4191은 종료했다.
+  TEMP/wave-launch-20260906의 candidate-review-full.log, rc14-full.log, ci316-rc15.log, ci328-completed.log와
+  rc14-before-artifacts·intro-status-before-artifacts·weather-language-before/after-artifacts를 보존한다.
+- 내부 Chrome 배율 설정 URL은 Browser 보안 정책 차단. 우회하지 않았고 실제200% 검증은 미완료로 유지한다.
+- 다음: 지도 실패 복구 원자적 작업 완료→새 통합/CI 확인과 PR/공용 원장/Notion 갱신→지도 SDK·주변 보강정보·
+  인증/정책 KO·EN, 실제 확대·성능·Preview/008·Production 검수 등 기존 목록을 계속한다.
+  부모 병합 후 자식에 최신 main을 반영하고 diff/전체CI/독립리뷰를 다시 확인한다.
+- main·Production34e6021·배포6278499275·ruleset20970955 승인0/3·validate strict 유지.
+  Production 최신 전체26/27·route1FAIL, 17:29 익명390/1366 저장/복원·콘솔/overflow0.
+  유료 모델 API3개 disabled_manually, 구독 인증 복사/추가 과금/새 예약/운영쓰기/병합/배포/008 적용 없음.
+
+## 이전 실행 스냅샷 — 2026-09-06 18:39 UTC
 
 - 최신 통합 **04375f5aebe579a5f73059e4fda3d516445bfb2e**, clean/push. 전체415 pass/기존skip1/실패0(9.2분),
   unit328/328·lint/typecheck/build/performance PASS·audit0. CSS69.78/70·planner269.58/270KiB.
