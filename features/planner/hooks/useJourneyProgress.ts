@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { scrollToSection } from "../../../lib/reduced-motion.js";
 import type { Motion } from "../../preferences/types";
+import { useSitePreferences } from "../../../components/SitePreferences";
 
 export type JourneyStepId = "conditions" | "places" | "itinerary" | "departure-readiness";
 
@@ -47,40 +48,42 @@ export function useJourneyProgress({
   reviewed = false,
   itineraryReviewed = false,
 }: JourneyProgressOptions) {
+  const { locale } = useSitePreferences();
+  const en = locale === "en";
   const steps = useMemo<JourneyStep[]>(() => [
     {
       id: "conditions",
       index: 1,
-      label: "조건",
-      detail: selectedProfileCount ? `편의 ${selectedProfileCount}개 선택` : "필요한 편의를 선택",
+      label: en ? "Preferences" : "조건",
+      detail: selectedProfileCount ? en ? `${selectedProfileCount} facilities selected` : `편의 ${selectedProfileCount}개 선택` : en ? "Choose required facilities" : "필요한 편의를 선택",
       complete: searched,
       available: true,
     },
     {
       id: "places",
       index: 2,
-      label: "여행지",
-      detail: recommendedCount ? `공식 근거 추천 ${recommendedCount}곳` : "공식 추천을 확인",
+      label: en ? "Places" : "여행지",
+      detail: recommendedCount ? en ? `${recommendedCount} places with official evidence` : `공식 근거 추천 ${recommendedCount}곳` : en ? "Check recommended places" : "공식 추천을 확인",
       complete: searched && recommendedCount > 0 && currentSavedCount > 0,
       available: searched,
     },
     {
       id: "itinerary",
       index: 3,
-      label: "내 일정",
-      detail: savedCount ? `${savedCount}곳을 일정에 저장` : "장소를 일정에 추가",
+      label: en ? "Itinerary" : "내 일정",
+      detail: savedCount ? en ? `${savedCount} places in your itinerary` : `${savedCount}곳을 일정에 저장` : en ? "Add places to your itinerary" : "장소를 일정에 추가",
       complete: searched && currentSavedCount > 0 && itineraryReviewed,
       available: savedCount > 0,
     },
     {
       id: "departure-readiness",
       index: 4,
-      label: "출발 확인",
-      detail: weatherReady && routeDestinationName ? "날씨·경로를 불러옴" : "최신 정보를 재확인",
+      label: en ? "Before departure" : "출발 확인",
+      detail: weatherReady && routeDestinationName ? en ? "Weather and route loaded" : "날씨·경로를 불러옴" : en ? "Recheck the latest information" : "최신 정보를 재확인",
       complete: searched && currentSavedCount > 0 && itineraryReviewed && reviewed,
       available: savedCount > 0,
     },
-  ], [currentSavedCount, recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady, searched, reviewed, itineraryReviewed]);
+  ], [en, currentSavedCount, recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady, searched, reviewed, itineraryReviewed]);
 
   useEffect(() => {
     if (!observeSections) return;

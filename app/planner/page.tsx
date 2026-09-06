@@ -215,6 +215,7 @@ export default function PlannerPage() {
             interactive={hydrated}
             selectedProfileCount={selected.length}
             recommendedCount={activePlaces.length}
+            requestState={planController.requestState}
             savedCount={saved.length}
             routeDestinationName={routeDestination?.name || ""}
           />
