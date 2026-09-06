@@ -89,7 +89,8 @@ export async function chooseTripConditions(page: Page) {
   if (guided) await page.locator(".condition-actions").getByRole("button", { name: "다음 →", exact: true }).click();
   const nature = page.getByRole("button", { name: /자연·휴양 공원/ });
   if (await nature.getAttribute("aria-pressed") !== "true") await nature.click();
-  await page.getByRole("button", { name: "내 조건에 맞는 여행지 찾기 →", exact: true }).click();
+  if (guided) await page.locator(".condition-actions").getByRole("button", { name: "다음 →", exact: true }).click();
+  await page.locator(".condition-actions").getByRole("button", { name: "여행지 찾기 →", exact: true }).click();
 }
 
 export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview" } = {}) {

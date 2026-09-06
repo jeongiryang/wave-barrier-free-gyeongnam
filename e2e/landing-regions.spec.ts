@@ -121,7 +121,7 @@ test("랜딩 기능 데모는 한국어 순서와 비대화형 미리보기 계�
   await page.goto("/", { waitUntil: "networkidle" });
 
   const labels = await page.locator(".product-stories .section-kicker").allTextContents();
-  expect(labels.map((value) => value.trim())).toEqual(["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 여행 기록"]);
+  expect(labels.map((value) => value.trim())).toEqual(["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 내 일정"]);
   await expect(page.locator(".product-preview button")).toHaveCount(0);
   await expect(page.locator(".route-demo-path")).toHaveCount(1);
   await expect(page.locator(".route-demo-vehicle")).toHaveCount(1);

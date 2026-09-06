@@ -45,10 +45,10 @@ test("a returning user can open an existing device itinerary before a new search
   });
   await page.goto("/planner");
   const itineraryStep = page.getByRole("navigation", { name: "여행 계획 단계 이동" })
-    .getByRole("button", { name: /이 기기 일정/ });
+    .getByRole("button", { name: /내 일정/ });
   await expect(itineraryStep).toBeEnabled();
   await itineraryStep.click();
-  await expect(page.getByRole("heading", { name: "이 기기 일정 만들기" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "내 일정 어떤 순서로 움직이면 편할까요?" })).toBeVisible();
   await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toContainText("기존 저장 여행지");
   await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "0");
   await page.getByRole("navigation", { name: "여행 계획 단계 이동" })
@@ -66,7 +66,7 @@ test("guided search failures stay visible with choices preserved and allow retry
   await page.goto("/planner");
   await chooseTripConditions(page);
   await expect(page.locator("#conditions").getByRole("alert")).toContainText("선택한 조건은 유지됩니다");
-  await expect(page.locator(".condition-actions").getByRole("button", { name: /내 조건에 맞는 여행지 찾기/ })).toBeEnabled();
+  await expect(page.locator(".condition-actions").getByRole("button", { name: /여행지 찾기/ })).toBeEnabled();
   await expect(page.locator("#places")).toBeHidden();
 });
 
@@ -78,7 +78,7 @@ test("intro keeps one clear planning action and never blocks the page", async ({
   await page.goto("/");
   await expect(page.getByRole("button", { name: "인트로 다시보기" })).toHaveCount(0);
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  const planning = page.locator(".landing-actions").getByRole("link", { name: /내 여행 설계하기/ });
+  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획 만들기", exact: true });
   await expect(planning).toBeVisible();
   await planning.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
