@@ -1,9 +1,49 @@
 # W.A.V.E 실행 체크포인트 — 2026-09-06
 
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
-현재 Production의 핵심 관광 추천 실패와 미배포 보안 수정 때문에 기술 상태는 NO-GO다.
+현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 현재 재개 우선점 — 2026-09-06 15:46 UTC
+## 현재 재개 우선점 — 2026-09-06 17:38 UTC
+
+- 보존된 최신 검증 후보 **954da148c4a20f0929f3fd17c1dc17b858ddec1c**: 전체 **393 pass/기존 skip 1/실패 0 (9.2분)**,
+  unit 320/320, lint/typecheck/build/performance PASS, audit 0. CSS 69.72/70·planner 269.68/270 KiB.
+- 후속 통합 **1fda5f3a4215c66a7e35b17a5b2c98f9d83b20e3**는 #316 9792cbf까지 merge/push했다.
+  기본 검증한 d0a5bc1과는 로그만 다르고 코드는 동일하다.
+  unit **324/324**, lint/typecheck/build/performance PASS, audit **0**. 전체 브라우저는 source 검사 뒤 단독 실행한다.
+- #325 **aa48328cc616b10baacfad4ded81e71d33d0ecb2**, `wave-route-language`, `fix/route-language`:
+  CI 34046440171 **367 pass/기존 skip 1/flaky 0**, Ready. source 로컬 마지막 366 pass/1 fail은 초기 page.goto
+  ERR_NO_BUFFER_SPACE이며 보존한다. 초기 CI 4건 잘림은 대체 글꼴 72px/58px로 재현 후 줄바꿈으로 해결했다.
+- #319 **be9e908dc91fccfb6d99373de47232507685f3c8**, `wave-help-focus`, 로컬 `fix/help-focus-restore` → 원격 `fix/preferences-help-language`:
+  도움말 표시 전 focus/trap 설정. 진짜 baseline 4 FAIL → 관련14/14, unit280, 전체 로컬/CI **283 pass/기존 skip 1**, Ready.
+  CI 34046824130. 초기에 #318 잘못된 base에서 시행한 버튼 locator 실패는 제품 재현으로 세지 않는다. #318은 수정하지 않았다.
+- #326 **0a8df96d52c3908addc5cb5a5f8fa0dba8083d4c**, `wave-map-journey-language`, `fix/map-journey-language`:
+  Base #325 + #319 be9. 검색 상태/취소/중복/pending focus/KO·EN/44px/긴 이름·실제 Tab·스크롤.
+  관련122/122, 신규18/18, unit287, 전체 로컬/CI **389 pass/기존 skip 1**, Ready. CI34047189164.
+- #316 **9792cbfda99ab7ed083002a88e39062ab7ab199e**, `wave-transport-response`, 로컬 `fix/transport-response-validation`
+  → 원격 `fix/public-transport-provider-boundary`: 공식 명세와 전용 응답 검증. 8 pass/2 fail →10/10, unit290,
+  lint/typecheck/build/performance PASS. 7c6d0e1 CI34048166351은247 pass/기존skip1 성공. 최신 부모 #311까지 합쳐
+  CI34048864949는 진행 중이며 전체 source는 **247pass/기존skip1/실패0(5.6분)**이다.
+  source 첫 전체237pass/2fail은 포트4189/기대4173 불일치이며 자료를 보존하고 기본4173으로 재검증했다.
+  smoke·기존 assertion 조건 변경 없음.
+- #324 c81e68f CI349, #323 e358e0f CI327, #313 4cc52aa CI247(각 기존 skip1), Ready다. 이 문서는 그 뒤의 실행 기록이다.
+- Production **16:56:46 UTC 26/27**, route만 실패. 17:02 cache MISS 실제 경로5·정류장6, 도착/KORAIL0 ready는
+  앱의 해석으로 기록한다. 잘못된 응답도 0건이던 경계는 #316에서 보완했고 운영 미반영이다.
+- Production 17:29:55 브라우저390/1366은 추천3·탐색3·error0, pageerror/console/GET 실패/overflow0.
+  `production-card-journey.mjs`에서 실제 장소 카드로 범위를 한정해 두 폭 모두 일정 추가/새로고침 복원을 확인했다.
+  첫 데스크톱 탐색의 넓은 버튼 선택은 제품 실패로 세지 않는다. 새 캡처는 기존 PDF/10:25 스냅샷을 덮어쓰지 않는다.
+  자동 추천/1곳100% 운영 회귀는 후보에서 이미 수정한 범위다.
+- 다음 실행: source #316 전체/CI 확정 → 최신 문서 합성 → 통합 후보 전체를 단독 실행한다.
+  로컬 전체 동시 실행은 초기 ERR_NO_BUFFER_SPACE 관찰 때문에 피하되 timeout·worker2·범위는 유지한다.
+  그 뒤 교통 상세의 error를 빈 결과로 보여주는 UI, ready를 이용 가능/목록을 운행 확인이라 부르는 문구, 누락 도착시간의 운행 중 표시를
+  실제 fixture와 UI로 재현하고 최소 수정한다. 지도 SDK/날씨 상세/인증·정책 KO/EN·실제200%도 남는다.
+- 현재 main/Production34e6021, Issue47/PR28, #287승인0/3, 008미적용, 유료 모델3workflow disabled_manually.
+  Preview/Neon 운영 접근·백업/복원·계정/법적/실기기/구독 queue/실제 제출은 사람·도구 Gate와 분리한다.
+
+로컬 로그는 `%TEMP%/wave-launch-20260906`의 `candidate-map-*`, `transport-response-*`, `candidate-transport-*`,
+`production-diagnostic-after-route.json`, `production-recovered-journey.json`, `production-card-journey.json`에 있다. Secret/원본 API 응답 대신 상태·개수만 보존한다.
+기존 브랜치·사용자/팀원 변경·실패 이력은 보존했으며 force push/새 통합 PR/Issue 종료는 없다.
+
+## 이전 재개 우선점 — 2026-09-06 15:46 UTC
 
 - #324 `c81e68ff6de8bbeb594983b6bee3834407751e30`, worktree `wave-departure-language`, branch `fix/departure-language`.
   #323 기반이며 기존 worktree를 변경하지 않았다. KO/EN 출발 카드·원문 언어·영어 ICS, pending 포커스와
