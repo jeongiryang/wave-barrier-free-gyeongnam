@@ -14,7 +14,9 @@ function fixture() {
     useCallback(callback, deps) { const i = cursor++, old = slots[i]; if (!old || deps.some((v,j) => v !== old.deps[j])) slots[i] = { callback, deps }; return slots[i].callback; },
     useEffect(callback, deps) { const i = cursor++, old = slots[i]; if (!old || deps.some((v,j) => v !== old.deps[j])) { old?.cleanup?.(); slots[i] = { deps, cleanup: callback() }; cleanups[i] = () => slots[i].cleanup?.(); } },
   };
-  const map = { getCenter: () => ({ lat: 35.2, lng: 128.6 }) }, mapRef = { current: map };
+  let centre = { lat: 35.2, lng: 128.6 };
+  const selected = [];
+  const map = { getCenter: () => { const point = { ...centre }; return { getLat: () => point.lat, getLng: () => point.lng }; } }, mapRef = { current: map };
   let throwSearch = false;
   const window = { setTimeout(callback) { const id = ++timerId; timers.set(id,callback); return id; }, clearTimeout(id) { timers.delete(id); },
     kakao: { maps: {
@@ -38,8 +40,8 @@ function fixture() {
     return mod.exports;
   }
   const {useNearbyPlaces:renderNearby}=load(new URL("../features/routing/useNearbyPlaces.ts",import.meta.url));
-  const actions=()=>{cursor=0; return renderNearby({kakaoMapRef:mapRef,choosePlace:()=>undefined});};
-  return {actions,requests,markers,mapRef, setLocale(value){locale=value;}, throwSearch(){throwSearch=true;},
+  const actions=()=>{cursor=0; return renderNearby({kakaoMapRef:mapRef,choosePlace:(place)=>selected.push(place)});};
+  return {actions,requests,markers,mapRef,selected,moveCentre(lat,lng){centre={lat,lng};}, setLocale(value){locale=value;}, throwSearch(){throwSearch=true;},
     expire(){const pending=[...timers.values()];timers.clear();pending.forEach(callback=>callback());},
     unmount(){cleanups.forEach(cleanup=>cleanup?.());disposed=true;}, lateWrites:()=>lateWrites};
 }
@@ -106,8 +108,31 @@ test("unsafe external links and invalid distances cannot become actionable provi
   assert.equal(f.actions().categoryPlaces[0].place_url,"");assert.equal(f.actions().categoryPlaces[0].distance,"");
 });
 test("zero coordinates and distance remain real values when explicitly supplied",()=>{
-  const f=fixture();f.actions().searchNearby(food);f.requests[0].callback([{...place(),x:"0",y:"0",distance:"0",place_url:"http://place.map.kakao.com/123"}],"OK");
+  const f=fixture();f.moveCentre(0,0);f.actions().searchNearby(food);f.requests[0].callback([{...place(),x:"0",y:"0",distance:"0",place_url:"http://place.map.kakao.com/123"}],"OK");
   assert.equal(f.actions().categoryPlaces[0].distance,"0");assert.equal(f.actions().categoryPlaces[0].place_url,"https://place.map.kakao.com/123");
+});
+
+for (const point of [{x:"0",y:"0"},{x:"128.6",y:"35.4"}]) test(`coordinates outside the requested Gyeongnam radius cannot render markers or be chosen: ${point.y}`,()=>{
+  const f=fixture(),invalid={...place(),...point,distance:"0"};f.actions().searchNearby(food);f.requests[0].callback([invalid],"OK");
+  assert.equal(f.actions().categoryState,"error");assert.deepEqual(f.actions().categoryPlaces,[]);assert.equal(f.markers.length,0);
+  f.actions().chooseKakaoPlace(invalid);assert.deepEqual(f.selected,[]);
+});
+
+test("nearby validation uses the request centre even if the user pans before its response",()=>{
+  const f=fixture();f.actions().searchNearby(food);f.moveCentre(36,129);f.requests[0].callback([place()],"OK");
+  assert.equal(f.actions().categoryPlaces.length,1);assert.equal(f.markers.length,1);
+});
+
+test("a real zero-metre result at the requested centre stays selectable",()=>{
+  const f=fixture(),atCentre={...place(),distance:"0"};f.actions().searchNearby(food);f.requests[0].callback([atCentre],"OK");
+  assert.equal(f.actions().categoryPlaces[0].distance,"0");f.actions().chooseKakaoPlace(f.actions().categoryPlaces[0]);assert.equal(f.selected.length,1);
+});
+
+test("the ten-kilometre boundary has a bounded fifty-metre calculation allowance",()=>{
+  const f=fixture();f.actions().searchNearby(food);
+  const latitude=(metres)=>String(35.2+metres/6_371_000*180/Math.PI);
+  f.requests[0].callback([{...place("boundary"),y:latitude(10_025)},{...place("outside"),y:latitude(10_075)}],"OK");
+  assert.deepEqual(f.actions().categoryPlaces.map(p=>p.id),["boundary"]);assert.equal(f.markers.length,1);assert.match(f.actions().categoryMessage,/일부.*제외/);
 });
 test("language changes translate pending and failed query states without another request",()=>{
   const f=fixture();f.actions().searchNearby(food);f.setLocale("en");assert.match(f.actions().categoryMessage,/Searching for restaurants/);
