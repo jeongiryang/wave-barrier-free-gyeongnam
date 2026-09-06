@@ -253,6 +253,11 @@ html[data-theme="dark"] .travel-book-preview .feature-preview-stage > footer b {
 .landing-community-copy > p:not(.section-kicker) { margin-inline: auto; }
 .landing-community-copy > div { justify-content: center; }
 .community-live-preview { display: none; }
+.compact-journey-visual { margin: 0 0 20px; color: var(--blue); }
+.compact-journey-visual svg { display: block; width: 100%; height: 116px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.compact-journey-visual figcaption { margin-top: 12px; color: var(--ink); font-size: .8rem; line-height: 1.6; }
+.compact-route-connection { stroke-dasharray: 5 5; }
+.landing-community > .compact-journey-visual { width: min(100%, 360px); margin: 0 auto; }
 
 @media (max-width: 960px) {
   .product-stories { grid-template-columns: repeat(2, minmax(0, 1fr)); }

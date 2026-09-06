@@ -1,8 +1,10 @@
 import AccessIcon from "../../../components/AccessIcons";
+import CompactJourneyVisual from "./CompactJourneyVisual";
 
 export default function LandingDiscoveryStories() {
   return <>
     <article className="product-story discover-story" data-land-reveal>
+      <CompactJourneyVisual stage="conditions" />
       <div className="product-story-copy">
         <p className="section-kicker">01 · 여행 조건</p>
         <h2>장소보다 먼저,<br /><em>내 여행 조건부터.</em></h2>
@@ -26,6 +28,7 @@ export default function LandingDiscoveryStories() {
       </div>
     </article>
     <article className="product-story access-story reverse" data-land-reveal>
+      <CompactJourneyVisual stage="evidence" />
       <div className="product-story-copy">
         <p className="section-kicker">02 · 추천 근거</p>
         <h2>추천에는<br /><em>확인 가능한 이유가 있습니다.</em></h2>

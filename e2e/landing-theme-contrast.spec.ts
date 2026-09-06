@@ -41,6 +41,7 @@ async function samples(page: Page, selector: string) {
 }
 
 const CASES = [
+  ".compact-journey-visual figcaption",
   ".product-story-copy h2",
   ".product-story-copy > p:not(.section-kicker)",
   ".product-story-copy > a",

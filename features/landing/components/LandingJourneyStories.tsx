@@ -1,6 +1,9 @@
+import CompactJourneyVisual from "./CompactJourneyVisual";
+
 export default function LandingJourneyStories() {
   return <>
     <article className="product-story plan-story" data-land-reveal>
+      <CompactJourneyVisual stage="schedule" />
       <div className="product-story-copy">
         <p className="section-kicker">03 · 하루 일정</p>
         <h2>관광지 목록을<br /><em>하루의 순서로.</em></h2>
@@ -19,6 +22,7 @@ export default function LandingJourneyStories() {
       </div>
     </article>
     <article className="product-story route-story reverse" data-land-reveal>
+      <CompactJourneyVisual stage="route" />
       <div className="product-story-copy">
         <p className="section-kicker">04 · 이동 경로</p>
         <h2>선택한 장소와 지도를<br /><em>한 흐름으로.</em></h2>
