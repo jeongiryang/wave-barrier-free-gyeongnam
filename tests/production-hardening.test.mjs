@@ -16,9 +16,10 @@ test("landing route delegates section UI and browser effects to feature modules"
       source("features/landing/client/region-photo.ts"),
     ]).then((parts) => parts.join("\n")),
   ]);
-  for (const component of ["LandingHeader", "LandingHero", "LandingManifesto", "LandingRegionStory", "LandingEvidenceStory", "LandingFooter"]) {
+  for (const component of ["LandingHeader", "LandingHero", "LandingManifesto", "LandingRegionStory", "LandingProductStories", "LandingFooter"]) {
     assert.match(page, new RegExp(`<${component}`));
   }
+  assert.doesNotMatch(page, /LandingEvidenceStory|landing-pointer-glow|chapter-rail/);
   assert.doesNotMatch(page, /useState|useEffect|IntersectionObserver|AbortController/);
   assert.match(experience, /IntersectionObserver/);
   assert.match(experience, /AbortController/);

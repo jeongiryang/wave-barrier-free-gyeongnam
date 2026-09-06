@@ -15,7 +15,7 @@ export default function MapLayerPanel({ activeLayers, onClose, onToggleLayer, on
     <div className="map-tool-grid">{overlayLayers.map((layer) => <button type="button" key={layer.id} aria-pressed={activeLayers.includes(layer.id)} className={activeLayers.includes(layer.id) ? "active" : ""} onClick={() => onToggleLayer(layer.id)}><i aria-hidden="true">{layer.icon}</i>{layer.label}</button>)}</div>
     <h4>경로 도구</h4>
     <div className="map-utility-actions">
-      <button type="button" onClick={onSave}><i aria-hidden="true">＋</i>이 기기 일정에 추가</button>
+      <button type="button" onClick={onSave}><i aria-hidden="true">＋</i>내 일정에 추가</button>
       <button type="button" onClick={() => window.print()}><i aria-hidden="true">▣</i>인쇄</button>
       <button type="button" onClick={onShare}><i aria-hidden="true">↗</i>공유</button>
     </div>

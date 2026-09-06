@@ -67,7 +67,7 @@ export function useJourneyProgress({
     {
       id: "itinerary",
       index: 3,
-      label: "이 기기 일정",
+      label: "내 일정",
       detail: savedCount ? `${savedCount}곳을 일정에 저장` : "장소를 일정에 추가",
       complete: searched && currentSavedCount > 0 && itineraryReviewed,
       available: savedCount > 0,

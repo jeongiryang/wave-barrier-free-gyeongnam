@@ -4,7 +4,7 @@ import { useSitePreferences } from "../components/SitePreferences";
 import SkipLink from "../components/SkipLink";
 import { LandingProductStories } from "../features/landing/components/LandingProductStories";
 import LandingCommunityStory from "../features/community/components/LandingCommunityStory";
-import { LandingCallToAction, LandingEvidenceStory, LandingFooter } from "../features/landing/components/LandingClosing";
+import { LandingCallToAction, LandingFooter } from "../features/landing/components/LandingClosing";
 import LandingHeader from "../features/landing/components/LandingHeader";
 import LandingHero from "../features/landing/components/LandingHero";
 import LandingManifesto from "../features/landing/components/LandingManifesto";
@@ -24,17 +24,13 @@ export default function LandingPage() {
     showRegionPreview,
     hideRegionPreview,
     selectRegion,
-    handlePointerMove,
   } = useLandingExperience();
 
-  return <main ref={landingRef} className="landing-page" data-scroll-direction={scrollDirection} onPointerMove={handlePointerMove}>
-    <div className="landing-pointer-glow" aria-hidden="true" />
-    <aside className="chapter-rail" aria-hidden="true"><span>처음</span><i><b /></i><span>시작</span></aside>
+  return <main ref={landingRef} className="landing-page" data-scroll-direction={scrollDirection}>
     <SkipLink href="#story">{t("skip", "소개 바로가기")}</SkipLink>
     <LandingHeader scrolled={scrolled} t={t} />
     <LandingHero t={t} />
     <LandingManifesto t={t} />
-    <LandingProductStories />
     <LandingRegionStory
       t={t}
       activeRegion={activeRegion}
@@ -45,8 +41,8 @@ export default function LandingPage() {
       hideRegionPreview={hideRegionPreview}
       selectRegion={selectRegion}
     />
+    <LandingProductStories />
     <LandingCommunityStory />
-    <LandingEvidenceStory t={t} />
     <LandingCallToAction t={t} />
     <LandingFooter t={t} />
   </main>;

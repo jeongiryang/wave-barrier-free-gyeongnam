@@ -16,7 +16,7 @@ export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
 
 export function LandingCallToAction({ t }: { t: LandingTranslate }) {
   return <section className="landing-cta" data-land-reveal>
-    <p>내 조건부터 고르면</p><h2>{t("planningCtaTitle", "갈 수 있는 이유와")}<br /><em>{t("planningCtaEm", "이동 흐름이 선명해집니다.")}</em></h2><Link href="/planner">내 여행 설계하기 <span>↗</span></Link>
+    <p>지역과 필요한 편의를 고르면</p><h2>{t("planningCtaTitle", "여행지부터 일정까지,")}<br /><em>{t("planningCtaEm", "차근차근 만들 수 있어요.")}</em></h2><Link href="/planner">여행 계획 만들기 <span>↗</span></Link>
   </section>;
 }
 

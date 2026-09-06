@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { useSitePreferences } from "../../../components/SitePreferences";
-import AccessIcon from "../../../components/AccessIcons";
 import WaveField from "../../../components/WaveField";
 import type { LandingTranslate } from "../content";
 
@@ -10,25 +9,19 @@ export default function LandingHero({ t }: { t: LandingTranslate }) {
   return <section className="landing-hero" id="top">
     <WaveField replay={0} className="hero-wave-canvas" tone="light" mode="intro" />
     <div className="landing-hero-copy" data-land-reveal>
-      <p><span className="access-badge"><AccessIcon name="mark" size={18} />{t("heroBadge", "경남 무장애 여행 설계")}</span></p>
-      <h1>{t("heroTitle", "내 조건에서 시작해,")}<br /><em>{t("heroEm", "갈 수 있는 하루를 설계합니다.")}</em></h1>
-      <span>{t("heroCopy", "필요한 편의조건을 먼저 고르면 공식 근거가 있는 장소, 하루 일정, 이동과 날씨 대응까지 한 흐름으로 이어집니다.")}</span>
-      <div className="landing-actions"><Link href="/planner">{en ? "Plan my trip" : "내 여행 설계하기"} <b aria-hidden="true">→</b></Link><a href="#story">{t("learn", "어떻게 작동하나요?")}</a></div>
+      <p><span className="access-badge">{t("heroBadge", "경남 무장애 여행")}</span></p>
+      <h1>{t("heroTitle", "필요한 편의부터 고르고,")}<br /><em>{t("heroEm", "나에게 맞는 경남 여행을 찾아보세요.")}</em></h1>
+      <span>{t("heroCopy", "확인된 편의시설을 보고 여행지를 고른 뒤 일정과 이동 경로까지 한곳에서 정리할 수 있어요.")}</span>
+      <div className="landing-actions"><Link href="/planner">{en ? "Plan my trip" : "여행 계획 만들기"} <b aria-hidden="true">→</b></Link></div>
     </div>
-    <div className="landing-signal" role="img" aria-label="내 편의조건에서 시작해 근거가 있는 장소, 일정과 이동, 상황 대응으로 이어지는 W.A.V.E 여행 설계 흐름" data-land-reveal>
-      <div className="signal-demo" aria-hidden="true">
-        <header><span>{en ? "Example trip" : "여행 흐름 예시"}</span><b>{en ? "Changwon · Day trip" : "창원 · 당일 여행"}</b></header>
-        <svg className="signal-route" viewBox="0 0 640 300" preserveAspectRatio="none">
-          <path className="signal-route-rail" d="M58 231 C126 217 145 103 236 112 S343 238 425 177 S497 66 585 79" />
-          <path className="signal-route-current" d="M58 231 C126 217 145 103 236 112 S343 238 425 177 S497 66 585 79" />
-        </svg>
-        <span className="signal-node node-one"><i>1</i>{t("accessible", "내 편의조건")}</span>
-        <span className="signal-node node-two"><i>2</i>{t("tourism", "근거 있는 장소")}</span>
-        <span className="signal-node node-three"><i>3</i>{t("mobility", "일정과 이동")}</span>
-        <span className="signal-node node-four"><i>4</i>{t("stories", "상황 대응")}</span>
-        <span className="signal-traveler"><AccessIcon name="wheel" size={22} /></span>
-        <footer><span>{en ? "Facility evidence" : "공식 편의정보"}</span><span>{en ? "Check each journey" : "확인된 이동부터"}</span><b>{en ? "Recheck before leaving" : "출발 전 다시 확인"}</b></footer>
-      </div>
+    <div className="landing-signal landing-journey-summary" role="img" aria-label="지역과 필요한 편의를 고르고 여행지를 일정에 추가해 이동 경로를 확인하는 네 단계" data-land-reveal>
+      <ol aria-hidden="true">
+        <li><b>1</b><span>지역 선택</span></li>
+        <li><b>2</b><span>필요한 편의</span></li>
+        <li><b>3</b><span>여행지 찾기</span></li>
+        <li><b>4</b><span>일정·이동 확인</span></li>
+      </ol>
+      <p>{en ? "Check the source and latest update before you leave." : "확인된 정보와 다시 확인할 내용을 구분해 보여드려요."}</p>
     </div>
   </section>;
 }

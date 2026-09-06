@@ -56,8 +56,8 @@ export function useMapJourneyActions({
     const visiblePlaces = places.slice(0, 12);
     const added = onSavePlaces?.(visiblePlaces) ?? 0;
     setProviderDetail(added > 0
-      ? `지도에 표시된 ${added}곳을 이 기기 일정에 추가했습니다.`
-      : "지도에 표시된 여행지는 이미 이 기기 일정에 있습니다.");
+      ? `지도에 표시된 ${added}곳을 내 일정에 추가했어요.`
+      : "지도에 표시된 여행지는 이미 내 일정에 있어요.");
   }, [onSavePlaces, places, setProviderDetail]);
 
   const shareRoute = useCallback(async () => {

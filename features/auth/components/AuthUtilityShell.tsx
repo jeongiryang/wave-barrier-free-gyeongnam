@@ -23,7 +23,7 @@ export default function AuthUtilityShell({
         <div className="auth-header-actions"><PublicMobileNav links={[
           { href: "/", label: "서비스 소개" },
           { href: "/planner", label: "여행 계획" },
-          { href: "/travel-book", label: "내 여행집" },
+          { href: "/travel-book", label: "내 일정" },
           { href: "/community", label: "여행 후기" },
         ]} /><Link className="auth-header-action" href="/planner">로그인 없이 여행 설계 <span aria-hidden="true">↗</span></Link></div>
       </header>

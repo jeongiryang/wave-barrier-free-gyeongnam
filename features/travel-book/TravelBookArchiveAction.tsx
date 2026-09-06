@@ -20,8 +20,8 @@ export default function TravelBookArchiveAction({ places, region, theme, profile
 
   return <div className="travel-book-archive-action">
     <div>
-      <span>LOCAL TRAVEL BOOK</span>
-      <strong>이 여행을 여행집에 남겨둘까요?</strong>
+      <span>내 일정 저장</span>
+      <strong>이 여행을 내 일정에 저장할까요?</strong>
       <p>일정과 공식 관광지 표지만 이 기기에 보관합니다. 계정·공유 링크 없이 다녀온 뒤 기록으로 이어갈 수 있어요.</p>
     </div>
     <div className="travel-book-archive-controls">
@@ -37,9 +37,9 @@ export default function TravelBookArchiveAction({ places, region, theme, profile
           scheduleAssignments,
           places,
         });
-        setNotice(snapshot ? "여행집에 보관했습니다. 같은 일정을 다시 보관하면 최신 순서로 갱신됩니다." : "보관할 일정을 확인해 주세요.");
-      }}>여행집에 보관</button>
-      <Link href="/travel-book">내 여행집 열기 <span aria-hidden="true">→</span></Link>
+        setNotice(snapshot ? "내 일정에 저장했어요. 같은 일정을 다시 저장하면 최신 순서로 바뀝니다." : "저장할 일정을 확인해 주세요.");
+      }}>내 일정에 저장</button>
+      <Link href="/travel-book">저장한 일정 보기 <span aria-hidden="true">→</span></Link>
     </div>
     <small role="status" aria-live="polite">{notice}</small>
   </div>;

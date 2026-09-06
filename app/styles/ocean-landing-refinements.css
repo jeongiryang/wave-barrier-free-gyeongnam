@@ -22,6 +22,28 @@
 .landing-hero-copy, .landing-signal { position: relative; z-index: 1; }
 .landing-hero-copy > p span { background: #fff; }
 
+/* 핵심 여정만 남긴 콘텐츠 중심 Hero. */
+.landing-journey-summary {
+  min-height: 0; padding: clamp(28px, 4vw, 48px); align-content: center;
+  border-radius: 28px; color: #f5fcff; background: #07384c;
+  box-shadow: 0 20px 48px rgba(4, 40, 55, .16);
+}
+.landing-journey-summary ol { width: 100%; margin: 0; padding: 0; list-style: none; display: grid; }
+.landing-journey-summary li {
+  min-height: 68px; display: grid; grid-template-columns: 38px 1fr; align-items: center; gap: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.16);
+}
+.landing-journey-summary li:last-child { border-bottom: 0; }
+.landing-journey-summary li b {
+  width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
+  color: #07384c; background: #79ead8; font-size: .8rem;
+}
+.landing-journey-summary li span { font-size: clamp(1.05rem, 1.6vw, 1.3rem); font-weight: 800; }
+.landing-journey-summary > p {
+  width: 100%; margin: 24px 0 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.16);
+  color: #cfe6ee; font-size: .9rem;
+}
+
 /* 밝은 바탕으로 넘어온 구역의 글자색을 되돌린다. */
 .region-story { color: var(--ink); }
 .region-story-copy > p:not(.section-kicker) { color: var(--muted); }
@@ -48,3 +70,8 @@
 .landing-page .simple-footer p { color: var(--muted); }
 .landing-page .github-footer-link { color: var(--ink); border-color: var(--line); }
 .landing-page .github-footer-link:hover,.landing-page .github-footer-link:focus-visible { color: #061f2b; border-color: #7debe9; }
+
+@media (max-width: 760px) {
+  .landing-journey-summary { padding: 22px; border-radius: 20px; }
+  .landing-journey-summary li { min-height: 58px; }
+}

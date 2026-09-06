@@ -13,8 +13,8 @@ export default function PlannerThemeDates({ t, planController, tripSelection, pa
   const { travelStart, travelEnd, changeTravelStart, changeTravelEnd } = tripSelection;
   return <>
     {part !== "dates" && <fieldset className="control-panel theme-control">
-      <legend className="step-label">{t("enjoy", "무엇을 즐길까요?")}</legend>
-      <p>여러 개를 함께 고를 수 있어요. 최소 하나를 유지해 주세요.</p>
+      <legend className="step-label">{t("enjoy", "무엇을 하고 싶나요?")}</legend>
+      <p>여러 개 골라도 괜찮아요.</p>
       <div className="theme-grid">{themes.map((item) => <button key={item.id} type="button" className={selectedThemes.includes(item.id) ? "active" : ""} onClick={() => toggleTheme(item.id)} aria-pressed={selectedThemes.includes(item.id)}><span>{item.label}</span><small>{item.description}</small></button>)}</div>
     </fieldset>}
     {part !== "themes" && <div className="control-panel date-control">
