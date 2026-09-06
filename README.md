@@ -19,7 +19,7 @@
 
 [서비스 소개](#핵심-사용자-여정) · [기능과 데이터](#기능과-데이터-신뢰) ·
 [API·키 설정](docs/api-integration-audit.md) · [Vercel·Neon 배포](docs/vercel-neon-setup.md) ·
-[운영·장애 대응](docs/operations.md) · [공모전·제출 부문 확인](docs/contest-compliance.md) ·
+[운영·장애 대응](docs/operations.md) · [공모전·제출 안내](docs/contest-compliance.md) · [공모전 운영·데이터 정책](docs/competition-operation-policy.md) ·
 [시연](docs/demo-script.md) · [이미지·지도 출처](docs/assets-and-licenses.md) ·
 [진행 중 검증](docs/launch-audit-2026-09-05.md)
 
