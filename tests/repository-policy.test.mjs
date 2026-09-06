@@ -395,7 +395,7 @@ test("wave motion preference is persisted, localized and respects reduced motion
   assert.match(storage, /localStorage\.getItem\("wave-motion"\)/);
   assert.match(storage, /localStorage\.setItem\("wave-motion", preferences\.motion\)/);
   assert.match(controls, /aria-pressed=\{motion === "calm"\}/);
-  assert.match(controls, /<details className="preference-controls" suppressHydrationWarning>/);
+  assert.match(controls, /<details className="preference-controls" inert=\{!replayReady\} aria-busy=\{!replayReady\} suppressHydrationWarning>/);
   assert.match(catalog, /export const motionCopy: Record<Locale/);
   assert.match(engine, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(layout, /prefers-reduced-motion: reduce/);

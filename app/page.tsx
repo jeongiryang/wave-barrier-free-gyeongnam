@@ -15,6 +15,8 @@ export default function LandingPage() {
   const { t } = useSitePreferences();
   const {
     landingRef,
+    introReplay,
+    replayIntro,
     activeRegion,
     active,
     preview,
@@ -28,8 +30,8 @@ export default function LandingPage() {
 
   return <main ref={landingRef} className="landing-page" data-scroll-direction={scrollDirection}>
     <SkipLink href="#story">{t("skip", "소개 바로가기")}</SkipLink>
-    <LandingHeader scrolled={scrolled} t={t} />
-    <LandingHero t={t} />
+    <LandingHeader scrolled={scrolled} t={t} onReplayIntro={replayIntro} />
+    <LandingHero t={t} replay={introReplay} />
     <LandingManifesto t={t} />
     <LandingRegionStory
       t={t}

@@ -95,6 +95,52 @@ test("intro keeps one clear planning action and never blocks the page", async ({
   expect(errors).toEqual([]);
 });
 
+test("intro replays without blocking the planning link or moving keyboard focus", async ({ page }) => {
+  const errors = trackRuntimeErrors(page);
+  await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 390 : 1366, height: 844 });
+  await mockPlannerApi(page);
+  await page.goto("/");
+  const settingsPanel = page.locator(".preference-controls:visible");
+  const settings = settingsPanel.getByLabel("환경설정 열기");
+  await expect(settingsPanel).toHaveAttribute("aria-busy", "false");
+  await settings.focus();
+  await page.keyboard.press("Enter");
+  const replay = page.getByRole("button", { name: "인트로 다시보기", exact: true });
+  await expect(replay).toBeVisible();
+  await expect(replay).toBeEnabled();
+  await replay.focus();
+  await page.keyboard.press("Enter");
+  await expect(settingsPanel.getByRole("status")).toHaveText("설정한 동작 효과로 인트로를 다시 표시했습니다.");
+  await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", "1");
+  await expect(replay).toBeFocused();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(replay).toBeFocused();
+  await expect(replay).toBeEnabled();
+  const replayBox = await replay.boundingBox();
+  expect(replayBox!.width).toBeGreaterThanOrEqual(44);
+  expect(replayBox!.height).toBeGreaterThanOrEqual(44);
+  expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
+  await page.screenshot({ path: test.info().outputPath("intro-replay-settings.png") });
+  await page.keyboard.press("Space");
+  await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", "2");
+  await expect(replay).toBeFocused();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
+  await expect(replay).toBeFocused();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획 만들기", exact: true });
+  await settings.focus();
+  await page.keyboard.press("Enter");
+  await planning.focus();
+  await expect(planning).toBeFocused();
+  await expectNoOverflow(page);
+  await page.screenshot({ path: test.info().outputPath("intro-replay-focus.png") });
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/planner/);
+  expect(errors).toEqual([]);
+});
+
 test("one saved place does not complete the trip and the dialog contains keyboard focus", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
