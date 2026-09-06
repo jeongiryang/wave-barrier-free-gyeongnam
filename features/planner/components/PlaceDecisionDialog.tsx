@@ -1,11 +1,21 @@
 "use client";
 
-import type { RefObject } from "react";
+import { lazy, Suspense, type RefObject } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import type { Place } from "../types";
-import PlaceCommunityStories from "./PlaceCommunityStories";
+import { originalLanguage } from "../place-copy";
 import PlaceEvidenceSummary from "./PlaceEvidenceSummary";
 import PlaceParticipationActions from "./PlaceParticipationActions";
+
+function StoriesUnavailable({ place, location }: { place: Place; location: string }) {
+  const { locale } = useSitePreferences();
+  return <div className="place-community-stories">
+    <p role="status">{locale === "en" ? "Visitor stories couldn't open here. You can read them on the community page." : "현장 후기 화면을 열지 못했습니다. 커뮤니티에서 확인할 수 있습니다."}</p>
+    <a href={`/community?placeId=${encodeURIComponent(place.id)}&placeName=${encodeURIComponent(place.name)}&region=${encodeURIComponent(location)}`}>{locale === "en" ? "Open community" : "커뮤니티 열기"}</a>
+  </div>;
+}
+
+const PlaceCommunityStories = lazy(() => import("./PlaceCommunityStories").catch(() => ({ default: StoriesUnavailable })));
 
 type Props = {
   place: Place;
@@ -30,9 +40,12 @@ export default function PlaceDecisionDialog(props: Props) {
       <button className="modal-close" type="button" onClick={onClose} aria-label={en ? "Close" : "닫기"}>×</button>
       <div className="modal-visual" style={place.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${place.image}")` } : undefined}><span>{location}</span></div>
       <div className="modal-body">
-        <p className="section-kicker">{en ? "Facility information" : "편의정보 자세히 보기"}</p><h2 id="place-modal-title" tabIndex={-1}>{place.name}</h2><p>{place.address || place.summary}</p>
+        <p className="section-kicker">{en ? "Facility information" : "편의정보 자세히 보기"}</p><h2 id="place-modal-title" lang={originalLanguage(place.name)} tabIndex={-1}>{place.name}</h2><p lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
+        {en && <p className="original-language-note">Place names, addresses and facility evidence are shown in their original language, which may be Korean. Visitor stories are not translated.</p>}
         <PlaceEvidenceSummary place={place} />
-        <PlaceCommunityStories place={place} location={location} />
+        <Suspense fallback={<p role="status">{en ? "Preparing visitor stories." : "현장 후기 화면을 준비하고 있어요."}</p>}>
+          <PlaceCommunityStories place={place} location={location} />
+        </Suspense>
         <PlaceParticipationActions place={place} location={location} saved={props.saved} canSave={props.canSave} feedbackText={props.feedbackText} feedbackState={props.feedbackState} onToggleSaved={props.onToggleSaved} onFeedbackChange={props.onFeedbackChange} onSubmitFeedback={props.onSubmitFeedback} />
         <small className="modal-note">{en ? "Facility records are not a safety certification. Missing information does not mean a facility is absent. Confirm current conditions with the venue before visiting." : "공식 시설 정보는 안전 인증이나 접근 가능성 보장이 아닙니다. 미확인은 시설이 없다는 뜻이 아닙니다. 방문 전 시설에 현재 운영 상태를 확인해 주세요."}</small>
       </div>
