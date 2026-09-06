@@ -1,5 +1,18 @@
 # 지도 전체 로딩 실패의 복구 — 2026-09-06
 
+## CI 후속 — React commit 이전 프레임의 포커스 누락
+
+7f53de4의 source/CI439는 통과했으나 자식 #330의 48f3f40 CI34059135961에서 모바일 panel focus 1건이 최초·재시도 모두 실패했다(462 pass/기존skip1). 이 때문에 #329/#330은 Draft로 유지하며 이전 성공을 최종 해결로 세지 않는다. 통합 d4c4911의 전체475 pass/기존skip1 역시 이 타이밍 누락을 잡지 못한 결과다.
+
+CI 스크린샷·error-context·trace를 내려받았다. CPU 4배 지연을 적용한 실제 모바일 브라우저 4회에서2 fail/2 pass로 재현했고, 진단 frame/focus 기록에서 복구 프레임이 실행될 때 오류 DOM이 아직 없고 이후 패널이 제거되어 body에 초점이 남는 순서를 확인했다. 이 진단용 파일은 TEMP 아티팩트에 보존했으며 제품에 계측 코드를 넣지 않았다.
+
+`useMapFailureFocus`는 오류 직전 패널 내부 focus를 기억하고 React commit 뒤 layout effect에서 실제 복구 버튼으로 이동한다. 그 사이 사용자가 선택한 외부 focus는 보존하고 반복 effect로 focus를 다시 훔치지 않는다. 하단 내비게이션 겹침을 피하도록 복구 버튼을 즉시 가운데 드러낸다. timeout/skip/assertion을 완화하지 않고 기존 6개 browser 시나리오에 CPU 지연을 적용했다.
+
+- 실제 hook의 commit 전/후·외부 focus·새 focus 보존·반복 실행 계약4 PASS, 기존 위치 계약3 PASS.
+- CPU 지연 desktop/mobile 6상황 × 3회 =18/18 PASS(1.1분).
+- 최초 lint는 테스트 하니스 변수 `module`의 Next 규칙 위반이었다. `compiledModule`로 고치고 검사를 다시 실행했다.
+- 최신 전체·CI는 실제 결과를 PR에 갱신한다. 독립 검토·사람 승인·Production 반영은 미완료다.
+
 ## 독립 리뷰 P1 — 이미 열린 지도 패널의 실패 경계
 
 [리뷰](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/329#discussion_r3945104534)는 모듈 로딩 중 출발·도착 패널을 연 뒤 실패시키면 패널이 오류 안내 위에 남고 내부 위치/선택 조작이 살아 있음을 지적했다. `3022fc2` source433/CI433과 통합8fe80ac445 성공 뒤 이 누락을 확인했고 Ready를 Draft로 되돌렸다. 해당 성공을 P1 해결 증거로 재사용하지 않는다.
