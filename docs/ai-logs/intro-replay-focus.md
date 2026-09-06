@@ -37,3 +37,12 @@ Enter/Space가 replay를 1→2로 실제 갱신하고 상태 안내를 표시하
 
 #314 인증 보호·#312 캐시·#309 보안 및 자동화 stack을 합친 최종 후보를 별도로 검증한다.
 필수 사람 리뷰 3건과 운영 배포·재검증 전에는 완료/GO를 선언하지 않는다.
+# 반복 재생 안내 후속 — 2026-09-06
+
+독립 검토 `discussion_r3943532471`의 P2를 기존 #315 worktree에서 이어 수정했다. boolean `replayed`는 첫 실행 후 바뀌지 않아 live region이 두 번째부터 갱신되지 않았다. 기존 Enter/Space 여정에 정확한 두 번째·세 번째 문구 검사를 더하자 데스크톱·모바일 2건 모두 실패했다. 실패 trace·화면·오류 문맥을 보존했다.
+
+횟수를 함수형 상태 갱신으로 증가시키고 같은 `role=status` 영역에 반복 횟수를 추가한다. 첫 실행 문구는 그대로이며 두 번째부터 실제 텍스트가 바뀐다. 버튼/상태 영역을 재마운트하지 않고 aria-atomic으로 안내 전체를 읽게 한다. 기존 초점·동작 감소·44px·axe assertion은 삭제하거나 완화하지 않았다.
+
+- launch-integrity/departure-readiness 44/44, 영어 반복 실행 추가 후 intro 관련 6/6 PASS. KO/EN 모두 Enter→Space→Enter와 실제 data-intro-replay 1→2→3, 매번 상태 갱신·초점 유지 확인.
+- unit·contract 280/280, lint/typecheck, Vercel build/performance PASS. CSS68.69/70 KiB, planner266.64/270 KiB.
+- 새 HEAD CI/전체 브라우저·통합 후보 검증은 PR 본문에 이어 기록한다. 실제 화면 낭독기 청취·독립 재검토·사람 승인·Production 검증을 자체 시험으로 대체하지 않는다.
