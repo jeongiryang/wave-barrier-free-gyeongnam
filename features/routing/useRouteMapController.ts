@@ -10,6 +10,7 @@ import { useMapLayers } from "./useMapLayers";
 import { useMapJourneyActions } from "./useMapJourneyActions";
 import { useMapRenderer } from "./useMapRenderer";
 import { useMapShell } from "./useMapShell";
+import { useMapFailureFocus } from "./useMapFailureFocus";
 import { useNearbyPlaces } from "./useNearbyPlaces";
 import { useRoadviewController } from "./useRoadviewController";
 
@@ -100,12 +101,11 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     layoutKey: `${toolPanel || "closed"}:${categoryPlaces.length}`,
   });
 
+  const rememberFailureFocus = useMapFailureFocus(provider, shellRef);
   const updateProvider = useCallback((next: MapProvider) => {
     providerRef.current = next;
     if (next === "error") {
-      const focused = document.activeElement;
-      const affectedFocus = focused instanceof HTMLElement && shellRef.current?.contains(focused)
-        && Boolean(focused.closest(".map-tool-panel:not(#map-panel-export),.map-roadview-panel,.roadview-pick-banner"));
+      rememberFailureFocus();
       pickModeRef.current = null;
       roadviewSelectModeRef.current = false;
       setPickMode(null);
@@ -118,16 +118,9 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
       kakaoMapRef.current = null;
       drawingManagerRef.current = null;
       clearCategoryMarkers();
-      if (affectedFocus) window.requestAnimationFrame(() => {
-        if (document.activeElement === focused || document.activeElement === document.body) {
-          const recovery = shellRef.current?.querySelector<HTMLButtonElement>(".map-unavailable button");
-          recovery?.focus({ preventScroll: true });
-          recovery?.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
-        }
-      });
     }
     setProvider(next);
-  }, [clearCategoryMarkers, closeRoadview, roadviewSelectModeRef, setRoadviewPreviewOpen, setRoadviewSelectMode, shellRef]);
+  }, [clearCategoryMarkers, closeRoadview, rememberFailureFocus, roadviewSelectModeRef, setRoadviewPreviewOpen, setRoadviewSelectMode]);
 
   useMapRenderer({
     containerRef,

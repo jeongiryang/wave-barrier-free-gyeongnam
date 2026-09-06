@@ -34,3 +34,10 @@
 ## 운영 경계와 재개
 
 지도/관광 API는 fixture, clipboard/share/encoding 실패는 브라우저 안에서만 주입했다. 최종 성공 경로의 PNG는 실제 canvas→Blob→브라우저 download로 받았다. Secret·유료 모델 호출·실제 위치 요청·서버 쓰기·병합·배포는 없다. 필수 사람 리뷰3건, Preview·008 운영 확인·최종 Production 검증은 남아 있다. 현재 부모들에 독립적으로 추가된 #315/#316/#325의 수정은 통합 후보에서 별도로 합성하며 원래 브랜치를 보존한다.
+## CI 후속 — 오류 DOM commit 이전 포커스 복구
+
+48f3f40 로컬 전체는463 pass/기존skip1/실패0(10.2분)이었으나 CI34059135961에서462 pass/기존skip1/모바일 panel focus1 fail(최초·재시도 모두)로 실패했다. CI의 이후 build/performance는 실행되지 않았다. source 성공이나 통합d4c4911의475 pass를 최종 해결로 대체하지 않는다.
+
+CI 스크린샷/error-context/trace와 CPU 4배 지연 모바일4회의2 fail/2 pass를 분석했다. 복구 프레임이 React commit보다 앞서 실행되어 버튼이 아직 없었다. 부모 #329의43ebf0812450512663b3f939657688fdb7dad5e1에서 오류 전 내부 focus를 기억하고 layout effect로 복구하도록 수정했다. 기존 child의 즉시 가운데 스크롤도 이 hook에 보존했다. 부모 merge 충돌에서는 이전 프레임을 제거하고 이미지/공유 action 상태·위치 guard를 모두 유지했다.
+
+이 합성에서 unit320/320·lint/typecheck/Vercel build/performance PASS, 관련38/38 PASS(1.5분). CPU 지연은 기존 desktop/mobile panel/outside/pending-location6건에 적용했고 assertion/timeout/skip을 완화하지 않았다. 최신 전체·CI·독립 재검토·사람 승인·Production은 실제 결과를 PR에 갱신한다.
