@@ -6,6 +6,7 @@ import type { Place } from "../types";
 import { useBookingRouteClipboard } from "./useBookingRouteClipboard";
 import { usePlannerImpactAction } from "./usePlannerImpactAction";
 import { usePlannerPointActions } from "./usePlannerPointActions";
+import type { RouteNotice } from "../route-copy";
 
 interface PlannerActionsOptions {
   region: string;
@@ -26,7 +27,7 @@ interface PlannerActionsOptions {
     nextOriginLabel?: string,
   ) => Promise<void>;
   clearLocationSearch: () => void;
-  setRouteNotice: (notice: string) => void;
+  setRouteNotice: (notice: RouteNotice) => void;
 }
 
 export function usePlannerActions({

@@ -1,0 +1,27 @@
+# 경로 비교 언어·확인 상태·복사 안내 정합성
+
+- 기준: #324 `c81e68ff6de8bbeb594983b6bee3834407751e30`, 별도 `fix/route-language` worktree. 기존 작업자 변경 보존.
+- 관련: #251 #264 #265 #267 #277 #285 #286. 운영 완료·Issue 종료·Release GO가 아니다.
+
+## 재현 및 수정
+
+1. 영어 이동수단·시간·요금·빈 상태가 한국어로 남았다. 데스크톱/모바일 초기 6건 실패 → 수정 후 6건 통과. 언어 변경은 재조회/선택 초기화를 유발하지 않는다.
+2. `configured: true` 응답의 모든 대안을 실제 경로로 세어 직선 미리보기와 시간 0도 포함했다. 확인된 예상 시간이 있는 대안만 세고, 휠체어 통행 보장과 구분한다. 원래 혼합 응답은 3개 실제 경로로 표시됐으나 확인 대상은 1개다.
+3. Clipboard API가 없어도 optional chaining의 `await undefined` 뒤 성공을 알렸다. API 미지원·권한 거절은 실패 및 직접 입력 안내로, 실제 완료만 복사 성공으로 표시한다. 외부 사이트 로딩은 확인하지 못하므로 열렸다고 단정하지 않는다. 2·3의 추가 브라우저 재현 8건 실패.
+4. 조회 완료한 일정 구간을 지도에 다시 표시할 때 경로 목록만 바꾸고 이전 개수 안내를 유지했다. 신규 회귀 2건에서 1개 구간을 열어도 2개 안내가 남음 → 목록/안내를 같은 저장 응답으로 갱신. 추가 요청 없이 선택된 18분 경로와 1개 안내를 확인한다.
+
+UI 메시지는 KO/EN을 함께 보관하여 런타임 언어 변경 후에도 같은 상태를 표시한다. 제공처 오류의 내부 문자열 대신 재시도/외부 지도 행동을 안내한다. 앱이 만든 알려진 경로 제목만 번역하며, 임의 노선·정류장·출발/도착 원문과 언어 표시는 보존한다. ODsay 출처와 실제/직선 미리보기 구분을 유지한다.
+
+## 검증
+
+- `npm ci` 완료. lint, typecheck, 전체 unit·contract **285/285**, Vercel production build, performance PASS.
+- `e2e/route-language.spec.ts`, `launch-integrity.spec.ts`, `route-selection-stability.spec.ts`, `core-journeys.spec.ts`: **86/86 PASS**.
+- 뷰포트/콘솔 검사 추가 후 `e2e/route-language.spec.ts`: **16/16 PASS**. 320/390/768/1024/1366px, 밝음/어두움, reduced motion, 영어, 키보드 선택/포커스, 44px, 문구 겹침/가로 overflow, axe 위반 0. 일반 비교 흐름에서 캡처 전 console error/pageerror 0. 320·390 light 및 1366 dark 캡처 직접 확인.
+- 테스트 작성 과정의 신규 Walking locator가 경로 카드의 Walking 항목까지 일치한 2건 실패는 이동수단 group으로 범위를 지정해 해결했다. 동작/assertion을 제거하지 않았다.
+- CSS gzip **69.25/70 KiB**, planner initial JS gzip **268.55/270 KiB**. 기준을 늘리지 않았다.
+- 전체 브라우저 및 새 HEAD CI는 실행 중. 최종 결과는 PR과 Epic #288에 연결한다. 원래 skip 1개 외 신규 skip/timeout 증가/기존 assertion 완화 없음.
+- 이 브랜치는 #309 보안 의존성 변경을 포함하지 않는다. source audit와 #309를 합성한 통합 후보 audit를 구분한다.
+
+## 남은 범위
+
+지도 조작/출발·도착 검색, 교통·날씨/혼잡 상세, 인증/정책 본문의 영어는 후속 범위다. 실제 Provider 호출·오류 원인은 별도 Production 진단을 따른다. main/Production `34e6021`, 필수 리뷰 0/3, Preview/008 운영 스키마·영향/백업·복원 접근은 미해결이다. 모델 API workflow 3개 비활성 유지, 유료 호출/인증 복사/새 예약/운영 쓰기 없음.

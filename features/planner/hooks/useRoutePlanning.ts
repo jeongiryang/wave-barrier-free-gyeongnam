@@ -5,6 +5,7 @@ import type { Place } from "../types";
 import { useRouteOrigin } from "./useRouteOrigin";
 import { useRouteRequest } from "./useRouteRequest";
 import { useRouteView } from "./useRouteView";
+import { routeResultNotice } from "../route-copy";
 
 export function useRoutePlanning(region: string) {
   const routeRequest = useRouteRequest(region);
@@ -13,6 +14,11 @@ export function useRoutePlanning(region: string) {
   const { origin, originLabel, privateOrigin, setRouteNotice } = routeOrigin;
   const routeView = useRouteView(routeAlternatives, transportContext);
   const { setActiveRouteId } = routeView;
+  const { displayRouteData } = routeRequest;
+  const showItineraryRoute = useCallback((...args: Parameters<typeof displayRouteData>) => {
+    displayRouteData(...args);
+    setRouteNotice(routeResultNotice(args[3].alternatives || []));
+  }, [displayRouteData, setRouteNotice]);
 
   const loadRoutes = useCallback(async (
     place: Place,
@@ -33,6 +39,7 @@ export function useRoutePlanning(region: string) {
   return {
     ...routeOrigin,
     ...routeRequest,
+    displayRouteData: showItineraryRoute,
     loadRoutes,
     ...routeView,
   };
