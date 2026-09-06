@@ -26,7 +26,9 @@ test("README는 가치에서 운영까지 실제 사용자 여정 순서로 설�
   }
   assert.match(readme, /실패 응답은 캐시하지 않고/);
   assert.match(readme, /정확한 출발 좌표는 저장하지 않으며 30일 뒤/);
-  assert.match(readme, /Kakao·ODsay에\s*전달될 수 있습니다/);
+  assert.match(readme, /GPS를 출발지로 선택한 동안 서버 경로 요청을 차단/);
+  assert.match(readme, /지도 지점의 경로는 W.A.V.E API를 거쳐 Kakao·ODsay에 요청/);
+  assert.match(readme, /모든 위치 처리가 기기 안에서 끝난다고 설명하지 않습니다/);
 });
 
 test("README는 서비스 소개와 별도 운영·제출·검증 문서를 연결한다", async () => {

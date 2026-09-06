@@ -177,7 +177,8 @@ test("production metadata gives each route a canonical, social card and indexing
   assert.match(manifest, /src: "\/app-icon\.svg", sizes: "192x192"[\s\S]*src: "\/app-icon\.svg", sizes: "512x512"/);
   assert.match(manifest, /src: "\/maskable-icon\.svg", sizes: "192x192"[\s\S]*src: "\/maskable-icon\.svg", sizes: "512x512"/);
   assert.doesNotMatch(readme, /스페인어/);
-  assert.match(readme, /독일어·러시아어/);
+  assert.match(readme, /제공 언어는 한국어·영어/);
+  assert.doesNotMatch(readme, /영어·일본어·중국어·프랑스어·독일어·러시아어/);
 });
 
 test("route-level loading, error and not-found states provide recovery", async () => {
