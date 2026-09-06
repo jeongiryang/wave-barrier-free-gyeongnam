@@ -21,6 +21,7 @@ export function useRouteRequest(region: string) {
   const [routeDestination, setRouteDestination] = useState<Place | null>(null);
   const [destinationCrowd, setDestinationCrowd] = useState<DestinationCrowd | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
+  const [routeFailed, setRouteFailed] = useState(false);
   const [transportProviders, setTransportProviders] = useState<TransportProvider[]>([]);
   const [transportContext, setTransportContext] = useState<TransportContext | null>(null);
   const routeRequestRef = useRef<AbortController | null>(null);
@@ -35,6 +36,7 @@ export function useRouteRequest(region: string) {
     setTransportProviders([]);
     setTransportContext(null);
     setRouteLoading(false);
+    setRouteFailed(false);
     setRouteStart(null);
     setRouteStartLabel("");
   }, []);
@@ -49,6 +51,7 @@ export function useRouteRequest(region: string) {
   }: RouteRequestOptions) => {
     routeRequestRef.current?.abort();
     const controller = new AbortController();
+    setRouteFailed(false);
     routeRequestRef.current = controller;
     setRouteStart(origin);
     setRouteStartLabel(originLabel);
@@ -97,6 +100,7 @@ export function useRouteRequest(region: string) {
       onNotice(routeResultNotice(alternatives));
     } catch {
       if (controller.signal.aborted || routeRequestRef.current !== controller) return;
+      setRouteFailed(true);
       setRouteAlternatives([]);
       onNotice({ ko: "이동 경로를 확인하지 못했습니다. 다시 조회하거나 카카오맵에서 확인해 주세요.", en: "Routes could not be checked. Try again or check in Kakao Maps." });
     } finally {
@@ -115,6 +119,7 @@ export function useRouteRequest(region: string) {
     setTransportProviders([]);
     setTransportContext(null);
     setRouteLoading(false);
+    setRouteFailed(false);
     setRouteStart(null);
     setRouteStartLabel("");
   }, []);
@@ -123,6 +128,7 @@ export function useRouteRequest(region: string) {
     routeRequestRef.current?.abort();
     routeRequestRef.current = null;
     setRouteLoading(false);
+    setRouteFailed(false);
     setRouteDestination(place);
     setRouteStart(start);
     setRouteStartLabel(label);
@@ -139,6 +145,7 @@ export function useRouteRequest(region: string) {
     routeDestination,
     destinationCrowd,
     routeLoading,
+    routeFailed,
     transportProviders,
     transportContext,
     clearRouteAlternatives,

@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import ts from "typescript";
+import { verifiedPublicTransport } from "../scripts/production-transport-contract.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 
@@ -166,4 +167,40 @@ test("검증된 정류장 뒤 실제 도착 조회 0건은 미조회와 다른 �
   assert.equal(arrival.state, "ready");
   assert.match(arrival.detail, /현재 조건의 결과가 없습니다/);
   assert.doesNotMatch(arrival.detail, /조회하지 않았/);
+});
+
+test("교통 응답은 검증된 빈 조회·미조회·의존 실패를 기계적으로 구분한다", async () => {
+  for (const scenario of ["empty", "unqueried", "error"]) {
+    const load = loadServer(async (input) => {
+      const isStops = new URL(input).pathname.includes("BusSttnInfo");
+      if (isStops && scenario === "error") return Response.json({});
+      return Response.json(publicResponse(isStops && scenario === "empty"
+        ? { totalCount: 1, items: { item: [{ nodeid: "STOP", nodenm: "정류장", citycode: "38030" }] } }
+        : { totalCount: 0, items: "" }));
+    });
+    const env = { TAGO_API_KEY: "fixture-only" };
+    const snapshot = await load("server/transport/public-provider-queries.ts").fetchPublicTransportSnapshot(env, 35.2, 128.6);
+    const { providers, context } = load("server/transport/public-context-model.ts").buildPublicTransportContext(env, snapshot);
+    const expected = scenario === "empty" ? { queryStatus: "success", resultCount: 0 }
+      : { queryStatus: scenario === "error" ? "error" : "not-requested", resultCount: null };
+    for (const result of [providers.find((item) => item.id === "tago-bus-arrival"), context.datasets.find((item) => item.id === "bus-arrival")]) {
+      assert.deepEqual({ queryStatus: result.queryStatus, resultCount: result.resultCount }, expected);
+    }
+    assert.equal(verifiedPublicTransport(providers.find((item) => item.id === "tago-bus-arrival"), true), scenario === "empty");
+  }
+});
+
+test("누락된 도착시간·남은 정류장 수를 운행 중 또는 정류장 접근으로 바꾸지 않는다", async () => {
+  const load = loadServer(async (input) => {
+    const path = new URL(input).pathname;
+    return Response.json(publicResponse(path.includes("BusSttnInfo")
+      ? { totalCount: 1, items: { item: [{ nodeid: "STOP", nodenm: "정류장", citycode: "38030" }] } }
+      : path.includes("ArvlInfo")
+        ? { totalCount: 2, items: { item: [{ routeno: "101" }, { routeno: "102", arrtime: 0, arrprevstationcnt: 0 }] } }
+        : { totalCount: 0, items: "" }));
+  });
+  const env = { TAGO_API_KEY: "fixture-only" };
+  const snapshot = await load("server/transport/public-provider-queries.ts").fetchPublicTransportSnapshot(env, 35.2, 128.6);
+  const { context } = load("server/transport/public-context-model.ts").buildPublicTransportContext(env, snapshot);
+  assert.deepEqual(context.arrivals, [{ route: "101", minutes: null, stops: null }, { route: "102", minutes: 0, stops: 0 }]);
 });

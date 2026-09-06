@@ -10,14 +10,15 @@ export type ApiStatus = {
 };
 
 export type TransportProviderState = "connected" | "ready" | "error" | "missing" | "checking";
-export type TransportProvider = { id: string; name: string; role: string; configured: boolean; state: TransportProviderState; detail?: string };
+export type TransportQueryEvidence = { queryStatus?: "success" | "error" | "not-requested"; resultCount?: number | null };
+export type TransportProvider = { id: string; name: string; role: string; configured: boolean; state: TransportProviderState; detail?: string } & TransportQueryEvidence;
 export type TransportMode = "all" | "car" | "rail" | "bus" | "regional";
 export type TransportContext = {
   nearbyStops: Array<{ id: string; name: string; cityCode: string }>;
-  arrivals: Array<{ route: string; minutes: number | null; stops: number }>;
+  arrivals: Array<{ route: string; minutes: number | null; stops: number | null }>;
   korail: Array<{ trainNo: string; departure: string; arrival: string; departureTime: string }>;
   catalog: { trainCities: number; expressTerminals: number; intercityTerminals: number };
-  datasets: Array<{ id: string; name: string; state: "live" | "ready" | "error" | "missing" }>;
+  datasets: Array<{ id: string; name: string; state: "live" | "ready" | "error" | "missing" } & TransportQueryEvidence>;
 };
 export type KeyHealthItem = {
   id: string;
