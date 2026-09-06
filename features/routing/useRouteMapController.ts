@@ -83,7 +83,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     setProviderDetail(mode === "origin" ? "지도에서 새 출발지를 클릭하세요." : "지도에서 새 목적지를 클릭하세요.");
   }
 
-  const { moveToCurrentLocation, saveRoute, shareRoute, exportRoute } = useMapJourneyActions({
+  const { moveToCurrentLocation, saveRoute, shareRoute, exportRoute, actionNotice, actionPending } = useMapJourneyActions({
     origin, places, route, onOriginChange, onSavePlaces, kakaoMapRef, setPickMode, setProviderDetail,
   });
   const { shellRef, expanded, toggleExpanded } = useMapShell({
@@ -128,6 +128,8 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     shellRef,
     provider,
     providerDetail,
+    actionNotice,
+    actionPending,
     baseMap,
     activeLayers,
     toolPanel,

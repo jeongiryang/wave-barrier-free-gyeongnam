@@ -19,6 +19,8 @@ export default function RouteMap(props: RouteMapProps) {
     shellRef,
     provider,
     providerDetail,
+    actionNotice,
+    actionPending,
     baseMap,
     activeLayers,
     toolPanel,
@@ -64,6 +66,8 @@ export default function RouteMap(props: RouteMapProps) {
     <MapCommandBar
       provider={provider}
       providerDetail={providerDetail}
+      actionNotice={toolPanel === "export" ? "" : actionNotice}
+      actionPending={actionPending}
       baseMap={baseMap}
       toolPanel={toolPanel}
       roadviewSelectMode={roadviewSelectMode}
@@ -122,6 +126,8 @@ export default function RouteMap(props: RouteMapProps) {
     />}
 
     {toolPanel === "export" && <MapExportPanel
+      actionNotice={actionNotice}
+      actionPending={actionPending}
       onClose={() => setToolPanel(null)}
       onExport={exportRoute}
       onShare={() => void shareRoute()}

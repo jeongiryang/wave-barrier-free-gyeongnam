@@ -7,6 +7,8 @@ import { useSitePreferences } from "../../../components/SitePreferences";
 interface MapCommandBarProps {
   provider: MapProvider;
   providerDetail: string;
+  actionNotice: string;
+  actionPending: boolean;
   baseMap: "roadmap" | "skyview";
   toolPanel: MapToolPanel;
   roadviewSelectMode: boolean;
@@ -25,6 +27,8 @@ interface MapCommandBarProps {
 export default function MapCommandBar({
   provider,
   providerDetail,
+  actionNotice,
+  actionPending,
   baseMap,
   toolPanel,
   roadviewSelectMode,
@@ -46,7 +50,7 @@ export default function MapCommandBar({
   return <>
     <div className={`map-provider-badge ${provider}`} role="status" aria-live="polite" aria-atomic="true">
       <span aria-hidden="true" />
-      <strong>{provider === "error" && locale === "en" ? "The map could not be loaded." : providerDetail}</strong>
+      <strong style={actionNotice ? { whiteSpace: "normal" } : undefined}>{actionNotice || (provider === "error" && locale === "en" ? "The map could not be loaded." : providerDetail)}</strong>
       {provider === "osm" && <button type="button" onClick={onRetry}>기본 지도 다시 연결</button>}
     </div>
     <nav className="map-command-bar" aria-label="지도 기능">
@@ -60,8 +64,8 @@ export default function MapCommandBar({
         <button type="button" aria-expanded={toolPanel === "layers"} aria-controls="map-panel-layers" className={toolPanel === "layers" ? "active" : ""} onClick={(event) => togglePanel("layers", event.currentTarget)} disabled={!interactive || provider !== "kakao"}>▱ 지도 표시</button>
         <button type="button" aria-pressed={roadviewSelectMode || roadviewOpen} aria-controls={roadviewOpen ? "map-roadview-panel" : undefined} className={roadviewSelectMode ? "active" : ""} onClick={(event) => onRoadviewSelection(event.currentTarget)} onMouseEnter={() => onRoadviewPreviewChange(true)} onMouseLeave={() => onRoadviewPreviewChange(false)} onFocus={() => onRoadviewPreviewChange(true)} onBlur={() => onRoadviewPreviewChange(false)} disabled={!interactive || provider !== "kakao"}>◉ 로드뷰</button>
         <button type="button" onClick={onCurrentLocation} disabled={!interactive || provider === "error"}>◎ 내 위치</button>
-        <button type="button" aria-expanded={toolPanel === "export"} aria-controls="map-panel-export" className={toolPanel === "export" ? "active" : ""} onClick={(event) => togglePanel("export", event.currentTarget)} disabled={!interactive}>⇩ 이미지</button>
-        <button type="button" onClick={onShare} disabled={!interactive}>↗ 공유</button>
+        <button type="button" aria-expanded={toolPanel === "export"} aria-controls="map-panel-export" className={toolPanel === "export" ? "active" : ""} onClick={(event) => togglePanel("export", event.currentTarget)} disabled={!interactive}>{locale === "en" ? "⇩ Image" : "⇩ 이미지"}</button>
+        <button type="button" onClick={onShare} aria-disabled={actionPending} disabled={!interactive}>{locale === "en" ? "↗ Page link" : "↗ 페이지 링크"}</button>
       </div>
       <button type="button" className="map-expand-button" aria-pressed={expanded} aria-controls="route-map-canvas" onClick={(event) => onToggleExpanded(event.currentTarget)} disabled={!interactive}>{expanded ? "× 닫기" : "⛶ 전체보기"}</button>
     </nav>

@@ -115,8 +115,8 @@ test("키보드로 넘기면 가려진 지도 도구가 화면 안으로 들어�
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
   await page.waitForTimeout(1_500);
 
-  // 이름 부분 일치라 지도 밖 버튼("항공·선박·공유 이동", "공유 링크 만들기")까지 걸린다.
-  const share = page.locator(".map-command-scroll").getByRole("button", { name: "공유" }).first();
+  // 이 버튼은 일정 전체가 아닌 페이지 주소만 공유한다. 지도 안의 정확한 이름을 검증한다.
+  const share = page.locator(".map-command-scroll").getByRole("button", { name: "↗ 페이지 링크", exact: true });
   await share.focus();
   await page.waitForTimeout(400);
   const inView = await share.evaluate((node) => {

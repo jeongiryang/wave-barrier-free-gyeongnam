@@ -1,10 +1,22 @@
 "use client";
 
-import { useCallback, type RefObject } from "react";
+import { useCallback, useRef, useState, type RefObject } from "react";
 import { exportRouteImage } from "./export-route-image";
 import { confirmMapLocationUse } from "../../lib/location-consent.js";
 import type { KakaoMap } from "./kakao-sdk";
 import type { MapPickMode, RouteMapProps } from "./types";
+import { useSitePreferences } from "../../components/SitePreferences";
+
+const actionCopy = {
+  "image-pending": ["이미지를 준비하고 있습니다.", "Preparing the image."],
+  "image-started": ["이미지 다운로드를 시작했습니다. 브라우저의 다운로드 목록을 확인하세요.", "The image download has started. Check your browser downloads."],
+  "image-error": ["이미지를 만들지 못했습니다. 다시 시도하거나 일정의 텍스트 정보를 확인하세요.", "The image could not be created. Try again or use the itinerary text."],
+  "share-pending": ["페이지 링크를 준비하고 있습니다.", "Preparing the page link."],
+  "share-started": ["브라우저에서 페이지 링크 공유를 처리했습니다. 일정은 이 링크에 포함되지 않습니다.", "The browser handled the page link share. Your itinerary is not included."],
+  copied: ["페이지 주소를 복사했습니다. 일정 공유는 내 일정의 공유 기능을 이용하세요.", "The page link was copied. Use itinerary sharing to share your saved trip."],
+  cancelled: ["페이지 링크 공유를 취소했습니다.", "Page link sharing was cancelled."],
+  "share-error": ["페이지 링크를 공유하지 못했습니다. 다시 시도하거나 브라우저 주소를 직접 복사하세요.", "The page link could not be shared. Try again or copy the browser address."],
+} as const;
 
 type JourneyActionOptions = Pick<RouteMapProps, "origin" | "places" | "route" | "onOriginChange" | "onSavePlaces"> & {
   kakaoMapRef: RefObject<KakaoMap | null>;
@@ -22,6 +34,11 @@ export function useMapJourneyActions({
   setPickMode,
   setProviderDetail,
 }: JourneyActionOptions) {
+  const { locale } = useSitePreferences();
+  const busy = useRef(false);
+  const [actionStatus, setActionStatus] = useState<keyof typeof actionCopy | null>(null);
+  const actionNotice = actionStatus ? actionCopy[actionStatus][locale === "en" ? 1 : 0] : "";
+  const actionPending = actionStatus === "image-pending" || actionStatus === "share-pending";
   const moveToCurrentLocation = useCallback(() => {
     const map = kakaoMapRef.current;
     const sdk = window.kakao?.maps;
@@ -61,25 +78,37 @@ export function useMapJourneyActions({
   }, [onSavePlaces, places, setProviderDetail]);
 
   const shareRoute = useCallback(async () => {
+    if (busy.current) return;
+    busy.current = true;
+    setActionStatus("share-pending");
     const data = {
-      title: "W.A.V.E 여행 경로",
-      text: places.map((place) => place.name).join(" → ") || "경남 무장애 여행 경로",
+      title: locale === "en" ? "W.A.V.E travel planner" : "W.A.V.E 여행 계획",
+      text: locale === "en" ? "Open the travel planner. This link does not include a saved itinerary." : "여행 계획 페이지를 엽니다. 저장한 일정은 이 링크에 포함되지 않습니다.",
       url: window.location.href,
     };
     try {
-      if (navigator.share) await navigator.share(data);
+      if (navigator.share) {
+        await navigator.share(data);
+        setActionStatus("share-started");
+      }
       else {
         await navigator.clipboard.writeText(data.url);
-        setProviderDetail("현재 주소를 복사했습니다.");
+        setActionStatus("copied");
       }
-    } catch { /* share sheet dismissed */ }
-  }, [places, setProviderDetail]);
+    } catch (error) {
+      setActionStatus(error instanceof Error && error.name === "AbortError" ? "cancelled" : "share-error");
+    } finally { busy.current = false; }
+  }, [locale]);
 
-  const exportRoute = useCallback((format: "png" | "jpeg") => {
-    if (exportRouteImage({ origin, places, route, format })) {
-      setProviderDetail(`${format === "png" ? "PNG" : "JPG"} 경로 지도를 저장했습니다.`);
-    }
-  }, [origin, places, route, setProviderDetail]);
+  const exportRoute = useCallback(async (format: "png" | "jpeg") => {
+    if (busy.current) return;
+    busy.current = true;
+    setActionStatus("image-pending");
+    try {
+      setActionStatus(await exportRouteImage({ origin, places, route, format, locale }) ? "image-started" : "image-error");
+    } catch { setActionStatus("image-error"); }
+    finally { busy.current = false; }
+  }, [origin, places, route, locale]);
 
-  return { moveToCurrentLocation, saveRoute, shareRoute, exportRoute };
+  return { moveToCurrentLocation, saveRoute, shareRoute, exportRoute, actionNotice, actionPending };
 }
