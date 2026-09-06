@@ -1,8 +1,9 @@
-/* 경남 지역 탐색 — 외부 지도 이미지 없이 자체 도형과 동일한 600:433 좌표계를 쓴다. */
+/* 경남 지역 탐색 — SGIS 경계와 텍스트 목록은 동일한 지역 ID를 쓴다. */
 .region-story {
   padding-inline: max(var(--gutter), calc((100vw - 1640px) / 2));
   grid-template-columns: minmax(300px,.72fr) minmax(620px,1.28fr);
   gap: clamp(48px,5vw,96px);
+  align-items: start;
 }
 .region-story-copy { position: relative; z-index: 2; }
 .region-story-copy > p:not(.section-kicker) { max-width: 580px; }
@@ -76,82 +77,7 @@
   background-size: 42px 42px;
   mask-image: linear-gradient(150deg,#000,transparent 72%);
 }
-.region-map-heading {
-  min-height: 30px;
-  margin-bottom: 10px;
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #406d80;
-  font-size: .66rem;
-  font-weight: 850;
-  letter-spacing: .15em;
-}
-.region-map-heading b { color: #0877a3; }
-.region-map-heading i { height: 1px; flex: 1; background: linear-gradient(90deg,rgba(13,127,164,.42),transparent); }
 .landing-region-map-scroll { width: 100%; min-width: 0; max-width: 100%; position: relative; z-index: 1; overflow: visible; }
-.landing-region-map-canvas {
-  width: min(100%,1040px);
-  height: auto;
-  min-height: 0;
-  aspect-ratio: 600 / 433;
-  margin-inline: auto;
-  position: relative;
-  isolation: isolate;
-  color: #1384ad;
-  filter: drop-shadow(0 28px 52px rgba(6,66,92,.1));
-  transition: filter .4s ease;
-}
-.landing-region-map-canvas::before,
-.landing-region-map-canvas::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  border-radius: 50%;
-}
-.landing-region-map-canvas::before {
-  z-index: -1;
-  inset: 10% 5% 4%;
-  background: radial-gradient(ellipse,rgba(52,196,210,.12),rgba(92,175,211,.045) 58%,transparent 74%);
-  filter: blur(20px);
-}
-.landing-region-map-canvas::after {
-  width: 12px;
-  height: 12px;
-  right: 2%;
-  bottom: 12%;
-  border: 1px solid rgba(13,129,169,.22);
-  box-shadow: -18px 17px 0 -3px rgba(13,129,169,.18),-39px -4px 0 -4px rgba(13,129,169,.13);
-}
-
-.region-map-surface {
-  width: 100%;
-  height: 100%;
-  display: block;
-  overflow: visible;
-  pointer-events: none;
-  user-select: none;
-}
-.region-map-land {
-  fill: url(#region-land);
-  stroke: rgba(6,103,140,.62);
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-.region-map-coast,
-.region-map-river,
-.region-map-boundaries {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.region-map-coast { stroke: rgba(46,190,202,.48); stroke-width: 7; }
-.region-map-river { stroke: rgba(26,157,194,.32); stroke-width: 3; stroke-dasharray: 7 9; }
-.region-map-boundaries { stroke: rgba(14,104,143,.24); stroke-width: 1.5; }
-.region-map-islands { fill: rgba(31,151,177,.16); stroke: rgba(6,103,140,.46); stroke-width: 1.5; }
-
 .landing-region-map-canvas > button {
   min-width: 44px;
   min-height: 44px;
@@ -254,8 +180,6 @@ html[data-theme="dark"] .landing-region-map::before { background-image: linear-g
 html[data-theme="dark"] .region-map-heading { color: #a8c8d5; }
 html[data-theme="dark"] .region-map-heading b { color: #7fe5e4; }
 html[data-theme="dark"] .landing-region-map-canvas { color: #75dbe3; }
-html[data-theme="dark"] .region-map-land { stroke: rgba(129,216,229,.58); }
-html[data-theme="dark"] .region-map-boundaries { stroke: rgba(170,229,237,.2); }
 html[data-theme="dark"] .selected-region-mark { color: #042f40; }
 html[data-theme="dark"] .selected-region { color: #e8f7fb; border-color: #31596a; background: rgba(9,45,60,.92); }
 html[data-theme="dark"] .region-map-note { color: #aac7d2; }
@@ -272,23 +196,6 @@ html[data-theme="dark"] .region-map-note { color: #aac7d2; }
   .selected-region { min-height: 88px; margin-block: 24px 18px; padding: 14px; }
   .selected-region > span { width: 56px; height: 56px; flex-basis: 56px; }
   .landing-region-map { min-height: 0; padding: 16px 0 18px; border-radius: 22px; overflow: hidden; }
-  .region-map-heading { padding-inline: 16px; }
-  .landing-region-map-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: thin;
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
-  }
-  .landing-region-map-scroll::-webkit-scrollbar { height: 4px; }
-  .landing-region-map-scroll::-webkit-scrollbar-thumb { border-radius: 999px; background: rgba(29,130,160,.35); }
-  .landing-region-map-canvas {
-    width: 720px;
-    max-width: none;
-    margin-inline: 8px 20px;
-    scroll-snap-align: start;
-  }
   .landing-region-map-canvas > button { min-width: 44px; min-height: 44px; padding: 4px 8px; font-size: .66rem; touch-action: manipulation; }
   .region-photo-preview { width: 190px; min-height: 148px; }
   .region-photo-preview > div,.region-photo-preview .region-photo-placeholder { min-height: 92px; }
@@ -313,3 +220,25 @@ html[data-motion="calm"] .region-photo-preview .loading-copy > * {
   }
   ::view-transition-old(selected-region-card),::view-transition-new(selected-region-card) { animation: none; }
 }
+
+/* Real boundaries and a text alternative share one selected region. */
+.landing-boundary-map { width: 100%; aspect-ratio: 800/814; max-height: 570px; display: grid; place-items: center; }
+.region-boundary-surface { display: block; width: 100%; height: 100%; max-height: 570px; overflow: visible; }
+.region-boundary-surface path { fill: var(--paper); stroke: var(--ink-soft); stroke-width: 1.5; vector-effect: non-scaling-stroke; cursor: pointer; }
+.region-boundary-surface path[data-selected="true"],.region-boundary-surface path[data-preview="true"] { fill: var(--mint); stroke: var(--ink); stroke-width: 3; }
+.region-boundary-label { pointer-events: none; fill: var(--ink); }
+.region-boundary-label text { font-size: 28px; font-weight: 850; stroke: var(--paper); stroke-width: 6px; paint-order: stroke; }
+.region-boundary-status { padding: 24px; color: var(--ink-soft); }
+.landing-region-map-scroll:has(.region-boundary-list) { overflow: visible; }
+.landing-region-map-canvas.region-boundary-list { width: 100%; max-width: 100%; aspect-ratio: auto; margin: 16px 0 0; display: grid; grid-template-columns: repeat(auto-fit,minmax(88px,1fr)); gap: 8px; filter: none; }
+.region-boundary-list::before,.region-boundary-list::after { display: none; }
+.landing-region-map-canvas.region-boundary-list[data-locale="en"] { grid-template-columns: repeat(auto-fit,minmax(132px,1fr)); }
+.landing-region-map-canvas.region-boundary-list > button { position: static; transform: none; animation: none; min-height: 44px; padding: 8px; font-size: .85rem; }
+.region-boundary-list .region-photo-preview { position: static; grid-column: 1/-1; width: 100%; max-width: 100%; transform: none; pointer-events: none; }
+.region-boundary-list .region-photo-preview { display: grid; grid-template-columns: minmax(72px,1fr) minmax(0,2fr); }
+.region-boundary-list .region-photo-preview > div { min-height: 120px; }
+.region-national-overview { margin: 0 0 16px; display: flex; align-items: center; gap: 16px; color: var(--ink-soft); font-weight: 750; }
+.region-national-overview img { width: 120px; height: 114px; flex: 0 0 120px; border-radius: 12px; background: var(--paper); }
+.region-national-missing { width: 120px; height: 114px; flex: 0 0 120px; display: grid; place-items: center; border: 1px dashed var(--line); border-radius: 12px; }
+.region-map-note a { color: var(--ink); display: inline-flex; align-items: center; min-height: 44px; }
+@media(max-width:680px) { .landing-region-map:has(.region-boundary-list) { padding: 16px; } }

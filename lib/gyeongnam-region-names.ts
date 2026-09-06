@@ -1,0 +1,2 @@
+/** Shared display names; importing these must not load boundary geometry. */
+export const regionNames: Record<string, string> = { "경남 전체": "All Gyeongnam", 창원: "Changwon", 진주: "Jinju", 통영: "Tongyeong", 사천: "Sacheon", 김해: "Gimhae", 밀양: "Miryang", 거제: "Geoje", 양산: "Yangsan", 의령: "Uiryeong", 함안: "Haman", 창녕: "Changnyeong", 고성: "Goseong", 남해: "Namhae", 하동: "Hadong", 산청: "Sancheong", 함양: "Hamyang", 거창: "Geochang", 합천: "Hapcheon" };

@@ -275,7 +275,7 @@ test("all eighteen regions are text controls without mascot or remote map depend
   assert.match(landing, /landingRegions\.map\(\(region, index\) => <button/);
   assert.match(landing, /className="region-marker-dot"/);
   assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
-  assert.match(landing, /<b>\{region\.name\}<\/b>/);
+  assert.match(landing, /<b>\{regionLabel\(region\.name\)\}<\/b>/);
   assert.doesNotMatch(landing, /RegionMascot/);
   assert.doesNotMatch(landing, /upload\.wikimedia\.org|wikimedia commons/i);
   assert.doesNotMatch(regionConfig, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);

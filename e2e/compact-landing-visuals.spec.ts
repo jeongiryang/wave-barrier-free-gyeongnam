@@ -15,6 +15,9 @@ for (const theme of ["light", "dark"] as const) {
     await page.addInitScript((value) => localStorage.setItem("wave-theme", value), theme);
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    // The head script sets the theme before the streamed React page mounts.
+    // Assert the landing effects are installed before resizing/scanning its DOM.
+    await expect(page.locator(".landing-page")).toHaveClass(/motion-ready/);
     await expect(page.locator("button[data-region-marker]")).toHaveCount(18);
     await expect(page.locator(".product-preview").first()).toBeHidden();
     await expect(page.locator(".community-live-preview")).toBeHidden();
