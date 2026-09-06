@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from "react";
 import type { Map as LeafletMap } from "leaflet";
 import type { KakaoDrawingManager, KakaoMap } from "./kakao-sdk";
 import { describeCrowd } from "./map-utils";
@@ -28,7 +28,13 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   const isMapAvailable = useCallback(() => providerRef.current !== "error", []);
   const [providerDetail, setProviderDetail] = useState("카카오 지도를 연결하고 있습니다.");
   const [retryNonce, setRetryNonce] = useState(0);
-  const [toolPanel, setToolPanel] = useState<MapToolPanel>(null);
+  const [toolPanel, setToolPanelState] = useState<MapToolPanel>(null);
+  const cancelNearbyRef = useRef<() => void>(() => undefined);
+  const setToolPanel = useCallback((next: SetStateAction<MapToolPanel>) => {
+    // Every way out (including Escape, another tool or a map selection) ends the old query.
+    cancelNearbyRef.current();
+    setToolPanelState(next);
+  }, []);
   const [pickMode, setPickMode] = useState<MapPickMode>(null);
   const [selectedMapPlace, setSelectedMapPlace] = useState<MapPlace | null>(places[0] || null);
 
@@ -48,17 +54,21 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     const lat = Number(place.mapY);
     const lng = Number(place.mapX);
     if (map && sdk && Number.isFinite(lat) && Number.isFinite(lng)) map.panTo(new sdk.LatLng(lat, lng));
-  }, [isMapAvailable]);
+  }, [isMapAvailable, setToolPanel]);
 
   const { baseMap, activeLayers, changeBaseMap, toggleLayer } = useMapLayers(kakaoMapRef);
   const {
     activeCategory,
     categoryPlaces,
     categoryMessage,
+    categoryState,
     clearCategoryMarkers,
+    cancelNearby,
+    retryNearby,
     searchNearby,
     chooseKakaoPlace,
   } = useNearbyPlaces({ kakaoMapRef, choosePlace });
+  useEffect(() => { cancelNearbyRef.current = cancelNearby; }, [cancelNearby]);
   const {
     measureMode,
     measureSummary,
@@ -104,6 +114,8 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   const rememberFailureFocus = useMapFailureFocus(provider, shellRef);
   const updateProvider = useCallback((next: MapProvider) => {
     providerRef.current = next;
+    // A new itinerary/route creates a different map; old nearby results belong to its old centre.
+    if (next === "loading") cancelNearby();
     if (next === "error") {
       rememberFailureFocus();
       pickModeRef.current = null;
@@ -120,7 +132,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
       clearCategoryMarkers();
     }
     setProvider(next);
-  }, [clearCategoryMarkers, closeRoadview, rememberFailureFocus, roadviewSelectModeRef, setRoadviewPreviewOpen, setRoadviewSelectMode]);
+  }, [cancelNearby, clearCategoryMarkers, closeRoadview, rememberFailureFocus, roadviewSelectModeRef, setRoadviewPreviewOpen, setRoadviewSelectMode, setToolPanel]);
 
   useMapRenderer({
     containerRef,
@@ -165,6 +177,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     activeCategory,
     categoryPlaces,
     categoryMessage,
+    categoryState,
     roadviewOpen,
     roadviewMessage,
     roadviewSelectMode,
@@ -183,6 +196,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     toggleExpanded,
     cancelRoadviewSelection,
     searchNearby,
+    retryNearby,
     chooseKakaoPlace,
     closeRoutePanel: () => {
       setToolPanel(null);
