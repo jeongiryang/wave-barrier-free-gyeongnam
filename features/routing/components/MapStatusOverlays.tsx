@@ -1,6 +1,7 @@
 import type { CSSProperties, RefObject } from "react";
 import { safeMapImageUrl } from "../map-utils";
 import type { CrowdSignal, MapPlace, MapProvider } from "../types";
+import { useSitePreferences } from "../../../components/SitePreferences";
 
 interface CrowdVisual {
   level: string;
@@ -43,7 +44,14 @@ export function RoadviewSelectionOverlays({ provider, roadviewSelectMode, roadvi
 }
 
 export function MapCanvasStatusOverlays({ provider, roadviewOpen, roadviewMessage, roadviewRef, crowd, crowdPlace, crowdVisual, onCloseRoadview }: MapCanvasStatusOverlaysProps) {
+  const { locale } = useSitePreferences();
+  const english = locale === "en";
   return <>
+    {provider === "error" && <div className="route-empty map-unavailable">
+      <div role="status" aria-live="polite"><h3>{english ? "The map could not be loaded." : "지도를 불러오지 못했습니다."}</h3><p>{english ? "Your itinerary and journey details are still available." : "일정과 이동 구간 정보는 계속 확인할 수 있습니다."}</p></div>
+      <p>{english ? "Reload this page to try the map again. Your saved itinerary stays on this device." : "지도를 다시 확인하려면 페이지를 새로 불러오세요. 저장한 일정은 이 기기에 유지됩니다."}</p>
+      <button type="button" onClick={() => window.location.reload()}>{english ? "Reload page and map" : "페이지와 지도 다시 불러오기"}</button>
+    </div>}
     {crowdVisual && crowd && crowdPlace && !roadviewOpen && <aside className={`map-crowd-legend crowd-${crowdVisual.level}`} style={{ "--crowd-color": crowdVisual.color, "--crowd-soft": crowdVisual.soft } as CSSProperties} aria-label={`${crowdPlace.name} 혼잡 예측 ${crowdVisual.label}`}>
       <span className="crowd-visual"><i /></span>
       <div><small>30일 혼잡 예측 · {crowdPlace.name}</small><strong>{crowdVisual.label}</strong><p>{crowdVisual.message}</p></div>
