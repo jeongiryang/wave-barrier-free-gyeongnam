@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { hasJourneyEstimate } from "../../../lib/route-estimates.js";
 import type { RouteAlternative, RoutePoint } from "../../routing/types";
 import type { DestinationCrowd, Place, TransportContext, TransportProvider } from "../types";
 import { fetchDestinationCrowd, fetchRouteData } from "../services/route-data";
@@ -93,7 +94,7 @@ export function useRouteRequest(region: string) {
       setRouteAlternatives(alternatives);
       setTransportProviders(data.providers || []);
       setTransportContext(data.context || null);
-      onActiveRouteChange(alternatives[0]?.id || "");
+      onActiveRouteChange(alternatives.find(hasJourneyEstimate)?.id || "");
       onNotice(routeResultNotice(alternatives));
     } catch {
       if (controller.signal.aborted || routeRequestRef.current !== controller) return;

@@ -3,6 +3,7 @@ import { routeModeLabel } from "../utils";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { originalLanguage } from "../place-copy";
 import { routeTitle } from "../route-copy";
+import { hasJourneyEstimate } from "../../../lib/route-estimates.js";
 
 const englishModes = {
   walk: ["Walking", "Travel on foot"], bicycle: ["Cycling", "Travel by bicycle"],
@@ -38,7 +39,7 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
     sortedRouteAlternatives, activeRoute, routeTravelMode, setRouteTravelMode,
     routeModeSummaries, routeDestination,
   } = route;
-  const configuredRoutes = sortedRouteAlternatives.filter((item) => item.configured && item.totalTime > 0);
+  const configuredRoutes = sortedRouteAlternatives.filter(hasJourneyEstimate);
   const destinationLat = Number(routeDestination?.mapY);
   const destinationLng = Number(routeDestination?.mapX);
   const hasDestination = routeDestination && Number.isFinite(destinationLat) && Number.isFinite(destinationLng);
