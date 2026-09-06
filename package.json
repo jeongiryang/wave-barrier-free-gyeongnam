@@ -57,6 +57,14 @@
     "vinext": "0.0.50",
     "vite": "8.0.16"
   },
+  "overrides": {
+    "@shuding/opentype.js": {
+      "fflate": "0.7.5"
+    },
+    "vinext": {
+      "image-size": "npm:image-size-next@2.1.1"
+    }
+  },
   "type": "module",
   "displayName": "W.A.V.E 경남 무장애 여행 길잡이"
 }
