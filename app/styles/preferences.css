@@ -52,7 +52,9 @@ html[data-theme="dark"] .preference-row select,html[data-theme="dark"] .preferen
   .preference-controls > summary b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 }
 @media (max-width: 680px) {
-  .preference-panel { position: fixed; top: calc(70px + env(safe-area-inset-top,0px)); right: 8px; width: calc(100vw - 16px); max-height: calc(100svh - 86px); overflow-y: auto; }
+  .preference-panel { position: fixed; top: calc(70px + env(safe-area-inset-top,0px)); left: max(8px,env(safe-area-inset-left,0px)); right: max(8px,env(safe-area-inset-right,0px)); width: auto; max-height: calc(100svh - 86px); overflow-y: auto; }
+  .preference-row:has(select) { flex-direction: column; align-items: stretch; }
+  .preference-row select { width: 100%; }
   .preference-row select { min-width: 118px; font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {

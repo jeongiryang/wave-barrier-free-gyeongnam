@@ -24,7 +24,7 @@ test("PWA 설치는 기존 manifest와 환경설정 안의 명시적 요청만 �
   assert.match(hook, /const install = useCallback\(async \(\) =>/);
   assert.match(hook, /await event\.prompt\(\)/);
   assert.doesNotMatch(hook, /useEffect\([\s\S]{0,500}\.prompt\(\)/);
-  assert.match(controls, /aria-label="W\.A\.V\.E 앱 설치"/);
+  assert.match(controls, /aria-label=\{en \? "Install W\.A\.V\.E" : "W\.A\.V\.E 앱 설치"\}/);
   assert.match(controls, /브라우저 메뉴에서 ‘홈 화면에 추가’를 선택하세요/);
   assert.match(styles, /\.preference-row\.app-install/);
 });
