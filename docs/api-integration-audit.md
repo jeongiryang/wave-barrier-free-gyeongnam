@@ -1,6 +1,6 @@
 # W.A.V.E API·환경 변수 전수조사
 
-최신 전체 검증: **2026-09-06 15:46 UTC**, 실패 응답 추가 분석: **12:12 UTC**, 로컬 호스트 진단: **12:46 UTC**
+최신 전체 검증: **2026-09-06 16:56 UTC**, 교통 후속 분석: **17:02~17:04 UTC**, 실제 브라우저: **17:29 UTC**
 
 대상: `main` / Vercel Production `34e6021265b16d046dca24feaa3ec2101fc977e2`
 
@@ -15,7 +15,26 @@ Production smoke 27/27은 응답 경계 검사이며 모든 사용자 흐름의 
 
 ## 2026-09-06 재검증 — 이전 정상 결과와 구분
 
-**최신 15:46:38 UTC는 21/27 통과, 6건 실패**다. route(9.7초), 관광 추천 KO/EN(각 12.3초),
+**최신 16:56:46 UTC는 26/27 통과, route 1건 실패**다. 관광 KO/EN·보강·지역/장소 사진·집중률과
+그 외 공개 API·14개 페이지 계약은 통과했다. 기존 timeout·재시도·성공 조건을 유지했고 결과는 여전히 `ok: false`다.
+관광 제공처가 계속 전체 장애라는 판단은 최신 증거와 맞지 않는다. 장기 안정성·모든 원천 실호출까지 증명하지 않는다.
+
+17:02:44 UTC route HTTP 200/cache MISS: Kakao/ODsay 대안 5개(6/14/19/35/36분)·정류장 6개,
+TAGO 도착 0건·KORAIL 0건 ready다. 17:04 앱 문구는 도착 조회 후 현재 결과 없음으로 표시했다.
+이 문구 자체가 원 제공처의 정상 인증·빈 응답을 독립적으로 증명하지 않는다. 현재 파서는 `{}`도 정상 0건으로
+처리하는 결함이 있어 #316 `7c6d0e1`에서 교통 전용 성공 코드·건수·항목 검증을 추가했다(관련 10/10, unit 290/290).
+공식 [KORAIL 응답 명세](https://www.data.go.kr/data/15125762/openapi.do)와
+[TAGO 버스도착정보 명세](https://www.data.go.kr/data/15098530/openapi.do)를 대조했다.
+잘못된 응답·미조회·검증된 빈 결과의 계약과 실제 배포 후 증거를 먼저 확인한다. `ready`를 무조건 허용하도록 smoke를 완화하지 않았다.
+
+17:29:55 실제 익명 브라우저 390/1366px에서 자동 추천 응답은 장소 3·탐색 3·제공처 error 0,
+콘솔/페이지 오류·GET 실패·가로 넘침 0이었다. 두 폭 모두 실제 장소 카드에서 추가·새로고침 후 복원을 확인했다.
+첫 데스크톱 탐색의 광범위한 버튼 locator는 제품 저장 실패의 증거로 세지 않는다. 서버 쓰기/모의 응답/개인 위치 사용 없음.
+자동 추천과 장소 1개로 준비도 100%가 되는 기존 운영 UX는 남으며 후보 #287 이후 수정의 배포 검증이 필요하다.
+
+**이하 15:46 이전 실패는 보존한 이력이다.**
+
+**이전 15:46:38 UTC는 21/27 통과, 6건 실패**다. route(9.7초), 관광 추천 KO/EN(각 12.3초),
 관광 보강(76.6초), 장소 사진(61.6초)은 응답 계약 실패이고 집중률(30.7초)은 HTTP/전송 실패였다.
 지역 사진, 설정·날씨·장소 검색·지도 설정·공개 커뮤니티·세션 경계 및 14개 페이지는 통과했다.
 기존 timeout·재시도·성공 조건을 그대로 사용했다. 진단 wrapper의 프로세스 종료 0과 달리 결과는 `ok: false`다.
@@ -90,19 +109,19 @@ enrich는 11.28초 뒤 방문자·고캠핑·관광 수요·휴게소 live와 �
 
 아래 service/operation은 `server/shared/tourism-provider.ts`가 호출하는 실제 코드 식별자다.
 출처 표기는 최종 화면에서 `출처: ⓒ한국관광공사` 또는 `출처: ⓒ한국관광콘텐츠랩`으로 대조한다.
-기능설명서 7쪽 대응이며, 상태는 요청별로 다를 수 있다. 코드에 있는 API를 모두 정상 활용 실적으로 세지 않는다.
+기능설명서 7쪽 대응이며, 상태는 요청별로 다를 수 있다. 아래 enrich 개별 원천의 live/error는 이전 분석 이력이며 16:56 전체 계약 회복 후 각각의 상세 값은 재검수한다. 코드에 있는 API를 모두 정상 활용 실적으로 세지 않는다.
 
 | 서비스 / operation | 호출 코드 | 화면 용도 | 9월 6일 확인·남은 작업 |
 | --- | --- | --- | --- |
-| `KorWithService2 / areaBasedList2, detailWithTour2` | `plan-builder.ts`, `shared-plan-restoration.ts` | 추천·편의 근거·공유 복원 | plan error, 최종 실호출·복원 필요 |
-| `KorService2 / areaBasedList2, detailCommon2, searchKeyword2, searchFestival2` | `plan-builder.ts`, `spot-photo.ts`, `region-photo.ts`, `regional-enrichment.ts` | 국문 추천·사진 대안·행사·숙박 | plan/enrich error, 사진 응답 성공은 개별 원천 전체 성공 보장 아님 |
-| `EngService2 / areaBasedList2` | `catalog.ts`, `plan-builder.ts`, `enrichment-sources.ts` | 영문 관광 정보 | 영문 plan 계약 실패 |
-| `PhotoGalleryService1 / gallerySearchList1` | `region-photo.ts`, `spot-photo.ts` | 랜딩 지역·관광지 사진 | 15:46 지역 사진 응답 통과·장소 사진 계약 실패. 개별 원천 호출·출처 재대조 필요 |
-| `Odii / storySearchList` | `plan-builder.ts` | 오디오 가이드 | plan error |
-| `Durunubi / courseList` | `plan-builder.ts` | 걷기 코스 | plan error |
-| `LocgoHubTarService1 / areaBasedList1` | `concentration.ts` | 중심 관광지 | plan error |
-| `TarRlteTarService1 / areaBasedList1` | `concentration.ts` | 연관 관광지 | plan error |
-| `TatsCnctrRateService / tatsCnctrRatedList` | `concentration.ts` | 관광 집중률 예측 | 08시 단독 crowd 통과 → 10:25 HTTP/전송 실패, plan도 실패 |
+| `KorWithService2 / areaBasedList2, detailWithTour2` | `plan-builder.ts`, `shared-plan-restoration.ts` | 추천·편의 근거·공유 복원 | 17:01 plan barrierfree live 4건. detail/공유 복원 실호출은 별도 확인 필요 |
+| `KorService2 / areaBasedList2, detailCommon2, searchKeyword2, searchFestival2` | `plan-builder.ts`, `spot-photo.ts`, `region-photo.ts`, `regional-enrichment.ts` | 국문 추천·사진 대안·행사·숙박 | 17:01 plan tour live 12건, 16:56 enrich/사진 계약 PASS. 개별 상세·행사 원천 재검수 필요 |
+| `EngService2 / areaBasedList2` | `catalog.ts`, `plan-builder.ts`, `enrichment-sources.ts` | 영문 관광 정보 | 16:56 영문 plan 계약 PASS. 영문 전체 여정·고유명사 한계 재검수 필요 |
+| `PhotoGalleryService1 / gallerySearchList1` | `region-photo.ts`, `spot-photo.ts` | 랜딩 지역·관광지 사진 | 16:56 지역/장소 사진 계약 PASS, 17:01 plan photo live 12건. 실제 출처·개별 원천 대조 필요 |
+| `Odii / storySearchList` | `plan-builder.ts` | 오디오 가이드 | 17:01 plan audio live 2건. 실제 재생·원문 대안 재검수 필요 |
+| `Durunubi / courseList` | `plan-builder.ts` | 걷기 코스 | 17:01 plan durunubi live 10건. 이동 접근성 보장으로 표시하지 않음 |
+| `LocgoHubTarService1 / areaBasedList1` | `concentration.ts` | 중심 관광지 | 17:01 plan hub live 30건. 화면 표출·출처 대조 필요 |
+| `TarRlteTarService1 / areaBasedList1` | `concentration.ts` | 연관 관광지 | 17:01 plan related live 50건. 추천 근거·산정 한계 대조 필요 |
+| `TatsCnctrRateService / tatsCnctrRatedList` | `concentration.ts` | 관광 집중률 예측 | 16:56 단독 crowd 계약 PASS, 17:01 plan crowd는 정상 빈 결과 0건. 두 요청을 구분 |
 | `DataLabService / locgoRegnVisitrDDList` | `visitor-demand.ts` | 지역 방문 통계 | enrich live, 화면 통계 기간/출처 확인 필요 |
 | `AreaTarResDemService / areaTarSvcDemList` | `visitor-demand.ts` | 관광 자원 수요 | enrich live, 실제 수요 값·기간 표출 확인 필요 |
 | `GoCamping / searchList, basedList` | `regional-enrichment.ts` | 캠핑 여행 보강 | enrich live, 편의 추천과 혼동하지 않도록 최종 검수 |
