@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, type RefObject } from "react";
+import { useLayoutEffect, type RefObject } from "react";
 
 export function useHelpTourFocus(open: boolean, dialogRef: RefObject<HTMLDivElement | null>, triggerRef: RefObject<HTMLButtonElement | null>, close: () => void) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : triggerRef.current;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -17,7 +17,10 @@ export function useHelpTourFocus(open: boolean, dialogRef: RefObject<HTMLDivElem
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
+      if (!dialogRef.current.contains(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
       } else if (!event.shiftKey && document.activeElement === last) {
@@ -26,9 +29,10 @@ export function useHelpTourFocus(open: boolean, dialogRef: RefObject<HTMLDivElem
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    const focusTimer = window.setTimeout(() => dialogRef.current?.querySelector<HTMLButtonElement>(".help-tour-close")?.focus(), 0);
+    // Focus must already be inside when the dialog is presented. A later timer can
+    // let the first Tab escape, then unexpectedly move focus after that keypress.
+    dialogRef.current?.querySelector<HTMLButtonElement>(".help-tour-close")?.focus();
     return () => {
-      window.clearTimeout(focusTimer);
       window.removeEventListener("keydown", handleKeyDown);
       previousFocus?.focus();
     };
