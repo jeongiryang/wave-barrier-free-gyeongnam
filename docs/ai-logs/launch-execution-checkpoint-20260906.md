@@ -3,7 +3,30 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 Production의 핵심 관광 추천 실패와 미배포 보안 수정 때문에 기술 상태는 NO-GO다.
 
-## 재개 우선점 — 14:51 UTC 이후
+## 현재 재개 우선점 — 2026-09-06 15:46 UTC
+
+- #324 `c81e68ff6de8bbeb594983b6bee3834407751e30`, worktree `wave-departure-language`, branch `fix/departure-language`.
+  #323 기반이며 기존 worktree를 변경하지 않았다. KO/EN 출발 카드·원문 언어·영어 ICS, pending 포커스와
+  늦은 일정 렌더링 후 화면 밖으로 밀리는 키보드 조작을 수정했다. 휠·터치 등 수동 이동 후에는 추적을 중단한다.
+  관련 **66/66**(신규 22), unit **283/283**, lint/typecheck/Vercel build/performance PASS.
+  전체 로컬 **349 pass/기존 skip 1/실패 0 (7.6분)**.
+  [CI 34043069596](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34043069596)는 진행 중이다.
+  이 브랜치의 audit high 2/moderate 1은 #309가 아직 합쳐지지 않은 기준 결과이며 통합 audit 0과 구분한다.
+- 통합 `d7782cf2eab30f032864e8baec333881df0fd4ef`: #324와 문서 #313 `19476bc`까지 충돌 없이 합성·push했다.
+  unit **316/316**, lint/typecheck/build/performance PASS, audit **0**; CSS 69.64/70·planner 267.26/270 KiB.
+  전체 브라우저는 source 검사 종료 후 실행한다. 이전 SHA의 331건을 새 SHA의 통과 수로 쓰지 않는다.
+- #323 `e358e0f` CI 34040324753은 **327 pass/기존 skip 1/재시도 없음**으로 성공했다. Ready로 전환했다.
+  로컬 전체 2회는 각 326 pass/1 fail/기존 skip 1: 서로 다른 초기 page.goto ERR_NO_BUFFER_SPACE였다.
+  기존 flaky·두 실패 artifact를 보존하고 해당 두 spec을 재검증해 **52/52 PASS**를 확인했다.
+- #313 `19476bc` CI 34040847625는 **247 pass/기존 skip 1** 성공, Ready다. 이번 파일은 후속 실행 기록이다.
+- 원격 최신 main/Production은 여전히 `34e6021`, 배포 6278499275. 열린 Issue 47/PR 26, #287 승인 0/3이다.
+  모델 API workflow 3개 disabled_manually를 재확인했다. 병합·배포·008 실행·유료 모델·새 예약은 없다.
+- 최신 전체 Production 진단 **15:46:38 UTC 21/27 PASS, 6 FAIL**: route·추천 KO/EN·관광 보강·장소 사진·집중률.
+  지역 사진과 나머지 페이지/공개 API 경계는 통과했다. 기존 재시도/계약은 유지했으며 이전 22/27을 대체하는 최신 결과다.
+- 다음 미완료 코드 범위: 경로 상세·날씨/혼잡 상세 → 인증 폼·정책 KO/EN. 실제 200%·운영 API 원인·Preview/008·구독 queue도 남는다.
+  #324 전체/CI·통합 결과를 먼저 확정하고 문서/GitHub/Notion의 같은 항목을 갱신한다. 새 승인 요청은 필요 없다.
+
+## 이전 재개 기록 — 14:51 UTC 이후
 
 - #323 최신 `e358e0fcc36554984018702b63ead02fbecaee7e`, 통합 `88ae5e8e1decbbe59471274a48a09e46737e3b47`.
   검색 후 자동 스크롤의 다음 입력 취소·지도 준비/실제 높이 일치·경로 선택 `aria-pressed`/체크 표시를 추가했다.
@@ -40,11 +63,12 @@
 | 보존된 #319 | 8eb38c5, 설정·도움말 언어/접근성/성능 | #315 포함. unit 280, 전체 279 pass/기존 skip 1, CI 34030742378 성공 |
 | 보존된 #321 | 272bf681a2a7c41fdd66eca0360d29b272998498, 추천 상세·후기 실패·대비 | #319 기반. unit 280, 전체 295 pass/기존 skip 1, CI 34032622064 성공·Ready |
 | 보존된 #322 | 0b916a4cbb9e5ce1b5a615d16f827e934e2e266b, 공유 스냅샷·복사·포커스 | #321 기반. unit 280, 전체 303 pass/기존 skip 1, CI 34036478371 성공·Ready |
-| wave-transport-integrity / #323 | be79d0c86fd79b30f7bc0e7386548f33fcdc9ea0, 일정 KO/EN·오디오/편집기 지연 로딩 | #322 기반. 관련 72/72·최종 새 회귀 12/12, unit 280, 전체 315 pass/기존 skip 1. CI 34037880762 확인 |
+| wave-transport-integrity / #323 | e358e0f, 일정 KO/EN·오디오/편집기 지연 로딩·경로 상호작용 | #322 기반. unit 280, 최신 CI 327 pass/기존 skip 1, Ready. 이전 flaky/환경 실패는 보존 |
+| wave-departure-language / #324 | c81e68f, 출발 KO/EN·영어 ICS·키보드 가림/지연/수동 스크롤 | #323 기반. 관련 66/66, unit 283, 전체 349 pass/기존 skip 1, CI 진행 중·Draft |
 | wave-landing-compact / #320 | bfeda5f54206a66d7d97ae1532df5854760ecc00, 팀원 변경과 도식·시각 보완 | 로컬 fix/compact-landing-visual-audit → 원격 feat/compact-landing-content push. unit 280, 전체 251 pass/기존 skip 1, CI 34034203872 성공·Ready |
 | wave-integration-audit / #289 | acb7dab, 기존 예약 receipt·비용 문서 | 단위 287/287; API workflow 활성화 없음 |
 | wave-automation-stack / #306 | d78b2e2, 자동화 stack 보존 | 기존 green, 미병합/미활성 |
-| wave-launch-integration | bf2cfe87fc94709b1453cdc81318133e64bbabac | #323·#309/자동화 전체 merge 합성. unit 313, 전체 319 pass/기존 skip 1, lint/typecheck/build/performance PASS, audit 0. 원격 push |
+| wave-launch-integration | d7782cf2eab30f032864e8baec333881df0fd4ef | #324·#313 19476bc·#309/자동화 전체 merge 합성. unit 316, lint/typecheck/build/performance PASS, audit 0. 전체 브라우저 예정. 원격 push |
 
 최신 원격 확인 후 재개한다. 다른 작업자가 추가한 커밋은 보존한다. 개별 브랜치를 force push하지 않는다.
 통합 브랜치는 검증용이며 거대 대체 PR을 만들거나 기존 PR을 닫지 않았다. 사람 리뷰 비용을 줄이려고

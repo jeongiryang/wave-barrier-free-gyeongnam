@@ -1,6 +1,6 @@
 # W.A.V.E API·환경 변수 전수조사
 
-최신 전체 검증: **2026-09-06 14:02 UTC**, 실패 응답 추가 분석: **12:12 UTC**, 로컬 호스트 진단: **12:46 UTC**
+최신 전체 검증: **2026-09-06 15:46 UTC**, 실패 응답 추가 분석: **12:12 UTC**, 로컬 호스트 진단: **12:46 UTC**
 
 대상: `main` / Vercel Production `34e6021265b16d046dca24feaa3ec2101fc977e2`
 
@@ -15,7 +15,13 @@ Production smoke 27/27은 응답 경계 검사이며 모든 사용자 흐름의 
 
 ## 2026-09-06 재검증 — 이전 정상 결과와 구분
 
-**최신 14:02:46 UTC는 22/27 통과, 5건 실패**다. route(9.7초), 관광 추천 KO/EN(각 12.2초),
+**최신 15:46:38 UTC는 21/27 통과, 6건 실패**다. route(9.7초), 관광 추천 KO/EN(각 12.3초),
+관광 보강(76.6초), 장소 사진(61.6초)은 응답 계약 실패이고 집중률(30.7초)은 HTTP/전송 실패였다.
+지역 사진, 설정·날씨·장소 검색·지도 설정·공개 커뮤니티·세션 경계 및 14개 페이지는 통과했다.
+기존 timeout·재시도·성공 조건을 그대로 사용했다. 진단 wrapper의 프로세스 종료 0과 달리 결과는 `ok: false`다.
+Production SHA와 배포는 바뀌지 않았다. 이 결과를 후보 코드의 운영 성공이나 모든 원천 제공처의 호출 성공으로 세지 않는다.
+
+**이전 14:02:46 UTC는 22/27 통과, 5건 실패**다. route(9.7초), 관광 추천 KO/EN(각 12.2초),
 관광 보강(67.1초)이 응답 계약을 충족하지 못했고 집중률(30.7초)은 HTTP/전송 실패였다.
 지역 사진과 장소 사진은 이번 응답에서 live/이미지 계약을 통과했다. 모든 원천 제공처의 새 실호출이나
 장기 안정성까지 확인한 것은 아니다. 설정·날씨·장소 검색·지도 설정·공개 커뮤니티·세션 경계와
@@ -91,7 +97,7 @@ enrich는 11.28초 뒤 방문자·고캠핑·관광 수요·휴게소 live와 �
 | `KorWithService2 / areaBasedList2, detailWithTour2` | `plan-builder.ts`, `shared-plan-restoration.ts` | 추천·편의 근거·공유 복원 | plan error, 최종 실호출·복원 필요 |
 | `KorService2 / areaBasedList2, detailCommon2, searchKeyword2, searchFestival2` | `plan-builder.ts`, `spot-photo.ts`, `region-photo.ts`, `regional-enrichment.ts` | 국문 추천·사진 대안·행사·숙박 | plan/enrich error, 사진 응답 성공은 개별 원천 전체 성공 보장 아님 |
 | `EngService2 / areaBasedList2` | `catalog.ts`, `plan-builder.ts`, `enrichment-sources.ts` | 영문 관광 정보 | 영문 plan 계약 실패 |
-| `PhotoGalleryService1 / gallerySearchList1` | `region-photo.ts`, `spot-photo.ts` | 랜딩 지역·관광지 사진 | 10:25 실패 → 14:02 지역/장소 사진 응답 계약 통과. 원천별 호출·출처 재대조 |
+| `PhotoGalleryService1 / gallerySearchList1` | `region-photo.ts`, `spot-photo.ts` | 랜딩 지역·관광지 사진 | 15:46 지역 사진 응답 통과·장소 사진 계약 실패. 개별 원천 호출·출처 재대조 필요 |
 | `Odii / storySearchList` | `plan-builder.ts` | 오디오 가이드 | plan error |
 | `Durunubi / courseList` | `plan-builder.ts` | 걷기 코스 | plan error |
 | `LocgoHubTarService1 / areaBasedList1` | `concentration.ts` | 중심 관광지 | plan error |
