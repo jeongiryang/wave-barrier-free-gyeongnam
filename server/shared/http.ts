@@ -6,7 +6,7 @@ export function json(data: unknown, status = 200, cache = false) {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "cache-control": cacheControlHeader(cache, status),
+      "cache-control": cacheControlHeader(cache, status, data),
       "x-content-type-options": "nosniff",
     },
   });

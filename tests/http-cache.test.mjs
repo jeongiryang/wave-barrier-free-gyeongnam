@@ -21,11 +21,28 @@ test("상류 장애 응답은 캐시 요청을 무시하고 no-store로 나간�
   }
 });
 
+test("200 안의 부분 실패는 성공 경로를 보존하면서 재시도할 수 있다", () => {
+  const route = { configured: true, alternatives: [{ provider: "Kakao Mobility", configured: true }], providers: [
+    { id: "kakao-drive", state: "connected" }, { id: "korail", state: "error" },
+  ] };
+  const before = structuredClone(route);
+  assert.equal(cacheControlHeader(true, 200, route), NO_STORE);
+  assert.deepEqual(route, before);
+  route.providers[1].state = "connected";
+  assert.equal(cacheControlHeader(true, 200, route), PUBLIC_CACHE_CONTROL);
+  assert.equal(cacheControlHeader(true, 200, { places: [], statuses: [{ state: "error" }] }), NO_STORE);
+  assert.equal(cacheControlHeader(true, 200, { photo: null, status: { state: "error" } }), NO_STORE);
+  assert.equal(cacheControlHeader(true, 200, { status: "error" }), NO_STORE);
+  assert.equal(cacheControlHeader(true, 200, { error: "upstream unavailable" }), NO_STORE);
+  assert.equal(cacheControlHeader(true, 200, { places: [], statuses: [{ state: "empty" }] }), PUBLIC_CACHE_CONTROL);
+  assert.equal(cacheControlHeader(true, 200, { providers: [{ state: "missing" }] }), PUBLIC_CACHE_CONTROL);
+});
+
 test("관광 사진·혼잡도 핸들러는 성공과 실패를 같은 자리에서 만든다", async () => {
   // 이 형태가 남아 있는 한 캐시 판단을 호출부에 맡길 수 없다.
   const handler = await source("server/tourism/handler.ts");
   assert.match(handler, /result\.ok \? 200 : 502, true/);
   const http = await source("server/shared/http.ts");
-  assert.match(http, /cacheControlHeader\(cache, status\)/);
+  assert.match(http, /cacheControlHeader\(cache, status, data\)/);
   assert.doesNotMatch(http, /cache \? "public/);
 });
