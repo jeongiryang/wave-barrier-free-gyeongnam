@@ -6,7 +6,7 @@
 ## 기준과 판정 방법
 
 - main·Production: `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포 ID `6278499275`.
-- 현재 열린 Issue **47개**, PR **21개**다. 최초 PR 13개에 후속 수정 #312~#319가 추가됐다. 새 변경 발생 시 다시 조회한다.
+- 현재 열린 Issue **47개**, PR **23개**다. 후속 수정 #312~#321과 팀원의 #320을 포함한다. 새 변경 발생 시 다시 조회한다.
 - #287 `b803b80` → #307 `8b0257c` → #311 `93d1058` 제품 후보와 #309 `a9cf9db` 보안 변경,
   #289→#306 자동화 stack을 격리 worktree `audit/launch-integration-20260906`에서 합성했다.
 - 승인 0/3은 병합의 실제 차단이다. #287에 syt83·unknownamed와 세 번째 협업자 ginaginaring의 리뷰를 요청했다.
@@ -53,7 +53,22 @@
 - 11:36:55 UTC Production 재진단도 **20/27, 동일 7건 실패**다. main/배포 SHA는 그대로다.
 - 최종 합성 `3bc4abe8dacbf57d55784baddd93aec01022ebb5`: unit/contract **313/313**, 전체
   Playwright·axe **279 pass / 기존 skip 1**, lint/typecheck·Vercel build·성능 예산 PASS, audit **0**.
-  #319 CI는 별도로 확인한다. 위 로컬 성공을 실제 Preview나 Production 성공으로 계산하지 않는다.
+  #319 [CI 34030742378](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34030742378)는 성공했다. 위 로컬 성공을 실제 Preview나 Production 성공으로 계산하지 않는다.
+- #321 `272bf681a2a7c41fdd66eca0360d29b272998498`: 추천 상세의 영어 조작·원문 안내, 후기 오류/빈 결과/재시도,
+  공식 정보와 제보 분리, light/dark 상·하단 대비를 수정했다. 관련 56/56, 최종 새 회귀 16/16,
+  전체 Playwright·axe **295 pass / 기존 skip 1**, unit 280/280, lint/typecheck/build/performance PASS.
+  후기 지연 로딩으로 초기 planner JS gzip 270.07→268.25 KiB. 16개 화면에서 콘솔/넘침/경계 오류 0.
+  #319 기반이며 [CI 34032622064](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34032622064)를 별도로 확인한다.
+- #321 포함 통합 `5fdd1e6c82aa0ff3f5c018ba00485277b5289dbb`: unit/contract **313/313**, 전체
+  Playwright·axe **295 pass / 기존 skip 1**, lint/typecheck/Vercel build/performance PASS, audit **0**.
+- 팀원 #320 `8782798`은 CSS와 작업 로그 2개 파일 변경이다. PM 리뷰의 잘못된 로그 번호(P2)는
+  수정됐으나 모든 기능 비주얼 숨김(P1)은 남았다. 다른 작업자의 진행 브랜치를 덮어쓰지 않고
+  통합을 보류한다. 작은 의미 있는 비주얼과 390/768/1366/1440·light/dark·키보드 회귀 증거가 필요하다.
+  [CI 34032458832](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34032458832)는
+  데스크톱·모바일/light·dark 4건 실패다. 숨겨진 condition-preview의 필수 시각 요소를 찾지 못했다.
+- 12:12:45 UTC 운영 실패 응답 추가 진단: route는 Kakao/ODsay 연결·실제 경로를 반환했지만
+  KORAIL/TAGO 일부가 timeout 상태였다. 국문 추천은 HTTP 200/cache MISS에서도 `fallback`,
+  장소·탐색 0개, 8개 제공처 error였다. 두 응답 분석은 전체 27개 검사의 새 성공 결과가 아니다.
 
 ## 요구사항 → 이슈 → 구현·근거 → 남은 조치
 
@@ -78,9 +93,9 @@
 | #266 CSS 정리 | Engineering/QA | 진행 중 | `app/styles/`, `tests/module-reachability.test.mjs` | obsolete 규칙의 실제 도달성·시각 회귀 대조 후 최소 삭제 |
 | #267 첫 사용자 전체 QA | QA | 진행 중 | #314 인증 제출 보호, `e2e/core-journeys.spec.ts`, `e2e/auth-hydration.spec.ts` | Preview·Production 비회원/인증 전체 여정, 실패 시나리오 |
 | #268 필요한 편의 선택 | Engineering/QA | 진행 중 | #287/#311, `PlannerAccessibilityProfiles.tsx` | 유형 단정 없는 문구·복수 선택·KO/EN 운영 검수 |
-| #269 추천 카드 | Engineering/QA | 진행 중 | #287/#311, `RecommendationCarousel.tsx`, `PlaceDecisionDialog.tsx` | 공식 사진 실패·확인 근거·키보드·출처 |
+| #269 추천 카드 | Engineering/QA | 진행 중 | #287/#311/#321, `RecommendationCarousel.tsx`, `PlaceDecisionDialog.tsx` | 공식 사진·원문 출처·배포 후 확인 |
 | #270 공식 사진 | Engineering/QA | 진행 중 | `features/tourism/components/SmartSpotImage.tsx`, `scripts/check-photo-coverage.mjs` | API별 실제 표출·사용 조건·이미지 LCP 확인 |
-| #271 상세보기 | Engineering/QA | 진행 중 | #287, `PlaceDecisionDialog.tsx`, `e2e/launch-integrity.spec.ts` | 랜딩/플래너 진입·순환·복귀·영어·확대 |
+| #271 상세보기 | Engineering/QA | 진행 중 | #287/#321, `e2e/recommendation-language.spec.ts`, 한국어·영어 포커스·상하단 axe | 랜딩 패턴 통합·실제 확대·운영 확인 |
 | #272 URL·뒤로가기 | Engineering/QA | 진행 중 | #287/#311, `usePlannerStageView.ts`, `e2e/planner-product-flow.spec.ts` | 질문 단계 URL·직접 진입·새로고침 전체 조합 |
 | #273 18개 시·군 | Engineering/QA | 진행 중 | #287, `components/GyeongnamRegionPicker.tsx`, `e2e/mobile-touch-targets.spec.ts` | 지도 실패 대안·지역 사진·짧은 화면 |
 | #274 편의 근거 상태 | Engineering/QA | 진행 중 | #287, `tests/accessibility-score.test.mjs`, `e2e/evidence-truthfulness.spec.ts` | 공식/미확인/불일치/사용자 제보 Production 대조 |
@@ -120,8 +135,8 @@
    전체 구현·독립 QA 자동화를 증명하지 않는다. 이 환경의 공식 Scheduled 관리 도구가 없어
    기존 예약 목록·수정 권한을 확인하지 못했다. 확인 전에 중복 예약을 만들지 않는다.
 4. 공모전: 부문·마감·예비 합격은 확인 완료. 팀명·최종 팀원·이력·법적 의무·실제 제출은 사람 확인.
-5. 독립적으로 계속할 제품 작업: #317~#319에서 조건·내비게이션·설정·도움말을 수정했다.
-   영어 추천·일정·경로·인증 폼·정책 본문과 전체 언어 상태별 QA가 남는다.
+5. 독립적으로 계속할 제품 작업: #317~#319/#321에서 조건·내비게이션·설정·도움말·추천 상세를 수정했다.
+   영어 일정·경로·인증 폼·정책 본문과 전체 언어 상태별 QA가 남는다. #320의 비주얼 AC도 미해결이다.
    390·1366px 기본 배율에서 새 활동 Gate는 넘침 없이 보였지만 CSS zoom 2 진단은 잘림이 있어
    실제 브라우저 200% 확대 검증을 완료로 세지 않는다. #251/#265/#286에서 검증·수정을 이어간다.
 

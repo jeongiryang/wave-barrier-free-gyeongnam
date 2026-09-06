@@ -52,3 +52,16 @@ API 감사·실행표·체크포인트·기능설명서 PDF에 함께 반영했�
 합성 3bc4abe의 unit 313·Playwright 279 pass/기존 skip 1·audit 0·전체 build/performance 성공을
 실행표와 체크포인트에 연결했다. CLAUDE의 포괄적인 GPS 기기 내 처리 문장은 경로 API 차단과
 지도/타일·주변 검색 외부 처리를 구분하도록 바로잡았다. 실제 법적·운영 확인 완료를 주장하지 않는다.
+
+## 추천 상세·팀원 PR 추가 감사
+
+#321 272bf68을 보존하고 #309 및 자동화 전체와 5fdd1e6으로 합성했다. 후보 lint/typecheck,
+unit/contract 313/313, Vercel build/performance, audit 0, 전체 Playwright·axe 295 pass/기존 skip 1.
+원본 #321은 unit 280, 관련 56/56, 최종 새 회귀 16/16, 전체 295/기존 skip 1, 16화면에서
+콘솔/넘침/경계 오류 0이다. #319와 이전 #313 f4e8c97 CI도 성공했다.
+
+팀원 #320 8782798은 로그 번호 P2를 수정했지만 비주얼 숨김 P1과 CI 4건 실패가 남았다.
+작업자 브랜치를 덮어쓰거나 해당 실패를 무시한 합성을 하지 않는다. 최신 47 Issue/23 PR을 반영했다.
+12:12 UTC 실제 운영 route/KO plan 상태를 값·Secret 없이 다시 조사했다. Kakao/ODsay 연결은
+있으나 KORAIL/TAGO timeout, 관광 추천 fallback/0개/8개 error다. 전체 API 정상으로 세지 않는다.
+이번 문서 변경은 lint/typecheck/unit 280/build/performance 및 상대 링크를 검증했다.
