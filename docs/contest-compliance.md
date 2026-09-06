@@ -109,3 +109,10 @@
 - [개발 부문 제출 매뉴얼](https://drive.google.com/file/d/140IdldqAGRvwmmX8Q88LkuM0CsdjtsY5/view)
 - [TourAPI 제출 사이트](https://api.visitkorea.or.kr/)
 - [이전 문서에 인용된 투어라즈 공고](https://touraz.kr/announcementList/pssrpView?curPage=1&pssrpSeqEnc=L%5ElQHfuCarJp8vWuj1is2Q%3D%3D) — 실제 신청 부문을 증명하는 자료는 아님.
+
+## 컨설팅 확인 보충 (2026-09-06)
+
+7월 안내와 8월 D-7/D-1 메일도 재조회했다. 이 메일들은 미신청 팀 대상 신청 마감 안내이며,
+컨설팅 결과나 기술 적합성 승인이 아니다. 신청은 8월 20일 16:00에 마감, 진행 기간은
+9월 12일까지다. 현재 조회 범위에서 실제 매칭·답변·제출 완료 증빙을 확보하지 못했다.
+기존 신청 여부가 있다면 원 신청 화면에서 확인하며 새 계정이나 유료 서비스를 만들지 않는다.
