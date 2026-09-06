@@ -42,6 +42,9 @@ async function samples(page: Page, selector: string) {
 
 const CASES = [
   ".compact-journey-visual figcaption",
+  ".landing-hero-copy h1",
+  ".landing-hero-copy h1 em",
+  ".landing-hero-copy > span",
   ".product-story-copy h2",
   ".product-story-copy > p:not(.section-kicker)",
   ".product-story-copy > a",

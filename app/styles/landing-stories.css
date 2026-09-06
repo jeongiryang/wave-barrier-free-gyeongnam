@@ -276,3 +276,8 @@ html[data-theme="dark"] .travel-book-preview .feature-preview-stage > footer b {
   .landing-community-copy > p:not(.section-kicker) { margin-inline: 0; }
   .landing-community-copy > div { align-items: stretch; }
 }
+
+/* 어두운 테마에서는 밝은 수면 오버레이가 제목 대비를 낮추지 않게 한다. */
+html[data-theme="dark"] .landing-hero-copy::before {
+  background: radial-gradient(120% 100% at 22% 50%, var(--surface) 0, rgba(5, 40, 58, .96) 52%, transparent 100%);
+}
