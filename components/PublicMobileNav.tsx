@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
+import { useSitePreferences } from "./SitePreferences";
 
 export type PublicNavLink = {
   href: string;
@@ -11,6 +12,8 @@ export type PublicNavLink = {
 
 /** A compact replacement for public header links that disappear on narrow screens. */
 export default function PublicMobileNav({ links }: { links: PublicNavLink[] }) {
+  const { locale } = useSitePreferences();
+  const en = locale === "en";
   const [open, setOpen] = useState(false);
   const [interactive, setInteractive] = useState(false);
   const panelId = `public-nav-${useId().replace(/:/g, "")}`;
@@ -52,12 +55,12 @@ export default function PublicMobileNav({ links }: { links: PublicNavLink[] }) {
       disabled={!interactive}
       aria-expanded={open}
       aria-controls={panelId}
-      aria-label={open ? "주요 메뉴 닫기" : "주요 메뉴 열기"}
+      aria-label={open ? en ? "Close main menu" : "주요 메뉴 닫기" : en ? "Open main menu" : "주요 메뉴 열기"}
       onClick={() => setOpen((current) => !current)}
     >
       <span aria-hidden="true">{open ? "×" : "☰"}</span>
     </button>
-    {open && <nav id={panelId} className="public-mobile-nav-panel" aria-label="모바일 주요 메뉴">
+    {open && <nav id={panelId} className="public-mobile-nav-panel" aria-label={en ? "Mobile main menu" : "모바일 주요 메뉴"}>
       {links.map((link) => <Link
         key={link.href}
         href={link.href}

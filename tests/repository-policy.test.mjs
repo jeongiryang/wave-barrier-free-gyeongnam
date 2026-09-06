@@ -729,7 +729,7 @@ test("every user-facing footer exposes the repository with an accessible tooltip
     styleSource(),
   ]);
   assert.match(link, /https:\/\/github\.com\/jeongiryang\/wave-barrier-free-gyeongnam/);
-  assert.match(link, /aria-label="W\.A\.V\.E GitHub 저장소 열기"/);
+  assert.match(link, /aria-label=\{locale === "en" \? "Open the W\.A\.V\.E GitHub repository" : "W\.A\.V\.E GitHub 저장소 열기"\}/);
   assert.match(link, /data-tooltip="GitHub"/);
   for (const page of [landing, planner, shared]) assert.match(page, /<GithubFooterLink \/>/);
   assert.match(css, /\.github-footer-link \{ width: 44px; height: 44px/);
