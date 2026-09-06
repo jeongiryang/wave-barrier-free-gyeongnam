@@ -1,20 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useSitePreferences } from "./context";
 import { localeOptions, motionCopy } from "./locale-catalog";
 import type { Locale } from "./types";
 import { useAppInstall } from "./useAppInstall";
 
+const subscribeToHydration = () => () => undefined;
+const browserReady = () => true;
+const serverReady = () => false;
+
 export function PreferenceControls({ onReplayIntro }: { onReplayIntro?: () => void } = {}) {
   const [replayed, setReplayed] = useState(false);
+  const replayReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
   const { locale, theme, motion, systemReducedMotion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
   const motionLabel = systemReducedMotion ? "운영체제 설정에 따라 동작 효과 줄임" : motion === "calm" ? motionCopy[locale].on : motionCopy[locale].off;
   const selectedLocale = localeOptions.find((item) => item.id === locale) ?? localeOptions[0];
   const appInstall = useAppInstall();
 
   return (
-    <details className="preference-controls" suppressHydrationWarning>
+    <details className="preference-controls" inert={!replayReady} aria-busy={!replayReady} suppressHydrationWarning>
       <summary aria-label="환경설정 열기">
         <span aria-hidden="true">Aa</span>
         <b>환경설정</b>
@@ -38,7 +43,7 @@ export function PreferenceControls({ onReplayIntro }: { onReplayIntro?: () => vo
           <span><b>동작 효과</b><small>{systemReducedMotion ? "운영체제 설정 적용 중" : motion === "calm" ? "효과 줄임" : "기본 효과"}</small></span>
           <em aria-hidden="true">{systemReducedMotion ? "OS" : motion === "calm" ? "정지" : "흐름"}</em>
         </button>
-        {onReplayIntro && <button className="preference-row" type="button" onClick={() => { onReplayIntro(); setReplayed(true); }} aria-label={locale === "en" ? "Replay intro" : "인트로 다시보기"}>
+        {onReplayIntro && <button className="preference-row" type="button" disabled={!replayReady} onClick={() => { onReplayIntro(); setReplayed(true); }} aria-label={locale === "en" ? "Replay intro" : "인트로 다시보기"}>
           <span><b>{locale === "en" ? "Replay intro" : "인트로 다시보기"}</b><small>{locale === "en" ? "Keeps your focus and motion preferences" : "현재 초점과 동작 설정을 유지합니다"}</small></span>
           <em aria-hidden="true">↻</em>
         </button>}

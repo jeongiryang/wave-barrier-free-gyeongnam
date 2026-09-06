@@ -100,13 +100,18 @@ test("intro replays without blocking the planning link or moving keyboard focus"
   await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 390 : 1366, height: 844 });
   await mockPlannerApi(page);
   await page.goto("/");
-  const settings = page.getByLabel("환경설정 열기");
+  const settingsPanel = page.locator(".preference-controls:visible");
+  const settings = settingsPanel.getByLabel("환경설정 열기");
+  await expect(settingsPanel).toHaveAttribute("aria-busy", "false");
   await settings.focus();
   await page.keyboard.press("Enter");
   const replay = page.getByRole("button", { name: "인트로 다시보기", exact: true });
   await expect(replay).toBeVisible();
+  await expect(replay).toBeEnabled();
   await replay.focus();
   await page.keyboard.press("Enter");
+  await expect(settingsPanel.getByRole("status")).toHaveText("설정한 동작 효과로 인트로를 다시 표시했습니다.");
+  await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", "1");
   await expect(replay).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
@@ -118,6 +123,7 @@ test("intro replays without blocking the planning link or moving keyboard focus"
   expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
   await page.screenshot({ path: test.info().outputPath("intro-replay-settings.png") });
   await page.keyboard.press("Space");
+  await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", "2");
   await expect(replay).toBeFocused();
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await expect(page.locator("html")).toHaveAttribute("data-motion", "full");

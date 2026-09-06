@@ -6,7 +6,7 @@ import type { LandingTranslate } from "../content";
 export default function LandingHero({ t, replay = 0 }: { t: LandingTranslate; replay?: number }) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
-  return <section className="landing-hero" id="top">
+  return <section className="landing-hero" id="top" data-intro-replay={replay}>
     <WaveField replay={replay} className="hero-wave-canvas" tone="light" mode="intro" />
     <div className="landing-hero-copy" data-land-reveal>
       <p><span className="access-badge">{t("heroBadge", "경남 무장애 여행")}</span></p>
