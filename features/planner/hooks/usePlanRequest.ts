@@ -24,13 +24,30 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   const signature = criteriaSignature({ region, themes: theme, selected, locale });
   const dirty = Boolean(plan && resultSignature !== signature);
   const planRequestRef = useRef<AbortController | null>(null);
+  const revealRef = useRef<(() => void) | null>(null);
   const requestSignatureRef = useRef("");
 
-  const abortPlan = useCallback(() => { planRequestRef.current?.abort(); }, []);
+  const abortPlan = useCallback(() => { planRequestRef.current?.abort(); revealRef.current?.(); }, []);
   const runPlan = useCallback(async ({ resetRouteData, resetAudio, requestedTheme = theme }: PlanRunOptions, revealResults = true) => {
     if (!region || !requestedTheme || !selected.length || loading) return false;
     planRequestRef.current?.abort();
+    revealRef.current?.();
+    const reveal = new AbortController();
+    let revealTimer = 0;
+    let scrolling = false;
+    const cancelReveal = () => {
+      window.clearTimeout(revealTimer);
+      reveal.abort();
+      if (scrolling) window.scrollTo({ top: window.scrollY, left: window.scrollX, behavior: "instant" });
+      scrolling = false;
+    };
+    revealRef.current = cancelReveal;
+    // A delayed result must not move someone who has already continued using the page.
+    for (const type of ["pointerdown", "wheel", "touchstart", "keydown"]) {
+      window.addEventListener(type, cancelReveal, { capture: true, passive: true, signal: reveal.signal });
+    }
     const controller = new AbortController();
+    controller.signal.addEventListener("abort", cancelReveal, { once: true });
     planRequestRef.current = controller;
     const requestedSignature = criteriaSignature({ region, themes: requestedTheme, selected, locale });
     requestSignatureRef.current = requestedSignature;
@@ -47,9 +64,15 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       setResultSignature(requestedSignature);
       const available = data.statuses.some((status) => status.state === "live");
       setNoticeKind(available ? "updated" : "empty");
-      if (revealResults) window.setTimeout(() => scrollToSection("places"), 80);
+      if (revealResults && !reveal.signal.aborted) revealTimer = window.setTimeout(() => {
+        if (reveal.signal.aborted) return;
+        scrolling = scrollToSection("places");
+        window.addEventListener("scrollend", () => { scrolling = false; reveal.abort(); }, { once: true, signal: reveal.signal });
+      }, 80);
+      else cancelReveal();
       return true;
     } catch (error) {
+      cancelReveal();
       if (controller.signal.aborted) return false;
       const message = error instanceof Error ? error.message : "연결 상태를 확인해 주세요.";
       setPlanError(message);
@@ -64,10 +87,10 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   }, [locale, region, selected, theme, loading]);
 
   useEffect(() => {
-    if (requestSignatureRef.current !== signature) planRequestRef.current?.abort();
+    if (requestSignatureRef.current !== signature) { planRequestRef.current?.abort(); revealRef.current?.(); }
   }, [signature]);
 
-  useEffect(() => () => { planRequestRef.current?.abort(); }, []);
+  useEffect(() => () => { planRequestRef.current?.abort(); revealRef.current?.(); }, []);
   const resultCurrent = Boolean(plan && !dirty && !loading && !planError);
   const requestState = loading ? "loading" : dirty ? "dirty" : planError ? "error" : plan ? plan.places.length ? "success" : "empty" : selected.length ? "ready" : "idle";
   return { plan, loading, planError, notice, setNotice: setNoticeKind, runPlan, abortPlan, dirty, resultCurrent, requestState };

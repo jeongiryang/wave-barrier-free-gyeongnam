@@ -30,7 +30,29 @@
   960 dark·320 light와 수정 전후 320 화면을 직접 검수했다. 브라우저 자체 시간 입력의 오전/오후는 OS/브라우저 언어를 따른다.
 - 최종 Vercel build/performance PASS: CSS gzip **69.22/70 KiB**, planner JS **265.39/270 KiB**.
 - 첫 전체 실행은 캡처에서 발견한 잘림을 수정하기 위해 중단했다. 성공으로 세지 않는다.
-  최종 전체 Playwright·axe는 실행 중이며 실제 완료 결과와 CI를 후속 기록한다.
+  `be79d0c`의 최종 전체 Playwright·axe는 315 pass / 기존 skip 1이었다.
+
+## 원격 재시도와 상호작용 안정화
+
+CI [34037880762](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34037880762)는 success지만
+세부 결과는 **314 pass / 1 flaky / 기존 skip 1**이다. `core-journeys.spec.ts:78`은 자동차 40분 → 25분 선택 중
+일정이 40분을 유지했다. 실패 스크린샷·error-context·trace를 내려받아 클릭 전후 문서 스크롤이 이동한 것을 확인했다.
+같은 기존 테스트의 로컬 20회와 CPU 4배 감속 추가 검사 6회에서는 재현되지 않았다. CI 원인을 유일하게 확정했다고 쓰지 않는다.
+
+조사 중 별도로 재현한 경계는 다음과 같다.
+
+- `usePlanRequest`의 검색 후 80ms 자동 이동이 다음 사용자 입력 뒤에도 실행됐다. 입력·새 요청·취소·조건 변경·unmount 시
+  예약 이동을 취소하고, 진행 중인 자동 이동도 다음 입력에서 중단한다. 기다리는 사용자의 결과 이동은 유지한다.
+- 지도 준비 영역 높이가 실제 710/560/500px 지도와 달랐다. `map-workspace.css`에서 같은 반응형 높이 변수를 공유한다.
+- `RouteComparisonPanel`의 선택은 색 테두리만 있었다. `aria-pressed`와 크기를 바꾸지 않는 체크 표시를 제공한다.
+- `route-selection-stability.spec.ts`: 지연 API의 기다림/다음 키보드 입력, 지도 모듈 지연 중 누름·뗌,
+  선택과 일정 시간·포커스, 390/768/1366px·axe·넘침, CPU 감속을 검사한다.
+  초기 진단용 로그/전역 계측은 제거했고, 지도 높이 검사는 먼저 일정 편집기의 렌더링을 확인해 별도 지연 요인을 분리했다.
+
+수정 전 통합 후보 `61df8e3`에 최종 초기 8개 검사를 실행해 **6 fail / 2 pass**를 확인했다.
+확장 후 관련 **34/34 PASS**, lint/typecheck/unit **280/280 PASS**, Vercel build/performance PASS
+(CSS 69.25/70 KiB, planner 265.62/270 KiB; 후속 체크 표시는 전체 실행에서 재확인).
+3개 폭의 경로 화면 6캡처 중 각 폭을 직접 검수했다. 전체 브라우저와 최종 CI 결과는 PR에 후속 기록한다.
 
 신규 skip·timeout 증가·assertion 완화 없음. mock API/브라우저 media 거부 검사는 실제 관광 API나 오디오 운영 검증이 아니다.
 현재 main/Production은 34e6021이며 본 변경은 미배포다. Refs #251 #264 #265 #281 #284 #285 #286.
