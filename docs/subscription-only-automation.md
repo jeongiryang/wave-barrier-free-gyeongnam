@@ -47,14 +47,17 @@ node scripts/check-subscription-codex.mjs '<설치된 공식 codex.exe 절대 �
 ```
 
 검증 범위는 구독으로 실행하는 작은 read-only 작업이다. 예약 실행, 이슈 자동 구현·게시,
-독립 AI 검토, PM 환류 전체가 성공했다는 뜻이 아니다. 실제 예약은 생성하지 않았다.
+독립 AI 검토, PM 환류 전체가 성공했다는 뜻이 아니다. 이 Executor는 새 예약을 생성하지 않았다.
+후속 조회에서 기존 공식 Scheduled의 [2026-09-05 read-only receipt](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/294#issuecomment-5552575398)를 확인했다.
+GitHub·Notion 조회와 결과 기록 범위이며 구현/QA 자동화가 아니다. 기존 예약 전체 목록과
+현재 활성 상태는 이 실행 환경에 관리 도구가 없어 확인하지 못했다. 중복 예약을 만들지 않는다.
 
 ## 가능한 범위와 남는 수동 작업
 
 | 방식 | 가능한 일 | PC / 앱 조건 | 아직 필요한 확인 |
 | --- | --- | --- | --- |
 | 구독 로그인 로컬 Codex / IDE | 승인된 이슈 구현, 별도 worktree, 테스트, diff 검토, GitHub 기록 | 실행 동안 PC·네트워크·로컬 로그인이 유효해야 함. CLI 실행 자체에 데스크톱 앱은 필요하지 않음 | PM이 GitHub에 scope/AC 지정, 한도·인증 회복, 필수 사람 리뷰 |
-| 공식 데스크톱 Scheduled의 프로젝트 작업 | 정해진 시각에 로컬 저장소/작업 트리를 점검하는 대안 | 해당 PC 켜짐, 앱 실행, 저장소 접근 가능. 절전/앱 종료 시 실행을 보장하지 않음 | 이 세션에 Scheduled 관리 도구가 없어 실제 등록·첫 예약 run 미검증. 사용자가 기존 PM 채팅/앱에서 설정하고 첫 결과 확인 |
+| 공식 데스크톱 Scheduled의 프로젝트 작업 | 정해진 시각에 로컬 저장소/작업 트리를 점검하는 대안 | 해당 PC 켜짐, 앱 실행, 저장소 접근 가능. 절전/앱 종료 시 실행을 보장하지 않음 | #294의 기존 read-only receipt 확인. 현재 전체 설정·활성 상태는 관리 도구 부재로 미확인. 새 예약 생성 전 기존 앱에서 목록 확인 |
 | 웹 Work의 예약/지원되는 GitHub 이벤트 | 연결된 GitHub 기록을 읽고 PM queue 판단 | 로컬 PC 없이 가능하지만 로컬 폴더·E2E 직접 실행 불가 | 현재 플랜/Workspace 권한과 이벤트 지원 여부를 PM이 확인. 새 Agent·API channel은 만들지 않음 |
 | 기존 GitHub CI/CD + 결정적 Router/Production QA | lint/typecheck/unit/Playwright/axe/build/배포/조회 검사, 중복 방지 기록 | PC 불필요, 기존 GitHub/Vercel 실행 환경 | 기존 제공량/설정 범위 유지. 새 유료 runner/service/크레딧 구매 금지. 코드 생성·AI 판단은 하지 않음 |
 
@@ -68,7 +71,7 @@ node scripts/check-subscription-codex.mjs '<설치된 공식 codex.exe 절대 �
 > 구현·push·merge·배포·Secret 설정·Agent 생성·GO 판단은 하지 않는다. 포함된 구독 사용량만 사용하고
 > 한도/인증 문제에서는 중단한다. 기준 SHA, 새 실패 run, 필요한 사람 리뷰와 다음 PM 판단 1개만 보고한다.
 
-먼저 기존 PM 채팅에서 수동 실행하고, 공식 Scheduled의 Run now 및 실제 예약 1회 결과를 비교한다.
+위 초안은 기존 read-only receipt 이후의 범위 확장을 위한 참조다. 기존 PM 채팅의 실제 예약 결과와 수동 실행을 비교한다.
 GitHub 중복 이벤트가 여러 구현 작업을 만들지 않는지 확인한 후에만 승인된 Engineering queue 범위로 확장한다.
 지금은 예약을 설정했다거나 자동화가 완료됐다고 표시하지 않는다.
 
@@ -76,8 +79,8 @@ GitHub 중복 이벤트가 여러 구현 작업을 만들지 않는지 확인한
 
 1. #287 새 HEAD CI와 사람 승인 3건 확인. 병합·Production 검증은 아직 남았다.
 2. 자동화 감사 수정은 기존 PR에 보존하고 API 경로는 계속 disabled로 유지한다.
-3. 전체 npm audit의 개발 도구 취약점(high 2 / moderate 1)을 해소할 vinext 호환성 작업은 PM의 다음 Engineering 범위로 제시한다. 운영 의존성 audit 0건과 구분한다.
-4. PM이 공식 Scheduled 첫 read-only 시험을 확인하면 결과를 #294/#288에 기록한다. 비활성 API 경로를 다시 켜지 않는다.
+3. #309가 개발 도구 취약점 수정 후보를 제공하며 통합 audit 0을 확인했다. 커뮤니티 fork 출처·유지보수·호환성 검토는 해당 PR에 기록했다. 아직 main/Production에 반영되지 않았다.
+4. #294/#288의 기존 read-only receipt 다음 단계로 승인된 queue→구현→별도 QA→GitHub/Notion 기록을 검증한다. 현재 Executor의 GitHub→Notion 갱신은 수행됐지만 무인 예약 종단간 성공으로 세지 않는다. 비활성 API 경로를 다시 켜지 않는다.
 
 ## 공식 근거
 
