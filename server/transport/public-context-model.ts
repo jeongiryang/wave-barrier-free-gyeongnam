@@ -6,12 +6,18 @@ import type { PublicTransportSnapshot } from "./public-provider-queries";
 export function buildPublicTransportContext(env: Env, snapshot: PublicTransportSnapshot) {
   const { korailKey, tagoKey, korailPlans, nearbyStops, trainCatalog, expressCatalog, intercityCatalog, arrivals } = snapshot;
   const arrivalItems = arrivals?.ok ? arrivals.value.items : [];
+  const arrivalProvider = transportProvider("tago-bus-arrival", "TAGO ARRIVAL", "가까운 정류장 도착 예정", tagoKey, arrivals);
+  if (tagoKey && !arrivals && nearbyStops?.ok) {
+    arrivalProvider.detail = nearbyStops.value.items.length
+      ? "정류장 식별정보가 부족해 도착 정보를 조회하지 않았습니다."
+      : "주변 정류장이 없어 도착 정보를 조회하지 않았습니다.";
+  }
   const providers = [
     transportProvider("kakao-drive", "KAKAO DRIVE", "자동차 시간·거리·통행료", Boolean(env.KAKAO_REST_API_KEY?.trim())),
     transportProvider("odsay", "ODsay", "대중교통 시간·요금·환승", Boolean(env.ODSAY_API_KEY?.trim())),
     transportProvider("korail", "KORAIL", "여객열차 운행계획", korailKey, korailPlans),
     transportProvider("tago-bus-stop", "TAGO BUS", "목적지 주변 버스정류장", tagoKey, nearbyStops),
-    transportProvider("tago-bus-arrival", "TAGO ARRIVAL", "가까운 정류장 도착 예정", tagoKey, arrivals),
+    arrivalProvider,
     transportProvider("tago-rail-catalog", "TAGO RAIL", "철도 지역코드", tagoKey, trainCatalog),
     transportProvider("tago-express-catalog", "TAGO EXPRESS", "고속버스 터미널", tagoKey, expressCatalog),
     transportProvider("tago-intercity-catalog", "TAGO INTERCITY", "시외버스 터미널", tagoKey, intercityCatalog),
