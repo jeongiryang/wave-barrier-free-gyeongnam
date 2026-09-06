@@ -1,7 +1,7 @@
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "./env";
 import { clean } from "./http";
-import { normalizeItems } from "./provider-normalizers";
+import { parseTransportResponse } from "./transport-response";
 import type {
   ProviderAttempt,
   ProviderResult,
@@ -46,7 +46,7 @@ export async function fetchPublicTransportData(
     const message = raw.match(/<(?:returnAuthMsg|resultMsg)>([^<]+)</i)?.[1];
     throw new Error(clean(message || "교통 API가 JSON이 아닌 응답을 반환했습니다.", 120));
   }
-  return normalizeItems(data);
+  return parseTransportResponse(data);
 }
 
 export function koreaYmd(offsetDays = 0) {
