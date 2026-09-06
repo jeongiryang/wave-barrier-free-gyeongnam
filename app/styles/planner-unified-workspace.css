@@ -173,5 +173,8 @@ html[data-theme="dark"] .place-community-empty { background: #0e3748; }html[data
   color: var(--muted);
   font-size: .74rem;
   font-weight: 700;
+  max-width: 7.5em;
+  white-space: normal;
+  text-align: right;
 }
 html[data-theme="dark"] .route-mode-sections button .route-mode-unknown { color: #9fbecd; }

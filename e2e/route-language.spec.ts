@@ -93,6 +93,21 @@ test("route comparison language changes without another route request or changin
   expect(requests).toBe(before);
 });
 
+test("unavailable mode times fit narrow columns with a wider fallback font", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  await prepare(page);
+  await page.addStyleTag({ content: ".route-mode-sections { font-family: monospace !important; }" });
+  const metrics = await page.locator(".route-mode-sections button").evaluateAll((buttons) => buttons.map((button) => {
+    const label = button.querySelector("div")!;
+    const time = button.querySelector("strong")!;
+    return { name: label.textContent, labelWidth: label.clientWidth, labelTextWidth: label.scrollWidth, timeWidth: time.clientWidth, timeTextWidth: time.scrollWidth };
+  }));
+  for (const metric of metrics) {
+    expect(metric.labelTextWidth, JSON.stringify(metric)).toBeLessThanOrEqual(metric.labelWidth);
+    expect(metric.timeTextWidth, JSON.stringify(metric)).toBeLessThanOrEqual(metric.timeWidth);
+  }
+});
+
 for (const clipboard of ["missing", "denied", "available"] as const) {
   test(`booking route notice reports ${clipboard} clipboard accurately without claiming the site opened`, async ({ page }) => {
     await page.addInitScript((state) => {

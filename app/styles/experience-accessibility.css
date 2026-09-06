@@ -128,6 +128,12 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   min-height: 44px;
 }
 .map-poi-results article > button { display: flex; align-items: center; }
+.trip-point-picker input, .trip-point-picker form button { min-height: 44px; }
+.trip-point-picker { overflow-y: auto; }
+.trip-point-picker > p { margin: 0; padding: 6px 16px; font-size: .75rem; line-height: 1.6; }
+.trip-point-picker .trip-point-list { max-height: none; overflow: visible; }
+.trip-point-list strong, .trip-point-list small { white-space: normal; overflow-wrap: anywhere; }
+.trip-point-list em { grid-column: 2 / -1; justify-self: start; }
 .landing-region-map > button, .region-marker, .map-provider-badge button { position: relative; }
 .landing-region-map > button::after, .region-marker::after, .map-provider-badge button::after {
   content: ""; position: absolute; inset: -8px;
