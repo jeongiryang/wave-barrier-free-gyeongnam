@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSitePreferences } from "../../../components/SitePreferences";
 import type { RoutePoint } from "../../routing/types";
 import { movePlaceWithinDay, placeMoveAvailability, reconcilePlaceOrder } from "../optimization/manual-order.js";
 import { explainVisitOrder, optimizeVisitOrder } from "../optimization/visit-order.js";
@@ -30,10 +31,16 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
   scheduleAssignments: Record<string, string>;
   defaultDay: string;
 }) {
+  const { locale } = useSitePreferences();
   const [orderMode, setOrderMode] = useState<OrderMode>("auto");
   const [manualOrder, setManualOrder] = useState<string[]>([]);
   const [orderStorageReady, setOrderStorageReady] = useState(false);
-  const [orderNotice, setOrderNotice] = useState("");
+  const [notice, setNotice] = useState<{ kind: "move" | "auto" | "replace"; name?: string; direction?: "up" | "down" } | null>(null);
+  const orderNotice = !notice ? "" : notice.kind === "move"
+    ? locale === "en" ? `${notice.name || "Place"} moved ${notice.direction === "up" ? "earlier" : "later"} in the same day.` : `${notice.name || "장소"} 순서를 ${notice.direction === "up" ? "앞으로" : "뒤로"} 옮겼습니다.`
+    : notice.kind === "auto"
+      ? locale === "en" ? "Suggested visit order restored." : "이동 부담을 고려한 자동 순서로 되돌렸습니다."
+      : locale === "en" ? "Alternative selected. The visit order is unchanged." : "선택한 대안으로 장소를 바꾸고 기존 방문 순서는 유지했습니다.";
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -79,7 +86,7 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
     if (next.every((id, index) => id === activeOrderIds[index])) return false;
     setManualOrder(reconcilePlaceOrder(saved, next));
     setOrderMode("manual");
-    setOrderNotice(`${savedPlaces.find((place) => place.id === placeId)?.name || "장소"} 순서를 ${direction === "up" ? "앞으로" : "뒤로"} 옮겼습니다.`);
+    setNotice({ kind: "move", name: savedPlaces.find((place) => place.id === placeId)?.name, direction });
     return true;
   }, [activeOrderIds, defaultDay, saved, savedPlaces, scheduleAssignments]);
 
@@ -90,20 +97,20 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
   const restoreAutoOrder = useCallback(() => {
     setManualOrder(reconcilePlaceOrder(saved, autoOrderIds));
     setOrderMode("auto");
-    setOrderNotice("이동 부담을 고려한 자동 순서로 되돌렸습니다.");
+    setNotice({ kind: "auto" });
   }, [autoOrderIds, saved]);
 
   const replacePlaceOrder = useCallback((previousId: string, nextId: string) => {
     setManualOrder(activeOrderIds.map((id) => id === previousId ? nextId : id));
     setOrderMode("manual");
-    setOrderNotice("선택한 대안으로 장소를 바꾸고 기존 방문 순서는 유지했습니다.");
+    setNotice({ kind: "replace" });
   }, [activeOrderIds]);
 
   const orderExplanation = useMemo(
     () => orderMode === "manual"
-      ? "내가 정한 방문 순서입니다. 날짜별 이동시간은 순서가 바뀔 때마다 다시 계산합니다."
-      : explainVisitOrder(orderedSavedPlaces, origin),
-    [orderMode, orderedSavedPlaces, origin],
+      ? locale === "en" ? "Your visit order. Daily travel times are recalculated when the order changes." : "내가 정한 방문 순서입니다. 날짜별 이동시간은 순서가 바뀔 때마다 다시 계산합니다."
+      : explainVisitOrder(orderedSavedPlaces, origin, locale),
+    [locale, orderMode, orderedSavedPlaces, origin],
   );
 
   return {

@@ -10,6 +10,7 @@ export function useAudioGuide(audio: PlanData["audio"] | null | undefined) {
   const [audioProgress, setAudioProgress] = useState(0);
   const [audioTime, setAudioTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
+  const [audioError, setAudioError] = useState(false);
 
   const resetAudio = useCallback(() => {
     audioRef.current?.pause();
@@ -18,6 +19,7 @@ export function useAudioGuide(audio: PlanData["audio"] | null | undefined) {
     setAudioTime(0);
     setAudioDuration(0);
     setTranscriptOpen(false);
+    setAudioError(false);
   }, []);
 
   const toggleAudio = useCallback(async () => {
@@ -26,8 +28,15 @@ export function useAudioGuide(audio: PlanData["audio"] | null | undefined) {
       setTranscriptOpen(true);
       return;
     }
-    if (element.paused) await element.play();
-    else element.pause();
+    try {
+      setAudioError(false);
+      if (element.paused) await element.play();
+      else element.pause();
+    } catch {
+      setAudioError(true);
+      setPlaying(false);
+      setTranscriptOpen(true);
+    }
   }, [audio?.audioUrl]);
 
   const seekAudio = useCallback((seconds: number) => {
@@ -54,6 +63,8 @@ export function useAudioGuide(audio: PlanData["audio"] | null | undefined) {
     audioProgress,
     audioTime,
     audioDuration,
+    audioError,
+    handleAudioError: () => { setAudioError(true); setPlaying(false); },
     toggleTranscript: () => setTranscriptOpen((current) => !current),
     toggleAudio,
     seekAudio,

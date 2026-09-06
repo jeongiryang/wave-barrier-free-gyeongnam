@@ -1,6 +1,7 @@
 "use client";
 
 import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
+import { useSitePreferences } from "../../../components/SitePreferences";
 import type { MapPlace } from "../../routing/types";
 import type { useAudioGuide } from "../hooks/useAudioGuide";
 import type { useLocationSearch } from "../hooks/useLocationSearch";
@@ -9,10 +10,14 @@ import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place, PlanData, TransportProvider } from "../types";
 import NavigationWorkspace from "./NavigationWorkspace";
-import TripDayPlanner from "./TripDayPlanner";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
 
 const ItineraryRouteCoverage = lazy(() => import("./ItineraryRouteCoverage"));
+function ItineraryUnavailable() {
+  const { locale } = useSitePreferences();
+  return <p role="status">{locale === "en" ? "The itinerary editor couldn't open. Try reloading this page." : "일정 편집 화면을 열지 못했습니다. 페이지를 새로 열어 다시 시도해 주세요."}</p>;
+}
+const TripDayPlanner = lazy(() => import("./TripDayPlanner").catch(() => ({ default: ItineraryUnavailable })));
 
 interface PlannerItineraryWorkspaceProps {
   coverage: ReturnType<typeof useItineraryRoutes>;
@@ -36,6 +41,8 @@ interface PlannerItineraryWorkspaceProps {
 }
 
 export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspaceProps) {
+  const { locale } = useSitePreferences();
+  const c = (ko: string, en: string) => locale === "en" ? en : ko;
   const { activeDay, setActiveDay, tripDays, scheduleAssignments } = props.tripSelection;
   const itineraryPlaces = useMemo(() => props.tripSelection.orderedSavedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === activeDay), [props.tripSelection.orderedSavedPlaces, activeDay, scheduleAssignments, tripDays]);
   const routableItineraryPlaces = useMemo(
@@ -70,10 +77,10 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
 
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
     <div className="journey-subheading" data-reveal>
-      <div><span aria-hidden="true">3</span><h2 id="itinerary-stage-title"><small>내 일정</small>어떤 순서로 움직이면 편할까요?</h2></div>
-      <p>추가한 장소의 날짜와 순서를 정하고 이동 경로를 확인하세요. 일정은 이 기기에 저장돼요.</p>
+      <div><span aria-hidden="true">3</span><h2 id="itinerary-stage-title"><small>{c("내 일정", "My itinerary")}</small>{c("어떤 순서로 움직이면 편할까요?", "What order works for your trip?")}</h2></div>
+      <p>{c("추가한 장소의 날짜와 순서를 정하고 이동 경로를 확인하세요. 일정은 이 기기에 저장돼요.", "Arrange dates and order, then check the journeys between places. Your itinerary is saved on this device.")}</p>
     </div>
-    <TripDayPlanner
+    {props.tripSelection.orderedSavedPlaces.length ? <Suspense fallback={<p role="status">{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</p>}><TripDayPlanner
       itineraryRouteMinutes={props.coverage.routeMinutes}
       plan={props.plan}
       tripSelection={props.tripSelection}
@@ -81,11 +88,13 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       audioGuide={props.audioGuide}
       participation={props.participation}
       archiveContext={props.archiveContext}
-    />
-    {props.tripSelection.orderedSavedPlaces.length > 0 && <Suspense fallback={<p role="status">이동 구간 확인을 준비하고 있어요.</p>}><ItineraryRouteCoverage coverage={props.coverage} route={props.route} trip={props.tripSelection} reviewed={props.reviewed} onReview={props.onReview} /></Suspense>}
-    <nav className="itinerary-day-tabs" aria-label="지도에 표시할 날짜">{tripDays.map((day) => <button type="button" key={day} aria-pressed={activeDay === day} onClick={() => setActiveDay(day)}>{day.slice(5).replace("-", "/")}</button>)}</nav>
-    <p className="route-scope-note">{activeDay} · 일정 {itineraryPlaces.length}곳 중 지도에 표시할 수 있는 장소 {navigationPlaces.length}곳</p>
-    {itineraryPlaces.some((place) => !routableItineraryPlaces.includes(place)) && <p role="status">좌표를 확인하지 못한 장소: {itineraryPlaces.filter((place) => !routableItineraryPlaces.includes(place)).map((place) => place.name).join(", ")}. 일정에는 그대로 보관하며 지도에서는 제외합니다.</p>}
+    /></Suspense> : <section className="day-planner empty" data-reveal aria-label={c("내 일정", "My itinerary")}>
+      <div className="itinerary-empty-state"><span aria-hidden="true">+</span><h3>{c("아직 일정에 추가한 장소가 없어요.", "No places in your itinerary yet.")}</h3><p>{c("위 추천 여행지에서 ‘일정에 추가’를 누르면 이곳에서 날짜, 순서와 이동시간을 정리할 수 있습니다.", "Add a recommended place to arrange its date, order and travel time here.")}</p></div>
+    </section>}
+    {props.tripSelection.orderedSavedPlaces.length > 0 && <Suspense fallback={<p role="status">{c("이동 구간 확인을 준비하고 있어요.", "Preparing journey checks.")}</p>}><ItineraryRouteCoverage coverage={props.coverage} route={props.route} trip={props.tripSelection} reviewed={props.reviewed} onReview={props.onReview} /></Suspense>}
+    <nav className="itinerary-day-tabs" aria-label={c("지도에 표시할 날짜", "Date to show on the map")}>{tripDays.map((day) => <button type="button" key={day} aria-pressed={activeDay === day} onClick={() => setActiveDay(day)}>{day.slice(5).replace("-", "/")}</button>)}</nav>
+    <p className="route-scope-note">{activeDay} · {c(`일정 ${itineraryPlaces.length}곳 중 지도에 표시할 수 있는 장소 ${navigationPlaces.length}곳`, `${navigationPlaces.length} of ${itineraryPlaces.length} itinerary places can be shown on the map`)}</p>
+    {itineraryPlaces.some((place) => !routableItineraryPlaces.includes(place)) && <p role="status">{c("좌표를 확인하지 못한 장소:", "Coordinates unavailable:")} {itineraryPlaces.filter((place) => !routableItineraryPlaces.includes(place)).map((place) => place.name).join(", ")}. {c("일정에는 그대로 보관하며 지도에서는 제외합니다.", "Kept in your itinerary, but excluded from the map.")}</p>}
     <NavigationWorkspace
       mapEnabled={props.mapEnabled}
       activePlaces={navigationPlaces}
