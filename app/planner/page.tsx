@@ -161,7 +161,7 @@ export default function PlannerPage() {
       } else {
         const day = scheduleAssignments[place.id] || tripSelection.tripDays[0];
         if (!tripSelection.tripDays.includes(day)) {
-          setNotice(locale === "en" ? "This place is stored outside the trip dates. Move it into this trip first." : "이 장소는 현재 여행 기간 밖에 보관되어 있습니다. 일정에서 날짜를 먼저 옮겨주세요.");
+          setNotice("outsideTrip");
           return false;
         }
         tripSelection.setActiveDay(day);
@@ -178,7 +178,7 @@ export default function PlannerPage() {
       if (!window.confirm(message)) return;
       if (tripSelection.replaceSavedPlace(target.id, impactAlternative)) {
         resetRouteData();
-        setNotice(locale === "en" ? "Place replaced. Check the updated itinerary and route." : "선택한 장소로 바꿨어요. 갱신된 일정과 경로를 확인해 주세요.");
+        setNotice("replaced");
         stageView.changeStep("itinerary");
       }
     },
