@@ -175,3 +175,49 @@ test("showing a cached itinerary journey updates its estimate count without anot
   await expect(panel.locator('.route-option[aria-pressed="true"]')).toContainText("18 min");
   expect(requests).toBe(1);
 });
+
+function sameModeEstimates(staleId = "zero") {
+  const route = { mode: "car", payment: null, transfers: 0, totalWalk: 0, segments: [], geometry: [] };
+  return [
+    { ...route, id: staleId, label: "Missing time", configured: true, totalTime: 0 },
+    { ...route, id: "preview", label: "Straight connection", configured: false, totalTime: 5 },
+    { ...route, id: "valid", label: "Confirmed journey", configured: true, totalTime: 25 },
+  ];
+}
+
+test("same-mode missing times and previews never become the hidden active journey", async ({ page }) => {
+  await prepare(page, async () => {
+    await page.route("**/api/route?**", (route) => route.fulfill({ json: {
+      configured: true, alternatives: sameModeEstimates(), providers: [], context: null,
+    } }));
+  });
+  const panel = page.locator(".route-compare-panel");
+  await expect(panel.locator(".route-option")).toHaveCount(1);
+  await expect(panel.locator('.route-option[aria-pressed="true"]')).toContainText("Confirmed journey");
+  await expect(panel.locator(".route-notice")).toContainText("Compare 1 route");
+  await expect(panel.locator(".route-notice .live-dot")).toHaveCount(1);
+  await panel.getByRole("group", { name: "Estimated time by travel mode", exact: true }).getByRole("button", { name: /Walking/ }).click();
+  await expect(panel.locator(".route-option")).toHaveCount(0);
+  await expect(panel.locator(".route-notice .ready-dot")).toHaveCount(1);
+  expect((await new AxeBuilder({ page }).include(".route-compare-panel").analyze()).violations).toEqual([]);
+});
+
+for (const staleId of ["car-fast", "absent-old-id"]) test(`cached same-mode journeys replace the ${staleId} active choice with a visible estimate`, async ({ page }) => {
+  await prepare(page);
+  const panel = page.locator(".route-compare-panel");
+  await expect(panel.locator('.route-option[aria-pressed="true"]')).toContainText("25 min");
+  let requests = 0;
+  await page.route("**/api/route?**", (route) => {
+    requests++;
+    return route.fulfill({ json: { configured: true, alternatives: sameModeEstimates(staleId), providers: [], context: null } });
+  });
+  const coverage = page.locator(".itinerary-route-coverage");
+  await coverage.getByRole("button", { name: "Check all journeys", exact: true }).click();
+  await expect(coverage.getByRole("status")).toContainText("1 of 1 journeys found");
+  await coverage.getByRole("button", { name: "Show this journey", exact: true }).click();
+  await expect(panel.locator(".route-option")).toHaveCount(1);
+  await expect(panel.locator('.route-option[aria-pressed="true"]')).toContainText("Confirmed journey");
+  await expect(panel.locator(".route-notice .live-dot")).toHaveCount(1);
+  expect(requests).toBe(1);
+  expect((await new AxeBuilder({ page }).include(".route-compare-panel").analyze()).violations).toEqual([]);
+});

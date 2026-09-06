@@ -1,10 +1,11 @@
 import type { RouteAlternative } from "../routing/types";
+import { hasJourneyEstimate } from "../../lib/route-estimates.js";
 
 /** Store both messages so changing language never repeats a route request. */
 export type RouteNotice = { ko: string; en: string; subject?: string };
 
 export function routeResultNotice(alternatives: RouteAlternative[]): RouteNotice {
-  const count = alternatives.filter((route) => route.configured && route.totalTime > 0).length;
+  const count = alternatives.filter(hasJourneyEstimate).length;
   return count ? {
     ko: `예상 시간이 확인된 경로 ${count}개를 비교합니다. 경로 정보는 휠체어 통행 가능 여부를 보장하지 않습니다.`,
     en: `Compare ${count} route${count === 1 ? "" : "s"} with estimated journey times. Route information does not confirm wheelchair access.`,

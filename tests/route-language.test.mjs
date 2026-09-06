@@ -1,6 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { routeResultNotice, routeTitle } from "../features/planner/route-copy.ts";
+import { hasJourneyEstimate } from "../lib/route-estimates.js";
+
+test("journey estimates reject nonfinite, zero, negative, string and preview times", () => {
+  for (const totalTime of [0, -1, NaN, Infinity, -Infinity, "25", null, undefined]) {
+    const route = { configured: true, totalTime };
+    assert.equal(hasJourneyEstimate(route), false);
+    assert.match(routeResultNotice([route]).en, /No verified journey time/);
+  }
+  assert.equal(hasJourneyEstimate({ configured: false, totalTime: 25 }), false);
+  assert.equal(hasJourneyEstimate({ configured: "true", totalTime: 25 }), false);
+  assert.equal(hasJourneyEstimate({ configured: true, totalTime: 25 }), true);
+});
 
 test("route notices count only confirmed estimates, excluding previews and missing times", () => {
   const routes = [

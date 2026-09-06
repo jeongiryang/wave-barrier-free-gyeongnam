@@ -33,3 +33,12 @@ UI 메시지는 KO/EN을 함께 보관하여 런타임 언어 변경 후에도 �
 통합 후보 458bf7d는 별도의 도움말 재열기 focus trap 1건으로 368 pass/1 fail/기존 skip 1이었다. 이전 f78e11e의 353 pass 결과와 구분하고 #318에서 원인을 조사한다.
 
 지도 조작/출발·도착 검색, 교통·날씨/혼잡 상세, 인증/정책 본문의 영어는 후속 범위다. 실제 Provider 호출·오류 원인은 별도 Production 진단을 따른다. main/Production `34e6021`, 필수 리뷰 0/3, Preview/008 운영 스키마·영향/백업·복원 접근은 미해결이다. 모델 API workflow 3개 비활성 유지, 유료 호출/인증 복사/새 예약/운영 쓰기 없음.
+# RC-14: 보이는 경로와 활성 경로 일치 — 2026-09-06
+
+독립 검토 `pullrequestreview-5125947535`를 실제 최신 `aa48328`에서 재현했다. 동일 이동수단 응답의 0분·직선 미리보기·정상 25분 순서에서 화면에는 25분만 있지만 활성 ID는 0분이었다. 신규 데스크톱·모바일 2건 실패, 저장 구간의 기존-ID 무효/부재 사례 4건은 기존 실제 UI 흐름에서도 통과했다. 이 차이를 보존하고 이미 통과한 기능을 재구현하지 않았다.
+
+`hasJourneyEstimate`가 configured=true·유한한 양수 시간만 인정하도록 했다. 최초 응답 선택, 이동수단 집계/필터, 표시 카드, 경로 개수 안내와 일정 구간에서 같은 기준을 쓴다. 현재 이동수단에 유효한 기존 ID가 없으면 첫 보이는 경로를 선택하고, 유효한 경로가 없으면 activeRoute=null이다. NaN/Infinity/음수/문자열/미리보기도 단위 검사한다. 기존 테스트 삭제·skip·timeout 증가·assertion 완화 없음.
+
+- 관련 unit 7/7 및 E2E·axe 94/94 PASS. 전체 unit·contract 286/286, lint/typecheck, Vercel build/performance PASS.
+- 전체 source Playwright·axe **373 pass / 기존 skip1 / 실패0 (8.2분)**. CSS69.27/70 KiB, planner268.57/270 KiB.
+- 새 HEAD CI와 #326/#327/#328·보안/자동화 합성 후보는 별도 검증 후 PR에 연결한다. 독립 재검토·사람 승인·Production 반영은 미완료다.
