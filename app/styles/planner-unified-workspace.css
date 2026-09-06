@@ -148,6 +148,16 @@ html[data-theme="dark"] .journey-subheading > p { color: #a6c2ce; }
 html[data-theme="dark"] .itinerary-primary-actions { border-color: #376d5d; background: #123e35; }
 html[data-theme="dark"] .itinerary-primary-actions a { color: #9addff; background: #0b2939; border-color: #547b8b; }
 html[data-theme="dark"] .itinerary-primary-actions small { color: #ffbdca; }
+html[data-theme="dark"] .day-start-control input { color: #e8f5fb; background: #102f40; border-color: #547b8b; }
+.day-planner .guide-player { color: #e8f5fb; background: #102f40; }
+.day-planner .guide-top span,.day-planner .guide-art small,.day-planner .player-time { color: #bdd7e2; }
+.day-planner .guide-top b { color: #9af0db; }
+.day-planner .transcript-button { color: #e8f5fb; background: #183f50; }
+.day-planner .transcript-button span { color: #bdd7e2; }
+.day-planner .guide-player > [role="alert"] { margin: 16px; color: #ffbdca; }
+.day-planner .player-controls button { min-width: 44px; min-height: 44px; }
+.day-planner .day-place-editor > select,.day-planner .day-order-buttons { grid-column: 1 / -1; }
+@media (max-width: 400px) { .day-planner .day-order-buttons { grid-template-columns: 1fr; } }
 html[data-theme="dark"] .itinerary-secondary-actions,html[data-theme="dark"] .planner-journey-workspace .travel-layers { color: #edf7fb; border-color: #31596a; background: #0b2d3c; }
 html[data-theme="dark"] .place-community-stories { border-color: #31596a; background: #0a2735; }
 html[data-theme="dark"] .place-community-story-list > a { color: #eaf5f9; background: #0e3748; }
