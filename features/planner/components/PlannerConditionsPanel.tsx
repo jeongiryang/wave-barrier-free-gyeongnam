@@ -28,7 +28,8 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
   const [requestedQuestion, setQuestion] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const { region, setRegion, selected, themes, loading, planError } = props.planController;
-  const question = Math.min(requestedQuestion, !region ? 0 : !selected.length ? 1 : 3);
+  const lastAvailableQuestion = !region ? 0 : !selected.length ? 1 : !themes.length ? 2 : 3;
+  const question = Math.min(requestedQuestion, lastAvailableQuestion);
   const guided = props.view === "guided";
   useEffect(() => {
     const sync = () => {
@@ -40,7 +41,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
     return () => window.removeEventListener("popstate", sync);
   }, []);
   function go(next: number) {
-    if (next > 0 && !region || next > 1 && !selected.length) return;
+    if (next > lastAvailableQuestion) return;
     setQuestion(next);
     const url = new URL(window.location.href);
     url.searchParams.set("question", String(next));
@@ -49,7 +50,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
     window.requestAnimationFrame(() => heading.current?.focus());
   }
   return <div className="journey-workspace-block journey-conditions" id="conditions">
-    {guided && <nav className="condition-progress" aria-label={en ? "Trip questions" : "여행 조건 질문"}>{labels.map((label, index) => <button type="button" key={label} aria-current={question === index ? "step" : undefined} disabled={index > 0 && !region || index > 1 && !selected.length} onClick={() => go(index)}><span>{index + 1}</span>{label}</button>)}</nav>}
+    {guided && <nav className="condition-progress" aria-label={en ? "Trip questions" : "여행 조건 질문"}>{labels.map((label, index) => <button type="button" key={label} aria-current={question === index ? "step" : undefined} disabled={index > lastAvailableQuestion} onClick={() => go(index)}><span>{index + 1}</span>{label}</button>)}</nav>}
     <h2 ref={heading} tabIndex={-1} className="condition-heading">{guided ? (en ? ["Where would you like to go?", "What facilities do you need?", "What would you like to do?", "When are you travelling?"] : ["어디로 갈까요?", "어떤 편의가 필요할까요?", "무엇을 하고 싶나요?", "언제 떠날까요?"])[question] : en ? "Your trip preferences" : "여행 조건 정하기"}</h2>
     <div className="condition-inputs">
       {(!guided || question === 0) && <GyeongnamRegionPicker value={region} onChange={setRegion} includeAll />}
@@ -61,8 +62,9 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
     {guided && planError && <p role="alert">{en ? "We couldn't load places. Your choices are kept. Check your connection and try again." : "여행지를 불러오지 못했어요. 선택한 조건은 유지됩니다. 연결을 확인하고 다시 찾아 주세요."}</p>}
     <div className="condition-actions">
       {guided && question > 0 && <button type="button" className="secondary" onClick={() => go(question - 1)}>{en ? "Previous" : "이전"}</button>}
-      {guided && question < 3 ? <button type="button" disabled={!region || question === 1 && !selected.length} onClick={() => go(question + 1)}>{en ? "Continue" : "다음"} →</button> : <button type="button" disabled={!region || !themes.length || !selected.length || loading} onClick={() => void props.onGenerate()}>{loading ? en ? "Finding places…" : "여행지 찾는 중…" : en ? "Find places" : "여행지 찾기"} →</button>}
+      {guided && question < 3 ? <button type="button" disabled={question + 1 > lastAvailableQuestion} onClick={() => go(question + 1)}>{en ? "Continue" : "다음"} →</button> : <button type="button" disabled={!region || !themes.length || !selected.length || loading} onClick={() => void props.onGenerate()}>{loading ? en ? "Finding places…" : "여행지 찾는 중…" : en ? "Find places" : "여행지 찾기"} →</button>}
     </div>
-    {question === 1 && !selected.length && <p role="status">{en ? "Select at least one facility to continue." : "필요한 편의를 하나 이상 선택해 주세요."}</p>}
+    {(!guided || question === 1) && !selected.length && <p role="status">{en ? "Select at least one facility to continue." : "필요한 편의를 하나 이상 선택해 주세요."}</p>}
+    {(!guided || question === 2) && !themes.length && <p role="status">{en ? "Select at least one activity to continue." : "하고 싶은 활동을 하나 이상 선택해 주세요."}</p>}
   </div>;
 }
