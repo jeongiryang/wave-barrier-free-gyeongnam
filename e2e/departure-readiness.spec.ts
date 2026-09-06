@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
-test("출발 준비 카드는 부분 성공을 구분하고 키보드로 한국 시간대 캘린더를 저장한다", async ({ page }) => {
+test("출발 준비 카드는 부분 성공을 구분하고 키보드로 한국 시간대 캘린더를 저장한다", async ({ page, baseURL }) => {
   const now = new Date();
   await page.clock.setFixedTime(now);
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -52,7 +52,7 @@ test("출발 준비 카드는 부분 성공을 구분하고 키보드로 한국 
   const contents = await readFile(path || "", "utf8");
   expect(contents).toContain("TZID:Asia/Seoul");
   expect(contents).toContain(`DTSTART;TZID=Asia/Seoul:${today.replaceAll("-", "")}T093000`);
-  expect(contents).toContain("URL:http://127.0.0.1:4173/trip/share-123");
+  expect(contents).toContain(`URL:${new URL("/trip/share-123", baseURL).href}`);
   await expect(card.getByText("캘린더 파일을 저장했습니다.")).toBeAttached();
 
   const results = await new AxeBuilder({ page }).include(".departure-readiness").analyze();
