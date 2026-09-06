@@ -3,7 +3,7 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 현재 재개 우선점 — 2026-09-06 22:23 UTC
+## 현재 재개 우선점 — 2026-09-06 23:38 UTC
 
 - **지도 실패 #329 `43ebf0812450512663b3f939657688fdb7dad5e1`, Ready**:
   열린 panel/pick/roadview 정리·부분 map 제거·외부 focus/늦은 위치 callback 가드를 유지했다.
@@ -19,7 +19,7 @@
   unit320·관련38·lint/typecheck/build/performance PASS, 전체 source463 pass/기존skip1/실패0(10.5분),
   [CI463 pass/기존skip1/flaky0(18.2분)](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34060894554).
   양 PR은 미병합·미배포이며 리뷰를 임의 승인/resolve하지 않았다.
-- **최신 합성 검증 `8e33414845ea10520be67094edce88c45e0670c6`**:
+- **이전 합성 검증 `8e33414845ea10520be67094edce88c45e0670c6`**:
   #33021fdbd6까지 기존 제품·보안·자동화 stack에 합쳤다. unit350·lint/typecheck/build/performance·audit0 PASS,
   CSS69.85/70·랜딩114.34/155·플래너268.87/270KiB. 전체475 pass/기존skip1/실패0(11.1분).
   이전d4c4911의346/475 성공이 놓친 focus race는 위 새 검사로 재현/수정했다. 로컬 검증을 CI/Preview/Production으로 세지 않는다.
@@ -29,23 +29,41 @@
   unit282·기본검사·반복54·관련34 PASS. 첫 전체263 pass/기존skip1/2 fail은 고정4173 캘린더 URL이었다.
   기존 a62886a의 baseURL assertion을 재사용해 관련4/4·전체265 pass/기존skip1/실패0(5.7분)을 확인했다.
   [#331](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/331) `cc5db1102d8585d2066d8a0037c2f8fa2d8f6861`로 clean/push,
-  [CI34063758123](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34063758123) 진행 중·Draft·미병합·미배포다.
+  [CI34063758123](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34063758123) 265 PASS/기존skip1/flaky0로 성공·Ready·미병합·미배포다.
   390/1366px 각각18개 touch 선택·링크/경계 동기화·빈 사진 fixture·console/overflow0을 직접 검증했다.
   로컬 키 미설정 사진503은 별도 실패 기록이며 실제 API 성공으로 세지 않는다.
-- **지도 합성 `c1ed5e5d74cfdc017ef91790ff8ffea5fd2e29b3`**: #331cc5db11까지 충돌 없이 합쳤다.
-  unit352·lint/typecheck/Vercel build/performance·audit0 PASS. gzip CSS69.71/70·landing115.13/155·planner268.58/270KiB.
-  source 감사 high2/moderate1은 #309 미포함 개발 의존성이며 이 통합에는 남지 않는다. 전체 브라우저 검증은 문서 합성 뒤 실행한다.
-  통합 변경은 로컬 검증용 브랜치이며 기존 PR/사람 승인/배포를 대신하지 않는다.
+- **주변 검색 #332 `0884ceffd658364ce45d106a5d202516b8a3fb47`**: #330의 자식 PR이다.
+  오류/빈 결과·늦은 응답·빈 좌표·중복 재시도·지도 교체 취소와 15개 결과를 일치시켰다.
+  KO/EN·대비·단일 스크롤·44px 링크, 11개 지정 viewport의14개 분류와15번째 결과까지 키보드 접근을 검증했다.
+  최초 hook2 PASS/7 FAIL→16/16, 지도 교체4 FAIL 및 링크 높이4 FAIL도 재현·수정했다.
+  독립 리뷰의 실제 반경 P1은18 PASS/2 FAIL로 재현했다. 요청 중심·10km(+최대50m 계산 차이)로 검증하고 정상0m를 유지한다.
+  이후 hook21/21·unit341·기본검사·주변34/34 PASS, 전체 source497 pass/기존skip1/실패0(12.3m).
+  [CI34066732365](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34066732365)의 현재 결과는 PR에서 확인한다.
+  e51cad8 CI34066049407은 후속 push로 취소됐고 e51cad8/78144e8 로컬 전체는 P1 수정 전 중단해 PASS로 세지 않는다.
+  원본 audit high2/moderate1은 #309 미포함 개발 의존성이다.
+- **최신 통합 `1d3638ec418371706e89872207927a6831cb9a91`**: #3320884cef까지 충돌 없이 합쳤다.
+  unit373·lint/typecheck/Vercel build/performance·audit0 PASS, 전체523 pass/기존skip1/실패0(12.8m).
+  CSS69.75/70·landing115.13/155·planner268.59/270KiB. 직전ff7a207의unit352·전체489 성공도 보존한다.
+  로컬 통합 성공은 Preview/병합/Production 성공이 아니다. source PR와 실제 사람 리뷰를 유지한다.
+- **문서 정합성 추가 수정**: `competition-operation-policy.md`에 남은 과거 부문·지정과제,
+  모든 좌표의 기기 내부 처리와 매번 최신 장소 호출 보장을 정정했다. PR-028/151은 폐기 판단 안내만 덧붙였다.
+  2026-09-06 이후 공모전/관광데이터/위치정보지원센터 Gmail 검색0건을 확인했다. 검색 범위 밖 메일 부재를 단정하지 않는다.
+  공식 Notion 최신 웹 재조회는 접근 정책에 막혀 새 본문을 확인하지 못했다. 우회하지 않고 이전 확보한 공식 자료·사용자 정정을 유지한다.
 
+- #332 worktree `wave-nearby-integrity` / `fix/nearby-query-integrity`, source0884cef·clean/push.
+- 다음 독립 작업은 `wave-map-layer-state` / `fix/map-layer-state`, 부모0884cef다. `useMapLayers`의 SDK updater 중복/예외3 FAIL(정상1 PASS),
+  지도 재생성 후 선택·실제지도 불일치와 예외8 E2E FAIL을 재현했다. 초기 수정 후 hook4/4·브라우저8/8 PASS(7.8초)이나 미커밋·PR 없음이다.
+  설정 재적용·오류 뒤 회복/초점·부분 복원·KO/EN·axe/44px·관련/전체 회귀가 남았다. 새 개발 서버4207을 실행 중이다.
 - #329 worktree `wave-map-controls-language` / `fix/map-load-recovery`, #330 `wave-map-export-recovery` / `fix/map-export-recovery`는 clean/push다.
 - 통합 worktree `wave-launch-integration` / `audit/launch-integration-20260906`는 clean/push다. #258 worktree는 `wave-landing-boundaries`다.
 - main/Production34e6021265b16d046dca24feaa3ec2101fc977e2·배포6278499275, #287 승인0/3. Preview/008 운영 스키마·백업·복원 확인과 적용은 미완료다.
 - Production20:22:04.532Z 이전 진단27/27 PASS지만 최신 후보 check-production-apis는 route queryStatus/resultCount 계약 FAIL이다.
 - 모델 API3workflow disabled_manually, 새 유료 실행/예약/인증 복사 없음. 기존 웹 Scheduled5개와 로컬 구현→별도 QA 전체 자동화 미검증은 구분한다.
-- 소유 서버4187(통합)·4203(#258)만 유지하며4199/4201은 종료했다. 실패 artifact와 로그는 TEMP의 `wave-launch-20260906` 아래 보존한다.
+- 소유 서버4187(통합)·4203(#258)·4205(#332)를 유지하며4199/4201은 종료했다. 실패 artifact와 로그는 TEMP의 `wave-launch-20260906` 아래 보존한다.
   `ci330-merged-artifacts`, `map-focus-ci-before-artifacts`, `landing-boundary-clean-failures`, `boundary-pointer-measured-artifacts`,
   `boundary-stability-first-artifacts`, `boundary-threepx-artifacts`, `landing-boundary-full-port-failures`를 삭제하지 않는다.
-- 다음: #331 CI 완료→문서까지 합친 새 통합 전체 검사→공용 원장과 Ready 판단을 갱신한다. 이어 주변 장소 검색의 error/empty 구분·stale callback·한/영 흐름을 실제 재현한다.
+- 다음: #332 최신 CI·diff 재검토→Ready 판단, 이 문서의 CI와 통합 반영→공용 원장을 갱신한다. 주변 검색을 중복 구현하지 않는다.
+  병행 중인 지도 설정 worktree의 변경/실패 artifact를 보존하고 재적용·언어·브라우저 검증부터 이어간다.
   이후 지도·주변 보강정보·인증/정책 KO/EN, 실제200%/실기기/낭독기/Web Vitals·Preview/008·Production·제출/자동화 검증을 이어간다.
   사람 Gate 때문에 독립 코드 작업을 중단하지 않는다. 부모 병합 후 자식의 최신main/diff/전체CI/필수 승인을 다시 확인한다.
 
