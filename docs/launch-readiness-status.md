@@ -66,6 +66,17 @@
   통합을 보류한다. 작은 의미 있는 비주얼과 390/768/1366/1440·light/dark·키보드 회귀 증거가 필요하다.
   [CI 34032458832](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34032458832)는
   데스크톱·모바일/light·dark 4건 실패다. 숨겨진 condition-preview의 필수 시각 요소를 찾지 못했다.
+- 위 #320 상태는 보완 전 이력이다. 팀원의 `507c85e` 테스트 조정과 `b1eb3c0` hero 대비를 모두
+  보존해 `bfeda5f54206a66d7d97ae1532df5854760ecc00`을 같은 원격 브랜치에 fast-forward push했다.
+  작은 여정 도식 7개와 의미·대비·반응형·키보드 검증을 추가했다. 관련 8/8, 최종 추가 4/4,
+  전체 Playwright·axe **251 pass / 기존 skip 1**, unit 280/280, lint/typecheck/build/performance PASS.
+  390/768/960/1366/1440×light/dark의 고유 20화면과 CTA 가림 없음도 검증했다.
+  [성공한 CI 34034203872](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34034203872)와
+  합성 후보도 통과했다. PM 디자인 재검토·필수 사람 리뷰는 남는다. 운영 반영 완료가 아니다.
+- #321 [CI 34032622064](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34032622064)는
+  성공했으며 Ready for review다. 부모 PR의 main 반영과 필수 리뷰를 건너뛰어 병합하지 않는다.
+- #320까지 포함한 `a4e6b61d7731ae0325170dc1f8787c44970259ed`: lint/typecheck/unit 313/313,
+  Vercel build/performance PASS, audit 0. 전체 Playwright·axe **299 pass / 기존 skip 1 / 실패 0 (7.1분)**.
 - 12:12:45 UTC 운영 실패 응답 추가 진단: route는 Kakao/ODsay 연결·실제 경로를 반환했지만
   KORAIL/TAGO 일부가 timeout 상태였다. 국문 추천은 HTTP 200/cache MISS에서도 `fallback`,
   장소·탐색 0개, 8개 제공처 error였다. 두 응답 분석은 전체 27개 검사의 새 성공 결과가 아니다.
@@ -136,7 +147,8 @@
    기존 예약 목록·수정 권한을 확인하지 못했다. 확인 전에 중복 예약을 만들지 않는다.
 4. 공모전: 부문·마감·예비 합격은 확인 완료. 팀명·최종 팀원·이력·법적 의무·실제 제출은 사람 확인.
 5. 독립적으로 계속할 제품 작업: #317~#319/#321에서 조건·내비게이션·설정·도움말·추천 상세를 수정했다.
-   영어 일정·경로·인증 폼·정책 본문과 전체 언어 상태별 QA가 남는다. #320의 비주얼 AC도 미해결이다.
+   영어 일정·경로·인증 폼·정책 본문과 전체 언어 상태별 QA가 남는다. #320은 보완 코드·로컬 회귀
+   증거와 CI 성공을 추가했고 PM 재검토·배포 증거가 남는다.
    390·1366px 기본 배율에서 새 활동 Gate는 넘침 없이 보였지만 CSS zoom 2 진단은 잘림이 있어
    실제 브라우저 200% 확대 검증을 완료로 세지 않는다. #251/#265/#286에서 검증·수정을 이어간다.
 
