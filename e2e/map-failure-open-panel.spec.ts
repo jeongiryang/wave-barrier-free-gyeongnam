@@ -3,6 +3,9 @@ import AxeBuilder from "@axe-core/playwright";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 
 for (const focus of ["panel", "outside", "pending-location"]) test(`a final map failure closes an open point panel and respects ${focus} focus`, async ({ page }) => {
+  // Under CPU pressure an animation frame can run before React commits the error UI.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
   await mockPlannerApi(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => {
