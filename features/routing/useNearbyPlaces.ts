@@ -6,7 +6,7 @@ import type { KakaoMap, KakaoMarker, KakaoPlace } from "./kakao-sdk";
 import type { MutableRef } from "./map-renderer-context";
 import type { MapPlace } from "./types";
 import { useSitePreferences } from "../../components/SitePreferences";
-import { nearbyCategoryLabel, parseNearbyPlaces } from "./nearby-place-data";
+import { NEARBY_RADIUS_METRES, nearbyCategoryLabel, parseNearbyPlaces, type NearbySearchArea } from "./nearby-place-data";
 
 interface NearbyPlacesOptions {
   kakaoMapRef: MutableRef<KakaoMap | null>;
@@ -61,11 +61,12 @@ export function useNearbyPlaces({ kakaoMapRef, choosePlace }: NearbyPlacesOption
     };
     const fail = () => finish({ state: "error", places: [], omitted: 0 });
     timeout.current = window.setTimeout(fail, 10_000);
+    let searchArea: NearbySearchArea | null = null;
     const callback = (value: unknown, status: string) => {
       if (!current()) return;
       if (status === sdk.services!.Status.ZERO_RESULT) { finish({ state: "empty", places: [], omitted: 0 }); return; }
       if (status !== sdk.services!.Status.OK) { fail(); return; }
-      const parsed = parseNearbyPlaces(value);
+      const parsed = searchArea ? parseNearbyPlaces(value, searchArea) : null;
       if (!parsed || (!parsed.places.length && parsed.omitted)) { fail(); return; }
       const markers: KakaoMarker[] = [];
       try {
@@ -78,8 +79,10 @@ export function useNearbyPlaces({ kakaoMapRef, choosePlace }: NearbyPlacesOption
       }
     };
     try {
+      const location = map.getCenter();
+      searchArea = { lat: location.getLat(), lng: location.getLng(), radius: NEARBY_RADIUS_METRES };
       const service = new sdk.services.Places(map);
-      const options = { location: map.getCenter(), radius: 10000, size: 15, sort: sdk.services.SortBy.DISTANCE };
+      const options = { location, radius: NEARBY_RADIUS_METRES, size: 15, sort: sdk.services.SortBy.DISTANCE };
       if ("code" in category) service.categorySearch(category.code, callback, options);
       else service.keywordSearch(category.keyword, callback, options);
     } catch { fail(); }

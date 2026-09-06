@@ -59,13 +59,14 @@ for (const completed of [false, true]) test(`changing itinerary replaces the map
   await expect(panel.locator("article")).toContainText("검증 장소 2");
 });
 
-for (const failure of ["malformed", "coordinates", "throw", "timeout"]) test(`nearby ${failure} failure provides recovery and ignores late data`, async ({ page }) => {
+for (const failure of ["malformed", "coordinates", "origin", "radius", "throw", "timeout"]) test(`nearby ${failure} failure provides recovery and ignores late data`, async ({ page }) => {
   if (failure === "timeout") await page.clock.install();
   const panel = await openNearby(page);
   if (failure === "throw") await page.evaluate(() => { (window as unknown as { nearbyFixture: { throwNext: boolean } }).nearbyFixture.throwNext = true; });
   await panel.getByRole("button", { name: "음식점", exact: true }).click();
   if (failure === "timeout") await page.clock.fastForward(10_001);
-  else if (failure !== "throw") await deliverNearby(page, 0, "OK", failure === "malformed" ? { places: [] } : [{ ...nearbyPlace(), x: "", y: " " }]);
+  else if (failure !== "throw") await deliverNearby(page, 0, "OK", failure === "malformed" ? { places: [] } : [{ ...nearbyPlace(), distance: "0",
+    ...(failure === "origin" ? { x: "0", y: "0" } : failure === "radius" ? { x: "128.68", y: "35.43" } : { x: "", y: " " }) }]);
   await expect(panel.getByRole("status")).toContainText("불러오지 못했습니다");
   await expect(panel.locator("article")).toHaveCount(0);
   await panel.getByRole("button", { name: "주변 장소 다시 검색", exact: true }).click();
