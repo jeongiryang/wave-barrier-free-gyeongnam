@@ -96,3 +96,74 @@ test("정류장 실패로 조회하지 못한 도착정보를 준비됨으로 �
   assert.equal(context.datasets.find((item) => item.id === "bus-arrival").state, "error");
   assert.deepEqual(context.arrivals, []);
 });
+
+const publicResponse = (body, resultCode = "00") => ({ response: { header: { resultCode }, body } });
+
+test("HTTP 200이어도 공공교통 응답 구조가 불명확하면 정상 0건으로 처리하지 않는다", async () => {
+  const invalid = [
+    null, {}, [], { message: "denied" },
+    { response: { body: { totalCount: 0, items: [] } } },
+    { response: { header: {}, body: { totalCount: 0, items: [] } } },
+    publicResponse({ items: [] }),
+    ...[null, "", true, -1, 1.5, "NaN"].map((totalCount) => publicResponse({ totalCount, items: [] })),
+    publicResponse({ totalCount: 1, items: [] }),
+    publicResponse({ totalCount: 0, items: { item: [{ nodeid: "STOP" }] } }),
+    publicResponse({ totalCount: 1, items: { item: [null] } }),
+    publicResponse({ totalCount: 1, items: { item: ["STOP"] } }),
+    publicResponse({ totalCount: 1, items: { item: [{ nodeid: { invalid: true } }] } }),
+    publicResponse({ totalCount: 0, items: "unexpected" }),
+    publicResponse({ totalCount: 0, items: [] }, "30"),
+  ];
+  for (const body of invalid) {
+    const { fetchPublicTransportData } = loadServer(async () => Response.json(body))("server/shared/public-transport-provider.ts");
+    await assert.rejects(fetchPublicTransportData({ TAGO_API_KEY: "fixture-only" }, "tago", "https://provider.invalid", "arrivals"));
+  }
+});
+
+test("공공교통의 명시적 성공·0건과 단일·복수 항목을 유지한다", async () => {
+  const row = { nodeid: "STOP", nodenm: "정류장", arrtime: 120 };
+  const valid = [
+    ...[undefined, "", null, [], {}, { item: [] }].map((items) => ({ body: publicResponse({ totalCount: "0", items }), expected: { total: 0, items: [] } })),
+    { body: publicResponse({ totalCount: 1, items: { item: row } }), expected: { total: 1, items: [row] } },
+    { body: publicResponse({ totalCount: "2", items: { item: [row, row] } }), expected: { total: 2, items: [row, row] } },
+  ];
+  for (const { body, expected } of valid) {
+    const { fetchPublicTransportData } = loadServer(async () => Response.json(body))("server/shared/public-transport-provider.ts");
+    assert.deepEqual(await fetchPublicTransportData({ TAGO_API_KEY: "fixture-only" }, "tago", "https://provider.invalid", "arrivals"), expected);
+  }
+});
+
+test("잘못된 정류장 응답은 도착정보 조회와 정상 인증 안내로 이어지지 않는다", async () => {
+  const calls = [];
+  const load = loadServer(async (input) => {
+    const url = new URL(input);
+    calls.push(url.pathname);
+    return Response.json(url.pathname.includes("BusSttnInfo") ? {} : publicResponse({ totalCount: 0, items: [] }));
+  });
+  const env = { TAGO_API_KEY: "fixture-only" };
+  const snapshot = await load("server/transport/public-provider-queries.ts").fetchPublicTransportSnapshot(env, 35.2, 128.6);
+  const { providers, context } = load("server/transport/public-context-model.ts").buildPublicTransportContext(env, snapshot);
+  for (const id of ["tago-bus-stop", "tago-bus-arrival"]) assert.equal(providers.find((item) => item.id === id).state, "error");
+  assert.ok(calls.every((path) => !path.includes("ArvlInfo")));
+  assert.deepEqual(context.nearbyStops, []);
+  assert.deepEqual(context.arrivals, []);
+});
+
+test("검증된 정류장 뒤 실제 도착 조회 0건은 미조회와 다른 안내를 제공한다", async () => {
+  const calls = [];
+  const load = loadServer(async (input) => {
+    const url = new URL(input);
+    calls.push(url.pathname);
+    return Response.json(publicResponse(url.pathname.includes("BusSttnInfo")
+      ? { totalCount: 1, items: { item: [{ nodeid: "STOP", nodenm: "정류장", citycode: "38030" }] } }
+      : { totalCount: 0, items: "" }));
+  });
+  const env = { TAGO_API_KEY: "fixture-only" };
+  const snapshot = await load("server/transport/public-provider-queries.ts").fetchPublicTransportSnapshot(env, 35.2, 128.6);
+  const { providers } = load("server/transport/public-context-model.ts").buildPublicTransportContext(env, snapshot);
+  const arrival = providers.find((item) => item.id === "tago-bus-arrival");
+  assert.equal(calls.filter((path) => path.includes("ArvlInfo")).length, 1);
+  assert.equal(arrival.state, "ready");
+  assert.match(arrival.detail, /현재 조건의 결과가 없습니다/);
+  assert.doesNotMatch(arrival.detail, /조회하지 않았/);
+});
