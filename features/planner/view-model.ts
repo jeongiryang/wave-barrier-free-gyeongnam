@@ -39,6 +39,7 @@ export function buildFallbackTransportProviders(
 }
 
 interface PlannerViewModelInput {
+  locale?: string;
   plan: PlanData | null;
   enrichment: EnrichmentData | null;
   richMode: RichMode;
@@ -55,6 +56,7 @@ interface PlannerViewModelInput {
 }
 
 export function buildPlannerViewModel({
+  locale = "ko",
   plan,
   enrichment,
   richMode,
@@ -93,6 +95,7 @@ export function buildPlannerViewModel({
     impactAlternative,
     impactCrowd,
     tripImpact: assessTripImpact({
+      locale,
       weatherDay: travelWeather,
       current: weather?.current,
       crowd: impactCrowd,

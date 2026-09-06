@@ -191,7 +191,7 @@ for (const width of [280, 320, 390, 768, 1024, 1366, 1920, 2560]) {
 test("rain response runs a new search and preserves accessibility needs and saved places", async ({ page }) => {
   await mockPlannerApi(page);
   await page.route("**/api/weather?*", async (route) => route.fulfill({ json: {
-    source: "기상 정보", updatedAt: "2026-09-05T09:00:00Z",
+    region: "창원", source: "기상 정보", updatedAt: "2026-09-05T09:00:00Z",
     current: { temperature: 23, apparent: 23, code: 61, label: "비", wind: 2, precipitation: 3, isDay: true },
     days: [{ date: "2026-10-08", code: 61, label: "비", max: 24, min: 20, rainProbability: 80, rain: 3, snow: 0, uv: 2, advice: [] }], advice: [],
   } }));
