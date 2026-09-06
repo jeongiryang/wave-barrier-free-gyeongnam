@@ -146,6 +146,8 @@ html[data-theme="dark"] .journey-subheading h2 { color: #edf7fb; }
 html[data-theme="dark"] .journey-subheading h2 small { color: #76d5e5; }
 html[data-theme="dark"] .journey-subheading > p { color: #a6c2ce; }
 html[data-theme="dark"] .itinerary-primary-actions { border-color: #376d5d; background: #123e35; }
+html[data-theme="dark"] .itinerary-primary-actions a { color: #9addff; background: #0b2939; border-color: #547b8b; }
+html[data-theme="dark"] .itinerary-primary-actions small { color: #ffbdca; }
 html[data-theme="dark"] .itinerary-secondary-actions,html[data-theme="dark"] .planner-journey-workspace .travel-layers { color: #edf7fb; border-color: #31596a; background: #0b2d3c; }
 html[data-theme="dark"] .place-community-stories { border-color: #31596a; background: #0a2735; }
 html[data-theme="dark"] .place-community-story-list > a { color: #eaf5f9; background: #0e3748; }
