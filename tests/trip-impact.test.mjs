@@ -40,3 +40,18 @@ test("out-of-range trip dates use current conditions without calling them a fore
   assert.match(impact.signals[0].title, /예보 범위 밖/);
   assert.equal(impact.actions.length, 0);
 });
+
+test("English impact copy keeps the same severity and actionable alternatives without claiming live counts", () => {
+  const input = { weatherDay: { code: 61, label: "비", max: 25, rainProbability: 80, rain: 9, snow: 0, uv: 2 }, theme: "nature", crowd: { rate: 78.4, baseYmd: "20260906", place: "미술관" }, alternative: "공원" };
+  const ko = assessTripImpact(input);
+  const en = assessTripImpact({ ...input, locale: "en" });
+  assert.equal(en.level, ko.level);
+  assert.deepEqual(en.actions.map((action) => action.id), ko.actions.map((action) => action.id));
+  assert.match(en.signals[0].detail, /Rain chance 80%/);
+  assert.match(en.signals[1].detail, /Predicted visitor concentration 78.4%/);
+  assert.equal(en.actions[1].label, "Compare replacing with 공원");
+  const current = assessTripImpact({ locale: "en", current: { label: "맑음", temperature: 0, precipitation: 0 } });
+  assert.match(current.signals[0].title, /outside the forecast range/);
+  assert.match(current.signals[0].detail, /0°/);
+  assert.match(assessTripImpact({ locale: "en" }).signals[0].title, /could not be checked/);
+});

@@ -9,7 +9,13 @@ import type {
 import type { TripImpact } from "../view-model";
 import { lazy, Suspense } from "react";
 import SituationImpactPanel from "./SituationImpactPanel";
-import WeatherBoard from "./WeatherBoard";
+import { useSitePreferences } from "../../../components/SitePreferences";
+
+function WeatherUnavailable() {
+  const { locale } = useSitePreferences();
+  return <div role="status"><p>{locale === "en" ? "The weather view could not open. Your itinerary is still available." : "날씨 화면을 열지 못했습니다. 일정은 그대로 이용할 수 있습니다."}</p><button type="button" onClick={() => window.location.reload()}>{locale === "en" ? "Reload this page" : "페이지 새로고침"}</button></div>;
+}
+const WeatherBoard = lazy(() => import("./WeatherBoard").catch(() => ({ default: WeatherUnavailable })));
 
 const PlannerSecondaryInsights = lazy(() => import("./PlannerSecondaryInsights"));
 
@@ -18,6 +24,7 @@ interface TravelSignalsPanelProps {
   plan: PlanData | null;
   weather: WeatherData | null;
   weatherLoading: boolean;
+  onReloadWeather: () => void;
   tripImpact: TripImpact;
   impactCrowd: DestinationCrowd | null;
   onImpactAction: (action: "culture" | "alternative") => void;
@@ -39,6 +46,7 @@ export default function TravelSignalsPanel({
   plan,
   weather,
   weatherLoading,
+  onReloadWeather,
   tripImpact,
   impactCrowd,
   onImpactAction,
@@ -54,10 +62,12 @@ export default function TravelSignalsPanel({
   onSecondaryOpenChange,
   onRouteFromRichSpot,
 }: TravelSignalsPanelProps) {
+  const { locale } = useSitePreferences();
+  const english = locale === "en";
   return <details open={secondaryOpen} className="journey-workspace-block travel-layers" id="layers" suppressHydrationWarning onToggle={(event) => { if (secondaryOpen !== event.currentTarget.open) onSecondaryOpenChange(event.currentTarget.open); }}>
-    <summary><span>날씨·혼잡과 주변 정보 자세히 보기</span><small>선택 사항 · 일정에 영향을 줄 때만 확인하세요.</small></summary>
+    <summary><span>{english ? "Weather, visitor forecasts and nearby information" : "날씨·혼잡과 주변 정보 자세히 보기"}</span><small>{english ? "Optional · check when it affects your itinerary." : "선택 사항 · 일정에 영향을 줄 때만 확인하세요."}</small></summary>
     {secondaryOpen && <div className="travel-signal-content">
-      <WeatherBoard region={region} weather={weather} loading={weatherLoading} />
+      <Suspense fallback={<p role="status">{english ? "Opening weather…" : "날씨 화면을 여는 중입니다…"}</p>}><WeatherBoard region={region} weather={weather} loading={weatherLoading} onReload={onReloadWeather} /></Suspense>
       {plan && <SituationImpactPanel
         tripImpact={tripImpact}
         impactCrowd={impactCrowd}

@@ -124,6 +124,7 @@ export default function PlannerPage() {
     impactCrowd,
     tripImpact,
   } = buildPlannerViewModel({
+    locale,
     plan,
     enrichment,
     richMode,
@@ -285,6 +286,7 @@ export default function PlannerPage() {
               <button type="button" className="signals-shortcut" onClick={() => { setSecondaryOpen(true); window.requestAnimationFrame(() => document.getElementById("layers")?.scrollIntoView({ behavior: motion === "calm" ? "instant" : "smooth", block: "start" })); }}>{locale === "en" ? "View weather and visitor forecasts" : "날씨·방문 경향 바로 확인하기"}</button>
               <TravelSignalsPanel
                 region={region}
+                onReloadWeather={reloadWeather}
                 plan={plan}
                 weather={weather}
                 weatherLoading={weatherLoading}
