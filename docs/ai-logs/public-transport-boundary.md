@@ -27,7 +27,14 @@ ready를 무조건 허용해 운영 검사를 통과시키지 않는다. 운영 
 - malformed JSON·누락 코드/건수·음수/소수/문자 건수·불일치·잘못된 항목·인증 오류를 거부한다.
 - 실제 fetch→정류장 snapshot→도착 호출/상태 전파를 합성 응답으로 검증했다. 미조회와 실제 조회 0건도 구분한다.
 - clean install, lint/typecheck, unit·contract **290/290**, Vercel build/performance PASS.
-- source audit는 #309 미포함 기준이며 통합 audit 0과 구분한다. 전체 브라우저·새 CI는 후속 확인한다.
+- source audit high 2/moderate 1은 #309 미포함 기준이며 통합 audit 0과 구분한다.
+- 7c6d0e1의 CI 34048166351은 **247 pass/기존 skip 1/flaky 0**으로 성공했다. PR merge 검사에는
+  최신 부모 #311 93d1058의 추가 8개 브라우저 검사가 포함된다. source에도 그 부모 커밋을 merge해 최신화했다.
+- 첫 source 전체는 237 pass/2 fail/기존 skip 1이었다. 격리 실행 포트 4189와 기존 ICS assertion의
+  고정 포트 4173이 달랐다. 실패 trace/화면을 보존하고 테스트를 바꾸지 않은 채 기본 포트로 전체 재실행한다.
+- Production 17:29:55 재확인: 실제 장소 카드로 범위를 한정해 390/1366 모두 장소 추가/새로고침 복원을
+  확인했다. 콘솔/페이지 오류·GET 실패·overflow 0, 서버 쓰기 없음. 첫 데스크톱 탐색의 넓은 버튼 선택은
+  저장 실패의 제품 증거로 세지 않는다. 자동 추천/준비도 조기 완료는 기존 운영 회귀로 남는다.
 - Secret 사용·출력, 운영 데이터 변경, 모델 API 실행 없음. 새 PR 대신 기존 #316에서 보완한다.
 
 ## 근거와 수정
