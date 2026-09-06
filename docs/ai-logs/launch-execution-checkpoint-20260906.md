@@ -27,6 +27,10 @@
 - 최신 통합 **5db27a2bdffe9e50b6031b781feaf8154e1d703e**: lint/typecheck, unit/contract **313/313**,
   Vercel production build·성능 예산 PASS, 전체 audit **0**, 전체 Playwright·axe **257 pass / 기존 skip 1** (5.8분).
   E2E fixture와 실제 Production 실호출 결과는 아래처럼 분리한다. 검사 범위를 줄이지 않았다.
+- 같은 후보의 요청된 11개 viewport 랜딩/중립 플래너 22화면: 콘솔/넘침/자동 추천 0, h1 폭 안에 표시.
+  320/768/2560 대표 화면 직접 확인. 전체 상태/200%/실기기 검수는 계속 필요하다.
+- **최신 Production 재진단 10:25:14 UTC: 20/27**, 실패 7건(route, KO/EN 추천, 보강, 지역/장소 사진, 집중률).
+  아래 23/27은 08시 이전 이력이다. 사진·집중률도 정상으로 제출하지 않는다. 기능설명서와 API 감사에 반영했다.
 
 - 이전 통합 eee1208: unit/contract 313/313, Playwright·axe 249 pass/기존 skip 1,
   lint/typecheck·Vercel build·performance·actionlint PASS, shellcheck 47 scripts/0 fail, audit 0.
@@ -47,7 +51,7 @@
 
 1. 현재 main, 18 PR/47 Issue 수의 변동, 최근 CI, Production SHA, 다른 작업자 댓글과 worktree status 재조회.
    #311 93d1058, #314 6f9fc54, #289 acb7dab의 새 CI와 통합 5db27a2 검증 결과를 먼저 확인한다.
-   #314 CI 34026490814는 성공했다. #311 CI 34026760202, #289 CI 34026711165는 마지막 조회에서 진행 중이었다.
+   #314 CI 34026490814, #311 CI 34026760202, #289 CI 34026711165는 모두 성공했다.
    wave-transport-integrity는 93d1058에서 만든 로컬 fix/planner-english-conditions 브랜치다.
    영어 후속 작업은 코드 조사만 했고 변경/새 PR을 아직 만들지 않았다. 나머지 소스 worktree는 clean이다.
 2. 영어 잔여는 실제 1366px 화면에서 재현됐다. PlannerHeader/여정 내비게이션/PlannerThemeDates 및

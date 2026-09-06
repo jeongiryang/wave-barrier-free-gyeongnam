@@ -1,18 +1,26 @@
 # W.A.V.E API·환경 변수 전수조사
 
-검증 기준일: **2026-09-05 UTC**  
-대상: `main` `3e779171725cdeec1b479838b5875cc57a2ab4c6`, Vercel Production
+최신 검증: **2026-09-06 10:25 UTC**
+
+대상: `main` / Vercel Production `34e6021265b16d046dca24feaa3ec2101fc977e2`
 
 이 문서는 키 값을 기록하지 않는다. `/api/health`의 설정 상태, 실제 Production 응답,
 성공한 CI/CD와 코드의 환경 변수 소비 경로만 대조한다.
 
-## 현재 상태 (2026-09-05)
+## 이전 상태 (2026-09-05)
 
 Production smoke 27/27은 응답 경계 검사이며 모든 사용자 흐름의 정상 동작 보장이 아니다.
 특히 광역 외 사진·휴게소, 환승 횟수, 날짜·지도 정합성은 [런칭 검증 기록](launch-audit-2026-09-05.md)에서 별도로 추적한다.
 과거 8개 언어 실호출 기록과 달리 이번 작업의 지원 언어는 한국어·영어 두 가지다.
 
 ## 2026-09-06 재검증 — 이전 정상 결과와 구분
+
+**마지막 진단 10:25:14 UTC는 20/27 통과, 7건 실패**다. route, 관광 추천 KO/EN, 관광 보강,
+지역 사진, 장소 사진, 관광 집중률이 실패했다. 사진 두 요청은 약 61.6초 뒤 계약을 만족하지 못했고
+집중률은 HTTP/전송 실패였다. 이 결과만으로 키 오류·호출 제한·제공처 장애 중 원인을 확정하지 않는다.
+설정·날씨·장소 검색·지도 설정·공개 커뮤니티·인증 세션 경계 6개 및 공개 페이지 14개는 통과했다.
+10:21 UTC health는 HTTP 200/ok이며 여전히 configuration 범위다. 아래 08시 사진·집중률 성공 기록을
+현재 정상 판정으로 사용하지 않는다. 최종 제출 활용 목록과 기능설명서도 이 실패 상태를 반영한다.
 
 Production SHA `34e6021265b16d046dca24feaa3ec2101fc977e2`, 08:22 UTC 재조회에서
 Kakao 자동차·ODsay 대중교통은 실제 경로를 반환했으나 KORAIL·TAGO 정류장/철도/고속/시외
@@ -51,12 +59,12 @@ enrich는 11.28초 뒤 방문자·고캠핑·관광 수요·휴게소 live와 �
 | `KorWithService2 / areaBasedList2, detailWithTour2` | `plan-builder.ts`, `shared-plan-restoration.ts` | 추천·편의 근거·공유 복원 | plan error, 최종 실호출·복원 필요 |
 | `KorService2 / areaBasedList2, detailCommon2, searchKeyword2, searchFestival2` | `plan-builder.ts`, `spot-photo.ts`, `region-photo.ts`, `regional-enrichment.ts` | 국문 추천·사진 대안·행사·숙박 | plan/enrich error, 사진 응답 성공은 개별 원천 전체 성공 보장 아님 |
 | `EngService2 / areaBasedList2` | `catalog.ts`, `plan-builder.ts`, `enrichment-sources.ts` | 영문 관광 정보 | 영문 plan 계약 실패 |
-| `PhotoGalleryService1 / gallerySearchList1` | `region-photo.ts`, `spot-photo.ts` | 랜딩 지역·관광지 사진 | 사진 API 계약 통과, 최종 화면 원천/출처 재대조 |
+| `PhotoGalleryService1 / gallerySearchList1` | `region-photo.ts`, `spot-photo.ts` | 랜딩 지역·관광지 사진 | 08시 계약 통과 → 10:25 지역/장소 사진 계약 실패. 원천별 오류·출처 재대조 |
 | `Odii / storySearchList` | `plan-builder.ts` | 오디오 가이드 | plan error |
 | `Durunubi / courseList` | `plan-builder.ts` | 걷기 코스 | plan error |
 | `LocgoHubTarService1 / areaBasedList1` | `concentration.ts` | 중심 관광지 | plan error |
 | `TarRlteTarService1 / areaBasedList1` | `concentration.ts` | 연관 관광지 | plan error |
-| `TatsCnctrRateService / tatsCnctrRatedList` | `concentration.ts` | 관광 집중률 예측 | 단독 crowd 계약 통과, plan의 같은 제공처는 예산 내 실패 |
+| `TatsCnctrRateService / tatsCnctrRatedList` | `concentration.ts` | 관광 집중률 예측 | 08시 단독 crowd 통과 → 10:25 HTTP/전송 실패, plan도 실패 |
 | `DataLabService / locgoRegnVisitrDDList` | `visitor-demand.ts` | 지역 방문 통계 | enrich live, 화면 통계 기간/출처 확인 필요 |
 | `AreaTarResDemService / areaTarSvcDemList` | `visitor-demand.ts` | 관광 자원 수요 | enrich live, 실제 수요 값·기간 표출 확인 필요 |
 | `GoCamping / searchList, basedList` | `regional-enrichment.ts` | 캠핑 여행 보강 | enrich live, 편의 추천과 혼동하지 않도록 최종 검수 |
