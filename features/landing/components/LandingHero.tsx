@@ -3,11 +3,11 @@ import { useSitePreferences } from "../../../components/SitePreferences";
 import WaveField from "../../../components/WaveField";
 import type { LandingTranslate } from "../content";
 
-export default function LandingHero({ t }: { t: LandingTranslate }) {
+export default function LandingHero({ t, replay = 0 }: { t: LandingTranslate; replay?: number }) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
   return <section className="landing-hero" id="top">
-    <WaveField replay={0} className="hero-wave-canvas" tone="light" mode="intro" />
+    <WaveField replay={replay} className="hero-wave-canvas" tone="light" mode="intro" />
     <div className="landing-hero-copy" data-land-reveal>
       <p><span className="access-badge">{t("heroBadge", "경남 무장애 여행")}</span></p>
       <h1>{t("heroTitle", "필요한 편의부터 고르고,")}<br /><em>{t("heroEm", "나에게 맞는 경남 여행을 찾아보세요.")}</em></h1>

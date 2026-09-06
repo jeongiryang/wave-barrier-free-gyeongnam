@@ -5,7 +5,7 @@ import { PreferenceControls } from "../../../components/SitePreferences";
 import type { LandingTranslate } from "../content";
 import LandingAccountMenu from "./LandingAccountMenu";
 
-export default function LandingHeader({ scrolled, t }: { scrolled: boolean; t: LandingTranslate }) {
+export default function LandingHeader({ scrolled, t, onReplayIntro }: { scrolled: boolean; t: LandingTranslate; onReplayIntro: () => void }) {
   return <header className={scrolled ? "landing-header scrolled" : "landing-header"}>
     <a className="brand" href="#top" aria-label="W.A.V.E 홈">
       <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span>
@@ -17,6 +17,6 @@ export default function LandingHeader({ scrolled, t }: { scrolled: boolean; t: L
       { href: "/travel-book", label: "내 일정" },
       { href: "/community", label: "여행 후기" },
       { href: "/login", label: "로그인" },
-    ]} /><HelpCenter /><PreferenceControls /><LandingAccountMenu /><Link className="landing-start" href="/planner">여행 계획 만들기 <span>↗</span></Link></div>
+    ]} /><HelpCenter /><PreferenceControls onReplayIntro={onReplayIntro} /><LandingAccountMenu /><Link className="landing-start" href="/planner">여행 계획 만들기 <span>↗</span></Link></div>
   </header>;
 }
