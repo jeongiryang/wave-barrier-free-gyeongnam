@@ -4,7 +4,7 @@
 담당의 Engineering/QA는 위임된 구현·검증 역할, PM/운영자는 사람 확인 역할을 뜻한다.
 
 
-원격 전수 조회: 2026-09-06 20:51 UTC, Issue47·PR32. 열린 PR: #287, #289, #291, #293, #296, #298, #300, #302, #304, #306, #307, #309, #311, #312, #313, #314, #315, #316, #317, #318, #319, #320, #321, #322, #323, #324, #325, #326, #327, #328, #329, #330.
+원격 전수 조회: 2026-09-06 22:23 UTC, Issue47·PR33. 열린 PR: #287, #289, #291, #293, #296, #298, #300, #302, #304, #306, #307, #309, #311, #312, #313, #314, #315, #316, #317, #318, #319, #320, #321, #322, #323, #324, #325, #326, #327, #328, #329, #330, #331.
 
 ## 기준과 판정 방법
 
@@ -40,25 +40,41 @@
   교통 import 및 환경설정 status 충돌을 양쪽 기능을 보존해 해결했다. unit334/334·lint/typecheck/build/performance PASS,
   audit0·CSS69.80/70·planner268.85/270KiB. 전체 Playwright·axe **437 pass/기존skip1/실패0(9.8분)**.
   source PR의 과거 HEAD와 새 후보 결과를 섞지 않는다. 독립 재검토·Preview·Production 확인은 별도다.
-- **지도 실패 #329 `7f53de47eb035c398d5b4bdb1baa2cc5d1537da0`, Draft**:
-  기본/대체 지도 전체 실패를 알리고 기기 일정·텍스트 경로를 유지하는 KO/EN 재로딩을 제공한다.
-  이전3022fc2 source/CI433 성공 뒤 독립 리뷰의 열린 panel P1을2 FAIL로 재현했다. 지도 전용 panel/pick/roadview 정리,
-  내부 focus만 복구·외부 focus 보존·늦은 위치 callback 차단을 추가했다. 계약6·관련84·캡처6·unit310·기본검사PASS.
-  새 전체 source439 pass/기존skip1/실패0(9.7m). [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34058720475)는 진행 중이다.
-- **이미지·페이지 링크 #330 `48f3f409f8678b7af8093272be8a0694213212a1`, Draft**:
-  변환 전 저장 성공/공유 오류 무시를 수정하고 실제 다운로드 시작·실패·취소·재시도를 구분한다. 페이지 링크에 일정은 포함되지 않는다.
-  안내도/추정 시간/무장애 이동 미보장 표시·출발지 잘림, tablet drawer 폭·대비·map control 겹침을 바로잡았다.
-  첫 b456754 source457 pass/기존skip1/실패0(10.3m), 관련48·unit313·기본검사PASS. 부모7f53de4를 합친 뒤
-  복구 버튼이 고정 하단 내비게이션에 가려지는 실제 hit-test 실패1건도 수정했다. 관련38/38·unit316/316·기본검사PASS,
-  CSS69.46/70·planner268.80/270KiB. 새 전체·[CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34059135961)는 진행 전/중이다.
-- **지도까지 합성한 과거 증거**:8fe80acb2d9987debcfc0a5b9e288cc0da07a3cd unit337/audit0·전체445 pass/기존skip1/실패0(10.3m).
-  fd3e3d8 unit343/audit0·기본검사PASS는 b456754까지이며 위 열린 panel P1은 미포함이다. 최신48f3f40을 합친90f855b5f9ec3a9ad0f3191e046422b1c2db6fa2는 unit346/346·기본검사/audit0 PASS(CSS69.85/70·planner268.86/270KiB), 전체 검증을 이어간다.
-  이전 실패 artifact와 27pass/1fail 랜딩 transient·46pass/2fail 과거 공유 이름·37pass/1fail 실제 가림 경계를 AI 로그에 보존한다.
-  지도 전체 언어와 소개 지도 실제 행정경계는 별도 미완료다. 소개 지도는 공식 행정경계 출처가 없는 자체 단순화 안내도다.
+- **지도 실패 #329 `43ebf0812450512663b3f939657688fdb7dad5e1`, Ready**:
+  열린 panel/pick/roadview 정리·부분 map 제거·외부 focus/늦은 위치 callback 가드를 유지했다.
+  이전7f53de4 source/CI439 성공 뒤 자식48f3f40의 [CI34059135961](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34059135961)는
+  462 pass/기존skip1/모바일 focus1 fail(첫 실행·재시도 모두)로 실패했다. CPU4배 지연에서도2 FAIL/2 PASS였으며,
+  한 번 실행한 requestAnimationFrame이 React 오류 버튼 commit보다 먼저 실행된 trace를 확인했다.
+  새 hook이 교체 전 focus를 기억하고 commit 뒤 useLayoutEffect에서 복구한다. 새/외부 focus를 빼앗지 않고 버튼을 가운데 드러낸다.
+  hook4+위치3 계약, CPU4배 지연6 E2E×3회=18/18, unit314·lint/typecheck/Vercel build/performance PASS.
+  전체 source439 pass/기존skip1/실패0(10.0분), [CI439 pass/기존skip1/flaky0(18.2분)](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34060718068).
+- **이미지·페이지 링크 #330 `21fdbd674d8a36a1e9dc3f59186cc0cb45f831c3`, Ready**:
+  실제 PNG 다운로드 시작·오류/취소/재시도, 안내도/추정값/무장애 이동 미보장, 출발지 잘림과 tablet drawer 폭·대비를 수정했다.
+  페이지 링크에 일정이 포함되지 않는 범위를 명시한다. 부모43ebf08을 합치며 action 상태와 availability/focus 가드를 보존했다.
+  unit320·관련38·lint/typecheck/build/performance PASS, 전체 source463 pass/기존skip1/실패0(10.5분),
+  [CI463 pass/기존skip1/flaky0(18.2분)](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34060894554).
+  양 PR은 미병합·미배포이며 리뷰를 임의 승인/resolve하지 않았다.
+- **최신 합성 검증 `8e33414845ea10520be67094edce88c45e0670c6`**:
+  #33021fdbd6까지 기존 제품·보안·자동화 stack에 합쳤다. unit350·lint/typecheck/build/performance·audit0 PASS,
+  CSS69.85/70·랜딩114.34/155·플래너268.87/270KiB. 전체475 pass/기존skip1/실패0(11.1분).
+  이전d4c4911의346/475 성공이 놓친 focus race는 위 새 검사로 재현/수정했다. 로컬 검증을 CI/Preview/Production으로 세지 않는다.
+- **#258 소개 지도**: `fix/landing-region-boundaries`는 #320을 보존한 별도 worktree다. 기존 SGIS2020의 실제18경계,
+  대한민국 위치 안내,44px 목록·KO/EN·사진/모듈 실패 대안·지연 로딩을 구현했다. 최신2025 경계를 적용했다고 표시하지 않는다.
+  호버 미리보기로 높이가 변하면서 scroll anchoring이99px 왕복하는 실제 실패는 위쪽 정렬로 수정했다.
+  unit282·기본검사·반복54·관련34 PASS. 첫 전체263 pass/기존skip1/2 fail은 고정4173 캘린더 URL이었다.
+  기존 a62886a의 baseURL assertion을 재사용해 관련4/4·전체265 pass/기존skip1/실패0(5.7분)을 확인했다.
+  [#331](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/331) `cc5db1102d8585d2066d8a0037c2f8fa2d8f6861`로 clean/push,
+  [CI34063758123](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34063758123) 진행 중·Draft·미병합·미배포다.
+  390/1366px 각각18개 touch 선택·링크/경계 동기화·빈 사진 fixture·console/overflow0을 직접 검증했다.
+  로컬 키 미설정 사진503은 별도 실패 기록이며 실제 API 성공으로 세지 않는다.
+- **지도 합성 `c1ed5e5d74cfdc017ef91790ff8ffea5fd2e29b3`**: #331cc5db11까지 충돌 없이 합쳤다.
+  unit352·lint/typecheck/Vercel build/performance·audit0 PASS. gzip CSS69.71/70·landing115.13/155·planner268.58/270KiB.
+  source 감사 high2/moderate1은 #309 미포함 개발 의존성이며 이 통합에는 남지 않는다. 전체 브라우저 검증은 문서 합성 뒤 실행한다.
+  통합 변경은 로컬 검증용 브랜치이며 기존 PR/사람 승인/배포를 대신하지 않는다.
 
 - 보존된 Ready: #327579cd82 전체 로컬/CI411, #3260a8df96 389, #319be9e908 283,
   #324c81e68f CI349, #323e358e0f CI327, #320/#321/#322. 모두 기존skip1이며 미배포다.
-  #313521d785의 [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34056055328)도 성공했다.
+  #313의 직전906e700 [CI247 pass/기존skip1](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34059681465)도 성공했다. 새 문서 CI는 별도다.
   source audit high2/moderate1은 #309 미포함 개발 의존성이고, 보안 변경을 합성한 audit0과 구분한다.
 - Production 20:22:04 UTC 이전 진단27/27 PASS로 route 응답도 회복했다. 하지만 최신 후보의 공식check-production-apis는 queryStatus/resultCount 교통 조회 증거 계약에서 route FAIL이다. 설정/legacy ready를 실제 확인으로 세지 않는다. 이전16:56:46 UTC26/27 PASS·route1 FAIL 이력도 보존한다. 17:29:55 익명390/1366에서 카드3개·일정 추가/새로고침 복원,
   pageerror/console error/GET 실패/overflow0. GPS·서버쓰기·mock 없이 검증했다. 기존 자동 추천/장소1개100% 회귀는 운영에 남는다.
@@ -89,7 +105,7 @@
 | #255 기능 위계 | Engineering/QA | 진행 중 | #287/#311, `app/planner/page.tsx`, `e2e/planner-product-flow.spec.ts` | 실제 좁은 화면·짧은 높이·첫 행동 검증 |
 | #256 날씨 시각화 | Engineering/QA | 진행 중 | `features/planner/components/WeatherBoard.tsx`, `tests/weather-integrity.test.mjs` | 예보 밖 날짜·영어·빈 상태·운영 예보 확인 |
 | #257 소개 문구 | Engineering/QA | 진행 중 | #311, `features/landing/components/`, `e2e/landing-regions.spec.ts` | 실제 사용자 이해·공식 사진·KO/EN 잔여 문구 |
-| #258 경남 지도 | Engineering/QA | 진행 중 | #287, `LandingRegionStory.tsx`, `e2e/landing-regions.spec.ts` | 공식 경계·텍스트 대안·실기기·출처 재검증 |
+| #258 경남 지도 | Engineering/QA | 진행 중(코드·로컬 PASS) | #331 cc5db11, 경계/목록·지연/실패14 E2E, 전체265·합성unit352/audit0 | CI·통합 전체·Preview·병합/Production·실기기 |
 | #259 캘린더·지도 소개 | Engineering/QA | 진행 중 | #287/#311/#315, `LandingProductStories.tsx`, `e2e/reduced-motion-scroll.spec.ts` | 다시보기 계약은 후보 회귀 검증, 실제 운영 반영·시각 검수 |
 | #261 중립·명시적 검색 | Engineering/QA | 진행 중 | #287/#311, `usePlanRequest.ts`, `e2e/launch-integrity.spec.ts` | 모든 진입 경로·프로필 적용·운영 요청 증거 |
 | #263 UX Epic | Engineering/QA/PM | 진행 중 | 본 실행표, #287/#307/#311 | 개별 AC 완료와 운영 반영을 함께 집계 |

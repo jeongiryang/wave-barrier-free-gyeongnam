@@ -3,7 +3,53 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 현재 재개 우선점 — 2026-09-06 지도 오류·공유 복구
+## 현재 재개 우선점 — 2026-09-06 22:23 UTC
+
+- **지도 실패 #329 `43ebf0812450512663b3f939657688fdb7dad5e1`, Ready**:
+  열린 panel/pick/roadview 정리·부분 map 제거·외부 focus/늦은 위치 callback 가드를 유지했다.
+  이전7f53de4 source/CI439 성공 뒤 자식48f3f40의 [CI34059135961](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34059135961)는
+  462 pass/기존skip1/모바일 focus1 fail(첫 실행·재시도 모두)로 실패했다. CPU4배 지연에서도2 FAIL/2 PASS였으며,
+  한 번 실행한 requestAnimationFrame이 React 오류 버튼 commit보다 먼저 실행된 trace를 확인했다.
+  새 hook이 교체 전 focus를 기억하고 commit 뒤 useLayoutEffect에서 복구한다. 새/외부 focus를 빼앗지 않고 버튼을 가운데 드러낸다.
+  hook4+위치3 계약, CPU4배 지연6 E2E×3회=18/18, unit314·lint/typecheck/Vercel build/performance PASS.
+  전체 source439 pass/기존skip1/실패0(10.0분), [CI439 pass/기존skip1/flaky0(18.2분)](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34060718068).
+- **이미지·페이지 링크 #330 `21fdbd674d8a36a1e9dc3f59186cc0cb45f831c3`, Ready**:
+  실제 PNG 다운로드 시작·오류/취소/재시도, 안내도/추정값/무장애 이동 미보장, 출발지 잘림과 tablet drawer 폭·대비를 수정했다.
+  페이지 링크에 일정이 포함되지 않는 범위를 명시한다. 부모43ebf08을 합치며 action 상태와 availability/focus 가드를 보존했다.
+  unit320·관련38·lint/typecheck/build/performance PASS, 전체 source463 pass/기존skip1/실패0(10.5분),
+  [CI463 pass/기존skip1/flaky0(18.2분)](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34060894554).
+  양 PR은 미병합·미배포이며 리뷰를 임의 승인/resolve하지 않았다.
+- **최신 합성 검증 `8e33414845ea10520be67094edce88c45e0670c6`**:
+  #33021fdbd6까지 기존 제품·보안·자동화 stack에 합쳤다. unit350·lint/typecheck/build/performance·audit0 PASS,
+  CSS69.85/70·랜딩114.34/155·플래너268.87/270KiB. 전체475 pass/기존skip1/실패0(11.1분).
+  이전d4c4911의346/475 성공이 놓친 focus race는 위 새 검사로 재현/수정했다. 로컬 검증을 CI/Preview/Production으로 세지 않는다.
+- **#258 소개 지도**: `fix/landing-region-boundaries`는 #320을 보존한 별도 worktree다. 기존 SGIS2020의 실제18경계,
+  대한민국 위치 안내,44px 목록·KO/EN·사진/모듈 실패 대안·지연 로딩을 구현했다. 최신2025 경계를 적용했다고 표시하지 않는다.
+  호버 미리보기로 높이가 변하면서 scroll anchoring이99px 왕복하는 실제 실패는 위쪽 정렬로 수정했다.
+  unit282·기본검사·반복54·관련34 PASS. 첫 전체263 pass/기존skip1/2 fail은 고정4173 캘린더 URL이었다.
+  기존 a62886a의 baseURL assertion을 재사용해 관련4/4·전체265 pass/기존skip1/실패0(5.7분)을 확인했다.
+  [#331](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/331) `cc5db1102d8585d2066d8a0037c2f8fa2d8f6861`로 clean/push,
+  [CI34063758123](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34063758123) 진행 중·Draft·미병합·미배포다.
+  390/1366px 각각18개 touch 선택·링크/경계 동기화·빈 사진 fixture·console/overflow0을 직접 검증했다.
+  로컬 키 미설정 사진503은 별도 실패 기록이며 실제 API 성공으로 세지 않는다.
+- **지도 합성 `c1ed5e5d74cfdc017ef91790ff8ffea5fd2e29b3`**: #331cc5db11까지 충돌 없이 합쳤다.
+  unit352·lint/typecheck/Vercel build/performance·audit0 PASS. gzip CSS69.71/70·landing115.13/155·planner268.58/270KiB.
+  source 감사 high2/moderate1은 #309 미포함 개발 의존성이며 이 통합에는 남지 않는다. 전체 브라우저 검증은 문서 합성 뒤 실행한다.
+  통합 변경은 로컬 검증용 브랜치이며 기존 PR/사람 승인/배포를 대신하지 않는다.
+
+- #329 worktree `wave-map-controls-language` / `fix/map-load-recovery`, #330 `wave-map-export-recovery` / `fix/map-export-recovery`는 clean/push다.
+- 통합 worktree `wave-launch-integration` / `audit/launch-integration-20260906`는 clean/push다. #258 worktree는 `wave-landing-boundaries`다.
+- main/Production34e6021265b16d046dca24feaa3ec2101fc977e2·배포6278499275, #287 승인0/3. Preview/008 운영 스키마·백업·복원 확인과 적용은 미완료다.
+- Production20:22:04.532Z 이전 진단27/27 PASS지만 최신 후보 check-production-apis는 route queryStatus/resultCount 계약 FAIL이다.
+- 모델 API3workflow disabled_manually, 새 유료 실행/예약/인증 복사 없음. 기존 웹 Scheduled5개와 로컬 구현→별도 QA 전체 자동화 미검증은 구분한다.
+- 소유 서버4187(통합)·4203(#258)만 유지하며4199/4201은 종료했다. 실패 artifact와 로그는 TEMP의 `wave-launch-20260906` 아래 보존한다.
+  `ci330-merged-artifacts`, `map-focus-ci-before-artifacts`, `landing-boundary-clean-failures`, `boundary-pointer-measured-artifacts`,
+  `boundary-stability-first-artifacts`, `boundary-threepx-artifacts`, `landing-boundary-full-port-failures`를 삭제하지 않는다.
+- 다음: #331 CI 완료→문서까지 합친 새 통합 전체 검사→공용 원장과 Ready 판단을 갱신한다. 이어 주변 장소 검색의 error/empty 구분·stale callback·한/영 흐름을 실제 재현한다.
+  이후 지도·주변 보강정보·인증/정책 KO/EN, 실제200%/실기기/낭독기/Web Vitals·Preview/008·Production·제출/자동화 검증을 이어간다.
+  사람 Gate 때문에 독립 코드 작업을 중단하지 않는다. 부모 병합 후 자식의 최신main/diff/전체CI/필수 승인을 다시 확인한다.
+
+## 과거 실행 상태 — 아래 대기 수치는 이후 결과로 대체됨 — 2026-09-06 지도 오류·공유 복구
 
 - #329 `7f53de47eb035c398d5b4bdb1baa2cc5d1537da0`, worktree `wave-map-controls-language`, branch `fix/map-load-recovery`, clean/push·Draft.
   최초 모듈 오류2 FAIL, 최초 전체427 pass/6 fail(HMR query fixture 미가로채기) 뒤 source/CI433 통과한3022fc2를 보존한다.
