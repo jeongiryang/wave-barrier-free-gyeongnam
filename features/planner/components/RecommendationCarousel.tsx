@@ -7,6 +7,7 @@ import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place } from "../types";
+import { facilityName, originalLanguage } from "../place-copy";
 
 export default function RecommendationCarousel({ region, activePlaces, planController, tripSelection, onGenerate, onSelectPlace }: {
   t: (key: string, fallback: string) => string;
@@ -29,6 +30,7 @@ export default function RecommendationCarousel({ region, activePlaces, planContr
   return <>
     <div className="journey-subheading"><div><h2>{say("내 조건에 맞는 여행지", "Places for your trip")}</h2></div><div className="carousel-actions"><button type="button" onClick={() => scrollCards(-1)} aria-label={say("이전 여행지", "Previous places")}>←</button><button type="button" onClick={() => scrollCards(1)} aria-label={say("다음 여행지", "Next places")}>→</button></div></div>
     <p className="stage-guidance">{say("확인된 편의와 아직 모르는 정보를 함께 보고, 마음에 드는 곳을 일정에 담으세요.", "Compare reported facilities and missing information, then add places to your itinerary.")}</p>
+    {en && <p className="original-language-note">Place names, addresses and facility evidence may be available only in Korean. Original records are preserved.</p>}
     {dirty && <div className="result-notice" role="status"><strong>{say("조건이 변경됐어요.", "Your preferences have changed.")}</strong><p>{say("아래는 이전 조건의 결과예요. 다시 찾기 전에는 새 일정에 추가할 수 없습니다.", "These are previous results. Search again before adding places.")}</p><button type="button" disabled={loading || !selected.length} onClick={() => void onGenerate(false)}>{say("변경한 조건으로 다시 찾기", "Search with new preferences")}</button></div>}
     {planError && <div className="result-notice error" role="alert"><strong>{say("여행지를 불러오지 못했어요.", "We couldn't load places.")}</strong><p>{say("기존 결과와 내 일정은 보관했어요. 연결 상태를 확인하고 다시 시도해 주세요.", "Your previous results and itinerary are kept. Check your connection and try again.")}</p><button type="button" disabled={loading || !selected.length} onClick={() => void onGenerate(false)}>{say("다시 시도", "Try again")}</button></div>}
     <div className="place-carousel" ref={cardsRef} aria-busy={loading}>
@@ -39,8 +41,8 @@ export default function RecommendationCarousel({ region, activePlaces, planContr
         const confirmed = place.accessibility?.filter((item) => item.state === "confirmed");
         return <article className="place-card" key={place.id} data-result-current={resultCurrent}>
           <SmartSpotImage src={place.image} title={place.name} region={place.city || region} tag={say("관광지", "Place")} rank={index + 1} contentId={place.id} className="place-visual" showMeta={false}><span className="city-chip">{place.city || region}</span></SmartSpotImage>
-          <div className="place-content"><h3>{place.name}</h3><p className="place-address">{place.address || place.summary}</p>
-            <div className="feature-list" lang="ko">{(confirmed?.map((item) => item.label) || place.features).slice(0, 3).map((feature) => <span key={feature}>✓ {feature}</span>)}</div>
+          <div className="place-content"><h3 lang={originalLanguage(place.name)}>{place.name}</h3><p className="place-address" lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
+            <div className="feature-list">{(confirmed?.map((item) => facilityName(item.key, item.label, en)) || place.features).slice(0, 3).map((feature) => <span key={feature} lang={originalLanguage(feature)}>✓ {feature}</span>)}</div>
             <p className="facility-caution">{say("방문 전 확인", "Before visiting")}: {place.unknownFields || 0}{say("개 항목 미확인", " facilities not reported")}{Boolean(place.negativeFields) && ` · ${place.negativeFields}${say("개 불일치", " not available")}`}</p>
             <div className="place-actions"><button type="button" onClick={() => onSelectPlace(place)}>{say("편의시설 보기", "View facilities")}</button><button type="button" className={saved.includes(place.id) ? "saved" : "primary"} disabled={!saved.includes(place.id) && !resultCurrent} onClick={() => toggleSaved(place.id)} aria-pressed={saved.includes(place.id)} aria-label={`${place.name} ${saved.includes(place.id) ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary")}`}>{saved.includes(place.id) ? say("추가됨 · 빼기", "Added · remove") : say("일정에 추가", "Add to itinerary")}</button></div>
           </div>
