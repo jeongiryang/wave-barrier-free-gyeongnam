@@ -1,5 +1,8 @@
+import CompactJourneyVisual from "./CompactJourneyVisual";
+
 export default function LandingTravelBookStory() {
   return <article className="product-story travel-book-story reverse" data-land-reveal>
+    <CompactJourneyVisual stage="save" />
     <div className="product-story-copy">
       <p className="section-kicker">06 · 내 일정</p>
       <h2>만든 일정은<br /><em>다시 이어서 보세요.</em></h2>
