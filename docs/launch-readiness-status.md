@@ -6,19 +6,28 @@
 ## 기준과 판정 방법
 
 - main·Production: `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포 ID `6278499275`.
-- 열린 Issue **47개**, PR **28개**. 후속 #312~#326과 팀원의 #320을 보존했다.
+- 열린 Issue **47개**, PR **29개**. 후속 #312~#327과 팀원의 #320을 보존했다.
 - #287 `b803b80`은 Ready·CI 성공·MERGEABLE이나 **승인 0/3, REVIEW_REQUIRED/BLOCKED**다.
   요청 reviewer는 syt83·unknownamed·ginaginaring이다. 보호 규칙 우회·병합·배포·008 적용은 없다.
 - 통합은 검증용 `audit/launch-integration-20260906`에서 기존 제품·보안 #309·자동화 stack을 합성한다.
   기존 PR을 닫거나 거대 대체 PR을 만들지 않는다. 부모 병합 후 자식에 최신 main을 합쳐 diff와 CI를 다시 확인한다.
-- **전체 검증 완료 후보 `954da148c4a20f0929f3fd17c1dc17b858ddec1c`**:
-  unit·contract **320/320**, lint/typecheck/Vercel build/performance PASS, audit **0**,
-  전체 Playwright·axe **393 pass / 기존 skip 1 / 실패 0 (9.2분)**.
-  CSS gzip **69.72/70 KiB**, planner 초기 JS **269.68/270 KiB**. Preview·Production 성공을 뜻하지 않는다.
-- 후속 **`1fda5f3a4215c66a7e35b17a5b2c98f9d83b20e3`**는 #316 `9792cbf`의 교통 응답 검증까지 합성·push했다.
-  기본 검증한 d0a5bc1과 코드는 같고 작업 로그만 다르다.
-  unit **324/324**, lint/typecheck/build/performance PASS, audit **0**. 전체 브라우저는 source 검사 뒤 실행한다.
-  954da14의 393건을 이 새 SHA의 성공으로 세지 않는다.
+- **최신 통합 검증 후보 `04375f5aebe579a5f73059e4fda3d516445bfb2e`**:
+  #327 교통 조회 근거/한영 복구 UI까지 합성·push했다. unit·contract **328/328**,
+  lint/typecheck/Vercel build/performance PASS, audit **0**, 전체 Playwright·axe
+  **415 pass / 기존 skip 1 / 실패 0 (9.2분)**. CSS **69.78/70 KiB**, planner 초기 JS **269.58/270 KiB**.
+  이전 698d30a의 전체393/기본324도 통과했다. Preview·Production 성공으로 대신하지 않는다.
+- **#327 `579cd82ced3bcc70e84fce5565cf129ff3b68c06`**: 정상0건/미조회/오류/legacy ready를 구분하고
+  누락 도착시간·정류장 수, 목록의 운행 과장, 재조회 포커스/viewport 가림, 교통 상세 KO/EN을 수정했다.
+  관련112/112·신규22/22, unit301/301·기본검사PASS, 전체 로컬 **411 pass/기존 skip1/실패0(9.0분)**,
+  [CI도 411 pass/기존 skip1/flaky0(15.5분)](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34051397198), Ready.
+  source audit3건은 #309 미포함 개발 의존성이며 통합 audit0과 구분한다.
+  새 Production 계약은 parser 검증 후 queryStatus/resultCount를 필수로 요구한다. KORAIL/현재 도착정보의
+  실제 성공0건만 허용하고 미조회/오류/근거 없는 ready를 거부한다. 정류장/지역/터미널은 양수 결과 필수다.
+  과거 Production의 route 실패를 이 계약 변경만으로 해결했다고 세지 않는다.
+- **진행 중 `fix/weather-language`**: #327 이후 별도 worktree에서 날씨 영어/날짜/실패 복구를 검수한다.
+  수정 전 데스크톱·모바일6건 실패를 보존했다. 잘못된 응답으로 플래너가 깨지고, 재조회 버튼이 없으며,
+  영어 화면에 한국어가 남았다. 실제 캡처의 밝은 화면 대비와 첫 예보를 무조건 오늘로 부르는 문제도 수정 중이다.
+  아직 미커밋·미PR이며 통합04375f5의 성공에 포함하지 않는다. 기존 작업을 덮어쓰지 않는다.
 - **#319 `be9e908`**: 도움말 표시 직후 첫 Shift+Tab이 배경으로 빠지는 4건을 재현했다.
   layout effect로 표시 전 focus/trap을 설정한다. 관련 14/14, unit 280/280, 전체 로컬 **283 pass/기존 skip 1**,
   [CI 34046824130 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34046824130), Ready.
@@ -33,9 +42,9 @@
   수정 전 8 pass/2 fail → 관련 10/10, unit 290/290, lint/typecheck/build/performance PASS.
   7c6d0e1의 [CI 34048166351](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34048166351)는 247 pass/기존 skip 1로 성공했다.
   최신 부모 #311을 합친 전체 로컬은 **247 pass/기존 skip 1/실패 0 (5.6분)**이다.
-  [새 CI 34048864949](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34048864949)는 확인 중이다.
+  [새 CI 34048864949](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34048864949)는 247 pass/기존 skip1/flaky0으로 성공했고 Ready다.
   첫 로컬 전체 237 pass/2 fail은 격리 포트 4189와 기존 ICS 기대 포트 4173 불일치다. 테스트 변경 없이 기본 포트에서 재검증했다.
-  Production smoke의 connected 조건·timeout·기존 assertion은 바꾸지 않았다.
+  #316에서는 smoke를 변경하지 않았다. 이후 #327의 명시적 조회 근거 계약은 위 항목과 구분한다.
 - #324 `c81e68f`는 [CI 349 pass/기존 skip 1](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34043069596),
   #323 `e358e0f`는 [CI 327 pass/기존 skip 1](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34040324753),
   #313 `4cc52aa`는 [CI 247 pass/기존 skip 1](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34043473857), 모두 Ready.

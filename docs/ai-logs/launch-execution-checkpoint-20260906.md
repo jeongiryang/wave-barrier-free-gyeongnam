@@ -3,7 +3,26 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 현재 재개 우선점 — 2026-09-06 17:38 UTC
+## 현재 재개 우선점 — 2026-09-06 18:39 UTC
+
+- 최신 통합 **04375f5aebe579a5f73059e4fda3d516445bfb2e**, clean/push. 전체415 pass/기존skip1/실패0(9.2분),
+  unit328/328·lint/typecheck/build/performance PASS·audit0. CSS69.78/70·planner269.58/270KiB.
+- #327 **579cd82ced3bcc70e84fce5565cf129ff3b68c06**, wave-transport-display / fix/transport-evidence-language,
+  clean/push, Ready. Base#326 + parser#316. 관련112·신규22·unit301·전체source411 pass/기존skip1/실패0,
+  CI34051397198도411 pass/기존skip1/flaky0 성공. 운영 미반영이다.
+- #313 ea2a62b CI34049310748 247 pass/기존skip1, #316 9792cbf CI34048864949 247 pass/기존skip1,
+  #319 be9e908 CI283, #325 aa48328 CI367, #326 0a8df96 CI389: 모두 성공·Ready·미배포.
+- **현재 원자적 작업:** wave-weather-language / fix/weather-language는579cd82 기반이며 직접 만든 미커밋 변경을 보존한다.
+  날씨 응답 검증/실제 날짜/날씨만 재조회/KO·EN/밝은 화면 대비와 일정 영향 문구 작업이다.
+  수정 전 E2E6 FAIL과 trace/error-context/화면은 TEMP/wave-launch-20260906/weather-language-before-artifacts에 있다.
+  unit304·lint/typecheck/build/performance PASS(CSS69.41/70·planner268.82/270), 새12개 E2E의 첫 결과는4 pass/8 fail이며 복구/대비/테스트 locator 원인을 분리해 수정 중이다.
+  아직 전체·CI·PR·통합 성공으로 세지 않는다. 서버4193은 이 작업 소유이며4191/4187은 종료했다.
+- 다음 순서: 날씨 새 E2E 실패 분석→관련여정→전체 검증→커밋/PR/CI→통합 검증. 지도 SDK/주변 보강정보/인증·정책
+  KO·EN, 실제200%·실물기기/화면낭독기·Production/Preview·008 검증 등 기존 열린 목록을 계속 진행한다.
+- main/Production34e6021·배포6278499275·ruleset20970955의 승인0/3·validate strict 유지.
+  모델 API workflow3개 disabled_manually. 새 키/과금 호출/예약/Secret 복사/운영 쓰기/병합/배포 없음.
+
+## 이전 실행 스냅샷 — 2026-09-06 17:38 UTC
 
 - 보존된 최신 검증 후보 **954da148c4a20f0929f3fd17c1dc17b858ddec1c**: 전체 **393 pass/기존 skip 1/실패 0 (9.2분)**,
   unit 320/320, lint/typecheck/build/performance PASS, audit 0. CSS 69.72/70·planner 269.68/270 KiB.
