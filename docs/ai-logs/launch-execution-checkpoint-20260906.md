@@ -3,7 +3,34 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 현재 재개 우선점 — 2026-09-06
+## 현재 재개 우선점 — 2026-09-06 지도 오류·공유 복구
+
+- #329 `7f53de47eb035c398d5b4bdb1baa2cc5d1537da0`, worktree `wave-map-controls-language`, branch `fix/map-load-recovery`, clean/push·Draft.
+  최초 모듈 오류2 FAIL, 최초 전체427 pass/6 fail(HMR query fixture 미가로채기) 뒤 source/CI433 통과한3022fc2를 보존한다.
+  이후 독립 리뷰의 열린 panel P1을2 FAIL로 재현했다. 지도 전용 panel/pick/roadview/부분 지도 정리, 내부 focus 복구·외부 focus 보존,
+  늦은 위치 callback 차단을 추가했다. 실제 renderer/위치 action 계약6·관련84·캡처6·unit310·기본검사PASS.
+  이 HEAD의 전체 source439 pass/기존skip1/실패0(9.7m), CI34058720475 진행 중이다. 이전433/통합445를 P1 해결 증거로 재사용하지 않는다.
+- #330 `48f3f409f8678b7af8093272be8a0694213212a1`, worktree `wave-map-export-recovery`, branch `fix/map-export-recovery`, clean/push·Draft.
+  이미지 변환 완료 전 저장 성공과 공유 오류 무시를 계약5 FAIL/browser2 FAIL로 재현해 수정했다. 추가 출발지 잘림 계약1 FAIL도 수정했다.
+  실제 PNG 다운로드·오류/취소/재시도·중복/focus·KO/EN·44px·axe·tablet drawer 폭/대비/지도 zoom 겹침·페이지 링크의 범위를 검증했다.
+  첫 b456754 source457 pass/기존skip1/실패0(10.3m), unit313/관련48. 부모7f53de4를 합치며 action 상태와 availability guard를 모두 보존했다.
+  첫 합성37 pass/1 fail의 mobile 하단 내비게이션 뒤 복구 버튼은 focus 시 가운데로 드러내는 제품 수정 후38/38 PASS.
+  현재 unit316/316·lint/typecheck/Vercel build/performance PASS, CSS69.46/70·planner268.80/270KiB. 새 전체와 CI34059135961은 진행 전/중이다.
+- 보존된 통합8fe80acb2d9987debcfc0a5b9e288cc0da07a3cd는 unit337/audit0/전체445 pass·기존skip1·실패0(10.3m).
+  fd3e3d8은 b456754까지 합친 unit343/audit0·기본검사PASS지만 열린 panel P1은 미포함이다. 최신48f3f40을 합친90f855b5f9ec3a9ad0f3191e046422b1c2db6fa2는 clean/push, unit346/346·기본검사/audit0 PASS(CSS69.85/70·planner268.86/270KiB), 전체 검증을 이어간다.
+- Production 2026-09-06T20:22:04.532Z: 이전 진단27/27 PASS로 route 응답도 회복했다. 최신 후보의 공식check-production-apis는
+  queryStatus/resultCount가 있는 교통 실조회 증거 계약에서 route FAIL이다. 두 검사 기준을 섞지 않으며 이전26/27 등의 실패도 보존한다.
+  main/Production34e6021265b16d046dca24feaa3ec2101fc977e2·배포6278499275, #287 승인0/3, 008 운영 미적용/스키마·백업·복원 확인 불가.
+- 모델 API3workflow disabled_manually 재확인, 유료 실행/새 예약/인증 복사 없음. 기존 웹 Scheduled5개·GitHub→Notion 감시 근거와
+  로컬 구현→별도 QA 전체 자동화 미검증 경계를 #294에 보존한다. Chrome 내부 배율 설정은 Browser 보안 정책 차단으로 우회하지 않았다.
+- 소유 서버4187(통합),4199(#329),4201(#330). 전체 Playwright는 원본과 통합을 순서대로 실행한다. 실제 실행 중 세션/완료 로그는 TEMP 아래 확인한다.
+  `map-load-first-full-artifacts`, `map-export-before-artifacts`, `map-export-final-first-artifacts`, `map-export-parent-before-artifacts`,
+  `map-open-panel-before-artifacts`와 각 `*-full.log`·`*-related.log`·CI 로그를 보존한다. 중단된 실행을 PASS로 세지 않는다.
+- 다음: 최신 #329/#330 전체·CI→통합 후보와 문서 합성·전체 검증→독립 재검토/Ready 판단과 공용 원장 갱신.
+  이후 지도 전체 KO/EN·주변 보강정보·인증/정책, 실제 행정경계·확대·실기기/낭독기·성능·Preview/008·Production·제출 문서 등 기존 승인 목록을 계속한다.
+  사람 Gate 때문에 다른 코드 작업을 중단하지 않으며 부모 병합 후 자식 최신main/diff/전체CI/필수 승인도 다시 확인한다.
+
+## 이전 실행 스냅샷 — 2026-09-06 19:48 UTC
 
 - 최신 통합 **b05bc78dea3d3f2a0bdd3c1e67cd19bbfb208862**, clean/push. unit334/334·lint/typecheck/build/performance PASS·audit0.
   CSS69.80/70·planner268.85/270KiB. 전체437 pass/기존skip1/실패0(9.8분).
