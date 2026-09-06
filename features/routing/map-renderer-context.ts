@@ -23,7 +23,7 @@ export interface MapRendererContext {
   openRoadviewAt: (point: RoutePoint) => void;
   choosePlace: (place: MapPlace) => void;
   clearCategoryMarkers: () => void;
-  setProvider: Dispatch<SetStateAction<MapProvider>>;
+  setProvider: (provider: MapProvider) => void;
   setProviderDetail: Dispatch<SetStateAction<string>>;
   setSelectedMapPlace: Dispatch<SetStateAction<MapPlace | null>>;
   setPickMode: Dispatch<SetStateAction<MapPickMode>>;

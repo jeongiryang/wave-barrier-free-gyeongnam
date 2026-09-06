@@ -10,6 +10,7 @@ type JourneyActionOptions = Pick<RouteMapProps, "origin" | "places" | "route" | 
   kakaoMapRef: RefObject<KakaoMap | null>;
   setPickMode: (mode: MapPickMode) => void;
   setProviderDetail: (message: string) => void;
+  isMapAvailable?: () => boolean;
 };
 
 export function useMapJourneyActions({
@@ -21,8 +22,10 @@ export function useMapJourneyActions({
   kakaoMapRef,
   setPickMode,
   setProviderDetail,
+  isMapAvailable,
 }: JourneyActionOptions) {
   const moveToCurrentLocation = useCallback(() => {
+    if (isMapAvailable && !isMapAvailable()) return;
     const map = kakaoMapRef.current;
     const sdk = window.kakao?.maps;
     if (!navigator.geolocation) {
@@ -31,6 +34,7 @@ export function useMapJourneyActions({
     }
     if (!confirmMapLocationUse()) return;
     navigator.geolocation.getCurrentPosition(({ coords }) => {
+      if (isMapAvailable && !isMapAvailable()) return;
       if (map && sdk) {
         const position = new sdk.LatLng(coords.latitude, coords.longitude);
         map.panTo(position);
@@ -40,11 +44,11 @@ export function useMapJourneyActions({
       onOriginChange?.({ lat: coords.latitude, lng: coords.longitude }, "현재 위치");
       setPickMode(null);
       setProviderDetail("현재 위치로 지도를 이동했습니다.");
-    }, () => setProviderDetail("위치 권한을 허용하면 현재 위치로 이동할 수 있습니다."), {
+    }, () => { if (!isMapAvailable || isMapAvailable()) setProviderDetail("위치 권한을 허용하면 현재 위치로 이동할 수 있습니다."); }, {
       enableHighAccuracy: false,
       timeout: 7000,
     });
-  }, [kakaoMapRef, onOriginChange, setPickMode, setProviderDetail]);
+  }, [isMapAvailable, kakaoMapRef, onOriginChange, setPickMode, setProviderDetail]);
 
   // 예전에는 아무도 읽지 않는 저장소 키에 써 놓고 "저장했습니다"라고만 알렸다.
   // 현재 지도에 노출한 장소만 이 기기 일정으로 넘기며, 위치 좌표 자체는 저장하지 않는다.

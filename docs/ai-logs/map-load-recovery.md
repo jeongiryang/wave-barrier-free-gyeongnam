@@ -1,5 +1,18 @@
 # 지도 전체 로딩 실패의 복구 — 2026-09-06
 
+## 독립 리뷰 P1 — 이미 열린 지도 패널의 실패 경계
+
+[리뷰](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/329#discussion_r3945104534)는 모듈 로딩 중 출발·도착 패널을 연 뒤 실패시키면 패널이 오류 안내 위에 남고 내부 위치/선택 조작이 살아 있음을 지적했다. `3022fc2` source433/CI433과 통합8fe80ac445 성공 뒤 이 누락을 확인했고 Ready를 Draft로 되돌렸다. 해당 성공을 P1 해결 증거로 재사용하지 않는다.
+
+desktop/mobile2 FAIL로 재현했다. 최종 provider error 전환에서 지도 전용 panel, pick/roadview ref와 state, 부분 지도 instance를 정리한다. 해당 패널 안에 있던 focus만 복구 버튼으로 옮기고, 지도 밖의 사용자 focus는 유지한다. export panel은 지도가 없어도 쓸 수 있는 텍스트/이미지 기능이어서 유지한다. 위치 요청의 시작과 늦은 성공/실패 callback, 기존 지도 선택 callback을 가드해 실패 뒤 출발지나 오류 안내가 덮이지 않게 한다.
+
+- 패널 내부/외부/pending 위치3상황×desktop/mobile6건과 기존 모듈 실패8건:14/14 PASS. 오류 안내 hit-test·기기 일정·axe·선택 모드 정리와 밖의 focus 보존 포함.
+- renderer 및 실제 위치 action 계약6/6, 전체 unit310/310·lint/typecheck/Vercel build/performance PASS, 관련 전체84/84 PASS(2.0분).
+- renderer는 상태값만 발행하므로 `setProvider` 타입을 그 실제 계약으로 좁혔다. 최초 typecheck의 React updater signature 불일치를 any/cast 없이 해결했다.
+- CSS69.45/70·planner268.81/270 KiB. 이 후속의 전체/새 CI는 PR에 실제 완료 후 연결한다. #330과 통합 후보도 부모 수정을 합친 새 SHA로 다시 검증한다.
+
+## 최초 수정 및 보존한 검증 이력
+
 - 기준 #328 `84491e58e92cb32b7e77d536441d4102d8cac8be`, 격리 worktree `wave-map-controls-language`, 브랜치 `fix/map-load-recovery`.
 - 관련 #251 #282 #285. 지도 영어 검수 중 발견한 실제 실패 경계를 먼저 처리하며 전체 지도 번역·새 기능은 포함하지 않는다.
 

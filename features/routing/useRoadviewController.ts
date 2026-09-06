@@ -22,6 +22,7 @@ export function useRoadviewController({
   const [roadviewMessage, setRoadviewMessage] = useState("");
   const [roadviewSelectMode, setRoadviewSelectMode] = useState(false);
   const [roadviewPreviewOpen, setRoadviewPreviewOpen] = useState(false);
+  const closeRoadview = useCallback(() => setRoadviewOpen(false), []);
 
   useEffect(() => {
     roadviewSelectModeRef.current = roadviewSelectMode;
@@ -80,6 +81,6 @@ export function useRoadviewController({
       setRoadviewSelectMode(false);
       setProviderDetail("로드뷰 위치 선택을 취소했습니다.");
     },
-    closeRoadview: () => setRoadviewOpen(false),
+    closeRoadview,
   };
 }
