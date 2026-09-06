@@ -3,9 +3,12 @@
 확인일: 2026-09-06. GitHub Issue/PR가 작업 원장이고 Notion은 같은 근거를 보여주는 관제 화면이다.
 담당의 Engineering/QA는 위임된 구현·검증 역할, PM/운영자는 사람 확인 역할을 뜻한다.
 
+
+원격 전수 조회: 2026-09-06 20:51 UTC, Issue47·PR32. 열린 PR: #287, #289, #291, #293, #296, #298, #300, #302, #304, #306, #307, #309, #311, #312, #313, #314, #315, #316, #317, #318, #319, #320, #321, #322, #323, #324, #325, #326, #327, #328, #329, #330.
+
 ## 기준과 판정 방법
 
-- main·Production `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포6278499275. 열린 Issue47·PR30.
+- main·Production `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포6278499275. 열린 Issue47·PR32.
   #287 b803b80은 Ready·CI 성공·MERGEABLE이나 승인0/3·REVIEW_REQUIRED/BLOCKED다.
   모든 열린 PR의 누락 담당자·라벨·검토자 요청을 보완했다. 작성자를 제외한 3명에게 요청했으며 실제 승인은 별도다.
 - 통합 후보는 `audit/launch-integration-20260906`에 기존 제품·보안#309·자동화 stack을 보존해 합성한다.
@@ -37,17 +40,27 @@
   교통 import 및 환경설정 status 충돌을 양쪽 기능을 보존해 해결했다. unit334/334·lint/typecheck/build/performance PASS,
   audit0·CSS69.80/70·planner268.85/270KiB. 전체 Playwright·axe **437 pass/기존skip1/실패0(9.8분)**.
   source PR의 과거 HEAD와 새 후보 결과를 섞지 않는다. 독립 재검토·Preview·Production 확인은 별도다.
-- **현재 원자적 작업 `fix/map-load-recovery`**, #328 기반 별도 worktree:
-  기본 지도 뒤 대체 지도 모듈도 실패할 때 unhandled rejection·무한 로딩이 남고 개발 오류 화면이 조건 조작을 가리는
-  desktop/mobile2건을 재현했다. 명시적 실패 상태·KO/EN 재로딩 안내·기기 일정 유지와 오래된 요청 취소 경계를 수정 중이다.
-  신규8/8 UI·취소/실패 계약3/3 PASS, 관련/전체·새 CI·PR은 미완료다. 이 작업은 b05bc78의 성공에 포함하지 않는다.
-  첫 확장 UI4 pass/4 fail은 화면 밖 상단 환경설정을 누르던 새 테스트 순서였다. Home으로 드러내는 실제 조작을 반영했다.
-  지도 전체 영어·소개 지도 실제 행정경계는 별도 미완료이며, 현재 소개 지도는 출처 없는 단순화 안내도다.
+- **지도 실패 #329 `7f53de47eb035c398d5b4bdb1baa2cc5d1537da0`, Draft**:
+  기본/대체 지도 전체 실패를 알리고 기기 일정·텍스트 경로를 유지하는 KO/EN 재로딩을 제공한다.
+  이전3022fc2 source/CI433 성공 뒤 독립 리뷰의 열린 panel P1을2 FAIL로 재현했다. 지도 전용 panel/pick/roadview 정리,
+  내부 focus만 복구·외부 focus 보존·늦은 위치 callback 차단을 추가했다. 계약6·관련84·캡처6·unit310·기본검사PASS.
+  새 전체 source439 pass/기존skip1/실패0(9.7m). [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34058720475)는 진행 중이다.
+- **이미지·페이지 링크 #330 `48f3f409f8678b7af8093272be8a0694213212a1`, Draft**:
+  변환 전 저장 성공/공유 오류 무시를 수정하고 실제 다운로드 시작·실패·취소·재시도를 구분한다. 페이지 링크에 일정은 포함되지 않는다.
+  안내도/추정 시간/무장애 이동 미보장 표시·출발지 잘림, tablet drawer 폭·대비·map control 겹침을 바로잡았다.
+  첫 b456754 source457 pass/기존skip1/실패0(10.3m), 관련48·unit313·기본검사PASS. 부모7f53de4를 합친 뒤
+  복구 버튼이 고정 하단 내비게이션에 가려지는 실제 hit-test 실패1건도 수정했다. 관련38/38·unit316/316·기본검사PASS,
+  CSS69.46/70·planner268.80/270KiB. 새 전체·[CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34059135961)는 진행 전/중이다.
+- **지도까지 합성한 과거 증거**:8fe80acb2d9987debcfc0a5b9e288cc0da07a3cd unit337/audit0·전체445 pass/기존skip1/실패0(10.3m).
+  fd3e3d8 unit343/audit0·기본검사PASS는 b456754까지이며 위 열린 panel P1은 미포함이다. 최신48f3f40을 합친90f855b5f9ec3a9ad0f3191e046422b1c2db6fa2는 unit346/346·기본검사/audit0 PASS(CSS69.85/70·planner268.86/270KiB), 전체 검증을 이어간다.
+  이전 실패 artifact와 27pass/1fail 랜딩 transient·46pass/2fail 과거 공유 이름·37pass/1fail 실제 가림 경계를 AI 로그에 보존한다.
+  지도 전체 언어와 소개 지도 실제 행정경계는 별도 미완료다. 소개 지도는 공식 행정경계 출처가 없는 자체 단순화 안내도다.
+
 - 보존된 Ready: #327579cd82 전체 로컬/CI411, #3260a8df96 389, #319be9e908 283,
   #324c81e68f CI349, #323e358e0f CI327, #320/#321/#322. 모두 기존skip1이며 미배포다.
-  #3131ac5ccf의 [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34052610482)도 성공했다.
+  #313521d785의 [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34056055328)도 성공했다.
   source audit high2/moderate1은 #309 미포함 개발 의존성이고, 보안 변경을 합성한 audit0과 구분한다.
-- Production 16:56:46 UTC26/27 PASS·route1 FAIL. 17:29:55 익명390/1366에서 카드3개·일정 추가/새로고침 복원,
+- Production 20:22:04 UTC 이전 진단27/27 PASS로 route 응답도 회복했다. 하지만 최신 후보의 공식check-production-apis는 queryStatus/resultCount 교통 조회 증거 계약에서 route FAIL이다. 설정/legacy ready를 실제 확인으로 세지 않는다. 이전16:56:46 UTC26/27 PASS·route1 FAIL 이력도 보존한다. 17:29:55 익명390/1366에서 카드3개·일정 추가/새로고침 복원,
   pageerror/console error/GET 실패/overflow0. GPS·서버쓰기·mock 없이 검증했다. 기존 자동 추천/장소1개100% 회귀는 운영에 남는다.
   18:46 health HTTP200은 설정 확인이며 전체 API 성공 증거가 아니다. 새 계약만으로 기존 route 실패를 해결 처리하지 않는다.
 - 공식 ChatGPT 웹 Scheduled에서 기존5개를 읽었다. 대기열은 매시간/실행 중, PR 검수는 GitHub PR·리뷰·댓글·커밋 이벤트 감시다.
@@ -69,7 +82,7 @@
 
 | Issue | 담당 | 상태 | 관련 PR·코드·검증 | 남은 조치·의존성 |
 | --- | --- | --- | --- | --- |
-| #251 일정·지도·날씨·언어 | Engineering/QA | 진행 중 | #287/#307/#311/#317~#319/#321~#326, `e2e/itinerary-language.spec.ts`, `e2e/departure-language.spec.ts`, `tests/weather-integrity.test.mjs` | #327/#328 교통·날씨 후속 운영 검증, 지도 SDK·주변 보강정보·인증/정책 영어 |
+| #251 일정·지도·날씨·언어 | Engineering/QA | 진행 중 | #287/#307/#311/#317~#319/#321~#330, `e2e/itinerary-language.spec.ts`, `e2e/departure-language.spec.ts`, `tests/weather-integrity.test.mjs` | #327~#330 교통·날씨·지도 오류/이미지 후속 운영 검증, 지도 SDK·주변 보강정보·인증/정책 영어 |
 | #252 복수 테마 | Engineering/QA | 진행 중 | #287, `tests/plan-locale-theme.test.mjs`, `server/tourism/` | 다중 테마·부분 실패 실호출 및 운영 저장·복원 |
 | #253 단계형 조건 | Engineering/QA | 진행 중 | #287/#311, `PlannerConditionsPanel.tsx`, `e2e/fixtures.ts` | 지역→편의→활동→날짜→명시적 검색 최종 회귀 |
 | #254 빈 추천·단계 잠금 | Engineering/QA | 진행 중 | #287/#307, `useJourneyProgress.ts`, `e2e/evidence-truthfulness.spec.ts` | 기존 일정 열람과 현재 추천 준비율을 구분해 AC 정리 |
@@ -92,13 +105,13 @@
 | #273 18개 시·군 | Engineering/QA | 진행 중 | #287, `components/GyeongnamRegionPicker.tsx`, `e2e/mobile-touch-targets.spec.ts` | 지도 실패 대안·지역 사진·짧은 화면 |
 | #274 편의 근거 상태 | Engineering/QA | 진행 중 | #287, `tests/accessibility-score.test.mjs`, `e2e/evidence-truthfulness.spec.ts` | 공식/미확인/불일치/사용자 제보 Production 대조 |
 | #275 날짜 영향 | Engineering/QA | 진행 중 | #287/#311, `PlannerConditionsPanel.tsx`, `tests/itinerary-schedule.test.mjs` | 날짜는 예보·행사·일정용이라는 안내와 API 영향표 최종 대조 |
-| #276 지도 단순화 | Engineering/QA | 진행 중 | #307/#311, `features/routing/components/`, `e2e/map-tools-reachable.spec.ts` | 모든 도구의 실기능·실제 SDK·텍스트 대안 |
-| #277 장소/경로 접근성 | Engineering/QA | 진행 중 | #287, `tests/transport-capability-truth.test.mjs` | 경로 접근성 미확인 표시·외부 지도 범위 운영 확인 |
+| #276 지도 단순화 | Engineering/QA | 진행 중 | #307/#311/#329/#330, `features/routing/components/`, `e2e/map-tools-reachable.spec.ts` | 모든 도구의 실기능·실제 SDK·텍스트 대안 |
+| #277 장소/경로 접근성 | Engineering/QA | 진행 중 | #287/#330, `tests/transport-capability-truth.test.mjs`, `tests/map-export-recovery.test.mjs` | 경로 접근성 미확인 표시·외부 지도 범위 운영 확인 |
 | #278 반응형 | QA | 진행 중·중복 통합 후보 | #286과 본문 비교, `e2e/launch-integrity.spec.ts` | #286에 고유 요구를 보존한 뒤 중복 종료 판단 |
 | #279 화면 회귀 | QA | 진행 중 | E2E screenshot·trace, `e2e/planner-product-flow.spec.ts` | 핵심 화면별 baseline·픽셀 변화 사람 검토 |
 | #280 준비율·출발 확인 | Engineering/QA | 진행 중 | #287/#307/#324, `useJourneyProgress.ts`, `e2e/launch-integrity.spec.ts`, `e2e/departure-language.spec.ts` | 새 SHA 운영 반영·전체 구간과 별도 확인 절차 |
 | #281 여행 lifecycle | Engineering/QA | 진행 중 | `tests/travel-book.test.mjs`, `e2e/travel-book.spec.ts` | 새 여행 초기화의 모든 저장 키·세션·URL 교차 검증 |
-| #282 느린 네트워크 | Engineering/QA | 진행 중 | #312 캐시·#316 교통 경계, `lib/request-budget.js`, `e2e/slow-upstream.spec.ts` | Production KTO/KORAIL/TAGO 지연 원인·배포 후 복구 재검증 |
+| #282 느린 네트워크 | Engineering/QA | 진행 중 | #312 캐시·#316 교통 경계·#328~#330 오류/재시도, `lib/request-budget.js`, `e2e/slow-upstream.spec.ts` | Production KTO/KORAIL/TAGO 지연 원인·배포 후 복구 재검증 |
 | #283 도움말 | Engineering/QA | 진행 중 | `components/HelpCenter.tsx`, `e2e/help-public-pages.spec.ts` | #311 DOM 변경 후 모든 안내 대상·포커스 재검증 |
 | #284 성능 | Engineering/QA | 진행 중 | `scripts/check-performance-budget.mjs`, `e2e/performance-boundaries.spec.ts` | 현재 전송량 예산 PASS. 실제 LCP/CLS/INP·느린 기기 측정 미완료 |
 | #285 WCAG 2.2 AA | QA/운영자 | 진행 중 | axe·대비·44px·포커스 회귀 | 자동 테스트 외 화면 낭독기·당사자 검증; 완전 준수 선언 금지 |
