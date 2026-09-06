@@ -8,15 +8,18 @@
 | Worktree / 원격 PR | 현재 변경 | 상태 |
 | --- | --- | --- |
 | wave-barrier-free-gyeongnam / #287 | b803b80, 런칭 흐름·008 등록 | CI 성공, Ready, 승인 0/3, 미병합 |
-| wave-transport-integrity / #311 | 93d1058, 질문 Gate·EN 접근성·대비 | unit 280, 관련 E2E 50, 전체 247 pass/기존 skip 1 |
+| 보존된 #311 | 93d1058, 질문 Gate·EN 접근성·대비 | unit 280, 관련 E2E 50, 전체 247 pass/기존 skip 1 |
 | wave-ui-regression / #314 | 6f9fc54, hydration 전 인증 보호·위치 처리 안내 | 관련 단위 16, 인증 E2E 40, lint/typecheck/build/performance PASS |
 | 보존된 #312 | 7af38df, 부분 제공처 실패 캐시 차단 | CI 성공, 미배포 |
 | 보존된 #315 | a62886a, 실제 인트로 다시보기·focus 유지 | CI 34025137035 성공, 미배포 |
 | 보존된 #316 | a4ce81e, 공공교통 키·미조회 상태 | CI 34024622262 성공, 미배포 |
-| wave-submission-docs / #313 | b94559a, 공식 자료·47 Issue 표·태그 PDF | CI 34025943268 성공. 이 체크포인트는 후속 문서 변경 |
+| wave-submission-docs / #313 | 65896d0 이후 최신 실행표·정책 경계 보완 | 이전 CI 34027615509 성공. 이 체크포인트는 후속 문서 변경 |
+| 보존된 #317 | 6f4d999, 영어 조건·저장/검색 안내 | unit 280, 전체 253 pass/기존 skip 1, CI 34028553188 성공 |
+| 보존된 #318 | 7e6c1ed, 내비게이션 언어·추천 상태 | #314 포함. unit 280, 전체 267 pass/기존 skip 1, CI 34029670552 성공 |
+| wave-transport-integrity / #319 | 8eb38c5, 설정·도움말 언어/접근성/성능 | #315 포함. unit 280, 전체 279 pass/기존 skip 1, CI 34030742378 재조회 |
 | wave-integration-audit / #289 | acb7dab, 기존 예약 receipt·비용 문서 | 단위 287/287; API workflow 활성화 없음 |
 | wave-automation-stack / #306 | d78b2e2, 자동화 stack 보존 | 기존 green, 미병합/미활성 |
-| wave-launch-integration | 5db27a2bdffe9e50b6031b781feaf8154e1d703e | 위 최신 변경과 #309/자동화 전체를 merge로 합성, 원격 push |
+| wave-launch-integration | 3bc4abe8dacbf57d55784baddd93aec01022ebb5 | #317~#319와 #309/자동화 전체를 merge로 합성, 원격 push |
 
 최신 원격 확인 후 재개한다. 다른 작업자가 추가한 커밋은 보존한다. 개별 브랜치를 force push하지 않는다.
 통합 브랜치는 검증용이며 거대 대체 PR을 만들거나 기존 PR을 닫지 않았다. 사람 리뷰 비용을 줄이려고
@@ -24,13 +27,20 @@
 
 ## 확인한 기술·운영 경계
 
-- 최신 통합 **5db27a2bdffe9e50b6031b781feaf8154e1d703e**: lint/typecheck, unit/contract **313/313**,
-  Vercel production build·성능 예산 PASS, 전체 audit **0**, 전체 Playwright·axe **257 pass / 기존 skip 1** (5.8분).
+- 최신 통합 **3bc4abe8dacbf57d55784baddd93aec01022ebb5**: lint/typecheck, unit/contract **313/313**,
+  Vercel production build·성능 예산 PASS, 전체 audit **0**, 전체 Playwright·axe **279 pass / 기존 skip 1** (2.3분).
+  CSS gzip 68.81/70 KiB, landing JS gzip 112.82/155 KiB, planner JS gzip 268.55/270 KiB.
   E2E fixture와 실제 Production 실호출 결과는 아래처럼 분리한다. 검사 범위를 줄이지 않았다.
-- 같은 후보의 요청된 11개 viewport 랜딩/중립 플래너 22화면: 콘솔/넘침/자동 추천 0, h1 폭 안에 표시.
+- 이전 5db27a2의 요청된 11개 viewport 랜딩/중립 플래너 22화면: 콘솔/넘침/자동 추천 0, h1 폭 안에 표시.
   320/768/2560 대표 화면 직접 확인. 전체 상태/200%/실기기 검수는 계속 필요하다.
-- **최신 Production 재진단 10:25:14 UTC: 20/27**, 실패 7건(route, KO/EN 추천, 보강, 지역/장소 사진, 집중률).
+- **최신 Production 재진단 11:36:55 UTC: 20/27**, 실패 7건(route, KO/EN 추천, 보강, 지역/장소 사진, 집중률).
   아래 23/27은 08시 이전 이력이다. 사진·집중률도 정상으로 제출하지 않는다. 기능설명서와 API 감사에 반영했다.
+- #318 12개 폭(11개 요구 + 960)×light/dark 영어 중립 24화면은 콘솔/넘침/44px/제목 잘림/자동 검색 0.
+  #319 320/390/960/1440×light/dark×설정/도움말 16화면은 패널 경계/콘솔/넘침/한국어 잔여 0.
+  390px 패널 x=-1을 발견해 수정했다. 환경설정·도움말 16화면은 전체 영어 여행 완료를 의미하지 않는다.
+- #318 첫 전체에서 인증 준비 전 GET 제출 2건과 개발 서버 ECONNRESET 1건을 보존한 뒤,
+  기존 #314를 merge하고 전체 267 pass/기존 skip 1로 검증했다. #319는 270.82 KiB 성능 초과를
+  도움말 지연 import로 해결했다. 파일 로딩 실패 → 설명 → 새로고침 복구를 포함해 관련 56/56.
 
 - 이전 통합 eee1208: unit/contract 313/313, Playwright·axe 249 pass/기존 skip 1,
   lint/typecheck·Vercel build·performance·actionlint PASS, shellcheck 47 scripts/0 fail, audit 0.
@@ -49,14 +59,14 @@
 
 ## 정확한 재개 순서
 
-1. 현재 main, 18 PR/47 Issue 수의 변동, 최근 CI, Production SHA, 다른 작업자 댓글과 worktree status 재조회.
+1. 현재 main, 21 PR/47 Issue 수의 변동, 최근 CI, Production SHA, 다른 작업자 댓글과 worktree status 재조회.
    #311 93d1058, #314 6f9fc54, #289 acb7dab의 새 CI와 통합 5db27a2 검증 결과를 먼저 확인한다.
    #314 CI 34026490814, #311 CI 34026760202, #289 CI 34026711165는 모두 성공했다.
-   wave-transport-integrity는 93d1058에서 만든 로컬 fix/planner-english-conditions 브랜치다.
-   영어 후속 작업은 코드 조사만 했고 변경/새 PR을 아직 만들지 않았다. 나머지 소스 worktree는 clean이다.
-2. 영어 잔여는 실제 1366px 화면에서 재현됐다. PlannerHeader/여정 내비게이션/PlannerThemeDates 및
-   편의 카드/날짜/오류/저장 흐름을 #251/#265 범위로 작게 묶어 KO/EN negative E2E와 함께 수정한다.
-   랜딩 접근성 이름 수정은 이미 #311에 있으므로 중복 구현하지 않는다.
+   wave-transport-integrity는 fix/preferences-help-language (#319 8eb38c5)로 clean/push 상태다.
+   #319 CI 34030742378을 확인한다. #317/#318/#319와 #314/#315의 선행 관계를 PR 본문에 기록했다.
+2. #317~#319의 조건·내비게이션·설정·도움말을 중복 구현하지 않는다. 다음 영어 범위는 추천
+   카드/근거/빈 상태·재시도 → 일정·모든 이동 구간 → 인증 폼·정책 본문이다. 원문 관광 데이터가
+   한국어만 제공되는 경우 UI 번역과 구분하고 그 사실을 표시한다. 전체 언어 여정을 완료 처리하지 않는다.
 3. 200% 검증은 CSS zoom 숫자만으로 통과 판정하지 않는다. 현재 CSS zoom 진단의 잘림을 실제 브라우저
    확대/레이아웃 viewport와 구분해 320~2560 요구표에 기록하고 수정한다. 기본 390/1366 새 Gate는 콘솔/넘침 0.
 4. Preview·Neon 관리 접근이 확보되면 안전한 운영 사전 조회 → 008 영향·복구 확인 → Preview 핵심 여정 검증.
@@ -65,6 +75,12 @@
 6. 기존 공식 Scheduled 목록·현재 상태를 확인할 관리 도구가 없으므로 중복 예약을 만들지 않는다.
    기존 queue의 실제 안전 작업 하나를 구현→별도 QA→GitHub/Notion 기록까지 검증할 실행 경로를 연결한다.
 7. 공식 ① 양식의 최종 운영 캡처·실제 낭독기 검수·사람 확인 후 제출본을 완성한다. 최종 제출 버튼은 사람이 실행한다.
+
+현재 PR 소유자가 아닌 팀원 unknownamed의 #311도 수정·검증했고 GitHub 기존 댓글과 Notion을 갱신했다.
+이 구독 Executor의 실제 왕복 기록은 확인했지만 예약 queue의 무인 구현·독립 QA 완료는 아니다.
+자체 임시 개발 서버는 검수 후 종료했다. 다른 사용자의 Code/ChatGPT/Codex 프로세스는 종료하지 않았다.
+위치 경계: GPS 경로 API는 차단, 공개/직접 고른 출발·도착은 서버 경유, 지도 화면/IP·주변 검색은
+외부 처리 가능. CLAUDE의 포괄적인 기기 내 처리 안내를 실제 코드/개인정보 안내에 맞췄다.
 
 ## 사람만 처리할 사항
 

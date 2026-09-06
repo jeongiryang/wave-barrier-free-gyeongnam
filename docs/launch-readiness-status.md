@@ -6,7 +6,7 @@
 ## 기준과 판정 방법
 
 - main·Production: `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포 ID `6278499275`.
-- 현재 열린 Issue **47개**, PR **18개**다. 최초 PR 13개에 후속 수정 #312~#316이 추가됐다. 새 변경 발생 시 다시 조회한다.
+- 현재 열린 Issue **47개**, PR **21개**다. 최초 PR 13개에 후속 수정 #312~#319가 추가됐다. 새 변경 발생 시 다시 조회한다.
 - #287 `b803b80` → #307 `8b0257c` → #311 `93d1058` 제품 후보와 #309 `a9cf9db` 보안 변경,
   #289→#306 자동화 stack을 격리 worktree `audit/launch-integration-20260906`에서 합성했다.
 - 승인 0/3은 병합의 실제 차단이다. #287에 syt83·unknownamed와 세 번째 협업자 ginaginaring의 리뷰를 요청했다.
@@ -38,6 +38,22 @@
 - 통합 5db27a2의 11개 viewport(320×568~2560×1440) 랜딩/중립 플래너 22화면은
   콘솔 오류·가로 넘침·자동 추천 요청 0, h1 폭 잘림 0이었다. 대표 320/768/2560 화면을 직접 확인했다.
   모든 단계·테마·언어·확대·실기기 QA를 완료했다는 의미는 아니다.
+- #317 `6f4d999`는 영어 편의/활동/날짜와 저장/검색 상태를 수정했다. unit 280/280,
+  전체 Playwright·axe 253 pass/기존 skip 1, [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34028553188).
+  포함 통합 `311de6ceab72456ca83d68db88467a3ad2ef2fa1`: unit/contract 313/313,
+  전체 Playwright·axe 263 pass/기존 skip 1, lint/typecheck·Vercel build·성능 예산 PASS, audit 0.
+  모두 로컬/CI 후보이며 Production 반영은 아니다.
+- #318 `7e6c1ed`는 내비게이션 KO/EN·추천 상태·줄바꿈을 보완하고 기존 #314 인증 보호를 merge했다.
+  unit 280/280, 전체 267 pass/기존 skip 1, [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34029670552).
+  포함 통합 `b13f5c7`: unit 313/313, 전체 269 pass/기존 skip 1, lint/typecheck/build/performance/audit PASS.
+- #319 `8eb38c5`는 환경설정/공개 4페이지 도움말 KO/EN, 실제 보이는 단계, ARIA 진행 그래픽,
+  도움말 지연 import/실패 복구, 모바일 설정 패널 위치를 보완한다. 기존 #315 재생/초점을 merge했다.
+  unit 280/280, 관련 E2E 56/56, 전체 279 pass/기존 skip 1, lint/typecheck/build/performance PASS.
+  플래너 JS gzip 270.82 KiB 초과를 268.55 KiB로 줄였으며 기존 270 KiB 예산은 유지한다.
+- 11:36:55 UTC Production 재진단도 **20/27, 동일 7건 실패**다. main/배포 SHA는 그대로다.
+- 최종 합성 `3bc4abe8dacbf57d55784baddd93aec01022ebb5`: unit/contract **313/313**, 전체
+  Playwright·axe **279 pass / 기존 skip 1**, lint/typecheck·Vercel build·성능 예산 PASS, audit **0**.
+  #319 CI는 별도로 확인한다. 위 로컬 성공을 실제 Preview나 Production 성공으로 계산하지 않는다.
 
 ## 요구사항 → 이슈 → 구현·근거 → 남은 조치
 
@@ -63,7 +79,7 @@
 | #267 첫 사용자 전체 QA | QA | 진행 중 | #314 인증 제출 보호, `e2e/core-journeys.spec.ts`, `e2e/auth-hydration.spec.ts` | Preview·Production 비회원/인증 전체 여정, 실패 시나리오 |
 | #268 필요한 편의 선택 | Engineering/QA | 진행 중 | #287/#311, `PlannerAccessibilityProfiles.tsx` | 유형 단정 없는 문구·복수 선택·KO/EN 운영 검수 |
 | #269 추천 카드 | Engineering/QA | 진행 중 | #287/#311, `RecommendationCarousel.tsx`, `PlaceDecisionDialog.tsx` | 공식 사진 실패·확인 근거·키보드·출처 |
-| #270 공식 사진 | Engineering/QA | 진행 중 | `components/SmartSpotImage.tsx`, `scripts/check-photo-coverage.mjs` | API별 실제 표출·사용 조건·이미지 LCP 확인 |
+| #270 공식 사진 | Engineering/QA | 진행 중 | `features/tourism/components/SmartSpotImage.tsx`, `scripts/check-photo-coverage.mjs` | API별 실제 표출·사용 조건·이미지 LCP 확인 |
 | #271 상세보기 | Engineering/QA | 진행 중 | #287, `PlaceDecisionDialog.tsx`, `e2e/launch-integrity.spec.ts` | 랜딩/플래너 진입·순환·복귀·영어·확대 |
 | #272 URL·뒤로가기 | Engineering/QA | 진행 중 | #287/#311, `usePlannerStageView.ts`, `e2e/planner-product-flow.spec.ts` | 질문 단계 URL·직접 진입·새로고침 전체 조합 |
 | #273 18개 시·군 | Engineering/QA | 진행 중 | #287, `components/GyeongnamRegionPicker.tsx`, `e2e/mobile-touch-targets.spec.ts` | 지도 실패 대안·지역 사진·짧은 화면 |
@@ -104,7 +120,8 @@
    전체 구현·독립 QA 자동화를 증명하지 않는다. 이 환경의 공식 Scheduled 관리 도구가 없어
    기존 예약 목록·수정 권한을 확인하지 못했다. 확인 전에 중복 예약을 만들지 않는다.
 4. 공모전: 부문·마감·예비 합격은 확인 완료. 팀명·최종 팀원·이력·법적 의무·실제 제출은 사람 확인.
-5. 독립적으로 계속할 제품 작업: 영어 플래너의 헤더/여정 내비게이션/활동 카드에 한국어가 남는다.
+5. 독립적으로 계속할 제품 작업: #317~#319에서 조건·내비게이션·설정·도움말을 수정했다.
+   영어 추천·일정·경로·인증 폼·정책 본문과 전체 언어 상태별 QA가 남는다.
    390·1366px 기본 배율에서 새 활동 Gate는 넘침 없이 보였지만 CSS zoom 2 진단은 잘림이 있어
    실제 브라우저 200% 확대 검증을 완료로 세지 않는다. #251/#265/#286에서 검증·수정을 이어간다.
 
