@@ -33,6 +33,45 @@ HTTP 200·콘솔 오류 0·가로 overflow 0. 로그인 쓰기나 전체 여행 
 아래 9월 5일 표는 당시 확인 이력이다. 현재 전체 API 정상 판정이나 모든 여정 검증으로 사용하지 않는다.
 후보 PR의 mock 테스트 성공은 Production 실호출을 대신하지 않는다.
 
+### 캐시를 우회한 추가 실호출 (2026-09-06 09:11 UTC)
+
+새 조회 URL의 `x-vercel-cache: MISS`도 국문 plan에서 12.96초 뒤 장소 0개·8개 제공처 error였다.
+enrich는 11.28초 뒤 방문자·고캠핑·관광 수요·휴게소 live와 나머지 제공처 error를 함께 반환했다.
+따라서 #312의 캐시 수정과 상류 장애 진단을 별도로 추적한다. 공식 사이트 검색에서는 이날의
+장애 원인을 확정하는 공지를 확보하지 못했다. 키 재발급이나 timeout 증가를 해결책으로 단정하지 않는다.
+
+### 현재 코드의 KTO 호출 목록과 제출 대응
+
+아래 service/operation은 `server/shared/tourism-provider.ts`가 호출하는 실제 코드 식별자다.
+출처 표기는 최종 화면에서 `출처: ⓒ한국관광공사` 또는 `출처: ⓒ한국관광콘텐츠랩`으로 대조한다.
+기능설명서 7쪽 대응이며, 상태는 요청별로 다를 수 있다. 코드에 있는 API를 모두 정상 활용 실적으로 세지 않는다.
+
+| 서비스 / operation | 호출 코드 | 화면 용도 | 9월 6일 확인·남은 작업 |
+| --- | --- | --- | --- |
+| `KorWithService2 / areaBasedList2, detailWithTour2` | `plan-builder.ts`, `shared-plan-restoration.ts` | 추천·편의 근거·공유 복원 | plan error, 최종 실호출·복원 필요 |
+| `KorService2 / areaBasedList2, detailCommon2, searchKeyword2, searchFestival2` | `plan-builder.ts`, `spot-photo.ts`, `region-photo.ts`, `regional-enrichment.ts` | 국문 추천·사진 대안·행사·숙박 | plan/enrich error, 사진 응답 성공은 개별 원천 전체 성공 보장 아님 |
+| `EngService2 / areaBasedList2` | `catalog.ts`, `plan-builder.ts`, `enrichment-sources.ts` | 영문 관광 정보 | 영문 plan 계약 실패 |
+| `PhotoGalleryService1 / gallerySearchList1` | `region-photo.ts`, `spot-photo.ts` | 랜딩 지역·관광지 사진 | 사진 API 계약 통과, 최종 화면 원천/출처 재대조 |
+| `Odii / storySearchList` | `plan-builder.ts` | 오디오 가이드 | plan error |
+| `Durunubi / courseList` | `plan-builder.ts` | 걷기 코스 | plan error |
+| `LocgoHubTarService1 / areaBasedList1` | `concentration.ts` | 중심 관광지 | plan error |
+| `TarRlteTarService1 / areaBasedList1` | `concentration.ts` | 연관 관광지 | plan error |
+| `TatsCnctrRateService / tatsCnctrRatedList` | `concentration.ts` | 관광 집중률 예측 | 단독 crowd 계약 통과, plan의 같은 제공처는 예산 내 실패 |
+| `DataLabService / locgoRegnVisitrDDList` | `visitor-demand.ts` | 지역 방문 통계 | enrich live, 화면 통계 기간/출처 확인 필요 |
+| `AreaTarResDemService / areaTarSvcDemList` | `visitor-demand.ts` | 관광 자원 수요 | enrich live, 실제 수요 값·기간 표출 확인 필요 |
+| `GoCamping / searchList, basedList` | `regional-enrichment.ts` | 캠핑 여행 보강 | enrich live, 편의 추천과 혼동하지 않도록 최종 검수 |
+| `KorPetTourService2 / areaBasedList2` | `enrichment-sources.ts` | 반려동물 여행 보강 | enrich error |
+| `WellnessTursmService / areaBasedList` | `enrichment-sources.ts` | 웰니스 여행 보강 | enrich error |
+| `MdclTursmService / areaBasedList` | `enrichment-sources.ts` | 의료 관광 보강 | enrich error |
+| `PhokoAwrdService / phokoAwrdList` | `enrichment-sources.ts` | 수상 관광사진 | enrich error |
+
+KTO와 구분할 기타 제공처: `B500001/myportal/travel/travellist`는 물과 여행 데이터다.
+KORAIL/TAGO·한국도로공사·Kakao·ODsay·Open-Meteo와 함께 기능설명서 8쪽에서 출처를 구분한다.
+
+캐시 경계: 관광 handler는 성공 응답에 브라우저 300초/CDN 1800초를 요청한다. #312는
+HTTP 200 안의 부분 실패에도 no-store를 적용한다. 관광 원본을 Neon에 복제하지 않는 정책과,
+응답/사진 캐시·기기 일정 보관은 서로 다른 경계이며 원천별 허용 조건의 최종 대조가 남았다.
+
 ## 이전 검증 결론 (2026-09-05)
 
 - 필수 외부 API와 서비스 기반 환경 변수는 모두 등록되어 실제 기능이 동작한다.

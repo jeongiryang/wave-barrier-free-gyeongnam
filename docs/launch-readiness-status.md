@@ -6,10 +6,10 @@
 ## 기준과 판정 방법
 
 - main·Production: `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포 ID `6278499275`.
-- 열린 Issue **47개**, PR **13개**를 조회했다. 새 변경 발생 시 다시 조회한다.
+- 최초 열린 Issue **47개**, PR **13개**를 조회했고 후속 수정 #312~#316을 추가했다. 새 변경 발생 시 다시 조회한다.
 - #287 `b803b80` → #307 `8b0257c` → #311 `31dd71d` 제품 후보와 #309 `a9cf9db` 보안 변경,
   #289→#306 자동화 stack을 격리 worktree `audit/launch-integration-20260906`에서 합성했다.
-- 승인 0/3은 병합의 실제 차단이다. 요청 reviewer 2명 외에 세 번째 승인 가능한 협업자가 있다.
+- 승인 0/3은 병합의 실제 차단이다. #287에 syt83·unknownamed와 세 번째 협업자 ginaginaring의 리뷰를 요청했다.
   보호 규칙을 낮추거나 관리자 우회하지 않는다. 구현·문서·로컬 검증은 계속한다.
 - 완료는 구현·회귀·문서·배포·운영 증거가 함께 있을 때만 사용한다. 아래의 코드·테스트 경로는
   구현 근거이며, 파일 존재를 해당 Issue 전체 AC 충족으로 해석하지 않는다.
@@ -18,7 +18,9 @@
   대조해 선택자를 보정한 뒤 **239 pass / 기존 skip 1**. #311 새 HEAD의 [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34022005546)도 성공했다.
   timeout·접근성 기준·완료 상태 assertion을 완화하지 않았다.
 - 후속 #312의 전체 회귀는 **237 pass / 2 fail / 기존 skip 1**. 인증 폼 hydration 전 기본 GET 제출로
-  민감 입력이 URL로 이동하는 별도 결함을 재현했고 `fix/auth-hydration-submit`에서 수정·검증 중이다.
+  민감 입력이 URL로 이동하는 별도 결함을 #314 `2ef2fa5`에서 수정했다. 추가 회귀 포함 **247 pass / 기존 skip 1**, 새 HEAD CI 성공.
+- #315는 환경설정의 실제 인트로 재생·초점·동작 감소 계약, #316 `a4ce81e`는 공공교통 전용 키와 미조회 상태를 수정한다.
+  #316 행동 회귀 6/6·전체 단위 286/286·브라우저 239 pass/기존 skip 1. 모두 미병합·미배포다.
 - Production 27개 진단 중 23개 통과, route·관광 추천 KO/EN·관광 보강 실패다. Kakao·ODsay의 실제 경로 응답은 보존됐다.
   #312 `7af38df`는 HTTP 200 안의 제공처 오류까지 CDN 캐시되는 결함을 수정했으며 미배포다.
   최종 런칭/제출 가능 판정은 하지 않는다.
@@ -38,13 +40,13 @@
 | #256 날씨 시각화 | Engineering/QA | 진행 중 | `components/WeatherBoard.tsx`, `tests/weather-integrity.test.mjs` | 예보 밖 날짜·영어·빈 상태·운영 예보 확인 |
 | #257 소개 문구 | Engineering/QA | 진행 중 | #311, `features/landing/components/`, `e2e/landing-regions.spec.ts` | 실제 사용자 이해·공식 사진·KO/EN 잔여 문구 |
 | #258 경남 지도 | Engineering/QA | 진행 중 | #287, `LandingRegionStory.tsx`, `e2e/landing-regions.spec.ts` | 공식 경계·텍스트 대안·실기기·출처 재검증 |
-| #259 캘린더·지도 소개 | Engineering/QA | 진행 중 | #287/#311, `LandingProductStories.tsx`, `e2e/reduced-motion-scroll.spec.ts` | 다시보기 접근성 계약·최종 시각 검수 |
+| #259 캘린더·지도 소개 | Engineering/QA | 진행 중 | #287/#311/#315, `LandingProductStories.tsx`, `e2e/reduced-motion-scroll.spec.ts` | 다시보기 계약은 후보 회귀 검증, 실제 운영 반영·시각 검수 |
 | #261 중립·명시적 검색 | Engineering/QA | 진행 중 | #287/#311, `usePlanRequest.ts`, `e2e/launch-integrity.spec.ts` | 모든 진입 경로·프로필 적용·운영 요청 증거 |
 | #263 UX Epic | Engineering/QA/PM | 진행 중 | 본 실행표, #287/#307/#311 | 개별 AC 완료와 운영 반영을 함께 집계 |
 | #264 일정·지도 단일 기준 | Engineering/QA | 진행 중 | #287, `tests/itinerary-legs.test.mjs`, `e2e/itinerary-route-sync.spec.ts` | 날짜·순서·수단 변경 무효화와 배포 확인 |
 | #265 용어·CTA | Engineering/QA | 진행 중 | #311, `e2e/planner-step-copy.spec.ts` | 영어의 한국어 잔여·사용자에게 불필요한 내부 용어 |
 | #266 CSS 정리 | Engineering/QA | 진행 중 | `app/styles/`, `tests/module-reachability.test.mjs` | obsolete 규칙의 실제 도달성·시각 회귀 대조 후 최소 삭제 |
-| #267 첫 사용자 전체 QA | QA | 진행 중 | `e2e/core-journeys.spec.ts`, `e2e/launch-integrity.spec.ts` | Preview·Production 비회원 전체 여정, 실패 시나리오 |
+| #267 첫 사용자 전체 QA | QA | 진행 중 | #314 인증 제출 보호, `e2e/core-journeys.spec.ts`, `e2e/auth-hydration.spec.ts` | Preview·Production 비회원/인증 전체 여정, 실패 시나리오 |
 | #268 필요한 편의 선택 | Engineering/QA | 진행 중 | #287/#311, `PlannerAccessibilityProfiles.tsx` | 유형 단정 없는 문구·복수 선택·KO/EN 운영 검수 |
 | #269 추천 카드 | Engineering/QA | 진행 중 | #287/#311, `RecommendationCarousel.tsx`, `PlaceDecisionDialog.tsx` | 공식 사진 실패·확인 근거·키보드·출처 |
 | #270 공식 사진 | Engineering/QA | 진행 중 | `components/SmartSpotImage.tsx`, `scripts/check-photo-coverage.mjs` | API별 실제 표출·사용 조건·이미지 LCP 확인 |
@@ -59,7 +61,7 @@
 | #279 화면 회귀 | QA | 진행 중 | E2E screenshot·trace, `e2e/planner-product-flow.spec.ts` | 핵심 화면별 baseline·픽셀 변화 사람 검토 |
 | #280 준비율·출발 확인 | Engineering/QA | 진행 중 | #287/#307, `useJourneyProgress.ts`, `e2e/launch-integrity.spec.ts` | 새 SHA 운영 반영·전체 구간과 별도 확인 절차 |
 | #281 여행 lifecycle | Engineering/QA | 진행 중 | `tests/travel-book.test.mjs`, `e2e/travel-book.spec.ts` | 새 여행 초기화의 모든 저장 키·세션·URL 교차 검증 |
-| #282 느린 네트워크 | Engineering/QA | 진행 중 | `lib/request-budget.js`, `e2e/slow-upstream.spec.ts` | Production KORAIL/TAGO timeout 원인·읽기 쉬운 실패·재시도 |
+| #282 느린 네트워크 | Engineering/QA | 진행 중 | #312 캐시·#316 교통 경계, `lib/request-budget.js`, `e2e/slow-upstream.spec.ts` | Production KTO/KORAIL/TAGO 지연 원인·배포 후 복구 재검증 |
 | #283 도움말 | Engineering/QA | 진행 중 | `components/HelpCenter.tsx`, `e2e/help-public-pages.spec.ts` | #311 DOM 변경 후 모든 안내 대상·포커스 재검증 |
 | #284 성능 | Engineering/QA | 진행 중 | `scripts/check-performance-budget.mjs`, `e2e/performance-boundaries.spec.ts` | 현재 전송량 예산 PASS. 실제 LCP/CLS/INP·느린 기기 측정 미완료 |
 | #285 WCAG 2.2 AA | QA/운영자 | 진행 중 | axe·대비·44px·포커스 회귀 | 자동 테스트 외 화면 낭독기·당사자 검증; 완전 준수 선언 금지 |
@@ -91,7 +93,7 @@
 
 ## 다음 실행 순서
 
-1. 인증 폼 hydration 전 제출 결함의 회귀와 전체 검사를 끝내고 #311/#312와 함께 통합 검증한다.
+1. #311~#316 제품 후보·#309 보안·자동화 stack의 최종 합성 SHA를 전체 검증하고 원격에 보존한다.
 2. 제품·보안·자동화 합성 후보의 전체 검사와 실제 Preview를 SHA로 연결한다.
 3. Production 제공처별 실패 진단, 008 운영 사전 점검, KO/EN·전 뷰포트 잔여 QA를 처리한다.
 4. 이 표의 각 Issue AC에 운영 증거를 연결해 완료/부분/중복을 확정한다. 증거 없이 닫지 않는다.
