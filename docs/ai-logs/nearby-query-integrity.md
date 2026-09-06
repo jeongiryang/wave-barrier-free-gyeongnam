@@ -61,3 +61,25 @@ P1을 포함한 주변 E2E·전체 Playwright·axe·기본검사와 CI는 PR 본
 main/Production `34e6021`, #287 승인0/3, Preview 접근 및 008 운영 스키마·백업/복구 확인은 별도 차단 사항이다.
 실제 SDK 운영 호출, 화면 낭독기·실물 기기, 브라우저 실제200% 확대는 이 fixture 검증으로 대신하지 않는다.
 유료 모델 API·추가 서비스·Secret 복사/출력은 사용하지 않았다. API 기반 자동화 세 workflow의 비활성 상태를 유지한다.
+
+### CI 34066732365: 글꼴 잘림과 작업 시간 한도
+
+0884cef의 로컬 전체 검증은497 PASS/기존skip1이었다. 그러나 원격 CI는 양쪽 프로젝트의 밝음/어두움
+분류 버튼 크기·잘림 검사에서 실패했고,25분 한도 초과로 취소됐다. GitHub check annotation으로 한도 초과를 확인했다.
+취소 시 artifact 업로드가 실행되지 않아 원격 screenshot/error-context/trace는 확보하지 못했다.
+원격 로그는 같은87행 assertion 실패를 보여 준다. 별도 넓은 대체 글꼴 재현에서
+Accommodation의 scrollWidth109px가 clientWidth105px를 넘어 desktop/mobile2건 모두 실패했다.
+원격의 실제 font metric은 artifact 부재로 확인하지 못했으며 동일 증상 재현과 구분한다.
+
+- 분류 grid의 최소 열을120px로 조정하고 좁은 영역·확대 글꼴에서는 필요한 줄바꿈을 허용했다.
+- 원래44px·Tab focus·실제 hit·overflow·axe 검사를 유지하고 실패 시 버튼별 크기를 출력한다.
+-11개 viewport 대체 글꼴 회귀2건 추가. 수정 뒤 주변 관련36/36 PASS(46.3초).
+- CI는 정적검사·단위·보안·빌드·성능을 quality에서, 전체 브라우저 검사를2개 shard에서 실행한다.
+  기존25분 한도와 전체 테스트 범위를 유지하고 fail-fast를 끈다. artifact에 shard명과 trace를 포함한다.
+  필수 보호 check인validate는 두 종류의 작업이 모두success인 경우에만 성공한다.
+  실제 gate 코드를25개 성공/실패/취소/skip/빈 결과 조합으로 실행해 차단 경계를 검증했다.
+- actionlint+shellcheck, 관련계약23, lint/typecheck, 전체단위343, Vercel build, performance budget PASS.
+  새 전체 로컬 Playwright와 새 HEAD 원격 CI는 실행 중이며 이 기록은 성공을 선행 선언하지 않는다.
+
+병합·Preview·Production·008 migration 상태는 변경하지 않았다. 원격 CI:
+https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34066732365
