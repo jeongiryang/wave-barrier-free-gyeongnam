@@ -7,7 +7,7 @@ export function handleMapConfig(env: Env) {
 }
 
 export function handleHealthApi(env: Env) {
-  const publicData = Boolean(publicTransportKey(env));
+  const publicData = Boolean(publicTransportKey(env, "korail") && publicTransportKey(env, "tago"));
   const keys = [
     { id: "tour", name: "관광·공공데이터포털", state: env.TOUR_API_SERVICE_KEY_ENCODED?.trim() ? "configured" : "missing", optional: false, note: "관광 API와 승인된 KORAIL·TAGO API가 함께 사용하는 공공데이터포털 인증키" },
     { id: "kakao-map", name: "Kakao Map", state: env.KAKAO_MAP_JAVASCRIPT_KEY?.trim() ? "configured" : "missing", optional: false, note: "지도 표시용 JavaScript 키" },
