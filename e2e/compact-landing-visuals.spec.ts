@@ -19,7 +19,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.locator(".product-preview").first()).toBeHidden();
     await expect(page.locator(".community-live-preview")).toBeHidden();
 
-    for (const width of [390, 768, 1366, 1440]) {
+    for (const width of [390, 768, 960, 1366, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.evaluate(() => document.fonts.ready);
       const diagrams = page.locator(".compact-journey-visual");
@@ -48,6 +48,11 @@ for (const theme of ["light", "dark"] as const) {
         await expect(links.nth(index)).toBeFocused();
         const bounds = await links.nth(index).boundingBox();
         expect(bounds!.height).toBeGreaterThanOrEqual(44);
+        expect(await links.nth(index).evaluate((link) => {
+          const box = link.getBoundingClientRect();
+          const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+          return hit !== null && link.contains(hit);
+        }), `focused CTA ${index + 1} is not obscured at ${width}px`).toBe(true);
         if (index < 5) await page.keyboard.press("Tab");
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
