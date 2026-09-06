@@ -3,6 +3,27 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 Production의 핵심 관광 추천 실패와 미배포 보안 수정 때문에 기술 상태는 NO-GO다.
 
+## 재개 우선점 — 14:51 UTC 이후
+
+- #323 최신 `e358e0fcc36554984018702b63ead02fbecaee7e`, 통합 `88ae5e8e1decbbe59471274a48a09e46737e3b47`.
+  검색 후 자동 스크롤의 다음 입력 취소·지도 준비/실제 높이 일치·경로 선택 `aria-pressed`/체크 표시를 추가했다.
+  별도 지연 검사는 수정 전 6 fail/2 pass → 수정 후 관련 34/34. 390/768/1366px 화면·held click·focus·axe를 확인했다.
+- 이전 #323 CI 34037880762는 success지만 **314 pass / 1 flaky / 기존 skip 1**이었다.
+  core-journeys:78의 클릭 전후 스크롤 이동을 artifact/trace에서 확인했다. 같은 로컬 20회와 CPU 감속 6회는 통과했다.
+  위 경계 결함을 별도로 재현/수정했으며 원격 사례의 유일 원인을 확정하지 않는다. 재시도 이력을 지우지 않는다.
+- 새 [CI 34040324753](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34040324753)는 확인 중이다.
+  통합 **88ae5e8은 331 pass / 기존 skip 1 / 실패 0 (8.4분)**, unit 313/313,
+  lint/typecheck/Vercel build/performance PASS, audit 0이다. CSS 69.64/70·planner 265.64/270 KiB.
+  #323 첫 전체 로컬은 **326 pass / 1 fail / 기존 skip 1**: returning itinerary의 `page.goto`에서
+  Chromium `ERR_NO_BUFFER_SPACE`가 발생했다. 앱 진입 전 빈 화면·trace를 보존했다. 병행 브라우저 검사를 종료한 뒤
+  같은 전체 범위·worker 2·기존 timeout으로 단독 재실행 중이며 최초 실패를 성공으로 세지 않는다.
+  단위 280/280과 lint/typecheck는 성공했다. 결과를 새 CI와 함께 같은 PR에 기록한다.
+- #313 `947d704` CI 34038501253은 **247 pass / 기존 skip 1**로 성공했다. 아래 과거 수치는 해당 시점의 기록이다.
+- 14:17 UTC 지역/장소 사진 출처 후속 단일 요청은 각각 30초 안에 응답을 받지 못했다.
+  재시도 조건이 다른 부분 점검이며 14:02 전체 22/27을 대체하지 않는다. 사진 장기 안정성은 미확정이다.
+- 원격 CI와 이 원자적 변경의 검증을 먼저 마무리한다. 다음 코드 범위는 경로 상세·출발 확인 KO/EN → 인증 폼·정책 KO/EN이다.
+  새로운 언어 작업 브랜치나 PR은 아직 만들지 않았다. 실제 200%·Preview/008·운영 API 원인·구독 queue도 남는다.
+
 ## 보존한 브랜치와 결과
 
 | Worktree / 원격 PR | 현재 변경 | 상태 |
@@ -88,12 +109,10 @@
 ## 정확한 재개 순서
 
 1. 현재 main, 25 PR/47 Issue 수의 변동, 최근 CI, Production SHA, 다른 작업자 댓글과 worktree status 재조회.
-   #311 93d1058, #314 6f9fc54, #289 acb7dab의 새 CI와 통합 5db27a2 검증 결과를 먼저 확인한다.
-   #314 CI 34026490814, #311 CI 34026760202, #289 CI 34026711165는 모두 성공했다.
-   wave-transport-integrity의 현재 fix/itinerary-language는 #323 be79d0c로 push했다.
+   wave-transport-integrity의 현재 fix/itinerary-language는 #323 e358e0f로 push했다.
    #321 fix/recommendation-language 272bf68과 #322 fix/shared-trip-snapshot 0b916a4도 보존했다.
-   #323 CI 34037880762·최종 전체 브라우저와 bf2cfe8 합성 결과를 확인한다.
-   #321 CI 34032622064는 성공·Ready다. #319/#313(4a9bccb) CI도 성공했다.
+   #323 CI 34040324753·최종 전체 브라우저와 88ae5e8 합성 결과를 확인한다.
+   #313 947d704 CI 34038501253은 성공했고 이 체크포인트가 후속 문서 변경이다.
    #320은 팀원 변경과 P1 보완을 같은 PR에 보존했다. bfeda5f의 CI 34034203872는 성공했다. 추가 원격 커밋과
    PM 디자인 재검토를 확인한다. 이 보완 이후 합성에 포함했으며 이전 P1 미해결 이력과 구분한다.
 2. #317~#319/#321~#323의 조건·내비게이션·설정·도움말·추천 상세·공유·일정을 중복 구현하지 않는다.
