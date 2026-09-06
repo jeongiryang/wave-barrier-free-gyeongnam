@@ -13,7 +13,7 @@
   보호 규칙을 낮추거나 관리자 우회하지 않는다. 구현·문서·로컬 검증은 계속한다.
 - 완료는 구현·회귀·문서·배포·운영 증거가 함께 있을 때만 사용한다. 아래의 코드·테스트 경로는
   구현 근거이며, 파일 존재를 해당 Issue 전체 AC 충족으로 해석하지 않는다.
-- 최신 검증 후보 `bf2cfe87fc94709b1453cdc81318133e64bbabac`는 #320~#323과 제품·보안·자동화를 합성했다.
+- 직전 검증 후보 `bf2cfe87fc94709b1453cdc81318133e64bbabac`는 #320~#323과 제품·보안·자동화를 합성했다.
   lint/typecheck, unit·contract **313/313**, Vercel build/performance PASS, audit **0**,
   전체 Playwright·axe **319 pass / 기존 skip 1 / 실패 0 (8.1분)**. CSS gzip 69.61/70 KiB,
   planner JS 265.40/270 KiB다. Preview나 Production 검증으로 세지 않는다.
@@ -27,11 +27,17 @@
   저장 중 포커스와 dark 대비도 보완했다. 재현 4 fail → 최종 8/8, 전체 303 pass/기존 skip 1,
   unit 280, [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34036478371), Ready.
   이미 발행한 공유 링크나 사용자 데이터를 삭제하지 않았다.
-- #323 `be79d0c`: 일정 KO/EN·저장 안내·원문 언어·선택 해설·실제 지연 로딩과 대비를 보완했다.
+- #323 초기 `be79d0c`: 일정 KO/EN·저장 안내·원문 언어·선택 해설·실제 지연 로딩과 대비를 보완했다.
   320px 캡처에서 확인한 DAY 2/Earlier 잘림도 수정했다. unit 280, 관련 72/72, 최종 새 회귀 12/12,
   전체 **315 pass/기존 skip 1/실패 0 (8.0분)**, lint/typecheck/build/performance PASS.
-  [CI 34037880762](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34037880762)는 별도 확인한다.
-- #313 `ecf90b3` 문서 [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34035647731).
+  [CI 34037880762](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34037880762)는 314 pass/1 flaky/기존 skip 1로 success다.
+  재시도 사례의 스크롤 이동을 trace로 조사했다. 현재 `e358e0f`는 후속 자동 스크롤 취소·지도 높이·경로 선택 상태를 수정했다.
+  관련 34/34, unit 280/280, lint/typecheck/build/performance PASS. [새 CI 34040324753](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34040324753)와 전체 검증 진행 중.
+  최신 합성 `88ae5e8`은 unit 313/313, lint/typecheck/build/performance PASS, audit 0,
+  전체 **331 pass / 기존 skip 1 / 실패 0 (8.4분)**이다. CSS 69.64/70·planner 265.64/270 KiB.
+  #323 로컬 첫 전체는 326 pass/1 fail/기존 skip 1이며 `page.goto`의 Chromium ERR_NO_BUFFER_SPACE였다.
+  artifact를 보존하고 병행 실행 종료 후 같은 전체 범위를 단독 재실행한다. CI/후속 결과는 PR에서 확인한다.
+- #313 `947d704` 문서 [CI 성공](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34038501253), 전체 247 pass/기존 skip 1.
   이전 후보별 수치·수정 과정은 [체크포인트](ai-logs/launch-execution-checkpoint-20260906.md)와
   [이전 실행표 커밋](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/blob/ecf90b3674f561a8e50fa2606333c83adeb6c293/docs/launch-readiness-status.md)에 보존했다.
 - 최신 전체 Production 진단은 **2026-09-06 14:02:46 UTC 22/27**, 실패 5건이다.
