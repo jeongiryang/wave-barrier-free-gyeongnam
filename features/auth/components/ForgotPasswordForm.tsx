@@ -1,5 +1,7 @@
 "use client";
 
+import HydratedAuthForm from "./HydratedAuthForm";
+
 import { useRef, useState, type FormEvent } from "react";
 import { authClient } from "../../../lib/auth/client";
 import { looksLikeEmail } from "../validation";
@@ -46,11 +48,11 @@ export default function ForgotPasswordForm() {
 
   return <>
     <p className="auth-description">가입할 때 사용한 이메일을 입력하면 재설정 링크를 보내드립니다. 계정 존재 여부는 화면에 구분해 표시하지 않습니다.</p>
-    <form onSubmit={submit} noValidate>
+    <HydratedAuthForm onSubmit={submit} noValidate>
       <div className="auth-field"><label htmlFor="recovery-email">이메일</label><input id="recovery-email" name="email" type="email" inputMode="email" autoComplete="email" maxLength={254} required aria-describedby="recovery-message" /></div>
       <p id="recovery-message" className={`auth-message${success ? " success" : ""}`} role={message ? "status" : undefined} aria-live="polite">{message}</p>
       <button className="auth-submit" type="submit" disabled={submitting || success}>{submitting ? "전송하는 중…" : success ? "메일을 확인해 주세요" : "재설정 메일 보내기"}</button>
-    </form>
+    </HydratedAuthForm>
     <div className="auth-switch"><a href="/login">로그인으로 돌아가기</a></div>
   </>;
 }
