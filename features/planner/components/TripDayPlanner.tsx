@@ -75,9 +75,10 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
     </article>)}</div>
     <div className="itinerary-primary-actions">
       <div><strong>일정 저장·공유</strong><p>선택한 장소, 날짜와 순서를 30일 동안 공유 링크로 보관합니다.</p></div>
-      <button type="button" onClick={sharePlan} disabled={!plan || shareState === "saving"}>{shareState === "saving" ? "링크 만드는 중" : shareState === "done" ? "링크 복사 완료" : "공유 링크 만들기"}</button>
+      <button type="button" onClick={() => { if (plan && shareState !== "saving") void sharePlan(); }} disabled={!plan} aria-disabled={!plan || shareState === "saving"} aria-busy={shareState === "saving"}>{shareState === "saving" ? "링크 만드는 중" : shareState === "done" ? "링크 복사 완료" : "공유 링크 만들기"}</button>
       {shareUrl && <a href={shareUrl}>공유 일정 열기</a>}
       {shareState === "error" && <small role="alert">공유 링크를 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요.</small>}
+      {shareState === "copy-error" && <small role="alert">공유 링크는 만들었지만 복사하지 못했습니다. 공유 일정을 열어 주소를 직접 복사하거나 다시 시도해 주세요.</small>}
     </div>
     <Suspense fallback={<p role="status">여행집 보관 기능을 준비하고 있어요.</p>}><TravelBookArchiveAction
       places={orderedSavedPlaces}
