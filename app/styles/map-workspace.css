@@ -61,9 +61,10 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .planner-section .planner-bento { grid-template-columns: minmax(360px,.95fr) minmax(0,1.45fr); }
 .route-compare-panel { padding: 22px; }
 
-.route-map-shell { min-height: 710px; display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); overflow: hidden; isolation: isolate; background: #dce9ef; transition: grid-template-columns .32s cubic-bezier(.16,1,.3,1); }
+.map-panel { --route-map-height: 710px; }
+.route-map-shell { min-height: var(--route-map-height, 710px); display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); overflow: hidden; isolation: isolate; background: #dce9ef; transition: grid-template-columns .32s cubic-bezier(.16,1,.3,1); }
 .route-map-shell.drawer-open { grid-template-columns: minmax(0,1fr) minmax(340px,380px); }
-.route-map-canvas { height: 710px; min-width: 0; grid-column: 1; grid-row: 1; }
+.route-map-canvas { height: var(--route-map-height, 710px); min-width: 0; grid-column: 1; grid-row: 1; }
 .route-map-shell.drawer-open .map-command-bar { right: 396px; }
 .map-command-bar { max-width: calc(100% - 330px); }
 /* 대체 지도 상태에서는 배지에 기본 지도 재연결 버튼이 붙어 왼쪽 공간을 차지한다.
@@ -126,8 +127,9 @@ html[data-theme="dark"] .map-side-drawer header > button { color: #e7f2f7; borde
 }
 @media (max-width: 900px) {
   .planner-section .planner-bento { grid-template-columns: 1fr; }
-  .route-map-shell,.route-map-shell.drawer-open { min-height: 560px; grid-template-columns: minmax(0,1fr); }
-  .route-map-canvas { height: 560px; }
+  .route-map-shell,.route-map-shell.drawer-open { min-height: var(--route-map-height, 560px); grid-template-columns: minmax(0,1fr); }
+  .map-panel { --route-map-height: 560px; }
+  .route-map-canvas { height: var(--route-map-height, 560px); }
   .map-side-drawer { width: auto; max-height: 68%; position: absolute; inset: auto 8px 8px; display: block; border: 1px solid #c9dce5; border-radius: 20px; box-shadow: 0 24px 64px rgba(5,47,65,.24); }
   .map-side-drawer header { top: -20px; border-radius: 20px 20px 0 0; }
   .route-map-shell.drawer-open .map-command-bar,.route-map-shell:fullscreen.drawer-open .map-command-bar,.route-map-shell.expanded.drawer-open .map-command-bar { right: 8px; }
@@ -136,8 +138,9 @@ html[data-theme="dark"] .map-side-drawer header > button { color: #e7f2f7; borde
 @media (max-width: 620px) {
   .navigation-section { padding-right: 12px; padding-left: 12px; }
   .navigation-workspace { border-radius: 18px; }
-  .route-map-shell,.route-map-shell.drawer-open { min-height: 500px; }
-  .route-map-canvas { height: 500px; }
+  .map-panel { --route-map-height: 500px; }
+  .route-map-shell,.route-map-shell.drawer-open { min-height: var(--route-map-height, 500px); }
+  .route-map-canvas { height: var(--route-map-height, 500px); }
   .map-command-bar { top: 9px; left: 8px; right: 8px; max-width: none; }
   .route-map-shell.drawer-open .map-command-bar { right: 8px; }
   /* 이 폭에서 명령 바는 y 9..65를 차지한다. */
@@ -172,7 +175,7 @@ html[data-theme="dark"] .map-command-scroll::-webkit-scrollbar-thumb {
   background: rgba(159,190,205,.5);
 }
 .map-load-placeholder {
-  min-height: clamp(420px, 58vh, 650px);
+  min-height: var(--route-map-height, 710px);
   display: grid;
   place-items: center;
   padding: 24px;
