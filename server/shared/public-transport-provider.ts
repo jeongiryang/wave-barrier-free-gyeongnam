@@ -54,6 +54,13 @@ export function koreaYmd(offsetDays = 0) {
   return `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, "0")}${String(date.getUTCDate()).padStart(2, "0")}`;
 }
 
+export function transportQueryEvidence(result?: ProviderAttempt | null) {
+  return {
+    queryStatus: result ? (result.ok ? "success" : "error") : "not-requested",
+    resultCount: result?.ok ? result.value.total : null,
+  } as const;
+}
+
 export function transportProvider(
   id: string,
   name: string,
@@ -74,5 +81,5 @@ export function transportProvider(
     state = "error";
     detail = result.error || "제공기관 응답을 확인해 주세요.";
   }
-  return { id, name, role, configured: hasKey, state, detail };
+  return { id, name, role, configured: hasKey, state, detail, ...transportQueryEvidence(result) };
 }

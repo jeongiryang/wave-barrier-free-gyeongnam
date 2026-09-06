@@ -1,7 +1,14 @@
 import type { Env } from "../shared/env";
 import { clean } from "../shared/http";
-import { transportProvider } from "../shared/provider-data";
+import { transportProvider, transportQueryEvidence } from "../shared/provider-data";
 import type { PublicTransportSnapshot } from "./public-provider-queries";
+
+function knownNumber(value: unknown) {
+  if (value === null || value === undefined || (typeof value === "string" && !value.trim())) return null;
+  if (typeof value !== "string" && typeof value !== "number") return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
 
 export function buildPublicTransportContext(env: Env, snapshot: PublicTransportSnapshot) {
   const { korailKey, tagoKey, korailPlans, nearbyStops, trainCatalog, expressCatalog, intercityCatalog, arrivals } = snapshot;
@@ -27,11 +34,14 @@ export function buildPublicTransportContext(env: Env, snapshot: PublicTransportS
     nearbyStops: nearbyStops?.ok ? nearbyStops.value.items.slice(0, 6).map((item) => ({
       id: clean(item.nodeid || item.nodeId), name: clean(item.nodenm || item.nodeNm || item.sttnNm || "인근 정류장"), cityCode: clean(item.citycode || item.cityCode),
     })) : [],
-    arrivals: arrivalItems.slice(0, 6).map((item) => ({
-      route: clean(item.routeno || item.routeNo || item.routenm || item.routeNm || "버스"),
-      minutes: Number(item.arrtime || item.arrTime) > 0 ? Math.max(1, Math.round(Number(item.arrtime || item.arrTime) / 60)) : null,
-      stops: Number(item.arrprevstationcnt || item.arrPrevStationCnt || 0),
-    })),
+    arrivals: arrivalItems.slice(0, 6).map((item) => {
+      const seconds = knownNumber(item.arrtime ?? item.arrTime);
+      return {
+        route: clean(item.routeno || item.routeNo || item.routenm || item.routeNm || "버스"),
+        minutes: seconds === null ? null : seconds === 0 ? 0 : Math.max(1, Math.round(seconds / 60)),
+        stops: knownNumber(item.arrprevstationcnt ?? item.arrPrevStationCnt),
+      };
+    }),
     korail: korailPlans?.ok ? korailPlans.value.items.slice(0, 6).map((item) => ({
       trainNo: clean(item.trn_no || item.trnNo || item.trainNo || item.trainno || "열차"),
       departure: clean(item.dptre_stn_nm || item.dptreStnNm || item.depPlaceNm || item.depplacename || item.stdepplacename),
@@ -44,12 +54,12 @@ export function buildPublicTransportContext(env: Env, snapshot: PublicTransportS
       intercityTerminals: intercityCatalog?.ok ? intercityCatalog.value.total : 0,
     },
     datasets: [
-      { id: "bus-stop", name: "버스정류소", state: nearbyStops?.ok ? (nearbyStops.value.items.length ? "live" : "ready") : tagoKey ? "error" : "missing" },
-      { id: "bus-arrival", name: "버스도착", state: arrivals?.ok ? (arrivalItems.length ? "live" : "ready") : arrivals ? "error" : tagoKey ? "ready" : "missing" },
-      { id: "train", name: "철도 지역코드", state: trainCatalog?.ok ? (trainCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing" },
-      { id: "express", name: "고속버스 터미널", state: expressCatalog?.ok ? (expressCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing" },
-      { id: "intercity", name: "시외버스 터미널", state: intercityCatalog?.ok ? (intercityCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing" },
-      { id: "korail-plan", name: "KORAIL 운행계획", state: korailPlans?.ok ? (korailPlans.value.total ? "live" : "ready") : korailKey ? "error" : "missing" },
+      { id: "bus-stop", name: "버스정류소", state: nearbyStops?.ok ? (nearbyStops.value.items.length ? "live" : "ready") : tagoKey ? "error" : "missing", ...transportQueryEvidence(nearbyStops) },
+      { id: "bus-arrival", name: "버스도착", state: arrivals?.ok ? (arrivalItems.length ? "live" : "ready") : arrivals ? "error" : tagoKey ? "ready" : "missing", ...transportQueryEvidence(arrivals) },
+      { id: "train", name: "철도 지역코드", state: trainCatalog?.ok ? (trainCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing", ...transportQueryEvidence(trainCatalog) },
+      { id: "express", name: "고속버스 터미널", state: expressCatalog?.ok ? (expressCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing", ...transportQueryEvidence(expressCatalog) },
+      { id: "intercity", name: "시외버스 터미널", state: intercityCatalog?.ok ? (intercityCatalog.value.total ? "live" : "ready") : tagoKey ? "error" : "missing", ...transportQueryEvidence(intercityCatalog) },
+      { id: "korail-plan", name: "KORAIL 운행계획", state: korailPlans?.ok ? (korailPlans.value.total ? "live" : "ready") : korailKey ? "error" : "missing", ...transportQueryEvidence(korailPlans) },
     ],
   };
   return { providers, context };
