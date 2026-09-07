@@ -55,7 +55,7 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
   for (const job of [workflow.jobs["sandbox-boundary"], workflow.jobs["sandbox-application"]]) {
     const runs = job.steps.map(step => step.run || "").join("\n");
     const bootstrap = job.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution").run;
-    assert.match(bootstrap, /abadeffe18f0ec9699d3f6b33cd5737620122d6f\/scripts\/subscription-ci-bootstrap\.py/);
+    assert.match(bootstrap, /e5961d401cc3f1a04744fac6cca45442348df522\/scripts\/subscription-ci-bootstrap\.py/);
     assert.ok(bootstrap.indexOf("sha256sum --check") < bootstrap.indexOf('python3 -I -B "$RUNNER_TEMP/wave-ci-bootstrap.py"'));
     assert.doesNotMatch(runs, /npm ci|npx |spec_from_file_location\("boundary", "scripts\/|python3 -I(?: -B)? tests\//);
     assert.match(runs, /WAVE_TRUSTED_RUNTIME/);

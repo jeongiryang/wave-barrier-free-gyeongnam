@@ -143,9 +143,9 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location \
-            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/abadeffe18f0ec9699d3f6b33cd5737620122d6f/scripts/subscription-ci-bootstrap.py \
+            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/e5961d401cc3f1a04744fac6cca45442348df522/scripts/subscription-ci-bootstrap.py \
             -o "$RUNNER_TEMP/wave-ci-bootstrap.py"
-          printf '8e8a27bdc41eac89f3957023491eece440b2c12e6b960ad748d18602cf6782d8  %s\n' "$RUNNER_TEMP/wave-ci-bootstrap.py" | sha256sum --check
+          printf 'e8cfdecff732aaf12d8020ae8b4a4ffdadfda1cf1c678e96cacd49513e83e0c9  %s\n' "$RUNNER_TEMP/wave-ci-bootstrap.py" | sha256sum --check
           python3 -I -B "$RUNNER_TEMP/wave-ci-bootstrap.py" --repository "$GITHUB_WORKSPACE" --destination "$RUNNER_TEMP/wave-trusted"
           cp "$RUNNER_TEMP/wave-ci-bootstrap.py" "$RUNNER_TEMP/wave-trusted/scripts/subscription-ci-bootstrap.py"
           curl --fail --silent --show-error --location \
@@ -233,9 +233,9 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location \
-            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/abadeffe18f0ec9699d3f6b33cd5737620122d6f/scripts/subscription-ci-bootstrap.py \
+            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/e5961d401cc3f1a04744fac6cca45442348df522/scripts/subscription-ci-bootstrap.py \
             -o "$RUNNER_TEMP/wave-ci-bootstrap.py"
-          printf '8e8a27bdc41eac89f3957023491eece440b2c12e6b960ad748d18602cf6782d8  %s\n' "$RUNNER_TEMP/wave-ci-bootstrap.py" | sha256sum --check
+          printf 'e8cfdecff732aaf12d8020ae8b4a4ffdadfda1cf1c678e96cacd49513e83e0c9  %s\n' "$RUNNER_TEMP/wave-ci-bootstrap.py" | sha256sum --check
           python3 -I -B "$RUNNER_TEMP/wave-ci-bootstrap.py" --repository "$GITHUB_WORKSPACE" --destination "$RUNNER_TEMP/wave-trusted"
           cp "$RUNNER_TEMP/wave-ci-bootstrap.py" "$RUNNER_TEMP/wave-trusted/scripts/subscription-ci-bootstrap.py"
           curl --fail --silent --show-error --location \
