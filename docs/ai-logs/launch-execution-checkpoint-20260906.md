@@ -3,29 +3,32 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 2026-09-07 05:40 UTC 실행 증거
+## 2026-09-07 07:26 UTC 실행 증거
 
-전체 요청은 미완료다. 05:30 원격 Open PR43·Issue49,05:40 main/Production 34e6021265b16d046dca24feaa3ec2101fc977e2, #287 b803b80 Ready·리뷰0/필수3·REVIEW_REQUIRED/BLOCKED. 운영 배포6278499275와 Vercel DpUP8LhruYLeXs6N5Nxqrk3JoD6G 유지. 보호 규칙과 008 운영 스키마/백업/적용 확인은 별도 게이트다.
+전체 요청은 미완료다. 최신 main/Production은 `34e6021265b16d046dca24feaa3ec2101fc977e2`, 운영 배포6278499275(2026-09-05 07:34:40 UTC)다. #287 `b803b80`은 Ready/MERGEABLE이나 리뷰0/필수3·REVIEW_REQUIRED/BLOCKED다. 승인·008 운영 스키마/백업/복구/적용·최종 Production 검증을 우회하지 않는다. 원격 Open PR44·Issue49 기준이며 실제 재개 때 다시 조회한다.
 
 | 요구/담당 Engineering·QA | 최신 근거 | 상태·남은 조치 |
 | --- | --- | --- |
-| #342 검색/구간/단계 포커스 | d568a855, 독립 P1 전환12 FAIL→관련94 PASS, 로컬645 PASS/기존skip1(16.2분), unit498/기본검사 PASS. [CI34085827476](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34085827476)645 PASS/기존skip1/flaky0 | Draft, 독립 재판정·사람 리뷰·main/운영 미반영. 세 사용자 callback에서 제목 focus/hash/가시성/실제 뒤로가기 확인 |
-| #343 사진 대비/언어 | 팀 변경4c46f293 안전 동기화. 최신 [CI34083871443](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34083871443)629 PASS/기존skip1/flaky0, 최신 로컬 관련42 PASS | Draft, 원문 이름과 번역 상태의 lang 보완. 독립 재판정·운영 검증 남음 |
-| #344 지도 상태/언어/Escape | 3c813456, 관련58 PASS, unit495/기본검사 PASS. 독립 P1의 전체 lang=en 상속 제거, 원문과 번역 경계·실제 fullscreen 종료·취소 focus 보완 | 최신 전체622개 및 [CI34086546918](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34086546918) 진행 중. 이전430 로컬616 PASS/skip1/ERR_NO_BUFFER_SPACE1 FAIL, CI617 PASS/skip1/flaky0는 별도 |
-| 최신 격리 합성 | 8ef047f8fcd0bbe8f7a0976d1de1bfd48b7ea56a, 최신3source 포함. unit502/lint/typecheck/Vercel build/performance PASS. CSS69.89/70, planner269.91/270KiB | 최신 전체686개 미실행. 원본base #334c1은 전진시키지 않음. 이전cef3 전체657 PASS/skip1을 새 수정의 검증으로 세지 않음 |
-| #334/#339/#341 | #334c1 로컬/CI605 PASS/skip1. #339c789는 통합base 포함으로 GitHub MERGED, main/Production 아님. 원본branch복원. #341afb78cf 문서 CI201 PASS/skip1, 로컬199 PASS/skip1/대비2 FAIL | 원본·팀 변경 보존. 구현/검증/운영 상태 구분. #340 및 기존 랜딩 요구와 남은 차이 계속 처리 |
+| #342 검색·단계 포커스 | d568a855, 관련94/unit498/기본검사 PASS. 로컬645 PASS/기존skip1, [CI34085827476](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34085827476)645 PASS/기존skip1/flaky0 | Draft, 독립 최종 재판정·사람 리뷰·운영 미반영 |
+| #343 사진 대비·원문 언어 | 팀 변경4c46f293 보존. 관련42 PASS, [CI34083871443](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34083871443)629 PASS/기존skip1/flaky0 | Draft, 원문 alt와 번역 상태의 lang 분리, 운영 미반영 |
+| #344 지도 상태·언어·대비 | 072607d, 관련64/unit495/기본검사 PASS. 로컬621 PASS/기존skip1(26.7분), [CI34088497728](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34088497728)621 PASS/기존skip1/flaky0 | Draft, dark 전경 상속과 밝은 지도 배경 충돌 수정, 운영 미반영 |
+| #345 위치 동의 언어 | 8a7813c, 선행 #344 base로 일반 merge. 관련62/unit501/기본검사 PASS. 최초 전체626은612 PASS/skip1/ENOSPC13 FAIL | C: 공간 부족의 모든 기록 보존. D:에서 source 전체626 재실행 중. [CI34091986996](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34091986996) 첫 회624 PASS/skip1/flaky1: /planner HTTP500·Vite socket hang up. 같은 HEAD 전체 CI attempt2 진행 중, 첫 실패를 지우거나 완화하지 않음 |
+| 격리 합성 후보 | `0333091ae02c3eb9dc59647b01b85627bae84d56`, 최신4source 포함. unit508/lint/typecheck/Vercel build/performance PASS. **전체689 PASS/기존skip1/실패0(17.7분)** | CSS69.89/70, planner269.9/270KiB. #334 원본base c1 전진/병합 없음. 이 문서 이후 SHA와 실제 앱 검증 SHA를 구분 |
+| 구독 자동화 #288/#294/#289 | 실제 owner 명세→공용 claim→구독 문서 생성→전체 unit306/Playwright237 PASS/skip1→기존 PR atomic push d58e893→CI34091892987 성공→별도 QA FAIL→15분 대기→수정 cbb7587·unit306/Playwright237 PASS/skip1 | 구현 시도2/QA시도2 유지. QA가 과도한 Notion 완료 문구를 발견했다. cbb의 최신 CI34095314507 진행 중. 수동 범위 명확화·배포 차단·QA 지적 전달 보완은 기존 #289에 보존하고 최신 전체 검증 중. 새 PR/Issue 없이 진행 |
 
-최신 [Preview 화면](https://wave-barrier-free-gyeongnam-2huqqngby-jeongiryang-projects.vercel.app/), [배포4tvtSLWJYeSqYGXraV7wUxq8pTqS](https://vercel.com/jeongiryang-projects/wave-barrier-free-gyeongnam/4tvtSLWJYeSqYGXraV7wUxq8pTqS)는 앱8ef047f /05:30:30 UTC Ready/37초다. 기존 Hobby 프로젝트 일회성 Preview이며 Production 승격이 아니다. 실제 중립 첫 진입→영어→창원/휠체어시설/자연/당일→명시적 KTO추천7곳→사진 원문 alt/영어 loading→일정2곳→제목 focus/hash→Kakao20분/ODsay38분,27.7% 혼잡 예상,지도 영어 조작·상태/패널을 확인했다. 기본지도 연결 지연은 대체지도로 표시됐으며 주요 SDK 성공으로 세지 않는다. 위치 선택 후 Escape는 패널을 닫고 Route points 버튼으로 focus를 돌려보냈다.
+[최신 Preview](https://wave-barrier-free-gyeongnam-5bsfcotmx-jeongiryang-projects.vercel.app/), [Vercel 배포 DFkQePMqcD4pkNR4PFJWzXodLVyi](https://vercel.com/jeongiryang-projects/wave-barrier-free-gyeongnam/DFkQePMqcD4pkNR4PFJWzXodLVyi)는 앱0333091/Ready36초다. 기존 Hobby 프로젝트의 일회성 Preview이며 Production 승격이 아니다. 실제 중립 진입→영어→창원/휠체어시설/자연/당일→명시적 KTO추천7곳→일정2곳→모든 자동차구간2/2(20·21분)과 영어 위치 동의 문구를 확인했다. 실제 GPS를 승인하지 않았다. Native confirm 취소 후 포커스는 브라우저 연결 문제로 미확인이다. 별도 새 탭에서 두 장소가 복원됐고 390x844/1366x768 일정 화면을 직접 확인했다. 두 폭 가로 overflow 없음, 1366 콘솔 error/warn0이다. 임시 viewport는 reset했다.
 
-새 재현: 영어 My location 버튼의 사전 확인이 한국어다. document.lang=ko를 읽는 location-consent.js가 원인 후보이며 실제 확인 창에서 재현했다. 위치 권한/좌표 전송은 승인하지 않았다. CUA의 native confirm 처리·기존탭 재연결이 실패해 취소 완료라고 주장하지 않는다. 테스트 소유 탭1678645820에 사전 확인이 남을 수 있으며 새 Preview 탭에서는 로컬 일정2와 영어 설정이 복원됐다. 실제 GPS 접근 없이 회귀 fixture로 수정/검증한다.
+Preview 기본 지도는 연결 지연 후 Leaflet 대체 지도다. Kakao SDK 정상으로 세지 않는다. ODsay 시간은 unavailable, KTO 혼잡 예상27.7%로 표시됐다. 대체지도 출발 marker/팝업에 한국어가 남는 것이 확인되어 후속 지도 언어 잔여다. 직접 /planner 재접속은 일정2/영어 설정을 복원하지만 여행 조건·추천은 초기 상태여서 #272/#281 lifecycle 계약과 대조해야 한다. 실제 공유·로그인·회원/커뮤니티 쓰기까지 완료한 검증이 아니다.
 
-Production05:08:46 /api/health HTTP200/ok/requiredMissing0은 configuration 검사만이다. 이전02:50 API13/HTML14와02:52 390/1366 추천3/로컬저장복원1/console·pageerror·overflow·실패GET0을 유지하되 최초선택1/자동추천2·새provider계약FAIL은 운영 잔여다. 최신앱 전체 API·인증·커뮤니티·모바일 Preview·운영 migration·Production 반영 완료가 아니다.
+Production 07:20:57 UTC 조회 계약은 **27개 중26 PASS/route1 FAIL**이다. API12 PASS/route1 FAIL, HTML14 PASS다. /api/health는 configuration 검증이며 실제 모든 제공처 성공이 아니다. 07:21:37 경로 실응답에서 Kakao 자동차8분은 반환됐지만 ODsay error, KORAIL ready/운행 확인 미완료다. TAGO 연결 상태는 기존 main의 계약이므로 엄격한 신규 공급처 검증 완료로 확대하지 않는다. 개인 좌표·사용자 데이터 쓰기 없이 공개 출발/도착 거점으로 검사했다.
 
-모델API workflow3개05:04 disabled_manually, 새모델API/유료fallback/과금자원/예약/Secret·구독인증 복사 없음. 기존 예약5개·로컬CLI·독립 리뷰/수정/PR/Notion 환류는 부분 증거만, 상시 종단간 성공 아님. 과금 여부는 확인 불가이며 추정하지 않는다.
+자동화 실행에서 metadata branch의 vercel.json 누락으로 Preview14건이 실패했다. 원격 `2d1322c`에서 git.deploymentEnabled:false를 추가하고 초기 tree/상태 쓰기/atomic publish 가드를 보완했다. 07:18 Vercel 재조회에서 실패14건/마지막382b4fa 이후 추가 상태 배포 없음. 실제 별도 QA [댓글5566335607](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/289#issuecomment-5566335607)을 실패 근거와 함께 구현 대기열로 돌려보냈다. 동일 구현 재실행은 duplicate:true/modelCalls0/새PR0이다. 상세 [#294 실행 기록](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/294#issuecomment-5566268983)과 기존 #289 runbook을 따른다.
 
-정확한 재개: 지도 전체622(session62136,4221) 완료→최신CI 확인→격리합성686 전체→실제Preview390/1366·모든구간·콘솔·원문lang→독립 재검토. 대기 중 위치 사전안내 언어를 별도 원자적 수정하고 나머지 영어/모바일위계/#340랜딩/제출·운영 문서를 이어간다. 사람 리뷰3/008/외부운영 검증 전 런칭·제출 완료나 Release GO를 선언하지 않는다.
+실제 blocker: Notion 무료 block 한도 응답 이후 쓰기 대기(표시 유예 종료2026-09-08 11:21:22 UTC), 최종 QA→Notion 미반영/ack 안 함. 설치 Codex0.130 Windows sandbox 공개 canary는 작업 폴더 밖 쓰기를 차단했으나 외부 읽기·로컬 연결 차단 실패: 일반 생성 코드는 blocked-sandbox. 실제 인증 파일 읽기/복사·모델 API·유료 fallback·새 과금 자원·예약 등록 없음. 모델 API workflow3개는07:21 disabled_manually다. 기존 Work 웹 hourly queue/이벤트 QA는 일부 실제 조회했으며 로컬 프로젝트 예약 등록·예약 실행·전체 종단간 성공은 미검증이다. 과금 유무는 추정하지 않는다.
 
-로그: 임시 wave-launch-20260906의 qa-focus-ready/qa-focus-full/ci342-d568-success, photo-language-team/ci343-4c46-success, map-parts-ready/map-parts-full/map-language-ready-full/ci344-430-success, qa-all-three-*에 보존. 4215/4217/4219/4221 검사 서버와 다른 작업자 변경을 보존한다. PR342/343/344 본문과 Notion Engineering 영역에 동일 근거를 반영했다.
+정확한 재개: source#345 D: 전체626·CI attempt2와 #289 보완 전체238 결과 회수→기존 브랜치에 원자적 commit/push·최신CI/별도QA 확인→#288/#294 최신 상태 갱신. quota/인증/재시도 한도를 초기화하거나 API로 우회하지 않는다. 이후 Leaflet marker 언어와 #272/#281 재접속 계약, #340 및 기존 랜딩/UX/API/문서/제출 미완료 항목을 계속 처리한다. 사람 리뷰3/008/운영 검증 전 런칭·공모전 제출·Release GO 완료를 선언하지 않는다.
+
+로그: 이전 C:/.../Temp/wave-launch-20260906 증거 전부 보존. 새 대용량 검증은 `D:/wave-validation-20260907`의 combined-033-full,location-8a-full,queue-guard-*,queue-second-implementation-eligible,production-all-diagnostic,production-route-diagnostic에 보존한다. 다른 작업자 변경과 4215/4217/4219/4221/4223 검사 서버는 유지한다.
 
 
 ## 이전 실행 증거 — 2026-09-06 23:38 UTC
