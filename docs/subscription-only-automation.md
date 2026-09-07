@@ -17,6 +17,7 @@
 `OPENAI_API_KEY`, `WAVE_PM_AGENT_TRIGGER_ID`, `WAVE_PM_AGENT_ACCESS_TOKEN`,
 `WAVE_GITHUB_AUTOMATION_TOKEN`은 이 대안의 설정 요구사항이 아니다. 새로 발급·등록하지 않는다.
 구독 auth.json, 브라우저 로그인 정보, Codex access token을 GitHub Secret으로 옮기지 않는다.
+이번 worker와 Work PM 웹 확인은 `OPENAI_API_KEY` 요청이나 PM API channel 생성 요청이 아니다.
 
 GitHub가 반환한 세 workflow의 전체 실행 8건을 조회했다(각 100건 요청, Worker 2 / QA 2 / Dispatcher 4).
 모두 failure, jobs=0이며 실행 중인 run은 없었다. 모델 Action/PM trigger step의 실행 증거가 없다.
@@ -49,16 +50,28 @@ node scripts/check-subscription-codex.mjs '<설치된 공식 codex.exe 절대 �
 검증 범위는 구독으로 실행하는 작은 read-only 작업이다. 예약 실행, 이슈 자동 구현·게시,
 독립 AI 검토, PM 환류 전체가 성공했다는 뜻이 아니다. 이 Executor는 새 예약을 생성하지 않았다.
 후속 조회에서 기존 공식 Scheduled의 [2026-09-05 read-only receipt](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/294#issuecomment-5552575398)를 확인했다.
-GitHub·Notion 조회와 결과 기록 범위이며 구현/QA 자동화가 아니다. 기존 예약 전체 목록과
-현재 활성 상태는 이 실행 환경에 관리 도구가 없어 확인하지 못했다. 중복 예약을 만들지 않는다.
+GitHub·Notion 조회와 결과 기록 범위이며 구현/QA 자동화가 아니다. 2026-09-06에 확인한 다섯 작업 목록은
+그 시점의 historical inventory로만 보존한다. 현재 계정 전체 예약 수나 전체 활성 상태를 검증한 목록으로 사용하지 않는다.
+
+2026-09-07 약 06:22 UTC에는 기존 Work PM 웹 UI를 설정 변경 없이 읽었다. queue detail은 hourly execution과
+monitoring을 표시했다. 점검 중 보이는 제목은 `W.A.V.E 작업 대기열 처리`에서 `W.A.V.E AI Release Owner`로 바뀌었으며,
+이는 로컬에서 만든 schedule이나 release authority 증거가 아니라 동시에 관측된 설정 변경으로 기록한다. 같은 화면에서 기존
+`W.A.V.E 독립 AI QA` task도 관측했다. 이 task는 monitoring 상태였고 GitHub PR/review/PR and review comment/commit
+events를 보며 pending events는 0이었다. 현재 웹 detail은 접근 가능했지만, 로컬 데스크톱 프로젝트 scheduling 등록은
+여전히 검증하거나 수행하지 않았다. 웹 Work task는 사용자 PC를 실행하지 않으며 로컬 폴더 접근이나 local E2E 실행을 대신하지 않는다.
+
+새 로컬 queue/claim/HEAD/독립 QA 절차는 [subscription-queue-runbook.md](subscription-queue-runbook.md)에 둔다.
+이번 문서 갱신은 그 절차의 첫 documentation smoke이며, 실제 queue claim부터 구현, 별도 QA, 기록까지 이어지는 end-to-end
+증거는 아직 pending이다. 일반 generated application code는 blocked-sandbox 상태로 남아 있으며 자동 구현, 자동 QA,
+Notion 갱신, merge, Production 또는 release GO 완료를 주장하지 않는다.
 
 ## 가능한 범위와 남는 수동 작업
 
 | 방식 | 가능한 일 | PC / 앱 조건 | 아직 필요한 확인 |
 | --- | --- | --- | --- |
-| 구독 로그인 로컬 Codex / IDE | 승인된 이슈 구현, 별도 worktree, 테스트, diff 검토, GitHub 기록 | 실행 동안 PC·네트워크·로컬 로그인이 유효해야 함. CLI 실행 자체에 데스크톱 앱은 필요하지 않음 | PM이 GitHub에 scope/AC 지정, 한도·인증 회복, 필수 사람 리뷰 |
-| 공식 데스크톱 Scheduled의 프로젝트 작업 | 정해진 시각에 로컬 저장소/작업 트리를 점검하는 대안 | 해당 PC 켜짐, 앱 실행, 저장소 접근 가능. 절전/앱 종료 시 실행을 보장하지 않음 | #294의 기존 read-only receipt 확인. 현재 전체 설정·활성 상태는 관리 도구 부재로 미확인. 새 예약 생성 전 기존 앱에서 목록 확인 |
-| 웹 Work의 예약/지원되는 GitHub 이벤트 | 연결된 GitHub 기록을 읽고 PM queue 판단 | 로컬 PC 없이 가능하지만 로컬 폴더·E2E 직접 실행 불가 | 현재 플랜/Workspace 권한과 이벤트 지원 여부를 PM이 확인. 새 Agent·API channel은 만들지 않음 |
+| 구독 로그인 로컬 Codex / IDE | 승인된 이슈 구현, 별도 worktree, 테스트, diff 검토, GitHub 기록 | 실행 동안 PC·네트워크·로컬 로그인이 유효해야 함. CLI 실행 자체에 데스크톱 앱은 필요하지 않음 | PM이 GitHub에 scope/AC 지정, 한도·인증 회복, 필수 사람 리뷰 3건 |
+| 공식 데스크톱 Scheduled의 프로젝트 작업 | 정해진 시각에 로컬 저장소/작업 트리를 점검하는 대안 | 해당 PC 켜짐, 앱 실행, 저장소 접근 가능. 절전/앱 종료 시 실행을 보장하지 않음 | #294의 기존 read-only receipt 확인. 로컬 desktop project schedule 등록은 미검증. 새 예약 생성 전 기존 앱에서 목록 확인 |
+| 웹 Work의 예약/지원되는 GitHub 이벤트 | 연결된 GitHub 기록을 읽고 PM queue 판단 | 로컬 PC 없이 가능하지만 로컬 폴더·E2E 직접 실행 불가 | 2026-09-07 웹 detail 일부 접근 확인. account-wide schedule inventory 아님. 새 Agent·API channel은 만들지 않음 |
 | 기존 GitHub CI/CD + 결정적 Router/Production QA | lint/typecheck/unit/Playwright/axe/build/배포/조회 검사, 중복 방지 기록 | PC 불필요, 기존 GitHub/Vercel 실행 환경 | 기존 제공량/설정 범위 유지. 새 유료 runner/service/크레딧 구매 금지. 코드 생성·AI 판단은 하지 않음 |
 
 동일 계정의 별도 로컬 검토는 구현 문맥을 분리할 수 있지만 GitHub 필수 승인이나 독립된 사람 리뷰를 대체하지 않는다.
