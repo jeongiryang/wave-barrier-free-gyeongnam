@@ -78,10 +78,6 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
   },
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-  },
   verification: {
     google: "M6Cy6rSLQKYJ5i-toLK3hQyoFOoZlMyvnZa-_W6dioo",
   },
@@ -104,7 +100,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: preferenceBootScript }} /></head>
+      <head>
+        {/* Keep browser UI assets on this deployment, independently of SEO's canonical metadataBase. */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="/favicon.svg" />
+        <script dangerouslySetInnerHTML={{ __html: preferenceBootScript }} />
+      </head>
       <body className="antialiased">
         <SitePreferencesProvider>{children}</SitePreferencesProvider>
       </body>
