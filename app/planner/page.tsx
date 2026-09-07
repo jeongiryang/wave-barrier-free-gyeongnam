@@ -210,7 +210,7 @@ export default function PlannerPage() {
   }
 
   return (
-    <main className="planner-page">
+    <main className="planner-page" lang={locale}>
       <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>
       <div className="scroll-progress" aria-hidden="true" />
       <PlannerHeader t={t} scrolled={scrolled} hidden={headerHidden} savedCount={saved.length} onNavigate={journey.goToStep} />

@@ -35,6 +35,7 @@ for (const [name, code, expected, expectedEnglish] of [
   await preferences.getByLabel("언어", { exact: true }).selectOption("en");
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await expect(notice).toHaveAttribute("lang", "en");
+  await expect(page.locator("main.planner-page")).toHaveAttribute("lang", "en");
   await expect(notice).toContainText(expectedEnglish);
   await expect(notice).not.toContainText(/[가-힣]/);
   await expect(page.locator(".route-option")).toHaveCount(0);

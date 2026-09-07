@@ -49,6 +49,35 @@ existing RC history, not a replacement PR or rewritten source history.
 
 ## Outstanding checks
 
+### First combined Preview and follow-up
+
+- Candidate `443c5760b5e983632371a1dc7300bff7d69b8d46` deployed to Preview
+  [6310242023](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/deployments)
+  at https://wave-barrier-free-gyeongnam-oas2fwvxa-jeongiryang-projects.vercel.app
+  (Vercel `DyqbbhujAypPLGyzsADisF4U64yL`, ready 2026-09-07 13:59:40 UTC).
+- Signed-in browser: real KTO search returned five recommended Changwon places;
+  saved Daesan Flower Land and Junam Reservoir. Two dated places and two matching
+  destination map markers, two ordered journey legs, transport select present.
+- The actual car query returned zero of two confirmed journeys; ODsay displayed an
+  upstream-error notice and the main map used its alternative. This is failure
+  recovery evidence, NOT live Kakao/ODsay success. The direct API browser tab was
+  blocked by the browser client; no authentication/protection bypass attempted.
+- At 320px, the region dialog displayed all three choices without horizontal
+  overflow. Escape restored the Hadong trigger; both existing places remained.
+  KO-to-EN retained the itinerary and showed English ODsay guidance. Recommendation
+  evidence correctly became stale because locale is part of its search signature.
+- Found a language-boundary defect in this Preview: English planner headings and
+  controls inherited document `lang=ko`. The follow-up sets the planner main's
+  language to the selected locale and explicitly marks original-language journey
+  endpoint names. New inherited-language and original-name assertions accompany
+  the existing light/dark, 320/960/1366px browser cases. The global Korean fallback
+  for other partially translated pages remains unchanged. Real screen-reader
+  speech has not been verified.
+- CI805's quality job stopped before checks when the pinned actionlint download
+  returned HTTP504. Browser shards are still running at this log checkpoint.
+- GitHub marked stacked #342–#345 and #348 Merged when their base histories gained
+  their HEADs. This is inclusion in the RC, not main/Production deployment.
+
 - Archived-trip restoration currently needs investigation: public coordinates may
   be omitted by archive serialization, unlike current-trip reload. Verify restored
   itinerary/map consistency without inventing coordinates.
