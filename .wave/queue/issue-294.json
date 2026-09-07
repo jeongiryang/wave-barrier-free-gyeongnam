@@ -22,21 +22,16 @@
     "commentId": 5566069634,
     "revision": "19bf9e6c878dccb2a7ddcc554595c4e96baad3374e690eb0fc3990236f17fec0"
   },
-  "state": "implementing",
+  "state": "ci-pending",
   "attempts": {
     "implementation": 1,
     "qa": 0
   },
-  "headSha": "265ee1053b7d89bbb5106d1b4f71a5c281257a75",
+  "headSha": "d58e893d17e8d880aee42a12cb62aec83deca934",
   "generation": 2,
-  "updatedAt": 1788763224489,
-  "lease": {
-    "phase": "implementation",
-    "owner": "implementation-2beed7d0-e254-4ce3-91d8-0c5746c93637",
-    "token": "f1d1a4f7-a56e-40a0-a732-e34e9981664d",
-    "expiresAt": 1788765024489,
-    "headSha": "265ee1053b7d89bbb5106d1b4f71a5c281257a75"
-  },
+  "updatedAt": 1788763226207,
+  "lease": null,
   "receipts": [],
-  "report": null
+  "report": null,
+  "implementationOwner": "implementation-2beed7d0-e254-4ce3-91d8-0c5746c93637"
 }
