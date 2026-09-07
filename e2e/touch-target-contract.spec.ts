@@ -60,7 +60,18 @@ for (const width of [1440, 390]) {
       await mockPlannerApi(page);
       await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
       await page.goto(path);
-      await page.waitForTimeout(2_000);
+      await expect(page.getByRole("button", { name: "도움말", exact: true })).toBeVisible();
+      if (path === "/planner") {
+        // The fixture deliberately has no Kakao key. Reach the actual map and
+        // require its fallback state before measuring the reconnect control.
+        // A fixed sleep races the lazy renderer; presence and 44px assertions
+        // below must still fail if a required control disappears or is covered.
+        await page.locator("#navigation").scrollIntoViewIfNeeded();
+        await expect(page.locator(".map-provider-badge")).toHaveClass(/\bosm\b/);
+        await expect(page.getByRole("button", { name: "기본 지도 다시 연결", exact: true })).toBeVisible();
+      } else {
+        await page.waitForTimeout(2_000);
+      }
 
       for (const target of CONTRACT.filter((item) => item.path === path)) {
         const locator = page.locator(target.selector).first();
