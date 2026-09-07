@@ -119,6 +119,14 @@ After deploying the latest branch HEAD, run the existing active workflow:
 Registration of these inputs is not an executed test. Record the actual run URL,
 counts/artifact and separate QA verdict before claiming the Preview gate passes.
 
+An unauthenticated GET of the `e69203a` Preview on 2026-09-07 redirected to
+`vercel.com` (login HTML). Browser observations above used the existing signed-in
+browser and cannot prove anonymous CI access. The Preview gate now refuses
+redirects/authentication/error responses before npm installs or browser tests.
+Do not copy the browser session, Vercel credentials or a bypass token to CI.
+This path remains **blocked-preview-access** until a Preview is legitimately
+available to the credential-free runner. No protection setting was changed.
+
 - Added storage commit/failure/reload contracts and midnight regression.
 - Added KO/EN, light/dark, 320px modal, keyboard focus/trap/cancel and axe E2E;
   preservation/new-trip/reload, rapid region requests and history checks.

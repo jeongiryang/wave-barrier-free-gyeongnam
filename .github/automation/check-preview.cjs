@@ -10,7 +10,7 @@ function validatePreviewTarget({ url, sha, actualSha }) {
   return parsed.origin;
 }
 
-async function checkPreview({ github, context, core, url, sha }) {
+async function checkPreview({ github, context, core, url, sha, request = fetch }) {
   const origin = validatePreviewTarget({ url, sha, actualSha: context.sha });
   const repository = context.repo;
   const { data } = await github.rest.repos.listDeployments({ ...repository, sha, environment: "Preview", per_page: 100 });
@@ -19,6 +19,11 @@ async function checkPreview({ github, context, core, url, sha }) {
     const { data: statuses } = await github.rest.repos.listDeploymentStatuses({ ...repository, deployment_id: deployment.id, per_page: 1 });
     const latest = statuses[0];
     if (latest?.state === "success" && latest.environment_url?.replace(/\/$/, "") === origin) {
+      const response = await request(`${origin}/planner`, { redirect: "manual", signal: AbortSignal.timeout(10_000) });
+      await response.body?.cancel();
+      if (response.status !== 200 || !response.headers.get("content-type")?.includes("text/html")) {
+        throw new Error("blocked-preview-access: Preview is not anonymously readable. No authentication credentials will be copied.");
+      }
       core.setOutput("url", origin);
       core.info(`Verified Preview deployment ${deployment.id} for ${sha}.`);
       return;

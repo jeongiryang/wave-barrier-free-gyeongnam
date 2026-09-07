@@ -18,6 +18,11 @@ function fixture(status = "success", deployedSha = sha, deployedUrl = url) {
   return { outputs, options: {
     context: { sha, repo: { owner: "jeongiryang", repo: "wave-barrier-free-gyeongnam" } },
     url, sha, core: { setOutput: (...args) => outputs.push(args), info() {} },
+    request: async (target, options) => {
+      assert.equal(target, `${url}/planner`);
+      assert.equal(options.redirect, "manual");
+      return { status: 200, headers: new Headers({ "content-type": "text/html" }) };
+    },
     github: { rest: { repos: {
       async listDeployments(options) { calls.push(options); return { data: [{ id: 1, sha: deployedSha, environment: "Preview" }] }; },
       async listDeploymentStatuses() { return { data: [{ state: status, environment_url: deployedUrl }] }; },
@@ -30,5 +35,14 @@ test("only a successful deployment matching the exact workflow SHA and origin is
   assert.equal(good.calls[0].sha, sha);
   for (const options of [["failure"], ["pending"], ["success", "b".repeat(40)], ["success", sha, url + ".attacker.example"]]) {
     const bad = fixture(...options); await assert.rejects(checkPreview(bad.options)); assert.deepEqual(bad.outputs, []);
+  }
+});
+
+test("protected or unavailable Previews fail before publishing a URL to the test step", async () => {
+  for (const status of [302, 307, 401, 403, 500]) {
+    const blocked = fixture();
+    blocked.options.request = async () => ({ status, headers: new Headers() });
+    await assert.rejects(checkPreview(blocked.options), /blocked-preview-access/);
+    assert.deepEqual(blocked.outputs, []);
   }
 });
