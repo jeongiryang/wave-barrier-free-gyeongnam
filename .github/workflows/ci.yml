@@ -115,7 +115,7 @@ jobs:
   # must all fail this gate, including a failure in either browser shard.
   validate:
     if: ${{ always() }}
-    needs: [quality, browser]
+    needs: [quality, browser, sandbox-boundary, sandbox-application]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -123,4 +123,150 @@ jobs:
         env:
           QUALITY_RESULT: ${{ needs.quality.result }}
           BROWSER_RESULT: ${{ needs.browser.result }}
-        run: node -e 'if ([process.env.QUALITY_RESULT, process.env.BROWSER_RESULT].some(result => result !== "success")) process.exit(1)'
+          BOUNDARY_RESULT: ${{ needs.sandbox-boundary.result }}
+          SANDBOX_RESULT: ${{ needs.sandbox-application.result }}
+        run: node -e 'if ([process.env.QUALITY_RESULT, process.env.BROWSER_RESULT, process.env.BOUNDARY_RESULT, process.env.SANDBOX_RESULT].some(result => result !== "success")) process.exit(1)'
+
+  sandbox-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          check-latest: true
+      - name: Reject tampered bootstrap before any checkout code executes
+        run: python3 -I tests/subscription-bootstrap-boundary.py
+      - name: Actual validation sandbox boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y bubblewrap apparmor
+          # Noble's runner lacks this profile. Load the pinned AppArmor upstream
+          # bwrap/child policy, never disable global AppArmor/userns restrictions.
+          curl --fail --silent --show-error --location \
+            https://gitlab.com/apparmor/apparmor/-/raw/8e431ebcd915216a03ebc8d01e72b1741bb2f855/profiles/apparmor/profiles/extras/bwrap-userns-restrict \
+            -o "$RUNNER_TEMP/bwrap-userns-restrict"
+          printf '634d3d3427c483f123cb5ed53b71ea13040187e07d9f67ca74421d42a6170f0e  %s\n' "$RUNNER_TEMP/bwrap-userns-restrict" | sha256sum --check
+          sudo apparmor_parser -r "$RUNNER_TEMP/bwrap-userns-restrict"
+          # Dedicated trusted quota owner; keep global restrictions and the
+          # distro bwrap profile. Inner kernel caps/userns limits are tested.
+          sudo install -m 0755 -D /usr/bin/bwrap /opt/wave-quota/bwrap
+          # Immutable reviewed policy; never give a checkout file to root parser.
+          curl --fail --silent --show-error --location \
+            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/a0f3af0820d4924042b98a06b09b36a41d0c74b9/.github/security/quota-owner.apparmor \
+            -o "$RUNNER_TEMP/quota-owner.apparmor"
+          printf '5569873ac76c043f90aa14292b77109177b30d3b5c2f90fa28fa0b91a6688b35  %s\n' "$RUNNER_TEMP/quota-owner.apparmor" | sha256sum --check
+          sudo apparmor_parser -r "$RUNNER_TEMP/quota-owner.apparmor"
+          runtime="$(node -p 'require("node:path").dirname(require("node:path").dirname(process.execPath))')"
+          sudo systemd-run --quiet --wait --pipe --collect --uid="$(id -u)" --gid="$(id -g)" \
+            --working-directory="$PWD" --setenv="RUNNER_TEMP=$RUNNER_TEMP" --setenv="WAVE_PUBLIC_RUNTIME=$runtime" \
+            --setenv="WAVE_PUBLIC_BROWSERS=$HOME/.cache/ms-playwright" \
+            -p MemoryMax=6G -p MemorySwapMax=0 -p TasksMax=1024 -p CPUQuota=200% \
+            -p OOMPolicy=kill -p KillMode=control-group -p RuntimeMaxSec=1200 \
+            /usr/bin/python3 -I -B - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          runtime = pathlib.Path(os.environ["WAVE_PUBLIC_RUNTIME"])
+          browsers = pathlib.Path(os.environ["RUNNER_TEMP"]) / "public-probe-browser-root"
+          browsers.mkdir()
+          config = {"version": 1, "bwrap": "/usr/bin/bwrap", "quotaBwrap": "/opt/wave-quota/bwrap", "runtime": str(runtime), "browsers": str(browsers), "scratch": os.environ["RUNNER_TEMP"]}
+          for key, file in [("bwrapSha256", pathlib.Path("/usr/bin/bwrap")), ("nodeSha256", runtime / "bin/node")]:
+              with file.open("rb") as source:
+                  config[key] = hashlib.file_digest(source, "sha256").hexdigest()
+          target = pathlib.Path(os.environ["RUNNER_TEMP"]) / "public-sandbox-config.json"
+          target.write_text(json.dumps(config))
+          subprocess.run(["python3", "tests/subscription-sandbox-boundary.py", str(target)], check=True)
+          PY
+      - name: Aggregate process resources and privileged policy tamper probes
+        run: python3 -I -B tests/subscription-resource-boundary.py
+      - name: Preserve public resource diagnostics
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: public-resource-boundary
+          path: ${{ runner.temp }}/wave-public-resources.json
+          retention-days: 7
+          if-no-files-found: ignore
+
+  sandbox-application:
+    name: Validation sandbox shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      WAVE_VALIDATION_SHARD: ${{ matrix.shard }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          check-latest: true
+          cache: npm
+      - name: Prepare public dependencies and Chromium on disposable CI runner
+        run: |
+          npm ci --ignore-scripts
+          npx --no-install playwright install --with-deps chromium
+      - name: Run every application check inside the actual boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y bubblewrap apparmor
+          curl --fail --silent --show-error --location \
+            https://gitlab.com/apparmor/apparmor/-/raw/8e431ebcd915216a03ebc8d01e72b1741bb2f855/profiles/apparmor/profiles/extras/bwrap-userns-restrict \
+            -o "$RUNNER_TEMP/bwrap-userns-restrict"
+          printf '634d3d3427c483f123cb5ed53b71ea13040187e07d9f67ca74421d42a6170f0e  %s\n' "$RUNNER_TEMP/bwrap-userns-restrict" | sha256sum --check
+          sudo apparmor_parser -r "$RUNNER_TEMP/bwrap-userns-restrict"
+          sudo install -m 0755 -D /usr/bin/bwrap /opt/wave-quota/bwrap
+          # Immutable reviewed policy; never give a checkout file to root parser.
+          curl --fail --silent --show-error --location \
+            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/a0f3af0820d4924042b98a06b09b36a41d0c74b9/.github/security/quota-owner.apparmor \
+            -o "$RUNNER_TEMP/quota-owner.apparmor"
+          printf '5569873ac76c043f90aa14292b77109177b30d3b5c2f90fa28fa0b91a6688b35  %s\n' "$RUNNER_TEMP/quota-owner.apparmor" | sha256sum --check
+          sudo apparmor_parser -r "$RUNNER_TEMP/quota-owner.apparmor"
+          runtime="$(node -p 'require("node:path").dirname(require("node:path").dirname(process.execPath))')"
+          sudo systemd-run --quiet --wait --pipe --collect --uid="$(id -u)" --gid="$(id -g)" \
+            --working-directory="$PWD" --setenv="RUNNER_TEMP=$RUNNER_TEMP" --setenv="WAVE_PUBLIC_RUNTIME=$runtime" \
+            --setenv="WAVE_PUBLIC_BROWSERS=$HOME/.cache/ms-playwright" --setenv="WAVE_VALIDATION_SHARD=$WAVE_VALIDATION_SHARD" \
+            -p MemoryMax=6G -p MemorySwapMax=0 -p TasksMax=1024 -p CPUQuota=200% \
+            -p OOMPolicy=kill -p KillMode=control-group -p RuntimeMaxSec=1200 \
+            /usr/bin/python3 -I -B - <<'PY'
+          import hashlib, importlib.util, os, pathlib, subprocess
+          runtime = pathlib.Path(os.environ["WAVE_PUBLIC_RUNTIME"])
+          config = {"version": 1, "bwrap": "/usr/bin/bwrap", "quotaBwrap": "/opt/wave-quota/bwrap", "runtime": str(runtime), "browsers": str(pathlib.Path(os.environ["WAVE_PUBLIC_BROWSERS"]).resolve()), "scratch": os.environ["RUNNER_TEMP"]}
+          for key, file in [("bwrapSha256", pathlib.Path("/usr/bin/bwrap")), ("nodeSha256", runtime / "bin/node")]:
+              with file.open("rb") as source:
+                  config[key] = hashlib.file_digest(source, "sha256").hexdigest()
+          archive = pathlib.Path(os.environ["RUNNER_TEMP"]) / "public-source.tar"
+          with archive.open("wb") as target:
+              subprocess.run(["git", "-c", "core.hooksPath=/dev/null", "archive", "HEAD"], stdout=target, check=True)
+          spec = importlib.util.spec_from_file_location("boundary", "scripts/subscription-sandbox.py")
+          boundary = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(boundary)
+          boundary.probe(config)
+          shard = int(os.environ["WAVE_VALIDATION_SHARD"])
+          checks = boundary.validate(config, str(archive), {}, shard=shard)
+          assert checks == boundary.application_checks(shard)
+          print(f"PASS: six application checks, browser shard {shard}/4 inside linux-bwrap-v1; all four jobs required")
+          PY
+      - name: Preserve credential-free sandbox command logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: sandbox-application-logs-${{ matrix.shard }}
+          path: |
+            ${{ runner.temp }}/wave-validation-*.log
+            ${{ runner.temp }}/wave-validation-*-artifacts/
+          retention-days: 7
+          if-no-files-found: ignore
