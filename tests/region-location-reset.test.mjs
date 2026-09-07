@@ -4,8 +4,8 @@ import { readFileSync } from "node:fs";
 import ts from "typescript";
 
 const code = ts.transpileModule(readFileSync(new URL("../features/planner/hooks/useRouteOrigin.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-function fixture() {
-  const slots = [], calls = [], privateChanges = [];
+function fixture(locale = "ko") {
+  const slots = [], calls = [], privateChanges = [], consents = [];
   let cursor = 0;
   const hooks = {
     useState(value) { const i = cursor++; if (!(i in slots)) slots[i] = value; return [slots[i], next => { slots[i] = next; }]; },
@@ -17,16 +17,17 @@ function fixture() {
   new Function("module", "exports", "require", "navigator", code)(mod, mod.exports, name => {
     if (name === "react") return hooks;
     if (name === "../constants") return { departurePresets };
-    if (name.endsWith("location-consent.js")) return { confirmMapLocationUse: () => true };
+    if (name.endsWith("location-consent.js")) return { confirmMapLocationUse: value => { consents.push(value); return true; } };
+    if (name.endsWith("SitePreferences")) return { useSitePreferences: () => ({ locale }) };
     throw Error(name);
   }, { geolocation: { getCurrentPosition: (success, failure) => calls.push({ success, failure }) } });
   function render() { cursor = 0; return mod.exports.useRouteOrigin(() => privateChanges.push(true)); }
-  return { render, calls, privateChanges };
+  return { render, calls, privateChanges, consents };
 }
 const position = { coords: { latitude: 35.3, longitude: 128.7 } };
 
-for (const outcome of ["success", "failure"]) test(`new-trip reset rejects a late location ${outcome} and clears the previous live notice`, () => {
-  const app = fixture();
+for (const locale of ["ko", "en"]) for (const outcome of ["success", "failure"]) test(`${locale} new-trip reset rejects a late location ${outcome} and clears the previous live notice`, () => {
+  const app = fixture(locale);
   const initial = app.render();
   initial.requestCurrentLocation();
   assert.notDeepEqual(app.render().routeNotice, initial.routeNotice);
@@ -38,6 +39,7 @@ for (const outcome of ["success", "failure"]) test(`new-trip reset rejects a lat
   assert.equal(fresh.privateOrigin, false);
   assert.deepEqual(fresh.routeNotice, initial.routeNotice);
   assert.deepEqual(app.privateChanges, []);
+  assert.deepEqual(app.consents, [locale]);
 });
 
 test("reset clears an already displayed private location and permits a new explicit location request", () => {
