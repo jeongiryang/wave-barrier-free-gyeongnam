@@ -1,12 +1,22 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, lstatSync, realpathSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, lstatSync, realpathSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { REPOSITORY, QUEUE_BRANCH, assertLease, implementationResult } from "./subscription-queue.mjs";
 
+export function trustedGitExecutable() {
+  const executable = process.platform === "win32" ? path.join(process.env.ProgramFiles || "C:\\Program Files", "Git", "cmd", "git.exe") : "/usr/bin/git";
+  if (!existsSync(executable)) throw new Error("BLOCKED_SANDBOX: trusted Git unavailable");
+  return executable;
+}
+
 export function git(directory, args, { input, env = process.env, run = spawnSync } = {}) {
-  const result = run("git", ["-c", "user.name=WAVE Engineering", "-c", "user.email=wave-automation@users.noreply.github.com", ...args], { cwd: directory, input, env, encoding: "utf8", windowsHide: true, timeout: 60_000, maxBuffer: 1_000_000 });
-  if (result.status !== 0) throw new Error("GIT_OPERATION_FAILED: preserve worktree; inspect locally; never force or retry publication");
+  const result = run(trustedGitExecutable(), ["-c", "core.hooksPath=/dev/null", "-c", "core.fsmonitor=false", "-c", "user.name=WAVE Engineering", "-c", "user.email=wave-automation@users.noreply.github.com", ...args], { cwd: directory, input, env, encoding: "utf8", windowsHide: true, timeout: 60_000, maxBuffer: 1_000_000 });
+  if (result.status !== 0) {
+    const categories = ["already exists", "already registered", "unable to create", "permission denied", "could not resolve", "authentication failed", "index.lock", "not a valid object", "atomic push failed"].filter(value => `${result.stderr || ""}`.toLowerCase().includes(value));
+    const code = /^[A-Z0-9_]+$/.test(result.error?.code || "") ? result.error.code : "none";
+    throw new Error(`GIT_OPERATION_FAILED: operation=${args[0]}, status=${result.status}, code=${code}, categories=${categories.join("|") || "unclassified"}; preserve worktree; no force or automatic retry`);
+  }
   return result.stdout.trim();
 }
 
@@ -40,6 +50,8 @@ export function publishImplementation({ directory, task, token, headSha, now = D
   if (!/^[a-f0-9]{40}$/.test(headSha)) throw new Error("INVALID_HEAD");
   runGit(directory, ["fetch", "origin", `refs/heads/${QUEUE_BRANCH}`]);
   const queueHead = runGit(directory, ["rev-parse", "FETCH_HEAD"]);
+  const deploymentConfig = JSON.parse(runGit(directory, ["show", `${queueHead}:vercel.json`]));
+  if (deploymentConfig?.git?.deploymentEnabled !== false) throw new Error("QUEUE_DEPLOYMENT_NOT_DISABLED");
   const key = `.wave/queue/issue-${task.order.issue}.json`;
   const remoteTask = JSON.parse(runGit(directory, ["show", `${queueHead}:${key}`]));
   assertLease(remoteTask, token, now, task.headSha);

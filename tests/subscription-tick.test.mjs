@@ -1,6 +1,22 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { tick } from "../scripts/subscription-run-once.mjs";
+import { tick, workerEvidence } from "../scripts/subscription-run-once.mjs";
+
+test("a failed QA returns exact HEAD findings to implementation; legacy comments are bounded evidence only", async () => {
+  const headSha = "a".repeat(40), evidenceUrl = "https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/289#issuecomment-123";
+  const task = { headSha, order: { pullRequest: 289, revision: "revision" }, receipts: [{ kind: "qa", conclusion: "fail", headSha, evidenceUrl }] };
+  const body = `<!-- wave-subscription-qa:revision:${headSha} -->\n별도 QA: **FAIL**\n- Remove unsupported completion.`;
+  let calls = 0;
+  const api = async endpoint => { calls++; assert.ok(endpoint.endsWith("/issues/comments/123")); return { user: { login: "jeongiryang" }, body }; };
+  assert.equal((await workerEvidence(task, "implementation", api)).priorRejection.text, body);
+  assert.equal(calls, 1);
+  await assert.rejects(workerEvidence(task, "implementation", async () => ({ user: { login: "teammate" }, body })), /INVALID_QA_EVIDENCE/);
+  await assert.rejects(workerEvidence(task, "implementation", async () => ({ user: { login: "jeongiryang" }, body: body.replace(headSha, "b".repeat(40)) })), /INVALID_QA_EVIDENCE/);
+  const saved = { ...task, receipts: [{ ...task.receipts[0], findings: ["Remove unsupported completion."] }] };
+  assert.deepEqual((await workerEvidence(saved, "implementation", api)).githubReceipts[0].findings, saved.receipts[0].findings);
+  await workerEvidence({ ...task, headSha: "b".repeat(40) }, "implementation", api);
+  assert.equal(calls, 1);
+});
 
 test("one poll claims at most one approved task; a rerun does not regenerate a CI-pending result", async () => {
   const task = { order: { issue: 294, revision: "one", priority: "P1" }, state: "queued", updatedAt: 0 };

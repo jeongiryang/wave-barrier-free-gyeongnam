@@ -19,13 +19,22 @@ export function githubApi(endpoint, { method = "GET", body, allowMissing = false
 
 export class GitHubQueue {
   constructor(api = githubApi) { this.api = api; }
+  async assertDeploymentDisabled() {
+    const file = await this.api(`repos/${REPOSITORY}/contents/vercel.json?ref=${QUEUE_BRANCH}`, { allowMissing: true });
+    let config;
+    try { config = file?.encoding === "base64" && JSON.parse(Buffer.from(file.content, "base64").toString("utf8")); } catch { /* Fail closed below. */ }
+    if (config?.git?.deploymentEnabled !== false) throw new Error("QUEUE_DEPLOYMENT_NOT_DISABLED: stop metadata writes before creating Preview builds");
+  }
   async initialize(baseSha) {
     if (!/^[a-f0-9]{40}$/.test(baseSha)) throw new Error("INVALID_BASE");
     const ref = `repos/${REPOSITORY}/git/ref/heads/${QUEUE_BRANCH}`;
-    if (await this.api(ref, { allowMissing: true })) return { created: false };
+    if (await this.api(ref, { allowMissing: true })) { await this.assertDeploymentDisabled(); return { created: false }; }
     // The branch contains operations metadata only. No workflow, model credential
     // or user content is installed on it, and no PR is opened for the state branch.
-    const tree = await this.api(`repos/${REPOSITORY}/git/trees`, { method: "POST", body: { tree: [{ path: "README.md", mode: "100644", type: "blob", content: "# W.A.V.E shared execution state\n\nManaged by scripts/subscription-queue-cli.mjs. No credentials or user data. Human reviews remain required.\n" }] } });
+    const tree = await this.api(`repos/${REPOSITORY}/git/trees`, { method: "POST", body: { tree: [
+      { path: "README.md", mode: "100644", type: "blob", content: "# W.A.V.E shared execution state\n\nManaged by scripts/subscription-queue-cli.mjs. No credentials or user data. Human reviews remain required.\n" },
+      { path: "vercel.json", mode: "100644", type: "blob", content: '{"git":{"deploymentEnabled":false}}\n' },
+    ] } });
     const commit = await this.api(`repos/${REPOSITORY}/git/commits`, { method: "POST", body: { message: "chore: initialize subscription execution state", tree: tree.sha, parents: [] } });
     await this.api(`repos/${REPOSITORY}/git/refs`, { method: "POST", body: { ref: `refs/heads/${QUEUE_BRANCH}`, sha: commit.sha } });
     return { created: true, sha: commit.sha, observedMain: baseSha };
@@ -40,6 +49,7 @@ export class GitHubQueue {
   async write(key, expected, value) {
     if (!/^(?:issue-[1-9][0-9]*|events)$/.test(key)) throw new Error("INVALID_QUEUE_KEY");
     if (JSON.stringify(expected.value) === JSON.stringify(value)) return { changed: false, sha: expected.sha };
+    await this.assertDeploymentDisabled();
     const content = Buffer.from(`${JSON.stringify(value, null, 2)}\n`).toString("base64");
     if (content.length > 330_000) throw new Error("QUEUE_LIMIT: archive acknowledged events before adding more");
     const result = await this.api(`repos/${REPOSITORY}/contents/.wave/queue/${key}.json`, { method: "PUT", body: { message: `chore: update ${key} execution state`, branch: QUEUE_BRANCH, content, ...(expected.sha ? { sha: expected.sha } : {}) } });

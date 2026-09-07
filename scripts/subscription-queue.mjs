@@ -69,11 +69,12 @@ export function ciResult(task, now, { headSha, runId, runAttempt, conclusion }) 
   return { ...task, state: conclusion === "success" ? "qa-ready" : task.attempts.implementation >= MAX_ATTEMPTS ? "blocked-retry" : "queued", notBefore: conclusion === "success" ? now : now + RETRY_DELAY_MS, updatedAt: now, receipts: [...task.receipts, { kind: "ci", id: runId, attempt: runAttempt, headSha, conclusion }] };
 }
 
-export function qaResult(task, token, now, { headSha, conclusion, evidenceUrl }) {
+export function qaResult(task, token, now, { headSha, conclusion, evidenceUrl, findings = [] }) {
   assertLease(task, token, now, headSha);
   if (task.lease.phase !== "qa" || !["pass", "fail"].includes(conclusion) || !new RegExp(`^https://github\\.com/${REPOSITORY}/(?:pull|issues)/[0-9]+#(?:issuecomment|discussion_r|pullrequestreview)-?[0-9]+$`).test(evidenceUrl)) fail("INVALID_QA_RESULT");
+  if (!Array.isArray(findings) || findings.length > 20 || findings.some(item => typeof item !== "string" || item.length > 2000) || (conclusion === "pass" && findings.length)) fail("INVALID_QA_RESULT");
   const state = conclusion === "pass" ? "verified-awaiting-human" : task.attempts.implementation >= MAX_ATTEMPTS ? "blocked-retry" : "queued";
-  const receipt = { kind: "qa", headSha, conclusion, evidenceUrl, owner: task.lease.owner };
+  const receipt = { kind: "qa", headSha, conclusion, evidenceUrl, findings, owner: task.lease.owner };
   return { ...task, state, lease: null, notBefore: now + (conclusion === "fail" ? RETRY_DELAY_MS : 0), updatedAt: now, receipts: [...task.receipts, receipt], report: { digest: digest({ revision: task.order.revision, headSha, state, receipt }), acknowledged: false } };
 }
 

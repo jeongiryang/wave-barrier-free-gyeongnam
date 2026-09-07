@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Node.js 설정
         uses: actions/setup-node@v7
         with:
@@ -47,6 +49,25 @@ jobs:
         run: npm run typecheck
       - name: 회귀 테스트
         run: npm test
+      - name: Actual validation sandbox boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y bubblewrap
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          runtime = pathlib.Path(subprocess.check_output(["node", "-p", "process.execPath"], text=True).strip()).parent.parent
+          browsers = pathlib.Path(os.environ["RUNNER_TEMP"]) / "public-probe-browser-root"
+          browsers.mkdir()
+          config = {"version": 1, "bwrap": "/usr/bin/bwrap", "runtime": str(runtime), "browsers": str(browsers), "scratch": os.environ["RUNNER_TEMP"]}
+          for key, file in [("bwrapSha256", pathlib.Path("/usr/bin/bwrap")), ("nodeSha256", runtime / "bin/node")]:
+              with file.open("rb") as source:
+                  config[key] = hashlib.file_digest(source, "sha256").hexdigest()
+          target = pathlib.Path(os.environ["RUNNER_TEMP"]) / "public-sandbox-config.json"
+          target.write_text(json.dumps(config))
+          subprocess.run(["python3", "tests/subscription-sandbox-boundary.py", str(target)], check=True)
+          PY
       - name: 브라우저 설치
         run: npx playwright install --with-deps chromium
       - name: 브라우저·접근성 회귀 테스트

@@ -19,10 +19,10 @@ Refs #288, #294, PR #289. 2026-09-07 기술 구현 기록. 전체 자동화 완�
 | 승인 범위 | 수정되지 않은 소유자 댓글의 구조화 작업 명세 | 일반 Issue/메일/댓글은 권한 없음. 임의 shell·경로·validation 명령 거부 |
 | 공용 잠금 | Contents SHA 비교, 30분 임대, 단계별 최대 2회 | 경합/만료/이전 소유자 차단은 계약 테스트; 실제 GitHub 경합 시험 별도 기록 |
 | 코드 제안 생성 | 구독/포함 한도 확인, 도구 없는 파일 제안 | 실행 직전마다 확인. API·credit fallback은 없음 |
-| 무인 문서 작업 | 별도 worktree에서 수정·기존 전체 검사·원자적 게시 | 첫 실제 작업 실행 전. 존재만으로 성공 처리하지 않음 |
+| 무인 문서 작업 | 별도 worktree에서 수정·기존 전체 검사·원자적 게시 | #294 명세→구독 수정 d58e893→기존 #289 atomic push→CI 성공 실제 확인. 재실행은 modelCalls 0. 후속 QA FAIL로 아직 완료 아님 |
 | 일반 애플리케이션 작업 | 범위·상태 계약 존재 | `blocked-sandbox`: 생성 코드를 인증이 있는 PC에서 실행할 격리 검증이 아직 없음. 문서 smoke로 코드 실행까지 완료했다고 하지 않음 |
-| 별도 QA | 새 CLI 프로세스·CI/HEAD 고정·GitHub receipt | 실제 최신 HEAD CI 이후 실행 필요. 사람 승인 대체 불가 |
-| Notion 환류 | HEAD/digest가 고정된 미확인 보고 상태 | 연결된 Work/Executor가 기존 대시보드 갱신 후 재조회하고 acknowledge해야 함; 로컬 CLI에 Notion credential 없음 |
+| 별도 QA | 새 CLI 프로세스·CI/HEAD 고정·GitHub receipt | d58e893의 실제 별도 QA가 과도한 완료 표현을 발견해 FAIL과 수정 대기열 기록. 최초 준비 실패도 QA 시도 횟수에 포함하며 임의 초기화하지 않음 |
+| Notion 환류 | HEAD/digest가 고정된 미확인 보고 상태 | 무료 block 한도 응답으로 쓰기 중단. 최종 QA 보고는 미확인 상태이며 ack하지 않음; 로컬 CLI에 Notion credential 없음 |
 | 병합/배포 | 기존 CI/CD 보존 | 사람 승인 3건과 보호 규칙, Preview·Production gate 유지 |
 
 ## 작업 명세
@@ -96,11 +96,51 @@ node scripts/subscription-run-once.mjs tick '<설치된 codex.exe 절대 경로>
 
 ## 비용과 검증 증거
 
-2026-09-07 공식 로컬 app-server quota 조회는 포함 한도 조건을 통과했고 모델 turn은 0이었다.
-실행기 테스트의 model 결과는 fixture이며 실제 구독 구현/QA 성공으로 세지 않는다.
+### 격리 실행기 재개 후보 (비활성)
+
+문서 작업도 호스트 npm 실행을 허용하지 않는다. `scripts/subscription-sandbox.mjs`와 `.py`는 검증된 bubblewrap 경계를 사용한다. Windows는 기존 WSL의 `/usr/bin/python3` bridge로 호출하며 Linux Node가 필요하다. 호스트 검사 fallback은 없다. 기본 설정이 없으면 `BLOCKED_SANDBOX`다.
+
+저장소 밖 설정 파일은 version=1과 Linux 절대 경로 `bwrap`, `runtime`(Node 배포 루트), `browsers`(사전 준비된 Chromium), `scratch`(보존할 시험 로그), 검증한 바이너리 `bwrapSha256`, `nodeSha256`만 받는다. `WAVE_VALIDATION_SANDBOX_CONFIG`에는 그 로컬 설정 파일 경로만 지정한다. 인증·Secret·토큰 값은 설정에 넣지 않는다. 설정을 준비한 것과 예약 환경에 등록한 것은 별개다.
+
+활성화 전 `python3 -B tests/subscription-sandbox-boundary.py <설정 파일>`로 공개 canary의 정상/비격리 대조/가짜 종료0/악성 npm 명령 검사를 실행한다. 이것은 합성 보안 시험이며 제품 lint·unit·Playwright 성공이 아니다. 전체 제품 검증에는 같은 helper로 모든 명령의 성공이 추가로 필요하다. 별도 최신 HEAD QA PASS와 #294의 시도/재개 조건도 필요하며, 실패 횟수를 초기화하거나 자동 재시도를 늘리지 않는다. 현재는 실제 queue tick을 실행하지 않는다.
+
+Chromium 준비, 최종 전체 검증과 독립 QA는 아직 완료되지 않았다. 기존 문서 smoke 이력으로 이 경계를 통과한 것처럼 표시하지 않는다. 실제 준비·실행·차단 근거는 [AI 로그](ai-logs/subscription-queue-execution.md)의 최신 격리 절에 연결한다.
+
+초기 2026-09-07 공식 로컬 app-server quota 검사는 모델 turn 0이었다. 이후 실제 구현/QA는 각각 별도
+ChatGPT 구독 프로세스로 실행했다. 아래 실제 증거와 fixture 검증을 구분한다.
 GitHub 저장소는 public이다. [표준 GitHub-hosted public runner는 무료](https://docs.github.com/en/billing/concepts/product-billing/github-actions)이나
 계정 billing usage 조회는 HTTP 404로 접근 불가였다. 저장소 공개 여부만으로 공유 저장소 용량·모든 서비스 비용이 0이라고 단정하지 않는다.
 기존 표준 runner와 artifact 보관 정책을 유지하며 유료 larger runner를 도입하지 않는다.
+
+## 2026-09-07 실제 실행과 중단 경계
+
+- 승인된 기존 작업: [#294 명세](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/294#issuecomment-5566069634).
+  문서 한 파일을 수정한 `d58e893d17e8d880aee42a12cb62aec83deca934`를 기존 #289에 원자적으로 게시했다.
+  로컬 lint/typecheck/unit306/Vercel build/performance, 전체 Playwright237 PASS/기존skip1/실패0,
+  [CI34091892987](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34091892987) 성공이다.
+  같은 구현 실행을 반복했을 때 `ci-pending`, `duplicate:true`, `modelCalls:0`, 새 PR 0이었다.
+- 첫 QA 준비는 git worktree 생성에서 실패했고 모델은 실행되지 않았다. 원래 Git 오류 상세가 남지 않아
+  원인을 추정하지 않는다. 같은 fetch/worktree 생성의 수동 점검은 성공했으며, 안전한 오류 분류를 추가하고
+  횟수를 유지한 명시적 resume 후 별도 QA를 실행했다.
+- [실제 QA FAIL](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/289#issuecomment-5566335607)은
+  기술 재개 항목의 Notion 완료 표현을 지적했다. 15분 대기와 수정 대기열 복귀를 확인했다.
+  실패 지적을 receipt에 저장하고 같은 HEAD의 과거 URL-only receipt를 검증해 읽는 경로를 보완했다.
+  다른 작성자·HEAD의 댓글을 작업 권한으로 읽지 않는다. QA 시도 2회 소진은 유지하며 새 명세로 우회하지 않는다.
+- 초기 metadata 전용 브랜치에 `vercel.json`이 없어 **불필요한 Preview 14건이 실패**했다.
+  원격 상태 브랜치에 `git.deploymentEnabled:false`를 추가한 `2d1322cd6da389ffae34d00e41aaa03aad0dc681`을 보존한다.
+  초기 브랜치 첫 커밋부터 이 설정을 포함하고, 상태 쓰기와 atomic publish 직전에도 검사하도록 수정했다.
+  07:18 UTC Vercel 목록 재조회에서 queue 배포는 여전히 14건이며 마지막은 수정 전 `382b4fa`였다.
+  이후 QA claim/실패 환류/두 번째 구현 claim에도 추가 metadata Preview가 생성되지 않았다.
+  실패 기록은 삭제하지 않는다. 이는 모델 API 실행이 아니며 추가 과금 유무는 확인되지 않았다.
+- Notion은 06:35 UTC 무료 block 한도 도달 응답(표시된 유예 종료 2026-09-08 11:21:22 UTC) 이후 쓰기를 중단했다.
+  업그레이드·다른 페이지로 우회하지 않는다. 최종 QA→Notion 갱신/재조회/ack는 미완료다.
+- 설치된 Codex 0.130.0의 Windows sandbox를 공개 시험 파일과 로컬 시험 서버만으로 검사했다.
+  작업 폴더 내 쓰기/외부 쓰기 차단은 성공했으나 외부 시험 파일 읽기와 로컬 연결은 허용됐다.
+  실제 인증 파일은 읽지 않았고 모델 호출은 0이다. 이 구성으로 일반 생성 코드를 실행하지 않는다.
+  `blocked-sandbox`를 유지하며 읽기·쓰기·네트워크를 모두 제한하는 실행 환경 증거가 필요하다.
+
+실행 script, 현재 웹 감시 task, 실제 로컬 예약 등록, 무인 종단간 성공은 각각 다른 상태다.
+아직 일반 코드 작업·최종 별도 QA PASS·Notion 반영·로컬 프로젝트 예약 실행까지 연결된 성공 증거는 없다.
 
 [공식 Scheduled 조건](https://learn.chatgpt.com/docs/automations), [ChatGPT 인증](https://learn.chatgpt.com/docs/auth),
 [포함 사용량 정책](subscription-only-automation.md), [Control Plane](automation-control-plane.md).

@@ -93,7 +93,7 @@ GitHub 중복 이벤트가 여러 구현 작업을 만들지 않는지 확인한
 1. #287 새 HEAD CI와 사람 승인 3건 확인. 병합·Production 검증은 아직 남았다.
 2. 자동화 감사 수정은 기존 PR에 보존하고 API 경로는 계속 disabled로 유지한다.
 3. #309가 개발 도구 취약점 수정 후보를 제공하며 통합 audit 0을 확인했다. 커뮤니티 fork 출처·유지보수·호환성 검토는 해당 PR에 기록했다. 아직 main/Production에 반영되지 않았다.
-4. #294/#288의 기존 read-only receipt 다음 단계로 승인된 queue→구현→별도 QA→GitHub/Notion 기록을 검증한다. 현재 Executor의 GitHub→Notion 갱신은 수행하지 않았으며 무인 예약 종단간 성공으로 세지 않는다. 비활성 API 경로를 다시 켜지 않는다.
+4. #294/#288의 기존 read-only receipt 다음 단계로 승인된 queue→구현→별도 QA→GitHub/Notion 기록을 검증한다. 이번 자동화의 최종 QA 결과를 Notion에 반영하고 재조회하는 단계는 미완료다. 이전의 수동 관제 갱신을 무인 예약 종단간 성공으로 세지 않는다. 비활성 API 경로를 다시 켜지 않는다.
 
 ## 공식 근거
 

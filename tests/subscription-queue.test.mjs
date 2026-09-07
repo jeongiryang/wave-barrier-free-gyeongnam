@@ -69,8 +69,9 @@ test("separate QA checks the latest HEAD and never substitutes for human approva
 });
 
 test("QA rejection returns evidence to the bounded implementation queue", () => {
-  const task = qaResult(claim(qaReady(), "qa", "reviewer", 4, "qa"), "qa", 5, qa(B, "fail"));
+  const task = qaResult(claim(qaReady(), "qa", "reviewer", 4, "qa"), "qa", 5, { ...qa(B, "fail"), findings: ["Unsupported completion claim."] });
   assert.equal(task.state, "queued"); assert.equal(task.receipts.at(-1).conclusion, "fail");
+  assert.deepEqual(task.receipts.at(-1).findings, ["Unsupported completion claim."]);
   assert.throws(() => claim(task, "implementation", "worker", 6), /RETRY_WAIT/);
 });
 
@@ -102,7 +103,8 @@ test("event dedup includes every author, excludes comment timestamps, and preser
 
 test("GitHub compare-and-swap admits one competing owner and never retries the loser", async () => {
   let current = { sha: "original", value: start() }, puts = 0;
-  const api = async (_endpoint, options) => {
+  const api = async (endpoint, options) => {
+    if (endpoint.includes("/contents/vercel.json")) return { encoding: "base64", content: Buffer.from('{"git":{"deploymentEnabled":false}}').toString("base64") };
     if (!options?.method) return { type: "file", size: 100, encoding: "base64", sha: current.sha, content: Buffer.from(JSON.stringify(current.value)).toString("base64") };
     puts++;
     if (options.body.sha !== current.sha) throw new Error("QUEUE_CONFLICT");
@@ -116,6 +118,20 @@ test("GitHub compare-and-swap admits one competing owner and never retries the l
   assert.equal(puts, 2); assert.equal(current.value.lease.owner, "one");
   assert.equal((await store.write("issue-294", await store.read("issue-294"), current.value)).changed, false);
   assert.equal(puts, 2);
+});
+
+test("queue initialization disables Vercel from the first commit and writes fail closed without that setting", async () => {
+  const calls = [];
+  const initial = new GitHubQueue(async (endpoint, options) => { calls.push({ endpoint, options }); return endpoint.includes("/git/ref/") ? null : { sha: A }; });
+  await initial.initialize(A);
+  const files = calls.find(call => call.endpoint.endsWith("/git/trees")).options.body.tree;
+  assert.equal(JSON.parse(files.find(file => file.path === "vercel.json").content).git.deploymentEnabled, false);
+  for (const config of [null, { git: { deploymentEnabled: true } }, {}]) {
+    let puts = 0;
+    const queue = new GitHubQueue(async (_endpoint, options) => { if (options?.method === "PUT") puts++; return config && { encoding: "base64", content: Buffer.from(JSON.stringify(config)).toString("base64") }; });
+    await assert.rejects(queue.write("issue-294", { value: null, sha: null }, start()), /QUEUE_DEPLOYMENT_NOT_DISABLED/);
+    assert.equal(puts, 0);
+  }
 });
 
 test("GitHub error reporting never emits response content or retries permission/quota failures", () => {
