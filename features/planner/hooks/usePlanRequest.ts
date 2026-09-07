@@ -74,7 +74,8 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       if (revealResults && !reveal.signal.aborted) onRevealResults?.();
       if (revealResults && !reveal.signal.aborted) revealTimer = window.setTimeout(() => {
         if (reveal.signal.aborted) return;
-        scrolling = scrollToSection("places");
+        // Async results must settle before a user presses a newly displayed card.
+        scrolling = scrollToSection("places", true);
         window.addEventListener("scrollend", () => { scrolling = false; reveal.abort(); }, { once: true, signal: reveal.signal });
       }, 80);
       else cancelReveal();

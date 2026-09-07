@@ -24,6 +24,15 @@
 - CSS69.82/70, 랜딩115.11/155, 플래너269.73/270KiB, 최대chunk95.92/110. 예산·timeout·skip을 늘리지 않았다.
 - 전체622개 Playwright/axe와 새 CI는 이 로그 커밋 뒤 실행한다. 아직 전체·CI·Preview 수정본 성공은 아니다. 이전 c1의 로컬/CI605 PASS·기존skip1/flaky0를 새 결과로 세지 않는다.
 
+## 실제 Preview 후 추가 검증 — 2026-09-07 04:15 UTC
+
+- `00e63440292548d260fcafbd81b4528849065cd6` 로컬전체621 PASS/기존skip1(14.9분). CI34080658948은 SUCCESS지만 정확히620 PASS/기존skip1/flaky1이다. flaky는 desktop `route-selection-stability:79`의 최초 일정 추가가 반영되지 않은 경우이며 재시도로 숨겨진 실패를 완료로 세지 않았다.
+- 실패 artifact `browser-screenshots-1`의 screenshot/error-context/trace를 확인했다. 클릭 input snapshot의 scrollTop1911이 mouseup 뒤1870으로 바뀌었고 일정은0개였다. CPU4배 같은 시험8회는 로컬에서8 PASS로 불규칙성을 확인했다. 비동기 검색 결과를 보여 줄 때 smooth 이동을 끝내기 전에 카드를 누를 수 있는 경합을 없애기 위해 결과 공개 이동은 정적으로 마친다. 사용자 주도 단계·지도 이동의 설정은 유지한다. 이 변경의 최종CI 결과는 따로 확인한다.
+- 기존 Hobby 프로젝트 Preview `EtW9tQiVFMnYy4g9X2x2vpKvEQHz`, URL https://wave-barrier-free-gyeongnam-cvo33mqoo-jeongiryang-projects.vercel.app/ 에00e6344가37초 빌드로 Ready. 실제 KTO추천5곳, 결과제목 focus+URL#places, Tab 다음버튼, 장소추가 후 일정제목 focus+URL#itinerary를 확인했다. Kakao자동차32분과 대중교통68분 실응답이 표시됐으며 지도SDK는 대체지도였다. 키보드 Alt+ArrowLeft 입력은 브라우저 이동이 일어나지 않아 실제 Preview 뒤로가기 PASS로 세지 않는다. 로컬의 뒤로가기 검증과 구분한다.
+- 이어서 실제 모든 구간 조회를 누르자 native disabled 때문에 focus가 body로 떨어졌다. 신규12건 모두 FAIL → 수정 후 기존launch 포함70 PASS. 조회버튼은 focus를 유지하고 controller ref로 중복 요청을 막는다. 취소버튼 cleanup은 해당 버튼이 실제 focus를 갖고 사라질 때만 조회버튼으로 돌려주며 다른 곳으로 이동한 사용자는 건드리지 않는다.
+- 추가12건은 KO/EN·desktop/mobile의 대기/중복Enter/취소/완료/다른컨트롤이동/재시도/axe를 검사한다. 최종관련82 PASS(2.2분), unit498/lint/typecheck/build/performance PASS, planner269.75/270KiB. 최초typecheck의 중복요청 guard 뒤 불필요한 abort 호출은 제거했다. 신규skip/timeout/기준완화 없음.
+- 이 추가 커밋의 전체634개·CI·새 Preview는 아직 실행 전이다. 이전00e6344의621/CI성공과 섞지 않는다. 사진PR#343은 독립6ab7b57이며 기존통합 base는 리뷰 전 전진시키지 않는다.
+
 ## 보존과 재개
 
 `fix/search-result-focus`/별도worktree, 로컬4215에서만 수정했다. 원본 #339는 통합 브랜치가 base여서 ae5f5b2를 포함한 push 때 GitHub가 MERGED로 표시했다. main 병합/Production 반영은 아니며 자동 삭제된 원격 원본 브랜치를 c789bc6로 복원했다. main34e6021의 사람 승인3건·008·운영 게이트는 유지한다. 새 source의 base를 진행시켜 리뷰 전에 같은 자동 병합 표시를 만들지 않고, 먼저 source 검증·리뷰를 보존한다.
