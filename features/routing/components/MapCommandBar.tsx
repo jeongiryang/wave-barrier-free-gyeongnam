@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, type FocusEvent } from "react";
 import type { MapProvider, MapToolPanel } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { mapStatusParts } from "../map-status-copy";
@@ -52,6 +52,15 @@ export default function MapCommandBar({
   const { locale } = useSitePreferences();
   const english = locale === "en";
   const togglePanel = (panel: Exclude<MapToolPanel, "place" | null>, trigger: HTMLButtonElement) => onToolPanelChange(toolPanel === panel ? null : panel, trigger);
+  function revealFocusedControl(event: FocusEvent<HTMLDivElement>) {
+    const scroll = event.currentTarget;
+    const button = event.target.closest("button");
+    if (!button || !scroll.contains(button)) return;
+    const visible = scroll.getBoundingClientRect();
+    const target = button.getBoundingClientRect();
+    if (target.left < visible.left) scroll.scrollLeft += target.left - visible.left - 4;
+    else if (target.right > visible.right) scroll.scrollLeft += target.right - visible.right + 4;
+  }
   let statusMessage = actionNotice || providerDetail;
   if (provider === "error") statusMessage = english ? "The map could not be loaded." : "지도를 불러오지 못했습니다.";
   else if (layerRecovery && provider === "loading") statusMessage = english ? "Applying map settings…" : "지도 설정을 다시 적용하고 있습니다.";
@@ -65,7 +74,7 @@ export default function MapCommandBar({
       {(provider === "osm" || layerRecovery) && <button type="button" aria-disabled={provider === "loading"} onClick={() => { if (provider !== "loading") onRetry(); }}>{layerRecovery ? (locale === "en" ? "Reapply map settings" : "지도 설정 다시 적용") : (locale === "en" ? "Reconnect the main map" : "기본 지도 다시 연결")}</button>}
     </div>
     <nav lang={locale} className="map-command-bar" aria-label={english ? "Map tools" : "지도 기능"}>
-      <div className="map-command-scroll">
+      <div className="map-command-scroll" onFocusCapture={revealFocusedControl}>
         <div className="map-type-switch" aria-label={english ? "Map type" : "지도 유형"}>
           <button type="button" aria-pressed={baseMap === "roadmap"} className={baseMap === "roadmap" ? "active" : ""} onClick={() => onBaseMapChange("roadmap")} disabled={!interactive || provider !== "kakao"}>{english ? "Map" : "지도"}</button>
           <button type="button" aria-pressed={baseMap === "skyview"} className={baseMap === "skyview" ? "active" : ""} onClick={() => onBaseMapChange("skyview")} disabled={!interactive || provider !== "kakao"}>{english ? "Skyview" : "스카이뷰"}</button>
@@ -78,7 +87,7 @@ export default function MapCommandBar({
         <button type="button" aria-expanded={toolPanel === "export"} aria-controls="map-panel-export" className={toolPanel === "export" ? "active" : ""} onClick={(event) => togglePanel("export", event.currentTarget)} disabled={!interactive}>{locale === "en" ? "⇩ Image" : "⇩ 이미지"}</button>
         <button type="button" onClick={onShare} aria-disabled={actionPending} disabled={!interactive}>{locale === "en" ? "↗ Page link" : "↗ 페이지 링크"}</button>
       </div>
-      <button type="button" className="map-expand-button" aria-pressed={expanded} aria-controls="route-map-canvas" onClick={(event) => onToggleExpanded(event.currentTarget)} disabled={!interactive}>{expanded ? "× " : "⛶ "}<span className="map-expand-label">{expanded ? (english ? "Close expanded map" : "닫기") : (english ? "Expand map" : "전체보기")}</span></button>
+      <button type="button" className="map-expand-button" aria-label={expanded ? (english ? "× Close expanded map" : "× 닫기") : (english ? "⛶ Expand map" : "⛶ 전체보기")} aria-pressed={expanded} aria-controls="route-map-canvas" onClick={(event) => onToggleExpanded(event.currentTarget)} disabled={!interactive}>{expanded ? "× " : "⛶ "}<span className="map-expand-label">{expanded ? (english ? "Close expanded map" : "닫기") : (english ? "Expand map" : "전체보기")}</span></button>
     </nav>
   </div>;
 }
