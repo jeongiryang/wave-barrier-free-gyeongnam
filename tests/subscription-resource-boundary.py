@@ -1,5 +1,6 @@
 """Public-only cgroup attacks on disposable CI; never run on an operator host."""
 import hashlib
+import json
 import os
 import pathlib
 import subprocess
@@ -11,6 +12,7 @@ root = pathlib.Path(__file__).resolve().parents[1]
 
 
 def run_public(code, *, memory="128M", pids="32", cpu="25%"):
+    compile(code, "public-resource-probe", "exec")
     # Fixed source written by this test, no Issue/PR body interpolation. The
     # unprivileged process tree dies together; the controller stays outside it.
     unit = "wave-public-resource-" + uuid.uuid4().hex
@@ -54,18 +56,29 @@ result = run_public(pid_attack, memory="256M", pids="16")
 assert result.returncode == 0 and result.stdout.strip() == "PUBLIC_PID_CAP_PASS"
 print("PASS: total child-process capacity is enforced")
 
-cpu_attack = """import pathlib,subprocess
+cpu_attack = r"""import json,pathlib,subprocess
 group=pathlib.Path('/sys/fs/cgroup') / pathlib.Path('/proc/self/cgroup').read_text().strip().split('0::')[1].lstrip('/')
 def throttled(): return int(dict(line.split() for line in (group/'cpu.stat').read_text().splitlines())['nr_throttled'])
 before=throttled()
 code='import time\nend=time.monotonic()+2\nwhile time.monotonic()<end: pass'
 children=[subprocess.Popen(['/usr/bin/python3','-I','-c',code]) for _ in range(4)]
 for child in children: assert child.wait()==0
-assert throttled()>before
-print('PUBLIC_CPU_CAP_PASS')
+after=throttled()
+maximum=(group/'cpu.max').read_text().strip()
+print(json.dumps({'probe':'cpu','before':before,'after':after,'cpuMax':maximum}),flush=True)
+assert after>before
 """
 result = run_public(cpu_attack, memory="256M")
-assert result.returncode == 0 and result.stdout.strip() == "PUBLIC_CPU_CAP_PASS"
+try:
+    metrics = json.loads(result.stdout)
+except ValueError:
+    metrics = None
+diagnostic = {"probe": "cpu", "returncode": result.returncode, "metrics": metrics,
+              "errorKind": next((kind for kind in ["SyntaxError", "PermissionError", "FileNotFoundError", "AssertionError"] if kind in result.stderr), None)}
+(pathlib.Path(os.environ["RUNNER_TEMP"]) / "wave-public-resources.json").write_text(json.dumps(diagnostic))
+assert result.returncode == 0 and metrics and metrics["probe"] == "cpu" and metrics["after"] > metrics["before"]
+quota, period = map(int, metrics["cpuMax"].split())
+assert quota * 4 == period
 print("PASS: aggregate CPU quota throttles all child processes")
 
 # The identical kernel-verification function must refuse a group with missing

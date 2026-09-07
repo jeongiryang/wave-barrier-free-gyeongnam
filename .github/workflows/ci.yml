@@ -94,6 +94,14 @@ jobs:
           PY
       - name: Aggregate process resources and privileged policy tamper probes
         run: python3 -I -B tests/subscription-resource-boundary.py
+      - name: Preserve public resource diagnostics
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: public-resource-boundary
+          path: ${{ runner.temp }}/wave-public-resources.json
+          retention-days: 7
+          if-no-files-found: ignore
       - name: 브라우저 설치
         run: npx playwright install --with-deps chromium
       - name: 브라우저·접근성 회귀 테스트
