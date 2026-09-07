@@ -1,5 +1,13 @@
 # 지도 조작·상태 언어와 키보드 취소 AI 작업 로그
 
+## CI 색상 상속 보완 — 2026-09-07 05:55 UTC
+
+3c813456의 CI34086546918은 모바일 다크 대비1건으로 실패했다(이전 진행 중 표시는 이 결과로 대체). 새 sr-only 지도 이름은 실제로 잘려 보이지 않지만 자체 색상 검사는 이 요소의 글자색도 측정했다. 밝은 지도 표면 #dce9ef가 테마와 무관한데 기본 글자색은 어두운 테마의 밝은색을 상속해1.11이었다. 실제 글자가 보였다고 주장하지 않는다. CI screenshot은 마지막 여행집 화면이고 error-context/trace는 planner 요소를 지목했다.
+
+로컬 같은 대비 검사를 실행해 desktop/mobile2 FAIL·나머지4 PASS를 재현했다. 테스트 예외/조건/임계치를 바꾸지 않고 고정된 밝은 지도 표면의 기본 전경색을 #173b46로 짝지었다. sr-only 이름·lang·aria-labelledby·SDK 원문 경계는 그대로 유지한다. 대비6건과 기존 지도·언어·접근성을 합친64 PASS(3.3분), lint/typecheck/unit495/build/performance PASS(CSS69.88/70,planner269.47/270KiB).
+
+3c813 전체622 로컬 검사는 CI 실패 분석 뒤410번 진행 시점에 중단해 새 수정 전 결과를 완료로 세지 않았다. 새 전체622·새 CI·최신 합성은 다시 수행한다. 실제8ef Preview는 이 색상1줄 전 상태지만 영어KTO7·일정2·Kakao20/21분 모든구간2/2·지도패널/Escape복귀를 확인했다. 실제390/1366에서 가로overflow0(스크롤바 제외 client375/1351), 새 테스트탭의 수집된 error/warn0이다. 이 검사는 전체운영/모든API/실물스크린리더 PASS가 아니다.
+
 ## 최신 독립 QA 보완 — 2026-09-07 05:23 UTC
 
 - #34443050e6의 [CI34085085072](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34085085072)는617 PASS/기존skip1/flaky0. 로컬 전체는616 PASS/기존skip1/1 FAIL(14.5분)이었고, 실패는 지도 설정 테스트의 최초 page.goto에서 `ERR_NO_BUFFER_SPACE`였다. 이후 언어 수정의 전체 검사는 동시 로컬 전체 실행을 줄여 다시 수행하며 기존 실패를 PASS로 세지 않는다.
