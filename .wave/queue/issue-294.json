@@ -29,12 +29,12 @@
   },
   "headSha": "265ee1053b7d89bbb5106d1b4f71a5c281257a75",
   "generation": 2,
-  "updatedAt": 1788762906830,
+  "updatedAt": 1788762908410,
   "lease": {
     "phase": "implementation",
     "owner": "implementation-2beed7d0-e254-4ce3-91d8-0c5746c93637",
     "token": "f1d1a4f7-a56e-40a0-a732-e34e9981664d",
-    "expiresAt": 1788764706830,
+    "expiresAt": 1788764708410,
     "headSha": "265ee1053b7d89bbb5106d1b4f71a5c281257a75"
   },
   "receipts": [],
