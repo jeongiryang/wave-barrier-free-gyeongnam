@@ -88,6 +88,37 @@ origin/place context changes or the component unmounts; browser regression
 holds a real UI location request across New and then releases success/error.
 Latest-head CI/Preview and separate QA are required before resolving this FAIL.
 
+At `449fad4`, CI #793 (`34117242451`) quality passed: **502 unit/contracts,
+0 fail/skip**, both audits zero vulnerabilities, lint/typecheck/build/budgets
+PASS; CSS 69.94 KiB and planner initial JS 268.84 KiB. CI #793 then finished
+SUCCESS including validate: desktop **310 PASS**, mobile **309 PASS / existing
+skip 1**, zero failures/flaky passes. All 14 new region/location browser cases
+passed. Preview **6307842521 SUCCESS** is
+the same SHA at https://wave-barrier-free-gyeongnam-dbbl1g08a-jeongiryang-projects.vercel.app .
+Real KTO search again returned five Changwon candidates. After retaining two
+places while selecting Hadong, the saved book correctly displays Changwon and
+the Changwon two-place title. This deployed-runtime check is separate from
+mock provider coverage; it does not yet prove delayed geolocation outcomes.
+At 320px the actual English/dark modal has `lang=en`, 44px minimum button height,
+13.40:1 button text contrast, no horizontal overflow and keyboard containment/
+Escape return to Jinju. The temporary browser viewport override was reset.
+
+The existing manual Production API Smoke workflow now has an optional Preview
+path, because running repository tests on the credential-bearing host remains
+prohibited. Empty inputs preserve the existing Production smoke. Preview inputs
+must be an immutable project origin and a full SHA equal to the dispatched
+workflow commit; a successful GitHub Preview deployment with that exact URL/SHA
+is required before npm executes in a standard ephemeral runner. No repository
+secret is provided to the test step and checkout credentials are not persisted.
+Non-read network methods are blocked in the Preview region test. It exercises
+the deployed UI with deterministic provider and geolocation responses; real KTO
+and other provider smoke remain separate requirements.
+
+After deploying the latest branch HEAD, run the existing active workflow:
+`gh workflow run production-api-smoke.yml --repo jeongiryang/wave-barrier-free-gyeongnam --ref fix/region-change-boundary -f preview_url=<immutable-origin> -f preview_sha=<full-current-head>`.
+Registration of these inputs is not an executed test. Record the actual run URL,
+counts/artifact and separate QA verdict before claiming the Preview gate passes.
+
 - Added storage commit/failure/reload contracts and midnight regression.
 - Added KO/EN, light/dark, 320px modal, keyboard focus/trap/cancel and axe E2E;
   preservation/new-trip/reload, rapid region requests and history checks.
@@ -102,7 +133,7 @@ Latest-head CI/Preview and separate QA are required before resolving this FAIL.
   budgets and actual Preview were initially pending CI. This draft PR exists to validate
   in the permitted runner boundary, not to claim readiness or bypass a gate.
 - Production remains `34e6021265b16d046dca24feaa3ec2101fc977e2` at resume.
-  No deployment, migration, merge, final QA receipt or Release GO performed.
+  No Production deployment, migration, merge, final QA PASS receipt or Release GO performed.
 
 Preserved the 10 dirty #289 files outside this worktree, with original-byte
 copies, a binary patch and SHA-256 manifest. Existing worktrees, logs, servers,

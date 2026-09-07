@@ -2,6 +2,13 @@ import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
 
+test.beforeEach(async ({ page }) => {
+  if (!process.env.E2E_BASE_URL) return;
+  // Preview runs exercise deployed code with deterministic provider/permission
+  // responses. They never write server data or replace real provider smoke.
+  await page.route("**/*", route => ["GET", "HEAD", "OPTIONS"].includes(route.request().method()) ? route.continue() : route.abort("blockedbyclient"));
+});
+
 async function current(page: Page) {
   return page.evaluate(() => Object.fromEntries(["wave-current-trip-v1", "wave-saved-places", "wave-saved-place-catalog-v1", "wave-trip-schedule-v1", "wave-trip-order-v1", "wave-planner-region-v1"].map(key => [key, localStorage.getItem(key)])));
 }
