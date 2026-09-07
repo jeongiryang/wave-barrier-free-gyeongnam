@@ -57,6 +57,10 @@ def arguments(config, workspace, network=False):
         if not browsers.is_dir():
             fail()
         args += ["--ro-bind", str(browsers), "/browsers"]
+        # Public system font assets only; never mount the host's home or /etc.
+        for name in ["/usr/share/fonts", "/usr/share/fontconfig", "/etc/fonts"]:
+            if pathlib.Path(name).is_dir():
+                args += ["--ro-bind", name, name]
     for key, value in {"PATH": "/runtime/bin:/usr/bin", "HOME": "/home/runner", "APPDATA": "/home/runner/AppData", "USERPROFILE": "/home/runner", "CI": "true", "PLAYWRIGHT_BROWSERS_PATH": "/browsers", "npm_config_userconfig": "/tmp/npm-user.conf", "npm_config_globalconfig": "/tmp/npm-global.conf"}.items():
         args += ["--setenv", key, value]
     return args + ["--"]
@@ -126,6 +130,28 @@ if(ok)console.log('WAVE_BOUNDARY:'+input.nonce);process.exitCode=ok?0:1;})();"""
             raise RuntimeError("BLOCKED_SANDBOX: " + category)
 
 
+def validate_lock(lock):
+    if lock.get("lockfileVersion") != 3 or not isinstance(lock.get("packages"), dict):
+        fail()
+    packages = lock["packages"]
+    for name, package in packages.items():
+        if not name:
+            continue
+        if package.get("link"):
+            fail()
+        # npm records bundled entries without separate URLs/integrity. Their
+        # bytes are inside the verified parent tarball, never another download.
+        if package.get("inBundle") and not package.get("resolved") and not package.get("integrity"):
+            parent, separator, child = name.rpartition("/node_modules/")
+            container = packages.get(parent, {})
+            if not separator or child not in container.get("bundleDependencies", []) or not container.get("integrity", "").startswith("sha512-"):
+                fail()
+            continue
+        url = urlsplit(package.get("resolved", ""))
+        if url.scheme != "https" or url.hostname != "registry.npmjs.org" or url.username or url.password or url.port or not package.get("integrity", "").startswith("sha512-"):
+            fail()
+
+
 def validate(config, archive, edits):
     workspace = pathlib.Path(tempfile.mkdtemp(prefix="wave-validation-", dir=fixed_path(config["scratch"])))
     with tarfile.open(fixed_path(archive)) as source:
@@ -143,17 +169,11 @@ def validate(config, archive, edits):
         target.write_text(content)
     npm = ["/runtime/bin/node", "/runtime/lib/node_modules/npm/bin/npm-cli.js"]
     lock = json.loads((workspace / "package-lock.json").read_text())
-    if lock.get("lockfileVersion") != 3 or not isinstance(lock.get("packages"), dict):
-        fail()
-    for name, package in lock["packages"].items():
-        if not name:
-            continue
-        url = urlsplit(package.get("resolved", ""))
-        if url.scheme != "https" or url.hostname != "registry.npmjs.org" or url.username or url.password or url.port or not package.get("integrity", "").startswith("sha512-") or package.get("link"):
-            fail()
+    validate_lock(lock)
     # This trusted npm operation never invokes repository/dependency lifecycle code.
     installed = invoke(arguments(config, workspace, network=True) + npm + ["ci", "--ignore-scripts", "--no-audit", "--no-fund", "--registry=https://registry.npmjs.org"], timeout=300)
     (workspace.parent / (workspace.name + "-install.log")).write_text(installed.stdout)
+    print("CHECK: dependency preparation " + ("FAIL" if installed.returncode else "PASS"), file=sys.stderr)
     if installed.returncode:
         fail()
     checks = [["run", "lint"], ["run", "typecheck"], ["test"], ["run", "build:vercel"], ["run", "check:performance"], ["run", "test:e2e"]]
@@ -161,6 +181,7 @@ def validate(config, archive, edits):
         outcome = invoke(arguments(config, workspace) + npm + command, timeout=25 * 60)
         # Only local, private diagnostic files; never returned as PR comment text.
         (workspace.parent / (workspace.name + "-" + command[-1].replace(":", "-") + ".log")).write_text(outcome.stdout + outcome.stderr)
+        print("CHECK: npm " + " ".join(command) + (" FAIL" if outcome.returncode else " PASS"), file=sys.stderr)
         if outcome.returncode:
             fail()
     return ["npm " + " ".join(command) for command in checks]

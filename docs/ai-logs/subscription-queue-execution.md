@@ -80,6 +80,8 @@ Notion 무료 block 한도 때문에 최종 환류는 pending/unacknowledged다.
 예약 관리 화면의 실제 등록과 CLI 실행 파일 작성은 별도 상태다. API workflow 3개는 계속 disabled_manually다.
 # CI runner 격리 검증 후속 — 2026-09-07
 
+- `a34b1d6` CI #800에서 실제 경계 probe가 성공했다. 전체 제품용 별도 CI job을 추가해 인증정보 없는 snapshot에서 기존 lint/typecheck/unit/build/performance/Playwright 명령 6개를 모두 실행한다. 기존 일반 CI의 검사와 기준은 유지한다.
+- npm lockfile의 번들 내부 항목은 별도 URL이 없는 정상 형식이다. 검증된 registry 부모 tarball과 명시된 bundleDependencies에 포함된 경우만 허용하고, 부모 없음·멤버 불일치·외부 registry를 거부하는 시험을 추가했다. WSL의 공개 canary/악성 npm 시험 5개 그룹은 통과했지만 이는 전체 제품 QA가 아니다.
 - `4cf713d` CI #797 및 `f24fa94` CI #798은 lint/typecheck/unit 314건까지 성공했지만 실제 sandbox probe에서 실패했다. #798은 `namespace-permission`으로 분류했으며 브라우저/build 단계는 실행되지 않았다.
 - `ddf0608` CI #799에서 runner의 배포판 정책 파일이 없어 `test -f`가 실패했다. 기존 파일 존재를 가정한 접근을 대체해 AppArmor upstream의 고정 commit 정책과 SHA256을 검증한 뒤 일회성 CI runner에만 로드한다. 자식 capability 제한을 포함하며 전역 AppArmor/user namespace 보호와 로컬 PC 정책은 변경하지 않는다.
 - 근거: [Ubuntu의 프로그램별 namespace 정책](https://ubuntu.com/blog/ubuntu-23-10-restricted-unprivileged-user-namespaces), [AppArmor upstream bwrap/child profile](https://gitlab.com/apparmor/apparmor/-/blob/8e431ebcd915216a03ebc8d01e72b1741bb2f855/profiles/apparmor/profiles/extras/bwrap-userns-restrict).

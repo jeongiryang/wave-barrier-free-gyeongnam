@@ -101,3 +101,59 @@ jobs:
         run: npm run build:vercel
       - name: 빌드 성능 예산 검사
         run: npm run check:performance
+  sandbox-application:
+    name: Full application inside validation sandbox
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          check-latest: true
+          cache: npm
+      - name: Prepare public dependencies and Chromium on disposable CI runner
+        run: |
+          npm ci --ignore-scripts
+          npx --no-install playwright install --with-deps chromium
+      - name: Run every application check inside the actual boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y bubblewrap apparmor
+          curl --fail --silent --show-error --location \
+            https://gitlab.com/apparmor/apparmor/-/raw/8e431ebcd915216a03ebc8d01e72b1741bb2f855/profiles/apparmor/profiles/extras/bwrap-userns-restrict \
+            -o "$RUNNER_TEMP/bwrap-userns-restrict"
+          printf '634d3d3427c483f123cb5ed53b71ea13040187e07d9f67ca74421d42a6170f0e  %s\n' "$RUNNER_TEMP/bwrap-userns-restrict" | sha256sum --check
+          sudo apparmor_parser -r "$RUNNER_TEMP/bwrap-userns-restrict"
+          python3 -B - <<'PY'
+          import hashlib, importlib.util, os, pathlib, subprocess
+          runtime = pathlib.Path(subprocess.check_output(["node", "-p", "process.execPath"], text=True).strip()).parent.parent
+          config = {"version": 1, "bwrap": "/usr/bin/bwrap", "runtime": str(runtime), "browsers": str((pathlib.Path.home() / ".cache/ms-playwright").resolve()), "scratch": os.environ["RUNNER_TEMP"]}
+          for key, file in [("bwrapSha256", pathlib.Path("/usr/bin/bwrap")), ("nodeSha256", runtime / "bin/node")]:
+              with file.open("rb") as source:
+                  config[key] = hashlib.file_digest(source, "sha256").hexdigest()
+          archive = pathlib.Path(os.environ["RUNNER_TEMP"]) / "public-source.tar"
+          with archive.open("wb") as target:
+              subprocess.run(["git", "-c", "core.hooksPath=/dev/null", "archive", "HEAD"], stdout=target, check=True)
+          spec = importlib.util.spec_from_file_location("boundary", "scripts/subscription-sandbox.py")
+          boundary = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(boundary)
+          boundary.probe(config)
+          checks = boundary.validate(config, str(archive), {})
+          assert len(checks) == 6
+          print("PASS: all six application checks inside linux-bwrap-v1")
+          PY
+      - name: Preserve credential-free sandbox command logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: sandbox-application-logs
+          path: ${{ runner.temp }}/wave-validation-*.log
+          retention-days: 7
+          if-no-files-found: ignore

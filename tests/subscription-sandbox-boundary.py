@@ -14,6 +14,21 @@ spec = importlib.util.spec_from_file_location("boundary", root / "scripts/subscr
 boundary = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(boundary)
 config = json.loads(pathlib.Path(sys.argv[1]).read_text())
+parent = {"resolved": "https://registry.npmjs.org/public/-/public-1.tgz", "integrity": "sha512-PUBLIC", "bundleDependencies": ["child"]}
+valid_lock = {"lockfileVersion": 3, "packages": {"node_modules/public": parent, "node_modules/public/node_modules/child": {"inBundle": True}}}
+boundary.validate_lock(valid_lock)
+for invalid in [
+    {"lockfileVersion": 3, "packages": {"node_modules/child": {"inBundle": True}}},
+    {"lockfileVersion": 3, "packages": {"node_modules/public": parent, "node_modules/public/node_modules/unlisted": {"inBundle": True}}},
+    {"lockfileVersion": 3, "packages": {"node_modules/public": {**parent, "resolved": "https://invalid.example/public.tgz"}, "node_modules/public/node_modules/child": {"inBundle": True}}},
+]:
+    try:
+        boundary.validate_lock(invalid)
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("Unverified bundled dependency was accepted")
+print("PASS: bundled packages require a verified registry parent and explicit membership")
 boundary.probe(config)
 print("PASS: real file/home/environment/local/external network boundary")
 
