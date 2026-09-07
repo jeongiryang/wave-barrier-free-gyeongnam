@@ -61,7 +61,9 @@ test("device location requires notice and browser permission and bypasses the ro
   assert.doesNotMatch(privateBranch, /plannerJson|fetch\(/);
   for (const path of ["features/planner/hooks/useRouteOrigin.ts", "features/routing/useMapJourneyActions.ts"]) {
     const contents = await source(path);
-    assert.ok(contents.indexOf("if (!confirmMapLocationUse()) return") < contents.indexOf("navigator.geolocation.getCurrentPosition"));
+    const notice = contents.indexOf("if (!confirmMapLocationUse(locale)) return");
+    const permission = contents.indexOf("navigator.geolocation.getCurrentPosition");
+    assert.ok(notice >= 0 && permission > notice, "the current-language notice must precede device permission");
   }
 });
 test("native place dialog makes the background inert and restores focus", async () => {

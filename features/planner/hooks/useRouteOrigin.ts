@@ -5,8 +5,10 @@ import type { RoutePoint } from "../../routing/types";
 import { departurePresets } from "../constants";
 import { confirmMapLocationUse } from "../../../lib/location-consent.js";
 import type { RouteNotice } from "../route-copy";
+import { useSitePreferences } from "../../../components/SitePreferences";
 
 export function useRouteOrigin(onPrivateOrigin?: () => void) {
+  const { locale } = useSitePreferences();
   const [origin, setOrigin] = useState<RoutePoint>(departurePresets[0].point);
   const [originLabel, setOriginLabel] = useState(departurePresets[0].name);
   const [privateOrigin, setPrivateOrigin] = useState(false);
@@ -27,7 +29,7 @@ export function useRouteOrigin(onPrivateOrigin?: () => void) {
       setRouteNotice({ ko: "이 브라우저는 현재 위치를 지원하지 않습니다. 출발 거점을 선택해 주세요.", en: "Location is unavailable in this browser. Choose a public departure point." });
       return;
     }
-    if (!confirmMapLocationUse()) return;
+    if (!confirmMapLocationUse(locale)) return;
     setRouteNotice({ ko: "현재 위치 권한을 확인하고 있습니다.", en: "Waiting for location permission." });
     navigator.geolocation.getCurrentPosition((position) => {
       updateOrigin({ lat: position.coords.latitude, lng: position.coords.longitude }, "현재 위치", true);
@@ -35,7 +37,7 @@ export function useRouteOrigin(onPrivateOrigin?: () => void) {
       enableHighAccuracy: false,
       timeout: 8000,
     });
-  }, [updateOrigin]);
+  }, [locale, updateOrigin]);
 
   return {
     origin,
