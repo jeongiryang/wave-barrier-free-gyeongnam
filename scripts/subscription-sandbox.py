@@ -22,15 +22,16 @@ from urllib.parse import urlsplit
 DEADLINE = time.monotonic() + 20 * 60
 WORKSPACE_BYTES = 2816 * 1024 * 1024
 TEMP_BYTES = 512 * 1024 * 1024
-HOME_BYTES = 128 * 1024 * 1024
+HOME_BYTES = 384 * 1024 * 1024
 SHARED_BYTES = 128 * 1024 * 1024
-OWNER_TEMP_BYTES = 512 * 1024 * 1024
+OWNER_TEMP_BYTES = 256 * 1024 * 1024
 MEMORY_BYTES = 6 * 1024 * 1024 * 1024
 
 
 def assert_writable_budget():
-    # Repartition the existing 3.5GiB candidate + 512MiB coordinator budget.
-    # CI819 exhausted workspace bytes while the other mounts remained empty.
+    # Repartition the fixed 4GiB aggregate without reducing application HOME.
+    # npm ci requires the reviewed 384MiB HOME cache; the trusted coordinator
+    # retains 256MiB for its bounded logs and request handling.
     capacities = [WORKSPACE_BYTES, TEMP_BYTES, HOME_BYTES, SHARED_BYTES, OWNER_TEMP_BYTES]
     if any(type(value) is not int or value <= 0 for value in capacities) or sum(capacities) > 4 * 1024 ** 3:
         fail()
