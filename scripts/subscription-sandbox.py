@@ -23,6 +23,8 @@ DEADLINE = time.monotonic() + 20 * 60
 WORKSPACE_BYTES = 2816 * 1024 * 1024
 TEMP_BYTES = 512 * 1024 * 1024
 HOME_BYTES = 128 * 1024 * 1024
+INSTALL_TEMP_BYTES = 256 * 1024 * 1024
+INSTALL_HOME_BYTES = 384 * 1024 * 1024
 SHARED_BYTES = 128 * 1024 * 1024
 OWNER_TEMP_BYTES = 512 * 1024 * 1024
 MEMORY_BYTES = 6 * 1024 * 1024 * 1024
@@ -31,9 +33,13 @@ MEMORY_BYTES = 6 * 1024 * 1024 * 1024
 def assert_writable_budget():
     # Repartition the existing 3.5GiB candidate + 512MiB coordinator budget.
     # CI819 exhausted workspace bytes while the other mounts remained empty.
-    capacities = [WORKSPACE_BYTES, TEMP_BYTES, HOME_BYTES, SHARED_BYTES, OWNER_TEMP_BYTES]
-    if any(type(value) is not int or value <= 0 for value in capacities) or sum(capacities) > 4 * 1024 ** 3:
-        fail()
+    # Installation and repository execution use successive, separate namespaces.
+    # Cache space from script-disabled installation is never retained or mounted
+    # in the execution phase, which needs more temporary rendering space.
+    for temporary, home in [(TEMP_BYTES, HOME_BYTES), (INSTALL_TEMP_BYTES, INSTALL_HOME_BYTES)]:
+        capacities = [WORKSPACE_BYTES, temporary, home, SHARED_BYTES, OWNER_TEMP_BYTES]
+        if any(type(value) is not int or value <= 0 for value in capacities) or sum(capacities) > 4 * 1024 ** 3:
+            fail()
 
 
 def assert_process_budget():
@@ -85,8 +91,8 @@ def arguments(config, workspace, network=False):
     for name in ["bin", "lib", "lib64"]:
         args += ["--ro-bind", f"/usr/{name}", f"/usr/{name}", "--symlink", f"usr/{name}", f"/{name}"]
     args += ["--proc", "/proc", "--dev", "/dev",
-             "--size", str(TEMP_BYTES), "--tmpfs", "/tmp",
-             "--size", str(HOME_BYTES), "--tmpfs", "/home/runner",
+             "--size", str(INSTALL_TEMP_BYTES if network else TEMP_BYTES), "--tmpfs", "/tmp",
+             "--size", str(INSTALL_HOME_BYTES if network else HOME_BYTES), "--tmpfs", "/home/runner",
              "--size", str(SHARED_BYTES), "--tmpfs", "/dev/shm",
              "--remount-ro", "/dev", "--ro-bind", str(runtime), "/runtime",
              "--bind", str(workspace), "/workspace", "--chdir", "/workspace"]

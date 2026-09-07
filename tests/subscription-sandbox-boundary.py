@@ -15,8 +15,9 @@ boundary = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(boundary)
 config = json.loads(pathlib.Path(sys.argv[1]).read_text())
 assert boundary.WORKSPACE_BYTES + boundary.TEMP_BYTES + boundary.HOME_BYTES + boundary.SHARED_BYTES == 3584 * 1024 ** 2
+assert boundary.WORKSPACE_BYTES + boundary.INSTALL_TEMP_BYTES + boundary.INSTALL_HOME_BYTES + boundary.SHARED_BYTES == 3584 * 1024 ** 2
 assert boundary.OWNER_TEMP_BYTES == 512 * 1024 ** 2
-for key in ["WORKSPACE_BYTES", "TEMP_BYTES", "HOME_BYTES", "SHARED_BYTES", "OWNER_TEMP_BYTES"]:
+for key in ["WORKSPACE_BYTES", "TEMP_BYTES", "HOME_BYTES", "INSTALL_TEMP_BYTES", "INSTALL_HOME_BYTES", "SHARED_BYTES", "OWNER_TEMP_BYTES"]:
     original_capacity = getattr(boundary, key)
     setattr(boundary, key, original_capacity + 4096)
     try:
@@ -78,6 +79,20 @@ print('PUBLIC_CONCURRENT_TEMP_BUFFERS_PASS')
 temporary_result = boundary.invoke(boundary.arguments(config, buffer_workspace) + ["/usr/bin/python3", "-I", "-c", temporary_check])
 assert temporary_result.returncode == 0 and temporary_result.stdout.strip() == "PUBLIC_CONCURRENT_TEMP_BUFFERS_PASS", "concurrent public rendering buffers exceeded temporary capacity"
 print("PASS: two touched temporary rendering buffers fit without changing aggregate capacity")
+cache_check = """import os,pathlib
+assert os.statvfs('/tmp').f_blocks*os.statvfs('/tmp').f_frsize == 256*1024*1024
+assert os.statvfs('/home/runner').f_blocks*os.statvfs('/home/runner').f_frsize == 384*1024*1024
+with open('/home/runner/public-install-cache','wb') as cache:
+ for _ in range(200): cache.write(b'P'*(1024*1024))
+ cache.flush()
+ assert os.fstat(cache.fileno()).st_size == 200*1024*1024
+print('PUBLIC_INSTALL_CACHE_PASS')
+"""
+cache_result = boundary.invoke(boundary.arguments(config, buffer_workspace, network=True) + ["/usr/bin/python3", "-I", "-c", cache_check], dependency_install=True)
+assert cache_result.returncode == 0 and cache_result.stdout.strip() == "PUBLIC_INSTALL_CACHE_PASS", "public install cache exceeded its separate phase capacity"
+cache_absence = boundary.invoke(boundary.arguments(config, buffer_workspace) + ["/usr/bin/python3", "-I", "-c", "import pathlib;assert not pathlib.Path('/home/runner/public-install-cache').exists();print('PUBLIC_CACHE_ABSENT')"])
+assert cache_absence.returncode == 0 and cache_absence.stdout.strip() == "PUBLIC_CACHE_ABSENT", "installation cache crossed into repository execution"
+print("PASS: bounded installation cache fits and is absent from the later execution namespace")
 parent = {"resolved": "https://registry.npmjs.org/public/-/public-1.tgz", "integrity": "sha512-PUBLIC", "bundleDependencies": ["child"]}
 valid_lock = {"lockfileVersion": 3, "packages": {"node_modules/public": parent, "node_modules/public/node_modules/child": {"inBundle": True}}}
 boundary.validate_lock(valid_lock)
