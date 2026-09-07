@@ -3,23 +3,26 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 2026-09-07 02:24 UTC 실행 증거
+## 2026-09-07 03:09 UTC 실행 증거
 
-전체 요청은 미완료다. main/Production `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포6278499275를 다시 확인했다. 원격39 Open PR의 최신 HEAD가 통합에 포함된다(통합 자체+원본38). 새 팀원 Issue #337도 실행 목록에 포함했다. 사람 승인·Preview·008·운영 검증을 완료로 대신하지 않는다.
+전체 요청은 미완료다. main/Production은 `34e6021265b16d046dca24feaa3ec2101fc977e2`다. GitHub 배포6278499275와 Vercel 대시보드의 현재 배포 `DpUP8LhruYLeXs6N5Nxqrk3JoD6G`가 같은 SHA임을 확인했다. 원격41 Open PR·49 Open Issue를 조회했고 새 팀원 #340/#341도 포함했다. 기존 원본40개 PR의 변경을 보존한 로컬 합성 앱은 `c279f2292ad5e5c46e6915d3d8dbc91dcdcca239`다. main 병합이나 Production 배포가 아니다.
 
 | 범위 | 실제 증거 | 현재 상태·남은 조치 |
 | --- | --- | --- |
-| #334 직전 검증 | `d7a71a76b73bf9122cb12c8c34da06f6ab6700ed`, unit446, 로컬577 PASS/기존skip1(12.8분), [CI34074133044](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34074133044) 289+288 PASS/기존skip1/flaky0 | CI 성공 후 추가 P1 리뷰 RC-19/20을 확인해 다시 Draft. 성공이 모든 결함 부재를 뜻하지 않음 |
-| #335 RC-19 | `f6e451beedcec969c7a879a9d360825e1a7ced32`, hook14/unit368/관련56 PASS(1.4분), 기본검사PASS | 지원 범위 밖 일정/SDK 좌표 차단. Escape 이중 처리의 focus 누락도52 PASS/4 FAIL→56 PASS로 수정. [새 CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34076016081) 대기·Draft |
-| #336 RC-20 | `82314645616e1f1c4e3f2705abcaaaaef998bc50`, 계약49 PASS/4 FAIL→53 PASS, unit333/로컬전체237 PASS·기존skip1/기본검사PASS | 지원 좌표 범위+요청 출발/도착과 도형 양끝1km 대응검사. 합성 끝점 없음. [새 CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34075800244) 대기·Draft |
-| #338 ODsay | `b6a7f77cb8b760ee77843699f0387e6a1e9b9e25`, 최초25건 중22 FAIL 재현, 최종 부모합성unit364 PASS | 누락 데이터·도시 간 미완성 경로를 confirmed로 승인하지 않음. 원문 오류 비노출·정상no-route 구분. [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34075953741) 대기·Draft. 첫237 PASS는 최종 좌표 방어 전 증거 |
-| #334 새 앱 합성 | `6dd908aef686a6b4d3f8cf712375d6d45b23c5d5`, unit484/lint/typecheck/Vercel build/performance/전체audit0 PASS | 이 문서만 추가한 최종 HEAD에서 전체 Playwright·axe/CI 재실행. 새 변경의 전체 성공은 아직 아님 |
-| #337 팀원 제보 | 기간 축소 시 날짜 재배치,7일 제한/여행집 불일치,자동 날짜 변경 안내 및 기존 UI 요구 | 최신 후보 hook도 종료일 상한/범위 밖 배정 처리가 없어 재현·수정 필요. 정상 범위 확대/복원은 유지. 중복 구현 없이 기존 요청과 연결 |
-| Production | 01:29 읽기진단26 PASS/route1 FAIL,01:32 재조회응답. 새provider 상태 계약FAIL | 기존 운영의 실패 원인 미확정. 수정본 실배포·Preview·008 적용 없음 |
+| #334 직전 검증 | `a03529a5408f5261a1737b885b36e3e649b3ffbd`, unit484, 앱동일92be654 로컬581 PASS/기존skip1(13.2분), [CI34076185336](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34076185336) 581 PASS/기존skip1/flaky0 | 날짜·실제 표시 결함을 발견해 Draft로 유지하고 #339를 합성함 |
+| #335 RC-19 | `f6e451beedcec969c7a879a9d360825e1a7ced32`, hook14/unit368/관련56 PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34076016081) 555 PASS/기존skip1/flaky0 | Ready·미병합·미배포, 지원 범위 밖 Roadview와 Escape focus 수정 포함 |
+| #336 RC-20 | `82314645616e1f1c4e3f2705abcaaaaef998bc50`, 계약53/unit333/로컬전체237 PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34075800244) 237 PASS/기존skip1/flaky0 | Ready·미병합·미배포, 요청과 무관한 도형 거부. 1km는 제품 허용 오차이며 경로 접근성 보장 아님 |
+| #338 ODsay | `b6a7f77cb8b760ee77843699f0387e6a1e9b9e25`, 부모합성unit364 PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34075953741) 237 PASS/기존skip1/flaky0 | Ready·미병합·미배포. 도시 간 첫/마지막 이동이 빠진 경로를 확인 완료로 승인하지 않음 |
+| #337/#339 날짜 | `c789bc6e91b17581f237a5aef71467c7bc9a1d96`, 계약11/unit491/관련40 PASS, 로컬전체605 PASS/기존skip1(13.5분), [CI34077578690](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34077578690) 303+302 PASS/기존skip1/flaky0 | Ready·미병합·미배포. 기존 범위 밖 장소 목록은 재구현하지 않고 7일 상한·변경 안내·저장/공유 경계·지연 일정 표시·대비/이름 잘림을 수정 |
+| #340/#341 팀원 제안 | `afb78cfd3c3d33fd5cd53da390f0b7458e91dbf8`, 원본098ae41 보존. lint/typecheck/unit261/build/performance PASS. [새 CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34078628027)·전체202개 실행 중 | Draft, 접근성 리뷰3946236024의 회전 정지·포커스·live 계약 보완. 제안 문서이며 새 랜딩 UI 구현 완료 아님 |
+| 최신 통합 | 앱 `c279f2292ad5e5c46e6915d3d8dbc91dcdcca239`에 #339/#341 포함 | 이 체크포인트 추가 HEAD에서 기본검사·전체606개·CI를 새로 실행. 이전 source 성공을 통합 최종 성공으로 세지 않음 |
+| Production 읽기 QA | 02:50 API13개+HTML14개 응답 검사 성공. 02:52 390/1366에서 추천3·저장1·새로고침1, console/pageerror/overflow/실패GET0 | 최신 provider 계약FAIL, 첫 선택1·검색 전 자동요청2는 이전 운영 상태. Preview/Production 수정본 검증 아님 |
 
-비용: 모델 API3workflow disabled_manually를 유지한다. 추가 과금/Secret·구독 인증 복사/예약 신규 생성 없음. 공식예약5개·구독 로컬 CLI의 부분 검증과 전체 자동화 실동작 미확인을 구분한다.
+비용: 모델 API3workflow `disabled_manually` 유지. Secret·구독 인증 복사/새 예약/새 과금 자원 없음. 기존 구독 예약5개와 로컬 CLI의 부분 증거만 확인했고 전체 자동화 완료는 아니다.
 
-정확한 재개: #334 `audit/launch-integration-20260906`의 이 체크포인트 HEAD→전체 회귀/CI 확인, RC-19/20 리뷰에 근거 회신, #338 CI 확인, #337 날짜 정합성 재현/수정. 원본/사용자 worktree를 보존한다. 로그는 임시 `wave-launch-20260906/candidate-rc20-*`, `roadview-rc19-*`, `kakao-rc20-*`, `odsay-*`다. 종료한 이전4187 서버의 과거 hydration 경고 출력과 새 테스트의 console assertion을 혼동하지 않는다.
+Preview: 기존 탭 제어는 Debugger unattached였으나 새 연결로 기존 Hobby 프로젝트 대시보드를 읽고 Create Preview Deployment 입력창에 접근했다. 아직 생성하지 않았다. Git 자동 배포 설정·Production 승격·Secret 열람 없이 검증된 후보 SHA의 일회성 Preview를 다음으로 진행한다. 008 운영 스키마·영향 행 수·백업·복구 확인과 적용은 여전히 미완료다.
+
+정확한 재개: 이 체크포인트 HEAD의 통합 기본검사/전체606개/CI → Preview 생성·실제 API/브라우저 → 사람 리뷰3건/008 게이트. #341의 최종 전체/CI와 리뷰 회신, #337 부분 완료 체크리스트, Notion을 같은 증거로 갱신한다. 임시 로그는 `trip-date-*`, `ci339-c789-success.log`, `landing-contract-*`이며 원본 worktree·실패 캡처를 보존했다. 완료한4187/4209 서버만 종료했고4213과 #341 Playwright 소유4173은 작업 중 유지했다.
 
 ## 이전 실행 증거 — 2026-09-06 23:38 UTC
 
