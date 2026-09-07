@@ -99,4 +99,41 @@ test(`a pending search keeps its keyboard focus ${en ? "English" : "Korean"}`, a
   finally { release(); }
   await expect(page.locator("#places h2").first()).toBeFocused();
 });
+
+for (const end of ["cancel", "complete", "elsewhere"] as const) test(`all-journey ${end} preserves the user's focus ${en ? "English" : "Korean"}`, async ({ page }) => {
+  const search = await prepare(page, en);
+  await search.click();
+  await page.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: en ? /Next: Itinerary/ : /다음: 내 일정/ }).click();
+  await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
+  const coverage = page.locator(".itinerary-route-coverage");
+  const check = coverage.locator(".coverage-actions button").first();
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  let requests = 0;
+  await page.route("**/api/route?*", async route => { requests++; await gate; await route.fallback(); });
+  await check.focus();
+  await check.press("Enter");
+  try {
+    await expect.poll(() => requests).toBe(1);
+    await expect(check).toBeFocused();
+    await expect(check).toHaveAttribute("aria-disabled", "true");
+    await check.press("Enter");
+    expect(requests).toBe(1);
+    await check.press("Tab");
+    const cancel = coverage.getByRole("button", { name: en ? "Cancel" : "확인 중단", exact: true });
+    await expect(cancel).toBeFocused();
+    if (end === "cancel") await cancel.press("Enter");
+    if (end === "elsewhere") await coverage.getByRole("combobox").focus();
+  } finally { release(); }
+  await expect(check).not.toHaveAttribute("aria-busy", "true");
+  if (end === "elsewhere") await expect(coverage.getByRole("combobox")).toBeFocused();
+  else await expect(check).toBeFocused();
+  if (end === "cancel") {
+    await expect(coverage.getByRole("checkbox")).toBeDisabled();
+    await check.press("Enter");
+  }
+  await expect(coverage.getByRole("status")).toHaveText(en ? "1 of 1 journeys found for this transport" : "선택한 이동수단: 전체 1구간 중 1구간 확인");
+  expect((await new AxeBuilder({ page }).include(".itinerary-route-coverage").analyze()).violations).toEqual([]);
+});
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSitePreferences } from "../../../components/SitePreferences";
-import { useId } from "react";
+import { useCallback, useId, useRef } from "react";
 import { usableLegRoutes } from "../../../lib/itinerary-legs.js";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
@@ -17,6 +17,11 @@ export default function ItineraryRouteCoverage({ coverage, route, trip, reviewed
   const { locale } = useSitePreferences();
   const en = locale === "en";
   const transportLabelId = useId();
+  const checkButton = useRef<HTMLButtonElement>(null);
+  const cancelButton = useCallback((node: HTMLButtonElement | null) => {
+    if (!node) return;
+    return () => { if (document.activeElement === node) checkButton.current?.focus({ preventScroll: true }); };
+  }, []);
   if (!coverage.legs.length) return null;
   return <section className="itinerary-route-coverage" aria-labelledby="route-coverage-title">
     <h3 id="route-coverage-title">{en ? "Check every journey" : "일정의 모든 이동 구간 확인"}</h3>
@@ -25,7 +30,7 @@ export default function ItineraryRouteCoverage({ coverage, route, trip, reviewed
     <label><span id={transportLabelId}>{en ? "Transport" : "이동수단"}</span><select aria-labelledby={transportLabelId} value={route.routeTravelMode} onChange={(event) => route.setRouteTravelMode(event.target.value as typeof route.routeTravelMode)}>
       <option value="car">{en ? "Car" : "자동차"}</option><option value="transit">{en ? "Public transport" : "대중교통"}</option><option value="walk">{en ? "Walking — external check" : "도보 — 외부 지도 확인"}</option><option value="bicycle">{en ? "Cycling — external check" : "자전거 — 외부 지도 확인"}</option>
     </select></label>
-    <div className="coverage-actions"><button type="button" onClick={() => void coverage.checkRoutes()} disabled={coverage.loading}>{coverage.loading ? (en ? "Checking…" : "구간 확인 중…") : (en ? "Check all journeys" : "모든 구간 조회하기")}</button>{coverage.loading && <button type="button" onClick={coverage.cancel}>{en ? "Cancel" : "확인 중단"}</button>}</div>
+    <div className="coverage-actions"><button ref={checkButton} type="button" onClick={() => void coverage.checkRoutes()} aria-disabled={coverage.loading} aria-busy={coverage.loading}>{coverage.loading ? (en ? "Checking…" : "구간 확인 중…") : (en ? "Check all journeys" : "모든 구간 조회하기")}</button>{coverage.loading && <button ref={cancelButton} type="button" onClick={coverage.cancel}>{en ? "Cancel" : "확인 중단"}</button>}</div>
     <p role="status">{en ? `${coverage.readyCount} of ${coverage.legs.length} journeys found for this transport` : `선택한 이동수단: 전체 ${coverage.legs.length}구간 중 ${coverage.readyCount}구간 확인`}</p>
     <ol>{coverage.legs.map((leg) => {
       const best = usableLegRoutes(coverage.data[leg.key], route.routeTravelMode)[0];
