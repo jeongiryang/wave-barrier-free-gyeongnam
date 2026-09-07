@@ -140,3 +140,10 @@ GitHub 저장소는 public이다. [표준 GitHub-hosted public runner는 무료]
 
 [공식 Scheduled 조건](https://learn.chatgpt.com/docs/automations), [ChatGPT 인증](https://learn.chatgpt.com/docs/auth),
 [포함 사용량 정책](subscription-only-automation.md), [Control Plane](automation-control-plane.md).
+# Aggregate storage boundary candidate — 2026-09-07
+
+The reviewed external helper now creates a dedicated kernel tmpfs for the full dependency/install/check/export lifetime: at most2GiB for the workspace, with separate512MiB temporary, home-cache and shared-memory mounts. Repository execution sees a read-only root and `/dev`; it cannot create an unbounded sibling file or access the host scratch parent. Per-file rendering capacity remains512MiB, preserving full-page Chromium captures. The trusted outer mount owner executes only the pinned helper; all repository commands still enter the inner filesystem/network namespace with further user namespaces disabled. A plain host directory is rejected by a real mount/type/capacity check.
+
+Quota exhaustion fails validation and therefore blocks publish/queue progression. A stricter32MiB public fixture writes several16MiB files (each below the per-file cap) and receives ENOSPC, with no PASS receipt or data files on the host scratch volume. Safe logs/artifacts are exported with their existing independent caps after repository processes exit. The trusted mount owner is not a permission to execute PR helpers outside the inner boundary.
+
+This candidate still requires exact-HEAD full application CI, independent QA and newly pinned external-install verify-only. The existing installed version/pins and original dirty10 remain preserved. Keep `blocked-sandbox`; do not run a queue tick or copy credentials. It is not proof of whole-queue E2E or a general memory/CPU denial-of-service certification.

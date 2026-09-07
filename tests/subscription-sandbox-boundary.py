@@ -96,6 +96,8 @@ with socket.socket() as receiver:
 (async()=>{let safe=true;try{fs.readFileSync(FILE);safe=false;}catch(e){if(!['ENOENT','EACCES','EPERM'].includes(e.code))safe=false;}
 for(const [host,port] of [['127.0.0.1',PORT],['1.1.1.1',443]]){const denied=await new Promise(resolve=>{const s=net.connect({host,port});s.once('connect',()=>{s.destroy();resolve(false)});s.once('error',()=>resolve(true));s.setTimeout(2000,()=>{s.destroy();resolve(false)});});if(!denied)safe=false;}
 if(fs.existsSync('/mnt/c')||fs.existsSync('/mnt/d')||process.env.WSL_INTEROP)safe=false;
+for(const path of ['/tmp','/home/runner','/dev/shm']){const stat=fs.statfsSync(path);if(stat.type!==0x01021994||stat.blocks*stat.bsize>512*1024*1024)safe=false;}
+for(const path of ['/public-root-write','/dev/public-device-write']){try{fs.writeFileSync(path,'PUBLIC TEST DATA');safe=false;}catch(e){if(!['EROFS','EACCES','EPERM'].includes(e.code))safe=false;}}
 process.exitCode=safe?0:1;})();""".replace("FILE", json.dumps(str(sentinel))).replace("PORT", str(port))
     (source / "attack.cjs").write_text(attack)
     scripts = {name: "node attack.cjs" for name in ["lint", "typecheck", "test", "build:vercel", "check:performance", "test:e2e"]}
@@ -108,6 +110,45 @@ process.exitCode=safe?0:1;})();""".replace("FILE", json.dumps(str(sentinel))).re
     checks = boundary.validate(config, str(archive), {})
     assert len(checks) == 6
 print("PASS: all six synthetic npm commands remain contained; no application QA claim")
+
+# Exercise the same validate path with a small *stricter* test mount. Each file
+# is below RLIMIT_FSIZE; only the aggregate kernel tmpfs quota stops the attack.
+original_quota = boundary.quota_arguments
+boundary.quota_arguments = lambda conf, folder: original_quota(conf, folder, 32 * 1024 * 1024)
+(source / "fill.cjs").write_text("""const fs=require('node:fs');
+const block=Buffer.alloc(1024*1024,1);
+for(let file=0;file<4;file++){
+ const fd=fs.openSync('public-capacity-'+file,'w');
+ for(let part=0;part<16;part++)fs.writeSync(fd,block);
+ fs.closeSync(fd);
+}
+process.exitCode=0;
+""")
+package = json.loads((source / "package.json").read_text())
+package["scripts"]["lint"] = "node fill.cjs"
+(source / "package.json").write_text(json.dumps(package))
+capacity_archive = work / "capacity.tar"
+with tarfile.open(capacity_archive, "w") as tar:
+    for file in source.iterdir():
+        tar.add(file, arcname=file.name)
+try:
+    boundary.validate(config, str(capacity_archive), {})
+except RuntimeError:
+    pass
+else:
+    raise AssertionError("Aggregate workspace exhaustion reached a passing receipt")
+finally:
+    boundary.quota_arguments = original_quota
+capacity_logs = sorted(pathlib.Path(config["scratch"]).glob("wave-validation-*-lint.log"), key=lambda path: path.stat().st_mtime)
+assert capacity_logs and "ENOSPC" in capacity_logs[-1].read_text(), "quota test failed for another reason"
+assert not list(pathlib.Path(config["scratch"]).glob("wave-validation-*/public-capacity-*")), "quota contents leaked into host scratch volume"
+try:
+    boundary.assert_workspace_quota(source)
+except RuntimeError:
+    pass
+else:
+    raise AssertionError("An ordinary host directory was accepted as a quota mount")
+print("PASS: multiple individually allowed files hit aggregate quota; no passing validation receipt or host volume writes")
 
 safe = pathlib.Path(tempfile.mkdtemp(prefix="wave-public-artifact-", dir=config["scratch"]))
 (safe / "test-results").mkdir()

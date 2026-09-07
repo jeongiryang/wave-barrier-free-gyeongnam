@@ -20,6 +20,8 @@ import shutil
 from urllib.parse import urlsplit
 
 DEADLINE = time.monotonic() + 20 * 60
+WORKSPACE_BYTES = 2 * 1024 * 1024 * 1024
+TEMP_BYTES = 512 * 1024 * 1024
 
 
 def fail():
@@ -49,7 +51,12 @@ def arguments(config, workspace, network=False):
         args += ["--unshare-net"]
     for name in ["bin", "lib", "lib64"]:
         args += ["--ro-bind", f"/usr/{name}", f"/usr/{name}", "--symlink", f"usr/{name}", f"/{name}"]
-    args += ["--proc", "/proc", "--dev", "/dev", "--tmpfs", "/tmp", "--dir", "/home/runner", "--ro-bind", str(runtime), "/runtime", "--bind", str(workspace), "/workspace", "--chdir", "/workspace"]
+    args += ["--proc", "/proc", "--dev", "/dev",
+             "--size", str(TEMP_BYTES), "--tmpfs", "/tmp",
+             "--size", str(TEMP_BYTES), "--tmpfs", "/home/runner",
+             "--size", str(TEMP_BYTES), "--tmpfs", "/dev/shm",
+             "--remount-ro", "/dev", "--ro-bind", str(runtime), "/runtime",
+             "--bind", str(workspace), "/workspace", "--chdir", "/workspace"]
     if network:
         # Resolver/certificate files only, never all of /etc or a user directory.
         args += ["--ro-bind", "/etc/resolv.conf", "/etc/resolv.conf", "--ro-bind", "/etc/ssl/certs", "/etc/ssl/certs"]
@@ -64,10 +71,11 @@ def arguments(config, workspace, network=False):
                 args += ["--ro-bind", name, name]
     for key, value in {"PATH": "/runtime/bin:/usr/bin", "HOME": "/home/runner", "APPDATA": "/home/runner/AppData", "USERPROFILE": "/home/runner", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8", "CI": "true", "PLAYWRIGHT_BROWSERS_PATH": "/browsers", "npm_config_userconfig": "/tmp/npm-user.conf", "npm_config_globalconfig": "/tmp/npm-global.conf"}.items():
         args += ["--setenv", key, value]
-    return args + ["--"]
+    # No unbounded writable root or /dev escape beside the bounded mounts.
+    return args + ["--remount-ro", "/", "--"]
 
 
-def invoke(args, timeout=30, *, dependency_install=False):
+def invoke(args, timeout=30, *, dependency_install=False, input_data=None):
     # bwrap's own PID 1/environment must not inherit coordinator credentials either.
     remaining = DEADLINE - time.monotonic()
     if remaining <= 0:
@@ -85,7 +93,8 @@ def invoke(args, timeout=30, *, dependency_install=False):
         resource.setrlimit(resource.RLIMIT_NPROC, (1024, 1024))
     with tempfile.TemporaryFile() as log:
         try:
-            result = subprocess.run(args, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, timeout=min(timeout, remaining), preexec_fn=limits, env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"})
+            stream = {"stdin": subprocess.DEVNULL} if input_data is None else {"input": input_data.encode("utf-8")}
+            result = subprocess.run(args, **stream, stdout=log, stderr=subprocess.STDOUT, timeout=min(timeout, remaining), preexec_fn=limits, env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"})
         except subprocess.TimeoutExpired:
             # subprocess.run has killed/waited for bwrap. Retain the diagnostic
             # stream, and leave CI enough time to upload it before job timeout.
@@ -166,8 +175,54 @@ def validate_lock(lock):
             fail()
 
 
+def quota_arguments(config, workspace, capacity=WORKSPACE_BYTES):
+    # This outer namespace runs ONLY this pinned trusted helper. It owns the
+    # dedicated mount for the entire install/check/export lifetime. Repository
+    # commands still enter arguments()'s separate filesystem/network boundary.
+    bwrap = arguments(config, workspace)[0]  # verifies tool hashes first
+    if capacity <= 0 or capacity > WORKSPACE_BYTES:
+        fail()
+    scratch = fixed_path(config["scratch"])
+    if workspace.parent != scratch:
+        fail()
+    return [bwrap, "--unshare-user", "--unshare-pid", "--unshare-ipc", "--unshare-uts",
+            "--die-with-parent", "--new-session", "--cap-drop", "ALL", "--clearenv",
+            "--ro-bind", "/", "/", "--bind", str(scratch), str(scratch),
+            "--proc", "/proc", "--dev", "/dev", "--remount-ro", "/dev",
+            "--size", str(TEMP_BYTES), "--tmpfs", "/tmp",
+            "--size", str(capacity), "--tmpfs", str(workspace),
+            "--setenv", "PATH", "/usr/bin:/bin", "--setenv", "LANG", "C.UTF-8", "--"]
+
+
+def assert_workspace_quota(workspace):
+    # CLI flags are never sufficient evidence that a real quota was mounted.
+    mounts = pathlib.Path("/proc/self/mountinfo").read_text().splitlines()
+    bounded_mount = any(line.split(" - ")[1].split()[0] == "tmpfs"
+                        and line.split()[4].replace("\\040", " ") == str(workspace) for line in mounts)
+    capacity = os.statvfs(workspace)
+    if not bounded_mount or capacity.f_blocks * capacity.f_frsize > WORKSPACE_BYTES:
+        fail()
+
+
 def validate(config, archive, edits):
     workspace = pathlib.Path(tempfile.mkdtemp(prefix="wave-validation-", dir=fixed_path(config["scratch"])))
+    request = json.dumps({"action": "validate", "config": config, "archive": archive, "edits": edits})
+    outcome = invoke(quota_arguments(config, workspace) + ["/usr/bin/python3", "-I", "-B", str(pathlib.Path(__file__).resolve()), "--quota-workspace", str(workspace)], timeout=25 * 60, input_data=request)
+    if outcome.returncode:
+        fail()
+    # The inner helper prints fixed CHECK lines, never arbitrary PR output.
+    lines = outcome.stdout.strip().splitlines()
+    receipt = json.loads(lines[-1]) if lines else {}
+    if receipt.get("result") != "PASS" or receipt.get("workspaceBytes") != WORKSPACE_BYTES:
+        fail()
+    for line in lines[:-1]:
+        if line.startswith("CHECK: "):
+            print(line, file=sys.stderr)
+    return receipt["checks"]
+
+
+def validate_in_workspace(config, archive, edits, workspace):
+    assert_workspace_quota(workspace)
     with tarfile.open(fixed_path(archive)) as source:
         for member in source.getmembers():
             name = pathlib.PurePosixPath(member.name)
@@ -239,6 +294,13 @@ def main():
     if request["action"] not in ["probe", "validate"]:
         fail()
     config = request["config"]
+    if len(sys.argv) == 3 and sys.argv[1] == "--quota-workspace":
+        workspace = fixed_path(sys.argv[2])
+        if request["action"] != "validate" or workspace.parent != fixed_path(config["scratch"]):
+            fail()
+        checks = validate_in_workspace(config, request["archive"], request["edits"], workspace)
+        print(json.dumps({"result": "PASS", "workspaceBytes": WORKSPACE_BYTES, "checks": checks}))
+        return
     probe(config)
     checks = ["outside-files", "home-appdata-userprofile", "external-network", "local-network", "host-mounts"]
     if request["action"] == "validate":
