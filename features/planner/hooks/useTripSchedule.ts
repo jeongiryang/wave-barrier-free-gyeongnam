@@ -26,14 +26,16 @@ function readStoredSchedule(): StoredSchedule {
 }
 
 export function useTripSchedule() {
-  const [travelStart, setTravelStart] = useState(localDate());
-  const [travelEnd, setTravelEnd] = useState(localDate(1));
+  // SSR and the first browser render must agree even across time zones or
+  // midnight. Read today's local date only in the restoration effect below.
+  const [travelStart, setTravelStart] = useState("");
+  const [travelEnd, setTravelEnd] = useState("");
   const [dayStartTime, setDayStartTime] = useState("10:00");
   const [scheduleAssignments, setScheduleAssignments] = useState<Record<string, string>>({});
   const [storageReady, setStorageReady] = useState(false);
   const [dateNotice, setDateNotice] = useState<{ kind: "limit" | "adjusted" | "invalid"; end?: string } | null>(null);
-  const lastTravelDate = offsetTripDate(travelStart, 6);
-  const tripDays = useMemo(() => dateRange(travelStart, travelEnd), [travelEnd, travelStart]);
+  const lastTravelDate = travelStart ? offsetTripDate(travelStart, 6) : "";
+  const tripDays = useMemo(() => travelStart && travelEnd ? dateRange(travelStart, travelEnd) : [], [travelEnd, travelStart]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {

@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import ts from "typescript";
 
-function fixture(stored = {}) {
+function fixture(stored = {}, hydrate = true) {
   const slots = [], effects = [], frames = [];
   let cursor = 0;
   const hooks = {
@@ -25,10 +25,22 @@ function fixture(stored = {}) {
   }, window);
   const actions = () => { cursor = 0; return mod.exports.useTripSchedule(); };
   const commit = () => { actions(); effects.splice(0).forEach(fn => fn()); frames.splice(0).forEach(fn => fn()); return actions(); };
-  commit(); commit();
+  if (hydrate) { commit(); commit(); }
   return { actions, commit };
 }
 const initial = { travelStart: "2026-09-07", travelEnd: "2026-09-08", scheduleAssignments: { a: "2026-09-07", b: "2026-09-08" } };
+
+test("the first render has no wall-clock dates before storage hydration", () => {
+  const f = fixture(initial, false);
+  assert.equal(f.actions().travelStart, "");
+  assert.equal(f.actions().travelEnd, "");
+  assert.equal(f.actions().lastTravelDate, "");
+  assert.deepEqual(f.actions().tripDays, []);
+  assert.equal(f.actions().storageReady, false);
+  f.commit();
+  assert.equal(f.actions().travelStart, initial.travelStart);
+  assert.deepEqual(f.actions().scheduleAssignments, initial.scheduleAssignments);
+});
 test("shrinking the period preserves the actual dates until the traveler chooses", () => {
   const f = fixture(initial); f.actions().changeTravelStart("2026-09-06"); f.actions().changeTravelEnd("2026-09-07");
   assert.deepEqual(f.actions().scheduleAssignments, initial.scheduleAssignments);

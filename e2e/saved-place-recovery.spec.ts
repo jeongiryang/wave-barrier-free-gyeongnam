@@ -33,6 +33,10 @@ for (const [mapX, mapY] of [["0", "0"], ["139.7", "35.6"], ["NaN", "35.2"], ["12
       await chooseTripConditions(page);
       await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
       if (locale === "en") {
+        // The header is hidden while scrolling through recommendations. Use
+        // the same keyboard route a user takes back to the preferences control.
+        await page.keyboard.press("Control+Home");
+        await expect(page.getByLabel("환경설정 열기", { exact: true })).toBeInViewport();
         await page.getByLabel("환경설정 열기", { exact: true }).click();
         await page.getByRole("combobox", { name: "언어", exact: true }).selectOption("en");
         await page.getByLabel("Open preferences", { exact: true }).click();
