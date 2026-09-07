@@ -161,7 +161,7 @@ html[data-theme="dark"] .floating-card .photo-credit {
 .visual-1 { background-image: var(--place-image), linear-gradient(145deg, #c9eeff 0 39%, #86cce9 39% 52%, #72b69f 52% 70%, #406b63 70%); }
 .visual-2 { background-image: var(--place-image), linear-gradient(160deg, #f6dba3 0 45%, #c47750 45% 60%, #743f38 60% 65%, #72a291 65%); }
 .visual-3 { background-image: var(--place-image), linear-gradient(150deg, #b5dfff 0 44%, #7fc3eb 44% 60%, #4287ac 60% 66%, #8bc8be 66%); }
-.city-chip { position: absolute; z-index: 2; left: 16px; top: 16px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.9); font-size: .75rem; font-weight: 850; }
+.city-chip { position: absolute; z-index: 2; left: 16px; top: 16px; padding: 6px 10px; border-radius: 999px; color: #173b46; background: #fff; font-size: .75rem; font-weight: 850; }
 .place-rank { position: absolute; z-index: 2; right: 17px; bottom: 12px; color: #fff; font-size: .72rem; font-weight: 900; letter-spacing: .08em; }
 .save-card { position: absolute; z-index: 3; right: 16px; top: 15px; width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.65); border-radius: 50%; color: #fff; background: rgba(6,51,72,.38); backdrop-filter: blur(8px); font-size: 1.3rem; }
 .save-card.saved { color: #ff6680; background: #fff; }
