@@ -246,7 +246,8 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(component, /action: "spot-photo"/);
   assert.match(component, /contentId/);
   assert.match(component, /smart-image-skeleton/);
-  assert.match(component, /공식 사진 준비 중/);
+  assert.match(component, /photo\.failed && <span className="smart-image-fallback"/);
+  assert.match(component, /en \? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"/);
   assert.match(planner, /className="place-visual"/);
   assert.match(planner, /region=\{place\.city \|\| region\}/);
   assert.match(planner, /contentId=\{place\.id\}/);
