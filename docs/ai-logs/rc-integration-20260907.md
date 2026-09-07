@@ -80,8 +80,12 @@ existing RC history, not a replacement PR or rewritten source history.
   the existing light/dark, 320/960/1366px browser cases. The global Korean fallback
   for other partially translated pages remains unchanged. Real screen-reader
   speech has not been verified.
-- CI805's quality job stopped before checks when the pinned actionlint download
-  returned HTTP504. Browser shards are still running at this log checkpoint.
+- [CI805](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34129957939)
+  on `443c576` finished: desktop356 PASS, mobile355 PASS/existing1skip,
+  fail0/flaky0. Quality stopped before checks when the pinned actionlint download
+  returned HTTP504, so aggregate validate correctly failed. The language and
+  guided-restore follow-ups require a fresh full run; these browser results are
+  not attributed to the later HEAD.
 - GitHub marked stacked #342–#345 and #348 Merged when their base histories gained
   their HEADs. This is inclusion in the RC, not main/Production deployment.
 
