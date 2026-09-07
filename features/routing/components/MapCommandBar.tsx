@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import type { MapProvider, MapToolPanel } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
-import { mapStatusText } from "../map-status-copy";
+import { mapStatusParts } from "../map-status-copy";
 
 interface MapCommandBarProps {
   provider: MapProvider;
@@ -52,19 +52,19 @@ export default function MapCommandBar({
   const { locale } = useSitePreferences();
   const english = locale === "en";
   const togglePanel = (panel: Exclude<MapToolPanel, "place" | null>, trigger: HTMLButtonElement) => onToolPanelChange(toolPanel === panel ? null : panel, trigger);
-  let statusMessage = actionNotice || mapStatusText(providerDetail, english);
+  let statusMessage = actionNotice || providerDetail;
   if (provider === "error") statusMessage = english ? "The map could not be loaded." : "지도를 불러오지 못했습니다.";
   else if (layerRecovery && provider === "loading") statusMessage = english ? "Applying map settings…" : "지도 설정을 다시 적용하고 있습니다.";
   else if (layerError) statusMessage = english ? "The map settings could not be confirmed. Reload the map to apply your choices again." : "지도 설정의 적용 여부를 확인할 수 없습니다. 지도를 다시 불러와 선택한 설정을 적용해 주세요.";
   else if (layerRecovery && provider === "kakao" && !actionNotice) statusMessage = english ? "Map settings applied." : "지도 설정을 적용했습니다.";
 
   return <>
-    <div className={`map-provider-badge ${provider}${layerRecovery ? " map-layer-status" : ""}`} role="status" aria-live="polite" aria-atomic="true">
+    <div lang={locale} className={`map-provider-badge ${provider}${layerRecovery ? " map-layer-status" : ""}`} role="status" aria-live="polite" aria-atomic="true">
       <span aria-hidden="true" />
-      <strong style={{ whiteSpace: "normal" }}>{statusMessage}</strong>
+      <strong style={{ whiteSpace: "normal" }}>{mapStatusParts(statusMessage, english).map((part, index) => <span key={index} lang={part.lang}>{part.text}</span>)}</strong>
       {(provider === "osm" || layerRecovery) && <button type="button" aria-disabled={provider === "loading"} onClick={() => { if (provider !== "loading") onRetry(); }}>{layerRecovery ? (locale === "en" ? "Reapply map settings" : "지도 설정 다시 적용") : (locale === "en" ? "Reconnect the main map" : "기본 지도 다시 연결")}</button>}
     </div>
-    <nav className="map-command-bar" aria-label={english ? "Map tools" : "지도 기능"}>
+    <nav lang={locale} className="map-command-bar" aria-label={english ? "Map tools" : "지도 기능"}>
       <div className="map-command-scroll">
         <div className="map-type-switch" aria-label={english ? "Map type" : "지도 유형"}>
           <button type="button" aria-pressed={baseMap === "roadmap"} className={baseMap === "roadmap" ? "active" : ""} onClick={() => onBaseMapChange("roadmap")} disabled={!interactive || provider !== "kakao"}>{english ? "Map" : "지도"}</button>

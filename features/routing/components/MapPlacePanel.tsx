@@ -1,6 +1,7 @@
 import { safeMapImageUrl } from "../map-utils";
 import type { MapPlace } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
+import { mapTextLanguage } from "../map-status-copy";
 
 interface MapPlacePanelProps {
   place: MapPlace;
@@ -12,9 +13,9 @@ interface MapPlacePanelProps {
 export default function MapPlacePanel({ place, onClose, onSetOrigin, onSetDestination }: MapPlacePanelProps) {
   const { locale } = useSitePreferences();
   const english = locale === "en";
-  const languageOf = (text: string) => /[가-힣]/.test(text) ? "ko" : locale;
+  const languageOf = (text: string) => mapTextLanguage(text, english);
   const image = safeMapImageUrl(place.image);
-  return <section id="map-panel-place" className="map-tool-panel map-side-drawer map-place-panel" aria-label={english ? `Details for ${place.name}` : `${place.name} 상세 정보`} tabIndex={-1}>
+  return <section id="map-panel-place" lang={locale} className="map-tool-panel map-side-drawer map-place-panel" aria-label={english ? "Place details" : "장소 상세 정보"} tabIndex={-1}>
     <header><div><strong>{english ? "Place information" : "관광지 정보"}</strong><span>{english ? "Select a marker to view details" : "마커를 누르면 바로 확인"}</span></div><button type="button" onClick={onClose} aria-label={english ? "Close place information" : "관광지 정보 닫기"}>×</button></header>
     {image && <div className="map-place-photo" style={{ backgroundImage: `url("${image.replace(/["\\]/g, "")}")` }} />}
     {english && <p>Names, addresses and descriptions are shown in their original language.</p>}

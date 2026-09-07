@@ -33,6 +33,21 @@ export function mapStatusText(message: string, english: boolean): string {
   return message;
 }
 
+export function mapTextLanguage(text: string, english: boolean): "ko" | "en" {
+  return /[가-힣]/.test(text) ? "ko" : /[A-Za-z]/.test(text) ? "en" : english ? "en" : "ko";
+}
+
+export function mapStatusParts(message: string, english: boolean) {
+  const place = message.match(/^([\s\S]+)을 (출발지|목적지)로 설정했습니다\.$/);
+  if (place) return [
+    ...(english ? [{ text: `${place[2] === "출발지" ? "Departure" : "Destination"} set to `, lang: "en" }] : []),
+    { text: place[1], lang: mapTextLanguage(place[1], english) },
+    { text: english ? "." : `을 ${place[2]}로 설정했습니다.`, lang: english ? "en" : "ko" },
+  ];
+  const text = mapStatusText(message, english);
+  return [{ text, lang: mapTextLanguage(text, english) }];
+}
+
 const crowdCopy: Record<string, { label: string; message: string }> = {
   low: { label: "Quiet", message: "A relatively quiet visit is expected." },
   moderate: { label: "Moderate", message: "Typical visitor numbers are expected. Check popular visiting times." },

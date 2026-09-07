@@ -18,11 +18,15 @@ for (const theme of ["light", "dark"]) {
     await nearby.getByRole("button", { name: "Close nearby places", exact: true }).click();
     const commands = page.getByRole("navigation", { name: "Map tools", exact: true });
     await expect(commands).toBeVisible();
-    await expect(page.locator(".route-map-shell")).toHaveAttribute("lang", "en");
+    await expect(commands).toHaveAttribute("lang", "en");
+    await expect(page.locator(".route-map-shell")).not.toHaveAttribute("lang", "en");
     await expect(page.locator(".map-provider-badge strong")).toHaveText("Showing Kakao Maps.");
     await expect(page.getByRole("region", { name: "Interactive map of the departure point and itinerary places", exact: true })).toBeVisible();
     await expect(page.locator(".map-crowd-legend")).toContainText("30-day crowd forecast");
     await expect(page.locator(".map-crowd-legend")).toContainText("Quiet");
+    await expect(page.getByRole("complementary", { name: "Crowd forecast", exact: true })).toHaveAttribute("lang", "en");
+    await expect(page.locator(".map-crowd-legend").getByText("경남도립미술관", { exact: true })).toHaveAttribute("lang", "ko");
+    await expect(page.locator("#route-map-name")).toHaveAttribute("lang", "en");
     await expect(page.locator(".map-crowd-legend em")).toHaveText("24.0%");
     const departure = commands.getByRole("button", { name: "⇄ Route points", exact: true });
     await departure.focus(); await page.keyboard.press("Enter");
@@ -47,6 +51,7 @@ for (const theme of ["light", "dark"]) {
     await changeLanguage(page, false);
     await expect(page.getByRole("navigation", { name: "지도 기능", exact: true })).toBeVisible();
     await expect(page.locator(".map-crowd-legend")).toContainText("여유");
+    await expect(page.getByRole("complementary", { name: "혼잡 예측", exact: true })).toHaveAttribute("lang", "ko");
     await changeLanguage(page, true);
     await expect(commands.getByRole("button", { name: "◎ My location", exact: true })).toBeEnabled();
     expect(await page.evaluate(() => (window as unknown as { mapLayerFixture: MapLayerFixture }).mapLayerFixture.maps.length)).toBe(count);
@@ -92,8 +97,9 @@ for (const theme of ["light", "dark"]) {
     await nearby.getByRole("button", { name: "Restaurants", exact: true }).click();
     await deliverNearby(page, 0, "OK", [nearbyPlace()]);
     await nearby.getByRole("button", { name: "View on map", exact: true }).click();
-    const details = page.getByRole("region", { name: "Details for 검증 장소 1", exact: true });
+    const details = page.getByRole("region", { name: "Place details", exact: true });
     await expect(details).toBeVisible();
+    await expect(details).toHaveAttribute("lang", "en");
     await expect(details).toContainText("Names, addresses and descriptions are shown in their original language.");
     await expect(details).toContainText("This marker shows a location, not verified accessibility.");
     await expect(details.getByRole("heading", { name: "검증 장소 1", exact: true })).toHaveAttribute("lang", "ko");

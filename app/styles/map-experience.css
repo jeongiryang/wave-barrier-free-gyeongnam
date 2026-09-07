@@ -20,8 +20,8 @@
 @keyframes region-preview-in { from { opacity: 0; transform: translate(-50%,calc(-100% - 8px)) scale(.85); } }
 @keyframes region-photo-loading { to { background-position-x: -220%; } }
 
-.map-provider-badge.kakao span { background: #1cb3aa; box-shadow: 0 0 0 4px rgba(28,179,170,.14); }
-.map-provider-badge.osm span { background: #d38a2c; box-shadow: 0 0 0 4px rgba(211,138,44,.14); }
+.map-provider-badge.kakao > span { background: #1cb3aa; box-shadow: 0 0 0 4px rgba(28,179,170,.14); }
+.map-provider-badge.osm > span { background: #d38a2c; box-shadow: 0 0 0 4px rgba(211,138,44,.14); }
 .map-provider-badge strong { max-width: min(32vw,280px); overflow: hidden; font: inherit; text-overflow: ellipsis; white-space: nowrap; }
 .map-provider-badge button { min-height: 24px; margin: -3px -5px -3px 3px; padding: 3px 7px; border: 0; border-left: 1px solid rgba(5,43,60,.12); color: #0a6baf; background: transparent; font: inherit; cursor: pointer; }
 .map-provider-badge button:hover { color: #fff; border-radius: 0 999px 999px 0; background: #0a6baf; }

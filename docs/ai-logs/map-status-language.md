@@ -1,5 +1,13 @@
 # 지도 조작·상태 언어와 키보드 취소 AI 작업 로그
 
+## 최신 독립 QA 보완 — 2026-09-07 05:23 UTC
+
+- #34443050e6의 [CI34085085072](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34085085072)는617 PASS/기존skip1/flaky0. 로컬 전체는616 PASS/기존skip1/1 FAIL(14.5분)이었고, 실패는 지도 설정 테스트의 최초 page.goto에서 `ERR_NO_BUFFER_SPACE`였다. 이후 언어 수정의 전체 검사는 동시 로컬 전체 실행을 줄여 다시 수행하며 기존 실패를 PASS로 세지 않는다.
+- 독립 리뷰5128194567의 P1을 확인했다. 지도 전체 `lang=en` 상속을 제거하고, 번역된 조작·상태/패널·로딩과 원문을 구분했다. 원문 제공처 안내와 출발/목적지 이름은 `lang`을 가진 별도 span이며, 장소 상세·혼잡도 영역의 이름은 혼합 언어가 없는 안내명으로 바꾸고 원문 장소명은 별도 언어로 읽힌다. 지도 canvas 이름은 언어가 지정된 label을 참조하고 SDK 자식 전체의 언어를 바꾸지 않는다.
+- 실제 MapCommandBar 컴포넌트를 렌더링한 provider/선택 상태 언어4 E2E는 보완 전4 FAIL. 기존 앱 여정 검사에 상세/혼잡/지도 이름의 언어 경계를 추가한 최종 관련 **58 PASS(2.3분)**. 제공처 임의 상태는 테스트 전용 컴포넌트 fixture이고 Production API가 이를 반환했다고 주장하지 않는다. 원문과 상태 textContent도 유지한다.
+- 새 span에 과거 장식용 span CSS가 적용되는 대비4.32 문제를 axe가 잡아 해당 CSS를 직접 자식 상태 점에만 적용했다. 390px 최종 캡처에서 수정 상태를 직접 확인했다. 테스트 harness의 `module` 변수는 lint 규칙에 맞춰 이름을 바꿨다. 기준·skip·timeout을 완화하지 않았다.
+- lint/typecheck/unit495/Vercel build/performance PASS. CSS69.88/70, planner269.47/270, landing115.12/155, 최대chunk95.92/110KiB. 이 증분 전체622개·새 CI·합성 Preview·독립 재판정은 아직 남았다. 아래 기록은 이전 실행 시점이다.
+
 - 브랜치: `fix/map-status-language`, base #334 `c1bae6f80f58fb2ec58d7e00160ad7869f2bdeef`
 - 작성자: jeongiryang / Codex Engineering executor
 - 확인: 2026-09-07 04:58 UTC. Draft 후보, 아직 main·Production 미반영.

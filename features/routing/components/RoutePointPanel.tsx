@@ -12,7 +12,7 @@ interface RoutePointPanelProps {
 export default function RoutePointPanel({ origin, pickMode, onClose, onCurrentLocation, onSelectMode }: RoutePointPanelProps) {
   const { locale } = useSitePreferences();
   const english = locale === "en";
-  return <section id="map-panel-route" className="map-tool-panel map-side-drawer map-route-panel" aria-label={english ? "Departure and destination settings" : "출발지와 목적지 설정"} tabIndex={-1}>
+  return <section id="map-panel-route" lang={locale} className="map-tool-panel map-side-drawer map-route-panel" aria-label={english ? "Departure and destination settings" : "출발지와 목적지 설정"} tabIndex={-1}>
     <header><div><strong>{english ? "Departure / destination" : "출발지 · 목적지"}</strong><span>{english ? "Use your location or choose a point on the map" : "현재 위치 또는 지도 클릭으로 바로 설정"}</span></div><button type="button" onClick={onClose} aria-label={english ? "Close departure and destination settings" : "출발지 목적지 설정 닫기"}>×</button></header>
     <div className="map-route-status"><span><b>S</b> {english ? "Departure" : "출발지"}</span><strong>{origin.lat.toFixed(5)}, {origin.lng.toFixed(5)}</strong></div>
     <div className="map-route-actions">
