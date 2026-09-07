@@ -24,7 +24,7 @@ export async function handleRouteApi(request: Request, env: Env) {
   const [{ providers, context }, odsayResult, kakaoResult] = await Promise.all([
     fetchTransportContext(env, endLat, endLng),
     fetchOdsayRoutes(env, startLat, startLng, endLat, endLng, straightDistance),
-    fetchKakaoRoute(env, startLat, startLng, endLat, endLng, straightDistance),
+    fetchKakaoRoute(env, startLat, startLng, endLat, endLng),
   ]);
 
   const alternatives: RouteApiAlternative[] = [...odsayResult.routes];

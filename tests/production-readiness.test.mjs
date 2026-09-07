@@ -541,7 +541,7 @@ test("transport and itinerary labels distinguish confirmed, estimated and unavai
   assert.doesNotMatch(planner, /기본 예상/);
   assert.match(service, /state === "connected"/);
   assert.match(service, /인증키 연결과 실제 시간·운행정보 확인은 다른 상태입니다/);
-  assert.match(kakao, /rawToll === undefined \|\| rawToll === null \|\| rawToll === "" \? null/);
+  assert.match(kakao, /typeof rawToll === "number" && Number\.isFinite\(rawToll\) && rawToll >= 0 \? rawToll : null/);
   assert.match(odsay, /payment > 0 \? payment : null/);
 });
 
