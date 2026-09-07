@@ -46,7 +46,7 @@ def arguments(config, workspace, network=False):
         with binary.open("rb") as source:
             if hashlib.file_digest(source, "sha256").hexdigest() != expected:
                 fail()
-    args = [str(bwrap), "--unshare-user", "--unshare-pid", "--unshare-ipc", "--unshare-uts", "--disable-userns", "--die-with-parent", "--new-session", "--cap-drop", "ALL", "--clearenv"]
+    args = [str(bwrap), "--unshare-user", "--unshare-pid", "--unshare-ipc", "--unshare-uts", "--disable-userns", "--assert-userns-disabled", "--die-with-parent", "--new-session", "--cap-drop", "ALL", "--clearenv"]
     if not network:
         args += ["--unshare-net"]
     for name in ["bin", "lib", "lib64"]:
@@ -180,12 +180,18 @@ def quota_arguments(config, workspace, capacity=WORKSPACE_BYTES):
     # dedicated mount for the entire install/check/export lifetime. Repository
     # commands still enter arguments()'s separate filesystem/network boundary.
     bwrap = arguments(config, workspace)[0]  # verifies tool hashes first
+    owner = fixed_path(config.get("quotaBwrap", bwrap))
+    if not owner.is_file() or owner.stat().st_mode & 0o6000:
+        fail()
+    with owner.open("rb") as source:
+        if hashlib.file_digest(source, "sha256").hexdigest() != config["bwrapSha256"]:
+            fail()
     if capacity <= 0 or capacity > WORKSPACE_BYTES:
         fail()
     scratch = fixed_path(config["scratch"])
     if workspace.parent != scratch:
         fail()
-    return [bwrap, "--unshare-user", "--unshare-pid", "--unshare-ipc", "--unshare-uts",
+    return [str(owner), "--unshare-user", "--unshare-pid", "--unshare-ipc", "--unshare-uts",
             "--die-with-parent", "--new-session", "--cap-drop", "ALL", "--clearenv",
             "--ro-bind", "/", "/", "--bind", str(scratch), str(scratch),
             "--proc", "/proc", "--dev", "/dev", "--remount-ro", "/dev",

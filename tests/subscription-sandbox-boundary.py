@@ -14,6 +14,12 @@ spec = importlib.util.spec_from_file_location("boundary", root / "scripts/subscr
 boundary = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(boundary)
 config = json.loads(pathlib.Path(sys.argv[1]).read_text())
+try:
+    boundary.quota_arguments({**config, "quotaBwrap": "/usr/bin/true"}, pathlib.Path(config["scratch"]) / "public-owner-hash")
+except RuntimeError:
+    pass
+else:
+    raise AssertionError("Unpinned quota owner executable was accepted")
 # Chromium uses file-backed shared buffers for full-page captures. The existing
 # mobile profile keeps its real device scale even at the desktop-width cases.
 # Exercise that OS resource boundary without changing browser/test dimensions.
@@ -96,6 +102,9 @@ with socket.socket() as receiver:
 (async()=>{let safe=true;try{fs.readFileSync(FILE);safe=false;}catch(e){if(!['ENOENT','EACCES','EPERM'].includes(e.code))safe=false;}
 for(const [host,port] of [['127.0.0.1',PORT],['1.1.1.1',443]]){const denied=await new Promise(resolve=>{const s=net.connect({host,port});s.once('connect',()=>{s.destroy();resolve(false)});s.once('error',()=>resolve(true));s.setTimeout(2000,()=>{s.destroy();resolve(false)});});if(!denied)safe=false;}
 if(fs.existsSync('/mnt/c')||fs.existsSync('/mnt/d')||process.env.WSL_INTEROP)safe=false;
+const caps=fs.readFileSync('/proc/self/status','utf8');
+for(const cap of ['CapEff','CapPrm','CapBnd'])if(!/^0+$/.test(caps.split(String.fromCharCode(10)).find(line=>line.startsWith(cap+':'))?.split(':')[1].trim()||'missing'))safe=false;
+if(!fs.existsSync('/usr/bin/unshare')||require('node:child_process').spawnSync('/usr/bin/unshare',['--user','--map-root-user','/usr/bin/true']).status===0)safe=false;
 for(const path of ['/tmp','/home/runner','/dev/shm']){const stat=fs.statfsSync(path);if(stat.type!==0x01021994||stat.blocks*stat.bsize>512*1024*1024)safe=false;}
 for(const path of ['/public-root-write','/dev/public-device-write']){try{fs.writeFileSync(path,'PUBLIC TEST DATA');safe=false;}catch(e){if(!['EROFS','EACCES','EPERM'].includes(e.code))safe=false;}}
 process.exitCode=safe?0:1;})();""".replace("FILE", json.dumps(str(sentinel))).replace("PORT", str(port))

@@ -18,7 +18,7 @@ export function sandboxConfiguration(env = process.env) {
     if (!file || !path.isAbsolute(file) || lstatSync(file).isSymbolicLink()) throw new Error("BLOCKED_SANDBOX");
     config = JSON.parse(readFileSync(realpathSync(file), "utf8"));
   } catch { throw new Error("BLOCKED_SANDBOX"); }
-  if (config?.version !== 1 || ![config.bwrap, config.runtime, config.browsers, config.scratch].every(value => typeof value === "string" && value.startsWith("/") && !/[\0\r\n]/.test(value)) || ![config.bwrapSha256, config.nodeSha256].every(value => /^[a-f0-9]{64}$/.test(value || "")) || Object.keys(config).some(key => !["version", "bwrap", "runtime", "browsers", "scratch", "bwrapSha256", "nodeSha256"].includes(key))) throw new Error("BLOCKED_SANDBOX");
+  if (config?.version !== 1 || ![config.bwrap, config.runtime, config.browsers, config.scratch, ...(config.quotaBwrap === undefined ? [] : [config.quotaBwrap])].every(value => typeof value === "string" && value.startsWith("/") && !/[\0\r\n]/.test(value)) || ![config.bwrapSha256, config.nodeSha256].every(value => /^[a-f0-9]{64}$/.test(value || "")) || Object.keys(config).some(key => !["version", "bwrap", "runtime", "browsers", "scratch", "bwrapSha256", "nodeSha256", "quotaBwrap"].includes(key))) throw new Error("BLOCKED_SANDBOX");
   return config;
 }
 
