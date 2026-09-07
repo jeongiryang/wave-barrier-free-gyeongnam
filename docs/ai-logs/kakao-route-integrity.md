@@ -41,3 +41,9 @@ ODsay 점은 정류장 연결이며 도로선/휠체어 통행 가능 증거가 
 유료 모델API3workflow 비활성, Secret/구독 인증 복사 금지, 필수사람승인3·Preview·008 운영 확인 경계를 유지한다.
 현재 source4211·로드뷰4209·통합4187 서버를 보존한다. 로그는 임시 `wave-launch-20260906/kakao-route-*`에 남긴다.
 전체 source/CI가 끝나면 새 후보에 합성하고 전체 회귀·읽기 Production 재검증을 이어간다. Issue는 운영 근거 전 닫지 않는다.
+
+## RC-20 추가 리뷰 대응 — 2026-09-07
+
+통합 #334 댓글3945997945의 P1을 재현했다. 세계 범위만 검사하면 (0,0), 일본 좌표, 요청과 무관한 국내 경로, 반대 방향 도형도 승인됐다. 기존49 PASS에 신규4 FAIL을 확인한 후 공유 `lib/map-coordinates.js`로 공개 route API와 같은 좌표 범위를 검사하고, 반환 도형의 처음/끝이 요청의 출발/도착에서 각각1km 이내인지 검사한다. 1km는 도로에 맞춘 위치 보정을 허용하는 제품의 보수적 한도이며 공식 보장 거리나 행정경계가 아니다. 원래 도형을 보존하고 합성 끝점을 넣지 않는다.
+
+계약53 PASS, 전체unit333 PASS, lint/typecheck/Vercel build/performance PASS. 기존b7ddf92의 로컬·CI237 PASS/기존skip1과 새 수정본의 전체 실행은 구분한다. 새 전체는 `kakao-rc20-full.log`에서 진행 중이며 새 CI/통합/Production은 아직 완료가 아니다. 로컬4173은 이 PR 검증용이고 자동 종료되는 Playwright webServer다. 사람 승인과 #334 Draft를 유지한다.

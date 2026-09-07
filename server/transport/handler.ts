@@ -23,7 +23,7 @@ export async function handleRouteApi(request: Request, env: Env) {
   const straightDistance = haversine(startLat, startLng, endLat, endLng);
   const [{ providers, context }, odsayResult, kakaoResult] = await Promise.all([
     fetchTransportContext(env, endLat, endLng),
-    fetchOdsayRoutes(env, startLat, startLng, endLat, endLng, straightDistance),
+    fetchOdsayRoutes(env, startLat, startLng, endLat, endLng),
     fetchKakaoRoute(env, startLat, startLng, endLat, endLng),
   ]);
 
