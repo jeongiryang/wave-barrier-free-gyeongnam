@@ -74,6 +74,12 @@ test("다른 지역으로 이동해도 이전 지역 장소가 날짜별 일정�
   });
   await mockPlannerApi(page);
   await page.goto("/planner");
+  const picker = page.getByRole("group", { name: "여행 지역 선택", exact: true });
+  await expect(picker.getByRole("button", { name: "진주", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await picker.getByRole("button", { name: "창원", exact: true }).click();
+  const decision = page.getByRole("dialog", { name: "창원 여행을 어떻게 시작할까요?", exact: true });
+  await expect(decision).toBeVisible();
+  await decision.getByRole("button", { name: "기존 일정에 지역 추가", exact: true }).click();
   await chooseTripConditions(page);
 
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });

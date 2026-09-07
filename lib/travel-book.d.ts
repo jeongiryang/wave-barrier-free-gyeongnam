@@ -32,6 +32,7 @@ export type TravelBook = {
 };
 
 export type TravelBookInput = Partial<Omit<TravelBook, "places">> & { places: Array<Partial<TravelBookPlace> & { id: string; name: string }> };
+export function travelBookRegions(places: Array<{ city?: string }>): string[];
 
 export function sanitizeTravelBook(value: unknown, fallbackNow?: string): TravelBook | null;
 export function sanitizeTravelBooks(value: unknown): TravelBook[];

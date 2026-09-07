@@ -8,10 +8,10 @@ const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.Modu
 
 function journey() {
   let available = true, success, failure, requests = 0;
-  const origins = [], notices = [], modes = [];
+  const origins = [], notices = [], modes = [], cleanups = [];
   const compiledModule = { exports: {} };
   const require = (name) => {
-    if (name === "react") return { useCallback: (callback) => callback, useRef: (value) => ({ current: value }), useState: (value) => [value, () => undefined] };
+    if (name === "react") return { useCallback: (callback) => callback, useRef: (value) => ({ current: value }), useState: (value) => [value, () => undefined], useEffect: (effect) => cleanups.push(effect()) };
     if (name === "./export-route-image") return { exportRouteImage: () => false };
     if (name === "../../lib/location-consent.js") return { confirmMapLocationUse: () => true };
     if (name === "../../components/SitePreferences") return { useSitePreferences: () => ({ locale: "ko" }) };
@@ -24,7 +24,7 @@ function journey() {
     onOriginChange: (...args) => origins.push(args), setProviderDetail: (message) => notices.push(message), setPickMode: (mode) => modes.push(mode),
     isMapAvailable: () => available,
   });
-  return { actions, origins, notices, modes, failMap: () => { available = false; }, requests: () => requests,
+  return { actions, origins, notices, modes, changeTrip: () => cleanups.forEach(cleanup => cleanup?.()), failMap: () => { available = false; }, requests: () => requests,
     success: () => success({ coords: { latitude: 35.3, longitude: 128.7 } }), failure: () => failure() };
 }
 
@@ -55,4 +55,14 @@ test("an available map still accepts an explicitly requested location response",
   assert.equal(fixture.requests(), 1);
   assert.deepEqual(fixture.origins, [[{ lat: 35.3, lng: 128.7 }, "현재 위치"]]);
   assert.deepEqual(fixture.modes, [null]);
+});
+
+test("a changed or unmounted itinerary rejects both late map location outcomes", () => {
+  const fixture = journey();
+  fixture.actions.moveToCurrentLocation();
+  fixture.changeTrip();
+  fixture.success(); fixture.failure();
+  assert.deepEqual(fixture.origins, []);
+  assert.deepEqual(fixture.notices, []);
+  assert.deepEqual(fixture.modes, []);
 });

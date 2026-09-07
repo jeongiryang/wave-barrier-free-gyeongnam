@@ -6,6 +6,35 @@ async function current(page: Page) {
   return page.evaluate(() => Object.fromEntries(["wave-current-trip-v1", "wave-saved-places", "wave-saved-place-catalog-v1", "wave-trip-schedule-v1", "wave-trip-order-v1", "wave-planner-region-v1"].map(key => [key, localStorage.getItem(key)])));
 }
 
+for (const outcome of ["success", "failure"] as const) test(`new trip ignores a delayed map location ${outcome}`, async ({ page }) => {
+  await mockPlannerApi(page);
+  await page.addInitScript(() => {
+    const state = { calls: 0, release: (_outcome: "success" | "failure") => undefined as void };
+    Object.assign(window, { locationResetFixture: state });
+    Object.defineProperty(navigator, "geolocation", { configurable: true, value: { getCurrentPosition: (success: PositionCallback, failure: PositionErrorCallback) => {
+      state.calls++;
+      state.release = outcome => outcome === "success" ? success({ coords: { latitude: 35.3, longitude: 128.7 } } as GeolocationPosition) : failure({ code: 1, message: "denied" } as GeolocationPositionError);
+    } } });
+  });
+  await page.goto("/planner");
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();
+  page.once("dialog", dialog => dialog.accept());
+  await page.locator("#map-panel-route").getByRole("button", { name: /현재 위치에서 출발/ }).click();
+  expect(await page.evaluate(() => (window as unknown as { locationResetFixture: { calls: number } }).locationResetFixture.calls)).toBe(1);
+  await page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "하동", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "새 여행으로 시작", exact: true }).click();
+  await expect(page.locator(".day-planner-grid li")).toHaveCount(0);
+  const notice = page.locator(".route-notice");
+  await expect(notice).toContainText("여행지를 찾으면 출발지부터의 이동 경로를 비교합니다.");
+  await page.evaluate(outcome => (window as unknown as { locationResetFixture: { release: (outcome: "success" | "failure") => void } }).locationResetFixture.release(outcome), outcome);
+  await expect(notice).toContainText("여행지를 찾으면 출발지부터의 이동 경로를 비교합니다.");
+  await expect(page.locator(".map-toolbar").getByRole("button", { name: "출발 · 눌러서 변경 창원중앙역", exact: true })).toBeVisible();
+  await expect(page.locator(".map-provider-badge")).not.toContainText("현재 위치");
+  await expect(page.locator(".day-planner-grid li")).toHaveCount(0);
+});
+
 test("explicit multi-region addition preserves places and dates; rapid requests and history cannot bypass the decision", async ({ page }) => {
   await mockPlannerApi(page);
   await page.route("**/api/**", async route => {
@@ -44,6 +73,9 @@ test("explicit multi-region addition preserves places and dates; rapid requests 
   await page.reload();
   await expect(page.locator(".day-planner-grid li")).toHaveCount(2);
   await expect(page.locator(".multi-region-notice")).toContainText("창원 · 하동");
+  await page.locator(".day-planner").getByRole("button", { name: "내 일정에 저장", exact: true }).click();
+  await page.goto("/travel-book");
+  await expect(page.getByRole("heading", { name: "창원 · 하동 2곳 여행", exact: true })).toBeVisible();
 });
 for (const en of [false, true]) for (const theme of ["light", "dark"]) {
   test(`region decision preserves or resets the whole trip ${en ? "EN" : "KO"} ${theme}`, async ({ page }, info) => {
@@ -61,6 +93,8 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await page.locator(".day-planner").getByRole("button", { name: "내 일정에 저장", exact: true }).click();
     if (en) {
       const preferences = page.locator(".preference-controls:visible");
+      await page.keyboard.press("Control+Home");
+      await expect(preferences.getByLabel("환경설정 열기", { exact: true })).toBeInViewport();
       await preferences.getByLabel("환경설정 열기", { exact: true }).click();
       await preferences.getByLabel("언어", { exact: true }).selectOption("en");
       await preferences.getByLabel("Open preferences", { exact: true }).click();
@@ -71,6 +105,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await trigger.focus(); await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog", { name: en ? "How would you like to visit Hadong?" : "하동 여행을 어떻게 시작할까요?" });
     await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute("lang", en ? "en" : "ko");
     await expect(dialog.getByRole("button", { name: en ? "Start a new trip" : "새 여행으로 시작", exact: true })).toBeVisible();
     expect(await current(page)).toEqual(before);
     await expect(dialog.getByRole("heading")).toBeFocused();
@@ -109,7 +144,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(page.locator(".day-planner-grid li")).toHaveCount(0);
     await expect(picker.getByRole("button", { name: en ? "Jinju" : "진주", exact: true })).toHaveAttribute("aria-pressed", "true");
     await page.goto("/travel-book");
-    await page.getByRole("button", { name: "이 일정 다시 열기 →", exact: true }).click();
+    await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
     await expect(page.locator(".day-planner-grid li")).toHaveCount(2);
     await expect(page.locator(".day-planner").getByLabel(en ? "Trip start date" : "여행 시작일", { exact: true })).toHaveValue("2026-10-07");
     await expect(page.locator(".day-planner").getByLabel(en ? "용지호수공원 trip date" : "용지호수공원 여행 날짜", { exact: true })).toHaveValue("2026-10-08");

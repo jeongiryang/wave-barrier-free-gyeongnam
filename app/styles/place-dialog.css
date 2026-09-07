@@ -5,7 +5,7 @@
 .region-change-dialog h2 { font-size: 1.4rem; overflow-wrap: anywhere; }
 .region-change-dialog p { line-height: 1.6; }
 .region-change-dialog > div { display: grid; gap: 12px; }
-.region-change-dialog button { min-height: 44px; white-space: normal; }
+.region-change-dialog button { min-height: 44px; white-space: normal; background: var(--paper); color: var(--ink); }
 html[data-theme="dark"] .region-change-dialog { background: #082938; color: #eaf5f9; }
 .closing-section { padding: 120px 24px; text-align: center; background: linear-gradient(135deg, #e6f7ff, #edfffe); }
 .closing-section > p { margin: 0 0 15px; color: var(--blue); font-size: .8rem; font-weight: 900; letter-spacing: .1em; }

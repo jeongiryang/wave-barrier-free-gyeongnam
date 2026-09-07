@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { exportRouteImage } from "./export-route-image";
 import { confirmMapLocationUse } from "../../lib/location-consent.js";
 import type { KakaoMap } from "./kakao-sdk";
@@ -38,6 +38,11 @@ export function useMapJourneyActions({
 }: JourneyActionOptions) {
   const { locale } = useSitePreferences();
   const busy = useRef(false);
+  const locationGeneration = useRef(0);
+  const locationContext = `${origin.lat},${origin.lng}|${places.map(place => place.id).join("|")}`;
+  useEffect(() => {
+    return () => { locationGeneration.current++; };
+  }, [locationContext]);
   const [actionStatus, setActionStatus] = useState<keyof typeof actionCopy | null>(null);
   const actionNotice = actionStatus ? actionCopy[actionStatus][locale === "en" ? 1 : 0] : "";
   const actionPending = actionStatus === "image-pending" || actionStatus === "share-pending";
@@ -50,7 +55,9 @@ export function useMapJourneyActions({
       return;
     }
     if (!confirmMapLocationUse()) return;
+    const generation = ++locationGeneration.current;
     navigator.geolocation.getCurrentPosition(({ coords }) => {
+      if (generation !== locationGeneration.current) return;
       if (isMapAvailable && !isMapAvailable()) return;
       if (map && sdk) {
         const position = new sdk.LatLng(coords.latitude, coords.longitude);
@@ -61,7 +68,7 @@ export function useMapJourneyActions({
       onOriginChange?.({ lat: coords.latitude, lng: coords.longitude }, "현재 위치");
       setPickMode(null);
       setProviderDetail("현재 위치로 지도를 이동했습니다.");
-    }, () => { if (!isMapAvailable || isMapAvailable()) setProviderDetail("위치 권한을 허용하면 현재 위치로 이동할 수 있습니다."); }, {
+    }, () => { if (generation === locationGeneration.current && (!isMapAvailable || isMapAvailable())) setProviderDetail("위치 권한을 허용하면 현재 위치로 이동할 수 있습니다."); }, {
       enableHighAccuracy: false,
       timeout: 7000,
     });

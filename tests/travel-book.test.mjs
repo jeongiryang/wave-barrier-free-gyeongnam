@@ -11,6 +11,7 @@ import {
   sanitizeTravelBook,
   travelBookRestorePayload,
   upsertTravelBook,
+  travelBookRegions,
 } from "../lib/travel-book.js";
 
 async function source(path) {
@@ -34,6 +35,18 @@ function input(overrides = {}) {
     ...overrides,
   };
 }
+
+test("archive region labels follow itinerary places rather than the next search region", () => {
+  const book = createTravelBookSnapshot(input({ title: undefined, region: "하동" }));
+  assert.equal(book.title, "창원 2곳 여행");
+  assert.deepEqual(travelBookRegions(book.places), ["창원"]);
+  assert.equal(book.region, "하동", "restoring preserves the separately selected search region");
+  const multi = createTravelBookSnapshot(input({ title: undefined, region: "진주", places: [input().places[0], { ...input().places[1], city: "하동" }] }));
+  assert.equal(multi.title, "창원 · 하동 2곳 여행");
+  assert.deepEqual(travelBookRegions(multi.places), ["창원", "하동"]);
+  assert.equal(sanitizeTravelBook(input({ region: "하동", title: "하동 2곳 여행" })).title, "창원 2곳 여행");
+  assert.equal(sanitizeTravelBook(input({ region: "하동", title: "가족 여행" })).title, "가족 여행", "custom titles are preserved");
+});
 
 test("여행집 스냅샷은 복원에 필요한 일정만 남기고 위치·원본 사진 정보는 버린다", () => {
   const book = createTravelBookSnapshot(input(), "2026-09-01T00:00:00.000Z");

@@ -32,7 +32,6 @@ export default function TravelBookArchiveAction({ places, region, theme, profile
     <div className="travel-book-archive-controls">
       <button type="button" disabled={!hydrated || !places.length || outsideDates} aria-describedby="archive-date-notice" onClick={() => {
         const snapshot = archive({
-          title: `${region} ${places.length}곳 여행`,
           region,
           theme,
           profiles,

@@ -11,7 +11,7 @@ export default function RegionChangeDialog({ region, en, error, onCancel, onAdd,
   onCancel: () => void; onAdd: () => void; onNew: () => void;
 }) {
   const ref = usePlaceDialogFocus(true, onCancel);
-  return <dialog ref={ref} className="region-change-dialog" aria-labelledby="region-change-title" aria-describedby="region-change-description">
+  return <dialog ref={ref} lang={en ? "en" : "ko"} className="region-change-dialog" aria-labelledby="region-change-title" aria-describedby="region-change-description">
     <h2 id="region-change-title" tabIndex={-1}>{en ? `How would you like to visit ${regionNames[region] || region}?` : `${region} 여행을 어떻게 시작할까요?`}</h2>
     <p id="region-change-description">{en ? "Your itinerary already has places. Choose how to continue." : "이미 일정에 담긴 장소가 있어요. 계속할 방법을 선택해 주세요."}</p>
     <button type="button" onClick={onCancel}>{en ? "Cancel region change" : "지역 변경 취소"}</button>

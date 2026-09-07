@@ -6,12 +6,14 @@ import { departurePresets } from "../constants";
 import { confirmMapLocationUse } from "../../../lib/location-consent.js";
 import type { RouteNotice } from "../route-copy";
 
+const initialNotice: RouteNotice = { ko: "여행지를 찾으면 출발지부터의 이동 경로를 비교합니다.", en: "Find a place to compare routes from your departure point." };
+
 export function useRouteOrigin(onPrivateOrigin?: () => void) {
   const locationGeneration = useRef(0);
   const [origin, setOrigin] = useState<RoutePoint>(departurePresets[0].point);
   const [originLabel, setOriginLabel] = useState(departurePresets[0].name);
   const [privateOrigin, setPrivateOrigin] = useState(false);
-  const [routeNotice, setRouteNotice] = useState<RouteNotice>({ ko: "여행지를 찾으면 출발지부터의 이동 경로를 비교합니다.", en: "Find a place to compare routes from your departure point." });
+  const [routeNotice, setRouteNotice] = useState<RouteNotice>(initialNotice);
 
   const updateOrigin = useCallback((point: RoutePoint, label: string, isPrivate = false) => {
     setOrigin(point);
@@ -34,7 +36,10 @@ export function useRouteOrigin(onPrivateOrigin?: () => void) {
     navigator.geolocation.getCurrentPosition((position) => {
       if (generation !== locationGeneration.current) return;
       updateOrigin({ lat: position.coords.latitude, lng: position.coords.longitude }, "현재 위치", true);
-    }, () => setRouteNotice({ ko: "현재 위치를 확인하지 못했습니다. 출발 거점을 선택해 주세요.", en: "Your location could not be obtained. Choose a public departure point." }), {
+    }, () => {
+      if (generation !== locationGeneration.current) return;
+      setRouteNotice({ ko: "현재 위치를 확인하지 못했습니다. 출발 거점을 선택해 주세요.", en: "Your location could not be obtained. Choose a public departure point." });
+    }, {
       enableHighAccuracy: false,
       timeout: 8000,
     });
@@ -43,6 +48,7 @@ export function useRouteOrigin(onPrivateOrigin?: () => void) {
   const resetOrigin = useCallback(() => {
     locationGeneration.current++; setOrigin(departurePresets[0].point);
     setOriginLabel(departurePresets[0].name); setPrivateOrigin(false);
+    setRouteNotice(initialNotice);
   }, []);
 
   return {
