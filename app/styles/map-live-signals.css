@@ -17,6 +17,14 @@
 .map-nearby-panel .map-poi-list article > button,.map-nearby-panel .map-poi-list article > a { color: var(--blue); }
 .map-nearby-panel .map-poi-list article > a { min-height: 44px; display: flex; align-items: center; }
 
+.map-layer-panel header span,.map-layer-panel h4 { color: var(--muted); }
+.map-layer-panel .map-tool-grid > button,.map-layer-panel .map-utility-actions > button { word-break: normal; overflow-wrap: anywhere; }
+.map-provider-badge.map-layer-status { top: 76px; left: 12px; max-width: min(380px,calc(100% - 24px)); flex-wrap: wrap; border-radius: 12px; color: var(--ink); background: var(--paper); }
+.map-layer-status strong { flex: 1; min-width: 0; max-width: none; }
+.map-layer-status button { min-height: 44px; min-width: 44px; margin: 0; color: var(--blue); border-radius: 8px; }
+.map-layer-status button:hover { color: var(--on-blue); background: var(--blue); border-radius: 8px; }
+.route-map-shell.drawer-open .map-provider-badge.osm { top: 76px; }
+
 .crowd-low { --crowd-color: #14ada5; --crowd-soft: rgba(20,173,165,.2); }
 .crowd-moderate { --crowd-color: #e5a11a; --crowd-soft: rgba(229,161,26,.21); }
 .crowd-busy { --crowd-color: #ee6b3b; --crowd-soft: rgba(238,107,59,.22); }

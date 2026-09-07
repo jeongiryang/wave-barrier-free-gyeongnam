@@ -660,7 +660,7 @@ test("route-map rendering delegates controller, provider adapters, controls and 
   assert.match(controller, /useMapDrawingTools\(\{ drawingManagerRef, setProviderDetail \}\)/);
   assert.doesNotMatch(sdk, /libraries=services,drawing/);
   assert.doesNotMatch(layerPanel, /measurementAvailable|onSelectMeasure|안전한 브라우저 정책/);
-  assert.match(layerPanel, /aria-label="지도 표시 설정"/);
+  assert.match(layerPanel, /aria-label=\{english \? "Map display settings" : "지도 표시 설정"\}/);
   assert.match(controller, /useNearbyPlaces\(\{ kakaoMapRef, choosePlace \}\)/);
   assert.match(controller, /useRoadviewController\(\{ provider, setProviderDetail, setPickMode, setToolPanel \}\)/);
   assert.doesNotMatch(controller, /categorySearch|manager\.select|RoadviewClient|addOverlayMapTypeId/);

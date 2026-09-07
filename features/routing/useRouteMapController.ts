@@ -56,7 +56,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     if (map && sdk && Number.isFinite(lat) && Number.isFinite(lng)) map.panTo(new sdk.LatLng(lat, lng));
   }, [isMapAvailable, setToolPanel]);
 
-  const { baseMap, activeLayers, changeBaseMap, toggleLayer } = useMapLayers(kakaoMapRef);
+  const { baseMap, activeLayers, layerError, layerRecovery, restoreMapLayers, clearAppliedMapLayers, changeBaseMap, toggleLayer } = useMapLayers(kakaoMapRef);
   const {
     activeCategory,
     categoryPlaces,
@@ -114,6 +114,8 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   const rememberFailureFocus = useMapFailureFocus(provider, shellRef);
   const updateProvider = useCallback((next: MapProvider) => {
     providerRef.current = next;
+    if (next === "kakao") restoreMapLayers();
+    if (next === "osm" || next === "error") clearAppliedMapLayers();
     // A new itinerary/route creates a different map; old nearby results belong to its old centre.
     if (next === "loading") cancelNearby();
     if (next === "error") {
@@ -132,7 +134,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
       clearCategoryMarkers();
     }
     setProvider(next);
-  }, [cancelNearby, clearCategoryMarkers, closeRoadview, rememberFailureFocus, roadviewSelectModeRef, setRoadviewPreviewOpen, setRoadviewSelectMode, setToolPanel]);
+  }, [cancelNearby, clearCategoryMarkers, clearAppliedMapLayers, closeRoadview, rememberFailureFocus, restoreMapLayers, roadviewSelectModeRef, setRoadviewPreviewOpen, setRoadviewSelectMode, setToolPanel]);
 
   useMapRenderer({
     containerRef,
@@ -170,6 +172,8 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     actionPending,
     baseMap,
     activeLayers,
+    layerError,
+    layerRecovery,
     toolPanel,
     expanded,
     pickMode,
