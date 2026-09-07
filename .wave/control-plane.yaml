@@ -20,6 +20,18 @@ authority:
     policy: 팀원은 Issue/PR/Review를 제출할 수 있으나 제품 정책·우선순위·Release Gate를 임의 변경하지 않는다.
   pm_control_channel: current_user_managed_chatgpt_work_pm_chat
   separate_automation_chat: false
+execution_scope:
+  mode: trusted_internal_only
+  current_grant: immutable_owner_work_order
+  collaborator_or_app_trust: explicit_owner_approval_required
+  external_fork_code: read_triage_only
+  external_issue_comment_commands: prohibited
+  local_queue_activation: pending_trusted_only_smoke
+rc_validation_scope:
+  product: complete_github_hosted_quality_browser_accessibility
+  sandbox: frozen_boundary_and_bounded_synthetic_npm_smoke
+  duplicate_full_sandbox_shards: archived_post_rc
+  additional_sandbox_hardening: post_rc
 sources_of_truth:
   execution: github
   pm_dashboard: notion

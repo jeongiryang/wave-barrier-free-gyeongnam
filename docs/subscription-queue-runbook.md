@@ -1,3 +1,7 @@
+> Current RC scope, Owner instruction 2026-09-08 KST: product quality and the complete Playwright/axe suite run in the ordinary GitHub-hosted quality/browser jobs. The frozen sandbox-boundary job retains immutable bootstrap verification, credential/filesystem/network/resource checks and its existing six-command bounded synthetic npm smoke. The four duplicate full-application sandbox shards are preserved in `.github/workflow-archive/ci-full-sandbox-pre-rc.yml`, outside the active workflow directory. Their CI827/828 timeout/SIGSEGV evidence remains unresolved POST-RC runtime history, not a repaired product defect or a release requirement. No product test, assertion, skip, timeout or performance limit changes.
+>
+> Local automation remains inactive until a trusted-only real smoke is verified. The present pinned executor accepts only immutable Owner work orders and same-repository, exact-HEAD PRs. There is no implicit collaborator/App trust or external-input promotion. External/fork/arbitrary-code inputs are read/triage only. Before activation, recheck task and code provenance; retain the current false gates, cost policy and installed isolation. The historical four-shard local publication path below is frozen, not an active zero-touch completion claim.
+
 # 구독 실행 대기열과 실제 실행 검증
 
 Refs #288, #294, PR #289. 2026-09-07 기술 구현 기록. 전체 자동화 완료 선언이 아니다.
