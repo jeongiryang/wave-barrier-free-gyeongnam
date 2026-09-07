@@ -60,6 +60,7 @@ test("여행집 스냅샷은 복원에 필요한 일정만 남기고 위치·원
   assert.equal(restored.schedule.dayStartTime, "09:30");
   assert.match(restored.href, /^\/planner\?region=/);
   assert.match(buildTravelBookPlannerHref(book), /from=travel-book/);
+  assert.equal(new URL(restored.href, "https://wave.test").hash, "#itinerary", "guided restoration opens the saved itinerary rather than asking for new preferences");
 });
 
 test("오래된 기록의 손상된 날짜는 정리하되 유효한 원래 장소 날짜는 이동하지 않는다", () => {

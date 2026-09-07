@@ -66,6 +66,13 @@ existing RC history, not a replacement PR or rewritten source history.
   overflow. Escape restored the Hadong trigger; both existing places remained.
   KO-to-EN retained the itinerary and showed English ODsay guidance. Recommendation
   evidence correctly became stale because locale is part of its search signature.
+- English add-region retained both places and dates; new-trip reset locked the
+  empty itinerary, persisted Jinju after reload, and preserved the separately
+  archived two-place Changwon trip. Reopening that archive in guided mode exposed
+  another navigation defect: the app returned to preferences despite restoring
+  places. Restore URLs now target `#itinerary`; a new desktop/mobile guided-flow
+  test requires direct itinerary visibility and an explicit missing-coordinate
+  notice. Existing no-coordinate archive assertions are retained unchanged.
 - Found a language-boundary defect in this Preview: English planner headings and
   controls inherited document `lang=ko`. The follow-up sets the planner main's
   language to the selected locale and explicitly marks original-language journey
