@@ -3,26 +3,28 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 2026-09-07 03:09 UTC 실행 증거
+## 2026-09-07 04:27 UTC 실행 증거
 
-전체 요청은 미완료다. main/Production은 `34e6021265b16d046dca24feaa3ec2101fc977e2`다. GitHub 배포6278499275와 Vercel 대시보드의 현재 배포 `DpUP8LhruYLeXs6N5Nxqrk3JoD6G`가 같은 SHA임을 확인했다. 원격41 Open PR·49 Open Issue를 조회했고 새 팀원 #340/#341도 포함했다. 기존 원본40개 PR의 변경을 보존한 로컬 합성 앱은 `c279f2292ad5e5c46e6915d3d8dbc91dcdcca239`다. main 병합이나 Production 배포가 아니다.
+전체 요청은 미완료다. 원격 Open PR42·Issue49를 다시 조회했다. main/Production `34e6021265b16d046dca24feaa3ec2101fc977e2`, GitHub배포6278499275/Vercel `DpUP8LhruYLeXs6N5Nxqrk3JoD6G` 유지. #287 b803b80은 Ready지만 승인0/3·REVIEW_REQUIRED/BLOCKED다. 보호 규칙·사람 리뷰·008 운영 스키마/백업/적용·최종 운영 게이트는 우회하지 않는다.
 
-| 범위 | 실제 증거 | 현재 상태·남은 조치 |
+| 범위 | 정확한 근거 | 상태와 다음 조치 |
 | --- | --- | --- |
-| #334 직전 검증 | `a03529a5408f5261a1737b885b36e3e649b3ffbd`, unit484, 앱동일92be654 로컬581 PASS/기존skip1(13.2분), [CI34076185336](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34076185336) 581 PASS/기존skip1/flaky0 | 날짜·실제 표시 결함을 발견해 Draft로 유지하고 #339를 합성함 |
-| #335 RC-19 | `f6e451beedcec969c7a879a9d360825e1a7ced32`, hook14/unit368/관련56 PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34076016081) 555 PASS/기존skip1/flaky0 | Ready·미병합·미배포, 지원 범위 밖 Roadview와 Escape focus 수정 포함 |
-| #336 RC-20 | `82314645616e1f1c4e3f2705abcaaaaef998bc50`, 계약53/unit333/로컬전체237 PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34075800244) 237 PASS/기존skip1/flaky0 | Ready·미병합·미배포, 요청과 무관한 도형 거부. 1km는 제품 허용 오차이며 경로 접근성 보장 아님 |
-| #338 ODsay | `b6a7f77cb8b760ee77843699f0387e6a1e9b9e25`, 부모합성unit364 PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34075953741) 237 PASS/기존skip1/flaky0 | Ready·미병합·미배포. 도시 간 첫/마지막 이동이 빠진 경로를 확인 완료로 승인하지 않음 |
-| #337/#339 날짜 | `c789bc6e91b17581f237a5aef71467c7bc9a1d96`, 계약11/unit491/관련40 PASS, 로컬전체605 PASS/기존skip1(13.5분), [CI34077578690](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34077578690) 303+302 PASS/기존skip1/flaky0 | Ready·미병합·미배포. 기존 범위 밖 장소 목록은 재구현하지 않고 7일 상한·변경 안내·저장/공유 경계·지연 일정 표시·대비/이름 잘림을 수정 |
-| #340/#341 팀원 제안 | `afb78cfd3c3d33fd5cd53da390f0b7458e91dbf8`, 원본098ae41 보존. lint/typecheck/unit261/build/performance PASS. [새 CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34078628027)·전체202개 실행 중 | Draft, 접근성 리뷰3946236024의 회전 정지·포커스·live 계약 보완. 제안 문서이며 새 랜딩 UI 구현 완료 아님 |
-| 최신 통합 | 앱 `c279f2292ad5e5c46e6915d3d8dbc91dcdcca239`에 #339/#341 포함 | 이 체크포인트 추가 HEAD에서 기본검사·전체606개·CI를 새로 실행. 이전 source 성공을 통합 최종 성공으로 세지 않음 |
-| Production 읽기 QA | 02:50 API13개+HTML14개 응답 검사 성공. 02:52 390/1366에서 추천3·저장1·새로고침1, console/pageerror/overflow/실패GET0 | 최신 provider 계약FAIL, 첫 선택1·검색 전 자동요청2는 이전 운영 상태. Preview/Production 수정본 검증 아님 |
+| #334 통합 | c1bae6f, unit491/기본검사/audit0, 로컬605 PASS/기존skip1(14.2분), [CI34078864255](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34078864255)605 PASS/기존skip1/flaky0 | Draft. 이후 실제 Preview에서 발견한 포커스와 사진 결함을 #342/#343에서 처리 |
+| #339 날짜 | c789bc6, unit491/관련40/로컬·CI605 PASS | GitHub03:12:28에 ae5f5b2 포함 통합 base push로 MERGED 표시. **main 병합·Production 반영 아님**. 자동 삭제된 원격 원본 branch를 c789bc6로 복원. 이전 미병합 표시는 이 기록으로 정정 |
+| #341 팀원 문서 | afb78cf, unit261/기본검사/CI201 PASS; 로컬199 PASS/기존skip1/대비2 FAIL | Draft. 문서 계약과 실제 랜딩 구현은 구분. #340 및 기존 랜딩 요구 대조 계속 |
+| #342 검색·구간 포커스 | 최신12dc50d, unit498/관련82 PASS/기본검사PASS, planner269.75/270KiB | 전체634개/[CI34082319923](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34082319923) 진행 중. 이전00e6344 로컬621 PASS와 CI620 PASS/flaky1/기존skip1은 별도 |
+| #342 실패 분석 | 실제 Preview 검색·단계 focus와 URL 수정 확인 후 구간조회 body focus 재현. 새12 FAIL→기존launch포함70 PASS. CI의 일정추가 click 때 scrollTop1911→1870/저장0 trace 확인 | 로딩/취소 focus와 중복요청 guard, 비동기 결과 공개 정적 이동 보강. 재시도 통과를 무결한 성공으로 세지 않음 |
+| #343 사진 | 최신3560f1d(앱6ab7b57 동일), unit491/기본검사/audit0/관련42 PASS. 신규24 FAIL→24 PASS | 첫전체·CI627 PASS/기존skip1/오래된 문구2 FAIL. 핵심 여정의 새 문구 exact 계약 보완 후 전체630개/[CI34082854123](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34082854123) 진행 중 |
+| 격리 합성 | `audit/focus-photo-qa-20260907` cef3ef4, 앱c70539d. unit498/기본검사PASS, CSS69.83/70·planner269.87/270KiB | source PR의 base #334를 전진시키지 않았다. 원본 리뷰 상태 보존. 이전 전체는 알려진 문구 실패 후 중단했고 새 계약 포함658개를 처음부터 실행 중 |
+| #335/#336/#338 | f6e451b CI555/8231464 CI237/b6a7f77 CI237 PASS | Ready·main 미병합·Production 미배포, 원본 보존 |
 
-비용: 모델 API3workflow `disabled_manually` 유지. Secret·구독 인증 복사/새 예약/새 과금 자원 없음. 기존 구독 예약5개와 로컬 CLI의 부분 증거만 확인했고 전체 자동화 완료는 아니다.
+**실제 Preview:** [합성 c70539d 배포](https://vercel.com/jeongiryang-projects/wave-barrier-free-gyeongnam/CXxvGDrb1izgpKWvxEbjJvAfxAbz), [화면](https://wave-barrier-free-gyeongnam-29iuzgs9r-jeongiryang-projects.vercel.app/), 04:17:13 UTC Ready/36초. 기존 Hobby 프로젝트 일회성 Preview다. 영어 중립조건→명시적 KTO추천7곳→영어 사진alt/원문 안내→두 장소 일정→실제 Kakao20분/21분2구간·ODsay38분 대안이 표시됐다. 결과/일정 제목과 조회 대기 focus를 확인했다. 실제 취소는 응답이 먼저 완료되어 실행 증거로 세지 않고 로컬12건으로 구분한다. 지도 SDK는 대체지도이고 일부 지도 기능명/상태/혼잡 문구가 한국어로 남아 `fix/map-status-language`에서 별도 확인 중이다. 실제 모바일 Preview·전체 콘솔/API smoke 완료가 아니다.
 
-Preview: 기존 탭 제어는 Debugger unattached였으나 새 연결로 기존 Hobby 프로젝트 대시보드를 읽고 Create Preview Deployment 입력창에 접근했다. 아직 생성하지 않았다. Git 자동 배포 설정·Production 승격·Secret 열람 없이 검증된 후보 SHA의 일회성 Preview를 다음으로 진행한다. 008 운영 스키마·영향 행 수·백업·복구 확인과 적용은 여전히 미완료다.
+이전 c1 Preview03:15와00e Preview는 각각 KTO추천5곳·ODsay47/52분, 검색/일정 focus·Kakao32분/ODsay68분 증거가 있다. 외부 자동 Preview smoke는 보호401, 직접health경로는 ERR_BLOCKED_BY_CLIENT였으며 우회하지 않았다. 실제 API 전체검증이나 Production 성공으로 세지 않는다. Production02:50 API13+HTML14 응답검사,02:52 390/1366 추천3·로컬저장1·복원1/console·pageerror·overflow·실패GET0이지만 최초선택1/자동요청2·새provider계약FAIL은 운영 잔여다.
 
-정확한 재개: 이 체크포인트 HEAD의 통합 기본검사/전체606개/CI → Preview 생성·실제 API/브라우저 → 사람 리뷰3건/008 게이트. #341의 최종 전체/CI와 리뷰 회신, #337 부분 완료 체크리스트, Notion을 같은 증거로 갱신한다. 임시 로그는 `trip-date-*`, `ci339-c789-success.log`, `landing-contract-*`이며 원본 worktree·실패 캡처를 보존했다. 완료한4187/4209 서버만 종료했고4213과 #341 Playwright 소유4173은 작업 중 유지했다.
+모델 API workflow3개 disabled_manually를04:05 원격 재확인했다. 실제 API 과금은 확인 불가이며 추정하지 않는다. 기존 구독 예약5개/로컬CLI/리뷰환류의 부분 증거만 있고 전체 자동화 완료는 아니다. 신규예약·모델API·과금자원·Secret/구독인증 복사 없음. 기존4187/4213 소유 서버만 종료했고4215/4217/4219 검사와 다른 작업자는 보존했다.
+
+정확한 재개: #34212dc 전체634·CI → #343356 전체630·CI → cef3 합성658·실제 Preview 잔여 → 리뷰 승인3건과008/운영 게이트. 대기 중 영어 지도 상태/버튼·모바일 추천 이동 위계, 기존 #340과 랜딩 기능 차이, 제출/운영 문서를 이어서 처리한다. 원본 PR을 닫거나 합성 base로 밀어 리뷰를 대신하지 않는다. 로그는 `journey-focus-*`, `photo-*`, `focus-photo-*`, `ci342-00e-success.log`, `ci343-6ab-failed.log`에 보존한다.
 
 ## 이전 실행 증거 — 2026-09-06 23:38 UTC
 
