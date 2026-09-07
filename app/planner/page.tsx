@@ -236,6 +236,7 @@ export default function PlannerPage() {
           <div className="journey-stage-stream" data-view={stageView.view}>
             <PlannerStageFrame view={stageView.view} step={journey.steps[0]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerConditionsPanel
+                onRegionChange={regionChange.request}
                 view={stageView.view}
                 onGenerate={generatePlan}
                 t={t}

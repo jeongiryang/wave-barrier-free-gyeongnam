@@ -19,6 +19,12 @@ arrival after midnight also counts as continuing into the following day.
 
 ## Validation status
 
+CI #786 (`34113679023`, initial `1b71371`) passed YAML/actionlint, both audits
+and lint, then failed typecheck: the new required `onRegionChange` callback
+was missing at the multiline page call site. The callback is now connected.
+This was an implementation wiring error, not an obsolete test assumption.
+The following push supersedes that run and retains the complete test scope.
+
 - Added storage commit/failure/reload contracts and midnight regression.
 - Added KO/EN, light/dark, 320px modal, keyboard focus/trap/cancel and axe E2E;
   preservation/new-trip/reload, rapid region requests and history checks.

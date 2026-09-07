@@ -31,6 +31,10 @@ test("explicit multi-region addition preserves places and dates; rapid requests 
   await expect(page.locator(".day-planner-grid li")).toHaveCount(2);
   await expect(page.locator(".multi-region-notice")).toContainText("창원 · 하동");
   await expect(page.locator(".multi-region-notice")).toContainText("장거리 이동");
+  await page.locator("#navigation").scrollIntoViewIfNeeded();
+  await expect(page.locator(".wave-map-icon.place")).toHaveCount(2);
+  await expect(page.locator('.wave-map-icon.place[title="경남도립미술관"]')).toHaveCount(1);
+  await expect(page.locator('.wave-map-icon.place[title="하동 검증 장소 1"]')).toHaveCount(1);
   const before = await current(page);
   await page.evaluate(() => { history.pushState(null, "", "?region=진주"); dispatchEvent(new PopStateEvent("popstate")); });
   await expect(dialog).toHaveAccessibleName("진주 여행을 어떻게 시작할까요?");
@@ -54,6 +58,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
     await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
     await page.locator(".day-planner").getByLabel("용지호수공원 여행 날짜", { exact: true }).selectOption("2026-10-08");
+    await page.locator(".day-planner").getByRole("button", { name: "내 일정에 저장", exact: true }).click();
     if (en) {
       const preferences = page.locator(".preference-controls:visible");
       await preferences.getByLabel("환경설정 열기", { exact: true }).click();
@@ -102,6 +107,11 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await page.reload();
     await expect(page.locator(".day-planner-grid li")).toHaveCount(0);
     await expect(picker.getByRole("button", { name: en ? "Jinju" : "진주", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.goto("/travel-book");
+    await page.getByRole("button", { name: "이 일정 다시 열기 →", exact: true }).click();
+    await expect(page.locator(".day-planner-grid li")).toHaveCount(2);
+    await expect(page.locator(".day-planner").getByLabel(en ? "Trip start date" : "여행 시작일", { exact: true })).toHaveValue("2026-10-07");
+    await expect(page.locator(".day-planner").getByLabel(en ? "용지호수공원 trip date" : "용지호수공원 여행 날짜", { exact: true })).toHaveValue("2026-10-08");
     expect(errors).toEqual([]);
   });
 }
