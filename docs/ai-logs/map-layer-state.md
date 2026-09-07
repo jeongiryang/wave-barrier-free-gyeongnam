@@ -36,3 +36,18 @@ Refs #251 #276 #285. 부모 #332의 주변 검색 작업을 보존한 별도 `fi
 전체 Playwright·CI·통합 후보 검증은 아직 별도로 진행해야 하며 이 로그는 완료 선언이 아니다.
 main/Production `34e6021`, #287 승인0/3, Preview/008 운영 확인 경계를 유지한다.
 Secret·구독 인증 복사 및 유료 모델 API 실행은 없다.
+
+## 독립 검토 P1: 실패 후 다른 설정을 성공시킨 경우
+
+[리뷰3945760601](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/333#discussion_r3945760601)는
+415f002에서 실패한 선택 뒤 다른 설정을 바꾸면 requested를 confirmed로 덮어쓰는 상태 손실을 찾았다.
+hook8 PASS/2 FAIL과 desktop/mobile4 FAIL로 재현했다. 새 조작은 기존 요청에 합성하고,
+화면 상태는 해당 SDK 호출이 성공한 항목만 갱신한다. 요청/실제 적용 사이 차이가 남으면 오류 안내도 유지한다.
+미적용 레이어 재시도는 대기 선택을 취소하거나 중복 추가하지 않는다.
+
+- overlay 실패→base 성공→새 지도와 base 실패→overlay 성공→새 지도 모두 두 선택을 복원한다.
+- hook11, 전체단위354, 관련브라우저24 PASS(50.2초), lint/typecheck/Vercel build/performance PASS.
+- 이전415f002 CI34069333821은517 PASS/기존skip1/flaky0, e819cc4 통합 전체543 PASS/기존skip1(12.1분)였다.
+  이는 P1 수정 전 결과이며 새 수정의 전체 검증으로 재사용하지 않는다. 새 HEAD CI와 새 통합 전체를 다시 실행한다.
+- 기존 예외 격리·updater 중복 차단·부분 성공·KO/EN·11viewport·44px/키보드·axe 검사를 유지했다.
+  리뷰를 자동 승인/resolve하지 않고 Draft를 유지한다.

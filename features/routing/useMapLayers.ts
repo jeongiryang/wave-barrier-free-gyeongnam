@@ -20,6 +20,14 @@ export function useMapLayers(kakaoMapRef: MutableRef<KakaoMap | null>) {
     setSelection(next);
   }, []);
 
+  function confirmChange(applied: Selection) {
+    commit(applied);
+    const desired = requested.current;
+    const pending = desired.baseMap !== applied.baseMap || desired.activeLayers.length !== applied.activeLayers.length
+      || desired.activeLayers.some((id) => !applied.activeLayers.includes(id));
+    setLayerError(pending);
+  }
+
   const restoreMapLayers = useCallback(() => {
     const map = kakaoMapRef.current, sdk = window.kakao?.maps;
     if (!map || !sdk || restoredMap.current === map) return;
@@ -47,11 +55,10 @@ export function useMapLayers(kakaoMapRef: MutableRef<KakaoMap | null>) {
     const map = kakaoMapRef.current;
     const sdk = window.kakao?.maps;
     if (!map || !sdk) { setLayerError(true); setLayerRecovery(true); return; }
-    const desired = { ...confirmed.current, baseMap: next };
-    requested.current = desired;
+    requested.current = { ...requested.current, baseMap: next };
     try {
       map.setMapTypeId(next === "skyview" ? sdk.MapTypeId.HYBRID : sdk.MapTypeId.ROADMAP);
-      commit(desired); setLayerError(false);
+      confirmChange({ ...confirmed.current, baseMap: next });
     } catch { setLayerError(true); setLayerRecovery(true); }
   }
 
@@ -60,12 +67,11 @@ export function useMapLayers(kakaoMapRef: MutableRef<KakaoMap | null>) {
     const sdk = window.kakao?.maps;
     if (!map || !sdk) { setLayerError(true); setLayerRecovery(true); return; }
     const current = confirmed.current, removing = current.activeLayers.includes(id);
-    const desired = { ...current, activeLayers: removing ? current.activeLayers.filter((item) => item !== id) : [...current.activeLayers, id] };
-    requested.current = desired;
+    requested.current = { ...requested.current, activeLayers: removing ? requested.current.activeLayers.filter((item) => item !== id) : [...new Set([...requested.current.activeLayers, id])] };
     try {
       if (removing) map.removeOverlayMapTypeId(sdk.MapTypeId[id]);
       else map.addOverlayMapTypeId(sdk.MapTypeId[id]);
-      commit(desired); setLayerError(false);
+      confirmChange({ ...current, activeLayers: removing ? current.activeLayers.filter((item) => item !== id) : [...current.activeLayers, id] });
     } catch { setLayerError(true); setLayerRecovery(true); }
   }
 
