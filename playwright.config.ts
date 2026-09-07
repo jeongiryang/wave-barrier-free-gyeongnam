@@ -15,6 +15,10 @@ export default defineConfig({
   reporter: process.env.CI ? [["line"], ["html", { open: "never" }], ["./scripts/playwright-resource-reporter.mjs"]] : "line",
   use: {
     baseURL,
+    // Use the bundled full Chromium headless implementation. The separate
+    // headless-shell crashed during context teardown after successful UI/axe
+    // assertions; keep the browser revision and every test/resource limit.
+    channel: executablePath ? undefined : "chromium",
     launchOptions: executablePath ? { executablePath, args: ["--no-sandbox"] } : undefined,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
