@@ -73,9 +73,12 @@ def invoke(args, timeout=30, *, dependency_install=False):
     if remaining <= 0:
         fail()
     def limits():
-        # Native dependency binaries exceed the repository-output cap. This
-        # larger extraction cap is exclusive to trusted npm with scripts OFF.
-        file_limit = (256 if dependency_install else 64) * 1024 * 1024
+        # RLIMIT_FSIZE also caps Chromium's memfd/shared rendering buffers, not
+        # just logs. A 2560px full-page capture at the existing mobile DPR can
+        # exceed 64MiB before PNG encoding. Keep a bounded 512MiB working-file
+        # capacity; diagnostic reads and artifact export retain separate caps.
+        # Trusted dependency extraction has its own smaller 256MiB limit.
+        file_limit = (256 if dependency_install else 512) * 1024 * 1024
         resource.setrlimit(resource.RLIMIT_FSIZE, (file_limit, file_limit))
         # Linux counts Chromium threads, including axe's extra contexts. Keep
         # the original two Playwright workers; do not throttle the test contract.

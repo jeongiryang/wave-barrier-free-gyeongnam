@@ -14,6 +14,25 @@ spec = importlib.util.spec_from_file_location("boundary", root / "scripts/subscr
 boundary = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(boundary)
 config = json.loads(pathlib.Path(sys.argv[1]).read_text())
+# Chromium uses file-backed shared buffers for full-page captures. The existing
+# mobile profile keeps its real device scale even at the desktop-width cases.
+# Exercise that OS resource boundary without changing browser/test dimensions.
+buffer_workspace = pathlib.Path(tempfile.mkdtemp(prefix="wave-public-buffer-", dir=config["scratch"]))
+buffer_check = """import errno,os
+fd=os.memfd_create('public-render-buffer')
+os.ftruncate(fd,128*1024*1024)
+try:
+ os.ftruncate(fd,600*1024*1024)
+except OSError as error:
+ assert error.errno == errno.EFBIG
+else:
+ raise AssertionError('file capacity is not bounded')
+os.close(fd)
+print('PUBLIC_BUFFER_CAPACITY_PASS')
+"""
+buffer_result = boundary.invoke(boundary.arguments(config, buffer_workspace) + ["/usr/bin/python3", "-I", "-c", buffer_check])
+assert buffer_result.returncode == 0 and buffer_result.stdout.strip() == "PUBLIC_BUFFER_CAPACITY_PASS", "render buffer was blocked or file capacity was unbounded"
+print("PASS: public render buffers fit; oversized file allocation is still blocked")
 parent = {"resolved": "https://registry.npmjs.org/public/-/public-1.tgz", "integrity": "sha512-PUBLIC", "bundleDependencies": ["child"]}
 valid_lock = {"lockfileVersion": 3, "packages": {"node_modules/public": parent, "node_modules/public/node_modules/child": {"inBundle": True}}}
 boundary.validate_lock(valid_lock)
