@@ -54,7 +54,11 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y bubblewrap
+          sudo apt-get install -y bubblewrap apparmor
+          # Load Ubuntu's scoped bwrap profile, including its capability-stripping
+          # child profile. Never disable AppArmor or the global userns restriction.
+          test -f /etc/apparmor.d/bwrap-userns-restrict
+          sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
           python3 - <<'PY'
           import hashlib, json, os, pathlib, subprocess
           runtime = pathlib.Path(subprocess.check_output(["node", "-p", "process.execPath"], text=True).strip()).parent.parent

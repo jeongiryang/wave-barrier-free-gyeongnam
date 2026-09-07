@@ -78,3 +78,9 @@ Notion 무료 block 한도 때문에 최종 환류는 pending/unacknowledged다.
 [실행 runbook](../subscription-queue-runbook.md)에 따라 #294의 오래된 구독 예약 설명을 작은 실제 작업으로 분리한다.
 현재 HEAD를 고정한 승인 명세 → GitHub 공용 claim → 구독 수정 → 전체 검증 → 기존 #289 갱신 → CI → 별도 QA → 기존 Notion 대시보드 재조회 순으로 증거를 남긴다.
 예약 관리 화면의 실제 등록과 CLI 실행 파일 작성은 별도 상태다. API workflow 3개는 계속 disabled_manually다.
+# CI runner 격리 검증 후속 — 2026-09-07
+
+- `4cf713d` CI #797 및 `f24fa94` CI #798은 lint/typecheck/unit 314건까지 성공했지만 실제 sandbox probe에서 실패했다. #798은 `namespace-permission`으로 분류했으며 브라우저/build 단계는 실행되지 않았다.
+- Ubuntu가 제공하는 `/etc/apparmor.d/bwrap-userns-restrict`와 자식 capability 제한 정책을 일회성 CI runner에 로드하도록 보완했다. 전역 AppArmor/user namespace 보호를 끄지 않으며 정책 파일이 없으면 실패한다. 로컬 PC 정책은 변경하지 않는다.
+- 근거: [Ubuntu의 프로그램별 namespace 정책](https://ubuntu.com/blog/ubuntu-23-10-restricted-unprivileged-user-namespaces), [AppArmor upstream bwrap/child profile](https://gitlab.com/apparmor/apparmor/-/blob/8e431ebcd915216a03ebc8d01e72b1741bb2f855/profiles/apparmor/profiles/extras/bwrap-userns-restrict).
+- 실제 queue 실행·독립 QA PASS·전체 애플리케이션의 sandbox 통과를 주장하지 않는다. `blocked-sandbox`를 유지하며 새 HEAD에서 CI probe와 기존 전체 회귀를 다시 확인한다.
