@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "order": {
+    "version": 2,
+    "issue": 294,
+    "priority": "P1",
+    "baseSha": "265ee1053b7d89bbb5106d1b4f71a5c281257a75",
+    "branch": "chore/automation-control-plane",
+    "pullRequest": 289,
+    "scope": [
+      "docs/subscription-only-automation.md"
+    ],
+    "acceptance": [
+      "Correct only stale scheduling statements in this existing document; preserve cost prohibition, historical smoke evidence, links and unrelated technical content.",
+      "Record that on 2026-09-07 around 06:22 UTC the existing Work PM web UI was read without settings changes: the queue detail displayed hourly execution and monitoring; its visible title changed from W.A.V.E 작업 대기열 처리 to W.A.V.E AI Release Owner during inspection. Treat this as a concurrent observed configuration change, not a locally created schedule or proof of release authority.",
+      "Record the observed W.A.V.E 독립 AI QA existing task: monitoring, GitHub PR/review/PR and review comment/commit events, pending events 0. Do not claim a complete account-wide schedule inventory. Preserve the prior 2026-09-06 five-task inventory as historical, not current verified total.",
+      "Replace blanket claims that the Executor cannot inspect any current schedule: current web detail was accessible, but local desktop project scheduling registration remains unverified/not performed. Web tasks do not execute the user PC or local E2E.",
+      "Link subscription-queue-runbook.md for the new local queue/claim/HEAD/independent QA procedure; describe this first documentation smoke as pending actual end-to-end evidence. General generated application code remains blocked-sandbox. Do not claim automatic implementation, QA, Notion, merge, Production or release GO completed.",
+      "Retain required human reviews 3, all disabled paid/API paths, included-quota preflight, no auth copying and no paid fallback. The new worker is not a request for OPENAI_API_KEY or PM API channel."
+    ],
+    "validation": "documentation",
+    "commentId": 5566069634,
+    "revision": "19bf9e6c878dccb2a7ddcc554595c4e96baad3374e690eb0fc3990236f17fec0"
+  },
+  "state": "queued",
+  "attempts": {
+    "implementation": 0,
+    "qa": 0
+  },
+  "headSha": "265ee1053b7d89bbb5106d1b4f71a5c281257a75",
+  "generation": 1,
+  "updatedAt": 1788762753776,
+  "lease": null,
+  "receipts": [],
+  "report": null
+}
