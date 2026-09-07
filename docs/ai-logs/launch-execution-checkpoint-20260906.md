@@ -3,7 +3,7 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 2026-09-07 00:23 UTC 실행 증거
+## 2026-09-07 00:37 UTC 실행 증거
 
 이 절의 결과는 기록 시각 기준이다. 이후 CI 결과는 연결된 PR/Actions와 GitHub Epic #288에서 확인한다.
 전체 요청은 미완료이며 PR 생성/CI 성공을 운영 반영으로 세지 않는다.
@@ -11,9 +11,9 @@
 | 범위 | 구현·검증 근거 | 상태·남은 조치 |
 | --- | --- | --- |
 | #332 주변 검색 | `d87e35a95a17a1776895df3a6e39c2767dc36122`, unit343·관련36·기본검사·actionlint/shellcheck PASS, [CI499 PASS/기존skip1/flaky0](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34068422917) | Ready·미병합·미배포. 반경 P1와 글꼴 잘림 수정 포함 |
-| #333 지도 설정 | `415f00201b4bea236db31d76db68286d110a0e87` (구현651eee2+부모d87e35a), hook8·관련20·최종unit351 PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34069333821) quality성공·browser진행 | Draft. 실제 지도 재생성/부분 복원/대체 지도/내부 재연결 focus·KOEN·11viewport·44px/axe 구현. 전체 CI·통합·Production 확인 남음 |
-| 통합 후보 | `e819cc4f2a03827bbc25cf347c289347376b10e2`, unit383·lint/typecheck/Vercel build/performance·audit0 PASS | 전체544개 로컬 진행 중. CI 충돌은 기존 workflow 정적 검사/전체 audit와2shard/필수validate를 모두 보존해 해결. Preview·운영 미반영 |
-| #313 문서 | `b24383fd272eb3eb035d654d8b1e67f6cf2a85b8`, [CI247 PASS/기존skip1](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34067482608) | 운영 정책·폐기된 참가 부문 판단·위치 처리/최신성 정정. 이후 이 체크포인트 문서 변경은 별도 새 SHA/CI로 추적 |
+| #333 지도 설정 | `1d358909ff6240111c6fee7bd399711d4ec99613` (415f002 뒤 독립 P1 수정), hook11·관련24·unit354·기본검사 PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34070219303) quality성공·browser진행 | Draft. 실제 지도 재생성/부분 복원/대체 지도/내부 재연결 focus·KOEN·11viewport·44px/axe 구현. 전체 CI·통합·Production 확인 남음 |
+| 통합 후보 | `330476bd1e9d7d61459321b477a27b9148a029ea`, unit386·lint/typecheck/Vercel build/performance·audit0 PASS | 전체548개 로컬 진행 중. CI 충돌은 기존 workflow 정적 검사/전체 audit와2shard/필수validate를 모두 보존해 해결. Preview·운영 미반영 |
+| #313 문서 | `91016b2d3131f22a9877f2f28d44664afe746115`, [CI247 PASS/기존skip1](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34069725934) | 운영 정책·폐기된 참가 부문 판단·위치 처리/최신성 정정. 이후 이 체크포인트 문서 변경은 별도 새 SHA/CI로 추적 |
 | Production | `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포6278499275, 00:19:38 UTC 기존 API/14페이지 진단27/27 PASS | 최신 후보의 route queryStatus/resultCount 계약 FAIL. 미배포 수정의 성공 증거 아님 |
 
 - #332 이전0884cef CI34066732365는 desktop/mobile·밝음/어두움4건 분류 잘림 후25분 한도로 취소됐다. artifact0건으로 원격 font metric은 확인 불가다.
@@ -28,8 +28,16 @@
 - #287 `b803b80` Ready·MERGEABLE이나 승인0/3·REVIEW_REQUIRED/BLOCKED다. main/Production/008/Preview 상태는 바뀌지 않았다.
   모델 API3workflow는 disabled_manually 재확인. 새 유료 호출·Secret/구독 인증 복사·예약 생성/재활성화 없음. 실과금 여부를 추정하지 않는다.
 
-정확한 재개 위치: `wave-launch-integration`/`audit/launch-integration-20260906`의 e819cc4 전체 로그
-`candidate-layer-full.log`와 #333 CI34069333821 결론을 확인한다. 성공 전 Draft/완료 처리를 하지 않는다.
+- 독립 [리뷰3945760601](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/333#discussion_r3945760601)가
+  실패한 선택 뒤 다른 설정이 성공하면 복구 요청을 잃는 P1을 찾았다. hook2 FAIL·브라우저4 FAIL로 재현했고
+  새 조작을 requested와 합성하되 SDK 성공 항목만 confirmed에 반영하도록 수정했다. 대기 선택이 남으면 오류 안내도 유지한다.
+  수정 후 hook11·unit354·관련24 PASS(50.2초). 이전415f002 CI517 PASS/기존skip1/flaky0와 e819cc4 통합543 PASS/기존skip1(12.1분)은 P1 수정 전 증거다.
+- workflow 정적 검사11개는 actionlint/shellcheck 함께 PASS. 작업자 workflow는 통합 도구 실행이 끝나지 않아 중단한 뒤
+  actionlint YAML/표현식 검사와 개별 셸15개의 shellcheck를 분리 실행해 모두PASS했다. 원인은 확정하지 않았으며 도구 한계를 숨기지 않는다.
+  비활성 API workflow 자체나 생성 코드를 실행하지 않았다.
+
+정확한 재개 위치: `wave-launch-integration`/`audit/launch-integration-20260906`의330476b 전체 로그
+`candidate-layer-p1-full.log`와 #333 CI34070219303 결론을 확인한다. 성공 전 Draft/완료 처리를 하지 않는다.
 `wave-map-layer-state`/`fix/map-layer-state`와 `wave-nearby-integrity`/`fix/nearby-query-integrity`는 clean/push 상태로 보존했다.
 사용하지 않는 개발 서버4203/4205/4207을 종료했고 이 기록 시점에는 통합4187만 실행 중이다.
 다음 독립 코드 범위는 아직 남은 지도 SDK/보강정보/인증·정책 영어 등 실행 목록을 재조회해 정한다.
