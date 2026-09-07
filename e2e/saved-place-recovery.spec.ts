@@ -68,6 +68,10 @@ for (const locale of ["ko", "en"] as const) {
     });
     await page.route("**/api/wave?action=place-coordinates&contentId=1001", route => route.fulfill({ json: { id: "1001", status: "empty" } }));
     await page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true }).press("Enter");
+    const recovery = page.getByRole("region", { name: en ? "Recheck saved place locations" : "저장 장소 위치 재확인", exact: true });
+    await expect(recovery).toHaveAttribute("lang", locale);
+    await expect(recovery.getByRole("status").locator("li > span")).toHaveAttribute("lang", "ko");
+    await expect(recovery.getByRole("status")).toContainText(en ? "not found" : "찾지 못했습니다");
     const alternative = page.getByRole("link", { name: en ? "Review trip preferences" : "여행 조건에서 다시 찾기", exact: true });
     await expect(alternative).toBeVisible();
     expect((await alternative.boundingBox())?.height || 0).toBeGreaterThanOrEqual(44);
@@ -80,6 +84,10 @@ for (const locale of ["ko", "en"] as const) {
     expect(searches).toBe(0);
     await page.getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true }).click();
     await expect(page.locator("#itinerary > .route-scope-note")).toContainText(en ? "1 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 1곳");
+    await expect(recovery.getByRole("status")).toContainText(en ? "A location is now available for this itinerary." : "현재 일정에서 사용할 수 있는 위치가 있습니다.");
+    await expect(recovery.getByRole("status")).not.toContainText(en ? "not found" : "찾지 못했습니다");
+    await expect(recovery.getByRole("status")).not.toContainText(en ? "Official place location checked" : "공식 장소 위치를 확인했습니다");
+    await expect(recovery.getByRole("button")).toHaveAttribute("aria-disabled", "true");
     expect(searches).toBe(1);
     await expect(page.getByRole("combobox", { name: en ? "경남도립미술관 trip date" : "경남도립미술관 여행 날짜" })).toHaveValue("2026-09-07");
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values["wave-saved-places"])).toBe('["1001"]');

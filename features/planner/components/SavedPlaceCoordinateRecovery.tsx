@@ -68,10 +68,22 @@ export default function SavedPlaceCoordinateRecovery({ places, onRestore }: {
   }
   // Keep the activated control mounted after success, preserving keyboard focus.
   if (!missing.length && !results.length) return null;
-  return <section aria-label={en ? "Recheck saved place locations" : "저장 장소 위치 재확인"}>
+  return <section lang={en ? "en" : "ko"} aria-label={en ? "Recheck saved place locations" : "저장 장소 위치 재확인"}>
     <p>{en ? "Recheck public place IDs with the Korea Tourism Organization to restore map locations. Your dates and order stay unchanged. This does not recheck facilities or route access." : "한국관광공사에 공개 장소 ID로 위치를 다시 조회합니다. 날짜와 순서는 유지하며, 편의시설이나 이동 경로의 접근성을 재확인하는 것은 아닙니다."}</p>
     <button className="primary-button" type="button" onClick={() => { void restore(); }} aria-busy={busy} aria-disabled={busy || !missing.length}>{busy ? (en ? "Checking place locations" : "장소 위치 확인 중") : (en ? "Recheck place locations" : "장소 위치 다시 확인")}</button>
-    <div role="status" aria-live="polite"><ul>{results.map(result => <li key={result.id}><span lang={originalLanguage(result.name)}>{result.name}</span>: {messages[result.status][en ? 1 : 0]}</li>)}</ul></div>
+    <div role="status" aria-live="polite"><ul>{results.map(result => {
+      const place = places.find(current => current.id === result.id);
+      if (!place) return null;
+      const hasLocation = Boolean(supportedPlacePoint(place.mapX, place.mapY));
+      // A later regional search can restore the same place. Describe the
+      // current itinerary without misrepresenting that as another ID lookup.
+      const message = hasLocation && result.status !== "available"
+        ? (en ? "A location is now available for this itinerary." : "현재 일정에서 사용할 수 있는 위치가 있습니다.")
+        : !hasLocation && result.status === "available"
+          ? (en ? "Recheck this place's current location." : "이 장소의 현재 위치를 다시 확인해 주세요.")
+          : messages[result.status][en ? 1 : 0];
+      return <li key={result.id}><span lang={originalLanguage(place.name)}>{place.name}</span>: {message}</li>;
+    })}</ul></div>
     {missing.length > 0 && results.length > 0 && !busy && <p>{en ? "You can review your preferences and search the region again. Only matching saved places receive locations; your dates and order stay unchanged." : "여행 조건에서 같은 지역을 다시 검색할 수도 있어요. 저장한 장소와 일치하는 위치만 갱신하며 날짜와 순서는 유지합니다."} <a className="primary-button" href="#conditions">{en ? "Review trip preferences" : "여행 조건에서 다시 찾기"}</a></p>}
   </section>;
 }
