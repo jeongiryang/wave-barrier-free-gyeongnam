@@ -177,7 +177,6 @@
 | #308 의존성 보안 | Engineering/QA | 진행 중 | #309, exact alias·악성 입력·audit 0 | 커뮤니티 포크 유지보수 위험·Vercel 실제 함수 smoke·사람 리뷰 |
 | #310 UI 참고 | Engineering/QA | 진행 중 | #311·PM 부분 채택 기록 | 실제 회귀 수정·검증; 원 시안 전체 복제/자동 완료 금지 |
 | #11 공모전·운영 | PM/운영자/Engineering | 진행 중·사람 확인 분리 | [정합성](contest-compliance.md), [원고](submission/development-entry-draft.md) | 팀명 충돌·개인 자격·법적 검토·운영 계정·백업·최종 제출 |
-
 | #337 날짜 정합성·UI | Engineering/QA | 진행 중 | 팀원 실제 Production 재현, `features/planner/hooks/useTripSchedule.ts` 감사 | 기간 밖 장소의 자동 재배치 방지,7일 기간 계약,변경 안내를 재현/수정·KOEN/여행집 회귀. 사진/가독성은 기존 #257/#270/#278과 대조 |
 
 ## 실제 차단과 계속 가능한 일
