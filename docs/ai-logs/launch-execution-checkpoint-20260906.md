@@ -3,7 +3,47 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 현재 재개 우선점 — 2026-09-06 23:38 UTC
+## 2026-09-07 00:37 UTC 실행 증거
+
+이 절의 결과는 기록 시각 기준이다. 이후 CI 결과는 연결된 PR/Actions와 GitHub Epic #288에서 확인한다.
+전체 요청은 미완료이며 PR 생성/CI 성공을 운영 반영으로 세지 않는다.
+
+| 범위 | 구현·검증 근거 | 상태·남은 조치 |
+| --- | --- | --- |
+| #332 주변 검색 | `d87e35a95a17a1776895df3a6e39c2767dc36122`, unit343·관련36·기본검사·actionlint/shellcheck PASS, [CI499 PASS/기존skip1/flaky0](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34068422917) | Ready·미병합·미배포. 반경 P1와 글꼴 잘림 수정 포함 |
+| #333 지도 설정 | `1d358909ff6240111c6fee7bd399711d4ec99613` (415f002 뒤 독립 P1 수정), hook11·관련24·unit354·기본검사 PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34070219303) quality성공·browser진행 | Draft. 실제 지도 재생성/부분 복원/대체 지도/내부 재연결 focus·KOEN·11viewport·44px/axe 구현. 전체 CI·통합·Production 확인 남음 |
+| 통합 후보 | `330476bd1e9d7d61459321b477a27b9148a029ea`, unit386·lint/typecheck/Vercel build/performance·audit0 PASS | 전체548개 로컬 진행 중. CI 충돌은 기존 workflow 정적 검사/전체 audit와2shard/필수validate를 모두 보존해 해결. Preview·운영 미반영 |
+| #313 문서 | `91016b2d3131f22a9877f2f28d44664afe746115`, [CI247 PASS/기존skip1](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34069725934) | 운영 정책·폐기된 참가 부문 판단·위치 처리/최신성 정정. 이후 이 체크포인트 문서 변경은 별도 새 SHA/CI로 추적 |
+| Production | `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포6278499275, 00:19:38 UTC 기존 API/14페이지 진단27/27 PASS | 최신 후보의 route queryStatus/resultCount 계약 FAIL. 미배포 수정의 성공 증거 아님 |
+
+- #332 이전0884cef CI34066732365는 desktop/mobile·밝음/어두움4건 분류 잘림 후25분 한도로 취소됐다. artifact0건으로 원격 font metric은 확인 불가다.
+  넓은 대체 글꼴에서 Accommodation scroll109/client105px를2 FAIL로 재현해120px 최소 열/줄바꿈으로 수정했다.
+  CI는 전체500개를250/250으로 분할하며 누락·중복0,25분 한도·기존 기준 유지. 필수validate는 quality/browser가 모두success일 때만 성공한다.
+  gate 코드의25개 성공/실패/취소/skip/빈 결과 조합과 actionlint/shellcheck를 검증했다.
+- d87e35a 로컬 전체는498 PASS/기존skip1/프로필 page.goto ERR_NO_BUFFER_SPACE1 FAIL(11.4분)이다.
+  해당 프로필4건 재검증PASS, 원격 전체499 PASS와 구분하며 로컬 전체 성공으로 바꾸지 않는다. 과거0884cef 로컬497 PASS도 다른 SHA의 증거다.
+- 지도 설정은 최초 hook 정상1 PASS/결함3 FAIL, 재생성/예외 E2E8 FAIL→수정했다.320px focus 가림·대비3.48/3.47·외부 복구 버튼 가림을 추가 재현했다.
+  패널 내부 영속 재연결, 상태·실제 SDK 일치,44px/Tab/hit/axe 관련20 PASS(47.4초),390/1366 캡처 직접 확인. 모의 SDK와 실운영 API는 구분한다.
+- 통합 성능: CSS69.86/70·landing115.11/155·planner268.56/270KiB. 이전c619/1d의523 PASS는 새 통합의 전체 성공으로 재사용하지 않는다.
+- #287 `b803b80` Ready·MERGEABLE이나 승인0/3·REVIEW_REQUIRED/BLOCKED다. main/Production/008/Preview 상태는 바뀌지 않았다.
+  모델 API3workflow는 disabled_manually 재확인. 새 유료 호출·Secret/구독 인증 복사·예약 생성/재활성화 없음. 실과금 여부를 추정하지 않는다.
+
+- 독립 [리뷰3945760601](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/333#discussion_r3945760601)가
+  실패한 선택 뒤 다른 설정이 성공하면 복구 요청을 잃는 P1을 찾았다. hook2 FAIL·브라우저4 FAIL로 재현했고
+  새 조작을 requested와 합성하되 SDK 성공 항목만 confirmed에 반영하도록 수정했다. 대기 선택이 남으면 오류 안내도 유지한다.
+  수정 후 hook11·unit354·관련24 PASS(50.2초). 이전415f002 CI517 PASS/기존skip1/flaky0와 e819cc4 통합543 PASS/기존skip1(12.1분)은 P1 수정 전 증거다.
+- workflow 정적 검사11개는 actionlint/shellcheck 함께 PASS. 작업자 workflow는 통합 도구 실행이 끝나지 않아 중단한 뒤
+  actionlint YAML/표현식 검사와 개별 셸15개의 shellcheck를 분리 실행해 모두PASS했다. 원인은 확정하지 않았으며 도구 한계를 숨기지 않는다.
+  비활성 API workflow 자체나 생성 코드를 실행하지 않았다.
+
+정확한 재개 위치: `wave-launch-integration`/`audit/launch-integration-20260906`의330476b 전체 로그
+`candidate-layer-p1-full.log`와 #333 CI34070219303 결론을 확인한다. 성공 전 Draft/완료 처리를 하지 않는다.
+`wave-map-layer-state`/`fix/map-layer-state`와 `wave-nearby-integrity`/`fix/nearby-query-integrity`는 clean/push 상태로 보존했다.
+사용하지 않는 개발 서버4203/4205/4207을 종료했고 이 기록 시점에는 통합4187만 실행 중이다.
+다음 독립 코드 범위는 아직 남은 지도 SDK/보강정보/인증·정책 영어 등 실행 목록을 재조회해 정한다.
+사람 리뷰·Preview 접근·008 운영 스키마와 백업/복구·실제200%/실기기/낭독기·공모전 외부 확인을 완료로 표시하지 않는다.
+
+## 이전 실행 증거 — 2026-09-06 23:38 UTC
 
 - **지도 실패 #329 `43ebf0812450512663b3f939657688fdb7dad5e1`, Ready**:
   열린 panel/pick/roadview 정리·부분 map 제거·외부 focus/늦은 위치 callback 가드를 유지했다.
@@ -32,7 +72,7 @@
   [CI34063758123](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34063758123) 265 PASS/기존skip1/flaky0로 성공·Ready·미병합·미배포다.
   390/1366px 각각18개 touch 선택·링크/경계 동기화·빈 사진 fixture·console/overflow0을 직접 검증했다.
   로컬 키 미설정 사진503은 별도 실패 기록이며 실제 API 성공으로 세지 않는다.
-- **주변 검색 #332 `0884ceffd658364ce45d106a5d202516b8a3fb47`**: #330의 자식 PR이다.
+- **이전 주변 검색 #332 `0884ceffd658364ce45d106a5d202516b8a3fb47`**: #330의 자식 PR이다.
   오류/빈 결과·늦은 응답·빈 좌표·중복 재시도·지도 교체 취소와 15개 결과를 일치시켰다.
   KO/EN·대비·단일 스크롤·44px 링크, 11개 지정 viewport의14개 분류와15번째 결과까지 키보드 접근을 검증했다.
   최초 hook2 PASS/7 FAIL→16/16, 지도 교체4 FAIL 및 링크 높이4 FAIL도 재현·수정했다.
@@ -41,7 +81,7 @@
   [CI34066732365](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34066732365)의 현재 결과는 PR에서 확인한다.
   e51cad8 CI34066049407은 후속 push로 취소됐고 e51cad8/78144e8 로컬 전체는 P1 수정 전 중단해 PASS로 세지 않는다.
   원본 audit high2/moderate1은 #309 미포함 개발 의존성이다.
-- **최신 통합 `1d3638ec418371706e89872207927a6831cb9a91`**: #3320884cef까지 충돌 없이 합쳤다.
+- **이전 통합 `1d3638ec418371706e89872207927a6831cb9a91`**: #3320884cef까지 충돌 없이 합쳤다.
   unit373·lint/typecheck/Vercel build/performance·audit0 PASS, 전체523 pass/기존skip1/실패0(12.8m).
   CSS69.75/70·landing115.13/155·planner268.59/270KiB. 직전ff7a207의unit352·전체489 성공도 보존한다.
   로컬 통합 성공은 Preview/병합/Production 성공이 아니다. source PR와 실제 사람 리뷰를 유지한다.
@@ -51,9 +91,7 @@
   공식 Notion 최신 웹 재조회는 접근 정책에 막혀 새 본문을 확인하지 못했다. 우회하지 않고 이전 확보한 공식 자료·사용자 정정을 유지한다.
 
 - #332 worktree `wave-nearby-integrity` / `fix/nearby-query-integrity`, source0884cef·clean/push.
-- 다음 독립 작업은 `wave-map-layer-state` / `fix/map-layer-state`, 부모0884cef다. `useMapLayers`의 SDK updater 중복/예외3 FAIL(정상1 PASS),
-  지도 재생성 후 선택·실제지도 불일치와 예외8 E2E FAIL을 재현했다. 초기 수정 후 hook4/4·브라우저8/8 PASS(7.8초)이나 미커밋·PR 없음이다.
-  설정 재적용·오류 뒤 회복/초점·부분 복원·KO/EN·axe/44px·관련/전체 회귀가 남았다. 새 개발 서버4207을 실행 중이다.
+- 지도 설정의 이전 미커밋 작업은 위 #333으로 보존·검증했다.4207은 종료했고 새 통합 검증 위치는 위 재개 절을 따른다.
 - #329 worktree `wave-map-controls-language` / `fix/map-load-recovery`, #330 `wave-map-export-recovery` / `fix/map-export-recovery`는 clean/push다.
 - 통합 worktree `wave-launch-integration` / `audit/launch-integration-20260906`는 clean/push다. #258 worktree는 `wave-landing-boundaries`다.
 - main/Production34e6021265b16d046dca24feaa3ec2101fc977e2·배포6278499275, #287 승인0/3. Preview/008 운영 스키마·백업·복원 확인과 적용은 미완료다.
