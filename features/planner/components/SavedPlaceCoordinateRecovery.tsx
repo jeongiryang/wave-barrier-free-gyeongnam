@@ -72,5 +72,6 @@ export default function SavedPlaceCoordinateRecovery({ places, onRestore }: {
     <p>{en ? "Recheck public place IDs with the Korea Tourism Organization to restore map locations. Your dates and order stay unchanged. This does not recheck facilities or route access." : "한국관광공사에 공개 장소 ID로 위치를 다시 조회합니다. 날짜와 순서는 유지하며, 편의시설이나 이동 경로의 접근성을 재확인하는 것은 아닙니다."}</p>
     <button className="primary-button" type="button" onClick={() => { void restore(); }} aria-busy={busy} aria-disabled={busy || !missing.length}>{busy ? (en ? "Checking place locations" : "장소 위치 확인 중") : (en ? "Recheck place locations" : "장소 위치 다시 확인")}</button>
     <div role="status" aria-live="polite"><ul>{results.map(result => <li key={result.id}><span lang={originalLanguage(result.name)}>{result.name}</span>: {messages[result.status][en ? 1 : 0]}</li>)}</ul></div>
+    {missing.length > 0 && results.length > 0 && !busy && <p>{en ? "You can review your preferences and search the region again. Only matching saved places receive locations; your dates and order stay unchanged." : "여행 조건에서 같은 지역을 다시 검색할 수도 있어요. 저장한 장소와 일치하는 위치만 갱신하며 날짜와 순서는 유지합니다."} <a className="primary-button" href="#conditions">{en ? "Review trip preferences" : "여행 조건에서 다시 찾기"}</a></p>}
   </section>;
 }

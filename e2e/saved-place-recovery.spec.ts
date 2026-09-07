@@ -59,6 +59,34 @@ for (const [mapX, mapY] of [["0", "0"], ["139.7", "35.6"], ["NaN", "35.2"], ["12
 
 for (const locale of ["ko", "en"] as const) {
   const en = locale === "en";
+  test(`${locale} an empty location lookup offers explicit regional search without replacing saved places`, async ({ page }) => {
+    await restoredTrip(page, locale);
+    let searches = 0;
+    page.on("request", request => {
+      const url = new URL(request.url());
+      if (url.pathname === "/api/wave" && url.searchParams.get("action") === "plan") searches++;
+    });
+    await page.route("**/api/wave?action=place-coordinates&contentId=1001", route => route.fulfill({ json: { id: "1001", status: "empty" } }));
+    await page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true }).press("Enter");
+    const alternative = page.getByRole("link", { name: en ? "Review trip preferences" : "여행 조건에서 다시 찾기", exact: true });
+    await expect(alternative).toBeVisible();
+    expect((await alternative.boundingBox())?.height || 0).toBeGreaterThanOrEqual(44);
+    await alternative.press("Enter");
+    await expect(page).toHaveURL(/#conditions$/);
+    expect(searches).toBe(0);
+    await page.getByRole("button", { name: en ? "Overview" : "전체 보기", exact: true }).click();
+    await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
+    await page.getByRole("button", { name: en ? /Nature and relaxation/ : /자연·휴양 공원/ }).click();
+    expect(searches).toBe(0);
+    await page.getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true }).click();
+    await expect(page.locator("#itinerary > .route-scope-note")).toContainText(en ? "1 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 1곳");
+    expect(searches).toBe(1);
+    await expect(page.getByRole("combobox", { name: en ? "경남도립미술관 trip date" : "경남도립미술관 여행 날짜" })).toHaveValue("2026-09-07");
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values["wave-saved-places"])).toBe('["1001"]');
+    expect(await page.evaluate(() => localStorage.getItem("wave-travel-book-v1"))).not.toMatch(/mapX|mapY/);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  });
+
   test(`${locale} archived place coordinates are explicitly rechecked without changing dates, order or privacy`, async ({ page }) => {
     await restoredTrip(page, locale);
     let requests = 0;
