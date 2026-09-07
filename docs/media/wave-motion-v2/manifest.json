@@ -1,0 +1,107 @@
+{
+  "date": "2026-09-07",
+  "status": "concept-assets-not-production",
+  "generator": "ChatGPT built-in images + offline Canvas/FFmpeg motion graphics",
+  "canvas_version": "0.1.100",
+  "files": [
+    {
+      "file": "coast-dawn.webp",
+      "bytes": 240212,
+      "sha256": "5efb0f1749aef00e5d5cf43904a4772ab881370ec48f4c3f2deb9474156cc534",
+      "git_blob_sha": "162f6a105a8f95a5bd267ba32fefdd132aabb69a"
+    },
+    {
+      "file": "garden-discovery.webp",
+      "bytes": 387770,
+      "sha256": "3179c782fc6779f956c870b426077da510ed5c61bff33ccc2db0fdd5aac53788",
+      "git_blob_sha": "de5d3fb74e152469856708e3ed0441353910ec68"
+    },
+    {
+      "file": "harbor-night.webp",
+      "bytes": 186024,
+      "sha256": "185054ae4a1a77586e9d149553590da549cb3de94b41354284510870a068a1f6",
+      "git_blob_sha": "21b0799de0d3e6454a0784ea95dfdd2962d6da38"
+    },
+    {
+      "file": "hero-poster.webp",
+      "bytes": 71108,
+      "sha256": "9db947e1fe261412cac61cb7dabc982ea0476ac33e2559654512f4e50fec38b7",
+      "git_blob_sha": "ede8ae8c95afc59592be6aae88d670ef86cdc076"
+    },
+    {
+      "file": "intro-poster.webp",
+      "bytes": 84308,
+      "sha256": "24337c48120f33c716971d1d8dfc14279f60b1b92d9f8463808af325791ad57b",
+      "git_blob_sha": "f00ff97defd1e2ba83593bd18afe925c4cce705d"
+    },
+    {
+      "file": "route-poster.webp",
+      "bytes": 43666,
+      "sha256": "052ce273800a007d5ce4a6db23f087797a02902e713a0c53200b5bc66a7ea922",
+      "git_blob_sha": "4c937e73c3bac0876192c524e6492592ec4dc44b"
+    },
+    {
+      "file": "wave-hero-motion.mp4",
+      "bytes": 3029129,
+      "sha256": "cfb11afa2f60b5c00ff28f94c20d2626ffa6d849f0277950da0ef50040b434fe",
+      "git_blob_sha": "6a938fba25d2e2564a39a8b581a58c7dfbf55598",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "r_frame_rate": "24/1",
+            "nb_frames": "288"
+          }
+        ],
+        "format": {
+          "duration": "12.000000"
+        }
+      }
+    },
+    {
+      "file": "wave-intro-film.mp4",
+      "bytes": 2040947,
+      "sha256": "56eaf79b331fbe2ef38a3636dd0610ced793572b6b0fbdc62c1ef491e9681216",
+      "git_blob_sha": "a5ba91cf44b9727e3f3aacb1c6afdd19a150584d",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "r_frame_rate": "24/1",
+            "nb_frames": "480"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      }
+    },
+    {
+      "file": "wave-route-motion.gif",
+      "bytes": 1446792,
+      "sha256": "f3d57c2669bfa471eae9d2ca61d61ecfa3915b8311823ea83406db3a7658362d",
+      "git_blob_sha": "3b76c487c06c07400850140444db0c109b1e47c2",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 640,
+            "height": 360,
+            "r_frame_rate": "12/1",
+            "nb_frames": "60"
+          }
+        ],
+        "format": {
+          "duration": "5.000000"
+        }
+      }
+    }
+  ]
+}
