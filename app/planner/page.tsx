@@ -106,6 +106,7 @@ export default function PlannerPage() {
   const itineraryReviewed = reviewedItinerary === itinerarySignature && itineraryRoutes.complete && !itineraryRoutes.loading;
   const reviewSignature = JSON.stringify([region, theme, selected, orderedPlaceIds, travelStart, travelEnd, scheduleAssignments, origin, routePlanning.activeRoute?.id, dayStartTime, itinerarySignature, weather?.updatedAt]);
   const journey = useJourneyProgress({
+    tripReady: planController.criteriaReady && tripSelection.storageReady,
     searched: planController.resultCurrent,
     reviewed: reviewedTrip === reviewSignature,
     itineraryReviewed,

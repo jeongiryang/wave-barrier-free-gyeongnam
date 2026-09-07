@@ -18,6 +18,7 @@ export interface JourneyStep {
 
 interface JourneyProgressOptions {
   motion: Motion;
+  tripReady?: boolean;
   observeSections?: boolean;
   activeStepId: JourneyStepId;
   onActiveStepChange: (id: JourneyStepId, navigate?: boolean) => void;
@@ -36,6 +37,7 @@ const STEP_IDS: JourneyStepId[] = ["conditions", "places", "itinerary", "departu
 
 export function useJourneyProgress({
   motion, observeSections = true,
+  tripReady = true,
   activeStepId,
   onActiveStepChange,
   selectedProfileCount,
@@ -117,8 +119,11 @@ export function useJourneyProgress({
   }, [motion, onActiveStepChange, observeSections, steps]);
 
   useEffect(() => {
+    // Storage is read after the first render. An initial zero count is not an
+    // empty trip: preserve the requested URL stage until restoration finishes.
+    if (!tripReady) return;
     if (!observeSections && !steps.find((step) => step.id === activeStepId)?.available) onActiveStepChange(searched ? "places" : "conditions");
-  }, [activeStepId, observeSections, onActiveStepChange, searched, steps]);
+  }, [activeStepId, observeSections, onActiveStepChange, searched, steps, tripReady]);
 
   const completedCount = steps.filter((step) => step.complete).length;
   const nextStep = steps.find((step) => !step.complete) || steps.at(-1)!;
