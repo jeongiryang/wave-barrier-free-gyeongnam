@@ -14,6 +14,12 @@ test("출발 준비 카드는 부분 성공을 구분하고 키보드로 한국 
     }));
   }, { date: today });
   await mockPlannerApi(page);
+  // This success fixture represents the selected itinerary place on its date.
+  // The default fixture is a historical reference and cannot confirm today's trip.
+  await page.route("**/api/wave?*", async (route) => {
+    if (new URL(route.request().url()).searchParams.get("action") !== "crowd") return route.fallback();
+    return route.fulfill({ status: 200, json: { crowd: { place: "경남도립미술관", rate: 24, baseYmd: today.replaceAll("-", "") } } });
+  });
   await page.route("**/api/weather**", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",

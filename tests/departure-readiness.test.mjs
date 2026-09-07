@@ -21,7 +21,7 @@ test("여행 날짜 없음·과거·당일·임박 상태를 구분한다", () =
 test("부분 API 성공을 전체 확인됨으로 올리지 않는다", () => {
   const result = assessDepartureReadiness({
     travelStart: "2026-08-31", today: "2026-08-31", weather, places: [verifiedPlace],
-    crowd: { rate: 24, place: "경남도립미술관", baseYmd: "20260830" },
+    crowd: { rate: 24, place: "경남도립미술관", baseYmd: "20260831" },
     transportProviders: [
       { name: "Kakao Mobility", state: "connected" },
       { name: "KORAIL", state: "ready" },

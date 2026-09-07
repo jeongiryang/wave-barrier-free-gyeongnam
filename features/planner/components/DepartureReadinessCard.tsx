@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { assessDepartureReadiness, buildTripCalendarIcs } from "../../../lib/departure-readiness.js";
+import { useState } from "react";
+import { assessDepartureReadiness } from "../../../lib/departure-assessment.js";
 import type { usePlannerParticipation } from "../hooks/usePlannerParticipation";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { PlanData, TransportProvider, WeatherData } from "../types";
@@ -15,6 +15,8 @@ import { useReadinessFocus } from "../hooks/useReadinessFocus";
 interface DepartureReadinessCardProps {
   region: string;
   plan: PlanData | null;
+  destinationCrowd?: PlanData["crowd"];
+  destinationPlaceId?: string;
   weather: WeatherData | null;
   weatherLoading: boolean;
   transportProviders: TransportProvider[];
@@ -42,27 +44,29 @@ function formatCheckedAt(value: string, en: boolean) {
 }
 
 export default function DepartureReadinessCard({
-  region, plan, weather, weatherLoading, transportProviders, tripSelection, participation, onRefresh,
+  region, plan, destinationCrowd, destinationPlaceId, weather, weatherLoading, transportProviders, tripSelection, participation, onRefresh,
 }: DepartureReadinessCardProps) {
   const { locale } = useSitePreferences();
   const focusVisibility = useReadinessFocus();
   const en = locale === "en";
   const displayRegion = en ? regionNames[region] || region : region;
   const statusLabel = en ? { confirmed: "Checked", partial: "Partly checked", recheck: "Recheck needed" } : koreanStatus;
-  const { travelStart, travelEnd, dayStartTime, orderedSavedPlaces } = tripSelection;
+  const { travelStart, travelEnd, dayStartTime, orderedSavedPlaces, scheduleAssignments } = tripSelection;
   const [refreshing, setRefreshing] = useState(false);
   const [calendarState, setCalendarState] = useState<"idle" | "saving" | "done" | "error">("idle");
-  const assessment = useMemo(() => assessDepartureReadiness({
+  const assessment = assessDepartureReadiness({
     locale,
     travelStart,
     today: localDate(),
     weather,
     weatherLoading,
-    crowd: plan?.crowd,
+    crowd: destinationCrowd || plan?.crowd,
+    crowdPlaceId: destinationCrowd ? destinationPlaceId : undefined,
+    scheduleAssignments,
     generatedAt: plan?.generatedAt,
     transportProviders,
     places: orderedSavedPlaces,
-  }), [locale, orderedSavedPlaces, plan?.crowd, plan?.generatedAt, transportProviders, travelStart, weather, weatherLoading]);
+  });
   const calendarDisabled = !plan || !orderedSavedPlaces.length || assessment.phase.id === "past";
 
   async function refresh() {
@@ -82,6 +86,7 @@ export default function DepartureReadinessCard({
       const rawShareUrl = await participation.ensureShareUrl();
       const shareUrl = sameOriginHttpUrl(rawShareUrl, window.location.origin);
       if (!shareUrl) throw new Error("공유 링크를 확인하지 못했습니다.");
+      const { buildTripCalendarIcs } = await import("../../../lib/trip-calendar.js");
       const contents = buildTripCalendarIcs({
         locale,
         travelStart,

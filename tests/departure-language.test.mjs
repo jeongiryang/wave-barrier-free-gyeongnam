@@ -6,9 +6,9 @@ test("English departure review preserves evidence states, dates and original sou
   const input = {
     travelStart: "2026-10-08", today: "2026-10-07",
     weather: { source: "원문 기상기관", updatedAt: "2026-10-07T01:00:00Z", days: [{ date: "2026-10-08", label: "비", rainProbability: 80, min: 20, max: 24 }] },
-    crowd: { place: "경남도립미술관", rate: 24, baseYmd: "20261007" },
+    crowd: { place: "경남도립미술관", rate: 24, baseYmd: "20261008" },
     transportProviders: [{ name: "Kakao Mobility", state: "connected" }, { name: "KORAIL", state: "ready" }],
-    places: [{ id: "1001", score: 100, knownFields: 4, checkedAt: "2026-10-06T01:00:00Z", source: "공식 원문 출처" }],
+    places: [{ id: "1001", name: "경남도립미술관", score: 100, knownFields: 4, checkedAt: "2026-10-06T01:00:00Z", source: "공식 원문 출처" }],
   };
   const ko = assessDepartureReadiness(input);
   const en = assessDepartureReadiness({ ...input, locale: "en" });

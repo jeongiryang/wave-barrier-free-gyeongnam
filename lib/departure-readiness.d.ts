@@ -25,6 +25,8 @@ export function assessDepartureReadiness(options?: {
   weather?: WeatherData | null;
   weatherLoading?: boolean;
   crowd?: { rate: number; baseYmd: string; place: string } | null;
+  crowdPlaceId?: string;
+  scheduleAssignments?: Record<string, string>;
   generatedAt?: string;
   transportProviders?: TransportProvider[];
   places?: Place[];
