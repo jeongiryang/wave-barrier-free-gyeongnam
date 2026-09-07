@@ -37,6 +37,10 @@ test("sandbox failures discard arbitrary output and never invoke an alternate ex
       calls++;
       assert.ok(path.isAbsolute(executable));
       assert.ok(args.includes("-I"));
+      for (const property of ["MemoryMax=6G", "MemorySwapMax=0", "TasksMax=1024", "CPUQuota=200%", "OOMPolicy=kill", "RuntimeMaxSec=1200"]) {
+        assert.ok(args.includes(`--property=${property}`));
+      }
+      assert.ok(args.includes("--user"));
       return result;
     }), error => /BLOCKED_SANDBOX/.test(error.message) && !error.message.includes("PUBLIC-TEST-PATH"));
     assert.equal(calls, 1);

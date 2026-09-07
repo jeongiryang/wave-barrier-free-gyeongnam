@@ -151,3 +151,14 @@ The reviewed external helper now creates a dedicated kernel tmpfs for the full d
 Quota exhaustion fails validation and therefore blocks publish/queue progression. A stricter32MiB public fixture writes several16MiB files (each below the per-file cap) and receives ENOSPC, with no PASS receipt or data files on the host scratch volume. Safe logs/artifacts are exported with their existing independent caps after repository processes exit. The trusted mount owner is not a permission to execute PR helpers outside the inner boundary.
 
 This candidate still requires exact-HEAD full application CI, independent QA and newly pinned external-install verify-only. The existing installed version/pins and original dirty10 remain preserved. Keep `blocked-sandbox`; do not run a queue tick or copy credentials. It is not proof of whole-queue E2E or a general memory/CPU denial-of-service certification.
+
+
+## Aggregate process resource prerequisite (candidate, not activated)
+
+The externally pinned helper now requires a real cgroup v2 with memory.max <=6GiB, memory.swap.max=0, pids.max<=1024, cpu.max<=200%, and memory.oom.group=1 before invoking any checkout command. Per-file limits and tmpfs quotas remain additional independent restrictions. The same1200s deadline is retained; larger suites must be safely partitioned without reducing tests or raising timeouts.
+
+The local bridge requests a transient systemd user service with those properties. A Windows/WSL installation without a running user manager and delegated memory/pids/cpu controllers is blocked-sandbox. It must not invoke the helper directly, request host sudo, change global sysctls/AppArmor, copy authentication into a runner, or fall back to a paid API. Current external installation pins are older and intentionally unchanged; install/verify-only requires independent review of this new candidate first.
+
+Disposable CI creates the cgroup as runner UID, never runs app code as root, and tests public memory/memfd/PID/CPU attacks. The quota-owner AppArmor profile comes from immutable commit a0f3af0820d4924042b98a06b09b36a41d0c74b9 and must match SHA256 5569873ac76c043f90aa14292b77109177b30d3b5c2f90fa28fa0b91a6688b35 before parser execution. Checkout profile changes cannot affect this installed policy. A future policy update requires a separately reviewed immutable source and matching pin; do not accept a task-provided hash or path.
+
+Actual queue smoke, new external pin verification, independent latest-HEAD PASS, schedule registration and Notion acknowledgement remain incomplete. CI812 success covers the previous boundary, not these additional resource/policy gates.

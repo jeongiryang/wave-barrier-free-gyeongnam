@@ -22,6 +22,27 @@ from urllib.parse import urlsplit
 DEADLINE = time.monotonic() + 20 * 60
 WORKSPACE_BYTES = 2 * 1024 * 1024 * 1024
 TEMP_BYTES = 512 * 1024 * 1024
+MEMORY_BYTES = 6 * 1024 * 1024 * 1024
+
+
+def assert_process_budget():
+    # Read kernel enforcement, never trust an environment variable or receipt.
+    # The trusted launcher creates this cgroup before any checkout code runs.
+    entry = next((line[3:] for line in pathlib.Path("/proc/self/cgroup").read_text().splitlines()
+                  if line.startswith("0::")), None)
+    if not entry or not entry.startswith("/") or ".." in pathlib.PurePosixPath(entry).parts:
+        fail()
+    group = pathlib.Path("/sys/fs/cgroup") / entry.lstrip("/")
+    def value(name):
+        return (group / name).read_text().strip()
+    try:
+        memory, swap, pids = (int(value(name)) for name in ["memory.max", "memory.swap.max", "pids.max"])
+        quota, period = map(int, value("cpu.max").split())
+        if not (0 < memory <= MEMORY_BYTES and swap == 0 and 0 < pids <= 1024
+                and 0 < quota <= 2 * period and period > 0 and value("memory.oom.group") == "1"):
+            fail()
+    except (ValueError, OSError):
+        fail()
 
 
 def fail():
@@ -76,6 +97,7 @@ def arguments(config, workspace, network=False):
 
 
 def invoke(args, timeout=30, *, dependency_install=False, input_data=None):
+    assert_process_budget()
     # bwrap's own PID 1/environment must not inherit coordinator credentials either.
     remaining = DEADLINE - time.monotonic()
     if remaining <= 0:
