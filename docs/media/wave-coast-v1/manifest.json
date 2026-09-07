@@ -17,6 +17,12 @@
       "bytes": 610879,
       "sha256": "0d906e9603cce303fe12a234764a1be66b8f230a5959b4a9c68370e228ae47c3",
       "git_blob_sha": "47644cb3d5f48fbe189eafd354cfb30f75307b1c"
+    },
+    {
+      "file": "wave-plan-together.webp",
+      "bytes": 270230,
+      "sha256": "df4d98bff5c702cb16d7565860a71ab2c711f96e125ba4223a0b5bf45e134e97",
+      "git_blob_sha": "31b6b940ed25db6e384ec92ec6490a9d7a78baa0"
     }
   ]
 }
