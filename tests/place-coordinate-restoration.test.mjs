@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
+import * as coordinates from "../lib/map-coordinates.js";
 
 const code = ts.transpileModule(readFileSync(new URL("../server/tourism/place-coordinates.ts", import.meta.url), "utf8"), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -9,6 +10,7 @@ const code = ts.transpileModule(readFileSync(new URL("../server/tourism/place-co
 async function run(items, { id = "1001", error = false } = {}) {
   const mod = { exports: {} }, calls = [];
   new Function("module", "exports", "require", code)(mod, mod.exports, name => {
+    if (name.endsWith("map-coordinates.js")) return coordinates;
     if (name.endsWith("/http")) return { json: (body, status = 200) => ({ body, status }) };
     if (name.endsWith("/provider-data")) return {
       commonParams: () => ({ numOfRows: "1" }),

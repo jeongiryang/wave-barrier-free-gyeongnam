@@ -30,6 +30,16 @@ test("device origins are blocked, missing coordinates are not silently bypassed"
   assert.equal(missing[1].fromLabel, "첫 장소");
 });
 
+test("invalid public coordinates block every affected adjacent leg without dropping saved places", () => {
+  for (const [mapX, mapY] of [["0", "0"], ["139.7", "35.6"], ["NaN", "35.2"], ["128.6", "Infinity"], ["128.6", ""]]) {
+    const legs = buildItineraryLegs({ ...options, places: [{ ...a, mapX, mapY }, b] });
+    assert.equal(legs.length, 2);
+    assert.equal(legs[0].to, null); assert.equal(legs[1].from, null);
+    assert.equal(legs[0].place.id, a.id); assert.equal(legs[1].place.id, b.id);
+  }
+  assert.equal(buildItineraryLegs({ ...options, origin: { lat: 0, lng: 0 } })[0].from, null);
+});
+
 test("only real routes for the chosen mode count as complete", () => {
   const bundle = { alternatives: [{ configured: true, totalTime: 25, mode: "car" }, { configured: false, totalTime: 10, mode: "transit" }, { configured: true, totalTime: NaN, mode: "bus" }, { configured: true, totalTime: 40, mode: "transit" }] };
   assert.deepEqual(usableLegRoutes(bundle, "car"), [bundle.alternatives[0]]);

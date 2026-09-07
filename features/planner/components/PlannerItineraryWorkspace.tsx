@@ -2,6 +2,7 @@
 
 import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
+import { supportedPlacePoint } from "../../../lib/map-coordinates.js";
 import type { MapPlace } from "../../routing/types";
 import type { useAudioGuide } from "../hooks/useAudioGuide";
 import type { useLocationSearch } from "../hooks/useLocationSearch";
@@ -47,10 +48,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   const { activeDay, setActiveDay, tripDays, scheduleAssignments } = props.tripSelection;
   const itineraryPlaces = useMemo(() => props.tripSelection.orderedSavedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === activeDay), [props.tripSelection.orderedSavedPlaces, activeDay, scheduleAssignments, tripDays]);
   const routableItineraryPlaces = useMemo(
-    () => itineraryPlaces.filter((place) => (
-      place.mapX.trim() !== "" && place.mapY.trim() !== ""
-      && Number.isFinite(Number(place.mapX)) && Number.isFinite(Number(place.mapY))
-    )),
+    () => itineraryPlaces.filter(place => supportedPlacePoint(place.mapX, place.mapY)),
     [itineraryPlaces],
   );
   const navigationPlaces = routableItineraryPlaces;

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import type { Place } from "../types";
 import { originalLanguage } from "../place-copy";
+import { supportedPlacePoint } from "../../../lib/map-coordinates.js";
 
 const messages = {
   available: ["공식 장소 위치를 확인했습니다.", "Official place location checked."],
@@ -23,7 +24,7 @@ export default function SavedPlaceCoordinateRecovery({ places, onRestore }: {
   const request = useRef<AbortController | null>(null);
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
-  const missing = places.filter(place => !place.mapX.trim() || !place.mapY.trim());
+  const missing = places.filter(place => !supportedPlacePoint(place.mapX, place.mapY));
   useEffect(() => () => { request.current?.abort(); request.current = null; }, []);
 
   async function restore() {
@@ -47,9 +48,7 @@ export default function SavedPlaceCoordinateRecovery({ places, onRestore }: {
               if (data?.id === place.id && Object.hasOwn(messages, data.status)) {
                 status = data.status;
                 if (status === "available") {
-                  if (!response.ok || typeof data.mapX !== "string" || typeof data.mapY !== "string"
-                    || !data.mapX.trim() || !data.mapY.trim() || !Number.isFinite(Number(data.mapX)) || !Number.isFinite(Number(data.mapY))
-                    || Number(data.mapX) < 124 || Number(data.mapX) > 132 || Number(data.mapY) < 33 || Number(data.mapY) > 39) status = "invalid-response";
+                  if (!response.ok || typeof data.mapX !== "string" || typeof data.mapY !== "string" || !supportedPlacePoint(data.mapX, data.mapY)) status = "invalid-response";
                   else recovered.push({ ...place, mapX: data.mapX, mapY: data.mapY });
                 }
               } else if (response.ok) status = "invalid-response";

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 
 async function restoredTrip(page: Page, locale: "ko" | "en") {
   await mockPlannerApi(page, { plannerView: "guided" });
@@ -20,6 +20,37 @@ async function restoredTrip(page: Page, locale: "ko" | "en") {
   // planner honors the selected locale. Do not pretend this page is translated.
   await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
   await expect(page).toHaveURL(/#itinerary$/);
+}
+
+for (const [mapX, mapY] of [["0", "0"], ["139.7", "35.6"], ["NaN", "35.2"], ["128.6", "Infinity"], ["128.6", ""]]) {
+  for (const locale of ["ko", "en"] as const) {
+    test(`${locale} invalid place ${mapX},${mapY} is recoverable but never mapped or sent as a journey`, async ({ page }) => {
+      await mockPlannerApi(page, { placeCoordinate: { mapX, mapY } });
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      let routeCalls = 0;
+      page.on("request", request => { if (new URL(request.url()).pathname === "/api/route") routeCalls++; });
+      await page.goto("/planner");
+      await chooseTripConditions(page);
+      await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+      if (locale === "en") {
+        await page.getByLabel("환경설정 열기", { exact: true }).click();
+        await page.getByRole("combobox", { name: "언어", exact: true }).selectOption("en");
+        await page.getByLabel("Open preferences", { exact: true }).click();
+      }
+      const en = locale === "en";
+      await expect(page.locator("#itinerary > .route-scope-note")).toContainText(en ? "0 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
+      const recovery = page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true });
+      await expect(recovery).toBeVisible();
+      await expect(recovery).toHaveAttribute("aria-disabled", "false");
+      await expect(page.locator(".itinerary-route-coverage")).toContainText(en ? "Coordinates unavailable" : "좌표 미확인");
+      const check = page.getByRole("button", { name: en ? "Check all journeys" : "모든 구간 조회하기", exact: true });
+      await check.click();
+      await expect(check).toHaveAttribute("aria-busy", "false");
+      expect(routeCalls).toBe(0);
+      await expect(page.getByRole("status").filter({ hasText: en ? "Coordinates unavailable:" : "좌표를 확인하지 못한 장소:" })).toContainText("경남도립미술관");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    });
+  }
 }
 
 for (const locale of ["ko", "en"] as const) {
@@ -79,7 +110,7 @@ for (const locale of ["ko", "en"] as const) {
     });
     await page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true }).press("Enter");
     await started;
-    await page.getByRole("button", { name: en ? "Preferences" : "여행 조건", exact: true }).click();
+    await page.getByRole("button", { name: en ? "Preferences" : "조건", exact: true }).click();
     await page.getByRole("button", { name: en ? "Hadong" : "하동", exact: true }).click();
     await page.getByRole("dialog").getByRole("button", { name: en ? "Start a new trip" : "새 여행으로 시작", exact: true }).click();
     release();

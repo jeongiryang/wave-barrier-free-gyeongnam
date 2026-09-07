@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { hasJourneyEstimate } from "../../../lib/route-estimates.js";
+import { supportedPlacePoint } from "../../../lib/map-coordinates.js";
 import type { RouteAlternative, RoutePoint } from "../../routing/types";
 import type { DestinationCrowd, Place, TransportContext, TransportProvider } from "../types";
 import { fetchDestinationCrowd, fetchRouteData } from "../services/route-data";
@@ -56,9 +57,8 @@ export function useRouteRequest(region: string) {
     routeRequestRef.current = controller;
     setRouteStart(origin);
     setRouteStartLabel(originLabel);
-    const endLat = Number(place.mapY);
-    const endLng = Number(place.mapX);
-    if (!place.mapX.trim() || !place.mapY.trim() || !Number.isFinite(endLat) || !Number.isFinite(endLng)) {
+    const endpoint = supportedPlacePoint(place.mapX, place.mapY);
+    if (!endpoint || !supportedPlacePoint(origin.lng, origin.lat)) {
       onNotice({ ko: "선택한 여행지에 좌표가 없어 경로를 계산할 수 없습니다. 카카오맵에서 장소 이름으로 확인해 주세요.", en: "This place has no coordinates for a route calculation. Search by its name in Kakao Maps." });
       setRouteAlternatives([]);
       setRouteDestination(place);
@@ -91,7 +91,7 @@ export function useRouteRequest(region: string) {
         if (!controller.signal.aborted && routeRequestRef.current === controller) setDestinationCrowd(null);
       });
     try {
-      const data = await fetchRouteData(origin, { lat: endLat, lng: endLng }, controller.signal);
+      const data = await fetchRouteData(origin, endpoint, controller.signal);
       if (controller.signal.aborted || routeRequestRef.current !== controller) return;
       const alternatives = data.alternatives || [];
       setRouteAlternatives(alternatives);

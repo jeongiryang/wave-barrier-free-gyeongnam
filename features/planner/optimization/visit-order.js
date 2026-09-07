@@ -1,12 +1,9 @@
+import { supportedPlacePoint } from "../../../lib/map-coordinates.js";
+
 const EARTH_RADIUS_KM = 6371;
 
 function coordinates(place) {
-  const latitude = place?.mapY ?? place?.lat;
-  const longitude = place?.mapX ?? place?.lng;
-  if (latitude == null || longitude == null || String(latitude).trim() === "" || String(longitude).trim() === "") return null;
-  const lat = Number(latitude);
-  const lng = Number(longitude);
-  return Number.isFinite(lat) && lat >= 33 && lat <= 39 && Number.isFinite(lng) && lng >= 124 && lng <= 132 ? { lat, lng } : null;
+  return supportedPlacePoint(place?.mapX ?? place?.lng, place?.mapY ?? place?.lat);
 }
 
 export function directDistanceKm(from, to) {

@@ -1,6 +1,7 @@
 import type { Env } from "../shared/env";
 import { json } from "../shared/http";
 import { attemptProvider, commonParams, fetchTourismData } from "../shared/provider-data";
+import { supportedPlacePoint } from "../../lib/map-coordinates.js";
 
 // Revalidate a public tourism ID only. No user position or stored archive is sent.
 export async function handlePlaceCoordinates(url: URL, env: Env) {
@@ -15,8 +16,7 @@ export async function handlePlaceCoordinates(url: URL, env: Env) {
   if (!item) return json({ id, status: "invalid-response" }, 502);
   const mapX = String(item.mapx ?? "").trim(), mapY = String(item.mapy ?? "").trim();
   if (!mapX || !mapY) return json({ id, status: "coordinates-missing" });
-  if (!Number.isFinite(Number(mapX)) || Number(mapX) < 124 || Number(mapX) > 132
-    || !Number.isFinite(Number(mapY)) || Number(mapY) < 33 || Number(mapY) > 39) {
+  if (!supportedPlacePoint(mapX, mapY)) {
     return json({ id, status: "invalid-response" }, 502);
   }
   return json({ id, status: "available", mapX, mapY, source: "ⓒ한국관광공사" });
