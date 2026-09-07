@@ -22,15 +22,21 @@
     "commentId": 5566069634,
     "revision": "19bf9e6c878dccb2a7ddcc554595c4e96baad3374e690eb0fc3990236f17fec0"
   },
-  "state": "queued",
+  "state": "implementing",
   "attempts": {
-    "implementation": 1,
+    "implementation": 2,
     "qa": 2
   },
   "headSha": "d58e893d17e8d880aee42a12cb62aec83deca934",
-  "generation": 4,
-  "updatedAt": 1788764313647,
-  "lease": null,
+  "generation": 5,
+  "updatedAt": 1788765251689,
+  "lease": {
+    "phase": "implementation",
+    "owner": "implementation-29fafebe-d336-4631-b7e8-13afb5e3ad14",
+    "token": "8cbc383b-4c39-4400-811d-b1ec5cea8030",
+    "expiresAt": 1788767051689,
+    "headSha": "d58e893d17e8d880aee42a12cb62aec83deca934"
+  },
   "receipts": [
     {
       "kind": "ci",
