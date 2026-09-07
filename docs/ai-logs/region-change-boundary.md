@@ -33,6 +33,13 @@ automatic-criteria no-clear assertion is retained on the request path; reset
 and delayed old-response behavior now have executable hook tests. The root
 state-setter assertion uses identifier boundaries. No failed behavior is hidden.
 
+CI #788 (`34114359487`, `e7a694a`): lint/typecheck and unit/contract **497 PASS,
+0 FAIL, 0 skip**, Vercel build PASS. Performance gate FAIL: planner initial
+JavaScript **270.50 KiB > 270 KiB**. The budget is unchanged. Region-dialog
+details/actions are now a deferred module inside an immediately mounted native
+dialog. Heading/cancel and focus containment remain available during loading;
+module failure keeps the itinerary and offers cancellation/reload guidance.
+
 - Added storage commit/failure/reload contracts and midnight regression.
 - Added KO/EN, light/dark, 320px modal, keyboard focus/trap/cancel and axe E2E;
   preservation/new-trip/reload, rapid region requests and history checks.

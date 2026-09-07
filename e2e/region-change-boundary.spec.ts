@@ -71,6 +71,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await trigger.focus(); await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog", { name: en ? "How would you like to visit Hadong?" : "하동 여행을 어떻게 시작할까요?" });
     await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("button", { name: en ? "Start a new trip" : "새 여행으로 시작", exact: true })).toBeVisible();
     expect(await current(page)).toEqual(before);
     await expect(dialog.getByRole("heading")).toBeFocused();
     await page.keyboard.press("Shift+Tab");
