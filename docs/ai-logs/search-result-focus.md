@@ -1,5 +1,13 @@
 # 검색 결과·단계 이동의 포커스와 늦은 응답 — 2026-09-07
 
+## 최신 독립 QA 수정 — 2026-09-07 05:11 UTC
+
+- 이전12dc50d의 전체633 PASS/기존skip1(18.1분), [CI34082319923](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34082319923)633 PASS/기존skip1/flaky0를 확인했다. 하지만 독립 리뷰5127999969의 P1 두 사용자 전환이 남아 있었으므로 완료/Ready로 판정하지 않았다.
+- 출발 확인에서 주변 장소 경로 보기·혼잡 대안 교체를 실행하면 `changeStep`의 기본 무포커스 계약을 사용해 숨긴 버튼에 포커스와 이전 URL이 남았다. 새 KO/EN·desktop/mobile 8개 모두 같은 focus assertion에서 FAIL → 수정 후8 PASS(24.1초).
+- 같은 호출 형태의 날씨 대안 재검색도 추가4개 모두 조건 제목 focus 검사에서 FAIL. 명시적인 세 사용자 전환만 `navigate=true`로 바꾸고, 표시된 섹션으로 제목 포커스와 정적 스크롤을 맞췄다. 주변 장소 호출의 별도 navigation 스크롤은 제거해 제목을 화면 밖으로 다시 밀지 않는다. 내부 상태 동기화·observer는 기존 무포커스 경계를 유지한다.
+- 최종 관련 search-result-focus/launch-integrity/route-selection-stability **94 PASS(3.0분)**, unit498/lint/typecheck/Vercel build/performance PASS. CSS69.82/70, planner269.74/270, landing115.11/155, 최대chunk95.92/110KiB. 새12건은 확인 대화·일정 ID/교체·지연 요청·제목 가시성·URL·실제 뒤로가기를 검사한다. 날씨 검사 작성 중 한국어 재조회 버튼명을 실제 계약으로 바로잡았으며 기준·timeout·skip은 완화하지 않았다.
+- 이 증분의 전체646개·새 HEAD CI·최신 합성 Preview·독립 재판정은 다음 검증 단계다. 아래 이전 실행 대기 기록은 당시 상태이며 이 최신 결과와 구분한다. source #3434c46f29 및 #34443050e6는 보존했고 #334 base는 리뷰 전 진행시키지 않는다. Production34e6021/사람 리뷰3건/008 운영 게이트는 그대로다.
+
 ## 재현과 원인
 
 실제 Preview `c1bae6f80f58fb2ec58d7e00160ad7869f2bdeef`에서 검색과 다음 단계 이동 뒤 포커스가 body로 돌아갔다. 같은 배포에서 중립 상태→실제 KTO 추천5곳→공식 상세→일정2곳→ODsay47분/52분2구간→로컬 여행집 저장은 동작했다. 자동 smoke는 Vercel 보호401이고 직접 health 페이지는 ERR_BLOCKED_BY_CLIENT여서 전체 API 검증으로 세지 않았다. 기본지도 대체 전환·현장 후기 조회 실패는 원인 미확정으로 남겼다.

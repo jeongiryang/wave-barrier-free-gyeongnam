@@ -10,9 +10,9 @@ test.beforeEach(async ({ page }) => {
 });
 test.afterEach(async ({ page }) => { expect(errors.get(page)).toEqual([]); });
 
-async function prepare(page: Page, en = false) {
+async function prepare(page: Page, en = false, crowdRate?: number) {
   await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 390 : 1366, height: 900 });
-  await mockPlannerApi(page, { plannerView: "guided" });
+  await mockPlannerApi(page, { plannerView: "guided", crowdRate });
   await page.addInitScript(value => localStorage.setItem("wave-locale", value), en ? "en" : "ko");
   await page.goto("/planner");
   await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>(".journey-mode-toggle button")?.disabled);
@@ -27,6 +27,75 @@ async function prepare(page: Page, en = false) {
 }
 
 for (const en of [false, true]) {
+test(`weather alternative search keeps focus during the return to conditions ${en ? "English" : "Korean"}`, async ({ page }) => {
+  const search = await prepare(page, en);
+  const date = await page.locator('input[type="date"]').first().inputValue();
+  await page.route("**/api/weather?*", route => route.fulfill({ json: {
+    region: "창원", source: "Open-Meteo", updatedAt: "2026-09-07T00:00:00Z",
+    current: { temperature: 23, apparent: 23, code: 61, label: "비", wind: 2, precipitation: 3, isDay: true },
+    days: [{ date, code: 61, label: "비", max: 24, min: 20, rainProbability: 80, rain: 3, snow: 0, uv: 2, advice: [] }], advice: [],
+  } }));
+  await search.click();
+  await page.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.locator(".journey-rail nav button").last().click();
+  await page.getByRole("button", { name: en ? "Check latest information" : "최신 정보 확인", exact: true }).click();
+  await page.locator("#layers > summary").click();
+  const trigger = page.getByRole("button", { name: en ? "Find history and culture alternatives" : "역사·문화 후보로 다시 찾기", exact: true });
+  await expect(trigger).toBeVisible();
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/api/wave?*", async route => {
+    if (new URL(route.request().url()).searchParams.get("action") === "plan") await gate;
+    await route.fallback();
+  });
+  await trigger.focus(); await trigger.press("Enter");
+  try {
+    await expect(page.locator(".condition-heading")).toBeFocused();
+    await expect(page).toHaveURL(/#conditions$/);
+  } finally { release(); }
+  await expect(page.locator("#places h2").first()).toBeFocused();
+  await expect(page).toHaveURL(/#places$/);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
+});
+
+for (const action of ["nearby", "alternative"] as const) test(`departure ${action} selection focuses the itinerary and preserves browser history ${en ? "English" : "Korean"}`, async ({ page }) => {
+  const search = await prepare(page, en, 84);
+  await page.route("**/api/wave?*", async route => {
+    if (new URL(route.request().url()).searchParams.get("action") !== "enrich") return route.fallback();
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+      generatedAt: "2026-09-07T00:00:00Z", visitor: { total: 0, byType: {}, startYmd: "", endYmd: "" }, demand: [],
+      camping: [], pet: [], wellness: [], medical: [], language: [], awards: [], water: [], rests: [], lodging: [], statuses: [],
+      events: [{ id: "1003", title: "창원 문화 행사", mapX: "128.68", mapY: "35.23", address: "경남 창원시", tag: "행사", source: "한국관광공사", image: "", summary: "지역 행사" }],
+    }) });
+  });
+  await search.click();
+  await page.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.locator(".journey-rail nav button").last().click();
+  await expect(page).toHaveURL(/#departure-readiness$/);
+  await page.locator("#layers > summary").click();
+  const trigger = action === "nearby"
+    ? page.locator(".rich-card").getByRole("button", { name: "지도에서 경로 보기 ↗", exact: true })
+    : page.getByRole("button", { name: en ? "Compare replacing with 용지호수공원" : "용지호수공원(으)로 교체 검토", exact: true });
+  await expect(trigger).toBeVisible();
+  await trigger.focus();
+  page.once("dialog", dialog => dialog.accept());
+  await trigger.press("Enter");
+  const heading = page.locator("#itinerary-stage-title");
+  await expect(heading).toBeFocused();
+  await expect(page).toHaveURL(/#itinerary$/);
+  await expect(page.locator(".day-planner-grid li")).toHaveCount(action === "nearby" ? 2 : 1);
+  await expect(page.locator(".day-planner-grid")).toContainText(action === "nearby" ? "창원 문화 행사" : "용지호수공원");
+  await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
+  await expect(heading).toBeFocused();
+  await expect.poll(() => heading.evaluate(element => {
+    const box = element.getBoundingClientRect();
+    return box.top >= 0 && box.bottom <= innerHeight;
+  })).toBe(true);
+  await page.goBack();
+  await expect(page).toHaveURL(/#departure-readiness$/);
+  await expect(page.locator("#departure-readiness h2").first()).toBeFocused();
+});
+
 test(`keyboard search moves focus to the displayed results and synchronizes the URL ${en ? "English" : "Korean"}`, async ({ page }) => {
   const search = await prepare(page, en);
   await search.focus();

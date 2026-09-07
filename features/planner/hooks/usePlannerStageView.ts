@@ -104,6 +104,7 @@ export function usePlannerStageView() {
     const heading = section.querySelector<HTMLElement>("h2, h3") || section;
     heading.setAttribute("tabindex", "-1");
     heading.focus({ preventScroll: true });
+    scrollToSection(focusTarget.id, true);
     focusedRequest.current = focusTarget;
   }, [activeStepId, view, focusTarget]);
 

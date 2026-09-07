@@ -150,7 +150,7 @@ export default function PlannerPage() {
     onCultureSearch: async () => {
       if (planController.loading) return;
       setTheme("history");
-      stageView.changeStep("conditions");
+      stageView.changeStep("conditions", true);
       await runPlan({ resetRouteData, resetAudio, requestedTheme: "history", onRevealResults: () => stageView.changeStep("places", true) });
     },
     onSelectDestination: (place) => {
@@ -166,7 +166,7 @@ export default function PlannerPage() {
         }
         tripSelection.setActiveDay(day);
       }
-      stageView.changeStep("itinerary");
+      stageView.changeStep("itinerary", true);
       return true;
     },
     onReplaceAlternative: () => {
@@ -179,7 +179,7 @@ export default function PlannerPage() {
       if (tripSelection.replaceSavedPlace(target.id, impactAlternative)) {
         resetRouteData();
         setNotice("replaced");
-        stageView.changeStep("itinerary");
+        stageView.changeStep("itinerary", true);
       }
     },
     updateOrigin,
