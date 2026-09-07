@@ -17,6 +17,7 @@ async function prepare(page: Page, en: boolean, theme: string, configure?: () =>
   await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
   await page.getByRole("button", { name: en ? /Nature and relaxation/ : /자연·휴양 공원/ }).click();
   await page.getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "ko");
 }
 
 for (const en of [false, true]) for (const theme of ["light", "dark"]) {
@@ -26,7 +27,8 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     });
     const photo = page.locator(".place-card .place-visual").first();
     await photo.scrollIntoViewIfNeeded();
-    await expect(photo.locator("img")).toBeVisible();
+    const image = photo.locator("img");
+    await expect(image).toBeVisible();
     const contrast = await photo.locator(".city-chip").evaluate(element => {
       const style = getComputedStyle(element);
       const parse = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
@@ -37,7 +39,8 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
       return (Math.max(f, b) + .05) / (Math.min(f, b) + .05);
     });
     expect(contrast).toBeGreaterThanOrEqual(4.5);
-    await expect(photo.locator("img")).toHaveAttribute("alt", en ? "Photo of 경남도립미술관" : "경남도립미술관 관광사진");
+    await expect(image).toHaveAttribute("alt", en ? "경남도립미술관" : "경남도립미술관 관광사진");
+    await expect(image).toHaveAttribute("lang", "ko");
     expect((await new AxeBuilder({ page }).include(".place-carousel").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`photo-${en ? "en" : "ko"}-${theme}.png`) });
   });
@@ -61,13 +64,20 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     });
     const card = page.locator(".place-card").first();
     await card.scrollIntoViewIfNeeded();
+    const status = card.getByRole("status");
     try {
-      await expect(card.getByRole("status")).toHaveAccessibleName(en ? "Loading photo of 경남도립미술관" : "경남도립미술관 관광사진 불러오는 중");
+      await expect(status).toHaveAccessibleName(en ? "Loading official photo" : "경남도립미술관 관광사진 불러오는 중");
+      await expect(status).toHaveAttribute("lang", en ? "en" : "ko");
     } finally { release(); }
-    await expect(card.locator(".smart-image-fallback small")).toHaveText(en ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요");
-    await expect(card.locator(".smart-image-fallback img")).toHaveCount(0);
+    const fallback = card.locator(".smart-image-fallback");
+    await expect(fallback.locator("small")).toHaveText(en ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요");
+    await expect(fallback.locator("small")).toHaveAttribute("lang", en ? "en" : "ko");
+    await expect(fallback.locator("b")).toHaveAttribute("lang", "ko");
+    await expect(fallback.locator("> span > span").first()).toHaveAttribute("lang", "ko");
+    await expect(fallback.locator("> span > span").nth(1)).toHaveAttribute("lang", en ? "en" : "ko");
+    await expect(fallback.locator("img")).toHaveCount(0);
     expect(queries).toEqual(["1001"]);
-    await expect(card.locator(".smart-image-fallback")).not.toContainText(en ? "여행" : "Official photo");
+    await expect(fallback).not.toContainText(en ? "여행" : "Official photo");
     await card.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
     expect((await new AxeBuilder({ page }).include(".place-carousel").analyze()).violations).toEqual([]);
