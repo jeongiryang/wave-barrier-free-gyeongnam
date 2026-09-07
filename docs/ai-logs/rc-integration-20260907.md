@@ -101,3 +101,9 @@ existing RC history, not a replacement PR or rewritten source history.
   the unapplied 008 migration prerequisites remain separate gates.
 - #341 is a design document, not implemented landing work. Post-RC #350–#354 are
   outside this stabilization change.
+
+## CI806 performance regression
+
+- `f87294035172b2ba9fcdab520c0a8631d00bd1e9`, run34131988536: workflow static checks, both dependency audits, lint, typecheck, unit/contract549 and Vercel build passed. Quality then failed because CSS gzip measured70.01KiB against the unchanged70KiB budget. Browser shards were still running when this fix was prepared.
+- Removed eleven obsolete rules for the retired `hero-proof`, `hero-noise` and `map-halo` classes from `landing-explorer.css` and their responsive overrides in `place-dialog.css`. Repository source search found no rendered or dynamic references; current `LandingHero` uses `landing-hero`, `WaveField` and the four-step journey summary. No active component styling or budget was changed.
+- `git diff --check` passed. Exact post-build size and complete browser/axe regression require the fresh CI; no host repository npm execution was used. No assertion, locator, skip, worker or timeout was changed.
