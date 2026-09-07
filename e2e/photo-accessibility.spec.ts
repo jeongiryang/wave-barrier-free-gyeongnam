@@ -73,8 +73,8 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(fallback.locator("small")).toHaveText(en ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요");
     await expect(fallback.locator("small")).toHaveAttribute("lang", en ? "en" : "ko");
     await expect(fallback.locator("b")).toHaveAttribute("lang", "ko");
-    await expect(fallback.locator("> span > span").first()).toHaveAttribute("lang", "ko");
-    await expect(fallback.locator("> span > span").nth(1)).toHaveAttribute("lang", en ? "en" : "ko");
+    await expect(fallback.locator(":scope > span > span").first()).toHaveAttribute("lang", "ko");
+    await expect(fallback.locator(":scope > span > span").nth(1)).toHaveAttribute("lang", en ? "en" : "ko");
     await expect(fallback.locator("img")).toHaveCount(0);
     expect(queries).toEqual(["1001"]);
     await expect(fallback).not.toContainText(en ? "여행" : "Official photo");
