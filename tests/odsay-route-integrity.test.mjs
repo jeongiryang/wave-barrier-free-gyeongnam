@@ -9,7 +9,7 @@ const source = readFileSync(new URL("../server/transport/odsay.ts", import.meta.
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const valid = () => ({ result: { searchType: 0, path: [{ pathType: 2, info: { totalTime: 14, totalDistance: 2000, trafficDistance: 1800, totalWalk: 200, payment: 1500 }, subPath: [
   { trafficType: 3, sectionTime: 2, distance: 100 },
-  { trafficType: 2, sectionTime: 12, distance: 1800, lane: [{ busNo: "10" }], startX: 128.68, startY: 35.22, endX: 128.69, endY: 35.23 },
+  { trafficType: 2, sectionTime: 12, distance: 1800, lane: [{ busNo: "10" }], startX: 128.6705, startY: 35.2105, endX: 128.6995, endY: 35.2395 },
   { trafficType: 3, sectionTime: 0, distance: 100 },
 ] }] } });
 async function run(body, { status = 200, fail = false, key = "fixture-not-a-real-key" } = {}) {
@@ -22,7 +22,7 @@ async function run(body, { status = 200, fail = false, key = "fixture-not-a-real
     if (name.endsWith("http")) return { clean: value => String(value) };
     throw Error(name);
   }, async () => { if (fail) throw Error("controlled timeout"); return { ok: status === 200, status, json: async () => body }; });
-  return mod.exports.fetchOdsayRoutes({ ODSAY_API_KEY: key }, 35.21, 128.67, 35.24, 128.70, 1000);
+  return mod.exports.fetchOdsayRoutes({ ODSAY_API_KEY: key }, 35.21, 128.67, 35.24, 128.70);
 }
 test("complete city route retains actual totals and zero-minute walking transfers", async () => {
   const result = await run(valid());
@@ -92,6 +92,87 @@ async function api(body) {
 }
 test("API only confirms a complete city alternative", async () => {
   const result = await api(valid()); assert.equal(result.configured, true); assert.equal(result.alternatives[0].mode, "transit"); assert.equal(result.providers[0].state, "connected");
+});
+
+for (const [name, change, message] of [
+  ["Seoul stops for a Gyeongnam request", p => Object.assign(p.subPath[1], { startX: 127, startY: 37.5, endX: 127.01, endY: 37.51 }), /출발·도착/],
+  ["unrelated arrival only", p => Object.assign(p.subPath[1], { endX: 127, endY: 37.5 }), /출발·도착/],
+  ["reversed boarding and alighting", p => Object.assign(p.subPath[1], { startX: 128.6995, startY: 35.2395, endX: 128.6705, endY: 35.2105 }), /출발·도착/],
+  ["implausible declared walk cannot authorize Seoul", p => { Object.assign(p.subPath[1], { startX: 127, startY: 37.5 }); p.subPath[0].distance = 400000; p.info.totalWalk = 400100; }, /출발·도착/],
+  ["missing access walk distance", p => delete p.subPath[0].distance, /도보·환승/],
+  ["missing egress walk distance", p => delete p.subPath[2].distance, /도보·환승/],
+  ["zero access distance despite distant stop", p => { p.subPath[0].distance = 0; p.info.totalWalk = 100; }, /출발·도착/],
+  ["total walking distance omits access and egress", p => p.info.totalWalk = 0, /도보·환승/],
+  ["missing boarding coordinate", p => delete p.subPath[1].startX, /위치가 빠져/],
+  ["outside coordinate envelope", p => p.subPath[1].startX = 139, /지원 좌표 범위/],
+  ["unconnected transfer with valid request endpoints", p => {
+    const second = { ...p.subPath[1], startX: 127, startY: 37.5 };
+    p.subPath.splice(2, 0, { trafficType: 3, sectionTime: 0, distance: 0 }, second);
+  }, /도보·환승/],
+]) test(`${name} remains unconfirmed through the public API`, async () => {
+  const body = valid(); change(body.result.path[0]);
+  const result = await api(body);
+  assert.equal(result.configured, false);
+  assert.deepEqual(result.alternatives.map(route => route.mode), ["preview"]);
+  assert.equal(result.alternatives[0].configured, false);
+  assert.equal(result.providers[0].state, "error");
+  assert.match(result.providers[0].detail, message);
+});
+
+test("adjacent rides keep a real zero-minute zero-distance transfer", async () => {
+  const body = valid(); const path = body.result.path[0];
+  const second = { ...path.subPath[1], startX: 128.685, startY: 35.225 };
+  Object.assign(path.subPath[1], { endX: 128.685, endY: 35.225 });
+  path.subPath.splice(2, 0, { trafficType: 3, sectionTime: 0, distance: 0 }, second);
+  const result = await run(body);
+  assert.equal(result.provider.state, "connected");
+  assert.equal(result.routes[0].transfers, 1);
+  assert.equal(result.routes[0].segments[2].minutes, 0);
+});
+
+test("a documented access walk over 1 km can connect without claiming accessibility", async () => {
+  const body = valid(); const path = body.result.path[0];
+  Object.assign(path.subPath[1], { startX: 128.68, startY: 35.22 });
+  path.subPath[0].distance = 1600; path.info.totalWalk = 1700;
+  const result = await run(body);
+  assert.equal(result.provider.state, "connected");
+  assert.equal(result.routes[0].totalWalk, 1700);
+  assert.equal(result.routes[0].segments[0].type, "walk");
+});
+
+test("missing walk segments only permit colocated endpoints", async () => {
+  const body = valid(); const path = body.result.path[0];
+  path.subPath = [path.subPath[1]]; path.info.totalWalk = 0;
+  assert.equal((await run(body)).provider.state, "error");
+  Object.assign(path.subPath[0], { startX: 128.67, startY: 35.21, endX: 128.70, endY: 35.24 });
+  assert.equal((await run(body)).provider.state, "connected");
+});
+
+test("unchecked optional walk geometry cannot insert unrelated points", async () => {
+  const body = valid(); Object.assign(body.result.path[0].subPath[0], { startX: 127, startY: 37.5, endX: 127.01, endY: 37.51 });
+  const result = await run(body);
+  assert.equal(result.provider.state, "connected");
+  assert.equal(result.routes[0].geometry.length, 4);
+  assert.ok(result.routes[0].geometry.every(point => point.lat < 36));
+});
+
+test("an unrelated alternative does not hide a valid request-matching route", async () => {
+  const body = valid(); const unrelated = structuredClone(body.result.path[0]);
+  Object.assign(unrelated.subPath[1], { startX: 127, startY: 37.5 });
+  body.result.path.unshift(unrelated);
+  const result = await api(body);
+  assert.equal(result.configured, true); assert.equal(result.alternatives.length, 1);
+  assert.equal(result.providers[0].state, "connected");
+  assert.ok(result.alternatives[0].geometry.every(point => point.lat < 36));
+});
+
+test("empty, upstream failure, missing coordinates, unsupported coordinates and disconnected endpoints have different public details", async () => {
+  const missing = valid(); delete missing.result.path[0].subPath[1].startX;
+  const outside = valid(); outside.result.path[0].subPath[1].startX = 139;
+  const mismatch = valid(); mismatch.result.path[0].subPath[1].startY = 37.5;
+  const results = await Promise.all([{ result: { path: [] } }, { error: { code: 500 } }, missing, outside, mismatch].map(run));
+  assert.deepEqual(results.map(result => result.provider.state), ["ready", "error", "error", "error", "error"]);
+  assert.equal(new Set(results.map(result => result.provider.detail)).size, 5);
 });
 for (const body of [{}, { result: { searchType: 1, path: [{ pathType: 12 }] } }, { result: { path: [{ info: {} }] } }]) test(`API keeps incomplete ${JSON.stringify(body)} unconfirmed`, async () => {
   const result = await api(body); assert.equal(result.configured, false); assert.equal(result.alternatives[0].configured, false); assert.equal(result.alternatives[0].mode, "preview"); assert.equal(result.providers[0].state, "error");

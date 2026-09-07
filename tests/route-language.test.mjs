@@ -1,7 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { routeResultNotice, routeTitle } from "../features/planner/route-copy.ts";
+import { routeResultNotice, routeTitle, transitDetail } from "../features/planner/route-copy.ts";
 import { hasJourneyEstimate } from "../lib/route-estimates.js";
+import { odsayProviderStatus } from "../lib/transport/odsay-response.js";
+
+test("ODsay validation, empty and upstream failures stay distinct in both languages", () => {
+  const messages = new Set();
+  for (const code of ["MISSING_COORDINATES", "OUTSIDE_COORDINATES", "ENDPOINT_MISMATCH", "MISSING_CONNECTION", "INVALID_ROUTE", "INTERCITY_INCOMPLETE", "-99", "500"]) {
+    const status = odsayProviderStatus({ configured: true, error: { code, message: "untrusted upstream text" } });
+    assert.equal(transitDetail(status.detail, false), status.detail);
+    const english = transitDetail(status.detail, true);
+    assert.doesNotMatch(english, /[가-힣]|untrusted upstream text/);
+    assert.match(english, /external map/);
+    messages.add(english);
+  }
+  assert.equal(messages.size, 8);
+});
 
 test("journey estimates reject nonfinite, zero, negative, string and preview times", () => {
   for (const totalTime of [0, -1, NaN, Infinity, -Infinity, "25", null, undefined]) {
