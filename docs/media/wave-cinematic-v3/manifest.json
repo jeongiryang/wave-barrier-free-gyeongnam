@@ -1,0 +1,155 @@
+{
+  "version": 3,
+  "date": "2026-09-07",
+  "source": "WAVE original generated images and procedural/Canvas motion",
+  "fictional": true,
+  "product_integration": "pending",
+  "browser_verification": "blocked-local-url-policy",
+  "files": [
+    {
+      "path": "PROMPTS.md",
+      "bytes": 6309,
+      "sha256": "f4c565478f4c7ed9e0eb2683760dca8d9221d0558f6e3c4e3c9e0c4043c3ab3d"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9461,
+      "sha256": "d728f4f4044bc9db5dfcf18d0f97b594687a3f592d56c2d8e8ac4a5b773d54ef"
+    },
+    {
+      "path": "VALIDATION.md",
+      "bytes": 2147,
+      "sha256": "0e11e09d4597c2ddcd810a2bc033629cf3bf83f0bf9336f7c447ae9a62fc67d1"
+    },
+    {
+      "path": "images/garden-discovery-small.webp",
+      "bytes": 157768,
+      "sha256": "d1c2f5b114315a9e98967318a764ee51376092ce23fc2c2a1b71680624c0401d"
+    },
+    {
+      "path": "images/garden-discovery.webp",
+      "bytes": 548638,
+      "sha256": "c1725fa016b3d76a2edd2f44c690460716895370a55feed94d4f4c200e01cf63"
+    },
+    {
+      "path": "images/harbor-closing-small.webp",
+      "bytes": 23286,
+      "sha256": "f41ff00f41d4ba6f6fa8fc56a7570d83b40e4c4a0760927441c7b086a9df746b"
+    },
+    {
+      "path": "images/harbor-closing.webp",
+      "bytes": 116320,
+      "sha256": "d40f90be1217dea1a87374c9998c590c2d265292b747b4ce8ca651fae394f462"
+    },
+    {
+      "path": "images/hero-coast-small.webp",
+      "bytes": 51378,
+      "sha256": "e20aa491b7542f159024f16dbb6299f4af49acb65e1e17c6cc8cc82da113ea81"
+    },
+    {
+      "path": "images/hero-coast.webp",
+      "bytes": 301256,
+      "sha256": "9cc738dab9d06232d750df6e452a3b39411750bdfc16b40967edaf5b05ce6e59"
+    },
+    {
+      "path": "images/journey-poster.webp",
+      "bytes": 49008,
+      "sha256": "9fb9e8ed0a056987616f8521960c40f65dfddc01b879227ed6715b5549f56ec0"
+    },
+    {
+      "path": "images/ocean-expand-small.webp",
+      "bytes": 91608,
+      "sha256": "75849001547c35b0f02fbf6dd5752dfa898206ba3ea94577fac38ae5b55a4816"
+    },
+    {
+      "path": "images/ocean-expand.webp",
+      "bytes": 451372,
+      "sha256": "1e65523a004e8b223238b3b8b41c9db705b095bf8ddd808c4053dbd78c2cc940"
+    },
+    {
+      "path": "images/ocean-poster.webp",
+      "bytes": 11762,
+      "sha256": "3efcaa3d2cbbc13d9d2f699c4d42f9871f7e69a7994947ce6186a4a1643a4937"
+    },
+    {
+      "path": "images/travel-together-small.webp",
+      "bytes": 46122,
+      "sha256": "f8133fab3ff348025ddfbe5a9003b92cfadfd3c2ada4105f4159b84f114c59e6"
+    },
+    {
+      "path": "images/travel-together.webp",
+      "bytes": 217528,
+      "sha256": "6bff4c0974eed71c6399d973136497f8d8ff1879c94fb1f1c940ae022db73a8b"
+    },
+    {
+      "path": "preview/cinematic.css",
+      "bytes": 9725,
+      "sha256": "e72b177ba75d00dc149ed286e53254e34c0dcacd70b75071d758bf764d3776de"
+    },
+    {
+      "path": "preview/cinematic.js",
+      "bytes": 10225,
+      "sha256": "384a87746756605edd1d8341cc7961ab969a5370aa9ebc81f242aa4994b8c0d7"
+    },
+    {
+      "path": "preview/cinematic.mjs",
+      "bytes": 6338,
+      "sha256": "a6ccdd3e7a48363e8b9964218acea6b037cb3bdd03ec48beaf249891224ae407"
+    },
+    {
+      "path": "preview/index.html",
+      "bytes": 7137,
+      "sha256": "0e721bd7d9ff095588a171d6299bac608ca674c5677b0546b8f16a96b2e3b775"
+    },
+    {
+      "path": "source/OFL-NotoSansKR.txt",
+      "bytes": 4388,
+      "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
+    },
+    {
+      "path": "source/build-preview.py",
+      "bytes": 479,
+      "sha256": "4056fe4e21b20e088c89d30ccab4436bc718f16b7cd24ebf9295075b59d411cc"
+    },
+    {
+      "path": "source/journey-scene.mjs",
+      "bytes": 3858,
+      "sha256": "53482d8a9acee772cecf0db69ca96dcacee62877bc712906d202995a25795699"
+    },
+    {
+      "path": "source/noto-sans-kr-subset.woff",
+      "bytes": 51040,
+      "sha256": "b6b720938abdca74f76efab86895ec36f690649814b6acfda2559f0e19b44626"
+    },
+    {
+      "path": "source/render-coast.py",
+      "bytes": 1989,
+      "sha256": "b1005d73e481702130dd543784d076b57c7bc1d64984ca03cba1a0dd396cda2c"
+    },
+    {
+      "path": "source/render-journey.mjs",
+      "bytes": 1896,
+      "sha256": "67647a7415ff7486b0d884071f6af9534ab499c354efae2844e382c786c3dc41"
+    },
+    {
+      "path": "source/render-ocean.py",
+      "bytes": 3156,
+      "sha256": "21a70cac0afa1e9ab98f699830627409fc189e5538f5ff8260cd3c15ccd9427c"
+    },
+    {
+      "path": "video/hero-water-loop.mp4",
+      "bytes": 621924,
+      "sha256": "1a9a6d1cf08255cf664a5d8d912771f362f60fb719efc0e72c00f3408fb478b0"
+    },
+    {
+      "path": "video/journey-sequence.mp4",
+      "bytes": 191969,
+      "sha256": "b4263f4e6f67bde623f628eb49eb5be0f3775e1a74d48e893d608681bd0dadc5"
+    },
+    {
+      "path": "video/ocean-surface-loop.mp4",
+      "bytes": 636140,
+      "sha256": "960c26cac1a89d6b32c230ed3507d72be17926134aedc218a4c7a12cf64bd1d1"
+    }
+  ]
+}
