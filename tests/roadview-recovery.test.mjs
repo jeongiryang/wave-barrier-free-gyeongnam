@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import ts from "typescript";
+import * as coordinates from "../lib/map-coordinates.js";
 
 function fixture() {
   const slots=[],effects=[],cleanups=[],frames=[],timers=new Map(),requests=[],views=[];
@@ -18,7 +19,7 @@ function fixture() {
     event:{addListener(view,_event,fn){view.listeners.add(fn);},removeListener(view,_event,fn){view.listeners.delete(fn);}},
   }}};
   const mod={exports:{}},code=ts.transpileModule(readFileSync(new URL("../features/routing/useRoadviewController.ts",import.meta.url),"utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-  new Function("module","exports","require","window",code)(mod,mod.exports,name=>{if(name==="react")return hooks;if(name==="../../components/SitePreferences")return {useSitePreferences:()=>({locale})};throw Error(name);},window);
+  new Function("module","exports","require","window",code)(mod,mod.exports,name=>{if(name.endsWith("map-coordinates.js"))return coordinates;if(name==="react")return hooks;if(name==="../../components/SitePreferences")return {useSitePreferences:()=>({locale})};throw Error(name);},window);
   const options={provider:"kakao",setProviderDetail(){},setPickMode(){},setToolPanel(){}};
   const actions=()=>{cursor=0;return mod.exports.useRoadviewController(options);};
   const commit=()=>{const a=actions();a.roadviewRef.current=a.roadviewOpen?{replaceChildren(){}}:null;effects.splice(0).forEach(fn=>fn());frames.splice(0).forEach(fn=>fn());return actions();};
@@ -56,4 +57,8 @@ test("duplicate callbacks cannot change a panorama already being initialized",()
 });
 test("init before the requested panorama is applied cannot report success",()=>{
   const f=fixture();f.open();f.init();assert.notEqual(f.actions().roadviewMessage,"");f.setFailure("pano");f.requests[0](1);assert.match(f.actions().roadviewMessage,/불러오지 못/);
+});
+for(const point of [{lat:0,lng:0},{lat:35.6,lng:139.7},{lat:51.5,lng:-0.1}])test(`unsupported Roadview point ${JSON.stringify(point)} never calls the SDK`,()=>{
+  const f=fixture();f.actions().openRoadviewAt(point);f.commit();
+  assert.equal(f.requests.length,0);assert.equal(f.views.length,0);assert.match(f.actions().roadviewMessage,/불러오지 못|지원 지역/);
 });

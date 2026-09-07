@@ -94,7 +94,7 @@ export async function chooseTripConditions(page: Page) {
   await page.locator(".condition-actions").getByRole("button", { name: "여행지 찾기 →", exact: true }).click();
 }
 
-export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview"; audio?: PlanData["audio"] } = {}) {
+export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview"; audio?: PlanData["audio"]; placeCoordinate?: { mapX: string; mapY: string } } = {}) {
   let enrichmentRequestCount = 0;
   await page.addInitScript((plannerView) => {
     window.localStorage.setItem("wave-planner-stage-view-v1", plannerView);
@@ -123,7 +123,7 @@ export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; 
           features: ["상세 편의정보 확인 필요"],
           details: ["제공된 편의정보가 제한적이므로 방문 전 시설 운영기관에 확인해 주세요."],
         })),
-      } : { ...plan, audio: options.audio ?? plan.audio };
+      } : { ...plan, audio: options.audio ?? plan.audio, places: places.map(place => ({ ...place, ...options.placeCoordinate })), stops: plan.stops.map(stop => ({ ...stop, ...options.placeCoordinate })) };
       return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(responsePlan) });
     }
     if (url.pathname === "/api/wave" && action === "spot-photo") {

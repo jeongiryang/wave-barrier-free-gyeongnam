@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { useSitePreferences } from "../../components/SitePreferences";
+import { isSupportedMapCoordinate } from "../../lib/map-coordinates.js";
 import type { MapPickMode, MapProvider, MapToolPanel, RoutePoint } from "./types";
 
 interface RoadviewControllerOptions {
@@ -56,7 +57,7 @@ export function useRoadviewController({ provider, setPickMode, setToolPanel }: R
     cancelRequest.current = cancel;
     try {
       const { lat, lng } = request.point;
-      if (provider !== "kakao" || !node || !sdk?.event || !Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) throw Error("Roadview unavailable");
+      if (provider !== "kakao" || !node || !sdk?.event || !isSupportedMapCoordinate(lat, lng)) throw Error("Roadview unavailable");
       const position = new sdk.LatLng(lat, lng);
       const roadview = new sdk.Roadview(node);
       let applied = false;

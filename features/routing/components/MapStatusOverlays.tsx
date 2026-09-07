@@ -2,6 +2,7 @@ import { useState, type CSSProperties, type FocusEvent, type RefObject } from "r
 import { safeMapImageUrl } from "../map-utils";
 import type { CrowdSignal, MapPlace, MapProvider, RoutePoint } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
+import { isSupportedMapCoordinate } from "../../../lib/map-coordinates.js";
 
 interface CrowdVisual {
   level: string;
@@ -43,12 +44,12 @@ function RoadviewPlaceChoice({ places, onOpenRoadview }: Pick<RoadviewSelectionO
   const { locale } = useSitePreferences();
   const english = locale === "en";
   const [selectedId, setSelectedId] = useState("");
-  const valid = places.filter(place => place.mapX.trim() && place.mapY.trim() && Number.isFinite(Number(place.mapX)) && Number.isFinite(Number(place.mapY)) && Math.abs(Number(place.mapX)) <= 180 && Math.abs(Number(place.mapY)) <= 90);
+  const valid = places.filter(place => place.mapX.trim() && place.mapY.trim() && isSupportedMapCoordinate(Number(place.mapY), Number(place.mapX)));
   const selected = valid.find(place => place.id === selectedId);
   return <div className="roadview-place-choice">
     {valid.length ? <><label htmlFor="roadview-itinerary-place">{english ? "Itinerary place" : "일정 장소"}</label><select id="roadview-itinerary-place" value={selected?.id ?? ""} onChange={event => setSelectedId(event.target.value)}><option value="">{english ? "Choose a place" : "장소를 선택하세요"}</option>{valid.map(place => <option key={place.id} value={place.id}>{place.name}</option>)}</select>
       <button type="button" aria-disabled={!selected} onClick={() => { if (selected) onOpenRoadview({ lat: Number(selected.mapY), lng: Number(selected.mapX) }); }}>{english ? "Open selected place Roadview" : "선택한 장소 로드뷰 열기"}</button></>
-      : <p>{english ? "Add a place to your itinerary to select it with the keyboard." : "일정에 장소를 추가하면 키보드로 위치를 선택할 수 있습니다."}</p>}
+      : <p>{english ? "No itinerary place has a usable location in the supported area. Choose another place or a road on the map." : "지원 지역에서 위치를 확인할 수 있는 일정 장소가 없습니다. 다른 장소를 추가하거나 지도에서 도로를 선택해 주세요."}</p>}
   </div>;
 }
 

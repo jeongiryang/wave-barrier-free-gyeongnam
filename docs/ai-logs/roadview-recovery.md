@@ -50,3 +50,9 @@ main/Production `34e6021`, 배포6278499275, #287 필수 승인0/3, Preview 접�
 현재 통합4187/로드뷰4209 개발 서버와 기존 모든 worktree를 보존한다.
 이 PR의 최종 CI → 통합 #334에 합성한 새 SHA의 전체 검증 → Production 접근 가능한 범위의 읽기 QA 순서로 이어간다.
 사람 승인 없이 병합·배포·완료·Release GO로 표시하지 않는다.
+
+## RC-19 추가 리뷰 대응 — 2026-09-07
+
+통합 #334 댓글3945944310의 P1을 재현했다. 세계 범위 검사만으로 (0,0)이나 서비스 좌표 범위 밖의 저장 장소가 선택되고 SDK 조회까지 실행됐다. 기존hook11 PASS에 신규3 FAIL, 통합d7a의 desktop/mobile 신규4 FAIL을 남겼다. 공유 `lib/map-coordinates.js`로 route API와 같은 위도30~40·경도120~135 범위를 적용해 선택지와 SDK 호출 직전을 함께 방어한다. 이는 행정경계 판정이 아니다. 유효한 위치가 없는 일정에는 다른 장소나 지도 선택 안내를 표시한다.
+
+hook14/unit368 PASS, lint/typecheck/Vercel build/performance PASS. 새 desktop/mobile 및 기존 지도 레이어를 포함한 최종56건은 `roadview-rc19-verified.log`에서 PASS(1.4분)다. 첫 실행52 PASS/4 FAIL은 좌표 차단 이후 Escape 포커스 복귀에서 실패했다. `useMapShell`과 `useMapAccessibility`가 같은 Escape에서 선택 모드를 닫으며 focus 복귀가 빠지는 충돌이었고, 로드뷰 취소를 접근성 hook 한 곳으로 모아 수정했다. assertion을 그대로 둔 대상4건과 최종56건이 통과했다. 이전b10fe9c의 CI551 PASS와 새 수정본의 성공을 구분한다. fixture에 손상된 장소 좌표를 명시적으로 주입해 정상 경남 좌표의 기존 테스트를 그대로 유지한다. 새 CI·통합·Production 검증은 아직 완료가 아니다.

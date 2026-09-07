@@ -107,9 +107,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     kakaoMapRef,
     mapRef,
     pickModeRef,
-    roadviewSelectModeRef,
     setPickMode,
-    setRoadviewSelectMode,
     layoutKey: `${toolPanel || "closed"}:${categoryPlaces.length}`,
   });
 
