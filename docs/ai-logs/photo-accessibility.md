@@ -12,7 +12,8 @@
 - 390/1366 영어 캡처를 직접 확인: 지역명 식별 가능, 사진 없음 안내 영어, 레이아웃 유지. 원문 관광지/주소는 기존 원문 안내와 함께 보존한다.
 - lint/typecheck/unit491/Vercel production build/performance PASS. 최초unit490 PASS/1 FAIL은 기존 `공식 사진 준비 중` exact-copy 계약이었다. 실패 상태 조건과 KO/EN 설명을 모두 검사하도록 갱신했고 동작 E2E를 추가했다. 테스트 삭제·skip 추가·timeout/대비 기준 완화 없음.
 - CSS69.83/70, 랜딩115.11/155, 플래너269.59/270, 최대chunk95.92/110KiB. npm audit 전체0건; 의존성 변경 없음.
-- 전체 Playwright/axe630개(기존skip1 포함), CI, 이 SHA의 Preview는 커밋 뒤 실행한다. 아직 해당 검증/Production 완료가 아니다.
+- 첫 전체630개는627 PASS/기존skip1/2 FAIL(15.2분). 두 실패는 core-journeys:55가 기존 `공식 사진 준비 중`을 찾던 exact-copy 검사였고 axe 위반은 아니었다. error-context/trace/캡처를 확인한 뒤 새 상태 문구를 exact:true로 확인하도록 갱신했다. 기존 상세/일정/경로/복원/axe 검사는 보존했다. 핵심 여정+사진42 PASS(57.4초).
+- 이 테스트 계약 보완 SHA의 전체630개·CI는 다시 실행한다. 앱은6ab7b57과 동일하다. #342와 합성한 c70539d Preview는04:17:13 UTC Ready이며 영어 실제 KTO추천7곳과 `Photo of` 이름을 확인했다. 이미지 실패24건은 fixture이며 Production 실장애를 만들지 않았다. 아직 최종전체/CI/Production 완료가 아니다.
 
 ## 남은 범위
 

@@ -52,7 +52,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   const museumCard = page.locator(".place-card").filter({ has: page.getByRole("heading", { name: "경남도립미술관" }) });
   const parkCard = page.locator(".place-card").filter({ has: page.getByRole("heading", { name: "용지호수공원" }) });
   await expect(museumCard.getByRole("img", { name: "경남도립미술관 관광사진" })).toBeVisible();
-  await expect(parkCard.getByText("공식 사진 준비 중")).toBeVisible();
+  await expect(parkCard.getByText("공식 사진을 확인할 수 없어요", { exact: true })).toBeVisible();
 
   const detailButton = page.getByRole("button", { name: "편의시설 보기" }).first();
   await detailButton.focus();
