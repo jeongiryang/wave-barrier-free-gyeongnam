@@ -38,6 +38,7 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
       ? `https://map.kakao.com/link/search/${encodeURIComponent(routeDestination.name)}`
       : "https://map.kakao.com/";
   const selectedSummary = routeModeSummaries.find((item) => item.id === routeTravelMode);
+  const transitStatus = route.transportProviders.find((provider) => provider.id === "odsay");
 
   return <aside className="route-compare-panel">
     {/*
@@ -60,6 +61,7 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
     </div>
     <p className="route-mode-order-note">확인된 예상 시간이 있는 이동수단부터 빠른 순서로 정렬합니다. 시간이 없으면 카카오맵에서 이어서 확인합니다.</p>
     <p className="route-notice" aria-live="polite"><span className={activeRoute?.configured ? "live-dot" : "ready-dot"} />{routeNotice}</p>
+    {transitStatus?.detail && transitStatus.state !== "connected" && <p className="route-notice" lang="ko" role="status">{transitStatus.detail}</p>}
     <div className="route-options" aria-busy={routeLoading}>
       {routeLoading && [0, 1, 2].map((item) => <div className="route-option-skeleton" key={`route-skeleton-${item}`} aria-hidden="true"><i /><div><b /><span /></div><em /></div>)}
       {!routeLoading && !routeDestination && <div className="route-empty"><span>↗</span><h3>경로를 계산할 여행지를 선택하세요.</h3><p>장소를 일정에 추가한 뒤 이동 구간을 조회하세요. 확인된 이동수단만 시간과 경로를 표시합니다.</p></div>}
