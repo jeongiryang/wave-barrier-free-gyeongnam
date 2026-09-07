@@ -60,3 +60,18 @@ test("an alternative or failed map clears applied labels but retains choices for
   f.replaceMap();f.actions().restoreMapLayers();
   assert.equal(f.actions().baseMap,"skyview");assert.deepEqual(f.actions().activeLayers,["TRAFFIC"]);
 });
+
+for (const first of ["base", "layer"]) test(`a failed ${first} choice survives a successful independent change before reconnection`,()=>{
+  const f=fixture();f.setFailure(first);
+  if(first==="base") { f.actions().changeBaseMap("skyview");f.actions().toggleLayer("TRAFFIC");assert.equal(f.actions().baseMap,"roadmap");assert.deepEqual(f.actions().activeLayers,["TRAFFIC"]); }
+  else { f.actions().toggleLayer("TRAFFIC");f.actions().changeBaseMap("skyview");assert.equal(f.actions().baseMap,"skyview");assert.deepEqual(f.actions().activeLayers,[]); }
+  assert.equal(f.actions().layerError,true);
+  f.setFailure("none");f.replaceMap();f.actions().restoreMapLayers();
+  assert.equal(f.actions().baseMap,"skyview");assert.deepEqual(f.actions().activeLayers,["TRAFFIC"]);assert.equal(f.actions().layerError,false);
+});
+
+test("retrying an unapplied layer neither cancels nor duplicates its pending selection",()=>{
+  const f=fixture();f.setFailure("layer");f.actions().toggleLayer("TRAFFIC");f.actions().toggleLayer("TRAFFIC");
+  assert.deepEqual(f.actions().activeLayers,[]);f.setFailure("none");f.replaceMap();f.actions().restoreMapLayers();
+  assert.deepEqual(f.actions().activeLayers,["TRAFFIC"]);assert.equal(f.calls.filter(([kind])=>kind==="add").length,1);
+});

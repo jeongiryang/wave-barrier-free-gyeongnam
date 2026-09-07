@@ -6,6 +6,20 @@ async function currentMap(page: Page) {
   return page.evaluate(() => { const maps=(window as unknown as {mapLayerFixture:MapLayerFixture}).mapLayerFixture.maps; const map=maps.at(-1)!;return {count:maps.length,base:map.base,layers:map.layers}; });
 }
 
+for(const first of ["base","layer"]) test(`failed ${first} choice survives another successful setting and restores both choices`,async({page})=>{
+  const nearby=await openNearby(page);await nearby.getByRole("button",{name:"주변 장소 닫기",exact:true}).click();
+  await page.locator('button[aria-controls="map-panel-layers"]').click();
+  const sky=page.getByRole("button",{name:"스카이뷰",exact:true}),traffic=page.locator("#map-panel-layers").getByRole("button",{name:"교통정보",exact:true});
+  await page.evaluate(first=>{const s=(window as unknown as {mapLayerFixture:MapLayerFixture}).mapLayerFixture;s.failBase=first==="base";s.failLayer=first==="layer";},first);
+  if(first==="base"){await sky.click();await traffic.click();}else{await traffic.click();await sky.click();}
+  await expect(sky).toHaveAttribute("aria-pressed",String(first!=="base"));await expect(traffic).toHaveAttribute("aria-pressed",String(first!=="layer"));
+  await expect(page.locator(".map-layer-status")).toContainText("확인할 수 없습니다");
+  await page.evaluate(()=>{const s=(window as unknown as {mapLayerFixture:MapLayerFixture}).mapLayerFixture;s.failBase=false;s.failLayer=false;});
+  const reload=page.locator("#map-panel-layers").getByRole("button",{name:"지도 다시 불러오기",exact:true});await reload.focus();await page.keyboard.press("Enter");
+  await expect(sky).toHaveAttribute("aria-pressed","true");await expect(traffic).toHaveAttribute("aria-pressed","true");
+  expect((await currentMap(page)).base).toBe(3);expect((await currentMap(page)).layers).toEqual([4]);await expect(reload).toBeFocused();
+});
+
 test("alternative map clears Kakao layer claims and reconnection restores the requested choices",async({page})=>{
   const nearby=await openNearby(page);await nearby.getByRole("button",{name:"주변 장소 닫기",exact:true}).click();
   const sky=page.getByRole("button",{name:"스카이뷰",exact:true});await sky.click();
