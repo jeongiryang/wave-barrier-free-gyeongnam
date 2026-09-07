@@ -10,7 +10,7 @@ concurrency:
 permissions:
   contents: read
 jobs:
-  validate:
+  quality:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -54,15 +54,44 @@ jobs:
         run: npm run typecheck
       - name: 회귀 테스트
         run: npm test
+
+      - name: Vercel용 빌드 검사
+        run: npm run build:vercel
+
+      - name: 빌드 성능 예산 검사
+        run: npm run check:performance
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - name: 소스 체크아웃
+        uses: actions/checkout@v7
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          check-latest: true
+          cache: npm
+
+      - name: 의존성 설치
+        run: npm ci
+
       - name: 브라우저 설치
         run: npx playwright install --with-deps chromium
       - name: 브라우저·접근성 회귀 테스트
-        run: npm run test:e2e
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/2
+
       - name: 브라우저 검증 보고서 보관
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
         with:
-          name: browser-regression
+          name: browser-regression-${{ matrix.shard }}
           path: playwright-report/
           retention-days: 7
           if-no-files-found: ignore
@@ -70,13 +99,24 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
         with:
-          name: browser-screenshots
+          name: browser-screenshots-${{ matrix.shard }}
           path: |
             test-results/**/*.png
             test-results/**/*.md
+            test-results/**/trace.zip
           retention-days: 7
           if-no-files-found: ignore
-      - name: Vercel용 빌드 검사
-        run: npm run build:vercel
-      - name: 빌드 성능 예산 검사
-        run: npm run check:performance
+
+  # Preserve the protected check name. Skipped, cancelled and failed dependencies
+  # must all fail this gate, including a failure in either browser shard.
+  validate:
+    if: ${{ always() }}
+    needs: [quality, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: 모든 검증 결과 확인
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+        run: node -e 'if ([process.env.QUALITY_RESULT, process.env.BROWSER_RESULT].some(result => result !== "success")) process.exit(1)'

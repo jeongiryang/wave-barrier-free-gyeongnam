@@ -84,7 +84,7 @@ for (const theme of ["light", "dark"]) test(`nearby ${theme} shows all fifteen p
   for (const [width, height] of [[320,568],[360,640],[390,844],[430,932],[768,1024],[1024,768],[1280,720],[1366,768],[1440,900],[1920,1080],[2560,1440]]) {
     await page.setViewportSize({ width, height });
     const categories = panel.locator(".map-tool-grid > button"); await expect(categories).toHaveCount(14);
-    expect(await categories.evaluateAll((buttons) => buttons.every((button) => { const b = button.getBoundingClientRect(); return b.width >= 44 && b.height >= 44 && button.scrollWidth <= button.clientWidth + 1; }))).toBe(true);
+    expect(await categories.evaluateAll((buttons) => buttons.map((button) => { const b = button.getBoundingClientRect(); return { name: button.textContent, width: b.width, height: b.height, scrollWidth: button.scrollWidth, clientWidth: button.clientWidth }; }).filter((b) => b.width < 44 || b.height < 44 || b.scrollWidth > b.clientWidth + 1)), `${theme} categories at ${width}px`).toEqual([]);
     await panel.getByRole("button", { name: "Close nearby places", exact: true }).focus();
     for (let index = 0; index < 14; index += 1) {
       await page.keyboard.press("Tab");
@@ -97,4 +97,16 @@ for (const theme of ["light", "dark"]) test(`nearby ${theme} shows all fifteen p
     if ([390,1366].includes(width)) await panel.screenshot({ path: testInfo.outputPath(`nearby-${width}-${theme}.png`) });
   }
   expect((await new AxeBuilder({ page }).include("#map-panel-nearby").analyze()).violations).toEqual([]);
+});
+
+test("nearby category labels fit wider fallback fonts at every required width", async ({ page }) => {
+  const panel = await openNearby(page, true);
+  await page.addStyleTag({ content: ".map-nearby-panel button { font-family: Verdana, sans-serif !important; }" });
+  for (const [width, height] of [[320,568],[360,640],[390,844],[430,932],[768,1024],[1024,768],[1280,720],[1366,768],[1440,900],[1920,1080],[2560,1440]]) {
+    await page.setViewportSize({ width, height });
+    const categories = panel.locator(".map-tool-grid > button");
+    await expect(categories).toHaveCount(14);
+    expect(await categories.evaluateAll((buttons) => buttons.map((button) => { const b = button.getBoundingClientRect(); return { name: button.textContent, width: b.width, height: b.height, scrollWidth: button.scrollWidth, clientWidth: button.clientWidth }; }).filter((b) => b.width < 44 || b.height < 44 || b.scrollWidth > b.clientWidth + 1)), `fallback categories at ${width}px`).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  }
 });

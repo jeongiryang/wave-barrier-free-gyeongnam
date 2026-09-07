@@ -5,8 +5,8 @@
 .map-side-drawer.map-nearby-panel { height: auto; display: block; overflow: auto; }
 .map-nearby-panel header span,.map-nearby-panel .map-results-heading span,.map-nearby-panel > p { color: var(--muted); white-space: normal; font-size: .72rem; line-height: 1.55; }
 .map-nearby-panel > p { margin: 12px 0; }
-.map-side-drawer.map-nearby-panel > .map-tool-grid { grid-template-columns: repeat(auto-fit,minmax(104px,1fr)); }
-.map-nearby-panel > .map-tool-grid > button { font-size: .72rem; word-break: normal; overflow-wrap: normal; }
+.map-side-drawer.map-nearby-panel > .map-tool-grid { grid-template-columns: repeat(auto-fit,minmax(min(100%,120px),1fr)); }
+.map-nearby-panel > .map-tool-grid > button { font-size: .72rem; word-break: normal; overflow-wrap: anywhere; }
 .map-nearby-panel > .map-poi-results { margin-right: 0; margin-left: 0; display: block; overflow: visible; }
 .map-nearby-panel .map-poi-list { margin-top: 8px; padding: 2px 3px 10px; display: grid; grid-template-columns: minmax(0,1fr); align-content: start; gap: 8px; overflow: visible; }
 .map-nearby-panel .map-poi-list article { width: 100%; min-width: 0; box-sizing: border-box; grid-template-columns: minmax(0,1fr) auto; align-items: center; }
