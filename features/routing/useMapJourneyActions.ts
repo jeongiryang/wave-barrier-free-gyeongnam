@@ -54,7 +54,7 @@ export function useMapJourneyActions({
       setProviderDetail("현재 브라우저에서 위치 기능을 사용할 수 없습니다.");
       return;
     }
-    if (!confirmMapLocationUse()) return;
+    if (!confirmMapLocationUse(locale)) return;
     const generation = ++locationGeneration.current;
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       if (generation !== locationGeneration.current) return;
@@ -72,7 +72,7 @@ export function useMapJourneyActions({
       enableHighAccuracy: false,
       timeout: 7000,
     });
-  }, [isMapAvailable, kakaoMapRef, onOriginChange, setPickMode, setProviderDetail]);
+  }, [isMapAvailable, kakaoMapRef, locale, onOriginChange, setPickMode, setProviderDetail]);
 
   // 예전에는 아무도 읽지 않는 저장소 키에 써 놓고 "저장했습니다"라고만 알렸다.
   // 현재 지도에 노출한 장소만 이 기기 일정으로 넘기며, 위치 좌표 자체는 저장하지 않는다.

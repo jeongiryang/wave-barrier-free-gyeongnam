@@ -10,8 +10,10 @@ import RoutePointPanel from "../features/routing/components/RoutePointPanel";
 import type { RouteMapProps } from "../features/routing/types";
 import { useMapAccessibility } from "../features/routing/useMapAccessibility";
 import { useRouteMapController } from "../features/routing/useRouteMapController";
+import { useSitePreferences } from "./SitePreferences";
 
 export default function RouteMap(props: RouteMapProps) {
+  const { locale } = useSitePreferences();
   const { origin, places, crowd } = props;
   const {
     containerRef,
@@ -148,7 +150,8 @@ export default function RouteMap(props: RouteMapProps) {
       onShare={() => void shareRoute()}
     />}
 
-    <div id="route-map-canvas" className="route-map-canvas" ref={containerRef} role="region" aria-label="출발지와 추천 여행지를 표시한 대화형 경로 지도" />
+    <span id="route-map-name" className="sr-only" lang={locale}>{locale === "en" ? "Interactive map of the departure point and itinerary places" : "출발지와 추천 여행지를 표시한 대화형 경로 지도"}</span>
+    <div id="route-map-canvas" className="route-map-canvas" ref={containerRef} role="region" aria-labelledby="route-map-name" />
     <MapCanvasStatusOverlays
       provider={provider}
       roadviewOpen={roadviewOpen}
