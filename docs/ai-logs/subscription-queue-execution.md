@@ -82,6 +82,7 @@ Notion 무료 block 한도 때문에 최종 환류는 pending/unacknowledged다.
 
 - 독립 QA의 추가 bootstrap P1을 반영해 대상 checkout 밖의 고정 설치·manifest pin·전체 12파일 검사를 추가했다. Windows 공개 sentinel 시험에서 정상 verify-only, helper/entrypoint 변조 6건 및 manifest 변조 거부를 확인했다. queue/model/GitHub 쓰기는 실행하지 않았다.
 - CI #801의 첫 전체 sandbox 검사는 `.npmrc` 제외 후 기존 `legacy-peer-deps=true` 모드가 빠져 dependency preparation에서 실패했다. 설정 파일을 다시 노출하지 않고 검토한 설치 옵션을 trusted coordinator에 명시했다. 일반 제품 회귀 결과와 sandbox 실행 성공을 혼동하지 않는다.
+- CI #802는 bootstrap/namespace 시험을 통과했으나 설치 중 native dependency 추출이 64MiB 파일 제한에 걸려 `EFBIG`로 중단됐다. lifecycle을 끈 trusted npm 설치 단계에만 256MiB 추출 제한을 적용한다. 저장소 코드 실행·로그의 64MiB 제한, timeout, worker, 테스트 assertion 및 성능 예산은 유지한다. 외부 고정 설치의 verify-only도 성공했으며 예약/tick은 실행하지 않았다.
 - `a34b1d6` CI #800에서 실제 경계 probe가 성공했다. 전체 제품용 별도 CI job을 추가해 인증정보 없는 snapshot에서 기존 lint/typecheck/unit/build/performance/Playwright 명령 6개를 모두 실행한다. 기존 일반 CI의 검사와 기준은 유지한다.
 - npm lockfile의 번들 내부 항목은 별도 URL이 없는 정상 형식이다. 검증된 registry 부모 tarball과 명시된 bundleDependencies에 포함된 경우만 허용하고, 부모 없음·멤버 불일치·외부 registry를 거부하는 시험을 추가했다. WSL의 공개 canary/악성 npm 시험 5개 그룹은 통과했지만 이는 전체 제품 QA가 아니다.
 - `4cf713d` CI #797 및 `f24fa94` CI #798은 lint/typecheck/unit 314건까지 성공했지만 실제 sandbox probe에서 실패했다. #798은 `namespace-permission`으로 분류했으며 브라우저/build 단계는 실행되지 않았다.

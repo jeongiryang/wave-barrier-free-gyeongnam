@@ -66,13 +66,16 @@ def arguments(config, workspace, network=False):
     return args + ["--"]
 
 
-def invoke(args, timeout=30):
+def invoke(args, timeout=30, *, dependency_install=False):
     # bwrap's own PID 1/environment must not inherit coordinator credentials either.
     remaining = DEADLINE - time.monotonic()
     if remaining <= 0:
         fail()
     def limits():
-        resource.setrlimit(resource.RLIMIT_FSIZE, (64 * 1024 * 1024, 64 * 1024 * 1024))
+        # Native dependency binaries exceed the repository-output cap. This
+        # larger extraction cap is exclusive to trusted npm with scripts OFF.
+        file_limit = (256 if dependency_install else 64) * 1024 * 1024
+        resource.setrlimit(resource.RLIMIT_FSIZE, (file_limit, file_limit))
         resource.setrlimit(resource.RLIMIT_NPROC, (256, 256))
     with tempfile.TemporaryFile() as log:
         result = subprocess.run(args, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, timeout=min(timeout, remaining), preexec_fn=limits, env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"})
@@ -172,7 +175,7 @@ def validate(config, archive, edits):
     validate_lock(lock)
     # This trusted npm operation never invokes repository/dependency lifecycle code.
     # Match this repository's reviewed lockfile mode without importing .npmrc.
-    installed = invoke(arguments(config, workspace, network=True) + npm + ["ci", "--ignore-scripts", "--legacy-peer-deps", "--no-audit", "--no-fund", "--registry=https://registry.npmjs.org"], timeout=300)
+    installed = invoke(arguments(config, workspace, network=True) + npm + ["ci", "--ignore-scripts", "--legacy-peer-deps", "--no-audit", "--no-fund", "--registry=https://registry.npmjs.org"], timeout=300, dependency_install=True)
     (workspace.parent / (workspace.name + "-install.log")).write_text(installed.stdout)
     print("CHECK: dependency preparation " + ("FAIL" if installed.returncode else "PASS"), file=sys.stderr)
     if installed.returncode:
