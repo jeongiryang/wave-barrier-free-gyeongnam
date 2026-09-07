@@ -60,6 +60,24 @@ print('PUBLIC_BUFFER_CAPACITY_PASS')
 buffer_result = boundary.invoke(boundary.arguments(config, buffer_workspace) + ["/usr/bin/python3", "-I", "-c", buffer_check])
 assert buffer_result.returncode == 0 and buffer_result.stdout.strip() == "PUBLIC_BUFFER_CAPACITY_PASS", "render buffer was blocked or file capacity was unbounded"
 print("PASS: public render buffers fit; oversized file allocation is still blocked")
+# Chromium's default --disable-dev-shm-usage writes shared rendering buffers in
+# /tmp. Two unchanged browser workers must be able to allocate simultaneously.
+# Touch every byte: ftruncate alone accepts a sparse file even on a full tmpfs.
+temporary_check = """import os,tempfile
+with tempfile.TemporaryFile(dir='/tmp') as first, tempfile.TemporaryFile(dir='/tmp') as second:
+ block=b'P'*(1024*1024)
+ for _ in range(160):
+  first.write(block)
+  second.write(block)
+ first.flush()
+ second.flush()
+ assert os.fstat(first.fileno()).st_size == 160*1024*1024
+ assert os.fstat(second.fileno()).st_size == 160*1024*1024
+print('PUBLIC_CONCURRENT_TEMP_BUFFERS_PASS')
+"""
+temporary_result = boundary.invoke(boundary.arguments(config, buffer_workspace) + ["/usr/bin/python3", "-I", "-c", temporary_check])
+assert temporary_result.returncode == 0 and temporary_result.stdout.strip() == "PUBLIC_CONCURRENT_TEMP_BUFFERS_PASS", "concurrent public rendering buffers exceeded temporary capacity"
+print("PASS: two touched temporary rendering buffers fit without changing aggregate capacity")
 parent = {"resolved": "https://registry.npmjs.org/public/-/public-1.tgz", "integrity": "sha512-PUBLIC", "bundleDependencies": ["child"]}
 valid_lock = {"lockfileVersion": 3, "packages": {"node_modules/public": parent, "node_modules/public/node_modules/child": {"inBundle": True}}}
 boundary.validate_lock(valid_lock)
@@ -126,7 +144,7 @@ if(fs.existsSync('/mnt/c')||fs.existsSync('/mnt/d')||process.env.WSL_INTEROP)saf
 const caps=fs.readFileSync('/proc/self/status','utf8');
 for(const cap of ['CapEff','CapPrm','CapBnd'])if(!/^0+$/.test(caps.split(String.fromCharCode(10)).find(line=>line.startsWith(cap+':'))?.split(':')[1].trim()||'missing'))safe=false;
 if(!fs.existsSync('/usr/bin/unshare')||require('node:child_process').spawnSync('/usr/bin/unshare',['--user','--map-root-user','/usr/bin/true']).status===0)safe=false;
-for(const [path,bytes] of [['/workspace',2816*1024*1024],['/tmp',256*1024*1024],['/home/runner',384*1024*1024],['/dev/shm',128*1024*1024]]){const stat=fs.statfsSync(path);if(stat.type!==0x01021994||stat.blocks*stat.bsize!==bytes)safe=false;}
+for(const [path,bytes] of [['/workspace',2816*1024*1024],['/tmp',512*1024*1024],['/home/runner',128*1024*1024],['/dev/shm',128*1024*1024]]){const stat=fs.statfsSync(path);if(stat.type!==0x01021994||stat.blocks*stat.bsize!==bytes)safe=false;}
 for(const path of ['/public-root-write','/dev/public-device-write']){try{fs.writeFileSync(path,'PUBLIC TEST DATA');safe=false;}catch(e){if(!['EROFS','EACCES','EPERM'].includes(e.code))safe=false;}}
 process.exitCode=safe?0:1;})();""".replace("FILE", json.dumps(str(sentinel))).replace("PORT", str(port))
     (source / "attack.cjs").write_text(attack)
