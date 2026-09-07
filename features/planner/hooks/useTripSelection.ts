@@ -72,6 +72,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
   };
 
   return {
+    rememberSavedPlaces,
     resetTrip,
     saved,
     activeDay,

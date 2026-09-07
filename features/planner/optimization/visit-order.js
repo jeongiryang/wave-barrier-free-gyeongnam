@@ -1,9 +1,12 @@
 const EARTH_RADIUS_KM = 6371;
 
 function coordinates(place) {
-  const lat = Number(place.mapY ?? place.lat);
-  const lng = Number(place.mapX ?? place.lng);
-  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  const latitude = place?.mapY ?? place?.lat;
+  const longitude = place?.mapX ?? place?.lng;
+  if (latitude == null || longitude == null || String(latitude).trim() === "" || String(longitude).trim() === "") return null;
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+  return Number.isFinite(lat) && lat >= 33 && lat <= 39 && Number.isFinite(lng) && lng >= 124 && lng <= 132 ? { lat, lng } : null;
 }
 
 export function directDistanceKm(from, to) {

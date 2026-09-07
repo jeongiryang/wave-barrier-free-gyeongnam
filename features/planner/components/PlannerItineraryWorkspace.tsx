@@ -13,6 +13,7 @@ import NavigationWorkspace from "./NavigationWorkspace";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
 
 const ItineraryRouteCoverage = lazy(() => import("./ItineraryRouteCoverage"));
+const SavedPlaceCoordinateRecovery = lazy(() => import("./SavedPlaceCoordinateRecovery"));
 function ItineraryUnavailable() {
   const { locale } = useSitePreferences();
   return <p role="status">{locale === "en" ? "The itinerary editor couldn't open. Try reloading this page." : "일정 편집 화면을 열지 못했습니다. 페이지를 새로 열어 다시 시도해 주세요."}</p>;
@@ -94,6 +95,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     {props.tripSelection.orderedSavedPlaces.length > 0 && <Suspense fallback={<p role="status">{c("이동 구간 확인을 준비하고 있어요.", "Preparing journey checks.")}</p>}><ItineraryRouteCoverage coverage={props.coverage} route={props.route} trip={props.tripSelection} reviewed={props.reviewed} onReview={props.onReview} /></Suspense>}
     <nav className="itinerary-day-tabs" aria-label={c("지도에 표시할 날짜", "Date to show on the map")}>{tripDays.map((day) => <button type="button" key={day} aria-pressed={activeDay === day} onClick={() => setActiveDay(day)}>{day.slice(5).replace("-", "/")}</button>)}</nav>
     <p className="route-scope-note">{activeDay} · {c(`일정 ${itineraryPlaces.length}곳 중 지도에 표시할 수 있는 장소 ${navigationPlaces.length}곳`, `${navigationPlaces.length} of ${itineraryPlaces.length} itinerary places can be shown on the map`)}</p>
+    <Suspense fallback={null}><SavedPlaceCoordinateRecovery key={`${props.archiveContext.region}|${tripDays}|${props.tripSelection.saved}`} places={props.tripSelection.orderedSavedPlaces} onRestore={props.tripSelection.rememberSavedPlaces} /></Suspense>
     {itineraryPlaces.some((place) => !routableItineraryPlaces.includes(place)) && <p role="status">{c("좌표를 확인하지 못한 장소:", "Coordinates unavailable:")} {itineraryPlaces.filter((place) => !routableItineraryPlaces.includes(place)).map((place) => place.name).join(", ")}. {c("일정에는 그대로 보관하며 지도에서는 제외합니다.", "Kept in your itinerary, but excluded from the map.")}</p>}
     <NavigationWorkspace
       mapEnabled={props.mapEnabled}
