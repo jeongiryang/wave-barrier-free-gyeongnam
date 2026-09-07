@@ -58,7 +58,10 @@ export type KakaoSdk = {
       OverlayType: Record<"POLYLINE" | "CIRCLE" | "POLYGON", unknown>;
       DrawingManager: new (options: Record<string, unknown>) => KakaoDrawingManager;
     };
-    event?: { addListener(target: object, event: string, callback: (event: { latLng: KakaoLatLng }) => void): void };
+    event?: {
+      addListener(target: object, event: string, callback: (event: { latLng: KakaoLatLng }) => void): void;
+      removeListener?(target: object, event: string, callback: (event: { latLng: KakaoLatLng }) => void): void;
+    };
   };
 };
 

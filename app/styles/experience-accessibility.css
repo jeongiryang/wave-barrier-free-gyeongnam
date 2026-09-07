@@ -112,7 +112,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
    데스크톱 터치스크린과 확대 화면도 모바일과 같은 접근성 기준을 적용한다. */
 .play, .save-card, .player-controls button,
 .map-side-drawer header > button, .map-roadview-panel header > button,
-.trip-point-picker header > button, .roadview-pick-banner button,
+.trip-point-picker header > button, .roadview-pick-banner header button,
 .kakao-number-marker {
   width: 44px; min-width: 44px; height: 44px; min-height: 44px;
 }
@@ -171,7 +171,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   }
   .map-tool-panel header > button, .map-poi-results header > button,
   .map-roadview-panel header > button, .trip-point-picker header > button,
-  .roadview-pick-banner button, .kakao-number-marker {
+  .roadview-pick-banner header button, .kakao-number-marker {
     width: 44px; min-width: 44px; height: 44px; min-height: 44px;
   }
 }

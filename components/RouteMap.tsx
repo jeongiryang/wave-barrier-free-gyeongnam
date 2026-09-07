@@ -35,6 +35,8 @@ export default function RouteMap(props: RouteMapProps) {
     categoryState,
     roadviewOpen,
     roadviewMessage,
+    roadviewLoading,
+    retryRoadview,
     roadviewSelectMode,
     roadviewPreviewOpen,
     crowdVisual,
@@ -59,6 +61,7 @@ export default function RouteMap(props: RouteMapProps) {
     saveRoute,
     exportRoute,
     closeRoadview,
+    openRoadviewAt,
   } = useRouteMapController(props);
   const drawerOpen = toolPanel !== null;
   const mapA11y = useMapAccessibility({
@@ -96,7 +99,8 @@ export default function RouteMap(props: RouteMapProps) {
       roadviewOpen={roadviewOpen}
       selectedMapPlace={selectedMapPlace}
       places={places}
-      onCancelRoadviewSelection={cancelRoadviewSelection}
+      onCancelRoadviewSelection={mapA11y.cancelRoadviewAndRestoreFocus}
+      onOpenRoadview={openRoadviewAt}
     />
 
     {toolPanel === "nearby" && <NearbyPlacesPanel
@@ -149,6 +153,8 @@ export default function RouteMap(props: RouteMapProps) {
       provider={provider}
       roadviewOpen={roadviewOpen}
       roadviewMessage={roadviewMessage}
+      roadviewLoading={roadviewLoading}
+      onRetryRoadview={retryRoadview}
       roadviewRef={roadviewRef}
       crowd={crowd}
       crowdPlace={crowdPlace}

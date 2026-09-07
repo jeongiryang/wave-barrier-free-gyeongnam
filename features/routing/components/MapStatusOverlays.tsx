@@ -1,6 +1,6 @@
-import type { CSSProperties, RefObject } from "react";
+import { useState, type CSSProperties, type FocusEvent, type RefObject } from "react";
 import { safeMapImageUrl } from "../map-utils";
-import type { CrowdSignal, MapPlace, MapProvider } from "../types";
+import type { CrowdSignal, MapPlace, MapProvider, RoutePoint } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
 
 interface CrowdVisual {
@@ -11,6 +11,10 @@ interface CrowdVisual {
   soft: string;
 }
 
+function revealKeyboardControl(event: FocusEvent<HTMLElement>) {
+  if (event.target !== event.currentTarget && event.target.matches(":focus-visible")) event.target.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+}
+
 interface RoadviewSelectionOverlaysProps {
   provider: MapProvider;
   roadviewSelectMode: boolean;
@@ -19,12 +23,15 @@ interface RoadviewSelectionOverlaysProps {
   selectedMapPlace: MapPlace | null;
   places: MapPlace[];
   onCancelRoadviewSelection: () => void;
+  onOpenRoadview: (point: RoutePoint) => void;
 }
 
 interface MapCanvasStatusOverlaysProps {
   provider: MapProvider;
   roadviewOpen: boolean;
   roadviewMessage: string;
+  roadviewLoading: boolean;
+  onRetryRoadview: () => void;
   roadviewRef: RefObject<HTMLDivElement | null>;
   crowd: CrowdSignal | null | undefined;
   crowdPlace: MapPlace | undefined;
@@ -32,18 +39,33 @@ interface MapCanvasStatusOverlaysProps {
   onCloseRoadview: () => void;
 }
 
-export function RoadviewSelectionOverlays({ provider, roadviewSelectMode, roadviewPreviewOpen, roadviewOpen, selectedMapPlace, places, onCancelRoadviewSelection }: RoadviewSelectionOverlaysProps) {
+function RoadviewPlaceChoice({ places, onOpenRoadview }: Pick<RoadviewSelectionOverlaysProps, "places" | "onOpenRoadview">) {
+  const { locale } = useSitePreferences();
+  const english = locale === "en";
+  const [selectedId, setSelectedId] = useState("");
+  const valid = places.filter(place => place.mapX.trim() && place.mapY.trim() && Number.isFinite(Number(place.mapX)) && Number.isFinite(Number(place.mapY)) && Math.abs(Number(place.mapX)) <= 180 && Math.abs(Number(place.mapY)) <= 90);
+  const selected = valid.find(place => place.id === selectedId);
+  return <div className="roadview-place-choice">
+    {valid.length ? <><label htmlFor="roadview-itinerary-place">{english ? "Itinerary place" : "일정 장소"}</label><select id="roadview-itinerary-place" value={selected?.id ?? ""} onChange={event => setSelectedId(event.target.value)}><option value="">{english ? "Choose a place" : "장소를 선택하세요"}</option>{valid.map(place => <option key={place.id} value={place.id}>{place.name}</option>)}</select>
+      <button type="button" aria-disabled={!selected} onClick={() => { if (selected) onOpenRoadview({ lat: Number(selected.mapY), lng: Number(selected.mapX) }); }}>{english ? "Open selected place Roadview" : "선택한 장소 로드뷰 열기"}</button></>
+      : <p>{english ? "Add a place to your itinerary to select it with the keyboard." : "일정에 장소를 추가하면 키보드로 위치를 선택할 수 있습니다."}</p>}
+  </div>;
+}
+
+export function RoadviewSelectionOverlays({ provider, roadviewSelectMode, roadviewPreviewOpen, roadviewOpen, selectedMapPlace, places, onCancelRoadviewSelection, onOpenRoadview }: RoadviewSelectionOverlaysProps) {
+  const { locale } = useSitePreferences();
+  const english = locale === "en";
   const previewImage = safeMapImageUrl(selectedMapPlace?.image || places[0]?.image);
   return <>
-    {roadviewSelectMode && <div className="roadview-pick-banner" role="status"><div><strong>로드뷰 위치 선택</strong><span>지도에서 확인할 도로나 장소를 클릭하세요.</span></div><button type="button" onClick={onCancelRoadviewSelection} aria-label="로드뷰 위치 선택 취소">×</button></div>}
-    {roadviewPreviewOpen && !roadviewSelectMode && !roadviewOpen && provider === "kakao" && <aside className="roadview-hover-preview" aria-label="로드뷰 위치 선택 미리보기">
+    {roadviewSelectMode && <section id="map-roadview-choice" onFocusCapture={revealKeyboardControl} className="roadview-pick-banner" aria-label={english ? "Choose a Roadview location" : "로드뷰 위치 선택"}><header><div><strong>{english ? "Choose a Roadview location" : "로드뷰 위치 선택"}</strong><p>{english ? "Choose an itinerary place below, or click a road on the map." : "아래 일정 장소를 선택하거나 지도에서 도로를 클릭하세요."}</p></div><button type="button" onClick={onCancelRoadviewSelection} aria-label={english ? "Cancel Roadview selection" : "로드뷰 위치 선택 취소"}>×</button></header><RoadviewPlaceChoice places={places} onOpenRoadview={onOpenRoadview} /></section>}
+    {roadviewPreviewOpen && !roadviewSelectMode && !roadviewOpen && provider === "kakao" && <aside className="roadview-hover-preview" aria-label={english ? "Roadview selection preview" : "로드뷰 위치 선택 미리보기"}>
       {previewImage && <div style={{ backgroundImage: `url("${previewImage.replace(/["\\]/g, "")}")` }} />}
-      <small>관광사진 미리보기</small><strong>{selectedMapPlace?.name || places[0]?.name || "지도에서 위치 선택"}</strong><span>버튼을 누른 뒤 지도에서 로드뷰 위치를 선택합니다.</span>
+      <small>{english ? "Tourism photo preview" : "관광사진 미리보기"}</small><strong>{selectedMapPlace?.name || places[0]?.name || (english ? "Choose a location" : "위치 선택")}</strong><span>{english ? "Open the location selector to choose a place or click the map." : "버튼을 누른 뒤 일정 장소를 선택하거나 지도를 클릭합니다."}</span>
     </aside>}
   </>;
 }
 
-export function MapCanvasStatusOverlays({ provider, roadviewOpen, roadviewMessage, roadviewRef, crowd, crowdPlace, crowdVisual, onCloseRoadview }: MapCanvasStatusOverlaysProps) {
+export function MapCanvasStatusOverlays({ provider, roadviewOpen, roadviewMessage, roadviewLoading, onRetryRoadview, roadviewRef, crowd, crowdPlace, crowdVisual, onCloseRoadview }: MapCanvasStatusOverlaysProps) {
   const { locale } = useSitePreferences();
   const english = locale === "en";
   return <>
@@ -58,10 +80,10 @@ export function MapCanvasStatusOverlays({ provider, roadviewOpen, roadviewMessag
       <em>{crowd.rate.toFixed(1)}%</em>
     </aside>}
     {provider === "loading" && <div className="map-loading-skeleton" role="status" aria-label="지도 연결 중"><div><i /><i /><i /><span /></div><p><b />카카오 지도를 안전하게 연결하고 있습니다.</p></div>}
-    {roadviewOpen && <section id="map-roadview-panel" className="map-roadview-panel" aria-label="카카오 로드뷰" tabIndex={-1}>
-      <header><strong>로드뷰</strong><button type="button" onClick={onCloseRoadview} aria-label="로드뷰 닫기">×</button></header>
+    {roadviewOpen && <section id="map-roadview-panel" onFocusCapture={revealKeyboardControl} className="map-roadview-panel" aria-label={english ? "Kakao Roadview" : "카카오 로드뷰"} tabIndex={-1}>
+      <header><strong>{english ? "Roadview" : "로드뷰"}</strong><button type="button" onClick={onCloseRoadview} aria-label={english ? "Close Roadview" : "로드뷰 닫기"}>×</button></header>
       <div ref={roadviewRef} />
-      {roadviewMessage && <p>{roadviewMessage}</p>}
+      <footer className="roadview-feedback"><p role="status" aria-live="polite">{roadviewMessage || (english ? "Roadview initialized. Imagery does not verify an accessible route." : "로드뷰가 초기화되었습니다. 이 영상은 무장애 이동 경로를 검증하지 않습니다.")}</p><button type="button" aria-disabled={roadviewLoading} onClick={() => { if (!roadviewLoading) onRetryRoadview(); }}>{english ? "Retry Roadview" : "로드뷰 다시 시도"}</button></footer>
     </section>}
   </>;
 }
