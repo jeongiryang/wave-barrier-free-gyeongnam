@@ -61,7 +61,7 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .route-compare-panel { padding: 22px; }
 
 .map-panel { --route-map-height: 710px; }
-.route-map-shell { min-height: var(--route-map-height, 710px); display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); overflow: hidden; isolation: isolate; background: #dce9ef; transition: grid-template-columns .32s cubic-bezier(.16,1,.3,1); }
+.route-map-shell { min-height: var(--route-map-height, 710px); display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); overflow: hidden; isolation: isolate; color: #173b46; background: #dce9ef; transition: grid-template-columns .32s cubic-bezier(.16,1,.3,1); }
 .route-map-shell.drawer-open { grid-template-columns: minmax(0,1fr) minmax(340px,380px); }
 .route-map-canvas { isolation: isolate; height: var(--route-map-height, 710px); min-width: 0; grid-column: 1; grid-row: 1; }
 .route-map-shell.drawer-open .map-command-bar { right: 396px; }

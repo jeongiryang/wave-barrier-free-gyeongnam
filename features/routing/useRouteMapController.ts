@@ -37,6 +37,10 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   }, []);
   const [pickMode, setPickMode] = useState<MapPickMode>(null);
   const [selectedMapPlace, setSelectedMapPlace] = useState<MapPlace | null>(places[0] || null);
+  const cancelMapPick = useCallback(() => {
+    setPickMode(null);
+    setProviderDetail("지도 위치 선택을 취소했습니다.");
+  }, []);
 
   const crowdVisual = useMemo(() => crowd && Number.isFinite(crowd.rate) ? describeCrowd(crowd.rate) : null, [crowd]);
   const crowdPlace = useMemo(() => crowdVisual ? (places.find((place) => place.id === crowdPlaceId) || places.find((place) => place.name === crowd?.place) || places[0]) : undefined, [crowd?.place, crowdPlaceId, crowdVisual, places]);
@@ -107,7 +111,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     kakaoMapRef,
     mapRef,
     pickModeRef,
-    setPickMode,
+    setPickMode: cancelMapPick,
     layoutKey: `${toolPanel || "closed"}:${categoryPlaces.length}`,
   });
 
@@ -207,7 +211,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     chooseKakaoPlace,
     closeRoutePanel: () => {
       setToolPanel(null);
-      setPickMode(null);
+      if (pickMode) cancelMapPick();
     },
     setMapPointMode,
     setPlaceAsOrigin: (place: MapPlace) => {

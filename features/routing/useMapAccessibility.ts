@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef } from "react";
 import type { MapToolPanel } from "./types";
 
 const panelIds: Record<Exclude<MapToolPanel, null>, string> = {
@@ -69,26 +69,29 @@ export function useMapAccessibility({
     if (roadviewSelectMode) document.getElementById("map-roadview-choice")?.querySelector<HTMLButtonElement>("header button")?.focus();
   }, [roadviewSelectMode]);
 
+  const closeOnEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key !== "Escape") return;
+    if (toolPanel) {
+      event.preventDefault();
+      setToolPanel(null);
+    }
+    if (roadviewOpen) {
+      event.preventDefault();
+      closeRoadview();
+      roadviewTriggerRef.current?.focus();
+    } else if (roadviewSelectMode) {
+      event.preventDefault();
+      cancelRoadviewSelection();
+      roadviewTriggerRef.current?.focus();
+    }
+  });
+  // Keep the listener installed while the map shell cancels point selection.
+  // Re-registering on that render can remove it midway through the same key event.
   useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      if (toolPanel) {
-        event.preventDefault();
-        setToolPanel(null);
-      }
-      if (roadviewOpen) {
-        event.preventDefault();
-        closeRoadview();
-        roadviewTriggerRef.current?.focus();
-      } else if (roadviewSelectMode) {
-        event.preventDefault();
-        cancelRoadviewSelection();
-        roadviewTriggerRef.current?.focus();
-      }
-    };
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [cancelRoadviewSelection, closeRoadview, roadviewOpen, roadviewSelectMode, setToolPanel, toolPanel]);
+    const handleKey = (event: KeyboardEvent) => closeOnEscape(event);
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, []);
 
   const changeToolPanel = useCallback((panel: MapToolPanel, trigger: HTMLButtonElement) => {
     if (panel) panelTriggerRef.current = { panel, node: trigger };

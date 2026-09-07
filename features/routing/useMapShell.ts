@@ -44,7 +44,10 @@ export function useMapShell({
       if (event.key !== "Escape") return;
       if (pickModeRef.current) setPickMode(null);
       // Roadview cancellation belongs to useMapAccessibility so focus is restored too.
-      setExpanded(false);
+      if (document.fullscreenElement === shellRef.current) {
+        // Keep rendered state tied to fullscreenchange, including browser-key events.
+        void document.exitFullscreen().catch(() => undefined);
+      } else setExpanded(false);
     };
     document.addEventListener("fullscreenchange", onFullscreen);
     document.addEventListener("keydown", onKeyDown);

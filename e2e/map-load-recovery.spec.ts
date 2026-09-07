@@ -28,7 +28,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   await expect(unavailable).toContainText(english ? "Your itinerary and journey details are still available." : "일정과 이동 구간 정보는 계속 확인할 수 있습니다.");
   await expect(page.locator(".map-loading-skeleton")).toHaveCount(0);
   await expect(page.locator('.map-command-bar button[aria-controls="map-panel-route"]')).toBeDisabled();
-  await expect(page.locator(".map-command-bar").getByRole("button", { name: "◎ 내 위치", exact: true })).toBeDisabled();
+  await expect(page.locator(".map-command-bar").getByRole("button", { name: english ? "◎ My location" : "◎ 내 위치", exact: true })).toBeDisabled();
   await expect(page.locator(".route-option")).not.toHaveCount(0);
   const reload = unavailable.getByRole("button", { name: english ? "Reload page and map" : "페이지와 지도 다시 불러오기", exact: true });
   await reload.focus();
