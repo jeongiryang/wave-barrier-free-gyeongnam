@@ -13,7 +13,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
   origin: RoutePoint;
   accessibilityProfileCount: number;
 }) {
-  const { saved, catalog, storageReady: savedStorageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId } = useSavedPlaceIds();
+  const { saved, catalog, resetSaved, storageReady: savedStorageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId } = useSavedPlaceIds();
   const schedule = useTripSchedule();
   const [dayChoice, setActiveDay] = useState("");
   const activeDay = schedule.tripDays.includes(dayChoice) ? dayChoice : schedule.tripDays[0];
@@ -67,13 +67,19 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
     return true;
   };
 
+  const resetTrip = (start: string, end: string) => {
+    resetSaved(); schedule.resetSchedule(start, end); optimized.resetOrder(); setActiveDay("");
+  };
+
   return {
+    resetTrip,
     saved,
     activeDay,
     setActiveDay,
     savePlaceIds,
     ...schedule,
     ...optimized,
+    storageReady: savedStorageReady && schedule.storageReady,
     toggleSaved,
     replaceSavedPlace,
   };

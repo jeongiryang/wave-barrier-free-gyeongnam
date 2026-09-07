@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { emptyTrip, replaceCurrentTrip } from "../../lib/current-trip-storage.js";
 import { useRouter } from "next/navigation";
 import {
   TRAVEL_BOOK_STORAGE_KEY,
@@ -63,9 +64,13 @@ export function useTravelBook() {
     const payload = travelBookRestorePayload(book);
     if (!payload) return;
     try {
-      window.localStorage.setItem(SAVED_PLACES_KEY, JSON.stringify(payload.savedPlaceIds));
-      window.localStorage.setItem(SAVED_PLACE_CATALOG_KEY, JSON.stringify(sanitizeSavedPlaceCatalog(payload.savedPlaces)));
-      window.localStorage.setItem(TRIP_SCHEDULE_KEY, JSON.stringify(payload.schedule));
+      replaceCurrentTrip(window.localStorage, {
+        ...emptyTrip(book.region, payload.schedule.travelStart, payload.schedule.travelEnd),
+        [SAVED_PLACES_KEY]: JSON.stringify(payload.savedPlaceIds),
+        [SAVED_PLACE_CATALOG_KEY]: JSON.stringify(sanitizeSavedPlaceCatalog(payload.savedPlaces)),
+        [TRIP_SCHEDULE_KEY]: JSON.stringify(payload.schedule),
+        "wave-trip-order-v1": JSON.stringify({ mode: "manual", ids: payload.savedPlaceIds }),
+      });
     } catch {
       return;
     }

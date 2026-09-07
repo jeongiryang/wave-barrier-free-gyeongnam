@@ -1,5 +1,12 @@
 
 /* Closing, modal, footer */
+.region-change-dialog { width: min(560px, calc(100% - 24px)); max-height: calc(100dvh - 24px); overflow: auto; padding: 24px; border: 1px solid var(--muted); border-radius: 16px; background: var(--paper, #fff); color: var(--ink); }
+.region-change-dialog::backdrop { background: rgb(2 20 32 / 74%); }
+.region-change-dialog h2 { font-size: 1.4rem; overflow-wrap: anywhere; }
+.region-change-dialog p { line-height: 1.6; }
+.region-change-dialog > div { display: grid; gap: 12px; }
+.region-change-dialog button { min-height: 44px; white-space: normal; }
+html[data-theme="dark"] .region-change-dialog { background: #082938; color: #eaf5f9; }
 .closing-section { padding: 120px 24px; text-align: center; background: linear-gradient(135deg, #e6f7ff, #edfffe); }
 .closing-section > p { margin: 0 0 15px; color: var(--blue); font-size: .8rem; font-weight: 900; letter-spacing: .1em; }
 .closing-section h2 em { color: var(--blue); font-style: normal; }

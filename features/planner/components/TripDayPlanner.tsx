@@ -12,6 +12,7 @@ import type { useTripSelection } from "../hooks/useTripSelection";
 import { buildItinerarySchedule, routeMinutesForOriginLeg } from "../optimization/itinerary-schedule.js";
 import type { PlanData } from "../types";
 import TripDateNotice from "./TripDateNotice";
+import { regionNames } from "../../../lib/gyeongnam-region-names";
 
 const TravelBookArchiveAction = lazy(() => import("../../travel-book/TravelBookArchiveAction"));
 function AudioUnavailable() {
@@ -41,6 +42,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
   const [edit, setEdit] = useState<{ name: string; day?: number } | null>(null);
   const editNotice = edit ? edit.day ? c(`${edit.name}을(를) DAY ${edit.day}로 옮겼습니다.`, `${edit.name} moved to DAY ${edit.day}.`) : c(`${edit.name}을(를) 일정에서 제거했습니다.`, `${edit.name} removed from the itinerary.`) : "";
   const outsideDates = orderedSavedPlaces.filter((place) => scheduleAssignments[place.id] && !tripDays.includes(scheduleAssignments[place.id]));
+  const tripRegions = [...new Set(orderedSavedPlaces.map(place => place.city).filter(Boolean))];
   const routeMinutesByPlaceId = useMemo(() => ({ ...routeMinutesForOriginLeg({
     places: orderedSavedPlaces,
     days: tripDays,
@@ -66,6 +68,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
     <div className="itinerary-empty-state"><span aria-hidden="true">+</span><h3>{c("아직 일정에 추가한 장소가 없어요.", "No places in your itinerary yet.")}</h3><p>{c("위 추천 여행지에서 ‘일정에 추가’를 누르면 이곳에서 날짜, 순서와 이동시간을 정리할 수 있습니다.", "Add a recommended place to arrange its date, order and travel time here.")}</p></div>
   </section>;
   return <section className="day-planner" data-reveal aria-label={c("날짜별 여행 일정", "Itinerary by date")}>
+    {tripRegions.length > 1 && <p className="multi-region-notice" role="status">{c("여러 지역 일정", "Multi-region itinerary")}: {tripRegions.map(name => en ? regionNames[name] || name : name).join(" · ")}. {c("지역 사이 장거리 이동과 자정 초과 가능성을 확인하고 필요하면 다른 날짜로 나누세요. 추정 시간은 실제 교통 조회가 아닙니다.", "Check long journeys between regions and possible travel past midnight. Split places across dates when needed. Estimated times are not checked transport results.")}</p>}
     <div className="date-range-fields"><label>{c("여행 시작일", "Trip start date")}<input type="date" value={tripSelection.travelStart} aria-describedby="itinerary-date-notice" onChange={(event) => tripSelection.changeTravelStart(event.target.value)} /></label><label>{c("여행 마지막 날", "Trip end date")}<input type="date" min={tripSelection.travelStart} max={tripSelection.lastTravelDate} value={tripSelection.travelEnd} aria-describedby="itinerary-date-notice" onChange={(event) => tripSelection.changeTravelEnd(event.target.value)} /></label></div>
     <TripDateNotice id="itinerary-date-notice" notice={tripSelection.dateNotice} />
     <p className="date-scope-note">{c("여행 날짜는 날씨·행사 조회에 반영됩니다. 날짜 변경으로 장소의 편의시설 정보가 달라지는 것은 아닙니다.", "Dates affect weather and event searches. Changing a date does not change a place's facility information.")}</p>

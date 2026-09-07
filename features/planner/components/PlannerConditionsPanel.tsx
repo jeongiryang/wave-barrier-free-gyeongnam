@@ -14,6 +14,7 @@ import PlannerThemeDates from "./PlannerThemeDates";
 interface PlannerConditionsPanelProps {
   view: PlannerStageView;
   onGenerate: () => void | Promise<void>;
+  onRegionChange: (region: string) => void;
   t: (key: string, fallback: string) => string;
   activePlaces: Place[];
   planController: ReturnType<typeof usePlannerPlan>;
@@ -27,7 +28,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
   const labels = en ? ["Region", "Facilities", "Activities", "Dates"] : ["지역", "필요한 편의", "하고 싶은 활동", "날짜"];
   const [requestedQuestion, setQuestion] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
-  const { region, setRegion, selected, themes, loading, planError } = props.planController;
+  const { region, selected, themes, loading, planError } = props.planController;
   const lastAvailableQuestion = !region ? 0 : !selected.length ? 1 : !themes.length ? 2 : 3;
   const question = Math.min(requestedQuestion, lastAvailableQuestion);
   const guided = props.view === "guided";
@@ -53,7 +54,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
     {guided && <nav className="condition-progress" aria-label={en ? "Trip questions" : "여행 조건 질문"}>{labels.map((label, index) => <button type="button" key={label} aria-current={question === index ? "step" : undefined} disabled={index > lastAvailableQuestion} onClick={() => go(index)}><span>{index + 1}</span>{label}</button>)}</nav>}
     <h2 ref={heading} tabIndex={-1} className="condition-heading">{guided ? (en ? ["Where would you like to go?", "What facilities do you need?", "What would you like to do?", "When are you travelling?"] : ["어디로 갈까요?", "어떤 편의가 필요할까요?", "무엇을 하고 싶나요?", "언제 떠날까요?"])[question] : en ? "Your trip preferences" : "여행 조건 정하기"}</h2>
     <div className="condition-inputs">
-      {(!guided || question === 0) && <GyeongnamRegionPicker value={region} onChange={setRegion} includeAll />}
+      {(!guided || question === 0) && <GyeongnamRegionPicker value={region} onChange={props.onRegionChange} includeAll />}
       {(!guided || question === 1) && <PlannerAccessibilityProfiles t={props.t} planController={props.planController} />}
       {(!guided || question === 2) && <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="themes" />}
       {(!guided || question === 3) && <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="dates" />}

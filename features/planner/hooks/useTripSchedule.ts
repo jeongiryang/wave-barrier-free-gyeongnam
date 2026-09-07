@@ -1,5 +1,7 @@
 "use client";
 
+import { readTripValue, writeTripValue } from "../../../lib/current-trip-storage.js";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { dateRange, localDate } from "../utils";
 import { boundedTripEnd, offsetTripDate, validTripDate } from "../../../lib/trip-dates.js";
@@ -16,7 +18,7 @@ type StoredSchedule = {
 
 function readStoredSchedule(): StoredSchedule {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(TRIP_SCHEDULE_KEY) || "{}") as unknown;
+    const parsed = JSON.parse(readTripValue(window.localStorage, TRIP_SCHEDULE_KEY) || "{}") as unknown;
     return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as StoredSchedule : {};
   } catch {
     return {};
@@ -61,7 +63,7 @@ export function useTripSchedule() {
   useEffect(() => {
     if (!storageReady) return;
     try {
-      window.localStorage.setItem(TRIP_SCHEDULE_KEY, JSON.stringify({
+      writeTripValue(window.localStorage, TRIP_SCHEDULE_KEY, JSON.stringify({
         travelStart,
         travelEnd,
         dayStartTime,
@@ -115,7 +117,14 @@ export function useTripSchedule() {
     });
   }, [travelStart, tripDays]);
 
+  const resetSchedule = useCallback((start: string, end: string) => {
+    setTravelStart(start); setTravelEnd(end); setDayStartTime("10:00");
+    setScheduleAssignments({}); setDateNotice(null);
+  }, []);
+
   return {
+    resetSchedule,
+    storageReady,
     travelStart,
     travelEnd,
     lastTravelDate,

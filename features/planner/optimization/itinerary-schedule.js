@@ -120,7 +120,7 @@ export function buildItinerarySchedule({
         endsAt,
         startsAtLabel: formatScheduleTime(startsAt),
         endsAtLabel: formatScheduleTime(endsAt),
-        crossesDateBoundary: Math.floor(startsAt / DAY_MINUTES) !== Math.floor(endsAt / DAY_MINUTES),
+        crossesDateBoundary: endsAt >= DAY_MINUTES,
       };
     });
     return { day, entries };

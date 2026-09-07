@@ -10,6 +10,7 @@ export function useRegionWeather(region: string) {
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [requestVersion, setRequestVersion] = useState(0);
   const pending = useRef(false);
+  const generation = useRef(0);
   const reloadWeather = useCallback(() => {
     if (pending.current) return;
     pending.current = true;
@@ -19,6 +20,7 @@ export function useRegionWeather(region: string) {
 
   useEffect(() => {
     let cancelled = false;
+    const version = ++generation.current;
     const controller = new AbortController();
     const frame = window.requestAnimationFrame(() => {
       if (!region) { pending.current = false; setWeather(null); setWeatherLoading(false); return; }
@@ -26,11 +28,13 @@ export function useRegionWeather(region: string) {
       setWeatherLoading(true);
       setWeather(null);
       void optionalPlannerJson<WeatherData>(`/api/weather?region=${encodeURIComponent(region)}`, { signal: controller.signal })
-        .then((data) => { if (!cancelled) setWeather(weatherResponse(data)); })
-        .finally(() => { if (!cancelled) { pending.current = false; setWeatherLoading(false); } });
+        .then((data) => { if (!cancelled && version === generation.current) setWeather(weatherResponse(data)); })
+        .finally(() => { if (!cancelled && version === generation.current) { pending.current = false; setWeatherLoading(false); } });
     });
     return () => { cancelled = true; controller.abort(); window.cancelAnimationFrame(frame); };
   }, [region, requestVersion]);
 
-  return { weather, weatherLoading, reloadWeather };
+  const resetWeather = useCallback(() => { generation.current++; pending.current = false; setWeather(null); setWeatherLoading(false); }, []);
+
+  return { resetWeather, weather, weatherLoading, reloadWeather };
 }

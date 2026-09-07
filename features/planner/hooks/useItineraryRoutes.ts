@@ -55,5 +55,10 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
     }
   }
 
-  return { legs, data, loading, notice, signature, readyCount, complete: legs.length > 0 && readyCount === legs.length, routeMinutes, checkRoutes, cancel: () => controllerRef.current?.abort() };
+  function resetItineraryRoutes() {
+    controllerRef.current?.abort(); controllerRef.current = null;
+    setEvidence({ signature: "", data: {} }); setLoading(false); setNotice("");
+  }
+
+  return { resetItineraryRoutes, legs, data, loading, notice, signature, readyCount, complete: legs.length > 0 && readyCount === legs.length, routeMinutes, checkRoutes, cancel: () => controllerRef.current?.abort() };
 }

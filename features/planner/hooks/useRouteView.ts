@@ -65,7 +65,10 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
       return a.totalTime - b.totalTime;
     }), [routeAlternatives, routeTravelMode]);
 
+  const resetRouteView = () => { setActiveRouteId(""); setSelectedTravelMode(null); setSelectedTransportDataset("bus-arrival"); setTransportMode("all"); };
+
   return {
+    resetRouteView,
     activeRouteId,
     setActiveRouteId,
     routeTravelMode,

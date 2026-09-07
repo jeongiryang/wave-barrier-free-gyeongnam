@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { RoutePoint } from "../../routing/types";
 import { departurePresets } from "../constants";
 import { confirmMapLocationUse } from "../../../lib/location-consent.js";
 import type { RouteNotice } from "../route-copy";
 
 export function useRouteOrigin(onPrivateOrigin?: () => void) {
+  const locationGeneration = useRef(0);
   const [origin, setOrigin] = useState<RoutePoint>(departurePresets[0].point);
   const [originLabel, setOriginLabel] = useState(departurePresets[0].name);
   const [privateOrigin, setPrivateOrigin] = useState(false);
@@ -29,7 +30,9 @@ export function useRouteOrigin(onPrivateOrigin?: () => void) {
     }
     if (!confirmMapLocationUse()) return;
     setRouteNotice({ ko: "현재 위치 권한을 확인하고 있습니다.", en: "Waiting for location permission." });
+    const generation = ++locationGeneration.current;
     navigator.geolocation.getCurrentPosition((position) => {
+      if (generation !== locationGeneration.current) return;
       updateOrigin({ lat: position.coords.latitude, lng: position.coords.longitude }, "현재 위치", true);
     }, () => setRouteNotice({ ko: "현재 위치를 확인하지 못했습니다. 출발 거점을 선택해 주세요.", en: "Your location could not be obtained. Choose a public departure point." }), {
       enableHighAccuracy: false,
@@ -37,7 +40,13 @@ export function useRouteOrigin(onPrivateOrigin?: () => void) {
     });
   }, [updateOrigin]);
 
+  const resetOrigin = useCallback(() => {
+    locationGeneration.current++; setOrigin(departurePresets[0].point);
+    setOriginLabel(departurePresets[0].name); setPrivateOrigin(false);
+  }, []);
+
   return {
+    resetOrigin,
     origin,
     originLabel,
     privateOrigin,

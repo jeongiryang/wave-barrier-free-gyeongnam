@@ -26,6 +26,7 @@ import { usePlannerActions } from "../../features/planner/hooks/usePlannerAction
 import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
+import { useRegionChange } from "../../features/planner/hooks/useRegionChange";
 import { useItineraryRoutes } from "../../features/planner/hooks/useItineraryRoutes";
 import { useJourneyProgress } from "../../features/planner/hooks/useJourneyProgress";
 import type { Place } from "../../features/planner/types";
@@ -35,6 +36,8 @@ import PlannerJourneyModeToggle from "../../features/planner/components/PlannerJ
 import PlannerStageFrame from "../../features/planner/components/PlannerStageFrame";
 import { usePlannerStageView } from "../../features/planner/hooks/usePlannerStageView";
 import { profiles as accessibilityProfiles, themes as travelThemes } from "../../features/planner/constants";
+
+import RegionChangeDialog from "../../features/planner/components/RegionChangeDialog";
 
 export default function PlannerPage() {
   const { hydrated, locale, motion, t } = useSitePreferences();
@@ -69,7 +72,7 @@ export default function PlannerPage() {
   const {
     keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
     secondaryOpen, setSecondaryOpen,
-    weather, weatherLoading, reloadWeather, loadEnrichment,
+    weather, weatherLoading, reloadWeather, loadEnrichment, resetWeather, resetEnrichment,
   } = usePlannerSignals({ plan, region, theme, locale, travelStart, travelEnd });
   const participation = usePlannerParticipation({
     plan,
@@ -89,6 +92,16 @@ export default function PlannerPage() {
   const stageView = usePlannerStageView();
   const [reviewedTrip, setReviewedTrip] = useState("");
   const [reviewedItinerary, setReviewedItinerary] = useState("");
+  const regionChange = useRegionChange({
+    region, ready: planController.criteriaReady && tripSelection.storageReady, hasSaved: saved.length > 0,
+    setRegion: planController.setRegion, resetTrip: tripSelection.resetTrip,
+    clearResults: (fresh) => {
+      if (fresh) { routePlanning.resetOrigin(); routePlanning.resetRouteView(); }
+      planController.resetPlan(); resetRouteData(); itineraryRoutes.resetItineraryRoutes();
+      resetAudio(); clearLocationSearch(); resetWeather(); resetEnrichment();
+      setSelectedPlace(null); setReviewedTrip(""); setReviewedItinerary(""); setSecondaryOpen(false);
+    },
+  });
   const itinerarySignature = JSON.stringify([itineraryRoutes.signature, routePlanning.routeTravelMode, dayStartTime]);
   const itineraryReviewed = reviewedItinerary === itinerarySignature && itineraryRoutes.complete && !itineraryRoutes.loading;
   const reviewSignature = JSON.stringify([region, theme, selected, orderedPlaceIds, travelStart, travelEnd, scheduleAssignments, origin, routePlanning.activeRoute?.id, dayStartTime, itinerarySignature, weather?.updatedAt]);
@@ -334,6 +347,7 @@ export default function PlannerPage() {
         onSubmitFeedback={() => void submitFeedback()}
       />}
 
+      {regionChange.pending && <RegionChangeDialog region={regionChange.pending} en={locale === "en"} error={regionChange.error} onCancel={regionChange.cancel} onAdd={regionChange.add} onNew={regionChange.startNew} />}
       <PlannerFooter />
     </main>
   );

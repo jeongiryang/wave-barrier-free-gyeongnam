@@ -91,7 +91,11 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   }, [signature]);
 
   useEffect(() => () => { planRequestRef.current?.abort(); revealRef.current?.(); }, []);
+  const resetPlan = useCallback(() => {
+    planRequestRef.current?.abort(); planRequestRef.current = null; revealRef.current?.();
+    setPlan(null); setLoading(false); setPlanError(""); setResultSignature(""); setNoticeKind("idle");
+  }, []);
   const resultCurrent = Boolean(plan && !dirty && !loading && !planError);
   const requestState = loading ? "loading" : dirty ? "dirty" : planError ? "error" : plan ? plan.places.length ? "success" : "empty" : selected.length ? "ready" : "idle";
-  return { plan, loading, planError, notice, setNotice: setNoticeKind, runPlan, abortPlan, dirty, resultCurrent, requestState };
+  return { resetPlan, plan, loading, planError, notice, setNotice: setNoticeKind, runPlan, abortPlan, dirty, resultCurrent, requestState };
 }

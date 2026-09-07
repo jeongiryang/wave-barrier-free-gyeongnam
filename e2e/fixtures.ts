@@ -23,7 +23,7 @@ const statuses = [
   { id: "tour", name: "국문 관광정보", role: "관광지 위치·주소", state: "live", count: 2, note: "공식 정보 확인" },
 ];
 
-const plan = {
+export const plan = {
   mode: "live", generatedAt: "2026-08-26T02:00:00.000Z", baseYm: "202608", places,
   course: null, audio: null, photo: null, crowd: { rate: 24, baseYmd: "20260826", place: "경남도립미술관" },
   stops: places.map((place) => ({

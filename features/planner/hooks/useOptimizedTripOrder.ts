@@ -1,5 +1,7 @@
 "use client";
 
+import { readTripValue, writeTripValue } from "../../../lib/current-trip-storage.js";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import type { RoutePoint } from "../../routing/types";
@@ -12,7 +14,7 @@ type OrderMode = "auto" | "manual";
 
 function readStoredOrder(): { mode: OrderMode; ids: string[] } {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(TRIP_ORDER_KEY) || "{}") as { mode?: unknown; ids?: unknown };
+    const parsed = JSON.parse(readTripValue(window.localStorage, TRIP_ORDER_KEY) || "{}") as { mode?: unknown; ids?: unknown };
     return {
       mode: parsed.mode === "manual" ? "manual" : "auto",
       ids: Array.isArray(parsed.ids) ? parsed.ids.filter((id): id is string => typeof id === "string") : [],
@@ -75,7 +77,7 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
   useEffect(() => {
     if (!orderStorageReady || !savedStorageReady) return;
     try {
-      window.localStorage.setItem(TRIP_ORDER_KEY, JSON.stringify({ mode: orderMode, ids: reconciledManualOrder }));
+      writeTripValue(window.localStorage, TRIP_ORDER_KEY, JSON.stringify({ mode: orderMode, ids: reconciledManualOrder }));
     } catch {
       // 저장소가 차단돼도 현재 탭의 편집 순서는 유지한다.
     }
@@ -113,7 +115,10 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
     [locale, orderMode, orderedSavedPlaces, origin],
   );
 
+  const resetOrder = useCallback(() => { setOrderMode("auto"); setManualOrder([]); setNotice(null); }, []);
+
   return {
+    resetOrder,
     orderedSavedPlaces,
     orderedPlaceIds: orderedSavedPlaces.map((place) => place.id),
     orderExplanation,

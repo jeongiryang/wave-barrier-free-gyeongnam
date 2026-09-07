@@ -465,8 +465,8 @@ test("planner state is divided into testable feature hooks without overwriting s
   }
   assert.doesNotMatch(planner, /localStorage\.setItem\("wave-saved-places"/);
   assert.match(savedPlaceIds, /const \[storageReady, setStorageReady\] = useState\(false\)/);
-  assert.match(savedPlaceIds, /localStorage\.getItem\(SAVED_PLACES_KEY\)[\s\S]+setStorageReady\(true\)/);
-  assert.match(savedPlaceIds, /if \(!storageReady\) return;[\s\S]+localStorage\.setItem\(SAVED_PLACES_KEY/);
+  assert.match(savedPlaceIds, /readTripValue\(window\.localStorage, SAVED_PLACES_KEY\)[\s\S]+setStorageReady\(true\)/);
+  assert.match(savedPlaceIds, /if \(!storageReady\) return;[\s\S]+writeTripValue\(window\.localStorage, SAVED_PLACES_KEY/);
   assert.match(tripSelection, /useSavedPlaceIds\(\)/);
   assert.match(tripSelection, /useTripSchedule\(\)/);
   assert.match(tripSelection, /useOptimizedTripOrder\(/);

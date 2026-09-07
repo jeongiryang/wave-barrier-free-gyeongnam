@@ -12,13 +12,14 @@ function fixture(stored = {}) {
     useMemo(fn) { cursor++; return fn(); },
     useEffect(fn, deps) { const i = cursor++, old = slots[i]; if (!old || deps.some((v, j) => v !== old[j])) { slots[i] = deps; effects.push(fn); } },
   };
-  const window = { localStorage: { getItem: () => JSON.stringify(stored), setItem() {} }, location: { search: "" }, requestAnimationFrame(fn) { frames.push(fn); return frames.length; }, cancelAnimationFrame() {} };
+  const window = { localStorage: { getItem: key => key === "wave-trip-schedule-v1" ? JSON.stringify(stored) : null, setItem() {} }, location: { search: "" }, requestAnimationFrame(fn) { frames.push(fn); return frames.length; }, cancelAnimationFrame() {} };
   const compile = file => ts.transpileModule(readFileSync(new URL(file, import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const load = file => { const mod = { exports: {} }; new Function("module", "exports", "require", compile(file))(mod, mod.exports, dependency => { if (dependency.endsWith("trip-dates.js")) return load("../lib/trip-dates.js"); throw Error(dependency); }); return mod.exports; };
   const mod = { exports: {} };
   new Function("module", "exports", "require", "window", compile("../features/planner/hooks/useTripSchedule.ts"))(mod, mod.exports, name => {
     if (name === "react") return hooks;
     if (name === "../utils") return load("../features/planner/utils.ts");
+    if (name.endsWith("current-trip-storage.js")) return load("../lib/current-trip-storage.js");
     if (name.endsWith("trip-dates.js")) return load("../lib/trip-dates.js");
     throw Error(name);
   }, window);
