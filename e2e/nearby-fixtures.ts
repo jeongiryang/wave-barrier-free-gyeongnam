@@ -16,8 +16,8 @@ export async function nearbyRequests(page: Page) {
 export async function deliverNearby(page: Page, index: number, status: string, places: unknown = []) {
   await page.evaluate(({ index, status, places }) => (window as unknown as { nearbyFixture: NearbyFixture }).nearbyFixture.requests[index].callback(places, status), { index, status, places });
 }
-export async function openNearby(page: Page, english = false, theme = "light") {
-  await mockPlannerApi(page);
+export async function openNearby(page: Page, english = false, theme = "light", placeCoordinate?: { mapX: string; mapY: string }) {
+  await mockPlannerApi(page, { placeCoordinate });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript((theme) => {
     localStorage.setItem("wave-theme", theme);

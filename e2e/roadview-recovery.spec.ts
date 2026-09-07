@@ -10,8 +10,8 @@ test.beforeEach(async ({ page }) => {
   page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
 });
 test.afterEach(async ({ page }) => { expect(browserErrors.get(page)).toEqual([]); });
-async function prepare(page: Page, english = false, theme = "light") {
-  const nearby=await openNearby(page,english,theme);
+async function prepare(page: Page, english = false, theme = "light", placeCoordinate?: { mapX: string; mapY: string }) {
+  const nearby=await openNearby(page,english,theme,placeCoordinate);
   await nearby.getByRole("button",{name:english ? "Close nearby places":"주변 장소 닫기",exact:true}).click();
   await page.evaluate(()=>{
     const state:RoadviewFixture={failure:"",requests:[],views:[]};Object.assign(window,{roadviewFixture:state});
@@ -39,6 +39,13 @@ test("Roadview keyboard choice waits for SDK initialization and returns focus",a
   await page.emulateMedia({ reducedMotion: "no-preference" });await expect(panel.getByRole("button",{name:"로드뷰 닫기",exact:true})).toBeFocused();await page.emulateMedia({ reducedMotion: "reduce" });await expect(panel.getByRole("button",{name:"로드뷰 닫기",exact:true})).toBeFocused();
   await deliver(page,0,1);await expect(panel.getByRole("status")).toContainText("불러오고");await page.evaluate(()=>(window as unknown as {roadviewFixture:RoadviewFixture}).roadviewFixture.views[0].listeners.forEach(fn=>fn()));
   await expect(panel.getByRole("status")).toContainText("초기화되었습니다");await page.keyboard.press("Escape");await expect(panel).toBeHidden();await expect(page.getByRole("button",{name:"◉ 로드뷰",exact:true})).toBeFocused();expect(errors).toEqual([]);
+});
+for(const point of [{mapX:"0",mapY:"0"},{mapX:"139.7",mapY:"35.6"}])test(`Roadview rejects unsupported itinerary coordinates ${JSON.stringify(point)}`,async({page})=>{
+  await prepare(page,false,"light",point);await page.getByRole("button",{name:"◉ 로드뷰",exact:true}).click();
+  const choice=page.locator("#map-roadview-choice");await expect(choice).toContainText("지원 지역에서 위치를 확인할 수 있는 일정 장소가 없습니다");
+  await expect(choice.getByRole("combobox")).toHaveCount(0);
+  expect(await page.evaluate(()=>(window as unknown as {roadviewFixture:RoadviewFixture}).roadviewFixture.requests.length)).toBe(0);
+  await page.keyboard.press("Escape");await expect(page.getByRole("button",{name:"◉ 로드뷰",exact:true})).toBeFocused();
 });
 for(const kind of ["construct","search","pano"])test(`Roadview ${kind} failure supports one retry without losing focus`,async({page})=>{
   const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));await prepare(page);await page.evaluate(kind=>{(window as unknown as {roadviewFixture:RoadviewFixture}).roadviewFixture.failure=kind;},kind);
