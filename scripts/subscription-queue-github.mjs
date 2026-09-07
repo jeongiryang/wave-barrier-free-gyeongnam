@@ -7,7 +7,7 @@ export function githubApi(endpoint, { method = "GET", body, allowMissing = false
   if (!endpoint.startsWith(`repos/${REPOSITORY}/`) && endpoint !== "user") throw new Error("INVALID_ENDPOINT");
   const args = ["api", endpoint, "--method", method];
   if (body !== undefined) args.push("--input", "-");
-  const result = run("gh", args, { input: body === undefined ? undefined : JSON.stringify(body), encoding: "utf8", timeout: 30_000, maxBuffer: 4_000_000, windowsHide: true });
+  const result = run(process.env.WAVE_TRUSTED_GH || "gh", args, { input: body === undefined ? undefined : JSON.stringify(body), encoding: "utf8", timeout: 30_000, maxBuffer: 4_000_000, windowsHide: true });
   if (result.status !== 0) {
     if (allowMissing && /HTTP 404/.test(result.stderr || "")) return null;
     if (/HTTP (409|422)/.test(result.stderr || "")) throw new Error("QUEUE_CONFLICT: another writer won; stop without retry");

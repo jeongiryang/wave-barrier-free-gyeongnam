@@ -119,6 +119,6 @@ export async function tick(executable, { queue = new GitHubQueue(), scanInputs =
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const [phase, issueArg, executable] = process.argv.slice(2);
-  (phase === "tick" ? tick(issueArg) : runOnce({ phase, issue: Number(issueArg), executable })).then(result => console.log(JSON.stringify(result))).catch(error => { console.error(error.message); process.exitCode = 1; });
+  console.error("BLOCKED_SANDBOX: use the pinned external installation; never launch from a target checkout");
+  process.exitCode = 1;
 }

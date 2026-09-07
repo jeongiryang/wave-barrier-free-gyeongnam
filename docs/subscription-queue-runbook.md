@@ -53,18 +53,14 @@ Refs #288, #294, PR #289. 2026-09-07 기술 구현 기록. 전체 자동화 완�
 
 ## 명령과 중단 후 재개
 
-설치된 공식 Codex 실행 파일 절대 경로를 전달한다. 새로운 API key, 로그인 파일 또는 유료 서비스는 필요하지 않다.
+대상 PR 안에서 `node scripts/...` 또는 Python helper를 실행하는 과거 진입 방식은 폐기했다. 검토된 실행기 12파일을 체크아웃 밖에 고정하고 manifest의 SHA256을 외부 예약 설정에 pin한다. [설치 신뢰 경계](subscription-trusted-installation.md)를 먼저 적용한다. 아래 변수는 외부 설치 경로·pin·대상 저장소·공식 Codex 경로이며 인증 파일 내용은 전달하지 않는다. 현재 예약 등록과 실제 tick은 차단 상태다.
 
 ```powershell
-node scripts/subscription-queue-cli.mjs init
-node scripts/subscription-queue-cli.mjs scan
-node scripts/subscription-queue-cli.mjs observe
-node scripts/subscription-queue-cli.mjs enqueue 294
-node scripts/subscription-run-once.mjs implementation 294 '<설치된 codex.exe 절대 경로>'
-node scripts/subscription-queue-cli.mjs refresh 294
-node scripts/subscription-run-once.mjs qa 294 '<설치된 codex.exe 절대 경로>'
-node scripts/subscription-queue-cli.mjs show 294
-node scripts/subscription-run-once.mjs tick '<설치된 codex.exe 절대 경로>'
+python -I "$install/scripts/subscription-launch.py" --manifest "$install/manifest.json" --pin "$manifestPin" --repository "$repository" --verify-only
+python -I "$install/scripts/subscription-launch.py" --manifest "$install/manifest.json" --pin "$manifestPin" --repository "$repository" --phase queue --command scan
+python -I "$install/scripts/subscription-launch.py" --manifest "$install/manifest.json" --pin "$manifestPin" --repository "$repository" --phase implementation --issue 294 --codex "$codex"
+python -I "$install/scripts/subscription-launch.py" --manifest "$install/manifest.json" --pin "$manifestPin" --repository "$repository" --phase qa --issue 294 --codex "$codex"
+python -I "$install/scripts/subscription-launch.py" --manifest "$install/manifest.json" --pin "$manifestPin" --repository "$repository" --phase tick --codex "$codex"
 ```
 
 - `scan`은 읽기만 한다. `observe`는 성공적으로 조회한 이벤트 키만 저장하며 같은 입력의 재실행은 추가 상태 커밋을 만들지 않는다.
@@ -72,7 +68,7 @@ node scripts/subscription-run-once.mjs tick '<설치된 codex.exe 절대 경로>
 - 구현 결과와 실행 상태는 **같은 atomic Git push**로 갱신한다. 둘 중 하나라도 최신 ref와 충돌하면 둘 다 실패하며 강제 push/부분 게시로 전환하지 않는다.
 - 마지막 검사 전 lease를 갱신한다. 프로세스가 중단되면 30분 뒤 새 실행이 최대 두 번째 시도로 소유권을 얻는다. 이전 token의 결과는 거부한다.
 - CI 실패/QA 실패는 증거를 보존하고 15분 뒤 한 번만 재시도할 수 있다. quota/auth/외부/격리 문제는 자동 재시도하지 않는다.
-- 운영자가 원인을 해결했다면 `node scripts/subscription-queue-cli.mjs resume 294`로 명시적으로 재개한다. 횟수는 초기화되지 않는다. 다음 실행에서 인증·한도·HEAD·격리를 다시 검사한다.
+- 운영자가 원인을 해결했다면 고정 launcher의 `--phase queue --command resume --issue 294`로 명시적으로 재개한다. 횟수는 초기화되지 않는다. 다음 실행에서 인증·한도·HEAD·격리를 다시 검사한다.
 - 격리 worktree와 로컬 실패 로그는 보존한다. 사용자 작업 폴더나 실행 중인 다른 프로세스를 삭제·종료하지 않는다.
 - 같은 구현 결과의 재실행은 `duplicate: true, modelCalls: 0`으로 끝나야 한다. 실제 결과는 첫 smoke receipt에 기록한다.
 - `tick`은 승인 명세 감지 → 등록 → 기존 CI/HEAD 갱신 → 우선순위 순 한 작업만 실행한다. 한 번 끝나면 종료하며 자체 예약이나 무한 poll을 만들지 않는다.
@@ -102,7 +98,7 @@ node scripts/subscription-run-once.mjs tick '<설치된 codex.exe 절대 경로>
 
 저장소 밖 설정 파일은 version=1과 Linux 절대 경로 `bwrap`, `runtime`(Node 배포 루트), `browsers`(사전 준비된 Chromium), `scratch`(보존할 시험 로그), 검증한 바이너리 `bwrapSha256`, `nodeSha256`만 받는다. `WAVE_VALIDATION_SANDBOX_CONFIG`에는 그 로컬 설정 파일 경로만 지정한다. 인증·Secret·토큰 값은 설정에 넣지 않는다. 설정을 준비한 것과 예약 환경에 등록한 것은 별개다.
 
-활성화 전 `python3 -B tests/subscription-sandbox-boundary.py <설정 파일>`로 공개 canary의 정상/비격리 대조/가짜 종료0/악성 npm 명령 검사를 실행한다. 이것은 합성 보안 시험이며 제품 lint·unit·Playwright 성공이 아니다. 전체 제품 검증에는 같은 helper로 모든 명령의 성공이 추가로 필요하다. 별도 최신 HEAD QA PASS와 #294의 시도/재개 조건도 필요하며, 실패 횟수를 초기화하거나 자동 재시도를 늘리지 않는다. 현재는 실제 queue tick을 실행하지 않는다.
+활성화 전 CI의 공개 canary 정상/비격리 대조/가짜 종료0/악성 npm 검사와 bootstrap 변조 검사를 모두 확인한다. 로컬 probe도 별도로 검토해 외부에 복사한 설치물을 사용하며, 대상 PR의 test/helper를 호스트에서 직접 실행하지 않는다. 합성 보안 시험은 제품 lint·unit·Playwright 성공이 아니다. 전체 제품 검증에는 같은 helper로 모든 명령의 성공이 추가로 필요하다. 별도 최신 HEAD QA PASS와 #294의 시도/재개 조건도 필요하며, 실패 횟수를 초기화하거나 자동 재시도를 늘리지 않는다. 현재는 실제 queue tick을 실행하지 않는다.
 
 Chromium 준비, 최종 전체 검증과 독립 QA는 아직 완료되지 않았다. 기존 문서 smoke 이력으로 이 경계를 통과한 것처럼 표시하지 않는다. 실제 준비·실행·차단 근거는 [AI 로그](ai-logs/subscription-queue-execution.md)의 최신 격리 절에 연결한다.
 

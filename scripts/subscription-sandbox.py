@@ -171,7 +171,8 @@ def validate(config, archive, edits):
     lock = json.loads((workspace / "package-lock.json").read_text())
     validate_lock(lock)
     # This trusted npm operation never invokes repository/dependency lifecycle code.
-    installed = invoke(arguments(config, workspace, network=True) + npm + ["ci", "--ignore-scripts", "--no-audit", "--no-fund", "--registry=https://registry.npmjs.org"], timeout=300)
+    # Match this repository's reviewed lockfile mode without importing .npmrc.
+    installed = invoke(arguments(config, workspace, network=True) + npm + ["ci", "--ignore-scripts", "--legacy-peer-deps", "--no-audit", "--no-fund", "--registry=https://registry.npmjs.org"], timeout=300)
     (workspace.parent / (workspace.name + "-install.log")).write_text(installed.stdout)
     print("CHECK: dependency preparation " + ("FAIL" if installed.returncode else "PASS"), file=sys.stderr)
     if installed.returncode:

@@ -49,6 +49,8 @@ jobs:
         run: npm run typecheck
       - name: 회귀 테스트
         run: npm test
+      - name: Reject tampered bootstrap before any checkout code executes
+        run: python3 -I tests/subscription-bootstrap-boundary.py
       - name: Actual validation sandbox boundary
         shell: bash
         run: |

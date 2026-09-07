@@ -5,7 +5,7 @@ import path from "node:path";
 import { REPOSITORY, QUEUE_BRANCH, assertLease, implementationResult } from "./subscription-queue.mjs";
 
 export function trustedGitExecutable() {
-  const executable = process.platform === "win32" ? path.join(process.env.ProgramFiles || "C:\\Program Files", "Git", "cmd", "git.exe") : "/usr/bin/git";
+  const executable = process.env.WAVE_TRUSTED_GIT || (process.platform === "win32" ? path.join(process.env.ProgramFiles || "C:\\Program Files", "Git", "cmd", "git.exe") : "/usr/bin/git");
   if (!existsSync(executable)) throw new Error("BLOCKED_SANDBOX: trusted Git unavailable");
   return executable;
 }
