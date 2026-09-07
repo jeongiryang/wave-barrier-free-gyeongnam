@@ -1,0 +1,22 @@
+{
+  "created": "2026-09-07",
+  "status": "concept-for-post-RC-review",
+  "source": "ChatGPT image generation in this conversation; WebP transcoding and FFmpeg camera-motion video",
+  "source_type": "generated fictional coastal illustration; not real-place or accessibility evidence",
+  "audio": false,
+  "duration_seconds": 8,
+  "files": [
+    {
+      "file": "wave-coast-hero.webp",
+      "bytes": 161894,
+      "sha256": "04649468ff5df1785c8f85fc199e8060dd68dfcdc6a39c8da5471d706b94b01f",
+      "git_blob_sha": "ccd12ab3a2a0fd11a4e0f87717b73db088c392a7"
+    },
+    {
+      "file": "wave-coast-loop.mp4",
+      "bytes": 610879,
+      "sha256": "0d906e9603cce303fe12a234764a1be66b8f230a5959b4a9c68370e228ae47c3",
+      "git_blob_sha": "47644cb3d5f48fbe189eafd354cfb30f75307b1c"
+    }
+  ]
+}
