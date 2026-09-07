@@ -6,6 +6,7 @@ interface NearbyFixture {
   requests: { code: string; callback: (places: unknown, status: string) => void }[];
   throwNext: boolean;
 }
+export interface MapLayerFixture { maps: { base: number; layers: number[] }[]; failBase: boolean; failLayer: boolean }
 export function nearbyPlace(index = 1): NearbyFixturePlace {
   return { id: String(index), place_name: `검증 장소 ${index}`, address_name: "경남 창원시", road_address_name: "", x: "128.68", y: "35.23", distance: String(index * 10), place_url: `https://place.map.kakao.com/${index}` };
 }
@@ -22,12 +23,21 @@ export async function openNearby(page: Page, english = false, theme = "light") {
     localStorage.setItem("wave-theme", theme);
     const noop = () => undefined;
     const state: NearbyFixture = { requests: [], throwNext: false };
-    Object.assign(window, { nearbyFixture: state });
+    const layerState: MapLayerFixture = { maps: [], failBase: false, failLayer: false };
+    Object.assign(window, { nearbyFixture: state, mapLayerFixture: layerState });
     class Overlay { setMap = noop; }
     class LatLng { constructor(private lat: number, private lng: number) {} getLat() { return this.lat; } getLng() { return this.lng; } }
     const maps = {
       load: (callback: () => void) => callback(), LatLng, LatLngBounds: class { extend = noop; },
-      Map: class { setBounds = noop; setCenter = noop; panTo = noop; setLevel = noop; setMapTypeId = noop; addOverlayMapTypeId = noop; removeOverlayMapTypeId = noop; relayout = noop; getCenter() { return new LatLng(35.23, 128.68); } },
+      Map: class {
+        base = 1; layers: number[] = [];
+        constructor() { layerState.maps.push(this); }
+        setBounds = noop; setCenter = noop; panTo = noop; setLevel = noop; relayout = noop;
+        getCenter() { return new LatLng(35.23, 128.68); }
+        setMapTypeId(id: number) { if (layerState.failBase) throw Error("controlled map-type failure"); this.base = id; }
+        addOverlayMapTypeId(id: number) { if (layerState.failLayer) throw Error("controlled overlay failure"); this.layers = [...new Set([...this.layers, id])]; }
+        removeOverlayMapTypeId(id: number) { if (layerState.failLayer) throw Error("controlled overlay failure"); this.layers = this.layers.filter((value) => value !== id); }
+      },
       Marker: Overlay, CustomOverlay: Overlay, Polyline: Overlay, Circle: Overlay,
       Roadview: class { setPanoId = noop; relayout = noop; },
       RoadviewClient: class { getNearestPanoId(_p: unknown, _r: number, callback: (id: number | null) => void) { callback(null); } },

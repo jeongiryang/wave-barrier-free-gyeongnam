@@ -23,6 +23,8 @@ export default function RouteMap(props: RouteMapProps) {
     actionPending,
     baseMap,
     activeLayers,
+    layerError,
+    layerRecovery,
     toolPanel,
     expanded,
     pickMode,
@@ -71,6 +73,8 @@ export default function RouteMap(props: RouteMapProps) {
       actionNotice={toolPanel === "export" ? "" : actionNotice}
       actionPending={actionPending}
       baseMap={baseMap}
+      layerError={layerError}
+      layerRecovery={layerRecovery}
       toolPanel={toolPanel}
       roadviewSelectMode={roadviewSelectMode}
       roadviewOpen={roadviewOpen}
@@ -122,6 +126,9 @@ export default function RouteMap(props: RouteMapProps) {
     />}
 
     {toolPanel === "layers" && <MapLayerPanel
+      available={provider === "kakao"}
+      loading={provider === "loading"}
+      onRetry={retryProvider}
       activeLayers={activeLayers}
       onClose={() => setToolPanel(null)}
       onToggleLayer={toggleLayer}
