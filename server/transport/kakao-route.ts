@@ -1,4 +1,5 @@
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
+import { isSupportedMapCoordinate, mapDistanceMetres } from "../../lib/map-coordinates.js";
 import type { Env } from "../shared/env";
 import type { ProviderStatusUpdate, RouteApiAlternative, RouteGeometryPoint } from "./types";
 
@@ -49,12 +50,15 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
         if (!record(road) || !Array.isArray(road.vertexes) || road.vertexes.length < 4 || road.vertexes.length % 2) throw Error("Invalid road vertices");
         for (let i = 0; i < road.vertexes.length; i += 2) {
           const lng: unknown = road.vertexes[i], lat: unknown = road.vertexes[i + 1];
-          if (typeof lng !== "number" || typeof lat !== "number" || !Number.isFinite(lng) || !Number.isFinite(lat) || Math.abs(lng) > 180 || Math.abs(lat) > 90) throw Error("Invalid road coordinate");
+          if (typeof lng !== "number" || typeof lat !== "number" || !isSupportedMapCoordinate(lat, lng)) throw Error("Invalid road coordinate");
           geometry.push({ lng, lat });
         }
       }
     }
     // Keep only provider road vertices; do not append straight links to the requested endpoints.
+    // Permit road snapping within 1 km, but never approve an unrelated/reversed journey.
+    if (mapDistanceMetres(geometry[0], { lat: startLat, lng: startLng }) > 1000
+      || mapDistanceMetres(geometry[geometry.length - 1], { lat: endLat, lng: endLng }) > 1000) throw Error("Road endpoints do not match request");
     const durationSeconds = summary.duration;
     const rawToll = fare.toll;
     const toll = typeof rawToll === "number" && Number.isFinite(rawToll) && rawToll >= 0 ? rawToll : null;
