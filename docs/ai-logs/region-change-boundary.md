@@ -40,6 +40,13 @@ details/actions are now a deferred module inside an immediately mounted native
 dialog. Heading/cancel and focus containment remain available during loading;
 module failure keeps the itinerary and offers cancellation/reload guidance.
 
+CI #789 (`34114727249`, `0675bf2`) still measured **270.35 KiB**, above the
+unchanged 270 KiB limit; all 497 unit/contracts passed again. The existing
+place dialog's evidence and participation modules are also deferred until
+the dialog opens. Its native shell, close control and heading stay immediate;
+loading/error messages remain visible and no facility evidence is invented.
+Existing place-dialog E2E remains part of the unchanged full suite.
+
 - Added storage commit/failure/reload contracts and midnight regression.
 - Added KO/EN, light/dark, 320px modal, keyboard focus/trap/cancel and axe E2E;
   preservation/new-trip/reload, rapid region requests and history checks.

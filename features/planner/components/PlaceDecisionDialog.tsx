@@ -4,8 +4,13 @@ import { lazy, Suspense, type RefObject } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import type { Place } from "../types";
 import { originalLanguage } from "../place-copy";
-import PlaceEvidenceSummary from "./PlaceEvidenceSummary";
-import PlaceParticipationActions from "./PlaceParticipationActions";
+
+function DetailsUnavailable() {
+  const { locale } = useSitePreferences();
+  return <p role="alert">{locale === "en" ? "These details could not load. Close this dialog and reload the page to try again. No trip changes were made." : "상세 화면을 불러오지 못했어요. 닫고 페이지를 새로 열어 다시 시도해 주세요. 일정은 변경하지 않았습니다."}</p>;
+}
+const PlaceEvidenceSummary = lazy(() => import("./PlaceEvidenceSummary").catch(() => ({ default: DetailsUnavailable })));
+const PlaceParticipationActions = lazy(() => import("./PlaceParticipationActions").catch(() => ({ default: DetailsUnavailable })));
 
 function StoriesUnavailable({ place, location }: { place: Place; location: string }) {
   const { locale } = useSitePreferences();
@@ -42,11 +47,11 @@ export default function PlaceDecisionDialog(props: Props) {
       <div className="modal-body">
         <p className="section-kicker">{en ? "Facility information" : "편의정보 자세히 보기"}</p><h2 id="place-modal-title" lang={originalLanguage(place.name)} tabIndex={-1}>{place.name}</h2><p lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
         {en && <p className="original-language-note">Place names, addresses and facility evidence are shown in their original language, which may be Korean. Visitor stories are not translated.</p>}
-        <PlaceEvidenceSummary place={place} />
+        <Suspense fallback={<p role="status">{en ? "Loading facility details…" : "편의정보를 불러오는 중…"}</p>}><PlaceEvidenceSummary place={place} /></Suspense>
         <Suspense fallback={<p role="status">{en ? "Preparing visitor stories." : "현장 후기 화면을 준비하고 있어요."}</p>}>
           <PlaceCommunityStories place={place} location={location} />
         </Suspense>
-        <PlaceParticipationActions place={place} location={location} saved={props.saved} canSave={props.canSave} feedbackText={props.feedbackText} feedbackState={props.feedbackState} onToggleSaved={props.onToggleSaved} onFeedbackChange={props.onFeedbackChange} onSubmitFeedback={props.onSubmitFeedback} />
+        <Suspense fallback={<p role="status">{en ? "Loading place actions…" : "장소 선택 항목을 불러오는 중…"}</p>}><PlaceParticipationActions place={place} location={location} saved={props.saved} canSave={props.canSave} feedbackText={props.feedbackText} feedbackState={props.feedbackState} onToggleSaved={props.onToggleSaved} onFeedbackChange={props.onFeedbackChange} onSubmitFeedback={props.onSubmitFeedback} /></Suspense>
         <small className="modal-note">{en ? "Facility records are not a safety certification. Missing information does not mean a facility is absent. Confirm current conditions with the venue before visiting." : "공식 시설 정보는 안전 인증이나 접근 가능성 보장이 아닙니다. 미확인은 시설이 없다는 뜻이 아닙니다. 방문 전 시설에 현재 운영 상태를 확인해 주세요."}</small>
       </div>
   </dialog>;
