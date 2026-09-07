@@ -25,8 +25,8 @@ export function sandboxConfiguration(env = process.env) {
 export function sandboxCall(action, config, extra = {}, run = spawnSync) {
   if (!["probe", "validate"].includes(action)) throw new Error("BLOCKED_SANDBOX");
   const windows = process.platform === "win32";
-  const command = windows ? "wsl.exe" : "/usr/bin/python3";
-  const args = windows ? ["--exec", "/usr/bin/python3", "-B", wslPath(bridge)] : ["-B", bridge];
+  const command = windows ? path.join(process.env.SystemRoot || "C:\\Windows", "System32", "wsl.exe") : "/usr/bin/python3";
+  const args = windows ? ["--exec", "/usr/bin/python3", "-I", "-B", wslPath(bridge)] : ["-I", "-B", bridge];
   const result = run(command, args, { input: JSON.stringify({ action, config, ...extra }), encoding: "utf8", windowsHide: true, timeout: action === "probe" ? 30_000 : 25 * 60_000, maxBuffer: 100_000 });
   // Never print helper stderr or a generated repository's arbitrary output.
   if (result.status !== 0) throw new Error("BLOCKED_SANDBOX: isolated validation failed; preserve checkpoint; no host fallback");

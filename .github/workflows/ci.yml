@@ -156,6 +156,8 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: sandbox-application-logs
-          path: ${{ runner.temp }}/wave-validation-*.log
+          path: |
+            ${{ runner.temp }}/wave-validation-*.log
+            ${{ runner.temp }}/wave-validation-*-artifacts/
           retention-days: 7
           if-no-files-found: ignore

@@ -16,9 +16,10 @@ import resource
 import time
 import uuid
 import hashlib
+import shutil
 from urllib.parse import urlsplit
 
-DEADLINE = time.monotonic() + 24 * 60
+DEADLINE = time.monotonic() + 20 * 60
 
 
 def fail():
@@ -61,7 +62,7 @@ def arguments(config, workspace, network=False):
         for name in ["/usr/share/fonts", "/usr/share/fontconfig", "/etc/fonts"]:
             if pathlib.Path(name).is_dir():
                 args += ["--ro-bind", name, name]
-    for key, value in {"PATH": "/runtime/bin:/usr/bin", "HOME": "/home/runner", "APPDATA": "/home/runner/AppData", "USERPROFILE": "/home/runner", "CI": "true", "PLAYWRIGHT_BROWSERS_PATH": "/browsers", "npm_config_userconfig": "/tmp/npm-user.conf", "npm_config_globalconfig": "/tmp/npm-global.conf"}.items():
+    for key, value in {"PATH": "/runtime/bin:/usr/bin", "HOME": "/home/runner", "APPDATA": "/home/runner/AppData", "USERPROFILE": "/home/runner", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8", "CI": "true", "PLAYWRIGHT_BROWSERS_PATH": "/browsers", "npm_config_userconfig": "/tmp/npm-user.conf", "npm_config_globalconfig": "/tmp/npm-global.conf"}.items():
         args += ["--setenv", key, value]
     return args + ["--"]
 
@@ -76,9 +77,16 @@ def invoke(args, timeout=30, *, dependency_install=False):
         # larger extraction cap is exclusive to trusted npm with scripts OFF.
         file_limit = (256 if dependency_install else 64) * 1024 * 1024
         resource.setrlimit(resource.RLIMIT_FSIZE, (file_limit, file_limit))
-        resource.setrlimit(resource.RLIMIT_NPROC, (256, 256))
+        # Linux counts Chromium threads, including axe's extra contexts. Keep
+        # the original two Playwright workers; do not throttle the test contract.
+        resource.setrlimit(resource.RLIMIT_NPROC, (1024, 1024))
     with tempfile.TemporaryFile() as log:
-        result = subprocess.run(args, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, timeout=min(timeout, remaining), preexec_fn=limits, env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"})
+        try:
+            result = subprocess.run(args, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, timeout=min(timeout, remaining), preexec_fn=limits, env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"})
+        except subprocess.TimeoutExpired:
+            # subprocess.run has killed/waited for bwrap. Retain the diagnostic
+            # stream, and leave CI enough time to upload it before job timeout.
+            result = subprocess.CompletedProcess(args, 124)
         log.seek(0)
         result.stdout = log.read(64 * 1024 * 1024).decode("utf-8", errors="replace")
         result.stderr = ""
@@ -186,9 +194,38 @@ def validate(config, archive, edits):
         # Only local, private diagnostic files; never returned as PR comment text.
         (workspace.parent / (workspace.name + "-" + command[-1].replace(":", "-") + ".log")).write_text(outcome.stdout + outcome.stderr)
         print("CHECK: npm " + " ".join(command) + (" FAIL" if outcome.returncode else " PASS"), file=sys.stderr)
+        if command[-1] == "test:e2e":
+            export_artifacts(workspace)
         if outcome.returncode:
             fail()
     return ["npm " + " ".join(command) for command in checks]
+
+
+def export_artifacts(workspace):
+    # Never hand a PR-controlled symlink to a credential-bearing uploader.
+    # The PID namespace has exited before this copy; output is a new sibling
+    # directory which was never writable from the repository sandbox.
+    target = workspace.parent / (workspace.name + "-artifacts")
+    target.mkdir()
+    total = 0
+    for folder in ["test-results", "playwright-report"]:
+        source = workspace / folder
+        if source.is_symlink():
+            fail()
+        if not source.is_dir():
+            continue
+        for file in source.rglob("*"):
+            if file.is_symlink() or file.resolve() != file:
+                fail()
+            if not file.is_file() or file.suffix not in [".png", ".zip", ".md", ".json", ".html"]:
+                continue
+            size = file.stat().st_size
+            if size > 25 * 1024 * 1024 or total + size > 128 * 1024 * 1024:
+                raise RuntimeError("BLOCKED_SANDBOX: artifact capacity reached; retain workspace")
+            destination = target / file.relative_to(workspace)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(file, destination, follow_symlinks=False)
+            total += size
 
 
 def main():

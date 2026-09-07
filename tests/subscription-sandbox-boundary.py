@@ -89,3 +89,20 @@ process.exitCode=safe?0:1;})();""".replace("FILE", json.dumps(str(sentinel))).re
     checks = boundary.validate(config, str(archive), {})
     assert len(checks) == 6
 print("PASS: all six synthetic npm commands remain contained; no application QA claim")
+
+safe = pathlib.Path(tempfile.mkdtemp(prefix="wave-public-artifact-", dir=config["scratch"]))
+(safe / "test-results").mkdir()
+(safe / "test-results/public.md").write_text("PUBLIC TEST DATA ONLY")
+boundary.export_artifacts(safe)
+assert (safe.parent / (safe.name + "-artifacts") / "test-results/public.md").read_text() == "PUBLIC TEST DATA ONLY"
+unsafe = pathlib.Path(tempfile.mkdtemp(prefix="wave-public-artifact-", dir=config["scratch"]))
+(unsafe / "test-results").mkdir()
+(unsafe / "test-results/outside.md").symlink_to(sentinel)
+try:
+    boundary.export_artifacts(unsafe)
+except RuntimeError:
+    pass
+else:
+    raise AssertionError("PR-controlled artifact symlink was accepted")
+assert not (unsafe.parent / (unsafe.name + "-artifacts") / "test-results/outside.md").exists()
+print("PASS: regular artifacts preserved; outside symlink rejected before upload")

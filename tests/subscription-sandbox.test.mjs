@@ -33,7 +33,12 @@ test("missing or invalid sandbox configuration cannot authorize host validation"
 test("sandbox failures discard arbitrary output and never invoke an alternate executor", () => {
   for (const result of [{ status: 1, stderr: "PUBLIC-TEST-PATH" }, { status: 0, stdout: "not JSON PUBLIC-TEST-PATH" }, { status: 0, stdout: JSON.stringify({ result: "PASS" }) }]) {
     let calls = 0;
-    assert.throws(() => sandboxCall("probe", {}, {}, () => { calls++; return result; }), error => /BLOCKED_SANDBOX/.test(error.message) && !error.message.includes("PUBLIC-TEST-PATH"));
+    assert.throws(() => sandboxCall("probe", {}, {}, (executable, args) => {
+      calls++;
+      assert.ok(path.isAbsolute(executable));
+      assert.ok(args.includes("-I"));
+      return result;
+    }), error => /BLOCKED_SANDBOX/.test(error.message) && !error.message.includes("PUBLIC-TEST-PATH"));
     assert.equal(calls, 1);
   }
 });
