@@ -463,7 +463,10 @@ test("travel conditions require explicit search and keep previous results during
   assert.match(request, /signal: controller\.signal/);
   assert.match(request, /resultSignature !== signature/);
   assert.match(request, /if \(!region \|\| !requestedTheme \|\| !selected.length \|\| loading\) return false/);
-  assert.doesNotMatch(request, /setPlan\(null\)/);
+  // Changing ordinary criteria must keep results. An explicit confirmed trip
+  // replacement now has a separate reset command, covered by runtime tests.
+  assert.match(request, /const resetPlan = useCallback/);
+  assert.doesNotMatch(request.slice(0, request.indexOf("  const resetPlan =")), /setPlan\(null\)/);
 });
 
 test("planner visual order follows DOM and keyboard focus order", async () => {

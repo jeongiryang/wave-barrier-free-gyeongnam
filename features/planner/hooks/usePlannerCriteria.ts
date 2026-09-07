@@ -28,7 +28,7 @@ export function usePlannerCriteria() {
         const catalog = JSON.parse(readTripValue(window.localStorage, "wave-saved-place-catalog-v1") || "[]");
         existingRegion = readTripValue(window.localStorage, REGION_KEY) || catalog[0]?.city || "";
       } catch { /* Invalid storage must not authorize merging trips. */ }
-      if (hasSaved && regions.includes(existingRegion)) setRegion(existingRegion);
+      if (hasSaved) { if (regions.includes(existingRegion)) setRegion(existingRegion); }
       else if (queryRegion && regions.includes(queryRegion)) setRegion(queryRegion);
       else if (regions.includes(existingRegion)) setRegion(existingRegion);
       setCriteriaReady(true);

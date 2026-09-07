@@ -25,6 +25,14 @@ was missing at the multiline page call site. The callback is now connected.
 This was an implementation wiring error, not an obsolete test assumption.
 The following push supersedes that run and retains the complete test scope.
 
+CI #787 (`34113927718`, `beff740`) passed lint/typecheck and both audits.
+Unit/contract: 493 PASS, 2 FAIL, 0 skip. Both failures were source-contract
+assumptions: a blanket ban on `setPlan(null)` also prohibited the newly required
+explicit reset, and the `setWeather(` pattern matched `resetWeather(`. The
+automatic-criteria no-clear assertion is retained on the request path; reset
+and delayed old-response behavior now have executable hook tests. The root
+state-setter assertion uses identifier boundaries. No failed behavior is hidden.
+
 - Added storage commit/failure/reload contracts and midnight regression.
 - Added KO/EN, light/dark, 320px modal, keyboard focus/trap/cancel and axe E2E;
   preservation/new-trip/reload, rapid region requests and history checks.

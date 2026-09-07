@@ -481,7 +481,7 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.doesNotMatch(routePlanning, /navigator\.geolocation/);
   assert.match(routePlanning, /nextOriginLabel/);
   assert.doesNotMatch(planner, /routeRequestRef|setRouteAlternatives\(/);
-  assert.doesNotMatch(planner, /enrichmentRequestRef|setKeyHealth\(|setWeather\(/);
+  assert.doesNotMatch(planner, /enrichmentRequestRef|\bsetKeyHealth\(|\bsetWeather\(/);
   assert.doesNotMatch(planner, /setPlanError\(|planRequestRef/);
   assert.doesNotMatch(planner, /plannerJson|setShareState\(|setFeedbackState\(/);
   assert.match(planController, /plannerJson<PlanData>/);
