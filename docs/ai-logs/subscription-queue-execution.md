@@ -81,6 +81,6 @@ Notion 무료 block 한도 때문에 최종 환류는 pending/unacknowledged다.
 # CI runner 격리 검증 후속 — 2026-09-07
 
 - `4cf713d` CI #797 및 `f24fa94` CI #798은 lint/typecheck/unit 314건까지 성공했지만 실제 sandbox probe에서 실패했다. #798은 `namespace-permission`으로 분류했으며 브라우저/build 단계는 실행되지 않았다.
-- Ubuntu가 제공하는 `/etc/apparmor.d/bwrap-userns-restrict`와 자식 capability 제한 정책을 일회성 CI runner에 로드하도록 보완했다. 전역 AppArmor/user namespace 보호를 끄지 않으며 정책 파일이 없으면 실패한다. 로컬 PC 정책은 변경하지 않는다.
+- `ddf0608` CI #799에서 runner의 배포판 정책 파일이 없어 `test -f`가 실패했다. 기존 파일 존재를 가정한 접근을 대체해 AppArmor upstream의 고정 commit 정책과 SHA256을 검증한 뒤 일회성 CI runner에만 로드한다. 자식 capability 제한을 포함하며 전역 AppArmor/user namespace 보호와 로컬 PC 정책은 변경하지 않는다.
 - 근거: [Ubuntu의 프로그램별 namespace 정책](https://ubuntu.com/blog/ubuntu-23-10-restricted-unprivileged-user-namespaces), [AppArmor upstream bwrap/child profile](https://gitlab.com/apparmor/apparmor/-/blob/8e431ebcd915216a03ebc8d01e72b1741bb2f855/profiles/apparmor/profiles/extras/bwrap-userns-restrict).
 - 실제 queue 실행·독립 QA PASS·전체 애플리케이션의 sandbox 통과를 주장하지 않는다. `blocked-sandbox`를 유지하며 새 HEAD에서 CI probe와 기존 전체 회귀를 다시 확인한다.

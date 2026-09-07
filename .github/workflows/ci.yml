@@ -55,10 +55,13 @@ jobs:
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y bubblewrap apparmor
-          # Load Ubuntu's scoped bwrap profile, including its capability-stripping
-          # child profile. Never disable AppArmor or the global userns restriction.
-          test -f /etc/apparmor.d/bwrap-userns-restrict
-          sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
+          # Noble's runner lacks this profile. Load the pinned AppArmor upstream
+          # bwrap/child policy, never disable global AppArmor/userns restrictions.
+          curl --fail --silent --show-error --location \
+            https://gitlab.com/apparmor/apparmor/-/raw/8e431ebcd915216a03ebc8d01e72b1741bb2f855/profiles/apparmor/profiles/extras/bwrap-userns-restrict \
+            -o "$RUNNER_TEMP/bwrap-userns-restrict"
+          printf '634d3d3427c483f123cb5ed53b71ea13040187e07d9f67ca74421d42a6170f0e  %s\n' "$RUNNER_TEMP/bwrap-userns-restrict" | sha256sum --check
+          sudo apparmor_parser -r "$RUNNER_TEMP/bwrap-userns-restrict"
           python3 - <<'PY'
           import hashlib, json, os, pathlib, subprocess
           runtime = pathlib.Path(subprocess.check_output(["node", "-p", "process.execPath"], text=True).strip()).parent.parent
