@@ -151,8 +151,7 @@ export default function PlannerPage() {
       if (planController.loading) return;
       setTheme("history");
       stageView.changeStep("conditions");
-      const success = await runPlan({ resetRouteData, resetAudio, requestedTheme: "history" });
-      if (success) stageView.changeStep("places");
+      await runPlan({ resetRouteData, resetAudio, requestedTheme: "history", onRevealResults: () => stageView.changeStep("places", true) });
     },
     onSelectDestination: (place) => {
       if (!saved.includes(place.id)) {
@@ -190,11 +189,11 @@ export default function PlannerPage() {
   });
 
   async function generatePlan(revealResults = true) {
-    const success = await runPlan({
+    await runPlan({
       resetRouteData,
       resetAudio,
+      onRevealResults: () => stageView.changeStep("places", true),
     }, revealResults);
-    if (success && revealResults) stageView.changeStep("places");
   }
 
   return (

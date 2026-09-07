@@ -49,7 +49,9 @@ test("단계 제목을 한국어로 읽을 수 있다", async () => {
 
 test("추천 조회는 사용자가 명시적으로 시작한다", async () => {
   const file = await source("features/planner/components/PlannerConditionsPanel.tsx");
-  assert.match(file, /onClick=\{\(\) => void props\.onGenerate\(\)\}/);
+  assert.match(file, /onClick=\{\(\) => \{ if \(!loading\) void props\.onGenerate\(\); \}\}/);
+  assert.match(file, /disabled=\{!region \|\| !themes\.length \|\| !selected\.length\}/);
+  assert.match(file, /aria-disabled=\{loading \|\| undefined\}/);
   assert.match(file, /여행지 찾기/);
   assert.doesNotMatch(file, /추천이 자동으로 업데이트/);
 });

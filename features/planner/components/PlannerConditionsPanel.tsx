@@ -62,7 +62,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
     {guided && planError && <p role="alert">{en ? "We couldn't load places. Your choices are kept. Check your connection and try again." : "여행지를 불러오지 못했어요. 선택한 조건은 유지됩니다. 연결을 확인하고 다시 찾아 주세요."}</p>}
     <div className="condition-actions">
       {guided && question > 0 && <button type="button" className="secondary" onClick={() => go(question - 1)}>{en ? "Previous" : "이전"}</button>}
-      {guided && question < 3 ? <button type="button" disabled={question + 1 > lastAvailableQuestion} onClick={() => go(question + 1)}>{en ? "Continue" : "다음"} →</button> : <button type="button" disabled={!region || !themes.length || !selected.length || loading} onClick={() => void props.onGenerate()}>{loading ? en ? "Finding places…" : "여행지 찾는 중…" : en ? "Find places" : "여행지 찾기"} →</button>}
+      {guided && question < 3 ? <button type="button" disabled={question + 1 > lastAvailableQuestion} onClick={() => go(question + 1)}>{en ? "Continue" : "다음"} →</button> : <button type="button" disabled={!region || !themes.length || !selected.length} aria-disabled={loading || undefined} aria-busy={loading || undefined} onClick={() => { if (!loading) void props.onGenerate(); }}>{loading ? en ? "Finding places…" : "여행지 찾는 중…" : en ? "Find places" : "여행지 찾기"} →</button>}
     </div>
     {(!guided || question === 1) && !selected.length && <p role="status">{en ? "Select at least one facility to continue." : "필요한 편의를 하나 이상 선택해 주세요."}</p>}
     {(!guided || question === 2) && !themes.length && <p role="status">{en ? "Select at least one activity to continue." : "하고 싶은 활동을 하나 이상 선택해 주세요."}</p>}
