@@ -14,6 +14,20 @@ spec = importlib.util.spec_from_file_location("boundary", root / "scripts/subscr
 boundary = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(boundary)
 config = json.loads(pathlib.Path(sys.argv[1]).read_text())
+assert boundary.WORKSPACE_BYTES + boundary.TEMP_BYTES + boundary.HOME_BYTES + boundary.SHARED_BYTES == 3584 * 1024 ** 2
+assert boundary.OWNER_TEMP_BYTES == 512 * 1024 ** 2
+for key in ["WORKSPACE_BYTES", "TEMP_BYTES", "HOME_BYTES", "SHARED_BYTES", "OWNER_TEMP_BYTES"]:
+    original_capacity = getattr(boundary, key)
+    setattr(boundary, key, original_capacity + 4096)
+    try:
+        boundary.arguments(config, pathlib.Path(config["scratch"]))
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("Total writable capacity increase was accepted")
+    finally:
+        setattr(boundary, key, original_capacity)
+print("PASS: repartitioned writable budget is unchanged; every aggregate increase fails closed")
 for invalid_shard in [0, 5, True, "1", "1/4; echo unsafe", [], {}]:
     try:
         boundary.application_commands(invalid_shard)
@@ -112,7 +126,7 @@ if(fs.existsSync('/mnt/c')||fs.existsSync('/mnt/d')||process.env.WSL_INTEROP)saf
 const caps=fs.readFileSync('/proc/self/status','utf8');
 for(const cap of ['CapEff','CapPrm','CapBnd'])if(!/^0+$/.test(caps.split(String.fromCharCode(10)).find(line=>line.startsWith(cap+':'))?.split(':')[1].trim()||'missing'))safe=false;
 if(!fs.existsSync('/usr/bin/unshare')||require('node:child_process').spawnSync('/usr/bin/unshare',['--user','--map-root-user','/usr/bin/true']).status===0)safe=false;
-for(const path of ['/tmp','/home/runner','/dev/shm']){const stat=fs.statfsSync(path);if(stat.type!==0x01021994||stat.blocks*stat.bsize>512*1024*1024)safe=false;}
+for(const [path,bytes] of [['/workspace',2816*1024*1024],['/tmp',256*1024*1024],['/home/runner',384*1024*1024],['/dev/shm',128*1024*1024]]){const stat=fs.statfsSync(path);if(stat.type!==0x01021994||stat.blocks*stat.bsize!==bytes)safe=false;}
 for(const path of ['/public-root-write','/dev/public-device-write']){try{fs.writeFileSync(path,'PUBLIC TEST DATA');safe=false;}catch(e){if(!['EROFS','EACCES','EPERM'].includes(e.code))safe=false;}}
 process.exitCode=safe?0:1;})();""".replace("FILE", json.dumps(str(sentinel))).replace("PORT", str(port))
     (source / "attack.cjs").write_text(attack)
