@@ -22,21 +22,15 @@
     "commentId": 5566069634,
     "revision": "19bf9e6c878dccb2a7ddcc554595c4e96baad3374e690eb0fc3990236f17fec0"
   },
-  "state": "qa-running",
+  "state": "queued",
   "attempts": {
     "implementation": 1,
     "qa": 2
   },
   "headSha": "d58e893d17e8d880aee42a12cb62aec83deca934",
   "generation": 4,
-  "updatedAt": 1788764309391,
-  "lease": {
-    "phase": "qa",
-    "owner": "qa-636f2b4b-0634-400e-ab5a-0e8063c0b171",
-    "token": "82d327fb-87d4-4cc1-bd02-d4cbac26971f",
-    "expiresAt": 1788766109391,
-    "headSha": "d58e893d17e8d880aee42a12cb62aec83deca934"
-  },
+  "updatedAt": 1788764313647,
+  "lease": null,
   "receipts": [
     {
       "kind": "ci",
@@ -44,10 +38,20 @@
       "attempt": 1,
       "headSha": "d58e893d17e8d880aee42a12cb62aec83deca934",
       "conclusion": "success"
+    },
+    {
+      "kind": "qa",
+      "headSha": "d58e893d17e8d880aee42a12cb62aec83deca934",
+      "conclusion": "fail",
+      "evidenceUrl": "https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/289#issuecomment-5566335607",
+      "owner": "qa-636f2b4b-0634-400e-ab5a-0e8063c0b171"
     }
   ],
-  "report": null,
+  "report": {
+    "digest": "49b0e550780af400eab6ecc568a7eede9151e356dd7572496aa4c6748bdf5d54",
+    "acknowledged": false
+  },
   "implementationOwner": "implementation-2beed7d0-e254-4ce3-91d8-0c5746c93637",
-  "notBefore": 1788764287576,
+  "notBefore": 1788765213647,
   "blockedPhase": "qa"
 }
