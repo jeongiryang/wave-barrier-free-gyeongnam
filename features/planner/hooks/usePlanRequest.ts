@@ -12,6 +12,7 @@ interface PlanRunOptions {
   resetRouteData: () => void;
   resetAudio: () => void;
   requestedTheme?: string;
+  onRevealResults?: () => void;
 }
 
 export function usePlanRequest({ locale, region, selected, theme }: { locale: string; region: string; selected: string[]; theme: string }) {
@@ -28,7 +29,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   const requestSignatureRef = useRef("");
 
   const abortPlan = useCallback(() => { planRequestRef.current?.abort(); revealRef.current?.(); }, []);
-  const runPlan = useCallback(async ({ resetRouteData, resetAudio, requestedTheme = theme }: PlanRunOptions, revealResults = true) => {
+  const runPlan = useCallback(async ({ resetRouteData, resetAudio, requestedTheme = theme, onRevealResults }: PlanRunOptions, revealResults = true) => {
     if (!region || !requestedTheme || !selected.length || loading) return false;
     planRequestRef.current?.abort();
     revealRef.current?.();
@@ -42,9 +43,15 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       scrolling = false;
     };
     revealRef.current = cancelReveal;
+    const requestControl = window.document?.activeElement;
+    const onInteraction = (event: Event) => {
+      if (event.target === requestControl && (event.type === "pointerdown"
+        || (event.type === "keydown" && ["Enter", " "].includes((event as KeyboardEvent).key)))) return;
+      cancelReveal();
+    };
     // A delayed result must not move someone who has already continued using the page.
     for (const type of ["pointerdown", "wheel", "touchstart", "keydown"]) {
-      window.addEventListener(type, cancelReveal, { capture: true, passive: true, signal: reveal.signal });
+      window.addEventListener(type, onInteraction, { capture: true, passive: true, signal: reveal.signal });
     }
     const controller = new AbortController();
     controller.signal.addEventListener("abort", cancelReveal, { once: true });
@@ -64,9 +71,11 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       setResultSignature(requestedSignature);
       const available = data.statuses.some((status) => status.state === "live");
       setNoticeKind(available ? "updated" : "empty");
+      if (revealResults && !reveal.signal.aborted) onRevealResults?.();
       if (revealResults && !reveal.signal.aborted) revealTimer = window.setTimeout(() => {
         if (reveal.signal.aborted) return;
-        scrolling = scrollToSection("places");
+        // Async results must settle before a user presses a newly displayed card.
+        scrolling = scrollToSection("places", true);
         window.addEventListener("scrollend", () => { scrolling = false; reveal.abort(); }, { once: true, signal: reveal.signal });
       }, 80);
       else cancelReveal();

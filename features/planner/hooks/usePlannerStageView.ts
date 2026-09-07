@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { prefersReducedMotion, scrollToSection } from "../../../lib/reduced-motion.js";
 import type { JourneyStepId } from "./useJourneyProgress";
 
@@ -66,6 +66,8 @@ function serverStep(): JourneyStepId {
 export function usePlannerStageView() {
   const view = useSyncExternalStore(subscribe, currentView, serverView);
   const activeStepId = useSyncExternalStore(subscribe, currentStep, serverStep);
+  const [focusTarget, setFocusTarget] = useState<{ id: string } | null>(null);
+  const focusedRequest = useRef(focusTarget);
 
   const changeView = useCallback((next: PlannerStageView) => {
     fallbackView = next;
@@ -77,7 +79,15 @@ export function usePlannerStageView() {
     listeners.forEach((listener) => listener());
   }, []);
 
-  const changeStep = useCallback((next: JourneyStepId) => {
+  const changeStep = useCallback((next: JourneyStepId, navigate = false) => {
+    if (navigate) {
+      const url = new URL(window.location.href);
+      if (url.hash !== `#${next}`) {
+        url.hash = next;
+        window.history.pushState(null, "", url);
+      }
+      setFocusTarget({ id: next });
+    }
     fallbackStep = next;
     try {
       window.sessionStorage.setItem(STEP_STORAGE_KEY, next);
@@ -87,12 +97,24 @@ export function usePlannerStageView() {
     listeners.forEach((listener) => listener());
   }, []);
 
+  useLayoutEffect(() => {
+    if (!focusTarget || focusedRequest.current === focusTarget) return;
+    const section = document.getElementById(focusTarget.id);
+    if (!section || section.closest("[hidden]")) return;
+    const heading = section.querySelector<HTMLElement>("h2, h3") || section;
+    heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
+    scrollToSection(focusTarget.id, true);
+    focusedRequest.current = focusTarget;
+  }, [activeStepId, view, focusTarget]);
+
   useEffect(() => {
     let firstFrame = 0;
     let secondFrame = 0;
-    const sync = () => {
+    const sync = (event?: Event) => {
       const destination = HASH_STEPS[window.location.hash.slice(1)] || HASH_STEPS.conditions;
       changeStep(destination.step);
+      if (event) setFocusTarget({ id: destination.target });
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
       firstFrame = window.requestAnimationFrame(() => {

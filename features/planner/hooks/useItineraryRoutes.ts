@@ -24,9 +24,8 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
   useEffect(() => () => controllerRef.current?.abort(), []);
 
   async function checkRoutes() {
-    if (loading || !legs.length) return;
+    if (loading || controllerRef.current || !legs.length) return;
     const controller = new AbortController();
-    controllerRef.current?.abort();
     controllerRef.current = controller;
     setLoading(true);
     setNotice("선택한 날짜와 순서대로 이동 구간을 확인하고 있어요.");
@@ -49,6 +48,7 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
     finally {
       window.clearTimeout(timer);
       if (controllerRef.current === controller) {
+        controllerRef.current = null;
         setLoading(false);
         setNotice(controller.signal.aborted ? "확인을 중단했습니다. 확인되지 않은 구간은 다시 시도해 주세요." : "조회가 끝났습니다. 확인되지 않은 구간과 실제 이동 편의를 방문 전에 다시 확인해 주세요.");
       }

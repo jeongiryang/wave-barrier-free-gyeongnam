@@ -20,7 +20,7 @@ interface JourneyProgressOptions {
   motion: Motion;
   observeSections?: boolean;
   activeStepId: JourneyStepId;
-  onActiveStepChange: (id: JourneyStepId) => void;
+  onActiveStepChange: (id: JourneyStepId, navigate?: boolean) => void;
   selectedProfileCount: number;
   recommendedCount: number;
   savedCount: number;
@@ -103,7 +103,7 @@ export function useJourneyProgress({
 
   const goToStep = useCallback((id: JourneyStepId) => {
     if (!observeSections && !steps.find((step) => step.id === id)?.available) return false;
-    onActiveStepChange(id);
+    onActiveStepChange(id, true);
     if (typeof window === "undefined") return false;
     if (window.location.hash !== `#${id}`) {
       const url = new URL(window.location.href);
