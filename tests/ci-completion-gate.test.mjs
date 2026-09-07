@@ -47,6 +47,23 @@ test("CI retains all checks and runs every browser shard without fail-fast or se
   assert.match(execution, /RuntimeMaxSec=1200/);
   assert.match(execution, /boundary\.validate\(config, str\(archive\), \{\}, shard=shard\)/);
   assert.match(execution, /assert checks == boundary\.application_checks\(shard\)/);
-  assert.ok(workflow.jobs["sandbox-boundary"].steps.some(step => step.run === "python3 -I -B tests/subscription-resource-boundary.py"));
+  assert.ok(workflow.jobs["sandbox-boundary"].steps.some(step => step.run === 'python3 -I -B "$RUNNER_TEMP/wave-trusted/tests/subscription-resource-boundary.py"'));
   for (const step of sandbox.steps.filter(step => step.uses?.startsWith("actions/upload-artifact@"))) assert.match(step.with.name, /matrix\.shard/);
+});
+
+test("sandbox jobs import only the immutable external runtime and never prepare candidate executables on the host", () => {
+  for (const job of [workflow.jobs["sandbox-boundary"], workflow.jobs["sandbox-application"]]) {
+    const runs = job.steps.map(step => step.run || "").join("\n");
+    const bootstrap = job.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution").run;
+    assert.match(bootstrap, /abadeffe18f0ec9699d3f6b33cd5737620122d6f\/scripts\/subscription-ci-bootstrap\.py/);
+    assert.ok(bootstrap.indexOf("sha256sum --check") < bootstrap.indexOf('python3 -I -B "$RUNNER_TEMP/wave-ci-bootstrap.py"'));
+    assert.doesNotMatch(runs, /npm ci|npx |spec_from_file_location\("boundary", "scripts\/|python3 -I(?: -B)? tests\//);
+    assert.match(runs, /WAVE_TRUSTED_RUNTIME/);
+  }
+  const steps = workflow.jobs["sandbox-application"].steps;
+  const verify = steps.findIndex(step => step.name === "Verify immutable CI bootstrap before candidate execution");
+  const tooling = steps.findIndex(step => step.name === "Prepare fixed public Chromium tooling outside candidate checkout");
+  assert.ok(verify >= 0 && tooling > verify);
+  assert.match(steps[tooling].run, /cd "\$RUNNER_TEMP\/wave-public-tools"/);
+  assert.match(steps[tooling].run, /--ignore-scripts.*playwright@1\.62\.1/);
 });

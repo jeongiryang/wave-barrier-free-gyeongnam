@@ -24,4 +24,4 @@ Python `-I`로 현재 디렉터리/PYTHONPATH 모듈 탐색을 제외한다. lau
 
 `tests/subscription-bootstrap-boundary.py`는 공개 sentinel, 실제 로컬 수신기와 악성 helper/entrypoint fixture를 사용한다. 정상 외부 설치의 verify-only는 성공하고 대상/설치 helper와 entrypoint 변조 6건 및 manifest 변조는 모두 coordinator 실행 전에 거부해야 한다. fixture는 실행됐을 때 외부 연결을 시도하는 코드지만 실제로는 시작되지 않으므로 파일/localhost/external 연결과 queue 쓰기가 없어야 한다. probe에 실제 인증 파일을 사용하지 않는다.
 
-별도로 `subscription-sandbox-boundary.py`가 실제 namespace와 악성 npm 명령을 검증하고, CI의 `Full application inside validation sandbox`가 전체 제품 검사 6개를 실행한다. 동일 HEAD CI와 독립 QA PASS, #294 시도·재개 조건, 로컬 설치 verify-only 확인 뒤에만 기존 예약 연결을 검토한다. fixture 또는 설치 파일 작성만으로 예약 등록·실제 queue 성공·Notion 반영을 완료 처리하지 않는다.
+별도로 `subscription-sandbox-boundary.py`가 실제 namespace와 악성 npm 명령을 검증하고, CI의 `Validation sandbox shard 1/4`부터 `4/4`까지가 기본 제품 검사 5개와 전체 브라우저 검사의 각 shard를 실행하고 protected validate가 네 결과를 모두 요구한다. 동일 HEAD CI와 독립 QA PASS, #294 시도·재개 조건, 로컬 설치 verify-only 확인 뒤에만 기존 예약 연결을 검토한다. fixture 또는 설치 파일 작성만으로 예약 등록·실제 queue 성공·Notion 반영을 완료 처리하지 않는다.

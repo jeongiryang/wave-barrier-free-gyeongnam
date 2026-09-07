@@ -138,8 +138,23 @@ jobs:
         with:
           node-version: 22
           check-latest: true
+      - name: Verify immutable CI bootstrap before candidate execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location \
+            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/abadeffe18f0ec9699d3f6b33cd5737620122d6f/scripts/subscription-ci-bootstrap.py \
+            -o "$RUNNER_TEMP/wave-ci-bootstrap.py"
+          printf '8e8a27bdc41eac89f3957023491eece440b2c12e6b960ad748d18602cf6782d8  %s\n' "$RUNNER_TEMP/wave-ci-bootstrap.py" | sha256sum --check
+          python3 -I -B "$RUNNER_TEMP/wave-ci-bootstrap.py" --repository "$GITHUB_WORKSPACE" --destination "$RUNNER_TEMP/wave-trusted"
+          cp "$RUNNER_TEMP/wave-ci-bootstrap.py" "$RUNNER_TEMP/wave-trusted/scripts/subscription-ci-bootstrap.py"
+          curl --fail --silent --show-error --location \
+            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/abadeffe18f0ec9699d3f6b33cd5737620122d6f/tests/subscription-ci-bootstrap-boundary.py \
+            -o "$RUNNER_TEMP/wave-trusted/tests/subscription-ci-bootstrap-boundary.py"
+          printf 'df6ed9c7528e7f09da42b1c477e81621d36b27f6ee006315fab70d9dac8c7f9f  %s\n' "$RUNNER_TEMP/wave-trusted/tests/subscription-ci-bootstrap-boundary.py" | sha256sum --check
+          python3 -I -B "$RUNNER_TEMP/wave-trusted/tests/subscription-ci-bootstrap-boundary.py"
       - name: Reject tampered bootstrap before any checkout code executes
-        run: python3 -I tests/subscription-bootstrap-boundary.py
+        run: python3 -I "$RUNNER_TEMP/wave-trusted/tests/subscription-bootstrap-boundary.py"
       - name: Actual validation sandbox boundary
         shell: bash
         run: |
@@ -164,7 +179,7 @@ jobs:
           sudo apparmor_parser -r "$RUNNER_TEMP/quota-owner.apparmor"
           runtime="$(node -p 'require("node:path").dirname(require("node:path").dirname(process.execPath))')"
           sudo systemd-run --quiet --wait --pipe --collect --uid="$(id -u)" --gid="$(id -g)" \
-            --working-directory="$PWD" --setenv="RUNNER_TEMP=$RUNNER_TEMP" --setenv="WAVE_PUBLIC_RUNTIME=$runtime" \
+            --working-directory="$PWD" --setenv="RUNNER_TEMP=$RUNNER_TEMP" --setenv="WAVE_PUBLIC_RUNTIME=$runtime" --setenv="WAVE_TRUSTED_RUNTIME=$RUNNER_TEMP/wave-trusted" \
             --setenv="WAVE_PUBLIC_BROWSERS=$HOME/.cache/ms-playwright" \
             -p MemoryMax=6G -p MemorySwapMax=0 -p TasksMax=1024 -p CPUQuota=200% \
             -p OOMPolicy=kill -p KillMode=control-group -p RuntimeMaxSec=1200 \
@@ -179,10 +194,10 @@ jobs:
                   config[key] = hashlib.file_digest(source, "sha256").hexdigest()
           target = pathlib.Path(os.environ["RUNNER_TEMP"]) / "public-sandbox-config.json"
           target.write_text(json.dumps(config))
-          subprocess.run(["python3", "tests/subscription-sandbox-boundary.py", str(target)], check=True)
+          subprocess.run(["python3", "-I", "-B", str(pathlib.Path(os.environ["WAVE_TRUSTED_RUNTIME"]) / "tests/subscription-sandbox-boundary.py"), str(target)], check=True)
           PY
       - name: Aggregate process resources and privileged policy tamper probes
-        run: python3 -I -B tests/subscription-resource-boundary.py
+        run: python3 -I -B "$RUNNER_TEMP/wave-trusted/tests/subscription-resource-boundary.py"
       - name: Preserve public resource diagnostics
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
@@ -213,10 +228,29 @@ jobs:
           node-version: 22
           check-latest: true
           cache: npm
-      - name: Prepare public dependencies and Chromium on disposable CI runner
+      - name: Verify immutable CI bootstrap before candidate execution
+        shell: bash
         run: |
-          npm ci --ignore-scripts
-          npx --no-install playwright install --with-deps chromium
+          set -euo pipefail
+          curl --fail --silent --show-error --location \
+            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/abadeffe18f0ec9699d3f6b33cd5737620122d6f/scripts/subscription-ci-bootstrap.py \
+            -o "$RUNNER_TEMP/wave-ci-bootstrap.py"
+          printf '8e8a27bdc41eac89f3957023491eece440b2c12e6b960ad748d18602cf6782d8  %s\n' "$RUNNER_TEMP/wave-ci-bootstrap.py" | sha256sum --check
+          python3 -I -B "$RUNNER_TEMP/wave-ci-bootstrap.py" --repository "$GITHUB_WORKSPACE" --destination "$RUNNER_TEMP/wave-trusted"
+          cp "$RUNNER_TEMP/wave-ci-bootstrap.py" "$RUNNER_TEMP/wave-trusted/scripts/subscription-ci-bootstrap.py"
+          curl --fail --silent --show-error --location \
+            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/abadeffe18f0ec9699d3f6b33cd5737620122d6f/tests/subscription-ci-bootstrap-boundary.py \
+            -o "$RUNNER_TEMP/wave-trusted/tests/subscription-ci-bootstrap-boundary.py"
+          printf 'df6ed9c7528e7f09da42b1c477e81621d36b27f6ee006315fab70d9dac8c7f9f  %s\n' "$RUNNER_TEMP/wave-trusted/tests/subscription-ci-bootstrap-boundary.py" | sha256sum --check
+          python3 -I -B "$RUNNER_TEMP/wave-trusted/tests/subscription-ci-bootstrap-boundary.py"
+      - name: Prepare fixed public Chromium tooling outside candidate checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/wave-public-tools"
+          cd "$RUNNER_TEMP/wave-public-tools"
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false --userconfig=/dev/null --registry=https://registry.npmjs.org playwright@1.62.1
+          PLAYWRIGHT_BROWSERS_PATH="$RUNNER_TEMP/public-browsers" node "$RUNNER_TEMP/wave-public-tools/node_modules/playwright/cli.js" install --with-deps chromium
       - name: Run every application check inside the actual boundary
         shell: bash
         run: |
@@ -237,8 +271,8 @@ jobs:
           sudo apparmor_parser -r "$RUNNER_TEMP/quota-owner.apparmor"
           runtime="$(node -p 'require("node:path").dirname(require("node:path").dirname(process.execPath))')"
           sudo systemd-run --quiet --wait --pipe --collect --uid="$(id -u)" --gid="$(id -g)" \
-            --working-directory="$PWD" --setenv="RUNNER_TEMP=$RUNNER_TEMP" --setenv="WAVE_PUBLIC_RUNTIME=$runtime" \
-            --setenv="WAVE_PUBLIC_BROWSERS=$HOME/.cache/ms-playwright" --setenv="WAVE_VALIDATION_SHARD=$WAVE_VALIDATION_SHARD" \
+            --working-directory="$PWD" --setenv="RUNNER_TEMP=$RUNNER_TEMP" --setenv="WAVE_PUBLIC_RUNTIME=$runtime" --setenv="WAVE_TRUSTED_RUNTIME=$RUNNER_TEMP/wave-trusted" \
+            --setenv="WAVE_PUBLIC_BROWSERS=$RUNNER_TEMP/public-browsers" --setenv="WAVE_VALIDATION_SHARD=$WAVE_VALIDATION_SHARD" \
             -p MemoryMax=6G -p MemorySwapMax=0 -p TasksMax=1024 -p CPUQuota=200% \
             -p OOMPolicy=kill -p KillMode=control-group -p RuntimeMaxSec=1200 \
             /usr/bin/python3 -I -B - <<'PY'
@@ -251,7 +285,7 @@ jobs:
           archive = pathlib.Path(os.environ["RUNNER_TEMP"]) / "public-source.tar"
           with archive.open("wb") as target:
               subprocess.run(["git", "-c", "core.hooksPath=/dev/null", "archive", "HEAD"], stdout=target, check=True)
-          spec = importlib.util.spec_from_file_location("boundary", "scripts/subscription-sandbox.py")
+          spec = importlib.util.spec_from_file_location("boundary", pathlib.Path(os.environ["WAVE_TRUSTED_RUNTIME"]) / "scripts/subscription-sandbox.py")
           boundary = importlib.util.module_from_spec(spec)
           spec.loader.exec_module(boundary)
           boundary.probe(config)
