@@ -1,14 +1,46 @@
 # 전체 실행 목록과 운영 반영 상태
 
-확인일: 2026-09-06. GitHub Issue/PR가 작업 원장이고 Notion은 같은 근거를 보여주는 관제 화면이다.
+확인일: 2026-09-07. GitHub Issue/PR가 작업 원장이고 Notion은 같은 근거를 보여주는 관제 화면이다.
 담당의 Engineering/QA는 위임된 구현·검증 역할, PM/운영자는 사람 확인 역할을 뜻한다.
 
 
-원격 전수 조회: 2026-09-06 23:38 UTC, Issue47·PR34. 열린 PR: #287, #289, #291, #293, #296, #298, #300, #302, #304, #306, #307, #309, #311, #312, #313, #314, #315, #316, #317, #318, #319, #320, #321, #322, #323, #324, #325, #326, #327, #328, #329, #330, #331, #332.
+원격 전수 조회: 2026-09-07 00:23 UTC, Issue47·PR35. 열린 PR: #287, #289, #291, #293, #296, #298, #300, #302, #304, #306, #307, #309, #311, #312, #313, #314, #315, #316, #317, #318, #319, #320, #321, #322, #323, #324, #325, #326, #327, #328, #329, #330, #331, #332, #333.
 
-## 기준과 판정 방법
+## 2026-09-07 00:23 UTC 실행 증거
 
-- main·Production `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포6278499275. 열린 Issue47·PR34.
+이 절의 결과는 기록 시각 기준이다. 이후 CI 결과는 연결된 PR/Actions와 GitHub Epic #288에서 확인한다.
+전체 요청은 미완료이며 PR 생성/CI 성공을 운영 반영으로 세지 않는다.
+
+| 범위 | 구현·검증 근거 | 상태·남은 조치 |
+| --- | --- | --- |
+| #332 주변 검색 | `d87e35a95a17a1776895df3a6e39c2767dc36122`, unit343·관련36·기본검사·actionlint/shellcheck PASS, [CI499 PASS/기존skip1/flaky0](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34068422917) | Ready·미병합·미배포. 반경 P1와 글꼴 잘림 수정 포함 |
+| #333 지도 설정 | `415f00201b4bea236db31d76db68286d110a0e87` (구현651eee2+부모d87e35a), hook8·관련20·최종unit351 PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34069333821) quality성공·browser진행 | Draft. 실제 지도 재생성/부분 복원/대체 지도/내부 재연결 focus·KOEN·11viewport·44px/axe 구현. 전체 CI·통합·Production 확인 남음 |
+| 통합 후보 | `e819cc4f2a03827bbc25cf347c289347376b10e2`, unit383·lint/typecheck/Vercel build/performance·audit0 PASS | 전체544개 로컬 진행 중. CI 충돌은 기존 workflow 정적 검사/전체 audit와2shard/필수validate를 모두 보존해 해결. Preview·운영 미반영 |
+| #313 문서 | `b24383fd272eb3eb035d654d8b1e67f6cf2a85b8`, [CI247 PASS/기존skip1](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34067482608) | 운영 정책·폐기된 참가 부문 판단·위치 처리/최신성 정정. 이후 이 체크포인트 문서 변경은 별도 새 SHA/CI로 추적 |
+| Production | `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포6278499275, 00:19:38 UTC 기존 API/14페이지 진단27/27 PASS | 최신 후보의 route queryStatus/resultCount 계약 FAIL. 미배포 수정의 성공 증거 아님 |
+
+- #332 이전0884cef CI34066732365는 desktop/mobile·밝음/어두움4건 분류 잘림 후25분 한도로 취소됐다. artifact0건으로 원격 font metric은 확인 불가다.
+  넓은 대체 글꼴에서 Accommodation scroll109/client105px를2 FAIL로 재현해120px 최소 열/줄바꿈으로 수정했다.
+  CI는 전체500개를250/250으로 분할하며 누락·중복0,25분 한도·기존 기준 유지. 필수validate는 quality/browser가 모두success일 때만 성공한다.
+  gate 코드의25개 성공/실패/취소/skip/빈 결과 조합과 actionlint/shellcheck를 검증했다.
+- d87e35a 로컬 전체는498 PASS/기존skip1/프로필 page.goto ERR_NO_BUFFER_SPACE1 FAIL(11.4분)이다.
+  해당 프로필4건 재검증PASS, 원격 전체499 PASS와 구분하며 로컬 전체 성공으로 바꾸지 않는다. 과거0884cef 로컬497 PASS도 다른 SHA의 증거다.
+- 지도 설정은 최초 hook 정상1 PASS/결함3 FAIL, 재생성/예외 E2E8 FAIL→수정했다.320px focus 가림·대비3.48/3.47·외부 복구 버튼 가림을 추가 재현했다.
+  패널 내부 영속 재연결, 상태·실제 SDK 일치,44px/Tab/hit/axe 관련20 PASS(47.4초),390/1366 캡처 직접 확인. 모의 SDK와 실운영 API는 구분한다.
+- 통합 성능: CSS69.86/70·landing115.11/155·planner268.56/270KiB. 이전c619/1d의523 PASS는 새 통합의 전체 성공으로 재사용하지 않는다.
+- #287 `b803b80` Ready·MERGEABLE이나 승인0/3·REVIEW_REQUIRED/BLOCKED다. main/Production/008/Preview 상태는 바뀌지 않았다.
+  모델 API3workflow는 disabled_manually 재확인. 새 유료 호출·Secret/구독 인증 복사·예약 생성/재활성화 없음. 실과금 여부를 추정하지 않는다.
+
+정확한 재개 위치: `wave-launch-integration`/`audit/launch-integration-20260906`의 e819cc4 전체 로그
+`candidate-layer-full.log`와 #333 CI34069333821 결론을 확인한다. 성공 전 Draft/완료 처리를 하지 않는다.
+`wave-map-layer-state`/`fix/map-layer-state`와 `wave-nearby-integrity`/`fix/nearby-query-integrity`는 clean/push 상태로 보존했다.
+사용하지 않는 개발 서버4203/4205/4207을 종료했고 이 기록 시점에는 통합4187만 실행 중이다.
+다음 독립 코드 범위는 아직 남은 지도 SDK/보강정보/인증·정책 영어 등 실행 목록을 재조회해 정한다.
+사람 리뷰·Preview 접근·008 운영 스키마와 백업/복구·실제200%/실기기/낭독기·공모전 외부 확인을 완료로 표시하지 않는다.
+
+## 이전 검증과 판정 방법
+
+- main·Production `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포6278499275. 열린 Issue47·PR35.
   #287 b803b80은 Ready·CI 성공·MERGEABLE이나 승인0/3·REVIEW_REQUIRED/BLOCKED다.
   모든 열린 PR의 누락 담당자·라벨·검토자 요청을 보완했다. 작성자를 제외한 3명에게 요청했으며 실제 승인은 별도다.
 - 통합 후보는 `audit/launch-integration-20260906`에 기존 제품·보안#309·자동화 stack을 보존해 합성한다.
@@ -67,7 +99,7 @@
   [CI34063758123](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34063758123) 265 PASS/기존skip1/flaky0로 성공·Ready·미병합·미배포다.
   390/1366px 각각18개 touch 선택·링크/경계 동기화·빈 사진 fixture·console/overflow0을 직접 검증했다.
   로컬 키 미설정 사진503은 별도 실패 기록이며 실제 API 성공으로 세지 않는다.
-- **주변 검색 #332 `0884ceffd658364ce45d106a5d202516b8a3fb47`**: #330의 자식 PR이다.
+- **이전 주변 검색 #332 `0884ceffd658364ce45d106a5d202516b8a3fb47`**: #330의 자식 PR이다.
   오류/빈 결과·늦은 응답·빈 좌표·중복 재시도·지도 교체 취소와 15개 결과를 일치시켰다.
   KO/EN·대비·단일 스크롤·44px 링크, 11개 지정 viewport의14개 분류와15번째 결과까지 키보드 접근을 검증했다.
   최초 hook2 PASS/7 FAIL→16/16, 지도 교체4 FAIL 및 링크 높이4 FAIL도 재현·수정했다.
@@ -76,7 +108,7 @@
   [CI34066732365](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34066732365)의 현재 결과는 PR에서 확인한다.
   e51cad8 CI34066049407은 후속 push로 취소됐고 e51cad8/78144e8 로컬 전체는 P1 수정 전 중단해 PASS로 세지 않는다.
   원본 audit high2/moderate1은 #309 미포함 개발 의존성이다.
-- **최신 통합 `1d3638ec418371706e89872207927a6831cb9a91`**: #3320884cef까지 충돌 없이 합쳤다.
+- **이전 통합 `1d3638ec418371706e89872207927a6831cb9a91`**: #3320884cef까지 충돌 없이 합쳤다.
   unit373·lint/typecheck/Vercel build/performance·audit0 PASS, 전체523 pass/기존skip1/실패0(12.8m).
   CSS69.75/70·landing115.13/155·planner268.59/270KiB. 직전ff7a207의unit352·전체489 성공도 보존한다.
   로컬 통합 성공은 Preview/병합/Production 성공이 아니다. source PR와 실제 사람 리뷰를 유지한다.
@@ -100,8 +132,7 @@
   11개 뷰포트·키보드·axe 결과와 실제 확대/낭독기/실기기 검증은 별개다.
 - 전체 요청은 미완료다. 지도 SDK/주변 보강정보·인증/정책 KO·EN, 실제200%·실기기/낭독기·성능,
   Preview·008 운영 스키마/영향/백업·복원, 최종 Production 여정·사람 리뷰/공모전 확인이 남는다.
-- 지도 표시 설정은 별도 `fix/map-layer-state`에서 실제 hook3 FAIL·브라우저8 FAIL을 재현했다.
-  초기 수정 후4/4·8/8 PASS이나 미커밋·PR/배포 없음이며 재적용·부분 복원·KO/EN·전체 검증을 진행한다.
+- 지도 표시 설정의 최신 구현/검증은 위 #333에 기록했다. 초기 미커밋 상태는 커밋·push로 보존했고 운영 검증 전 Open이다.
 
 이전 수치·실패 artifact·보존 브랜치는 [체크포인트](ai-logs/launch-execution-checkpoint-20260906.md)와
 [이전 실행표](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/blob/1ac5ccf31eb03deaedc550b26728a6973037b8a6/docs/launch-readiness-status.md)에 보존했다.
@@ -113,7 +144,7 @@
 
 | Issue | 담당 | 상태 | 관련 PR·코드·검증 | 남은 조치·의존성 |
 | --- | --- | --- | --- | --- |
-| #251 일정·지도·날씨·언어 | Engineering/QA | 진행 중 | #287/#307/#311/#317~#319/#321~#330/#332, `e2e/itinerary-language.spec.ts`, `e2e/departure-language.spec.ts`, `tests/weather-integrity.test.mjs` | #327~#330/#332 교통·날씨·지도·주변 검색 운영 검증, 남은 지도 SDK·보강정보·인증/정책 영어 |
+| #251 일정·지도·날씨·언어 | Engineering/QA | 진행 중 | #287/#307/#311/#317~#319/#321~#330/#332/#333, `e2e/itinerary-language.spec.ts`, `e2e/departure-language.spec.ts`, `tests/weather-integrity.test.mjs` | #327~#330/#332/#333 교통·날씨·지도·주변 검색 운영 검증, 남은 지도 SDK·보강정보·인증/정책 영어 |
 | #252 복수 테마 | Engineering/QA | 진행 중 | #287, `tests/plan-locale-theme.test.mjs`, `server/tourism/` | 다중 테마·부분 실패 실호출 및 운영 저장·복원 |
 | #253 단계형 조건 | Engineering/QA | 진행 중 | #287/#311, `PlannerConditionsPanel.tsx`, `e2e/fixtures.ts` | 지역→편의→활동→날짜→명시적 검색 최종 회귀 |
 | #254 빈 추천·단계 잠금 | Engineering/QA | 진행 중 | #287/#307, `useJourneyProgress.ts`, `e2e/evidence-truthfulness.spec.ts` | 기존 일정 열람과 현재 추천 준비율을 구분해 AC 정리 |
