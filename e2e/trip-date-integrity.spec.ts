@@ -19,6 +19,12 @@ async function prepare(page: Page, english: boolean, end = "2026-10-08", theme =
   if (english) {
     await page.keyboard.press("Control+Home");
     const preferences = page.locator(".preference-controls:visible");
+    // Home does not establish focus in the scroll-hidden header.
+    // Use its existing keyboard reveal contract before the same pointer action.
+    const preferenceTrigger = preferences.locator("summary");
+    await preferenceTrigger.focus();
+    await expect(preferenceTrigger).toBeFocused();
+    await expect(preferenceTrigger).toBeInViewport();
     await preferences.getByLabel("환경설정 열기", { exact: true }).click();
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
     await preferences.getByLabel("Open preferences", { exact: true }).click();
