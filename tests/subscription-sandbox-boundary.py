@@ -29,7 +29,7 @@ boundary.invoke = exposed
 try:
     boundary.probe(config)
 except RuntimeError as error:
-    assert str(error) == "BLOCKED_SANDBOX"
+    assert str(error) == "BLOCKED_SANDBOX: probe-rejected"
 else:
     raise AssertionError("Unconfined public-canary control was incorrectly accepted")
 finally:

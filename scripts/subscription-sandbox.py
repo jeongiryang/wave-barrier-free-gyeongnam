@@ -115,7 +115,15 @@ for(const [host,port] of input.network){const denied=await new Promise(resolve=>
 if(ok)console.log('WAVE_BOUNDARY:'+input.nonce);process.exitCode=ok?0:1;})();"""
         result = invoke(arguments(config, inside) + ["/runtime/bin/node", "-e", code, json.dumps({"files": files, "network": [["127.0.0.1", port], ["1.1.1.1", 443]], "nonce": nonce})])
         if result.returncode or result.stdout.strip() != "WAVE_BOUNDARY:" + nonce:
-            fail()
+            text = result.stdout.lower()
+            category = next((label for label, fragment in [
+                ("namespace-permission", "operation not permitted"),
+                ("namespace-permission", "no permissions to create"),
+                ("runtime-dependency", "error while loading shared libraries"),
+                ("runtime-path", "no such file or directory"),
+                ("process-limit", "resource temporarily unavailable"),
+            ] if fragment in text), "probe-rejected")
+            raise RuntimeError("BLOCKED_SANDBOX: " + category)
 
 
 def validate(config, archive, edits):
