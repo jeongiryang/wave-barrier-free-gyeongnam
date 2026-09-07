@@ -66,6 +66,17 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .route-map-canvas { isolation: isolate; height: var(--route-map-height, 710px); min-width: 0; grid-column: 1; grid-row: 1; }
 .route-map-shell.drawer-open .map-command-bar { right: 396px; }
 .map-command-bar { max-width: calc(100% - 330px); }
+.map-controls-layout { display: contents; }
+/* The connected-map label and tools share the actual available width. A fixed
+   330px reservation wasted space beside short labels and clipped extra tools
+   when the browser used a classic scrollbar. Keep the controls mounted. */
+@media (min-width: 781px) {
+  .map-controls-inline { z-index: 510; position: absolute; inset: 12px 12px auto 14px; display: flex; align-items: flex-start; gap: 16px; pointer-events: none; }
+  .map-controls-inline > .map-provider-badge { position: static; flex: 0 1 auto; max-width: 35%; pointer-events: auto; }
+  .map-controls-inline > .map-command-bar { position: static; flex: 1; min-width: 0; max-width: none; justify-content: flex-end; pointer-events: auto; }
+  .route-map-shell.drawer-open .map-controls-inline { right: 396px; }
+  .route-map-shell:fullscreen .map-controls-inline,.route-map-shell.expanded .map-controls-inline { top: 18px; left: 20px; }
+}
 /* 대체 지도 상태에서는 배지에 기본 지도 재연결 버튼이 붙어 왼쪽 공간을 차지한다.
    예약이 150px뿐이라 명령 바 첫 버튼이 재연결 버튼의 오른쪽을 덮었고, 그 자리를
    누르면 지도 유형이 대신 바뀌었다. Kakao 지도가 실패했을 때만 나타나는 복구
@@ -125,6 +136,7 @@ html[data-theme="dark"] .map-side-drawer header > button { color: #e7f2f7; borde
   .route-compare-panel { max-height: none; }
 }
 @media (max-width: 900px) {
+  .route-map-shell.drawer-open .map-controls-inline { right: 8px; }
   .planner-section .planner-bento { grid-template-columns: 1fr; }
   .route-map-shell,.route-map-shell.drawer-open { min-height: var(--route-map-height, 560px); grid-template-columns: minmax(0,1fr); }
   .map-panel { --route-map-height: 560px; }
@@ -135,6 +147,8 @@ html[data-theme="dark"] .map-side-drawer header > button { color: #e7f2f7; borde
   .route-map-shell:fullscreen .map-side-drawer,.route-map-shell.expanded .map-side-drawer { height: auto; }
 }
 @media (max-width: 620px) {
+  .map-command-bar .map-expand-button { width: 44px; min-width: 44px; padding-inline: 0; }
+  .map-expand-label { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .navigation-section { padding-right: 12px; padding-left: 12px; }
   .navigation-workspace { border-radius: 18px; }
   .map-panel { --route-map-height: 500px; }

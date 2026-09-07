@@ -58,7 +58,7 @@ export default function MapCommandBar({
   else if (layerError) statusMessage = english ? "The map settings could not be confirmed. Reload the map to apply your choices again." : "지도 설정의 적용 여부를 확인할 수 없습니다. 지도를 다시 불러와 선택한 설정을 적용해 주세요.";
   else if (layerRecovery && provider === "kakao" && !actionNotice) statusMessage = english ? "Map settings applied." : "지도 설정을 적용했습니다.";
 
-  return <>
+  return <div className={`map-controls-layout${provider === "kakao" && !layerRecovery ? " map-controls-inline" : ""}`}>
     <div lang={locale} className={`map-provider-badge ${provider}${layerRecovery ? " map-layer-status" : ""}`} role="status" aria-live="polite" aria-atomic="true">
       <span aria-hidden="true" />
       <strong style={{ whiteSpace: "normal" }}>{mapStatusParts(statusMessage, english).map((part, index) => <span key={index} lang={part.lang}>{part.text}</span>)}</strong>
@@ -78,7 +78,7 @@ export default function MapCommandBar({
         <button type="button" aria-expanded={toolPanel === "export"} aria-controls="map-panel-export" className={toolPanel === "export" ? "active" : ""} onClick={(event) => togglePanel("export", event.currentTarget)} disabled={!interactive}>{locale === "en" ? "⇩ Image" : "⇩ 이미지"}</button>
         <button type="button" onClick={onShare} aria-disabled={actionPending} disabled={!interactive}>{locale === "en" ? "↗ Page link" : "↗ 페이지 링크"}</button>
       </div>
-      <button type="button" className="map-expand-button" aria-pressed={expanded} aria-controls="route-map-canvas" onClick={(event) => onToggleExpanded(event.currentTarget)} disabled={!interactive}>{expanded ? (english ? "× Close expanded map" : "× 닫기") : (english ? "⛶ Expand map" : "⛶ 전체보기")}</button>
+      <button type="button" className="map-expand-button" aria-pressed={expanded} aria-controls="route-map-canvas" onClick={(event) => onToggleExpanded(event.currentTarget)} disabled={!interactive}>{expanded ? "× " : "⛶ "}<span className="map-expand-label">{expanded ? (english ? "Close expanded map" : "닫기") : (english ? "Expand map" : "전체보기")}</span></button>
     </nav>
-  </>;
+  </div>;
 }
