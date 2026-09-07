@@ -3,43 +3,23 @@
 전체 요청은 미완료다. 커밋/CI/문서 존재를 운영 반영으로 세지 않는다. Release GO는 PM 판단이며
 현재 미배포 보안/UX 수정, Production route 계약 실패와 미완료 검수 때문에 기술 상태는 NO-GO다. 관광 추천은 16:56 재검사에서 회복됐다.
 
-## 2026-09-07 01:46 UTC 실행 증거
+## 2026-09-07 02:24 UTC 실행 증거
 
-기록 시각 이후의 CI 결론은 연결된 PR/Actions와 Epic #288에서 확인한다. 전체 요청은 미완료이며,
-source/통합/Production SHA를 구분한다. 현재38개 Open PR·47개 Open Issue를 보존하며 승인/운영 근거 없이 닫지 않는다.
+전체 요청은 미완료다. main/Production `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포6278499275를 다시 확인했다. 원격39 Open PR의 최신 HEAD가 통합에 포함된다(통합 자체+원본38). 새 팀원 Issue #337도 실행 목록에 포함했다. 사람 승인·Preview·008·운영 검증을 완료로 대신하지 않는다.
 
-| 범위 | 구현·검증 근거 | 상태·남은 조치 |
+| 범위 | 실제 증거 | 현재 상태·남은 조치 |
 | --- | --- | --- |
-| #287 Release Candidate | `b803b80caa1462ae873f406e03e7ffc2cb3dec5e`, Ready·MERGEABLE, CI성공 | 사람승인0/3·REVIEW_REQUIRED/BLOCKED. main/운영 미반영 |
-| #335 로드뷰 | `b10fe9c12467356b32bf6817ca7f96616c39334d`, hook11/unit365/관련52, [CI551 PASS·기존skip1·flaky0](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34073004786) | Ready·미배포. SDK 초기화·예외·늦은응답·키보드 선택·KOEN·하단가림·세로잘림·focus경합 수정 |
-| #336 자동차 경로 | `b7ddf92a35236b538a050d90a5313599fc7a216c`, provider/handler49·unit329·기본검사PASS, [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34073896548) 진행 | Draft. source전체238개 진행 중. 결과코드/시간/거리/실제도로 좌표 검증, no-route/오류 구분 |
-| 직전 통합 #334 | `0da99d699133bd119b880e1b56f807ce38e815f7`, unit397·전체audit0·기본검사PASS, 로컬577 PASS/기존skip1(12.5분), [CI577 PASS/기존skip1/flaky0](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34073033790) | #335 포함·#336 미포함. Preview/Production 성공이 아님 |
-| 새 통합 #334 | #336 합성 `3ff3f4f92c00c89a5130d775be5f542f2e4089a2`, unit446·lint/typecheck/build/performance·전체audit0 PASS | 이 체크포인트 문서만 추가한 새 HEAD에서 전체/CI 재검증. Draft 유지 |
-| 이전 source | #332d87e35a CI499, #3331d35890 CI521, #3138abfa70 CI247 PASS/각기존skip1 | 앞선 지도·주변·문서의 근거이며 운영 반영 전 |
-| Production | `34e6021265b16d046dca24feaa3ec2101fc977e2`, 배포6278499275. 01:29:33 읽기진단26 PASS/route1 FAIL | 01:32 경로 재응답. 원 실패 제공처/원인은 미확정. 새queryStatus/resultCount 계약FAIL 유지 |
+| #334 직전 검증 | `d7a71a76b73bf9122cb12c8c34da06f6ab6700ed`, unit446, 로컬577 PASS/기존skip1(12.8분), [CI34074133044](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34074133044) 289+288 PASS/기존skip1/flaky0 | CI 성공 후 추가 P1 리뷰 RC-19/20을 확인해 다시 Draft. 성공이 모든 결함 부재를 뜻하지 않음 |
+| #335 RC-19 | `f6e451beedcec969c7a879a9d360825e1a7ced32`, hook14/unit368/관련56 PASS(1.4분), 기본검사PASS | 지원 범위 밖 일정/SDK 좌표 차단. Escape 이중 처리의 focus 누락도52 PASS/4 FAIL→56 PASS로 수정. [새 CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34076016081) 대기·Draft |
+| #336 RC-20 | `82314645616e1f1c4e3f2705abcaaaaef998bc50`, 계약49 PASS/4 FAIL→53 PASS, unit333/로컬전체237 PASS·기존skip1/기본검사PASS | 지원 좌표 범위+요청 출발/도착과 도형 양끝1km 대응검사. 합성 끝점 없음. [새 CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34075800244) 대기·Draft |
+| #338 ODsay | `b6a7f77cb8b760ee77843699f0387e6a1e9b9e25`, 최초25건 중22 FAIL 재현, 최종 부모합성unit364 PASS | 누락 데이터·도시 간 미완성 경로를 confirmed로 승인하지 않음. 원문 오류 비노출·정상no-route 구분. [CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34075953741) 대기·Draft. 첫237 PASS는 최종 좌표 방어 전 증거 |
+| #334 새 앱 합성 | `6dd908aef686a6b4d3f8cf712375d6d45b23c5d5`, unit484/lint/typecheck/Vercel build/performance/전체audit0 PASS | 이 문서만 추가한 최종 HEAD에서 전체 Playwright·axe/CI 재실행. 새 변경의 전체 성공은 아직 아님 |
+| #337 팀원 제보 | 기간 축소 시 날짜 재배치,7일 제한/여행집 불일치,자동 날짜 변경 안내 및 기존 UI 요구 | 최신 후보 hook도 종료일 상한/범위 밖 배정 처리가 없어 재현·수정 필요. 정상 범위 확대/복원은 유지. 중복 구현 없이 기존 요청과 연결 |
+| Production | 01:29 읽기진단26 PASS/route1 FAIL,01:32 재조회응답. 새provider 상태 계약FAIL | 기존 운영의 실패 원인 미확정. 수정본 실배포·Preview·008 적용 없음 |
 
-- 로드뷰: hook8 FAIL, 기존브라우저 keyboard2 FAIL, 430px 하단가림, 캡처의 텍스트 세로잘림2 FAIL,
-  주변패널의 뒤늦은 focus복귀2 FAIL을 재현했다. 의미 있는52개 회귀는11viewport·KOEN·밝음/어두움·44px·Tab/Shift+Tab·hit·가로/세로overflow·axe·console0을 검사한다.
-  자세한 실패 경과와 범위는 [로드뷰 로그](roadview-recovery.md), PR #335에 있다. SDK fixture와 실영상 검증을 구분한다.
-- 자동차 provider:45개 중10 PASS/35 FAIL →45 PASS, 실제handler 합성4개 추가로49 PASS.
-  실패/누락응답이1분·직선의 확인된경로가 되는 것을 차단했다. 기존요금 정적패턴1 FAIL은 finite/nonnegative/null 계약으로 갱신하고 실행검사를 추가했다.
-  [자동차 경로 로그](kakao-route-integrity.md)는 공식 계약·Production관측과의 인과관계 미확정을 기록한다.
-- 과거 #332의25분 CI취소/원격artifact0·로컬ERR_NO_BUFFER_SPACE1건과 #333의 green 뒤 독립P1은 해당 AI로그/PR에 보존했다.
-  assertion/timeout/skip 약화는 없다. CI의 quality/browser2shard/필수validate와 전체audit/workflow 정적검사를 유지한다.
-- 새 통합 성능: CSS69.83/70·landing115.11/155·planner268.57/270KiB. 지도/로드뷰는 지연 로드한다.
-  source의 기존 개발의존성3건은 #309포함 통합audit0과 구분한다. 새 패키지·override·유료모델 호출은 없다.
-- Production01:32:35 자동차7분/geometry76점, ODsay14/19/35/36분/geometry4/4/8/8점.
-  ODsay점은 정류장 연결이다. 첫 임시helper의 잘못된geometry 필드 판정은 폐기하고 실제필드로 다시 확인했다.
-  00:40대390/1366실브라우저의카드3·장소1저장/복원·console/overflow0과 기본편의1/자동추천2·창원durunubi timeout 부분응답을 함께 기록한다.
-- 모델API3workflow disabled_manually 재확인. 구독인증/Secret복사·예약생성/재활성화·실과금 추정 없음.
-  웹Scheduled5개와 구독로컬실행의 가능한범위/미검증종단간 자동화를 구분한다. main/Production/008/Preview를 완료로 표시하지 않는다.
+비용: 모델 API3workflow disabled_manually를 유지한다. 추가 과금/Secret·구독 인증 복사/예약 신규 생성 없음. 공식예약5개·구독 로컬 CLI의 부분 검증과 전체 자동화 실동작 미확인을 구분한다.
 
-정확한 재개 위치: `wave-launch-integration` / `audit/launch-integration-20260906` 최신 HEAD에서
-`candidate-kakao-full.log`와 새 #334 CI, `wave-kakao-route-integrity` / `fix/kakao-route-integrity`의
-`kakao-route-full.log`와 #336 CI34073896548 결론을 확인한다. #335는 Ready·원격551 PASS로 완료된 source검증을 다시 구현하지 않는다.
-현재 통합4187/로드뷰4209/자동차4211 개발 서버와 모든worktree를 보존한다. 관련로그는 로컬 임시 `wave-launch-20260906`에 있다.
-사람승인3·Preview접근·008운영스키마/백업복구·실제200%/실물/낭독기·인증운영·법적/공모전 최종제출은 외부 Gate로 남긴다.
-그동안 남은 지도도구/보강정보/인증·정책영어 등 코드 실행목록은 계속 진행하며, Release GO를 선언하지 않는다.
+정확한 재개: #334 `audit/launch-integration-20260906`의 이 체크포인트 HEAD→전체 회귀/CI 확인, RC-19/20 리뷰에 근거 회신, #338 CI 확인, #337 날짜 정합성 재현/수정. 원본/사용자 worktree를 보존한다. 로그는 임시 `wave-launch-20260906/candidate-rc20-*`, `roadview-rc19-*`, `kakao-rc20-*`, `odsay-*`다. 종료한 이전4187 서버의 과거 hydration 경고 출력과 새 테스트의 console assertion을 혼동하지 않는다.
 
 ## 이전 실행 증거 — 2026-09-06 23:38 UTC
 
