@@ -8,6 +8,7 @@ import {
   createTravelBookSnapshot,
   patchTravelBook,
   sanitizeTravelBooks,
+  sanitizeTravelBook,
   travelBookRestorePayload,
   upsertTravelBook,
 } from "../lib/travel-book.js";
@@ -48,20 +49,29 @@ test("여행집 스냅샷은 복원에 필요한 일정만 남기고 위치·원
   assert.match(buildTravelBookPlannerHref(book), /from=travel-book/);
 });
 
-test("손상된 날짜·배정·메모·장소 수는 보관 한계 안으로 정리된다", () => {
+test("오래된 기록의 손상된 날짜는 정리하되 유효한 원래 장소 날짜는 이동하지 않는다", () => {
   const places = Array.from({ length: TRAVEL_BOOK_MAX_PLACES + 8 }, (_, index) => ({ id: `p-${index}`, name: `장소 ${index}` }));
-  const book = createTravelBookSnapshot(input({
+  const legacy = input({
     travelStart: "2026-02-28",
     travelEnd: "2026-02-30",
     dayStartTime: "28:90",
     scheduleAssignments: { "p-0": "2030-01-01" },
     note: "x".repeat(3000),
     places,
-  }));
+  });
+  assert.equal(createTravelBookSnapshot(legacy), null, "새 기록은 손상된 기간을 저장하지 않는다");
+  const book = sanitizeTravelBook(legacy);
   assert.equal(book.travelEnd, "2026-02-28");
   assert.equal(book.dayStartTime, "10:00");
-  assert.equal(book.scheduleAssignments["p-0"], "2026-02-28");
+  assert.equal(book.scheduleAssignments["p-0"], "2030-01-01");
   assert.equal(book.places.length, TRAVEL_BOOK_MAX_PLACES);
+});
+
+test("새 여행집은 7일 초과 또는 날짜 해결 전 장소를 다른 날짜로 저장하지 않는다", () => {
+  assert.equal(createTravelBookSnapshot(input({ travelEnd: "2026-09-09" })), null);
+  assert.equal(createTravelBookSnapshot(input({ travelEnd: "2026-09-01" })), null);
+  const original = input({ travelEnd: "2026-09-01" });
+  assert.equal(travelBookRestorePayload(original).schedule.scheduleAssignments.b, "2026-09-02");
 });
 
 test("같은 일정은 메모와 상태를 보존해 갱신하고 전체 여행 수는 20개로 제한한다", () => {

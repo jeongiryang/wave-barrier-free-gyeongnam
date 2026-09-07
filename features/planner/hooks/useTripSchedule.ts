@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { dateRange, localDate } from "../utils";
+import { boundedTripEnd, offsetTripDate, validTripDate } from "../../../lib/trip-dates.js";
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 const TRIP_SCHEDULE_KEY = "wave-trip-schedule-v1";
 
@@ -29,6 +29,8 @@ export function useTripSchedule() {
   const [dayStartTime, setDayStartTime] = useState("10:00");
   const [scheduleAssignments, setScheduleAssignments] = useState<Record<string, string>>({});
   const [storageReady, setStorageReady] = useState(false);
+  const [dateNotice, setDateNotice] = useState<{ kind: "limit" | "adjusted" | "invalid"; end?: string } | null>(null);
+  const lastTravelDate = offsetTripDate(travelStart, 6);
   const tripDays = useMemo(() => dateRange(travelStart, travelEnd), [travelEnd, travelStart]);
 
   useEffect(() => {
@@ -37,16 +39,18 @@ export function useTripSchedule() {
       const query = new URLSearchParams(window.location.search);
       const queryStart = query.get("travelStart") || "";
       const queryEnd = query.get("travelEnd") || "";
-      const storedStart = typeof stored.travelStart === "string" && DATE_PATTERN.test(stored.travelStart) ? stored.travelStart : localDate();
-      const storedEnd = typeof stored.travelEnd === "string" && DATE_PATTERN.test(stored.travelEnd) && stored.travelEnd >= storedStart ? stored.travelEnd : storedStart;
-      const start = DATE_PATTERN.test(queryStart) ? queryStart : storedStart;
-      const end = DATE_PATTERN.test(queryStart) ? (DATE_PATTERN.test(queryEnd) && queryEnd >= start ? queryEnd : start) : storedEnd;
+      const storedStart = typeof stored.travelStart === "string" && validTripDate(stored.travelStart) ? stored.travelStart : localDate();
+      const storedEnd = typeof stored.travelEnd === "string" && validTripDate(stored.travelEnd) ? stored.travelEnd : storedStart;
+      const start = validTripDate(queryStart) ? queryStart : storedStart;
+      const requestedEnd = validTripDate(queryStart) ? queryEnd || start : storedEnd;
+      const end = boundedTripEnd(start, requestedEnd);
       const assignments = stored.scheduleAssignments && typeof stored.scheduleAssignments === "object" && !Array.isArray(stored.scheduleAssignments)
         ? Object.fromEntries(Object.entries(stored.scheduleAssignments as Record<string, unknown>)
-          .filter(([id, day]) => Boolean(id) && typeof day === "string" && DATE_PATTERN.test(day)))
+          .filter(([id, day]) => Boolean(id) && validTripDate(day)))
         : {};
       setTravelStart(start);
       setTravelEnd(end);
+      if (end !== requestedEnd) setDateNotice({ kind: "adjusted", end });
       setDayStartTime(typeof stored.dayStartTime === "string" && TIME_PATTERN.test(stored.dayStartTime) ? stored.dayStartTime : "10:00");
       setScheduleAssignments(assignments as Record<string, string>);
       setStorageReady(true);
@@ -69,19 +73,23 @@ export function useTripSchedule() {
   }, [dayStartTime, scheduleAssignments, storageReady, travelEnd, travelStart]);
 
   const changeTravelStart = useCallback((next: string) => {
-    if (!DATE_PATTERN.test(next)) return;
-    const nextEnd = travelEnd < next ? next : travelEnd;
+    if (!validTripDate(next)) { setDateNotice({ kind: "invalid" }); return; }
+    const nextEnd = boundedTripEnd(next, travelEnd);
     setTravelStart(next);
     setTravelEnd(nextEnd);
+    setDateNotice(nextEnd !== travelEnd ? { kind: "adjusted", end: nextEnd } : null);
   }, [travelEnd]);
 
   const changeTravelEnd = useCallback((next: string) => {
-    if (!DATE_PATTERN.test(next) || next < travelStart) return;
+    if (!validTripDate(next) || next < travelStart) { setDateNotice({ kind: "invalid" }); return; }
+    if (next > lastTravelDate) { setDateNotice({ kind: "limit" }); return; }
     setTravelEnd(next);
-  }, [travelStart]);
+    setDateNotice(null);
+  }, [travelStart, lastTravelDate]);
 
   const assignPlaceToDay = useCallback((placeId: string, day: string) => {
-    setScheduleAssignments((current) => ({ ...current, [placeId]: tripDays.includes(day) ? day : tripDays[0] }));
+    if (!placeId || !tripDays.includes(day)) return;
+    setScheduleAssignments((current) => ({ ...current, [placeId]: day }));
   }, [tripDays]);
 
   const ensurePlaceAssignment = useCallback((placeId: string) => {
@@ -110,6 +118,8 @@ export function useTripSchedule() {
   return {
     travelStart,
     travelEnd,
+    lastTravelDate,
+    dateNotice,
     dayStartTime,
     scheduleAssignments,
     tripDays,

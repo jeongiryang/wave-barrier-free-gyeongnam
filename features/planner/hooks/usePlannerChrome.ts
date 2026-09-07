@@ -42,20 +42,30 @@ export function usePlannerChrome(plan: PlanData | null) {
 
   useEffect(() => {
     const reduced = prefersReducedMotion();
-    const nodes = document.querySelectorAll<HTMLElement>("[data-reveal]");
-    if (reduced) {
-      nodes.forEach((node) => node.classList.add("is-visible"));
-      return;
-    }
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        const node = entry.target as HTMLElement;
-        if (entry.isIntersecting) node.classList.add("is-visible");
-        else if (entry.boundingClientRect.top > 0) node.classList.remove("is-visible");
-      });
-    }, { threshold: 0.14, rootMargin: "0px 0px -7%" });
-    nodes.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
+    const seen = new WeakSet<HTMLElement>();
+    const reveal = (node: HTMLElement) => { node.classList.add("is-visible"); observer?.unobserve(node); };
+    const observer = !reduced && typeof IntersectionObserver !== "undefined" ? new IntersectionObserver(entries => {
+      entries.forEach(entry => { if (entry.isIntersecting) reveal(entry.target as HTMLElement); });
+    }, { threshold: 0, rootMargin: "0px 0px -7%" }) : null;
+    const register = (node: HTMLElement) => {
+      if (seen.has(node)) return;
+      seen.add(node);
+      if (observer) observer.observe(node); else reveal(node);
+    };
+    const scan = (root: ParentNode) => {
+      if (root instanceof HTMLElement && root.matches("[data-reveal]")) register(root);
+      root.querySelectorAll<HTMLElement>("[data-reveal]").forEach(register);
+    };
+    // Lazy editors and replacement weather/map panels mount after the plan response.
+    scan(document);
+    const mutations = new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(node => { if (node instanceof HTMLElement) scan(node); })));
+    mutations.observe(document.body, { childList: true, subtree: true });
+    const revealFocusedContent = (event: FocusEvent) => {
+      let node = event.target instanceof HTMLElement ? event.target : null;
+      while (node) { if (node.matches("[data-reveal]")) reveal(node); node = node.parentElement; }
+    };
+    document.addEventListener("focusin", revealFocusedContent);
+    return () => { observer?.disconnect(); mutations.disconnect(); document.removeEventListener("focusin", revealFocusedContent); };
   }, [motion, plan]);
 
   return { headerHidden, scrolled };

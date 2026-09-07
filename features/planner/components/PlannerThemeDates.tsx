@@ -4,6 +4,7 @@ import { englishThemes } from "../condition-copy";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import { localDate } from "../utils";
+import TripDateNotice from "./TripDateNotice";
 
 export default function PlannerThemeDates({ t, planController, tripSelection, part = "all" }: {
   part?: "all" | "themes" | "dates";
@@ -23,7 +24,8 @@ export default function PlannerThemeDates({ t, planController, tripSelection, pa
     </fieldset>}
     {part !== "themes" && <div className="control-panel date-control">
       <span className="step-label">{en ? "When are you travelling?" : "언제 떠날까요?"}</span>
-      <div className="date-range-fields"><label><span>{en ? "Start date" : "출발일"}</span><input type="date" min={localDate()} value={travelStart} onChange={(event) => changeTravelStart(event.target.value)} /></label><i aria-hidden="true">→</i><label><span>{en ? "End date" : "도착일"}</span><input type="date" min={travelStart} value={travelEnd} onChange={(event) => changeTravelEnd(event.target.value)} /></label></div>
+      <div className="date-range-fields"><label><span>{en ? "Start date" : "출발일"}</span><input type="date" min={localDate()} value={travelStart} aria-describedby="condition-date-notice" onChange={(event) => changeTravelStart(event.target.value)} /></label><i aria-hidden="true">→</i><label><span>{en ? "End date" : "도착일"}</span><input type="date" min={travelStart} max={tripSelection.lastTravelDate} value={travelEnd} aria-describedby="condition-date-notice" onChange={(event) => changeTravelEnd(event.target.value)} /></label></div>
+      <TripDateNotice id="condition-date-notice" notice={tripSelection.dateNotice} />
       <p>{en ? "Plan up to seven days and see festivals and events during your trip." : "최대 7일 일정과 해당 기간에 열리는 축제·행사를 함께 보여드려요."}</p>
     </div>}
   </>;
