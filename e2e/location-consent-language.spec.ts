@@ -25,8 +25,8 @@ for (const entry of ["toolbar", "panel"] as const) {
       await expect(page.locator("html")).toHaveAttribute("lang", "ko");
       if (entry === "panel") await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();
       const button = entry === "toolbar"
-        ? page.locator(".map-command-bar").getByRole("button", { name: "◎ 내 위치", exact: true })
-        : page.locator("#map-panel-route").getByRole("button", { name: /현재 위치에서 출발/ });
+        ? page.locator(".map-command-bar").getByRole("button", { name: locale === "en" ? "◎ My location" : "◎ 내 위치", exact: true })
+        : page.locator("#map-panel-route").getByRole("button", { name: locale === "en" ? /Start at my location/ : /현재 위치에서 출발/ });
       let message = "";
       let routeRequests = 0;
       const observe = (request: { url(): string }) => { if (new URL(request.url()).pathname === "/api/route") routeRequests++; };
@@ -43,7 +43,7 @@ for (const entry of ["toolbar", "panel"] as const) {
       expect(routeRequests).toBe(0);
       page.off("request", observe);
       await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
-      if (entry === "panel") await page.locator("#map-panel-route").getByRole("button", { name: "출발지 목적지 설정 닫기", exact: true }).click();
+      if (entry === "panel") await page.locator("#map-panel-route").getByRole("button", { name: locale === "en" ? "Close departure and destination settings" : "출발지 목적지 설정 닫기", exact: true }).click();
     }
     for (const width of [390, 960, 1366, 1440]) {
       await page.setViewportSize({ width, height: 844 });

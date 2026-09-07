@@ -1,9 +1,16 @@
 # 현재 위치 사전 안내 언어 AI 작업 로그
 
 - 작성자: jeongiryang / Codex Engineering executor
-- 브랜치: fix/location-consent-language, base #334 c1bae6f
+- 브랜치: fix/location-consent-language, base #344 fix/map-status-language (072607d)
 - 상태: 검증 중·main/Production 미반영. 사람은 필수 리뷰/운영·법적 최종 판단, AI는 승인된 구현과 기술 검증을 담당한다.
 - Refs #285 #277 #11. 현재 위치 데이터 흐름의 법적 적합성을 확정하지 않는다.
+
+## 지도 언어 계약과 합성 — 2026-09-07 06:41 UTC
+
+독립 후보 2ec685d의 로컬 전체609 PASS/기존skip1(13.5분), CI34088540953 전체609 PASS/기존skip1을 확인했다.
+동시에 #344가 지도 조작의 영어 이름을 실제로 제공하므로 해당 부모를 일반 merge로 포함하고 PR base를 #344로 연결한다.
+확인 문구·취소·focus·좌표 요청0 assertion은 유지하고 테스트 진입/닫기 selector를 현재 locale의 정확한 접근 가능한 이름으로 맞췄다.
+합성 관련62 PASS, 전체unit501/lint/typecheck/Vercel build/performance PASS. 새 HEAD 전체와 CI/합성 Preview는 진행할 예정이며 기존609 결과를 재사용하지 않는다.
 
 ## 재현과 수정
 
