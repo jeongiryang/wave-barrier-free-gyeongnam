@@ -1,6 +1,7 @@
 name: CI
 'on':
-  pull_request: null
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
   push:
     branches:
       - main
@@ -10,6 +11,34 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  impact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      specs: ${{ steps.plan.outputs.specs }}
+    steps:
+      - name: Reviewed base policy
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+      - name: Select conservative feedback gate
+        id: plan
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: |
+            const file = process.env.GITHUB_WORKSPACE + '/.github/automation/ci-impact.cjs';
+            if (!require('node:fs').existsSync(file)) {
+              core.setOutput('mode', 'full');
+              core.setOutput('specs', '[]');
+              core.info('Reviewed base has no impact policy: complete Full gate required.');
+            } else {
+              await require(file).plan({github,context,core});
+            }
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -64,6 +93,8 @@ jobs:
         run: npm run check:performance
 
   browser:
+    needs: impact
+    if: ${{ needs.impact.outputs.mode == 'full' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
@@ -111,20 +142,84 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-  # Preserve the protected check name. Skipped, cancelled and failed dependencies
-  # must all fail this gate, including a failure in either browser shard.
+  fast-browser:
+    needs: impact
+    if: ${{ needs.impact.outputs.mode == 'fast' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          check-latest: true
+          cache: npm
+      - name: 의존성 설치
+        run: npm ci
+      - name: 브라우저 설치
+        run: npx playwright install --with-deps chromium
+      - name: 변경 영향 브라우저·접근성 검사
+        env:
+          CI_SELECTED_SPECS: ${{ needs.impact.outputs.specs }}
+          FAST_SHARD: ${{ matrix.shard }}
+        run: |
+          node --input-type=module - <<'JS'
+          import {spawnSync} from 'node:child_process';
+          const specs = JSON.parse(process.env.CI_SELECTED_SPECS);
+          if (!Array.isArray(specs) || !specs.length || specs.length > 100 ||
+              new Set(specs).size !== specs.length ||
+              specs.some(file => typeof file !== 'string' || !/^e2e\/[a-z0-9-]+\.spec\.ts$/.test(file)) ||
+              !['1','2'].includes(process.env.FAST_SHARD)) throw Error('Invalid reviewed test selection');
+          const result = spawnSync(process.execPath, ['node_modules/@playwright/test/cli.js', 'test', ...specs, '--shard=' + process.env.FAST_SHARD + '/2'], {stdio:'inherit'});
+          process.exit(result.status ?? 1);
+          JS
+      - name: Fast browser report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: fast-browser-regression-${{ matrix.shard }}
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Fast screenshots and traces
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: fast-browser-screenshots-${{ matrix.shard }}
+          path: |
+            test-results/**/*.png
+            test-results/**/*.md
+            test-results/**/trace.zip
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # Fast never creates a skipped/successful protected validate check. This job
+  # always evaluates the selected complete dependency set and rejects missing data.
   validate:
+    name: ${{ needs.impact.outputs.mode == 'fast' && 'fast-pr-gate' || 'validate' }}
     if: ${{ always() }}
-    needs: [quality, browser, sandbox-boundary]
+    needs: [quality, browser, sandbox-boundary, impact, fast-browser]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
       - name: 모든 검증 결과 확인
         env:
           QUALITY_RESULT: ${{ needs.quality.result }}
-          BROWSER_RESULT: ${{ needs.browser.result }}
+          BROWSER_RESULT: ${{ needs.impact.outputs.mode == 'fast' && needs.fast-browser.result || needs.browser.result }}
           BOUNDARY_RESULT: ${{ needs.sandbox-boundary.result }}
         run: node -e 'if ([process.env.QUALITY_RESULT, process.env.BROWSER_RESULT, process.env.BOUNDARY_RESULT].some(result => result !== "success")) process.exit(1)'
+      - name: Reject incomplete selection or duplicate browser execution
+        env:
+          CI_MODE: ${{ needs.impact.outputs.mode }}
+          IMPACT_RESULT: ${{ needs.impact.result }}
+          UNSELECTED_BROWSER_RESULT: ${{ needs.impact.outputs.mode == 'fast' && needs.browser.result || needs.fast-browser.result }}
+        run: node -e 'if (process.env.IMPACT_RESULT !== "success" || !["fast", "full"].includes(process.env.CI_MODE) || process.env.UNSELECTED_BROWSER_RESULT !== "skipped") process.exit(1)'
 
   # Owner-approved RC scope: frozen boundary plus its existing bounded synthetic
   # npm smoke. Full product/browser coverage remains in quality + browser above.

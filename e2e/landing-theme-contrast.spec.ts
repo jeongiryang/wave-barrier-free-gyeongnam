@@ -66,6 +66,13 @@ for (const theme of ["dark", "light"] as const) {
     }, theme);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    // The theme bootstrap can finish while streamed RSC content is still in
+    // React's hidden staging container. Assert the actual seven visible diagrams
+    // before sampling; a hidden/missing diagram still fails the original budget.
+    await expect(page.getByRole("main")).toBeVisible();
+    const captions = page.locator(".compact-journey-visual figcaption");
+    await expect(captions).toHaveCount(7);
+    for (const caption of await captions.all()) await expect(caption).toBeVisible();
     await expect(page.locator(".product-preview").first()).toBeHidden();
     await expect(page.locator(".community-live-preview")).toBeHidden();
 

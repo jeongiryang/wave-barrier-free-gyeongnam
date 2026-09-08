@@ -82,8 +82,15 @@ test("manual preflight is Owner-only, exact-CI-gated and cannot mutate DB, alias
   assert.match(workflow.jobs.deploy.if, /github.actor == github.repository_owner/);
   assert.match(workflow.jobs.deploy.if, /inputs.preflight_only \|\| github.ref == 'refs\/heads\/main'/);
   const steps = workflow.jobs.deploy.steps;
-  const ci = steps.findIndex((step) => step.name === "수동 후보의 동일 SHA CI 성공 확인");
-  assert.ok(ci > 0 && ci < steps.findIndex((step) => step.name === "의존성 설치"));
+  // Full proof now gates the entire deploy job, before its environment/secrets
+  // and dependency install, rather than checking only overall run success inside it.
+  assert.equal(workflow.jobs.deploy.needs, "full-gate");
+  const ci = workflow.jobs["full-gate"];
+  assert.equal(ci.environment, undefined);
+  assert.match(ci.if, /github.actor == github.repository_owner/);
+  assert.match(ci.if, /inputs.preflight_only \|\| github.ref == 'refs\/heads\/main'/);
+  assert.doesNotMatch(JSON.stringify(ci), /secrets\.|npm ci/);
+  assert.match(ci.steps[1].with.script, /ciGateEvidence\(latest,jobs,sha\) !== 'full'/);
   const inspect = steps.findIndex((step) => /X-Wave-Migration-Mode: inspect/.test(step.run || ""));
   assert.ok(inspect > 0 && inspect < steps.findIndex((step) => step.name === "후보 환경 검증과 커뮤니티 migration"));
   for (const name of ["Production Cron secret 보장", "후보 환경 검증과 커뮤니티 migration", "프로덕션 승격", "프로덕션 health와 실패 시 rollback"]) {

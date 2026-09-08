@@ -10,11 +10,11 @@ const archivedWorkflow = yaml.load(readFileSync(new URL("../.github/workflow-arc
 
 test("the protected CI gate rejects failed, cancelled and skipped dependencies", () => {
   const gate = workflow.jobs.validate;
-  assert.deepEqual(gate.needs, ["quality", "browser", "sandbox-boundary"]);
+  assert.deepEqual(gate.needs, ["quality", "browser", "sandbox-boundary", "impact", "fast-browser"]);
   assert.equal(gate.if, "${{ always() }}");
   const step = gate.steps[0];
   assert.equal(step.env.QUALITY_RESULT, "${{ needs.quality.result }}");
-  assert.equal(step.env.BROWSER_RESULT, "${{ needs.browser.result }}");
+  assert.equal(step.env.BROWSER_RESULT, "${{ needs.impact.outputs.mode == 'fast' && needs.fast-browser.result || needs.browser.result }}");
   assert.equal(step.env.BOUNDARY_RESULT, "${{ needs.sandbox-boundary.result }}");
   assert.equal(step.env.SANDBOX_RESULT, undefined);
   assert.equal(workflow.jobs["sandbox-application"], undefined);
@@ -82,7 +82,12 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
 // The scope change preserves every full-suite command and test configuration.
 test("RC separates complete hosted product validation from frozen bounded sandbox smoke", () => {
   for (const name of ["quality", "browser"]) {
-    assert.deepEqual(workflow.jobs[name], archivedWorkflow.jobs[name], name);
+    const expected = structuredClone(archivedWorkflow.jobs[name]);
+    if (name === "browser") {
+      expected.needs = "impact";
+      expected.if = "${{ needs.impact.outputs.mode == 'full' }}";
+    }
+    assert.deepEqual(workflow.jobs[name], expected, name);
   }
   // Only the explicitly reviewed immutable distribution may differ from the
   // archived boundary job. Every command, timeout and safety probe stays equal.
