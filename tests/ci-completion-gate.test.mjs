@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import yaml from "js-yaml";
 
@@ -60,7 +61,12 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
   for (const job of [workflow.jobs["sandbox-boundary"], archivedWorkflow.jobs["sandbox-application"]]) {
     const runs = job.steps.map(step => step.run || "").join("\n");
     const bootstrap = job.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution").run;
-    assert.match(bootstrap, /b02726fd4407a8537c2ece3b5d2af80ddd3e3edf\/scripts\/subscription-ci-bootstrap\.py/);
+    const distribution = job === workflow.jobs["sandbox-boundary"] ? "c7ec5334378ce14a5da21d754cae8924765754e8" : "b02726fd4407a8537c2ece3b5d2af80ddd3e3edf";
+    assert.ok(bootstrap.includes(`${distribution}/scripts/subscription-ci-bootstrap.py`));
+    if (job === workflow.jobs["sandbox-boundary"]) {
+      const bytes = readFileSync(new URL("../scripts/subscription-ci-bootstrap.py", import.meta.url), "utf8").replaceAll("\r\n", "\n");
+      assert.ok(bootstrap.includes(createHash("sha256").update(bytes).digest("hex")));
+    }
     assert.ok(bootstrap.indexOf("sha256sum --check") < bootstrap.indexOf('python3 -I -B "$RUNNER_TEMP/wave-ci-bootstrap.py"'));
     assert.doesNotMatch(runs, /npm ci|npx |spec_from_file_location\("boundary", "scripts\/|python3 -I(?: -B)? tests\//);
     assert.match(runs, /WAVE_TRUSTED_RUNTIME/);
@@ -75,9 +81,16 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
 
 // The scope change preserves every full-suite command and test configuration.
 test("RC separates complete hosted product validation from frozen bounded sandbox smoke", () => {
-  for (const name of ["quality", "browser", "sandbox-boundary"]) {
+  for (const name of ["quality", "browser"]) {
     assert.deepEqual(workflow.jobs[name], archivedWorkflow.jobs[name], name);
   }
+  // Only the explicitly reviewed immutable distribution may differ from the
+  // archived boundary job. Every command, timeout and safety probe stays equal.
+  const expectedBoundary = structuredClone(archivedWorkflow.jobs["sandbox-boundary"]);
+  const bootstrap = expectedBoundary.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution");
+  bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "c7ec5334378ce14a5da21d754cae8924765754e8")
+    .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "73e307bcfe7c6b411990f6dec3302c23cd325dfdc1b3c2ede4d7c387880136c9");
+  assert.deepEqual(workflow.jobs["sandbox-boundary"], expectedBoundary);
   const boundary = readFileSync(new URL("./subscription-sandbox-boundary.py", import.meta.url), "utf8");
   assert.match(boundary, /checks = boundary\.validate\(config, str\(archive\), \{\}\)/);
   assert.match(boundary, /assert len\(checks\) == 6/);

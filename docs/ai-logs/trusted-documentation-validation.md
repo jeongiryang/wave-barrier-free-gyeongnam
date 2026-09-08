@@ -35,6 +35,16 @@ Refs #288 #289 #294. Owner의 2026-09-08 RC 범위 지시를 따른다.
 - 기존 테스트 삭제·skip 추가·assertion/timeout/workers/성능 예산 완화 없음.
 - 모델 호출, 새 외부 설치 pin, 예약 등록, queue tick, #294 시도 초기화 없음.
 
+### CI 고정 배포 갱신
+
+초기427c982의 CI845는 기존 CI bootstrap이 바뀐 두 실행기 파일의 해시를
+거부해 즉시 실패했다. runtime/browser timeout 재발이 아니라 의도한 immutable
+검증이었다. 실행기 소스427c982의 두 해시를 고정한 배포c7ec533을 별도 커밋으로
+게시하고, active CI는 그 파일의 정확한 SHA256을 확인한 뒤 사용하도록 갱신한다.
+과거 archive와 모든 probe는 보존한다. 계약 테스트는 active와 archive의 차이를
+해당 고정 SHA·해시 두 값으로만 허용하고 나머지 job 전체 동일성은 계속 확인한다.
+로컬 자동화 설치 pin과 예약은 바꾸지 않는다.
+
 ## 재개 경계
 
 최신 HEAD full CI·독립 QA를 확보한 후 검토된 새 외부 설치를 추가해야 한다.
