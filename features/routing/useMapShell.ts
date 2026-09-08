@@ -25,6 +25,7 @@ export function useMapShell({
 }: MapShellOptions) {
   const shellRef = useRef<HTMLDivElement>(null);
   const geometryRef = useRef("");
+  const fittedMapRef = useRef<(() => void) | null>(null);
   const [expanded, setExpanded] = useState(false);
 
   const toggleExpanded = useCallback(async () => {
@@ -74,8 +75,11 @@ export function useMapShell({
         const geometry = [canvas.clientWidth, canvas.clientHeight, ...mapFitPadding(canvas)].join(":");
         // No coordinate/current-bounds comparison: user pan and page scroll
         // must not refit the map. Only the actual available geometry changes.
-        if (geometry !== geometryRef.current) {
+        // A new day can replace the SDK map while reusing the same final UI
+        // dimensions. That new map still needs the settled toolbar padding.
+        if (geometry !== geometryRef.current || fittedMapRef.current !== fitMapRef.current) {
           geometryRef.current = geometry;
+          fittedMapRef.current = fitMapRef.current;
           fitMapRef.current?.();
         }
       }, 260);

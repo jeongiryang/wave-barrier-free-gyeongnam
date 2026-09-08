@@ -45,3 +45,25 @@ Kakao 기본 bounds 여백과 Leaflet 고정46px는 도구막대·사진의 실�
 과거 CI863의 성공이나 이후 재시도로 첫 실패를 덮어쓰지 않는다. ODsay #372 hold를 유지하며 반복 provider 실호출·유료 모델 API·자동화 활성화·#373 확대는 하지 않는다.
 
 다음: 준비 상태를 더 엄격히 확인하는 작은 테스트 수정을 독립 commit으로 보존하고 현재 #353 후보에 포함한다. #373 전체를 가져오거나 main864를 무작정 재실행하지 않는다. #353 후보의 Full CI·정확한 Preview·실제 SDK 가림 확인·독립 QA 뒤 정상 병합, new main CI/CD/Production까지 확인한다. 제출 원고/최종 캡처/README 일치를 다시 확인하기 전 전체 #353 완료나 Release GO를 선언하지 않는다.
+
+## 2026-09-09 04:43 KST — exact4052 Preview 실패 후 실제 Leaflet 수정
+
+위의 후보 전 로컬 결과는 역사 기록으로 보존한다. [PR #378](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/378) exact `4052f857324227bfb38d7a226227f9c728bd2416`의 [CI865](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34267553616)는 5개 job 모두 SUCCESS였다. 독립 artifact 집계는 browser **833 PASS + 기존 skip1**, 실패·flaky·retry·중복0, unit705 PASS였다. 호스팅 build 예산은 CSS69.77/70, landing120.05/155, planner268.96/270, largest95.92/110KiB다. 로컬 빌드 수치와 섞지 않는다.
+
+그러나 동일 HEAD [Preview](https://wave-barrier-free-gyeongnam-47fk5gwkz-jeongiryang-projects.vercel.app)의 [독립 QA는 P2 FAIL](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/378#pullrequestreview-5146163979)이다. 390px에서 대산을 다음 날로 옮긴 뒤 주남의 날짜로 돌아오면 실제 Leaflet 사진 위쪽24.75px가 OSM 상태 배지에 가려졌다. 첫 표시뿐 아니라 안정된 화면에서도 재현됐다. 첫 방문·4단계·이미지·키보드·넘침 검수의 통과가 이 지도 실패를 취소하지 않는다. Kakao 대신 Leaflet으로 연결된 정확한 원인은 확정하지 않았고, 실제 Kakao 성공 또는 12초 timeout으로 추정하지 않는다. `/api/route`는 전송 전에 차단해 ODsay 호출0을 유지했다.
+
+근본 원인과 수정:
+
+- Leaflet은 첫 view가 만들어질 때 대기하던 marker DOM을 붙인다. 최초 `fitBounds` 이전에는 사진 크기를 측정할 수 없었다. 기존 원본 bounds를 유지하며 `whenReady`에서 실제 붙은 사진과 번호를 동기적으로 다시 측정한다. 새 대기 시간이나 재시도는 추가하지 않는다.
+- 날짜가 바뀌어 SDK map이 교체되어도 도구·캔버스 크기가 같으면 이전 geometry 기록 때문에 정착 후 여백 적용을 건너뛰었다. 크기와 함께 fit callback의 map 교체를 구분한다. 같은 map의 pan/스크롤이나 동일 크기 알림은 계속 재맞춤하지 않는다.
+- 두 결함 각각 unit 실패를 먼저 보존한 뒤 수정했다. 실제 Leaflet 라이브러리를 사용하는 새 E2E는 fixture 데이터와 명시적 빈 지도 키만 사용한다. SDK/projection은 대체하지 않으며 모든 나머지 API/외부 요청이 fixture 밖으로 나가지 않았음을 요구한다. 1366px 두 장소→날짜 이동→날짜별 지도→390px 날짜 왕복에서 사진·번호 전체의 canvas 포함, 도구/배지와 겹침0, 선택일의 정확한 장소ID를 세 번의 안정된 기하 관찰로 검사한다.
+
+수정 후 로컬 검증:
+
+- 관련 지도 unit **14 PASS**, 실패·skip0. mounted-photo red/green과 replacement-map red/green 로그를 각각 보존했다.
+- `npm test`: **707 PASS**, 실패·skip·cancel0, 6.249s.
+- `npm run typecheck`: PASS. 새 E2E 포함 `npm run lint`: 오류0·기존 경고5.
+- 정상 저장소 설정의 `playwright test e2e/leaflet-date-fit.spec.ts`: **desktop/mobile 2 PASS**, 10.6s. 같은 기존45초/8초 제한, retry·worker 정책을 유지했다. 실제 화면 PNG도 확인했다. agent의 별도 stage 실행1 PASS/9.6s와 중복 집계하지 않는다.
+- `npm run build:vercel`, `npm run check:performance`: PASS. 로컬 CSS69.77/70, landing120.89/155, planner269.87/270, largest95.92/110KiB. 예산 증가는 없다.
+
+원본 Preview 실패의 `51-390-day1-settled.png`, `52-390-day1-persistent`와 CI865 전체 artifact는 `story353-preview-4052f85-independent/`에 보존한다. 새 local 증거는 `story353-leaflet-fix-*`, `leaflet-date-fit-regression-20260909/`에 있다. exact4052에 새 E2E를 실행해 browser red/green을 얻었다고 주장하지 않는다. **수정 HEAD의 새 Full CI·Preview·독립 QA 및 이후 Production은 아직 필요하다.**

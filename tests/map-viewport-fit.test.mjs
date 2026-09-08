@@ -83,7 +83,7 @@ function shellHarness() {
   const fitMapRef = { current: () => calls.fit.push(bounds) };
   const react = {
     useCallback: x => x, useEffect: x => effects.push(x), useState: x => [x, () => {
-      }], useRef: x => ({ current: x === null ? f.shell : x })
+      }], useRef: x => ({ current: x })
   };
   const sdkMap = { relayout: () => calls.relayout++ };
   const leaflet = { invalidateSize: () => calls.invalidate++ };
@@ -108,10 +108,11 @@ function shellHarness() {
   new Function('module', 'exports', 'require', 'window', 'document', 'ResizeObserver', compile('features/routing/useMapShell.ts'))(mod, mod.exports, n => n === 'react' ? react : utils.exports, win, { addEventListener() {
     }, removeEventListener() {
     } }, RO);
-  mod.exports.useMapShell({
+  const view = mod.exports.useMapShell({
     fitMapRef, kakaoMapRef: { current: sdkMap }, mapRef: { current: leaflet }, pickModeRef: { current: null }, setPickMode() {
     }, layoutKey: 'closed:0'
   });
+  view.shellRef.current = f.shell;
   const cleanups = effects.map(fn => fn());
   const observer = observers[0];
   const tick = () => {
@@ -166,6 +167,20 @@ test('shell observes actual canvas/controls and disconnects/cancels pending work
   assert.equal(h.timers.size, 0);
   assert.equal(h.calls.relayout, before);
 });
+test('a replacement day map receives settled padding even at identical shell dimensions', () => {
+  const h = shellHarness();
+  h.tick();
+  const replacement = { points: ['origin', 'Daesan'] };
+  h.fitMapRef.current = () => h.calls.fit.push(replacement);
+  h.notify();
+  h.tick();
+  assert.equal(h.calls.fit.length, 2);
+  assert.equal(h.calls.fit.at(-1), replacement);
+  h.notify();
+  h.tick();
+  assert.equal(h.calls.fit.length, 2, 'unchanged geometry must not keep refitting the same map');
+  h.dispose();
+});
 test('renderer cleanup clears fitting callback before late configuration resolves', async () => {
   let cleanup, release;
   const pending = new Promise(resolve => release = resolve);
@@ -192,9 +207,12 @@ test('renderer cleanup clears fitting callback before late configuration resolve
 // Execute the production renderer bodies with bounded SDK adapters. These
 // assert SDK call contracts; they do not emulate geographic projection or
 // establish actual Kakao/Leaflet visual placement.
-function rendererHarness(provider) {
+function rendererHarness(provider, { deferredMarkers = false } = {}) {
   const f = fixture();
-  f.canvas.replaceChildren = () => undefined;
+  let markersMounted = !deferredMarkers;
+  const markerNodes = f.canvas.querySelectorAll;
+  f.canvas.querySelectorAll = () => markersMounted ? markerNodes() : [];
+  f.canvas.replaceChildren = () => { markersMounted = !deferredMarkers; };
   const maps = [], overlays = [];
   const noop = () => undefined;
   const context = {
@@ -226,6 +244,12 @@ function rendererHarness(provider) {
     }
     fitBounds(...args) {
       this.fits.push(args);
+      // Real Leaflet mounts queued layers when the first view is established.
+      markersMounted = true;
+    }
+    whenReady(callback) {
+      callback();
+      return this;
     }
     setCenter() {
     }
@@ -343,8 +367,8 @@ for (const provider of ["kakao", "leaflet"]) {
     f.state.bar = rect(32, 209, 326, 64);
     f.state.badge = rect(33, 274, 270, 44);
     oldFit();
-    assert.equal(firstMap.fits[1][0], firstBounds);
-    assert.ok(paddings(firstMap.fits[1])[0] > initialPadding[0]);
+    assert.equal(firstMap.fits.at(-1)[0], firstBounds);
+    assert.ok(paddings(firstMap.fits.at(-1))[0] > initialPadding[0]);
     f.context.places = [f.context.places[1]];
     await f.render();
     const nextMap = f.maps[1], nextBounds = nextMap.fits[0][0];
@@ -361,3 +385,21 @@ for (const provider of ["kakao", "leaflet"]) {
     assert.equal(nextMap.fits.length, currentCount);
   });
 }
+
+test('Leaflet measures mounted photo pins on every new day with unchanged shell geometry', async () => {
+  const f = rendererHarness('leaflet', { deferredMarkers: true });
+  f.state.canvas = rect(24, 200, 342, 500);
+  f.state.bar = rect(32, 209, 326, 64);
+  f.state.badge = rect(33, 274, 320, 50);
+  for (const place of [f.context.places[0], f.context.places[1]]) {
+    f.context.places = [place];
+    await f.render();
+    const fits = f.maps.at(-1).fits;
+    const final = fits.at(-1);
+    const requiredTop = f.state.badge.bottom - f.state.canvas.top + f.state.photo.height;
+    assert.ok(final[1].paddingTopLeft[1] >= requiredTop, 'the final fit must include the newly mounted photo, not only the toolbar');
+    assert.equal(final[0], fits[0][0], 'the original requested bounds must survive initialization');
+    assert.deepEqual(final[0], [[35.2, 128.6], [Number(place.mapY), Number(place.mapX)]]);
+    assert.equal(final[1].maxZoom, 13);
+  }
+});

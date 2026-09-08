@@ -122,5 +122,9 @@ export async function renderLeafletMap(
   fitMapRef.current = fit;
   if (bounds.length) fit();
   else map.setView([35.238, 128.692], 9);
+  // Leaflet queues marker layers until its first view. Measure again once
+  // those DOM pins exist, also when a new day has the same shell dimensions.
+  // This is synchronous for an initialized map and does not wait on a timer.
+  map.whenReady(fit);
   setProvider("osm");
 }
