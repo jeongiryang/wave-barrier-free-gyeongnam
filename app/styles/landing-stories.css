@@ -212,10 +212,12 @@ html[data-theme="dark"] .travel-book-preview .feature-preview-stage > footer b {
 /* 실제 서비스 소개는 기능 모형보다 짧은 설명을 우선한다. */
 .product-stories {
   padding-block: clamp(64px, 8vw, 104px) !important;
+  border-top: 1px solid var(--line);
+}
+.product-story-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
-  border-top: 1px solid var(--line);
 }
 .product-story,
 .product-story.reverse {
@@ -234,7 +236,7 @@ html[data-theme="dark"] .travel-book-preview .feature-preview-stage > footer b {
   line-height: 1.18;
   letter-spacing: -.035em;
 }
-.product-story-copy > p:not(.section-kicker) { font-size: .95rem; line-height: 1.65; }
+.product-story-copy > p:not(.section-kicker) { font-size: 1rem; line-height: 1.65; }
 .product-story-copy > a { margin-top: 12px; color: var(--blue); background: transparent; padding-inline: 0; }
 .product-preview { display: none; }
 
@@ -255,14 +257,15 @@ html[data-theme="dark"] .travel-book-preview .feature-preview-stage > footer b {
 .landing-community > .compact-journey-visual { width: min(100%, 360px); margin: 0 auto; }
 
 @media (max-width: 960px) {
-  .product-stories { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .product-story-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .product-story:nth-child(3n) { border-right: 1px solid var(--line); }
   .product-story:nth-child(2n) { border-right: 0; }
   .product-story:nth-child(n + 3) { border-top: 1px solid var(--line); }
 }
 
 @media (max-width: 600px) {
-  .product-stories { display: block; padding-block: 40px !important; }
+  .product-stories { padding-block: 40px !important; }
+  .product-story-grid { display: block; }
   .product-story,
   .product-story.reverse { padding: 28px 4px; border-right: 0; border-top: 1px solid var(--line); }
   .product-story:first-child { border-top: 0; }

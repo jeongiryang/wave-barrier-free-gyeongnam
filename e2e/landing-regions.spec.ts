@@ -56,6 +56,8 @@ test("랜딩 기능 데모는 한국어 순서와 비대화형 미리보기 계�
   await mockPublicShellApi(page);
   await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
   await page.goto("/", { waitUntil: "networkidle" });
+  await page.locator("#journey-tools-details > summary").click();
+  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
 
   const labels = await page.locator(".product-stories .section-kicker").allTextContents();
   expect(labels.map((value) => value.trim())).toEqual(["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 내 일정"]);
@@ -89,6 +91,8 @@ test("5초가 넘는 반복 시연은 화면 밖에서 멈추고 사용자가 �
   expect(repeating.iterations).toBe("infinite");
   expect(repeating.state).toBe("paused");
 
+  await page.locator("#journey-tools-details > summary").click();
+  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
   await routeStory.scrollIntoViewIfNeeded();
   await expect(routeStory).toHaveClass(/\bis-visible\b/);
   await expect.poll(() => vehicle.evaluate((node) => getComputedStyle(node).animationPlayState)).toBe("running");
@@ -115,5 +119,7 @@ test("5초가 넘는 반복 시연은 화면 밖에서 멈추고 사용자가 �
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.motion)).toBe("calm");
+  await page.locator("#journey-tools-details > summary").click();
+  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
   expect(await vehicle.evaluate((node) => getComputedStyle(node).animationName)).toBe("none");
 });

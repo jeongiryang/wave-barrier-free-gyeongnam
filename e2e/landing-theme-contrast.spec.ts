@@ -61,6 +61,7 @@ const CASES = [
   ".journey-scene-copy > p",
   ".journey-scene-copy > a",
   ".journey-source-details summary",
+  "#journey-tools-details > p",
   ".journey-day span",
   ".journey-day p",
   ".journey-scene-stops li > span",
@@ -85,6 +86,8 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.locator(".compact-journey-visual figcaption")).toHaveCount(7);
     await expect(page.locator(".product-preview").first()).toBeHidden();
     await expect(page.locator(".community-live-preview")).toBeHidden();
+    await page.locator("#journey-tools-details > summary").click();
+    await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
 
     for (const selector of CASES) {
       const measured = await samples(page, selector);

@@ -1,4 +1,19 @@
-# #353 실제 여행 화면 연결 — 진행 중
+# #353 실제 여행 화면 연결 — 구현·검증 기록
+
+## 2026-09-09 07:11:25 KST — 배포 사실 대조
+
+- 원격 후보 `9f83fb920343cec31abfa3de04cc6414e43e3728` → #378 포함 main `eab2442f90b72441fd311db13dd8bb935723527f` → Production `dpl_GVGVzh2TahHEDKDJHUp6vCN9FaGJ`. CI/CD: [main CI868 attempt2](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34277144002/attempts/2) SUCCESS(고유838: 837 PASS·기존skip1·fail/flaky0), [CD221](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34282029576) SUCCESS. canonical 대조: 2026-09-09 06:45:02.580 및 07:01:03.532 KST 독립 canonical 조회에서 같은 SHA/배포의 READY·production을 전후 확인했다([독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788)).
+- 독립 Production QA 범위/제한/증거: [독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788): 2026-09-09 06:46–07:01 KST 공개 여정의 제한된 PASS. 74개 관찰에서 처리되지 않은 페이지 오류0건, 실제 Kakao 날짜별 표지·날씨 상세 초점·기기 저장의 장소 ID/날짜/순서 복원을 확인했다. route/ODSay 전송0건이며 전체 제공처·모든 설정 복원·#353 완료를 뜻하지 않는다. 기존 bf29 CI866 성공과 독립 Preview `_leaflet_pos` FAIL, 수정 전 정상2 FAIL/감소2 PASS와 동일 local 수정 후4 PASS는 아래 원문 그대로 보존한다. 새 CI 결과로 이력을 지우거나 local4를 새 Production 검증으로 세지 않는다.
+- CI868 attempt1의 25분 job 취소·browser(2) artifact 미보관 이력을 보존한다. attempt2에서 browser(2)·validate만 새로 실행했고 quality·boundary·browser(1)은 같은 SHA의 이전 성공/동일 로그와 artifact를 상속했다. 단일 재시도 성공은 job budget 원인 수정 증거가 아니다. #357은 별도 incident 원장을 따른다. CD221 사전 점검은 8 total/1 active/008 영향0, migration 경로001–008 성공을 확인했다. [PostDeploy12](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34282190225)는 browser8 PASS/26초와 API smoke0회 hold를 분리하며 전체 FAILURE다.
+- 실제 공개 여정의 plan1/weather1/spot-photo2/crowd1/enrich1/map-config15 허용은 browser 요청 집계다. crowd1은 응답 전에 중단됐으며 HTTP200 응답 20건을 모든 upstream 성공으로 세지 않는다. route/ODSay 전송0건·서버쓰기0, guard console20건과 crowd 중단1건을 보존했다. 저장/복원은 주남126117·대산2758443의 ID/날짜/순서이며 좌표는 의도적으로 제외됐다. 위치 재확인을 누르지 않았고 도착 추정/모든 설정 복원은 보장하지 않는다. 실제 Kakao 검수는 기존 Leaflet Preview 실패의 새 재검수도, 초기 hydration 관찰#347의 해소도 아니다.
+- #379는 다른 실행이 소유한 외부 Draft PR이다. 이 작업에서 생성·push·검토·병합하지 않았으며, CI869 green을 현재 Production 변경이나 CI868 attempt2의 원인 수정으로 세지 않는다.
+
+- 사람은 KO 우선, 일반 Intro/Hero 연출 유지, 필수 요구와 선택 아이디어 보존을 결정했다. AI는 구현·회귀·증거 정리 중 실제 수행한 범위만 기록한다. 최종 사람 GO·제출은 완료 처리하지 않는다.
+- #353 ACTIVE: 기존9caca 별도02:29 날짜와03:08 지도는 그대로 보존한다. 새 eab 같은 공개 세션의 날짜 변경→날짜별 실제 Kakao 지도 근거는 확보됐다. 이를 소개에서 공유하는3가지 상태로 표시하는 로컬 미커밋 구현, 보조 6개 도구 native 접기/본문 16px 및 최종 제출 캡처는 별도 검증 대상이다. 일반 Intro/Hero는 유지하며 D41–D46 이관과 #372 hold는 바꾸지 않는다.
+- 현재 로컬 자산 6개는 06:55:25.855–06:58:13.668 KST eab 원본의 픽셀 동일 정수 crop/무손실 WebP(978,798 bytes)이며 [timeline manifest](../../public/media/wave-journey/timeline-manifest.json)에 원본 SHA/출처/상태를 보존했다. Production 촬영 자료를 로컬 소개에 연결한 것과 새 소개를 Production에서 검증한 것은 다르다.
+- 이 문서 갱신은 기존 7개 문서만 수정했다. 부모 작업의 제품 코드/검사는 변경하지 않았고 새 provider·브라우저·테스트·CI를 실행하지 않았다. 원본 independent-production-qa.md/bounded-production-qa-receipt.json의 제한된 판정을 인용했으며 이 문서 작성자가 독립 QA PASS나 사람 승인을 새로 선언하지 않는다.
+
+## Historical — 후보 준비·수정 당시 기록
 
 기준: `81b88e4f6bf69c4811d458fbe2639a87e885a84b` 이후의 `feat/service-story-real-353`.
 관련 Issue는 #353 및 실제 지도 표지 가림을 기록한 #347이다. #375의 정상 첫 방문 인트로·큰 Hero·스크롤 프레임 확장·명시적 영상 재생은 보존한다. #21의 일반 모션 약화는 Owner 비채택이며 OS/앱 감소 모드의 정적 대안은 계속 유지한다.
@@ -87,3 +102,21 @@ exact `bf29f21b4abfb0376320631f96877276659536a3`의 [CI866](https://github.com/j
 수정 후 검증: 동일 별도4경우 **4 PASS/10.6s**, 각16회 native 날짜 입력·pageerror0. 저장소 설정 그대로 `playwright test e2e/leaflet-date-fit.spec.ts` **4 PASS/10.7s**. `npm test` **707 PASS/6.114s**, 실패·skip·cancel0. lint 오류0·기존 경고5, typecheck·Vercel build·performance PASS. 로컬 gzip CSS69.86/70, landing121.12/155, planner269.85/270, largest95.92/110KiB다. 두 독립 실행의 테스트 수를 더해 고유 회귀 수로 보고하지 않는다. 테스트 삭제·새 skip·timeout/retry/worker/성능 기준 완화가 없다.
 
 실패와 성공의 모든 로그·원래 trace·화면은 `leaflet-rapid-day-repro-bf29f21-20260909/`, `leaflet-animation-remove-mechanism-20260909/`, `story353-leaflet-no-animation-*`, `story353-leaflet-lifecycle-*`, `story353-preview-bf29f21-independent/`에 보존한다. 새 수정 HEAD의 exact Full CI·Preview·독립 QA는 아직 필요하며 Production은 여전히9caca다. #353 전체 완료, 실제 경로 제공처 성공 또는 Release GO를 선언하지 않는다.
+
+## 2026-09-09 07:34 KST — 같은 여행의 날짜·지도 연결 및 시각 체크포인트
+
+위 과거 후보는 #378을 통해 main/Production `eab2442f90b72441fd311db13dd8bb935723527f`에 반영됐다. [현재 Production의 독립 검증과 CI868/CD221 원본](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788)을 우선하며 과거 실패를 지우지 않는다. 이번 증가분은 같은 기존 worktree의 `feat/service-story-days-353`에서 별도 후보로 보존한다.
+
+- 한 번의 실제 운영 시연에서 촬영한6장을 사용한다. 두 장소를 첫날에 둔 상태, 대산을 둘째 날로 옮긴 뒤 첫날 주남/둘째 날 대산을 native 버튼으로 선택하면 일정·지도·날짜·장소ID·순위가 함께 바뀐다. 버튼과 live 제목의 DOM을 유지해 키보드 초점을 잃지 않는다. 화면 선택은 기록된 장면을 보여줄 뿐 사용자의 여행 편집이나 최신 제공처 조회가 아님을 설명한다.
+- 원본 정수 영역을 무손실 WebP로 추출했고,6파일 합계978,798B의 픽셀 일치·원본 크기·날짜·조회 시각·Kakao 및 사진 출처를 `timeline-manifest.json`과 외부 원본으로 연결한다. 기존9caca7자산과 옛 시연 기록은 삭제하지 않는다.
+- 한국어 편의 문구를 실제 접근로·승강기·유아 편의시설 중심으로 맞췄다. 주4단계 뒤에 반복되던6개 기능 패널은 native 상세보기에 보존하고 본문을16px로 맞췄다. 모든6CTA·영어 구조·normal Intro/Hero/확장 전환·감소 모드·이미지 실패 대안은 유지한다.
+
+현재 변경에 실행한 로컬 검사는 `npm test` **707 PASS/6.280s**, lint 오류0·기존 경고5, typecheck·Vercel build·performance PASS다. gzip CSS69.87/70, landing121.36/155, planner269.81/270, largest95.92/110KiB이며 예산은 그대로다. 새 media는 선택한 날짜/장면에서 지연 로딩한다.
+
+관련 E2E: desktop 첫 진입/날짜8 PASS17.1s; desktop compact/service-story15 PASS13.4s; 최종 mobile 첫 진입/compact/service-story23 PASS29.5s; 양 프로젝트 theme/regions/planner-product-flow13 PASS·기존 mobile skip1(10.1s). 서로 중복 실행한 테스트 수를 더해 고유 회귀 수로 보고하지 않는다. 먼저 실행한 mobile 날짜 테스트는7 PASS/1 FAIL이었다. sibling 설명 영역이750ms 퇴장 전환 중일 때 전체 장면 axe가 실행된 원본 trace를 보존하고, panel과 sibling reveal의 실제 전환 완료를 확인하도록 준비 조건을 추가했다. 같은 전체 장면 axe·대비·assertion·locator·timeout·workers·retries·제품 모션은 유지했다. 단일 실패 재검사1 PASS 후 전체 관련 mobile23 PASS를 확인했다. 실패를 재실행 성공으로 소급 변경하지 않는다.
+
+07:28–07:29 KST 기여자 시각 검수에서320×568·390×844·1366×900의 실제15개 viewport PNG를 확인했다. 첫 wave와 안정 wordmark, 한국어 CTA, 날짜/지도 상태, 상세보기 열기·닫기·초점, reduced 정적 대안, 실제 Chromium200%→100% 복구를 구분했다. pageerror/overflow0, API/외부/쓰기 전달0이다. 차단된 인증/외부 manifest 요청에 따른 콘솔6건은 숨기지 않는다. 320px에서는 주 CTA가 화면 아래에 있으나 native Tab으로 바로 도달하고 인트로 재생이 조작을 막지 않는다. 축소된 지도 원본 내부 작은 글자와 별도로 읽을 수 있는 HTML 날짜·장소·순위를 구분한다. 이는 실제 낭독기/장애인/실물 모바일 검증이나 final independent QA PASS가 아니다.
+
+**현재 보안 Gate는 미완료다.** 같은 시각의 새로운 registry advisory로 production audit가 Next16.3.1 critical·sharp0.35.3 high를 보고했다. 전체 개발 도구 감사에서는 js-yaml4.3.1 high도 확인됐다. 기존 CI868의 당시 audit0은 역사 기록이며 현재 성공 근거로 재사용하지 않는다. [#355의 좁은 별도 패치](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/355#issuecomment-5592687534)에서 필요한 patch 버전만 처리하고 있다. 이 디자인 후보를 audit 실패 상태로 배포하지 않으며 보안 패치 포함 후 exact HEAD Full CI·Preview·독립 QA·Production 및 최종 제출 화면 일치를 확인해야 한다.
+
+외부 증거: `D:/wave-db-binding-preflight-20260908/story353-days-*`, `story353-days-native-visual-20260909/`, `story353-preserved-before-security-2026-09-08T22-23-09-808Z/`. 기존 사용자dirty10·50worktrees·queue294 generation/attempts/receipts·server·모든 실패 artifact를 보존한다. 별도 #379 소유 작업, #373 후순위, automation OFF 및 #372 quota hold를 유지한다.

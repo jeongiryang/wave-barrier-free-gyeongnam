@@ -8,7 +8,7 @@ export const copy: Record<Locale, Record<string, string>> = {
     heroCopy: "Find places with reported facilities, arrange your days and check each journey before you leave. Start without an account.", plan: "Plan my trip", learn: "Learn about W.A.V.E",
     tourism: "Tourism", accessible: "Accessibility", mobility: "Mobility", stories: "Local stories",
     whyTitle: "What would make your journey easier?",
-    value1: "Needs first", value1Copy: "Start with real needs such as wheelchair use, reduced walking, infants, pregnancy, and visual or hearing support.",
+    value1: "Needs first", value1Copy: "Choose the facilities you need, such as access paths, lifts and facilities for infants.",
     value2: "Evidence included", value2Copy: "Read the reported facilities, their source and when we checked. Missing information stays unconfirmed.",
     value3: "Connect the journey", value3Copy: "Compare time, fare, transfers and walking to design the whole day.",
     planningCtaTitle: "Your places. Your pace.", planningCtaEm: "Start building your trip.",

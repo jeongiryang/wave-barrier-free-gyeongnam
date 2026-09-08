@@ -48,6 +48,8 @@ test("랜딩 딥링크와 플래너 헤더는 안내형 보기에서도 실제 �
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { plannerView: "guided" });
   await page.goto("/");
+  await page.locator("#journey-tools-details > summary").click();
+  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
   await expect(page.getByRole("link", { name: /일정 구성해 보기/ })).toHaveAttribute("href", "/planner#itinerary");
 
   await page.goto("/planner#navigation");

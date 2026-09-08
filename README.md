@@ -23,7 +23,7 @@
 [시연](docs/demo-script.md) · [이미지·지도 출처](docs/assets-and-licenses.md) ·
 [진행 중 검증](docs/launch-audit-2026-09-05.md)
 
-> #353 서비스 소개·화면 개편과 제출 원고를 준비하고 있습니다. 최종 캡처와 시연 확인은 #353 적용 후 Production에서 기록합니다. 현재 브랜치의 수정과 Production 반영 여부는 구분합니다.
+> #378을 포함한 Production `eab2442f90b72441fd311db13dd8bb935723527f`에서 실제 날짜별 지도·날씨 상세 초점·장소 ID/날짜/순서의 기기 저장·복원을 확인했습니다([독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788)). 같은 세션의 날짜·지도 화면을 연결하는 새 소개와 보조 도구 접기는 현재 로컬 미커밋 변경이며 아직 배포되지 않았습니다. #353의 후보 검증·최종 제출 캡처는 [현재 실행 기록](docs/launch-readiness-status.md)을 따릅니다.
 > 참가 부문은 **① 웹·앱 개발 부문**, 팀명은 **WAVE**, 접수 서비스명은 **사회적 약자 관광 편의 제공앱**입니다. 서비스 브랜드는 **W.A.V.E**, 유형은 **Web**, 특화 지역은 **경상남도**이며 1차 심사자료 마감은 **2026-09-21 16:00 KST**입니다. [공식 근거와 사람 확인 항목](docs/contest-compliance.md), [제출 원고](docs/submission/development-entry-draft.md)를 확인하세요. 기존 34e6021 검토 PDF는 역사적 초안이며 최종 제출본이 아닙니다.
 
 ## 핵심 사용자 여정
@@ -53,7 +53,7 @@ W.A.V.E는 확인된 편의시설과 추가 확인이 필요한 항목을 구분
 
 | 기능 | 주소 | 실제 제공 범위 |
 | --- | --- | --- |
-| 여행 조건과 추천 | [`/planner#conditions`](https://wave-barrier-free-gyeongnam.vercel.app/planner#conditions) · [`#places`](https://wave-barrier-free-gyeongnam.vercel.app/planner#places) | 경남 18개 시·군, 여행 주제, 휠체어·보행·영유아·임산부·시각·청각 조건, 공식 편의근거 기반 추천 |
+| 여행 조건과 추천 | [`/planner#conditions`](https://wave-barrier-free-gyeongnam.vercel.app/planner#conditions) · [`#places`](https://wave-barrier-free-gyeongnam.vercel.app/planner#places) | 경남 18개 시·군, 여행 주제, 직접 선택한 편의시설 조건(휠체어 편의시설·접근로와 승강기 등), 공식 편의근거 기반 추천 |
 | 일정과 출발 준비 | [`/planner#itinerary`](https://wave-barrier-free-gyeongnam.vercel.app/planner#itinerary) · [`#departure-readiness`](https://wave-barrier-free-gyeongnam.vercel.app/planner#departure-readiness) | 날짜·시각·순서 편집, 이동·체류시간 계산, 날씨·집중률·교통·장소 상태, `.ics` 저장 |
 | 지도와 교통 | [`/planner#navigation`](https://wave-barrier-free-gyeongnam.vercel.app/planner#navigation) | Kakao Maps 또는 Leaflet 대체 지도, 자동차·철도·버스·환승 정보; 제공기관 키와 응답 상태에 따라 범위가 달라짐 |
 | 여행 상황 비교 | [`/planner#layers`](https://wave-barrier-free-gyeongnam.vercel.app/planner#layers) | 여행일 날씨와 관광 집중률 예측, 일정 영향, 다른 주제·장소 후보 |
