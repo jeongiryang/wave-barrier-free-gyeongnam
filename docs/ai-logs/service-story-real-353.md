@@ -132,3 +132,23 @@ exact `bf29f21b4abfb0376320631f96877276659536a3`의 [CI866](https://github.com/j
 최종 관련 E2E는 **6 PASS/3.9s**, 실패·skip0이다(새320/390×두 프로젝트4건 + 기존1363×두 프로젝트2건). 관련 unit4 PASS, 변경 spec lint와 diff check PASS다. 실제320/390 모바일 캡처에서 초점 표시·헤더 조작 간격·겹침 없음을 확인했다. 새 검사는 모든 미설정 API를 전송 전에 차단하며 제공처 성공 증거가 아니다. CSS 증가는8바이트이고 성능 예산 자체는 변경하지 않았다. 최종 결합 빌드에서 총 gzip 예산을 다시 확인해야 한다.
 
 증거: `story353-mobile-home-hitarea-ff93989-20260909/{initial-red,fixed-related,final-related}/`, `implementation-receipt.json`, `final.diff`. 새 skip·timeout/retry/worker·기존 assertion 완화·별도 서버 실행은 없다. 보안 [PR380](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/380)은 최종 `46deae46b538d62e26b09b8bbd15cafa4f7b1c7c`로 [CI871](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34289021139)의 quality/boundary 성공·전체 browser 대기 상태다. 독립 QA와 병합 이후 최신 main을 이 디자인 후보에 안전하게 포함한 뒤 최종 검증한다. #353 전체 완료·Production 반영·제출자료 완성을 아직 선언하지 않는다.
+
+## 2026-09-09 08:56 KST — 보안 패치를 포함한 최종 디자인 후보
+
+보안 #380은 exact source46deae4의 CI871 5개 job 성공, unit707·browser837 PASS/기존skip1, 독립 COMMENTED [QA5148126441](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/380#pullrequestreview-5148126441), exact Preview와 실제 ruleset을 확인한 뒤 병합됐다. 새 main은 `8c2ca9a53a3923ee43c5895ff1788882ff100f06`이다. 최종 조회 중 일시적인 GitHub 파일 목록 HTTP500은 병합 전에 중단됐고, 한 번의 이후 정상 조회로 같은 HEAD와 gate를 다시 확인했다. 원본 CI870 실패와 모든 증거는 보존한다. 새 main CI872/CD/Production 검증은 별도로 진행 중이며 아직 새 운영 배포 성공을 뜻하지 않는다.
+
+기존 #353의 ff93989·fb215d2를 보존한 채 최신 main을 충돌 없이 merge한 로컬 checkpoint는 `d16a365512ef09a9279a6b11a6a39af2aa85751f`다. 소유한4173 서버만 원래 세션에서 종료하고 새 lockfile로 `npm ci`를 완료했다. 사용자dirty10·50worktrees·queue294·기존 원본과 다른 서버는 변경하지 않았다.
+
+새 결합본 로컬 검증:
+
+- `npm test`: **707 PASS**, 실패·skip·cancel0, 6.564s. lint 오류0·기존 경고5, typecheck PASS.
+- `npm audit --omit=dev --json`, `npm audit --json`: 각각 취약점0. Next/eslint16.3.4·sharp0.35.4·js-yaml4.3.2의 검토한 lock을 사용한다.
+- `npm run build:vercel`, `npm run check:performance`: PASS. gzip CSS69.87/70, landing121.36/155, planner269.81/270, largest95.92/110KiB. 예산 증가는 없다.
+- `npm run test:e2e -- e2e/landing-first-arrival.spec.ts e2e/compact-landing-visuals.spec.ts e2e/service-story.spec.ts e2e/landing-regions.spec.ts e2e/landing-theme-contrast.spec.ts e2e/planner-product-flow.spec.ts e2e/accessibility-final.spec.ts`: 두 프로젝트 **75 PASS·기존skip1**, 실패0, 57.4s, 추가 재실행 없음. 정상 첫 방문/과거 저장값, wave→접근성 형상→wordmark, 런타임 reduced 전환·초점, 같은 날짜/장소/지도 상태, 이미지 실패 격리, native 상세보기와320/390 홈44px를 유지한다.
+- 전체 검사 목록은 **850건/80파일**이다. 목록 조회는 전체850건 실행 성공이 아니다. 최종 exact HEAD hosted Full CI에서 별도로 확인한다.
+
+위 검증의 현재 화면과 기존17장 native viewport 검수를 함께 재검토했다. 요소 전체 캡처의 고정 헤더 합성 위치는 실제 viewport 겹침 증거로 사용하지 않는다. 독립 소스 검토는 27개 전체 diff와6원본 이미지 해시를 대조해 새 제품 blocker를 찾지 못했지만 최종 Preview/QA PASS를 대신하지 않는다.
+
+문서의 오래된 ‘로컬 미커밋’을 커밋된 미배포 상태로 정정했다. 또한 일정 편집도 경로 자동 조회를 일으키므로 시연에서 버튼만 피하면 제공처 호출0이라는 잘못된 전제를 고쳤다. 제한 중에는 경로 전송을 차단한 검증 환경 또는 보존한 실제 화면을 사용하며, eab의 route/ODsay0은 그 guard의 결과다. 기존 eab 촬영 시각·74개 관찰·공식13장 선택 구성/18of26·8개 미완료 슬롯은 새 SHA의 성공으로 바꾸지 않는다.
+
+근거: `D:/wave-db-binding-preflight-20260908/story353-candidate-d16a365-20260909/`. 최종 candidate Full CI·exact Preview·비기여자 독립 QA·main CI/CD·canonical Production 및 최종 캡처는 아직 남았다. #373/automation/sandbox 확장이나 전체 로컬 E2E 반복은 수행하지 않는다.

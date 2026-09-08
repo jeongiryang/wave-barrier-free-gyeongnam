@@ -23,7 +23,7 @@
 [시연](docs/demo-script.md) · [이미지·지도 출처](docs/assets-and-licenses.md) ·
 [진행 중 검증](docs/launch-audit-2026-09-05.md)
 
-> #378을 포함한 Production `eab2442f90b72441fd311db13dd8bb935723527f`에서 실제 날짜별 지도·날씨 상세 초점·장소 ID/날짜/순서의 기기 저장·복원을 확인했습니다([독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788)). 같은 세션의 날짜·지도 화면을 연결하는 새 소개와 보조 도구 접기는 현재 로컬 미커밋 변경이며 아직 배포되지 않았습니다. #353의 후보 검증·최종 제출 캡처는 [현재 실행 기록](docs/launch-readiness-status.md)을 따릅니다.
+> #378을 포함한 Production `eab2442f90b72441fd311db13dd8bb935723527f`에서 실제 날짜별 지도·날씨 상세 초점·장소 ID/날짜/순서의 기기 저장·복원을 확인했습니다([독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788)). 같은 세션의 날짜·지도 화면을 연결하는 새 소개와 보조 도구 접기는 현재 커밋된 미배포 변경이며 아직 배포되지 않았습니다. #353의 후보 검증·최종 제출 캡처는 [현재 실행 기록](docs/launch-readiness-status.md)을 따릅니다.
 > 참가 부문은 **① 웹·앱 개발 부문**, 팀명은 **WAVE**, 접수 서비스명은 **사회적 약자 관광 편의 제공앱**입니다. 서비스 브랜드는 **W.A.V.E**, 유형은 **Web**, 특화 지역은 **경상남도**이며 1차 심사자료 마감은 **2026-09-21 16:00 KST**입니다. [공식 근거와 사람 확인 항목](docs/contest-compliance.md), [제출 원고](docs/submission/development-entry-draft.md)를 확인하세요. 기존 34e6021 검토 PDF는 역사적 초안이며 최종 제출본이 아닙니다.
 
 ## 핵심 사용자 여정

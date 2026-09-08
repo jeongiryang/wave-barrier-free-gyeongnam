@@ -7,7 +7,7 @@
 작업 기준 Production은 `eab2442f90b72441fd311db13dd8bb935723527f`, 배포 `dpl_GVGVzh2TahHEDKDJHUp6vCN9FaGJ`다. 실제 배포 대조 근거: 2026-09-09 06:45:02.580 및 07:01:03.532 KST 독립 canonical 조회에서 같은 SHA/배포의 READY·production을 전후 확인했다([독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788)).
 #375의 첫 소개 개선은 기존 Production `9caca69fd5db24ed0bc741ad68ffef0d00ffe3ee`에 배포됐다. #377은 main `81b88e4f6bf69c4811d458fbe2639a87e885a84b`에 병합됐고, #378 후보 `9f83fb920343cec31abfa3de04cc6414e43e3728`을 포함한 위 새 배포와 구분해 이력을 보존한다.
 새 Production의 실제 확인 범위와 미완료 항목: [독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788): 2026-09-09 06:46–07:01 KST 공개 여정의 제한된 PASS. 74개 관찰에서 처리되지 않은 페이지 오류0건, 실제 Kakao 날짜별 표지·날씨 상세 초점·기기 저장의 장소 ID/날짜/순서 복원을 확인했다. route/ODSay 전송0건이며 전체 제공처·모든 설정 복원·#353 완료를 뜻하지 않는다. 복원 때 좌표를 제거하는 정책을 유지하여 위치는 미확인으로 남고 도착 추정은 달라졌다. 좌표 재조회·제공처 재시도는 하지 않았다.
-같은 공개 세션의 날짜 변경 전/변경 후 9월 9일/9월 10일을 일정과 지도에 함께 표시하는 새 소개는 현재 로컬 미커밋 구현이다. 새 화면 6개를 등록한 사실은 그 소개 UI의 Production 배포·검증이나 최종 제출본 완성을 뜻하지 않는다.
+같은 공개 세션의 날짜 변경 전/변경 후 9월 9일/9월 10일을 일정과 지도에 함께 표시하는 새 소개는 현재 커밋된 미배포 구현이다. 새 화면 6개를 등록한 사실은 그 소개 UI의 Production 배포·검증이나 최종 제출본 완성을 뜻하지 않는다.
 1차 심사자료 제출 마감은 **2026-09-21 16:00 KST**다.
 
 [기존 9쪽 검토 PDF](wave-development-entry-review-draft.pdf)는 Production `34e6021`의
