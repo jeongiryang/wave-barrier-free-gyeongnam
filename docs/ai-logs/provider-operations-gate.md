@@ -64,6 +64,19 @@ Existing external-bootstrap and CI-bootstrap tamper probes pass without queue or
 model execution. No new sandbox scenario, kernel setting or isolation mechanism
 was added. Existing installed runtimes are preserved and remain unactivated.
 
+#369 was subsequently squash-merged as `5e7ec6b5a969dec4928b55c3b169ab6767c0f089`
+after CI850 and independent QA5140782398 PASS. Its Git tree exactly equals reviewed
+source `f9e6b59`. Integrating this main into the follow-up caused eight add/content
+conflicts because squash removed the source ancestry; inspected committed follow-up
+versions were kept only after whole-tree equality and ancestor checks. The merge
+result equals the pre-merge follow-up tree; no product change was dropped.
+
+The local browser run started at `b4f87c9` overlapped that integration and saw
+temporary conflict files. Its owned execution was stopped at385/796, logs and
+reports copied to the external interrupted-run checkpoint, and it is **not PASS**.
+The final stable HEAD must run the full suite afresh. The frozen CI boundary failure
+is separately preserved as CI851 evidence; no tests or gates were bypassed.
+
 Original10 dirty user files,49worktrees and historical traces/reports are preserved.
 The follow-up was checkpointed outside the repository before the #369 correction.
 #365 minimum is not operationally complete until same-HEAD CI/QA/Production verify
