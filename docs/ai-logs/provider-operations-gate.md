@@ -83,3 +83,39 @@ The follow-up was checkpointed outside the repository before the #369 correction
 these contracts. Then #368 measured Fast PR/Full Release work precedes the actual
 trusted-only canary; #353 follows. Account-wide distributed protection and opaque
 SDK diagnostics are not falsely counted as implemented.
+
+## Exact Preview correction after CI853
+
+`f243fc9` completed CI853:690 unit, desktop398 PASS, mobile397 PASS plus one
+existing skip;0failed/flaky. Stable local full suite795 PASS plus one existing
+skip in21.1min. These reports are preserved, not final evidence for later changes.
+Its exact READY Preview (`dpl_77y7kexoSpcVXiAttzyTHxYnLcHu`) was exercised with
+real Changwon recommendations, Daesan Flower Land itinerary/map1:1, Kakao30min,
+and the actual public-transport restriction. KO/EN320/1366, keyboard focus,
+dark/reduced motion and no inspected console error/overflow were verified.
+
+That actual Preview found another P1: the main route summary displayed the quota
+reason in Korean, but English translation discarded `failure` and used generic
+upstream-error text. The new direct unit reproduction failed, and the summary
+now uses the same structured failure messages as transport details, even if the
+provider has no legacy detail string. Existing validation/empty translations are
+preserved byte-for-byte in `transit-detail.ts`. The test import follows that move;
+all original assertions remain, with an additional eight-kind KO/EN contract.
+
+The first correction exceeded the unchanged planner budget at270.69KiB. A barrel
+re-export kept the deferred translation eager and measured271.13KiB. Direct
+module imports and a status-only lazy component now measure269.74/270KiB;
+CSS69.96/70. There is no change to route selection, request timing or focus.
+Its loading/error notice keeps itinerary and detailed transport controls usable.
+Browser regression covers the main quota notice and a failed notice module.
+
+Correction validation:691 unit/contract PASS;lint0errors2existingwarnings;
+typecheck/build/performance PASS;focused provider/route language browser38 PASS,
+0failed/flaky/skip. No original test/assertion/locator/timeout/worker/retry/budget
+was removed or relaxed. New final-HEAD CI, full browser and Preview/independent QA
+are still required. Finding receipt: PR370 issuecomment5584257737.
+
+#369 main5e7ec6b separately completed mainCI852 andCD215. Actual Production
+deployment `dpl_F6RF2oHLaNHpoBhhzCA8Q72EyPY3` matched5e at11:19:11Z. Its old
+Post-Deploy6 route contract still failed; #370's durable hold/no-loop is not yet
+deployed and that failure is not relabelled as provider success.

@@ -1,14 +1,20 @@
+import { lazy, Suspense } from "react";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import { routeModeLabel } from "../utils";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { originalLanguage } from "../place-copy";
-import { routeTitle, transitDetail } from "../route-copy";
+import { routeTitle } from "../route-copy";
 import { hasJourneyEstimate } from "../../../lib/route-estimates.js";
 
 const englishModes = {
   walk: ["Walking", "Travel on foot"], bicycle: ["Cycling", "Travel by bicycle"],
   transit: ["Public transport", "Metro · rail · bus"], car: ["Car", "Driving routes"],
 };
+
+function UnavailableTransitNotice({ english }: { english: boolean }) {
+  return <p className="route-notice" role="status">{english ? "The transport notice could not be displayed. Check transport details or an external map." : "이동 정보 안내를 표시하지 못했습니다. 교통정보 상세 또는 외부 지도에서 확인해 주세요."}</p>;
+}
+const TransitProviderNotice = lazy(() => import("./TransitProviderNotice").catch(() => ({ default: UnavailableTransitNotice })));
 
 /** 경로 이름이 이미 말하는 것을 다시 적지 않는다. 덧붙일 게 없으면 비운다. */
 function modeNote(route: Parameters<typeof routeModeLabel>[0], english: boolean) {
@@ -75,7 +81,7 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
     <p className="route-mode-order-note">{english ? "Modes with available estimated times appear first, fastest to slowest. Check missing times in Kakao Maps." : "확인된 예상 시간이 있는 이동수단부터 빠른 순서로 정렬합니다. 시간이 없으면 카카오맵에서 이어서 확인합니다."}</p>
     <p className="route-notice" aria-live="polite"><span className={activeRoute?.configured ? "live-dot" : "ready-dot"} />{routeNotice[locale]}{routeNotice.subject && <> <span lang={originalLanguage(routeNotice.subject)}>{routeNotice.subject}</span></>}</p>
     {english && hasOriginalNames && <p className="route-mode-order-note">Route and stop names may be shown in their original language.</p>}
-    {transitStatus?.detail && transitStatus.state !== "connected" && <p className="route-notice" lang={locale} role="status">{transitDetail(transitStatus.detail, english)}</p>}
+    {transitStatus && (transitStatus.failure || transitStatus.detail) && transitStatus.state !== "connected" && <Suspense fallback={<p className="route-notice" role="status">{english ? "Preparing transport information." : "교통정보를 정리하고 있습니다."}</p>}><TransitProviderNotice provider={transitStatus} english={english} /></Suspense>}
     <div className="route-options" aria-busy={routeLoading}>
       {routeLoading && [0, 1, 2].map((item) => <div className="route-option-skeleton" key={`route-skeleton-${item}`} aria-hidden="true"><i /><div><b /><span /></div><em /></div>)}
       {!routeLoading && !routeDestination && <div className="route-empty"><span>↗</span><h3>{english ? "Choose a place to check routes." : "경로를 계산할 여행지를 선택하세요."}</h3><p>{english ? "Add a place to your itinerary, then check each journey leg. Times and routes appear only when available." : "장소를 일정에 추가한 뒤 이동 구간을 조회하세요. 확인된 이동수단만 시간과 경로를 표시합니다."}</p></div>}

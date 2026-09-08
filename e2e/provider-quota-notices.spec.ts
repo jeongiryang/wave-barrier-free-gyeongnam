@@ -9,6 +9,25 @@ async function prepare(page: Page, en: boolean) {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({width:320,height:844});
 }
+
+test("a failed transport notice module preserves the itinerary and detailed restriction", async ({page}) => {
+  await prepare(page,true);
+  let modules=0;
+  await page.route("**/TransitProviderNotice.tsx*",route=>{modules++;return route.abort();});
+  await page.route("**/api/route**",route=>route.fulfill({json:{configured:true,alternatives:[],
+    providers:[{id:"odsay",name:"ODsay",role:"Public transport",configured:true,state:"error",failure:{...failure,provider:"odsay",operation:"searchPubTransPathT"}}],
+    context:{nearbyStops:[],arrivals:[],korail:[],catalog:{trainCities:0,expressTerminals:0,intercityTerminals:0},datasets:[]},
+  }}));
+  await search(page,true);
+  expect(modules).toBe(0);
+  await page.getByRole("button",{name:"경남도립미술관 Add to itinerary",exact:true}).click();
+  await expect(page.locator('.route-compare-panel [role="status"]')).toHaveText("The transport notice could not be displayed. Check transport details or an external map.");
+  await expect(page.getByRole("button",{name:"경남도립미술관 Remove from itinerary",exact:true})).toHaveAttribute("aria-pressed","true");
+  await page.locator(".transport-details > summary").click();
+  await expect(page.locator(".transport-provider-strip")).toContainText("usage allowance has been reached");
+  expect(modules).toBe(1);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
+});
 async function search(page: Page, en: boolean) {
   await page.goto("/planner");
   if (!en) return chooseTripConditions(page);
@@ -59,6 +78,7 @@ for (const en of [false,true]) {
     }}));
     await search(page,en);
     await page.getByRole("button",{name:en?"경남도립미술관 Add to itinerary":"경남도립미술관 일정에 추가",exact:true}).click();
+    await expect(page.locator('.route-compare-panel [role="status"]')).toContainText(en?"usage allowance has been reached":"제공처의 이용 한도");
     await page.locator(".transport-details > summary").click();
     await expect(page.locator(".transport-provider-strip")).toContainText(en?"usage allowance has been reached":"제공처의 이용 한도");
     await page.locator(".transport-dataset-grid").getByRole("button",{name:en?/KORAIL timetables/:/KORAIL 운행계획/}).click();
