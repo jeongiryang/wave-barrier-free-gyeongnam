@@ -42,7 +42,7 @@ export async function fetchPublicTransportSnapshot(env: Env, endLat: number, end
           returnType: "JSON", numOfRows: "10", "cond[run_ymd::GTE]": runYmd, "cond[run_ymd::LTE]": runYmd,
         })) : null,
         tagoKey ? attempt(fetchPublicTransport(env, "tago", "https://apis.data.go.kr/1613000/BusSttnInfoInqireService", "getCrdntPrxmtSttnList", { gpsLati: String(endLat), gpsLong: String(endLng), numOfRows: "8" })) : null,
-        tagoKey ? attempt(fetchPublicTransport(env, "tago", "https://apis.data.go.kr/1613000/TrainInfo", "GetCtyCodeList", { numOfRows: "100" })) : null,
+        tagoKey ? attempt(fetchPublicTransport(env, "tago", "https://apis.data.go.kr/1613000/TrainInfo", "GetCtyCodeList")) : null,
         tagoKey ? attempt(fetchPublicTransport(env, "tago", "https://apis.data.go.kr/1613000/ExpBusInfo", "GetExpBusTrminlList", { numOfRows: "100" })) : null,
         tagoKey ? attempt(fetchPublicTransport(env, "tago", "https://apis.data.go.kr/1613000/SuburbsBusInfo", "GetSuberbsBusTrminlList", { numOfRows: "100" })) : null,
       ]);

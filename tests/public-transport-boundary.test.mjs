@@ -100,6 +100,63 @@ test("정류장 실패로 조회하지 못한 도착정보를 준비됨으로 �
 
 const publicResponse = (body, resultCode = "00") => ({ response: { header: { resultCode }, body } });
 
+// TrainInfo/GetCtyCodeList is an unpaginated catalog in the official TAGO schema:
+// https://www.data.go.kr/data/15098552/openapi.do (GetCtyCodeList_response).
+const trainCityUrl = "https://apis.data.go.kr/1613000/TrainInfo";
+const trainCities = [{ citycode: 11, cityname: "서울특별시" }, { citycode: "26", cityname: "부산광역시" }];
+
+test("TAGO 철도 도시 목록은 공식 비페이지형 응답을 검증하고 실제 항목 수를 표시한다", async () => {
+  const calls = [];
+  const load = loadServer(async (input) => {
+    const url = new URL(input);
+    calls.push(url);
+    return Response.json(publicResponse(url.pathname.endsWith("/GetCtyCodeList")
+      ? { items: { item: trainCities } } : { totalCount: 0, items: [] }));
+  });
+  const env = { TAGO_API_KEY: "fixture-only" };
+  const snapshot = await load("server/transport/public-provider-queries.ts").fetchPublicTransportSnapshot(env, 35.2, 128.6);
+  assert.deepEqual(snapshot.trainCatalog, { ok: true, value: { items: trainCities, total: 2 } });
+  const { providers } = load("server/transport/public-context-model.ts").buildPublicTransportContext(env, snapshot);
+  const rail = providers.find((item) => item.id === "tago-rail-catalog");
+  assert.equal(rail.state, "connected");
+  assert.equal(rail.queryStatus, "success");
+  assert.equal(rail.resultCount, 2);
+  assert.equal(verifiedPublicTransport(rail), true);
+  const query = calls.find((url) => url.pathname.endsWith("/GetCtyCodeList")).searchParams;
+  assert.deepEqual([...query.keys()].sort(), ["_type", "serviceKey"]);
+});
+
+test("철도 도시 목록의 단일 항목과 명시적 빈 목록은 구분한다", async () => {
+  for (const [items, expected] of [[{ item: trainCities[0] }, [trainCities[0]]], [{ item: [] }, []], ["", []]]) {
+    const { fetchPublicTransportData } = loadServer(async () => Response.json(publicResponse({ items })))("server/shared/public-transport-provider.ts");
+    assert.deepEqual(await fetchPublicTransportData({ TAGO_API_KEY: "fixture-only" }, "tago", trainCityUrl, "GetCtyCodeList"), { total: expected.length, items: expected });
+  }
+});
+
+test("도시 목록 계약은 오류·누락·잘못된 도시·중복·불일치 개수를 성공으로 바꾸지 않는다", async () => {
+  const invalid = [
+    {}, publicResponse({}), publicResponse({ items: {} }),
+    publicResponse({ items: { item: trainCities } }, "30"),
+    publicResponse({ totalCount: 3, items: { item: trainCities } }),
+    publicResponse({ totalCount: null, items: { item: trainCities } }),
+    ...[{}, null, { nodeid: "STOP" }, { citycode: 11 }, { citycode: "bad", cityname: "서울" },
+      { citycode: true, cityname: "서울" }, { citycode: 11, cityname: " " }, { citycode: 11, cityname: {} }]
+      .map((item) => publicResponse({ items: { item: [item] } })),
+    publicResponse({ items: { item: [trainCities[0], { citycode: "11", cityname: "서울" }] } }),
+  ];
+  for (const response of invalid) {
+    const { fetchPublicTransportData } = loadServer(async () => Response.json(response))("server/shared/public-transport-provider.ts");
+    await assert.rejects(fetchPublicTransportData({ TAGO_API_KEY: "fixture-only" }, "tago", trainCityUrl, "GetCtyCodeList"));
+  }
+});
+
+test("도시 목록 예외는 다른 제공처·경로·operation의 totalCount 검증을 완화하지 않는다", async () => {
+  for (const [provider, url, operation] of [["korail", trainCityUrl, "GetCtyCodeList"], ["tago", "https://provider.invalid", "GetCtyCodeList"], ["tago", trainCityUrl, "other"]]) {
+    const { fetchPublicTransportData } = loadServer(async () => Response.json(publicResponse({ items: { item: trainCities } })))("server/shared/public-transport-provider.ts");
+    await assert.rejects(fetchPublicTransportData({ TAGO_API_KEY: "fixture-only", KORAIL_API_KEY: "fixture-only" }, provider, url, operation));
+  }
+});
+
 test("정류장 식별자가 없으면 도착 조회를 실행하지 않고 의존 실패를 전파한다", async () => {
   for (const stop of [{ nodenm: "정류장" }, { nodeid: "STOP" }, { citycode: "38030" }, { nodeid: " ", citycode: "38030" }]) {
     const calls = [];
