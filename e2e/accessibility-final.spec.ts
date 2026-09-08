@@ -52,8 +52,11 @@ test("skip-link는 스크롤뿐 아니라 본문 초점도 실제로 옮긴다",
   await mockPublicShellApi(page);
   await page.goto("/");
 
-  await page.keyboard.press("Tab");
   const skip = page.getByRole("link", { name: /소개 바로가기|跳至正文/ });
+  // load can precede React revealing the streamed page from hidden #S:0.
+  // Start keyboard interaction when the page exists in the visible document.
+  await expect(skip).toBeVisible();
+  await page.keyboard.press("Tab");
   await expect(skip).toBeFocused();
   await page.keyboard.press("Enter");
   await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("story");

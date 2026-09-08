@@ -1,7 +1,7 @@
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "./env";
 import { clean } from "./http";
-import { parseTransportResponse } from "./transport-response";
+import { parseTrainCityCatalogResponse, parseTransportResponse } from "./transport-response";
 import type {
   ProviderAttempt,
   ProviderResult,
@@ -23,7 +23,11 @@ export async function fetchPublicTransportData(
 ): Promise<ProviderResult> {
   const key = publicTransportKey(env, provider);
   if (!key) throw new Error("공공데이터포털 인증키가 등록되지 않았습니다.");
-  const query = new URLSearchParams({ numOfRows: "30", pageNo: "1", _type: "json", ...params }).toString();
+  const cityCatalog = provider === "tago"
+    && serviceUrl === "https://apis.data.go.kr/1613000/TrainInfo" && operation === "GetCtyCodeList";
+  const query = new URLSearchParams(cityCatalog
+    ? { _type: "json" }
+    : { numOfRows: "30", pageNo: "1", _type: "json", ...params }).toString();
   const response = await fetch(`${serviceUrl}/${operation}?serviceKey=${key}&${query}`, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
@@ -46,7 +50,7 @@ export async function fetchPublicTransportData(
     const message = raw.match(/<(?:returnAuthMsg|resultMsg)>([^<]+)</i)?.[1];
     throw new Error(clean(message || "교통 API가 JSON이 아닌 응답을 반환했습니다.", 120));
   }
-  return parseTransportResponse(data);
+  return cityCatalog ? parseTrainCityCatalogResponse(data) : parseTransportResponse(data);
 }
 
 export function koreaYmd(offsetDays = 0) {
