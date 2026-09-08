@@ -143,7 +143,7 @@ html[data-theme="dark"] .floating-card .photo-credit {
 .split-heading h2 { font-size: clamp(2.5rem, 4.4vw, 4.7rem); }
 .heading-side > p { margin: 0 0 22px; color: var(--muted); }
 .carousel-actions { display: flex; gap: 9px; }
-.carousel-actions button { width: 46px; height: 46px; border: 1px solid #cadde6; border-radius: 50%; background: #fff; font-size: 1.15rem; transition: transform .2s, color .2s, background .2s; }
+.carousel-actions button { width: 46px; height: 46px; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); background: var(--white); font-size: 1.15rem; transition: transform .2s, color .2s, background .2s; }
 .carousel-actions button:hover { transform: scale(1.07); color: var(--white); background: var(--ink); }
 .place-carousel { width: calc(100vw - max(24px, calc((100vw - 1240px) / 2))); display: flex; gap: 18px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 4px max(24px, calc((100vw - 1240px) / 2)) 28px 0; }
 .place-carousel::-webkit-scrollbar { display: none; }
