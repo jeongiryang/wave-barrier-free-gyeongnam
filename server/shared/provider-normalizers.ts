@@ -1,19 +1,31 @@
 import { clean } from "./http";
 import type { ProviderItem, ProviderResult } from "./provider-types";
 
+function record(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
 export function normalizeItems(data: unknown): ProviderResult {
-  const root = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
-  const response = (root.response && typeof root.response === "object" ? root.response : root) as Record<string, unknown>;
-  const header = (response.header && typeof response.header === "object" ? response.header : {}) as Record<string, unknown>;
-  const code = clean(header.resultCode);
-  if (code && !["0", "00", "0000"].includes(code)) {
-    throw new Error(clean(header.resultMsg || "한국관광공사 API 오류", 120));
+  if (!record(data)) throw new Error("관광정보 응답 형식을 확인하지 못했습니다.");
+  const response = Object.hasOwn(data, "response") ? data.response : data;
+  if (!record(response)) throw new Error("관광정보 응답 형식을 확인하지 못했습니다.");
+  const header = record(response.header) ? response.header : null;
+  // KTO parameter failures can be HTTP 200 with a flat resultCode/resultMsg.
+  // Never classify this missing body as an official zero-result response or
+  // expose arbitrary provider error text (which may contain request details).
+  const code = String(header?.resultCode ?? response.resultCode ?? "");
+  if (!["0", "00", "0000"].includes(code)) throw new Error("관광정보 제공기관의 응답을 확인하지 못했습니다.");
+  if (!header || !record(response.body)) throw new Error("관광정보 응답 형식을 확인하지 못했습니다.");
+  const body = response.body;
+  const node = body.items;
+  const item = record(node) ? node.item : undefined;
+  const items = Array.isArray(item) ? item : record(item) ? [item] : [];
+  const total = body.totalCount === undefined ? items.length : Number(body.totalCount);
+  const emptyNode = node === "" || (Array.isArray(node) && node.length === 0) || (record(node) && Object.keys(node).length === 0);
+  if ((!emptyNode && !Array.isArray(item) && !record(item)) || items.some(value => !record(value)) || !Number.isSafeInteger(total) || total < items.length || (total > 0 && items.length === 0)) {
+    throw new Error("관광정보 목록 형식을 확인하지 못했습니다.");
   }
-  const body = (response.body && typeof response.body === "object" ? response.body : {}) as Record<string, unknown>;
-  const itemsNode = body.items && typeof body.items === "object" ? body.items as Record<string, unknown> : {};
-  const item = itemsNode.item;
-  const items = Array.isArray(item) ? item : item && typeof item === "object" ? [item] : [];
-  return { items: items as ProviderItem[], total: Number(body.totalCount || items.length || 0) };
+  return { items: items as ProviderItem[], total };
 }
 
 function decodeXml(value: string) {

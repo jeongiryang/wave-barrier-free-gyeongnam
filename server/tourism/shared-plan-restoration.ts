@@ -33,12 +33,6 @@ export async function restoreSharedPlan(
       attempt(fetchKto(env, "KorService2", "detailCommon2", {
         ...commonParams("1"),
         contentId,
-        defaultYN: "Y",
-        firstImageYN: "Y",
-        areacodeYN: "Y",
-        addrinfoYN: "Y",
-        mapinfoYN: "Y",
-        overviewYN: "Y",
       })),
       attempt(fetchKto(env, "KorWithService2", "detailWithTour2", {
         ...commonParams("1"),
