@@ -19,6 +19,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   const mapRef = useRef<LeafletMap | null>(null);
   const kakaoMapRef = useRef<KakaoMap | null>(null);
   const drawingManagerRef = useRef<KakaoDrawingManager | null>(null);
+  const fitMapRef = useRef<(() => void) | null>(null);
   const pickModeRef = useRef<MapPickMode>(null);
   const onOriginChangeRef = useRef(onOriginChange);
   const onDestinationChangeRef = useRef(onDestinationChange);
@@ -108,6 +109,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     origin, places, route, onOriginChange, onSavePlaces, kakaoMapRef, setPickMode, setProviderDetail, isMapAvailable,
   });
   const { shellRef, expanded, toggleExpanded } = useMapShell({
+    fitMapRef,
     kakaoMapRef,
     mapRef,
     pickModeRef,
@@ -131,6 +133,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
       setRoadviewPreviewOpen(false);
       closeRoadview();
       setToolPanel((current) => current === "export" ? current : null);
+      fitMapRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
       kakaoMapRef.current = null;
@@ -141,6 +144,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   }, [cancelNearby, clearCategoryMarkers, clearAppliedMapLayers, closeRoadview, rememberFailureFocus, restoreMapLayers, roadviewSelectModeRef, setRoadviewPreviewOpen, setRoadviewSelectMode, setToolPanel]);
 
   useMapRenderer({
+    fitMapRef,
     containerRef,
     mapRef,
     kakaoMapRef,

@@ -315,9 +315,9 @@ html[data-theme="dark"] .landing-hero-copy::before {
 .journey-day > strong { font-size: 5rem; line-height: 1; grid-row: span 2; font-weight: 500; }
 .journey-day p { margin: 0; color: var(--muted); }
 .journey-scene-stops { list-style: none; margin: 28px 0; padding: 0; display: grid; gap: 26px; }
-.journey-scene-stops li { position: relative; display: grid; grid-template-columns: 88px 28px 1fr; align-items: center; gap: 16px; }
-.journey-scene-stops li + li::before { content: ""; height: 26px; position: absolute; left: 116px; bottom: 100%; border-left: 2px dashed var(--blue); }
-.journey-scene-stops img { width: 88px; height: 72px; object-fit: cover; border-radius: 8px; background: #06304a; }
+.journey-scene-stops li { display: grid; grid-template-columns: 28px minmax(0,1fr); align-items: center; gap: 16px; }
+.journey-scene-stops strong,.journey-scene-stops small { display: block; overflow-wrap: anywhere; }
+.journey-scene-stops small { margin-top: 4px; color: var(--muted); }
 .journey-scene-stops b { background: var(--blue); color: var(--on-blue); border-radius: 50%; min-height: 28px; display: grid; place-items: center; }
 .journey-scene-visual figcaption { font-size: .8rem; line-height: 1.65; color: var(--muted); }
 @media (max-width: 960px) {
@@ -333,7 +333,4 @@ html[data-theme="dark"] .landing-hero-copy::before {
   .landing-page .landing-hero-copy { padding: 24px 20px; }
   .landing-page .landing-journey-summary { padding: 20px; }
   .landing-journey-summary ol { grid-template-columns: 1fr; gap: 8px; }
-  .journey-scene-stops li { grid-template-columns: 64px 28px 1fr; gap: 12px; }
-  .journey-scene-stops img { width: 64px; height: 64px; }
-  .journey-scene-stops li + li::before { left: 88px; }
 }

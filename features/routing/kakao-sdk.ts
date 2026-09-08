@@ -1,7 +1,7 @@
 export type KakaoLatLng = { getLat(): number; getLng(): number };
 
 export type KakaoMap = {
-  setBounds(bounds: unknown): void;
+  setBounds(bounds: unknown, paddingTop?: number, paddingRight?: number, paddingBottom?: number, paddingLeft?: number): void;
   setCenter(position: unknown): void;
   getCenter(): KakaoLatLng;
   panTo(position: unknown): void;

@@ -1,12 +1,12 @@
 import { pickedDestination, type MapRendererContext } from "./map-renderer-context";
-import { escapeMapHtml, safeMapImageUrl } from "./map-utils";
+import { escapeMapHtml, mapFitPadding, safeMapImageUrl } from "./map-utils";
 
 export async function renderLeafletMap(
   context: MapRendererContext,
   isCancelled: () => boolean,
 ) {
   const {
-    containerRef, mapRef, kakaoMapRef, drawingManagerRef, origin, places, route,
+    containerRef, mapRef, kakaoMapRef, drawingManagerRef, fitMapRef, origin, places, route,
     crowdVisual, crowdPlace, pickModeRef, roadviewSelectModeRef,
     onOriginChangeRef, onDestinationChangeRef, choosePlace, clearCategoryMarkers,
     setProvider, setProviderDetail, setSelectedMapPlace, setPickMode,
@@ -112,7 +112,22 @@ export async function renderLeafletMap(
       lineCap: "round",
     },
   ).addTo(map);
-  if (bounds.length) map.fitBounds(bounds, { padding: [46, 46], maxZoom: 13 });
+  const fit = () => {
+    const canvas = containerRef.current;
+    if (isCancelled() || mapRef.current !== map || !canvas) return;
+    const [top, right, bottom, left] = mapFitPadding(canvas);
+    if (canvas.clientWidth <= left + right || canvas.clientHeight <= top + bottom) return;
+    // Automatic fitting must finish before a date/crowd update replaces this
+    // map. Leaflet's zoom-transition timer can otherwise outlive remove().
+    // Keep animation available for the user's own zoom and pan controls.
+    map.fitBounds(bounds, { paddingTopLeft: [left, top], paddingBottomRight: [right, bottom], maxZoom: 13, animate: false });
+  };
+  fitMapRef.current = fit;
+  if (bounds.length) fit();
   else map.setView([35.238, 128.692], 9);
+  // Leaflet queues marker layers until its first view. Measure again once
+  // those DOM pins exist, also when a new day has the same shell dimensions.
+  // This is synchronous for an initialized map and does not wait on a timer.
+  map.whenReady(fit);
   setProvider("osm");
 }

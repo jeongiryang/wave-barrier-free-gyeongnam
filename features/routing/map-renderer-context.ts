@@ -11,6 +11,7 @@ export interface MapRendererContext {
   mapRef: MutableRef<LeafletMap | null>;
   kakaoMapRef: MutableRef<KakaoMap | null>;
   drawingManagerRef: MutableRef<KakaoDrawingManager | null>;
+  fitMapRef: MutableRef<(() => void) | null>;
   origin: RoutePoint;
   places: MapPlace[];
   route: RouteAlternative | null;

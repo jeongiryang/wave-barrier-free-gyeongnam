@@ -23,6 +23,7 @@ function renderer({ fetch = async () => Response.json({ javascriptKey: "" }), ka
   const options = {
     origin: { lat: 35.2, lng: 128.6 }, places: [], route: null, retryNonce: 0,
     containerRef: { current: null }, mapRef: { current: null }, kakaoMapRef: { current: null }, drawingManagerRef: { current: null },
+    fitMapRef: { current: null },
     clearCategoryMarkers: noop, choosePlace: noop, setMeasureSummary: noop, setPickMode: noop, setRoadviewSelectMode: noop, setSelectedMapPlace: noop,
     setProvider: (state) => states.push(state), setProviderDetail: (notice) => notices.push(notice),
   };
