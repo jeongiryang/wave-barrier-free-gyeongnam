@@ -396,7 +396,8 @@ test("wave motion preference is persisted, localized and respects reduced motion
   assert.match(storage, /localStorage\.getItem\("wave-motion"\)/);
   assert.match(storage, /localStorage\.setItem\("wave-motion", preferences\.motion\)/);
   assert.match(controls, /aria-pressed=\{motion === "calm"\}/);
-  assert.match(controls, /<details className="preference-controls" inert=\{!replayReady\} aria-busy=\{!replayReady\} suppressHydrationWarning>/);
+  // Keep the hydration guards and require the newly added focus-leave handler.
+  assert.match(controls, /<details className="preference-controls" inert=\{!replayReady\} aria-busy=\{!replayReady\} suppressHydrationWarning\s+onBlur=/);
   assert.match(catalog, /export const motionCopy: Record<Locale/);
   assert.match(engine, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(layout, /prefers-reduced-motion: reduce/);
@@ -414,8 +415,10 @@ test("non-Korean locales are visibly marked as partial without breaking narrow h
   assert.match(catalog, /id: "ko"[^\n]+beta: false/);
   assert.equal((catalog.match(/beta: true/g) || []).length, 1);
   assert.match(controls, /item\.beta \? en \? " · partial" : " · 부분 지원"/);
-  assert.match(controls, /selectedLocale\.beta \? en \? "Some pages are in Korean" : "핵심 화면 부분 번역"/);
-  assert.match(controls, /관광지 원문과 일부 기능은 한국어로 표시될 수 있습니다/);
+  // With KO/EN only, these are the actual rendered support notices. Do not
+  // require the unreachable KO-partial/EN-full branches of the old lookup.
+  assert.match(controls, /en \? "Some pages are in Korean" : "한국어 전체 지원"/);
+  assert.match(controls, /en \? "Original place information and some features may appear in Korean\. " : ""/);
   assert.match(css, /\.preference-controls > summary \{[\s\S]*min-height: 44px/);
   assert.match(css, /@media \(max-width: 680px\)[\s\S]*\.preference-panel \{ position: fixed/);
 });
