@@ -1,0 +1,77 @@
+{
+  "productionSha": "9caca69fd5db24ed0bc741ad68ffef0d00ffe3ee",
+  "capturedIn": "Korean",
+  "canonical": "https://wave-barrier-free-gyeongnam.vercel.app/",
+  "records": [
+    {
+      "file": "conditions.webp",
+      "bytes": 26930,
+      "sha256": "2fffaa4fafdad6eaf3b51eb6c8e456931767ddacb9957c39d21f3651c6c6ab77",
+      "width": 923,
+      "height": 314,
+      "recording": "journey",
+      "capturedAt": "2026-09-09T02:25:52.371000+09:00",
+      "source": "source/journey/10-one-access-profile.png"
+    },
+    {
+      "file": "places-two.webp",
+      "bytes": 227200,
+      "sha256": "e0e5caabb2bb03339a4364d4490464e2af3c78ba8467bb290bc08459aceb05d5",
+      "width": 833,
+      "height": 546,
+      "recording": "journey",
+      "capturedAt": "2026-09-09T02:27:05.179000+09:00",
+      "source": "source/journey/18-actual-recommendations.png"
+    },
+    {
+      "file": "facility-record-source.webp",
+      "bytes": 24246,
+      "sha256": "923e43cffdb40321e885208836c3f6882a700523aee54a0dd6e6a3c5c5b1d607",
+      "width": 529,
+      "height": 709,
+      "recording": "journey",
+      "capturedAt": "2026-09-09T02:27:51.511000+09:00",
+      "source": "source/journey/23-official-source-and-time.png"
+    },
+    {
+      "file": "date-before.webp",
+      "bytes": 17826,
+      "sha256": "6aa42b2c0d244ac24b16ebb332970946ed57a8b9896d3cd72ef4a6bca9d4ca97",
+      "width": 893,
+      "height": 706,
+      "recording": "journey",
+      "capturedAt": "2026-09-09T02:29:30.471000+09:00",
+      "source": "source/journey/29-manual-order-daesan-first.png"
+    },
+    {
+      "file": "date-after.webp",
+      "bytes": 17608,
+      "sha256": "d9e93b2c02395b5d102293e78b86485754c6541ae32fdfcae9ac21e6955558a0",
+      "width": 893,
+      "height": 403,
+      "recording": "journey",
+      "capturedAt": "2026-09-09T02:29:30.567000+09:00",
+      "source": "source/journey/30-daesan-moved-to-day-two.png"
+    },
+    {
+      "file": "map-two-desktop.webp",
+      "bytes": 217844,
+      "sha256": "c2555f23a134f8cba0b62343653efb0d71887ca749edff64f636342461a34a44",
+      "width": 949,
+      "height": 850,
+      "recording": "map",
+      "capturedAt": "2026-09-09T03:08:54.272000+09:00",
+      "source": "source/map/02-desktop-map-two-places.png"
+    },
+    {
+      "file": "map-matching-itinerary.webp",
+      "bytes": 17696,
+      "sha256": "c9641865b3ac49acfe441f431e08f557a569e51136c9a16902d8daf7f945a538",
+      "width": 893,
+      "height": 703,
+      "recording": "map",
+      "capturedAt": "2026-09-09T03:08:52.183000+09:00",
+      "source": "source/map/01-desktop-itinerary-two-places.png"
+    }
+  ]
+}

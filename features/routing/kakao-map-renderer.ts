@@ -1,6 +1,6 @@
 import { loadKakaoSdk } from "./kakao-sdk";
 import { pickedDestination, type MapRendererContext } from "./map-renderer-context";
-import { safeMapImageUrl, summarizeMeasurements } from "./map-utils";
+import { mapFitPadding, safeMapImageUrl, summarizeMeasurements } from "./map-utils";
 
 export async function renderKakaoMap(
   key: string,
@@ -8,7 +8,7 @@ export async function renderKakaoMap(
   isCancelled: () => boolean,
 ) {
   const {
-    containerRef, kakaoMapRef, drawingManagerRef, origin, places, route,
+    containerRef, kakaoMapRef, drawingManagerRef, fitMapRef, origin, places, route,
     crowdVisual, crowdPlace, pickModeRef, roadviewSelectModeRef,
     onOriginChangeRef, onDestinationChangeRef, openRoadviewAt, choosePlace,
     setProvider, setProviderDetail, setSelectedMapPlace, setPickMode,
@@ -125,7 +125,15 @@ export async function renderKakaoMap(
     strokeOpacity: .82,
     strokeStyle: route?.configured ? "solid" : "shortdash",
   });
-  if (places.length) map.setBounds(bounds);
+  const fit = () => {
+    const canvas = containerRef.current;
+    if (isCancelled() || kakaoMapRef.current !== map || !canvas) return;
+    const padding = mapFitPadding(canvas);
+    if (canvas.clientWidth <= padding[1] + padding[3] || canvas.clientHeight <= padding[0] + padding[2]) return;
+    map.setBounds(bounds, ...padding);
+  };
+  fitMapRef.current = places.length ? fit : null;
+  if (places.length) fit();
   else {
     map.setCenter(center);
     map.setLevel(9);

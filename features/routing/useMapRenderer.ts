@@ -29,6 +29,7 @@ export function useMapRenderer(options: UseMapRendererOptions) {
     mapRef,
     kakaoMapRef,
     drawingManagerRef,
+    fitMapRef,
     clearCategoryMarkers,
     choosePlace,
     onDestinationChangeRef,
@@ -51,6 +52,7 @@ export function useMapRenderer(options: UseMapRendererOptions) {
       mapRef,
       kakaoMapRef,
       drawingManagerRef,
+      fitMapRef,
       origin,
       places,
       route,
@@ -100,6 +102,7 @@ export function useMapRenderer(options: UseMapRendererOptions) {
     });
     return () => {
       cancelled = true;
+      fitMapRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
       kakaoMapRef.current = null;
@@ -117,6 +120,7 @@ export function useMapRenderer(options: UseMapRendererOptions) {
     choosePlace,
     containerRef,
     drawingManagerRef,
+    fitMapRef,
     kakaoMapRef,
     mapRef,
     onDestinationChangeRef,

@@ -4,8 +4,10 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import type { Map as LeafletMap } from "leaflet";
 import type { KakaoMap } from "./kakao-sdk";
 import type { MapPickMode } from "./types";
+import { mapFitPadding } from "./map-utils";
 
 type MapShellOptions = {
+  fitMapRef: RefObject<(() => void) | null>;
   kakaoMapRef: RefObject<KakaoMap | null>;
   mapRef: RefObject<LeafletMap | null>;
   pickModeRef: RefObject<MapPickMode>;
@@ -14,6 +16,7 @@ type MapShellOptions = {
 };
 
 export function useMapShell({
+  fitMapRef,
   kakaoMapRef,
   mapRef,
   pickModeRef,
@@ -21,6 +24,7 @@ export function useMapShell({
   layoutKey,
 }: MapShellOptions) {
   const shellRef = useRef<HTMLDivElement>(null);
+  const geometryRef = useRef("");
   const [expanded, setExpanded] = useState(false);
 
   const toggleExpanded = useCallback(async () => {
@@ -58,12 +62,30 @@ export function useMapShell({
   }, [pickModeRef, setPickMode]);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      kakaoMapRef.current?.relayout();
-      mapRef.current?.invalidateSize();
-    }, 260);
-    return () => window.clearTimeout(timeoutId);
-  }, [kakaoMapRef, layoutKey, mapRef]);
+    const shell = shellRef.current;
+    const canvas = shell?.querySelector<HTMLElement>(".route-map-canvas");
+    let timeoutId: number;
+    const schedule = () => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        kakaoMapRef.current?.relayout();
+        mapRef.current?.invalidateSize();
+        if (!canvas?.clientWidth || !canvas.clientHeight) return;
+        const geometry = [canvas.clientWidth, canvas.clientHeight, ...mapFitPadding(canvas)].join(":");
+        // No coordinate/current-bounds comparison: user pan and page scroll
+        // must not refit the map. Only the actual available geometry changes.
+        if (geometry !== geometryRef.current) {
+          geometryRef.current = geometry;
+          fitMapRef.current?.();
+        }
+      }, 260);
+    };
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(schedule);
+    if (canvas) observer?.observe(canvas);
+    shell?.querySelectorAll<HTMLElement>(".map-command-bar, .map-provider-badge").forEach((node) => observer?.observe(node));
+    schedule();
+    return () => { observer?.disconnect(); window.clearTimeout(timeoutId); };
+  }, [expanded, fitMapRef, kakaoMapRef, layoutKey, mapRef]);
 
   return { shellRef, expanded, toggleExpanded };
 }

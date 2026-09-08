@@ -1,12 +1,12 @@
 import { pickedDestination, type MapRendererContext } from "./map-renderer-context";
-import { escapeMapHtml, safeMapImageUrl } from "./map-utils";
+import { escapeMapHtml, mapFitPadding, safeMapImageUrl } from "./map-utils";
 
 export async function renderLeafletMap(
   context: MapRendererContext,
   isCancelled: () => boolean,
 ) {
   const {
-    containerRef, mapRef, kakaoMapRef, drawingManagerRef, origin, places, route,
+    containerRef, mapRef, kakaoMapRef, drawingManagerRef, fitMapRef, origin, places, route,
     crowdVisual, crowdPlace, pickModeRef, roadviewSelectModeRef,
     onOriginChangeRef, onDestinationChangeRef, choosePlace, clearCategoryMarkers,
     setProvider, setProviderDetail, setSelectedMapPlace, setPickMode,
@@ -112,7 +112,15 @@ export async function renderLeafletMap(
       lineCap: "round",
     },
   ).addTo(map);
-  if (bounds.length) map.fitBounds(bounds, { padding: [46, 46], maxZoom: 13 });
+  const fit = () => {
+    const canvas = containerRef.current;
+    if (isCancelled() || mapRef.current !== map || !canvas) return;
+    const [top, right, bottom, left] = mapFitPadding(canvas);
+    if (canvas.clientWidth <= left + right || canvas.clientHeight <= top + bottom) return;
+    map.fitBounds(bounds, { paddingTopLeft: [left, top], paddingBottomRight: [right, bottom], maxZoom: 13 });
+  };
+  fitMapRef.current = fit;
+  if (bounds.length) fit();
   else map.setView([35.238, 128.692], 9);
   setProvider("osm");
 }

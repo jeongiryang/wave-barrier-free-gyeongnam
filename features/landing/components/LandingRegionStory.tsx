@@ -36,7 +36,7 @@ export default function LandingRegionStory({ t, activeRegion, active, preview, r
     <div className="region-story-copy" data-land-reveal>
       <p className="section-kicker">{english ? "18 cities and counties in Gyeongnam" : "경남 18개 시·군"}</p>
       <h2>{english ? "Where in Gyeongnam?" : "경남 어디로 떠나볼까요?"}</h2>
-      <p>{english ? "Choose one of 18 regions to explore its story and start planning your trip." : "18개 시·군의 이야기를 살펴보고 여행을 시작하세요."}</p>
+      <p>{english ? "Choose a region, then the facilities you need. Check each place's recorded information before adding it to your trip." : "마음이 가는 지역을 고르세요. 필요한 편의와 장소별 확인 정보를 살펴보고, 내 여행에 담아보세요."}</p>
       <div className="selected-region" role="status" aria-live="polite" aria-atomic="true">
         {activePhoto
           ? <span className="selected-region-photo" style={{ backgroundImage: `url("${activePhoto}")` }} aria-hidden="true" />

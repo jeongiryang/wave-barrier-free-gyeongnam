@@ -92,5 +92,17 @@ for (const theme of ["dark", "light"] as const) {
         expect(ratio, `${selector} · ${sample.text} 대비 ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(4.5);
       }
     }
+    const stage = page.locator(".journey-stage");
+    for (const index of [0, 1, 2, 3]) {
+      await stage.locator(".journey-stage-controls button").nth(index).click();
+      const selectors = [".journey-stage-board > p", ".journey-stage-controls button", ".journey-scene-stops li > span"];
+      if (index === 3) selectors.push(".journey-review dt", ".journey-review dd");
+      for (const selector of selectors) {
+        const measured = await samples(page, selector);
+        expect(measured, `${selector} stage${index} missing`).not.toEqual([]);
+        for (const sample of measured) expect(contrastRatio(sample.color, sample.background), `${selector} stage${index}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+
   });
 }

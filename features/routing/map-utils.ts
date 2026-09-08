@@ -67,3 +67,32 @@ export function describeCrowd(rate: number) {
   if (rate < 75) return { level: "busy", label: "붐빔", color: "#ee6b3b", soft: "rgba(238,107,59,.22)", radius: 1850, message: "방문객이 몰릴 수 있어 이른 시간 방문을 권해요." };
   return { level: "very-busy", label: "매우 붐빔", color: "#d93d55", soft: "rgba(217,61,85,.23)", radius: 2400, message: "혼잡이 예상됩니다. 주변 대체 장소나 시간 변경을 권해요." };
 }
+
+// Kakao's documented default gutter is 32px. Add actual UI/photo geometry,
+// rather than assuming one toolbar height or one photo size at every viewport.
+export function mapFitPadding(canvas: HTMLElement): [number, number, number, number] {
+  const box = canvas.getBoundingClientRect();
+  let top = 0, photoHeight = 0, side = 0;
+  for (const control of canvas.parentElement?.querySelectorAll<HTMLElement>(".map-command-bar, .map-provider-badge") || []) {
+    const rect = control.getBoundingClientRect();
+    if (rect.width && rect.height && rect.right > box.left && rect.left < box.right && rect.bottom > box.top && rect.top < box.bottom) {
+      top = Math.max(top, rect.bottom - box.top);
+    }
+  }
+  for (const marker of canvas.querySelectorAll<HTMLElement>(".wave-map-icon.place")) {
+    const rect = marker.getBoundingClientRect();
+    let minY = rect.top, maxY = rect.bottom;
+    const centerX = rect.left + rect.width / 2;
+    side = Math.max(side, rect.width / 2);
+    // The crowd photo/rank can overflow the fixed-size SDK marker element.
+    for (const child of marker.querySelectorAll<HTMLElement>(".photo-pin, .photo-pin b")) {
+      const part = child.getBoundingClientRect();
+      minY = Math.min(minY, part.top); maxY = Math.max(maxY, part.bottom);
+      side = Math.max(side, centerX - part.left, part.right - centerX);
+    }
+    photoHeight = Math.max(photoHeight, maxY - minY);
+  }
+  // Full measured height is conservative for both bottom-anchored photos and
+  // centered numbered pins. Default gutter covers the existing tip/focus halo.
+  return [Math.ceil(32 + top + photoHeight), Math.ceil(32 + side), 32, Math.ceil(32 + side)];
+}

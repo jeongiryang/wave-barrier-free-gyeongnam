@@ -64,7 +64,7 @@ for (const locale of ["ko", "en"] as const) {
     await expect(control).toBeFocused();
     expect(videoRequests.length).toBeGreaterThan(0);
     expect(new Set(videoRequests)).toEqual(new Set([new URL("/media/wave-story/hero-water-loop.mp4", page.url()).href]));
-    const sourceDetails = page.locator(".journey-source-details");
+    const sourceDetails = page.locator(".journey-scene-copy .journey-source-details");
     await sourceDetails.locator("summary").focus();
     await page.keyboard.press("Enter");
     await expect(sourceDetails).toHaveAttribute("open");
@@ -86,8 +86,9 @@ for (const locale of ["ko", "en"] as const) {
       })).toBe(true);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await page.locator(".journey-scene").scrollIntoViewIfNeeded();
-      await expect(page.locator(".journey-scene-stops li")).toHaveCount(3);
-      await expect(page.locator(".journey-scene figcaption")).toContainText(en ? "not real places or navigation results" : "실제 장소나 길찾기 결과가 아닙니다");
+      await expect(page.locator(".journey-scene-stops strong")).toHaveText(en ? ["Junam Reservoir", "Daesan Flowerland"] : ["주남저수지 철새도래지", "대산플라워랜드"]);
+      expect(await page.locator(".journey-scene-stops li").evaluateAll(nodes => nodes.map(node => node.getAttribute("data-place-id")))).toEqual(["126117", "2758443"]);
+      await expect(page.locator(".journey-scene figcaption")).toContainText(en ? "Actual Korean screens recorded on 9 September 2026" : "2026년 9월 9일 실제 한국어 화면");
       if (en) {
         for (const selector of [".landing-hero-copy", ".journey-scene", ".product-story-copy", ".landing-community-copy", ".landing-cta"]) {
           const text = await page.locator(selector).allInnerTexts();
