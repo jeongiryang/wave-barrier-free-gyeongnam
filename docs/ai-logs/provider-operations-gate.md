@@ -53,6 +53,17 @@ Hosted actionlint also supplies shellcheck on the unchanged shell commands. Reac
 component review covered stable hook ordering, generation/abort ownership, deferred
 secondary UI, status announcements and preservation of existing facility controls.
 
+CI851 on `b4f87c9` passed quality but correctly blocked its changed queue CLI:
+the immutable CI distribution still expected the old coordinator bytes. This was
+a missing distribution refresh, not a browser defect or justification to weaken
+the boundary. Source `b4f87c9` pins the new CLI digest; distribution `51e3331` pins
+that source. CI now downloads exactly that immutable bootstrap with its SHA256.
+Only the explicit distribution SHA/hash constants in the existing contract test
+changed; deep equality for every command, timeout and safety probe remains intact.
+Existing external-bootstrap and CI-bootstrap tamper probes pass without queue or
+model execution. No new sandbox scenario, kernel setting or isolation mechanism
+was added. Existing installed runtimes are preserved and remain unactivated.
+
 Original10 dirty user files,49worktrees and historical traces/reports are preserved.
 The follow-up was checkpointed outside the repository before the #369 correction.
 #365 minimum is not operationally complete until same-HEAD CI/QA/Production verify
