@@ -111,9 +111,24 @@ W.A.V.E DB·운영 이벤트에는 GPS를 저장하지 않습니다. 지도 SDK�
 
 1. lint, 타입 검사, 로직 검사, Chromium 사용자 여정·접근성 검사, Vercel 빌드를 실행합니다.
 2. `main`의 성공한 커밋으로 도메인을 붙이지 않은 production 후보를 만듭니다.
-3. 후보의 `/api/health` 응답과 필수 환경 변수를 확인하고 migration을 적용합니다.
+3. 후보의 `/api/health`와 필수 환경 변수를 확인합니다. 보호된 migration API가 실제
+   DB endpoint·DB명·스키마와 `008` 영향 건수를 `READ ONLY`로 확인한 뒤 migration을 적용합니다.
 4. 후보를 production으로 승격합니다.
 5. production `/api/health`가 재시도 뒤에도 실패하면 Vercel rollback을 실행합니다.
+
+Owner의 수동 `CD` 실행은 기본적으로 `preflight_only=true`입니다. 같은 SHA의 CI가
+성공해야 도메인이 없는 Production 환경 후보를 만들며, migration·승격·Cron 설정 변경은
+실행하지 않습니다. 토큰으로 보호된 `/api/deployment/migrate`의
+`X-Wave-Migration-Mode: inspect`는 PostgreSQL `READ ONLY` transaction과 10초 statement
+제한으로 집계만 조회합니다. `database-preflight` artifact에는 검증된 비민감 대상 ID,
+총 글·공개 글·008 영향 건수·확인 시각만 남습니다. 연결 문자열·계정·원문 오류는 남기지 않습니다.
+
+검증 대상은 `lib/deployment/database-preflight.js`의 Neon project/branch/endpoint/database로
+고정되어 있습니다. 다른 대상으로 바뀌면 운영 변경 검토 없이 migration하지 않습니다.
+이 점검은 기존 서비스 DB의 스키마를 요구하며 빈 DB 신규 구축 절차가 아닙니다.
+읽기 전용 성공도 백업 성공을 뜻하지 않습니다. 배포 직전 최신 복구 지점과 영향 건수,
+격리 복원·rollback 검증, 구버전/신버전 앱 호환성을 #11에 연결한 뒤 릴리스를 진행합니다.
+008은 콘텐츠를 보존하고 공개 상태를 바꾸므로 앱 rollback만으로 공개 상태가 복원되지 않습니다.
 
 매일 실행되는 `Production API Smoke`는 날씨, Kakao 지도 설정·장소·자동차 경로,
 국문·영문 관광 추천, 관광 확장정보·지역/장소 사진·혼잡도, 커뮤니티, 인증 세션과 주요 공개 화면의 실제 응답을
