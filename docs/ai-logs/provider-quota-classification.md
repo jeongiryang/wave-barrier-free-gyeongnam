@@ -31,14 +31,34 @@ bug; the classifier was corrected, not the assertion. Existing route integrity
 test harnesses load the new real dependency; endpoint, geometry, zero-minute walk
 and intercity integrity assertions are retained.
 
-Local validation at the final code tree: `npm test` 673 PASS, 0 failed/skip;
+Initial `841de3b` validation: `npm test` 673 PASS, 0 failed/skip;
 `npm run lint` 0 errors with 2 pre-existing warnings; `npm run typecheck` PASS;
 `npm audit --omit=dev` 0 vulnerabilities; `npm run build:vercel` PASS;
 `npm run check:performance` PASS (CSS 69.96/70 KiB, planner 269.97/270 KiB gzip).
-Full browser/axe is still running as this log is written; final counts and exact
-commit/CI/Preview will be linked in the PR. It has not been replaced by fixtures.
+Full browser/axe completed: 783 PASS, 1 pre-existing skip, 0 failed/flaky. Exact
+[CI849](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34212081340)
+and [Preview](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/369#issuecomment-5583542436)
+passed that initial tree, but do not cover the race below.
 No tests/assertions removed, no new skips, no timeout/worker/retry/budget changes.
 Existing user changes, queue generations, pinned runtimes and artifacts preserved.
+
+## Independent QA concurrency correction
+
+[Review 5140431045](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/369#pullrequestreview-5140431045)
+supersedes the earlier PASS for `841de3b`: simultaneous distinct URLs share a
+provider operation, and an older success could erase a newer restriction. A late
+completion could also release another request's half-open lease; a late throttle
+could shorten a cooldown or replace an unknown-reset hard restriction.
+
+Four added deterministic concurrency tests reproduced these defects on the old
+code (6 PASS / 4 FAIL). Circuit clearing now requires the exact state observed at
+request admission, half-open cleanup requires its own lease, and restrictions
+never downgrade an existing hard hold or shorten its expiry. A legitimate later
+half-open success still recovers service. No real provider or network is called.
+
+After correction, targeted actual requester/classifier/adapter tests: 25 PASS;
+full unit/contract: 677 PASS, 0 failed/skip. The corrected HEAD needs its own full
+CI, Preview and independent QA receipt before merge; stale PASS is not reused.
 
 ## Remaining #365 gates
 

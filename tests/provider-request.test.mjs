@@ -60,3 +60,73 @@ test("a synchronous transport throw leaves no dangling in-flight promise or priv
   for(let i=0;i<2;i++)await assert.rejects(run(context,"https://example.test",{},fetcher),e=>e.failure.kind==="upstream_error"&&!e.message.includes("private-sentinel"));
   assert.equal(calls,2);
 });
+
+for (const restriction of ["rate_limited", "quota_exhausted"]) {
+  test(`a late success from another URL cannot erase a newer ${restriction} circuit`, async () => {
+    let time = 0, calls = 0, release;
+    const run = createProviderRequester({now: () => time, random: () => 0});
+    const fetcher = async url => {
+      calls++;
+      if (url.endsWith("/b")) await new Promise(resolve => {release = resolve;});
+      return url.endsWith("/a")
+        ? restriction === "rate_limited" ? response(429, {}, "120") : response(200, {resultCode:"22"})
+        : response(200, {ok:true});
+    };
+    const a = run(context, "https://example.test/a", {}, fetcher);
+    const b = run(context, "https://example.test/b", {}, fetcher);
+    await assert.rejects(a, e => e.failure.kind === restriction);
+    await assert.rejects(run(context, "https://example.test/c", {}, fetcher), e => e.failure.kind === restriction);
+    release(); await b;
+    await assert.rejects(run(context, "https://example.test/c", {}, fetcher), e => e.failure.kind === restriction);
+    assert.equal(calls, 2);
+    if (restriction === "rate_limited") {
+      time = 120000;
+      await run(context, "https://example.test/c", {}, fetcher);
+      await run(context, "https://example.test/d", {}, fetcher);
+      assert.equal(calls, 4, "a legitimate half-open success still restores service");
+    } else {
+      time = 7 * 86400000;
+      await assert.rejects(run(context, "https://example.test/c", {}, fetcher));
+      assert.equal(calls, 2);
+    }
+  });
+}
+
+test("an old request finishing cannot release another request's half-open lease", async () => {
+  let time = 0, calls = 0, releaseOld, releaseProbe;
+  const run = createProviderRequester({now: () => time, random: () => 0});
+  const fetcher = async url => {
+    calls++;
+    if (url.endsWith("/old")) await new Promise(resolve => {releaseOld = resolve;});
+    if (url.endsWith("/probe")) await new Promise(resolve => {releaseProbe = resolve;});
+    return url.endsWith("/limit") ? response(429, {}, "1") : response(200, {ok:true});
+  };
+  const old = run(context, "https://example.test/old", {}, fetcher);
+  await assert.rejects(run(context, "https://example.test/limit", {}, fetcher));
+  time = 1000;
+  const probe = run(context, "https://example.test/probe", {}, fetcher);
+  await Promise.resolve(); releaseOld(); await old;
+  await assert.rejects(run(context, "https://example.test/third", {}, fetcher), e => e.failure.kind === "rate_limited");
+  assert.equal(calls, 3);
+  releaseProbe(); await probe;
+  await run(context, "https://example.test/third", {}, fetcher);
+  assert.equal(calls, 4);
+});
+
+test("late throttles cannot replace a hard restriction or shorten an existing cooldown", async () => {
+  for (const hard of [false, true]) {
+    let time = 0, calls = 0, release;
+    const run = createProviderRequester({now: () => time, random: () => 0});
+    const fetcher = async url => {
+      calls++;
+      if (url.endsWith("/late")) {await new Promise(resolve => {release = resolve;}); return response(429, {}, "1");}
+      return hard ? response(200, {resultCode:"22"}) : response(429, {}, "120");
+    };
+    const late = run(context, "https://example.test/late", {}, fetcher);
+    await assert.rejects(run(context, "https://example.test/first", {}, fetcher));
+    release(); await assert.rejects(late);
+    time = hard ? 7 * 86400000 : 119999;
+    await assert.rejects(run(context, "https://example.test/third", {}, fetcher), e => e.failure.kind === (hard ? "quota_exhausted" : "rate_limited"));
+    assert.equal(calls, 2);
+  }
+});

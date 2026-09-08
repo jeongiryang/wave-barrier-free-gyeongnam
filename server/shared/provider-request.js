@@ -9,7 +9,7 @@ import { classifyProviderResponse, caughtProviderFailure, providerFailure, Provi
 export function createProviderRequester({ now = Date.now, random = Math.random } = {}) {
   const circuits = new Map();
   const inFlight = new Map();
-  const halfOpen = new Set();
+  const halfOpen = new Map();
   return async function requestProvider(context, url, options, fetcher = fetch) {
     const key = `${context.provider}:${context.operation}`;
     const circuit = circuits.get(key);
@@ -18,7 +18,8 @@ export function createProviderRequester({ now = Date.now, random = Math.random }
     // Full URLs stay only in this private, transient in-flight map, never receipts/logs.
     const requestKey = `${key}:${url}`;
     if (inFlight.has(requestKey)) return inFlight.get(requestKey);
-    if (circuit) halfOpen.add(key);
+    const lease = {};
+    if (circuit) halfOpen.set(key, lease);
     const work = Promise.resolve().then(async () => {
       try {
         const response = await fetcher(url, options);
@@ -27,7 +28,9 @@ export function createProviderRequester({ now = Date.now, random = Math.random }
         try { body = JSON.parse(raw); } catch { /* XML adapters validate their own success schema. */ }
         const failure = classifyProviderResponse(context, { status: response.status, retryAfter: response.headers?.get?.("retry-after"), body, raw, now: now() });
         if (failure) throw new ProviderRequestError(failure);
-        circuits.delete(key);
+        // Only the request admitted against this exact state may clear it.
+        // An older concurrent success is not evidence that a newer hold recovered.
+        if (circuits.get(key) === circuit) circuits.delete(key);
         return {
           ok: response.ok, status: response.status, headers: response.headers,
           text: async () => raw,
@@ -38,16 +41,23 @@ export function createProviderRequester({ now = Date.now, random = Math.random }
         };
       } catch (error) {
         const failure = caughtProviderFailure(error, context);
-        if (["quota_exhausted", "access_restricted", "auth_error"].includes(failure.kind)) circuits.set(key, { failure, until: null });
+        const current = circuits.get(key);
+        if (current?.until === null) {
+          // Never downgrade an unknown-reset hold with an older in-flight result.
+        } else if (["quota_exhausted", "access_restricted", "auth_error"].includes(failure.kind)) circuits.set(key, { failure, until: null });
         else if (failure.kind === "rate_limited") {
-          const count = Math.min((circuit?.count || 0) + 1, 6);
+          const count = Math.min((current?.count || 0) + 1, 6);
           const backoff = Math.min(60_000 * (2 ** (count - 1)), 15 * 60_000);
           const jitter = Math.floor(Math.max(0, Math.min(1, random())) * 1000);
           const delay = Math.max(1000, failure.retryAfterMs ?? (backoff + jitter));
-          circuits.set(key, { failure, count, until: Number.isSafeInteger(now() + delay) ? now() + delay : null });
+          const until = Math.max(current?.until ?? 0, now() + delay);
+          circuits.set(key, { failure, count, until: Number.isSafeInteger(until) ? until : null });
         }
         throw new ProviderRequestError(failure);
-      } finally { inFlight.delete(requestKey); halfOpen.delete(key); }
+      } finally {
+        inFlight.delete(requestKey);
+        if (halfOpen.get(key) === lease) halfOpen.delete(key);
+      }
     });
     inFlight.set(requestKey, work);
     return work;
