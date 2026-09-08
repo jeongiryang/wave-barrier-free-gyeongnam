@@ -1,9 +1,9 @@
 # Image dependency security patch AI 작업 로그
 
-- PR: 생성 전 — Refs #355
+- PR: [#380](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/380) — Refs #355
 - 제목: Next·sharp 및 js-yaml 보안 패치 버전 고정
 - 작성자: Codex Engineering Agent (`operations_issue_audit`)
-- 최종 상태: 로컬 검증 PASS; 커밋·hosted CI·배포·독립 QA 전
+- 최종 상태: 보안 패치 로컬 검증 PASS; CI870의 immutable lockfile pin 불일치를 보존하고 재고정 로컬 검증 PASS. 최종 커밋 hosted CI·독립 QA 대기.
 - AI 도구: Codex, 공식 보안 권고/릴리스 읽기, 로컬 npm 및 Git
 - 기준: `eab2442f90b72441fd311db13dd8bb935723527f`, `fix/image-dependency-security-20260909`
 
@@ -52,4 +52,19 @@
 
 ## 결과와 제한
 
-증거 경로: `D:/wave-db-binding-preflight-20260908/image-dependency-security-20260909/`. 원래 취약성 감사, 변경 전 package/lockfile, 첫 전체 감사 실패(`05-audit-full.log`), 설치 불일치와 원래 폴더, 최종 변경 범위 JSON, 각 명령 로그와 종료 상태를 보존한다. 실제 설치 확인 후의 최종 검사는 `23-runtime-dependency-smoke.json` 및 `24-`~`31-` 증거다. UI, 테스트, workflow, 성능 예산을 변경하지 않는다. 과거 CI867/868 성공을 이 패치의 CI 결과로 재사용하지 않았다. 이 로그는 구현/로컬 검증 기록이며 Production 배포 성공, 전체 제공처 성공 또는 최종 Release GO를 주장하지 않는다.
+증거 경로: `D:/wave-db-binding-preflight-20260908/image-dependency-security-20260909/`. 원래 취약성 감사, 변경 전 package/lockfile, 첫 전체 감사 실패(`05-audit-full.log`), 설치 불일치와 원래 폴더, 최종 변경 범위 JSON, 각 명령 로그와 종료 상태를 보존한다. 실제 설치 확인 후의 의존성 검사는 `23-runtime-dependency-smoke.json` 및 `24-`~`31-` 증거다. 아래 bootstrap 유지보수는 고정 ref·digest 메타데이터와 이를 엄격하게 검사하는 예상값에 한정하며 UI, 실행 동작, 검증 범위, 성능 예산을 변경하지 않는다. 과거 CI867/868 성공을 이 패치의 CI 결과로 재사용하지 않았다. 이 로그는 구현/로컬 검증 기록이며 Production 배포 성공, 전체 제공처 성공 또는 최종 Release GO를 주장하지 않는다.
+
+## CI870 이후 immutable bootstrap 재고정
+
+보안 의존성 커밋 `100b59f7a3ad2cbbbd4abb15c4813f1550a16d43`의 [CI870](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34286969560)에서 `sandbox-boundary`의 `Verify immutable CI bootstrap before candidate execution` 단계가 실패했다. 재고정 검토 시 quality는 PASS였고 두 browser job은 진행 중이었다. 이 최초 실패를 새 결과로 덮어쓰거나 취소·재시도하지 않는다.
+
+정규화한 새 lockfile SHA-256은 `951bb57a6cb370f119a1aabce6d51b1d97487a4b40b51543a215e5ca1e9e1a06`이며 이전 허용값 `300edb4b5176378a517d87a488375e9125242deca614440756a962d707965275`와 다르다. immutable `100b59f` 커밋의 원본 바이트 및 로컬 LF 바이트를 대조해 12개 실행 TARGET와 4개 EXTRA가 기존 digest와 모두 일치함을 확인했다. 유일한 불일치는 승인된 보안 패치의 lockfile이다.
+
+- `scripts/subscription-ci-bootstrap.py`: `SOURCE_SHA`를 `100b59f7a3ad2cbbbd4abb15c4813f1550a16d43`로, lockfile digest를 위 새 값으로 바꾸는 두 literal 치환만 수행했다. 함수, 대상 목록, 12개 실행 pin, 4개 EXTRA pin은 그대로다.
+- 배포용 커밋 `64d514266350f83230bbef57e25e14cf20b5f152`의 bootstrap 원본 SHA-256은 `632ca2674b0dd46263d257936a4c0fe6051fff90210502e929c120d5c414ce63`이다. 실제 Git blob과 정규화한 작업 파일이 일치함을 확인했다.
+- `.github/workflows/ci.yml`의 immutable URL과 checksum만 이 배포용 커밋으로 변경했다. `tests/ci-completion-gate.test.mjs`는 같은 ref·digest의 예상값만 치환했다. 보관된 workflow, 검사 assertion, job/timeout/worker/retry/skip 조건과 실행 명령은 바꾸지 않았다.
+- 기존 `python -I -B tests/subscription-ci-bootstrap-boundary.py`: PASS, 3개 결과 그룹. 기존 `python -I -B tests/subscription-bootstrap-boundary.py`: PASS, 4개 결과 그룹. 변조된 실행 파일·lockfile·다운로드·manifest가 실행 전에 차단됐으며 queue/model 실행은 없었다.
+- phase 2의 `node --test tests/ci-completion-gate.test.mjs`: 4 PASS. `npm test`: 707 PASS, fail/cancelled/skipped/todo 0. `npm run typecheck`: PASS. `npm run lint`: error 0 / 기존 warning 5. `git diff --check`: PASS.
+- 앱과 의존성 바이트가 `100b59f` 이후 그대로이므로 위 성공한 build/performance 검사를 다시 실행하지 않았다. 이 로컬 결과는 최종 커밋의 hosted CI 또는 독립 QA를 대신하지 않는다.
+
+재고정 증거는 `bootstrap-repin-ci870/`의 `immutable-input-pin-proof.json`, `bootstrap-distribution-metadata.json`, 기존 Python 변조 검사 로그 및 `phase2-*` 결과로 보존한다. 이는 필요한 pin 유지보수이며 새 sandbox hardening이나 게이트 완화가 아니다.
