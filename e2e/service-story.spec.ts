@@ -130,6 +130,92 @@ for (const locale of ["ko", "en"] as const) {
   });
 }
 
+test("data saving prevents scenery downloads and preserves content and keyboard focus", async ({ page }) => {
+  const requests: string[] = [];
+  page.on("request", (request) => { if (request.url().endsWith(".mp4")) requests.push(request.url()); });
+  await mockPublicShellApi(page);
+  await page.addInitScript(() => {
+    const connection = Object.assign(new EventTarget(), { saveData: true });
+    Object.defineProperty(navigator, "connection", { configurable: true, value: connection });
+  });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await expect(page.getByRole("main")).toBeVisible();
+  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+  await expect(page.locator(".landing-page")).toHaveCount(1);
+  const control = page.locator(".story-media button");
+  const player = page.locator(".story-media video");
+  await control.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Space");
+  const hit = await control.boundingBox();
+  expect(hit).not.toBeNull();
+  // aria-disabled stays focusable; exercise a real pointer, without force-clicking it.
+  await page.mouse.click(hit!.x + hit!.width / 2, hit!.y + hit!.height / 2);
+  await expect(control).toBeFocused();
+  await expect(control).toHaveAttribute("aria-disabled", "true");
+  await expect(control).toHaveAttribute("aria-pressed", "false");
+  await expect(player).not.toHaveAttribute("src");
+  await expect(player).toHaveJSProperty("paused", true);
+  await expect(page.locator(".story-media [role=status]")).toContainText("데이터 절약");
+  await expect(page.locator(".story-media img")).toBeVisible();
+  await expect(page.locator(".landing-actions a")).toBeVisible();
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await expectMediaCaptionUnobscured(page);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    await page.locator(".landing-hero").screenshot({ path: test.info().outputPath(`save-data-${width}.png`) });
+  }
+  expect(requests).toEqual([]);
+});
+
+for (const connectionMode of ["available", "unsupported"] as const) {
+  test(`${connectionMode} data-saving API allows explicit scenery playback without automatic resume`, async ({ page }) => {
+    await mockPublicShellApi(page);
+    await page.addInitScript((mode) => {
+      Object.defineProperty(navigator, "connection", {
+        configurable: true,
+        value: mode === "available" ? Object.assign(new EventTarget(), { saveData: false }) : undefined,
+      });
+    }, connectionMode);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("/");
+    await expect(page.getByRole("main")).toBeVisible();
+    await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+    await expect(page.locator(".landing-page")).toHaveCount(1);
+    const control = page.locator(".story-media button");
+    const player = page.locator(".story-media video");
+    await expect(player).not.toHaveAttribute("src");
+    await control.focus();
+    await page.keyboard.press("Enter");
+    await expect(player).toHaveJSProperty("paused", false);
+    await expect(control).toHaveAttribute("aria-pressed", "true");
+    if (connectionMode === "available") {
+      await page.evaluate(() => {
+        const connection = (navigator as Navigator & { connection: EventTarget & { saveData: boolean } }).connection;
+        connection.saveData = true;
+        connection.dispatchEvent(new Event("change"));
+      });
+      await expect(player).toHaveJSProperty("paused", true);
+      await expect(player).not.toHaveAttribute("src");
+      await expect(control).toHaveAttribute("aria-disabled", "true");
+      await expect(control).toBeFocused();
+      await page.evaluate(() => {
+        const connection = (navigator as Navigator & { connection: EventTarget & { saveData: boolean } }).connection;
+        connection.saveData = false;
+        connection.dispatchEvent(new Event("change"));
+      });
+      await expect(control).toHaveAttribute("aria-disabled", "false");
+      await expect(control).toHaveAttribute("aria-pressed", "false");
+      await expect(player).toHaveJSProperty("paused", true);
+      await expect(player).not.toHaveAttribute("src");
+      await expect(control).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(player).toHaveJSProperty("paused", false);
+    }
+  });
+}
+
 for (const locale of ["ko", "en"] as const) {
   for (const preference of ["system", "site"] as const) {
     test(`${locale}: initial ${preference} reduced motion keeps media static without moving focus`, async ({ page }) => {

@@ -60,3 +60,12 @@
 - #373 Draft/자동화 OFF/구독 비용 정책/기존 사용자 dirty 10파일·50 worktree·queue generation·artifact·restore 증거를 보존했다.
 - 제출 원고는 갱신했으나 기존 PDF와 옛 화면은 최종 제출물이 아니다. #353 Production 반영 뒤 실제 캡처로 교체하고 공식 양식·페이지·태그·폰트·링크를 최종 확인한다. #353의 남은 상세 AC는 Issue별 매핑으로 유지하며 이 로그만으로 전체 Issue를 닫지 않는다.
 - 테스트 삭제·새 skip·timeout/retry/workers 변경·성능 예산 증가·force click·기술 gate 우회 없음. 이전 실패는 성공으로 소급 덮어쓰지 않는다.
+
+### PR #375 독립 Save-Data 검토 후 보완
+
+- 첫 후보 `8ca8e2fdc823cea3fc119120f1935f04cb20bef1`은 CI859 실행 중 [독립 QA FAIL](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/375#pullrequestreview-5143956719)을 받았다. [P2 inline](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/375#discussion_r3959747260)은 데이터 절약 설정에서도 수동 재생이 MP4를 요청하는 보존 AC 누락이며 P0/P1로 확대하지 않았다.
+- 새로운 실제 브라우저 회귀를 먼저 실행해 desktop/mobile **2 FAIL**로 재현했다. `story353-save-data-before*`의 screenshot/trace/error-context를 보존했다. 기존 CI859는 취소하지 않고 원래 후보의 검증으로 남긴다.
+- `StoryMedia.tsx`에서 지원되는 `navigator.connection.saveData`를 초기 및 클릭 시 확인한다. 런타임 `change`에서 재생과 다운로드를 중단하고 src를 해제한다. 데이터 절약 해제만으로 자동 재개하지 않으며, API가 없는 환경은 기존 명시적 재생을 유지한다. 버튼 DOM/포커스·포스터·CTA는 보존하고 KO/EN 상태 설명을 제공한다. API의 [제한된 브라우저 지원](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData)을 전 환경 OS 설정 감지로 과장하지 않는다.
+- 첫 보완 실행은 **28 PASS / 2 FAIL**. `pause()` 직후 `load()`가 대기 중 pause 이벤트를 없애 UI의 `aria-pressed`만 true로 남는 상태 불일치를 새 회귀가 탐지했다. 다운로드를 중단할 때 재생 상태도 false로 명시하는 제품 수정 후, 두 관련 파일 **30 PASS / 0 fail/flaky (35.8s)**. 새 마우스·키보드 입력 및 320/390px 설명 가림 검사는 **2 PASS**. 새 테스트 세 개를 추가했고 기존 판정은 제거·약화하지 않았다. 증거는 `story353-save-data-after*`, `-final*`, `-pointer*`로 각각 보존한다.
+- lint 0 errors/5 warnings, typecheck PASS, unit/contract696 PASS/0 skip, Vercel build/performance PASS. gzip CSS69.98/70 KiB, landing119.84/155, planner269.78/270, 최대chunk95.92/110. dependency/lockfile/CSS/예산 변경 없음.
+- 첫 후보의 실제 인증 Preview는 READY였고, root는 CTA→중립 조건→창원 실제 추천5곳→주남/대산 일정→같은 2개 지도 마커→이 기기 저장→새로고침 보존을 확인했다. 별도 QA는 실제 Intro·확장·네 단계·감소 모드를 확인했다. Preview 지도는 연결 지연 안내 후 대체 지도를 제공했다. 앱 자체 자동 경로 응답의 ODsay47분 표시를 계정 quota 해제 증거로 쓰지 않는다. 이 Preview는 새 Save-Data 수정 및 Production의 PASS가 아니다.
