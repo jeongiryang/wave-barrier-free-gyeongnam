@@ -10,11 +10,11 @@ const archivedWorkflow = yaml.load(readFileSync(new URL("../.github/workflow-arc
 
 test("the protected CI gate rejects failed, cancelled and skipped dependencies", () => {
   const gate = workflow.jobs.validate;
-  assert.deepEqual(gate.needs, ["quality", "browser", "sandbox-boundary"]);
+  assert.deepEqual(gate.needs, ["quality", "browser", "sandbox-boundary", "impact", "fast-browser"]);
   assert.equal(gate.if, "${{ always() }}");
   const step = gate.steps[0];
   assert.equal(step.env.QUALITY_RESULT, "${{ needs.quality.result }}");
-  assert.equal(step.env.BROWSER_RESULT, "${{ needs.browser.result }}");
+  assert.equal(step.env.BROWSER_RESULT, "${{ needs.impact.outputs.mode == 'fast' && needs.fast-browser.result || needs.browser.result }}");
   assert.equal(step.env.BOUNDARY_RESULT, "${{ needs.sandbox-boundary.result }}");
   assert.equal(step.env.SANDBOX_RESULT, undefined);
   assert.equal(workflow.jobs["sandbox-application"], undefined);
@@ -61,7 +61,7 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
   for (const job of [workflow.jobs["sandbox-boundary"], archivedWorkflow.jobs["sandbox-application"]]) {
     const runs = job.steps.map(step => step.run || "").join("\n");
     const bootstrap = job.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution").run;
-    const distribution = job === workflow.jobs["sandbox-boundary"] ? "51e3331334713cdc52a3b57e25d8de84df443783" : "b02726fd4407a8537c2ece3b5d2af80ddd3e3edf";
+    const distribution = job === workflow.jobs["sandbox-boundary"] ? "61d40b0a24c06e55395b73daa73234750a8ce041" : "b02726fd4407a8537c2ece3b5d2af80ddd3e3edf";
     assert.ok(bootstrap.includes(`${distribution}/scripts/subscription-ci-bootstrap.py`));
     if (job === workflow.jobs["sandbox-boundary"]) {
       const bytes = readFileSync(new URL("../scripts/subscription-ci-bootstrap.py", import.meta.url), "utf8").replaceAll("\r\n", "\n");
@@ -82,14 +82,19 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
 // The scope change preserves every full-suite command and test configuration.
 test("RC separates complete hosted product validation from frozen bounded sandbox smoke", () => {
   for (const name of ["quality", "browser"]) {
-    assert.deepEqual(workflow.jobs[name], archivedWorkflow.jobs[name], name);
+    const expected = structuredClone(archivedWorkflow.jobs[name]);
+    if (name === "browser") {
+      expected.needs = "impact";
+      expected.if = "${{ needs.impact.outputs.mode == 'full' }}";
+    }
+    assert.deepEqual(workflow.jobs[name], expected, name);
   }
   // Only the explicitly reviewed immutable distribution may differ from the
   // archived boundary job. Every command, timeout and safety probe stays equal.
   const expectedBoundary = structuredClone(archivedWorkflow.jobs["sandbox-boundary"]);
   const bootstrap = expectedBoundary.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution");
-  bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "51e3331334713cdc52a3b57e25d8de84df443783")
-    .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "e8b16c37b3f41d75ba19385452b5b7d84694aa2b2728cf528dfa61e4a7078749");
+  bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "61d40b0a24c06e55395b73daa73234750a8ce041")
+    .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "13d79d30fa03dd369bd1a4641c1c2ff31563028ffe2260b19ac65c70b5bbaaf2");
   assert.deepEqual(workflow.jobs["sandbox-boundary"], expectedBoundary);
   const boundary = readFileSync(new URL("./subscription-sandbox-boundary.py", import.meta.url), "utf8");
   assert.match(boundary, /checks = boundary\.validate\(config, str\(archive\), \{\}\)/);

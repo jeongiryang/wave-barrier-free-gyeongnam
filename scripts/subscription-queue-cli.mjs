@@ -3,6 +3,40 @@ import { pathToFileURL } from "node:url";
 import { REPOSITORY, readWorkOrder, enqueue, claim, heartbeat, ciResult, synchronizeHead, observe, resume, acknowledgeReport } from "./subscription-queue.mjs";
 import { githubApi, GitHubQueue, pages } from "./subscription-queue-github.mjs";
 
+// CI run success alone can be Fast feedback. Only these exact, completed job
+// results authorize QA/CD. Latest jobs include successful earlier-attempt jobs
+// when GitHub reruns only failed jobs; every job must still belong to this run/SHA.
+export function ciGateEvidence(run, jobs, headSha) {
+  if (!/^[a-f0-9]{40}$/.test(headSha || "") || run?.head_sha !== headSha ||
+      run?.path !== ".github/workflows/ci.yml" || run?.head_repository?.full_name !== REPOSITORY ||
+      !Number.isSafeInteger(run?.id) || run.id < 1 || !Number.isSafeInteger(run?.run_attempt) || run.run_attempt < 1 ||
+      !["pull_request", "push"].includes(run.event) || run.status !== "completed" || run.conclusion !== "success" || !Array.isArray(jobs)) return null;
+  const passed = name => {
+    const matches = jobs.filter(job => job.name === name);
+    return matches.length === 1 && matches[0].run_id === run.id && matches[0].head_sha === headSha && matches[0].status === "completed" && matches[0].conclusion === "success";
+  };
+  if (!["quality", "sandbox-boundary"].every(passed)) return null;
+  if (["validate", "browser (1)", "browser (2)"].every(passed)) return "full";
+  if (!jobs.some(job => job.name === "validate") && ["fast-pr-gate", "fast-browser (1)", "fast-browser (2)"].every(passed)) return "fast";
+  return null;
+}
+
+async function requestFullGate(task, api, now) {
+  assertEngineeringIssue(await api(`repos/${REPOSITORY}/issues/${task.order.issue}`));
+  const comments = await pages(`repos/${REPOSITORY}/issues/${task.order.issue}/comments`, api);
+  const latest = comments.filter(item => item.user?.login === "jeongiryang" && item.body?.startsWith("<!-- wave-work-order:v2 -->")).sort((a,b) => b.id-a.id)[0];
+  if (readWorkOrder(task.order.issue, latest).revision !== task.order.revision) throw Error("STALE_WORK_ORDER");
+  const current = await api(`repos/${REPOSITORY}/pulls/${task.order.pullRequest}`);
+  if (current.state !== "open" || current.head.repo?.full_name !== REPOSITORY || current.head.ref !== task.order.branch) throw Error("INELIGIBLE_PR");
+  if (current.head.sha !== task.headSha) return synchronizeHead(task,current.head.sha,now);
+  if (current.draft === true && !current.labels?.some(label => label.name === "status:ready-for-qa")) {
+    // An immutable Owner order grants this bounded handoff; Issue text supplies
+    // no command. The label requests Full validation, not a QA PASS or approval.
+    await api(`repos/${REPOSITORY}/issues/${task.order.pullRequest}/labels`,{method:"POST",body:{labels:["status:ready-for-qa"]}});
+  }
+  return task;
+}
+
 export async function scan(api = githubApi) {
   const [issues, pulls, runs] = await Promise.all([
     pages(`repos/${REPOSITORY}/issues?state=open`, api),
@@ -88,6 +122,12 @@ export async function main(args, { api = githubApi, queue = new GitHubQueue(api)
     if (next.state !== "ci-pending") return next;
     const runs = await api(`repos/${REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${next.headSha}&per_page=100`);
     const latest = runs.workflow_runs.filter(run => run.head_sha === next.headSha && ["pull_request", "push"].includes(run.event)).sort((a, b) => b.id - a.id || b.run_attempt - a.run_attempt)[0];
+    if (latest?.status === "completed" && latest.conclusion === "success") {
+      const jobs = await pages(`repos/${REPOSITORY}/actions/runs/${latest.id}/jobs?filter=latest`, async endpoint => (await api(endpoint)).jobs);
+      const gate = ciGateEvidence(latest,jobs,next.headSha);
+      if (gate === "fast") return requestFullGate(next,api,now);
+      if (gate !== "full") return next;
+    }
     if (latest?.status === "completed" && ["success", "failure", "cancelled", "timed_out"].includes(latest.conclusion)) next = ciResult(next, now, { headSha: next.headSha, runId: latest.id, runAttempt: latest.run_attempt, conclusion: latest.conclusion });
     return next;
   });
