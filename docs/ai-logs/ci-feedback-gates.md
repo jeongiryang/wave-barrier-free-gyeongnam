@@ -28,6 +28,13 @@ not finalCI/Preview/QA/Production. Full browser and runtime packaging follow.
 No test/skip/threshold weakening,
 dependency change, ruleset change, paid API, new sandbox research or canary start.
 
+Immutable packaging: source5f4ad788c4d2d8fc0a34aa3a84e5c702829e2f3e;
+distribution61d40b0a24c06e55395b73daa73234750a8ce041, bootstrapSHA256
+13d79d30fa03dd369bd1a4641c1c2ff31563028ffe2260b19ac65c70b5bbaaf2.
+Downloaded immutable distribution matched; the same three frozen bootstrap
+probesPASS before candidate execution. Pin-final704unitPASS. This repackages the
+changed CI consumer, not additional sandbox hardening or executor activation.
+
 Preservation: old49worktrees plus the newCI worktree; original10dirtyfiles remain
 hash-identical; queue294generation5/attemptsimplementation2qa2 unchanged. All
 CI856/earlier failure artifacts and C:/D: checkpoints retained.

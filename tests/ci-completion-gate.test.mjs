@@ -61,7 +61,7 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
   for (const job of [workflow.jobs["sandbox-boundary"], archivedWorkflow.jobs["sandbox-application"]]) {
     const runs = job.steps.map(step => step.run || "").join("\n");
     const bootstrap = job.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution").run;
-    const distribution = job === workflow.jobs["sandbox-boundary"] ? "51e3331334713cdc52a3b57e25d8de84df443783" : "b02726fd4407a8537c2ece3b5d2af80ddd3e3edf";
+    const distribution = job === workflow.jobs["sandbox-boundary"] ? "61d40b0a24c06e55395b73daa73234750a8ce041" : "b02726fd4407a8537c2ece3b5d2af80ddd3e3edf";
     assert.ok(bootstrap.includes(`${distribution}/scripts/subscription-ci-bootstrap.py`));
     if (job === workflow.jobs["sandbox-boundary"]) {
       const bytes = readFileSync(new URL("../scripts/subscription-ci-bootstrap.py", import.meta.url), "utf8").replaceAll("\r\n", "\n");
@@ -93,8 +93,8 @@ test("RC separates complete hosted product validation from frozen bounded sandbo
   // archived boundary job. Every command, timeout and safety probe stays equal.
   const expectedBoundary = structuredClone(archivedWorkflow.jobs["sandbox-boundary"]);
   const bootstrap = expectedBoundary.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution");
-  bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "51e3331334713cdc52a3b57e25d8de84df443783")
-    .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "e8b16c37b3f41d75ba19385452b5b7d84694aa2b2728cf528dfa61e4a7078749");
+  bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "61d40b0a24c06e55395b73daa73234750a8ce041")
+    .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "13d79d30fa03dd369bd1a4641c1c2ff31563028ffe2260b19ac65c70b5bbaaf2");
   assert.deepEqual(workflow.jobs["sandbox-boundary"], expectedBoundary);
   const boundary = readFileSync(new URL("./subscription-sandbox-boundary.py", import.meta.url), "utf8");
   assert.match(boundary, /checks = boundary\.validate\(config, str\(archive\), \{\}\)/);

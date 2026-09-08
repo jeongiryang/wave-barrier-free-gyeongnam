@@ -240,9 +240,9 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location \
-            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/51e3331334713cdc52a3b57e25d8de84df443783/scripts/subscription-ci-bootstrap.py \
+            https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/61d40b0a24c06e55395b73daa73234750a8ce041/scripts/subscription-ci-bootstrap.py \
             -o "$RUNNER_TEMP/wave-ci-bootstrap.py"
-          printf 'e8b16c37b3f41d75ba19385452b5b7d84694aa2b2728cf528dfa61e4a7078749  %s\n' "$RUNNER_TEMP/wave-ci-bootstrap.py" | sha256sum --check
+          printf '13d79d30fa03dd369bd1a4641c1c2ff31563028ffe2260b19ac65c70b5bbaaf2  %s\n' "$RUNNER_TEMP/wave-ci-bootstrap.py" | sha256sum --check
           python3 -I -B "$RUNNER_TEMP/wave-ci-bootstrap.py" --repository "$GITHUB_WORKSPACE" --destination "$RUNNER_TEMP/wave-trusted"
           cp "$RUNNER_TEMP/wave-ci-bootstrap.py" "$RUNNER_TEMP/wave-trusted/scripts/subscription-ci-bootstrap.py"
           curl --fail --silent --show-error --location \
