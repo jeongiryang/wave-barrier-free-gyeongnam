@@ -8,7 +8,7 @@ export async function handlePlaceCoordinates(url: URL, env: Env) {
   const id = url.searchParams.get("contentId") || "";
   if (!/^[1-9]\d{0,11}$/.test(id)) return json({ status: "invalid-id" }, 400);
   const result = await attemptProvider(fetchTourismData(env, "KorService2", "detailCommon2", {
-    ...commonParams("1"), contentId: id, defaultYN: "Y", mapinfoYN: "Y",
+    ...commonParams("1"), contentId: id,
   }));
   if (!result.ok) return json({ id, status: "provider-error" }, 502);
   if (!result.value.items.length) return json({ id, status: "empty" });
