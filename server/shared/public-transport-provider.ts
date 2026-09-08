@@ -1,6 +1,8 @@
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "./env";
 import { clean } from "./http";
+import { requestProvider } from "./provider-request.js";
+import { providerFailure, ProviderRequestError } from "../../lib/provider-failure.js";
 import { parseTrainCityCatalogResponse, parseTransportResponse } from "./transport-response";
 import type {
   ProviderAttempt,
@@ -22,16 +24,17 @@ export async function fetchPublicTransportData(
   params: Record<string, string> = {},
 ): Promise<ProviderResult> {
   const key = publicTransportKey(env, provider);
-  if (!key) throw new Error("공공데이터포털 인증키가 등록되지 않았습니다.");
+  const context = {provider,family:"public-data" as const,operation:`${serviceUrl.split("/").slice(4).join("/")}/${operation}`};
+  if (!key) throw new ProviderRequestError(providerFailure(context,"missing_config"));
   const cityCatalog = provider === "tago"
     && serviceUrl === "https://apis.data.go.kr/1613000/TrainInfo" && operation === "GetCtyCodeList";
   const query = new URLSearchParams(cityCatalog
     ? { _type: "json" }
     : { numOfRows: "30", pageNo: "1", _type: "json", ...params }).toString();
-  const response = await fetch(`${serviceUrl}/${operation}?serviceKey=${key}&${query}`, {
+  const response = await requestProvider(context, `${serviceUrl}/${operation}?serviceKey=${key}&${query}`, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
-  });
+  }, fetch);
   const raw = await response.text();
   if (!response.ok) {
     let reason = raw.match(/<(?:returnAuthMsg|resultMsg|errMsg)>([^<]+)</i)?.[1] || "";
@@ -47,10 +50,10 @@ export async function fetchPublicTransportData(
   try {
     data = JSON.parse(raw);
   } catch {
-    const message = raw.match(/<(?:returnAuthMsg|resultMsg)>([^<]+)</i)?.[1];
-    throw new Error(clean(message || "교통 API가 JSON이 아닌 응답을 반환했습니다.", 120));
+    throw new ProviderRequestError(providerFailure(context,"malformed_response"));
   }
-  return cityCatalog ? parseTrainCityCatalogResponse(data) : parseTransportResponse(data);
+  try { return cityCatalog ? parseTrainCityCatalogResponse(data) : parseTransportResponse(data); }
+  catch { throw new ProviderRequestError(providerFailure(context,"malformed_response")); }
 }
 
 export function koreaYmd(offsetDays = 0) {
@@ -62,6 +65,7 @@ export function transportQueryEvidence(result?: ProviderAttempt | null) {
   return {
     queryStatus: result ? (result.ok ? "success" : "error") : "not-requested",
     resultCount: result?.ok ? result.value.total : null,
+    ...(!result?.ok && result?.failure ? {failure:result.failure} : {}),
   } as const;
 }
 

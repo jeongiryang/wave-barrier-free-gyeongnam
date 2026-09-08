@@ -8,6 +8,7 @@ export function apiStatus(id: string, name: string, role: string, result: Attemp
     state: result.ok ? (found ? "live" : "empty") : "error",
     count: found,
     note: result.ok ? (found ? "실시간 응답 반영" : "조건에 맞는 결과 없음") : result.error,
+    ...(!result.ok && result.failure ? {failure:result.failure} : {}),
   };
 }
 

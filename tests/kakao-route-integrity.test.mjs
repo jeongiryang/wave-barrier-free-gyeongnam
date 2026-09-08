@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import * as failures from "../lib/provider-failure.js";
+import {createProviderRequester} from "../server/shared/provider-request.js";
 import assert from "node:assert/strict";
 import ts from "typescript";
 import * as coordinates from "../lib/map-coordinates.js";
@@ -9,7 +11,7 @@ const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.Comm
 const valid=()=>({routes:[{result_code:0,summary:{duration:420,distance:2300,fare:{toll:0}},sections:[{roads:[{vertexes:[128.6819,35.2281,128.692,35.2384]}]}]}]});
 async function run(body,{status=200,throwRequest=false,invalidJson=false}={}){
   const mod={exports:{}};
-  new Function("module","exports","require","fetch",code)(mod,mod.exports,name=>{if(name.endsWith("map-coordinates.js"))return coordinates;if(name.endsWith("request-budget.js"))return {UPSTREAM_TIMEOUT_MS:{transport:6000}};throw Error(name);},async()=>{if(throwRequest)throw Error("controlled timeout");return {ok:status>=200&&status<300,status,json:async()=>{if(invalidJson)throw Error("controlled malformed JSON");return body;}};});
+  new Function("module","exports","require","fetch",code)(mod,mod.exports,name=>{if(name.endsWith("provider-failure.js"))return failures;if(name.endsWith("provider-request.js"))return {requestProvider:createProviderRequester()};if(name.endsWith("map-coordinates.js"))return coordinates;if(name.endsWith("request-budget.js"))return {UPSTREAM_TIMEOUT_MS:{transport:6000}};throw Error(name);},async()=>{if(throwRequest)throw Error("controlled timeout");return {ok:status>=200&&status<300,status,json:async()=>{if(invalidJson)throw Error("controlled malformed JSON");return body;}};});
   return mod.exports.fetchKakaoRoute({KAKAO_REST_API_KEY:"fixture-not-a-real-key"},35.228,128.6818,35.2385,128.6921);
 }
 test("valid provider time, distance, toll and road vertices are preserved",async()=>{

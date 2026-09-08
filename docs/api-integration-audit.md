@@ -1,5 +1,10 @@
 # W.A.V.E API·환경 변수 전수조사
 
+2026-09-08 #365 후속 구현: [제공처 제한 운영 경계](provider-quota-operations.md)와
+[실제 호출 목록](../.wave/provider-budget.json)을 추가했다. 구조화 오류/인스턴스별
+cooldown은 구현 검증 중이며, UI·자동화 no-loop·운영 재검증 전 완료로 계산하지 않는다.
+아래 2026-09-06 수치와 SHA는 역사적 실호출 기록이다.
+
 최신 전체 검증: **2026-09-06 16:56 UTC**, 교통 후속 분석: **17:02~17:04 UTC**, 실제 브라우저: **17:29 UTC**
 
 대상: `main` / Vercel Production `34e6021265b16d046dca24feaa3ec2101fc977e2`

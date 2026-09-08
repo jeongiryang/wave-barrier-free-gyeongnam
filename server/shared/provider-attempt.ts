@@ -1,4 +1,5 @@
 import { clean } from "./http";
+import { ProviderRequestError } from "../../lib/provider-failure.js";
 import type { ProviderAttempt, ProviderResult } from "./provider-types";
 
 export async function attemptProvider(promise: Promise<ProviderResult>): Promise<ProviderAttempt> {
@@ -8,6 +9,7 @@ export async function attemptProvider(promise: Promise<ProviderResult>): Promise
     return {
       ok: false,
       error: error instanceof Error ? clean(error.message, 120) : "호출 확인 필요",
+      ...(error instanceof ProviderRequestError ? {failure:error.failure} : {}),
     };
   }
 }

@@ -4,6 +4,8 @@ import { SITE_ORIGIN } from "../../lib/site-metadata";
 import { odsayProviderStatus, readOdsayResponse } from "../../lib/transport/odsay-response.js";
 import type { Env } from "../shared/env";
 import { clean } from "../shared/http";
+import { requestProvider } from "../shared/provider-request.js";
+import { caughtProviderFailure, providerFailureMessage } from "../../lib/provider-failure.js";
 import type { ProviderStatusUpdate, RouteApiAlternative, RouteGeometryPoint } from "./types";
 
 const record = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -76,12 +78,12 @@ export async function fetchOdsayRoutes(
 
   try {
     const params = new URLSearchParams({ apiKey, output: "json", lang: "0", SX: String(startLng), SY: String(startLat), EX: String(endLng), EY: String(endLat), OPT: "0" });
-    const response = await fetch(`https://api.odsay.com/v1/api/searchPubTransPathT?${params.toString()}`, {
+    const response = await requestProvider({provider:"odsay",family:"odsay",operation:"searchPubTransPathT"}, `https://api.odsay.com/v1/api/searchPubTransPathT?${params.toString()}`, {
       // Vercel Functions의 송신 IP는 고정값이 아니다. ODsay Web 키는 등록한
       // 서비스 URI와 Referer를 대조하므로 실제 Production origin을 명시한다.
       headers: { Accept: "application/json", Referer: `${SITE_ORIGIN}/` },
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.transport),
-    });
+    }, fetch);
     if (!response.ok) {
       return {
         routes: [],
@@ -141,10 +143,11 @@ export async function fetchOdsayRoutes(
       };
     });
     return { routes, provider: odsayProviderStatus({ configured: true, routeCount: routes.length }) };
-  } catch {
+  } catch (error) {
+    const failure = caughtProviderFailure(error,{provider:"odsay",operation:"searchPubTransPathT"});
     return {
       routes: [],
-      provider: odsayProviderStatus({ configured: true, failure: "ODsay 경로 요청을 완료하지 못했습니다." }),
+      provider: {state:"error",detail:providerFailureMessage(failure),failure},
     };
   }
 }

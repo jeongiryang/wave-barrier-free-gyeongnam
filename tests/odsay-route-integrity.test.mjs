@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import ts from "typescript";
 import * as envelope from "../lib/transport/odsay-response.js";
 import * as coordinates from "../lib/map-coordinates.js";
+import * as failures from "../lib/provider-failure.js";
+import {createProviderRequester} from "../server/shared/provider-request.js";
 
 const source = readFileSync(new URL("../server/transport/odsay.ts", import.meta.url), "utf8");
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -19,6 +21,8 @@ async function run(body, { status = 200, fail = false, key = "fixture-not-a-real
     if (name.endsWith("map-coordinates.js")) return coordinates;
     if (name.endsWith("site-metadata")) return { SITE_ORIGIN: "https://example.test" };
     if (name.endsWith("odsay-response.js")) return envelope;
+    if (name.endsWith("provider-failure.js")) return failures;
+    if (name.endsWith("provider-request.js")) return {requestProvider:createProviderRequester()};
     if (name.endsWith("http")) return { clean: value => String(value) };
     throw Error(name);
   }, async () => { if (fail) throw Error("controlled timeout"); return { ok: status === 200, status, json: async () => body }; });

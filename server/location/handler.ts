@@ -1,6 +1,8 @@
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "../shared/env";
 import { clean, httpsUrl, json } from "../shared/http";
+import { requestProvider } from "../shared/provider-request.js";
+import { caughtProviderFailure, providerFailureMessage } from "../../lib/provider-failure.js";
 
 export async function handleLocationSearch(request: Request, env: Env) {
   if (request.method !== "GET") return json({ error: "GET 요청만 지원합니다." }, 405);
@@ -11,10 +13,10 @@ export async function handleLocationSearch(request: Request, env: Env) {
   if (query.length < 2) return json({ error: "두 글자 이상 입력해 주세요." }, 400);
   try {
     const params = new URLSearchParams({ query, size: "10", sort: "accuracy" });
-    const response = await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?${params.toString()}`, {
+    const response = await requestProvider({provider:"kakao-local",family:"kakao",operation:"keyword.json"}, `https://dapi.kakao.com/v2/local/search/keyword.json?${params.toString()}`, {
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.location),
       headers: { Authorization: `KakaoAK ${key}`, Accept: "application/json" },
-    });
+    }, fetch);
     if (!response.ok) throw new Error(`장소 검색 응답 ${response.status}`);
     const data = await response.json() as { documents?: Array<Record<string, string>> };
     return json({
@@ -29,6 +31,7 @@ export async function handleLocationSearch(request: Request, env: Env) {
       })),
     }, 200, true);
   } catch (error) {
-    return json({ error: error instanceof Error ? clean(error.message, 120) : "장소를 검색하지 못했습니다." }, 502);
+    const failure = caughtProviderFailure(error,{provider:"kakao-local",operation:"keyword.json"});
+    return json({ error:providerFailureMessage(failure),failure }, 502);
   }
 }
