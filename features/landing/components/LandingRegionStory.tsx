@@ -75,7 +75,7 @@ export default function LandingRegionStory({ t, activeRegion, active, preview, r
               : previewPhoto === undefined
                 ? <div className="region-photo-skeleton"><i /><i /></div>
                 : <div className="region-photo-placeholder"><span className="region-photo-placeholder-mark" aria-hidden="true"><i /><b>{regionLabel(preview.name).slice(0, 1)}</b></span><small>{english ? "Story" : "지역 이야기"}</small><strong>{regionLabel(preview.name)}</strong></div>}
-            <section className={previewPhoto === undefined ? "loading-copy" : ""}><small>{previewPhoto?.location || (english ? "Gyeongnam tourism photos" : "경상남도 관광사진")}</small><strong>{previewPhoto?.title || (english ? `${regionLabel(preview.name)} travel stories` : `${preview.name}의 여행 이야기`)}</strong><span>{previewPhoto === undefined ? (english ? "Loading official tourism photos" : "공식 관광사진 불러오는 중") : story(preview)}</span>{english && previewPhoto && <small>Photo titles and locations are provided in their original Korean.</small>}</section>
+            <section className={previewPhoto === undefined ? "loading-copy" : ""}><small lang={previewPhoto?.location ? "ko" : locale}>{previewPhoto?.location || (english ? "Gyeongnam tourism photos" : "경상남도 관광사진")}</small><strong lang={previewPhoto?.title ? "ko" : locale}>{previewPhoto?.title || (english ? `${regionLabel(preview.name)} travel stories` : `${preview.name}의 여행 이야기`)}</strong><span>{previewPhoto === undefined ? (english ? "Loading official tourism photos" : "공식 관광사진 불러오는 중") : story(preview)}</span>{english && previewPhoto && <small>Photo titles and locations are provided in their original Korean.</small>}</section>
           </div>}
         </div>
       </div>

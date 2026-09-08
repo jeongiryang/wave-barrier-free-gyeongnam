@@ -179,6 +179,8 @@ export function startWaveFieldRenderer(
           shapeW0 = stageWeight(elapsed, INTRO_STAGES[0]);
           shapeW1 = stageWeight(elapsed, INTRO_STAGES[1]);
           shapeW2 = stageWeight(elapsed, INTRO_STAGES[2]);
+          // The final wordmark stays visible; a late viewer never finds an empty stage.
+          if (elapsed >= INTRO_STAGES[2].in[1]) shapeW2 = 1;
         }
       }
       const reveal = Math.min(1, shapeW0 + shapeW1 + shapeW2);
@@ -276,11 +278,15 @@ export function startWaveFieldRenderer(
       }
 
       if (framePixels) context!.putImageData(framePixels, 0, 0);
+      if (mode === "intro") {
+        const phase = reduced ? "static" : elapsed < INTRO_STAGES[1].in[0] ? "wave" : elapsed < INTRO_STAGES[2].in[0] ? "accessibility" : "wordmark";
+        if (canvas.dataset.introPhase !== phase) canvas.dataset.introPhase = phase;
+      }
 
       // 오래된 물결은 버린다.
       if (ripples.length) ripples = ripples.filter((ripple) => time - ripple.born < 2.6);
 
-      if (!reduced && inViewport && !document.hidden) frame = window.requestAnimationFrame(draw);
+      if (!reduced && inViewport && !document.hidden && (mode !== "intro" || elapsed < 4.8)) frame = window.requestAnimationFrame(draw);
     }
 
     resize();
@@ -296,7 +302,11 @@ export function startWaveFieldRenderer(
     if (reduced) frame = window.requestAnimationFrame(draw);
     else syncAnimation();
 
-    const observer = new ResizeObserver(() => resize());
+    const observer = new ResizeObserver(() => {
+      resize();
+      // Resizing clears a canvas even after the bounded intro has settled.
+      if (mode === "intro" && start && performance.now() - start >= 4800) draw(performance.now());
+    });
     observer.observe(canvas);
     const visibilityObserver = new IntersectionObserver(([entry]) => {
       inViewport = entry?.isIntersecting ?? true;

@@ -4,34 +4,10 @@
 .landing-pointer-glow { z-index: 1; position: fixed; width: 520px; height: 520px; left: var(--pointer-x); top: var(--pointer-y); border-radius: 50%; pointer-events: none; opacity: .22; background: radial-gradient(circle, rgba(81,197,255,.65), rgba(125,235,233,.18) 40%, transparent 70%); filter: blur(18px); transform: translate(-50%,-50%); transition: opacity .25s; mix-blend-mode: multiply; }
 .chapter-rail { z-index: 80; position: fixed; right: 19px; top: 50%; display: grid; justify-items: center; gap: 8px; color: #537888; font-size: .52rem; font-weight: 900; letter-spacing: .12em; transform: translateY(-50%); }
 .chapter-rail i { width: 2px; height: 150px; overflow: hidden; border-radius: 99px; background: rgba(70,112,131,.18); }.chapter-rail b { width: 100%; height: calc(var(--landing-progress) * 100%); display: block; border-radius: inherit; background: linear-gradient(var(--blue),var(--mint)); transition: height .1s linear; }
-.landing-hero-copy { will-change: transform; transform: translate3d(calc(var(--pointer-rx) * -10px), calc(var(--pointer-ry) * -6px), 0); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
 .landing-signal { transform: none; }
-.landing-page[data-scroll-direction="down"] .landing-hero-copy { translate: 0 min(var(--hero-shift), 80px); opacity: calc(1 - var(--landing-progress) * .75); }
-.landing-page[data-scroll-direction="up"] .landing-hero-copy { translate: 0 -12px; }
 .landing-page[data-scroll-direction="down"] .landing-signal { scale: 1; }
-.landing-page[data-scroll-direction="up"] .signal-node { animation-duration: 2.7s; }
 
 /* 첫 화면은 조건에서 출발해 근거·일정·상황 대응으로 이어지는 흐름을 직접 보여준다. */
-.signal-route-current { animation: signalRouteDraw 7.2s ease-in-out infinite; }
-.signal-traveler { animation: signalTravelerRoute 7.2s cubic-bezier(.45,0,.2,1) infinite; }
-.signal-node { animation: signalNodeReady 7.2s ease-in-out infinite; }
-.signal-node.node-two { animation-delay: -.25s; }
-.signal-node.node-three { animation-delay: -.5s; }
-.signal-node.node-four { animation-delay: -.75s; }
-@keyframes signalRouteDraw {
-  0%,8% { stroke-dashoffset: 120; opacity: .35; }
-  70%,100% { stroke-dashoffset: 0; opacity: 1; }
-}
-@keyframes signalTravelerRoute {
-  0%,10% { transform: translate3d(0,0,0); }
-  31% { transform: translate3d(20cqw,-22cqw,0); }
-  57% { transform: translate3d(50cqw,-11cqw,0); }
-  82%,100% { transform: translate3d(75cqw,-25cqw,0); }
-}
-@keyframes signalNodeReady {
-  0%,100% { box-shadow: 0 13px 34px rgba(9,65,90,.14); }
-  48%,58% { box-shadow: 0 0 0 8px rgba(23,176,255,.1),0 18px 38px rgba(9,65,90,.18); }
-}
 
 /* 큰 카피는 뷰포트 중심을 지날 때 최대 ±16px만 천천히 떠다닌다. */
 .manifesto > h2,
@@ -138,8 +114,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .landing-pointer-glow,.chapter-rail { display: none; }
-  .signal-route-current,.signal-traveler,.signal-node { animation: none !important; }
-  .signal-traveler { transform: translate3d(75cqw,-25cqw,0) !important; }
   .manifesto > h2,
   .product-story-copy,
   .region-story-copy,
@@ -164,13 +138,9 @@ html[data-motion="calm"] .landing-pointer-glow,
 html[data-motion="calm"] .chapter-rail { display: none; }
 html[data-motion="calm"] .landing-hero-copy,
 html[data-motion="calm"] .landing-signal { translate: none !important; transform: none !important; scale: 1 !important; transition: none !important; }
-html[data-motion="calm"] .signal-route-current,
-html[data-motion="calm"] .signal-traveler,
-html[data-motion="calm"] .signal-node,
 html[data-motion="calm"] .product-story-copy h2 em,
 html[data-motion="calm"] .landing-community-copy h2 em,
 html[data-motion="calm"] .landing-cta h2 em { animation: none !important; }
-html[data-motion="calm"] .signal-traveler { transform: translate3d(75cqw,-25cqw,0) !important; }
 html[data-motion="calm"] [data-land-reveal],
 html[data-motion="calm"] .product-story .product-story-copy > *,
 html[data-motion="calm"] .landing-community .landing-community-copy > *,

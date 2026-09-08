@@ -2,6 +2,7 @@ import Link from "next/link";
 import GithubFooterLink from "../../../components/GithubFooterLink";
 import PolicyFooterLinks from "../../../components/PolicyFooterLinks";
 import type { LandingTranslate } from "../content";
+import { useSitePreferences } from "../../../components/SitePreferences";
 
 export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
   return <section className="evidence-story" id="evidence" aria-labelledby="data-principles-title">
@@ -15,11 +16,13 @@ export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
 }
 
 export function LandingCallToAction({ t }: { t: LandingTranslate }) {
+  const en = useSitePreferences().locale === "en";
   return <section className="landing-cta" data-land-reveal>
-    <p>지역과 필요한 편의를 고르면</p><h2>{t("planningCtaTitle", "여행지부터 일정까지,")}<br /><em>{t("planningCtaEm", "차근차근 만들 수 있어요.")}</em></h2><Link href="/planner">여행 계획 만들기 <span>↗</span></Link>
+    <p>{en ? "Choose a region and the facilities you need" : "지역과 필요한 편의를 고르면"}</p><h2>{t("planningCtaTitle", "여행지부터 일정까지,")}<br /><em>{t("planningCtaEm", "차근차근 만들 수 있어요.")}</em></h2><Link href="/planner">{en ? "Plan my trip" : "여행 계획 만들기"} <span aria-hidden="true">↗</span></Link>
   </section>;
 }
 
 export function LandingFooter({ t }: { t: LandingTranslate }) {
-  return <footer className="simple-footer"><div className="brand footer-brand"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span></div><div className="footer-notes"><p>{t("footer", "누구나 원하는 곳으로, 경남 무장애 여행 길잡이")}</p><p className="trust-notice">W.A.V.E는 한국관광공사·경상남도의 공식 운영 서비스가 아닙니다. 출발 전 운영기관의 최신 정보를 확인해 주세요.</p><PolicyFooterLinks /></div><div className="footer-meta"><p className="source">데이터 출처: 한국관광공사 · 한국관광콘텐츠랩</p><GithubFooterLink /></div></footer>;
+  const en = useSitePreferences().locale === "en";
+  return <footer className="simple-footer"><div className="brand footer-brand"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span></div><div className="footer-notes"><p>{t("footer", "누구나 원하는 곳으로, 경남 무장애 여행 길잡이")}</p><p className="trust-notice">{en ? "W.A.V.E is independently operated, not an official service of KTO or Gyeongsangnam-do. Check current information with the operator before departure." : "W.A.V.E는 한국관광공사·경상남도의 공식 운영 서비스가 아닙니다. 출발 전 운영기관의 최신 정보를 확인해 주세요."}</p><PolicyFooterLinks /></div><div className="footer-meta"><p className="source">{en ? "Data: Korea Tourism Organization · Korea Tourism Content Lab" : "데이터 출처: 한국관광공사 · 한국관광콘텐츠랩"}</p><GithubFooterLink /></div></footer>;
 }

@@ -88,8 +88,19 @@ jobs:
 
       - name: 브라우저 설치
         run: npx playwright install --with-deps chromium
-      - name: 브라우저·접근성 회귀 테스트
-        run: npm run test:e2e -- --shard=${{ matrix.shard }}/2
+      # The default global shard put every desktop test on runner 1 and every
+      # slower mobile test on runner 2. Keep two runners and the complete suite,
+      # but give each runner half of each device project, using native sharding.
+      - name: 데스크톱 브라우저·접근성 회귀 테스트
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report/desktop
+        run: npm run test:e2e -- --project=desktop-chromium --shard=${{ matrix.shard }}/2 --output=test-results/desktop
+
+      - name: 모바일 브라우저·접근성 회귀 테스트
+        if: ${{ !cancelled() }}
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report/mobile
+        run: npm run test:e2e -- --project=mobile-chromium --shard=${{ matrix.shard }}/2 --output=test-results/mobile
 
       - name: 브라우저 검증 보고서 보관
         if: ${{ !cancelled() }}

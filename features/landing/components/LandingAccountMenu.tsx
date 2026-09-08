@@ -1,6 +1,7 @@
 "use client";
 
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { useSitePreferences } from "../../../components/SitePreferences";
 
 const ACCOUNT_IDLE_DELAY_MS = 4_000;
 let accountMenuModule: ReturnType<typeof importAccountMenu> | null = null;
@@ -25,6 +26,7 @@ const DeferredAccountMenu = lazy(preloadAccountMenu);
  * 실제 세션 UI를 붙인다. 그 전에도 로그인 링크는 그대로 사용할 수 있다.
  */
 export default function LandingAccountMenu() {
+  const en = useSitePreferences().locale === "en";
   const [ready, setReady] = useState(false);
   const mounted = useRef(true);
 
@@ -50,10 +52,10 @@ export default function LandingAccountMenu() {
       onPointerEnter={reveal}
       onFocus={() => { void preloadAccountMenu().catch(() => undefined); }}
       onTouchStart={() => { void preloadAccountMenu().catch(() => undefined); }}
-    >로그인</a>;
+    >{en ? "Log in" : "로그인"}</a>;
   }
 
-  return <Suspense fallback={<a className="account-button" href="/login">로그인</a>}>
+  return <Suspense fallback={<a className="account-button" href="/login">{en ? "Log in" : "로그인"}</a>}>
     <DeferredAccountMenu />
   </Suspense>;
 }

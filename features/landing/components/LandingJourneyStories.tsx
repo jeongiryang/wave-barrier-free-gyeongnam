@@ -1,14 +1,16 @@
 import CompactJourneyVisual from "./CompactJourneyVisual";
+import { useSitePreferences } from "../../../components/SitePreferences";
 
 export default function LandingJourneyStories() {
+  const en = useSitePreferences().locale === "en";
   return <>
     <article className="product-story plan-story" data-land-reveal>
       <CompactJourneyVisual stage="schedule" />
       <div className="product-story-copy">
-        <p className="section-kicker">03 · 하루 일정</p>
-        <h2>관광지 목록을<br /><em>하루의 순서로.</em></h2>
-        <p>선택한 장소를 날짜에 배치하고 방문 순서를 정리합니다. 이동 경로를 확인한 뒤 일정에 반영하고, 상황이 달라지면 같은 편의조건을 유지하는 대안을 검토합니다.</p>
-        <a href="/planner#itinerary">일정 구성해 보기 <span>→</span></a>
+        {en ? <p className="section-kicker">03 · Your itinerary</p> : <p className="section-kicker">03 · 하루 일정</p>}
+        <h2>{en ? "From a list of places" : "관광지 목록을"}<br /><em>{en ? "to your own day." : "하루의 순서로."}</em></h2>
+        <p>{en ? "Assign your places to dates and arrange each day's visits. You choose the starting time, order and pace." : "선택한 장소를 날짜에 담고 방문 순서를 정리하세요. 시작 시각과 순서를 바꾸며 나만의 하루를 만들어요."}</p>
+        <a href="/planner#itinerary">{en ? "Build an itinerary" : "일정 구성해 보기"} <span aria-hidden="true">→</span></a>
       </div>
       <div className="product-preview plan-preview feature-motion" role="img" aria-label="선택한 두 장소가 하루 일정에 추가되고 방문 순서가 정리되는 흐름">
         <div className="feature-preview-stage" aria-hidden="true">
@@ -24,10 +26,10 @@ export default function LandingJourneyStories() {
     <article className="product-story route-story reverse" data-land-reveal>
       <CompactJourneyVisual stage="route" />
       <div className="product-story-copy">
-        <p className="section-kicker">04 · 이동 경로</p>
-        <h2>선택한 장소와 지도를<br /><em>한 흐름으로.</em></h2>
-        <p>목록에서 고른 장소가 지도와 경로에 바로 이어집니다. 교통정보가 늦게 도착해도 먼저 확인된 이동수단부터 비교할 수 있습니다.</p>
-        <a href="/planner#navigation">지도와 이동 확인하기 <span>→</span></a>
+        {en ? <p className="section-kicker">04 · Each journey</p> : <p className="section-kicker">04 · 이동 경로</p>}
+        <h2>{en ? "The same places." : "선택한 장소와 지도를"}<br /><em>{en ? "The same order." : "한 흐름으로."}</em></h2>
+        <p>{en ? "Check each day's places on the map and review every travel leg. Read available routes separately from estimates and information that is still unconfirmed." : "그날의 장소를 지도에서 확인하고 모든 이동 구간을 살펴보세요. 조회된 경로와 추정값, 아직 확인하지 못한 정보를 구분해 보여드려요."}</p>
+        <a href="/planner#navigation">{en ? "Check maps and routes" : "지도와 이동 확인하기"} <span aria-hidden="true">→</span></a>
       </div>
       <div className="product-preview route-preview feature-motion" role="img" aria-label="출발지에서 두 장소까지 확인된 자동차 경로와 보행 이동을 지도 위에서 비교하는 흐름">
         <div className="feature-preview-stage" aria-hidden="true">
