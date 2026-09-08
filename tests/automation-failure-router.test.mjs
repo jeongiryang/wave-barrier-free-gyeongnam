@@ -52,3 +52,35 @@ test("a skipped downstream run cannot create a failure issue even when its event
   await route(github, context, core);
   assert.equal(reads, 2);
 });
+
+test("verified provider-only failures do not create repeated code tasks; mixed, fork and unrecorded failures still triage", async () => {
+  const run = {id:123,run_attempt:1,name:"Post-Deploy Production QA",path:".github/workflows/automation-post-deploy-qa.yml",conclusion:"failure",repository:{full_name:"owner/repo"},head_repository:{full_name:"owner/repo"},head_branch:"main",head_sha:"a".repeat(40),pull_requests:[]};
+  const jobs = [{name:"verify",conclusion:"failure",steps:[{name:"Provider hold preflight",conclusion:"failure"},{name:"읽기 전용 Production 사용자 여정·접근성 smoke",conclusion:"success"}]},{name:"provider-hold",conclusion:"success"}];
+  let writes = 0;
+  const api = {listForRepo:async()=>[],create:async()=>{writes++;return {data:{number:1}};}};
+  const github = {rest:{issues:api,actions:{getWorkflowRun:async()=>({data:run}),listJobsForWorkflowRun:async()=>jobs}},paginate:async(fn,args)=>fn(args)};
+  const context = {repo:{owner:"owner",repo:"repo"},payload:{workflow_run:run,repository:{full_name:"owner/repo"}}};
+  const route = script("automation-failure-router.yml");
+  await route(github,context,core);await route(github,context,core);
+  assert.equal(writes,0);
+  jobs[0].steps[1].conclusion="failure";
+  await route(github,context,core);assert.equal(writes,1,"a real browser failure is not hidden by a provider hold");
+  jobs[0].steps[1].conclusion="success";jobs[1].conclusion="failure";
+  await route(github,context,core);assert.equal(writes,2,"failed hold persistence remains an engineering failure");
+  jobs[1].conclusion="success";run.head_repository.full_name="outside/fork";
+  await route(github,context,core);assert.equal(writes,3,"outside results never suppress internal triage");
+  run.head_repository.full_name="owner/repo";jobs[0].conclusion="timed_out";
+  await route(github,context,core);assert.equal(writes,4,"a timeout is not a verified provider-only result");
+  jobs[0].conclusion="failure";
+  for(const file of ["automation-post-deploy-qa.yml","production-api-smoke.yml"]) {
+    const workflow=yaml.load(readFileSync(`.github/workflows/${file}`,"utf8"));
+    const mixed=workflow.jobs.verify.steps.find(step=>step.name==="Preserve mixed provider failure for engineering triage");
+    assert.ok(mixed);
+    const before=writes;
+    jobs[0].steps.push({name:mixed.name,conclusion:"failure"});
+    run.name=workflow.name;run.path=`.github/workflows/${file}`;
+    await route(github,context,core);
+    assert.equal(writes,before+1,"mixed aggregation must route to engineering despite a successful quota hold");
+    jobs[0].steps.pop();
+  }
+});

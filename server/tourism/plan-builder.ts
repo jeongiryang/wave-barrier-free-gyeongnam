@@ -3,6 +3,8 @@ import { clean } from "../shared/http";
 import {
   attemptProvider as attempt,
   commonParams,
+  combineProviderResults,
+  combineFailedProviderAttempts,
   fetchRegionalList,
   fetchTourismData as fetchKto,
 } from "../shared/provider-data";
@@ -34,9 +36,9 @@ export async function buildPlan(request: Request, env: Env) {
       ...params, contentTypeId: localized && locale !== "ko" ? multilingualContentTypes[theme] : contentTypes[theme],
     }, districts)), Math.min(6_000, remaining()), overBudget);
     const successes = results.filter((result) => result.ok);
-    if (!successes.length) return results[0] || overBudget();
+    if (!successes.length) return combineFailedProviderAttempts(results);
     const items = mergeThemeResults(successes.map((result) => result.ok ? result.value.items : []));
-    return { ok: true, value: { items, total: items.length } };
+    return { ok: true, value: combineProviderResults(items, results) };
   };
 
   // 사진·통계가 느려도 장소 목록과 편의시설 상세 조회는 곧바로 이어진다.
@@ -77,7 +79,8 @@ export async function buildPlan(request: Request, env: Env) {
   const course = courseFrom(durunubi);
   const stops = buildPlanStops(places);
   const { statuses, mode } = buildPlanStatuses({
-    barrier, tour, audio, durunubi, hub: hubPack.result, photo, related: relatedPack.result, crowd,
+    barrier: barrier.ok ? { ok: true, value: combineProviderResults(barrier.value.items, [barrier, ...details]) } : barrier,
+    tour, audio, durunubi, hub: hubPack.result, photo, related: relatedPack.result, crowd,
     detailCount: details.filter((item) => item.ok && item.value.items.length).length,
     language,
   });

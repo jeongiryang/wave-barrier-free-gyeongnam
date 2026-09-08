@@ -26,12 +26,19 @@ export async function scan(api = githubApi) {
 export async function approvedOrder(issue, api = githubApi) {
   const source = await api(`repos/${REPOSITORY}/issues/${issue}`);
   if (source.state !== "open" || source.pull_request) throw new Error("INELIGIBLE_ISSUE");
+  assertEngineeringIssue(source);
   const comments = await pages(`repos/${REPOSITORY}/issues/${issue}/comments`, api);
   const comment = comments.filter(item => item.user?.login === "jeongiryang" && item.body?.startsWith("<!-- wave-work-order:v2 -->")).sort((a, b) => b.id - a.id)[0];
   const order = readWorkOrder(issue, comment);
   const pr = await api(`repos/${REPOSITORY}/pulls/${order.pullRequest}`);
   if (pr.state !== "open" || pr.head.repo?.full_name !== REPOSITORY || pr.head.ref !== order.branch || pr.head.sha !== order.baseSha) throw new Error("STALE_WORK_ORDER");
   return order;
+}
+
+function assertEngineeringIssue(source) {
+  if (source.body?.startsWith("<!-- wave-provider-hold:v1 -->") || source.labels?.some(label => (typeof label === "string" ? label : label.name) === "status:blocked-external")) {
+    throw new Error("BLOCKED_EXTERNAL: operational hold is not an engineering task");
+  }
 }
 
 export async function main(args, { api = githubApi, queue = new GitHubQueue(api), now = Date.now() } = {}) {
@@ -65,6 +72,7 @@ export async function main(args, { api = githubApi, queue = new GitHubQueue(api)
     return queue.update(key, task => resume(task, now));
   }
   if (command === "claim") return queue.update(key, async task => {
+    assertEngineeringIssue(await api(`repos/${REPOSITORY}/issues/${issue}`));
     const comments = await pages(`repos/${REPOSITORY}/issues/${issue}/comments`, api);
     const latest = comments.filter(item => item.user?.login === "jeongiryang" && item.body?.startsWith("<!-- wave-work-order:v2 -->")).sort((a, b) => b.id - a.id)[0];
     if (readWorkOrder(issue, latest).revision !== task.order.revision) throw new Error("STALE_WORK_ORDER");

@@ -36,6 +36,7 @@ test("200 안의 부분 실패는 성공 경로를 보존하면서 재시도할 
   assert.equal(cacheControlHeader(true, 200, { error: "upstream unavailable" }), NO_STORE);
   assert.equal(cacheControlHeader(true, 200, { places: [], statuses: [{ state: "empty" }] }), PUBLIC_CACHE_CONTROL);
   assert.equal(cacheControlHeader(true, 200, { providers: [{ state: "missing" }] }), PUBLIC_CACHE_CONTROL);
+  assert.equal(cacheControlHeader(true, 200, { statuses: [{ state: "live", partial: true }] }), NO_STORE);
 });
 
 test("관광 사진·혼잡도 핸들러는 성공과 실패를 같은 자리에서 만든다", async () => {

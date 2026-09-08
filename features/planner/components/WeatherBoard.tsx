@@ -1,4 +1,5 @@
 import type { WeatherData } from "../types";
+import { providerFailureMessage, type ProviderFailure } from "../../../lib/provider-failure.js";
 import WeatherVisual from "./WeatherVisual";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { regionNames } from "../../../components/GyeongnamRegionPicker";
@@ -10,10 +11,11 @@ interface WeatherBoardProps {
   region: string;
   weather: WeatherData | null;
   loading: boolean;
+  failure?: ProviderFailure;
   onReload: () => void;
 }
 
-export default function WeatherBoard({ region, weather, loading, onReload }: WeatherBoardProps) {
+export default function WeatherBoard({ region, weather, loading, failure, onReload }: WeatherBoardProps) {
   const { locale } = useSitePreferences();
   const english = locale === "en";
   const focus = useReadinessFocus();
@@ -52,7 +54,7 @@ export default function WeatherBoard({ region, weather, loading, onReload }: Wea
       ))}</div>
     </>}
     {!loading && !weather && <div className="weather-empty">
-      <strong>{english ? "The forecast is temporarily unavailable." : "예보를 잠시 불러오지 못했습니다."}</strong>
+      <strong>{failure ? providerFailureMessage(failure, english) : english ? "The forecast is temporarily unavailable." : "예보를 잠시 불러오지 못했습니다."}</strong>
       <span>{english ? "Your itinerary, places and routes remain available. Check the weather again." : "일정·관광지·경로는 그대로 이용할 수 있어요. 날씨를 다시 확인해 주세요."}</span>
     </div>}
   </section>;

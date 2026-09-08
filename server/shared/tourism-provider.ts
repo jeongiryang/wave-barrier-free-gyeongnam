@@ -3,7 +3,7 @@ import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import { clean } from "./http";
 import { requestProvider } from "./provider-request.js";
 import { providerFailure, ProviderRequestError } from "../../lib/provider-failure.js";
-import { attemptProvider } from "./provider-attempt";
+import { attemptProvider, combineProviderResults, combineFailedProviderAttempts } from "./provider-attempt";
 import { normalizeItems } from "./provider-normalizers";
 import type { ProviderAttempt, ProviderResult } from "./provider-types";
 
@@ -59,8 +59,8 @@ export async function fetchRegionalList(
     : [attemptProvider(fetchTourismData(env, service, operation, params))];
   const results = await Promise.all(calls);
   const successes = results.filter((result): result is Extract<ProviderAttempt, { ok: true }> => result.ok);
-  if (!successes.length) return results[0];
+  if (!successes.length) return combineFailedProviderAttempts(results);
   const items = successes.flatMap((result) => result.value.items);
   const unique = [...new Map(items.map((item) => [clean(item.contentid || item.title), item])).values()];
-  return { ok: true, value: { items: unique, total: unique.length } } as ProviderAttempt;
+  return { ok: true, value: combineProviderResults(unique, results) } as ProviderAttempt;
 }

@@ -1,8 +1,24 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { routeResultNotice, routeTitle, transitDetail } from "../features/planner/route-copy.ts";
+import { routeResultNotice, routeTitle } from "../features/planner/route-copy.ts";
+import { transitDetail } from "../features/planner/transit-detail.ts";
 import { hasJourneyEstimate } from "../lib/route-estimates.js";
 import { odsayProviderStatus } from "../lib/transport/odsay-response.js";
+import { providerFailureMessage } from "../lib/provider-failure.js";
+
+test("route summaries retain structured restrictions across language changes without provider text", () => {
+  for (const kind of ["rate_limited", "quota_exhausted", "auth_error", "access_restricted", "timeout", "upstream_error", "malformed_response", "missing_config"]) {
+    const failure = { kind };
+    for (const detail of ["", "untrusted upstream text", providerFailureMessage(failure)]) {
+      for (const english of [false, true]) {
+        const message = transitDetail(detail, english, failure);
+        assert.equal(message, providerFailureMessage(failure, english));
+        assert.doesNotMatch(message, /untrusted upstream text/);
+        if (english) assert.doesNotMatch(message, /[가-힣]/);
+      }
+    }
+  }
+});
 
 test("ODsay validation, empty and upstream failures stay distinct in both languages", () => {
   const messages = new Set();

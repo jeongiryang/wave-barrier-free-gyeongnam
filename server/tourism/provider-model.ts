@@ -5,10 +5,13 @@ export function apiStatus(id: string, name: string, role: string, result: Attemp
   const found = count ?? (result.ok ? result.value.items.length : 0);
   return {
     id, name, role,
-    state: result.ok ? (found ? "live" : "empty") : "error",
+    state: result.ok && !result.value.partial ? (found ? "live" : "empty") : "error",
     count: found,
-    note: result.ok ? (found ? "실시간 응답 반영" : "조건에 맞는 결과 없음") : result.error,
+    note: result.ok ? (result.value.partial ? "일부 정보를 확인하지 못했습니다." : found ? "실시간 응답 반영" : "조건에 맞는 결과 없음") : result.error,
+    ...(result.ok && result.value.partial ? {partial:true,failures:result.value.failures || []} : {}),
     ...(!result.ok && result.failure ? {failure:result.failure} : {}),
+    ...(!result.ok && result.failures ? {failures:result.failures} : {}),
+    ...((result.ok ? result.value.unclassifiedFailure : result.unclassifiedFailure) ? {unclassifiedFailure:true} : {}),
   };
 }
 

@@ -1,5 +1,5 @@
 import { clean } from "../shared/http";
-import type { ProviderAttempt as Attempt } from "../shared/provider-data";
+import { combineProviderResults, type ProviderAttempt as Attempt } from "../shared/provider-data";
 import type { fetchEnrichmentSources } from "./enrichment-sources";
 import { richSpot } from "./content-model";
 import { apiStatus } from "./provider-model";
@@ -34,7 +34,7 @@ export function buildEnrichmentModel(sources: EnrichmentSources, expresswayConfi
     apiStatus("language", language.name, `${language.source} 공식 관광 안내`, languageTour),
     apiStatus("award", "관광공모전 수상사진", "조회된 사진 중 경남 촬영지가 확인된 자료", awards),
     apiStatus("demand", "관광 자원 수요", "SNS·소비·내비게이션 기반 지역 수요 지표", demandPack.result, demandItems.length),
-    apiStatus("water", "물과 여행", "낙동강 수변 코스와 주요 명소", waterCourses.ok || waterPlaces.ok ? { ok: true, value: { items: [...(waterCourses.ok ? waterCourses.value.items : []), ...(waterPlaces.ok ? waterPlaces.value.items : [])], total: 0 } } : waterCourses),
+    apiStatus("water", "물과 여행", "낙동강 수변 코스와 주요 명소", waterCourses.ok || waterPlaces.ok ? { ok: true, value: combineProviderResults([...(waterCourses.ok ? waterCourses.value.items : []), ...(waterPlaces.ok ? waterPlaces.value.items : [])], [waterCourses, waterPlaces]) } : waterCourses),
     expresswayConfigured
       ? apiStatus("rest", "테마휴게소", "조회된 휴게소 중 경남 주소가 확인된 휴식 지점", themeRests)
       : { id: "rest", name: "테마휴게소", role: "관광·문화·체험형 고속도로 휴식 지점", state: "ready", count: 0, note: "선택 기능 · 한국도로공사 전용키 연결 시 활성화" },
