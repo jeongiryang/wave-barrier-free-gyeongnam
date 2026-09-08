@@ -35,15 +35,13 @@ test("CI retains all checks and runs every browser shard without fail-fast or se
   assert.deepEqual(workflow.permissions, { contents: "read" });
   const { quality, browser } = workflow.jobs;
   assert.deepEqual(browser.strategy.matrix.shard, [1, 2]);
+  assert.deepEqual(browser.strategy.matrix.device, ["desktop", "mobile"]);
   assert.equal(browser.strategy["fail-fast"], false);
   const browserRuns = browser.steps.filter(step => step.run?.startsWith("npm run test:e2e"));
-  assert.equal(browserRuns.length, 2);
-  for (const [index, device] of ["desktop", "mobile"].entries()) {
-    const step = browserRuns[index];
-    assert.equal(step.run, `npm run test:e2e -- --project=${device}-chromium --shard=\${{ matrix.shard }}/2 --output=test-results/${device}`);
-    assert.equal(step.env.PLAYWRIGHT_HTML_REPORT, `playwright-report/${device}`);
-    assert.equal(step.if, index === 1 ? "${{ !cancelled() }}" : undefined);
-  }
+  assert.equal(browserRuns.length, 1);
+  assert.equal(browserRuns[0].run, "npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/2 --output=test-results/${{ matrix.device }}");
+  assert.equal(browserRuns[0].env.PLAYWRIGHT_HTML_REPORT, "playwright-report/${{ matrix.device }}");
+  assert.equal(browserRuns[0].if, undefined);
   for (const command of ["npm audit --omit=dev --audit-level=high", "npm audit --audit-level=moderate", "npm run lint", "npm run typecheck", "npm test", "npm run build:vercel", "npm run check:performance"]) {
     assert.ok(quality.steps.some(step => step.run === command), command);
   }
@@ -90,13 +88,13 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
 test("RC separates complete hosted product validation from frozen bounded sandbox smoke", () => {
   assert.deepEqual(workflow.jobs.quality, archivedWorkflow.jobs.quality);
   const expectedBrowser = structuredClone(archivedWorkflow.jobs.browser);
-  const browserStep = expectedBrowser.steps.findIndex(step => step.name === "브라우저·접근성 회귀 테스트");
-  expectedBrowser.steps.splice(browserStep, 1, ...["desktop", "mobile"].map((device, index) => ({
-    name: `${index === 0 ? "데스크톱" : "모바일"} 브라우저·접근성 회귀 테스트`,
-    ...(index === 1 ? { if: "${{ !cancelled() }}" } : {}),
-    env: { PLAYWRIGHT_HTML_REPORT: `playwright-report/${device}` },
-    run: `npm run test:e2e -- --project=${device}-chromium --shard=\${{ matrix.shard }}/2 --output=test-results/${device}`,
-  })));
+  expectedBrowser.strategy.matrix.device = ["desktop", "mobile"];
+  const browserStep = expectedBrowser.steps.find(step => step.name === "브라우저·접근성 회귀 테스트");
+  browserStep.env = { PLAYWRIGHT_HTML_REPORT: "playwright-report/${{ matrix.device }}" };
+  browserStep.run = "npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/2 --output=test-results/${{ matrix.device }}";
+  for (const step of expectedBrowser.steps.filter(step => step.uses?.startsWith("actions/upload-artifact@"))) {
+    step.with.name = step.with.name.replace("${{ matrix.shard }}", "${{ matrix.device }}-${{ matrix.shard }}");
+  }
   assert.deepEqual(workflow.jobs.browser, expectedBrowser);
   // Only the explicitly reviewed immutable distribution may differ from the
   // archived boundary job. Every command, timeout and safety probe stays equal.
