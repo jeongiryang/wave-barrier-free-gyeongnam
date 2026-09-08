@@ -84,7 +84,7 @@ jobs:
           else
             cron_secret="$(openssl rand -hex 32)"
             echo "::add-mask::$cron_secret"
-            printf '%s\n' "$cron_secret" | npx --yes vercel@50.15.1 env add CRON_SECRET production --sensitive --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
+            printf '%s' "$cron_secret" | npx --yes vercel@50.15.1 env add CRON_SECRET production --sensitive --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
             echo "Vercel Production CRON_SECRET를 생성했습니다."
           fi
           # 새로 생성했거나 기존 값을 사용하든 build/deploy가 같은 프로젝트 환경을 읽도록 다시 동기화한다.

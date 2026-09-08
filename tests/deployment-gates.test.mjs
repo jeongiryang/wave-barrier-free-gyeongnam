@@ -34,6 +34,11 @@ test("production deployment rejects missing or unsafe account configuration", ()
   assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_BASE_URL: "https://neon.tech.attacker.example/auth" }).join("\n"), /HTTPS/);
   assert.match(productionEnvironmentErrors({ ...validEnv, NEON_AUTH_COOKIE_SECRET: "short" }).join("\n"), /32자/);
   assert.match(productionEnvironmentErrors({ ...validEnv, CRON_SECRET: "short" }).join("\n"), /CRON_SECRET.*32자/);
+  for (const value of [` ${validEnv.CRON_SECRET}`, `${validEnv.CRON_SECRET} `, `${validEnv.CRON_SECRET}\n`, `${validEnv.CRON_SECRET}\r\n`]) {
+    const errors = productionEnvironmentErrors({ ...validEnv, CRON_SECRET: value });
+    assert.match(errors.join("\n"), /CRON_SECRET.*공백 또는 줄바꿈/);
+    assert.ok(errors.every((message) => !message.includes(validEnv.CRON_SECRET)));
+  }
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "valid,bad id" }).join("\n"), /잘못되거나/);
   assert.match(productionEnvironmentErrors({ ...validEnv, COMMUNITY_MODERATOR_USER_IDS: "same,same" }).join("\n"), /잘못되거나/);
 });
@@ -53,6 +58,8 @@ test("CD migrates an unpromoted protected candidate before production promotion"
   // CD가 배포마다 별도 값을 --env로 덮으면 스케줄러와 함수가 서로 다른 값을 보게 된다.
   assert.match(workflow, /vercel@50\.15\.1 env ls production/);
   assert.match(workflow, /env add CRON_SECRET production --sensitive/);
+  assert.ok(workflow.includes(`printf '%s' "$cron_secret" | npx --yes vercel@50.15.1 env add CRON_SECRET production --sensitive`));
+  assert.ok(!workflow.includes(`printf '%s\\n' "$cron_secret"`), "Cron credential input must not append a newline");
   assert.doesNotMatch(workflow, /--env CRON_SECRET=/);
   assert.doesNotMatch(workflow, /cron_token|cron_value/);
   // Native curl은 실제 curl 인자를 그대로 넘긴다. CI 인증과 프로젝트 선택은
