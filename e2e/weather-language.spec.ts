@@ -20,7 +20,7 @@ test("departure weather evidence opens the forecast with pointer and keyboard wi
   let weatherRequests = 0;
   await page.route("**/api/weather**", (route) => {
     weatherRequests++;
-    return route.fulfill({ json: forecast });
+    return route.fulfill({ json: { ...forecast, days: Array.from({ length: 7 }, (_, index) => ({ ...forecast.days[0], date: `2026-09-0${index + 1}` })) } });
   });
   await page.goto("/planner");
   await chooseTripConditions(page);
@@ -40,6 +40,7 @@ test("departure weather evidence opens the forecast with pointer and keyboard wi
   await expect(board).toBeVisible();
   await expect(board).toContainText("체감 -2°");
   await expect(page).toHaveURL(/#layers$/);
+  await expect(panel.locator("summary")).toBeFocused();
   await expect(savedPlace).toHaveAttribute("aria-pressed", "true");
 
   // Repeat from a closed panel with the same hash: no hashchange event is required.
@@ -53,6 +54,12 @@ test("departure weather evidence opens the forecast with pointer and keyboard wi
   await expect(board).toHaveAccessibleName("창원 여행 날씨");
   await expect(page).toHaveURL(/#layers$/);
   await expect.poll(() => page.evaluate(() => Boolean(document.activeElement?.closest("#layers")))).toBe(true);
+  await expect(panel.locator("summary")).toBeFocused();
+  await expect.poll(() => panel.locator("summary").evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    return rect.top >= 0 && rect.bottom <= innerHeight && Boolean(hit && element.contains(hit));
+  })).toBe(true);
   await expect(savedPlace).toHaveAttribute("aria-pressed", "true");
   expect(weatherRequests).toBe(requestsBefore);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);

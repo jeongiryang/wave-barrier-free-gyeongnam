@@ -36,3 +36,11 @@
 날씨를 새로 조회하지 않고 이미 받은 내용을 연다. 패널을 열 때 기존 주변 정보 조회는 동작할 수 있으므로 전체 제공처 호출 0이라고 주장하지 않는다. 직접 URL/브라우저 이력으로 `#layers`에 진입했을 때 자동으로 패널을 여는 정책은 이번 명시적 클릭 수정의 완료 조건에 포함하지 않는다.
 
 새 변경의 exact-HEAD Full CI·Preview·독립 QA와 실제 Production 확인은 별도 Gate다. 기존 ODsay 계정 제한과 #372 hold를 해제하거나 추가 실호출하지 않는다. 전체 #347/#353·공모전 제출 완료 또는 Release GO를 선언하지 않는다.
+
+## 독립 Preview에서 추가로 발견한 초점 가시성
+
+첫 후보 `5ec9e9737352c1956e1e032c13224088d0438083`의 [독립 QA](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/377#pullrequestreview-5145121741)는 P2 1건으로 FAIL을 기록했다. 실제 7일 예보의 958×854px 화면에서 기존 단계 이동은 예보 아래의 첫 h3에 초점을 주고 패널 위로 스크롤했다. 대상 제목의 top 917.19/bottom 955.47px가 화면 밖이었다. 패널 내용과 같은 해시 재열기는 동작했지만, `#layers` 안에 초점이 있다는 것만으로 가시성이 보장되지 않았다.
+
+기존 layout 처리에서 `layers` 대상만 패널의 native summary로 연결했다. summary의 원래 탭 순서를 유지하고 다른 단계의 제목 선택은 바꾸지 않는다. 새 회귀는 7일 예보·명시적 summary 초점·화면 안의 조작 대상과 hit test까지 검사한다. 수정 전 **2 FAIL**을 보존하고, 수정 후 관련 두 파일 **22 PASS(22.4초)**·unit696 PASS·typecheck/lint PASS(기존 경고5)·build/performance PASS를 확인했다. 로컬 gzip은 CSS69.98, landing119.85, planner269.86, largest95.92 KiB다. 두 기기의 실제 캡처에서 패널 제목과 초점 표시가 보이는 것을 확인했다.
+
+진행 중인 첫 후보 CI862는 취소하지 않는다. 그 결과와 첫 Preview FAIL을 보존한 뒤 새 HEAD의 Full CI·Preview·독립 QA를 별도로 수행한다. 후속 성공으로 최초 실패를 소급 변경하지 않는다. 이 변경도 Production 반영 전이다.
