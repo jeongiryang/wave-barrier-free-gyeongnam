@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 /**
  * 지도 도구는 8개라 가로 한 줄에 다 들어가지 않는다. 예전에는 데스크톱에서
@@ -37,6 +37,51 @@ async function withKakaoStub(page: Page) {
 
 const WIDTHS = [1440, 1024, 900, 768, 620, 390];
 
+for (const locale of ["ko", "en"]) {
+  test(`connected map label leaves usable tool space without overlap ${locale}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await mockPlannerApi(page);
+    await withKakaoStub(page);
+    await page.goto("/planner");
+    await chooseTripConditions(page);
+    await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
+    if (locale === "en") {
+      await page.keyboard.press("Control+Home");
+      const preferences = page.locator(".preference-controls:visible");
+      await preferences.getByLabel("환경설정 열기", { exact: true }).click();
+      await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+      await preferences.getByLabel("Open preferences", { exact: true }).click();
+    }
+    const nav = page.locator("nav.map-command-bar");
+    for (const width of [1440, 1024, 900, 768, 320]) {
+      await page.setViewportSize({ width, height: 960 });
+      await nav.scrollIntoViewIfNeeded();
+      await expect.poll(() => page.evaluate(() => {
+        const badge = document.querySelector(".map-provider-badge")!.getBoundingClientRect();
+        const tools = document.querySelector("nav.map-command-bar")!.getBoundingClientRect();
+        return Math.max(0, Math.min(badge.right, tools.right) - Math.max(badge.left, tools.left)) *
+          Math.max(0, Math.min(badge.bottom, tools.bottom) - Math.max(badge.top, tools.top));
+      }), { message: `${locale} ${width}px map status must not cover tools` }).toBe(0);
+      const share = nav.getByRole("button", { name: locale === "en" ? "↗ Page link" : "↗ 페이지 링크", exact: true });
+      await share.focus();
+      await expect(share).toBeFocused();
+      await expect.poll(() => share.evaluate((node) => {
+        const box = node.closest(".map-command-scroll")!.getBoundingClientRect();
+        const item = node.getBoundingClientRect();
+        return item.left >= box.left - 1 && item.right <= box.right + 1 && item.height >= 44;
+      }), { message: `${locale} ${width}px page-link control must be reachable and at least 44px tall` }).toBe(true);
+      const route = nav.getByRole("button", { name: locale === "en" ? "⇄ Route points" : "⇄ 출발·도착", exact: true });
+      await route.focus();
+      await expect(route).toBeFocused();
+      await expect.poll(() => route.evaluate((node) => {
+        const box = node.closest(".map-command-scroll")!.getBoundingClientRect();
+        const item = node.getBoundingClientRect();
+        return item.left >= box.left - 1 && item.right <= box.right + 1 && item.height >= 44;
+      }), { message: `${locale} ${width}px route control must be fully reachable` }).toBe(true);
+    }
+  });
+}
+
 test("가려진 지도 도구가 있으면 스크롤 손잡이를 보여 준다", async ({ page }) => {
   test.slow();
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -46,6 +91,7 @@ test("가려진 지도 도구가 있으면 스크롤 손잡이를 보여 준다"
   for (const width of WIDTHS) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/planner", { waitUntil: "domcontentloaded" });
+  await chooseTripConditions(page);
     await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
     await page.waitForTimeout(1_500);
 
@@ -70,6 +116,7 @@ test("가려진 지도 도구도 끝까지 끌면 모두 드러난다", async ({
   await withKakaoStub(page);
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
+  await chooseTripConditions(page);
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
   await page.waitForTimeout(1_500);
 
@@ -109,11 +156,12 @@ test("키보드로 넘기면 가려진 지도 도구가 화면 안으로 들어�
   await withKakaoStub(page);
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
+  await chooseTripConditions(page);
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
   await page.waitForTimeout(1_500);
 
-  // 이름 부분 일치라 지도 밖 버튼("항공·선박·공유 이동", "공유 링크 만들기")까지 걸린다.
-  const share = page.locator(".map-command-scroll").getByRole("button", { name: "공유" }).first();
+  // 이 버튼은 일정 전체가 아닌 페이지 주소만 공유한다. 지도 안의 정확한 이름을 검증한다.
+  const share = page.locator(".map-command-scroll").getByRole("button", { name: "↗ 페이지 링크", exact: true });
   await share.focus();
   await page.waitForTimeout(400);
   const inView = await share.evaluate((node) => {

@@ -9,9 +9,7 @@ type MapShellOptions = {
   kakaoMapRef: RefObject<KakaoMap | null>;
   mapRef: RefObject<LeafletMap | null>;
   pickModeRef: RefObject<MapPickMode>;
-  roadviewSelectModeRef: RefObject<boolean>;
   setPickMode: (mode: MapPickMode) => void;
-  setRoadviewSelectMode: (active: boolean) => void;
   layoutKey: string;
 };
 
@@ -19,9 +17,7 @@ export function useMapShell({
   kakaoMapRef,
   mapRef,
   pickModeRef,
-  roadviewSelectModeRef,
   setPickMode,
-  setRoadviewSelectMode,
   layoutKey,
 }: MapShellOptions) {
   const shellRef = useRef<HTMLDivElement>(null);
@@ -47,8 +43,11 @@ export function useMapShell({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       if (pickModeRef.current) setPickMode(null);
-      if (roadviewSelectModeRef.current) setRoadviewSelectMode(false);
-      setExpanded(false);
+      // Roadview cancellation belongs to useMapAccessibility so focus is restored too.
+      if (document.fullscreenElement === shellRef.current) {
+        // Keep rendered state tied to fullscreenchange, including browser-key events.
+        void document.exitFullscreen().catch(() => undefined);
+      } else setExpanded(false);
     };
     document.addEventListener("fullscreenchange", onFullscreen);
     document.addEventListener("keydown", onKeyDown);
@@ -56,7 +55,7 @@ export function useMapShell({
       document.removeEventListener("fullscreenchange", onFullscreen);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [pickModeRef, roadviewSelectModeRef, setPickMode, setRoadviewSelectMode]);
+  }, [pickModeRef, setPickMode]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {

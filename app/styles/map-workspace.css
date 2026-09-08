@@ -31,9 +31,8 @@
 .map-poi-results article strong { font-size: .69rem; }.map-poi-results article span,.map-poi-results article small { color: #748f9b; font-size: .56rem; }
 .map-poi-results article small { align-self: center; }.map-poi-results article a { grid-column: 1/-1; color: #0a6baf; font-size: .58rem; font-weight: 850; text-decoration: none; }
 
-.map-roadview-panel { z-index: 530; position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr; border-radius: 0; color: #fff; background: #052432; overflow: hidden; }
-.map-roadview-panel header { z-index: 2; position: absolute; top: 12px; left: 50%; min-width: 120px; padding: 7px 9px 7px 12px; border-radius: 12px; color: #173f51; background: rgba(255,255,255,.96); box-shadow: 0 8px 24px rgba(0,0,0,.2); transform: translateX(-50%); }
-.map-roadview-panel > div { grid-row: 1/-1; min-height: 100%; }.map-roadview-panel > p { z-index: 1; place-self: center; margin: 0; padding: 12px 16px; border-radius: 12px; background: rgba(5,36,50,.88); font-size: .68rem; }
+.map-roadview-panel { z-index: 530; position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(120px,1fr) auto; color: var(--ink); background: var(--paper); overflow: auto; }
+.map-roadview-panel header,.roadview-feedback { padding: 12px; }.map-roadview-panel > div { min-height: 120px; background: #052432; }.roadview-feedback p { margin: 0 0 8px; font-size: .8rem; }.roadview-feedback button { width: 100%; }
 
 html[data-theme="dark"] .map-command-bar button,html[data-theme="dark"] .map-type-switch,html[data-theme="dark"] .map-tool-panel,html[data-theme="dark"] .map-poi-results { color: #e7f2f7; border-color: #30596b; background: rgba(8,40,54,.96); }
 html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .map-poi-results article { color: #d7eaf2; border-color: #284b5b; background: #0f3445; }
@@ -61,11 +60,23 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .planner-section .planner-bento { grid-template-columns: minmax(360px,.95fr) minmax(0,1.45fr); }
 .route-compare-panel { padding: 22px; }
 
-.route-map-shell { min-height: 710px; display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); overflow: hidden; isolation: isolate; background: #dce9ef; transition: grid-template-columns .32s cubic-bezier(.16,1,.3,1); }
+.map-panel { --route-map-height: 710px; }
+.route-map-shell { min-height: var(--route-map-height, 710px); display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); overflow: hidden; isolation: isolate; color: #173b46; background: #dce9ef; transition: grid-template-columns .32s cubic-bezier(.16,1,.3,1); }
 .route-map-shell.drawer-open { grid-template-columns: minmax(0,1fr) minmax(340px,380px); }
-.route-map-canvas { height: 710px; min-width: 0; grid-column: 1; grid-row: 1; }
+.route-map-canvas { isolation: isolate; height: var(--route-map-height, 710px); min-width: 0; grid-column: 1; grid-row: 1; }
 .route-map-shell.drawer-open .map-command-bar { right: 396px; }
 .map-command-bar { max-width: calc(100% - 330px); }
+.map-controls-layout { display: contents; }
+/* The connected-map label and tools share the actual available width. A fixed
+   330px reservation wasted space beside short labels and clipped extra tools
+   when the browser used a classic scrollbar. Keep the controls mounted. */
+@media (min-width: 781px) {
+  .map-controls-inline { z-index: 510; position: absolute; inset: 12px 12px auto 14px; display: flex; align-items: flex-start; gap: 16px; pointer-events: none; }
+  .map-controls-inline > .map-provider-badge { position: static; flex: 0 1 auto; max-width: 35%; pointer-events: auto; }
+  .map-controls-inline > .map-command-bar { position: static; flex: 1; min-width: 0; max-width: none; justify-content: flex-end; pointer-events: auto; }
+  .route-map-shell.drawer-open .map-controls-inline { right: 396px; }
+  .route-map-shell:fullscreen .map-controls-inline,.route-map-shell.expanded .map-controls-inline { top: 18px; left: 20px; }
+}
 /* 대체 지도 상태에서는 배지에 기본 지도 재연결 버튼이 붙어 왼쪽 공간을 차지한다.
    예약이 150px뿐이라 명령 바 첫 버튼이 재연결 버튼의 오른쪽을 덮었고, 그 자리를
    누르면 지도 유형이 대신 바뀌었다. Kakao 지도가 실패했을 때만 나타나는 복구
@@ -82,7 +93,7 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .map-side-drawer header { position: sticky; z-index: 3; top: -20px; margin: -20px -20px 14px; padding: 17px 18px 14px 20px; border-bottom: 1px solid #dde8ed; background: rgba(255,255,255,.97); backdrop-filter: blur(16px); }
 .map-side-drawer header strong { font-size: .9rem; }
 .map-side-drawer header span { margin-top: 3px; font-size: .62rem; }
-.map-side-drawer header > button,.map-roadview-panel header > button { width: 38px; height: 38px; flex: 0 0 38px; border-color: #cadce4; border-radius: 12px; color: #173f51; background: #fff; box-shadow: 0 6px 16px rgba(6,39,54,.08); font-size: 1.25rem; transition: .18s ease; }
+.map-side-drawer header > button,.map-roadview-panel header > button { width: 44px; height: 44px; flex: 0 0 44px; border-color: #cadce4; border-radius: 12px; color: #173f51; background: #fff; box-shadow: 0 6px 16px rgba(6,39,54,.08); font-size: 1.25rem; transition: .18s ease; }
 .map-side-drawer header > button:hover,.map-roadview-panel header > button:hover { color: #fff; border-color: #0a6baf; background: #0a6baf; transform: rotate(4deg) scale(1.04); }
 .map-tool-panel > .map-tool-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
 .map-tool-panel > .map-tool-grid > button { min-height: 66px; padding: 9px 5px; border-radius: 13px; font-size: .62rem; }
@@ -97,7 +108,7 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .map-poi-results article:hover { border-color: rgba(23,176,255,.38); box-shadow: 0 10px 24px rgba(10,63,86,.08); transform: translateX(-3px); }
 .map-poi-results article strong { font-size: .72rem; }.map-poi-results article span,.map-poi-results article small,.map-poi-results article a { font-size: .6rem; }
 
-.map-export-panel > p { margin: 15px 0; color: #65828f; font-size: .68rem; line-height: 1.65; }
+.map-export-panel header span,.map-export-panel > p { margin: 15px 0; color: var(--muted); font-size: .68rem; line-height: 1.65; white-space: normal; }
 .map-tool-panel > .map-export-preview { min-height: 170px; padding: 20px; display: grid; grid-template-columns: 1fr; place-content: end start; gap: 2px; border-radius: 18px; color: #fff; background: radial-gradient(circle at 85% 15%,rgba(125,235,233,.44),transparent 35%),linear-gradient(145deg,#062736,#0a6baf); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
 .map-export-preview span { color: #7debe9; font-size: .62rem; font-weight: 900; letter-spacing: .14em; }.map-export-preview strong { font-size: 1.35rem; }.map-export-preview small { color: #c8e2ee; font-size: .62rem; }
 .map-tool-panel > .map-export-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
@@ -125,19 +136,24 @@ html[data-theme="dark"] .map-side-drawer header > button { color: #e7f2f7; borde
   .route-compare-panel { max-height: none; }
 }
 @media (max-width: 900px) {
+  .route-map-shell.drawer-open .map-controls-inline { right: 8px; }
   .planner-section .planner-bento { grid-template-columns: 1fr; }
-  .route-map-shell,.route-map-shell.drawer-open { min-height: 560px; grid-template-columns: minmax(0,1fr); }
-  .route-map-canvas { height: 560px; }
-  .map-side-drawer { width: auto; max-height: 68%; position: absolute; inset: auto 8px 8px; display: block; border: 1px solid #c9dce5; border-radius: 20px; box-shadow: 0 24px 64px rgba(5,47,65,.24); }
+  .route-map-shell,.route-map-shell.drawer-open { min-height: var(--route-map-height, 560px); grid-template-columns: minmax(0,1fr); }
+  .map-panel { --route-map-height: 560px; }
+  .route-map-canvas { height: var(--route-map-height, 560px); }
+  .map-side-drawer { grid-column: 1 / -1; width: auto; max-height: 68%; position: absolute; inset: auto 8px 8px; display: block; border: 1px solid #c9dce5; border-radius: 20px; box-shadow: 0 24px 64px rgba(5,47,65,.24); }
   .map-side-drawer header { top: -20px; border-radius: 20px 20px 0 0; }
   .route-map-shell.drawer-open .map-command-bar,.route-map-shell:fullscreen.drawer-open .map-command-bar,.route-map-shell.expanded.drawer-open .map-command-bar { right: 8px; }
   .route-map-shell:fullscreen .map-side-drawer,.route-map-shell.expanded .map-side-drawer { height: auto; }
 }
 @media (max-width: 620px) {
+  .map-command-bar .map-expand-button { width: 44px; min-width: 44px; padding-inline: 0; }
+  .map-expand-label { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .navigation-section { padding-right: 12px; padding-left: 12px; }
   .navigation-workspace { border-radius: 18px; }
-  .route-map-shell,.route-map-shell.drawer-open { min-height: 500px; }
-  .route-map-canvas { height: 500px; }
+  .map-panel { --route-map-height: 500px; }
+  .route-map-shell,.route-map-shell.drawer-open { min-height: var(--route-map-height, 500px); }
+  .route-map-canvas { height: var(--route-map-height, 500px); }
   .map-command-bar { top: 9px; left: 8px; right: 8px; max-width: none; }
   .route-map-shell.drawer-open .map-command-bar { right: 8px; }
   /* 이 폭에서 명령 바는 y 9..65를 차지한다. */
@@ -172,7 +188,7 @@ html[data-theme="dark"] .map-command-scroll::-webkit-scrollbar-thumb {
   background: rgba(159,190,205,.5);
 }
 .map-load-placeholder {
-  min-height: clamp(420px, 58vh, 650px);
+  min-height: var(--route-map-height, 710px);
   display: grid;
   place-items: center;
   padding: 24px;

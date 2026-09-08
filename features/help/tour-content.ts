@@ -15,7 +15,7 @@ export const landingSteps: TourStep[] = [
 ];
 
 export const plannerSteps: TourStep[] = [
-  { selector: "#conditions", highlightSelector: "#conditions .journey-subheading", eyebrow: "1단계 · 여행 조건", title: "내게 필요한 여행 조건을 고르세요.", copy: "출발지, 지역, 날짜, 관심사와 필요한 편의시설을 선택합니다." },
+  { selector: "#conditions", highlightSelector: "#conditions .condition-heading", eyebrow: "1단계 · 여행 조건", title: "내게 필요한 여행 조건을 고르세요.", copy: "지역·필요한 편의·활동·날짜를 고른 뒤 여행지 찾기를 누릅니다." },
   { selector: "#places", highlightSelector: "#places .journey-subheading", eyebrow: "2단계 · 여행지", title: "추천 이유를 확인하고 일정에 추가하세요.", copy: "공식 정보에서 확인된 편의시설과 확인이 필요한 항목을 구분해 보여 줍니다." },
   { selector: "#itinerary", highlightSelector: "#itinerary .journey-subheading", eyebrow: "3단계 · 이 기기 일정", title: "추가한 장소의 날짜와 순서를 정하세요.", copy: "추천 순서로 시작해 직접 순서를 바꾸고 실제 이동 경로와 예상 시간을 비교할 수 있습니다." },
   { selector: "#departure-readiness", highlightSelector: "#departure-readiness > header", eyebrow: "4단계 · 출발 전 확인", title: "최신 정보와 저장 방법을 확인하세요.", copy: "날씨, 혼잡, 교통과 편의시설 정보 중 다시 확인할 항목을 보고 일정 공유와 캘린더 저장을 마칩니다." },
@@ -32,3 +32,25 @@ export const travelBookSteps: TourStep[] = [
   { selector: ".travel-book-privacy", highlightSelector: ".travel-book-privacy", eyebrow: "개인정보", title: "여행집은 이 브라우저에만 저장됩니다.", copy: "원본 사진, GPS, 정확한 출발지와 계정 정보는 저장하지 않습니다." },
   { selector: ".travel-book-list, .travel-book-empty", highlightSelector: ".travel-book-list, .travel-book-empty", eyebrow: "여행 관리", title: "일정을 열고 여행 상태를 관리하세요.", copy: "여행을 복원하고, 다녀온 여행으로 바꾸거나 현장 메모를 이어서 정리할 수 있습니다." },
 ];
+
+const englishTourCopy: Record<string, Pick<TourStep, "eyebrow" | "title" | "copy">> = {
+  "#top": { eyebrow: "About W.A.V.E", title: "Get to know W.A.V.E.", copy: "Connect your access needs with Gyeongnam tourism information, from choosing places to planning travel." },
+  "#story": { eyebrow: "Our approach", title: "Check access before you choose.", copy: "Compare access paths, toilets, lifts and travel needs alongside the photos." },
+  "#regions": { eyebrow: "Explore Gyeongnam", title: "Explore Gyeongnam's 18 regions.", copy: "Choose a region on the map to explore its travel information and available official tourism photos." },
+  "#evidence": { eyebrow: "Recommendation evidence", title: "See the reasons and limits.", copy: "Check the sources and dates of tourism, facility and transport information separately." },
+  ".landing-cta": { eyebrow: "Start your trip", title: "Plan a trip that works for you.", copy: "Open the planner to choose a region, required facilities, activities and dates." },
+  "#conditions": { eyebrow: "Step 1 · Preferences", title: "Choose your trip preferences.", copy: "Choose a region, required facilities, activities and dates, then select Find places." },
+  "#places": { eyebrow: "Step 2 · Places", title: "Check the evidence and add places.", copy: "Compare facilities supported by official information with details that still need checking." },
+  "#itinerary": { eyebrow: "Step 3 · Itinerary", title: "Set the dates and order of your places.", copy: "Change the order and compare actual travel routes with estimated times. Review every travel leg." },
+  "#departure-readiness": { eyebrow: "Step 4 · Before departure", title: "Recheck information and save your trip.", copy: "Review weather, crowds, transport and facility information that needs checking, then share or export your itinerary." },
+  ".community-page": { eyebrow: "Travel stories", title: "Read travellers' experiences.", copy: "Read personal experiences separately from official tourism information." },
+  "#community-list": { eyebrow: "Find stories", title: "Find experiences that help you plan.", copy: "Find stories by place and facility needs, keeping traveller experiences separate from official evidence." },
+  ".community-footer": { eyebrow: "Using information", title: "Stories do not replace official information.", copy: "Recheck the latest facility information with the place operator before visiting." },
+  ".travel-book-page": { eyebrow: "Saved trips", title: "Keep upcoming and past trips together.", copy: "Save planner itineraries on this device and reopen them without an account." },
+  ".travel-book-privacy": { eyebrow: "Privacy", title: "Saved trips stay in this browser.", copy: "Original photos, GPS coordinates, precise departure locations and account information are not saved in the trip book." },
+  ".travel-book-list, .travel-book-empty": { eyebrow: "Manage trips", title: "Reopen and update your trips.", copy: "Restore an itinerary, mark a trip as visited or continue adding travel notes." },
+};
+
+export function localizeTourStep(step: TourStep, locale: string): TourStep {
+  return locale === "en" ? { ...step, ...englishTourCopy[step.selector] } : step;
+}

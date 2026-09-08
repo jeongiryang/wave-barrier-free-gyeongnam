@@ -22,3 +22,11 @@ test("places without coordinates remain available as a deterministic fallback", 
   const unknown = { id: "unknown" };
   assert.deepEqual(optimizeVisitOrder([unknown, near], { origin }).map((place) => place.id), ["near", "unknown"]);
 });
+
+test("blank archived coordinates and invalid domestic points never become null-island distances", () => {
+  for (const point of [{ mapX: "", mapY: "" }, { mapX: " ", mapY: "35" }, { mapX: null, mapY: null }, { mapX: "0", mapY: "0" }, { lat: 90, lng: 128 }]) {
+    assert.equal(directDistanceKm(origin, point), null);
+    assert.equal(placeCost(origin, point), Infinity);
+  }
+  assert.equal(directDistanceKm(origin, origin), 0);
+});

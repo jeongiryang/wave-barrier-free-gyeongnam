@@ -6,6 +6,12 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+    inputs:
+      preflight_only:
+        description: "Create an unpromoted candidate and inspect its DB read-only; no migration or alias change"
+        type: boolean
+        default: true
+        required: true
 
 concurrency:
   group: vercel-production
@@ -14,23 +20,36 @@ concurrency:
 jobs:
   deploy:
     if: >-
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' && github.actor == github.repository_owner &&
+       (inputs.preflight_only || github.ref == 'refs/heads/main')) ||
       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production
     permissions:
       contents: read
+      actions: read
     steps:
       - name: 배포할 소스 체크아웃
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+
+      - name: 수동 후보의 동일 SHA CI 성공 확인
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOYMENT_SHA: ${{ github.sha }}
+        run: |
+          conclusion="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$DEPLOYMENT_SHA&per_page=1" --jq '.workflow_runs[0].conclusion')"
+          test "$conclusion" = success || { echo "Exact-SHA CI success is required before a production-environment candidate."; exit 1; }
 
       - name: Node.js 설정
         uses: actions/setup-node@v7
         with:
-          node-version: 22.13.0
+          node-version: 22
+          check-latest: true
           cache: npm
 
       - name: Vercel 연결 정보 확인
@@ -53,6 +72,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Production Cron secret 보장
+        if: ${{ !inputs.preflight_only }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -64,7 +84,7 @@ jobs:
           else
             cron_secret="$(openssl rand -hex 32)"
             echo "::add-mask::$cron_secret"
-            printf '%s\n' "$cron_secret" | npx --yes vercel@50.15.1 env add CRON_SECRET production --sensitive --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
+            printf '%s' "$cron_secret" | npx --yes vercel@50.15.1 env add CRON_SECRET production --sensitive --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
             echo "Vercel Production CRON_SECRET를 생성했습니다."
           fi
           # 새로 생성했거나 기존 값을 사용하든 build/deploy가 같은 프로젝트 환경을 읽도록 다시 동기화한다.
@@ -89,8 +109,9 @@ jobs:
           COMMUNITY_MIGRATION_TOKEN: ${{ steps.migration_token.outputs.value }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
-          url="$(npx --yes vercel@50.15.1 deploy --prebuilt --prod --skip-domain --env COMMUNITY_MIGRATION_TOKEN="$COMMUNITY_MIGRATION_TOKEN" --token="${{ secrets.VERCEL_TOKEN }}" | tail -n 1)"
+          url="$(npx --yes vercel@50.15.1 deploy --prebuilt --prod --skip-domain --meta githubCommitSha="$DEPLOYMENT_SHA" --env COMMUNITY_MIGRATION_TOKEN="$COMMUNITY_MIGRATION_TOKEN" --token="${{ secrets.VERCEL_TOKEN }}" | tail -n 1)"
           case "$url" in https://*.vercel.app) ;; *) echo "후보 배포 URL을 확인할 수 없습니다."; exit 1;; esac
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
@@ -105,7 +126,32 @@ jobs:
           printf '%s\n' "$response"
           printf '%s' "$response" | grep -Fq '"checkedAt"'
 
+      - name: 운영 DB 대상과 008 영향 읽기 전용 확인
+        env:
+          CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
+          COMMUNITY_MIGRATION_TOKEN: ${{ steps.migration_token.outputs.value }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          PREFLIGHT_ONLY: ${{ inputs.preflight_only || false }}
+        run: |
+          response="$(npx --yes vercel@54.14.0 curl /api/deployment/migrate --deployment "$CANDIDATE_URL" -X POST -H "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN" -H "X-Wave-Migration-Mode: inspect")"
+          printf '%s' "$response" | node scripts/check-database-preflight.mjs > "$RUNNER_TEMP/database-preflight.json"
+          cat "$RUNNER_TEMP/database-preflight.json"
+          printf '\nCandidate SHA: %s\nCandidate URL: %s\nPreflight-only: %s\n' "$DEPLOYMENT_SHA" "$CANDIDATE_URL" "$PREFLIGHT_ONLY" >> "$GITHUB_STEP_SUMMARY"
+        # Only the trusted typed boolean reaches the summary, never shell code.
+        # Secrets and raw provider responses are excluded from the evidence file.
+
+      - name: 비민감 DB 사전 점검 근거 보존
+        uses: actions/upload-artifact@v7
+        with:
+          name: database-preflight
+          path: ${{ runner.temp }}/database-preflight.json
+          retention-days: 30
+
       - name: 후보 환경 검증과 커뮤니티 migration
+        if: ${{ !inputs.preflight_only }}
         env:
           CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
           COMMUNITY_MIGRATION_TOKEN: ${{ steps.migration_token.outputs.value }}
@@ -123,8 +169,10 @@ jobs:
           printf '%s' "$response" | grep -Fq '"005_community_field_reports.sql"'
           printf '%s' "$response" | grep -Fq '"006_retire_community_seed.sql"'
           printf '%s' "$response" | grep -Fq '"007_account_deletion.sql"'
+          printf '%s' "$response" | grep -Fq '"008_review_date_integrity.sql"'
 
       - name: 프로덕션 승격
+        if: ${{ !inputs.preflight_only }}
         env:
           CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -132,6 +180,7 @@ jobs:
         run: npx --yes vercel@50.15.1 promote "$CANDIDATE_URL" --yes --scope="$VERCEL_ORG_ID" --token="${{ secrets.VERCEL_TOKEN }}"
 
       - name: 프로덕션 health와 실패 시 rollback
+        if: ${{ !inputs.preflight_only }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

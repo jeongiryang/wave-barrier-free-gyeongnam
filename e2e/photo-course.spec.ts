@@ -55,8 +55,12 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
 
   await page.getByRole("button", { name: "여행 조건에 반영하기" }).click();
   await expect(page).toHaveURL(/\/planner\?[^#]*region=%EB%82%A8%ED%95%B4/);
-  await expect(page.getByRole("heading", { name: /나에게 맞는 여행을.*4단계로 완성하세요/ })).toBeVisible();
-  await expect(page.getByLabel("여행 지역 선택")).toHaveValue("남해");
-  await expect(page.getByLabel("출발일")).toHaveValue("2026-08-14");
-  await expect(page.getByLabel("도착일")).toHaveValue("2026-08-14");
+  await expect(page.getByRole("heading", { name: "나에게 맞는 경남 여행", exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "남해", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("group", { name: "여행 설계 보기 방식" }).getByRole("button", { name: /전체 보기/ }).click();
+  await expect(page.getByRole("navigation", { name: "지도에 표시할 날짜" })).toContainText("08/14");
+  await expect.poll(() => page.evaluate(() => {
+    const saved = JSON.parse(window.localStorage.getItem("wave-trip-schedule-v1") || "{}");
+    return [saved.travelStart, saved.travelEnd];
+  })).toEqual(["2026-08-14", "2026-08-14"]);
 });

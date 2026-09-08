@@ -13,7 +13,7 @@ async function plannerProductSource() {
     "features/planner/components/PlannerHeader.tsx",
     "features/planner/components/PlannerFooter.tsx",
     "features/planner/components/PlannerConditionsPanel.tsx",
-    "features/planner/components/PlannerJourneyBasics.tsx",
+    "components/GyeongnamRegionPicker.tsx",
     "features/planner/components/PlannerThemeDates.tsx",
     "features/planner/components/PlannerAccessibilityProfiles.tsx",
     "features/planner/components/RecommendationWorkspace.tsx",
@@ -246,8 +246,9 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(component, /action: "spot-photo"/);
   assert.match(component, /contentId/);
   assert.match(component, /smart-image-skeleton/);
-  assert.match(component, /공식 사진 준비 중/);
-  assert.match(planner, /className=\{`place-visual visual-/);
+  assert.match(component, /photo\.failed && <span className="smart-image-fallback"/);
+  assert.match(component, /en \? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"/);
+  assert.match(planner, /className="place-visual"/);
   assert.match(planner, /region=\{place\.city \|\| region\}/);
   assert.match(planner, /contentId=\{place\.id\}/);
   assert.match(photos, /PhotoGalleryService1/);
@@ -275,7 +276,7 @@ test("all eighteen regions are text controls without mascot or remote map depend
   assert.match(landing, /landingRegions\.map\(\(region, index\) => <button/);
   assert.match(landing, /className="region-marker-dot"/);
   assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
-  assert.match(landing, /<b>\{region\.name\}<\/b>/);
+  assert.match(landing, /<b>\{regionLabel\(region\.name\)\}<\/b>/);
   assert.doesNotMatch(landing, /RegionMascot/);
   assert.doesNotMatch(landing, /upload\.wikimedia\.org|wikimedia commons/i);
   assert.doesNotMatch(regionConfig, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);
@@ -395,7 +396,8 @@ test("wave motion preference is persisted, localized and respects reduced motion
   assert.match(storage, /localStorage\.getItem\("wave-motion"\)/);
   assert.match(storage, /localStorage\.setItem\("wave-motion", preferences\.motion\)/);
   assert.match(controls, /aria-pressed=\{motion === "calm"\}/);
-  assert.match(controls, /<details className="preference-controls" suppressHydrationWarning>/);
+  // Keep the hydration guards and require the newly added focus-leave handler.
+  assert.match(controls, /<details className="preference-controls" inert=\{!replayReady\} aria-busy=\{!replayReady\} suppressHydrationWarning\s+onBlur=/);
   assert.match(catalog, /export const motionCopy: Record<Locale/);
   assert.match(engine, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(layout, /prefers-reduced-motion: reduce/);
@@ -411,10 +413,12 @@ test("non-Korean locales are visibly marked as partial without breaking narrow h
     source("app/styles/preferences.css"),
   ]);
   assert.match(catalog, /id: "ko"[^\n]+beta: false/);
-  assert.equal((catalog.match(/beta: true/g) || []).length, 7);
-  assert.match(controls, /item\.beta \? " · 부분 지원"/);
-  assert.match(controls, /selectedLocale\.beta \? "핵심 화면 부분 번역"/);
-  assert.match(controls, /관광지 원문과 일부 기능은 한국어로 표시될 수 있습니다/);
+  assert.equal((catalog.match(/beta: true/g) || []).length, 1);
+  assert.match(controls, /item\.beta \? en \? " · partial" : " · 부분 지원"/);
+  // With KO/EN only, these are the actual rendered support notices. Do not
+  // require the unreachable KO-partial/EN-full branches of the old lookup.
+  assert.match(controls, /en \? "Some pages are in Korean" : "한국어 전체 지원"/);
+  assert.match(controls, /en \? "Original place information and some features may appear in Korean\. " : ""/);
   assert.match(css, /\.preference-controls > summary \{[\s\S]*min-height: 44px/);
   assert.match(css, /@media \(max-width: 680px\)[\s\S]*\.preference-panel \{ position: fixed/);
 });
@@ -465,8 +469,8 @@ test("planner state is divided into testable feature hooks without overwriting s
   }
   assert.doesNotMatch(planner, /localStorage\.setItem\("wave-saved-places"/);
   assert.match(savedPlaceIds, /const \[storageReady, setStorageReady\] = useState\(false\)/);
-  assert.match(savedPlaceIds, /localStorage\.getItem\(SAVED_PLACES_KEY\)[\s\S]+setStorageReady\(true\)/);
-  assert.match(savedPlaceIds, /if \(!storageReady\) return;[\s\S]+localStorage\.setItem\(SAVED_PLACES_KEY/);
+  assert.match(savedPlaceIds, /readTripValue\(window\.localStorage, SAVED_PLACES_KEY\)[\s\S]+setStorageReady\(true\)/);
+  assert.match(savedPlaceIds, /if \(!storageReady\) return;[\s\S]+writeTripValue\(window\.localStorage, SAVED_PLACES_KEY/);
   assert.match(tripSelection, /useSavedPlaceIds\(\)/);
   assert.match(tripSelection, /useTripSchedule\(\)/);
   assert.match(tripSelection, /useOptimizedTripOrder\(/);
@@ -476,11 +480,12 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext\)/);
   assert.match(routePlanning, /useRouteOrigin\(clearRouteAlternatives\)/);
   assert.match(routeOrigin, /navigator\.geolocation\.getCurrentPosition/);
-  assert.match(routeOrigin, /좌표는 서버나 저장소로 전송하지 않습니다/);
+  assert.match(routeOrigin, /W.A.V.E 경로 API로 좌표를 보내거나 저장하지 않습니다/);
+  assert.match(routeOrigin, /지도 제공처/);
   assert.doesNotMatch(routePlanning, /navigator\.geolocation/);
   assert.match(routePlanning, /nextOriginLabel/);
   assert.doesNotMatch(planner, /routeRequestRef|setRouteAlternatives\(/);
-  assert.doesNotMatch(planner, /enrichmentRequestRef|setKeyHealth\(|setWeather\(/);
+  assert.doesNotMatch(planner, /enrichmentRequestRef|\bsetKeyHealth\(|\bsetWeather\(/);
   assert.doesNotMatch(planner, /setPlanError\(|planRequestRef/);
   assert.doesNotMatch(planner, /plannerJson|setShareState\(|setFeedbackState\(/);
   assert.match(planController, /plannerJson<PlanData>/);
@@ -658,8 +663,8 @@ test("route-map rendering delegates controller, provider adapters, controls and 
   assert.match(controller, /useMapLayers\(kakaoMapRef\)/);
   assert.match(controller, /useMapDrawingTools\(\{ drawingManagerRef, setProviderDetail \}\)/);
   assert.doesNotMatch(sdk, /libraries=services,drawing/);
-  assert.match(layerPanel, /disabled=\{!measurementAvailable\}/);
-  assert.match(layerPanel, /안전한 브라우저 정책/);
+  assert.doesNotMatch(layerPanel, /measurementAvailable|onSelectMeasure|안전한 브라우저 정책/);
+  assert.match(layerPanel, /aria-label=\{english \? "Map display settings" : "지도 표시 설정"\}/);
   assert.match(controller, /useNearbyPlaces\(\{ kakaoMapRef, choosePlace \}\)/);
   assert.match(controller, /useRoadviewController\(\{ provider, setProviderDetail, setPickMode, setToolPanel \}\)/);
   assert.doesNotMatch(controller, /categorySearch|manager\.select|RoadviewClient|addOverlayMapTypeId/);
@@ -704,7 +709,7 @@ test("the wave canvas delegates React lifecycle, canvas engine, motion math and 
     source("features/motion/wave-model.ts"),
     source("features/motion/intro-masks.ts"),
   ]);
-  assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion \}\)/);
+  assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion \}, replay\)/);
   assert.doesNotMatch(wave, /useEffect|requestAnimationFrame|createIntroMasks/);
   assert.match(renderer, /startWaveFieldRenderer\(canvas/);
   assert.doesNotMatch(renderer, /requestAnimationFrame|createIntroMasks|putImageData/);
@@ -728,7 +733,7 @@ test("every user-facing footer exposes the repository with an accessible tooltip
     styleSource(),
   ]);
   assert.match(link, /https:\/\/github\.com\/jeongiryang\/wave-barrier-free-gyeongnam/);
-  assert.match(link, /aria-label="W\.A\.V\.E GitHub 저장소 열기"/);
+  assert.match(link, /aria-label=\{locale === "en" \? "Open the W\.A\.V\.E GitHub repository" : "W\.A\.V\.E GitHub 저장소 열기"\}/);
   assert.match(link, /data-tooltip="GitHub"/);
   for (const page of [landing, planner, shared]) assert.match(page, /<GithubFooterLink \/>/);
   assert.match(css, /\.github-footer-link \{ width: 44px; height: 44px/);
@@ -767,7 +772,8 @@ test("shared trips restore saved places, order and date assignments from officia
   assert.match(restoration, /export async function restoreSharedPlan/);
   assert.match(restoration, /"KorService2", "detailCommon2"/);
   assert.match(restoration, /"KorWithService2", "detailWithTour2"/);
-  assert.match(trips, /selections\.selectedPlaceIds\.map\(\(id\) => placesById\.get\(id\)\)/);
+  assert.match(trips, /const selectedIds = selections\.selectedPlaceIds\.length/);
+  assert.match(trips, /selectedIds\.slice\(0, 12\)/);
   assert.match(restoration, /restoration: \{ requested: refs\.length, restored: places\.length, missing, mode: "content-id" \}/);
   assert.match(shared, /저장 장소 최신 확인/);
   assert.match(shared, /날짜별 저장 일정/);

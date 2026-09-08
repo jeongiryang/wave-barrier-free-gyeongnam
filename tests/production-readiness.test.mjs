@@ -13,7 +13,7 @@ async function plannerProductSource() {
     "features/planner/components/PlannerHeader.tsx",
     "features/planner/components/PlannerFooter.tsx",
     "features/planner/components/PlannerConditionsPanel.tsx",
-    "features/planner/components/PlannerJourneyBasics.tsx",
+    "components/GyeongnamRegionPicker.tsx",
     "features/planner/components/PlannerThemeDates.tsx",
     "features/planner/components/PlannerAccessibilityProfiles.tsx",
     "features/planner/components/RecommendationWorkspace.tsx",
@@ -177,7 +177,8 @@ test("production metadata gives each route a canonical, social card and indexing
   assert.match(manifest, /src: "\/app-icon\.svg", sizes: "192x192"[\s\S]*src: "\/app-icon\.svg", sizes: "512x512"/);
   assert.match(manifest, /src: "\/maskable-icon\.svg", sizes: "192x192"[\s\S]*src: "\/maskable-icon\.svg", sizes: "512x512"/);
   assert.doesNotMatch(readme, /스페인어/);
-  assert.match(readme, /독일어·러시아어/);
+  assert.match(readme, /제공 언어는 한국어·영어/);
+  assert.doesNotMatch(readme, /영어·일본어·중국어·프랑스어·독일어·러시아어/);
 });
 
 test("route-level loading, error and not-found states provide recovery", async () => {
@@ -287,7 +288,8 @@ test("public product copy is release-ready and tourism data remains live", async
     source("server/tourism/enrichment-sources.ts"),
   ]);
   const tourism = `${tourismHandler}\n${planBuilder}\n${tourismPhotos}\n${tourismInsights}\n${tourismConcentration}\n${enrichmentSources}`;
-  assert.doesNotMatch(`${readme}\n${landing}\n${planner}`, /공모전|심사용|출품용|기능 시연용/);
+  assert.doesNotMatch(`${landing}\n${planner}`, /공모전|심사용|출품용|기능 시연용/);
+  assert.match(readme, /docs\/contest-compliance.md/);
   assert.match(readme, /TOUR_API_SERVICE_KEY_ENCODED/);
   assert.match(tourism, /KorService2/);
   assert.match(tourism, /KorWithService2/);
@@ -320,16 +322,18 @@ test("wide screens use available viewport width without breaking mobile gutters"
   assert.match(css, /@media \(max-width: 780px\)[\s\S]*width: calc\(100vw - 16px\)/);
 });
 
-test("landing region controls share the rendered map coordinate space without a remote base map", async () => {
+test("landing region controls and real geometry share selection without a remote base map", async () => {
   const [landing, css] = await Promise.all([landingProductSource(), styleSource()]);
-  assert.match(landing, /className="landing-region-map-canvas" data-region-map-canvas/);
+  assert.match(landing, /className="landing-region-map-canvas region-boundary-list" data-region-map-canvas/);
   assert.match(landing, /data-region-marker=\{region\.name\}/);
   assert.match(landing, /className="region-marker-dot"/);
   assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
   assert.doesNotMatch(landing, /RegionMascot|upload\.wikimedia\.org/i);
-  assert.match(landing, /name: "거창"[\s\S]*x: 22, y: 14/);
-  assert.match(landing, /name: "양산"[\s\S]*x: 90, y: 43/);
-  assert.match(css, /\.landing-region-map-canvas \{[\s\S]*aspect-ratio: 600 \/ 433/);
+  assert.match(landing, /LandingBoundaryMap selected=\{activeRegion\}/);
+  const surface = await source("features/landing/components/RegionBoundarySurface.tsx");
+  assert.match(surface, /viewBox="0 0 800 814"/);
+  assert.match(surface, /data-region-boundary=\{region\.name\} data-selected=\{region\.name === selected\}/);
+  assert.match(css, /\.landing-region-map-canvas\.region-boundary-list > button \{[^}]*position: static;[^}]*animation: none;[^}]*min-height: 44px/);
   assert.match(css, /\.landing-region-map \{[\s\S]*min-height: 0/);
 });
 
@@ -348,7 +352,7 @@ test("landing feature demos are ordered, static and motion-safe", async () => {
   ]);
   const css = `${storyCss}\n${featureMotionCss}\n${accountCss}`;
   const labels = [...stories.matchAll(/className="section-kicker">(\d{2} · [^<]+)</g)].map((match) => match[1]);
-  assert.deepEqual(labels, ["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 여행 기록"]);
+  assert.deepEqual(labels, ["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 내 일정"]);
   assert.doesNotMatch(stories, /DISCOVER|ACCESS|PLAN|ROUTE|ADAPT|REMEMBER|COMMUNITY/);
   assert.equal((stories.match(/<div className="product-preview[^>]+role="img"[^>]+aria-label=/g) || []).length, 6);
   assert.equal((stories.match(/className="feature-preview-stage" aria-hidden="true"/g) || []).length, 6);
@@ -451,20 +455,18 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
   assert.doesNotMatch(css.match(/\.map-command-bar \{[^}]+\}/)?.[0] ?? "", /overflow-x: auto/);
 });
 
-test("travel conditions refresh the plan without requiring the submit button", async () => {
-  const [planner, planController, autoRefresh] = await Promise.all([
-    plannerProductSource(),
-    plannerPlanSource(),
-    source("features/planner/hooks/usePlannerAutoRefresh.ts"),
-  ]);
-  assert.match(planner, /signature: `\$\{region\}\|\$\{theme\}\|\$\{locale\}\|\$\{selected\.join\(","\)\}`/);
-  assert.match(autoRefresh, /setTimeout\(\(\) => void refreshRef\.current\(false\), delay\)/);
-  assert.match(autoRefresh, /delay = 550/);
-  assert.match(planController, /planRequestRef\.current\?\.abort\(\)/);
-  assert.match(planController, /signal: controller\.signal/);
-  assert.match(planController, /if \(revealResults\) window\.setTimeout/);
-  assert.match(planner, /조건을 바꾸면 추천이 자동으로 업데이트됩니다/);
-  assert.doesNotMatch(planner, /generate-button|여행지 다시 찾기/);
+test("travel conditions require explicit search and keep previous results during changes", async () => {
+  const [planner, request] = await Promise.all([plannerProductSource(), plannerPlanSource()]);
+  assert.doesNotMatch(planner, /usePlannerAutoRefresh/);
+  assert.match(planner, /props.onGenerate/);
+  assert.match(request, /planRequestRef\.current\?\.abort\(\)/);
+  assert.match(request, /signal: controller\.signal/);
+  assert.match(request, /resultSignature !== signature/);
+  assert.match(request, /if \(!region \|\| !requestedTheme \|\| !selected.length \|\| loading\) return false/);
+  // Changing ordinary criteria must keep results. An explicit confirmed trip
+  // replacement now has a separate reset command, covered by runtime tests.
+  assert.match(request, /const resetPlan = useCallback/);
+  assert.doesNotMatch(request.slice(0, request.indexOf("  const resetPlan =")), /setPlan\(null\)/);
 });
 
 test("planner visual order follows DOM and keyboard focus order", async () => {
@@ -498,9 +500,9 @@ test("planner never substitutes prototype places when official data fails", asyn
   assert.doesNotMatch(planner, /demo-jinhae|demo-cable|demo-jinju/);
   assert.doesNotMatch(planner, /fallbackPlaces|fallbackStops|제안서 기반 미리보기/);
   assert.match(planController, /setPlanError\(message\)/);
-  assert.match(planController, /임의의 장소를 대신 표시하지 않습니다/);
-  assert.match(planner, /공식 데이터 다시 조회/);
-  assert.match(planner, /role=\{planError \? "alert" : "status"\}/);
+  assert.doesNotMatch(planController, /fallbackPlaces|demoPlaces/);
+  assert.match(planner, /다시 시도/);
+  assert.match(planner, /planError &&.*role="alert"/);
 });
 
 test("only positive official accessibility evidence becomes a recommendation or itinerary stop", async () => {
@@ -517,11 +519,11 @@ test("only positive official accessibility evidence becomes a recommendation or 
   assert.match(tourism, /recommended: places, exploration: explorationPlaces/);
   assert.match(tourism, /places\.filter\(hasPositiveOfficialEvidence\)/);
   assert.match(tourism, /evidenceState: "verified"/);
-  assert.match(planner, /일반 추천과 이 기기 일정에는 넣지 않았습니다/);
+  assert.match(planner, /추천과 일정 추가에서 제외/);
   assert.match(planner, /아직 일정에 추가한 장소가 없어요/);
-  assert.match(planner, /공식 정보 확인 필요/);
+  assert.match(planner, /정보 미확인/);
   assert.doesNotMatch(planner, /PlannerRouteOverview|PlannerResultsPanel/);
-  assert.match(planner, /String\(index \+ 1\)\.padStart\(2, "0"\)/);
+  assert.match(planner, /rank=\{index \+ 1\}/);
   assert.doesNotMatch(planner, /<small>0\{index \+ 1\}<\/small>/);
 });
 
@@ -545,7 +547,7 @@ test("transport and itinerary labels distinguish confirmed, estimated and unavai
   assert.doesNotMatch(planner, /기본 예상/);
   assert.match(service, /state === "connected"/);
   assert.match(service, /인증키 연결과 실제 시간·운행정보 확인은 다른 상태입니다/);
-  assert.match(kakao, /rawToll === undefined \|\| rawToll === null \|\| rawToll === "" \? null/);
+  assert.match(kakao, /typeof rawToll === "number" && Number\.isFinite\(rawToll\) && rawToll >= 0 \? rawToll : null/);
   assert.match(odsay, /payment > 0 \? payment : null/);
 });
 

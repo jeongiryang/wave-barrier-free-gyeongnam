@@ -33,7 +33,6 @@
 html { scroll-behavior: smooth; scroll-padding-top: 98px; }
 body {
   margin: 0;
-  overflow-x: hidden;
   background: var(--white);
   color: var(--ink);
   font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;

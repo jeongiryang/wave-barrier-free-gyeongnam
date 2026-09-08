@@ -4,7 +4,7 @@
 
 .planner-journey-workspace {
   width: var(--content);
-  margin: 34px auto 0;
+  margin: 108px auto 0;
   /*
    * `hidden`은 이 요소를 스크롤 컨테이너로 만들어 안쪽 Journey Control의
    * sticky 기준을 가로챈다. `clip`은 둥근 워크스페이스 경계는 유지하면서
@@ -106,6 +106,8 @@
 /* 장소 상세에서 실제 존재하는 W.A.V.E 커뮤니티 글만 노출한다. */
 .place-community-stories { margin: 18px 0; padding: 15px; border: 1px solid #d2e3ea; border-radius: 15px; background: #f5fbfd; }
 .place-community-stories.is-loading { color: var(--muted); font-size: .72rem; }
+.place-community-stories > button { min-height: 44px; margin-top: 10px; padding: 8px 12px; border: 1px solid currentColor; border-radius: 8px; color: var(--ink); background: transparent; font: inherit; cursor: pointer; }
+.original-language-note { font-size: .8rem; line-height: 1.6; color: var(--muted); }
 .place-community-stories > header { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
 .place-community-stories header small { color: var(--blue); font-size: .56rem; font-weight: 900; letter-spacing: .1em; }
 .place-community-stories h3 { margin: 3px 0 0; font-size: .95rem; }
@@ -120,7 +122,7 @@
 .place-field-report-link { margin-top: 9px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #b9ddcf; border-radius: 13px; color: var(--ink); background: #eef9f4; }.place-field-report-link b,.place-field-report-link small { display: block; }.place-field-report-link small { margin-top: 3px; color: var(--muted); font-size: .67rem; }.place-field-report-link i { color: #27775e; font-style: normal; }
 
 @media (max-width: 780px) {
-  .planner-journey-workspace { width: calc(100vw - 16px); margin-top: 16px; border-radius: 22px; }
+  .planner-journey-workspace { width: calc(100vw - 16px); margin-top: 84px; border-radius: 22px; }
   .journey-workspace-hero { min-height: 0; padding: 28px 20px; grid-template-columns: 1fr; }
   .journey-workspace-hero h1 { font-size: clamp(2.6rem, 14vw, 4.2rem); }
   .journey-workspace-hero > nav { grid-column: auto; }
@@ -144,6 +146,18 @@ html[data-theme="dark"] .journey-subheading h2 { color: #edf7fb; }
 html[data-theme="dark"] .journey-subheading h2 small { color: #76d5e5; }
 html[data-theme="dark"] .journey-subheading > p { color: #a6c2ce; }
 html[data-theme="dark"] .itinerary-primary-actions { border-color: #376d5d; background: #123e35; }
+html[data-theme="dark"] .itinerary-primary-actions a { color: #9addff; background: #0b2939; border-color: #547b8b; }
+html[data-theme="dark"] .itinerary-primary-actions small { color: #ffbdca; }
+html[data-theme="dark"] .day-start-control input { color: #e8f5fb; background: #102f40; border-color: #547b8b; }
+.day-planner .guide-player { color: #e8f5fb; background: #102f40; }
+.day-planner .guide-top span,.day-planner .guide-art small,.day-planner .player-time { color: #bdd7e2; }
+.day-planner .guide-top b { color: #9af0db; }
+.day-planner .transcript-button { color: #e8f5fb; background: #183f50; }
+.day-planner .transcript-button span { color: #bdd7e2; }
+.day-planner .guide-player > [role="alert"] { margin: 16px; color: #ffbdca; }
+.day-planner .player-controls button { min-width: 44px; min-height: 44px; }
+.day-planner .day-place-editor > select,.day-planner .day-order-buttons { grid-column: 1 / -1; }
+@media (max-width: 400px) { .day-planner .day-order-buttons { grid-template-columns: 1fr; } }
 html[data-theme="dark"] .itinerary-secondary-actions,html[data-theme="dark"] .planner-journey-workspace .travel-layers { color: #edf7fb; border-color: #31596a; background: #0b2d3c; }
 html[data-theme="dark"] .place-community-stories { border-color: #31596a; background: #0a2735; }
 html[data-theme="dark"] .place-community-story-list > a { color: #eaf5f9; background: #0e3748; }
@@ -159,5 +173,8 @@ html[data-theme="dark"] .place-community-empty { background: #0e3748; }html[data
   color: var(--muted);
   font-size: .74rem;
   font-weight: 700;
+  max-width: 7.5em;
+  white-space: normal;
+  text-align: right;
 }
 html[data-theme="dark"] .route-mode-sections button .route-mode-unknown { color: #9fbecd; }

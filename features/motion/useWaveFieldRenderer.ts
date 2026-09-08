@@ -6,7 +6,7 @@ import {
   type WaveFieldRendererOptions,
 } from "./wave-field-engine";
 
-export function useWaveFieldRenderer(options: WaveFieldRendererOptions) {
+export function useWaveFieldRenderer(options: WaveFieldRendererOptions, replay = 0) {
   const { mode, motion, tone, wordmark } = options;
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -14,7 +14,7 @@ export function useWaveFieldRenderer(options: WaveFieldRendererOptions) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     return startWaveFieldRenderer(canvas, { mode, motion, tone, wordmark });
-  }, [mode, motion, tone, wordmark]);
+  }, [mode, motion, tone, wordmark, replay]);
 
   return canvasRef;
 }

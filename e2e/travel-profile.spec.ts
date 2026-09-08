@@ -4,10 +4,9 @@ import { mockPlannerApi } from "./fixtures";
 test("편의 조건은 저장 뒤에도 자동 적용하지 않고 사용자가 선택해 적용·삭제한다", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
-  await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
+  await expect(page.getByRole("group", { name: "여행 설계 보기 방식" }).getByRole("button", { name: "전체 보기", exact: true })).toBeEnabled();
   const profileChoices = page.locator(".profile-grid");
 
-  await profileChoices.getByRole("button", { name: /휠체어 이용/ }).click();
   await profileChoices.getByRole("button", { name: /청각 정보 지원/ }).click();
   const profile = page.locator(".travel-profile-card");
   await profile.locator("summary").click();
@@ -15,12 +14,12 @@ test("편의 조건은 저장 뒤에도 자동 적용하지 않고 사용자가 
   await expect(page.getByRole("status").filter({ hasText: "이 기기에 저장" })).toBeVisible();
 
   await page.reload();
-  await expect(profileChoices.getByRole("button", { name: /휠체어 이용/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(profileChoices.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "false");
   await expect(profileChoices.getByRole("button", { name: /청각 정보 지원/ })).toHaveAttribute("aria-pressed", "false");
   await profile.locator("summary").click();
   await expect(profile).toContainText("청각 정보 지원");
   await profile.getByRole("button", { name: "저장한 조건 불러오기" }).click();
-  await expect(profileChoices.getByRole("button", { name: /휠체어 이용/ })).toHaveAttribute("aria-pressed", "false");
+  await expect(profileChoices.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "false");
   await expect(profileChoices.getByRole("button", { name: /청각 정보 지원/ })).toHaveAttribute("aria-pressed", "true");
 
   await profile.getByRole("button", { name: "선택한 조건 모두 해제" }).click();
@@ -37,7 +36,8 @@ test("손상되거나 차단된 프로필 저장소는 현재 선택을 잃지 �
   await mockPlannerApi(page);
   await page.goto("/planner");
   await expect(page.getByText(/저장한 편의 조건을 읽지 못했습니다/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /휠체어 이용/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("button", { name: /휠체어 편의시설/ }).click();
 
   await page.evaluate(() => {
     const original = Storage.prototype.setItem;
@@ -50,5 +50,5 @@ test("손상되거나 차단된 프로필 저장소는 현재 선택을 잃지 �
   await profile.locator("summary").click();
   await profile.getByRole("button", { name: "이 조건 저장" }).click();
   await expect(page.getByText(/이 브라우저에서는 편의 조건을 저장할 수 없습니다/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /휠체어 이용/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "true");
 });

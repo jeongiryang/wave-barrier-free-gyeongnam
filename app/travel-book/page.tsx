@@ -7,7 +7,7 @@ import CommunityHeader from "../../components/CommunityHeader";
 import SkipLink from "../../components/SkipLink";
 import GithubFooterLink from "../../components/GithubFooterLink";
 import { buildTravelJournalHref } from "../../lib/community/field-report.js";
-import type { TravelBook } from "../../lib/travel-book.js";
+import { travelBookRegions, type TravelBook } from "../../lib/travel-book.js";
 import { useTravelBook } from "../../features/travel-book/useTravelBook";
 
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric" });
@@ -20,7 +20,7 @@ function formatDate(value: string, formatter = dateFormatter) {
 function journalHref(book: TravelBook) {
   return buildTravelJournalHref({
     places: book.places.map((place) => ({ id: place.id, name: place.name, day: book.scheduleAssignments[place.id] || book.travelStart })),
-    region: book.region,
+    region: book.places[0]?.city || book.region,
     visitDate: book.travelStart,
   });
 }
@@ -74,7 +74,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
   return <article className="travel-book-card" data-status={book.status}>
     <div className="travel-book-cover">
       {cover ? <Image src={cover} alt="" fill sizes="(max-width: 860px) 100vw, 360px" unoptimized /> : <span aria-hidden="true">W</span>}
-      <div><small>{book.status === "visited" ? "다녀온 여행" : "다가오는 여행"}</small><strong>{book.region}</strong></div>
+      <div><small>{book.status === "visited" ? "다녀온 여행" : "다가오는 여행"}</small><strong>{travelBookRegions(book.places).join(" · ") || book.region}</strong></div>
     </div>
     <div className="travel-book-card-body">
       <header>
@@ -90,7 +90,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
         {days.map((day, dayIndex) => <section key={day}>
           <header><small>DAY {String(dayIndex + 1).padStart(2, "0")}</small><strong>{formatDate(day, shortDateFormatter)} · {book.dayStartTime} 시작</strong></header>
           <ol>{book.places.filter((place) => book.scheduleAssignments[place.id] === day).map((place, placeIndex) => <li key={place.id}>
-            <span>{placeIndex + 1}</span><div><strong>{place.name}</strong><small>{place.address || place.city}</small></div><em>{place.score && place.score > 0 ? `공식 편의 ${place.score}%` : "방문 전 재확인"}</em>
+            <span>{placeIndex + 1}</span><div><strong>{place.name}</strong><small>{place.address || place.city}</small></div><em>방문 전 재확인</em>
           </li>)}</ol>
         </section>)}
       </div>

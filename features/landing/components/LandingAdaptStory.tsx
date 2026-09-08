@@ -1,5 +1,8 @@
+import CompactJourneyVisual from "./CompactJourneyVisual";
+
 export default function LandingAdaptStory() {
   return <article className="product-story adapt-story" data-land-reveal>
+    <CompactJourneyVisual stage="adapt" />
     <div className="product-story-copy">
       <p className="section-kicker">05 · 상황 대응</p>
       <h2>상황이 달라지면<br /><em>다음 행동까지 제안합니다.</em></h2>

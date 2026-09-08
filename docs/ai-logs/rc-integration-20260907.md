@@ -1,0 +1,169 @@
+# PR #334 product integration checkpoint
+
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/334
+- Executor: Codex Engineering; implementation evidence, not independent QA approval.
+- State: Draft integration candidate; no merge, Production deployment or migration.
+- Baseline main: `34e6021265b16d046dca24feaa3ec2101fc977e2`.
+- Original RC: `c1bae6f80f58fb2ec58d7e00160ad7869f2bdeef`.
+
+## Included source changes
+
+| PR | Source HEAD | Purpose |
+| --- | --- | --- |
+| #348 / #347 item 4 | `8635569ca80a9114d4fce9c50fd67d0d3368efa5` | Explicit add/new/cancel region boundary, atomic current-trip reset, late location callback invalidation |
+| #342 | `d568a855fb6e9782b3e95a4717677379fb6e7f14` | Preserve search and route-query keyboard focus |
+| #343 | `4c46f29393eb68e4d108aba19a29745c676fa990` | Official-photo fallback and region names |
+| #344 | `072607d0eba71d5fe27660e1c828d11794ba92f2` | Map language and keyboard cancellation state; ancestor of #345 |
+| #345 | `8a7813c6de342cb6dda6feb20923c8090b86cc34` | Locale-aware location consent |
+| #338 | `cfdd86726676cf3c427fcfc8328d2b7063d27360` | Validate ODsay requested endpoints, walking connections and intercity completeness |
+
+Source branches and all original worktrees were preserved. Local merge commits are
+`fdf828c`, `b67037f`, `54d09e4`, and `2331832`. This is a fast-forward update to the
+existing RC history, not a replacement PR or rewritten source history.
+
+## Integration decisions
+
+- Resolve location-hook conflicts by retaining both the locale-aware consent and
+  the generation guards for delayed success/failure callbacks. Reset still clears
+  private origin and restores the initial live notice.
+- Preserve the RC's quality job, both browser shards and fail-closed aggregate
+  `validate` check, including both dependency audits and credential-free checkout.
+- Preserve bilingual route results while exposing distinct ODsay failure reasons
+  in Korean and English. Only app-authored status messages are translated; raw
+  upstream text does not become user guidance.
+- Extend the delayed-location reset fixture to both locales and assert the consent
+  locale. Extend all four transit browser cases to switch language without another
+  route request and retain the original no-confirmed-option assertions.
+
+## Verification boundary
+
+- `git diff --check`: PASS before commit.
+- No repository npm command was run on the credential-bearing host. The existing
+  disposable CI jobs must validate this exact combined HEAD after push.
+- Earlier source PR CI success is historical evidence only: #348 CI795 and #338
+  CI796 do not validate this final combination.
+- No new skip, assertion removal, timeout increase, worker reduction or budget
+  increase was used. #345's earlier browser resource failure requires fresh evidence.
+- Same-HEAD Preview, full regression and independent `wave-ai-qa:v2 PASS` remain
+  required. No review thread is resolved merely by this implementation log.
+
+## Outstanding checks
+
+### First combined Preview and follow-up
+
+- Candidate `443c5760b5e983632371a1dc7300bff7d69b8d46` deployed to Preview
+  [6310242023](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/deployments)
+  at https://wave-barrier-free-gyeongnam-oas2fwvxa-jeongiryang-projects.vercel.app
+  (Vercel `DyqbbhujAypPLGyzsADisF4U64yL`, ready 2026-09-07 13:59:40 UTC).
+- Signed-in browser: real KTO search returned five recommended Changwon places;
+  saved Daesan Flower Land and Junam Reservoir. Two dated places and two matching
+  destination map markers, two ordered journey legs, transport select present.
+- The actual car query returned zero of two confirmed journeys; ODsay displayed an
+  upstream-error notice and the main map used its alternative. This is failure
+  recovery evidence, NOT live Kakao/ODsay success. The direct API browser tab was
+  blocked by the browser client; no authentication/protection bypass attempted.
+- At 320px, the region dialog displayed all three choices without horizontal
+  overflow. Escape restored the Hadong trigger; both existing places remained.
+  KO-to-EN retained the itinerary and showed English ODsay guidance. Recommendation
+  evidence correctly became stale because locale is part of its search signature.
+- English add-region retained both places and dates; new-trip reset locked the
+  empty itinerary, persisted Jinju after reload, and preserved the separately
+  archived two-place Changwon trip. Reopening that archive in guided mode exposed
+  another navigation defect: the app returned to preferences despite restoring
+  places. Restore URLs now target `#itinerary`; a new desktop/mobile guided-flow
+  test requires direct itinerary visibility and an explicit missing-coordinate
+  notice. Existing no-coordinate archive assertions are retained unchanged.
+- Found a language-boundary defect in this Preview: English planner headings and
+  controls inherited document `lang=ko`. The follow-up sets the planner main's
+  language to the selected locale and explicitly marks original-language journey
+  endpoint names. New inherited-language and original-name assertions accompany
+  the existing light/dark, 320/960/1366px browser cases. The global Korean fallback
+  for other partially translated pages remains unchanged. Real screen-reader
+  speech has not been verified.
+- [CI805](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34129957939)
+  on `443c576` finished: desktop356 PASS, mobile355 PASS/existing1skip,
+  fail0/flaky0. Quality stopped before checks when the pinned actionlint download
+  returned HTTP504, so aggregate validate correctly failed. The language and
+  guided-restore follow-ups require a fresh full run; these browser results are
+  not attributed to the later HEAD.
+- GitHub marked stacked #342–#345 and #348 Merged when their base histories gained
+  their HEADs. This is inclusion in the RC, not main/Production deployment.
+
+- Archived-trip restoration currently needs investigation: public coordinates may
+  be omitted by archive serialization, unlike current-trip reload. Verify restored
+  itinerary/map consistency without inventing coordinates.
+- #289 remains blocked-sandbox. CI804 at `60896f64` passed normal validation but
+  failed full application execution in the sandbox; artifacts require analysis.
+  Its latest candidate is not included by this product integration checkpoint.
+- Preserve the original #289 dirty ten files, #294 attempts/generation/receipt and
+  all pre-existing browser artifacts. No actual queue tick or API model workflow.
+- Preview anonymous-access restriction, independent QA, required human reviews and
+  the unapplied 008 migration prerequisites remain separate gates.
+- #341 is a design document, not implemented landing work. Post-RC #350–#354 are
+  outside this stabilization change.
+
+## CI806 performance regression
+
+- `f87294035172b2ba9fcdab520c0a8631d00bd1e9`, run34131988536: workflow static checks, both dependency audits, lint, typecheck, unit/contract549 and Vercel build passed. Quality then failed because CSS gzip measured70.01KiB against the unchanged70KiB budget. Browser shards were still running when this fix was prepared.
+- Removed eleven obsolete rules for the retired `hero-proof`, `hero-noise` and `map-halo` classes from `landing-explorer.css` and their responsive overrides in `place-dialog.css`. Repository source search found no rendered or dynamic references; current `LandingHero` uses `landing-hero`, `WaveField` and the four-step journey summary. No active component styling or budget was changed.
+- `git diff --check` passed. Exact post-build size and complete browser/axe regression require the fresh CI; no host repository npm execution was used. No assertion, locator, skip, worker or timeout was changed.
+
+## Guided restoration hydration race
+
+- CI806 completed with desktop356 PASS/1FAIL and mobile355 PASS/1FAIL/existing1skip; neither shard reported flaky tests. The same new archive-restoration case failed twice per project at the unchanged visible itinerary assertion. Error context showed the saved count was1, while guided mode still displayed preferences.
+- Root cause: `useJourneyProgress` interpreted the initial pre-storage saved count0 as an empty trip and replaced the URL-requested itinerary stage with conditions. Appending `#itinerary` alone was insufficient. The redirect effect now waits for both criteria and trip storage readiness. A truly empty hydrated trip still redirects to a permitted stage; no completion flag is granted by restoration.
+- Added four KO/EN hook regressions for pending storage, restored places without a recommendation search, and genuinely empty itinerary/departure links. The existing desktop/mobile browser assertion remains unchanged and must pass in the next full run. No delayed forced-focus restoration or timeout increase was added.
+- Read-only Production check at2026-09-07T14:26Z: deployment6278499275 remains34e6021265b16d046dca24feaa3ec2101fc977e2. Health reported configuration ready; route response contained a configured Kakao alternative but ODsay state error. This is not a full Production transport PASS. Signed-in Vercel logs for443Preview confirmed Kakao/ODsay outbound calls, configured=false and one unverified alternative; Preview auth/get-session also returned503. Exact upstream failure reason remains unconfirmed. Connected Vercel app inspection was403 due to scope authorization; no credential or protection change attempted.
+# Follow-up: saved public place locations, 2026-09-07 15:10 UTC
+
+- CI808 at e6dc25961a54fec320e2611d3a09db83693e5a49 succeeded: unit553, desktop357/mobile356 PASS, existing mobile skip1, fail0/flaky0. Quality includes lint/typecheck/build, both audits0, CSS69.80KiB and planner269.75KiB under unchanged limits. https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34134054194
+- Exact Preview6310972273 (6imphawat) was checked using the existing signed-in Vercel browser: real KTO5, save2, dated2/map2, archive restore directly opens the itinerary. EN320 dark/reduced-motion region Cancel/Add/New preserves or resets as selected, Escape returns focus, overflow0; observed console capture returned no errors. This does not prove anonymous Preview access, live ODsay success or full console history.
+- Restoration deliberately strips coordinates from the archive. The two restored places therefore had no route/map recovery action. Worse, blank strings were converted to numeric zero in visit-order distance calculations, showing a 240-minute straight-line estimate from Korea to null island.
+- Candidate correction: reject blank/outside-service coordinates for distance estimates; keep archive privacy assertions intact. A user-initiated public content-ID lookup restores only verified matching coordinates to the current trip catalog. Provider error, official empty, missing coordinates and invalid responses stay distinct. It does not rerun recommendations or refresh facility evidence. At most3 requests are concurrent, with a20-second overall deadline; leaving/changing the trip aborts and invalidates the response. The activated button stays mounted after success.
+- Added provider contracts and KO/EN320 browser cases for recheck, focus, dates, archive privacy, reload, empty/error/wrong-ID retry and late-response/new-trip invalidation. These additions are NOT validated yet at this checkpoint; only git diff --check/static review ran on the host. Repository npm scripts remain reserved for disposable credential-free CI.
+- #289 ea10705 CI807 is green, but independent review5133081079 found aggregate writable-workspace quota P1. It remains blocked-sandbox; no queue tick, model/API workflow activation, scheduler registration, main merge, Production deployment or008 migration.
+# Follow-up: consistent coordinate sinks
+
+- CI809 completed with quality SUCCESS and browser desktop362PASS/1FAIL, mobile361PASS/1FAIL/existing1skip. The sole failure in both projects is the newly authored KO late-response test waiting for an invented exact label `여행 조건`; `useJourneyProgress` renders `조건`. Corrected the test's exact accessible name to the actual contract, retaining the late-response, reload, selected-region and empty-stage assertions and the45-second timeout. EN late-response and both locale location recheck/error/privacy tests passed. CI artifacts are retained under ci-809-desktop.
+
+- Independent review5133461867 at de0c2a16a2812c09eccf423f7e18841dff0ef51d identified that visit-order validation alone does not guard map/route sinks or offer recovery for nonblank invalid coordinates. The candidate now shares `supportedPlacePoint` across visit order, recovery, itinerary markers, every adjacent leg, the public-ID API and network request admission. Both route endpoints are validated before route/crowd fetches. Catalog coordinates may repair the matching incomplete active place while preserving its facility evidence.
+- Added unit contracts for null-island/out-of-envelope/nonfinite/missing-axis points, all affected legs, zero network calls, same-place zero-distance preservation and ID-bound catalog repair. Added KO/EN browser cases for all five invalid input classes; unchanged prior archive/late-response/privacy assertions remain. Validation is pending at this checkpoint.
+
+
+## 2026-09-07 CI811 and exact Preview follow-up (not release PASS)
+
+- CI81134138237346 at8c4240f05e3a107a27658211e26369aa85960e69 failed: desktop368PASS/5FAIL; the five new English invalid-coordinate cases attempted to click a scroll-hidden header. Failure artifact ci-811-desktop/error-context and screenshot show the exact control outside viewport. Add the real keyboard Control+Home navigation and an in-viewport assertion before the unchanged exact-name locale selector. All coordinate/network assertions remain; no force click, locator broadening, skip, timeout/worker/budget increase.
+- Exact8c Preview https://wave-barrier-free-gyeongnam-1chel30ri-jeongiryang-projects.vercel.app is READY, deployment dTvD7k8EvdFx1RAeorLiyc493Ryz. Actual anonymous UI: Changwon + access/elevator + nature -> explicit search5 -> save2 -> dated itinerary2/map2 -> travel-book -> restore2/map0. Explicit public-ID coordinate recheck returned empty for126117 and2758443; dates/order/button keyboard focus remained. This is an empty-response handling result, NOT successful provider recovery. Exact detailCommon2 service coverage still needs diagnosis.
+- Actual route UI before archival returned ODsay47min/walk1277m/0transfers, while Kakao map connection fell back to Leaflet. Never generalize that one route into universal provider success. The tested browser viewport actually remained958px after the capability request; do not label that manual observation320px.
+- A fresh real Preview planner load recorded React hydration418. Code inspection finds useTripSchedule renders wall-clock local dates during SSR and first client render (UTC server vs KST browser). Candidate initializes date/day values neutrally until existing storage restoration completes, and postpones input's today-minimum attribute too. New KO/EN E2E uses two time zones with a deliberately different client clock and asserts no console/page error before and after reload. This diagnosis requires fresh CI/Preview confirmation.
+- Only git diff --check executed locally for this candidate. Repository npm remains forbidden on credential-bearing host. Fresh full CI, new Preview and independent QA are pending; Production/main34e6021 unchanged,008 not applied.
+
+## 2026-09-07 exact4d80a97 CI and live restoration follow-up
+
+- CI814 run34140841401 at4d80a9776879e9f09cf3ce59d1fbb075f8042e44 SUCCESS: unit/contract577 PASS, desktop377 PASS (18.3m), mobile376 PASS (19.0m), existing1skip, fail0/flaky0. Lint/typecheck/production+development audits0/Vercel build/performance passed. CSS69.80/70KiB, planner269.96/270KiB, landing114.28/155KiB, largest95.92/110KiB. Four new timezone/locale hydration cases pass in each project.
+- Same-HEAD Preview https://wave-barrier-free-gyeongnam-5gmpo2rse-jeongiryang-projects.vercel.app READY (CMMGsq5i27m1ndGnzRg2CdLPxYMT). Actual authenticated Vercel browser,16:03-16:18UTC: initial/reloaded date2026-09-08, no captured console errors. Changwon/access-elevator/nature explicit search5; add2 -> dated itinerary2/map2; ODsay47min/walk1277m/fare1950/zero transfers. Kakao SDK did not connect and Leaflet alternative rendered. No invalid car minute was presented.
+- Region Jinju offers Add/New/Cancel; keyboard Cancel leaves date/order/map2 unchanged and returns focus to Jinju. Travel-book saves2, reopens exact2 IDs/day/order, excludes archived coordinates. Public-ID lookup returns empty126117/2758443, so map0 remains; no provider success is claimed. Returning to conditions, explicitly selecting facilities/activity and searching the same region actually restores matching2 coordinates/map2 without changing saved IDs/day/order. That second route is real API evidence; successful direct detail lookup remains unverified. Stored preference labels are not restored as selected criteria in the existing travel-book implementation; this remains a separate lifecycle limitation.
+- The manual viewport was958px despite requesting320 through browser capability. No overflow at actual958px; do not count this as320px manual verification. Actual320 automated recovery cases passed in CI814. Anonymous HTTP Preview returned Vercel access HTML, not API JSON; no cookie/token was copied or bypassed.
+- New candidate adds a visible keyboard link from failed/empty coordinate lookup to trip conditions and explains explicit same-region search. KO/EN320 regressions assert no automatic search, one user search, matching saved ID only, preserved date/archive privacy and no overflow. Existing assertions, timeouts, workers, skip and performance budgets are unchanged. New candidate CI/Preview/independent QA still required; review5133825868 at4d was PENDING and seven historical P1 threads unresolved.
+- Main/Production34e6021, original dirty10, external sandbox pins and #294 counters unchanged; no merge,008 migration or Production deployment. #2891f75790 CI815 is still pending; actual queue remains blocked-sandbox.
+
+## 2026-09-07: integrate verified sandbox source and bound the complete RC suite
+
+The RC at d37db6ca889830d1567cfac84f17480df41d77cc passed CI81634142740909: unit/contract577, desktop379/mobile378, existing1skip, failures0/flaky0. Exact Preview8muo4p62e is Ready. Actual KO/EN320x568 empty public-ID recovery-link keyboard navigation and explicit English Changwon search restored saved Junam1/map1 while preserving2026-09-08/order; no console errors/overflow. Original public-ID result remains empty. PR334comment5573615586 maps seven unresolved P1 threads to code and successful regression evidence for separate QA; implementation did not resolve or self-approve them.
+
+Merge origin/chore/automation-control-plane at1f757906ab610ec42e84c67f2973b24eab870885: only ci.yml conflicts. Its CI815 full sandbox passed all six commands but recorded one first-attempt skip-link focus flake (236passed,1flaky,1existing skip). Basic exact1f Preview firstTab smoke passed; this does not erase the flake. Independent QA remains PENDING and source installation/queue remain blocked-sandbox.
+
+The integrated RC has758 browser cases; its two ordinary shards took18.5/20.1min. Preserve the sandbox20min process-group cap and all existing tests by running four fixed application shards, each with full lint/typecheck/unit/build/performance and one-quarter browser tests. The local trusted coordinator must collect all four exact isolated receipts sequentially and stop on a failed/missing/repeated shard before publish. CI keeps ordinary quality/browser checks and adds boundary plus all four sandbox jobs to the protected validate dependency gate. No timeout, worker count, assertions, skips, namespace/resource limit or performance budget is relaxed.
+
+Changed bridge bytes require a NEW external reviewed/pinned distribution after separate QA; do not overwrite the verified1f or2a installations. This merge candidate has only syntax parsing and git diff checks so far. New CI, real sandbox shards, latest Preview and independent QA remain required; no queue/model execution, Production deployment,008 migration or Issue closure occurred.
+## CI bootstrap P1 from independent review5134168877
+
+Independent QA correctly rejected263731a even if CI817 succeeds: the sandbox-application job imports the candidate Python helper and runs candidate Playwright before creating a filesystem/network boundary. Resource limits and persist-credentials:false do not fix that ordering. Keep blocked-sandbox and all P1 threads open.
+
+A separate CI bootstrap distribution now verifies all12 candidate coordinator files plus package-lock as data against explicit263731a hashes, then downloads immutable matching runtime/public-test bytes into a new external directory. Mutated helper/entrypoint/lockfile and fetched-runtime negative tests use only public sentinels/listeners. This source commit must be pinned by the following workflow change before use; no source-checkout bootstrap execution is authorised. New tests are unexecuted until the fixed distribution is invoked in CI.
+The workflow follow-up pins bootstrap sourceabadeffe18f0ec9699d3f6b33cd5737620122d6f and its SHA256 before Python execution. Both sandbox job families now run the downloaded immutable public tests/helper outside checkout. Chromium preparation uses fixed public Playwright1.62.1 in a separate empty tools directory after candidate verification; no candidate npm/npx command or helper import occurs before isolation. The existing normal CI jobs remain separate product checks, not proof of host isolation. Four sandbox shards, all-shard protected gate and resource limits remain unchanged. New CI/bootstrap-negative/full-sandbox/Preview/independent QA are pending; no self-issued PASS.
+## Diagnose CI817 resource flakes without accepting retry-only success
+
+CI817263731a completed SUCCESS: ordinary desktop379/mobile378/existing1skip/no flaky; actual sandbox shards190,189,188,185 passed plus5flaky/existing1skip. The preserved artifacts are D:/wave-resume-20260907-347/ci-817-sandbox. Four first attempts reported ENOSPC during date/map/weather screenshots; one mobile Roadview case exceeded45000ms during context teardown. Affected mount/capacity is not yet measured, so no memory/disk quota change is justified.
+
+A diagnostic-only Playwright reporter samples aggregate byte/inode capacity of the isolated workspace/tmp/shm/home at failed steps and test completion. It does not enumerate paths/files/environment or emit raw errors. Existing line/HTML reporters, traces, screenshots, two workers, timeouts, viewports and assertions remain intact. CI failOnFlakyTests is now enabled so retries retain diagnostic value but cannot turn a flaky run into a passing release gate (official Playwright TestConfig option since1.52). Local syntax checks passed; functional checks are pending the next CI. No claim that this instrumentation fixes ENOSPC.

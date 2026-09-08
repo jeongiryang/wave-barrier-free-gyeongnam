@@ -22,8 +22,8 @@ test("HTTP 200에 실린 오류 봉투를 오류로 읽는다", () => {
 
 test("경로가 없는 정상 응답은 오류가 아니다", () => {
   assert.deepEqual(readOdsayResponse({ result: { path: [] } }), { paths: [], error: null });
-  assert.deepEqual(readOdsayResponse({}), { paths: [], error: null });
-  assert.deepEqual(readOdsayResponse(null), { paths: [], error: null });
+  assert.equal(readOdsayResponse({}).error?.code, "INVALID_RESPONSE");
+  assert.equal(readOdsayResponse(null).error?.code, "INVALID_RESPONSE");
 });
 
 test("키가 없으면 상태를 건드리지 않는다", () => {
@@ -42,7 +42,8 @@ test("네 가지 상황이 서로 다른 상태로 구분된다", () => {
 
   assert.equal(noKey, null);
   assert.equal(badKey?.state, "error");
-  assert.match(badKey.detail, /Invalid API Key/);
+  assert.match(badKey.detail, /응답을 확인하지 못했습니다/);
+  assert.doesNotMatch(badKey.detail, /Invalid API Key/);
   assert.equal(upstreamDown?.state, "error");
   assert.match(upstreamDown.detail, /503/);
   assert.equal(noRoute?.state, "ready");

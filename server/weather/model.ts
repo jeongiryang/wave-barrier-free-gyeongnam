@@ -19,7 +19,7 @@ export function weatherLabel(code: number) {
   if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "비";
   if ([71, 73, 75, 77, 85, 86].includes(code)) return "눈";
   if ([95, 96, 99].includes(code)) return "천둥번개";
-  return "날씨 변화";
+  return "날씨 정보 미확인";
 }
 
 export function weatherAdvice(daily: Pick<WeatherDay, "max" | "min" | "rainProbability" | "rain" | "snow" | "uv">) {
@@ -38,30 +38,36 @@ export function normalizeWeatherForecast(raw: Record<string, unknown>, region: s
   const current = (raw.current || {}) as Record<string, number | string>;
   const daily = (raw.daily || {}) as Record<string, unknown>;
   const values = (key: string) => Array.isArray(daily[key]) ? daily[key] as Array<number | string> : [];
+  const number = (value: unknown) => {
+    if (typeof value !== "number" || !Number.isFinite(value)) throw new Error("날씨 제공처 응답에 확인할 수 없는 값이 있습니다.");
+    return value;
+  };
   const days: WeatherDay[] = values("time").slice(0, 7).map((time, index) => {
-    const code = Number(values("weather_code")[index] || 0);
+    if (typeof time !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(time) || new Date(`${time}T00:00:00Z`).toISOString().slice(0, 10) !== time) throw new Error("예보 날짜를 확인할 수 없습니다.");
+    const code = number(values("weather_code")[index]);
     return {
       date: String(time), code, label: weatherLabel(code),
-      max: Number(values("temperature_2m_max")[index] || 0),
-      min: Number(values("temperature_2m_min")[index] || 0),
-      rainProbability: Number(values("precipitation_probability_max")[index] || 0),
-      rain: Number(values("rain_sum")[index] || 0),
-      snow: Number(values("snowfall_sum")[index] || 0),
-      uv: Number(values("uv_index_max")[index] || 0),
+      max: number(values("temperature_2m_max")[index]),
+      min: number(values("temperature_2m_min")[index]),
+      rainProbability: number(values("precipitation_probability_max")[index]),
+      rain: number(values("rain_sum")[index]),
+      snow: number(values("snowfall_sum")[index]),
+      uv: number(values("uv_index_max")[index]),
     };
   });
-  const currentCode = Number(current.weather_code || 0);
+  if (!days.length) throw new Error("날씨 제공처 응답에 예보 날짜가 없습니다.");
+  const currentCode = number(current.weather_code);
   return {
     region,
     source: "Open-Meteo",
     updatedAt: new Date().toISOString(),
     current: {
-      temperature: Number(current.temperature_2m || 0),
-      apparent: Number(current.apparent_temperature || 0),
+      temperature: number(current.temperature_2m),
+      apparent: number(current.apparent_temperature),
       code: currentCode,
       label: weatherLabel(currentCode),
-      wind: Number(current.wind_speed_10m || 0),
-      precipitation: Number(current.precipitation || 0),
+      wind: number(current.wind_speed_10m),
+      precipitation: number(current.precipitation),
       isDay: Boolean(current.is_day),
     },
     days: days.map((day, index) => ({ ...day, advice: index === 0 ? weatherAdvice(day) : [] })),

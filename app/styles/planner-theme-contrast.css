@@ -1,4 +1,6 @@
 /* 여행 설계의 작은 보조 글자는 일반 본문과 같은 4.5:1 기준을 지킨다. */
+.planner-journey-workspace .theme-grid button.active small { color: var(--mint); }
+
 .planner-journey-workspace .theme-grid small,
 .planner-journey-workspace .profile-card small,
 .planner-journey-workspace .date-range-fields label,

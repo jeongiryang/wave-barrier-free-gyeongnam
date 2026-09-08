@@ -42,10 +42,12 @@ Vercel Functions
 사진 코스는 원본 파일을 서버로 보내지 않습니다. 브라우저가 최대 200개 파일의 앞
 256 KiB만 순서대로 읽고, 내보내기·공유 자료에서는 좌표를 제거합니다.
 
-현재 위치는 사용자가 위치 버튼을 눌렀을 때만 브라우저 권한을 요청합니다. 선택한
-출발·도착 좌표는 지도 표시와 실제 경로 조회에 쓰이며 `/api/route`를 거쳐 연결된
-Kakao·ODsay에 전달될 수 있습니다. W.A.V.E 데이터베이스와 운영 이벤트에는 좌표를
-저장하지 않습니다. 외부 제공기관의 처리는 각 제공기관 정책의 적용을 받습니다.
+현재 위치는 사용자가 위치 버튼을 눌렀을 때만 브라우저 권한을 요청합니다. GPS를 출발지로
+선택한 동안 서버 경로 조회는 차단하고 기기에서 위치를 별도로 표시합니다. 공개 거점·관광지·
+사용자가 고른 지도 지점의 출발·도착 좌표는 `/api/route`를 거쳐 Kakao·ODsay에 전달됩니다.
+W.A.V.E DB·운영 이벤트에는 GPS를 저장하지 않습니다. 지도 SDK·타일·주변 검색의 처리에는
+각 제공기관 정책이 적용되므로 모든 위치 처리가 기기 안에서 끝난다고 설명하지 않습니다.
+기술적 최소화는 위치정보 관련 법적 검토를 대신하지 않습니다.
 
 ## 데이터 신뢰 기준
 
@@ -74,6 +76,24 @@ Kakao·ODsay에 전달될 수 있습니다. W.A.V.E 데이터베이스와 운영
 - 키가 노출되면 제공기관에서 폐기·재발급하고 Vercel 환경 변수를 교체한 뒤 새로
   배포합니다. 노출된 값은 Git 기록이나 이 문서에 적지 않습니다.
 
+### 빌드 도구 전이 의존성 예외
+
+- Vercel 운영 이력이 있는 `vinext@0.0.50`을 유지한다. 과거 vinext beta 전환은
+  로컬 빌드와 CI를 통과한 뒤 실제 Vercel 함수에서 전 경로 500을 일으켰으므로
+  audit 자동 수정이나 major/beta 전환으로 이 조합을 바꾸지 않는다.
+- vinext가 요구하는 `image-size@2.0.2`에는 수정 릴리스가 없는 무한 반복 권고가
+  남아 있어, 동일한 `image-size` API를 제공하고 해당 반복 경계를 수정한 커뮤니티
+  포크 `image-size-next@2.1.1`로만 정확히 대체한다. 이 패키지는 설치 생명주기
+  스크립트와 런타임 의존성이 없으며 lockfile의 SHA-512 무결성으로 고정한다.
+- `@shuding/opentype.js` 아래 `fflate`는 호환 패치인 `0.7.5`로 정확히 고정한다.
+- 회귀 검사는 정상 PNG 판독과 조작된 ICNS/JXL/HEIF 입력의 제한시간 내 종료,
+  실제 vinext Vercel 빌드, 전체 audit을 함께 확인한다. 이 예외는 개발·빌드 도구
+  범위이며 배포 함수의 Production 의존성에는 포함되지 않는다. 필수 CI는 운영
+  의존성 High 감사와 개발 도구를 포함한 Moderate 이상 감사를 별도 단계로 실행한다.
+- upstream vinext 안정판이 취약 패키지를 제거하거나 공식 수정판을 채택하면 이
+  override를 제거한 후보를 먼저 빌드·Preview smoke로 검증한다. Vercel 런타임
+  회귀가 생기면 Production을 승격하지 않고 기존 검증 조합을 유지한다.
+
 ## 접근성 기준
 
 - 주요 버튼·링크·입력은 44px 이상 터치 영역과 보이는 키보드 초점을 유지합니다.
@@ -91,9 +111,24 @@ Kakao·ODsay에 전달될 수 있습니다. W.A.V.E 데이터베이스와 운영
 
 1. lint, 타입 검사, 로직 검사, Chromium 사용자 여정·접근성 검사, Vercel 빌드를 실행합니다.
 2. `main`의 성공한 커밋으로 도메인을 붙이지 않은 production 후보를 만듭니다.
-3. 후보의 `/api/health` 응답과 필수 환경 변수를 확인하고 migration을 적용합니다.
+3. 후보의 `/api/health`와 필수 환경 변수를 확인합니다. 보호된 migration API가 실제
+   DB endpoint·DB명·스키마와 `008` 영향 건수를 `READ ONLY`로 확인한 뒤 migration을 적용합니다.
 4. 후보를 production으로 승격합니다.
 5. production `/api/health`가 재시도 뒤에도 실패하면 Vercel rollback을 실행합니다.
+
+Owner의 수동 `CD` 실행은 기본적으로 `preflight_only=true`입니다. 같은 SHA의 CI가
+성공해야 도메인이 없는 Production 환경 후보를 만들며, migration·승격·Cron 설정 변경은
+실행하지 않습니다. 토큰으로 보호된 `/api/deployment/migrate`의
+`X-Wave-Migration-Mode: inspect`는 PostgreSQL `READ ONLY` transaction과 10초 statement
+제한으로 집계만 조회합니다. `database-preflight` artifact에는 검증된 비민감 대상 ID,
+총 글·공개 글·008 영향 건수·확인 시각만 남습니다. 연결 문자열·계정·원문 오류는 남기지 않습니다.
+
+검증 대상은 `lib/deployment/database-preflight.js`의 Neon project/branch/endpoint/database로
+고정되어 있습니다. 다른 대상으로 바뀌면 운영 변경 검토 없이 migration하지 않습니다.
+이 점검은 기존 서비스 DB의 스키마를 요구하며 빈 DB 신규 구축 절차가 아닙니다.
+읽기 전용 성공도 백업 성공을 뜻하지 않습니다. 배포 직전 최신 복구 지점과 영향 건수,
+격리 복원·rollback 검증, 구버전/신버전 앱 호환성을 #11에 연결한 뒤 릴리스를 진행합니다.
+008은 콘텐츠를 보존하고 공개 상태를 바꾸므로 앱 rollback만으로 공개 상태가 복원되지 않습니다.
 
 매일 실행되는 `Production API Smoke`는 날씨, Kakao 지도 설정·장소·자동차 경로,
 국문·영문 관광 추천, 관광 확장정보·지역/장소 사진·혼잡도, 커뮤니티, 인증 세션과 주요 공개 화면의 실제 응답을

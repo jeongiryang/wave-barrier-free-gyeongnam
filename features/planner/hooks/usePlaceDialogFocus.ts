@@ -2,42 +2,40 @@
 
 import { useEffect, useRef } from "react";
 
-const focusableSelector = 'button:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
-
+/** Native modal mode makes the rest of the document inert, including maps. */
 export function usePlaceDialogFocus(open: boolean, onClose: () => void) {
-  const dialogRef = useRef<HTMLElement>(null);
-
+  const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    if (!open) return;
+    const dialog = dialogRef.current;
+    if (!open || !dialog) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+    if (!dialog.open) dialog.showModal();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialog.querySelector<HTMLElement>("h2")?.focus();
+    const cancel = (event: Event) => { event.preventDefault(); onClose(); };
+    dialog.addEventListener("cancel", cancel);
+    const containTab = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const controls = [...dialog.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], summary, [tabindex="0"]')]
+        .filter((element) => element.getClientRects().length > 0 && getComputedStyle(element).visibility !== "hidden");
+      const first = controls[0];
+      const last = controls.at(-1);
+      if (!first || !last) { event.preventDefault(); return; }
+      const active = document.activeElement as HTMLElement;
+      if (!controls.includes(active) || event.shiftKey && active === first || !event.shiftKey && active === last) {
         event.preventDefault();
-        onClose();
-        return;
-      }
-      if (event.key !== "Tab" || !dialogRef.current) return;
-      const focusable = [...dialogRef.current.querySelectorAll<HTMLElement>(focusableSelector)];
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
+        (event.shiftKey ? last : first).focus();
       }
     };
-
-    window.addEventListener("keydown", handleKeyDown);
-    const focusTimer = window.setTimeout(() => dialogRef.current?.querySelector<HTMLElement>(focusableSelector)?.focus(), 0);
+    dialog.addEventListener("keydown", containTab);
     return () => {
-      window.clearTimeout(focusTimer);
-      window.removeEventListener("keydown", handleKeyDown);
-      previousFocus?.focus();
+      dialog.removeEventListener("cancel", cancel);
+      dialog.removeEventListener("keydown", containTab);
+      if (dialog.open) dialog.close();
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus?.isConnected) previousFocus.focus();
     };
   }, [onClose, open]);
-
   return dialogRef;
 }

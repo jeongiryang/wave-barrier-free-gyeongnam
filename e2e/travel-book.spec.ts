@@ -1,20 +1,41 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
+
+test("안내형 보기에서 보관 일정을 열면 재검색 없이 일정과 누락된 지도 위치를 확인한다", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockPlannerApi(page, { plannerView: "guided" });
+  await page.goto("/planner");
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "다음: 내 일정", exact: true }).click();
+  await page.getByRole("button", { name: "내 일정에 저장", exact: true }).click();
+  await expect(page.locator(".travel-book-archive-action [role=status]")).toContainText("내 일정에 저장했어요");
+  await page.getByRole("link", { name: /저장한 일정 보기/ }).click();
+  await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
+  await expect(page).toHaveURL(/from=travel-book#itinerary$/);
+  await expect(page.getByRole("region", { name: "날짜별 여행 일정", exact: true }).getByText("경남도립미술관").first()).toBeVisible();
+  await expect(page.locator("#itinerary > .route-scope-note")).toContainText("일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
+  await expect(page.getByRole("status").filter({ hasText: "좌표를 확인하지 못한 장소:" })).toContainText("경남도립미술관");
+  // The privacy contract still excludes coordinates from the archive; never
+  // substitute unrelated recommendations or invented markers during restore.
+  expect(await page.evaluate(() => localStorage.getItem("wave-travel-book-v1"))).not.toMatch(/mapX|mapY|128\.691|35\.238/);
+});
 
 test("플래너의 일정은 로컬 여행집에서 기록하고 다시 복원할 수 있다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner?travelStart=2026-09-01&travelEnd=2026-09-02");
+  await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
-  await itinerary.getByRole("button", { name: "여행집에 보관" }).click();
-  await expect(itinerary.locator(".travel-book-archive-action [role=status]")).toContainText("여행집에 보관했습니다");
+  await itinerary.getByRole("button", { name: "내 일정에 저장", exact: true }).click();
+  await expect(itinerary.locator(".travel-book-archive-action [role=status]")).toContainText("내 일정에 저장했어요");
 
   const serialized = await page.evaluate(() => window.localStorage.getItem("wave-travel-book-v1") || "");
   expect(serialized).toContain("경남도립미술관");
   expect(serialized).not.toMatch(/mapX|mapY|128\.691|35\.238/);
 
-  await itinerary.getByRole("link", { name: /내 여행집 열기/ }).click();
+  await itinerary.getByRole("link", { name: /저장한 일정 보기/ }).click();
   await expect(page).toHaveURL(/\/travel-book$/);
   await expect(page.getByRole("heading", { name: "창원 1곳 여행" })).toBeVisible();
   await expect(page.getByText("내 기기 안에만 보관해요.")).toBeVisible();

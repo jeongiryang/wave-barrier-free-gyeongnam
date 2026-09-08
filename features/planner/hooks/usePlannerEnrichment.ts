@@ -50,5 +50,10 @@ export function usePlannerEnrichment({ plan, enabled, region, theme, locale, tra
 
   useEffect(() => () => enrichmentRequestRef.current?.abort(), []);
 
-  return { enrichment, enrichmentLoading, loadEnrichment };
+  const resetEnrichment = useCallback(() => {
+    enrichmentRequestRef.current?.abort(); enrichmentRequestRef.current = null;
+    setEnrichment(null); setEnrichmentLoading(false);
+  }, []);
+
+  return { resetEnrichment, enrichment, enrichmentLoading, loadEnrichment };
 }

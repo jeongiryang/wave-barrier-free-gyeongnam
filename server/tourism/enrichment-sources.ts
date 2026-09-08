@@ -15,9 +15,10 @@ import {
 } from "./regional-enrichment";
 import { fetchDemandInsight, fetchVisitorInsight } from "./visitor-demand";
 import { fetchWaterTravel } from "./water-travel";
+import { filterGyeongnamResult } from "../../lib/tourism/regional-scope.js";
 
 export async function fetchEnrichmentSources(env: Env, region: string, theme: string, locale: string, eventStartDate: string, eventEndDate: string) {
-  const language = languageServices[locale === "ko" ? "en" : locale];
+  const language = languageServices[locale] || languageServices.ko;
   const districts = regionCodes[region].legal;
   const baseLocation = { ...commonParams("10"), arrange: "Q", lDongRegnCd: "48" };
   const [visitorPack, camping, pet, wellness, medical, languageTour, awards, demandPack, waterCourses, waterPlaces, themeRests, events, lodging] = await Promise.all([
@@ -44,5 +45,5 @@ export async function fetchEnrichmentSources(env: Env, region: string, theme: st
     fetchRegionalEvents(env, region, eventStartDate, eventEndDate),
     fetchRegionalLodging(env, region),
   ]);
-  return { language, visitorPack, camping, pet, wellness, medical, languageTour, awards, demandPack, waterCourses, waterPlaces, themeRests, events, lodging };
+  return { language, visitorPack, camping, pet, wellness, medical, languageTour, awards: filterGyeongnamResult(awards), demandPack, waterCourses, waterPlaces, themeRests: filterGyeongnamResult(themeRests), events, lodging };
 }

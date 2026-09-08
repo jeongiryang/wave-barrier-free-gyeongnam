@@ -5,6 +5,8 @@ import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { Place, PlanData } from "../types";
 import RouteComparisonPanel from "./RouteComparisonPanel";
 import TripPointPicker from "./TripPointPicker";
+import { useSitePreferences } from "../../../components/SitePreferences";
+import { originalLanguage } from "../place-copy";
 
 interface RouteMapWorkspaceProps {
   mapEnabled: boolean;
@@ -20,10 +22,21 @@ interface RouteMapWorkspaceProps {
 const DeferredRouteMap = lazy(() => import("../../../components/RouteMap"));
 
 export default function RouteMapWorkspace({ mapEnabled, activePlaces, planCrowd, route, locationSearch, onChoosePoint, onMapDestination, onSaveMapPlaces }: RouteMapWorkspaceProps) {
+  const { locale } = useSitePreferences();
+  const english = locale === "en";
   const { origin, originLabel, routeDestination, destinationCrowd, routeLoading, loadRoutes, updateOrigin, activeRoute } = route;
+  const displayOrigin = route.routeStart || origin;
+  const displayOriginLabel = route.routeStartLabel || originLabel;
   const { pointPicker, setPointPicker } = locationSearch;
-  const mapPlaces = useMemo(() => activePlaces.slice(0, 6), [activePlaces]);
+  const mapPlaces = useMemo(() => activePlaces, [activePlaces]);
   const pointPickerTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const recalculateRef = useRef(false);
+  const recalculate = async () => {
+    if (recalculateRef.current || routeLoading || !activePlaces[0]) return;
+    recalculateRef.current = true;
+    try { await loadRoutes(routeDestination || activePlaces[0], displayOrigin, route.privateOrigin && displayOrigin === origin, displayOriginLabel); }
+    finally { recalculateRef.current = false; }
+  };
   const togglePointPicker = useCallback((value: "origin" | "destination", trigger: HTMLButtonElement) => {
     pointPickerTriggerRef.current = trigger;
     setPointPicker((current) => current === value ? null : value);
@@ -35,15 +48,16 @@ export default function RouteMapWorkspace({ mapEnabled, activePlaces, planCrowd,
 
   return <div className="navigation-workspace" data-reveal>
     <div className="map-panel">
-      <div className="map-toolbar"><button type="button" aria-expanded={pointPicker === "origin"} aria-controls="trip-point-picker" className={pointPicker === "origin" ? "point-active" : "point-button"} onClick={(event) => togglePointPicker("origin", event.currentTarget)}><span>출발 · 눌러서 변경</span><strong>{originLabel}</strong></button><i aria-hidden="true">→</i><button type="button" aria-expanded={pointPicker === "destination"} aria-controls="trip-point-picker" className={pointPicker === "destination" ? "point-active" : "point-button"} onClick={(event) => togglePointPicker("destination", event.currentTarget)}><span>도착 · 눌러서 변경</span><strong>{routeDestination?.name || activePlaces[0]?.name || "여행지 선택 전"}</strong></button><button type="button" className="recalculate-button" onClick={() => activePlaces[0] && void loadRoutes(routeDestination || activePlaces[0])} disabled={!activePlaces.length || routeLoading}>{routeLoading ? "경로 확인 중" : "다시 계산"}</button></div>
+      <div className="map-toolbar"><button type="button" aria-expanded={pointPicker === "origin"} aria-controls="trip-point-picker" className={pointPicker === "origin" ? "point-active" : "point-button"} onClick={(event) => togglePointPicker("origin", event.currentTarget)}><span>{english ? "Change departure" : "출발 · 눌러서 변경"}</span><strong lang={originalLanguage(displayOriginLabel)}>{displayOriginLabel}</strong></button><i aria-hidden="true">→</i><button type="button" aria-expanded={pointPicker === "destination"} aria-controls="trip-point-picker" className={pointPicker === "destination" ? "point-active" : "point-button"} onClick={(event) => togglePointPicker("destination", event.currentTarget)}><span>{english ? "Change destination" : "도착 · 눌러서 변경"}</span><strong lang={originalLanguage(routeDestination?.name || activePlaces[0]?.name || "")}>{routeDestination?.name || activePlaces[0]?.name || (english ? "No destination yet" : "여행지 선택 전")}</strong></button><button type="button" className="recalculate-button" onClick={() => void recalculate()} disabled={!activePlaces.length} aria-disabled={routeLoading || undefined} aria-busy={routeLoading || undefined}>{routeLoading ? (english ? "Checking route" : "경로 확인 중") : (english ? "Recalculate" : "다시 계산")}</button></div>
       <TripPointPicker activePlaces={activePlaces} route={route} locationSearch={locationSearch} onChoosePoint={onChoosePoint} onClose={closePointPicker} />
-      {mapEnabled ? <Suspense fallback={<div className="map-load-placeholder" role="status">대화형 지도를 준비하고 있습니다.</div>}>
-        <DeferredRouteMap origin={origin} places={mapPlaces} route={activeRoute} crowd={routeDestination ? destinationCrowd : planCrowd} crowdPlaceId={(routeDestination || activePlaces[0])?.id} onOriginChange={(point, label) => {
+      {mapEnabled ? <Suspense fallback={<div className="map-load-placeholder" role="status">{english ? "Preparing the interactive map." : "대화형 지도를 준비하고 있습니다."}</div>}>
+        <DeferredRouteMap origin={displayOrigin} places={mapPlaces} route={activeRoute} crowd={routeDestination ? destinationCrowd : planCrowd} crowdPlaceId={(routeDestination || activePlaces[0])?.id} onOriginChange={(point, label) => {
           updateOrigin(point, label, label === "현재 위치");
           if (label !== "현재 위치" && (routeDestination || activePlaces[0])) void loadRoutes(routeDestination || activePlaces[0], point, false, label);
         }} onDestinationChange={onMapDestination} onSavePlaces={onSaveMapPlaces} />
-      </Suspense> : <div className="map-load-placeholder" role="status">일정과 이동 단계에서 대화형 지도를 불러옵니다.</div>}
-      <div className="map-legend"><span><i className="origin" /> 출발지</span><span><i className="destination" /> 추천 여행지</span><span><i className={activeRoute?.configured ? "real" : "preview"} /> {activeRoute?.configured ? "실제 이동 구간" : "직선 미리보기"}</span></div>
+      </Suspense> : <div className="map-load-placeholder" role="status">{english ? "The interactive map loads in the itinerary and travel stage." : "일정과 이동 단계에서 대화형 지도를 불러옵니다."}</div>}
+      <div className="map-legend"><span><i className="origin" /> {english ? "Departure" : "출발지"}</span><span><i className="destination" /> {english ? "Selected day's itinerary" : "선택 날짜의 일정"}</span><span><i className={activeRoute?.configured ? "real" : "preview"} /> {activeRoute?.provider === "ODsay" ? (english ? "Stop connections, not road geometry" : "정류장 연결 개요 · 실제 도로선 아님") : activeRoute?.configured ? (english ? "One selected journey leg" : "선택한 한 구간의 경로") : (english ? "Straight connection preview" : "직선 미리보기")}</span></div>
+      <p className="route-scope-note">{english ? "Estimated time covers one departure-to-destination leg, not the whole trip or wheelchair access. Check walking and cycling routes in an external map." : "예상 시간은 현재 출발지 → 도착지 한 구간의 값입니다. 일정 전체 시간이나 휠체어 이동 가능 여부를 보장하지 않습니다. 도보·자전거 경로는 외부 지도에서 확인해 주세요."}</p>
     </div>
     <RouteComparisonPanel route={route} />
   </div>;

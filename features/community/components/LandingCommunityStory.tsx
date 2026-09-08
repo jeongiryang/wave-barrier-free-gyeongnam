@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CompactJourneyVisual from "../../landing/components/CompactJourneyVisual";
 
 const communityFeatures = [
   {
@@ -20,6 +21,7 @@ const communityFeatures = [
 export default function LandingCommunityStory() {
   return (
     <section className="landing-community" id="community" aria-labelledby="community-story-title" data-land-reveal>
+      <CompactJourneyVisual stage="community" />
       <div className="landing-community-copy"><p className="section-kicker">여행 후기</p><h2 id="community-story-title">직접 다녀온 경험이<br /><em>다음 여행의 참고로.</em></h2><p>관광지와 지역에 연결된 질문과 후기를 읽고 나눕니다. 공식 관광 데이터와 사용자 경험은 섞지 않고 서로 다른 출처로 분명하게 표시합니다.</p><div><Link href="/community">실제 커뮤니티 보기 <span>→</span></Link><Link href="/login?next=%2Fcommunity%2Fnew">후기 작성</Link></div></div>
       <div className="community-live-preview community-feature-preview" role="region" aria-labelledby="community-preview-title" aria-describedby="community-preview-note">
         <header><span id="community-preview-title"><i aria-hidden="true" /> 커뮤니티 이용 흐름</span><small id="community-preview-note">공식 정보와 이용자 경험을 구분해 표시</small></header>

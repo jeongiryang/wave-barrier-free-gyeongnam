@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 test("이 기기 일정의 장소와 지도·경로 목적지가 어긋나지 않는다", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
 
   // 첫 추천이 아닌 장소만 담으면 지도와 경로도 그 일정 장소를 보여야 한다.

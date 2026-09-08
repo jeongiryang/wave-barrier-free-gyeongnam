@@ -1,3 +1,5 @@
+import { verifiedPublicTransport } from "./production-transport-contract.mjs";
+
 const DEFAULT_BASE_URL = "https://wave-barrier-free-gyeongnam.vercel.app";
 const requestedBaseUrl = String(process.env.WAVE_PRODUCTION_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, "");
 const baseUrl = new URL(requestedBaseUrl);
@@ -63,8 +65,8 @@ checks.push(await jsonCheck("route", "/api/route?startLng=128.6818&startLat=35.2
     && Array.isArray(body?.alternatives)
     && body.alternatives.some((route) => route.provider === "Kakao Mobility" && route.configured)
     && providers.get("korail")?.configured === true
-    && ["ready", "connected"].includes(providers.get("korail")?.state)
-    && connectedPublicIds.every((id) => providers.get(id)?.state === "connected")
+    && verifiedPublicTransport(providers.get("korail"), true)
+    && connectedPublicIds.every((id) => verifiedPublicTransport(providers.get(id), id === "tago-bus-arrival"))
     && (!configuredKeys.has("odsay") || ["ready", "connected"].includes(providers.get("odsay")?.state));
 }, 90_000));
 checks.push(await jsonCheck("tourism:ko", "/api/wave?action=plan&region=%EA%B2%BD%EB%82%A8%20%EC%A0%84%EC%B2%B4&theme=nature&profiles=wheel&locale=ko", (body) =>

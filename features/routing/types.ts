@@ -34,7 +34,7 @@ export type MapPlace = {
 
 export type CrowdSignal = { rate: number; baseYmd?: string; place?: string };
 
-export type MapProvider = "kakao" | "osm" | "loading";
+export type MapProvider = "kakao" | "osm" | "loading" | "error";
 export type MapToolPanel = "nearby" | "layers" | "export" | "route" | "place" | null;
 export type MapPickMode = "origin" | "destination" | null;
 export type MeasurementMode = "POLYLINE" | "CIRCLE" | "POLYGON";

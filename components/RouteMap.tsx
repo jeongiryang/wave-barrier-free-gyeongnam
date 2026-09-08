@@ -10,8 +10,10 @@ import RoutePointPanel from "../features/routing/components/RoutePointPanel";
 import type { RouteMapProps } from "../features/routing/types";
 import { useMapAccessibility } from "../features/routing/useMapAccessibility";
 import { useRouteMapController } from "../features/routing/useRouteMapController";
+import { useSitePreferences } from "./SitePreferences";
 
 export default function RouteMap(props: RouteMapProps) {
+  const { locale } = useSitePreferences();
   const { origin, places, crowd } = props;
   const {
     containerRef,
@@ -19,8 +21,12 @@ export default function RouteMap(props: RouteMapProps) {
     shellRef,
     provider,
     providerDetail,
+    actionNotice,
+    actionPending,
     baseMap,
     activeLayers,
+    layerError,
+    layerRecovery,
     toolPanel,
     expanded,
     pickMode,
@@ -28,12 +34,13 @@ export default function RouteMap(props: RouteMapProps) {
     activeCategory,
     categoryPlaces,
     categoryMessage,
+    categoryState,
     roadviewOpen,
     roadviewMessage,
+    roadviewLoading,
+    retryRoadview,
     roadviewSelectMode,
     roadviewPreviewOpen,
-    measureMode,
-    measureSummary,
     crowdVisual,
     crowdPlace,
     retryProvider,
@@ -46,17 +53,17 @@ export default function RouteMap(props: RouteMapProps) {
     toggleExpanded,
     cancelRoadviewSelection,
     searchNearby,
+    retryNearby,
     chooseKakaoPlace,
     closeRoutePanel,
     setMapPointMode,
     setPlaceAsOrigin,
     setPlaceAsDestination,
     toggleLayer,
-    selectMeasure,
-    clearMeasurements,
     saveRoute,
     exportRoute,
     closeRoadview,
+    openRoadviewAt,
   } = useRouteMapController(props);
   const drawerOpen = toolPanel !== null;
   const mapA11y = useMapAccessibility({
@@ -68,7 +75,11 @@ export default function RouteMap(props: RouteMapProps) {
     <MapCommandBar
       provider={provider}
       providerDetail={providerDetail}
+      actionNotice={toolPanel === "export" ? "" : actionNotice}
+      actionPending={actionPending}
       baseMap={baseMap}
+      layerError={layerError}
+      layerRecovery={layerRecovery}
       toolPanel={toolPanel}
       roadviewSelectMode={roadviewSelectMode}
       roadviewOpen={roadviewOpen}
@@ -90,15 +101,18 @@ export default function RouteMap(props: RouteMapProps) {
       roadviewOpen={roadviewOpen}
       selectedMapPlace={selectedMapPlace}
       places={places}
-      onCancelRoadviewSelection={cancelRoadviewSelection}
+      onCancelRoadviewSelection={mapA11y.cancelRoadviewAndRestoreFocus}
+      onOpenRoadview={openRoadviewAt}
     />
 
     {toolPanel === "nearby" && <NearbyPlacesPanel
       activeCategory={activeCategory}
       categoryMessage={categoryMessage}
+      categoryState={categoryState}
       categoryPlaces={categoryPlaces}
       onClose={() => setToolPanel(null)}
       onSearch={searchNearby}
+      onRetry={retryNearby}
       onChoosePlace={chooseKakaoPlace}
     />}
 
@@ -118,28 +132,32 @@ export default function RouteMap(props: RouteMapProps) {
     />}
 
     {toolPanel === "layers" && <MapLayerPanel
+      available={provider === "kakao"}
+      loading={provider === "loading"}
+      onRetry={retryProvider}
       activeLayers={activeLayers}
-      measureMode={measureMode}
-      measureSummary={measureSummary}
       onClose={() => setToolPanel(null)}
       onToggleLayer={toggleLayer}
-      onSelectMeasure={selectMeasure}
-      onClearMeasurements={clearMeasurements}
       onSave={saveRoute}
       onShare={() => void shareRoute()}
     />}
 
     {toolPanel === "export" && <MapExportPanel
+      actionNotice={actionNotice}
+      actionPending={actionPending}
       onClose={() => setToolPanel(null)}
       onExport={exportRoute}
       onShare={() => void shareRoute()}
     />}
 
-    <div id="route-map-canvas" className="route-map-canvas" ref={containerRef} role="region" aria-label="출발지와 추천 여행지를 표시한 대화형 경로 지도" />
+    <span id="route-map-name" className="sr-only" lang={locale}>{locale === "en" ? "Interactive map of the departure point and itinerary places" : "출발지와 추천 여행지를 표시한 대화형 경로 지도"}</span>
+    <div id="route-map-canvas" className="route-map-canvas" ref={containerRef} role="region" aria-labelledby="route-map-name" />
     <MapCanvasStatusOverlays
       provider={provider}
       roadviewOpen={roadviewOpen}
       roadviewMessage={roadviewMessage}
+      roadviewLoading={roadviewLoading}
+      onRetryRoadview={retryRoadview}
       roadviewRef={roadviewRef}
       crowd={crowd}
       crowdPlace={crowdPlace}

@@ -1,27 +1,27 @@
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "./env";
 import { clean } from "./http";
-import { normalizeItems } from "./provider-normalizers";
+import { parseTransportResponse } from "./transport-response";
 import type {
   ProviderAttempt,
   ProviderResult,
   TransportProviderState,
 } from "./provider-types";
 
-export function publicTransportKey(env: Env) {
-  return env.TAGO_API_KEY?.trim()
-    || env.KORAIL_API_KEY?.trim()
+export function publicTransportKey(env: Env, provider: "korail" | "tago") {
+  return (provider === "korail" ? env.KORAIL_API_KEY : env.TAGO_API_KEY)?.trim()
     || env.TOUR_API_SERVICE_KEY_ENCODED?.trim()
     || "";
 }
 
 export async function fetchPublicTransportData(
   env: Env,
+  provider: "korail" | "tago",
   serviceUrl: string,
   operation: string,
   params: Record<string, string> = {},
 ): Promise<ProviderResult> {
-  const key = publicTransportKey(env);
+  const key = publicTransportKey(env, provider);
   if (!key) throw new Error("공공데이터포털 인증키가 등록되지 않았습니다.");
   const query = new URLSearchParams({ numOfRows: "30", pageNo: "1", _type: "json", ...params }).toString();
   const response = await fetch(`${serviceUrl}/${operation}?serviceKey=${key}&${query}`, {
@@ -46,12 +46,19 @@ export async function fetchPublicTransportData(
     const message = raw.match(/<(?:returnAuthMsg|resultMsg)>([^<]+)</i)?.[1];
     throw new Error(clean(message || "교통 API가 JSON이 아닌 응답을 반환했습니다.", 120));
   }
-  return normalizeItems(data);
+  return parseTransportResponse(data);
 }
 
 export function koreaYmd(offsetDays = 0) {
   const date = new Date(Date.now() + (9 * 60 * 60 * 1000) + (offsetDays * 24 * 60 * 60 * 1000));
   return `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, "0")}${String(date.getUTCDate()).padStart(2, "0")}`;
+}
+
+export function transportQueryEvidence(result?: ProviderAttempt | null) {
+  return {
+    queryStatus: result ? (result.ok ? "success" : "error") : "not-requested",
+    resultCount: result?.ok ? result.value.total : null,
+  } as const;
 }
 
 export function transportProvider(
@@ -74,5 +81,5 @@ export function transportProvider(
     state = "error";
     detail = result.error || "제공기관 응답을 확인해 주세요.";
   }
-  return { id, name, role, configured: hasKey, state, detail };
+  return { id, name, role, configured: hasKey, state, detail, ...transportQueryEvidence(result) };
 }

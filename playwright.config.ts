@@ -7,13 +7,18 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
+  failOnFlakyTests: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : undefined,
   timeout: 45_000,
   expect: { timeout: 8_000 },
-  reporter: process.env.CI ? [["line"], ["html", { open: "never" }]] : "line",
+  reporter: process.env.CI ? [["line"], ["html", { open: "never" }], ["./scripts/playwright-resource-reporter.mjs"]] : "line",
   use: {
     baseURL,
+    // Use the bundled full Chromium headless implementation. The separate
+    // headless-shell crashed during context teardown after successful UI/axe
+    // assertions; keep the browser revision and every test/resource limit.
+    channel: executablePath ? undefined : "chromium",
     launchOptions: executablePath ? { executablePath, args: ["--no-sandbox"] } : undefined,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",

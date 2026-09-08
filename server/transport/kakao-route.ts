@@ -1,8 +1,17 @@
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
+import { isSupportedMapCoordinate, mapDistanceMetres } from "../../lib/map-coordinates.js";
 import type { Env } from "../shared/env";
 import type { ProviderStatusUpdate, RouteApiAlternative, RouteGeometryPoint } from "./types";
 
-export async function fetchKakaoRoute(env: Env, startLat: number, startLng: number, endLat: number, endLng: number, straightDistance: number): Promise<{ alternative: RouteApiAlternative | null; provider: ProviderStatusUpdate | null }> {
+function record(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function positiveNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+export async function fetchKakaoRoute(env: Env, startLat: number, startLng: number, endLat: number, endLng: number): Promise<{ alternative: RouteApiAlternative | null; provider: ProviderStatusUpdate | null }> {
   const apiKey = env.KAKAO_REST_API_KEY?.trim();
   if (!apiKey) return { alternative: null, provider: null };
 
@@ -22,28 +31,37 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
       return { alternative: null, provider: { state: "error", detail: `카카오모빌리티 응답 ${response.status}` } };
     }
 
-    const body = await response.json() as Record<string, unknown>;
-    const routes = Array.isArray(body.routes) ? body.routes as Array<Record<string, unknown>> : [];
-    const route = routes[0];
-    if (!route) return { alternative: null, provider: { state: "ready", detail: "현재 조건의 자동차 경로가 없습니다." } };
-
-    const summary = (route.summary || {}) as Record<string, unknown>;
-    const fare = (summary.fare || {}) as Record<string, unknown>;
-    const sections = Array.isArray(route.sections) ? route.sections as Array<Record<string, unknown>> : [];
-    const geometry: RouteGeometryPoint[] = [{ lat: startLat, lng: startLng }];
-    sections.forEach((section) => {
-      const roads = Array.isArray(section.roads) ? section.roads as Array<Record<string, unknown>> : [];
-      roads.forEach((road) => {
-        const vertices = Array.isArray(road.vertexes) ? road.vertexes.map(Number) : [];
-        for (let i = 0; i + 1 < vertices.length; i += 2) {
-          if (Number.isFinite(vertices[i]) && Number.isFinite(vertices[i + 1])) geometry.push({ lng: vertices[i], lat: vertices[i + 1] });
+    const body: unknown = await response.json();
+    if (!record(body) || !Array.isArray(body.routes) || !record(body.routes[0])) throw Error("Invalid route response");
+    const route = body.routes[0];
+    // An HTTP success is not a successful route. These are documented no-route conditions.
+    if ([1, 101, 102, 103, 104, 105, 106, 107].includes(route.result_code as number)) {
+      return { alternative: null, provider: { state: "ready", detail: "현재 출발지와 도착지의 자동차 경로를 찾지 못했습니다. 다른 지점을 선택하거나 외부 지도에서 확인해 주세요." } };
+    }
+    if (route.result_code !== 0 || !record(route.summary)) throw Error("Invalid route result");
+    const summary = route.summary;
+    if (!positiveNumber(summary.duration) || !positiveNumber(summary.distance)) throw Error("Invalid route measurements");
+    const fare = record(summary.fare) ? summary.fare : {};
+    if (!Array.isArray(route.sections) || !route.sections.length) throw Error("Missing road geometry");
+    const geometry: RouteGeometryPoint[] = [];
+    for (const section of route.sections) {
+      if (!record(section) || !Array.isArray(section.roads) || !section.roads.length) throw Error("Missing roads");
+      for (const road of section.roads) {
+        if (!record(road) || !Array.isArray(road.vertexes) || road.vertexes.length < 4 || road.vertexes.length % 2) throw Error("Invalid road vertices");
+        for (let i = 0; i < road.vertexes.length; i += 2) {
+          const lng: unknown = road.vertexes[i], lat: unknown = road.vertexes[i + 1];
+          if (typeof lng !== "number" || typeof lat !== "number" || !isSupportedMapCoordinate(lat, lng)) throw Error("Invalid road coordinate");
+          geometry.push({ lng, lat });
         }
-      });
-    });
-    geometry.push({ lat: endLat, lng: endLng });
-    const durationSeconds = Number(summary.duration || 0);
+      }
+    }
+    // Keep only provider road vertices; do not append straight links to the requested endpoints.
+    // Permit road snapping within 1 km, but never approve an unrelated/reversed journey.
+    if (mapDistanceMetres(geometry[0], { lat: startLat, lng: startLng }) > 1000
+      || mapDistanceMetres(geometry[geometry.length - 1], { lat: endLat, lng: endLng }) > 1000) throw Error("Road endpoints do not match request");
+    const durationSeconds = summary.duration;
     const rawToll = fare.toll;
-    const toll = rawToll === undefined || rawToll === null || rawToll === "" ? null : Number(rawToll);
+    const toll = typeof rawToll === "number" && Number.isFinite(rawToll) && rawToll >= 0 ? rawToll : null;
     return {
       alternative: {
         id: "kakao-car",
@@ -51,11 +69,11 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
         provider: "Kakao Mobility",
         mode: "car",
         totalTime: Math.max(1, Math.round(durationSeconds / 60)),
-        payment: toll !== null && Number.isFinite(toll) ? Math.max(0, toll) : null,
+        payment: toll,
         paymentType: "toll",
         totalWalk: 0,
         transfers: 0,
-        totalDistance: Math.round(Number(summary.distance || straightDistance)),
+        totalDistance: Math.round(summary.distance),
         configured: true,
         segments: [{ type: "car", name: "추천 자동차 경로", minutes: Math.max(1, Math.round(durationSeconds / 60)) }],
         geometry,

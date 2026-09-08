@@ -17,11 +17,12 @@ const jinju = {
   mapX: "128.1", mapY: "35.1",
 };
 
-test("saved place snapshots keep only minimum display fields and omit coordinates or raw details", () => {
+test("saved place snapshots preserve public destination coordinates but omit raw details and device position", () => {
   const snapshot = sanitizeSavedPlaceSnapshot(changwon);
-  assert.deepEqual(Object.keys(snapshot).sort(), ["address", "city", "id", "image", "knownFields", "name", "score", "source"]);
-  assert.equal("mapX" in snapshot, false);
-  assert.equal("mapY" in snapshot, false);
+  assert.deepEqual(Object.keys(snapshot).sort(), ["address", "city", "id", "image", "knownFields", "mapX", "mapY", "name", "score", "source"]);
+  assert.equal(snapshot.mapX, "128.6");
+  assert.equal(snapshot.mapY, "35.2");
+  assert.equal("origin" in sanitizeSavedPlaceSnapshot({ ...changwon, origin: { lat: 35.1, lng: 128.1 } }), false);
   assert.equal("details" in snapshot, false);
   assert.equal("summary" in snapshot, false);
 });
@@ -30,6 +31,6 @@ test("saved places from previous regions remain ordered after active results swi
   const catalog = mergeSavedPlaceCatalog([], [changwon, jinju]);
   const resolved = resolveSavedPlaces(["changwon-1", "jinju-1"], [jinju], catalog);
   assert.deepEqual(resolved.map((place) => `${place.city}:${place.name}`), ["창원:창원 미술관", "진주:진주 수목원"]);
-  assert.equal(resolved[0].mapX, "");
+  assert.equal(resolved[0].mapX, "128.6");
   assert.equal(resolved[1].mapX, "128.1");
 });

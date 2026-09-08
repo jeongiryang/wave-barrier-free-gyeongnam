@@ -1,5 +1,7 @@
 "use client";
 
+import HydratedAuthForm from "./HydratedAuthForm";
+
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "../../../lib/auth/client";
@@ -97,23 +99,23 @@ export default function AccountSettings() {
     <section aria-labelledby="change-password-title">
       <h3 id="change-password-title">비밀번호 변경</h3>
       <p>변경하면 현재 기기를 제외한 다른 로그인 세션을 종료합니다.</p>
-      <form onSubmit={changePassword} noValidate>
+      <HydratedAuthForm onSubmit={changePassword} noValidate>
         <div className="auth-field"><label htmlFor="account-current-password">현재 비밀번호</label><input id="account-current-password" name="currentPassword" type="password" autoComplete="current-password" minLength={8} maxLength={128} required /></div>
         <div className="auth-field"><label htmlFor="account-new-password">새 비밀번호</label><input id="account-new-password" name="newPassword" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /></div>
         <div className="auth-field"><label htmlFor="account-confirm-password">새 비밀번호 확인</label><input id="account-confirm-password" name="confirmation" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /></div>
         <p className={`auth-message${passwordSuccess ? " success" : ""}`} role={passwordMessage ? "status" : undefined} aria-live="polite">{passwordMessage}</p>
         <button className="auth-submit" type="submit" disabled={changing}>{changing ? "변경하는 중…" : "비밀번호 변경"}</button>
-      </form>
+      </HydratedAuthForm>
     </section>
     <section className="account-danger" aria-labelledby="delete-account-title">
       <h3 id="delete-account-title">계정 탈퇴</h3>
       <p>인증 계정과 서버에 연결된 게시글·댓글·좋아요·신고를 삭제합니다. 이 기기에만 저장된 여행집과 환경설정은 남습니다.</p>
-      <form onSubmit={deleteAccount} noValidate>
+      <HydratedAuthForm onSubmit={deleteAccount} noValidate>
         <div className="auth-field"><label htmlFor="delete-password">현재 비밀번호</label><input id="delete-password" name="deletePassword" type="password" autoComplete="current-password" minLength={8} maxLength={128} required /></div>
         <div className="auth-field"><label htmlFor="delete-confirmation">확인 문구</label><input id="delete-confirmation" name="deleteConfirmation" type="text" autoComplete="off" placeholder="계정 삭제" required /><small>되돌릴 수 없습니다. ‘계정 삭제’를 그대로 입력해 주세요.</small></div>
         <p className="auth-message" role={deleteMessage ? "alert" : undefined} aria-live="polite">{deleteMessage}</p>
         <button className="account-delete-button" type="submit" disabled={deleting}>{deleting ? "삭제하는 중…" : "계정과 서버 데이터 삭제"}</button>
-      </form>
+      </HydratedAuthForm>
     </section>
   </div>;
 }

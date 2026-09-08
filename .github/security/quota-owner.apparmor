@@ -1,0 +1,23 @@
+# Only the root-owned, byte-pinned mount-owner executable uses this profile.
+# Its fixed trusted Python helper creates inner bwrap namespaces. The distro
+# child profile denies creating that second namespace before repository code.
+# Kernel capabilities are still dropped by inner bwrap and further user
+# namespaces are disabled. Public probes test both controls and bounded mounts.
+abi <abi/4.0>,
+include <tunables/global>
+profile wave_quota_owner /opt/wave-quota/bwrap flags=(attach_disconnected,mediate_deleted) {
+  allow capability,
+  allow file rwlkm /{**,},
+  allow ix /**,
+  allow network,
+  allow unix,
+  allow ptrace,
+  allow signal,
+  allow mqueue,
+  allow io_uring,
+  allow userns,
+  allow mount,
+  allow umount,
+  allow pivot_root,
+  allow dbus,
+}

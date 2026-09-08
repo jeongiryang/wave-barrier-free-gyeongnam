@@ -24,7 +24,11 @@ export function formatTime(seconds: number) {
   return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
 }
 
-export function routeModeLabel(route: RouteAlternative) {
+export function routeModeLabel(route: RouteAlternative, english = false) {
+  if (english) {
+    if (!route.configured) return "Straight connection preview";
+    return ({ car: "Driving route", train: "Rail route", bus: "Public transport route", transit: "Public transport route", walk: "Walking route", bicycle: "Cycling route" } as Record<string, string>)[route.mode || ""] || "Travel route";
+  }
   if (!route.configured) return "직선 위치 미리보기";
   if (route.mode === "car") return "자동차 경로";
   if (route.mode === "train") return "기차·철도 경로";

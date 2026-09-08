@@ -33,6 +33,7 @@ html[data-theme="dark"] .rich-card p,html[data-theme="dark"] .heading-side p,htm
 
 @media (max-width: 1100px) {
   .landing-hero,.region-story,.evidence-story,.service-welcome,.navigation-heading,.navigation-workspace,.shared-content,.layers-heading { grid-template-columns: 1fr; }
+  .landing-hero { grid-template-columns: minmax(0,1fr); }
   .landing-signal { width: min(560px,80vw); }.region-story { gap: 20px; }.navigation-workspace { min-height: 0; }.map-panel { border-right: 0; border-bottom: 1px solid #d3e3ea; }.route-compare-panel { max-height: none; }.service-region-card { width: min(520px,100%); }.shared-content > aside { width: 100%; }
   .layers-heading { gap: 22px; }.insight-board { grid-template-columns: 1fr 1fr; }.layer-principle { grid-column: 1 / -1; min-height: 245px; }.layer-tabs { grid-template-columns: repeat(4,1fr); }
 }

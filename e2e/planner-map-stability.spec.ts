@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 /**
  * 지도는 추천 결과가 실제로 바뀔 때만 다시 만들어야 한다. 렌더마다 새 배열을
@@ -14,6 +14,7 @@ test("스크롤은 지도를 다시 만들지 않는다", async ({ page }) => {
   });
 
   await page.goto("/planner");
+  await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   const canvas = page.locator(".route-map-canvas");
   await canvas.scrollIntoViewIfNeeded();

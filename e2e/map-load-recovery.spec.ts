@@ -1,0 +1,49 @@
+import AxeBuilder from "@axe-core/playwright";
+import { expect, test } from "@playwright/test";
+import { chooseTripConditions, mockPlannerApi } from "./fixtures";
+
+for (const english of [false, true]) for (const theme of ["light", "dark"]) test(`a failed alternative map preserves the itinerary and offers a page reload in ${english ? "English" : "Korean"} ${theme}`, async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await mockPlannerApi(page);
+  await page.addInitScript((value) => localStorage.setItem("wave-theme", value), theme);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 390 : 1366, height: 844 });
+  let failures = 0;
+  await page.route(/\/leaflet\.js(?:\?|$)/, async (route) => { failures++; await route.abort(); });
+  await page.goto("/planner");
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await expect.poll(() => failures).toBeGreaterThan(0);
+  if (english) {
+    await page.keyboard.press("Control+Home");
+    const preferences = page.locator(".preference-controls:visible");
+    await preferences.getByLabel("환경설정 열기", { exact: true }).click();
+    await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+    await preferences.getByLabel("Open preferences", { exact: true }).click();
+  }
+  const unavailable = page.locator(".map-unavailable");
+  await expect(unavailable).toContainText(english ? "The map could not be loaded." : "지도를 불러오지 못했습니다.");
+  await expect(unavailable).toContainText(english ? "Your itinerary and journey details are still available." : "일정과 이동 구간 정보는 계속 확인할 수 있습니다.");
+  await expect(page.locator(".map-loading-skeleton")).toHaveCount(0);
+  await expect(page.locator('.map-command-bar button[aria-controls="map-panel-route"]')).toBeDisabled();
+  await expect(page.locator(".map-command-bar").getByRole("button", { name: english ? "◎ My location" : "◎ 내 위치", exact: true })).toBeDisabled();
+  await expect(page.locator(".route-option")).not.toHaveCount(0);
+  const reload = unavailable.getByRole("button", { name: english ? "Reload page and map" : "페이지와 지도 다시 불러오기", exact: true });
+  await reload.focus();
+  await expect(reload).toBeFocused();
+  const box = await reload.boundingBox();
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+  expect(box!.width).toBeGreaterThanOrEqual(44);
+  expect((await new AxeBuilder({ page }).include(".route-map-shell").analyze()).violations).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+  expect(errors).toEqual([]);
+  await unavailable.screenshot({ path: test.info().outputPath(`map-unavailable-${theme}-${english ? "en" : "ko"}.png`) });
+  await page.unroute(/\/leaflet\.js(?:\?|$)/);
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".map-provider-badge.osm")).toBeVisible();
+  await expect(page.locator(".map-unavailable")).toHaveCount(0);
+  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  expect(errors).toEqual([]);
+});

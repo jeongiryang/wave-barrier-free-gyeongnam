@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, startTransition, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { copy } from "./translations";
 import { readStoredPreferences, writeStoredPreferences } from "./storage";
 import type { Locale, Motion, PreferencesValue, Theme } from "./types";
@@ -18,18 +18,24 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       const stored = readStoredPreferences();
-      setLocaleState(stored.locale);
-      setTheme(stored.theme);
-      setMotionPreference(stored.motion);
-      setSystemReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-      setHydrated(true);
+      // Let streamed children finish hydrating before changing their context.
+      // An urgent update can replace the server DOM and discard keyboard focus.
+      startTransition(() => {
+        setLocaleState(stored.locale);
+        setTheme(stored.theme);
+        setMotionPreference(stored.motion);
+        setSystemReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+        setHydrated(true);
+      });
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncSystemMotion = () => setSystemReducedMotion(query.matches);
+    const syncSystemMotion = () => {
+      startTransition(() => setSystemReducedMotion(query.matches));
+    };
     syncSystemMotion();
     query.addEventListener("change", syncSystemMotion);
     return () => query.removeEventListener("change", syncSystemMotion);

@@ -1,0 +1,545 @@
+name: Codex Engineering Worker
+'on':
+  issues:
+    types:
+      - labeled
+permissions:
+  contents: read
+concurrency:
+  group: codex-engineering-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+jobs:
+  authorize:
+    # Subscription-only policy: archived API path; do not enable.
+    if: >-
+      false && (github.event.label.name == 'status:ready-for-dev' && contains(fromJSON(vars.WAVE_PM_GITHUB_ACTORS || '["jeongiryang"]'), github.actor))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      base_sha: ${{ steps.base.outputs.sha }}
+      allow_sensitive: ${{ steps.task.outputs.allow_sensitive }}
+      branch: ${{ steps.task.outputs.branch }}
+      already_published: ${{ steps.task.outputs.already_published }}
+    steps:
+      - name: Trusted workflow source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Record exact main
+        id: base
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Verify current issue and trusted PM handoff
+        id: task
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          WAVE_PM_GITHUB_ACTORS: ${{ vars.WAVE_PM_GITHUB_ACTORS || '["jeongiryang"]' }}
+        with:
+          script: await require(process.env.GITHUB_WORKSPACE + '/.github/automation/authorize-task.cjs').run({github,context,core});
+      - name: Store immutable approved prompt
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: approved-task-${{ github.run_id }}
+          path: ${{ runner.temp }}/approved-task.md
+          retention-days: 3
+          if-no-files-found: error
+  generate:
+    # Subscription-only policy: archived API path; do not enable.
+    if: >-
+      false && (needs.authorize.outputs.already_published == 'false')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: read
+    outputs:
+      configured: ${{ steps.config.outputs.enabled }}
+      has_changes: ${{ steps.patch.outputs.has_changes }}
+    steps:
+      - name: 최신 main 체크아웃
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.authorize.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download immutable approved prompt
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
+        with:
+          name: approved-task-${{ github.run_id }}
+          path: ${{ runner.temp }}/approved-task
+      - name: Codex 설정 확인
+        id: config
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          if [[ -n "$OPENAI_API_KEY" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::OPENAI_API_KEY가 없어 Codex Engineering Worker를 실행하지 않습니다. Issue #294의 Human Gate를 완료하세요."
+          fi
+      - name: Codex 구현
+        if: steps.config.outputs.enabled == 'true'
+        id: codex
+        uses: openai/codex-action@86365089eb2b84e0a8fb0717b304f8bdcb13b20e
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: ${{ runner.temp }}/approved-task/approved-task.md
+          output-file: ${{ runner.temp }}/codex-output.md
+          sandbox: workspace-write
+          safety-strategy: drop-sudo
+          allow-users: ${{ github.actor }}
+          effort: high
+          codex-args: '["--ephemeral"]'
+          allow-bot-users: ${{ github.actor }}
+      - name: Codex patch 수집 및 민감 경로 gate
+        if: steps.config.outputs.enabled == 'true' && success()
+        id: patch
+        shell: bash
+        run: |-
+          set -euo pipefail
+          git -c core.hooksPath=/dev/null add -N -- .
+          if git diff --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff --check
+          git diff --binary --no-ext-diff --no-textconv > "$RUNNER_TEMP/codex.patch"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+      - name: 검증용 patch 보관
+        if: steps.patch.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: codex-engineering-patch-${{ github.event.issue.number }}
+          path: ${{ runner.temp }}/codex.patch
+          retention-days: 3
+          if-no-files-found: error
+    needs: authorize
+  validate:
+    # Subscription-only policy: archived API path; do not enable.
+    if: >-
+      false && (needs.generate.result == 'success' && needs.generate.outputs.configured == 'true' && needs.generate.outputs.has_changes == 'true')
+    needs:
+      - authorize
+      - generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Codex 기준 commit 체크아웃
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.authorize.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Codex patch 다운로드
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
+        with:
+          name: codex-engineering-patch-${{ github.event.issue.number }}
+          path: ${{ runner.temp }}/codex-patch
+      - name: Patch 무결성 확인 및 적용
+        shell: bash
+        run: |-
+          set -euo pipefail
+          cp .github/automation/check-patch.cjs "$RUNNER_TEMP/check-patch.cjs"
+          git apply --check "$RUNNER_TEMP/codex-patch/codex.patch"
+          git apply --index "$RUNNER_TEMP/codex-patch/codex.patch"
+          git diff --cached --check
+          node "$RUNNER_TEMP/check-patch.cjs"
+        id: patch
+        env:
+          ALLOW_SENSITIVE: ${{ needs.authorize.outputs.allow_sensitive }}
+      - name: Node.js 설정
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          check-latest: true
+      - name: 의존성 설치
+        run: npm ci
+      - name: 운영 의존성 보안 감사
+        run: npm audit --omit=dev --audit-level=high
+      - name: 정적 검사
+        run: npm run lint
+      - name: 타입 검사
+        run: npm run typecheck
+      - name: 단위·계약 회귀 테스트
+        run: npm test
+      - name: Chromium 설치
+        run: npx playwright install --with-deps chromium
+      - name: 브라우저·접근성 E2E
+        run: npm run test:e2e
+      - name: Vercel 빌드 검사
+        run: npm run build:vercel
+      - name: 성능 예산 검사
+        run: npm run check:performance
+      - name: 검증 증거 보관
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: codex-validation-${{ github.event.issue.number }}
+          path: |
+            playwright-report/
+            test-results/**/*.png
+            test-results/**/*.md
+          retention-days: 7
+          if-no-files-found: ignore
+    outputs:
+      publishable: ${{ steps.patch.outputs.publishable }}
+  publish:
+    # Subscription-only policy: archived API path; do not enable.
+    if: >-
+      false && (needs.generate.outputs.has_changes == 'true' && needs.validate.result == 'success' && needs.validate.outputs.publishable == 'true')
+    needs:
+      - authorize
+      - generate
+      - validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - name: Publish credential 확인
+        env:
+          AUTOMATION_TOKEN: ${{ secrets.WAVE_GITHUB_AUTOMATION_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -z "$AUTOMATION_TOKEN" ]]; then
+            echo "WAVE_GITHUB_AUTOMATION_TOKEN이 필요합니다. Issue #294를 확인하세요." >&2
+            exit 1
+          fi
+      - name: 기준 commit 체크아웃
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.authorize.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Revalidate immutable PM handoff before publish
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          WAVE_PM_GITHUB_ACTORS: ${{ vars.WAVE_PM_GITHUB_ACTORS || '["jeongiryang"]' }}
+          EXPECTED_BRANCH: ${{ needs.authorize.outputs.branch }}
+        with:
+          script: >-
+            const {authorizeTask,trustedActors} = require(process.env.GITHUB_WORKSPACE+'/.github/automation/authorize-task.cjs');
+
+            const issue = (await github.rest.issues.get({...context.repo,issue_number:context.issue.number})).data;
+
+            const comments = await
+            github.paginate(github.rest.issues.listComments,{...context.repo,issue_number:context.issue.number,per_page:100});
+
+            const task = authorizeTask({actor:context.actor,actors:trustedActors(process.env.WAVE_PM_GITHUB_ACTORS),issue,comments});
+
+            if ('codex/issue-'+issue.number+'-'+task.id+'-'+task.revision !== process.env.EXPECTED_BRANCH) throw new Error('PM handoff
+            changed; do not publish stale work');
+      - name: 검증된 patch 다운로드
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
+        with:
+          name: codex-engineering-patch-${{ github.event.issue.number }}
+          path: ${{ runner.temp }}/codex-patch
+      - name: 검증된 patch 적용·branch push·PR 생성
+        id: publish
+        env:
+          GH_TOKEN: ${{ secrets.WAVE_GITHUB_AUTOMATION_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          BASE_SHA: ${{ needs.authorize.outputs.base_sha }}
+          PUBLISH_BRANCH: ${{ needs.authorize.outputs.branch }}
+        shell: bash
+        run: >
+          set -euo pipefail
+
+
+          current_main="$(gh api "repos/${REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+
+          if [[ "$current_main" != "$BASE_SHA" ]]; then echo "main moved; reauthorize and revalidate" >&2; exit 1; fi
+
+          patch_file="$RUNNER_TEMP/codex-patch/codex.patch"
+
+          git apply --check "$patch_file"
+
+          cp .github/automation/check-patch.cjs "$RUNNER_TEMP/check-patch.cjs"
+
+          git apply --index "$patch_file"
+
+          ALLOW_SENSITIVE=false node "$RUNNER_TEMP/check-patch.cjs"
+
+          git diff --check
+
+
+          branch="$PUBLISH_BRANCH"
+
+          git switch -c "$branch"
+
+          git config user.name "github-actions[bot]"
+
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add --all
+
+          git -c core.hooksPath=/dev/null -c commit.gpgsign=false commit -m "fix: implement approved issue #${ISSUE_NUMBER}"
+
+
+          git -c credential.helper='!gh auth git-credential' push origin "HEAD:refs/heads/${branch}"
+
+
+          pr_body="$(cat <<EOF
+
+          ## Automation handoff
+
+
+          Codex Engineering Worker가 PM 승인 handoff를 기준으로 Issue #${ISSUE_NUMBER}를 구현했습니다.
+
+
+          - Source Issue: #${ISSUE_NUMBER}
+
+          - Generation base: \`${BASE_SHA}\`
+
+          - Pre-PR validation: dependency audit, lint, typecheck, unit/contract tests, Playwright/axe E2E, Vercel build, performance budget
+          PASS
+
+          - Automation run: https://github.com/${REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+
+          이 PR은 아직 최종 승인/Release가 아닙니다. Repository CI, independent review/QA, 최신 main 재검증, 필요한 Production QA를 별도로 통과해야 합니다.
+
+
+          Refs #${ISSUE_NUMBER} #288
+
+          EOF
+
+          )"
+
+
+          pr_json="$(jq -n \
+            --arg title "fix: implement approved issue #${ISSUE_NUMBER}" \
+            --arg head "$branch" \
+            --arg base "main" \
+            --arg body "$pr_body" \
+            '{title:$title, head:$head, base:$base, body:$body, draft:false}' \
+            | gh api --method POST "repos/${REPOSITORY}/pulls" --input -)"
+
+          pr_number="$(jq -r '.number' <<< "$pr_json")"
+
+          pr_url="$(jq -r '.html_url' <<< "$pr_json")"
+
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+
+          echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
+
+
+          jq -n '{assignees:["jeongiryang"]}' \
+            | gh api --method POST "repos/${REPOSITORY}/issues/${pr_number}/assignees" --input - >/dev/null
+
+          jq -n '{reviewers:["syt83","unknownamed"]}' \
+            | gh api --method POST "repos/${REPOSITORY}/pulls/${pr_number}/requested_reviewers" --input - >/dev/null
+
+          source_issue="$(gh api "repos/${REPOSITORY}/issues/${ISSUE_NUMBER}")"
+
+          pr_label="$(jq -r '[.labels[].name | select(. == "bug" or . == "enhancement" or . == "documentation")][0] // "enhancement"' <<<
+          "$source_issue")"
+
+          jq -n --arg label "$pr_label" '{labels:[$label]}' \
+            | gh api --method POST "repos/${REPOSITORY}/issues/${pr_number}/labels" --input - >/dev/null
+
+          mkdir -p docs/ai-logs
+
+          cat > "docs/ai-logs/PR-${pr_number}.md" <<EOF
+
+          # PR #${pr_number} AI 작업 로그
+
+
+          - PR: ${pr_url}
+
+          - Source Issue: #${ISSUE_NUMBER}
+
+          - AI 도구: OpenAI Codex GitHub Action
+
+          - Automation run: https://github.com/${REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          - Generation base: ${BASE_SHA}
+
+
+          ## 역할 구분
+
+
+          - 정이량: Repository Owner / Product Owner / PM / Release Authority
+
+          - PM Agent: trusted handoff와 Acceptance Criteria 확정
+
+          - Codex: 승인된 범위 구현
+
+          - GitHub Actions: Codex credential과 분리된 환경에서 전체 validation
+
+          - QA/review: PR 생성 후 독립 검증
+
+
+          ## 검증
+
+
+          PR 게시 전 별도 credential-free validation job에서 다음을 통과했습니다.
+
+
+          - npm audit --omit=dev --audit-level=high
+
+          - npm run lint
+
+          - npm run typecheck
+
+          - npm test
+
+          - npm run test:e2e
+
+          - npm run build:vercel
+
+          - npm run check:performance
+
+
+          최종 Repository CI와 Production 검증은 이 사전 검증과 별도로 수행합니다.
+
+          EOF
+
+
+          git add "docs/ai-logs/PR-${pr_number}.md"
+
+          git -c core.hooksPath=/dev/null -c commit.gpgsign=false commit -m "docs: PR ${pr_number} AI 작업 로그를 추가한다"
+
+          git -c credential.helper='!gh auth git-credential' push origin "HEAD:refs/heads/${branch}"
+
+
+          current_issue="$(gh api "repos/${REPOSITORY}/issues/${ISSUE_NUMBER}")"
+
+          next_labels="$(jq '[.labels[].name | select((startswith("status:") or startswith("agent:")) | not)] +
+          ["status:in-review","agent:qa"] | unique' <<< "$current_issue")"
+
+          jq -n --argjson labels "$next_labels" '{labels:$labels}' \
+            | gh api --method PATCH "repos/${REPOSITORY}/issues/${ISSUE_NUMBER}" --input - >/dev/null
+
+          jq -n --arg body "Codex Engineering Worker가 사전 검증을 통과한 PR #${pr_number}을 생성했습니다: ${pr_url}\n\n이제 Repository CI와 독립 QA/review
+          단계입니다." '{body:$body}' \
+            | gh api --method POST "repos/${REPOSITORY}/issues/${ISSUE_NUMBER}/comments" --input - >/dev/null
+  recover:
+    # Subscription-only policy: archived API path; do not enable.
+    if: >-
+      false && (always() && needs.authorize.result == 'success' && needs.authorize.outputs.already_published == 'false' && needs.publish.result != 'success')
+    needs:
+      - authorize
+      - generate
+      - validate
+      - publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Trusted recovery policy
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.authorize.outputs.base_sha }}
+          persist-credentials: false
+      - name: 실패/미변경 상태를 원 Issue에 환류
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          CONFIGURED: ${{ needs.generate.outputs.configured }}
+          HAS_CHANGES: ${{ needs.generate.outputs.has_changes }}
+          GENERATE_RESULT: ${{ needs.generate.result }}
+          VALIDATE_RESULT: ${{ needs.validate.result }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+          PUBLISHABLE: ${{ needs.validate.outputs.publishable }}
+          WAVE_PM_GITHUB_ACTORS: ${{ vars.WAVE_PM_GITHUB_ACTORS || '["jeongiryang"]' }}
+          EXPECTED_BRANCH: ${{ needs.authorize.outputs.branch }}
+        with:
+          script: >
+            const {authorizeTask,trustedActors}=require(process.env.GITHUB_WORKSPACE+'/.github/automation/authorize-task.cjs');
+
+            const current=(await github.rest.issues.get({...context.repo,issue_number:context.issue.number})).data;
+
+            const comments=await
+            github.paginate(github.rest.issues.listComments,{...context.repo,issue_number:context.issue.number,per_page:100});
+
+            try {
+              const task=authorizeTask({actor:context.actor,actors:trustedActors(process.env.WAVE_PM_GITHUB_ACTORS),issue:current,comments});
+              if ('codex/issue-'+current.number+'-'+task.id+'-'+task.revision !== process.env.EXPECTED_BRANCH) return;
+            } catch { core.notice('PM state changed; recovery must not overwrite it'); return; }
+
+            const configured = process.env.CONFIGURED;
+
+            const hasChanges = process.env.HAS_CHANGES;
+
+            const generateResult = process.env.GENERATE_RESULT;
+
+            const validateResult = process.env.VALIDATE_RESULT;
+
+            const publishResult = process.env.PUBLISH_RESULT;
+
+
+            let reason = "Codex Engineering Worker가 PR을 게시하지 못했습니다.";
+
+            let targetStatus = "status:triage";
+
+            let targetAgent = "agent:pm";
+
+
+            if (configured !== "true") {
+              reason = "Codex 자동 실행 credential이 아직 설정되지 않았습니다. Human Gate #294를 완료해야 합니다.";
+              targetStatus = "status:blocked-human";
+              targetAgent = "agent:human";
+            } else if (generateResult === "failure") {
+              reason = "Codex generation 또는 trusted PM handoff 검증이 실패했습니다. Actions run을 확인하고 PM 재검토가 필요합니다.";
+            } else if (hasChanges !== "true") {
+              reason = "Codex가 안전하게 게시할 변경을 만들지 않았습니다. 추측 구현 대신 PM 재검토로 환류합니다.";
+            } else if (validateResult === "failure") {
+              reason = "Codex patch가 독립 validation을 통과하지 못했습니다. PR은 생성하지 않았습니다.";
+            } else if (process.env.PUBLISHABLE === "false") {
+              reason = "Sensitive automation patch requires manual review/publication. Artifact only; no automatic publish.";
+              targetStatus = "status:blocked-human"; targetAgent = "agent:human";
+            } else if (publishResult === "failure") {
+              reason = "검증된 patch의 branch/PR publish가 실패했습니다. GitHub automation credential/권한을 포함해 재검토가 필요합니다.";
+            }
+
+
+            const issue = await github.rest.issues.get({
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+
+            const labels = issue.data.labels
+              .map((label) => typeof label === "string" ? label : label.name)
+              .filter((name) => !name.startsWith("status:") && !name.startsWith("agent:") && name !== "human-gate");
+            labels.push(targetStatus, targetAgent);
+
+            if (targetStatus === "status:blocked-human") labels.push("human-gate");
+
+
+            await github.rest.issues.update({
+              ...context.repo,
+              issue_number: context.issue.number,
+              labels: [...new Set(labels)],
+            });
+
+
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body: [
+                "## Automation recovery",
+                "",
+                reason,
+                "",
+                `- Generate: ${generateResult}`,
+                `- Validate: ${validateResult}`,
+                `- Publish: ${publishResult}`,
+                `- Run: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                "",
+                "사람이 다른 AI 채팅으로 이 내용을 복사할 필요는 없습니다. PM Agent가 이 GitHub 상태를 기준으로 후속 판단합니다.",
+              ].join("\n"),
+            });

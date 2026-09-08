@@ -13,7 +13,7 @@ test("planner keeps photo restore secondary and uses one saved-place itinerary",
   ]);
   assert.doesNotMatch(page, /PhotoCourseRestore/);
   assert.match(page, /className="planner-journey-workspace"/);
-  assert.match(page, /4단계로 완성하세요/);
+  assert.match(page, /나에게 맞는 경남 여행/);
   assert.match(page, /<PlannerConditionsPanel/);
   assert.match(page, /<RecommendationWorkspace/);
   assert.match(page, /<PlannerItineraryWorkspace/);
@@ -47,7 +47,8 @@ test("place detail can surface only real public WAVE community stories", async (
   ]);
   assert.match(dialog, /<PlaceCommunityStories/);
   assert.match(stories, /listCommunityPosts/);
-  assert.match(stories, /W\.A\.V\.E COMMUNITY/);
+  assert.match(stories, /W\.A\.V\.E 커뮤니티 · 공식 점수 미반영/);
+  assert.match(stories, /W\.A\.V\.E community · excluded from official scores/);
   assert.doesNotMatch(stories, /샘플/);
   assert.match(reads, /p\.author_id <> 'wave-seed'/);
   assert.match(retirement, /moderation_status = 'hidden'/);

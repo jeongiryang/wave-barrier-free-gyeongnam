@@ -1,5 +1,7 @@
 "use client";
 
+import { readTripValue, writeTripValue } from "../../../lib/current-trip-storage.js";
+
 import { useCallback, useEffect, useState } from "react";
 import {
   SAVED_PLACE_CATALOG_KEY,
@@ -14,7 +16,7 @@ const SAVED_PLACES_KEY = "wave-saved-places";
 
 function readSavedPlaceIds() {
   try {
-    const stored = window.localStorage.getItem(SAVED_PLACES_KEY);
+    const stored = readTripValue(window.localStorage, SAVED_PLACES_KEY);
     const parsed = stored ? JSON.parse(stored) as unknown : [];
     return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
   } catch {
@@ -31,7 +33,7 @@ export function useSavedPlaceIds() {
     const frame = window.requestAnimationFrame(() => {
       setSaved(readSavedPlaceIds());
       try {
-        setCatalog(sanitizeSavedPlaceCatalog(JSON.parse(window.localStorage.getItem(SAVED_PLACE_CATALOG_KEY) || "[]")));
+        setCatalog(sanitizeSavedPlaceCatalog(JSON.parse(readTripValue(window.localStorage, SAVED_PLACE_CATALOG_KEY) || "[]")));
       } catch {
         setCatalog([]);
       }
@@ -43,8 +45,8 @@ export function useSavedPlaceIds() {
   useEffect(() => {
     if (!storageReady) return;
     try {
-      window.localStorage.setItem(SAVED_PLACES_KEY, JSON.stringify(saved));
-      window.localStorage.setItem(SAVED_PLACE_CATALOG_KEY, JSON.stringify(catalog.filter((place) => saved.includes(place.id))));
+      writeTripValue(window.localStorage, SAVED_PLACES_KEY, JSON.stringify(saved));
+      writeTripValue(window.localStorage, SAVED_PLACE_CATALOG_KEY, JSON.stringify(catalog.filter((place) => saved.includes(place.id))));
     } catch {
       // 저장소가 차단돼도 현재 탭의 여행 설계는 유지한다.
     }
@@ -64,5 +66,12 @@ export function useSavedPlaceIds() {
     setCatalog((current) => mergeSavedPlaceCatalog(current, places));
   }, []);
 
-  return { saved, catalog, storageReady, addSavedIds, removeSavedId, rememberSavedPlaces };
+  const replaceSavedId = useCallback((previousId: string, place: Place) => {
+    setSaved((current) => current.map((id) => id === previousId ? place.id : id));
+    setCatalog((current) => mergeSavedPlaceCatalog(removeSavedPlaceSnapshot(current, previousId), [place]));
+  }, []);
+
+  const resetSaved = useCallback(() => { setSaved([]); setCatalog([]); }, []);
+
+  return { resetSaved, saved, catalog, storageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId };
 }

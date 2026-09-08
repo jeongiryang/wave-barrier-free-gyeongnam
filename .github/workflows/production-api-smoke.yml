@@ -1,7 +1,16 @@
 name: Production API Smoke
 
-on:
+'on':
   workflow_dispatch:
+    inputs:
+      preview_url:
+        description: Optional immutable Preview origin; empty runs the existing Production API smoke
+        type: string
+        required: false
+      preview_sha:
+        description: Exact Preview commit; must equal the dispatched branch HEAD
+        type: string
+        required: false
   schedule:
     - cron: "0 21 * * *"
 
@@ -14,14 +23,66 @@ concurrency:
 
 jobs:
   verify:
+    if: ${{ !inputs.preview_url && !inputs.preview_sha }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Node.js 설정
         uses: actions/setup-node@v7
         with:
-          node-version: 22.13.0
+          node-version: 22
+          check-latest: true
       - name: Production 화면·API 실응답 확인
         run: npm run check:production
+
+  preview:
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.preview_url || inputs.preview_sha) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      deployments: read
+    steps:
+      - name: Exact workflow commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify immutable Preview and SHA before repository execution
+        id: preview
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          PREVIEW_URL: ${{ inputs.preview_url }}
+          PREVIEW_SHA: ${{ inputs.preview_sha }}
+        with:
+          script: await require(process.env.GITHUB_WORKSPACE + '/.github/automation/check-preview.cjs').checkPreview({github,context,core,url:process.env.PREVIEW_URL,sha:process.env.PREVIEW_SHA});
+      - name: Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          check-latest: true
+          cache: npm
+      - name: Dependencies
+        run: npm ci
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Read-only deployed region lifecycle and delayed-location regression
+        env:
+          E2E_BASE_URL: ${{ steps.preview.outputs.url }}
+        run: npm run test:e2e -- e2e/region-change-boundary.spec.ts
+      - name: Preserve Preview browser evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: preview-region-${{ github.sha }}
+          path: |
+            playwright-report/
+            test-results/**/*.png
+            test-results/**/*.md
+            test-results/**/trace.zip
+          retention-days: 7
+          if-no-files-found: ignore

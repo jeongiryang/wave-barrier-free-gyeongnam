@@ -41,21 +41,20 @@ async function samples(page: Page, selector: string) {
 }
 
 const CASES = [
-  ".landing-scroll",
-  ".condition-preview .feature-preview-stage > header span",
-  ".access-preview .feature-preview-stage > footer",
-  ".signal-node",
-  ".condition-preview .feature-preview-stage > footer small",
-  ".condition-preview .feature-preview-stage > footer i",
-  ".plan-preview li:not(.transfer) > i",
-  ".plan-preview li > span",
-  ".route-preview .feature-preview-stage > footer span.active small",
-  ".route-preview .feature-preview-stage > footer span.active strong",
-  ".adapt-preview .feature-preview-stage > header small",
-  ".adapt-preview .feature-preview-stage > header > b",
-  ".map-pin.pin-end",
+  ".compact-journey-visual figcaption",
+  ".landing-hero-copy h1",
+  ".landing-hero-copy h1 em",
+  ".landing-hero-copy > span",
+  ".product-story-copy h2",
+  ".product-story-copy > p:not(.section-kicker)",
+  ".product-story-copy > a",
+  ".landing-community-copy h2",
+  ".landing-community-copy > p:not(.section-kicker)",
+  ".landing-community-copy > div > a",
+  ".landing-journey-summary li span",
+  ".landing-journey-summary li b",
+  ".landing-journey-summary p",
 ];
-const NARROW_HIDDEN = new Set([".condition-preview .feature-preview-stage > footer i"]);
 
 for (const theme of ["dark", "light"] as const) {
   test(`${theme === "dark" ? "어두운" : "밝은"} 랜딩의 미리보기 글자가 표면에 묻히지 않는다`, async ({ page }) => {
@@ -66,12 +65,11 @@ for (const theme of ["dark", "light"] as const) {
       window.localStorage.setItem("wave-theme", value as string);
     }, theme);
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1_500);
-    expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
-    const narrow = await page.evaluate(() => window.innerWidth <= 680);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    await expect(page.locator(".product-preview").first()).toBeHidden();
+    await expect(page.locator(".community-live-preview")).toBeHidden();
 
     for (const selector of CASES) {
-      if (narrow && NARROW_HIDDEN.has(selector)) continue;
       const measured = await samples(page, selector);
       expect(measured, `${selector}을 찾지 못했다`).not.toEqual([]);
       for (const sample of measured) {

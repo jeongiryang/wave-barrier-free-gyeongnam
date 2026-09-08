@@ -1,0 +1,94 @@
+name: Post-Deploy Production QA
+'on':
+  workflow_run:
+    workflows:
+      - CD
+    types:
+      - completed
+    branches:
+      - main
+permissions:
+  contents: read
+concurrency:
+  group: post-deploy-production-qa
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      deployments: read
+    steps:
+      - name: 배포된 commit 체크아웃
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Confirm Production deployment SHA
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: await require(process.env.GITHUB_WORKSPACE + '/.github/automation/check-deployment.cjs').checkDeployment({github,context,core});
+      - name: Node.js 설정
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+          check-latest: true
+      - name: 의존성 설치
+        run: npm ci
+      - name: Production API·화면 실응답 검사
+        run: npm run check:production
+      - name: Production browser smoke용 Chromium 설치
+        run: npx playwright install --with-deps chromium
+      - name: 읽기 전용 Production 사용자 여정·접근성 smoke
+        env:
+          E2E_BASE_URL: https://wave-barrier-free-gyeongnam.vercel.app
+        run: npx playwright test --config=playwright.production.config.ts
+      - name: Recheck deployment after smoke
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: await require(process.env.GITHUB_WORKSPACE + '/.github/automation/check-deployment.cjs').checkDeployment({github,context,core});
+      - name: Production QA 증거 보관
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: post-deploy-production-qa-${{ github.event.workflow_run.head_sha }}
+          path: |
+            playwright-production-report/
+            test-results-production/**/*.png
+            test-results-production/**/*.zip
+            test-results-production/**/*.md
+          retention-days: 14
+          if-no-files-found: ignore
+  notify-pm:
+    # Subscription-only policy: archived API path; do not enable.
+    if: >-
+      false && (always() && needs.verify.result != 'skipped')
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Trusted workflow source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: PM evidence handoff (accepted is not completed)
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          WAVE_PM_AGENT_TRIGGER_ID: ${{ secrets.WAVE_PM_AGENT_TRIGGER_ID }}
+          WAVE_PM_AGENT_ACCESS_TOKEN: ${{ secrets.WAVE_PM_AGENT_ACCESS_TOKEN }}
+          QA_RESULT: ${{ needs.verify.result }}
+        with:
+          script: >-
+            const { notifyFromWorkflow } = require(process.env.GITHUB_WORKSPACE + '/.github/automation/pm-notify.cjs');
+
+            await notifyFromWorkflow({core, context}, {kind: 'production', identity:
+            [context.payload.workflow_run.id,context.payload.workflow_run.run_attempt], conversation:
+            "wave-production-"+context.payload.workflow_run.head_sha, message: "Production QA result "+process.env.QA_RESULT+" for expected
+            SHA "+context.payload.workflow_run.head_sha+"; CD evidence "+context.payload.workflow_run.html_url+". This is read-only smoke
+            evidence, not Release GO."});

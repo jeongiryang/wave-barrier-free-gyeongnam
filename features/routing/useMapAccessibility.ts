@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef } from "react";
 import type { MapToolPanel } from "./types";
 
 const panelIds: Record<Exclude<MapToolPanel, null>, string> = {
@@ -42,17 +42,13 @@ export function useMapAccessibility({
   useEffect(() => {
     const previous = previousPanelRef.current;
     previousPanelRef.current = toolPanel;
-    let frame = 0;
     if (toolPanel) {
-      frame = window.requestAnimationFrame(() => {
-        document.getElementById(panelIds[toolPanel])?.querySelector<HTMLButtonElement>("header > button")?.focus();
-      });
+      document.getElementById(panelIds[toolPanel])?.querySelector<HTMLButtonElement>("header > button")?.focus();
     } else if (previous && panelTriggerRef.current?.panel === previous) {
       const trigger = panelTriggerRef.current.node;
       panelTriggerRef.current = null;
-      frame = window.requestAnimationFrame(() => trigger.focus());
+      if (document.activeElement === document.body || !document.activeElement?.isConnected) trigger.focus();
     }
-    return () => window.cancelAnimationFrame(frame);
   }, [toolPanel]);
 
   useEffect(() => {
@@ -64,35 +60,38 @@ export function useMapAccessibility({
   useEffect(() => {
     const wasOpen = previousRoadviewOpenRef.current;
     previousRoadviewOpenRef.current = roadviewOpen;
-    let frame = 0;
     if (roadviewOpen && !wasOpen) {
-      frame = window.requestAnimationFrame(() => {
-        document.getElementById("map-roadview-panel")?.querySelector<HTMLButtonElement>("header > button")?.focus();
-      });
+      document.getElementById("map-roadview-panel")?.querySelector<HTMLButtonElement>("header > button")?.focus();
     }
-    return () => window.cancelAnimationFrame(frame);
   }, [roadviewOpen]);
 
   useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      if (toolPanel) {
-        event.preventDefault();
-        setToolPanel(null);
-      }
-      if (roadviewOpen) {
-        event.preventDefault();
-        closeRoadview();
-        window.requestAnimationFrame(() => roadviewTriggerRef.current?.focus());
-      } else if (roadviewSelectMode) {
-        event.preventDefault();
-        cancelRoadviewSelection();
-        window.requestAnimationFrame(() => roadviewTriggerRef.current?.focus());
-      }
-    };
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [cancelRoadviewSelection, closeRoadview, roadviewOpen, roadviewSelectMode, setToolPanel, toolPanel]);
+    if (roadviewSelectMode) document.getElementById("map-roadview-choice")?.querySelector<HTMLButtonElement>("header button")?.focus();
+  }, [roadviewSelectMode]);
+
+  const closeOnEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key !== "Escape") return;
+    if (toolPanel) {
+      event.preventDefault();
+      setToolPanel(null);
+    }
+    if (roadviewOpen) {
+      event.preventDefault();
+      closeRoadview();
+      roadviewTriggerRef.current?.focus();
+    } else if (roadviewSelectMode) {
+      event.preventDefault();
+      cancelRoadviewSelection();
+      roadviewTriggerRef.current?.focus();
+    }
+  });
+  // Keep the listener installed while the map shell cancels point selection.
+  // Re-registering on that render can remove it midway through the same key event.
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => closeOnEscape(event);
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, []);
 
   const changeToolPanel = useCallback((panel: MapToolPanel, trigger: HTMLButtonElement) => {
     if (panel) panelTriggerRef.current = { panel, node: trigger };
@@ -111,8 +110,13 @@ export function useMapAccessibility({
 
   const closeRoadviewAndRestoreFocus = useCallback(() => {
     closeRoadview();
-    window.requestAnimationFrame(() => roadviewTriggerRef.current?.focus());
+    roadviewTriggerRef.current?.focus();
   }, [closeRoadview]);
 
-  return { changeToolPanel, beginRoadviewFromTrigger, toggleExpandedFromTrigger, closeRoadviewAndRestoreFocus };
+  const cancelRoadviewAndRestoreFocus = useCallback(() => {
+    cancelRoadviewSelection();
+    roadviewTriggerRef.current?.focus();
+  }, [cancelRoadviewSelection]);
+
+  return { changeToolPanel, beginRoadviewFromTrigger, toggleExpandedFromTrigger, closeRoadviewAndRestoreFocus, cancelRoadviewAndRestoreFocus };
 }

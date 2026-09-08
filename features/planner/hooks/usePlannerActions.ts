@@ -6,6 +6,7 @@ import type { Place } from "../types";
 import { useBookingRouteClipboard } from "./useBookingRouteClipboard";
 import { usePlannerImpactAction } from "./usePlannerImpactAction";
 import { usePlannerPointActions } from "./usePlannerPointActions";
+import type { RouteNotice } from "../route-copy";
 
 interface PlannerActionsOptions {
   region: string;
@@ -15,7 +16,9 @@ interface PlannerActionsOptions {
   pointPicker: PointPicker;
   routeDestination: Place | null;
   activePlaces: Place[];
-  impactAlternative: Place | null;
+  onCultureSearch: () => Promise<void>;
+  onReplaceAlternative: () => void;
+  onSelectDestination: (place: Place) => boolean;
   updateOrigin: (point: RoutePoint, label: string, isPrivate?: boolean) => void;
   loadRoutes: (
     place: Place,
@@ -24,9 +27,7 @@ interface PlannerActionsOptions {
     nextOriginLabel?: string,
   ) => Promise<void>;
   clearLocationSearch: () => void;
-  setTheme: (theme: string) => void;
-  setNotice: (notice: string) => void;
-  setRouteNotice: (notice: string) => void;
+  setRouteNotice: (notice: RouteNotice) => void;
 }
 
 export function usePlannerActions({
@@ -37,16 +38,16 @@ export function usePlannerActions({
   pointPicker,
   routeDestination,
   activePlaces,
-  impactAlternative,
+  onCultureSearch,
+  onReplaceAlternative,
+  onSelectDestination,
   updateOrigin,
   loadRoutes,
   clearLocationSearch,
-  setTheme,
-  setNotice,
   setRouteNotice,
 }: PlannerActionsOptions) {
-  const points = usePlannerPointActions({ region, origin, privateOrigin, pointPicker, routeDestination, activePlaces, updateOrigin, loadRoutes, clearLocationSearch });
-  const impact = usePlannerImpactAction({ impactAlternative, loadRoutes, setTheme, setNotice });
+  const points = usePlannerPointActions({ region, origin, privateOrigin, pointPicker, routeDestination, activePlaces, updateOrigin, loadRoutes, clearLocationSearch, onSelectDestination });
+  const impact = usePlannerImpactAction({ onCultureSearch, onReplaceAlternative });
   const booking = useBookingRouteClipboard({ originLabel, region, routeDestination, activePlaces, setRouteNotice });
   return { ...points, ...impact, ...booking };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { hasJourneyEstimate } from "../../../lib/route-estimates.js";
 import type { RouteAlternative } from "../../routing/types";
 import { transportModes } from "../constants";
 import type { TransportContext, TransportMode } from "../types";
@@ -41,7 +42,7 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
 
   const routeModeSummaries = useMemo(() => routeModeMeta.map((mode, baseIndex) => {
     const routes = routeAlternatives.filter((route) => belongsToMode(route, mode.id));
-    const configured = routes.filter((route) => route.configured && route.totalTime > 0);
+    const configured = routes.filter(hasJourneyEstimate);
     const minutes = configured.length ? Math.min(...configured.map((route) => route.totalTime)) : null;
     return { ...mode, minutes, configured: configured.length > 0, count: configured.length, baseIndex };
   }).sort((a, b) => {
@@ -58,13 +59,16 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
   };
 
   const filteredRouteAlternatives = useMemo(() => routeAlternatives
-    .filter((route) => belongsToMode(route, routeTravelMode))
+    .filter((route) => belongsToMode(route, routeTravelMode) && hasJourneyEstimate(route))
     .sort((a, b) => {
       if (a.configured !== b.configured) return a.configured ? -1 : 1;
       return a.totalTime - b.totalTime;
     }), [routeAlternatives, routeTravelMode]);
 
+  const resetRouteView = () => { setActiveRouteId(""); setSelectedTravelMode(null); setSelectedTransportDataset("bus-arrival"); setTransportMode("all"); };
+
   return {
+    resetRouteView,
     activeRouteId,
     setActiveRouteId,
     routeTravelMode,
@@ -75,7 +79,7 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
     selectedTransportDataset,
     setSelectedTransportDataset,
     sortedRouteAlternatives: filteredRouteAlternatives,
-    activeRoute: filteredRouteAlternatives.find((item) => item.id === activeRouteId) ?? filteredRouteAlternatives[0] ?? routeAlternatives[0] ?? null,
+    activeRoute: filteredRouteAlternatives.find((item) => item.id === activeRouteId) ?? filteredRouteAlternatives[0] ?? null,
     selectedDataset: transportContext?.datasets.find((item) => item.id === selectedTransportDataset) ?? null,
     activeTransportMode: transportModes.find((item) => item.id === transportMode) ?? transportModes[0],
   };

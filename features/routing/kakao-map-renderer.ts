@@ -85,7 +85,7 @@ export async function renderKakaoMap(
       marker.style.setProperty("--crowd-color", crowdVisual.color);
       marker.style.setProperty("--crowd-soft", crowdVisual.soft);
     }
-    marker.title = place.score === null ? `${place.name} · 접근성 근거 확인 필요` : `${place.name} · 편의조건 일치 ${place.score}%`;
+    marker.title = `${place.name} · 편의시설과 실제 이동 가능 여부는 방문 전 확인`;
     marker.setAttribute("aria-label", marker.title);
     if (image) {
       const photo = document.createElement("span");

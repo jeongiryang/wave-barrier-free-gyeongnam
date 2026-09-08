@@ -6,9 +6,11 @@ import communitySeedMigration from "../../migrations/004_community_seed.sql?raw"
 import communityFieldReportsMigration from "../../migrations/005_community_field_reports.sql?raw";
 import communitySeedRetirementMigration from "../../migrations/006_retire_community_seed.sql?raw";
 import accountDeletionMigration from "../../migrations/007_account_deletion.sql?raw";
+import reviewDateIntegrityMigration from "../../migrations/008_review_date_integrity.sql?raw";
 import { productionEnvironmentErrors } from "../../lib/deployment/production-env.js";
 import { securePostgresUrl } from "../../lib/deployment/environment-validation.js";
 import { orderedMigrationStatements, PRODUCTION_MIGRATION_NAMES } from "../../lib/deployment/migrations.js";
+import { inspectProductionDatabase, matchesProductionDatabase } from "../../lib/deployment/database-preflight.js";
 import { json } from "../shared/http";
 
 async function sameToken(actual: string, expected: string) {
@@ -35,6 +37,16 @@ export async function handleProductionMigration(request: Request) {
   const envErrors = productionEnvironmentErrors(process.env);
   if (envErrors.length > 0) return json({ error: "Production 환경 설정이 불완전합니다.", fields: envErrors }, 503);
 
+  const mode = request.headers.get("x-wave-migration-mode") || "apply";
+  if (mode !== "inspect" && mode !== "apply") return json({ error: "지원하지 않는 작업입니다." }, 400);
+  const databaseUrl = securePostgresUrl(process.env.DATABASE_URL);
+  if (!databaseUrl || !matchesProductionDatabase(databaseUrl)) {
+    return json({ ok: false, reason: "database-target-mismatch" }, 503);
+  }
+  const sql = neon(databaseUrl);
+  const preflight = await inspectProductionDatabase(sql, databaseUrl);
+  if (mode === "inspect" || !preflight.ok) return json(preflight, preflight.ok ? 200 : 503);
+
   const statements = orderedMigrationStatements([
     communityMigration,
     moderationMigration,
@@ -43,10 +55,8 @@ export async function handleProductionMigration(request: Request) {
     communityFieldReportsMigration,
     communitySeedRetirementMigration,
     accountDeletionMigration,
+    reviewDateIntegrityMigration,
   ]);
-  const databaseUrl = securePostgresUrl(process.env.DATABASE_URL);
-  if (!databaseUrl) return json({ error: "Production 데이터베이스 연결 설정이 안전하지 않습니다." }, 503);
-  const sql = neon(databaseUrl);
   await sql.transaction(statements.map((statement) => sql.query(statement)));
   return json({ ok: true, migrations: PRODUCTION_MIGRATION_NAMES, statements: statements.length });
 }

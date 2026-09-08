@@ -8,6 +8,7 @@ import {
   UPSTREAM_TIMEOUT_MS,
   budgetClock,
   withinBudget,
+  eachWithinBudget,
 } from "../lib/request-budget.js";
 
 async function source(path) {
@@ -54,9 +55,17 @@ test("관광 계획은 요청 전체에 예산을 둔다", async () => {
   // 전체 시간이 잡히지 않는다. 상류가 느리면 4분을 넘길 수 있었다.
   const builder = await source("server/tourism/plan-builder.ts");
   assert.match(builder, /budgetClock\(PLAN_TOTAL_BUDGET_MS\)/);
-  const stages = [...builder.matchAll(/withinBudget\(/g)];
-  assert.equal(stages.length, 3, "세 단계 모두 남은 예산 안에서 끝나야 한다");
+  assert.match(builder, /const optionalSources = Promise.all/);
+  assert.match(builder, /const \[barrier, tour\] = await eachWithinBudget/);
+  assert.match(builder, /const details = await eachWithinBudget/);
+  assert.match(builder, /const \[audio, crowd\] = await eachWithinBudget/);
   assert.ok(PLAN_TOTAL_BUDGET_MS < UPSTREAM_TIMEOUT_MS.tourism * 3, "단계별 최악을 그대로 더한 값보다 짧아야 한다");
+});
+
+test("느린 제공처는 성공한 다른 장소와 편의시설 결과를 지우지 않는다", async () => {
+  const completed = { ok: true, items: ["확인된 편의시설"] };
+  const result = await eachWithinBudget([Promise.resolve(completed), new Promise(() => undefined)], 20, () => ({ ok: false, items: [] }));
+  assert.deepEqual(result, [completed, { ok: false, items: [] }]);
 });
 
 test("예산 안에 끝나면 그 결과를 그대로 쓴다", async () => {

@@ -16,6 +16,8 @@ html[data-motion="calm"] .hero-wave-canvas { display: none; }
   border: 4px solid var(--mint); border-radius: 24px;
   box-shadow: 0 0 0 9999px rgba(2, 24, 35, .68), 0 0 0 7px rgba(111, 227, 208, .2), 0 18px 52px rgba(2, 34, 48, .28);
 }
+.help-load-message { position: fixed; z-index: 220; top: 90px; right: 12px; width: min(340px,calc(100vw - 24px)); margin: 0; padding: 16px; border: 1px solid #467286; border-radius: 12px; background: #f8fcfe; color: #123d50; line-height: 1.6; box-shadow: 0 8px 24px #062d4026; }
+html[data-theme="dark"] .help-load-message { background: #092c3b; color: #eaf5f9; border-color: #82b4c7; }
 .help-tour-dialog {
   position: fixed; z-index: 183; right: clamp(16px,4vw,54px); bottom: clamp(16px,4vw,48px);
   width: min(430px,calc(100vw - 32px)); padding: 28px;
@@ -110,7 +112,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
    데스크톱 터치스크린과 확대 화면도 모바일과 같은 접근성 기준을 적용한다. */
 .play, .save-card, .player-controls button,
 .map-side-drawer header > button, .map-roadview-panel header > button,
-.trip-point-picker header > button, .roadview-pick-banner button,
+.trip-point-picker header > button, .roadview-pick-banner header button,
 .kakao-number-marker {
   width: 44px; min-width: 44px; height: 44px; min-height: 44px;
 }
@@ -126,6 +128,12 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   min-height: 44px;
 }
 .map-poi-results article > button { display: flex; align-items: center; }
+.trip-point-picker input, .trip-point-picker form button { min-height: 44px; }
+.trip-point-picker { overflow-y: auto; }
+.trip-point-picker > p { margin: 0; padding: 6px 16px; font-size: .75rem; line-height: 1.6; }
+.trip-point-picker .trip-point-list { max-height: none; overflow: visible; }
+.trip-point-list strong, .trip-point-list small { white-space: normal; overflow-wrap: anywhere; }
+.trip-point-list em { grid-column: 2 / -1; justify-self: start; }
 .landing-region-map > button, .region-marker, .map-provider-badge button { position: relative; }
 .landing-region-map > button::after, .region-marker::after, .map-provider-badge button::after {
   content: ""; position: absolute; inset: -8px;
@@ -163,7 +171,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   }
   .map-tool-panel header > button, .map-poi-results header > button,
   .map-roadview-panel header > button, .trip-point-picker header > button,
-  .roadview-pick-banner button, .kakao-number-marker {
+  .roadview-pick-banner header button, .kakao-number-marker {
     width: 44px; min-width: 44px; height: 44px; min-height: 44px;
   }
 }

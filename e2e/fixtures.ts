@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import type { PlanData } from "../features/planner/types";
 
 const places = [
   {
@@ -22,7 +23,7 @@ const statuses = [
   { id: "tour", name: "국문 관광정보", role: "관광지 위치·주소", state: "live", count: 2, note: "공식 정보 확인" },
 ];
 
-const plan = {
+export const plan = {
   mode: "live", generatedAt: "2026-08-26T02:00:00.000Z", baseYm: "202608", places,
   course: null, audio: null, photo: null, crowd: { rate: 24, baseYmd: "20260826", place: "경남도립미술관" },
   stops: places.map((place) => ({
@@ -76,7 +77,24 @@ export async function mockPublicShellApi(page: Page) {
   }));
 }
 
-export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview" } = {}) {
+/** Real UI actions; tests no longer rely on automatic disability assumptions. */
+export async function chooseTripConditions(page: Page) {
+  const mode = page.getByRole("group", { name: "여행 설계 보기 방식" });
+  await mode.getByRole("button", { name: "전체 보기", exact: true }).waitFor();
+  await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('.journey-mode-toggle button')?.disabled);
+  const guided = await mode.getByRole("button", { name: "한 단계씩", exact: true }).getAttribute("aria-pressed") === "true";
+  await page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "창원", exact: true }).click();
+  if (guided) await page.locator(".condition-actions").getByRole("button", { name: "다음 →", exact: true }).click();
+  const needs = page.getByRole("group", { name: "여행 편의 조건 선택" }).getByRole("button", { name: /휠체어 편의시설/ });
+  if (await needs.getAttribute("aria-pressed") !== "true") await needs.click();
+  if (guided) await page.locator(".condition-actions").getByRole("button", { name: "다음 →", exact: true }).click();
+  const nature = page.getByRole("button", { name: /자연·휴양 공원/ });
+  if (await nature.getAttribute("aria-pressed") !== "true") await nature.click();
+  if (guided) await page.locator(".condition-actions").getByRole("button", { name: "다음 →", exact: true }).click();
+  await page.locator(".condition-actions").getByRole("button", { name: "여행지 찾기 →", exact: true }).click();
+}
+
+export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview"; audio?: PlanData["audio"]; crowdRate?: number; placeCoordinate?: { mapX: string; mapY: string } } = {}) {
   let enrichmentRequestCount = 0;
   await page.addInitScript((plannerView) => {
     window.localStorage.setItem("wave-planner-stage-view-v1", plannerView);
@@ -105,14 +123,14 @@ export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; 
           features: ["상세 편의정보 확인 필요"],
           details: ["제공된 편의정보가 제한적이므로 방문 전 시설 운영기관에 확인해 주세요."],
         })),
-      } : plan;
+      } : { ...plan, crowd: { ...plan.crowd, rate: options.crowdRate ?? plan.crowd.rate }, audio: options.audio ?? plan.audio, places: places.map(place => ({ ...place, ...options.placeCoordinate })), stops: plan.stops.map(stop => ({ ...stop, ...options.placeCoordinate })) };
       return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(responsePlan) });
     }
     if (url.pathname === "/api/wave" && action === "spot-photo") {
       return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ image: "", status: "empty" }) });
     }
     if (url.pathname === "/api/wave" && action === "crowd") {
-      return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ crowd: plan.crowd }) });
+      return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ crowd: { ...plan.crowd, rate: options.crowdRate ?? plan.crowd.rate } }) });
     }
     if (url.pathname === "/api/wave" && action === "enrich") {
       enrichmentRequestCount += 1;

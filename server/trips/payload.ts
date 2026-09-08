@@ -1,9 +1,10 @@
 import { clean } from "../shared/http";
-import { contentTypes, languageServices, profileFields, regionCodes } from "../tourism/catalog";
+import { languageServices, profileFields, regionCodes } from "../tourism/catalog";
+import { normalizeThemes } from "../../lib/planner-criteria.js";
 
 export function normalizeTripSelections(rawSelections: Record<string, unknown>) {
   const requestedRegion = clean(rawSelections.region, 20);
-  const requestedTheme = clean(rawSelections.theme, 20);
+  const themes = normalizeThemes(rawSelections.themes || clean(rawSelections.theme, 100));
   const requestedLocale = clean(rawSelections.locale || "ko", 20);
   const rawProfiles = Array.isArray(rawSelections.profiles) ? rawSelections.profiles : [];
   const rawAssignments = rawSelections.scheduleAssignments
@@ -19,7 +20,8 @@ export function normalizeTripSelections(rawSelections: Record<string, unknown>) 
     : "";
   return {
     region: regionCodes[requestedRegion] ? requestedRegion : "창원",
-    theme: contentTypes[requestedTheme] ? requestedTheme : "nature",
+    theme: themes.join(","),
+    themes,
     profiles: [...new Set(rawProfiles
       .map((value) => clean(value, 20))
       .filter((value) => profileFields[value]))].slice(0, 6),
@@ -43,15 +45,14 @@ export function storedTripPayload(body: Record<string, unknown>, selections: Ret
   const plan = (body.plan && typeof body.plan === "object" ? body.plan : {}) as Record<string, unknown>;
   const places = Array.isArray(plan.places) ? plan.places as Array<Record<string, unknown>> : [];
   const origin = (body.origin && typeof body.origin === "object" ? body.origin : {}) as Record<string, unknown>;
-  const placesById = new Map(places.map((place) => [clean(place.id, 80), place]));
-  const selectedPlaces = selections.selectedPlaceIds.length
-    ? selections.selectedPlaceIds.map((id) => placesById.get(id)).filter((place): place is Record<string, unknown> => Boolean(place))
-    : places;
+  const selectedIds = selections.selectedPlaceIds.length
+    ? selections.selectedPlaceIds
+    : places.map((place) => clean(place.id, 80));
   return {
     selections,
     origin: { label: clean(origin.label || "선택 출발지", 80) },
-    placeRefs: (selectedPlaces.length ? selectedPlaces : places).slice(0, 6).map((place, order) => ({
-      contentId: clean(place.id, 80),
+    placeRefs: selectedIds.slice(0, 12).map((contentId, order) => ({
+      contentId,
       order,
     })),
   };

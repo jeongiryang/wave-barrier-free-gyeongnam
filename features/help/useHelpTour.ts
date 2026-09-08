@@ -1,12 +1,18 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { communitySteps, landingSteps, plannerSteps, travelBookSteps, type TourStep } from "./tour-content";
+import type { TourStep } from "./tour-content";
+import { useSitePreferences } from "../../components/SitePreferences";
 import { useHelpTourFocus } from "./useHelpTourFocus";
 import { useTourSpotlight } from "./useTourSpotlight";
 
 export function useHelpTour() {
+  const { locale } = useSitePreferences();
   const [open, setOpen] = useState(false);
+  const [content, setContent] = useState<typeof import("./tour-content") | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const loadLock = useRef(false);
   const [steps, setSteps] = useState<TourStep[]>([]);
   const [stepIndex, setStepIndex] = useState(0);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -15,21 +21,37 @@ export function useHelpTour() {
   const spotlight = useTourSpotlight(open, steps, stepIndex, dialogRef);
   useHelpTourFocus(open, dialogRef, triggerRef, closeTour);
 
-  function startTour() {
-    const candidates = document.querySelector(".planner-page") ? plannerSteps
-      : document.querySelector(".travel-book-page") ? travelBookSteps
-        : document.querySelector(".community-page") ? communitySteps
-          : landingSteps;
-    const available = candidates.filter((step) => document.querySelector(step.selector));
-    spotlight.setHighlight(null);
-    setSteps(available);
-    setStepIndex(0);
-    setOpen(available.length > 0);
+  async function startTour() {
+    if (loadLock.current) return;
+    loadLock.current = true;
+    setLoading(true);
+    setLoadFailed(false);
+    try {
+      const loaded = content || await import("./tour-content");
+      setContent(loaded);
+      const candidates = document.querySelector(".planner-page") ? loaded.plannerSteps
+        : document.querySelector(".travel-book-page") ? loaded.travelBookSteps
+          : document.querySelector(".community-page") ? loaded.communitySteps
+            : loaded.landingSteps;
+      const available = candidates.filter((step) => {
+        const target = document.querySelector<HTMLElement>(step.selector);
+        return target && target.getClientRects().length > 0 && getComputedStyle(target).visibility !== "hidden";
+      });
+      spotlight.setHighlight(null);
+      setSteps(available);
+      setStepIndex(0);
+      setOpen(available.length > 0);
+    } catch {
+      setLoadFailed(true);
+    } finally {
+      setLoading(false);
+      loadLock.current = false;
+    }
   }
 
-  const step = steps[stepIndex];
+  const step = steps[stepIndex] && content ? content.localizeTourStep(steps[stepIndex], locale) : undefined;
   return {
-    open, steps, step, stepIndex,
+    open, steps, step, stepIndex, loading, loadFailed,
     highlight: spotlight.highlight,
     spotlightStyle: spotlight.spotlightStyle,
     dialogRef, triggerRef, startTour, closeTour,
