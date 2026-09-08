@@ -84,6 +84,47 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
   }
 });
 
+for (const width of [320, 390]) {
+  test(`${width}px 홈 링크는 작은 로고와 44px 조작 영역, 키보드 초점을 유지한다`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 720 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.route("**/api/**", (route) => route.abort());
+    await mockPublicShellApi(page);
+    await page.goto("/");
+
+    const home = page.getByRole("link", { name: "W.A.V.E 홈", exact: true });
+    const skip = page.getByRole("link", { name: "소개 바로가기", exact: true });
+    await expect(home).toBeVisible();
+    await expect(skip).toBeVisible();
+    await expect(home.locator(".brand-mark")).toHaveCSS("width", "32px");
+    await page.keyboard.press("Tab");
+    await expect(skip).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(home).toBeFocused();
+    await expect(home).toHaveCSS("outline-style", "solid");
+    await expect(home).toHaveCSS("outline-width", "3px");
+
+    const box = await home.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width, "홈 링크 너비").toBeGreaterThanOrEqual(44);
+    expect(box!.height, "홈 링크 높이").toBeGreaterThanOrEqual(44);
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(720);
+    expect(await home.evaluate((link) => {
+      const rect = link.getBoundingClientRect();
+      return [rect.left + 1, rect.right - 1].every((x) => link.contains(document.elementFromPoint(x, rect.top + rect.height / 2)));
+    }), "로고 양옆으로 넓힌 영역도 홈 링크를 가리킨다").toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    await testInfo.attach("home-link-metrics", { body: JSON.stringify({ viewport: { width, height: 720 }, link: box }), contentType: "application/json" });
+    await page.screenshot({ path: testInfo.outputPath("home-link-keyboard-focus.png") });
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/#top$/);
+    await expect(page.locator("#top")).toBeInViewport();
+  });
+}
+
 test("지도 도구 패널은 컨트롤 관계와 Escape 초점 복귀를 유지한다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);

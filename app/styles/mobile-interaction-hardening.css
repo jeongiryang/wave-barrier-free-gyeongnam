@@ -56,7 +56,7 @@
   display: inline-flex;
   align-items: center;
 }
-:where(.landing-header nav a, .site-header nav a, .community-header nav a,
+:where(.brand, .landing-header nav a, .site-header nav a, .community-header nav a,
   .auth-header nav a) {
   min-inline-size: 44px;
   justify-content: center;

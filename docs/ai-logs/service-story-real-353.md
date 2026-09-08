@@ -120,3 +120,15 @@ exact `bf29f21b4abfb0376320631f96877276659536a3`의 [CI866](https://github.com/j
 **현재 보안 Gate는 미완료다.** 같은 시각의 새로운 registry advisory로 production audit가 Next16.3.1 critical·sharp0.35.3 high를 보고했다. 전체 개발 도구 감사에서는 js-yaml4.3.1 high도 확인됐다. 기존 CI868의 당시 audit0은 역사 기록이며 현재 성공 근거로 재사용하지 않는다. [#355의 좁은 별도 패치](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/355#issuecomment-5592687534)에서 필요한 patch 버전만 처리하고 있다. 이 디자인 후보를 audit 실패 상태로 배포하지 않으며 보안 패치 포함 후 exact HEAD Full CI·Preview·독립 QA·Production 및 최종 제출 화면 일치를 확인해야 한다.
 
 외부 증거: `D:/wave-db-binding-preflight-20260908/story353-days-*`, `story353-days-native-visual-20260909/`, `story353-preserved-before-security-2026-09-08T22-23-09-808Z/`. 기존 사용자dirty10·50worktrees·queue294 generation/attempts/receipts·server·모든 실패 artifact를 보존한다. 별도 #379 소유 작업, #373 후순위, automation OFF 및 #372 quota hold를 유지한다.
+
+## 2026-09-09 08:14 KST — 모바일 홈 링크의 실제 조작 영역
+
+위 날짜/지도 증가분은 `ff93989028c23aee9c50ca5650210f47c594e2db`로 커밋·push해 보존했다. 이후 1440×900의 3열·960×900의 2열 도구 배치도 실제 화면으로 확인했다. 전체6CTA는48px, 본문16px, 두 화면의 overflow/pageerror0이며 로컬 시각 증거는 총17장이다. 별도 최종 Production 성공으로 주장하지 않는다.
+
+독립 보안 Preview에서 발견한 기존 모바일 홈 링크는 로고 글자를 숨긴 뒤 폭32px·높이44px가 됐다. #353의 기존44px AC 안에 있는 결함으로, 320/390px에서 실제 너비 검사2 FAIL을 먼저 보존했다. 기존 최소 폭44px·가운데 정렬 selector에 `.brand`만 추가해 링크 조작 영역을 넓힌다. 로고 그림의32px 크기·일반 Intro/Hero 모션·CTA·언어 구조는 유지한다.
+
+새 회귀는320/390px를 두 Chromium 프로젝트에서 검사한다. native Tab 초점과3px outline, 양축44px, 로고32px, 양옆 확장 영역의 실제 hit-test, viewport/넘침, Enter 후 `#top` 목적지의 실제 화면 포함을 확인한다. 처음 새 테스트에 넣었던 ‘앵커 활성화 후에도 링크에 초점 유지’ 기대는 native fragment 이동과 맞지 않아4 FAIL이었다. 기존 제품 초점을 강제로 되돌리지 않고 새 검사를 실제 목적지 이동 계약으로 바로잡았다. 이 중간 실패도 최초32px 재현과 별도로 보존한다. 기존1363px 검사와 기존 assertion은 변경하지 않았다.
+
+최종 관련 E2E는 **6 PASS/3.9s**, 실패·skip0이다(새320/390×두 프로젝트4건 + 기존1363×두 프로젝트2건). 관련 unit4 PASS, 변경 spec lint와 diff check PASS다. 실제320/390 모바일 캡처에서 초점 표시·헤더 조작 간격·겹침 없음을 확인했다. 새 검사는 모든 미설정 API를 전송 전에 차단하며 제공처 성공 증거가 아니다. CSS 증가는8바이트이고 성능 예산 자체는 변경하지 않았다. 최종 결합 빌드에서 총 gzip 예산을 다시 확인해야 한다.
+
+증거: `story353-mobile-home-hitarea-ff93989-20260909/{initial-red,fixed-related,final-related}/`, `implementation-receipt.json`, `final.diff`. 새 skip·timeout/retry/worker·기존 assertion 완화·별도 서버 실행은 없다. 보안 [PR380](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/380)은 최종 `46deae46b538d62e26b09b8bbd15cafa4f7b1c7c`로 [CI871](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34289021139)의 quality/boundary 성공·전체 browser 대기 상태다. 독립 QA와 병합 이후 최신 main을 이 디자인 후보에 안전하게 포함한 뒤 최종 검증한다. #353 전체 완료·Production 반영·제출자료 완성을 아직 선언하지 않는다.
