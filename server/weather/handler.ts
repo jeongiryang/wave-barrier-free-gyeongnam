@@ -2,6 +2,7 @@ import { clean, json } from "../shared/http";
 import { resolveWeatherRegion } from "./catalog";
 import { normalizeWeatherForecast } from "./model";
 import { fetchOpenMeteoForecast } from "./open-meteo";
+import { caughtProviderFailure, providerFailureMessage } from "../../lib/provider-failure.js";
 
 export async function handleWeatherApi(request: Request) {
   if (request.method !== "GET") return json({ error: "GET 요청만 지원합니다." }, 405);
@@ -12,6 +13,7 @@ export async function handleWeatherApi(request: Request) {
     const raw = await fetchOpenMeteoForecast(point);
     return json(normalizeWeatherForecast(raw, region), 200, true);
   } catch (error) {
-    return json({ error: error instanceof Error ? clean(error.message, 120) : "날씨 정보를 불러오지 못했습니다." }, 502);
+    const failure = caughtProviderFailure(error,{provider:"open-meteo",operation:"forecast"});
+    return json({ error:providerFailureMessage(failure),failure }, 502);
   }
 }

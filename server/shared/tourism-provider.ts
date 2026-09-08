@@ -1,6 +1,8 @@
 import type { Env } from "./env";
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import { clean } from "./http";
+import { requestProvider } from "./provider-request.js";
+import { providerFailure, ProviderRequestError } from "../../lib/provider-failure.js";
 import { attemptProvider } from "./provider-attempt";
 import { normalizeItems } from "./provider-normalizers";
 import type { ProviderAttempt, ProviderResult } from "./provider-types";
@@ -22,23 +24,24 @@ export async function fetchTourismData(
   params: Record<string, string>,
 ): Promise<ProviderResult> {
   const key = env.TOUR_API_SERVICE_KEY_ENCODED?.trim();
-  if (!key) throw new Error("서버 인증키가 등록되지 않았습니다.");
+  const context = {provider:"kto",family:"public-data" as const,operation:`${service}/${operation}`};
+  if (!key) throw new ProviderRequestError(providerFailure(context,"missing_config"));
   const query = new URLSearchParams(params).toString();
   const url = `https://apis.data.go.kr/B551011/${service}/${operation}?serviceKey=${key}&${query}`;
-  const response = await fetch(url, {
+  const response = await requestProvider(context, url, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
-  });
+  }, fetch);
   if (!response.ok) throw new Error(`관광 데이터 응답 ${response.status}`);
   const raw = await response.text();
   let data: unknown;
   try {
     data = JSON.parse(raw);
   } catch {
-    const message = raw.match(/<(?:returnAuthMsg|resultMsg)>([^<]+)</i)?.[1];
-    throw new Error(clean(message || "JSON 형식이 아닌 응답을 받았습니다.", 120));
+    throw new ProviderRequestError(providerFailure(context,"malformed_response"));
   }
-  return normalizeItems(data);
+  try { return normalizeItems(data); }
+  catch { throw new ProviderRequestError(providerFailure(context,"malformed_response")); }
 }
 
 export async function fetchRegionalList(

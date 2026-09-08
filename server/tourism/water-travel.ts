@@ -1,6 +1,7 @@
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "../shared/env";
-import { clean } from "../shared/http";
+import { requestProvider } from "../shared/provider-request.js";
+import { caughtProviderFailure, providerFailureMessage } from "../../lib/provider-failure.js";
 import { normalizeItems, normalizeXmlItems, type ProviderAttempt as Attempt } from "../shared/provider-data";
 
 export async function fetchWaterTravel(env: Env, searchTypeCd: "01" | "02") {
@@ -8,10 +9,10 @@ export async function fetchWaterTravel(env: Env, searchTypeCd: "01" | "02") {
   if (!key) return { ok: false, error: "서버 인증키가 등록되지 않았습니다." } as Attempt;
   const params = new URLSearchParams({ pageNo: "1", numOfRows: "8", searchTypeCd });
   try {
-    const response = await fetch(`https://apis.data.go.kr/B500001/myportal/travel/travellist?serviceKey=${key}&${params.toString()}`, {
+    const response = await requestProvider({provider:"water-travel",family:"public-data",operation:"travellist"}, `https://apis.data.go.kr/B500001/myportal/travel/travellist?serviceKey=${key}&${params.toString()}`, {
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
       headers: { Accept: "application/json" },
-    });
+    }, fetch);
     if (!response.ok) throw new Error(`물과 여행 응답 ${response.status}`);
     const raw = await response.text();
     const trimmed = raw.trim();
@@ -20,9 +21,10 @@ export async function fetchWaterTravel(env: Env, searchTypeCd: "01" | "02") {
       value: trimmed.startsWith("<") ? normalizeXmlItems(trimmed) : normalizeItems(JSON.parse(trimmed)),
     } as Attempt;
   } catch (error) {
+    const failure = caughtProviderFailure(error,{provider:"water-travel",operation:"travellist"});
     return {
       ok: false,
-      error: error instanceof Error ? clean(error.message, 120) : "물과 여행 호출 확인 필요",
+      error: providerFailureMessage(failure),failure,
     } as Attempt;
   }
 }

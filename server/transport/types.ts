@@ -21,4 +21,5 @@ export type RouteApiAlternative = {
 export type ProviderStatusUpdate = {
   state: TransportProviderState;
   detail: string;
+  failure?: import("../../lib/provider-failure.js").ProviderFailure;
 };

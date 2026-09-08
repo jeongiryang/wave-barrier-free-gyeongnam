@@ -1,5 +1,7 @@
 import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import { isSupportedMapCoordinate, mapDistanceMetres } from "../../lib/map-coordinates.js";
+import { requestProvider } from "../shared/provider-request.js";
+import { caughtProviderFailure, providerFailureMessage } from "../../lib/provider-failure.js";
 import type { Env } from "../shared/env";
 import type { ProviderStatusUpdate, RouteApiAlternative, RouteGeometryPoint } from "./types";
 
@@ -23,10 +25,10 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
       alternatives: "false",
       road_details: "false",
     });
-    const response = await fetch(`https://apis-navi.kakaomobility.com/v1/directions?${query.toString()}`, {
+    const response = await requestProvider({provider:"kakao-mobility",family:"kakao",operation:"directions"}, `https://apis-navi.kakaomobility.com/v1/directions?${query.toString()}`, {
       headers: { Authorization: `KakaoAK ${apiKey}`, Accept: "application/json" },
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.transport),
-    });
+    }, fetch);
     if (!response.ok) {
       return { alternative: null, provider: { state: "error", detail: `카카오모빌리티 응답 ${response.status}` } };
     }
@@ -80,7 +82,8 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
       },
       provider: { state: "connected", detail: "카카오모빌리티 자동차 경로 응답을 확인했습니다." },
     };
-  } catch {
-    return { alternative: null, provider: { state: "error", detail: "카카오모빌리티 경로 요청을 완료하지 못했습니다." } };
+  } catch (error) {
+    const failure = caughtProviderFailure(error,{provider:"kakao-mobility",operation:"directions"});
+    return { alternative: null, provider: { state: "error", detail: providerFailureMessage(failure), failure } };
   }
 }
