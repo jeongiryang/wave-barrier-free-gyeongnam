@@ -139,7 +139,7 @@ jobs:
           response="$(npx --yes vercel@54.14.0 curl /api/deployment/migrate --deployment "$CANDIDATE_URL" -X POST -H "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN" -H "X-Wave-Migration-Mode: inspect")"
           printf '%s' "$response" | node scripts/check-database-preflight.mjs > "$RUNNER_TEMP/database-preflight.json"
           cat "$RUNNER_TEMP/database-preflight.json"
-          printf '\nCandidate SHA: `%s`\nCandidate URL: %s\nPreflight-only: %s\n' "$DEPLOYMENT_SHA" "$CANDIDATE_URL" "$PREFLIGHT_ONLY" >> "$GITHUB_STEP_SUMMARY"
+          printf '\nCandidate SHA: %s\nCandidate URL: %s\nPreflight-only: %s\n' "$DEPLOYMENT_SHA" "$CANDIDATE_URL" "$PREFLIGHT_ONLY" >> "$GITHUB_STEP_SUMMARY"
         # Only the trusted typed boolean reaches the summary, never shell code.
         # Secrets and raw provider responses are excluded from the evidence file.
 
