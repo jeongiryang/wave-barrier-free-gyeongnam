@@ -67,3 +67,11 @@ Kakao 기본 bounds 여백과 Leaflet 고정46px는 도구막대·사진의 실�
 - `npm run build:vercel`, `npm run check:performance`: PASS. 로컬 CSS69.77/70, landing120.89/155, planner269.87/270, largest95.92/110KiB. 예산 증가는 없다.
 
 원본 Preview 실패의 `51-390-day1-settled.png`, `52-390-day1-persistent`와 CI865 전체 artifact는 `story353-preview-4052f85-independent/`에 보존한다. 새 local 증거는 `story353-leaflet-fix-*`, `leaflet-date-fit-regression-20260909/`에 있다. exact4052에 새 E2E를 실행해 browser red/green을 얻었다고 주장하지 않는다. **수정 HEAD의 새 Full CI·Preview·독립 QA 및 이후 Production은 아직 필요하다.**
+
+## 2026-09-09 04:51 KST — 마지막 CTA에서 근거로 연결
+
+지도 수정은 독립 commit `6a9d60ccfb5e84461163b3e8f700aa16b36763b9`로 보존했다. #353 본문·의미 있는 댓글8개/48묶음 재감사의 작은 잔여인 마지막 CTA 출처 연결도 보완한다. 주 여행 시작 버튼은 그대로 두고, ‘시연 출처와 조회 시각 보기’를 명시적으로 선택할 때만 기존 출처 details를 열고 native summary로 이동한다. 새 날짜를 만들거나 지역 사진의 월 정보를 확인일로 바꾸지 않는다. 기존 실제 조회시각·시설 갱신일과의 구분·방문 전 재확인 안내를 재사용한다. 사진 원장의 ‘경로 요청 없음’은 앱의 시도를 전송 전에 막았다는 정확한 경계로 정정했다.
+
+로컬 실제390px 화면에서 링크를 눌러 원문과 조회시점이 펼쳐지는 것을 확인했다. 관련 service-story/테마 검사는 **26 PASS/18.3s**. 추가 보조문구·링크의 두 테마 대비 검사는 **4 PASS/2.6s**, 최종44px 영역·KO/EN 키보드·원문 열기·summary 초점·주 CTA 유지 검사는 **4 PASS/7.6s**다. 이 재실행을 고유 테스트 개수로 더하지 않는다. 최종 결합본 unit **707 PASS/6.299s**, lint 오류0·기존 경고5, typecheck·Vercel build·performance PASS다. 로컬 gzip CSS69.86/70, landing121.12/155, planner269.86/270, largest95.92/110KiB. `story353-final-source-link-*` 로그와 캡처를 보존한다.
+
+기존 일반 Intro/Hero/확장·감소모드·영어 기능과 테스트는 유지한다. 04:44:05 KST canonical 직접 조회는 여전히9caca READY로, 현재 후보의 새 Production 성공을 뜻하지 않는다. 다음은 한 번의 새 exact 후보 Full CI와 Preview/독립 QA이며, 별도 날짜 촬영을 기본 지도와 연속 상태라고 주장하지 않는다. 최종 같은 세션의 날짜→지도 기록과 제출 문서/화면 정합성은 #353에 계속 남아 있다.

@@ -65,6 +65,8 @@ const CASES = [
   ".journey-day p",
   ".journey-scene-stops li > span",
   ".journey-scene figcaption",
+  ".landing-cta-evidence",
+  ".landing-cta-evidence a",
 ];
 
 for (const theme of ["dark", "light"] as const) {

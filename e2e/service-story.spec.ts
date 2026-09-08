@@ -74,6 +74,20 @@ for (const locale of ["ko", "en"] as const) {
     await expect(sourceDetails).not.toHaveAttribute("open");
     await expect(sourceDetails.locator("summary")).toBeFocused();
 
+    const sourceLink = page.locator('.landing-cta a[href="#journey-record-source"]');
+    await expect(sourceLink).toHaveAccessibleName(en ? "View this example's sources and retrieval time" : "시연 출처와 조회 시각 보기");
+    await sourceLink.focus();
+    expect(await sourceLink.evaluate(link => link.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press("Enter");
+    await expect(sourceDetails).toHaveAttribute("open");
+    await expect(sourceDetails.locator("summary")).toBeFocused();
+    await expect(sourceDetails.locator("p").first()).toBeVisible();
+    await expect(sourceDetails).toContainText("02:26:57");
+    await expect(sourceDetails).toContainText(en ? "not the facility update date" : "시설 갱신일이 아니에요");
+    await expect(page.locator('.landing-cta > a[href="/planner"]')).toHaveCount(1);
+    await page.keyboard.press("Enter");
+    await expect(sourceDetails).not.toHaveAttribute("open");
+
     for (const width of [320, 390, 768, 1366]) {
       await page.setViewportSize({ width, height: 844 });
       await expectMediaCaptionUnobscured(page);

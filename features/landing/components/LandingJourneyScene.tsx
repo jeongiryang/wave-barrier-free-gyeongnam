@@ -39,7 +39,7 @@ export default function LandingJourneyScene() {
       <h2 id="journey-scene-title">{copy("가고 싶은 두 곳.", "Two places to visit.")}<br /><em>{copy("내가 고르는 하루.", "A day you choose.")}</em></h2>
       <p>{copy("필요한 편의를 살펴보고, 여행지를 날짜에 담으세요. 같은 장소와 순서를 지도에서 확인할 수 있어요.", "Review the facilities you need and place each stop on a day. Check the same places and order on the map.")}</p>
       <a href="/planner?region=%EC%B0%BD%EC%9B%90">{t("plan", "내 여행 계획하기")} <span aria-hidden="true">↗</span></a>
-      <details className="journey-source-details">
+      <details id="journey-record-source" className="journey-source-details">
         <summary>{copy("출처와 확인 시점", "Sources and when we checked")}</summary>
         <p>{copy("관광사진·편의정보 출처: ⓒ한국관광공사. 공식 기록을 보여주며 접근성을 인증하지 않아요. 대산플라워랜드 자료 조회는 2026년 9월 9일 02:26:57입니다. 조회 시각은 시설 갱신일이 아니에요.", "Photos and facility records: ⓒKorea Tourism Organization. These are records, not an accessibility certification. The Daesan record was retrieved on 9 September 2026 at 02:26:57 KST, not the facility update date.")}</p>
         <p>{copy("일정과 지도는 같은 날 03:08에 촬영한 한 시연의 주남저수지→대산플라워랜드 순서예요. 카카오 지도에 두 장소가 보이는 범위만 확인했고, 이동 시간은 직선거리 추정입니다. 방문 전 시설과 경로를 다시 확인하세요.", "The itinerary and map show the same 03:08 KST recording, ordered Junam then Daesan. Both places were visible on Kakao; displayed travel times are straight-line estimates. Recheck facilities and routes before visiting.")}</p>
