@@ -32,3 +32,23 @@ test("failure event re-delivery creates one issue and one receipt per attempt", 
   run.conclusion = "failure"; run.path = ".github/workflows/automation-failure-router.yml";
   await route(github, context, core); assert.equal(issues.length, 1);
 });
+
+test("a skipped downstream run cannot create a failure issue even when its event claims failure", async () => {
+  const run = { id: 34187870681, name: "CD", path: ".github/workflows/cd.yml", conclusion: "skipped", repository: { full_name: "owner/repo" } };
+  let reads = 0;
+  const unexpected = async () => assert.fail("A skipped run must not read or mutate the issue queue");
+  const github = {
+    rest: {
+      actions: { getWorkflowRun: async () => { reads += 1; return { data: run }; } },
+      issues: { listForRepo: unexpected, listComments: unexpected, create: unexpected, createComment: unexpected },
+    },
+    paginate: unexpected,
+  };
+  const context = { repo: { owner: "owner", repo: "repo" }, payload: { workflow_run: { id: run.id, conclusion: "failure" }, repository: { full_name: "owner/repo" } } };
+  const route = script("automation-failure-router.yml");
+  await route(github, context, core);
+  run.name = "Post-Deploy Production QA";
+  run.path = ".github/workflows/automation-post-deploy-qa.yml";
+  await route(github, context, core);
+  assert.equal(reads, 2);
+});

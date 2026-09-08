@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   route-failure:
-    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    if: ${{ github.event.workflow_run.conclusion != 'success' && github.event.workflow_run.conclusion != 'skipped' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -26,7 +26,7 @@ jobs:
           script: |
             const run = (await github.rest.actions.getWorkflowRun({...context.repo,run_id:context.payload.workflow_run.id})).data;
             const expected = new Map([['CI','.github/workflows/ci.yml'],['CD','.github/workflows/cd.yml'],['Production API Smoke','.github/workflows/production-api-smoke.yml'],['Post-Deploy Production QA','.github/workflows/automation-post-deploy-qa.yml']]);
-            if (expected.get(run.name) !== run.path || run.repository.full_name !== context.payload.repository.full_name || run.conclusion === 'success') return;
+            if (expected.get(run.name) !== run.path || run.repository.full_name !== context.payload.repository.full_name || ['success', 'skipped'].includes(run.conclusion)) return;
             const scope = run.pull_requests?.[0]?.number ? 'pr-'+run.pull_requests[0].number : 'branch-'+String(run.head_branch).replace(/[^a-zA-Z0-9/_-]/g,'_');
             const receipt = '<!-- wave-failure-run:'+run.id+':'+run.run_attempt+' -->';
             const marker = `<!-- wave-automation-failure:${run.name}:${scope} -->`;
