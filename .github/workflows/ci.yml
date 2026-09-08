@@ -70,6 +70,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2]
+        device: [desktop, mobile]
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v7
@@ -88,25 +89,19 @@ jobs:
 
       - name: 브라우저 설치
         run: npx playwright install --with-deps chromium
-      # The default global shard put every desktop test on runner 1 and every
-      # slower mobile test on runner 2. Keep two runners and the complete suite,
-      # but give each runner half of each device project, using native sharding.
-      - name: 데스크톱 브라우저·접근성 회귀 테스트
+      # Keep the complete desktop/mobile suite and each project's existing
+      # two-way native shard. Isolate device projects so successful assertions
+      # and artifact upload finish inside the unchanged 25-minute job budget.
+      - name: 브라우저·접근성 회귀 테스트
         env:
-          PLAYWRIGHT_HTML_REPORT: playwright-report/desktop
-        run: npm run test:e2e -- --project=desktop-chromium --shard=${{ matrix.shard }}/2 --output=test-results/desktop
-
-      - name: 모바일 브라우저·접근성 회귀 테스트
-        if: ${{ !cancelled() }}
-        env:
-          PLAYWRIGHT_HTML_REPORT: playwright-report/mobile
-        run: npm run test:e2e -- --project=mobile-chromium --shard=${{ matrix.shard }}/2 --output=test-results/mobile
+          PLAYWRIGHT_HTML_REPORT: playwright-report/${{ matrix.device }}
+        run: npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/2 --output=test-results/${{ matrix.device }}
 
       - name: 브라우저 검증 보고서 보관
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
         with:
-          name: browser-regression-${{ matrix.shard }}
+          name: browser-regression-${{ matrix.device }}-${{ matrix.shard }}
           path: playwright-report/
           retention-days: 7
           if-no-files-found: ignore
@@ -114,7 +109,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
         with:
-          name: browser-screenshots-${{ matrix.shard }}
+          name: browser-screenshots-${{ matrix.device }}-${{ matrix.shard }}
           path: |
             test-results/**/*.png
             test-results/**/*.md
