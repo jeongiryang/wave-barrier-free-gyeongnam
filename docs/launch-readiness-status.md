@@ -1,5 +1,104 @@
 # 전체 실행 목록과 운영 반영 상태
 
+## 2026-09-09 현재 감사 — 이 절을 현재 원장으로 사용
+
+**00:35 KST 요구 보존 재감사:** 최근 닫은 제품 Issue 14개의 본문·후속 댓글 132항목을 `IMPLEMENTED` 51 / `TRANSFERRED` 48 / `DEFERRED-IDEA` 16 / `REJECTED` 17로 매핑했다. 잔여 64항목을 기존 Open Issue 16곳에 실제 이관한 뒤 원본·대상 댓글 30개를 다시 읽어 확인했다. 아래 초기 DONE 표기는 **원 Issue의 모든 아이디어가 구현됐다는 뜻이 아니다.** 각 행의 최신 요구별 매핑이 항목 수준의 확정 상태이며, 이관된 필수 조건은 대상 Open Issue에서 계속 해결해야 한다. 대량 reopen이나 새 중복 Issue는 만들지 않았다.
+
+#353은 한국어 화면 우선의 로컬 WIP다. 기존 Production과 새 디자인을 구분한다. 첫 인트로가 이미지에 가려지는 결함을 실제 화면으로 재현한 뒤 독립된 Hero 영역에서 파도→접근성 형상→W.A.V.E를 표시하도록 수정했다. 작은 프레임의 확장과 4단계 여행 예시를 실제 DOM으로 구현 중이며, 최종 CI·Preview·Production·제출 캡처는 아직 필요하다. #21의 일반 모션 약화 제안은 최신 Owner 결정으로 REJECTED이며, 접근성 감소 모드는 별도로 유지한다.
+
+<!-- wave-current-issue-audit:20260909:f4d5d97 -->
+
+확인: **2026-09-09 00:09 KST**. 원래 열린 Issue **66개**(제품38 + 운영26 + #288/#353)를 실제 본문/고유 감사 댓글과 대조했다. **DONE16·SUPERSEDED5를 종료해 현재 Open45**이며, #260/#262 같은 감사 전 Closed는 66개에 포함하지 않는다. 표의 Issue 링크는 가능하면 해당 판정 댓글을 가리킨다. 기존 기록은 아래 Historical에 원문 그대로 보존하며 과거 미병합/미배포/DB 차단을 현재 상태로 반복하지 않는다.
+
+- **main/Production:** 원격 main을 다시 조회해 `f4d5d9757451c5086aabaf78ee6ff31086c37368`를 확인했다. Production도 **2026-09-09 00:06:03.435 KST** metadata 재확인에서 같은 SHA, canonical deployment `dpl_H5bVpVcrFXzRHW9oZajfgmzB9ree`, READY/production이다. [CD217](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34236269553) SUCCESS. Health는 설정 확인이며 실제 provider 성공 증거가 아니다.
+- **PR/소스 정리:** 포함/중복 근거를 보존해 원래 source PR41개를 모두 종료했다. 현재 열린 PR은 **2개**: [#349](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/349) 문서·현재 위치정보 경계 정합성 재조정, [#373](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/373) Draft/POST-RC. #373의 전체 자동화/Fast Gate 변경은 #353에 합치지 않는다. #353은 `feat/service-story-353`의 **미커밋 구현/검증 진행 중**이며 새 HEAD·Preview·Production 완료가 아니다.
+- **M/C/P/S 증거 분리:** M은 위 배포에 포함된 제품 코드(#334→#356→#363→#364→#369→#370), C는 [#370 CI855](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34227284864)의 unit696·desktop399·mobile398 PASS/기존skip1/실패·flaky0 및 기존 회귀다. C의 fixture는 실제 provider 성공이 아니다. P는 **0116ef9**에서 수행한 실제 핵심 여정(명시적 검색→추천5/탐색7→일정/지도→날짜 재배정→저장/복원, 실제 Kakao/날씨)의 제한된 기록이다. **f4에서 P 전체를 다시 실행하지 않았다.** [공통 상세 증거](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/347#issuecomment-5587171149).
+- **현재 운영 smoke:** S=[f4 Post-Deploy8](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34236448981)의 read-only browser/axe **8 PASS**·전후 배포 SHA 확인이다. 기존 #372 hold를 지켜 **실 API 호출0, 전체 run FAILURE/blocked-external**이다. [Router42](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34236610176)는 duplicate/code-fix loop를 만들지 않았다. Preview·fixture·browser8을 전체 Production/provider PASS로 확장하지 않는다.
+- **#365 최소 경계 완료 / 고급 POST-RC:** quota 분류·warm-instance cooldown/coalescing·KO/EN 정직한 안내·persistent hold·mixed-failure 분리·no-loop는 완료다. API7은 당시 **Production5e7ec6b/workflowf4**에서 제한을 기록했고, 이후 실제 f4 PostDeploy8은 추가 API0으로 hold를 유지했다. 계정 한도/reset은 #372, cold-start/account-wide/opaque SDK 고급 보강은 POST-RC다. 이 감사와 문서 갱신에서 provider API를 재호출하지 않았다.
+- **Engineering과 Human/External:** Engineering은 구현·코드/fixture·실제 브라우저 증거를 담당한다. 사람/외부 확인은 실제 계정/권한/reset·참가자/법적 판단·실물 낭독기/기기·최종 제출이며 #11/#372와 해당 QA 잔여로 분리한다. 이 원장은 **최종 QA PASS·Release GO·자동화 activation**을 선언하지 않는다.
+
+| Issue / 감사 근거 | 현재 판정 | 충족 / 남은 AC | 코드·테스트·Production 범위 |
+| --- | --- | --- | --- |
+| [#11](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/11#issuecomment-5587029911) | BLOCKED-EXTERNAL-HUMAN | 참가/팀·법적/운영자·탈퇴/메일·실물·최종 제출 확인 잔여 | 008/binding/restore 완료; 실제 ODsay 상태 #372 |
+| [#251](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/251#issuecomment-5587204076) | ACTIVE | 날짜·지도·저장 복구 반영; 영어·도움말·확대/종합 QA 잔여 | planner/date/recovery 회귀; M/C, P 제한 여정 |
+| [#252](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/252#issuecomment-5587204405) | ACTIVE | 복수 테마 검색·병합 완료; 공유/여행집 선택 상태 복원 잔여 | usePlannerCriteria/plan-builder/travel-book; C |
+| [#253](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/253#issuecomment-5587204680) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/253#issuecomment-5587680806) | DONE · Closed | 한 질문/전체 보기·선택 유지·키보드·명시적 검색 완료 | PlannerConditionsPanel; condition/planner E2E, P |
+| [#254](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/254#issuecomment-5587205317) | ACTIVE | stale 완료 방지 구현; 기존 일정 접근 유지와 원문 잠금 AC 정리 | useJourneyProgress available≠complete; C |
+| [#255](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/255#issuecomment-5587207843) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/255#issuecomment-5587681056) | DONE · Closed | 핵심 편의/CTA 우선·보조 정보 접기·역할 분리 완료 | PlannerServiceStatus/TravelSignalsPanel; C/P |
+| [#256](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/256#issuecomment-5587208502) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/256#issuecomment-5587681357) | DONE · Closed | 날씨 시각·7일 비교·텍스트 대안·실패/모바일 완료 | WeatherVisual; weather-language/integrity, P |
+| [#257](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/257#issuecomment-5587209213) | ACTIVE → #353 | 단일 CTA 반영; 큰 관광 장면·소개 흐름·상세 보기 잔여 | LandingHero/ProductStories; M/C |
+| [#258](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/258#issuecomment-5587209451) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/258#issuecomment-5587681640) | DONE · Closed | 실제 경남/전국 위치·18시군·map/list·실패 대안 완료 | SGIS2020 경계; landing-boundaries E2E, #331→#334 |
+| [#259](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/259#issuecomment-5587210123) | ACTIVE → #353 | 작은 정적 시각 반영; 동일 장소 날짜→일정→경로 장면 잔여 | CompactJourneyVisual; compact-landing-visuals |
+| [#261](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/261#issuecomment-5587210476) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/261#issuecomment-5587684081) | DONE · Closed | 중립 진입·명시적 검색·dirty/abort/race·profile 정책 완료 | usePlanRequest; launch-integrity/search-focus, P |
+| [#263](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/263#issuecomment-5587215212) | ACTIVE | 완료 하위 기능 인정; 소개/상세/최종 접근성·반응형 잔여 | 하위 AC 댓글; #353/#267/#279/#285/#286 |
+| [#264](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/264#issuecomment-5587215616) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/264#issuecomment-5587684340) | DONE · Closed | 날짜별 일정/지도 순서·전체 leg·stale/좌표 누락 처리 완료 | itinerary-route-sync; #364 공개 ID 복구, P |
+| [#265](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/265#issuecomment-5587216427) | ACTIVE | 핵심 용어 개선; 실제 도움말/랜딩의 구형·자동 재계산 문구 잔여 | tour-content/landing copy; #353/#283 |
+| [#266](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/266#issuecomment-5587216912) | POST-RC | 일부 정리·예산 준수; #353 DOM 확정 후 전체 스타일 정리 | 현재 styles/숨겨진 preview 소스; #355 |
+| [#267](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/267#issuecomment-5587217329) | ACTIVE | 자동화/제한 실제 여정 확보; 최종 이해도·전 환경 QA 잔여 | C/P 범위 구분; #353/#285/#286 |
+| [#268](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/268#issuecomment-5587217681) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/268#issuecomment-5587684626) | DONE · Closed | 시설 분류/실제 field·중복 제거·profile·근거 연결 완료 | catalog/accessibility-model; profile/score tests, P |
+| [#269](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/269#issuecomment-5587218355) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/269#issuecomment-5587684978) | DONE · Closed | 사진·확인 편의·추가 CTA·탐색 위계·근거 의미 완료 | RecommendationCarousel; photo/evidence tests; #363, P |
+| [#270](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/270#issuecomment-5587219186) | ACTIVE → #353 | 이미지 출처/실패 기반 있음; 섹션별 실제 관광 미디어 적용 잔여 | SmartSpotImage/assets-and-licenses; #284 |
+| [#271](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/271#issuecomment-5587219465) | ACTIVE → #353 | 기존 장소 modal 구현; 소개 장면 자세히 보기 계약 잔여 | NativePlaceDecisionDialog; 기존 focus 회귀 |
+| [#272](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/272#issuecomment-5587219796) | ACTIVE | URL/history/focus 구현; refresh의 criteria/현재 질문 복원 잔여 | usePlannerCriteria/question clamp; C |
+| [#273](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/273#issuecomment-5587223275) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/273#issuecomment-5587685308) | DONE · Closed | 18시군/전체 map/list·키보드·landing region 전달 완료 | GyeongnamRegionPicker; region/condition E2E, P |
+| [#274](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/274#issuecomment-5587224162) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/274#issuecomment-5587687653) | DONE · Closed | field별 confirmed/unknown/negative·집계/legacy/언어 완료 | accessibility-model/score; evidence/partial tests, P |
+| [#275](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/275#issuecomment-5587224902) | ACTIVE | 날짜 보존·enrichment 반영; 정책 명시·행사 overlap 회귀 잔여 | criteriaSignature/fetchRegionalEvents; date tests, P |
+| [#276](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/276#issuecomment-5587225195) | ACTIVE | 지도 도구/복구 기능 있음; 기본 9도구의 핵심/고급 계층 잔여 | MapCommandBar; map-tools 도달성 회귀 |
+| [#277](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/277#issuecomment-5587225493) | ACTIVE | 이동 접근성 과장 방지 구현; provider별 capability 감사표 잔여 | route coverage/order/departure; transport truth tests |
+| [#278](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/278#issuecomment-5587196501) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/278#issuecomment-5587688210) | SUPERSEDED · Closed | 4개 고유 viewport·회전·공통 페이지·WebKit을 #286에 보존 | 이관 댓글 먼저 재조회; 품질 DONE 아님 |
+| [#279](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/279#issuecomment-5587225800) | ACTIVE | screenshot/trace는 있음; baseline/pixel-diff CI 미구현 | toHaveScreenshot/toMatchSnapshot 계약 없음 |
+| [#280](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/280#issuecomment-5587226174) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/280#issuecomment-5587688543) | DONE · Closed | 완료율/전체 경로/이동 편의/날씨/예측 상태 분리 완료 | useJourneyProgress/departure assessment; C, P 2/4→4/4 |
+| [#281](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/281#issuecomment-5587226932) | ACTIVE | atomic 여행 경계·충돌/복원 구현; 새 여행의 선택 활동 reset 잔여 | current-trip-storage/useRegionChange; C/Preview, P Cancel |
+| [#282](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/282#issuecomment-5587227264) | ACTIVE | partial/quota/no-loop 반영; plan timeout/server 사용자 상태 구분 잔여 | usePlanRequest/provider failure; #369/#370 C |
+| [#283](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/283#issuecomment-5587227571) | ACTIVE | focus/resize 개선; 누락/잘못된 target과 고정 anchor 계약 잔여 | tour-content/useHelpTour; #265/#353 |
+| [#284](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/284#issuecomment-5587234766) | ACTIVE | CSS/JS 예산 통과; #353 전후 실제 mobile Web Vitals 측정 잔여 | CI855 69.96/70·269.74/270KiB; 실제 INP 증거 아님 |
+| [#285](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/285#issuecomment-5587235046) | ACTIVE + HUMAN | axe/키보드/대비 개선; 실제 확대·낭독기·실물 검증 분리 | C/P 제한 범위; CSS zoom≠실제 browser zoom |
+| [#286](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/286#issuecomment-5587185101) | ACTIVE + HUMAN | 선택 화면 검증됨; 전체 상태/확대/rotation/WebKit·실물 잔여 | #278 고유 AC 이관; C 11viewport 일부, P 320/1366 |
+| [#288](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/288) | POST-RC · 자동화 / ACTIVE · 제품 | 실행 원장 유지; 자동화 설치/tick/canary/확장 보류, #353 제품 우선 | 기존 #294 generation/attempt/receipts 및 보호 경계 보존 |
+| [#290](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/290#issuecomment-5587011181) | DONE · Closed | 실패→기존 Issue 환류·중복 방지·provider-only 분리 완료 | #334/#363; Router42 실제 no-loop |
+| [#292](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/292#issuecomment-5587011610) | POST-RC | 기본 router 운영; ready-for-dev/blocked-human 종단간 전환 잔여 | Issue Router1/2/3·bot triage; label/race 계약 |
+| [#294](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/294#issuecomment-5587012056) | POST-RC | 구독 문서 실행 일부; Engineering→QA→PM/Notion 전체 미완료 | generation5·impl2/QA2 보존; 설치/tick/canary 중지 |
+| [#295](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/295#issuecomment-5587012587) | POST-RC | PM dispatcher 소스 포함; 구독 event→PM/Notion 환류 잔여 | workflow350876230 disabled_manually/API job false |
+| [#297](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/297#issuecomment-5587013151) | POST-RC | Engineering worker 계약 포함; 실제 자동 구현/QA/게시 잔여 | workflow350879491 disabled_manually; #294 경계 보존 |
+| [#299](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/299#issuecomment-5587013627) | POST-RC | QA 계약/별도 실제 리뷰 있음; 전 trusted PR 자동 QA/환류 잔여 | workflow350883236 disabled_manually/API job false |
+| [#301](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/301#issuecomment-5587014151) | POST-RC | CD 후 read-only smoke 운영; PM/Notion 자동 acknowledgement 잔여 | PostDeploy8 SHA/browser8 PASS, API0 blocked; notify-pm false |
+| [#303](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/303#issuecomment-5587014685) | POST-RC | 공식 원문/allowlist/agent 계약 있음; Gmail/Notion 자동 종단간 없음 | .wave/agents/compliance.md; PM/#11 별도 |
+| [#305](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/305#issuecomment-5587015119) | POST-RC | submission schema/역할 계약 있음; 자동 감사/생성/Judge 환류 없음 | 기존 원고≠최종 제출; #353/#11 우선 |
+| [#308](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/308#issuecomment-5587015606) | DONE · Closed | 정확한 개발 의존성 override·악성 이미지 회귀·런타임 호환 완료 | #309→#334; dev-toolchain-security/audit, f4 browser8 |
+| [#310](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/310#issuecomment-5587197308) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/310#issuecomment-5587688835) | SUPERSEDED · Closed | Owner 부분 채택 참고 범위를 #353에 보존; 원안 완료 아님 | Owner 댓글5556558869/이관 read-back |
+| [#337](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/337#issuecomment-5587235435) · [요구별 구현·이관](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/337#issuecomment-5587689079) | DONE · Closed | 7일/날짜 보존·자동 보정·저장/복원 오류 해결; UI는 #340 | 작성자 범위 분리; #339→#334, C/P |
+| [#340](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/340#issuecomment-5587236203) | ACTIVE → #353 | 날짜 데이터 해결; 관광 장면·문구·크기·날짜 변경 취소 UX 잔여 | #341은 문서; #337 분리, P 날짜 보존 |
+| [#347](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/347#issuecomment-5587171149) | ACTIVE + EXTERNAL/HUMAN | P0/008 해결 반영; 전체 실제 계정/공유/확대/기기 QA 잔여 | M/C/P 분리 원장; f4 browser8≠전체 Post-Deploy PASS |
+| [#350](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/350#issuecomment-5587019723) | POST-RC | 계정 cloud sync/import·격리·충돌·삭제/다중 기기 미구현 | server/trips/database.ts 만료형 공유≠계정 동기화 |
+| [#351](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/351#issuecomment-5587020215) | POST-RC | Login ON/Secret 활성 보고 보존; callback/연결/탈퇴 실검증 잔여 | OIDC 마지막OFF; #354 고유 상태 보존; 재설정 요청 없음 |
+| [#352](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/352#issuecomment-5587020646) | POST-RC | API 신기능 후보 대기열; 가치/비용/약관/실데이터 승격 심사 잔여 | 설정 존재≠사용자 가치; 신규 작업 시작 안 함 |
+| [#353](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5587185468) | ACTIVE · 미커밋 구현 중 | 서비스 소개·관광 미디어·연결 장면 구현; 전체 검증/QA/배포 미완료 | feat/service-story-353 작업 트리; #310 참고 범위 보존 |
+| [#354](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/354#issuecomment-5587021069) | SUPERSEDED · Closed | Login ON·Secret 활성·OIDC OFF/미검증 callback을 #351로 통합 | #351 comment5571080699; 인증 출시 완료 아님 |
+| [#355](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/355#issuecomment-5587021515) | POST-RC | 근거 기반 refactor/측정 프로그램; 전체 조사/전후 비교 잔여 | #353 필수 최소개선·기존 예산만 유지 |
+| [#357](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/357#issuecomment-5587022007) | ACTIVE | streaming 경합 실제 재현; #353의 제한 readiness 수정 미커밋 검증 중 | CI856 최초398PASS+1flaky 보존; 새 로컬76PASS+2flaky FAIL |
+| [#358](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/358#issuecomment-5587022477) | SUPERSEDED · Closed | CI 선행실패/Owner hold CD 사건 종료; 후속 실제 배포 확인 | #364 수정 후 CD213/214/215/217; provider gate 별도 |
+| [#359](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/359#issuecomment-5587022852) | BLOCKED-EXTERNAL-HUMAN | 기존 실제 route 실패/현재 hold 유지; 계정/reset 전 재호출 금지 | PostDeploy8 API0/browser8; Router42, 운영 대표 #372 |
+| [#360](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/360#issuecomment-5587023227) | SUPERSEDED · Closed | 폐기 HEAD의 cancelled CI836; 최종 #356 성공/병합으로 대체 | CI837 exact88a0969; 원본 취소 증거 보존 |
+| [#365](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/365#issuecomment-5587023624) | 최소 DONE / 고급 POST-RC | classification/cooldown/coalescing/UI/persistent hold/no-loop 완료; 고급 보호 잔여 | #369/#370; API7 당시Prod5e/workflowf4, 이후 f4 API0·Router42 |
+| [#367](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/367#issuecomment-5587027891) | DONE · Closed | immutable bootstrap pin 실제 실패 수정·후속 main/배포 완료 | #366 exact3ea542d CI847→mainCI848/CD214 |
+| [#368](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/368#issuecomment-5587028296) | POST-RC | Fast/Full #373 Draft; 중복 trigger/canary/전후 측정 미완료 | FullCI858 PASS≠출시; #374, Preview/activation 보류 |
+| [#371](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/371#issuecomment-5587028704) | DONE · Closed | pin/artifact 실패 이력 보존; 최종 별도 HEAD 성공/배포 확인 | #370 exactf1c60b3 CI855→f4; 무조건 retry 정당화 아님 |
+| [#372](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/372#issuecomment-5587029111) | BLOCKED-EXTERNAL-HUMAN | ODsay plan/호출량/원인/reset 확인 전 hold 유지·재호출 금지 | PostDeploy8 추가API0/Router42 no-loop; hold 해제≠PASS |
+| [#374](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/374#issuecomment-5587029511) | POST-RC | opened+ordinary label 중복 시작/취소 결함 잔여 | CI857 취소·CI858 green≠수정; #373 canary/재시도 중지 |
+
+#278은 네 고유 viewport(393×852/667×375/1024×1366/1440×960), 회전 복구, 공통 페이지, WebKit 대체 검증을 #286에 **먼저 기록·재조회**한 뒤 통합 종료했다. #310도 Owner의 부분 채택 참고 범위를 #353에 먼저 보존했으며 원안 전체 완료가 아니다. #337의 날짜 오류 종료와 작성자가 분리한 #340/#353 디자인/날짜 안내 UX는 구분한다.
+
+#357은 후속 로컬 #353 검증에서 hidden SSR와 live DOM이 함께 존재하는 streaming 경합을 실제 재현했다(76 PASS/2 flaky FAIL 보존). visible main·유일한 committed tree·7개 caption readiness의 제한된 수정만 미커밋 검증 중이며, 기존 assertion/timeout을 유지한다. #373 전체를 가져오거나 #357을 종료하지 않는다.
+
+---
+
+<details>
+<summary>Historical — 아래 전체는 과거 시점의 실행 기록이며 현재 상태는 위 2026-09-09 감사가 우선합니다.</summary>
+
+**아래의 모든 SHA·Open 수·미병합/미배포·DB/사람 Gate·다음 실행 순서는 당시 기록이다. 원문을 삭제하지 않았으며 현재 작업 지시나 최신 Production 판정으로 사용하지 않는다.**
+
+# 전체 실행 목록과 운영 반영 상태
+
 확인일: 2026-09-07. GitHub Issue/PR가 작업 원장이고 Notion은 같은 근거를 보여주는 관제 화면이다.
 담당의 Engineering/QA는 위임된 구현·검증 역할, PM/운영자는 사람 확인 역할을 뜻한다.
 
@@ -208,3 +307,6 @@ Preview: 기존 탭 제어는 Debugger unattached였으나 새 연결로 기존 
 3. Production 제공처별 실패 진단, 008 운영 사전 점검, KO/EN·전 뷰포트 잔여 QA를 처리한다.
 4. 이 표의 각 Issue AC에 운영 증거를 연결해 완료/부분/중복을 확정한다. 증거 없이 닫지 않는다.
 5. 공식 양식 검토 PDF를 최종 배포 화면으로 교체하고 구독 queue 종단간 안전 작업을 마무리한다.
+
+</details>
+<!-- wave-current-issue-audit:20260909:f4d5d97:historical-end -->

@@ -55,6 +55,12 @@
 
 ## 우선순위
 
+### 제품 Issue 종료 전 요구사항 보존
+
+- 제품·UX/UI·기능·아이디어 Issue는 본문과 모든 의미 있는 후속 댓글을 감사하고, 요구사항마다 `IMPLEMENTED / TRANSFERRED / DEFERRED-IDEA / REJECTED` 중 하나와 근거를 명시한다. 관련 PR의 main 포함만으로 Issue 전체를 완료 처리하지 않는다.
+- 남은 필수 조건과 가치 있는 선택적 아이디어는 기존 canonical Open Issue 또는 POST-RC Idea backlog에 실제로 이관하고 양쪽 링크와 본문을 다시 읽어 누락을 확인한 후 종료한다. 미채택은 `REJECTED` 사유를 남긴다.
+- 최근 닫은 Issue에서 미매핑 요구를 발견하면 대표 Open Issue에 복원한다. 불필요한 대량 reopen이나 중복 Issue 생성은 하지 않는다.
+
 - P0: 제출 실패, 규정 위반, 핵심 사용자 여정 불능, 심각한 데이터 신뢰·보안·접근성 문제
 - P1: 제출 전 반드시 해결해야 하는 큰 품질/심사/사용성 문제
 - P2: 완성도를 유의미하게 높이는 개선

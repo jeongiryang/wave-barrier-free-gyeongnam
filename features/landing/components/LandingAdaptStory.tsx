@@ -1,13 +1,15 @@
 import CompactJourneyVisual from "./CompactJourneyVisual";
+import { useSitePreferences } from "../../../components/SitePreferences";
 
 export default function LandingAdaptStory() {
+  const en = useSitePreferences().locale === "en";
   return <article className="product-story adapt-story" data-land-reveal>
     <CompactJourneyVisual stage="adapt" />
     <div className="product-story-copy">
-      <p className="section-kicker">05 · 상황 대응</p>
-      <h2>상황이 달라지면<br /><em>다음 행동까지 제안합니다.</em></h2>
-      <p>날씨와 관광 집중 정보를 카드로 끝내지 않습니다. 현재 일정에 어떤 영향이 있는지 설명하고, 같은 접근성 조건을 유지하는 대안과 변경 전후 차이를 보여줍니다.</p>
-      <a href="/planner#layers">상황 변화 대응 보기 <span>→</span></a>
+      {en ? <p className="section-kicker">05 · Before departure</p> : <p className="section-kicker">05 · 상황 대응</p>}
+      <h2>{en ? "When plans change," : "상황이 달라지면"}<br /><em>{en ? "see your next step." : "다음 행동까지 제안합니다."}</em></h2>
+      <p>{en ? "Review the weather, crowd forecasts and travel information for your itinerary. Compare alternatives and decide what to change yourself." : "현재 일정의 날씨·관광 집중률·교통 정보를 다시 확인하세요. 상황이 달라지면 대안을 비교하고 직접 일정을 바꿀 수 있어요."}</p>
+      <a href="/planner#layers">{en ? "Review before leaving" : "상황 변화 대응 보기"} <span aria-hidden="true">→</span></a>
     </div>
     <div className="product-preview adapt-preview feature-motion" role="img" aria-label="비 예보가 야외 일정에 미치는 영향을 확인하고 같은 편의조건의 실내 대안을 일정에 반영하는 흐름">
       <div className="feature-preview-stage" aria-hidden="true">

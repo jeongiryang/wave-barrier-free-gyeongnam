@@ -54,6 +54,17 @@ const CASES = [
   ".landing-journey-summary li span",
   ".landing-journey-summary li b",
   ".landing-journey-summary p",
+  ".story-media figcaption > span:first-child",
+  ".story-media button",
+  ".journey-scene-copy h2",
+  ".journey-scene-copy h2 em",
+  ".journey-scene-copy > p",
+  ".journey-scene-copy > a",
+  ".journey-source-details summary",
+  ".journey-day span",
+  ".journey-day p",
+  ".journey-scene-stops li > span",
+  ".journey-scene figcaption",
 ];
 
 for (const theme of ["dark", "light"] as const) {
@@ -66,6 +77,10 @@ for (const theme of ["dark", "light"] as const) {
     }, theme);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    await expect(page.getByRole("main")).toBeVisible();
+    await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+    await expect(page.locator(".landing-page")).toHaveCount(1);
+    await expect(page.locator(".compact-journey-visual figcaption")).toHaveCount(7);
     await expect(page.locator(".product-preview").first()).toBeHidden();
     await expect(page.locator(".community-live-preview")).toBeHidden();
 

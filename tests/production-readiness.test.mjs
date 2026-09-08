@@ -354,7 +354,7 @@ test("landing feature demos are ordered, static and motion-safe", async () => {
   ]);
   const css = `${storyCss}\n${featureMotionCss}\n${accountCss}`;
   const labels = [...stories.matchAll(/className="section-kicker">(\d{2} · [^<]+)</g)].map((match) => match[1]);
-  assert.deepEqual(labels, ["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 내 일정"]);
+  assert.deepEqual(labels, ["01 · Your needs", "01 · 여행 조건", "02 · The evidence", "02 · 추천 근거", "03 · Your itinerary", "03 · 하루 일정", "04 · Each journey", "04 · 이동 경로", "05 · Before departure", "05 · 상황 대응", "06 · Keep your trip", "06 · 내 일정"]);
   assert.doesNotMatch(stories, /DISCOVER|ACCESS|PLAN|ROUTE|ADAPT|REMEMBER|COMMUNITY/);
   assert.equal((stories.match(/<div className="product-preview[^>]+role="img"[^>]+aria-label=/g) || []).length, 6);
   assert.equal((stories.match(/className="feature-preview-stage" aria-hidden="true"/g) || []).length, 6);

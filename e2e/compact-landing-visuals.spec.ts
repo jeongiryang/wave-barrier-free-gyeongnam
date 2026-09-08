@@ -15,6 +15,11 @@ for (const theme of ["light", "dark"] as const) {
     await page.addInitScript((value) => localStorage.setItem("wave-theme", value), theme);
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    // React streaming can briefly retain a hidden server copy beside the live main.
+    // Wait for the visible page and unique committed tree before inspecting it.
+    await expect(page.getByRole("main")).toBeVisible();
+    await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+    await expect(page.locator(".landing-page")).toHaveCount(1);
     // The head script sets the theme before the streamed React page mounts.
     // Assert the landing effects are installed before resizing/scanning its DOM.
     await expect(page.locator(".landing-page")).toHaveClass(/motion-ready/);

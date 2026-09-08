@@ -1,13 +1,15 @@
 import CompactJourneyVisual from "./CompactJourneyVisual";
+import { useSitePreferences } from "../../../components/SitePreferences";
 
 export default function LandingTravelBookStory() {
+  const en = useSitePreferences().locale === "en";
   return <article className="product-story travel-book-story reverse" data-land-reveal>
     <CompactJourneyVisual stage="save" />
     <div className="product-story-copy">
-      <p className="section-kicker">06 · 내 일정</p>
-      <h2>만든 일정은<br /><em>다시 이어서 보세요.</em></h2>
-      <p>계정 없이 이 기기에 일정을 저장하고, 갈 여행과 다녀온 여행을 나눠 확인할 수 있어요.</p>
-      <a href="/travel-book">저장한 일정 보기 <span>→</span></a>
+      {en ? <p className="section-kicker">06 · Keep your trip</p> : <p className="section-kicker">06 · 내 일정</p>}
+      <h2>{en ? "Keep your itinerary." : "만든 일정은"}<br /><em>{en ? "Come back to it." : "다시 이어서 보세요."}</em></h2>
+      <p>{en ? "Save trips in this browser without an account. Return to upcoming trips or look back at places you have visited." : "계정 없이 이 기기에 일정을 저장하고, 갈 여행과 다녀온 여행을 나눠 확인할 수 있어요."}</p>
+      <a href="/travel-book">{en ? "Open saved trips" : "저장한 일정 보기"} <span aria-hidden="true">→</span></a>
     </div>
     <div className="product-preview travel-book-preview feature-motion" role="img" aria-label="이 기기에 보관한 창원 여행이 갈 여행에서 다녀온 여행과 현장 기록으로 이어지는 흐름">
       <div className="feature-preview-stage" aria-hidden="true">
