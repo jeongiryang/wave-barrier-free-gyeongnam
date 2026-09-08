@@ -4,6 +4,8 @@ import {resolve,dirname} from "node:path";
 import {fileURLToPath} from "node:url";
 import test from "node:test";
 import ts from "typescript";
+import holdPolicy from "../.github/automation/provider-hold.cjs";
+import {assertProviderAvailable,ProviderBlocked} from "../scripts/provider-smoke-policy.mjs";
 const root=fileURLToPath(new URL("../",import.meta.url));
 // Real adapter modules with one private fixture transport; no live API requests.
 function loadServer(fetchFixture) {
@@ -80,4 +82,58 @@ test("partial theme/detail aggregation retains deduplicated restrictions without
   assert.equal(result.partial,true);assert.equal(result.total,1);assert.deepEqual(result.failures,[failure]);
   assert.equal(JSON.stringify({items,attempts}),before);
   assert.deepEqual(combineProviderResults([], [{ok:true,value:{items:[],total:0}}]),{items:[],total:0});
+});
+
+test("mixed and nested unknown attempts retain records and triage evidence while quota still stops smoke",async()=>{
+  const load=loadServer(()=>assert.fail("Aggregation must not call a provider"));
+  const {combineProviderResults,attemptProvider}=load("server/shared/provider-attempt.ts");
+  const {apiStatus}=load("server/tourism/provider-model.ts");
+  const failure={provider:"kto",operation:"KorWithService2/detailWithTour2",kind:"quota_exhausted"};
+  const items=[{contentid:"verified-1",title:"Verified record"}];
+  const good={ok:true,value:{items,total:1}};
+  const quota={ok:false,error:"Quota",failure};
+  const overBudget={ok:false,error:"예산 시간 안에 확인하지 못했습니다."};
+  const ordinary=await attemptProvider(Promise.reject(new Error("PRIVATE_SENTINEL")));
+  const nested={ok:true,value:combineProviderResults(items,[good,overBudget])};
+  for(const unknown of [overBudget,ordinary,nested,{ok:true,value:{items,total:1,partial:true,failures:[]}}]) {
+    const attempts=[good,quota,unknown]; const before=JSON.stringify(attempts);
+    const combined=combineProviderResults(items,attempts);
+    const status=apiStatus("tour","Tourism","Places",{ok:true,value:combined});
+    assert.equal(combined.unclassifiedFailure,true);
+    assert.equal(status.unclassifiedFailure,true);
+    assert.equal(status.state,"error");assert.equal(status.partial,true);assert.equal(status.count,1);
+    assert.deepEqual(combined.items,items);assert.deepEqual(combined.failures,[failure]);
+    assert.equal(JSON.stringify(attempts),before);
+    assert.doesNotMatch(JSON.stringify(status),/PRIVATE_SENTINEL|예산 시간 안에/);
+    assert.deepEqual(holdPolicy.providerRestrictions({statuses:[status]}),[],"mixed is not provider-only evidence");
+    assert.throws(()=>assertProviderAvailable({statuses:[status]}),error=>error instanceof ProviderBlocked && error.engineeringRequired===true && error.failures.length===1);
+    const twice=combineProviderResults(items,[{ok:true,value:combined},quota]);
+    assert.equal(twice.unclassifiedFailure,true,"nested mixed metadata must survive further aggregation");
+  }
+  const pure=apiStatus("tour","Tourism","Places",{ok:true,value:combineProviderResults(items,[good,quota])});
+  assert.equal(pure.unclassifiedFailure,undefined);
+  assert.equal(holdPolicy.providerRestrictions({statuses:[pure]}).length,1);
+  assert.throws(()=>assertProviderAvailable({statuses:[pure]}),error=>error instanceof ProviderBlocked && error.engineeringRequired===false);
+  const unknownOnly=apiStatus("tour","Tourism","Places",{ok:true,value:combineProviderResults(items,[good,overBudget])});
+  assert.equal(unknownOnly.state,"error");assert.equal(unknownOnly.unclassifiedFailure,true);
+  assert.deepEqual(holdPolicy.providerRestrictions({statuses:[unknownOnly]}),[]);
+  assert.doesNotThrow(()=>assertProviderAvailable({statuses:[unknownOnly]}),"ordinary success predicates still reject an error, without a fabricated provider restriction");
+});
+
+test("all-failed district/theme aggregation preserves every cause instead of returning only the first quota",async()=>{
+  const load=loadServer(async url=>new URL(url).searchParams.get("lDongSignguCd")==="A"
+    ? Response.json({resultCode:"22",resultMsg:"PRIVATE_SENTINEL"})
+    : new Response("PRIVATE_SENTINEL",{status:200}));
+  const regional=await load("server/shared/tourism-provider.ts").fetchRegionalList(env,"KorService2","areaBasedList2",{},["A","B"]);
+  assert.equal(regional.ok,false);
+  assert.deepEqual(regional.failures.map(f=>f.kind).sort(),["malformed_response","quota_exhausted"]);
+  const {combineFailedProviderAttempts}=load("server/shared/provider-attempt.ts");
+  const combined=combineFailedProviderAttempts([regional,{ok:false,error:"예산 시간 안에 확인하지 못했습니다."}]);
+  const status=load("server/tourism/provider-model.ts").apiStatus("tour","Tourism","Places",combined);
+  assert.equal(status.state,"error");assert.equal(status.count,0);assert.equal(status.unclassifiedFailure,true);
+  assert.deepEqual(status.failures,regional.failures);
+  assert.doesNotMatch(JSON.stringify(status),/PRIVATE_SENTINEL|fixture-only/);
+  assert.deepEqual(holdPolicy.providerRestrictions({statuses:[status]}),[]);
+  assert.throws(()=>assertProviderAvailable({statuses:[status]}),error=>error instanceof ProviderBlocked && error.engineeringRequired);
+  assert.match(readFileSync(new URL("../server/tourism/plan-builder.ts",import.meta.url),"utf8"),/if \(!successes.length\) return combineFailedProviderAttempts\(results\)/);
 });

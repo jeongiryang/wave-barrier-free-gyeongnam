@@ -4,6 +4,7 @@ import {
   attemptProvider as attempt,
   commonParams,
   combineProviderResults,
+  combineFailedProviderAttempts,
   fetchRegionalList,
   fetchTourismData as fetchKto,
 } from "../shared/provider-data";
@@ -35,7 +36,7 @@ export async function buildPlan(request: Request, env: Env) {
       ...params, contentTypeId: localized && locale !== "ko" ? multilingualContentTypes[theme] : contentTypes[theme],
     }, districts)), Math.min(6_000, remaining()), overBudget);
     const successes = results.filter((result) => result.ok);
-    if (!successes.length) return results[0] || overBudget();
+    if (!successes.length) return combineFailedProviderAttempts(results);
     const items = mergeThemeResults(successes.map((result) => result.ok ? result.value.items : []));
     return { ok: true, value: combineProviderResults(items, results) };
   };

@@ -11,6 +11,7 @@ export type ApiStatus = {
   failure?: ProviderFailure;
   partial?: boolean;
   failures?: ProviderFailure[];
+  unclassifiedFailure?: boolean;
 };
 
 export type TransportProviderState = "connected" | "ready" | "error" | "missing" | "checking";

@@ -119,3 +119,36 @@ are still required. Finding receipt: PR370 issuecomment5584257737.
 deployment `dpl_F6RF2oHLaNHpoBhhzCA8Q72EyPY3` matched5e at11:19:11Z. Its old
 Post-Deploy6 route contract still failed; #370's durable hold/no-loop is not yet
 deployed and that failure is not relabelled as provider success.
+
+## Independent QA mixed-failure correction
+
+`bff7f48` completed CI854 attempt2:691 unit,399 desktop and398 mobile PASS plus
+the existing mobile skip1, zero failed/flaky. Exact Preview READY and bounded
+320/960/1366/1440 KO/EN evidence is PR370 receipt5584563831. First local
+stylesheet ERR_NO_BUFFER_SPACE flaky/exit1 and CI attempt1 mobile artifact upload
+timeout remain failed historical evidence in receipt5584814602. Fresh separate
+desktop/mobile processes ran all798 cases with399/398 PASS plus existing skip1,
+exit0/0 in9.4/12.0minutes; no test configuration changed.
+
+Independent review5141694403 nevertheless reproduced a new P1: aggregation of
+verified records, quota and an ordinary error/budget timeout discarded the unknown
+failure. Nested partial results could therefore become provider-only hold evidence
+and suppress engineering triage. The direct regression first failed11PASS/1FAIL.
+
+Aggregation now preserves an `unclassifiedFailure` boolean without raw errors,
+including nested and all-failed district/theme groups. All classified causes also
+survive. Known quota still stops smoke immediately; mixed failure emits a distinct
+nonzero `blocked-mixed` result and a separate failed workflow step, preserving
+engineering routing while recording the same quota hold. Pure quota and ordinary
+error controls retain their original meanings. No router allowlist was broadened.
+
+Actual adapter→aggregation→apiStatus→hold/smoke tests cover verified records,
+quota+budget, quota+ordinary Error, nested unknown partial, all-failed districts,
+HTTP200/429/502 (two application calls, no extra retry), private sentinel non-echo,
+and execution of the existing Failure Router with the mixed workflow step.
+Current unit/contract696 PASS, focused29 PASS, lint0errors2existingwarnings,
+typecheck/actionlint/build/performance PASS (planner269.74/270KiB,CSS69.96/70KiB).
+Full browser, new exact CI/Preview and independent QA remain required.
+Existing assertions,27 success contracts,33-request budget,
+workers/timeouts/retry/failOnFlaky/skip/boundary/performance limits are unchanged.
+No Production, account quota, queue activation or #365 completion is claimed.

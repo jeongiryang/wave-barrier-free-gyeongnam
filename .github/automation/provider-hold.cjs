@@ -15,23 +15,31 @@ function safeFailure(value) {
     resetAt: null };
 }
 
-function providerRestrictions(body) {
-  if (!body || typeof body !== "object") return [];
+function analyzeRestrictions(body) {
+  if (!body || typeof body !== "object") return {failures:[],engineeringRequired:false};
   const statuses = [body, body.status, ...(Array.isArray(body.statuses) ? body.statuses : []),
     ...(Array.isArray(body.providers) ? body.providers : []),
     ...(Array.isArray(body.context?.datasets) ? body.context.datasets : [])].filter(value => value && typeof value === "object");
   const failures = [];
+  let engineeringRequired = false;
   for (const status of statuses) {
     const candidates = [...(status.failure ? [status.failure] : []), ...(Array.isArray(status.failures) ? status.failures : [])];
-    if ((status.state === "error" || status.partial) && !candidates.length) return [];
+    if (status.unclassifiedFailure || ((status.state === "error" || status.partial) && !candidates.length)) engineeringRequired = true;
     for (const candidate of candidates) {
       const safe = safeFailure(candidate);
       // A mixed malformed/upstream failure must still reach engineering triage.
-      if (!safe) return [];
-      failures.push(safe);
+      if (!safe) engineeringRequired = true;
+      else failures.push(safe);
     }
   }
-  return [...new Map(failures.map(value => [`${value.provider}/${value.operation}/${value.kind}`, value])).values()];
+  return {failures:[...new Map(failures.map(value => [`${value.provider}/${value.operation}/${value.kind}`, value])).values()],engineeringRequired};
+}
+
+// Only this strict subset can suppress engineering triage. The separate analysis
+// still pauses known quota calls when another failure requires investigation.
+function providerRestrictions(body) {
+  const result = analyzeRestrictions(body);
+  return result.engineeringRequired ? [] : result.failures;
 }
 
 function parseHold(issue) {
@@ -82,4 +90,4 @@ async function recordHolds({github,context,core}, {serialized,sha,runId}) {
   core.info("Provider restriction recorded; identical unresolved holds were not duplicated.");
 }
 
-module.exports = { marker, safeFailure, providerRestrictions, parseHold, readHolds, preflight, recordHolds };
+module.exports = { marker, safeFailure, analyzeRestrictions, providerRestrictions, parseHold, readHolds, preflight, recordHolds };

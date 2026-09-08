@@ -65,6 +65,15 @@ suppresses a code-fix Issue only when trusted main workflow job/step evidence
 proves a provider-only failure and successful durable recording. Unknown parser,
 browser, deployment, timeout and mixed failures still enter engineering triage.
 
+An unclassified district/theme/detail failure remains a boolean fact through
+nested aggregation; private error text is not copied. All-failed groups also retain
+every cause instead of returning only the first restriction. A known quota plus
+another failure immediately stops further smoke calls and records the quota hold,
+but produces `blocked-mixed` with `engineeringRequired:true`. Both live workflows
+then fail the separate mixed-failure step. That step is outside the Failure Router's
+provider-only allowlist, so the additional failure still gets engineering triage.
+Pure quota retains `blocked-external`; neither outcome is a successful smoke.
+
 The subscription executor refuses an operational-hold Issue at enqueue and claim,
 including a task queued before it became blocked. Existing task generation and
 attempt counts are not reset. A failure cannot buy quota, rotate a key, grant

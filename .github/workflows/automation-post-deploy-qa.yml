@@ -51,6 +51,11 @@ jobs:
       - name: Production API·화면 실응답 검사
         id: api
         run: npm run check:production
+      - name: Preserve mixed provider failure for engineering triage
+        if: ${{ !cancelled() && steps.api.outputs.provider_engineering == 'true' }}
+        run: |
+          echo "Mixed provider failure: calls stopped; retain engineering investigation."
+          exit 1
       - name: Production browser smoke용 Chromium 설치
         if: ${{ !cancelled() && steps.binding.outcome == 'success' && steps.dependencies.outcome == 'success' }}
         id: chromium

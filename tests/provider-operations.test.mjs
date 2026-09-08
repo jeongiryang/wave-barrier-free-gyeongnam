@@ -107,6 +107,21 @@ for (const [status, body] of [[200,{failure:restriction}],[429,{failure:restrict
   });
 }
 
+for(const status of [200,429,502]) test(`mixed HTTP${status} stops after two application calls but preserves engineering output and quota hold`,()=>{
+  const folder=mkdtempSync(join(tmpdir(),"wave-mixed-provider-smoke-"));
+  const output=join(folder,"outputs.txt");
+  const body={statuses:[{state:"error",partial:true,count:1,unclassifiedFailure:true,failures:[restriction],note:"PRIVATE_SENTINEL"}]};
+  const entry=new URL("../scripts/check-production-apis.mjs",import.meta.url).href;
+  const script=`let calls=0;globalThis.fetch=async url=>{calls++;if(calls>2)throw Error('EXTRA_CALL');return Response.json(String(url).includes('/api/health')?{ok:true,scope:'configuration',keys:[]}:${JSON.stringify(body)},{status:String(url).includes('/api/health')?200:${status}});};await import(${JSON.stringify(entry)});console.log('APPLICATION_CALLS='+calls);`;
+  const child=spawnSync(process.execPath,["--input-type=module","-e",script],{cwd:folder,encoding:"utf8",windowsHide:true,timeout:10000,env:{GITHUB_OUTPUT:output}});
+  assert.equal(child.status,1,child.stderr);assert.match(child.stdout,/APPLICATION_CALLS=2/);
+  const saved=JSON.parse(readFileSync(join(folder,"provider-smoke-result.json"),"utf8"));
+  assert.equal(saved.result,"blocked-mixed");assert.equal(saved.ok,false);assert.equal(saved.engineeringRequired,true);assert.equal(saved.applicationRequests,2);
+  const outputs=readFileSync(output,"utf8");
+  assert.match(outputs,/provider_engineering=true/);assert.match(outputs,/provider_block=\[/);
+  assert.doesNotMatch(child.stdout+child.stderr+outputs,/PRIVATE_SENTINEL|"ok":true/);
+});
+
 test("API smoke and post-deploy QA serialize live calls, separate write permission and keep API model path disabled", () => {
   const workflows = ["production-api-smoke","automation-post-deploy-qa"].map(name => yaml.load(readFileSync(`.github/workflows/${name}.yml`,"utf8")));
   for (const workflow of workflows) {
@@ -117,6 +132,9 @@ test("API smoke and post-deploy QA serialize live calls, separate write permissi
     assert.doesNotMatch(JSON.stringify(workflow.jobs.verify), /secrets\./);
     assert.doesNotMatch(JSON.stringify(workflow.jobs["provider-hold"]), /npm |secrets\.|continue-on-error/);
     assert.match(workflow.jobs["provider-hold"].if,/needs.verify.result == 'failure'/);
+    const mixed=workflow.jobs.verify.steps.find(step=>step.name==="Preserve mixed provider failure for engineering triage");
+    assert.equal(mixed.if,"${{ !cancelled() && steps.api.outputs.provider_engineering == 'true' }}");
+    assert.match(mixed.run,/exit 1/);
   }
   const qa = workflows[1];
   assert.match(qa.jobs["notify-pm"].if,/false &&/);

@@ -49,6 +49,11 @@ jobs:
       - name: Production 화면·API 실응답 확인
         id: api
         run: npm run check:production
+      - name: Preserve mixed provider failure for engineering triage
+        if: ${{ !cancelled() && steps.api.outputs.provider_engineering == 'true' }}
+        run: |
+          echo "Mixed provider failure: calls stopped; retain engineering investigation."
+          exit 1
       - name: Preserve bounded API evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
