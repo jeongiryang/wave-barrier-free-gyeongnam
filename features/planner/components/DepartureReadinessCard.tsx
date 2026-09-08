@@ -23,6 +23,7 @@ interface DepartureReadinessCardProps {
   tripSelection: ReturnType<typeof useTripSelection>;
   participation: ReturnType<typeof usePlannerParticipation>;
   onRefresh: () => void | Promise<void>;
+  onOpenSignals: () => void;
 }
 
 const koreanStatus = {
@@ -44,7 +45,7 @@ function formatCheckedAt(value: string, en: boolean) {
 }
 
 export default function DepartureReadinessCard({
-  region, plan, destinationCrowd, destinationPlaceId, weather, weatherLoading, transportProviders, tripSelection, participation, onRefresh,
+  region, plan, destinationCrowd, destinationPlaceId, weather, weatherLoading, transportProviders, tripSelection, participation, onRefresh, onOpenSignals,
 }: DepartureReadinessCardProps) {
   const { locale } = useSitePreferences();
   const focusVisibility = useReadinessFocus();
@@ -126,7 +127,12 @@ export default function DepartureReadinessCard({
         <div><span>{item.label}</span><strong><i aria-hidden="true" />{statusLabel[item.state]}</strong></div>
         <p>{item.subject && <><span lang={originalLanguage(item.subject)}>{item.subject}</span>{" · "}</>}{item.summary}</p>
         <dl><div><dt>{en ? "Source" : "출처"}</dt><dd lang={en ? originalLanguage(item.source) : undefined}>{item.source}</dd></div><div><dt>{en ? "Time" : "시각"}</dt><dd>{formatCheckedAt(item.checkedAt, en)}</dd></div></dl>
-        <a href={item.href}>{item.state === "confirmed" ? en ? "Review evidence" : "근거 다시 보기" : en ? "Check now" : "바로 확인하기"} <span aria-hidden="true">→</span></a>
+        <a href={item.href} onClick={(event) => {
+          if (item.href === "#layers" && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+            event.preventDefault();
+            onOpenSignals();
+          }
+        }}>{item.state === "confirmed" ? en ? "Review evidence" : "근거 다시 보기" : en ? "Check now" : "바로 확인하기"} <span aria-hidden="true">→</span></a>
       </article>)}
     </div>
     <footer>
