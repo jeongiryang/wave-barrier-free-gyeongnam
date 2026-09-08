@@ -117,7 +117,10 @@ export async function renderLeafletMap(
     if (isCancelled() || mapRef.current !== map || !canvas) return;
     const [top, right, bottom, left] = mapFitPadding(canvas);
     if (canvas.clientWidth <= left + right || canvas.clientHeight <= top + bottom) return;
-    map.fitBounds(bounds, { paddingTopLeft: [left, top], paddingBottomRight: [right, bottom], maxZoom: 13 });
+    // Automatic fitting must finish before a date/crowd update replaces this
+    // map. Leaflet's zoom-transition timer can otherwise outlive remove().
+    // Keep animation available for the user's own zoom and pan controls.
+    map.fitBounds(bounds, { paddingTopLeft: [left, top], paddingBottomRight: [right, bottom], maxZoom: 13, animate: false });
   };
   fitMapRef.current = fit;
   if (bounds.length) fit();

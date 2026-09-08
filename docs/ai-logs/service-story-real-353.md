@@ -75,3 +75,15 @@ Kakao 기본 bounds 여백과 Leaflet 고정46px는 도구막대·사진의 실�
 로컬 실제390px 화면에서 링크를 눌러 원문과 조회시점이 펼쳐지는 것을 확인했다. 관련 service-story/테마 검사는 **26 PASS/18.3s**. 추가 보조문구·링크의 두 테마 대비 검사는 **4 PASS/2.6s**, 최종44px 영역·KO/EN 키보드·원문 열기·summary 초점·주 CTA 유지 검사는 **4 PASS/7.6s**다. 이 재실행을 고유 테스트 개수로 더하지 않는다. 최종 결합본 unit **707 PASS/6.299s**, lint 오류0·기존 경고5, typecheck·Vercel build·performance PASS다. 로컬 gzip CSS69.86/70, landing121.12/155, planner269.86/270, largest95.92/110KiB. `story353-final-source-link-*` 로그와 캡처를 보존한다.
 
 기존 일반 Intro/Hero/확장·감소모드·영어 기능과 테스트는 유지한다. 04:44:05 KST canonical 직접 조회는 여전히9caca READY로, 현재 후보의 새 Production 성공을 뜻하지 않는다. 다음은 한 번의 새 exact 후보 Full CI와 Preview/독립 QA이며, 별도 날짜 촬영을 기본 지도와 연속 상태라고 주장하지 않는다. 최종 같은 세션의 날짜→지도 기록과 제출 문서/화면 정합성은 #353에 계속 남아 있다.
+
+## 2026-09-09 05:22 KST — 정상 모드 Leaflet 전환 수명 오류 수정
+
+exact `bf29f21b4abfb0376320631f96877276659536a3`의 [CI866](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34271440547)은 05:16:41 KST 최종 validate까지 5개 job 모두 SUCCESS다. 그러나 [같은 Preview](https://wave-barrier-free-gyeongnam-agzi02j68-jeongiryang-projects.vercel.app)의 [독립 QA5146488089](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/378#pullrequestreview-5146488089)는 P2 FAIL로 보존한다. 이전 사진 가림은 실제390px에서 사진·번호 전체 포함, 배지와84.25px 간격, 겹침0으로 해소됐지만 별도로 `_leaflet_pos` uncaught error1건을 발견했다. 마지막 출처 CTA와 #377 날씨 summary/hash 재진입은 같은 Preview에서 통과했다. Kakao SDK 요청의 `ERR_BLOCKED_BY_ORB`도 원본에 보존하며 제공처 성공·timeout·설정 오류로 단정하지 않는다.
+
+실제 Leaflet1.9.4와 기존 fixture를 쓰는 동일 4가지 경우에서 수정 전에는 일반 모드 desktop/mobile2건이 초기 자동 확대 직후 `_onZoomTransitionEnd → _move → _getNewPixelOrigin → _leaflet_pos` 오류로 실패했고 감소 모드2건만 통과했다. 일반 모드 오류는 첫 날짜 클릭보다 먼저 발생했다. 따라서 빠른 날짜 클릭만이 원인이라고 쓰지 않는다. 공개 SDK의 자동 확대 timer가 `remove()` 뒤에 남아 삭제된 map pane을 참조하는 수명 문제를 별도 네트워크0/2경우 실험에서도 확인했다. 이 별도 실험을 원래 Preview의 정확한 발생 시각 증명으로 확대하지 않는다.
+
+자동 `fitBounds`에만 [Leaflet 공식 옵션](https://leafletjs.com/reference.html#fitbounds-options) `animate:false`를 전달해 맞춤을 동기적으로 끝낸다. 사용자 직접 확대·축소·이동, 원래 bounds·측정 여백·maxZoom13·취소 경계, 일반 Intro/Hero/스크롤 연출은 유지한다. 오류를 삼키거나 SDK 내부를 덮어쓰지 않는다. 기존 실제 Leaflet E2E의 모든 사진·번호·날짜·ID·fixture 격리 검사는 보존하고 일반/감소 모드, 반복 native 날짜 입력, 초기·각 안정 상태·최종의 필터 없는 pageerror0과 원본 stack 첨부를 추가했다.
+
+수정 후 검증: 동일 별도4경우 **4 PASS/10.6s**, 각16회 native 날짜 입력·pageerror0. 저장소 설정 그대로 `playwright test e2e/leaflet-date-fit.spec.ts` **4 PASS/10.7s**. `npm test` **707 PASS/6.114s**, 실패·skip·cancel0. lint 오류0·기존 경고5, typecheck·Vercel build·performance PASS. 로컬 gzip CSS69.86/70, landing121.12/155, planner269.85/270, largest95.92/110KiB다. 두 독립 실행의 테스트 수를 더해 고유 회귀 수로 보고하지 않는다. 테스트 삭제·새 skip·timeout/retry/worker/성능 기준 완화가 없다.
+
+실패와 성공의 모든 로그·원래 trace·화면은 `leaflet-rapid-day-repro-bf29f21-20260909/`, `leaflet-animation-remove-mechanism-20260909/`, `story353-leaflet-no-animation-*`, `story353-leaflet-lifecycle-*`, `story353-preview-bf29f21-independent/`에 보존한다. 새 수정 HEAD의 exact Full CI·Preview·독립 QA는 아직 필요하며 Production은 여전히9caca다. #353 전체 완료, 실제 경로 제공처 성공 또는 Release GO를 선언하지 않는다.

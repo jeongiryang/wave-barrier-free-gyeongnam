@@ -67,47 +67,65 @@ async function assertSettledMarkers(page: Page, info: TestInfo, label: string, e
   }
 }
 
-test("real Leaflet keeps dated photo markers clear after same-size day changes and mobile resize", async ({ page }, info) => {
-  const escapedRequests: string[] = [];
-  const localOrigin = new URL(info.project.use.baseURL as string).origin;
-  // Registered first, so the existing fixture routes below take precedence.
-  // Any unmatched API or external request is blocked instead of hitting a provider.
-  await page.route("**/*", route => {
-    const request = route.request(), url = new URL(request.url());
-    if (["GET", "HEAD"].includes(request.method()) && url.origin === localOrigin && !url.pathname.startsWith("/api/")) return route.continue();
-    escapedRequests.push(request.method() + " " + url.origin + url.pathname);
-    return route.abort("blockedbyclient");
-  });
-  await mockPlannerApi(page, { crowdRate: 80 });
-  await page.route("**/api/wave?action=plan**", route => route.fulfill({
-    status: 200, contentType: "application/json",
-    body: JSON.stringify({ ...plan, places, crowd: { ...plan.crowd, rate: 80 }, stops: plan.stops.map((stop, index) => ({ ...stop, mapX: places[index].mapX, mapY: places[index].mapY })) }),
-  }));
-  // Explicit empty key chooses real Leaflet; no window.kakao/Leaflet adapter.
-  await page.route("**/api/map-config", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ javascriptKey: "" }) }));
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.setViewportSize({ width: 1366, height: 900 });
-  const format = (date: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
-  const today = format(new Date()), tomorrow = format(new Date(Date.now() + 86400000));
-  await page.goto("/planner?travelStart=" + today + "&travelEnd=" + tomorrow);
-  await chooseTripConditions(page);
-  for (const place of places) await page.getByRole("button", { name: place.name + " 일정에 추가", exact: true }).click();
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]").sort())).toEqual(["1001", "1002"]);
-  await assertSettledMarkers(page, info, "1366-two-places", ["1001", "1002"]);
-  await page.getByLabel(places[1].name + " 여행 날짜", { exact: true }).selectOption(tomorrow);
-  const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
-  await expect(itinerary.getByLabel(places[0].name + " 여행 날짜", { exact: true })).toHaveValue(today);
-  await expect(itinerary.getByLabel(places[1].name + " 여행 날짜", { exact: true })).toHaveValue(tomorrow);
-  for (const width of [1366, 390]) {
-    await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
-    for (const [date, id] of [[tomorrow, "1002"], [today, "1001"]]) {
-      const day = date.slice(5).replace("-", "/");
-      const tab = page.locator(".itinerary-day-tabs").getByRole("button", { name: day, exact: true });
-      await tab.click();
-      await expect(tab).toHaveAttribute("aria-pressed", "true");
-      await assertSettledMarkers(page, info, width + "-" + id + "-day-map", [id]);
+for (const reducedMotion of ["no-preference", "reduce"] as const) {
+  test(`real Leaflet keeps dated photo markers clear through day changes and mobile resize: ${reducedMotion}`, async ({ page }, info) => {
+    const pageErrors: { message: string; stack?: string; at: string }[] = [];
+    page.on("pageerror", error => pageErrors.push({ message: error.message, stack: error.stack, at: new Date().toISOString() }));
+    try {
+      const escapedRequests: string[] = [];
+      const localOrigin = new URL(info.project.use.baseURL as string).origin;
+      // Registered first, so the existing fixture routes below take precedence.
+      // Any unmatched API or external request is blocked instead of hitting a provider.
+      await page.route("**/*", route => {
+        const request = route.request(), url = new URL(request.url());
+        if (["GET", "HEAD"].includes(request.method()) && url.origin === localOrigin && !url.pathname.startsWith("/api/")) return route.continue();
+        escapedRequests.push(request.method() + " " + url.origin + url.pathname);
+        return route.abort("blockedbyclient");
+      });
+      await mockPlannerApi(page, { crowdRate: 80 });
+      await page.route("**/api/wave?action=plan**", route => route.fulfill({
+        status: 200, contentType: "application/json",
+        body: JSON.stringify({ ...plan, places, crowd: { ...plan.crowd, rate: 80 }, stops: plan.stops.map((stop, index) => ({ ...stop, mapX: places[index].mapX, mapY: places[index].mapY })) }),
+      }));
+      // Explicit empty key chooses real Leaflet; no window.kakao/Leaflet adapter.
+      await page.route("**/api/map-config", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ javascriptKey: "" }) }));
+      await page.emulateMedia({ reducedMotion });
+      await page.setViewportSize({ width: 1366, height: 900 });
+      const format = (date: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+      const today = format(new Date()), tomorrow = format(new Date(Date.now() + 86400000));
+      await page.goto("/planner?travelStart=" + today + "&travelEnd=" + tomorrow);
+      await chooseTripConditions(page);
+      for (const place of places) await page.getByRole("button", { name: place.name + " 일정에 추가", exact: true }).click();
+      await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]").sort())).toEqual(["1001", "1002"]);
+      await assertSettledMarkers(page, info, "1366-two-places", ["1001", "1002"]);
+      expect(pageErrors, "initial real Leaflet fitting must not throw").toEqual([]);
+      await page.getByLabel(places[1].name + " 여행 날짜", { exact: true }).selectOption(tomorrow);
+      const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
+      await expect(itinerary.getByLabel(places[0].name + " 여행 날짜", { exact: true })).toHaveValue(today);
+      await expect(itinerary.getByLabel(places[1].name + " 여행 날짜", { exact: true })).toHaveValue(tomorrow);
+      for (const width of [1366, 390]) {
+        await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
+        // Exercise repeated replacements while a transition may be pending;
+        // the original settled checks for BOTH days still follow.
+        for (let cycle = 0; cycle < 2; cycle++) {
+          for (const date of [tomorrow, today]) {
+            await page.locator(".itinerary-day-tabs").getByRole("button", { name: date.slice(5).replace("-", "/"), exact: true }).click();
+          }
+        }
+        for (const [date, id] of [[tomorrow, "1002"], [today, "1001"]]) {
+          const day = date.slice(5).replace("-", "/");
+          const tab = page.locator(".itinerary-day-tabs").getByRole("button", { name: day, exact: true });
+          await tab.click();
+          await expect(tab).toHaveAttribute("aria-pressed", "true");
+          await assertSettledMarkers(page, info, width + "-" + id + "-day-map", [id]);
+          expect(pageErrors, "dated map replacement must not leave a failing SDK animation").toEqual([]);
+        }
+      }
+      expect(await page.evaluate(() => Boolean(window.kakao?.maps))).toBe(false);
+      expect(escapedRequests, "all APIs and tile/image requests must be fulfilled by local test fixtures").toEqual([]);
+      expect(pageErrors).toEqual([]);
+    } finally {
+      await info.attach("leaflet-page-errors", { body: JSON.stringify({ reducedMotion, pageErrors }, null, 2), contentType: "application/json" });
     }
-  }
-  expect(await page.evaluate(() => Boolean(window.kakao?.maps))).toBe(false);
-  expect(escapedRequests, "all APIs and tile/image requests must be fulfilled by local test fixtures").toEqual([]);
-});
+  });
+}
