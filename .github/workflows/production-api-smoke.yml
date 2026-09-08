@@ -18,14 +18,19 @@ permissions:
   contents: read
 
 concurrency:
-  group: production-api-smoke
+  group: production-provider-smoke
   cancel-in-progress: false
 
 jobs:
   verify:
-    if: ${{ !inputs.preview_url && !inputs.preview_sha }}
+    if: ${{ github.ref == 'refs/heads/main' && !inputs.preview_url && !inputs.preview_sha }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    permissions:
+      contents: read
+      issues: read
+    outputs:
+      provider_block: ${{ steps.hold.outputs.provider_block || steps.api.outputs.provider_block }}
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v7
@@ -36,8 +41,42 @@ jobs:
         with:
           node-version: 22
           check-latest: true
+      - name: Provider hold preflight
+        id: hold
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: await require(process.env.GITHUB_WORKSPACE + '/.github/automation/provider-hold.cjs').preflight({github,context,core});
       - name: Production 화면·API 실응답 확인
+        id: api
         run: npm run check:production
+      - name: Preserve bounded API evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: production-provider-${{ github.sha }}
+          path: provider-smoke-result.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+  provider-hold:
+    if: ${{ !cancelled() && needs.verify.result == 'failure' && needs.verify.outputs.provider_block != '' }}
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Record external operation once
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          PROVIDER_BLOCK: ${{ needs.verify.outputs.provider_block }}
+        with:
+          script: await require(process.env.GITHUB_WORKSPACE + '/.github/automation/provider-hold.cjs').recordHolds({github,context,core},{serialized:process.env.PROVIDER_BLOCK,sha:context.sha,runId:context.runId});
 
   preview:
     if: ${{ github.event_name == 'workflow_dispatch' && (inputs.preview_url || inputs.preview_sha) }}

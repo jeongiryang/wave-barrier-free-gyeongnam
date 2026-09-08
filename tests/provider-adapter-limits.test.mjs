@@ -56,3 +56,28 @@ test("ODsay array-form explicit quota is unavailable while documented no-path st
     assert.doesNotMatch(JSON.stringify(result),/secret-sentinel/);
   }
 });
+
+test("a failed district is retained alongside verified places instead of a complete live status",async()=>{
+  const load=loadServer(async url=>new URL(url).searchParams.get("lDongSignguCd")==="A"
+    ? Response.json({response:{header:{resultCode:"0000"},body:{items:{item:[{contentid:"verified-1",title:"Verified place"}]},totalCount:1}}})
+    : Response.json({resultCode:"22",resultMsg:"private-sentinel"}));
+  const result=await load("server/shared/tourism-provider.ts").fetchRegionalList(env,"KorService2","areaBasedList2",{},["A","B"]);
+  assert.equal(result.ok,true);assert.equal(result.value.items[0].contentid,"verified-1");
+  assert.equal(result.value.partial,true);assert.equal(result.value.failures[0].kind,"quota_exhausted");
+  const status=load("server/tourism/provider-model.ts").apiStatus("tour","Tourism","Places",result);
+  assert.equal(status.state,"error");assert.equal(status.count,1);assert.equal(status.partial,true);
+  assert.doesNotMatch(JSON.stringify(status),/private-sentinel|fixture-only|실시간 응답 반영/);
+});
+
+test("partial theme/detail aggregation retains deduplicated restrictions without mutating records",()=>{
+  const load=loadServer(()=>assert.fail("Aggregation must not call a provider"));
+  const {combineProviderResults}=load("server/shared/provider-attempt.ts");
+  const failure={provider:"kto",operation:"detailWithTour2",kind:"quota_exhausted"};
+  const items=[{contentid:"1"}];
+  const attempts=[{ok:true,value:{items,total:1,partial:true,failures:[failure]}},{ok:false,error:"Unavailable",failure}];
+  const before=JSON.stringify({items,attempts});
+  const result=combineProviderResults(items,attempts);
+  assert.equal(result.partial,true);assert.equal(result.total,1);assert.deepEqual(result.failures,[failure]);
+  assert.equal(JSON.stringify({items,attempts}),before);
+  assert.deepEqual(combineProviderResults([], [{ok:true,value:{items:[],total:0}}]),{items:[],total:0});
+});

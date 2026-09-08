@@ -76,5 +76,6 @@ export function buildPlanStatuses(input: {
     apiStatus("crowd", "관광지 집중률 예측", "향후 30일 관광객 집중률과 혼잡 회피 근거", input.crowd),
   ];
   const live = statuses.filter((status) => status.state === "live").length;
-  return { statuses, mode: live === statuses.length ? "live" : live ? "partial" : "fallback" };
+  const available = statuses.some(status => status.count > 0);
+  return { statuses, mode: live === statuses.length && !statuses.some(status => status.partial) ? "live" : live || available ? "partial" : "fallback" };
 }

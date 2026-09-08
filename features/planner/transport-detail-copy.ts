@@ -1,4 +1,5 @@
 import type { TransportContext, TransportProvider } from "./types";
+import { providerFailureMessage } from "../../lib/provider-failure.js";
 
 type Dataset = TransportContext["datasets"][number];
 export type DatasetResult = "data" | "empty" | "unqueried" | "unknown" | "error" | "missing";
@@ -40,6 +41,7 @@ const statusNames: Record<DatasetResult, [string, string]> = {
   error: ["조회 실패", "Could not check"], missing: ["제공되지 않음", "Unavailable"],
 };
 export function datasetStatus(dataset: Dataset, english: boolean) {
+  if (dataset.failure) return providerFailureMessage(dataset.failure, english);
   const state = datasetResult(dataset);
   if (state === "data" && ["train", "express", "intercity"].includes(dataset.id)) return english ? "List received" : "목록 확인";
   if (state === "data" && dataset.id === "korail-plan") return english ? "Timetable received" : "운행계획 수신";
@@ -70,6 +72,7 @@ export function providerRole(provider: TransportProvider, english: boolean) {
   return roles[provider.id]?.[english ? 1 : 0] || provider.role;
 }
 export function providerStatus(provider: TransportProvider, english: boolean) {
+  if (provider.failure) return providerFailureMessage(provider.failure, english);
   if (provider.state === "checking") return english ? "Checking" : "조회 중";
   if (provider.state === "error") return statusNames.error[english ? 1 : 0];
   if (!provider.configured || provider.state === "missing") return statusNames.missing[english ? 1 : 0];

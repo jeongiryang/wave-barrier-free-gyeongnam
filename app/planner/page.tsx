@@ -72,7 +72,7 @@ export default function PlannerPage() {
   const {
     keyHealth, keyHealthChecked, enrichment, enrichmentLoading, richMode, setRichMode,
     secondaryOpen, setSecondaryOpen,
-    weather, weatherLoading, reloadWeather, loadEnrichment, resetWeather, resetEnrichment,
+    weather, weatherFailure, weatherLoading, reloadWeather, loadEnrichment, resetWeather, resetEnrichment,
   } = usePlannerSignals({ plan, region, theme, locale, travelStart, travelEnd });
   const participation = usePlannerParticipation({
     plan,
@@ -248,11 +248,9 @@ export default function PlannerPage() {
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[1]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <RecommendationWorkspace
-                t={t}
                 region={region}
                 activePlaces={activePlaces}
                 planController={planController}
-                route={routePlanning}
                 tripSelection={tripSelection}
                 onGenerate={generatePlan}
                 onSelectPlace={setSelectedPlace}
@@ -302,6 +300,7 @@ export default function PlannerPage() {
               <button type="button" className="signals-shortcut" onClick={() => { setSecondaryOpen(true); window.requestAnimationFrame(() => document.getElementById("layers")?.scrollIntoView({ behavior: motion === "calm" ? "instant" : "smooth", block: "start" })); }}>{locale === "en" ? "View weather and visitor forecasts" : "날씨·방문 경향 바로 확인하기"}</button>
               <TravelSignalsPanel
                 region={region}
+                weatherFailure={weatherFailure}
                 onReloadWeather={reloadWeather}
                 plan={plan}
                 weather={weather}

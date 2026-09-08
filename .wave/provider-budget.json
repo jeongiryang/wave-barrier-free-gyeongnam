@@ -3,7 +3,7 @@
   "verified_at": "2026-09-08",
   "inventory_base": "fd44f7392ae8c62dbe4b178141bdfb05076041e3",
   "scope": "Product HTTP, browser SDK and tile dependencies; infrastructure/auth SDK account budgets remain separate operational gates.",
-  "activation_status": "blocked-pending-ui-automation-and-distributed-hold",
+  "activation_status": "blocked-pending-exact-ci-qa-production-and-trusted-canary",
   "defaults": {
     "plan": "ACCOUNT_SPECIFIC",
     "numeric_limit": "ACCOUNT_SPECIFIC",
@@ -13,7 +13,9 @@
     "hard_quota_policy": "closed for this instance until restart; reset time is never inferred",
     "rate_limit_policy": "Retry-After first; otherwise bounded 60s–15m exponential delay plus <=1s jitter; one half-open request",
     "cache": "No additional successful provider response cache; existing HTTP cache policy remains; identical in-flight requests coalesce",
-    "live_smoke": "Not authorized to bypass a known provider hold; fixture-first. Final enforced budgets/no-loop workflow are still pending.",
+    "live_smoke": "At most 33 application HTTP requests (27 original checks plus at most 6 transient retries); individual transient requests retain at most 3 attempts. Explicit provider restrictions/application429 stop immediately with a nonzero blocked-external result. This budget counts W.A.V.E requests, not provider fan-out or account totals.",
+    "automation_hold": "Bot-authored validated provider/operation hold Issues persist across runs and deployments. Both Production workflows serialize on production-provider-smoke and check open holds before live API calls. No automatic reset/account-limit inference; no duplicate code-fix receipt for a verified provider-only failure. Browser/unknown/mixed failures still reach engineering.",
+    "public_http_cache": "Eligible successful public responses: browser300s/CDN1800s. Error/partial responses no-store. This is not a newly added provider-data cache or a real-time claim.",
     "release_impact": "Unavailable core evidence blocks full live-provider PASS. A classified external restriction is not itself a request for another code fix."
   },
   "providers": [

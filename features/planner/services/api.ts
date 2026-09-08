@@ -4,7 +4,7 @@ import { CLIENT_BUDGET_MS } from "../../../lib/request-budget.js";
 const DEFAULT_TIMEOUT_MS = Math.max(...Object.values(CLIENT_BUDGET_MS));
 
 export class PlannerRequestError extends Error {
-  constructor(message: string, readonly status: number) {
+  constructor(message: string, readonly status: number, readonly failure?: import("../../../lib/provider-failure.js").ProviderFailure) {
     super(message);
     this.name = "PlannerRequestError";
   }
@@ -25,8 +25,8 @@ export async function plannerJson<T>(url: string, options: JsonRequest = {}): Pr
       headers: { Accept: "application/json", ...(body === undefined ? {} : { "content-type": "application/json" }), ...headers },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
-    const data = await response.json().catch(() => ({})) as T & { error?: string };
-    if (!response.ok) throw new PlannerRequestError(data.error || "여행 정보를 불러오지 못했습니다.", response.status);
+    const data = await response.json().catch(() => ({})) as T & { error?: string; failure?: import("../../../lib/provider-failure.js").ProviderFailure };
+    if (!response.ok) throw new PlannerRequestError(data.error || "여행 정보를 불러오지 못했습니다.", response.status, data.failure);
     return data;
   } finally {
     window.clearTimeout(timer);
@@ -34,10 +34,11 @@ export async function plannerJson<T>(url: string, options: JsonRequest = {}): Pr
   }
 }
 
-export async function optionalPlannerJson<T>(url: string, options: JsonRequest = {}) {
+export async function optionalPlannerJson<T>(url: string, options: JsonRequest = {}, onError?: (error: unknown) => void) {
   try {
     return await plannerJson<T>(url, options);
-  } catch {
+  } catch (error) {
+    onError?.(error);
     return null;
   }
 }

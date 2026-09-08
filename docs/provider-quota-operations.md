@@ -1,7 +1,8 @@
 # External provider restrictions
 
-This document describes the first #365 implementation slice on 2026-09-08, not
-a claim that all automation or live-provider gates have passed.
+This document describes the #365 classification and operational-hold candidate
+on 2026-09-08. Candidate implementation is not proof of deployment or activation;
+exact CI, independent QA and Production evidence are recorded in the related PRs.
 
 The machine-readable inventory is [provider-budget.json](../.wave/provider-budget.json).
 It lists actual operations, configuration **names only**, official sources,
@@ -33,17 +34,59 @@ Public error metadata never includes arbitrary provider messages or request URLs
   bounded jitter. Only one half-open request is admitted per provider/operation.
 - Hard quota/access/authentication circuits stay closed for the warm instance.
   A cold start or deploy creates another instance: **this does not implement a
-  global account circuit**. An operational hold and automation no-loop policy must
-  be completed before activation.
+  global account circuit**. GitHub operational holds separately stop automation
+  across deployments; user-facing cold-start account protection remains a limitation.
 - Opaque SDK failures cannot prove quota versus authentication. Their unavailable
   state must not be presented as primary-provider success because a map fallback works.
 
-## Completion boundary
+## Automation no-loop and live smoke
+
+The two live Production workflows share `production-provider-smoke` concurrency.
+Before provider calls, a read-only job checks open `status:blocked-external`
+Issues with the validated `wave-provider-hold:v1` record and GitHub Actions author.
+An unresolved hold makes the verification **fail as blocked-external**, with no
+live API calls; it does not manufacture a successful release check. Normal
+read-only browser regression and the exact deployment recheck still execute, so
+a simultaneous product defect is not hidden by the provider incident.
+
+`check-production-apis.mjs` retains every original success predicate and all 27
+checks. It allows at most **33 W.A.V.E HTTP requests** per run, including at most
+six extra transient retries in total and at most three attempts per individual
+transient failure. An explicit safe quota/rate/access/auth response, or application
+HTTP429, stops immediately without retry. This is an application request budget,
+**not a provider fan-out measurement or account-wide usage counter**. Most tests
+use fixture transports and never contact external providers.
+
+A separate `issues:write` job records only provider/operation/kind, an optional
+validated Retry-After, SHA and run ID. Raw responses, authentication URLs and
+error messages are never copied. Identical unresolved provider/operation holds
+are reused without a new Issue or repeated comment. The ordinary Failure Router
+suppresses a code-fix Issue only when trusted main workflow job/step evidence
+proves a provider-only failure and successful durable recording. Unknown parser,
+browser, deployment, timeout and mixed failures still enter engineering triage.
+
+The subscription executor refuses an operational-hold Issue at enqueue and claim,
+including a task queued before it became blocked. Existing task generation and
+attempt counts are not reset. A failure cannot buy quota, rotate a key, grant
+execution, or enable a paid model path.
+
+Recovery requires checking the actual provider account/access/reset, then resolving
+the hold. There is no invented daily reset or automatic closure. The next bounded
+smoke must satisfy the unchanged real success contracts; closing a hold is not PASS.
+Parser/cooldown/UI defects are separate reproducible engineering tasks. Changed
+executor source also needs the normal reviewed/pinned runtime installation before
+any activation; writing these files did not install a runtime or schedule a tick.
+
+## User-facing evidence and completion boundary
 
 The unchanged live success contracts remain strict. A restricted provider must
 produce a blocked external outcome, never a fake PASS, fabricated place or empty
-result. The remaining work is truthful notices, durable automation holds, enforced
-live-smoke budgets, SDK/tile checks and exact CI/QA/deployment evidence. The current
+result. Recommendation, weather and transport notices distinguish explicit
+restrictions in KO/EN. Partially retrieved districts/themes retain verified places
+and the missing evidence; their status is not complete/live and is not CDN-cached.
+Saved places and the itinerary remain available. Opaque SDK/tile failures cannot
+identify an account quota; advanced account-wide protection and canonical OSM tile
+policy correction remain separately documented in the registry. The current
 Production ODsay failure still requires the actual application's plan, counter,
 restriction reason and reset to be checked in ODsay LAB; no key value is needed.
 

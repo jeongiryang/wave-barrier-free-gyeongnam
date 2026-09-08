@@ -1,4 +1,6 @@
 import { verifiedPublicTransport } from "./production-transport-contract.mjs";
+import { assertProviderAvailable, createSmokeBudget, ProviderBlocked, reportProviderBlock } from "./provider-smoke-policy.mjs";
+import { parseProviderRetryAfter } from "../lib/provider-failure.js";
 
 const DEFAULT_BASE_URL = "https://wave-barrier-free-gyeongnam.vercel.app";
 const requestedBaseUrl = String(process.env.WAVE_PRODUCTION_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, "");
@@ -7,18 +9,25 @@ if (baseUrl.protocol !== "https:" || (baseUrl.hostname !== "wave-barrier-free-gy
   throw new Error("WAVE_PRODUCTION_BASE_URL은 승인된 Vercel HTTPS 주소여야 합니다.");
 }
 
+const budget = createSmokeBudget();
 async function fetchResponse(path, timeoutMs = 65_000) {
   let lastError;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
+    budget.take();
     try {
       const response = await fetch(new URL(path, `${baseUrl}/`), {
         headers: { Accept: path.startsWith("/api/") ? "application/json" : "text/html" },
         signal: AbortSignal.timeout(timeoutMs),
       });
       if (response.ok) return response;
+      // Inspect only structured safe metadata; never log raw provider bodies.
+      const body = await response.clone().json().catch(() => null);
+      assertProviderAvailable(body);
+      if (response.status === 429) throw new ProviderBlocked([{provider:"wave",operation:"public-api",kind:"rate_limited",retryAfterMs:parseProviderRetryAfter(response.headers.get("retry-after"))}]);
       lastError = new Error(`${path} 응답 ${response.status}`);
       if (response.status < 500 && response.status !== 429) break;
     } catch (error) {
+      if (error instanceof ProviderBlocked) throw error;
       lastError = error;
     }
     if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 500));
@@ -30,6 +39,7 @@ async function jsonCheck(name, path, validate, timeoutMs) {
   const startedAt = Date.now();
   const response = await fetchResponse(path, timeoutMs);
   const body = await response.json();
+  assertProviderAvailable(body);
   if (!validate(body)) throw new Error(`${name} 응답 계약을 충족하지 못했습니다.`);
   return { name, ms: Date.now() - startedAt };
 }
@@ -42,6 +52,7 @@ async function pageCheck(path) {
   return { name: `page:${path}`, ms: Date.now() - startedAt };
 }
 
+try {
 const checks = [];
 let configuredKeys = new Set();
 checks.push(await jsonCheck("configuration", "/api/health", (body) => {
@@ -111,3 +122,7 @@ const pages = [
 checks.push(...await Promise.all(pages.map(pageCheck)));
 
 console.log(JSON.stringify({ ok: true, checkedAt: new Date().toISOString(), baseUrl: baseUrl.origin, checks }, null, 2));
+} catch (error) {
+  if (!reportProviderBlock(error, {calls:budget.count()})) throw error;
+  process.exitCode = 1;
+}

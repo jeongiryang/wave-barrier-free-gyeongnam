@@ -1,15 +1,12 @@
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
-import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place } from "../types";
 import RecommendationCarousel from "./RecommendationCarousel";
 
 interface RecommendationWorkspaceProps {
-  t: (key: string, fallback: string) => string;
   region: string;
   activePlaces: Place[];
   planController: ReturnType<typeof usePlannerPlan>;
-  route: ReturnType<typeof useRoutePlanning>;
   tripSelection: ReturnType<typeof useTripSelection>;
   onGenerate: (revealResults?: boolean) => void | Promise<void>;
   onSelectPlace: (place: Place) => void;

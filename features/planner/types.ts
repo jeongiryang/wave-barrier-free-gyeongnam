@@ -1,3 +1,4 @@
+import type { ProviderFailure } from "../../lib/provider-failure.js";
 export type ApiState = "live" | "empty" | "error" | "ready";
 
 export type ApiStatus = {
@@ -7,10 +8,13 @@ export type ApiStatus = {
   state: ApiState;
   count: number;
   note: string;
+  failure?: ProviderFailure;
+  partial?: boolean;
+  failures?: ProviderFailure[];
 };
 
 export type TransportProviderState = "connected" | "ready" | "error" | "missing" | "checking";
-export type TransportQueryEvidence = { queryStatus?: "success" | "error" | "not-requested"; resultCount?: number | null };
+export type TransportQueryEvidence = { queryStatus?: "success" | "error" | "not-requested"; resultCount?: number | null; failure?: ProviderFailure };
 export type TransportProvider = { id: string; name: string; role: string; configured: boolean; state: TransportProviderState; detail?: string } & TransportQueryEvidence;
 export type TransportMode = "all" | "car" | "rail" | "bus" | "regional";
 export type TransportContext = {

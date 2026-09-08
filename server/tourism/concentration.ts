@@ -2,6 +2,7 @@ import type { Env } from "../shared/env";
 import {
   attemptProvider as attempt,
   commonParams,
+  combineProviderResults,
   fetchTourismData as fetchKto,
   type ProviderAttempt as Attempt,
 } from "../shared/provider-data";
@@ -21,9 +22,10 @@ export async function fetchHub(env: Env, region: string, remaining: () => number
     const available = results.filter((result): result is Extract<Attempt, { ok: true }> => result.ok);
     if (available.length) {
       const items = available.flatMap((result) => result.value.items);
-      last = { ok: true, value: { items, total: items.length } };
+      last = { ok: true, value: combineProviderResults(items, results) };
       if (items.length) return { result: last, baseYm };
     } else if (results[0]) last = results[0];
+    if (!last.ok || last.value.partial) break;
   }
   return { result: last, baseYm: "" };
 }
@@ -40,9 +42,10 @@ export async function fetchRelated(env: Env, region: string, preferredYm = "", r
     const available = results.filter((result): result is Extract<Attempt, { ok: true }> => result.ok);
     if (available.length) {
       const items = available.flatMap((result) => result.value.items);
-      last = { ok: true, value: { items, total: items.length } };
+      last = { ok: true, value: combineProviderResults(items, results) };
       if (items.length) return { result: last, baseYm };
     } else if (results[0]) last = results[0];
+    if (!last.ok || last.value.partial) break;
   }
   return { result: last, baseYm: preferredYm };
 }

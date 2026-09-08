@@ -70,7 +70,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       setPlan(data);
       setResultSignature(requestedSignature);
       const available = data.statuses.some((status) => status.state === "live");
-      setNoticeKind(available ? "updated" : "empty");
+      setNoticeKind(data.statuses.some(status => status.state === "error" || status.partial) ? "error" : available ? "updated" : "empty");
       if (revealResults && !reveal.signal.aborted) onRevealResults?.();
       if (revealResults && !reveal.signal.aborted) revealTimer = window.setTimeout(() => {
         if (reveal.signal.aborted) return;
@@ -105,6 +105,6 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     setPlan(null); setLoading(false); setPlanError(""); setResultSignature(""); setNoticeKind("idle");
   }, []);
   const resultCurrent = Boolean(plan && !dirty && !loading && !planError);
-  const requestState = loading ? "loading" : dirty ? "dirty" : planError ? "error" : plan ? plan.places.length ? "success" : "empty" : selected.length ? "ready" : "idle";
+  const requestState = loading ? "loading" : dirty ? "dirty" : planError ? "error" : plan ? plan.places.length ? "success" : plan.statuses.some(status => status.state === "error") ? "error" : "empty" : selected.length ? "ready" : "idle";
   return { resetPlan, plan, loading, planError, notice, setNotice: setNoticeKind, runPlan, abortPlan, dirty, resultCurrent, requestState };
 }
