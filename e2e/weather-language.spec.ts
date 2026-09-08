@@ -15,6 +15,57 @@ async function prepare(page: Page, english = false) {
   await page.emulateMedia({ reducedMotion: "reduce" });
 }
 
+test("departure weather evidence opens the forecast with pointer and keyboard without another request", async ({ page }) => {
+  await prepare(page);
+  let weatherRequests = 0;
+  await page.route("**/api/weather**", (route) => {
+    weatherRequests++;
+    return route.fulfill({ json: { ...forecast, days: Array.from({ length: 7 }, (_, index) => ({ ...forecast.days[0], date: `2026-09-0${index + 1}` })) } });
+  });
+  await page.goto("/planner");
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  const savedPlace = page.getByRole("button", { name: "경남도립미술관 일정에서 빼기", exact: true });
+  const weatherCard = page.locator(".readiness-grid article").filter({ has: page.getByText("날씨", { exact: true }) });
+  await expect(weatherCard).toContainText("해당 날짜 예보가 없거나 예보 범위 밖입니다.");
+  const evidence = weatherCard.getByRole("link", { name: "바로 확인하기", exact: true });
+  const panel = page.locator("#layers");
+  const board = page.locator(".weather-board");
+  await expect(panel).toHaveJSProperty("open", false);
+  await expect(board).toHaveCount(0);
+  const requestsBefore = weatherRequests;
+
+  await evidence.click();
+  await expect(panel).toHaveJSProperty("open", true);
+  await expect(board).toBeVisible();
+  await expect(board).toContainText("체감 -2°");
+  await expect(page).toHaveURL(/#layers$/);
+  await expect(panel.locator("summary")).toBeFocused();
+  await expect(savedPlace).toHaveAttribute("aria-pressed", "true");
+
+  // Repeat from a closed panel with the same hash: no hashchange event is required.
+  await panel.locator("summary").click();
+  await expect(panel).toHaveJSProperty("open", false);
+  await expect(board).toHaveCount(0);
+  await evidence.focus();
+  await page.keyboard.press("Enter");
+  await expect(panel).toHaveJSProperty("open", true);
+  await expect(board).toBeVisible();
+  await expect(board).toHaveAccessibleName("창원 여행 날씨");
+  await expect(page).toHaveURL(/#layers$/);
+  await expect.poll(() => page.evaluate(() => Boolean(document.activeElement?.closest("#layers")))).toBe(true);
+  await expect(panel.locator("summary")).toBeFocused();
+  await expect.poll(() => panel.locator("summary").evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    return rect.top >= 0 && rect.bottom <= innerHeight && Boolean(hit && element.contains(hit));
+  })).toBe(true);
+  await expect(savedPlace).toHaveAttribute("aria-pressed", "true");
+  expect(weatherRequests).toBe(requestsBefore);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+  await page.screenshot({ path: test.info().outputPath("departure-weather-evidence.png") });
+});
+
 test("weather language changes keep the same forecast without another request", async ({ page }) => {
   await prepare(page, true);
   let requests = 0;

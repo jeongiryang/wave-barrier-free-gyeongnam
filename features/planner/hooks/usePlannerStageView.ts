@@ -79,14 +79,14 @@ export function usePlannerStageView() {
     listeners.forEach((listener) => listener());
   }, []);
 
-  const changeStep = useCallback((next: JourneyStepId, navigate = false) => {
+  const changeStep = useCallback((next: JourneyStepId, navigate = false, target: JourneyStepId | "layers" = next) => {
     if (navigate) {
       const url = new URL(window.location.href);
-      if (url.hash !== `#${next}`) {
-        url.hash = next;
+      if (url.hash !== `#${target}`) {
+        url.hash = target;
         window.history.pushState(null, "", url);
       }
-      setFocusTarget({ id: next });
+      setFocusTarget({ id: target });
     }
     fallbackStep = next;
     try {
@@ -101,8 +101,12 @@ export function usePlannerStageView() {
     if (!focusTarget || focusedRequest.current === focusTarget) return;
     const section = document.getElementById(focusTarget.id);
     if (!section || section.closest("[hidden]")) return;
-    const heading = section.querySelector<HTMLElement>("h2, h3") || section;
-    heading.setAttribute("tabindex", "-1");
+    const heading = focusTarget.id === "layers"
+      ? section.querySelector<HTMLElement>("summary") || section
+      : section.querySelector<HTMLElement>("h2, h3") || section;
+    // Keep the native disclosure in the tab order. Its name is the visible
+    // start of this panel; a nested heading can be below a long forecast.
+    if (heading.tagName !== "SUMMARY") heading.setAttribute("tabindex", "-1");
     heading.focus({ preventScroll: true });
     scrollToSection(focusTarget.id, true);
     focusedRequest.current = focusTarget;
