@@ -43,3 +43,22 @@ TAGO 철도 도시 목록은 공통 응답 파서에서 거부됐다. ODsay 오�
 로그와 수정 전 실패 근거는 저장소 밖 `D:/wave-db-binding-preflight-20260908/tago-*.log`에 보존했다.
 모의 응답 계약 검사는 Production TAGO 실호출 성공의 대체 증거가 아니다. 병합 전 전체 hosted
 Playwright/axe와 독립 QA, 이후 동일 SHA 운영 실호출로 실제 연결 상태를 확인해야 한다.
+
+## 동일 SHA Preview 실호출과 main 회귀 검사 setup
+
+`3baf07c28e68f41da633031bf8bdb89428770145` Preview에서 2026-09-08T04:38:44Z
+TAGO 철도 도시 목록 15건의 실제 조회·검증이 성공했다. 버스 정류장 31건, 고속 터미널 453건,
+시외 터미널 340건도 정상이며 KORAIL 정상 빈 결과와 ODsay 오류는 각각 유지됐다.
+실제 브라우저에서 창원 조건 → KTO 추천 5곳 → 사화공원 일정·지도 1/1 → 자동차 20분과
+교통정보 상세의 ‘철도 지역 목록: 정보 수신’을 확인했다. Production 반영은 아직 아니다.
+
+그동안 main CI835는 모바일 skip-link 첫 Tab 검사에서 flaky 1건으로 실패해 CD가 차단됐다.
+보존된 trace에서 `page.goto`의 load 직후부터 Tab 직후까지 skip-link의 조상이
+`DIV hidden id=S:0`이었다. 화면 표시 전에 Tab을 보내서 포커스를 얻지 못한 setup 문제이며,
+키보드 포커스를 사후 강제로 복구할 제품 수정 근거는 없다. 같은 locator의 `toBeVisible()`
+assertion을 Tab 전에 추가했다. 기존 `toBeFocused()`와 Enter 후 `activeElement.id=story`
+assertion, timeout, retry, workers, flaky 실패 정책은 모두 그대로다.
+
+근거: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34186492622
+의 browser-regression-2 artifact, 로컬 `ci835-trace` 및 실패 화면·error-context 보존.
+이 setup 보강 뒤 최신 HEAD의 전체 검사를 다시 수행해야 하며 이전 HEAD 성공을 재사용하지 않는다.
