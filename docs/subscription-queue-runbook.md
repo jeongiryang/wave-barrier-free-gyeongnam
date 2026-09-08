@@ -2,6 +2,8 @@
 >
 > Local automation remains inactive until a trusted-only real smoke is verified. The present pinned executor accepts only immutable Owner work orders and same-repository, exact-HEAD PRs. There is no implicit collaborator/App trust or external-input promotion. External/fork/arbitrary-code inputs are read/triage only. Before activation, recheck task and code provenance; retain the current false gates, cost policy and installed isolation. The historical four-shard local publication path below is frozen, not an active zero-touch completion claim.
 
+> Current documentation path: `validateDocumentation` runs the frozen boundary probe and validates only the approved tracked Markdown bytes, recording their SHA256. It does not run candidate npm scripts. The receipt explicitly says `pending-exact-head-ci`; atomic publication still leads to `ci-pending`, then the unchanged full hosted CI and separate QA. Historical four-shard functions/tests remain preserved. No activation, installed pin update, model call, retry reset or canary success follows merely from this change.
+
 # 구독 실행 대기열과 실제 실행 검증
 
 Refs #288, #294, PR #289. 2026-09-07 기술 구현 기록. 전체 자동화 완료 선언이 아니다.

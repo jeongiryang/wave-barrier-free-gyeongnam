@@ -3,7 +3,8 @@ import { readFileSync, realpathSync, lstatSync, mkdtempSync, openSync, closeSync
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { trustedGitExecutable } from "./subscription-publish.mjs";
+import { createHash } from "node:crypto";
+import { git, trustedGitExecutable } from "./subscription-publish.mjs";
 
 const bridge = fileURLToPath(new URL("./subscription-sandbox.py", import.meta.url));
 export function wslPath(value) {
@@ -51,8 +52,45 @@ export function assertValidationSandbox(env = process.env) {
 const boundaryChecks = ["outside-files", "home-appdata-userprofile", "external-network", "local-network", "host-mounts"];
 const applicationChecks = ["npm run lint", "npm run typecheck", "npm test", "npm run build:vercel", "npm run check:performance"];
 
+// The active documentation worker reads approved files as data. It never starts
+// the candidate's package scripts; complete product validation belongs to the
+// exact published HEAD's unchanged GitHub-hosted CI before independent QA.
+export function documentationEvidence(directory, scope) {
+  if (!Array.isArray(scope) || !scope.length || scope.some(file => typeof file !== "string" || !/^docs\/[A-Za-z0-9_./-]+\.md$/.test(file) || file.split("/").includes(".."))) throw new Error("UNAPPROVED_DOCUMENTATION_CHANGE");
+  if (git(directory, ["ls-files", "--others", "--exclude-standard", "-z"])) throw new Error("UNAPPROVED_DOCUMENTATION_CHANGE");
+  const changed = git(directory, ["diff", "--no-ext-diff", "--no-textconv", "--name-only", "-z", "HEAD"]).split("\0").filter(Boolean);
+  if (!changed.length) throw new Error("EMPTY_DOCUMENTATION_CHANGE");
+  if (changed.some(file => !scope.includes(file))) throw new Error("UNAPPROVED_DOCUMENTATION_CHANGE");
+  git(directory, ["diff", "--no-ext-diff", "--no-textconv", "--check", "HEAD"]);
+  const root = realpathSync(directory);
+  const files = changed.map(file => {
+    const target = path.resolve(root, file);
+    let content;
+    try {
+      if (!target.startsWith(`${root}${path.sep}`) || lstatSync(target).isSymbolicLink() || realpathSync(target) !== target || !git(directory, ["ls-tree", "HEAD", "--", file]).startsWith("100644 blob ")) throw new Error();
+      content = readFileSync(target, "utf8");
+    } catch { throw new Error("UNSAFE_DOCUMENTATION_RESULT"); }
+    if (content.length > 100_000 || content.includes("\0") || /<script\b|javascript:/i.test(content)) throw new Error("UNSAFE_DOCUMENTATION_RESULT");
+    return { path: file, sha256: createHash("sha256").update(content).digest("hex") };
+  });
+  return { kind: "approved-documentation-data", result: "PASS", files, productValidation: { source: "GitHub-hosted CI", state: "pending-exact-head-ci" } };
+}
+
+export async function validateDocumentationData(directory, logRoot, beforeCheck, notify = console.log, { scope, probe = () => sandboxCall("probe", sandboxConfiguration()) } = {}) {
+  const boundary = probe();
+  if (boundary?.result !== "PASS" || boundary.boundary !== "linux-bwrap-v1" || boundary.network !== "isolated" || boundary.filesystem !== "isolated" || JSON.stringify(boundary.checks) !== JSON.stringify(boundaryChecks)) throw new Error("BLOCKED_SANDBOX");
+  await beforeCheck();
+  const documentation = documentationEvidence(directory, scope);
+  await beforeCheck();
+  writeFileSync(path.join(logRoot, "documentation-validation.json"), JSON.stringify({ boundary, documentation }, null, 2));
+  notify("VALIDATED: frozen boundary and approved documentation data; full product CI pending on published HEAD");
+  return { result: "PASS", localChecks: ["frozen sandbox boundary", "approved documentation data"], boundary: boundary.boundary, productValidation: documentation.productValidation };
+}
+
 // Each call has its own unchanged 20-minute process-group limit. A partial,
 // repeated or missing shard is never evidence for publication of the full suite.
+// Preserved historical validation path; the active documentation worker does
+// not call it. Tests and four-shard failure evidence remain intact.
 export async function collectValidationShards(validateShard) {
   const shards = [];
   for (const shard of [1, 2, 3, 4]) {

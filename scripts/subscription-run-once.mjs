@@ -9,7 +9,7 @@ import { subscriptionEnvironment } from "./check-subscription-codex.mjs";
 import { readSubscriptionQuota } from "./subscription-quota.mjs";
 import { runSubscriptionTask } from "./subscription-worker.mjs";
 import { git, createIsolatedWorktree, applyEdits, readScopedFiles, publishImplementation } from "./subscription-publish.mjs";
-import { assertValidationSandbox, validateInSandbox } from "./subscription-sandbox.mjs";
+import { assertValidationSandbox, validateDocumentationData } from "./subscription-sandbox.mjs";
 
 
 export async function workerEvidence(task, phase, api = githubApi) {
@@ -27,8 +27,8 @@ export async function workerEvidence(task, phase, api = githubApi) {
   return { ...evidence, priorRejection: { headSha: task.headSha, evidenceUrl: rejection.evidenceUrl, text: comment.body } };
 }
 
-export function validateDocumentation(directory, logRoot, beforeCheck, notify = console.log) {
-  return validateInSandbox(directory, logRoot, beforeCheck, notify);
+export function validateDocumentation(directory, logRoot, beforeCheck, notify = console.log, options = {}) {
+  return validateDocumentationData(directory, logRoot, beforeCheck, notify, options);
 }
 
 export async function runOnce({ issue, executable, repository = process.cwd(), phase }) {
@@ -67,7 +67,7 @@ export async function runOnce({ issue, executable, repository = process.cwd(), p
     await touch();
     if (phase === "implementation") {
       applyEdits(directory, current.headSha, result.edits);
-      const validation = await validateDocumentation(directory, root, touch);
+      const validation = await validateDocumentation(directory, root, touch, console.log, { scope: current.order.scope });
       await touch();
       git(directory, ["add", "--", ...result.edits.map(edit => edit.path)]);
       git(directory, ["commit", "-m", `docs: resolve approved subscription task #${issue}`]);
