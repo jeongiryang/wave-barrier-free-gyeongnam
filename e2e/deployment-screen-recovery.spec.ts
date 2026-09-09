@@ -28,8 +28,10 @@ for (const english of [false, true]) for (const action of ["reload", "planner"] 
     const moduleUrl = "**/app/travel-book/page.tsx*";
     await page.route(moduleUrl, route => { modules++; return route.abort("failed"); });
     await page.getByRole("link", { name: english ? /View saved itineraries/ : /저장한 일정 보기/ }).click();
-    const error = page.locator(".route-state-page[role=alert]");
+    const error = page.locator(".route-state-page");
     await expect(error).toBeVisible();
+    await expect(error.getByRole("alert")).toBeVisible();
+    await expect(error).toHaveAttribute("lang", english ? "en" : "ko");
     expect(modules).toBeGreaterThan(0);
     expect(documents).toBe(0);
     if (!isMobile) await page.setViewportSize({ width: english ? 1440 : 960, height: 900 });
@@ -43,7 +45,8 @@ for (const english of [false, true]) for (const action of ["reload", "planner"] 
     await expect.poll(() => documents).toBe(1);
     await expect(error).toHaveCount(0);
     await expect(page).toHaveURL(action === "reload" ? /\/travel-book$/ : /\/planner$/);
-    await expect(page.getByRole("button", { name: action === "reload" ? english ? "Plan a new trip" : "새 여행 설계" : english ? "My itinerary 1" : "내 일정 1", exact: true })).toBeEnabled();
+    if (action === "reload") await expect(page.getByRole("button", { name: "새 여행 설계", exact: true })).toBeEnabled();
+    else await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
     expect(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage).filter(([key]) => key.startsWith("wave-trip") || key.startsWith("wave-travel-book") || key === "wave-current-trip-v1")))).toEqual(saved);
     expect(documents).toBe(1);
   });

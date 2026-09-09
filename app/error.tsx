@@ -1,17 +1,19 @@
 "use client";
 
-import Link from "next/link";
+import { useSitePreferences } from "../components/SitePreferences";
 
-export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function ErrorPage() {
+  const { locale } = useSitePreferences();
+  const en = locale === "en";
   return (
-    <main className="route-state-page" role="alert">
+    <main className="route-state-page" lang={en ? "en" : "ko"} aria-labelledby="route-error-title">
       <div className="route-state-mark" aria-hidden="true">!</div>
       <p>CONNECTION PAUSE</p>
-      <h1>잠시 연결이 흔들렸습니다.</h1>
-      <span>작성 중인 조건은 브라우저에 남아 있습니다. 같은 화면을 다시 불러오거나 여행 설계로 돌아가 주세요.</span>
+      <h1 id="route-error-title">{en ? "Please reload this page." : "화면을 다시 불러와 주세요."}</h1>
+      <span role="alert">{en ? "Reload the page to continue. The itinerary and conditions saved on this device will stay here." : "화면을 새로 불러오면 다시 이용할 수 있습니다. 이 기기에 저장한 일정과 조건은 유지됩니다."}</span>
       <div>
-        <button type="button" onClick={reset}>이 화면 다시 시도</button>
-        <Link href="/planner">여행 설계로 돌아가기</Link>
+        <button type="button" onClick={() => window.location.reload()}>{en ? "Reload this page" : "화면 다시 불러오기"}</button>
+        <a href="/planner">{en ? "Return to trip planning" : "여행 설계로 돌아가기"}</a>
       </div>
     </main>
   );
