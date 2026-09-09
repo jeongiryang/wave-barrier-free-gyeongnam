@@ -68,7 +68,7 @@ export default function DepartureReadinessCard({
     transportProviders,
     places: orderedSavedPlaces,
   });
-  const calendarDisabled = !plan || !orderedSavedPlaces.length || assessment.phase.id === "past";
+  const calendarDisabled = !orderedSavedPlaces.length || assessment.phase.id === "past";
 
   async function refresh() {
     if (refreshing) return;
