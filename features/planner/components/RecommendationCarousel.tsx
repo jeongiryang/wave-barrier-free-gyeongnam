@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, useRef } from "react";
+import { lazy, Suspense, useId, useRef } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import SmartSpotImage from "../../tourism/components/SmartSpotImage";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
@@ -15,6 +15,41 @@ function InformationUnavailable({ en }: { en: boolean }) {
 const ProviderFailureNotice = lazy(() => import("./ProviderFailureNotice").catch(() => ({ default: InformationUnavailable })));
 
 const ExplorationPlaces = lazy(() => import("./ExplorationPlaces").catch(() => ({ default: InformationUnavailable })));
+
+function PlaceChoiceCard({ place, region, index, saved, current, en, onToggle, onDetails }: {
+  place: Place; region: string; index: number; saved: boolean; current: boolean; en: boolean;
+  onToggle: () => void; onDetails: () => void;
+}) {
+  const id = useId();
+  const items = place.accessibility ?? [];
+  const confirmed = items.filter(item => item.state === "confirmed");
+  const unknown = items.length ? items.filter(item => item.state === "unknown").length : place.unknownFields;
+  const negative = items.length ? items.filter(item => item.state === "negative").length : place.negativeFields;
+  const say = (ko: string, english: string) => en ? english : ko;
+  const action = saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary");
+  return <article className="place-card" data-result-current={current} aria-labelledby={`${id}-title`}>
+    <SmartSpotImage src={place.image} title={place.name} region={place.city || region} tag={say("관광지", "Place")} rank={index + 1} contentId={place.id} className="place-visual" showMeta={false} />
+    <div className="place-content">
+      <p className="place-region" lang={originalLanguage(place.city || region)}>{place.city || region}</p>
+      <h3 id={`${id}-title`} lang={originalLanguage(place.name)}>{place.name}</h3>
+      <p className="place-address" lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
+      <div className="place-facilities">
+        <strong>{confirmed.length ? say("확인된 편의", "Reported facilities") : say("편의정보 확인이 필요해요", "Check the facility information")}</strong>
+        {confirmed.length > 0 ? <ul>{confirmed.slice(0, 3).map(item => <li key={item.key}><span aria-hidden="true">✓</span> <span lang={originalLanguage(facilityName(item.key, item.label, en))}>{facilityName(item.key, item.label, en)}</span></li>)}</ul> : <p>{say("항목별로 확인된 편의가 없습니다. 이용 정보를 살펴보세요.", "No facilities are confirmed at item level. Review the visitor information.")}</p>}
+      </div>
+      {(Boolean(unknown) || Boolean(negative)) && <p className="facility-caution">
+        {Boolean(unknown) && <span>{say("미확인", "Not reported")} {unknown}{say("개", "")}</span>}
+        {Boolean(negative) && <span>{say("조건 불일치", "Reported unavailable")} {negative}{say("개", "")}</span>}
+      </p>}
+      <div className="place-actions">
+        <button type="button" className={`primary${saved ? " saved" : ""}`} disabled={!saved && !current} onClick={onToggle} aria-pressed={saved} aria-labelledby={`${id}-title ${id}-action`}>
+          <span id={`${id}-action`} className="sr-only">{action}</span><span aria-hidden="true">{action}</span><span aria-hidden="true">{saved ? "✓" : "+"}</span>
+        </button>
+        <button type="button" onClick={onDetails}>{say("이용 정보", "Visitor information")} <span aria-hidden="true">↗</span></button>
+      </div>
+    </div>
+  </article>;
+}
 
 export default function RecommendationCarousel({ region, activePlaces, planController, tripSelection, onGenerate, onSelectPlace }: {
   region: string;
@@ -44,17 +79,7 @@ export default function RecommendationCarousel({ region, activePlaces, planContr
       {loading && <p className="sr-only" role="status">{say("여행지를 찾고 있어요.", "Finding places.")}</p>}
       {loading && !plan && [0, 1, 2].map((item) => <article className="place-card place-card-skeleton" key={item} aria-hidden="true"><div className="skeleton-visual" /><div className="skeleton-copy"><i /><b /><span /></div></article>)}
       {!loading && !activePlaces.length && !planError && !incomplete && <div className="place-empty" role="status"><h3>{!plan ? say("어떤 곳으로 떠나볼까요?", "Where will your next trip take you?") : say("선택한 조건에 맞는 여행지를 찾지 못했어요.", "No places match these preferences yet.")}</h3><p>{say("필요한 편의는 유지한 채 지역이나 여행 취향을 바꿔보세요.", "Keep your facility needs and try another region or interest.")}</p><a href="#conditions">{say("여행 조건 다시 선택", "Review preferences")}</a><button type="button" disabled={!selected.length} onClick={() => void onGenerate(false)}>{say("여행지 찾기", "Find places")}</button></div>}
-      {activePlaces.map((place, index) => {
-        const confirmed = place.accessibility?.filter((item) => item.state === "confirmed");
-        return <article className="place-card" key={place.id} data-result-current={resultCurrent}>
-          <SmartSpotImage src={place.image} title={place.name} region={place.city || region} tag={say("관광지", "Place")} rank={index + 1} contentId={place.id} className="place-visual" showMeta={false}><span className="city-chip">{place.city || region}</span></SmartSpotImage>
-          <div className="place-content"><h3 lang={originalLanguage(place.name)}>{place.name}</h3><p className="place-address" lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
-            <div className="feature-list">{(confirmed?.map((item) => facilityName(item.key, item.label, en)) || place.features).slice(0, 3).map((feature) => <span key={feature} lang={originalLanguage(feature)}>✓ {feature}</span>)}</div>
-            <p className="facility-caution">{say("방문 전 확인", "Before visiting")}: {place.unknownFields || 0}{say("개 항목 미확인", " facilities not reported")}{Boolean(place.negativeFields) && ` · ${place.negativeFields}${say("개 불일치", " not available")}`}</p>
-            <div className="place-actions"><button type="button" onClick={() => onSelectPlace(place)}>{say("편의시설 보기", "View facilities")}</button><button type="button" className={saved.includes(place.id) ? "saved" : "primary"} disabled={!saved.includes(place.id) && !resultCurrent} onClick={() => toggleSaved(place.id)} aria-pressed={saved.includes(place.id)} aria-label={`${place.name} ${saved.includes(place.id) ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary")}`}>{saved.includes(place.id) ? say("추가됨 · 빼기", "Added · remove") : say("일정에 추가", "Add to itinerary")}</button></div>
-          </div>
-        </article>;
-      })}
+      {activePlaces.map((place, index) => <PlaceChoiceCard key={place.id} place={place} region={region} index={index} saved={saved.includes(place.id)} current={resultCurrent} en={en} onToggle={() => toggleSaved(place.id)} onDetails={() => onSelectPlace(place)} />)}
     </div>
     {explorationPlaces.length > 0 && <Suspense fallback={<InformationUnavailable en={en} />}><ExplorationPlaces places={explorationPlaces} en={en} onSelectPlace={onSelectPlace} /></Suspense>}
   </>;

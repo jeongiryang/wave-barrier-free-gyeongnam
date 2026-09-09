@@ -50,7 +50,7 @@ test("장소 상세는 카카오 후기와 정확히 연결된 W.A.V.E 커뮤니
 
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "편의시설 보기" }).first().click();
+  await page.getByRole("button", { name: "이용 정보" }).first().click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("link", { name: /방문 후기·사진/ })).toHaveAttribute("href", /map\.kakao\.com\/link\/search/);
   await expect(dialog.getByRole("heading", { name: "이 장소의 여행자 현장 이야기" })).toBeVisible();

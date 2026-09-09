@@ -28,7 +28,7 @@ async function prepare(page: Page, locale: "ko" | "en" = "en") {
     await page.getByRole("button", { name: /Nature and relaxation/ }).click();
     await page.getByRole("button", { name: "Find places →", exact: true }).click();
   }
-  const trigger = page.locator("#places").getByRole("button", { name: locale === "en" ? "View facilities" : "편의시설 보기", exact: true });
+  const trigger = page.locator("#places").getByRole("button", { name: locale === "en" ? "Visitor information" : "이용 정보", exact: true });
   await trigger.click();
   await expect(page.getByRole("dialog").getByRole("heading", { level: 2 })).toBeFocused();
   return trigger;

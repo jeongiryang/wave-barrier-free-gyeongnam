@@ -59,7 +59,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   await expect(museumCard.getByRole("img", { name: "경남도립미술관 관광사진" })).toBeVisible();
   await expect(parkCard.getByText("공식 사진을 확인할 수 없어요", { exact: true })).toBeVisible();
 
-  const detailButton = page.getByRole("button", { name: "편의시설 보기" }).first();
+  const detailButton = page.getByRole("button", { name: "이용 정보" }).first();
   await detailButton.focus();
   await detailButton.click();
   const dialog = page.getByRole("dialog");

@@ -5,7 +5,7 @@ import base from "./playwright.config";
 // unchanged; this checks the arrival and current editorial working surfaces.
 export default defineConfig({
   ...base,
-  testMatch: ["editorial-journey.spec.ts", "fullscreen-intro.spec.ts", "landing-regions.spec.ts"],
+  testMatch: ["editorial-journey.spec.ts", "fullscreen-intro.spec.ts", "landing-regions.spec.ts", "travel-choice-hierarchy.spec.ts", "map-tools-reachable.spec.ts"],
   use: { ...base.use, channel: undefined, launchOptions: undefined },
   projects: [
     { name: "desktop-webkit", use: { ...devices["Desktop Safari"], viewport: { width: 1440, height: 960 } } },

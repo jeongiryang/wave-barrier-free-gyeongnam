@@ -49,7 +49,7 @@ test("모바일 경남 18개 지역 표식은 44px 조작 영역과 선택 가�
   await expect(page.locator(".region-picker-list").getByRole("button", { name: new RegExp(`^${representativeName}`) })).toHaveAttribute("aria-pressed", "true");
 });
 
-test("모바일 지도 명령은 44px 조작 영역과 수평 탐색 경로를 유지한다", async ({ page }) => {
+test("모바일 지도 기본·추가 도구는 44px 영역과 빠짐없는 접근 경로를 유지한다", async ({ page }) => {
   await page.setViewportSize(MOBILE);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
@@ -61,8 +61,12 @@ test("모바일 지도 명령은 44px 조작 영역과 수평 탐색 경로를 �
   await commandBar.scrollIntoViewIfNeeded();
   await expect(commandBar).toBeVisible();
 
-  const buttons = commandBar.locator("button");
-  expect(await buttons.count()).toBeGreaterThan(5);
+  await expect(commandBar.getByRole("button")).toHaveCount(4);
+  const more = commandBar.getByRole("button", { name: "지도 도구", exact: true });
+  await expect(more).toHaveAttribute("aria-expanded", "false");
+  await more.click();
+  const buttons = commandBar.getByRole("button");
+  await expect(buttons).toHaveCount(11);
   const sizes = await buttons.evaluateAll((nodes) => nodes.map((node) => {
     const rect = (node as HTMLElement).getBoundingClientRect();
     return { text: node.textContent?.trim() || "button", width: rect.width, height: rect.height };
@@ -72,17 +76,10 @@ test("모바일 지도 명령은 44px 조작 영역과 수평 탐색 경로를 �
     expect(size.width, `${size.text} 너비`).toBeGreaterThanOrEqual(44);
   }
 
-  const scroll = commandBar.locator(".map-command-scroll");
-  const before = await scroll.evaluate((node) => ({
-    width: node.clientWidth,
-    scrollWidth: node.scrollWidth,
-    scrollbarWidth: getComputedStyle(node).scrollbarWidth,
-  }));
-  expect(before.scrollWidth).toBeGreaterThan(before.width);
-  expect(before.scrollbarWidth).not.toBe("none");
-
-  await scroll.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
-  await expect.poll(() => scroll.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
+  expect(await commandBar.evaluate(node => [...node.querySelectorAll("button")].every(button => {
+    const box = node.getBoundingClientRect(), rect = button.getBoundingClientRect();
+    return rect.left >= box.left - 1 && rect.right <= box.right + 1;
+  }))).toBe(true);
   await expect(commandBar.getByRole("button", { name: "↗ 페이지 링크", exact: true })).toBeVisible();
 
   const readinessActions = page.locator(".readiness-actions button");

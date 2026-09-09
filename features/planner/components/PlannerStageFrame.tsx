@@ -32,7 +32,7 @@ const questions: Record<JourneyStepId, { eyebrow: string; question: string; deta
   },
   "departure-readiness": {
     eyebrow: "마지막으로 확인하세요",
-    question: "지금 출발해도 괜찮을까요?",
+    question: "출발 전, 무엇을 확인할까요?",
     detail: "날씨·혼잡·교통·장소 근거의 최신 상태와 다시 확인할 항목을 한곳에서 점검하세요.",
   },
 };

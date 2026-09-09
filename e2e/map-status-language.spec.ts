@@ -40,6 +40,10 @@ for (const theme of ["light", "dark"]) {
     await expect(panel).toHaveCount(0);
     await expect(departure).toBeFocused();
     await expect(page.locator(".map-provider-badge")).toContainText("Map point selection cancelled.");
+    // This case checks fullscreen exit with no inner tool open. Nested Escape
+    // and focus restoration are covered by map-tools-reachable.
+    await commands.getByRole("button", { name: "Map options", exact: true }).click();
+    await expect(commands.getByRole("button", { name: "Map options", exact: true })).toHaveAttribute("aria-expanded", "false");
     const expand = commands.locator(".map-expand-button");
     await expect(expand).toHaveAccessibleName("⛶ Expand map");
     await expand.click(); await expect(expand).toHaveAttribute("aria-pressed", "true");

@@ -101,12 +101,21 @@ html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38;
 .journey-editorial .theme-grid small { font-size: .85rem; }
 .journey-editorial .guided-stage-prompt { padding: 30px clamp(20px,3vw,44px) 0; background: transparent; border: 0; }
 .journey-editorial .guided-stage-prompt h2 { font-size: clamp(1.7rem,3vw,2.8rem); }
-.journey-editorial .place-card { border-radius: 10px; box-shadow: none; }
-.journey-editorial .place-visual { height: 260px; }
-.journey-editorial .place-content { padding: 22px; }
-.journey-editorial .place-content h3 { font-size: 1.5rem; }
-.journey-editorial .place-content .place-address { font-size: .88rem; line-height: 1.65; }
-.journey-editorial .place-actions button { min-height: 48px; font-size: .9rem; border-radius: 7px; }
+.journey-editorial .place-card { display: flex; flex-direction: column; border-radius: var(--r-sm); box-shadow: none; background: var(--white); }
+.journey-editorial .place-visual { flex-shrink: 0; height: auto; aspect-ratio: 16 / 10; }
+.journey-editorial .place-content { flex: 1; display: flex; flex-direction: column; padding: 22px; }
+.place-content .place-region { align-self: flex-start; margin: 0; padding: 2px 0; color: var(--muted); background: var(--white); font-size: .85rem; font-weight: 750; }
+.journey-editorial .place-content h3 { margin: 8px 0; font-size: 1.5rem; line-height: 1.35; overflow-wrap: anywhere; }
+.journey-editorial .place-content .place-address { margin: 0 0 20px; font-size: .88rem; line-height: 1.65; overflow-wrap: anywhere; }
+.place-facilities { border-top: 1px solid var(--line); padding-top: 16px; font-size: .88rem; }
+.place-facilities strong { font-size: .82rem; color: var(--muted); }
+.place-facilities ul { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 0; margin: 10px 0 16px; list-style: none; }
+.place-facilities p { margin: 10px 0 16px; }
+.place-content .facility-caution { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 18px; color: var(--muted); }
+.journey-editorial .place-actions { margin-top: auto; padding-top: 16px; gap: 8px; border-color: var(--line); }
+.journey-editorial .place-actions button { position: relative; min-height: 48px; gap: 8px; padding: 10px 12px; font-size: .85rem; border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--ink); background: var(--white); }
+.journey-editorial .place-actions .primary { color: var(--on-blue); background: var(--blue); border-color: var(--blue); }
+.journey-editorial .place-actions .saved { color: var(--ink); background: var(--paper); border-color: var(--ink); }
 .journey-editorial :focus-visible { outline: 3px solid #b36b16; outline-offset: 4px; }
 html[data-motion="calm"] .condition-inputs,html[data-motion="calm"] .planner-destination-image > img { animation: none; }
 html[data-motion="calm"] .journey-editorial .profile-card { transition: none; transform: none; }

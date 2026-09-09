@@ -83,8 +83,6 @@
 /* 사진이 아직 없거나 밝은 사진이면 흰 순번·칩이 배경에 묻힌다.
    사진 유무와 무관하게 읽히도록 아래쪽 스크림을 진하게 깐다. */
 .place-visual::after { background: linear-gradient(180deg, transparent 30%, rgba(4,32,47,.34) 62%, rgba(4,32,47,.68)); }
-.place-rank { z-index: 2; }
-.place-rank { text-shadow: 0 2px 12px rgba(4,32,47,.6); }
 
 /* 히어로 키커가 연한 수면 위에서 2.86:1로 흐렸다. 본문 대비 기준으로 올린다. */
 .landing-hero-copy > p { color: var(--muted); }
