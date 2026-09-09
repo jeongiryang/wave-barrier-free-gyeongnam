@@ -28,8 +28,8 @@ body:has(.help-tour-dialog) .story-edition .landing-header, .story-edition .land
 .region-showcase .selected-region small { color: #a4f4e6; letter-spacing: .12em; font-size: .8rem; }
 .region-showcase .selected-region strong { margin-block: 12px 18px; font-size: clamp(4.5rem,9vw,10rem); line-height: 1; font-weight: 700; letter-spacing: -.07em; animation: region-name-cut .65s var(--cinema-ease) both; }
 .region-showcase .selected-region p { font-size: clamp(1rem,1.8vw,1.6rem); color: #fff; }
-.region-showcase-actions { position: absolute; left: var(--gutter); right: var(--gutter); display: flex; justify-content: space-between; gap: 20px; align-items: center; }
-.region-showcase-actions a { color: #fff; border-bottom: 1px solid #b5fff0; display: inline-flex; gap: 24px; align-items: center; min-height: 48px; font-weight: 750; }
+.region-showcase-actions { position: absolute; z-index: 3; left: var(--gutter); right: var(--gutter); display: flex; justify-content: space-between; gap: 20px; align-items: center; }
+.region-showcase-actions a { order: -1; color: #fff; border-bottom: 1px solid #b5fff0; display: inline-flex; gap: 24px; align-items: center; min-height: 48px; font-weight: 750; }
 .region-arrows { display: flex; gap: 12px; }
 .region-arrows button { width: 56px; height: 56px; color: #fff; background: #052736cc; border: 1px solid #c6dce6; border-radius: 50%; font-size: 1.6rem; }
 .region-showcase :focus-visible { outline: 3px solid #ffdf8b; outline-offset: 4px; }
@@ -158,18 +158,17 @@ html[data-theme="dark"] .story-edition .demo-profile[data-selected="true"] { bac
 .region-scene-photo figcaption a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 4px; color: inherit; }
 .region-scene-photo figcaption { bottom: 8px; }
 /* A quiet, always-visible chapter index; no expanding panel. */
-.story-progress { position: fixed; z-index: 35; right: 18px; top: 50%; transform: translateY(-50%); width: 128px; font-size: .7rem; color: #fff; }
+.story-progress { position: fixed; z-index: 35; right: 0; top: 50%; transform: translateY(-50%); width: 164px; padding: 14px 18px; background: linear-gradient(90deg,transparent,#001d29c7); font-size: .7rem; color: #fff; }
 .story-progress[hidden] { display: none; }
 .story-progress ol { position: relative; margin: 0; padding: 0; list-style: none; }
 .story-progress ol::after { content: ""; position: absolute; top: 22px; bottom: 22px; right: 20px; width: 1px; background: #b7dae399; z-index: -1; }
 .story-progress li a { display: grid; grid-template-columns: 1fr 40px; align-items: center; gap: 6px; min-height: 44px; text-decoration: none; color: #fff; text-shadow: 0 1px 4px #001521,0 0 7px #001521; }
-.story-progress::before { content: ""; position: absolute; z-index: -1; inset: -14px -18px; background: linear-gradient(90deg,transparent,#001d29c7); pointer-events: none; }
 .story-progress li a > span { text-align: right; letter-spacing: -.02em; justify-self: end; padding: 3px 5px; color: inherit; }
 .story-progress li b { display: grid; place-items: center; width: 28px; height: 28px; margin-inline: auto; border-radius: 50%; font-weight: 500; }
-.story-progress[data-surface="light"]::before { background: linear-gradient(90deg,transparent,#f3f4eeed); }
+.story-progress[data-surface="light"] { background: linear-gradient(90deg,transparent,#f3f4eeed); }
 .story-progress[data-surface="light"] li a { color: #063b49; text-shadow: none; }
 .story-progress[data-surface="light"] ol::after { background: #41676a66; }
-html[data-theme="dark"] .story-progress[data-surface="light"]::before { background: linear-gradient(90deg,transparent,#082f3ded); }
+html[data-theme="dark"] .story-progress[data-surface="light"] { background: linear-gradient(90deg,transparent,#082f3ded); }
 html[data-theme="dark"] .story-progress[data-surface="light"] li a { color: #fff; }
 .story-progress li a[aria-current] { font-weight: 800; }.story-progress li a[aria-current] b { background: #b5fff0; color: #052736; text-shadow: none; font-weight: 800; }
 .story-progress :focus-visible { outline: 3px solid #ffda89; outline-offset: 2px; }
@@ -184,8 +183,7 @@ html[data-theme="dark"] .story-progress[data-surface="light"] li a { color: #fff
  .story-edition > section { scroll-margin-top: 24px; }
 }
 @media (max-width: 1100px) {
- .story-progress::before { display: none; }
- .story-progress { top: auto; bottom: 8px; right: 8px; width: 78px; padding: 0; transform: none; background: #052736d9; border-radius: 24px; }
+ .story-progress, .story-progress[data-surface="light"], html[data-theme="dark"] .story-progress[data-surface="light"] { top: auto; bottom: 8px; right: 8px; width: 78px; padding: 0; transform: none; background: #052736d9; border-radius: 24px; }
  .story-progress ol { display: none; }
  .story-progress-mobile { display: grid; place-items: center; height: 44px; font-size: .8rem; }.story-progress-mobile select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
  .story-progress-mobile:focus-within { outline: 3px solid #ffda89; outline-offset: 2px; }

@@ -9,7 +9,7 @@ test("brand artwork remains visible while the retired remix never downloads", as
   await page.goto("/"); await storyReady(page);
   const portrait = page.locator(".needs-portrait img");
   await portrait.scrollIntoViewIfNeeded();
-  await expect(portrait).toHaveAttribute("src", "/media/wave-story/planning-together-v1.webp");
+  await expect(portrait).toHaveAttribute("src", "/media/wave-story/companions-coast-v2.webp");
   await expect.poll(() => portrait.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   await expect(page.locator(".closing-horizon")).toHaveCSS("background-image", /harbor-night-v2\.webp/);
   await expect(page.locator(".story-film")).toHaveCount(0);

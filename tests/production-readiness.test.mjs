@@ -331,7 +331,8 @@ test("landing regional showcase is photo-led, while the verified boundary source
   assert.match(landing, /onClick=\{\(\) => move\(-1\)\}/);
   assert.match(landing, /onClick=\{\(\) => move\(1\)\}/);
   assert.match(landing, /setTimeout[\s\S]*4000/);
-  assert.match(landing, /!interacting && !focused && !saving/);
+  assert.match(landing, /automatic && inView && visible && !saving/);
+  assert.match(landing, /onFocusCapture=\{\(\) => setAutomatic\(false\)\}/);
   assert.match(landing, /setAutomatic\(false\)/);
   assert.doesNotMatch(landing, /RegionMascot|upload\.wikimedia\.org/i);
   const surface = await source("features/landing/components/RegionBoundarySurface.tsx");

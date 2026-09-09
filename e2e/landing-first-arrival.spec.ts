@@ -156,7 +156,7 @@ for (const locale of ["ko", "en"] as const) {
     await page.goto("/"); await storyReady(page);
     const stage = page.locator("[data-region-stage]"); await stage.scrollIntoViewIfNeeded();
     const photos = stage.locator(".region-photo-selector button");
-    const firstName = await photos.nth(0).getAttribute("aria-label");
+    const firstName = (await photos.nth(0).innerText()).trim();
     // Target the second exact asset, leaving the adjacent album's source untouched.
     await photos.nth(1).click();
     const failedUrl = (await stage.locator(".region-scene-photo img").getAttribute("src"))!;
@@ -165,7 +165,7 @@ for (const locale of ["ko", "en"] as const) {
     await stage.locator(".region-photo-selector button").nth(1).click();
     await expect(stage.locator(".region-scene-photo figcaption")).toContainText(locale === "en" ? "Photo unavailable" : "불러오지 못했어요");
     await stage.locator(".region-photo-selector button").nth(0).press("Enter");
-    await expect(stage.locator(".region-photo-selector button").nth(0)).toHaveAttribute("aria-label", firstName!);
+    await expect(stage.locator(".region-photo-selector button").nth(0)).toHaveAccessibleName(firstName);
     await expect(stage.locator(".region-scene-photo img")).toBeVisible();
     await expect(stage.locator(".region-scene-photo figcaption")).not.toContainText(locale === "en" ? "Photo unavailable" : "불러오지 못했어요");
     await stage.getByRole("button", { name: locale === "en" ? "Next region" : "다음 지역", exact: true }).press("Enter");

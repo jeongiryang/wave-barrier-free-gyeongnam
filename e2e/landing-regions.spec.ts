@@ -111,21 +111,35 @@ for (const locale of ["ko", "en"]) for (const width of [320, 390, 1440]) test(`�
 
   const stage = page.locator("[data-region-stage]");
   await stage.scrollIntoViewIfNeeded();
-  await page.mouse.move(0, 0);
+  await page.mouse.move(-10, -10);
   await expect(stage).toHaveAttribute("data-running", "true");
   const initialRegion = await stage.getAttribute("data-active-region");
 
   const pauseName = locale === "en" ? "Pause automatic region changes" : "지역 자동 전환 일시정지";
   const resumeName = locale === "en" ? "Resume automatic region changes" : "지역 자동 전환 재개";
-  const rotation = page.getByRole("button", { name: pauseName });
+  const rotation = stage.locator(".region-rotation-control");
+  // Korean source titles retain their language within translated actions.
+  await expect(stage.locator("#region-photo-0-name")).toHaveAttribute("lang", "ko");
+  await expect(stage.locator("#region-photo-0-action")).toHaveAttribute("lang", locale);
+  await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("lang", "ko");
+  await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("alt", regionShowcaseAlbums[initialRegion!][0].title);
   const target = await rotation.boundingBox();
   expect(target?.width).toBeGreaterThanOrEqual(44);
   expect(target?.height).toBeGreaterThanOrEqual(44);
-  await rotation.focus();
+  // Check first keyboard entry before touch creates a native sequential-focus
+  // starting point (mobile WebKit retains the last tapped control).
+  await page.locator("#regions").focus();
+  await page.keyboard.press("Tab");
+  await expect(rotation).toBeFocused();
+  await expect(rotation).toHaveAccessibleName(resumeName);
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await rotation.press("Space");
+  await expect(stage).toHaveAttribute("data-running", "true");
   await rotation.press("Space");
 
   await expect(stage).toHaveAttribute("data-running", "false");
-  await expect(page.getByRole("button", { name: resumeName })).toHaveAttribute("aria-pressed", "true");
+  await expect(rotation).toHaveAccessibleName(resumeName);
+  await expect(rotation).not.toHaveAttribute("aria-pressed");
   await expect(stage.locator(".region-showcase-progress")).toHaveCSS("animation-name", "none");
   await page.clock.fastForward(9000);
   await expect(stage).toHaveAttribute("data-active-region", initialRegion || "");
@@ -133,7 +147,7 @@ for (const locale of ["ko", "en"]) for (const width of [320, 390, 1440]) test(`�
   const resume = page.getByRole("button", { name: resumeName });
   await resume.press("Space");
   await expect(stage).toHaveAttribute("data-running", "true");
-  await expect(page.getByRole("button", { name: pauseName })).toHaveAttribute("aria-pressed", "false");
+  await expect(rotation).toHaveAccessibleName(pauseName);
   await expect(page.getByRole("button", { name: pauseName })).toBeFocused();
   await expect(stage.locator(".region-showcase-progress")).toHaveCSS("animation-name", "region-progress");
   for (let photo = 0; photo < regionShowcaseAlbums[initialRegion!].length; photo++) {
@@ -144,9 +158,41 @@ for (const locale of ["ko", "en"]) for (const width of [320, 390, 1440]) test(`�
   await expect(page.getByRole("button", { name: pauseName })).toBeFocused();
   if (test.info().project.name.includes("mobile") && width === 390) {
     await page.getByRole("button", { name: pauseName }).tap();
-    await expect(page.getByRole("button", { name: resumeName })).toHaveAttribute("aria-pressed", "true");
+    await expect(rotation).toHaveAccessibleName(resumeName);
     await expect(stage).toHaveAttribute("data-running", "false");
+    await rotation.tap();
+    await expect(rotation).toHaveAccessibleName(pauseName);
+    await expect(stage).toHaveAttribute("data-running", "true");
   }
   expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
+  // Every keyboard entry stops rotation, including the first control. Leaving
+  // the scene or disabling OS reduction never resumes without an explicit action.
+  await page.locator("#landing-title").focus();
+  await rotation.focus();
+  await expect(rotation).toBeFocused();
+  await expect(rotation).toHaveAccessibleName(resumeName);
+  await page.locator("#landing-title").focus();
+  const heldRegion = await stage.getAttribute("data-active-region");
+  await page.clock.fastForward(16000);
+  await expect(stage).toHaveAttribute("data-active-region", heldRegion!);
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await stage.scrollIntoViewIfNeeded();
+  await page.mouse.move(-10, -10);
+  await rotation.focus();
+  await expect(rotation).toBeFocused();
+  await rotation.press("Space");
+  await expect(stage).toHaveAttribute("data-running", "true");
+  await stage.locator(".selected-region strong").hover();
+  await page.mouse.move(-10, -10);
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await page.clock.fastForward(16000);
+  await expect(stage).toHaveAttribute("data-active-region", heldRegion!);
+  await rotation.press("Space");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(rotation).toBeDisabled();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(rotation).toBeEnabled();
+  await expect(rotation).toHaveAccessibleName(resumeName);
+  await expect(stage).toHaveAttribute("data-running", "false");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });

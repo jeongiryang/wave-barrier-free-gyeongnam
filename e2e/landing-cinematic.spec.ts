@@ -25,10 +25,12 @@ test("regional names, photographs and trip links advance after the complete albu
   const stored = await page.evaluate(() => JSON.stringify(localStorage));
   await page.locator("#regions").evaluate(el => scrollTo({top: scrollY + el.getBoundingClientRect().top - 80, behavior: "instant"}));
   await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
-  // Reset through the real pause/resume interaction at a fixed clock origin.
+  // Reading the scene stops rotation until the explicit resume action.
   await page.locator(".selected-region strong").hover();
   await expect(stage).toHaveAttribute("data-running", "false");
   await page.mouse.move(0, 0);
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await stage.locator(".region-rotation-control").press("Enter");
   await expect(stage).toHaveAttribute("data-running", "true");
   await expect(stage).toHaveAttribute("data-active-region", "창원");
   await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", "0");
@@ -73,7 +75,7 @@ test("keyboard arrows stop rotation, preserve focus and match all 18 destination
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "창원");
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-running", "false");
   await expect(section.locator(".region-arrows").getByRole("button")).toHaveCount(3);
-  await expect(section.getByRole("button", { name: "지역 자동 전환 재개" })).toHaveAttribute("aria-pressed", "true");
+  await expect(section.getByRole("button", { name: "지역 자동 전환 재개" })).toBeEnabled();
   await section.getByRole("button", {name:"이전 지역"}).press("Enter");
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "김해");
 });

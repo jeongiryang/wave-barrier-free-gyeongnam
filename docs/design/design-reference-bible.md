@@ -6,13 +6,13 @@ This is a design contract, not a claim that the current candidate is released or
 
 ## Latest Owner amendment — pass 6, 2026-09-09
 
-This supersedes earlier pause/replay controls and hover-expanded chapter navigation in this document; previous decisions remain historical evidence.
+This supersedes earlier Hero/demo pause/replay controls and hover-expanded chapter navigation in this document. The continuously rotating regional photographs retain their own accessible stop/resume control; previous decisions remain historical evidence.
 
 - REFERENCE: Owner review of the pass 5 screen; existing cinematic region/departure chapters.
 - PATTERN: destination photo montage, permanently visible editorial chapter index, animated selection/composition inside real product vocabulary.
 - W.A.V.E APPLICATION: each region shows ≥2 distinct tourist photographs (Changwon 3); remove n/18 decoration. Recommendation uses a large real Daesan panorama and the preserved product capture. Needs selections lift and highlight; Community writes a question into a layered composition.
 - WHY: scenery and visible use should carry the story; control panels and validation copy should not dominate it.
-- ACCESSIBILITY: OS reduction/SaveData keep complete static demos; offscreen/hidden tabs suspend timers. Demos play a bounded 4.2s sequence on each fresh entry. Hero plays A → B → C → A once and settles on A, including after scroll-away/return; only explicit Intro replay restarts it. It retains a stable accessible heading/CTA without repeated live announcements. Native chapter links remain keyboard reachable. No visible pause or demo-replay buttons; the separate first-entry Intro replay remains the existing arrival function.
+- ACCESSIBILITY: OS reduction/SaveData keep complete static demos; offscreen/hidden tabs suspend timers. Demos play a bounded 4.2s sequence on each fresh entry. Hero plays A → B → C → A once and settles on A, including after scroll-away/return, with a stable accessible heading/CTA and no repeated live announcements. Intro runs once per session with an immediately usable skip control. Hero/demos have no replay controls. Regional photos have a first-tab stop/resume button. Focus, mouse entry, manual selection and motion/data reduction stop rotation until explicit resume; leaving or releasing a preference never restarts it. Native chapter links remain keyboard reachable.
 - PERFORMANCE: reuse React/CSS/scroll progress; no dependency or provider architecture changes. Only the active region's album renders with lazy images. While visible, only the next adjacent album is warmed at low priority; offscreen/hidden/SaveData disables speculative loading. Source/author/original-URL metadata is unchanged. No new long-running animation loop in the demonstrations.
 - RESULT: LOCAL WIP. Photo albums and chapter rail implemented; all three flat chapters restyled. Full CI/Preview/Production and Owner visual acceptance are pending.
 - GAP: individual attribution/use conditions for additional official photographs need final confirmation before release. A local screenshot is not Production evidence.
@@ -85,8 +85,8 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 - **PATTERN:** 사진·지명·짧은 이야기·지역 시작 링크가 하나의 상태로 전환.
 - **WHY IT WORKS:** 지도 설명을 읽기 전에 경남의 여행 범위를 느낀다.
 - **W.A.V.E APPLICATION:** Hero 바로 뒤, 18개 지역 각각 최소 2장의 실제 KTO 관광사진. 사진마다 4초, 해당 지역 앨범을 마친 후 다음 지역으로 이동. 수동 이전/다음 및 사진 선택. 큰 제목·kicker 없이 기존 1rem/400 본문 “남쪽 바다에서 깊은 산자락까지. 마음이 머무는 곳을 찾아보세요.”만 남긴다. 사진·저작자·출처 링크가 같은 항목에서 전환된다.
-- **DO NOT:** 포커스 중 자동 변경, 재생/정지 CTA, 사진과 링크의 지역 불일치.
-- **ACCESSIBILITY:** hover/focus/offscreen/hidden/reduced에서 멈춤; 수동 arrow 뒤 자동 재개 안 함; 자동 변경 live announce 안 함.
+- **DO NOT:** 포커스 진입·수동 선택 뒤 임의 재시작, Hero 재생/정지 CTA, 사진과 링크의 지역 불일치.
+- **ACCESSIBILITY:** 지역 자동 전환 제어가 첫 Tab 대상이다. focus/hover/reduced/SaveData로 멈추면 명시적 재개까지 유지한다. offscreen/hidden은 타이머를 보류한다. 동작을 나타내는 변경형 버튼 이름을 사용하고 aria-pressed는 중복 적용하지 않는다. 자동 변경은 live announce하지 않는다. [W3C carousel pattern](https://www.w3.org/WAI/ARIA/apg/patterns/carousel/).
 - **PERFORMANCE:** 선택 사진만 lazy load, API/provider 호출 없음, Save-Data rotation 중지.
 - **IMPLEMENTATION CANDIDATE:** LandingRegionStory / region-photo-sources. [사진별 출처 원장](region-photo-source-register.md): 확인된 상세 페이지만 연결하고, 미확인은 정확한 원본 이미지로 명시한다. 기관 홈·임의 상세 ID로 대체 금지.
 
@@ -154,9 +154,9 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 - **REFERENCE:** W.A.V.E CommunityPostList / CommunityEditor 자체 UI.
 - **PATTERN:** 장소에 연결된 글/현장 확인 구조를 큰 DOM visual로 보여줌.
 - **WHY IT WORKS:** 긴 기능 설명보다 경험이 어디에 모이는지 보인다.
-- **W.A.V.E APPLICATION:** 실제 editor의 여행 질문/지역/제목/내용 항목을 읽기 전용으로 구성. 제목 → 내용 → 미게시 글 형태를 4.2초 동안 1회 보여준다. “작성 예시” 표시, 가상 이용자/후기 아님.
+- **W.A.V.E APPLICATION:** 실제 editor의 여행 질문/지역/제목/내용 항목을 읽기 전용으로 구성. 제목과 내용의 구성을 4.2초 동안 1회 보여준다. Owner 지시에 따라 제작·검수·예시 문구를 제거하며 별도 disclaimer로 대체하지 않는다.
 - **DO NOT:** 가짜 사용자·후기·좋아요 수·작성일·실시간 activity.
-- **ACCESSIBILITY:** 예시 caption·정적 설명, 지속 정지/완료 후 다시 보기. 핵심 의미는 재생 없이도 전달. OS·Save-Data는 최종 정적 상태; SR 반복 낭독 없음.
+- **ACCESSIBILITY:** 핵심 의미는 재생 없이도 전달한다. OS·Save-Data는 최종 정적 상태이며 SR 반복 낭독과 다시 보기 제어가 없다.
 - **PERFORMANCE:** 실제 write/auth/API/storage hook import 금지. 화면 밖/hidden에서 타이머 중지, 추가 미디어 다운로드 없음.
 - **IMPLEMENTATION CANDIDATE:** LandingCommunityStory.
 
