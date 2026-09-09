@@ -34,14 +34,25 @@ for (const english of [false, true]) for (const action of ["reload", "planner"] 
     await expect(error).toHaveAttribute("lang", english ? "en" : "ko");
     expect(modules).toBeGreaterThan(0);
     expect(documents).toBe(0);
+    // Dismiss the development-only diagnostic through its real control; the product error remains.
+    await page.getByTestId("vinext-dev-error-close").click();
+    await expect(page.getByTestId("vinext-dev-error-overlay")).toHaveCount(0);
+    await expect(error).toBeVisible();
     if (!isMobile) await page.setViewportSize({ width: english ? 1440 : 960, height: 900 });
     expect((await new AxeBuilder({ page }).include(".route-state-page").analyze()).violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: test.info().outputPath("route-recovery.png") });
     // The old module's failed import remains cached by the current document even after the network recovers.
     await page.unroute(moduleUrl);
-    if (action === "reload") await error.getByRole("button").press("Enter");
-    else await error.getByRole("link").press("Enter");
+    const recovery = action === "reload" ? error.getByRole("button") : error.getByRole("link");
+    await recovery.focus();
+    await expect(recovery).toBeFocused();
+    expect(await recovery.evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      return Boolean(hit && element.contains(hit));
+    })).toBe(true);
+    await page.keyboard.press("Enter");
     await expect.poll(() => documents).toBe(1);
     await expect(error).toHaveCount(0);
     await expect(page).toHaveURL(action === "reload" ? /\/travel-book$/ : /\/planner$/);
