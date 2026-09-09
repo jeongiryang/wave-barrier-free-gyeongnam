@@ -11,3 +11,6 @@ Validation on actual main a23afdd: lint/typecheck,748 unit/contract tests, Verce
 The new cases assert no archive module request before adding a place, exactly one failed request, usable time editing to08:30, no automatic second request, no axe violation, and an explicit keyboard-triggered document reload restoring the archive action with saved1001 and08:30 intact. No real archive deletion or remote write is performed.
 
 React review: reuse the established lazy catch/fallback pattern; no added effect, subscription or loading on initial empty itinerary. CSS, storage and successful archive behavior are unchanged. This is a preserved local candidate; own hosted CI, latest main integration, merge and exact Production are pending. Broader #282 and provider holds remain open.
+
+## Actual main #420 integration
+Normal merge51131d4 includes actual main d21258c569b50afd6acafa58978e22734ae25dad. Fresh lint/typecheck,749 unit/contract tests, Vercel build and unchanged performance budgets PASS (Planner269.63/270KiB, CSS69.90/70KiB). All40 related browsers PASS1.6min. This candidate is ready for its own hosted CI; wait for #420 Production verification before merging.
