@@ -15,3 +15,6 @@
 
 ## Main #407 verification
 Normal merge bcab49c included restored exports and crowd navigation. Fresh733 unit tests, lint (13 existing warnings), typecheck/build and unchanged performance budgets passed (Planner269.61/270 KiB, CSS69.83/70 KiB). All12 travel-book browser cases passed21.7s. Hosted CI/merge/Production remain pending.
+
+## Main #410 verification
+Normal merge4667b6d, fresh733 unit tests/lint/typecheck/build/performance PASS. All12 travel-book browser cases PASS16.8s. Archived book bytes, cancel/Escape/focus and failed current-trip commit are preserved. Hosted CI/merge/Production pending; next integration includes the activity-restoration PR before submission.
