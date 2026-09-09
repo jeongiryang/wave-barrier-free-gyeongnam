@@ -23,7 +23,7 @@ interface DepartureReadinessCardProps {
   tripSelection: ReturnType<typeof useTripSelection>;
   participation: ReturnType<typeof usePlannerParticipation>;
   onRefresh: () => void | Promise<void>;
-  onOpenSignals: () => void;
+  onOpenSignals: (target: "layers" | "crowd") => void;
 }
 
 const koreanStatus = {
@@ -68,7 +68,7 @@ export default function DepartureReadinessCard({
     transportProviders,
     places: orderedSavedPlaces,
   });
-  const calendarDisabled = !plan || !orderedSavedPlaces.length || assessment.phase.id === "past";
+  const calendarDisabled = !orderedSavedPlaces.length || assessment.phase.id === "past";
 
   async function refresh() {
     if (refreshing) return;
@@ -128,9 +128,9 @@ export default function DepartureReadinessCard({
         <p>{item.subject && <><span lang={originalLanguage(item.subject)}>{item.subject}</span>{" · "}</>}{item.summary}</p>
         <dl><div><dt>{en ? "Source" : "출처"}</dt><dd lang={en ? originalLanguage(item.source) : undefined}>{item.source}</dd></div><div><dt>{en ? "Time" : "시각"}</dt><dd>{formatCheckedAt(item.checkedAt, en)}</dd></div></dl>
         <a href={item.href} onClick={(event) => {
-          if (item.href === "#layers" && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+          if ((item.href === "#layers" || item.href === "#crowd") && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
             event.preventDefault();
-            onOpenSignals();
+            onOpenSignals(item.href === "#crowd" ? "crowd" : "layers");
           }
         }}>{item.state === "confirmed" ? en ? "Review evidence" : "근거 다시 보기" : en ? "Check now" : "바로 확인하기"} <span aria-hidden="true">→</span></a>
       </article>)}
