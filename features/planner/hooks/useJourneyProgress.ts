@@ -91,11 +91,18 @@ export function useJourneyProgress({
     if (!observeSections) return;
     const sections = STEP_IDS.map((id) => document.getElementById(id)).filter((section): section is HTMLElement => Boolean(section));
     if (!sections.length || typeof IntersectionObserver === "undefined") return;
+    const intersecting = new Set<Element>();
     const observer = new IntersectionObserver((entries) => {
       if (document.querySelector<HTMLElement>(".journey-stage-stream")?.dataset.view !== "overview") return;
-      const visible = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((left, right) => Math.abs(left.boundingClientRect.top) - Math.abs(right.boundingClientRect.top));
+      // Entries contain threshold changes, not every visible section. A previous
+      // section re-entering the band must not override a still-visible destination.
+      for (const entry of entries) {
+        if (entry.isIntersecting) intersecting.add(entry.target);
+        else intersecting.delete(entry.target);
+      }
+      const visible = [...intersecting]
+        .map((target) => ({ target, top: target.getBoundingClientRect().top }))
+        .sort((left, right) => Math.abs(left.top) - Math.abs(right.top));
       const id = visible[0]?.target.id as JourneyStepId | undefined;
       if (id && STEP_IDS.includes(id)) onActiveStepChange(id);
     }, { rootMargin: "-18% 0px -64%", threshold: [0, 0.08, 0.2] });
