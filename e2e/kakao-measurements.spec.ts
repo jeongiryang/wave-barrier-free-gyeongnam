@@ -33,6 +33,7 @@ test("inconsistent provider measurements stay unavailable and a deliberate reche
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   const panel = page.locator(".route-compare-panel");
   await expect(panel.locator(".route-option")).toHaveCount(0);
+  await panel.getByRole("group", { name: "이동수단별 예상 시간" }).getByRole("button", { name: /자동차/ }).click();
   await expect(panel.getByRole("heading", { name: "자동차 예상 시간을 확인하지 못했습니다." })).toBeVisible();
   await expect(panel.getByRole("button", { name: /자동차/ })).toContainText("시간 정보 없음");
   await expect(panel.getByRole("link", { name: /카카오맵에서 자동차 확인/ })).toBeVisible();
@@ -46,4 +47,18 @@ test("inconsistent provider measurements stay unavailable and a deliberate reche
   expect(requests).toBe(2);
   await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
   await panel.screenshot({ path: test.info().outputPath("measurement-recovered.png") });
+
+  seconds = 301 * 60;
+  await page.getByRole("button", { name: "다시 계산", exact: true }).click();
+  const stop = page.locator(".day-planner-grid li").first();
+  await expect(stop).toContainText("확인된 경로 이동 301분");
+  await expect(stop.locator("b")).toContainText("15:01");
+  expect(requests).toBe(3);
+  await page.getByLabel("하루 시작", { exact: true }).fill("23:00");
+  await expect(stop.locator("b")).toContainText("+1일 04:01");
+  await expect(stop).toContainText("일정이 다음 날로 이어집니다.");
+  for (const width of [960, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await stop.screenshot({ path: test.info().outputPath(`long-route-arrival-${width}.png`) });
+  }
 });
