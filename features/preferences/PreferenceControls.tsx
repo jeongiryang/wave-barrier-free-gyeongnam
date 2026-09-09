@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useSitePreferences } from "./context";
 import { localeOptions } from "./locale-catalog";
 import type { Locale } from "./types";
@@ -15,11 +15,23 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
   const { locale, theme, setLocale, toggleTheme, t } = useSitePreferences();
   const en = locale === "en";
   const appInstall = useAppInstall();
+  const disclosure = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const closeOutside = (event: PointerEvent) => {
+      const details = disclosure.current;
+      if (details?.open && event.target instanceof Node && !details.contains(event.target)) details.open = false;
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, []);
 
   return (
-    <details className="preference-controls" inert={!controlsReady} aria-busy={!controlsReady} suppressHydrationWarning
+    <details ref={disclosure} className="preference-controls" inert={!controlsReady} aria-busy={!controlsReady} suppressHydrationWarning
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+        // Label clicks temporarily blur to null before forwarding focus to the
+        // native select. Hiding its parent here can crash Chromium's picker.
+        if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
       }}
       onKeyDown={(event) => {
         if (event.key !== "Escape" || event.defaultPrevented || !event.currentTarget.open) return;

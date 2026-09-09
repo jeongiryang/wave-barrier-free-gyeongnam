@@ -46,12 +46,42 @@ test("an origin route is never reused as a later place-to-place leg", () => {
   }), { museum: 25 });
 });
 
+test("verified journeys longer than four hours are preserved through arrival and following visits", () => {
+  const routeMinutesByPlaceId = routeMinutesForOriginLeg({
+    places: [museum, park], days: ["2026-09-01"], destinationId: "museum", routeMinutes: 301,
+  });
+  assert.deepEqual(routeMinutesByPlaceId, { museum: 301 });
+  const [day] = buildItinerarySchedule({
+    places: [museum, park], days: ["2026-09-01"], startTime: "10:00", origin,
+    routeMinutesByPlaceId: { ...routeMinutesByPlaceId, park: 40 },
+  });
+  assert.equal(day.entries[0].travelMinutes, 301);
+  assert.equal(day.entries[0].travelSource, "route");
+  assert.equal(day.entries[0].startsAtLabel, "15:01");
+  assert.equal(day.entries[0].endsAtLabel, "17:01");
+  assert.equal(day.entries[1].startsAtLabel, "17:41");
+});
+
+test("a long verified route crosses midnight without truncating the arrival time", () => {
+  const [day] = buildItinerarySchedule({
+    places: [museum], days: ["2026-09-01"], startTime: "23:00", origin,
+    routeMinutesByPlaceId: { museum: 301 },
+  });
+  assert.equal(day.entries[0].startsAtLabel, "+1일 04:01");
+  assert.equal(day.entries[0].endsAtLabel, "+1일 06:01");
+  assert.equal(day.entries[0].crossesDateBoundary, true);
+});
+
 test("invalid route values use bounded coordinate or missing-coordinate fallbacks", () => {
   const estimated = travelDurationBetween(origin, museum, { routeMinutes: Number.NaN });
   const missing = travelDurationBetween({}, {}, { routeMinutes: -10 });
   assert.equal(estimated.source, "estimate");
   assert.ok(estimated.minutes >= 5 && estimated.minutes <= 240);
   assert.deepEqual(missing, { minutes: 30, source: "fallback" });
+  for (const routeMinutes of [Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1, true, "301", 0.5]) {
+    assert.equal(travelDurationBetween(origin, museum, { routeMinutes }).source, "estimate");
+    assert.deepEqual(routeMinutesForOriginLeg({ places: [museum], days: ["2026-09-01"], destinationId: "museum", routeMinutes }), {});
+  }
 });
 
 test("visit defaults follow place type and defend invalid custom values", () => {

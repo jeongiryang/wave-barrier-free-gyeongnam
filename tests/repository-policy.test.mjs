@@ -399,7 +399,7 @@ test("motion follows the OS, retires legacy storage and has no app preference co
   assert.match(storage, /localStorage\.removeItem\("wave-motion"\)/);
   assert.doesNotMatch(controls, /toggleMotion|motion-toggle|onReplayIntro/);
   // Keep the hydration guards and require the newly added focus-leave handler.
-  assert.match(controls, /<details className="preference-controls" inert=\{!controlsReady\} aria-busy=\{!controlsReady\} suppressHydrationWarning\s+onBlur=/);
+  assert.match(controls, /<details ref=\{disclosure\} className="preference-controls" inert=\{!controlsReady\} aria-busy=\{!controlsReady\} suppressHydrationWarning\s+onBlur=/);
   assert.doesNotMatch(catalog, /motionCopy/);
   assert.match(engine, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(layout, /prefers-reduced-motion: reduce/);
