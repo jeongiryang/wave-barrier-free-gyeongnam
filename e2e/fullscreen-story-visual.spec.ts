@@ -18,7 +18,7 @@ test("the full-screen arrival leads through the complete Korean service story", 
   await expect(intro).toBeHidden();
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   await page.screenshot({ path: test.info().outputPath("02-hero.png") });
-  for (const [index, selector] of [".story-expansion", ".manifesto", ".journey-scene", ".region-story", ".landing-cta"].entries()) {
+  for (const [index, selector] of [".story-expansion", ".manifesto", ".possibility-scene", ".journey-scene", ".region-story", ".landing-cta"].entries()) {
     const section = page.locator(selector);
     await section.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
     await expect.poll(() => section.locator("h2").first().evaluate(node => {

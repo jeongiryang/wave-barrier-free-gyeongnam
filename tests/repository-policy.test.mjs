@@ -211,7 +211,7 @@ test("shared styles keep stable cascade boundaries", async () => {
   assert.match(oceanResponsive, /뷰포트: 창 절반 폭까지 무너지지 않게/);
   assert.match(designSystem, /--shadow-3:/);
   assert.match(designSystem, /:focus-visible/);
-  assert.match(experience, /html\[data-motion="calm"\] \.hero-wave-canvas/);
+  assert.match(experience, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.help-tour-spotlight/);
   assert.match(experience, /포인터 종류와 화면 폭에 관계없이/);
 });
 
@@ -378,32 +378,31 @@ test("saved preferences survive a reload", async () => {
   // 저장된 값을 읽기 전에 기본값을 써 버리면 이용자가 고른 테마와 언어가 지워진다.
   // 읽기가 끝났음을 알리는 표시가 있고, 저장이 그 뒤에만 일어나야 한다.
   assert.match(context, /const stored = readStoredPreferences\(\)/);
-  assert.match(context, /setMotionPreference\(stored\.motion\)[\s\S]*setHydrated\(true\)/);
+  assert.match(context, /setTheme\(stored\.theme\)[\s\S]*setHydrated\(true\)/);
   assert.match(context, /if \(!hydrated\) return;[\s\S]*writeStoredPreferences/);
   assert.match(storage, /localStorage\.getItem\("wave-theme"\)/);
   assert.match(storage, /try\s*\{[\s\S]*localStorage\.setItem\("wave-theme"[\s\S]*\}\s*catch/);
 });
 
-test("wave motion preference is persisted, localized and respects reduced motion", async () => {
-  const [storage, controls, catalog, engine, layout, css] = await Promise.all([
+test("motion follows the OS, retires legacy storage and has no app preference control", async () => {
+  const [storage, controls, catalog, engine, layout] = await Promise.all([
     source("features/preferences/storage.ts"),
     source("features/preferences/PreferenceControls.tsx"),
     source("features/preferences/locale-catalog.ts"),
     source("features/motion/wave-field-engine.ts"),
     source("app/layout.tsx"),
-    styleSource(),
   ]);
-  assert.match(storage, /localStorage\.getItem\("wave-motion"\)/);
-  assert.match(storage, /localStorage\.setItem\("wave-motion", preferences\.motion\)/);
-  assert.match(controls, /aria-pressed=\{motion === "calm"\}/);
+  assert.doesNotMatch(storage, /localStorage\.(getItem|setItem)\("wave-motion"/);
+  assert.match(storage, /localStorage\.removeItem\("wave-motion"\)/);
+  assert.doesNotMatch(controls, /toggleMotion|motion-toggle|onReplayIntro/);
   // Keep the hydration guards and require the newly added focus-leave handler.
-  assert.match(controls, /<details className="preference-controls" inert=\{!replayReady\} aria-busy=\{!replayReady\} suppressHydrationWarning\s+onBlur=/);
-  assert.match(catalog, /export const motionCopy: Record<Locale/);
+  assert.match(controls, /<details className="preference-controls" inert=\{!controlsReady\} aria-busy=\{!controlsReady\} suppressHydrationWarning\s+onBlur=/);
+  assert.doesNotMatch(catalog, /motionCopy/);
   assert.match(engine, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(layout, /prefers-reduced-motion: reduce/);
-  assert.match(layout, /d\.dataset\.motion=r\|\|o==='calm'\?'calm':'full'/);
+  assert.match(layout, /d\.dataset\.motion=r\?'calm':'full'/);
   assert.doesNotMatch(layout, /LandingIntro|wave-intro-seen/);
-  assert.match(css, /html\[data-motion="calm"\] \.hero-wave-canvas \{ display: none; \}/);
+  assert.match(await source("app/styles/landing-arrival.css"), /\.arrival-intro\[data-still="true"\] \.arrival-wave-canvas \{ visibility: hidden; \}/);
 });
 
 test("non-Korean locales are visibly marked as partial without breaking narrow headers", async () => {
@@ -709,7 +708,7 @@ test("the wave canvas delegates React lifecycle, canvas engine, motion math and 
     source("features/motion/wave-model.ts"),
     source("features/motion/intro-masks.ts"),
   ]);
-  assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion \}, replay\)/);
+  assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion: paused \? "calm" : motion \}, replay\)/);
   assert.doesNotMatch(wave, /useEffect|requestAnimationFrame|createIntroMasks/);
   assert.match(renderer, /startWaveFieldRenderer\(canvas/);
   assert.doesNotMatch(renderer, /requestAnimationFrame|createIntroMasks|putImageData/);

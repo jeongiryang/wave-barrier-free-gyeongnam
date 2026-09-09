@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { useSitePreferences } from "./context";
-import { localeOptions, motionCopy } from "./locale-catalog";
+import { localeOptions } from "./locale-catalog";
 import type { Locale } from "./types";
 import { useAppInstall } from "./useAppInstall";
 
@@ -10,16 +10,14 @@ const subscribeToHydration = () => () => undefined;
 const browserReady = () => true;
 const serverReady = () => false;
 
-export function PreferenceControls({ onReplayIntro }: { onReplayIntro?: () => void } = {}) {
-  const [replayCount, setReplayCount] = useState(0);
-  const replayReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
-  const { locale, theme, motion, systemReducedMotion, setLocale, toggleTheme, toggleMotion, t } = useSitePreferences();
+export function PreferenceControls() {
+  const controlsReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
+  const { locale, theme, setLocale, toggleTheme, t } = useSitePreferences();
   const en = locale === "en";
-  const motionLabel = systemReducedMotion ? en ? "Motion reduced by your device settings" : "운영체제 설정에 따라 동작 효과 줄임" : motion === "calm" ? motionCopy[locale].on : motionCopy[locale].off;
   const appInstall = useAppInstall();
 
   return (
-    <details className="preference-controls" inert={!replayReady} aria-busy={!replayReady} suppressHydrationWarning
+    <details className="preference-controls" inert={!controlsReady} aria-busy={!controlsReady} suppressHydrationWarning
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
       }}
@@ -49,15 +47,6 @@ export function PreferenceControls({ onReplayIntro }: { onReplayIntro?: () => vo
           <span><b>{en ? "Appearance" : "화면 색상"}</b><small>{theme === "dark" ? en ? "Dark appearance" : "어두운 화면" : en ? "Light appearance" : "밝은 화면"}</small></span>
           <em aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</em>
         </button>
-        <button className="preference-row motion-toggle" type="button" onClick={systemReducedMotion ? undefined : toggleMotion} aria-disabled={systemReducedMotion || undefined} aria-pressed={motion === "calm"} aria-label={motionLabel}>
-          <span><b>{en ? "Motion" : "동작 효과"}</b><small>{systemReducedMotion ? en ? "Following device settings" : "운영체제 설정 적용 중" : motion === "calm" ? en ? "Reduced motion" : "효과 줄임" : en ? "Full motion" : "기본 효과"}</small></span>
-          <em aria-hidden="true">{systemReducedMotion ? en ? "Device" : "OS" : motion === "calm" ? en ? "Reduced" : "정지" : en ? "Full" : "흐름"}</em>
-        </button>
-        {onReplayIntro && <button className="preference-row" type="button" disabled={!replayReady} onClick={() => { onReplayIntro(); setReplayCount((count) => count + 1); }} aria-label={en ? "Replay intro" : "인트로 다시보기"}>
-          <span><b>{en ? "Replay intro" : "인트로 다시보기"}</b><small>{en ? "Open the full-screen introduction; return here when closed" : "전체 화면 소개를 본 뒤 이 버튼으로 돌아옵니다"}</small></span>
-          <em aria-hidden="true">↻</em>
-        </button>}
-        {onReplayIntro && <p role="status" aria-live="polite" aria-atomic="true">{replayCount > 0 ? (en ? "Intro shown again with your motion preferences." : "설정한 동작 효과로 인트로를 다시 표시했습니다.") : ""}{replayCount > 1 ? (en ? ` (${replayCount} replays)` : ` (${replayCount}회)`) : ""}</p>}
         {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label={en ? "Install W.A.V.E" : "W.A.V.E 앱 설치"}>
           <span><b>{en ? "Install as an app" : "앱으로 설치"}</b><small>{en ? "Open from your home screen" : "홈 화면에서 전체 화면으로 열기"}</small></span>
           <em aria-hidden="true">{appInstall.state === "installing" ? en ? "Preparing" : "준비 중" : en ? "Install" : "설치"}</em>

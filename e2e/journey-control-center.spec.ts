@@ -8,7 +8,6 @@ async function openPlanner(page: import("@playwright/test").Page, width: number,
   await mockPublicShellApi(page);
   await mockPlannerApi(page);
   await page.addInitScript(() => {
-    window.localStorage.setItem("wave-motion", "calm");
     window.sessionStorage.setItem("wave-intro-seen-v2", "1");
   });
   await page.goto("/planner");

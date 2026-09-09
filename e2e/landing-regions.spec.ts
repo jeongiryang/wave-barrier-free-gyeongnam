@@ -3,7 +3,7 @@ import { mockPublicShellApi } from "./fixtures";
 
 test("실제 경계와 18개 텍스트 선택 대안은 같은 지역을 가리킨다", async ({ page }) => {
   await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/");
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   const section = page.locator("#regions");
@@ -54,7 +54,7 @@ test("랜딩 기능 데모는 한국어 순서와 비대화형 미리보기 계�
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/", { waitUntil: "networkidle" });
   await page.locator("#journey-tools-details > summary").click();
   await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
@@ -72,7 +72,7 @@ test("랜딩 기능 데모는 한국어 순서와 비대화형 미리보기 계�
 test("5초가 넘는 반복 시연은 화면 밖에서 멈추고 사용자가 정지할 수 있다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
   const routeStory = page.locator(".route-story");
@@ -101,12 +101,9 @@ test("5초가 넘는 반복 시연은 화면 밖에서 멈추고 사용자가 �
   await expect.poll(() => routeStory.evaluate((node) => node.classList.contains("is-visible"))).toBe(false);
   await expect.poll(() => vehicle.evaluate((node) => getComputedStyle(node).animationPlayState)).toBe("paused");
 
-  await page.locator("summary[aria-label='환경설정 열기']").click();
-  const motionToggle = page.locator("button.motion-toggle");
-  await expect(motionToggle).toHaveAccessibleName("동작 효과 줄이기");
-  await motionToggle.click();
-  await expect(motionToggle).toHaveAttribute("aria-pressed", "true");
-  await expect(motionToggle).toHaveAccessibleName("동작 효과 켜기");
+  // The canonical flow follows the OS; there is no separate in-app motion mode.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator("button.motion-toggle")).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.motion)).toBe("calm");
 
   const staticState = await vehicle.evaluate((node) => {
@@ -115,8 +112,6 @@ test("5초가 넘는 반복 시연은 화면 밖에서 멈추고 사용자가 �
   });
   expect(staticState).toEqual({ animationName: "none", opacity: "1" });
 
-  await page.evaluate(() => window.localStorage.removeItem("wave-motion"));
-  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.motion)).toBe("calm");
   await page.locator("#journey-tools-details > summary").click();

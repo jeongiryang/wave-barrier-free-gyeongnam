@@ -9,7 +9,8 @@ test("first entry is a full viewport cinematic with immediately usable keyboard 
   await page.goto("/");
   const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
   await expect(intro).toBeVisible();
-  await expect(intro.locator("video")).toHaveAttribute("src", "/media/wave-story/intro-ocean.mp4");
+  await expect(intro.locator("video")).toHaveAttribute("src", "/media/wave-story/hero-water-loop.mp4");
+  await expect(intro.locator(".arrival-wave-canvas")).toHaveAttribute("data-intro-phase", /wave|accessibility|wordmark/);
   await intro.getByRole("button", { name: "영상 일시정지" }).click();
   expect(await intro.evaluate(node => {
     const r = node.getBoundingClientRect();
@@ -41,7 +42,6 @@ test("a completed session stays on Landing after reload and explicit replay retu
   await page.reload();
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   await expect(intro).toBeHidden();
-  await page.getByLabel("환경설정 열기").click();
   const replay = page.getByRole("button", { name: "인트로 다시보기", exact: true });
   await replay.focus();
   await page.keyboard.press("Enter");
@@ -57,12 +57,15 @@ test("a completed session stays on Landing after reload and explicit replay retu
   await expect(replay).toBeFocused();
 });
 
-for (const preference of ["reduced", "app-reduced", "save-data"] as const) {
+for (const preference of ["reduced", "legacy-full-with-os-reduced", "save-data"] as const) {
   test(`${preference} has a full-screen static intro without video download`, async ({ page }) => {
     const videoRequests: string[] = [];
     page.on("request", request => { if (request.url().endsWith(".mp4")) videoRequests.push(request.url()); });
     if (preference === "reduced") await page.emulateMedia({ reducedMotion: "reduce" });
-    else if (preference === "app-reduced") await page.addInitScript(() => localStorage.setItem("wave-motion", "calm"));
+    else if (preference === "legacy-full-with-os-reduced") {
+      await page.addInitScript(() => localStorage.setItem("wave-motion", "full"));
+      await page.emulateMedia({ reducedMotion: "reduce" });
+    }
     else await page.addInitScript(() => Object.defineProperty(navigator, "connection", { value: Object.assign(new EventTarget(), { saveData: true }), configurable: true }));
     await page.goto("/");
     const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
@@ -79,7 +82,7 @@ for (const preference of ["reduced", "app-reduced", "save-data"] as const) {
 
 test("failed media retains the brand, static scene and a working exit", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.route("**/media/wave-story/intro-ocean.mp4", route => route.abort());
+  await page.route("**/media/wave-story/hero-water-loop.mp4", route => route.abort());
   await page.goto("/");
   const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
   await expect(intro.getByRole("status")).toContainText("영상을 불러오지 못해");
@@ -128,10 +131,56 @@ test("denied session storage still allows an immediate exit and explicit replay"
   await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   await expect(intro).toBeHidden();
-  await page.getByLabel("환경설정 열기").click();
   await page.getByRole("button", { name: "인트로 다시보기", exact: true }).click();
   await expect(intro).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(intro).toBeHidden();
   await expect(page.getByRole("button", { name: "인트로 다시보기", exact: true })).toBeFocused();
+});
+
+test("legacy app motion values cannot suppress the canonical intro and preferences have no motion or replay controls", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("wave-motion", "calm"));
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
+  await expect(intro).toHaveAttribute("data-still", "false");
+  await expect(intro.locator("video")).toHaveAttribute("src", "/media/wave-story/hero-water-loop.mp4");
+  await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
+  await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
+  await page.getByLabel("환경설정 열기").click();
+  const preferences = page.locator(".preference-controls");
+  await expect(preferences.getByRole("button", { name: /동작|인트로/ })).toHaveCount(0);
+  await expect(preferences.getByLabel("언어", { exact: true })).toBeVisible();
+  await page.getByLabel("환경설정 열기").click();
+  await expect(page.locator(".landing-hero .intro-replay-link")).toBeVisible();
+  await expect(page.locator(".landing-hero canvas")).toHaveCount(0);
+  await expect(page.locator(".landing-hero-copy")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+});
+
+test("320px short screens keep the brand, copy and every intro control separate and readable", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
+  for (const mode of ["reduce", "no-preference"] as const) {
+    await page.emulateMedia({ reducedMotion: mode });
+    if (mode === "no-preference") await expect(intro.locator("canvas")).toHaveAttribute("data-intro-phase", "wordmark");
+    await expect(intro.locator("h2")).toHaveCSS("opacity", "1");
+    const layout = await intro.evaluate(node => {
+      const words = [...node.querySelectorAll(".arrival-brand > *")].map(item => item.getBoundingClientRect());
+      const controls = [...node.querySelectorAll("button,a")].map(item => item.getBoundingClientRect());
+      const overlap = (a: DOMRect, b: DOMRect) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+      return {
+        copyCovered: words.some(word => controls.some(control => overlap(word, control))),
+        wordsOverlap: words.some((word, i) => words.some((other, j) => i !== j && overlap(word, other))),
+        controlsFit: controls.every(r => r.x >= 0 && r.right <= innerWidth && r.y >= 0 && r.bottom <= innerHeight && r.width >= 44 && r.height >= 44),
+        overflow: document.documentElement.scrollWidth > innerWidth,
+      };
+    });
+    expect(layout).toEqual({ copyCovered: false, wordsOverlap: false, controlsFit: true, overflow: false });
+    await page.screenshot({ path: test.info().outputPath(`intro-320-${mode}.png`) });
+  }
+  await page.keyboard.press("Escape");
+  await expect(intro).toBeHidden();
 });

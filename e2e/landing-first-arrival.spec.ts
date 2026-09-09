@@ -139,11 +139,17 @@ async function expectRecordedPanelSettled(stage: Locator) {
 
 test.use({ video: "on" });
 
+// Recorded product scenes begin after arrival; the intro cases below explicitly start a fresh arrival.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+});
+
 for (const seenBefore of [false, true]) {
-  test(`normal arrival is visibly painted and usable with prior session marker ${seenBefore}`, async ({ page }) => {
+  test(`normal arrival is visibly painted and usable with prior legacy session marker ${seenBefore}`, async ({ page }) => {
     await mockPublicShellApi(page);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.addInitScript((seen) => {
+      sessionStorage.removeItem("wave-arrival-session-v1");
       if (seen) sessionStorage.setItem("wave-intro-seen-v2", "1");
       const observed: string[] = [];
       Object.defineProperty(window, "arrivalPhases", { value: observed });
@@ -160,27 +166,34 @@ for (const seenBefore of [false, true]) {
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
     await expect(page.locator(".landing-page")).toHaveCount(1);
-    const canvas = page.locator(".hero-arrival canvas");
-    const planning = page.locator(".landing-actions a");
+    const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
+    const canvas = intro.locator(".arrival-wave-canvas");
+    const planning = intro.getByRole("link", { name: "바로 여행 계획하기" });
     await expect(planning).toBeVisible();
-    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(planning).toHaveAttribute("href", "/planner");
+    await expect(intro).toBeVisible();
     await expect(canvas).toHaveAttribute("data-intro-phase", "wordmark");
     expect(await page.evaluate(() => (window as unknown as { arrivalPhases: string[] }).arrivalPhases)).toEqual(["wave", "accessibility", "wordmark"]);
-    await canvas.scrollIntoViewIfNeeded();
-    expect(await canvas.evaluate((node) => {
+    expect(await canvas.evaluate((node: HTMLCanvasElement) => {
       const rect = node.getBoundingClientRect();
       const style = getComputedStyle(node);
-      return rect.width > 200 && rect.height >= 180 && style.opacity === "1" && style.maskImage === "none"
-        && document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === node;
+      const pixels = node.getContext("2d")!.getImageData(0, 0, node.width, node.height).data;
+      const colors = new Set<number>();
+      for (let i = 0; i < pixels.length; i += 404) colors.add(pixels[i] * 65536 + pixels[i + 1] * 256 + pixels[i + 2]);
+      return rect.x === 0 && rect.y === 0 && rect.width === innerWidth && rect.height === innerHeight
+        && style.opacity === "1" && style.maskImage === "none" && colors.size > 20;
     })).toBe(true);
-    await page.locator(".hero-opening").screenshot({ path: test.info().outputPath("first-arrival-wordmark.png") });
+    await page.screenshot({ path: test.info().outputPath("first-arrival-wordmark.png") });
     await planning.focus();
     await expect(planning).toBeFocused();
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(canvas).toBeHidden();
-    await expect(page.locator(".hero-arrival-still")).toContainText("W.A.V.E");
+    await expect(intro.getByRole("heading", { name: "W.A.V.E" })).toBeVisible();
     await expect(planning).toBeFocused();
-    await page.locator(".hero-opening").screenshot({ path: test.info().outputPath("first-arrival-static.png") });
+    await page.screenshot({ path: test.info().outputPath("first-arrival-static.png") });
+    await page.keyboard.press("Escape");
+    await expect(intro).toBeHidden();
+    await expect(page.locator("#landing-title")).toBeFocused();
   });
 }
 

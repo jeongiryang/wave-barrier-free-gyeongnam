@@ -15,7 +15,7 @@ for (const theme of ["light", "dark"] as const) {
     await mockPublicShellApi(page);
     await mockPlannerApi(page);
     await page.addInitScript((value) => {
-      window.sessionStorage.setItem("wave-intro-seen-v2", "1");
+      window.sessionStorage.setItem("wave-arrival-session-v1", "done");
       window.localStorage.setItem("wave-theme", value as string);
     }, theme);
 
@@ -32,25 +32,23 @@ for (const theme of ["light", "dark"] as const) {
   });
 }
 
-test("환경설정의 동작 효과 토글은 켠 상태에서도 읽힌다", async ({ page }) => {
-  // 움직임 줄이기 토글 자체가 접근성 기능이다. 켜면 배경이 밝게 바뀌는데
-  // 어두운 화면에서 그 배경만 남아 글자가 대비 1.02로 사라졌었다.
+test("OS 동작 감소에서도 환경설정의 모든 항목은 읽힌다", async ({ page }) => {
+  // Keep the contrast regression over every remaining preference after retiring the manual motion control.
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
   await mockPlannerApi(page);
   await page.addInitScript(() => {
-    window.sessionStorage.setItem("wave-intro-seen-v2", "1");
+    window.sessionStorage.setItem("wave-arrival-session-v1", "done");
     window.localStorage.setItem("wave-theme", "dark");
-    window.localStorage.setItem("wave-motion", "calm");
   });
   await page.goto("/community", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1_500);
 
   await page.locator("summary[aria-label='환경설정 열기']").first().click();
   await page.waitForTimeout(400);
-  const toggle = page.locator("button.motion-toggle");
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("button.motion-toggle")).toHaveCount(0);
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
 
-  const findings = (await findLowContrastText(page)).filter((item) => item.where.includes("motion-toggle"));
-  expect(findings, `동작 효과 토글 대비\n${formatFindings("/community", findings)}`).toEqual([]);
+  const findings = await findLowContrastText(page);
+  expect(findings, `환경설정과 배경 대비\n${formatFindings("/community", findings)}`).toEqual([]);
 });

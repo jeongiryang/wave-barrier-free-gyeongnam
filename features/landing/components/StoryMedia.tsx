@@ -8,7 +8,7 @@ function dataConnection() {
 }
 
 /** Static first: video bytes are requested only by an explicit play action. */
-export default function StoryMedia({ children }: { children: ReactNode }) {
+export default function StoryMedia({ children, kind = "hero" }: { children: ReactNode; kind?: "hero" | "film" }) {
   const { locale, motion } = useSitePreferences();
   const en = locale === "en";
   const video = useRef<HTMLVideoElement>(null);
@@ -62,21 +62,21 @@ export default function StoryMedia({ children }: { children: ReactNode }) {
     const player = video.current;
     if (!player || failed || dataConnection()?.saveData || motion === "calm" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (!player.paused) { player.pause(); return; }
-    if (!player.getAttribute("src")) player.src = "/media/wave-story/hero-water-loop.mp4";
+    if (!player.getAttribute("src")) player.src = kind === "film" ? "/media/wave-story/story-film-v2.mp4" : "/media/wave-story/hero-water-loop.mp4";
     void player.play().catch((error: unknown) => {
       // A pause while playback starts is expected when the preference or viewport changes.
       if (!(error instanceof DOMException && error.name === "AbortError")) setFailed(true);
     });
   }
 
-  return <figure className="story-media" aria-label={en ? "An imagined coastal journey" : "바닷가 여행을 담은 상상 풍경"}>
-    {!imageFailed && <img src="/media/wave-story/hero-coast-small.webp" srcSet="/media/wave-story/hero-coast-small.webp 840w, /media/wave-story/hero-coast.webp 1672w" sizes="100vw" width="1672" height="941" fetchPriority="high" alt="" onError={() => setImageFailed(true)} />}
-    <video ref={video} muted playsInline loop preload="none" aria-hidden="true" tabIndex={-1} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onError={() => { setPlaying(false); setFailed(true); }} data-playing={playing && !failed} />
+  return <figure className={`story-media${kind === "film" ? " story-film" : ""}`} aria-label={en ? "An imagined coastal journey" : "바닷가 여행을 담은 상상 풍경"}>
+    {!imageFailed && <img src={kind === "film" ? "/media/wave-story/garden-discovery-v2.webp" : "/media/wave-story/hero-coast-small.webp"} srcSet={kind === "hero" ? "/media/wave-story/hero-coast-small.webp 840w, /media/wave-story/hero-coast.webp 1672w" : undefined} sizes="100vw" width={kind === "film" ? 1448 : 1672} height={kind === "film" ? 1086 : 941} loading={kind === "film" ? "lazy" : undefined} fetchPriority={kind === "hero" ? "high" : "auto"} alt="" onError={() => setImageFailed(true)} />}
+    <video ref={video} muted playsInline loop={kind === "hero"} preload="none" aria-hidden="true" tabIndex={-1} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} onError={() => { setPlaying(false); setFailed(true); }} data-playing={playing && !failed} />
     {children}
     <figcaption>
       <span>{en ? "Imagined scenery · not a real destination or facility record" : "상상 풍경 · 실제 관광지나 편의시설 정보가 아닙니다"}</span>
       <button type="button" onClick={togglePlayback} aria-pressed={playing} aria-disabled={failed || reducedMotion || saveData}>
-        {playing ? (en ? "Pause scenery" : "풍경 일시정지") : (en ? "Play scenery" : "풍경 재생")}
+        {kind === "film" ? (playing ? (en ? "Pause story film" : "소개 영상 일시정지") : (en ? "Play the 20-second story" : "20초 소개 영상 보기")) : playing ? (en ? "Pause scenery" : "풍경 일시정지") : (en ? "Play scenery" : "풍경 재생")}
       </button>
       <span role="status">{failed ? (en ? "The video is unavailable. You can continue planning below." : "영상을 불러오지 못했어요. 아래에서 여행 계획을 계속할 수 있어요.") : saveData ? (en ? "Data saving is on. The video is not loaded." : "데이터 절약 설정에 따라 영상은 불러오지 않아요.") : reducedMotion ? (en ? "Reduced motion is on. The scenery stays still." : "동작 줄이기 설정에 따라 정지된 풍경을 보여드려요.") : ""}</span>
     </figcaption>

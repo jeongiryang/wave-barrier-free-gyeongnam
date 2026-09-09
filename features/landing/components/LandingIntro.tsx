@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
+import WaveField from "../../../components/WaveField";
 
 const SESSION_KEY = "wave-arrival-session-v1";
-const VIDEO = "/media/wave-story/intro-ocean.mp4";
+const VIDEO = "/media/wave-story/hero-water-loop.mp4";
 
 /** Session-once arrival. Native modal semantics keep background controls out of Tab order. */
 export default function LandingIntro({ replay }: { replay: number }) {
@@ -12,7 +13,7 @@ export default function LandingIntro({ replay }: { replay: number }) {
 }
 
 function ArrivalScene({ replay }: { replay: number }) {
-  const { locale, motion } = useSitePreferences();
+  const { locale } = useSitePreferences();
   const en = locale === "en";
   const dialog = useRef<HTMLDialogElement>(null);
   const video = useRef<HTMLVideoElement>(null);
@@ -37,14 +38,11 @@ function ArrivalScene({ replay }: { replay: number }) {
       setVisible(false);
       const target = returnTo.current;
       if (target?.isConnected) {
-        // Preferences close on blur. Restore their original, explicit replay control.
-        const details = target.closest("details");
-        if (details) details.open = true;
         target.focus({ preventScroll: true });
       } else document.getElementById("landing-title")?.focus({ preventScroll: true });
       document.documentElement.classList.remove("arrival-open");
     };
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.dataset.motion === "calm") close();
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) close();
     else { node.dataset.leaving = "true"; exitTimer.current = setTimeout(close, 360); }
   }, []);
 
@@ -77,7 +75,9 @@ function ArrivalScene({ replay }: { replay: number }) {
     const media = matchMedia("(prefers-reduced-motion: reduce)");
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     const sync = () => {
-      const still = media.matches || motion === "calm" || document.documentElement.dataset.motion === "calm" || connection?.saveData === true;
+      // Read the live OS signal. A parent effect may still hold the previous
+      // data-motion value when the user turns reduced motion off at runtime.
+      const still = media.matches || connection?.saveData === true;
       setStaticScene(still);
       if (still || paused || failed || document.hidden) {
         player.pause();
@@ -99,7 +99,7 @@ function ArrivalScene({ replay }: { replay: number }) {
       document.removeEventListener("visibilitychange", sync);
       player.pause();
     };
-  }, [visible, replay, motion, paused, failed]);
+  }, [visible, replay, paused, failed]);
 
   useEffect(() => {
     if (!visible || staticScene || paused || failed) return;
@@ -120,11 +120,12 @@ function ArrivalScene({ replay }: { replay: number }) {
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     }}>
-    {!imageFailed && <img className="arrival-poster" src="/media/wave-story/ocean-expand-small.webp"
-      srcSet="/media/wave-story/ocean-expand-small.webp 840w, /media/wave-story/ocean-expand.webp 1672w"
+    {!imageFailed && <img className="arrival-poster" src="/media/wave-story/hero-coast-small.webp"
+      srcSet="/media/wave-story/hero-coast-small.webp 840w, /media/wave-story/hero-coast.webp 1672w"
       sizes="100vw" width="1672" height="941" alt="" fetchPriority="high" onError={() => setImageFailed(true)} />}
     <video ref={video} className="arrival-film" muted playsInline preload="none" aria-hidden="true" tabIndex={-1}
       onEnded={finish} onError={() => setFailed(true)} />
+    {visible && <WaveField className="arrival-wave-canvas" tone="deep" mode="intro" replay={replay} paused={staticScene || paused || failed} />}
     <div className="arrival-top"><span>{en ? "A journey for every way of moving" : "여행의 가능성을 넓히다"}</span>
       <form method="dialog" onSubmit={event => { event.preventDefault(); finish(); }}><button type="submit" data-intro-skip>{en ? "Skip intro" : "소개로 건너뛰기"}<span aria-hidden="true"> ↗</span></button></form>
     </div>

@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { useSitePreferences } from "../../../components/SitePreferences";
-import WaveField from "../../../components/WaveField";
 import StoryMedia from "./StoryMedia";
 import type { LandingTranslate } from "../content";
 
-export default function LandingHero({ t, replay = 0 }: { t: LandingTranslate; replay?: number }) {
+export default function LandingHero({ t, replay = 0, onReplayIntro }: { t: LandingTranslate; replay?: number; onReplayIntro: () => void }) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
   return <section className="landing-hero" id="top" data-intro-replay={replay}>
@@ -15,11 +14,8 @@ export default function LandingHero({ t, replay = 0 }: { t: LandingTranslate; re
       <h1 id="landing-title" tabIndex={-1}>{t("heroTitle", "필요한 편의부터,")}<br /><em>{t("heroEm", "내게 맞는 경남 여행.")}</em></h1>
       <span>{t("heroCopy", "내게 필요한 편의로 경남 여행지를 찾고, 일정과 이동을 준비하세요. 로그인 없이 시작할 수 있어요.")}</span>
       <div className="landing-actions"><Link href="/planner">{en ? "Plan my trip" : "여행 계획 만들기"} <b aria-hidden="true">→</b></Link></div>
-    </div>
-    <div className="hero-arrival" aria-label={en ? "From the facilities you need to a journey you choose" : "필요한 편의에서 내가 고른 여행으로"}>
-      <WaveField replay={replay} className="hero-wave-canvas" tone="deep" mode="intro" />
-      <div className="hero-arrival-still" aria-hidden="true"><strong>W.A.V.E</strong><span>{en ? "Your way to Gyeongnam" : "누구나, 경남을 향해"}</span></div>
-      <p>{en ? "Facilities → places → a day of your own" : "필요한 편의 → 가고 싶은 장소 → 나만의 하루"}</p>
+      <button className="intro-replay-link" type="button" onClick={onReplayIntro} aria-haspopup="dialog">{en ? "Replay intro" : "인트로 다시보기"}<span aria-hidden="true"> ↻</span></button>
+      <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{replay > 0 ? (en ? `Intro replay ${replay}` : `인트로 ${replay}회 다시보기`) : ""}</span>
     </div>
     </div>
     </StoryMedia>

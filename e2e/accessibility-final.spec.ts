@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+});
+
 test("OS 동작 줄이기는 저장된 full보다 우선하고 부분 번역 중 문서 언어는 한국어를 유지한다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => {
@@ -13,8 +17,9 @@ test("OS 동작 줄이기는 저장된 full보다 우선하고 부분 번역 중
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(page.locator("html")).toHaveAttribute("lang", "ko");
   await page.locator("details.preference-controls > summary").click();
-  await expect(page.locator(".motion-toggle")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator(".motion-toggle")).toHaveAttribute("aria-disabled", "true");
+  await expect(page.locator(".motion-toggle")).toHaveCount(0);
+  await expect(page.locator(".preference-panel > p")).toContainText("운영체제의 동작 줄이기 설정");
+  expect(await page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
 });
 
 test("320px 공개 화면은 주요 메뉴와 Escape 초점 복귀를 제공한다", async ({ page }) => {

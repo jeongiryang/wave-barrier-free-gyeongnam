@@ -55,15 +55,19 @@ Owner가 제작을 지시한 v3 자산의 확정 커밋 `d908bd9de2f484a8ef5c1f6
 | --- | ---: | --- |
 | hero-coast.webp | 301256 | 큰 화면의 해안 배경 |
 | hero-coast-small.webp | 51378 | 작은 화면의 배경·여정 설명 |
-| travel-together-small.webp | 46122 | 동행하는 여행의 설명 그림 |
-| harbor-closing-small.webp | 23286 | 여정 설명 그림 |
-| hero-water-loop.mp4 | 621924 | 사용자가 재생할 때 요청하는 8초 무음 풍경 |
+| travel-together-small.webp | 46122 | 이전 후보 자산 보존. 현재 편의 장면은 v1 그림 사용 |
+| harbor-closing-small.webp | 23286 | 이전 후보 자산 보존. 현재 closing은 v2 항구 사용 |
+| hero-water-loop.mp4 | 621924 | 전체 화면 Intro와 Hero가 공유하는 8초 무음 해안. Hero에서는 선택 재생 |
 | ocean-expand-small.webp | 91608 | 스크롤 확장 장면의 작은 이미지 |
 | ocean-expand.webp | 451372 | 같은 확장 장면의 큰 화면 이미지 |
-| intro-ocean.mp4 | 636140 | 전체 화면 첫 진입 영상. v3 `ocean-surface-loop.mp4`를 이름만 변경 |
+| intro-ocean.mp4 | 636140 | 첫 시각 후보의 영상 보존. 현재 UI 참조 없음 |
+| planning-together-v1.webp | 270230 | v1 `0de3ce4`, 함께 계획하는 큰 편의 소개 그림 |
+| garden-discovery-v2.webp | 387770 | v2 `be1347f`, 상상 여행 장면의 큰 정원 그림 |
+| harbor-night-v2.webp | 186024 | 같은 v2 원본, 마지막 CTA의 항구 |
+| story-film-v2.mp4 | 1429568 | v2 이미지 3장으로 새 편집한 20초 선택 재생 영상. 원본 영어 영상과 구별 |
 
 이는 AI로 제작한 **가상 풍경**으로 특정 경남 관광지·보행로·편의시설을 촬영하거나 조사한 기록이 아니다. 화면에도 이를 표시한다. 실제 관광정보·공식 사진·시설 판단의 근거와 분리하며 한국관광공사의 자산으로 표기하지 않는다. 원 제작 설명은 [v3 README](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/blob/d908bd9de2f484a8ef5c1f6fab3441c33f96bf88/docs/media/wave-cinematic-v3/README.md)에 보존한다.
 
-영상에는 음성이나 본문 정보가 없다. Hero의 배경 영상은 재생 버튼을 누르기 전 MP4 요청이 0건이다. 별도의 전체 화면 Intro는 세션 첫 진입에서 일반 모션 환경에 한해 무음 재생한다. 동작 감소·앱 동작 줄이기·데이터 절약 환경은 동영상을 요청하지 않고 정적 이미지와 같은 HTML 설명·CTA를 제공한다. Intro의 이미지·영상이 모두 실패해도 단색 배경의 브랜드·건너뛰기·플래너 링크가 남는다. 작은 파생 이미지에는 고정 크기와 lazy loading을 적용했다.
+영상에는 음성이나 영상 안의 본문 문구가 없다. Hero와 20초 상상 여행은 재생 버튼을 누르기 전 영상을 요청하지 않는다. 전체 화면 Intro만 세션 첫 진입의 일반 모션에서 무음 재생한다. OS/browser 동작 감소·데이터 절약 환경은 영상 요청 없이 정적 이미지와 같은 HTML 설명·CTA를 제공한다. 앱 내부 motion 설정은 Owner 결정으로 제거했고 과거 저장값도 더 이상 모션에 영향을 주지 않는다. Intro의 이미지·영상이 모두 실패해도 단색 배경의 브랜드·건너뛰기·플래너 링크가 남는다. 새 본문 이미지는 lazy loading, Hero/Intro는 같은 responsive 이미지로 연결한다.
 
-프레임 확대는 MP4가 아니라 웹 레이아웃의 스크롤 연출이다. 작은 화면과 동작 감소에서는 최종 정적 장면을 사용하고, JS 실행 전에도 설명과 CTA가 보인다. Hero 내부의 W.A.V.E Canvas는 보조 visual이다. Owner #353의 전체 화면 Intro를 대체하지 않는다. 전체 화면 Intro는 종료·건너뛰기 뒤 같은 세션에서 다시 자동 노출하지 않으며 환경설정에서 다시 볼 수 있다. 이 변경은 현재 visual checkpoint 코드이며 Production 반영 전이다. 자산별 선택·제외 근거는 [미디어 선택 기록](media-selection-353.md)을 참조한다.
+프레임 확대는 MP4가 아니라 웹 레이아웃의 스크롤 연출이다. 작은 화면과 동작 감소에서는 최종 정적 장면을 사용하고, JS 실행 전에도 설명과 CTA가 보인다. 기존 파도 → 무장애 형상 → W.A.V.E Canvas를 전체 화면 Intro로 승격했고 Hero의 작은 중복 패널은 제거했다. 마지막 워드마크에는 선명한 HTML 브랜드를 함께 표시한다. 종료·건너뛰기 뒤 같은 세션에서 다시 자동 노출하지 않으며 Hero의 작은 `인트로 다시보기` 버튼으로 다시 볼 수 있다. **현재 로컬 시각 후보이며 Production 반영 전이다.** 원본 SHA·현재 사용·미사용·새 렌더의 해시와 소스는 [미디어 선택 기록](media-selection-353.md)을 참조한다.

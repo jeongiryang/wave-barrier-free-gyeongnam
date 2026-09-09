@@ -2,8 +2,13 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
+// Post-arrival Landing: fullscreen-intro.spec verifies the first-entry dialog.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+});
+
 async function expectMediaCaptionUnobscured(page: Page) {
-  for (const selector of [".story-media figcaption > span:first-child", ".story-media button", ".story-media [role=status]"]) {
+  for (const selector of [".landing-hero .story-media figcaption > span:first-child", ".landing-hero .story-media > figcaption button", ".landing-hero .story-media > figcaption [role=status]"]) {
     const item = page.locator(selector);
     if (selector.endsWith("[role=status]") && !(await item.textContent())) continue;
     // Measure occlusion after positioning, independently of the site's smooth scroll.
@@ -38,11 +43,11 @@ for (const locale of ["ko", "en"] as const) {
     await expect(landing).toHaveCount(1);
     await expect(landing).toHaveClass(/motion-ready/);
     await expect(landing).toHaveAttribute("lang", locale);
-    const player = page.locator(".story-media video");
-    const control = page.locator(".story-media button");
+    const player = page.locator(".landing-hero .story-media video");
+    const control = page.locator(".landing-hero .story-media > figcaption button");
     await expect(player).not.toHaveAttribute("src");
     expect(videoRequests).toEqual([]);
-    await expect(page.locator(".story-media figcaption")).toContainText(en ? "not a real destination" : "실제 관광지나 편의시설 정보가 아닙니다");
+    await expect(page.locator(".landing-hero .story-media figcaption")).toContainText(en ? "not a real destination" : "실제 관광지나 편의시설 정보가 아닙니다");
     for (const width of [320, 390, 768, 1366]) {
       await page.setViewportSize({ width, height: 844 });
       await expectMediaCaptionUnobscured(page);
@@ -129,10 +134,10 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
     await expect(page.locator(".landing-page")).toHaveCount(1);
     await expect(page.locator(".landing-page")).toHaveClass(/motion-ready/);
-    const control = page.locator(".story-media button");
+    const control = page.locator(".landing-hero .story-media > figcaption button");
     await control.focus();
     await page.keyboard.press("Enter");
-    await expect(page.locator(".story-media [role=status]")).toContainText(locale === "en" ? "unavailable" : "불러오지 못했어요");
+    await expect(page.locator(".landing-hero .story-media > figcaption [role=status]")).toContainText(locale === "en" ? "unavailable" : "불러오지 못했어요");
     await expect(control).toBeFocused();
     await expect(control).toHaveAttribute("aria-disabled", "true");
     for (const width of [320, 390, 768, 1366]) {
@@ -158,8 +163,8 @@ test("data saving prevents scenery downloads and preserves content and keyboard 
   await expect(page.getByRole("main")).toBeVisible();
   await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
   await expect(page.locator(".landing-page")).toHaveCount(1);
-  const control = page.locator(".story-media button");
-  const player = page.locator(".story-media video");
+  const control = page.locator(".landing-hero .story-media > figcaption button");
+  const player = page.locator(".landing-hero .story-media video");
   await control.focus();
   await page.keyboard.press("Enter");
   await page.keyboard.press("Space");
@@ -172,8 +177,8 @@ test("data saving prevents scenery downloads and preserves content and keyboard 
   await expect(control).toHaveAttribute("aria-pressed", "false");
   await expect(player).not.toHaveAttribute("src");
   await expect(player).toHaveJSProperty("paused", true);
-  await expect(page.locator(".story-media [role=status]")).toContainText("데이터 절약");
-  await expect(page.locator(".story-media img")).toBeVisible();
+  await expect(page.locator(".landing-hero .story-media > figcaption [role=status]")).toContainText("데이터 절약");
+  await expect(page.locator(".landing-hero .story-media img")).toBeVisible();
   await expect(page.locator(".landing-actions a")).toBeVisible();
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 844 });
@@ -198,8 +203,8 @@ for (const connectionMode of ["available", "unsupported"] as const) {
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
     await expect(page.locator(".landing-page")).toHaveCount(1);
-    const control = page.locator(".story-media button");
-    const player = page.locator(".story-media video");
+    const control = page.locator(".landing-hero .story-media > figcaption button");
+    const player = page.locator(".landing-hero .story-media video");
     await expect(player).not.toHaveAttribute("src");
     await control.focus();
     await page.keyboard.press("Enter");
@@ -232,28 +237,28 @@ for (const connectionMode of ["available", "unsupported"] as const) {
 }
 
 for (const locale of ["ko", "en"] as const) {
-  for (const preference of ["system", "site"] as const) {
+  for (const preference of ["system", "legacy-full"] as const) {
     test(`${locale}: initial ${preference} reduced motion keeps media static without moving focus`, async ({ page }) => {
       const requests: string[] = [];
       page.on("request", (request) => { if (request.url().endsWith(".mp4")) requests.push(request.url()); });
       await mockPublicShellApi(page);
       await page.addInitScript(({ locale, preference }) => {
         localStorage.setItem("wave-locale", locale);
-        if (preference === "site") localStorage.setItem("wave-motion", "calm");
+        if (preference === "legacy-full") localStorage.setItem("wave-motion", "full");
       }, { locale, preference });
-      await page.emulateMedia({ reducedMotion: preference === "system" ? "reduce" : "no-preference" });
+      await page.emulateMedia({ reducedMotion: "reduce" });
       await page.goto("/");
       await expect(page.getByRole("main")).toBeVisible();
       await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
       await expect(page.locator(".landing-page")).toHaveCount(1);
-      const control = page.locator(".story-media button");
+      const control = page.locator(".landing-hero .story-media > figcaption button");
       await expect(control).toHaveAttribute("aria-disabled", "true");
       await control.focus();
       await page.keyboard.press("Enter");
       await expect(control).toBeFocused();
       await expect(control).toHaveAttribute("aria-pressed", "false");
-      await expect(page.locator(".story-media video")).not.toHaveAttribute("src");
-      await expect(page.locator(".story-media [role=status]")).toContainText(locale === "en" ? "stays still" : "정지된 풍경");
+      await expect(page.locator(".landing-hero .story-media video")).not.toHaveAttribute("src");
+      await expect(page.locator(".landing-hero .story-media > figcaption [role=status]")).toContainText(locale === "en" ? "stays still" : "정지된 풍경");
       expect(requests).toEqual([]);
     });
   }

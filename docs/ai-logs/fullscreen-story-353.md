@@ -1,5 +1,7 @@
 # #353 전체 화면 첫 진입 / Landing 첫 시각 체크포인트
 
+> 최신 상태는 아래 **Owner 두 번째 피드백 적용** 절이다. 첫 체크포인트의 환경설정 replay·앱 motion·작은 Hero Canvas 설명은 이후 Owner 결정으로 대체되었다. 과거 검증·실패 기록은 보존한다.
+
 - 상태: **LOCAL VISUAL CHECKPOINT. 미배포·미병합, #353 Open.**
 - 기준: 2026-09-09 11:55 KST. 시작 시 원격 main / canonical Production 모두 `a355f38d21d67b50ae5936bdcb49a3a310c96198`.
 - 브랜치: `feat/fullscreen-story-353`, 기존 `D:/wave-production-validation-20260908` worktree 재사용.
@@ -61,3 +63,48 @@
 6. 최종 Production 이후 README/제출 원고·이미지·시연 자료를 동기화한다. 지금 캡처는 로컬 디자인 검토용이다.
 
 현재 원본 사용자 dirty 10파일, 기존 worktree/브랜치/queue/artifact, 예전 실패 기록, DB restore/PITR 증거는 그대로 보존했다. 새 worktree·Preview·Full CI·Production 배포·DB operation·유료 API·canary는 시작하지 않았다.
+
+## Owner 두 번째 피드백 적용 — 2026-09-09 로컬 시각 후보
+
+같은 `D:/wave-production-validation-20260908`, `feat/fullscreen-story-353`, 부모 `cdea963f8ba8f6ae914b8fab41c9805f6cadf174`에서 이어서 구현했다. 원격 main은 14:27 KST 재조회에서도 `a355f38d21d67b50ae5936bdcb49a3a310c96198`. 이번 작업은 Preview/Production 배포가 아니다.
+
+### 실제 변경
+
+- Hero의 흰 copy panel·작은 우측 Canvas를 제거했다. 해안 위에 큰 headline/CTA와 방향성 scrim을 배치했다. 이전 #21의 일반 모션 약화용 미사용 Hero CSS도 정리했다.
+- 기존 Canvas의 파도 → 무장애 형상 → 워드마크를 전체 화면 Intro에 배치했다. Intro와 Hero가 같은 v3 해안 이미지/무음 영상을 공유한다. 마지막 Canvas 워드마크 위에 선명한 HTML 브랜드가 나타난다. 첫 진입 정책·skip·즉시 planner link·pause·Save-Data·OS 정적 대체는 유지했다.
+- 짧은 320×568에서 설명과 CTA가 겹치는 문제를 육안 확인해 문구 위치를 분리했고, 교차 bounding-box 검사도 추가했다.
+- v1 함께 계획하는 그림은 편의 장면, v2 정원은 새 큰 상상 여행 장면, v2 항구는 closing에 적용했다. 기존 expansion·공식 관광사진·같은 날짜/장소의 실제 일정/지도 기록은 유지했다.
+- v2 원본 영화의 영어/옛 카드 구성을 그대로 배포하지 않고 같은 이미지 세 장을 20초 무음 영상으로 새로 편집했다. 새 영상은 명시적 재생만 허용한다. 원본·실제 관광정보·상상 visual의 구분은 [미디어 선택](../media-selection-353.md)과 [출처](../assets-and-licenses.md)에 반영했다. FFmpeg 재현 출력의 SHA-256도 동일했다.
+- 환경설정의 motion/replay UI, 수동 상태·toggle·copy·CSS를 제거했다. 과거 `wave-motion`은 무시하고 저장 시 정리한다. `motion`/`data-motion`은 기존 렌더러와 OS 동작 감소를 연결하는 파생 상태로만 유지한다. replay는 Hero CTA 아래의 작은 키보드 접근 가능한 버튼으로 옮겼다.
+- OS reduce → normal 전환에서 Intro가 정적으로 남는 실제 버그도 수정했다. 자식 effect가 부모의 이전 `data-motion=calm`을 읽어 정적 상태에 남았었다. Intro는 현재 `matchMedia`를 직접 읽으며, 폴링/강제 focus 복귀로 우회하지 않는다.
+
+### 검증과 실패 보존
+
+모든 실행 위치는 위 worktree, 공개 API는 관련 browser fixture다. 실제 provider/Production 결과로 표시하지 않는다. 실행 로그는 다음 외부 폴더에 보존했다.
+
+`D:/wave-db-binding-preflight-20260908/fullscreen-story-353-owner-pass2-20260909/`
+
+| 명령/범위 | 근거 |
+| --- | --- |
+| `npm run typecheck` | PASS. `typecheck-checkpoint.log` |
+| 변경 TS/TSX/MJS + 새 파일에 `node node_modules/eslint/bin/eslint.js <files>` | 오류 0, img 관련 기존 경고 3. `lint-final.log`; 마지막 Intro 수정도 `intro-lint-checkpoint.log` 오류 0 |
+| `node --test tests/landing-boundaries.test.mjs tests/production-readiness.test.mjs tests/repository-policy.test.mjs tests/auth-community.test.mjs` | `unit-final.log`: 57 PASS / 0 FAIL / 0 SKIP |
+| `CI=true E2E_BASE_URL=http://127.0.0.1:4173 node scripts/run-playwright.mjs e2e/fullscreen-intro.spec.ts e2e/fullscreen-story-visual.spec.ts` | 최종 **24 PASS / 0 FAIL / 0 FLAKY / 0 SKIP, 35.9초**. `visual-checkpoint.log`와 `visual-checkpoint-report/`, `visual-checkpoint-results/`. Intro/전체 Landing의 관련 화면·axe·320px 겹침·runtime 계약 |
+| `... e2e/service-story.spec.ts e2e/launch-integrity.spec.ts e2e/preferences-help-language.spec.ts e2e/preferences-theme-contrast.spec.ts --grep 'service story|failed media|data.saving|initial .*reduced motion|intro|English preferences|환경설정 전체'` | `controls.log`: 34 PASS / 0 FAIL / 0 FLAKY / 0 SKIP, 33.5초 |
+| `... e2e/story-media-remix.spec.ts` (media 묶음 안) | `media-2.log`: 새 remix 4 PASS. 같은 실행의 과거 service-story 22 FAIL은 아래에 별도 기록 |
+| `... e2e/landing-first-arrival.spec.ts e2e/preferences-disclosure-focus.spec.ts e2e/accessibility-final.spec.ts e2e/landing-regions.spec.ts --grep 'normal arrival|preferences never|OS 동작|반복 시연'` | `focus-phase.log`: 16 PASS / 0 FAIL / 0 FLAKY / 0 SKIP, 20.9초. 정상 Canvas 실제 pixel 다양성/전체 viewport/순서, 320/1366 KO/EN 환경설정 focus |
+
+실패는 삭제하지 않았다:
+
+1. `unit-1.log`는 WaveField의 새 per-scene pause 전달을 과거 문법으로 검사해 1 FAIL. `unit-2.log`는 layout에서 직접 import한 arrival CSS를 기존 globals 모음에서 찾다가 1 FAIL. `unit-3.log`는 미사용 CSS 정리 중 함께 지워진 구역 주석 marker 때문에 1 FAIL. 각각 현재 계약의 정확한 검사/직접 source 읽기/원래 구역 marker 복원으로 해결했고 최종 57 PASS. 실제 CSS 폭 기준은 변경하지 않았다.
+2. `media.log`: 24 FAIL / 2 PASS. 기존 `.story-media` 단일 요소 가정·옛 첫 진입/수동 motion setup, 새 테스트의 play 후 바뀐 accessible name 추적 오류가 원인. `media-2.log`: remix 4 PASS, 기존 media 테스트는 Hero replay까지 같은 버튼으로 잡아 22 FAIL. 마지막에는 Hero의 **figcaption 안 재생 control**을 정확히 검사하고, replay는 별도 modal/복귀 계약으로 검사했다. 이름·focus·재생·0 request·대비 assertion은 유지/추가했으며 `.first()`나 force click으로 우회하지 않았다.
+3. `visual-final.log`: 22 PASS / 2 FAIL. 새 320px 검사에서 OS reduce → normal 뒤 Canvas가 `static`에 남는 제품 결함을 재현했다. 위 live OS signal 수정 후 해당 runtime/첫 진입 묶음을 다시 검증했다.
+
+기존 test case 삭제·신규 skip·timeout/retries/workers/성능 예산 변경 없음. Owner가 제거한 UI의 검사는 OS-only·페이지 내 replay·정확한 modal focus 계약으로 전환했다. 관련 검사만 실행했고 full suite 결과로 주장하지 않는다. 실제 화면 확인 중 발견한 작은 화면 겹침은 axe PASS와 별도로 수정했다.
+
+### 로컬 검토와 다음 경계
+
+- 로컬 서버 `http://127.0.0.1:4173/` (기존 PID 33148)은 유지한다. Hero CTA 아래 **인트로 다시보기**. 새 시크릿 세션은 첫 Intro부터 확인할 수 있다.
+- 직접 확인한 새 이미지: `intro-320-final.png`, `intro-desktop-final.png`, 관련 desktop/mobile story PNG/WebM. 큰 흰 패널 없음, 원래 Canvas는 전체 Intro, v1/v2 그림과 새 선택 영상이 실제 UI에 보인다.
+- Owner 육안 승인 전 Full CI/Preview/독립 QA/merge/Production을 시작하지 않는다. #353는 Open/PARTIAL. build/CSS 70KiB·planner 270KiB 예산, 전체 제품 회귀, 실제 Production 검증과 제출 캡처는 아직 후속 Gate다.
+- #373/zero-touch/유료 API/provider hold/DB는 손대지 않았다. 사용자 dirty10, 기존 worktree/branch/queue generation/attempt/receipt, 이전 실패 artifact는 보존했다. 미디어 원본 전체 merge나 삭제 없음.
