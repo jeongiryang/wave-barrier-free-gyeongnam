@@ -12,7 +12,7 @@ export function usePlannerCriteria() {
   const [criteriaReady, setCriteriaReady] = useState(false);
   const [themes, setThemes] = useState<string[]>([]);
   const theme = themes.join(",");
-  const setTheme = useCallback((value: string) => setThemes(normalizeThemes(value)), []);
+  const setTheme = useCallback((value: string) => setThemes(value.trim() ? normalizeThemes(value) : []), []);
   const toggleTheme = useCallback((id: string) => setThemes((current) => current.includes(id)
     ? current.filter((item) => item !== id)
     : normalizeThemes([...current, id])), []);
