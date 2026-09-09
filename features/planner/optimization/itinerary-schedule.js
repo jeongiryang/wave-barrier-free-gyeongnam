@@ -4,7 +4,7 @@ const DAY_MINUTES = 24 * 60;
 const DEFAULT_START_MINUTES = 10 * 60;
 const DEFAULT_VISIT_MINUTES = 90;
 const MIN_TRAVEL_MINUTES = 5;
-const MAX_TRAVEL_MINUTES = 240;
+const MAX_ESTIMATED_TRAVEL_MINUTES = 240;
 
 const VISIT_MINUTES_BY_CONTENT_TYPE = {
   "12": 90,
@@ -50,13 +50,13 @@ export function visitDurationFor(place, fallback = DEFAULT_VISIT_MINUTES) {
 }
 
 export function travelDurationBetween(from, to, options = {}) {
-  const provided = finiteMinutes(options.routeMinutes, -1, 1, MAX_TRAVEL_MINUTES);
+  const provided = verifiedRouteMinutes(options.routeMinutes);
   if (provided > 0) return { minutes: provided, source: "route" };
 
   const distance = directDistanceKm(from, to);
   if (distance === null) {
     return {
-      minutes: finiteMinutes(options.missingCoordinatesMinutes, 30, 1, MAX_TRAVEL_MINUTES),
+      minutes: finiteMinutes(options.missingCoordinatesMinutes, 30, 1, MAX_ESTIMATED_TRAVEL_MINUTES),
       source: "fallback",
     };
   }
@@ -65,9 +65,15 @@ export function travelDurationBetween(from, to, options = {}) {
   const roadFactor = Math.max(1, Math.min(2, Number(options.roadFactor) || 1.25));
   const estimate = distance / speed * 60 * roadFactor;
   return {
-    minutes: Math.max(MIN_TRAVEL_MINUTES, finiteMinutes(estimate, 30, 0, MAX_TRAVEL_MINUTES)),
+    minutes: Math.max(MIN_TRAVEL_MINUTES, finiteMinutes(estimate, 30, 0, MAX_ESTIMATED_TRAVEL_MINUTES)),
     source: "estimate",
   };
+}
+
+function verifiedRouteMinutes(value) {
+  // Provider adapters return integer minutes. The estimate cap must never
+  // shorten a verified journey or turn invalid values into confirmed times.
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0 ? value : -1;
 }
 
 /**
@@ -76,7 +82,7 @@ export function travelDurationBetween(from, to, options = {}) {
  * silently overstate or understate the remainder of the itinerary.
  */
 export function routeMinutesForOriginLeg({ places, days, assignments = {}, destinationId, routeMinutes }) {
-  const minutes = finiteMinutes(routeMinutes, -1, 1, MAX_TRAVEL_MINUTES);
+  const minutes = verifiedRouteMinutes(routeMinutes);
   if (!destinationId || minutes < 1 || !Array.isArray(places) || !places.length) return {};
   const safeDays = Array.isArray(days) && days.length ? days : [""];
   const destinationDay = assignments[destinationId] || safeDays[0];

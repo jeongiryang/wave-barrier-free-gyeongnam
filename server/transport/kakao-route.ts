@@ -9,8 +9,8 @@ function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function positiveNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && value > 0;
+function positiveInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 }
 
 export async function fetchKakaoRoute(env: Env, startLat: number, startLng: number, endLat: number, endLng: number): Promise<{ alternative: RouteApiAlternative | null; provider: ProviderStatusUpdate | null }> {
@@ -42,7 +42,9 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
     }
     if (route.result_code !== 0 || !record(route.summary)) throw Error("Invalid route result");
     const summary = route.summary;
-    if (!positiveNumber(summary.duration) || !positiveNumber(summary.distance)) throw Error("Invalid route measurements");
+    // Kakao documents integer seconds/metres, not minutes/kilometres. A positive
+    // value alone cannot establish that these measurements describe this journey.
+    if (!positiveInteger(summary.duration) || !positiveInteger(summary.distance)) throw new SyntaxError("Invalid route measurements");
     const fare = record(summary.fare) ? summary.fare : {};
     if (!Array.isArray(route.sections) || !route.sections.length) throw Error("Missing road geometry");
     const geometry: RouteGeometryPoint[] = [];
@@ -61,6 +63,12 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
     // Permit road snapping within 1 km, but never approve an unrelated/reversed journey.
     if (mapDistanceMetres(geometry[0], { lat: startLat, lng: startLng }) > 1000
       || mapDistanceMetres(geometry[geometry.length - 1], { lat: endLat, lng: endLng }) > 1000) throw Error("Road endpoints do not match request");
+    const geometryMetres = geometry.reduce((metres, point, index) => metres + (index ? mapDistanceMetres(geometry[index - 1], point) : 0), 0);
+    // Road vertices provide a lower bound, with 5%/100 m tolerance for geometry
+    // precision and road joins. 200 km/h is a deliberately loose corruption guard,
+    // not a speed-limit assertion or a replacement travel-time estimate.
+    if (summary.distance + Math.max(100, geometryMetres * 0.05) < geometryMetres
+      || summary.distance / summary.duration * 3.6 > 200) throw new SyntaxError("Inconsistent route measurements");
     const durationSeconds = summary.duration;
     const rawToll = fare.toll;
     const toll = typeof rawToll === "number" && Number.isFinite(rawToll) && rawToll >= 0 ? rawToll : null;
