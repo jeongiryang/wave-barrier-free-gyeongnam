@@ -100,7 +100,10 @@ export default function PlannerPage() {
     region, ready: planController.criteriaReady && tripSelection.storageReady, hasSaved: saved.length > 0,
     setRegion: planController.setRegion, resetTrip: tripSelection.resetTrip,
     clearResults: (fresh) => {
-      if (fresh) { routePlanning.resetOrigin(); routePlanning.resetRouteView(); }
+      if (fresh) {
+        routePlanning.resetOrigin(); routePlanning.resetRouteView();
+        planController.clearSelectedProfiles(); planController.setTheme("");
+      }
       planController.resetPlan(); resetRouteData(); itineraryRoutes.resetItineraryRoutes();
       resetAudio(); clearLocationSearch(); resetWeather(); resetEnrichment();
       setSelectedPlace(null); setReviewedTrip(""); setReviewedItinerary(""); setSecondaryOpen(false);
