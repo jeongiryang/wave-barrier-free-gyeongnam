@@ -13,7 +13,18 @@ export function devWorkerConnection() {
     configureServer(server) {
       server.middlewares.use((request, _response, next) => {
         // WebSocket upgrades need their original hop-by-hop connection headers.
-        if (!request.headers.upgrade) request.headers.connection = "close";
+        if (!request.headers.upgrade) {
+          request.headers.connection = "close";
+          // srvx NodeRequest iterates rawHeaders when httpxy forwards it. Keep
+          // that representation consistent with headers.get("connection").
+          const rawHeaders = request.rawHeaders;
+          if (rawHeaders) {
+            for (let index = rawHeaders.length - 2; index >= 0; index -= 2) {
+              if (rawHeaders[index].toLowerCase() === "connection") rawHeaders.splice(index, 2);
+            }
+            rawHeaders.push("Connection", "close");
+          }
+        }
         next();
       });
     },
