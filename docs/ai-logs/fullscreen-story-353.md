@@ -165,3 +165,48 @@ node scripts/run-playwright.mjs e2e/landing-cinematic.spec.ts
 - `e2e/landing-cinematic.spec.ts`: **10 PASS /0 fail/flaky/skip, 9.9s**, `cinema-final.log`, `cinema-final-report/`, `cinema-final-results/`. 앞선 선택회귀52PASS와 별도 실행. 준비 상태는 기존 `hydrated` 신호를 공유하며 새 setState effect가 없다.
 
 - 최종 `typecheck-final.log` exit0, 변경 파일 전체 `lint-checkpoint.log` exit0 (0 errors/5 img warnings). `git diff --check` PASS.
+
+
+## #385 Design Reference Bible + #353 적용 — pass 4
+
+기준 시각: 2026-09-09 18:52:39 KST. 시작 HEAD `2f09bd419be28c83dcc2c39751d43b5d81cb1d53`, 같은 `feat/fullscreen-story-353` / `D:/wave-production-validation-20260908`. LOCAL VISUAL CHECKPOINT이며 main/Production 반영 아님. #353/#385 Open, Owner 시각 평가 전.
+
+### 적용 결과
+
+- `docs/design/design-reference-bible.md`: canonical brief/SCROLL-ONLY COMPREHENSION/12 patterns/11 sections/GAP/assets/5개 OSS/license·maintenance·SSR·a11y·성능/disposition/설계 contract. `docs/design-system.md` 연결.
+- Kakao/SiteInspire/Codrops/Palm Studio/React Bits/Motion Primitives/Magic UI/shadcn/ui/Lenis 공식 자료 조사. Hanwha Ocean 차단, Land-book403은 미확인으로 표시. React Bits MIT+Commons Clause. 새 dependency/라이브러리 코드 복사 없음.
+- Hero→Region→편의→추천→일정→지도→출발 전→Community→Closing. 실제 날짜·ID·워터마크를 유지하며 숨은 tab/date controls를 보이는 chapter로 전환. Planner/저장/계정/API 로직 변경 없음.
+- 지역 사진/지역명/CTA가 함께 약4초 전환. 이전/다음 arrow만, hover/focus/manual/offscreen/hidden/reduced/SaveData 정지 유지. 지도 disclosure·18 버튼 제거, 기존 경계 source/데이터 보존.
+- 실제 우포늪 frame의 viewport 양끝 확장, portrait/right→추천/left→날짜rise→mapoffset→departurevertical→closinghorizon. 빈 sticky spacer 없음.
+- Intro curtain 아래 Hero scale/headline/body/CTA stagger. Skip/session/OS/SaveData/media failure/focus 유지. Hero와 소개 장식 재생·설명 버튼/검수 caption 제거. 필수 사진/recording/brand provenance는 footer 보조 출처에 유지.
+- CommunityEditor 실제 field 구조를 큰 읽기 전용 DOM으로 표현. 예시임을 표시하며 후기/사용자/좋아요 수 조작 없음.
+- nav down hide/up reveal, focus/open preferences/help 유지. gear/help named icon 48px. native summary/Enter/Escape 계약 유지.
+
+### 실패와 수정 — 최초 증거 보존
+
+- 일시 `activeRegion` destructuring 누락으로 SSR client fallback. prop 복원 후 typecheck/새 browser context pageerror0. 기존 agent-browser errors --clear가 누적 오류를 계속 반환해 역사 JSON을 보존하고 새 context `browser-errors-final-newsession.json`으로 분리. fresh HTTP200, HTML에 해당 오류 없음.
+- Community copy가 오래된 `:not(.is-visible)` CSS 때문에 숨음. `community-1.png` 실패 보존, visible chapter specificity 수정 후 `community-2.png`와 story/axe PASS.
+- `unit-1.log`:52 PASS/5 FAIL(기존 shape/community 문법). arrow/visible chapter 계약으로 갱신, 지역 geometry/no-fake/no-API/권한 검사 보존. `unit-2.log`:57 PASS.
+- `design-1.log`:30 PASS/4 FAIL(1.4m), community2건 및 pointer가 region 안에 남는 fixture2건. heading을 viewport80px에 두고 실제 enter/leave로 3999ms/4000ms 경계 검증. `design-2.log`:cinematic+story12 PASS/0 flaky/skip(16.7s). Intro22는 첫 실행에서 PASS.
+- `navigation-1.log`:6 FAIL. 새 검사에서 native summary를 button으로 가정, observer is-visible를 section identity로 비교. 이름/summary tag/Enter/Escape 검사, marker 하나만 제외한 모든 section class/order 검사로 수정.
+- `navigation-2.log`:5 FAIL/1 flaky. CTA 화살표 앞 공백 fixture 누락, transform 중44px가43.999998px로 계산. 실제 text를 정확히 검사하고 control48px로 확대. 마지막 retry가 수정 시점과 겹쳤으므로 성공 근거로 사용하지 않음. `navigation-3.log`:6 PASS/0 fail/flaky/skip(6.5s).
+- 새 skip/test삭제/timeout/retry/worker/budget 완화 없음. Owner가 제거한 UI 검사를 새로운 상시 표시/OS/focus/정확한 날짜·ID 계약으로 이관했다. unit/소형회귀를 Full suite 결과로 주장하지 않는다.
+
+### 검증과 증거
+
+루트: `D:/wave-db-binding-preflight-20260908/fullscreen-story-353-bible-pass4-20260909/`.
+
+- `npm run typecheck`:exit0 (`typecheck-final.log`).
+- `npm exec --offline -- eslint <changed TS/TSX/mjs>`:exit0,0errors/7 img warnings (`lint-final.log`), suppress 없음. 최초 PowerShell 파일목록 괄호 오류는 실행 전 실패였으며 수정 후 실제 eslint 실행.
+- `node --test tests/landing-boundaries.test.mjs tests/production-readiness.test.mjs tests/repository-policy.test.mjs tests/auth-community.test.mjs`:57PASS/0fail/skip,224.525ms (`unit-2.log`).
+- CI=true/E2E_BASE_URL=4173, 기존 config 그대로. `npm exec --offline -- playwright test e2e/fullscreen-intro.spec.ts e2e/fullscreen-story-visual.spec.ts e2e/landing-cinematic.spec.ts`; 수정 후 cinematic+story만 재검사. 별도 `e2e/landing-scroll-contract.spec.ts`6case. 최신 개별 결과 총40case PASS, 전체 Playwright 아님.
+- 사진 timing fixture는 로컬 bitmap이고 Production provider 성공이 아님. 실제 agent-browser 사진/frame-start/mid/full/reverse, needs/recommendation/itinerary/community/region/hero 캡처와 구분한다.
+- 1366px expanded clip inset0%, overflow0. 320/390px namedcontrols/44px/section order/visibletext/axe/overflow 검사. `hero-320.png`, `mobile-regions.png`, `mobile-recommendation.png`, `mobile-community.png`, `hero-desktop-final.png` 직접 확인. 실기기/사람 screen reader/200%zoom 완료 주장 없음.
+
+### 남은 GAP / 재개
+
+- 기존 서버 `http://127.0.0.1:4173/` PID33148 유지. 새 시크릿 세션 또는 Hero 아래 인트로 다시보기로 Owner visual 평가.
+- 모바일 itinerary/map 실제3상태의 긴 세로 리듬, 지역 사진별 구도, 전체 Intro→Hero/cinematic 만족도는 Owner 평가 필요.
+- 옛 tab/date buttons, map disclosure, scenery/film controls를 가정하는 `landing-first-arrival`, `service-story`, `story-media-remix`, `landing-boundaries`, `landing-regions` 및 연결 touch/performance E2E는 최종candidate 계약 이관이 남음. 기존 날짜·ID·image dimension·실패·OS·locale·no-fetch 검사를 새 visible scene으로 보존할 것. 현재 Full suite green 아님.
+- 최종 CSS≤70KiB/plannerJS≤270KiB/landing budget, Full CI/Preview/independent QA/merge/mainCD/Production은 미실행. Owner 시각 체크포인트 후.
+- #373/자동화/provider/DB/계정/Planner/저장·공유 untouched. 사용자 dirty10/다른 worktree/queue/실패 artifact/source branches 보존. #353/#385 완료/close 안 함.

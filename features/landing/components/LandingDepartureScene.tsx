@@ -22,6 +22,6 @@ export default function LandingDepartureScene() {
       </ul>
       <a href="/planner">{en ? "Prepare my journey" : "내 여행 준비하기"} <span aria-hidden="true">↗</span></a>
     </div>
-    <p className="departure-scene-credit">{failed ? (en ? "Photo unavailable" : "사진을 불러오지 못했어요") : <span lang="ko">남해 다랭이마을 · {photo.photographer}</span>} · {en ? "Source: ⓒKorea Tourism Organization · selected Sep 2026" : "출처: ⓒ한국관광공사 · 2026.09 선정 관광사진"}</p>
+    <p className="departure-scene-credit">{failed ? (en ? "Photo unavailable" : "사진을 불러오지 못했어요") : <span lang="ko">남해 다랭이마을 · {photo.photographer}</span>} · {en ? "Source: ⓒKorea Tourism Organization" : "출처: ⓒ한국관광공사"}</p>
   </section>;
 }

@@ -19,25 +19,18 @@ export function LandingCallToAction({ t }: { t: LandingTranslate }) {
   const en = useSitePreferences().locale === "en";
   return <section className="landing-cta" data-cinematic="horizon" data-land-reveal>
     <div className="closing-horizon" aria-hidden="true" />
-    <span className="closing-eyebrow">{en ? "A NEW DAY IN GYEONGNAM" : "이제, 당신의 경남을 만날 차례"}</span>
-    <p>{en ? "Choose a region and the facilities you need" : "지역과 필요한 편의를 고르면"}</p><h2>{t("planningCtaTitle", "여행지부터 일정까지,")}<br /><em>{t("planningCtaEm", "차근차근 만들 수 있어요.")}</em></h2><Link href="/planner">{en ? "Plan my trip" : "여행 계획 만들기"} <span aria-hidden="true">↗</span></Link>
-    <p className="landing-cta-evidence">
-      {en ? "The photos and facility records in this example come from KTO. Recheck facilities and routes before visiting." : "이 시연의 사진과 편의정보는 한국관광공사 기록을 바탕으로 해요. 방문 전에는 시설과 경로를 다시 확인하세요."}<br />
-      <a href="#journey-record-source" onClick={event => {
-        const source = document.getElementById("journey-record-source");
-        if (!(source instanceof HTMLDetailsElement)) return;
-        event.preventDefault();
-        source.open = true;
-        const summary = source.querySelector("summary");
-        summary?.focus({ preventScroll: true });
-        summary?.scrollIntoView({ block: "center", behavior: "instant" });
-      }}>{en ? "View this example's sources and retrieval time" : "시연 출처와 조회 시각 보기"}</a>
-    </p>
-    <small className="closing-source">{en ? "Imagined harbor scenery" : "상상으로 그린 항구 풍경"}</small>
+    <span className="closing-eyebrow">{en ? "YOUR NEXT DAY IN GYEONGNAM" : "이제, 당신의 경남을 만날 차례"}</span>
+    <h2>{t("planningCtaTitle", "여행지부터 일정까지,")}<br /><em>{t("planningCtaEm", "차근차근 만들 수 있어요.")}</em></h2>
+    <Link href="/planner">{en ? "Plan my trip" : "여행 계획하기"} <span aria-hidden="true">↗</span></Link>
   </section>;
 }
 
 export function LandingFooter({ t }: { t: LandingTranslate }) {
   const en = useSitePreferences().locale === "en";
-  return <footer className="simple-footer"><div className="brand footer-brand"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span></div><div className="footer-notes"><p>{t("footer", "누구나 원하는 곳으로, 경남 무장애 여행 길잡이")}</p><p className="trust-notice">{en ? "W.A.V.E is independently operated, not an official service of KTO or Gyeongsangnam-do. Check current information with the operator before departure." : "W.A.V.E는 한국관광공사·경상남도의 공식 운영 서비스가 아닙니다. 출발 전 운영기관의 최신 정보를 확인해 주세요."}</p><PolicyFooterLinks /></div><div className="footer-meta"><p className="source">{en ? "Data: Korea Tourism Organization · Korea Tourism Content Lab" : "데이터 출처: 한국관광공사 · 한국관광콘텐츠랩"}</p><GithubFooterLink /></div></footer>;
+  return <footer className="simple-footer"><div className="brand footer-brand"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>W.A.V.E</span></div><div className="footer-notes"><p>{t("footer", "누구나 원하는 곳으로, 경남 무장애 여행 길잡이")}</p><p className="trust-notice">{en ? "W.A.V.E is independently operated, not an official service of KTO or Gyeongsangnam-do. Check current information with the operator before departure." : "W.A.V.E는 한국관광공사·경상남도의 공식 운영 서비스가 아닙니다. 출발 전 운영기관의 최신 정보를 확인해 주세요."}</p><PolicyFooterLinks /></div><div className="footer-meta"><p className="source">{en ? "Data: Korea Tourism Organization · Korea Tourism Content Lab" : "데이터 출처: 한국관광공사 · 한국관광콘텐츠랩"}</p><GithubFooterLink /><details className="landing-source-notes" id="journey-record-source"><summary>{en ? "Image and screen credits" : "사진·화면 출처"}</summary>
+      <p>{en ? "Regional photography and facility records: ⓒKorea Tourism Organization. Photo credits are shown with each image." : "지역 사진과 편의정보: ⓒ한국관광공사. 사진별 작가는 해당 사진에 표기합니다."}</p>
+      <p>{en ? "The intro, Hero coast, companions and closing harbor are W.A.V.E brand illustrations, not actual destination or accessibility records." : "인트로·Hero 해안, 동행자, 마지막 항구는 W.A.V.E 브랜드를 위해 제작한 일러스트이며 실제 관광지·시설 기록이 아닙니다."}</p>
+      <p>{en ? "Korean product screens were recorded on 9 September 2026. Before/after itinerary and Kakao maps are from the same trip, 06:55–06:58 KST." : "한국어 제품 화면은 2026년 9월 9일 촬영했습니다. 일정·카카오 지도는 06:55–06:58 같은 여행에서 대산플라워랜드를 둘째 날로 옮긴 전후입니다."}</p>
+      <p>{en ? "Daesan facility records retrieved at 02:26:57 KST; this is not the facility update date or an accessibility certification." : "대산플라워랜드 시설 자료 조회는 02:26:57이며 시설 갱신일이나 접근성 인증을 뜻하지 않습니다."}</p>
+    </details></div></footer>;
 }

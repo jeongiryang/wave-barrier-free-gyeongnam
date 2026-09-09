@@ -22,6 +22,7 @@ export function useLandingMotion() {
   useEffect(() => {
     let lastY = window.scrollY;
     let ticking = false;
+    let descent = 0;
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const root = document.documentElement;
     const scenes = Array.from(document.querySelectorAll<HTMLElement>("[data-cinematic]"));
@@ -57,8 +58,8 @@ export function useLandingMotion() {
       const y = window.scrollY;
       const max = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
       setScrolled(y > 32);
-      if (y > lastY + 6) setScrollDirection("down");
-      if (y < lastY - 6) setScrollDirection("up");
+      if (y < lastY || y < 80) { setScrollDirection("up"); descent = 0; }
+      else { descent += y - lastY; if (descent > 48) setScrollDirection("down"); }
       if (prefersCalm()) resetMotion();
       else {
         landingRef.current?.style.setProperty("--landing-progress", String(Math.min(y / max, 1)));

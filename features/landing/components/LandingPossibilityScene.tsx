@@ -1,17 +1,26 @@
 "use client";
-
 import { useSitePreferences } from "../../../components/SitePreferences";
-import StoryMedia from "./StoryMedia";
+import LandingExpansionScene from "./LandingExpansionScene";
+import LandingScreenCapture from "./LandingScreenCapture";
 
 export default function LandingPossibilityScene() {
   const en = useSitePreferences().locale === "en";
-  return <section className="possibility-scene" data-cinematic="left" aria-labelledby="possibility-title">
-    <div className="possibility-copy" data-land-reveal>
-      <p className="section-kicker">{en ? "A day worth imagining" : "함께 그리는 다음 여행"}</p>
-      <h2 id="possibility-title">{en ? "Different ways to move." : "걷는 속도는 달라도,"}<br /><em>{en ? "A day to share." : "함께 머무는 하루."}</em></h2>
-      <p>{en ? "A garden to wander through. A pause by the sea. Your own needs are the starting point." : "산책하고 싶은 정원, 잠깐 쉬어 갈 바닷가. 내게 필요한 편의를 살피는 것부터 여행이 시작돼요."}</p>
-      <a href="#journey-scene-title">{en ? "See a real travel plan" : "실제 여행 계획 살펴보기"} <span aria-hidden="true">↓</span></a>
+  return <section className="recommendation-chapter" aria-labelledby="recommendation-title">
+    <LandingExpansionScene />
+    <div className="destination-editorial" data-cinematic="left">
+      <div className="destination-copy">
+        <p className="section-kicker">{en ? "Places that fit your plans" : "내 조건에서 만나는 여행지"}</p>
+        <h2 id="recommendation-title">{en ? "A place to fall for." : "마음에 드는 풍경,"}<br /><em>{en ? "The details to decide." : "나에게 맞는 이유."}</em></h2>
+        <p>{en ? "Compare the places you like with the facilities you need. Missing information stays unconfirmed." : "가고 싶은 곳의 사진과 편의정보를 함께 살펴보세요. 확인되지 않은 편의는 미확인으로 구분해요."}</p>
+        <dl className="destination-evidence" data-place-evidence="2758443">
+          <div><dt>{en ? "Recorded" : "대산플라워랜드 · 확인"}</dt><dd>{en ? "Access path · toilet" : "완만한 접근로 · 화장실"}</dd></div>
+          <div><dt>{en ? "Unconfirmed" : "미확인"}</dt><dd>{en ? "Lift · ask the venue" : "승강기 · 방문 전 시설에 문의"}</dd></div>
+        </dl>
+      </div>
+      <figure className="destination-product">
+        <LandingScreenCapture name="places-two" width={833} height={546} alt="주남저수지와 대산플라워랜드의 실제 관광사진과 편의정보. 한국관광공사 사진 워터마크 유지." />
+        <figcaption>{en ? "Photos and facility records: ⓒKorea Tourism Organization" : "사진·편의정보 출처: ⓒ한국관광공사"}</figcaption>
+      </figure>
     </div>
-    <StoryMedia kind="film"><span className="story-film-caption">{en ? "An imagined day together" : "우리의 여행이 시작되는 장면"}</span></StoryMedia>
   </section>;
 }

@@ -267,16 +267,16 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(regionalPhoto, /for \(const keyword of keywords\)/);
 });
 
-test("all eighteen regions are text controls without mascot or remote map dependencies", async () => {
+test("all eighteen regions remain discoverable with named arrows and no remote map dependencies", async () => {
   const landing = await landingProductSource();
   const names = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
   const regionConfig = landing.slice(landing.indexOf("export const landingRegions"), landing.indexOf("export const landingValues"));
   for (const name of names) assert.match(regionConfig, new RegExp(`name: "${name}"`));
   assert.equal((regionConfig.match(/\{ name: "/g) || []).length, 18);
-  assert.match(landing, /landingRegions\.map\(\(region, index\) => <button/);
-  assert.match(landing, /className="region-marker-dot"/);
-  assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
-  assert.match(landing, /<b>\{regionLabel\(region\.name\)\}<\/b>/);
+  assert.match(landing, /landingRegions\[\(index \+ direction \+ landingRegions\.length\) % landingRegions\.length\]/);
+  assert.match(landing, /aria-label=\{english \? "Previous region" : "이전 지역"\}/);
+  assert.match(landing, /aria-label=\{english \? "Next region" : "다음 지역"\}/);
+  assert.match(landing, /regionLabel\(active\.name\)/);
   assert.doesNotMatch(landing, /RegionMascot/);
   assert.doesNotMatch(landing, /upload\.wikimedia\.org|wikimedia commons/i);
   assert.doesNotMatch(regionConfig, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);

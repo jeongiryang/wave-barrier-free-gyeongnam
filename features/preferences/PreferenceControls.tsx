@@ -10,7 +10,7 @@ const subscribeToHydration = () => () => undefined;
 const browserReady = () => true;
 const serverReady = () => false;
 
-export function PreferenceControls() {
+export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean }) {
   const controlsReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
   const { locale, theme, setLocale, toggleTheme, t } = useSitePreferences();
   const en = locale === "en";
@@ -28,9 +28,8 @@ export function PreferenceControls() {
         event.currentTarget.querySelector("summary")?.focus();
       }}
     >
-      <summary aria-label={en ? "Open preferences" : "환경설정 열기"}>
-        <span aria-hidden="true">Aa</span>
-        <b>{en ? "Preferences" : "환경설정"}</b>
+      <summary title={en ? "Preferences" : "환경설정"} aria-label={en ? "Open preferences" : "환경설정 열기"}>
+        {iconOnly ? <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m9 3-.6 2.4-2 .9-2.2-.7L2 9.4l1.8 1.7v1.8L2 14.6l2.2 3.8 2.2-.7 2 .9L9 21h6l.6-2.4 2-.9 2.2.7 2.2-3.8-1.8-1.7v-1.8L22 9.4l-2.2-3.8-2.2.7-2-.9L15 3Z"/><circle cx="12" cy="12" r="3.1"/></svg> : <><span aria-hidden="true">Aa</span><b>{en ? "Preferences" : "환경설정"}</b></>}
       </summary>
       <div className="preference-panel">
         <header>

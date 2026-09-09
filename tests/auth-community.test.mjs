@@ -214,8 +214,8 @@ test("community UI supports public reading, protected participation and place li
   assert.match(planner, /PlaceDecisionDialog/);
   assert.match(placeDialog, /place-community-link/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
-  assert.match(landing, /className="[^"]*community-feature-preview/);
-  assert.match(landing, /className="[^"]*community-feature-card/);
+  assert.match(landing, /className="[^"]*community-editor-preview/);
+  assert.match(landing, /className="[^"]*community-preview-fields/);
   assert.doesNotMatch(landing, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   assert.doesNotMatch(landing, /김철수|홍길동|test user/i);
   assert.match(sitemap, /`\$\{origin\}\/community`/);
@@ -245,8 +245,8 @@ test("landing product story exposes six Korean, non-interactive and motion-safe 
   assert.doesNotMatch(stories, /<button\b/);
   assert.match(stories, /className="[^"]*route-demo-path/);
   assert.match(stories, /className="[^"]*route-demo-vehicle/);
-  assert.match(stories, /className="[^"]*community-feature-preview/);
-  assert.match(stories, /className="[^"]*community-feature-card/);
+  assert.match(stories, /className="[^"]*community-editor-preview/);
+  assert.match(stories, /className="[^"]*community-preview-fields/);
   assert.doesNotMatch(stories, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   assert.match(css, /\.product-story,.landing-community \{ min-height: 0; padding-block: clamp\(/);
   for (const selector of ["route-demo-path", "route-demo-vehicle"]) {

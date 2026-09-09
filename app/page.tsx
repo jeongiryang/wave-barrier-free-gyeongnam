@@ -2,7 +2,6 @@
 
 import { useSitePreferences } from "../components/SitePreferences";
 import SkipLink from "../components/SkipLink";
-import { LandingProductStories } from "../features/landing/components/LandingProductStories";
 import LandingCommunityStory from "../features/community/components/LandingCommunityStory";
 import { LandingCallToAction, LandingFooter } from "../features/landing/components/LandingClosing";
 import LandingHeader from "../features/landing/components/LandingHeader";
@@ -10,7 +9,6 @@ import LandingHero from "../features/landing/components/LandingHero";
 import LandingManifesto from "../features/landing/components/LandingManifesto";
 import LandingRegionStory from "../features/landing/components/LandingRegionStory";
 import LandingJourneyScene from "../features/landing/components/LandingJourneyScene";
-import LandingExpansionScene from "../features/landing/components/LandingExpansionScene";
 import LandingIntro from "../features/landing/components/LandingIntro";
 import LandingPossibilityScene from "../features/landing/components/LandingPossibilityScene";
 import LandingDepartureScene from "../features/landing/components/LandingDepartureScene";
@@ -37,12 +35,6 @@ export default function LandingPage() {
     <SkipLink href="#story">{t("skip", "소개 바로가기")}</SkipLink>
     <LandingHeader scrolled={scrolled} t={t} />
     <LandingHero t={t} replay={introReplay} onReplayIntro={replayIntro} />
-    <LandingExpansionScene />
-    <LandingManifesto t={t} />
-    <LandingPossibilityScene />
-    <LandingJourneyScene />
-    <LandingDepartureScene />
-    <LandingProductStories />
     <LandingRegionStory
       t={t}
       activeRegion={activeRegion}
@@ -53,6 +45,10 @@ export default function LandingPage() {
       hideRegionPreview={hideRegionPreview}
       selectRegion={selectRegion}
     />
+    <LandingManifesto t={t} />
+    <LandingPossibilityScene />
+    <LandingJourneyScene />
+    <LandingDepartureScene />
     <LandingCommunityStory />
     <LandingCallToAction t={t} />
     <LandingFooter t={t} />

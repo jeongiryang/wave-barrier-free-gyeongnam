@@ -19,7 +19,7 @@ test("the full-screen arrival leads through the complete Korean service story", 
   await expect(intro).toBeHidden();
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   await page.screenshot({ path: test.info().outputPath("02-hero.png") });
-  for (const [index, selector] of [".story-expansion", ".manifesto", ".possibility-scene", ".journey-scene", ".departure-scene", ".region-story", ".landing-cta"].entries()) {
+  for (const [index, selector] of [".region-story", ".manifesto", ".story-expansion", ".destination-editorial", ".itinerary-chapter", ".map-chapter", ".departure-scene", ".community-chapter", ".landing-cta"].entries()) {
     const section = page.locator(selector);
     await section.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
     await expect.poll(() => section.locator("h2").first().evaluate(node => {
@@ -29,28 +29,25 @@ test("the full-screen arrival leads through the complete Korean service story", 
     await page.screenshot({ path: test.info().outputPath(`${index + 3}-scene.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
-  const stage = page.locator(".journey-stage");
-  const steps = stage.getByRole("group", { name: "여행 계획 소개 단계 선택" });
-  for (const index of [0, 1, 2, 3]) {
-    const control = steps.getByRole("button").nth(index);
-    await control.focus();
-    await page.keyboard.press("Enter");
-    await expect(control).toBeFocused();
-    await expect(control).toHaveAttribute("aria-pressed", "true");
-    await stage.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "start" }));
-    await expect(stage.locator("#journey-stage-panel")).toBeVisible();
-    if (index === 1 || index === 2) {
-      const days = stage.getByRole("group", { name: "같은 시연의 날짜별 기록 선택" });
-      for (const day of [0, 1, 2]) {
-        await days.getByRole("button").nth(day).click();
-        await expect(stage.locator(".journey-scene-stops")).toHaveAttribute("data-date", day === 2 ? "2026-09-10" : "2026-09-09");
-      }
+  // All dated states stay visible without explaining/selection buttons.
+  for (const kind of ["itinerary", "map"]) {
+    const section = page.locator(`.${kind}-chapter`);
+    await expect(section.getByRole("button")).toHaveCount(0);
+    const scenes = section.locator(".journey-dated-scene");
+    await expect(scenes).toHaveCount(3);
+    for (let day = 0; day < 3; day++) {
+      const scene = scenes.nth(day);
+      await scene.scrollIntoViewIfNeeded();
+      await expect(scene).toBeVisible();
+      await expect(scene).toHaveAttribute("data-date", day === 2 ? "2026-09-10" : "2026-09-09");
+      expect(await scene.locator("[data-place-id]").evaluateAll(nodes => nodes.map(node => node.getAttribute("data-place-id")))).toEqual(day === 0 ? ["126117", "2758443"] : day === 1 ? ["126117"] : ["2758443"]);
+      const img = scene.locator("img");
+      await expect.poll(() => img.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
     }
-    await page.screenshot({ path: test.info().outputPath(`journey-${index}.png`) });
   }
   // One complete static page documents the whole composition, separately from normal-motion scenes.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator(".story-expansion")).toHaveCSS("--scene-open", "1.000");
+  await expect(page.locator(".story-expansion")).toHaveCSS("--cinema-progress", "1");
   await page.screenshot({ fullPage: true, scale: "css", path: test.info().outputPath("whole-page-static.png") });
   const audit = await new AxeBuilder({ page }).analyze();
   expect(audit.violations).toEqual([]);

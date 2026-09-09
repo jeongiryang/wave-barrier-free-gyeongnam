@@ -1,18 +1,18 @@
-import { landingValues, type LandingTranslate } from "../content";
 import { useSitePreferences } from "../../../components/SitePreferences";
+import type { LandingTranslate } from "../content";
+import LandingScreenCapture from "./LandingScreenCapture";
 
 export default function LandingManifesto({ t }: { t: LandingTranslate }) {
-  const { locale } = useSitePreferences();
-  return <section className="manifesto" data-cinematic="right" id="story" tabIndex={-1}>
-    <p className="section-kicker" data-land-reveal>{locale === "en" ? "Before choosing a destination" : "여행지보다 먼저 확인할 것"}</p>
-    <h2 data-land-reveal><span>{t("whyTitle", "내게 필요한 편의를 먼저 고르세요.")}</span></h2>
-    <p className="manifesto-lead">{locale === "en" ? "A gentle approach. A place to rest. Start with what makes a journey comfortable for you." : "완만한 접근로, 잠깐 쉴 곳. 내 여행을 편안하게 만드는 것부터 시작해요."}</p>
-    <div className="manifesto-grid">
-      {landingValues.map((value, index) => <article key={value.number} data-land-reveal><span>{value.number}</span><h3>{t(`value${index + 1}`, value.title)}</h3><p>{t(`value${index + 1}Copy`, value.copy)}</p></article>)}
+  const en = useSitePreferences().locale === "en";
+  return <section className="manifesto needs-chapter" data-cinematic="right" id="story" tabIndex={-1}>
+    <div className="needs-copy">
+      <p className="section-kicker">{en ? "Start with your needs" : "여행의 시작은, 나에게서"}</p>
+      <h2>{t("whyTitle", "내게 필요한 편의를 먼저 고르세요.")}</h2>
+      <p>{en ? "An easy approach. An accessible toilet. Choose the facilities that make your trip comfortable." : "완만한 접근로, 이용하기 편한 화장실. 내 여행에 필요한 편의부터 골라보세요."}</p>
+      <LandingScreenCapture name="conditions" width={923} height={314} alt="접근로와 승강기 편의를 선택한 실제 W.A.V.E 화면" />
     </div>
-    <figure className="needs-portrait" data-land-reveal>
-      <img src="/media/wave-story/planning-together-v1.webp" width="1448" height="1086" loading="lazy" alt={locale === "en" ? "An imagined scene of companions preparing a trip together" : "함께 여행을 준비하는 동행자들의 상상 장면"} />
-      <figcaption>{locale === "en" ? "Every journey starts with different needs. Imagined illustration." : "우리의 여행은 서로 다른 편의에서 시작해요. 상상 장면입니다."}</figcaption>
+    <figure className="needs-portrait">
+      <img src="/media/wave-story/planning-together-v1.webp" width="1448" height="1086" loading="lazy" alt={en ? "Brand illustration of companions preparing a trip together" : "함께 여행을 준비하는 동행자들을 그린 브랜드 일러스트"} />
     </figure>
   </section>;
 }

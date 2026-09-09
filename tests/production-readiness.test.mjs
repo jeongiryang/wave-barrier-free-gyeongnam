@@ -324,19 +324,21 @@ test("wide screens use available viewport width without breaking mobile gutters"
   assert.match(css, /@media \(max-width: 780px\)[\s\S]*width: calc\(100vw - 16px\)/);
 });
 
-test("landing region controls and real geometry share selection without a remote base map", async () => {
-  const [landing, css] = await Promise.all([landingProductSource(), styleSource()]);
-  assert.match(landing, /className="landing-region-map-canvas region-boundary-list" data-region-map-canvas/);
-  assert.match(landing, /data-region-marker=\{region\.name\}/);
-  assert.match(landing, /className="region-marker-dot"/);
-  assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
+test("landing regional showcase is photo-led, while the verified boundary source is preserved", async () => {
+  const [landing, css] = await Promise.all([landingProductSource(), source("app/styles/landing-cinematic.css")]);
+  assert.match(landing, /data-region-stage/);
+  assert.match(landing, /aria-controls="region-current"/);
+  assert.match(landing, /onClick=\{\(\) => move\(-1\)\}/);
+  assert.match(landing, /onClick=\{\(\) => move\(1\)\}/);
+  assert.match(landing, /setTimeout[\s\S]*4000/);
+  assert.match(landing, /!interacting && !focused && !saving/);
+  assert.match(landing, /setAutomatic\(false\)/);
   assert.doesNotMatch(landing, /RegionMascot|upload\.wikimedia\.org/i);
-  assert.match(landing, /LandingBoundaryMap selected=\{activeRegion\}/);
   const surface = await source("features/landing/components/RegionBoundarySurface.tsx");
   assert.match(surface, /viewBox="0 0 800 814"/);
   assert.match(surface, /data-region-boundary=\{region\.name\} data-selected=\{region\.name === selected\}/);
-  assert.match(css, /\.landing-region-map-canvas\.region-boundary-list > button \{[^}]*position: static;[^}]*animation: none;[^}]*min-height: 44px/);
-  assert.match(css, /\.landing-region-map \{[\s\S]*min-height: 0/);
+  assert.match(css, /\.region-arrows button \{[^}]*width: 56px;[^}]*height: 56px/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
 });
 
 test("landing feature demos are ordered, static and motion-safe", async () => {
@@ -360,7 +362,7 @@ test("landing feature demos are ordered, static and motion-safe", async () => {
   assert.equal((stories.match(/className="feature-preview-stage" aria-hidden="true"/g) || []).length, 6);
   assert.doesNotMatch(stories, /기능 화면 미리보기/);
   assert.doesNotMatch(stories, /<button\b/);
-  for (const hook of ["route-demo-path", "route-demo-vehicle", "community-feature-preview", "community-feature-card"]) {
+  for (const hook of ["route-demo-path", "route-demo-vehicle", "community-editor-preview", "community-preview-fields"]) {
     assert.match(stories, new RegExp(`className="[^"]*${hook}`));
   }
   const community = await source("features/community/components/LandingCommunityStory.tsx");

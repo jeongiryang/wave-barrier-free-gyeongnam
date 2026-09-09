@@ -18,6 +18,6 @@ export default function LandingHeader({ scrolled, t }: { scrolled: boolean; t: L
       { href: "/travel-book", label: en ? "Saved trips" : "내 일정" },
       { href: "/community", label: en ? "Traveler stories" : "여행 후기" },
       { href: "/login", label: en ? "Log in" : "로그인" },
-    ]} /><HelpCenter /><PreferenceControls /><LandingAccountMenu /><Link className="landing-start" href="/planner">{en ? "Plan my trip" : "여행 계획 만들기"} <span aria-hidden="true">↗</span></Link></div>
+    ]} /><HelpCenter iconOnly /><PreferenceControls iconOnly /><LandingAccountMenu /><Link className="landing-start" href="/planner">{en ? "Plan my trip" : "여행 계획하기"} <span aria-hidden="true">↗</span></Link></div>
   </header>;
 }

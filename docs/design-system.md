@@ -8,6 +8,8 @@
 
 ---
 
+디자인 작업의 canonical reference와 장면별 판단은 [Design Reference Bible](design/design-reference-bible.md)을 먼저 읽습니다.
+
 ## 1. 원칙
 
 이 서비스는 "갈 수 있는지"를 확인하러 오는 사람이 씁니다. 그래서 화면의 판단 기준도

@@ -43,7 +43,17 @@ function ArrivalScene({ replay }: { replay: number }) {
     };
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) close();
     else {
-      document.querySelector(".landing-hero")?.animate([{ transform: "scale(1.07)", filter: "brightness(.72)" }, { transform: "scale(1)", filter: "brightness(1)" }], { duration: 1000, easing: "cubic-bezier(.16,1,.3,1)" });
+      const hero = document.querySelector(".landing-hero");
+      const animations: Animation[] = [];
+      const photo = hero?.querySelector(".story-media > img");
+      if (photo) animations.push(photo.animate([{ transform: "scale(1.18)", clipPath: "inset(8% 0 0)" }, { transform: "scale(1)", clipPath: "inset(0)" }], { duration: 1100, easing: "cubic-bezier(.16,1,.3,1)" }));
+      hero?.querySelectorAll("h1, .landing-hero-copy > span:not(.sr-only), .landing-actions").forEach((element, index) => {
+        animations.push(element.animate([{ transform: "translateY(32px)", opacity: .25 }, { transform: "translateY(0)", opacity: 1 }], { duration: 650, delay: 180 + index * 110, easing: "cubic-bezier(.16,1,.3,1)", fill: "backwards" }));
+      });
+      const reduction = matchMedia("(prefers-reduced-motion: reduce)");
+      const stop = () => { if (reduction.matches) animations.forEach(animation => animation.cancel()); };
+      reduction.addEventListener("change", stop);
+      void Promise.allSettled(animations.map(animation => animation.finished)).then(() => reduction.removeEventListener("change", stop));
       node.dataset.leaving = "true"; exitTimer.current = setTimeout(close, 620); }
   }, []);
 
@@ -137,7 +147,7 @@ function ArrivalScene({ replay }: { replay: number }) {
       <p id="arrival-description">{en ? "From the facilities you need to a new day in Gyeongnam." : "필요한 편의에서, 경남의 새로운 하루로."}</p>
     </div>
     <div className="arrival-bottom">
-      <div><p>{en ? "Imagined scenery for W.A.V.E" : "W.A.V.E를 위한 상상 풍경"}</p>
+      <div>
         <p className="sr-only" role="status">{failed ? (en ? "The video is unavailable. Continue with the still scene." : "영상을 불러오지 못해 정지된 풍경을 보여드려요.") : staticScene ? (en ? "A still introduction follows your motion and data preferences." : "동작·데이터 설정에 맞춰 정지된 장면을 보여드려요.") : (en ? "The landing page follows this short, silent scene." : "짧은 무음 장면 뒤 서비스 소개로 이어집니다.")}</p>
       </div>
 
