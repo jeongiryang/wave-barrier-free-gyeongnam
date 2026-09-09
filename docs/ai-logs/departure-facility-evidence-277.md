@@ -5,3 +5,6 @@
 - Initial full quality: lint13 existing warnings, typecheck and739 unit/contract PASS. Build succeeds but unchanged270KiB initial Planner budget fails at270.16KiB. Must resolve before any PR/merge.
 - Initial28 browser cases:26PASS; two English tests used the wrong translated button label. Corrected the locator to the actual rendered label, preserving the criteria-change/no-auto-query/reload assertions. Final browser/visual checks pending.
 - Source freshness policy and actual live provider accessibility remain separate and unverified. No full #277 closure or Production claim.
+
+## Main #412 with route repair integrated locally
+Fresh742 unit/contract tests, lint13 existing warnings, typecheck/build and unchanged budgets PASS (Planner270.00/270KiB rounded report, CSS69.89/70KiB; exact gate passes). All32 browser cases PASS56.4s (facility16,route8,departure4,restoredexports4). Earlier additional14 place-content/decision tests passed on identical extraction. 960KOlight/1440ENdark facility count layouts inspected; counts remain distinct. Hosted CI/PR/merge/Production pending after the separate route repair reaches main. New English test locator now uses the actual visible Facilities for young children label; no assertion removed.
