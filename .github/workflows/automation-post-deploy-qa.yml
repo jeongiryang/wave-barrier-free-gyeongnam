@@ -59,7 +59,15 @@ jobs:
       - name: Production browser smoke용 Chromium 설치
         if: ${{ !cancelled() && steps.binding.outcome == 'success' && steps.dependencies.outcome == 'success' }}
         id: chromium
-        run: npx playwright install --with-deps chromium
+        run: |
+          # Keep the runner's unrelated Chrome APT index out of dependency updates.
+          for source in /etc/apt/sources.list.d/google-chrome{,-stable}.{list,sources}; do
+            if [[ -f "$source" ]] && grep -Eq 'https?://dl\.google\.com/linux/chrome(-stable)?/deb/?([[:space:]]|$)' "$source"; then
+              echo "Quarantining unused Chrome APT source: $source"
+              sudo mv -- "$source" "$RUNNER_TEMP/$(basename "$source").wave-disabled"
+            fi
+          done
+          npx playwright install --with-deps chromium
       - name: 읽기 전용 Production 사용자 여정·접근성 smoke
         if: ${{ !cancelled() && steps.chromium.outcome == 'success' }}
         env:
