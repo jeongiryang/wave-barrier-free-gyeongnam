@@ -63,8 +63,11 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     setNoticeKind("loading");
     try {
       const params = new URLSearchParams({ action: "plan", region, themes: requestedTheme, profiles: selected.join(","), locale });
-      const data = await plannerJson<PlanData>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.plan });
+      const response = await plannerJson<unknown>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.plan });
       if (controller.signal.aborted) return false;
+      const { planResponse } = await import("../services/plan-response");
+      if (controller.signal.aborted) return false;
+      const data = planResponse(response);
       resetAudio();
       resetRouteData();
       setPlan(data);
