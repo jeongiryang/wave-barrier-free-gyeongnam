@@ -35,7 +35,6 @@ export function useCommunityDetail(postId: string) {
     postId,
     authenticated: Boolean(session?.user),
     onLogin: loginForCurrentPage,
-    setMessage: resource.setMessage,
   });
 
   return { ...resource, ...comments, ...engagement, ...reporting, session, sessionPending };
