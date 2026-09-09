@@ -8,3 +8,5 @@
 
 ## Main #412 with route repair integrated locally
 Fresh742 unit/contract tests, lint13 existing warnings, typecheck/build and unchanged budgets PASS (Planner270.00/270KiB rounded report, CSS69.89/70KiB; exact gate passes). All32 browser cases PASS56.4s (facility16,route8,departure4,restoredexports4). Earlier additional14 place-content/decision tests passed on identical extraction. 960KOlight/1440ENdark facility count layouts inspected; counts remain distinct. Hosted CI/PR/merge/Production pending after the separate route repair reaches main. New English test locator now uses the actual visible Facilities for young children label; no assertion removed.
+## Main414 and route415 regression integration
+Normal integration50b78bb brings current415 b932a71 and main414. Full742 quality/budgets PASS (Planner269.84KiB/CSS69.90KiB). All54 local browsers PASS:50 field/route/readiness/English cases in1.2min plus4 restored sharing/calendar cases in22.4s. Includes the explicit five-card English expectation and separate mobility-recheck assertions. Actual main415 integration and fresh hosted CI/merge/Production remain pending; do not infer full277 completion.
