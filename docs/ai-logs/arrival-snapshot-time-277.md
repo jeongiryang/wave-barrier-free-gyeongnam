@@ -18,3 +18,6 @@ Normal merge17774c7 includes main#417/#415 and field candidate ded0861, includin
 
 ## Final validation on actual main #419
 Normal merge `9c094436` includes actual main `d2499cad44450bf4522a48b95756ee7c95b9dec6`. Fresh lint, typecheck, all747 unit/contract tests, Vercel build and unchanged performance budgets PASS (Planner269.64/270KiB, CSS69.90/70KiB;13 existing lint warnings). All66 related browsers PASS1.9min. Fresh960px Korean/light and1440px English/dark captures were visually reviewed: both summary and details identify the two-minute value as its retrieval snapshot and retain the original September6 KST timestamp. No overflow observed. Hosted CI and this PR's exact Production deployment remain to be verified; this does not close all #277 or #280-R07 requirements.
+
+## Priority main CI repair #422 integration
+Normal merge103dc7c includes actual main a23afdd1156008ceb45bedcaffedc5a09460c610. Fresh lint/typecheck,749 unit/contract tests, Vercel build and unchanged performance budgets PASS (Planner269.64KiB/CSS69.90KiB). All66 related browsers PASS1.7min. The first PR420 HEAD772c166 passed all11 hosted CI jobs, but the updated HEAD requires its own CI. Main#419's development-worker failure and #422 repair take priority; do not merge420 until the repaired main is verified on Production.
