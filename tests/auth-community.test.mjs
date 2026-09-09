@@ -188,6 +188,7 @@ test("community UI supports public reading, protected participation and place li
     source("app/planner/page.tsx"),
     Promise.all([
       source("features/planner/components/PlaceDecisionDialog.tsx"),
+      source("features/planner/components/PlaceDecisionContent.tsx"),
       source("features/planner/components/PlaceEvidenceSummary.tsx"),
       source("features/planner/components/PlaceParticipationActions.tsx"),
     ]).then((parts) => parts.join("\n")),
