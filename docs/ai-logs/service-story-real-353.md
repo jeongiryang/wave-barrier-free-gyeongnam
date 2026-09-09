@@ -153,7 +153,7 @@ exact `bf29f21b4abfb0376320631f96877276659536a3`의 [CI866](https://github.com/j
 
 근거: `D:/wave-db-binding-preflight-20260908/story353-candidate-d16a365-20260909/`. 최종 candidate Full CI·exact Preview·비기여자 독립 QA·main CI/CD·canonical Production 및 최종 캡처는 아직 남았다. #373/automation/sandbox 확장이나 전체 로컬 E2E 반복은 수행하지 않는다.
 
-## 2026-09-09 09:35 KST — Hero 카피의 스크롤 재등장 대비 결함
+## 2026-09-09 KST — Hero 카피의 스크롤 재등장 대비 결함
 
 [CI873](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34292935591)의 exact `f6cd562`는 실패했다. 원본 5개 ZIP·5개 job 로그·4개 보고서를 보존해 고유 850건 중 848 PASS·flaky1·기존 skip1, 추가 attempt1을 확인했다. 모바일 EN `condition-prerequisites.spec.ts`의 전체 Hero axe가 배지와 CTA의 혼합색 대비를 3.9:1로 검출했다. 기존 retry의 성공은 원래 실패를 해소하지 않으며 failOnFlaky gate도 유지한다. 별도로 browser(2)는 desktop212 PASS·mobile211 PASS/기존 skip1과 두 artifact 업로드를 끝낸 뒤 25분 job 제한으로 CANCELLED됐다. 검사가 빠졌거나 두 실패가 같은 원인이라고 해석하지 않는다.
 
@@ -162,3 +162,9 @@ exact `bf29f21b4abfb0376320631f96877276659536a3`의 [CI866](https://github.com/j
 `LandingHero.tsx`의 핵심 카피만 공통 reveal 등록에서 분리해 메시지와 여행 시작 CTA가 항상 완전한 불투명도로 렌더되게 했다. 별도의 Intro canvas, 형상/속도, 큰 비주얼, 확장 장면과 다른 스크롤 연출은 바꾸지 않았다. 이는 #21의 일반 모션 약화 제안 채택이 아니다. KO/EN 전진·복귀 스크롤의 실제 프레임, 기존 전체 Hero axe, 실제 CTA 이동을 검증하며 기존 assertion/timeout/worker/retry/skip을 줄이지 않았다.
 
 수정 후 관련 `condition-prerequisites`, `landing-first-arrival`, `landing-theme-contrast` 두 프로젝트 **32 PASS**, 실패·skip0, 38.4초. 이 결과는 새 exact Full CI·Preview·독립 QA·Production을 대신하지 않는다. 기존 f6 Preview 50개 실제 화면 결과와 CI873/독립 FAIL은 역사로 유지한다. 원본과 재현 자료: `D:/wave-db-binding-preflight-20260908/story353-hero-contrast-20260909/`.
+
+Hero 수정 checkpoint는 `373d57b5b2c7f77b2cd2c543d145b23a207984ad`다. lint 오류0/기존경고5, typecheck PASS, unit707 PASS(실패·skip0)를 추가 확인했다. [기존 #379 통합 handoff](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/379#issuecomment-5593914210)를 먼저 기록한 뒤 두 원본 커밋을 기존 후보에 merge했다. 통합 checkpoint는 `4ee0d428e0823226f622dfc7c98fb85d07f0b969`이며 원본 #379 브랜치·Draft·실행 소유권은 수정하지 않았다. 두 파일은 충돌 없이 합쳐졌고 #380의 최신 lock/immutable 배포 SHA·checksum·계약을 유지한다.
+
+프로젝트별 native2-shard는 유지하며 desktop/mobile job만 분리했다. 기존 #379 CI869의 네 job 최장13분11초와 CI873의 두 장치 합계 약24분11초+setup/업로드/cleanup에 근거한 최소 병목 해결이다. 전체 검사는 새 Hero4건을 더한854건이며 각 장치427건을 기존2-shard로 나눠 실행한다. 테스트/axe 제외,4-way 재분할,timeout/retry/workers/예산 증가,Fast Gate/#373 도입은 없다. 기존 `validate`는 네 browser job과 quality/boundary 모두의 성공을 요구한다.
+
+결합 workflow 계약4 PASS, actionlint1.7.12 PASS, Vercel build·performance PASS를 확인했다. gzip CSS69.87/70, landing121.36/155, planner269.81/270KiB다. source #379만 따로 재실행하거나 같은 로컬 Full suite를 반복하지 않고, 안정된 한 새 exact candidate에서 hosted Full CI/Preview/독립 QA를 수행한다. CI873과 [독립 FAIL5148441448](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/382#pullrequestreview-5148441448)은 최신 성공으로 소급 변경하지 않는다.
