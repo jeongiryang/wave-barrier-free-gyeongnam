@@ -22,11 +22,19 @@ export default function CommunityReportControl({ label, busy, onReport }: {
   const panelId = `community-report-${useId().replace(/:/g, "")}`;
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const restoreFocus = useRef(false);
 
   const closeAndRestoreFocus = useCallback(() => {
+    restoreFocus.current = true;
     setOpen(false);
-    window.requestAnimationFrame(() => triggerRef.current?.focus({ preventScroll: true }));
   }, []);
+
+  useEffect(() => {
+    // Focus only after React has closed the panel and re-enabled the trigger.
+    if (open || busy || !restoreFocus.current) return;
+    restoreFocus.current = false;
+    triggerRef.current?.focus({ preventScroll: true });
+  }, [open, busy]);
 
   useEffect(() => {
     if (!open) return;
