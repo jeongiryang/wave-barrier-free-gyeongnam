@@ -1,0 +1,16 @@
+# #388 — external Kakao journey handoff
+
+- ISSUE: #388, external directions from a preset and the second itinerary leg.
+- REPRODUCTION: On main `a355f38`, add the museum; open a mode's external link. Then add the park, check both legs and show the second leg. Both new browser assertions fail because URLs contain only `/link/to/destination`.
+- ROOT CAUSE: `RouteComparisonPanel` discarded the already-retained requested origin and selected mode when creating its URL.
+- FILES: `lib/kakao-directions.js`, `features/planner/components/RouteComparisonPanel.tsx`, `features/planner/hooks/useRouteRequest.ts`, route URL tests, audit document.
+- BEFORE: Preset → museum and museum → park both open only a destination. The external app chooses its own departure/mode.
+- AFTER: Public valid endpoints use the official `/link/by/{car|traffic|walk|bicycle}/from/to` contract. The requested origin's coordinate, label and privacy flag are held in one state record. Invalid coordinates use a place-name/destination fallback; GPS-derived origins remain excluded, with explicit instructions to choose departure/mode in Kakao Maps.
+- TARGETED TEST: 2 new desktop tests failed on main at the missing-origin assertion; after repair, related Kakao/coordinate/provider unit 122 PASS. Final full unit/contract 721 PASS; changed-file lint, full lint (0 errors, 5 existing warnings), typecheck, build and unchanged performance checks PASS. Final planner JS 270.00/270 KiB, CSS 69.87/70 KiB.
+- BROWSER CHECK: Final desktop/mobile `kakao-directions-contract`, `route-language`, `itinerary-route-sync`, `route-panel-clarity`: 38 PASS, including light/dark, 320–1366px, keyboard and route-panel axe. Screenshots visually inspected. A single public-place Kakao navigation independently displayed departure 창원중앙역, destination 경남도립미술관 and 자동차 경로. Initial agent-browser navigation returned a daemon EOF; subsequent state/screenshot confirmed the loaded page without another navigation.
+- LIMITATION: W.A.V.E live provider calls 0; ODsay #372 remains held. This does not enable GPS transmission, fix provider response measurements, restore saved-trip exports or complete #388/#347. Full product browser/Preview/Production validation is not claimed.
+- FAILED EVIDENCE: Initial full unit run failed one old source-location assertion (the URL moved to a helper); retained and updated it to check component wiring plus both complete/fallback URL builders, backed by exact behavior assertions. Early build performance checks exceeded the unchanged budget (270.19, 270.09, 270.11, 270.06 KiB); redundant notice/return structures were reduced within the changed files. No tests deleted/skipped, timeouts relaxed or budget changed.
+- EVIDENCE: `D:/wave-function-evidence-20260909`: `kakao-before.log`, `kakao-before-results`, `kakao-browser-verified.log`, `kakao-verified-results`, `kakao-unit-verified.log`, `kakao-build-verified.log`, `kakao-performance-verified.log`, `kakao-public-handoff.png/.txt` and original failed runs.
+- ROLES: Owner defined FUNCTION scope and DESIGN exclusion. Engineering implemented and verified the patch; a separate read-only QA agent reviewed this bounded change. Neither implementation nor that scoped review is Release GO or a human approval.
+
+Reference: [Kakao Maps Web URL contract](https://apis.map.kakao.com/web/guide/).

@@ -27,8 +27,7 @@ export function useRouteRequest(region: string) {
   const [transportProviders, setTransportProviders] = useState<TransportProvider[]>([]);
   const [transportContext, setTransportContext] = useState<TransportContext | null>(null);
   const routeRequestRef = useRef<AbortController | null>(null);
-  const [routeStart, setRouteStart] = useState<RoutePoint | null>(null);
-  const [routeStartLabel, setRouteStartLabel] = useState("");
+  const [routeOrigin, setRouteOrigin] = useState<{ point: RoutePoint; label: string; isPrivate: boolean } | null>(null);
 
   const clearRouteAlternatives = useCallback(() => {
     routeRequestRef.current?.abort();
@@ -39,8 +38,7 @@ export function useRouteRequest(region: string) {
     setTransportContext(null);
     setRouteLoading(false);
     setRouteFailed(false);
-    setRouteStart(null);
-    setRouteStartLabel("");
+    setRouteOrigin(null);
   }, []);
 
   const loadRouteData = useCallback(async ({
@@ -55,8 +53,7 @@ export function useRouteRequest(region: string) {
     const controller = new AbortController();
     setRouteFailed(false);
     routeRequestRef.current = controller;
-    setRouteStart(origin);
-    setRouteStartLabel(originLabel);
+    setRouteOrigin({ point: origin, label: originLabel, isPrivate: privateOrigin });
     const endpoint = supportedPlacePoint(place.mapX, place.mapY);
     if (!endpoint || !supportedPlacePoint(origin.lng, origin.lat)) {
       onNotice({ ko: "선택한 여행지에 좌표가 없어 경로를 계산할 수 없습니다. 카카오맵에서 장소 이름으로 확인해 주세요.", en: "This place has no coordinates for a route calculation. Search by its name in Kakao Maps." });
@@ -78,7 +75,7 @@ export function useRouteRequest(region: string) {
     if (privateOrigin) {
       setRouteLoading(false);
       setRouteAlternatives([]);
-      onNotice({ ko: "현재 위치 좌표는 W.A.V.E 경로 API에 보내지 않습니다. 경로를 비교하려면 공개 출발 거점을 선택하거나 카카오 지도 앱에서 직접 확인해 주세요. 지도 제공처의 화면 영역·접속 정보 처리는 개인정보처리방침을 확인해 주세요.", en: "Your current coordinates are not sent to the W.A.V.E route service. Choose a public departure point or check directly in Kakao Maps. See the privacy policy for map providers' use of map area and connection information." });
+      onNotice({ ko: "현재 위치 좌표는 W.A.V.E 경로 API나 외부 링크에 넣지 않습니다. 공개 출발 거점을 선택하거나 카카오맵에서 출발지·이동수단을 직접 선택해 주세요. 지도 제공처의 처리는 개인정보처리방침을 확인해 주세요.", en: "Device coordinates are not sent to W.A.V.E routes or external links. Choose a public departure or select departure and mode in Kakao Maps. See the privacy policy for map provider processing." });
       routeRequestRef.current = null;
       return;
     }
@@ -121,8 +118,7 @@ export function useRouteRequest(region: string) {
     setTransportContext(null);
     setRouteLoading(false);
     setRouteFailed(false);
-    setRouteStart(null);
-    setRouteStartLabel("");
+    setRouteOrigin(null);
   }, []);
 
   const displayRouteData = useCallback((place: Place, start: RoutePoint, label: string, bundle: RouteDataBundle) => {
@@ -131,8 +127,8 @@ export function useRouteRequest(region: string) {
     setRouteLoading(false);
     setRouteFailed(false);
     setRouteDestination(place);
-    setRouteStart(start);
-    setRouteStartLabel(label);
+    // Only public, unblocked itinerary legs are fetched and displayed here.
+    setRouteOrigin({ point: start, label, isPrivate: false });
     setRouteAlternatives(bundle.alternatives || []);
     setTransportProviders(bundle.providers || []);
     setTransportContext(bundle.context || null);
@@ -152,8 +148,9 @@ export function useRouteRequest(region: string) {
     clearRouteAlternatives,
     loadRouteData,
     resetRouteData,
-    routeStart,
-    routeStartLabel,
+    routeStart: routeOrigin?.point ?? null,
+    routeStartLabel: routeOrigin?.label ?? "",
+    routeStartIsPrivate: routeOrigin?.isPrivate ?? false,
     displayRouteData,
   };
 }
