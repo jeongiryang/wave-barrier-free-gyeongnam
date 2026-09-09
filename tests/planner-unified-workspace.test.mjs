@@ -45,7 +45,7 @@ test("route comparison is grouped by travel mode and ordered by time", async () 
 
 test("place detail can surface only real public WAVE community stories", async () => {
   const [dialog, stories, reads, retirement] = await Promise.all([
-    source("features/planner/components/PlaceDecisionDialog.tsx"),
+    Promise.all([source("features/planner/components/PlaceDecisionDialog.tsx"), source("features/planner/components/PlaceDecisionContent.tsx")]).then(parts => parts.join("\n")),
     source("features/planner/components/PlaceCommunityStories.tsx"),
     source("features/community/server/post-read-repository.ts"),
     source("migrations/006_retire_community_seed.sql"),
