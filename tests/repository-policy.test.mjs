@@ -493,7 +493,8 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.doesNotMatch(planner, /enrichmentRequestRef|\bsetKeyHealth\(|\bsetWeather\(/);
   assert.doesNotMatch(planner, /setPlanError\(|planRequestRef/);
   assert.doesNotMatch(planner, /plannerJson|setShareState\(|setFeedbackState\(/);
-  assert.match(planController, /plannerJson<PlanData>/);
+  assert.match(planController, /plannerJson<unknown>/);
+  assert.match(planController, /const data = planResponse\(response\);[\s\S]+setPlan\(data\)/);
   assert.match(planController, /const abortPlan = useCallback/);
   assert.match(participation, /plannerJson<\{ url\?: string \}>\("\/api\/trips"/);
   assert.match(participation, /plannerJson<\{ ok\?: boolean \}>\("\/api\/feedback"/);

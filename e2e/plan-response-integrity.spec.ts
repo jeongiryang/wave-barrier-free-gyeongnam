@@ -48,3 +48,19 @@ for (const invalid of ["invalid-json", "missing-fields", "damaged-place"] as con
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
   });
 }
+
+test("a failed response-check module offers a usable recovery", async ({ page }) => {
+  await mockPlannerApi(page);
+  let modules = 0;
+  await page.route("**/features/planner/services/plan-response.ts*", route => {
+    modules++;
+    return modules === 1 ? route.abort("failed") : route.continue();
+  });
+  await page.goto("/planner");
+  await chooseTripConditions(page);
+  await expect(page.locator(".result-notice.error")).toBeVisible();
+  await expect(page.locator(".condition-actions button")).toBeEnabled();
+  await page.getByRole("button", { name: "다시 시도", exact: true }).click();
+  await expect(page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true })).toBeEnabled();
+  expect(modules).toBe(2);
+});

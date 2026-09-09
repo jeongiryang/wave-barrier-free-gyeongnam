@@ -4,12 +4,12 @@ import test from "node:test";
 import ts from "typescript";
 
 function load(path) {
-  const module = { exports: {} };
+  const mod = { exports: {} };
   const code = ts.transpileModule(readFileSync(new URL(path, import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
-  new Function("module", "exports", code)(module, module.exports);
-  return module.exports;
+  new Function("module", "exports", code)(mod, mod.exports);
+  return mod.exports;
 }
 const { planResponse } = load("../features/planner/services/plan-response.ts");
 const { plan } = load("../e2e/fixtures.ts");
