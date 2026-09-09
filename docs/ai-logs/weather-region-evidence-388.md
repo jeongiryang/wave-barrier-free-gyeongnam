@@ -6,3 +6,6 @@
 - On main #414 (`680cd64`), source `0c95a54` plus normal integration `1a23055`: lint (13 existing warnings, no errors), typecheck, all 737 unit tests, Vercel build and unchanged performance budgets PASS. Planner initial JavaScript 269.83/270 KiB; CSS 69.90/70 KiB.
 - All 32 targeted browser cases PASS (weather 18 and region boundary 14, 1.5 minutes). Wrong-region failures now remain unavailable and an explicit retry restores the matching forecast without losing saved places. Existing light/dark keyboard, overflow and axe checks cover widths 320–2560; desktop/mobile rendered weather captures were reviewed. No new layout was introduced by this response check.
 - Hosted CI, final latest-main integration, merge and Production remain pending. No full #388 or #277 closure; source freshness is a separate remaining requirement.
+
+## Main #417 verification
+Normal merge of main616c90a. Fresh737 full unit/contract, lint13 existing warnings, typecheck/build and unchanged budgets PASS (Planner269.84KiB, CSS69.90KiB). All32 weather/language/error/retry/region-boundary browser cases PASS1.4min. Latest-main integration after the queued departure PR, fresh checks, hosted CI and exact Production remain pending.
