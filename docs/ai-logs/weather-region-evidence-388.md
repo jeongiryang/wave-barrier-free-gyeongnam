@@ -1,0 +1,6 @@
+# Weather response region — #388 / #277
+
+- Baseline1cf48a5: valid Changwon weather is accepted for a Jinju request. Two desktop/mobile browser cases also reproduce wrong-region data appearing on the requested destination's weather board instead of the unavailable/retry state. These are deterministic response-integrity fixtures, not evidence that a current provider is returning wrong regions in Production.
+- The existing response parser now checks the requested region, passed by useRegionWeather after its existing cancellation/generation checks. A different-region response stays unavailable and can be retried independently. No provider call, cache duration, forecast values, selection or itinerary mutation was added. The generic API fixture now returns the requested region; the explicit mismatched fixture remains wrong for the regression.
+- Official server resolver retains 경남 전체 as a supported region; exact response identity therefore preserves that existing case too. This change does not claim a province-wide weather forecast or invent local conditions.
+- Validation/hosted CI/latest-main/merge/Production pending. No full #388 or #277 closure; source freshness is a separate remaining requirement.
