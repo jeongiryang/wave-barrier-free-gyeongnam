@@ -11,6 +11,14 @@ function requestFixture(previousPlan = null) {
   browser.setTimeout = fn => { timers.push(fn); return timers.length; };
   browser.clearTimeout = id => { timers[id - 1] = null; };
   browser.scrollTo = () => {};
+  const apiCode = ts.transpileModule(readFileSync(new URL("../features/planner/services/api.ts", import.meta.url), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const api = { exports: {} };
+  new Function("module", "exports", "require", apiCode)(api, api.exports, name => {
+    if (name.endsWith("request-budget.js")) return { CLIENT_BUDGET_MS: { plan: 1000 } };
+    throw Error(name);
+  });
   const compiled = ts.transpileModule(readFileSync(new URL("../features/planner/hooks/usePlanRequest.ts", import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
@@ -22,7 +30,7 @@ function requestFixture(previousPlan = null) {
     };
     if (name.endsWith("request-budget.js")) return { CLIENT_BUDGET_MS: { plan: 1000 } };
     if (name.endsWith("reduced-motion.js")) return { scrollToSection: () => false };
-    if (name.endsWith("services/api")) return { plannerJson: () => response };
+    if (name.endsWith("services/api")) return { ...api.exports, plannerJson: () => response };
     if (name.endsWith("services/plan-response")) {
       const result = { exports: {} };
       const source = ts.transpileModule(readFileSync(new URL("../features/planner/services/plan-response.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;

@@ -8,6 +8,7 @@ import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place } from "../types";
 import PlannerThemeDates from "./PlannerThemeDates";
+import { planFailureHeadings } from "../condition-copy";
 
 const PlannerRegionDiscovery = lazy(() => import("./PlannerRegionDiscovery"));
 const PlannerAccessibilityProfiles = lazy(() => import("./PlannerAccessibilityProfiles"));
@@ -61,7 +62,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
       {(!guided || question === 3) && <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="dates" />}
     </div>
     {(!guided || question === 3) && <p className="condition-scope">{en ? "Dates affect forecasts and events, not facility matching. You can change them later in My itinerary." : "여행 날짜는 날씨·행사 조회에 반영돼요. 편의시설 추천 조건은 아니며 내 일정에서 다시 바꿀 수 있어요."}</p>}
-    {guided && planError && <p role="alert">{en ? "We couldn't load places. Your choices are kept. Check your connection and try again." : "여행지를 불러오지 못했어요. 선택한 조건은 유지됩니다. 연결을 확인하고 다시 찾아 주세요."}</p>}
+    {guided && planError && <p role="alert">{planFailureHeadings[planError][en ? 1 : 0]} {en ? "Your choices are kept. Please try again shortly." : "선택한 조건은 유지됩니다. 잠시 후 다시 찾아 주세요."}</p>}
     <div className="condition-actions">
       {guided && question > 0 && <button type="button" className="secondary" onClick={() => go(question - 1)}>{en ? "Previous" : "이전"}</button>}
       {guided && question < 3 ? <button type="button" disabled={question + 1 > lastAvailableQuestion} onClick={() => go(question + 1)}>{en ? "Continue" : "다음"} →</button> : <button type="button" disabled={!region || !themes.length || !selected.length} aria-disabled={loading || undefined} aria-busy={loading || undefined} onClick={() => { if (!loading) void props.onGenerate(); }}>{loading ? en ? "Finding places…" : "여행지 찾는 중…" : en ? "Find places" : "여행지 찾기"} →</button>}
