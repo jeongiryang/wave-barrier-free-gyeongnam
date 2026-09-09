@@ -9,11 +9,45 @@ import * as coordinates from "../lib/map-coordinates.js";
 const source=readFileSync(new URL("../server/transport/kakao-route.ts",import.meta.url),"utf8");
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const valid=()=>({routes:[{result_code:0,summary:{duration:420,distance:2300,fare:{toll:0}},sections:[{roads:[{vertexes:[128.6819,35.2281,128.692,35.2384]}]}]}]});
-async function run(body,{status=200,throwRequest=false,invalidJson=false}={}){
+async function run(body,{status=200,throwRequest=false,invalidJson=false,start=[35.228,128.6818],end=[35.2385,128.6921]}={}){
   const mod={exports:{}};
   new Function("module","exports","require","fetch",code)(mod,mod.exports,name=>{if(name.endsWith("provider-failure.js"))return failures;if(name.endsWith("provider-request.js"))return {requestProvider:createProviderRequester()};if(name.endsWith("map-coordinates.js"))return coordinates;if(name.endsWith("request-budget.js"))return {UPSTREAM_TIMEOUT_MS:{transport:6000}};throw Error(name);},async()=>{if(throwRequest)throw Error("controlled timeout");return {ok:status>=200&&status<300,status,json:async()=>{if(invalidJson)throw Error("controlled malformed JSON");return body;}};});
-  return mod.exports.fetchKakaoRoute({KAKAO_REST_API_KEY:"fixture-not-a-real-key"},35.228,128.6818,35.2385,128.6921);
+  return mod.exports.fetchKakaoRoute({KAKAO_REST_API_KEY:"fixture-not-a-real-key"},...start,...end);
 }
+
+test("8.2 km in 60 seconds cannot become a confirmed one-minute car journey",async()=>{
+  const body=valid();
+  Object.assign(body.routes[0].summary,{duration:60,distance:8229});
+  body.routes[0].sections[0].roads[0].vertexes=[128.6982,35.2422,128.675316809542,35.3138095252897];
+  const result=await run(body,{start:[35.2422,128.6982],end:[35.3138095252897,128.675316809542]});
+  assert.equal(result.alternative,null);
+  assert.equal(result.provider.state,"error");
+  assert.equal(result.provider.failure.kind,"malformed_response");
+});
+
+for(const [name,measurements] of [
+  ["minutes supplied as seconds",{duration:7,distance:2300}],
+  ["kilometres supplied as metres",{duration:420,distance:2.3}],
+  ["positive distance shorter than the road geometry",{duration:420,distance:2}],
+  ["non-integer seconds",{duration:0.5,distance:2300}],
+  ["unsafe integer distance",{duration:420,distance:Number.MAX_SAFE_INTEGER+1}],
+])test(`${name} is rejected without manufacturing replacement time or distance`,async()=>{
+  const body=valid();Object.assign(body.routes[0].summary,measurements);
+  const result=await run(body);
+  assert.equal(result.alternative,null);assert.equal(result.provider.state,"error");
+});
+
+test("a plausible short one-minute road remains a confirmed journey",async()=>{
+  const body=valid();Object.assign(body.routes[0].summary,{duration:60,distance:170});
+  body.routes[0].sections[0].roads[0].vertexes=[128.6818,35.228,128.6828,35.2285];
+  const result=await run(body,{end:[35.2285,128.6828]});
+  assert.equal(result.provider.state,"connected");assert.equal(result.alternative.totalTime,1);assert.equal(result.alternative.totalDistance,170);
+});
+
+test("plausible slow and long provider journeys keep their duration",async()=>{
+  const body=valid();body.routes[0].summary.duration=301*60;
+  const result=await run(body);assert.equal(result.alternative.totalTime,301);
+});
 test("valid provider time, distance, toll and road vertices are preserved",async()=>{
   const result=await run(valid());assert.equal(result.provider.state,"connected");assert.equal(result.alternative.totalTime,7);assert.equal(result.alternative.totalDistance,2300);assert.equal(result.alternative.payment,0);
   assert.deepEqual(result.alternative.geometry,[{lng:128.6819,lat:35.2281},{lng:128.692,lat:35.2384}]);
@@ -64,6 +98,12 @@ async function api(body){
 }
 test("API composition exposes a confirmed road only for a verified provider route",async()=>{
   const result=await api(valid());assert.equal(result.configured,true);assert.equal(result.alternatives.length,1);assert.equal(result.alternatives[0].mode,"car");assert.equal(result.providers[0].state,"connected");
+});
+test("API composition cannot mark inconsistent road measurements as confirmed",async()=>{
+  const body=valid();body.routes[0].summary.duration=7;
+  const result=await api(body);
+  assert.equal(result.configured,false);assert.equal(result.alternatives[0].configured,false);
+  assert.equal(result.alternatives[0].mode,"preview");assert.equal(result.providers[0].state,"error");
 });
 for(const body of [{routes:[{result_code:1}]},{routes:[{result_code:0}]},{routes:[{}]}])test(`API composition keeps ${JSON.stringify(body)} as an unconfirmed preview`,async()=>{
   const result=await api(body);assert.equal(result.configured,false);assert.equal(result.alternatives.length,1);assert.equal(result.alternatives[0].configured,false);assert.equal(result.alternatives[0].mode,"preview");assert.notEqual(result.providers[0].state,"connected");
