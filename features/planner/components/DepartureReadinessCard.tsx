@@ -15,6 +15,7 @@ import { useReadinessFocus } from "../hooks/useReadinessFocus";
 interface DepartureReadinessCardProps {
   region: string;
   plan: PlanData | null;
+  placeCriteriaCurrent: boolean;
   destinationCrowd?: PlanData["crowd"];
   destinationPlaceId?: string;
   weather: WeatherData | null;
@@ -45,7 +46,7 @@ function formatCheckedAt(value: string, en: boolean) {
 }
 
 export default function DepartureReadinessCard({
-  region, plan, destinationCrowd, destinationPlaceId, weather, weatherLoading, routeCoverage, tripSelection, participation, onRefresh, onOpenSignals,
+  region, plan, placeCriteriaCurrent, destinationCrowd, destinationPlaceId, weather, weatherLoading, routeCoverage, tripSelection, participation, onRefresh, onOpenSignals,
 }: DepartureReadinessCardProps) {
   const { locale } = useSitePreferences();
   const focusVisibility = useReadinessFocus();
@@ -67,6 +68,7 @@ export default function DepartureReadinessCard({
     generatedAt: plan?.generatedAt,
     routeCoverage,
     places: orderedSavedPlaces,
+    placeCriteriaCurrent,
   });
   const calendarDisabled = !orderedSavedPlaces.length || assessment.phase.id === "past";
 
