@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { emptyTrip, replaceCurrentTrip } from "../../lib/current-trip-storage.js";
+import { emptyTrip, replaceCurrentTrip, THEMES_KEY } from "../../lib/current-trip-storage.js";
 import { useRouter } from "next/navigation";
 import {
   TRAVEL_BOOK_STORAGE_KEY,
@@ -69,6 +69,7 @@ export function useTravelBook() {
         [SAVED_PLACES_KEY]: JSON.stringify(payload.savedPlaceIds),
         [SAVED_PLACE_CATALOG_KEY]: JSON.stringify(sanitizeSavedPlaceCatalog(payload.savedPlaces)),
         [TRIP_SCHEDULE_KEY]: JSON.stringify(payload.schedule),
+        [THEMES_KEY]: JSON.stringify(payload.themes),
         "wave-trip-order-v1": JSON.stringify({ mode: "manual", ids: payload.savedPlaceIds }),
       });
     } catch {
