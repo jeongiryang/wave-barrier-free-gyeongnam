@@ -10,3 +10,6 @@
 
 ## Latest main #412 and performance verification
 Normal merge47f5785. Full739 unit/contract, lint13 existing warnings, typecheck and build PASS, but initial Planner budget initially failed270.11/270KiB. Incorporated the independently verified deferred place-content extraction (79d98de, same source as bc68344): modal title/focus/close/Add stay immediate; secondary content loads only on opening with accessible failure recovery. No budget or assertion change. Fresh full739 quality PASS, Planner269.58KiB/CSS69.89KiB. All30 related browser cases PASS1.1min (route8+departure4+restoredexports4+deferredcontent4+existingplacedetail10). Official operation-level capability audit is included; actual provider accessibility remains unverified. Field-level destination readiness is a separate prepared follow-up, not part of this source. Hosted CI/latest-main after #414/merge/Production pending.
+
+## Main #414 final candidate
+Normal merge680cd64. Fresh739 unit/contract, lint13 existing warnings, typecheck/build/budgets PASS (Planner269.44KiB, CSS69.90KiB). All30 related browser cases PASS1.1min again at this source. The local field-evidence follow-up is NOT included; this candidate contains current-leg/mobility separation, the official capability audit and the necessary modal-content performance extraction only.
