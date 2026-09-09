@@ -296,3 +296,12 @@ LOCAL VISUAL CHECKPOINT. 시작 HEAD `d92c4bfc66343a7a538394155adfa8f1288e55a2`,
 증거: `D:/wave-db-binding-preflight-20260908/fullscreen-story-353-owner-pass6-20260909/`. `unit-initial.log`, `unit-final.log`, `browser-initial*`, `browser-final*`, `browser-checkpoint*` 전부 보존. 마지막 폴더에 desktop/mobile 실제 시간 흐름 video.webm 및 장면 캡처가 있다. 완료된 expect.poll의 중간 failed-step resource 이벤트를 테스트 최종 FAIL로 오인하지 말 것.
 
 다음: Owner가 http://127.0.0.1:4173/ 에서 로컬 시각 체크. #353 전체 완료/Production 반영/권리 최종 확인은 아직 아니다. 디자인 확인 뒤에만 candidate 성능/Full CI/Preview/QA/병합 단계를 판단한다. #386/#387, 기능/API/계정/저장/공유/자동화는 이 패스에서 변경하지 않음.
+
+
+### Pass 6 follow-up — finite Hero and bounded photo warming
+
+Owner 추가 지시 2026-09-09: visible pause UI 없이 무한 반복 제거. Hero는 A → B → C → A(각 6.5초)로 끝나고 스크롤 재진입에도 다시 시작하지 않는다. 명시적인 Intro 다시보기만 초기화한다. OS reduced/SaveData는 A 정적 표시. 공통 hook의 편의/커뮤니티 4.2초 시퀀스는 유지한다.
+
+지역 사진은 기존에도 active album만 lazy DOM에 있었다. 추가 보정: 쇼케이스가 보이고 탭이 활성일 때만 **다음 인접 지역 하나의 album**을 low-priority로 미리 읽는다. 완료된 URL은 재요청하지 않으며 인접 대상 변경/화면 이탈 시 미완료 preload를 중단한다. SaveData는 인접 preload 0건. 18개 지역 전체 preload 없음. 37장 source/author/original URL registry 수정 없음.
+
+검증: typecheck PASS, changed-file ESLint 0 errors / 기존 native img warning 1. 관련 desktop/mobile browser **10 PASS, 0 FAIL, 0 flaky, 0 skip (8.1s)**. 1회 종료 후 60초 경과·스크롤 복귀에도 대표 문구 정착, CTA/focus 유지, 숨은 탭/OS/Intro replay, 공유 demo 무쓰기, adjacent-only 네트워크 요청과 SaveData preload 차단을 검증했다. 증거: 기존 pass6 artifact 아래 `finite-hero/browser.log`와 `finite-hero/results`. Full CI/Preview/배포 안 함. 로컬 4173 서버 유지.

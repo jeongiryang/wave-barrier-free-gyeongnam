@@ -39,6 +39,12 @@ test("Hero copy moves line by line, holds CTA geometry, without pause UI and res
   await cta.focus(); await page.mouse.move(0,0); await page.clock.fastForward(6500);
   await expect(sequence).toHaveAttribute("data-phrase","2"); await expect(cta).toBeFocused();
   await expect(page.getByRole("heading",{level:1})).toHaveAccessibleName(name);
+  await page.clock.fastForward(6500); await expect(sequence).toHaveAttribute("data-phrase","0");
+  await expect(sequence).toHaveAttribute("data-running","false");
+  await page.clock.fastForward(60000); await expect(sequence).toHaveAttribute("data-phrase","0");
+  await page.locator("#community").evaluate(node=>node.scrollIntoView({behavior:"instant"}));
+  await page.locator("#top").evaluate(node=>node.scrollIntoView({behavior:"instant"}));
+  await page.clock.fastForward(20000); await expect(sequence).toHaveAttribute("data-running","false");
   await page.emulateMedia({reducedMotion:"reduce"}); await expect(sequence).toHaveAttribute("data-phrase","0"); await expect(sequence).toHaveAttribute("data-running","false");
   await expect(cta).toBeFocused(); expect(await cta.boundingBox()).toEqual(before);
 });
@@ -159,4 +165,29 @@ test("the new photo and product chapters retain readable dark-mode composition",
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
   }
   expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
+});
+
+test("regional photographs warm only the adjacent album on visibility, never all eighteen", async ({page}) => {
+  const requested=new Set<string>();
+  page.on("request", request=>{ if(request.url().startsWith("https://tong.visitkorea.or.kr/")) requested.add(request.url()); });
+  await page.clock.install(); await page.goto("/"); await ready(page);
+  const next=regionShowcaseAlbums["하동"].map(photo=>photo.image);
+  expect(next.some(url=>requested.has(url))).toBe(false);
+  await page.locator("#regions").scrollIntoViewIfNeeded();
+  await expect.poll(()=>next.every(url=>requested.has(url))).toBe(true);
+  await expect(page.locator(".region-photo-album img")).toHaveCount(3);
+  for(const img of await page.locator(".region-photo-album img").all()) await expect(img).toHaveAttribute("loading","lazy");
+  const distant=regionShowcaseAlbums["거창"].concat(regionShowcaseAlbums["밀양"]).map(photo=>photo.image);
+  expect(distant.some(url=>requested.has(url))).toBe(false);
+});
+
+test("data saving disables speculative adjacent-region photography requests", async ({page}) => {
+  const requested=new Set<string>();
+  page.on("request",request=>requested.add(request.url()));
+  await page.addInitScript(()=>Object.defineProperty(navigator,"connection",{configurable:true,value:{saveData:true,addEventListener(){},removeEventListener(){}}}));
+  await page.clock.install(); await page.goto("/#regions"); await ready(page);
+  await page.locator("#regions").scrollIntoViewIfNeeded();
+  await page.clock.fastForward(12000);
+  expect(regionShowcaseAlbums["하동"].some(photo=>requested.has(photo.image))).toBe(false);
+  await expect(page.locator("[data-region-stage]")).toHaveAttribute("data-active-region","창원");
 });

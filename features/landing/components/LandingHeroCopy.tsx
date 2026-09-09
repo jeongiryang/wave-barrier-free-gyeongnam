@@ -9,7 +9,7 @@ export const heroPhrases = [
 const englishPhrases = [["The facilities you need.", "Your Gyeongnam journey."], ["Explore the facilities.", "Find the places that fit you."], ["Gyeongnam awaits.", "Travel your own way."]] as const;
 export default function LandingHeroCopy() {
   const en = useSitePreferences().locale === "en";
-  const { root, index: step, running, still } = useStoryPlayback(heroPhrases.length, 6500, true);
+  const { root, index: step, running, still } = useStoryPlayback(heroPhrases.length + 1, 6500, true);
   const phrases = en ? englishPhrases : heroPhrases;
   return <div ref={root} className="hero-copy-sequence" data-phrase={step} data-running={running} data-still={still}>
     <h1 id="landing-title" tabIndex={-1}>

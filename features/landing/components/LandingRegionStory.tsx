@@ -27,6 +27,7 @@ interface LandingRegionStoryProps {
 export default function LandingRegionStory({ activeRegion, active, selectRegion }: LandingRegionStoryProps) {
   const { locale, motion, hydrated: ready } = useSitePreferences();
   const stage = useRef<HTMLDivElement>(null);
+  const prefetched = useRef(new Set<string>());
   const [inView, setInView] = useState(false);
   const [automatic, setAutomatic] = useState(true);
   const [interacting, setInteracting] = useState(false);
@@ -52,6 +53,24 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
     }, 4000);
     return () => clearTimeout(timer);
   }, [running, activeRegion, selectRegion]);
+  // The current album is lazy-rendered below. Warm only the next neighbouring
+  // album while the showcase is visible; never fan out across all 18 regions.
+  useEffect(() => {
+    if (!ready || !inView || !visible || saving) return;
+    const index = landingRegions.findIndex(region => region.name === active.name);
+    const next = landingRegions[(index + 1) % landingRegions.length].name;
+    const images: HTMLImageElement[] = [];
+    for (const photo of regionShowcaseAlbums[next]) {
+      if (prefetched.current.has(photo.image)) continue;
+      const image = new Image();
+      image.fetchPriority = "low";
+      image.decoding = "async";
+      image.onload = () => prefetched.current.add(photo.image);
+      image.src = photo.image;
+      images.push(image);
+    }
+    return () => { for (const image of images) { image.onload = null; if (!image.complete) image.src = ""; } };
+  }, [ready, inView, visible, saving, active.name]);
   const choose = (region: string) => { setAutomatic(false); selectRegion(region, false); };
   const english = locale === "en";
   const regionLabel = (name: string) => english ? regionNames[name] : name;
