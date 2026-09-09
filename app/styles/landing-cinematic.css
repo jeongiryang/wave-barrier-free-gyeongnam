@@ -94,7 +94,7 @@ body:has(.help-tour-dialog) .story-edition .landing-header, .story-edition .land
 .community-preview-fields dt { font-size: .8rem; font-weight: 800; }.community-preview-fields dd { margin: 8px 0 0; color: var(--muted); }
 .community-preview-note,.community-composer-visual figcaption { font-size: .75rem; color: var(--muted); line-height: 1.7; }
 .community-composer-visual figcaption { margin-top: 12px; }.community-chapter .landing-community-copy > p { margin-inline: 0; }
-.story-edition .landing-cta { min-height: 80svh; width: 100%; padding: var(--story-space) var(--gutter); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0; }
+.story-edition .landing-cta { background-color: #04202f; color: #fff; min-height: 80svh; width: 100%; padding: var(--story-space) var(--gutter); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0; }
 .landing-cta .closing-horizon { transform: scale(calc(1 + var(--cinema-rest) * .15)); clip-path: inset(calc(var(--cinema-rest) * 14%) 0 0); }
 .landing-source-notes { max-width: 420px; line-height: 1.7; }.landing-source-notes summary { min-height: 44px; padding-block: 12px; cursor: pointer; }.landing-source-notes p { font-size: .8rem; }
 @media (max-width: 960px) {
@@ -171,7 +171,7 @@ body:has(.help-tour-dialog) .story-edition .landing-header, .story-edition .land
 .story-progress ol { position: relative; margin: 0; padding: 0; list-style: none; }
 .story-progress ol::after { content: ""; position: absolute; top: 22px; bottom: 22px; right: 20px; width: 1px; background: #b7dae399; z-index: -1; }
 .story-progress li a { display: grid; grid-template-columns: 1fr 40px; align-items: center; gap: 6px; min-height: 44px; text-decoration: none; color: #fff; text-shadow: 0 1px 4px #001521,0 0 7px #001521; }
-.story-progress li a > span { text-align: right; letter-spacing: -.02em; }
+.story-progress li a > span { text-align: right; letter-spacing: -.02em; justify-self: end; padding: 3px 5px; color: #fff; background: #052736c9; }
 .story-progress li b { display: grid; place-items: center; width: 28px; height: 28px; margin-inline: auto; background: #052736b8; border-radius: 50%; font-weight: 500; }
 .story-progress li a[aria-current] { font-weight: 800; }.story-progress li a[aria-current] b { background: #b5fff0; color: #052736; text-shadow: none; font-weight: 800; }
 .story-progress :focus-visible { outline: 3px solid #ffda89; outline-offset: 2px; }

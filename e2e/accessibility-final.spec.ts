@@ -77,12 +77,20 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
   // Measure the displayed, interactive page while retaining every target and size check.
   await expect(page.locator(".landing-header .brand")).toBeVisible();
   await expect(page.locator(".landing-header .help-button")).toBeEnabled();
-  await page.locator(".region-map-details > summary").click();
-  const targets = page.locator(".landing-header .brand, .landing-header nav a, .landing-header .landing-start, .landing-actions a, [data-region-marker]");
+  const targets = page.locator(".landing-header .brand, .landing-header nav a, .landing-header .landing-start, .landing-actions a");
   const sizes = await targets.evaluateAll((nodes) => nodes.map((node) => {
     const rect = node.getBoundingClientRect();
     return { name: node.textContent?.trim() || node.getAttribute("aria-label") || "조작", width: rect.width, height: rect.height };
   }));
+  // The 18 selectors now live in the Planner; retain the combined target inventory.
+  await mockPlannerApi(page);
+  await page.goto("/planner");
+  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
+  await expect(page.locator(".region-picker-list button")).toHaveCount(19);
+  sizes.push(...await page.locator(".region-picker-list button").evaluateAll(nodes => nodes.map(node => {
+    const rect = node.getBoundingClientRect();
+    return { name: node.textContent?.trim() || "지역", width: rect.width, height: rect.height };
+  })));
   expect(sizes.length).toBeGreaterThanOrEqual(25);
   for (const size of sizes) {
     expect(size.width, `${size.name} 너비`).toBeGreaterThanOrEqual(44);
@@ -135,6 +143,7 @@ test("지도 도구 패널은 컨트롤 관계와 Escape 초점 복귀를 유지
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
   await chooseTripConditions(page);
 
   const trigger = page.locator(".map-command-bar").getByRole("button", { name: /출발·도착/ });
@@ -157,6 +166,7 @@ test("스크롤로 숨은 플래너 헤더는 키보드 초점이 오면 복귀�
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
   await chooseTripConditions(page);
   await page.getByRole("heading", { name: "경남도립미술관" }).first().waitFor();
 

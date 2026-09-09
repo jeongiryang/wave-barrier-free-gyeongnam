@@ -8,7 +8,7 @@ async function openPlanner(page: import("@playwright/test").Page, width: number,
   await mockPublicShellApi(page);
   await mockPlannerApi(page);
   await page.addInitScript(() => {
-    window.sessionStorage.setItem("wave-intro-seen-v2", "1");
+    window.sessionStorage.setItem("wave-arrival-session-v1", "done");
   });
   await page.goto("/planner");
   await page.locator(".journey-rail").waitFor();

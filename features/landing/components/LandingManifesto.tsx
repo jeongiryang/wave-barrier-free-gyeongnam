@@ -4,10 +4,10 @@ import LandingNeedsDemo from "./LandingNeedsDemo";
 
 export default function LandingManifesto({ t }: { t: LandingTranslate }) {
   const en = useSitePreferences().locale === "en";
-  return <section className="manifesto needs-chapter" data-cinematic="right" id="story" tabIndex={-1}>
+  return <section className="manifesto needs-chapter" data-cinematic="right" id="story" tabIndex={-1} aria-labelledby="needs-story-title">
     <div className="needs-copy">
       <p className="section-kicker">{en ? "Start with your needs" : "여행의 시작은, 나에게서"}</p>
-      <h2>{t("whyTitle", "내게 필요한 편의를 먼저 고르세요.")}</h2>
+      <h2 id="needs-story-title">{t("whyTitle", "내게 필요한 편의를 먼저 고르세요.")}</h2>
       <p>{en ? "An easy approach. An accessible toilet. Choose the facilities that make your trip comfortable." : "완만한 접근로, 이용하기 편한 화장실. 내 여행에 필요한 편의부터 골라보세요."}</p>
       <LandingNeedsDemo />
     </div>

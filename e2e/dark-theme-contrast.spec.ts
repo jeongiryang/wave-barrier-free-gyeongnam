@@ -53,7 +53,7 @@ test("어두운 화면에서 짙은 배경 위 글자가 배경에 묻히지 않
   await mockPublicShellApi(page);
   await mockPlannerApi(page);
   await page.addInitScript(() => {
-    window.sessionStorage.setItem("wave-intro-seen-v2", "1");
+    window.sessionStorage.setItem("wave-arrival-session-v1", "done");
     window.localStorage.setItem("wave-theme", "dark");
   });
 
@@ -75,7 +75,7 @@ test("밝은 화면에서도 같은 요소의 대비가 유지된다", async ({ 
   await mockPublicShellApi(page);
   await mockPlannerApi(page);
   await page.addInitScript(() => {
-    window.sessionStorage.setItem("wave-intro-seen-v2", "1");
+    window.sessionStorage.setItem("wave-arrival-session-v1", "done");
     window.localStorage.setItem("wave-theme", "light");
   });
 

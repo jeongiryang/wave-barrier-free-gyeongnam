@@ -9,7 +9,7 @@ import { mockPublicShellApi } from "./fixtures";
 
 async function submit(page: import("@playwright/test").Page, path: string, fields: Record<string, string>) {
   await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto(path);
   const form = page.locator("form").first();
   await form.waitFor();

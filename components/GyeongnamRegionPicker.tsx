@@ -15,7 +15,7 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
     <div className="region-picker-visual">
       <span>{en ? "SOUTH KOREA · SOUTHEAST" : "대한민국 남동쪽, 경상남도"}</span>
       <svg viewBox="0 0 800 814" aria-label={en ? "Gyeongnam city and county boundaries" : "경상남도 시·군 행정경계"}>
-        {regionBoundaries.map((region) => <g key={region.name} aria-hidden="true" aria-pressed={region.name === value} onClick={() => onChange(region.name)}><path d={region.path} fillRule="evenodd" /><circle cx={region.x} cy={region.y} r="5" />{region.name === value && <text x={region.x} y={region.y - 14} textAnchor="middle">{label(region.name)}</text>}</g>)}
+        {regionBoundaries.map((region) => <g key={region.name} aria-hidden="true" aria-pressed={region.name === value} onClick={() => onChange(region.name)}><path data-region-boundary={region.name} data-selected={region.name === value} d={region.path} fillRule="evenodd" /><circle cx={region.x} cy={region.y} r="5" />{region.name === value && <text x={region.x} y={region.y - 14} textAnchor="middle">{label(region.name)}</text>}</g>)}
       </svg>
       <small>{en ? "SGIS 2020 · simplified boundaries / StatGarten" : "통계청 SGIS 2020 · 경계 단순화 / StatGarten"}</small>
     </div>

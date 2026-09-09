@@ -1,26 +1,24 @@
 import { expect, test } from "@playwright/test";
-import { mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
 test("실제 경계와 18개 텍스트 선택 대안은 같은 지역을 가리킨다", async ({ page }) => {
-  await mockPublicShellApi(page);
+  await mockPlannerApi(page);
   await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
-  await page.goto("/");
+  await page.goto("/planner");
+  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  const section = page.locator("#regions");
+  const section = page.locator(".region-picker");
   await section.scrollIntoViewIfNeeded();
-  await section.locator(".region-map-details > summary").click();
-  const surface = section.locator("svg.region-boundary-surface");
+  const surface = section.locator("svg");
   await expect(surface).toHaveAttribute("viewBox", "0 0 800 814");
   const shapes = surface.locator("[data-region-boundary]");
-  const markers = section.locator("button[data-region-marker]");
+  const markers = section.locator(".region-picker-list button:not(:first-child)");
   await expect(shapes).toHaveCount(18);
   await expect(markers).toHaveCount(18);
-  await expect(markers.locator(".region-marker-dot")).toHaveCount(18);
   const expectedNames = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
-  expect((await markers.allTextContents()).map((value) => value.trim())).toEqual(expectedNames);
+  expect((await markers.allTextContents()).map(value => value.trim()).sort()).toEqual([...expectedNames].sort());
   expect((await shapes.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-region-boundary")))).sort()).toEqual([...expectedNames].sort());
-  await expect(section.locator('[data-region-marker][aria-pressed="true"]')).toHaveCount(1);
-  await expect(surface.locator('[data-selected="true"]')).toHaveCount(1);
+  await expect(surface.locator('[data-selected="true"]')).toHaveCount(0);
   await expect(section.locator('[data-region-marker] svg, [data-region-marker] img')).toHaveCount(0);
   await expect(page.locator('img[src*="wikimedia.org"]')).toHaveCount(0);
   const positions = await shapes.evaluateAll((nodes) => {
@@ -45,77 +43,52 @@ test("실제 경계와 18개 텍스트 선택 대안은 같은 지역을 가리�
   await expect(geochang).toBeFocused();
   await expect(geochang).toHaveAttribute("aria-pressed", "true");
   await expect(surface.locator('[data-region-boundary="거창"]')).toHaveAttribute("data-selected", "true");
-  await expect(section.locator(".selected-region strong")).toHaveText("거창");
+  await expect(section.locator("svg text")).toHaveText("거창");
 });
 
-test("랜딩 기능 데모는 한국어 순서와 비대화형 미리보기 계약을 지킨다", async ({ page }) => {
-  let communityRequests = 0;
-  page.on("request", (request) => {
-    if (new URL(request.url()).pathname === "/api/community/posts") communityRequests += 1;
+
+test("랜딩 기능 데모는 현재 한국어 순서와 비대화형 미리보기 계약을 지킨다", async ({ page }) => {
+  const writes: string[] = [], requests: string[] = [];
+  page.on("request", request => {
+    if (!["GET", "HEAD", "OPTIONS"].includes(request.method())) writes.push(request.url());
+    if (/\/api\/(wave|community)/.test(request.url())) requests.push(request.url());
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
-  await page.goto("/", { waitUntil: "networkidle" });
-  await page.locator("#journey-tools-details > summary").click();
-  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
-
-  const labels = await page.locator(".product-stories .section-kicker").allTextContents();
-  expect(labels.map((value) => value.trim())).toEqual(["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 내 일정"]);
-  await expect(page.locator(".product-preview button")).toHaveCount(0);
-  await expect(page.locator(".route-demo-path")).toHaveCount(1);
-  await expect(page.locator(".route-demo-vehicle")).toHaveCount(1);
-  await expect(page.locator(".community-feature-preview")).toHaveCount(1);
-  expect(await page.locator(".community-feature-preview .community-feature-card").count()).toBeGreaterThan(0);
-  expect(communityRequests).toBe(0);
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+  await page.goto("/");
+  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+  expect(await page.locator("main > section").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(["top", "regions", "story", "recommendation", "departure", "community", "closing"]);
+  for (const selector of [".needs-demo", ".community-demo"]) {
+    const demo = page.locator(selector);
+    await demo.scrollIntoViewIfNeeded();
+    await expect(demo).toHaveAttribute("data-step", "3");
+    await expect(demo.locator("button, input, textarea, select")).toHaveCount(0);
+  }
+  await expect(page.locator(".needs-demo [data-selected=true]")).toHaveCount(2);
+  await expect(page.locator(".community-demo .demo-post-preview")).toHaveAttribute("data-shown", "true");
+  expect(writes).toEqual([]); expect(requests).toEqual([]);
 });
 
-test("5초가 넘는 반복 시연은 화면 밖에서 멈추고 사용자가 정지할 수 있다", async ({ page }) => {
+test("유한한 시연은 화면 밖에서 멈추고 OS 감소 설정에서는 완성된 상태를 유지한다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-
-  const routeStory = page.locator(".route-story");
-  const vehicle = routeStory.locator(".route-demo-vehicle");
-  await expect(page.locator(".landing-page")).toHaveClass(/\bmotion-ready\b/);
-  await expect(routeStory).not.toHaveClass(/\bis-visible\b/);
-  const repeating = await vehicle.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return {
-      duration: Number.parseFloat(style.animationDuration),
-      iterations: style.animationIterationCount,
-      state: style.animationPlayState,
-    };
-  });
-  expect(repeating.duration).toBeGreaterThan(5);
-  expect(repeating.iterations).toBe("infinite");
-  expect(repeating.state).toBe("paused");
-
-  await page.locator("#journey-tools-details > summary").click();
-  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
-  await routeStory.scrollIntoViewIfNeeded();
-  await expect(routeStory).toHaveClass(/\bis-visible\b/);
-  await expect.poll(() => vehicle.evaluate((node) => getComputedStyle(node).animationPlayState)).toBe("running");
-
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await expect.poll(() => routeStory.evaluate((node) => node.classList.contains("is-visible"))).toBe(false);
-  await expect.poll(() => vehicle.evaluate((node) => getComputedStyle(node).animationPlayState)).toBe("paused");
-
-  // The canonical flow follows the OS; there is no separate in-app motion mode.
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+  await page.clock.install(); await page.goto("/");
+  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+  const demo = page.locator(".needs-demo");
+  await expect(demo).toHaveAttribute("data-running", "false");
+  await demo.scrollIntoViewIfNeeded(); await expect(demo).toHaveAttribute("data-running", "true");
+  await page.clock.fastForward(1400); await expect(demo).toHaveAttribute("data-step", "1");
+  await page.locator("#top").evaluate(node => node.scrollIntoView({ behavior: "instant" }));
+  await expect(demo).toHaveAttribute("data-running", "false");
+  await page.clock.fastForward(20000); await expect(demo).toHaveAttribute("data-step", "1");
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(demo).toHaveAttribute("data-step", "3");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(page.locator("button.motion-toggle")).toHaveCount(0);
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.motion)).toBe("calm");
-
-  const staticState = await vehicle.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return { animationName: style.animationName, opacity: style.opacity };
-  });
-  expect(staticState).toEqual({ animationName: "none", opacity: "1" });
-
-  await page.reload({ waitUntil: "domcontentloaded" });
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.motion)).toBe("calm");
-  await page.locator("#journey-tools-details > summary").click();
-  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
-  expect(await vehicle.evaluate((node) => getComputedStyle(node).animationName)).toBe("none");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(demo).toHaveAttribute("data-step", "3");
+  await expect(demo).toHaveAttribute("data-running", "false");
 });

@@ -7,7 +7,7 @@ export default function StoryMedia({ children, kind = "hero" }: { children: Reac
     {!failed && <img src={kind === "film" ? "/media/wave-story/garden-discovery-v2.webp" : "/media/wave-story/hero-coast-small.webp"}
       srcSet={kind === "hero" ? "/media/wave-story/hero-coast-small.webp 840w, /media/wave-story/hero-coast.webp 1672w" : undefined}
       sizes="100vw" width={1672} height={941} loading={kind === "film" ? "lazy" : undefined}
-      fetchPriority={kind === "hero" ? "high" : "auto"} alt="" onError={() => setFailed(true)} />}
+      fetchPriority={kind === "hero" ? "high" : "auto"} alt="" ref={node => { if (node?.complete && !node.naturalWidth) setFailed(true); }} onError={() => setFailed(true)} />}
     {children}
   </div>;
 }

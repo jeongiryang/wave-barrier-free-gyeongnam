@@ -11,7 +11,7 @@ async function openPlanner(page: import("@playwright/test").Page) {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
   await mockPlannerApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/planner");
   await page.locator(".selection-bar").first().waitFor();
 }

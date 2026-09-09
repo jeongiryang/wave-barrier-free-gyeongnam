@@ -84,7 +84,7 @@ test("full-screen intro keeps an immediate skip action and returns to the usable
   await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
   await expect(intro).toBeHidden();
   await expect(page.locator(".intro-replay-link")).toBeVisible();
-  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획 만들기", exact: true });
+  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획하기", exact: true });
   await expect(planning).toBeVisible();
   await planning.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -137,7 +137,7 @@ test("intro replays keep a single exit, runtime focus and keyboard return on eve
   expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);
   await page.screenshot({ path: test.info().outputPath("intro-replay-focus.png") });
   await expectNoOverflow(page);
-  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획 만들기", exact: true });
+  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획하기", exact: true });
   await planning.focus();
   await expect(planning).toBeFocused();
   await page.keyboard.press("Enter");

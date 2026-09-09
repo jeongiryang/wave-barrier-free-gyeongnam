@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3, 4]
         device: [desktop, mobile]
     steps:
       - name: 소스 체크아웃
@@ -89,13 +89,13 @@ jobs:
 
       - name: 브라우저 설치
         run: npx playwright install --with-deps chromium
-      # Keep the complete desktop/mobile suite and each project's existing
-      # two-way native shard. Isolate device projects so successful assertions
-      # and artifact upload finish inside the unchanged 25-minute job budget.
+      # Owner-approved latency improvement: four native shards per device.
+      # Every test still runs once per device, with the same two workers,
+      # assertions, retry policy, timeouts and protected aggregate gate.
       - name: 브라우저·접근성 회귀 테스트
         env:
           PLAYWRIGHT_HTML_REPORT: playwright-report/${{ matrix.device }}
-        run: npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/2 --output=test-results/${{ matrix.device }}
+        run: npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/4 --output=test-results/${{ matrix.device }}
 
       - name: 브라우저 검증 보고서 보관
         if: ${{ !cancelled() }}

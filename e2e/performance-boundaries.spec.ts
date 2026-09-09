@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+});
+
 test("공개 랜딩은 첫 화면에서 인증 세션을 요청하지 않고 계정 의도 뒤에 연결한다", async ({ page }) => {
   await mockPublicShellApi(page);
   let sessionRequests = 0;
@@ -43,7 +47,7 @@ test("안내형 플래너의 숨은 지도는 일정 단계가 열릴 때까지 
   await expect.poll(() => mapConfigRequests).toBeGreaterThan(0);
 });
 
-test("짧게 스친 지역 표식은 사진 요청을 만들지 않는다", async ({ page }) => {
+test("지역 사진 선택과 hover는 불필요한 사진 API 요청을 만들지 않는다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
   let photoRequests = 0;
@@ -53,14 +57,17 @@ test("짧게 스친 지역 표식은 사진 요청을 만들지 않는다", asyn
   });
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/");
-  await page.locator(".region-map-details > summary").click();
+  await page.locator("#regions").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  const marker = page.locator('[data-region-marker="거창"]');
+  const marker = page.getByRole("button", { name: "다음 지역", exact: true });
   await marker.hover();
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
   expect(photoRequests).toBe(0);
 
   await marker.hover();
-  await expect.poll(() => photoRequests).toBe(1);
+  await marker.click();
+  await expect(page.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "하동");
+  await expect(page.locator(".region-scene-photo img")).toHaveAttribute("src", /^https:\/\/tong\.visitkorea\.or\.kr\//);
+  expect(photoRequests).toBe(0);
 });
