@@ -113,6 +113,9 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .map-export-preview span { color: #7debe9; font-size: .62rem; font-weight: 900; letter-spacing: .14em; }.map-export-preview strong { font-size: 1.35rem; }.map-export-preview small { color: #c8e2ee; font-size: .62rem; }
 .map-tool-panel > .map-export-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .map-tool-panel > .map-export-actions > button { min-height: 58px; padding: 11px 12px; display: grid; grid-template-columns: 46px 1fr; place-items: center start; gap: 10px; border-radius: 13px; text-align: left; }
+/* Keep the download target under the pointer at its lower edge. The shared
+   lift hover otherwise alternates on/off after a responsive drawer resize. */
+.map-tool-panel > .map-export-actions > button:hover { transform: none; }
 .map-tool-panel > .map-export-actions > button i { width: 42px; height: 32px; display: grid; place-items: center; border-radius: 9px; color: #0a6baf; background: #eaf8ff; font-size: .61rem; font-weight: 900; }
 .map-share-wide { width: 100%; min-height: 46px; margin-top: 12px; border: 0; border-radius: 12px; color: #fff; background: #062736; font-size: .7rem; font-weight: 850; cursor: pointer; }
 .map-share-wide:hover { background: #0a6baf; }

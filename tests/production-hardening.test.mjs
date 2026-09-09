@@ -16,7 +16,7 @@ test("landing route delegates section UI and browser effects to feature modules"
       source("features/landing/client/region-photo.ts"),
     ]).then((parts) => parts.join("\n")),
   ]);
-  for (const component of ["LandingHeader", "LandingHero", "LandingManifesto", "LandingRegionStory", "LandingProductStories", "LandingFooter"]) {
+  for (const component of ["LandingHeader", "LandingHero", "LandingManifesto", "LandingRegionStory", "LandingPossibilityScene", "LandingDepartureScene", "LandingCommunityStory", "LandingSectionProgress", "LandingFooter"]) {
     assert.match(page, new RegExp(`<${component}`));
   }
   assert.doesNotMatch(page, /LandingEvidenceStory|landing-pointer-glow|chapter-rail/);
@@ -25,10 +25,16 @@ test("landing route delegates section UI and browser effects to feature modules"
   assert.match(experience, /AbortController/);
 });
 
-test("landing opens directly without a blocking intro", async () => {
+test("landing arrival can be skipped immediately and retains the underlying Hero", async () => {
   const landing = await source("app/page.tsx");
-  assert.doesNotMatch(landing, /LandingIntro|useLandingIntro|role="dialog"/);
+  const intro = await source("features/landing/components/LandingIntro.tsx");
+  assert.match(landing, /<LandingIntro replay=\{introReplay\}/);
   assert.match(landing, /<LandingHero/);
+  assert.match(intro, /data-intro-skip/);
+  assert.match(intro, /onCancel=.*finish/);
+  assert.match(intro, /node\.close\(\)/);
+  assert.match(intro, /sessionStorage\.getItem\(SESSION_KEY\)/);
+  assert.match(intro, /prefers-reduced-motion/);
 });
 
 test("landing region photos time out and can retry after transient failures", async () => {

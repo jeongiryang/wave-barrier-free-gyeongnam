@@ -1,46 +1,38 @@
+"use client";
 import Link from "next/link";
-import CompactJourneyVisual from "../../landing/components/CompactJourneyVisual";
+import { useStoryPlayback } from "../../landing/hooks/useStoryPlayback";
+import { COMMUNITY_CATEGORY_LABELS } from "../../../lib/community/types";
 import { useSitePreferences } from "../../../components/SitePreferences";
 
-const communityFeatures = [
-  {
-    label: "장소별 여행 질문",
-    title: "궁금한 점을 장소에 연결합니다.",
-    copy: "장애인 주차·접근로·화장실처럼 출발 전에 확인할 항목을 해당 장소와 함께 묻고 답합니다.",
-    context: "창원 · 장소와 연결",
-    action: "질문으로 확인",
-  },
-  {
-    label: "동선 중심 여행 후기",
-    title: "직접 겪은 이동 경험을 남깁니다.",
-    copy: "쉬어 갈 곳과 이동 거리를 중심으로 여행 경험을 기록하고, 공식 편의정보와 구분해 보여줍니다.",
-    context: "경남 여행 · 이용자 경험",
-    action: "후기로 기록",
-  },
-] as const;
-
+/** Read-only composition of the existing CommunityEditor fields; no fabricated posts/users. */
 export default function LandingCommunityStory() {
   const en = useSitePreferences().locale === "en";
-  return (
-    <section className="landing-community" id="community" aria-labelledby="community-story-title" data-land-reveal>
-      <CompactJourneyVisual stage="community" />
-      <div className="landing-community-copy">
-        <p className="section-kicker">{en ? "Travel stories" : "여행 후기"}</p>
-        <h2 id="community-story-title">{en ? "Firsthand experiences" : "직접 다녀온 경험이"}<br /><em>{en ? "for your next trip." : "다음 여행의 참고로."}</em></h2>
-        <p>{en ? "Read and share questions and visitor stories linked to places and regions. Official tourism data and visitor experiences are clearly marked as separate sources." : "관광지와 지역에 연결된 질문과 후기를 읽고 나눕니다. 공식 관광 데이터와 사용자 경험은 섞지 않고 서로 다른 출처로 분명하게 표시합니다."}</p>
-        <div><Link href="/community">{en ? "Open community" : "실제 커뮤니티 보기"} <span>→</span></Link><Link href="/login?next=%2Fcommunity%2Fnew">{en ? "Write a review" : "후기 작성"}</Link></div>
-      </div>
-      <div className="community-live-preview community-feature-preview" role="region" aria-labelledby="community-preview-title" aria-describedby="community-preview-note">
-        <header><span id="community-preview-title"><i aria-hidden="true" /> 커뮤니티 이용 흐름</span><small id="community-preview-note">공식 정보와 이용자 경험을 구분해 표시</small></header>
-        <div className="community-feature-list" role="list" aria-label="커뮤니티 주요 기능">
-          {communityFeatures.map((feature) => <article className="community-feature-card" role="listitem" key={feature.title}>
-            <span>{feature.label}</span>
-            <h3>{feature.title}</h3>
-            <p>{feature.copy}</p>
-            <footer><b>{feature.context}</b><small>{feature.action}</small></footer>
-          </article>)}
+  const { root, index: step, running, still } = useStoryPlayback(4, 1400);
+  const title = en ? "A question before a Gyeongnam trip" : "경남 여행을 앞두고 궁금해요";
+  const content = en ? "What should I check about paths and facilities before leaving?" : "출발 전에 접근로와 편의시설에서 무엇을 살펴보면 좋을까요?";
+  return <section className="landing-community community-chapter" id="community" tabIndex={-1} data-cinematic="left" aria-labelledby="community-story-title">
+    <figure className="community-composer-visual" aria-labelledby="community-visual-caption">
+      <div ref={root} className="community-demo story-demo" data-demo="community" data-step={step} data-running={running} data-still={still}>
+        <div className="community-editor-preview" aria-hidden="true">
+          <div className="community-preview-masthead"><span>W.A.V.E</span><span aria-hidden="true">↗</span></div>
+          <p className="section-kicker">{en ? "Write a question" : COMMUNITY_CATEGORY_LABELS.general}</p>
+          <h3>{en ? "A question becomes" : "궁금함이"}<br /><em>{en ? "a conversation." : "이야기가 되는 곳."}</em></h3>
+          <div className="community-entry-fields">
+            <div className="demo-input"><small>{en ? "Region" : "지역"}</small><b>{en ? "Changwon" : "창원"}</b></div>
+            <div className="demo-input"><small>{en ? "Title" : "제목"}</small><div className="demo-typed" data-filled={step >= 1}><span>{title}</span></div></div>
+            <div className="demo-input"><small>{en ? "Content" : "내용"}</small><div className="demo-typed" data-filled={step >= 2}><span>{content}</span></div></div>
+          </div>
+          <article className="demo-post-preview" data-shown={step >= 3}><small>{en ? "Travel questions · Changwon" : "여행 질문 · 창원"}</small><h4>{title}</h4><p>{content}</p></article>
         </div>
+        <p className="sr-only">{en ? "Writing example: choose Changwon in Travel questions, enter a title and content. No post is published." : "작성 예시: 여행 질문 게시판에서 창원을 고르고, 제목과 내용을 입력하면 이런 글이 됩니다. 실제 등록은 하지 않습니다."} {title}. {content}</p>
       </div>
-    </section>
-  );
+      <figcaption className="sr-only" id="community-visual-caption">{en ? "W.A.V.E question form · writing example, not published" : "W.A.V.E 질문 작성 예시 · 실제 게시된 글이 아닙니다"}</figcaption>
+    </figure>
+    <div className="landing-community-copy">
+      <p className="section-kicker">{en ? "Your experience travels further" : "여행의 끝에서, 다음 여행으로"}</p>
+      <h2 id="community-story-title">{en ? "Your experience." : "당신의 경험이,"}<br /><em>{en ? "Someone else's next step." : "누군가의 첫걸음으로."}</em></h2>
+      <p>{en ? "Share what you experienced and ask what you need to know, connected to the place." : "다녀온 장소의 경험을 나누고, 떠나기 전 궁금한 점을 물어보세요."}</p>
+      <Link href="/community">{en ? "Visit the community" : "커뮤니티 보기"} <span aria-hidden="true">↗</span></Link>
+    </div>
+  </section>;
 }

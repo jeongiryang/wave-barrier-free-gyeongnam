@@ -13,7 +13,7 @@ async function openPlanner(page: import("@playwright/test").Page) {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
   await mockPlannerApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/planner");
   await chooseTripConditions(page);
   // 테마 탭은 접힌 ‘주변 여행 정보’ 안에 있고, 열어야 그때 불러온다. 펼치는 것은

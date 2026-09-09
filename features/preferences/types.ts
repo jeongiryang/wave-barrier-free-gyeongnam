@@ -2,7 +2,7 @@ export type Locale = "ko" | "en";
 
 export type Theme = "light" | "dark";
 
-/** full: 파동이 흐른다. calm: 정지 화면으로 대체한다. */
+/** OS/browser-derived rendering state. No app-level motion preference. */
 export type Motion = "full" | "calm";
 
 export type PreferencesValue = {
@@ -11,8 +11,6 @@ export type PreferencesValue = {
   hydrated: boolean;
   setLocale: (locale: Locale) => void;
   motion: Motion;
-  systemReducedMotion: boolean;
   toggleTheme: () => void;
-  toggleMotion: () => void;
   t: (key: string, fallback: string) => string;
 };

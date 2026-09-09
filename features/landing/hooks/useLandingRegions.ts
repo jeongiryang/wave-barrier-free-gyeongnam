@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { landingRegions, type RegionPhoto } from "../content";
 import { fetchRegionPhoto } from "../client/region-photo";
-import { prefersReducedMotion } from "../../../lib/reduced-motion.js";
 
 export function useLandingRegions() {
   const HOVER_INTENT_MS = 180;
@@ -77,13 +76,12 @@ export function useLandingRegions() {
     photoRequests.current.clear();
   }, []);
 
-  function selectRegion(region: string) {
-    void loadRegionPhoto(region);
-    const update = () => setActiveRegion(region);
-    const documentWithTransitions = document as Document & { startViewTransition?: (callback: () => void) => unknown };
-    if (prefersReducedMotion() || !documentWithTransitions.startViewTransition) update();
-    else documentWithTransitions.startViewTransition(update);
-  }
+  const selectRegion = useCallback((region: string, loadPhoto = true) => {
+    // Presentation-only selection. An automatic showcase never edits a saved trip.
+    // A failed photo stays a truthful empty scene, not an automatic retry loop.
+    if (loadPhoto && regionPhotos[region] === undefined) void loadRegionPhoto(region);
+    setActiveRegion(region);
+  }, [loadRegionPhoto, regionPhotos]);
 
   return { activeRegion, active, preview, regionPhotos, showRegionPreview, hideRegionPreview, selectRegion };
 }

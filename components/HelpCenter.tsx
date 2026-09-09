@@ -7,7 +7,7 @@ import { useSitePreferences } from "./SitePreferences";
 
 const subscribeClientReady = () => () => undefined;
 
-export default function HelpCenter() {
+export default function HelpCenter({ iconOnly = false }: { iconOnly?: boolean }) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
   const ready = useSyncExternalStore(subscribeClientReady, () => true, () => false);
@@ -48,7 +48,7 @@ export default function HelpCenter() {
   </> : null;
 
   return <>
-    <button className="help-button" type="button" onClick={() => void startTour()} ref={triggerRef} disabled={!ready} aria-busy={!ready || loading} aria-disabled={loading || undefined}>{en ? "Help" : "도움말"} <span aria-hidden="true">{loading ? "…" : "?"}</span></button>
+    <button title={en ? "Help" : "도움말"} aria-label={en ? "Help" : "도움말"} className="help-button" type="button" onClick={() => void startTour()} ref={triggerRef} disabled={!ready} aria-busy={!ready || loading} aria-disabled={loading || undefined}>{!iconOnly && (en ? "Help" : "도움말")} <span aria-hidden="true">{loading ? "…" : "?"}</span></button>
     {loadFailed && typeof document !== "undefined" ? createPortal(<p className="help-load-message" role="alert">{en ? "Help could not be loaded. Reload the page and try again." : "도움말을 불러오지 못했습니다. 화면을 새로고침한 뒤 다시 시도해 주세요."}</p>, document.body) : null}
     {tourLayer && typeof document !== "undefined" ? createPortal(tourLayer, document.body) : null}
   </>;

@@ -214,14 +214,17 @@ test("community UI supports public reading, protected participation and place li
   assert.match(planner, /PlaceDecisionDialog/);
   assert.match(placeDialog, /place-community-link/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
-  assert.match(landing, /className="[^"]*community-feature-preview/);
-  assert.match(landing, /className="[^"]*community-feature-card/);
+  assert.match(landing, /className="[^"]*community-editor-preview/);
+  assert.match(landing, /className="[^"]*community-entry-fields/);
+  assert.match(landing, /data-demo="community"/);
+  assert.match(landing, /작성 예시/);
+  assert.doesNotMatch(landing, /fetch\(|localStorage|sessionStorage|usePlanner|createCommunityPost|<form\b|<input\b|<textarea\b/);
   assert.doesNotMatch(landing, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   assert.doesNotMatch(landing, /김철수|홍길동|test user/i);
   assert.match(sitemap, /`\$\{origin\}\/community`/);
 });
 
-test("landing product story exposes six Korean, non-interactive and motion-safe previews", async () => {
+test("preserved product preview sources remain Korean and non-interactive; current community demo is read-only", async () => {
   const [stories, storyCss, featureMotionCss, accountCss] = await Promise.all([
     Promise.all([
       source("features/landing/components/LandingProductStories.tsx"),
@@ -229,11 +232,11 @@ test("landing product story exposes six Korean, non-interactive and motion-safe 
       source("features/landing/components/LandingJourneyStories.tsx"),
       source("features/landing/components/LandingAdaptStory.tsx"),
       source("features/landing/components/LandingTravelBookStory.tsx"),
-      source("features/community/components/LandingCommunityStory.tsx"),
     ]).then((parts) => parts.join("\n")),
     source("app/styles/landing-stories.css"), source("app/styles/landing-feature-motion.css"), accountStyleSource(),
   ]);
   const css = `${storyCss}\n${featureMotionCss}\n${accountCss}`;
+  const community = await source("features/community/components/LandingCommunityStory.tsx");
   const labels = [...stories.matchAll(/className="section-kicker">(\d{2} · [^<]+)</g)].map((match) => match[1]);
   assert.deepEqual(labels, ["01 · Your needs", "01 · 여행 조건", "02 · The evidence", "02 · 추천 근거", "03 · Your itinerary", "03 · 하루 일정", "04 · Each journey", "04 · 이동 경로", "05 · Before departure", "05 · 상황 대응", "06 · Keep your trip", "06 · 내 일정"]);
   assert.doesNotMatch(stories, /DISCOVER|ACCESS|PLAN|ROUTE|ADAPT|REMEMBER|COMMUNITY/);
@@ -245,8 +248,12 @@ test("landing product story exposes six Korean, non-interactive and motion-safe 
   assert.doesNotMatch(stories, /<button\b/);
   assert.match(stories, /className="[^"]*route-demo-path/);
   assert.match(stories, /className="[^"]*route-demo-vehicle/);
-  assert.match(stories, /className="[^"]*community-feature-preview/);
-  assert.match(stories, /className="[^"]*community-feature-card/);
+  assert.match(community, /className="[^"]*community-editor-preview/);
+  assert.match(community, /className="[^"]*community-entry-fields/);
+  assert.doesNotMatch(community, /<button\b/);
+  assert.match(community, /data-still=\{still\}/);
+  assert.match(community, /className="demo-post-preview" data-shown=\{step >= 3\}/);
+  assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live|fetch\(|localStorage|sessionStorage/);
   assert.doesNotMatch(stories, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   assert.match(css, /\.product-story,.landing-community \{ min-height: 0; padding-block: clamp\(/);
   for (const selector of ["route-demo-path", "route-demo-vehicle"]) {

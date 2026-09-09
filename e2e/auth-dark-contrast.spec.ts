@@ -49,7 +49,7 @@ for (const theme of ["dark", "light"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await mockPublicShellApi(page);
     await page.addInitScript((value) => {
-      window.sessionStorage.setItem("wave-intro-seen-v2", "1");
+      window.sessionStorage.setItem("wave-arrival-session-v1", "done");
       window.localStorage.setItem("wave-theme", value as string);
     }, theme);
 

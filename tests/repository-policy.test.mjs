@@ -211,7 +211,7 @@ test("shared styles keep stable cascade boundaries", async () => {
   assert.match(oceanResponsive, /뷰포트: 창 절반 폭까지 무너지지 않게/);
   assert.match(designSystem, /--shadow-3:/);
   assert.match(designSystem, /:focus-visible/);
-  assert.match(experience, /html\[data-motion="calm"\] \.hero-wave-canvas/);
+  assert.match(experience, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.help-tour-spotlight/);
   assert.match(experience, /포인터 종류와 화면 폭에 관계없이/);
 });
 
@@ -267,16 +267,16 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(regionalPhoto, /for \(const keyword of keywords\)/);
 });
 
-test("all eighteen regions are text controls without mascot or remote map dependencies", async () => {
+test("all eighteen regions remain discoverable with named arrows and no remote map dependencies", async () => {
   const landing = await landingProductSource();
   const names = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
   const regionConfig = landing.slice(landing.indexOf("export const landingRegions"), landing.indexOf("export const landingValues"));
   for (const name of names) assert.match(regionConfig, new RegExp(`name: "${name}"`));
   assert.equal((regionConfig.match(/\{ name: "/g) || []).length, 18);
-  assert.match(landing, /landingRegions\.map\(\(region, index\) => <button/);
-  assert.match(landing, /className="region-marker-dot"/);
-  assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
-  assert.match(landing, /<b>\{regionLabel\(region\.name\)\}<\/b>/);
+  assert.match(landing, /landingRegions\[\(index \+ direction \+ landingRegions\.length\) % landingRegions\.length\]/);
+  assert.match(landing, /aria-label=\{english \? "Previous region" : "이전 지역"\}/);
+  assert.match(landing, /aria-label=\{english \? "Next region" : "다음 지역"\}/);
+  assert.match(landing, /regionLabel\(active\.name\)/);
   assert.doesNotMatch(landing, /RegionMascot/);
   assert.doesNotMatch(landing, /upload\.wikimedia\.org|wikimedia commons/i);
   assert.doesNotMatch(regionConfig, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);
@@ -309,7 +309,9 @@ test("pull requests must be revalidated against the latest main", async () => {
   assert.match(rules, /이전 커밋의 성공 결과는 재사용하지 않는다/);
   assert.match(template, /최신 `origin\/main`/);
   assert.match(template, /npm run typecheck/);
-  assert.match(rules, /`syt83`, `unknownamed`를 모두 reviewer/);
+  assert.match(rules, /Owner의 명시적 승인이 없는 경우/);
+  assert.match(rules, /`syt83`, `unknownamed`를 reviewer/);
+  assert.match(template, /Owner 승인 시 리뷰 3개 대기 면제; `validate` 성공은 필수/);
   assert.match(template, /PR 작성자를 담당자\(assignee\)/);
   assert.match(template, /기존 라벨/);
 });
@@ -332,7 +334,8 @@ test("new issues receive an owner and a safe default label", async () => {
 test("autonomous work stays bounded and merges only after fresh checks", async () => {
   const rules = await source("CLAUDE.md");
   assert.match(rules, /최신 `main` 반영, 전체 로컬 검사와 새 HEAD의 CI 성공/);
-  assert.match(rules, /실패·대기 중 검사는 우회하지 않고/);
+  assert.match(rules, /실패·대기 중 검사는 우회하지 않는다/);
+  assert.match(rules, /Repository Owner `jeongiryang`이 명시적으로 승인하면 리뷰 승인 대기는 면제/);
   assert.match(rules, /선행 PR의 결과가 필요한\s*작업은 그 PR이 병합된 최신 `main`/);
   assert.match(rules, /승인된 범위의 완료 조건/);
   assert.doesNotMatch(rules, /모든 오류와 버그를 찾아내기 전에는/);
@@ -378,32 +381,31 @@ test("saved preferences survive a reload", async () => {
   // 저장된 값을 읽기 전에 기본값을 써 버리면 이용자가 고른 테마와 언어가 지워진다.
   // 읽기가 끝났음을 알리는 표시가 있고, 저장이 그 뒤에만 일어나야 한다.
   assert.match(context, /const stored = readStoredPreferences\(\)/);
-  assert.match(context, /setMotionPreference\(stored\.motion\)[\s\S]*setHydrated\(true\)/);
+  assert.match(context, /setTheme\(stored\.theme\)[\s\S]*setHydrated\(true\)/);
   assert.match(context, /if \(!hydrated\) return;[\s\S]*writeStoredPreferences/);
   assert.match(storage, /localStorage\.getItem\("wave-theme"\)/);
   assert.match(storage, /try\s*\{[\s\S]*localStorage\.setItem\("wave-theme"[\s\S]*\}\s*catch/);
 });
 
-test("wave motion preference is persisted, localized and respects reduced motion", async () => {
-  const [storage, controls, catalog, engine, layout, css] = await Promise.all([
+test("motion follows the OS, retires legacy storage and has no app preference control", async () => {
+  const [storage, controls, catalog, engine, layout] = await Promise.all([
     source("features/preferences/storage.ts"),
     source("features/preferences/PreferenceControls.tsx"),
     source("features/preferences/locale-catalog.ts"),
     source("features/motion/wave-field-engine.ts"),
     source("app/layout.tsx"),
-    styleSource(),
   ]);
-  assert.match(storage, /localStorage\.getItem\("wave-motion"\)/);
-  assert.match(storage, /localStorage\.setItem\("wave-motion", preferences\.motion\)/);
-  assert.match(controls, /aria-pressed=\{motion === "calm"\}/);
+  assert.doesNotMatch(storage, /localStorage\.(getItem|setItem)\("wave-motion"/);
+  assert.match(storage, /localStorage\.removeItem\("wave-motion"\)/);
+  assert.doesNotMatch(controls, /toggleMotion|motion-toggle|onReplayIntro/);
   // Keep the hydration guards and require the newly added focus-leave handler.
-  assert.match(controls, /<details className="preference-controls" inert=\{!replayReady\} aria-busy=\{!replayReady\} suppressHydrationWarning\s+onBlur=/);
-  assert.match(catalog, /export const motionCopy: Record<Locale/);
+  assert.match(controls, /<details className="preference-controls" inert=\{!controlsReady\} aria-busy=\{!controlsReady\} suppressHydrationWarning\s+onBlur=/);
+  assert.doesNotMatch(catalog, /motionCopy/);
   assert.match(engine, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(layout, /prefers-reduced-motion: reduce/);
-  assert.match(layout, /d\.dataset\.motion=r\|\|o==='calm'\?'calm':'full'/);
+  assert.match(layout, /d\.dataset\.motion=r\?'calm':'full'/);
   assert.doesNotMatch(layout, /LandingIntro|wave-intro-seen/);
-  assert.match(css, /html\[data-motion="calm"\] \.hero-wave-canvas \{ display: none; \}/);
+  assert.match(await source("app/styles/landing-arrival.css"), /\.arrival-intro\[data-still="true"\] \.arrival-wave-canvas \{ visibility: hidden; \}/);
 });
 
 test("non-Korean locales are visibly marked as partial without breaking narrow headers", async () => {
@@ -709,7 +711,7 @@ test("the wave canvas delegates React lifecycle, canvas engine, motion math and 
     source("features/motion/wave-model.ts"),
     source("features/motion/intro-masks.ts"),
   ]);
-  assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion \}, replay\)/);
+  assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion: paused \? "calm" : motion \}, replay\)/);
   assert.doesNotMatch(wave, /useEffect|requestAnimationFrame|createIntroMasks/);
   assert.match(renderer, /startWaveFieldRenderer\(canvas/);
   assert.doesNotMatch(renderer, /requestAnimationFrame|createIntroMasks|putImageData/);

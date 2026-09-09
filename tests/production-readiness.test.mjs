@@ -324,29 +324,30 @@ test("wide screens use available viewport width without breaking mobile gutters"
   assert.match(css, /@media \(max-width: 780px\)[\s\S]*width: calc\(100vw - 16px\)/);
 });
 
-test("landing region controls and real geometry share selection without a remote base map", async () => {
-  const [landing, css] = await Promise.all([landingProductSource(), styleSource()]);
-  assert.match(landing, /className="landing-region-map-canvas region-boundary-list" data-region-map-canvas/);
-  assert.match(landing, /data-region-marker=\{region\.name\}/);
-  assert.match(landing, /className="region-marker-dot"/);
-  assert.match(landing, /aria-pressed=\{activeRegion === region\.name\}/);
+test("landing regional showcase is photo-led, while the verified boundary source is preserved", async () => {
+  const [landing, css] = await Promise.all([landingProductSource(), source("app/styles/landing-cinematic.css")]);
+  assert.match(landing, /data-region-stage/);
+  assert.match(landing, /aria-controls="region-current"/);
+  assert.match(landing, /onClick=\{\(\) => move\(-1\)\}/);
+  assert.match(landing, /onClick=\{\(\) => move\(1\)\}/);
+  assert.match(landing, /setTimeout[\s\S]*4000/);
+  assert.match(landing, /!interacting && !focused && !saving/);
+  assert.match(landing, /setAutomatic\(false\)/);
   assert.doesNotMatch(landing, /RegionMascot|upload\.wikimedia\.org/i);
-  assert.match(landing, /LandingBoundaryMap selected=\{activeRegion\}/);
   const surface = await source("features/landing/components/RegionBoundarySurface.tsx");
   assert.match(surface, /viewBox="0 0 800 814"/);
   assert.match(surface, /data-region-boundary=\{region\.name\} data-selected=\{region\.name === selected\}/);
-  assert.match(css, /\.landing-region-map-canvas\.region-boundary-list > button \{[^}]*position: static;[^}]*animation: none;[^}]*min-height: 44px/);
-  assert.match(css, /\.landing-region-map \{[\s\S]*min-height: 0/);
+  assert.match(css, /\.region-arrows button \{[^}]*width: 56px;[^}]*height: 56px/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
 });
 
-test("landing feature demos are ordered, static and motion-safe", async () => {
+test("preserved feature previews retain their order and motion safety; current community example never writes", async () => {
   const [stories, storyCss, featureMotionCss, accountCss] = await Promise.all([
     Promise.all([
       source("features/landing/components/LandingDiscoveryStories.tsx"),
       source("features/landing/components/LandingJourneyStories.tsx"),
       source("features/landing/components/LandingAdaptStory.tsx"),
       source("features/landing/components/LandingTravelBookStory.tsx"),
-      source("features/community/components/LandingCommunityStory.tsx"),
     ]).then((parts) => parts.join("\n")),
     source("app/styles/landing-stories.css"),
     source("app/styles/landing-feature-motion.css"),
@@ -360,10 +361,15 @@ test("landing feature demos are ordered, static and motion-safe", async () => {
   assert.equal((stories.match(/className="feature-preview-stage" aria-hidden="true"/g) || []).length, 6);
   assert.doesNotMatch(stories, /기능 화면 미리보기/);
   assert.doesNotMatch(stories, /<button\b/);
-  for (const hook of ["route-demo-path", "route-demo-vehicle", "community-feature-preview", "community-feature-card"]) {
+  for (const hook of ["route-demo-path", "route-demo-vehicle"]) {
     assert.match(stories, new RegExp(`className="[^"]*${hook}`));
   }
   const community = await source("features/community/components/LandingCommunityStory.tsx");
+  assert.match(community, /className="[^"]*community-editor-preview/);
+  assert.match(community, /className="[^"]*community-entry-fields/);
+  assert.match(community, /useStoryPlayback\(4, 1400\)/);
+  assert.match(community, /실제 게시된 글이 아닙니다/);
+  assert.doesNotMatch(community, /fetch\(|localStorage|sessionStorage|createCommunityPost|<form\b|<input\b|<textarea\b/);
   assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   for (const selector of ["route-demo-path", "route-demo-vehicle"]) {
     assert.match(css, new RegExp(`html\\[data-motion="calm"\\][\\s\\S]{0,400}\\.${selector}[\\s\\S]{0,300}animation: none`));
@@ -371,7 +377,7 @@ test("landing feature demos are ordered, static and motion-safe", async () => {
   }
 });
 
-test("wave effects avoid dense glyphs and landing opens without a blocking intro", async () => {
+test("wave effects avoid dense glyphs and full-screen arrival always offers a direct exit", async () => {
   const [renderer, model, landing, css] = await Promise.all([
     source("features/motion/wave-field-engine.ts"),
     source("features/motion/wave-model.ts"),
@@ -380,12 +386,28 @@ test("wave effects avoid dense glyphs and landing opens without a blocking intro
   ]);
   const ramp = model.match(/export const WAVE_RAMP = \[(.*?)\];/)?.[1] ?? "";
   assert.doesNotMatch(ramp, /[#@xX≡]/);
-  assert.match(model, /out: \[1\.78, 1\.96\]/);
+  assert.match(model, /out: \[4\.6, 4\.8\]/);
   assert.match(renderer, /stageWeight\(elapsed, INTRO_STAGES\[2\]\)/);
-  assert.doesNotMatch(landing, /LandingIntro|useLandingIntro|introState/);
+  // Owner #353 replaces the former non-modal arrival policy with a separate full-screen scene.
+  const intro = await source("features/landing/components/LandingIntro.tsx");
+  const bootstrap = await source("features/landing/arrival-bootstrap.ts");
+  const arrivalCss = await source("app/styles/landing-arrival.css");
+  assert.match(landing, /<LandingIntro replay=\{introReplay\} \/><main/);
+  assert.match(intro, /<dialog[\s\S]*aria-labelledby="arrival-title"/);
+  assert.match(intro, /<form method="dialog"[\s\S]*data-intro-skip/);
+  assert.doesNotMatch(intro, /<a href="\/planner"|arrival-actions/);
+  assert.match(intro, /muted playsInline preload="none"/);
+  assert.match(intro, /connection\?\.saveData === true/);
+  assert.match(intro, /prefers-reduced-motion: reduce/);
+  assert.match(intro, /setTimeout\(finish, 5200\)/);
+  assert.match(intro, /target\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(bootstrap, /data-intro-skip/);
+  assert.match(bootstrap, /sessionStorage\.setItem\('wave-arrival-session-v1','done'\)/);
+  assert.match(arrivalCss, /height: 100dvh/);
+  assert.doesNotMatch(landing, /useLandingIntro|introState/);
   assert.match(landing, /경남 18개 시·군/);
   assert.doesNotMatch(landing, /18 CITIES · 18 STORIES/);
-  assert.doesNotMatch(landing, /useState\(true\)/);
+  assert.doesNotMatch(landing, /<details[^>]*id="journey-tools-details"[^>]*open/);
   assert.doesNotMatch(css, /brand-intro|landingIntroOut|introRegionChapter/);
 });
 

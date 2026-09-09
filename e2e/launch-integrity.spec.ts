@@ -70,21 +70,26 @@ test("guided search failures stay visible with choices preserved and allow retry
   await expect(page.locator("#places")).toBeHidden();
 });
 
-test("intro keeps one clear planning action and never blocks the page", async ({ page }) => {
+test("full-screen intro keeps an immediate skip action and returns to the usable page", async ({ page }) => {
   const errors = trackRuntimeErrors(page);
   const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
   await page.setViewportSize({ width, height: 960 });
   await mockPlannerApi(page);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "인트로 다시보기" })).toHaveCount(0);
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획 만들기", exact: true });
+  const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
+  await expect(intro).toBeVisible();
+  await expect(intro.getByRole("button")).toHaveCount(1);
+  await expect(intro.getByRole("link")).toHaveCount(0);
+  await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
+  await expect(intro).toBeHidden();
+  await expect(page.locator(".intro-replay-link")).toBeVisible();
+  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획하기", exact: true });
   await expect(planning).toBeVisible();
   await planning.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(planning).toBeFocused();
-  // Root overflow clipping must not hide a wider hero grid on mobile.
   for (const element of await page.locator(".landing-hero-copy, .landing-hero h1, .landing-actions a, .landing-signal").all()) {
     const box = await element.boundingBox();
     expect(box!.x).toBeGreaterThanOrEqual(0);
@@ -95,52 +100,46 @@ test("intro keeps one clear planning action and never blocks the page", async ({
   expect(errors).toEqual([]);
 });
 
-test("intro replays without blocking the planning link or moving keyboard focus", async ({ page }) => {
+test("intro replays keep a single exit, runtime focus and keyboard return on every activation", async ({ page }) => {
   const errors = trackRuntimeErrors(page);
   await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 390 : 1366, height: 844 });
   await mockPlannerApi(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const settingsPanel = page.locator(".preference-controls:visible");
-  const settings = settingsPanel.getByLabel("환경설정 열기");
-  await expect(settingsPanel).toHaveAttribute("aria-busy", "false");
-  await settings.focus();
-  await page.keyboard.press("Enter");
+  const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
+  await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
   const replay = page.getByRole("button", { name: "인트로 다시보기", exact: true });
   await expect(replay).toBeVisible();
-  await expect(replay).toBeEnabled();
-  await replay.focus();
-  await page.keyboard.press("Enter");
-  await expect(settingsPanel.getByRole("status")).toHaveText("설정한 동작 효과로 인트로를 다시 표시했습니다.");
-  await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", "1");
-  await expect(replay).toBeFocused();
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
-  await expect(replay).toBeFocused();
   await expect(replay).toBeEnabled();
   const replayBox = await replay.boundingBox();
   expect(replayBox!.width).toBeGreaterThanOrEqual(44);
   expect(replayBox!.height).toBeGreaterThanOrEqual(44);
-  expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
-  await page.screenshot({ path: test.info().outputPath("intro-replay-settings.png") });
-  await page.keyboard.press("Space");
-  await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", "2");
-  await expect(settingsPanel.getByRole("status")).toHaveText("설정한 동작 효과로 인트로를 다시 표시했습니다. (2회)");
-  await expect(replay).toBeFocused();
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
-  await expect(replay).toBeFocused();
-  await page.keyboard.press("Enter");
-  await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", "3");
-  await expect(settingsPanel.getByRole("status")).toHaveText("설정한 동작 효과로 인트로를 다시 표시했습니다. (3회)");
-  await expect(replay).toBeFocused();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획 만들기", exact: true });
-  await settings.focus();
-  await page.keyboard.press("Enter");
+  await replay.focus();
+  for (const [index, key] of ["Enter", "Space", "Enter"].entries()) {
+    await page.keyboard.press(key);
+    await expect(intro).toBeVisible();
+    await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", String(index + 1));
+    await expect(page.locator(".landing-hero-copy [role=status]")).toHaveText(`인트로 ${index + 1}회 다시보기`);
+    const skip = intro.getByRole("button", { name: "소개로 건너뛰기" });
+    await expect(skip).toBeFocused();
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
+    await expect(skip).toBeFocused();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+    await expect(skip).toBeFocused();
+    await expect(intro.getByRole("button")).toHaveCount(1);
+  await expect(intro.getByRole("link")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(intro).toBeHidden();
+    await expect(replay).toBeFocused();
+  }
+  expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);
+  await page.screenshot({ path: test.info().outputPath("intro-replay-focus.png") });
+  await expectNoOverflow(page);
+  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획하기", exact: true });
   await planning.focus();
   await expect(planning).toBeFocused();
-  await expectNoOverflow(page);
-  await page.screenshot({ path: test.info().outputPath("intro-replay-focus.png") });
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/planner/);
   expect(errors).toEqual([]);
@@ -151,19 +150,21 @@ test("English repeated intro replay announces each keyboard activation", async (
   await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const preferences = page.locator(".preference-controls:visible");
-  await expect(preferences).toHaveAttribute("aria-busy", "false");
-  await preferences.locator("summary").click();
-  const replay = preferences.getByRole("button", { name: "Replay intro", exact: true });
+  const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
+  await intro.getByRole("button", { name: "Skip intro" }).click();
+  const replay = page.getByRole("button", { name: "Replay intro", exact: true });
   await replay.focus();
   for (const [index, key] of ["Enter", "Space", "Enter"].entries()) {
     await page.keyboard.press(key);
     const count = index + 1;
     await expect(page.locator(".landing-hero")).toHaveAttribute("data-intro-replay", String(count));
-    await expect(preferences.getByRole("status")).toHaveText(`Intro shown again with your motion preferences.${count > 1 ? ` (${count} replays)` : ""}`);
+    await expect(page.locator(".landing-hero-copy [role=status]")).toHaveText(`Intro replay ${count}`);
+    await expect(intro.getByRole("button", { name: "Skip intro" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(intro).toBeHidden();
     await expect(replay).toBeFocused();
   }
-  expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
+  expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);
 });
 
 test("one saved place does not complete the trip and the dialog contains keyboard focus", async ({ page }) => {

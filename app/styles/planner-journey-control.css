@@ -258,6 +258,9 @@ html[data-motion="calm"] .journey-rail nav button,
 html[data-motion="calm"] .journey-mode-toggle button { transition: none; }
 
 @media (max-width: 1040px) {
+  /* Keep native keyboard focus above the fixed four-step navigation. */
+  html:has(.planner-page) { scroll-padding-bottom: calc(108px + env(safe-area-inset-bottom,0px)); }
+  .planner-page :is(button,a,input,select,textarea,[tabindex]) { scroll-margin-bottom: calc(108px + env(safe-area-inset-bottom,0px)); }
   .planner-page { padding-bottom: calc(82px + env(safe-area-inset-bottom,0px)); }
   .journey-control-layout { display: block; }
   .journey-stage-stream { width: 100%; }

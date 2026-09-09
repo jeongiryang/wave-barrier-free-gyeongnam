@@ -61,6 +61,8 @@ const MEASURE = String.raw`(() => {
     if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return;
     const box = node.getBoundingClientRect();
     if (!box.width || !box.height) return;
+    if (style.position === "absolute" && style.overflow === "hidden"
+      && style.clip === "rect(0px, 0px, 0px, 0px)") return;
 
     // WCAG의 큰 글자 예외.
     const size = parseFloat(style.fontSize);
