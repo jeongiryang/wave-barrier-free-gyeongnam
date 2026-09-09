@@ -12,3 +12,6 @@ Normal merge of main616c90a. Fresh737 full unit/contract, lint13 existing warnin
 
 ## Main #415 regression verification
 Normal integration of e2254c9. Fresh740 full unit/contract, lint13 existing warnings, typecheck/build and unchanged budgets PASS (Planner269.48KiB, CSS69.90KiB). All40 related browser cases PASS1.9min (weather18, region-boundary14, departure-route8). This branch remains locally prepared; integrate later merged field/arrival fixes and revalidate before its PR.
+
+## Main #420 verification
+Normal integration of d21258c569b50afd6acafa58978e22734ae25dad. Fresh lint/typecheck, all750 unit/contract tests, Vercel build and unchanged performance budgets PASS (Planner269.67/270KiB, CSS69.90/70KiB). All40 weather/region-boundary/departure-route browser cases PASS1.7min. Later actual main and hosted CI will be verified before merging this bounded response-identity fix.
