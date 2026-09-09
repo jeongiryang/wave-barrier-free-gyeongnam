@@ -21,6 +21,7 @@ const HASH_STEPS: Record<string, { step: JourneyStepId; target: string }> = {
   navigation: { step: "itinerary", target: "navigation" },
   "departure-readiness": { step: "departure-readiness", target: "departure-readiness" },
   layers: { step: "departure-readiness", target: "layers" },
+  crowd: { step: "departure-readiness", target: "crowd" },
 };
 
 function currentView(): PlannerStageView {
@@ -79,7 +80,7 @@ export function usePlannerStageView() {
     listeners.forEach((listener) => listener());
   }, []);
 
-  const changeStep = useCallback((next: JourneyStepId, navigate = false, target: JourneyStepId | "layers" = next) => {
+  const changeStep = useCallback((next: JourneyStepId, navigate = false, target: JourneyStepId | "layers" | "crowd" = next) => {
     if (navigate) {
       const url = new URL(window.location.href);
       if (url.hash !== `#${target}`) {
