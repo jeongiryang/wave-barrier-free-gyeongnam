@@ -63,10 +63,10 @@ test("search validation has no additional deferred module request", async ({ pag
   expect(modules).toBe(0);
 });
 
-test("a failed facility summary keeps place actions and visitor details available", async ({ page }) => {
+test("a failed photo module keeps facility evidence, place actions and visitor details available", async ({ page }) => {
   await mockPlannerApi(page);
   let modules = 0;
-  await page.route("**/features/planner/components/PlaceFacilitySummary.tsx*", route => {
+  await page.route("**/features/tourism/components/SmartSpotImage.tsx*", route => {
     modules++;
     return route.abort("failed");
   });
@@ -78,6 +78,7 @@ test("a failed facility summary keeps place actions and visitor details availabl
   await expect(add).toBeEnabled();
   await expect.poll(() => modules).toBe(1);
   await expect(card.getByRole("status")).toBeVisible();
+  await expect(card.locator(".place-facilities")).toBeVisible();
   await add.click();
   await card.locator(".place-actions button").last().click();
   await expect(page.locator("dialog[open]")).toBeVisible();

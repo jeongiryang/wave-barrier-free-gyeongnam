@@ -2,7 +2,7 @@
 
 import { lazy, Suspense, useId, useRef } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
-import SmartSpotImage from "../../tourism/components/SmartSpotImage";
+import PlaceFacilitySummary from "./PlaceFacilitySummary";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place } from "../types";
@@ -15,7 +15,12 @@ function InformationUnavailable({ en }: { en: boolean }) {
 const ProviderFailureNotice = lazy(() => import("./ProviderFailureNotice").catch(() => ({ default: InformationUnavailable })));
 
 const ExplorationPlaces = lazy(() => import("./ExplorationPlaces").catch(() => ({ default: InformationUnavailable })));
-const PlaceFacilitySummary = lazy(() => import("./PlaceFacilitySummary").catch(() => ({ default: InformationUnavailable })));
+
+function PhotoUnavailable() {
+  const { locale } = useSitePreferences();
+  return <div className="smart-spot-image place-visual failed"><span className="smart-image-fallback" role="status"><small>{locale === "en" ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"}</small></span></div>;
+}
+const SmartSpotImage = lazy(() => import("../../tourism/components/SmartSpotImage").catch(() => ({ default: PhotoUnavailable })));
 
 function PlaceChoiceCard({ place, region, index, saved, current, en, onToggle, onDetails }: {
   place: Place; region: string; index: number; saved: boolean; current: boolean; en: boolean;
@@ -25,12 +30,12 @@ function PlaceChoiceCard({ place, region, index, saved, current, en, onToggle, o
   const say = (ko: string, english: string) => en ? english : ko;
   const action = saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary");
   return <article className="place-card" data-result-current={current} aria-labelledby={`${id}-title`}>
-    <SmartSpotImage src={place.image} title={place.name} region={place.city || region} tag={say("관광지", "Place")} rank={index + 1} contentId={place.id} className="place-visual" showMeta={false} />
+    <Suspense fallback={<div className="smart-spot-image place-visual loading" aria-hidden="true" />}><SmartSpotImage src={place.image} title={place.name} region={place.city || region} tag={say("관광지", "Place")} rank={index + 1} contentId={place.id} className="place-visual" showMeta={false} /></Suspense>
     <div className="place-content">
       <p className="place-region" lang={originalLanguage(place.city || region)}>{place.city || region}</p>
       <h3 id={`${id}-title`} lang={originalLanguage(place.name)}>{place.name}</h3>
       <p className="place-address" lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
-      <Suspense fallback={<p role="status">{say("편의정보를 불러오는 중…", "Loading facility information…")}</p>}><PlaceFacilitySummary place={place} en={en} /></Suspense>
+      <PlaceFacilitySummary place={place} en={en} />
       <div className="place-actions">
         <button type="button" className={`primary${saved ? " saved" : ""}`} disabled={!saved && !current} onClick={onToggle} aria-pressed={saved} aria-labelledby={`${id}-title ${id}-action`}>
           <span id={`${id}-action`} className="sr-only">{action}</span><span aria-hidden="true">{action}</span><span aria-hidden="true">{saved ? "✓" : "+"}</span>
