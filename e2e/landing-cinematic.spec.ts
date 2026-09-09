@@ -18,13 +18,16 @@ test("regional names, photographs and trip links advance after the complete albu
   await page.emulateMedia({ reducedMotion: "no-preference" });
   let apiRequests = 0;
   page.on("request", request => { if (request.url().includes("action=photo")) apiRequests++; });
-  await page.clock.install();
+  await page.clock.install({ time: new Date("2026-09-10T10:00:00Z") });
   await page.goto("/");
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
+  // Pause at a fixed future point while the album is still offscreen. A target
+  // of Date.now() + 100 races the next browser round trip on a busy CI runner.
+  await page.clock.pauseAt(new Date("2026-09-10T11:00:00Z"));
   const stage = page.locator("[data-region-stage]");
   const stored = await page.evaluate(() => JSON.stringify(localStorage));
   await page.locator("#regions").evaluate(el => scrollTo({top: scrollY + el.getBoundingClientRect().top - 80, behavior: "instant"}));
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
+  await page.clock.runFor(100);
   // Reading the scene stops rotation until the explicit resume action.
   await page.locator(".selected-region strong").hover();
   await expect(stage).toHaveAttribute("data-running", "false");
