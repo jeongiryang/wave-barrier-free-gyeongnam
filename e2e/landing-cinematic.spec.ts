@@ -72,7 +72,8 @@ test("keyboard arrows stop rotation, preserve focus and match all 18 destination
   await page.clock.fastForward(16000);
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "창원");
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-running", "false");
-  await expect(section.locator(".region-arrows").getByRole("button")).toHaveCount(2);
+  await expect(section.locator(".region-arrows").getByRole("button")).toHaveCount(3);
+  await expect(section.getByRole("button", { name: "지역 자동 전환 재개" })).toHaveAttribute("aria-pressed", "true");
   await section.getByRole("button", {name:"이전 지역"}).press("Enter");
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "김해");
 });
