@@ -12,3 +12,6 @@ No backend/provider requests, cache, retry count, timeout, account operation, de
 
 ## Main #422 validation
 Normal integration of main a23afdd1156008ceb45bedcaffedc5a09460c610 retains the connection repair. Lint/typecheck,748 unit/contract tests and Vercel build PASS. All70 browsers PASS2.1min (new failure12,core18,search-result-focus40). Actual960 KOlight/1440 ENdark timeout captures were visually reviewed: cause and retry are readable, prior cards remain visible. Performance FAIL: Planner270.08/270KiB; no budget relaxation. The pending #420 summary extraction is expected to reduce initial loading, but integration and fresh measurements are still required before a PR. No new error-specific lazy module was added.
+
+## Main #420 verification
+Normal integration of d21258c569b50afd6acafa58978e22734ae25dad preserves the arrival summary extraction. Fresh lint/typecheck, all749 unit/contract tests, Vercel build and unchanged performance budgets PASS (Planner269.74/270KiB, CSS69.90/70KiB). All70 browser cases PASS2.1min. The previous main #422 size failure is resolved by integration; no budget or assertion changed. The separate archive module recovery is now PR #423; this branch will integrate its actual main and run fresh checks before its own PR.
