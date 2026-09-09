@@ -20,6 +20,7 @@ interface LandingRegionStoryProps {
 export default function LandingRegionStory({ activeRegion, active, selectRegion }: LandingRegionStoryProps) {
   const { locale, motion, hydrated: ready } = useSitePreferences();
   const stage = useRef<HTMLDivElement>(null);
+  const rotationControl = useRef<HTMLButtonElement>(null);
   const prefetched = useRef(new Set<string>());
   const [photoChoice, setPhotoChoice] = useState<{ region: string; index: number } | null>(null);
   const [inView, setInView] = useState(false);
@@ -73,10 +74,13 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
   const photo = album[photoIndex] || album[0];
   const index = landingRegions.findIndex(region => region.name === active.name);
   const move = (direction: number) => choose(landingRegions[(index + direction + landingRegions.length) % landingRegions.length].name);
+  const rotationLabel = automatic
+    ? (english ? "Pause automatic region changes" : "지역 자동 전환 일시정지")
+    : (english ? "Resume automatic region changes" : "지역 자동 전환 재개");
 
   return <section className="region-story region-showcase" id="regions" tabIndex={-1} aria-label={english ? "Gyeongnam photo showcase" : "경남 지역 사진"}
     onPointerEnter={event => { if (event.pointerType === "mouse") setInteracting(true); }} onPointerLeave={() => setInteracting(false)}
-    onFocusCapture={() => setFocused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
+    onFocusCapture={event => setFocused(event.target !== rotationControl.current)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
     <div className="region-showcase-stage" ref={stage} data-cinematic="wide" data-region-stage data-running={running} data-active-region={active.name}>
       <div id="region-photograph" className="region-photo-album" data-photo-count={album.length} data-photo-index={photoIndex}>
         <RegionScenePhoto key={photo.id} photo={photo} name={regionLabel(active.name)} english={english} />
@@ -88,6 +92,7 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
       <div className="region-showcase-actions">
         <Link href={`/planner?region=${encodeURIComponent(active.name)}`}>{english ? `Plan a trip to ${regionLabel(active.name)}` : `이 지역으로 여행 시작`} <span aria-hidden="true">↗</span></Link>
         <div className="region-arrows" role="group" aria-label={english ? "Browse 18 regions" : "18개 지역 둘러보기"}>
+          <button ref={rotationControl} type="button" disabled={!ready || motion === "calm"} onClick={() => setAutomatic(value => !value)} aria-label={rotationLabel} aria-pressed={!automatic} aria-controls="region-current"><span aria-hidden="true">{automatic ? "Ⅱ" : "▶"}</span></button>
           <button type="button" disabled={!ready} onClick={() => move(-1)} aria-label={english ? "Previous region" : "이전 지역"} aria-controls="region-current"><span aria-hidden="true">←</span></button>
           <button type="button" disabled={!ready} onClick={() => move(1)} aria-label={english ? "Next region" : "다음 지역"} aria-controls="region-current"><span aria-hidden="true">→</span></button>
         </div>
