@@ -41,55 +41,30 @@ async function samples(page: Page, selector: string) {
 }
 
 const CASES = [
-  ".compact-journey-visual figcaption",
-  ".landing-hero-copy h1",
-  ".landing-hero-copy h1 em",
-  ".landing-hero-copy > span",
-  ".product-story-copy h2",
-  ".product-story-copy > p:not(.section-kicker)",
-  ".product-story-copy > a",
-  ".landing-community-copy h2",
-  ".landing-community-copy > p:not(.section-kicker)",
-  ".landing-community-copy > div > a",
-  ".landing-journey-summary li span",
-  ".landing-journey-summary li b",
-  ".landing-journey-summary p",
-  ".story-media figcaption > span:first-child",
-  ".story-media button",
-  ".journey-scene-copy h2",
-  ".journey-scene-copy h2 em",
-  ".journey-scene-copy > p",
-  ".journey-scene-copy > a",
-  ".journey-source-details summary",
-  "#journey-tools-details > p",
-  ".journey-day span",
-  ".journey-day p",
-  ".journey-scene-stops li > span",
-  ".journey-scene figcaption",
-  ".landing-cta-evidence",
-  ".landing-cta-evidence a",
+  ".demo-topline strong", ".demo-profile strong", ".demo-profile small",
+  ".demo-selection b", ".demo-selection span", ".destination-copy h2",
+  ".destination-copy > p:not(.section-kicker)", ".destination-evidence dt", ".destination-evidence dd",
+  ".community-editor-preview .demo-input small", ".demo-post-preview h4", ".demo-post-preview p",
 ];
 
 for (const theme of ["dark", "light"] as const) {
   test(`${theme === "dark" ? "어두운" : "밝은"} 랜딩의 미리보기 글자가 표면에 묻히지 않는다`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await mockPublicShellApi(page);
-    await page.addInitScript((value) => {
-      window.sessionStorage.setItem("wave-intro-seen-v2", "1");
-      window.localStorage.setItem("wave-theme", value as string);
+    await page.addInitScript(value => {
+      sessionStorage.setItem("wave-arrival-session-v1", "done");
+      localStorage.setItem("wave-theme", value);
     }, theme);
-    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-    await expect(page.getByRole("main")).toBeVisible();
     await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
-    await expect(page.locator(".landing-page")).toHaveCount(1);
-    await expect(page.locator(".compact-journey-visual figcaption")).toHaveCount(7);
-    await expect(page.locator(".product-preview").first()).toBeHidden();
-    await expect(page.locator(".community-live-preview")).toBeHidden();
-    await page.locator("#journey-tools-details > summary").click();
-    await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
-
     for (const selector of CASES) {
+      if (selector === ".demo-profile small" && page.viewportSize()!.width <= 420) {
+        await expect(page.locator(selector)).toHaveCount(6);
+        for (const item of await page.locator(selector).all()) await expect(item).toBeHidden();
+        continue;
+      }
+      await page.locator(selector).first().scrollIntoViewIfNeeded();
       const measured = await samples(page, selector);
       expect(measured, `${selector}을 찾지 못했다`).not.toEqual([]);
       for (const sample of measured) {
@@ -97,17 +72,5 @@ for (const theme of ["dark", "light"] as const) {
         expect(ratio, `${selector} · ${sample.text} 대비 ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(4.5);
       }
     }
-    const stage = page.locator(".journey-stage");
-    for (const index of [0, 1, 2, 3]) {
-      await stage.locator(".journey-stage-controls button").nth(index).click();
-      const selectors = [".journey-stage-board > p", ".journey-stage-controls button", ".journey-scene-stops li > span"];
-      if (index === 3) selectors.push(".journey-review dt", ".journey-review dd");
-      for (const selector of selectors) {
-        const measured = await samples(page, selector);
-        expect(measured, `${selector} stage${index} missing`).not.toEqual([]);
-        for (const sample of measured) expect(contrastRatio(sample.color, sample.background), `${selector} stage${index}`).toBeGreaterThanOrEqual(4.5);
-      }
-    }
-
   });
 }

@@ -65,6 +65,7 @@ test("지도에서 저장하면 이 기기 일정에 추가되고 새로고침 �
   await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
+  await page.getByRole("button", { name: "지도 도구", exact: true }).click();
   await expect(page.getByRole("button", { name: "지도 표시" })).toBeEnabled();
   expect(await savedCount(page)).toBe(0);
 
@@ -103,6 +104,7 @@ test("이미 담긴 여행지를 다시 저장해도 중복으로 쌓이지 않�
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
+  await page.getByRole("button", { name: "지도 도구", exact: true }).click();
   const layerTrigger = page.getByRole("button", { name: "지도 표시" });
   await expect(layerTrigger).toBeEnabled();
   await layerTrigger.click();

@@ -5,7 +5,7 @@ import { mockPublicShellApi } from "./fixtures";
 test("설치 프롬프트는 환경설정에서 사용자가 설치 버튼을 누를 때만 연다", async ({ page }) => {
   await mockPublicShellApi(page);
   await page.addInitScript(() => {
-    window.sessionStorage.setItem("wave-intro-seen-v2", "1");
+    window.sessionStorage.setItem("wave-arrival-session-v1", "done");
     window.localStorage.setItem("wave-theme", "dark");
   });
   await page.goto("/");
@@ -46,7 +46,7 @@ test("설치 프롬프트는 환경설정에서 사용자가 설치 버튼을 �
 
 test("설치 이벤트가 없으면 자동 요청 없이 수동 홈 화면 추가 경로를 설명한다", async ({ page }) => {
   await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/");
   await page.locator("summary[aria-label='환경설정 열기']").first().click();
   const panel = page.locator(".preference-panel").first();

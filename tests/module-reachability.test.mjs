@@ -13,6 +13,15 @@ const SEARCH_DIRECTORIES = ["app", "components", "features", "lib", "server", "w
 const CODE = /\.(?:ts|tsx|js|jsx|mjs)$/;
 const SPECIFIER = /(?:^|\s)(?:import|export)[\s\S]{0,200}?from\s*["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g;
 
+// Owner #353 retains these removed presentation scenes as source history;
+// itinerary/map introductions are deferred to #386, not loaded into Landing.
+const PRESERVED_LANDING_SCENES = [
+  "features/landing/components/LandingBoundaryMap.tsx",
+  "features/landing/components/LandingExpansionScene.tsx",
+  "features/landing/components/LandingJourneyScene.tsx",
+  "features/landing/components/LandingProductStories.tsx",
+];
+
 async function walk(relative) {
   const entries = await readdir(new URL(relative, ROOT), { withFileTypes: true }).catch(() => []);
   const found = [];
@@ -49,6 +58,10 @@ test("every shared module is reachable from something that imports it", async ()
     }
   }));
 
-  const orphans = owned.filter((path) => !imported.has(path.replace(CODE, "")));
+  for (const path of PRESERVED_LANDING_SCENES) {
+    assert.ok(owned.includes(path), `보존하기로 한 소개 원본이 삭제됐다: ${path}`);
+    assert.ok(!imported.has(path.replace(CODE, "")), `제외한 소개 장면이 다시 연결됐다: ${path}`);
+  }
+  const orphans = owned.filter((path) => !imported.has(path.replace(CODE, "")) && !PRESERVED_LANDING_SCENES.includes(path));
   assert.deepEqual(orphans, [], `아무도 불러 쓰지 않는 모듈이 남아 있다:\n${orphans.join("\n")}`);
 });

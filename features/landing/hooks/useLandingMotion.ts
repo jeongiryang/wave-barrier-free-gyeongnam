@@ -22,8 +22,10 @@ export function useLandingMotion() {
   useEffect(() => {
     let lastY = window.scrollY;
     let ticking = false;
+    let descent = 0;
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const root = document.documentElement;
+    const scenes = Array.from(document.querySelectorAll<HTMLElement>("[data-cinematic]"));
     const driftNodes = Array.from(document.querySelectorAll<HTMLElement>(DRIFT_SELECTOR));
     const prefersCalm = () => media.matches || root.dataset.motion === "calm";
 
@@ -32,6 +34,7 @@ export function useLandingMotion() {
       landingRef.current?.style.setProperty("--hero-shift", "0px");
       landingRef.current?.style.setProperty("--pointer-rx", "0");
       landingRef.current?.style.setProperty("--pointer-ry", "0");
+      scenes.forEach(node => node.style.setProperty("--cinema-progress", "1"));
       driftNodes.forEach((node) => node.style.setProperty("--land-drift", "0px"));
     };
 
@@ -55,12 +58,17 @@ export function useLandingMotion() {
       const y = window.scrollY;
       const max = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
       setScrolled(y > 32);
-      if (y > lastY + 6) setScrollDirection("down");
-      if (y < lastY - 6) setScrollDirection("up");
+      if (y < lastY || y < 80) { setScrollDirection("up"); descent = 0; }
+      else { descent += y - lastY; if (descent > 48) setScrollDirection("down"); }
       if (prefersCalm()) resetMotion();
       else {
         landingRef.current?.style.setProperty("--landing-progress", String(Math.min(y / max, 1)));
         landingRef.current?.style.setProperty("--hero-shift", `${Math.min(y, 820)}px`);
+      }
+      for (const node of scenes) {
+        const rect = node.getBoundingClientRect();
+        const progress = prefersCalm() ? 1 : Math.max(0, Math.min(1, (innerHeight * .95 - rect.top) / (innerHeight * .68)));
+        node.style.setProperty("--cinema-progress", progress.toFixed(3));
       }
       updateDrift();
       lastY = y;

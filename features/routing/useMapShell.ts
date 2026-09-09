@@ -47,7 +47,11 @@ export function useMapShell({
     const onFullscreen = () => setExpanded(document.fullscreenElement === shellRef.current);
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      // Close the innermost tool first. The accessibility controller restores
+      // its trigger; the next Escape may then leave the expanded map.
+      if (event.defaultPrevented) return;
       if (pickModeRef.current) setPickMode(null);
+      if (shellRef.current?.querySelector(".map-tool-panel, .map-roadview-panel, .map-roadview-choice")) return;
       // Roadview cancellation belongs to useMapAccessibility so focus is restored too.
       if (document.fullscreenElement === shellRef.current) {
         // Keep rendered state tied to fullscreenchange, including browser-key events.
@@ -66,7 +70,13 @@ export function useMapShell({
     const shell = shellRef.current;
     const canvas = shell?.querySelector<HTMLElement>(".route-map-canvas");
     let timeoutId: number;
-    const schedule = () => {
+    let frameId: number;
+    const updateLayout = () => {
+      if (shell) {
+        const top = shell.getBoundingClientRect().top;
+        const bottom = Math.max(0, ...[...shell.querySelectorAll<HTMLElement>(".map-command-bar, .map-provider-badge")].map(node => node.getBoundingClientRect().bottom - top));
+        shell.style.setProperty("--map-controls-bottom", `${Math.ceil(bottom)}px`);
+      }
       window.clearTimeout(timeoutId);
       timeoutId = window.setTimeout(() => {
         kakaoMapRef.current?.relayout();
@@ -84,11 +94,17 @@ export function useMapShell({
         }
       }, 260);
     };
+    // Write layout on the next frame, outside ResizeObserver delivery. Writing
+    // from its callback can trigger an observer loop in mobile WebKit.
+    const schedule = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(updateLayout);
+    };
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(schedule);
     if (canvas) observer?.observe(canvas);
     shell?.querySelectorAll<HTMLElement>(".map-command-bar, .map-provider-badge").forEach((node) => observer?.observe(node));
     schedule();
-    return () => { observer?.disconnect(); window.clearTimeout(timeoutId); };
+    return () => { observer?.disconnect(); window.cancelAnimationFrame(frameId); window.clearTimeout(timeoutId); };
   }, [expanded, fitMapRef, kakaoMapRef, layoutKey, mapRef]);
 
   return { shellRef, expanded, toggleExpanded };

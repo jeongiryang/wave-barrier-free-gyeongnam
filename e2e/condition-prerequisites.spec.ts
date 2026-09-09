@@ -2,6 +2,10 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+});
+
 for (const locale of ["ko", "en"] as const) {
   const en = locale === "en";
   test(`${locale}: main planning copy stays fully painted across forward and return scrolling`, async ({ page }) => {
@@ -13,7 +17,7 @@ for (const locale of ["ko", "en"] as const) {
     const copy = page.locator(".landing-hero-copy");
     const planning = page.locator(".landing-actions a");
     await expect(copy).toHaveCSS("opacity", "1");
-    await page.locator(".story-expansion").scrollIntoViewIfNeeded();
+    await page.locator(".region-showcase-stage").scrollIntoViewIfNeeded();
     // Keep the primary message painted even outside the viewport: returning
     // to the CTA must not start a transparent-to-readable reveal again.
     const scrollPaint = await copy.evaluate(node => new Promise<string[]>(resolve => {
@@ -81,23 +85,15 @@ for (const locale of ["ko", "en"] as const) {
     await mockPlannerApi(page);
     await page.addInitScript((value) => localStorage.setItem("wave-locale", value), locale);
     await page.goto("/");
-    const summary = page.locator(".landing-journey-summary");
-    // The large hero places this summary below the initial viewport. Exercise
-    // its normal entrance and require fully readable paint before measuring
-    // contrast; DOM text alone can precede the .75s reveal transition.
+    await page.setViewportSize({ width: 1440, height: 960 });
+    const summary = page.locator(".story-progress");
     await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
-    await summary.scrollIntoViewIfNeeded();
     await expect(summary).toBeVisible();
-    await expect(summary).toHaveCSS("opacity", "1");
-    // The main message and planning action must stay readable when scrolling
-    // past them, including while the neighbouring summary enters the viewport.
     await expect(page.locator(".landing-hero-copy")).toHaveCSS("opacity", "1");
-    await expect(summary).toHaveAccessibleName(en
-      ? "Four steps: choose a region and facilities, find places, then check your itinerary and travel routes."
-      : "지역과 필요한 편의를 고르고 여행지를 일정에 추가해 이동 경로를 확인하는 네 단계");
-    await expect(summary.locator("li span")).toHaveText(en
-      ? ["Choose a region", "Required facilities", "Find places", "Itinerary and routes"]
-      : ["지역 선택", "필요한 편의", "여행지 찾기", "일정·이동 확인"]);
+    await expect(summary).toHaveAccessibleName(en ? "Introduction sections" : "서비스 소개 페이지 탐색");
+    await expect(summary.locator("#story-progress-list a > span")).toHaveText(en
+      ? ["Welcome", "Gyeongnam", "Facilities", "Places", "Before leaving", "Community", "Plan a trip"]
+      : ["처음", "경남", "필요한 편의", "여행지", "출발 전", "여행 이야기", "여행 계획"]);
     if (en) await expect(summary).not.toContainText(/[가-힣]/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);

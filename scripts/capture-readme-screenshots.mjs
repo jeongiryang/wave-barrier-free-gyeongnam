@@ -26,31 +26,28 @@ async function waitForPlanner(page) {
 await mkdir(outputDirectory, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
-  const desktop = await browser.newPage({ viewport: { width: 1440, height: 960 }, deviceScaleFactor: 1 });
+  const desktop = await browser.newPage({ viewport: { width: 1440, height: 960 }, deviceScaleFactor: 1, reducedMotion: "reduce" });
   await desktop.addInitScript(() => {
     window.sessionStorage.setItem("wave-intro-seen-v2", "1");
     window.localStorage.setItem("wave-theme", "dark");
-    window.localStorage.setItem("wave-motion", "calm");
   });
   await waitForPlanner(desktop);
   await desktop.locator(".departure-readiness").scrollIntoViewIfNeeded();
   await save(desktop.locator(".departure-readiness"), "wave-planner-readiness-desktop.png");
 
-  const mobilePlanner = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const mobilePlanner = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, reducedMotion: "reduce" });
   await mobilePlanner.addInitScript(() => {
     window.sessionStorage.setItem("wave-intro-seen-v2", "1");
     window.localStorage.setItem("wave-theme", "light");
-    window.localStorage.setItem("wave-motion", "calm");
   });
   await waitForPlanner(mobilePlanner);
   await mobilePlanner.locator(".day-planner").scrollIntoViewIfNeeded();
   await save(mobilePlanner.locator(".day-planner"), "wave-planner-itinerary-mobile.png");
 
-  const mobileCommunity = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const mobileCommunity = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, reducedMotion: "reduce" });
   await mobileCommunity.addInitScript(() => {
     window.sessionStorage.setItem("wave-intro-seen-v2", "1");
     window.localStorage.setItem("wave-theme", "dark");
-    window.localStorage.setItem("wave-motion", "calm");
   });
   await mobileCommunity.goto(`${baseUrl}/community`, { waitUntil: "domcontentloaded" });
   await mobileCommunity.locator(".community-hero h1").waitFor({ state: "visible" });

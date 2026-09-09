@@ -288,11 +288,7 @@ html[data-theme="dark"] .landing-hero-copy::before {
 .landing-page .landing-hero-copy h1 { font-size: clamp(2.2rem, 3.8vw, 4rem); }
 .landing-page .landing-hero-copy > span { margin-top: 24px; }
 .hero-opening { position: relative; display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; }
-.hero-arrival { position: relative; min-height: clamp(280px, 30vw, 440px); overflow: hidden; border-radius: 40px 4px; color: #fff; background: #04202f; }
-.hero-arrival .hero-wave-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 1; mask-image: none; -webkit-mask-image: none; }
-.hero-arrival > p { position: absolute; z-index: 1; bottom: 0; left: 0; right: 0; margin: 0; padding: 12px; background: #04202f; text-align: center; font-size: .8rem; }
-.hero-arrival-still { min-height: inherit; display: grid; align-content: center; justify-items: center; gap: 8px; }
-.hero-arrival-still strong { font-size: clamp(2rem, 4vw, 4rem); color: #9df5e4; }
+
 .story-media { position: relative; margin: 0 calc(-1 * var(--gutter)); padding: clamp(150px, 16vw, 240px) var(--gutter) 16px; background: #06304a; overflow: hidden; }
 .story-media > img,.story-media video { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
 .story-media video { visibility: hidden; }
@@ -325,14 +321,14 @@ html[data-theme="dark"] .landing-hero-copy::before {
 .journey-scene-visual figcaption { font-size: .8rem; line-height: 1.65; color: var(--muted); }
 @media (max-width: 960px) {
   .hero-opening { grid-template-columns: 1fr; }
-  .hero-arrival { grid-row: 1; min-height: 250px; }
+
   .journey-scene { grid-template-columns: 1fr; }
   .landing-journey-summary ol { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 600px) {
   .story-media { padding-top: 110px; }
   .hero-opening { gap: 16px; }
-  .hero-arrival { min-height: 180px; }
+
   .landing-page .landing-hero-copy { padding: 24px 20px; }
   .landing-page .landing-journey-summary { padding: 20px; }
   .landing-journey-summary ol { grid-template-columns: 1fr; gap: 8px; }

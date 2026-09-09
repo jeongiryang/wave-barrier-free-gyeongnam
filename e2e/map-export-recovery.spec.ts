@@ -17,6 +17,7 @@ async function openImage(page: Page, en = false, theme = "light") {
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
     await preferences.getByLabel("Open preferences", { exact: true }).click();
   }
+  await page.getByRole("button", { name: en ? "Map options" : "지도 도구", exact: true }).click();
   await page.locator('.map-command-bar button[aria-controls="map-panel-export"]').click();
   return page.locator("#map-panel-export");
 }

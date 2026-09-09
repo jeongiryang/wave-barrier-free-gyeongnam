@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+});
+
 for (const locale of ["ko", "en"] as const) {
   test(`${locale} help establishes focus when shown and traps immediate reverse Tab on repeated opens`, async ({ page }) => {
     await mockPublicShellApi(page);

@@ -25,12 +25,11 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await expect(details.getByRole("button", { name: locale === "ko" ? "다크모드" : "Dark mode", exact: true })).toBeFocused();
     await page.keyboard.press("Space");
     await expect(details.getByRole("button", { name: locale === "ko" ? "라이트모드" : "Light mode", exact: true })).toBeFocused();
-    await page.keyboard.press("Tab");
-    const motion = details.locator(".motion-toggle");
-    await expect(motion).toBeFocused();
+    const appearance = details.getByRole("button", { name: locale === "ko" ? "라이트모드" : "Light mode", exact: true });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await expect(motion).toHaveAttribute("aria-disabled", "true");
-    await expect(motion).toBeFocused();
+    await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+    await expect(details.locator(".motion-toggle")).toHaveCount(0);
+    await expect(appearance).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: locale === "ko" ? "로그인" : "Log in", exact: true })).toBeFocused();
     await expect(details).not.toHaveAttribute("open", "");

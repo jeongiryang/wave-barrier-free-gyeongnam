@@ -12,6 +12,8 @@ export type WaveFieldProps = {
   wordmark?: string;
   className?: string;
   replay?: number;
+  /** Freeze this decorative scene without storing a user preference. */
+  paused?: boolean;
 };
 
 export default function WaveField({
@@ -20,9 +22,10 @@ export default function WaveField({
   wordmark = "W.A.V.E",
   className,
   replay = 0,
+  paused = false,
 }: WaveFieldProps) {
   const { motion } = useSitePreferences();
-  const canvasRef = useWaveFieldRenderer({ tone, mode, wordmark, motion }, replay);
+  const canvasRef = useWaveFieldRenderer({ tone, mode, wordmark, motion: paused ? "calm" : motion }, replay);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
 }

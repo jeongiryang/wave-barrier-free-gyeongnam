@@ -1,25 +1,27 @@
 import { expect, test } from "@playwright/test";
-import { mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
+import AxeBuilder from "@axe-core/playwright";
 
 test("실제 경계와 18개 텍스트 선택 대안은 같은 지역을 가리킨다", async ({ page }) => {
-  await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
-  await page.goto("/");
+  await mockPlannerApi(page);
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
+  await page.goto("/planner");
+  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  const section = page.locator("#regions");
+  const section = page.locator(".region-picker");
   await section.scrollIntoViewIfNeeded();
-  const surface = section.locator("svg.region-boundary-surface");
+  await section.locator(".region-map-disclosure summary").click();
+  const surface = section.locator("svg");
   await expect(surface).toHaveAttribute("viewBox", "0 0 800 814");
   const shapes = surface.locator("[data-region-boundary]");
-  const markers = section.locator("button[data-region-marker]");
+  const markers = section.locator(".region-picker-list button:not(:first-child)");
   await expect(shapes).toHaveCount(18);
   await expect(markers).toHaveCount(18);
-  await expect(markers.locator(".region-marker-dot")).toHaveCount(18);
   const expectedNames = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
-  expect((await markers.allTextContents()).map((value) => value.trim())).toEqual(expectedNames);
+  expect((await markers.allTextContents()).map(value => value.trim()).sort()).toEqual([...expectedNames].sort());
   expect((await shapes.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-region-boundary")))).sort()).toEqual([...expectedNames].sort());
-  await expect(section.locator('[data-region-marker][aria-pressed="true"]')).toHaveCount(1);
-  await expect(surface.locator('[data-selected="true"]')).toHaveCount(1);
+  await expect(surface.locator('[data-selected="true"]')).toHaveCount(0);
   await expect(section.locator('[data-region-marker] svg, [data-region-marker] img')).toHaveCount(0);
   await expect(page.locator('img[src*="wikimedia.org"]')).toHaveCount(0);
   const positions = await shapes.evaluateAll((nodes) => {
@@ -44,82 +46,153 @@ test("실제 경계와 18개 텍스트 선택 대안은 같은 지역을 가리�
   await expect(geochang).toBeFocused();
   await expect(geochang).toHaveAttribute("aria-pressed", "true");
   await expect(surface.locator('[data-region-boundary="거창"]')).toHaveAttribute("data-selected", "true");
-  await expect(section.locator(".selected-region strong")).toHaveText("거창");
+  await expect(section.locator("svg text")).toHaveText("거창");
 });
 
-test("랜딩 기능 데모는 한국어 순서와 비대화형 미리보기 계약을 지킨다", async ({ page }) => {
-  let communityRequests = 0;
-  page.on("request", (request) => {
-    if (new URL(request.url()).pathname === "/api/community/posts") communityRequests += 1;
+
+test("랜딩 기능 데모는 현재 한국어 순서와 비대화형 미리보기 계약을 지킨다", async ({ page }) => {
+  const writes: string[] = [], requests: string[] = [];
+  page.on("request", request => {
+    if (!["GET", "HEAD", "OPTIONS"].includes(request.method())) writes.push(request.url());
+    if (/\/api\/(wave|community)/.test(request.url())) requests.push(request.url());
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
-  await page.goto("/", { waitUntil: "networkidle" });
-  await page.locator("#journey-tools-details > summary").click();
-  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
-
-  const labels = await page.locator(".product-stories .section-kicker").allTextContents();
-  expect(labels.map((value) => value.trim())).toEqual(["01 · 여행 조건", "02 · 추천 근거", "03 · 하루 일정", "04 · 이동 경로", "05 · 상황 대응", "06 · 내 일정"]);
-  await expect(page.locator(".product-preview button")).toHaveCount(0);
-  await expect(page.locator(".route-demo-path")).toHaveCount(1);
-  await expect(page.locator(".route-demo-vehicle")).toHaveCount(1);
-  await expect(page.locator(".community-feature-preview")).toHaveCount(1);
-  expect(await page.locator(".community-feature-preview .community-feature-card").count()).toBeGreaterThan(0);
-  expect(communityRequests).toBe(0);
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+  await page.goto("/");
+  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+  expect(await page.locator("main > section").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(["top", "regions", "story", "recommendation", "departure", "community", "closing"]);
+  for (const selector of [".needs-demo", ".community-demo"]) {
+    const demo = page.locator(selector);
+    await demo.scrollIntoViewIfNeeded();
+    await expect(demo).toHaveAttribute("data-step", "3");
+    await expect(demo.locator("button, input, textarea, select")).toHaveCount(0);
+  }
+  await expect(page.locator(".needs-demo [data-selected=true]")).toHaveCount(2);
+  await expect(page.locator(".community-demo .demo-post-preview")).toHaveAttribute("data-shown", "true");
+  expect(writes).toEqual([]); expect(requests).toEqual([]);
 });
 
-test("5초가 넘는 반복 시연은 화면 밖에서 멈추고 사용자가 정지할 수 있다", async ({ page }) => {
+test("유한한 시연은 화면 밖에서 멈추고 OS 감소 설정에서는 완성된 상태를 유지한다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-
-  const routeStory = page.locator(".route-story");
-  const vehicle = routeStory.locator(".route-demo-vehicle");
-  await expect(page.locator(".landing-page")).toHaveClass(/\bmotion-ready\b/);
-  await expect(routeStory).not.toHaveClass(/\bis-visible\b/);
-  const repeating = await vehicle.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return {
-      duration: Number.parseFloat(style.animationDuration),
-      iterations: style.animationIterationCount,
-      state: style.animationPlayState,
-    };
-  });
-  expect(repeating.duration).toBeGreaterThan(5);
-  expect(repeating.iterations).toBe("infinite");
-  expect(repeating.state).toBe("paused");
-
-  await page.locator("#journey-tools-details > summary").click();
-  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
-  await routeStory.scrollIntoViewIfNeeded();
-  await expect(routeStory).toHaveClass(/\bis-visible\b/);
-  await expect.poll(() => vehicle.evaluate((node) => getComputedStyle(node).animationPlayState)).toBe("running");
-
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await expect.poll(() => routeStory.evaluate((node) => node.classList.contains("is-visible"))).toBe(false);
-  await expect.poll(() => vehicle.evaluate((node) => getComputedStyle(node).animationPlayState)).toBe("paused");
-
-  await page.locator("summary[aria-label='환경설정 열기']").click();
-  const motionToggle = page.locator("button.motion-toggle");
-  await expect(motionToggle).toHaveAccessibleName("동작 효과 줄이기");
-  await motionToggle.click();
-  await expect(motionToggle).toHaveAttribute("aria-pressed", "true");
-  await expect(motionToggle).toHaveAccessibleName("동작 효과 켜기");
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.motion)).toBe("calm");
-
-  const staticState = await vehicle.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return { animationName: style.animationName, opacity: style.opacity };
-  });
-  expect(staticState).toEqual({ animationName: "none", opacity: "1" });
-
-  await page.evaluate(() => window.localStorage.removeItem("wave-motion"));
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+  await page.clock.install(); await page.goto("/");
+  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+  const demo = page.locator(".needs-demo");
+  await expect(demo).toHaveAttribute("data-running", "false");
+  await demo.scrollIntoViewIfNeeded(); await expect(demo).toHaveAttribute("data-running", "true");
+  await page.clock.fastForward(1400); await expect(demo).toHaveAttribute("data-step", "1");
+  await page.locator("#top").evaluate(node => node.scrollIntoView({ behavior: "instant" }));
+  await expect(demo).toHaveAttribute("data-running", "false");
+  await page.clock.fastForward(20000); await expect(demo).toHaveAttribute("data-step", "1");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.reload({ waitUntil: "domcontentloaded" });
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.motion)).toBe("calm");
-  await page.locator("#journey-tools-details > summary").click();
-  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
-  expect(await vehicle.evaluate((node) => getComputedStyle(node).animationName)).toBe("none");
+  await expect(demo).toHaveAttribute("data-step", "3");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(page.locator("button.motion-toggle")).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(demo).toHaveAttribute("data-step", "3");
+  await expect(demo).toHaveAttribute("data-running", "false");
+});
+
+
+for (const locale of ["ko", "en"]) for (const width of [320, 390, 1440]) test(`지역 사진 자동 전환은 키보드로 일시정지하고 재개한다 ${locale} ${width}`, async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.setViewportSize({ width, height: 900 });
+  await mockPublicShellApi(page);
+  await page.addInitScript(locale => {
+    sessionStorage.setItem("wave-arrival-session-v1", "done");
+    localStorage.setItem("wave-locale", locale);
+  }, locale);
+  await page.clock.install();
+  await page.goto("/");
+  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+
+  const stage = page.locator("[data-region-stage]");
+  await stage.scrollIntoViewIfNeeded();
+  await page.mouse.move(-10, -10);
+  await expect(stage).toHaveAttribute("data-running", "true");
+  const initialRegion = await stage.getAttribute("data-active-region");
+
+  const pauseName = locale === "en" ? "Pause automatic region changes" : "지역 자동 전환 일시정지";
+  const resumeName = locale === "en" ? "Resume automatic region changes" : "지역 자동 전환 재개";
+  const rotation = stage.locator(".region-rotation-control");
+  // Korean source titles retain their language within translated actions.
+  await expect(stage.locator("#region-photo-0-name")).toHaveAttribute("lang", "ko");
+  await expect(stage.locator("#region-photo-0-action")).toHaveAttribute("lang", locale);
+  await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("lang", "ko");
+  await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("alt", regionShowcaseAlbums[initialRegion!][0].title);
+  const target = await rotation.boundingBox();
+  expect(target?.width).toBeGreaterThanOrEqual(44);
+  expect(target?.height).toBeGreaterThanOrEqual(44);
+  // Check first keyboard entry before touch creates a native sequential-focus
+  // starting point (mobile WebKit retains the last tapped control).
+  await page.locator("#regions").focus();
+  await page.keyboard.press("Tab");
+  await expect(rotation).toBeFocused();
+  await expect(rotation).toHaveAccessibleName(resumeName);
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await rotation.press("Space");
+  await expect(stage).toHaveAttribute("data-running", "true");
+  await rotation.press("Space");
+
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await expect(rotation).toHaveAccessibleName(resumeName);
+  await expect(rotation).not.toHaveAttribute("aria-pressed");
+  await expect(stage.locator(".region-showcase-progress")).toHaveCSS("animation-name", "none");
+  await page.clock.fastForward(9000);
+  await expect(stage).toHaveAttribute("data-active-region", initialRegion || "");
+
+  const resume = page.getByRole("button", { name: resumeName });
+  await resume.press("Space");
+  await expect(stage).toHaveAttribute("data-running", "true");
+  await expect(rotation).toHaveAccessibleName(pauseName);
+  await expect(page.getByRole("button", { name: pauseName })).toBeFocused();
+  await expect(stage.locator(".region-showcase-progress")).toHaveCSS("animation-name", "region-progress");
+  for (let photo = 0; photo < regionShowcaseAlbums[initialRegion!].length; photo++) {
+    await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", String(photo));
+    await page.clock.fastForward(4000);
+  }
+  await expect(stage).not.toHaveAttribute("data-active-region", initialRegion || "");
+  await expect(page.getByRole("button", { name: pauseName })).toBeFocused();
+  if (test.info().project.name.includes("mobile") && width === 390) {
+    await page.getByRole("button", { name: pauseName }).tap();
+    await expect(rotation).toHaveAccessibleName(resumeName);
+    await expect(stage).toHaveAttribute("data-running", "false");
+    await rotation.tap();
+    await expect(rotation).toHaveAccessibleName(pauseName);
+    await expect(stage).toHaveAttribute("data-running", "true");
+  }
+  expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
+  // Every keyboard entry stops rotation, including the first control. Leaving
+  // the scene or disabling OS reduction never resumes without an explicit action.
+  await page.locator("#landing-title").focus();
+  await rotation.focus();
+  await expect(rotation).toBeFocused();
+  await expect(rotation).toHaveAccessibleName(resumeName);
+  await page.locator("#landing-title").focus();
+  const heldRegion = await stage.getAttribute("data-active-region");
+  await page.clock.fastForward(16000);
+  await expect(stage).toHaveAttribute("data-active-region", heldRegion!);
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await stage.scrollIntoViewIfNeeded();
+  await page.mouse.move(-10, -10);
+  await rotation.focus();
+  await expect(rotation).toBeFocused();
+  await rotation.press("Space");
+  await expect(stage).toHaveAttribute("data-running", "true");
+  await stage.locator(".selected-region strong").hover();
+  await page.mouse.move(-10, -10);
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await page.clock.fastForward(16000);
+  await expect(stage).toHaveAttribute("data-active-region", heldRegion!);
+  await rotation.press("Space");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(rotation).toBeDisabled();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(rotation).toBeEnabled();
+  await expect(rotation).toHaveAccessibleName(resumeName);
+  await expect(stage).toHaveAttribute("data-running", "false");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });

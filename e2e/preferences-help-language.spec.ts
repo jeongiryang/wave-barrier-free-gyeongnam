@@ -2,7 +2,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
-test("English preferences preserve locale choices, runtime reduced motion and replay focus", async ({ page }) => {
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+});
+
+test("English preferences preserve locale choices, runtime reduced motion and CTA focus", async ({ page }) => {
   await mockPublicShellApi(page);
   await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
   await page.goto("/");
@@ -17,14 +21,16 @@ test("English preferences preserve locale choices, runtime reduced motion and re
   await expect(preferences.getByText("Some pages are in Korean", { exact: true })).toBeVisible();
   await preferences.getByRole("button", { name: "Dark mode", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  const replay = preferences.getByRole("button", { name: "Replay intro", exact: true });
-  await replay.focus();
-  await page.keyboard.press("Enter");
-  await expect(preferences.getByRole("status")).toHaveText("Intro shown again with your motion preferences.");
-  await expect(replay).toBeFocused();
+  await expect(preferences.getByRole("button", { name: /Motion|Replay/ })).toHaveCount(0);
+  await preferences.getByLabel("Open preferences", { exact: true }).click();
+  const cta = page.locator(".landing-actions a");
+  await expect(page.locator(".landing-hero button")).toHaveCount(0);
+  await cta.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(replay).toBeFocused();
-  await expect(preferences.getByRole("button", { name: "Motion reduced by your device settings", exact: true })).toHaveAttribute("aria-disabled", "true");
+  await expect(cta).toBeFocused();
+  await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-running", "false");
+  await expect(page.getByRole("dialog", { name: "W.A.V.E", exact: true })).toBeHidden();
+  await preferences.getByLabel("Open preferences", { exact: true }).click();
   await expect(preferences).not.toContainText(/[가-힣]/);
   expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
   await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
@@ -65,7 +71,7 @@ test("English help covers visible areas, traps focus and returns it on each publ
       await dialog.getByRole("button", { name: "Next area", exact: true }).click();
     }
     if (path === "/planner") expect(visited).toBe(4);
-    await expect(dialog).toHaveCount(0);
+    await expect(dialog).toBeHidden();
     await expect(trigger).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(dialog).toBeVisible();
@@ -110,7 +116,7 @@ test("help loads only on request and gives a recoverable explanation when its fi
   await expect(page.getByRole("alert")).toHaveText("Help could not be loaded. Reload the page and try again.");
   expect(requests).toBe(1);
   await expect(trigger).toBeFocused();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("dialog")).toBeHidden();
   await page.unroute(contentPath);
   await page.reload();
   await trigger.click();

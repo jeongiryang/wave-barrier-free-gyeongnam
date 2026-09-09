@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore, type FocusEvent } from "react";
+import { useId, useRef, useState, useSyncExternalStore, type FocusEvent } from "react";
 import type { MapProvider, MapToolPanel } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { mapStatusParts } from "../map-status-copy";
@@ -51,6 +51,9 @@ export default function MapCommandBar({
   const interactive = useSyncExternalStore(() => () => undefined, () => true, () => false);
   const { locale } = useSitePreferences();
   const english = locale === "en";
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const toolsId = useId();
+  const toolsTrigger = useRef<HTMLButtonElement>(null);
   const togglePanel = (panel: Exclude<MapToolPanel, "place" | null>, trigger: HTMLButtonElement) => onToolPanelChange(toolPanel === panel ? null : panel, trigger);
   function revealFocusedControl(event: FocusEvent<HTMLDivElement>) {
     const scroll = event.currentTarget;
@@ -67,27 +70,36 @@ export default function MapCommandBar({
   else if (layerError) statusMessage = english ? "The map settings could not be confirmed. Reload the map to apply your choices again." : "지도 설정의 적용 여부를 확인할 수 없습니다. 지도를 다시 불러와 선택한 설정을 적용해 주세요.";
   else if (layerRecovery && provider === "kakao" && !actionNotice) statusMessage = english ? "Map settings applied." : "지도 설정을 적용했습니다.";
 
-  return <div className={`map-controls-layout${provider === "kakao" && !layerRecovery ? " map-controls-inline" : ""}`}>
+  return <div className="map-controls-layout">
     <div lang={locale} className={`map-provider-badge ${provider}${layerRecovery ? " map-layer-status" : ""}`} role="status" aria-live="polite" aria-atomic="true">
       <span aria-hidden="true" />
       <strong style={{ whiteSpace: "normal" }}>{mapStatusParts(statusMessage, english).map((part, index) => <span key={index} lang={part.lang}>{part.text}</span>)}</strong>
       {(provider === "osm" || layerRecovery) && <button type="button" aria-disabled={provider === "loading"} onClick={() => { if (provider !== "loading") onRetry(); }}>{layerRecovery ? (locale === "en" ? "Reapply map settings" : "지도 설정 다시 적용") : (locale === "en" ? "Reconnect the main map" : "기본 지도 다시 연결")}</button>}
     </div>
-    <nav lang={locale} className="map-command-bar" aria-label={english ? "Map tools" : "지도 기능"}>
-      <div className="map-command-scroll" onFocusCapture={revealFocusedControl}>
+    <nav lang={locale} className="map-command-bar" aria-label={english ? "Map tools" : "지도 기능"} onKeyDown={event => {
+      if (event.key !== "Escape" || !toolsOpen || toolPanel || roadviewOpen || roadviewSelectMode) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setToolsOpen(false);
+      toolsTrigger.current?.focus();
+    }}>
+      <div className="map-command-scroll map-command-primary" onFocusCapture={revealFocusedControl}>
+        <button type="button" aria-expanded={toolPanel === "route"} aria-controls="map-panel-route" className={toolPanel === "route" ? "active" : ""} onClick={(event) => togglePanel("route", event.currentTarget)} disabled={!interactive || provider === "error"}>{english ? "⇄ Route points" : "⇄ 출발·도착"}</button>
+        <button type="button" onClick={onCurrentLocation} disabled={!interactive || provider === "error"}>{english ? "◎ My location" : "◎ 내 위치"}</button>
+        <button ref={toolsTrigger} type="button" className="map-tools-toggle" aria-expanded={toolsOpen} aria-controls={toolsId} disabled={!interactive} onClick={() => setToolsOpen(value => !value)}>{english ? "Map options" : "지도 도구"} <span aria-hidden="true">{toolsOpen ? "−" : "+"}</span></button>
+      </div>
+      <button type="button" className="map-expand-button" aria-label={expanded ? (english ? "× Close expanded map" : "× 닫기") : (english ? "⛶ Expand map" : "⛶ 전체보기")} aria-pressed={expanded} aria-controls="route-map-canvas" onClick={(event) => onToggleExpanded(event.currentTarget)} disabled={!interactive}>{expanded ? "× " : "⛶ "}<span className="map-expand-label">{expanded ? (english ? "Close expanded map" : "닫기") : (english ? "Expand map" : "전체보기")}</span></button>
+      <div id={toolsId} className="map-command-scroll map-advanced-controls" role="group" aria-label={english ? "Additional map options" : "추가 지도 도구"} hidden={!toolsOpen} onFocusCapture={revealFocusedControl}>
         <div className="map-type-switch" aria-label={english ? "Map type" : "지도 유형"}>
           <button type="button" aria-pressed={baseMap === "roadmap"} className={baseMap === "roadmap" ? "active" : ""} onClick={() => onBaseMapChange("roadmap")} disabled={!interactive || provider !== "kakao"}>{english ? "Map" : "지도"}</button>
           <button type="button" aria-pressed={baseMap === "skyview"} className={baseMap === "skyview" ? "active" : ""} onClick={() => onBaseMapChange("skyview")} disabled={!interactive || provider !== "kakao"}>{english ? "Skyview" : "스카이뷰"}</button>
         </div>
         <button type="button" aria-expanded={toolPanel === "nearby"} aria-controls="map-panel-nearby" className={toolPanel === "nearby" ? "active" : ""} onClick={(event) => togglePanel("nearby", event.currentTarget)} disabled={!interactive || provider !== "kakao"}>{locale === "en" ? "⌖ Nearby" : "⌖ 주변"}</button>
-        <button type="button" aria-expanded={toolPanel === "route"} aria-controls="map-panel-route" className={toolPanel === "route" ? "active" : ""} onClick={(event) => togglePanel("route", event.currentTarget)} disabled={!interactive || provider === "error"}>{english ? "⇄ Route points" : "⇄ 출발·도착"}</button>
         <button type="button" aria-expanded={toolPanel === "layers"} aria-controls="map-panel-layers" className={toolPanel === "layers" ? "active" : ""} onClick={(event) => togglePanel("layers", event.currentTarget)} disabled={!interactive || provider !== "kakao"}>{english ? "▱ Map display" : "▱ 지도 표시"}</button>
         <button type="button" aria-pressed={roadviewSelectMode || roadviewOpen} aria-controls={roadviewOpen ? "map-roadview-panel" : roadviewSelectMode ? "map-roadview-choice" : undefined} className={roadviewSelectMode ? "active" : ""} onClick={(event) => onRoadviewSelection(event.currentTarget)} onMouseEnter={() => onRoadviewPreviewChange(true)} onMouseLeave={() => onRoadviewPreviewChange(false)} onFocus={() => onRoadviewPreviewChange(true)} onBlur={() => onRoadviewPreviewChange(false)} disabled={!interactive || provider !== "kakao"}>◉ {english ? "Roadview" : "로드뷰"}</button>
-        <button type="button" onClick={onCurrentLocation} disabled={!interactive || provider === "error"}>{english ? "◎ My location" : "◎ 내 위치"}</button>
         <button type="button" aria-expanded={toolPanel === "export"} aria-controls="map-panel-export" className={toolPanel === "export" ? "active" : ""} onClick={(event) => togglePanel("export", event.currentTarget)} disabled={!interactive}>{locale === "en" ? "⇩ Image" : "⇩ 이미지"}</button>
         <button type="button" onClick={onShare} aria-disabled={actionPending} disabled={!interactive}>{locale === "en" ? "↗ Page link" : "↗ 페이지 링크"}</button>
       </div>
-      <button type="button" className="map-expand-button" aria-label={expanded ? (english ? "× Close expanded map" : "× 닫기") : (english ? "⛶ Expand map" : "⛶ 전체보기")} aria-pressed={expanded} aria-controls="route-map-canvas" onClick={(event) => onToggleExpanded(event.currentTarget)} disabled={!interactive}>{expanded ? "× " : "⛶ "}<span className="map-expand-label">{expanded ? (english ? "Close expanded map" : "닫기") : (english ? "Expand map" : "전체보기")}</span></button>
     </nav>
   </div>;
 }

@@ -21,7 +21,7 @@ async function prepare(page: Page, en: boolean, theme: string, configure?: () =>
 }
 
 for (const en of [false, true]) for (const theme of ["light", "dark"]) {
-  test(`photo region label stays legible over a white photo ${en ? "English" : "Korean"} ${theme}`, async ({ page }) => {
+  test(`photo and body region label stay legible with a white photo ${en ? "English" : "Korean"} ${theme}`, async ({ page }) => {
     await prepare(page, en, theme, async () => {
       await page.route("https://wave.test/museum.svg", route => route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><path fill="white" d="M0 0h800v600H0z"/></svg>' }));
     });
@@ -29,7 +29,11 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await photo.scrollIntoViewIfNeeded();
     const image = photo.locator("img");
     await expect(image).toBeVisible();
-    const contrast = await photo.locator(".city-chip").evaluate(element => {
+    const region = page.locator(".place-card .place-region").first();
+    await expect(region).toHaveText("창원");
+    await expect(region).toHaveAttribute("lang", "ko");
+    expect((await region.boundingBox())!.y).toBeGreaterThanOrEqual((await photo.boundingBox())!.y + (await photo.boundingBox())!.height);
+    const contrast = await region.evaluate(element => {
       const style = getComputedStyle(element);
       const parse = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
       const fg = parse(style.color), bg = parse(style.backgroundColor);

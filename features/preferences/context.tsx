@@ -10,10 +10,9 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("ko");
   const [theme, setTheme] = useState<Theme>("light");
-  const [motionPreference, setMotionPreference] = useState<Motion>("full");
   const [systemReducedMotion, setSystemReducedMotion] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const motion: Motion = systemReducedMotion || motionPreference === "calm" ? "calm" : "full";
+  const motion: Motion = systemReducedMotion ? "calm" : "full";
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -23,7 +22,6 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
       startTransition(() => {
         setLocaleState(stored.locale);
         setTheme(stored.theme);
-        setMotionPreference(stored.motion);
         setSystemReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
         setHydrated(true);
       });
@@ -50,8 +48,8 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = "ko";
     document.documentElement.style.colorScheme = theme;
     document.documentElement.dataset.motion = motion;
-    writeStoredPreferences({ locale, theme, motion: motionPreference });
-  }, [locale, theme, motion, motionPreference, hydrated]);
+    writeStoredPreferences({ locale, theme });
+  }, [locale, theme, motion, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
     locale,
@@ -59,11 +57,9 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     hydrated,
     setLocale: setLocaleState,
     motion,
-    systemReducedMotion,
     toggleTheme: () => setTheme((current) => current === "dark" ? "light" : "dark"),
-    toggleMotion: () => setMotionPreference((current) => current === "calm" ? "full" : "calm"),
     t: (key, fallback) => copy[locale][key] || fallback,
-  }), [locale, theme, hydrated, motion, systemReducedMotion]);
+  }), [locale, theme, hydrated, motion]);
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }

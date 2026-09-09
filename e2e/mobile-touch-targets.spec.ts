@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 const MOBILE = { width: 390, height: 844 };
 
 test("모바일 경남 18개 지역 표식은 44px 조작 영역과 선택 가능한 버튼 계약을 유지한다", async ({ page }) => {
   await page.setViewportSize(MOBILE);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
-  await page.goto("/");
-  await expect(page.locator(".region-story-copy")).toHaveClass(/is-visible/);
+  await mockPlannerApi(page);
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
+  await page.goto("/planner");
+  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
 
-  const markers = page.locator("[data-region-marker]");
+  const markers = page.locator(".region-picker-list button:not(:first-child)");
   await expect(markers).toHaveCount(18);
 
   // 18개 전체의 크기·버튼 계약은 상호작용 전에 한 번에 읽는다. 지역 선택은 상세
@@ -21,13 +21,13 @@ test("모바일 경남 18개 지역 표식은 44px 조작 영역과 선택 가�
     const element = node as HTMLButtonElement;
     const rect = element.getBoundingClientRect();
     return {
-      name: element.dataset.regionMarker || "지역",
+      name: element.textContent?.trim() || "지역",
       width: rect.width,
       height: rect.height,
       tagName: element.tagName,
       type: element.type,
       disabled: element.disabled,
-      label: element.getAttribute("aria-label") || "",
+      label: element.getAttribute("aria-label") || element.textContent?.trim() || "",
     };
   }));
 
@@ -45,23 +45,28 @@ test("모바일 경남 18개 지역 표식은 44px 조작 영역과 선택 가�
   // map 렌더 루프와 동일 onClick 계약을 사용하며, 이름/좌표의 고유성은 위와 기존
   // landing-regions 회귀가 18개 모두 검증한다.
   const representativeName = markerState[0].name;
-  await page.locator(`[data-region-marker="${representativeName}"]`).click();
-  await expect(page.locator(`[data-region-marker="${representativeName}"]`)).toHaveClass(/active/);
+  await page.locator(".region-picker-list").getByRole("button", { name: new RegExp(`^${representativeName}`) }).click();
+  await expect(page.locator(".region-picker-list").getByRole("button", { name: new RegExp(`^${representativeName}`) })).toHaveAttribute("aria-pressed", "true");
 });
 
-test("모바일 지도 명령은 44px 조작 영역과 수평 탐색 경로를 유지한다", async ({ page }) => {
+test("모바일 지도 기본·추가 도구는 44px 영역과 빠짐없는 접근 경로를 유지한다", async ({ page }) => {
   await page.setViewportSize(MOBILE);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
   await chooseTripConditions(page);
 
   const commandBar = page.locator("nav.map-command-bar");
   await commandBar.scrollIntoViewIfNeeded();
   await expect(commandBar).toBeVisible();
 
-  const buttons = commandBar.locator("button");
-  expect(await buttons.count()).toBeGreaterThan(5);
+  await expect(commandBar.getByRole("button")).toHaveCount(4);
+  const more = commandBar.getByRole("button", { name: "지도 도구", exact: true });
+  await expect(more).toHaveAttribute("aria-expanded", "false");
+  await more.click();
+  const buttons = commandBar.getByRole("button");
+  await expect(buttons).toHaveCount(11);
   const sizes = await buttons.evaluateAll((nodes) => nodes.map((node) => {
     const rect = (node as HTMLElement).getBoundingClientRect();
     return { text: node.textContent?.trim() || "button", width: rect.width, height: rect.height };
@@ -71,17 +76,10 @@ test("모바일 지도 명령은 44px 조작 영역과 수평 탐색 경로를 �
     expect(size.width, `${size.text} 너비`).toBeGreaterThanOrEqual(44);
   }
 
-  const scroll = commandBar.locator(".map-command-scroll");
-  const before = await scroll.evaluate((node) => ({
-    width: node.clientWidth,
-    scrollWidth: node.scrollWidth,
-    scrollbarWidth: getComputedStyle(node).scrollbarWidth,
-  }));
-  expect(before.scrollWidth).toBeGreaterThan(before.width);
-  expect(before.scrollbarWidth).not.toBe("none");
-
-  await scroll.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
-  await expect.poll(() => scroll.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
+  expect(await commandBar.evaluate(node => [...node.querySelectorAll("button")].every(button => {
+    const box = node.getBoundingClientRect(), rect = button.getBoundingClientRect();
+    return rect.left >= box.left - 1 && rect.right <= box.right + 1;
+  }))).toBe(true);
   await expect(commandBar.getByRole("button", { name: "↗ 페이지 링크", exact: true })).toBeVisible();
 
   const readinessActions = page.locator(".readiness-actions button");
