@@ -10,3 +10,11 @@
 - LIMITATIONS: Offline responses do not claim actual provider service availability or fix the ODsay #372 hold. Saved-trip lifecycle, calendar/share recovery and other #388/#395 requirements remain separate work.
 
 Reference: [Kakao Mobility directions response units](https://developers.kakaomobility.com/guide/navi-api/directions).
+
+## Latest main integration — 2026-09-10 KST
+
+- Integrated main 299a76089b66e87193127e5241fa59d27a9aecac (#404) by normal merge in the preserved worktree.
+- Fresh lint (13 existing warnings), typecheck, all 733 unit tests, build:vercel and unchanged performance budgets PASS. Planner initial gzip 269.32/270 KiB; CSS 69.82/70 KiB.
+- Ten desktop/mobile browser cases PASS (21.0s): raw adapter measurements/recovery and next-day arrival, itinerary route synchronization, public origin/mode/second-leg handoff and GPS exclusion. Source was unchanged during the run. 960/1440 arrival captures inspected again.
+- Evidence: `%TEMP%/wave-route-main404-{lint,typecheck,test,build-vercel,check-performance,browser}.log` and `%TEMP%/wave-route-main404-output`.
+- Hosted CI and exact merged Production are still pending. Provider availability remains outside fixture evidence; ODsay hold #372 remains unresolved.
