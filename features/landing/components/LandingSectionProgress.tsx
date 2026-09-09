@@ -21,7 +21,7 @@ export default function LandingSectionProgress() {
     node.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
     node.focus({ preventScroll:true });
   };
-  return <nav className="story-progress" hidden={intro} aria-label={en ? "Introduction sections" : "서비스 소개 페이지 탐색"}>
+  return <nav className="story-progress" data-surface={current === 2 ? "light" : "dark"} hidden={intro} aria-label={en ? "Introduction sections" : "서비스 소개 페이지 탐색"}>
     <ol id="story-progress-list">{landingSections.map((section,index) => <li key={section.id}><a href={`#${section.id}`} aria-current={current === index ? "location" : undefined} onClick={event => {event.preventDefault();jump(index);}}><span>{section[en ? "en" : "ko"]}</span><b>{String(index+1).padStart(2,"0")}</b></a></li>)}</ol>
     <label className="story-progress-mobile"><span aria-hidden="true">{String(current+1).padStart(2,"0")} / {String(landingSections.length).padStart(2,"0")}</span><select aria-label={en ? "Jump to an introduction section" : "소개 섹션으로 이동"} value={current} onChange={event => jump(Number(event.target.value))}>{landingSections.map((section,index) => <option key={section.id} value={index}>{index+1} / {landingSections.length} · {section[en ? "en" : "ko"]}</option>)}</select></label>
   </nav>;

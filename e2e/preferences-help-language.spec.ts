@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
 });
 
-test("English preferences preserve locale choices, runtime reduced motion and replay focus", async ({ page }) => {
+test("English preferences preserve locale choices, runtime reduced motion and CTA focus", async ({ page }) => {
   await mockPublicShellApi(page);
   await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
   await page.goto("/");
@@ -23,18 +23,13 @@ test("English preferences preserve locale choices, runtime reduced motion and re
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(preferences.getByRole("button", { name: /Motion|Replay/ })).toHaveCount(0);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
-  const replay = page.getByRole("button", { name: "Replay intro", exact: true });
-  await replay.focus();
-  await page.keyboard.press("Enter");
-  const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
-  const skip = intro.getByRole("button", { name: "Skip intro" });
-  await expect(skip).toBeFocused();
+  const cta = page.locator(".landing-actions a");
+  await expect(page.locator(".landing-hero button")).toHaveCount(0);
+  await cta.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(skip).toBeFocused();
-  await expect(intro).toHaveAttribute("data-still", "true");
-  await expect(skip).toBeEnabled();
-  await page.keyboard.press("Escape");
-  await expect(replay).toBeFocused();
+  await expect(cta).toBeFocused();
+  await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-running", "false");
+  await expect(page.getByRole("dialog", { name: "W.A.V.E", exact: true })).toBeHidden();
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await expect(preferences).not.toContainText(/[가-힣]/);
   expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);

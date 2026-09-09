@@ -62,7 +62,7 @@ for (const width of [320, 390]) {
       for (const value of padding) expect(value).toBeLessThanOrEqual(128);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
     }
-    await expect(page.locator(".community-composer-visual")).toContainText("실제 게시된 글이 아닙니다");
+    await expect(page.locator(".community-composer-visual")).not.toContainText(/작성 예시|실제 게시된 글이 아닙니다/);
     await expect(page.locator(".community-composer-visual input,.community-composer-visual form")).toHaveCount(0);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });

@@ -39,7 +39,7 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 
 | Source | 직접 확인한 내용 / 제한 | 적용 범위 |
 | --- | --- | --- |
-| [Hanwha Ocean](https://www.hanwhaocean.com/) | 2026-09-09 재조회는 사이트 접근 차단. **NOT DIRECTLY VERIFIED**. 이 세션에서 Owner 녹화 원본을 다시 재생하지 못함. 아래 확대/전환 원리는 [Owner 관찰](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5599049518)에 근거하며 임의의 영상 타임코드를 쓰지 않는다. | 품질 목표·frame expansion·chapter transition |
+| [Hanwha Ocean](https://www.hanwhaocean.com/) | 2026-09-09 실제 브라우저에서 직접 확인. 전면 영상과 왼쪽 짧은 제목, Who We Are의 여백·사진 확대, What We Do의 비대칭 제목/선박 사진, LNGC·FPSO·잠수함 가로 장면을 관찰. 자산·코드·정확한 레이아웃 미복제. | 장면 확대와 전환, 비대칭 사진·타이포, 절제된 인덱스 |
 | [Kakao corporate](https://www.kakaocorp.com/page/) | 공식 페이지의 짧은 서비스 문구, 서비스/스토리 구조, 본문·메뉴 skip link 확인. 애니메이션의 프레임별 육안 검증과 구분. | 한국어 한 메시지, 명확한 action |
 | [SiteInspire](https://www.siteinspire.com/) | 공식 갤러리와 Typography / Photography / Unusual Layout 분류 확인. 개별 작품의 동작·라이선스 검증을 대신하지 않음. | 비대칭·큰 사진 후보를 찾는 색인 |
 | [Land-book](https://land-book.com/) | 403, **NOT DIRECTLY VERIFIED**. 여행/에디토리얼 탐색 후보로 보존; 미확인 페이지를 관찰 사례로 꾸미지 않음. | 후속 큐레이션 |
@@ -76,7 +76,7 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 - **WHY IT WORKS:** 서비스 가치와 첫 행동의 경쟁을 줄인다.
 - **W.A.V.E APPLICATION:** 첫 문구 “필요한 편의부터, 내게 맞는 경남 여행.”을 유지하고 B/C 두 문구를 6.5초마다 줄 단위로 전환. Intro 종료 뒤 A부터 시작. `여행 계획하기` 위치·문구·목적지는 고정한다.
 - **DO NOT:** 큰 흰 설명 카드, 동급 CTA 네 개, 제작 과정 배지.
-- **ACCESSIBILITY:** 고정 scrim, 고정된 SR용 대표 제목, 순환 live announce 없음. 최소한의 지속 정지 버튼. 화면 밖·비활성 탭 정지, OS 감소·Save-Data에서 A 정적. 모든 문구가 공유하는 grid 높이로 CTA 이동 방지.
+- **ACCESSIBILITY:** 고정 scrim, 고정된 SR용 대표 제목, 순환 live announce 없음. visible 재생·정지·다시보기 조작 없이 3개 문구를 한 번 보여준 후 첫 문구에 멈춤. 화면 밖·비활성 탭 정지, OS 감소·Save-Data에서 A 정적. 모든 문구가 공유하는 grid 높이로 CTA 이동 방지.
 - **PERFORMANCE:** Hero image priority, 반복 영상 download 없음.
 - **IMPLEMENTATION CANDIDATE:** LandingHero / StoryMedia.
 
@@ -84,7 +84,7 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 - **REFERENCE:** Owner representative switching + shadcn의 명명된 arrow 구조.
 - **PATTERN:** 사진·지명·짧은 이야기·지역 시작 링크가 하나의 상태로 전환.
 - **WHY IT WORKS:** 지도 설명을 읽기 전에 경남의 여행 범위를 느낀다.
-- **W.A.V.E APPLICATION:** Hero 바로 뒤, 18개 실제 KTO 사진, 4초, 이전/다음. 큰 제목·kicker 없이 기존 1rem/400 본문 “남쪽 바다에서 깊은 산자락까지. 마음이 머무는 곳을 찾아보세요.”만 남긴다. 사진·저작자·출처 링크가 같은 항목에서 전환된다.
+- **W.A.V.E APPLICATION:** Hero 바로 뒤, 18개 지역 각각 최소 2장의 실제 KTO 관광사진. 사진마다 4초, 해당 지역 앨범을 마친 후 다음 지역으로 이동. 수동 이전/다음 및 사진 선택. 큰 제목·kicker 없이 기존 1rem/400 본문 “남쪽 바다에서 깊은 산자락까지. 마음이 머무는 곳을 찾아보세요.”만 남긴다. 사진·저작자·출처 링크가 같은 항목에서 전환된다.
 - **DO NOT:** 포커스 중 자동 변경, 재생/정지 CTA, 사진과 링크의 지역 불일치.
 - **ACCESSIBILITY:** hover/focus/offscreen/hidden/reduced에서 멈춤; 수동 arrow 뒤 자동 재개 안 함; 자동 변경 live announce 안 함.
 - **PERFORMANCE:** 선택 사진만 lazy load, API/provider 호출 없음, Save-Data rotation 중지.

@@ -200,7 +200,7 @@ test("community UI supports public reading, protected participation and place li
       source("features/community/components/LandingCommunityStory.tsx"),
     ]).then((parts) => parts.join("\n")), source("app/sitemap.ts"),
   ]);
-  assert.match(list, /로그인 없이 공개 글을 확인/);
+  assert.match(list, /공개 글은 누구나 읽고/);
   assert.match(list, /아직 등록된 후기나 질문이 없습니다/);
   assert.doesNotMatch(list, /샘플/);
   assert.match(detail, /toggleLike/);
@@ -217,7 +217,7 @@ test("community UI supports public reading, protected participation and place li
   assert.match(landing, /className="[^"]*community-editor-preview/);
   assert.match(landing, /className="[^"]*community-entry-fields/);
   assert.match(landing, /data-demo="community"/);
-  assert.match(landing, /작성 예시/);
+  assert.doesNotMatch(landing, /작성 예시|실제 게시된 글이 아닙니다/);
   assert.doesNotMatch(landing, /fetch\(|localStorage|sessionStorage|usePlanner|createCommunityPost|<form\b|<input\b|<textarea\b/);
   assert.doesNotMatch(landing, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   assert.doesNotMatch(landing, /김철수|홍길동|test user/i);

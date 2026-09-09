@@ -1,0 +1,127 @@
+/* Retired Planner hero and briefing styles; kept for history, not imported. These classes have no rendered TSX owners after the explicit-question layout. */
+.journey-workspace-hero {
+  min-height: 410px;
+  grid-template-columns: minmax(0,1.15fr) minmax(310px,.85fr);
+  align-items: center;
+  gap: 28px clamp(30px,5vw,78px);
+  overflow: hidden;
+  position: relative;
+  background:
+    radial-gradient(circle at 92% 4%,rgb(111 227 208 / 34%),transparent 28%),
+    radial-gradient(circle at 8% 100%,rgb(23 184 212 / 22%),transparent 34%),
+    linear-gradient(132deg,#041f2e 0%,#064765 55%,#087d92 100%);
+}
+.journey-workspace-hero::before {
+  content: "";
+  width: 460px;
+  aspect-ratio: 1;
+  position: absolute;
+  right: -170px;
+  bottom: -330px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 46% 54% 62% 38%;
+  box-shadow: 0 0 0 54px rgb(255 255 255 / 3%),0 0 0 108px rgb(255 255 255 / 2%);
+  transform: rotate(-18deg);
+  pointer-events: none;
+}
+.journey-hero-copy { position: relative; z-index: 1; }
+.journey-workspace-hero .journey-hero-copy > p { margin-bottom: 14px; }
+.journey-workspace-hero .journey-hero-copy > span {
+  max-width: 52ch;
+  margin-top: 22px;
+  display: block;
+  color: #c9e6ed;
+  font-size: clamp(.88rem,1.15vw,1.04rem);
+  line-height: 1.75;
+}
+.journey-workspace-hero h1 { font-size: clamp(2.7rem,5.8vw,5.4rem); }
+
+.journey-briefing-card {
+  position: relative;
+  z-index: 1;
+  padding: clamp(20px,3vw,30px);
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 26px;
+  background: rgb(2 30 43 / 52%);
+  box-shadow: 0 24px 60px rgb(2 24 35 / 26%);
+  backdrop-filter: blur(18px) saturate(135%);
+}
+.journey-briefing-card > div:first-child { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.journey-briefing-card > div:first-child span { color: #b7d4df; font-size: .72rem; font-weight: 800; }
+.journey-briefing-card > div:first-child strong { color: #fff; font-size: clamp(1.8rem,3.6vw,3.1rem); line-height: 1; letter-spacing: -.06em; }
+.journey-briefing-progress { height: 7px; margin: 14px 0 22px; overflow: hidden; border-radius: 999px; background: rgb(255 255 255 / 12%); }
+.journey-briefing-progress i { height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg,#4fd1ed,var(--mint)); transition: width .45s var(--ease-out); }
+.journey-briefing-card dl { margin: 0; display: grid; gap: 0; }
+.journey-briefing-card dl > div { min-height: 43px; display: grid; grid-template-columns: 92px minmax(0,1fr); align-items: center; gap: 14px; border-top: 1px solid rgb(255 255 255 / 10%); }
+.journey-briefing-card dt { color: #9fc3d0; font-size: .68rem; font-weight: 750; }
+.journey-briefing-card dd { margin: 0; overflow: hidden; color: #f3fbfd; font-size: .76rem; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.journey-briefing-card > button:disabled { cursor: wait; opacity: .62; }
+.journey-briefing-card > button {
+  width: 100%; min-height: 50px; margin-top: 18px; padding: 11px 15px;
+  display: flex; align-items: center; justify-content: space-between;
+  border: 0; border-radius: 14px; color: #032331; background: var(--mint);
+  font-weight: 900; box-shadow: 0 14px 28px rgb(2 27 39 / 20%);
+}
+
+.journey-trust-legend {
+  grid-column: 1/-1;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.journey-trust-legend > span {
+  min-height: 38px;
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgb(255 255 255 / 17%);
+  border-radius: 999px;
+  color: #f3fbfd;
+  background: rgb(255 255 255 / 7%);
+  font-size: .67rem;
+  font-weight: 850;
+}
+.journey-trust-legend i { width: 8px; height: 8px; border-radius: 50%; background: #68decf; box-shadow: 0 0 0 4px rgb(104 222 207 / 12%); }
+.journey-trust-legend [data-state="partial"] i { background: #69b9e8; box-shadow: 0 0 0 4px rgb(105 185 232 / 12%); }
+.journey-trust-legend [data-state="recheck"] i { background: #ffc173; box-shadow: 0 0 0 4px rgb(255 193 115 / 12%); }
+.journey-trust-legend small { color: #b5d0d9; font-size: .62rem; font-weight: 650; }
+html[data-motion="calm"] .journey-briefing-progress i { transition: none; }
+
+@media (max-width: 760px) {
+  .journey-workspace-hero { min-height: 0; grid-template-columns: 1fr; align-items: start; gap: 28px; }
+}
+
+@media (max-width: 760px) {
+  .journey-workspace-hero h1 { font-size: clamp(2.5rem,12vw,4.2rem); }
+}
+
+@media (max-width: 760px) {
+  .journey-trust-legend { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
+}
+
+@media (max-width: 760px) {
+  .journey-trust-legend > span { flex: 0 0 auto; scroll-snap-align: start; }
+}
+
+@media (max-width: 760px) {
+  .journey-briefing-card { border-radius: 21px; }
+}
+
+@media (max-width: 480px) {
+  .journey-workspace-hero { padding-inline: 20px; }
+}
+
+@media (max-width: 480px) {
+  .journey-briefing-card dl > div { grid-template-columns: 82px minmax(0,1fr); }
+}
+
+@media (max-width: 480px) {
+  .journey-trust-legend small { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-briefing-progress i { transition: none; }
+}

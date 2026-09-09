@@ -49,7 +49,7 @@ test("Hero copy moves line by line, holds CTA geometry, without pause UI and res
   await expect(cta).toBeFocused(); expect(await cta.boundingBox()).toEqual(before);
 });
 
-test("Hero pauses offscreen and in hidden tabs, and replay reconnects to the first phrase", async ({page}) => {
+test("Hero pauses offscreen and in hidden tabs, and runtime reduction returns to the first phrase", async ({page}) => {
   await page.clock.install(); await page.goto("/"); await ready(page);
   const copy=page.locator(".hero-copy-sequence");
   await expect(copy).toHaveAttribute("data-running","true");
@@ -65,14 +65,13 @@ test("Hero pauses offscreen and in hidden tabs, and replay reconnects to the fir
   await page.evaluate(()=>{delete (document as unknown as {hidden?:boolean}).hidden;document.dispatchEvent(new Event("visibilitychange"));});
   await expect(copy).toHaveAttribute("data-running","true");
   await page.clock.fastForward(6500); await expect(copy).toHaveAttribute("data-phrase","1");
-  await page.getByRole("button",{name:"인트로 다시보기",exact:true}).click();
-  await expect(page.getByRole("dialog",{name:"W.A.V.E",exact:true})).toBeVisible();
-  await expect(page.locator(".story-progress")).toBeHidden();
-  await expect(copy).toHaveAttribute("data-phrase","0");
+  const cta=page.locator(".landing-actions a");
+  await cta.focus();
   await page.emulateMedia({reducedMotion:"reduce"});
-  await page.getByRole("button",{name:"소개로 건너뛰기",exact:true}).click();
-  await expect(page.getByRole("button",{name:"인트로 다시보기",exact:true})).toBeFocused();
+  await expect(cta).toBeFocused();
   await expect(copy).toHaveAttribute("data-phrase","0");
+  await expect(copy).toHaveAttribute("data-running","false");
+  await expect(page.locator(".landing-hero button")).toHaveCount(0);
 });
 
 test("current section registry, desktop rail and mobile native selector stay in sync without trapping scroll", async ({ page }) => {

@@ -1,22 +1,26 @@
-# Design completion — local work in progress
+# Editorial introduction and destination selection — 2026-09-09
 
-Owner authorized design-first completion of the introduction and working pages, reference review, generated imagery, and merge after verified quality. On 2026-09-09 the Owner asked to finish the existing release PR first. This commit preserves the new work while #391 is repaired and released.
+Owner authorized design-first completion of the introduction and working pages, reference review, generated imagery, and merge after verified quality. Release repair was completed first: #391 merged as `2ec235a45c7199dd248716da093fcba4fe70ea50`, main CI and CD succeeded, and the canonical Production site was inspected in a real browser on 2026-09-09 at 22:42–22:43 KST. This subsequent design starts from that main tree. Post-deploy API QA remains blocked by the pre-existing ODsay provider hold #372; a configuration health check is not a complete live-provider test.
 
-Base: d42543332a856a04df9a8210146fd8d72e8c6b88. Existing worktree reused. No reset, clean, stash, new worktree, force push, dependency installation or data deletion.
+The earlier WIP `6051995` remains on `feat/design-completion-20260909`. It was applied as `3acc7d0` on `feat/editorial-journey-353`, based on `2ec235a`. The Hero conflict was resolved by removing the Owner-rejected replay control while retaining the release's image recovery, accessible headings, fixed-navigation focus clearance and map-download hover fix. Existing worktree reused. No reset, clean, stash, new worktree, force push, package/lockfile dependency change or data deletion.
 
-## Current implementation (not release ready)
+## Implementation
 
 - Planner destination-first region chooser with official photographs and original credits; explicit selection remains neutral. Existing polygon map is available in a native disclosure. Region module is lazy-loaded.
 - Compact workspace heading and navigation, larger facility choices and destination cards. Existing hooks/data/itinerary remain intact.
 - Generated companions/coast image for needs and journal/sea image for community. Brand assets are separate from actual tourism evidence. Old assets remain untouched.
 - Removed Hero replay and explanatory demo copy per Owner. Region auto sequence now visits each photo before advancing region.
 - Actual Community opening uses a smaller editorial header so the board is closer to the first viewport.
+- Section names remain visible beside their numbers, without individual label boxes or a hover disclosure. The rail adapts to the light facilities scene and dark scenes. The current section has stronger text and a mint marker.
+- Prototype styles were merged into their owning planner, community and landing files; the additional broad `journey-editorial.css` layer was removed. Unrendered legacy Hero, briefing and deferred Landing scene styles are preserved in non-imported archive files. Existing captures for #386 remain unchanged.
+- The first question loads the regional photo/chooser. The facility component loads only when its question is rendered, with an accessible loading message. Conditions, recommendation ranking, itinerary IDs, map geometry and data controllers retain their contracts.
+- Pre-hydration Intro exit now hands focus to the hydrated Hero heading. It checks the current active element before delayed focus so a user who has already moved to the CTA retains that focus.
 
 ## References observed
 
-GitHub #384 body and Owner comment reject option 3. Downloaded all five PDFs and rendered pages locally; full page comparison is still in progress. #353/#385 current Bible read; relevant historic issue/PR bodies fetched to local audit files. Full requirements audit is not yet complete.
+GitHub #384 body and Owner comment reject option 3. All 38 pages of the five PDFs were rendered and visually reviewed. Adopted the first option's continuous journey, the second's itinerary/map relationship, the fourth's larger destination imagery and compact rail, and the fifth's ivory paper/deep ocean warmth. Rejected fabricated LIVE states, invented travel times, access percentages used as quality scores, mismatched photos and decorative controls. No source assets or proprietary layouts were copied. The wider historical issue/PR audit remains in progress and is not represented as complete by this PR.
 
-Hanwha Ocean homepage directly opened in browser on 2026-09-09: full-screen film and left-aligned short headline, ample white transition space, small photograph intersecting headline expanding to viewport edges, restrained right chapter rail. Previously recorded access restriction does not apply to this observation. More transitions remain to inspect.
+Hanwha Ocean homepage directly opened in browser on 2026-09-09: full-screen film and left-aligned short headline, Who We Are's white space and expanding photograph, What We Do's asymmetric large title and ship image, and large LNGC/FPSO/submarine category scenes. The Bible's earlier access restriction was corrected. Native scroll, essential readable text and reduced-motion behavior are maintained.
 
 ## Generated assets
 
@@ -27,6 +31,12 @@ Built-in imagegen, no paid API credentials. Originals retained under Codex gener
 
 ## Verification / remaining
 
-Typecheck passed before the final stylesheet/copy edits. First rendered Planner inspection found narrow rail grid overlap; explicit column positions have been corrected but not rechecked. No full QA or acceptance claim.
+Local lint (zero errors, 13 warnings), typecheck and all 708 unit checks passed. The Vercel build passed. After moving retired CSS out of the active import graph and deferring facility code, unchanged budgets passed: CSS gzip 69.87/70 KiB, Landing initial JS 121.20/155 KiB, Planner initial JS 268.67/270 KiB, largest chunk 95.92/110 KiB (Windows Node 24). The initial CSS 71.80 KiB and Planner 270.43 KiB failures were addressed rather than raising the limits.
 
-Pending: complete reference/issue/PR audit, responsive/theme/axe verification, CSS budget cleanup without changing budgets, active test contract migration after replay removal and album sequence change, itinerary/map usability, saved trips, functional bugs tracked by #388/#387, new real product captures for #386 after working pages settle. Current #391 remains OPEN and its required CI failed; no new design is deployed.
+Browser checks migrated only Owner-rejected replay/demo wording and the map's new native disclosure; existing Intro exits, keyboard handoff, map geometry, every region/album source, finite motion and Planner behavior remain asserted. New editorial checks cover 280/390/960/1440, both themes, actual facility selection, neutral region selection, landing/working Community and axe. Screenshots using provider fixtures are test evidence, not Production tourism captures. CUA inspection separately used actual regional images and generated brand assets. An additional clock-controlled check verifies each photo appears before the next region and manual selection permanently stops rotation.
+
+The initial focused run exposed pre-hydration focus handoff and selected-rail contrast; fixes were made. A 14-case rerun covering those fixes, both-theme editorial surfaces and mobile date/crowd regressions passed. The broader Chromium run passed 192/194; two stale four-second region-change expectations were changed to assert every photograph's four-second duration, matching the new album behavior. Its 12-case rerun passed. Final Intro/editorial Chromium 30 and WebKit 30 passed. Mobile Community inherited a larger headline from a later stylesheet; the corrected owner selector brings the board action into the first viewport, now asserted. `playwright.webkit.config.ts` targets the Intro and editorial surfaces; WebKit was installed in the Playwright user cache, without package or lockfile changes. It is a browser-engine check, not a claim of testing physical Apple devices. Windows WebKit's media requests were absent from the interception trace; its media-failure case uses actual invalid-video decoding, while Chromium retains the network-abort case. Both retain identical fallback and keyboard exit assertions.
+
+During final audit, draft #393 and the three #391 reviews identified a remaining P1: regional autoplay needs discoverable pause/resume. Deployment success for #391 did not resolve this accessibility finding. The original #393 candidate `d43a253` is being integrated with this album sequence before final hosted CI; its source branch remains preserved. Hero's rejected replay/pause controls stay removed.
+
+Remaining work beyond this coherent visual pass: historical requirements mapping, recommendation card hierarchy and terminology, working itinerary/map/departure and saved-trip refinements, actual functional defects in #388/#387, matched runtime performance measurement, and new actual product captures for #386 after working screens settle. This PR does not close the design epic or claim submission readiness. Every PR merge must be followed by an Owner notification and exact-SHA CD plus canonical Production verification.

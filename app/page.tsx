@@ -19,7 +19,6 @@ export default function LandingPage() {
   const { t, locale } = useSitePreferences();
   const {
     landingRef,
-    introReplay,
     activeRegion,
     active,
     preview,
@@ -31,13 +30,13 @@ export default function LandingPage() {
     selectRegion,
   } = useLandingExperience();
 
-  return <><LandingIntro replay={introReplay} /><main ref={landingRef} className="landing-page story-edition" data-scroll-direction={scrollDirection} lang={locale}>
+  return <><LandingIntro /><main ref={landingRef} className="landing-page story-edition" data-scroll-direction={scrollDirection} lang={locale}>
     <SkipLink href="#story">{t("skip", "소개 바로가기")}</SkipLink>
     <LandingHeader scrolled={scrolled} t={t} />
     <LandingSectionProgress />
     {landingSections.map(section => {
       switch (section.key) {
-        case "hero": return <LandingHero key={section.id} t={t} replay={introReplay} />;
+        case "hero": return <LandingHero key={section.id} t={t} />;
         case "region": return <LandingRegionStory key={section.id} t={t} activeRegion={activeRegion} active={active} preview={preview} regionPhotos={regionPhotos} showRegionPreview={showRegionPreview} hideRegionPreview={hideRegionPreview} selectRegion={selectRegion} />;
         case "needs": return <LandingManifesto key={section.id} t={t} />;
         case "recommendation": return <LandingPossibilityScene key={section.id} />;

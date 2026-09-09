@@ -4,11 +4,8 @@
 .landing-community-copy h2 { max-width: 760px; margin: 11px 0 21px; font-size: clamp(2.8rem,4.1vw,4.95rem); line-height: 1.02; letter-spacing: -.07em; text-wrap: balance; }
 .landing-community-copy h2 em { color: var(--blue); font-style: normal; }
 .landing-community-copy > p:not(.section-kicker) { max-width: 620px; color: var(--muted); font-size: clamp(.94rem,1.05vw,1.08rem); line-height: 1.72; }
-.landing-community-copy > div > a:first-child { min-height: 48px; margin-top: 22px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 30px; border-radius: 12px; color: var(--white); background: var(--ink); font-size: .78rem; font-weight: 850; }
 
 .landing-community { grid-template-columns: minmax(300px,.7fr) minmax(560px,1.3fr); }
-.landing-community-copy > div { display: flex; align-items: center; flex-wrap: wrap; gap: 17px; }
-.landing-community-copy > div > a:last-child { margin-top: 22px; color: var(--blue); font-size: .75rem; font-weight: 850; }
 
 @media (max-width: 1050px) {
   .landing-community { min-height: 0; grid-template-columns: 1fr; gap: 45px; }
@@ -18,9 +15,6 @@
 @media (max-width: 680px) {
   .landing-community { padding-block: 70px; gap: 32px; }
   .landing-community-copy h2 { font-size: clamp(2.65rem,13vw,4rem); }
-  .landing-community-copy > div { align-items: stretch; flex-direction: column; }
-  .landing-community-copy > div > a { width: 100%; justify-content: space-between; }
-  .landing-community-copy > div > a:last-child { margin-top: 0; padding: 10px; }
 }
 
 .landing-community {
@@ -31,25 +25,17 @@
   text-align: center;
 }
 .landing-community-copy > p:not(.section-kicker) { margin-inline: auto; }
-.landing-community-copy > div { justify-content: center; }
-.landing-community > .compact-journey-visual { width: min(100%, 360px); margin: 0 auto; }
 
 @media (max-width: 600px) {
   .landing-community { text-align: left; }
   .landing-community-copy > p:not(.section-kicker) { margin-inline: 0; }
-  .landing-community-copy > div { align-items: stretch; }
 }
-
-.landing-community.is-visible .community-feature-card { animation-play-state: running; }
 
 html[data-motion="calm"] .landing-community *,html[data-motion="calm"] .landing-community *::before,html[data-motion="calm"] .landing-community *::after { animation: none !important; transition-duration: .01ms !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .landing-community *,.landing-community *::before,.landing-community *::after { animation: none !important; transition-duration: .01ms !important; }
 }
-
-.landing-cta .landing-cta-evidence { max-width: 620px; margin: 24px auto 0; color: var(--muted); font-size: 1rem; font-weight: 400; letter-spacing: normal; line-height: 1.7; }
-.landing-cta .landing-cta-evidence a,.landing-cta .landing-cta-evidence a:hover { min-height: 44px; margin: 0; padding: 8px 4px; color: var(--blue); background: transparent; font: inherit; text-decoration: underline; text-underline-offset: .18em; }
 
 
 /* Shared active Hero and media foundations retain their original cascade. */

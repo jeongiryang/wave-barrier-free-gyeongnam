@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: image }));
 });
 
-test("regional names, photographs and trip links rotate together after four seconds, never editing a trip", async ({ page }) => {
+test("regional names, photographs and trip links advance after the complete album, never editing a trip", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   let apiRequests = 0;
   page.on("request", request => { if (request.url().includes("action=photo")) apiRequests++; });
@@ -31,9 +31,18 @@ test("regional names, photographs and trip links rotate together after four seco
   await page.mouse.move(0, 0);
   await expect(stage).toHaveAttribute("data-running", "true");
   await expect(stage).toHaveAttribute("data-active-region", "창원");
+  await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", "0");
   await page.clock.fastForward(3999);
   await expect(stage).toHaveAttribute("data-active-region", "창원");
+  await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", "0");
   await page.clock.fastForward(1);
+  for (let index = 1; index < regionShowcaseAlbums["창원"].length; index++) {
+    await expect(stage).toHaveAttribute("data-active-region", "창원");
+    await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", String(index));
+    await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("src", regionShowcaseAlbums["창원"][index].image);
+    await expect(stage.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("창원"));
+    await page.clock.fastForward(4000);
+  }
   await expect(stage).toHaveAttribute("data-active-region", "하동");
   await expect(stage.locator(".selected-region strong")).toHaveText("하동");
   expect(await stage.locator("img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual([regionShowcaseAlbums["하동"][0].image]);

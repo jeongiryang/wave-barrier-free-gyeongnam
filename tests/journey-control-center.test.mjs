@@ -24,7 +24,7 @@ test("Journey Control Center가 네 단계와 실제 여행 상태를 연결한�
   assert.match(hook, /id: "places"[\s\S]*complete: searched && recommendedCount > 0 && currentSavedCount > 0/);
   assert.match(hook, /id: "itinerary"[\s\S]*available: savedCount > 0/);
   assert.match(hook, /id: "departure-readiness"[\s\S]*available: savedCount > 0/);
-  assert.match(styles, /grid-template-columns: minmax\(220px,260px\)/);
+  assert.match(styles, /grid-template-columns: 180px minmax\(0,1fr\)/);
   assert.match(styles, /max-width: 1560px[\s\S]*\.journey-stage-stream \.navigation-workspace \{ grid-template-columns: minmax\(0,1fr\)/);
   assert.match(styles, /position: fixed/);
   assert.match(styles, /min-height: 58px/);

@@ -4,10 +4,10 @@ import LandingHeroCopy from "./LandingHeroCopy";
 import StoryMedia from "./StoryMedia";
 import type { LandingTranslate } from "../content";
 
-export default function LandingHero({ t, replay = 0 }: { t: LandingTranslate; replay?: number }) {
+export default function LandingHero({ t }: { t: LandingTranslate }) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
-  return <section className="landing-hero" id="top" tabIndex={-1} aria-labelledby="landing-title" data-intro-replay={replay}>
+  return <section className="landing-hero" id="top" tabIndex={-1} aria-labelledby="landing-title">
     <StoryMedia>
     <div className="hero-opening">
     <div className="landing-hero-copy">
