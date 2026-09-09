@@ -15,3 +15,6 @@ Normal integration of main a23afdd1156008ceb45bedcaffedc5a09460c610 retains the 
 
 ## Main #420 verification
 Normal integration of d21258c569b50afd6acafa58978e22734ae25dad preserves the arrival summary extraction. Fresh lint/typecheck, all749 unit/contract tests, Vercel build and unchanged performance budgets PASS (Planner269.74/270KiB, CSS69.90/70KiB). All70 browser cases PASS2.1min. The previous main #422 size failure is resolved by integration; no budget or assertion changed. The separate archive module recovery is now PR #423; this branch will integrate its actual main and run fresh checks before its own PR.
+
+## Main #423 verification
+Normal integration of9b473a2703980f33787774f65d517d3748bcf66a includes the separate archive module recovery. Fresh lint/typecheck,749 unit/contract tests, Vercel build and unchanged performance budgets PASS (Planner269.74/270KiB, CSS69.90/70KiB). All70 browsers PASS2.1min. The previously reported archive problem is now resolved by #423; malformed successful responses are being handled in a separate bounded branch. This PR only classifies and explains existing request failures.
