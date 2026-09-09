@@ -22,9 +22,10 @@ test("English departure review preserves evidence states, dates and original sou
   assert.equal(en.items[0].subject, "비");
   assert.equal(en.items[1].subject, "경남도립미술관");
   assert.match(en.items[1].summary, /not a live visitor count/);
-  assert.match(en.items[2].summary, /not a count of actual routes/);
+  assert.match(en.items[2].summary, /Provider connectivity alone does not verify a route/);
   for (const item of en.items) assert.doesNotMatch(item.label + item.summary, /[가-힣]/);
-  assert.equal(en.items[3].source, "공식 원문 출처");
+  assert.equal(en.items.find(item => item.id === "evidence").source, "공식 원문 출처");
+  assert.equal(en.items.find(item => item.id === "mobility").state, "recheck");
 });
 
 test("English missing, loading, future and past evidence cannot become confirmed", () => {

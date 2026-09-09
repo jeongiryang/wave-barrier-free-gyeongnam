@@ -4,7 +4,7 @@ import { useState } from "react";
 import { assessDepartureReadiness } from "../../../lib/departure-assessment.js";
 import type { usePlannerParticipation } from "../hooks/usePlannerParticipation";
 import type { useTripSelection } from "../hooks/useTripSelection";
-import type { PlanData, TransportProvider, WeatherData } from "../types";
+import type { PlanData, WeatherData } from "../types";
 import { localDate } from "../utils";
 import { sameOriginHttpUrl } from "../../../lib/security/same-origin-url.js";
 import { useSitePreferences } from "../../../components/SitePreferences";
@@ -19,7 +19,7 @@ interface DepartureReadinessCardProps {
   destinationPlaceId?: string;
   weather: WeatherData | null;
   weatherLoading: boolean;
-  transportProviders: TransportProvider[];
+  routeCoverage: { total: number; verified: number; loading: boolean };
   tripSelection: ReturnType<typeof useTripSelection>;
   participation: ReturnType<typeof usePlannerParticipation>;
   onRefresh: () => void | Promise<void>;
@@ -45,7 +45,7 @@ function formatCheckedAt(value: string, en: boolean) {
 }
 
 export default function DepartureReadinessCard({
-  region, plan, destinationCrowd, destinationPlaceId, weather, weatherLoading, transportProviders, tripSelection, participation, onRefresh, onOpenSignals,
+  region, plan, destinationCrowd, destinationPlaceId, weather, weatherLoading, routeCoverage, tripSelection, participation, onRefresh, onOpenSignals,
 }: DepartureReadinessCardProps) {
   const { locale } = useSitePreferences();
   const focusVisibility = useReadinessFocus();
@@ -65,7 +65,7 @@ export default function DepartureReadinessCard({
     crowdPlaceId: destinationCrowd ? destinationPlaceId : undefined,
     scheduleAssignments,
     generatedAt: plan?.generatedAt,
-    transportProviders,
+    routeCoverage,
     places: orderedSavedPlaces,
   });
   const calendarDisabled = !orderedSavedPlaces.length || assessment.phase.id === "past";
