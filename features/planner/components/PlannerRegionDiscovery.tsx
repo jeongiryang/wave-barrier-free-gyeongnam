@@ -15,7 +15,7 @@ export default function PlannerRegionDiscovery({ value, onChange }: { value: str
   const [failedImage, setFailedImage] = useState("");
   return <div className="planner-region-discovery">
     <figure className="planner-destination-image">
-      {failedImage !== photo.image && <img key={photo.image} src={photo.image} width="1000" height="800" decoding="async" alt={`${name} · ${photo.title}`} onError={() => setFailedImage(photo.image)} ref={node => { if (node?.complete && !node.naturalWidth) setFailedImage(photo.image); }} />}
+      {failedImage !== photo.image && <img key={photo.image} src={photo.image} width="1000" height="800" decoding="async" lang="ko" alt={`${name} · ${photo.title}`} onError={() => setFailedImage(photo.image)} ref={node => { if (node?.complete && !node.naturalWidth) setFailedImage(photo.image); }} />}
       <div className="planner-destination-caption">
         <span>{value ? en ? "YOUR DESTINATION" : "이번 여행의 시작" : en ? "FIND YOUR GYEONGNAM" : "마음이 머무는 곳으로"}</span>
         <strong>{!value || value === "경남 전체" ? en ? "Gyeongnam" : "경남" : en ? regionNames[name] : name}</strong>

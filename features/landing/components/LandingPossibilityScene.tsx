@@ -11,8 +11,8 @@ export default function LandingPossibilityScene() {
   const [failed, setFailed] = useState(false);
   return <section id="recommendation" tabIndex={-1} className="recommendation-chapter" aria-labelledby="recommendation-title" data-cinematic="left">
     <figure className="destination-panorama">
-      {!failed && <img src={photo.image} alt={photo.title} loading="lazy" decoding="async" onError={() => setFailed(true)} />}
-      <figcaption><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{photo.title} · {en ? "Source: ⓒKorea Tourism Organization" : "출처: ⓒ한국관광공사"}</a></figcaption>
+      {!failed && <img src={photo.image} alt={photo.title} lang="ko" loading="lazy" decoding="async" onError={() => setFailed(true)} />}
+      <figcaption><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer"><span lang="ko">{photo.title}</span> · {en ? "Source: ⓒKorea Tourism Organization" : "출처: ⓒ한국관광공사"}</a></figcaption>
     </figure>
     <div className="destination-editorial">
       <div className="destination-copy">

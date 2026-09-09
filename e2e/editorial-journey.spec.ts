@@ -58,3 +58,27 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await page.screenshot({ path: test.info().outputPath(`board-${theme}-${width}.png`), fullPage: true });
   }
 });
+
+test("English travel pages identify original Korean photography and community copy", async ({ page }) => {
+  await mockPublicShellApi(page);
+  await mockPlannerApi(page);
+  await page.addInitScript(() => {
+    sessionStorage.setItem("wave-arrival-session-v1", "done");
+    localStorage.setItem("wave-locale", "en");
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const bitmap = await readFile("public/media/wave-story/hero-coast-small.webp");
+  await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: bitmap }));
+  await page.goto("/");
+  await expect(page.locator(".landing-page")).toHaveAttribute("lang", "en");
+  await expect(page.locator(".destination-panorama img")).toHaveAttribute("lang", "ko");
+  await expect(page.locator(".destination-panorama figcaption a span")).toHaveAttribute("lang", "ko");
+  await expect(page.locator(".destination-panorama figcaption a")).toContainText("Source:");
+  await page.goto("/planner");
+  await expect(page.locator(".region-picker-list")).toHaveAccessibleName("Choose a region");
+  await expect(page.locator(".planner-destination-image img")).toHaveAttribute("lang", "ko");
+  await expect(page.locator(".planner-destination-caption strong")).toHaveText("Gyeongnam");
+  await page.goto("/community");
+  await expect(page.locator(".community-editorial")).toHaveAttribute("lang", "ko");
+  await expect(page.locator(".community-editorial h1")).toContainText("다녀온 이야기");
+});
