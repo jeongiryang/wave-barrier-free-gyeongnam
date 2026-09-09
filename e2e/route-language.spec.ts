@@ -51,7 +51,7 @@ for (const theme of ["light", "dark"] as const) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     expect(errors).toEqual([]);
     await panel.screenshot({ path: test.info().outputPath(`route-${theme}.png`) });
-    for (const width of [320, 768, 1024, 1366]) {
+    for (const width of [320, 768, 960, 1024, 1366, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       for (const control of await panel.locator("button,a").all()) {
         const box = await control.boundingBox();
