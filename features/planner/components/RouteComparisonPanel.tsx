@@ -5,6 +5,7 @@ import { useSitePreferences } from "../../../components/SitePreferences";
 import { originalLanguage } from "../place-copy";
 import { routeTitle } from "../route-copy";
 import { hasJourneyEstimate } from "../../../lib/route-estimates.js";
+import { kakaoDirections } from "../../../lib/kakao-directions.js";
 
 const englishModes = {
   walk: ["Walking", "Travel on foot"], bicycle: ["Cycling", "Travel by bicycle"],
@@ -46,14 +47,10 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
     routeModeSummaries, routeDestination,
   } = route;
   const configuredRoutes = sortedRouteAlternatives.filter(hasJourneyEstimate);
-  const destinationLat = Number(routeDestination?.mapY);
-  const destinationLng = Number(routeDestination?.mapX);
-  const hasDestination = routeDestination && Number.isFinite(destinationLat) && Number.isFinite(destinationLng);
-  const kakaoHref = hasDestination
-    ? `https://map.kakao.com/link/to/${encodeURIComponent(routeDestination.name)},${destinationLat},${destinationLng}`
-    : routeDestination
-      ? `https://map.kakao.com/link/search/${encodeURIComponent(routeDestination.name)}`
-      : "https://map.kakao.com/";
+  const kakaoHref = kakaoDirections({
+    origin: route.routeStart, originLabel: route.routeStartLabel,
+    privateOrigin: route.routeStartIsPrivate, destination: routeDestination, mode: routeTravelMode,
+  });
   const selectedSummary = routeModeSummaries.find((item) => item.id === routeTravelMode);
   const selectedLabel = selectedSummary ? (english ? englishModes[selectedSummary.id][0] : selectedSummary.label) : (english ? "this travel mode" : "선택한 이동수단");
   const hasOriginalNames = configuredRoutes.some((item) => originalLanguage(routeTitle(item, english)) || originalLanguage(segmentSummary(item)));

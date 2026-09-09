@@ -35,7 +35,12 @@ test("route comparison is grouped by travel mode and ordered by time", async () 
   assert.match(view, /a\.minutes - b\.minutes/);
   assert.doesNotMatch(panel, /가장 빠름|가장 저렴함|환승 최소|걷기 최소/);
   assert.match(panel, /카카오맵에서/);
-  assert.match(panel, /map\.kakao\.com\/link\/to/);
+  assert.match(panel, /kakaoDirections\(/);
+  assert.match(panel, /origin: route\.routeStart/);
+  assert.match(panel, /mode: routeTravelMode/);
+  const links = await source("lib/kakao-directions.js");
+  assert.match(links, /map\.kakao\.com\/link\/by/);
+  assert.match(links, /map\.kakao\.com\/link\/to/);
 });
 
 test("place detail can surface only real public WAVE community stories", async () => {
