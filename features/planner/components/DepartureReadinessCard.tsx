@@ -69,6 +69,8 @@ export default function DepartureReadinessCard({
     routeCoverage,
     places: orderedSavedPlaces,
     placeCriteriaCurrent,
+    currentPlaceIds: plan?.places.map(place => place.id),
+    requiredFacilityKeys: plan?.criteria?.facilityKeys,
   });
   const calendarDisabled = !orderedSavedPlaces.length || assessment.phase.id === "past";
 

@@ -196,8 +196,8 @@ test("route-level loading, error and not-found states provide recovery", async (
   assert.match(loading, /role="status"/);
   assert.match(loading, /aria-live="polite"/);
   assert.match(error, /role="alert"/);
-  assert.match(error, /onClick=\{reset\}/);
-  assert.match(error, /<Link href="\/planner"/);
+  assert.match(error, /window\.location\.reload\(\)/);
+  assert.match(error, /<a href="\/planner"/);
   assert.match(notFound, /30일 보관 기간/);
   assert.match(notFound, /새 여행 만들기/);
   assert.match(css, /\.route-state-page button,.route-state-page a \{ min-height: 48px/);

@@ -31,6 +31,16 @@ const normalize = loadServer()("server/shared/provider-normalizers.ts").normaliz
 const success = (items, totalCount = 0) => ({ response: { header: { resultCode: "0000", resultMsg: "OK" }, body: { items, totalCount } } });
 const flatParameterError = { resultCode: "10", resultMsg: "INVALID_REQUEST_PARAMETER_ERROR(defaultYN)" };
 
+test("query facility keys include every requested field and match normalized place evidence", () => {
+  const { requestedAccessibilityFields, placeFrom } = loadServer()("server/tourism/accessibility-model.ts");
+  const profiles = ["wheel", "baby", "wheel", "unknown"];
+  const keys = requestedAccessibilityFields(profiles).map(([key]) => key);
+  assert.deepEqual(keys, ["parking", "route", "wheelchair", "elevator", "restroom", "stroller", "lactationroom", "babysparechair"]);
+  const result = placeFrom({ contentid: "1001", title: "Museum" }, {}, "창원", profiles, 0);
+  assert.deepEqual(result.accessibility.map(field => field.key), keys);
+  assert.ok(result.accessibility.every(field => field.state === "unknown"));
+});
+
 test("actual flat KTO parameter error never becomes a successful empty result", () => {
   assert.throws(() => normalize(flatParameterError));
   assert.throws(() => normalize({ response: flatParameterError }));

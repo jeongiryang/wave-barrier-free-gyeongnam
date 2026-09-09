@@ -3,9 +3,13 @@ import { clean, httpsUrl } from "../shared/http";
 import type { ProviderItem as KtoItem } from "../shared/provider-data";
 import { profileFields, regionCodes } from "./catalog";
 
-export function placeFrom(item: KtoItem, detail: KtoItem, region: string, profiles: string[], index: number) {
+export function requestedAccessibilityFields(profiles: string[]) {
   const candidates = profiles.flatMap((profile) => profileFields[profile] || []);
-  const unique = [...new Map(candidates.map(([key, label]) => [key, label])).entries()];
+  return [...new Map(candidates.map(([key, label]) => [key, label])).entries()];
+}
+
+export function placeFrom(item: KtoItem, detail: KtoItem, region: string, profiles: string[], index: number) {
+  const unique = requestedAccessibilityFields(profiles);
   const accessibility = buildAccessibilityItems(unique, detail);
   const matched = unique.filter(([key]) => accessibility.some((entry) => entry.key === key && entry.state === "confirmed"));
   const known = accessibility.filter((entry) => entry.state !== "unknown");
