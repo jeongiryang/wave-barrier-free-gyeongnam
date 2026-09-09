@@ -77,7 +77,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   const retry=page.getByRole("button",{name:english ? "Reapply map settings" : "지도 설정 다시 적용",exact:true});
   for(const width of [390,1366]) {
     await page.setViewportSize({width,height:844});
-    await page.locator(".map-type-switch").getByRole("button",{name:english ? "Map" : "지도",exact:true}).focus();
+    await page.locator('.map-command-primary button[aria-controls="map-panel-route"]').focus();
     await page.keyboard.press("Shift+Tab"); await expect(retry).toBeFocused();
     expect(await retry.evaluate(b=>{const r=b.getBoundingClientRect();return r.width>=44&&r.height>=44&&b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));})).toBe(true);
     expect((await new AxeBuilder({page}).include(".map-layer-status").analyze()).violations).toEqual([]);

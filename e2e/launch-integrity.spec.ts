@@ -172,7 +172,7 @@ test("one saved place does not complete the trip and the dialog contains keyboar
   await mockPlannerApi(page);
   await page.goto("/planner");
   await chooseTripConditions(page);
-  const trigger = page.getByRole("button", { name: "편의시설 보기", exact: true }).first();
+  const trigger = page.getByRole("button", { name: "이용 정보", exact: true }).first();
   await trigger.click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("heading", { name: "경남도립미술관", exact: true })).toBeFocused();

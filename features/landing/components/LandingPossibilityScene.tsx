@@ -20,7 +20,7 @@ export default function LandingPossibilityScene() {
         <h2 id="recommendation-title">{en ? "A place to fall for." : "마음에 드는 풍경,"}<br /><em>{en ? "The details to decide." : "나에게 맞는 이유."}</em></h2>
         <p>{en ? "Find the scenery you love, with the facilities you need." : "마음이 가는 풍경에, 내게 필요한 편의까지."}</p>
         <dl className="destination-evidence" data-place-evidence="2758443">
-          <div><dt>{en ? "Daesan Flower Land · recorded" : "대산플라워랜드 · 확인"}</dt><dd>{en ? "Access path · toilet" : "완만한 접근로 · 화장실"}</dd></div>
+          <div><dt>{en ? "Daesan Flower Land · recorded" : "대산플라워랜드 · 확인"}</dt><dd>{en ? "Access path · toilet" : "접근로 · 화장실"}</dd></div>
           <div><dt>{en ? "Unconfirmed" : "미확인"}</dt><dd>{en ? "Lift · ask the venue" : "승강기 · 방문 전 시설에 문의"}</dd></div>
         </dl>
       </div>

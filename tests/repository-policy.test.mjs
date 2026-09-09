@@ -681,7 +681,7 @@ test("route-map rendering delegates controller, provider adapters, controls and 
   assert.match(map, /<MapCommandBar/);
   assert.match(map, /<NearbyPlacesPanel/);
   assert.doesNotMatch(map, /className="map-command-scroll"|className="map-poi-list"|className="map-place-copy"/);
-  assert.match(commandBar, /className="map-command-scroll"/);
+  assert.match(commandBar, /className="map-command-scroll(?: [^"]+)?"/);
   assert.match(nearbyPanel, /className="map-poi-list"/);
   assert.match(placePanel, /className="map-place-copy"/);
   assert.doesNotMatch(`${map}\n${controller}`, /loadKakaoSdk|L\.tileLayer|new K\.Map|canvas\.width = 1600/);

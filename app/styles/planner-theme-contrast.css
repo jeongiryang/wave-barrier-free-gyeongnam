@@ -7,7 +7,6 @@
 .planner-journey-workspace .date-control > p,
 .planner-journey-workspace .derived-note,
 .planner-journey-workspace .planner-notice,
-.planner-journey-workspace .confidence-row,
 .planner-journey-workspace .map-legend,
 .planner-journey-workspace .route-notice,
 .planner-journey-workspace .route-mode-order-note,
@@ -87,7 +86,6 @@ html[data-theme="dark"] .planner-journey-workspace .date-range-fields label,
 html[data-theme="dark"] .planner-journey-workspace .date-control > p,
 html[data-theme="dark"] .planner-journey-workspace .derived-note,
 html[data-theme="dark"] .planner-journey-workspace .planner-notice,
-html[data-theme="dark"] .planner-journey-workspace .confidence-row,
 html[data-theme="dark"] .planner-journey-workspace .map-legend,
 html[data-theme="dark"] .planner-journey-workspace .route-notice,
 html[data-theme="dark"] .planner-journey-workspace .route-mode-order-note,
@@ -102,8 +100,7 @@ html[data-theme="dark"] .planner-journey-workspace .transport-dataset-grid small
 html[data-theme="dark"] .planner-journey-workspace .transport-data-heading p,
 html[data-theme="dark"] .planner-journey-workspace .transport-data-results small,
 html[data-theme="dark"] .planner-journey-workspace .transport-data-results article > span,
-html[data-theme="dark"] .planner-journey-workspace .official-booking-strip small,
-html[data-theme="dark"] .planner-journey-workspace .score-badge small {
+html[data-theme="dark"] .planner-journey-workspace .official-booking-strip small {
   color: #b6d0dc;
 }
 
@@ -156,9 +153,6 @@ html[data-theme="dark"] .planner-journey-workspace .route-kakao-secondary {
   border-color: #3d7085;
   background: #15485c;
 }
-html[data-theme="dark"] .planner-journey-workspace .score-badge.pending b {
-  color: #bcd9e8;
-}
 
 html[data-theme="dark"] .planner-journey-workspace .map-toolbar .point-button span,
 html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend small {
@@ -166,8 +160,7 @@ html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend small {
 }
 
 /* 선택 요약과 편의조건 칩은 밝은 표면을 유지하므로 안쪽 글자를 어둡게 둔다. */
-html[data-theme="dark"] .planner-journey-workspace .selection-bar p span,
-html[data-theme="dark"] .planner-journey-workspace .feature-list span {
+html[data-theme="dark"] .planner-journey-workspace .selection-bar p span {
   color: #2f5063;
 }
 html[data-theme="dark"] .planner-journey-workspace .selection-bar .auto-refresh-note { color: #2f5063; }

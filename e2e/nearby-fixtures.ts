@@ -62,6 +62,7 @@ export async function openNearby(page: Page, english = false, theme = "light", p
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
     await preferences.getByLabel("Open preferences", { exact: true }).click();
   }
+  await page.getByRole("button", { name: english ? "Map options" : "지도 도구", exact: true }).click();
   await page.locator('.map-command-bar button[aria-controls="map-panel-nearby"]').click();
   const panel = page.getByRole("region", { name: english ? "Find nearby places" : "주변 장소 찾기", exact: true });
   await expect(panel).toBeVisible();

@@ -53,7 +53,7 @@ html[data-theme="dark"] .map-crowd-legend p { color: #b7cdd7; }
 
 @media (max-width: 900px) {
   .route-map-shell { height: 560px; }
-  .map-side-drawer { height: auto; max-height: calc(100% - 16px); }
+  .map-side-drawer { height: auto; max-height: calc(100% - var(--map-controls-bottom,150px) - 16px); }
   .route-map-shell.drawer-open .map-crowd-legend { display: none; }
 }
 @media (max-width: 620px) {
