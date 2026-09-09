@@ -96,7 +96,7 @@ function assertRcCiContract(candidate) {
   expectedBrowser.strategy.matrix.shard = [1, 2, 3, 4];
   expectedBrowser.steps.find(step => step.name === "브라우저 설치").run = EXPECTED_BROWSER_INSTALL_RUN;
   const browserStep = expectedBrowser.steps.find(step => step.name === "브라우저·접근성 회귀 테스트");
-  browserStep.env = { PLAYWRIGHT_HTML_REPORT: "${{ matrix.device }}" };
+  browserStep.env = { PLAYWRIGHT_HTML_REPORT: "playwright-report/${{ matrix.device }}" };
   browserStep.run = "npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/4 --output=test-results/${{ matrix.device }}";
   for (const step of expectedBrowser.steps.filter(step => step.uses?.startsWith("actions/upload-artifact@"))) {
     step.with.name = step.with.name.replace("${{ matrix.shard }}", "${{ matrix.device }}-${{ matrix.shard }}");
