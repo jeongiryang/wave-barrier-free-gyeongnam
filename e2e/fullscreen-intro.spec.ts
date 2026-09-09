@@ -11,17 +11,17 @@ test("first entry is a full viewport cinematic with immediately usable keyboard 
   await expect(intro).toBeVisible();
   await expect(intro.locator("video")).toHaveAttribute("src", "/media/wave-story/hero-water-loop.mp4");
   await expect(intro.locator(".arrival-wave-canvas")).toHaveAttribute("data-intro-phase", /wave|accessibility|wordmark/);
-  await intro.getByRole("button", { name: "영상 일시정지" }).click();
+  await expect(intro.getByRole("button")).toHaveCount(1);
   expect(await intro.evaluate(node => {
     const r = node.getBoundingClientRect();
     return { x: r.x, y: r.y, width: r.width, height: r.height, viewport: [innerWidth, innerHeight], modal: node.matches(":modal") };
   })).toEqual({ x: 0, y: 0, width: page.viewportSize()!.width, height: page.viewportSize()!.height, viewport: [page.viewportSize()!.width, page.viewportSize()!.height], modal: true });
-  await expect(intro.getByRole("link", { name: "바로 여행 계획하기" })).toHaveAttribute("href", "/planner");
+  await expect(intro.getByRole("link")).toHaveCount(0);
   expect(await intro.locator("video").evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
   const skip = intro.getByRole("button", { name: "소개로 건너뛰기" });
   await skip.focus();
   await page.keyboard.press("Shift+Tab");
-  await expect(intro.getByRole("link", { name: "바로 여행 계획하기" })).toBeFocused();
+  await expect(skip).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(skip).toBeFocused();
   await page.screenshot({ path: test.info().outputPath("fullscreen-cinematic.png") });
@@ -73,7 +73,7 @@ for (const preference of ["reduced", "legacy-full-with-os-reduced", "save-data"]
     await expect(intro).toHaveAttribute("data-still", "true");
     await expect(intro.locator("video")).not.toHaveAttribute("src");
     await expect(intro.getByRole("heading", { name: "W.A.V.E" })).toBeVisible();
-    await expect(intro.getByRole("link", { name: "바로 여행 계획하기" })).toBeVisible();
+    await expect(intro.getByRole("button", { name: "소개로 건너뛰기" })).toBeEnabled();
     expect(videoRequests).toEqual([]);
     await page.keyboard.press("Escape");
     await expect(intro).toBeHidden();
@@ -103,18 +103,19 @@ test("media end hands off to the actual Hero, not another waiting screen", async
   await expect(page.locator(".landing-hero .landing-actions a")).toHaveAttribute("href", "/planner");
 });
 
-test("runtime reduction keeps the focused media control and stops downloading video", async ({ page }) => {
+test("runtime reduction keeps the single skip control and stops downloading video", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
-  const control = intro.locator(".arrival-actions button");
-  await expect(control).toHaveText("영상 일시정지");
+  const control = intro.locator("[data-intro-skip]");
+  await expect(control).toHaveAccessibleName("소개로 건너뛰기");
   await control.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(control).toBeFocused();
-  await expect(control).toHaveAttribute("aria-disabled", "true");
+  await expect(control).toBeEnabled();
+  await expect(intro).toHaveAttribute("data-still", "true");
   await expect(intro.locator("video")).not.toHaveAttribute("src");
-  await page.keyboard.press("Enter");
+  await page.keyboard.press("Tab");
   await expect(control).toBeFocused();
   await expect(intro.locator("video")).not.toHaveAttribute("src");
   await page.keyboard.press("Escape");

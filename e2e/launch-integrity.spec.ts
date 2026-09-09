@@ -70,7 +70,7 @@ test("guided search failures stay visible with choices preserved and allow retry
   await expect(page.locator("#places")).toBeHidden();
 });
 
-test("full-screen intro keeps an immediate planning action and returns to the usable page", async ({ page }) => {
+test("full-screen intro keeps an immediate skip action and returns to the usable page", async ({ page }) => {
   const errors = trackRuntimeErrors(page);
   const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
   await page.setViewportSize({ width, height: 960 });
@@ -79,7 +79,8 @@ test("full-screen intro keeps an immediate planning action and returns to the us
   await page.goto("/");
   const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
   await expect(intro).toBeVisible();
-  await expect(intro.getByRole("link", { name: "바로 여행 계획하기" })).toHaveAttribute("href", "/planner");
+  await expect(intro.getByRole("button")).toHaveCount(1);
+  await expect(intro.getByRole("link")).toHaveCount(0);
   await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
   await expect(intro).toBeHidden();
   await expect(page.locator(".intro-replay-link")).toBeVisible();
@@ -99,7 +100,7 @@ test("full-screen intro keeps an immediate planning action and returns to the us
   expect(errors).toEqual([]);
 });
 
-test("intro replays keep a planning link, runtime focus and keyboard return on every activation", async ({ page }) => {
+test("intro replays keep a single exit, runtime focus and keyboard return on every activation", async ({ page }) => {
   const errors = trackRuntimeErrors(page);
   await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 390 : 1366, height: 844 });
   await mockPlannerApi(page);
@@ -127,7 +128,8 @@ test("intro replays keep a planning link, runtime focus and keyboard return on e
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
     await expect(skip).toBeFocused();
-    await expect(intro.getByRole("link", { name: "바로 여행 계획하기" })).toHaveAttribute("href", "/planner");
+    await expect(intro.getByRole("button")).toHaveCount(1);
+  await expect(intro.getByRole("link")).toHaveCount(0);
     await page.keyboard.press("Escape");
     await expect(intro).toBeHidden();
     await expect(replay).toBeFocused();

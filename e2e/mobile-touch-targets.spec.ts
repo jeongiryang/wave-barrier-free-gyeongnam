@@ -7,9 +7,10 @@ test("모바일 경남 18개 지역 표식은 44px 조작 영역과 선택 가�
   await page.setViewportSize(MOBILE);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/");
-  await expect(page.locator(".region-story-copy")).toHaveClass(/is-visible/);
+  await page.locator(".region-map-details > summary").click();
+  await expect(page.locator(".region-map-details")).toHaveAttribute("open", "");
 
   const markers = page.locator("[data-region-marker]");
   await expect(markers).toHaveCount(18);

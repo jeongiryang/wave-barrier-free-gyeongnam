@@ -45,9 +45,9 @@ export const WAVES: Wave[] = [
 ];
 
 export const INTRO_STAGES = [
-  { in: [0.1, 0.4], out: [0.56, 0.76] },
-  { in: [0.58, 0.86], out: [1.02, 1.2] },
-  { in: [1.02, 1.28], out: [1.78, 1.96] },
+  { in: [0.1, 0.65], out: [1.2, 1.7] },
+  { in: [1.25, 1.95], out: [2.5, 3.15] },
+  { in: [2.65, 3.35], out: [4.6, 4.8] },
 ];
 
 export function stageWeight(time: number, stage: { in: number[]; out: number[] }) {

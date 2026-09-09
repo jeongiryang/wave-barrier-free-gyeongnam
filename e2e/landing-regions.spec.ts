@@ -8,6 +8,7 @@ test("실제 경계와 18개 텍스트 선택 대안은 같은 지역을 가리�
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   const section = page.locator("#regions");
   await section.scrollIntoViewIfNeeded();
+  await section.locator(".region-map-details > summary").click();
   const surface = section.locator("svg.region-boundary-surface");
   await expect(surface).toHaveAttribute("viewBox", "0 0 800 814");
   const shapes = surface.locator("[data-region-boundary]");

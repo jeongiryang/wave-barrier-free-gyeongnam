@@ -1,5 +1,6 @@
+import { regionShowcasePhotos } from "../region-showcase-photos";
 import LandingBoundaryMap from "./LandingBoundaryMap";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { landingRegions, type LandingRegion, type LandingTranslate, type RegionPhoto } from "../content";
 import { useSitePreferences } from "../../../components/SitePreferences";
@@ -20,32 +21,74 @@ interface LandingRegionStoryProps {
   regionPhotos: Record<string, RegionPhoto | null | undefined>;
   showRegionPreview: (region: string, immediate?: boolean) => void;
   hideRegionPreview: (region: string) => void;
-  selectRegion: (region: string) => void;
+  selectRegion: (region: string, loadPhoto?: boolean) => void;
 }
 
-export default function LandingRegionStory({ t, activeRegion, active, preview, regionPhotos, showRegionPreview, hideRegionPreview, selectRegion }: LandingRegionStoryProps) {
-  const { locale } = useSitePreferences();
+export default function LandingRegionStory({ activeRegion, active, preview, regionPhotos, showRegionPreview, hideRegionPreview, selectRegion }: LandingRegionStoryProps) {
+  const { locale, motion, hydrated: ready } = useSitePreferences();
+  const stage = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  const [automatic, setAutomatic] = useState(true);
+  const [interacting, setInteracting] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const running = ready && automatic && inView && visible && !interacting && !focused && !saving && motion !== "calm";
+  useEffect(() => {
+    const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
+    const sync = () => { setVisible(!document.hidden); setSaving(connection?.saveData === true); };
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: .25 });
+    if (stage.current) observer.observe(stage.current);
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    connection?.addEventListener("change", sync);
+    return () => { observer.disconnect(); document.removeEventListener("visibilitychange", sync); connection?.removeEventListener("change", sync); };
+  }, []);
+  useEffect(() => {
+    if (!running) return;
+    const timer = setTimeout(() => {
+      const index = landingRegions.findIndex(region => region.name === activeRegion);
+      selectRegion(landingRegions[(index + 1) % landingRegions.length].name, false);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [running, activeRegion, selectRegion]);
+  const choose = (region: string) => { setAutomatic(false); selectRegion(region, false); };
   const [overviewFailed, setOverviewFailed] = useState(false);
   const english = locale === "en";
   const regionLabel = (name: string) => english ? regionNames[name] : name;
   const story = (region: LandingRegion) => english ? englishStories[region.name] : region.story;
   const previewPhoto = preview ? regionPhotos[preview.name] : null;
-  const activePhoto = regionPhotos[active.name]?.image;
+  const activePhoto = regionShowcasePhotos[active.name];
 
-  return <section className="region-story" id="regions">
-    <div className="region-story-copy" data-land-reveal>
-      <p className="section-kicker">{english ? "18 cities and counties in Gyeongnam" : "경남 18개 시·군"}</p>
-      <h2>{english ? "Where in Gyeongnam?" : "경남 어디로 떠나볼까요?"}</h2>
-      <p>{english ? "Choose a region, then the facilities you need. Check each place's recorded information before adding it to your trip." : "마음이 가는 지역을 고르세요. 필요한 편의와 장소별 확인 정보를 살펴보고, 내 여행에 담아보세요."}</p>
-      <div className="selected-region" role="status" aria-live="polite" aria-atomic="true">
-        {activePhoto
-          ? <span className="selected-region-photo" style={{ backgroundImage: `url("${activePhoto}")` }} aria-hidden="true" />
-          : <span className="selected-region-mark" aria-hidden="true"><i /><b>{regionLabel(active.name).slice(0, 1)}</b></span>}
-        <div><small>{t("selected", "지금 선택한 지역")}</small><strong>{regionLabel(active.name)}</strong><p>{story(active)}</p></div>
+  return <section className="region-story region-showcase" id="regions" data-cinematic="wide"
+    onPointerEnter={event => { if (event.pointerType === "mouse") setInteracting(true); }} onPointerLeave={() => setInteracting(false)}
+    onFocusCapture={() => setFocused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
+    <header className="region-showcase-heading">
+      <p className="section-kicker">{english ? "18 different journeys" : "열여덟 빛깔의 경남"}</p>
+      <h2>{english ? "A different scene.\nA journey of your own." : "지역마다 다른 풍경,\n나만의 여행 한 장면."}</h2>
+      <p>{english ? "From the southern coast to the mountains. Find your next place." : "남쪽 바다에서 깊은 산자락까지. 마음이 머무는 곳을 찾아보세요."}</p>
+    </header>
+    <div className="region-showcase-stage" ref={stage} data-region-stage data-running={running} data-active-region={active.name}>
+      <RegionScenePhoto key={active.name} photo={activePhoto} name={regionLabel(active.name)} english={english} />
+      <div className="region-showcase-counter" aria-hidden="true"><b>{String(landingRegions.findIndex(region => region.name === active.name) + 1).padStart(2, "0")}</b><span>/ 18</span></div>
+      <div className="region-showcase-caption selected-region" aria-live={running ? "off" : "polite"} aria-atomic="true">
+        <small>{english ? "A scene from Gyeongnam" : "지금 만나는 경남"}</small>
+        <strong key={active.name}>{regionLabel(active.name)}</strong><p>{story(active)}</p>
       </div>
-      <Link href={`/planner?region=${encodeURIComponent(active.name)}`}>{english ? `Plan a trip to ${regionLabel(active.name)}` : `${active.name} 여행 만들기`} <b>→</b></Link>
+      <div className="region-showcase-actions">
+        <Link href={`/planner?region=${encodeURIComponent(active.name)}`}>{english ? `Plan a trip to ${regionLabel(active.name)}` : `${active.name} 여행 만들기`} <span aria-hidden="true">↗</span></Link>
+        <button type="button" onClick={() => setAutomatic(value => !value)} aria-pressed={!automatic}
+          aria-disabled={!ready || motion === "calm" || saving} disabled={!ready || motion === "calm" || saving}>
+          {motion === "calm" || saving ? (english ? "Manual selection" : "직접 골라보기") : automatic ? (english ? "Pause region rotation" : "지역 자동 넘김 정지") : (english ? "Resume region rotation" : "지역 자동 넘김 재생")}
+        </button>
+      </div>
+      <div key={active.name + String(running)} className="region-showcase-progress" aria-hidden="true" />
     </div>
-    <div className="landing-region-map" data-land-reveal aria-label={english ? "Explore Gyeongnam's 18 regions" : "경상남도 18개 시·군 탐색"}>
+    <div className="region-showcase-selection" role="group" aria-label={english ? "Choose a region" : "쇼케이스 지역 선택"}>
+      {landingRegions.map(region => <button key={region.name} type="button" disabled={!ready} aria-pressed={activeRegion === region.name} onClick={() => choose(region.name)}>{regionLabel(region.name)}</button>)}
+    </div>
+    <details className="region-map-details"><summary>{english ? "Find all 18 regions on the map" : "18개 지역, 지도에서 위치 보기"}</summary>
+    <div className="landing-region-map" aria-label={english ? "Explore Gyeongnam's 18 regions" : "경상남도 18개 시·군 탐색"}>
       <figure className="region-national-overview">
         {/* Static public boundary illustration; no remote map SDK or key. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -53,7 +96,7 @@ export default function LandingRegionStory({ t, activeRegion, active, preview, r
         <figcaption>{english ? "Gyeongnam, southeastern South Korea" : "대한민국 남동쪽, 경상남도"}</figcaption>
       </figure>
       <div className="landing-region-map-scroll">
-        <LandingBoundaryMap selected={activeRegion} preview={preview?.name || null} english={english} onSelect={selectRegion} onPreview={showRegionPreview} onLeave={hideRegionPreview} />
+        <LandingBoundaryMap selected={activeRegion} preview={preview?.name || null} english={english} onSelect={choose} onPreview={showRegionPreview} onLeave={hideRegionPreview} />
         <div className="landing-region-map-canvas region-boundary-list" data-region-map-canvas data-locale={locale} role="group" aria-label={english ? "List of Gyeongnam's 18 regions" : "경남 18개 지역 목록"}>
           {landingRegions.map((region, index) => <button
             key={region.name}
@@ -61,7 +104,7 @@ export default function LandingRegionStory({ t, activeRegion, active, preview, r
             className={activeRegion === region.name ? "active" : ""}
             data-region-index={index}
             data-region-marker={region.name}
-            onClick={() => selectRegion(region.name)}
+            onClick={() => choose(region.name)}
             onPointerEnter={() => showRegionPreview(region.name)}
             onPointerLeave={() => hideRegionPreview(region.name)}
             onFocus={() => showRegionPreview(region.name, true)}
@@ -82,5 +125,18 @@ export default function LandingRegionStory({ t, activeRegion, active, preview, r
 
       <p className="region-map-note">{english ? "SGIS 2020 · simplified boundaries / StatGarten. For choosing a region, not navigation." : "통계청 SGIS 2020 · 경계 단순화 / StatGarten. 지역 선택을 위한 지도이며 길 안내에 사용하지 마세요."} <a href="https://github.com/statgarten/maps/tree/d5f8ea3208f19a73a01f865847d20cc195ae91ba">{english ? "Map source" : "지도 출처"}</a></p>
     </div>
+    </details>
   </section>;
+}
+
+function RegionScenePhoto({ photo, name, english }: { photo: RegionPhoto | null | undefined; name: string; english: boolean }) {
+  const [failed, setFailed] = useState(false);
+  return <figure className="region-scene-photo">
+    {photo?.image && !failed ? <img src={photo.image} alt={`${name} · ${photo.title}`} lang="ko" decoding="async" loading="lazy"
+      onError={() => setFailed(true)} ref={node => { if (node?.complete && !node.naturalWidth) setFailed(true); }} />
+      : <div className="region-scene-empty" aria-hidden="true"><span>{name}</span></div>}
+    <figcaption>{photo?.image && !failed
+      ? <><span lang="ko">{photo.title}</span> · {english ? "Photo selection, Sep 2026 · Source: ⓒKorea Tourism Organization" : "2026.09 선정 관광사진 · 출처: ⓒ한국관광공사"}{photo.photographer ? ` · ${photo.photographer}` : ""}</>
+      : photo === undefined ? (english ? "Loading official tourism photography" : "공식 관광사진을 불러오고 있어요") : (english ? "Tourism photo unavailable · explore the regional story" : "관광사진을 불러오지 못했어요 · 지역 이야기로 살펴보세요")}</figcaption>
+  </figure>;
 }

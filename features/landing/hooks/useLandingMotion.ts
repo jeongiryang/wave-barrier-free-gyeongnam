@@ -24,6 +24,7 @@ export function useLandingMotion() {
     let ticking = false;
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const root = document.documentElement;
+    const scenes = Array.from(document.querySelectorAll<HTMLElement>("[data-cinematic]"));
     const driftNodes = Array.from(document.querySelectorAll<HTMLElement>(DRIFT_SELECTOR));
     const prefersCalm = () => media.matches || root.dataset.motion === "calm";
 
@@ -32,6 +33,7 @@ export function useLandingMotion() {
       landingRef.current?.style.setProperty("--hero-shift", "0px");
       landingRef.current?.style.setProperty("--pointer-rx", "0");
       landingRef.current?.style.setProperty("--pointer-ry", "0");
+      scenes.forEach(node => node.style.setProperty("--cinema-progress", "1"));
       driftNodes.forEach((node) => node.style.setProperty("--land-drift", "0px"));
     };
 
@@ -61,6 +63,11 @@ export function useLandingMotion() {
       else {
         landingRef.current?.style.setProperty("--landing-progress", String(Math.min(y / max, 1)));
         landingRef.current?.style.setProperty("--hero-shift", `${Math.min(y, 820)}px`);
+      }
+      for (const node of scenes) {
+        const rect = node.getBoundingClientRect();
+        const progress = prefersCalm() ? 1 : Math.max(0, Math.min(1, (innerHeight * .95 - rect.top) / (innerHeight * .68)));
+        node.style.setProperty("--cinema-progress", progress.toFixed(3));
       }
       updateDrift();
       lastY = y;

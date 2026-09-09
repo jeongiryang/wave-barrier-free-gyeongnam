@@ -64,7 +64,7 @@ export default function LandingJourneyScene() {
   const recordedTitle = copy(selected.phase === "before" ? "옮기기 전" : "옮긴 뒤", selected.phase === "before" ? "Before" : "After") + " · " + selected.date[en ? "en" : "ko"] + " · " + orderedNames;
   const imageAlt = (selected.phase === "before" ? "대산플라워랜드 날짜 이동 전" : "대산플라워랜드 날짜 이동 후") + ", " + selected.date.ko + " " + visibleStops.map((stop, index) => stop.name + " " + (index + 1) + "번").join(" 다음 ") + "인 같은 시연의 실제 " + (step === 2 ? "지도" : "일정") + ". 이동 시간은 직선거리 추정이며 실제 경로 성공을 뜻하지 않습니다.";
 
-  return <section className="journey-scene" aria-labelledby="journey-scene-title" lang={locale}>
+  return <section className="journey-scene" data-cinematic="rise" aria-labelledby="journey-scene-title" lang={locale}>
     <div className="journey-scene-copy" data-land-reveal>
       <p className="section-kicker">{copy("창원에서 확인한 실제 여행 계획", "A real planning example in Changwon")}</p>
       <h2 id="journey-scene-title">{copy("가고 싶은 두 곳.", "Two places to visit.")}<br /><em>{copy("내가 고르는 하루.", "A day you choose.")}</em></h2>

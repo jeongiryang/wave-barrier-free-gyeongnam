@@ -12,13 +12,14 @@ test("the full-screen arrival leads through the complete Korean service story", 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
-  await intro.getByRole("button", { name: "영상 일시정지" }).click();
+  await expect(intro.getByRole("button")).toHaveCount(1);
+  await expect(intro.locator("canvas")).toHaveAttribute("data-intro-phase", "wordmark");
   await page.screenshot({ path: test.info().outputPath("01-fullscreen-intro.png") });
   await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
   await expect(intro).toBeHidden();
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   await page.screenshot({ path: test.info().outputPath("02-hero.png") });
-  for (const [index, selector] of [".story-expansion", ".manifesto", ".possibility-scene", ".journey-scene", ".region-story", ".landing-cta"].entries()) {
+  for (const [index, selector] of [".story-expansion", ".manifesto", ".possibility-scene", ".journey-scene", ".departure-scene", ".region-story", ".landing-cta"].entries()) {
     const section = page.locator(selector);
     await section.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
     await expect.poll(() => section.locator("h2").first().evaluate(node => {

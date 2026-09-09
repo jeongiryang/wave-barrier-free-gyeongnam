@@ -17,7 +17,7 @@ export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
 
 export function LandingCallToAction({ t }: { t: LandingTranslate }) {
   const en = useSitePreferences().locale === "en";
-  return <section className="landing-cta" data-land-reveal>
+  return <section className="landing-cta" data-cinematic="horizon" data-land-reveal>
     <div className="closing-horizon" aria-hidden="true" />
     <span className="closing-eyebrow">{en ? "A NEW DAY IN GYEONGNAM" : "이제, 당신의 경남을 만날 차례"}</span>
     <p>{en ? "Choose a region and the facilities you need" : "지역과 필요한 편의를 고르면"}</p><h2>{t("planningCtaTitle", "여행지부터 일정까지,")}<br /><em>{t("planningCtaEm", "차근차근 만들 수 있어요.")}</em></h2><Link href="/planner">{en ? "Plan my trip" : "여행 계획 만들기"} <span aria-hidden="true">↗</span></Link>

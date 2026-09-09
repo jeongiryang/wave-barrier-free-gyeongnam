@@ -33,6 +33,7 @@ import "./styles/landing-journey-stage.css";
 import "./styles/landing-feature-motion.css";
 import "./styles/landing-regions.css";
 import "./styles/landing-arrival.css";
+import "./styles/landing-cinematic.css";
 import "./styles/planner-unified-workspace.css";
 import "./styles/planner-journey-control.css";
 import "./styles/planner-flow.css";

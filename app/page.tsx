@@ -13,6 +13,7 @@ import LandingJourneyScene from "../features/landing/components/LandingJourneySc
 import LandingExpansionScene from "../features/landing/components/LandingExpansionScene";
 import LandingIntro from "../features/landing/components/LandingIntro";
 import LandingPossibilityScene from "../features/landing/components/LandingPossibilityScene";
+import LandingDepartureScene from "../features/landing/components/LandingDepartureScene";
 import { useLandingExperience } from "../features/landing/hooks/useLandingExperience";
 
 export default function LandingPage() {
@@ -40,6 +41,7 @@ export default function LandingPage() {
     <LandingManifesto t={t} />
     <LandingPossibilityScene />
     <LandingJourneyScene />
+    <LandingDepartureScene />
     <LandingProductStories />
     <LandingRegionStory
       t={t}

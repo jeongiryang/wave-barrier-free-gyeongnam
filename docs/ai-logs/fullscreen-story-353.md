@@ -1,6 +1,6 @@
 # #353 전체 화면 첫 진입 / Landing 첫 시각 체크포인트
 
-> 최신 상태는 아래 **Owner 두 번째 피드백 적용** 절이다. 첫 체크포인트의 환경설정 replay·앱 motion·작은 Hero Canvas 설명은 이후 Owner 결정으로 대체되었다. 과거 검증·실패 기록은 보존한다.
+> 최신 상태는 아래 **Owner 디자인 전용 패스 3** 절이다. 첫 체크포인트의 환경설정 replay·앱 motion·작은 Hero Canvas 설명은 이후 Owner 결정으로 대체되었다. 과거 검증·실패 기록은 보존한다.
 
 - 상태: **LOCAL VISUAL CHECKPOINT. 미배포·미병합, #353 Open.**
 - 기준: 2026-09-09 11:55 KST. 시작 시 원격 main / canonical Production 모두 `a355f38d21d67b50ae5936bdcb49a3a310c96198`.
@@ -108,3 +108,60 @@
 - 직접 확인한 새 이미지: `intro-320-final.png`, `intro-desktop-final.png`, 관련 desktop/mobile story PNG/WebM. 큰 흰 패널 없음, 원래 Canvas는 전체 Intro, v1/v2 그림과 새 선택 영상이 실제 UI에 보인다.
 - Owner 육안 승인 전 Full CI/Preview/독립 QA/merge/Production을 시작하지 않는다. #353는 Open/PARTIAL. build/CSS 70KiB·planner 270KiB 예산, 전체 제품 회귀, 실제 Production 검증과 제출 캡처는 아직 후속 Gate다.
 - #373/zero-touch/유료 API/provider hold/DB는 손대지 않았다. 사용자 dirty10, 기존 worktree/branch/queue generation/attempt/receipt, 이전 실패 artifact는 보존했다. 미디어 원본 전체 merge나 삭제 없음.
+
+
+## Owner 디자인 전용 패스 3 — 2026-09-09 KST
+
+- 시작 HEAD: `42ca1bcfff87d94fb8309d066d3601d15577ea89`. 같은 `feat/fullscreen-story-353` / `D:/wave-production-validation-20260908`에서 작업. 시작 dirty 없음. 원격 main `a355f38d21d67b50ae5936bdcb49a3a310c96198`, #353 Open 확인.
+- **LOCAL VISUAL CHECKPOINT**. 새 PR/push/Full CI/build/Preview/배포/독립 QA를 수행하지 않았다. 기존 서버 `http://127.0.0.1:4173/`, PID33148 유지. Production 성공 증거가 아니다. #353 완료/close 아님.
+- 범위는 소개 UI, 이미지 구성, 스크롤 연출, 지역 쇼케이스와 Intro. Planner/계정/저장·공유/provider/DB/CI architecture/자동화 변경 없음. 기존 사용자 dirty10, 다른 worktree/queue294/과거 로그 보존.
+
+### 바뀐 화면
+
+1. Intro에는 건너뛰기 하나만 남겼다. 이전 패스의 pause/직접 planner 링크 계약은 이번 Owner 결정으로 대체. 무음, Escape, 한 버튼 Tab 순환, 종료 후 Hero/재생 trigger 포커스, 세션 정책, OS/Save-Data 정적 대안 유지.
+2. 파도 → 무장애 → 워드마크 단계는 약 3.35초에 완성되고 5.2초 이내 종료한다. 종료는 620ms 위로 걷히는 화면과 Hero의 1초 zoom/밝기 연속 전환. 두 개의 어긋난 워드마크가 겹치지 않도록 마지막 글자는 선명한 HTML로 렌더한다. 일반 모션을 약하게 만드는 설정은 추가하지 않았다.
+3. 기존 RAF 스크롤 처리에서 장면별 진행률을 공유한다. 편의 장면은 오른쪽 crop, 상상 여행은 왼쪽 큰 세로 프레임, 실제 일정 화면은 아래에서 올라오는 깊이, 출발 전 장면은 상하 curtain, closing은 항구 horizon 확대다. 조작 요소는 crop하지 않는다. OS 동작 감소에서는 이미지 전체가 정적으로 남는다.
+4. 지역은 대형 실제 관광사진/지역명/짧은 설명/동일 지역 CTA가 함께 바뀌는 4초 쇼케이스다. 18개 수동 선택은 자동 넘김을 멈추며, 키보드 focus/hover/offscreen/탭 숨김/OS 감소/데이터 절약에서도 멈춘다. 여행 저장값을 수정하지 않는다. 지도는 펼쳐 보는 보조 정보로 옮겼고 18개 경계/목록/선택/hit-test 대안을 유지한다.
+5. 지역 자동 넘김에서 live API를 반복하지 않는다. 2026-09-09 기존 공개 Production photo 경로를 지역별 한 번씩 읽어 확인한 **18개 편집용 사진 URL/출처/촬영자**를 `region-showcase-photos.ts`에 보존한다. 원본은 KTO 호스트에서 제공하며 영구 사진 blob/키/새 provider는 추가하지 않았다. 표시는 `2026.09 선정 관광사진`으로, 실시간 운영/편의 확인을 주장하지 않는다. 사진 로딩 실패는 해당 지역의 정적 이야기와 실제 선택 링크로 남는다.
+6. 실제 남해 다랭이마을 사진을 출발 전 확인의 큰 장면에 사용한다. 출처/촬영자/선정월 유지. 실시간 날씨 또는 시설 확인 완료 화면으로 표시하지 않는다.
+
+### 발견 및 수정
+
+- 마지막 CTA에서 `data-land-reveal`을 빼자 기존 `.landing-cta:not(.is-visible)` 규칙으로 모든 내용과 배경이 숨었다. 실제 실패 스크린샷 확인 후 observer 연결을 복원. 관련 전체 소개 시각 회귀가 통과했다.
+- 지역 버튼이 hydration 전에 클릭 가능한 문제를 방지하기 위해 기존 preferences의 `hydrated` 신호로 readiness를 공유한다. 별도 setState effect는 제거했다. 사용자의 첫 선택/키보드 focus를 보존한다.
+- 새 전환 테스트의 두 문제는 fixture/setup이었다: 마우스 `(0,0)`이 지역 영역 안에 있어 의도된 pause를 유지했고, 실시간으로 도는 clock에 상대 3990ms를 더해 4초 경계를 넘었다. 실제 header hover로 영역을 벗어나고, 고정 시계에서 hover pause/resume으로 시작점을 만든 후 3999ms 유지/4000ms 전환을 엄격하게 검증한다.
+- Intro skip의 장식 화살표는 aria-hidden이므로 접근 가능한 이름에 포함하지 않는다. 이전 media-control/planner assertions는 Owner의 single-exit 계약(버튼1/링크0/Tab/OS runtime/실제 Hero CTA)으로 교체했다. 모달·접근성·영상 실패·세션 거부·재생·키보드 검사는 삭제하지 않았다.
+
+### 검증과 증거
+
+외부 증거 루트: `D:/wave-db-binding-preflight-20260908/fullscreen-story-353-design-pass3-20260909/`.
+
+- `npm run typecheck`: PASS (`typecheck-3.log`).
+- 변경 TS/TSX/mjs 대상 eslint: 최초 0 errors/5 img warnings, readiness effect 추가 뒤 1 error 발생(`lint-final.log`), 기존 hydrated 신호를 재사용한 뒤 해당 파일 0 errors/1 img warning (`lint-region-final.log`). 경고를 숨기는 disable 추가 없음.
+- `node --test tests/landing-boundaries.test.mjs tests/production-readiness.test.mjs tests/repository-policy.test.mjs tests/auth-community.test.mjs`: 57 PASS /0 fail/0 skip (`unit-2.log`). 이전 1FAIL은 과거 1.96초/9초/Intro planner 링크에 대한 정적 계약이었으며 새 Owner 계약을 반영했다. 실패 로그 보존.
+- Intro/전체 소개 시각/경계/지도 대안/legacy 첫 진입/focus/hover/모바일 터치 관련 선택 실행: **52 PASS, 1.2m, 0 failure/flaky/skip**, `contracts.log`, `contracts-report/`, `contracts-results/`. 명령은 아래에 보존.
+- 새 cinematic 검증 최종 결과는 이 문서 아래 최신 체크포인트 결과를 참조한다. 4초 자동 전환·수동 선택·사진/지역/CTA 일치·기기 저장 무변경·API0호출·감소/화면 밖 정지·320px 실패 대안·방향별 crop를 검증한다. 사진 timing fixture는 KTO URL에 로컬 이미지를 응답하며, Production 실제 사진 성공으로 계산하지 않는다.
+- 최초 디자인 묶음 `design-1.log`: 24 PASS/10 FAIL (2.6m), `design-2.log`: 32 PASS/2 FAIL (1.1m), `rotation-3.log`:2 FAIL. 최신 수정 이후 `rotation-4.log`:2 PASS (2.1s). 최초 실패/trace/video를 소급 덮어쓰지 않았다.
+- 실제 agent-browser: 기존 서버에서 KO desktop1366×900 /mobile390×844 Intro/Hero/지역사진/정원/출발전/closing 확인. `errors` 출력 없음. 관련 Playwright는320px/KO·EN/map light·dark/axe/overflow/포커스를 확인한다. 실기기/사람 낭독기/200% zoom을 이 패스에서 완료했다고 주장하지 않는다.
+- 수동 실제 사진 screenshot: `region-wip.png`, `region-stage.png`, `region-mobile.png`, `departure-desktop.png`. Intro `intro-mobile-final.png`; 나머지 `hero-wip.png`, `possibility-desktop.png`, `closing-desktop.png`, `closing-mobile.png`.
+- 새 skip/timeout/retry/workers/성능 예산 완화 없음. 전체 Full CI/전체 unit/전체 E2E/production build/최종 bundle budget는 아직 실행하지 않음.
+
+```powershell
+$env:E2E_BASE_URL='http://127.0.0.1:4173'
+$env:CI='true'
+node scripts/run-playwright.mjs e2e/fullscreen-intro.spec.ts e2e/fullscreen-story-visual.spec.ts e2e/landing-boundaries.spec.ts e2e/landing-regions.spec.ts e2e/landing-first-arrival.spec.ts e2e/preferences-help-language.spec.ts e2e/launch-integrity.spec.ts e2e/mobile-touch-targets.spec.ts e2e/performance-boundaries.spec.ts --grep 'full-screen|full-screen arrival|completed session|static intro|failed media|media end|runtime reduction|denied session|legacy app motion|320px short|region boundaries|English regions|boundary code|failed boundary|actual polygon|실제 경계|normal arrival|English preferences|intro replays|English intro|모바일 경남|짧게 스친'
+node scripts/run-playwright.mjs e2e/landing-cinematic.spec.ts
+```
+
+### 남은 디자인 GAP / 재개
+
+- Owner가 설명한 한화오션식 확장감/비대칭/장면 리듬을 적용했다. 이번 실행에서 네 첨부 영상의 실제 파일은 제공되지 않았고 한화오션 공식 페이지는 웹 접근을 차단했다. 원본 영상을 프레임별 대조했다고 주장하지 않는다. 레퍼런스 코드/자산 복제 없음.
+- 지역별 대표 사진의 시각적 선별 여지는 남는다(예: 통영은 케이블카 사진). 사진 URL은 외부 호스트 의존이며 최종 후보의 이미지 성능/전송량 점검이 필요하다.
+- 실제 일정/지도 소개는 기존 클릭 가능한 촬영 기록 보드다. 이를 완전히 별개의 full-screen scroll scene으로 재구현했다고 주장하지 않는다. 추가 디자인 필요 여부는 이 체크포인트의 Owner 육안 판단 후 결정한다.
+- 최종 CSS/landing budget, full CI, exact Preview, independent QA, merge/CD/Production 검증은 후보 확정 뒤 수행. #353는 그 전에는 완료가 아니다.
+
+### 최종 경량 체크포인트 결과
+
+- `e2e/landing-cinematic.spec.ts`: **10 PASS /0 fail/flaky/skip, 9.9s**, `cinema-final.log`, `cinema-final-report/`, `cinema-final-results/`. 앞선 선택회귀52PASS와 별도 실행. 준비 상태는 기존 `hydrated` 신호를 공유하며 새 setState effect가 없다.
+
+- 최종 `typecheck-final.log` exit0, 변경 파일 전체 `lint-checkpoint.log` exit0 (0 errors/5 img warnings). `git diff --check` PASS.

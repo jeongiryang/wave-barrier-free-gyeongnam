@@ -1,3 +1,21 @@
+## 디자인 패스 3: 실제 UI 배치 — 2026-09-09
+
+| 자산 | 판단 | 화면 |
+| --- | --- | --- |
+| v3 hero-water-loop + hero-coast | USE NOW | full-screen Intro → 같은 해안 Hero. Intro는 skip 하나, Hero에서 선택 재생 |
+| v3 ocean-expand | USE NOW | 기존 central frame 확대 유지, 우측 카피 패널을 투명하게 정리 |
+| v1 planning-together | USE NOW | 편의 장면, 오른쪽에서 펼쳐지는 이미지 |
+| v2 garden-discovery + 기존 20초 remix | USE NOW | 왼쪽 세로 canvas 확장, 선택 재생 영상 유지 |
+| 실제 동일 여행 촬영 기록 | USE NOW | 날짜/일정/지도 보드, 아래에서 올라오는 이미지 깊이 |
+| v2 harbor-night | USE NOW | 마지막 CTA horizon 확대 |
+| KTO 18개 지역 사진 URL | USE NOW | 사진/지역/설명/CTA 동기화 쇼케이스, 4초 순환 |
+| 같은 KTO 남해 다랭이마을 | USE NOW | 출발 전 확인, 상하 curtain 확장 |
+| v1/v2 원본 영상·v2 GIF·v3 예제소스와 미사용 파생 | KEEP AS SOURCE ONLY | 기존 분류/출처 그대로 보존. 억지로 반복 재생하지 않음 |
+
+지역 사진 목록: `features/landing/region-showcase-photos.ts`. 2026-09-09 공개 Production의 기존 `action=photo&region=...` 응답 18/18 사진 확인, 제목/지역/촬영자/원 URL을 보존. 실제 사진은 KTO 호스트에서 로드하며 선정월을 화면에 표시한다. live 시설정보/실시간 관광상태로 사용하지 않는다. 자동 넘김은 API를 호출하지 않는다. 네트워크 실패를 다른 지역 사진이나 가짜 사진으로 숨기지 않는다.
+
+아래는 이전 체크포인트의 선택 근거/역사이며, 현재 제어·연출은 위 설명과 최신 AI 로그를 따른다.
+
 # #353 전체 화면 Intro / Landing 미디어 선택
 
 ## 현재 선택 — Owner 두 번째 시각 피드백, 2026-09-09

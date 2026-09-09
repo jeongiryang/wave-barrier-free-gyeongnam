@@ -22,7 +22,6 @@ function ArrivalScene({ replay }: { replay: number }) {
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [visible, setVisible] = useState(true);
   const [staticScene, setStaticScene] = useState(true);
-  const [paused, setPaused] = useState(false);
   const [failed, setFailed] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
 
@@ -43,7 +42,9 @@ function ArrivalScene({ replay }: { replay: number }) {
       document.documentElement.classList.remove("arrival-open");
     };
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) close();
-    else { node.dataset.leaving = "true"; exitTimer.current = setTimeout(close, 360); }
+    else {
+      document.querySelector(".landing-hero")?.animate([{ transform: "scale(1.07)", filter: "brightness(.72)" }, { transform: "scale(1)", filter: "brightness(1)" }], { duration: 1000, easing: "cubic-bezier(.16,1,.3,1)" });
+      node.dataset.leaving = "true"; exitTimer.current = setTimeout(close, 620); }
   }, []);
 
   useEffect(() => {
@@ -79,7 +80,7 @@ function ArrivalScene({ replay }: { replay: number }) {
       // data-motion value when the user turns reduced motion off at runtime.
       const still = media.matches || connection?.saveData === true;
       setStaticScene(still);
-      if (still || paused || failed || document.hidden) {
+      if (still || failed || document.hidden) {
         player.pause();
         if (still && player.hasAttribute("src")) { player.removeAttribute("src"); player.load(); }
         return;
@@ -99,17 +100,17 @@ function ArrivalScene({ replay }: { replay: number }) {
       document.removeEventListener("visibilitychange", sync);
       player.pause();
     };
-  }, [visible, replay, paused, failed]);
+  }, [visible, replay, failed]);
 
   useEffect(() => {
-    if (!visible || staticScene || paused || failed) return;
+    if (!visible || staticScene || failed) return;
     // A stalled media request cannot turn arrival into an indefinite loading screen.
-    const limit = setTimeout(finish, 9000);
+    const limit = setTimeout(finish, 5200);
     return () => clearTimeout(limit);
-  }, [visible, staticScene, paused, failed, replay, finish]);
+  }, [visible, staticScene, failed, replay, finish]);
 
   return <dialog ref={dialog} open className="arrival-intro" hidden={!visible} suppressHydrationWarning
-    data-replay={replay > 0} data-still={staticScene || paused || failed}
+    data-replay={replay > 0} data-still={staticScene || failed}
     aria-labelledby="arrival-title" aria-describedby="arrival-description"
     onCancel={event => { event.preventDefault(); finish(); }}
     onKeyDown={event => {
@@ -125,7 +126,8 @@ function ArrivalScene({ replay }: { replay: number }) {
       sizes="100vw" width="1672" height="941" alt="" fetchPriority="high" onError={() => setImageFailed(true)} />}
     <video ref={video} className="arrival-film" muted playsInline preload="none" aria-hidden="true" tabIndex={-1}
       onEnded={finish} onError={() => setFailed(true)} />
-    {visible && <WaveField className="arrival-wave-canvas" tone="deep" mode="intro" replay={replay} paused={staticScene || paused || failed} />}
+    {/* The final wordmark is crisp HTML; do not draw a second, offset glyph copy behind it. */}
+    {visible && <WaveField className="arrival-wave-canvas" tone="deep" mode="intro" wordmark="" replay={replay} paused={staticScene || failed} />}
     <div className="arrival-top"><span>{en ? "A journey for every way of moving" : "여행의 가능성을 넓히다"}</span>
       <form method="dialog" onSubmit={event => { event.preventDefault(); finish(); }}><button type="submit" data-intro-skip>{en ? "Skip intro" : "소개로 건너뛰기"}<span aria-hidden="true"> ↗</span></button></form>
     </div>
@@ -136,12 +138,9 @@ function ArrivalScene({ replay }: { replay: number }) {
     </div>
     <div className="arrival-bottom">
       <div><p>{en ? "Imagined scenery for W.A.V.E" : "W.A.V.E를 위한 상상 풍경"}</p>
-        <p role="status">{failed ? (en ? "The video is unavailable. Continue with the still scene." : "영상을 불러오지 못해 정지된 풍경을 보여드려요.") : staticScene ? (en ? "A still introduction follows your motion and data preferences." : "동작·데이터 설정에 맞춰 정지된 장면을 보여드려요.") : (en ? "The landing page follows this short, silent scene." : "짧은 무음 장면 뒤 서비스 소개로 이어집니다.")}</p>
+        <p className="sr-only" role="status">{failed ? (en ? "The video is unavailable. Continue with the still scene." : "영상을 불러오지 못해 정지된 풍경을 보여드려요.") : staticScene ? (en ? "A still introduction follows your motion and data preferences." : "동작·데이터 설정에 맞춰 정지된 장면을 보여드려요.") : (en ? "The landing page follows this short, silent scene." : "짧은 무음 장면 뒤 서비스 소개로 이어집니다.")}</p>
       </div>
-      <div className="arrival-actions">
-        <button type="button" aria-pressed={paused} aria-disabled={staticScene || failed} onClick={() => { if (!staticScene && !failed) setPaused(value => !value); }}>{staticScene || failed ? (en ? "Still introduction" : "정적 소개 표시 중") : paused ? (en ? "Resume video" : "영상 계속 보기") : (en ? "Pause video" : "영상 일시정지")}</button>
-        <a href="/planner" onClick={() => { try { sessionStorage.setItem(SESSION_KEY, "done"); } catch { /* Navigation still works. */ } }}>{en ? "Plan a trip now" : "바로 여행 계획하기"}<span aria-hidden="true"> ↗</span></a>
-      </div>
+
     </div>
   </dialog>;
 }

@@ -31,7 +31,8 @@ test("English preferences preserve locale choices, runtime reduced motion and re
   await expect(skip).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(skip).toBeFocused();
-  await expect(intro.locator(".arrival-actions button")).toHaveAttribute("aria-disabled", "true");
+  await expect(intro).toHaveAttribute("data-still", "true");
+  await expect(skip).toBeEnabled();
   await page.keyboard.press("Escape");
   await expect(replay).toBeFocused();
   await preferences.getByLabel("Open preferences", { exact: true }).click();

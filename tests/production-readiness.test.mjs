@@ -380,7 +380,7 @@ test("wave effects avoid dense glyphs and full-screen arrival always offers a di
   ]);
   const ramp = model.match(/export const WAVE_RAMP = \[(.*?)\];/)?.[1] ?? "";
   assert.doesNotMatch(ramp, /[#@xX≡]/);
-  assert.match(model, /out: \[1\.78, 1\.96\]/);
+  assert.match(model, /out: \[4\.6, 4\.8\]/);
   assert.match(renderer, /stageWeight\(elapsed, INTRO_STAGES\[2\]\)/);
   // Owner #353 replaces the former non-modal arrival policy with a separate full-screen scene.
   const intro = await source("features/landing/components/LandingIntro.tsx");
@@ -389,11 +389,11 @@ test("wave effects avoid dense glyphs and full-screen arrival always offers a di
   assert.match(landing, /<LandingIntro replay=\{introReplay\} \/><main/);
   assert.match(intro, /<dialog[\s\S]*aria-labelledby="arrival-title"/);
   assert.match(intro, /<form method="dialog"[\s\S]*data-intro-skip/);
-  assert.match(intro, /<a href="\/planner"/);
+  assert.doesNotMatch(intro, /<a href="\/planner"|arrival-actions/);
   assert.match(intro, /muted playsInline preload="none"/);
   assert.match(intro, /connection\?\.saveData === true/);
   assert.match(intro, /prefers-reduced-motion: reduce/);
-  assert.match(intro, /setTimeout\(finish, 9000\)/);
+  assert.match(intro, /setTimeout\(finish, 5200\)/);
   assert.match(intro, /target\.focus\(\{ preventScroll: true \}\)/);
   assert.match(bootstrap, /data-intro-skip/);
   assert.match(bootstrap, /sessionStorage\.setItem\('wave-arrival-session-v1','done'\)/);
@@ -401,7 +401,7 @@ test("wave effects avoid dense glyphs and full-screen arrival always offers a di
   assert.doesNotMatch(landing, /useLandingIntro|introState/);
   assert.match(landing, /경남 18개 시·군/);
   assert.doesNotMatch(landing, /18 CITIES · 18 STORIES/);
-  assert.doesNotMatch(landing, /useState\(true\)/);
+  assert.doesNotMatch(landing, /<details[^>]*id="journey-tools-details"[^>]*open/);
   assert.doesNotMatch(css, /brand-intro|landingIntroOut|introRegionChapter/);
 });
 

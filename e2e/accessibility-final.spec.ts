@@ -77,6 +77,7 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
   // Measure the displayed, interactive page while retaining every target and size check.
   await expect(page.locator(".landing-header .brand")).toBeVisible();
   await expect(page.locator(".landing-header .help-button")).toBeEnabled();
+  await page.locator(".region-map-details > summary").click();
   const targets = page.locator(".landing-header .brand, .landing-header nav a, .landing-header .landing-start, .landing-actions a, [data-region-marker]");
   const sizes = await targets.evaluateAll((nodes) => nodes.map((node) => {
     const rect = node.getBoundingClientRect();

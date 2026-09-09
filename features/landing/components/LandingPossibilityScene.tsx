@@ -5,7 +5,7 @@ import StoryMedia from "./StoryMedia";
 
 export default function LandingPossibilityScene() {
   const en = useSitePreferences().locale === "en";
-  return <section className="possibility-scene" aria-labelledby="possibility-title">
+  return <section className="possibility-scene" data-cinematic="left" aria-labelledby="possibility-title">
     <div className="possibility-copy" data-land-reveal>
       <p className="section-kicker">{en ? "A day worth imagining" : "함께 그리는 다음 여행"}</p>
       <h2 id="possibility-title">{en ? "Different ways to move." : "걷는 속도는 달라도,"}<br /><em>{en ? "A day to share." : "함께 머무는 하루."}</em></h2>

@@ -168,9 +168,9 @@ for (const seenBefore of [false, true]) {
     await expect(page.locator(".landing-page")).toHaveCount(1);
     const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
     const canvas = intro.locator(".arrival-wave-canvas");
-    const planning = intro.getByRole("link", { name: "바로 여행 계획하기" });
+    const planning = intro.getByRole("button", { name: "소개로 건너뛰기" });
     await expect(planning).toBeVisible();
-    await expect(planning).toHaveAttribute("href", "/planner");
+    await expect(planning).toBeEnabled();
     await expect(intro).toBeVisible();
     await expect(canvas).toHaveAttribute("data-intro-phase", "wordmark");
     expect(await page.evaluate(() => (window as unknown as { arrivalPhases: string[] }).arrivalPhases)).toEqual(["wave", "accessibility", "wordmark"]);

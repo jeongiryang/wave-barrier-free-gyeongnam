@@ -51,7 +51,9 @@ test("짧게 스친 지역 표식은 사진 요청을 만들지 않는다", asyn
     photoRequests += 1;
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ photo: null }) });
   });
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/");
+  await page.locator(".region-map-details > summary").click();
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   const marker = page.locator('[data-region-marker="거창"]');
   await marker.hover();
