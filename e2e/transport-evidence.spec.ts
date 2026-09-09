@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
-async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "unknown" | "arrival", english = false) {
+async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "unknown" | "arrival", english = false, snapshot?: { retrievedAt?: string }) {
   await mockPlannerApi(page);
   await page.addInitScript((en) => localStorage.setItem("wave-locale", en ? "en" : "ko"), english);
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -16,7 +16,8 @@ async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "
     alternatives: [{ id: "car-fast", label: "추천 자동차 경로", provider: "Kakao Mobility", mode: "car", totalTime: 25, totalDistance: 8800, payment: 0, paymentType: "toll", totalWalk: 0, transfers: 0, configured: true, segments: [], geometry: [{ lat: 35.227, lng: 128.681 }, { lat: 35.238, lng: 128.691 }] }],
     providers: [{ ...arrival, id: "tago-bus-arrival", name: "TAGO ARRIVAL", role: "가까운 정류장 도착 예정", configured: true, state: arrival.state === "live" ? "connected" : arrival.state }],
     context: { nearbyStops: [{ id: "stop", name: "경남도립미술관 정류장", cityCode: "38030" }],
-      arrivals: scenario === "arrival" ? [{ route: "101", minutes: null, stops: null }] : [], korail: [],
+      arrivals: scenario === "arrival" ? [{ route: "101", minutes: snapshot ? 2 : null, stops: snapshot ? 1 : null }] : [], korail: [],
+      ...(snapshot ? { arrivalRetrievedAt: snapshot.retrievedAt } : {}),
       catalog: { trainCities: 2, expressTerminals: 0, intercityTerminals: 0 },
       datasets: [{ id: "bus-stop", name: "버스정류소", state: "live", queryStatus: "success", resultCount: 1 }, arrival,
         { id: "train", name: "철도 지역코드", state: "live", queryStatus: "success", resultCount: 2 }],
@@ -34,6 +35,45 @@ async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "
   const details = page.locator(".transport-details");
   await details.locator(".transport-dataset-grid").getByRole("button", { name: english ? /Bus arrivals/ : /버스도착/ }).click();
   return details;
+}
+
+for (const english of [false, true]) for (const knownTime of [true, false]) {
+  test(`cached bus arrivals retain snapshot context: ${english ? "EN dark" : "KO light"}, time ${knownTime ? "known" : "missing"}`, async ({ page, isMobile }) => {
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.addInitScript(en => localStorage.setItem("wave-theme", en ? "dark" : "light"), english);
+    const retrievedAt = knownTime ? "2026-09-06T03:30:00.000Z" : undefined;
+    const details = await prepare(page, "arrival", english, { retrievedAt });
+    const panel = details.locator(".transport-data-panel");
+    const rail = details.locator(".transport-live-rail");
+    let requests = 0;
+    page.on("request", request => { if (new URL(request.url()).pathname === "/api/route") requests++; });
+    for (const surface of [panel, rail]) {
+      await expect(surface).toContainText(english ? "At retrieval: 2 min" : "조회 당시 2분");
+      if (knownTime) {
+        await expect(surface.locator("time")).toHaveAttribute("datetime", retrievedAt!);
+        await expect(surface.locator("time")).toContainText("12:30");
+        await expect(surface.locator("time")).toContainText("KST");
+      } else {
+        await expect(surface.locator("time")).toHaveCount(0);
+        await expect(surface).toContainText(english ? "Retrieval time unavailable" : "조회 시각 미확인");
+      }
+    }
+    await expect(panel).not.toContainText(english ? "Current arrival information" : "현재 도착 예정 정보");
+    await expect(panel).toContainText(english ? "At retrieval: 1 stops away" : "조회 당시 1개 정류장 전");
+    await panel.getByRole("button", { name: english ? "Check these conditions again" : "현재 조건 다시 확인", exact: true }).click();
+    await expect.poll(() => requests).toBe(1);
+    await expect(panel).toContainText(english ? "At retrieval: 2 min" : "조회 당시 2분");
+    if (knownTime) await expect(panel.locator("time")).toHaveAttribute("datetime", retrievedAt!);
+    await expect(page.getByRole("button", { name: english ? "경남도립미술관 Remove from itinerary" : "경남도립미술관 일정에서 빼기", exact: true })).toHaveAttribute("aria-pressed", "true");
+    if (!isMobile) await page.setViewportSize({ width: english ? 1440 : 960, height: 900 });
+    await panel.scrollIntoViewIfNeeded();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    expect((await new AxeBuilder({ page }).include(".transport-data-panel").include(".transport-live-rail").analyze()).violations).toEqual([]);
+    await page.screenshot({ path: test.info().outputPath("arrival-snapshot.png") });
+    expect(requests).toBe(1);
+    expect(errors).toEqual([]);
+  });
 }
 
 for (const [scenario, expected] of [

@@ -294,3 +294,30 @@ test("누락된 도착시간·남은 정류장 수를 운행 중 또는 정류�
   const { context } = load("server/transport/public-context-model.ts").buildPublicTransportContext(env, snapshot);
   assert.deepEqual(context.arrivals, [{ route: "101", minutes: null, stops: null }, { route: "102", minutes: 0, stops: 0 }]);
 });
+
+test("arrival snapshots retain the actual retrieval time instead of the later rendering time", async () => {
+  const calls = [];
+  const load = loadServer(async (input) => {
+    const path = new URL(input).pathname;
+    calls.push(path);
+    return Response.json(publicResponse(path.includes("BusSttnInfo")
+      ? { totalCount: 1, items: { item: [{ nodeid: "STOP", nodenm: "정류장", citycode: "38030" }] } }
+      : path.includes("ArvlInfo")
+        ? { totalCount: 1, items: { item: [{ routeno: "101", arrtime: 120, arrprevstationcnt: 1 }] } }
+        : { totalCount: 0, items: "" }));
+  });
+  const env = { TAGO_API_KEY: "fixture-only" };
+  const before = Date.now();
+  const snapshot = await load("server/transport/public-provider-queries.ts").fetchPublicTransportSnapshot(env, 35.2, 128.6);
+  assert.ok(Date.parse(snapshot.arrivalRetrievedAt) >= before);
+  assert.ok(Date.parse(snapshot.arrivalRetrievedAt) <= Date.now());
+  assert.equal(calls.filter(path => path.includes("ArvlInfo")).length, 1);
+  const model = load("server/transport/public-context-model.ts");
+  const old = { ...snapshot, arrivalRetrievedAt: "2026-09-06T03:30:00.000Z" };
+  assert.equal(model.buildPublicTransportContext(env, old).context.arrivalRetrievedAt, old.arrivalRetrievedAt);
+  for (const invalid of [undefined, null, "", "invalid", 0]) {
+    assert.equal(model.buildPublicTransportContext(env, { ...snapshot, arrivalRetrievedAt: invalid }).context.arrivalRetrievedAt, null);
+  }
+  assert.equal(model.buildPublicTransportContext(env, { ...old, arrivals: { ok: false, error: "unavailable" } }).context.arrivalRetrievedAt, null);
+  assert.equal(calls.filter(path => path.includes("ArvlInfo")).length, 1);
+});
