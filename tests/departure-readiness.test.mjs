@@ -27,14 +27,15 @@ test("부분 API 성공을 전체 확인됨으로 올리지 않는다", () => {
       { name: "KORAIL", state: "ready" },
       { name: "TAGO BUS", state: "error" },
     ],
+    routeCoverage: { total: 3, verified: 1 },
   });
-  assert.equal(result.state, "partial");
+  assert.equal(result.state, "recheck", "mobility access remains unverified even with a route response");
   assert.equal(result.items.find((item) => item.id === "weather")?.state, "confirmed");
   assert.equal(result.items.find((item) => item.id === "crowd")?.state, "confirmed");
   assert.equal(result.items.find((item) => item.id === "transport")?.state, "partial");
   const transportSummary = result.items.find((item) => item.id === "transport")?.summary || "";
-  assert.match(transportSummary, /제공기관·데이터 응답 확인/);
-  assert.match(transportSummary, /실제 경로 수와는 다릅니다/);
+  assert.match(transportSummary, /전체 3구간 중 1구간/);
+  assert.match(transportSummary, /이동 편의는 별도 확인/);
   assert.doesNotMatch(transportSummary, /개 실제 경로 확인/);
 });
 
@@ -45,7 +46,7 @@ test("날씨 조회 실패와 근거 없는 장소는 재확인 필요로 남긴
     transportProviders: [{ name: "KORAIL", state: "ready" }],
   });
   assert.equal(result.state, "recheck");
-  assert.deepEqual(result.items.filter((item) => item.state === "recheck").map((item) => item.id), ["weather", "crowd", "transport", "evidence"]);
+  assert.deepEqual(result.items.filter((item) => item.state === "recheck").map((item) => item.id), ["weather", "crowd", "transport", "mobility", "evidence"]);
 });
 
 test("한국 시간대와 공유 URL을 포함한 표준 캘린더를 만든다", () => {
