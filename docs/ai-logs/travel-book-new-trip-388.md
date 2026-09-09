@@ -18,3 +18,6 @@ Normal merge bcab49c included restored exports and crowd navigation. Fresh733 un
 
 ## Main #410 verification
 Normal merge4667b6d, fresh733 unit tests/lint/typecheck/build/performance PASS. All12 travel-book browser cases PASS16.8s. Archived book bytes, cancel/Escape/focus and failed current-trip commit are preserved. Hosted CI/merge/Production pending; next integration includes the activity-restoration PR before submission.
+
+## Main #412 verification
+Normal merge47f5785. Fresh736 unit/contract tests, lint13 existing warnings, typecheck/build and unchanged budgets PASS (Planner269.78/270KiB, CSS69.90/70KiB). All26 related browser cases PASS:6 new-trip +14 activity-restoration (34.6s),6 existing travel-book (6.6s). This confirms the new current-trip theme key is cleared by emptyTrip and archive bytes remain identical. Fresh960 dark/1440 light confirmation captures inspected. Hosted CI, merge and exact Production pending.
