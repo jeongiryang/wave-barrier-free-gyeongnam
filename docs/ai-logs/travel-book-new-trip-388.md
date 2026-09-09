@@ -12,3 +12,6 @@
 - 12 desktop/mobile travel-book tests PASS (14.6s), including light/dark axe, cancel/focus return, blocked atomic commit and existing archive/restore behavior. `%TEMP%/wave-travel-book-new-main405-browser.log` and output directory preserve the evidence.
 - Fresh lint (13 existing warnings), typecheck, 733 unit tests, build:vercel and performance PASS (`%TEMP%/wave-travel-book-main405-*.log`). Planner 269.38/270 KiB, CSS 69.83/70 KiB gzip.
 - Ready for its separate PR after higher-priority pending exports and shortcuts. No hosted CI or Production completion is claimed yet.
+
+## Main #407 verification
+Normal merge bcab49c included restored exports and crowd navigation. Fresh733 unit tests, lint (13 existing warnings), typecheck/build and unchanged performance budgets passed (Planner269.61/270 KiB, CSS69.83/70 KiB). All12 travel-book browser cases passed21.7s. Hosted CI/merge/Production remain pending.
