@@ -14,3 +14,11 @@
 - ROLES: Owner defined FUNCTION scope and DESIGN exclusion. Engineering implemented and verified the patch; a separate read-only QA agent reviewed this bounded change. Neither implementation nor that scoped review is Release GO or a human approval.
 
 Reference: [Kakao Maps Web URL contract](https://apis.map.kakao.com/web/guide/).
+
+## Owner-authorized resumption after the design deployment — 2026-09-10 KST
+
+- Preserved the existing function branch and merged Production main `59709194a92889fc1a383ce6be24c3a58e2175b1` normally, without conflicts, at `2890ba0ddcf3b3abf530291d99bb332bf3e43092`. The Owner's later implementation/merge/deployment instructions supersede the earlier emergency hold; no new Preview is requested or created.
+- The old PR CI failure was an obsolete destination-only expectation in `planner-redesign.spec.ts`. It now asserts the complete, exact public-origin walking URL (both names and coordinates), consistent with the dedicated behavior tests. Latest main supplies the current place-detail action label.
+- Fresh local validation: lint PASS (0 errors, 13 existing warnings), typecheck PASS, 722 unit/contract tests PASS, Vercel build PASS and unchanged performance budget PASS (planner 269.25/270 KiB; CSS 69.82/70 KiB). Five related browser files, including planner-redesign, pass all 42 desktop/mobile cases with two workers.
+- Evidence: `%TEMP%/wave-389-ready-{lint,typecheck,test,build-vercel,check-performance}.log`, `%TEMP%/wave-389-ready-output`. These local results do not replace fresh hosted CI or post-merge Production verification. A separately reproduced hosted APT index failure is being repaired before this PR proceeds.
+- Remaining #388 requirements, ODsay #372, actual route measurement integrity and saved-trip lifecycle/export issues remain separate work; none are closed by this URL handoff change.
