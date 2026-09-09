@@ -4,6 +4,19 @@ Canonical design entry · Owner #385 / implementation #353 · 2026-09-09 KST.
 Read this before any design change, together with [design tokens](../design-system.md).
 This is a design contract, not a claim that the current candidate is released or Owner-approved.
 
+## Latest Owner amendment — pass 6, 2026-09-09
+
+This supersedes earlier pause/replay controls and hover-expanded chapter navigation in this document; previous decisions remain historical evidence.
+
+- REFERENCE: Owner review of the pass 5 screen; existing cinematic region/departure chapters.
+- PATTERN: destination photo montage, permanently visible editorial chapter index, animated selection/composition inside real product vocabulary.
+- W.A.V.E APPLICATION: each region shows ≥2 distinct tourist photographs (Changwon 3); remove n/18 decoration. Recommendation uses a large real Daesan panorama and the preserved product capture. Needs selections lift and highlight; Community writes a question into a layered composition.
+- WHY: scenery and visible use should carry the story; control panels and validation copy should not dominate it.
+- ACCESSIBILITY: OS reduction/SaveData keep complete static demos; offscreen/hidden tabs suspend timers. Demos play a bounded 4.2s sequence on each fresh entry. Hero retains stable accessible heading/CTA; no repeated live announcement. Native chapter links remain keyboard reachable. No visible pause or demo-replay buttons; the separate first-entry Intro replay remains the existing arrival function.
+- PERFORMANCE: reuse React/CSS/scroll progress; no dependency or provider architecture changes. Only the active region's album renders; images are lazy. No new long-running animation loop in the demonstrations.
+- RESULT: LOCAL WIP. Photo albums and chapter rail implemented; all three flat chapters restyled. Full CI/Preview/Production and Owner visual acceptance are pending.
+- GAP: individual attribution/use conditions for additional official photographs need final confirmation before release. A local screenshot is not Production evidence.
+
 ## Product brief — fixed by Owner
 
 W.A.V.E는 경상남도에서 사회적 약자의 관광 편의를 지원하는 무장애 여행 서비스다.
@@ -151,7 +164,7 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 - **REFERENCE:** Kakao 행동 위계 + Owner Hanwha chapter rhythm.
 - **PATTERN:** 마지막 큰 visual·짧은 invitation, 아래로 읽을 때 nav가 물러남.
 - **WHY IT WORKS:** 시각 흐름을 가리지 않으며 돌아올 길과 다음 행동은 남긴다.
-- **W.A.V.E APPLICATION:** v2 harbor closing, primary CTA; up 즉시 nav, down threshold, gear/help icons. 우측에는 현재 섹션/번호/세로선/총수, hover·focus 확장 및 native anchor. 모바일은 44px 현재/전체 native selector. 긴 통합 출처는 `/policies#content-credits`로 이동.
+- **W.A.V.E APPLICATION:** v2 harbor closing, primary CTA; up 즉시 nav, down threshold, gear/help icons. 우측에는 같은 수직선상의 번호와 작은 섹션명을 항상 표시하고 native anchor로 이동한다. hover·focus 확장 패널은 pass 6 Owner 결정으로 제거했다. 모바일은 44px 현재/전체 native selector. 긴 통합 출처는 `/policies#content-credits`로 이동.
 - **DO NOT:** 빈 min-height, 반복 summary grid, focus/menu 안 nav 숨김.
 - **ACCESSIBILITY:** nav focus 즉시 reveal, 44px 이름 있는 icons, reduced static show/hide. 진행도는 페이지 탐색이며 준비율이 아니다. Intro 중 숨김, Escape/Tab/터치 지원, desktop 우측 안전 여백과 모바일 하단 여백으로 본문·CTA 충돌 방지.
 - **PERFORMANCE:** 기존 RAF 공유, dependency 추가 없음.

@@ -267,3 +267,32 @@ node scripts/run-playwright.mjs e2e/landing-cinematic.spec.ts
 Owner가 이 로컬 시각 체크포인트를 직접 확인한다. #353/#385 Open 유지, 완료/출시/독립 QA PASS 아님. 다음 수정은 이 candidate에 대한 디자인 피드백과 사진 상세 출처 확인이며, #386 재도입/#387 기능/계정/provider/자동화로 범위를 넓히지 않는다.
 옛 landing-first-arrival/service-story/story-media-remix/landing-boundaries/landing-regions의 과거 표현 계약은 최종 candidate에서 계속 이관해야 한다. Full suite green 주장 금지.
 성능 예산·Full CI·Preview·독립 QA·merge·Production은 시각 candidate 승인 이후의 별도 Gate로 남긴다. 기존 서버는 종료하지 않는다.
+
+
+## Owner pass 6 — 지역 사진과 동적인 제품 장면 (2026-09-09 20:11:31 KST)
+
+LOCAL VISUAL CHECKPOINT. 시작 HEAD `d92c4bfc66343a7a538394155adfa8f1288e55a2`, `feat/fullscreen-story-353`, `D:/wave-production-validation-20260908`, 기존 4173 서버 유지. 시작 상태 clean, 사용자 다른 worktree/dirty/queue/artifact 변경 없음. 새 PR/push/Full CI/Preview/Production/DB 변경 없음.
+
+### 실제 변경
+
+- 지역별 서로 다른 관광사진 최소 2장: 총 37장. 창원은 진해군항제·주남저수지·대산플라워랜드 3장. 주 사진과 보조 사진을 동시에 보여주는 비대칭 구성, 각 사진의 출처 링크 유지. 기존 18장 원본/저작자 보존, 추가 19장의 개인 저작자는 API 미제공이므로 만들어 쓰지 않음. 공통 album이 정책 출처 목록도 구성. n/18 장식 제거.
+- Hero 문구 정지, 편의/커뮤니티 정지·시연 다시보기 버튼 제거. Intro 재진입 자체는 기존 계약을 유지한다. 사용자 화면의 작성 예시/미게시 검수 캡션은 제거하고, 보조기술 설명/운영정책에는 합성 작성 화면이라는 경계를 남겼다. 가상 사용자/평점/게시일/실제 후기 주장은 추가하지 않았다.
+- 우측 7개 섹션 이름/번호를 항상 노출하는 가는 진행선. hover 확장 박스/테두리 제거, native anchor/focus/history 보존. 모바일은 44px 현재/전체 selector.
+- 추천: 대산플라워랜드 실제 사진의 viewport panorama + 같은 장소 편의근거 + 원래 워터마크 포함 제품 캡처의 상승/회전 진입. 새로운 독립 장면을 추가하지 않음.
+- 편의: 탭 위치를 보여주는 링, 선택 아이콘의 등장, 선택 카드의 상승·색 변화·요약 강조. 실제 시설 catalog를 쓰며 사용자 설정은 건드리지 않음. 모바일에서 각 옵션을 짧고 읽기 쉬운 icon/title 구성으로 정리.
+- 커뮤니티: Deep Ocean 배경, 밝은 편집 화면, 입력된 질문 카드의 겹침/등장. 4.2초의 읽기 전용 단계가 새 화면 진입마다 재생. 화면 밖/비활성 탭 중지, OS 감소/SaveData 정적 최종 상태. 서버 쓰기 없음.
+
+### 실제 검증 및 수정 이력
+
+- changed-file ESLint: 0 errors, 2 native img warnings. typecheck PASS.
+- 관련 unit/contract 처음 56 PASS / 1 FAIL: 삭제된 정지 버튼의 aria-pressed를 요구하는 과거 UI 계약. Owner의 버튼 제거 계약과 정적 대체/읽기 전용 보존 검사로 갱신. 사진별 실제 지역/중복 방지 계약 추가 후 **58 PASS / 0 FAIL / 0 skip**.
+- owner 브라우저 첫 실행 **10 PASS / 4 FAIL**: 편의 요약의 색 대비 4.47:1. CSS 전경색 수정. assertion/기준 그대로 유지.
+- cinematic + owner + visual 실행 **24 PASS / 2 FAIL**: 이 패스에서 추가했던 Hero focus hold가 Intro 종료의 h1 focus를 정지 요청으로 오인. 해당 부가 hold 경로를 제거해 canonical 자동 흐름 회복. 실패 원본 보존.
+- 영향받은 owner + 실제 녹화 visual + 새 dark 검사 **18 PASS / 0 FAIL / 0 flaky / 0 skip (43.6s)**. 이전 변경 없는 cinematic 10 PASS를 합쳐 서로 다른 관련 브라우저 검사 **28개 PASS 근거**. 같은 SHA Full CI 성공을 주장하지 않는다.
+- 320/390/1366 실제 screenshot 육안 확인. KO, OS reduced, SaveData, dark, intro → Hero 문구 3종, CTA geometry/focus, 18개 album/source, native rail, image failure, DOM 시연 중 mutation request 0 및 localStorage 무변경. 실제 기능/API 성공 증거는 아님. 테스트 fixture 관광사진과 실제 CDN 시각 확인을 구분.
+- 37장 CDN HEAD 확인은 endpoint가 HEAD에 405를 반환해 검증 방법으로 사용 불가. `photo-head-check.json`의 unavailable을 사진 GET 실패로 오인하지 말 것. 공개 관광 API 실제 응답과 로컬 브라우저 실제 GET/사진 화면은 별도 보존. 개별 권리/원문 상세 검증은 최종 release 전 남음.
+- timeout/retry/worker/성능 기준 변경, 신규 skip, 기능 테스트 삭제 없음. 테스트 수정은 Owner가 제거한 controls와 다중 사진의 새 UI 계약에 한정.
+
+증거: `D:/wave-db-binding-preflight-20260908/fullscreen-story-353-owner-pass6-20260909/`. `unit-initial.log`, `unit-final.log`, `browser-initial*`, `browser-final*`, `browser-checkpoint*` 전부 보존. 마지막 폴더에 desktop/mobile 실제 시간 흐름 video.webm 및 장면 캡처가 있다. 완료된 expect.poll의 중간 failed-step resource 이벤트를 테스트 최종 FAIL로 오인하지 말 것.
+
+다음: Owner가 http://127.0.0.1:4173/ 에서 로컬 시각 체크. #353 전체 완료/Production 반영/권리 최종 확인은 아직 아니다. 디자인 확인 뒤에만 candidate 성능/Full CI/Preview/QA/병합 단계를 판단한다. #386/#387, 기능/API/계정/저장/공유/자동화는 이 패스에서 변경하지 않음.

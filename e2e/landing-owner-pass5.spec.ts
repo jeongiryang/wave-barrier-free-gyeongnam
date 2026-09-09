@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 import { mockPublicShellApi } from "./fixtures";
 import { landingSections } from "../features/landing/sections";
-import { regionShowcasePhotos } from "../features/landing/region-showcase-photos";
+import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 
 async function ready(page: Page) {
   // The streamed server shell is replaced by one hydrated landing. Wait for that
@@ -22,7 +22,7 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType:"image/webp", body:bitmap }));
 });
 
-test("Hero copy moves line by line, holds CTA geometry, and obeys persistent pause and OS reduction", async ({ page }) => {
+test("Hero copy moves line by line, holds CTA geometry, without pause UI and respects OS reduction", async ({ page }) => {
   await page.clock.install(); await page.goto("/"); await ready(page);
   const sequence = page.locator(".hero-copy-sequence");
   await expect(sequence).toHaveAttribute("data-running","true");
@@ -35,9 +35,9 @@ test("Hero copy moves line by line, holds CTA geometry, and obeys persistent pau
   await page.clock.fastForward(900);
   expect(await cta.boundingBox()).toEqual(before);
   await expect(cta).toHaveAttribute("href","/planner"); await expect(cta).toHaveAccessibleName("여행 계획하기");
-  const pause=page.getByRole("button",{name:"문구 순환 멈추기"}); await pause.press("Enter");
-  await cta.focus(); await page.clock.fastForward(20000); await expect(sequence).toHaveAttribute("data-phrase","1");
-  await expect(pause).toHaveAttribute("aria-pressed","true"); await expect(cta).toBeFocused();
+  await expect(page.getByRole("button",{name:/문구.*멈추/})).toHaveCount(0);
+  await cta.focus(); await page.mouse.move(0,0); await page.clock.fastForward(6500);
+  await expect(sequence).toHaveAttribute("data-phrase","2"); await expect(cta).toBeFocused();
   await expect(page.getByRole("heading",{level:1})).toHaveAccessibleName(name);
   await page.emulateMedia({reducedMotion:"reduce"}); await expect(sequence).toHaveAttribute("data-phrase","0"); await expect(sequence).toHaveAttribute("data-running","false");
   await expect(cta).toBeFocused(); expect(await cta.boundingBox()).toEqual(before);
@@ -75,13 +75,12 @@ test("current section registry, desktop rail and mobile native selector stay in 
   await expect(page.locator(".story-progress")).toBeVisible();
   await page.evaluate(()=>history.replaceState({...history.state,storyTestMarker:"preserve"},""));
   if (page.viewportSize()!.width > 1100) {
-    const trigger=page.getByRole("button",{name:"소개 섹션 목록"}); await trigger.focus();
-    await expect(trigger).toHaveAttribute("aria-expanded","true");
     await expect(page.locator("#story-progress-list a")).toHaveCount(7);
+    for (const link of await page.locator("#story-progress-list a").all()) await expect(link).toBeVisible();
+    await expect(page.getByRole("button",{name:"소개 섹션 목록"})).toHaveCount(0);
     await page.locator("#story-progress-list a[href='#community']").press("Enter");
     await expect(page.locator("#community")).toBeFocused();
     await expect(page.locator("#story-progress-list a[aria-current]")).toHaveAttribute("href","#community");
-    await trigger.focus(); await trigger.press("Escape"); await expect(trigger).toHaveAttribute("aria-expanded","false"); await expect(trigger).toBeFocused();
   } else {
     const select=page.getByLabel("소개 섹션으로 이동"); await select.selectOption("5");
     await expect(page.locator("#community")).toBeFocused(); await expect(select).toHaveValue("5");
@@ -105,10 +104,7 @@ test("readonly demos select and type internally once, without server writes or c
   const writing=page.locator('[data-demo="community"]'); await writing.scrollIntoViewIfNeeded();
   await expect(writing).toHaveAttribute("data-running","true");
   await page.clock.fastForward(1400); await expect(writing.locator(".demo-typed[data-filled=true]")).toHaveCount(1);
-  await writing.getByRole("button",{name:"작성 시연 멈추기"}).press("Enter");
-  await page.locator("#closing").focus(); await page.clock.fastForward(12000);
-  await expect(writing).toHaveAttribute("data-step","1");
-  await writing.scrollIntoViewIfNeeded(); await writing.getByRole("button",{name:"작성 시연 멈추기"}).press("Enter");
+  await expect(writing.getByRole("button")).toHaveCount(0);
   await page.clock.fastForward(1400); await expect(writing.locator(".demo-typed[data-filled=true]")).toHaveCount(2);
   await page.clock.fastForward(1400); await expect(writing.locator(".demo-post-preview")).toHaveAttribute("data-shown","true");
   await page.clock.fastForward(12000); await expect(writing).toHaveAttribute("data-step","3");
@@ -120,15 +116,22 @@ test("every region retains its exact original source, author and named link, inc
   await page.emulateMedia({reducedMotion:"reduce"}); await page.goto("/#regions"); await ready(page);
   const stage=page.locator('[data-region-stage]');
   for(let index=0;index<18;index++) {
-    const region=(await stage.getAttribute("data-active-region"))!; const photo=regionShowcasePhotos[region];
-    const credit=stage.locator("figcaption a"); await expect(credit).toHaveAttribute("href",photo.image);
-    await expect(stage.locator("figcaption")).toContainText(photo.photographer);
-    await expect(credit).toHaveAccessibleName(`${photo.title} · 사진 원본, 새 탭`);
-    await expect(credit).toHaveCSS("text-decoration-line","underline");
+    const region=(await stage.getAttribute("data-active-region"))!; const photos=regionShowcaseAlbums[region];
+    expect(photos.length).toBeGreaterThanOrEqual(2);
+    expect(new Set(photos.map(photo=>photo.image)).size).toBe(photos.length);
+    await expect(stage.locator(".region-scene-photo")).toHaveCount(photos.length);
+    for (let photoIndex=0;photoIndex<photos.length;photoIndex++) {
+      const photo=photos[photoIndex]; const figure=stage.locator(".region-scene-photo").nth(photoIndex);
+      const credit=figure.locator("figcaption a"); await expect(credit).toHaveAttribute("href",photo.image);
+      if (photo.photographer) await expect(figure.locator("figcaption")).toContainText(photo.photographer);
+      await expect(credit).toHaveAccessibleName(`${photo.title} · 사진 원본, 새 탭`);
+      await expect(credit).toHaveCSS("text-decoration-line","underline");
+    }
+    await expect(stage.locator(".region-showcase-counter")).toHaveCount(0);
     await stage.getByRole("button",{name:"다음 지역"}).press("Enter");
   }
   await page.goto("/policies#content-credits"); await expect(page.getByRole("heading",{name:"콘텐츠 출처 및 이용안내"})).toBeVisible();
-  await expect(page.locator(".content-credits li")).toHaveCount(18);
+  await expect(page.locator(".content-credits li")).toHaveCount(Object.values(regionShowcaseAlbums).flat().length);
 });
 
 for(const width of [320,390]) test(`${width}px static and data-saving story keeps complete demos without motion, overflow or axe violations`,async({page})=>{
@@ -143,4 +146,17 @@ for(const width of [320,390]) test(`${width}px static and data-saving story keep
   await expect(page.locator(".community-demo")).toHaveAttribute("data-step","3");
   await expect(page.locator(".demo-post-preview")).toHaveAttribute("data-shown","true");
   await page.emulateMedia({reducedMotion:"reduce"}); expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
+});
+
+test("the new photo and product chapters retain readable dark-mode composition", async ({page}) => {
+  await page.addInitScript(() => localStorage.setItem("wave-theme", "dark"));
+  await page.emulateMedia({reducedMotion:"reduce"});
+  await page.goto("/");
+  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+  await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
+  for (const section of ["story","recommendation","community"]) {
+    await page.locator(`#${section}`).scrollIntoViewIfNeeded();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
+  }
+  expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
 });

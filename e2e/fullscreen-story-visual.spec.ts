@@ -26,10 +26,10 @@ test("the full-screen arrival leads through the complete Korean service story", 
   await page.screenshot({ path: test.info().outputPath("02b-hero-phrase.png") });
   await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-phrase", "2");
   if (!isMobile) {
-    const rail=page.getByRole("button",{name:"소개 섹션 목록",exact:true});
-    await rail.focus(); await expect(rail).toHaveAttribute("aria-expanded","true");
-    await page.screenshot({path:test.info().outputPath("02c-progress-expanded.png")});
-    await rail.press("Escape");
+    const rail=page.locator("#story-progress-list a");
+    await expect(rail).toHaveCount(7);
+    for (const link of await rail.all()) await expect(link).toBeVisible();
+    await page.screenshot({path:test.info().outputPath("02c-progress-always-visible.png")});
     await page.locator(".landing-actions a").focus();
   }
   for (const [index, selector] of [".region-story", ".manifesto", ".destination-editorial", ".departure-scene", ".community-chapter", ".landing-cta"].entries()) {

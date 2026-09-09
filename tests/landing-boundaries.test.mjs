@@ -33,3 +33,17 @@ test("the local national overview contains only static paths and one highlighted
   assert.doesNotMatch(svg, /<script|<foreignObject|\b(?:href|onload|onclick)=/i);
   assert.ok(Buffer.byteLength(svg) <= 200 * 1024);
 });
+
+test("every region has distinct official place photographs without inventing regional matches", () => {
+  const { regionShowcaseAlbums } = data("../features/landing/region-showcase-photos.ts");
+  assert.equal(Object.keys(regionShowcaseAlbums).length, 18);
+  for (const [region, photos] of Object.entries(regionShowcaseAlbums)) {
+    assert.ok(photos.length >= 2, region);
+    assert.equal(new Set(photos.map(photo => photo.image)).size, photos.length);
+    for (const photo of photos) {
+      assert.match(photo.image, /^https:\/\/tong\.visitkorea\.or\.kr\//);
+      assert.ok(photo.location.includes(region) || photo.title.includes(region), photo.title);
+    }
+  }
+  assert.deepEqual(regionShowcaseAlbums["창원"].map(photo => photo.title), ["2019 진해군항제", "주남저수지 철새도래지", "대산플라워랜드"]);
+});

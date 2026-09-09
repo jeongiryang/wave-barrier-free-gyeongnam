@@ -9,13 +9,12 @@ export const heroPhrases = [
 const englishPhrases = [["The facilities you need.", "Your Gyeongnam journey."], ["Explore the facilities.", "Find the places that fit you."], ["Gyeongnam awaits.", "Travel your own way."]] as const;
 export default function LandingHeroCopy() {
   const en = useSitePreferences().locale === "en";
-  const { root, index: step, running, paused, still, toggle } = useStoryPlayback(heroPhrases.length, 6500, true);
+  const { root, index: step, running, still } = useStoryPlayback(heroPhrases.length, 6500, true);
   const phrases = en ? englishPhrases : heroPhrases;
   return <div ref={root} className="hero-copy-sequence" data-phrase={step} data-running={running} data-still={still}>
     <h1 id="landing-title" tabIndex={-1}>
       <span className="sr-only">{phrases[0].join(" ")}</span>
       <span className="hero-title-copies" aria-hidden="true">{phrases.map((phrase, index) => <span className="hero-phrase" key={index} data-active={step === index}>{phrase.map((line, part) => <span className="hero-line" key={part}><span>{part ? <em>{line}</em> : line}</span></span>)}</span>)}</span>
     </h1>
-    <button className="story-motion-toggle hero-copy-toggle" type="button" aria-pressed={paused} onClick={toggle} aria-label={en ? "Pause headline rotation" : "문구 순환 멈추기"} title={en ? "Pause headline rotation" : "문구 순환 멈추기"}><span aria-hidden="true">{paused || still ? "▶" : "Ⅱ"}</span><span>{paused ? en ? "Paused" : "문구 멈춤" : en ? "Pause copy" : "문구 멈추기"}</span></button>
   </div>;
 }

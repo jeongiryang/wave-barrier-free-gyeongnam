@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { regionShowcasePhotos } from "../../features/landing/region-showcase-photos";
+import { regionShowcaseAlbums } from "../../features/landing/region-showcase-photos";
 import { regionPhotoSource } from "../../features/landing/region-photo-sources";
 
 export const metadata: Metadata = {
@@ -59,7 +59,7 @@ export default function PoliciesPage() {
       <section id="content-credits" className="content-credits">
         <h2>콘텐츠 출처 및 이용안내</h2>
         <p>지역 사진의 제공기관은 한국관광공사이며 저작권은 해당 권리자에게 있습니다. 아래 링크는 현재 사용한 사진의 원본 이미지입니다. 개별 게시 상세 페이지와 사진별 이용조건의 일치는 아직 확인 중이며, 원본 링크를 이용허락 증빙으로 대신하지 않습니다. 재사용·재배포 전 제공처의 개별 이용조건을 확인해 주세요.</p>
-        <ul>{Object.entries(regionShowcasePhotos).map(([region,photo]) => <li key={photo.id}><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{region} · {photo.title} — 사진 원본 (새 탭)</a><p>저작자: {photo.photographer} · 제공: ⓒ한국관광공사<br />원문 상세/개별 이용조건: 확인 중. 사진 내 워터마크를 유지합니다.</p></li>)}</ul>
+        <ul>{Object.entries(regionShowcaseAlbums).flatMap(([region,photos]) => photos.map(photo => <li key={photo.id}><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{region} · {photo.title} — 사진 원본 (새 탭)</a><p>저작자: {photo.photographer || "개별 저작자 미확인"} · 제공: ⓒ한국관광공사<br />원문 상세/개별 이용조건: 확인 중. 사진 내 워터마크를 유지합니다.</p></li>))}</ul>
         <h3>브랜드 이미지와 제품 화면</h3>
         <p>인트로·Hero 해안, 동행자, 마지막 항구는 W.A.V.E 브랜드를 위해 제작한 일러스트이며 실제 관광지·시설 기록이 아닙니다. 제작 원본과 자산 사용 기록은 저장소의 media 문서에 보존합니다.</p>
         <p>현재 추천 제품 화면은 2026년 9월 9일 촬영했습니다. 사진·편의정보 출처는 ⓒ한국관광공사이며 워터마크를 유지합니다. 대산플라워랜드 시설 자료 조회 시각은 02:26:57 KST로, 시설 갱신일이나 접근성 인증을 뜻하지 않습니다.</p>

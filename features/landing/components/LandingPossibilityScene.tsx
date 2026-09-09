@@ -1,17 +1,26 @@
 "use client";
+import { useState } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
+import { regionShowcaseAlbums } from "../region-showcase-photos";
+import { regionPhotoSource } from "../region-photo-sources";
 import LandingScreenCapture from "./LandingScreenCapture";
 
 export default function LandingPossibilityScene() {
   const en = useSitePreferences().locale === "en";
-  return <section id="recommendation" tabIndex={-1} className="recommendation-chapter" aria-labelledby="recommendation-title">
-    <div className="destination-editorial" data-cinematic="left">
+  const photo = regionShowcaseAlbums["창원"].find(photo => photo.id === "2758443")!;
+  const [failed, setFailed] = useState(false);
+  return <section id="recommendation" tabIndex={-1} className="recommendation-chapter" aria-labelledby="recommendation-title" data-cinematic="left">
+    <figure className="destination-panorama">
+      {!failed && <img src={photo.image} alt={photo.title} loading="lazy" decoding="async" onError={() => setFailed(true)} />}
+      <figcaption><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{photo.title} · {en ? "Source: ⓒKorea Tourism Organization" : "출처: ⓒ한국관광공사"}</a></figcaption>
+    </figure>
+    <div className="destination-editorial">
       <div className="destination-copy">
         <p className="section-kicker">{en ? "Places that fit your plans" : "내 조건에서 만나는 여행지"}</p>
         <h2 id="recommendation-title">{en ? "A place to fall for." : "마음에 드는 풍경,"}<br /><em>{en ? "The details to decide." : "나에게 맞는 이유."}</em></h2>
-        <p>{en ? "Compare the places you like with the facilities you need. Missing information stays unconfirmed." : "가고 싶은 곳의 사진과 편의정보를 함께 살펴보세요. 확인되지 않은 편의는 미확인으로 구분해요."}</p>
+        <p>{en ? "Find the scenery you love, with the facilities you need." : "마음이 가는 풍경에, 내게 필요한 편의까지."}</p>
         <dl className="destination-evidence" data-place-evidence="2758443">
-          <div><dt>{en ? "Recorded" : "대산플라워랜드 · 확인"}</dt><dd>{en ? "Access path · toilet" : "완만한 접근로 · 화장실"}</dd></div>
+          <div><dt>{en ? "Daesan Flower Land · recorded" : "대산플라워랜드 · 확인"}</dt><dd>{en ? "Access path · toilet" : "완만한 접근로 · 화장실"}</dd></div>
           <div><dt>{en ? "Unconfirmed" : "미확인"}</dt><dd>{en ? "Lift · ask the venue" : "승강기 · 방문 전 시설에 문의"}</dd></div>
         </dl>
       </div>

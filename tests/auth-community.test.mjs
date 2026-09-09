@@ -250,8 +250,8 @@ test("preserved product preview sources remain Korean and non-interactive; curre
   assert.match(stories, /className="[^"]*route-demo-vehicle/);
   assert.match(community, /className="[^"]*community-editor-preview/);
   assert.match(community, /className="[^"]*community-entry-fields/);
-  assert.match(community, /aria-pressed=\{completed \|\| still \? undefined : paused\}/);
-  assert.match(community, /aria-disabled=\{still\}/);
+  assert.doesNotMatch(community, /<button\b/);
+  assert.match(community, /data-still=\{still\}/);
   assert.match(community, /className="demo-post-preview" data-shown=\{step >= 3\}/);
   assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live|fetch\(|localStorage|sessionStorage/);
   assert.doesNotMatch(stories, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);

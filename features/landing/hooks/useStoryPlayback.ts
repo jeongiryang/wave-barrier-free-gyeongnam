@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 export function useStoryPlayback(steps: number, interval: number, loop = false) {
   const root = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
   const [context, setContext] = useState({ inView: false, visible: false, still: true, intro: true });
   useEffect(() => {
     const media = matchMedia("(prefers-reduced-motion: reduce)");
@@ -15,7 +14,13 @@ export function useStoryPlayback(steps: number, interval: number, loop = false) 
       if (loop && intro) setIndex(0);
       setContext(current => ({ ...current, still: media.matches || connection?.saveData === true, visible: !document.hidden, intro }));
     };
-    const observer = new IntersectionObserver(([entry]) => setContext(current => ({ ...current, inView: entry.isIntersecting })), { threshold: .3 });
+    let entered = false;
+    const observer = new IntersectionObserver(([entry]) => {
+      const shown = entry.isIntersecting && entry.intersectionRatio >= .3;
+      if (shown && !entered && !loop) setIndex(0);
+      entered = shown;
+      setContext(current => ({ ...current, inView: shown }));
+    }, { threshold: [0, .3] });
     if (root.current) observer.observe(root.current);
     const introObserver = new MutationObserver(sync);
     introObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
@@ -24,15 +29,11 @@ export function useStoryPlayback(steps: number, interval: number, loop = false) 
     return () => { cancelAnimationFrame(frame); observer.disconnect(); introObserver.disconnect(); media.removeEventListener("change", sync); connection?.removeEventListener("change", sync); document.removeEventListener("visibilitychange", sync); };
   }, [loop]);
   const completed = !loop && index === steps - 1;
-  const running = context.inView && context.visible && !context.still && !context.intro && !paused && !completed;
+  const running = context.inView && context.visible && !context.still && !context.intro && !completed;
   useEffect(() => {
     if (!running) return;
     const timer = setTimeout(() => setIndex(current => loop ? (current + 1) % steps : Math.min(current + 1, steps - 1)), interval);
     return () => clearTimeout(timer);
   }, [running, index, steps, interval, loop]);
-  return { root, index: context.still ? loop ? 0 : steps - 1 : index, running, paused, still: context.still, completed, toggle: () => {
-    if (context.still) return;
-    if (completed) { setIndex(0); setPaused(false); }
-    else setPaused(current => !current);
-  } };
+  return { root, index: context.still ? loop ? 0 : steps - 1 : index, running, still: context.still, completed };
 }

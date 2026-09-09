@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { mockPublicShellApi } from "./fixtures";
 import { landingRegions } from "../features/landing/content";
-import { regionShowcasePhotos } from "../features/landing/region-showcase-photos";
+import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 
 test.beforeEach(async ({ page }) => {
   await mockPublicShellApi(page);
@@ -36,7 +36,7 @@ test("regional names, photographs and trip links rotate together after four seco
   await page.clock.fastForward(1);
   await expect(stage).toHaveAttribute("data-active-region", "하동");
   await expect(stage.locator(".selected-region strong")).toHaveText("하동");
-  await expect(stage.locator("img")).toHaveAttribute("src", regionShowcasePhotos["하동"].image);
+  expect(await stage.locator("img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual(regionShowcaseAlbums["하동"].map(photo => photo.image));
   await expect(stage.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("하동"));
   await expect(stage.locator(".selected-region")).toHaveAttribute("aria-live", "off");
   expect(await page.evaluate(() => JSON.stringify(localStorage))).toBe(stored);
@@ -57,7 +57,7 @@ test("keyboard arrows stop rotation, preserve focus and match all 18 destination
     await choice.press("Enter");
     await expect(choice).toBeFocused();
     await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", name);
-    await expect(section.locator(".region-scene-photo img")).toHaveAttribute("src", regionShowcasePhotos[name].image);
+    expect(await section.locator(".region-scene-photo img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual(regionShowcaseAlbums[name].map(photo => photo.image));
     await expect(section.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent(name));
   }
   await page.clock.fastForward(16000);
@@ -85,7 +85,7 @@ test("reduced motion and offscreen chapters do not auto-rotate; runtime reductio
   await expect(stage).toHaveAttribute("data-running", "false");
   await expect(stage).toHaveAttribute("data-active-region", "창원");
   await expect(stage.getByRole("button", { name: "다음 지역" })).toBeEnabled();
-  await expect(stage.locator("img")).toHaveCSS("animation-name", "none");
+  for (const img of await stage.locator("img").all()) await expect(img).toHaveCSS("animation-name", "none");
 });
 
 test("failed photographs retain the actual region, source-preserving empty state and working choices at 320px", async ({ page }) => {
@@ -97,7 +97,7 @@ test("failed photographs retain the actual region, source-preserving empty state
   const section = page.locator("#regions");
   await section.getByRole("button", { name: "다음 지역", exact: true }).click();
   await expect(section.locator(".region-scene-photo img")).toHaveCount(0);
-  await expect(section.locator(".region-scene-photo figcaption")).toContainText("사진을 불러오지 못했어요");
+  for (const caption of await section.locator(".region-scene-photo figcaption").all()) await expect(caption).toContainText("사진을 불러오지 못했어요");
   await expect(section.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("하동"));
   expect(await section.locator(".region-arrows button").evaluateAll(nodes => nodes.every(node => {
     const r = node.getBoundingClientRect(); return r.width >= 44 && r.height >= 44;
