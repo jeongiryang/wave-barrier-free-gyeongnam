@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PlanData, RichMode } from "../types";
 import { usePlannerEnrichment } from "./usePlannerEnrichment";
 import { useRegionWeather } from "./useRegionWeather";
@@ -25,6 +25,19 @@ export function usePlannerSignals({
 }: PlannerSignalsOptions) {
   const [richMode, setRichMode] = useState<RichMode>("events");
   const [secondaryOpen, setSecondaryOpen] = useState(false);
+  useEffect(() => {
+    const openLinkedPanel = () => {
+      if (["#layers", "#crowd"].includes(window.location.hash)) setSecondaryOpen(true);
+    };
+    const frame = window.requestAnimationFrame(openLinkedPanel);
+    window.addEventListener("hashchange", openLinkedPanel);
+    window.addEventListener("popstate", openLinkedPanel);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("hashchange", openLinkedPanel);
+      window.removeEventListener("popstate", openLinkedPanel);
+    };
+  }, []);
   const health = useServiceHealth();
   const enrichment = usePlannerEnrichment({ plan, enabled: secondaryOpen, region, theme, locale, travelStart, travelEnd });
   const weather = useRegionWeather(region);

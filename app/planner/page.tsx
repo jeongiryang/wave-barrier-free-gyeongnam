@@ -90,9 +90,9 @@ export default function PlannerPage() {
   const { feedbackText, feedbackState, changeFeedbackText, submitFeedback } = participation;
   const stageView = usePlannerStageView();
   const { changeStep: changePlannerStep } = stageView;
-  const openTravelSignals = useCallback(() => {
+  const openTravelSignals = useCallback((target: "layers" | "crowd") => {
     setSecondaryOpen(true);
-    changePlannerStep("departure-readiness", true, "layers");
+    changePlannerStep("departure-readiness", true, target);
   }, [setSecondaryOpen, changePlannerStep]);
   const [reviewedTrip, setReviewedTrip] = useState("");
   const [reviewedItinerary, setReviewedItinerary] = useState("");
@@ -302,7 +302,7 @@ export default function PlannerPage() {
               />
               {!itineraryReviewed && <p role="status">{locale === "en" ? "First review every journey in your itinerary. Unverified journeys do not count as complete." : "일정에서 각 이동 구간을 먼저 확인해 주세요. 미확인 구간이 있으면 여행 준비 완료로 표시하지 않습니다."}</p>}
               <label className="departure-review-check"><input type="checkbox" disabled={!itineraryReviewed} checked={itineraryReviewed && reviewedTrip === reviewSignature} onChange={(event) => setReviewedTrip(event.target.checked ? reviewSignature : "")} />{locale === "en" ? "I reviewed the itinerary and the information to check before leaving. This is not a safety guarantee." : "일정과 출발 전 다시 확인할 항목을 살펴봤어요. 이 확인은 안전 보증이 아닙니다."}</label>
-              <button type="button" className="signals-shortcut" onClick={openTravelSignals}>{locale === "en" ? "View weather and visitor forecasts" : "날씨·방문 경향 바로 확인하기"}</button>
+              <button type="button" className="signals-shortcut" onClick={() => openTravelSignals("layers")}>{locale === "en" ? "View weather and visitor forecasts" : "날씨·방문 경향 바로 확인하기"}</button>
               <TravelSignalsPanel
                 region={region}
                 weatherFailure={weatherFailure}
