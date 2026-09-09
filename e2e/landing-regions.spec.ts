@@ -92,3 +92,37 @@ test("유한한 시연은 화면 밖에서 멈추고 OS 감소 설정에서는 �
   await expect(demo).toHaveAttribute("data-step", "3");
   await expect(demo).toHaveAttribute("data-running", "false");
 });
+
+
+test("지역 사진 자동 전환은 키보드로 명시적으로 일시정지하고 재개할 수 있다", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await mockPublicShellApi(page);
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+  await page.clock.install();
+  await page.goto("/");
+  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+
+  const stage = page.locator("[data-region-stage]");
+  await stage.scrollIntoViewIfNeeded();
+  await expect(stage).toHaveAttribute("data-running", "true");
+  const initialRegion = await stage.getAttribute("data-active-region");
+
+  const rotation = page.getByRole("button", { name: "지역 자동 전환 일시정지" });
+  const target = await rotation.boundingBox();
+  expect(target?.width).toBeGreaterThanOrEqual(44);
+  expect(target?.height).toBeGreaterThanOrEqual(44);
+  await rotation.focus();
+  await rotation.press("Space");
+
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await expect(page.getByRole("button", { name: "지역 자동 전환 재개" })).toHaveAttribute("aria-pressed", "true");
+  await page.clock.fastForward(9000);
+  await expect(stage).toHaveAttribute("data-active-region", initialRegion || "");
+
+  const resume = page.getByRole("button", { name: "지역 자동 전환 재개" });
+  await resume.press("Space");
+  await expect(stage).toHaveAttribute("data-running", "true");
+  await expect(page.getByRole("button", { name: "지역 자동 전환 일시정지" })).toHaveAttribute("aria-pressed", "false");
+  await page.clock.fastForward(4100);
+  await expect(stage).not.toHaveAttribute("data-active-region", initialRegion || "");
+});
