@@ -9,3 +9,6 @@
 
 ## Main #417 verification
 Normal merge of main616c90a. Fresh737 full unit/contract, lint13 existing warnings, typecheck/build and unchanged budgets PASS (Planner269.84KiB, CSS69.90KiB). All32 weather/language/error/retry/region-boundary browser cases PASS1.4min. Latest-main integration after the queued departure PR, fresh checks, hosted CI and exact Production remain pending.
+
+## Main #415 regression verification
+Normal integration of e2254c9. Fresh740 full unit/contract, lint13 existing warnings, typecheck/build and unchanged budgets PASS (Planner269.48KiB, CSS69.90KiB). All40 related browser cases PASS1.9min (weather18, region-boundary14, departure-route8). This branch remains locally prepared; integrate later merged field/arrival fixes and revalidate before its PR.
