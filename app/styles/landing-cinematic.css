@@ -15,8 +15,6 @@ body:has(.help-tour-dialog) .story-edition .landing-header, .story-edition .land
 
 /* The stage itself opens to both viewport edges, with no card radius at completion. */
 .story-edition .region-showcase { display: block; width: 100%; max-width: none; padding: 36px 0 0; margin: 0; background: #052736; color: #fff; border: 0; }
-.region-showcase-heading { padding: 0 var(--gutter) 28px; }
-.region-showcase-heading > p { max-width: 360px; color: #c6dce6; line-height: 1.8; margin: 0; font-size: 1rem; font-weight: 400; }
 .region-showcase-stage { position: relative; isolation: isolate; min-height: min(760px,88svh); background: #103d50; overflow: hidden; clip-path: inset(0 calc(var(--cinema-rest) * 18%) 0 calc(var(--cinema-rest) * 26%)); }
 .region-showcase-stage:focus-within { clip-path: none; }
 .region-scene-photo { position: absolute; inset: 0; margin: 0; }
@@ -100,7 +98,6 @@ body:has(.help-tour-dialog) .story-edition .landing-header, .story-edition .land
 .landing-cta .closing-horizon { transform: scale(calc(1 + var(--cinema-rest) * .15)); clip-path: inset(calc(var(--cinema-rest) * 14%) 0 0); }
 .landing-source-notes { max-width: 420px; line-height: 1.7; }.landing-source-notes summary { min-height: 44px; padding-block: 12px; cursor: pointer; }.landing-source-notes p { font-size: .8rem; }
 @media (max-width: 960px) {
- .region-showcase-heading { grid-template-columns: 1fr; gap: 20px; }
  .story-edition .needs-chapter,.story-edition .destination-editorial,.story-edition .community-chapter { grid-template-columns: 1fr; }
  .story-edition .needs-portrait { grid-column: 1; grid-row: auto; }
  .needs-copy .story-screen { max-width: 660px; }
@@ -113,7 +110,6 @@ body:has(.help-tour-dialog) .story-edition .landing-header, .story-edition .land
  .story-edition .hero-opening { min-height: 0; padding: 0; }
  .story-edition .landing-hero-copy { padding: 0; }
  .story-edition .landing-hero-copy h1 { font-size: clamp(2.3rem,9.5vw,3.6rem); }
- .region-showcase-heading { padding-bottom: 32px; }
  .region-showcase-stage { min-height: 640px; clip-path: inset(0 calc(var(--cinema-rest) * 12%)); }
  .region-showcase .selected-region { bottom: 228px; }
  .region-showcase-actions { bottom: 82px; flex-wrap: wrap; gap: 18px; }.region-arrows button { width: 48px; height: 48px; }
@@ -198,7 +194,6 @@ body:has(.help-tour-dialog) .story-edition .landing-header, .story-edition .land
  html:has(.story-edition) { scroll-padding-bottom: 64px; }
 }
 @media (max-width: 600px) {
- .story-edition .region-showcase { padding-top: 28px; }.region-showcase-heading { padding-bottom: 24px; }
  .story-edition .hero-copy-sequence h1 { font-size: clamp(2rem,8.7vw,3rem); }
  .demo-profile-grid { grid-template-columns: 1fr; }.story-demo { padding: 16px; }.demo-profile { min-height: 70px; }.demo-selection { min-height: 100px; }
  .community-demo { padding: 0; }.community-demo .community-editor-preview { padding: 24px; }
@@ -213,12 +208,6 @@ body:has(.help-tour-dialog) .story-edition .landing-header, .story-edition .land
 
 /* Owner pass 6 — image-led destinations, a region photo pair and visible product gestures. */
 .region-photo-album { position: absolute; inset: 0; }
-.region-photo-companions { position: absolute; top: 36px; bottom: 170px; right: var(--story-right,var(--gutter)); width: 31%; display: flex; flex-direction: column; gap: 18px; }
-.region-photo-companions .region-scene-photo { position: relative; inset: auto; min-height: 0; flex: 1; overflow: hidden; box-shadow: 0 20px 60px #00152140; }
-.region-photo-companions .region-scene-photo img { object-fit: cover; }
-.region-photo-companions .region-scene-photo figcaption { left: 14px; right: 14px; bottom: 8px; font-size: .65rem; }
-.region-photo-companions .region-scene-photo::after { background: linear-gradient(transparent 35%,#001521dc); }
-.region-photo-companions .region-scene-photo figcaption a { line-height: 1.5; }
 .region-showcase .selected-region { max-width: 52%; }
 .story-edition .needs-chapter { position: relative; isolation: isolate; background: #eaf5f4; overflow: hidden; }
 .story-edition .needs-portrait { align-self: stretch; display: flex; align-items: center; }
@@ -259,11 +248,9 @@ body:has(.help-tour-dialog) .story-edition .landing-header, .story-edition .land
 [data-theme="dark"] .story-edition .needs-chapter { background: #082f3d; }[data-theme="dark"] .needs-demo { background: #103d4b; }[data-theme="dark"] .demo-selection { background: #174f56; }[data-theme="dark"] .needs-demo[data-step="3"] .demo-selection { background: #14594f; }
 @media (max-width: 960px) {
  .story-edition .destination-editorial { grid-template-columns: 1fr; gap: 36px; min-height: 0; padding-block: 72px 100px; }.destination-product { max-width: 660px; }
- .region-photo-companions { width: 38%; right: 24px; top: 24px; bottom: 210px; }.region-showcase .selected-region { max-width: 48%; }
  .needs-portrait img { min-height: 0; max-height: 460px; }.community-composer-visual { order: 2; }.story-edition .community-chapter { gap: 40px; }
 }
 @media (max-width: 600px) {
- .region-showcase-stage { min-height: 840px; }.region-photo-companions { top: 24px; right: 20px; bottom: auto; width: 58%; height: 340px; gap: 12px; }.region-photo-companions .region-scene-photo { min-height: 150px; }.region-photo-companions .region-scene-photo figcaption { font-size: .6rem; left: 10px; right: 10px; }
  .region-showcase .selected-region { bottom: 245px; max-width: none; }.region-showcase .selected-region strong { font-size: 4.5rem; }.region-showcase .selected-region p { max-width: 260px; }
  .story-edition .needs-chapter { padding-block: 64px; }.needs-portrait { margin-top: 20px; }.needs-demo { transform: none; }.demo-profile-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }.demo-profile { flex-wrap: wrap; gap: 8px; padding: 14px 10px; }.demo-profile > div { flex-basis: calc(100% - 40px); }.demo-profile > span { position: absolute; right: 8px; top: 8px; }.demo-profile strong { font-size: .76rem; }.demo-profile small { font-size: .64rem; }.demo-profile > svg { width: 22px; }
  .demo-selection { min-height: 92px; }.destination-copy h2 { font-size: clamp(2.3rem,9.4vw,3.3rem); }.destination-evidence { gap: 16px; }.destination-evidence dd { font-size: .75rem; }.destination-panorama::after { background: linear-gradient(0deg,#002c38ed,#002c3880); }
@@ -288,3 +275,19 @@ body:has(.help-tour-dialog) .story-edition .landing-header, .story-edition .land
  .demo-profile > svg { width: 24px; height: 24px; }.demo-profile strong { font-size: .85rem; line-height: 1.5; }.demo-profile small { display: none; }
  .demo-profile > div { min-width: 0; }.demo-profile > span { right: 12px; top: 14px; }
 }
+
+/* One unobscured regional photograph; each slide owns its title and credit. */
+.story-edition .region-showcase { padding-top: 0; }
+.region-photo-selector { position: absolute; bottom: 92px; left: var(--gutter); display: flex; gap: 4px; align-items: center; }
+.region-photo-selector button { display: grid; place-items: center; width: 52px; min-height: 44px; padding: 0; background: transparent; border: 0; cursor: pointer; }
+.region-photo-selector button > span { width: 36px; height: 4px; border-radius: 2px; background: #ffffff7a; box-shadow: 0 1px 5px #00152180; transition: background .2s,transform .2s; }
+.region-photo-selector button[aria-pressed="true"] > span { background: #b5fff0; transform: scaleY(1.5); }
+.region-showcase-actions { bottom: 154px; }
+.region-showcase .selected-region { bottom: 230px; max-width: none; }
+@media (max-width: 600px) {
+ .region-showcase-stage { min-height: 720px; }
+ .region-showcase .selected-region { bottom: 296px; }
+ .region-showcase-actions { bottom: 160px; }
+ .region-photo-selector { bottom: 102px; }
+}
+@media (prefers-reduced-motion: reduce) { .region-photo-selector button > span { transition: none; } }

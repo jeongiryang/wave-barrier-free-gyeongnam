@@ -309,7 +309,9 @@ test("pull requests must be revalidated against the latest main", async () => {
   assert.match(rules, /이전 커밋의 성공 결과는 재사용하지 않는다/);
   assert.match(template, /최신 `origin\/main`/);
   assert.match(template, /npm run typecheck/);
-  assert.match(rules, /`syt83`, `unknownamed`를 모두 reviewer/);
+  assert.match(rules, /Owner의 명시적 승인이 없는 경우/);
+  assert.match(rules, /`syt83`, `unknownamed`를 reviewer/);
+  assert.match(template, /Owner 승인 시 리뷰 3개 대기 면제; `validate` 성공은 필수/);
   assert.match(template, /PR 작성자를 담당자\(assignee\)/);
   assert.match(template, /기존 라벨/);
 });
@@ -332,7 +334,8 @@ test("new issues receive an owner and a safe default label", async () => {
 test("autonomous work stays bounded and merges only after fresh checks", async () => {
   const rules = await source("CLAUDE.md");
   assert.match(rules, /최신 `main` 반영, 전체 로컬 검사와 새 HEAD의 CI 성공/);
-  assert.match(rules, /실패·대기 중 검사는 우회하지 않고/);
+  assert.match(rules, /실패·대기 중 검사는 우회하지 않는다/);
+  assert.match(rules, /Repository Owner `jeongiryang`이 명시적으로 승인하면 리뷰 승인 대기는 면제/);
   assert.match(rules, /선행 PR의 결과가 필요한\s*작업은 그 PR이 병합된 최신 `main`/);
   assert.match(rules, /승인된 범위의 완료 조건/);
   assert.doesNotMatch(rules, /모든 오류와 버그를 찾아내기 전에는/);

@@ -35,7 +35,7 @@ test("the full-screen arrival leads through the complete Korean service story", 
   for (const [index, selector] of [".region-story", ".manifesto", ".destination-editorial", ".departure-scene", ".community-chapter", ".landing-cta"].entries()) {
     const section = page.locator(selector);
     await section.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
-    await expect.poll(() => section.locator(selector === ".region-story" ? ".region-showcase-heading p" : "h2").first().evaluate(node => {
+    await expect.poll(() => section.locator(selector === ".region-story" ? ".selected-region strong" : "h2").first().evaluate(node => {
       const reveal = node.closest("[data-land-reveal]") || node;
       return Number(getComputedStyle(reveal).opacity);
     })).toBe(1);

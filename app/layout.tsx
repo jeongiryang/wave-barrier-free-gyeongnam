@@ -27,11 +27,9 @@ import "./styles/experience-accessibility.css";
 import "./styles/account-auth.css";
 import "./styles/community.css";
 import "./styles/account-community.css";
-import "./styles/landing-stories.css";
-import "./styles/landing-expansion.css";
-import "./styles/landing-journey-stage.css";
-import "./styles/landing-feature-motion.css";
-import "./styles/landing-regions.css";
+// #353 removed these scenes; preserve their source styles without shipping them.
+import "./styles/landing-community-active.css";
+import "./styles/landing-region-active.css";
 import "./styles/landing-arrival.css";
 import "./styles/landing-cinematic.css";
 import "./styles/planner-unified-workspace.css";

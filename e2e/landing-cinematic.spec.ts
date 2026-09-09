@@ -26,7 +26,7 @@ test("regional names, photographs and trip links rotate together after four seco
   await page.locator("#regions").evaluate(el => scrollTo({top: scrollY + el.getBoundingClientRect().top - 80, behavior: "instant"}));
   await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
   // Reset through the real pause/resume interaction at a fixed clock origin.
-  await page.locator(".region-showcase-heading p").hover();
+  await page.locator(".selected-region strong").hover();
   await expect(stage).toHaveAttribute("data-running", "false");
   await page.mouse.move(0, 0);
   await expect(stage).toHaveAttribute("data-running", "true");
@@ -36,7 +36,7 @@ test("regional names, photographs and trip links rotate together after four seco
   await page.clock.fastForward(1);
   await expect(stage).toHaveAttribute("data-active-region", "하동");
   await expect(stage.locator(".selected-region strong")).toHaveText("하동");
-  expect(await stage.locator("img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual(regionShowcaseAlbums["하동"].map(photo => photo.image));
+  expect(await stage.locator("img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual([regionShowcaseAlbums["하동"][0].image]);
   await expect(stage.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("하동"));
   await expect(stage.locator(".selected-region")).toHaveAttribute("aria-live", "off");
   expect(await page.evaluate(() => JSON.stringify(localStorage))).toBe(stored);
@@ -57,13 +57,13 @@ test("keyboard arrows stop rotation, preserve focus and match all 18 destination
     await choice.press("Enter");
     await expect(choice).toBeFocused();
     await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", name);
-    expect(await section.locator(".region-scene-photo img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual(regionShowcaseAlbums[name].map(photo => photo.image));
+    expect(await section.locator(".region-scene-photo img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual([regionShowcaseAlbums[name][0].image]);
     await expect(section.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent(name));
   }
   await page.clock.fastForward(16000);
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "창원");
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-running", "false");
-  await expect(section.getByRole("button")).toHaveCount(2);
+  await expect(section.locator(".region-arrows").getByRole("button")).toHaveCount(2);
   await section.getByRole("button", {name:"이전 지역"}).press("Enter");
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "김해");
 });

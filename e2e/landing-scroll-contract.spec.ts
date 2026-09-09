@@ -54,7 +54,7 @@ for (const width of [320, 390]) {
     await expect(page.locator(".landing-actions a")).toHaveText("여행 계획하기 →");
     // Text/image failure cannot create a section consisting only of an empty spacer.
     for (const section of await page.locator("main > section").all()) {
-      const heading = (await section.getAttribute("id")) === "regions" ? section.locator(".region-showcase-heading p") : section.locator("h1,h2").first();
+      const heading = (await section.getAttribute("id")) === "regions" ? section.locator(".selected-region strong") : section.locator("h1,h2").first();
       await heading.scrollIntoViewIfNeeded();
       await expect(heading).toBeVisible();
       await expect.poll(() => heading.evaluate(node => getComputedStyle(node).opacity)).toBe("1");

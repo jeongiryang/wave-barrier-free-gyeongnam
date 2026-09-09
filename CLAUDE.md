@@ -26,7 +26,7 @@ W.A.V.E 저장소에서 작업할 때 따르는 규칙입니다.
 
 **권한을 받은 범위에서는 PR을 끝까지 처리한다.** 병합 권한이 위임된 작업은
 최신 `main` 반영, 전체 로컬 검사와 새 HEAD의 CI 성공을 확인한 뒤 병합한다.
-실패·대기 중 검사는 우회하지 않고, 필수 리뷰 승인도 우회하지 않는다.
+실패·대기 중 검사는 우회하지 않는다. Repository Owner `jeongiryang`이 명시적으로 승인하면 리뷰 승인 대기는 면제하고 필요시 관리자 bypass로 병합할 수 있다(AGENTS.md의 2026-09-09 Owner 정책).
 독립적인 다음 작업은 `origin/main`에서 시작할 수 있지만, 선행 PR의 결과가 필요한
 작업은 그 PR이 병합된 최신 `main`에서 시작해 충돌과 중복을 피한다.
 
@@ -99,8 +99,8 @@ Vercel 단일 배포, 실시간 OpenAPI 호출)에 맞게 다시 해석해서 �
    [`docs/ai-logs/TEMPLATE.md`](docs/ai-logs/TEMPLATE.md)를 기준으로 PR별 로그를
    만들고, 본문에는 무엇을 왜 고쳤는지와 어떻게 확인했는지를 쓴다.
 
-   PR 생성 직후 작성자를 assignee로 지정한다. 작성자가 아닌 기본 협업자
-   `syt83`, `unknownamed`를 모두 reviewer로 요청하고, 저장소에 이미 있는 라벨 중
+   PR 생성 직후 작성자를 assignee로 지정한다. Owner의 명시적 승인이 없는 경우 작성자가 아닌 기본 협업자
+   `syt83`, `unknownamed`를 reviewer로 요청하고, 저장소에 이미 있는 라벨 중
    변경 성격에 맞는 라벨을 하나 이상 붙인다. PR 작성자 본인은 reviewer로 넣지 않는다.
    닫힌 과거 PR은 GitHub가 허용하는 assignee·label만 보완하고 무의미한 리뷰 요청은 하지 않는다.
 
@@ -121,7 +121,7 @@ git merge-base --is-ancestor origin/main HEAD
 GitHub CI가 성공해야 한다. 이전 커밋의 성공 결과는 재사용하지 않는다.
 
 - 검사 실패·대기 중 상태를 관리자 권한으로 우회하지 않는다.
-- 관리자 바이패스로 필수 리뷰 승인 규칙을 우회하지 않는다.
+- Owner의 명시적 승인 없이 관리자 bypass로 리뷰 승인 규칙을 우회하지 않는다. Owner 승인 시 필수 리뷰 3개를 기다리지 않으며 `validate` 성공은 유지한다.
 - squash merge가 최신 `main` 위에 적용된다는 이유로 브랜치 최신화와 재검증을
   생략하지 않는다.
 

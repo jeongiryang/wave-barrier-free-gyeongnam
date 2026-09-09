@@ -12,12 +12,12 @@ export const regionShowcasePhotos: Record<string, RegionPhoto> = {
     "month": "202205"
   },
   "합천": {
-    "id": "2647860",
-    "title": "황매산",
-    "image": "https://tong.visitkorea.or.kr/cms2/website/60/2647860.jpg",
-    "location": "경상남도 합천군",
-    "photographer": "두드림",
-    "month": "201911"
+    "id": "126175",
+    "title": "해인사(합천)",
+    "image": "https://tong.visitkorea.or.kr/cms/resource/27/4092527_image2_1.jpg",
+    "location": "경상남도 합천군 가야면 해인사길 122",
+    "photographer": "",
+    "month": ""
   },
   "창녕": {
     "id": "3590920",
@@ -252,10 +252,10 @@ const additionalRegionPhotos: Record<string, RegionPhoto[]> = {
   ],
   "합천": [
     {
-      "id": "126175",
-      "title": "해인사(합천)",
-      "image": "https://tong.visitkorea.or.kr/cms/resource/27/4092527_image2_1.jpg",
-      "location": "경상남도 합천군 가야면 해인사길 122",
+      "id": "2650070",
+      "title": "합천영상테마파크",
+      "image": "https://tong.visitkorea.or.kr/cms2/website/70/2650070.jpg",
+      "location": "경상남도 합천군",
       "photographer": "",
       "month": ""
     }
