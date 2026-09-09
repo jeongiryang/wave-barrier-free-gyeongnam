@@ -32,6 +32,8 @@ async function plannerProductSource() {
     "features/planner/components/NavigationWorkspace.tsx",
     "features/planner/components/TransportDataOverview.tsx",
     "features/planner/components/TransportModeSelector.tsx",
+    "features/planner/components/TransportLiveSummary.tsx",
+    "features/planner/components/ArrivalRetrievedAt.tsx",
     "features/planner/components/TransportProviderDetails.tsx",
     "features/planner/components/TransportDatasetPanel.tsx",
     "features/planner/components/RouteMapWorkspace.tsx",

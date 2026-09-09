@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
-async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "unknown" | "arrival", english = false, snapshot?: { retrievedAt?: string }) {
+async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "unknown" | "arrival", english = false, snapshot?: { retrievedAt?: string }, beforeConditions?: () => Promise<void>) {
   await mockPlannerApi(page);
   await page.addInitScript((en) => localStorage.setItem("wave-locale", en ? "en" : "ko"), english);
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -24,6 +24,7 @@ async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "
     },
   }) }));
   await page.goto("/planner");
+  await beforeConditions?.();
   if (english) {
     await page.getByRole("button", { name: "Changwon", exact: true }).click();
     await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
@@ -36,6 +37,19 @@ async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "
   await details.locator(".transport-dataset-grid").getByRole("button", { name: english ? /Bus arrivals/ : /버스도착/ }).click();
   return details;
 }
+
+for (const fails of [false, true]) test(`transport summary loads after data and ${fails ? "failure" : "success"} keeps details usable`, async ({ page }) => {
+  let modules = 0;
+  await page.route("**/TransportLiveSummary.tsx*", route => { modules++; return fails ? route.abort() : route.continue(); });
+  const details = await prepare(page, "arrival", false, undefined, async () => { expect(modules).toBe(0); });
+  if (fails) await expect(page.locator(".transport-summary-note[role=alert]")).toContainText("교통정보 상세에서 받은 정보를 확인");
+  else await expect(page.locator(".transport-live-rail")).toContainText("도착시간 미확인");
+  expect(modules).toBe(1);
+  await expect(details.locator(".transport-data-panel")).toContainText("도착시간 미확인");
+  await expect(details.getByRole("button", { name: "현재 조건 다시 확인", exact: true })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "경남도립미술관 일정에서 빼기", exact: true })).toHaveAttribute("aria-pressed", "true");
+  expect((await new AxeBuilder({ page }).include(".transport-data-panel").include(".transport-summary-note").analyze()).violations).toEqual([]);
+});
 
 for (const english of [false, true]) for (const knownTime of [true, false]) {
   test(`cached bus arrivals retain snapshot context: ${english ? "EN dark" : "KO light"}, time ${knownTime ? "known" : "missing"}`, async ({ page, isMobile }) => {
