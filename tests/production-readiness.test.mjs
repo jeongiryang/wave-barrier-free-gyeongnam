@@ -10,6 +10,7 @@ async function plannerProductSource() {
   const paths = [
     "app/planner/page.tsx",
     "features/planner/components/PlannerServiceStatus.tsx",
+    "features/planner/components/PlannerServiceDiagnostics.tsx",
     "features/planner/components/PlannerHeader.tsx",
     "features/planner/components/PlannerFooter.tsx",
     "features/planner/components/PlannerConditionsPanel.tsx",
@@ -558,7 +559,10 @@ test("transport and itinerary labels distinguish confirmed, estimated and unavai
       source("features/planner/components/RouteComparisonPanel.tsx"),
       source("features/planner/components/TripDayPlanner.tsx"),
     ]).then((parts) => parts.join("\n")),
-    source("features/planner/components/PlannerServiceStatus.tsx"),
+    Promise.all([
+      source("features/planner/components/PlannerServiceStatus.tsx"),
+      source("features/planner/components/PlannerServiceDiagnostics.tsx"),
+    ]).then(parts => parts.join("\n")),
     source("server/transport/kakao-route.ts"),
     source("server/transport/odsay.ts"),
   ]);
