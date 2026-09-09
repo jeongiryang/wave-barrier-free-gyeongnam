@@ -9,3 +9,4 @@
 - AI: Codex implemented and reviewed within the Owner-authorized functional completion scope, applying the React best-practices checklist: local result state, unchanged event-driven API calls, effect cleanup and accessible status/focus, no new dependency or storage.
 
 - MAIN #407: normal merge bcab49c, fresh733 unit tests/lint/typecheck/build/budgets PASS. All30 report/crowd browser cases PASS32.0s. Exact Production and hosted CI remain pending.
+- MAIN #409: normal integration of 4f74143. Fresh lint (13 existing warnings), typecheck, all 733 unit tests, build:vercel and budgets PASS (Planner 269.61/270 KiB; CSS 69.87/70 KiB). All 34 report/new-trip/stage browser cases PASS (47.0s); fresh 960px dark comment menu and 1440px dark post feedback captures inspected. Hosted CI and exact Production verification remain pending.
