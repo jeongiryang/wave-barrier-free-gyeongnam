@@ -20,7 +20,6 @@ export default function LandingPage() {
   const {
     landingRef,
     introReplay,
-    replayIntro,
     activeRegion,
     active,
     preview,
@@ -38,7 +37,7 @@ export default function LandingPage() {
     <LandingSectionProgress />
     {landingSections.map(section => {
       switch (section.key) {
-        case "hero": return <LandingHero key={section.id} t={t} replay={introReplay} onReplayIntro={replayIntro} />;
+        case "hero": return <LandingHero key={section.id} t={t} replay={introReplay} />;
         case "region": return <LandingRegionStory key={section.id} t={t} activeRegion={activeRegion} active={active} preview={preview} regionPhotos={regionPhotos} showRegionPreview={showRegionPreview} hideRegionPreview={hideRegionPreview} selectRegion={selectRegion} />;
         case "needs": return <LandingManifesto key={section.id} t={t} />;
         case "recommendation": return <LandingPossibilityScene key={section.id} />;

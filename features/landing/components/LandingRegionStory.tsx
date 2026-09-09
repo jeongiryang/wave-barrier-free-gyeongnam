@@ -28,6 +28,8 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
   const [focused, setFocused] = useState(false);
   const [visible, setVisible] = useState(true);
   const [saving, setSaving] = useState(false);
+  const album = regionShowcaseAlbums[active.name];
+  const photoIndex = photoChoice?.region === active.name ? photoChoice.index : 0;
   const running = ready && automatic && inView && visible && !interacting && !focused && !saving && motion !== "calm";
   useEffect(() => {
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
@@ -42,11 +44,16 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
   useEffect(() => {
     if (!running) return;
     const timer = setTimeout(() => {
+      if (photoIndex + 1 < album.length) {
+        setPhotoChoice({ region: active.name, index: photoIndex + 1 });
+        return;
+      }
       const index = landingRegions.findIndex(region => region.name === activeRegion);
+      setPhotoChoice(null);
       selectRegion(landingRegions[(index + 1) % landingRegions.length].name, false);
     }, 4000);
     return () => clearTimeout(timer);
-  }, [running, activeRegion, selectRegion]);
+  }, [running, activeRegion, active.name, album.length, photoIndex, selectRegion]);
   // The current album is lazy-rendered below. Warm only the next neighbouring
   // album while the showcase is visible; never fan out across all 18 regions.
   useEffect(() => {
@@ -68,8 +75,6 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
   const choose = (region: string) => { setAutomatic(false); setPhotoChoice(null); selectRegion(region, false); };
   const english = locale === "en";
   const regionLabel = (name: string) => english ? regionNames[name] : name;
-  const album = regionShowcaseAlbums[active.name];
-  const photoIndex = photoChoice?.region === active.name ? photoChoice.index : 0;
   const photo = album[photoIndex] || album[0];
   const index = landingRegions.findIndex(region => region.name === active.name);
   const move = (direction: number) => choose(landingRegions[(index + direction + landingRegions.length) % landingRegions.length].name);
@@ -95,7 +100,7 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
       <div className="region-photo-selector" role="group" aria-label={`${regionLabel(active.name)} ${english ? "photographs" : "사진 선택"}`}>
         {album.map((item, index) => <button key={item.id} type="button" aria-label={`${item.title} · ${english ? "show photograph" : "사진 보기"}`} title={item.title} aria-pressed={index === photoIndex} aria-controls="region-photograph" onClick={() => { setAutomatic(false); setPhotoChoice({ region: active.name, index }); }}><span aria-hidden="true" /></button>)}
       </div>
-      <div key={active.name + String(running)} className="region-showcase-progress" aria-hidden="true" />
+      <div key={active.name + photoIndex + String(running)} className="region-showcase-progress" aria-hidden="true" />
     </div>
   </section>;
 }
