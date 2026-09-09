@@ -92,7 +92,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
     </article>)}</div>
     <div className="itinerary-primary-actions">
       <div><strong>{c("일정 저장·공유", "Save and share")}</strong><p>{c("선택한 장소, 날짜와 순서를 30일 동안 공유 링크로 보관합니다.", "A shared link keeps the selected places, dates and order for 30 days.")}</p></div>
-      <button type="button" onClick={() => { if (plan && !outsideDates.length && shareState !== "saving") void sharePlan(); }} disabled={!plan || outsideDates.length > 0} aria-disabled={!plan || outsideDates.length > 0 || shareState === "saving"} aria-busy={shareState === "saving"}>{shareState === "saving" ? c("링크 만드는 중", "Creating link") : shareState === "done" ? c("링크 복사 완료", "Link copied") : c("공유 링크 만들기", "Create shared link")}</button>
+      <button type="button" onClick={() => { if (!outsideDates.length && shareState !== "saving") void sharePlan(); }} disabled={outsideDates.length > 0} aria-disabled={outsideDates.length > 0 || shareState === "saving"} aria-busy={shareState === "saving"}>{shareState === "saving" ? c("링크 만드는 중", "Creating link") : shareState === "done" ? c("링크 복사 완료", "Link copied") : c("공유 링크 만들기", "Create shared link")}</button>
       {shareUrl && <a href={shareUrl}>{c("공유 일정 열기", "Open shared itinerary")}</a>}
       {shareState === "error" && <small role="alert">{c("공유 링크를 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요.", "The shared link couldn't be created. Please try again.")}</small>}
       {shareState === "copy-error" && <small role="alert">{c("공유 링크는 만들었지만 복사하지 못했습니다. 공유 일정을 열어 주소를 직접 복사하거나 다시 시도해 주세요.", "The link was created but couldn't be copied. Open the shared itinerary and copy its address, or try again.")}</small>}

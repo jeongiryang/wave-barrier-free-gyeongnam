@@ -75,7 +75,6 @@ export default function PlannerPage() {
     weather, weatherFailure, weatherLoading, reloadWeather, loadEnrichment, resetWeather, resetEnrichment,
   } = usePlannerSignals({ plan, region, theme, locale, travelStart, travelEnd });
   const participation = usePlannerParticipation({
-    plan,
     region,
     theme,
     profiles: selected,
