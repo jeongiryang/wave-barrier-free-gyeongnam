@@ -13,3 +13,6 @@ Normal merge47f5785. Full739 unit/contract, lint13 existing warnings, typecheck 
 
 ## Main #414 final candidate
 Normal merge680cd64. Fresh739 unit/contract, lint13 existing warnings, typecheck/build/budgets PASS (Planner269.44KiB, CSS69.90KiB). All30 related browser cases PASS1.1min again at this source. The local field-evidence follow-up is NOT included; this candidate contains current-leg/mobility separation, the official capability audit and the necessary modal-content performance extraction only.
+
+## Hosted English regression coverage
+CI34405885964 exposed the existing departure-language test still expecting four articles after journey time and mobility access became separate cards. Both device shard 1 jobs failed this same assertion. Updated the exact count to five and explicitly assert one Journey times card, one Access along the journey card, and mobility Recheck needed. No assertion, contrast, keyboard, calendar or timeout check was removed. Fresh full739 quality/budgets PASS again; expanded local coverage now 48 browsers PASS (38 departure-language/route/readiness/deferred-content in54.7s plus10 existing place decisions in26.2s). English dark960 and the existing route1440/960 captures were reviewed. This new HEAD must pass fresh hosted CI before merge.
