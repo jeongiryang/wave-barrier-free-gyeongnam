@@ -2,12 +2,12 @@
 
 import { lazy, Suspense, useId, useRef } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
-import SmartSpotImage from "../../tourism/components/SmartSpotImage";
+import PlaceFacilitySummary from "./PlaceFacilitySummary";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place } from "../types";
-import { facilityName, originalLanguage } from "../place-copy";
-import { planNotices } from "../condition-copy";
+import { originalLanguage } from "../place-copy";
+import { planNotices, planFailureHeadings } from "../condition-copy";
 
 function InformationUnavailable({ en }: { en: boolean }) {
   return <p role="status">{planNotices.error[en ? 1 : 0]}</p>;
@@ -16,31 +16,26 @@ const ProviderFailureNotice = lazy(() => import("./ProviderFailureNotice").catch
 
 const ExplorationPlaces = lazy(() => import("./ExplorationPlaces").catch(() => ({ default: InformationUnavailable })));
 
+function PhotoUnavailable() {
+  const { locale } = useSitePreferences();
+  return <div className="smart-spot-image place-visual failed"><span className="smart-image-fallback" role="status"><small>{locale === "en" ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"}</small></span></div>;
+}
+const SmartSpotImage = lazy(() => import("../../tourism/components/SmartSpotImage").catch(() => ({ default: PhotoUnavailable })));
+
 function PlaceChoiceCard({ place, region, index, saved, current, en, onToggle, onDetails }: {
   place: Place; region: string; index: number; saved: boolean; current: boolean; en: boolean;
   onToggle: () => void; onDetails: () => void;
 }) {
   const id = useId();
-  const items = place.accessibility ?? [];
-  const confirmed = items.filter(item => item.state === "confirmed");
-  const unknown = items.length ? items.filter(item => item.state === "unknown").length : place.unknownFields;
-  const negative = items.length ? items.filter(item => item.state === "negative").length : place.negativeFields;
   const say = (ko: string, english: string) => en ? english : ko;
   const action = saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary");
   return <article className="place-card" data-result-current={current} aria-labelledby={`${id}-title`}>
-    <SmartSpotImage src={place.image} title={place.name} region={place.city || region} tag={say("관광지", "Place")} rank={index + 1} contentId={place.id} className="place-visual" showMeta={false} />
+    <Suspense fallback={<div className="smart-spot-image place-visual loading" aria-hidden="true" />}><SmartSpotImage src={place.image} title={place.name} region={place.city || region} tag={say("관광지", "Place")} rank={index + 1} contentId={place.id} className="place-visual" showMeta={false} /></Suspense>
     <div className="place-content">
       <p className="place-region" lang={originalLanguage(place.city || region)}>{place.city || region}</p>
       <h3 id={`${id}-title`} lang={originalLanguage(place.name)}>{place.name}</h3>
       <p className="place-address" lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
-      <div className="place-facilities">
-        <strong>{confirmed.length ? say("확인된 편의", "Reported facilities") : say("편의정보 확인이 필요해요", "Check the facility information")}</strong>
-        {confirmed.length > 0 ? <ul>{confirmed.slice(0, 3).map(item => <li key={item.key}><span aria-hidden="true">✓</span> <span lang={originalLanguage(facilityName(item.key, item.label, en))}>{facilityName(item.key, item.label, en)}</span></li>)}</ul> : <p>{say("항목별로 확인된 편의가 없습니다. 이용 정보를 살펴보세요.", "No facilities are confirmed at item level. Review the visitor information.")}</p>}
-      </div>
-      {(Boolean(unknown) || Boolean(negative)) && <p className="facility-caution">
-        {Boolean(unknown) && <span>{say("미확인", "Not reported")} {unknown}{say("개", "")}</span>}
-        {Boolean(negative) && <span>{say("조건 불일치", "Reported unavailable")} {negative}{say("개", "")}</span>}
-      </p>}
+      <PlaceFacilitySummary place={place} en={en} />
       <div className="place-actions">
         <button type="button" className={`primary${saved ? " saved" : ""}`} disabled={!saved && !current} onClick={onToggle} aria-pressed={saved} aria-labelledby={`${id}-title ${id}-action`}>
           <span id={`${id}-action`} className="sr-only">{action}</span><span aria-hidden="true">{action}</span><span aria-hidden="true">{saved ? "✓" : "+"}</span>
@@ -74,7 +69,7 @@ export default function RecommendationCarousel({ region, activePlaces, planContr
     {en && <p className="original-language-note">Place names, addresses and facility evidence may be available only in Korean. Original records are preserved.</p>}
     {incomplete && plan && <Suspense fallback={<InformationUnavailable en={en} />}><ProviderFailureNotice en={en} statuses={plan.statuses} /></Suspense>}
     {dirty && <div className="result-notice" role="status"><strong>{say("조건이 변경됐어요.", "Your preferences have changed.")}</strong><p>{say("아래는 이전 조건의 결과예요. 다시 찾기 전에는 새 일정에 추가할 수 없습니다.", "These are previous results. Search again before adding places.")}</p><button type="button" disabled={loading || !selected.length} onClick={() => void onGenerate(false)}>{say("변경한 조건으로 다시 찾기", "Search with new preferences")}</button></div>}
-    {planError && <div className="result-notice error" role="alert"><strong>{say("여행지를 불러오지 못했어요.", "We couldn't load places.")}</strong><p>{say("기존 결과와 내 일정은 보관했어요. 연결 상태를 확인하고 다시 시도해 주세요.", "Your previous results and itinerary are kept. Check your connection and try again.")}</p><button type="button" disabled={loading || !selected.length} onClick={() => void onGenerate(false)}>{say("다시 시도", "Try again")}</button></div>}
+    {planError && <div className="result-notice error" role="alert"><strong>{planFailureHeadings[planError][en ? 1 : 0]}</strong><p>{say("선택한 조건과 기존 일정은 유지됩니다. 잠시 후 다시 시도해 주세요.", "Your choices and existing itinerary are kept. Please try again shortly.")}</p><button type="button" disabled={loading || !selected.length} onClick={() => void onGenerate(false)}>{say("다시 시도", "Try again")}</button></div>}
     <div className="place-carousel" ref={cardsRef} aria-busy={loading}>
       {loading && <p className="sr-only" role="status">{say("여행지를 찾고 있어요.", "Finding places.")}</p>}
       {loading && !plan && [0, 1, 2].map((item) => <article className="place-card place-card-skeleton" key={item} aria-hidden="true"><div className="skeleton-visual" /><div className="skeleton-copy"><i /><b /><span /></div></article>)}

@@ -90,7 +90,7 @@ for (const response of ["empty", "error"] as const) {
     await page.route("**/api/wave?action=plan*", async (route) => {
       await released;
       await route.fulfill(response === "error" ? { status: 503, json: { error: "Unavailable" } } : {
-        status: 200, json: { mode: "live", generatedAt: "2026-09-06T00:00:00Z", places: [], stops: [], statuses: [] },
+        status: 200, json: { mode: "live", generatedAt: "2026-09-06T00:00:00Z", baseYm: "202609", course: null, audio: null, places: [], stops: [], statuses: [] } satisfies import("../features/planner/types").PlanData,
       });
     });
     await prepare(page);

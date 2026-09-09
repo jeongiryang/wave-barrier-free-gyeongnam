@@ -105,7 +105,7 @@ test("planner exposes honest recovery when the official plan request fails", asy
   await mockPlannerApi(page, { failPlan: true });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await expect(page.getByRole("alert")).toContainText("여행지를 불러오지 못했어요.");
+  await expect(page.getByRole("alert")).toContainText("서버가 요청을 처리하지 못했어요.");
   await expect(page.getByRole("button", { name: "다시 시도", exact: true })).toBeVisible();
 });
 

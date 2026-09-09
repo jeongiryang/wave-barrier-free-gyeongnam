@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CLIENT_BUDGET_MS } from "../../../lib/request-budget.js";
 import { scrollToSection } from "../../../lib/reduced-motion.js";
-import { plannerJson } from "../services/api";
+import { plannerJson, planFailureKind } from "../services/api";
+import { planResponse } from "../services/plan-response";
 import type { PlanData } from "../types";
 import { criteriaSignature } from "../../../lib/planner-criteria.js";
 import { planNotices } from "../condition-copy";
@@ -18,7 +19,7 @@ interface PlanRunOptions {
 export function usePlanRequest({ locale, region, selected, theme }: { locale: string; region: string; selected: string[]; theme: string }) {
   const [plan, setPlan] = useState<PlanData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [planError, setPlanError] = useState("");
+  const [planError, setPlanError] = useState<ReturnType<typeof planFailureKind> | "">("");
   const [noticeKind, setNoticeKind] = useState<keyof typeof planNotices>("idle");
   const notice = planNotices[noticeKind][locale === "en" ? 1 : 0];
   const [resultSignature, setResultSignature] = useState("");
@@ -63,8 +64,9 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     setNoticeKind("loading");
     try {
       const params = new URLSearchParams({ action: "plan", region, themes: requestedTheme, profiles: selected.join(","), locale });
-      const data = await plannerJson<PlanData>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.plan });
+      const response = await plannerJson<unknown>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.plan });
       if (controller.signal.aborted) return false;
+      const data = planResponse(response);
       resetAudio();
       resetRouteData();
       setPlan(data);
@@ -83,7 +85,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     } catch (error) {
       cancelReveal();
       if (controller.signal.aborted) return false;
-      const message = error instanceof Error ? error.message : "연결 상태를 확인해 주세요.";
+      const message = planFailureKind(error, navigator.onLine !== false);
       setPlanError(message);
       setNoticeKind(navigator.onLine === false ? "offline" : "error");
       return false;

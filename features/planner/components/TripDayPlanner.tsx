@@ -14,7 +14,15 @@ import type { PlanData } from "../types";
 import TripDateNotice from "./TripDateNotice";
 import { regionNames } from "../../../lib/gyeongnam-region-names";
 
-const TravelBookArchiveAction = lazy(() => import("../../travel-book/TravelBookArchiveAction"));
+function ArchiveUnavailable() {
+  const { locale } = useSitePreferences();
+  const en = locale === "en";
+  return <div className="travel-book-archive-action archive-unavailable">
+    <p role="alert">{en ? "Saving couldn't load. You can keep editing your itinerary. Reload the page to try saving again." : "일정 보관 기능을 불러오지 못했어요. 일정은 계속 편집할 수 있습니다. 보관하려면 화면을 다시 불러와 주세요."}</p>
+    <div className="travel-book-archive-controls"><button type="button" onClick={() => window.location.reload()}>{en ? "Reload page" : "화면 다시 불러오기"}</button></div>
+  </div>;
+}
+const TravelBookArchiveAction = lazy(() => import("../../travel-book/TravelBookArchiveAction").catch(() => ({ default: ArchiveUnavailable })));
 function AudioUnavailable() {
   const { locale } = useSitePreferences();
   return <p role="status">{locale === "en" ? "The audio guide couldn't open. You can keep editing your itinerary. Try the guide again after reloading the page." : "오디오 해설을 열지 못했습니다. 일정은 계속 편집할 수 있습니다. 페이지를 새로 연 뒤 해설을 다시 시도해 주세요."}</p>;

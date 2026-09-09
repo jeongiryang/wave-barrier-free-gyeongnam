@@ -23,6 +23,12 @@ function fixture() {
     if (name.endsWith("planner-criteria.js")) return { criteriaSignature };
     if (name === "../condition-copy") return { planNotices: Object.fromEntries(["idle", "loading", "updated", "empty", "error", "offline"].map(key => [key, [key, key]])) };
     if (name === "../services/api") return { plannerJson: (_url, options) => new Promise(resolve => calls.push({ resolve, signal: options.signal })) };
+    if (name === "../services/plan-response") {
+      const result = { exports: {} };
+      const source = ts.transpileModule(readFileSync(new URL("../features/planner/services/plan-response.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+      new Function("module", "exports", source)(result, result.exports);
+      return result.exports;
+    }
     throw Error(name);
   }, window, { onLine: true });
   let criteria = { locale: "ko", region: "Changwon", selected: ["wheelchair"], theme: "nature" };
@@ -30,7 +36,7 @@ function fixture() {
   return { render, calls };
 }
 const options = { resetRouteData() {}, resetAudio() {} };
-const plan = { places: [{ id: "old" }], statuses: [{ state: "live" }] };
+const plan = { mode: "live", generatedAt: "2026-09-09T00:00:00Z", baseYm: "202608", places: [], stops: [], course: null, audio: null, statuses: [{ id: "tour", name: "Tour", role: "Places", note: "", state: "live", count: 0 }] };
 test("ordinary criteria changes keep results until an explicit confirmed region reset", async () => {
   const app = fixture();
   const pending = app.render().runPlan(options, false);
