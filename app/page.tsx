@@ -8,7 +8,8 @@ import LandingHeader from "../features/landing/components/LandingHeader";
 import LandingHero from "../features/landing/components/LandingHero";
 import LandingManifesto from "../features/landing/components/LandingManifesto";
 import LandingRegionStory from "../features/landing/components/LandingRegionStory";
-import LandingJourneyScene from "../features/landing/components/LandingJourneyScene";
+import LandingSectionProgress from "../features/landing/components/LandingSectionProgress";
+import { landingSections } from "../features/landing/sections";
 import LandingIntro from "../features/landing/components/LandingIntro";
 import LandingPossibilityScene from "../features/landing/components/LandingPossibilityScene";
 import LandingDepartureScene from "../features/landing/components/LandingDepartureScene";
@@ -34,23 +35,18 @@ export default function LandingPage() {
   return <><LandingIntro replay={introReplay} /><main ref={landingRef} className="landing-page story-edition" data-scroll-direction={scrollDirection} lang={locale}>
     <SkipLink href="#story">{t("skip", "소개 바로가기")}</SkipLink>
     <LandingHeader scrolled={scrolled} t={t} />
-    <LandingHero t={t} replay={introReplay} onReplayIntro={replayIntro} />
-    <LandingRegionStory
-      t={t}
-      activeRegion={activeRegion}
-      active={active}
-      preview={preview}
-      regionPhotos={regionPhotos}
-      showRegionPreview={showRegionPreview}
-      hideRegionPreview={hideRegionPreview}
-      selectRegion={selectRegion}
-    />
-    <LandingManifesto t={t} />
-    <LandingPossibilityScene />
-    <LandingJourneyScene />
-    <LandingDepartureScene />
-    <LandingCommunityStory />
-    <LandingCallToAction t={t} />
+    <LandingSectionProgress />
+    {landingSections.map(section => {
+      switch (section.key) {
+        case "hero": return <LandingHero key={section.id} t={t} replay={introReplay} onReplayIntro={replayIntro} />;
+        case "region": return <LandingRegionStory key={section.id} t={t} activeRegion={activeRegion} active={active} preview={preview} regionPhotos={regionPhotos} showRegionPreview={showRegionPreview} hideRegionPreview={hideRegionPreview} selectRegion={selectRegion} />;
+        case "needs": return <LandingManifesto key={section.id} t={t} />;
+        case "recommendation": return <LandingPossibilityScene key={section.id} />;
+        case "departure": return <LandingDepartureScene key={section.id} />;
+        case "community": return <LandingCommunityStory key={section.id} />;
+        case "closing": return <LandingCallToAction key={section.id} t={t} />;
+      }
+    })}
     <LandingFooter t={t} />
   </main></>;
 }

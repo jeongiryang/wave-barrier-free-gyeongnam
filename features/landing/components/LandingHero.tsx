@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { useSitePreferences } from "../../../components/SitePreferences";
+import LandingHeroCopy from "./LandingHeroCopy";
 import StoryMedia from "./StoryMedia";
 import type { LandingTranslate } from "../content";
 
 export default function LandingHero({ t, replay = 0, onReplayIntro }: { t: LandingTranslate; replay?: number; onReplayIntro: () => void }) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
-  return <section className="landing-hero" id="top" data-intro-replay={replay}>
+  return <section className="landing-hero" id="top" tabIndex={-1} data-intro-replay={replay}>
     <StoryMedia>
     <div className="hero-opening">
     <div className="landing-hero-copy">
       <p><span className="access-badge">{t("heroBadge", "경남 무장애 여행")}</span></p>
-      <h1 id="landing-title" tabIndex={-1}>{t("heroTitle", "필요한 편의부터,")}<br /><em>{t("heroEm", "내게 맞는 경남 여행.")}</em></h1>
+      <LandingHeroCopy />
       <span>{t("heroCopy", "내게 필요한 편의로 경남 여행지를 찾고, 일정과 이동을 준비하세요. 로그인 없이 시작할 수 있어요.")}</span>
       <div className="landing-actions"><Link href="/planner">{en ? "Plan my trip" : "여행 계획하기"} <b aria-hidden="true">→</b></Link></div>
       <button className="intro-replay-link" type="button" onClick={onReplayIntro} aria-haspopup="dialog">{en ? "Replay intro" : "인트로 다시보기"}<span aria-hidden="true"> ↻</span></button>

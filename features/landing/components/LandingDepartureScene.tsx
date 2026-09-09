@@ -9,7 +9,7 @@ export default function LandingDepartureScene() {
   const en = useSitePreferences().locale === "en";
   const [failed, setFailed] = useState(false);
   const photo = regionShowcasePhotos["남해"];
-  return <section className="departure-scene" data-cinematic="curtain" aria-labelledby="departure-scene-title">
+  return <section id="departure" tabIndex={-1} className="departure-scene" data-cinematic="curtain" aria-labelledby="departure-scene-title">
     <div className="departure-scene-image" aria-hidden="true">
       {!failed && <img src={photo.image} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />}
     </div>

@@ -1,3 +1,4 @@
+import { regionPhotoSource } from "../region-photo-sources";
 import { regionShowcasePhotos } from "../region-showcase-photos";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -59,13 +60,11 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
   const index = landingRegions.findIndex(region => region.name === active.name);
   const move = (direction: number) => choose(landingRegions[(index + direction + landingRegions.length) % landingRegions.length].name);
 
-  return <section className="region-story region-showcase" id="regions"
+  return <section className="region-story region-showcase" id="regions" tabIndex={-1} aria-label={english ? "Gyeongnam photo showcase" : "경남 지역 사진"}
     onPointerEnter={event => { if (event.pointerType === "mouse") setInteracting(true); }} onPointerLeave={() => setInteracting(false)}
     onFocusCapture={() => setFocused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
     <header className="region-showcase-heading">
-      <p className="section-kicker">{english ? "18 different journeys" : "열여덟 빛깔의 경남"}</p>
-      <h2>{english ? "A different scene.\nA journey of your own." : "지역마다 다른 풍경,\n나만의 여행 한 장면."}</h2>
-      <p>{english ? "From the southern coast to the mountains. Find your next place." : "남쪽 바다에서 깊은 산자락까지. 마음이 머무는 곳을 찾아보세요."}</p>
+      <p>{english ? "From the southern coast to the mountains. Find your next place." : <>남쪽 바다에서 깊은 산자락까지.<br />마음이 머무는 곳을 찾아보세요.</>}</p>
     </header>
     <div className="region-showcase-stage" ref={stage} data-cinematic="wide" data-region-stage data-running={running} data-active-region={active.name}>
       <RegionScenePhoto key={active.name} photo={activePhoto} name={regionLabel(active.name)} english={english} />
@@ -92,8 +91,6 @@ function RegionScenePhoto({ photo, name, english }: { photo: RegionPhoto | null 
     {photo?.image && !failed ? <img src={photo.image} alt={`${name} · ${photo.title}`} lang="ko" decoding="async" loading="lazy"
       onError={() => setFailed(true)} ref={node => { if (node?.complete && !node.naturalWidth) setFailed(true); }} />
       : <div className="region-scene-empty" aria-hidden="true"><span>{name}</span></div>}
-    <figcaption>{photo?.image && !failed
-      ? <><span lang="ko">{photo.title}</span> · {english ? "Source: ⓒKorea Tourism Organization" : "출처: ⓒ한국관광공사"}{photo.photographer ? ` · ${photo.photographer}` : ""}</>
-      : photo === undefined ? (english ? "Loading official tourism photography" : "공식 관광사진을 불러오고 있어요") : (english ? "Tourism photo unavailable · explore the regional story" : "관광사진을 불러오지 못했어요 · 지역 이야기로 살펴보세요")}</figcaption>
+    <figcaption>{photo ? <><span lang="ko">{photo.title} · {photo.photographer}</span><br /><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer" aria-label={`${photo.title} · ${english ? "original photograph, opens in a new tab" : "사진 원본, 새 탭"}`}>{english ? "Source: ⓒKorea Tourism Organization · original image" : "출처: ⓒ한국관광공사 · 사진 원본"}</a>{failed && <span> · {english ? "Photo unavailable" : "사진을 불러오지 못했어요"}</span>}</> : (english ? "Tourism photo unavailable" : "관광사진을 불러오지 못했어요")}</figcaption>
   </figure>;
 }

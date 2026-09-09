@@ -1,12 +1,10 @@
 "use client";
 import { useSitePreferences } from "../../../components/SitePreferences";
-import LandingExpansionScene from "./LandingExpansionScene";
 import LandingScreenCapture from "./LandingScreenCapture";
 
 export default function LandingPossibilityScene() {
   const en = useSitePreferences().locale === "en";
-  return <section className="recommendation-chapter" aria-labelledby="recommendation-title">
-    <LandingExpansionScene />
+  return <section id="recommendation" tabIndex={-1} className="recommendation-chapter" aria-labelledby="recommendation-title">
     <div className="destination-editorial" data-cinematic="left">
       <div className="destination-copy">
         <p className="section-kicker">{en ? "Places that fit your plans" : "내 조건에서 만나는 여행지"}</p>

@@ -89,3 +89,13 @@
 신규 영상의 Git blob은 원본과 `5639387265a8f5cd275d5d03486eebb1f11c5d7d`로 동일하다. SHA-256: `960c26cac1a89d6b32c230ed3507d72be17926134aedc218a4c7a12cf64bd1d1`.
 
 실제 관광지·추천·날짜·지도 장면은 기존 `wave-journey` 기록과 출처 표시를 유지한다. 생성 풍경을 한국관광공사 자산이나 경남의 실제 무장애 시설 검증으로 표현하지 않는다. 출처·촬영 시점은 장면의 접근 가능한 상세보기에서 확인한다.
+
+
+## 2026-09-09 Owner 후속 pass 5 override
+
+현재 구성은 7개 장면이다. 기존 선택 기록은 역사로 보존하며 아래만 변경한다.
+- USE: v3 Intro/Hero, v1 동행 illustration, 실제 추천 capture, 18개 지역 및 출발 사진, v2 Closing.
+- KEEP SOURCE: 기존 편의 정적 capture(현 UI는 실제 카탈로그 DOM 시연으로 대체), 독립 panorama/영상(삭제 장면 재배치 금지).
+- DEFERRED #386: timeline/map capture·manifest·원본 LandingJourneyScene. 사용화면 재설계 후 동일 날짜/ID/워터마크 근거로 시연 재제작. 실제 Planner 기능은 유지.
+- Community는 지원하는 입력 필드를 사용한 읽기 전용 DOM 시연이며 실제 후기·사용자·이용실적 자료가 아니다.
+- 통합 사진/촬영/제작 출처는 `/policies#content-credits`; 인접 사진 밑줄 원본 링크와 워터마크 유지. 개별 상세 원문·이용조건 미확인은 [사진별 원장](design/region-photo-source-register.md)에 보존.

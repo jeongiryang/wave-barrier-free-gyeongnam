@@ -341,14 +341,13 @@ test("landing regional showcase is photo-led, while the verified boundary source
   assert.match(css, /prefers-reduced-motion: reduce/);
 });
 
-test("landing feature demos are ordered, static and motion-safe", async () => {
+test("preserved feature previews retain their order and motion safety; current community example never writes", async () => {
   const [stories, storyCss, featureMotionCss, accountCss] = await Promise.all([
     Promise.all([
       source("features/landing/components/LandingDiscoveryStories.tsx"),
       source("features/landing/components/LandingJourneyStories.tsx"),
       source("features/landing/components/LandingAdaptStory.tsx"),
       source("features/landing/components/LandingTravelBookStory.tsx"),
-      source("features/community/components/LandingCommunityStory.tsx"),
     ]).then((parts) => parts.join("\n")),
     source("app/styles/landing-stories.css"),
     source("app/styles/landing-feature-motion.css"),
@@ -362,10 +361,15 @@ test("landing feature demos are ordered, static and motion-safe", async () => {
   assert.equal((stories.match(/className="feature-preview-stage" aria-hidden="true"/g) || []).length, 6);
   assert.doesNotMatch(stories, /기능 화면 미리보기/);
   assert.doesNotMatch(stories, /<button\b/);
-  for (const hook of ["route-demo-path", "route-demo-vehicle", "community-editor-preview", "community-preview-fields"]) {
+  for (const hook of ["route-demo-path", "route-demo-vehicle"]) {
     assert.match(stories, new RegExp(`className="[^"]*${hook}`));
   }
   const community = await source("features/community/components/LandingCommunityStory.tsx");
+  assert.match(community, /className="[^"]*community-editor-preview/);
+  assert.match(community, /className="[^"]*community-entry-fields/);
+  assert.match(community, /useStoryPlayback\(4, 1400\)/);
+  assert.match(community, /실제 게시된 글이 아닙니다/);
+  assert.doesNotMatch(community, /fetch\(|localStorage|sessionStorage|createCommunityPost|<form\b|<input\b|<textarea\b/);
   assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   for (const selector of ["route-demo-path", "route-demo-vehicle"]) {
     assert.match(css, new RegExp(`html\\[data-motion="calm"\\][\\s\\S]{0,400}\\.${selector}[\\s\\S]{0,300}animation: none`));

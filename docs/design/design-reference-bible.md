@@ -14,7 +14,11 @@ W.A.V.E는 경상남도에서 사회적 약자의 관광 편의를 지원하는 
 스크롤만으로 필요한 편의 → 경남 탐색 → 추천 → 날짜·일정 → 지도·이동 → 출발 전 확인을 이해한다.
 Primary CTA는 **여행 계획하기** 하나다. 지역으로 시작, 커뮤니티 이동은 문맥에 맞는 secondary action이다.
 
-순서: Full-screen Intro → Hero → **Region Showcase** → Accessibility → Recommendation → Itinerary → Map → Departure → Community → Closing.
+현재 소개 순서: Full-screen Intro → Hero → **Region Showcase** → Accessibility → Recommendation → Departure → Community → Closing.
+
+2026-09-09 후속 Owner 결정: [#353 상세 수정](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5600307264), [#385 변경](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/385#issuecomment-5600315615).
+날짜·일정·지도는 **실제 핵심 기능으로 유지**, 소개 장면만 [#386](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/386)에 DEFERRED. “여행의 가능성을 넓히다 / 걱정은 덜고 설렘은 더 멀리” 독립 장면은 현재 구성에서 제거한다. 새 빈 장면으로 대체하지 않는다.
+실제 렌더와 진행 표시의 단일 목록은 `features/landing/sections.ts`의 7개 항목이다. [#387](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/387) 경로 거리·시간은 후속 FUNCTION TRACK이며 이번에 구현하지 않는다.
 KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 완성을 지연하지 않는다.
 한화오션의 시네마틱 품질, 카카오의 정보 절제, 여행 에디토리얼의 사진 구성을 W.A.V.E 고유의 Deep Ocean·무장애 가치와 결합한다. 브랜드·코드·사진·정확한 레이아웃을 복제하지 않는다.
 
@@ -57,9 +61,9 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 - **REFERENCE:** Kakao 서비스 메시지 + Palm Studio의 장소 이야기.
 - **PATTERN:** 큰 visual, 한두 줄 제목, 한 문장, 하나의 primary action.
 - **WHY IT WORKS:** 서비스 가치와 첫 행동의 경쟁을 줄인다.
-- **W.A.V.E APPLICATION:** 필요한 편의부터, 내게 맞는 경남 여행. / 여행 계획하기.
+- **W.A.V.E APPLICATION:** 첫 문구 “필요한 편의부터, 내게 맞는 경남 여행.”을 유지하고 B/C 두 문구를 6.5초마다 줄 단위로 전환. Intro 종료 뒤 A부터 시작. `여행 계획하기` 위치·문구·목적지는 고정한다.
 - **DO NOT:** 큰 흰 설명 카드, 동급 CTA 네 개, 제작 과정 배지.
-- **ACCESSIBILITY:** 고정 scrim으로 사진 실패·밝기 변화에도 대비 유지.
+- **ACCESSIBILITY:** 고정 scrim, 고정된 SR용 대표 제목, 순환 live announce 없음. 최소한의 지속 정지 버튼. 화면 밖·비활성 탭 정지, OS 감소·Save-Data에서 A 정적. 모든 문구가 공유하는 grid 높이로 CTA 이동 방지.
 - **PERFORMANCE:** Hero image priority, 반복 영상 download 없음.
 - **IMPLEMENTATION CANDIDATE:** LandingHero / StoryMedia.
 
@@ -67,30 +71,30 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 - **REFERENCE:** Owner representative switching + shadcn의 명명된 arrow 구조.
 - **PATTERN:** 사진·지명·짧은 이야기·지역 시작 링크가 하나의 상태로 전환.
 - **WHY IT WORKS:** 지도 설명을 읽기 전에 경남의 여행 범위를 느낀다.
-- **W.A.V.E APPLICATION:** Hero 바로 뒤, 18개 실제 KTO 사진, 4초, 이전/다음만.
+- **W.A.V.E APPLICATION:** Hero 바로 뒤, 18개 실제 KTO 사진, 4초, 이전/다음. 큰 제목·kicker 없이 기존 1rem/400 본문 “남쪽 바다에서 깊은 산자락까지. 마음이 머무는 곳을 찾아보세요.”만 남긴다. 사진·저작자·출처 링크가 같은 항목에서 전환된다.
 - **DO NOT:** 포커스 중 자동 변경, 재생/정지 CTA, 사진과 링크의 지역 불일치.
 - **ACCESSIBILITY:** hover/focus/offscreen/hidden/reduced에서 멈춤; 수동 arrow 뒤 자동 재개 안 함; 자동 변경 live announce 안 함.
 - **PERFORMANCE:** 선택 사진만 lazy load, API/provider 호출 없음, Save-Data rotation 중지.
-- **IMPLEMENTATION CANDIDATE:** LandingRegionStory.
+- **IMPLEMENTATION CANDIDATE:** LandingRegionStory / region-photo-sources. [사진별 출처 원장](region-photo-source-register.md): 확인된 상세 페이지만 연결하고, 미확인은 정확한 원본 이미지로 명시한다. 기관 홈·임의 상세 ID로 대체 금지.
 
 ### 05. Small frame → viewport edge
 - **REFERENCE:** Owner Hanwha 관찰 + Codrops expanding typography 실험.
 - **PATTERN:** 여백 속 프레임 자체의 좌우 경계가 viewport edge에 도달.
 - **WHY IT WORKS:** 단순 사진 zoom보다 장면 전체가 열리는 변화를 만든다.
-- **W.A.V.E APPLICATION:** 지역·추천 chapter에서 약 55–65% frame → 실제 full bleed.
+- **W.A.V.E APPLICATION:** 지역 chapter에서 작은 frame → 실제 full bleed. 삭제한 독립 panorama 장면을 재배치하지 않는다.
 - **DO NOT:** 카드 내부 image scale만 증가, 완료 후 radius/shadow/gutter 잔존.
 - **ACCESSIBILITY:** native wheel, 역스크롤 가역, 정적 expanded fallback, 텍스트 상시 제공.
 - **PERFORMANCE:** clip frame + 단일 scroll RAF; sticky spacer·scroll-jacking 없음.
-- **IMPLEMENTATION CANDIDATE:** data-cinematic / region-stage / destination panorama.
+- **IMPLEMENTATION CANDIDATE:** data-cinematic / region-stage. 원본 LandingExpansionScene·자산은 보존만 한다.
 
 ### 06. Asymmetric needs story
 - **REFERENCE:** SiteInspire Photography/Unusual Layout 색인 + editorial 원리.
 - **PATTERN:** 사람의 경험을 담은 이미지와 실제 편의 선택 UI의 비대칭 결합.
 - **WHY IT WORKS:** 대상 사용자를 유형으로 단정하지 않고 필요한 시설로 설명한다.
-- **W.A.V.E APPLICATION:** v1 동행 visual + 실제 편의 화면, 큰 제목 한 개.
+- **W.A.V.E APPLICATION:** v1 동행 visual + 실제 profiles 카탈로그를 재사용한 읽기 전용 선택 DOM. 접근로/승강기 → 시각 정보 지원 → 2개 선택 요약을 화면 진입 때 1회(4.2초) 보여준다.
 - **DO NOT:** 가족/휠체어 유형에 기능을 고정, 여러 동일 feature card.
 - **ACCESSIBILITY:** 이미지 alt는 concept과 실제 UI를 구분; 핵심 편의는 텍스트에도 존재.
-- **PERFORMANCE:** 기존 WebP lazy, scroll transform만.
+- **PERFORMANCE:** 기존 WebP lazy, 로컬 표현 상태만 사용. 화면 밖/hidden 정지. OS·Save-Data는 최종 선택 요약 정적. 실제 Planner 저장/설정/API 호출 금지.
 - **IMPLEMENTATION CANDIDATE:** LandingManifesto.
 
 ### 07. Real destination, visible evidence
@@ -103,21 +107,21 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 - **PERFORMANCE:** 원본 watermark 보존, 같은 asset 재사용.
 - **IMPLEMENTATION CANDIDATE:** Recommendation chapter.
 
-### 08. Dates become a visible itinerary
+### 08. Dates become a visible itinerary — DEFERRED #386
 - **REFERENCE:** Codrops progressive space + 실제 W.A.V.E timeline recording.
 - **PATTERN:** 앞뒤 날짜 상태를 스크롤 순서로 함께 노출.
 - **WHY IT WORKS:** 설명 탭 없이 장소를 날짜에 놓는 의미를 이해한다.
-- **W.A.V.E APPLICATION:** 첫날 두 곳 → 첫날 주남 / 둘째 날 대산 실제 capture.
+- **W.A.V.E APPLICATION:** 현재 Landing에서 제외. 기존 첫날/둘째 날 capture·manifest·LandingJourneyScene 보존. 실제 사용화면 재설계 후 #386에서 새 시연을 만들고 동일 날짜/장소 계약으로 재도입한다.
 - **DO NOT:** 설명용 tabs/date buttons, 날짜·ID를 임의 생성.
 - **ACCESSIBILITY:** 읽기 순서 동일, captions/date/place names 상시 visible.
 - **PERFORMANCE:** static DOM, lazy WebP, no planner hydration/request.
 - **IMPLEMENTATION CANDIDATE:** LandingJourneyScene.
 
-### 09. Itinerary → map continuity
+### 09. Itinerary → map continuity — DEFERRED #386
 - **REFERENCE:** 실제 제품 UI + editorial adjacent composition.
 - **PATTERN:** 바로 앞의 장소·날짜·순서가 지도에도 같은 식별자로 이어짐.
 - **WHY IT WORKS:** 지도 기능 나열보다 여행 하나가 연결됨을 보여준다.
-- **W.A.V.E APPLICATION:** 동일 recording의 before/day1/day2 map, 방문 장소 이름 반복.
+- **W.A.V.E APPLICATION:** 현재 Landing/anchor/진행 목록에서 제외. 기존 before/day1/day2 원본은 보존. #386 완료 전 소개의 필수 장면이나 출시 개선으로 계산하지 않는다.
 - **DO NOT:** 직선거리 추정을 실제 도로 경로로 표현, 무관한 stock map.
 - **ACCESSIBILITY:** 지도 이미지 밖에 장소와 이동 한계 텍스트; 정보 click 의존 금지.
 - **PERFORMANCE:** 지도 SDK를 Landing에서 추가 load하지 않음.
@@ -137,19 +141,19 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 - **REFERENCE:** W.A.V.E CommunityPostList / CommunityEditor 자체 UI.
 - **PATTERN:** 장소에 연결된 글/현장 확인 구조를 큰 DOM visual로 보여줌.
 - **WHY IT WORKS:** 긴 기능 설명보다 경험이 어디에 모이는지 보인다.
-- **W.A.V.E APPLICATION:** 실제 editor의 빈 작성 양식/장소 연결 구조를 읽기 전용으로 구성.
+- **W.A.V.E APPLICATION:** 실제 editor의 여행 질문/지역/제목/내용 항목을 읽기 전용으로 구성. 제목 → 내용 → 미게시 글 형태를 4.2초 동안 1회 보여준다. “작성 예시” 표시, 가상 이용자/후기 아님.
 - **DO NOT:** 가짜 사용자·후기·좋아요 수·작성일·실시간 activity.
-- **ACCESSIBILITY:** caption에 UI example임을 분명히, 가짜 조작 버튼 없음; 실제 Community 링크만.
-- **PERFORMANCE:** 실제 write/auth/API hook import 금지, static DOM.
+- **ACCESSIBILITY:** 예시 caption·정적 설명, 지속 정지/완료 후 다시 보기. 핵심 의미는 재생 없이도 전달. OS·Save-Data는 최종 정적 상태; SR 반복 낭독 없음.
+- **PERFORMANCE:** 실제 write/auth/API/storage hook import 금지. 화면 밖/hidden에서 타이머 중지, 추가 미디어 다운로드 없음.
 - **IMPLEMENTATION CANDIDATE:** LandingCommunityStory.
 
 ### 12. Closing + navigation restraint
 - **REFERENCE:** Kakao 행동 위계 + Owner Hanwha chapter rhythm.
 - **PATTERN:** 마지막 큰 visual·짧은 invitation, 아래로 읽을 때 nav가 물러남.
 - **WHY IT WORKS:** 시각 흐름을 가리지 않으며 돌아올 길과 다음 행동은 남긴다.
-- **W.A.V.E APPLICATION:** v2 harbor closing, primary CTA; up 즉시 nav, down threshold, gear/help icons.
+- **W.A.V.E APPLICATION:** v2 harbor closing, primary CTA; up 즉시 nav, down threshold, gear/help icons. 우측에는 현재 섹션/번호/세로선/총수, hover·focus 확장 및 native anchor. 모바일은 44px 현재/전체 native selector. 긴 통합 출처는 `/policies#content-credits`로 이동.
 - **DO NOT:** 빈 min-height, 반복 summary grid, focus/menu 안 nav 숨김.
-- **ACCESSIBILITY:** nav focus 즉시 reveal, 44px 이름 있는 icons, reduced static show/hide.
+- **ACCESSIBILITY:** nav focus 즉시 reveal, 44px 이름 있는 icons, reduced static show/hide. 진행도는 페이지 탐색이며 준비율이 아니다. Intro 중 숨김, Escape/Tab/터치 지원, desktop 우측 안전 여백과 모바일 하단 여백으로 본문·CTA 충돌 방지.
 - **PERFORMANCE:** 기존 RAF 공유, dependency 추가 없음.
 - **IMPLEMENTATION CANDIDATE:** LandingClosing / LandingHeader / useLandingMotion.
 
@@ -167,21 +171,22 @@ KO-first. 기존 locale 구조는 유지하지만 EN polish 때문에 한국어 
 
 ## Section mapping / current GAP → implementation
 
-Baseline: local `2f09bd419be28c83dcc2c39751d43b5d81cb1d53`, not Production.
+Baseline: local `c4f42990bf567a887683039f9cb703f336f28929`; 아래는 후속 pass 5 LOCAL 변경이며 Production 판정이 아니다.
 
 | Area | Current | Reference target / pattern | GAP / action and candidate |
 | --- | --- | --- | --- |
-| Intro | full-screen WaveField + Skip | 01,02 | Hero stagger/short reveal 추가 |
-| Hero | photo 위 큰 KO copy | 03 | 장식 재생/검수 caption 삭제, CTA 고정 |
-| Region | page 후반, map disclosure·18 buttons·pause | 04,05 | Hero 직후, arrows, full-bleed frame |
-| Accessibility | illustration + repeated rows | 06 | 실제 편의 UI를 visible로 결합, 짧게 |
-| Recommendation | 탭 뒤 places capture | 07,05 | 실제 사진 panorama와 추천 capture 상시 표시 |
-| Itinerary | date 선택 button 뒤 capture | 08 | 같은 before/after를 스크롤로 읽도록 펼침 |
-| Map | 또 다른 tab | 09 | 앞 날짜별 장소와 대응하는 지도 chapter |
-| Departure | 큰 남해 풍경 | 10 | 좋은 기반 유지, 짧은 판단 문장 |
-| Community | 설명 카드 두 개 | 11 | 실제 editor 구조 기반 큰 visual, fake review 없음 |
-| Closing | harbor + 긴 출처 설명 | 12 | 한 CTA·짧은 문장, provenance는 footer 보조 |
-| Planner | 기능 화면 | shadcn hierarchy | 이번 패스 구현 금지. 후속 기능 트랙에서만 재평가 |
+| Intro | full-screen WaveField + Skip | 01,02 | 기존 컷 보존; 다시 보기 후 Hero A부터 연결 |
+| Hero | 고정 문구 | 03 | A/B/C 줄 단위 교체, CTA 고정, 지속 정지 |
+| Region | 큰 제목 + 작은 본문 | 04,05 | 작은 본문만, 기존 실제 full-bleed 유지; 원본 링크/저작자 일치 |
+| Accessibility | 정적 편의 capture | 06 | 실제 카탈로그 DOM 선택→요약 시연, 실제 설정 불변 |
+| Recommendation | 실제 두 장소 capture | 07 | 유지; 앞 독립 panorama 장면/높이/로드 제거 |
+| Itinerary | 기존 전후 capture | 08 | DEFERRED #386. 현재 렌더·anchor·목록에서 제외; 원본 보존 |
+| Map | 기존 날짜별 capture | 09 | DEFERRED #386. 기능 코드·회귀 검사는 유지 |
+| Departure | 실제 남해 풍경 | 10 | 유지, 7개 소개 흐름에 연결 |
+| Community | 정적 작성 형상 | 11 | 지원 필드 입력→미게시 글 형태, 읽기 전용 DOM 1회 시연 |
+| Closing | harbor + 긴 credits | 12 | CTA 유지; credits는 기존 운영정책 섹션으로 이동 |
+| Progress/nav | scroll-aware header | 12 | 같은 7개 registry에서 compact/expanded/mobile progress 계산 |
+| Planner | 기능 화면 | 후속 #386/#387 | 이번 기능 변경 없음 |
 
 ## Assets — deliberate selection
 
@@ -195,20 +200,22 @@ Baseline: local `2f09bd419be28c83dcc2c39751d43b5d81cb1d53`, not Production.
 | v3 `d908bd9` hero-water-loop / coast | USE | Intro와 Hero의 공통 브랜드 바다 |
 | v3 ocean-expand / ocean loop / journey sequence | KEEP SOURCE | 이번 대표 full-bleed는 실제 관광사진 우선, 중복 영상 다운로드 방지 |
 | v3 examples | REJECT as implementation | global CSS/JS 복제 안 함 |
-| wave-journey actual captures + timeline manifest | USE | 편의·추천·날짜·지도 동일 실제 화면, watermark·ID·date 유지 |
-| region-showcase-photos, KTO original URLs | USE | 18지역, recommendation panorama, departure. 사진은 시설 보증이 아님 |
+| wave-journey recommendation capture | USE | 실제 추천 화면·watermark 유지 |
+| wave-journey conditions capture | KEEP SOURCE | 현재 편의 소개는 실제 카탈로그 DOM 시연으로 대체 |
+| wave-journey timeline/map captures + manifest | KEEP SOURCE / DEFERRED #386 | 원본/날짜/ID/워터마크 보존, 현재 렌더·미디어 로드 제외 |
+| region-showcase-photos, KTO original URLs | USE | 18지역과 departure. 기존 독립 panorama 제거. 사진은 시설 보증이 아님 |
 
 ## Visual system, whitespace and release boundary
 
 - Existing Deep Ocean tokens, white/mint on dark scrim; body 4.5:1, large text 3:1, 44px controls.
-- Headline 1–2줄, body 1–2문장. 중요 unknown 정보는 visible, 촬영 시각/asset 성격은 footer 출처로 분리.
+- Headline 1–2줄, body 1–2문장. 중요 unknown 정보는 visible, 촬영 시각/asset 성격은 운영정책의 콘텐츠 출처로 분리. 사진별 인접 출처/워터마크 유지.
 - `--cinema-ease: cubic-bezier(.16,1,.3,1)`; 대표 장면 frame expansion, 나머지는 비대칭/rise/curtain로 다른 리듬.
 - Desktop chapter breathing space와 mobile 밀도를 구분. 빈 sticky spacer 없이 내용 자체 높이로 읽는다.
 - Expanded frame 끝은 x=0, right=viewport, radius=0. 시작/중간/완료와 역스크롤을 캡처한다.
 - CSS gzip ≤70KiB / planner initial JS gzip ≤270KiB / 기존 landing 예산 유지. 이번 pass 추가 dependency 0. 예산 통과는 측정 전 주장 금지.
 - Full CI/Preview는 Owner visual checkpoint 후. 로컬 PASS ≠ Preview ≠ Production ≠ #353 완료.
 
-## Agent Design Contract — pass 4
+## Agent Design Contract — pass 4 (historical; superseded presentation noted above)
 
 REFERENCE: Owner #353/#385, Codrops expansion, Kakao copy, W.A.V.E 실제 UI.
 PATTERN: 02/04/05/07/08/09/11/12.
@@ -218,3 +225,15 @@ ACCESSIBILITY: 기존 intro focus/Skip/OS 유지, auto region stop, names/44px, 
 PERFORMANCE: existing RAF·static assets, API/SDK/dependency 추가 없음, lazy below fold.
 RESULT: 2026-09-09 18:52:39 KST LOCAL visual checkpoint. Hero 직후 지역 사진/4초 순환/두 arrow, 클릭 없는 편의·추천·3개 날짜별 일정·지도, 실제 우포늪 full-bleed, 후기 작성 UI visual, scroll-aware icon nav 구현. 실제 사진의 frame 시작/중간/끝/역스크롤 및 320/390/1366px 확인. 관련 unit 57 PASS; Intro 22, cinematic 10, complete story 2, nav/static 6의 최신 개별 실행 PASS(총40 case). 전체 suite 결과 아님.
 GAP: Owner 육안 승인 대기. 모바일 일정·지도 3개 상태의 긴 세로 리듬, 지역별 사진 구도는 다음 visual 판단 대상. 한화오션 원본 영상/공식 페이지의 프레임별 비교는 접근 제한으로 미확인. 옛 tab/map disclosure/media button E2E를 새 visible-scene 계약으로 이관한 뒤 budget/Full CI/Preview/독립 QA/Production gate 필요. LOCAL ONLY, 완료/출시 아님.
+
+
+## Agent Design Contract — pass 5
+
+REFERENCE: 위 최신 #353/#385 Owner 댓글. 기존 Bible의 원리만 갱신하며 전수 재조사하지 않음.
+PATTERN: 줄 단위 카피 전환, compact editorial progress, 실제 UI의 bounded read-only demonstration.
+W.A.V.E APPLICATION: 7개 소개 순서, 편의/작성 내부 상태 시연, 인접 출처 링크 + 운영정책 통합 원장.
+WHY: 핵심 메시지는 첫 문구와 스크롤만으로 전달하며 설명용 클릭을 요구하지 않는다.
+ACCESSIBILITY: 지속 정지, 고정 SR 제목/정적 설명, OS/Save-Data 최종 상태, 44px, focus/CTA 위치 유지.
+PERFORMANCE: 기존 React/CSS만, 새 dependency 없음. 삭제 장면 DOM/observer/media 요청 없음; 기능은 변경하지 않음.
+RESULT: 현재 로컬 구현. 실제 경량 검사·녹화 결과는 [작업 로그](../ai-logs/fullscreen-story-353.md)의 pass 5 참고.
+GAP: 사진별 원문 상세/개별 이용조건은 원장에 미확인으로 남김. Owner 시각 평가 및 최종 candidate의 budget/Full CI/Preview/독립 QA/Production은 아직 별도 Gate.

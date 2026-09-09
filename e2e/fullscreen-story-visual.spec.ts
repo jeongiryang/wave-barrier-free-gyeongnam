@@ -4,7 +4,8 @@ import { mockPublicShellApi } from "./fixtures";
 
 test.use({ video: "on" });
 
-test("the full-screen arrival leads through the complete Korean service story", async ({ page }) => {
+test("the full-screen arrival leads through the complete Korean service story", async ({ page, isMobile }) => {
+  await page.setViewportSize(isMobile ? {width:390,height:844} : {width:1366,height:900});
   await mockPublicShellApi(page);
   await page.route("**/api/region-photo**", route => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "사진을 불러오지 못했어요." }) }));
   const errors: string[] = [];
@@ -19,35 +20,38 @@ test("the full-screen arrival leads through the complete Korean service story", 
   await expect(intro).toBeHidden();
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   await page.screenshot({ path: test.info().outputPath("02-hero.png") });
-  for (const [index, selector] of [".region-story", ".manifesto", ".story-expansion", ".destination-editorial", ".itinerary-chapter", ".map-chapter", ".departure-scene", ".community-chapter", ".landing-cta"].entries()) {
+  // Real elapsed playback records line transitions rather than fast-forwarded text.
+  await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-phrase", "1");
+  await expect.poll(() => page.locator(".hero-phrase[data-active=true] .hero-line > span").first().evaluate(node=>getComputedStyle(node).transform)).toBe("none");
+  await page.screenshot({ path: test.info().outputPath("02b-hero-phrase.png") });
+  await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-phrase", "2");
+  if (!isMobile) {
+    const rail=page.getByRole("button",{name:"소개 섹션 목록",exact:true});
+    await rail.focus(); await expect(rail).toHaveAttribute("aria-expanded","true");
+    await page.screenshot({path:test.info().outputPath("02c-progress-expanded.png")});
+    await rail.press("Escape");
+    await page.locator(".landing-actions a").focus();
+  }
+  for (const [index, selector] of [".region-story", ".manifesto", ".destination-editorial", ".departure-scene", ".community-chapter", ".landing-cta"].entries()) {
     const section = page.locator(selector);
     await section.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
-    await expect.poll(() => section.locator("h2").first().evaluate(node => {
+    await expect.poll(() => section.locator(selector === ".region-story" ? ".region-showcase-heading p" : "h2").first().evaluate(node => {
       const reveal = node.closest("[data-land-reveal]") || node;
       return Number(getComputedStyle(reveal).opacity);
     })).toBe(1);
+    if(selector === ".manifesto") await expect(page.locator(".needs-demo")).toHaveAttribute("data-step","3");
+    if(selector === ".community-chapter") await expect(page.locator(".community-demo")).toHaveAttribute("data-step","3");
     await page.screenshot({ path: test.info().outputPath(`${index + 3}-scene.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
-  // All dated states stay visible without explaining/selection buttons.
-  for (const kind of ["itinerary", "map"]) {
-    const section = page.locator(`.${kind}-chapter`);
-    await expect(section.getByRole("button")).toHaveCount(0);
-    const scenes = section.locator(".journey-dated-scene");
-    await expect(scenes).toHaveCount(3);
-    for (let day = 0; day < 3; day++) {
-      const scene = scenes.nth(day);
-      await scene.scrollIntoViewIfNeeded();
-      await expect(scene).toBeVisible();
-      await expect(scene).toHaveAttribute("data-date", day === 2 ? "2026-09-10" : "2026-09-09");
-      expect(await scene.locator("[data-place-id]").evaluateAll(nodes => nodes.map(node => node.getAttribute("data-place-id")))).toEqual(day === 0 ? ["126117", "2758443"] : day === 1 ? ["126117"] : ["2758443"]);
-      const img = scene.locator("img");
-      await expect.poll(() => img.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
-    }
-  }
+  // Owner deferred the presentation to #386; Planner date/map functionality is untouched.
+  await expect(page.locator(".journey-dated-scene,.story-expansion")).toHaveCount(0);
+  await expect(page.locator("main > section")).toHaveCount(7);
+  await expect(page.locator(".needs-demo [data-selected=true]")).toHaveCount(2);
+  await expect(page.locator(".demo-post-preview")).toHaveAttribute("data-shown", "true");
   // One complete static page documents the whole composition, separately from normal-motion scenes.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator(".story-expansion")).toHaveCSS("--cinema-progress", "1");
+  await expect(page.locator(".region-showcase-stage")).toHaveCSS("--cinema-progress", "1");
   await page.screenshot({ fullPage: true, scale: "css", path: test.info().outputPath("whole-page-static.png") });
   const audit = await new AxeBuilder({ page }).analyze();
   expect(audit.violations).toEqual([]);

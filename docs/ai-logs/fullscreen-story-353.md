@@ -210,3 +210,60 @@ node scripts/run-playwright.mjs e2e/landing-cinematic.spec.ts
 - 옛 tab/date buttons, map disclosure, scenery/film controls를 가정하는 `landing-first-arrival`, `service-story`, `story-media-remix`, `landing-boundaries`, `landing-regions` 및 연결 touch/performance E2E는 최종candidate 계약 이관이 남음. 기존 날짜·ID·image dimension·실패·OS·locale·no-fetch 검사를 새 visible scene으로 보존할 것. 현재 Full suite green 아님.
 - 최종 CSS≤70KiB/plannerJS≤270KiB/landing budget, Full CI/Preview/independent QA/merge/mainCD/Production은 미실행. Owner 시각 체크포인트 후.
 - #373/자동화/provider/DB/계정/Planner/저장·공유 untouched. 사용자 dirty10/다른 worktree/queue/실패 artifact/source branches 보존. #353/#385 완료/close 안 함.
+
+
+## Owner 후속 pass 5 — 7개 장면·카피 순환·읽기 전용 시연 (2026-09-09 19:51:49 KST)
+
+### 범위와 상태
+
+- Owner [#353 상세](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5600307264), [#385 변경](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/385#issuecomment-5600315615) 전체를 읽고 기존 branch/worktree에서 이어갔다. 기준 local parent `c4f42990bf567a887683039f9cb703f336f28929`. 이 항목을 포함한 commit이 다음 LOCAL 체크포인트이며 아직 push/Preview/Production 대상이 아니다.
+- `D:/wave-production-validation-20260908`, `feat/fullscreen-story-353`, 기존 dev server `http://127.0.0.1:4173/` PID33148 유지. 다른 worktree·사용자 dirty10·queue294·source branch·기존 실패 artifact 보존. 새 병렬 작업·dependency·계정/API/provider/저장/공유 기능 변경 없음.
+- Reference Bible은 최신 변경 기준만 갱신했다. Intro/큰 바다/실제 full-bleed/KO-first는 보존했다.
+
+### 실제 변경
+
+| Owner 항목 | 이번 변경 / 현재 경계 |
+| --- | --- |
+| Hero | A를 첫 문구로 B/C 3개 카피, 6.5초 간격, 줄 단위 700ms 전환. grid 공유 높이, CTA 문구/href/좌표 유지. 고정 SR 제목·반복 announce 없음. 지속 정지, 화면 밖/hidden 중지, OS/Save-Data A 정적, Intro 다시 보기 후 A부터 시작 |
+| Region | Hero 바로 뒤 유지. 큰 제목/kicker 삭제, 기존 1rem/400 본문 2줄만 남김. 빈 wrapper 높이/여백 축소. 사진·저작자·밑줄 원본 URL 동기화, 실패 시에도 출처 유지 |
+| 독립 panorama | “여행의 가능성을 넓히다 / 걱정은 덜고…” LandingExpansionScene import/render 제거. DOM/scroll spacer/observer/media 요청 없음. 원본 자산/컴포넌트는 보존만 함 |
+| 진행 표시 | `features/landing/sections.ts`가 실제 7개 렌더 및 탐색 목록의 단일 기준. desktop compact/current/index/line/total, hover/focus 목록, Escape/anchor, Intro hidden. 모바일 44px native current/total 선택. URL hash 이동 시 기존 history.state 보존 |
+| 편의 | 실제 profiles 카탈로그/아이콘을 읽기 전용 DOM으로 재사용. 접근로/승강기 → 시각 정보 지원 → 선택 2개 요약. 4.2초 1회, 정지/끝난 뒤 다시 보기; 실제 여행 상태나 저장소/API 변경 없음 |
+| Community | 실제 지원 카테고리·지역·제목·내용으로 질문 작성 과정을 4.2초 1회 시연. “작성 예시”, 미게시 글 형태 표시. 실제 후기/사용자/좋아요/날짜/이용실적을 만들지 않음. no form/write/auth request. OS/Save-Data 최종 정적 예시 |
+| 날짜·일정·지도 소개 | 현재 렌더/anchor/진행 목록에서 제외. [#386](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/386) DEFERRED. LandingJourneyScene·timeline/map captures·manifest 보존. 실제 Planner/날짜/지도 코드와 기능 회귀 검사 미수정 |
+| 거리·시간 | [#387](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/387) 후속 FUNCTION, 이번 미착수. #277/#365/#372 경계 유지 |
+| 통합 출처 | 기존 `/policies#content-credits`에 사진 원본·저작자·제공기관·이용조건 미확인·워터마크·브랜드/촬영/작성 예시 경계 이관. Footer 운영정책 링크 유지. 개인정보처리방침/약관 미변경 |
+
+### 사진 원문 확인의 한계
+
+- [사진별 원장](../design/region-photo-source-register.md)에 18개를 기록. 현재 링크는 **확인 가능한 정확한 원본 이미지**이며 게시 상세 페이지라고 부르지 않는다. 상세 페이지/개별 이용조건 18개 모두 미확인으로 남겼다. 출처를 만들어내거나 기관 홈에 연결하지 않음.
+- 공식 검색에서 같은 제목/저작자의 진해군항제 상세를 찾았지만 이미지 ID가 `2638093`으로 현재 `2638113`과 달라 채택하지 않았다. 이 다른 상세 페이지의 이용유형을 현재 사진의 허가로 전용하지 않았다.
+- 출처 링크 일치 검사와 실제 개별 라이선스 확인은 다르다. 출시 전 콘텐츠 확인 GAP이며 이번에 완료로 판정하지 않는다.
+
+### 경량 검증 · 실패 기록 포함
+
+증거 루트: `D:/wave-db-binding-preflight-20260908/fullscreen-story-353-owner-pass5-20260909/`.
+
+- Changed TS/TSX/mjs eslint: `lint-checkpoint.log` exit0, **0 error / 3 기존 img warning**, suppress 없음. `npm run typecheck`: `typecheck-checkpoint.log` exit0.
+- `node --test tests/landing-boundaries.test.mjs tests/production-readiness.test.mjs tests/repository-policy.test.mjs tests/auth-community.test.mjs`: `unit-final.log` **57 PASS / 0 FAIL / 0 SKIP**. 이전 `unit-1.log`54/3, `unit-2.log`56/1은 보존. 옛 정적 Community class/버튼 없음/영문 개발 label의 source-regex 계약을 새 읽기 전용 시연과 보존된 6개 원본 검사로 분리했다. 실제 권한·저장·날짜·경로 테스트 삭제 없음.
+- Playwright 공통 실행: `CI=true`, `E2E_BASE_URL=http://127.0.0.1:4173`, 기존 config timeout45000/expect8000/retry1/worker2/failOnFlaky 유지, output/report 각 별도 디렉터리.
+- `playwright test e2e/landing-owner-pass5.spec.ts`: 최초 `owner-1.log` **8 PASS / 2 FAIL / 2 FLAKY**. storage baseline을 hydration 전에 읽어 기본 theme/locale 저장과 혼동했고, streamed server copy와 live DOM이 잠시 공존할 때 locator가 중복됐다. 기존 `.motion-ready`/단일 root/font/default preference readiness를 기다린 후 상태를 읽도록 고쳤다. assertion 완화가 아니라 초기화 계약 보강. `owner-2.log`12PASS. 추가 offscreen/visibility/Intro replay/history-preservation 포함 최종 `owner-final.log` **14 PASS / 0 FAIL/FLAKY/SKIP**.
+- `playwright test e2e/landing-owner-pass5.spec.ts e2e/landing-cinematic.spec.ts e2e/landing-scroll-contract.spec.ts`: `related.log`28PASS. 이중 cinematic10 + nav/static6의 최신 결과를 보존하며, 변경 없는 부분을 반복 실행하지 않았다.
+- `playwright test e2e/landing-owner-pass5.spec.ts e2e/fullscreen-story-visual.spec.ts e2e/fullscreen-intro.spec.ts`: `checkpoint.log` **36 PASS / 2 FAIL**. Intro22/Owner14는 PASS, 새 실제 녹화 검사2개가 CSS 최종 transform을 matrix identity라고 잘못 가정했다. 실제 선언/브라우저 값 `none`을 정확히 검사하도록 수정했고 기능 변경 없이 visual 파일2개만 다시 실행했다.
+- `playwright test e2e/fullscreen-story-visual.spec.ts`: `visual-2.log` **2 PASS / 0 FAIL/FLAKY/SKIP**,31.4초. 1366/390px 실제 elapsed Hero 3문구·편의/작성 시연·Intro·전체 story 녹화, pageerror0/axe0/overflow0. fixture API와 실제 KTO-hosted 사진 화면 확인을 구분한다.
+- 최신 **고유 관련 case 합계54 PASS** = Owner14 + Intro22 + cinematic10 + nav/static6 + visual2. 이는 개별 실행 합산이며 전체 Playwright/CI 결과가 아니다. 최초 실패·flaky/trace/video를 보존했고 재실행 성공으로 소급 변경하지 않았다.
+- OS/Save-Data 정적 상태, 320/390 overflow/axe, keyboard/Escape/focus, CTA 고정, 7개 총수, 18개 사진 원본·저작자 링크, 시연 POST0/저장 전후 동일/제외 미디어 요청0 확인. hidden-tab 검사는 visibility 이벤트를 제어한 계약 시험이며 실제 OS 작업 전환 시험으로 부르지 않는다.
+- `git diff --check` PASS. 새 skip/timeout/retry/worker/성능 예산 완화 없음. 삭제된 소개 섹션만 Owner의 새 계약으로 이관했고 Planner 기능 검사는 건드리지 않았다.
+
+### 직접 확인 가능한 화면과 녹화
+
+- 1366px compact/expanded rail, Hero A/B/C, facilities final, Community entered text/result, region original photo, Closing, 320/390px 실제 화면 확인. 개별 `region-320.png`, `community-320-final.png`, `community-final.png`; 영상의21초/26초 프레임도 확인했다.
+- `visual-results-2/fullscreen-story-visual-th-8be84-mplete-Korean-service-story-desktop-chromium/video.webm`: 전체31.12초. mobile 파일은 같은 디렉터리 접미사 `mobile-chromium`.
+- `hero-copy-15s.mp4`: 위 실제 녹화5–20초 무음 추출. `product-demos-12s.mp4`:18–30초 추출. 합성 재생/프레임 속도 변경 없음. 마지막 제어 문구 줄바꿈 방지 및 history.state 보존은 녹화 후 경량14case에서 추가 확인했다.
+- 압축된 full-page PNG만 보고 판정하지 않고 실제 크기의 각 section 캡처도 열어 봤다. 실물기기·사람 화면낭독기·200% 확대 전체 검증은 이번에 수행하지 않았다.
+
+### 재개 경계
+
+Owner가 이 로컬 시각 체크포인트를 직접 확인한다. #353/#385 Open 유지, 완료/출시/독립 QA PASS 아님. 다음 수정은 이 candidate에 대한 디자인 피드백과 사진 상세 출처 확인이며, #386 재도입/#387 기능/계정/provider/자동화로 범위를 넓히지 않는다.
+옛 landing-first-arrival/service-story/story-media-remix/landing-boundaries/landing-regions의 과거 표현 계약은 최종 candidate에서 계속 이관해야 한다. Full suite green 주장 금지.
+성능 예산·Full CI·Preview·독립 QA·merge·Production은 시각 candidate 승인 이후의 별도 Gate로 남긴다. 기존 서버는 종료하지 않는다.

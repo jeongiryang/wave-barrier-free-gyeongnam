@@ -26,7 +26,7 @@ test("regional names, photographs and trip links rotate together after four seco
   await page.locator("#regions").evaluate(el => scrollTo({top: scrollY + el.getBoundingClientRect().top - 80, behavior: "instant"}));
   await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
   // Reset through the real pause/resume interaction at a fixed clock origin.
-  await page.locator("#regions h2").hover();
+  await page.locator(".region-showcase-heading p").hover();
   await expect(stage).toHaveAttribute("data-running", "false");
   await page.mouse.move(0, 0);
   await expect(stage).toHaveAttribute("data-running", "true");
@@ -58,7 +58,7 @@ test("keyboard arrows stop rotation, preserve focus and match all 18 destination
     await expect(choice).toBeFocused();
     await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", name);
     await expect(section.locator(".region-scene-photo img")).toHaveAttribute("src", regionShowcasePhotos[name].image);
-    await expect(section.getByRole("link")).toHaveAttribute("href", "/planner?region=" + encodeURIComponent(name));
+    await expect(section.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent(name));
   }
   await page.clock.fastForward(16000);
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "창원");
@@ -77,7 +77,7 @@ test("reduced motion and offscreen chapters do not auto-rotate; runtime reductio
   await page.clock.fastForward(12000);
   await expect(stage).toHaveAttribute("data-active-region", "창원");
   await stage.scrollIntoViewIfNeeded();
-  const link = stage.getByRole("link");
+  const link = stage.getByRole("link", { name: "이 지역으로 여행 시작" });
   await link.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.clock.fastForward(12000);
@@ -88,7 +88,7 @@ test("reduced motion and offscreen chapters do not auto-rotate; runtime reductio
   await expect(stage.locator("img")).toHaveCSS("animation-name", "none");
 });
 
-test("failed photographs retain the actual region, source-free empty state and working choices at 320px", async ({ page }) => {
+test("failed photographs retain the actual region, source-preserving empty state and working choices at 320px", async ({ page }) => {
   await page.route("https://tong.visitkorea.or.kr/**", route => route.abort());
   await page.setViewportSize({ width: 320, height: 568 });
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -97,7 +97,7 @@ test("failed photographs retain the actual region, source-free empty state and w
   const section = page.locator("#regions");
   await section.getByRole("button", { name: "다음 지역", exact: true }).click();
   await expect(section.locator(".region-scene-photo img")).toHaveCount(0);
-  await expect(section.locator(".region-scene-photo figcaption")).toContainText("관광사진을 불러오지 못했어요");
+  await expect(section.locator(".region-scene-photo figcaption")).toContainText("사진을 불러오지 못했어요");
   await expect(section.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("하동"));
   expect(await section.locator(".region-arrows button").evaluateAll(nodes => nodes.every(node => {
     const r = node.getBoundingClientRect(); return r.width >= 44 && r.height >= 44;
@@ -110,9 +110,9 @@ test("frames reach both viewport edges, reverse on scroll and remain fully open 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
-  for (const selector of [".story-expansion", ".region-showcase-stage"]) {
+  for (const selector of [".region-showcase-stage"]) {
     const node = page.locator(selector);
-    const visual = selector === ".story-expansion" ? node.locator(".story-expansion-frame") : node;
+    const visual = node;
     await node.evaluate(el => scrollTo({ top: el.getBoundingClientRect().top + scrollY - innerHeight * .8, behavior: "instant" }));
     await expect.poll(() => node.evaluate(el => Number(getComputedStyle(el).getPropertyValue("--cinema-progress")))).toBeLessThan(.5);
     const before = await visual.evaluate(el => getComputedStyle(el).clipPath);
