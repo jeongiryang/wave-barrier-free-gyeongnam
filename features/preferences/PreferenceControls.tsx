@@ -54,7 +54,7 @@ export function PreferenceControls({ onReplayIntro }: { onReplayIntro?: () => vo
           <em aria-hidden="true">{systemReducedMotion ? en ? "Device" : "OS" : motion === "calm" ? en ? "Reduced" : "정지" : en ? "Full" : "흐름"}</em>
         </button>
         {onReplayIntro && <button className="preference-row" type="button" disabled={!replayReady} onClick={() => { onReplayIntro(); setReplayCount((count) => count + 1); }} aria-label={en ? "Replay intro" : "인트로 다시보기"}>
-          <span><b>{en ? "Replay intro" : "인트로 다시보기"}</b><small>{en ? "Keeps your focus and motion preferences" : "현재 초점과 동작 설정을 유지합니다"}</small></span>
+          <span><b>{en ? "Replay intro" : "인트로 다시보기"}</b><small>{en ? "Open the full-screen introduction; return here when closed" : "전체 화면 소개를 본 뒤 이 버튼으로 돌아옵니다"}</small></span>
           <em aria-hidden="true">↻</em>
         </button>}
         {onReplayIntro && <p role="status" aria-live="polite" aria-atomic="true">{replayCount > 0 ? (en ? "Intro shown again with your motion preferences." : "설정한 동작 효과로 인트로를 다시 표시했습니다.") : ""}{replayCount > 1 ? (en ? ` (${replayCount} replays)` : ` (${replayCount}회)`) : ""}</p>}

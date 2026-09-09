@@ -371,7 +371,7 @@ test("landing feature demos are ordered, static and motion-safe", async () => {
   }
 });
 
-test("wave effects avoid dense glyphs and landing opens without a blocking intro", async () => {
+test("wave effects avoid dense glyphs and full-screen arrival always offers a direct exit", async () => {
   const [renderer, model, landing, css] = await Promise.all([
     source("features/motion/wave-field-engine.ts"),
     source("features/motion/wave-model.ts"),
@@ -382,7 +382,23 @@ test("wave effects avoid dense glyphs and landing opens without a blocking intro
   assert.doesNotMatch(ramp, /[#@xX≡]/);
   assert.match(model, /out: \[1\.78, 1\.96\]/);
   assert.match(renderer, /stageWeight\(elapsed, INTRO_STAGES\[2\]\)/);
-  assert.doesNotMatch(landing, /LandingIntro|useLandingIntro|introState/);
+  // Owner #353 replaces the former non-modal arrival policy with a separate full-screen scene.
+  const intro = await source("features/landing/components/LandingIntro.tsx");
+  const bootstrap = await source("features/landing/arrival-bootstrap.ts");
+  const arrivalCss = await source("app/styles/landing-arrival.css");
+  assert.match(landing, /<LandingIntro replay=\{introReplay\} \/><main/);
+  assert.match(intro, /<dialog[\s\S]*aria-labelledby="arrival-title"/);
+  assert.match(intro, /<form method="dialog"[\s\S]*data-intro-skip/);
+  assert.match(intro, /<a href="\/planner"/);
+  assert.match(intro, /muted playsInline preload="none"/);
+  assert.match(intro, /connection\?\.saveData === true/);
+  assert.match(intro, /prefers-reduced-motion: reduce/);
+  assert.match(intro, /setTimeout\(finish, 9000\)/);
+  assert.match(intro, /target\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(bootstrap, /data-intro-skip/);
+  assert.match(bootstrap, /sessionStorage\.setItem\('wave-arrival-session-v1','done'\)/);
+  assert.match(arrivalCss, /height: 100dvh/);
+  assert.doesNotMatch(landing, /useLandingIntro|introState/);
   assert.match(landing, /경남 18개 시·군/);
   assert.doesNotMatch(landing, /18 CITIES · 18 STORIES/);
   assert.doesNotMatch(landing, /useState\(true\)/);

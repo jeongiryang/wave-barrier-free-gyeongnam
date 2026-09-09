@@ -78,7 +78,7 @@ export default function LandingJourneyScene() {
         <p>{copy("이동 시간은 직선거리 추정이며 실제 길찾기 결과가 아니에요. 방문 전 시설과 경로를 다시 확인하세요.", "Travel times are straight-line estimates, not verified routes. Recheck facilities and routes before visiting.")}</p>
       </details>
     </div>
-    <figure className="journey-scene-visual journey-stage" data-land-reveal>
+    <figure className="journey-scene-visual journey-stage" data-step={step} data-land-reveal>
       <div className="journey-stage-controls" role="group" aria-label={copy("여행 계획 소개 단계 선택", "Choose a planning step")}>
         {steps.map((item, index) => <button key={item[0]} type="button" aria-pressed={step === index} aria-controls="journey-stage-panel" onClick={() => setStep(index)}>
           <b aria-hidden="true">{index + 1}</b>{item[en ? 1 : 0]}

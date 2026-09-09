@@ -32,6 +32,7 @@ import "./styles/landing-expansion.css";
 import "./styles/landing-journey-stage.css";
 import "./styles/landing-feature-motion.css";
 import "./styles/landing-regions.css";
+import "./styles/landing-arrival.css";
 import "./styles/planner-unified-workspace.css";
 import "./styles/planner-journey-control.css";
 import "./styles/planner-flow.css";
@@ -43,9 +44,10 @@ import "./styles/mobile-interaction-hardening.css";
 import "./styles/policies.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN, SITE_TITLE, SOCIAL_IMAGE } from "../lib/site-metadata";
+import { arrivalBootstrap } from "../features/landing/arrival-bootstrap";
 
 const productionUrl = new URL(SITE_ORIGIN);
-const preferenceBootScript = `(()=>{try{const d=document.documentElement;const m=matchMedia('(prefers-color-scheme: dark)').matches;const r=matchMedia('(prefers-reduced-motion: reduce)').matches;const t=localStorage.getItem('wave-theme');const o=localStorage.getItem('wave-motion');d.dataset.theme=t==='dark'||t==='light'?t:(m?'dark':'light');d.dataset.motion=r||o==='calm'?'calm':'full';d.lang='ko';d.style.colorScheme=d.dataset.theme}catch{}})()`;
+const preferenceBootScript = `(()=>{try{const d=document.documentElement;const m=matchMedia('(prefers-color-scheme: dark)').matches;const r=matchMedia('(prefers-reduced-motion: reduce)').matches;const t=localStorage.getItem('wave-theme');const o=localStorage.getItem('wave-motion');d.dataset.theme=t==='dark'||t==='light'?t:(m?'dark':'light');d.dataset.motion=r||o==='calm'?'calm':'full';d.lang='ko';d.style.colorScheme=d.dataset.theme}catch{}try{document.documentElement.dataset.introSeen=sessionStorage.getItem('wave-arrival-session-v1')==='done'?'1':'0'}catch{}})()`;
 
 export const metadata: Metadata = {
   metadataBase: productionUrl,
@@ -107,6 +109,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="shortcut icon" href="/favicon.svg" />
         <script dangerouslySetInnerHTML={{ __html: preferenceBootScript }} />
+        <script dangerouslySetInnerHTML={{ __html: arrivalBootstrap }} />
       </head>
       <body className="antialiased">
         <SitePreferencesProvider>{children}</SitePreferencesProvider>

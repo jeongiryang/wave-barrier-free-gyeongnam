@@ -11,6 +11,7 @@ import LandingManifesto from "../features/landing/components/LandingManifesto";
 import LandingRegionStory from "../features/landing/components/LandingRegionStory";
 import LandingJourneyScene from "../features/landing/components/LandingJourneyScene";
 import LandingExpansionScene from "../features/landing/components/LandingExpansionScene";
+import LandingIntro from "../features/landing/components/LandingIntro";
 import { useLandingExperience } from "../features/landing/hooks/useLandingExperience";
 
 export default function LandingPage() {
@@ -30,7 +31,7 @@ export default function LandingPage() {
     selectRegion,
   } = useLandingExperience();
 
-  return <main ref={landingRef} className="landing-page" data-scroll-direction={scrollDirection} lang={locale}>
+  return <><LandingIntro replay={introReplay} /><main ref={landingRef} className="landing-page story-edition" data-scroll-direction={scrollDirection} lang={locale}>
     <SkipLink href="#story">{t("skip", "소개 바로가기")}</SkipLink>
     <LandingHeader scrolled={scrolled} t={t} onReplayIntro={replayIntro} />
     <LandingHero t={t} replay={introReplay} />
@@ -51,5 +52,5 @@ export default function LandingPage() {
     <LandingCommunityStory />
     <LandingCallToAction t={t} />
     <LandingFooter t={t} />
-  </main>;
+  </main></>;
 }
