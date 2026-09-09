@@ -152,3 +152,13 @@ exact `bf29f21b4abfb0376320631f96877276659536a3`의 [CI866](https://github.com/j
 문서의 오래된 ‘로컬 미커밋’을 커밋된 미배포 상태로 정정했다. 또한 일정 편집도 경로 자동 조회를 일으키므로 시연에서 버튼만 피하면 제공처 호출0이라는 잘못된 전제를 고쳤다. 제한 중에는 경로 전송을 차단한 검증 환경 또는 보존한 실제 화면을 사용하며, eab의 route/ODsay0은 그 guard의 결과다. 기존 eab 촬영 시각·74개 관찰·공식13장 선택 구성/18of26·8개 미완료 슬롯은 새 SHA의 성공으로 바꾸지 않는다.
 
 근거: `D:/wave-db-binding-preflight-20260908/story353-candidate-d16a365-20260909/`. 최종 candidate Full CI·exact Preview·비기여자 독립 QA·main CI/CD·canonical Production 및 최종 캡처는 아직 남았다. #373/automation/sandbox 확장이나 전체 로컬 E2E 반복은 수행하지 않는다.
+
+## 2026-09-09 09:35 KST — Hero 카피의 스크롤 재등장 대비 결함
+
+[CI873](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34292935591)의 exact `f6cd562`는 실패했다. 원본 5개 ZIP·5개 job 로그·4개 보고서를 보존해 고유 850건 중 848 PASS·flaky1·기존 skip1, 추가 attempt1을 확인했다. 모바일 EN `condition-prerequisites.spec.ts`의 전체 Hero axe가 배지와 CTA의 혼합색 대비를 3.9:1로 검출했다. 기존 retry의 성공은 원래 실패를 해소하지 않으며 failOnFlaky gate도 유지한다. 별도로 browser(2)는 desktop212 PASS·mobile211 PASS/기존 skip1과 두 artifact 업로드를 끝낸 뒤 25분 job 제한으로 CANCELLED됐다. 검사가 빠졌거나 두 실패가 같은 원인이라고 해석하지 않는다.
+
+원인은 Hero의 기본 `opacity:1`보다 우선하는 공통 `[data-land-reveal]` 규칙과 IntersectionObserver 재진입이었다. 실제 정상 모션 KO/EN 브라우저에서 스크롤 후 900ms 동안 렌더 프레임을 관찰하면 카피의 opacity가 거의0에서1로 변했다. 즉시 한 번 확인하는 초기 두 검사는 통과했지만 프레임 검증은 두 언어 모두 실패했다. 최초 로그/trace/스크린샷을 보존한다.
+
+`LandingHero.tsx`의 핵심 카피만 공통 reveal 등록에서 분리해 메시지와 여행 시작 CTA가 항상 완전한 불투명도로 렌더되게 했다. 별도의 Intro canvas, 형상/속도, 큰 비주얼, 확장 장면과 다른 스크롤 연출은 바꾸지 않았다. 이는 #21의 일반 모션 약화 제안 채택이 아니다. KO/EN 전진·복귀 스크롤의 실제 프레임, 기존 전체 Hero axe, 실제 CTA 이동을 검증하며 기존 assertion/timeout/worker/retry/skip을 줄이지 않았다.
+
+수정 후 관련 `condition-prerequisites`, `landing-first-arrival`, `landing-theme-contrast` 두 프로젝트 **32 PASS**, 실패·skip0, 38.4초. 이 결과는 새 exact Full CI·Preview·독립 QA·Production을 대신하지 않는다. 기존 f6 Preview 50개 실제 화면 결과와 CI873/독립 FAIL은 역사로 유지한다. 원본과 재현 자료: `D:/wave-db-binding-preflight-20260908/story353-hero-contrast-20260909/`.
