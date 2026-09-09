@@ -32,6 +32,8 @@ export function assessDepartureReadiness(options?: {
   routeCoverage?: { total: number; verified: number; loading?: boolean };
   places?: Place[];
   placeCriteriaCurrent?: boolean;
+  currentPlaceIds?: string[];
+  requiredFacilityKeys?: string[];
 }): { state: ReadinessState; phase: TripDatePhase; items: ReadinessItem[] };
 export function escapeIcsText(value: unknown): string;
 export function foldIcsLine(line: string): string;

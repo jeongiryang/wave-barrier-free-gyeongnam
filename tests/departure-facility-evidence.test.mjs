@@ -9,11 +9,11 @@ const place = {
   accessibility: [field("parking", "confirmed"), field("elevator", "unknown"), field("restroom", "negative")],
 };
 const assess = (places, extra = {}) => assessDepartureReadiness({
-  places, placeCriteriaCurrent: true, ...extra,
+  places, placeCriteriaCurrent: true, currentPlaceIds: [place.id], requiredFacilityKeys: ["parking", "elevator"], ...extra,
 }).items.find(item => item.id === "evidence");
 
 test("a positive place score cannot conceal unknown or negative facility records", () => {
-  const result = assess([place]);
+  const result = assess([place], { requiredFacilityKeys: ["parking", "elevator", "restroom"] });
   assert.equal(result.state, "recheck");
   assert.match(result.summary, /확인됨 1/);
   assert.match(result.summary, /미확인 1/);
@@ -37,4 +37,24 @@ test("duplicate or conflicting fields cannot inflate official facility coverage"
   assert.equal(result.state, "partial");
   assert.match(result.summary, /확인됨 1/);
   assert.match(result.summary, /미확인 1/);
+});
+
+test("a current search does not renew an archived place absent from its results", () => {
+  const complete = { ...place, accessibility: [field("parking", "confirmed")] };
+  assert.equal(assess([complete], { currentPlaceIds: ["another-place"], requiredFacilityKeys: ["parking"] }).state, "recheck");
+});
+
+test("every currently requested facility is counted even if its field is absent", () => {
+  const complete = { ...place, accessibility: [field("parking", "confirmed"), field("unrequested", "confirmed")] };
+  const result = assess([complete], { currentPlaceIds: [place.id], requiredFacilityKeys: ["parking", "elevator"] });
+  assert.equal(result.state, "partial");
+  assert.match(result.summary, /확인됨 1/);
+  assert.match(result.summary, /미확인 1/);
+});
+
+test("legacy or empty query metadata cannot confirm current facility coverage", () => {
+  const complete = { ...place, accessibility: [field("parking", "confirmed"), field("elevator", "confirmed")] };
+  for (const extra of [{ requiredFacilityKeys: undefined }, { requiredFacilityKeys: [] }, { currentPlaceIds: undefined }, { currentPlaceIds: [] }]) {
+    assert.equal(assess([complete], extra).state, "recheck");
+  }
 });

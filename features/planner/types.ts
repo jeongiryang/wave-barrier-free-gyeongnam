@@ -72,6 +72,7 @@ export type RouteStop = {
 };
 
 export type PlanData = {
+  criteria?: { facilityKeys?: string[] };
   mode: "live" | "partial" | "fallback";
   generatedAt: string;
   baseYm: string;

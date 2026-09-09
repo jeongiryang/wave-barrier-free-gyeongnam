@@ -11,10 +11,13 @@ for (const scenario of ["complete", "partial", "negative", "legacy"] as const) f
     state: scenario !== "complete" && index === 3 ? "unknown" : scenario === "negative" && index === 4 ? "negative" : "confirmed",
   }));
   let searches = 0;
+  let omitSavedPlace = false;
   await page.route("**/api/wave?*", route => {
-    if (new URL(route.request().url()).searchParams.get("action") !== "plan") return route.fallback();
+    const params = new URL(route.request().url()).searchParams;
+    if (params.get("action") !== "plan") return route.fallback();
     searches++;
-    return route.fulfill({ json: { ...plan, places: plan.places.map(place => ({ ...place, score: 100, knownFields: 5, accessibility: scenario === "legacy" ? undefined : fields })) } });
+    const facilityKeys = [...fields.map(field => field.key), ...(params.get("profiles")?.split(",").includes("baby") ? ["stroller", "lactationroom", "babysparechair"] : [])];
+    return route.fulfill({ json: { ...plan, criteria: { facilityKeys }, places: plan.places.filter(place => !omitSavedPlace || place.id !== "1001").map(place => ({ ...place, score: 100, knownFields: 5, accessibility: scenario === "legacy" ? undefined : fields })) } });
   });
   await page.goto("/planner");
   await chooseTripConditions(page);
@@ -48,8 +51,18 @@ for (const scenario of ["complete", "partial", "negative", "legacy"] as const) f
     await page.getByRole("button", { name: en ? /Facilities for young children/ : /유아 편의시설/ }).click();
     await expect(evidence).toHaveClass("recheck");
     expect(searches).toBe(before);
+    const search = page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true });
+    await search.click();
+    await expect(evidence).toHaveClass("partial");
+    await expect(evidence).toContainText(en ? "Reported available 5" : "확인됨 5");
+    await expect(evidence).toContainText(en ? "Unknown 3" : "미확인 3");
+    omitSavedPlace = true;
+    await search.click();
+    await expect(evidence).toHaveClass("recheck");
+    expect(searches).toBe(before + 2);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
     await page.reload();
     await expect(evidence).toHaveClass("recheck");
-    expect(searches).toBe(before);
+    expect(searches).toBe(before + 2);
   }
 });
