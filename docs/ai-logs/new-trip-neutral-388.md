@@ -8,3 +8,5 @@
 - EVIDENCE: `%TEMP%/wave-new-trip-neutral-final.log`, `wave-new-trip-neutral-final-output` and `wave-new-trip-neutral-quality-*.log`.
 
 - MAIN #407 INTEGRATION: normal merge bcab49c preserved the branch checkpoint d84c945. All 733 unit tests, lint (13 existing warnings), typecheck/build/performance budgets PASS (Planner 269.57/270 KiB, CSS 69.82/70 KiB). Six neutral/restored-export browser cases pass (23.2s), plus all 14 region-change boundary cases (1.0m). The initial command used a nonmatching boundary filename, so that suite was explicitly located and run separately; no 20-test claim was made from the first run. Final 960/1440 neutral criteria captures inspected. Hosted CI and exact Production remain pending.
+
+- MAIN #408 INTEGRATION: normal merge51b06c, fresh733 unit tests/lint/typecheck/build/budgets PASS (Planner269.60/270 KiB, CSS69.82/70 KiB). All24 neutral, region-boundary and native stage navigation browser cases PASS1.5m. Final1440px rendering reviewed; 960px neutral layout was unchanged from verified main407. Hosted CI/Production pending.
