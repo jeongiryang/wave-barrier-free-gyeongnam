@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { once } from "node:events";
 import { test } from "node:test";
 import { proxyFetch } from "httpxy";
+import { NodeRequest, sendNodeResponse } from "srvx/node";
 import { devWorkerConnection } from "../scripts/vite-dev-connection.mjs";
 
 function middleware() {
@@ -13,6 +14,47 @@ function middleware() {
   plugin.configureServer({ middlewares: { use(fn) { handle = fn; } } });
   return handle;
 }
+
+test("Nitro's NodeRequest forwards the same close policy through header iteration", async t => {
+  const received = [];
+  const sockets = new Set();
+  const worker = createServer(async (req, res) => {
+    sockets.add(req.socket);
+    let body = "";
+    for await (const part of req) body += part;
+    received.push({ method: req.method, url: req.url, body, connection: req.headers.connection, custom: req.headers["x-wave-test"] });
+    res.end("actual worker response");
+  });
+  worker.listen(0, "127.0.0.1");
+  await once(worker, "listening");
+  const address = `http://127.0.0.1:${worker.address().port}`;
+  const handle = middleware();
+  const ingress = createServer(async (req, res) => {
+    try {
+      handle(req, res, () => {});
+      const response = await proxyFetch(address, new NodeRequest({ req, res }));
+      await sendNodeResponse(res, response);
+    } catch (error) {
+      res.writeHead(500);
+      res.end(String(error));
+    }
+  });
+  ingress.listen(0, "127.0.0.1");
+  await once(ingress, "listening");
+  t.after(() => { ingress.closeAllConnections(); ingress.close(); worker.closeAllConnections(); worker.close(); });
+  for (const method of ["GET", "POST", "GET"]) {
+    const response = await fetch(`http://127.0.0.1:${ingress.address().port}/planner?region=Changwon`, {
+      method, headers: { connection: "keep-alive", "x-wave-test": "preserved" },
+      ...(method === "POST" ? { body: "preserved body" } : {}),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), "actual worker response");
+  }
+  assert.deepEqual(received, ["GET", "POST", "GET"].map(method => ({
+    method, url: "/planner?region=Changwon", body: method === "POST" ? "preserved body" : "", connection: "close", custom: "preserved",
+  })));
+  assert.equal(sockets.size, 3, "the actual NodeRequest forwarding path must not pool worker sockets");
+});
 
 test("development worker receives fresh connections and unchanged request data", async t => {
   const received = [];
