@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CLIENT_BUDGET_MS } from "../../../lib/request-budget.js";
 import { scrollToSection } from "../../../lib/reduced-motion.js";
 import { plannerJson } from "../services/api";
+import { planResponse } from "../services/plan-response";
 import type { PlanData } from "../types";
 import { criteriaSignature } from "../../../lib/planner-criteria.js";
 import { planNotices } from "../condition-copy";
@@ -64,8 +65,6 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     try {
       const params = new URLSearchParams({ action: "plan", region, themes: requestedTheme, profiles: selected.join(","), locale });
       const response = await plannerJson<unknown>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.plan });
-      if (controller.signal.aborted) return false;
-      const { planResponse } = await import("../services/plan-response");
       if (controller.signal.aborted) return false;
       const data = planResponse(response);
       resetAudio();

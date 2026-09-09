@@ -49,18 +49,41 @@ for (const invalid of ["invalid-json", "missing-fields", "damaged-place"] as con
   });
 }
 
-test("a failed response-check module offers a usable recovery", async ({ page }) => {
+test("search validation has no additional deferred module request", async ({ page }) => {
   await mockPlannerApi(page);
+  await page.goto("/planner");
+  await expect(page.getByRole("button", { name: "전체 보기", exact: true })).toBeEnabled();
   let modules = 0;
   await page.route("**/features/planner/services/plan-response.ts*", route => {
     modules++;
-    return modules === 1 ? route.abort("failed") : route.continue();
+    return route.abort("failed");
+  });
+  await chooseTripConditions(page);
+  await expect(page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true })).toBeEnabled();
+  expect(modules).toBe(0);
+});
+
+test("a failed facility summary keeps place actions and visitor details available", async ({ page }) => {
+  await mockPlannerApi(page);
+  let modules = 0;
+  await page.route("**/features/planner/components/PlaceFacilitySummary.tsx*", route => {
+    modules++;
+    return route.abort("failed");
   });
   await page.goto("/planner");
+  expect(modules).toBe(0);
   await chooseTripConditions(page);
-  await expect(page.locator(".result-notice.error")).toBeVisible();
-  await expect(page.locator(".condition-actions button")).toBeEnabled();
-  await page.getByRole("button", { name: "다시 시도", exact: true }).click();
-  await expect(page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true })).toBeEnabled();
-  expect(modules).toBe(2);
+  const card = page.locator(".place-card").filter({ has: page.getByRole("heading", { name: "경남도립미술관", exact: true }) });
+  const add = page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true });
+  await expect(add).toBeEnabled();
+  await expect.poll(() => modules).toBe(1);
+  await expect(card.getByRole("status")).toBeVisible();
+  await add.click();
+  await card.locator(".place-actions button").last().click();
+  await expect(page.locator("dialog[open]")).toBeVisible();
+  await expect(page.locator("dialog[open]")).toContainText("경남도립미술관");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "경남도립미술관 일정에서 빼기", exact: true })).toBeEnabled();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
+  expect((await new AxeBuilder({ page }).include("#places").analyze()).violations).toEqual([]);
 });
