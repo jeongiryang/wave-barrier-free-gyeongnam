@@ -23,7 +23,7 @@ async function prepare(page: Page, en: boolean) {
   }
 }
 
-for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: a fast place refresh cannot finish the pending weather refresh`, async ({ page }) => {
+for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: a fast place refresh cannot finish the pending weather refresh`, async ({ page }, testInfo) => {
   await prepare(page, en);
   let release: () => void = () => {};
   const gate = new Promise<void>(resolve => { release = resolve; });
@@ -57,6 +57,14 @@ for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: a fast pla
   await expect(refresh).toBeFocused();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
   expect((await new AxeBuilder({ page }).include(".departure-readiness").analyze()).violations).toEqual([]);
+  if (testInfo.project.name === "desktop-chromium") {
+    for (const width of [960, 1440]) {
+      await page.setViewportSize({ width, height: 960 });
+      await page.locator(".departure-readiness").scrollIntoViewIfNeeded();
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.screenshot({ path: testInfo.outputPath(`refresh-${en ? "en-dark" : "ko-light"}-${width}.png`) });
+    }
+  }
 });
 
 for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: missing facility preferences offers a weather-only refresh`, async ({ page }) => {

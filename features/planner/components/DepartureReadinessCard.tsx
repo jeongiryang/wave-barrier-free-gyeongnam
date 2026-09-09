@@ -16,6 +16,8 @@ interface DepartureReadinessCardProps {
   region: string;
   plan: PlanData | null;
   placeCriteriaCurrent: boolean;
+  canRefreshPlaces: boolean;
+  placesLoading: boolean;
   destinationCrowd?: PlanData["crowd"];
   destinationPlaceId?: string;
   weather: WeatherData | null;
@@ -46,7 +48,7 @@ function formatCheckedAt(value: string, en: boolean) {
 }
 
 export default function DepartureReadinessCard({
-  region, plan, placeCriteriaCurrent, destinationCrowd, destinationPlaceId, weather, weatherLoading, routeCoverage, tripSelection, participation, onRefresh, onOpenSignals,
+  region, plan, placeCriteriaCurrent, canRefreshPlaces, placesLoading, destinationCrowd, destinationPlaceId, weather, weatherLoading, routeCoverage, tripSelection, participation, onRefresh, onOpenSignals,
 }: DepartureReadinessCardProps) {
   const { locale } = useSitePreferences();
   const focusVisibility = useReadinessFocus();
@@ -55,6 +57,7 @@ export default function DepartureReadinessCard({
   const statusLabel = en ? { confirmed: "Checked", partial: "Partly checked", recheck: "Recheck needed" } : koreanStatus;
   const { travelStart, travelEnd, dayStartTime, orderedSavedPlaces, scheduleAssignments } = tripSelection;
   const [refreshing, setRefreshing] = useState(false);
+  const refreshPending = refreshing || weatherLoading || placesLoading;
   const [calendarState, setCalendarState] = useState<"idle" | "saving" | "done" | "error">("idle");
   const assessment = assessDepartureReadiness({
     locale,
@@ -75,7 +78,7 @@ export default function DepartureReadinessCard({
   const calendarDisabled = !orderedSavedPlaces.length || assessment.phase.id === "past";
 
   async function refresh() {
-    if (refreshing) return;
+    if (refreshPending || !region) return;
     setRefreshing(true);
     try {
       await onRefresh();
@@ -146,7 +149,7 @@ export default function DepartureReadinessCard({
         <span className="sr-only" role="status" aria-live="polite">{calendarState === "done" ? en ? "Calendar file saved." : "캘린더 파일을 저장했습니다." : calendarState === "error" ? en ? "Could not create the shared link or calendar file." : "공유 링크 또는 캘린더 파일을 만들지 못했습니다." : ""}</span>
       </div>
       <div className="readiness-actions">
-        <button type="button" className="secondary" onClick={() => void refresh()} aria-disabled={refreshing} aria-busy={refreshing}>{refreshing ? en ? "Checking latest information" : "최신 정보 확인 중" : en ? "Check latest information" : "최신 정보 확인"}</button>
+        <button type="button" className="secondary" onClick={() => void refresh()} disabled={!region} aria-disabled={refreshPending || !region} aria-busy={refreshPending}>{!region ? en ? "Choose a region to refresh" : "지역 선택 후 조회" : refreshPending ? en ? "Refreshing information" : "정보 조회 중" : canRefreshPlaces ? en ? "Refresh places and weather" : "장소·날씨 다시 조회" : en ? "Refresh weather" : "날씨 다시 조회"}</button>
         <button type="button" onClick={() => void downloadCalendar()} disabled={calendarDisabled} aria-disabled={calendarDisabled || calendarState === "saving"} aria-busy={calendarState === "saving"}>{calendarState === "saving" ? en ? "Preparing calendar" : "캘린더 준비 중" : calendarState === "done" ? en ? "Save calendar again" : "캘린더 다시 저장" : en ? "Save calendar (.ics)" : "캘린더(.ics) 저장"}</button>
       </div>
       {calendarState === "error" && <p className="readiness-error" role="alert">{en ? "The shared link could not be created, so the calendar was not saved. Please try again shortly." : "공유 링크를 만들지 못해 캘린더를 저장하지 않았습니다. 잠시 뒤 다시 시도해 주세요."}</p>}
