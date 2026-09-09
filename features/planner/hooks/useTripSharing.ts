@@ -2,11 +2,9 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { plannerJson } from "../services/api";
-import type { PlanData } from "../types";
 import { sameOriginHttpUrl } from "../../../lib/security/same-origin-url.js";
 
 export interface TripSharingOptions {
-  plan: PlanData | null;
   region: string;
   theme: string;
   profiles: string[];
@@ -22,7 +20,6 @@ export interface TripSharingOptions {
 export function useTripSharing(options: TripSharingOptions) {
   // The immutable request body identifies the snapshot, not the hook's lifetime.
   const snapshot = JSON.stringify({
-    plan: options.plan,
     selections: {
       region: options.region, theme: options.theme, profiles: options.profiles, locale: options.locale,
       travelStart: options.travelStart, travelEnd: options.travelEnd, dayStartTime: options.dayStartTime,
@@ -45,7 +42,9 @@ export function useTripSharing(options: TripSharingOptions) {
     const version = active.current.version;
     if (pendingShare.current?.version === version) return pendingShare.current.promise;
     const body = JSON.parse(snapshot);
-    if (!body.plan) throw new Error("공유할 여행 계획이 없습니다.");
+    // Shared trips store the selected public IDs, dates and order. A restored
+    // local itinerary does not need another recommendation response to share.
+    if (!body.selections.selectedPlaceIds.length) throw new Error("공유할 여행 장소가 없습니다.");
     const isCurrent = () => active.current.version === version && active.current.snapshot === snapshot;
     setResult({ snapshot, state: "saving", url: "" });
     const request = (async () => {
