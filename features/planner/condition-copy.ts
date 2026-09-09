@@ -36,3 +36,10 @@ export const planNotices = {
   offline: ["인터넷 연결이 끊겼어요. 기존 일정은 이 기기에서 계속 확인할 수 있습니다.", "You are offline. You can still view your existing itinerary on this device."],
   error: ["여행지를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.", "We couldn't load places. Your choices are kept. Please try again shortly."],
 } as const;
+
+export const planFailureHeadings = {
+  timeout: ["조회 시간이 초과됐어요.", "The request timed out."],
+  server: ["서버가 요청을 처리하지 못했어요.", "The server couldn't complete the request."],
+  offline: ["인터넷 연결이 끊겼어요.", "You are offline."],
+  error: ["여행지를 불러오지 못했어요.", "We couldn't load places."],
+} as const;
