@@ -1,5 +1,9 @@
 # 런칭 실행표·공식 제출 초안 AI 작업 로그
 
+> 아래는 2026-09-06 무렵의 제출 초안·통합 후보 작업 이력이다. 미병합·미배포, API 수치, 9쪽 Chromium PDF 태그/렌더 검수는 당시 파일과 SHA의 기록이며 최신 상태가 아니다. 최신 배포·남은 조건은 [현재 실행표](../launch-readiness-status.md)와 [#353 구현 기록](service-story-real-353.md)을 따른다. 공식 원본 9장의 기능 슬라이드 복제로 현재 부분 초안은 13장이지만 필수 분량이나 상한은 아니며, 기존 9쪽 PDF를 삭제하거나 새 PDF 검수 PASS로 승계하지 않는다.
+
+> 2026-09-09 eab2442의 실제 지도·날씨 초점·기기 저장 복원은 [독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788)에서 확인했다. 새 날짜·지도 소개는 로컬 미커밋 구현이고, 공식 부분 초안은 18/26 반영·8개 대기다. 이 로그의 옛 PDF를 새 캡처로 교체하거나 최종 제출한 것은 아니다.
+
 - 작성자: jeongiryang / Codex Engineering·QA
 - 범위: Refs #11 #263 #288. 상태·공식 자료·운영 증거의 불일치 정정.
 - 상태: 미병합·미배포, 최종 제출·Release GO 아님.

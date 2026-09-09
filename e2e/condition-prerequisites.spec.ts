@@ -4,6 +4,38 @@ import { mockPlannerApi } from "./fixtures";
 
 for (const locale of ["ko", "en"] as const) {
   const en = locale === "en";
+  test(`${locale}: main planning copy stays fully painted across forward and return scrolling`, async ({ page }) => {
+    await mockPlannerApi(page);
+    await page.addInitScript((value) => localStorage.setItem("wave-locale", value), locale);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("/");
+    await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+    const copy = page.locator(".landing-hero-copy");
+    const planning = page.locator(".landing-actions a");
+    await expect(copy).toHaveCSS("opacity", "1");
+    await page.locator(".story-expansion").scrollIntoViewIfNeeded();
+    // Keep the primary message painted even outside the viewport: returning
+    // to the CTA must not start a transparent-to-readable reveal again.
+    const scrollPaint = await copy.evaluate(node => new Promise<string[]>(resolve => {
+      const samples: string[] = [];
+      const start = performance.now();
+      function sample() {
+        samples.push(getComputedStyle(node).opacity);
+        if (performance.now() - start < 900) requestAnimationFrame(sample);
+        else resolve(samples);
+      }
+      requestAnimationFrame(sample);
+    }));
+    expect(new Set(scrollPaint)).toEqual(new Set(["1"]));
+    await expect(copy).toHaveCSS("opacity", "1");
+    await planning.scrollIntoViewIfNeeded();
+    await expect(copy).toHaveCSS("opacity", "1");
+    await expect(planning).toBeVisible();
+    expect((await new AxeBuilder({ page }).include(".landing-hero-copy").analyze()).violations).toEqual([]);
+    await planning.click();
+    await expect(page).toHaveURL(/\/planner/);
+  });
+
   test(`${locale}: activities gate dates, including direct history navigation`, async ({ page }) => {
     await mockPlannerApi(page, { plannerView: "guided" });
     await page.addInitScript((value) => localStorage.setItem("wave-locale", value), locale);
@@ -57,6 +89,9 @@ for (const locale of ["ko", "en"] as const) {
     await summary.scrollIntoViewIfNeeded();
     await expect(summary).toBeVisible();
     await expect(summary).toHaveCSS("opacity", "1");
+    // The main message and planning action must stay readable when scrolling
+    // past them, including while the neighbouring summary enters the viewport.
+    await expect(page.locator(".landing-hero-copy")).toHaveCSS("opacity", "1");
     await expect(summary).toHaveAccessibleName(en
       ? "Four steps: choose a region and facilities, find places, then check your itinerary and travel routes."
       : "지역과 필요한 편의를 고르고 여행지를 일정에 추가해 이동 경로를 확인하는 네 단계");

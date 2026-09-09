@@ -1,6 +1,22 @@
 # 전체 실행 목록과 운영 반영 상태
 
-## 2026-09-09 현재 감사 — 이 절을 현재 원장으로 사용
+## 2026-09-09 07:11:25 KST — #378 반영 사실 대조
+
+- #375 첫 소개 개선은 Production `9caca69fd5db24ed0bc741ad68ffef0d00ffe3ee` / `dpl_Bmz6cMJ6ySEe45FRLS3TwTzWRRWL`로 배포됐다([CD218](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34256433331)). 아래 f4/0116·초기 Open/PR 수는 당시 이력이다.
+- #377 날씨 연결 수정은 main `81b88e4f6bf69c4811d458fbe2639a87e885a84b`에 병합됐다. #378 후보 `9f83fb920343cec31abfa3de04cc6414e43e3728` 이후 새 main은 `eab2442f90b72441fd311db13dd8bb935723527f`이다. main CI/CD 근거: [main CI868 attempt2](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34277144002/attempts/2) SUCCESS(고유838: 837 PASS·기존skip1·fail/flaky0), [CD221](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34282029576) SUCCESS.
+- 실제 Production: `eab2442f90b72441fd311db13dd8bb935723527f` / `dpl_GVGVzh2TahHEDKDJHUp6vCN9FaGJ`. canonical READY·SHA/조회 시각 근거: 2026-09-09 06:45:02.580 및 07:01:03.532 KST 독립 canonical 조회에서 같은 SHA/배포의 READY·production을 전후 확인했다([독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788)). 독립 Production 확인 범위와 남은 항목: [독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788): 2026-09-09 06:46–07:01 KST 공개 여정의 제한된 PASS. 74개 관찰에서 처리되지 않은 페이지 오류0건, 실제 Kakao 날짜별 표지·날씨 상세 초점·기기 저장의 장소 ID/날짜/순서 복원을 확인했다. route/ODSay 전송0건이며 전체 제공처·모든 설정 복원·#353 완료를 뜻하지 않는다. health 키 설정·fixture·Preview·배포 완료를 전체 제공처/여정 PASS로 확대하지 않는다.
+- CI868 attempt1의 25분 job 취소·browser(2) artifact 미보관 이력을 보존한다. attempt2에서 browser(2)·validate만 새로 실행했고 quality·boundary·browser(1)은 같은 SHA의 이전 성공/동일 로그와 artifact를 상속했다. 단일 재시도 성공은 job budget 원인 수정 증거가 아니다. #357은 별도 incident 원장을 따른다. CD221 사전 점검은 8 total/1 active/008 영향0, migration 경로001–008 성공을 확인했다. [PostDeploy12](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34282190225)는 hosted browser8 PASS/26초이나 기존#372 hold로 전체 FAILURE이며 live API smoke0회다. #359/#372의 외부 제한을 UI 회귀나 전체 제공처 성공으로 바꾸지 않는다.
+- 독립 공개 여정은1366×900/390×844에서 날짜별 사진·순위 표지/가림0·pageerror0을 확인했다. 실제 plan1/weather1/spot-photo2/crowd1/enrich1/map-config15가 허용됐으며 crowd는 응답 관찰 전 중단됐다. HTTP200 응답 20건은 새 upstream 시설 검증/과금 집계가 아니다. 자동 route7건 등 guard 차단을 보존하고 route/ODsay·서버쓰기0을 유지했다. 복원한 ID/날짜/순서와 좌표 제거·미확인 위치/달라진 도착 추정을 구분한다. 기존 early-input 관찰과 Leaflet Preview 실패는 이 Kakao 여정으로 자동 해소하지 않는다.
+- #379는 다른 실행이 소유한 외부 Draft PR이다. 이 작업에서 생성·push·검토·병합하지 않았으며, CI869 green을 현재 Production 변경이나 CI868 attempt2의 원인 수정으로 세지 않는다.
+
+- #353 **ACTIVE**: eab의 실제 두 장소·편의 근거 상세·마지막 출처 CTA는 배포 포함 코드다. 같은 공개 세션의 날짜 변경→날짜별 일정/실제 Kakao 지도 원본도 확보됐다. 이를 연결하는 새 3가지 상태 소개와 기존 6개 도구의 native 접기/본문 16px은 `feat/service-story-days-353`의 **로컬 미커밋 구현**이며 후보/Production 검증·최종 제출 캡처가 남는다. 기존9caca의 별도02:29/03:08 촬영은 보존하며 연속 근거로 바꾸지 않는다. Owner의 #21 일반 모션 약화 거부와 OS/앱 감소 모드, 기존 D41–D46 canonical 이관은 유지한다.
+- 새 날짜·지도 화면은 eab의 같은 세션에서 06:55:25.855–06:58:13.668 KST에 촬영한 6개 정수 crop/무손실 WebP, 총978,798 bytes다. [timeline-manifest.json](../public/media/wave-journey/timeline-manifest.json)에 원본/파일 SHA·날짜·장소ID·순위·뷰포트·출처를 보존했다. 자산 원본은 실제 Production이고 이를 사용하는 새 소개 UI는 아직 로컬 후보라는 차이를 유지한다.
+- 공식 원본 9장·최대 5핵심 기능과 기능 슬라이드 복제 허용에 따라 현재 초안은 13장이다. 13장은 공식 필수·상한이 아니다. reviewed-v4 캡처는 **18/26 반영·8 대기**, 별도 지도 1개는 확보·미삽입이다. 새 export와 실제 낭독기/최종 제출은 별도다.
+- #372 ODsay hold, #350 cloud sync, #351 Kakao Login, #373/자동화 POST-RC의 남은 범위를 이 배포로 자동 종료하지 않는다. 최종 팀원·원 신청 계정·제출은 사람 확인이며 테스트 계정은 심사 기능에 별도 로그인이 필요할 때의 조건부 항목이다.
+
+## Historical — 2026-09-09 00:09~00:35 감사 원문
+
+아래 수치·상태·미커밋/미배포 표현은 당시 기록이며 최신 판정은 위 절과 각 Issue의 요구별 원장을 따른다. 기존 66개 표와 원문/이관 링크를 보존한다.
 
 **00:35 KST 요구 보존 재감사:** 최근 닫은 제품 Issue 14개의 본문·후속 댓글 132항목을 `IMPLEMENTED` 51 / `TRANSFERRED` 48 / `DEFERRED-IDEA` 16 / `REJECTED` 17로 매핑했다. 잔여 64항목을 기존 Open Issue 16곳에 실제 이관한 뒤 원본·대상 댓글 30개를 다시 읽어 확인했다. 아래 초기 DONE 표기는 **원 Issue의 모든 아이디어가 구현됐다는 뜻이 아니다.** 각 행의 최신 요구별 매핑이 항목 수준의 확정 상태이며, 이관된 필수 조건은 대상 Open Issue에서 계속 해결해야 한다. 대량 reopen이나 새 중복 Issue는 만들지 않았다.
 

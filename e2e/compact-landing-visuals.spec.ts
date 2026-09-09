@@ -26,6 +26,8 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.locator("button[data-region-marker]")).toHaveCount(18);
     await expect(page.locator(".product-preview").first()).toBeHidden();
     await expect(page.locator(".community-live-preview")).toBeHidden();
+    await page.locator("#journey-tools-details > summary").click();
+    await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
 
     for (const width of [390, 768, 960, 1366, 1440]) {
       await page.setViewportSize({ width, height: 900 });
@@ -69,6 +71,92 @@ for (const theme of ["light", "dark"] as const) {
       await page.locator(".landing-community").screenshot({ path: test.info().outputPath(`community-${width}-${theme}.png`) });
       expect((await new AxeBuilder({ page }).include(".product-stories").include(".landing-community").analyze()).violations).toEqual([]);
     }
+    expect(errors).toEqual([]);
+  });
+}
+
+for (const locale of ["ko", "en"] as const) {
+  test(`${locale}: planning tools disclose all six links with native keyboard focus`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await mockPublicShellApi(page);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.addInitScript((value) => localStorage.setItem("wave-locale", value), locale);
+    await page.goto("/");
+    await expect(page.getByRole("main")).toBeVisible();
+    await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+    await expect(page.locator(".landing-page")).toHaveCount(1);
+    await page.evaluate(() => document.fonts.ready);
+
+    const details = page.locator("#journey-tools-details");
+    const summary = details.locator(":scope > summary");
+    const links = details.locator(".product-story-copy > a");
+    const hrefs = ["/planner#planner", "/planner#places", "/planner#itinerary", "/planner#navigation", "/planner#layers", "/travel-book"];
+    await expect(summary).toHaveAccessibleName(locale === "en" ? "Explore the planning tools" : "여행 계획 도구 자세히 보기");
+    await expect(details).not.toHaveAttribute("open");
+    await expect(links).toHaveCount(6);
+    await expect(details.getByRole("link")).toHaveCount(0);
+    for (const link of await links.all()) await expect(link).toBeHidden();
+    await summary.focus();
+    await expect(summary).toBeFocused();
+    const originalSummary = await summary.elementHandle();
+    expect(originalSummary).not.toBeNull();
+    const closed = await details.boundingBox();
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+
+    // Closed descendants must be absent from the native tab sequence.
+    await page.keyboard.press("Tab");
+    expect(await details.evaluate((node) => node.contains(document.activeElement))).toBe(false);
+    await page.keyboard.press("Shift+Tab");
+    await expect(summary).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(details).toHaveAttribute("open", "");
+    await expect(summary).toBeFocused();
+    expect(await summary.evaluate((node, original) => node === original, originalSummary!)).toBe(true);
+    await expect(details.locator(":scope > p")).toHaveText(locale === "en"
+      ? "Explore the features you need, from recommendation evidence to journeys and saving."
+      : "추천 근거부터 이동·저장까지, 필요한 기능을 살펴보세요.");
+    await expect(details.getByRole("link")).toHaveCount(6);
+    await expect(details.locator(".product-story")).toHaveCount(6);
+    expect((await details.boundingBox())!.height).toBeGreaterThan(closed!.height);
+
+    for (let index = 0; index < hrefs.length; index++) {
+      await page.keyboard.press("Tab");
+      const link = links.nth(index);
+      await expect(link).toBeFocused();
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("href", hrefs[index]);
+      const bounds = await link.boundingBox();
+      expect(bounds!.height).toBeGreaterThanOrEqual(44);
+      expect(bounds!.x).toBeGreaterThanOrEqual(0);
+      expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+      expect(await link.evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+        return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+      })).toBe(true);
+    }
+    const bodySizes = await details.locator(":scope > p, .product-story-copy > p:not(.section-kicker)")
+      .evaluateAll((nodes) => nodes.map((node) => Number.parseFloat(getComputedStyle(node).fontSize)));
+    expect(bodySizes).toHaveLength(7);
+    for (const size of bodySizes) expect(size).toBeGreaterThanOrEqual(16);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+
+    await summary.focus();
+    await page.keyboard.press("Space");
+    await expect(details).not.toHaveAttribute("open");
+    await expect(summary).toBeFocused();
+    expect(await summary.evaluate((node, original) => node === original, originalSummary!)).toBe(true);
+    await expect(details.getByRole("link")).toHaveCount(0);
+    for (const link of await links.all()) await expect(link).toBeHidden();
+    expect(Math.abs((await details.boundingBox())!.height - closed!.height)).toBeLessThanOrEqual(1);
+    for (const planning of [page.locator(".landing-actions > a"), page.locator('.landing-cta > a[href="/planner"]')]) {
+      await expect(planning).toHaveAccessibleName(locale === "en" ? "Plan my trip" : "여행 계획 만들기");
+      await expect(planning).toHaveAttribute("href", "/planner");
+      await planning.focus();
+      await expect(planning).toBeFocused();
+      await expect(planning).toBeVisible();
+    }
+    await originalSummary!.dispose();
     expect(errors).toEqual([]);
   });
 }

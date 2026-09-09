@@ -10,7 +10,7 @@ export default function LandingHero({ t, replay = 0 }: { t: LandingTranslate; re
   return <section className="landing-hero" id="top" data-intro-replay={replay}>
     <StoryMedia>
     <div className="hero-opening">
-    <div className="landing-hero-copy" data-land-reveal>
+    <div className="landing-hero-copy">
       <p><span className="access-badge">{t("heroBadge", "경남 무장애 여행")}</span></p>
       <h1>{t("heroTitle", "필요한 편의부터,")}<br /><em>{t("heroEm", "내게 맞는 경남 여행.")}</em></h1>
       <span>{t("heroCopy", "내게 필요한 편의로 경남 여행지를 찾고, 일정과 이동을 준비하세요. 로그인 없이 시작할 수 있어요.")}</span>

@@ -1,5 +1,141 @@
-import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mockPublicShellApi } from "./fixtures";
+
+// Literal expectations from the visually reviewed eab2442 Production recording.
+// Never derive expected dates, IDs, ranks or dimensions from the component.
+const finalRecordedTrip = {
+  sessionId: "production-eab2442-20260909-064600",
+  day1: "2026-09-09",
+  day2: "2026-09-10",
+  displayedDates: {
+    ko: { day1: "9월 9일", day2: "9월 10일" },
+    en: { day1: "September 9", day2: "September 10" },
+  },
+  dimensions: {
+    "timeline-before-itinerary": [441, 703],
+    "timeline-before-map": [948, 1253],
+    "timeline-after-day1-itinerary": [441, 400],
+    "timeline-after-day1-map": [948, 1254],
+    "timeline-after-day2-itinerary": [442, 400],
+    "timeline-after-day2-map": [948, 1254],
+  },
+} as const;
+
+const recordedCases = {
+  together: {
+    index: 0, phase: "before", day: "day1",
+    ids: ["126117", "2758443"], names: ["주남저수지 철새도래지", "대산플라워랜드"],
+    englishNames: ["Junam Reservoir", "Daesan Flowerland"], ranks: ["1", "2"],
+    itinerary: "timeline-before-itinerary", map: "timeline-before-map",
+  },
+  day1: {
+    index: 1, phase: "after", day: "day1",
+    ids: ["126117"], names: ["주남저수지 철새도래지"], englishNames: ["Junam Reservoir"], ranks: ["1"],
+    itinerary: "timeline-after-day1-itinerary", map: "timeline-after-day1-map",
+  },
+  day2: {
+    index: 2, phase: "after", day: "day2",
+    ids: ["2758443"], names: ["대산플라워랜드"], englishNames: ["Daesan Flowerland"], ranks: ["1"],
+    itinerary: "timeline-after-day2-itinerary", map: "timeline-after-day2-map",
+  },
+} as const;
+
+function requireFinalRecordedTrip() {
+  expect(finalRecordedTrip.sessionId).not.toMatch(/PENDING/);
+  expect(finalRecordedTrip.day1).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  expect(finalRecordedTrip.day2).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  expect(finalRecordedTrip.day2 > finalRecordedTrip.day1).toBe(true);
+  for (const [width, height] of Object.values(finalRecordedTrip.dimensions)) {
+    expect(width).toBeGreaterThan(0);
+    expect(height).toBeGreaterThan(0);
+  }
+}
+
+function observeStoryRequests(page: Page) {
+  const requests: string[] = [];
+  page.on("request", request => {
+    const url = new URL(request.url());
+    if (["/api/route", "/api/map-config"].includes(url.pathname)
+      || (url.pathname === "/api/wave" && ["plan", "spot-photo", "crowd", "enrich"].includes(url.searchParams.get("action") || ""))
+      || /(^|\.)(dapi\.kakao\.com|tile\.openstreetmap\.org)$/.test(url.hostname)) requests.push(url.origin + url.pathname);
+  });
+  return requests;
+}
+
+async function expectActualRecording(stage: Locator, name: keyof typeof finalRecordedTrip.dimensions) {
+  const image = stage.locator(`#journey-stage-panel img[src$="/${name}.webp"]`);
+  await image.scrollIntoViewIfNeeded();
+  await expect(image).toBeVisible();
+  await expect(image).toHaveAttribute("lang", "ko");
+  await expect.poll(() => image.evaluate((node: HTMLImageElement) => [node.naturalWidth, node.naturalHeight])).toEqual([...finalRecordedTrip.dimensions[name]]);
+  await expect(stage.locator("#journey-stage-panel > .journey-capture-frame img")).toHaveCount(1);
+}
+
+async function expectRecordedIdentity(stage: Locator, key: keyof typeof recordedCases, scene: "itinerary" | "map", locale: "ko" | "en" = "ko") {
+  const record = recordedCases[key];
+  const list = stage.locator("ol.journey-scene-stops");
+  await expect(list).toHaveAttribute("data-recording", finalRecordedTrip.sessionId);
+  await expect(list).toHaveAttribute("data-date", finalRecordedTrip[record.day]);
+  await expect(list).toHaveAttribute("data-phase", record.phase);
+  await expect(list.locator("strong")).toHaveText([...record[locale === "en" ? "englishNames" : "names"]]);
+  await expect(list.locator("li > b")).toHaveText([...record.ranks]);
+  expect(await list.locator("li").evaluateAll(nodes => nodes.map(node => node.getAttribute("data-place-id")))).toEqual([...record.ids]);
+  if (scene === "map") {
+    expect(await list.locator("li").evaluateAll(nodes => nodes.map(node => node.getAttribute("data-map-place-id")))).toEqual([...record.ids]);
+    await expect(stage.locator("svg, canvas, .leaflet-container")).toHaveCount(0);
+  }
+  const choices = recordedDateControls(stage, locale);
+  await expect(choices.getByRole("button")).toHaveCount(3);
+  await expect(choices.getByRole("button").nth(record.index)).toHaveAttribute("aria-pressed", "true");
+  await expect(choices.locator('[aria-pressed="true"]')).toHaveCount(1);
+  const title = stage.locator("#journey-stage-title");
+  await expect(title).toHaveAttribute("aria-live", "polite");
+  await expect(title).toHaveAttribute("aria-atomic", "true");
+  await expect(title).toContainText(finalRecordedTrip.displayedDates[locale][record.day]);
+  for (const name of record[locale === "en" ? "englishNames" : "names"]) await expect(title).toContainText(name);
+  await expect(stage.locator("#journey-stage-panel")).toHaveAttribute("aria-labelledby", "journey-stage-title");
+}
+
+async function chooseRecordedState(page: Page, stage: Locator, key: keyof typeof recordedCases, input: "pointer" | "Space" | "Enter", locale: "ko" | "en" = "ko") {
+  const button = recordedDateControls(stage, locale).getByRole("button").nth(recordedCases[key].index);
+  const originalButton = await button.elementHandle();
+  expect(originalButton).not.toBeNull();
+  await expect(button).toHaveAttribute("aria-controls", "journey-stage-panel");
+  if (input === "pointer") await button.click();
+  else { await button.focus(); await page.keyboard.press(input); }
+  await expect(button).toBeFocused();
+  await expect(button).toHaveAttribute("aria-pressed", "true");
+  expect(await originalButton!.evaluate(node => node.isConnected)).toBe(true);
+  expect(await button.evaluate((node, original) => node === original, originalButton!)).toBe(true);
+  await button.scrollIntoViewIfNeeded();
+  expect(await button.evaluate(node => {
+    const rect = node.getBoundingClientRect();
+    return rect.height >= 44 && node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+  })).toBe(true);
+  await originalButton!.dispose();
+}
+
+function recordedDateControls(stage: Locator, locale: "ko" | "en" = "ko") {
+  return stage.getByRole("group", {
+    name: locale === "en" ? "Choose a dated state from the same recording" : "같은 시연의 날짜별 기록 선택",
+    exact: true,
+  });
+}
+
+async function expectRecordedPanelSettled(stage: Locator) {
+  // The mobile copy above the figure can be exiting while the new panel enters.
+  // Observe both real transitions ending before axe; keep motion and full scope.
+  await expect.poll(() => stage.locator("#journey-stage-panel")
+    .evaluate(node => getComputedStyle(node).opacity)).toBe("1");
+  await expect.poll(() => stage.evaluate(node => getComputedStyle(node).opacity)).toBe("1");
+  await expect.poll(() => stage.evaluate(node => {
+    const scene = node.closest(".journey-scene")!;
+    return [...scene.querySelectorAll("[data-land-reveal]")].every(reveal =>
+      reveal.getAnimations().every(animation => animation.playState !== "running" && !animation.pending));
+  })).toBe(true);
+}
+
 
 test.use({ video: "on" });
 
@@ -71,13 +207,12 @@ test("the expansion follows forward and reverse scroll while reduced motion stay
   await expect(scene.getByRole("link", { name: "내 여행 시작하기" })).toBeVisible();
 });
 
-test("the Korean story preserves real place identity, recorded dates and keyboard focus", async ({ page }) => {
+test("the Korean story preserves real place identity, shared recorded dates and keyboard focus", async ({ page }) => {
+  requireFinalRecordedTrip();
   await mockPublicShellApi(page);
-  const planningRequests: string[] = [];
-  page.on("request", request => {
-    const url = new URL(request.url());
-    if (url.pathname === "/api/route" || (url.pathname === "/api/wave" && ["plan", "spot-photo", "crowd", "enrich"].includes(url.searchParams.get("action") || ""))) planningRequests.push(url.pathname);
-  });
+  const planningRequests = observeStoryRequests(page);
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
   await page.goto("/");
   await expect(page.getByRole("main")).toBeVisible();
   await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
@@ -88,6 +223,7 @@ test("the Korean story preserves real place identity, recorded dates and keyboar
   const names = ["주남저수지 철새도래지", "대산플라워랜드"];
   const ids = ["126117", "2758443"];
 
+  // Preserve the original four-stage, full-trip and real-evidence checks.
   for (const index of [0, 1, 2, 3, 1, 2]) {
     const control = controls.getByRole("button").nth(index);
     await control.focus();
@@ -96,8 +232,7 @@ test("the Korean story preserves real place identity, recorded dates and keyboar
     await expect(control).toHaveAttribute("aria-pressed", "true");
     await expect(controls.locator('[aria-pressed="true"]')).toHaveCount(1);
     await expect(stage.locator("#journey-stage-panel")).toHaveAttribute("aria-labelledby", "journey-stage-title");
-    const sameTrip = stage.locator('ol.journey-scene-stops[data-recording="map-0308"]');
-    await expect(sameTrip).toHaveAttribute("data-date", "2026-09-09");
+    const sameTrip = stage.locator("ol.journey-scene-stops");
     await expect(sameTrip.locator("strong")).toHaveText(names);
     expect(await sameTrip.locator("li").evaluateAll(nodes => nodes.map(node => node.getAttribute("data-place-id")))).toEqual(ids);
 
@@ -113,32 +248,11 @@ test("the Korean story preserves real place identity, recorded dates and keyboar
       await expect(stage).toContainText("인증하거나 보장하지 않아요");
     }
     if (index === 1 || index === 2) {
-      const list = sameTrip;
-      await expect(list).toHaveAttribute("data-date", "2026-09-09");
-      await expect(list.locator("strong")).toHaveText(names);
-      const attribute = index === 1 ? "data-place-id" : "data-map-place-id";
-      expect(await list.locator("li").evaluateAll((nodes, attr) => nodes.map(node => node.getAttribute(attr)), attribute)).toEqual(ids);
-    }
-    if (index === 1) {
-      await expect(stage.locator('img[src$="/map-matching-itinerary.webp"]')).toBeVisible();
-      await stage.locator("summary").filter({ hasText: "날짜를 나눈 다른 실제 시연 보기" }).click();
-      const choices = stage.getByRole("group", { name: "촬영된 날짜 배정 선택" });
-      const recording = stage.locator("#journey-date-recording");
-      for (const split of [false, true, false]) {
-        const button = choices.getByRole("button").nth(split ? 1 : 0);
-        await button.focus();
-        await page.keyboard.press("Space");
-        await expect(button).toBeFocused();
-        await expect(button).toHaveAttribute("aria-pressed", "true");
-        await expect(recording).toHaveAttribute("data-recording", "journey-0229");
-        await expect(recording).toHaveAttribute("data-split", String(split));
-        await expect(recording.getByRole("status")).toHaveText(split ? "9월 9일 주남저수지 · 9월 10일 대산플라워랜드" : "9월 9일 대산플라워랜드 다음 주남저수지");
-        await expect(recording.locator("img")).toHaveAttribute("src", new RegExp(`/date-${split ? "after" : "before"}\\.webp$`));
-        await expect(stage.locator('ol[data-recording="map-0308"] strong')).toHaveText(names);
-      }
+      const scene = index === 1 ? "itinerary" : "map";
+      await expectRecordedIdentity(stage, "together", scene);
+      await expectActualRecording(stage, recordedCases.together[scene]);
     }
     if (index === 2) {
-      await expect(stage.locator('img[src$="/map-two-desktop.webp"]')).toBeVisible();
       await expect(stage).toContainText("실제 길찾기 결과가 아니에요");
       await expect(stage.locator("svg")).toHaveCount(0);
     }
@@ -150,14 +264,65 @@ test("the Korean story preserves real place identity, recorded dates and keyboar
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     await stage.screenshot({ path: test.info().outputPath(`journey-stage-${index}.png`) });
   }
-  expect(planningRequests).toEqual([]);
-  const current = controls.getByRole("button").nth(2);
-  await current.focus();
+
+  const dateStage = controls.getByRole("button").nth(1);
+  const mapStage = controls.getByRole("button").nth(2);
+  await dateStage.click();
+  const choices = recordedDateControls(stage);
+  await expect(choices.getByRole("button")).toHaveText(["옮기기 전 · 첫날 두 곳", "옮긴 뒤 · 첫날 주남", "옮긴 뒤 · 둘째 날 대산"]);
+  await choices.getByRole("button").nth(0).focus();
+  await page.keyboard.press("Tab");
+  await expect(choices.getByRole("button").nth(1)).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(choices.getByRole("button").nth(2)).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(choices.getByRole("button").nth(1)).toBeFocused();
+
+  // Explicit expected cases are independent of runtime component data. DAY1
+  // before/after and Daesan rank1 catch mismatched images and stale global ranks.
+  for (const [key, input] of [["together", "pointer"], ["day2", "Space"], ["day1", "Enter"], ["together", "pointer"]] as const) {
+    await chooseRecordedState(page, stage, key, input);
+    await expectRecordedIdentity(stage, key, "itinerary");
+    await expectActualRecording(stage, recordedCases[key].itinerary);
+    const originalChoices = await choices.elementHandle();
+    await mapStage.focus();
+    await page.keyboard.press("Enter");
+    await expect(mapStage).toBeFocused();
+    expect(await originalChoices!.evaluate(node => node.isConnected)).toBe(true);
+    expect(await choices.evaluate((node, original) => node === original, originalChoices!)).toBe(true);
+    await expectRecordedIdentity(stage, key, "map");
+    await expectActualRecording(stage, recordedCases[key].map);
+    await expect(stage).toContainText("직선거리 추정");
+    await stage.screenshot({ path: test.info().outputPath(`recorded-${key}-map.png`) });
+    if (key === "day2") {
+      await expectRecordedPanelSettled(stage);
+      expect((await new AxeBuilder({ page }).include(".journey-scene").analyze()).violations).toEqual([]);
+    }
+    await dateStage.click();
+    await expectRecordedIdentity(stage, key, "itinerary");
+    await expectActualRecording(stage, recordedCases[key].itinerary);
+    await originalChoices!.dispose();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  }
+
+  // Change the recording from the MAP stage in reduced motion too, then prove
+  // the selected date/image survives the return to the itinerary stage.
+  await mapStage.click();
+  await mapStage.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(current).toBeFocused();
+  await expect(mapStage).toBeFocused();
   await expect.poll(() => stage.locator(".journey-stage-board").evaluate(node => getComputedStyle(node).animationName)).toBe("none");
+  await chooseRecordedState(page, stage, "day2", "Enter");
+  await expectRecordedIdentity(stage, "day2", "map");
+  await expectActualRecording(stage, recordedCases.day2.map);
+  await dateStage.click();
+  await expectRecordedIdentity(stage, "day2", "itinerary");
+  await expectActualRecording(stage, recordedCases.day2.itinerary);
   await expect(page.locator('.journey-scene-copy a[href="/planner?region=%EC%B0%BD%EC%9B%90"]')).toBeVisible();
+  expect(planningRequests).toEqual([]);
+  expect(errors).toEqual([]);
 });
+
 
 for (const locale of ["ko", "en"] as const) {
   test(`${locale}: a failed recorded screen preserves its space, place names and planning link`, async ({ page }) => {
@@ -187,5 +352,62 @@ for (const locale of ["ko", "en"] as const) {
     await expect(planning).toHaveAttribute("href", "/planner?region=%EC%B0%BD%EC%9B%90");
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     expect(errors).toEqual([]);
+  });
+}
+
+for (const locale of ["ko", "en"] as const) {
+  test(`${locale}: a failed day map cannot leak its image state into another recorded day`, async ({ page }) => {
+    requireFinalRecordedTrip();
+    await mockPublicShellApi(page);
+    await page.addInitScript(language => localStorage.setItem("wave-locale", language), locale);
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    const planningRequests = observeStoryRequests(page);
+    let release!: () => void;
+    const pending = new Promise<void>(resolve => { release = resolve; });
+    await page.route("**/media/wave-journey/timeline-after-day1-map.webp", async route => { await pending; await route.abort(); });
+    try {
+      await page.goto("/");
+      await expect(page.getByRole("main")).toBeVisible();
+      await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+      const stage = page.locator(".journey-stage");
+      await stage.locator(".journey-stage-controls button").nth(2).click();
+      await expectActualRecording(stage, recordedCases.together.map);
+      await chooseRecordedState(page, stage, "day1", "Enter", locale);
+      await expectRecordedIdentity(stage, "day1", "map", locale);
+      const frame = stage.locator("#journey-stage-panel > .journey-capture-frame");
+      await frame.scrollIntoViewIfNeeded();
+      const before = await frame.boundingBox();
+      expect(before?.height).toBeGreaterThan(100);
+      release();
+      await expect(frame.getByRole("status")).toContainText(locale === "en" ? "could not load" : "불러오지 못했어요");
+      const after = await frame.boundingBox();
+      expect(Math.abs(after!.height - before!.height)).toBeLessThanOrEqual(1);
+      await expect(frame.locator("img")).toHaveCount(0);
+      await expectRecordedIdentity(stage, "day1", "map", locale);
+
+      await chooseRecordedState(page, stage, "day2", "pointer", locale);
+      await expectRecordedIdentity(stage, "day2", "map", locale);
+      await expectActualRecording(stage, recordedCases.day2.map);
+      await expect(frame.getByRole("status")).toHaveCount(0);
+      await expectRecordedPanelSettled(stage);
+      expect((await new AxeBuilder({ page }).include(".journey-scene").analyze()).violations).toEqual([]);
+
+      await chooseRecordedState(page, stage, "day1", "Space", locale);
+      await expectRecordedIdentity(stage, "day1", "map", locale);
+      await expect(frame.getByRole("status")).toContainText(locale === "en" ? "could not load" : "불러오지 못했어요");
+      await expect(frame.locator("img")).toHaveCount(0);
+      await expect(stage.locator('img[src$="/timeline-after-day2-map.webp"]')).toHaveCount(0);
+      await stage.screenshot({ path: test.info().outputPath(`recorded-map-failure-${locale}.png`) });
+      const planning = page.locator(".journey-scene-copy > a");
+      await planning.focus();
+      await expect(planning).toBeFocused();
+      await expect(planning).toHaveAttribute("href", "/planner?region=%EC%B0%BD%EC%9B%90");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      expect(planningRequests).toEqual([]);
+      expect(errors).toEqual([]);
+    } finally {
+      release();
+    }
   });
 }
