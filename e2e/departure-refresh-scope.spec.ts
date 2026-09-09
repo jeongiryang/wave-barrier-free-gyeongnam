@@ -7,7 +7,12 @@ async function prepare(page: Page, en: boolean) {
   await page.addInitScript(en => localStorage.setItem("wave-theme", en ? "dark" : "light"), en);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/planner");
+  const initialWeather = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === "/api/weather" && url.searchParams.get("region") === "창원";
+  });
   await chooseTripConditions(page);
+  await initialWeather;
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   if (en) {
     await page.keyboard.press("Control+Home");
@@ -16,7 +21,6 @@ async function prepare(page: Page, en: boolean) {
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
     await preferences.getByLabel("Open preferences", { exact: true }).click();
   }
-  await expect(page.locator(".departure-readiness")).toContainText("Open-Meteo");
 }
 
 for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: a fast place refresh cannot finish the pending weather refresh`, async ({ page }) => {
