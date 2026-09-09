@@ -116,7 +116,7 @@ export default function DepartureReadinessCard({
     <header>
       <div>
         <span><b aria-hidden="true">4</b> {en ? "Before leaving" : "출발 전 확인"} · {assessment.phase.label}</span>
-        <h2 id="departure-readiness-title" aria-label={en ? "Check these details before leaving." : "출발 전에 이것만 다시 확인하세요."}><small>{en ? "Check these details before leaving." : "출발 전에 이것만 다시 확인하세요."}</small><span aria-hidden="true">{en ? "What should I check before leaving?" : "지금 출발해도 괜찮을까요?"}</span></h2>
+        <h2 id="departure-readiness-title" aria-label={en ? "Check these details before leaving." : "출발 전에 이것만 다시 확인하세요."}><small>{en ? "Check these details before leaving." : "출발 전에 이것만 다시 확인하세요."}</small><span aria-hidden="true">{en ? "What should I check before leaving?" : "출발 전, 무엇을 확인할까요?"}</span></h2>
         <p>{en ? "Only retrieved information is marked as checked. Recheck the remaining details before leaving." : "실제로 조회된 정보만 ‘확인됨’으로 표시합니다. 나머지는 출발 전에 최신 정보를 확인하세요."}</p>
         {en && <p>Place names, source names and weather descriptions are shown in their original language.</p>}
       </div>

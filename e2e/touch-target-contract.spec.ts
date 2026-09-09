@@ -58,7 +58,7 @@ for (const width of [1440, 390]) {
     for (const path of [...new Set(CONTRACT.map((item) => item.path))]) {
       await mockPublicShellApi(page);
       await mockPlannerApi(page);
-      await page.addInitScript(() => window.sessionStorage.setItem("wave-intro-seen-v2", "1"));
+      await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
       await page.goto(path);
       await expect(page.getByRole("button", { name: "도움말", exact: true })).toBeVisible();
       if (path === "/planner") {

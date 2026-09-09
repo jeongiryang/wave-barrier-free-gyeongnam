@@ -19,7 +19,8 @@ function fixture() {
   const node = name => ({ getBoundingClientRect: () => state[name] });
   const marker = { ...node('marker'), querySelectorAll: () => [node('photo'), node('rank')] };
   const controls = [node('bar'), node('badge')];
-  const shell = { querySelector: () => canvas, querySelectorAll: () => controls };
+  const style = new Map();
+  const shell = { ...node('canvas'), style: { setProperty: (name, value) => style.set(name, value), getPropertyValue: name => style.get(name) }, querySelector: selector => selector === '.route-map-canvas' ? canvas : null, querySelectorAll: () => controls };
   const canvas = {
     ...node('canvas'), get clientWidth() {
       return state.canvas.width;
@@ -73,7 +74,7 @@ test('hidden and off-canvas controls do not consume map space', () => {
   assert.deepEqual(mapFitPadding(f.canvas), p);
 });
 function shellHarness() {
-  const f = fixture(), effects = [], timers = new Map();
+  const f = fixture(), effects = [], timers = new Map(), frames = new Map();
   let timerId = 0;
   const observers = [];
   const calls = {
@@ -90,7 +91,10 @@ function shellHarness() {
   const win = { setTimeout: fn => {
       timers.set(++timerId, fn);
       return timerId;
-    }, clearTimeout: id => timers.delete(id) };
+    }, clearTimeout: id => timers.delete(id), requestAnimationFrame: fn => {
+      frames.set(++timerId, fn);
+      return timerId;
+    }, cancelAnimationFrame: id => frames.delete(id) };
   class RO {
     constructor(callback) {
       this.callback = callback;
@@ -116,12 +120,15 @@ function shellHarness() {
   const cleanups = effects.map(fn => fn());
   const observer = observers[0];
   const tick = () => {
+    const pendingFrames = [...frames.values()];
+    frames.clear();
+    pendingFrames.forEach(fn => fn());
     const items = [...timers.values()];
     timers.clear();
     items.forEach(fn => fn());
   };
   return {
-    ...f, calls, bounds, fitMapRef, tick, notify: () => observer.callback(), observer, dispose: () => cleanups.forEach(fn => fn?.()), timers
+    ...f, calls, bounds, fitMapRef, tick, notify: () => observer.callback(), observer, dispose: () => cleanups.forEach(fn => fn?.()), timers, frames
   };
 }
 test('shell reuses original fit callback only on geometry change, not pan/scroll', () => {
@@ -129,6 +136,7 @@ test('shell reuses original fit callback only on geometry change, not pan/scroll
   h.tick();
   assert.equal(h.calls.fit.length, 1);
   assert.equal(h.calls.fit[0], h.bounds);
+  assert.equal(h.shell.style.getPropertyValue('--map-controls-bottom'), '72px');
   h.notify();
   h.tick();
   assert.equal(h.calls.fit.length, 1);
@@ -146,6 +154,7 @@ test('shell reuses original fit callback only on geometry change, not pan/scroll
   h.tick();
   assert.equal(h.calls.fit.length, 2);
   assert.equal(h.calls.fit[1], h.bounds);
+  assert.equal(h.shell.style.getPropertyValue('--map-controls-bottom'), '118px');
   const next = { points: ['origin', 'Daesan'] };
   h.fitMapRef.current = () => h.calls.fit.push(next);
   h.state.canvas = rect(0, 0, 390, 844);
@@ -165,6 +174,7 @@ test('shell observes actual canvas/controls and disconnects/cancels pending work
   h.tick();
   assert.equal(h.observer.disconnected, true);
   assert.equal(h.timers.size, 0);
+  assert.equal(h.frames.size, 0);
   assert.equal(h.calls.relayout, before);
 });
 test('a replacement day map receives settled padding even at identical shell dimensions', () => {

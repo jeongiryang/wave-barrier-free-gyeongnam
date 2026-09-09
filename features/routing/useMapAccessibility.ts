@@ -11,6 +11,13 @@ const panelIds: Record<Exclude<MapToolPanel, null>, string> = {
   export: "map-panel-export",
 };
 
+function restoreToolFocus(trigger: HTMLButtonElement | null) {
+  if (!trigger?.isConnected) return;
+  const visible = trigger.getClientRects().length > 0 && !trigger.disabled;
+  const target = visible ? trigger : trigger.closest(".map-command-bar")?.querySelector<HTMLButtonElement>(".map-tools-toggle");
+  target?.focus();
+}
+
 export function useMapAccessibility({
   toolPanel,
   expanded,
@@ -47,7 +54,7 @@ export function useMapAccessibility({
     } else if (previous && panelTriggerRef.current?.panel === previous) {
       const trigger = panelTriggerRef.current.node;
       panelTriggerRef.current = null;
-      if (document.activeElement === document.body || !document.activeElement?.isConnected) trigger.focus();
+      if (document.activeElement === document.body || !document.activeElement?.isConnected) restoreToolFocus(trigger);
     }
   }, [toolPanel]);
 
@@ -78,11 +85,11 @@ export function useMapAccessibility({
     if (roadviewOpen) {
       event.preventDefault();
       closeRoadview();
-      roadviewTriggerRef.current?.focus();
+      restoreToolFocus(roadviewTriggerRef.current);
     } else if (roadviewSelectMode) {
       event.preventDefault();
       cancelRoadviewSelection();
-      roadviewTriggerRef.current?.focus();
+      restoreToolFocus(roadviewTriggerRef.current);
     }
   });
   // Keep the listener installed while the map shell cancels point selection.
@@ -110,12 +117,12 @@ export function useMapAccessibility({
 
   const closeRoadviewAndRestoreFocus = useCallback(() => {
     closeRoadview();
-    roadviewTriggerRef.current?.focus();
+    restoreToolFocus(roadviewTriggerRef.current);
   }, [closeRoadview]);
 
   const cancelRoadviewAndRestoreFocus = useCallback(() => {
     cancelRoadviewSelection();
-    roadviewTriggerRef.current?.focus();
+    restoreToolFocus(roadviewTriggerRef.current);
   }, [cancelRoadviewSelection]);
 
   return { changeToolPanel, beginRoadviewFromTrigger, toggleExpandedFromTrigger, closeRoadviewAndRestoreFocus, cancelRoadviewAndRestoreFocus };

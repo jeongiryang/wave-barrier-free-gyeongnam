@@ -34,12 +34,12 @@ test("the protected CI gate rejects failed, cancelled and skipped dependencies",
 test("CI retains all checks and runs every browser shard without fail-fast or secrets", () => {
   assert.deepEqual(workflow.permissions, { contents: "read" });
   const { quality, browser } = workflow.jobs;
-  assert.deepEqual(browser.strategy.matrix.shard, [1, 2]);
+  assert.deepEqual(browser.strategy.matrix.shard, [1, 2, 3, 4]);
   assert.deepEqual(browser.strategy.matrix.device, ["desktop", "mobile"]);
   assert.equal(browser.strategy["fail-fast"], false);
   const browserRuns = browser.steps.filter(step => step.run?.startsWith("npm run test:e2e"));
   assert.equal(browserRuns.length, 1);
-  assert.equal(browserRuns[0].run, "npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/2 --output=test-results/${{ matrix.device }}");
+  assert.equal(browserRuns[0].run, "npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/4 --output=test-results/${{ matrix.device }}");
   assert.equal(browserRuns[0].env.PLAYWRIGHT_HTML_REPORT, "playwright-report/${{ matrix.device }}");
   assert.equal(browserRuns[0].if, undefined);
   for (const command of ["npm audit --omit=dev --audit-level=high", "npm audit --audit-level=moderate", "npm run lint", "npm run typecheck", "npm test", "npm run build:vercel", "npm run check:performance"]) {
@@ -89,9 +89,10 @@ test("RC separates complete hosted product validation from frozen bounded sandbo
   assert.deepEqual(workflow.jobs.quality, archivedWorkflow.jobs.quality);
   const expectedBrowser = structuredClone(archivedWorkflow.jobs.browser);
   expectedBrowser.strategy.matrix.device = ["desktop", "mobile"];
+  expectedBrowser.strategy.matrix.shard = [1, 2, 3, 4];
   const browserStep = expectedBrowser.steps.find(step => step.name === "브라우저·접근성 회귀 테스트");
   browserStep.env = { PLAYWRIGHT_HTML_REPORT: "playwright-report/${{ matrix.device }}" };
-  browserStep.run = "npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/2 --output=test-results/${{ matrix.device }}";
+  browserStep.run = "npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/4 --output=test-results/${{ matrix.device }}";
   for (const step of expectedBrowser.steps.filter(step => step.uses?.startsWith("actions/upload-artifact@"))) {
     step.with.name = step.with.name.replace("${{ matrix.shard }}", "${{ matrix.device }}-${{ matrix.shard }}");
   }

@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
+});
+
 test("390px·768px·1440px에서 네 단계 계획 흐름과 단일 일정이 유지된다", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "대표 Chromium 프로젝트에서 세 뷰포트를 직접 확인합니다.");
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -48,9 +52,9 @@ test("랜딩 딥링크와 플래너 헤더는 안내형 보기에서도 실제 �
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { plannerView: "guided" });
   await page.goto("/");
-  await page.locator("#journey-tools-details > summary").click();
-  await expect(page.locator("#journey-tools-details")).toHaveAttribute("open", "");
-  await expect(page.getByRole("link", { name: /일정 구성해 보기/ })).toHaveAttribute("href", "/planner#itinerary");
+  await expect(page.locator(".landing-actions a")).toHaveAttribute("href", "/planner");
+  await page.locator(".landing-actions a").click();
+  await expect(page).toHaveURL(/\/planner$/);
 
   await page.goto("/planner#navigation");
   await expect(page.locator("#conditions")).toBeVisible();

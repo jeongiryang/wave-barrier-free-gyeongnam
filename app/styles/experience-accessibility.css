@@ -1,8 +1,4 @@
 
-/* --- 파동 효과 토글 (Refs #21) -------------------------------------------
-   효과를 끄면 캔버스는 정지 화면 한 장만 남는다. 배경으로만 쓰이는
-   히어로 캔버스는 아예 감춰 시선을 완전히 비운다. */
-html[data-motion="calm"] .hero-wave-canvas { display: none; }
 
 /* --- 단계별 도움말 투어 --------------------------------------------------
    고정 하이라이트가 설명 중인 실제 영역을 따라간다. 모달이 열린 동안 배경
@@ -58,18 +54,8 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   .help-tour-spotlight, .help-tour-progress i { transition: none; }
 }
 
-/* --- 파동 효과 시각 피로 완화 (Refs #21) ---------------------------------
-   히어로 배경의 물결이 본문과 함께 계속 눈에 들어와 피로하다는 지적이 있었다.
-   문자 밀도와 속도는 컴포넌트에서 낮추고, 여기서는 배경으로 더 물러나게 한다. */
-.hero-wave-canvas { opacity: .34; }
-@media (max-width: 1100px) { .hero-wave-canvas { opacity: .2; } }
-@media (max-width: 620px) { .hero-wave-canvas { opacity: .15; } }
 /* --- 추천 여행지 캐러셀 폭 -----------------------------------------------
-   캐러셀은 원래 화면 끝까지 흐르는 전체 폭 구역 안에 있어서 100vw 기준으로
-   폭을 잡았다. 구역이 기능 카드로 바뀌면서 컨테이너가 뷰포트보다 좁아졌고,
-   그대로 두니 문서가 가로로 밀려났다(960px에서 29px, 768px에서 33px).
-   카드 안쪽 여백만큼만 좌우로 빠져나가게 해 카드 끝까지 흐르는 모양은
-   유지하면서 뷰포트 기준 계산을 없앤다. */
+   카드 안쪽 여백만큼만 좌우로 확장하며 100vw를 사용하지 않는다. */
 .planner-page > .places-section .place-carousel {
   width: auto;
   max-width: none;
@@ -78,9 +64,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 }
 
 /* --- 유동형 와이드 레이아웃 ---------------------------------------------
-   1440px 이상 화면에서도 1240px 안에 모든 콘텐츠를 가두지 않는다.
-   문단 자체의 읽기 폭은 기존 max-width로 유지하고, 섹션·지도·데이터 패널만
-   뷰포트 가까이 확장해 좌우 공간을 실제 정보와 인터랙션에 사용한다. */
+   문단의 읽기 폭은 유지하고 섹션·지도·데이터 패널은 뷰포트를 활용한다. */
 @media (min-width: 1101px) {
   .landing-header, .site-header { width: var(--content); max-width: none; }
   .landing-page > section, .landing-page > footer,
@@ -104,8 +88,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 }
 
 /* --- 모바일·터치 접근성 최종 보정 ---------------------------------------
-   360/390/430px에서 고정 헤더가 넘치지 않고, 손가락 조작 대상은 최소 44px을
-   확보한다. iOS의 작은 입력 글꼴 자동 확대와 노치 영역도 함께 처리한다. */
+   고정 헤더, 44px 조작 대상, 작은 입력 글꼴과 노치 영역을 함께 처리한다. */
 .landing-page, .planner-page, .shared-trip-page { max-width: 100%; overflow-x: clip; }
 
 /* 포인터 종류와 화면 폭에 관계없이 핵심 조작은 44px 이상을 유지한다.

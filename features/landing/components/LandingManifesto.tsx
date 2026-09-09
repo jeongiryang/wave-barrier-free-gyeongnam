@@ -1,13 +1,18 @@
-import { landingValues, type LandingTranslate } from "../content";
 import { useSitePreferences } from "../../../components/SitePreferences";
+import type { LandingTranslate } from "../content";
+import LandingNeedsDemo from "./LandingNeedsDemo";
 
 export default function LandingManifesto({ t }: { t: LandingTranslate }) {
-  const { locale } = useSitePreferences();
-  return <section className="manifesto" id="story" tabIndex={-1}>
-    <p className="section-kicker" data-land-reveal>{locale === "en" ? "Before choosing a destination" : "여행지보다 먼저 확인할 것"}</p>
-    <h2 data-land-reveal>{t("whyTitle", "내게 필요한 편의를 먼저 고르세요.")}</h2>
-    <div className="manifesto-grid">
-      {landingValues.map((value, index) => <article key={value.number} data-land-reveal><span>{value.number}</span><h3>{t(`value${index + 1}`, value.title)}</h3><p>{t(`value${index + 1}Copy`, value.copy)}</p></article>)}
+  const en = useSitePreferences().locale === "en";
+  return <section className="manifesto needs-chapter" data-cinematic="right" id="story" tabIndex={-1} aria-labelledby="needs-story-title">
+    <div className="needs-copy">
+      <p className="section-kicker">{en ? "Start with your needs" : "여행의 시작은, 나에게서"}</p>
+      <h2 id="needs-story-title">{t("whyTitle", "내게 필요한 편의를 먼저 고르세요.")}</h2>
+      <p>{en ? "Access paths, toilets and lifts. Choose the facilities you want to check for your trip." : "접근로부터 화장실, 승강기까지. 내 여행에서 확인하고 싶은 편의부터 골라보세요."}</p>
+      <LandingNeedsDemo />
     </div>
+    <figure className="needs-portrait">
+      <img src="/media/wave-story/companions-coast-v2.webp" width="1120" height="1400" loading="lazy" decoding="async" alt={en ? "Brand artwork of three companions, including a wheelchair user, travelling along the coast" : "휠체어 이용자를 포함한 세 동행자가 해안을 함께 여행하는 브랜드 이미지"} />
+    </figure>
   </section>;
 }

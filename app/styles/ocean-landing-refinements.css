@@ -10,13 +10,6 @@
   padding-inline: max(var(--gutter), calc((100vw - var(--landing-max, 1760px)) / 2));
 }
 
-.hero-wave-canvas {
-  position: absolute; inset: 0; z-index: 0;
-  width: 100%; height: 100%; display: block;
-  opacity: .82;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 18%, #000 68%, transparent 100%);
-  mask-image: linear-gradient(180deg, transparent 0, #000 18%, #000 68%, transparent 100%);
-}
 .landing-hero { min-height: 0; padding-block: clamp(132px,12vw,176px) clamp(72px,8vw,112px); }
 .landing-hero::before { content: none; }
 .landing-hero-copy, .landing-signal { position: relative; z-index: 1; }

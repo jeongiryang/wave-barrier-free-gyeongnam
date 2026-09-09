@@ -83,6 +83,11 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
         return route.abort("blockedbyclient");
       });
       await mockPlannerApi(page, { crowdRate: 80 });
+      // The actual region chooser now renders an official destination photo.
+      // Keep this Leaflet geometry test fully local, including that new image.
+      await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({
+        status: 200, contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#315b63"/></svg>',
+      }));
       await page.route("**/api/wave?action=plan**", route => route.fulfill({
         status: 200, contentType: "application/json",
         body: JSON.stringify({ ...plan, places, crowd: { ...plan.crowd, rate: 80 }, stops: plan.stops.map((stop, index) => ({ ...stop, mapX: places[index].mapX, mapY: places[index].mapY })) }),

@@ -26,11 +26,13 @@ test.afterEach(async ({ page }) => {
   expect(pageErrors.get(page) || []).toEqual([]);
 });
 
-test("landing opens directly with one clear planning action and no serious accessibility violations", async ({ page }) => {
+test("first arrival leads to one planning action, persists dismissal and has no serious accessibility violations", async ({ page }) => {
   await mockPublicShellApi(page);
   await page.goto("/");
+  await expect(page.getByRole("dialog", { name: "W.A.V.E", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "소개로 건너뛰기", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /내 조건으로 시작하기|여행 계획 만들기/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /여행 계획하기/ }).first()).toBeVisible();
   await page.reload();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.waitForTimeout(1_500);
@@ -39,9 +41,12 @@ test("landing opens directly with one clear planning action and no serious acces
 
 test("reduced motion keeps the landing immediately usable", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockPublicShellApi(page);
   await page.goto("/");
+  await expect(page.getByRole("dialog", { name: "W.A.V.E", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "소개로 건너뛰기", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /내 조건으로 시작하기|여행 계획 만들기/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /여행 계획하기/ }).first()).toBeVisible();
 });
 
 test("planner supports decision, save, route-aware schedule and focus restoration", async ({ page }) => {
@@ -54,7 +59,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   await expect(museumCard.getByRole("img", { name: "경남도립미술관 관광사진" })).toBeVisible();
   await expect(parkCard.getByText("공식 사진을 확인할 수 없어요", { exact: true })).toBeVisible();
 
-  const detailButton = page.getByRole("button", { name: "편의시설 보기" }).first();
+  const detailButton = page.getByRole("button", { name: "이용 정보" }).first();
   await detailButton.focus();
   await detailButton.click();
   const dialog = page.getByRole("dialog");

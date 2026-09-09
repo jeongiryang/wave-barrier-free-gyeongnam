@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { regionShowcaseAlbums } from "../../features/landing/region-showcase-photos";
+import { regionPhotoSource } from "../../features/landing/region-photo-sources";
 
 export const metadata: Metadata = {
   title: "서비스 운영정책",
@@ -53,6 +55,16 @@ export default function PoliciesPage() {
           <section><h3>기능 변경과 중단</h3><p>안전, 보안, 제공처 정책, 법령 또는 운영 여건에 따라 기능을 변경하거나 일시 중단할 수 있습니다. 사용자 권리나 데이터 보관에 중요한 변경은 시행일 전에 정책 화면 또는 서비스 안에서 알립니다.</p></section>
           <section><h3>연락과 처리 기록</h3><p>오류·접근성 문제·정책 이의는 <a href={inquiryUrl} target="_blank" rel="noreferrer">W.A.V.E 운영 문의</a>에서 접수합니다. 공개 문의에는 이메일, 전화번호, 비밀번호, 인증 링크 등 민감정보를 적지 않아야 합니다.</p></section>
         </div>
+      </section>
+      <section id="content-credits" className="content-credits">
+        <h2>콘텐츠 출처 및 이용안내</h2>
+        <p>지역 사진의 제공기관은 한국관광공사이며 저작권은 해당 권리자에게 있습니다. 아래 링크는 현재 사용한 사진의 원본 이미지입니다. 개별 게시 상세 페이지와 사진별 이용조건의 일치는 아직 확인 중이며, 원본 링크를 이용허락 증빙으로 대신하지 않습니다. 재사용·재배포 전 제공처의 개별 이용조건을 확인해 주세요.</p>
+        <ul>{Object.entries(regionShowcaseAlbums).flatMap(([region,photos]) => photos.map(photo => <li key={photo.id}><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{region} · {photo.title} — 사진 원본 (새 탭)</a><p>저작자: {photo.photographer || "개별 저작자 미확인"} · 제공: ⓒ한국관광공사<br />원문 상세/개별 이용조건: 확인 중. 사진 내 워터마크를 유지합니다.</p></li>))}</ul>
+        <h3>브랜드 이미지와 제품 화면</h3>
+        <p>인트로·Hero 해안, 동행자, 바다 곁 여행 노트, 마지막 항구는 W.A.V.E 브랜드를 위해 제작한 이미지이며 실제 관광지·시설 기록이 아닙니다. 동행자와 여행 노트 이미지는 2026년 9월 9일 이미지 생성 도구로 제작했습니다. 제작 원본과 자산 사용 기록은 저장소의 media 문서에 보존합니다.</p>
+        <p>현재 추천 제품 화면은 2026년 9월 9일 촬영했습니다. 사진·편의정보 출처는 ⓒ한국관광공사이며 워터마크를 유지합니다. 대산플라워랜드 시설 자료 조회 시각은 02:26:57 KST로, 시설 갱신일이나 접근성 인증을 뜻하지 않습니다.</p>
+        <p>편의 선택과 커뮤니티 질문 작성 장면은 실제 지원 항목을 바탕으로 만든 읽기 전용 예시입니다. 사용자 설정을 저장하거나 글을 게시하지 않으며, 실제 사용자 후기·평가·이용 실적으로 표시하지 않습니다.</p>
+        <p>보존된 일정·카카오 지도 화면은 2026년 9월 9일 06:55–06:58 KST 같은 여행에서 장소를 둘째 날로 옮긴 전후 기록입니다. 현재 소개에서는 보류 중이며, 지도 표기·워터마크와 원본 촬영 manifest를 보존합니다. 새 사용화면 검증 후 다시 제작합니다.</p>
       </section>
     </article>
 

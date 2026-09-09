@@ -82,7 +82,7 @@ export const richCatalog = [
   { id: "water", label: "물과 여행", icon: "≈", description: "댐·하천·수변" },
   { id: "medical", label: "의료관광", icon: "+", description: "의료·회복" },
   { id: "awards", label: "추천 사진", icon: "▣", description: "계절별 여행 풍경" },
-  { id: "language", label: "글로벌", icon: "文", description: "선택 언어 관광" },
+  { id: "language", label: "다국어 정보", icon: "文", description: "선택한 언어로 읽는 관광정보" },
   { id: "rests", label: "테마휴게소", icon: "↗", description: "고속도로 여행" },
 ] as const;
 

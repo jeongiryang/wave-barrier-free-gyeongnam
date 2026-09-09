@@ -3,14 +3,11 @@
 import type { Place } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
 
-export default function PlaceParticipationActions({ place, location, saved, canSave = true, feedbackText, feedbackState, onToggleSaved, onFeedbackChange, onSubmitFeedback }: {
+export default function PlaceParticipationActions({ place, location, feedbackText, feedbackState, onFeedbackChange, onSubmitFeedback }: {
   place: Place;
   location: string;
-  saved: boolean;
-  canSave?: boolean;
   feedbackText: string;
   feedbackState: "idle" | "sending" | "done" | "error";
-  onToggleSaved: () => void;
   onFeedbackChange: (value: string) => void;
   onSubmitFeedback: () => void;
 }) {
@@ -20,8 +17,6 @@ export default function PlaceParticipationActions({ place, location, saved, canS
     <a className="place-external-review" href={`https://map.kakao.com/link/search/${encodeURIComponent(`${place.name} ${place.address || location}`)}`} target="_blank" rel="noreferrer"><span><b>{say("방문 후기·사진", "Visitor reviews and photos")}</b><small>{say("카카오 장소 상세에서 최신 이용 후기를 확인합니다. 새 창으로 열립니다.", "Check recent reviews on Kakao Maps. Opens in a new tab; content may be Korean.")}</small></span><i aria-hidden="true">↗</i></a>
     <a className="place-community-link" href={`/community?placeId=${encodeURIComponent(place.id)}&placeName=${encodeURIComponent(place.name)}&region=${encodeURIComponent(location)}`}><span><b>{say("이 장소의 여행 후기", "Visitor stories for this place")}</b><small>{say("공식 정보와 분리된 질문·현장 경험을 확인하세요.", "Questions and visitor experiences are separate from official information.")}</small></span><i aria-hidden="true">→</i></a>
     <a className="place-field-report-link" href={`/community/new?category=review&placeId=${encodeURIComponent(place.id)}&placeName=${encodeURIComponent(place.name)}&region=${encodeURIComponent(location)}`}><span><b>{say("구조화 현장 후기 쓰기", "Write a field report")}</b><small>{say("방문일과 항목별 확인 상태를 공식 근거와 분리해 남깁니다.", "Record your visit date and facility observations separately from official evidence.")}</small></span><i aria-hidden="true">＋</i></a>
-    <button type="button" disabled={!saved && !canSave} onClick={onToggleSaved}>{saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary")}<span aria-hidden="true">{saved ? "−" : "+"}</span></button>
-    {!saved && !canSave && <p>{say("현재 추천에서 필요한 편의가 확인된 장소만 일정에 추가할 수 있습니다. 조건을 바꿨다면 여행지를 다시 찾아주세요.", "Only current recommendations with confirmed matching facilities can be added. Search again if you changed your preferences.")}</p>}
     <div className="feedback-box">
       <label htmlFor="feedback-message">{say("현장 정보가 다른가요?", "Has the facility information changed?")}</label>
       <textarea id="feedback-message" aria-describedby="feedback-guidance" value={feedbackText} onChange={(event) => onFeedbackChange(event.target.value)} placeholder={say("달라진 접근로·화장실·승강기 정보를 알려주세요.", "Describe changed paths, toilets or elevators.")} rows={3} />

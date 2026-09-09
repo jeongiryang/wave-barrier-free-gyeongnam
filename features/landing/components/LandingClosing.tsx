@@ -17,20 +17,11 @@ export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
 
 export function LandingCallToAction({ t }: { t: LandingTranslate }) {
   const en = useSitePreferences().locale === "en";
-  return <section className="landing-cta" data-land-reveal>
-    <p>{en ? "Choose a region and the facilities you need" : "지역과 필요한 편의를 고르면"}</p><h2>{t("planningCtaTitle", "여행지부터 일정까지,")}<br /><em>{t("planningCtaEm", "차근차근 만들 수 있어요.")}</em></h2><Link href="/planner">{en ? "Plan my trip" : "여행 계획 만들기"} <span aria-hidden="true">↗</span></Link>
-    <p className="landing-cta-evidence">
-      {en ? "The photos and facility records in this example come from KTO. Recheck facilities and routes before visiting." : "이 시연의 사진과 편의정보는 한국관광공사 기록을 바탕으로 해요. 방문 전에는 시설과 경로를 다시 확인하세요."}<br />
-      <a href="#journey-record-source" onClick={event => {
-        const source = document.getElementById("journey-record-source");
-        if (!(source instanceof HTMLDetailsElement)) return;
-        event.preventDefault();
-        source.open = true;
-        const summary = source.querySelector("summary");
-        summary?.focus({ preventScroll: true });
-        summary?.scrollIntoView({ block: "center", behavior: "instant" });
-      }}>{en ? "View this example's sources and retrieval time" : "시연 출처와 조회 시각 보기"}</a>
-    </p>
+  return <section id="closing" tabIndex={-1} aria-labelledby="closing-title" className="landing-cta" data-cinematic="horizon" data-land-reveal>
+    <div className="closing-horizon" aria-hidden="true" />
+    <span className="closing-eyebrow">{en ? "YOUR NEXT DAY IN GYEONGNAM" : "이제, 당신의 경남을 만날 차례"}</span>
+    <h2 id="closing-title">{t("planningCtaTitle", "여행지부터 일정까지,")}<br /><em>{t("planningCtaEm", "차근차근 만들 수 있어요.")}</em></h2>
+    <Link href="/planner">{en ? "Plan my trip" : "여행 계획하기"} <span aria-hidden="true">↗</span></Link>
   </section>;
 }
 
