@@ -40,7 +40,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(panel.locator(".route-kakao-fallback")).toContainText("No verified journey time");
     const external = panel.getByRole("link", { name: /Check Walking in Kakao Maps/ });
     await expect(external).toHaveAttribute("target", "_blank");
-    await expect(external).toHaveAttribute("href", /https:\/\/map.kakao.com\/link\/to\/.*35.238,128.691$/);
+    await expect(external).toHaveAttribute("href", `https://map.kakao.com/link/by/walk/${encodeURIComponent("창원중앙역")},35.2422,128.6982/${encodeURIComponent("경남도립미술관")},35.238,128.691`);
     await modes.getByRole("button", { name: /Car/ }).click();
     const slower = panel.locator(".route-option").filter({ hasText: "40 min" });
     await slower.focus();
@@ -51,7 +51,7 @@ for (const theme of ["light", "dark"] as const) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     expect(errors).toEqual([]);
     await panel.screenshot({ path: test.info().outputPath(`route-${theme}.png`) });
-    for (const width of [320, 768, 1024, 1366]) {
+    for (const width of [320, 768, 960, 1024, 1366, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       for (const control of await panel.locator("button,a").all()) {
         const box = await control.boundingBox();

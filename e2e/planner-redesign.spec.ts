@@ -18,7 +18,7 @@ test("통합 플래너는 실제 시간순 이동수단을 먼저 보여주고 �
   await modes.filter({ hasText: "도보" }).first().click();
   const kakaoWalk = page.getByRole("link", { name: /카카오맵에서 도보 확인/ });
   await expect(kakaoWalk).toBeVisible();
-  await expect(kakaoWalk).toHaveAttribute("href", /https:\/\/map\.kakao\.com\/link\/to\//);
+  await expect(kakaoWalk).toHaveAttribute("href", `https://map.kakao.com/link/by/walk/${encodeURIComponent("창원중앙역")},35.2422,128.6982/${encodeURIComponent("경남도립미술관")},35.238,128.691`);
 });
 
 test("장소 상세는 카카오 후기와 정확히 연결된 W.A.V.E 커뮤니티 글을 함께 보여준다", async ({ page }) => {
