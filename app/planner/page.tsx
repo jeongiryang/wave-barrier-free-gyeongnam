@@ -291,6 +291,7 @@ export default function PlannerPage() {
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[3]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <DepartureReadinessCard
+                placeCriteriaCurrent={planController.resultCurrent}
                 plan={plan}
                 destinationCrowd={destinationCrowd}
                 destinationPlaceId={routeDestination?.id}

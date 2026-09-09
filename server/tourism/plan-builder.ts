@@ -9,7 +9,7 @@ import {
   fetchTourismData as fetchKto,
 } from "../shared/provider-data";
 import { fetchCrowd, fetchHub, fetchRelated } from "./insights";
-import { placeFrom } from "./accessibility-model";
+import { placeFrom, requestedAccessibilityFields } from "./accessibility-model";
 import { audioFrom, courseFrom } from "./content-model";
 import { buildPlanStatuses, buildPlanStops, partitionPlacesByEvidence, sortPlacesByEvidence } from "./plan-model";
 import { readPlanQuery } from "./plan-query";
@@ -87,7 +87,7 @@ export async function buildPlan(request: Request, env: Env) {
 
   const result = {
     mode,
-    criteria: { region, themes, profiles, locale },
+    criteria: { region, themes, profiles, locale, facilityKeys: requestedAccessibilityFields(profiles).map(([key]) => key) },
     generatedAt: new Date().toISOString(),
     baseYm: hubPack.baseYm,
     places,
