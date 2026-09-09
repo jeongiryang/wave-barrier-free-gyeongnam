@@ -7,7 +7,7 @@ export type TripDatePhase = {
   daysUntil: number | null;
 };
 export type ReadinessItem = {
-  id: "weather" | "crowd" | "transport" | "evidence";
+  id: "weather" | "crowd" | "transport" | "mobility" | "evidence";
   label: string;
   state: ReadinessState;
   summary: string;
@@ -29,6 +29,7 @@ export function assessDepartureReadiness(options?: {
   scheduleAssignments?: Record<string, string>;
   generatedAt?: string;
   transportProviders?: TransportProvider[];
+  routeCoverage?: { total: number; verified: number; loading?: boolean };
   places?: Place[];
 }): { state: ReadinessState; phase: TripDatePhase; items: ReadinessItem[] };
 export function escapeIcsText(value: unknown): string;

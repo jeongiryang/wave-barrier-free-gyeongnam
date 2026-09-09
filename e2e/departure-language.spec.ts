@@ -31,7 +31,12 @@ for (const theme of ["light", "dark"] as const) {
     await prepare(page);
     const card = page.locator("#departure-readiness");
     await expect(card.getByRole("heading", { name: "Check these details before leaving.", exact: true })).toBeVisible();
-    await expect(card.locator("article")).toHaveCount(4);
+    await expect(card.locator("article")).toHaveCount(5);
+    const journey = card.locator("article").filter({ has: page.getByText("Journey times", { exact: true }) });
+    const mobility = card.locator("article").filter({ has: page.getByText("Access along the journey", { exact: true }) });
+    await expect(journey).toHaveCount(1);
+    await expect(mobility).toHaveCount(1);
+    await expect(mobility).toContainText("Recheck needed");
     await expect(card).toContainText("not a live visitor count");
     await expect(card).toContainText("No forecast is available");
     await expect(card).toContainText("2026-10-08 10:00");

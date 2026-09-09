@@ -297,7 +297,7 @@ export default function PlannerPage() {
                 region={region}
                 weather={weather}
                 weatherLoading={weatherLoading}
-                transportProviders={effectiveProviders}
+                routeCoverage={{ total: itineraryRoutes.legs.length, verified: itineraryRoutes.readyCount, loading: itineraryRoutes.loading }}
                 tripSelection={tripSelection}
                 participation={participation}
                 onRefresh={() => { reloadWeather(); return generatePlan(false); }}

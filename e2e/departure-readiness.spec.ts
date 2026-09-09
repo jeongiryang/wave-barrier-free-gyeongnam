@@ -44,7 +44,13 @@ test("출발 준비 카드는 부분 성공을 구분하고 키보드로 한국 
   await expect(card.getByRole("button", { name: "캘린더(.ics) 저장", exact: true })).toBeDisabled();
 
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
-  await expect(card.getByText("전체 확인됨")).toBeVisible({ timeout: 20_000 });
+  const journeys = card.locator("article").filter({ has: page.getByText("이동 경로·시간", { exact: true }) });
+  await expect(journeys).toContainText("전체 1구간 중 0구간");
+  await page.getByRole("button", { name: "모든 구간 조회하기", exact: true }).click();
+  await expect(journeys).toContainText("전체 1구간 중 1구간");
+  await expect(journeys).toHaveClass("confirmed");
+  await expect(card.locator("article").filter({ has: page.getByText("이동 편의", { exact: true }) })).toHaveClass("recheck");
+  await expect(card.getByText("전체 재확인 필요")).toBeVisible();
   const calendarButton = card.getByRole("button", { name: "캘린더(.ics) 저장", exact: true });
   await expect(calendarButton).toBeEnabled();
   await calendarButton.focus();
