@@ -140,7 +140,7 @@ test("a failed visitor story module leaves facility evidence and a community alt
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("status").filter({ hasText: "Visitor stories couldn't open here" })).toBeVisible();
   await expect(dialog.getByRole("link", { name: "Open community", exact: true })).toHaveAttribute("href", /placeId=evidence-place/);
-  await expect(dialog.locator(".facility-evidence-list")).toContainText("Access pathReported available");
+  await expect(dialog.getByRole("region", { name: "Facilities in the official record 1" })).toContainText("Access pathReported available");
   await expect(dialog.getByRole("button", { name: "Add to itinerary", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");
   await expect(trigger).toBeFocused();
