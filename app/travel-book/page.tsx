@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import CommunityHeader from "../../components/CommunityHeader";
 import SkipLink from "../../components/SkipLink";
@@ -9,6 +10,9 @@ import GithubFooterLink from "../../components/GithubFooterLink";
 import { buildTravelJournalHref } from "../../lib/community/field-report.js";
 import { travelBookRegions, type TravelBook } from "../../lib/travel-book.js";
 import { useTravelBook } from "../../features/travel-book/useTravelBook";
+import { emptyTrip, readTripValue, replaceCurrentTrip } from "../../lib/current-trip-storage.js";
+import { localDate } from "../../features/planner/utils";
+import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
 
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 const shortDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
@@ -113,10 +117,38 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
   </article>;
 }
 
+function NewTripDialog({ onCancel, onConfirm, error }: { onCancel: () => void; onConfirm: () => void; error: string }) {
+  const ref = usePlaceDialogFocus(true, onCancel);
+  return <dialog ref={ref} className="region-change-dialog" aria-labelledby="new-trip-title" aria-describedby="new-trip-description">
+    <h2 id="new-trip-title" tabIndex={-1}>새 여행을 시작할까요?</h2>
+    <p id="new-trip-description">현재 편집 중인 일정은 비워집니다. 여행집에 보관한 일정과 메모는 그대로 유지됩니다.</p>
+    <div className="travel-book-actions" style={{ gridTemplateColumns: "1fr" }}><button type="button" onClick={onCancel}>기존 일정 유지</button><button type="button" className="primary" onClick={onConfirm}>새 여행 시작</button></div>
+    {error && <p role="alert">{error}</p>}
+  </dialog>;
+}
+
 export default function TravelBookPage() {
+  const router = useRouter();
   const { books, hydrated, update, remove, restore } = useTravelBook();
   const [announcement, setAnnouncement] = useState("");
+  const [newTripReady, setNewTripReady] = useState(false);
+  const [newTripError, setNewTripError] = useState("");
+  const closeNewTrip = useCallback(() => { setNewTripReady(false); setNewTripError(""); }, []);
   const visitedCount = books.filter((book) => book.status === "visited").length;
+
+  function startNewTrip() {
+    try { replaceCurrentTrip(window.localStorage, emptyTrip("", localDate(), localDate(1))); }
+    catch { setNewTripError("새 여행을 저장하지 못했어요. 기존 일정은 유지됩니다. 이 브라우저의 저장 공간을 확인한 뒤 다시 시도해 주세요."); return; }
+    router.push("/planner#conditions");
+  }
+
+  function requestNewTrip() {
+    setNewTripError("");
+    try {
+      if (JSON.parse(readTripValue(window.localStorage, "wave-saved-places") || "[]").length) { setNewTripReady(true); return; }
+    } catch { setNewTripError("현재 일정을 확인하지 못했어요. 페이지를 새로 열어 다시 시도해 주세요."); return; }
+    startNewTrip();
+  }
 
   return <main className="travel-book-page">
     <SkipLink href="#travel-book-main">여행집 본문으로 바로가기</SkipLink>
@@ -130,6 +162,8 @@ export default function TravelBookPage() {
     {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>여행집을 펼치는 중이에요.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setAnnouncement(`${book.title} 여행을 이 기기 여행집에서 삭제했습니다.`); }} onRestore={restore} />)}</section> : <section className="travel-book-empty">
       <span aria-hidden="true">＋</span><p>아직 펼쳐볼 여행이 없어요.</p><h2>먼저 나에게 맞는 여행을 설계해 볼까요?</h2><small>일정에서 ‘여행집에 보관’을 누르면 이곳에 카드가 생깁니다.</small><Link href="/planner">첫 여행 계획하기 <span aria-hidden="true">→</span></Link>
     </section>}
-    <footer className="travel-book-footer"><Link href="/planner">새 여행 설계</Link><Link href="/community">여행자 후기 읽기</Link><Link href="/privacy">개인정보</Link><Link href="/terms">이용 안내</Link><GithubFooterLink /></footer>
+    <footer className="travel-book-footer"><button type="button" disabled={!hydrated} onClick={requestNewTrip}>새 여행 설계</button><Link href="/community">여행자 후기 읽기</Link><Link href="/privacy">개인정보</Link><Link href="/terms">이용 안내</Link><GithubFooterLink /></footer>
+    {!newTripReady && newTripError && <p role="alert">{newTripError}</p>}
+    {newTripReady && <NewTripDialog onCancel={closeNewTrip} onConfirm={startNewTrip} error={newTripError} />}
   </main>;
 }
