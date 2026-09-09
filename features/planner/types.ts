@@ -19,6 +19,7 @@ export type TransportQueryEvidence = { queryStatus?: "success" | "error" | "not-
 export type TransportProvider = { id: string; name: string; role: string; configured: boolean; state: TransportProviderState; detail?: string } & TransportQueryEvidence;
 export type TransportMode = "all" | "car" | "rail" | "bus" | "regional";
 export type TransportContext = {
+  arrivalRetrievedAt?: string | null;
   nearbyStops: Array<{ id: string; name: string; cityCode: string }>;
   arrivals: Array<{ route: string; minutes: number | null; stops: number | null }>;
   korail: Array<{ trainNo: string; departure: string; arrival: string; departureTime: string }>;

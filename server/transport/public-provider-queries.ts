@@ -17,6 +17,7 @@ export type PublicTransportSnapshot = {
   expressCatalog: ProviderAttempt | null;
   intercityCatalog: ProviderAttempt | null;
   arrivals: ProviderAttempt | null;
+  arrivalRetrievedAt?: string | null;
 };
 
 /** A failed prerequisite is different from a successful empty stop search. */
@@ -48,13 +49,15 @@ export async function fetchPublicTransportSnapshot(env: Env, endLat: number, end
       ]);
 
   let arrivals: ProviderAttempt | null = arrivalDependencyFailure(nearbyStops);
+  let arrivalRetrievedAt: string | null = null;
   if (nearbyStops?.ok && nearbyStops.value.items.length) {
     const stop = nearbyStops.value.items[0];
     const cityCode = clean(stop.citycode || stop.cityCode);
     const nodeId = clean(stop.nodeid || stop.nodeId);
     if (cityCode && nodeId) {
       arrivals = await attempt(fetchPublicTransport(env, "tago", "https://apis.data.go.kr/1613000/ArvlInfoInqireService", "getSttnAcctoArvlPrearngeInfoList", { cityCode, nodeId, numOfRows: "8" }));
+      if (arrivals.ok) arrivalRetrievedAt = new Date().toISOString();
     }
   }
-  return { korailKey, tagoKey, korailPlans, nearbyStops, trainCatalog, expressCatalog, intercityCatalog, arrivals };
+  return { korailKey, tagoKey, korailPlans, nearbyStops, trainCatalog, expressCatalog, intercityCatalog, arrivals, arrivalRetrievedAt };
 }

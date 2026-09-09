@@ -32,6 +32,9 @@ export function buildPublicTransportContext(env: Env, snapshot: PublicTransportS
   ];
 
   const context = {
+    // This is W.A.V.E's original successful retrieval, not a provider update time.
+    // A cached/legacy snapshot must never acquire the current rendering time.
+    arrivalRetrievedAt: arrivals?.ok && typeof snapshot.arrivalRetrievedAt === "string" && Number.isFinite(Date.parse(snapshot.arrivalRetrievedAt)) ? snapshot.arrivalRetrievedAt : null,
     nearbyStops: nearbyStops?.ok ? nearbyStops.value.items.slice(0, 6).map((item) => ({
       id: clean(item.nodeid || item.nodeId), name: clean(item.nodenm || item.nodeNm || item.sttnNm || "인근 정류장"), cityCode: clean(item.citycode || item.cityCode),
     })) : [],

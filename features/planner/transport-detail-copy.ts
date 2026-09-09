@@ -27,7 +27,7 @@ export function datasetName(id: string, english: boolean, fallback = "") {
 
 const descriptions: Record<string, [string, string]> = {
   "bus-stop": ["목적지 주변 정류장 목록입니다. 정류장의 이동 편의는 별도 확인이 필요합니다.", "Stops near your destination. Check each stop's access facilities separately."],
-  "bus-arrival": ["가까운 정류장의 현재 도착 예정 정보입니다. 실제 탑승 가능 여부는 별도 확인하세요.", "Current arrival information for a nearby stop. Check boarding access separately."],
+  "bus-arrival": ["가까운 정류장에서 조회 당시 받은 도착 정보입니다. 탑승 직전 정류장 안내로 현재 도착 예정과 탑승 편의를 확인하세요.", "Arrival information retrieved for a nearby stop. Check the stop's current arrivals and boarding access before travelling."],
   train: ["철도 정보가 제공되는 지역 목록입니다. 실제 운행편이나 좌석 정보가 아닙니다.", "Areas covered by the rail information service. This is not a list of trains or available seats."],
   express: ["전국 고속버스 터미널 목록입니다. 실제 운행편과 좌석은 공식 예매에서 확인하세요.", "A national terminal list. Check actual services and seats with the official booking service."],
   intercity: ["전국 시외버스 터미널 목록입니다. 실제 운행편과 좌석은 공식 예매에서 확인하세요.", "A national terminal list. Check actual services and seats with the official booking service."],
