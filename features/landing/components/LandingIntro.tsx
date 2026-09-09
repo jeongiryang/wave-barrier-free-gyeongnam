@@ -8,16 +8,11 @@ const SESSION_KEY = "wave-arrival-session-v1";
 const VIDEO = "/media/wave-story/hero-water-loop.mp4";
 
 /** Session-once arrival. Native modal semantics keep background controls out of Tab order. */
-export default function LandingIntro({ replay }: { replay: number }) {
-  return <ArrivalScene key={replay} replay={replay} />;
-}
-
-function ArrivalScene({ replay }: { replay: number }) {
+export default function LandingIntro() {
   const { locale } = useSitePreferences();
   const en = locale === "en";
   const dialog = useRef<HTMLDialogElement>(null);
   const video = useRef<HTMLVideoElement>(null);
-  const returnTo = useRef<HTMLElement | null>(null);
   const closing = useRef(false);
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [visible, setVisible] = useState(true);
@@ -35,10 +30,7 @@ function ArrivalScene({ replay }: { replay: number }) {
       document.documentElement.dataset.introSeen = "1";
       node.close();
       setVisible(false);
-      const target = returnTo.current;
-      if (target?.isConnected) {
-        target.focus({ preventScroll: true });
-      } else document.getElementById("landing-title")?.focus({ preventScroll: true });
+      document.getElementById("landing-title")?.focus({ preventScroll: true });
       document.documentElement.classList.remove("arrival-open");
     };
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) close();
@@ -62,10 +54,22 @@ function ArrivalScene({ replay }: { replay: number }) {
     if (!node) return;
     let seen = document.documentElement.dataset.introSeen === "1";
     try { seen ||= sessionStorage.getItem(SESSION_KEY) === "done"; } catch { /* Session-memory-only fallback. */ }
-    if (!replay && seen) { node.close(); node.hidden = true; return; }
+    if (seen) {
+      node.close(); node.hidden = true;
+      if (document.documentElement.dataset.introFocus === "pending") {
+        const frame = requestAnimationFrame(() => {
+          const active = document.activeElement;
+          if (!active || active === document.body || active === document.documentElement || active.id === "landing-title" || node.contains(active)) {
+            document.getElementById("landing-title")?.focus({ preventScroll: true });
+          }
+          delete document.documentElement.dataset.introFocus;
+        });
+        return () => cancelAnimationFrame(frame);
+      }
+      return;
+    }
     node.dataset.ready = "true";
     delete node.dataset.leaving;
-    returnTo.current = replay && document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closing.current = false;
     // The server-rendered open dialog is a usable static arrival before hydration.
     node.hidden = false;
@@ -78,7 +82,7 @@ function ArrivalScene({ replay }: { replay: number }) {
       node.close();
       document.documentElement.classList.remove("arrival-open");
     };
-  }, [replay]);
+  }, []);
 
   useEffect(() => {
     const player = video.current;
@@ -110,17 +114,17 @@ function ArrivalScene({ replay }: { replay: number }) {
       document.removeEventListener("visibilitychange", sync);
       player.pause();
     };
-  }, [visible, replay, failed]);
+  }, [visible, failed]);
 
   useEffect(() => {
     if (!visible || staticScene || failed) return;
     // A stalled media request cannot turn arrival into an indefinite loading screen.
     const limit = setTimeout(finish, 5200);
     return () => clearTimeout(limit);
-  }, [visible, staticScene, failed, replay, finish]);
+  }, [visible, staticScene, failed, finish]);
 
   return <dialog ref={dialog} open className="arrival-intro" hidden={!visible} suppressHydrationWarning
-    data-replay={replay > 0} data-still={staticScene || failed}
+    data-still={staticScene || failed}
     aria-labelledby="arrival-title" aria-describedby="arrival-description"
     onCancel={event => { event.preventDefault(); finish(); }}
     onKeyDown={event => {
@@ -137,7 +141,7 @@ function ArrivalScene({ replay }: { replay: number }) {
     <video ref={video} className="arrival-film" muted playsInline preload="none" aria-hidden="true" tabIndex={-1}
       onEnded={finish} onError={() => setFailed(true)} />
     {/* The final wordmark is crisp HTML; do not draw a second, offset glyph copy behind it. */}
-    {visible && <WaveField className="arrival-wave-canvas" tone="deep" mode="intro" wordmark="" replay={replay} paused={staticScene || failed} />}
+    {visible && <WaveField className="arrival-wave-canvas" tone="deep" mode="intro" wordmark="" paused={staticScene || failed} />}
     <div className="arrival-top"><span>{en ? "A journey for every way of moving" : "여행의 가능성을 넓히다"}</span>
       <form method="dialog" onSubmit={event => { event.preventDefault(); finish(); }}><button type="submit" data-intro-skip>{en ? "Skip intro" : "소개로 건너뛰기"}<span aria-hidden="true"> ↗</span></button></form>
     </div>

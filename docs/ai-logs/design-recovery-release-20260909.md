@@ -1,5 +1,13 @@
 # Design recovery and release candidate — 2026-09-09
 
+## Final release outcome — 2026-09-09 22:43 KST
+
+PR #391 merged as `2ec235a45c7199dd248716da093fcba4fe70ea50`. [PR CI 34356044663](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34356044663), [main CI 34356984927](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34356984927) and [CD 34358176099](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34358176099) all passed. Main CI completed 708 unit tests and all 918 browser cases (917 passed, one existing duplicate-project skip, zero flaky/failure); unchanged performance and frozen security gates passed.
+
+CD promoted exact-SHA deployment `dpl_HSjfCNQZEXJzpvoRRTppF4ozBKdP`. Canonical Production `https://wave-barrier-free-gyeongnam.vercel.app/` returned successful configuration health and was inspected in a real browser: fullscreen Intro, Hero, seven chapter rail, actual Changwon/Jinhae photograph and source, and the region CTA selecting Changwon in the working Planner. The Owner received separate merge and deployment notifications. [#353 checkpoint](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5602877064) records this evidence.
+
+Post-Deploy Production QA run `34358368866` stopped at the existing ODsay provider hold (#372) before live API calls. This is a separate unresolved external-provider gate, not an unsuccessful deployment or proof that all providers work. No hold or CI failure was bypassed. The older pending states below are the diagnostic history before this final outcome; new design continues in a subsequent PR, not in #391.
+
 Owner authorized merging and Production deployment after recovering the local design; further visual polish may follow deployment. The later explicit Owner decision removes the requirement for three approving reviews and permits Owner-approved administrative merge. This does not represent CI success.
 
 ## Preserved work

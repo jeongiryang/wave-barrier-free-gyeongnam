@@ -33,28 +33,24 @@ test("first entry is a full viewport cinematic with immediately usable keyboard 
   await expect(page.locator(".landing-hero .landing-actions a")).toBeVisible();
 });
 
-test("a completed session stays on Landing after reload and explicit replay returns focus", async ({ page }) => {
+test("a completed session stays on Landing after reload without replay controls or focus theft", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
   await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
+  await expect(page.locator("#landing-title")).toBeFocused();
   expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
-  await page.reload();
-  await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
-  await expect(intro).toBeHidden();
-  const replay = page.getByRole("button", { name: "인트로 다시보기", exact: true });
-  await replay.focus();
-  await page.keyboard.press("Enter");
-  await expect(intro).toBeVisible();
-  const skip = intro.getByRole("button", { name: "소개로 건너뛰기" });
-  await expect(skip).toBeFocused();
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await expect(skip).toBeFocused();
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(skip).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(intro).toBeHidden();
-  await expect(replay).toBeFocused();
+  for (const mode of ["reduce", "no-preference", "reduce"] as const) {
+    await page.reload();
+    await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
+    await expect(intro).toBeHidden();
+    const cta = page.locator(".landing-actions a");
+    await cta.focus();
+    await page.emulateMedia({ reducedMotion: mode });
+    await expect(cta).toBeFocused();
+    await expect(page.locator(".landing-hero button")).toHaveCount(0);
+    await expect(cta).toHaveAttribute("href", "/planner");
+  }
 });
 
 for (const preference of ["reduced", "legacy-full-with-os-reduced", "save-data"] as const) {
@@ -80,11 +76,22 @@ for (const preference of ["reduced", "legacy-full-with-os-reduced", "save-data"]
   });
 }
 
-test("failed media retains the brand, static scene and a working exit", async ({ page }) => {
+test("failed media retains the brand, static scene and a working exit", async ({ page, browserName }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.route("**/media/wave-story/hero-water-loop.mp4", route => route.abort());
   await page.goto("/");
   const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
+  if (browserName === "webkit") {
+    // Windows WebKit's media request bypassed this route in the retained trace.
+    // Exercise a real decoder failure; Chromium retains the network-abort path.
+    await expect(intro).toHaveAttribute("data-ready", "true");
+    await expect(intro.locator("video")).toHaveAttribute("src", /hero-water-loop/);
+    await intro.locator("video").evaluate((video: HTMLVideoElement) => {
+      video.src = "data:video/mp4;base64,AA==";
+      video.load();
+    });
+    await expect.poll(() => intro.locator("video").evaluate((video: HTMLVideoElement) => video.error?.code)).toBeTruthy();
+  }
   await expect(intro.getByRole("status")).toContainText("영상을 불러오지 못해");
   await expect(intro.locator(".arrival-poster")).toBeVisible();
   await expect(intro.getByRole("heading", { name: "W.A.V.E" })).toBeVisible();
@@ -122,21 +129,23 @@ test("runtime reduction keeps the single skip control and stops downloading vide
   await expect(page.locator("#landing-title")).toBeFocused();
 });
 
-test("denied session storage still allows an immediate exit and explicit replay", async ({ page }) => {
+test("denied session storage still permits a keyboard exit and planning without replay controls", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(() => {
-    Object.defineProperty(window, "sessionStorage", { get() { throw new DOMException("Storage denied", "SecurityError"); } });
-  });
+  await page.addInitScript(() => { Object.defineProperty(window, "sessionStorage", { get() { throw new DOMException("Storage denied", "SecurityError"); } }); });
   await page.goto("/");
   const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
   await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   await expect(intro).toBeHidden();
-  await page.getByRole("button", { name: "인트로 다시보기", exact: true }).click();
+  await expect(page.locator("#landing-title")).toBeFocused();
+  await expect(page.locator(".landing-hero button")).toHaveCount(0);
+  await page.reload();
   await expect(intro).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(intro).toBeHidden();
-  await expect(page.getByRole("button", { name: "인트로 다시보기", exact: true })).toBeFocused();
+  await expect(page.locator("#landing-title")).toBeFocused();
+  await page.locator(".landing-actions a").press("Enter");
+  await expect(page).toHaveURL(/\/planner/);
 });
 
 test("legacy app motion values cannot suppress the canonical intro and preferences have no motion or replay controls", async ({ page }) => {
@@ -154,7 +163,7 @@ test("legacy app motion values cannot suppress the canonical intro and preferenc
   await expect(preferences.getByRole("button", { name: /동작|인트로/ })).toHaveCount(0);
   await expect(preferences.getByLabel("언어", { exact: true })).toBeVisible();
   await page.getByLabel("환경설정 열기").click();
-  await expect(page.locator(".landing-hero .intro-replay-link")).toBeVisible();
+  await expect(page.locator(".landing-hero button")).toHaveCount(0);
   await expect(page.locator(".landing-hero canvas")).toHaveCount(0);
   await expect(page.locator(".landing-hero-copy")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 });

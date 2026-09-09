@@ -25,7 +25,7 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   await page.evaluate(() => window.scrollTo(0, 1_000));
   await expect.poll(async () => Math.round(await rail.locator(".journey-rail-inner").evaluate(
     (element) => element.getBoundingClientRect().top,
-  ))).toBe(104);
+  ))).toBe(94);
 
   const departureSelect = page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "경남 전체", exact: true });
   await departureSelect.focus();

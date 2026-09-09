@@ -54,6 +54,8 @@
 다크 테마는 같은 토큰 이름을 `html[data-theme="dark"]`에서 다시 정의합니다.
 명도만 뒤집고 색상은 같은 대역에 둡니다.
 
+2026-09-09 여행 계획의 `.journey-editorial` 범위는 종이와 바다의 사진 구성에 맞춰 같은 의미의 표면 토큰을 재정의합니다. 밝은 화면은 `--paper: #f5f5ee`, `--white: #fffefb`, `--muted: #435f66`, `--line: #cbd8d4`; 어두운 화면은 각각 `#082e3c`, `#092c38`, `#bed2d6`, `#355561`입니다. 선택된 짙은 면은 밝은 글자와 함께 검증합니다. 스타일 소유자는 `planner-flow.css`와 `planner-journey-control.css`이며 별도 전역 override 파일을 추가하지 않습니다. 제거된 Hero·briefing·보류 소개 장면의 CSS는 `*-retired-hero.css`, `planner-retired-hero.css`, `landing-deferred-scenes.css`에 보존하고 import하지 않습니다.
+
 ### 색을 고르는 순서
 
 1. 글자면 → `--ink` / `--ink-soft` / `--muted`

@@ -331,7 +331,8 @@ test("landing regional showcase is photo-led, while the verified boundary source
   assert.match(landing, /onClick=\{\(\) => move\(-1\)\}/);
   assert.match(landing, /onClick=\{\(\) => move\(1\)\}/);
   assert.match(landing, /setTimeout[\s\S]*4000/);
-  assert.match(landing, /!interacting && !focused && !saving/);
+  assert.match(landing, /automatic && inView && visible && !saving/);
+  assert.match(landing, /onFocusCapture=\{\(\) => setAutomatic\(false\)\}/);
   assert.match(landing, /setAutomatic\(false\)/);
   assert.doesNotMatch(landing, /RegionMascot|upload\.wikimedia\.org/i);
   const surface = await source("features/landing/components/RegionBoundarySurface.tsx");
@@ -368,7 +369,7 @@ test("preserved feature previews retain their order and motion safety; current c
   assert.match(community, /className="[^"]*community-editor-preview/);
   assert.match(community, /className="[^"]*community-entry-fields/);
   assert.match(community, /useStoryPlayback\(4, 1400\)/);
-  assert.match(community, /실제 게시된 글이 아닙니다/);
+  assert.doesNotMatch(community, /작성 예시|실제 게시된 글이 아닙니다/);
   assert.doesNotMatch(community, /fetch\(|localStorage|sessionStorage|createCommunityPost|<form\b|<input\b|<textarea\b/);
   assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   for (const selector of ["route-demo-path", "route-demo-vehicle"]) {
@@ -392,7 +393,7 @@ test("wave effects avoid dense glyphs and full-screen arrival always offers a di
   const intro = await source("features/landing/components/LandingIntro.tsx");
   const bootstrap = await source("features/landing/arrival-bootstrap.ts");
   const arrivalCss = await source("app/styles/landing-arrival.css");
-  assert.match(landing, /<LandingIntro replay=\{introReplay\} \/><main/);
+  assert.match(landing, /<LandingIntro \/><main/);
   assert.match(intro, /<dialog[\s\S]*aria-labelledby="arrival-title"/);
   assert.match(intro, /<form method="dialog"[\s\S]*data-intro-skip/);
   assert.doesNotMatch(intro, /<a href="\/planner"|arrival-actions/);
@@ -400,7 +401,7 @@ test("wave effects avoid dense glyphs and full-screen arrival always offers a di
   assert.match(intro, /connection\?\.saveData === true/);
   assert.match(intro, /prefers-reduced-motion: reduce/);
   assert.match(intro, /setTimeout\(finish, 5200\)/);
-  assert.match(intro, /target\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(intro, /getElementById\("landing-title"\)\?\.focus\(\{ preventScroll: true \}\)/);
   assert.match(bootstrap, /data-intro-skip/);
   assert.match(bootstrap, /sessionStorage\.setItem\('wave-arrival-session-v1','done'\)/);
   assert.match(arrivalCss, /height: 100dvh/);

@@ -10,6 +10,7 @@ for (const width of [390, 1366]) test(`real region boundaries and the text alter
   await mockPlannerApi(page);
   await page.goto("/planner");
   await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
+  await page.locator(".region-map-disclosure summary").click();
   const region = page.locator(".region-picker");
   await region.scrollIntoViewIfNeeded();
   const shapes = region.locator("svg [data-region-boundary]");
@@ -43,6 +44,7 @@ for (const theme of ["light", "dark"]) test(`English regions retain the same IDs
   await mockPlannerApi(page);
   await page.goto("/planner");
   await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
+  await page.locator(".region-map-disclosure summary").click();
   const section = page.locator(".region-picker");
   await section.scrollIntoViewIfNeeded();
   const list = section.getByRole("group", { name: "Choose a region", exact: true });
@@ -68,6 +70,7 @@ test("Landing loads no boundary module; actual Planner retains its inline map an
   expect(requests.filter(url => /RegionBoundarySurface|korea-sgis-2020/.test(url))).toEqual([]);
   await page.goto("/planner");
   await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
+  await page.locator(".region-map-disclosure summary").click();
   await expect(page.locator(".region-picker [data-region-boundary]")).toHaveCount(18);
   await expect(page.locator(".region-picker-visual > span")).toHaveText("대한민국 남동쪽, 경상남도");
   await page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "김해", exact: true }).click();
@@ -79,6 +82,7 @@ test("failed remote images cannot disable any region in the inline Planner map",
   await page.route("**/*", route => route.request().resourceType() === "image" ? route.abort() : route.fallback());
   await page.goto("/planner");
   await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
+  await page.locator(".region-map-disclosure summary").click();
   const list = page.getByRole("group", { name: "여행 지역 선택", exact: true });
   await expect(list.getByRole("button")).toHaveCount(19);
   await expect(page.locator(".region-picker [data-region-boundary]")).toHaveCount(18);
@@ -95,6 +99,7 @@ test("the actual polygon supports pointer preview and selection of coastal and i
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/planner");
   await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
+  await page.locator(".region-map-disclosure summary").click();
   await page.locator(".region-picker").scrollIntoViewIfNeeded();
   for (const name of ["거제", "진주", "김해"]) {
     const shape = page.locator(`[data-region-boundary="${name}"]`);

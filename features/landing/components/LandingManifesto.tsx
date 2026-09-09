@@ -12,7 +12,7 @@ export default function LandingManifesto({ t }: { t: LandingTranslate }) {
       <LandingNeedsDemo />
     </div>
     <figure className="needs-portrait">
-      <img src="/media/wave-story/planning-together-v1.webp" width="1448" height="1086" loading="lazy" alt={en ? "Brand illustration of companions preparing a trip together" : "함께 여행을 준비하는 동행자들을 그린 브랜드 일러스트"} />
+      <img src="/media/wave-story/companions-coast-v2.webp" width="1120" height="1400" loading="lazy" decoding="async" alt={en ? "Brand artwork of three companions, including a wheelchair user, travelling along the coast" : "휠체어 이용자를 포함한 세 동행자가 해안을 함께 여행하는 브랜드 이미지"} />
     </figure>
   </section>;
 }

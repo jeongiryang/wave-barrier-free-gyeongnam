@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: image }));
 });
 
-test("regional names, photographs and trip links rotate together after four seconds, never editing a trip", async ({ page }) => {
+test("regional names, photographs and trip links advance after the complete album, never editing a trip", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   let apiRequests = 0;
   page.on("request", request => { if (request.url().includes("action=photo")) apiRequests++; });
@@ -25,15 +25,26 @@ test("regional names, photographs and trip links rotate together after four seco
   const stored = await page.evaluate(() => JSON.stringify(localStorage));
   await page.locator("#regions").evaluate(el => scrollTo({top: scrollY + el.getBoundingClientRect().top - 80, behavior: "instant"}));
   await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
-  // Reset through the real pause/resume interaction at a fixed clock origin.
+  // Reading the scene stops rotation until the explicit resume action.
   await page.locator(".selected-region strong").hover();
   await expect(stage).toHaveAttribute("data-running", "false");
   await page.mouse.move(0, 0);
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await stage.locator(".region-rotation-control").press("Enter");
   await expect(stage).toHaveAttribute("data-running", "true");
   await expect(stage).toHaveAttribute("data-active-region", "창원");
+  await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", "0");
   await page.clock.fastForward(3999);
   await expect(stage).toHaveAttribute("data-active-region", "창원");
+  await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", "0");
   await page.clock.fastForward(1);
+  for (let index = 1; index < regionShowcaseAlbums["창원"].length; index++) {
+    await expect(stage).toHaveAttribute("data-active-region", "창원");
+    await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", String(index));
+    await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("src", regionShowcaseAlbums["창원"][index].image);
+    await expect(stage.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("창원"));
+    await page.clock.fastForward(4000);
+  }
   await expect(stage).toHaveAttribute("data-active-region", "하동");
   await expect(stage.locator(".selected-region strong")).toHaveText("하동");
   expect(await stage.locator("img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual([regionShowcaseAlbums["하동"][0].image]);
@@ -63,7 +74,8 @@ test("keyboard arrows stop rotation, preserve focus and match all 18 destination
   await page.clock.fastForward(16000);
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "창원");
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-running", "false");
-  await expect(section.locator(".region-arrows").getByRole("button")).toHaveCount(2);
+  await expect(section.locator(".region-arrows").getByRole("button")).toHaveCount(3);
+  await expect(section.getByRole("button", { name: "지역 자동 전환 재개" })).toBeEnabled();
   await section.getByRole("button", {name:"이전 지역"}).press("Enter");
   await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "김해");
 });

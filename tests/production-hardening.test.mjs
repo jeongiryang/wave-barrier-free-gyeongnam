@@ -28,7 +28,7 @@ test("landing route delegates section UI and browser effects to feature modules"
 test("landing arrival can be skipped immediately and retains the underlying Hero", async () => {
   const landing = await source("app/page.tsx");
   const intro = await source("features/landing/components/LandingIntro.tsx");
-  assert.match(landing, /<LandingIntro replay=\{introReplay\}/);
+  assert.match(landing, /<LandingIntro/);
   assert.match(landing, /<LandingHero/);
   assert.match(intro, /data-intro-skip/);
   assert.match(intro, /onCancel=.*finish/);

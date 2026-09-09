@@ -1,7 +1,7 @@
 /* The same coast and wave identity carries the full-screen arrival into Hero. */
 .arrival-intro { position: fixed; inset: 0; margin: 0; padding: clamp(20px,4vw,64px); width: 100%; max-width: none; height: 100dvh; max-height: none; box-sizing: border-box; border: 0; color: #fff; background: #032a3b; z-index: 10000; overflow: auto; }
 .arrival-intro[open] { display: flex; flex-direction: column; justify-content: space-between; gap: 32px; }
-.arrival-intro[hidden],html[data-intro-seen="1"] .arrival-intro[data-replay="false"] { display: none; }
+.arrival-intro[hidden],html[data-intro-seen="1"] .arrival-intro { display: none; }
 .arrival-intro::backdrop { background: #032a3b; }
 .arrival-intro[data-leaving="true"] { clip-path: inset(0 0 100% 0); transition: clip-path .62s cubic-bezier(.76,0,.24,1); }
 .arrival-intro[data-leaving="true"]::backdrop { background: transparent; }
@@ -55,8 +55,6 @@ html[data-motion="calm"] .arrival-brand,html[data-motion="calm"] .arrival-film {
 .story-edition .landing-hero-copy .landing-actions a { color: #032a3b; background: #b5fff0; border-radius: 999px; padding: 14px 24px; }
 .story-edition .landing-hero .story-media::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg,rgba(0,24,38,.78),rgba(0,24,38,.48) 48%,rgba(0,24,38,.04)); }
 .story-edition .landing-hero .story-media { min-height: 90svh; display: flex; flex-direction: column; justify-content: space-between; padding-top: clamp(130px,15vh,200px); }
-.story-edition .intro-replay-link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; margin-top: 18px; padding: 8px 0; font-size: .8rem; color: #fff; border: 0; background: transparent; text-decoration: underline; text-underline-offset: 5px; }
-.intro-replay-link:focus-visible { outline: 3px solid #9df5e4; outline-offset: 5px; }
 .story-edition .manifesto { padding-block: var(--story-space); }
 .story-edition .manifesto { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 0 clamp(32px,6vw,100px); align-items: start; }
 .story-edition .manifesto > :not(.needs-portrait) { grid-column: 1; }
@@ -84,9 +82,8 @@ html[data-motion="calm"] .arrival-brand,html[data-motion="calm"] .arrival-film {
 .story-edition .landing-community { padding-block: clamp(56px,6vw,96px); }
 .story-edition .landing-cta { position: relative; isolation: isolate; margin-block: 48px 0; overflow: hidden; padding-block: var(--story-space); }
 .closing-horizon { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg,rgba(3,25,40,.66),rgba(3,25,40,.78)),url('/media/wave-story/harbor-night-v2.webp') center/cover; }
-.story-edition .landing-cta,.story-edition .landing-cta h2,.story-edition .landing-cta h2 em,.story-edition .landing-cta > p,.story-edition .landing-cta .landing-cta-evidence { color: #fff; }
+.story-edition .landing-cta,.story-edition .landing-cta h2,.story-edition .landing-cta h2 em,.story-edition .landing-cta > p { color: #fff; }
 .story-edition .landing-cta > a { color: #052e40; background: #9df5e4; }
-.story-edition .landing-cta .landing-cta-evidence a { color: #9df5e4; }
 .closing-eyebrow { display: block; margin-bottom: 32px; color: #9df5e4; letter-spacing: .12em; }
 .closing-source { display: block; margin-top: 32px; color: #c6dce6; }
 .story-edition .landing-cta h2 { font-size: clamp(2.7rem,6vw,6rem); line-height: 1.15; }

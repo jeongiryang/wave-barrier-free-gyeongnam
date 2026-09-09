@@ -11,6 +11,7 @@ export default function LandingCommunityStory() {
   const title = en ? "A question before a Gyeongnam trip" : "경남 여행을 앞두고 궁금해요";
   const content = en ? "What should I check about paths and facilities before leaving?" : "출발 전에 접근로와 편의시설에서 무엇을 살펴보면 좋을까요?";
   return <section className="landing-community community-chapter" id="community" tabIndex={-1} data-cinematic="left" aria-labelledby="community-story-title">
+    <img className="community-journal-backdrop" src="/media/wave-story/travel-journal-v2.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="" />
     <figure className="community-composer-visual" aria-labelledby="community-visual-caption">
       <div ref={root} className="community-demo story-demo" data-demo="community" data-step={step} data-running={running} data-still={still}>
         <div className="community-editor-preview" aria-hidden="true">
@@ -24,9 +25,9 @@ export default function LandingCommunityStory() {
           </div>
           <article className="demo-post-preview" data-shown={step >= 3}><small>{en ? "Travel questions · Changwon" : "여행 질문 · 창원"}</small><h4>{title}</h4><p>{content}</p></article>
         </div>
-        <p className="sr-only">{en ? "Writing example: choose Changwon in Travel questions, enter a title and content. No post is published." : "작성 예시: 여행 질문 게시판에서 창원을 고르고, 제목과 내용을 입력하면 이런 글이 됩니다. 실제 등록은 하지 않습니다."} {title}. {content}</p>
+        <p className="sr-only">{en ? "Travel questions connect a region, a title and your question." : "여행 질문에는 지역, 제목, 궁금한 내용을 담을 수 있어요."} {title}. {content}</p>
       </div>
-      <figcaption className="sr-only" id="community-visual-caption">{en ? "W.A.V.E question form · writing example, not published" : "W.A.V.E 질문 작성 예시 · 실제 게시된 글이 아닙니다"}</figcaption>
+      <figcaption className="sr-only" id="community-visual-caption">{en ? "Ask about your trip" : "여행을 앞두고 궁금한 점을 나누세요"}</figcaption>
     </figure>
     <div className="landing-community-copy">
       <p className="section-kicker">{en ? "Your experience travels further" : "여행의 끝에서, 다음 여행으로"}</p>

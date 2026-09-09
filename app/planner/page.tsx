@@ -216,7 +216,7 @@ export default function PlannerPage() {
   }
 
   return (
-    <main className="planner-page" lang={locale}>
+    <main className="planner-page journey-editorial" lang={locale}>
       <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>
       <div className="scroll-progress" aria-hidden="true" />
       <PlannerHeader t={t} scrolled={scrolled} hidden={headerHidden} savedCount={saved.length} onNavigate={journey.goToStep} />
@@ -224,8 +224,8 @@ export default function PlannerPage() {
       <section className="planner-journey-workspace" id="planner" aria-labelledby="journey-workspace-title">
         <header className="planner-intro">
           <div><h1 id="journey-workspace-title">{locale === "en" ? "A trip that works for you." : "나에게 맞는 경남 여행"}</h1>
-          <p>{locale === "en" ? "Choose your needs. Check the evidence. Make the final choice." : "필요한 편의를 고르고, 확인된 정보를 보고, 직접 선택하세요."}</p>
-          <p className="planner-progress-status" role="status">{locale === "en" ? `${journey.completedCount} of 4 steps complete · ${4 - journey.completedCount} remaining` : `4단계 중 ${journey.completedCount}단계 완료 · ${4 - journey.completedCount}단계 남음`}</p></div>
+          <p>{locale === "en" ? "A place you love. A journey at your pace." : "마음에 드는 곳을, 나의 속도로"}</p>
+          <p className="planner-progress-status sr-only" role="status">{locale === "en" ? `${journey.completedCount} of 4 steps complete · ${4 - journey.completedCount} remaining` : `4단계 중 ${journey.completedCount}단계 완료 · ${4 - journey.completedCount}단계 남음`}</p></div>
           <PlannerJourneyModeToggle view={stageView.view} interactive={hydrated} onChange={stageView.changeView} />
         </header>
         <div className="journey-control-layout">
