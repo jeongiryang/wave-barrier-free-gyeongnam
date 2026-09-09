@@ -429,7 +429,7 @@ test("interactive help follows real sections on every public journey and remains
   const help = `${helpView}\n${helpContent}\n${helpController}`;
   assert.match(helpView, /useHelpTour\(\)/);
   assert.doesNotMatch(helpView, /useEffect|ResizeObserver|window\.scrollTo/);
-  for (const selector of ["#top", "#story", "#regions", "#evidence", ".landing-cta"]) {
+  for (const selector of ["#top", "#regions", "#story", "#recommendation", ".landing-cta"]) {
     assert.match(help, new RegExp(`selector: "${selector.replace(".", "\\.")}"`));
   }
   for (const id of ["conditions", "places", "itinerary", "departure-readiness"]) {
