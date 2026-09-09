@@ -45,7 +45,7 @@ for (const english of [false, true]) for (const knownTime of [true, false]) {
     const retrievedAt = knownTime ? "2026-09-06T03:30:00.000Z" : undefined;
     const details = await prepare(page, "arrival", english, { retrievedAt });
     const panel = details.locator(".transport-data-panel");
-    const rail = details.locator(".transport-live-rail");
+    const rail = page.locator(".transport-live-rail");
     let requests = 0;
     page.on("request", request => { if (new URL(request.url()).pathname === "/api/route") requests++; });
     for (const surface of [panel, rail]) {
@@ -60,7 +60,7 @@ for (const english of [false, true]) for (const knownTime of [true, false]) {
       }
     }
     await expect(panel).not.toContainText(english ? "Current arrival information" : "현재 도착 예정 정보");
-    await expect(panel).toContainText(english ? "At retrieval: 1 stops away" : "조회 당시 1개 정류장 전");
+    await expect(panel).toContainText(english ? "At retrieval: 1 stop away" : "조회 당시 1개 정류장 전");
     await panel.getByRole("button", { name: english ? "Check these conditions again" : "현재 조건 다시 확인", exact: true }).click();
     await expect.poll(() => requests).toBe(1);
     await expect(panel).toContainText(english ? "At retrieval: 2 min" : "조회 당시 2분");
