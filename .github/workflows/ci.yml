@@ -88,7 +88,16 @@ jobs:
         run: npm ci
 
       - name: 브라우저 설치
-        run: npx playwright install --with-deps chromium
+        run: |
+          # Restore the runner image's Chrome-repository exclusion. Chromium and
+          # its Ubuntu dependencies do not use Google's independently updated APT index.
+          for source in /etc/apt/sources.list.d/google-chrome{,-stable}.{list,sources}; do
+            if [[ -f "$source" ]] && grep -Eq 'https?://dl\.google\.com/linux/chrome(-stable)?/deb/?([[:space:]]|$)' "$source"; then
+              echo "Quarantining unused Chrome APT source: $source"
+              sudo mv -- "$source" "$RUNNER_TEMP/$(basename "$source").wave-disabled"
+            fi
+          done
+          npx playwright install --with-deps chromium
       # Owner-approved latency improvement: four native shards per device.
       # Every test still runs once per device, with the same two workers,
       # assertions, retry policy, timeouts and protected aggregate gate.
@@ -163,6 +172,16 @@ jobs:
           python3 -I -B "$RUNNER_TEMP/wave-trusted/tests/subscription-ci-bootstrap-boundary.py"
       - name: Reject tampered bootstrap before any checkout code executes
         run: python3 -I "$RUNNER_TEMP/wave-trusted/tests/subscription-bootstrap-boundary.py"
+      - name: Exclude unused runner Chrome repository from APT
+        shell: bash
+        run: |
+          # Fixed runner paths only; no checkout executable or security-policy change.
+          for source in /etc/apt/sources.list.d/google-chrome{,-stable}.{list,sources}; do
+            if [[ -f "$source" ]] && grep -Eq 'https?://dl\.google\.com/linux/chrome(-stable)?/deb/?([[:space:]]|$)' "$source"; then
+              echo "Quarantining unused Chrome APT source: $source"
+              sudo mv -- "$source" "$RUNNER_TEMP/$(basename "$source").wave-disabled"
+            fi
+          done
       - name: Actual validation sandbox boundary
         shell: bash
         run: |

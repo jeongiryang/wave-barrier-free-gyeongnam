@@ -90,6 +90,10 @@ test("RC separates complete hosted product validation from frozen bounded sandbo
   const expectedBrowser = structuredClone(archivedWorkflow.jobs.browser);
   expectedBrowser.strategy.matrix.device = ["desktop", "mobile"];
   expectedBrowser.strategy.matrix.shard = [1, 2, 3, 4];
+  const installBrowser = workflow.jobs.browser.steps.find(step => step.name === "브라우저 설치");
+  assert.ok(installBrowser.run.trimEnd().endsWith("npx playwright install --with-deps chromium"));
+  assert.doesNotMatch(installBrowser.run, /allow-unauthenticated|AllowInsecure|Check-Valid-Until|continue-on-error|\|\| true/);
+  expectedBrowser.steps.find(step => step.name === "브라우저 설치").run = installBrowser.run;
   const browserStep = expectedBrowser.steps.find(step => step.name === "브라우저·접근성 회귀 테스트");
   browserStep.env = { PLAYWRIGHT_HTML_REPORT: "playwright-report/${{ matrix.device }}" };
   browserStep.run = "npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/4 --output=test-results/${{ matrix.device }}";
@@ -97,13 +101,19 @@ test("RC separates complete hosted product validation from frozen bounded sandbo
     step.with.name = step.with.name.replace("${{ matrix.shard }}", "${{ matrix.device }}-${{ matrix.shard }}");
   }
   assert.deepEqual(workflow.jobs.browser, expectedBrowser);
-  // Only the explicitly reviewed immutable distribution may differ from the
-  // archived boundary job. Every command, timeout and safety probe stays equal.
+  // Apart from the reviewed distribution and an ephemeral runner APT-source
+  // preparation, every boundary command, timeout and safety probe stays equal.
   const expectedBoundary = structuredClone(archivedWorkflow.jobs["sandbox-boundary"]);
   const bootstrap = expectedBoundary.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution");
   bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "64d514266350f83230bbef57e25e14cf20b5f152")
     .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "632ca2674b0dd46263d257936a4c0fe6051fff90210502e929c120d5c414ce63");
-  assert.deepEqual(workflow.jobs["sandbox-boundary"], expectedBoundary);
+  const actualBoundary = structuredClone(workflow.jobs["sandbox-boundary"]);
+  const prepareApt = actualBoundary.steps.findIndex(step => step.name === "Exclude unused runner Chrome repository from APT");
+  const verifyBootstrap = actualBoundary.steps.findIndex(step => step.name === "Reject tampered bootstrap before any checkout code executes");
+  assert.equal(prepareApt, verifyBootstrap + 1);
+  assert.doesNotMatch(actualBoundary.steps[prepareApt].run, /GITHUB_WORKSPACE|scripts\/|apt-get|allow-unauthenticated|AllowInsecure/);
+  actualBoundary.steps.splice(prepareApt, 1);
+  assert.deepEqual(actualBoundary, expectedBoundary);
   const boundary = readFileSync(new URL("./subscription-sandbox-boundary.py", import.meta.url), "utf8");
   assert.match(boundary, /checks = boundary\.validate\(config, str\(archive\), \{\}\)/);
   assert.match(boundary, /assert len\(checks\) == 6/);
