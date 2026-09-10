@@ -136,6 +136,12 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
   .place-modal .modal-body { padding-bottom: max(26px,env(safe-area-inset-bottom)); }
 }
 @keyframes question-arrive { from { opacity: .5; transform: translateY(10px); } }
+.condition-availability { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; margin: 8px 0; border-block: 1px solid var(--line); color: var(--ink); }
+.condition-availability > div { display: grid; gap: 6px; }
+.condition-availability span,.condition-availability small { font-size: .8rem; color: var(--muted); }
+.condition-availability strong { font-size: 1.15rem; }
+.condition-availability b { font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.condition-availability button { flex-shrink: 0; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--ink); background: var(--paper); }
 @media (max-width: 1100px) {
  .planner-intro { flex-direction: row; align-items: center; }
  .planner-intro .journey-mode-toggle { flex-basis: 210px; } }
