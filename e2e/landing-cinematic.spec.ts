@@ -25,7 +25,8 @@ test("regional names, photographs and trip links advance after the complete albu
   // of Date.now() + 100 races the next browser round trip on a busy CI runner.
   await page.clock.pauseAt(new Date("2026-09-10T11:00:00Z"));
   const stage = page.locator("[data-region-stage]");
-  const stored = await page.evaluate(() => JSON.stringify(localStorage));
+  // Storage enumeration order is browser-defined; compare every key and value.
+  const stored = await page.evaluate(() => ({ ...localStorage }));
   await page.locator("#regions").evaluate(el => scrollTo({top: scrollY + el.getBoundingClientRect().top - 80, behavior: "instant"}));
   await page.clock.runFor(100);
   // Reading the scene stops rotation until the explicit resume action.
@@ -53,7 +54,7 @@ test("regional names, photographs and trip links advance after the complete albu
   expect(await stage.locator("img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual([regionShowcaseAlbums["하동"][0].image]);
   await expect(stage.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("하동"));
   await expect(stage.locator(".selected-region")).toHaveAttribute("aria-live", "off");
-  expect(await page.evaluate(() => JSON.stringify(localStorage))).toBe(stored);
+  expect(await page.evaluate(() => ({ ...localStorage }))).toStrictEqual(stored);
   expect(apiRequests).toBe(0);
 });
 
