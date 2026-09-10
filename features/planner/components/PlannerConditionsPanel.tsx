@@ -12,6 +12,7 @@ import { planFailureHeadings } from "../condition-copy";
 
 const PlannerRegionDiscovery = lazy(() => import("./PlannerRegionDiscovery"));
 const PlannerAccessibilityProfiles = lazy(() => import("./PlannerAccessibilityProfiles"));
+const PlannerAvailability = lazy(() => import("./PlannerAvailability"));
 
 interface PlannerConditionsPanelProps {
   view: PlannerStageView;
@@ -34,6 +35,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
   const lastAvailableQuestion = !region ? 0 : !selected.length ? 1 : !themes.length ? 2 : 3;
   const question = Math.min(requestedQuestion, lastAvailableQuestion);
   const guided = props.view === "guided";
+  const showAvailability = Boolean(region) && (!guided || question === 1 || question === 2);
   useEffect(() => {
     const sync = () => {
       const value = Number(new URLSearchParams(window.location.search).get("question") || 0);
@@ -61,6 +63,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
       {(!guided || question === 2) && <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="themes" />}
       {(!guided || question === 3) && <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="dates" />}
     </div>
+    {showAvailability && <Suspense fallback={<p role="status">{en ? "Preparing search results…" : "검색 결과를 준비하고 있어요…"}</p>}><PlannerAvailability en={en} region={region} selected={selected} themes={guided && question === 1 ? [] : themes} /></Suspense>}
     {(!guided || question === 3) && <p className="condition-scope">{en ? "Dates affect forecasts and events, not facility matching. You can change them later in My itinerary." : "여행 날짜는 날씨·행사 조회에 반영돼요. 편의시설 추천 조건은 아니며 내 일정에서 다시 바꿀 수 있어요."}</p>}
     {guided && planError && <p role="alert">{planFailureHeadings[planError][en ? 1 : 0]} {en ? "Your choices are kept. Please try again shortly." : "선택한 조건은 유지됩니다. 잠시 후 다시 찾아 주세요."}</p>}
     <div className="condition-actions">

@@ -31,6 +31,37 @@ const normalize = loadServer()("server/shared/provider-normalizers.ts").normaliz
 const success = (items, totalCount = 0) => ({ response: { header: { resultCode: "0000", resultMsg: "OK" }, body: { items, totalCount } } });
 const flatParameterError = { resultCode: "10", resultMsg: "INVALID_REQUEST_PARAMETER_ERROR(defaultYN)" };
 
+test("availability counts deduplicate candidates and keep confirmed facilities separate from missing evidence", async () => {
+  const calls = [];
+  const load = loadServer(async input => {
+    const url = new URL(input); calls.push(url);
+    const items = url.pathname.endsWith("detailWithTour2")
+      ? { contentid: "1001", parking: "장애인 전용 주차구역 있음", stroller: "없음" }
+      : { contentid: "1001", contenttypeid: "14", title: "Museum", addr1: "경상남도 진주시" };
+    return Response.json(success({ item: items }, 1));
+  });
+  const response = await load("server/tourism/availability.ts").handleAvailability(new Request("https://wave.test/api/wave?action=availability&region=진주&themes=nature,history"), { TOUR_API_SERVICE_KEY_ENCODED: "fixture" });
+  const data = await response.json();
+  assert.deepEqual(data.candidates, [{ id: "1001", profiles: ["wheel"] }]);
+  assert.equal(data.status.partial, false);
+  assert.equal(calls.filter(url => url.pathname.endsWith("detailWithTour2")).length, 1);
+  assert.ok(calls.every(url => ["areaBasedList2", "detailWithTour2"].some(operation => url.pathname.endsWith(operation))));
+});
+
+test("availability failure is not zero, and incomplete detail results are not cached", async () => {
+  for (const allFailed of [true, false]) {
+    const load = loadServer(async input => {
+      if (allFailed || new URL(input).pathname.endsWith("detailWithTour2")) return Response.json(flatParameterError);
+      return Response.json(success({ item: { contentid: "1001", title: "Museum" } }, 1));
+    });
+    const response = await load("server/tourism/availability.ts").handleAvailability(new Request("https://wave.test/api/wave?action=availability&region=진주&themes=history"), { TOUR_API_SERVICE_KEY_ENCODED: "fixture" });
+    assert.equal(response.status, allFailed ? 502 : 200);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    const data = await response.json();
+    if (!allFailed) { assert.equal(data.status.partial, true); assert.deepEqual(data.candidates[0].profiles, []); }
+  }
+});
+
 test("query facility keys include every requested field and match normalized place evidence", () => {
   const { requestedAccessibilityFields, placeFrom } = loadServer()("server/tourism/accessibility-model.ts");
   const profiles = ["wheel", "baby", "wheel", "unknown"];
