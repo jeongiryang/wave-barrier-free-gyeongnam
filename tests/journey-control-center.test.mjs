@@ -4,21 +4,22 @@ import test from "node:test";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Journey Control Center가 네 단계와 실제 여행 상태를 연결한다", async () => {
+test("PDF의 7개 화면이 기존 네 단계의 실제 여행 상태와 연결된다", async () => {
   const [page, rail, hook, styles] = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/components/PlannerJourneyRail.tsx"),
     source("features/planner/hooks/useJourneyProgress.ts"),
     source("app/styles/planner-journey-control.css"),
   ]);
-  assert.match(page, /<PlannerJourneyRail/);
+  assert.match(await source("features/planner/components/PlannerHeader.tsx"), /<PlannerJourneyRail/);
   assert.match(page, /journey-control-layout/);
   assert.match(page, /reviewed: reviewedTrip === reviewSignature/);
   for (const id of ["conditions", "places", "itinerary", "departure-readiness"]) {
     assert.match(hook, new RegExp(`id: "${id}"`));
   }
-  assert.match(rail, /aria-current=\{active \? "step"/);
-  assert.match(rail, /role="progressbar"/);
+  assert.match(rail, /aria-current=\{index === current \? "step"/);
+  assert.match(rail, /aria-label="여행 만들기 단계"/);
+  assert.match(rail, /disabled=\{!available\[index\]\}/);
   assert.match(page, /savedCount: tripSelection\.orderedSavedPlaces\.length/);
   assert.match(page, /currentSavedCount: planController\.resultCurrent \? activePlaces\.filter\(\(place\) => saved\.includes\(place\.id\)\)\.length : 0/);
   assert.match(hook, /id: "places"[\s\S]*complete: searched && recommendedCount > 0 && currentSavedCount > 0/);

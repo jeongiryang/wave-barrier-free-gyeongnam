@@ -83,14 +83,14 @@ export async function chooseTripConditions(page: Page) {
   await mode.getByRole("button", { name: "전체 보기", exact: true }).waitFor();
   await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('.journey-mode-toggle button')?.disabled);
   const guided = await mode.getByRole("button", { name: "한 단계씩", exact: true }).getAttribute("aria-pressed") === "true";
-  await page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "창원", exact: true }).click();
-  if (guided) await page.locator(".condition-actions").getByRole("button", { name: "다음 →", exact: true }).click();
+  if (guided) await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
+  else await page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "창원", exact: true }).click();
+  if (guided) await page.locator(".condition-actions").getByRole("button", { name: /^다음:/ }).click();
   const needs = page.getByRole("group", { name: "여행 편의 조건 선택" }).getByRole("button", { name: /휠체어 편의시설/ });
   if (await needs.getAttribute("aria-pressed") !== "true") await needs.click();
-  if (guided) await page.locator(".condition-actions").getByRole("button", { name: "다음 →", exact: true }).click();
+  if (guided) await page.locator(".condition-actions").getByRole("button", { name: /^다음:/ }).click();
   const nature = page.getByRole("button", { name: /자연·휴양 공원/ });
   if (await nature.getAttribute("aria-pressed") !== "true") await nature.click();
-  if (guided) await page.locator(".condition-actions").getByRole("button", { name: "다음 →", exact: true }).click();
   await page.locator(".condition-actions").getByRole("button", { name: "여행지 찾기 →", exact: true }).click();
 }
 

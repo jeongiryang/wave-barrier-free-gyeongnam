@@ -40,46 +40,33 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page).toHaveURL(/\/planner/);
   });
 
-  test(`${locale}: activities gate dates, including direct history navigation`, async ({ page }) => {
+  test(`${locale}: activities gate search while dates remain editable without a search`, async ({ page }) => {
     await mockPlannerApi(page, { plannerView: "guided" });
     await page.addInitScript((value) => localStorage.setItem("wave-locale", value), locale);
     let searches = 0;
-    page.on("request", (request) => { if (request.url().includes("action=plan")) searches++; });
+    page.on("request", request => { if (request.url().includes("action=plan")) searches++; });
     await page.goto("/planner");
-    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>(".journey-mode-toggle button")?.disabled);
-    await page.getByRole("group", { name: en ? "Choose a region" : "여행 지역 선택", exact: true }).getByRole("button", { name: en ? "Changwon" : "창원", exact: true }).click();
-    const next = page.locator(".condition-actions").getByRole("button", { name: en ? "Continue →" : "다음 →", exact: true });
-    await next.click();
+    await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
+    await page.locator(".condition-actions button").last().click();
     await page.locator(".profile-grid button").first().click();
-    await next.click();
-    const dates = page.locator(".condition-progress button").nth(3);
-    const status = page.locator("#conditions > p[role='status']");
-    const activityHeading = en ? "What would you like to do?" : "무엇을 하고 싶나요?";
-    await expect(next).toBeDisabled();
-    await expect(dates).toBeDisabled();
-    await expect(status).toHaveText(en ? "Select at least one activity to continue." : "하고 싶은 활동을 하나 이상 선택해 주세요.");
+    await page.locator(".condition-actions button").last().click();
+    const search = page.locator(".condition-actions button").last();
+    await expect(search).toBeDisabled();
+    await expect(page.locator("#conditions > p[role=status]")).toHaveText(en ? "Select at least one activity to continue." : "하고 싶은 활동을 하나 이상 선택해 주세요.");
     await page.evaluate(() => {
       history.pushState(null, "", "/planner?question=3#conditions");
       dispatchEvent(new PopStateEvent("popstate"));
     });
-    await expect(page.getByRole("heading", { name: activityHeading, exact: true })).toBeVisible();
-    await expect(page.locator(".condition-actions").getByRole("button", { name: /Find places|여행지 찾기/ })).toHaveCount(0);
+    await expect(page.locator(".reference-date-fields")).toBeVisible();
     expect(searches).toBe(0);
+    await page.locator(".reference-progress button").nth(2).click();
     const activity = page.locator(".theme-grid button").first();
     await activity.click();
-    // A forced URL can now expose Dates only after its prerequisite is satisfied.
-    await expect(dates).toBeEnabled();
-    await dates.click();
-    await expect(page.locator(".condition-actions").getByRole("button", { name: /Find places|여행지 찾기/ })).toBeEnabled();
-    await page.locator(".condition-progress button").nth(2).click();
-    await expect(page.locator(".condition-inputs")).toHaveCSS("opacity", "1");
+    await expect(search).toBeEnabled();
     expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
     await activity.click();
-    await expect(next).toBeDisabled();
-    await expect(dates).toBeDisabled();
-    await expect(status).toBeVisible();
+    await expect(search).toBeDisabled();
     expect(searches).toBe(0);
-    expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
   });
 
   test(`${locale}: landing journey summary has a localized accessible name and steps`, async ({ page }) => {

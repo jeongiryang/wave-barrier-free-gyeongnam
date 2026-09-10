@@ -438,7 +438,8 @@ test("interactive help follows real sections on every public journey and remains
   }
   for (const id of ["conditions", "places", "itinerary", "departure-readiness"]) {
     assert.match(help, new RegExp(`selector: "#${id}"`));
-    assert.match(planner, new RegExp(`id="${id}"`));
+    if (id === "departure-readiness") assert.match(await source("features/planner/components/PlannerStageFrame.tsx"), /step.id === "departure-readiness"/);
+    else assert.match(planner, new RegExp(`id="${id}"`));
   }
   for (const selector of [".community-page", "#community-list", ".community-footer", ".travel-book-page", ".travel-book-privacy", ".travel-book-list, .travel-book-empty"]) {
     assert.match(help, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));

@@ -29,7 +29,7 @@ test("새 여행자는 한 단계씩 보고 필요하면 전체 보기로 전환
   assert.match(modeToggle, /disabled=\{!interactive\}/);
 });
 
-test("네 단계는 기능명이 아니라 여행자의 질문으로 이어진다", async () => {
+test("PDF 여행 단계는 사용자가 할 선택을 제목으로 안내한다", async () => {
   const content = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/components/PlannerStageFrame.tsx"),
@@ -40,9 +40,9 @@ test("네 단계는 기능명이 아니라 여행자의 질문으로 이어진�
   ]).then((parts) => parts.join("\n"));
 
   for (const question of [
-    "어떤 여행이 편안할까요?",
-    "왜 이 장소가 나에게 맞을까요?",
-    "어떤 순서로 움직이면 편할까요?",
+    "어떤 편의가 필요할까요?",
+    "어떤 여행지가 끌리나요?",
+    "여행 순서를 편하게 정리하세요.",
     "출발 전, 무엇을 확인할까요?",
   ]) assert.match(content, new RegExp(question.replace("?", "\\?")));
 });

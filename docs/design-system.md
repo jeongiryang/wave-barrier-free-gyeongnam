@@ -56,6 +56,13 @@
 
 2026-09-09 여행 계획의 `.journey-editorial` 범위는 종이와 바다의 사진 구성에 맞춰 같은 의미의 표면 토큰을 재정의합니다. 밝은 화면은 `--paper: #f5f5ee`, `--white: #fffefb`, `--muted: #435f66`, `--line: #cbd8d4`; 어두운 화면은 각각 `#082e3c`, `#092c38`, `#bed2d6`, `#355561`입니다. 선택된 짙은 면은 밝은 글자와 함께 검증합니다. 스타일 소유자는 `planner-flow.css`와 `planner-journey-control.css`이며 별도 전역 override 파일을 추가하지 않습니다. 제거된 Hero·briefing·보류 소개 장면의 CSS는 `*-retired-hero.css`, `planner-retired-hero.css`, `landing-deferred-scenes.css`에 보존하고 import하지 않습니다.
 
+
+### 2026-09-10 Owner PDF — 여행 계획 화면
+
+Owner가 전달한 `WAVE_일정작성_전체보기_통합시안.pdf`의 사진 중심 흰 카드·회색 배경·민트 선택 상태를 `/planner`에 적용합니다. 소개 페이지의 기존 장면은 유지합니다. 구현 계약과 시안별 대응은 [PDF 시안 적용 기록](design/planner-pdf-reference-20260910.md)을 봅니다.
+
+`.planner-reference` 범위에서 `--ink #243236`, `--ink-soft #36585a`, `--muted #5c6b70`, `--surface/--paper #f6f8f8`, `--white #ffffff`, `--line #dbe2e3`, `--blue #317d7a`, `--blue-dark #286967`, `--mint #57c3b5`를 사용합니다. 민트는 선택 배경·장식용이며 작은 글자는 `#276b67` 또는 `#36585a`입니다. 검색 버튼은 `#c84e53`에 흰 아이콘, 선택 배경은 `#eaf6f3`입니다. 콘텐츠 최대 폭 1240px, 카드 반경 18px, 주요 버튼 pill, 핵심 조작 최소 높이 44px입니다. CSS 소유자는 `app/styles/planner-flow.css`이며 import 순서는 변경하지 않습니다.
+
 ### 색을 고르는 순서
 
 1. 글자면 → `--ink` / `--ink-soft` / `--muted`

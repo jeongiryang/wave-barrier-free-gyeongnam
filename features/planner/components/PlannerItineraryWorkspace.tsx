@@ -9,7 +9,8 @@ import type { useLocationSearch } from "../hooks/useLocationSearch";
 import type { usePlannerParticipation } from "../hooks/usePlannerParticipation";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
-import type { Place, PlanData, TransportProvider } from "../types";
+import type { Place, PlanData, TransportProvider, WeatherData } from "../types";
+import PlannerItineraryBoard from "./PlannerItineraryBoard";
 import NavigationWorkspace from "./NavigationWorkspace";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
 
@@ -22,6 +23,14 @@ function ItineraryUnavailable() {
 const TripDayPlanner = lazy(() => import("./TripDayPlanner").catch(() => ({ default: ItineraryUnavailable })));
 
 interface PlannerItineraryWorkspaceProps {
+  mapView: boolean;
+  onMapViewChange: (value: boolean) => void;
+  canAddPlaces: boolean;
+  expanded?: boolean;
+  weather: WeatherData | null;
+  weatherLoading: boolean;
+  onSelectPlace: (place: Place) => void;
+  onContinue: () => void;
   coverage: ReturnType<typeof useItineraryRoutes>;
   reviewed: boolean;
   onReview: (checked: boolean) => void;
@@ -44,6 +53,7 @@ interface PlannerItineraryWorkspaceProps {
 
 export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspaceProps) {
   const { locale } = useSitePreferences();
+  const { mapView, onMapViewChange: setMapView } = props;
   const c = (ko: string, en: string) => locale === "en" ? en : ko;
   const { activeDay, setActiveDay, tripDays, scheduleAssignments } = props.tripSelection;
   const itineraryPlaces = useMemo(() => props.tripSelection.orderedSavedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === activeDay), [props.tripSelection.orderedSavedPlaces, activeDay, scheduleAssignments, tripDays]);
@@ -75,10 +85,23 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   }, [loadRoutes, routableItineraryPlaces, savedSignature, resetRouteData, tripSignature, itineraryPlaces, props.route.routeDestination, props.route.routeStart]);
 
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
-    <div className="journey-subheading" data-reveal>
-      <div><span aria-hidden="true">3</span><h2 id="itinerary-stage-title"><small>{c("내 일정", "My itinerary")}</small>{c("어떤 순서로 움직이면 편할까요?", "What order works for your trip?")}</h2></div>
-      <p>{c("추가한 장소의 날짜와 순서를 정하고 이동 경로를 확인하세요. 완성한 일정은 여행집에 보관할 수 있어요.", "Arrange dates and order, then check the journeys between places. Keep your completed itinerary in your travel book.")}</p>
-    </div>
+    <h2 id="itinerary-stage-title">{mapView ? "여행 순서를 편하게 정리하세요." : `${props.archiveContext.region || "경남"} 여행, 순서만 정하면 돼요.`}</h2>
+    <p className="reference-subtitle">시간과 이동 순서를 바꾸면 전체 일정이 함께 바뀝니다.</p>
+    <div className="reference-view-tabs" role="group" aria-label="일정 보기 방식"><button type="button" aria-pressed={!mapView} onClick={() => setMapView(false)}>시간표</button><button type="button" aria-pressed={mapView} onClick={() => setMapView(true)}>지도 함께 보기</button></div>
+    {!props.expanded && <PlannerItineraryBoard trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? props.activePlaces : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace
+      mapEnabled={props.mapEnabled && mapView}
+      compact
+      activePlaces={navigationPlaces}
+      planCrowd={props.planCrowd}
+      effectiveProviders={props.effectiveProviders}
+      route={props.route}
+      locationSearch={props.locationSearch}
+      onChoosePoint={props.onChoosePoint}
+      onCopyBookingRoute={props.onCopyBookingRoute}
+      onMapDestination={props.onMapDestination}
+      onSaveMapPlaces={props.onSaveMapPlaces}
+    />} />}
+    <details className="reference-itinerary-details" open={props.expanded || undefined}><summary>날짜·이동 구간·여행 도구 자세히 보기</summary>
     {props.tripSelection.orderedSavedPlaces.length ? <Suspense fallback={<p role="status">{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</p>}><TripDayPlanner
       itineraryRouteMinutes={props.coverage.routeMinutes}
       plan={props.plan}
@@ -95,17 +118,8 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     <p className="route-scope-note">{activeDay} · {c(`일정 ${itineraryPlaces.length}곳 중 지도에 표시할 수 있는 장소 ${navigationPlaces.length}곳`, `${navigationPlaces.length} of ${itineraryPlaces.length} itinerary places can be shown on the map`)}</p>
     <Suspense fallback={null}><SavedPlaceCoordinateRecovery key={`${props.archiveContext.region}|${tripDays}|${props.tripSelection.saved}`} places={props.tripSelection.orderedSavedPlaces} onRestore={props.tripSelection.rememberSavedPlaces} /></Suspense>
     {itineraryPlaces.some((place) => !routableItineraryPlaces.includes(place)) && <p role="status">{c("좌표를 확인하지 못한 장소:", "Coordinates unavailable:")} {itineraryPlaces.filter((place) => !routableItineraryPlaces.includes(place)).map((place) => place.name).join(", ")}. {c("일정에는 그대로 보관하며 지도에서는 제외합니다.", "Kept in your itinerary, but excluded from the map.")}</p>}
-    <NavigationWorkspace
-      mapEnabled={props.mapEnabled}
-      activePlaces={navigationPlaces}
-      planCrowd={props.planCrowd}
-      effectiveProviders={props.effectiveProviders}
-      route={props.route}
-      locationSearch={props.locationSearch}
-      onChoosePoint={props.onChoosePoint}
-      onCopyBookingRoute={props.onCopyBookingRoute}
-      onMapDestination={props.onMapDestination}
-      onSaveMapPlaces={props.onSaveMapPlaces}
-    />
+
+      {props.expanded && <NavigationWorkspace mapEnabled={props.mapEnabled} activePlaces={navigationPlaces} planCrowd={props.planCrowd} effectiveProviders={props.effectiveProviders} route={props.route} locationSearch={props.locationSearch} onChoosePoint={props.onChoosePoint} onCopyBookingRoute={props.onCopyBookingRoute} onMapDestination={props.onMapDestination} onSaveMapPlaces={props.onSaveMapPlaces} />}
+    </details>
   </section>;
 }

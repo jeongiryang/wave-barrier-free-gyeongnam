@@ -27,7 +27,7 @@ test("편의·활동 단계는 현재 조건의 건수를 보여주고 편의 �
     await count.scrollIntoViewIfNeeded();
     await page.screenshot({ path: info.outputPath("facilities-960.png"), fullPage: false });
   }
-  await page.locator(".condition-actions").getByRole("button", { name: "다음 →" }).click();
+  await page.locator(".condition-actions").getByRole("button", { name: /^다음:/ }).click();
   await expect(count).toContainText("총 1건");
   await page.locator(".theme-grid").getByRole("button", { name: /역사/ }).click();
   await expect.poll(() => calls).toBe(2);

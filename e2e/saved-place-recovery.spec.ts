@@ -20,6 +20,7 @@ async function restoredTrip(page: Page, locale: "ko" | "en") {
   // planner honors the selected locale. Do not pretend this page is translated.
   await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
   await expect(page).toHaveURL(/#itinerary$/);
+  await page.locator(".reference-itinerary-details > summary").click();
 }
 
 for (const [mapX, mapY] of [["0", "0"], ["139.7", "35.6"], ["NaN", "35.2"], ["128.6", "Infinity"], ["128.6", ""]]) {
@@ -42,7 +43,7 @@ for (const [mapX, mapY] of [["0", "0"], ["139.7", "35.6"], ["NaN", "35.2"], ["12
         await page.getByLabel("Open preferences", { exact: true }).click();
       }
       const en = locale === "en";
-      await expect(page.locator("#itinerary > .route-scope-note")).toContainText(en ? "0 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
+      await expect(page.locator(".reference-itinerary-details > .route-scope-note")).toContainText(en ? "0 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
       const recovery = page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true });
       await expect(recovery).toBeVisible();
       await expect(recovery).toHaveAttribute("aria-disabled", "false");
@@ -78,7 +79,7 @@ for (const locale of ["ko", "en"] as const) {
     await alternative.press("Enter");
     await expect(page).toHaveURL(/#conditions$/);
     expect(searches).toBe(0);
-    await page.getByRole("button", { name: en ? "Overview" : "전체 보기", exact: true }).click();
+    await page.locator(".journey-mode-toggle").getByRole("button", { name: en ? "Overview" : "전체 보기", exact: true }).click();
     await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
     const activity = page.getByRole("button", { name: en ? /Nature and relaxation/ : /자연·휴양 공원/ });
     const search = page.getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true });
@@ -91,13 +92,13 @@ for (const locale of ["ko", "en"] as const) {
     await expect(search).toBeEnabled();
     expect(searches).toBe(0);
     await search.click();
-    await expect(page.locator("#itinerary > .route-scope-note")).toContainText(en ? "1 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 1곳");
+    await expect(page.locator(".reference-itinerary-details > .route-scope-note")).toContainText(en ? "1 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 1곳");
     await expect(recovery.getByRole("status")).toContainText(en ? "A location is now available for this itinerary." : "현재 일정에서 사용할 수 있는 위치가 있습니다.");
     await expect(recovery.getByRole("status")).not.toContainText(en ? "not found" : "찾지 못했습니다");
     await expect(recovery.getByRole("status")).not.toContainText(en ? "Official place location checked" : "공식 장소 위치를 확인했습니다");
     await expect(recovery.getByRole("button")).toHaveAttribute("aria-disabled", "true");
     expect(searches).toBe(1);
-    await expect(page.getByRole("combobox", { name: en ? "경남도립미술관 trip date" : "경남도립미술관 여행 날짜" })).toHaveValue("2026-09-07");
+    await expect(page.locator(".reference-itinerary-details").getByRole("combobox", { name: en ? "경남도립미술관 trip date" : "경남도립미술관 여행 날짜" })).toHaveValue("2026-09-07");
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values["wave-saved-places"])).toBe('["1001"]');
     expect(await page.evaluate(() => localStorage.getItem("wave-travel-book-v1"))).not.toMatch(/mapX|mapY/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -110,7 +111,7 @@ for (const locale of ["ko", "en"] as const) {
       requests++;
       await route.fulfill({ json: { id: "1001", status: "available", mapX: "128.691", mapY: "35.238" } });
     });
-    const scope = page.locator("#itinerary > .route-scope-note");
+    const scope = page.locator(".reference-itinerary-details > .route-scope-note");
     await expect(scope).toContainText(en ? "0 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
     expect(requests).toBe(0);
     const trigger = page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true });
@@ -120,10 +121,11 @@ for (const locale of ["ko", "en"] as const) {
     await expect(trigger).toHaveAttribute("aria-disabled", "true");
     expect((await trigger.boundingBox())?.height || 0).toBeGreaterThanOrEqual(44);
     await expect(page.getByRole("status").filter({ hasText: en ? "Official place location checked" : "공식 장소 위치를 확인" })).toContainText("경남도립미술관");
-    await expect(page.getByRole("combobox", { name: en ? "경남도립미술관 trip date" : "경남도립미술관 여행 날짜" })).toHaveValue("2026-09-07");
+    await expect(page.locator(".reference-itinerary-details").getByRole("combobox", { name: en ? "경남도립미술관 trip date" : "경남도립미술관 여행 날짜" })).toHaveValue("2026-09-07");
     expect(await page.evaluate(() => localStorage.getItem("wave-travel-book-v1"))).not.toMatch(/mapX|mapY|128\.691|35\.238/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     await page.reload();
+    await page.locator(".reference-itinerary-details > summary").click();
     await expect(scope).toContainText(en ? "1 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 1곳");
     expect(requests).toBe(1);
   });
@@ -141,7 +143,7 @@ for (const locale of ["ko", "en"] as const) {
       await trigger.press("Enter");
       await expect(recovery.getByRole("status")).toContainText(message);
       await expect(trigger).toBeFocused();
-      await expect(page.locator("#itinerary > .route-scope-note")).toContainText(en ? "0 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
+      await expect(page.locator(".reference-itinerary-details > .route-scope-note")).toContainText(en ? "0 of 1 itinerary places" : "일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
       await expect(trigger).toHaveAttribute("aria-disabled", "false");
     }
   });
@@ -158,14 +160,15 @@ for (const locale of ["ko", "en"] as const) {
     });
     await page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true }).press("Enter");
     await started;
-    await page.getByRole("button", { name: en ? "Preferences" : "조건", exact: true }).click();
+    await page.locator(".reference-progress button").first().click();
+    await page.locator(".reference-section-label button").click();
     await page.getByRole("button", { name: en ? "Hadong" : "하동", exact: true }).click();
     await page.getByRole("dialog").getByRole("button", { name: en ? "Start a new trip" : "새 여행으로 시작", exact: true }).click();
     release();
-    await expect(page.getByRole("button", { name: en ? "Itinerary" : "내 일정", exact: true })).toBeDisabled();
+    await expect(page.locator(".reference-progress button").nth(5)).toBeDisabled();
     await page.reload();
-    await expect(page.getByRole("button", { name: en ? "Itinerary" : "내 일정", exact: true })).toBeDisabled();
-    await expect(page.getByRole("button", { name: en ? "Hadong" : "하동", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(".reference-progress button").nth(5)).toBeDisabled();
+    await expect(page.getByRole("button", { name: "하동 지역 선택", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("region", { name: en ? "My itinerary What order works for your trip?" : "내 일정 어떤 순서로 움직이면 편할까요?", exact: true })).toHaveCount(0);
   });
 }

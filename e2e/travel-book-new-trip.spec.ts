@@ -23,7 +23,7 @@ test("new trip from the travel book starts with empty conditions and keeps archi
   await expect(confirmation).toBeVisible();
   await confirmation.getByRole("button", { name: "새 여행 시작", exact: true }).click();
   await expect(page).toHaveURL(/\/planner(?:#conditions)?$/);
-  await expect(page.getByRole("group", { name: "여행 지역 선택", exact: true })).toBeVisible();
+  await expect(page.locator(".reference-region-grid")).toBeVisible();
   await expect(page.locator(".day-planner-grid li")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "여행 지역 선택", exact: true }).locator('[aria-pressed="true"]')).toHaveCount(0);
   await expect(page.getByRole("group", { name: "여행 편의 조건 선택" }).locator('[aria-pressed="true"]')).toHaveCount(0);
@@ -34,7 +34,7 @@ test("new trip from the travel book starts with empty conditions and keeps archi
   expect(current["wave-planner-region-v1"]).toBe("");
   expect(JSON.parse(current["wave-trip-schedule-v1"]).travelStart).toBe(today);
   await page.reload();
-  await expect(page.getByRole("group", { name: "여행 지역 선택", exact: true })).toBeVisible();
+  await expect(page.locator(".reference-region-grid")).toBeVisible();
   await expect(page.locator(".day-planner-grid li")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "여행 지역 선택", exact: true }).locator('[aria-pressed="true"]')).toHaveCount(0);
 });

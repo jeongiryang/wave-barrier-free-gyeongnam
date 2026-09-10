@@ -18,10 +18,10 @@ for (const view of ["overview", "guided"] as const) for (const motion of ["reduc
     await page.goto("/planner");
     await chooseTripConditions(page);
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-    const rail = page.getByRole("navigation", { name: "여행 계획 단계 이동" });
+    const rail = page.getByRole("navigation", { name: "여행 만들기 단계" });
     for (const width of [page.viewportSize()!.width, 960]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const [id, label] of [["conditions", "조건"], ["departure-readiness", "출발 확인"], ["itinerary", "내 일정"], ["places", "여행지"], ["departure-readiness", "출발 확인"], ["conditions", "조건"]]) {
+      for (const [id, label] of [["conditions", "1. 지역"], ["departure-readiness", "7. 전체보기"], ["itinerary", "6. 일정"], ["places", "4. 여행지"], ["departure-readiness", "7. 전체보기"], ["conditions", "1. 지역"]]) {
         const control = rail.getByRole("button", { name: new RegExp(`^${label}`) });
         await page.evaluate(() => { window.waveStageScrolls = []; });
         await control.click();
