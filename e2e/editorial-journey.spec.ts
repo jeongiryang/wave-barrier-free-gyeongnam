@@ -32,7 +32,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await page.goto("/planner");
     await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
     await expect(page.locator('.region-picker-list [aria-pressed="true"]')).toHaveCount(0);
-    await expect(page.locator(".reference-region-card")).toHaveCount(5);
+    await expect(page.locator(".reference-region-card")).toHaveCount(6);
     await page.locator(".reference-section-label button").click();
     await expect(page.locator(".region-picker-list button")).toHaveCount(19);
     expect((await new AxeBuilder({ page }).include("#planner").analyze()).violations).toEqual([]);
@@ -51,7 +51,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     if (width >= 390) {
       // The board's primary action must be reachable in the first viewport;
       // an inherited display headline previously pushed it below the fold.
-      const write = await page.locator(".community-toolbar .community-write").boundingBox();
+      const write = await page.locator(".community-editorial .community-write").boundingBox();
       expect(write!.y + write!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
     }
     expect((await new AxeBuilder({ page }).include(".community-page").analyze()).violations).toEqual([]);
@@ -78,8 +78,8 @@ test("English travel pages identify original Korean photography and community co
   await page.goto("/planner");
   await expect(page.locator(".region-picker-list")).toHaveAccessibleName("Choose a region");
   await expect(page.locator(".reference-region-card img").first()).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".reference-region-card img")).toHaveCount(5);
+  await expect(page.locator(".reference-region-card img")).toHaveCount(6);
   await page.goto("/community");
   await expect(page.locator(".community-editorial")).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".community-editorial h1")).toContainText("다녀온 이야기");
+  await expect(page.locator(".community-editorial h1")).toContainText("여행은 끝나도");
 });

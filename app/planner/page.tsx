@@ -227,8 +227,8 @@ export default function PlannerPage() {
   return (
     <main className="planner-page journey-editorial planner-reference" lang={locale}>
       <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>
-      <h1 className="sr-only">{locale === "en" ? "Gyeongnam accessible trip planner" : "경남 무장애 여행 계획"}</h1>
       <PlannerReferenceChrome progress={journey.progress} requestState={planController.requestState} recommendedCount={activePlaces.length} region={region} dates={travelStart ? `${travelStart.slice(5).replace("-", "월 ")}일 - ${travelEnd.slice(5).replace("-", "월 ")}일` : ""} facilities={selected.map(id => accessibilityProfiles.find(p => p.id === id)?.label || id).join(" · ")} savedCount={saved.length} activeStep={journey.activeStepId} question={stageView.conditionQuestion}
+        activities={planController.themes.length ? `활동 ${planController.themes.length}개` : ""} resultsAvailable={journey.steps[1].available}
         available={[true, Boolean(region), Boolean(region && selected.length), Boolean(region && selected.length && planController.themes.length), true, saved.length > 0, saved.length > 0]}
         onQuestion={stageView.changeQuestion} onNavigate={journey.goToStep} onSearch={() => void generatePlan()} searching={planController.loading} />
       <section className="planner-journey-workspace" id="planner" aria-label="여행 만들기">

@@ -44,12 +44,12 @@ for (const theme of ["light", "dark"] as const) {
     await conditions.getByRole("button", { name: /History and culture/ }).click();
     await expect(conditions).not.toContainText(/[가-힣]/);
     expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
-    await page.locator(".reference-progress button").nth(4).click();
+    await page.locator(".reference-search > button").nth(1).click();
     await expect(conditions.getByLabel("Start date", { exact: true })).toBeVisible();
     await expect(conditions.getByLabel("End date", { exact: true })).toBeVisible();
     await expect(conditions).not.toContainText(/[가-힣]/);
     expect(searches).toHaveLength(0);
-    await page.locator(".reference-progress button").nth(2).click();
+    await page.locator(".reference-activity-edit").click();
     await conditions.getByRole("button", { name: "Find places →", exact: true }).click();
     await expect.poll(() => searches.length).toBe(1);
     expect(searches[0].searchParams.get("locale")).toBe("en");

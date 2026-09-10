@@ -165,9 +165,9 @@ for (const locale of ["ko", "en"] as const) {
     await page.getByRole("button", { name: en ? "Hadong" : "하동", exact: true }).click();
     await page.getByRole("dialog").getByRole("button", { name: en ? "Start a new trip" : "새 여행으로 시작", exact: true }).click();
     release();
-    await expect(page.locator(".reference-progress button").nth(5)).toBeDisabled();
+    await expect(page.locator(".reference-journey-views button").nth(1)).toBeDisabled();
     await page.reload();
-    await expect(page.locator(".reference-progress button").nth(5)).toBeDisabled();
+    await expect(page.locator(".reference-journey-views button").nth(1)).toBeDisabled();
     await expect(page.getByRole("button", { name: "하동 지역 선택", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("region", { name: en ? "My itinerary What order works for your trip?" : "내 일정 어떤 순서로 움직이면 편할까요?", exact: true })).toHaveCount(0);
   });

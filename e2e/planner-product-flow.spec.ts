@@ -26,13 +26,13 @@ test("390px·768px·1440px에서 네 단계 계획 흐름과 단일 일정이 �
     await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toHaveCount(0);
     await expect(page.getByRole("region", { name: "내 일정", exact: true })).toHaveCount(1);
 
-    await expect(page.getByRole("navigation", { name: "여행 만들기 단계" }).getByRole("button", { name: /^6\. 일정/ })).toBeDisabled();
+    await expect(page.locator(".reference-journey-views button").nth(1)).toBeDisabled();
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${width}px 화면의 가로 넘침`).toBeLessThanOrEqual(1);
 
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
-    await page.getByRole("navigation", { name: "여행 만들기 단계" }).getByRole("button", { name: /^6\. 일정/ }).click();
+    await page.locator(".reference-journey-views button").nth(1).click();
     await expect.poll(() => page.locator("#itinerary").evaluate((node) => node.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
     const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
     await expect(itinerary).toHaveCount(1);
@@ -61,17 +61,17 @@ test("랜딩 딥링크와 플래너 헤더는 안내형 보기에서도 실제 �
   await expect(page.locator("#itinerary")).toBeHidden();
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.getByRole("navigation", { name: "여행 만들기 단계" }).getByRole("button", { name: /^6\. 일정/ }).click();
+  await page.locator(".reference-journey-views button").nth(1).click();
   await expect(page.locator(".journey-stage-stream")).toHaveAttribute("data-view", "guided");
   await expect(page.locator("#itinerary")).toBeVisible();
   await page.getByRole("button", { name: "지도 함께 보기", exact: true }).click();
   await expect(page.locator("#navigation")).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "여행 만들기 단계" }).getByRole("button", { name: /^6\. 일정/ })).toHaveAttribute("aria-current", "step");
+  await expect(page.locator(".reference-progress button").nth(2)).toHaveAttribute("aria-current", "step");
 
   const headerNavigation = page.getByRole("navigation", { name: "주요 메뉴" });
   if (await headerNavigation.isVisible()) {
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    const conditionsLink = headerNavigation.getByRole("button", { name: "여행지", exact: true });
+    const conditionsLink = page.locator(".reference-search > button").first();
     await expect(conditionsLink).toBeInViewport();
     await conditionsLink.click();
     await expect(page.locator("#conditions")).toBeVisible();

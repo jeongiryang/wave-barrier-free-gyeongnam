@@ -13,9 +13,9 @@ export default function PhotoCoursePage() {
     <header className="photo-course-page-header">
       <Link href="/" className="photo-course-brand" aria-label="W.A.V.E 홈">W.A.V.E</Link>
       <nav aria-label="사진 코스 화면 이동">
-        <Link href="/planner">여행 계획</Link>
-        <Link href="/travel-book">내 여행집</Link>
-        <Link href="/community">여행 후기</Link>
+        <Link href="/planner">여행 설계</Link>
+        <Link href="/travel-book">내 여행</Link>
+        <Link href="/community">커뮤니티</Link>
       </nav>
     </header>
     <section className="photo-course-page-intro" id="photo-course-main">

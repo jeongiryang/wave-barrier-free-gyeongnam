@@ -18,7 +18,7 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   await openPlanner(page, 1366, 900);
   const rail = page.getByRole("navigation", { name: "여행 만들기 단계" });
   await expect(rail).toBeVisible();
-  await expect(rail.getByRole("button", { name: /^1\. 지역/ })).toHaveAttribute("aria-current", "step");
+  await expect(rail.getByRole("button", { name: /^1\. 여행 조건/ })).toHaveAttribute("aria-current", "step");
   await expect(page.locator(".reference-completion")).toHaveAttribute("aria-valuenow", "0");
   await expect(page.locator(".reference-search")).toContainText("편의 선택");
 
@@ -43,7 +43,7 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   expect(results.violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);
 });
 
-test("모바일 7단계 진행 표시는 44px 탐색과 수평 안전 영역을 유지한다", async ({ page }) => {
+test("모바일 4단계 진행 표시는 44px 탐색과 수평 안전 영역을 유지한다", async ({ page }) => {
   await openPlanner(page, 390, 844);
   const rail = page.locator(".reference-progress");
   await expect(rail).toBeVisible();
@@ -52,7 +52,7 @@ test("모바일 7단계 진행 표시는 44px 탐색과 수평 안전 영역을 
     const rect = button.getBoundingClientRect();
     return { width: rect.width, height: rect.height };
   }));
-  expect(sizes).toHaveLength(7);
+  expect(sizes).toHaveLength(4);
   for (const size of sizes) {
     expect(size.width).toBeGreaterThanOrEqual(44);
     expect(size.height).toBeGreaterThanOrEqual(44);

@@ -70,6 +70,7 @@ async function assertContrast(page: Page, selector: string, name: string) {
 }
 
 const TARGETS = [
+  [".community-layout-switch button", "게시글 보기 방식"],
   [".community-tabs button", "게시판 탭"],
   [".community-card-meta time", "게시 시각"],
   [".community-place-tag", "장소 태그"],
@@ -91,5 +92,13 @@ for (const theme of ["light", "dark"] as const) {
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
 
     for (const [selector, name] of TARGETS) await assertContrast(page, selector, name);
+    const story = page.getByRole("link", { name: "경사로와 쉬어갈 곳을 확인했어요 게시글 읽기", exact: true });
+    await expect(story).toHaveAttribute("href", "/community/contrast-post");
+    await page.getByRole("button", { name: "목록", exact: true }).click();
+    await expect(page.locator(".community-list")).toHaveAttribute("data-layout", "list");
+    await expect(story).toContainText("좋아요 4 · 댓글 2");
+    await page.getByRole("button", { name: "카드", exact: true }).click();
+    await expect(page.locator(".community-list")).toHaveAttribute("data-layout", "cards");
+    await expect(story).toContainText("경남도립미술관");
   });
 }

@@ -12,8 +12,8 @@ Owner approved implementation of the 공모전S2 2026-09-10 23:09–23:36 decisi
 - Hero → all 18 regional albums → three preparation chapters → account/Kakao/companions on the retained sea scene → 10's predeparture checklist → two-photo community invitation → `다음 풍경에서 만나요.`. No duplicate attraction cards or fictitious community posts.
 - All existing regional photographs, authors, links, stop/resume and keyboard behavior remain. Three photographs from the approved studio carry their individual Commons authors, CC BY-SA licenses and derivative disclosures in `/policies#horizon-photo-credits`.
 - Native scrolling changes backgrounds; text stays in the document. Reduced motion removes crossfade. Intro and bounded Hero sequence, focus-safe navigation and primary Planner links remain.
-- Product pages follow in a separate unit: 10's layout + 8's four-step progress + the working date calendar, preserving all deployed functions. Login redesign is deferred.
-- Implementation status: local candidate; the PR and Production evidence determine release status.
+- Product pages use 10's layout + 8's four-step progress + the working date calendar. Region/facility/activity/search remain connected; separate Places and Itinerary buttons preserve both views. Community adds card/list presentation of real posts, and saved/account trips, guide and photo courses share the pale surfaces. Login redesign is deferred.
+- Implementation status: landing PR #460 is merged and Production CD 34504389521 passed for `c24878d`. Product-page evidence follows in its PR and [integration record](eight-ten-integration-20260911.md).
 
 ## Historical Owner amendment — pass 6, 2026-09-09
 

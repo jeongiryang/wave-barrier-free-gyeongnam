@@ -29,7 +29,7 @@ test("움직임 줄이기를 켜면 여행지 이동이 애니메이션 없이 �
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.getByRole("navigation", { name: "여행 만들기 단계" }).getByRole("button", { name: /^6\. 일정/ }).click();
+  await page.locator(".reference-journey-views button").nth(1).click();
   await page.waitForTimeout(100);
 
   expect(await routeScrollBehavior(page)).toBe("auto");
@@ -44,7 +44,7 @@ test("기본 설정에서는 부드러운 이동을 유지한다", async ({ page
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.getByRole("navigation", { name: "여행 만들기 단계" }).getByRole("button", { name: /^6\. 일정/ }).click();
+  await page.locator(".reference-journey-views button").nth(1).click();
   await page.waitForTimeout(100);
 
   // 프레임 수/중간 scrollY 개수는 기기 성능에 따라 달라진다. 실제 제품 계약인

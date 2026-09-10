@@ -4,7 +4,7 @@ import test from "node:test";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("PDF의 7개 화면이 기존 네 단계의 실제 여행 상태와 연결된다", async () => {
+test("8+10의 4개 장이 기존 실제 여행 상태와 연결된다", async () => {
   const [page, rail, hook, styles] = await Promise.all([
     source("app/planner/page.tsx"),
     source("features/planner/components/PlannerJourneyRail.tsx"),

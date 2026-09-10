@@ -6,8 +6,8 @@ import { regionShowcasePhotos, regionShowcaseAlbums } from "../../landing/region
 import { regionPhotoSource } from "../../landing/region-photo-sources";
 import { useSitePreferences } from "../../../components/SitePreferences";
 
-const featured = ["통영", "거제", "창원", "남해", "진주"];
-const captions: Record<string, string> = { 통영: "바다와 골목을 함께", 거제: "섬을 따라 머무는 여행", 창원: "도시 가까이 만나는 자연", 남해: "느린 바다 여행", 진주: "남강을 따라 걷는 하루" };
+const featured = ["통영", "거제", "창원", "남해", "진주", "하동"];
+const captions: Record<string, string> = { 통영: "바다와 골목을 함께", 거제: "섬을 따라 머무는 여행", 창원: "도시 가까이 만나는 자연", 남해: "느린 바다 여행", 진주: "남강을 따라 걷는 하루", 하동: "섬진강과 초록 사이" };
 
 const interests = [
   { label: "바다", detail: "해안과 섬", theme: "nature", icon: "M3 14c3-6 6-6 9 0 3-6 6-6 9 0M3 19c3-2 6-2 9 0 3-2 6-2 9 0" },
