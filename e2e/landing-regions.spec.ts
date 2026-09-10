@@ -62,40 +62,31 @@ test("랜딩 기능 데모는 현재 한국어 순서와 비대화형 미리보�
   await page.goto("/");
   await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
   expect(await page.locator("main > section").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(["top", "regions", "story", "recommendation", "departure", "community", "closing"]);
-  for (const selector of [".needs-demo", ".community-demo"]) {
-    const demo = page.locator(selector);
-    await demo.scrollIntoViewIfNeeded();
-    await expect(demo).toHaveAttribute("data-step", "3");
-    await expect(demo.locator("button, input, textarea, select")).toHaveCount(0);
-  }
-  await expect(page.locator(".needs-demo [data-selected=true]")).toHaveCount(2);
-  await expect(page.locator(".community-demo .demo-post-preview")).toHaveAttribute("data-shown", "true");
+  await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+  await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
+  await expect(page.locator(".horizon-chapters input,.horizon-community input,.horizon-community form")).toHaveCount(0);
   expect(writes).toEqual([]); expect(requests).toEqual([]);
 });
 
-test("유한한 시연은 화면 밖에서 멈추고 OS 감소 설정에서는 완성된 상태를 유지한다", async ({ page }) => {
+test("scroll chapters follow the reader and OS reduction removes crossfade while preserving content", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await mockPublicShellApi(page);
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
-  await page.clock.install(); await page.goto("/");
+  await page.goto("/");
   await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
-  const demo = page.locator(".needs-demo");
-  await expect(demo).toHaveAttribute("data-running", "false");
-  await demo.scrollIntoViewIfNeeded(); await expect(demo).toHaveAttribute("data-running", "true");
-  await page.clock.fastForward(1400); await expect(demo).toHaveAttribute("data-step", "1");
-  await page.locator("#top").evaluate(node => node.scrollIntoView({ behavior: "instant" }));
-  await expect(demo).toHaveAttribute("data-running", "false");
-  await page.clock.fastForward(20000); await expect(demo).toHaveAttribute("data-step", "1");
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(demo).toHaveAttribute("data-step", "3");
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
-  await expect(page.locator("button.motion-toggle")).toHaveCount(0);
+  for(const index of [0,1,2,1,0]) {
+    await page.locator(".horizon-chapter-copy").nth(index).evaluate(node=>node.scrollIntoView({block:"center",behavior:"instant"}));
+    await expect(page.locator(".horizon-chapters")).toHaveAttribute("data-active-chapter",String(index));
+  }
+  await page.emulateMedia({reducedMotion:"reduce"});
+  await expect(page.locator("html")).toHaveAttribute("data-motion","calm");
+  // The global accessibility reset uses 0.001ms to retain transition completion events.
+  expect(await page.locator(".horizon-chapter-backdrops > div").first().evaluate(node=>parseFloat(getComputedStyle(node).transitionDuration))).toBeLessThanOrEqual(.001);
   await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
-  await expect(demo).toHaveAttribute("data-step", "3");
-  await expect(demo).toHaveAttribute("data-running", "false");
+  await expect(page.locator("html")).toHaveAttribute("data-motion","calm");
+  await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+  await expect(page.locator("button.motion-toggle")).toHaveCount(0);
 });
-
 
 for (const locale of ["ko", "en"]) for (const width of [320, 390, 1440]) test(`지역 사진 자동 전환은 키보드로 일시정지하고 재개한다 ${locale} ${width}`, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });

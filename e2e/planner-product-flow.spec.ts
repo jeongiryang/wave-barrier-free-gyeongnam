@@ -52,8 +52,8 @@ test("랜딩 딥링크와 플래너 헤더는 안내형 보기에서도 실제 �
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { plannerView: "guided" });
   await page.goto("/");
-  await expect(page.locator(".landing-actions a")).toHaveAttribute("href", "/planner");
-  await page.locator(".landing-actions a").click();
+  await expect(page.locator(".landing-actions a[href='/planner']")).toHaveAttribute("href", "/planner");
+  await page.locator(".landing-actions a[href='/planner']").click();
   await expect(page).toHaveURL(/\/planner$/);
 
   await page.goto("/planner#navigation");

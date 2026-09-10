@@ -23,11 +23,11 @@ for (const theme of ["light", "dark"] as const) {
         expect(bounds!.x).toBeGreaterThanOrEqual(0);
         expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
       }
-      await expect(page.locator(".needs-demo [data-selected=true]")).toHaveCount(2);
-      await expect(page.locator(".community-demo .demo-post-preview")).toHaveAttribute("data-shown", "true");
-      await expect(page.locator(".destination-product img")).toHaveAttribute("src", "/media/wave-journey/places-two.webp");
+      await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+      await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
+      await expect(page.locator(".horizon-account-photo img")).toHaveAttribute("src", "/media/horizon/coastal-park.jpg");
       await expect(page.locator(".region-scene-photo figcaption a")).toHaveAccessibleName(/사진 원본/);
-      for (const selector of [".landing-actions a", '.landing-cta > a[href="/planner"]']) await expectUsableTarget(page.locator(selector));
+      for (const selector of [".landing-actions a[href='/planner']", '.landing-cta > a[href="/planner"]']) await expectUsableTarget(page.locator(selector));
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await page.locator("#community").scrollIntoViewIfNeeded();
       await page.locator("#community").screenshot({ path: test.info().outputPath(`community-${width}-${theme}.png`) });
@@ -63,7 +63,7 @@ for (const locale of ["ko", "en"] as const) {
       await expect(page.locator(`#${chapterIds[index]}`)).toBeFocused();
       await expect(select).toHaveValue(String(index));
     }
-    await expect(page.locator(".landing-actions a")).toHaveAccessibleName(locale === "en" ? "Plan my trip" : "여행 계획하기");
+    await expect(page.locator(".landing-actions a[href='/planner']")).toHaveAccessibleName(locale === "en" ? "Plan my trip" : "여행 계획하기");
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   });
 }

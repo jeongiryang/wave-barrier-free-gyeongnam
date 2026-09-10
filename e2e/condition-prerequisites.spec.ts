@@ -15,7 +15,7 @@ for (const locale of ["ko", "en"] as const) {
     await page.goto("/");
     await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
     const copy = page.locator(".landing-hero-copy");
-    const planning = page.locator(".landing-actions a");
+    const planning = page.locator(".landing-actions a[href='/planner']");
     await expect(copy).toHaveCSS("opacity", "1");
     await page.locator(".region-showcase-stage").scrollIntoViewIfNeeded();
     // Keep the primary message painted even outside the viewport: returning

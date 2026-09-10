@@ -129,7 +129,7 @@ test("Korean fresh sessions keep one exit and stable keyboard handoff with no re
     }
     expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);
     await expectNoOverflow(page);
-    await page.locator(".landing-actions a").press("Enter");
+    await page.locator(".landing-actions a[href='/planner']").press("Enter");
     await expect(page).toHaveURL(/\/planner/);
     expect(errors).toEqual([]);
   });
@@ -163,7 +163,7 @@ test("English fresh sessions keep one exit and stable keyboard handoff with no r
     }
     expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);
     await expectNoOverflow(page);
-    await page.locator(".landing-actions a").press("Enter");
+    await page.locator(".landing-actions a[href='/planner']").press("Enter");
     await expect(page).toHaveURL(/\/planner/);
     expect(errors).toEqual([]);
   });

@@ -30,7 +30,7 @@ test("first entry is a full viewport cinematic with immediately usable keyboard 
   await page.keyboard.press("Enter");
   await expect(intro).toBeHidden();
   await expect(page.locator("#landing-title")).toBeFocused();
-  await expect(page.locator(".landing-hero .landing-actions a")).toBeVisible();
+  await expect(page.locator(".landing-hero .landing-actions a[href='/planner']")).toBeVisible();
 });
 
 test("a completed session stays on Landing after reload without replay controls or focus theft", async ({ page }) => {
@@ -44,7 +44,7 @@ test("a completed session stays on Landing after reload without replay controls 
     await page.reload();
     await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
     await expect(intro).toBeHidden();
-    const cta = page.locator(".landing-actions a");
+    const cta = page.locator(".landing-actions a[href='/planner']");
     await cta.focus();
     await page.emulateMedia({ reducedMotion: mode });
     await expect(cta).toBeFocused();
@@ -107,7 +107,7 @@ test("media end hands off to the actual Hero, not another waiting screen", async
   await intro.locator("video").evaluate((v: HTMLVideoElement) => { v.currentTime = v.duration - .1; });
   await expect(intro).toBeHidden();
   await expect(page.locator("#landing-title")).toBeFocused();
-  await expect(page.locator(".landing-hero .landing-actions a")).toHaveAttribute("href", "/planner");
+  await expect(page.locator(".landing-hero .landing-actions a[href='/planner']")).toHaveAttribute("href", "/planner");
 });
 
 test("runtime reduction keeps the single skip control and stops downloading video", async ({ page }) => {
@@ -144,7 +144,7 @@ test("denied session storage still permits a keyboard exit and planning without 
   await page.keyboard.press("Escape");
   await expect(intro).toBeHidden();
   await expect(page.locator("#landing-title")).toBeFocused();
-  await page.locator(".landing-actions a").press("Enter");
+  await page.locator(".landing-actions a[href='/planner']").press("Enter");
   await expect(page).toHaveURL(/\/planner/);
 });
 

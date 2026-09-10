@@ -88,22 +88,22 @@ test("the region photograph follows forward and reverse scroll while reduced mot
   await expect(scene.getByRole("link", { name: /이 지역으로 여행 시작/ })).toBeVisible();
 });
 
-test("the Korean recommendation preserves actual source pixels and defers dated introductions without fetching them", async ({ page }) => {
+test("the account invitation uses licensed scenery and preserves deferred source recordings", async ({ page }) => {
   await prepareStory(page); await page.emulateMedia({ reducedMotion: "reduce" });
   const requests: string[] = [];
   page.on("request", request => requests.push(request.url()));
   await page.goto("/"); await storyReady(page);
   const scene = page.locator("#recommendation"); await scene.scrollIntoViewIfNeeded();
-  const capture = scene.locator(".story-screen img");
-  await expect(capture).toHaveAttribute("src", "/media/wave-journey/places-two.webp");
+  const capture = scene.locator(".horizon-account-photo img");
+  await expect(capture).toHaveAttribute("src", "/media/horizon/coastal-park.jpg");
   await expect(capture).toHaveAttribute("lang", "ko");
-  await expect(capture).toHaveAttribute("alt", /주남저수지.*대산플라워랜드.*워터마크 유지/);
-  await expect.poll(() => capture.evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])).toEqual([833, 546]);
-  await expect(capture).toHaveCSS("object-fit", "contain");
-  await expect(scene.locator('[data-place-evidence="2758443"]')).toContainText("미확인");
+  await expect(capture).toHaveAttribute("alt", /이순신공원/);
+  await expect.poll(() => capture.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+  await expect(capture).toHaveCSS("object-fit", "cover");
+  await expect(scene.locator("figcaption")).toContainText("CC BY-SA 4.0");
   expect(requests.filter(url => /timeline-|date-before|date-after|map-two-desktop/.test(url))).toEqual([]);
   await expect(page.locator(".itinerary-chapter,.map-chapter,.journey-stage")).toHaveCount(0);
-  await expectUsableTarget(page.locator(".landing-actions a"));
+  await expectUsableTarget(page.locator(".landing-actions a[href='/planner']"));
   expect((await new AxeBuilder({ page }).include("#recommendation").analyze()).violations).toEqual([]);
   // #386 retains original recordings. Verify bytes rather than remounting retired UI.
   const manifest = JSON.parse(await readFile("public/media/wave-journey/manifest.json", "utf8"));
@@ -134,17 +134,17 @@ test("the Korean recommendation preserves actual source pixels and defers dated 
 });
 
 for (const locale of ["ko", "en"] as const) {
-  test(`${locale}: a failed recorded screen retains source evidence and planning focus`, async ({ page }) => {
+  test(`${locale}: a failed account photograph retains source attribution and planning focus`, async ({ page }) => {
     await prepareStory(page);
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
-    await page.route("**/media/wave-journey/places-two.webp", route => route.abort());
+    await page.route("**/media/horizon/coastal-park.jpg", route => route.abort());
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/"); await storyReady(page);
     const scene = page.locator("#recommendation"); await scene.scrollIntoViewIfNeeded();
-    await expect(scene.getByRole("status")).toContainText(locale === "en" ? "could not load" : "불러오지 못했어요");
-    await expect(scene.locator('[data-place-evidence="2758443"]')).toContainText(locale === "en" ? "Unconfirmed" : "미확인");
-    await expect(scene.locator(".destination-panorama figcaption a")).toHaveAttribute("href", /^https:/);
-    await expectUsableTarget(page.locator(".landing-actions a"));
+    await expect(scene.locator("figcaption")).toContainText("불러오지 못했어요");
+    await expect(scene.locator(".horizon-account-photo img")).toHaveCount(0);
+    await expect(scene.locator("figcaption a").first()).toHaveAttribute("href", /^https:/);
+    await expectUsableTarget(page.locator(".landing-actions a[href='/planner']"));
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     expect((await new AxeBuilder({ page }).include("#recommendation").analyze()).violations).toEqual([]);
   });

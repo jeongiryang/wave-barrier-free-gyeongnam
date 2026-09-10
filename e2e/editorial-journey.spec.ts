@@ -72,9 +72,9 @@ test("English travel pages identify original Korean photography and community co
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: bitmap }));
   await page.goto("/");
   await expect(page.locator(".landing-page")).toHaveAttribute("lang", "en");
-  await expect(page.locator(".destination-panorama img")).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".destination-panorama figcaption a span")).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".destination-panorama figcaption a")).toContainText("Source:");
+  await expect(page.locator(".horizon-account-photo img")).toHaveAttribute("lang", "ko");
+  await expect(page.locator(".horizon-account-photo figcaption")).toHaveAttribute("lang", "ko");
+  await expect(page.locator(".horizon-account-photo figcaption a").first()).toContainText("사진 원본");
   await page.goto("/planner");
   await expect(page.locator(".region-picker-list")).toHaveAccessibleName("Choose a region");
   await expect(page.locator(".reference-region-card img").first()).toHaveAttribute("lang", "ko");

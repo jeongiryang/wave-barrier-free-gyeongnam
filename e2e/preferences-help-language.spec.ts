@@ -23,7 +23,7 @@ test("English preferences preserve locale choices, runtime reduced motion and CT
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(preferences.getByRole("button", { name: /Motion|Replay/ })).toHaveCount(0);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
-  const cta = page.locator(".landing-actions a");
+  const cta = page.locator(".landing-actions a[href='/planner']");
   await expect(page.locator(".landing-hero button")).toHaveCount(0);
   await cta.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });

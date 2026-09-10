@@ -215,9 +215,9 @@ test("community UI supports public reading, protected participation and place li
   assert.match(planner, /PlaceDecisionDialog/);
   assert.match(placeDialog, /place-community-link/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
-  assert.match(landing, /className="[^"]*community-editor-preview/);
-  assert.match(landing, /className="[^"]*community-entry-fields/);
-  assert.match(landing, /data-demo="community"/);
+  assert.match(landing, /className="horizon-community-photos"/);
+  assert.match(landing, /href="\/community"/);
+  assert.match(landing, /<EditorialPhoto photo=\{horizonPhotos\.park\}/);
   assert.doesNotMatch(landing, /작성 예시|실제 게시된 글이 아닙니다/);
   assert.doesNotMatch(landing, /fetch\(|localStorage|sessionStorage|usePlanner|createCommunityPost|<form\b|<input\b|<textarea\b/);
   assert.doesNotMatch(landing, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
@@ -225,7 +225,7 @@ test("community UI supports public reading, protected participation and place li
   assert.match(sitemap, /`\$\{origin\}\/community`/);
 });
 
-test("preserved product preview sources remain Korean and non-interactive; current community demo is read-only", async () => {
+test("preserved product preview sources remain Korean and non-interactive; current community invitation is read-only", async () => {
   const [stories, storyCss, featureMotionCss, accountCss] = await Promise.all([
     Promise.all([
       source("features/landing/components/LandingProductStories.tsx"),
@@ -249,11 +249,11 @@ test("preserved product preview sources remain Korean and non-interactive; curre
   assert.doesNotMatch(stories, /<button\b/);
   assert.match(stories, /className="[^"]*route-demo-path/);
   assert.match(stories, /className="[^"]*route-demo-vehicle/);
-  assert.match(community, /className="[^"]*community-editor-preview/);
-  assert.match(community, /className="[^"]*community-entry-fields/);
+  assert.match(community, /className="horizon-community-photos"/);
+  assert.match(community, /href="\/community"/);
   assert.doesNotMatch(community, /<button\b/);
-  assert.match(community, /data-still=\{still\}/);
-  assert.match(community, /className="demo-post-preview" data-shown=\{step >= 3\}/);
+  assert.match(community, /<EditorialPhoto photo=\{horizonPhotos\.park\}/);
+  assert.match(community, /<EditorialPhoto photo=\{horizonPhotos\.garden\}/);
   assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live|fetch\(|localStorage|sessionStorage/);
   assert.doesNotMatch(stories, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   assert.match(css, /\.product-story,.landing-community \{ min-height: 0; padding-block: clamp\(/);

@@ -27,9 +27,9 @@ test("Hero copy moves line by line, holds CTA geometry, without pause UI and res
   const sequence = page.locator(".hero-copy-sequence");
   await expect(sequence).toHaveAttribute("data-running","true");
   await expect(sequence).toHaveAttribute("data-phrase","0");
-  const name = "필요한 편의부터, 내게 맞는 경남 여행.";
+  const name = "가고 싶은 곳으로. 우리의 속도로.";
   await expect(page.getByRole("heading",{level:1})).toHaveAccessibleName(name);
-  const cta=page.locator(".landing-actions a"); const before=await cta.boundingBox();
+  const cta=page.locator(".landing-actions a[href='/planner']"); const before=await cta.boundingBox();
   await page.clock.fastForward(6500); await expect(sequence).toHaveAttribute("data-phrase","1");
   await expect(page.locator(".hero-phrase[data-active=true]")).toContainText("필요한 시설을 살펴보고,");
   await page.clock.fastForward(900);
@@ -65,7 +65,7 @@ test("Hero pauses offscreen and in hidden tabs, and runtime reduction returns to
   await page.evaluate(()=>{delete (document as unknown as {hidden?:boolean}).hidden;document.dispatchEvent(new Event("visibilitychange"));});
   await expect(copy).toHaveAttribute("data-running","true");
   await page.clock.fastForward(6500); await expect(copy).toHaveAttribute("data-phrase","1");
-  const cta=page.locator(".landing-actions a");
+  const cta=page.locator(".landing-actions a[href='/planner']");
   await cta.focus();
   await page.emulateMedia({reducedMotion:"reduce"});
   await expect(cta).toBeFocused();
@@ -79,7 +79,7 @@ test("current section registry, desktop rail and mobile native selector stay in 
   expect(await page.locator("main > section").evaluateAll(nodes=>nodes.map(node=>node.id))).toEqual(landingSections.map(s=>s.id));
   await expect(page.locator(".story-progress")).toBeVisible();
   await page.evaluate(()=>history.replaceState({...history.state,storyTestMarker:"preserve"},""));
-  if (page.viewportSize()!.width > 1100) {
+  if (page.viewportSize()!.width > 1280) {
     await expect(page.locator("#story-progress-list a")).toHaveCount(7);
     for (const link of await page.locator("#story-progress-list a").all()) await expect(link).toBeVisible();
     await expect(page.getByRole("button",{name:"소개 섹션 목록"})).toHaveCount(0);
@@ -95,25 +95,21 @@ test("current section registry, desktop rail and mobile native selector stay in 
   await expect(page.locator("main")).not.toContainText("걱정은 덜고");
 });
 
-test("readonly demos select and type internally once, without server writes or changing user state", async ({ page }) => {
+test("scroll chapters and community invitation preserve sources, links and user state without writes", async ({ page }) => {
   const writes:string[]=[]; const requests:string[]=[];
   page.on("request",request=> {requests.push(request.url()); if(!["GET","HEAD","OPTIONS"].includes(request.method())) writes.push(request.url());});
-  await page.clock.install(); await page.goto("/"); await ready(page);
-  // Preserve every stored key/value without assuming a browser enumeration order.
+  await page.goto("/"); await ready(page);
   const storage=await page.evaluate(()=>({ ...localStorage }));
-  const needs=page.locator('[data-demo="facilities"]'); await needs.scrollIntoViewIfNeeded();
-  await expect(needs).toHaveAttribute("data-running","true");
-  await page.clock.fastForward(1400); await expect(needs).toHaveAttribute("data-step","1");
-  await expect(needs.locator("[data-selected=true]")).toHaveCount(1);
-  await page.clock.fastForward(1400); await expect(needs.locator("[data-selected=true]")).toHaveCount(2);
-  await page.clock.fastForward(1400); await expect(needs).toHaveAttribute("data-running","false");
-  const writing=page.locator('[data-demo="community"]'); await writing.scrollIntoViewIfNeeded();
-  await expect(writing).toHaveAttribute("data-running","true");
-  await page.clock.fastForward(1400); await expect(writing.locator(".demo-typed[data-filled=true]")).toHaveCount(1);
-  await expect(writing.getByRole("button")).toHaveCount(0);
-  await page.clock.fastForward(1400); await expect(writing.locator(".demo-typed[data-filled=true]")).toHaveCount(2);
-  await page.clock.fastForward(1400); await expect(writing.locator(".demo-post-preview")).toHaveAttribute("data-shown","true");
-  await page.clock.fastForward(12000); await expect(writing).toHaveAttribute("data-step","3");
+  for(let index=0;index<3;index++) {
+    await page.locator(".horizon-chapter-copy").nth(index).evaluate(node=>node.scrollIntoView({block:"center",behavior:"instant"}));
+    await expect(page.locator(".horizon-chapters")).toHaveAttribute("data-active-chapter",String(index));
+    await expect(page.locator('.horizon-chapter-backdrops > div[data-active="true"]')).toHaveCount(1);
+    await expect(page.locator('.horizon-chapter-backdrops > div[inert]')).toHaveCount(2);
+  }
+  await expect(page.locator(".needs-demo,.community-demo")).toHaveCount(0);
+  await expect(page.locator(".horizon-account-links a")).toHaveCount(2);
+  await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
+  await expect(page.locator('.horizon-community-copy a')).toHaveAttribute("href","/community");
   expect(writes).toEqual([]); expect(requests.filter(url=>/timeline-|ocean-expand|journey-sequence|hero-water-loop/.test(url))).toEqual([]);
   expect(await page.evaluate(()=>({ ...localStorage }))).toStrictEqual(storage);
 });
@@ -142,10 +138,10 @@ test("every region retains its exact original source, author and named link, inc
     await stage.getByRole("button",{name:"다음 지역"}).press("Enter");
   }
   await page.goto("/policies#content-credits"); await expect(page.getByRole("heading",{name:"콘텐츠 출처 및 이용안내"})).toBeVisible();
-  await expect(page.locator(".content-credits li")).toHaveCount(Object.values(regionShowcaseAlbums).flat().length);
+  await expect(page.locator("#regional-photo-credits li")).toHaveCount(Object.values(regionShowcaseAlbums).flat().length);
 });
 
-for(const width of [320,390]) test(`${width}px static and data-saving story keeps complete demos without motion, overflow or axe violations`,async({page})=>{
+for(const width of [320,390]) test(`${width}px static and data-saving story keeps complete chapters without motion, overflow or axe violations`,async({page})=>{
   await page.setViewportSize({width,height:844});
   await page.addInitScript(()=>Object.defineProperty(navigator,"connection",{configurable:true,value:{saveData:true,addEventListener(){},removeEventListener(){}}}));
   await page.goto("/"); await ready(page); await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-still","true");
@@ -153,9 +149,9 @@ for(const width of [320,390]) test(`${width}px static and data-saving story keep
     await page.locator(`#${section.id}`).scrollIntoViewIfNeeded();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(width);
   }
-  await expect(page.locator(".needs-demo")).toHaveAttribute("data-step","3");
-  await expect(page.locator(".community-demo")).toHaveAttribute("data-step","3");
-  await expect(page.locator(".demo-post-preview")).toHaveAttribute("data-shown","true");
+  await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+  await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
+  await expect(page.locator(".horizon-community input,.horizon-community form")).toHaveCount(0);
   await page.emulateMedia({reducedMotion:"reduce"}); expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
 });
 
