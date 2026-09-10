@@ -74,7 +74,7 @@ export function MapCanvasStatusOverlays({ provider, roadviewOpen, roadviewMessag
   return <>
     {provider === "error" && <div lang={locale} className="route-empty map-unavailable">
       <div role="status" aria-live="polite"><h3>{english ? "The map could not be loaded." : "지도를 불러오지 못했습니다."}</h3><p>{english ? "Your itinerary and journey details are still available." : "일정과 이동 구간 정보는 계속 확인할 수 있습니다."}</p></div>
-      <p>{english ? "Reload this page to try the map again. Your saved itinerary stays on this device." : "지도를 다시 확인하려면 페이지를 새로 불러오세요. 저장한 일정은 이 기기에 유지됩니다."}</p>
+      <p>{english ? "Reload this page to try the map again. Your saved itinerary is kept." : "지도를 다시 확인하려면 페이지를 새로 불러오세요. 저장한 일정은 유지됩니다."}</p>
       <button type="button" onClick={() => window.location.reload()}>{english ? "Reload page and map" : "페이지와 지도 다시 불러오기"}</button>
     </div>}
     {crowdVisual && crowdText && crowd && crowdPlace && !roadviewOpen && <aside lang={locale} className={`map-crowd-legend crowd-${crowdVisual.level}`} style={{ "--crowd-color": crowdVisual.color, "--crowd-soft": crowdVisual.soft } as CSSProperties} aria-label={english ? "Crowd forecast" : "혼잡 예측"}>

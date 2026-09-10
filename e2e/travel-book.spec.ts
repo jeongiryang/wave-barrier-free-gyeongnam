@@ -79,7 +79,7 @@ test("여행집의 주요 조작은 44px 이상이고 삭제는 확인을 거친
   const deleteTrigger = page.getByRole("button", { name: "여행집에서 삭제" });
   await expect(deleteTrigger).toHaveAttribute("aria-expanded", "true");
   await expect(deleteTrigger).toHaveAttribute("aria-controls", /travel-book-delete-/);
-  await expect(page.getByText("이 기기에서 이 여행을 지울까요?")).toBeVisible();
+  await expect(page.getByText("이 여행을 삭제할까요?")).toBeVisible();
   await expect(page.getByRole("button", { name: "삭제 확인" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(deleteTrigger).toHaveAttribute("aria-expanded", "false");

@@ -75,7 +75,7 @@ export function useMapJourneyActions({
   }, [isMapAvailable, kakaoMapRef, locale, onOriginChange, setPickMode, setProviderDetail]);
 
   // 예전에는 아무도 읽지 않는 저장소 키에 써 놓고 "저장했습니다"라고만 알렸다.
-  // 현재 지도에 노출한 장소만 이 기기 일정으로 넘기며, 위치 좌표 자체는 저장하지 않는다.
+  // 현재 지도에 노출한 장소만 내 일정으로 넘기며, 위치 좌표 자체는 저장하지 않는다.
   const saveRoute = useCallback(() => {
     if (!places.length) {
       setProviderDetail("지도에 담을 여행지가 아직 없습니다.");

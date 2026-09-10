@@ -28,7 +28,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         <p className="photo-course-kicker">사진으로 코스 복원</p>
         <h2 id={headingId}>다녀온 사진을 고르면 날짜별 코스를 다시 만듭니다</h2>
         <p className="photo-course-lead">
-          촬영 시각과 GPS는 <strong>기기 안에서만</strong> 읽습니다. 사진 파일과 좌표는 서버로 전송되지 않습니다.
+          사진의 촬영 순서를 따라 여행을 되살려 보세요.
           장소를 직접 확인한 뒤에만 선택한 지역·장소명을 한국관광공사 관광정보 조회에 사용해 공식 정보와 공공누리 사진을 찾습니다.
         </p>
       </header>
@@ -51,11 +51,11 @@ export default function PhotoCourseRestore({ onApply }: Props) {
           {clientReady ? "사진 고르기" : "사진 기능 준비 중"}
         </label>
         {course && <button type="button" className="photo-course-clear" onClick={clear}>지우기</button>}
-        <p className="photo-course-limit">JPG · PNG · WebP · TIFF 원본 최대 {MAX_PHOTOS}장 · 필요한 촬영 정보만 기기에서 확인</p>
+        <p className="photo-course-limit">JPG · PNG · WebP · TIFF 원본 최대 {MAX_PHOTOS}장 · 촬영 정보로 여행 순서 확인</p>
       </div>
 
       <p className="photo-course-notice" role="status" aria-live="polite" aria-busy={reading}>
-        {reading ? `사진 촬영 정보를 기기 안에서 읽고 있습니다… ${progress}%` : notice}
+        {reading ? `사진 촬영 정보를 읽고 있어요… ${progress}%` : notice}
       </p>
 
       {course && course.days.length > 0 && <>
@@ -146,7 +146,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         </p>}
 
         <div className="photo-course-export">
-          <button type="button" onClick={saveToDevice}>좌표 없이 기기에 저장</button>
+          <button type="button" onClick={saveToDevice}>사진 코스 저장</button>
           <button type="button" onClick={() => void share()}>좌표 없이 코스 공유</button>
           <p>저장·공유 파일에는 날짜, 직접 확인한 장소명, 확인된 한국관광공사 공식정보 번호만 들어가며 원본 사진과 GPS는 포함되지 않습니다.</p>
         </div>
@@ -160,7 +160,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
           <li>촬영 정보가 담긴 부분만 한 장씩 읽어 대용량 원본을 한꺼번에 메모리에 올리지 않습니다.</li>
           <li>시·군 경계나 경남 바깥 인접 지역은 다르게 추론될 수 있습니다. 화면에서 시·군과 장소명을 직접 고칠 수 있습니다.</li>
           <li>사진에 없는 장소 이름을 지어내지 않습니다. 공식정보 확인 전 표시되는 이름은 순서용 제안입니다.</li>
-          <li>새로 고치면 분석 결과는 사라집니다. 별도 저장을 누르기 전에는 브라우저 저장소에도 기록하지 않습니다.</li>
+          <li>만든 코스를 나중에 다시 보려면 사진 코스 저장을 눌러 주세요. 새로 고치면 분석 결과는 사라집니다.</li>
         </ul>
       </details>
     </section>

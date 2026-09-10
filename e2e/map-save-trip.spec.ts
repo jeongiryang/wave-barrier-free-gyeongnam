@@ -3,7 +3,7 @@ import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 /**
  * 지도 도구의 "저장"은 예전에 아무도 읽지 않는 저장소 키에 써 놓고
- * "저장했습니다"라고만 알렸다. 이제는 새로고침을 견디는 이 기기 일정에 추가한다.
+ * "저장했습니다"라고만 알렸다. 이제는 새로고침을 견디는 내 일정에 추가한다.
  *
  * 이 패널은 Kakao 지도가 연결된 상태에서만 열리므로, 실제 SDK 대신 최소 스텁을
  * 넣어 그 상태를 만든다. loadKakaoSdk는 `window.kakao.maps.services`가 이미 있으면
@@ -58,7 +58,7 @@ async function savedCount(page: Page) {
   return Number((label || "").replace(/[^0-9]/g, "") || "0");
 }
 
-test("지도에서 저장하면 이 기기 일정에 추가되고 새로고침 뒤에도 남는다", async ({ page }) => {
+test("지도에서 저장하면 내 일정에 추가되고 새로고침 뒤에도 남는다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await withKakaoStub(page);

@@ -19,10 +19,10 @@ export const profileNotices = {
   damaged: ["저장한 편의 조건이 손상되어 적용하지 않았습니다. 현재 선택은 그대로 유지됩니다.", "The saved facilities are damaged and were not applied. Your current choices are unchanged."],
   unreadable: ["저장한 편의 조건을 읽지 못했습니다. 현재 선택은 그대로 유지됩니다.", "We couldn't read the saved facilities. Your current choices are unchanged."],
   empty: ["저장할 편의조건을 하나 이상 선택해 주세요.", "Select at least one facility to save."],
-  saved: ["현재 편의 조건을 이 기기에 저장했습니다.", "Your current facilities were saved on this device."],
-  unsaved: ["이 브라우저에서는 편의 조건을 저장할 수 없습니다. 현재 선택은 이 화면에서 계속 사용할 수 있습니다.", "This browser couldn't save your facilities. You can keep using your current choices on this page."],
-  deleted: ["이 기기에 저장한 편의 조건을 삭제했습니다.", "The facilities saved on this device were deleted."],
-  undeleted: ["저장한 편의 조건을 삭제하지 못했습니다. 브라우저 저장소 설정을 확인해 주세요.", "We couldn't delete the saved facilities. Check your browser's storage settings."],
+  saved: ["편의 조건을 저장했습니다.", "Your facilities were saved."],
+  unsaved: ["편의 조건을 저장하지 못했어요. 현재 선택은 계속 사용할 수 있습니다.", "Could not save your facilities. You can keep using your current choices."],
+  deleted: ["저장한 편의 조건을 삭제했습니다.", "Your saved facilities were deleted."],
+  undeleted: ["저장한 편의 조건을 삭제하지 못했습니다. 저장 공간과 권한을 확인해 주세요.", "We couldn't delete the saved facilities. Check storage space and permissions."],
   applied: ["저장된 편의조건을 현재 여행 설계에 적용했습니다.", "The saved facilities were applied to this trip."],
 } as const;
 
@@ -33,7 +33,7 @@ export const planNotices = {
   loading: ["필요한 편의가 확인된 여행지를 찾고 있어요.", "Finding places with information about your needs."],
   updated: ["공식 관광정보를 확인해 추천을 업데이트했습니다.", "Recommendations were updated using official tourism information."],
   empty: ["공식 데이터에서 현재 조건에 맞는 결과를 확인하지 못했습니다.", "No official results were found for your current choices. Change your choices and try again."],
-  offline: ["인터넷 연결이 끊겼어요. 기존 일정은 이 기기에서 계속 확인할 수 있습니다.", "You are offline. You can still view your existing itinerary on this device."],
+  offline: ["인터넷 연결이 끊겼어요. 기존 일정은 계속 확인할 수 있습니다.", "You are offline. You can still view your existing itinerary."],
   error: ["여행지를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.", "We couldn't load places. Your choices are kept. Please try again shortly."],
 } as const;
 

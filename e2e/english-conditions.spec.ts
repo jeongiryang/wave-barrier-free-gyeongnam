@@ -30,7 +30,7 @@ for (const theme of ["light", "dark"] as const) {
     await facilities.getByRole("button", { name: /Hearing information support/ }).click();
     await conditions.locator(".travel-profile-card summary").click();
     await conditions.getByRole("button", { name: "Save these facilities", exact: true }).click();
-    await expect(conditions.locator(".travel-profile-notice")).toHaveText("Your current facilities were saved on this device.");
+    await expect(conditions.locator(".travel-profile-notice")).toHaveText("Your facilities were saved.");
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-travel-profile-v1") || "null").selectedIds)).toEqual(["wheel", "hearing"]);
     await conditions.getByRole("button", { name: "Clear selected facilities", exact: true }).click();
     await expect(conditions.locator(".condition-actions button").last()).toBeDisabled();
@@ -72,7 +72,7 @@ test("English: saved and damaged facilities remain opt-in with readable status",
   await expect(conditions.locator(".condition-actions button").last()).toBeDisabled();
   await conditions.locator(".travel-profile-card summary").click();
   await conditions.getByRole("button", { name: "Delete saved facilities", exact: true }).click();
-  await expect(conditions.locator(".travel-profile-notice")).toHaveText("The facilities saved on this device were deleted.");
+  await expect(conditions.locator(".travel-profile-notice")).toHaveText("Your saved facilities were deleted.");
   expect(await page.evaluate(() => localStorage.getItem("wave-travel-profile-v1"))).toBeNull();
   await page.addInitScript(() => localStorage.setItem("wave-travel-profile-v1", '{"version":99}'));
   await openFacilities(page);

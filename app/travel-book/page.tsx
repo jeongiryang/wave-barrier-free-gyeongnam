@@ -101,8 +101,8 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
       <label className="travel-book-note">
         <span>{book.status === "visited" ? "이 여행에서 기억할 점" : "출발 전에 기억할 점"}</span>
         <textarea maxLength={1200} value={note} aria-describedby={`${noteHelpId} ${noteStatusId}`} placeholder={book.status === "visited" ? "현장에서 편했던 동선이나 다음 여행에 참고할 점을 남겨보세요." : "운영시간, 준비물처럼 다시 확인할 내용을 남겨보세요."} onChange={(event) => { setNote(event.currentTarget.value); setNoteState("editing"); }} onBlur={saveNote} />
-        <small id={noteHelpId}>메모도 이 기기에만 저장됩니다. 입력 후 다른 곳을 누르면 자동 저장돼요.</small>
-        <small id={noteStatusId} className="travel-book-note-status" role="status" aria-live="polite">{noteState === "saved" ? "메모를 이 기기에 저장했습니다." : noteState === "editing" ? `편집 중 · ${note.length}/1,200자` : `${note.length}/1,200자`}</small>
+        <small id={noteHelpId}>입력 후 다른 곳을 누르면 자동 저장돼요.</small>
+        <small id={noteStatusId} className="travel-book-note-status" role="status" aria-live="polite">{noteState === "saved" ? "메모를 저장했습니다." : noteState === "editing" ? `편집 중 · ${note.length}/1,200자` : `${note.length}/1,200자`}</small>
       </label>
       <div className="travel-book-actions">
         <button type="button" className="primary" onClick={() => onRestore(book)}>이 일정 다시 열기 <span aria-hidden="true">→</span></button>
@@ -111,7 +111,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
       </div>
       <div className="travel-book-delete">
         <button ref={deleteTriggerRef} type="button" aria-expanded={deleteReady} aria-controls={deletePanelId} onClick={() => deleteReady ? closeDelete() : setDeleteReady(true)}>여행집에서 삭제</button>
-        {deleteReady && <div ref={deletePanelRef} id={deletePanelId} className="travel-book-delete-confirm" role="group" aria-label={`${book.title} 삭제 확인`}><span>이 기기에서 이 여행을 지울까요?</span><button type="button" onClick={() => onRemove(book.id)}>삭제 확인</button><button type="button" onClick={closeDelete}>취소</button></div>}
+        {deleteReady && <div ref={deletePanelRef} id={deletePanelId} className="travel-book-delete-confirm" role="group" aria-label={`${book.title} 삭제 확인`}><span>이 여행을 삭제할까요?</span><button type="button" onClick={() => onRemove(book.id)}>삭제 확인</button><button type="button" onClick={closeDelete}>취소</button></div>}
       </div>
     </div>
   </article>;
@@ -138,7 +138,7 @@ export default function TravelBookPage() {
 
   function startNewTrip() {
     try { replaceCurrentTrip(window.localStorage, emptyTrip("", localDate(), localDate(1))); }
-    catch { setNewTripError("새 여행을 저장하지 못했어요. 기존 일정은 유지됩니다. 이 브라우저의 저장 공간을 확인한 뒤 다시 시도해 주세요."); return; }
+    catch { setNewTripError("새 여행을 저장하지 못했어요. 기존 일정은 유지됩니다. 저장 공간을 확인한 뒤 다시 시도해 주세요."); return; }
     router.push("/planner#conditions");
   }
 
@@ -154,12 +154,12 @@ export default function TravelBookPage() {
     <SkipLink href="#travel-book-main">여행집 본문으로 바로가기</SkipLink>
     <CommunityHeader current="travel-book" />
     <section className="travel-book-hero" id="travel-book-main">
-      <div><p>MY LOCAL TRAVEL BOOK</p><h1>여행은 다녀온 뒤에도<br /><em>다음 장으로 이어져요.</em></h1><span>계정 없이 이 기기에만 남기는 나의 경남 여행집입니다. 갈 여행을 준비하고, 다녀온 여행은 메모·사진 코스·후기로 이어보세요.</span></div>
-      <dl aria-label="여행집 요약"><div><dt>보관한 여행</dt><dd>{hydrated ? books.length : "—"}</dd></div><div><dt>다녀온 여행</dt><dd>{hydrated ? visitedCount : "—"}</dd></div><div><dt>저장 위치</dt><dd>이 기기</dd></div></dl>
+      <div><p>MY TRAVEL BOOK</p><h1>여행은 다녀온 뒤에도<br /><em>다음 장으로 이어져요.</em></h1><span>갈 여행을 준비하고, 다녀온 여행은 메모·사진 코스·후기로 이어보세요.</span></div>
+      <dl aria-label="여행집 요약"><div><dt>보관한 여행</dt><dd>{hydrated ? books.length : "—"}</dd></div><div><dt>다녀온 여행</dt><dd>{hydrated ? visitedCount : "—"}</dd></div><div><dt>갈 여행</dt><dd>{hydrated ? books.length - visitedCount : "—"}</dd></div></dl>
     </section>
-    <section className="travel-book-privacy" aria-label="여행집 개인정보 안내"><strong>내 기기 안에만 보관해요.</strong><p>일정·상태·메모와 공식 관광지 표지만 저장합니다. 원본 사진, GPS 좌표, 정확한 출발지와 계정 정보는 여행집에 넣지 않습니다.</p></section>
+    <section className="travel-book-privacy" aria-label="여행 기록 안내"><strong>여행의 기억을 다음 여행으로.</strong><p>준비할 것과 기억할 순간을 메모하고, 사진 코스와 후기로 나만의 경남 여행집을 채워 보세요.</p></section>
     <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
-    {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>여행집을 펼치는 중이에요.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setAnnouncement(`${book.title} 여행을 이 기기 여행집에서 삭제했습니다.`); }} onRestore={restore} />)}</section> : <section className="travel-book-empty">
+    {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>여행집을 펼치는 중이에요.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setAnnouncement(`${book.title} 여행을 여행집에서 삭제했습니다.`); }} onRestore={restore} />)}</section> : <section className="travel-book-empty">
       <span aria-hidden="true">＋</span><p>아직 펼쳐볼 여행이 없어요.</p><h2>먼저 나에게 맞는 여행을 설계해 볼까요?</h2><small>일정에서 ‘여행집에 보관’을 누르면 이곳에 카드가 생깁니다.</small><Link href="/planner">첫 여행 계획하기 <span aria-hidden="true">→</span></Link>
     </section>}
     <footer className="travel-book-footer"><button type="button" disabled={!hydrated} onClick={requestNewTrip}>새 여행 설계</button><Link href="/community">여행자 후기 읽기</Link><Link href="/privacy">개인정보</Link><Link href="/terms">이용 안내</Link><GithubFooterLink /></footer>

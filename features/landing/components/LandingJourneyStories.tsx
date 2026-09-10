@@ -14,7 +14,7 @@ export default function LandingJourneyStories() {
       </div>
       <div className="product-preview plan-preview feature-motion" role="img" aria-label="선택한 두 장소가 하루 일정에 추가되고 방문 순서가 정리되는 흐름">
         <div className="feature-preview-stage" aria-hidden="true">
-          <header><span><small>이 기기 일정</small><strong>오늘의 이동 흐름</strong></span><b>추가한 장소로 직접 구성</b></header>
+          <header><span><small>내 일정</small><strong>오늘의 이동 흐름</strong></span><b>추가한 장소로 직접 구성</b></header>
           <ol>
             <li className="motion-stop motion-stop-one"><i>1</i><div><small>첫 방문</small><strong>선택한 관광지</strong><p>편의시설과 운영 정보를 방문 전에 확인</p></div><span>이용 정보</span></li>
             <li className="transfer motion-transfer"><i>↳</i><p>지도에서 자동차·대중교통 이동 비교</p></li>

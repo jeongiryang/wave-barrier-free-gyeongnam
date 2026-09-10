@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
-test("공식 편의근거가 없는 장소는 추천과 이 기기 일정에서 분리한다", async ({ page }) => {
+test("공식 편의근거가 없는 장소는 추천과 내 일정에서 분리한다", async ({ page }) => {
   await mockPlannerApi(page, { explorationOnly: true });
   await page.goto("/planner");
   await chooseTripConditions(page);

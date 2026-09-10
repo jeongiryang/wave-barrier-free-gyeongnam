@@ -73,7 +73,7 @@ export default function PlannerStageFrame({
     {children}
     {view === "guided" && step.id !== "conditions" && <footer className="guided-stage-actions" aria-label={en ? `${step.label} navigation` : `${step.label} 단계 이동`}>
       <div>
-        <span>{step.complete ? en ? "This step is complete." : "이 단계의 준비를 마쳤어요." : en ? "Your choices are applied on this device." : "선택 내용은 이 기기에서 바로 반영돼요."}</span>
+        <span>{step.complete ? en ? "This step is complete." : "이 단계의 준비를 마쳤어요." : en ? "Prepare your trip with your choices." : "선택한 조건으로 여행을 준비하세요."}</span>
         <button type="button" disabled={!interactive} onClick={onShowOverview}>{en ? "See all trip information" : "전체 정보 한눈에 보기"}</button>
       </div>
       <nav aria-label={en ? "Previous or next trip step" : "이전 또는 다음 여행 단계"}>
