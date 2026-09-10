@@ -35,6 +35,12 @@ export async function completeCommunityAccountDeletion(sql: CommunitySql, token:
   const userId = String(rows[0]?.user_id || "");
   if (!userId) return false;
   await sql.transaction([
+    sql`DELETE FROM wave_trip_votes WHERE user_id=${userId}`,
+    sql`DELETE FROM wave_trip_comments WHERE user_id=${userId}`,
+    sql`DELETE FROM wave_trip_members WHERE user_id=${userId}`,
+    sql`DELETE FROM wave_account_trips WHERE user_id=${userId}`,
+    sql`DELETE FROM wave_travel_preferences WHERE user_id=${userId}`,
+    sql`DELETE FROM wave_travel_limits WHERE user_id=${userId}`,
     sql`DELETE FROM community_reports WHERE reporter_id=${userId} OR post_id IN (SELECT id FROM community_posts WHERE author_id=${userId}) OR (target_type='comment' AND target_id IN (SELECT id FROM community_comments WHERE author_id=${userId}))`,
     sql`DELETE FROM community_likes WHERE user_id=${userId}`,
     sql`DELETE FROM community_comments WHERE author_id=${userId}`,

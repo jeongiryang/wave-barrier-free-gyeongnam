@@ -29,7 +29,7 @@ export const communitySteps: TourStep[] = [
 
 export const travelBookSteps: TourStep[] = [
   { selector: ".travel-book-page", highlightSelector: ".travel-book-hero", eyebrow: "내 여행집", title: "갈 여행과 다녀온 여행을 모아 보세요.", copy: "플래너에서 만든 일정을 보관하고 언제든 다시 열어 여행을 준비하세요." },
-  { selector: ".travel-book-privacy", highlightSelector: ".travel-book-privacy", eyebrow: "여행 기록", title: "다녀온 뒤에도 여행을 이어가세요.", copy: "여행 메모를 남기고 사진으로 코스를 되살려 다음 여행에 참고하세요." },
+  { selector: ".travel-book-privacy", highlightSelector: ".travel-book-privacy", eyebrow: "여행 기록", title: "기기를 바꿔도 여행을 이어가세요.", copy: "원하는 여행의 계정에 저장을 누른 뒤 계정 여행 보기로 이동하세요. 다른 기기에서도 같은 계정으로 로그인해 날짜·순서·메모를 편집하고 동행자를 초대할 수 있습니다." },
   { selector: ".travel-book-list, .travel-book-empty", highlightSelector: ".travel-book-list, .travel-book-empty", eyebrow: "여행 관리", title: "일정을 열고 여행 상태를 관리하세요.", copy: "여행을 복원하고, 다녀온 여행으로 바꾸거나 현장 메모를 이어서 정리할 수 있습니다." },
 ];
 

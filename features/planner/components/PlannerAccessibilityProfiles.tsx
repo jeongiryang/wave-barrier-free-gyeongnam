@@ -3,6 +3,8 @@ import { profiles } from "../constants";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { englishProfiles } from "../condition-copy";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
+import { lazy, Suspense } from "react";
+const AccountPreferences = lazy(() => import("../../account-travel/AccountPreferences"));
 
 export default function PlannerAccessibilityProfiles({ t, planController }: {
   t: (key: string, fallback: string) => string;
@@ -33,6 +35,7 @@ export default function PlannerAccessibilityProfiles({ t, planController }: {
           {savedProfile ? <><p><b>{en ? "Saved facilities" : "저장한 조건"}</b> {savedProfiles.map((profile) => profileCopy(profile).label).join(" · ")}</p><div className="travel-profile-actions"><button type="button" onClick={applyTravelProfile}>{en ? "Load saved facilities" : "저장한 조건 불러오기"}</button><button type="button" onClick={() => saveTravelProfile(selected)} disabled={!selected.length}>{en ? "Replace with current choices" : "지금 선택으로 바꾸기"}</button><button type="button" className="delete" onClick={deleteTravelProfile}>{en ? "Delete saved facilities" : "저장 삭제"}</button></div></> : <><p>{en ? "Save your current facilities to load them quickly for another trip." : "지금 고른 편의 조건을 다음 여행에서도 빠르게 불러올 수 있습니다."}</p><div className="travel-profile-actions"><button type="button" onClick={() => saveTravelProfile(selected)} disabled={!selected.length}>{en ? "Save these facilities" : "이 조건 저장"}</button></div></>}
           <button type="button" className="travel-profile-clear" onClick={clearSelectedProfiles} disabled={!selected.length}>{en ? "Clear selected facilities" : "선택한 조건 모두 해제"}</button>
           <small className="travel-profile-privacy">{en ? "Only your selected facilities are saved. We do not infer health conditions or disability types." : "선택한 편의 조건만 저장합니다. 건강 상태나 장애 유형을 추론하지 않습니다."}</small>
+          {!en && <Suspense fallback={<p role="status">계정 편의 조건을 준비하고 있어요.</p>}><AccountPreferences selected={selected} onApply={planController.setSelected} /></Suspense>}
         </div>
       </details>
       <p className="travel-profile-notice" role="status" aria-live="polite">{profileNotice}</p>

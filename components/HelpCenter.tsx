@@ -39,6 +39,7 @@ export default function HelpCenter({ iconOnly = false }: { iconOnly?: boolean })
       <span className="dialog-kicker">{step.eyebrow}</span>
       <h2 id="help-tour-title">{step.title}</h2>
       <p id="help-tour-copy" aria-live="polite">{step.copy}</p>
+      <a href="/guide">{en ? "Travel and companion guide (Korean) →" : "여행 저장·동행 기능 사용법 →"}</a>
       <small>{en ? "The outline marks the area being described." : "강조된 테두리가 현재 설명하는 영역을 표시합니다."}</small>
       <div className="help-tour-actions">
         <button type="button" onClick={previousStep} disabled={stepIndex === 0}>{en ? "Previous" : "이전"}</button>
