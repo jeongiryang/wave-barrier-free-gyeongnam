@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, type FocusEvent } from "react";
 export function useReadinessFocus() {
   const root = useRef<HTMLElement>(null);
   const focused = useRef<HTMLElement | null>(null);
+  const pointerPress = useRef(false);
   const frame = useRef(0);
   const reveal = useCallback(() => {
     window.cancelAnimationFrame(frame.current);
@@ -24,9 +25,17 @@ export function useReadinessFocus() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const stopFollowing = () => { focused.current = null; window.cancelAnimationFrame(frame.current); };
+    const stopFollowing = (event?: Event) => {
+      if (event?.type === "pointerdown") pointerPress.current = true;
+      focused.current = null;
+      window.cancelAnimationFrame(frame.current);
+    };
     for (const type of ["wheel", "touchstart", "pointerdown"]) {
       window.addEventListener(type, stopFollowing, { capture: true, passive: true, signal: controller.signal });
+    }
+    const endPointer = () => { pointerPress.current = false; };
+    for (const type of ["pointerup", "pointercancel"]) {
+      window.addEventListener(type, endPointer, { capture: true, passive: true, signal: controller.signal });
     }
     const workspace = root.current?.closest(".journey-stage-stream");
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(reveal);
@@ -35,7 +44,8 @@ export function useReadinessFocus() {
   }, [reveal]);
 
   const onFocusCapture = (event: FocusEvent<HTMLElement>) => {
-    focused.current = event.target.matches("button, a") ? event.target : null;
+    // Pointer focus must not move its target between press and release.
+    focused.current = !pointerPress.current && event.target.matches("button, a") ? event.target : null;
     reveal();
   };
   const onBlurCapture = () => { focused.current = null; };
