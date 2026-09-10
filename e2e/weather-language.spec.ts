@@ -171,10 +171,10 @@ test("the weather view loads on demand and a failed module leaves the itinerary 
   expect(modules).toBeGreaterThan(0);
 });
 
-for (const kind of ["http", "malformed"] as const) {
+for (const kind of ["http", "malformed", "wrong-region"] as const) {
   test(`weather ${kind} failure offers an independent retry without losing the itinerary`, async ({ page }) => {
     await prepare(page);
-    await page.route("**/api/weather**", (route) => route.fulfill({ status: kind === "http" ? 503 : 200, json: kind === "http" ? { error: "unavailable" } : { current: null, days: [] } }));
+    await page.route("**/api/weather**", (route) => route.fulfill({ status: kind === "http" ? 503 : 200, json: kind === "http" ? { error: "unavailable" } : kind === "wrong-region" ? { ...forecast, region: "진주" } : { current: null, days: [] } }));
     const board = await openWeather(page);
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
     await expect(board).toContainText("예보를 잠시 불러오지 못했습니다.");
