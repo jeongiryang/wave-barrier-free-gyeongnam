@@ -52,6 +52,6 @@ export default function TravelBookArchiveAction({ places, region, theme, profile
     </div>
     <p id={noticeId}>{outsideDates ? c("기간 밖 장소의 날짜를 선택하거나 일정에서 제외한 뒤 저장해 주세요. 원래 날짜는 자동으로 옮기지 않습니다.", "Choose dates for places outside this period or remove them before saving. Their original dates will not be moved automatically.") : ""}</p>
     <small role="status" aria-live="polite">{notice}</small>
-    {accountBook && <CloudSaveAction book={accountBook} />}
+    {locale === "ko" && accountBook && <CloudSaveAction book={accountBook} />}
   </div>;
 }
