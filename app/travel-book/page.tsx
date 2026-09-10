@@ -13,6 +13,7 @@ import { useTravelBook } from "../../features/travel-book/useTravelBook";
 import { emptyTrip, readTripValue, replaceCurrentTrip } from "../../lib/current-trip-storage.js";
 import { localDate } from "../../features/planner/utils";
 import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
+import CloudSaveAction from "../../features/account-travel/CloudSaveAction";
 
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 const shortDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
@@ -109,6 +110,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
         <Link href="/photo-course">사진으로 코스 되살리기</Link>
         <Link href={journalHref(book)}>여행 후기 초안</Link>
       </div>
+      <CloudSaveAction book={book} />
       <div className="travel-book-delete">
         <button ref={deleteTriggerRef} type="button" aria-expanded={deleteReady} aria-controls={deletePanelId} onClick={() => deleteReady ? closeDelete() : setDeleteReady(true)}>여행집에서 삭제</button>
         {deleteReady && <div ref={deletePanelRef} id={deletePanelId} className="travel-book-delete-confirm" role="group" aria-label={`${book.title} 삭제 확인`}><span>이 여행을 삭제할까요?</span><button type="button" onClick={() => onRemove(book.id)}>삭제 확인</button><button type="button" onClick={closeDelete}>취소</button></div>}
@@ -157,7 +159,7 @@ export default function TravelBookPage() {
       <div><p>MY TRAVEL BOOK</p><h1>여행은 다녀온 뒤에도<br /><em>다음 장으로 이어져요.</em></h1><span>갈 여행을 준비하고, 다녀온 여행은 메모·사진 코스·후기로 이어보세요.</span></div>
       <dl aria-label="여행집 요약"><div><dt>보관한 여행</dt><dd>{hydrated ? books.length : "—"}</dd></div><div><dt>다녀온 여행</dt><dd>{hydrated ? visitedCount : "—"}</dd></div><div><dt>갈 여행</dt><dd>{hydrated ? books.length - visitedCount : "—"}</dd></div></dl>
     </section>
-    <section className="travel-book-privacy" aria-label="여행 기록 안내"><strong>여행의 기억을 다음 여행으로.</strong><p>준비할 것과 기억할 순간을 메모하고, 사진 코스와 후기로 나만의 경남 여행집을 채워 보세요.</p></section>
+    <section className="travel-book-privacy" aria-label="여행 기록 안내"><strong>여행의 기억을 다음 여행으로.</strong><p>원하는 여행의 ‘계정에 저장’을 누르면 다른 기기에서도 이어갈 수 있어요. <Link href="/my-trips">계정 여행 보기 →</Link></p></section>
     <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
     {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>여행집을 펼치는 중이에요.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setAnnouncement(`${book.title} 여행을 여행집에서 삭제했습니다.`); }} onRestore={restore} />)}</section> : <section className="travel-book-empty">
       <span aria-hidden="true">＋</span><p>아직 펼쳐볼 여행이 없어요.</p><h2>먼저 나에게 맞는 여행을 설계해 볼까요?</h2><small>일정에서 ‘여행집에 보관’을 누르면 이곳에 카드가 생깁니다.</small><Link href="/planner">첫 여행 계획하기 <span aria-hidden="true">→</span></Link>

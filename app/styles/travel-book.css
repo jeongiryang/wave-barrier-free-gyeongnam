@@ -25,7 +25,7 @@
 .travel-book-card-body > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
 .travel-book-card-body > header span { color: var(--blue); font-size: .66rem; font-weight: 900; letter-spacing: .05em; }.travel-book-card-body h2 { margin: 5px 0 7px; font-size: clamp(1.65rem,3vw,2.5rem); letter-spacing: -.055em; }.travel-book-card-body > header p { margin: 0; color: var(--muted); font-size: .72rem; }
 .travel-book-status { padding: 4px; display: flex; flex: 0 0 auto; gap: 3px; border-radius: 13px; background: #edf4f7; }
-.travel-book-status button { min-height: 44px; padding: 9px 12px; border: 0; border-radius: 10px; color: #607a85; background: transparent; font: inherit; font-size: .68rem; font-weight: 850; cursor: pointer; }
+.travel-book-status button { min-height: 44px; padding: 9px 12px; border: 0; border-radius: 10px; color: #506a75; background: transparent; font: inherit; font-size: .68rem; font-weight: 850; cursor: pointer; }
 .travel-book-status button[aria-pressed="true"] { color: #fff; background: #07658a; box-shadow: 0 6px 15px rgb(5 79 109 / 18%); }
 .travel-book-card-status { min-height: 1.2em; margin: 8px 0 0; color: var(--blue); font-size: .64rem; font-weight: 800; text-align: right; }
 .travel-book-profiles { margin: 18px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }.travel-book-profiles li { padding: 7px 9px; border: 1px solid #b9d9e5; border-radius: 999px; color: #335d70; background: #f1f9fc; font-size: .62rem; font-weight: 800; }
