@@ -4,6 +4,9 @@ export type KakaoMap = {
   setBounds(bounds: unknown, paddingTop?: number, paddingRight?: number, paddingBottom?: number, paddingLeft?: number): void;
   setCenter(position: unknown): void;
   getCenter(): KakaoLatLng;
+  getLevel(): number;
+  getBounds(): { getSouthWest(): KakaoLatLng; getNorthEast(): KakaoLatLng };
+  setMaxLevel(level: number): void;
   panTo(position: unknown): void;
   setLevel(level: number): void;
   setMapTypeId(type: unknown): void;

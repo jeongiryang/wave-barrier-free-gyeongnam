@@ -23,7 +23,9 @@ async function withKakaoStub(page: Page) {
       },
       LatLngBounds: class { extend() { return undefined; } },
       Map: class {
-        setBounds = noop; setCenter = noop; panTo = noop; setLevel = noop;
+        setBounds = noop; setCenter = noop; panTo = noop; setLevel = noop; setMaxLevel = noop;
+        getLevel() { return 9; }
+        getBounds() { return { getSouthWest: () => ({ getLat: () => 35.1, getLng: () => 128.5 }), getNorthEast: () => ({ getLat: () => 35.4, getLng: () => 128.9 }) }; }
         setMapTypeId = noop; addOverlayMapTypeId = noop; removeOverlayMapTypeId = noop;
         relayout = noop;
         getCenter() { return { getLat: () => 35.23, getLng: () => 128.68 }; }

@@ -1,5 +1,6 @@
 import { pickedDestination, type MapRendererContext } from "./map-renderer-context";
 import { escapeMapHtml, mapFitPadding, safeMapImageUrl } from "./map-utils";
+import { GYEONGNAM_MAP_BOUNDS } from "../../lib/gyeongnam-map-viewport.js";
 
 export async function renderLeafletMap(
   context: MapRendererContext,
@@ -28,7 +29,15 @@ export async function renderLeafletMap(
     // must not become a focusable wrapper around those interactive descendants.
     keyboard: false,
     attributionControl: true,
+    minZoom: 9,
+    maxBounds: [[GYEONGNAM_MAP_BOUNDS.south, GYEONGNAM_MAP_BOUNDS.west], [GYEONGNAM_MAP_BOUNDS.north, GYEONGNAM_MAP_BOUNDS.east]],
+    maxBoundsViscosity: 1,
+    bounceAtZoomLimits: false,
   });
+  const travelBounds = L.latLngBounds([GYEONGNAM_MAP_BOUNDS.south, GYEONGNAM_MAP_BOUNDS.west], [GYEONGNAM_MAP_BOUNDS.north, GYEONGNAM_MAP_BOUNDS.east]);
+  const constrainZoom = () => map.setMinZoom(Math.max(9, map.getBoundsZoom(travelBounds, true)));
+  map.on("resize", constrainZoom);
+  constrainZoom();
   mapRef.current = map;
   map.on("click", (event) => {
     if (roadviewSelectModeRef.current) {

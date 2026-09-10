@@ -32,7 +32,9 @@ export async function openNearby(page: Page, english = false, theme = "light", p
       Map: class {
         base = 1; layers: number[] = [];
         constructor() { layerState.maps.push(this); }
-        setBounds = noop; setCenter = noop; panTo = noop; setLevel = noop; relayout = noop;
+        setBounds = noop; setCenter = noop; panTo = noop; setLevel = noop; relayout = noop; setMaxLevel = noop;
+        getLevel() { return 9; }
+        getBounds() { return { getSouthWest: () => new LatLng(35.1, 128.5), getNorthEast: () => new LatLng(35.4, 128.9) }; }
         getCenter() { return new LatLng(35.23, 128.68); }
         setMapTypeId(id: number) { if (layerState.failBase) throw Error("controlled map-type failure"); this.base = id; }
         addOverlayMapTypeId(id: number) { if (layerState.failLayer) throw Error("controlled overlay failure"); this.layers = [...new Set([...this.layers, id])]; }
