@@ -15,7 +15,10 @@ const SPECIFIER = /(?:^|\s)(?:import|export)[\s\S]{0,200}?from\s*["']([^"']+)["'
 
 // Owner #353 retains these removed presentation scenes as source history;
 // itinerary/map introductions are deferred to #386, not loaded into Landing.
+// The 2026-09-10 Owner 8+10 decision also retires the old facilities/demo presentation.
 const PRESERVED_LANDING_SCENES = [
+  "features/landing/components/LandingManifesto.tsx",
+  "features/landing/components/LandingPossibilityScene.tsx",
   "features/landing/components/LandingBoundaryMap.tsx",
   "features/landing/components/LandingExpansionScene.tsx",
   "features/landing/components/LandingJourneyScene.tsx",

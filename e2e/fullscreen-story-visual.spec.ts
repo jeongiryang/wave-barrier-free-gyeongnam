@@ -30,25 +30,28 @@ test("the full-screen arrival leads through the complete Korean service story", 
     await expect(rail).toHaveCount(7);
     for (const link of await rail.all()) await expect(link).toBeVisible();
     await page.screenshot({path:test.info().outputPath("02c-progress-always-visible.png")});
-    await page.locator(".landing-actions a").focus();
+    await page.locator(".landing-actions a[href='/planner']").focus();
   }
-  for (const [index, selector] of [".region-story", ".manifesto", ".destination-editorial", ".departure-scene", ".community-chapter", ".landing-cta"].entries()) {
+  for (const [index, selector] of [".region-story", ".horizon-how", ".horizon-account", ".horizon-departure", ".horizon-community", ".landing-cta"].entries()) {
     const section = page.locator(selector);
-    await section.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
-    await expect.poll(() => section.locator(selector === ".region-story" ? ".selected-region strong" : "h2").first().evaluate(node => {
+    const heading = section.locator(selector === ".region-story" ? ".selected-region strong" : "h2").first();
+    // The chapter section now spans three native scroll scenes. Bring its
+    // heading into view before asserting the heading's entrance animation.
+    await heading.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
+    await expect.poll(() => heading.evaluate(node => {
       const reveal = node.closest("[data-land-reveal]") || node;
       return Number(getComputedStyle(reveal).opacity);
     })).toBe(1);
-    if(selector === ".manifesto") await expect(page.locator(".needs-demo")).toHaveAttribute("data-step","3");
-    if(selector === ".community-chapter") await expect(page.locator(".community-demo")).toHaveAttribute("data-step","3");
+    if(selector === ".horizon-how") await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+    if(selector === ".horizon-community") await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
     await page.screenshot({ path: test.info().outputPath(`${index + 3}-scene.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   // Owner deferred the presentation to #386; Planner date/map functionality is untouched.
   await expect(page.locator(".journey-dated-scene,.story-expansion")).toHaveCount(0);
   await expect(page.locator("main > section")).toHaveCount(7);
-  await expect(page.locator(".needs-demo [data-selected=true]")).toHaveCount(2);
-  await expect(page.locator(".demo-post-preview")).toHaveAttribute("data-shown", "true");
+  await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+  await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
   // One complete static page documents the whole composition, separately from normal-motion scenes.
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator(".region-showcase-stage")).toHaveCSS("--cinema-progress", "1");

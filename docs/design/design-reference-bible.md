@@ -4,7 +4,18 @@ Canonical design entry · Owner #385 / implementation #353 · 2026-09-09 KST.
 Read this before any design change, together with [design tokens](../design-system.md).
 This is a design contract, not a claim that the current candidate is released or Owner-approved.
 
-## Latest Owner amendment — pass 6, 2026-09-09
+## Latest Owner amendment — 8 + 10 integration, 2026-09-11
+
+Owner approved implementation of the 공모전S2 2026-09-10 23:09–23:36 decisions and the [design studio](https://wave-design-studio-iryang.jeongiryang03.chatgpt.site/). This supersedes the presentation choices in pass 6 below. The complete decision provenance and function-preservation map are in [the integration record](eight-ten-integration-20260911.md).
+
+- 8's full-width Hero and three scrolling preparation chapters, with 10's editorial type, pale surfaces and spacing. Remove the left preparation demo card; keep chapter numbers and real product functions.
+- Hero → all 18 regional albums → three preparation chapters → account/Kakao/companions on the retained sea scene → 10's predeparture checklist → two-photo community invitation → `다음 풍경에서 만나요.`. No duplicate attraction cards or fictitious community posts.
+- All existing regional photographs, authors, links, stop/resume and keyboard behavior remain. Three photographs from the approved studio carry their individual Commons authors, CC BY-SA licenses and derivative disclosures in `/policies#horizon-photo-credits`.
+- Native scrolling changes backgrounds; text stays in the document. Reduced motion removes crossfade. Intro and bounded Hero sequence, focus-safe navigation and primary Planner links remain.
+- Product pages follow in a separate unit: 10's layout + 8's four-step progress + the working date calendar, preserving all deployed functions. Login redesign is deferred.
+- Implementation status: local candidate; the PR and Production evidence determine release status.
+
+## Historical Owner amendment — pass 6, 2026-09-09
 
 This supersedes earlier Hero/demo pause/replay controls and hover-expanded chapter navigation in this document. The continuously rotating regional photographs retain their own accessible stop/resume control; previous decisions remain historical evidence.
 

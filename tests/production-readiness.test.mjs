@@ -346,7 +346,7 @@ test("landing regional showcase is photo-led, while the verified boundary source
   assert.match(css, /prefers-reduced-motion: reduce/);
 });
 
-test("preserved feature previews retain their order and motion safety; current community example never writes", async () => {
+test("preserved feature previews retain their order and motion safety; current community invitation never writes", async () => {
   const [stories, storyCss, featureMotionCss, accountCss] = await Promise.all([
     Promise.all([
       source("features/landing/components/LandingDiscoveryStories.tsx"),
@@ -370,9 +370,9 @@ test("preserved feature previews retain their order and motion safety; current c
     assert.match(stories, new RegExp(`className="[^"]*${hook}`));
   }
   const community = await source("features/community/components/LandingCommunityStory.tsx");
-  assert.match(community, /className="[^"]*community-editor-preview/);
-  assert.match(community, /className="[^"]*community-entry-fields/);
-  assert.match(community, /useStoryPlayback\(4, 1400\)/);
+  assert.match(community, /className="horizon-community-photos"/);
+  assert.match(community, /href="\/community"/);
+  assert.match(community, /<EditorialPhoto photo=\{horizonPhotos\.garden\}/);
   assert.doesNotMatch(community, /작성 예시|실제 게시된 글이 아닙니다/);
   assert.doesNotMatch(community, /fetch\(|localStorage|sessionStorage|createCommunityPost|<form\b|<input\b|<textarea\b/);
   assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);

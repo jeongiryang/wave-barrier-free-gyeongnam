@@ -15,7 +15,7 @@ for (const locale of ["ko", "en"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/"); await storyReady(page);
     await expect(page.locator(".landing-page")).toHaveAttribute("lang", locale);
-    await expect(page.locator(".landing-hero .story-media img")).toHaveAttribute("alt", "");
+    await expect(page.locator(".landing-hero .story-media img")).toHaveAttribute("alt", /통영|한려/);
     await expect(page.locator(".landing-hero .story-media video, .landing-hero .story-media > figcaption button")).toHaveCount(0);
     for (const width of [320, 390, 768, 1366]) {
       await page.setViewportSize({ width, height: 844 });
@@ -24,18 +24,17 @@ for (const locale of ["ko", "en"] as const) {
         await expect(page.locator(`#${id}`)).toBeVisible();
         expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       }
-      const cta = page.locator(".landing-actions a");
+      const cta = page.locator(".landing-actions a[href='/planner']");
       await expect(cta).toHaveAccessibleName(locale === "en" ? "Plan my trip" : "여행 계획하기");
       await expect(cta).toHaveAttribute("href", "/planner");
       await expectUsableTarget(cta);
       expect((await new AxeBuilder({ page }).include(".landing-hero").include("#recommendation").analyze()).violations).toEqual([]);
       await page.locator(".landing-hero").screenshot({ path: test.info().outputPath(`story-${locale}-${width}.png`) });
     }
-    const evidence = page.locator('[data-place-evidence="2758443"]');
-    await expect(evidence).toContainText(locale === "en" ? "Unconfirmed" : "미확인");
-    await expect(page.locator('.destination-panorama figcaption a')).toHaveAttribute("href", /^https:/);
+    await expect(page.locator('.horizon-chapter-copy').nth(1)).toContainText(locale === "en" ? "still need checking" : "아직 확인되지 않은 정보");
+    await expect(page.locator('.horizon-account-photo figcaption a').first()).toHaveAttribute("href", /^https:/);
     expect(videos).toEqual([]);
-    await page.locator(".landing-actions a").click(); await expect(page).toHaveURL(/\/planner$/);
+    await page.locator(".landing-actions a[href='/planner']").click(); await expect(page).toHaveURL(/\/planner$/);
     await page.goto("/policies#content-credits");
     await expect(page.locator("#content-credits")).toContainText("한국관광공사");
     expect(errors).toEqual([]);
@@ -45,13 +44,13 @@ for (const locale of ["ko", "en"] as const) {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
-    await page.route("**/media/wave-story/*.webp", route => route.abort());
+    await page.route("**/media/horizon/*.jpg", route => route.abort());
     await page.goto("/"); await storyReady(page);
     await expect(page.locator(".landing-hero .story-media img")).toHaveCount(0);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     for (const width of [320, 390, 768, 1366]) {
       await page.setViewportSize({ width, height: 844 });
-      await expectUsableTarget(page.locator(".landing-actions a"));
+      await expectUsableTarget(page.locator(".landing-actions a[href='/planner']"));
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     }
     expect(await page.locator("main > section").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
@@ -67,12 +66,9 @@ test("data saving prevents video and speculative photos, preserving complete dem
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 844 });
     await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-still", "true");
-    for (const demo of [".needs-demo", ".community-demo"]) {
-      await page.locator(demo).scrollIntoViewIfNeeded();
-      await expect(page.locator(demo)).toHaveAttribute("data-step", "3");
-      await expect(page.locator(demo)).toHaveAttribute("data-running", "false");
-    }
-    await expectUsableTarget(page.locator(".landing-actions a"));
+    await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+    await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
+    await expectUsableTarget(page.locator(".landing-actions a[href='/planner']"));
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: test.info().outputPath(`save-data-${width}.png`) });
   }
@@ -88,7 +84,7 @@ for (const connectionMode of ["available", "unsupported"] as const) {
     await page.clock.install(); await page.goto("/"); await storyReady(page);
     const copy = page.locator(".hero-copy-sequence");
     await expect(copy).toHaveAttribute("data-running", "true");
-    const cta = page.locator(".landing-actions a"); await cta.focus();
+    const cta = page.locator(".landing-actions a[href='/planner']"); await cta.focus();
     await page.clock.fastForward(6500); await expect(copy).toHaveAttribute("data-phrase", "1");
     if (connectionMode === "available") {
       await page.evaluate(() => {
@@ -117,12 +113,12 @@ for (const locale of ["ko", "en"] as const) for (const preference of ["system", 
     }, { locale, preference });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.clock.install(); await page.goto("/"); await storyReady(page);
-    const cta = page.locator(".landing-actions a"); await expectUsableTarget(cta);
+    const cta = page.locator(".landing-actions a[href='/planner']"); await expectUsableTarget(cta);
     await page.clock.fastForward(60000);
     await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-phrase", "0");
     await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-running", "false");
-    await expect(page.locator(".needs-demo")).toHaveAttribute("data-step", "3");
-    await expect(page.locator(".community-demo")).toHaveAttribute("data-step", "3");
+    await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+    await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
     await expect(cta).toBeFocused(); expect(videos).toEqual([]);
   });
 }

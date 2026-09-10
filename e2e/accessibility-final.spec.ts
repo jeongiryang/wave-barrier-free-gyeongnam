@@ -77,7 +77,7 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
   // Measure the displayed, interactive page while retaining every target and size check.
   await expect(page.locator(".landing-header .brand")).toBeVisible();
   await expect(page.locator(".landing-header .help-button")).toBeEnabled();
-  const targets = page.locator(".landing-header .brand, .landing-header nav a, .landing-header .landing-start, .landing-actions a");
+  const targets = page.locator(".landing-header .brand, .landing-header nav a, .landing-header .landing-start, .landing-actions a[href='/planner']");
   const sizes = await targets.evaluateAll((nodes) => nodes.map((node) => {
     const rect = node.getBoundingClientRect();
     return { name: node.textContent?.trim() || node.getAttribute("aria-label") || "조작", width: rect.width, height: rect.height };
@@ -110,7 +110,7 @@ for (const width of [320, 390]) {
     const skip = page.getByRole("link", { name: "소개 바로가기", exact: true });
     await expect(home).toBeVisible();
     await expect(skip).toBeVisible();
-    await expect(home.locator(".brand-mark")).toHaveCSS("width", "32px");
+    await expect(home.locator(".brand-mark")).toHaveCSS("width", "26px");
     await page.keyboard.press("Tab");
     await expect(skip).toBeFocused();
     await page.keyboard.press("Tab");

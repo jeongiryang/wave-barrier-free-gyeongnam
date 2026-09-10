@@ -33,6 +33,6 @@ export async function expectUsableTarget(target: Locator) {
 
 export const chapterIds = ["top", "regions", "story", "recommendation", "departure", "community", "closing"];
 export const chapterNames = {
-  ko: ["처음", "경남", "필요한 편의", "여행지", "출발 전", "여행 이야기", "여행 계획"],
-  en: ["Welcome", "Gyeongnam", "Facilities", "Places", "Before leaving", "Community", "Plan a trip"],
+  ko: ["처음", "경남", "여행 준비", "함께 여행", "출발 전", "여행 이야기", "여행 계획"],
+  en: ["Welcome", "Gyeongnam", "How it works", "Together", "Before leaving", "Community", "Plan a trip"],
 };

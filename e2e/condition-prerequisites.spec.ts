@@ -15,7 +15,7 @@ for (const locale of ["ko", "en"] as const) {
     await page.goto("/");
     await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
     const copy = page.locator(".landing-hero-copy");
-    const planning = page.locator(".landing-actions a");
+    const planning = page.locator(".landing-actions a[href='/planner']");
     await expect(copy).toHaveCSS("opacity", "1");
     await page.locator(".region-showcase-stage").scrollIntoViewIfNeeded();
     // Keep the primary message painted even outside the viewport: returning
@@ -80,8 +80,8 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator(".landing-hero-copy")).toHaveCSS("opacity", "1");
     await expect(summary).toHaveAccessibleName(en ? "Introduction sections" : "서비스 소개 페이지 탐색");
     await expect(summary.locator("#story-progress-list a > span")).toHaveText(en
-      ? ["Welcome", "Gyeongnam", "Facilities", "Places", "Before leaving", "Community", "Plan a trip"]
-      : ["처음", "경남", "필요한 편의", "여행지", "출발 전", "여행 이야기", "여행 계획"]);
+      ? ["Welcome", "Gyeongnam", "How it works", "Together", "Before leaving", "Community", "Plan a trip"]
+      : ["처음", "경남", "여행 준비", "함께 여행", "출발 전", "여행 이야기", "여행 계획"]);
     if (en) await expect(summary).not.toContainText(/[가-힣]/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);

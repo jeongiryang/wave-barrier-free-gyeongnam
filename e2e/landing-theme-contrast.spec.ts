@@ -41,10 +41,10 @@ async function samples(page: Page, selector: string) {
 }
 
 const CASES = [
-  ".demo-topline strong", ".demo-profile strong", ".demo-profile small",
-  ".demo-selection b", ".demo-selection span", ".destination-copy h2",
-  ".destination-copy > p:not(.section-kicker)", ".destination-evidence dt", ".destination-evidence dd",
-  ".community-editor-preview .demo-input small", ".demo-post-preview h4", ".demo-post-preview p",
+  ".horizon-section-heading h2", ".horizon-section-heading > p",
+  ".horizon-chapter-copy h3", ".horizon-chapter-copy p", ".horizon-chapter-copy li",
+  ".horizon-account h2", ".horizon-account-copy p", ".horizon-account-benefits li",
+  ".horizon-community h2", ".horizon-community-copy p", ".horizon-community-copy a",
 ];
 
 for (const theme of ["dark", "light"] as const) {
@@ -59,11 +59,6 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
     for (const selector of CASES) {
-      if (selector === ".demo-profile small" && page.viewportSize()!.width <= 420) {
-        await expect(page.locator(selector)).toHaveCount(6);
-        for (const item of await page.locator(selector).all()) await expect(item).toBeHidden();
-        continue;
-      }
       await page.locator(selector).first().scrollIntoViewIfNeeded();
       const measured = await samples(page, selector);
       expect(measured, `${selector}을 찾지 못했다`).not.toEqual([]);
