@@ -19,6 +19,7 @@ async function plannerProductSource() {
     "features/planner/components/PlannerAccessibilityProfiles.tsx",
     "features/planner/components/RecommendationWorkspace.tsx",
     "features/planner/components/RecommendationCarousel.tsx",
+    "features/planner/components/PlaceFacilitySummary.tsx",
     "features/planner/components/PlannerItineraryWorkspace.tsx",
     "features/planner/components/TripDayPlanner.tsx",
     "features/planner/components/DepartureReadinessCard.tsx",
@@ -493,7 +494,8 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.doesNotMatch(planner, /enrichmentRequestRef|\bsetKeyHealth\(|\bsetWeather\(/);
   assert.doesNotMatch(planner, /setPlanError\(|planRequestRef/);
   assert.doesNotMatch(planner, /plannerJson|setShareState\(|setFeedbackState\(/);
-  assert.match(planController, /plannerJson<PlanData>/);
+  assert.match(planController, /plannerJson<unknown>/);
+  assert.match(planController, /const data = planResponse\(response\);[\s\S]+setPlan\(data\)/);
   assert.match(planController, /const abortPlan = useCallback/);
   assert.match(participation, /plannerJson<\{ url\?: string \}>\("\/api\/trips"/);
   assert.match(participation, /plannerJson<\{ ok\?: boolean \}>\("\/api\/feedback"/);

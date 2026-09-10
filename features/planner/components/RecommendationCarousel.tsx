@@ -2,11 +2,11 @@
 
 import { lazy, Suspense, useId, useRef } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
-import SmartSpotImage from "../../tourism/components/SmartSpotImage";
+import PlaceFacilitySummary from "./PlaceFacilitySummary";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place } from "../types";
-import { facilityName, originalLanguage } from "../place-copy";
+import { originalLanguage } from "../place-copy";
 import { planNotices, planFailureHeadings } from "../condition-copy";
 
 function InformationUnavailable({ en }: { en: boolean }) {
@@ -16,31 +16,26 @@ const ProviderFailureNotice = lazy(() => import("./ProviderFailureNotice").catch
 
 const ExplorationPlaces = lazy(() => import("./ExplorationPlaces").catch(() => ({ default: InformationUnavailable })));
 
+function PhotoUnavailable() {
+  const { locale } = useSitePreferences();
+  return <div className="smart-spot-image place-visual failed"><span className="smart-image-fallback" role="status"><small>{locale === "en" ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"}</small></span></div>;
+}
+const SmartSpotImage = lazy(() => import("../../tourism/components/SmartSpotImage").catch(() => ({ default: PhotoUnavailable })));
+
 function PlaceChoiceCard({ place, region, index, saved, current, en, onToggle, onDetails }: {
   place: Place; region: string; index: number; saved: boolean; current: boolean; en: boolean;
   onToggle: () => void; onDetails: () => void;
 }) {
   const id = useId();
-  const items = place.accessibility ?? [];
-  const confirmed = items.filter(item => item.state === "confirmed");
-  const unknown = items.length ? items.filter(item => item.state === "unknown").length : place.unknownFields;
-  const negative = items.length ? items.filter(item => item.state === "negative").length : place.negativeFields;
   const say = (ko: string, english: string) => en ? english : ko;
   const action = saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary");
   return <article className="place-card" data-result-current={current} aria-labelledby={`${id}-title`}>
-    <SmartSpotImage src={place.image} title={place.name} region={place.city || region} tag={say("관광지", "Place")} rank={index + 1} contentId={place.id} className="place-visual" showMeta={false} />
+    <Suspense fallback={<div className="smart-spot-image place-visual loading" aria-hidden="true" />}><SmartSpotImage src={place.image} title={place.name} region={place.city || region} tag={say("관광지", "Place")} rank={index + 1} contentId={place.id} className="place-visual" showMeta={false} /></Suspense>
     <div className="place-content">
       <p className="place-region" lang={originalLanguage(place.city || region)}>{place.city || region}</p>
       <h3 id={`${id}-title`} lang={originalLanguage(place.name)}>{place.name}</h3>
       <p className="place-address" lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
-      <div className="place-facilities">
-        <strong>{confirmed.length ? say("확인된 편의", "Reported facilities") : say("편의정보 확인이 필요해요", "Check the facility information")}</strong>
-        {confirmed.length > 0 ? <ul>{confirmed.slice(0, 3).map(item => <li key={item.key}><span aria-hidden="true">✓</span> <span lang={originalLanguage(facilityName(item.key, item.label, en))}>{facilityName(item.key, item.label, en)}</span></li>)}</ul> : <p>{say("항목별로 확인된 편의가 없습니다. 이용 정보를 살펴보세요.", "No facilities are confirmed at item level. Review the visitor information.")}</p>}
-      </div>
-      {(Boolean(unknown) || Boolean(negative)) && <p className="facility-caution">
-        {Boolean(unknown) && <span>{say("미확인", "Not reported")} {unknown}{say("개", "")}</span>}
-        {Boolean(negative) && <span>{say("조건 불일치", "Reported unavailable")} {negative}{say("개", "")}</span>}
-      </p>}
+      <PlaceFacilitySummary place={place} en={en} />
       <div className="place-actions">
         <button type="button" className={`primary${saved ? " saved" : ""}`} disabled={!saved && !current} onClick={onToggle} aria-pressed={saved} aria-labelledby={`${id}-title ${id}-action`}>
           <span id={`${id}-action`} className="sr-only">{action}</span><span aria-hidden="true">{action}</span><span aria-hidden="true">{saved ? "✓" : "+"}</span>

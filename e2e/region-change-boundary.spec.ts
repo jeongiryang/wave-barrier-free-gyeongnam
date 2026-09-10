@@ -48,7 +48,11 @@ test("explicit multi-region addition preserves places and dates; rapid requests 
     const url = new URL(route.request().url());
     if (url.searchParams.get("action") !== "plan" || url.searchParams.get("region") !== "하동") return route.fallback();
     const places = plan.places.map((place, index) => ({ ...place, id: `hadong-${index}`, city: "하동", name: `하동 검증 장소 ${index + 1}`, mapX: "127.75", mapY: "35.06" }));
-    return route.fulfill({ json: { ...plan, places, stops: places } });
+    const stops: import("../features/planner/types").RouteStop[] = places.map(place => ({
+      id: place.id, contentTypeId: place.contentTypeId, title: place.name,
+      note: place.summary, source: place.source, mapX: place.mapX, mapY: place.mapY,
+    }));
+    return route.fulfill({ json: { ...plan, places, stops } });
   });
   await page.goto("/planner?travelStart=2026-10-07&travelEnd=2026-10-08");
   await chooseTripConditions(page);
