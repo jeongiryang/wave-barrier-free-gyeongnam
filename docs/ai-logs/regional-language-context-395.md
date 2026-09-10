@@ -1,0 +1,19 @@
+# Make regional tourism information readable and understandable — #395
+
+The Owner authorized active design and functional improvements, reference use, tested merges and Production verification. Codex reproduced and corrected this view's language and contrast problems; no new provider call or public write was needed for local verification.
+
+## Current problem and design
+
+On actual main #431, the selected-language tab gave no explanation of its relationship to saved itinerary places and retained Korean controls under English preferences. Inspection of enrichment-sources/model and usePlannerEnrichment confirms it is the selected region's language-specific tourism catalogue, queried separately from itinerary places; it does not verify on-site interpretation or guides. The view now explains that scope in Korean and English and localizes all ten category labels, empty/retry states and route actions. Source titles, addresses and descriptions remain original records. Region display names reuse the existing shared map; request identity and parameters are unchanged.
+
+Actual 960px light rendering measured nonselected tab-title contrast 1.45:1 and descriptions 2.73:1; 1440px dark selected-title contrast was 1.39:1 and the route action 1.05:1. Existing semantic surface/text tokens now style these states, with the existing Deep Ocean dark ink on mint selected surfaces. Ten desktop tabs form two wider rows instead of eight narrow columns and a sparse last row. Tablet and mobile layout contracts remain. The regional-card fallback also inherited obsolete nested-span decoration; removing those rules and redundant image metadata avoids illegible duplicate pills and the 320px metadata overlap. Actual title, fallback explanation and source remain visible.
+
+## References applied
+
+[Radix Tabs](https://www.radix-ui.com/primitives/docs/components/tabs) was read directly: clearly separated triggers and active panels inform the stronger selected surface and field grouping. [WAI Tabs](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/) informs preservation of the existing roving focus, arrow/Home/End behavior and panel relationships. The repository's Deep Ocean design tokens and Bible remain the visual contract. Existing React/native tab behavior already implements these interactions; no library install, copied asset or lockfile change was required.
+
+## Verification and limits
+
+Before the final decorative-metadata removal, local lint/typecheck, all 762 unit/contract tests, Vercel build and performance budgets passed (Planner 269.34/270 KiB, CSS 69.87/70 KiB), along with 48 existing search-result-focus and keyboard-tab browsers in 1.6 minutes. The existing English nearby-action locator was translated with its visible button; assertions were not relaxed. Fixture renders at 320/390/960/1440px showed zero overflow, zero scoped axe violations, no page errors, unchanged saved ID1001 and no extra requests when switching tabs. Actual baseline960/1440 and candidate320/390/960/1440 renders were inspected; the final320 metadata overlap was found during this visual check and repaired afterward.
+
+Temporary helper setup corrections are not product fixes: reloading after changing the locale left no loaded plan for automatic enrichment; changing language through the UI preserved it. The header hides on downward scroll, so the helper focused its preferences summary before keyboard activation. Final metadata removal, actual main #434 integration, fresh checks and this change's hosted CI/CD/canonical Production remain required. This does not close the entire #395/#285 or assert full Release GO.

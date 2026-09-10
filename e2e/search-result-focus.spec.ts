@@ -74,7 +74,7 @@ for (const action of ["nearby", "alternative"] as const) test(`departure ${actio
   await expect(page).toHaveURL(/#departure-readiness$/);
   await page.locator("#layers > summary").click();
   const trigger = action === "nearby"
-    ? page.locator(".rich-card").getByRole("button", { name: "지도에서 경로 보기 ↗", exact: true })
+    ? page.locator(".rich-card").getByRole("button", { name: en ? "View route on the map ↗" : "지도에서 경로 보기 ↗", exact: true })
     : page.getByRole("button", { name: en ? "Compare replacing with 용지호수공원" : "용지호수공원(으)로 교체 검토", exact: true });
   await expect(trigger).toBeVisible();
   await trigger.focus();
