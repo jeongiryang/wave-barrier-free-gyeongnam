@@ -66,7 +66,7 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
   for (const job of [workflow.jobs["sandbox-boundary"], archivedWorkflow.jobs["sandbox-application"]]) {
     const runs = job.steps.map(step => step.run || "").join("\n");
     const bootstrap = job.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution").run;
-    const distribution = job === workflow.jobs["sandbox-boundary"] ? "64d514266350f83230bbef57e25e14cf20b5f152" : "b02726fd4407a8537c2ece3b5d2af80ddd3e3edf";
+    const distribution = job === workflow.jobs["sandbox-boundary"] ? "568f6b39760a09c1a3b9939047387276794b412f" : "b02726fd4407a8537c2ece3b5d2af80ddd3e3edf";
     assert.ok(bootstrap.includes(`${distribution}/scripts/subscription-ci-bootstrap.py`));
     if (job === workflow.jobs["sandbox-boundary"]) {
       const bytes = readFileSync(new URL("../scripts/subscription-ci-bootstrap.py", import.meta.url), "utf8").replaceAll("\r\n", "\n");
@@ -105,8 +105,8 @@ test("RC separates complete hosted product validation from frozen bounded sandbo
   // preparation, every boundary command, timeout and safety probe stays equal.
   const expectedBoundary = structuredClone(archivedWorkflow.jobs["sandbox-boundary"]);
   const bootstrap = expectedBoundary.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution");
-  bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "64d514266350f83230bbef57e25e14cf20b5f152")
-    .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "632ca2674b0dd46263d257936a4c0fe6051fff90210502e929c120d5c414ce63");
+  bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "568f6b39760a09c1a3b9939047387276794b412f")
+    .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "6fd043bece51e715044a448e307a8b973c77a9bce49c932ee9f783dc05f4e695");
   const actualBoundary = structuredClone(workflow.jobs["sandbox-boundary"]);
   const prepareApt = actualBoundary.steps.findIndex(step => step.name === "Exclude unused runner Chrome repository from APT");
   const verifyBootstrap = actualBoundary.steps.findIndex(step => step.name === "Reject tampered bootstrap before any checkout code executes");
