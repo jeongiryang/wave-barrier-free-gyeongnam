@@ -15,3 +15,6 @@ Normal integration of e2254c9. Fresh740 full unit/contract, lint13 existing warn
 
 ## Main #420 verification
 Normal integration of d21258c569b50afd6acafa58978e22734ae25dad. Fresh lint/typecheck, all750 unit/contract tests, Vercel build and unchanged performance budgets PASS (Planner269.67/270KiB, CSS69.90/70KiB). All40 weather/region-boundary/departure-route browser cases PASS1.7min. Later actual main and hosted CI will be verified before merging this bounded response-identity fix.
+
+## Response-integrity candidate integration
+Normal integration of #427 e78c011 includes actual main #424. Full754-test lint/typecheck/build/performance PASS (Planner269.10KiB/CSS69.90KiB). The first40-browser integration run passed38 and failed the same multi-region fixture on two devices: it supplied Place[] instead of RouteStop[]. After integrating the typed fixture correction, all40 weather/region-boundary/departure-route cases PASS1.8min with unchanged assertions/timeouts. No additional weather source was changed. Actual merged main, fresh required checks, own hosted CI and Production remain pending.
