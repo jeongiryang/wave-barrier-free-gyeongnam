@@ -10,6 +10,13 @@ export class PlannerRequestError extends Error {
   }
 }
 
+export function planFailureKind(error: unknown, online: boolean): "offline" | "timeout" | "server" | "error" {
+  if (!online) return "offline";
+  if (error instanceof Error && error.name === "TimeoutError") return "timeout";
+  if (error instanceof PlannerRequestError && error.status >= 500) return "server";
+  return "error";
+}
+
 type JsonRequest = Omit<RequestInit, "body"> & { body?: unknown; timeoutMs?: number };
 
 export async function plannerJson<T>(url: string, options: JsonRequest = {}): Promise<T> {

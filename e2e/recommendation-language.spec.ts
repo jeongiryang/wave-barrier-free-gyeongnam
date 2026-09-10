@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
+import type { Place, PlanData } from "../features/planner/types";
 
 const place = {
   id: "evidence-place", contentTypeId: "14", city: "창원", name: "검증용 관광지", address: "경상남도 창원시",
@@ -11,14 +12,14 @@ const place = {
     { key: "elevator", label: "엘리베이터", state: "negative", detail: "승강기 없음" },
     { key: "restroom", label: "화장실", state: "unknown", detail: "" },
   ], features: ["접근로"], details: [], source: "무장애 여행정보 · 국문 관광정보",
-};
+} satisfies Place;
 
 async function prepare(page: Page, locale: "ko" | "en" = "en") {
   await mockPlannerApi(page, { plannerView: "overview" });
   await page.addInitScript((value) => localStorage.setItem("wave-locale", value), locale);
   await page.route("**/api/wave?action=plan*", (route) => route.fulfill({ json: {
-    mode: "live", generatedAt: place.checkedAt, places: [place], stops: [], statuses: [],
-  } }));
+    mode: "live", generatedAt: place.checkedAt, baseYm: "202608", course: null, audio: null, places: [place], stops: [], statuses: [],
+  } satisfies PlanData }));
   await page.goto("/planner");
   if (locale === "ko") await chooseTripConditions(page);
   else {
