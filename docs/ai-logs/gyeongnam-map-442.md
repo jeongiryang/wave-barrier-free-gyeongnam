@@ -14,3 +14,6 @@
 - API 키·원본 관광 응답은 증거 파일과 로그에 저장하지 않았다.
 
 후속 진단: SDK가 거부된 이유는 4189 개발 주소의 미등록 Web 도메인(HTTP 401 domain mismatched)이었다. 운영 도메인을 출처로 한 SDK 응답은 HTTP 200 JavaScript다. 쿼터 부족으로 분류하지 않는다.
+
+## Hosted CI 후속
+첫 quality에서 4개 실패: 기존 지도 renderer harness가 새 viewport 모듈/SDK 메서드를 모르는 3개와 제품 화면에서 제거한 저장 설명을 찾는 1개. Harness가 실제 새 제한 함수를 실행하도록 연결하고 SDK adapter를 갱신했다. 데이터 저장 안내 검사는 유지된 개인정보 처리방침에서 확인하도록 이동했다. 제품 로직 변경 없음. 관련 지도/여행집 단위 21개 PASS.
