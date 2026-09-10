@@ -233,7 +233,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(href);
-    setExportNotice("좌표가 제거된 코스 JSON을 기기에 저장했습니다.");
+    setExportNotice("사진 코스를 파일로 저장했습니다.");
   }, [course, enrichments, names]);
 
   const share = useCallback(async () => {
@@ -246,7 +246,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
       setExportNotice(canShare ? "기기의 공유 화면을 열었습니다." : "좌표가 제거된 코스를 클립보드에 복사했습니다.");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
-      setExportNotice("공유하지 못했습니다. 기기 저장을 이용해 주세요.");
+      setExportNotice("공유하지 못했습니다. 사진 코스를 파일로 저장해 주세요.");
     }
   }, [course, enrichments, names]);
 

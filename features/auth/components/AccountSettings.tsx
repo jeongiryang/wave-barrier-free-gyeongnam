@@ -109,7 +109,7 @@ export default function AccountSettings() {
     </section>
     <section className="account-danger" aria-labelledby="delete-account-title">
       <h3 id="delete-account-title">계정 탈퇴</h3>
-      <p>인증 계정과 서버에 연결된 게시글·댓글·좋아요·신고를 삭제합니다. 이 기기에만 저장된 여행집과 환경설정은 남습니다.</p>
+      <p>인증 계정과 서버에 연결된 게시글·댓글·좋아요·신고를 삭제합니다. 보관한 여행집과 환경설정은 유지됩니다.</p>
       <HydratedAuthForm onSubmit={deleteAccount} noValidate>
         <div className="auth-field"><label htmlFor="delete-password">현재 비밀번호</label><input id="delete-password" name="deletePassword" type="password" autoComplete="current-password" minLength={8} maxLength={128} required /></div>
         <div className="auth-field"><label htmlFor="delete-confirmation">확인 문구</label><input id="delete-confirmation" name="deleteConfirmation" type="text" autoComplete="off" placeholder="계정 삭제" required /><small>되돌릴 수 없습니다. ‘계정 삭제’를 그대로 입력해 주세요.</small></div>

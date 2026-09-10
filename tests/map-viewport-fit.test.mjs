@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
+import { GYEONGNAM_MAP_BOUNDS, constrainedGyeongnamViewport } from '../lib/gyeongnam-map-viewport.js';
 const root = new URL('../', import.meta.url);
 function compile(name) {
   return ts.transpileModule(readFileSync(new URL(name, root), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -265,6 +266,12 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
     }
     setLevel() {
     }
+    getLevel() { return 9; }
+    setMaxLevel(level) { this.maxLevel = level; }
+    getCenter() { return new LatLng(35.2, 128.6); }
+    getBounds() { return { getSouthWest: () => new LatLng(35.1, 128.5), getNorthEast: () => new LatLng(35.4, 128.8) }; }
+    setMinZoom(zoom) { this.minZoom = zoom; }
+    getBoundsZoom() { return 9; }
     setView() {
     }
     on() {
@@ -313,6 +320,7 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
   });
   const leaflet = {
     map: () => new MapAdapter(), control: { zoom: layer }, tileLayer: layer,
+    latLngBounds: (...points) => points,
     divIcon: options => options, marker: layer, polyline: layer,
   };
   const document = {
@@ -329,6 +337,13 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
     },
   };
   const require = name => {
+    if (name === "../../lib/gyeongnam-map-viewport.js")
+      return { GYEONGNAM_MAP_BOUNDS, constrainedGyeongnamViewport };
+    if (name === "./kakao-map-viewport") {
+      const viewport = { exports: {} };
+      new Function("module", "exports", "require", compile("features/routing/kakao-map-viewport.ts"))(viewport, viewport.exports, require);
+      return viewport.exports;
+    }
     if (name === "./map-utils")
       return utils.exports;
     if (name === "./kakao-sdk")

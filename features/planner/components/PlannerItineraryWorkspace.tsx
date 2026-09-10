@@ -77,7 +77,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
     <div className="journey-subheading" data-reveal>
       <div><span aria-hidden="true">3</span><h2 id="itinerary-stage-title"><small>{c("내 일정", "My itinerary")}</small>{c("어떤 순서로 움직이면 편할까요?", "What order works for your trip?")}</h2></div>
-      <p>{c("추가한 장소의 날짜와 순서를 정하고 이동 경로를 확인하세요. 일정은 이 기기에 저장돼요.", "Arrange dates and order, then check the journeys between places. Your itinerary is saved on this device.")}</p>
+      <p>{c("추가한 장소의 날짜와 순서를 정하고 이동 경로를 확인하세요. 완성한 일정은 여행집에 보관할 수 있어요.", "Arrange dates and order, then check the journeys between places. Keep your completed itinerary in your travel book.")}</p>
     </div>
     {props.tripSelection.orderedSavedPlaces.length ? <Suspense fallback={<p role="status">{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</p>}><TripDayPlanner
       itineraryRouteMinutes={props.coverage.routeMinutes}

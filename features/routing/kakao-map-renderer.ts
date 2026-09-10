@@ -1,6 +1,7 @@
 import { loadKakaoSdk } from "./kakao-sdk";
 import { pickedDestination, type MapRendererContext } from "./map-renderer-context";
 import { mapFitPadding, safeMapImageUrl, summarizeMeasurements } from "./map-utils";
+import { restrictKakaoViewport } from "./kakao-map-viewport";
 
 export async function renderKakaoMap(
   key: string,
@@ -30,8 +31,9 @@ export async function renderKakaoMap(
   const K = window.kakao.maps;
   containerRef.current.replaceChildren();
   const center = new K.LatLng(origin.lat, origin.lng);
-  const map = new K.Map(containerRef.current, { center, level: 9 });
+  const map = new K.Map(containerRef.current, { center, level: 9, maxLevel: 11 });
   kakaoMapRef.current = map;
+  const constrainViewport = restrictKakaoViewport(map, K, isCancelled);
 
   K.event?.addListener(map, "click", (event) => {
     const point = { lat: event.latLng.getLat(), lng: event.latLng.getLng() };
@@ -131,6 +133,7 @@ export async function renderKakaoMap(
     const padding = mapFitPadding(canvas);
     if (canvas.clientWidth <= padding[1] + padding[3] || canvas.clientHeight <= padding[0] + padding[2]) return;
     map.setBounds(bounds, ...padding);
+    constrainViewport();
   };
   fitMapRef.current = places.length ? fit : null;
   if (places.length) fit();
@@ -139,6 +142,7 @@ export async function renderKakaoMap(
     map.setLevel(9);
   }
   setProvider("kakao");
+  constrainViewport();
   setProviderDetail("카카오 지도로 표시 중입니다.");
   return true;
 }

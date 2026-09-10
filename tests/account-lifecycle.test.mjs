@@ -48,7 +48,7 @@ test("계정 탈퇴는 본인 재확인과 일회용 정리 권한 뒤 모든 �
   assert.match(repository, /sql\.transaction\(\[/);
   assert.match(migration, /token_hash CHAR\(64\) PRIMARY KEY/);
   assert.match(migration, /user_id TEXT NOT NULL UNIQUE/);
-  assert.match(settings, /이 기기에만 저장된 여행집과 환경설정은 남습니다/);
+  assert.match(settings, /보관한 여행집과 환경설정은 유지됩니다/);
   assert.match(settings, /account\/delete-complete\?token=/);
   assert.match(completionPage, /referrer: "no-referrer"/);
   assert.match(completionClient, /useSearchParams/);

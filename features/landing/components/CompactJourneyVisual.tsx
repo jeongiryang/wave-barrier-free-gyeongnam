@@ -9,7 +9,7 @@ const labels: Record<Stage, [string, string]> = {
   schedule: ["장소를 날짜별로 나누고 방문 순서 정하기", "Assign places to dates and order each day's visits"],
   route: ["출발지와 모든 인접 이동 구간 확인", "Check the starting point and every adjacent journey"],
   adapt: ["비가 예상되면 같은 편의조건의 대안 비교", "If rain is expected, compare alternatives with the same facilities"],
-  save: ["이 기기에 여행을 보관하고 다시 이어가기", "Keep a trip on this device and continue later"],
+  save: ["여행집에 보관하고 다시 이어가기", "Keep a trip in your travel book and continue later"],
   community: ["장소의 질문과 현장 경험을 공식 정보와 구분", "Keep place questions and visitor experiences separate from official records"],
 };
 

@@ -1,5 +1,7 @@
 # W.A.V.E API·환경 변수 전수조사
 
+2026-09-10 현재 코드·실제 Neon 설정·공식 쿼터·유료 전환 판단은 [테스트·출시 API 위험 보고서](api-launch-risk-20260910.md)를 참고한다. 아래는 기존 실호출 검증 이력이다.
+
 2026-09-08 #365 후속 구현: [제공처 제한 운영 경계](provider-quota-operations.md)와
 [실제 호출 목록](../.wave/provider-budget.json)을 추가했다. 구조화 오류/인스턴스별
 cooldown, KO/EN 제한·부분 실패 안내, 지속되는 GitHub 운영 중단 기록과 자동화

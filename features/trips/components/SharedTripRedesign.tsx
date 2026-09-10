@@ -35,7 +35,7 @@ export default function SharedTripRedesign({ selections }: { selections: SharedT
     } catch { setError(true); }
   }
 
-  const notice = error && <p role="alert">변경 내용을 기기에 저장하지 못했어요. 현재 여행은 유지됩니다. 브라우저 저장을 허용한 뒤 다시 시도해 주세요.</p>;
+  const notice = error && <p role="alert">변경 내용을 저장하지 못했어요. 현재 여행은 유지됩니다. 저장 권한을 확인한 뒤 다시 시도해 주세요.</p>;
   return <>
     <button className="shared-redesign" type="button" onClick={() => start()}>이 조건으로 다시 설계하기 →</button>
     {!open && notice}

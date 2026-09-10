@@ -19,9 +19,9 @@ export default function PhotoCoursePage() {
       </nav>
     </header>
     <section className="photo-course-page-intro" id="photo-course-main">
-      <p>OPTIONAL · PHOTO COURSE</p>
+      <p>PHOTO COURSE</p>
       <h1>사진 속 여행을<br />다시 코스로 연결해요.</h1>
-      <span>메인 여행 설계와 분리된 선택 기능입니다. 원본 사진과 GPS는 서버로 보내지 않습니다.</span>
+      <span>다녀온 사진에서 여행의 순서를 찾고, 기억에 남는 장소를 다음 여행으로 이어 보세요.</span>
     </section>
     <PhotoCourseRestore onApply={({ region, travelStart, travelEnd }) => {
       const query = new URLSearchParams({ region, travelStart, travelEnd, from: "photo-course" });

@@ -108,17 +108,18 @@ test("같은 일정은 메모와 상태를 보존해 갱신하고 전체 여행 
 });
 
 test("여행집 UI는 로컬 저장·키보드·모바일·다크 테마 계약을 명시한다", async () => {
-  const [helper, hook, page, css, planner] = await Promise.all([
+  const [helper, hook, page, css, planner, privacy] = await Promise.all([
     source("lib/travel-book.js"),
     source("features/travel-book/useTravelBook.ts"),
     source("app/travel-book/page.tsx"),
     source("app/styles/travel-book.css"),
     source("features/planner/components/TripDayPlanner.tsx"),
+    source("app/privacy/page.tsx"),
   ]);
   assert.match(helper, /wave-travel-book-v1/);
   assert.match(hook, /wave-saved-places/);
   assert.match(hook, /wave-trip-schedule-v1/);
-  assert.match(page, /원본 사진, GPS 좌표, 정확한 출발지/);
+  assert.match(privacy, /여행집은 브라우저 저장소에만 둡니다/);
   assert.match(page, /aria-pressed/);
   assert.match(page, /role="group"/);
   assert.match(page, /maxLength=\{1200\}/);
