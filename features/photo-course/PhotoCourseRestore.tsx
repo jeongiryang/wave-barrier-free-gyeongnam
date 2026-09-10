@@ -29,7 +29,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         <h2 id={headingId}>다녀온 사진을 고르면 날짜별 코스를 다시 만듭니다</h2>
         <p className="photo-course-lead">
           사진의 촬영 순서를 따라 여행을 되살려 보세요.
-          장소를 직접 확인한 뒤에만 선택한 지역·장소명을 한국관광공사 관광정보 조회에 사용해 공식 정보와 공공누리 사진을 찾습니다.
+          장소를 확인하고 공식 관광정보와 사진으로 코스를 채워 보세요.
         </p>
       </header>
 

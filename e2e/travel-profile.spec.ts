@@ -11,7 +11,7 @@ test("편의 조건은 저장 뒤에도 자동 적용하지 않고 사용자가 
   const profile = page.locator(".travel-profile-card");
   await profile.locator("summary").click();
   await profile.getByRole("button", { name: "이 조건 저장" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "이 기기에 저장" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "편의 조건을 저장했습니다" })).toBeVisible();
 
   await page.reload();
   await expect(profileChoices.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "false");
@@ -49,6 +49,6 @@ test("손상되거나 차단된 프로필 저장소는 현재 선택을 잃지 �
   const profile = page.locator(".travel-profile-card");
   await profile.locator("summary").click();
   await profile.getByRole("button", { name: "이 조건 저장" }).click();
-  await expect(page.getByText(/이 브라우저에서는 편의 조건을 저장할 수 없습니다/)).toBeVisible();
+  await expect(page.getByText(/편의 조건을 저장하지 못했어요/)).toBeVisible();
   await expect(page.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "true");
 });
