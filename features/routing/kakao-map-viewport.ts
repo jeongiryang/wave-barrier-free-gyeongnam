@@ -20,6 +20,9 @@ export function restrictKakaoViewport(map: KakaoMap, K: KakaoSdk["maps"], isCanc
         if (next.tooWide && map.getLevel() > 1) { map.setLevel(map.getLevel() - 1); continue; }
         if (Math.abs(next.lat - center.getLat()) > 0.000001 || Math.abs(next.lng - center.getLng()) > 0.000001) {
           map.setCenter(new K.LatLng(next.lat, next.lng));
+          // Kakao's projected bounds change slightly when longitude changes.
+          // Re-measure after moving so a narrow/tall canvas stays inside too.
+          continue;
         }
         break;
       }

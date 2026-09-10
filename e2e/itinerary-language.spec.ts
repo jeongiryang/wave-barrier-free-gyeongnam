@@ -33,7 +33,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(itinerary.getByRole("button", { name: "경남도립미술관 move earlier in the same day", exact: true })).toBeDisabled();
     await itinerary.getByLabel("Day starts at", { exact: true }).fill("08:30");
     await itinerary.getByRole("button", { name: "Save itinerary", exact: true }).click();
-    await expect(itinerary.locator(".travel-book-archive-action [role=status]")).toContainText("Saved on this device");
+    await expect(itinerary.locator(".travel-book-archive-action [role=status]")).toContainText("Itinerary saved");
     await itinerary.getByText("Audio guide and travel journal", { exact: false }).first().click();
     await expect(itinerary.getByRole("button", { name: "Play", exact: true })).toBeDisabled();
     await itinerary.getByRole("button", { name: /Show transcript/ }).click();

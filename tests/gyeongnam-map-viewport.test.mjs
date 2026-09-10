@@ -39,8 +39,8 @@ test("the Kakao renderer constrains SDK pan/zoom events and ignores a replaced m
     level: 14, center: new LatLng(35, 132), max: 14,
     setMaxLevel(value) { this.max = value; this.level = Math.min(this.level, value); },
     getLevel() { return this.level; }, setLevel(value) { this.level = value; listener?.(); },
-    getCenter() { return this.center; }, setCenter(value) { this.center = value; listener?.(); },
-    getBounds() { const r = 2 ** (this.level - 9) * .4; return { getSouthWest: () => new LatLng(this.center.lat - r, this.center.lng - r), getNorthEast: () => new LatLng(this.center.lat + r, this.center.lng + r) }; },
+    getCenter() { return this.center; }, setCenter(value) { this.center = new LatLng(Math.round(value.lat / .0015) * .0015, Math.round(value.lng / .0015) * .0015); listener?.(); },
+    getBounds() { const r = 2 ** (this.level - 9) * .4, shift = .03 * (this.center.lng - 128.6); return { getSouthWest: () => new LatLng(this.center.lat - r + shift, this.center.lng - r), getNorthEast: () => new LatLng(this.center.lat + r + shift, this.center.lng + r) }; },
   };
   const constrain = mod.exports.restrictKakaoViewport(map, { LatLng, event: { addListener(_map, event, callback) { assert.equal(event, "bounds_changed"); listener = callback; } } }, () => cancelled);
   constrain();
@@ -49,6 +49,7 @@ test("the Kakao renderer constrains SDK pan/zoom events and ignores a replaced m
   assert.ok(map.getBounds().getNorthEast().getLng() <= bounds.east + 1e-8);
   map.setCenter(new LatLng(35, 121));
   assert.ok(map.getBounds().getSouthWest().getLng() >= bounds.west - 1e-8);
+  assert.ok(map.getBounds().getSouthWest().getLat() >= bounds.south - 1e-8);
   cancelled = true;
   map.setCenter(new LatLng(35, 132));
   assert.equal(map.center.lng, 132);

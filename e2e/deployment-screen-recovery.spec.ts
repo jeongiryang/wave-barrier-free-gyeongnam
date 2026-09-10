@@ -19,7 +19,7 @@ for (const english of [false, true]) for (const action of ["reload", "planner"] 
     } else await chooseTripConditions(page);
     await page.getByRole("button", { name: english ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
     await page.getByRole("button", { name: english ? "Save itinerary" : "내 일정에 저장", exact: true }).click();
-    await expect(page.locator(".travel-book-archive-action [role=status]")).toContainText(english ? "Saved on this device" : "내 일정에 저장했어요");
+    await expect(page.locator(".travel-book-archive-action [role=status]")).toContainText(english ? "Itinerary saved" : "내 일정에 저장했어요");
     const saved = await page.evaluate(() => Object.fromEntries(Object.entries(localStorage).filter(([key]) => key.startsWith("wave-trip") || key.startsWith("wave-travel-book") || key === "wave-current-trip-v1")));
     expect(Object.keys(saved).length).toBeGreaterThan(0);
     let modules = 0;
