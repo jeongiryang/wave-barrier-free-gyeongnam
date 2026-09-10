@@ -156,8 +156,6 @@ html[data-theme="dark"] .day-start-control input { color: #e8f5fb; background: #
 .day-planner .transcript-button span { color: #bdd7e2; }
 .day-planner .guide-player > [role="alert"] { margin: 16px; color: #ffbdca; }
 .day-planner .player-controls button { min-width: 44px; min-height: 44px; }
-.day-planner .day-place-editor > select,.day-planner .day-order-buttons { grid-column: 1 / -1; }
-@media (max-width: 400px) { .day-planner .day-order-buttons { grid-template-columns: 1fr; } }
 html[data-theme="dark"] .itinerary-secondary-actions,html[data-theme="dark"] .planner-journey-workspace .travel-layers { color: #edf7fb; border-color: #31596a; background: #0b2d3c; }
 html[data-theme="dark"] .place-community-stories { border-color: #31596a; background: #0a2735; }
 html[data-theme="dark"] .place-community-story-list > a { color: #eaf5f9; background: #0e3748; }
