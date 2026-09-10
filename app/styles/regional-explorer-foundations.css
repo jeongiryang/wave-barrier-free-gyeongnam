@@ -1,5 +1,6 @@
 
 /* Data-rich regional explorer */
+.signals-shortcut { max-width: 100%; min-height: 44px; margin: 16px 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: var(--paper); font: inherit; font-weight: 750; cursor: pointer; }
 .travel-layers { padding: 130px max(24px, calc((100vw - 1240px) / 2)); overflow: hidden; color: #fff; background: #062736; }
 .layers-heading { margin-bottom: 48px; display: grid; grid-template-columns: 1.2fr .8fr; align-items: end; gap: 72px; }
 .layers-heading h2 { margin: 0; font-size: clamp(2.9rem, 4.7vw, 5.4rem); line-height: 1.04; letter-spacing: -.068em; }
