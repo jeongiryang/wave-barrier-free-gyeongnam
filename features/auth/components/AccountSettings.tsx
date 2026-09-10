@@ -116,7 +116,7 @@ export default function AccountSettings({ nativeAuth = false }: { nativeAuth?: b
     </section>}
     <section className="account-danger" aria-labelledby="delete-account-title">
       <h3 id="delete-account-title">계정 탈퇴</h3>
-      <p>인증 계정과 서버에 연결된 게시글·댓글·좋아요·신고를 삭제합니다. 보관한 여행집과 환경설정은 유지됩니다.</p>
+      <p>인증 계정과 서버의 게시글·댓글·좋아요·신고, 계정에 저장한 여행·편의 조건·동행 참여 기록을 삭제합니다.</p>
       <HydratedAuthForm onSubmit={deleteAccount} noValidate>
         {nativeAuth ? <p>본인 확인을 위해 계정 이메일로 탈퇴 확인 링크를 보냅니다. 같은 브라우저에서 링크를 열면 탈퇴가 완료됩니다.</p> : <div className="auth-field"><label htmlFor="delete-password">현재 비밀번호</label><input id="delete-password" name="deletePassword" type="password" autoComplete="current-password" minLength={8} maxLength={128} required /></div>}
         <div className="auth-field"><label htmlFor="delete-confirmation">확인 문구</label><input id="delete-confirmation" name="deleteConfirmation" type="text" autoComplete="off" placeholder="계정 삭제" required /><small>되돌릴 수 없습니다. ‘계정 삭제’를 그대로 입력해 주세요.</small></div>

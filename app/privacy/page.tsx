@@ -12,7 +12,7 @@ export default function PrivacyPage() {
   const kakaoEnabled = isKakaoAuthConfigured();
   return <main className="policy-page" id="main">
     <nav aria-label="정책 페이지 이동"><Link href="/">W.A.V.E 홈</Link><Link href="/policies">운영정책</Link><Link href="/terms">서비스 이용약관</Link></nav>
-    <header><p>PRIVACY POLICY</p><h1>필요한 정보만,<br />쓰임과 저장 위치를 분명하게.</h1><span>정책 버전 1.0 · 시행일 2026년 9월 3일</span></header>
+    <header><p>PRIVACY POLICY</p><h1>필요한 정보만,<br />쓰임과 저장 위치를 분명하게.</h1><span>정책 버전 1.1 · 시행일 2026년 9월 10일 · 계정 여행·카카오 공유 항목 추가</span></header>
 
     <aside className="policy-callout policy-callout-primary"><strong>한눈에 보기</strong><p>핵심 여행 설계와 지도는 계정 없이 사용할 수 있습니다. 정확한 현재 위치와 사진 원본은 서버에 저장하지 않으며, 광고 목적의 추적기를 사용하지 않습니다.</p></aside>
 
@@ -29,6 +29,7 @@ export default function PrivacyPage() {
           <tr><th scope="row">공유 여행</th><td>무작위 공유 ID, 선택 지역·여행 조건·날짜·장소 식별자, 출발지 표시 이름</td><td>링크로 여행 계획 열기와 최신 정보 복원</td></tr>
           <tr><th scope="row">계정 여행·동행자</th><td>사용자 ID, 직접 저장한 여행 제목·지역·날짜·공식 장소 ID·순서·메모·상태, 동행자의 표시 이름·투표·의견, 초대 권한과 작성 시각</td><td>여러 기기에서 여행 이어하기, 초대받은 동행자의 참여와 의견 교환. 관광 API 응답·정밀 위치·사진 원본은 계정 여행 DB에 보관하지 않습니다.</td></tr>
           <tr><th scope="row">계정 편의 조건</th><td>사용자가 저장을 선택한 편의 조건과 변경 시각</td><td>다음 여행에서 조건 복원. 선택 사항이며 동행자와 공유하지 않습니다.</td></tr>
+          <tr><th scope="row">카카오톡 여행 공유·나에게 보내기</th><td>공유 카드의 지역·날짜·장소 수·공개 여행 링크, 나에게 보내기의 저장한 여행 제목·날짜·장소 수·계정 여행 링크, 메시지 동의 상태와 인증 토큰</td><td>사용자가 요청한 카카오톡 공유와 나와의 채팅 전송. 친구 목록은 수집하지 않으며 메시지 권한은 기능 이용 시 별도로 동의받습니다. 전송 본문은 별도 DB 기록하지 않습니다.</td></tr>
           <tr><th scope="row">장소 편의 제보</th><td>장소 식별자·이름, 제보 분류와 자유 입력 내용, 작성 시각</td><td>시설 정보 확인과 서비스 품질 개선</td></tr>
           <tr><th scope="row">접속·운영</th><td>호스팅 제공처가 처리하는 IP, 브라우저·요청 메타데이터와 오류 기록</td><td>서비스 제공, 보안 방어, 장애 분석</td></tr>
         </tbody></table></div>

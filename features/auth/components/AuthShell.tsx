@@ -25,10 +25,10 @@ export default function AuthShell({ mode, returnTo }: { mode: AuthMode; returnTo
         <section className="auth-story" aria-labelledby="auth-story-title">
           <p className="section-kicker">{registering ? "W.A.V.E 계정 시작" : "다시 만난 여행자"}</p>
           <AuthMotionHeadline mode={mode} />
-          <p>계정은 커뮤니티 참여를 위한 선택입니다. 관광지 추천, 일정 설계, 지도와 이동 정보는 누구나 바로 이용할 수 있습니다.</p>
+          <p>저장한 여행을 여러 기기에서 이어가고 동행자와 계획을 나눠보세요. 관광지 추천, 일정 설계, 지도와 이동 정보는 로그인 없이 바로 이용할 수 있습니다.</p>
           <div className="auth-journey-preview" aria-label="계정으로 이어지는 서비스 가치">
             <span><i>01</i><b>관광지 이야기</b><small>장소와 지역을 연결해 질문하고 후기를 남겨요.</small></span>
-            <span><i>02</i><b>안전한 참여</b><small>본인 글과 댓글만 수정·삭제할 수 있어요.</small></span>
+            <span><i>02</i><b>여행 이어가기</b><small>계정 여행·편의 조건을 불러오고 카카오톡으로 일정을 챙겨요.</small></span>
             <span><i>03</i><b>열린 여행 설계</b><small>로그인하지 않아도 핵심 여행 기능은 그대로 열려 있어요.</small></span>
           </div>
         </section>

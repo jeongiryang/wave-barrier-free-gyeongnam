@@ -88,6 +88,36 @@ test("OAuth uses only email; forged state, expanded scopes and external callback
   assert.equal((await f.request("/link-social", { provider: "kakao" })).status, 401);
 });
 
+test("message consent expands only an explicit fresh linked-account flow and keeps tokens server-side", async t => {
+  const f = await fixture(t);
+  const login = await f.request("/sign-in/email", { email, password });
+  const sessionCookie = cookie(login);
+  t.mock.method(globalThis, "fetch", async input => {
+    const url = String(input instanceof Request ? input.url : input);
+    if (url === "https://kauth.kakao.com/oauth/token") return Response.json({ access_token: "message-fixture-token", refresh_token: "message-fixture-refresh", token_type: "bearer", expires_in: 3600, scope: "account_email talk_message" });
+    if (url === "https://kapi.kakao.com/v2/user/me") return Response.json({ id: 123456789, kakao_account: { email, is_email_valid: true, is_email_verified: true } });
+    throw new Error("Unexpected provider request");
+  });
+  for (const [index, scopes] of [["friends"], ["talk_message", "friends"], ["talk_calendar"]].entries()) assert.equal((await f.request("/link-social", { provider: "kakao", scopes }, sessionCookie, { "x-vercel-forwarded-for": `192.0.2.${20 + index}` })).status, 400);
+  assert.equal((await f.request("/sign-in/social", { provider: "kakao", scopes: ["talk_message"] }, sessionCookie)).status, 400);
+  f.db.prepare('INSERT INTO account (id,"userId","accountId","providerId",scope,"createdAt","updatedAt") VALUES (?,?,\'123456789\',\'kakao\',\'account_email\',?,?)').run(randomUUID(), f.id, Date.now(), Date.now());
+  const start = await f.request("/link-social", { provider: "kakao", scopes: ["talk_message"], callbackURL: "/my-trips" }, sessionCookie);
+  assert.equal(start.status, 200);
+  const location = new URL((await start.json()).url);
+  assert.deepEqual(new Set(location.searchParams.get("scope").split(" ")), new Set(["account_email", "talk_message"]));
+  const completed = await f.request(`/callback/kakao?code=fixture-code&state=${encodeURIComponent(location.searchParams.get("state"))}`, null, `${sessionCookie}; ${cookie(start)}`);
+  assert.equal(completed.headers.get("location"), "/my-trips");
+  const row = f.db.prepare("SELECT * FROM account WHERE providerId='kakao'").get();
+  assert.equal(row.userId, f.id); assert.match(row.scope, /talk_message/); assert.notEqual(row.accessToken, "message-fixture-token");
+  const token = await f.auth.api.getAccessToken({ body: { providerId: "kakao", accountId: "123456789" }, headers: new Headers({ Cookie: sessionCookie }) });
+  assert.equal(token.accessToken, "message-fixture-token");
+  f.db.prepare('UPDATE account SET "accessTokenExpiresAt"=? WHERE providerId=\'kakao\'').run(Date.now() - 10000);
+  const refreshed = await f.auth.api.getAccessToken({ body: { providerId: "kakao", accountId: "123456789" }, headers: new Headers({ Cookie: sessionCookie }) });
+  assert.equal(refreshed.accessToken, "message-fixture-token");
+  f.db.prepare('UPDATE session SET "createdAt"=?').run(Date.now() - 601000);
+  assert.equal((await f.request("/link-social", { provider: "kakao", scopes: ["talk_message"] }, sessionCookie)).status, 401);
+});
+
 test("account deletion requires a mailed token and matching session, including OAuth-only accounts", async (t) => {
   const f = await fixture(t);
   const login = await f.request("/sign-in/email", { email, password });

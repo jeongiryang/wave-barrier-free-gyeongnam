@@ -8,6 +8,14 @@ import { travelRepository } from "../lib/account-travel/repository.js";
 import { accountTripPayload, bookToAccountTrip } from "../lib/account-travel/model.js";
 
 const payload = { title: "통영에서 함께", region: "통영", travelStart: "2026-09-20", travelEnd: "2026-09-21", dayStartTime: "10:00", themes: ["nature"], placeIds: ["123456", "654321"], scheduleAssignments: { "123456": "2026-09-20", "654321": "2026-09-21" }, note: "첫날 바닷가", status: "planned" };
+test("Kakao send reservations survive another instance and stop same-trip duplicates before provider calls", async t => {
+  const { repo, db, advance } = fixture(t);
+  await repo.reserveKakaoSend("owner", "trip-a");
+  await assert.rejects(() => travelRepository(db, { now: () => 1_800_000_000_000 }).reserveKakaoSend("owner", "trip-a"), error => error.status === 429);
+  await repo.reserveKakaoSend("owner", "trip-b"); await repo.reserveKakaoSend("owner", "trip-c");
+  await assert.rejects(() => repo.reserveKakaoSend("owner", "trip-d"), error => error.status === 429);
+  advance(60001); await repo.reserveKakaoSend("owner", "trip-a");
+});
 function fixture(t) {
   const sqlite = new DatabaseSync(":memory:"); sqlite.exec("PRAGMA foreign_keys=ON");
   sqlite.exec(readFileSync(new URL("../migrations/011_account_travel.sql", import.meta.url), "utf8"));
