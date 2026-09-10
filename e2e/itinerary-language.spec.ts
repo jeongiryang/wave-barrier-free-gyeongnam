@@ -60,16 +60,17 @@ for (const theme of ["light", "dark"] as const) {
         expect(box!.height).toBeGreaterThanOrEqual(44);
       }
       for (const control of await itinerary.locator('.day-order-buttons button,.day-place-editor select').all()) {
-        const fits = await control.evaluate((element) => {
+        const fit = await control.evaluate((element) => {
           const style = getComputedStyle(element);
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d")!;
           context.font = style.font;
           const select = element instanceof HTMLSelectElement;
           const text = select ? element.selectedOptions[0].textContent || "" : element.textContent || "";
-          return context.measureText(text.trim()).width + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + (select ? 24 : 0) <= element.clientWidth;
+          const needed = context.measureText(text.trim()).width + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + (select ? 24 : 0);
+          return { text: text.trim(), available: element.clientWidth, needed, fits: needed <= element.clientWidth };
         });
-        expect(fits).toBe(true);
+        expect(fit.fits, JSON.stringify(fit)).toBe(true);
       }
       expect((await new AxeBuilder({ page }).include(".day-planner").analyze()).violations).toEqual([]);
       await page.screenshot({ path: test.info().outputPath(`itinerary-edit-${width}-${theme}.png`) });
