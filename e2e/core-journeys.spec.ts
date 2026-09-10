@@ -75,6 +75,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
   await expect(itinerary).toBeVisible();
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect(itinerary.getByText(/10:25 · 경남도립미술관/)).toBeVisible();
   await expect(itinerary.getByText(/확인된 경로 이동 25분/)).toBeVisible();
   await page.getByRole("button", { name: /여유 자동차 경로/ }).click();

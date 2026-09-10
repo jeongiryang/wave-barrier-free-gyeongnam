@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import type { Place } from "../types";
 import { useRouteOrigin } from "./useRouteOrigin";
 import { useRouteRequest } from "./useRouteRequest";
-import { useRouteView } from "./useRouteView";
+import { useRouteView, type RouteTravelMode } from "./useRouteView";
 import { routeResultNotice } from "../route-copy";
 
 export function useRoutePlanning(region: string) {
@@ -13,7 +13,7 @@ export function useRoutePlanning(region: string) {
   const routeOrigin = useRouteOrigin(clearRouteAlternatives);
   const { origin, originLabel, privateOrigin, setRouteNotice } = routeOrigin;
   const routeView = useRouteView(routeAlternatives, transportContext);
-  const { setActiveRouteId } = routeView;
+  const { setActiveRouteId, routeTravelMode } = routeView;
   const { displayRouteData } = routeRequest;
   const showItineraryRoute = useCallback((...args: Parameters<typeof displayRouteData>) => {
     displayRouteData(...args);
@@ -31,10 +31,21 @@ export function useRoutePlanning(region: string) {
       origin: nextOrigin,
       privateOrigin: nextOriginIsPrivate,
       originLabel: nextOriginLabel,
+      mode: routeTravelMode,
       onNotice: setRouteNotice,
       onActiveRouteChange: setActiveRouteId,
     });
-  }, [loadRouteData, origin, originLabel, privateOrigin, setActiveRouteId, setRouteNotice]);
+  }, [loadRouteData, origin, originLabel, privateOrigin, routeTravelMode, setActiveRouteId, setRouteNotice]);
+
+  const setRouteTravelMode = (mode: RouteTravelMode) => {
+    if (mode === routeTravelMode) return;
+    routeView.setRouteTravelMode(mode);
+    const { routeDestination, routeStart, routeStartIsPrivate, routeStartLabel } = routeRequest;
+    if (routeDestination && routeStart) void loadRouteData({
+      place: routeDestination, origin: routeStart, privateOrigin: routeStartIsPrivate,
+      originLabel: routeStartLabel, mode, onNotice: setRouteNotice, onActiveRouteChange: setActiveRouteId,
+    });
+  };
 
   return {
     ...routeOrigin,
@@ -42,5 +53,6 @@ export function useRoutePlanning(region: string) {
     displayRouteData: showItineraryRoute,
     loadRoutes,
     ...routeView,
+    setRouteTravelMode,
   };
 }

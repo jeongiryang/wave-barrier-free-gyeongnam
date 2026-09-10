@@ -9,6 +9,7 @@ test("통합 플래너는 실제 시간순 이동수단을 먼저 보여주고 �
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   // 이 목록은 예상 시간이 오면 빠른 순서로 다시 정렬돼 탭 목록이 아니라 선택 버튼 묶음이다.
   const modes = page.locator(".route-mode-sections button");
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect(modes).toHaveCount(4);
   await expect(modes.first()).toContainText("자동차");
   await expect(modes.first()).toContainText("25분");

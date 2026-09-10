@@ -15,6 +15,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect.poll(() => failures).toBeGreaterThan(0);
   if (english) {
     await page.keyboard.press("Control+Home");

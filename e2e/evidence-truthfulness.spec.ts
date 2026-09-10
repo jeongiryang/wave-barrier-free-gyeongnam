@@ -27,6 +27,7 @@ test("교통·요금·임시 이동값은 확인 범위를 그대로 말한다",
   await chooseTripConditions(page);
 
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect(page.locator(".service-status-summary")).toContainText("교통정보 1개 직접 확인");
   await expect(page.getByText("통행료 없음", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("시간 정보 없음", { exact: true }).first()).toBeVisible();

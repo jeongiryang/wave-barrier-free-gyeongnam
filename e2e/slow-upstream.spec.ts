@@ -19,6 +19,7 @@ test("느리지만 성공한 경로 응답을 버리지 않는다", async ({ pag
   expect(serverSlowestMs, "클라이언트 예산이 서버 최악 응답을 감싸야 한다").toBeLessThan(CLIENT_BUDGET_MS.route);
 
   await page.route("**/api/route**", async (requestRoute) => {
+    if (new URL(requestRoute.request().url()).searchParams.get("mode") !== "car") return requestRoute.fulfill({ json: { configured: false, alternatives: [], providers: [], context: null } });
     await new Promise((resolve) => setTimeout(resolve, serverSlowestMs));
     await requestRoute.fulfill({
       status: 200,
@@ -42,6 +43,7 @@ test("느리지만 성공한 경로 응답을 버리지 않는다", async ({ pag
   await page.goto("/planner");
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
   await expect(page.getByText("느린 자동차 경로").first()).toBeVisible({ timeout: 25_000 });
 });

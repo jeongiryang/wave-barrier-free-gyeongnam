@@ -36,7 +36,7 @@ export function compareLegacyRoutePreference(routeSort: LegacyRouteSort, a: Rout
 
 export function useRouteView(routeAlternatives: RouteAlternative[], transportContext: TransportContext | null) {
   const [activeRouteId, setActiveRouteId] = useState("");
-  const [selectedTravelMode, setSelectedTravelMode] = useState<RouteTravelMode | null>(null);
+  const [selectedTravelMode, setSelectedTravelMode] = useState<RouteTravelMode>("transit");
   const [transportMode, setTransportMode] = useState<TransportMode>("all");
   const [selectedTransportDataset, setSelectedTransportDataset] = useState("bus-arrival");
 
@@ -52,7 +52,7 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
     return a.minutes - b.minutes || a.baseIndex - b.baseIndex;
   }), [routeAlternatives]);
 
-  const routeTravelMode = selectedTravelMode ?? routeModeSummaries.find((mode) => mode.configured)?.id ?? "transit";
+  const routeTravelMode = selectedTravelMode;
   const setRouteTravelMode = (mode: RouteTravelMode) => {
     setSelectedTravelMode(mode);
     setActiveRouteId("");
@@ -65,7 +65,7 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
       return a.totalTime - b.totalTime;
     }), [routeAlternatives, routeTravelMode]);
 
-  const resetRouteView = () => { setActiveRouteId(""); setSelectedTravelMode(null); setSelectedTransportDataset("bus-arrival"); setTransportMode("all"); };
+  const resetRouteView = () => { setActiveRouteId(""); setSelectedTravelMode("transit"); setSelectedTransportDataset("bus-arrival"); setTransportMode("all"); };
 
   return {
     resetRouteView,

@@ -26,8 +26,9 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
       await page.route("https://wave.test/museum.svg", route => route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><path fill="white" d="M0 0h800v600H0z"/></svg>' }));
     });
     const photo = page.locator(".place-card .place-visual").first();
-    await photo.scrollIntoViewIfNeeded();
     const image = photo.locator("img");
+    await expect(image).toBeAttached();
+    await photo.scrollIntoViewIfNeeded();
     await expect(image).toBeVisible();
     const region = page.locator(".place-card .place-region").first();
     await expect(region).toHaveText("창원");
