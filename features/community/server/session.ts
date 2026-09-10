@@ -3,7 +3,7 @@ import { getAuth } from "../../../lib/auth/server";
 export type CommunityUser = { id: string; name?: string | null; email: string };
 
 function hasSessionCookie(request: Request) {
-  return /(?:^|;\s*)(?:__Secure-)?neon-auth\./.test(request.headers.get("cookie") || "");
+  return /(?:^|;\s*)(?:__Secure-)?(?:neon-auth|wave-auth)\./.test(request.headers.get("cookie") || "");
 }
 
 export async function optionalCommunityUser(request: Request): Promise<CommunityUser | null> {

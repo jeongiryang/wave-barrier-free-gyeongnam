@@ -4,6 +4,7 @@ import SkipLink from "../../../components/SkipLink";
 import type { AuthMode } from "../types";
 import AuthForm from "./AuthForm";
 import AuthMotionHeadline from "./AuthMotionHeadline";
+import { isKakaoAuthConfigured } from "../../../lib/auth/server";
 
 export default function AuthShell({ mode, returnTo }: { mode: AuthMode; returnTo?: string }) {
   const registering = mode === "register";
@@ -31,7 +32,7 @@ export default function AuthShell({ mode, returnTo }: { mode: AuthMode; returnTo
             <span><i>03</i><b>열린 여행 설계</b><small>로그인하지 않아도 핵심 여행 기능은 그대로 열려 있어요.</small></span>
           </div>
         </section>
-        <AuthForm mode={mode} returnTo={returnTo} />
+        <AuthForm mode={mode} returnTo={returnTo} kakaoEnabled={isKakaoAuthConfigured()} />
       </div>
     </main>
   );

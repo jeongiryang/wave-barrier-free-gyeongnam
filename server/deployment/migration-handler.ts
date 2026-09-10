@@ -12,6 +12,8 @@ import { securePostgresUrl } from "../../lib/deployment/environment-validation.j
 import { orderedMigrationStatements, PRODUCTION_MIGRATION_NAMES } from "../../lib/deployment/migrations.js";
 import { inspectProductionDatabase, matchesProductionDatabase } from "../../lib/deployment/database-preflight.js";
 import { json } from "../shared/http";
+import { readyNativeAuth } from "../../lib/auth/native-runtime";
+import { verifyAccountMailer } from "../../lib/auth/mail.js";
 
 async function sameToken(actual: string, expected: string) {
   const encoder = new TextEncoder();
@@ -45,6 +47,14 @@ export async function handleProductionMigration(request: Request) {
   }
   const sql = neon(databaseUrl);
   const preflight = await inspectProductionDatabase(sql, databaseUrl);
+  if (preflight.ok && process.env.WAVE_AUTH_BACKEND === "native") {
+    try {
+      // No auth DDL, account writes, mail delivery or OAuth API calls here.
+      // The production alias cannot move to a native auth runtime with missing schema/SMTP.
+      await readyNativeAuth();
+      await verifyAccountMailer();
+    } catch { return json({ ok: false, reason: "native-auth-preflight-failed" }, 503); }
+  }
   if (mode === "inspect" || !preflight.ok) return json(preflight, preflight.ok ? 200 : 503);
 
   const statements = orderedMigrationStatements([
