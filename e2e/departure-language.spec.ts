@@ -14,7 +14,7 @@ async function prepare(page: Page) {
   await page.getByRole("button", { name: "Find places →", exact: true }).click();
   await page.getByRole("button", { name: "경남도립미술관 Add to itinerary", exact: true }).click();
   await expect(page.locator("main.planner-page")).toHaveAttribute("lang", "en");
-  expect(await page.getByRole("heading", { name: "Gyeongnam accessible trip planner", exact: true }).evaluate(el => el.closest("[lang]")?.getAttribute("lang"))).toBe("en");
+  expect(await page.getByRole("heading", { name: "What kind of day would you like?", exact: true }).evaluate(el => el.closest("[lang]")?.getAttribute("lang"))).toBe("en");
   const journeys = page.getByRole("region", { name: "Check every journey", exact: true });
   await expect(journeys.locator('li [lang="ko"]').filter({ hasText: "경남도립미술관" })).toHaveText("경남도립미술관");
 }
