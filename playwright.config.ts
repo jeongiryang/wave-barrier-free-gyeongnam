@@ -15,6 +15,10 @@ export default defineConfig({
   reporter: process.env.CI ? [["line"], ["html", { open: "never" }], ["./scripts/playwright-resource-reporter.mjs"]] : "line",
   use: {
     baseURL,
+    // Preserve deferred English/dark regression cases without exposing those
+    // options to ordinary local or Production visitors. Public-release tests
+    // override this with an empty storage state and verify the current default.
+    storageState: { cookies: [], origins: [{ origin: new URL(baseURL).origin, localStorage: [{ name: "wave-dev-presentation", value: "enabled" }] }] },
     // Use the bundled full Chromium headless implementation. The separate
     // headless-shell crashed during context teardown after successful UI/axe
     // assertions; keep the browser revision and every test/resource limit.

@@ -5,6 +5,7 @@ import { useSitePreferences } from "./context";
 import { localeOptions } from "./locale-catalog";
 import type { Locale } from "./types";
 import { useAppInstall } from "./useAppInstall";
+import { presentationOptionsEnabled } from "./presentation-release";
 
 const subscribeToHydration = () => () => undefined;
 const browserReady = () => true;
@@ -14,6 +15,7 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
   const controlsReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
   const { locale, theme, setLocale, toggleTheme, t } = useSitePreferences();
   const en = locale === "en";
+  const showPresentationOptions = controlsReady && presentationOptionsEnabled();
   const appInstall = useAppInstall();
   const disclosure = useRef<HTMLDetailsElement>(null);
 
@@ -48,7 +50,7 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
           <b>{en ? "Preferences" : "환경설정"}</b>
           <small>{en ? "Adjust the screen for comfortable reading." : "읽기 편한 화면으로 조정합니다."}</small>
         </header>
-        <label className="preference-row">
+        {showPresentationOptions && <><label className="preference-row">
           <span><b>{t("language", "언어")}</b><small>{en ? "Some pages are in Korean" : "한국어 전체 지원"}</small></span>
           <select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>
             {localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {en && item.id === "ko" ? "Korean" : item.label}{item.beta ? en ? " · partial" : " · 부분 지원" : ""}</option>)}
@@ -57,7 +59,7 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
         <button className="preference-row" type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")}>
           <span><b>{en ? "Appearance" : "화면 색상"}</b><small>{theme === "dark" ? en ? "Dark appearance" : "어두운 화면" : en ? "Light appearance" : "밝은 화면"}</small></span>
           <em aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</em>
-        </button>
+        </button></>}
         {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label={en ? "Install W.A.V.E" : "W.A.V.E 앱 설치"}>
           <span><b>{en ? "Install as an app" : "앱으로 설치"}</b><small>{en ? "Open from your home screen" : "홈 화면에서 전체 화면으로 열기"}</small></span>
           <em aria-hidden="true">{appInstall.state === "installing" ? en ? "Preparing" : "준비 중" : en ? "Install" : "설치"}</em>

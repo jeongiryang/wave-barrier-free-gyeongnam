@@ -1,5 +1,6 @@
 import type { Locale, Theme } from "./types";
 import { localeOptions } from "./locale-catalog";
+import { presentationOptionsEnabled } from "./presentation-release";
 
 export type StoredPreferences = {
   locale: Locale;
@@ -7,6 +8,7 @@ export type StoredPreferences = {
 };
 
 export function readStoredPreferences(): StoredPreferences {
+  if (!presentationOptionsEnabled()) return { locale: "ko", theme: "light" };
   const systemTheme: Theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   try {
     const storedLocale = window.localStorage.getItem("wave-locale") as Locale | null;
@@ -22,8 +24,10 @@ export function readStoredPreferences(): StoredPreferences {
 
 export function writeStoredPreferences(preferences: StoredPreferences) {
   try {
-    window.localStorage.setItem("wave-theme", preferences.theme);
-    window.localStorage.setItem("wave-locale", preferences.locale);
+    if (presentationOptionsEnabled()) {
+      window.localStorage.setItem("wave-theme", preferences.theme);
+      window.localStorage.setItem("wave-locale", preferences.locale);
+    }
     // Retire the old manual choice; only the OS/browser can reduce motion now.
     window.localStorage.removeItem("wave-motion");
   } catch {
