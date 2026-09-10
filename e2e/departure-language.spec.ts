@@ -14,7 +14,7 @@ async function prepare(page: Page) {
   await page.getByRole("button", { name: "Find places →", exact: true }).click();
   await page.getByRole("button", { name: "경남도립미술관 Add to itinerary", exact: true }).click();
   await expect(page.locator("main.planner-page")).toHaveAttribute("lang", "en");
-  expect(await page.getByRole("heading", { name: "A trip that works for you.", exact: true }).evaluate(el => el.closest("[lang]")?.getAttribute("lang"))).toBe("en");
+  expect(await page.getByRole("heading", { name: "Gyeongnam accessible trip planner", exact: true }).evaluate(el => el.closest("[lang]")?.getAttribute("lang"))).toBe("en");
   const journeys = page.getByRole("region", { name: "Check every journey", exact: true });
   await expect(journeys.locator('li [lang="ko"]').filter({ hasText: "경남도립미술관" })).toHaveText("경남도립미술관");
 }
@@ -109,7 +109,7 @@ test("calendar failure and retry keep keyboard focus, English notices and the sa
   expect(contents).toContain("경남도립미술관");
   expect(contents).toContain("Before leaving");
   expect(contents).toContain(`URL:${new URL("/trip/english-calendar", baseURL).href}`);
-  await expect(card.getByRole("status")).toHaveText("Calendar file saved.");
+  await expect(card.locator("footer span[role=status]")).toHaveText("Calendar file saved.");
   await expect(calendar).toBeFocused();
   expect(calls).toBe(2);
   expect(errors).toEqual([]);

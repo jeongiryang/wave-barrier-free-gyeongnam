@@ -118,10 +118,10 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 @media (prefers-reduced-motion: reduce) { .condition-inputs { animation: none; }.journey-editorial .profile-card { transition: none; transform: none; } }
 /* Owner PDF, 2026-09-10: functional planner presentation. Scoped to /planner. */
 .planner-reference {
-  --ink: #243236; --ink-soft: #36585a; --muted: #5c6b70; --paper: #f6f8f8;
-  --surface: #f6f8f8; --white: #fff; --line: #dbe2e3; --blue: #317d7a;
-  --blue-dark: #286967; --mint: #57c3b5; --reference-tint: #eaf6f3;
-  background: var(--surface); color: var(--ink); min-height: 100vh; padding: 0 0 24px;
+     
+     
+    --reference-tint: #eaf6f3;
+  background: #f6f8f8; color: #243236; min-height: 100vh; padding: 0 0 24px;
 }
 .planner-reference button, .planner-reference input, .planner-reference select { font: inherit; }
 .planner-reference button { cursor: pointer; }
@@ -412,8 +412,8 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference .reference-stop :is(.smart-image-fallback,.smart-image-skeleton),.planner-reference .reference-add-place :is(.smart-image-fallback,.smart-image-skeleton) { position: absolute; inset: 0; padding: 8px; display: grid; place-items: center; }
 .planner-reference .reference-stop .smart-image-fallback > :is(i,b,span),.planner-reference .reference-add-place .smart-image-fallback > :is(i,b,span) { display: none; }
 .planner-reference .reference-stop .smart-image-fallback small,.planner-reference .reference-add-place .smart-image-fallback small { font-size: 10px; line-height: 1.5; color: #fff; text-align: center; }
-.planner-reference .simple-footer { margin: 36px auto 0; width: min(1240px,calc(100% - 56px)); padding: 22px 0; color: #5c6b70; background: transparent; border-top: 1px solid #dbe2e3; display: flex; flex-wrap: wrap; gap: 18px; }
-.planner-reference .simple-footer :is(a,p,span) { color: #5c6b70; }
+:root .planner-reference .simple-footer { margin: 36px auto 0; width: min(1240px,calc(100% - 56px)); padding: 22px 0; color: #5c6b70; background: transparent; border-top: 1px solid #dbe2e3; display: flex; flex-wrap: wrap; gap: 18px; }
+:root .planner-reference .simple-footer :is(a,p,span) { color: #5c6b70; }
 .planner-reference .simple-footer .footer-notes { flex: 1; }
 .planner-reference .simple-footer .footer-brand { font-size: 14px; }
 .planner-reference .reference-weather p,.planner-reference .reference-info-card p { font-size: 12px; line-height: 1.6; }
@@ -429,7 +429,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference .reference-view-preference .journey-mode-toggle span { color: #5c6b70; font-size: 11px; }
 .planner-reference .reference-view-preference .journey-mode-toggle button { color: #276b67; background: #fff; border: 1px solid #dbe2e3; font-size: 11px; box-shadow: none; }
 .planner-reference .reference-view-preference .journey-mode-toggle button[aria-pressed=true] { background: #eaf6f3; border-color: #317d7a; }
-@media (max-width: 700px) { .reference-view-preference { width: calc(100% - 32px); } .planner-reference .reference-view-preference .journey-mode-toggle { display: grid; justify-content: stretch; gap: 10px; } .planner-reference .simple-footer { width: calc(100% - 32px); display: grid; } }
+@media (max-width: 700px) { .reference-view-preference { width: calc(100% - 32px); } .planner-reference .reference-view-preference .journey-mode-toggle { display: grid; justify-content: stretch; gap: 10px; } :root .planner-reference .simple-footer { width: calc(100% - 32px); display: grid; } }
 .reference-result-meta { display: flex; align-items: center; justify-content: space-between; margin: 0 0 18px; font-size: 12px; color: #526d6a; }
 .reference-result-meta > span { padding: 9px 18px; background: #317d7a; color: white; border-radius: 99px; }
 .reference-transport-details > summary,.reference-route-details > summary { padding: 12px; min-height: 44px; border: 1px solid #dbe2e3; background: white; color: #36585a; font-size: 12px; border-radius: 12px; cursor: pointer; }
@@ -475,12 +475,12 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 }
 
 .planner-reference .planner-journey-workspace .theme-grid button.active small { color: #36585a; }
-.planner-reference .planner-service-status > summary small { color: #276b67; }
+
 
 .planner-reference .reference-board-map .route-map-shell:not(.expanded):not(:fullscreen) { height: auto; min-height: 0; }
 
 /* The PDF editor keeps its light surface even with a restored presentation preference. */
-:root .planner-reference { --paper: #f6f8f8; --white: #fff; --muted: #5c6b70; --line: #dbe2e3; }
+
 :root .planner-reference .journey-stage-stream,
 :root .planner-reference .journey-stage-panel,
 :root .planner-reference .journey-workspace-block { background: transparent; color: #243236; }
@@ -505,7 +505,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 :root .planner-reference .place-actions .primary { background: #317d7a; color: #fff; }
 :root .planner-reference .reference-result-meta { color: #243236; }
 
-:root .planner-page.planner-reference { --paper: #f6f8f8; --white: #fff; --muted: #5c6b70; --line: #dbe2e3; background: #f6f8f8; }
+:root .planner-page.planner-reference {     background: #f6f8f8; }
 :root .planner-reference .planner-journey-workspace { background: #f6f8f8; color: #243236; }
 :root .planner-reference .travel-profile-card p,
 :root .planner-reference .travel-profile-card b { color: #36585a; }
@@ -524,3 +524,20 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 
 :root .planner-reference .planner-journey-workspace .derived-note,
 :root .planner-reference .planner-journey-workspace .travel-profile-notice { color: #36585a; }
+
+@media (max-width: 700px) {
+  .planner-reference .reference-header { position: relative; z-index: 220; }
+  .reference-header .preference-controls { position: static; }
+  .reference-header .preference-panel { position: absolute; top: calc(100% + 8px); left: 8px; right: 8px; width: auto; max-height: calc(100svh - 220px); }
+}
+
+:root .planner-reference .reference-header .account-button,
+:root .planner-reference .reference-header .preference-controls > summary { background: #fff; color: #243236; }
+.reference-itinerary-details,.reference-departure-details { color: var(--ink); }
+
+:root .planner-reference .condition-availability :is(span,small),
+:root .planner-reference #conditions .preference-label > small,
+:root .planner-reference #places > .original-language-note,
+:root .planner-reference .reference-departure-details > p[role="status"] { color: #5c6b70; }
+
+:root .planner-reference #conditions .theme-control > :is(legend,p) { color: #243236; }

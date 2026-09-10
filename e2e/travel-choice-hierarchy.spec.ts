@@ -48,7 +48,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     const legacy = page.locator(".place-card").nth(1);
     await expect(legacy.locator(".place-facilities li")).toHaveCount(0);
     await expect(legacy.locator(".place-facilities")).toContainText(en ? "No facilities are confirmed at item level" : "항목별로 확인된 편의가 없습니다");
-    const add = card.getByRole("button").first();
+    const add = card.locator(".place-actions").getByRole("button").first();
     await expect(add).toHaveAccessibleName(`경남도립미술관 ${en ? "Add to itinerary" : "일정에 추가"}`);
     await expect(card.locator("h3")).toHaveAttribute("lang", "ko");
     await add.focus();

@@ -29,7 +29,7 @@ export default function PlannerRegionGallery({ value, onChange, onInterest, onFa
     <div className="reference-region-grid">{featuredRegions.map((name, index) => {
       const photo = name === "통영" ? regionShowcaseAlbums[name][1] || regionShowcasePhotos[name] : regionShowcasePhotos[name];
       return <article key={name} className={`reference-region-card${index === 0 ? " featured" : ""}`} data-selected={name === value || undefined}>
-        {!failedImages.includes(photo.image) && <img lang="ko" src={photo.image} alt={`${name} · ${photo.title}`} width="800" height="500" decoding="async" onError={() => setFailedImages(previous => [...previous, photo.image])} />}
+        {!failedImages.includes(photo.image) && <img lang="ko" src={photo.image} alt={`${name} · ${photo.title}`} width="800" height="500" loading="lazy" decoding="async" onError={() => setFailedImages(previous => [...previous, photo.image])} />}
         <div className="reference-region-copy" lang="ko"><h4>{name}</h4><p>{captions[name] || photo.title}</p></div>
         <button type="button" aria-label={`${name} 지역 선택`} aria-pressed={name === value} onClick={() => onChange(name)}>{name === value ? `${name} 선택됨 ✓` : "선택"}</button>
         <a className="reference-photo-credit" href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{photo.photographer || "한국관광공사"} · 원본 ↗</a>

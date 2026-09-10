@@ -95,6 +95,11 @@ export async function chooseTripConditions(page: Page) {
 }
 
 export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview"; audio?: PlanData["audio"]; crowdRate?: number; placeCoordinate?: { mapX: string; mapY: string } } = {}) {
+  // Keep fixture-based UI tests independent of the external photo host.
+  // Real photo loading is checked separately in the live browser review.
+  await page.route("https://tong.visitkorea.or.kr/**", requestRoute => requestRoute.fulfill({
+    status: 200, contentType: "image/svg+xml", body: transparentSvg,
+  }));
   let enrichmentRequestCount = 0;
   await page.addInitScript((plannerView) => {
     window.localStorage.setItem("wave-planner-stage-view-v1", plannerView);
