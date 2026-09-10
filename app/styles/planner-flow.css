@@ -541,3 +541,13 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 :root .planner-reference .reference-departure-details > p[role="status"] { color: #5c6b70; }
 
 :root .planner-reference #conditions .theme-control > :is(legend,p) { color: #243236; }
+
+:root .planner-reference #itinerary { background: transparent; }
+:root .planner-reference .journey-live-summary,
+:root .planner-reference .region-map-disclosure > summary,
+:root .planner-reference .reference-departure-details > .departure-review-check { color: #5c6b70; }
+
+@media (max-width: 900px) {
+  .planner-reference .route-map-shell:not(.expanded):not(:fullscreen) { height: auto; min-height: 0; }
+  .planner-reference .route-map-shell:not(.expanded):not(:fullscreen) .route-map-canvas { height: max(var(--route-map-height,500px),calc(var(--map-controls-bottom,150px) + 240px)); }
+}

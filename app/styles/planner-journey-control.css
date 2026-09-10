@@ -39,9 +39,6 @@
 .journey-stage-stream[data-view="guided"] .journey-stage-panel[data-active] { min-height: 720px; }
 .journey-stage-stream[data-view="guided"] .journey-stage-panel > .journey-workspace-block:first-of-type { border-top: 0; }
 .journey-live-summary { margin: 0; padding: 14px; display: grid; gap: 8px; border: 1px solid rgb(255 255 255 / 9%); border-radius: 15px; background: rgb(255 255 255 / 4%); border-color: var(--line); }
-.journey-live-summary > div { min-width: 0; display: flex; justify-content: space-between; gap: 10px; }
-.journey-live-summary dt { font-size: .58rem; font-weight: 700; color: var(--muted); }
-.journey-live-summary dd { min-width: 0; margin: 0; font-size: .62rem; font-weight: 820; text-align: right; overflow-wrap: anywhere; color: var(--ink); }
 
 html[data-theme="dark"] .journey-stage-stream { background: #071f2b; }
 html[data-theme="dark"] .journey-stage-stream .itinerary-stage { background: #0a2937; }

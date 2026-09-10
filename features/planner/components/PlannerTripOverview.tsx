@@ -23,8 +23,8 @@ export default function PlannerTripOverview({ trip, participation, coverage, ori
   const schedule = useMemo(() => buildItinerarySchedule({ places: trip.orderedSavedPlaces, days: trip.tripDays, assignments: trip.scheduleAssignments, startTime: trip.dayStartTime, origin, routeMinutesByPlaceId: coverage.routeMinutes }), [trip.orderedSavedPlaces, trip.tripDays, trip.scheduleAssignments, trip.dayStartTime, origin, coverage.routeMinutes]);
   const inPeriod = trip.orderedSavedPlaces.filter(place => trip.tripDays.includes(trip.scheduleAssignments[place.id] || trip.tripDays[0]));
   const canShare = inPeriod.length > 0 && inPeriod.length === trip.orderedSavedPlaces.length;
-  return <section className="reference-overview" aria-labelledby="reference-overview-title">
-    <h2 id="reference-overview-title">{region || "경남"} 여행, 한눈에 확인하세요.</h2><p className="reference-subtitle">일정, 이동 경로, 접근성 정보와 날씨를 마지막으로 확인합니다.</p>
+  return <>
+    <p className="reference-subtitle">일정, 이동 경로, 접근성 정보와 날씨를 마지막으로 확인합니다.</p>
     <div className="reference-trip-banner"><div><h3>{trip.travelStart.replaceAll("-", ". ")} - {trip.travelEnd.slice(5).replace("-", ". ")}</h3><p>{trip.tripDays.length > 1 ? `${trip.tripDays.length - 1}박 ${trip.tripDays.length}일` : "당일 여행"} · {region} · 여행지 {inPeriod.length}곳</p></div><ol className="reference-route-chain" aria-label="전체 방문 순서">{inPeriod.map((place, index) => <li key={place.id}><b>{index + 1}</b><span>{place.name}</span></li>)}</ol></div>
     <div className="reference-overview-grid">
       <section className="reference-schedule"><header><h3>전체 일정</h3><button type="button" onClick={onEdit}>일정 수정하기</button></header>
@@ -35,5 +35,5 @@ export default function PlannerTripOverview({ trip, participation, coverage, ori
     <div className="reference-bottom-bar reference-final-actions"><div><strong>{region} · 여행지 {inPeriod.length}곳</strong><small>{canShare ? "저장한 뒤에도 일정을 다시 수정할 수 있어요." : "기간 밖 여행지의 방문 날짜를 확인해 주세요."}</small></div><button type="button" className="reference-secondary" disabled={!canShare || participation.shareState === "saving"} onClick={() => void participation.sharePlan()}>{participation.shareState === "saving" ? "링크 만드는 중" : "공유하기"}</button><Suspense fallback={<p role="status">저장 기능을 준비하고 있어요.</p>}><TravelBookArchiveAction compact places={trip.orderedSavedPlaces} region={region} theme={theme} profiles={profiles} travelStart={trip.travelStart} travelEnd={trip.travelEnd} dayStartTime={trip.dayStartTime} scheduleAssignments={trip.scheduleAssignments} /></Suspense></div>
     {participation.shareUrl && <p role="status"><a href={participation.shareUrl}>공유 일정 열기</a> · {participation.shareState === "copy-error" ? "주소를 직접 복사해 주세요." : "공유 링크를 만들었어요."}</p>}
     {participation.shareState === "error" && <p role="alert">공유 링크를 만들지 못했어요. 잠시 후 다시 시도해 주세요.</p>}
-  </section>;
+  </>;
 }
