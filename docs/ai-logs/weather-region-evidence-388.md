@@ -18,3 +18,6 @@ Normal integration of d21258c569b50afd6acafa58978e22734ae25dad. Fresh lint/typec
 
 ## Response-integrity candidate integration
 Normal integration of #427 e78c011 includes actual main #424. Full754-test lint/typecheck/build/performance PASS (Planner269.10KiB/CSS69.90KiB). The first40-browser integration run passed38 and failed the same multi-region fixture on two devices: it supplied Place[] instead of RouteStop[]. After integrating the typed fixture correction, all40 weather/region-boundary/departure-route cases PASS1.8min with unchanged assertions/timeouts. No additional weather source was changed. Actual merged main, fresh required checks, own hosted CI and Production remain pending.
+
+## Actual main #427
+Normal merge e35a5b28dff5de07d345ec19692cc7396e870dac includes a8b89729449ccf1fffcf2acce3a8ff5d5ce2fb30. The only conflict was the response-integrity log: compared both sides and retained the main version, which adds the photo-race evidence to the same existing text. Product/test source merged cleanly. Full756-test lint/typecheck/build/performance PASS (Planner269.11KiB,CSS69.90KiB;13 existing warnings); all40 weather/region-boundary/departure-route browsers PASS1.9min. No additional weather UI change. Own hosted CI and #427 Production must pass before this PR merges; its own deployment is verified afterward.
