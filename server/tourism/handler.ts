@@ -7,6 +7,7 @@ import { buildPlan } from "./plan-builder";
 import { fetchPhoto, fetchSpotPhoto, photoFrom } from "./photos";
 import { recordOperationalEvent } from "../shared/observability";
 import { handlePlaceCoordinates } from "./place-coordinates";
+import { handleAvailability } from "./availability";
 
 function selectedRegion(url: URL) {
   const requested = clean(url.searchParams.get("region"), 20);
@@ -56,6 +57,7 @@ export async function handleWaveApi(request: Request, env: Env) {
   }
   const url = new URL(request.url);
   const action = url.searchParams.get("action") || "plan";
+  if (action === "availability") return handleAvailability(request, env);
   if (action === "place-coordinates") return handlePlaceCoordinates(url, env);
   if (action === "photo") return handlePhoto(url, env);
   if (action === "spot-photo") return handleSpotPhoto(url, env);

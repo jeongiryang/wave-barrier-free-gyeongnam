@@ -53,7 +53,7 @@ for (const locale of ["ko", "en"] as const) {
     await page.locator(".profile-grid button").first().click();
     await next.click();
     const dates = page.locator(".condition-progress button").nth(3);
-    const status = page.locator("#conditions").getByRole("status");
+    const status = page.locator("#conditions > p[role='status']");
     const activityHeading = en ? "What would you like to do?" : "무엇을 하고 싶나요?";
     await expect(next).toBeDisabled();
     await expect(dates).toBeDisabled();
@@ -72,6 +72,7 @@ for (const locale of ["ko", "en"] as const) {
     await dates.click();
     await expect(page.locator(".condition-actions").getByRole("button", { name: /Find places|여행지 찾기/ })).toBeEnabled();
     await page.locator(".condition-progress button").nth(2).click();
+    await expect(page.locator(".condition-inputs")).toHaveCSS("opacity", "1");
     expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
     await activity.click();
     await expect(next).toBeDisabled();

@@ -109,6 +109,10 @@ export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; 
     const request = requestRoute.request();
     const url = new URL(request.url());
     const action = url.searchParams.get("action");
+    if (url.pathname === "/api/wave" && action === "availability") return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+      region: url.searchParams.get("region"), themes: url.searchParams.get("themes")?.split(","), limit: 12,
+      candidates: [{ id: "1001", profiles: ["wheel", "senior"] }, { id: "1002", profiles: ["wheel"] }], status: { state: "live", partial: false },
+    }) });
     if (url.pathname === "/api/wave" && action === "plan") {
       if (options.slowPlan) await new Promise((resolve) => setTimeout(resolve, 650));
       if (options.failPlan) return requestRoute.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "여행 정보를 잠시 확인할 수 없습니다." }) });
