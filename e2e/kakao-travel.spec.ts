@@ -11,7 +11,7 @@ test("Kakao card prepares a private-field-free public snapshot then opens the pi
   // Serve the local implementation under the registered origin; no requests reach Production.
   await page.route(`${origin}/**`, async route => { const url = new URL(route.request().url()); const local = new URL(baseURL!); const response = await route.fetch({ url: `${baseURL}${url.pathname}${url.search}`, headers: { ...route.request().headers(), host: local.host, origin: local.origin, referer: `${local.origin}/` } }); await route.fulfill({ response }); });
   await accountFixture(page);
-  await page.addInitScript(() => { (window as unknown as { __cards: unknown[] }).__cards = []; window.Kakao = { init: () => {}, isInitialized: () => true, Share: { sendDefault: card => { (window as unknown as { __cards: unknown[] }).__cards.push(card); } } }; });
+  await page.addInitScript(() => { (window as unknown as { __cards: unknown[] }).__cards = []; window.Kakao = { init: () => { window.Kakao!.Share = { sendDefault: card => { (window as unknown as { __cards: unknown[] }).__cards.push(card); } }; }, isInitialized: () => Boolean(window.Kakao?.Share) }; });
   await page.route("**/api/kakao/share", route => route.fulfill({ json: { javascriptKey: "a".repeat(32) } }));
   let snapshots = 0;
   await page.route("**/api/trips", route => {

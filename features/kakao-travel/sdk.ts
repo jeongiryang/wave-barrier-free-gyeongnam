@@ -1,4 +1,4 @@
-type KakaoSdk = { init: (key: string) => void; isInitialized: () => boolean; Share: { sendDefault: (template: unknown) => void } };
+type KakaoSdk = { init: (key: string) => void; isInitialized: () => boolean; Share?: { sendDefault: (template: unknown) => void } };
 declare global { interface Window { Kakao?: KakaoSdk } }
 let loading: Promise<KakaoSdk> | undefined;
 export function loadKakaoShare(): Promise<KakaoSdk> {
@@ -18,8 +18,9 @@ export function loadKakaoShare(): Promise<KakaoSdk> {
       document.head.appendChild(script);
     });
     const sdk = window.Kakao;
-    if (!sdk?.Share) throw new Error("카카오 공유를 다시 준비해 주세요.");
+    if (!sdk) throw new Error("카카오 공유를 다시 준비해 주세요.");
     if (!sdk.isInitialized()) sdk.init(config.javascriptKey);
+    if (!sdk.Share) throw new Error("카카오 공유를 다시 준비해 주세요.");
     return sdk;
   })().catch(error => { loading = undefined; throw error; });
   return loading;
