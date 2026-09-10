@@ -38,7 +38,7 @@ test(`weather alternative search keeps focus during the return to conditions ${e
   await search.click();
   await page.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
   await page.locator(".journey-rail nav button").last().click();
-  await page.getByRole("button", { name: en ? "Check latest information" : "최신 정보 확인", exact: true }).click();
+  await page.getByRole("button", { name: en ? "Refresh places and weather" : "장소·날씨 다시 조회", exact: true }).click();
   await page.locator("#layers > summary").click();
   const trigger = page.getByRole("button", { name: en ? "Find history and culture alternatives" : "역사·문화 후보로 다시 찾기", exact: true });
   await expect(trigger).toBeVisible();
