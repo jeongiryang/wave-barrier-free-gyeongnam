@@ -22,7 +22,7 @@ function requestFixture() {
     throw Error(name);
   });
   return { calls, notices, run: options => mod.exports.useRouteRequest("창원").loadRouteData({
-    origin: { lat: 35.2, lng: 128.6 }, originLabel: "public station", privateOrigin: false,
+    origin: { lat: 35.2, lng: 128.6 }, originLabel: "public station", privateOrigin: false, mode: "transit",
     onNotice: message => notices.push(message), onActiveRouteChange() {}, ...options,
   }) };
 }

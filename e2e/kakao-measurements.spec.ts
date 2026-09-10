@@ -10,8 +10,9 @@ test("inconsistent provider measurements stay unavailable and a deliberate reche
   // Run the real provider adapter against an offline raw response. No provider API
   // or key is used; the API-composition unit contract separately verifies preview status.
   await page.route("**/api/route?**", async (route) => {
-    requests++;
     const params = new URL(route.request().url()).searchParams;
+    if (params.get("mode") !== "car") return route.fulfill({ json: { configured: false, alternatives: [], providers: [], context: null } });
+    requests++;
     const [startLat, startLng, endLat, endLng] = ["startLat", "startLng", "endLat", "endLng"].map(key => Number(params.get(key)));
     const originalFetch = globalThis.fetch;
     let result;

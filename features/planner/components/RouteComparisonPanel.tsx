@@ -75,7 +75,7 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
         <strong className={mode.minutes !== null ? "" : "route-mode-unknown"}>{mode.minutes !== null ? `${mode.minutes}${english ? " min" : "분"}` : (english ? "Time unavailable" : "시간 정보 없음")}</strong>
       </button>)}
     </div>
-    <p className="route-mode-order-note">{english ? "Modes with available estimated times appear first, fastest to slowest. Check missing times in Kakao Maps." : "확인된 예상 시간이 있는 이동수단부터 빠른 순서로 정렬합니다. 시간이 없으면 카카오맵에서 이어서 확인합니다."}</p>
+    <p className="route-mode-order-note">{english ? "Select a travel mode to check its journey times. Check unavailable routes in Kakao Maps." : "이동수단을 선택하면 해당 수단의 경로와 시간을 조회합니다. 확인할 수 없는 경로는 카카오맵에서 이어서 확인하세요."}</p>
     <p className="route-notice" aria-live="polite"><span className={activeRoute?.configured ? "live-dot" : "ready-dot"} />{routeNotice[locale]}{routeNotice.subject && <> <span lang={originalLanguage(routeNotice.subject)}>{routeNotice.subject}</span></>}</p>
     {english && hasOriginalNames && <p className="route-mode-order-note">Route and stop names may be shown in their original language.</p>}
     {transitStatus && (transitStatus.failure || transitStatus.detail) && transitStatus.state !== "connected" && <Suspense fallback={<p className="route-notice" role="status">{english ? "Preparing transport information." : "교통정보를 정리하고 있습니다."}</p>}><TransitProviderNotice provider={transitStatus} english={english} /></Suspense>}

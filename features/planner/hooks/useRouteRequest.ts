@@ -8,12 +8,14 @@ import type { DestinationCrowd, Place, TransportContext, TransportProvider } fro
 import { fetchDestinationCrowd, fetchRouteData } from "../services/route-data";
 import type { RouteDataBundle } from "../services/route-data";
 import { routeResultNotice, type RouteNotice } from "../route-copy";
+import type { RouteTravelMode } from "./useRouteView";
 
 interface RouteRequestOptions {
   place: Place;
   origin: RoutePoint;
   privateOrigin: boolean;
   originLabel: string;
+  mode: RouteTravelMode;
   onNotice: (message: RouteNotice) => void;
   onActiveRouteChange: (routeId: string) => void;
 }
@@ -46,6 +48,7 @@ export function useRouteRequest(region: string) {
     origin,
     privateOrigin,
     originLabel,
+    mode,
     onNotice,
     onActiveRouteChange,
   }: RouteRequestOptions) => {
@@ -88,7 +91,7 @@ export function useRouteRequest(region: string) {
         if (!controller.signal.aborted && routeRequestRef.current === controller) setDestinationCrowd(null);
       });
     try {
-      const data = await fetchRouteData(origin, endpoint, controller.signal);
+      const data = await fetchRouteData(origin, endpoint, mode, controller.signal);
       if (controller.signal.aborted || routeRequestRef.current !== controller) return;
       const alternatives = data.alternatives || [];
       setRouteAlternatives(alternatives);

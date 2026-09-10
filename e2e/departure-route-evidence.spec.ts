@@ -26,6 +26,9 @@ for (const en of [false, true]) for (const color of ["light", "dark"]) test(`${e
   await page.route("**/api/route?*", route => new URL(route.request().url()).searchParams.get("endLat") === "35.229"
     ? route.fulfill({ json: { configured: true, alternatives: [], providers: [{ id: "tago", name: "TAGO", state: "connected", configured: true }], context: {} } }) : route.fallback());
   const check = page.getByRole("button", { name: en ? "Check all journeys" : "모든 구간 조회하기", exact: true });
+  const mode = page.locator(".itinerary-route-coverage select");
+  // This scenario verifies car fixtures; the current UI starts with transit.
+  await mode.selectOption("car");
   await check.click();
   await expect(journeys).toContainText(count(1));
   await expect(journeys).toHaveClass("partial");
@@ -36,11 +39,11 @@ for (const en of [false, true]) for (const color of ["light", "dark"]) test(`${e
   await expect(journeys).toHaveClass("confirmed");
   await expect(mobility).toHaveClass("recheck");
   await expect(card.locator(".readiness-overall")).toHaveClass(/recheck/);
-  const mode = page.locator(".itinerary-route-coverage select");
   await mode.selectOption("walk");
   await expect(journeys).toContainText(count(0));
   await expect(journeys).toHaveClass("recheck");
   await mode.selectOption("car");
+  // Completed evidence is reusable only for the exact same mode and itinerary identity.
   await expect(journeys).toContainText(count(2));
   await page.locator(".day-planner").getByLabel(en ? "용지호수공원 trip date" : "용지호수공원 여행 날짜", { exact: true }).selectOption("2026-10-09");
   await expect(journeys).toContainText(count(0));

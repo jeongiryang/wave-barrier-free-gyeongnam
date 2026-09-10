@@ -25,6 +25,7 @@ for (const focus of ["panel", "outside", "pending-location"]) test(`a final map 
     await page.goto("/planner");
     await chooseTripConditions(page);
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+    await page.locator(".itinerary-route-coverage select").selectOption("car");
     await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();
     const panel = page.locator("#map-panel-route");
     await expect(panel).toBeVisible();

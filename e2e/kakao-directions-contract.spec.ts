@@ -7,6 +7,7 @@ test("external directions preserve the public departure, destination and selecte
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   const panel = page.locator(".route-compare-panel");
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect(panel.locator(".route-option")).toHaveCount(2);
   for (const [label, mode] of [["자동차", "car"], ["대중교통", "traffic"], ["도보", "walk"], ["자전거", "bicycle"]]) {
     await panel.getByRole("group", { name: "이동수단별 예상 시간" }).getByRole("button", { name: new RegExp(label) }).click();
@@ -41,6 +42,7 @@ test("device location stays out of external URLs and route requests with an expl
   await page.goto("/planner");
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect(page.locator(".route-option")).toHaveCount(2);
   const before = requests.length;
   await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();

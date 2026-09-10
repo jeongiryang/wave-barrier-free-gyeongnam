@@ -7,6 +7,7 @@ import type {
   TransportProvider,
 } from "../types";
 import { optionalPlannerJson, plannerJson } from "./api";
+import type { RouteTravelMode } from "../hooks/useRouteView";
 
 export interface RouteDataBundle {
   alternatives?: RouteAlternative[];
@@ -36,6 +37,7 @@ export async function fetchDestinationCrowd(
 export function fetchRouteData(
   origin: RoutePoint,
   destination: { lat: number; lng: number },
+  mode: RouteTravelMode,
   signal: AbortSignal,
 ) {
   const params = new URLSearchParams({
@@ -43,6 +45,7 @@ export function fetchRouteData(
     startLng: String(origin.lng),
     endLat: String(destination.lat),
     endLng: String(destination.lng),
+    mode,
   });
   return plannerJson<RouteDataBundle>(`/api/route?${params.toString()}`, {
     cache: "no-store",

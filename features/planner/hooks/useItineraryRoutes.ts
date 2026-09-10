@@ -8,7 +8,7 @@ import type { useRoutePlanning } from "./useRoutePlanning";
 
 export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, route: ReturnType<typeof useRoutePlanning>) {
   const legs = useMemo(() => buildItineraryLegs({ places: trip.orderedSavedPlaces, days: trip.tripDays, assignments: trip.scheduleAssignments, origin: route.origin, originLabel: route.originLabel, privateOrigin: route.privateOrigin }), [trip.orderedSavedPlaces, trip.tripDays, trip.scheduleAssignments, route.origin, route.originLabel, route.privateOrigin]);
-  const signature = JSON.stringify(legs.map((leg) => leg.key));
+  const signature = JSON.stringify([route.routeTravelMode, legs.map((leg) => leg.key)]);
   const [evidence, setEvidence] = useState<{ signature: string; data: Record<string, RouteDataBundle> }>({ signature: "", data: {} });
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
@@ -37,7 +37,7 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
         const leg = legs[next++];
         if (!leg.from || !leg.to || leg.blocked) continue;
         try {
-          const result = await fetchRouteData(leg.from, leg.to, controller.signal);
+          const result = await fetchRouteData(leg.from, leg.to, route.routeTravelMode, controller.signal);
           if (!controller.signal.aborted && controllerRef.current === controller) setEvidence((current) => current.signature === signature ? { signature, data: { ...current.data, [leg.key]: result } } : current);
         } catch {
           // A missing leg stays explicitly unchecked. Never use an invented route.
