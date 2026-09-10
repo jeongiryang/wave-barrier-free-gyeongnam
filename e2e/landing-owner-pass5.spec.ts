@@ -99,7 +99,8 @@ test("readonly demos select and type internally once, without server writes or c
   const writes:string[]=[]; const requests:string[]=[];
   page.on("request",request=> {requests.push(request.url()); if(!["GET","HEAD","OPTIONS"].includes(request.method())) writes.push(request.url());});
   await page.clock.install(); await page.goto("/"); await ready(page);
-  const storage=await page.evaluate(()=>JSON.stringify(localStorage));
+  // Preserve every stored key/value without assuming a browser enumeration order.
+  const storage=await page.evaluate(()=>({ ...localStorage }));
   const needs=page.locator('[data-demo="facilities"]'); await needs.scrollIntoViewIfNeeded();
   await expect(needs).toHaveAttribute("data-running","true");
   await page.clock.fastForward(1400); await expect(needs).toHaveAttribute("data-step","1");
@@ -114,7 +115,7 @@ test("readonly demos select and type internally once, without server writes or c
   await page.clock.fastForward(1400); await expect(writing.locator(".demo-post-preview")).toHaveAttribute("data-shown","true");
   await page.clock.fastForward(12000); await expect(writing).toHaveAttribute("data-step","3");
   expect(writes).toEqual([]); expect(requests.filter(url=>/timeline-|ocean-expand|journey-sequence|hero-water-loop/.test(url))).toEqual([]);
-  expect(await page.evaluate(()=>JSON.stringify(localStorage))).toBe(storage);
+  expect(await page.evaluate(()=>({ ...localStorage }))).toStrictEqual(storage);
 });
 
 test("every region retains its exact original source, author and named link, including image failure", async ({ page }) => {

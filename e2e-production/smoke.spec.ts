@@ -63,8 +63,21 @@ test("public trip surfaces stay readable without writes", async ({ page }) => {
 });
 
 test("reduced motion keeps the public entry flow usable", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "dark" });
+  await page.addInitScript(() => {
+    localStorage.setItem("wave-theme", "dark");
+    localStorage.setItem("wave-locale", "en");
+    localStorage.setItem("wave-dev-presentation", "enabled");
+  });
   await expectHealthyPage(page, "/");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
+  if (await intro.isVisible()) await intro.getByRole("button", { name: "소개로 건너뛰기", exact: true }).click();
+  const preferences = page.locator(".preference-controls:visible");
+  await expect(preferences.getByLabel("환경설정 열기", { exact: true })).toBeVisible();
+  await expect(preferences.getByRole("combobox", { includeHidden: true })).toHaveCount(0);
+  await expect(preferences.getByRole("button", { name: /다크모드|라이트모드|Dark mode|Light mode/, includeHidden: true })).toHaveCount(0);
   const plannerLink = page.locator('a[href*="/planner"]:visible').first();
   await expect(plannerLink).toBeVisible({ timeout: 15_000 });
 });

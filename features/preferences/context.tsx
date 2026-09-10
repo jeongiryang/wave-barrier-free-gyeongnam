@@ -4,6 +4,7 @@ import { createContext, startTransition, useContext, useEffect, useMemo, useStat
 import { copy } from "./translations";
 import { readStoredPreferences, writeStoredPreferences } from "./storage";
 import type { Locale, Motion, PreferencesValue, Theme } from "./types";
+import { presentationOptionsEnabled } from "./presentation-release";
 
 const PreferencesContext = createContext<PreferencesValue | null>(null);
 
@@ -55,9 +56,9 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     locale,
     theme,
     hydrated,
-    setLocale: setLocaleState,
+    setLocale: (next) => { if (presentationOptionsEnabled()) setLocaleState(next); },
     motion,
-    toggleTheme: () => setTheme((current) => current === "dark" ? "light" : "dark"),
+    toggleTheme: () => { if (presentationOptionsEnabled()) setTheme((current) => current === "dark" ? "light" : "dark"); },
     t: (key, fallback) => copy[locale][key] || fallback,
   }), [locale, theme, hydrated, motion]);
 

@@ -57,6 +57,11 @@ test("읽기만 하고 아무도 채우지 않는 저장 키는 없어야 한다
   const bundle = await sourceBundle();
   const written = storageKeys(bundle, "setItem");
   const read = storageKeys(bundle, "getItem");
+  // This development-only opt-in is written by Playwright's isolated storage
+  // state, never by public product UI. Verify its actual writer declaration.
+  const harness = await readFile(new URL("../playwright.config.ts", import.meta.url), "utf8");
+  assert.match(harness, /localStorage: \[\{ name: "wave-dev-presentation", value: "enabled" \}\]/);
+  written.add("wave-dev-presentation");
   const empties = [...read].filter((key) => !written.has(key));
   assert.deepEqual(empties, [], `아무도 채우지 않는 읽기 키: ${empties.join(", ")}`);
 });
