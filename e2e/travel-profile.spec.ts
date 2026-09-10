@@ -4,6 +4,7 @@ import { mockPlannerApi } from "./fixtures";
 test("편의 조건은 저장 뒤에도 자동 적용하지 않고 사용자가 선택해 적용·삭제한다", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
   await expect(page.getByRole("group", { name: "여행 설계 보기 방식" }).getByRole("button", { name: "전체 보기", exact: true })).toBeEnabled();
   const profileChoices = page.locator(".profile-grid");
 
@@ -35,9 +36,10 @@ test("손상되거나 차단된 프로필 저장소는 현재 선택을 잃지 �
   });
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
   await expect(page.getByText(/저장한 편의 조건을 읽지 못했습니다/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "false");
-  await page.getByRole("button", { name: /휠체어 편의시설/ }).click();
+  await expect(page.locator(".profile-grid").getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "false");
+  await page.locator(".profile-grid").getByRole("button", { name: /휠체어 편의시설/ }).click();
 
   await page.evaluate(() => {
     const original = Storage.prototype.setItem;
@@ -50,5 +52,5 @@ test("손상되거나 차단된 프로필 저장소는 현재 선택을 잃지 �
   await profile.locator("summary").click();
   await profile.getByRole("button", { name: "이 조건 저장" }).click();
   await expect(page.getByText(/편의 조건을 저장하지 못했어요/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".profile-grid").getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "true");
 });

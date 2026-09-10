@@ -5,7 +5,7 @@ test("통합 플래너는 실제 시간순 이동수단을 먼저 보여주고 �
   await mockPlannerApi(page);
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await expect(page.getByRole("heading", { name: "나에게 맞는 경남 여행" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "경남 무장애 여행 계획" })).toBeVisible();
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   // 이 목록은 예상 시간이 오면 빠른 순서로 다시 정렬돼 탭 목록이 아니라 선택 버튼 묶음이다.
   const modes = page.locator(".route-mode-sections button");

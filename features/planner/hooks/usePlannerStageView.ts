@@ -68,6 +68,7 @@ export function usePlannerStageView() {
   const view = useSyncExternalStore(subscribe, currentView, serverView);
   const activeStepId = useSyncExternalStore(subscribe, currentStep, serverStep);
   const [focusTarget, setFocusTarget] = useState<{ id: string } | null>(null);
+  const [conditionQuestion, setConditionQuestion] = useState(0);
   const focusedRequest = useRef(focusTarget);
 
   const changeView = useCallback((next: PlannerStageView) => {
@@ -98,6 +99,17 @@ export function usePlannerStageView() {
     listeners.forEach((listener) => listener());
   }, []);
 
+  const changeQuestion = useCallback((question: number) => {
+    const next = Math.max(0, Math.min(3, question));
+    setConditionQuestion(next);
+    const url = new URL(window.location.href);
+    url.searchParams.set("question", String(next));
+    url.hash = "conditions";
+    window.history.pushState(null, "", url);
+    changeStep("conditions");
+    setFocusTarget({ id: "conditions" });
+  }, [changeStep]);
+
   useLayoutEffect(() => {
     if (!focusTarget || focusedRequest.current === focusTarget) return;
     const section = document.getElementById(focusTarget.id);
@@ -117,6 +129,8 @@ export function usePlannerStageView() {
     let firstFrame = 0;
     let secondFrame = 0;
     const sync = (event?: Event) => {
+      const question = Number(new URLSearchParams(window.location.search).get("question") || 0);
+      setConditionQuestion(Number.isInteger(question) && question >= 0 && question <= 3 ? question : 0);
       const destination = HASH_STEPS[window.location.hash.slice(1)] || HASH_STEPS.conditions;
       changeStep(destination.step);
       if (event) setFocusTarget({ id: destination.target });
@@ -126,7 +140,7 @@ export function usePlannerStageView() {
         secondFrame = window.requestAnimationFrame(() => scrollToSection(destination.target, prefersReducedMotion()));
       });
     };
-    if (window.location.hash) sync();
+    if (window.location.hash || window.location.search) sync();
     window.addEventListener("popstate", sync);
     window.addEventListener("hashchange", sync);
     return () => {
@@ -137,5 +151,5 @@ export function usePlannerStageView() {
     };
   }, [changeStep]);
 
-  return { view, activeStepId, changeView, changeStep };
+  return { view, activeStepId, changeView, changeStep, conditionQuestion, changeQuestion };
 }

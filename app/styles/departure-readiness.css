@@ -28,7 +28,7 @@
 .readiness-actions { display: flex; flex: 0 0 auto; gap: 8px; }.readiness-actions button { min-height: 44px; padding: 10px 13px; border: 1px solid var(--blue); border-radius: 11px; color: var(--on-blue); background: var(--blue); font-size: .66rem; font-weight: 880; }
 .readiness-actions button.secondary { color: #074e75; border-color: #a8ccdc; background: #e6f4f9; }.readiness-actions button:disabled { opacity: .58; cursor: not-allowed; }
 .departure-readiness > footer .readiness-error { width: 100%; color: #8b3022; font-weight: 800; }
-html[data-theme="dark"] .departure-readiness { border-color: #315c6d; background: linear-gradient(145deg,#0b3141,#082735); }
+html[data-theme="dark"] .departure-readiness { border-color: #315c6d; background: linear-gradient(145deg,#0b3141,#082735) #0b3141; }
 html[data-theme="dark"] .readiness-grid article,html[data-theme="dark"] .departure-readiness > footer { border-color: #315768; background: #0d3546; }
 html[data-theme="dark"] .readiness-grid article > a { color: #d8f2ff; background: #174d63; }
 html[data-theme="dark"] .readiness-actions button.secondary { color: #daf4ff; border-color: #3b7288; background: #153f50; }

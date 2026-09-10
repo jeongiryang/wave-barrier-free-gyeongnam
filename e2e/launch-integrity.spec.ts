@@ -18,13 +18,13 @@ test("first visit stays neutral and later stages are locked without a search", a
   await mockPlannerApi(page, { plannerView: "guided" });
   page.on("request", (request) => { if (request.url().includes("action=plan")) requests++; });
   await page.goto("/planner");
-  await expect(page.getByRole("heading", { name: "어디로 갈까요?", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "경남, 어디부터 가볼까요?", exact: true })).toBeVisible();
   await expect(page.getByRole("group", { name: "여행 지역 선택", exact: true }).locator('[aria-pressed="true"]')).toHaveCount(0);
   await expect(page.locator(".condition-actions button")).toBeDisabled();
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "0");
-  await expect(page.locator(".journey-rail nav button").nth(1)).toBeDisabled();
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "0");
+  await expect(page.locator(".reference-progress button").nth(3)).toBeDisabled();
   expect(requests).toBe(0);
-  await expect(page.locator(".planner-progress-status")).toHaveText("4단계 중 0단계 완료 · 4단계 남음");
+  await expect(page.locator(".reference-stage-count")).toHaveText("1 / 7 지역");
 });
 
 test("a returning user can open an existing device itinerary before a new search", async ({ page }) => {
@@ -44,19 +44,19 @@ test("a returning user can open an existing device itinerary before a new search
     }]));
   });
   await page.goto("/planner");
-  const itineraryStep = page.getByRole("navigation", { name: "여행 계획 단계 이동" })
-    .getByRole("button", { name: /내 일정/ });
+  const itineraryStep = page.getByRole("navigation", { name: "여행 만들기 단계" })
+    .getByRole("button", { name: /^6\. 일정/ });
   await expect(itineraryStep).toBeEnabled();
   await itineraryStep.click();
-  await expect(page.getByRole("heading", { name: "내 일정 어떤 순서로 움직이면 편할까요?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /여행, 순서만 정하면 돼요/ })).toBeVisible();
   await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toContainText("기존 저장 여행지");
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "0");
-  await page.getByRole("navigation", { name: "여행 계획 단계 이동" })
-    .getByRole("button", { name: /^조건/ }).click();
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "0");
+  await page.getByRole("navigation", { name: "여행 만들기 단계" })
+    .getByRole("button", { name: /^1\. 지역/ }).click();
   await chooseTripConditions(page);
   // The new results do not include the stored legacy place. It stays editable,
   // but must not satisfy the current recommendation-selection milestone.
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "25");
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "25");
   await itineraryStep.click();
   await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toContainText("기존 저장 여행지");
 });
@@ -185,7 +185,7 @@ test("one saved place does not complete the trip and the dialog contains keyboar
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "50");
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "50");
 });
 
 test("old dated stops are kept separately and never become new-date markers", async ({ page }) => {
@@ -206,9 +206,9 @@ for (const width of [280, 320, 390, 768, 1024, 1366, 1920, 2560]) {
     await page.setViewportSize({ width, height: width < 768 ? 800 : 960 });
     await mockPlannerApi(page, { plannerView: "guided" });
     await page.goto("/planner");
-    await expect(page.getByRole("heading", { name: "어디로 갈까요?", exact: true })).toBeVisible();
-    const header = await page.locator(".site-header").boundingBox();
-    const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
+    await expect(page.getByRole("heading", { name: "경남, 어디부터 가볼까요?", exact: true })).toBeVisible();
+    const header = await page.locator(".reference-header").boundingBox();
+    const heading = await page.getByRole("heading", { name: "경남, 어디부터 가볼까요?", exact: true }).boundingBox();
     expect(heading!.y).toBeGreaterThanOrEqual(header!.y + header!.height);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: test.info().outputPath(`questions-${width}.png`), fullPage: true });
@@ -274,34 +274,34 @@ test("trip completion requires every ordered leg and separate itinerary and depa
   await expect(coverage.getByRole("combobox", { name: "이동수단", exact: true })).toBeVisible();
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
   await expect(coverage.getByRole("checkbox")).toBeDisabled();
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "50");
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "50");
   await coverage.getByRole("button", { name: "모든 구간 조회하기", exact: true }).click();
   await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
   expect(requests.some((url) => url.searchParams.get("startLat") === "35.238" && url.searchParams.get("startLng") === "128.691" && url.searchParams.get("endLat") === "35.229")).toBe(true);
   await coverage.getByRole("checkbox").check();
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "75");
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "75");
   await page.getByRole("checkbox", { name: /일정과 출발 전 다시 확인할 항목/ }).check();
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "100");
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "100");
   await expectNoOverflow(page);
   expect((await new AxeBuilder({ page }).include(".itinerary-route-coverage").analyze()).violations).toEqual([]);
   await coverage.screenshot({ path: test.info().outputPath(`all-journeys-${width}.png`) });
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("transit");
   await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
   await expect(coverage.getByRole("checkbox")).not.toBeChecked();
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "50");
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "50");
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
   await page.getByLabel("용지호수공원 여행 날짜").selectOption("2026-10-09");
   await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
   await expect(coverage.getByRole("listitem").nth(1)).toContainText("2026-10-09 · 창원중앙역 → 용지호수공원");
   await expect(page.getByRole("checkbox", { name: /일정과 출발 전 다시 확인할 항목/ })).not.toBeChecked();
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "50");
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "50");
   expect(errors).toEqual([]);
 });
 
 test("guided itinerary unlocks the same dated journeys and transport control after saving places", async ({ page }) => {
   await mockPlannerApi(page, { plannerView: "guided" });
   await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
-  const itineraryStep = page.locator(".journey-rail nav button").nth(2);
+  const itineraryStep = page.locator(".reference-progress button").nth(5);
   await expect(itineraryStep).toBeDisabled();
   await chooseTripConditions(page);
   await expect(itineraryStep).toBeDisabled();
@@ -309,7 +309,8 @@ test("guided itinerary unlocks the same dated journeys and transport control aft
   await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
   await expect(itineraryStep).toBeEnabled();
   await itineraryStep.click();
-  await page.getByLabel("용지호수공원 여행 날짜", { exact: true }).selectOption("2026-10-09");
+  await page.locator(".reference-itinerary-details > summary").click();
+  await page.locator(".reference-itinerary-details").getByLabel("용지호수공원 여행 날짜", { exact: true }).selectOption("2026-10-09");
   const coverage = page.locator(".itinerary-route-coverage");
   await expect(coverage.getByRole("listitem")).toHaveText([
     /2026-10-08 · 창원중앙역 → 경남도립미술관/,
@@ -319,8 +320,8 @@ test("guided itinerary unlocks the same dated journeys and transport control aft
   await coverage.getByRole("button", { name: "모든 구간 조회하기", exact: true }).click();
   await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
   await coverage.getByRole("checkbox").check();
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "75");
-  expect((await new AxeBuilder({ page }).include(".guided-stage-actions").analyze()).violations).toEqual([]);
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "75");
+  expect((await new AxeBuilder({ page }).include(".reference-itinerary-layout").analyze()).violations).toEqual([]);
   await expectNoOverflow(page);
 });
 
@@ -332,8 +333,8 @@ test("clearing the last theme invalidates previous results without locking an ex
   await page.getByRole("button", { name: /자연·휴양 공원/ }).click();
   await expect(page.getByText("조건이 변경됐어요.", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true })).toBeDisabled();
-  await expect(page.locator(".journey-rail nav button").nth(2)).toBeEnabled();
-  await expect(page.locator('.journey-rail [role="progressbar"]')).toHaveAttribute("aria-valuenow", "0");
+  await expect(page.locator(".reference-progress button").nth(5)).toBeEnabled();
+  await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "0");
   await expect(page.locator(".day-planner-grid li")).toContainText("경남도립미술관");
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
 });

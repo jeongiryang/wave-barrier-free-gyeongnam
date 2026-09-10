@@ -55,8 +55,8 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
 
   await page.getByRole("button", { name: "여행 조건에 반영하기" }).click();
   await expect(page).toHaveURL(/\/planner\?[^#]*region=%EB%82%A8%ED%95%B4/);
-  await expect(page.getByRole("heading", { name: "나에게 맞는 경남 여행", exact: true })).toBeVisible();
-  await expect(page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "남해", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("heading", { name: "경남 무장애 여행 계획", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "남해 지역 선택", exact: true })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("group", { name: "여행 설계 보기 방식" }).getByRole("button", { name: /전체 보기/ }).click();
   await expect(page.getByRole("navigation", { name: "지도에 표시할 날짜" })).toContainText("08/14");
   await expect.poll(() => page.evaluate(() => {

@@ -52,7 +52,7 @@ for (const invalid of ["invalid-json", "missing-fields", "damaged-place"] as con
 test("search validation has no additional deferred module request", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
-  await expect(page.getByRole("button", { name: "전체 보기", exact: true })).toBeEnabled();
+  await expect(page.locator(".journey-mode-toggle").getByRole("button", { name: "전체 보기", exact: true })).toBeEnabled();
   let modules = 0;
   await page.route("**/features/planner/services/plan-response.ts*", route => {
     modules++;

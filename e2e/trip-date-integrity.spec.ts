@@ -63,7 +63,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) {
     const archive = itinerary.getByRole("button", { name: english ? "Save itinerary" : "내 일정에 저장", exact: true });
     await expect(archive).toBeDisabled();
     await expect(itinerary.getByRole("button", { name: english ? "Create shared link" : "공유 링크 만들기", exact: true })).toBeDisabled();
-    await expect(itinerary.locator("#archive-date-notice")).toContainText(english ? "original dates" : "원래 날짜");
+    await expect(itinerary.locator(".travel-book-archive-action > p[id]")).toContainText(english ? "original dates" : "원래 날짜");
     await itinerary.getByLabel(english ? "용지호수공원 move to a date in this trip" : "용지호수공원 이번 여행 날짜로 이동", { exact: true }).selectOption("2026-10-07");
     await expect(archive).toBeEnabled(); await archive.click();
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-travel-book-v1") || "[]"));

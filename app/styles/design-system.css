@@ -31,19 +31,17 @@
 /* --- 반복되는 형태를 하나의 규칙으로 모은다 ------------------------------- */
 
 /* 카드류: 테두리·모서리·그림자를 같은 값으로 통일 */
-.place-card, .rich-card, .route-option, .route-compare-panel, .evidence-card,
-.service-region-card, .day-planner, .weather-day, .diagnostic-grid article,
-.transport-data-results article, .shared-places article, .insight-board > article {
+.place-card, .rich-card, .route-option, .route-compare-panel, .evidence-card, .day-planner, .weather-day, .diagnostic-grid article, .transport-data-results article, .shared-places article, .insight-board > article {
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-1);
   transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-1) ease;
 }
-.place-card:hover, .rich-card:hover, .service-region-card:hover {
+.place-card:hover, .rich-card:hover {
   box-shadow: var(--shadow-3);
 }
 
 /* 알약형 칩·배지 */
-.tool-launch-status span, .tool-launch-status button, .service-proof span, .transport-provider-strip > span, .place-card .stop-check {
+.transport-provider-strip > span, .place-card .stop-check {
   border-radius: var(--r-full);
 }
 
@@ -61,8 +59,7 @@
 }
 
 /* 조작 대상은 최소 44px — 접근성 기준 */
-button, .landing-start, .header-action,
-.tool-launch-status button {
+button, .landing-start, .header-action {
   min-height: 44px;
 }
 .primary-button, .account-submit, .landing-start, .landing-cta a {

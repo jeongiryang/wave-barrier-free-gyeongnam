@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  lazy,
+  Suspense,
   useCallback,
   useMemo,
   useState,
@@ -11,14 +13,12 @@ import PlaceDecisionDialog from "../../features/planner/components/PlaceDecision
 import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
 import PlannerConditionsPanel from "../../features/planner/components/PlannerConditionsPanel";
 import PlannerFooter from "../../features/planner/components/PlannerFooter";
-import { PlannerHeader } from "../../features/planner/components/PlannerHeader";
 import RecommendationWorkspace from "../../features/planner/components/RecommendationWorkspace";
 import DepartureReadinessCard from "../../features/planner/components/DepartureReadinessCard";
 import TravelSignalsPanel from "../../features/planner/components/TravelSignalsPanel";
 import PlannerItineraryWorkspace from "../../features/planner/components/PlannerItineraryWorkspace";
 import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
 import { useLocationSearch } from "../../features/planner/hooks/useLocationSearch";
-import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
 import { usePlannerParticipation } from "../../features/planner/hooks/usePlannerParticipation";
 import { usePlannerPlan } from "../../features/planner/hooks/usePlannerPlan";
 import { usePlannerSignals } from "../../features/planner/hooks/usePlannerSignals";
@@ -31,13 +31,17 @@ import { useItineraryRoutes } from "../../features/planner/hooks/useItineraryRou
 import { useJourneyProgress } from "../../features/planner/hooks/useJourneyProgress";
 import type { Place } from "../../features/planner/types";
 import { buildPlannerViewModel } from "../../features/planner/view-model";
-import PlannerJourneyRail from "../../features/planner/components/PlannerJourneyRail";
-import PlannerJourneyModeToggle from "../../features/planner/components/PlannerJourneyModeToggle";
-import PlannerStageFrame from "../../features/planner/components/PlannerStageFrame";
 import { usePlannerStageView } from "../../features/planner/hooks/usePlannerStageView";
 import { profiles as accessibilityProfiles, themes as travelThemes } from "../../features/planner/constants";
 
+import PlannerStageFrame from "../../features/planner/components/PlannerStageFrame";
+import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
+import PlannerJourneyModeToggle from "../../features/planner/components/PlannerJourneyModeToggle";
+import PlannerReferenceChrome from "../../features/planner/components/PlannerHeader";
+
 import RegionChangeDialog from "../../features/planner/components/RegionChangeDialog";
+
+const PlannerTripOverview = lazy(() => import("../../features/planner/components/PlannerTripOverview"));
 
 export default function PlannerPage() {
   const { hydrated, locale, motion, t } = useSitePreferences();
@@ -52,7 +56,9 @@ export default function PlannerPage() {
   const placeDialogRef = usePlaceDialogFocus(Boolean(selectedPlace), closeSelectedPlace);
 
   const activePlaces = useMemo(() => plan?.places ?? [], [plan]);
-  const { headerHidden, scrolled } = usePlannerChrome(plan);
+  usePlannerChrome(plan);
+  const [departureDetailsOpen, setDepartureDetailsOpen] = useState(false);
+  const [itineraryMapView, setItineraryMapView] = useState(false);
   const {
     origin, originLabel, privateOrigin, routeDestination,
     destinationCrowd, transportProviders,
@@ -91,6 +97,7 @@ export default function PlannerPage() {
   const stageView = usePlannerStageView();
   const { changeStep: changePlannerStep } = stageView;
   const openTravelSignals = useCallback((target: "layers" | "crowd") => {
+    setDepartureDetailsOpen(true);
     setSecondaryOpen(true);
     changePlannerStep("departure-readiness", true, target);
   }, [setSecondaryOpen, changePlannerStep]);
@@ -218,33 +225,22 @@ export default function PlannerPage() {
   }
 
   return (
-    <main className="planner-page journey-editorial" lang={locale}>
+    <main className="planner-page journey-editorial planner-reference" lang={locale}>
       <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>
-      <div className="scroll-progress" aria-hidden="true" />
-      <PlannerHeader t={t} scrolled={scrolled} hidden={headerHidden} savedCount={saved.length} onNavigate={journey.goToStep} />
-
-      <section className="planner-journey-workspace" id="planner" aria-labelledby="journey-workspace-title">
-        <header className="planner-intro">
-          <div><h1 id="journey-workspace-title">{locale === "en" ? "A trip that works for you." : "나에게 맞는 경남 여행"}</h1>
-          <p>{locale === "en" ? "A place you love. A journey at your pace." : "마음에 드는 곳을, 나의 속도로"}</p>
-          <p className="planner-progress-status sr-only" role="status">{locale === "en" ? `${journey.completedCount} of 4 steps complete · ${4 - journey.completedCount} remaining` : `4단계 중 ${journey.completedCount}단계 완료 · ${4 - journey.completedCount}단계 남음`}</p></div>
-          <PlannerJourneyModeToggle view={stageView.view} interactive={hydrated} onChange={stageView.changeView} />
-        </header>
+      <h1 className="sr-only">{locale === "en" ? "Gyeongnam accessible trip planner" : "경남 무장애 여행 계획"}</h1>
+      <PlannerReferenceChrome progress={journey.progress} requestState={planController.requestState} recommendedCount={activePlaces.length} region={region} dates={travelStart ? `${travelStart.slice(5).replace("-", "월 ")}일 - ${travelEnd.slice(5).replace("-", "월 ")}일` : ""} facilities={selected.map(id => accessibilityProfiles.find(p => p.id === id)?.label || id).join(" · ")} savedCount={saved.length} activeStep={journey.activeStepId} question={stageView.conditionQuestion}
+        available={[true, Boolean(region), Boolean(region && selected.length), Boolean(region && selected.length && planController.themes.length), true, saved.length > 0, saved.length > 0]}
+        onQuestion={stageView.changeQuestion} onNavigate={journey.goToStep} onSearch={() => void generatePlan()} searching={planController.loading} />
+      <section className="planner-journey-workspace" id="planner" aria-label="여행 만들기">
         <div className="journey-control-layout">
-          <PlannerJourneyRail
-            journey={journey}
-            interactive={hydrated}
-            selectedProfileCount={selected.length}
-            recommendedCount={activePlaces.length}
-            requestState={planController.requestState}
-            savedCount={saved.length}
-            routeDestinationName={routeDestination?.name || ""}
-          />
           <div className="journey-stage-stream" data-view={stageView.view}>
             <PlannerStageFrame view={stageView.view} step={journey.steps[0]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerConditionsPanel
                 onRegionChange={regionChange.request}
                 view={stageView.view}
+                question={stageView.conditionQuestion}
+                onQuestion={stageView.changeQuestion}
+                onItinerary={() => journey.goToStep("itinerary")}
                 onGenerate={generatePlan}
                 t={t}
                 activePlaces={activePlaces}
@@ -262,9 +258,18 @@ export default function PlannerPage() {
                 onGenerate={generatePlan}
                 onSelectPlace={setSelectedPlace}
               />
+              <div className="reference-bottom-bar"><div><strong>선택한 여행지 {saved.length}곳</strong><small>여행지는 일정에서 더 추가할 수 있어요.</small></div><button type="button" disabled={!saved.length} onClick={() => stageView.changeQuestion(3)}>다음: 날짜 선택</button></div>
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerItineraryWorkspace
+                mapView={itineraryMapView}
+                onMapViewChange={setItineraryMapView}
+                canAddPlaces={planController.resultCurrent}
+                expanded={stageView.view === "overview"}
+                weather={weather}
+                weatherLoading={weatherLoading}
+                onSelectPlace={setSelectedPlace}
+                onContinue={() => journey.goToStep("departure-readiness")}
                 coverage={itineraryRoutes}
                 reviewed={itineraryReviewed}
                 onReview={(checked) => setReviewedItinerary(checked ? itinerarySignature : "")}
@@ -290,7 +295,12 @@ export default function PlannerPage() {
               />
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[3]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
+              {stageView.view !== "overview" && journey.activeStepId === "departure-readiness" && <section className="reference-overview" aria-labelledby="reference-overview-title">
+                <h2 id="reference-overview-title">{region || "경남"} 여행, 한눈에 확인하세요.</h2>
+                <Suspense fallback={<p role="status">전체 일정을 준비하고 있어요.</p>}><PlannerTripOverview trip={tripSelection} participation={participation} coverage={itineraryRoutes} origin={origin} weather={weather} weatherLoading={weatherLoading} region={region} theme={travelThemes.find(item => item.id === theme)?.label || theme} profiles={selected.map(id => accessibilityProfiles.find(item => item.id === id)?.label || id)} onEdit={() => { setItineraryMapView(false); journey.goToStep("itinerary"); }} onMap={() => { setItineraryMapView(true); journey.goToStep("itinerary"); }} onSelectPlace={setSelectedPlace} onDetails={() => setDepartureDetailsOpen(true)} /></Suspense></section>}
+              <details className="reference-departure-details" open={stageView.view === "overview" || departureDetailsOpen} onToggle={event => setDepartureDetailsOpen(event.currentTarget.open)}><summary>출발 전 정보와 여행 도구 자세히 보기</summary>
               <DepartureReadinessCard
+                embedded
                 canRefreshPlaces={Boolean(region && theme && selected.length)}
                 placesLoading={planController.loading}
                 placeCriteriaCurrent={planController.resultCurrent}
@@ -341,6 +351,7 @@ export default function PlannerPage() {
                 dataErrors={dataErrors}
                 plan={plan}
               />
+              </details>
             </PlannerStageFrame>
           </div>
         </div>
@@ -361,6 +372,7 @@ export default function PlannerPage() {
       />}
 
       {regionChange.pending && <RegionChangeDialog region={regionChange.pending} en={locale === "en"} error={regionChange.error} onCancel={regionChange.cancel} onAdd={regionChange.add} onNew={regionChange.startNew} />}
+      <div className="reference-view-preference"><PlannerJourneyModeToggle view={stageView.view} interactive={hydrated} onChange={stageView.changeView} /></div>
       <PlannerFooter />
     </main>
   );

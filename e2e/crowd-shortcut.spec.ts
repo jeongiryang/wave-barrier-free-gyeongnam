@@ -12,7 +12,8 @@ for (const plannerView of ["guided", "overview"] as const) {
     await chooseTripConditions(page);
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
     if (plannerView === "guided") {
-      await page.getByRole("navigation", { name: "여행 계획 단계 이동" }).getByRole("button", { name: /출발 확인/ }).click();
+      await page.getByRole("navigation", { name: "여행 만들기 단계" }).getByRole("button", { name: /^7\. 전체보기/ }).click();
+      await page.locator(".reference-departure-details > summary").click();
     }
     const shortcut = page.locator(".readiness-grid article").filter({ has: page.getByText("관광 집중률", { exact: true }) }).getByRole("link");
     await expect(page.locator("#layers")).not.toHaveAttribute("open");

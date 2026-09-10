@@ -16,30 +16,11 @@
   background: #f8fcfe;
   box-shadow: 0 24px 70px rgb(6 48 74 / 9%);
 }
-.journey-workspace-hero {
-  min-height: 270px;
-  padding: clamp(28px, 4.5vw, 62px);
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
-  align-items: end;
-  gap: 24px 50px;
-  color: #fff;
-  background: radial-gradient(circle at 82% 16%, rgb(77 199 216 / 28%), transparent 30%), linear-gradient(130deg,#062736 0%,#07567c 62%,#087e9c 100%);
-}
-.journey-workspace-hero > div p { margin: 0 0 8px; color: var(--mint); font-size: .72rem; font-weight: 900; letter-spacing: .18em; }
-.journey-workspace-hero h1 { margin: 0; font-size: clamp(2.6rem, 6vw, 5.7rem); line-height: .95; letter-spacing: -.07em; }
-.journey-workspace-hero > p { margin: 0; max-width: 52ch; color: #c5e2ec; font-size: clamp(.9rem, 1.15vw, 1.05rem); line-height: 1.75; }
-.journey-workspace-hero > nav { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; }
-.journey-workspace-hero > nav a { min-height: 44px; padding: 10px 13px; display: inline-flex; align-items: center; border: 1px solid rgb(255 255 255 / 23%); border-radius: 999px; color: #fff; background: rgb(255 255 255 / 8%); font-size: .75rem; font-weight: 850; text-decoration: none; transition: .2s ease; }
-.journey-workspace-hero > nav a:hover { background: rgb(255 255 255 / 15%); transform: translateY(-1px); }
 
 .journey-workspace-block { width: 100%; margin: 0; padding: clamp(34px, 4vw, 56px) clamp(20px, 4.2vw, 58px); scroll-margin-top: 96px; border-top: 1px solid #d7e6ec; }
-.planner-journey-workspace .planner-bento,
 .planner-journey-workspace .place-carousel,
 .planner-journey-workspace .day-planner,
 .planner-journey-workspace .weather-board,
-.planner-journey-workspace .impact-panel,
-.planner-journey-workspace .planner-secondary-details,
 .planner-journey-workspace .transport-mode-filter,
 .planner-journey-workspace .transport-details,
 .planner-journey-workspace .transport-live-rail,
@@ -60,8 +41,6 @@
 
 /* 기존 최상위 전용 carousel 규칙을 통합 워크스페이스 안에서도 동일하게 유지한다. */
 .planner-journey-workspace > .places-section .place-carousel { width: auto; }
-.planner-journey-workspace .save-card { width: auto; min-width: 106px; height: 44px; padding: 0 13px; border-radius: 999px; font-size: .7rem; font-weight: 900; }
-.planner-journey-workspace .save-card.saved { color: #87384a; }
 
 /* 이 기기 일정만 일정의 source of truth로 사용한다. */
 .itinerary-empty-state { min-height: 210px; padding: 30px; display: grid; place-content: center; justify-items: center; text-align: center; }
@@ -123,9 +102,6 @@
 
 @media (max-width: 780px) {
   .planner-journey-workspace { width: calc(100vw - 16px); margin-top: 84px; border-radius: 22px; }
-  .journey-workspace-hero { min-height: 0; padding: 28px 20px; grid-template-columns: 1fr; }
-  .journey-workspace-hero h1 { font-size: clamp(2.6rem, 14vw, 4.2rem); }
-  .journey-workspace-hero > nav { grid-column: auto; }
   .journey-workspace-block { padding: 30px 14px; }
   .planner-journey-workspace .navigation-section { padding: 24px 0 0; }
   .journey-subheading { align-items: flex-start; flex-direction: column; gap: 8px; }
@@ -162,7 +138,7 @@ html[data-theme="dark"] .place-community-story-list > a { color: #eaf5f9; backgr
 html[data-theme="dark"] .place-community-empty { background: #0e3748; }html[data-theme="dark"] .place-field-report-link { color: #eaf5f9; border-color: #376d5d; background: #123e35; }html[data-theme="dark"] .place-field-report-link i { color: #8ee5c8; }
 
 @media (prefers-reduced-motion: reduce) {
-  .journey-workspace-hero > nav a,.route-mode-sections button,.place-community-story-list > a { transition: none; }
+  .route-mode-sections button,.place-community-story-list > a { transition: none; }
 }
 
 /* 시간을 확인하지 못한 이동수단. 값처럼 강조하지 않는다 — 파란 글자로 두면

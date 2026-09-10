@@ -17,7 +17,7 @@ async function contrast(button: Locator) {
 }
 
 for (const locale of ["ko", "en"] as const) for (const theme of ["light", "dark"] as const) {
-  test(`${locale} ${theme} result navigation has readable arrows and keyboard focus`, async ({ page }) => {
+  test(`${locale} ${theme} photo card save controls have readable icons and keyboard focus`, async ({ page }) => {
     const en = locale === "en";
     await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 320 : 1366, height: 768 });
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -28,18 +28,16 @@ for (const locale of ["ko", "en"] as const) for (const theme of ["light", "dark"
     }, { locale, theme });
     await page.goto("/planner");
     await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
-    await page.getByRole("group", { name: en ? "Choose a region" : "여행 지역 선택", exact: true })
-      .getByRole("button", { name: en ? "Changwon" : "창원", exact: true }).click();
-    const nextQuestion = page.locator(".condition-actions").getByRole("button", { name: en ? "Continue →" : "다음 →", exact: true });
+    await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
+    const nextQuestion = page.locator(".condition-actions button").last();
     await nextQuestion.click();
     await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
     await nextQuestion.click();
     await page.getByRole("button", { name: en ? /Nature and relaxation/ : /자연·휴양 공원/ }).click();
     await nextQuestion.click();
-    await page.locator(".condition-actions").getByRole("button").last().click();
     await expect(page.locator(".place-carousel article")).toHaveCount(2);
-    const previous = page.getByRole("button", { name: en ? "Previous places" : "이전 여행지", exact: true });
-    const next = page.getByRole("button", { name: en ? "Next places" : "다음 여행지", exact: true });
+    const previous = page.locator(".place-card .reference-heart").first();
+    const next = page.locator(".place-card .place-actions .primary").first();
     for (const button of [previous, next]) {
       await expect(button).toBeVisible();
       await expect(button).toBeEnabled();

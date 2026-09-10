@@ -7,6 +7,7 @@ import TransportDataOverview from "./TransportDataOverview";
 import { useSitePreferences } from "../../../components/SitePreferences";
 
 interface NavigationWorkspaceProps {
+  compact?: boolean;
   mapEnabled: boolean;
   activePlaces: Place[];
   planCrowd: PlanData["crowd"];
@@ -20,6 +21,7 @@ interface NavigationWorkspaceProps {
 }
 
 export default function NavigationWorkspace({
+  compact = false,
   mapEnabled,
   activePlaces,
   planCrowd,
@@ -38,13 +40,14 @@ export default function NavigationWorkspace({
       <div><span aria-hidden="true">↗</span><h3 id="navigation-title">{english ? "Check your route" : "이동 경로 확인"}</h3></div>
       <p>{english ? "Choose departure and destination to compare available journey times, transfers and walking sections." : "출발지와 도착지를 고르면 실제로 확인된 시간, 환승과 도보 구간을 비교합니다."}</p>
     </div>
-    <TransportDataOverview
+    <details className="reference-transport-details" open={compact ? undefined : true}><summary>상세 교통수단 보기</summary><TransportDataOverview
       activePlaces={activePlaces}
       effectiveProviders={effectiveProviders}
       route={route}
       onCopyBookingRoute={onCopyBookingRoute}
-    />
+    /></details>
     <RouteMapWorkspace
+      compact={compact}
       mapEnabled={mapEnabled}
       activePlaces={activePlaces}
       planCrowd={planCrowd}

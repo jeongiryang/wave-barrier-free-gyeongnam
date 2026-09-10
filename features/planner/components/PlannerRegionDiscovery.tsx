@@ -2,30 +2,39 @@
 
 import { useState } from "react";
 import GyeongnamRegionPicker from "../../../components/GyeongnamRegionPicker";
-import { useSitePreferences } from "../../../components/SitePreferences";
-import { regionShowcasePhotos } from "../../landing/region-showcase-photos";
+import { regionShowcasePhotos, regionShowcaseAlbums } from "../../landing/region-showcase-photos";
 import { regionPhotoSource } from "../../landing/region-photo-sources";
-import { regionNames } from "../../../lib/gyeongnam-region-names";
+import { useSitePreferences } from "../../../components/SitePreferences";
 
-/** Destination imagery is editorial; the selected region remains explicit. */
-export default function PlannerRegionDiscovery({ value, onChange }: { value: string; onChange: (region: string) => void }) {
+const featured = ["통영", "거제", "창원", "남해", "진주"];
+const captions: Record<string, string> = { 통영: "바다와 골목을 함께", 거제: "섬을 따라 머무는 여행", 창원: "도시 가까이 만나는 자연", 남해: "느린 바다 여행", 진주: "남강을 따라 걷는 하루" };
+
+const interests = [
+  { label: "바다", detail: "해안과 섬", theme: "nature", icon: "M3 14c3-6 6-6 9 0 3-6 6-6 9 0M3 19c3-2 6-2 9 0 3-2 6-2 9 0" },
+  { label: "숲길", detail: "자연과 휴식", theme: "nature", icon: "M12 3 4 15h5v6h6v-6h5L12 3Z" },
+  { label: "문화", detail: "전시와 역사", theme: "history", icon: "m3 9 9-6 9 6H3Zm2 3v7m7-7v7m7-7v7M3 21h18" },
+  { label: "먹거리", detail: "지역의 맛", theme: "food", icon: "M5 3v7m4-7v7M3 7h8M7 10v11m11-18v18m0-18c-5 3-5 8 0 8" },
+  { label: "실내", detail: "박물관과 전시", theme: "history", icon: "m3 11 9-8 9 8M5 10v11h14V10M9 21v-8h6v8" },
+];
+
+export default function PlannerRegionGallery({ value, onChange, onInterest, onFacilities, full = false }: { full?: boolean; value: string; onChange: (region: string) => void; onInterest: (theme: string) => void; onFacilities: () => void }) {
   const en = useSitePreferences().locale === "en";
-  const name = regionShowcasePhotos[value] ? value : "창원";
-  const photo = regionShowcasePhotos[name];
-  const [failedImage, setFailedImage] = useState("");
-  return <div className="planner-region-discovery">
-    <figure className="planner-destination-image">
-      {failedImage !== photo.image && <img key={photo.image} src={photo.image} width="1000" height="800" decoding="async" lang="ko" alt={`${name} · ${photo.title}`} onError={() => setFailedImage(photo.image)} ref={node => { if (node?.complete && !node.naturalWidth) setFailedImage(photo.image); }} />}
-      <div className="planner-destination-caption">
-        <span>{value ? en ? "YOUR DESTINATION" : "이번 여행의 시작" : en ? "FIND YOUR GYEONGNAM" : "마음이 머무는 곳으로"}</span>
-        <strong>{!value || value === "경남 전체" ? en ? "Gyeongnam" : "경남" : en ? regionNames[name] : name}</strong>
-        <p lang="ko">{name} · {photo.title}</p>
-      </div>
-      <figcaption><span lang="ko">{photo.photographer || "한국관광공사"}</span> · <a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{en ? "ⓒKTO · original photo ↗" : "ⓒ한국관광공사 · 사진 원본 ↗"}</a>{failedImage === photo.image && <span> · {en ? "Photo unavailable" : "사진을 불러오지 못했어요"}</span>}</figcaption>
-    </figure>
-    <div className="planner-destination-choices">
-      <p>{en ? "From the southern coast to forest paths. Choose a city or explore the whole region." : "남쪽 바다부터 숲길까지. 한 지역을 고르거나 경남 전체를 둘러보세요."}</p>
-      <GyeongnamRegionPicker value={value} onChange={onChange} includeAll compact />
-    </div>
+  const [interest, setInterest] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const [failedImages, setFailedImages] = useState<string[]>([]);
+  const featuredRegions = value && value !== "경남 전체" && !featured.includes(value) ? [value, ...featured.slice(1)] : featured;
+  return <div className="reference-regions">
+    <div className="reference-interests" role="group" aria-label={en ? "Travel interests" : "관심 있는 여행 풍경"}>{interests.map(item => <button type="button" key={item.label} aria-pressed={interest === item.label} onClick={() => { setInterest(item.label); onInterest(item.theme); }}><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={item.icon} /></svg></i><span>{item.label}<small>{item.detail}</small></span></button>)}<button type="button" disabled={!value} onClick={onFacilities}><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="5" r="2" /><path d="M4 10h16m-8-3v7m-5 7 5-7 5 7" /></svg></i><span>편의 선택<small>필요한 시설</small></span></button></div>
+    <div className="reference-section-label"><h3>지금 떠나기 좋은 지역</h3><button type="button" aria-expanded={expanded} aria-controls="reference-all-regions" onClick={() => setExpanded(!expanded)}>{expanded ? "접기" : "전체 보기"}</button></div>
+    <div className="reference-region-grid">{featuredRegions.map((name, index) => {
+      const photo = name === "통영" ? regionShowcaseAlbums[name][1] || regionShowcasePhotos[name] : regionShowcasePhotos[name];
+      return <article key={name} className={`reference-region-card${index === 0 ? " featured" : ""}`} data-selected={name === value || undefined}>
+        {!failedImages.includes(photo.image) && <img lang="ko" src={photo.image} alt={`${name} · ${photo.title}`} width="800" height="500" loading="lazy" decoding="async" onError={() => setFailedImages(previous => [...previous, photo.image])} />}
+        <div className="reference-region-copy" lang="ko"><h4>{name}</h4><p>{captions[name] || photo.title}</p></div>
+        <button type="button" aria-label={`${name} 지역 선택`} aria-pressed={name === value} onClick={() => onChange(name)}>{name === value ? `${name} 선택됨 ✓` : "선택"}</button>
+        <a className="reference-photo-credit" href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{photo.photographer || "한국관광공사"} · 원본 ↗</a>
+      </article>;
+    })}</div>
+    <div id="reference-all-regions" hidden={!full && !expanded}><GyeongnamRegionPicker value={value} onChange={onChange} includeAll compact /></div>
   </div>;
 }

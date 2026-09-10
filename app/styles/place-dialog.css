@@ -77,7 +77,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
 @media (max-width: 1100px) {
   :root { --content: min(94vw, 940px); }
   .gyeongnam-map { inset: 0 4% 7%; }
-  .planner-bento { grid-template-columns: 1fr; }
   .profile-panel, .selection-bar, .planner-notice { grid-column: auto; }
   .guide-player { width: min(600px, 100%); margin: auto; }
 }
@@ -89,10 +88,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
   .header-action { min-width: 44px; padding: 8px 10px; font-size: 0; }
   .header-action b, .header-action span { font-size: .75rem; }
   .gyeongnam-map { inset: 0 -6% 14%; }
-  .region-marker { width: 28px; min-width: 28px; height: 28px; min-height: 28px; padding: 0; justify-content: center; }
-  .region-marker b { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); padding: 2px 4px; border-radius: 5px; color: #fff; background: rgba(6,48,67,.8); font-size: .58rem; }
-  .region-marker span { font-size: .75rem; }
-  .region-preview { left: 0; width: min(330px, 82%); }
   .api-preview { top: 12px; right: 0; }
   .scroll-cue { display: none; }
   .places-section { padding: 88px 20px; }
@@ -119,7 +114,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
   .primary-button, .text-button { justify-content: space-between; }
   .gyeongnam-map { inset: 4% -13% 19%; }
   .api-preview { padding: 9px 11px; }
-  .region-preview { width: 91%; grid-template-columns: 50px 1fr; }
   .region-character { min-height: 55px; font-size: 1.55rem; }
   .control-panel { padding: 17px; border-radius: 18px; }
   .theme-grid, .profile-grid { grid-template-columns: 1fr; }

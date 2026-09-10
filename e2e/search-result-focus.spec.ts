@@ -16,20 +16,21 @@ async function prepare(page: Page, en = false, crowdRate?: number) {
   await page.addInitScript(value => localStorage.setItem("wave-locale", value), en ? "en" : "ko");
   await page.goto("/planner");
   await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>(".journey-mode-toggle button")?.disabled);
-  await page.getByRole("group", { name: en ? "Choose a region" : "여행 지역 선택", exact: true }).getByRole("button", { name: en ? "Changwon" : "창원", exact: true }).click();
-  const next = page.locator(".condition-actions").getByRole("button", { name: en ? "Continue →" : "다음 →", exact: true });
+  await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
+  const next = page.locator(".condition-actions button").last();
   await next.click();
   await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
   await next.click();
   await page.getByRole("button", { name: en ? /Nature/ : /자연·휴양 공원/ }).click();
-  await next.click();
   return page.locator(".condition-actions").getByRole("button").last();
 }
 
 for (const en of [false, true]) {
 test(`weather alternative search keeps focus during the return to conditions ${en ? "English" : "Korean"}`, async ({ page }) => {
   const search = await prepare(page, en);
+  await page.locator(".reference-progress button").nth(4).click();
   const date = await page.locator('input[type="date"]').first().inputValue();
+  await page.locator(".reference-progress button").nth(2).click();
   await page.route("**/api/weather?*", route => route.fulfill({ json: {
     region: "창원", source: "Open-Meteo", updatedAt: "2026-09-07T00:00:00Z",
     current: { temperature: 23, apparent: 23, code: 61, label: "비", wind: 2, precipitation: 3, isDay: true },
@@ -37,7 +38,8 @@ test(`weather alternative search keeps focus during the return to conditions ${e
   } }));
   await search.click();
   await page.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".journey-rail nav button").last().click();
+  await page.locator(".reference-progress button").last().click();
+  await page.locator(".reference-departure-details > summary").click();
   await page.getByRole("button", { name: en ? "Refresh places and weather" : "장소·날씨 다시 조회", exact: true }).click();
   await page.locator("#layers > summary").click();
   const trigger = page.getByRole("button", { name: en ? "Find history and culture alternatives" : "역사·문화 후보로 다시 찾기", exact: true });
@@ -70,7 +72,8 @@ for (const action of ["nearby", "alternative"] as const) test(`departure ${actio
   });
   await search.click();
   await page.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".journey-rail nav button").last().click();
+  await page.locator(".reference-progress button").last().click();
+  await page.locator(".reference-departure-details > summary").click();
   await expect(page).toHaveURL(/#departure-readiness$/);
   await page.locator("#layers > summary").click();
   const trigger = action === "nearby"
@@ -83,9 +86,9 @@ for (const action of ["nearby", "alternative"] as const) test(`departure ${actio
   const heading = page.locator("#itinerary-stage-title");
   await expect(heading).toBeFocused();
   await expect(page).toHaveURL(/#itinerary$/);
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(action === "nearby" ? 2 : 1);
-  await expect(page.locator(".day-planner-grid")).toContainText(action === "nearby" ? "창원 문화 행사" : "용지호수공원");
-  await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
+  await expect(page.locator(".reference-day-list .reference-stop")).toHaveCount(action === "nearby" ? 2 : 1);
+  await expect(page.locator(".reference-day-list")).toContainText(action === "nearby" ? "창원 문화 행사" : "용지호수공원");
+  await expect(page.locator(".reference-day-list")).toBeVisible();
   await expect(heading).toBeFocused();
   await expect.poll(() => heading.evaluate(element => {
     const box = element.getBoundingClientRect();
@@ -110,7 +113,7 @@ test(`keyboard search moves focus to the displayed results and synchronizes the 
   await page.screenshot({ path: test.info().outputPath("search-results-visible.png") });
   await page.goBack();
   await expect(page.locator(".condition-heading")).toBeFocused();
-  await expect(page).toHaveURL(/question=3#conditions$/);
+  await expect(page).toHaveURL(/question=2#conditions$/);
 });
 
 test(`a delayed search does not hide the question the user returned to ${en ? "English" : "Korean"}`, async ({ page }) => {
@@ -125,11 +128,11 @@ test(`a delayed search does not hide the question the user returned to ${en ? "E
   await search.focus();
   await search.press("Enter");
   await expect.poll(() => started).toBe(true);
-  await page.locator(".condition-progress button").first().click();
-  const heading = page.getByRole("heading", { name: en ? "Where would you like to go?" : "어디로 갈까요?", exact: true });
+  await page.locator(".reference-progress button").first().click();
+  const heading = page.getByRole("heading", { name: en ? "Where would you like to go?" : "경남, 어디부터 가볼까요?", exact: true });
   await expect(heading).toBeFocused();
   release();
-  await expect(page.locator(".journey-rail nav button").nth(1)).toBeEnabled();
+  await expect(page.locator(".reference-progress button").nth(3)).toBeEnabled();
   await expect(heading).toBeVisible();
   await expect(heading).toBeFocused();
   await expect(page).toHaveURL(/question=0#conditions$/);
@@ -139,7 +142,8 @@ test(`keyboard next step focuses the displayed itinerary heading ${en ? "English
   const search = await prepare(page, en);
   await search.click();
   await page.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
-  const next = page.getByRole("button", { name: en ? /Next: Itinerary/ : /다음: 내 일정/ });
+  await page.getByRole("button", { name: "다음: 날짜 선택", exact: true }).click();
+  const next = page.getByRole("button", { name: en ? "Next: Itinerary" : "다음: 일정 만들기", exact: true });
   await next.focus();
   await next.press("Enter");
   await expect(page.locator("#itinerary")).toBeVisible();
@@ -173,7 +177,9 @@ for (const end of ["cancel", "complete", "elsewhere"] as const) test(`all-journe
   const search = await prepare(page, en);
   await search.click();
   await page.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.getByRole("button", { name: en ? /Next: Itinerary/ : /다음: 내 일정/ }).click();
+  await page.locator(".reference-progress button").nth(5).click();
+  await page.getByRole("button", { name: "지도 함께 보기", exact: true }).click();
+  await page.locator(".reference-itinerary-details > summary").click();
   await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
   const coverage = page.locator(".itinerary-route-coverage");

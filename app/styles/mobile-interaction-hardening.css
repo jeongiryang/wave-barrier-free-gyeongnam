@@ -18,9 +18,6 @@
 }
 
 /* 이쪽은 `.planner-service-status`가 앞에 붙은 선택자가 덮고 있어 특이도를 맞춘다. */
-.planner-service-status .tool-launch-status button {
-  min-height: 44px;
-}
 
 /* select 자체가 앞선 `.select-shell select { outline: 0 }`에 덮이지 않게 한다. */
 .select-shell select:focus-visible,
@@ -60,12 +57,6 @@
   .auth-header nav a) {
   min-inline-size: 44px;
   justify-content: center;
-}
-.landing-region-map-canvas > button,
-.landing-region-map > button,
-.region-marker {
-  min-width: 44px;
-  min-height: 44px;
 }
 
 /* 스크롤로 숨은 헤더 안에 키보드 초점이 들어오면 그 즉시 화면으로 복귀한다. */
@@ -184,13 +175,4 @@ main small:not(.sr-only) {
   :root { --gutter: 10px; }
   .landing-header,.site-header { max-width: calc(100vw - 8px); }
   .preference-panel,.public-mobile-nav-panel { max-width: calc(100vw - 16px); }
-}
-
-@media (max-width: 680px) {
-  .landing-region-map-canvas > button {
-    min-width: 44px;
-    min-height: 44px;
-    padding: 4px 6px;
-    touch-action: manipulation;
-  }
 }

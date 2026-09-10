@@ -13,6 +13,7 @@ import { originalLanguage } from "../place-copy";
 import { useReadinessFocus } from "../hooks/useReadinessFocus";
 
 interface DepartureReadinessCardProps {
+  embedded?: boolean;
   region: string;
   plan: PlanData | null;
   placeCriteriaCurrent: boolean;
@@ -48,7 +49,7 @@ function formatCheckedAt(value: string, en: boolean) {
 }
 
 export default function DepartureReadinessCard({
-  region, plan, placeCriteriaCurrent, canRefreshPlaces, placesLoading, destinationCrowd, destinationPlaceId, weather, weatherLoading, routeCoverage, tripSelection, participation, onRefresh, onOpenSignals,
+  embedded = false, region, plan, placeCriteriaCurrent, canRefreshPlaces, placesLoading, destinationCrowd, destinationPlaceId, weather, weatherLoading, routeCoverage, tripSelection, participation, onRefresh, onOpenSignals,
 }: DepartureReadinessCardProps) {
   const { locale } = useSitePreferences();
   const focusVisibility = useReadinessFocus();
@@ -119,7 +120,7 @@ export default function DepartureReadinessCard({
     }
   }
 
-  return <section {...focusVisibility} className={`departure-readiness ${assessment.state}`} id="departure-readiness" aria-labelledby="departure-readiness-title" data-reveal>
+  return <section {...focusVisibility} className={`departure-readiness ${assessment.state}`} id={embedded ? "departure-details" : "departure-readiness"} aria-labelledby="departure-readiness-title" data-reveal>
     <header>
       <div>
         <span><b aria-hidden="true">4</b> {en ? "Before leaving" : "출발 전 확인"} · {assessment.phase.label}</span>

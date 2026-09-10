@@ -44,7 +44,7 @@ test("단계 제목을 한국어로 읽을 수 있다", async () => {
     source("features/planner/components/DepartureReadinessCard.tsx"),
   ]).then((parts) => parts.join("\n"));
   for (const title of ["여행 조건 정하기", "내 조건에 맞는 여행지", "내 일정", "출발 전에 이것만 다시 확인하세요"]) assert.match(files, new RegExp(title));
-  for (const question of ["어디로 갈까요?", "어떤 편의가 필요할까요?", "무엇을 하고 싶나요?", "언제 떠날까요?"]) assert.match(files, new RegExp(question));
+  for (const question of ["경남, 어디부터 가볼까요?", "어떤 편의가 필요할까요?", "무엇을 하고 싶나요?", "언제 떠날까요?"]) assert.match(files, new RegExp(question));
 });
 
 test("추천 조회는 사용자가 명시적으로 시작한다", async () => {

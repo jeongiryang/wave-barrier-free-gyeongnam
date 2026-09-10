@@ -60,8 +60,7 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 .navigation-section { padding-right: clamp(20px,3.4vw,72px); padding-left: clamp(20px,3.4vw,72px); }
 .navigation-section .workspace-heading,.navigation-section .transport-mode-filter,.navigation-section .transport-provider-strip,.navigation-section .transport-live-rail,.navigation-section .transport-dataset-grid,.navigation-section .transport-data-panel,.navigation-workspace { width: 100%; max-width: 1760px; }
 .navigation-workspace { margin-right: auto; margin-left: auto; grid-template-columns: minmax(0,1.78fr) minmax(390px,.62fr); min-height: 820px; }
-.planner-section .workspace-heading,.planner-section .planner-bento { width: 100%; max-width: 1440px; }
-.planner-section .planner-bento { grid-template-columns: minmax(360px,.95fr) minmax(0,1.45fr); }
+.planner-section .workspace-heading { width: 100%; max-width: 1440px; }
 .route-compare-panel { padding: 22px; }
 
 .map-panel { --route-map-height: 710px; }
@@ -135,7 +134,6 @@ html[data-theme="dark"] .map-side-drawer header > button { color: #e7f2f7; borde
 }
 @media (max-width: 900px) {
   .route-map-shell.drawer-open .map-controls-layout { right: 8px; }
-  .planner-section .planner-bento { grid-template-columns: 1fr; }
   .route-map-shell,.route-map-shell.drawer-open { min-height: var(--route-map-height, 560px); grid-template-columns: minmax(0,1fr); }
   .map-panel { --route-map-height: 560px; }
   .route-map-canvas { height: var(--route-map-height, 560px); }

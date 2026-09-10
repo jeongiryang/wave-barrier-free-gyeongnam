@@ -69,7 +69,7 @@ for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: a fast pla
 
 for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: missing facility preferences offers a weather-only refresh`, async ({ page }) => {
   await prepare(page, en);
-  await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
+  await page.locator(".profile-grid").getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
   const refresh = page.locator(".readiness-actions button").first();
   await expect(refresh).toHaveText(en ? "Refresh weather" : "날씨 다시 조회");
   let searches = 0;

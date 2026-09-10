@@ -7,14 +7,16 @@ test("안내형 보기에서 보관 일정을 열면 재검색 없이 일정과 
   await page.goto("/planner");
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.getByRole("button", { name: "다음: 내 일정", exact: true }).click();
+  await page.locator(".reference-progress button").nth(5).click();
+  await page.locator(".reference-itinerary-details > summary").click();
   await page.getByRole("button", { name: "내 일정에 저장", exact: true }).click();
   await expect(page.locator(".travel-book-archive-action [role=status]")).toContainText("내 일정에 저장했어요");
   await page.getByRole("link", { name: /저장한 일정 보기/ }).click();
   await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
   await expect(page).toHaveURL(/from=travel-book#itinerary$/);
-  await expect(page.getByRole("region", { name: "날짜별 여행 일정", exact: true }).getByText("경남도립미술관").first()).toBeVisible();
-  await expect(page.locator("#itinerary > .route-scope-note")).toContainText("일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
+  await page.locator(".reference-itinerary-details > summary").click();
+  await expect(page.locator(".reference-day-list").getByText("경남도립미술관").first()).toBeVisible();
+  await expect(page.locator(".reference-itinerary-details > .route-scope-note")).toContainText("일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
   await expect(page.getByRole("status").filter({ hasText: "좌표를 확인하지 못한 장소:" })).toContainText("경남도립미술관");
   // The privacy contract still excludes coordinates from the archive; never
   // substitute unrelated recommendations or invented markers during restore.

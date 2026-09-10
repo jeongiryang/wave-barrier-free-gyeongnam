@@ -68,7 +68,9 @@ for (const theme of ["light", "dark"] as const) {
           const select = element instanceof HTMLSelectElement;
           const text = select ? element.selectedOptions[0].textContent || "" : element.textContent || "";
           const needed = context.measureText(text.trim()).width + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + (select ? 24 : 0);
-          return { text: text.trim(), available: element.clientWidth, needed, fits: needed <= element.clientWidth };
+          // clientWidth rounds to an integer; text measurement is fractional.
+          const available = element.getBoundingClientRect().width - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth);
+          return { text: text.trim(), available, needed, fits: needed <= available };
         });
         expect(fit.fits, JSON.stringify(fit)).toBe(true);
       }

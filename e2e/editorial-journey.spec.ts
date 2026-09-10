@@ -32,12 +32,13 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await page.goto("/planner");
     await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
     await expect(page.locator('.region-picker-list [aria-pressed="true"]')).toHaveCount(0);
-    await expect(page.locator(".planner-destination-caption strong")).toHaveText("경남");
+    await expect(page.locator(".reference-region-card")).toHaveCount(5);
+    await page.locator(".reference-section-label button").click();
     await expect(page.locator(".region-picker-list button")).toHaveCount(19);
     expect((await new AxeBuilder({ page }).include("#planner").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`region-${theme}-${width}.png`), fullPage: true });
     await page.getByRole("button", { name: "통영", exact: true }).click();
-    await expect(page.locator(".planner-destination-caption strong")).toHaveText("통영");
+    await expect(page.getByRole("button", { name: "통영 지역 선택" })).toHaveAttribute("aria-pressed", "true");
     await page.locator(".condition-actions button").click();
     await expect(page.getByRole("heading", { name: "어떤 편의가 필요할까요?", exact: true })).toBeFocused();
     await page.locator(".profile-card").first().click();
@@ -76,8 +77,8 @@ test("English travel pages identify original Korean photography and community co
   await expect(page.locator(".destination-panorama figcaption a")).toContainText("Source:");
   await page.goto("/planner");
   await expect(page.locator(".region-picker-list")).toHaveAccessibleName("Choose a region");
-  await expect(page.locator(".planner-destination-image img")).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".planner-destination-caption strong")).toHaveText("Gyeongnam");
+  await expect(page.locator(".reference-region-card img").first()).toHaveAttribute("lang", "ko");
+  await expect(page.locator(".reference-region-card img")).toHaveCount(5);
   await page.goto("/community");
   await expect(page.locator(".community-editorial")).toHaveAttribute("lang", "ko");
   await expect(page.locator(".community-editorial h1")).toContainText("다녀온 이야기");
