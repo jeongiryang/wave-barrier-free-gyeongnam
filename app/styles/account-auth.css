@@ -91,6 +91,11 @@ html[data-theme="dark"] .auth-message.success { color: #7ce0c8; }
 .account-danger h3 { color: #8b2f3c; }
 .account-delete-button { min-height: 50px; padding: 11px 16px; border: 1px solid #8b2f3c; border-radius: 13px; color: #fff; background: #8b2f3c; font: inherit; font-weight: 880; }
 .account-delete-button:disabled { opacity: .62; cursor: wait; }
+.kakao-auth { margin: 20px 0 12px; }
+.kakao-login-button { width: 100%; gap: 10px; color: #191919; background: #fee500; box-shadow: none; }
+.kakao-auth .auth-message { margin-top: 12px; }
+.kakao-login-button:focus-visible { outline-color: var(--blue-dark); }
+.account-settings .kakao-login-button { margin-top: 14px; }
 
 /* 어두운 화면 — 이 파일의 표면 색은 흰색 계열로 고정돼 있다. 배경만 어둡게 바꾸고
    글자를 두면 반대 사고가 나므로 배경과 글자를 함께 옮긴다.

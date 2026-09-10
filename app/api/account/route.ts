@@ -14,9 +14,10 @@ function response(data: unknown, status = 200) {
 export async function POST(request: Request) {
   const parsed = await readSameOriginJson(request, 2_048);
   if (parsed.response) return parsed.response;
-  const password = String(parsed.body.password || "");
+  const password = String(parsed.body.password || "") || undefined;
   const confirmation = String(parsed.body.confirmation || "");
-  if (password.length < 8 || password.length > 128 || confirmation !== "계정 삭제") {
+  const native = process.env.WAVE_AUTH_BACKEND === "native";
+  if ((!native && !password) || (password && (password.length < 8 || password.length > 128)) || confirmation !== "계정 삭제") {
     return response({ error: "현재 비밀번호와 확인 문구를 다시 확인해 주세요." }, 400);
   }
 
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
   const callbackURL = new URL(`/account/delete-complete?token=${prepared.token}`, request.url).toString();
   let result;
   try {
+    // Native deletion always confirms through a single-use email in this signed-in browser.
     result = await auth.deleteUser({ password, callbackURL });
   } catch {
     await revokeCommunityAccountDeletion(prepared.sql, prepared.hash).catch(() => undefined);

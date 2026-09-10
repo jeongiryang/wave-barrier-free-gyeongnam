@@ -4,8 +4,9 @@ import HydratedAuthForm from "./HydratedAuthForm";
 
 import type { AuthMode } from "../types";
 import { useAuthForm } from "../hooks/useAuthForm";
+import KakaoLogin from "./KakaoLogin";
 
-export default function AuthForm({ mode, returnTo }: { mode: AuthMode; returnTo?: string }) {
+export default function AuthForm({ mode, returnTo, kakaoEnabled = false }: { mode: AuthMode; returnTo?: string; kakaoEnabled?: boolean }) {
   const auth = useAuthForm(mode, returnTo);
 
   /**
@@ -35,7 +36,8 @@ export default function AuthForm({ mode, returnTo }: { mode: AuthMode; returnTo?
     <section className="auth-card" aria-labelledby="auth-title" aria-busy={auth.submitting}>
       <p className="auth-kicker">W.A.V.E 계정</p>
       <h2 id="auth-title">{auth.registering ? "여행자 계정 만들기" : "여행을 이어가세요"}</h2>
-      <p className="auth-description">W.A.V.E 전용 계정입니다. 다른 기관의 계정이나 비밀번호를 요구하지 않습니다.</p>
+      <p className="auth-description">{kakaoEnabled ? "카카오 또는 이메일로 여행자 이야기를 이어가세요." : "W.A.V.E 전용 계정입니다. 다른 기관의 계정이나 비밀번호를 요구하지 않습니다."}</p>
+      {kakaoEnabled && <KakaoLogin returnTo={returnTo} />}
       <HydratedAuthForm onSubmit={auth.submit} onInput={auth.clearError} noValidate>
         {auth.registering && <div className="auth-field"><label htmlFor="auth-name">표시 이름</label><input id="auth-name" name="name" autoComplete="name" minLength={2} maxLength={40} required {...fieldProps("name", "auth-name-help")} /><small id="auth-name-help">2자 이상 40자 이하로 입력해 주세요. 게시글과 댓글에는 이 이름만 표시됩니다.</small></div>}
         <div className="auth-field"><label htmlFor="auth-email">이메일</label><input id="auth-email" name="email" type="email" inputMode="email" autoComplete="email" maxLength={254} required {...fieldProps("email")} /></div>

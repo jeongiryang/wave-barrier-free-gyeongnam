@@ -1,5 +1,6 @@
 import { createNeonAuth, type NeonAuth } from "@neondatabase/auth/next/server";
 import { approvedNeonAuthBaseUrl } from "../deployment/environment-validation.js";
+import { nativeAuthConfigured, nativeFacade } from "./native-runtime";
 
 let cachedAuth: NeonAuth | null | undefined;
 
@@ -10,13 +11,15 @@ function configuredBaseUrl() {
 }
 
 export function isAuthConfigured() {
+  if (process.env.WAVE_AUTH_BACKEND === "native") return nativeAuthConfigured();
   const baseUrl = configuredBaseUrl();
   const secret = process.env.NEON_AUTH_COOKIE_SECRET?.trim();
   return Boolean(baseUrl && secret && secret.length >= 32);
 }
 
 /** 빌드 시 환경 변수가 없을 때도 안전하며, 런타임에서는 한 인스턴스를 재사용한다. */
-export function getAuth(): NeonAuth | null {
+export function getAuth() {
+  if (process.env.WAVE_AUTH_BACKEND === "native") return nativeFacade();
   if (cachedAuth !== undefined) return cachedAuth;
   const baseUrl = configuredBaseUrl();
   const secret = process.env.NEON_AUTH_COOKIE_SECRET?.trim();
@@ -30,6 +33,10 @@ export function getAuth(): NeonAuth | null {
     logLevel: process.env.NODE_ENV === "production" ? "silent" : "warn",
   });
   return cachedAuth;
+}
+
+export function isKakaoAuthConfigured() {
+  return process.env.WAVE_AUTH_BACKEND === "native" && nativeAuthConfigured();
 }
 
 export async function getCurrentUser() {

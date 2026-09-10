@@ -6,6 +6,8 @@ import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "../../../lib/auth/client";
 import { useHydratedSession } from "../hooks/useHydratedSession";
+import { useLoginMethods } from "../hooks/useLoginMethods";
+import ConnectedLogins from "./ConnectedLogins";
 
 function passwordValues(form: HTMLFormElement) {
   const data = new FormData(form);
@@ -16,9 +18,10 @@ function passwordValues(form: HTMLFormElement) {
   };
 }
 
-export default function AccountSettings() {
+export default function AccountSettings({ nativeAuth = false }: { nativeAuth?: boolean }) {
   const router = useRouter();
   const { data: session, isPending } = useHydratedSession();
+  const { methods, setMethods } = useLoginMethods(nativeAuth, session?.user?.id);
   const [passwordMessage, setPasswordMessage] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [changing, setChanging] = useState(false);
@@ -60,7 +63,7 @@ export default function AccountSettings() {
     const password = String(data.get("deletePassword") || "");
     const confirmation = String(data.get("deleteConfirmation") || "");
     setDeleteMessage("");
-    if (password.length < 8 || password.length > 128 || confirmation !== "계정 삭제") {
+    if ((!nativeAuth && (password.length < 8 || password.length > 128)) || confirmation !== "계정 삭제") {
       setDeleteMessage("현재 비밀번호와 ‘계정 삭제’ 확인 문구를 정확히 입력해 주세요.");
       return;
     }
@@ -77,6 +80,7 @@ export default function AccountSettings() {
       if (body.pendingVerification) {
         setDeleteMessage("계정 삭제 확인 메일을 보냈습니다. 같은 브라우저에서 메일의 링크를 열어 삭제를 완료해 주세요.");
         setDeleting(false);
+        deleteLock.current = false;
         return;
       }
       if (body.cleanupPending && /^[a-f0-9]{64}$/.test(body.cleanupToken || "")) {
@@ -96,7 +100,8 @@ export default function AccountSettings() {
 
   return <div className="account-settings">
     <p className="auth-description"><strong>{session.user.name || session.user.email}</strong> 계정의 보안과 삭제를 직접 관리합니다.</p>
-    <section aria-labelledby="change-password-title">
+    {nativeAuth && <ConnectedLogins methods={methods} onUnlink={() => setMethods((current) => current ? { ...current, kakao: false } : current)} />}
+    {(!nativeAuth || methods?.password) && <section aria-labelledby="change-password-title">
       <h3 id="change-password-title">비밀번호 변경</h3>
       <p>변경하면 현재 기기를 제외한 다른 로그인 세션을 종료합니다.</p>
       <HydratedAuthForm onSubmit={changePassword} noValidate>
@@ -106,15 +111,15 @@ export default function AccountSettings() {
         <p className={`auth-message${passwordSuccess ? " success" : ""}`} role={passwordMessage ? "status" : undefined} aria-live="polite">{passwordMessage}</p>
         <button className="auth-submit" type="submit" disabled={changing}>{changing ? "변경하는 중…" : "비밀번호 변경"}</button>
       </HydratedAuthForm>
-    </section>
+    </section>}
     <section className="account-danger" aria-labelledby="delete-account-title">
       <h3 id="delete-account-title">계정 탈퇴</h3>
       <p>인증 계정과 서버에 연결된 게시글·댓글·좋아요·신고를 삭제합니다. 보관한 여행집과 환경설정은 유지됩니다.</p>
       <HydratedAuthForm onSubmit={deleteAccount} noValidate>
-        <div className="auth-field"><label htmlFor="delete-password">현재 비밀번호</label><input id="delete-password" name="deletePassword" type="password" autoComplete="current-password" minLength={8} maxLength={128} required /></div>
+        {nativeAuth ? <p>본인 확인을 위해 계정 이메일로 탈퇴 확인 링크를 보냅니다. 같은 브라우저에서 링크를 열면 탈퇴가 완료됩니다.</p> : <div className="auth-field"><label htmlFor="delete-password">현재 비밀번호</label><input id="delete-password" name="deletePassword" type="password" autoComplete="current-password" minLength={8} maxLength={128} required /></div>}
         <div className="auth-field"><label htmlFor="delete-confirmation">확인 문구</label><input id="delete-confirmation" name="deleteConfirmation" type="text" autoComplete="off" placeholder="계정 삭제" required /><small>되돌릴 수 없습니다. ‘계정 삭제’를 그대로 입력해 주세요.</small></div>
         <p className="auth-message" role={deleteMessage ? "alert" : undefined} aria-live="polite">{deleteMessage}</p>
-        <button className="account-delete-button" type="submit" disabled={deleting}>{deleting ? "삭제하는 중…" : "계정과 서버 데이터 삭제"}</button>
+        <button className="account-delete-button" type="submit" disabled={deleting}>{deleting ? "처리하는 중…" : nativeAuth ? "탈퇴 확인 메일 보내기" : "계정과 서버 데이터 삭제"}</button>
       </HydratedAuthForm>
     </section>
   </div>;

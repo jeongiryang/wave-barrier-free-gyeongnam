@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { isKakaoAuthConfigured } from "../../lib/auth/server";
 
 export const metadata: Metadata = {
   title: "개인정보처리방침",
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
+  const kakaoEnabled = isKakaoAuthConfigured();
   return <main className="policy-page" id="main">
     <nav aria-label="정책 페이지 이동"><Link href="/">W.A.V.E 홈</Link><Link href="/policies">운영정책</Link><Link href="/terms">서비스 이용약관</Link></nav>
     <header><p>PRIVACY POLICY</p><h1>필요한 정보만,<br />쓰임과 저장 위치를 분명하게.</h1><span>정책 버전 1.0 · 시행일 2026년 9월 3일</span></header>
@@ -22,6 +24,7 @@ export default function PrivacyPage() {
       <section id="privacy-purpose"><p className="policy-section-kicker">01 · PURPOSE</p><h2>처리 목적과 항목</h2><p className="policy-lead">W.A.V.E 운영팀은 회원 인증, 커뮤니티 운영, 여행 공유, 장소 편의정보 개선과 보안 대응에 필요한 범위에서만 정보를 처리합니다.</p>
         <div className="policy-table-wrap" role="region" aria-label="기능별 개인정보 처리 항목 표" tabIndex={0}><table><thead><tr><th scope="col">기능</th><th scope="col">처리 항목</th><th scope="col">목적</th></tr></thead><tbody>
           <tr><th scope="row">계정·인증</th><td>이메일, 인증정보, 세션정보, 인증 제공처 사용자 ID</td><td>가입, 로그인, 비밀번호 재설정, 계정 관리</td></tr>
+          {kakaoEnabled && <tr><th scope="row">카카오 로그인</th><td>카카오 회원번호, 확인된 이메일, 암호화한 연결 인증 토큰</td><td>로그인과 명시적 계정 연결·연결 해제. 카카오 닉네임·사진·친구 목록은 요청하지 않습니다.</td></tr>}
           <tr><th scope="row">커뮤니티</th><td>사용자 ID, 표시 이름, 게시글·댓글·좋아요·신고 내용과 처리 상태, 작성 시각</td><td>콘텐츠 공개, 작성자 권한 확인, 신고 검토</td></tr>
           <tr><th scope="row">공유 여행</th><td>무작위 공유 ID, 선택 지역·여행 조건·날짜·장소 식별자, 출발지 표시 이름</td><td>링크로 여행 계획 열기와 최신 정보 복원</td></tr>
           <tr><th scope="row">장소 편의 제보</th><td>장소 식별자·이름, 제보 분류와 자유 입력 내용, 작성 시각</td><td>시설 정보 확인과 서비스 품질 개선</td></tr>
@@ -43,10 +46,12 @@ export default function PrivacyPage() {
         <div className="policy-table-wrap" role="region" aria-label="외부 제공처별 개인정보 처리 경계 표" tabIndex={0}><table><thead><tr><th scope="col">제공처</th><th scope="col">이용 목적</th><th scope="col">전달·처리될 수 있는 정보</th></tr></thead><tbody>
           <tr><th scope="row">Vercel</th><td>웹 호스팅과 서버 함수 실행</td><td>접속 IP, 요청·브라우저 메타데이터, 오류 기록</td></tr>
           <tr><th scope="row">Neon</th><td>계정 인증과 서비스 데이터베이스</td><td>이메일·인증정보·세션, 사용자 ID와 서비스 저장 항목</td></tr>
+          {kakaoEnabled && <><tr><th scope="row">Kakao 로그인</th><td>사용자가 선택한 계정 인증과 연결 관리</td><td>카카오 인증 요청, 회원번호·확인된 이메일·연결 인증정보</td></tr><tr><th scope="row">Google Gmail</th><td>본인이 요청한 비밀번호 재설정·탈퇴 확인 메일 발송</td><td>수신 이메일 주소, 한 번만 사용할 수 있는 계정 확인 링크와 메일 내용</td></tr></>}
           <tr><th scope="row">Kakao·ODsay</th><td>지도, 장소 검색, 자동차·대중교통 경로</td><td>검색어, 선택 장소와 출발·도착 좌표</td></tr>
           <tr><th scope="row">한국관광공사·공공데이터포털·한국도로공사</th><td>관광·교통·편의정보 조회</td><td>선택 지역, 날짜, 장소·노선 조회 조건</td></tr>
           <tr><th scope="row">Open-Meteo·OpenStreetMap</th><td>날씨 조회와 대체 지도 타일</td><td>지역 좌표, 접속 IP와 요청 메타데이터</td></tr>
         </tbody></table></div>
+        {kakaoEnabled && <p>카카오 연결을 해제하면 카카오 인증정보와 로그인 세션을 삭제합니다. W.A.V.E 계정과 작성한 이야기는 유지되며 계정 이메일로 비밀번호를 설정할 수 있습니다. W.A.V.E 계정까지 삭제하려면 계정 관리에서 탈퇴를 요청해 주세요.</p>}
         <p>공개 장소 또는 지도에서 직접 선택한 출발·도착 좌표는 W.A.V.E 경로 서버를 거쳐 Kakao·ODsay로 전달됩니다. 브라우저의 ‘현재 위치’로 얻은 좌표는 별도로 구분해 경로 API 요청을 차단하며 W.A.V.E 저장소에 보관하지 않습니다.</p>
         <p>다만 현재 위치를 지도에 표시하면 Kakao 또는 대체 지도 타일 제공처가 표시 영역과 접속 IP를 처리할 수 있고, 사용자가 주변 장소 검색을 실행하면 지도 중심 좌표가 Kakao로 전달됩니다. 따라서 ‘모든 위치 처리가 기기 안에서만 이루어진다’는 의미가 아닙니다. 현재 위치 사용 전에 안내와 브라우저 권한을 확인하며 거부해도 공개 거점 선택을 사용할 수 있습니다.</p>
         <p>검색 조건은 계정 이메일이나 커뮤니티 사용자 ID와 함께 외부 데이터 제공처에 보내지 않습니다. 각 제공처의 인프라 위치와 보관은 해당 제공처의 정책과 운영 설정을 따를 수 있습니다. 위치정보 관련 신고·동의 요건 충족 여부는 운영주체의 법적 검토가 필요하며 이 설명만으로 충족을 보장하지 않습니다.</p>

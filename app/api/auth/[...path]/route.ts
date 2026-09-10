@@ -23,12 +23,28 @@ async function failed() {
 }
 
 async function runHandler(request: Request, context: RouteContext, method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
+  const nativeCallback = process.env.WAVE_AUTH_BACKEND === "native" && method === "GET"
+    && new URL(request.url).pathname === "/api/auth/callback/kakao";
+  const callbackFailure = () => privateAuthResponse(Response.redirect(new URL("/login?error=kakao", request.url), 303));
   try {
+    if (process.env.WAVE_AUTH_BACKEND === "native") {
+      const path = new URL(request.url).pathname.replace(/^\/api\/auth/, "");
+      const get = /^\/(get-session|list-accounts|list-sessions|callback\/kakao|verify-email|delete-user\/callback|reset-password\/[A-Za-z0-9_-]+)$/;
+      const post = /^\/(sign-in\/(email|social)|sign-up\/email|sign-out|request-password-reset|reset-password|change-password|link-social|unlink-account|revoke-session|revoke-sessions|revoke-other-sessions)$/;
+      if (method === "GET" && path === "/error") return privateAuthResponse(Response.redirect(new URL("/login?error=kakao", request.url), 303));
+      // Delete requests go through /api/account so a service-data cleanup grant always exists.
+      // Provider tokens and unimplemented administrative/profile routes are never public.
+      if (!(method === "GET" ? get.test(path) : method === "POST" && post.test(path))) {
+        return privateAuthResponse(Response.json({ error: "지원하지 않는 계정 요청입니다." }, { status: 404 }));
+      }
+    }
     const handlers = configuredHandlers();
     if (!handlers) return unavailable();
     const response = await handlers[method](request, context);
+    if (nativeCallback && response.status >= 400) return callbackFailure();
     return response.status >= 500 ? failed() : privateAuthResponse(response);
   } catch {
+    if (nativeCallback) return callbackFailure();
     return failed();
   }
 }
