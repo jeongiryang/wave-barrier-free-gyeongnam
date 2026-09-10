@@ -14,6 +14,7 @@ async function prepare(page: Page, setup?: () => Promise<void>) {
   await page.getByRole("button", { name: "Find places →", exact: true }).click();
   await page.getByRole("button", { name: "경남도립미술관 Add to itinerary", exact: true }).click();
   await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
 }
 
 for (const theme of ["light", "dark"] as const) {

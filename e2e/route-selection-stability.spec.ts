@@ -51,6 +51,7 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     await page.goto("/planner");
     await chooseTripConditions(page);
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
     await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).getByText(/10:25 · 경남도립미술관/)).toBeVisible();
     await expect(page.locator(".map-load-placeholder")).toBeVisible();
     expect(heldMapRequests, "the delayed-map fixture must intercept the module request").toBeGreaterThan(0);
@@ -83,6 +84,7 @@ test("route selection stays under the pointer while map rendering settles", asyn
   await page.goto("/planner");
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
   const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
   await expect(itinerary.getByText(/10:25 · 경남도립미술관/)).toBeVisible();
   await page.getByRole("button", { name: /여유 자동차 경로/ }).click();
