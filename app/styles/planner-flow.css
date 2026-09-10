@@ -128,7 +128,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference button:disabled { cursor: not-allowed; opacity: .5; }
 .planner-reference :is(button,a,input,select,summary):focus-visible { outline: 3px solid #c45450; outline-offset: 4px; }
 .planner-reference :is(h2,h3,h4,p) { letter-spacing: -.025em; }
-.planner-reference .reference-header { width: min(1320px,calc(100% - 64px)); min-height: 80px; margin: 16px auto 0; padding: 12px 20px; display: flex; align-items: center; gap: 32px; background: color-mix(in srgb,var(--surface) 80%,transparent); border-bottom: 1px solid var(--line); }
+.planner-reference .reference-header { width: min(1320px,calc(100% - 64px)); min-height: 80px; margin: 16px auto 0; padding: 12px 20px; display: flex; align-items: center; gap: 32px; background: #e8f1f5e8; border-bottom: 1px solid var(--line); }
 .reference-brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; color: #173b50; font-size: 18px; font-weight: 850; text-decoration: none; }
 .reference-brand > span { display: flex; gap: 5px; transform: skew(-20deg); }
 .reference-brand i { width: 6px; height: 22px; background: #2677a6; }

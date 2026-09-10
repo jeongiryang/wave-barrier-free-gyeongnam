@@ -31,7 +31,18 @@ test("English navigation preserves gates, stage history and keyboard focus", asy
   await expect(page.locator(".journey-mode-toggle")).not.toContainText(/[가-힣]/);
   await expect(page.locator(".simple-footer")).not.toContainText(/[가-힣]/);
   await expect(page.getByRole("link", { name: "Log in", exact: true })).toHaveAttribute("href", "/login?next=%2Fplanner");
-  await expect(page.getByRole("navigation", { name: "Main menu", exact: true })).not.toContainText(/[가-힣]/);
+  const menuTrigger = page.getByRole("button", { name: "Open main menu", exact: true });
+  if (await menuTrigger.isVisible()) {
+    await menuTrigger.click();
+    const mobileMenu = page.getByRole("navigation", { name: "Mobile main menu", exact: true });
+    await expect(mobileMenu).toBeVisible();
+    await expect(mobileMenu).not.toContainText(/[가-힣]/);
+    await page.keyboard.press("Escape");
+    await expect(mobileMenu).toBeHidden();
+    await expect(menuTrigger).toBeFocused();
+  } else {
+    await expect(page.getByRole("navigation", { name: "Main menu", exact: true })).not.toContainText(/[가-힣]/);
+  }
   expect(searches).toBe(0);
   await page.getByRole("button", { name: "Overview", exact: true }).click();
   await expect(page.locator(".journey-stage-stream")).toHaveAttribute("data-view", "overview");
