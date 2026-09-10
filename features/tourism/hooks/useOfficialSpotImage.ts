@@ -18,13 +18,20 @@ export function useOfficialSpotImage({ src, title, region, tag, contentId }: Spo
   const [failed, setFailed] = useState(false);
   const [retried, setRetried] = useState(false);
   const settledRef = useRef(false);
+  const fallbackRequest = useRef<{ key: string; controller: AbortController } | null>(null);
+  const imageKey = JSON.stringify([src, contentId, region, title, tag]);
 
   const loadFallback = useCallback(async (cancelled: () => boolean = () => false) => {
+    if (fallbackRequest.current?.key === imageKey) return;
+    fallbackRequest.current?.controller.abort();
     const controller = new AbortController();
+    const request = { key: imageKey, controller };
+    fallbackRequest.current = request;
+    settledRef.current = true;
     const timeout = window.setTimeout(() => controller.abort(), 12000);
     try {
       const nextImage = await fetchOfficialSpotPhoto({ contentId, region, title, tag }, controller.signal);
-      if (cancelled()) return;
+      if (cancelled() || controller.signal.aborted || fallbackRequest.current !== request) return;
       if (nextImage) {
         setImage(nextImage);
         setRetried(true);
@@ -34,19 +41,25 @@ export function useOfficialSpotImage({ src, title, region, tag, contentId }: Spo
         setLoading(false);
       }
     } catch {
-      if (!cancelled()) {
+      if (!cancelled() && fallbackRequest.current === request) {
         setFailed(true);
         setLoading(false);
       }
     } finally {
       window.clearTimeout(timeout);
     }
-  }, [contentId, region, tag, title]);
+  }, [contentId, region, tag, title, imageKey]);
 
   useEffect(() => {
     let cancelled = false;
+    if (fallbackRequest.current && fallbackRequest.current.key !== imageKey) {
+      fallbackRequest.current.controller.abort();
+      fallbackRequest.current = null;
+    }
     const nextImage = safeTourismImageUrl(src);
     const frame = window.requestAnimationFrame(() => {
+      // A fast decode error may have already started the fallback before this frame.
+      if (fallbackRequest.current?.key === imageKey) return;
       setImage(nextImage);
       setFailed(false);
       setRetried(false);
@@ -64,8 +77,12 @@ export function useOfficialSpotImage({ src, title, region, tag, contentId }: Spo
       cancelled = true;
       window.cancelAnimationFrame(frame);
       window.clearTimeout(slowImage);
+      if (fallbackRequest.current?.key === imageKey) {
+        fallbackRequest.current.controller.abort();
+        fallbackRequest.current = null;
+      }
     };
-  }, [src, loadFallback]);
+  }, [src, loadFallback, imageKey]);
 
   return {
     image,
@@ -77,6 +94,7 @@ export function useOfficialSpotImage({ src, title, region, tag, contentId }: Spo
     },
     onError: () => {
       if (!retried) {
+        if (fallbackRequest.current?.key === imageKey) return;
         setImage("");
         setLoading(true);
         void loadFallback();

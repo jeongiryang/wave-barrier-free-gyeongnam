@@ -19,6 +19,7 @@ async function plannerProductSource() {
     "features/planner/components/PlannerAccessibilityProfiles.tsx",
     "features/planner/components/RecommendationWorkspace.tsx",
     "features/planner/components/RecommendationCarousel.tsx",
+    "features/planner/components/PlaceFacilitySummary.tsx",
     "features/planner/components/ExplorationPlaces.tsx",
     "features/planner/components/ProviderFailureNotice.tsx",
     "features/planner/components/PlannerItineraryWorkspace.tsx",
