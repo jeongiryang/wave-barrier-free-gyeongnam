@@ -34,8 +34,11 @@ test("the full-screen arrival leads through the complete Korean service story", 
   }
   for (const [index, selector] of [".region-story", ".horizon-how", ".horizon-account", ".horizon-departure", ".horizon-community", ".landing-cta"].entries()) {
     const section = page.locator(selector);
-    await section.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
-    await expect.poll(() => section.locator(selector === ".region-story" ? ".selected-region strong" : "h2").first().evaluate(node => {
+    const heading = section.locator(selector === ".region-story" ? ".selected-region strong" : "h2").first();
+    // The chapter section now spans three native scroll scenes. Bring its
+    // heading into view before asserting the heading's entrance animation.
+    await heading.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
+    await expect.poll(() => heading.evaluate(node => {
       const reveal = node.closest("[data-land-reveal]") || node;
       return Number(getComputedStyle(reveal).opacity);
     })).toBe(1);

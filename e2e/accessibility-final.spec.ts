@@ -110,7 +110,7 @@ for (const width of [320, 390]) {
     const skip = page.getByRole("link", { name: "소개 바로가기", exact: true });
     await expect(home).toBeVisible();
     await expect(skip).toBeVisible();
-    await expect(home.locator(".brand-mark")).toHaveCSS("width", "32px");
+    await expect(home.locator(".brand-mark")).toHaveCSS("width", "26px");
     await page.keyboard.press("Tab");
     await expect(skip).toBeFocused();
     await page.keyboard.press("Tab");

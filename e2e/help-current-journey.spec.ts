@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const locale of ["ko", "en"] as const) {
-  test(`${locale} landing help follows the visible photo, facilities and evidence scenes`, async ({ page }) => {
+  test(`${locale} landing help follows the visible photo, chapters and companion scenes`, async ({ page }) => {
     await mockPublicShellApi(page);
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
     await page.goto("/");
@@ -34,7 +34,10 @@ for (const locale of ["ko", "en"] as const) {
         await expect(dialog).not.toContainText(locale === "en" ? "on the map" : "지도에서");
         await expectHighlightContains(page.locator(".help-tour-spotlight"), page.locator("#region-current strong"));
       }
-      if (id === "recommendation") await expect(dialog).toContainText(locale === "en" ? "unconfirmed" : "미확인");
+      if (id === "recommendation") {
+        await expect(dialog).toContainText(locale === "en" ? "KakaoTalk sharing" : "카카오톡 공유");
+        await expect(dialog.getByRole("link")).toHaveAttribute("href", "/guide");
+      }
       await dialog.getByRole("button", { name: id === "closing"
         ? (locale === "en" ? "Finish tour" : "투어 마치기")
         : (locale === "en" ? "Next area" : "다음 영역"), exact: true }).click();

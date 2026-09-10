@@ -3,6 +3,8 @@
 [data-cinematic] { --cinema-progress: 1; --cinema-rest: calc(1 - var(--cinema-progress)); }
 .horizon-edition { --gutter: clamp(24px,6vw,112px); --story-right: var(--gutter); --paper: #f6f9fc; --surface: #f6f9fc; --ink: #173b50; --muted: #506a7b; background: var(--surface); }
 .horizon-edition section { scroll-margin-top: 100px; }
+.horizon-edition > .skip-link { color: #fff; background: #173b50; }
+html[data-theme="dark"] .horizon-edition .landing-header { --ink: #eaf5f9; --muted: #b6d0dc; }
 .horizon-edition em { font-style: normal; }
 .horizon-edition .landing-header { top: 20px; width: calc(100% - 64px); max-width: 1640px; padding: 12px 24px; min-height: 72px; border: 1px solid #dce8ee; border-radius: 100px; color: #173b50; background: #fffffff5; box-shadow: 0 10px 35px #14364d08; backdrop-filter: blur(14px); transition: transform .3s var(--cinema-ease),background .25s; }
 .horizon-edition .landing-header .brand { color: #173b50; }.horizon-edition .landing-header nav { gap: 4px; }
