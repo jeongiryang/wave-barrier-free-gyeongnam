@@ -90,6 +90,7 @@ async function api(body) {
     "./public-context": { fetchTransportContext: async () => ({ providers: [{ id: "odsay", configured: true, state: "ready" }], context: {} }) },
     "./route-utils": utils.exports, "./health": {}, "../shared/observability": { recordOperationalEvent() {} },
     "../shared/http": { json: (value, status) => new Response(JSON.stringify(value), { status }) },
+    "../shared/provider-data": { transportProvider() { throw Error("Legacy comparison must use the existing context provider records"); } },
   };
   new Function("module", "exports", "require", compile("../server/transport/handler.ts"))(mod, mod.exports, name => { if (name in dependencies) return dependencies[name]; throw Error(name); });
   return (await mod.exports.handleRouteApi(new Request("https://example.test/api/route?startLat=35.21&startLng=128.67&endLat=35.24&endLng=128.70"), {})).json();
