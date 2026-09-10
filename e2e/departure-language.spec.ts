@@ -42,7 +42,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(card).toContainText("2026-10-08 10:00");
     await expect(card).toContainText("original language");
     await expect(card.locator('[lang="ko"]')).not.toHaveCount(0);
-    const refresh = card.getByRole("button", { name: "Check latest information", exact: true });
+    const refresh = card.getByRole("button", { name: "Refresh places and weather", exact: true });
     await card.locator("article a").last().focus();
     await page.keyboard.press("Tab");
     await expect(refresh).toBeFocused();
@@ -145,12 +145,12 @@ test("refresh preserves keyboard focus while waiting and after the response", as
   const refresh = page.locator("#departure-readiness .readiness-actions button").first();
   await refresh.focus();
   await page.keyboard.press("Enter");
-  await expect(refresh).toHaveText("Checking latest information");
+  await expect(refresh).toHaveText("Refreshing information");
   await expect(refresh).toBeFocused();
   await page.keyboard.press("Enter");
   expect(calls).toBe(1);
   release();
-  await expect(refresh).toHaveText("Check latest information");
+  await expect(refresh).toHaveText("Refresh places and weather");
   await expect(refresh).toBeFocused();
 });
 
@@ -163,7 +163,7 @@ for (const scrollAway of [false, true]) {
     await prepare(page);
     await expect(page.getByText("Preparing your itinerary.", { exact: true })).toBeVisible();
     const card = page.locator("#departure-readiness");
-    const button = card.getByRole("button", { name: "Check latest information", exact: true });
+    const button = card.getByRole("button", { name: "Refresh places and weather", exact: true });
     await card.locator("article a").last().focus();
     await page.keyboard.press("Tab");
     await expect(button).toBeFocused();
