@@ -118,8 +118,8 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 @media (prefers-reduced-motion: reduce) { .condition-inputs { animation: none; }.journey-editorial .profile-card { transition: none; transform: none; } }
 /* Owner PDF, 2026-09-10: functional planner presentation. Scoped to /planner. */
 .planner-reference {
-     
-     
+
+
     --reference-tint: #eaf6f3;
   background: #f6f8f8; color: #243236; min-height: 100vh; padding: 0 0 24px;
 }
