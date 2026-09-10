@@ -35,13 +35,6 @@
 @keyframes coreWave { to { transform: translateX(12%) rotate(-4deg); } }
 
 .manifesto,.evidence-story { background: linear-gradient(180deg,#f8fdff,#eef7fb); }
-.manifesto-grid { gap: 14px; border: 0; }
-.manifesto-grid article,.manifesto-grid article + article { min-height: 300px; padding: 30px; overflow: hidden; position: relative; border: 1px solid rgba(45,114,144,.16); border-radius: 24px; background: rgba(255,255,255,.62); box-shadow: 0 16px 40px rgba(11,72,98,.055); backdrop-filter: blur(12px); }
-.manifesto-grid article::before { content: ""; position: absolute; inset: auto -18% -60% -18%; height: 76%; border-radius: 50% 50% 0 0; background: rgba(23,176,255,.07); transition: transform .55s cubic-bezier(.16,1,.3,1),background .4s; }
-.manifesto-grid article:hover { color: var(--ink); background: rgba(255,255,255,.82); transform: translateY(-10px); }
-.manifesto-grid article:hover::before { background: rgba(125,235,233,.18); transform: translateY(-30%) rotate(-2deg); }
-.manifesto-grid article:hover p { color: var(--muted); }
-.manifesto-grid h3 { position: relative; margin-top: 68px; }.manifesto-grid p,.manifesto-grid article > span { position: relative; }
 .evidence-stack article:hover { transform: translateX(-9px); box-shadow: 12px 16px 38px rgba(7,64,89,.08); }
 
 .help-button,.account-button,.account-menu button { min-height: 42px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.88); font-size: .74rem; font-weight: 850; }
@@ -53,13 +46,13 @@
 .account-dialog form { display: grid; gap: 12px; margin-top: 22px; }.account-dialog label { display: grid; gap: 6px; font-size: .76rem; font-weight: 850; }.account-dialog input { min-height: 48px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 13px; background: #fff; font: inherit; }.account-submit { min-height: 48px; padding: 10px 15px; border: 0; border-radius: 13px; color: var(--on-blue); background: var(--blue); font-weight: 880; }.account-switch { width: 100%; min-height: 44px; margin-top: 9px; border: 0; color: var(--blue); background: transparent; font-weight: 820; }.account-message { margin: 0; color: #a13c49 !important; font-size: .78rem; }
 
 html[data-theme="dark"] .manifesto,html[data-theme="dark"] .evidence-story { background: linear-gradient(180deg,#061f2b,#082b3b); }
-html[data-theme="dark"] .manifesto-grid article,html[data-theme="dark"] .help-dialog,html[data-theme="dark"] .account-dialog { color: #eaf5f9; border-color: #284d5d; background: rgba(8,41,56,.95); }
+html[data-theme="dark"] .help-dialog,html[data-theme="dark"] .account-dialog { color: #eaf5f9; border-color: #284d5d; background: rgba(8,41,56,.95); }
 html[data-theme="dark"] .help-button,html[data-theme="dark"] .account-button,html[data-theme="dark"] .account-menu button { color: #eaf5f9; border-color: #30596b; background: #0a3244; }
 html[data-theme="dark"] .day-planner,html[data-theme="dark"] .day-planner-grid > article { color: var(--ink); border-color: #30596b; background: #0b2d3c; }
 html[data-theme="dark"] .day-planner-grid li,html[data-theme="dark"] .day-planner select,html[data-theme="dark"] .date-control input { color: var(--ink); border-color: #30596b; background: #0f3749; }
 
 @media (max-width: 980px) { .landing-header-actions .help-button,.landing-header-actions .account-button,.landing-header-actions .account-menu { display: none; } }
-@media (max-width: 780px) { .manifesto-grid { gap: 10px; }.manifesto-grid article,.manifesto-grid article + article { min-height: 220px; padding: 24px; }.help-dialog,.account-dialog { padding: 25px 20px; border-radius: 22px; }.day-planner { padding: 20px 15px; }.day-planner > header { align-items: start; flex-direction: column; }.day-start-control { width: 100%; }.day-start-control small { text-align: left; }.date-range-fields { align-items: stretch; grid-template-columns: 1fr; }.date-range-fields > i { display: none; } }
+@media (max-width: 780px) {.help-dialog,.account-dialog { padding: 25px 20px; border-radius: 22px; }.day-planner { padding: 20px 15px; }.day-planner > header { align-items: start; flex-direction: column; }.day-start-control { width: 100%; }.day-start-control small { text-align: left; }.date-range-fields { align-items: stretch; grid-template-columns: 1fr; }.date-range-fields > i { display: none; } }
 @media (prefers-reduced-motion: reduce) { .hero-tide i,.section-tide i,.signal-core::after { animation: none !important; } }
 
 /* Official-photo states: no blank cards, no oversized placeholder shapes. */

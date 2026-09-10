@@ -59,16 +59,9 @@ html[data-motion="calm"] .arrival-brand,html[data-motion="calm"] .arrival-film {
 .story-edition .manifesto { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 0 clamp(32px,6vw,100px); align-items: start; }
 .story-edition .manifesto > :not(.needs-portrait) { grid-column: 1; }
 .story-edition .manifesto h2 { max-width: 1050px; font-size: clamp(2.4rem,5.3vw,5rem); line-height: 1.2; text-wrap: balance; }
-.manifesto-lead { max-width: 580px; margin: 24px 0 48px; color: var(--muted); font-size: 1.15rem; line-height: 1.8; }
-.story-edition .manifesto-grid { display: block; margin-top: 0; border-top: 1px solid var(--line); }
-.story-edition .manifesto-grid article { min-height: 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 24px 0; background: transparent; box-shadow: none; }
-.story-edition .manifesto-grid article::before,.story-edition .manifesto-grid article::after { display: none; }
-.story-edition .manifesto-grid h3 { display: inline; margin: 0 0 0 16px; font-size: 1.2rem; }
-.story-edition .manifesto-grid p { margin-top: 12px; }
 .needs-portrait { grid-column: 2; grid-row: 1 / 5; margin: 72px 0 0; position: sticky; top: 112px; }
 .needs-portrait img { width: 100%; height: auto; object-fit: cover; border-radius: 2px 72px 2px 2px; }
 .needs-portrait figcaption { padding-top: 14px; color: var(--muted); font-size: .8rem; line-height: 1.7; }
-.story-edition .manifesto-grid article > span { display: inline-block; color: var(--blue); font-size: 1.25rem; }
 .story-edition .journey-scene { padding-block: var(--story-space); border-top: 1px solid var(--line); }
 .story-edition .journey-scene-copy h2 { font-size: clamp(2.6rem,4.5vw,4.8rem); line-height: 1.17; }
 .story-edition .journey-scene-visual { border-radius: 2px 44px 2px 2px; box-shadow: none; padding: clamp(20px,3vw,44px); }
@@ -104,7 +97,5 @@ html[data-motion="calm"] .arrival-brand,html[data-motion="calm"] .arrival-film {
   .story-edition .hero-opening { padding-inline: 12px; min-height: 60svh; }
   .story-edition .landing-hero .story-media::before { background: linear-gradient(90deg,rgba(0,24,38,.82),rgba(0,24,38,.4)); }
   .story-film { aspect-ratio: 3/4; border-radius: 2px 48px; }
-  .story-edition .manifesto-grid { display: block; }
-  .story-edition .manifesto-grid article { padding: 24px 0; border-bottom: 1px solid var(--line); }
   .story-edition .journey-scene-visual { padding: 20px 14px; }
 }

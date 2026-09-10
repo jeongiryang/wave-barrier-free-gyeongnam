@@ -752,14 +752,14 @@ test("core controls keep 44px targets on every viewport and pointer type", async
   const touchStart = css.indexOf("포인터 종류와 화면 폭에 관계없이");
   const globalTouchRules = css.slice(touchStart, css.indexOf("@media (max-width: 780px)", touchStart));
   for (const selector of [
-    ".play", ".save-card", ".player-controls button", ".map-command-bar button",
+    ".play", ".reference-heart", ".player-controls button", ".map-command-bar button",
     ".map-type-switch button", ".map-side-drawer header > button",
     ".trip-point-picker header > button", ".transport-dataset-grid > button",
     ".day-planner select", ".day-order-toolbar button", ".day-order-buttons button",
     ".travel-profile-actions button", ".travel-profile-clear", ".feedback-box button", ".help-button",
   ]) assert.match(globalTouchRules, new RegExp(selector.replaceAll(".", "\\.").replaceAll(">", "\\>")));
   assert.match(globalTouchRules, /min-height: 44px/);
-  assert.match(globalTouchRules, /\.landing-region-map > button::after[\s\S]+inset: -8px/);
+  assert.match(globalTouchRules, /\.map-provider-badge button::after[\s\S]+inset: -8px/);
 });
 
 test("shared trips restore saved places, order and date assignments from official IDs", async () => {

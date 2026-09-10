@@ -1,13 +1,4 @@
 /* Components for explicit trip questions and evidence-led place selection. */
-.planner-intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 0 28px; background: var(--paper); color: var(--ink); border-bottom: 1px solid var(--line); }
-.planner-intro h1 { margin: 0; letter-spacing: -.045em; font-size: clamp(1.5rem,2.3vw,2.2rem); }
-.planner-intro p { margin: 10px 0 0; max-width: 58ch; line-height: 1.6; color: var(--muted); font-size: .95rem; }
-.planner-intro .journey-mode-toggle { margin: 0; flex: 0 0 255px; background: transparent; border: 0; padding: 0; flex-basis: 230px; }
-.condition-progress { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 26px; border-bottom: 1px solid var(--line); }
-.condition-progress button { display: flex; align-items: center; gap: 8px; position: relative; min-height: 48px; padding: 8px 0 12px; border: 0; border-radius: 0; background: transparent; color: var(--muted); font-size: .82rem; }
-.condition-progress button[aria-current] { background: transparent; border-color: transparent; color: var(--ink); font-weight: 800; }
-.condition-progress button:disabled { opacity: .55; cursor: not-allowed; }
-.condition-progress span { font-variant-numeric: tabular-nums; }
 .condition-heading { margin: 0 0 24px; scroll-margin-top: 112px; font-size: clamp(1.9rem,3.3vw,3.2rem); margin-bottom: 24px; letter-spacing: -.055em; }
 .condition-inputs { min-width: 0; animation: question-arrive .32s cubic-bezier(.16,1,.3,1) both; }
 .condition-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
@@ -63,19 +54,6 @@ html[data-theme="dark"] .condition-scope,html[data-theme="dark"] .date-scope-not
 html[data-theme="dark"] .result-notice,html[data-theme="dark"] .outside-trip-dates { background: #0d3545; color: #e6f3f8; }
 .journey-editorial { --paper: #f5f5ee; --white: #fffefb; --muted: #435f66; --line: #cbd8d4; background: var(--paper); }
 html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38; --muted: #bed2d6; --line: #355561; }
-.condition-progress button[aria-current]::after { position: absolute; content: ""; height: 3px; background: #13766d; inset: auto 0 -1px; }
-.condition-progress button span { font-size: .7rem; }
-.planner-region-discovery { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.05fr); align-items: start; gap: 28px; }
-.planner-destination-image { position: relative; margin: 0; min-height: 404px; isolation: isolate; background: #063b49; color: #fff; overflow: hidden; border-radius: 3px 42px 3px 3px; }
-.planner-destination-image > img { position: absolute; width: 100%; height: 100%; inset: 0; object-fit: cover; animation: question-arrive .4s ease-out; }
-.planner-destination-image::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(0deg,#032c39fa,transparent 85%); }
-.planner-destination-caption { position: absolute; z-index: 1; bottom: 78px; left: 28px; right: 20px; }
-.planner-destination-caption > span { font-size: .75rem; letter-spacing: .04em; color: #c8f0e6; }
-.planner-destination-caption strong { display: block; font-size: clamp(2.8rem,4.6vw,5rem); font-weight: 650; letter-spacing: -.055em; line-height: 1.15; margin-top: 12px; }
-.planner-destination-caption p { margin: 10px 0 0; font-size: .9rem; color: #fff; }
-.planner-destination-image figcaption { position: absolute; z-index: 1; bottom: 16px; left: 28px; right: 20px; font-size: .7rem; line-height: 1.6; color: #e4f0ef; }
-.planner-destination-image figcaption a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-decoration: underline; text-underline-offset: 4px; }
-.planner-destination-choices > p { margin: 0 0 22px; color: var(--muted); font-size: .95rem; line-height: 1.75; word-break: keep-all; }
 .region-picker-compact { display: flex; flex-direction: column; align-items: stretch; gap: 18px; }
 .region-picker-compact .region-picker-list { gap: 8px; }
 .region-picker-compact .region-picker-list button { min-height: 44px; border-radius: 6px; font-size: .88rem; border-color: var(--line); background: var(--white); color: var(--ink); transition: background .18s,border-color .18s; }
@@ -99,8 +77,6 @@ html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38;
 .journey-editorial .theme-grid button { min-height: 128px; border-radius: 10px; padding: 20px; }
 .journey-editorial .theme-grid strong { font-size: 1rem; }
 .journey-editorial .theme-grid small { font-size: .85rem; }
-.journey-editorial .guided-stage-prompt { padding: 30px clamp(20px,3vw,44px) 0; background: transparent; border: 0; }
-.journey-editorial .guided-stage-prompt h2 { font-size: clamp(1.7rem,3vw,2.8rem); }
 .journey-editorial .place-card { display: flex; flex-direction: column; border-radius: var(--r-sm); box-shadow: none; background: var(--white); }
 .journey-editorial .place-visual { flex-shrink: 0; height: auto; aspect-ratio: 16 / 10; }
 .journey-editorial .place-content { flex: 1; display: flex; flex-direction: column; padding: 22px; }
@@ -117,20 +93,13 @@ html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38;
 .journey-editorial .place-actions .primary { color: var(--on-blue); background: var(--blue); border-color: var(--blue); }
 .journey-editorial .place-actions .saved { color: var(--ink); background: var(--paper); border-color: var(--ink); }
 .journey-editorial :focus-visible { outline: 3px solid #b36b16; outline-offset: 4px; }
-html[data-motion="calm"] .condition-inputs,html[data-motion="calm"] .planner-destination-image > img { animation: none; }
+html[data-motion="calm"] .condition-inputs { animation: none; }
 html[data-motion="calm"] .journey-editorial .profile-card { transition: none; transform: none; }
-@media (max-width: 900px) {
-  .planner-intro { align-items: stretch; flex-direction: column; gap: 16px; }
-  .planner-intro .journey-mode-toggle { flex-basis: auto; }
-  .planner-intro .journey-mode-toggle > div:first-child { display: none; }
-}
 @media (max-width: 600px) {
   .region-picker { grid-template-columns: 1fr; gap: 16px; }
   .region-picker svg { max-height: 240px; }
   .region-picker-visual { padding: 12px; }
   .region-picker-list { gap: 8px; }
-  .condition-progress { gap: 5px; }
-  .condition-progress button { padding: 8px; font-size: .82rem; }
   .condition-actions { flex-wrap: wrap; }
   .condition-actions button { flex: 1; }
   .place-modal .modal-body { padding-bottom: max(26px,env(safe-area-inset-bottom)); }
@@ -142,24 +111,11 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .condition-availability strong { font-size: 1.15rem; }
 .condition-availability b { font-size: 1.7rem; font-variant-numeric: tabular-nums; }
 .condition-availability button { flex-shrink: 0; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--ink); background: var(--paper); }
-@media (max-width: 1100px) {
- .planner-intro { flex-direction: row; align-items: center; }
- .planner-intro .journey-mode-toggle { flex-basis: 210px; } }
 @media (max-width: 650px) {
- .planner-intro { padding: 22px 18px; flex-wrap: wrap; gap: 18px; }
- .planner-intro .journey-mode-toggle { flex-basis: 100%; }
- .condition-progress { gap: 12px; margin-bottom: 20px; flex-wrap: nowrap; }
- .condition-progress button { gap: 4px; font-size: .72rem; }
- .planner-region-discovery { grid-template-columns: 1fr; gap: 20px; }
- .planner-destination-image { min-height: 240px; border-top-right-radius: 32px; }
- .planner-destination-caption { bottom: 66px; left: 22px; }
- .planner-destination-caption strong { font-size: 2.7rem; }
- .planner-destination-image figcaption { bottom: 8px; left: 22px; }
- .planner-destination-choices > p { font-size: .9rem; margin-bottom: 16px; }
  .journey-editorial .profile-card { padding: 16px; }
  .condition-actions button { flex: 1; min-width: 0; }
  .journey-editorial .place-visual { height: 220px; } }
-@media (prefers-reduced-motion: reduce) { .condition-inputs,.planner-destination-image > img { animation: none; }.journey-editorial .profile-card { transition: none; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .condition-inputs { animation: none; }.journey-editorial .profile-card { transition: none; transform: none; } }
 /* Owner PDF, 2026-09-10: functional planner presentation. Scoped to /planner. */
 .planner-reference {
   --ink: #243236; --ink-soft: #36585a; --muted: #5c6b70; --paper: #f6f8f8;
@@ -377,7 +333,6 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference .reference-archive p:empty,.planner-reference .reference-archive small:empty { display: none; }
 .reference-departure-details,.reference-itinerary-details { border-top: 1px solid #dbe2e3; margin-top: 24px; padding-top: 12px; }
 .reference-departure-details > summary,.reference-itinerary-details > summary { min-height: 48px; padding: 12px 0; color: #526d6a; font-size: 13px; cursor: pointer; }
-.planner-reference .planner-footer { margin-top: 42px; }
 @media (max-width: 1100px) {
   .planner-reference .reference-header { gap: 32px; padding: 0 28px; }
   .reference-header nav { gap: 20px; }

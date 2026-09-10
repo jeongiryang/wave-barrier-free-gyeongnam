@@ -10,9 +10,10 @@ import type { usePlannerParticipation } from "../hooks/usePlannerParticipation";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place, PlanData, TransportProvider, WeatherData } from "../types";
-import PlannerItineraryBoard from "./PlannerItineraryBoard";
 import NavigationWorkspace from "./NavigationWorkspace";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
+
+const PlannerItineraryBoard = lazy(() => import("./PlannerItineraryBoard").catch(() => ({ default: ItineraryUnavailable })));
 
 const ItineraryRouteCoverage = lazy(() => import("./ItineraryRouteCoverage"));
 const SavedPlaceCoordinateRecovery = lazy(() => import("./SavedPlaceCoordinateRecovery"));
@@ -88,7 +89,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     <h2 id="itinerary-stage-title">{mapView ? "여행 순서를 편하게 정리하세요." : `${props.archiveContext.region || "경남"} 여행, 순서만 정하면 돼요.`}</h2>
     <p className="reference-subtitle">시간과 이동 순서를 바꾸면 전체 일정이 함께 바뀝니다.</p>
     <div className="reference-view-tabs" role="group" aria-label="일정 보기 방식"><button type="button" aria-pressed={!mapView} onClick={() => setMapView(false)}>시간표</button><button type="button" aria-pressed={mapView} onClick={() => setMapView(true)}>지도 함께 보기</button></div>
-    {!props.expanded && <PlannerItineraryBoard trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? props.activePlaces : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace
+    {!props.expanded && <Suspense fallback={<p role="status">{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</p>}><PlannerItineraryBoard trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? props.activePlaces : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace
       mapEnabled={props.mapEnabled && mapView}
       compact
       activePlaces={navigationPlaces}
@@ -100,7 +101,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       onCopyBookingRoute={props.onCopyBookingRoute}
       onMapDestination={props.onMapDestination}
       onSaveMapPlaces={props.onSaveMapPlaces}
-    />} />}
+    />} /></Suspense>}
     <details className="reference-itinerary-details" open={props.expanded || undefined}><summary>날짜·이동 구간·여행 도구 자세히 보기</summary>
     {props.tripSelection.orderedSavedPlaces.length ? <Suspense fallback={<p role="status">{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</p>}><TripDayPlanner
       itineraryRouteMinutes={props.coverage.routeMinutes}

@@ -47,10 +47,6 @@
 .region-story-copy > a:hover { background: var(--blue-dark); }
 
 .manifesto, .evidence-story { background: transparent; }
-.manifesto-grid article, .manifesto-grid article + article {
-  border-color: rgba(10,107,175,.16); background: #fff;
-}
-.manifesto-grid article:hover { background: #fff; }
 .evidence-stack article, .evidence-stack article:last-child { border-color: var(--line); }
 
 .landing-cta { color: var(--ink); }

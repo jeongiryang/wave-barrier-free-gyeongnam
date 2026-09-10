@@ -21,10 +21,6 @@
 .planner-page > .simple-footer { margin-top: clamp(18px, 2.4vw, 32px); border-top: 1px solid var(--line); }
 
 /* 카드가 좌우 여백을 담당하므로 개별 구역의 최대폭 제약을 푼다. */
-.navigation-section .workspace-heading, .navigation-section .transport-mode-filter,
-.navigation-section .transport-provider-strip, .navigation-section .transport-live-rail,
-.navigation-section .transport-dataset-grid, .navigation-section .transport-data-panel,
-.navigation-workspace, .planner-section .workspace-heading, .planner-section .planner-bento {
+.navigation-section .workspace-heading, .navigation-section .transport-mode-filter, .navigation-section .transport-provider-strip, .navigation-section .transport-live-rail, .navigation-section .transport-dataset-grid, .navigation-section .transport-data-panel, .navigation-workspace, .planner-section .workspace-heading {
   max-width: none;
 }
-.tool-launch { padding-inline: max(var(--gutter), calc((100vw - 1560px) / 2)); background: transparent; }

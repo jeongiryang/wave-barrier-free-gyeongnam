@@ -45,7 +45,7 @@ test("지도·신고·여행 삭제 패널은 상태 관계와 Escape 초점 복
 
 test("전역 44px·calm·reflow 계약이 마지막 스타일 경계에 있다", async () => {
   const css = await source("app/styles/mobile-interaction-hardening.css");
-  assert.match(css, /\.landing-region-map-canvas > button,[\s\S]*min-width: 44px;[\s\S]*min-height: 44px/);
+  assert.match(css, /:where\(button, summary, select\)[\s\S]*min-block-size: 44px;[\s\S]*min-inline-size: 44px/);
   assert.match(css, /html\[data-motion="calm"\] \*/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /@media \(max-width: 400px\)/);

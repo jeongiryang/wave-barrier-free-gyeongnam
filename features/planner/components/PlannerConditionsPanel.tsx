@@ -10,7 +10,8 @@ import type { Place } from "../types";
 import PlannerThemeDates from "./PlannerThemeDates";
 import { planFailureHeadings } from "../condition-copy";
 import { regionNames } from "../../../lib/gyeongnam-region-names";
-import PlannerDateCalendar from "./PlannerDateCalendar";
+
+const PlannerDateCalendar = lazy(() => import("./PlannerDateCalendar"));
 
 const PlannerRegionDiscovery = lazy(() => import("./PlannerRegionDiscovery"));
 const PlannerAccessibilityProfiles = lazy(() => import("./PlannerAccessibilityProfiles"));
@@ -52,7 +53,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
       {(!guided || question === 0) && <Suspense fallback={<p role="status">{en ? "Preparing destination choices…" : "여행 지역을 준비하고 있어요…"}</p>}><PlannerRegionDiscovery full={!guided} value={region} onChange={props.onRegionChange} onInterest={props.planController.setTheme} onFacilities={() => props.onQuestion(1)} /></Suspense>}
       {(!guided || question === 1) && <Suspense fallback={<p role="status">{en ? "Preparing facility choices…" : "편의 선택 항목을 준비하고 있어요…"}</p>}><PlannerAccessibilityProfiles t={props.t} planController={props.planController} /></Suspense>}
       {(!guided || question === 2) && <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="themes" />}
-      {(!guided || question === 3) && <PlannerDateCalendar trip={props.tripSelection} region={region} onContinue={props.onItinerary} />}
+      {(!guided || question === 3) && <Suspense fallback={<p role="status">{en ? "Preparing calendar…" : "달력을 준비하고 있어요…"}</p>}><PlannerDateCalendar trip={props.tripSelection} region={region} onContinue={props.onItinerary} /></Suspense>}
     </div>
     {showAvailability && <Suspense fallback={<p role="status">{en ? "Preparing search results…" : "검색 결과를 준비하고 있어요…"}</p>}><PlannerAvailability en={en} region={region} selected={selected} themes={guided && question === 1 ? [] : themes} /></Suspense>}
     {guided && planError && <p role="alert">{planFailureHeadings[planError][en ? 1 : 0]} {en ? "Your choices are kept. Please try again shortly." : "선택한 조건은 유지됩니다. 잠시 후 다시 찾아 주세요."}</p>}

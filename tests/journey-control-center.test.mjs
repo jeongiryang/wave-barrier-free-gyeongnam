@@ -27,8 +27,9 @@ test("PDF의 7개 화면이 기존 네 단계의 실제 여행 상태와 연결�
   assert.match(hook, /id: "departure-readiness"[\s\S]*available: savedCount > 0/);
   assert.match(styles, /grid-template-columns: 180px minmax\(0,1fr\)/);
   assert.match(styles, /max-width: 1560px[\s\S]*\.journey-stage-stream \.navigation-workspace \{ grid-template-columns: minmax\(0,1fr\)/);
-  assert.match(styles, /position: fixed/);
-  assert.match(styles, /min-height: 58px/);
+  const referenceStyles = await source("app/styles/planner-flow.css");
+  assert.match(referenceStyles, /\.reference-progress button \{[^}]*min-height: 44px/s);
+  assert.doesNotMatch(styles, /\.journey-rail nav button/);
 });
 
 test("환경설정과 플래너 select가 44px 및 키보드 초점 계약을 가진다", async () => {

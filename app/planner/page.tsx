@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  lazy,
+  Suspense,
   useCallback,
   useMemo,
   useState,
@@ -36,9 +38,10 @@ import PlannerStageFrame from "../../features/planner/components/PlannerStageFra
 import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
 import PlannerJourneyModeToggle from "../../features/planner/components/PlannerJourneyModeToggle";
 import PlannerReferenceChrome from "../../features/planner/components/PlannerHeader";
-import PlannerTripOverview from "../../features/planner/components/PlannerTripOverview";
 
 import RegionChangeDialog from "../../features/planner/components/RegionChangeDialog";
+
+const PlannerTripOverview = lazy(() => import("../../features/planner/components/PlannerTripOverview"));
 
 export default function PlannerPage() {
   const { hydrated, locale, motion, t } = useSitePreferences();
@@ -292,7 +295,7 @@ export default function PlannerPage() {
               />
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[3]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
-              {stageView.view !== "overview" && journey.activeStepId === "departure-readiness" && <PlannerTripOverview trip={tripSelection} participation={participation} coverage={itineraryRoutes} origin={origin} weather={weather} weatherLoading={weatherLoading} region={region} theme={travelThemes.find(item => item.id === theme)?.label || theme} profiles={selected.map(id => accessibilityProfiles.find(item => item.id === id)?.label || id)} onEdit={() => { setItineraryMapView(false); journey.goToStep("itinerary"); }} onMap={() => { setItineraryMapView(true); journey.goToStep("itinerary"); }} onSelectPlace={setSelectedPlace} onDetails={() => setDepartureDetailsOpen(true)} />}
+              {stageView.view !== "overview" && journey.activeStepId === "departure-readiness" && <Suspense fallback={<p role="status">전체 일정을 준비하고 있어요.</p>}><PlannerTripOverview trip={tripSelection} participation={participation} coverage={itineraryRoutes} origin={origin} weather={weather} weatherLoading={weatherLoading} region={region} theme={travelThemes.find(item => item.id === theme)?.label || theme} profiles={selected.map(id => accessibilityProfiles.find(item => item.id === id)?.label || id)} onEdit={() => { setItineraryMapView(false); journey.goToStep("itinerary"); }} onMap={() => { setItineraryMapView(true); journey.goToStep("itinerary"); }} onSelectPlace={setSelectedPlace} onDetails={() => setDepartureDetailsOpen(true)} /></Suspense>}
               <details className="reference-departure-details" open={stageView.view === "overview" || departureDetailsOpen} onToggle={event => setDepartureDetailsOpen(event.currentTarget.open)}><summary>출발 전 정보와 여행 도구 자세히 보기</summary>
               <DepartureReadinessCard
                 embedded
