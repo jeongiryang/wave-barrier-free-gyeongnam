@@ -7,6 +7,7 @@ import { useCommunityBoard, type PlaceFilter } from "../hooks/useCommunityBoard"
 import CommunityBoardToolbar from "./CommunityBoardToolbar";
 import CommunityHero from "./CommunityHero";
 import CommunityPostList from "./CommunityPostList";
+import CommunityTravelStories from "./CommunityTravelStories";
 
 export default function CommunityPage({ initialPlace = null }: { initialPlace?: PlaceFilter | null }) {
   const board = useCommunityBoard(initialPlace);
@@ -15,6 +16,7 @@ export default function CommunityPage({ initialPlace = null }: { initialPlace?: 
     <SkipLink href="#community-list">게시글 목록으로 바로가기</SkipLink>
     <CommunityHeader />
     <CommunityHero writeHref={board.writeHref} />
+    {!board.placeFilter && !board.category && !board.query && board.page === 1 && <CommunityTravelStories />}
     <section className="community-workspace" id="community-list" aria-labelledby="community-list-title">
       <CommunityBoardToolbar board={board} layout={layout} onLayout={setLayout} />
       <CommunityPostList board={board} layout={layout} />

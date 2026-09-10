@@ -29,7 +29,7 @@ export const communitySteps: TourStep[] = [
 
 export const travelBookSteps: TourStep[] = [
   { selector: ".travel-book-page", highlightSelector: ".travel-book-hero", eyebrow: "내 여행집", title: "갈 여행과 다녀온 여행을 모아 보세요.", copy: "플래너에서 만든 일정을 보관하고 언제든 다시 열어 여행을 준비하세요." },
-  { selector: ".travel-book-privacy", highlightSelector: ".travel-book-privacy", eyebrow: "여행 기록", title: "기기를 바꿔도 여행을 이어가세요.", copy: "원하는 여행의 계정에 저장을 누른 뒤 계정 여행 보기로 이동하세요. 다른 기기에서도 같은 계정으로 로그인해 날짜·순서·메모를 편집하고 동행자를 초대할 수 있습니다." },
+  { selector: ".travel-book-paths", highlightSelector: ".travel-book-paths", eyebrow: "여행 기록", title: "기기를 바꿔도 여행을 이어가세요.", copy: "원하는 여행의 계정에 저장을 누른 뒤 계정 여행 보기로 이동하세요. 다른 기기에서도 같은 계정으로 로그인해 날짜·순서·메모를 편집하고 동행자를 초대할 수 있습니다." },
   { selector: ".travel-book-list, .travel-book-empty", highlightSelector: ".travel-book-list, .travel-book-empty", eyebrow: "여행 관리", title: "일정을 열고 여행 상태를 관리하세요.", copy: "여행을 복원하고, 다녀온 여행으로 바꾸거나 현장 메모를 이어서 정리할 수 있습니다." },
 ];
 
@@ -47,7 +47,7 @@ const englishTourCopy: Record<string, Pick<TourStep, "eyebrow" | "title" | "copy
   "#community-list": { eyebrow: "Find stories", title: "Find experiences that help you plan.", copy: "Find stories by place and facility needs, keeping traveller experiences separate from official evidence." },
   ".community-footer": { eyebrow: "Using information", title: "Stories do not replace official information.", copy: "Recheck the latest facility information with the place operator before visiting." },
   ".travel-book-page": { eyebrow: "Saved trips", title: "Keep upcoming and past trips together.", copy: "Save planner itineraries and reopen them to prepare for your next trip." },
-  ".travel-book-privacy": { eyebrow: "Travel memories", title: "Continue the journey after your trip.", copy: "Add notes and restore your photo course for your next journey." },
+  ".travel-book-paths": { eyebrow: "Travel memories", title: "Continue the journey after your trip.", copy: "Add notes and restore your photo course for your next journey." },
   ".travel-book-list, .travel-book-empty": { eyebrow: "Manage trips", title: "Reopen and update your trips.", copy: "Restore an itinerary, mark a trip as visited or continue adding travel notes." },
 };
 

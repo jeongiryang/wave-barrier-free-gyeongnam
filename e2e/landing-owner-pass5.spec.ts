@@ -121,14 +121,14 @@ test("every region retains its exact original source, author and named link, inc
     const region=(await stage.getAttribute("data-active-region"))!; const photos=regionShowcaseAlbums[region];
     expect(photos.length).toBeGreaterThanOrEqual(2);
     expect(new Set(photos.map(photo=>photo.image)).size).toBe(photos.length);
-    await expect(stage.locator(".region-scene-photo")).toHaveCount(1);
+    await expect(stage.locator(".region-featured-card .region-scene-photo")).toHaveCount(1);
     for (let photoIndex=0;photoIndex<photos.length;photoIndex++) {
       const photo=photos[photoIndex];
       const button=stage.getByRole("button",{name:`${photo.title} · 사진 보기`,exact:true});
       await button.press("Enter"); await expect(button).toBeFocused(); await expect(button).toHaveAttribute("aria-pressed","true");
       await expect(stage.locator(".selected-region p")).toHaveText(photo.title);
-      await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("src",photo.image);
-      const figure=stage.locator(".region-scene-photo");
+      await expect(stage.locator(".region-featured-card .region-scene-photo img")).toHaveAttribute("src",photo.image);
+      const figure=stage.locator(".region-featured-card .region-scene-photo");
       const credit=figure.locator("figcaption a"); await expect(credit).toHaveAttribute("href",photo.image);
       if (photo.photographer) await expect(figure.locator("figcaption")).toContainText(photo.photographer);
       await expect(credit).toHaveAccessibleName(`${photo.title} · 사진 원본, 새 탭`);

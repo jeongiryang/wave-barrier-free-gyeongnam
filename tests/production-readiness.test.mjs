@@ -342,7 +342,7 @@ test("landing regional showcase is photo-led, while the verified boundary source
   const surface = await source("features/landing/components/RegionBoundarySurface.tsx");
   assert.match(surface, /viewBox="0 0 800 814"/);
   assert.match(surface, /data-region-boundary=\{region\.name\} data-selected=\{region\.name === selected\}/);
-  assert.match(css, /\.region-arrows button \{[^}]*width: 56px;[^}]*height: 56px/);
+  assert.match(css, /\.region-arrows button \{[^}]*width: 48px;[^}]*height: 48px/);
   assert.match(css, /prefers-reduced-motion: reduce/);
 });
 
@@ -441,7 +441,7 @@ test("interactive help follows real sections on every public journey and remains
     if (id === "departure-readiness") assert.match(await source("features/planner/components/PlannerStageFrame.tsx"), /step.id === "departure-readiness"/);
     else assert.match(planner, new RegExp(`id="${id}"`));
   }
-  for (const selector of [".community-page", "#community-list", ".community-footer", ".travel-book-page", ".travel-book-privacy", ".travel-book-list, .travel-book-empty"]) {
+  for (const selector of [".community-page", "#community-list", ".community-footer", ".travel-book-page", ".travel-book-paths", ".travel-book-list, .travel-book-empty"]) {
     assert.match(help, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.match(communityHeader, /<HelpCenter iconOnly \/>/);

@@ -45,13 +45,13 @@ test("regional names, photographs and trip links advance after the complete albu
   for (let index = 1; index < regionShowcaseAlbums["창원"].length; index++) {
     await expect(stage).toHaveAttribute("data-active-region", "창원");
     await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", String(index));
-    await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("src", regionShowcaseAlbums["창원"][index].image);
+    await expect(stage.locator(".region-featured-card .region-scene-photo img")).toHaveAttribute("src", regionShowcaseAlbums["창원"][index].image);
     await expect(stage.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("창원"));
     await page.clock.fastForward(4000);
   }
   await expect(stage).toHaveAttribute("data-active-region", "하동");
   await expect(stage.locator(".selected-region strong")).toHaveText("하동");
-  expect(await stage.locator("img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual([regionShowcaseAlbums["하동"][0].image]);
+  expect(await stage.locator(".region-featured-card img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual([regionShowcaseAlbums["하동"][0].image]);
   await expect(stage.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("하동"));
   await expect(stage.locator(".selected-region")).toHaveAttribute("aria-live", "off");
   expect(await page.evaluate(() => ({ ...localStorage }))).toStrictEqual(stored);
@@ -72,7 +72,7 @@ test("keyboard arrows stop rotation, preserve focus and match all 18 destination
     await choice.press("Enter");
     await expect(choice).toBeFocused();
     await expect(section.locator("[data-region-stage]")).toHaveAttribute("data-active-region", name);
-    expect(await section.locator(".region-scene-photo img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual([regionShowcaseAlbums[name][0].image]);
+    expect(await section.locator(".region-featured-card .region-scene-photo img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual([regionShowcaseAlbums[name][0].image]);
     await expect(section.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent(name));
   }
   await page.clock.fastForward(16000);
@@ -112,8 +112,8 @@ test("failed photographs retain the actual region, source-preserving empty state
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   const section = page.locator("#regions");
   await section.getByRole("button", { name: "다음 지역", exact: true }).click();
-  await expect(section.locator(".region-scene-photo img")).toHaveCount(0);
-  for (const caption of await section.locator(".region-scene-photo figcaption").all()) await expect(caption).toContainText("사진을 불러오지 못했어요");
+  await expect(section.locator(".region-featured-card .region-scene-photo img")).toHaveCount(0);
+  for (const caption of await section.locator(".region-featured-card .region-scene-photo figcaption").all()) await expect(caption).toContainText("사진을 불러오지 못했어요");
   await expect(section.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("하동"));
   expect(await section.locator(".region-arrows button").evaluateAll(nodes => nodes.every(node => {
     const r = node.getBoundingClientRect(); return r.width >= 44 && r.height >= 44;
@@ -122,26 +122,21 @@ test("failed photographs retain the actual region, source-preserving empty state
   expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
 });
 
-test("frames reach both viewport edges, reverse on scroll and remain fully open with OS reduction", async ({ page }) => {
+test("landscape cards scroll inside the viewport and neighbour selection opens its full album", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
-  for (const selector of [".region-showcase-stage"]) {
-    const node = page.locator(selector);
-    const visual = node;
-    await node.evaluate(el => scrollTo({ top: el.getBoundingClientRect().top + scrollY - innerHeight * .8, behavior: "instant" }));
-    await expect.poll(() => node.evaluate(el => Number(getComputedStyle(el).getPropertyValue("--cinema-progress")))).toBeLessThan(.5);
-    const before = await visual.evaluate(el => getComputedStyle(el).clipPath);
-    await node.evaluate(el => scrollTo({ top: el.getBoundingClientRect().top + scrollY - innerHeight * .2, behavior: "instant" }));
-    await expect.poll(() => node.evaluate(el => Number(getComputedStyle(el).getPropertyValue("--cinema-progress")))).toBe(1);
-    const box = await visual.boundingBox();
-    expect(box!.x).toBe(0);
-    expect(box!.width).toBe(page.viewportSize()!.width);
-    expect(await visual.evaluate(el => getComputedStyle(el).borderRadius)).toBe("0px");
-    expect(await visual.evaluate(el => getComputedStyle(el).clipPath)).not.toBe(before);
-    await node.evaluate(el => scrollTo({ top: el.getBoundingClientRect().top + scrollY - innerHeight * .8, behavior: "instant" }));
-    await expect.poll(() => visual.evaluate(el => getComputedStyle(el).clipPath)).toBe(before);
-  }
+  const stage = page.locator("[data-region-stage]");
+  await stage.scrollIntoViewIfNeeded();
+  await expect(stage.locator(".region-landscape-card")).toHaveCount(3);
+  await expect(stage.locator(".region-neighbour-card figcaption a")).toHaveCount(2);
+  const rail = stage.locator(".region-card-rail");
+  expect(await rail.evaluate(el => el.scrollWidth > el.clientWidth)).toBe(true);
+  await stage.getByRole("button", {name:"하동 풍경 살펴보기"}).press("Enter");
+  await expect(stage).toHaveAttribute("data-active-region", "하동");
+  await expect(stage).toHaveAttribute("data-running", "false");
+  await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-count", String(regionShowcaseAlbums["하동"].length));
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await page.emulateMedia({ reducedMotion: "reduce" });
   expect(await page.locator("[data-cinematic]").evaluateAll(nodes => nodes.every(node => getComputedStyle(node).getPropertyValue("--cinema-rest").trim() === "0"))).toBe(true);
 });

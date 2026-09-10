@@ -5,6 +5,7 @@ import { PreferenceControls, useSitePreferences } from "../../../components/Site
 import HelpCenter from "../../../components/HelpCenter";
 import PlannerJourneyRail from "./PlannerJourneyRail";
 import AccountMenu from "../../auth/components/AccountMenu";
+import PublicMobileNav from "../../../components/PublicMobileNav";
 import type { JourneyStepId } from "../hooks/useJourneyProgress";
 
 const chapters = ["여행 조건", "필요한 편의", "여행지·일정", "출발 전 확인"];
@@ -30,10 +31,10 @@ export default function PlannerReferenceChrome({ region, dates, facilities, acti
       <nav aria-label={en ? "Main menu" : "주요 메뉴"}>
         <Link href="/">{en ? "About WAVE" : "서비스 소개"}</Link>
         <Link href="/planner" aria-current="page">{en ? "Plan a trip" : "여행 설계"}</Link>
-        <Link href="/community">{en ? "Community" : "커뮤니티"}</Link>
         <Link href="/travel-book">{en ? "Saved trips" : "내 여행"}</Link>
+        <Link href="/community">{en ? "Community" : "커뮤니티"}</Link>
       </nav>
-      <div className="reference-account"><HelpCenter iconOnly /><PreferenceControls /><AccountMenu loginHref="/login?next=%2Fplanner" /><button className="reference-saved header-action" type="button" disabled={!savedCount} onClick={() => onNavigate("itinerary")}>{en ? "Itinerary" : "내 일정"} <b>{savedCount}</b></button></div>
+      <div className="reference-account"><PublicMobileNav links={[{href:"/",label:en ? "About WAVE" : "서비스 소개"},{href:"/planner",label:en ? "Plan a trip" : "여행 설계",current:true},{href:"/travel-book",label:en ? "Saved trips" : "내 여행"},{href:"/community",label:en ? "Community" : "커뮤니티"}]} /><HelpCenter iconOnly /><PreferenceControls /><AccountMenu loginHref="/login?next=%2Fplanner" /><button className="reference-saved header-action" type="button" disabled={!savedCount} onClick={() => onNavigate("itinerary")}>{en ? "Itinerary" : "내 일정"} <b>{savedCount}</b></button></div>
     </header>
     <div className="reference-intro"><p>{en ? "YOUR DAY, YOUR WAY" : "내가 고르는 오늘의 풍경"}</p><h1>{en ? "What kind of day would you like?" : "어떤 하루를 보내고 싶나요?"}</h1></div>
     <PlannerJourneyRail labels={labels} current={current} available={chapterAvailability} onNavigate={navigate} />

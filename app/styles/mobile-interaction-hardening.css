@@ -104,6 +104,9 @@ html[data-motion="calm"] *::after {
   }
   .landing-header nav.public-mobile-nav-panel,
   .site-header nav.public-mobile-nav-panel,
+  .reference-header nav.public-mobile-nav-panel,
+  .community-header nav.public-mobile-nav-panel,
+  .auth-header nav.public-mobile-nav-panel,
   .public-mobile-nav-panel {
     width: min(320px,calc(100vw - 16px)); max-height: calc(100svh - 86px);
     padding: 8px; position: fixed; z-index: 230;

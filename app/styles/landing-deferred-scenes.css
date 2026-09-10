@@ -30,3 +30,51 @@
 @media (max-width: 600px) {
  .journey-dated-scene > figcaption { margin-bottom: 14px; }
 }
+
+/* Retired travel-book preview and old notice, preserved outside the active bundle. */
+/* 랜딩 미리보기 */
+.travel-book-preview > header { display: flex; align-items: center; justify-content: space-between; gap: 14px; }.travel-book-preview > header small,.travel-book-preview > header strong { display: block; }.travel-book-preview > header small { color: var(--blue); font-size: .59rem; font-weight: 900; letter-spacing: .1em; }.travel-book-preview > header strong { margin-top: 3px; font-size: 1.1rem; }.travel-book-preview > header > b { color: var(--muted); font-size: .61rem; }.travel-book-preview-cover { height: 150px; margin: 19px 0 12px; padding: 18px; display: flex; align-items: flex-end; justify-content: space-between; overflow: hidden; border-radius: 16px; color: #fff; background: radial-gradient(circle at 70% 20%,rgb(166 241 222 / 35%),transparent 25%),linear-gradient(135deg,#073b50,#0a898d); }.travel-book-preview-cover i { color: rgb(255 255 255 / 25%); font-size: 4.6rem; font-style: normal; font-weight: 950; }.travel-book-preview-cover span { padding: 6px 9px; border-radius: 999px; color: #063c37; background: #a6f1de; font-size: .6rem; font-weight: 900; }.travel-book-preview ol { margin: 0; padding: 0; list-style: none; }.travel-book-preview li { padding: 13px 5px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); }.travel-book-preview li span { color: var(--blue); font-size: .57rem; font-weight: 900; }.travel-book-preview li strong { font-size: .72rem; }.travel-book-preview li small { color: var(--muted); font-size: .59rem; }.travel-book-preview > footer { margin-top: 13px; padding: 12px; display: flex; justify-content: space-between; border-radius: 12px; background: #eef8f8; font-size: .62rem; }.travel-book-preview > footer b { color: #137366; }
+
+.travel-book-privacy { width: min(980px,calc(100% - 48px)); margin: 0 auto 28px; padding: 16px 19px; display: flex; align-items: center; justify-content: center; gap: 14px; border: 1px solid #b9dfd2; border-radius: 16px; background: #eefaf5; text-align: center; }
+.travel-book-privacy strong { color: #146951; font-size: .76rem; white-space: nowrap; }.travel-book-privacy p { margin: 0; color: #506f68; font-size: .7rem; line-height: 1.6; }
+
+/* Unmounted manifesto/evidence layouts, superseded by the approved 8+10 chapters. */
+.manifesto { padding: clamp(88px,8vw,132px) max(24px,calc((100vw - var(--landing-max)) / 2)); background: #fff; }.manifesto > h2 { max-width: 1040px; margin: 0; font-size: clamp(3rem,5vw,5.8rem); line-height: 1.05; letter-spacing: -.07em; }.manifesto > h2 em { color: var(--blue); font-style: normal; }
+.evidence-story { padding: 140px max(24px, calc((100vw - 1240px) / 2)); display: grid; grid-template-columns: .8fr 1.2fr; gap: 90px; background: #f3f9fb; }.evidence-story h2 { margin: 0; font-size: clamp(3rem,4.5vw,5rem); line-height: 1.05; letter-spacing: -.065em; }.evidence-stack article { padding: 26px 0; display: grid; grid-template-columns: 55px 1fr; gap: 24px; border-top: 1px solid #ccdee7; }.evidence-stack article:last-child { border-bottom: 1px solid #ccdee7; }.evidence-stack > article > span { color: var(--blue); font-size: .76rem; font-weight: 900; }.evidence-stack h3 { margin: 0 0 8px; font-size: 1.35rem; }.evidence-stack p { margin: 0; color: var(--muted); }
+
+/* Pre-card region layout retained for historical reference. */
+/* Active showcase base rules; archived boundary-map CSS remains in landing-regions.css. */
+.region-story {
+  padding-inline: max(var(--gutter), calc((100vw - 1640px) / 2));
+  grid-template-columns: minmax(300px,.72fr) minmax(620px,1.28fr);
+  gap: clamp(48px,5vw,96px);
+  align-items: start;
+}
+.region-story-copy { position: relative; z-index: 2; }
+.region-story-copy > p:not(.section-kicker) { max-width: 580px; }
+
+.selected-region {
+  min-height: 100px;
+  padding: 18px 20px;
+  color: #0a3649;
+  border-color: rgba(26,115,153,.16);
+  background: rgba(255,255,255,.8);
+  box-shadow: 0 20px 52px rgba(5,56,79,.08);
+  backdrop-filter: blur(18px);
+  view-transition-name: selected-region-card;
+}
+.selected-region > span { flex: 0 0 62px; }
+html[data-theme="dark"] .selected-region { color: #e8f7fb; border-color: #31596a; background: rgba(9,45,60,.92); }
+
+@media (max-width: 1100px) {
+  .region-story { grid-template-columns: 1fr; gap: clamp(32px,5vw,56px); }
+  .region-story-copy { max-width: 760px; }
+}
+
+@media (max-width: 680px) {
+  .region-story { padding-inline: max(16px,var(--gutter)); }
+  .selected-region { min-height: 88px; margin-block: 24px 18px; padding: 14px; }
+  .selected-region > span { width: 56px; height: 56px; flex-basis: 56px; }
+}
+
+.region-story { padding: 130px max(24px, calc((100vw - 1240px) / 2)); display: grid; grid-template-columns: .85fr 1.15fr; align-items: center; gap: 70px; color: #fff; background: #052736; }.region-story-copy h2 { margin: 0; font-size: clamp(3rem,4.8vw,5.4rem); line-height: 1.05; letter-spacing: -.07em; }.region-story-copy > p:not(.section-kicker) { max-width: 530px; margin: 22px 0; color: #a3bdc8; }.selected-region { margin: 34px 0 22px; padding: 18px; display: flex; align-items: center; gap: 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 18px; background: rgba(255,255,255,.05); }.selected-region > span { width: 62px; height: 62px; display: grid; place-items: center; border-radius: 15px; background: rgba(125,235,233,.1); font-size: 2rem; }.selected-region small,.selected-region strong,.selected-region p { display: block; }.selected-region small { color: #81a2b1; font-size: .72rem; }.selected-region strong { font-size: 1.25rem; }.selected-region p { margin: 2px 0 0; color: #a6bfca; font-size: .82rem; }.region-story-copy > a { min-height: 50px; padding: 11px 16px; display: inline-flex; align-items: center; gap: 38px; border-radius: 12px; color: var(--ink); background: var(--mint); font-size: .86rem; font-weight: 850; }
