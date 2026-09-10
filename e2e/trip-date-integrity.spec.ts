@@ -66,8 +66,11 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(itinerary.locator(".travel-book-archive-action > p[id]")).toContainText(english ? "original dates" : "원래 날짜");
     await itinerary.getByLabel(english ? "용지호수공원 move to a date in this trip" : "용지호수공원 이번 여행 날짜로 이동", { exact: true }).selectOption("2026-10-07");
     await expect(archive).toBeEnabled(); await archive.click();
-    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-travel-book-v1") || "[]"));
-    expect(stored[0].travelEnd).toBe("2026-10-07"); expect(stored[0].scheduleAssignments["1002"]).toBe("2026-10-07");
+    // React persists the new archive from an effect after the save click.
+    await expect.poll(() => page.evaluate(() => {
+      const book = JSON.parse(localStorage.getItem("wave-travel-book-v1") || "[]")[0];
+      return { travelEnd: book?.travelEnd, assignedDate: book?.scheduleAssignments["1002"] };
+    })).toEqual({ travelEnd: "2026-10-07", assignedDate: "2026-10-07" });
     await page.reload();
     await expect(page.locator(".day-planner-grid li")).toHaveCount(2);
   });

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { chooseTripConditions, mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
-test("PDF 시안: 지역부터 날짜·일정·전체보기까지 실제 저장 흐름을 유지한다", async ({ page }, info) => {
+test("8+10 시안: 지역부터 날짜·일정·전체보기까지 실제 저장 흐름을 유지한다", async ({ page }, info) => {
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { plannerView: "guided" });
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -11,7 +11,7 @@ test("PDF 시안: 지역부터 날짜·일정·전체보기까지 실제 저장 
   await page.route("**/api/trips", route => route.fulfill({ json: { url: `${new URL(route.request().url()).origin}/trip/pdf-design-example` } }));
   await page.goto("/planner");
   await expect(page.getByRole("heading", { name: "경남, 어디부터 가볼까요?" })).toBeVisible();
-  await expect(page.locator(".reference-progress button")).toHaveCount(7);
+  await expect(page.locator(".reference-progress button")).toHaveCount(4);
   await expect(page.getByRole("button", { name: "통영 지역 선택" })).toBeVisible();
   await page.screenshot({ path: info.outputPath("pdf-region.png"), fullPage: true });
   await chooseTripConditions(page);

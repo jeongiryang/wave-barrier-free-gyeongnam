@@ -7,7 +7,7 @@ test("안내형 보기에서 보관 일정을 열면 재검색 없이 일정과 
   await page.goto("/planner");
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".reference-progress button").nth(5).click();
+  await page.locator(".reference-journey-views button").nth(1).click();
   await page.locator(".reference-itinerary-details > summary").click();
   await page.getByRole("button", { name: "내 일정에 저장", exact: true }).click();
   await expect(page.locator(".travel-book-archive-action [role=status]")).toContainText("내 일정에 저장했어요");

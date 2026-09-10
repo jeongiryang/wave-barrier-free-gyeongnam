@@ -22,10 +22,10 @@ test("English navigation preserves gates, stage history and keyboard focus", asy
   const rail = page.locator(".reference-progress");
   const status = page.locator(".journey-live-summary [role=status]");
   const progress = page.locator(".reference-completion");
-  await expect(rail.getByRole("button")).toHaveCount(7);
+  await expect(rail.getByRole("button")).toHaveCount(4);
   await expect(rail).not.toContainText(/[가-힣]/);
-  await expect(rail.getByRole("button").nth(5)).toBeDisabled();
-  await expect(rail.getByRole("button").nth(6)).toBeDisabled();
+  await expect(page.locator(".reference-journey-views button").nth(1)).toBeDisabled();
+  await expect(rail.getByRole("button").last()).toBeDisabled();
   await expect(status).toHaveText("Not searched");
   await expect(progress).toHaveAttribute("aria-valuenow", "0");
   await expect(page.locator(".journey-mode-toggle")).not.toContainText(/[가-힣]/);
@@ -43,7 +43,7 @@ test("English navigation preserves gates, stage history and keyboard focus", asy
   await rail.getByRole("button").first().click();
   await expect(page).toHaveURL(/#conditions$/);
   await page.goBack();
-  await expect(rail.getByRole("button").nth(3)).toHaveAttribute("aria-current", "step");
+  await expect(rail.getByRole("button").nth(2)).toHaveAttribute("aria-current", "step");
   await expect(page.locator("#places")).toBeVisible();
   expect((await new AxeBuilder({ page }).include(".reference-progress").include(".journey-mode-toggle").include(".simple-footer").analyze()).violations).toEqual([]);
   await rail.getByRole("button").nth(1).click();
@@ -72,7 +72,7 @@ for (const response of ["empty", "error"] as const) {
     await page.getByRole("button", { name: "Find places →", exact: true }).click();
     try { await expect(status).toHaveText("Loading"); } finally { release(); }
     await expect(status).toHaveText(response === "error" ? "Try again" : "No matching places");
-    await expect(page.locator('.reference-progress button').nth(5)).toBeDisabled();
-    await expect(page.locator('.reference-progress button').nth(6)).toBeDisabled();
+    await expect(page.locator(".reference-journey-views button").nth(1)).toBeDisabled();
+    await expect(page.locator(".reference-progress button").last()).toBeDisabled();
   });
 }

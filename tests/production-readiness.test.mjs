@@ -444,7 +444,7 @@ test("interactive help follows real sections on every public journey and remains
   for (const selector of [".community-page", "#community-list", ".community-footer", ".travel-book-page", ".travel-book-privacy", ".travel-book-list, .travel-book-empty"]) {
     assert.match(help, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
-  assert.match(communityHeader, /<HelpCenter \/>/);
+  assert.match(communityHeader, /<HelpCenter iconOnly \/>/);
   assert.match(landing, /id="story"/);
   assert.match(help, /window\.scrollTo\(\{ top: Math\.max\(0, targetTop\), behavior: reduced \? "auto" : "smooth" \}\)/);
   assert.match(help, /highlightSelector/);

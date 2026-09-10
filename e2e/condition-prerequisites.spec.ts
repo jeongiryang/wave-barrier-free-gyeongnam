@@ -59,7 +59,7 @@ for (const locale of ["ko", "en"] as const) {
     });
     await expect(page.locator(".reference-date-fields")).toBeVisible();
     expect(searches).toBe(0);
-    await page.locator(".reference-progress button").nth(2).click();
+    await page.locator(".reference-activity-edit").click();
     const activity = page.locator(".theme-grid button").first();
     await activity.click();
     await expect(search).toBeEnabled();
