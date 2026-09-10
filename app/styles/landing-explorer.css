@@ -92,10 +92,10 @@
 .day-planner h3 { margin: 8px 0 0; font-size: clamp(1.5rem,2.4vw,2.2rem); letter-spacing: -.04em; }
 .day-start-control { width: min(100%,340px); display: grid; gap: 8px; }
 .day-start-control label,.day-place-editor label { color: var(--ink); font-size: .8rem; font-weight: 750; }
-.day-time-entry { display: flex; gap: 8px; }
+.day-time-entry { display: flex; flex-wrap: wrap; gap: 8px; }
 .day-start-control input,.day-time-entry button { min-width: 0; min-height: 48px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: var(--paper); font: inherit; }
-.day-start-control input { flex: 1; font-size: 1.1rem; font-weight: 800; }
-.day-time-entry button { font-size: .8rem; font-weight: 750; }
+.day-start-control input { flex: 1 0 180px; max-width: 100%; font-size: 1.1rem; font-weight: 800; }
+.day-time-entry button { flex: 1 0 auto; font-size: .8rem; font-weight: 750; }
 .day-start-control small { color: var(--muted); font-size: .75rem; }
 .day-planner-explanation { max-width: 760px; margin: 12px 0 0; color: var(--muted); font-size: .8rem; }
 .day-planner-grid { margin-top: 28px; display: grid; gap: 0; }
@@ -172,7 +172,7 @@ html[data-theme="dark"] .day-journal-action { border-color: #376d5d; background:
 @media (max-width: 780px) {
   .day-order-toolbar { align-items: stretch; flex-direction: column; gap: 10px; }
   .day-order-toolbar button { width: 100%; }
-  .day-place-editor { grid-template-columns: 1fr; }
+  .day-place-editor { grid-column: 1 / -1; grid-template-columns: 1fr; }
   .day-planner-grid > article { grid-template-columns: 1fr; gap: 16px; }
   .day-planner article > p { grid-column: 1; }
   .day-journal-action { align-items: stretch; flex-direction: column; }.day-journal-action a { justify-content: space-between; }
