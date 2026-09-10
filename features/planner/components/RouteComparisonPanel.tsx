@@ -6,6 +6,7 @@ import { originalLanguage } from "../place-copy";
 import { routeTitle } from "../route-copy";
 import { hasJourneyEstimate } from "../../../lib/route-estimates.js";
 import { kakaoDirections } from "../../../lib/kakao-directions.js";
+import KakaoTaxiLink from "../../kakao-travel/KakaoTaxiLink";
 
 const englishModes = {
   walk: ["Walking", "Travel on foot"], bicycle: ["Cycling", "Travel by bicycle"],
@@ -90,5 +91,6 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
       {!routeLoading && configuredRoutes.length > 0 && <a className="route-kakao-secondary" href={kakaoHref} target="_blank" rel="noreferrer">{english ? "Also check the route in Kakao Maps" : "카카오맵에서도 경로 확인"} ↗</a>}
       {!routeLoading && routeAlternatives.length > 0 && !configuredRoutes.length && !routeDestination && <p className="sr-only">{english ? "Only a connection preview is available." : "현재 경로 데이터는 미리보기만 제공합니다."}</p>}
     </div>
+    {routeDestination && <KakaoTaxiLink destination={routeDestination} />}
   </aside>;
 }
