@@ -42,13 +42,13 @@ test("계정 탈퇴는 본인 재확인과 일회용 정리 권한 뒤 모든 �
   assert.match(repository, /crypto\.getRandomValues\(new Uint8Array\(32\)\)/);
   assert.match(repository, /crypto\.subtle\.digest\("SHA-256"/);
   assert.doesNotMatch(repository, /INSERT INTO account_deletion_grants[^\n]*token\}/);
-  for (const table of ["community_reports", "community_likes", "community_comments", "community_posts", "account_deletion_grants"]) {
+  for (const table of ["community_reports", "community_likes", "community_comments", "community_posts", "account_deletion_grants", "wave_account_trips", "wave_trip_members", "wave_trip_votes", "wave_trip_comments", "wave_travel_preferences", "wave_travel_limits"]) {
     assert.match(repository, new RegExp(`DELETE FROM ${table}`));
   }
   assert.match(repository, /sql\.transaction\(\[/);
   assert.match(migration, /token_hash CHAR\(64\) PRIMARY KEY/);
   assert.match(migration, /user_id TEXT NOT NULL UNIQUE/);
-  assert.match(settings, /보관한 여행집과 환경설정은 유지됩니다/);
+  assert.match(settings, /계정에 저장한 여행·편의 조건·동행 참여 기록을 삭제합니다/);
   assert.match(settings, /account\/delete-complete\?token=/);
   assert.match(completionPage, /referrer: "no-referrer"/);
   assert.match(completionClient, /useSearchParams/);
