@@ -174,6 +174,7 @@ for (const end of ["cancel", "complete", "elsewhere"] as const) test(`all-journe
   await search.click();
   await page.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
   await page.getByRole("button", { name: en ? /Next: Itinerary/ : /다음: 내 일정/ }).click();
+  await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
   const coverage = page.locator(".itinerary-route-coverage");
   const check = coverage.locator(".coverage-actions button").first();
