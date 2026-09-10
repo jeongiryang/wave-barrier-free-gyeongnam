@@ -10,3 +10,6 @@ The departure action starts the existing weather reload and, when region/theme/f
 - React review: derive pending from existing state; no extra effect, request, subscription, dependency, storage mutation or polling. Native disabled is limited to missing region so pending interactions retain focus.
 
 This is a preserved local follow-up on arrival6047a11. Latest actual main/arrival integration, hosted CI, merge and exact Production validation remain pending. Per-source stale-data preservation and the full #282/#280-R07 requirements are not completed by this change.
+
+## Integration with the response-integrity candidate #427
+Normal mergef48e17844318f78fcc201e059adb70f4836b5fc8 includes actual main #424 and candidate #427494d5014031e739ba6dd2dbbe4f7bcf373c36719. Retained the two refresh props in the merge and the newer arrival verification log. Relative to #427 only the six refresh files differ. Fresh lint/typecheck,753 unit/contract tests, Vercel build and unchanged budgets PASS (Planner269.20/270KiB,CSS69.90/70KiB). All94 related browsers PASS2.6min. Current960px Korean/light and1440px English/dark captures were reviewed: scoped action and keyboard focus remain clear, with the previously noted tall-section/sticky-header capture limit. Actual #427 main integration, fresh checks, own hosted CI and deployment remain pending.
