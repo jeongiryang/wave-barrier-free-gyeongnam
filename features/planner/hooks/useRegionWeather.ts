@@ -30,7 +30,7 @@ export function useRegionWeather(region: string) {
       setWeather(null); setWeatherFailure(undefined);
       void optionalPlannerJson<WeatherData>(`/api/weather?region=${encodeURIComponent(region)}`, { signal: controller.signal },
         (error) => { if (!cancelled && version === generation.current) setWeatherFailure(error instanceof PlannerRequestError ? error.failure : undefined); })
-        .then((data) => { if (!cancelled && version === generation.current) setWeather(weatherResponse(data)); })
+        .then((data) => { if (!cancelled && version === generation.current) setWeather(weatherResponse(data, region)); })
         .finally(() => { if (!cancelled && version === generation.current) { pending.current = false; setWeatherLoading(false); } });
     });
     return () => { cancelled = true; controller.abort(); window.cancelAnimationFrame(frame); };

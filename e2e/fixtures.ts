@@ -137,7 +137,7 @@ export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; 
       return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ generatedAt: plan.generatedAt, visitor: { total: 0, byType: {}, startYmd: "", endYmd: "" }, demand: [], camping: [], pet: [], wellness: [], medical: [], language: [], awards: [], water: [], rests: [], events: [], lodging: [], statuses: [] }) });
     }
     if (url.pathname === "/api/route") return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(route) });
-    if (url.pathname === "/api/weather") return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(weather) });
+    if (url.pathname === "/api/weather") return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...weather, region: url.searchParams.get("region") || "창원" }) });
     if (url.pathname === "/api/health") return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ checkedAt: plan.generatedAt, keys: [] }) });
     if (url.pathname === "/api/map-config") return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ kakaoMapKey: "" }) });
     if (url.pathname === "/api/auth/get-session") return requestRoute.fulfill({ status: 200, contentType: "application/json", body: "null" });
