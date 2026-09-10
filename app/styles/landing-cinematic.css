@@ -60,7 +60,7 @@ html[data-theme="dark"] .story-edition .demo-profile[data-selected="true"] { bac
 .story-edition .needs-chapter { padding: var(--story-space) var(--gutter); align-items: center; }
 .needs-copy > p:not(.section-kicker) { line-height: 1.8; max-width: 460px; color: var(--muted); margin: 24px 0 32px; }
 .story-edition .needs-chapter h2 { font-size: clamp(2.6rem,4.5vw,5rem); margin: 16px 0; }
-.story-edition .needs-portrait { position: relative; top: auto; grid-row: 1; margin: 0; overflow: hidden; }
+.story-edition .needs-portrait { position: relative; top: auto; grid-column: 2; grid-row: 1; margin: 0; overflow: hidden; }
 .needs-portrait img { display: block; width: 100%; border-radius: 0; }
 .story-screen { width: 100%; background: #eef7fc; overflow: hidden; }
 .story-screen img { display: block; width: 100%; height: 100%; object-fit: contain; }
@@ -100,8 +100,7 @@ html[data-theme="dark"] .story-edition .demo-profile[data-selected="true"] { bac
 .landing-cta .closing-horizon { transform: scale(calc(1 + var(--cinema-rest) * .15)); clip-path: inset(calc(var(--cinema-rest) * 14%) 0 0); }
 .landing-source-notes { max-width: 420px; line-height: 1.7; }.landing-source-notes summary { min-height: 44px; padding-block: 12px; cursor: pointer; }.landing-source-notes p { font-size: .8rem; }
 @media (max-width: 960px) {
- .story-edition .needs-chapter,.story-edition .destination-editorial,.story-edition .community-chapter { grid-template-columns: 1fr; }
- .story-edition .needs-portrait { grid-column: 1; grid-row: auto; }
+ .story-edition .destination-editorial,.story-edition .community-chapter { grid-template-columns: 1fr; }
  .needs-copy .story-screen { max-width: 660px; }
  .community-composer-visual { max-width: 680px; width: 100%; }
  .story-edition .needs-chapter { grid-template-columns: 1fr 1fr; gap: 28px; }
@@ -287,7 +286,7 @@ html[data-theme="dark"] .story-progress[data-surface="light"] li a { color: #fff
 @media (prefers-reduced-motion: reduce) { .region-photo-selector button > span { transition: none; } }
 @media (max-width: 650px) {
  .story-edition .needs-chapter,.story-edition .community-chapter { grid-template-columns: 1fr; }
- .story-edition .needs-portrait { grid-row: 1; }
+ .story-edition .needs-portrait { grid-column: 1; grid-row: 1; }
  .story-edition .needs-portrait img { height: 400px; object-position: 40% 58%; }
  .story-edition .needs-copy { grid-row: 2; }
  .story-edition .community-composer-visual { grid-column: 1; grid-row: 2; }
