@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { COMMUNITY_REGIONS } from "../../../lib/community/types";
 import { parseTravelJournalDraft } from "../../../lib/community/field-report.js";
+import { parseFieldReportDraft } from "../../../lib/community/facility-history.js";
 import { useHydratedSession } from "../../auth/hooks/useHydratedSession";
 import {
   communityErrorMessage,
@@ -23,6 +24,8 @@ const emptyValues: CommunityPostInput = {
   visitDate: "",
   fieldReports: [],
   journalPlaces: [],
+  visitPhotos: [],
+  photoConsent: false,
 };
 
 export function useCommunityEditor(postId?: string) {
@@ -32,6 +35,7 @@ export function useCommunityEditor(postId?: string) {
   const [values, setValues] = useState<CommunityPostInput>(emptyValues);
   const [state, setState] = useState<"ready" | "loading" | "saving" | "error">(editing ? "loading" : "ready");
   const [message, setMessage] = useState("");
+  const [loginRequired, setLoginRequired] = useState(false);
   const currentPath = useMemo(() => typeof window === "undefined"
     ? "/community/new"
     : `${window.location.pathname}${window.location.search}`, []);
@@ -57,6 +61,7 @@ export function useCommunityEditor(postId?: string) {
       region,
       visitDate: draft?.visitDate || "",
       journalPlaces: draft?.journalPlaces || [],
+      fieldReports: parseFieldReportDraft(params) as CommunityPostInput["fieldReports"],
     })), 0);
     return () => window.clearTimeout(timer);
   }, [editing]);
@@ -76,6 +81,8 @@ export function useCommunityEditor(postId?: string) {
         visitDate: payload.post.visitDate || "",
         fieldReports: payload.post.fieldReports,
         journalPlaces: payload.post.journalPlaces,
+        visitPhotos: payload.post.visitPhotos || [],
+        photoConsent: false,
       });
       setState("ready");
     }).catch((error) => {
@@ -90,10 +97,16 @@ export function useCommunityEditor(postId?: string) {
     event.preventDefault();
     setState("saving");
     setMessage("");
+    setLoginRequired(false);
     try {
       const { ok, status, payload } = await saveCommunityPost(postId, values);
       if (status === 401) {
         setState("ready");
+        if (values.visitPhotos?.length) {
+          setLoginRequired(true);
+          setMessage("로그인이 만료됐어요. 새 탭에서 로그인한 뒤 이 화면으로 돌아와 다시 등록해 주세요. 작성 중인 사진과 내용은 그대로 두었습니다.");
+          return;
+        }
         router.push(`/login?next=${encodeURIComponent(currentPath)}`);
         return;
       }
@@ -113,6 +126,7 @@ export function useCommunityEditor(postId?: string) {
     setValues,
     state,
     message,
+    loginRequired,
     currentPath,
     submit,
   };

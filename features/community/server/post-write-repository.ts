@@ -10,7 +10,8 @@ export async function createCommunityPost(userId: string, name: string, value: P
   const now = Date.now();
   const fieldReports = JSON.stringify(value.fieldReports);
   const journalPlaces = JSON.stringify(value.journalPlaces);
-  await sql`INSERT INTO community_posts (id,author_id,author_name,category,title,content,region,place_id,place_name,visit_date,field_reports,journal_places,created_at,updated_at) VALUES (${id},${userId},${name},${value.category},${value.title},${value.content},${value.region},${value.placeId},${value.placeName},${value.visitDate},${fieldReports}::jsonb,${journalPlaces}::jsonb,${now},${now})`;
+  const visitPhotos = JSON.stringify(value.visitPhotos || []);
+  await sql`INSERT INTO community_posts (id,author_id,author_name,category,title,content,region,place_id,place_name,visit_date,field_reports,journal_places,visit_photos,created_at,updated_at) VALUES (${id},${userId},${name},${value.category},${value.title},${value.content},${value.region},${value.placeId},${value.placeName},${value.visitDate},${fieldReports}::jsonb,${journalPlaces}::jsonb,${visitPhotos}::jsonb,${now},${now})`;
   return { id };
 }
 
@@ -19,7 +20,8 @@ export async function updateCommunityPost(postId: string, userId: string, value:
   if (!sql) return false;
   const fieldReports = JSON.stringify(value.fieldReports);
   const journalPlaces = JSON.stringify(value.journalPlaces);
-  await sql`UPDATE community_posts SET category=${value.category},title=${value.title},content=${value.content},region=${value.region},place_id=${value.placeId},place_name=${value.placeName},visit_date=${value.visitDate},field_reports=${fieldReports}::jsonb,journal_places=${journalPlaces}::jsonb,updated_at=${Date.now()} WHERE id=${postId} AND author_id=${userId}`;
+  const visitPhotos = JSON.stringify(value.visitPhotos || []);
+  await sql`UPDATE community_posts SET category=${value.category},title=${value.title},content=${value.content},region=${value.region},place_id=${value.placeId},place_name=${value.placeName},visit_date=${value.visitDate},field_reports=${fieldReports}::jsonb,journal_places=${journalPlaces}::jsonb,visit_photos=CASE WHEN ${value.visitPhotos !== undefined} THEN ${visitPhotos}::jsonb WHEN ${value.category}='review' AND place_id=${value.placeId} AND visit_date=${value.visitDate} THEN visit_photos ELSE '[]'::jsonb END,updated_at=${Date.now()} WHERE id=${postId} AND author_id=${userId}`;
   return true;
 }
 

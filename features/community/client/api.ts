@@ -59,6 +59,8 @@ export type CommunityPostInput = {
   visitDate: string;
   fieldReports: CommunityPost["fieldReports"];
   journalPlaces: CommunityPost["journalPlaces"];
+  visitPhotos?: CommunityPost["visitPhotos"];
+  photoConsent?: boolean;
 };
 
 export type CommunityModerationReport = {
