@@ -109,7 +109,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
     max-height: calc(100svh - 20px); overflow-y: auto;
     bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
-  .help-dialog, .account-dialog, .place-modal { max-height: calc(100svh - 20px); }
+  .place-modal { max-height: calc(100svh - 20px); }
   .route-option dl { grid-template-columns: repeat(2,minmax(0,1fr)); }
 
   .place-carousel, .rich-rail, .weather-days, .layer-tabs, .map-command-bar {

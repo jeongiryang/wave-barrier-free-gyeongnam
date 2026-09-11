@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { inquiryOptions, inquiryText } from "../../../lib/place-decision-tools.js";
 import { usePlaceDialogFocus } from "../hooks/usePlaceDialogFocus";
@@ -9,7 +9,7 @@ import type { Place } from "../types";
 export default function PlaceInquiryDialog({ place, en, selected, extra, onSelection, onExtra, onClose }: {
   place: Place; en: boolean; selected: string[]; extra: string;
   onSelection: (ids: string[]) => void; onExtra: (text: string) => void; onClose: () => void;
-}) {
+}): ReactNode {
   const dialog = usePlaceDialogFocus(true, onClose);
   const [large, setLarge] = useState(false);
   const [notice, setNotice] = useState("");
