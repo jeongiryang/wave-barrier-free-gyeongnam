@@ -14,9 +14,9 @@ export default function FixedVisitControl({ name, value, position, onChange, en 
   </div>;
 }
 
-export function FixedVisitSummary({ fixed, waiting = 0, late = 0, en = false }: { fixed?: FixedVisit; waiting?: number; late?: number; en?: boolean }) {
+export function FixedVisitSummary({ fixed, waiting = 0, late = 0, en = false, inheritColor = false }: { fixed?: FixedVisit; waiting?: number; late?: number; en?: boolean; inheritColor?: boolean }) {
   if (!fixed) return null;
-  return <p className="modal-note" role={late ? "status" : undefined} style={{ marginBlock: 8 }}>
+  return <p className="modal-note" role={late ? "status" : undefined} style={{ marginBlock: 8, color: inheritColor ? "inherit" : undefined }}>
     <b>{fixedVisitLabel(fixed.kind, en)} {en ? "kept" : "고정"}{fixed.time ? ` · ${fixed.time}` : ""}</b>
     {late > 0 ? en ? ` · ${late} min late. Start earlier or adjust preceding visits.` : ` · 도착 예상 ${late}분 늦음. 하루 시작이나 앞 일정을 조정해 주세요.` : waiting > 0 ? en ? ` · ${waiting} min waiting before the fixed time` : ` · 고정 시각 전 ${waiting}분 여유` : ""}
   </p>;

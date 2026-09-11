@@ -20,7 +20,7 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await page.evaluate(() => document.fonts.ready);
   const minute = (value: string) => Number(value.split(":")[0]) * 60 + Number(value.split(":")[1]);
   const previous = minute((await board.locator(".reference-stop > time").nth(1).textContent())!);
-  await board.locator("summary").first().click();
+  await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
   const choice = board.getByRole("combobox", { name: "경남도립미술관 머무는 시간", exact: true });
   await choice.selectOption("30");
   await expect.poll(async () => minute((await board.locator(".reference-stop > time").nth(1).textContent())!)).toBe(previous - 90);
@@ -46,7 +46,7 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   }
   expect((await new AxeBuilder({ page }).include(".reference-day-list").analyze()).violations).toEqual([]);
   await board.getByRole("button", { name: "취소", exact: true }).click();
-  await board.locator("summary").first().click();
+  await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
   await page.reload();
   await expect(board.locator(".reference-stop-copy").first()).toContainText("체류 137분");
   await page.getByRole("button", { name: "다음: 전체보기", exact: true }).click();
@@ -59,7 +59,7 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await expect(page.locator(".travel-book-days")).toContainText("체류 137분");
   await page.getByRole("button", { name: /이 일정 다시 열기/ }).click();
   await expect(board.locator(".reference-stop-copy").first()).toContainText("체류 137분");
-  await board.locator("summary").first().click();
+  await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
   await choice.selectOption("default");
   await expect(board.locator(".reference-stop-copy").first()).toContainText("기본 체류 약 120분");
   expect(errors).toEqual([]);
