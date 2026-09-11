@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import ts from "typescript";
 import * as coordinates from "../lib/map-coordinates.js";
 import * as budgets from "../lib/request-budget.js";
+import * as indoor from "../lib/indoor-evidence.js";
 
 const code = ts.transpileModule(readFileSync(new URL("../server/tourism/visit-info.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const common = { contentid: "1001", contenttypeid: "14", lDongRegnCd: "48", mapx: "128.691", mapy: "35.238" };
@@ -12,6 +13,7 @@ async function run({ id = "1001", commonItems = [common], introItems = [intro], 
   const mod = { exports: {} }, calls = [];
   new Function("module", "exports", "require", code)(mod, mod.exports, name => {
     if (name.endsWith("map-coordinates.js")) return coordinates;
+    if (name.endsWith("indoor-evidence.js")) return indoor;
     if (name.endsWith("request-budget.js")) return timeoutAt ? { ...budgets, SERVER_BUDGET_MS: { ...budgets.SERVER_BUDGET_MS, visitInfo: 8 } } : budgets;
     if (name.endsWith("/http")) return { json: (body, status = 200, cache = false) => ({ body, status, cache }), clean: (value, max = 240) => String(value ?? "").replace(/<[^>]*>/g, "").slice(0, max) };
     if (name.endsWith("/provider-data")) return {

@@ -4,6 +4,7 @@ import { clean, json } from "../shared/http";
 import { attemptProvider, commonParams, fetchTourismData } from "../shared/provider-data";
 import { supportedPlacePoint } from "../../lib/map-coordinates.js";
 import { SERVER_BUDGET_MS, budgetClock, withinBudget } from "../../lib/request-budget.js";
+import { indoorEvidence } from "../../lib/indoor-evidence.js";
 
 const fields: Record<string, { hours?: string; rest?: string; fees?: string; phone: string }> = {
   "12": { hours: "usetime", rest: "restdate", phone: "infocenter" },
@@ -39,12 +40,13 @@ export async function handleVisitInfo(url: URL, env: Env) {
   if (!mapping) return json({ ...base, status: "unsupported" });
   const intro = await lookup("detailIntro2", { ...commonParams("1"), contentId: id, contentTypeId });
   if (!intro.ok || intro.value.partial) return json({ id, status: "provider-error" }, 502);
-  if (!intro.value.items.length) return json({ ...base, status: "empty" });
+  if (!intro.value.items.length) return json({ ...base, setting: indoorEvidence(place.overview), status: "empty" });
   const item = intro.value.items.find(value => String(value.contentid) === id && String(value.contenttypeid) === contentTypeId);
   if (!item) return json({ id, status: "invalid-response" }, 502);
   const read = (key?: string) => key ? clean(item[key], 1200) : "";
   const info: VisitInfo = {
     ...base, checkedAt: new Date().toISOString(), status: "available",
+    setting: indoorEvidence(place.overview),
     hours: read(mapping.hours), restDays: read(mapping.rest), fees: read(mapping.fees),
     phone: clean(item[mapping.phone] || place.tel, 160),
     eventStart: contentTypeId === "15" ? read("eventstartdate") : "",

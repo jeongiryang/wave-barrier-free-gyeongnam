@@ -119,6 +119,12 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
     setOrderMode("manual"); setNotice(null);
   }, [activeOrderIds, saved]);
 
+  const appendPlaceOrder = useCallback((placeId: string) => {
+    if (!saved.includes(placeId)) return;
+    setManualOrder([...activeOrderIds.filter(id => id !== placeId), placeId]);
+    setOrderMode("manual"); setNotice(null);
+  }, [activeOrderIds, saved]);
+
   const orderExplanation = useMemo(
     () => orderMode === "manual"
       ? locale === "en" ? "Your visit order. Daily travel times are recalculated when the order changes." : "내가 정한 방문 순서입니다. 날짜별 이동시간은 순서가 바뀔 때마다 다시 계산합니다."
@@ -140,5 +146,6 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
     restoreAutoOrder,
     replacePlaceOrder,
     insertPlaceAfter,
+    appendPlaceOrder,
   };
 }

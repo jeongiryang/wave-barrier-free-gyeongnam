@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
+import { confirmedAlternativePlan } from "./alternative-fixtures";
 import AxeBuilder from "@axe-core/playwright";
 
 const errors = new WeakMap<Page, string[]>();
@@ -13,6 +14,7 @@ test.afterEach(async ({ page }) => { expect(errors.get(page)).toEqual([]); });
 async function prepare(page: Page, en = false, crowdRate?: number) {
   await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 390 : 1366, height: 900 });
   await mockPlannerApi(page, { plannerView: "guided", crowdRate });
+  await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: { ...confirmedAlternativePlan, crowd: { ...confirmedAlternativePlan.crowd, rate: crowdRate ?? confirmedAlternativePlan.crowd.rate } } }));
   await page.addInitScript(value => localStorage.setItem("wave-locale", value), en ? "en" : "ko");
   await page.goto("/planner");
   await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>(".journey-mode-toggle button")?.disabled);
@@ -25,7 +27,7 @@ async function prepare(page: Page, en = false, crowdRate?: number) {
 }
 
 for (const en of [false, true]) {
-test(`weather alternative search keeps focus during the return to conditions ${en ? "English" : "Korean"}`, async ({ page }) => {
+test(`weather alternative search keeps focus in comparison without changing the current trip ${en ? "English" : "Korean"}`, async ({ page }) => {
   const search = await prepare(page, en);
   await page.locator(".reference-progress button").first().click();
   await page.locator(".condition-date-disclosure > summary").click();
@@ -51,12 +53,20 @@ test(`weather alternative search keeps focus during the return to conditions ${e
     await route.fallback();
   });
   await trigger.focus(); await trigger.press("Enter");
+  const comparison = page.getByRole("dialog", { name: "이곳만 바꿔 볼까요?", exact: true });
+  await expect(comparison.getByRole("heading", { level: 2 })).toBeFocused();
+  await comparison.getByText("같은 편의로 문화 공간 찾기", { exact: true }).click();
+  const compareSearch = comparison.getByRole("button", { name: "같은 편의로 후보 찾기", exact: true });
+  await compareSearch.focus(); await compareSearch.press("Enter");
   try {
-    await expect(page.locator(".condition-heading")).toBeFocused();
-    await expect(page).toHaveURL(/#conditions$/);
+    await expect(comparison).toBeVisible();
+    await expect(page).toHaveURL(/#departure-readiness$/);
   } finally { release(); }
-  await expect(page.locator("#places h2").first()).toBeFocused();
-  await expect(page).toHaveURL(/#places$/);
+  await expect(compareSearch).toBeEnabled();
+  await expect(comparison).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+  await expect(page).toHaveURL(/#departure-readiness$/);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
 });
 
@@ -81,8 +91,14 @@ for (const action of ["nearby", "alternative"] as const) test(`departure ${actio
     : page.getByRole("button", { name: en ? "Compare replacing with 용지호수공원" : "용지호수공원(으)로 교체 검토", exact: true });
   await expect(trigger).toBeVisible();
   await trigger.focus();
-  page.once("dialog", dialog => dialog.accept());
+  if (action === "nearby") page.once("dialog", dialog => dialog.accept());
   await trigger.press("Enter");
+  if (action === "alternative") {
+    const comparison = page.getByRole("dialog", { name: "이곳만 바꿔 볼까요?", exact: true });
+    await expect(comparison.getByRole("heading", { level: 2 })).toBeFocused();
+    await comparison.getByRole("button", { name: "용지호수공원 선택", exact: true }).click();
+    await comparison.getByRole("button", { name: "선택한 장소로 교체", exact: true }).click();
+  }
   const heading = page.locator("#itinerary-stage-title");
   await expect(heading).toBeFocused();
   await expect(page).toHaveURL(/#itinerary$/);
