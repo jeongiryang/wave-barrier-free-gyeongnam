@@ -78,7 +78,7 @@ export function useRouteRequest(region: string) {
     if (privateOrigin) {
       setRouteLoading(false);
       setRouteAlternatives([]);
-      onNotice({ ko: "현재 위치 좌표는 W.A.V.E 경로 API나 외부 링크에 넣지 않습니다. 공개 출발 거점을 선택하거나 카카오맵에서 출발지·이동수단을 직접 선택해 주세요. 지도 제공처의 처리는 개인정보처리방침을 확인해 주세요.", en: "Device coordinates are not sent to W.A.V.E routes or external links. Choose a public departure or select departure and mode in Kakao Maps. See the privacy policy for map provider processing." });
+      onNotice({ ko: "현재 위치 좌표는 WAVE 경로 API나 외부 링크에 넣지 않습니다. 공개 출발 거점을 선택하거나 카카오맵에서 출발지·이동수단을 직접 선택해 주세요. 지도 제공처의 처리는 개인정보처리방침을 확인해 주세요.", en: "Device coordinates are not sent to WAVE routes or external links. Choose a public departure or select departure and mode in Kakao Maps. See the privacy policy for map provider processing." });
       routeRequestRef.current = null;
       return;
     }

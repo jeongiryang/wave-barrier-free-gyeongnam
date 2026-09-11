@@ -5,7 +5,7 @@ import { pageMetadata } from "../../../lib/site-metadata";
 
 export const metadata = pageMetadata({
   title: "커뮤니티 운영",
-  description: "W.A.V.E 커뮤니티 신고와 공개 상태를 확인하는 운영 화면입니다.",
+  description: "WAVE 커뮤니티 신고와 공개 상태를 확인하는 운영 화면입니다.",
   path: "/community/moderation",
   index: false,
 });

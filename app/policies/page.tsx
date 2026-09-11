@@ -6,7 +6,7 @@ import { horizonPhotos } from "../../features/landing/horizon-photos";
 
 export const metadata: Metadata = {
   title: "서비스 운영정책",
-  description: "W.A.V.E의 개인정보, 커뮤니티 운영, 서비스 신뢰와 이용 기준을 한곳에서 확인합니다.",
+  description: "WAVE의 개인정보, 커뮤니티 운영, 서비스 신뢰와 이용 기준을 한곳에서 확인합니다.",
   alternates: { canonical: "/policies" },
 };
 
@@ -14,7 +14,7 @@ const inquiryUrl = "https://github.com/jeongiryang/wave-barrier-free-gyeongnam/i
 
 export default function PoliciesPage() {
   return <main className="policy-page policy-hub" id="main">
-    <nav aria-label="정책 페이지 이동"><Link href="/">W.A.V.E 홈</Link><Link href="/privacy">개인정보처리방침</Link><Link href="/terms">서비스 이용약관</Link></nav>
+    <nav aria-label="정책 페이지 이동"><Link href="/">WAVE 홈</Link><Link href="/privacy">개인정보처리방침</Link><Link href="/terms">서비스 이용약관</Link></nav>
     <header>
       <p>POLICY CENTER</p>
       <h1>안심하고 계획하고,<br />서로의 이동을 존중하도록.</h1>
@@ -23,7 +23,7 @@ export default function PoliciesPage() {
 
     <section className="policy-summary" aria-labelledby="policy-summary-title">
       <div><p>운영 원칙</p><h2 id="policy-summary-title">정보의 출처와 한계를 숨기지 않습니다.</h2></div>
-      <p>W.A.V.E는 공식 관광정보와 여행자 경험을 구분하고, 필요한 데이터만 처리하며, 신고와 장애를 확인 가능한 절차로 다룹니다. 중요한 정책 변경은 이 화면의 시행일과 변경 내용을 갱신해 알립니다.</p>
+      <p>WAVE는 공식 관광정보와 여행자 경험을 구분하고, 필요한 데이터만 처리하며, 신고와 장애를 확인 가능한 절차로 다룹니다. 중요한 정책 변경은 이 화면의 시행일과 변경 내용을 갱신해 알립니다.</p>
     </section>
 
     <div className="policy-link-grid" aria-label="정책 문서 바로가기">
@@ -37,7 +37,7 @@ export default function PoliciesPage() {
       <section id="community-policy">
         <p className="policy-section-kicker">COMMUNITY</p>
         <h2>커뮤니티 운영정책</h2>
-        <p className="policy-lead">여행자의 실제 경험은 소중하지만 한 사람의 경험이 모든 사람의 이용 가능성을 보장하지는 않습니다. W.A.V.E는 공식 편의정보와 사용자 후기를 분리해 표시하고 다음 기준으로 공개 공간을 운영합니다.</p>
+        <p className="policy-lead">여행자의 실제 경험은 소중하지만 한 사람의 경험이 모든 사람의 이용 가능성을 보장하지는 않습니다. WAVE는 공식 편의정보와 사용자 후기를 분리해 표시하고 다음 기준으로 공개 공간을 운영합니다.</p>
         <div className="policy-detail-grid">
           <section><h3>환영하는 내용</h3><ul><li>방문 시점과 실제 이용 조건이 드러나는 구체적인 경험</li><li>휠체어 이동, 보행, 감각·인지 지원과 관련된 확인 가능한 정보</li><li>시설이나 교통 정보가 바뀌었다는 정중한 수정 제보</li></ul></section>
           <section><h3>제한하는 내용</h3><ul><li>타인의 연락처·얼굴·건강정보 등 동의 없는 개인정보</li><li>혐오, 괴롭힘, 위협, 사칭, 불법행위 조장, 반복 광고</li><li>출처를 꾸미거나 공식 확인처럼 오해시키는 허위 정보</li></ul></section>
@@ -54,7 +54,7 @@ export default function PoliciesPage() {
           <section><h3>정보 신뢰 기준</h3><p>공식 제공처, 조회 시각, 확인됨·일부 확인·재확인 필요 상태를 함께 표시합니다. 공식 편의근거가 없는 항목은 확인된 것처럼 점수에 반영하지 않고, 사용자 제보는 별도 경험 정보로 둡니다.</p></section>
           <section><h3>장애와 성능 저하</h3><p>외부 데이터가 지연되거나 중단되면 추정값을 실제값으로 대체하지 않습니다. 핵심 화면과 API는 매일 자동 점검하며 새 배포에서 문제가 확인되면 직전 정상 배포로 되돌리는 절차를 사용합니다.</p></section>
           <section><h3>기능 변경과 중단</h3><p>안전, 보안, 제공처 정책, 법령 또는 운영 여건에 따라 기능을 변경하거나 일시 중단할 수 있습니다. 사용자 권리나 데이터 보관에 중요한 변경은 시행일 전에 정책 화면 또는 서비스 안에서 알립니다.</p></section>
-          <section><h3>연락과 처리 기록</h3><p>오류·접근성 문제·정책 이의는 <a href={inquiryUrl} target="_blank" rel="noreferrer">W.A.V.E 운영 문의</a>에서 접수합니다. 공개 문의에는 이메일, 전화번호, 비밀번호, 인증 링크 등 민감정보를 적지 않아야 합니다.</p></section>
+          <section><h3>연락과 처리 기록</h3><p>오류·접근성 문제·정책 이의는 <a href={inquiryUrl} target="_blank" rel="noreferrer">WAVE 운영 문의</a>에서 접수합니다. 공개 문의에는 이메일, 전화번호, 비밀번호, 인증 링크 등 민감정보를 적지 않아야 합니다.</p></section>
         </div>
       </section>
       <section id="content-credits" className="content-credits">
@@ -66,7 +66,7 @@ export default function PoliciesPage() {
         <p>지역 사진의 제공기관은 한국관광공사이며 저작권은 해당 권리자에게 있습니다. 아래 링크는 현재 사용한 사진의 원본 이미지입니다. 개별 게시 상세 페이지와 사진별 이용조건의 일치는 아직 확인 중이며, 원본 링크를 이용허락 증빙으로 대신하지 않습니다. 재사용·재배포 전 제공처의 개별 이용조건을 확인해 주세요.</p>
         <ul id="regional-photo-credits">{Object.entries(regionShowcaseAlbums).flatMap(([region,photos]) => photos.map(photo => <li key={photo.id}><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{region} · {photo.title} — 사진 원본 (새 탭)</a><p>저작자: {photo.photographer || "개별 저작자 미확인"} · 제공: ⓒ한국관광공사<br />원문 상세/개별 이용조건: 확인 중. 사진 내 워터마크를 유지합니다.</p></li>))}</ul>
         <h3>브랜드 이미지와 제품 화면</h3>
-        <p>인트로의 브랜드 영상은 W.A.V.E를 위해 제작한 이미지이며 실제 관광지·시설 기록이 아닙니다. 과거 소개에 사용한 생성 이미지, 추천 제품 화면, 편의 선택·커뮤니티 작성 시연은 원본과 사용 기록을 저장소에 보존합니다. 현재 소개의 풍경 사진은 위 저작자·이용조건을 따릅니다.</p>
+        <p>인트로의 브랜드 영상은 WAVE를 위해 제작한 이미지이며 실제 관광지·시설 기록이 아닙니다. 과거 소개에 사용한 생성 이미지, 추천 제품 화면, 편의 선택·커뮤니티 작성 시연은 원본과 사용 기록을 저장소에 보존합니다. 현재 소개의 풍경 사진은 위 저작자·이용조건을 따릅니다.</p>
         <p>보존된 일정·카카오 지도 화면은 2026년 9월 9일 06:55–06:58 KST 같은 여행에서 장소를 둘째 날로 옮긴 전후 기록입니다. 현재 소개에서는 보류 중이며, 지도 표기·워터마크와 원본 촬영 manifest를 보존합니다. 새 사용화면 검증 후 다시 제작합니다.</p>
       </section>
     </article>

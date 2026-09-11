@@ -19,8 +19,8 @@ for (const restored of [false, true]) for (const path of ["/", "/planner", "/com
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     await expect(page.locator("html")).toHaveAttribute("lang", "ko");
     if (path === "/") {
-      const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
-      await intro.getByRole("button", { name: "소개로 건너뛰기", exact: true }).click();
+      const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
+      await page.keyboard.press("Escape");
       await expect(intro).toBeHidden();
     }
     const preferences = page.locator(".preference-controls:visible");

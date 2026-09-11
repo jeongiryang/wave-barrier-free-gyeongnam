@@ -251,13 +251,12 @@ test("account, storage and footer copy describe real boundaries and independent 
     plannerProductSource(),
   ]);
   assert.doesNotMatch(account, /저장한 여행 조건과 즐겨찾기를 안전하게 관리/);
-  assert.match(authForm, /커뮤니티 데이터에 저장하지 않습니다/);
-  assert.match(authForm, /여행 설계와 지도는 로그인 없이 이용/);
-  assert.match(authForm, /비밀번호 재설정과 계정 관리는 본인 확인 후 제공/);
+  assert.match(authForm, /href="\/planner">로그인 없이 둘러보기/);
+  assert.match(authForm, /href="\/forgot-password"/);
   assert.match(authForm, /autoComplete=\{auth\.registering \? "new-password" : "current-password"\}/);
   // 안내 문구는 문제가 된 칸에만 연결한다. 늘 비밀번호 칸에 붙여 두면 이메일이
   // 틀렸을 때도 비밀번호 칸이 이메일 오류를 읽어 준다.
-  assert.match(authForm, /fieldProps\("password", "auth-password-help"\)/);
+  assert.match(authForm, /fieldProps\("password", auth\.registering \? "auth-password-help" : undefined\)/);
   assert.match(authForm, /invalid \? "auth-message" : ""/);
   assert.match(account, /authClient\.signOut/);
   assert.match(landing, /공식 운영 서비스가 아닙니다/);
@@ -321,7 +320,7 @@ test("wide screens use available viewport width without breaking mobile gutters"
   assert.match(css, /--content: min\(var\(--layout-max\), calc\(100vw - var\(--gutter\) \* 2\)\)/);
   const wide = css.slice(css.indexOf("/* --- 유동형 와이드 레이아웃"), css.indexOf("/* --- 모바일·터치 접근성 최종 보정"));
   assert.match(wide, /@media \(min-width: 1101px\)/);
-  assert.match(wide, /\.landing-header, \.site-header \{ width: var\(--content\)/);
+  assert.match(await source("app/styles/wave-horizon.css"), /\.wave-header \{[\s\S]*width: min\(var\(--wave-max\)/);
   assert.match(wide, /\.landing-page > section, \.landing-page > footer/);
   assert.match(wide, /\.planner-page > \.navigation-section/);
   assert.match(wide, /\.navigation-workspace, \.day-planner \{ width: 100%; max-width: none; \}/);
@@ -399,14 +398,14 @@ test("wave effects avoid dense glyphs and full-screen arrival always offers a di
   const arrivalCss = await source("app/styles/landing-arrival.css");
   assert.match(landing, /<LandingIntro \/><main/);
   assert.match(intro, /<dialog[\s\S]*aria-labelledby="arrival-title"/);
-  assert.match(intro, /<form method="dialog"[\s\S]*data-intro-skip/);
+  assert.doesNotMatch(intro, /<button|data-intro-skip/);
   assert.doesNotMatch(intro, /<a href="\/planner"|arrival-actions/);
   assert.match(intro, /muted playsInline preload="none"/);
   assert.match(intro, /connection\?\.saveData === true/);
   assert.match(intro, /prefers-reduced-motion: reduce/);
   assert.match(intro, /setTimeout\(finish, 5200\)/);
   assert.match(intro, /getElementById\("landing-title"\)\?\.focus\(\{ preventScroll: true \}\)/);
-  assert.match(bootstrap, /data-intro-skip/);
+  assert.match(bootstrap, /setTimeout\(exit,5200\)/);
   assert.match(bootstrap, /sessionStorage\.setItem\('wave-arrival-session-v1','done'\)/);
   assert.match(arrivalCss, /height: 100dvh/);
   assert.doesNotMatch(landing, /useLandingIntro|introState/);
@@ -444,7 +443,8 @@ test("interactive help follows real sections on every public journey and remains
   for (const selector of [".community-page", "#community-list", ".community-footer", ".travel-book-page", ".travel-book-paths", ".travel-book-list, .travel-book-empty"]) {
     assert.match(help, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
-  assert.match(communityHeader, /<HelpCenter iconOnly \/>/);
+  assert.match(communityHeader, /WaveHeader/);
+  assert.match(await source("components/WaveFooterTools.tsx"), /<HelpCenter \/>/);
   assert.match(landing, /id="story"/);
   assert.match(help, /window\.scrollTo\(\{ top: Math\.max\(0, targetTop\), behavior: reduced \? "auto" : "smooth" \}\)/);
   assert.match(help, /highlightSelector/);
@@ -460,7 +460,7 @@ test("interactive help follows real sections on every public journey and remains
   assert.doesNotMatch(spotlightRule, /transition:/);
   assert.match(help, /event\.key === "Escape"/);
   assert.match(help, /previousFocus\?\.focus\(\)/);
-  assert.match(css, /@media \(max-width: 980px\)[\s\S]*\.planner-header-actions \.help-button \{ display: inline-flex; \}/);
+  assert.match(await source("components/WaveFooterTools.tsx"), /<HelpCenter \/>/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.help-tour-spotlight/);
 });
 
@@ -473,11 +473,11 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
   assert.match(layout, /width: "device-width"/);
   assert.match(layout, /viewportFit: "cover"/);
   assert.match(css, /@media \(max-width: 780px\)/);
-  assert.match(css, /top: calc\(8px \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(await source("app/styles/wave-horizon.css"), /top: max\(8px,env\(safe-area-inset-top,0px\)\)/);
   assert.match(css, /input, select, textarea \{ font-size: 16px; \}/);
   assert.match(css, /max-height: calc\(100svh - 20px\)/);
   assert.match(css, /\.carousel-actions button,[\s\S]*min-height: 44px/);
-  assert.match(css, /@media \(max-width: 380px\)[\s\S]*width: calc\(100vw - 8px\)/);
+  assert.match(await source("app/styles/wave-horizon.css"), /@media \(max-width: 650px\)[\s\S]*width: calc\(100% - 24px\)/);
   assert.match(css, /@media \(max-height: 520px\) and \(orientation: landscape\)/);
   assert.match(map, /className="map-command-scroll(?: [^"]+)?"/);
   assert.match(map, /className="map-expand-button"[\s\S]*⛶ 전체보기/);

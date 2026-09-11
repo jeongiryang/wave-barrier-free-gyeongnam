@@ -44,7 +44,7 @@ test("community comments and list parameters reject empty data and cap paginatio
 });
 
 test("formal auth pages use Neon Auth with accessible password and return flows", async () => {
-  const [form, hydratedSession, shell, motionHeadline, authCss, authRoute, server] = await Promise.all([
+  const [form, hydratedSession, shell, authRoute, server] = await Promise.all([
     Promise.all([
       source("features/auth/components/AuthForm.tsx"),
       source("features/auth/hooks/useAuthForm.ts"),
@@ -52,7 +52,6 @@ test("formal auth pages use Neon Auth with accessible password and return flows"
     ]).then((parts) => parts.join("\n")),
     source("features/auth/hooks/useHydratedSession.ts"),
     source("features/auth/components/AuthShell.tsx"),
-    source("features/auth/components/AuthMotionHeadline.tsx"), accountStyleSource(),
     source("app/api/auth/[...path]/route.ts"), source("lib/auth/server.ts"),
   ]);
   assert.match(form, /authClient\.signIn\.email/);
@@ -67,21 +66,9 @@ test("formal auth pages use Neon Auth with accessible password and return flows"
   assert.match(hydratedSession, /useSyncExternalStore/);
   assert.match(hydratedSession, /data: hydrated \? session\.data : null/);
   assert.match(hydratedSession, /isPending: !hydrated \|\| session\.isPending/);
-  assert.match(shell, /로그인 없이 여행 설계/);
-  assert.match(shell, /AuthMotionHeadline mode=\{mode\}/);
-  assert.match(motionHeadline, /나에게 맞는 하루로/);
-  assert.match(motionHeadline, /더 편한 이동으로/);
-  assert.match(motionHeadline, /여행자의 이야기까지/);
-  assert.match(motionHeadline, /motion === "calm"/);
-  assert.match(motionHeadline, /setTimeout\(\(\) => setPhraseIndex\(1\), 2700\)/);
-  assert.match(motionHeadline, /setTimeout\(\(\) => setPhraseIndex\(2\), 5400\)/);
-  assert.match(motionHeadline, /clearTimeout\(second\)/);
-  assert.match(motionHeadline, /className="sr-only"/);
-  assert.match(motionHeadline, /aria-hidden="true"/);
-  assert.doesNotMatch(motionHeadline, /aria-live/);
-  assert.match(authCss, /\.auth-copy-phrase-shell \{ min-block-size:/);
-  assert.match(authCss, /html\[data-motion="calm"\][\s\S]*\.auth-copy-phrase/);
-  assert.match(authCss, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.auth-copy-phrase/);
+  assert.match(form, /href="\/planner">로그인 없이 둘러보기/);
+  assert.match(shell, /className="auth-page auth-focused"/);
+  assert.doesNotMatch(shell, /auth-story|AuthMotionHeadline/);
   assert.match(authRoute, /getAuth\(\)\?\.handler/);
   assert.match(server, /secret\.length < 32/);
   assert.match(server, /sameSite: "lax"/);
@@ -201,7 +188,8 @@ test("community UI supports public reading, protected participation and place li
       source("features/community/components/LandingCommunityStory.tsx"),
     ]).then((parts) => parts.join("\n")), source("app/sitemap.ts"),
   ]);
-  assert.match(list, /공개 글은 누구나 읽고/);
+  assert.match(list, /CommunityPostList/);
+  assert.match(list, /writeHref/);
   assert.match(list, /아직 등록된 후기나 질문이 없습니다/);
   assert.doesNotMatch(list, /샘플/);
   assert.match(detail, /toggleLike/);

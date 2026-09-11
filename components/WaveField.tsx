@@ -19,7 +19,7 @@ export type WaveFieldProps = {
 export default function WaveField({
   tone = "deep",
   mode = "ambient",
-  wordmark = "W.A.V.E",
+  wordmark = "WAVE",
   className,
   replay = 0,
   paused = false,

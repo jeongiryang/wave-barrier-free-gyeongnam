@@ -93,7 +93,7 @@ export function useMapJourneyActions({
     busy.current = true;
     setActionStatus("share-pending");
     const data = {
-      title: locale === "en" ? "W.A.V.E travel planner" : "W.A.V.E 여행 계획",
+      title: locale === "en" ? "WAVE travel planner" : "WAVE 여행 계획",
       text: locale === "en" ? "Open the travel planner. This link does not include a saved itinerary." : "여행 계획 페이지를 엽니다. 저장한 일정은 이 링크에 포함되지 않습니다.",
       url: window.location.href,
     };

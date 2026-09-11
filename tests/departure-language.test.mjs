@@ -42,7 +42,7 @@ test("English calendar preserves the same event identity, Korean time zone and o
   const en = buildTripCalendarIcs({ ...input, locale: "en", region: "Changwon" }).replaceAll("\r\n ", "");
   assert.equal(en.match(/^UID:.*$/m)[0], ko.match(/^UID:.*$/m)[0]);
   assert.match(en, /DTSTART;TZID=Asia\/Seoul:20261008T103000/);
-  assert.match(en, /SUMMARY:W.A.V.E accessible trip/);
+  assert.match(en, /SUMMARY:WAVE accessible trip/);
   assert.match(en, /Before leaving/);
   assert.match(en, /경남도립미술관/);
   assert.match(en, /original language/);

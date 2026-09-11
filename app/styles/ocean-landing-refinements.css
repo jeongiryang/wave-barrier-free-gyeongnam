@@ -1,9 +1,7 @@
 
 /* --- 랜딩: 섹션 경계 없는 단일 수면 -------------------------------------- */
 .landing-page { background: var(--surface); }
-.landing-hero, .manifesto, .region-story, .evidence-story, .landing-cta,
-.landing-page .simple-footer { background: transparent; }
-.landing-page .landing-pointer-glow { display: none; }
+.landing-hero, .region-story, .landing-cta, .landing-page .simple-footer { background: transparent; }
 
 /* 모든 구역이 같은 세로 정렬선을 공유한다. */
 .landing-page > section, .landing-page > footer {
@@ -12,42 +10,16 @@
 
 .landing-hero { min-height: 0; padding-block: clamp(132px,12vw,176px) clamp(72px,8vw,112px); }
 .landing-hero::before { content: none; }
-.landing-hero-copy, .landing-signal { position: relative; z-index: 1; }
+.landing-hero-copy { position: relative; z-index: 1; }
 .landing-hero-copy > p span { background: #fff; }
 
 /* 핵심 여정만 남긴 콘텐츠 중심 Hero. */
-.landing-journey-summary {
-  min-height: 0; padding: clamp(28px, 4vw, 48px); align-content: center;
-  border-radius: 28px; color: #f5fcff; background: #07384c;
-  box-shadow: 0 20px 48px rgba(4, 40, 55, .16);
-}
-.landing-journey-summary ol { width: 100%; margin: 0; padding: 0; list-style: none; display: grid; }
-.landing-journey-summary li {
-  min-height: 68px; display: grid; grid-template-columns: 38px 1fr; align-items: center; gap: 14px;
-  border-bottom: 1px solid rgba(255,255,255,.16);
-}
-.landing-journey-summary li:last-child { border-bottom: 0; }
-.landing-journey-summary li b {
-  width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
-  color: #07384c; background: #79ead8; font-size: .8rem;
-}
-.landing-journey-summary li span { font-size: clamp(1.05rem, 1.6vw, 1.3rem); font-weight: 800; }
-.landing-journey-summary > p {
-  width: 100%; margin: 24px 0 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.16);
-  color: #cfe6ee; font-size: .9rem;
-}
 
 /* 밝은 바탕으로 넘어온 구역의 글자색을 되돌린다. */
 .region-story { color: var(--ink); }
-.region-story-copy > p:not(.section-kicker) { color: var(--muted); }
 .selected-region { border: 1px solid var(--line); background: #fff; }
 .selected-region > span { background: rgba(111,227,208,.22); }
 .selected-region small, .selected-region p { color: var(--muted); }
-.region-story-copy > a { color: var(--on-blue); background: var(--blue); }
-.region-story-copy > a:hover { background: var(--blue-dark); }
-
-.manifesto, .evidence-story { background: transparent; }
-.evidence-stack article, .evidence-stack article:last-child { border-color: var(--line); }
 
 .landing-cta { color: var(--ink); }
 .landing-cta > p { color: var(--blue); }
@@ -59,8 +31,3 @@
 .landing-page .simple-footer p { color: var(--muted); }
 .landing-page .github-footer-link { color: var(--ink); border-color: var(--line); }
 .landing-page .github-footer-link:hover,.landing-page .github-footer-link:focus-visible { color: #061f2b; border-color: #7debe9; }
-
-@media (max-width: 760px) {
-  .landing-journey-summary { padding: 22px; border-radius: 20px; }
-  .landing-journey-summary li { min-height: 58px; }
-}

@@ -20,7 +20,6 @@
 /* 이쪽은 `.planner-service-status`가 앞에 붙은 선택자가 덮고 있어 특이도를 맞춘다. */
 
 /* select 자체가 앞선 `.select-shell select { outline: 0 }`에 덮이지 않게 한다. */
-.select-shell select:focus-visible,
 .date-range-fields input:focus-visible,
 .planner-page textarea:focus-visible {
   outline: 3px solid #ffb800;
@@ -60,9 +59,6 @@
 }
 
 /* 스크롤로 숨은 헤더 안에 키보드 초점이 들어오면 그 즉시 화면으로 복귀한다. */
-.site-header.hidden:focus-within {
-  transform: translate(-50%, 0);
-}
 
 /* 저장한 calm과 OS reduced-motion 중 하나라도 켜지면 같은 정적 계약을 쓴다. */
 html[data-motion="calm"] {
@@ -102,10 +98,6 @@ html[data-motion="calm"] *::after {
   .public-mobile-nav-trigger[aria-expanded="true"] {
     color: var(--on-blue); border-color: var(--blue); background: var(--blue);
   }
-  .landing-header nav.public-mobile-nav-panel,
-  .site-header nav.public-mobile-nav-panel,
-  .reference-header nav.public-mobile-nav-panel,
-  .community-header nav.public-mobile-nav-panel,
   .auth-header nav.public-mobile-nav-panel,
   .public-mobile-nav-panel {
     width: min(320px,calc(100vw - 16px)); max-height: calc(100svh - 86px);
@@ -159,10 +151,8 @@ html[data-motion="calm"] *::after {
 }
 
 @media (max-width: 430px) {
-  .landing-start { display: none; }
-  .community-header .brand > span:last-child,
   .auth-header .brand > span:last-child { display: none; }
-  .community-header-actions,.auth-header-actions { min-width: 0; gap: 4px; }
+  .auth-header-actions { min-width: 0; gap: 4px; }
 }
 
 /* 320px와 200% 확대에서도 긴 상태·외부 데이터 문구가 화면을 밀지 않는다. */
@@ -176,6 +166,5 @@ main small:not(.sr-only) {
 :where(img, video, canvas, svg) { max-inline-size: 100%; }
 @media (max-width: 400px) {
   :root { --gutter: 10px; }
-  .landing-header,.site-header { max-width: calc(100vw - 8px); }
   .preference-panel,.public-mobile-nav-panel { max-width: calc(100vw - 16px); }
 }

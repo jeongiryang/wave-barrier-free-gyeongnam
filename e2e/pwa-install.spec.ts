@@ -23,13 +23,13 @@ test("설치 프롬프트는 환경설정에서 사용자가 설치 버튼을 �
       });
       window.dispatchEvent(event);
     });
-    return page.locator("button[aria-label='W.A.V.E 앱 설치']").count();
+    return page.locator("button[aria-label='WAVE 앱 설치']").count();
   }).toBe(1);
   await expect.poll(() => page.evaluate(() => (window as Window & { __waveInstallPromptCalls?: number }).__waveInstallPromptCalls)).toBe(0);
 
   await page.locator("summary[aria-label='환경설정 열기']").first().click();
   const panel = page.locator(".preference-panel").first();
-  const install = panel.getByRole("button", { name: "W.A.V.E 앱 설치" });
+  const install = panel.getByRole("button", { name: "WAVE 앱 설치" });
   await expect(install).toBeVisible();
   await expect.poll(() => page.evaluate(() => (window as Window & { __waveInstallPromptCalls?: number }).__waveInstallPromptCalls)).toBe(0);
   let results = await new AxeBuilder({ page }).include(".preference-panel").analyze();
@@ -52,5 +52,5 @@ test("설치 이벤트가 없으면 자동 요청 없이 수동 홈 화면 추�
   const panel = page.locator(".preference-panel").first();
   await expect(panel.getByText("홈 화면에 추가", { exact: true })).toBeVisible();
   await expect(panel.getByText(/브라우저 메뉴에서/)).toBeVisible();
-  await expect(panel.getByRole("button", { name: "W.A.V.E 앱 설치" })).toHaveCount(0);
+  await expect(panel.getByRole("button", { name: "WAVE 앱 설치" })).toHaveCount(0);
 });

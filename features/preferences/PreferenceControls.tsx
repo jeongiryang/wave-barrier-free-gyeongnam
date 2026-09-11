@@ -46,10 +46,10 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
         {iconOnly ? <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m9 3-.6 2.4-2 .9-2.2-.7L2 9.4l1.8 1.7v1.8L2 14.6l2.2 3.8 2.2-.7 2 .9L9 21h6l.6-2.4 2-.9 2.2.7 2.2-3.8-1.8-1.7v-1.8L22 9.4l-2.2-3.8-2.2.7-2-.9L15 3Z"/><circle cx="12" cy="12" r="3.1"/></svg> : <><span aria-hidden="true">Aa</span><b>{en ? "Preferences" : "환경설정"}</b></>}
       </summary>
       <div className="preference-panel">
-        <header>
+        <div className="preference-panel-heading">
           <b>{en ? "Preferences" : "환경설정"}</b>
           <small>{en ? "Adjust the screen for comfortable reading." : "읽기 편한 화면으로 조정합니다."}</small>
-        </header>
+        </div>
         {showPresentationOptions && <><label className="preference-row">
           <span><b>{t("language", "언어")}</b><small>{en ? "Some pages are in Korean" : "한국어 전체 지원"}</small></span>
           <select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>
@@ -60,12 +60,12 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
           <span><b>{en ? "Appearance" : "화면 색상"}</b><small>{theme === "dark" ? en ? "Dark appearance" : "어두운 화면" : en ? "Light appearance" : "밝은 화면"}</small></span>
           <em aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</em>
         </button></>}
-        {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label={en ? "Install W.A.V.E" : "W.A.V.E 앱 설치"}>
+        {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label={en ? "Install WAVE" : "WAVE 앱 설치"}>
           <span><b>{en ? "Install as an app" : "앱으로 설치"}</b><small>{en ? "Open from your home screen" : "홈 화면에서 전체 화면으로 열기"}</small></span>
           <em aria-hidden="true">{appInstall.state === "installing" ? en ? "Preparing" : "준비 중" : en ? "Install" : "설치"}</em>
 
         </button> : <div className="preference-row app-install-note">
-          <span><b>{appInstall.state === "installed" ? en ? "App installed" : "앱 설치됨" : en ? "Add to home screen" : "홈 화면에 추가"}</b><small>{appInstall.state === "installed" ? en ? "Using your installed W.A.V.E app" : "현재 설치된 W.A.V.E로 이용 중" : en ? "Choose 'Add to home screen' in your browser menu." : "브라우저 메뉴에서 ‘홈 화면에 추가’를 선택하세요."}</small></span>
+          <span><b>{appInstall.state === "installed" ? en ? "App installed" : "앱 설치됨" : en ? "Add to home screen" : "홈 화면에 추가"}</b><small>{appInstall.state === "installed" ? en ? "Using your installed WAVE app" : "현재 설치된 WAVE로 이용 중" : en ? "Choose 'Add to home screen' in your browser menu." : "브라우저 메뉴에서 ‘홈 화면에 추가’를 선택하세요."}</small></span>
           <em aria-hidden="true">{appInstall.state === "installed" ? en ? "Done" : "완료" : en ? "Help" : "안내"}</em>
         </div>}
         <p>{en ? "Original place information and some features may appear in Korean. " : ""}{en ? "Your device's reduced motion preference is followed by default." : "운영체제의 동작 줄이기 설정을 기본으로 따릅니다."}</p>

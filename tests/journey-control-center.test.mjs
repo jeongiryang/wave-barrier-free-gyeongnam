@@ -39,7 +39,7 @@ test("환경설정과 플래너 select가 44px 및 키보드 초점 계약을 �
   ]);
   assert.match(preferences, /\.preference-row select \{[^}]*min-height: 44px/s);
   assert.match(preferences, /\.preference-row select:focus-visible \{[^}]*outline: 3px/s);
-  assert.match(hardening, /\.select-shell select:focus-visible/);
+  assert.match(await source("app/styles/planner-flow.css"), /select,summary\):focus-visible/);
   assert.match(hardening, /outline: 3px solid #ffb800/);
 });
 

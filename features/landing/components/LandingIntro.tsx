@@ -75,7 +75,7 @@ export default function LandingIntro() {
     node.hidden = false;
     if (node.open) node.close();
     node.showModal();
-    node.querySelector<HTMLButtonElement>("[data-intro-skip]")?.focus({ preventScroll: true });
+    node.querySelector<HTMLElement>("#arrival-title")?.focus({ preventScroll: true });
     document.documentElement.classList.add("arrival-open");
     return () => {
       if (exitTimer.current) clearTimeout(exitTimer.current);
@@ -117,11 +117,11 @@ export default function LandingIntro() {
   }, [visible, failed]);
 
   useEffect(() => {
-    if (!visible || staticScene || failed) return;
-    // A stalled media request cannot turn arrival into an indefinite loading screen.
+    if (!visible) return;
+    // Static, failed and stalled media must all hand off without a visible skip control.
     const limit = setTimeout(finish, 5200);
     return () => clearTimeout(limit);
-  }, [visible, staticScene, failed, finish]);
+  }, [visible, finish]);
 
   return <dialog ref={dialog} open className="arrival-intro" hidden={!visible} suppressHydrationWarning
     data-still={staticScene || failed}
@@ -130,10 +130,8 @@ export default function LandingIntro() {
     onKeyDown={event => {
       if (event.key === "Escape") { event.preventDefault(); finish(); return; }
       if (event.key !== "Tab") return;
-      const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("button,a[href]"));
-      const first = controls[0], last = controls.at(-1);
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      event.preventDefault();
+      event.currentTarget.querySelector<HTMLElement>("#arrival-title")?.focus();
     }}>
     {!imageFailed && <img className="arrival-poster" src="/media/wave-story/hero-coast-small.webp"
       srcSet="/media/wave-story/hero-coast-small.webp 840w, /media/wave-story/hero-coast.webp 1672w"
@@ -142,12 +140,10 @@ export default function LandingIntro() {
       onEnded={finish} onError={() => setFailed(true)} />
     {/* The final wordmark is crisp HTML; do not draw a second, offset glyph copy behind it. */}
     {visible && <WaveField className="arrival-wave-canvas" tone="deep" mode="intro" wordmark="" paused={staticScene || failed} />}
-    <div className="arrival-top"><span>{en ? "A journey for every way of moving" : "여행의 가능성을 넓히다"}</span>
-      <form method="dialog" onSubmit={event => { event.preventDefault(); finish(); }}><button type="submit" data-intro-skip>{en ? "Skip intro" : "소개로 건너뛰기"}<span aria-hidden="true"> ↗</span></button></form>
-    </div>
+    <div className="arrival-top"><span>{en ? "A journey for every way of moving" : "여행의 가능성을 넓히다"}</span></div>
     <div className="arrival-brand">
       <p>{en ? "GYEONGNAM · YOUR OWN PACE" : "누구나, 나의 속도로"}</p>
-      <h2 id="arrival-title">W.A.V.E</h2>
+      <h2 id="arrival-title" tabIndex={0}>WAVE</h2>
       <p id="arrival-description">{en ? "From the facilities you need to a new day in Gyeongnam." : "필요한 편의에서, 경남의 새로운 하루로."}</p>
     </div>
     <div className="arrival-bottom">

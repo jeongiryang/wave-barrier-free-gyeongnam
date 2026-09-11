@@ -1,4 +1,6 @@
+import WaveFooterTools from "../components/WaveFooterTools";
 import type { Metadata, Viewport } from "next";
+import "./styles/wave-fonts.css";
 import "./globals.css";
 import "./styles/site-shell.css";
 import "./styles/landing-explorer.css";
@@ -41,6 +43,7 @@ import "./styles/departure-readiness.css";
 import "./styles/preferences.css";
 import "./styles/mobile-interaction-hardening.css";
 import "./styles/policies.css";
+import "./styles/wave-horizon.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN, SITE_TITLE, SOCIAL_IMAGE } from "../lib/site-metadata";
 import { arrivalBootstrap } from "../features/landing/arrival-bootstrap";
@@ -53,7 +56,7 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   title: {
     default: SITE_TITLE,
-    template: "%s | W.A.V.E",
+    template: "%s | WAVE",
   },
   description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
@@ -68,7 +71,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: [{ url: SOCIAL_IMAGE, width: 1348, height: 926, alt: "W.A.V.E 경남 무장애 여행 서비스 화면" }],
+    images: [{ url: SOCIAL_IMAGE, width: 1348, height: 926, alt: "WAVE 경남 무장애 여행 서비스 화면" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -111,7 +114,8 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: arrivalBootstrap }} />
       </head>
       <body className="antialiased">
-        <SitePreferencesProvider>{children}</SitePreferencesProvider>
+        <noscript><style>{".arrival-intro{display:none!important}"}</style><p>WAVE 여행 설계를 이용하려면 브라우저에서 JavaScript를 허용해 주세요.</p></noscript>
+        <SitePreferencesProvider>{children}<WaveFooterTools /></SitePreferencesProvider>
       </body>
     </html>
   );

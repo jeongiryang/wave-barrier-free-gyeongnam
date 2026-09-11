@@ -3,7 +3,7 @@ import { pageMetadata } from "../../lib/site-metadata";
 
 export const metadata = pageMetadata({
   title: "여행자 후기",
-  description: "경남 관광지의 접근성 질문과 실제 여행 경험을 공식 정보와 구분해 나누는 W.A.V.E 커뮤니티입니다.",
+  description: "경남 관광지의 접근성 질문과 실제 여행 경험을 공식 정보와 구분해 나누는 WAVE 커뮤니티입니다.",
   path: "/community",
 });
 

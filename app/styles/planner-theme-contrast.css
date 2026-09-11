@@ -103,10 +103,6 @@ html[data-theme="dark"] .planner-journey-workspace .official-booking-strip small
   color: #b6d0dc;
 }
 
-html[data-theme="dark"] .planner-journey-workspace .select-shell small {
-  color: #b6d0dc;
-}
-
 html[data-theme="dark"] .planner-journey-workspace .map-type-switch button,
 html[data-theme="dark"] .planner-journey-workspace .map-toolbar .point-button strong {
   color: #e8f5fb;

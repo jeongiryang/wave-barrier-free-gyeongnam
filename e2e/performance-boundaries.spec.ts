@@ -17,13 +17,7 @@ test("공개 랜딩은 첫 화면에서 인증 세션을 요청하지 않고 계
   await page.waitForTimeout(500);
   expect(sessionRequests).toBe(0);
 
-  const accountButton = page.locator(".account-button:visible").first();
-  if (await accountButton.count()) {
-    await accountButton.hover();
-  } else {
-    await page.getByRole("button", { name: "주요 메뉴 열기" }).click();
-    await page.getByRole("navigation", { name: "모바일 주요 메뉴" }).getByRole("link", { name: "로그인" }).click();
-  }
+  await page.locator(".wave-footer-tools > a[href=\"/account\"]").hover();
   await expect.poll(() => sessionRequests).toBeGreaterThan(0);
 });
 

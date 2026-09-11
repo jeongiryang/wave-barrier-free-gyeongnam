@@ -31,7 +31,7 @@
 /* --- 반복되는 형태를 하나의 규칙으로 모은다 ------------------------------- */
 
 /* 카드류: 테두리·모서리·그림자를 같은 값으로 통일 */
-.place-card, .rich-card, .route-option, .route-compare-panel, .evidence-card, .day-planner, .weather-day, .diagnostic-grid article, .transport-data-results article, .shared-places article, .insight-board > article {
+.place-card, .rich-card, .route-option, .route-compare-panel, .day-planner, .weather-day, .diagnostic-grid article, .transport-data-results article, .shared-places article, .insight-board > article {
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-1);
   transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-1) ease;
@@ -46,23 +46,21 @@
 }
 
 /* 입력·선택 요소는 같은 높이와 모서리를 쓴다 */
-.select-shell, .select-shell select, .date-range-fields input,
-.feedback-box textarea {
+.date-range-fields input, .feedback-box textarea {
   border-radius: var(--r-md);
 }
 
 /* 주요 액션 버튼 */
-.primary-button, .modal-body > button,
-.landing-cta a, .region-story-copy > a {
+.primary-button, .modal-body > button, .landing-cta a {
   border-radius: var(--r-md);
   transition: background var(--dur-1) ease, transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
 }
 
 /* 조작 대상은 최소 44px — 접근성 기준 */
-button, .landing-start, .header-action {
+button {
   min-height: 44px;
 }
-.primary-button, .account-submit, .landing-start, .landing-cta a {
+.primary-button, .account-submit, .landing-cta a {
   min-height: 48px;
 }
 

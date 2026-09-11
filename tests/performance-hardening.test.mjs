@@ -6,16 +6,17 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
-test("공개 랜딩은 인증 SDK를 사용자 의도 또는 유휴 시점까지 미룬다", async () => {
+test("공개 헤더와 하단 안내는 인증 SDK를 초기 로드하지 않는다", async () => {
   const [header, deferred] = await Promise.all([
     source("features/landing/components/LandingHeader.tsx"),
-    source("features/landing/components/LandingAccountMenu.tsx"),
+    source("components/WaveFooterTools.tsx"),
   ]);
   assert.doesNotMatch(header, /auth\/components\/AccountMenu/);
-  assert.match(header, /LandingAccountMenu/);
-  assert.match(deferred, /import\("\.\.\/\.\.\/auth\/components\/AccountMenu"\)/);
-  assert.match(deferred, /ACCOUNT_IDLE_DELAY_MS = 4_000/);
-  assert.match(deferred, /onPointerEnter=\{reveal\}/);
+  assert.match(header, /WaveHeader/);
+  assert.doesNotMatch(await source("components/WaveHeader.tsx"), /authClient|AccountMenu|useHydratedSession/);
+  assert.doesNotMatch(deferred, /authClient|AccountMenu|useHydratedSession/);
+  assert.match(deferred, /FooterAccountLink/);
+  assert.match(await source("features/auth/components/FooterAccountLink.tsx"), /lazy\(\(\) => import/);
 });
 
 test("커뮤니티 요청은 timeout abort와 오류 종류를 한 경계에서 정리한다", async () => {

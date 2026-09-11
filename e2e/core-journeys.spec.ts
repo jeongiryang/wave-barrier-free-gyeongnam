@@ -29,8 +29,8 @@ test.afterEach(async ({ page }) => {
 test("first arrival leads to one planning action, persists dismissal and has no serious accessibility violations", async ({ page }) => {
   await mockPublicShellApi(page);
   await page.goto("/");
-  await expect(page.getByRole("dialog", { name: "W.A.V.E", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "소개로 건너뛰기", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "WAVE", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByRole("link", { name: /여행 계획하기/ }).first()).toBeVisible();
   await page.reload();
@@ -43,8 +43,8 @@ test("reduced motion keeps the landing immediately usable", async ({ page }) => 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
   await page.goto("/");
-  await expect(page.getByRole("dialog", { name: "W.A.V.E", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "소개로 건너뛰기", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "WAVE", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByRole("link", { name: /여행 계획하기/ }).first()).toBeVisible();
 });
@@ -126,7 +126,7 @@ test("community remains readable without login and protects writing", async ({ p
   await page.goto("/community");
   await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.")).toBeVisible();
   await expectNoSeriousA11yIssues(page);
-  await page.getByRole("link", { name: "후기 작성", exact: true }).first().click();
+  await page.getByRole("link", { name: "이야기 남기기", exact: true }).first().click();
   await expect(page).toHaveURL(/\/login\?next=%2Fcommunity%2Fnew/);
   await expect(page.getByLabel("이메일")).toBeVisible();
   await expect(page.getByLabel("비밀번호", { exact: true })).toBeVisible();

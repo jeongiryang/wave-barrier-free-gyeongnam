@@ -29,7 +29,7 @@ test("English preferences preserve locale choices, runtime reduced motion and CT
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(cta).toBeFocused();
   await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-running", "false");
-  await expect(page.getByRole("dialog", { name: "W.A.V.E", exact: true })).toBeHidden();
+  await expect(page.getByRole("dialog", { name: "WAVE", exact: true })).toBeHidden();
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await expect(preferences).not.toContainText(/[가-힣]/);
   expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);

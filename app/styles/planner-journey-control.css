@@ -52,7 +52,7 @@ html[data-theme="dark"] .journey-stage-stream .itinerary-stage { background: #0a
 .planner-journey-workspace { width: min(1480px,calc(100% - 48px)); margin-top: 92px; border: 0; border-radius: 0; box-shadow: none; background: var(--white); overflow: visible; }
 .journey-editorial .journey-mode-toggle > div:first-child { display: none; }
 .journey-editorial .journey-mode-toggle button { color: var(--muted); background: var(--white); border: 1px solid var(--line); font-size: .8rem; border-radius: 8px; box-shadow: none; }
-.journey-editorial .journey-mode-toggle button[aria-pressed="true"] { color: #fff; background: #063b49; border-color: #063b49; }
+.journey-editorial .journey-mode-toggle button[aria-pressed="true"] { color: #fff; background: #2b2632; border-color: #2b2632; }
 .journey-editorial .journey-mode-toggle button i { display: none; }
 .journey-workspace-block { padding: 28px clamp(20px,3vw,44px); border-color: var(--line); }
 @media (max-width: 1560px) {

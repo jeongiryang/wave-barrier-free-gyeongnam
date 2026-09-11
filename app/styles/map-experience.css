@@ -12,13 +12,12 @@
 .map-provider-badge.kakao > span { background: #1cb3aa; box-shadow: 0 0 0 4px rgba(28,179,170,.14); }
 .map-provider-badge.osm > span { background: #d38a2c; box-shadow: 0 0 0 4px rgba(211,138,44,.14); }
 .map-provider-badge strong { max-width: min(32vw,280px); overflow: hidden; font: inherit; text-overflow: ellipsis; white-space: nowrap; }
-.map-provider-badge button { min-height: 24px; margin: -3px -5px -3px 3px; padding: 3px 7px; border: 0; border-left: 1px solid rgba(5,43,60,.12); color: #0a6baf; background: transparent; font: inherit; cursor: pointer; }
-.map-provider-badge button:hover { color: #fff; border-radius: 0 999px 999px 0; background: #0a6baf; }
+.map-provider-badge button { min-height: 24px; margin: -3px -5px -3px 3px; padding: 3px 7px; border: 0; border-left: 1px solid rgba(5,43,60,.12); color: #6940a6; background: transparent; font: inherit; cursor: pointer; }
+.map-provider-badge button:hover { color: #fff; border-radius: 0 999px 999px 0; background: #6940a6; }
 .kakao-photo-marker { width: 64px; height: 72px; padding: 0; border: 0; cursor: pointer; transform: translateY(-6px); }
 .kakao-photo-marker:focus-visible { outline: 3px solid #7debe9; outline-offset: 5px; }
 
 @supports (animation-timeline: view()) {
-  .evidence-stack article { animation: native-scroll-rise linear both; animation-timeline: view(); animation-range: entry 3% cover 30%; }
   /* Keep text fully opaque throughout scroll reveals so motion never lowers WCAG contrast. */
   @keyframes native-scroll-rise { from { transform: translateY(55px) scale(.96); } to { transform: translateY(0) scale(1); } }
   @keyframes native-scroll-map { from { transform: perspective(1000px) rotateX(7deg) translateY(65px); } to { transform: perspective(1000px) rotateX(0) translateY(0); } }
@@ -28,6 +27,5 @@
   .map-provider-badge strong { max-width: min(48vw,230px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .evidence-stack article { animation: none !important; }
   ::view-transition-old(selected-region-card),::view-transition-new(selected-region-card) { animation: none; }
 }

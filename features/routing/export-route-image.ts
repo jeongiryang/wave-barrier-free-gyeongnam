@@ -121,7 +121,7 @@ export async function exportRouteImage({
     context.textBaseline = "alphabetic";
     context.fillStyle = "#0a6baf";
     context.font = "900 22px system-ui, sans-serif";
-    context.fillText("W.A.V.E ROUTE MAP", 86, 70);
+    context.fillText("WAVE ROUTE MAP", 86, 70);
     context.fillStyle = "#06304a";
     context.font = "850 46px system-ui, sans-serif";
     context.fillText(english ? "Gyeongnam journey schematic" : "경남 여행 장소 안내도", 86, 124);

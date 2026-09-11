@@ -50,7 +50,7 @@ test("regional names, photographs and trip links advance after the complete albu
     await page.clock.fastForward(4000);
   }
   await expect(stage).toHaveAttribute("data-active-region", "하동");
-  await expect(stage.locator(".selected-region strong")).toHaveText("하동");
+  await expect(stage.locator(".selected-region small")).toHaveText("하동");
   expect(await stage.locator(".region-featured-card img").evaluateAll(nodes => nodes.map(node => node.getAttribute("src")))).toEqual([regionShowcaseAlbums["하동"][0].image]);
   await expect(stage.getByRole("link", { name: "이 지역으로 여행 시작" })).toHaveAttribute("href", "/planner?region=" + encodeURIComponent("하동"));
   await expect(stage.locator(".selected-region")).toHaveAttribute("aria-live", "off");
@@ -131,7 +131,8 @@ test("landscape cards scroll inside the viewport and neighbour selection opens i
   await expect(stage.locator(".region-landscape-card")).toHaveCount(3);
   await expect(stage.locator(".region-neighbour-card figcaption a")).toHaveCount(2);
   const rail = stage.locator(".region-card-rail");
-  expect(await rail.evaluate(el => el.scrollWidth > el.clientWidth)).toBe(true);
+  const compact = page.viewportSize()!.width <= 1100;
+  expect(await rail.evaluate(el => el.scrollWidth > el.clientWidth + 1)).toBe(compact);
   await stage.getByRole("button", {name:"하동 풍경 살펴보기"}).press("Enter");
   await expect(stage).toHaveAttribute("data-active-region", "하동");
   await expect(stage).toHaveAttribute("data-running", "false");

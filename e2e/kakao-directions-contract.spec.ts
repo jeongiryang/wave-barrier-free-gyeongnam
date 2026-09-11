@@ -49,7 +49,7 @@ test("device location stays out of external URLs and route requests with an expl
   page.once("dialog", dialog => dialog.accept());
   await page.locator("#map-panel-route").getByRole("button", { name: /현재 위치에서 출발/ }).click();
   const panel = page.locator(".route-compare-panel");
-  await expect(panel).toContainText("현재 위치 좌표는 W.A.V.E 경로 API나 외부 링크에 넣지 않습니다.");
+  await expect(panel).toContainText("현재 위치 좌표는 WAVE 경로 API나 외부 링크에 넣지 않습니다.");
   await expect(panel.locator('a[href^="https://map.kakao.com/"]')).toHaveAttribute("href", `https://map.kakao.com/link/to/${encodeURIComponent("경남도립미술관")},35.238,128.691`);
   expect(requests.length).toBe(before);
   await panel.screenshot({ path: test.info().outputPath("private-origin-recovery.png") });

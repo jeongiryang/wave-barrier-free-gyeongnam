@@ -4,7 +4,7 @@ import { pageMetadata } from "../../lib/site-metadata";
 
 export const metadata = pageMetadata({
   title: "비밀번호 재설정",
-  description: "W.A.V.E 계정의 비밀번호 재설정 링크를 요청합니다.",
+  description: "WAVE 계정의 비밀번호 재설정 링크를 요청합니다.",
   path: "/forgot-password",
   index: false,
 });

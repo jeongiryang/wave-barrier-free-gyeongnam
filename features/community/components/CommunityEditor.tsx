@@ -11,7 +11,7 @@ export default function CommunityEditor({ postId }: { postId?: string }) {
   } = useCommunityEditor(postId);
 
   if (!isPending && !session?.user) {
-    return <div className="community-gate"><span aria-hidden="true">≈</span><h1>여행 후기를 남기려면 로그인해 주세요.</h1><p>후기와 질문을 읽는 데는 계정이 필요하지 않습니다. 작성자 권한 확인을 위해 쓰기 기능에만 W.A.V.E 계정을 사용합니다.</p><Link href={`/login?next=${encodeURIComponent(currentPath)}`}>로그인하고 계속하기</Link><Link href="/community">여행 후기 둘러보기</Link></div>;
+    return <div className="community-gate"><span aria-hidden="true">≈</span><h1>여행 후기를 남기려면 로그인해 주세요.</h1><p>후기와 질문을 읽는 데는 계정이 필요하지 않습니다. 작성자 권한 확인을 위해 쓰기 기능에만 WAVE 계정을 사용합니다.</p><Link href={`/login?next=${encodeURIComponent(currentPath)}`}>로그인하고 계속하기</Link><Link href="/community">여행 후기 둘러보기</Link></div>;
   }
 
   if (state === "loading" || isPending) return <div className="community-state" role="status" aria-live="polite"><b>글쓰기 화면을 준비하고 있습니다.</b></div>;

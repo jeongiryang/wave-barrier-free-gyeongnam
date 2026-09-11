@@ -126,7 +126,7 @@ test("every region retains its exact original source, author and named link, inc
       const photo=photos[photoIndex];
       const button=stage.getByRole("button",{name:`${photo.title} · 사진 보기`,exact:true});
       await button.press("Enter"); await expect(button).toBeFocused(); await expect(button).toHaveAttribute("aria-pressed","true");
-      await expect(stage.locator(".selected-region p")).toHaveText(photo.title);
+      await expect(stage.locator(".selected-region strong")).toHaveText(photo.title);
       await expect(stage.locator(".region-featured-card .region-scene-photo img")).toHaveAttribute("src",photo.image);
       const figure=stage.locator(".region-featured-card .region-scene-photo");
       const credit=figure.locator("figcaption a"); await expect(credit).toHaveAttribute("href",photo.image);

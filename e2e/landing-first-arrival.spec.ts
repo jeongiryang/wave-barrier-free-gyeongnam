@@ -34,14 +34,15 @@ for (const seenBefore of [false, true]) {
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
     await expect(page.locator(".landing-page")).toHaveCount(1);
-    const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
+    const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
     const canvas = intro.locator(".arrival-wave-canvas");
-    const planning = intro.getByRole("button", { name: "소개로 건너뛰기" });
+    const planning = intro.getByRole("heading", { name: "WAVE" });
     await expect(planning).toBeVisible();
     await expect(planning).toBeEnabled();
     await expect(intro).toBeVisible();
     await expect(canvas).toHaveAttribute("data-intro-phase", "wordmark");
-    expect(await page.evaluate(() => (window as unknown as { arrivalPhases: string[] }).arrivalPhases)).toEqual(["wave", "accessibility", "wordmark"]);
+    // The server's still frame may be observed before the motion preference is hydrated.
+    expect(await page.evaluate(() => (window as unknown as { arrivalPhases: string[] }).arrivalPhases.filter(phase => phase !== "static"))).toEqual(["wave", "accessibility", "wordmark"]);
     expect(await canvas.evaluate((node: HTMLCanvasElement) => {
       const rect = node.getBoundingClientRect();
       const style = getComputedStyle(node);
@@ -56,7 +57,7 @@ for (const seenBefore of [false, true]) {
     await expect(planning).toBeFocused();
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(canvas).toBeHidden();
-    await expect(intro.getByRole("heading", { name: "W.A.V.E" })).toBeVisible();
+    await expect(intro.getByRole("heading", { name: "WAVE" })).toBeVisible();
     await expect(planning).toBeFocused();
     await page.screenshot({ path: test.info().outputPath("first-arrival-static.png") });
     await page.keyboard.press("Escape");

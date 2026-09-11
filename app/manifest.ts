@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "W.A.V.E 경남 무장애 여행 길잡이",
-    short_name: "W.A.V.E",
+    name: "WAVE 경남 무장애 여행 길잡이",
+    short_name: "WAVE",
     description: "경남 18개 시·군의 관광·무장애·교통 근거로 여행을 준비하는 길잡이",
     start_url: "/",
     scope: "/",

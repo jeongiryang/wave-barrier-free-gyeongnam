@@ -5,7 +5,7 @@ import { isKakaoAuthConfigured } from "../../lib/auth/server";
 
 export const metadata = pageMetadata({
   title: "계정 관리",
-  description: "W.A.V.E 계정의 비밀번호를 변경하거나 계정과 연결 데이터를 삭제합니다.",
+  description: "WAVE 계정의 비밀번호를 변경하거나 계정과 연결 데이터를 삭제합니다.",
   path: "/account",
   index: false,
 });

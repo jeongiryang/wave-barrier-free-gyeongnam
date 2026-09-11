@@ -148,13 +148,17 @@ test("로그아웃 실패는 복구할 수 있고 연속 요청을 보내지 않
   });
   await page.route("**/api/community/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ posts: [], page: 1, hasMore: false }) }));
   await page.goto("/community");
+  await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
+  await page.locator(".wave-footer-tools > a[href='/account']").hover();
   await page.getByRole("button", { name: /로컬 여행자 계정 메뉴/ }).click();
   const signOut = page.getByRole("button", { name: "로그아웃", exact: true });
   await signOut.evaluate((button: HTMLButtonElement) => { button.click(); button.click(); });
   await expect(page.getByRole("alert")).toHaveText(/로그아웃을 완료하지 못했습니다/);
   expect(attempts).toBe(1);
   await expect(signOut).toBeEnabled();
-  await signOut.click();
+  await Promise.all([page.waitForEvent("domcontentloaded"), signOut.click()]);
+  await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
+  await page.locator(".wave-footer-tools > a[href='/account']").hover();
   await expect(page.getByRole("link", { name: "로그인", exact: true })).toBeVisible();
   expect(attempts).toBe(2);
 });
