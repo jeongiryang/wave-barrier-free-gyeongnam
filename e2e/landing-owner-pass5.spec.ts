@@ -171,6 +171,17 @@ test("the new photo and product chapters retain readable dark-mode composition",
 test("regional photographs warm only the adjacent album on visibility, never all eighteen", async ({page}) => {
   const requested=new Set<string>();
   page.on("request", request=>{ if(request.url().startsWith("https://tong.visitkorea.or.kr/")) requested.add(request.url()); });
+  await page.addInitScript(() => {
+    const sources: string[] = [];
+    Object.defineProperty(window, "regionWarmSources", { value: sources });
+    const NativeImage = window.Image;
+    const src = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src")!;
+    window.Image = new Proxy(NativeImage, { construct(target, args) {
+      const image = Reflect.construct(target, args);
+      Object.defineProperty(image, "src", { get() { return src.get!.call(this); }, set(value) { if (value) sources.push(String(value)); src.set!.call(this, value); } });
+      return image;
+    } });
+  });
   await page.clock.install(); await page.goto("/"); await ready(page);
   const next=regionShowcaseAlbums["하동"].map(photo=>photo.image);
   expect(next.some(url=>requested.has(url))).toBe(false);
@@ -178,8 +189,14 @@ test("regional photographs warm only the adjacent album on visibility, never all
   await expect.poll(()=>next.every(url=>requested.has(url))).toBe(true);
   await expect(page.locator(".region-photo-album img")).toHaveCount(1);
   for(const img of await page.locator(".region-photo-album img").all()) await expect(img).toHaveAttribute("loading","lazy");
-  const distant=regionShowcaseAlbums["거창"].concat(regionShowcaseAlbums["밀양"]).map(photo=>photo.image);
-  expect(distant.some(url=>requested.has(url))).toBe(false);
+  // The two visible film rows now render all regions with native lazy images.
+  // Speculative Image() warming must still be limited to current + next albums.
+  const warmed = await page.evaluate(() => (window as unknown as { regionWarmSources: string[] }).regionWarmSources);
+  const allowed = new Set(regionShowcaseAlbums["창원"].concat(regionShowcaseAlbums["하동"]).map(photo=>photo.image));
+  expect(next.every(url => warmed.includes(url))).toBe(true);
+  expect(warmed.filter(url=>url.startsWith("https://tong.visitkorea.or.kr/")).every(url=>allowed.has(url))).toBe(true);
+  expect(warmed.filter(url=>allowed.has(url)).length).toBeLessThanOrEqual(allowed.size);
+  for (const img of await page.locator(".region-card-rail img").all()) await expect(img).toHaveAttribute("loading", "lazy");
 });
 
 test("data saving disables speculative adjacent-region photography requests", async ({page}) => {

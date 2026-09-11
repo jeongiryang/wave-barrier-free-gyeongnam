@@ -33,6 +33,9 @@ for (const locale of ["ko", "en"] as const) {
         await expect(dialog).toContainText(locale === "en" ? "photograph buttons" : "사진 선택 버튼");
         await expect(dialog).not.toContainText(locale === "en" ? "on the map" : "지도에서");
         await expectHighlightContains(page.locator(".help-tour-spotlight"), page.locator("#region-current strong"));
+        const header = await page.locator(".wave-header").boundingBox();
+        const title = await page.locator("#region-current strong").boundingBox();
+        expect(title!.y).toBeGreaterThanOrEqual(header!.y + header!.height + 8);
       }
       if (id === "recommendation") {
         await expect(dialog).toContainText(locale === "en" ? "KakaoTalk sharing" : "카카오톡 공유");

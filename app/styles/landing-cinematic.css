@@ -45,7 +45,7 @@
 .horizon-chapter-backdrops > div[data-active="true"] { opacity: 1; pointer-events: auto; }
 .horizon-chapter-backdrops .editorial-photo { height: 100%; }.horizon-chapter-backdrops img { transform: scale(1.06); transition: transform 1.2s; }.horizon-chapter-backdrops [data-active="true"] img { transform: scale(1); }
 .horizon-chapter-backdrops .editorial-photo::after { inset: 0; background: linear-gradient(90deg,#05273e70,#05273ecc); }
-.horizon-chapter-backdrops figcaption { left: var(--gutter); right: var(--story-right); width: fit-content; max-width: calc(100% - var(--gutter) - var(--story-right)); padding-inline: 8px; background: #05273ecc; }
+.horizon-chapter-backdrops figcaption { left: var(--gutter); right: var(--story-right); width: fit-content; max-width: calc(100% - var(--gutter) - var(--story-right)); background: transparent; }
 .horizon-chapter-index { position: sticky; top: 120px; display: flex; align-items: baseline; gap: 10px; margin: 0 var(--gutter) -100px; width: fit-content; pointer-events: none; color: #e1f2ff; }
 .horizon-chapter-index b { font-size: 4rem; line-height: 1; font-weight: 400; }.horizon-chapter-index small { margin-left: 12px; font-size: .68rem; letter-spacing: .08em; }
 .horizon-chapter-stream { position: relative; padding: 0 var(--story-right) 0 51%; pointer-events: none; }

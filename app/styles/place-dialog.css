@@ -97,7 +97,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
 
 @media (max-width: 520px) {
   .brand { font-size: 1rem; }
-  .brand-mark { transform: rotate(16deg) scale(.86); }
   .primary-button { justify-content: space-between; }
   .gyeongnam-map { inset: 4% -13% 19%; }
   .control-panel { padding: 17px; border-radius: 18px; }

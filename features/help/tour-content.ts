@@ -8,7 +8,7 @@ export type TourStep = {
 
 export const landingSteps: TourStep[] = [
   { selector: "#top", highlightSelector: "#top .landing-hero-copy", eyebrow: "서비스 소개", title: "WAVE를 한눈에 살펴보세요.", copy: "여행자의 이동 조건과 경남 관광 데이터를 연결해 장소 선택부터 실제 이동까지 돕는 서비스입니다." },
-  { selector: "#regions", highlightSelector: "#region-current", eyebrow: "지역 탐색", title: "경남 18개 지역의 이야기를 고르세요.", copy: "화살표로 지역을 넘기고 사진 선택 버튼으로 같은 지역의 다른 풍경을 살펴보세요. 마음에 드는 지역에서 여행을 시작할 수 있습니다." },
+  { selector: "#regions", highlightSelector: "#region-current strong", eyebrow: "지역 탐색", title: "경남 18개 지역의 이야기를 고르세요.", copy: "화살표로 지역을 넘기고 사진 선택 버튼으로 같은 지역의 다른 풍경을 살펴보세요. 마음에 드는 지역에서 여행을 시작할 수 있습니다." },
   { selector: "#story", highlightSelector: "#horizon-how-title", eyebrow: "여행 준비", title: "조건부터 일정까지, 스크롤로 살펴보세요.", copy: "지역과 활동을 고르고, 필요한 편의와 공식 정보를 확인한 뒤 날짜별 일정을 만드는 흐름입니다. 여행 계획하기에서 직접 시작할 수 있어요." },
   { selector: "#recommendation", highlightSelector: "#recommendation .horizon-account-copy", eyebrow: "함께 여행", title: "내 여행을 저장하고 동행자와 함께 준비하세요.", copy: "계정에 저장한 여행과 편의 조건을 다른 기기에서도 이어갈 수 있어요. 카카오톡 공유, 나에게 보내기, 동행 초대·투표·댓글은 사용법에서 확인하세요." },
   { selector: ".landing-cta", highlightSelector: ".landing-cta > h2", eyebrow: "여행 시작", title: "이제 내 여행을 설계해 보세요.", copy: "여행 만들기로 이동해 지역, 관심사, 필요한 편의와 출발지를 선택할 수 있습니다." },

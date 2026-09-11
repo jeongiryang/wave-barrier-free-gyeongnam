@@ -78,15 +78,17 @@ test("the region film follows forward and reverse scroll while reduced motion st
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto("/");
   const scene = page.locator("#regions");
-  const rail = scene.locator(".region-card-rail");
+  const rails = scene.locator(".region-card-rail");
+  await expect(rails).toHaveCount(2);
   await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
   await page.evaluate(() => document.fonts.ready);
   await expect(scene).toHaveAttribute("data-film", "true");
   const progress: number[] = [];
   for (const offset of [0, .5, 1, .5, 0]) {
     await scene.evaluate((node, offset) => scrollTo({ top: scrollY + node.getBoundingClientRect().top - 116 + ((node as HTMLElement).offsetHeight - (innerHeight - 116)) * offset, behavior: "instant" }), offset);
-    await expect.poll(() => rail.evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth))).toBeCloseTo(offset, 1);
-    progress.push(await rail.evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth)));
+    await expect.poll(() => rails.first().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth))).toBeCloseTo(1 - offset, 1);
+    await expect.poll(() => rails.last().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth))).toBeCloseTo(offset, 1);
+    progress.push(await rails.last().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth)));
     await page.screenshot({ path: test.info().outputPath(`expansion-${offset}-${progress.length}.png`) });
   }
   expect(progress[1]).toBeGreaterThan(progress[0]);
