@@ -37,8 +37,8 @@ export default function LandingPage() {
     {landingSections.map(section => {
       switch (section.key) {
         case "hero": return <LandingHero key={section.id} t={t} />;
-        case "region": return <LandingRegionStory key={section.id} t={t} activeRegion={activeRegion} active={active} preview={preview} regionPhotos={regionPhotos} showRegionPreview={showRegionPreview} hideRegionPreview={hideRegionPreview} selectRegion={selectRegion} />;
-        case "needs": return <LandingChapters key={section.id} />;
+        case "region": return null;
+        case "needs": return <LandingChapters key={section.id}><LandingRegionStory t={t} activeRegion={activeRegion} active={active} preview={preview} regionPhotos={regionPhotos} showRegionPreview={showRegionPreview} hideRegionPreview={hideRegionPreview} selectRegion={selectRegion} /></LandingChapters>;
         case "recommendation": return <LandingAccountStory key={section.id} />;
         case "departure": return <LandingDepartureScene key={section.id} />;
         case "community": return <LandingCommunityStory key={section.id} />;

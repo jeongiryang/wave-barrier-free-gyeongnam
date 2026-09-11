@@ -38,6 +38,7 @@ import PlannerStageFrame from "../../features/planner/components/PlannerStageFra
 import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
 import PlannerJourneyModeToggle from "../../features/planner/components/PlannerJourneyModeToggle";
 import PlannerReferenceChrome from "../../features/planner/components/PlannerHeader";
+import PlannerStepSummary from "../../features/planner/components/PlannerStepSummary";
 
 import RegionChangeDialog from "../../features/planner/components/RegionChangeDialog";
 
@@ -227,12 +228,12 @@ export default function PlannerPage() {
   return (
     <main className="planner-page journey-editorial planner-reference" lang={locale}>
       <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>
-      <PlannerReferenceChrome progress={journey.progress} requestState={planController.requestState} recommendedCount={activePlaces.length} region={region} dates={travelStart ? `${travelStart.slice(5).replace("-", "월 ")}일 - ${travelEnd.slice(5).replace("-", "월 ")}일` : ""} facilities={selected.map(id => accessibilityProfiles.find(p => p.id === id)?.label || id).join(" · ")} savedCount={saved.length} activeStep={journey.activeStepId} question={stageView.conditionQuestion}
+      <PlannerReferenceChrome view={stageView.view} progress={journey.progress} requestState={planController.requestState} recommendedCount={activePlaces.length} region={region} dates={travelStart ? `${travelStart.slice(5).replace("-", "월 ")}일 - ${travelEnd.slice(5).replace("-", "월 ")}일` : ""} facilities={selected.map(id => accessibilityProfiles.find(p => p.id === id)?.label || id).join(" · ")} savedCount={saved.length} activeStep={journey.activeStepId} question={stageView.conditionQuestion}
         activities={planController.themes.length ? `활동 ${planController.themes.length}개` : ""} resultsAvailable={journey.steps[1].available}
         available={[true, Boolean(region), Boolean(region && selected.length), Boolean(region && selected.length && planController.themes.length), true, saved.length > 0, saved.length > 0]}
         onQuestion={stageView.changeQuestion} onNavigate={journey.goToStep} onSearch={() => void generatePlan()} searching={planController.loading} />
       <section className="planner-journey-workspace" id="planner" aria-label="여행 만들기">
-        <div className="journey-control-layout">
+        <div className="journey-control-layout" data-compact-conditions={stageView.view === "guided" && journey.activeStepId === "conditions"}>
           <div className="journey-stage-stream" data-view={stageView.view}>
             <PlannerStageFrame view={stageView.view} step={journey.steps[0]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerConditionsPanel
@@ -354,6 +355,7 @@ export default function PlannerPage() {
               </details>
             </PlannerStageFrame>
           </div>
+          {stageView.view === "guided" && journey.activeStepId === "conditions" && <PlannerStepSummary en={locale === "en"} region={region} dates={`${travelStart} – ${travelEnd}`} activities={planController.themes.map(id => travelThemes.find(item => item.id === id)?.label || id).join(" · ")} facilities={selected.map(id => accessibilityProfiles.find(item => item.id === id)?.label || id).join(" · ")} places={tripSelection.orderedSavedPlaces} onQuestion={stageView.changeQuestion} onItinerary={() => journey.goToStep("itinerary")} />}
         </div>
       </section>
 

@@ -22,10 +22,11 @@ export default function PlannerRegionGallery({ value, onChange, onInterest, onFa
   const [interest, setInterest] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [failedImages, setFailedImages] = useState<string[]>([]);
-  const featuredRegions = value && value !== "경남 전체" && !featured.includes(value) ? [value, ...featured.slice(1)] : featured;
+  const choices = full ? featured : featured.slice(0, 3);
+  const featuredRegions = value && value !== "경남 전체" && !choices.includes(value) ? [value, ...choices.slice(1)] : choices;
   return <div className="reference-regions">
-    <div className="reference-interests" role="group" aria-label={en ? "Travel interests" : "관심 있는 여행 풍경"}>{interests.map(item => <button type="button" key={item.label} aria-pressed={interest === item.label} onClick={() => { setInterest(item.label); onInterest(item.theme); }}><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={item.icon} /></svg></i><span>{item.label}<small>{item.detail}</small></span></button>)}<button type="button" disabled={!value} onClick={onFacilities}><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="5" r="2" /><path d="M4 10h16m-8-3v7m-5 7 5-7 5 7" /></svg></i><span>편의 선택<small>필요한 시설</small></span></button></div>
-    <div className="reference-section-label"><h3>지금 떠나기 좋은 지역</h3><button type="button" aria-expanded={expanded} aria-controls="reference-all-regions" onClick={() => setExpanded(!expanded)}>{expanded ? "접기" : "전체 보기"}</button></div>
+    {full && <div className="reference-interests" role="group" aria-label={en ? "Travel interests" : "관심 있는 여행 풍경"}>{interests.map(item => <button type="button" key={item.label} aria-pressed={interest === item.label} onClick={() => { setInterest(item.label); onInterest(item.theme); }}><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={item.icon} /></svg></i><span>{item.label}<small>{item.detail}</small></span></button>)}<button type="button" disabled={!value} onClick={onFacilities}><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="5" r="2" /><path d="M4 10h16m-8-3v7m-5 7 5-7 5 7" /></svg></i><span>편의 선택<small>필요한 시설</small></span></button></div>}
+    {full && <div className="reference-section-label"><h3>지금 떠나기 좋은 지역</h3><button type="button" aria-expanded={expanded} aria-controls="reference-all-regions" onClick={() => setExpanded(!expanded)}>{expanded ? "접기" : "전체 보기"}</button></div>}
     <div className="reference-region-grid">{featuredRegions.map((name, index) => {
       const photo = name === "통영" ? regionShowcaseAlbums[name][1] || regionShowcasePhotos[name] : regionShowcasePhotos[name];
       return <article key={name} className={`reference-region-card${index === 0 ? " featured" : ""}`} data-selected={name === value || undefined}>
@@ -35,6 +36,7 @@ export default function PlannerRegionGallery({ value, onChange, onInterest, onFa
         <a className="reference-photo-credit" href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{photo.photographer || "한국관광공사"} · 원본 ↗</a>
       </article>;
     })}</div>
+    {!full && <div className="condition-region-field"><label><span>{en ? "Travel region" : "여행 지역"}</span><select value={value} onChange={event => onChange(event.target.value)}><option value="" disabled>{en ? "Choose a region" : "여행할 지역을 골라주세요"}</option>{["경남 전체", ...Object.keys(regionShowcasePhotos)].map(name => <option key={name} value={name}>{name}</option>)}</select></label><button type="button" aria-expanded={expanded} aria-controls="reference-all-regions" onClick={() => setExpanded(!expanded)}>{en ? "Choose on a map" : "지도에서 고르기"} ↗</button></div>}
     <div id="reference-all-regions" hidden={!full && !expanded}><GyeongnamRegionPicker value={value} onChange={onChange} includeAll compact /></div>
   </div>;
 }
