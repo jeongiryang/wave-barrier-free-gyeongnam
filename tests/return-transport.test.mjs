@@ -18,6 +18,14 @@ test('direction follows ordered branch only; loops, partial rows and repeated se
  assert.equal(nearbyDownstreamStops(result,{mapX:'128.681',mapY:'35.23'})[0].distance,0);
  assert.deepEqual(nearbyDownstreamStops(result,{mapX:'',mapY:''}),[]);
 });
+test('arrival and sequence numbers accept decimal provider values only',()=>{
+ for(const value of [false,true,[],[0],{},'0x10','1e2','',null,Infinity,-1]) {
+  const vehicle=groupReturnArrivals([{routeid:'R1',routeno:'100',arrtime:value,arrprevstationcnt:value}],'CW1')[0].vehicles[0];
+  assert.equal(vehicle.seconds,null);assert.equal(vehicle.stopsAway,null);
+  assert.equal(returnRouteDirection([{...route[0],nodeord:value},route[1]],'R1','CW1').status,'unconfirmed');
+ }
+ for(const value of [0,'0',300,' 300 '])assert.equal(groupReturnArrivals([{routeid:'R1',routeno:'100',arrtime:value}],'CW1')[0].vehicles[0].seconds,Number(value));
+});
 test('arrival labels age locally and do not call an absent bus a stopped service; schedule is origin-only data',()=>{
  const stamp='2026-09-11T00:00:00Z',now=Date.parse(stamp);
  assert.match(returnArrivalLabel(0,stamp,now),/조회 시점에 도착 예정/);assert.match(returnArrivalLabel(null,stamp,now),/미확인/);
