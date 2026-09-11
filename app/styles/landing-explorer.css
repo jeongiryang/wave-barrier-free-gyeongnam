@@ -123,10 +123,11 @@ html[data-theme="dark"] .selected-region p {
 .day-order-help { margin: 7px 0 0; color: #597786; font-size: .68rem; }
 .day-place-copy { min-width: 0; }
 .day-place-copy .day-evidence { width: fit-content; margin-top: 6px; padding: 4px 7px; border-radius: 999px; color: #235d4c; background: #dff5eb; font-weight: 850; }
-.day-place-editor { width: 100%; min-width: 0; display: grid; grid-column: 2; grid-template-columns: minmax(160px,1fr) auto; align-items: end; gap: 12px; }
+.day-place-editor { width: 100%; min-width: 0; display: grid; grid-column: 2; grid-template-columns: 1fr; align-items: end; gap: 12px; }
 .day-place-editor label { display: grid; gap: 6px; }
 .day-place-editor select { width: 100%; padding-inline: 8px; }
-.day-order-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (min-width: 1100px) { .day-place-editor { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+.day-order-buttons { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
 .day-order-buttons button { flex: 1 0 auto; min-width: 88px; min-height: 48px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: var(--white); font-size: .78rem; font-weight: 750; }
 .day-order-buttons button.remove { grid-column: 1 / -1; color: #963849; border-color: #e4bdc5; background: #fff7f8; }
 .day-order-buttons button:disabled { opacity: .42; cursor: not-allowed; }

@@ -8,7 +8,7 @@ import { useTravelBook } from "./useTravelBook";
 import CloudSaveAction from "../account-travel/CloudSaveAction";
 import { createTravelBookSnapshot } from "../../lib/travel-book.js";
 
-export default function TravelBookArchiveAction({ places, region, theme, profiles, travelStart, travelEnd, dayStartTime, scheduleAssignments, compact = false }: {
+export default function TravelBookArchiveAction({ places, region, theme, profiles, travelStart, travelEnd, dayStartTime, scheduleAssignments, visitMinutesByPlaceId, compact = false }: {
   compact?: boolean;
   places: Place[];
   region: string;
@@ -18,13 +18,14 @@ export default function TravelBookArchiveAction({ places, region, theme, profile
   travelEnd: string;
   dayStartTime: string;
   scheduleAssignments: Record<string, string>;
+  visitMinutesByPlaceId?: Record<string, number>;
 }) {
   const { locale } = useSitePreferences();
   const noticeId = useId();
   const c = (ko: string, en: string) => locale === "en" ? en : ko;
   const { hydrated, archive } = useTravelBook();
   const [saved, setSaved] = useState<boolean | null>(null);
-  const accountBook = createTravelBookSnapshot({ places, region, theme, profiles, travelStart, travelEnd, dayStartTime, scheduleAssignments });
+  const accountBook = createTravelBookSnapshot({ places, region, theme, profiles, travelStart, travelEnd, dayStartTime, scheduleAssignments, visitMinutesByPlaceId });
   const outsideDates = places.some(place => scheduleAssignments[place.id] && (scheduleAssignments[place.id] < travelStart || scheduleAssignments[place.id] > travelEnd));
   const notice = saved === null ? "" : saved ? c("내 일정에 저장했어요. 같은 일정을 다시 저장하면 최신 순서로 바뀝니다.", "Itinerary saved. Saving it again updates its order.") : c("저장할 일정을 확인해 주세요.", "Please check the itinerary to save.");
 
@@ -44,6 +45,7 @@ export default function TravelBookArchiveAction({ places, region, theme, profile
           travelEnd,
           dayStartTime,
           scheduleAssignments,
+          visitMinutesByPlaceId,
           places,
         });
         setSaved(Boolean(snapshot));
