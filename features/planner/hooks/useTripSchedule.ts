@@ -5,6 +5,7 @@ import { readTripValue, writeTripValue } from "../../../lib/current-trip-storage
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { dateRange, localDate } from "../utils";
 import { boundedTripEnd, offsetTripDate, validTripDate } from "../../../lib/trip-dates.js";
+import { changeVisitDuration, sanitizeVisitDurations } from "../../../lib/visit-durations.js";
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 const TRIP_SCHEDULE_KEY = "wave-trip-schedule-v1";
@@ -14,6 +15,7 @@ type StoredSchedule = {
   travelEnd?: unknown;
   dayStartTime?: unknown;
   scheduleAssignments?: unknown;
+  visitMinutesByPlaceId?: unknown;
 };
 
 function readStoredSchedule(): StoredSchedule {
@@ -32,6 +34,7 @@ export function useTripSchedule() {
   const [travelEnd, setTravelEnd] = useState("");
   const [dayStartTime, setDayStartTime] = useState("10:00");
   const [scheduleAssignments, setScheduleAssignments] = useState<Record<string, string>>({});
+  const [visitMinutesByPlaceId, setVisitMinutesByPlaceId] = useState<Record<string, number>>({});
   const [storageReady, setStorageReady] = useState(false);
   const [dateNotice, setDateNotice] = useState<{ kind: "limit" | "adjusted" | "invalid"; end?: string } | null>(null);
   const lastTravelDate = travelStart ? offsetTripDate(travelStart, 6) : "";
@@ -57,6 +60,7 @@ export function useTripSchedule() {
       if (end !== requestedEnd) setDateNotice({ kind: "adjusted", end });
       setDayStartTime(typeof stored.dayStartTime === "string" && TIME_PATTERN.test(stored.dayStartTime) ? stored.dayStartTime : "10:00");
       setScheduleAssignments(assignments as Record<string, string>);
+      setVisitMinutesByPlaceId(sanitizeVisitDurations(stored.visitMinutesByPlaceId));
       setStorageReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
@@ -70,11 +74,16 @@ export function useTripSchedule() {
         travelEnd,
         dayStartTime,
         scheduleAssignments,
+        visitMinutesByPlaceId,
       }));
     } catch {
       // 저장소가 차단돼도 현재 탭의 일정 편집은 유지한다.
     }
-  }, [dayStartTime, scheduleAssignments, storageReady, travelEnd, travelStart]);
+  }, [dayStartTime, scheduleAssignments, storageReady, travelEnd, travelStart, visitMinutesByPlaceId]);
+
+  const setVisitMinutes = useCallback((id: string, minutes: number | null) => {
+    setVisitMinutesByPlaceId(current => changeVisitDuration(current, id, minutes));
+  }, []);
 
   const changeTravelStart = useCallback((next: string) => {
     if (!validTripDate(next)) { setDateNotice({ kind: "invalid" }); return; }
@@ -104,6 +113,7 @@ export function useTripSchedule() {
   }, [travelStart, tripDays]);
 
   const removePlaceAssignment = useCallback((placeId: string) => {
+    setVisitMinutesByPlaceId(current => changeVisitDuration(current, placeId, null));
     setScheduleAssignments((current) => {
       const next = { ...current };
       delete next[placeId];
@@ -112,6 +122,8 @@ export function useTripSchedule() {
   }, []);
 
   const replacePlaceAssignment = useCallback((previousId: string, nextId: string) => {
+    // A duration chosen for the old venue does not imply the same visit at its replacement.
+    setVisitMinutesByPlaceId(current => changeVisitDuration(current, previousId, null));
     setScheduleAssignments((current) => {
       const next = { ...current, [nextId]: current[previousId] || tripDays[0] || travelStart };
       delete next[previousId];
@@ -121,7 +133,7 @@ export function useTripSchedule() {
 
   const resetSchedule = useCallback((start: string, end: string) => {
     setTravelStart(start); setTravelEnd(end); setDayStartTime("10:00");
-    setScheduleAssignments({}); setDateNotice(null);
+    setScheduleAssignments({}); setVisitMinutesByPlaceId({}); setDateNotice(null);
   }, []);
 
   return {
@@ -133,6 +145,8 @@ export function useTripSchedule() {
     dateNotice,
     dayStartTime,
     scheduleAssignments,
+    visitMinutesByPlaceId,
+    setVisitMinutes,
     tripDays,
     changeTravelStart,
     changeTravelEnd,

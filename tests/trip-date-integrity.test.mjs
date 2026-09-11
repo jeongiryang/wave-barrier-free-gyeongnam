@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import ts from "typescript";
+import * as durations from "../lib/visit-durations.js";
 
 function fixture(stored = {}, hydrate = true) {
   const slots = [], effects = [], frames = [];
@@ -21,6 +22,7 @@ function fixture(stored = {}, hydrate = true) {
     if (name === "../utils") return load("../features/planner/utils.ts");
     if (name.endsWith("current-trip-storage.js")) return load("../lib/current-trip-storage.js");
     if (name.endsWith("trip-dates.js")) return load("../lib/trip-dates.js");
+    if (name.endsWith("visit-durations.js")) return durations;
     throw Error(name);
   }, window);
   const actions = () => { cursor = 0; return mod.exports.useTripSchedule(); };
@@ -63,4 +65,18 @@ test("an impossible calendar date cannot alter the period", () => {
 });
 test("an invalid reassignment cannot silently move a place to the first day", () => {
   const f = fixture(initial); f.actions().assignPlaceToDay("b", "2026-09-20"); assert.equal(f.actions().scheduleAssignments.b, "2026-09-08");
+});
+
+test("visit edits survive hydration and day changes but are removed with a replaced or removed place", () => {
+  const f = fixture({ ...initial, visitMinutesByPlaceId: { a: 45, b: -1 } });
+  assert.deepEqual(f.actions().visitMinutesByPlaceId, { a: 45 });
+  f.actions().setVisitMinutes("b", 137);
+  f.actions().assignPlaceToDay("b", "2026-09-07");
+  assert.equal(f.actions().visitMinutesByPlaceId.b, 137);
+  f.actions().setVisitMinutes("b", 0);
+  assert.equal(f.actions().visitMinutesByPlaceId.b, 137);
+  f.actions().replacePlaceAssignment("a", "c");
+  assert.deepEqual(f.actions().visitMinutesByPlaceId, { b: 137 });
+  f.actions().removePlaceAssignment("b");
+  assert.deepEqual(f.actions().visitMinutesByPlaceId, {});
 });

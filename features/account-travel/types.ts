@@ -2,6 +2,7 @@ export type AccountTripPayload = {
   version: number; title: string; region: string; travelStart: string; travelEnd: string;
   dayStartTime: string; themes: string[]; placeIds: string[]; scheduleAssignments: Record<string, string>;
   status: "planned" | "visited"; note: string;
+  visitMinutesByPlaceId?: Record<string, number>;
 };
 export type AccountTrip = { id: string; payload: AccountTripPayload; revision: number; updatedAt: number; role: "owner" | "member" };
 export type TripDetail = AccountTrip & {

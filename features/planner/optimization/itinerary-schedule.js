@@ -1,4 +1,5 @@
 import { directDistanceKm } from "./visit-order.js";
+import { validVisitMinutes } from "../../../lib/visit-durations.js";
 
 const DAY_MINUTES = 24 * 60;
 const DEFAULT_START_MINUTES = 10 * 60;
@@ -97,6 +98,7 @@ export function buildItinerarySchedule({
   startTime = "10:00",
   origin = {},
   routeMinutesByPlaceId = {},
+  visitMinutesByPlaceId = {},
   defaultVisitMinutes = DEFAULT_VISIT_MINUTES,
 }) {
   const safePlaces = Array.isArray(places) ? places : [];
@@ -113,7 +115,8 @@ export function buildItinerarySchedule({
         routeMinutes: configuredRoute,
       });
       const startsAt = elapsed + travel.minutes;
-      const visitMinutes = visitDurationFor(place, defaultVisitMinutes);
+      const configuredVisit = visitMinutesByPlaceId[place.id];
+      const visitMinutes = validVisitMinutes(configuredVisit) ? configuredVisit : visitDurationFor(place, defaultVisitMinutes);
       const endsAt = startsAt + visitMinutes;
       elapsed = endsAt;
       cursor = place;
@@ -122,6 +125,7 @@ export function buildItinerarySchedule({
         travelMinutes: travel.minutes,
         travelSource: travel.source,
         visitMinutes,
+        visitSource: validVisitMinutes(configuredVisit) ? "user" : "default",
         startsAt,
         endsAt,
         startsAtLabel: formatScheduleTime(startsAt),
