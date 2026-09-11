@@ -2,6 +2,7 @@ import { clean } from "../shared/http";
 import { languageServices, profileFields, regionCodes } from "../tourism/catalog";
 import { normalizeThemes } from "../../lib/planner-criteria.js";
 import { sanitizeVisitDurations } from "../../lib/visit-durations.js";
+import { sanitizeFixedVisits, sanitizeDayDeadlines } from "../../lib/trip-time-constraints.js";
 
 export function normalizeTripSelections(rawSelections: Record<string, unknown>) {
   const requestedRegion = clean(rawSelections.region, 20);
@@ -41,6 +42,8 @@ export function normalizeTripSelections(rawSelections: Record<string, unknown>) 
       .filter(([placeId, assignedDate]) => placeId && assignedDate)),
     selectedPlaceIds,
     visitMinutesByPlaceId: sanitizeVisitDurations(rawSelections.visitMinutesByPlaceId, selectedPlaceIds),
+    fixedVisits: sanitizeFixedVisits(rawSelections.fixedVisits, selectedPlaceIds),
+    dayDeadlines: sanitizeDayDeadlines(rawSelections.dayDeadlines),
   };
 }
 

@@ -92,6 +92,8 @@ export default function PlannerPage() {
     scheduleAssignments,
     visitMinutesByPlaceId,
     selectedPlaceIds: orderedPlaceIds,
+    fixedVisits: tripSelection.fixedVisits,
+    dayDeadlines: tripSelection.dayDeadlines,
     originLabel,
     selectedPlace,
   });

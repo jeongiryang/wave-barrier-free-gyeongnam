@@ -1,5 +1,6 @@
 import { directDistanceKm } from "./visit-order.js";
 import { validVisitMinutes } from "../../../lib/visit-durations.js";
+import { validTripClock } from "../../../lib/trip-time-constraints.js";
 
 const DAY_MINUTES = 24 * 60;
 const DEFAULT_START_MINUTES = 10 * 60;
@@ -99,6 +100,7 @@ export function buildItinerarySchedule({
   origin = {},
   routeMinutesByPlaceId = {},
   visitMinutesByPlaceId = {},
+  fixedVisits = {},
   defaultVisitMinutes = DEFAULT_VISIT_MINUTES,
 }) {
   const safePlaces = Array.isArray(places) ? places : [];
@@ -114,7 +116,10 @@ export function buildItinerarySchedule({
       const travel = travelDurationBetween(cursor, place, {
         routeMinutes: configuredRoute,
       });
-      const startsAt = elapsed + travel.minutes;
+      const arrivesAt = elapsed + travel.minutes;
+      const fixedTime = validTripClock(fixedVisits[place.id]?.time) ? fixedVisits[place.id].time : "";
+      const fixedMinutes = fixedTime ? parseClock(fixedTime) : arrivesAt;
+      const startsAt = Math.max(arrivesAt, fixedMinutes);
       const configuredVisit = visitMinutesByPlaceId[place.id];
       const visitMinutes = validVisitMinutes(configuredVisit) ? configuredVisit : visitDurationFor(place, defaultVisitMinutes);
       const endsAt = startsAt + visitMinutes;
@@ -128,6 +133,9 @@ export function buildItinerarySchedule({
         visitSource: validVisitMinutes(configuredVisit) ? "user" : "default",
         startsAt,
         endsAt,
+        fixedTime,
+        waitingMinutes: Math.max(0, fixedMinutes - arrivesAt),
+        lateMinutes: fixedTime ? Math.max(0, arrivesAt - fixedMinutes) : 0,
         startsAtLabel: formatScheduleTime(startsAt),
         endsAtLabel: formatScheduleTime(endsAt),
         crossesDateBoundary: endsAt >= DAY_MINUTES,

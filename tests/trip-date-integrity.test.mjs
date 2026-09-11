@@ -3,6 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import ts from "typescript";
 import * as durations from "../lib/visit-durations.js";
+import * as constraints from "../lib/trip-time-constraints.js";
 
 function fixture(stored = {}, hydrate = true) {
   const slots = [], effects = [], frames = [];
@@ -23,6 +24,7 @@ function fixture(stored = {}, hydrate = true) {
     if (name.endsWith("current-trip-storage.js")) return load("../lib/current-trip-storage.js");
     if (name.endsWith("trip-dates.js")) return load("../lib/trip-dates.js");
     if (name.endsWith("visit-durations.js")) return durations;
+    if (name.endsWith("trip-time-constraints.js")) return constraints;
     throw Error(name);
   }, window);
   const actions = () => { cursor = 0; return mod.exports.useTripSchedule(); };

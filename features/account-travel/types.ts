@@ -3,6 +3,8 @@ export type AccountTripPayload = {
   dayStartTime: string; themes: string[]; placeIds: string[]; scheduleAssignments: Record<string, string>;
   status: "planned" | "visited"; note: string;
   visitMinutesByPlaceId?: Record<string, number>;
+  fixedVisits?: Record<string, import("../../lib/trip-time-constraints.js").FixedVisit>;
+  dayDeadlines?: Record<string, import("../../lib/trip-time-constraints.js").DayDeadline>;
 };
 export type AccountTrip = { id: string; payload: AccountTripPayload; revision: number; updatedAt: number; role: "owner" | "member" };
 export type TripDetail = AccountTrip & {

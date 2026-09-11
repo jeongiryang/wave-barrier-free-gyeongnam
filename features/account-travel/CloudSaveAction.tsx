@@ -15,7 +15,7 @@ export default function CloudSaveAction({ book }: { book: TravelBook }) {
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
   const attempt = useRef({ key: "", id: "" });
-  const key = JSON.stringify([userId, book.title, book.region, book.travelStart, book.travelEnd, book.dayStartTime, book.themes, book.theme, book.status, book.note, book.places.map(place => place.id), book.scheduleAssignments, book.visitMinutesByPlaceId]);
+  const key = JSON.stringify([userId, book.title, book.region, book.travelStart, book.travelEnd, book.dayStartTime, book.themes, book.theme, book.status, book.note, book.places.map(place => place.id), book.scheduleAssignments, book.visitMinutesByPlaceId, book.fixedVisits, book.dayDeadlines]);
   async function save() {
     if (!userId || pending.current) return;
     pending.current = true; setBusy(true);

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { dateRange, localDate } from "../utils";
 import { boundedTripEnd, offsetTripDate, validTripDate } from "../../../lib/trip-dates.js";
 import { changeVisitDuration, sanitizeVisitDurations } from "../../../lib/visit-durations.js";
+import { sanitizeFixedVisits, sanitizeDayDeadlines, type FixedVisit, type DayDeadline } from "../../../lib/trip-time-constraints.js";
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 const TRIP_SCHEDULE_KEY = "wave-trip-schedule-v1";
@@ -16,6 +17,8 @@ type StoredSchedule = {
   dayStartTime?: unknown;
   scheduleAssignments?: unknown;
   visitMinutesByPlaceId?: unknown;
+  fixedVisits?: unknown;
+  dayDeadlines?: unknown;
 };
 
 function readStoredSchedule(): StoredSchedule {
@@ -35,6 +38,9 @@ export function useTripSchedule() {
   const [dayStartTime, setDayStartTime] = useState("10:00");
   const [scheduleAssignments, setScheduleAssignments] = useState<Record<string, string>>({});
   const [visitMinutesByPlaceId, setVisitMinutesByPlaceId] = useState<Record<string, number>>({});
+  const [fixedVisits, setFixedVisits] = useState<Record<string, FixedVisit>>({});
+  const [dayDeadlines, setDayDeadlines] = useState<Record<string, DayDeadline>>({});
+  const [constraintNotice, setConstraintNotice] = useState("");
   const [storageReady, setStorageReady] = useState(false);
   const [dateNotice, setDateNotice] = useState<{ kind: "limit" | "adjusted" | "invalid"; end?: string } | null>(null);
   const lastTravelDate = travelStart ? offsetTripDate(travelStart, 6) : "";
@@ -61,6 +67,8 @@ export function useTripSchedule() {
       setDayStartTime(typeof stored.dayStartTime === "string" && TIME_PATTERN.test(stored.dayStartTime) ? stored.dayStartTime : "10:00");
       setScheduleAssignments(assignments as Record<string, string>);
       setVisitMinutesByPlaceId(sanitizeVisitDurations(stored.visitMinutesByPlaceId));
+      setFixedVisits(sanitizeFixedVisits(stored.fixedVisits));
+      setDayDeadlines(sanitizeDayDeadlines(stored.dayDeadlines));
       setStorageReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
@@ -75,11 +83,27 @@ export function useTripSchedule() {
         dayStartTime,
         scheduleAssignments,
         visitMinutesByPlaceId,
+        fixedVisits,
+        dayDeadlines,
       }));
     } catch {
       // 저장소가 차단돼도 현재 탭의 일정 편집은 유지한다.
     }
-  }, [dayStartTime, scheduleAssignments, storageReady, travelEnd, travelStart, visitMinutesByPlaceId]);
+  }, [dayStartTime, scheduleAssignments, storageReady, travelEnd, travelStart, visitMinutesByPlaceId, fixedVisits, dayDeadlines]);
+
+  const setFixedVisit = useCallback((id: string, value: FixedVisit | null) => {
+    setFixedVisits(current => { const next = { ...current }; if (value) Object.assign(next, sanitizeFixedVisits({ [id]: value })); else delete next[id]; return next; });
+    setConstraintNotice(value ? "장소와 방문 날짜·순서를 고정했어요. 시각은 아래에서 정할 수 있어요." : "장소 고정을 해제했어요.");
+  }, []);
+  const setDayDeadline = useCallback((day: string, value: DayDeadline | null) => {
+    if (!tripDays.includes(day)) return;
+    setDayDeadlines(current => { const next = { ...current }; if (value) Object.assign(next, sanitizeDayDeadlines({ [day]: value })); else delete next[day]; return sanitizeDayDeadlines(next, tripDays); });
+  }, [tripDays]);
+  const canChangePlace = useCallback((id: string) => {
+    if (!fixedVisits[id]) return true;
+    setConstraintNotice("고정한 장소예요. 일정 수정에서 고정을 해제한 뒤 날짜 변경·교체·제거할 수 있어요.");
+    return false;
+  }, [fixedVisits]);
 
   const setVisitMinutes = useCallback((id: string, minutes: number | null) => {
     setVisitMinutesByPlaceId(current => changeVisitDuration(current, id, minutes));
@@ -101,9 +125,9 @@ export function useTripSchedule() {
   }, [travelStart, lastTravelDate]);
 
   const assignPlaceToDay = useCallback((placeId: string, day: string) => {
-    if (!placeId || !tripDays.includes(day)) return;
+    if (!placeId || !tripDays.includes(day) || !canChangePlace(placeId)) return;
     setScheduleAssignments((current) => ({ ...current, [placeId]: day }));
-  }, [tripDays]);
+  }, [tripDays, canChangePlace]);
 
   const ensurePlaceAssignment = useCallback((placeId: string) => {
     setScheduleAssignments((current) => ({
@@ -134,6 +158,7 @@ export function useTripSchedule() {
   const resetSchedule = useCallback((start: string, end: string) => {
     setTravelStart(start); setTravelEnd(end); setDayStartTime("10:00");
     setScheduleAssignments({}); setVisitMinutesByPlaceId({}); setDateNotice(null);
+    setFixedVisits({}); setDayDeadlines({}); setConstraintNotice("");
   }, []);
 
   return {
@@ -146,6 +171,12 @@ export function useTripSchedule() {
     dayStartTime,
     scheduleAssignments,
     visitMinutesByPlaceId,
+    fixedVisits,
+    dayDeadlines,
+    setFixedVisit,
+    setDayDeadline,
+    canChangePlace,
+    constraintNotice,
     setVisitMinutes,
     tripDays,
     changeTravelStart,
