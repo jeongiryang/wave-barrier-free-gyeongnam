@@ -21,12 +21,13 @@ export default function AlternativeComparisonDialog({ original, initialReason, p
   const [reason, setReason] = useState(initialReason), [choice, setChoice] = useState("");
   const [info, setInfo] = useState<Record<string, VisitInfo>>({}), [loading, setLoading] = useState("");
   const [notice, setNotice] = useState("");
+  const [includeUnknown, setIncludeUnknown] = useState(false);
   const pool = useAlternativePool({ region, themes, profiles, places, current, requiredKeys, indoor: reason === "indoor" });
   const day = trip.scheduleAssignments[original.id] || trip.tripDays[0];
   const dayPlaces = trip.orderedSavedPlaces.filter(place => (trip.scheduleAssignments[place.id] || trip.tripDays[0]) === day), position = dayPlaces.findIndex(place => place.id === original.id);
   const before = dayPlaces[position - 1] || { mapX: String(origin.lng), mapY: String(origin.lat) }, after = dayPlaces[position + 1];
-  const candidates = alternativeCandidates({ places: pool.places, original, before, after, savedIds: trip.saved, requiredKeys: pool.requiredKeys, reason, visitedIds: reason === "discover" ? [...seenIds, ...pool.seen] : seenIds, indoorById: Object.fromEntries(Object.entries(info).map(([id, value]) => [id, value.setting])), originalVisitMinutes: trip.visitMinutesByPlaceId[original.id] });
-  const toInspect = reason === "indoor" ? alternativeCandidates({ places: pool.places.filter(place => !info[place.id]), original, before, after, savedIds: trip.saved, requiredKeys: pool.requiredKeys, reason: "visited", visitedIds: [] }) : [];
+  const candidates = alternativeCandidates({ places: pool.places, original, before, after, savedIds: trip.saved, requiredKeys: pool.requiredKeys, includeUnknown, reason, visitedIds: reason === "discover" ? [...seenIds, ...pool.seen] : seenIds, indoorById: Object.fromEntries(Object.entries(info).map(([id, value]) => [id, value.setting])), originalVisitMinutes: trip.visitMinutesByPlaceId[original.id] });
+  const toInspect = reason === "indoor" ? alternativeCandidates({ places: pool.places.filter(place => !info[place.id]), original, before, after, savedIds: trip.saved, requiredKeys: pool.requiredKeys, includeUnknown, reason: "visited", visitedIds: [] }) : [];
   const comparison = [original, ...candidates.map(candidate => candidate.place)], rows = facilityComparison(comparison, pool.requiredKeys);
   const selected = candidates.find(candidate => candidate.place.id === choice), pinned = Boolean(trip.fixedVisits[original.id]);
   const forecast = weather?.days.find(value => value.date === day);
@@ -40,7 +41,7 @@ export default function AlternativeComparisonDialog({ original, initialReason, p
     <header><div><p className="section-kicker">나의 선택을 이어서</p><h2 id="alternative-title" tabIndex={-1}>이곳만 바꿔 볼까요?</h2></div><button type="button" onClick={onClose} aria-label="대안 비교 닫기">×</button></header>
     <p><b>{original.name}</b> · {day} · {position + 1}번째 방문. 다른 장소와 날짜·순서는 유지합니다.</p>
     <div className="travel-book-actions" role="group" aria-label="바꾸고 싶은 이유">{reasonOptions.map(option => <button key={option.id} type="button" aria-pressed={reason === option.id} style={{ background: reason === option.id ? "var(--accent)" : "var(--paper)", color: reason === option.id ? "white" : "var(--ink)" }} onClick={() => { setReason(option.id); setChoice(""); }}>{option.label}</button>)}</div>
-    <p>{pool.source} · 현재 여행의 편의 {pool.requiredKeys.length}개를 모두 확인한 후보부터 비교합니다. 확인되지 않은 편의를 갖춘 것으로 바꾸지 않아요.</p>
+    <p>{pool.source} · 현재 여행의 편의 {pool.requiredKeys.length}개를 기준으로 비교합니다. 모두 확인된 후보를 먼저 보여드려요.</p><label className="departure-review-check"><input type="checkbox" checked={includeUnknown} onChange={event => { setIncludeUnknown(event.target.checked); setChoice(""); }} />편의 미확인 후보도 직접 비교</label>{includeUnknown && <p>미확인 편의는 시설에 따로 확인해야 합니다. 조건과 맞지 않는다고 확인된 후보는 제외합니다.</p>}
     {pinned && <p role="status">고정한 장소입니다. 교체하려면 일정 수정에서 고정을 해제해 주세요.</p>}
     {!pool.current && <p role="status">선택 조건이 바뀌었어요. 아래에서 같은 편의로 새 후보를 찾아주세요.</p>}
     <details className="place-evidence"><summary>{reason === "indoor" ? "같은 편의로 문화 공간 찾기" : "경남의 다른 후보 살펴보기"}</summary><div className="modal-data">
@@ -65,7 +66,7 @@ export default function AlternativeComparisonDialog({ original, initialReason, p
         <tr><th scope="row">출처</th>{comparison.map(place => <td key={place.id}>{place.source}</td>)}</tr>
         <tr><th scope="row">내 선택</th><td>유지 중</td>{candidates.map(candidate => <td key={candidate.place.id}><button type="button" aria-pressed={choice === candidate.place.id} onClick={() => setChoice(candidate.place.id)}>{choice === candidate.place.id ? "✓ 선택됨" : `${candidate.place.name} 선택`}</button></td>)}</tr>
       </tbody></table></div>
-      {selected && <section className="account-settings"><h3>{selected.place.name}</h3>{selected.indoor && <p>공식 실내 공간 설명: {selected.indoor.detail}</p>}<PlaceVisitHours id={selected.place.id} name={selected.place.name} /><p>체류시간은 새 장소의 기본값으로 바뀝니다. 이전 장소에 넣은 휴식과 방문 목적은 해제되고, 다른 일정의 선택은 유지돼요.</p></section>}
+      {selected && <section className="account-settings"><h3>{selected.place.name}</h3>{selected.unknownKeys.length > 0 && <p role="status">이 후보는 필요한 편의 {selected.unknownKeys.length}개가 미확인입니다. 위 비교표와 문의처에서 확인하고 선택하세요.</p>}{selected.indoor && <p>공식 실내 공간 설명: {selected.indoor.detail}</p>}<PlaceVisitHours id={selected.place.id} name={selected.place.name} /><p>체류시간은 새 장소의 기본값으로 바뀝니다. 이전 장소에 넣은 휴식과 방문 목적은 해제되고, 다른 일정의 선택은 유지돼요.</p></section>}
     </>}
     <p className="modal-note">이동 차이는 직선거리 기반 추정입니다. 새 경로의 실제 이동 편의와 시간·혼잡이 더 낫다는 보장은 아니므로 교체한 뒤 다시 확인하세요.</p>
     <p role="status">{notice}</p>

@@ -19,6 +19,9 @@ test('targeted alternatives preserve confirmed needs, uniqueness and a known mov
   assert.equal(unknown[0].travelDelta, null);
   const denied = ['unknown', 'negative'].map((state, i) => place(String(i + 1005), 128.71, { accessibility: [{ key: 'restroom', state }] }));
   assert.deepEqual(alternativeCandidates({ ...options, places: [...denied, { ...near, accessibility: [] }], reason: 'visited' }), []);
+  const explicitUnknown = alternativeCandidates({ ...options, places: [...denied, near], includeUnknown: true, reason: 'visited' });
+  assert.deepEqual(explicitUnknown.map(item=>item.place.id), [near.id, '1005']);
+  assert.deepEqual(explicitUnknown[1].unknownKeys, ['restroom']);
   assert.equal(alternativeCandidates({ ...options, places: [near, near, original, after], reason: 'visited' }).length, 1);
 });
 

@@ -102,3 +102,15 @@ test("forecast comparison leaves missing dates unknown and moves only the select
   expect(value.travelStart).toBe("2026-09-13"); expect(value.travelEnd).toBe("2026-09-14");
   expect(value.visitMinutesByPlaceId["1001"]).toBe(180); expect(value.breakMinutesByPlaceId["1001"]).toBe(15);
 });
+
+test("unverified facility candidates need explicit opt-in and remain visibly unverified", async ({ page }) => {
+  await setup(page);
+  const dialog = await open(page);
+  await expect(dialog.getByRole('button', { name: '편의 미확인 전시실 선택', exact: true })).toHaveCount(0);
+  await dialog.getByLabel('편의 미확인 후보도 직접 비교', { exact:true }).check();
+  await dialog.getByRole('button', { name: '편의 미확인 전시실 선택', exact: true }).click();
+  await expect(dialog.getByRole('status').filter({hasText:'이 후보는 필요한 편의'})).toContainText('미확인');
+  await dialog.getByLabel('편의 미확인 후보도 직접 비교', { exact:true }).uncheck();
+  await expect(dialog.getByRole('button', {name:'선택한 장소로 교체',exact:true})).toBeDisabled();
+  await expect(dialog.getByRole('button', { name: '편의 미확인 전시실 선택', exact: true })).toHaveCount(0);
+});
