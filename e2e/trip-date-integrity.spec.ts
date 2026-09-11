@@ -17,15 +17,14 @@ async function prepare(page: Page, english: boolean, end = "2026-10-08", theme =
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
   if (english) {
-    await page.keyboard.press("Control+Home");
     const preferences = page.locator(".preference-controls:visible");
-    // Home does not establish focus in the scroll-hidden header.
-    // Use its existing keyboard reveal contract before the same pointer action.
+    // Preferences now live in the footer. Open the actual control after the
+    // surrounding lazy content settles; the former hidden-header focus setup
+    // could scroll before its position changed. Keep viewport/focus assertions.
     const preferenceTrigger = preferences.locator("summary");
-    await preferenceTrigger.focus();
+    await preferenceTrigger.click();
     await expect(preferenceTrigger).toBeFocused();
     await expect(preferenceTrigger).toBeInViewport();
-    await preferences.getByLabel("환경설정 열기", { exact: true }).click();
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
     await preferences.getByLabel("Open preferences", { exact: true }).click();
   }

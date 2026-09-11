@@ -60,7 +60,7 @@
 button {
   min-height: 44px;
 }
-.primary-button, .account-submit, .landing-cta a {
+.primary-button,.landing-cta a {
   min-height: 48px;
 }
 
