@@ -25,7 +25,9 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
       break;
     }
     const reduced = prefersReducedMotion();
-    const targetTop = window.scrollY + target.getBoundingClientRect().top - Math.min(104, window.innerHeight * 0.16);
+    const header = document.querySelector<HTMLElement>(".wave-header");
+    const headerBottom = header && /fixed|sticky/.test(getComputedStyle(header).position) ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+    const targetTop = window.scrollY + target.getBoundingClientRect().top - Math.max(headerBottom + 16, Math.min(104, window.innerHeight * 0.16));
     window.scrollTo({ top: Math.max(0, targetTop), behavior: reduced ? "auto" : "smooth" });
 
     let frame = 0;
