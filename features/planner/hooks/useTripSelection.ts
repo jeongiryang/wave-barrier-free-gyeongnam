@@ -82,16 +82,18 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
     optimized.appendPlaceOrder(id); setActiveDay(date); return true;
   };
 
-  const addRestStop = (afterId: string, place: Place, minutes: number, purpose: StopPurpose) => {
+  const addCourseStop = (afterId: string, place: Place, minutes: number, purpose?: StopPurpose) => {
+    if (!/^[1-9]\d{0,11}$/.test(place.id) || !Number.isInteger(minutes) || minutes < 15 || minutes > 720) return false;
     const day = schedule.scheduleAssignments[afterId] || schedule.tripDays[0];
     const sameDay = optimized.orderedSavedPlaces.filter(item => (schedule.scheduleAssignments[item.id] || schedule.tripDays[0]) === day);
     const afterIndex = sameDay.findIndex(item => item.id === afterId);
     if (afterIndex < 0 || !schedule.tripDays.includes(day) || saved.includes(place.id) || saved.length >= 12 || sameDay.slice(afterIndex + 1).some(item => schedule.fixedVisits[item.id])) return false;
     addSavedIds([place.id], [place]);
-    schedule.assignPlaceToDay(place.id, day); schedule.setVisitMinutes(place.id, minutes); schedule.setStopPurpose(place.id, purpose);
+    schedule.assignPlaceToDay(place.id, day); schedule.setVisitMinutes(place.id, minutes); if (purpose) schedule.setStopPurpose(place.id, purpose);
     optimized.insertPlaceAfter(afterId, place.id);
     return true;
   };
+  const addRestStop = (afterId: string, place: Place, minutes: number, purpose: StopPurpose) => addCourseStop(afterId, place, minutes, purpose);
 
   const resetTrip = (start: string, end: string) => {
     resetSaved(); schedule.resetSchedule(start, end); optimized.resetOrder(); setActiveDay("");
@@ -99,7 +101,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
 
   return {
     rememberSavedPlaces,
-    addSuggestedBreaks, addRestStop,
+    addSuggestedBreaks, addRestStop, addCourseStop,
     canMoveToDate, movePlaceToDate,
     resetTrip,
     saved,

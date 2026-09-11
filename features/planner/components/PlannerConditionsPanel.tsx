@@ -1,6 +1,7 @@
 "use client";
 
 import { lazy, Suspense, useRef } from "react";
+import Link from "next/link";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import type { PlannerStageView } from "../hooks/usePlannerStageView";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
@@ -49,6 +50,7 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
     {guided && <p className="condition-step-kicker">STEP {question === 1 ? "02" : "01"}<span>{en ? "Your trip, at your pace." : "준비도 우리의 속도로."}</span></p>}
     <h2 ref={heading} tabIndex={-1} className="condition-heading">{guided ? (en ? ["Where would you like to go?", "What facilities do you need?", "What would you like to do?", "When are you travelling?"] : ["경남, 어디부터 가볼까요?", "어떤 편의가 필요할까요?", "무엇을 하고 싶나요?", "언제 떠날까요?"])[question] : en ? "Your trip preferences" : "여행 조건 정하기"}</h2>
     <p className="reference-subtitle">{(en ? ["Choose a destination from its scenery.", "Choose the facilities you need to compare places.", "Choose your interests to find places for your trip.", "Select a start and end date for your trip."] : ["장소 이름을 외우지 않아도 풍경부터 고를 수 있어요.", "나에게 필요한 편의를 골라 여행지를 비교하세요.", "좋아하는 활동을 골라 나에게 맞는 여행을 찾아보세요.", "출발일과 도착일을 눌러 여행 기간을 선택하세요."])[question]}</p>
+    {(!guided || question === 0) && <div className="travel-book-actions" style={{gridTemplateColumns:'1fr',margin:'16px 0'}}><Link href="/outings" onClick={()=>{try{sessionStorage.setItem('wave-outing-entry-v1',JSON.stringify({region,theme:props.planController.theme,profiles:selected,createdAt:Date.now()}));}catch{/* The outing page offers the same choices when storage is unavailable. */}}}>한두 곳만 가볍게, 짧은 나들이 →</Link></div>}
     <div className="condition-inputs" inert={!props.planController.criteriaReady || !props.tripSelection.storageReady} key={guided ? question : "overview"}>
       {(!guided || question === 0) && <Suspense fallback={<p role="status">{en ? "Preparing destination choices…" : "여행 지역을 준비하고 있어요…"}</p>}><PlannerRegionDiscovery full={!guided} value={region} onChange={props.onRegionChange} onInterest={props.planController.setTheme} onFacilities={() => props.onQuestion(1)} /></Suspense>}
       {guided && question === 0 && <div className="condition-first-details"><details className="condition-date-disclosure"><summary><span>{en ? "Travel dates" : "여행 날짜"}</span><strong>{props.tripSelection.travelStart} {props.tripSelection.travelStart === props.tripSelection.travelEnd ? en ? " · Day trip" : " · 당일 여행" : `– ${props.tripSelection.travelEnd}`}</strong><b aria-hidden="true">⌄</b></summary><PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="dates" /></details><PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="themes" /></div>}
