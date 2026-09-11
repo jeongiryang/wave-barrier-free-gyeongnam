@@ -11,6 +11,14 @@ const subscribeToHydration = () => () => undefined;
 const browserReady = () => true;
 const serverReady = () => false;
 
+function positionPanel(details: HTMLDetailsElement | null) {
+  if (!details?.open) return;
+  const top = details.querySelector("summary")?.getBoundingClientRect().top;
+  if (top === undefined) return;
+  const bottom = Math.min(window.innerHeight - 96, Math.max(16, window.innerHeight - top + 10));
+  details.style.setProperty("--preference-bottom", `${bottom}px`);
+}
+
 export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean }) {
   const controlsReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
   const { locale, theme, setLocale, toggleTheme, t } = useSitePreferences();
@@ -25,7 +33,17 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
       if (details?.open && event.target instanceof Node && !details.contains(event.target)) details.open = false;
     };
     document.addEventListener("pointerdown", closeOutside);
-    return () => document.removeEventListener("pointerdown", closeOutside);
+    const reposition = () => positionPanel(disclosure.current);
+    const observer = new ResizeObserver(reposition);
+    if (disclosure.current?.parentElement) observer.observe(disclosure.current.parentElement);
+    window.addEventListener("resize", reposition);
+    document.addEventListener("scroll", reposition, true);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      window.removeEventListener("resize", reposition);
+      document.removeEventListener("scroll", reposition, true);
+      observer.disconnect();
+    };
   }, []);
 
   return (
@@ -35,6 +53,7 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
         // native select. Hiding its parent here can crash Chromium's picker.
         if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
       }}
+      onToggle={(event) => positionPanel(event.currentTarget)}
       onKeyDown={(event) => {
         if (event.key !== "Escape" || event.defaultPrevented || !event.currentTarget.open) return;
         event.preventDefault();

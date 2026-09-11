@@ -126,7 +126,7 @@ html[data-theme=dark] .region-showcase .selected-region small { color: #284c38; 
 html[data-theme=dark] .auth-guest { color: #d4b8ff; }
 .auth-guest small,.auth-legal { color: var(--muted); font-size: .7rem; text-align: center; }
 .auth-legal a { text-decoration: underline; }
-@media (max-width: 1280px) { .story-progress,.story-progress[data-surface=light] { background: var(--ink); color: var(--white); } body:has(.story-progress) .wave-footer-tools { padding-bottom: 84px; } }
+@media (max-width: 1280px) { .story-progress,.story-progress[data-surface=light],html[data-theme=dark] .story-progress[data-surface=light] { background: #2b2632; color: #fff; } body:has(.story-progress) .wave-footer-tools { padding-bottom: 84px; } }
 @media (max-width: 960px) {
  .wave-header { padding-inline: 24px; gap: 16px; }
  .wave-header nav a { padding-inline: 16px; }
@@ -185,7 +185,7 @@ html[data-theme=dark] .auth-guest { color: #d4b8ff; }
 .wave-footer-tools > a { display: flex; align-items: center; min-height: 44px; }
 .wave-footer-tools .preference-panel,.wave-footer-tools .account-popover { top: auto; bottom: calc(100% + 10px); }
 @media (max-width: 680px) {
-  .wave-footer-tools .preference-panel { top: calc(70px + env(safe-area-inset-top,0px)); bottom: auto; }
+  .wave-footer-tools .preference-panel { top: auto; bottom: var(--preference-bottom,90px); max-height: calc(100svh - var(--preference-bottom,90px) - 16px); }
   .wave-footer-tools .account-popover { position: fixed; top: auto; bottom: max(16px,env(safe-area-inset-bottom,0px)); left: 16px; right: 16px; width: auto; max-height: calc(100svh - 100px); overflow-y: auto; }
 }
 @media (min-width: 1281px) { .horizon-edition { --story-right: 118px; }.horizon-edition .landing-hero,.horizon-edition .landing-cta { width: auto; margin-left: var(--gutter); margin-right: var(--story-right); }.horizon-chapters { margin-right: var(--story-right); }.region-card-rail { padding-right: var(--story-right); }.story-progress { width: 112px; padding-inline: 4px; font-size: .62rem; }.story-progress li a { grid-template-columns: 1fr 30px; gap: 0; } }

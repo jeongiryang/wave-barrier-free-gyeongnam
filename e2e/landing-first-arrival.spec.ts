@@ -14,6 +14,7 @@ test.beforeEach(async ({ page }) => {
 
 for (const seenBefore of [false, true]) {
   test(`normal arrival is visibly painted and usable with prior legacy session marker ${seenBefore}`, async ({ page }) => {
+    await page.clock.install();
     await mockPublicShellApi(page);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.addInitScript((seen) => {
@@ -41,6 +42,9 @@ for (const seenBefore of [false, true]) {
     await expect(planning).toBeEnabled();
     await expect(intro).toBeVisible();
     await expect(canvas).toHaveAttribute("data-intro-phase", "wordmark");
+    // Inspect the painted final frame without screenshot/CI latency consuming
+    // the 5.2s handoff deadline. Automatic handoff has separate timed coverage.
+    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
     // The server's still frame may be observed before the motion preference is hydrated.
     expect(await page.evaluate(() => (window as unknown as { arrivalPhases: string[] }).arrivalPhases.filter(phase => phase !== "static"))).toEqual(["wave", "accessibility", "wordmark"]);
     expect(await canvas.evaluate((node: HTMLCanvasElement) => {
@@ -56,11 +60,13 @@ for (const seenBefore of [false, true]) {
     await planning.focus();
     await expect(planning).toBeFocused();
     await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.clock.runFor(32);
     await expect(canvas).toBeHidden();
     await expect(intro.getByRole("heading", { name: "WAVE" })).toBeVisible();
     await expect(planning).toBeFocused();
     await page.screenshot({ path: test.info().outputPath("first-arrival-static.png") });
     await page.keyboard.press("Escape");
+    await page.clock.runFor(32);
     await expect(intro).toBeHidden();
     await expect(page.locator("#landing-title")).toBeFocused();
   });
