@@ -1,0 +1,18 @@
+import type { Place } from '../features/planner/types';
+import type { FixedVisit, DayDeadline } from './trip-time-constraints.js';
+export type SplitInput = { places: Place[]; days: string[]; assignments: Record<string,string>; startTime: string; origin?:{lat:number;lng:number}; visitMinutesByPlaceId: Record<string,number>; breakMinutesByPlaceId: Record<string,number>; fixedVisits: Record<string,FixedVisit>; dayDeadlines: Record<string,DayDeadline>; routeMinutesByPlaceId?: Record<string,number> };
+export type SplitChoice = { day: string; startId: string; reunionId: string; departureTime: string; reunionTime: string; assignments: Record<string,'A'|'B'>; waitA: number; waitB: number };
+export type SplitRecord = { identity: string; signature: string; choice: SplitChoice; savedAt: string };
+export type SplitEntry = { place: Place; arrivesAt: number; endsAt: number; travelMinutes: number; travelSource: 'route'|'estimate'|'fallback'; visitMinutes: number; breakMinutes: number };
+export type SplitResult = { ok:false; error:string } | { ok:true; day:string; start:Place; reunion:Place; departure:number; meetAt:number; branches:Array<{group:'A'|'B';entries:SplitEntry[];arrivesAt:number;waitingMinutes:number;lateMinutes:number;estimated:number;unknown:number}>;continuationTime:number;warnings:string[];notes:string[];canSave:boolean };
+export const SPLIT_REUNION_KEY: string;
+export function splitDayPlaces(input:SplitInput,day:string):Place[];
+export function splitIdentity(input:SplitInput,day:string):string;
+export function splitSignature(input:SplitInput,day:string):string;
+export function defaultSplitChoice(input:SplitInput,day:string):SplitChoice;
+export function buildSplitReunion(input:SplitInput,choice:SplitChoice):SplitResult;
+export function readSplitRecords(storage:Pick<Storage,'getItem'>):{raw:string|null;records:SplitRecord[]};
+export function writeSplitRecord(storage:Pick<Storage,'getItem'|'setItem'>,record:SplitRecord,expectedRaw:string|null):ReturnType<typeof readSplitRecords>;
+export function deleteSplitRecord(storage:Pick<Storage,'getItem'|'setItem'>,identity:string,expectedRaw:string|null):ReturnType<typeof readSplitRecords>;
+export function splitReunionLines(result:SplitResult,savedAt:string):string[];
+export function savedSplitReunionLines(storage:Pick<Storage,'getItem'>,input:SplitInput):string[];
