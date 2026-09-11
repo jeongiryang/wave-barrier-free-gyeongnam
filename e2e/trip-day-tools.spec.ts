@@ -47,3 +47,20 @@ test('offline HTML and text include confirmed contacts, missing fields and no re
   await offline.screenshot({path:info.outputPath('offline-pack.png')});expect((await new AxeBuilder({page:offline}).analyze()).violations).toEqual([]);await offline.close();await context.setOffline(false);
   const textDownload=page.waitForEvent('download');await pack.getByRole('button',{name:'텍스트로 저장',exact:true}).click();expect((await textDownload).suggestedFilename()).toMatch(/\.txt$/);
 });
+
+test('failed progress storage remains available to the offline pack and read errors are visible',async({page},info)=>{
+  await setup(page);
+  const original=await page.evaluate(()=>localStorage.getItem('wave-trip-schedule-v1'));
+  await page.evaluate(()=>{const write=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='wave-on-trip-v1')throw new DOMException('Full','QuotaExceededError');write.call(this,key,value);};});
+  await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();const panel=guide(page);
+  await panel.getByRole('button',{name:'여행 시작하기',exact:true}).click();await panel.getByRole('button',{name:'이곳 방문 완료',exact:true}).click();
+  await expect(panel).toContainText('1곳 방문 완료');await expect(panel.getByRole('status')).toContainText('진행 기록을 저장하지 못했어요');
+  await page.getByRole('button',{name:'여행 요약 챙기기',exact:true}).click();const pack=page.getByRole('region',{name:'여행 요약 파일',exact:true});
+  const event=page.waitForEvent('download');await pack.getByRole('button',{name:'여행 요약 파일 저장',exact:true}).click();const file=info.outputPath('unsaved-progress.html');await (await event).saveAs(file);
+  expect(await fs.readFile(file,'utf8')).toContain('경남도립미술관 · 방문 완료');
+  await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();await expect(panel).toContainText('1곳 방문 완료');await expect(panel.getByRole('status')).toContainText('아직 저장하지 못한 진행 기록');
+  await page.evaluate(()=>{const read=Storage.prototype.getItem;Storage.prototype.getItem=function(key){if(key==='wave-on-trip-v1')throw new DOMException('Blocked','SecurityError');return read.call(this,key);};});
+  await page.getByRole('group',{name:'진행할 여행 날짜',exact:true}).getByRole('button',{name:'09월 16일',exact:true}).click();
+  await expect(panel.getByRole('status')).toContainText('진행 기록을 불러오지 못했어요');
+  expect(await page.evaluate(()=>localStorage.getItem('wave-trip-schedule-v1'))).toBe(original);
+});

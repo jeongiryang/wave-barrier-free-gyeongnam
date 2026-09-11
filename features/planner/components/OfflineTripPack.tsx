@@ -6,10 +6,10 @@ import type { RoutePoint } from '../../routing/types';
 import type { VisitInfo } from '../../../lib/visit-hours.js';
 import { buildItinerarySchedule } from '../optimization/itinerary-schedule.js';
 import { fetchVisitInfo } from '../services/visit-info';
-import { onTripIdentity, readOnTrip } from '../../../lib/on-trip.js';
+import { onTripIdentity, readOnTrip, type TripProgressMemory } from '../../../lib/on-trip.js';
 import { offlineTripText, offlineTripHtml } from '../../../lib/trip-offline.js';
 
-export default function OfflineTripPack({trip,coverage,origin,region}:{trip:ReturnType<typeof useTripSelection>;coverage:ReturnType<typeof useItineraryRoutes>;origin:RoutePoint;region:string}) {
+export default function OfflineTripPack({trip,coverage,origin,region,progressMemory}:{trip:ReturnType<typeof useTripSelection>;coverage:ReturnType<typeof useItineraryRoutes>;origin:RoutePoint;region:string;progressMemory:TripProgressMemory}) {
   const [info,setInfo]=useState<Record<string,VisitInfo>>({}),[loading,setLoading]=useState(''),[notice,setNotice]=useState('');
   const [includeProgress,setIncludeProgress]=useState(true);
   const schedule=useMemo(()=>buildItinerarySchedule({places:trip.orderedSavedPlaces,days:trip.tripDays,assignments:trip.scheduleAssignments,startTime:trip.dayStartTime,origin,routeMinutesByPlaceId:coverage.routeMinutes,visitMinutesByPlaceId:trip.visitMinutesByPlaceId,breakMinutesByPlaceId:trip.breakMinutesByPlaceId,fixedVisits:trip.fixedVisits}),[trip.orderedSavedPlaces,trip.tripDays,trip.scheduleAssignments,trip.dayStartTime,origin,coverage.routeMinutes,trip.visitMinutesByPlaceId,trip.breakMinutesByPlaceId,trip.fixedVisits]);
@@ -18,7 +18,7 @@ export default function OfflineTripPack({trip,coverage,origin,region}:{trip:Retu
   function download(kind:'html'|'txt') {
     if(!complete || !trip.orderedSavedPlaces.length || loading)return;
     try {
-      const progress = includeProgress ? Object.fromEntries(schedule.map(day=>[day.day,readOnTrip(localStorage,onTripIdentity(day.entries.map(entry=>entry.place),day.day),day.entries.map(entry=>entry.place.id))])) : {};
+      const progress = includeProgress ? Object.fromEntries(schedule.map(day=>{const identity=onTripIdentity(day.entries.map(entry=>entry.place),day.day);return [day.day,progressMemory[identity]?.unsaved ? progressMemory[identity].value : readOnTrip(localStorage,identity,day.entries.map(entry=>entry.place.id),true)];})) : {};
       const input={title:`${region} · ${trip.travelStart} 여행`,schedule,info,savedAt:new Date().toISOString(),progress};
       const content=kind==='html'?offlineTripHtml(input):offlineTripText(input),url=URL.createObjectURL(new Blob([content],{type:kind==='html'?'text/html;charset=utf-8':'text/plain;charset=utf-8'}));
       const anchor=document.createElement('a');anchor.href=url;anchor.download=`WAVE-여행요약-${trip.travelStart}.${kind}`;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setNotice('여행 요약을 저장했어요. 다운로드한 파일은 인터넷 없이도 열 수 있습니다.');

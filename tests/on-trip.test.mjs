@@ -16,6 +16,12 @@ test('progress is scoped by day and selected public places, bounded and separate
   saveOnTrip(storage,identity,state,ids);assert.equal(JSON.parse(map.get(ON_TRIP_KEY)).length,20);
   assert.equal(readOnTrip(storage,identity,ids).marks['1001'].state,'done');assert.deepEqual(readOnTrip(storage,onTripIdentity(places,'2026-09-16'),ids).marks,{});
   assert.equal(map.get('wave-current-trip-v1'),'unchanged');
+  const blocked={getItem(){throw new Error('blocked');}};
+  assert.deepEqual(readOnTrip(blocked,identity,ids).marks,{});
+  assert.throws(()=>readOnTrip(blocked,identity,ids,true),/blocked/);
+  const before=map.get(ON_TRIP_KEY);
+  assert.throws(()=>saveOnTrip({...storage,...blocked},identity,cleanOnTrip(null,ids),ids),/blocked/);
+  assert.equal(map.get(ON_TRIP_KEY),before);
 });
 
 test('remaining schedule drops completed/skipped places without changing their plan and invalidates changed route endpoints',()=>{

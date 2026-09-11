@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { useTripSelection } from '../hooks/useTripSelection';
 import type { useItineraryRoutes } from '../hooks/useItineraryRoutes';
 import type { RoutePoint } from '../../routing/types';
 import type { Place } from '../types';
-import { cleanOnTrip, onTripIdentity, readOnTrip, remainingOnTrip, saveOnTrip, type TripProgress } from '../../../lib/on-trip.js';
+import { cleanOnTrip, onTripIdentity, readOnTrip, remainingOnTrip, saveOnTrip, type TripProgress, type TripProgressMemory } from '../../../lib/on-trip.js';
 import { formatScheduleTime } from '../optimization/itinerary-schedule.js';
 import { DayDeadlineSummary } from './DayDeadlineControl';
 import { FixedVisitSummary } from './FixedVisitControl';
@@ -13,30 +13,37 @@ import { validTripClock } from '../../../lib/trip-time-constraints.js';
 const fieldLabelStyle = { display:'grid', gap:8, fontSize:14, fontWeight:500 } as const;
 const selectStyle = { width:'100%', minHeight:48, padding:'10px 12px', border:'1px solid var(--line)', borderRadius:12, background:'var(--paper)', color:'var(--ink)', font:'inherit', fontSize:16 } as const;
 const nowClock = () => new Date().toLocaleTimeString('en-GB', { timeZone:'Asia/Seoul', hour:'2-digit', minute:'2-digit' });
-function DayGuide({ trip, coverage, origin, onSelectPlace }: {trip:ReturnType<typeof useTripSelection>;coverage:ReturnType<typeof useItineraryRoutes>;origin:RoutePoint;onSelectPlace:(place:Place)=>void}) {
+function DayGuide({ trip, coverage, origin, onSelectPlace, progressMemory, onProgressChange }: {trip:ReturnType<typeof useTripSelection>;coverage:ReturnType<typeof useItineraryRoutes>;origin:RoutePoint;onSelectPlace:(place:Place)=>void;progressMemory:TripProgressMemory;onProgressChange:(identity:string,value:TripProgress,unsaved?:boolean)=>void}) {
   const places = useMemo(() => trip.orderedSavedPlaces.filter(place => (trip.scheduleAssignments[place.id] || trip.tripDays[0]) === trip.activeDay), [trip.orderedSavedPlaces, trip.scheduleAssignments, trip.tripDays, trip.activeDay]);
   const ids = places.map(place => place.id), identity = onTripIdentity(places, trip.activeDay);
   const [progress, setProgress] = useState<TripProgress>(() => cleanOnTrip(null, ids));
   const [ready, setReady] = useState(false), [running, setRunning] = useState(false), [notice, setNotice] = useState('');
   const [undo, setUndo] = useState<TripProgress|null>(null), [resetting, setResetting] = useState(false);
+  const memory=useRef(progressMemory);
   useEffect(() => {
     const load = (external = false) => {
-      try { const saved = readOnTrip(localStorage, identity, places.map(place=>place.id)); setProgress(saved.updatedAt ? saved : {...saved, clock:nowClock()}); }
-      catch {setNotice('진행 기록을 불러오지 못했어요. 원래 일정은 그대로입니다.');}
-      if (external) {setRunning(false);setUndo(null);setNotice('다른 창에서 바뀐 진행 기록을 불러왔어요. 확인한 뒤 이어서 진행해 주세요.');}
+      if (external) {setRunning(false);setUndo(null);}
+      try {
+        const pending=memory.current[identity]?.unsaved;
+        const saved=pending?memory.current[identity].value:readOnTrip(localStorage,identity,places.map(place=>place.id),true);
+        const value=saved.updatedAt?saved:{...saved,clock:nowClock()};
+        setProgress(value);onProgressChange(identity,value,Boolean(pending));
+        if(pending)setNotice('아직 저장하지 못한 진행 기록을 유지하고 있어요. 화면을 닫기 전에 여행 요약 챙기기에서 파일로 보관해 주세요.');
+        else if(external)setNotice('다른 창에서 바뀐 진행 기록을 불러왔어요. 확인한 뒤 이어서 진행해 주세요.');
+      } catch {setNotice('진행 기록을 불러오지 못했어요. 원래 일정은 그대로입니다.');}
       setReady(true);
     };
     load();
     const onStorage = (event:StorageEvent) => {if(event.key === 'wave-on-trip-v1' || event.key === null)load(true);};
     window.addEventListener('storage',onStorage);
     return () => window.removeEventListener('storage',onStorage);
-  }, [identity, places]);
+  }, [identity, places, onProgressChange]);
   const remaining = remainingOnTrip({ places, day:trip.activeDay, progress, origin, routeMinutesByPlaceId:coverage.routeMinutes, visitMinutesByPlaceId:trip.visitMinutesByPlaceId, breakMinutesByPlaceId:trip.breakMinutesByPlaceId, fixedVisits:trip.fixedVisits });
   const next = remaining.next, entry = remaining.entries[0];
   function persist(value:TripProgress) {
     const clean = cleanOnTrip({...value, updatedAt:new Date().toISOString()}, ids);setProgress(clean);
-    try {saveOnTrip(localStorage,identity,clean,ids);return true;}
-    catch {setNotice('진행 기록을 저장하지 못했어요. 화면을 닫기 전에 여행 요약 파일을 챙겨 주세요.');return false;}
+    try {saveOnTrip(localStorage,identity,clean,ids);memory.current={...memory.current,[identity]:{value:clean,unsaved:false}};onProgressChange(identity,clean,false);return true;}
+    catch {memory.current={...memory.current,[identity]:{value:clean,unsaved:true}};onProgressChange(identity,clean,true);setNotice('진행 기록을 저장하지 못했어요. 다른 페이지로 가거나 화면을 닫기 전에 여행 요약 챙기기에서 현재 기록을 파일로 보관해 주세요.');return false;}
   }
   function mark(state:'done'|'skipped') {
     if (!running || !validTripClock(progress.clock) || !next || (state === 'skipped' && trip.fixedVisits[next.id])) return;
