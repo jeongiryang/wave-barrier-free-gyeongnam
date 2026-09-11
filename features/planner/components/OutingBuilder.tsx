@@ -1,6 +1,5 @@
 "use client";
 import Link from 'next/link';
-import Image from 'next/image';
 import {useEffect,useRef,useState} from 'react';
 import {profiles as availableProfiles,regions,themes as availableThemes,departurePresets} from '../constants';
 import type {Place} from '../types';
@@ -55,7 +54,9 @@ export default function OutingBuilder(){
     const isChosen=selected.some(item=>item.id===row.place.id),next=isChosen?selected:selected.length<2?[...selected,row.place]:[...selected.slice(0,1),row.place];
     const timing=previewOuting({places:next,date,startTime:time,hours,stayMinutes:stay,origin:origin.point});
     return <article key={row.place.id} style={courseCard}>
-     {row.place.image&&<Image unoptimized width={720} height={400} src={row.place.image} alt={row.place.name} loading="lazy" style={{width:'100%',height:180,objectFit:'cover',borderRadius:16}}/>}
+     {/* Remote unoptimized images need native styling because the current Image shim drops style. */}
+     {/* eslint-disable-next-line @next/next/no-img-element */}
+     {row.place.image&&<img width={720} height={180} src={row.place.image} alt={row.place.name} loading="lazy" style={{display:'block',width:'100%',height:180,objectFit:'cover',borderRadius:16}}/>}
      <h3 style={{fontSize:22,margin:0}}>{row.place.name}</h3><p style={courseCopy}>{row.place.city} · {row.place.address}</p><p style={courseCopy}>{row.unknownKeys.length?`요청한 편의 ${row.unknownKeys.length}개 미확인`:'요청한 편의정보 확인'}</p>
      <p style={courseCopy}>{timing?`${isChosen?'현재 선택':'이 곳을 더하면'} · ${origin.name} 복귀 ${timing.endLabel} 추정${timing.fits?'':' · 선택한 시간 초과'}`:'날짜·시간과 공개 출발 장소를 확인해 주세요.'}</p>
      <VisitHoursCard id={row.place.id} name={row.place.name} visit={timing?{day:date,...timing.entries.find(entry=>entry.place.id===row.place.id)!}:undefined}/>
