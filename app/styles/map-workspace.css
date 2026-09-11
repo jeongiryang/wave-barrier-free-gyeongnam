@@ -24,7 +24,6 @@
 .map-tool-panel > div > button { min-height: 58px; padding: 7px 4px; display: grid; place-items: center; align-content: center; gap: 4px; border: 1px solid var(--line); border-radius: 11px; color: var(--ink); background: var(--paper); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: .18s ease; }
 .map-tool-panel > div > button i { font-style: normal; font-size: 0.875rem; }
 .map-tool-panel > div > button:hover,.map-tool-panel > div > button.active { color: #fff; border-color: #6940a6; background: #6940a6; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(23,176,255,.2); }
-.map-measure-summary { margin: 8px 0 0; padding: 9px 11px; border-radius: 10px; color: #055957; background: #e7fbfa; font-size: .65rem; font-weight: 850; }
 @keyframes map-panel-in { from { opacity: 0; transform: translateY(-8px) scale(.97); } }
 
 .map-poi-results { z-index: 515; width: min(390px,calc(100% - 24px)); max-height: 53%; position: absolute; right: 12px; bottom: 12px; overflow: auto; padding: 13px; border: 1px solid rgba(10,61,83,.15); border-radius: 17px; color: var(--ink); background: rgba(255,255,255,.97); box-shadow: 0 22px 52px rgba(4,46,64,.2); backdrop-filter: blur(18px); }

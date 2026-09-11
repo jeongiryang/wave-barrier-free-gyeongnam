@@ -4,8 +4,9 @@ User authorizes continuation through merge and Production, removes their separat
 
 ## Current stage
 
-- MERGED: functional UI follow-up PR #468, `31be6b2e69234f56fecd01a97cedbdd3528974b9`. Required PR CI and independent QA passed. Main CI's desktop shard 4 stalled in Ubuntu font package download; cancelled the stalled run and reran that job with dependent validation. Production verification pending.
-- ACTIVE: Owner's later additions supersede inset-photo spacing. Branch `codex/wave-immersive-step-flow-353`: full-bleed Eight photo scenes, Ten centered text, region film after preparation, compact sequential Planner. Initial saved-view preference migration retains saved trips. Local quality and targeted browser checks pass; independent follow-up QA/PR/Production pending.
+- COMPLETE: functional UI follow-up PR #468, `31be6b2e69234f56fecd01a97cedbdd3528974b9`; main CI 34574038819 and Production CD 34576545629 PASS. Five-page desktop/mobile read-only Production smoke passed. Provider availability is separate.
+- MERGED: PR #470 `3c4089b79a90708c5ceadf84d49e1bf641e8903a`: full-bleed Eight photo scenes, Ten centered text, region film after preparation, compact sequential Planner. Saved-view preference migration retains saved trips. Local quality, independent visual/keyboard QA and required PR CI 34577661837 PASS. Main CI 34578759862 and Production pending.
+- ACTIVE: branch `codex/wave-place-decisions-353`, candidate 4/7 facility comparison and visitor inquiry card. Latest main #470 integrated; focused browser and independent QA, required quality/performance checks precede PR.
 - COMPLETE: frontend refinements PR #466 merged as `6aff57054f43887f77163ccb1b7a738d29129539`; main CI34570067238 and CD34570878909 succeeded. Production read-only checks on five pages at desktop/mobile: HTTP200, no page errors, Noto Sans KR, intro skip absent. Mobile search summary geometry found during visual review is handled in the active follow-up.
 - PENDING: browser inventory of every click-driven existing feature, especially Planner, and design integration of all states.
 - PENDING: candidate implementation batches below, with integrated usable UI and focused verification.
@@ -36,22 +37,22 @@ User authorizes continuation through merge and Production, removes their separat
 ## Functional UI follow-up
 
 - PR #468 merged as `31be6b2`; main CI 34574038819 and Production CD 34576545629 PASS. The first hosted attempt stalled at Ubuntu font downloads; only the affected job was rerun. Five public pages at 1440/390px returned 200 with page errors 0 and horizontal overflow 0; `/api/health` returned 200 (configuration evidence only). Evidence: `D:/wave-completion-20260911/production-468.json`.
-- PR #470 implements the latest full-bleed photo scenes, Ten text spacing, region film after preparation and compact guided Planner. Independent visual/keyboard QA PASS. Hosted failures are being resolved against the changed user-flow contract before merge; no pending/failed gate bypass.
+- PR #470 merged after independent visual/keyboard QA and all hosted gates PASS. Initial test contracts were updated for the new region nesting, film scroll and guided flow without weakening assertions, timeouts or accessibility standards.
 
 - Active branch `codex/wave-travel-tools-353` from merged main. Palette/type improvements in place detail, route comparison, community forms/comments, map drawers, travel book, account editing; grouped account dates.
 - Direct controlled interaction inventory: `D:/wave-completion-20260911/click-*.mjs` and PNG/JSON evidence. Existing save/order/date/archive, account edits/vote/invite/export/cancel, comment/edit/report menu, map route/nearby/layers/export, photo-course controls inspected; all writes use fixtures, no personal messages.
 - Independent QA found and verified fixes for sticky map heading/category overlap, dark secondary-control contrast, delayed search taking keyboard focus, and inherited flat-header grid placement in the new sentence search.
 - Full feature/state audit remains open. Do not equate this visual subset with every production function being certified. Account authentication/actual provider success and newly implemented features require their own evidence. ODsay hold #454 remains separate from successful CD.
 
-## Feature candidates — all authorized, none complete yet
+## Feature candidates — all authorized
 
 1. PENDING — Arrival-time opening/holiday/admission feasibility.
 2. PENDING — Walking burden and scheduled rests based on user preferences.
 3. PENDING — Compare targeted replacement with original and undo.
-4. PENDING — 2–3 place facility comparison.
+4. IN REVIEW — 2–3 place facility comparison; actual records, missing/negative distinction, save/remove, small-screen fixed labels. Merge/Production pending.
 5. PENDING — On-trip progress, skip, resume and remaining schedule.
 6. PENDING — Companion needs combined into trip constraints.
-7. PENDING — Large Korean communication/inquiry card, copy/save.
+7. IN REVIEW — Large Korean communication/inquiry card, selected questions, extra text, copy/manual fallback and PNG export. Merge/Production pending.
 8. PENDING — Return/reservation deadline and remaining-time planning.
 9. PENDING — Editable visit duration and downstream recalculation.
 10. PENDING — Reason-driven alternatives (far, visited, easier, indoor).

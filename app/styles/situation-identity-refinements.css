@@ -29,7 +29,7 @@
 .help-button,.account-button,.account-menu button { min-height: 42px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.88); font-size: .74rem; font-weight: 850; }
 .help-button { display: inline-flex; align-items: center; gap: 7px; }.help-button span { width: 21px; height: 21px; display: grid; place-items: center; border-radius: 50%; color: var(--on-blue); background: var(--blue); }
 .account-menu { display: flex; align-items: center; gap: 7px; }.account-menu > span { max-width: 130px; overflow: hidden; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
-.dialog-kicker { color: var(--blue); font-size: .68rem; font-weight: 900; letter-spacing: .12em; }.help-caution { font-size: .75rem; }.account-message { margin: 0; color: #a13c49 !important; font-size: .78rem; }
+.dialog-kicker { color: var(--blue); font-size: .68rem; font-weight: 900; letter-spacing: .12em; }
 html[data-theme="dark"] .help-button,html[data-theme="dark"] .account-button,html[data-theme="dark"] .account-menu button { color: #eaf5f9; border-color: #30596b; background: #0a3244; }
 html[data-theme="dark"] .day-planner,html[data-theme="dark"] .day-planner-grid > article { color: var(--ink); border-color: #30596b; background: #0b2d3c; }
 html[data-theme="dark"] .day-planner-grid li,html[data-theme="dark"] .day-planner select,html[data-theme="dark"] .date-control input { color: var(--ink); border-color: #30596b; background: #0f3749; }

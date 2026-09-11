@@ -18,7 +18,7 @@ async function prepare(page: Page) {
   await page.evaluate(() => document.fonts.ready);
 }
 
-test("comparison limits selection, distinguishes missing evidence, and keeps saved places on close", async ({ page }) => {
+test("comparison limits selection, distinguishes missing evidence, and keeps saved places on close", async ({ page, isMobile }) => {
   await prepare(page);
   await page.getByRole("button", { name: "편의 비교", exact: true }).click();
   const choice = page.getByRole("button", { name: /편의 비교 선택$/ });
@@ -35,6 +35,18 @@ test("comparison limits selection, distinguishes missing evidence, and keeps sav
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
   expect((await new AxeBuilder({ page }).include(".place-comparison-dialog").analyze()).violations).toEqual([]);
   await dialog.screenshot({ path: test.info().outputPath("comparison.png") });
+  if (isMobile) {
+    await page.setViewportSize({ width: 320, height: 740 });
+    await dialog.locator(".place-comparison-scroll").evaluate(element => { element.scrollLeft = element.scrollWidth; });
+    const visible = await route.evaluate(row => {
+      const label = row.querySelector("th")!.getBoundingClientRect();
+      const last = row.querySelector("td:last-child")!.getBoundingClientRect();
+      return { labelLeft: label.left, labelRight: label.right, valueLeft: last.left, valueRight: last.right };
+    });
+    expect(visible.labelLeft).toBeGreaterThanOrEqual(0);
+    expect(visible.labelRight).toBeLessThanOrEqual(visible.valueLeft + 1);
+    expect(visible.valueRight).toBeLessThanOrEqual(320);
+  }
   await page.keyboard.press("Escape");
   await expect(open).toBeFocused();
   await page.getByRole("button", { name: "용지호수공원 비교에서 빼기", exact: true }).click();
