@@ -8,6 +8,7 @@ import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place } from "../types";
 import { originalLanguage } from "../place-copy";
 import { planNotices, planFailureHeadings } from "../condition-copy";
+import PlaceComparison from "./PlaceComparison";
 
 function InformationUnavailable({ en }: { en: boolean }) {
   return <p role="status">{planNotices.error[en ? 1 : 0]}</p>;
@@ -22,9 +23,10 @@ function PhotoUnavailable() {
 }
 const SmartSpotImage = lazy(() => import("../../tourism/components/SmartSpotImage").catch(() => ({ default: PhotoUnavailable })));
 
-function PlaceChoiceCard({ place, region, index, saved, current, en, onToggle, onDetails }: {
+function PlaceChoiceCard({ place, region, index, saved, current, en, onToggle, onDetails, compare }: {
   place: Place; region: string; index: number; saved: boolean; current: boolean; en: boolean;
   onToggle: () => void; onDetails: () => void;
+  compare: { selected: boolean; disabled: boolean; toggle: () => void } | null;
 }) {
   const id = useId();
   const say = (ko: string, english: string) => en ? english : ko;
@@ -37,6 +39,7 @@ function PlaceChoiceCard({ place, region, index, saved, current, en, onToggle, o
       <h3 id={`${id}-title`} lang={originalLanguage(place.name)}>{place.name}</h3>
       <p className="place-address" lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
       <PlaceFacilitySummary place={place} en={en} />
+      {compare && <button type="button" className="place-compare-choice" aria-pressed={compare.selected} disabled={compare.disabled} onClick={compare.toggle} aria-label={`${place.name} ${say("편의 비교 선택", "select for facility comparison")}`}><span aria-hidden="true">{compare.selected ? "✓" : "+"}</span>{compare.selected ? say("비교에 담았어요", "Selected for comparison") : say("비교에 담기", "Select for comparison")}</button>}
       <div className="place-actions">
         <button type="button" className={`primary${saved ? " saved" : ""}`} disabled={!saved && !current} onClick={onToggle} aria-pressed={saved} aria-labelledby={`${id}-title ${id}-action`}>
           <span id={`${id}-action`} className="sr-only">{action}</span><span aria-hidden="true">{action}</span><span aria-hidden="true">{saved ? "✓" : "+"}</span>
@@ -84,13 +87,13 @@ export default function RecommendationCarousel({ region, activePlaces, planContr
     {incomplete && plan && <Suspense fallback={<InformationUnavailable en={en} />}><ProviderFailureNotice en={en} statuses={plan.statuses} /></Suspense>}
     {dirty && <div className="result-notice" role="status"><strong>{say("조건이 변경됐어요.", "Your preferences have changed.")}</strong><p>{say("아래는 이전 조건의 결과예요. 다시 찾기 전에는 새 일정에 추가할 수 없습니다.", "These are previous results. Search again before adding places.")}</p><button type="button" disabled={loading || !selected.length} onClick={() => void onGenerate(false)}>{say("변경한 조건으로 다시 찾기", "Search with new preferences")}</button></div>}
     {planError && <div className="result-notice error" role="alert"><strong>{planFailureHeadings[planError][en ? 1 : 0]}</strong><p>{say("선택한 조건과 기존 일정은 유지됩니다. 잠시 후 다시 시도해 주세요.", "Your choices and existing itinerary are kept. Please try again shortly.")}</p><button type="button" disabled={loading || !selected.length} onClick={() => void onGenerate(false)}>{say("다시 시도", "Try again")}</button></div>}
-    <div className="place-carousel" ref={cardsRef} aria-busy={loading}>
+    <PlaceComparison places={activePlaces} requiredKeys={plan?.criteria?.facilityKeys || []} saved={saved} current={resultCurrent} en={en} onToggle={place => toggleSaved(place.id)}>{compare => <div className="place-carousel" ref={cardsRef} aria-busy={loading}>
       {loading && <p className="sr-only" role="status">{say("여행지를 찾고 있어요.", "Finding places.")}</p>}
       {loading && !plan && [0, 1, 2].map((item) => <article className="place-card place-card-skeleton" key={item} aria-hidden="true"><div className="skeleton-visual" /><div className="skeleton-copy"><i /><b /><span /></div></article>)}
       {!loading && !activePlaces.length && !planError && !incomplete && <div className="place-empty" role="status"><h3>{!plan ? say("어떤 곳으로 떠나볼까요?", "Where will your next trip take you?") : say("선택한 조건에 맞는 여행지를 찾지 못했어요.", "No places match these preferences yet.")}</h3><p>{say("필요한 편의는 유지한 채 지역이나 여행 취향을 바꿔보세요.", "Keep your facility needs and try another region or interest.")}</p><a href="#conditions">{say("여행 조건 다시 선택", "Review preferences")}</a><button type="button" disabled={!selected.length} onClick={() => void onGenerate(false)}>{say("여행지 찾기", "Find places")}</button></div>}
       {!loading && activePlaces.length > 0 && !visiblePlaces.length && <p role="status">{say("현재 검색 결과 중 이 조건에 맞는 여행지가 없어요. 다른 필터를 선택해 주세요.", "No current results match this filter. Choose another filter.")}</p>}
-      {visiblePlaces.map((place, index) => <PlaceChoiceCard key={place.id} place={place} region={region} index={index} saved={saved.includes(place.id)} current={resultCurrent} en={en} onToggle={() => toggleSaved(place.id)} onDetails={() => onSelectPlace(place)} />)}
-    </div>
+      {visiblePlaces.map((place, index) => <PlaceChoiceCard key={place.id} place={place} region={region} index={index} saved={saved.includes(place.id)} current={resultCurrent} en={en} onToggle={() => toggleSaved(place.id)} onDetails={() => onSelectPlace(place)} compare={compare.active ? { selected: compare.ids.includes(place.id), disabled: !compare.ids.includes(place.id) && compare.ids.length >= 3, toggle: () => compare.toggle(place.id) } : null} />)}
+    </div>}</PlaceComparison>
     {explorationPlaces.length > 0 && <Suspense fallback={<InformationUnavailable en={en} />}><ExplorationPlaces places={explorationPlaces} en={en} onSelectPlace={onSelectPlace} /></Suspense>}
   </>;
 }
