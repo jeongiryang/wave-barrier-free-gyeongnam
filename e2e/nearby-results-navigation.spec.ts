@@ -1,6 +1,20 @@
 import { expect, test } from "@playwright/test";
 import { deliverNearby, nearbyPlace, openNearby } from "./nearby-fixtures";
 
+for (const width of [320, 390]) test(`sticky map heading leaves the first category and close button reachable at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 568 });
+  const panel = await openNearby(page);
+  const pharmacy = panel.getByRole("button", { name: "약국", exact: true });
+  await pharmacy.click();
+  await deliverNearby(page, 0, "OK", Array.from({ length: 15 }, (_, index) => nearbyPlace(index + 1)));
+  await panel.locator("article").last().getByRole("button").focus();
+  await expect(panel.locator("article").last().getByRole("button")).toBeFocused();
+  const close = panel.getByRole("button", { name: /닫기/ });
+  await expect(close).toBeInViewport();
+  await close.click();
+  await expect(panel).toHaveCount(0);
+});
+
 for (const width of [390, 1366]) test(`all fifteen nearby places remain keyboard reachable at ${width}px`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: width === 390 ? 844 : 768 });
   const panel = await openNearby(page, true);
