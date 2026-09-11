@@ -64,7 +64,6 @@ html[data-theme=dark] .region-showcase .selected-region small { color: #284c38; 
 .planner-reference .reference-intro h1 { font-size: clamp(1.8rem,3vw,2.3rem); font-weight: 500; }
 .reference-intro > p { font-size: .75rem; letter-spacing: .13em; }
 .planner-reference .reference-search { gap: 12px; padding: 24px; box-shadow: none; border: 0; }
-.planner-reference .reference-search > button:not(.reference-search-submit) { border: 1px solid var(--line); border-radius: 16px; padding: 12px 16px; background: #f8f6fb; min-height: 70px; }
 .planner-reference .reference-search strong { font-weight: 500; }
 .planner-reference .reference-region-card > button { display: grid; place-items: center; min-width: 46px; width: 46px; padding: 0; }
 .planner-reference .reference-region-card > button[aria-pressed=true] { color: white; background: var(--accent); }
@@ -167,8 +166,6 @@ html[data-theme=dark] .auth-guest { color: #d4b8ff; }
  .region-card-start,.region-neighbour-copy button { right: 16px; width: 44px; min-height: 44px; }
  .planner-reference .reference-intro { margin-top: 30px; }
  .planner-reference .reference-search { flex-wrap: wrap; padding: 14px; gap: 10px; }
- .planner-reference .reference-search > button:not(.reference-search-submit) { flex: 1 1 calc(50% - 12px); padding: 10px; }
- .planner-reference .reference-search > .reference-search-submit { width: 100%; flex: 1 1 100%; border-radius: 14px; }
  .community-page .community-hero { display: block; min-height: 0; padding-block: 36px 24px; }
  .community-hero .community-write { margin-top: 22px; }
  .community-page .community-editorial-grid > article { flex-basis: 91%; }
@@ -191,12 +188,12 @@ html[data-theme=dark] .auth-guest { color: #d4b8ff; }
 @media (min-width: 1281px) { .horizon-edition { --story-right: 118px; }.horizon-edition .landing-hero,.horizon-edition .landing-cta { width: auto; margin-left: var(--gutter); margin-right: var(--story-right); }.horizon-chapters { margin-right: var(--story-right); }.region-card-rail { padding-right: var(--story-right); }.story-progress { width: 112px; padding-inline: 4px; font-size: .62rem; }.story-progress li a { grid-template-columns: 1fr 30px; gap: 0; } }
 /* Sentence search keeps the same question handlers and disabled boundaries. */
 .planner-reference .reference-search { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 24px; padding: 30px; }
-.reference-search-sentence { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.reference-search-sentence { min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
 .reference-search-sentence > button { position: relative; display: flex; align-items: center; gap: 18px; min-height: 52px; min-width: 150px; padding: 12px 16px; margin-top: 20px; border: 1px solid var(--line); border-radius: 14px; background: #f8f6fb; color: var(--ink); text-align: left; }
 .reference-search-sentence > button small { position: absolute; bottom: calc(100% + 6px); left: 0; }
 .reference-search-sentence > button strong { flex: 1; }
 .reference-search-sentence > span { align-self: flex-end; padding-bottom: 12px; font-size: 1rem; }
-.planner-reference .reference-search > .reference-facility-edit { display: grid; grid-template-columns: 1fr auto; align-self: end; min-width: 180px; max-width: 260px; margin-top: 20px; padding: 10px 16px; min-height: 52px; background: white; }
+.planner-reference .reference-search > .reference-facility-edit { display: grid; grid-template-columns: 1fr auto; align-self: end; min-width: 180px; max-width: 260px; margin-top: 20px; padding: 10px 16px; min-height: 52px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); background: white; text-align: left; }
 .reference-facility-edit > small { grid-column: 1; }.reference-facility-edit > span { grid-column: 2; grid-row: 1/3; }
 .reference-search-bottom { grid-column: 1/-1; display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 20px; }
 .reference-search-bottom button { display: flex; align-items: center; gap: 14px; min-height: 48px; border: 0; border-radius: 40px; background: var(--paper); color: var(--ink); padding: 12px 20px; font-size: .85rem; }
