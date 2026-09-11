@@ -1,0 +1,12 @@
+import type { Place } from '../features/planner/types';
+import type { RoutePoint } from '../features/routing/types';
+import type { FixedVisit } from './trip-time-constraints.js';
+import type { buildItinerarySchedule } from '../features/planner/optimization/itinerary-schedule.js';
+export type TripProgress = { marks: Record<string, { state: 'done' | 'skipped'; at: string }>; cursorId: string; clock: string; updatedAt: string };
+export type TripProgressMemory = Record<string,{value:TripProgress;unsaved:boolean}>;
+export const ON_TRIP_KEY: string;
+export function onTripIdentity(places: Array<{id:string}>, day: string): string;
+export function cleanOnTrip(value: unknown, ids: string[]): TripProgress;
+export function readOnTrip(storage: Pick<Storage,'getItem'>, identity: string, ids: string[], strict?:boolean): TripProgress;
+export function saveOnTrip(storage: Pick<Storage,'getItem'|'setItem'>, identity: string, value: TripProgress, ids: string[]): TripProgress;
+export function remainingOnTrip(options: {places: Place[]; day:string; progress:TripProgress; origin: RoutePoint; routeMinutesByPlaceId?: Record<string,number>; visitMinutesByPlaceId?:Record<string,number>; breakMinutesByPlaceId?:Record<string,number>; fixedVisits?:Record<string,FixedVisit>}): { entries: ReturnType<typeof buildItinerarySchedule>[number]['entries']; next: Place|null; done:number; skipped:number; from:string; progress:TripProgress };

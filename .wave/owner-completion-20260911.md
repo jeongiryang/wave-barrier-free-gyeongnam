@@ -50,25 +50,25 @@ User authorizes continuation through design refinements, all 24 researched featu
 
 1. COMPLETE #480 — On-demand official opening/holiday/admission information and planned visit comparison. Exact-head CI34591124346, main CI34592274140 and Production CD34593181788 PASS; merged as `8ec3b525d28a0caa53259f9baae72670f5e2e215`. Actual Production1440/390 changed-time/cache/source checks PASS with one new visitor-info request (HTTP200, KTO data); no new plan/route calls or account/message writes. Evidence `D:/wave-completion-20260911/production-480-summary.json`.
 2. COMPLETE #483 — Walking segment versus chosen limit, rest proposals/manual rest and schedule recalculation. Merged 78b280f034f79200f8335713eecbc19dd5dea43b; exact-head CI34598704704, main CI34599790642, Production CD34600854746 PASS. Actual deployed UI1440/390 using previously captured real plan responses: apply limit/rest, insert, save/reload/reopen, unknown versus confirmed and overflow PASS. Evidence D:/wave-completion-20260911/production-comfort-summary.json.
-3. ACTIVE — Original versus up to three confirmed-needs candidates; explicit targeted replacement and guarded undo preserving prior date/duration/rest. Focused checks and release in progress.
+3. COMPLETE #485 — Original versus up to three candidates, explicit unknown-needs opt-in and targeted replacement/undo preserving date/order/duration/rest. Merged 05decfb1453f972febe9aeb1f9f53411c52fb4cd; exact-head CI34602816939, main CI34605550281 and Production CD34606724902 PASS. Actual deployed1440/390 comparison/replacement/undo/reload/forecast checks PASS; runtime/overflow0, one real official calendar HTTP200/30 days. Evidence D:/wave-completion-20260911/production-485-summary.json. Initial script assumed the wrong first stop; comparing the actual entire prior order passed. No source failure was reproduced. CI issue486 closed with both historical run causes and final evidence.
 4. COMPLETE #472 — 2–3 place facility comparison, matching needs first, confirmed/negative/unknown fields, sources and direct save/remove. Independent QA and Production interaction checks PASS.
-5. PENDING — On-trip progress, skip, resume and remaining schedule.
+5. ACTIVE — Day-specific visit completion, skip, resume, guarded fixed visits and remaining schedule; original itinerary preserved. Focused checks/release in progress.
 6. COMPLETE #483 — Up to eight anonymous companion drafts combine all needs and shortest chosen walking limit without erasing prior preferences; no participant drafts in account/public data. Independent focused QA, CI/CD and actual Production confirmed as candidate2.
 7. COMPLETE #472 — Large Korean communication/inquiry card, selected questions, custom text, copy/manual fallback and PNG save. No automatic message. Independent QA and Production interaction checks PASS.
 8. COMPLETE #482 — Per-day return/appointment deadline with unknown/remaining/overrun states. Merged `c858d8604731c72c649e8bcbbf4cdc41cfba5bb4`; exact-head CI34593707786, main CI34594780611, Production CD34595690466 PASS. Actual deployed UI1440/390 fixed/return/date/cancel/archive/restore checks PASS, reusing previously captured real Production responses (no fresh provider or account/message writes). Evidence `D:/wave-completion-20260911/production-482-summary.json`.
 9. COMPLETE #474 — Editable visit duration and downstream recalculation. Presets/custom15–720/default, date/order isolation, local archive/account/public-share persistence. Independent QA, CI/CD and Production changed-feature verification PASS.
-10. ACTIVE — Reason-driven distance/visited/shorter visit/indoor/discovery comparison integrated with existing departure actions; focused checks and release in progress.
-11. ACTIVE — On-demand official indoor-space evidence and explicit same-needs cultural-place search; no category-only indoor claim. Focused checks and release in progress.
-12. ACTIVE — Official date-level concentration forecast, zero versus missing distinctions and guarded date move within seven days. Focused checks and release in progress.
+10. COMPLETE #485 — Reason-driven distance/visited/shorter visit/indoor/discovery comparison integrated with departure actions. Independent QA, CI/CD and actual Production confirmed as candidate3.
+11. COMPLETE #485 — On-demand official indoor-space evidence and explicit same-needs cultural-place search; no category-only indoor claim. Independent QA, CI/CD and actual Production confirmed as candidate3.
+12. COMPLETE #485 — Official date-level concentration forecast, zero versus missing distinctions and guarded date move within seven days. Independent QA, CI/CD and actual Production confirmed as candidate3.
 13. COMPLETE #482 — Keep accommodation/must-visit/event IDs, dates and daily positions; optional clock inserts waiting or reports lateness. Explicit unpin and local/archive/account/shared integration. Independent QA, exact-head/main CI, Production CD and1440/390 delivered-UI checks PASS (same evidence as candidate8).
 14. COMPLETE #483 — Nearby rest/accessible-restroom candidates with source, confirmed/unknown distinction, estimated detour, insertion and later-pin guard. Independent QA, CI/CD and Production PASS; real recorded Changwon data had 0 confirmed and 3 optional unknown candidates, never labeled confirmed. Same evidence as candidate2.
 15. PENDING — Recent facility confirmation history and structured update reports.
 16. PENDING — Trip cost/budget with known/unknown distinctions.
-17. PENDING — Offline-readable trip summary/export.
+17. ACTIVE — Standalone HTML/text travel pack with schedule, rest/fixed visits, facility facts and explicitly checked contacts; no external resources. Focused checks/release in progress.
 18. PENDING — Return transport direction/next service tied to itinerary.
 19. PENDING — Anchor-first course expansion.
 20. PENDING — Short outing with time limit.
-21. ACTIVE — Unseen/previously unvisited Gyeongnam candidates, next candidates and explicit nearby-region search retaining activity/needs. Does not invent popularity evidence. Focused checks and release in progress.
+21. COMPLETE #485 — Unseen/previously unvisited Gyeongnam candidates, next candidates and explicit nearby-region search retaining activity/needs. No invented popularity evidence. Independent QA, CI/CD and actual Production confirmed as candidate3.
 22. PENDING — Optional companion split and reunion segments.
 23. PENDING — Visit-evidence reviews without mandatory GPS tracking.
 24. PENDING — Voice interaction with explicit activation/confirmation and text fallback.
