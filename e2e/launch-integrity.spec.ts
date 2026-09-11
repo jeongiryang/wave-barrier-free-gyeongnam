@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
+import { confirmedAlternativePlan } from "./alternative-fixtures";
 
 function trackRuntimeErrors(page: Page) {
   const errors: string[] = [];
@@ -217,6 +218,7 @@ for (const width of [280, 320, 390, 768, 1024, 1366, 1920, 2560]) {
 
 test("rain response runs a new search and preserves accessibility needs and saved places", async ({ page }) => {
   await mockPlannerApi(page);
+  await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: confirmedAlternativePlan }));
   await page.route("**/api/weather?*", async (route) => route.fulfill({ json: {
     region: "창원", source: "기상 정보", updatedAt: "2026-09-05T09:00:00Z",
     current: { temperature: 23, apparent: 23, code: 61, label: "비", wind: 2, precipitation: 3, isDay: true },
@@ -228,20 +230,27 @@ test("rain response runs a new search and preserves accessibility needs and save
   await page.locator("#layers > summary").click();
   const request = page.waitForRequest((item) => item.url().includes("action=plan") && new URL(item.url()).searchParams.get("themes") === "history");
   await page.getByRole("button", { name: /역사·문화 후보로 다시 찾기/ }).click();
+  const comparison = page.getByRole("dialog", { name: "이곳만 바꿔 볼까요?", exact: true });
+  await comparison.getByText("같은 편의로 문화 공간 찾기", { exact: true }).click();
+  await comparison.getByRole("button", { name: "같은 편의로 후보 찾기", exact: true }).click();
   expect(new URL((await request).url()).searchParams.get("profiles")).toBe("wheel");
+  await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: "경남도립미술관 일정에서 제거", exact: true }).first()).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
 });
 
 test("a confirmed crowd alternative replaces the itinerary instead of an unrelated map-only route", async ({ page }) => {
   await mockPlannerApi(page);
+  await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: confirmedAlternativePlan }));
   await page.route("**/api/wave?action=crowd*", (route) => route.fulfill({ json: { crowd: { rate: 80, baseYmd: "20260905", place: "경남도립미술관" } } }));
   await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.locator("#layers > summary").click();
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: /용지호수공원.*교체 검토/ }).click();
+  const comparison = page.getByRole("dialog", { name: "이곳만 바꿔 볼까요?", exact: true });
+  await comparison.getByRole("button", { name: "용지호수공원 선택", exact: true }).click();
+  await comparison.getByRole("button", { name: "선택한 장소로 교체", exact: true }).click();
   await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
   await expect(page.locator(".day-planner-grid li")).toContainText("용지호수공원");
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1002"]);

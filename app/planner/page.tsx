@@ -26,6 +26,8 @@ import { usePlannerActions } from "../../features/planner/hooks/usePlannerAction
 import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
+import { useTripAlternatives } from "../../features/planner/hooks/useTripAlternatives";
+import TripAlternativeTools from "../../features/planner/components/TripAlternativeTools";
 import { useRegionChange } from "../../features/planner/hooks/useRegionChange";
 import { useItineraryRoutes } from "../../features/planner/hooks/useItineraryRoutes";
 import { useJourneyProgress } from "../../features/planner/hooks/useJourneyProgress";
@@ -43,6 +45,7 @@ import PlannerStepSummary from "../../features/planner/components/PlannerStepSum
 import RegionChangeDialog from "../../features/planner/components/RegionChangeDialog";
 
 const PlannerTripOverview = lazy(() => import("../../features/planner/components/PlannerTripOverview"));
+const AlternativeComparisonDialog = lazy(() => import("../../features/planner/components/AlternativeComparisonDialog"));
 
 export default function PlannerPage() {
   const { hydrated, locale, motion, t } = useSitePreferences();
@@ -100,6 +103,9 @@ export default function PlannerPage() {
   });
   const { feedbackText, feedbackState, changeFeedbackText, submitFeedback } = participation;
   const stageView = usePlannerStageView();
+  const alternatives = useTripAlternatives(tripSelection, () => {
+    resetRouteData(); stageView.changeStep("itinerary", true);
+  });
   const { changeStep: changePlannerStep } = stageView;
   const openTravelSignals = useCallback((target: "layers" | "crowd") => {
     setDepartureDetailsOpen(true);
@@ -112,6 +118,7 @@ export default function PlannerPage() {
     region, ready: planController.criteriaReady && tripSelection.storageReady, hasSaved: saved.length > 0,
     setRegion: planController.setRegion, resetTrip: tripSelection.resetTrip,
     clearResults: (fresh) => {
+      alternatives.clear();
       if (fresh) {
         routePlanning.resetOrigin(); routePlanning.resetRouteView();
         planController.clearSelectedProfiles(); planController.setTheme("");
@@ -153,7 +160,6 @@ export default function PlannerPage() {
     richItems,
     visitorTypes,
     demandMax,
-    impactAlternative,
     impactCrowd,
     tripImpact,
   } = buildPlannerViewModel({
@@ -182,6 +188,8 @@ export default function PlannerPage() {
     activePlaces,
     onCultureSearch: async () => {
       if (planController.loading) return;
+      const target = tripSelection.orderedSavedPlaces.find(place => (scheduleAssignments[place.id] || tripSelection.tripDays[0]) === tripSelection.activeDay);
+      if (target) { alternatives.open(target.id, "indoor"); return; }
       setTheme("history");
       stageView.changeStep("conditions", true);
       await runPlan({ resetRouteData, resetAudio, requestedTheme: "history", onRevealResults: () => stageView.changeStep("places", true) });
@@ -204,16 +212,7 @@ export default function PlannerPage() {
     },
     onReplaceAlternative: () => {
       const target = tripSelection.orderedSavedPlaces.find((place) => (scheduleAssignments[place.id] || tripSelection.tripDays[0]) === tripSelection.activeDay);
-      if (!target || !impactAlternative || !planController.resultCurrent) return;
-      const message = locale === "en"
-        ? `Replace ${target.name} with ${impactAlternative.name}? The date and order will stay the same. Lower crowd levels and accessibility are not confirmed for this alternative; check its facility information before visiting.`
-        : `${target.name} 대신 ${impactAlternative.name}을 일정에 넣을까요? 날짜와 순서는 유지합니다. 대안의 혼잡도와 이동 편의가 더 낫다는 뜻은 아니므로 방문 전에 시설 정보를 확인해 주세요.`;
-      if (!window.confirm(message)) return;
-      if (tripSelection.replaceSavedPlace(target.id, impactAlternative)) {
-        resetRouteData();
-        setNotice("replaced");
-        stageView.changeStep("itinerary", true);
-      }
+      if (target) alternatives.open(target.id);
     },
     updateOrigin,
     loadRoutes,
@@ -267,6 +266,7 @@ export default function PlannerPage() {
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerItineraryWorkspace
+                alternativeTools={<TripAlternativeTools trip={tripSelection} alternatives={alternatives} />}
                 mapView={itineraryMapView}
                 onMapViewChange={setItineraryMapView}
                 canAddPlaces={planController.resultCurrent}
@@ -363,6 +363,13 @@ export default function PlannerPage() {
         </div>
       </section>
 
+      {alternatives.original && alternatives.request && <Suspense fallback={<p role="status">대안을 비교할 화면을 준비하고 있어요.</p>}><AlternativeComparisonDialog
+        key={alternatives.original.id} original={alternatives.original} initialReason={alternatives.request.reason}
+        seenIds={alternatives.request.seenIds} trip={tripSelection} origin={origin} places={activePlaces}
+        requiredKeys={plan?.criteria?.facilityKeys || []} current={planController.resultCurrent}
+        region={region} themes={theme} profiles={selected} weather={weather}
+        onApply={alternatives.apply} onClose={alternatives.close}
+      /></Suspense>}
       {selectedPlace && <PlaceDecisionDialog
         place={selectedPlace}
         region={region}

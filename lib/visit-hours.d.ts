@@ -3,6 +3,7 @@ export type VisitInfo = {
   status: "available" | "empty" | "location-unconfirmed" | "unsupported";
   checkedAt: string;
   source: string;
+  setting?: import('./indoor-evidence.js').IndoorEvidence;
   hours?: string;
   restDays?: string;
   eventStart?: string;

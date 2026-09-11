@@ -5,6 +5,7 @@ import ts from "typescript";
 import * as durations from "../lib/visit-durations.js";
 import * as constraints from "../lib/trip-time-constraints.js";
 import * as comfort from "../lib/trip-comfort.js";
+import * as dateMove from "../lib/trip-date-move.js";
 
 function fixture(stored = {}, hydrate = true) {
   const slots = [], effects = [], frames = [];
@@ -27,6 +28,7 @@ function fixture(stored = {}, hydrate = true) {
     if (name.endsWith("visit-durations.js")) return durations;
     if (name.endsWith("trip-time-constraints.js")) return constraints;
     if (name.endsWith("trip-comfort.js")) return comfort;
+    if (name.endsWith("trip-date-move.js")) return dateMove;
     throw Error(name);
   }, window);
   const actions = () => { cursor = 0; return mod.exports.useTripSchedule(); };
@@ -35,6 +37,16 @@ function fixture(stored = {}, hydrate = true) {
   return { actions, commit };
 }
 const initial = { travelStart: "2026-09-07", travelEnd: "2026-09-08", scheduleAssignments: { a: "2026-09-07", b: "2026-09-08" } };
+
+test("an earlier single-place date preserves other implicit days and bounded period", () => {
+  const f = fixture({ travelStart: "2026-09-12", travelEnd: "2026-09-13", scheduleAssignments: { b: "2026-09-13" } });
+  assert.equal(f.actions().movePlaceWithPeriod("a", "2026-09-11", ["a", "b", "c"]), true);
+  const next = f.actions();
+  assert.equal(next.travelStart, "2026-09-11"); assert.equal(next.travelEnd, "2026-09-13");
+  assert.deepEqual(next.scheduleAssignments, { a: "2026-09-11", b: "2026-09-13", c: "2026-09-12" });
+  assert.equal(next.movePlaceWithPeriod("c", "2026-09-18", ["a", "b", "c"]), false);
+  assert.equal(f.actions().travelEnd, "2026-09-13");
+});
 
 test("fixed places protect their day until explicitly unlocked, and new trips clear constraints", () => {
   const f = fixture(initial);

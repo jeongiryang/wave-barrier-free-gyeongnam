@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { supportedPlacePoint } from "../../../lib/map-coordinates.js";
 import type { MapPlace } from "../../routing/types";
@@ -24,6 +24,7 @@ function ItineraryUnavailable() {
 const TripDayPlanner = lazy(() => import("./TripDayPlanner").catch(() => ({ default: ItineraryUnavailable })));
 
 interface PlannerItineraryWorkspaceProps {
+  alternativeTools?: ReactNode;
   mapView: boolean;
   onMapViewChange: (value: boolean) => void;
   canAddPlaces: boolean;
@@ -88,6 +89,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
     <h2 id="itinerary-stage-title">{mapView ? "여행 순서를 편하게 정리하세요." : `${props.archiveContext.region || "경남"} 여행, 순서만 정하면 돼요.`}</h2>
     <p className="reference-subtitle">시간과 이동 순서를 바꾸면 전체 일정이 함께 바뀝니다.</p>
+    {props.alternativeTools}
     <div className="reference-view-tabs" role="group" aria-label="일정 보기 방식"><button type="button" aria-pressed={!mapView} onClick={() => setMapView(false)}>시간표</button><button type="button" aria-pressed={mapView} onClick={() => setMapView(true)}>지도 함께 보기</button></div>
     {!props.expanded && <Suspense fallback={<p role="status">{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</p>}><PlannerItineraryBoard requiredKeys={props.plan?.criteria?.facilityKeys || []} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? props.activePlaces : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace
       mapEnabled={props.mapEnabled && mapView}

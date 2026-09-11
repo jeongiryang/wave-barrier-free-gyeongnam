@@ -5,6 +5,7 @@ import { readTripValue, writeTripValue } from "../../../lib/current-trip-storage
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { dateRange, localDate } from "../utils";
 import { boundedTripEnd, offsetTripDate, validTripDate } from "../../../lib/trip-dates.js";
+import { periodForDate } from "../../../lib/trip-date-move.js";
 import { changeVisitDuration, sanitizeVisitDurations } from "../../../lib/visit-durations.js";
 import { sanitizeFixedVisits, sanitizeDayDeadlines, type FixedVisit, type DayDeadline } from "../../../lib/trip-time-constraints.js";
 
@@ -148,6 +149,16 @@ export function useTripSchedule() {
     setScheduleAssignments((current) => ({ ...current, [placeId]: day }));
   }, [tripDays, canChangePlace]);
 
+  const movePlaceWithPeriod = useCallback((placeId: string, day: string, placeIds: string[]) => {
+    const period = periodForDate(travelStart, travelEnd, day);
+    if (!period || !placeIds.includes(placeId) || !canChangePlace(placeId)) return false;
+    // Materialize old implicit dates before expanding the period to an earlier day.
+    setScheduleAssignments(current => ({ ...current, ...Object.fromEntries(placeIds.map(id => [id, current[id] || travelStart])), [placeId]: day }));
+    setTravelStart(period.start); setTravelEnd(period.end); setDateNotice(null);
+    setConstraintNotice(`${day}로 방문일을 옮겼어요. 다른 장소의 날짜는 유지했습니다.`);
+    return true;
+  }, [travelStart, travelEnd, canChangePlace]);
+
   const ensurePlaceAssignment = useCallback((placeId: string) => {
     setScheduleAssignments((current) => ({
       ...current,
@@ -206,6 +217,7 @@ export function useTripSchedule() {
     changeTravelEnd,
     setDayStartTime,
     assignPlaceToDay,
+    movePlaceWithPeriod,
     ensurePlaceAssignment,
     removePlaceAssignment,
     replacePlaceAssignment,
