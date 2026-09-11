@@ -10,6 +10,7 @@ import { handlePlaceCoordinates } from "./place-coordinates";
 import { handleAvailability } from "./availability";
 import { handleVisitInfo } from "./visit-info";
 import { handleCrowdCalendar } from "./crowd-calendar";
+import { handleReturnTransport } from "../transport/return-transport";
 
 function selectedRegion(url: URL) {
   const requested = clean(url.searchParams.get("region"), 20);
@@ -62,6 +63,7 @@ export async function handleWaveApi(request: Request, env: Env) {
   if (action === "availability") return handleAvailability(request, env);
   if (action === "place-coordinates") return handlePlaceCoordinates(url, env);
   if (action === "visit-info") return handleVisitInfo(url, env);
+  if (action === "return-transport") return handleReturnTransport(url, env);
   if (action === "crowd-calendar") return handleCrowdCalendar(url, env);
   if (action === "photo") return handlePhoto(url, env);
   if (action === "spot-photo") return handleSpotPhoto(url, env);

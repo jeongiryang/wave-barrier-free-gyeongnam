@@ -38,7 +38,7 @@
       "family": "public-data",
       "request_file": "server/shared/public-transport-provider.ts",
       "origin": "https://apis.data.go.kr/1613000/",
-      "operations": ["BusSttnInfoInqireService/getCrdntPrxmtSttnList", "ArvlInfoInqireService/getSttnAcctoArvlPrearngeInfoList", "TrainInfo/GetCtyCodeList", "ExpBusInfo/GetExpBusTrminlList", "SuburbsBusInfo/GetSuberbsBusTrminlList"],
+      "operations": ["BusSttnInfoInqireService/getCrdntPrxmtSttnList", "ArvlInfoInqireService/getSttnAcctoArvlPrearngeInfoList", "BusRouteInfoInqireService/getRouteAcctoThrghSttnList", "BusRouteInfoInqireService/getRouteInfoIem", "TrainInfo/GetCtyCodeList", "ExpBusInfo/GetExpBusTrminlList", "SuburbsBusInfo/GetSuberbsBusTrminlList"],
       "key_sources": ["TAGO_API_KEY", "TOUR_API_SERVICE_KEY_ENCODED"],
       "source": "https://www.data.go.kr/tcs/dss/selectErrCodePopupView.do",
       "account_source": "https://www.data.go.kr/",
