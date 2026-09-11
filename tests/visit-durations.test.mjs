@@ -8,6 +8,7 @@ import { bookToAccountTrip } from "../lib/account-travel/model.js";
 import { publicTravelBody } from "../lib/kakao-travel.js";
 import { normalizeThemes } from "../lib/planner-criteria.js";
 import * as constraints from "../lib/trip-time-constraints.js";
+import * as comfort from "../lib/trip-comfort.js";
 
 function sharedPayload() {
   const output = ts.transpileModule(readFileSync(new URL("../server/trips/payload.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -18,6 +19,7 @@ function sharedPayload() {
     if (name.endsWith("planner-criteria.js")) return { normalizeThemes };
     if (name.endsWith("visit-durations.js")) return { sanitizeVisitDurations };
     if (name.endsWith("trip-time-constraints.js")) return constraints;
+    if (name.endsWith("trip-comfort.js")) return comfort;
     throw Error(name);
   });
   return mod.exports;

@@ -16,6 +16,8 @@ export interface TripSharingOptions {
   visitMinutesByPlaceId?: Record<string, number>;
   fixedVisits?: Record<string, import("../../../lib/trip-time-constraints.js").FixedVisit>;
   dayDeadlines?: Record<string, import("../../../lib/trip-time-constraints.js").DayDeadline>;
+  breakMinutesByPlaceId?: Record<string, number>;
+  restPurposeByPlaceId?: Record<string, import("../../../lib/trip-comfort.js").StopPurpose>;
   selectedPlaceIds: string[];
   originLabel: string;
 }
@@ -29,6 +31,7 @@ export function useTripSharing(options: TripSharingOptions) {
       scheduleAssignments: options.scheduleAssignments, selectedPlaceIds: options.selectedPlaceIds,
       visitMinutesByPlaceId: options.visitMinutesByPlaceId,
       fixedVisits: options.fixedVisits, dayDeadlines: options.dayDeadlines,
+      breakMinutesByPlaceId: options.breakMinutesByPlaceId, restPurposeByPlaceId: options.restPurposeByPlaceId,
     },
     origin: { label: options.originLabel },
   });

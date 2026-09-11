@@ -1,3 +1,4 @@
+import { sanitizeTripBreaks, sanitizeStopPurposes } from "../../lib/trip-comfort.js";
 import { clean } from "../shared/http";
 import { languageServices, profileFields, regionCodes } from "../tourism/catalog";
 import { normalizeThemes } from "../../lib/planner-criteria.js";
@@ -44,6 +45,8 @@ export function normalizeTripSelections(rawSelections: Record<string, unknown>) 
     visitMinutesByPlaceId: sanitizeVisitDurations(rawSelections.visitMinutesByPlaceId, selectedPlaceIds),
     fixedVisits: sanitizeFixedVisits(rawSelections.fixedVisits, selectedPlaceIds),
     dayDeadlines: sanitizeDayDeadlines(rawSelections.dayDeadlines),
+    breakMinutesByPlaceId: sanitizeTripBreaks(rawSelections.breakMinutesByPlaceId, selectedPlaceIds),
+    restPurposeByPlaceId: sanitizeStopPurposes(rawSelections.restPurposeByPlaceId, selectedPlaceIds),
   };
 }
 

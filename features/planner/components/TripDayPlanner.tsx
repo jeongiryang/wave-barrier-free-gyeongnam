@@ -9,6 +9,7 @@ import type { useAudioGuide } from "../hooks/useAudioGuide";
 import type { usePlannerParticipation } from "../hooks/usePlannerParticipation";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
+import TripBreakControl, { TripBreakSummary } from "./TripBreakControl";
 import VisitDurationControl from "./VisitDurationControl";
 import FixedVisitControl, { FixedVisitSummary } from "./FixedVisitControl";
 import DayDeadlineControl from "./DayDeadlineControl";
@@ -67,10 +68,10 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
     places: orderedSavedPlaces,
     days: tripDays,
     assignments: scheduleAssignments,
-    startTime: dayStartTime, visitMinutesByPlaceId, fixedVisits: tripSelection.fixedVisits,
+    startTime: dayStartTime, visitMinutesByPlaceId, fixedVisits: tripSelection.fixedVisits, breakMinutesByPlaceId: tripSelection.breakMinutesByPlaceId,
     origin: route.origin,
     routeMinutesByPlaceId,
-  }), [dayStartTime, visitMinutesByPlaceId, tripSelection.fixedVisits, orderedSavedPlaces, route.origin, routeMinutesByPlaceId, scheduleAssignments, tripDays]);
+  }), [dayStartTime, visitMinutesByPlaceId, tripSelection.fixedVisits, tripSelection.breakMinutesByPlaceId, orderedSavedPlaces, route.origin, routeMinutesByPlaceId, scheduleAssignments, tripDays]);
   const journalHref = useMemo(() => buildTravelJournalHref({
     places: orderedSavedPlaces.map((place) => ({ id: place.id, name: place.name, day: scheduleAssignments[place.id] || tripDays[0] })),
     region: orderedSavedPlaces[0]?.city || "",
@@ -100,7 +101,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
         <div className="day-place-editor">
           <div style={{ gridColumn: "1 / -1" }}><PlaceVisitHours id={entry.place.id} name={entry.place.name} visit={{ day, startsAt: entry.startsAt, endsAt: entry.endsAt }} en={en} /></div>
           <VisitDurationControl name={entry.place.name} value={visitMinutesByPlaceId[entry.place.id]} defaultMinutes={visitDurationFor(entry.place)} en={locale === "en"} onChange={value => setVisitMinutes(entry.place.id, value)} /><label>{c("방문 날짜 변경", "Change visit date")}<select disabled={Boolean(tripSelection.fixedVisits[entry.place.id])} aria-label={c(`${entry.place.name} 여행 날짜`, `${entry.place.name} trip date`)} value={scheduleAssignments[entry.place.id] || tripDays[0]} onChange={(event) => { assignPlaceToDay(entry.place.id, event.target.value); setEdit({ name: entry.place.name, day: tripDays.indexOf(event.target.value) + 1 }); }}>{tripDays.map((date, dateIndex) => <option key={date} value={date}>DAY {dateIndex + 1} · {date}</option>)}</select></label>
-          <FixedVisitControl name={entry.place.name} en={en} value={tripSelection.fixedVisits[entry.place.id]} position={entries.findIndex(item => item.place.id === entry.place.id)} onChange={value => tripSelection.setFixedVisit(entry.place.id, value)} /><FixedVisitSummary fixed={tripSelection.fixedVisits[entry.place.id]} waiting={entry.waitingMinutes} late={entry.lateMinutes} en={en} /><div className="day-order-buttons"><button type="button" disabled={!movement.up} aria-label={c(`${entry.place.name} 같은 날 앞 순서로 이동`, `${entry.place.name} move earlier in the same day`)} title={movement.up ? c("같은 날 앞 장소와 순서를 바꿉니다.", "Swap with the previous place in this day.") : c("이 날짜의 첫 장소입니다.", "This is the first place in this day.")} onClick={() => { movePlace(entry.place.id, "up"); setEdit(null); }}>↑ {c("앞", "Earlier")}</button><button type="button" disabled={!movement.down} aria-label={c(`${entry.place.name} 같은 날 뒤 순서로 이동`, `${entry.place.name} move later in the same day`)} title={movement.down ? c("같은 날 뒤 장소와 순서를 바꿉니다.", "Swap with the next place in this day.") : c("이 날짜의 마지막 장소입니다.", "This is the last place in this day.")} onClick={() => { movePlace(entry.place.id, "down"); setEdit(null); }}>↓ {c("뒤", "Later")}</button><button type="button" className="remove" disabled={Boolean(tripSelection.fixedVisits[entry.place.id])} aria-label={c(`${entry.place.name} 일정에서 제거`, `${entry.place.name} remove from itinerary`)} onClick={() => { toggleSaved(entry.place.id); setEdit({ name: entry.place.name }); }}>{c("제거", "Remove")}</button></div>
+          <TripBreakControl name={entry.place.name} value={tripSelection.breakMinutesByPlaceId[entry.place.id]} purpose={tripSelection.restPurposeByPlaceId[entry.place.id]} onChange={value => tripSelection.setBreakMinutes(entry.place.id, value)} onPurpose={value => tripSelection.setStopPurpose(entry.place.id, value)} en={en} /><TripBreakSummary minutes={entry.breakMinutes} purpose={tripSelection.restPurposeByPlaceId[entry.place.id]} start={entry.visitEndsAtLabel} end={entry.endsAtLabel} en={en} /><FixedVisitControl name={entry.place.name} en={en} value={tripSelection.fixedVisits[entry.place.id]} position={entries.findIndex(item => item.place.id === entry.place.id)} onChange={value => tripSelection.setFixedVisit(entry.place.id, value)} /><FixedVisitSummary fixed={tripSelection.fixedVisits[entry.place.id]} waiting={entry.waitingMinutes} late={entry.lateMinutes} en={en} /><div className="day-order-buttons"><button type="button" disabled={!movement.up} aria-label={c(`${entry.place.name} 같은 날 앞 순서로 이동`, `${entry.place.name} move earlier in the same day`)} title={movement.up ? c("같은 날 앞 장소와 순서를 바꿉니다.", "Swap with the previous place in this day.") : c("이 날짜의 첫 장소입니다.", "This is the first place in this day.")} onClick={() => { movePlace(entry.place.id, "up"); setEdit(null); }}>↑ {c("앞", "Earlier")}</button><button type="button" disabled={!movement.down} aria-label={c(`${entry.place.name} 같은 날 뒤 순서로 이동`, `${entry.place.name} move later in the same day`)} title={movement.down ? c("같은 날 뒤 장소와 순서를 바꿉니다.", "Swap with the next place in this day.") : c("이 날짜의 마지막 장소입니다.", "This is the last place in this day.")} onClick={() => { movePlace(entry.place.id, "down"); setEdit(null); }}>↓ {c("뒤", "Later")}</button><button type="button" className="remove" disabled={Boolean(tripSelection.fixedVisits[entry.place.id])} aria-label={c(`${entry.place.name} 일정에서 제거`, `${entry.place.name} remove from itinerary`)} onClick={() => { toggleSaved(entry.place.id); setEdit({ name: entry.place.name }); }}>{c("제거", "Remove")}</button></div>
         </div>
       </li>; })}</ol>
       <DayDeadlineControl key={day} day={day} value={tripSelection.dayDeadlines[day]} entries={entries} en={en} onChange={value => tripSelection.setDayDeadline(day, value)} />
@@ -125,6 +126,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
       visitMinutesByPlaceId={visitMinutesByPlaceId}
       fixedVisits={tripSelection.fixedVisits}
       dayDeadlines={tripSelection.dayDeadlines}
+      comfort={tripSelection.comfort} breakMinutesByPlaceId={tripSelection.breakMinutesByPlaceId} restPurposeByPlaceId={tripSelection.restPurposeByPlaceId}
     /></Suspense>
     <details className="itinerary-secondary-actions" onToggle={(event) => { const open = event.currentTarget.open; if (!open) audioGuide.resetAudio(); setExtrasOpen(open); }}>
       <summary>{c("오디오 가이드와 여행 후기", "Audio guide and travel journal")} <span>{c("선택 사항", "Optional")}</span></summary>

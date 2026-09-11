@@ -1,3 +1,5 @@
+import TravelComfortChoices from "./TravelComfortChoices";
+import type { useTripSelection } from "../hooks/useTripSelection";
 import AccessIcon from "../../../components/AccessIcons";
 import { profiles } from "../constants";
 import { useSitePreferences } from "../../../components/SitePreferences";
@@ -6,7 +8,8 @@ import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import { lazy, Suspense } from "react";
 const AccountPreferences = lazy(() => import("../../account-travel/AccountPreferences"));
 
-export default function PlannerAccessibilityProfiles({ t, planController }: {
+export default function PlannerAccessibilityProfiles({ t, planController, trip }: {
+  trip: ReturnType<typeof useTripSelection>;
   t: (key: string, fallback: string) => string;
   planController: ReturnType<typeof usePlannerPlan>;
 }) {
@@ -29,6 +32,7 @@ export default function PlannerAccessibilityProfiles({ t, planController }: {
         })}
       </div>
       <p className="derived-note">{en ? "Facilities and access conditions vary by place. Check the details before your visit." : "장소마다 시설과 이용 조건이 다를 수 있어요. 방문 전 상세 정보를 확인해 주세요."}</p>
+      <TravelComfortChoices selected={selected} comfort={trip.comfort} onSelected={planController.setSelected} onComfort={trip.setComfort} en={en} />
       <details className="travel-profile-card" suppressHydrationWarning>
         <summary><span><small>{en ? "Ready for your next trip" : "다음 여행에도 간편하게"}</small><strong>{en ? "Save and load facilities" : "편의 조건 저장·불러오기"}</strong></span><b aria-hidden="true">+</b></summary>
         <div className="travel-profile-content">

@@ -101,6 +101,7 @@ export function buildItinerarySchedule({
   routeMinutesByPlaceId = {},
   visitMinutesByPlaceId = {},
   fixedVisits = {},
+  breakMinutesByPlaceId = {},
   defaultVisitMinutes = DEFAULT_VISIT_MINUTES,
 }) {
   const safePlaces = Array.isArray(places) ? places : [];
@@ -122,7 +123,10 @@ export function buildItinerarySchedule({
       const startsAt = Math.max(arrivesAt, fixedMinutes);
       const configuredVisit = visitMinutesByPlaceId[place.id];
       const visitMinutes = validVisitMinutes(configuredVisit) ? configuredVisit : visitDurationFor(place, defaultVisitMinutes);
-      const endsAt = startsAt + visitMinutes;
+      const visitEndsAt = startsAt + visitMinutes;
+      const configuredBreak = breakMinutesByPlaceId[place.id];
+      const breakMinutes = typeof configuredBreak === "number" && Number.isInteger(configuredBreak) && configuredBreak >= 5 && configuredBreak <= 120 ? configuredBreak : 0;
+      const endsAt = visitEndsAt + breakMinutes;
       elapsed = endsAt;
       cursor = place;
       return {
@@ -132,6 +136,9 @@ export function buildItinerarySchedule({
         visitMinutes,
         visitSource: validVisitMinutes(configuredVisit) ? "user" : "default",
         startsAt,
+        visitEndsAt,
+        visitEndsAtLabel: formatScheduleTime(visitEndsAt),
+        breakMinutes,
         endsAt,
         fixedTime,
         waitingMinutes: Math.max(0, fixedMinutes - arrivesAt),

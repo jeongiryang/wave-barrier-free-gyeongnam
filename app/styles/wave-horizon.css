@@ -216,6 +216,10 @@ html[data-theme=dark] .auth-guest { color: #d4b8ff; }
 
 .region-showcase .selected-region strong { pointer-events: auto; }
 
+.trip-comfort-choices button[aria-pressed] { background: var(--white); color: var(--ink); border-color: var(--line); }
+.trip-comfort-choices button[aria-pressed=true] { background: var(--accent); color: white; }
+.rest-stop-finder .reference-info-card :is(p,button),.trip-comfort-choices label { font-size: 14px; }
+
 /* One working card, with Eight's trip summary and Ten's quiet controls. */
 .planner-reference .journey-control-layout[data-compact-conditions=true] { display: grid; grid-template-columns: minmax(0,1fr) 280px; align-items: start; gap: 28px; }
 :root .planner-reference .journey-conditions[data-compact=true] { padding: 28px; border-radius: 28px; background: #fff; }
@@ -239,7 +243,7 @@ html[data-theme=dark] .auth-guest { color: #d4b8ff; }
 .journey-conditions[data-compact=true] .reference-photo-credit { min-height: 44px; font-size: 12px; left: 10px; }
 .condition-region-field { display: flex; gap: 12px; align-items: end; margin-top: 24px; }
 .condition-region-field label { flex: 1; min-width: 0; display: grid; gap: 8px; font-size: 14px; }
-.condition-region-field select,.day-deadline select { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); padding: 10px 12px; font-size: 16px; }
+.condition-region-field select,.day-deadline select,.trip-comfort-choices select,.trip-comfort-plan select,.rest-stop-finder select { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); padding: 10px 12px; font-size: 16px; }
 .condition-region-field > button { min-height: 48px; background: transparent; color: var(--blue); border: 0; padding: 10px; font-size: 14px; }
 .planner-reference .condition-first-details .control-panel { margin-top: 20px; }
 .condition-first-details .theme-grid { display: flex; flex-wrap: wrap; gap: 8px; }
