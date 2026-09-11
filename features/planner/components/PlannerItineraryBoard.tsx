@@ -7,6 +7,7 @@ import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
 import type { RoutePoint } from "../../routing/types";
 import type { Place, WeatherData } from "../types";
 import VisitDurationControl from "./VisitDurationControl";
+import PlaceVisitHours from "./PlaceVisitHours";
 import { visitDurationFor, buildItinerarySchedule } from "../optimization/itinerary-schedule.js";
 import SmartSpotImage from "../../tourism/components/SmartSpotImage";
 import PlaceFacilitySummary from "./PlaceFacilitySummary";
@@ -32,7 +33,7 @@ export default function PlannerItineraryBoard({ trip, coverage, origin, places, 
             <SmartSpotImage src={entry.place.image} title={entry.place.name} region={entry.place.city || region} contentId={entry.place.id} tag="" rank={index + 1} showMeta={false} />
             <div className="reference-stop-copy"><button type="button" onClick={() => onSelectPlace(entry.place)}>{entry.place.name}</button><small>{entry.visitSource === "user" ? "체류" : "기본 체류 약"} {entry.visitMinutes}분 · {entry.endsAtLabel}까지</small><PlaceFacilitySummary place={entry.place} en={false} /></div>
             <div className="reference-stop-actions"><button type="button" aria-label={`${entry.place.name} 같은 날 앞 순서로 이동`} disabled={!movement.up} onClick={() => trip.movePlace(entry.place.id, "up")}>↑</button><button type="button" aria-label={`${entry.place.name} 같은 날 뒤 순서로 이동`} disabled={!movement.down} onClick={() => trip.movePlace(entry.place.id, "down")}>↓</button><details><summary aria-label={`${entry.place.name} 일정 수정`}>⋮</summary><div><label>방문 날짜<select aria-label={`${entry.place.name} 여행 날짜`} value={trip.scheduleAssignments[entry.place.id] || trip.tripDays[0]} onChange={event => trip.assignPlaceToDay(entry.place.id, event.target.value)}>{trip.tripDays.map(day => <option key={day} value={day}>{day}</option>)}</select></label><VisitDurationControl name={entry.place.name} value={trip.visitMinutesByPlaceId[entry.place.id]} defaultMinutes={visitDurationFor(entry.place)} onChange={value => trip.setVisitMinutes(entry.place.id, value)} /><button type="button" onClick={() => trip.toggleSaved(entry.place.id)}>일정에서 제거</button></div></details></div>
-          </article><p className="reference-leg-time">{entry.travelSource === "route" ? `확인된 이동 ${entry.travelMinutes}분` : entry.travelSource === "estimate" ? `직선거리 기반 추정 ${entry.travelMinutes}분` : "이동 경로 미확인"}{entry.crossesDateBoundary ? " · 다음 날로 이어져요" : ""}</p></li>;
+          </article><p className="reference-leg-time">{entry.travelSource === "route" ? `확인된 이동 ${entry.travelMinutes}분` : entry.travelSource === "estimate" ? `직선거리 기반 추정 ${entry.travelMinutes}분` : "이동 경로 미확인"}{entry.crossesDateBoundary ? " · 다음 날로 이어져요" : ""}</p><PlaceVisitHours id={entry.place.id} name={entry.place.name} visit={{ day: active.day, startsAt: entry.startsAt, endsAt: entry.endsAt }} /></li>;
         })}</ol>
         {!active?.entries.length && <p>추가할 여행지를 고르거나 다른 날짜의 장소를 옮겨보세요.</p>}
       </section>
