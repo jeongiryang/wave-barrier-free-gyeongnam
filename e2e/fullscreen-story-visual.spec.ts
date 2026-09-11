@@ -49,12 +49,13 @@ test("the full-screen arrival leads through the complete Korean service story", 
   }
   // Owner deferred the presentation to #386; Planner date/map functionality is untouched.
   await expect(page.locator(".journey-dated-scene,.story-expansion")).toHaveCount(0);
-  await expect(page.locator("main > section")).toHaveCount(7);
+  await expect(page.locator("main section[id]")).toHaveCount(7);
   await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
   await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
   // One complete static page documents the whole composition, separately from normal-motion scenes.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator(".region-showcase-stage")).toHaveCSS("--cinema-progress", "1");
+  await expect(page.locator("#regions")).toHaveAttribute("data-film", "false");
+  await expect(page.locator(".region-showcase-stage")).toHaveCSS("position", "relative");
   await page.screenshot({ fullPage: true, scale: "css", path: test.info().outputPath("whole-page-static.png") });
   const audit = await new AxeBuilder({ page }).analyze();
   expect(audit.violations).toEqual([]);

@@ -17,7 +17,7 @@ for (const failure of ["timeout", "server", "offline"] as const) for (const en o
       await preferences.getByLabel("환경설정 열기", { exact: true }).click();
       await preferences.getByLabel("언어", { exact: true }).selectOption("en");
       await preferences.getByLabel("Open preferences", { exact: true }).click();
-      await page.locator(".reference-activity-edit").click();
+      await page.locator(".reference-progress button").nth(1).click();
       await page.locator(".condition-actions").getByRole("button", { name: "Find places →", exact: true }).click();
       await expect(page.getByRole("button", { name: "용지호수공원 Add to itinerary", exact: true })).toBeEnabled();
     }
@@ -42,7 +42,7 @@ for (const failure of ["timeout", "server", "offline"] as const) for (const en o
       }
       await expect(page.locator(".travel-book-archive-controls button")).toBeEnabled();
     }
-    if (en) await page.locator(".reference-activity-edit").click();
+    if (en) await page.locator(".reference-progress button").nth(1).click();
     if (failure === "offline") await page.context().setOffline(true);
     await search.click();
     await expect.poll(() => attempts).toBe(1);

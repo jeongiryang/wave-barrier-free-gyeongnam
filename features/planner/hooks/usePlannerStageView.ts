@@ -6,7 +6,9 @@ import type { JourneyStepId } from "./useJourneyProgress";
 
 export type PlannerStageView = "guided" | "overview";
 
-const STORAGE_KEY = "wave-planner-stage-view-v1";
+// The compact flow starts step by step even for an old full-page preference.
+// Saved trip data and the explicitly selected new view remain untouched.
+const STORAGE_KEY = "wave-planner-stage-view-v2";
 const STEP_STORAGE_KEY = "wave-planner-active-step-v1";
 const listeners = new Set<() => void>();
 let fallbackView: PlannerStageView = "guided";

@@ -72,18 +72,21 @@ for (const seenBefore of [false, true]) {
   });
 }
 
-test("the region photograph follows forward and reverse scroll while reduced motion stays complete", async ({ page }) => {
+test("the region film follows forward and reverse scroll while reduced motion stays complete", async ({ page }) => {
   await mockPublicShellApi(page);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto("/");
-  const scene = page.locator(".region-showcase-stage");
+  const scene = page.locator("#regions");
+  const rail = scene.locator(".region-card-rail");
   await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+  await page.evaluate(() => document.fonts.ready);
+  await expect(scene).toHaveAttribute("data-film", "true");
   const progress: number[] = [];
-  for (const offset of [.95, .625, .3, .625, .95]) {
-    await scene.evaluate((node, offset) => scrollTo({ top: scrollY + node.getBoundingClientRect().top - innerHeight * offset, behavior: "instant" }), offset);
-    await expect.poll(() => scene.evaluate((node) => Number(getComputedStyle(node).getPropertyValue("--cinema-progress")))).toBeCloseTo(Math.max(0, Math.min(1, (.95 - offset) / .68)), 1);
-    progress.push(await scene.evaluate((node) => Number(getComputedStyle(node).getPropertyValue("--cinema-progress"))));
+  for (const offset of [0, .5, 1, .5, 0]) {
+    await scene.evaluate((node, offset) => scrollTo({ top: scrollY + node.getBoundingClientRect().top - 116 + ((node as HTMLElement).offsetHeight - (innerHeight - 116)) * offset, behavior: "instant" }), offset);
+    await expect.poll(() => rail.evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth))).toBeCloseTo(offset, 1);
+    progress.push(await rail.evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth)));
     await page.screenshot({ path: test.info().outputPath(`expansion-${offset}-${progress.length}.png`) });
   }
   expect(progress[1]).toBeGreaterThan(progress[0]);
@@ -91,7 +94,8 @@ test("the region photograph follows forward and reverse scroll while reduced mot
   expect(progress[3]).toBeCloseTo(progress[1], 1);
   expect(progress[4]).toBeCloseTo(progress[0], 1);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect.poll(() => scene.evaluate((node) => Number(getComputedStyle(node).getPropertyValue("--cinema-progress")))).toBe(1);
+  await expect(scene).toHaveAttribute("data-film", "false");
+  await expect(scene.locator(".region-showcase-stage")).toHaveCSS("position", "relative");
   await expect(scene.getByRole("link", { name: /이 지역으로 여행 시작/ })).toBeVisible();
 });
 

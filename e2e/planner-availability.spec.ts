@@ -27,7 +27,7 @@ test("편의·활동 단계는 현재 조건의 건수를 보여주고 편의 �
     await count.scrollIntoViewIfNeeded();
     await page.screenshot({ path: info.outputPath("facilities-960.png"), fullPage: false });
   }
-  await page.locator(".condition-actions").getByRole("button", { name: /^다음:/ }).click();
+  await page.locator(".condition-actions").getByRole("button", { name: "하고 싶은 활동 고르기 →", exact: true }).click();
   await expect(count).toContainText("총 1건");
   await page.locator(".theme-grid").getByRole("button", { name: /역사/ }).click();
   await expect.poll(() => calls).toBe(2);
@@ -37,7 +37,7 @@ test("편의·활동 단계는 현재 조건의 건수를 보여주고 편의 �
   expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.locator(".condition-actions").getByRole("button", { name: "이전", exact: true }).click();
-  await expect(count).toContainText("현재 검색한 2개 후보 기준");
+  await expect(count).toContainText("현재 검색한 1개 후보 기준");
   expect(calls).toBe(2);
 });
 

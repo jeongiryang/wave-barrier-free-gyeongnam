@@ -5,6 +5,7 @@ import Link from "next/link";
 import { landingRegions, type LandingRegion, type LandingTranslate, type RegionPhoto } from "../content";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { regionNames } from "../../../lib/gyeongnam-region-names";
+import { useRegionFilm } from "../hooks/useRegionFilm";
 
 interface LandingRegionStoryProps {
   t: LandingTranslate;
@@ -21,6 +22,7 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
   const { locale, motion, hydrated: ready } = useSitePreferences();
   const stage = useRef<HTMLDivElement>(null);
   const rail = useRef<HTMLDivElement>(null);
+  const film = useRegionFilm(rail, motion === "calm");
   const pointerRotationIntent = useRef<boolean | null>(null);
   const prefetched = useRef(new Set<string>());
   const [photoChoice, setPhotoChoice] = useState<{ region: string; index: number } | null>(null);
@@ -91,10 +93,10 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
     ? (english ? "Pause automatic region changes" : "지역 자동 전환 일시정지")
     : (english ? "Resume automatic region changes" : "지역 자동 전환 재개");
 
-  return <section className="region-story region-showcase" id="regions" tabIndex={-1} aria-label={english ? "Gyeongnam photo showcase" : "경남 지역 사진"}
+  return <section ref={film} className="region-story region-showcase" id="regions" tabIndex={-1} aria-label={english ? "Gyeongnam photo showcase" : "경남 지역 사진"}
     onPointerEnter={event => { if (event.pointerType === "mouse") setAutomatic(false); }}
     onFocusCapture={() => setAutomatic(false)}>
-    <div className="region-showcase-stage" ref={stage} data-cinematic="wide" data-region-stage data-running={running} data-active-region={active.name}>
+    <div className="region-showcase-stage" ref={stage} data-in-view={inView} data-region-stage data-running={running} data-active-region={active.name}>
       <header className="region-gallery-heading"><div><p className="horizon-eyebrow">{english ? "SCENES OF GYEONGNAM" : "풍경으로 만나는 경남"}</p><h2>{english ? "Where will your day begin?" : <>마음이 향하는 곳에,<br />당신의 하루를.</>}</h2></div><p>{english ? "Find your next scene across 18 regions." : <>바다를 따라 걷고, 정원에서 쉬어가고.<br />18개 지역에서 다음 풍경을 만나보세요.</>}</p></header>
       <div className="region-showcase-actions">
         <div className="region-arrows" role="group" aria-label={english ? "Browse 18 regions" : "18개 지역 둘러보기"}>
@@ -124,7 +126,7 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
       </div>
       <Link className="region-card-start" href={`/planner?region=${encodeURIComponent(active.name)}`} aria-label={`${regionLabel(active.name)} 여행 설계`}><span aria-hidden="true">↗</span></Link>
       <div className="region-photo-selector" role="group" aria-label={`${regionLabel(active.name)} ${english ? "photographs" : "사진 선택"}`}>
-        {album.map((item, index) => <button key={item.id} type="button" lang="ko" aria-labelledby={`region-photo-${index}-name region-photo-${index}-action`} title={item.title} aria-pressed={index === photoIndex} aria-controls="region-photograph" onClick={() => { setAutomatic(false); setPhotoChoice({ region: active.name, index }); }}><span aria-hidden="true" /><b className="sr-only"><span id={`region-photo-${index}-name`} lang="ko">{item.title}</span><span id={`region-photo-${index}-action`} lang={locale}> · {english ? "show photograph" : "사진 보기"}</span></b></button>)}
+        {album.map((item, index) => <button key={item.id} type="button" lang="ko" aria-labelledby={`region-photo-${index}-name region-photo-${index}-action`} title={item.title} aria-pressed={index === photoIndex} aria-controls="region-photograph" onClick={() => { setAutomatic(false); setPhotoChoice({ region: active.name, index }); }}><span aria-hidden="true" /><b><span className="sr-only" id={`region-photo-${index}-name`} lang="ko">{item.title}</span><span className="sr-only" id={`region-photo-${index}-action`} lang={locale}> · {english ? "show photograph" : "사진 보기"}</span></b></button>)}
       </div>
       <div key={active.name + photoIndex + String(running)} className="region-showcase-progress" aria-hidden="true" />
       </article>

@@ -131,8 +131,8 @@ test("landscape cards scroll inside the viewport and neighbour selection opens i
   await expect(stage.locator(".region-landscape-card")).toHaveCount(3);
   await expect(stage.locator(".region-neighbour-card figcaption a")).toHaveCount(2);
   const rail = stage.locator(".region-card-rail");
-  const compact = page.viewportSize()!.width <= 1100;
-  expect(await rail.evaluate(el => el.scrollWidth > el.clientWidth + 1)).toBe(compact);
+  const scrollable = page.viewportSize()!.width <= 1100 || await page.locator("#regions").getAttribute("data-film") === "true";
+  expect(await rail.evaluate(el => el.scrollWidth > el.clientWidth + 1)).toBe(scrollable);
   await stage.getByRole("button", {name:"하동 풍경 살펴보기"}).press("Enter");
   await expect(stage).toHaveAttribute("data-active-region", "하동");
   await expect(stage).toHaveAttribute("data-running", "false");
