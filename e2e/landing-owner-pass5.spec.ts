@@ -191,8 +191,9 @@ test("regional photographs warm only the adjacent album on visibility, never all
   for(const img of await page.locator(".region-photo-album img").all()) await expect(img).toHaveAttribute("loading","lazy");
   // The two visible film rows now render all regions with native lazy images.
   // Speculative Image() warming must still be limited to current + next albums.
-  const warmed = await page.evaluate(() => (window as Window & { regionWarmSources: string[] }).regionWarmSources);
+  const warmed = await page.evaluate(() => (window as unknown as { regionWarmSources: string[] }).regionWarmSources);
   const allowed = new Set(regionShowcaseAlbums["창원"].concat(regionShowcaseAlbums["하동"]).map(photo=>photo.image));
+  expect(next.every(url => warmed.includes(url))).toBe(true);
   expect(warmed.filter(url=>url.startsWith("https://tong.visitkorea.or.kr/")).every(url=>allowed.has(url))).toBe(true);
   expect(warmed.filter(url=>allowed.has(url)).length).toBeLessThanOrEqual(allowed.size);
   for (const img of await page.locator(".region-card-rail img").all()) await expect(img).toHaveAttribute("loading", "lazy");

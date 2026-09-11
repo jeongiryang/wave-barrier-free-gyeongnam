@@ -22,3 +22,9 @@
 현재까지 관련 E2E: 첫 실행45/52PASS 후 투명rail 대비와18카드에 맞는 프리로드 계약을 보정했다. 수정 후 Owner 장면16개 및 static320/390 4개 PASS. 필름/앨범/모바일 출처 터치 보정20개 PASS. 기존 assertion/시간제한/접근성/성능 예산을 낮추지 않았다. 실제 KTO 사진으로 독립1440/1366/960/390/320 검수 중이며 발견사항은 위에 기록했다. 최종 main 통합, 필수 로컬검사, CI, 독립 재검수와 Production 결과는 후속 기록한다.
 
 최신 Owner 범위: 기능 후보 구현·프론트 통합·머지·정상 배포 확인까지 계속한다. 전체 조작 감사, 회귀 분석/리팩토링, 제출 전 점검은 다음 작업으로 미룬다. 카카오 메시지·운영 사용자 데이터 쓰기·결제·최종 공모전 제출은 실행하지 않는다.
+
+최종 독립 QA PASS: 실제12.3초 앨범 자동 전환 뒤 하단위치0유지,2px세로이동에만0→4로연결.1440/1366 스크롤0/.5/1/역방향 모두 반대 방향 일치.960/390/320 수동 탐색과 모든 앨범·사진·출처·Planner링크 유지.320 긴출처60.5px와선택기사이13.5px여백, 버튼50/80/95%hit와아래3px클릭PASS. 사진위흰색/밝은구간짙은색/경계개별전환,모든caption배경투명,CC링크,WAVE글자유지. 오류·가로넘침0. 증거 `D:/wave-completion-20260911/opposing-film-qa-final-desktop.json`, `opposing-film-qa-fixed-mobile.json`, `opposing-film-qa-fixed-realtime-timer.json`, `opposing-film-qa-final-captions-rail.json` 및PNG.
+
+최신 main #474 `c333a1b`를 정상 통합했다. 상태 문서의 같은 Owner 보류 지시 두 표현만 충돌하여 최신 문구로 보존했고 구현 충돌은 없었다. Vercel build와성능PASS: CSS69.88/70KiB, Landing117.32/155KiB, Planner176.99/270KiB. 나머지 최종 검사와 CI/Production은 아래에 이어 기록한다.
+
+최종 로컬 typecheck, lint(오류0·기존경고12), unit810, Vercel build/performance PASS. 최신 main 포함 관련 브라우저56개 PASS. 테스트 전용 Image() 계측값의 타입 선언을 명시하고, 다음 앨범도 실제로 미리 준비되었는지 assertion을 강화한 뒤 해당2개 PASS. 독립 QA와 함께 변경 영역 검증 완료. 필수 hosted CI와 Production은 PR 뒤 확인한다.
