@@ -14,6 +14,8 @@ export interface TripSharingOptions {
   dayStartTime: string;
   scheduleAssignments: Record<string, string>;
   visitMinutesByPlaceId?: Record<string, number>;
+  fixedVisits?: Record<string, import("../../../lib/trip-time-constraints.js").FixedVisit>;
+  dayDeadlines?: Record<string, import("../../../lib/trip-time-constraints.js").DayDeadline>;
   selectedPlaceIds: string[];
   originLabel: string;
 }
@@ -26,6 +28,7 @@ export function useTripSharing(options: TripSharingOptions) {
       travelStart: options.travelStart, travelEnd: options.travelEnd, dayStartTime: options.dayStartTime,
       scheduleAssignments: options.scheduleAssignments, selectedPlaceIds: options.selectedPlaceIds,
       visitMinutesByPlaceId: options.visitMinutesByPlaceId,
+      fixedVisits: options.fixedVisits, dayDeadlines: options.dayDeadlines,
     },
     origin: { label: options.originLabel },
   });

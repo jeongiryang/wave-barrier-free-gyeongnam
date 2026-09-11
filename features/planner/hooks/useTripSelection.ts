@@ -17,7 +17,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
   const schedule = useTripSchedule();
   const [dayChoice, setActiveDay] = useState("");
   const activeDay = schedule.tripDays.includes(dayChoice) ? dayChoice : schedule.tripDays[0];
-  const { ensurePlaceAssignment, removePlaceAssignment } = schedule;
+  const { ensurePlaceAssignment, removePlaceAssignment, canChangePlace } = schedule;
   const savedPlaces = useMemo(
     () => resolveSavedPlaces(saved, activePlaces, catalog),
     [activePlaces, catalog, saved],
@@ -36,10 +36,12 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
     accessibilityProfileCount,
     scheduleAssignments: schedule.scheduleAssignments,
     defaultDay: schedule.tripDays[0] || schedule.travelStart,
+    fixedVisits: schedule.fixedVisits,
   });
 
   const toggleSaved = useCallback((id: string, snapshot?: Place) => {
     if (saved.includes(id)) {
+      if (!canChangePlace(id)) return false;
       removePlaceAssignment(id);
       removeSavedId(id);
       return;
@@ -49,7 +51,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
     ensurePlaceAssignment(id);
     addSavedIds([id], [place]);
     return true;
-  }, [activePlaces, addSavedIds, ensurePlaceAssignment, removePlaceAssignment, removeSavedId, saved]);
+  }, [activePlaces, addSavedIds, ensurePlaceAssignment, removePlaceAssignment, removeSavedId, saved, canChangePlace]);
 
   // 지도에서 한 번에 담을 때 쓴다. 이미 담긴 곳은 건너뛰고 실제로 더한 수를 돌려준다.
   const savePlaceIds = useCallback((ids: string[]) => {
@@ -60,7 +62,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
   }, [activePlaces, addSavedIds, ensurePlaceAssignment, saved]);
 
   const replaceSavedPlace = (previousId: string, place: Place) => {
-    if (!saved.includes(previousId) || saved.includes(place.id)) return false;
+    if (!saved.includes(previousId) || saved.includes(place.id) || !schedule.canChangePlace(previousId)) return false;
     replaceSavedId(previousId, place);
     schedule.replacePlaceAssignment(previousId, place.id);
     optimized.replacePlaceOrder(previousId, place.id);

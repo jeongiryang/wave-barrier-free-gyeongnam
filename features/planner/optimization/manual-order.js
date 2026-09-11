@@ -13,22 +13,23 @@ function placesForDay(orderIds, assignments, defaultDay, placeId) {
   return orderIds.filter((id) => (assignments?.[id] || defaultDay) === day);
 }
 
-export function placeMoveAvailability(orderIds, placeId, assignments = {}, defaultDay = "") {
+export function placeMoveAvailability(orderIds, placeId, assignments = {}, defaultDay = "", fixed = {}) {
   const sameDay = placesForDay(orderIds, assignments, defaultDay, placeId);
   const index = sameDay.indexOf(placeId);
   return {
-    up: index > 0,
-    down: index >= 0 && index < sameDay.length - 1,
+    up: !fixed[placeId] && index > 0 && !fixed[sameDay[index - 1]],
+    down: !fixed[placeId] && index >= 0 && index < sameDay.length - 1 && !fixed[sameDay[index + 1]],
   };
 }
 
-export function movePlaceWithinDay(orderIds, placeId, direction, assignments = {}, defaultDay = "") {
+export function movePlaceWithinDay(orderIds, placeId, direction, assignments = {}, defaultDay = "", fixed = {}) {
   const current = Array.isArray(orderIds) ? [...orderIds] : [];
   const sameDay = placesForDay(current, assignments, defaultDay, placeId);
   const index = sameDay.indexOf(placeId);
   const nextIndex = direction === "up" ? index - 1 : direction === "down" ? index + 1 : index;
   if (index < 0 || nextIndex < 0 || nextIndex >= sameDay.length || nextIndex === index) return current;
   const swapId = sameDay[nextIndex];
+  if (fixed[placeId] || fixed[swapId]) return current;
   const placeIndex = current.indexOf(placeId);
   const swapIndex = current.indexOf(swapId);
   [current[placeIndex], current[swapIndex]] = [current[swapIndex], current[placeIndex]];

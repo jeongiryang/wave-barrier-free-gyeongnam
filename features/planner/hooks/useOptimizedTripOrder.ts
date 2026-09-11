@@ -8,6 +8,7 @@ import type { RoutePoint } from "../../routing/types";
 import { movePlaceWithinDay, placeMoveAvailability, reconcilePlaceOrder } from "../optimization/manual-order.js";
 import { explainVisitOrder, optimizeVisitOrder } from "../optimization/visit-order.js";
 import type { Place } from "../types";
+import { preserveFixedVisitOrder, type FixedVisit } from "../../../lib/trip-time-constraints.js";
 
 const TRIP_ORDER_KEY = "wave-trip-order-v1";
 type OrderMode = "auto" | "manual";
@@ -24,7 +25,7 @@ function readStoredOrder(): { mode: OrderMode; ids: string[] } {
   }
 }
 
-export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, origin, accessibilityProfileCount, scheduleAssignments, defaultDay }: {
+export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, origin, accessibilityProfileCount, scheduleAssignments, defaultDay, fixedVisits }: {
   savedPlaces: Place[];
   saved: string[];
   savedStorageReady: boolean;
@@ -32,6 +33,7 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
   accessibilityProfileCount: number;
   scheduleAssignments: Record<string, string>;
   defaultDay: string;
+  fixedVisits: Record<string, FixedVisit>;
 }) {
   const { locale } = useSitePreferences();
   const [orderMode, setOrderMode] = useState<OrderMode>("auto");
@@ -64,10 +66,10 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
     [manualOrder, saved],
   );
   const activeOrderIds = useMemo(
-    () => orderMode === "manual"
+    () => preserveFixedVisitOrder(orderMode === "manual"
       ? reconciledManualOrder.filter((id) => savedPlaces.some((place) => place.id === id))
-      : autoOrderIds,
-    [autoOrderIds, orderMode, reconciledManualOrder, savedPlaces],
+      : autoOrderIds, fixedVisits, scheduleAssignments, defaultDay),
+    [autoOrderIds, orderMode, reconciledManualOrder, savedPlaces, fixedVisits, scheduleAssignments, defaultDay],
   );
   const orderedSavedPlaces = useMemo(() => {
     const byId = new Map(savedPlaces.map((place) => [place.id, place]));
@@ -84,17 +86,17 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
   }, [orderMode, orderStorageReady, reconciledManualOrder, savedStorageReady]);
 
   const movePlace = useCallback((placeId: string, direction: "up" | "down") => {
-    const next = movePlaceWithinDay(activeOrderIds, placeId, direction, scheduleAssignments, defaultDay);
+    const next = movePlaceWithinDay(activeOrderIds, placeId, direction, scheduleAssignments, defaultDay, fixedVisits);
     if (next.every((id, index) => id === activeOrderIds[index])) return false;
     setManualOrder(reconcilePlaceOrder(saved, next));
     setOrderMode("manual");
     setNotice({ kind: "move", name: savedPlaces.find((place) => place.id === placeId)?.name, direction });
     return true;
-  }, [activeOrderIds, defaultDay, saved, savedPlaces, scheduleAssignments]);
+  }, [activeOrderIds, defaultDay, saved, savedPlaces, scheduleAssignments, fixedVisits]);
 
   const movementFor = useCallback((placeId: string) => (
-    placeMoveAvailability(activeOrderIds, placeId, scheduleAssignments, defaultDay)
-  ), [activeOrderIds, defaultDay, scheduleAssignments]);
+    placeMoveAvailability(activeOrderIds, placeId, scheduleAssignments, defaultDay, fixedVisits)
+  ), [activeOrderIds, defaultDay, scheduleAssignments, fixedVisits]);
 
   const restoreAutoOrder = useCallback(() => {
     setManualOrder(reconcilePlaceOrder(saved, autoOrderIds));

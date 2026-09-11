@@ -11,7 +11,10 @@ import { dateRange } from "../planner/utils";
 import { boundedTripEnd, validTripDate } from "../../lib/trip-dates.js";
 import { KakaoSendToSelf, KakaoTravelShare } from "../kakao-travel/KakaoTravelActions";
 import VisitDurationControl from "../planner/components/VisitDurationControl";
-import { visitDurationFor } from "../planner/optimization/itinerary-schedule.js";
+import { visitDurationFor, buildItinerarySchedule } from "../planner/optimization/itinerary-schedule.js";
+import FixedVisitControl, { FixedVisitSummary } from "../planner/components/FixedVisitControl";
+import DayDeadlineControl, { DayDeadlineSummary } from "../planner/components/DayDeadlineControl";
+import { sanitizeFixedVisits, sanitizeDayDeadlines } from "../../lib/trip-time-constraints.js";
 import { changeVisitDuration } from "../../lib/visit-durations.js";
 import KakaoTaxiLink from "../kakao-travel/KakaoTaxiLink";
 
@@ -58,6 +61,8 @@ function Editor({ id, userId }: { id: string; userId: string }) {
   }
   function change(patch: Partial<AccountTripPayload>) { setDraft(current => current ? { ...current, ...patch } : current); }
   const owner = trip?.role === "owner";
+  const tripDays = draft && validTripDate(draft.travelStart) && validTripDate(draft.travelEnd) ? dateRange(draft.travelStart, boundedTripEnd(draft.travelStart, draft.travelEnd)) : [];
+  const timedDays = draft ? buildItinerarySchedule({ places: draft.placeIds.map(id => places.find(place => place.id === id) || { id }), days: tripDays, assignments: draft.scheduleAssignments, startTime: draft.dayStartTime, visitMinutesByPlaceId: draft.visitMinutesByPlaceId, fixedVisits: draft.fixedVisits }) : [];
   const changed = Boolean(draft && trip && JSON.stringify(draft) !== JSON.stringify(trip.payload));
   useEffect(() => { if (!changed) return; const handler = (event: BeforeUnloadEvent) => event.preventDefault(); window.addEventListener("beforeunload", handler); return () => window.removeEventListener("beforeunload", handler); }, [changed]);
   return <>
@@ -69,16 +74,18 @@ function Editor({ id, userId }: { id: string; userId: string }) {
           <div className="travel-book-status"><button type="button" aria-pressed={draft.status === "planned"} onClick={() => change({ status: "planned" })}>갈 여행</button><button type="button" aria-pressed={draft.status === "visited"} onClick={() => change({ status: "visited" })}>다녀온 여행</button></div></>}
         <p>{trip.payload.travelStart} — {trip.payload.travelEnd} · {trip.payload.placeIds.length}곳</p>
         <div className="travel-book-actions"><button type="button" disabled={busy} onClick={() => run(loadPlaces)}>장소 이름·최신 정보 확인</button></div><p role="status">{placeNotice}</p>
+        <details className="place-evidence"><summary>날짜별 귀가·약속 시간</summary>{timedDays.map(({day, entries}) => <div key={day}><h3>{day}</h3>{owner ? <DayDeadlineControl day={day} value={draft.dayDeadlines?.[day]} entries={entries} onChange={value => { const next = { ...draft.dayDeadlines }; if (value) next[day] = value; else delete next[day]; change({ dayDeadlines: sanitizeDayDeadlines(next, tripDays) }); }} /> : <DayDeadlineSummary entries={entries} value={draft.dayDeadlines?.[day]} />}</div>)}</details>
         <div className="travel-book-days">{draft.placeIds.map((placeId, index) => {
           const place = places.find(item => item.id === placeId);
           const voted = trip.votes.some(vote => vote.userId === userId && vote.placeId === placeId);
           const days = validTripDate(draft.travelStart) && validTripDate(draft.travelEnd) ? dateRange(draft.travelStart, boundedTripEnd(draft.travelStart, draft.travelEnd)) : [];
           return <section key={placeId}><header><strong>{index + 1}. {place?.name || `저장한 여행지 ${index + 1}`}</strong><small>{trip.votes.filter(vote => vote.placeId === placeId).length}명 선택</small></header>
             {place ? <p>{place.address || place.city} · {place.source}</p> : <p>장소 번호 {placeId} · 위에서 공식 정보를 확인할 수 있어요.</p>}
-            {owner ? <div className="auth-field"><label htmlFor={`day-${placeId}`}>방문 날짜</label><select id={`day-${placeId}`} value={draft.scheduleAssignments[placeId]} onChange={event => change({ scheduleAssignments: { ...draft.scheduleAssignments, [placeId]: event.target.value } })}>{!days.includes(draft.scheduleAssignments[placeId]) && <option value={draft.scheduleAssignments[placeId]}>기간 밖 · {draft.scheduleAssignments[placeId]}</option>}{days.map(day => <option key={day} value={day}>{day}</option>)}</select></div> : <p>{draft.scheduleAssignments[placeId]} 방문</p>}
+            {owner ? <div className="auth-field"><label htmlFor={`day-${placeId}`}>방문 날짜</label><select disabled={Boolean(draft.fixedVisits?.[placeId])} id={`day-${placeId}`} value={draft.scheduleAssignments[placeId]} onChange={event => change({ scheduleAssignments: { ...draft.scheduleAssignments, [placeId]: event.target.value } })}>{!days.includes(draft.scheduleAssignments[placeId]) && <option value={draft.scheduleAssignments[placeId]}>기간 밖 · {draft.scheduleAssignments[placeId]}</option>}{days.map(day => <option key={day} value={day}>{day}</option>)}</select></div> : <p>{draft.scheduleAssignments[placeId]} 방문</p>}
             {owner ? <VisitDurationControl name={place?.name || `여행지 ${index + 1}`} value={draft.visitMinutesByPlaceId?.[placeId]} defaultMinutes={visitDurationFor(place)} onChange={value => change({ visitMinutesByPlaceId: changeVisitDuration(draft.visitMinutesByPlaceId || {}, placeId, value) })} /> : draft.visitMinutesByPlaceId?.[placeId] && <p>체류 {draft.visitMinutesByPlaceId[placeId]}분</p>}
+            {owner && <FixedVisitControl name={place?.name || `여행지 ${index + 1}`} value={draft.fixedVisits?.[placeId]} position={draft.placeIds.filter(id => draft.scheduleAssignments[id] === draft.scheduleAssignments[placeId]).indexOf(placeId)} onChange={value => { const next = { ...draft.fixedVisits }; if (value) next[placeId] = value; else delete next[placeId]; change({ fixedVisits: sanitizeFixedVisits(next, draft.placeIds) }); }} />}<FixedVisitSummary fixed={draft.fixedVisits?.[placeId]} waiting={timedDays.flatMap(day => day.entries).find(entry => entry.place.id === placeId)?.waitingMinutes} late={timedDays.flatMap(day => day.entries).find(entry => entry.place.id === placeId)?.lateMinutes} />
             <div className="travel-book-actions"><button type="button" disabled={busy || !trip.payload.placeIds.includes(placeId)} aria-pressed={voted} onClick={() => run(async () => { await travelRequest(`/${id}/participate`, { action: "vote", placeId, selected: !voted }); await refresh(); })}>{voted ? "가고 싶어요 취소" : "가고 싶어요"}</button>
-              {owner && <><button type="button" disabled={index === 0 || busy} aria-label={`${place?.name || `여행지 ${index + 1}`} 위로`} onClick={() => { const ids = [...draft.placeIds]; [ids[index - 1], ids[index]] = [ids[index], ids[index - 1]]; change({ placeIds: ids }); }}>↑ 위로</button><button type="button" disabled={index === draft.placeIds.length - 1 || busy} aria-label={`${place?.name || `여행지 ${index + 1}`} 아래로`} onClick={() => { const ids = [...draft.placeIds]; [ids[index + 1], ids[index]] = [ids[index], ids[index + 1]]; change({ placeIds: ids }); }}>↓ 아래로</button></>}
+              {owner && <><button type="button" disabled={index === 0 || busy || Boolean(draft.fixedVisits?.[placeId] || draft.fixedVisits?.[draft.placeIds[index - 1]])} aria-label={`${place?.name || `여행지 ${index + 1}`} 위로`} onClick={() => { const ids = [...draft.placeIds]; [ids[index - 1], ids[index]] = [ids[index], ids[index - 1]]; change({ placeIds: ids }); }}>↑ 위로</button><button type="button" disabled={index === draft.placeIds.length - 1 || busy || Boolean(draft.fixedVisits?.[placeId] || draft.fixedVisits?.[draft.placeIds[index + 1]])} aria-label={`${place?.name || `여행지 ${index + 1}`} 아래로`} onClick={() => { const ids = [...draft.placeIds]; [ids[index + 1], ids[index]] = [ids[index], ids[index + 1]]; change({ placeIds: ids }); }}>↓ 아래로</button></>}
             </div>{place && <KakaoTaxiLink destination={place} />}</section>;
         })}</div>
         {owner ? <label className="travel-book-note"><span>동행자와 공유하는 여행 메모</span><textarea value={draft.note} onChange={event => change({ note: event.target.value })} maxLength={1200} placeholder="여행 준비물과 함께 확인할 내용을 적어보세요." /></label> : <p>{trip.payload.note || "아직 여행 메모가 없습니다."}</p>}

@@ -7,6 +7,7 @@ import { createTravelBookSnapshot, travelBookRestorePayload } from "../lib/trave
 import { bookToAccountTrip } from "../lib/account-travel/model.js";
 import { publicTravelBody } from "../lib/kakao-travel.js";
 import { normalizeThemes } from "../lib/planner-criteria.js";
+import * as constraints from "../lib/trip-time-constraints.js";
 
 function sharedPayload() {
   const output = ts.transpileModule(readFileSync(new URL("../server/trips/payload.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -16,6 +17,7 @@ function sharedPayload() {
     if (name === "../tourism/catalog") return { languageServices: { ko: "ko" }, profileFields: {}, regionCodes: { "창원": "1" } };
     if (name.endsWith("planner-criteria.js")) return { normalizeThemes };
     if (name.endsWith("visit-durations.js")) return { sanitizeVisitDurations };
+    if (name.endsWith("trip-time-constraints.js")) return constraints;
     throw Error(name);
   });
   return mod.exports;
@@ -46,4 +48,11 @@ test("public share normalization keeps visit times only for the final deduplicat
   const stored = storedTripPayload({ plan: { places: [{ id: ids[0], details: "provider raw details" }] } }, selections);
   assert.deepEqual(stored.selections.visitMinutesByPlaceId, selections.visitMinutesByPlaceId);
   assert.equal(JSON.stringify(stored).includes("provider raw details"), false);
+});
+
+test("public fixed times exclude unselected IDs and preserve only the bounded user deadline", () => {
+  const { normalizeTripSelections } = sharedPayload();
+  const result = normalizeTripSelections({ selectedPlaceIds: ["1001"], fixedVisits: { "1001": { kind: "event", position: 0, time: "13:00", address: "private" }, other: { kind: "stay", position: 1, time: "15:00" } }, dayDeadlines: { "2026-09-14": { time: "18:00", returnMinutes: null, bufferMinutes: 15, latitude: 35 } } });
+  assert.deepEqual(result.fixedVisits, { "1001": { kind: "event", position: 0, time: "13:00" } });
+  assert.deepEqual(result.dayDeadlines, { "2026-09-14": { time: "18:00", returnMinutes: null, bufferMinutes: 15 } });
 });

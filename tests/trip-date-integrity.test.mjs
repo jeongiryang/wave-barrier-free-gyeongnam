@@ -3,6 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import ts from "typescript";
 import * as durations from "../lib/visit-durations.js";
+import * as constraints from "../lib/trip-time-constraints.js";
 
 function fixture(stored = {}, hydrate = true) {
   const slots = [], effects = [], frames = [];
@@ -23,6 +24,7 @@ function fixture(stored = {}, hydrate = true) {
     if (name.endsWith("current-trip-storage.js")) return load("../lib/current-trip-storage.js");
     if (name.endsWith("trip-dates.js")) return load("../lib/trip-dates.js");
     if (name.endsWith("visit-durations.js")) return durations;
+    if (name.endsWith("trip-time-constraints.js")) return constraints;
     throw Error(name);
   }, window);
   const actions = () => { cursor = 0; return mod.exports.useTripSchedule(); };
@@ -31,6 +33,23 @@ function fixture(stored = {}, hydrate = true) {
   return { actions, commit };
 }
 const initial = { travelStart: "2026-09-07", travelEnd: "2026-09-08", scheduleAssignments: { a: "2026-09-07", b: "2026-09-08" } };
+
+test("fixed places protect their day until explicitly unlocked, and new trips clear constraints", () => {
+  const f = fixture(initial);
+  f.actions().setFixedVisit("a", { kind: "event", position: 0, time: "13:00" });
+  assert.equal(f.actions().canChangePlace("a"), false);
+  f.actions().assignPlaceToDay("a", "2026-09-08");
+  assert.equal(f.actions().scheduleAssignments.a, "2026-09-07");
+  f.actions().setFixedVisit("a", null);
+  f.actions().assignPlaceToDay("a", "2026-09-08");
+  assert.equal(f.actions().scheduleAssignments.a, "2026-09-08");
+  f.actions().setDayDeadline("2026-09-07", { time: "18:00", returnMinutes: null, bufferMinutes: 15 });
+  assert.equal(f.actions().dayDeadlines["2026-09-07"].returnMinutes, null);
+  f.actions().setDayDeadline("2026-09-09", { time: "18:00", returnMinutes: 30, bufferMinutes: 15 });
+  assert.equal(f.actions().dayDeadlines["2026-09-09"], undefined);
+  f.actions().resetSchedule("2026-09-09", "2026-09-09");
+  assert.deepEqual(f.actions().dayDeadlines, {}); assert.deepEqual(f.actions().fixedVisits, {});
+});
 
 test("the first render has no wall-clock dates before storage hydration", () => {
   const f = fixture(initial, false);

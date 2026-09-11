@@ -31,7 +31,7 @@ export type TravelBook = {
   note: string;
   places: TravelBookPlace[];
   scheduleAssignments: Record<string, string>;
-  visitMinutesByPlaceId?: Record<string, number>;
+  visitMinutesByPlaceId?: Record<string, number>; fixedVisits?: Record<string, import("./trip-time-constraints.js").FixedVisit>; dayDeadlines?: Record<string, import("./trip-time-constraints.js").DayDeadline>;
 };
 
 export type TravelBookInput = Partial<Omit<TravelBook, "places">> & { places: Array<Partial<TravelBookPlace> & { id: string; name: string }> };
