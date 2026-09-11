@@ -7,7 +7,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   return pageMetadata({
     title: "여행 후기 수정",
-    description: "작성한 W.A.V.E 여행 후기를 수정합니다.",
+    description: "작성한 WAVE 여행 후기를 수정합니다.",
     path: `/community/${encodeURIComponent(id)}/edit`,
     index: false,
   });

@@ -30,7 +30,7 @@ test("landing arrival can be skipped immediately and retains the underlying Hero
   const intro = await source("features/landing/components/LandingIntro.tsx");
   assert.match(landing, /<LandingIntro/);
   assert.match(landing, /<LandingHero/);
-  assert.match(intro, /data-intro-skip/);
+  assert.doesNotMatch(intro, /<button|data-intro-skip/);
   assert.match(intro, /onCancel=.*finish/);
   assert.match(intro, /node\.close\(\)/);
   assert.match(intro, /sessionStorage\.getItem\(SESSION_KEY\)/);

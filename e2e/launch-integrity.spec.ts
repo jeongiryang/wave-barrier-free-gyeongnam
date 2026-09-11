@@ -69,18 +69,18 @@ test("guided search failures stay visible with choices preserved and allow retry
   await expect(page.locator("#places")).toBeHidden();
 });
 
-test("full-screen intro keeps an immediate skip action and returns to the usable page", async ({ page }) => {
+test("full-screen intro keeps an immediate keyboard exit and returns to the usable page", async ({ page }) => {
   const errors = trackRuntimeErrors(page);
   const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
   await page.setViewportSize({ width, height: 960 });
   await mockPlannerApi(page);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
+  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
   await expect(intro).toBeVisible();
-  await expect(intro.getByRole("button")).toHaveCount(1);
+  await expect(intro.getByRole("button")).toHaveCount(0);
   await expect(intro.getByRole("link")).toHaveCount(0);
-  await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
+  await page.keyboard.press("Escape");
   await expect(intro).toBeHidden();
   await expect(page.locator(".landing-hero button")).toHaveCount(0);
   const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획하기", exact: true });
@@ -99,18 +99,18 @@ test("full-screen intro keeps an immediate skip action and returns to the usable
   expect(errors).toEqual([]);
 });
 
-test("Korean fresh sessions keep one exit and stable keyboard handoff with no replay UI", async ({ page }) => {
+test("Korean fresh sessions keep no visible controls and stable keyboard handoff with no replay UI", async ({ page }) => {
     const errors = trackRuntimeErrors(page);
     await mockPlannerApi(page);
 
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
-    const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
-    for (const key of ["Enter", "Space", "Escape"]) {
+    const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
+    for (const key of ["Escape"]) {
       await expect(intro).toBeVisible();
-      const skip = intro.getByRole("button", { name: "소개로 건너뛰기" });
+      const skip = intro.getByRole("heading", { name: "WAVE" });
       await expect(skip).toBeFocused();
-      await expect(intro.getByRole("button")).toHaveCount(1);
+      await expect(intro.getByRole("button")).toHaveCount(0);
       const box = await skip.boundingBox();
       expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44);
       await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -133,18 +133,18 @@ test("Korean fresh sessions keep one exit and stable keyboard handoff with no re
     expect(errors).toEqual([]);
   });
 
-test("English fresh sessions keep one exit and stable keyboard handoff with no replay UI", async ({ page }) => {
+test("English fresh sessions keep no visible controls and stable keyboard handoff with no replay UI", async ({ page }) => {
     const errors = trackRuntimeErrors(page);
     await mockPlannerApi(page);
     await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
-    const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
-    for (const key of ["Enter", "Space", "Escape"]) {
+    const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
+    for (const key of ["Escape"]) {
       await expect(intro).toBeVisible();
-      const skip = intro.getByRole("button", { name: "Skip intro" });
+      const skip = intro.getByRole("heading", { name: "WAVE" });
       await expect(skip).toBeFocused();
-      await expect(intro.getByRole("button")).toHaveCount(1);
+      await expect(intro.getByRole("button")).toHaveCount(0);
       const box = await skip.boundingBox();
       expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44);
       await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -206,7 +206,7 @@ for (const width of [280, 320, 390, 768, 1024, 1366, 1920, 2560]) {
     await mockPlannerApi(page, { plannerView: "guided" });
     await page.goto("/planner");
     await expect(page.getByRole("heading", { name: "경남, 어디부터 가볼까요?", exact: true })).toBeVisible();
-    const header = await page.locator(".reference-header").boundingBox();
+    const header = await page.locator(".wave-header").boundingBox();
     const heading = await page.getByRole("heading", { name: "경남, 어디부터 가볼까요?", exact: true }).boundingBox();
     expect(heading!.y).toBeGreaterThanOrEqual(header!.y + header!.height);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);

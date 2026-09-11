@@ -33,7 +33,7 @@ test("어두운 화면에서 --white는 --ink의 반대쪽에 있다", async () 
   const theme = await source("app/styles/theme-itinerary-foundations.css");
   const globals = await source("app/globals.css");
   // 밝은 화면: --ink는 어두운 글자색, --white는 흰색.
-  assert.match(globals, /--ink:\s*#06304a/);
+  assert.match(globals, /--ink:\s*#2b2632/);
   assert.match(globals, /--white:\s*#fff/);
   // 어두운 화면에서는 둘 다 뒤집힌다. 그래서 --ink 배경에는 --white 글자가 짝이다.
   assert.match(theme, /--ink:\s*#e8f5fb/);

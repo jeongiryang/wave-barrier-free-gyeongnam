@@ -4,5 +4,5 @@ export default function ArrivalRetrievedAt({ value, english }: { value?: string 
   const label = new Intl.DateTimeFormat(english ? "en-GB" : "ko-KR", {
     timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
   }).format(date);
-  return <small>{english ? "W.A.V.E retrieved " : "W.A.V.E 조회 "}<time dateTime={value!}>{label} KST</time></small>;
+  return <small>{english ? "WAVE retrieved " : "WAVE 조회 "}<time dateTime={value!}>{label} KST</time></small>;
 }

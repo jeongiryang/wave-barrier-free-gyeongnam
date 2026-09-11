@@ -104,7 +104,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await page.locator(".day-planner").getByRole("button", { name: "내 일정에 저장", exact: true }).click();
     if (en) {
       const preferences = page.locator(".preference-controls:visible");
-      await page.keyboard.press("Control+Home");
+      await preferences.scrollIntoViewIfNeeded();
       await expect(preferences.getByLabel("환경설정 열기", { exact: true })).toBeInViewport();
       await preferences.getByLabel("환경설정 열기", { exact: true }).click();
       await preferences.getByLabel("언어", { exact: true }).selectOption("en");

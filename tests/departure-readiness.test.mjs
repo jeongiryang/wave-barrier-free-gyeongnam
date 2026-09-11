@@ -52,7 +52,7 @@ test("날씨 조회 실패와 근거 없는 장소는 재확인 필요로 남긴
 test("한국 시간대와 공유 URL을 포함한 표준 캘린더를 만든다", () => {
   const ics = buildTripCalendarIcs({
     travelStart: "2026-09-01", travelEnd: "2026-09-02", dayStartTime: "09:30",
-    title: "W.A.V.E 창원 무장애 여행", region: "창원", placeNames: ["경남도립미술관", "용지호수공원"],
+    title: "WAVE 창원 무장애 여행", region: "창원", placeNames: ["경남도립미술관", "용지호수공원"],
     shareUrl: "https://wave.example/trip/abc", createdAt: new Date("2026-08-31T00:00:00.000Z"),
   });
   assert.match(ics, /BEGIN:VCALENDAR\r\nVERSION:2\.0/);
@@ -60,7 +60,7 @@ test("한국 시간대와 공유 URL을 포함한 표준 캘린더를 만든다"
   assert.match(ics, /DTSTART;TZID=Asia\/Seoul:20260901T093000/);
   assert.match(ics, /DTEND;TZID=Asia\/Seoul:20260902T173000/);
   assert.match(ics, /URL:https:\/\/wave\.example\/trip\/abc/);
-  assert.match(ics, /출발 전 W\.A\.V\.E에서/);
+  assert.match(ics, /출발 전 WAVE에서/);
   assert.ok(ics.endsWith("\r\n"));
 });
 

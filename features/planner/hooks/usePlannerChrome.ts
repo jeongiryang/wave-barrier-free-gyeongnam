@@ -28,7 +28,7 @@ export function usePlannerChrome(plan: PlanData | null) {
       if (!frame) frame = window.requestAnimationFrame(update);
     };
     const restoreForKeyboard = (event: FocusEvent) => {
-      if ((event.target as HTMLElement | null)?.closest(".site-header")) setHeaderHidden(false);
+      if ((event.target as HTMLElement | null)?.closest(".wave-header,.site-header")) setHeaderHidden(false);
     };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });

@@ -23,7 +23,7 @@ export function useRouteOrigin(onPrivateOrigin?: () => void) {
     setPrivateOrigin(isPrivate);
     onPrivateOrigin?.();
     if (isPrivate) {
-      setRouteNotice({ ko: "현재 위치를 표시했습니다. W.A.V.E 경로 API로 좌표를 보내거나 저장하지 않습니다. 지도 제공처에는 화면 영역·접속 정보가 전달될 수 있습니다.", en: "Your location is displayed. Coordinates are not sent to or stored by the W.A.V.E route service. Map providers may receive the visible map area and connection information." });
+      setRouteNotice({ ko: "현재 위치를 표시했습니다. WAVE 경로 API로 좌표를 보내거나 저장하지 않습니다. 지도 제공처에는 화면 영역·접속 정보가 전달될 수 있습니다.", en: "Your location is displayed. Coordinates are not sent to or stored by the WAVE route service. Map providers may receive the visible map area and connection information." });
     }
   }, [onPrivateOrigin]);
 

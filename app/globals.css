@@ -1,27 +1,27 @@
 @import "leaflet/dist/leaflet.css";
 
-/* Deep Ocean — 심연에서 포말까지 이어지는 파도 팔레트.
-   명도는 대비비를 지키는 선에서 고정하고, 색상은 168~206도 바다 대역 안에서만 움직인다. */
+/* Horizon — Owner의 10번 시안. 기존 의미 토큰 이름을 유지한다.
+   경고·혼잡·성공 상태색과 보류된 다크 모드 토큰은 별도로 관리한다. */
 :root {
   --abyss: #04202f;
-  --ink: #06304a;
-  --ink-soft: #0f4f70;
-  --blue: #0a6baf;
-  --blue-dark: #074f84;
+  --ink: #2b2632;
+  --ink-soft: #51475e;
+  --blue: #6940a6;
+  --blue-dark: #58348d;
   --surf: #17b8d4;
   --mint: #6fe3d0;
-  --sky: #e6f4fb;
-  --paper: #f2f9fc;
-  --line: #cbe1ed;
-  --muted: #4b7184;
+  --sky: #efecf5;
+  --paper: #f5f4f8;
+  --line: #dcd8e4;
+  --muted: #696071;
   --white: #fff;
   /* 파란 배경 위에 얹는 글자. 어두운 화면에서는 --blue가 밝아지므로 흰색을
      그대로 두면 대비가 2.47까지 떨어진다. 배경 토큰과 짝으로 뒤집는다. */
   --on-blue: #fff;
   --foam: #f7fcfe;
-  /* 연한 바다 표면 — 전 구역이 공유하는 단일 배경 */
-  --surface: #eef7fc;
-  --surface-deep: #e2f0f8;
+  /* 전 구역이 공유하는 바탕 */
+  --surface: #f5f4f8;
+  --surface-deep: #e9e3f3;
   --scroll-progress: 0%;
   --scroll-shift: 0px;
   --layout-max: 1840px;
@@ -35,7 +35,7 @@ body {
   margin: 0;
   background: var(--white);
   color: var(--ink);
-  font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   font-size: clamp(1rem, .97rem + .12vw, 1.075rem);
   line-height: 1.65;
   text-rendering: optimizeLegibility;
@@ -67,7 +67,6 @@ html[data-theme="dark"] .route-state-page button,html[data-theme="dark"] .route-
 ::selection { color: var(--on-blue); background: var(--blue); }
 :focus-visible { outline: 3px solid #ffb800; outline-offset: 4px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-.landing-header-actions,.planner-header-actions { display: flex; align-items: center; gap: 8px; }
 
 .skip-link {
   position: fixed; z-index: 120; left: 18px; top: -80px;

@@ -30,7 +30,7 @@ export default function KakaoLogin({ returnTo }: { returnTo?: string }) {
       <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.48 3 2 6.5 2 10.82c0 2.77 1.86 5.2 4.67 6.59l-.95 3.51c-.08.3.26.54.52.37l4.14-2.76c.53.07 1.07.11 1.62.11 5.52 0 10-3.5 10-7.82S17.52 3 12 3Z" /></svg>
       {pending ? "카카오로 이동하는 중…" : "카카오 로그인"}
     </button>
-    {(message || callbackError) && <p className="auth-message" role="alert">{message || "카카오 로그인을 완료하지 못했습니다. 같은 이메일의 W.A.V.E 계정이 있다면 이메일로 로그인한 뒤 ‘계정 관리’에서 카카오를 연결해 주세요."}</p>}
-    <p className="auth-switch">또는 이메일로 계속하기</p>
+    {(message || callbackError) && <p className="auth-message" role="alert">{message || "카카오 로그인을 완료하지 못했습니다. 같은 이메일의 WAVE 계정이 있다면 이메일로 로그인한 뒤 ‘계정 관리’에서 카카오를 연결해 주세요."}</p>}
+    <p className="kakao-auth-caption">카카오 계정으로 간편하게 시작해요.</p><p className="auth-divider">또는 이메일로 로그인</p>
   </div>;
 }

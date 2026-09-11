@@ -22,7 +22,7 @@ test("통합 플래너는 실제 시간순 이동수단을 먼저 보여주고 �
   await expect(kakaoWalk).toHaveAttribute("href", `https://map.kakao.com/link/by/walk/${encodeURIComponent("창원중앙역")},35.2422,128.6982/${encodeURIComponent("경남도립미술관")},35.238,128.691`);
 });
 
-test("장소 상세는 카카오 후기와 정확히 연결된 W.A.V.E 커뮤니티 글을 함께 보여준다", async ({ page }) => {
+test("장소 상세는 카카오 후기와 정확히 연결된 WAVE 커뮤니티 글을 함께 보여준다", async ({ page }) => {
   await mockPlannerApi(page);
   const post = {
     id: "traveler-changwon-access",

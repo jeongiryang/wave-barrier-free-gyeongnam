@@ -44,7 +44,7 @@ for (const theme of ["light", "dark"] as const) {
     await conditions.getByRole("button", { name: /History and culture/ }).click();
     await expect(conditions).not.toContainText(/[가-힣]/);
     expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
-    await page.locator(".reference-search > button").nth(1).click();
+    await page.locator(".reference-search-sentence > button").nth(1).click();
     await expect(conditions.getByLabel("Start date", { exact: true })).toBeVisible();
     await expect(conditions.getByLabel("End date", { exact: true })).toBeVisible();
     await expect(conditions).not.toContainText(/[가-힣]/);

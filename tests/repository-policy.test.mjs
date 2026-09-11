@@ -486,7 +486,7 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext\)/);
   assert.match(routePlanning, /useRouteOrigin\(clearRouteAlternatives\)/);
   assert.match(routeOrigin, /navigator\.geolocation\.getCurrentPosition/);
-  assert.match(routeOrigin, /W.A.V.E 경로 API로 좌표를 보내거나 저장하지 않습니다/);
+  assert.match(routeOrigin, /WAVE 경로 API로 좌표를 보내거나 저장하지 않습니다/);
   assert.match(routeOrigin, /지도 제공처/);
   assert.doesNotMatch(routePlanning, /navigator\.geolocation/);
   assert.match(routePlanning, /nextOriginLabel/);
@@ -740,7 +740,7 @@ test("every user-facing footer exposes the repository with an accessible tooltip
     styleSource(),
   ]);
   assert.match(link, /https:\/\/github\.com\/jeongiryang\/wave-barrier-free-gyeongnam/);
-  assert.match(link, /aria-label=\{locale === "en" \? "Open the W\.A\.V\.E GitHub repository" : "W\.A\.V\.E GitHub 저장소 열기"\}/);
+  assert.match(link, /aria-label=\{locale === "en" \? "Open the WAVE GitHub repository" : "WAVE GitHub 저장소 열기"\}/);
   assert.match(link, /data-tooltip="GitHub"/);
   for (const page of [landing, planner, shared]) assert.match(page, /<GithubFooterLink \/>/);
   assert.match(css, /\.github-footer-link \{ width: 44px; height: 44px/);

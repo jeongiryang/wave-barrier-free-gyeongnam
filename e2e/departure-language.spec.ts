@@ -104,7 +104,7 @@ test("calendar failure and retry keep keyboard focus, English notices and the sa
   await page.keyboard.press("Enter");
   const download = await downloading;
   const contents = (await readFile((await download.path())!, "utf8")).replaceAll("\r\n ", "");
-  expect(contents).toContain("SUMMARY:W.A.V.E Changwon accessible trip");
+  expect(contents).toContain("SUMMARY:WAVE Changwon accessible trip");
   expect(contents).toContain("DTSTART;TZID=Asia/Seoul:20261008T100000");
   expect(contents).toContain("경남도립미술관");
   expect(contents).toContain("Before leaving");

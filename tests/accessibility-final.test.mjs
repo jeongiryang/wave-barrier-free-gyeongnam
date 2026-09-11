@@ -19,7 +19,11 @@ test("공개 화면은 좁은 폭에서도 닫히지 않는 주요 메뉴와 실
   assert.match(mobileNav, /aria-controls=\{panelId\}/);
   assert.match(mobileNav, /event\.key !== "Escape"/);
   assert.match(mobileNav, /triggerRef\.current\?\.focus\(\)/);
-  for (const header of [landingHeader, communityHeader, authShell]) assert.match(header, /PublicMobileNav/);
+  for (const header of [landingHeader, communityHeader]) assert.match(header, /WaveHeader/);
+  assert.match(authShell, /SkipLink/);
+  const header = await source("components/WaveHeader.tsx");
+  assert.match(header, /<nav aria-label/);
+  for (const route of ["/planner", "/community", "/travel-book"]) assert.ok(header.includes(route));
   assert.match(skipLink, /target\.focus\(\{ preventScroll: true \}\)/);
   assert.match(skipLink, /scrollToSection\(id\)/);
   assert.match(css, /\.public-mobile-nav-panel a \{[\s\S]*min-height: 48px/);
@@ -56,5 +60,5 @@ test("전역 44px·calm·reflow 계약이 마지막 스타일 경계에 있다",
 test("자동 숨김 헤더는 focusin에서 상태를 복구한다", async () => {
   const chrome = await source("features/planner/hooks/usePlannerChrome.ts");
   assert.match(chrome, /document\.addEventListener\("focusin", restoreForKeyboard\)/);
-  assert.match(chrome, /closest\("\.site-header"\).*setHeaderHidden\(false\)/);
+  assert.match(chrome, /closest\("\.wave-header,\.site-header"\).*setHeaderHidden\(false\)/);
 });

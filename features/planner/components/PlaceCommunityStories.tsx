@@ -43,8 +43,8 @@ export default function PlaceCommunityStories({ place, location }: { place: Plac
   }, [place.id, attempt]);
 
   return <section className="place-community-stories" aria-labelledby="place-community-title">
-    <header><div><small>{say("W.A.V.E 커뮤니티 · 공식 점수 미반영", "W.A.V.E community · excluded from official scores")}</small><h3 id="place-community-title">{say("이 장소의 여행자 현장 이야기", "Visitor stories about this place")}</h3></div><Link href={`/community?placeId=${encodeURIComponent(place.id)}&placeName=${encodeURIComponent(place.name)}&region=${encodeURIComponent(location)}`}>{say("전체 보기 →", "View all →")}</Link></header>
-    <div role="status">{loading ? say("W.A.V.E 커뮤니티 이야기를 확인하고 있어요.", "Loading visitor stories.") : failed ? say("현장 후기를 불러오지 못했습니다. 다시 시도해 주세요.", "We couldn't load visitor stories. Please try again.") : null}</div>
+    <header><div><small>{say("WAVE 커뮤니티 · 공식 점수 미반영", "WAVE community · excluded from official scores")}</small><h3 id="place-community-title">{say("이 장소의 여행자 현장 이야기", "Visitor stories about this place")}</h3></div><Link href={`/community?placeId=${encodeURIComponent(place.id)}&placeName=${encodeURIComponent(place.name)}&region=${encodeURIComponent(location)}`}>{say("전체 보기 →", "View all →")}</Link></header>
+    <div role="status">{loading ? say("WAVE 커뮤니티 이야기를 확인하고 있어요.", "Loading visitor stories.") : failed ? say("현장 후기를 불러오지 못했습니다. 다시 시도해 주세요.", "We couldn't load visitor stories. Please try again.") : null}</div>
     {(failed || attempt > 0) && <button type="button" aria-disabled={loading} onClick={() => { if (!loading) { setLoading(true); setAttempt((value) => value + 1); } }}>{say("현장 후기 다시 확인", "Reload visitor stories")}</button>}
     {!loading && !failed && (posts.length ? <div className="place-community-story-list">
       {posts.map((post) => <Link key={post.id} href={`/community/${encodeURIComponent(post.id)}`}>

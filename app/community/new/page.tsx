@@ -5,7 +5,7 @@ import { pageMetadata } from "../../../lib/site-metadata";
 
 export const metadata = pageMetadata({
   title: "여행 후기 작성",
-  description: "경남 여행 경험과 관광지 편의정보를 W.A.V.E 여행자들과 나눕니다.",
+  description: "경남 여행 경험과 관광지 편의정보를 WAVE 여행자들과 나눕니다.",
   path: "/community/new",
   index: false,
 });

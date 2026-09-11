@@ -44,7 +44,7 @@ export default function RegionalInsights({ enrichment, loading, visitorTypes, de
     </article>
 
     <aside className="layer-principle">
-      <span>{english ? "A W.A.V.E travel note" : "W.A.V.E 여행 메모"}</span>
+      <span>{english ? "A WAVE travel note" : "WAVE 여행 메모"}</span>
       <strong>{english ? "A popular place can be different from the right place for you." : <>많이 찾는 곳과<br />나에게 맞는 곳은<br />다를 수 있어요.</>}</strong>
       <p>{english ? "Use demand and visitor numbers as context. Check facility information and visitor concentration forecasts alongside them." : "수요·방문량은 선택의 맥락으로만 사용합니다. 편의시설 정보와 혼잡 예측을 함께 보세요."}</p>
     </aside>

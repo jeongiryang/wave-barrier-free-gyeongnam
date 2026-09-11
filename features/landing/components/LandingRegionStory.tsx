@@ -119,9 +119,10 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
         <RegionScenePhoto key={photo.id} photo={photo} name={regionLabel(active.name)} english={english} />
       </div>
       <div id="region-current" className="region-showcase-caption selected-region" aria-live={running ? "off" : "polite"} aria-atomic="true">
-        <small>{english ? "A scene from Gyeongnam" : "지금 만나는 경남"}</small>
-        <strong key={active.name} tabIndex={-1}>{regionLabel(active.name)}</strong><p lang="ko">{photo.title}</p>
+        <small>{regionLabel(active.name)}</small>
+        <strong key={active.name} tabIndex={-1} lang="ko">{photo.title}</strong><p>{english ? "A landscape for your kind of day." : "마음이 머무는 풍경, 우리의 속도로."}</p>
       </div>
+      <Link className="region-card-start" href={`/planner?region=${encodeURIComponent(active.name)}`} aria-label={`${regionLabel(active.name)} 여행 설계`}><span aria-hidden="true">↗</span></Link>
       <div className="region-photo-selector" role="group" aria-label={`${regionLabel(active.name)} ${english ? "photographs" : "사진 선택"}`}>
         {album.map((item, index) => <button key={item.id} type="button" lang="ko" aria-labelledby={`region-photo-${index}-name region-photo-${index}-action`} title={item.title} aria-pressed={index === photoIndex} aria-controls="region-photograph" onClick={() => { setAutomatic(false); setPhotoChoice({ region: active.name, index }); }}><span aria-hidden="true" /><b className="sr-only"><span id={`region-photo-${index}-name`} lang="ko">{item.title}</span><span id={`region-photo-${index}-action`} lang={locale}> · {english ? "show photograph" : "사진 보기"}</span></b></button>)}
       </div>

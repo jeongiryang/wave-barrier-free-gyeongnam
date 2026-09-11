@@ -71,12 +71,12 @@ test("랜딩 딥링크와 플래너 헤더는 안내형 보기에서도 실제 �
   const headerNavigation = page.getByRole("navigation", { name: "주요 메뉴" });
   if (await headerNavigation.isVisible()) {
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    const conditionsLink = page.locator(".reference-search > button").first();
+    const conditionsLink = page.locator(".reference-search-sentence > button").first();
     await expect(conditionsLink).toBeInViewport();
     await conditionsLink.click();
     await expect(page.locator("#conditions")).toBeVisible();
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    const itineraryAction = page.locator(".header-action");
+    const itineraryAction = page.locator(".wave-my-trips");
     await expect(itineraryAction).toBeInViewport();
     await itineraryAction.click();
     await expect(page.locator("#itinerary")).toBeVisible();

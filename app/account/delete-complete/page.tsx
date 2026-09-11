@@ -5,7 +5,7 @@ import { pageMetadata } from "../../../lib/site-metadata";
 export const metadata = {
   ...pageMetadata({
     title: "계정 삭제 완료",
-    description: "W.A.V.E 계정 삭제 뒤 연결된 서비스 데이터를 정리합니다.",
+    description: "WAVE 계정 삭제 뒤 연결된 서비스 데이터를 정리합니다.",
     path: "/account/delete-complete",
     index: false,
   }),

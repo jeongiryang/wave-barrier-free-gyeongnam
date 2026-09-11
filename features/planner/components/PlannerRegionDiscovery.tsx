@@ -31,7 +31,7 @@ export default function PlannerRegionGallery({ value, onChange, onInterest, onFa
       return <article key={name} className={`reference-region-card${index === 0 ? " featured" : ""}`} data-selected={name === value || undefined}>
         {!failedImages.includes(photo.image) && <img lang="ko" src={photo.image} alt={`${name} · ${photo.title}`} width="800" height="500" loading="lazy" decoding="async" onError={() => setFailedImages(previous => [...previous, photo.image])} />}
         <div className="reference-region-copy" lang="ko"><h4>{name}</h4><p>{captions[name] || photo.title}</p></div>
-        <button type="button" aria-label={`${name} 지역 선택`} aria-pressed={name === value} onClick={() => onChange(name)}>{name === value ? `${name} 선택됨 ✓` : "선택"}</button>
+        <button type="button" aria-label={`${name} 지역 선택`} aria-pressed={name === value} onClick={() => onChange(name)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg></button>
         <a className="reference-photo-credit" href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{photo.photographer || "한국관광공사"} · 원본 ↗</a>
       </article>;
     })}</div>

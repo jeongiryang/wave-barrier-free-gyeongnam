@@ -52,8 +52,8 @@ test("place detail can surface only real public WAVE community stories", async (
   ]);
   assert.match(dialog, /<PlaceCommunityStories/);
   assert.match(stories, /listCommunityPosts/);
-  assert.match(stories, /W\.A\.V\.E 커뮤니티 · 공식 점수 미반영/);
-  assert.match(stories, /W\.A\.V\.E community · excluded from official scores/);
+  assert.match(stories, /WAVE 커뮤니티 · 공식 점수 미반영/);
+  assert.match(stories, /WAVE community · excluded from official scores/);
   assert.doesNotMatch(stories, /샘플/);
   assert.match(reads, /p\.author_id <> 'wave-seed'/);
   assert.match(retirement, /moderation_status = 'hidden'/);

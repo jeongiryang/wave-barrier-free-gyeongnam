@@ -39,8 +39,8 @@ async function assertContrast(page: Page, selector: string, name: string) {
 }
 
 const TARGETS = [
-  [".preference-panel header b", "패널 제목"],
-  [".preference-panel header small", "패널 설명"],
+  [".preference-panel-heading b", "패널 제목"],
+  [".preference-panel-heading small", "패널 설명"],
   [".preference-row b", "설정 이름"],
   [".preference-row small", "설정 상태"],
   [".preference-row select", "언어 선택"],

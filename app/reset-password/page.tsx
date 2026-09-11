@@ -4,7 +4,7 @@ import { pageMetadata } from "../../lib/site-metadata";
 
 export const metadata = pageMetadata({
   title: "새 비밀번호 설정",
-  description: "이메일로 받은 링크를 사용해 W.A.V.E 계정 비밀번호를 새로 설정합니다.",
+  description: "이메일로 받은 링크를 사용해 WAVE 계정 비밀번호를 새로 설정합니다.",
   path: "/reset-password",
   index: false,
 });

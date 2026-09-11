@@ -1,6 +1,5 @@
 /* 계정 없이 여행 전후의 흐름을 잇는 로컬 여행집 */
 .travel-book-page { min-height: 100vh; padding: 1px 0 70px; color: var(--ink); background: var(--surface); }
-.travel-book-page > .community-header { position: relative; z-index: 5; }
 .travel-book-hero { width: min(1240px,calc(100% - 48px)); margin: 24px auto 48px; padding: 48px 0 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: 44px; color: var(--ink); }
 .travel-book-hero p { margin: 0 0 20px; color: var(--muted); font-size: .75rem; font-weight: 650; letter-spacing: .13em; }
 .travel-book-hero h1 { margin: 0; font-size: clamp(2.8rem,4.6vw,4.8rem); font-weight: 500; line-height: 1.24; letter-spacing: -.055em; }
@@ -56,9 +55,8 @@
 .travel-book-archive-controls { display: flex; align-items: stretch; gap: 6px; }.travel-book-archive-controls button,.travel-book-archive-controls a { min-height: 46px; padding: 10px 13px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #bad5df; border-radius: 11px; color: var(--blue); background: #fff; font: inherit; font-size: .68rem; font-weight: 900; cursor: pointer; }.travel-book-archive-controls button { color: #fff; border-color: #075a69; background: #075a69; }.travel-book-archive-controls button:disabled { opacity: .5; cursor: wait; }.travel-book-archive-action > small { grid-column: 1/-1; min-height: 1em; color: #216d59; font-size: .63rem; }
 
 html[data-theme="dark"] .travel-book-page { color: #edf7fb; background: #061f2b; }
-html[data-theme="dark"] .travel-book-privacy { border-color: #376e60; background: #123e35; }html[data-theme="dark"] .travel-book-privacy strong { color: #9ce4ca; }html[data-theme="dark"] .travel-book-privacy p { color: #b4d0c6; }
 html[data-theme="dark"] .travel-book-card { border-color: #315767; background: #0a2b39; }html[data-theme="dark"] .travel-book-status { background: #123848; }html[data-theme="dark"] .travel-book-status button { color: #b2ccd7; }html[data-theme="dark"] .travel-book-status button[aria-pressed="true"] { color: #fff; background: #0c7194; }
-html[data-theme="dark"] .travel-book-profiles li { color: #c4e1eb; border-color: #38687b; background: #123848; }html[data-theme="dark"] .travel-book-days section { border-color: #315767; background: #0c3140; }html[data-theme="dark"] .travel-book-days li { background: #123b4b; }html[data-theme="dark"] .travel-book-days li > span { color: #073b38; }html[data-theme="dark"] .travel-book-days li em { color: #8fe3c5; }
+html[data-theme="dark"] .travel-book-profiles li { color: #c4e1eb; border-color: #38687b; background: #123848; }html[data-theme="dark"] .travel-book-days section { border-color: #315767; background: #0c3140; }html[data-theme="dark"] .travel-book-days li { background: #2b2632; }html[data-theme="dark"] .travel-book-days li > span { color: #073b38; }html[data-theme="dark"] .travel-book-days li em { color: #8fe3c5; }
 html[data-theme="dark"] .travel-book-days section > header strong { color: #bad1da; }
 html[data-theme="dark"] .travel-book-note textarea { color: #edf7fb; border-color: #386273; background: #0d3444; }html[data-theme="dark"] .travel-book-actions :is(a,button) { color: #bde7f4; border-color: #386273; background: #0d3444; }html[data-theme="dark"] .travel-book-actions .primary { color: #fff; border-color: #0a7193; background: #0a7193; }html[data-theme="dark"] .travel-book-delete button { color: #ffb6c4; }
 html[data-theme="dark"] .travel-book-empty { border-color: #386273; background: #0a2b39; }html[data-theme="dark"] .travel-book-empty > span { background: #123f50; }
@@ -71,11 +69,10 @@ html[data-theme="dark"] .travel-book-preview > footer { color: #d9edf4; backgrou
   .travel-book-archive-action { grid-template-columns: 1fr; }.travel-book-archive-controls { grid-column: 1; }.travel-book-archive-controls > * { flex: 1; }
 }
 @media (max-width: 620px) {
-  .travel-book-hero,.travel-book-list,.travel-book-footer { width: calc(100% - 16px); }.travel-book-privacy,.travel-book-empty { width: calc(100% - 24px); }
+  .travel-book-hero,.travel-book-list,.travel-book-footer { width: calc(100% - 16px); }.travel-book-empty { width: calc(100% - 24px); }
   .travel-book-hero { margin-top: 8px; padding: 26px 12px 0; gap: 28px; }.travel-book-hero h1 { font-size: clamp(2.3rem,9vw,3.6rem); }.travel-book-hero dl div { min-height: 64px; padding: 8px 4px; gap: 8px; }.travel-book-hero dt { font-size: .7rem; }
   .travel-book-landscapes { gap: 12px; }.travel-book-landscapes .editorial-photo { min-height: 290px; border-radius: 60px 6px 6px; }.travel-book-landscapes .editorial-photo:nth-child(2) { margin-top: 48px; }.travel-book-landscapes figcaption { font-size: .58rem; left: 10px; right: 10px; }
-  .travel-book-paths { grid-template-columns: 1fr; gap: 0; margin-bottom: 44px; }.travel-book-paths > a { padding: 20px 0; }.travel-book-paths strong { margin-top: 8px; }
-  .travel-book-privacy { align-items: flex-start; flex-direction: column; text-align: left; }.travel-book-card { border-radius: 22px; }.travel-book-cover { min-height: 220px; }.travel-book-card-body { padding: 20px 14px; }.travel-book-days li { grid-template-columns: 30px 1fr; }.travel-book-days li em { grid-column: 2; white-space: normal; }.travel-book-days section > header { align-items: flex-start; flex-direction: column; }
+  .travel-book-paths { grid-template-columns: 1fr; gap: 0; margin-bottom: 44px; }.travel-book-paths > a { padding: 20px 0; }.travel-book-paths strong { margin-top: 8px; }.travel-book-card { border-radius: 22px; }.travel-book-cover { min-height: 220px; }.travel-book-card-body { padding: 20px 14px; }.travel-book-days li { grid-template-columns: 30px 1fr; }.travel-book-days li em { grid-column: 2; white-space: normal; }.travel-book-days section > header { align-items: flex-start; flex-direction: column; }
   .travel-book-actions { grid-template-columns: 1fr; }.travel-book-delete { align-items: stretch; flex-wrap: wrap; }.travel-book-delete-confirm { width: 100%; align-items: stretch; flex-wrap: wrap; }.travel-book-delete span { width: 100%; }.travel-book-archive-controls { flex-direction: column; }.travel-book-footer { flex-direction: column; align-items: center; }
   .travel-book-preview li { grid-template-columns: auto 1fr; }.travel-book-preview li small { grid-column: 2; }
 }

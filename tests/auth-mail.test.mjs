@@ -25,7 +25,7 @@ test("Gmail transport keeps certificate validation, bounded timeouts and credent
 test("account emails contain a Korean, single-recipient, deployment-owned action link", () => {
   const message = accountEmail(reset);
   assert.equal(message.to.address, "traveler@example.com");
-  assert.equal(message.subject, "W.A.V.E 비밀번호 재설정");
+  assert.equal(message.subject, "WAVE 비밀번호 재설정");
   assert.match(message.html, /lang="ko"/);
   assert.match(message.text, /비밀번호 재설정/);
   assert.equal(message.disableFileAccess, true);
@@ -59,7 +59,7 @@ test("malformed recipients fail before transport and caller cannot replace the s
   let calls = 0;
   const send = createAccountMailer(env, () => ({ async sendMail(message) {
     calls++;
-    assert.deepEqual(message.from, { name: "W.A.V.E", address: env.SMTP_USER });
+    assert.deepEqual(message.from, { name: "WAVE", address: env.SMTP_USER });
     assert.equal(message.attachments, undefined);
     return { accepted: ["traveler@example.com"], rejected: [] };
   } }));

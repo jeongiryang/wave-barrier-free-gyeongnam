@@ -11,7 +11,7 @@ export default function PhotoCoursePage() {
   return <main className="photo-course-page">
     <SkipLink href="#photo-course-main">본문으로 바로가기</SkipLink>
     <header className="photo-course-page-header">
-      <Link href="/" className="photo-course-brand" aria-label="W.A.V.E 홈">W.A.V.E</Link>
+      <Link href="/" className="photo-course-brand" aria-label="WAVE 홈">WAVE</Link>
       <nav aria-label="사진 코스 화면 이동">
         <Link href="/planner">여행 설계</Link>
         <Link href="/travel-book">내 여행</Link>

@@ -12,11 +12,11 @@ test("the full-screen arrival leads through the complete Korean service story", 
   page.on("pageerror", error => errors.push(error.message));
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
-  await expect(intro.getByRole("button")).toHaveCount(1);
+  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
+  await expect(intro.getByRole("button")).toHaveCount(0);
   await expect(intro.locator("canvas")).toHaveAttribute("data-intro-phase", "wordmark");
   await page.screenshot({ path: test.info().outputPath("01-fullscreen-intro.png") });
-  await intro.getByRole("button", { name: "소개로 건너뛰기" }).click();
+  await page.keyboard.press("Escape");
   await expect(intro).toBeHidden();
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   await page.screenshot({ path: test.info().outputPath("02-hero.png") });
@@ -32,7 +32,7 @@ test("the full-screen arrival leads through the complete Korean service story", 
     await page.screenshot({path:test.info().outputPath("02c-progress-always-visible.png")});
     await page.locator(".landing-actions a[href='/planner']").focus();
   }
-  for (const [index, selector] of [".region-story", ".horizon-how", ".horizon-account", ".horizon-departure", ".horizon-community", ".landing-cta"].entries()) {
+  for (const [index, selector] of [".horizon-how", ".region-story", ".horizon-account", ".horizon-departure", ".horizon-community", ".landing-cta"].entries()) {
     const section = page.locator(selector);
     const heading = section.locator(selector === ".region-story" ? ".selected-region strong" : "h2").first();
     // The chapter section now spans three native scroll scenes. Bring its

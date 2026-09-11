@@ -16,9 +16,9 @@
   color: var(--ink); background: rgba(255,255,255,.98);
   box-shadow: 0 24px 60px rgba(4,32,47,.2); backdrop-filter: blur(18px);
 }
-.preference-panel header { padding: 5px 6px 10px; display: grid; gap: 2px; border-bottom: 1px solid var(--line); }
-.preference-panel header b { font-size: .94rem; }
-.preference-panel header small,.preference-panel > p,.preference-row small { color: var(--muted); font-size: .68rem; font-weight: 650; }
+.preference-panel-heading { padding: 5px 6px 10px; display: grid; gap: 2px; border-bottom: 1px solid var(--line); }
+.preference-panel-heading b { font-size: .94rem; }
+.preference-panel-heading small,.preference-panel > p,.preference-row small { color: var(--muted); font-size: .68rem; font-weight: 650; }
 .preference-row {
   width: 100%; min-height: 56px; padding: 9px 10px;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;

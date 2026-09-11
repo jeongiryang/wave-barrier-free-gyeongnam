@@ -1,23 +1,11 @@
 
 /* --- 여행자 커뮤니티 --- */
 .community-page { min-height: 100svh; padding-top: 1px; color: var(--ink); background: var(--surface); }
-.community-header { width: min(1320px,calc(100% - 64px)); min-height: 80px; margin: 16px auto 0; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
-.community-header nav { display: flex; align-items: center; gap: 4px; padding: 4px; font-size: .8rem; font-weight: 650; }
-.community-header nav a { position: relative; min-height: 44px; padding: 10px 16px; display: flex; align-items: center; border-radius: 100px; white-space: nowrap; }
-.community-header nav a[aria-current="page"] { color: var(--blue); background: var(--sky); }
-.community-header nav a[aria-current="page"]::after { display: none; }
-.community-header-actions { display: flex; align-items: center; gap: 8px; }
 .community-hero { width: min(1240px,calc(100% - 48px)); min-height: 500px; margin: 0 auto; padding: 90px 0 70px; display: grid; grid-template-columns: 1.1fr .9fr; align-items: end; gap: clamp(50px,8vw,110px); }
 .community-hero h1 { margin: 14px 0 22px; font-size: clamp(3.5rem,6.8vw,7.2rem); line-height: .96; letter-spacing: -.075em; }
 .community-hero h1 em { color: var(--blue); font-style: normal; }
 .community-hero > div:first-child > p:last-child { max-width: 650px; color: var(--muted); font-size: 1rem; line-height: 1.75; }
-.community-principles { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--line); }
-.community-principles span { padding: 18px; display: grid; gap: 4px; background: rgba(255,255,255,.88); }
-.community-principles b { font-size: .84rem; }
-.community-principles small { color: var(--muted); line-height: 1.5; }
 .community-workspace { padding: 32px max(24px,calc((100vw - 1240px)/2)) 90px; background: var(--surface); }
-.community-toolbar { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
-.community-toolbar h2 { margin: 6px 0 0; font-size: clamp(2.3rem,4vw,4rem); letter-spacing: -.06em; }
 .community-write { min-height: 54px; padding: 14px 26px; display: inline-flex; align-items: center; justify-content: center; gap: 28px; border-radius: 100px; color: var(--on-blue); background: var(--blue); font-size: .94rem; font-weight: 750; }
 .community-place-filter { margin-top: 30px; padding: 15px 17px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid #aadbe9; border-radius: 16px; background: #eaf9fd; }
 .community-place-filter small,.community-place-filter strong { display: block; }
@@ -50,9 +38,7 @@
 .community-hero.community-editorial h1 { font-size: clamp(2.7rem,4.4vw,4.5rem); line-height: 1.35; font-weight: 500; letter-spacing: -.055em; }
 .community-editorial > img { width: 100%; height: 300px; object-fit: cover; border-radius: 4px 52px 4px 4px; }
 .community-editorial > div > p { max-width: 520px; color: var(--muted); line-height: 1.7; }
-.community-editorial-note { font-size: .8rem; }
 .community-page .community-workspace { border-radius: 0; border-top: 1px solid var(--line); padding-top: 28px; }
-.community-page .community-toolbar h2 { font-size: 2rem; }
 .community-page .community-list article { border-radius: 26px; }
 .community-page .community-state { border-radius: 10px; border-style: solid; min-height: 230px; }
 @keyframes communityShimmer { to { background-position: -220% 0; } }
@@ -175,9 +161,9 @@ html[data-theme="dark"] .moderation-queue blockquote { background: #193746; }
  .community-hero.community-editorial > div > p:not(.section-kicker) { font-size: .9rem; margin-block: 10px; }
  .community-page .community-workspace { padding-top: 28px; } }
 
-html:not([data-theme="dark"]) :is(.community-page,.travel-book-page,.photo-course-page) { --ink: #173b50; --muted: #506a7b; --line: #d7e5ee; --paper: #edf5fb; --surface: #f6f9fc; --surface-deep: #e5eff7; }
+html:not([data-theme="dark"]) :is(.community-page,.travel-book-page,.photo-course-page) { --ink: #2b2632; --muted: #696071; --line: #dcd8e4; --paper: #efecf5; --surface: #f5f4f8; --surface-deep: #e9e3f3; }
 .community-write svg { width: 24px; height: 24px; }.community-layout-switch { display: flex; gap: 4px; padding: 4px; border-radius: 100px; background: var(--white); }.community-layout-switch button { min-height: 44px; padding: 8px 18px; border: 0; border-radius: 100px; color: var(--muted); background: transparent; font: inherit; font-size: .8rem; }.community-layout-switch [aria-pressed=true] { background: var(--ink); color: var(--white); }
 .community-story-cover { min-height: 200px; margin: -24px -24px 24px; padding: 24px; display: grid; place-content: center; justify-items: center; gap: 12px; background: var(--surface-deep); color: var(--blue); }.community-story-cover svg { width: 42px; height: 42px; }.community-story-cover span { font-size: 1.5rem; letter-spacing: -.04em; }.community-story-cover small { color: var(--muted); font-size: .75rem; }.community-list [data-category=review] .community-story-cover { background: var(--paper); }.community-list [data-category=place] .community-story-cover { background: var(--sky); }
 .community-list[data-layout=list] { grid-template-columns: 1fr; }.community-list[data-layout=list] .community-story-cover { display: none; }.community-list[data-layout=list] article > a { min-height: 0; }.community-list[data-layout=list] h3 { margin-top: 14px; }
-@media (max-width: 980px) { .community-header { padding-inline: 18px; }.community-controls form { flex: 1 1 50%; } }
-@media (max-width: 680px) { .community-header { margin-top: 12px; border-radius: 28px; padding: 10px 14px; gap: 10px; }.community-hero .community-write { width: auto; justify-self: start; }.community-controls form { min-width: 0; flex: auto; }.community-layout-switch { align-self: flex-end; }.community-story-cover { min-height: 180px; } }
+@media (max-width: 980px) {.community-controls form { flex: 1 1 50%; } }
+@media (max-width: 680px) {.community-hero .community-write { width: auto; justify-self: start; }.community-controls form { min-width: 0; flex: auto; }.community-layout-switch { align-self: flex-end; }.community-story-cover { min-height: 180px; } }

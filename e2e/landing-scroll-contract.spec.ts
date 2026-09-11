@@ -10,34 +10,16 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: photo }));
 });
 
-test("scroll direction reveals navigation without hiding focused or open preferences", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
-  const nav = page.locator(".landing-header");
-  const top = () => nav.evaluate(el => el.getBoundingClientRect().bottom);
+test("primary navigation remains visible while scrolling and utilities live below content", async ({ page }) => {
+  await page.goto("/"); await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
+  const nav = page.locator(".wave-header");
   await page.evaluate(() => scrollTo({ top: 500, behavior: "instant" }));
-  await expect.poll(top).toBeLessThan(0);
-  await page.evaluate(() => scrollBy({ top: -2, behavior: "instant" }));
-  await expect.poll(top).toBeGreaterThan(44);
-  // Native <summary> is exposed as a disclosure by Chromium, not an ARIA button.
-  const preferences = nav.getByLabel("환경설정 열기", { exact: true });
-  await expect(preferences).toHaveAccessibleName("환경설정 열기");
-  expect(await preferences.evaluate(node => node.tagName)).toBe("SUMMARY");
-  await preferences.focus();
-  await preferences.press("Enter");
-  await expect(nav.locator("details.preference-controls")).toHaveAttribute("open", "");
-  await page.evaluate(() => scrollBy({ top: 300, behavior: "instant" }));
-  await expect(preferences).toBeFocused();
-  await expect.poll(top).toBeGreaterThan(44);
-  await page.keyboard.press("Escape");
-  await expect(preferences).toBeFocused();
-  await page.evaluate(() => scrollBy({ top: 80, behavior: "instant" }));
-  await expect.poll(top).toBeGreaterThan(44);
-  for (const control of [preferences, nav.getByRole("button", { name: "도움말", exact: true })]) {
-    const bounds = await control.boundingBox();
-    expect(bounds!.width).toBeGreaterThanOrEqual(44);
-    expect(bounds!.height).toBeGreaterThanOrEqual(44);
-  }
+  await expect(nav).toBeInViewport();
+  await expect(nav.locator(".preference-controls,.help-button")).toHaveCount(0);
+  const home = nav.locator(".wave-wordmark"); await home.focus(); await expect(home).toBeFocused();
+  await expect(nav.getByRole("navigation").getByRole("link")).toHaveCount(3);
+  for (const control of [home,nav.locator(".wave-my-trips")]) { const box = await control.boundingBox(); expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44); }
+  await expect(page.locator(".wave-footer-tools .help-button")).toBeEnabled();
 });
 
 for (const width of [320, 390]) {
@@ -48,7 +30,7 @@ for (const width of [320, 390]) {
     await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
     // Ignore only the observer visibility marker; retain every section identity and order.
     const classes = await page.locator("main > section").evaluateAll(nodes => nodes.map(node => Array.from(node.classList).filter(name => name !== "is-visible").join(" ")));
-    expect(classes).toEqual(["landing-hero", "region-story region-showcase", "horizon-how", "horizon-account", "horizon-departure", "horizon-community", "landing-cta"]);
+    expect(classes).toEqual(["landing-hero", "horizon-how", "region-story region-showcase", "horizon-account", "horizon-departure", "horizon-community", "landing-cta"]);
     await expect(page.locator("main > section details, .journey-stage-controls, .region-showcase-selection, .region-map-details")).toHaveCount(0);
     await expect(page.getByRole("button", {name:/풍경 재생|영상 일시정지|실제 여행 계획 살펴보기|자동 넘김/})).toHaveCount(0);
     await expect(page.locator(".landing-actions a[href='/planner']")).toHaveAccessibleName("여행 계획하기");

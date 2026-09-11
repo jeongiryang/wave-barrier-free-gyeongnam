@@ -241,7 +241,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
     const text = photoCourseShareText(course.days, names, enrichments);
     const canShare = typeof navigator.share === "function";
     try {
-      if (canShare) await navigator.share({ title: "W.A.V.E 여행 코스", text });
+      if (canShare) await navigator.share({ title: "WAVE 여행 코스", text });
       else await navigator.clipboard.writeText(text);
       setExportNotice(canShare ? "기기의 공유 화면을 열었습니다." : "좌표가 제거된 코스를 클립보드에 복사했습니다.");
     } catch (error) {
