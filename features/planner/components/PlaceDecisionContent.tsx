@@ -11,6 +11,7 @@ function DetailsUnavailable() {
 }
 const PlaceEvidenceSummary = lazy(() => import("./PlaceEvidenceSummary").catch(() => ({ default: DetailsUnavailable })));
 const PlaceParticipationActions = lazy(() => import("./PlaceParticipationActions").catch(() => ({ default: DetailsUnavailable })));
+const PlaceInquiryCard = lazy(() => import("./PlaceInquiryCard").catch(() => ({ default: DetailsUnavailable })));
 
 function StoriesUnavailable({ place, location }: { place: Place; location: string }) {
   const { locale } = useSitePreferences();
@@ -28,6 +29,7 @@ export default function PlaceDecisionContent(props: PlaceDecisionDialogProps & {
   const en = locale === "en";
   return <>
         <Suspense fallback={<p role="status">{en ? "Loading facility details…" : "편의정보를 불러오는 중…"}</p>}><PlaceEvidenceSummary place={place} /></Suspense>
+        <Suspense fallback={<p role="status">{en ? "Preparing visitor questions…" : "방문 전 문의를 준비하고 있어요…"}</p>}><PlaceInquiryCard key={place.id} place={place} en={en} /></Suspense>
         <Suspense fallback={<p role="status">{en ? "Preparing visitor stories." : "현장 후기 화면을 준비하고 있어요."}</p>}>
           <PlaceCommunityStories place={place} location={location} />
         </Suspense>
