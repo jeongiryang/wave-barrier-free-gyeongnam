@@ -67,7 +67,7 @@ function serverStep(): JourneyStepId {
 export function usePlannerStageView() {
   const view = useSyncExternalStore(subscribe, currentView, serverView);
   const activeStepId = useSyncExternalStore(subscribe, currentStep, serverStep);
-  const [focusTarget, setFocusTarget] = useState<{ id: string } | null>(null);
+  const [focusTarget, setFocusTarget] = useState<{ id: string; from: Element | null } | null>(null);
   const [conditionQuestion, setConditionQuestion] = useState(0);
   const focusedRequest = useRef(focusTarget);
 
@@ -88,7 +88,7 @@ export function usePlannerStageView() {
         url.hash = target;
         window.history.pushState(null, "", url);
       }
-      setFocusTarget({ id: target });
+      setFocusTarget({ id: target, from: document.activeElement });
     }
     fallbackStep = next;
     try {
@@ -107,13 +107,19 @@ export function usePlannerStageView() {
     url.hash = "conditions";
     window.history.pushState(null, "", url);
     changeStep("conditions");
-    setFocusTarget({ id: "conditions" });
+    setFocusTarget({ id: "conditions", from: document.activeElement });
   }, [changeStep]);
 
   useLayoutEffect(() => {
     if (!focusTarget || focusedRequest.current === focusTarget) return;
     const section = document.getElementById(focusTarget.id);
     if (!section || section.closest("[hidden]")) return;
+    // A result can commit after someone has already focused another control.
+    // Consume this request without taking that person's focus back.
+    if (document.activeElement !== document.body && document.activeElement !== focusTarget.from) {
+      focusedRequest.current = focusTarget;
+      return;
+    }
     const heading = focusTarget.id === "layers"
       ? section.querySelector<HTMLElement>("summary") || section
       : section.querySelector<HTMLElement>("h2, h3") || section;
@@ -133,7 +139,7 @@ export function usePlannerStageView() {
       setConditionQuestion(Number.isInteger(question) && question >= 0 && question <= 3 ? question : 0);
       const destination = HASH_STEPS[window.location.hash.slice(1)] || HASH_STEPS.conditions;
       changeStep(destination.step);
-      if (event) setFocusTarget({ id: destination.target });
+      if (event) setFocusTarget({ id: destination.target, from: document.activeElement });
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
       firstFrame = window.requestAnimationFrame(() => {

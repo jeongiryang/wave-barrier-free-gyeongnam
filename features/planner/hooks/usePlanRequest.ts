@@ -51,7 +51,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       cancelReveal();
     };
     // A delayed result must not move someone who has already continued using the page.
-    for (const type of ["pointerdown", "wheel", "touchstart", "keydown"]) {
+    for (const type of ["pointerdown", "wheel", "touchstart", "keydown", "focusin"]) {
       window.addEventListener(type, onInteraction, { capture: true, passive: true, signal: reveal.signal });
     }
     const controller = new AbortController();
