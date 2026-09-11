@@ -34,7 +34,7 @@ html[data-theme="dark"] .region-change-dialog { background: #082938; color: #eaf
 .place-evidence { margin-bottom: 16px; border: 1px solid var(--line); border-radius: 13px; background: var(--paper); }
 .place-evidence summary { min-height: 46px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.875rem; font-weight: 600; }
 .place-evidence summary::after { content: "+"; color: var(--blue); font-size: 1.1rem; }
-.place-evidence[open] summary::after { content: "−"; }
+.place-evidence[open] > summary::after { content: "−"; }
 .place-evidence > ul { margin: 0; padding: 2px 14px 14px; }
 .place-evidence .modal-data { margin: 0; padding: 0 14px 14px; }
 .place-evidence > p { padding: 0 14px; line-height: 1.6; }

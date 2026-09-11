@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { resolveSavedPlaces } from "../../../lib/saved-place-catalog.js";
 import { sanitizeTripBreaks, type StopPurpose } from "../../../lib/trip-comfort.js";
 import { canMoveVisitDate } from "../../../lib/trip-date-move.js";
+import { planVoiceEdit, voiceStateKey, canUndoVoiceEdit, type VoiceState, type VoiceEditReceipt } from "../../../lib/voice-edit.js";
 import type { RoutePoint } from "../../routing/types";
 import type { Place } from "../types";
 import { useOptimizedTripOrder } from "./useOptimizedTripOrder";
@@ -15,7 +16,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
   origin: RoutePoint;
   accessibilityProfileCount: number;
 }) {
-  const { saved, catalog, resetSaved, storageReady: savedStorageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId } = useSavedPlaceIds();
+  const { saved, catalog, resetSaved, storageReady: savedStorageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId, restoreSavedPlace } = useSavedPlaceIds();
   const schedule = useTripSchedule();
   const [dayChoice, setActiveDay] = useState("");
   const activeDay = schedule.tripDays.includes(dayChoice) ? dayChoice : schedule.tripDays[0];
@@ -99,7 +100,32 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
     resetSaved(); schedule.resetSchedule(start, end); optimized.resetOrder(); setActiveDay("");
   };
 
+  const voiceState: VoiceState = { saved, order: optimized.orderedPlaceIds, manualOrder: optimized.manualOrderIds, mode: optimized.orderMode, days: schedule.tripDays, activeDay, startTime: schedule.dayStartTime, assignments: schedule.scheduleAssignments, visits: schedule.visitMinutesByPlaceId, breaks: schedule.breakMinutesByPlaceId, purposes: schedule.restPurposeByPlaceId, fixed: schedule.fixedVisits, deadlines: schedule.dayDeadlines, comfort: schedule.comfort };
+  const voiceRevision = voiceStateKey(voiceState);
+  const applyVoiceEdit = (action: 'add' | 'remove', requested: Place, day: string) => {
+    if (!savedStorageReady || !schedule.storageReady || !optimized.orderStorageReady) return { ok: false as const, reason: '저장한 여행을 불러온 뒤 다시 확인해 주세요.' };
+    const place = (action === 'add' ? activePlaces : savedPlaces).find(item => item.id === requested.id);
+    if (!place) return { ok: false as const, reason: '지금 선택할 수 있는 실제 장소를 다시 확인해 주세요.' };
+    const receipt = planVoiceEdit(voiceState, action, place, day);
+    if (!receipt.ok) return receipt;
+    if (action === 'add') { addSavedIds([place.id], [place]); schedule.assignPlaceToDay(place.id, day); }
+    else { schedule.removePlaceAssignment(place.id); removeSavedId(place.id); }
+    optimized.restoreOrderSnapshot('manual', receipt.after.order);
+    return receipt;
+  };
+  const undoVoiceEdit = (receipt: VoiceEditReceipt) => {
+    if (!canUndoVoiceEdit(voiceState, receipt)) return false;
+    const id = receipt.place.id, before = receipt.before;
+    if (receipt.action === 'add') { schedule.removePlaceAssignment(id); removeSavedId(id); }
+    else restoreSavedPlace(receipt.place, before.saved.indexOf(id));
+    if (before.assignments[id]) schedule.assignPlaceToDay(id, before.assignments[id]);
+    schedule.setVisitMinutes(id, before.visits[id] ?? null); schedule.setBreakMinutes(id, before.breaks[id] ?? null); schedule.setStopPurpose(id, before.purposes[id] ?? null);
+    optimized.restoreOrderSnapshot(before.mode, before.manualOrder);
+    return true;
+  };
+
   return {
+    voiceRevision, applyVoiceEdit, undoVoiceEdit,
     rememberSavedPlaces,
     addSuggestedBreaks, addRestStop, addCourseStop,
     canMoveToDate, movePlaceToDate,

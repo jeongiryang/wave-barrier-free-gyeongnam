@@ -1,5 +1,7 @@
 # W.A.V.E API·환경 변수 전수조사
 
+2026-09-12 후보24: 선택적 `SpeechRecognition`/`webkitSpeechRecognition`을 직접 시작할 때만 사용한다. 한국어·단일 최종 결과·20초 상한, 중단/취소/화면 숨김·이탈 시 해제, 늦은 이벤트는 무시한다. WAVE 서버·DB·로그·브라우저 저장소로 음성이나 명령문을 보내지 않는다. 브라우저 제공처가 서버 기반 인식을 사용할 수 있으므로 기기 안 처리나 오프라인 동작을 보장하지 않는다. 미지원·권한 거부·실패는 동일 문자 조작으로 이어 간다. 유료 음성/LLM API·새 관광/교통 조회·메시지 호출 없음. [공식 Web API 문서](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
+
 2026-09-12 후보22: 동행 합류 계획은 이미 담은 공개 장소와 조회된 동일 구간 이동만 브라우저에서 재사용한다. 나뉜 구간은 거리 기반 추정으로 표시하며 새 API·ODsay·GPS 조회를 하지 않는다. 익명 A/B 배정·약속 시각은 별도 최대20개 저장본과 사용자가 선택한 오프라인 파일에만 남기고 계정·공유·서버·메시지로 보내지 않는다. 출발지 좌표는 저장하지 않는다. 저장 원본과 장소·순서·시간·고정 약속이 다르면 재확인 없이 오프라인 요약에 넣지 않는다.
 
 2026-09-12 기능 후보18: `/api/wave?action=return-transport&contentId=…`는 KTO 공개 장소 ID의 `detailCommon2`(lDongRegnCd48·공식 좌표)를 확인한 뒤 TAGO 주변 정류장을 조회한다. 목록에서 선택한 cityCode/nodeId만 도착 조회에 허용하고, 반환된 routeId만 [노선별 경유 정류소·노선 상세](https://www.data.go.kr/data/15098529/openapi.do)에 연결한다. [도착 API](https://www.data.go.kr/data/15098530/openapi.do)의 arrtime은 초,0은 조회 시점 도착 예상이며 누락과 구분한다. startvehicletime/endvehicletime은 기점 출발 첫차·막차다.

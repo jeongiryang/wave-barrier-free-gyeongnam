@@ -1,0 +1,15 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {planVoiceEdit,canUndoVoiceEdit,voiceStateKey} from '../lib/voice-edit.js';
+const state={saved:['1001','1002','1003'],order:['1001','1002','1003'],mode:'auto',days:['2026-10-08','2026-10-09'],assignments:{1001:'2026-10-08',1002:'2026-10-08',1003:'2026-10-09'},visits:{1002:45},breaks:{1002:15},purposes:{1002:'rest'},fixed:{1003:{kind:'event',time:'12:00',position:0}},deadlines:{},startTime:'10:00'};
+test('confirmed edits affect one date, preserve constraints and keep exact original data for undo',()=>{
+ const before=voiceStateKey(state),edit=planVoiceEdit(state,'add',{id:'1004'},state.days[0]);assert(edit.ok);assert.deepEqual(edit.after.order,['1001','1002','1004','1003']);assert.equal(edit.after.mode,'manual');assert.deepEqual(edit.after.fixed,state.fixed);assert(canUndoVoiceEdit(edit.after,edit));assert(!canUndoVoiceEdit({...edit.after,visits:{1002:60}},edit));assert.equal(voiceStateKey(state),before);
+ const remove=planVoiceEdit(state,'remove',{id:'1002'},state.days[0]);assert(remove.ok);assert.equal(remove.after.visits['1002'],undefined);assert.equal(remove.before.visits['1002'],45);assert.equal(remove.before.breaks['1002'],15);assert.equal(remove.before.purposes['1002'],'rest');assert(canUndoVoiceEdit(remove.after,remove));
+});
+test('pins, following appointments, duplicate/unknown IDs and twelve-place bounds do not edit',()=>{
+ assert(!planVoiceEdit(state,'remove',{id:'1003'},state.days[0]).ok);assert(!planVoiceEdit({...state,fixed:{1002:{kind:'visit'}}},'remove',{id:'1001'},state.days[0]).ok);assert(!planVoiceEdit(state,'add',{id:'1001'},state.days[0]).ok);assert(!planVoiceEdit(state,'remove',{id:'9999'},state.days[0]).ok);assert(!planVoiceEdit(state,'add',{id:'javascript:1'},state.days[0]).ok);assert(!planVoiceEdit({...state,saved:Array.from({length:12},(_,i)=>String(2000+i))},'add',{id:'9999'},state.days[0]).ok);assert(!planVoiceEdit(state,'add',{id:'9999'},'2026-10-10').ok);
+});
+test('orphan pins and outside-period removals cannot leave an undo that fails to restore the original date',()=>{assert(!planVoiceEdit({...state,fixed:{9999:{kind:'visit'}}},'add',{id:'9999'},state.days[0]).ok);assert(!planVoiceEdit({...state,assignments:{...state.assignments,1002:'2026-11-01'}},'remove',{id:'1002'},state.days[0]).ok);assert(!planVoiceEdit({...state,assignments:{...state.assignments,9999:'2026-11-01'}},'add',{id:'9999'},state.days[0]).ok);});
+test('unresolved saved places and a different selected day are preserved; inactive manual order is captured for undo',()=>{
+ assert(!planVoiceEdit({...state,order:['1001']},'add',{id:'1004'},state.days[0]).ok);assert(!planVoiceEdit(state,'remove',{id:'1002'},state.days[1]).ok);
+ const before={...state,manualOrder:['1003','1001','1002']},edit=planVoiceEdit(before,'remove',{id:'1002'},state.days[0]);assert(edit.ok);assert.deepEqual(edit.before.manualOrder,before.manualOrder);assert.deepEqual(edit.after.manualOrder,['1001','1003']);assert(!canUndoVoiceEdit({...edit.after,manualOrder:['1003','1001']},edit));
+});

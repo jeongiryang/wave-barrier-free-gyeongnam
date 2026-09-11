@@ -133,6 +133,9 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
   );
 
   const resetOrder = useCallback(() => { setOrderMode("auto"); setManualOrder([]); setNotice(null); }, []);
+  const restoreOrderSnapshot = useCallback((mode: OrderMode, ids: string[]) => {
+    setManualOrder([...ids]); setOrderMode(mode); setNotice(null);
+  }, []);
 
   return {
     resetOrder,
@@ -140,6 +143,9 @@ export function useOptimizedTripOrder({ savedPlaces, saved, savedStorageReady, o
     orderedPlaceIds: orderedSavedPlaces.map((place) => place.id),
     orderExplanation,
     orderMode,
+    manualOrderIds: reconciledManualOrder,
+    orderStorageReady,
+    restoreOrderSnapshot,
     orderNotice,
     movePlace,
     movementFor,

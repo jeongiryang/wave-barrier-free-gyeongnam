@@ -72,6 +72,13 @@ export function useSavedPlaceIds() {
   }, []);
 
   const resetSaved = useCallback(() => { setSaved([]); setCatalog([]); }, []);
+  const restoreSavedPlace = useCallback((place: Place, index: number) => {
+    setSaved(current => {
+      if (current.includes(place.id)) return current;
+      const next = [...current]; next.splice(Math.max(0, Math.min(index, next.length)), 0, place.id); return next;
+    });
+    setCatalog(current => mergeSavedPlaceCatalog(current, [place]));
+  }, []);
 
-  return { resetSaved, saved, catalog, storageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId };
+  return { resetSaved, saved, catalog, storageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId, restoreSavedPlace };
 }

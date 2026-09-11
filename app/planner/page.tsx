@@ -47,6 +47,7 @@ import RegionChangeDialog from "../../features/planner/components/RegionChangeDi
 const PlannerTripOverview = lazy(() => import("../../features/planner/components/PlannerTripOverview"));
 const AlternativeComparisonDialog = lazy(() => import("../../features/planner/components/AlternativeComparisonDialog"));
 const CourseExpansion = lazy(() => import("../../features/planner/components/CourseExpansion"));
+const VoiceTripControls = lazy(() => import("../../features/planner/components/VoiceTripControls"));
 
 export default function PlannerPage() {
   const { hydrated, locale, motion, t } = useSitePreferences();
@@ -267,7 +268,7 @@ export default function PlannerPage() {
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerItineraryWorkspace
-                alternativeTools={<><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /><Suspense fallback={<p role="status">코스 도구를 준비하고 있어요.</p>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={setSelectedPlace}/></Suspense></>}
+                alternativeTools={<><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /><Suspense fallback={<p role="status">코스 도구를 준비하고 있어요.</p>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={setSelectedPlace}/></Suspense><Suspense fallback={<p role="status">음성·문자 도구를 준비하고 있어요.</p>}><VoiceTripControls trip={tripSelection} places={activePlaces} current={planController.resultCurrent} visible={stageView.view === "overview" || journey.activeStepId === "itinerary"} contextKey={JSON.stringify([region,theme,selected,origin,privateOrigin])} onSelectPlace={setSelectedPlace}/></Suspense></>}
                 mapView={itineraryMapView}
                 onMapViewChange={setItineraryMapView}
                 canAddPlaces={planController.resultCurrent}
