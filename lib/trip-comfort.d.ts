@@ -1,0 +1,11 @@
+export type TripComfort = { maxWalkMinutes: number | null; breakEveryMinutes: number | null; breakMinutes: number };
+export type StopPurpose = "rest" | "restroom";
+export type WalkingEvidence = { metres: number | null; minutes: number | null; longestMinutes: number | null };
+export const emptyComfort: TripComfort;
+export function sanitizeComfort(value: unknown): TripComfort;
+export function sanitizeTripBreaks(value: unknown, allowedIds?: string[]): Record<string, number>;
+export function sanitizeStopPurposes(value: unknown, allowedIds?: string[]): Record<string, StopPurpose>;
+export function combineCompanionNeeds(participants: unknown, selected?: string[], comfort?: TripComfort): { selected: string[]; comfort: TripComfort };
+export function routeWalkingEvidence(route: unknown): WalkingEvidence | null;
+export function assessWalking(entries: Array<{ id: string; evidence: WalkingEvidence | null }>, maxWalkMinutes: number | null): { checked: number; unknown: number; minutes: number; metres: number; unknownMetres: number; overLimit: Array<{ id: string; minutes: number }> };
+export function suggestTripBreaks(days: Array<{ entries: Array<{ place: { id: string }; travelMinutes: number; visitMinutes: number; waitingMinutes?: number }> }>, preference: TripComfort, existing?: Record<string, number>): Record<string, number>;

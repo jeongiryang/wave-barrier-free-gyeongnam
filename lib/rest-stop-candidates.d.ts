@@ -1,0 +1,2 @@
+import type { Place } from "../features/planner/types";
+export function restStopCandidates(input: { places: Place[]; anchor?: Place; next?: Place; savedIds?: string[]; requiredKeys?: string[]; purpose?: "rest" | "restroom"; includeUnknown?: boolean; radiusKm?: number }): Array<{ place: Place; distanceKm: number; detourKm: number | null; extraTravelMinutes: number | null; unknown: number; restroom: NonNullable<Place["accessibility"]>[number] | null }>;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { routeWalkingEvidence } from "../../../lib/trip-comfort.js";
 import { buildItineraryLegs, usableLegRoutes } from "../../../lib/itinerary-legs.js";
 import { fetchRouteData, type RouteDataBundle } from "../services/route-data";
 import type { useTripSelection } from "./useTripSelection";
@@ -19,6 +20,8 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
     const best = usableLegRoutes(data[leg.key], route.routeTravelMode)[0];
     return best ? [[leg.place.id, best.totalTime]] : [];
   }));
+
+  const walkingByPlaceId = Object.fromEntries(legs.map(leg => [leg.place.id, routeWalkingEvidence(usableLegRoutes(data[leg.key], route.routeTravelMode)[0])]));
 
   useEffect(() => { controllerRef.current?.abort(); }, [signature]);
   useEffect(() => () => controllerRef.current?.abort(), []);
@@ -60,5 +63,5 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
     setEvidence({ signature: "", data: {} }); setLoading(false); setNotice("");
   }
 
-  return { resetItineraryRoutes, legs, data, loading, notice, signature, readyCount, complete: legs.length > 0 && readyCount === legs.length, routeMinutes, checkRoutes, cancel: () => controllerRef.current?.abort() };
+  return { walkingByPlaceId, resetItineraryRoutes, legs, data, loading, notice, signature, readyCount, complete: legs.length > 0 && readyCount === legs.length, routeMinutes, checkRoutes, cancel: () => controllerRef.current?.abort() };
 }

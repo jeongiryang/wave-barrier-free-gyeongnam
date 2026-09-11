@@ -94,6 +94,7 @@ export default function PlannerPage() {
     selectedPlaceIds: orderedPlaceIds,
     fixedVisits: tripSelection.fixedVisits,
     dayDeadlines: tripSelection.dayDeadlines,
+    breakMinutesByPlaceId: tripSelection.breakMinutesByPlaceId, restPurposeByPlaceId: tripSelection.restPurposeByPlaceId,
     originLabel,
     selectedPlace,
   });

@@ -246,8 +246,8 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .reference-stop-actions { display: flex; align-items: center; gap: 2px; }
 .reference-stop-actions > button,.reference-stop-actions summary { display: grid; place-items: center; height: 44px; width: 34px; min-width: 34px; padding: 0; border: 0; background: none; color: #51475e; border-radius: 8px; }
 .reference-stop-actions details { position: relative; }
-.reference-stop-actions details > div { position: absolute; z-index: 10; right: 0; top: 44px; min-width: 210px; padding: 16px; background: white; border: 1px solid #dcd8e4; border-radius: 12px; box-shadow: 0 8px 28px rgb(36 50 54 / 14%); }
-.reference-stop-actions label { display: grid; gap: 8px; font-size: 12px; }
+.reference-stop-actions details > div { position: absolute; z-index: 10; right: 0; top: 44px; min-width: 210px; max-height: 60svh; overflow-y: auto; overscroll-behavior: contain; padding: 16px; background: white; border: 1px solid #dcd8e4; border-radius: 12px; box-shadow: 0 8px 28px rgb(36 50 54 / 14%); }
+.reference-stop-actions label { display: grid; gap: 8px; font-size: 14px; }
 .reference-stop-actions select,.reference-stop-actions details button { min-height: 44px; width: 100%; margin: 6px 0; border: 1px solid #dcd8e4; border-radius: 8px; background: white; color: #2b2632; }
 .reference-leg-time { margin: 0 0 0 30px; padding: 8px 14px; border-left: 2px solid #86cfc4; color: #696071; font-size: 11px; }
 .reference-start-time { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #696071; }

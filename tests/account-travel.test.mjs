@@ -30,7 +30,7 @@ function fixture(t) {
 }
 test("account trip storage has an explicit field allowlist and rejects corrupt dates/IDs", () => {
   const safe = accountTripPayload({ ...payload, latitude: 35, longitude: 128, email: "private@example.com", origin: { latitude: 35 }, profiles: ["wheelchair"], places: [{ summary: "Provider data" }], image: "private.jpg" });
-  assert.deepEqual(Object.keys(safe).sort(), ["version", "title", "region", "travelStart", "travelEnd", "dayStartTime", "themes", "placeIds", "scheduleAssignments", "visitMinutesByPlaceId", "fixedVisits", "dayDeadlines", "status", "note"].sort());
+  assert.deepEqual(Object.keys(safe).sort(), ["version", "title", "region", "travelStart", "travelEnd", "dayStartTime", "themes", "placeIds", "scheduleAssignments", "visitMinutesByPlaceId", "breakMinutesByPlaceId", "restPurposeByPlaceId", "fixedVisits", "dayDeadlines", "status", "note"].sort());
   for (const change of [{ region: "서울" }, { travelStart: "2026-02-30" }, { travelEnd: "2026-09-30" }, { placeIds: ["https://example.com"] }, { placeIds: ["123456", "123456"] }, { scheduleAssignments: { "123456": "2026-09-30" } }]) assert.throws(() => accountTripPayload({ ...payload, ...change }));
   const converted = bookToAccountTrip({ ...payload, places: [{ id: "123456", name: "API title", image: "photo", latitude: 35 }] });
   assert.deepEqual(converted.placeIds, ["123456"]); assert.equal(JSON.stringify(converted).includes("API title"), false);

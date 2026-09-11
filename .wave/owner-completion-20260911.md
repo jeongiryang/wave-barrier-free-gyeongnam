@@ -49,19 +49,19 @@ User authorizes continuation through design refinements, all 24 researched featu
 ## Feature candidates — all authorized; status is per feature, not inferred from a placeholder
 
 1. COMPLETE #480 — On-demand official opening/holiday/admission information and planned visit comparison. Exact-head CI34591124346, main CI34592274140 and Production CD34593181788 PASS; merged as `8ec3b525d28a0caa53259f9baae72670f5e2e215`. Actual Production1440/390 changed-time/cache/source checks PASS with one new visitor-info request (HTTP200, KTO data); no new plan/route calls or account/message writes. Evidence `D:/wave-completion-20260911/production-480-summary.json`.
-2. PENDING — Walking burden and scheduled rests based on user preferences.
+2. ACTIVE — Walking segment minutes versus personal continuous-walk limit, explicit rest proposals, manual rest duration and schedule/deadline recalculation; focused checks and release in progress.
 3. PENDING — Compare targeted replacement with original and undo.
 4. COMPLETE #472 — 2–3 place facility comparison, matching needs first, confirmed/negative/unknown fields, sources and direct save/remove. Independent QA and Production interaction checks PASS.
 5. PENDING — On-trip progress, skip, resume and remaining schedule.
-6. PENDING — Companion needs combined into trip constraints.
+6. ACTIVE — Up to eight anonymous companion drafts combine selected needs without erasing prior choices; shortest chosen walking limit; no participant drafts in account/public data. Focused checks and release in progress.
 7. COMPLETE #472 — Large Korean communication/inquiry card, selected questions, custom text, copy/manual fallback and PNG save. No automatic message. Independent QA and Production interaction checks PASS.
-8. ACTIVE — Per-day return/appointment deadline, optional user-entered travel and buffer; remaining/overrun/unknown comparison. Local/archive/account/share integration and focused verification in progress.
+8. COMPLETE #482 — Per-day return/appointment deadline with unknown/remaining/overrun states. Merged `c858d8604731c72c649e8bcbbf4cdc41cfba5bb4`; exact-head CI34593707786, main CI34594780611, Production CD34595690466 PASS. Actual deployed UI1440/390 fixed/return/date/cancel/archive/restore checks PASS, reusing previously captured real Production responses (no fresh provider or account/message writes). Evidence `D:/wave-completion-20260911/production-482-summary.json`.
 9. COMPLETE #474 — Editable visit duration and downstream recalculation. Presets/custom15–720/default, date/order isolation, local archive/account/public-share persistence. Independent QA, CI/CD and Production changed-feature verification PASS.
 10. PENDING — Reason-driven alternatives (far, visited, easier, indoor).
 11. PENDING — Weather alternatives with evidence-backed indoor suitability.
 12. PENDING — Quieter-date comparison within available forecast coverage.
-13. ACTIVE — Keep accommodation/must-visit/event IDs, dates and daily positions; optional fixed clock inserts waiting or reports lateness. Explicit unpin, save/restore and shared display implemented; independent QA and release pending.
-14. PENDING — Rest/toilet stops added to schedule with evidence.
+13. COMPLETE #482 — Keep accommodation/must-visit/event IDs, dates and daily positions; optional clock inserts waiting or reports lateness. Explicit unpin and local/archive/account/shared integration. Independent QA, exact-head/main CI, Production CD and1440/390 delivered-UI checks PASS (same evidence as candidate8).
+14. ACTIVE — Nearby rest/accessible-restroom candidates from current public results, confirmed/unknown/negative facilities, estimated detour, short duration, insertion and later-pin guard. Focused checks and release in progress.
 15. PENDING — Recent facility confirmation history and structured update reports.
 16. PENDING — Trip cost/budget with known/unknown distinctions.
 17. PENDING — Offline-readable trip summary/export.

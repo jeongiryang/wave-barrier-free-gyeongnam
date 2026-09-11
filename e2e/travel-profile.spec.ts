@@ -9,7 +9,7 @@ test("편의 조건은 저장 뒤에도 자동 적용하지 않고 사용자가 
   const profileChoices = page.locator(".profile-grid");
 
   await profileChoices.getByRole("button", { name: /청각 정보 지원/ }).click();
-  const profile = page.locator(".travel-profile-card");
+  const profile = page.locator(".travel-profile-card").filter({ has: page.locator("summary").filter({ hasText: "편의 조건 저장·불러오기" }) });
   await profile.locator("summary").click();
   await profile.getByRole("button", { name: "이 조건 저장" }).click();
   await expect(page.getByRole("status").filter({ hasText: "편의 조건을 저장했습니다" })).toBeVisible();
@@ -48,7 +48,7 @@ test("손상되거나 차단된 프로필 저장소는 현재 선택을 잃지 �
       return original.call(this, key, value);
     };
   });
-  const profile = page.locator(".travel-profile-card");
+  const profile = page.locator(".travel-profile-card").filter({ has: page.locator("summary").filter({ hasText: "편의 조건 저장·불러오기" }) });
   await profile.locator("summary").click();
   await profile.getByRole("button", { name: "이 조건 저장" }).click();
   await expect(page.getByText(/편의 조건을 저장하지 못했어요/)).toBeVisible();

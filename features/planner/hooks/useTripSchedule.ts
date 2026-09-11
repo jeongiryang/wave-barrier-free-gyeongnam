@@ -8,6 +8,8 @@ import { boundedTripEnd, offsetTripDate, validTripDate } from "../../../lib/trip
 import { changeVisitDuration, sanitizeVisitDurations } from "../../../lib/visit-durations.js";
 import { sanitizeFixedVisits, sanitizeDayDeadlines, type FixedVisit, type DayDeadline } from "../../../lib/trip-time-constraints.js";
 
+import { emptyComfort, sanitizeComfort, sanitizeTripBreaks, sanitizeStopPurposes, type TripComfort, type StopPurpose } from "../../../lib/trip-comfort.js";
+
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 const TRIP_SCHEDULE_KEY = "wave-trip-schedule-v1";
 
@@ -19,6 +21,9 @@ type StoredSchedule = {
   visitMinutesByPlaceId?: unknown;
   fixedVisits?: unknown;
   dayDeadlines?: unknown;
+  comfort?: unknown;
+  breakMinutesByPlaceId?: unknown;
+  restPurposeByPlaceId?: unknown;
 };
 
 function readStoredSchedule(): StoredSchedule {
@@ -40,6 +45,9 @@ export function useTripSchedule() {
   const [visitMinutesByPlaceId, setVisitMinutesByPlaceId] = useState<Record<string, number>>({});
   const [fixedVisits, setFixedVisits] = useState<Record<string, FixedVisit>>({});
   const [dayDeadlines, setDayDeadlines] = useState<Record<string, DayDeadline>>({});
+  const [comfort, updateComfort] = useState<TripComfort>(emptyComfort);
+  const [breakMinutesByPlaceId, setTripBreaks] = useState<Record<string, number>>({});
+  const [restPurposeByPlaceId, setStopPurposes] = useState<Record<string, StopPurpose>>({});
   const [constraintNotice, setConstraintNotice] = useState("");
   const [storageReady, setStorageReady] = useState(false);
   const [dateNotice, setDateNotice] = useState<{ kind: "limit" | "adjusted" | "invalid"; end?: string } | null>(null);
@@ -69,6 +77,9 @@ export function useTripSchedule() {
       setVisitMinutesByPlaceId(sanitizeVisitDurations(stored.visitMinutesByPlaceId));
       setFixedVisits(sanitizeFixedVisits(stored.fixedVisits));
       setDayDeadlines(sanitizeDayDeadlines(stored.dayDeadlines));
+      updateComfort(sanitizeComfort(stored.comfort));
+      setTripBreaks(sanitizeTripBreaks(stored.breakMinutesByPlaceId));
+      setStopPurposes(sanitizeStopPurposes(stored.restPurposeByPlaceId));
       setStorageReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
@@ -84,12 +95,20 @@ export function useTripSchedule() {
         scheduleAssignments,
         visitMinutesByPlaceId,
         fixedVisits,
-        dayDeadlines,
+        dayDeadlines, comfort, breakMinutesByPlaceId, restPurposeByPlaceId,
       }));
     } catch {
       // 저장소가 차단돼도 현재 탭의 일정 편집은 유지한다.
     }
-  }, [dayStartTime, scheduleAssignments, storageReady, travelEnd, travelStart, visitMinutesByPlaceId, fixedVisits, dayDeadlines]);
+  }, [dayStartTime, scheduleAssignments, storageReady, travelEnd, travelStart, visitMinutesByPlaceId, fixedVisits, dayDeadlines, comfort, breakMinutesByPlaceId, restPurposeByPlaceId]);
+
+  const setComfort = useCallback((value: TripComfort) => updateComfort(sanitizeComfort(value)), []);
+  const setBreakMinutes = useCallback((id: string, minutes: number | null) => {
+    setTripBreaks(current => { const next = { ...current }; if (minutes === null) delete next[id]; else next[id] = minutes; return sanitizeTripBreaks(next); });
+  }, []);
+  const setStopPurpose = useCallback((id: string, purpose: StopPurpose | null) => {
+    setStopPurposes(current => { const next = { ...current }; if (purpose === null) delete next[id]; else next[id] = purpose; return sanitizeStopPurposes(next); });
+  }, []);
 
   const setFixedVisit = useCallback((id: string, value: FixedVisit | null) => {
     setFixedVisits(current => { const next = { ...current }; if (value) Object.assign(next, sanitizeFixedVisits({ [id]: value })); else delete next[id]; return next; });
@@ -137,15 +156,17 @@ export function useTripSchedule() {
   }, [travelStart, tripDays]);
 
   const removePlaceAssignment = useCallback((placeId: string) => {
+    setBreakMinutes(placeId, null); setStopPurpose(placeId, null);
     setVisitMinutesByPlaceId(current => changeVisitDuration(current, placeId, null));
     setScheduleAssignments((current) => {
       const next = { ...current };
       delete next[placeId];
       return next;
     });
-  }, []);
+  }, [setBreakMinutes, setStopPurpose]);
 
   const replacePlaceAssignment = useCallback((previousId: string, nextId: string) => {
+    setBreakMinutes(previousId, null); setStopPurpose(previousId, null);
     // A duration chosen for the old venue does not imply the same visit at its replacement.
     setVisitMinutesByPlaceId(current => changeVisitDuration(current, previousId, null));
     setScheduleAssignments((current) => {
@@ -153,12 +174,13 @@ export function useTripSchedule() {
       delete next[previousId];
       return next;
     });
-  }, [travelStart, tripDays]);
+  }, [travelStart, tripDays, setBreakMinutes, setStopPurpose]);
 
   const resetSchedule = useCallback((start: string, end: string) => {
     setTravelStart(start); setTravelEnd(end); setDayStartTime("10:00");
     setScheduleAssignments({}); setVisitMinutesByPlaceId({}); setDateNotice(null);
     setFixedVisits({}); setDayDeadlines({}); setConstraintNotice("");
+    updateComfort(emptyComfort); setTripBreaks({}); setStopPurposes({});
   }, []);
 
   return {
@@ -173,6 +195,7 @@ export function useTripSchedule() {
     visitMinutesByPlaceId,
     fixedVisits,
     dayDeadlines,
+    comfort, setComfort, breakMinutesByPlaceId, restPurposeByPlaceId, setBreakMinutes, setStopPurpose,
     setFixedVisit,
     setDayDeadline,
     canChangePlace,

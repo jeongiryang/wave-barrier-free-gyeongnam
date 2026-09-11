@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { resolveSavedPlaces } from "../../../lib/saved-place-catalog.js";
+import { sanitizeTripBreaks, type StopPurpose } from "../../../lib/trip-comfort.js";
 import type { RoutePoint } from "../../routing/types";
 import type { Place } from "../types";
 import { useOptimizedTripOrder } from "./useOptimizedTripOrder";
@@ -69,12 +70,28 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
     return true;
   };
 
+  const addSuggestedBreaks = (values: Record<string, number>) => {
+    for (const [id, minutes] of Object.entries(sanitizeTripBreaks(values, saved))) schedule.setBreakMinutes(id, minutes);
+  };
+
+  const addRestStop = (afterId: string, place: Place, minutes: number, purpose: StopPurpose) => {
+    const day = schedule.scheduleAssignments[afterId] || schedule.tripDays[0];
+    const sameDay = optimized.orderedSavedPlaces.filter(item => (schedule.scheduleAssignments[item.id] || schedule.tripDays[0]) === day);
+    const afterIndex = sameDay.findIndex(item => item.id === afterId);
+    if (afterIndex < 0 || !schedule.tripDays.includes(day) || saved.includes(place.id) || saved.length >= 12 || sameDay.slice(afterIndex + 1).some(item => schedule.fixedVisits[item.id])) return false;
+    addSavedIds([place.id], [place]);
+    schedule.assignPlaceToDay(place.id, day); schedule.setVisitMinutes(place.id, minutes); schedule.setStopPurpose(place.id, purpose);
+    optimized.insertPlaceAfter(afterId, place.id);
+    return true;
+  };
+
   const resetTrip = (start: string, end: string) => {
     resetSaved(); schedule.resetSchedule(start, end); optimized.resetOrder(); setActiveDay("");
   };
 
   return {
     rememberSavedPlaces,
+    addSuggestedBreaks, addRestStop,
     resetTrip,
     saved,
     activeDay,
