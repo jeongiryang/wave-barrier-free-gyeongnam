@@ -22,6 +22,10 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
   }));
 
   const walkingByPlaceId = Object.fromEntries(legs.map(leg => [leg.place.id, routeWalkingEvidence(usableLegRoutes(data[leg.key], route.routeTravelMode)[0])]));
+  const costByPlaceId = Object.fromEntries(legs.flatMap(leg => {
+    const best = usableLegRoutes(data[leg.key], route.routeTravelMode)[0];
+    return best ? [[leg.place.id, { configured: best.configured, payment: best.payment, paymentType: best.paymentType }]] : [];
+  }));
 
   useEffect(() => { controllerRef.current?.abort(); }, [signature]);
   useEffect(() => () => controllerRef.current?.abort(), []);
@@ -63,5 +67,5 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
     setEvidence({ signature: "", data: {} }); setLoading(false); setNotice("");
   }
 
-  return { walkingByPlaceId, resetItineraryRoutes, legs, data, loading, notice, signature, readyCount, complete: legs.length > 0 && readyCount === legs.length, routeMinutes, checkRoutes, cancel: () => controllerRef.current?.abort() };
+  return { costByPlaceId, walkingByPlaceId, resetItineraryRoutes, legs, data, loading, notice, signature, readyCount, complete: legs.length > 0 && readyCount === legs.length, routeMinutes, checkRoutes, cancel: () => controllerRef.current?.abort() };
 }
