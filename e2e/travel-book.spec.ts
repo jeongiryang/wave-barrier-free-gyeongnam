@@ -15,7 +15,7 @@ test("안내형 보기에서 보관 일정을 열면 재검색 없이 일정과 
   await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
   await expect(page).toHaveURL(/from=travel-book#itinerary$/);
   await page.locator(".reference-itinerary-details > summary").click();
-  await expect(page.locator(".reference-day-list").getByText("경남도립미술관").first()).toBeVisible();
+  await expect(page.locator(".reference-day-list .reference-stop-copy").getByRole("button", { name: "경남도립미술관", exact: true })).toBeVisible();
   await expect(page.locator(".reference-itinerary-details > .route-scope-note")).toContainText("일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
   await expect(page.getByRole("status").filter({ hasText: "좌표를 확인하지 못한 장소:" })).toContainText("경남도립미술관");
   // The privacy contract still excludes coordinates from the archive; never
