@@ -48,7 +48,7 @@ User authorizes continuation through design refinements, all 24 researched featu
 
 ## Feature candidates — all authorized; status is per feature, not inferred from a placeholder
 
-1. PENDING — Arrival-time opening/holiday/admission feasibility.
+1. ACTIVE — On-demand official opening/holiday/admission/event information and planned-arrival/full-visit comparison. Conservative conditional/unknown handling, raw source/time/contact, shared theme integration. Focused tests and independent QA; merge/Production pending.
 2. PENDING — Walking burden and scheduled rests based on user preferences.
 3. PENDING — Compare targeted replacement with original and undo.
 4. COMPLETE #472 — 2–3 place facility comparison, matching needs first, confirmed/negative/unknown fields, sources and direct save/remove. Independent QA and Production interaction checks PASS.
