@@ -21,3 +21,5 @@
 독립 QA에서 remote Image shim이 style을 전달하지 않아 후보 사진이400px로 늘어나는 문제를 확인했다. 원래 unoptimized였던 이 이미지 한 곳만 native img로 전환해 실제180px 높이·crop·둥근 모서리를 적용했다. 전역 스타일과 다른 사진은 변경하지 않았다. 수정 후 type/lint/build/performance와 focused E2E8건 PASS. 전체 단위871건 PASS 결과도 보존한다.
 
 추가 독립 QA의 부분 응답 안내 누락도 수정했다. 조건 화면뿐 아니라 후보와 일정 확인 화면에 제공처의 일부 정보 누락 안내를 유지한다. 새 후보 E2E는 실제 이미지180px/16px과 두 단계에서 부분 안내가 보이는지도 확인한다.
+
+Hosted CI에서 새 코스 도구가 추가되면서 기존 대안 도구 테스트의 `#itinerary > .place-evidence` 선택자가 두 개를 가리키는 것을 확인했다. 네 개 시나리오의 공통 진입 선택자만 실제 ‘장소·날짜 대안 비교’ summary로 한정했다. 제품 동작·기존 assertion·coverage·timeout은 바꾸지 않았다.

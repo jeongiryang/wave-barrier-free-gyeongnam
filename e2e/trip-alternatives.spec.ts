@@ -24,7 +24,7 @@ async function setup(page: Page) {
   return page.locator(".reference-day-list");
 }
 async function open(page: Page, name = "경남도립미술관") {
-  const tools = page.locator("#itinerary > .place-evidence");
+  const tools = page.locator("#itinerary > .place-evidence").filter({ has: page.locator("summary").filter({ hasText: /^장소·날짜 대안 비교$/ }) });
   if (!await tools.getAttribute("open").then(value => value !== null)) await tools.locator("summary").click();
   await tools.getByRole("button", { name: `${name} 비교`, exact: true }).click();
   return page.getByRole("dialog", { name: "이곳만 바꿔 볼까요?", exact: true });
