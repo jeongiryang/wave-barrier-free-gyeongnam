@@ -1,8 +1,8 @@
 # 고정 일정과 귀가 마감
 
-- PR: 생성 전
+- PR: `codex/wave-fixed-time-plan-353` → `main`
 - 작성자: jeongiryang의 승인 범위를 수행한 Codex
-- 최종 상태: 후보8/13 구현 및 독립 QA 진행 중
+- 최종 상태: 후보8/13 구현, 최신 main 통합 및 독립 QA PASS; PR CI·운영 배포 대기
 - AI 도구: Codex, 기존 Playwright, 독립 QA
 
 ## 목적
@@ -21,8 +21,10 @@
 
 - 시간 예산·날짜·정수·ID allowlist, pin을 보존한 자동 및 수동 순서, 이른/늦은 고정시각, 귀가 이동 미확인·자정 초과, 보관/계정/공유 복원 등 관련 unit33 PASS. 이후 공유 허용목록·잠금 해제/새 여행 초기화 경계 추가.
 - 신규 브라우저2 PASS: 시간 수정→기한 비교→입력 오류·취소·키보드 복귀→날짜별 분리→보관/공유/복원→고정 해제. 기존 체류시간4 PASS. 처음 테스트 fixture의 초기값이 reload마다 저장소를 덮어쓰던 것을 최초 진입만 초기화하도록 수정했다.
-- 1440/960/390/320 실제 렌더 및 PNG 확인. 새 기간/고정 UI axe0·overflow0·pageerror0. 계정/교체/재정렬 경계는 독립 QA에서 확인 중.
-- typecheck/lint/unit817/build/performance PASS. 기존 lint경고12개. CSS69.88/70KiB, Planner178.21/270KiB. 아직 후보1 PR480이 병합되지 않은 main#478을 기준으로 진행했으므로 최종 최신main 반영 후 다시 필요한 검사를 실행한다.
+- 1440/960/390/320 실제 렌더 및 PNG 확인. 독립 QA는 날짜/순서/삭제/교체 보호, 계정의 명시 Save, 동행자 읽기 전용 및 공유 표시 PASS. 새 영역 axe0·overflow0·pageerror0. 요약 근거 `D:/wave-completion-20260911/fixed-time-independent-qa-final.md`.
+- 검수에서 발견한 귀가 disclosure의 늦은 toggle에 의한 입력 덮어쓰기, 새 마감/고정 안내의 공유 및 제한 dark 대비를 수정했다. 즉시 입력과 키보드 복귀를 재확인했으며, 새 공유 문구 대비 light14.73:1/dark15.07:1 PASS. 여유시간 select는 기존 Horizon의 48px 스타일을 재사용한다. 기존 shared dark 보조문구는 변경 범위 밖으로 기록했다.
+- #480 main `8ec3b5`를 `667291c`에 통합한 뒤 typecheck/lint/unit828/build/performance PASS. 기존 lint경고12개. CSS69.89/70KiB, Planner178.30/270KiB. 관련 신규 고정/귀가·이용시간·체류시간 브라우저10 PASS.
+- 독립 통합 QA: 390px에서 고정 도착13:00→16:30을 바꾸면 이용시간 카드의 예상 방문16:30–18:30, 마감 초과 판정, 귀가170분 초과가 함께 바뀌고 13:00 복원 시 여유40분으로 돌아옴. fixture 조회1회, 추가 조회/오류/overflow0. 두 일정 화면의 pin/date guard와 이용시간을 모두 보존했음을 확인했다. 근거 `D:/wave-completion-20260911/fixed-hours-merge-qa-390.json`.
 
 ## 역할과 제한
 
