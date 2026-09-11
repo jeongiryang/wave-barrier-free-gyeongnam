@@ -22,3 +22,5 @@
 Refs #353. 나머지 22개 기능, 최종 전수 회귀·리팩토링 및 제출 점검은 계속한다.
 
 최종 독립 QA PASS: 320px 2곳/3곳 모두 항목 열과 마지막 장소 사이 32px 여유, 상태·장소명·저장 버튼 가림 및 클릭 차단 0. 390/960px, 키보드 가로 이동, 저장·닫기·초점 복귀도 PASS. 수정 후 6개 브라우저 검사 다시 PASS. 증거 `D:/wave-completion-20260911/decisions-qa-sticky-fixed-320-3.png` 등. Production은 PR 병합 뒤 확인한다.
+
+Hosted CI 34579344612: quality·sandbox·7개 브라우저 shard PASS, desktop4는 기존 영문 날짜 검사의 환경설정 진입이 첫 시도에서 viewport 밖이라 fail-on-flaky에 걸렸다(재시도는 PASS). 환경설정은 현재 footer인데 준비 코드가 옛 scroll-hidden header 초점 계약을 가정했다. 실제 footer control 클릭 후 기존 초점·viewport 검사를 그대로 수행하도록 준비 순서만 수정했다. 제품 날짜 검사·시간제한·flake 정책은 유지한다.
