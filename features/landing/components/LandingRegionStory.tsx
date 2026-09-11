@@ -92,10 +92,12 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
   useEffect(() => {
     if (previousRegion.current === active.name) return;
     previousRegion.current = active.name;
+    // The scroll-linked film owns both offsets until a traveller takes control.
+    if (automatic && film.current?.dataset.film === "true") return;
     const card = stage.current?.querySelector<HTMLElement>(".region-featured-card");
     const row = card?.closest<HTMLElement>(".region-card-rail");
     if (card && row) row.scrollTo({ left: row.scrollLeft + card.getBoundingClientRect().left - row.getBoundingClientRect().left - 16, behavior: "instant" });
-  }, [active.name]);
+  }, [active.name, automatic, film]);
   const rotationLabel = automatic
     ? (english ? "Pause automatic region changes" : "지역 자동 전환 일시정지")
     : (english ? "Resume automatic region changes" : "지역 자동 전환 재개");

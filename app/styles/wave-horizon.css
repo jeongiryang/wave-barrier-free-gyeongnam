@@ -61,8 +61,8 @@ html[data-theme=dark] .region-showcase .selected-region small { color: #284c38; 
 .region-photo-selector button[aria-pressed=true] > span { background: white; }
 .region-photo-selector button { width: 34px; }
 .story-progress,.story-progress[data-surface=light],html[data-theme=dark] .story-progress[data-surface=light] { background: transparent; box-shadow: none; border: 0; backdrop-filter: none; }
-.story-progress[data-surface=light] li a,.story-progress[data-surface=light] .story-progress-mobile { color: #2b2632; text-shadow: 0 1px 3px #f5f4f8; }
-.story-progress[data-surface=dark] li a,.story-progress[data-surface=dark] .story-progress-mobile { color: #fff; text-shadow: 0 1px 4px #001521,0 0 7px #001521; }
+.story-progress [data-surface=light] { color: #2b2632; text-shadow: 0 1px 3px #f5f4f8; }
+.story-progress [data-surface=dark] { color: #fff; text-shadow: 0 1px 4px #001521,0 0 7px #001521; }
 .story-progress li a[aria-current] b { background: transparent; color: inherit; text-decoration: underline; text-underline-offset: 5px; }
 .story-progress ol::after { background: currentColor; opacity: .25; }
 .planner-reference .reference-intro { width: min(1240px,calc(100% - var(--wave-gutter)*2)); margin: 32px auto 20px; }
@@ -166,9 +166,10 @@ html[data-theme=dark] .auth-guest { color: #d4b8ff; }
  .region-card-rail { gap: 14px; }
  .region-landscape-card { flex-basis: 87%; }
  .region-scene-photo img,.region-scene-empty { height: 390px; }
- .region-showcase .selected-region,.region-neighbour-copy { padding-left: 20px; padding-right: 68px; }
+ .region-showcase .selected-region,.region-neighbour-copy { padding: 28px 68px 122px 20px; }
+ .region-photo-selector { bottom: 78px; }
  .region-showcase .selected-region strong,.region-neighbour-copy h3 { font-size: 1.45rem; }
- .region-card-start,.region-neighbour-copy button { right: 16px; width: 44px; min-height: 44px; }
+ .region-card-start,.region-neighbour-copy button { bottom: 92px; right: 16px; width: 44px; min-height: 44px; }
  .planner-reference .reference-intro { margin: 26px auto 20px; }
  .planner-reference .reference-search { flex-wrap: wrap; padding: 14px; gap: 10px; }
  .community-page .community-hero { display: block; min-height: 0; padding-block: 36px 24px; }

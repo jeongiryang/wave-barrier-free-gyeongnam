@@ -128,11 +128,14 @@ test("landscape cards scroll inside the viewport and neighbour selection opens i
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   const stage = page.locator("[data-region-stage]");
   await stage.scrollIntoViewIfNeeded();
-  await expect(stage.locator(".region-landscape-card")).toHaveCount(3);
-  await expect(stage.locator(".region-neighbour-card figcaption a")).toHaveCount(2);
-  const rail = stage.locator(".region-card-rail");
-  const scrollable = page.viewportSize()!.width <= 1100 || await page.locator("#regions").getAttribute("data-film") === "true";
-  expect(await rail.evaluate(el => el.scrollWidth > el.clientWidth + 1)).toBe(scrollable);
+  await expect(stage.locator(".region-landscape-card")).toHaveCount(18);
+  await expect(stage.locator(".region-neighbour-card figcaption a")).toHaveCount(17);
+  const rails = stage.locator(".region-card-rail");
+  await expect(rails).toHaveCount(2);
+  for (const rail of await rails.all()) {
+    await expect(rail.locator(".region-landscape-card")).toHaveCount(9);
+    expect(await rail.evaluate(el => el.scrollWidth > el.clientWidth + 1)).toBe(true);
+  }
   await stage.getByRole("button", {name:"하동 풍경 살펴보기"}).press("Enter");
   await expect(stage).toHaveAttribute("data-active-region", "하동");
   await expect(stage).toHaveAttribute("data-running", "false");
@@ -140,4 +143,26 @@ test("landscape cards scroll inside the viewport and neighbour selection opens i
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await page.emulateMedia({ reducedMotion: "reduce" });
   expect(await page.locator("[data-cinematic]").evaluateAll(nodes => nodes.every(node => getComputedStyle(node).getPropertyValue("--cinema-rest").trim() === "0"))).toBe(true);
+});
+
+test("a wrapped mobile photo credit leaves the full photograph selector target usable", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const stage = page.locator("[data-region-stage]");
+  await stage.getByRole("button", { name: "거창 풍경 살펴보기", exact: true }).press("Enter");
+  const selectors = stage.locator(".region-photo-selector button");
+  for (let index = 0; index < await selectors.count(); index++) {
+    const button = selectors.nth(index); await button.scrollIntoViewIfNeeded();
+    const box = (await button.boundingBox())!;
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height - 5);
+    await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", String(index));
+    const credit = stage.locator(".region-featured-card figcaption");
+    const caption = (await credit.boundingBox())!;
+    const target = (await button.boundingBox())!;
+    expect(target.y + target.height).toBeLessThanOrEqual(caption.y);
+    await expect(credit).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await credit.getByRole("link").focus(); await expect(credit.getByRole("link")).toBeFocused();
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
