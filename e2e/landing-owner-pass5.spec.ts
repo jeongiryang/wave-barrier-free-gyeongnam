@@ -76,7 +76,7 @@ test("Hero pauses offscreen and in hidden tabs, and runtime reduction returns to
 
 test("current section registry, desktop rail and mobile native selector stay in sync without trapping scroll", async ({ page }) => {
   await page.emulateMedia({reducedMotion:"reduce"}); await page.goto("/"); await ready(page);
-  expect(await page.locator("main > section").evaluateAll(nodes=>nodes.map(node=>node.id))).toEqual(landingSections.map(s=>s.id));
+  expect(await page.locator("main section[id]").evaluateAll(nodes=>nodes.map(node=>node.id))).toEqual(landingSections.map(s=>s.id));
   await expect(page.locator(".story-progress")).toBeVisible();
   await page.evaluate(()=>history.replaceState({...history.state,storyTestMarker:"preserve"},""));
   if (page.viewportSize()!.width > 1280) {

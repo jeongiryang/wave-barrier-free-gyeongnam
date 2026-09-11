@@ -14,7 +14,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     for (const width of [390, 768, 960, 1366, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      expect(await page.locator("main > section").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
+      expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
       for (const id of chapterIds) {
         const section = page.locator(`#${id}`); await section.scrollIntoViewIfNeeded();
         await expect(section).toHaveAccessibleName(/\S/);

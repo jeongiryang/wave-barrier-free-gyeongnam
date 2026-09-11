@@ -35,6 +35,9 @@ User authorizes continuation through merge and Production, removes their separat
 
 ## Functional UI follow-up
 
+- PR #468 merged as `31be6b2`; main CI 34574038819 and Production CD 34576545629 PASS. The first hosted attempt stalled at Ubuntu font downloads; only the affected job was rerun. Five public pages at 1440/390px returned 200 with page errors 0 and horizontal overflow 0; `/api/health` returned 200 (configuration evidence only). Evidence: `D:/wave-completion-20260911/production-468.json`.
+- PR #470 implements the latest full-bleed photo scenes, Ten text spacing, region film after preparation and compact guided Planner. Independent visual/keyboard QA PASS. Hosted failures are being resolved against the changed user-flow contract before merge; no pending/failed gate bypass.
+
 - Active branch `codex/wave-travel-tools-353` from merged main. Palette/type improvements in place detail, route comparison, community forms/comments, map drawers, travel book, account editing; grouped account dates.
 - Direct controlled interaction inventory: `D:/wave-completion-20260911/click-*.mjs` and PNG/JSON evidence. Existing save/order/date/archive, account edits/vote/invite/export/cancel, comment/edit/report menu, map route/nearby/layers/export, photo-course controls inspected; all writes use fixtures, no personal messages.
 - Independent QA found and verified fixes for sticky map heading/category overlap, dark secondary-control contrast, delayed search taking keyboard focus, and inherited flat-header grid placement in the new sentence search.

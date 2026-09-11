@@ -126,7 +126,7 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
       </div>
       <Link className="region-card-start" href={`/planner?region=${encodeURIComponent(active.name)}`} aria-label={`${regionLabel(active.name)} 여행 설계`}><span aria-hidden="true">↗</span></Link>
       <div className="region-photo-selector" role="group" aria-label={`${regionLabel(active.name)} ${english ? "photographs" : "사진 선택"}`}>
-        {album.map((item, index) => <button key={item.id} type="button" lang="ko" aria-labelledby={`region-photo-${index}-name region-photo-${index}-action`} title={item.title} aria-pressed={index === photoIndex} aria-controls="region-photograph" onClick={() => { setAutomatic(false); setPhotoChoice({ region: active.name, index }); }}><span aria-hidden="true" /><b className="sr-only"><span id={`region-photo-${index}-name`} lang="ko">{item.title}</span><span id={`region-photo-${index}-action`} lang={locale}> · {english ? "show photograph" : "사진 보기"}</span></b></button>)}
+        {album.map((item, index) => <button key={item.id} type="button" lang="ko" aria-labelledby={`region-photo-${index}-name region-photo-${index}-action`} title={item.title} aria-pressed={index === photoIndex} aria-controls="region-photograph" onClick={() => { setAutomatic(false); setPhotoChoice({ region: active.name, index }); }}><span aria-hidden="true" /><b><span className="sr-only" id={`region-photo-${index}-name`} lang="ko">{item.title}</span><span className="sr-only" id={`region-photo-${index}-action`} lang={locale}> · {english ? "show photograph" : "사진 보기"}</span></b></button>)}
       </div>
       <div key={active.name + photoIndex + String(running)} className="region-showcase-progress" aria-hidden="true" />
       </article>
