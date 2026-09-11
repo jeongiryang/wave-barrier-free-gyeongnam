@@ -52,8 +52,9 @@ for (const theme of ["light", "dark"] as const) {
     await expect(dialog.locator('.facility-evidence-list [data-state="unknown"]')).toContainText("ToiletsNot reportedNo information supplied");
     await expect(dialog.locator('.facility-evidence-list [data-state="confirmed"] dd')).toHaveAttribute("lang", "ko");
     await dialog.getByText("Source, retrieval time and method", { exact: true }).click();
-    await expect(dialog.locator(".place-evidence")).toContainText(place.source);
-    await expect(dialog.locator(".place-evidence")).toContainText("Retrieval time is not the provider's facility update date");
+    const evidence = dialog.locator("details").filter({ has: page.getByText("Source, retrieval time and method", { exact: true }) });
+    await expect(evidence).toContainText(place.source);
+    await expect(evidence).toContainText("Retrieval time is not the provider's facility update date");
     await expect(dialog.locator(".place-community-empty")).toContainText("There are no public visitor stories");
     await expect(dialog.locator(".place-community-stories")).not.toContainText(/[가-힣]/);
     await expect(dialog.getByRole("link", { name: /Visitor reviews and photos/ })).toHaveAttribute("target", "_blank");

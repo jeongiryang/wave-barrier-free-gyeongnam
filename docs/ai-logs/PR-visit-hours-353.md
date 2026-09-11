@@ -35,3 +35,7 @@ Owner가 기능 후보 전체 구현/병합/배포를 승인했다. AI가 현재
 - 독립 QA의 개발용 dark 경고색 대비 지적을 공통 `--ink`로 수정하고 대비13.77:1 및 axe0 재확인. 일반 상세에서는 일정 비교 문구를 제거하고 공식 이용정보임을 표시한다. 같은 공개기록 재사용/추가조회없음/Escape초점 복귀 PASS.
 - React 체크: 상세 컴포넌트 lazy 분리, 명시적 펼치기만 조회, pending dedupe·bounded memory cache, 원본시각 보존, unmount 이후 state 쓰기 차단, 일정 변경은 파생 계산. 기존 React/CSS 도구 재사용.
 - 증거: `D:/wave-completion-20260911/visit-hours-merged-quality.txt`, `visit-hours-merged-browser.txt`, `visit-hours-qa-ui.json`, `visit-hours-qa-final.json` 및 화면 PNG. 외부 제공처/개인 계정 쓰기 없이 fixture로 검증했다. PR/CI/실제 Production 결과는 병합 후 기록한다.
+
+## Hosted CI 후속
+
+PR #480 CI34590147591에서 `.place-evidence` 스타일 재사용으로 기존 영문 편의 근거 검사2개의 locator가 두 details를 잡았다. source/time/method라는 고유 summary로 해당 출처 상자를 한정했다. 기대 문구·strict 모드·키보드·axe·테마·timeout/retry는 유지한다. 관련 브라우저16/16 PASS 및 독립 코드 QA PASS. 후속 typecheck/lint/unit821/build/performance PASS. 새 HEAD CI로 재검증하며 이전 실패를 우회하지 않는다.
