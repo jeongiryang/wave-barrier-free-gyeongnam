@@ -122,6 +122,7 @@ test("Vercel applies baseline browser security headers", async () => {
   assert.match(headers["Content-Security-Policy"], /form-action 'self'/);
   assert.equal(headers["Referrer-Policy"], "strict-origin-when-cross-origin");
   assert.match(headers["Permissions-Policy"], /camera=\(\)/);
+  assert.match(headers["Permissions-Policy"], /microphone=\(self\)/);
 
   // 스크립트 출처를 제한하지 않으면 나머지 지시어만으로는 주입된 코드를 막지 못한다.
   const policy = Object.fromEntries(headers["Content-Security-Policy"]
