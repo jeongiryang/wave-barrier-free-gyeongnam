@@ -1,6 +1,6 @@
 /* 사진 코스는 메인 플래너와 분리된 선택형 도구 화면이다. */
 .photo-course-page { min-height: 100vh; padding: 24px 0 60px; background: var(--surface); }
-.photo-course-page-header { width: min(1320px,calc(100% - 64px)); min-height: 80px; margin: 0 auto; padding: 12px 26px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid var(--line); border-radius: 100px; background: var(--white); }
+.photo-course-page-header { width: min(1320px,calc(100% - 64px)); min-height: 80px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--line); background: var(--surface); }
 .photo-course-brand { color: var(--ink); font-size: 1rem; font-weight: 950; letter-spacing: .05em; text-decoration: none; }
 .photo-course-page-header nav { display: flex; flex-wrap: wrap; gap: 6px; }
 .photo-course-page-header nav a { min-height: 42px; padding: 9px 12px; display: inline-flex; align-items: center; border-radius: 999px; color: var(--ink-soft); font-size: .72rem; font-weight: 820; text-decoration: none; }

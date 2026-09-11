@@ -159,17 +159,17 @@ for (const locale of ["ko", "en"] as const) {
     const firstName = (await photos.nth(0).innerText()).trim();
     // Target the second exact asset, leaving the adjacent album's source untouched.
     await photos.nth(1).click();
-    const failedUrl = (await stage.locator(".region-scene-photo img").getAttribute("src"))!;
+    const failedUrl = (await stage.locator(".region-featured-card .region-scene-photo img").getAttribute("src"))!;
     await page.route(failedUrl, route => route.abort());
     await page.reload(); await storyReady(page); await stage.scrollIntoViewIfNeeded();
     await stage.locator(".region-photo-selector button").nth(1).click();
-    await expect(stage.locator(".region-scene-photo figcaption")).toContainText(locale === "en" ? "Photo unavailable" : "불러오지 못했어요");
+    await expect(stage.locator(".region-featured-card .region-scene-photo figcaption")).toContainText(locale === "en" ? "Photo unavailable" : "불러오지 못했어요");
     await stage.locator(".region-photo-selector button").nth(0).press("Enter");
     await expect(stage.locator(".region-photo-selector button").nth(0)).toHaveAccessibleName(firstName);
-    await expect(stage.locator(".region-scene-photo img")).toBeVisible();
-    await expect(stage.locator(".region-scene-photo figcaption")).not.toContainText(locale === "en" ? "Photo unavailable" : "불러오지 못했어요");
+    await expect(stage.locator(".region-featured-card .region-scene-photo img")).toBeVisible();
+    await expect(stage.locator(".region-featured-card .region-scene-photo figcaption")).not.toContainText(locale === "en" ? "Photo unavailable" : "불러오지 못했어요");
     await stage.getByRole("button", { name: locale === "en" ? "Next region" : "다음 지역", exact: true }).press("Enter");
     await expect(stage).toHaveAttribute("data-active-region", "하동");
-    await expect(stage.locator(".region-scene-photo img")).toBeVisible();
+    await expect(stage.locator(".region-featured-card .region-scene-photo img")).toBeVisible();
   });
 }

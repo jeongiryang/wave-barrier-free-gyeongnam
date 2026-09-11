@@ -12,8 +12,8 @@ test("automatic showcase finishes each region's album and manual selection stops
   await page.clock.install();
   await page.goto("/");
   await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+  await page.mouse.move(-10, -10);
   await page.locator("#regions").evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
-  await page.mouse.move(0, 0);
   const stage = page.locator("[data-region-stage]");
   await expect(stage).toHaveAttribute("data-running", "true");
   const firstRegion = (await stage.getAttribute("data-active-region"))!;
@@ -21,8 +21,8 @@ test("automatic showcase finishes each region's album and manual selection stops
   for (const [index, photo] of album.entries()) {
     await expect(stage).toHaveAttribute("data-active-region", firstRegion);
     await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", String(index));
-    await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("src", photo.image);
-    await expect(stage.locator(".region-scene-photo figcaption a")).toHaveAttribute("href", photo.image);
+    await expect(stage.locator(".region-featured-card .region-scene-photo img")).toHaveAttribute("src", photo.image);
+    await expect(stage.locator(".region-featured-card .region-scene-photo figcaption a")).toHaveAttribute("href", photo.image);
     await page.clock.fastForward(4000);
   }
   await expect(stage).not.toHaveAttribute("data-active-region", firstRegion);

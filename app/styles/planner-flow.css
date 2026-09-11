@@ -128,14 +128,14 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference button:disabled { cursor: not-allowed; opacity: .5; }
 .planner-reference :is(button,a,input,select,summary):focus-visible { outline: 3px solid #c45450; outline-offset: 4px; }
 .planner-reference :is(h2,h3,h4,p) { letter-spacing: -.025em; }
-.planner-reference .reference-header { width: min(1320px,calc(100% - 64px)); min-height: 80px; margin: 24px auto 0; padding: 12px 26px; display: flex; align-items: center; gap: 32px; background: #fff; border: 1px solid #e2ebf1; border-radius: 100px; box-shadow: 0 12px 40px #14364d06; }
+.planner-reference .reference-header { width: min(1320px,calc(100% - 64px)); min-height: 80px; margin: 16px auto 0; padding: 12px 20px; display: flex; align-items: center; gap: 32px; background: #e8f1f5e8; border-bottom: 1px solid var(--line); }
 .reference-brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; color: #173b50; font-size: 18px; font-weight: 850; text-decoration: none; }
 .reference-brand > span { display: flex; gap: 5px; transform: skew(-20deg); }
 .reference-brand i { width: 6px; height: 22px; background: #2677a6; }
 .reference-brand i:nth-child(2) { height: 26px; margin-top: -2px; }
-.reference-header nav { display: flex; gap: 4px; align-items: center; padding: 4px; border-radius: 100px; background: #f3f7fa; }
+.reference-header nav { display: flex; gap: 4px; align-items: center; padding: 4px; }
 .reference-header nav :is(a,button) { border: 0; min-height: 44px; display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 100px; background: transparent; color: #506a7b; text-decoration: none; font-size: 13px; font-weight: 650; white-space: nowrap; }
-.reference-header nav [aria-current] { color: #fff; background: #173b50; font-weight: 750; }
+.reference-header nav [aria-current] { color: var(--blue); background: var(--sky); font-weight: 750; }
 .reference-account { margin-left: auto; display: flex; gap: 10px; align-items: center; }
 .reference-saved { border: 1px solid #d7e5ee; min-height: 44px; border-radius: 99px; padding: 10px 30px; background: white; color: #173b50; white-space: nowrap; }
 .reference-progress { max-width: 1050px; margin: 18px auto 22px; display: flex; justify-content: space-between; padding: 0 20px; }
@@ -350,7 +350,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 @media (max-width: 700px) {
   .planner-reference .reference-header { width: calc(100% - 24px); min-height: 76px; margin-top: 12px; border-radius: 28px; padding: 12px 16px; gap: 12px; flex-wrap: wrap; }
   .reference-brand { font-size: 13px; }
-  .reference-header nav { order: 3; width: 100%; gap: 0; justify-content: center; }.reference-header nav a { padding-inline: 12px; }
+  .reference-header > nav { display: none; }
   .reference-header nav :is(a,button) { font-size: 13px; }
   .reference-account { margin-left: auto; }
   .reference-account .account-menu { display: none; }

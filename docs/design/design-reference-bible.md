@@ -1,5 +1,7 @@
 # W.A.V.E Design Reference Bible
 
+Latest Owner follow-up, 2026-09-11: the region section immediately below Hero adopts eight's `PLACES TO BEGIN` landscape cards. Keep all 18 albums and controls; the earlier full-frame presentation is superseded. My Travel adopts the same scenery/editorial rhythm. Three WAVE-authored starter articles supply the requested community examples without fictional member activity. Headers blend into pale blue product surfaces and use dark translucency over Hero. Existing functionality, Korean public defaults and mobile accessibility remain required. [Implementation and evidence](../ai-logs/20260911-scenery-card-refinement.md).
+
 Canonical design entry · Owner #385 / implementation #353 · 2026-09-09 KST.
 Read this before any design change, together with [design tokens](../design-system.md).
 This is a design contract, not a claim that the current candidate is released or Owner-approved.

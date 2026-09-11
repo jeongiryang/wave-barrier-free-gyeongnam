@@ -26,7 +26,7 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
       await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
       await expect(page.locator(".horizon-account-photo img")).toHaveAttribute("src", "/media/horizon/coastal-park.jpg");
-      await expect(page.locator(".region-scene-photo figcaption a")).toHaveAccessibleName(/사진 원본/);
+      await expect(page.locator(".region-featured-card .region-scene-photo figcaption a")).toHaveAccessibleName(/사진 원본/);
       for (const selector of [".landing-actions a[href='/planner']", '.landing-cta > a[href="/planner"]']) await expectUsableTarget(page.locator(selector));
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await page.locator("#community").scrollIntoViewIfNeeded();

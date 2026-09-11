@@ -69,6 +69,6 @@ test("지역 사진 선택과 hover는 불필요한 사진 API 요청을 만들�
   await marker.hover();
   await marker.click();
   await expect(page.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "하동");
-  await expect(page.locator(".region-scene-photo img")).toHaveAttribute("src", /^https:\/\/tong\.visitkorea\.or\.kr\//);
+  await expect(page.locator(".region-featured-card .region-scene-photo img")).toHaveAttribute("src", /^https:\/\/tong\.visitkorea\.or\.kr\//);
   expect(photoRequests).toBe(0);
 });

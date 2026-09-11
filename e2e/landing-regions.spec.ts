@@ -112,8 +112,8 @@ for (const locale of ["ko", "en"]) for (const width of [320, 390, 1440]) test(`ì
   // Korean source titles retain their language within translated actions.
   await expect(stage.locator("#region-photo-0-name")).toHaveAttribute("lang", "ko");
   await expect(stage.locator("#region-photo-0-action")).toHaveAttribute("lang", locale);
-  await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("lang", "ko");
-  await expect(stage.locator(".region-scene-photo img")).toHaveAttribute("alt", regionShowcaseAlbums[initialRegion!][0].title);
+  await expect(stage.locator(".region-featured-card .region-scene-photo img")).toHaveAttribute("lang", "ko");
+  await expect(stage.locator(".region-featured-card .region-scene-photo img")).toHaveAttribute("alt", regionShowcaseAlbums[initialRegion!][0].title);
   const target = await rotation.boundingBox();
   expect(target?.width).toBeGreaterThanOrEqual(44);
   expect(target?.height).toBeGreaterThanOrEqual(44);

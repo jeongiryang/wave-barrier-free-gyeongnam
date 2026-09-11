@@ -35,6 +35,7 @@ export function useCommunityBoard(initialPlace: PlaceFilter | null) {
     category,
     setCategory,
     search,
+    query,
     setSearch,
     placeFilter,
     setPlaceFilter,
