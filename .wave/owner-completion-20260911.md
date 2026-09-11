@@ -52,7 +52,7 @@ User authorizes continuation through design refinements, all 24 researched featu
 2. COMPLETE #483 — Walking segment versus chosen limit, rest proposals/manual rest and schedule recalculation. Merged 78b280f034f79200f8335713eecbc19dd5dea43b; exact-head CI34598704704, main CI34599790642, Production CD34600854746 PASS. Actual deployed UI1440/390 using previously captured real plan responses: apply limit/rest, insert, save/reload/reopen, unknown versus confirmed and overflow PASS. Evidence D:/wave-completion-20260911/production-comfort-summary.json.
 3. ACTIVE — Original versus up to three confirmed-needs candidates; explicit targeted replacement and guarded undo preserving prior date/duration/rest. Focused checks and release in progress.
 4. COMPLETE #472 — 2–3 place facility comparison, matching needs first, confirmed/negative/unknown fields, sources and direct save/remove. Independent QA and Production interaction checks PASS.
-5. PENDING — On-trip progress, skip, resume and remaining schedule.
+5. ACTIVE — Day-specific visit completion, skip, resume, guarded fixed visits and remaining schedule; original itinerary preserved. Focused checks/release in progress.
 6. COMPLETE #483 — Up to eight anonymous companion drafts combine all needs and shortest chosen walking limit without erasing prior preferences; no participant drafts in account/public data. Independent focused QA, CI/CD and actual Production confirmed as candidate2.
 7. COMPLETE #472 — Large Korean communication/inquiry card, selected questions, custom text, copy/manual fallback and PNG save. No automatic message. Independent QA and Production interaction checks PASS.
 8. COMPLETE #482 — Per-day return/appointment deadline with unknown/remaining/overrun states. Merged `c858d8604731c72c649e8bcbbf4cdc41cfba5bb4`; exact-head CI34593707786, main CI34594780611, Production CD34595690466 PASS. Actual deployed UI1440/390 fixed/return/date/cancel/archive/restore checks PASS, reusing previously captured real Production responses (no fresh provider or account/message writes). Evidence `D:/wave-completion-20260911/production-482-summary.json`.
@@ -64,7 +64,7 @@ User authorizes continuation through design refinements, all 24 researched featu
 14. COMPLETE #483 — Nearby rest/accessible-restroom candidates with source, confirmed/unknown distinction, estimated detour, insertion and later-pin guard. Independent QA, CI/CD and Production PASS; real recorded Changwon data had 0 confirmed and 3 optional unknown candidates, never labeled confirmed. Same evidence as candidate2.
 15. PENDING — Recent facility confirmation history and structured update reports.
 16. PENDING — Trip cost/budget with known/unknown distinctions.
-17. PENDING — Offline-readable trip summary/export.
+17. ACTIVE — Standalone HTML/text travel pack with schedule, rest/fixed visits, facility facts and explicitly checked contacts; no external resources. Focused checks/release in progress.
 18. PENDING — Return transport direction/next service tied to itinerary.
 19. PENDING — Anchor-first course expansion.
 20. PENDING — Short outing with time limit.
