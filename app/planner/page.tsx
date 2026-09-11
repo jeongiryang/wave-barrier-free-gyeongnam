@@ -71,7 +71,7 @@ export default function PlannerPage() {
   const audioGuide = useAudioGuide(plan?.audio);
   const { resetAudio } = audioGuide;
   const { pointPicker, clearLocationSearch } = locationSearch;
-  const { saved, orderedPlaceIds, travelStart, travelEnd, dayStartTime, scheduleAssignments, toggleSaved, savePlaceIds } = tripSelection;
+  const { saved, orderedPlaceIds, travelStart, travelEnd, dayStartTime, scheduleAssignments, visitMinutesByPlaceId, toggleSaved, savePlaceIds } = tripSelection;
   const saveMapPlaces = useCallback(
     (mapPlaces: { id: string }[]) => savePlaceIds(mapPlaces.map((place) => place.id)),
     [savePlaceIds],
@@ -90,6 +90,7 @@ export default function PlannerPage() {
     travelEnd,
     dayStartTime,
     scheduleAssignments,
+    visitMinutesByPlaceId,
     selectedPlaceIds: orderedPlaceIds,
     originLabel,
     selectedPlace,
@@ -117,7 +118,7 @@ export default function PlannerPage() {
       setSelectedPlace(null); setReviewedTrip(""); setReviewedItinerary(""); setSecondaryOpen(false);
     },
   });
-  const itinerarySignature = JSON.stringify([itineraryRoutes.signature, routePlanning.routeTravelMode, dayStartTime]);
+  const itinerarySignature = JSON.stringify([itineraryRoutes.signature, routePlanning.routeTravelMode, dayStartTime, visitMinutesByPlaceId]);
   const itineraryReviewed = reviewedItinerary === itinerarySignature && itineraryRoutes.complete && !itineraryRoutes.loading;
   const reviewSignature = JSON.stringify([region, theme, selected, orderedPlaceIds, travelStart, travelEnd, scheduleAssignments, origin, routePlanning.activeRoute?.id, dayStartTime, itinerarySignature, weather?.updatedAt]);
   const journey = useJourneyProgress({

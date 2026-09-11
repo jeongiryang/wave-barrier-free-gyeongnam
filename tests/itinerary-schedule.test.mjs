@@ -104,3 +104,18 @@ test("clock formatting handles invalid input and date boundaries", () => {
   assert.equal(day.entries[0].crossesDateBoundary, true);
   assert.equal(day.entries[0].endsAtLabel, "+1일 02:30");
 });
+
+test("editing a visit shifts only later stops that day and reset restores the category default", () => {
+  const third = { ...park, id: "tomorrow" };
+  const input = { places: [museum, park, third], days: ["2026-09-01", "2026-09-02"], assignments: { tomorrow: "2026-09-02" }, origin, startTime: "10:00" };
+  const before = buildItinerarySchedule(input);
+  const after = buildItinerarySchedule({ ...input, visitMinutesByPlaceId: { museum: 30 } });
+  assert.equal(after[0].entries[0].startsAt, before[0].entries[0].startsAt);
+  assert.equal(after[0].entries[0].visitSource, "user");
+  assert.equal(after[0].entries[1].startsAt, before[0].entries[1].startsAt - 90);
+  assert.deepEqual(after[1], before[1]);
+  for (const value of [-1, 0, "60", true, 1.5, 721, Infinity]) {
+    assert.deepEqual(buildItinerarySchedule({ ...input, visitMinutesByPlaceId: { museum: value } }), before);
+  }
+  assert.deepEqual(buildItinerarySchedule({ ...input, visitMinutesByPlaceId: {} }), before);
+});

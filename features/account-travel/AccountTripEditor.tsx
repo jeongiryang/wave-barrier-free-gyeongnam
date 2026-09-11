@@ -10,6 +10,9 @@ import type { Place } from "../planner/types";
 import { dateRange } from "../planner/utils";
 import { boundedTripEnd, validTripDate } from "../../lib/trip-dates.js";
 import { KakaoSendToSelf, KakaoTravelShare } from "../kakao-travel/KakaoTravelActions";
+import VisitDurationControl from "../planner/components/VisitDurationControl";
+import { visitDurationFor } from "../planner/optimization/itinerary-schedule.js";
+import { changeVisitDuration } from "../../lib/visit-durations.js";
 import KakaoTaxiLink from "../kakao-travel/KakaoTaxiLink";
 
 function Editor({ id, userId }: { id: string; userId: string }) {
@@ -73,6 +76,7 @@ function Editor({ id, userId }: { id: string; userId: string }) {
           return <section key={placeId}><header><strong>{index + 1}. {place?.name || `저장한 여행지 ${index + 1}`}</strong><small>{trip.votes.filter(vote => vote.placeId === placeId).length}명 선택</small></header>
             {place ? <p>{place.address || place.city} · {place.source}</p> : <p>장소 번호 {placeId} · 위에서 공식 정보를 확인할 수 있어요.</p>}
             {owner ? <div className="auth-field"><label htmlFor={`day-${placeId}`}>방문 날짜</label><select id={`day-${placeId}`} value={draft.scheduleAssignments[placeId]} onChange={event => change({ scheduleAssignments: { ...draft.scheduleAssignments, [placeId]: event.target.value } })}>{!days.includes(draft.scheduleAssignments[placeId]) && <option value={draft.scheduleAssignments[placeId]}>기간 밖 · {draft.scheduleAssignments[placeId]}</option>}{days.map(day => <option key={day} value={day}>{day}</option>)}</select></div> : <p>{draft.scheduleAssignments[placeId]} 방문</p>}
+            {owner ? <VisitDurationControl name={place?.name || `여행지 ${index + 1}`} value={draft.visitMinutesByPlaceId?.[placeId]} defaultMinutes={visitDurationFor(place)} onChange={value => change({ visitMinutesByPlaceId: changeVisitDuration(draft.visitMinutesByPlaceId || {}, placeId, value) })} /> : draft.visitMinutesByPlaceId?.[placeId] && <p>체류 {draft.visitMinutesByPlaceId[placeId]}분</p>}
             <div className="travel-book-actions"><button type="button" disabled={busy || !trip.payload.placeIds.includes(placeId)} aria-pressed={voted} onClick={() => run(async () => { await travelRequest(`/${id}/participate`, { action: "vote", placeId, selected: !voted }); await refresh(); })}>{voted ? "가고 싶어요 취소" : "가고 싶어요"}</button>
               {owner && <><button type="button" disabled={index === 0 || busy} aria-label={`${place?.name || `여행지 ${index + 1}`} 위로`} onClick={() => { const ids = [...draft.placeIds]; [ids[index - 1], ids[index]] = [ids[index], ids[index - 1]]; change({ placeIds: ids }); }}>↑ 위로</button><button type="button" disabled={index === draft.placeIds.length - 1 || busy} aria-label={`${place?.name || `여행지 ${index + 1}`} 아래로`} onClick={() => { const ids = [...draft.placeIds]; [ids[index + 1], ids[index]] = [ids[index], ids[index + 1]]; change({ placeIds: ids }); }}>↓ 아래로</button></>}
             </div>{place && <KakaoTaxiLink destination={place} />}</section>;

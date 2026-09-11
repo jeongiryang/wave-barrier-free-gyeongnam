@@ -13,6 +13,7 @@ export interface TripSharingOptions {
   travelEnd: string;
   dayStartTime: string;
   scheduleAssignments: Record<string, string>;
+  visitMinutesByPlaceId?: Record<string, number>;
   selectedPlaceIds: string[];
   originLabel: string;
 }
@@ -24,6 +25,7 @@ export function useTripSharing(options: TripSharingOptions) {
       region: options.region, theme: options.theme, profiles: options.profiles, locale: options.locale,
       travelStart: options.travelStart, travelEnd: options.travelEnd, dayStartTime: options.dayStartTime,
       scheduleAssignments: options.scheduleAssignments, selectedPlaceIds: options.selectedPlaceIds,
+      visitMinutesByPlaceId: options.visitMinutesByPlaceId,
     },
     origin: { label: options.originLabel },
   });
