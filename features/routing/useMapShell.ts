@@ -69,6 +69,7 @@ export function useMapShell({
   useEffect(() => {
     const shell = shellRef.current;
     const canvas = shell?.querySelector<HTMLElement>(".route-map-canvas");
+    const drawerHeading = shell?.querySelector<HTMLElement>(".map-side-drawer > header");
     let timeoutId: number;
     let frameId: number;
     const updateLayout = () => {
@@ -76,6 +77,7 @@ export function useMapShell({
         const top = shell.getBoundingClientRect().top;
         const bottom = Math.max(0, ...[...shell.querySelectorAll<HTMLElement>(".map-command-bar, .map-provider-badge")].map(node => node.getBoundingClientRect().bottom - top));
         shell.style.setProperty("--map-controls-bottom", `${Math.ceil(bottom)}px`);
+        if (drawerHeading) shell.style.setProperty("--map-drawer-heading", `${Math.ceil(drawerHeading.getBoundingClientRect().height)}px`);
       }
       window.clearTimeout(timeoutId);
       timeoutId = window.setTimeout(() => {
@@ -102,6 +104,7 @@ export function useMapShell({
     };
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(schedule);
     if (canvas) observer?.observe(canvas);
+    if (drawerHeading) observer?.observe(drawerHeading);
     shell?.querySelectorAll<HTMLElement>(".map-command-bar, .map-provider-badge").forEach((node) => observer?.observe(node));
     schedule();
     return () => { observer?.disconnect(); window.cancelAnimationFrame(frameId); window.clearTimeout(timeoutId); };

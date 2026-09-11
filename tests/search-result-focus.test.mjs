@@ -44,7 +44,7 @@ function requestFixture(previousPlan = null) {
   const actions = mod.exports.usePlanRequest({ locale: "ko", region: "창원", selected: ["wheel"], theme: "nature" });
   let reveals = 0, routeResets = 0, audioResets = 0;
   const pending = actions.runPlan({ resetRouteData() { routeResets++; }, resetAudio() { audioResets++; }, onRevealResults() { reveals++; } });
-  return { actions, browser, resolve, reject, pending, plan: () => state[0], reveals: () => reveals, resets: () => [routeResets, audioResets] };
+  return { actions, browser, resolve, reject, pending, pendingTimers: () => timers.filter(Boolean).length, plan: () => state[0], reveals: () => reveals, resets: () => [routeResets, audioResets] };
 }
 const plan = { mode: "live", generatedAt: "2026-09-09T00:00:00Z", baseYm: "202608", places: [], stops: [], course: null, audio: null, statuses: [{ id: "tour", name: "Tour", role: "Places", note: "", state: "live", count: 0 }] };
 
@@ -53,10 +53,27 @@ test("a requested successful result invokes navigation once after storing its da
   assert.equal(await f.pending, true);
   assert.equal(f.plan(), plan); assert.equal(f.reveals(), 1);
 });
-for (const action of ["keydown", "pointerdown", "wheel", "touchstart"]) test(`a pending result preserves a later ${action} decision while retaining new data`, async () => {
+for (const action of ["keydown", "pointerdown", "wheel", "touchstart", "focusin"]) test(`a pending result preserves a later ${action} decision while retaining new data`, async () => {
   const f = requestFixture(); f.browser.dispatchEvent(new Event(action)); f.resolve(plan);
   assert.equal(await f.pending, true);
   assert.equal(f.plan(), plan); assert.equal(f.reveals(), 0);
+});
+
+test("focus moved after results arrived cancels the remaining automatic scroll", async () => {
+  const f = requestFixture(); f.resolve(plan); await f.pending;
+  assert.equal(f.pendingTimers(), 1);
+  f.browser.dispatchEvent(new Event("focusin"));
+  assert.equal(f.pendingTimers(), 0);
+  assert.equal(f.plan(), plan);
+});
+test("the request's own stage-heading focus does not cancel its result reveal", async () => {
+  const f = requestFixture();
+  const event = new Event("focusin");
+  Object.defineProperty(event, "target", { value: { getAttribute: name => name === "data-stage-focusing" ? "true" : null } });
+  f.browser.dispatchEvent(event); f.resolve(plan);
+  assert.equal(await f.pending, true);
+  assert.equal(f.reveals(), 1);
+  assert.equal(f.pendingTimers(), 1);
 });
 test("a failed search never navigates away from its recovery controls", async () => {
   const f = requestFixture(); f.reject(new Error("Unavailable"));
