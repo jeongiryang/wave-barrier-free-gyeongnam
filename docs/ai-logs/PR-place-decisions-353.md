@@ -19,8 +19,12 @@
 - main #470 `3c4089b`를 정상 병합했다. 통합 후 lint/typecheck/unit 805/build 및 기능 브라우저 6개 PASS. CSS 69.92/70KiB, Landing 116.96/155KiB, Planner 176.68/270KiB.
 - 독립 QA: 1440/960/390/320 비교 개수/저장/초점, 문의 창 Tab/Esc/복사 거절 대안, 500자 공백·490자 연속 문구 PNG 잘림 없음. 1440/320 Axe 위반 0. 작은 비교표 항목명 유실을 발견해 고정 항목+장소 열 너비를 함께 조정했다. 320px의 `미확인` 앞 글자 가림을 재현한 뒤 화면 기하 회귀 검사를 추가했다. 최종 재검증과 PR/Production은 별도로 기록한다.
 
-Refs #353. 나머지 22개 기능, 최종 전수 회귀·리팩토링 및 제출 점검은 계속한다.
+Refs #353. 나머지 22개 기능 구현은 계속한다. 최신 Owner 지시로 전체 조작 검수·회귀 분석/리팩토링·제출 전 점검은 다음 작업으로 미룬다.
 
 최종 독립 QA PASS: 320px 2곳/3곳 모두 항목 열과 마지막 장소 사이 32px 여유, 상태·장소명·저장 버튼 가림 및 클릭 차단 0. 390/960px, 키보드 가로 이동, 저장·닫기·초점 복귀도 PASS. 수정 후 6개 브라우저 검사 다시 PASS. 증거 `D:/wave-completion-20260911/decisions-qa-sticky-fixed-320-3.png` 등. Production은 PR 병합 뒤 확인한다.
 
 Hosted CI 34579344612: quality·sandbox·7개 브라우저 shard PASS, desktop4는 기존 영문 날짜 검사의 환경설정 진입이 첫 시도에서 viewport 밖이라 fail-on-flaky에 걸렸다(재시도는 PASS). 환경설정은 현재 footer인데 준비 코드가 옛 scroll-hidden header 초점 계약을 가정했다. 실제 footer control 클릭 후 기존 초점·viewport 검사를 그대로 수행하도록 준비 순서만 수정했다. 제품 날짜 검사·시간제한·flake 정책은 유지한다.
+
+## 병합과 Production
+
+PR #472 최종 CI34580632760 PASS, merge429565f. main CI34581670628 및 Production CD34582611809 PASS. 운영 독립 QA1440/390에서 3곳 비교·문의 선택·큰 글씨·중첩 Escape와 진입 초점 복귀·가로 넘침0 확인. 실제 창원 검색1회(일치5·추가탐색7), 모바일은 데스크톱 응답 재사용. 실제 계정 쓰기·일정 저장·공유·경로·메시지 실행 없음. 증거 `D:/wave-completion-20260911/production-472-summary.json` 및 비교/문의4개 PNG. 운영 Desktop 콘솔 오류0; 모바일의 캐시되지 않은 커뮤니티 GET을 QA가503으로 차단한 기록은 운영 장애가 아니다.

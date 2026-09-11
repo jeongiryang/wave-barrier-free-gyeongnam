@@ -1,17 +1,17 @@
 # Owner completion scope — 2026-09-11
 
-User authorizes continuation through merge and Production, removes their separate visual approval gate, asks all 24 researched candidates to be implemented, then repository regression analysis, bug removal, refactoring, and pre-submission review. This is not authorization to submit the competition application or buy services. Korean/default theme. Keep existing data/auth/privacy boundaries. No messages to other people.
+User authorizes continuation through design refinements, all 24 researched feature candidates, merge and Production verification. Latest Owner instruction defers the exhaustive all-click audit, repository regression analysis/refactoring, and pre-submission review to a later task. Focused checks of changed features and required CI remain. This is not authorization to submit the competition application or buy services. Korean/default theme. Keep existing data/auth/privacy boundaries. No messages to other people.
 
 ## Current stage
 
 - COMPLETE: functional UI follow-up PR #468, `31be6b2e69234f56fecd01a97cedbdd3528974b9`. Independent QA, main CI34574038819 and Production CD34576545629 PASS. Production five-page desktop/mobile verification PASS; old CI issue #469 closed with evidence.
 - COMPLETE: PR #470, `3c4089b79a90708c5ceadf84d49e1bf641e8903a`: full-bleed Eight photo scenes, Ten centered text, region film after preparation, compact sequential Planner. Independent QA, PR CI34577661837, main CI34578759862, Production CD34579711086 PASS. Five-page desktop/mobile checks PASS and one real Changwon search returned five places. The offscreen third mobile region photo loads when scrolled into view; all three photos decoded, page errors 0. Old CI issue #471 closed with evidence.
-- MERGED: PR #472, `429565f542d9d1fd6247947e7df48792a6272636`: candidates 4/7 facility comparison and inquiry card. Independent QA and required CI34580632760 PASS; main CI/Production pending.
+- COMPLETE: PR #472, `429565f542d9d1fd6247947e7df48792a6272636`: candidates 4/7 facility comparison and inquiry card. Independent QA, PR CI34580632760, main CI34581670628, Production CD34582611809 PASS. Production 1440/390 comparison/inquiry interactions PASS; one live Changwon search returned 5 matching places and 7 more to explore, with cached-response reuse on mobile.
 - ACTIVE: `codex/wave-visit-time-353`: candidate 9 editable visit duration, downstream schedule calculation, archive/account/share persistence. Independent four-width interaction QA PASS. Local lint/typecheck/unit806/build/performance PASS; PR/CI/Production pending.
 - COMPLETE: frontend refinements PR #466 merged as `6aff57054f43887f77163ccb1b7a738d29129539`; main CI34570067238 and CD34570878909 succeeded. Production read-only checks on five pages at desktop/mobile: HTTP200, no page errors, Noto Sans KR, intro skip absent. Mobile search summary geometry found during visual review is handled in the active follow-up.
-- PENDING: browser inventory of every click-driven existing feature, especially Planner, and design integration of all states.
+- DEFERRED by latest Owner instruction: exhaustive browser inventory of every click-driven existing feature. Continue focused frontend integration checks for changed features.
 - PENDING: candidate implementation batches below, with integrated usable UI and focused verification.
-- PENDING: final regression analysis, fixes/refactoring, contest pre-submission review.
+- DEFERRED by latest Owner instruction: repository regression analysis/refactoring and contest pre-submission review.
 - Notify the user on each completed PR merge; verify Production for every release.
 
 ## Baseline and preservation
@@ -50,10 +50,10 @@ User authorizes continuation through merge and Production, removes their separat
 1. PENDING — Arrival-time opening/holiday/admission feasibility.
 2. PENDING — Walking burden and scheduled rests based on user preferences.
 3. PENDING — Compare targeted replacement with original and undo.
-4. MERGED #472 — 2–3 place facility comparison, matching needs first, confirmed/negative/unknown fields, sources and direct save/remove. Independent QA PASS, Production pending.
+4. COMPLETE #472 — 2–3 place facility comparison, matching needs first, confirmed/negative/unknown fields, sources and direct save/remove. Independent QA and Production interaction checks PASS.
 5. PENDING — On-trip progress, skip, resume and remaining schedule.
 6. PENDING — Companion needs combined into trip constraints.
-7. MERGED #472 — Large Korean communication/inquiry card, selected questions, custom text, copy/manual fallback and PNG save. No automatic message. Independent QA PASS, Production pending.
+7. COMPLETE #472 — Large Korean communication/inquiry card, selected questions, custom text, copy/manual fallback and PNG save. No automatic message. Independent QA and Production interaction checks PASS.
 8. PENDING — Return/reservation deadline and remaining-time planning.
 9. ACTIVE — Editable visit duration and downstream recalculation. Presets/custom15–720/default, date/order isolation, local archive/account/public-share persistence implemented. Independent QA PASS; merge/Production pending.
 10. PENDING — Reason-driven alternatives (far, visited, easier, indoor).
@@ -76,4 +76,4 @@ Candidate feature must have user-facing integrated entry, meaningful state chang
 
 ## QA scope
 
-Every click-operated feature including forms, cards, menus, tabs, modal open/close, date/order edits, map controls, save/share/archive/account/group/community/audio/photo/export, and necessary loading/empty/error/retry/cancel/permission states. Exclude purely decorative scroll/section transitions. Use test accounts/data for writes. External personal authentication/consent still needs the account holder. Keep large regression at the final phase; do not omit direct visual/interaction verification of changed features.
+This task verifies changed features and their relevant loading/empty/error/cancel states, desktop/mobile layout, required CI and actual Production delivery. The full inventory of all existing click-operated functions, repository regression/refactoring and pre-submission review is deferred by the Owner. Use test accounts/data for writes. External personal authentication/consent still needs the account holder. Do not omit direct visual/interaction verification of changed features.
