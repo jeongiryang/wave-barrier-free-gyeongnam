@@ -32,13 +32,14 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await page.goto("/planner");
     await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
     await expect(page.locator('.region-picker-list [aria-pressed="true"]')).toHaveCount(0);
-    await expect(page.locator(".reference-region-card")).toHaveCount(6);
-    await page.locator(".reference-section-label button").click();
+    await expect(page.locator(".reference-region-card")).toHaveCount(3);
+    await page.locator(".condition-region-field > button").click();
     await expect(page.locator(".region-picker-list button")).toHaveCount(19);
     expect((await new AxeBuilder({ page }).include("#planner").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`region-${theme}-${width}.png`), fullPage: true });
     await page.getByRole("button", { name: "통영", exact: true }).click();
     await expect(page.getByRole("button", { name: "통영 지역 선택" })).toHaveAttribute("aria-pressed", "true");
+    await page.locator(".theme-grid button").first().click();
     await page.locator(".condition-actions button").click();
     await expect(page.getByRole("heading", { name: "어떤 편의가 필요할까요?", exact: true })).toBeFocused();
     await page.locator(".profile-card").first().click();

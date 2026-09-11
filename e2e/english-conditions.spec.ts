@@ -6,7 +6,7 @@ async function openFacilities(page: Page) {
   await page.goto("/planner");
   await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>(".journey-mode-toggle button")?.disabled);
   await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
-  await page.locator(".condition-actions").getByRole("button", { name: "Continue →", exact: true }).click();
+  await page.locator(".reference-progress button").nth(1).click();
 }
 
 for (const theme of ["light", "dark"] as const) {
@@ -44,12 +44,12 @@ for (const theme of ["light", "dark"] as const) {
     await conditions.getByRole("button", { name: /History and culture/ }).click();
     await expect(conditions).not.toContainText(/[가-힣]/);
     expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
-    await page.locator(".reference-search-sentence > button").nth(1).click();
+    await page.evaluate(() => { history.pushState(null, "", "/planner?question=3#conditions"); dispatchEvent(new PopStateEvent("popstate")); });
     await expect(conditions.getByLabel("Start date", { exact: true })).toBeVisible();
     await expect(conditions.getByLabel("End date", { exact: true })).toBeVisible();
     await expect(conditions).not.toContainText(/[가-힣]/);
     expect(searches).toHaveLength(0);
-    await page.locator(".reference-activity-edit").click();
+    await page.evaluate(() => { history.pushState(null, "", "/planner?question=2#conditions"); dispatchEvent(new PopStateEvent("popstate")); });
     await conditions.getByRole("button", { name: "Find places →", exact: true }).click();
     await expect.poll(() => searches.length).toBe(1);
     expect(searches[0].searchParams.get("locale")).toBe("en");

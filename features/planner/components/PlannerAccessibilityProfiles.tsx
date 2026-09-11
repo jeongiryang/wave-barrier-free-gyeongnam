@@ -28,7 +28,7 @@ export default function PlannerAccessibilityProfiles({ t, planController }: {
           return <button key={profile.id} type="button" className={active ? "profile-card active" : "profile-card"} aria-pressed={active} onClick={() => toggleProfile(profile.id)}><span className="profile-icon" aria-hidden="true"><AccessIcon name={profile.icon} size={24} /></span><span><strong>{profileCopy(profile).label}</strong><small>{profileCopy(profile).short}</small></span><i aria-hidden="true">{active ? "✓" : "+"}</i></button>;
         })}
       </div>
-      <p className="derived-note">{en ? "We check whether the selected facilities are available. We do not classify health conditions or guarantee short routes or safe travel." : "선택한 시설의 제공 여부를 확인합니다. 건강 상태를 분류하거나 짧은 동선·안전한 이동을 보장하지 않습니다."}</p>
+      <p className="derived-note">{en ? "Facilities and access conditions vary by place. Check the details before your visit." : "장소마다 시설과 이용 조건이 다를 수 있어요. 방문 전 상세 정보를 확인해 주세요."}</p>
       <details className="travel-profile-card" suppressHydrationWarning>
         <summary><span><small>{en ? "Ready for your next trip" : "다음 여행에도 간편하게"}</small><strong>{en ? "Save and load facilities" : "편의 조건 저장·불러오기"}</strong></span><b aria-hidden="true">+</b></summary>
         <div className="travel-profile-content">

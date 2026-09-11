@@ -259,7 +259,7 @@ export default function PlannerPage() {
                 onGenerate={generatePlan}
                 onSelectPlace={setSelectedPlace}
               />
-              <div className="reference-bottom-bar"><div><strong>선택한 여행지 {saved.length}곳</strong><small>여행지는 일정에서 더 추가할 수 있어요.</small></div><button type="button" disabled={!saved.length} onClick={() => stageView.changeQuestion(3)}>다음: 날짜 선택</button></div>
+              <div className="reference-bottom-bar"><div><strong>선택한 여행지 {saved.length}곳</strong><small>여행지는 일정에서 더 추가할 수 있어요.</small></div><button type="button" disabled={!saved.length} onClick={() => journey.goToStep("itinerary")}>{locale === "en" ? "Next: Itinerary" : "다음: 일정 만들기"} →</button></div>
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerItineraryWorkspace

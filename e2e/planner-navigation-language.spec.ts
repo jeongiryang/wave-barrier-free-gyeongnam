@@ -7,10 +7,9 @@ async function prepare(page: Page) {
   await expect(page.getByRole("button", { name: "Step by step", exact: true })).toBeEnabled();
   const conditions = page.locator("#conditions");
   await conditions.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
+  await conditions.getByRole("button", { name: /Nature and relaxation/ }).click();
   await conditions.locator(".condition-actions button").last().click();
   await conditions.getByRole("button", { name: /Wheelchair facilities/ }).click();
-  await conditions.locator(".condition-actions button").last().click();
-  await conditions.getByRole("button", { name: /Nature and relaxation/ }).click();
 }
 
 test("English navigation preserves gates, stage history and keyboard focus", async ({ page }) => {
@@ -24,7 +23,7 @@ test("English navigation preserves gates, stage history and keyboard focus", asy
   const progress = page.locator(".reference-completion");
   await expect(rail.getByRole("button")).toHaveCount(4);
   await expect(rail).not.toContainText(/[가-힣]/);
-  await expect(page.locator(".reference-journey-views button").nth(1)).toBeDisabled();
+  await expect(page.locator(".reference-journey-views")).toHaveCount(0);
   await expect(rail.getByRole("button").last()).toBeDisabled();
   await expect(status).toHaveText("Not searched");
   await expect(progress).toHaveAttribute("aria-valuenow", "0");
@@ -84,7 +83,8 @@ for (const response of ["empty", "error"] as const) {
     await page.getByRole("button", { name: "Find places →", exact: true }).click();
     try { await expect(status).toHaveText("Loading"); } finally { release(); }
     await expect(status).toHaveText(response === "error" ? "Try again" : "No matching places");
-    await expect(page.locator(".reference-journey-views button").nth(1)).toBeDisabled();
+    if (response === "error") await expect(page.locator(".reference-journey-views")).toHaveCount(0);
+    else await expect(page.locator(".reference-journey-views button").last()).toBeDisabled();
     await expect(page.locator(".reference-progress button").last()).toBeDisabled();
   });
 }

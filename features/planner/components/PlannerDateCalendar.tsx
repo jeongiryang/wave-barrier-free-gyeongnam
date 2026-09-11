@@ -7,7 +7,7 @@ import { useSitePreferences } from "../../../components/SitePreferences";
 import { regionNames } from "../../../lib/gyeongnam-region-names";
 import TripDateNotice from "./TripDateNotice";
 
-export default function PlannerDateCalendar({ trip, region, onContinue }: { trip: ReturnType<typeof useTripSelection>; region: string; onContinue: () => void }) {
+export default function PlannerDateCalendar({ trip, region, onContinue, onPreferences }: { trip: ReturnType<typeof useTripSelection>; region: string; onContinue: () => void; onPreferences: () => void }) {
   const en = useSitePreferences().locale === "en";
   const c = (ko: string, english: string) => en ? english : ko;
   const [visibleMonth, setVisibleMonth] = useState("");
@@ -52,6 +52,6 @@ export default function PlannerDateCalendar({ trip, region, onContinue }: { trip
     </div>
     <aside className="reference-date-summary"><small>{c("선택한 여행", "Your trip")}</small><h3>{label(trip.travelStart)} - {label(trip.travelEnd)}</h3><p>{en ? `${trip.tripDays.length} days` : trip.tripDays.length > 1 ? `${trip.tripDays.length - 1}박 ${trip.tripDays.length}일` : "당일 여행"}</p><div className="reference-tint"><strong>{en ? regionNames[region] || "Gyeongnam" : region || "경남"}</strong><small>{en ? `${trip.orderedSavedPlaces.length} places selected` : `여행지 ${trip.orderedSavedPlaces.length}곳 선택`}</small></div><h4>{c("선택 기간", "Selected dates")}</h4><ol>{trip.tripDays.map((day, index) => <li key={day}><strong>{label(day)}</strong><small>DAY {index + 1}</small></li>)}</ol>
       {outside.length > 0 && <div className="reference-date-reassign"><p role="status">기존 날짜에 남아 있는 여행지 {outside.length}곳이 있어요.</p><button type="button" onClick={() => outside.forEach(place => trip.assignPlaceToDay(place.id, trip.travelStart))}>이 {outside.length}곳을 새 출발일로 옮기기</button><small>날짜별 배치는 다음 화면에서 바꿀 수 있어요.</small></div>}
-      <button className="reference-primary" type="button" disabled={!trip.saved.length} onClick={onContinue}>{c("다음: 일정 만들기", "Next: Itinerary")}</button></aside>
+      <button className="reference-primary" type="button" onClick={trip.saved.length ? onContinue : onPreferences}>{trip.saved.length ? c("다음: 일정 만들기", "Next: Itinerary") : c("여행 조건으로 돌아가기", "Back to trip preferences")}</button></aside>
   </div>;
 }

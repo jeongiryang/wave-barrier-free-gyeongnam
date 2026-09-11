@@ -18,19 +18,19 @@ async function prepare(page: Page, en = false, crowdRate?: number) {
   await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>(".journey-mode-toggle button")?.disabled);
   await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
   const next = page.locator(".condition-actions button").last();
+  await page.getByRole("button", { name: en ? /Nature/ : /자연·휴양/ }).click();
   await next.click();
   await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
-  await next.click();
-  await page.getByRole("button", { name: en ? /Nature/ : /자연·휴양 공원/ }).click();
   return page.locator(".condition-actions").getByRole("button").last();
 }
 
 for (const en of [false, true]) {
 test(`weather alternative search keeps focus during the return to conditions ${en ? "English" : "Korean"}`, async ({ page }) => {
   const search = await prepare(page, en);
-  await page.locator(".reference-search-sentence > button").nth(1).click();
+  await page.locator(".reference-progress button").first().click();
+  await page.locator(".condition-date-disclosure > summary").click();
   const date = await page.locator('input[type="date"]').first().inputValue();
-  await page.locator(".reference-activity-edit").click();
+  await page.locator(".reference-progress button").nth(1).click();
   await page.route("**/api/weather?*", route => route.fulfill({ json: {
     region: "창원", source: "Open-Meteo", updatedAt: "2026-09-07T00:00:00Z",
     current: { temperature: 23, apparent: 23, code: 61, label: "비", wind: 2, precipitation: 3, isDay: true },
@@ -113,7 +113,7 @@ test(`keyboard search moves focus to the displayed results and synchronizes the 
   await page.screenshot({ path: test.info().outputPath("search-results-visible.png") });
   await page.goBack();
   await expect(page.locator(".condition-heading")).toBeFocused();
-  await expect(page).toHaveURL(/question=2#conditions$/);
+  await expect(page).toHaveURL(/question=1#conditions$/);
 });
 
 test(`a delayed search does not hide the question the user returned to ${en ? "English" : "Korean"}`, async ({ page }) => {
@@ -142,8 +142,7 @@ test(`keyboard next step focuses the displayed itinerary heading ${en ? "English
   const search = await prepare(page, en);
   await search.click();
   await page.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.getByRole("button", { name: "다음: 날짜 선택", exact: true }).click();
-  const next = page.getByRole("button", { name: en ? "Next: Itinerary" : "다음: 일정 만들기", exact: true });
+  const next = page.locator('.journey-stage-panel[data-step="places"]').getByRole("button", { name: en ? "Next: Itinerary →" : "다음: 일정 만들기 →", exact: true });
   await next.focus();
   await next.press("Enter");
   await expect(page.locator("#itinerary")).toBeVisible();

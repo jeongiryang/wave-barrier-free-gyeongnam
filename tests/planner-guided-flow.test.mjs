@@ -13,7 +13,7 @@ test("새 여행자는 한 단계씩 보고 필요하면 전체 보기로 전환
   ]);
 
   assert.match(viewHook, /useSyncExternalStore\(subscribe, currentView, serverView\)/);
-  assert.match(viewHook, /wave-planner-stage-view-v1/);
+  assert.match(viewHook, /wave-planner-stage-view-v2/);
   assert.match(viewHook, /wave-planner-active-step-v1/);
   assert.match(viewHook, /navigation: \{ step: "itinerary", target: "navigation" \}/);
   assert.match(viewHook, /route: \{ step: "itinerary", target: "itinerary" \}/);

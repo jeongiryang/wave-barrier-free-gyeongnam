@@ -22,6 +22,7 @@ export default function PlannerRegionGallery({ value, onChange, onInterest, onFa
   const [interest, setInterest] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [failedImages, setFailedImages] = useState<string[]>([]);
+  const RegionHeading = full ? "h4" : "h3";
   const choices = full ? featured : featured.slice(0, 3);
   const featuredRegions = value && value !== "경남 전체" && !choices.includes(value) ? [value, ...choices.slice(1)] : choices;
   return <div className="reference-regions">
@@ -31,8 +32,8 @@ export default function PlannerRegionGallery({ value, onChange, onInterest, onFa
       const photo = name === "통영" ? regionShowcaseAlbums[name][1] || regionShowcasePhotos[name] : regionShowcasePhotos[name];
       return <article key={name} className={`reference-region-card${index === 0 ? " featured" : ""}`} data-selected={name === value || undefined}>
         {!failedImages.includes(photo.image) && <img lang="ko" src={photo.image} alt={`${name} · ${photo.title}`} width="800" height="500" loading="lazy" decoding="async" onError={() => setFailedImages(previous => [...previous, photo.image])} />}
-        <div className="reference-region-copy" lang="ko"><h4>{name}</h4><p>{captions[name] || photo.title}</p></div>
-        <button type="button" aria-label={`${name} 지역 선택`} aria-pressed={name === value} onClick={() => onChange(name)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg></button>
+        <div className="reference-region-copy" lang="ko"><RegionHeading>{name}</RegionHeading><p>{captions[name] || photo.title}</p></div>
+        <button type="button" aria-label={`${name} 지역 선택`} aria-pressed={name === value} onClick={() => onChange(name)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d={name === value ? "m5 12 4 4L19 6" : "M12 5v14M5 12h14"} /></svg></button>
         <a className="reference-photo-credit" href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{photo.photographer || "한국관광공사"} · 원본 ↗</a>
       </article>;
     })}</div>
