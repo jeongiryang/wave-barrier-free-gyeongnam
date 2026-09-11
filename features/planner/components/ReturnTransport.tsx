@@ -54,7 +54,7 @@ function PlaceReturnTransport({ place, targets }: { place: Place; targets: Place
         {info.moreArrivals && <p style={copyStyle}>일부 노선의 도착 정보만 제공되었습니다.</p>}
         <div style={{ ...gridStyle, marginTop: 16 }}>{(allRoutes ? info.routes : info.routes.slice(0,6)).map(route => <article key={route.routeId} style={cardStyle}>
           <h4 style={{ fontSize: 20, margin: 0 }}>{route.routeName}번</h4>
-          {route.vehicles.map((vehicle,index) => <p key={index}><strong>{index === 0 ? '다음 차' : '그다음 차'}</strong> · {returnArrivalLabel(vehicle.seconds, info.arrivalCheckedAt, now)}{vehicle.stopsAway === null ? '' : ` · ${vehicle.stopsAway}정류장 전`}{vehicle.vehicle ? ` · ${vehicle.vehicle}` : ''}</p>)}
+          {route.vehicles.map((vehicle,index) => <p key={index} style={{ margin: 0, fontSize: 16, lineHeight: 1.6 }}><strong>{index === 0 ? '다음 차' : '그다음 차'}</strong> · {returnArrivalLabel(vehicle.seconds, info.arrivalCheckedAt, now)}{vehicle.stopsAway === null ? '' : ` · ${vehicle.stopsAway}정류장 전`}{vehicle.vehicle ? ` · ${vehicle.vehicle}` : ''}</p>)}
           {route.vehicles.length < 2 && <p style={copyStyle}>그다음 차 정보는 아직 없어요.</p>}
           <div className="travel-book-actions"><button type="button" disabled={busy} aria-pressed={info.routeId === route.routeId} onClick={() => void load(info.selected, route.routeId)}>이 노선의 진행 방향 확인</button></div>
         </article>)}</div>
