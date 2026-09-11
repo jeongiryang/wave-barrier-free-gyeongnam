@@ -61,6 +61,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .landing-page.motion-ready [data-land-reveal] { opacity: 1; transform: none; transition: none; }
   .landing-cta h2 { translate: none !important; transition: none; }
   .landing-cta > * { opacity: 1; transform: none; transition: none; }
   .section-kicker::after { transform: scaleX(1) translateY(-50%); transition: none; }
