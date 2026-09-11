@@ -3,6 +3,7 @@ import type { VisitInfo } from "../../lib/visit-hours.js";
 import { clean, json } from "../shared/http";
 import { attemptProvider, commonParams, fetchTourismData } from "../shared/provider-data";
 import { supportedPlacePoint } from "../../lib/map-coordinates.js";
+import { SERVER_BUDGET_MS, budgetClock, withinBudget } from "../../lib/request-budget.js";
 
 const fields: Record<string, { hours?: string; rest?: string; fees?: string; phone: string }> = {
   "12": { hours: "usetime", rest: "restdate", phone: "infocenter" },
@@ -19,18 +20,25 @@ const fields: Record<string, { hours?: string; rest?: string; fees?: string; pho
 export async function handleVisitInfo(url: URL, env: Env) {
   const id = url.searchParams.get("contentId") || "";
   if (!/^[1-9]\d{0,11}$/.test(id)) return json({ status: "invalid-id" }, 400);
-  const common = await attemptProvider(fetchTourismData(env, "KorService2", "detailCommon2", { ...commonParams("1"), contentId: id }));
-  if (!common.ok) return json({ id, status: "provider-error" }, 502);
+  const deadline = AbortSignal.timeout(SERVER_BUDGET_MS.visitInfo);
+  const remaining = budgetClock(SERVER_BUDGET_MS.visitInfo);
+  const lookup = (operation: string, params: Record<string, string>) => withinBudget(
+    attemptProvider(fetchTourismData(env, "KorService2", operation, params, deadline)), remaining(),
+    () => ({ ok: false as const, error: "Visit information timed out" }),
+  );
+  const common = await lookup("detailCommon2", { ...commonParams("1"), contentId: id });
+  if (!common.ok || common.value.partial) return json({ id, status: "provider-error" }, 502);
   const base = { id, checkedAt: new Date().toISOString(), source: "ⓒ한국관광공사" };
   if (!common.value.items.length) return json({ ...base, status: "empty" });
   const place = common.value.items.find(item => String(item.contentid) === id);
   if (!place) return json({ id, status: "invalid-response" }, 502);
-  if (!supportedPlacePoint(place.mapx, place.mapy)) return json({ ...base, status: "location-unconfirmed" });
+  // KorService2 replaces the deprecated areacode with the legal province code.
+  if (String(place.lDongRegnCd) !== "48" || !supportedPlacePoint(place.mapx, place.mapy)) return json({ ...base, status: "location-unconfirmed" });
   const contentTypeId = String(place.contenttypeid || "");
   const mapping = fields[contentTypeId];
   if (!mapping) return json({ ...base, status: "unsupported" });
-  const intro = await attemptProvider(fetchTourismData(env, "KorService2", "detailIntro2", { ...commonParams("1"), contentId: id, contentTypeId }));
-  if (!intro.ok) return json({ id, status: "provider-error" }, 502);
+  const intro = await lookup("detailIntro2", { ...commonParams("1"), contentId: id, contentTypeId });
+  if (!intro.ok || intro.value.partial) return json({ id, status: "provider-error" }, 502);
   if (!intro.value.items.length) return json({ ...base, status: "empty" });
   const item = intro.value.items.find(value => String(value.contentid) === id && String(value.contenttypeid) === contentTypeId);
   if (!item) return json({ id, status: "invalid-response" }, 502);

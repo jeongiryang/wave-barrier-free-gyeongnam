@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { assessVisitHours, type PlannedVisit, type VisitInfo } from "../../../lib/visit-hours.js";
 import { formatScheduleTime } from "../optimization/itinerary-schedule.js";
 import { fetchVisitInfo } from "../services/visit-info";
-import "./VisitHoursCard.css";
 
 const reasons: Record<string, [string, string]> = {
   "within-hours": ["등록된 이용시간 안에 머무는 일정이에요.", "Your planned visit fits the published hours."],
@@ -31,25 +30,25 @@ export default function VisitHoursCard({ id, name, visit, en = false }: { id: st
     catch { if (mounted.current) setState("error"); }
   }
   const assessment = visit && info ? assessVisitHours(info, visit) : null;
-  return <details className="visit-hours" onToggle={event => { if (event.currentTarget.open && state === "idle") void load(); }}>
-    <summary aria-label={c(`${name} 이용시간 확인`, `${name} visiting hours`)}>{c("이용시간 확인", "Visiting hours")}<span>{c("운영·휴무·입장", "Opening · closed days")}</span></summary>
-    <div aria-busy={state === "loading"}>
+  return <details className="place-evidence visit-hours" style={{ margin: "12px 0", width: "100%", minWidth: 0 }} onToggle={event => { if (event.currentTarget.open) void load(); }}>
+    <summary aria-label={c(`${name} 이용시간 확인`, `${name} visiting hours`)}>{c("이용시간 확인", "Visiting hours")}</summary>
+    <div className="modal-data" style={{ overflowWrap: "anywhere", fontSize: 14, lineHeight: 1.65 }} aria-busy={state === "loading"}>
       {state === "loading" && <p role="status">{c("공식 이용 정보를 불러오고 있어요…", "Loading official visitor information…")}</p>}
-      {state === "error" && <p role="alert">{c("이용 정보를 불러오지 못했어요.", "Visitor information couldn't load.")} <button type="button" onClick={() => void load()}>{c("다시 확인", "Try again")}</button></p>}
+      {state === "error" && <><p role="alert">{c("이용 정보를 불러오지 못했어요.", "Visitor information couldn't load.")}</p><div className="travel-book-actions"><button type="button" onClick={() => void load()}>{c("다시 확인", "Try again")}</button></div></>}
       {info && state === "ready" && <>
-        {visit && <p className="visit-hours-timing">{visit.day} · {c("예상 방문", "Planned visit")} {formatScheduleTime(visit.startsAt)}–{formatScheduleTime(visit.endsAt)}</p>}
-        {assessment && <p className="visit-hours-result" role="status" data-state={assessment.state}><b>{assessment.state === "within" ? c("시간대 일치", "Times fit") : assessment.state === "conflict" ? c("일정 조정 필요", "Adjust your visit") : c("확인 필요", "Check with venue")}</b>{(reasons[assessment.reason] || reasons["confirm-hours"])[en ? 1 : 0]}</p>}
-        {info.status === "available" ? <dl>
-          <div><dt>{c("이용시간", "Hours")}</dt><dd>{info.hours || c("등록된 시간 없음", "No published hours")}</dd></div>
-          <div><dt>{c("휴무", "Closed days")}</dt><dd>{info.restDays || c("등록된 휴무 정보 없음", "No published closing days")}</dd></div>
-          {(info.eventStart || info.eventEnd) && <div><dt>{c("행사 기간", "Event dates")}</dt><dd>{info.eventStart || "—"} – {info.eventEnd || "—"}</dd></div>}
-          {info.checkIn && <div><dt>{c("체크인", "Check-in")}</dt><dd>{info.checkIn}</dd></div>}
-          {info.checkOut && <div><dt>{c("체크아웃", "Check-out")}</dt><dd>{info.checkOut}</dd></div>}
-          {info.fees && <div><dt>{c("이용요금", "Admission fees")}</dt><dd>{info.fees}</dd></div>}
-          {info.phone && <div><dt>{c("문의", "Contact")}</dt><dd>{/^[0-9+()\s-]{7,30}$/.test(info.phone) ? <a href={`tel:${info.phone.replace(/[^+\d]/g, "")}`}>{info.phone}</a> : info.phone}</dd></div>}
-        </dl> : <p>{c("이 장소의 공식 이용 정보를 확인하지 못했어요. 시설에 운영시간과 휴무를 문의해 주세요.", "Official visiting information is unavailable. Ask the venue about hours and closing days.")}</p>}
-        <p className="visit-hours-note">{c("등록 정보와 예상 일정의 비교예요. 당일 변경·예약 가능 여부는 시설에 확인해 주세요.", "This compares published information with planned times. Confirm same-day changes and reservations with the venue.")}</p>
-        <small>{info.source} · {c("정보 조회", "Retrieved")} {new Date(info.checkedAt).toLocaleString(en ? "en-GB" : "ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} KST</small>
+        {visit && <p className="modal-note">{visit.day} · {c("예상 방문", "Planned visit")} {formatScheduleTime(visit.startsAt)}–{formatScheduleTime(visit.endsAt)}</p>}
+        {assessment && <p role="status" data-state={assessment.state}><b style={{ display: "block", color: assessment.state === "conflict" ? "var(--ink)" : "var(--blue)" }}>{assessment.state === "within" ? c("시간대 일치", "Times fit") : assessment.state === "conflict" ? c("일정 조정 필요", "Adjust your visit") : c("확인 필요", "Check with venue")}</b>{(reasons[assessment.reason] || reasons["confirm-hours"])[en ? 1 : 0]}</p>}
+        {info.status === "available" ? <>
+          <span><small>{c("이용시간", "Hours")}</small>{info.hours || c("등록된 시간 없음", "No published hours")}</span>
+          <span><small>{c("휴무", "Closed days")}</small>{info.restDays || c("등록된 휴무 정보 없음", "No published closing days")}</span>
+          {(info.eventStart || info.eventEnd) && <span><small>{c("행사 기간", "Event dates")}</small>{info.eventStart || "—"} – {info.eventEnd || "—"}</span>}
+          {info.checkIn && <span><small>{c("체크인", "Check-in")}</small>{info.checkIn}</span>}
+          {info.checkOut && <span><small>{c("체크아웃", "Check-out")}</small>{info.checkOut}</span>}
+          {info.fees && <span><small>{c("이용요금", "Admission fees")}</small>{info.fees}</span>}
+          {info.phone && <span><small>{c("문의", "Contact")}</small>{/^[0-9+()\s-]{7,30}$/.test(info.phone) ? <a style={{ display: "inline-flex", alignItems: "center", minHeight: 44 }} href={`tel:${info.phone.replace(/[^+\d]/g, "")}`}>{info.phone}</a> : info.phone}</span>}
+        </> : <p>{c("이 장소의 공식 이용 정보를 확인하지 못했어요. 시설에 운영시간과 휴무를 문의해 주세요.", "Official visiting information is unavailable. Ask the venue about hours and closing days.")}</p>}
+        <p className="modal-note">{visit ? c("등록 정보와 예상 일정의 비교예요. ", "This compares published information with planned times. ") : c("한국관광공사에 등록된 이용 정보예요. ", "Visitor information published by the Korea Tourism Organization. ")}{c("당일 변경·예약 가능 여부는 시설에 확인해 주세요.", "Confirm same-day changes and reservations with the venue.")}</p>
+        <p className="modal-note">{info.source} · {c("정보 조회", "Retrieved")} {new Date(info.checkedAt).toLocaleString(en ? "en-GB" : "ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} KST</p>
       </>}
     </div>
   </details>;
