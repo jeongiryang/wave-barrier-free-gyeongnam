@@ -13,6 +13,7 @@ import { TripBreakSummary } from "./TripBreakControl";
 import { DayDeadlineSummary } from "./DayDeadlineControl";
 import { FixedVisitSummary } from "./FixedVisitControl";
 import TripDayTools from "./TripDayTools";
+import TripBudgetEntry from "./TripBudgetEntry";
 
 export function PlannerWeatherCard({ weather, loading, region }: { weather: WeatherData | null; loading: boolean; region: string }) {
   return <section className="reference-weather" aria-label="여행 날씨"><small>{region} 여행 날씨</small>{weather ? <><strong>{weather.current.label}<b>{weather.current.temperature}°</b></strong><WeatherVisual code={weather.current.code} /><p>강수 {weather.current.precipitation}mm · 바람 {weather.current.wind}m/s</p><span>현재 날씨 · {weather.updatedAt ? new Date(weather.updatedAt).toLocaleDateString("ko-KR") : weather.source}</span></> : <><strong>{loading ? "날씨 확인 중" : "날씨 확인 필요"}</strong><p>{loading ? "여행 지역의 날씨를 불러오고 있어요." : "날씨가 도착하면 이곳에서 확인할 수 있어요."}</p></>}</section>;
@@ -31,6 +32,7 @@ export default function PlannerTripOverview({ trip, participation, coverage, ori
     <p className="reference-subtitle">일정, 이동 경로, 접근성 정보와 날씨를 마지막으로 확인합니다.</p>
     <div className="reference-trip-banner"><div><h3>{trip.travelStart.replaceAll("-", ". ")} - {trip.travelEnd.slice(5).replace("-", ". ")}</h3><p>{trip.tripDays.length > 1 ? `${trip.tripDays.length - 1}박 ${trip.tripDays.length}일` : "당일 여행"} · {region} · 여행지 {inPeriod.length}곳</p></div><ol className="reference-route-chain" aria-label="전체 방문 순서">{inPeriod.map((place, index) => <li key={place.id}><b>{index + 1}</b><span>{place.name}</span></li>)}</ol></div>
     <TripDayTools trip={trip} coverage={coverage} origin={origin} region={region} onSelectPlace={onSelectPlace} />
+    <TripBudgetEntry trip={trip} coverage={coverage} region={region}/>
     <div className="reference-overview-grid">
       <section className="reference-schedule"><header><h3>전체 일정</h3><button type="button" onClick={onEdit}>일정 수정하기</button></header>
         {schedule.map(({ day, entries }, index) => <article key={day}><h4><span>DAY {index + 1}</span>{new Date(`${day}T12:00:00`).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "long" })}</h4><ol>{entries.map(entry => <li key={entry.place.id} style={{ flexWrap: "wrap" }}><time>{entry.startsAtLabel}</time><button type="button" onClick={() => onSelectPlace(entry.place)}>{entry.place.name}</button><small>{entry.travelSource === "route" ? `이동 ${entry.travelMinutes}분` : "이동 시간 미확인"} · 체류 {entry.visitMinutes}분</small><TripBreakSummary minutes={entry.breakMinutes} purpose={trip.restPurposeByPlaceId[entry.place.id]} start={entry.visitEndsAtLabel} end={entry.endsAtLabel} /><FixedVisitSummary fixed={trip.fixedVisits[entry.place.id]} waiting={entry.waitingMinutes} late={entry.lateMinutes} /></li>)}</ol><DayDeadlineSummary entries={entries} value={trip.dayDeadlines[day]} />{!entries.length && <p>아직 추가한 여행지가 없어요.</p>}</article>)}

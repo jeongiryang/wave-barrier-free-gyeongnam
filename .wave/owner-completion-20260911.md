@@ -63,7 +63,7 @@ User authorizes continuation through design refinements, all 24 researched featu
 13. COMPLETE #482 — Keep accommodation/must-visit/event IDs, dates and daily positions; optional clock inserts waiting or reports lateness. Explicit unpin and local/archive/account/shared integration. Independent QA, exact-head/main CI, Production CD and1440/390 delivered-UI checks PASS (same evidence as candidate8).
 14. COMPLETE #483 — Nearby rest/accessible-restroom candidates with source, confirmed/unknown distinction, estimated detour, insertion and later-pin guard. Independent QA, CI/CD and Production PASS; real recorded Changwon data had 0 confirmed and 3 optional unknown candidates, never labeled confirmed. Same evidence as candidate2.
 15. PENDING — Recent facility confirmation history and structured update reports.
-16. PENDING — Trip cost/budget with known/unknown distinctions.
+16. ACTIVE — Known admission/transport costs plus user-entered food/stay/other amounts and per-person/whole-trip budget. Unknown price excluded and counted; optional saved budget in offline summary. Focused checks and release in progress.
 17. ACTIVE — Standalone HTML/text travel pack with schedule, rest/fixed visits, facility facts and explicitly checked contacts; no external resources. Focused checks/release in progress.
 18. PENDING — Return transport direction/next service tied to itinerary.
 19. PENDING — Anchor-first course expansion.
