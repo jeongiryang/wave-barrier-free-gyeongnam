@@ -16,6 +16,14 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
     const target = step ? document.querySelector<HTMLElement>(step.highlightSelector) || section : null;
     if (!section || !target) return;
     section.dataset.helpTourActive = "true";
+    // A highlighted card may be outside either horizontal film row. Reveal it
+    // before calculating its vertical position, without moving the page sideways.
+    for (let parent = target.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
+      if (!/auto|scroll/.test(getComputedStyle(parent).overflowX) || parent.scrollWidth <= parent.clientWidth) continue;
+      const card = target.getBoundingClientRect(), rail = parent.getBoundingClientRect();
+      parent.scrollTo({ left: parent.scrollLeft + card.left - rail.left - (parent.clientWidth - card.width) / 2, behavior: "instant" });
+      break;
+    }
     const reduced = prefersReducedMotion();
     const targetTop = window.scrollY + target.getBoundingClientRect().top - Math.min(104, window.innerHeight * 0.16);
     window.scrollTo({ top: Math.max(0, targetTop), behavior: reduced ? "auto" : "smooth" });
@@ -43,7 +51,7 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
     const queueUpdate = () => { if (!frame) frame = window.requestAnimationFrame(updateHighlight); };
     queueUpdate();
     const settleTimer = window.setTimeout(queueUpdate, reduced ? 0 : 520);
-    window.addEventListener("scroll", queueUpdate, { passive: true });
+    window.addEventListener("scroll", queueUpdate, { passive: true, capture: true });
     window.addEventListener("resize", queueUpdate);
     const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(queueUpdate);
     resizeObserver?.observe(target);
@@ -51,7 +59,7 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
       delete section.dataset.helpTourActive;
       window.clearTimeout(settleTimer);
       window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", queueUpdate);
+      window.removeEventListener("scroll", queueUpdate, true);
       window.removeEventListener("resize", queueUpdate);
       resizeObserver?.disconnect();
     };

@@ -28,3 +28,7 @@
 최신 main #474 `c333a1b`를 정상 통합했다. 상태 문서의 같은 Owner 보류 지시 두 표현만 충돌하여 최신 문구로 보존했고 구현 충돌은 없었다. Vercel build와성능PASS: CSS69.88/70KiB, Landing117.32/155KiB, Planner176.99/270KiB. 나머지 최종 검사와 CI/Production은 아래에 이어 기록한다.
 
 최종 로컬 typecheck, lint(오류0·기존경고12), unit810, Vercel build/performance PASS. 최신 main 포함 관련 브라우저56개 PASS. 테스트 전용 Image() 계측값의 타입 선언을 명시하고, 다음 앨범도 실제로 미리 준비되었는지 assertion을 강화한 뒤 해당2개 PASS. 독립 QA와 함께 변경 영역 검증 완료. 필수 hosted CI와 Production은 PR 뒤 확인한다.
+
+Hosted CI34586121677에서 모바일 도움말이 가로 화면 밖의 선택 카드를 강조하는 실제 결함과, 고정 투명 안내 뒤 사진 대신 body 바탕색을 읽는 대비 계측 오류를 재현했다. 도움말은 가로 목록을 먼저 맞추고 실제 제목을 강조하며, 설명 중 필름·앨범 전환을 멈춘다. 중첩 스크롤도 강조 위치에 반영한다. 대비 helper는 fixed 투명 레이어의 실제 뒤 요소를 hit-test해 합성한다. 기존 사진/그라데이션 판정 보류 규칙과4.5기준은 그대로이며, 밝은 배경+흰글자/반투명 부족 배경을 여전히 실패시키고 어두운 배경을 통과시키는 독립 합성 사례를 추가했다. 기존 실패 두 파일14개 모두 로컬PASS. 사진 위 rail 실제 읽힘은 독립 시각 검수 대상이다.
+
+후속 typecheck/lint/unit810/Vercel build/performance 및 합성 대비2개 PASS. 독립390/320 KO/EN 도움말의 실제 제목/강조/다이얼로그 정렬, 가로 넘침0·오류0 재확인PASS. 필름 정지·이전/다음·Escape 추가 확인과 새 HEAD hosted CI 후 병합한다.

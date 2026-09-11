@@ -16,7 +16,7 @@ export function useRegionFilm(rail: RefObject<HTMLDivElement | null>, counterRai
       frame = 0;
       const linked = section.dataset.film === "true";
       if (linked && stage.offsetHeight > innerHeight - 116) section.dataset.film = "false";
-      if (section.dataset.film !== "true" || engaged || section.contains(document.activeElement)) return;
+      if (section.dataset.film !== "true" || engaged || section.dataset.helpTourActive === "true" || section.contains(document.activeElement)) return;
       const rect = section.getBoundingClientRect();
       const stickyTop = 116;
       const distance = Math.max(1, section.offsetHeight - (innerHeight - stickyTop));

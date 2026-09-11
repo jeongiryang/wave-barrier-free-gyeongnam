@@ -32,9 +32,17 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
   const [automatic, setAutomatic] = useState(true);
   const [visible, setVisible] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [touring, setTouring] = useState(false);
   const album = regionShowcaseAlbums[active.name];
   const photoIndex = photoChoice?.region === active.name ? photoChoice.index : 0;
-  const running = ready && automatic && inView && visible && !saving && motion !== "calm";
+  const running = ready && automatic && inView && visible && !saving && !touring && motion !== "calm";
+  useEffect(() => {
+    const section = film.current;
+    if (!section) return;
+    const observer = new MutationObserver(() => setTouring(section.dataset.helpTourActive === "true"));
+    observer.observe(section, { attributes: true, attributeFilter: ["data-help-tour-active"] });
+    return () => observer.disconnect();
+  }, [film]);
   useEffect(() => {
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     const reduction = matchMedia("(prefers-reduced-motion: reduce)");

@@ -74,12 +74,22 @@ const MEASURE = String.raw`(() => {
 
     const stack = [];
     let undecidable = false;
-    for (let item = node; item; item = item.parentElement) {
+    const visited = new Set();
+    for (let item = node; item && !visited.has(item);) {
+      visited.add(item);
       const own = getComputedStyle(item);
-      if (own.backgroundImage && own.backgroundImage !== "none") { undecidable = true; break; }
+      if ((own.backgroundImage && own.backgroundImage !== "none") || item.tagName === "IMG" || item.tagName === "VIDEO" || item.tagName === "CANVAS") { undecidable = true; break; }
       const colour = rgba(own.backgroundColor);
       if (colour.a > 0) stack.push(colour);
       if (colour.a >= 1) break;
+      // A transparent fixed overlay paints over sibling scenes, not its body's
+      // background. Continue through the actual hit-tested backing element.
+      if (own.position === "fixed") {
+        const x = Math.max(0, Math.min(innerWidth - 1, box.left + box.width / 2));
+        const y = Math.max(0, Math.min(innerHeight - 1, box.top + box.height / 2));
+        const backing = document.elementsFromPoint(x, y).find(candidate => !item.contains(candidate) && !visited.has(candidate));
+        item = backing || item.parentElement;
+      } else item = item.parentElement;
     }
     if (undecidable) return;
     if (!stack.length || stack[stack.length - 1].a < 1) return;
