@@ -37,3 +37,5 @@ Owner가 기능·프론트 통합과 병합·Production 확인을 승인했다. 
 CI34581885502의 English 일정 검사에서 날짜 선택값에 필요한158.76px보다 실제155px이 좁은 레이아웃 문제가 발견됐다. 체류시간 필드가 기존 두 열을 공유하면서 날짜를 밀어낸 원인이다. 두 필드는 충분한 너비가 확보될 때만 나란히 배치하고, 순서 버튼은 별도 전체 행을 사용하도록 수정한다. 기존 날짜 글자/44px 조작/viewport/접근성 검사의 assertion과 timeout은 유지한다.
 
 후속 로컬 검사: typecheck, lint(오류0·기존경고12), unit810, Vercel build PASS. CSS69.94/70KiB. English 날짜 검사와 체류시간/계정 저장 영향 E2E16개 모두 PASS. 최종 너비 보정의 독립 QA 및 새 HEAD hosted CI는 별도 확인한다.
+
+최종 독립 QA에서는 auto-fit의 빈 열과 English 적용 버튼 두 줄을 추가 확인했다. 넓은 화면을 정확히 두 열로 제한하고 작은 화면은 한 열, 버튼은 간결한 Apply로 보정했다. 320/1440 재검수에서 두 버튼 한 줄·선택값 잘림0·빈 열0·부모/문서 가로 넘침0·페이지 오류0 PASS. 최종 소스로 필수 로컬4검사와 관련 E2E16개를 다시 통과했다. CSS69.94/70KiB, Planner177.02/270KiB. 증거 `D:/wave-completion-20260911/visit-duration-layout-qa-final.json` 및320/1440 PNG.
