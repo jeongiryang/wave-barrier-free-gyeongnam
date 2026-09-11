@@ -48,7 +48,7 @@ User authorizes continuation through design refinements, all 24 researched featu
 
 ## Feature candidates — all authorized; status is per feature, not inferred from a placeholder
 
-1. MERGED #480 — Arrival-time opening/holiday/admission feasibility, on-demand official visitor information with caching and conservative unknown states. Exact-head CI34591124346 PASS; merged as `8ec3b525d28a0caa53259f9baae72670f5e2e215`. Main CI and actual Production confirmation pending.
+1. COMPLETE #480 — On-demand official opening/holiday/admission information and planned visit comparison. Exact-head CI34591124346, main CI34592274140 and Production CD34593181788 PASS; merged as `8ec3b525d28a0caa53259f9baae72670f5e2e215`. Actual Production1440/390 changed-time/cache/source checks PASS with one new visitor-info request (HTTP200, KTO data); no new plan/route calls or account/message writes. Evidence `D:/wave-completion-20260911/production-480-summary.json`.
 2. PENDING — Walking burden and scheduled rests based on user preferences.
 3. PENDING — Compare targeted replacement with original and undo.
 4. COMPLETE #472 — 2–3 place facility comparison, matching needs first, confirmed/negative/unknown fields, sources and direct save/remove. Independent QA and Production interaction checks PASS.

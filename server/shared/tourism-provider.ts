@@ -22,6 +22,7 @@ export async function fetchTourismData(
   service: string,
   operation: string,
   params: Record<string, string>,
+  parentSignal?: AbortSignal,
 ): Promise<ProviderResult> {
   const key = env.TOUR_API_SERVICE_KEY_ENCODED?.trim();
   const context = {provider:"kto",family:"public-data" as const,operation:`${service}/${operation}`};
@@ -30,7 +31,7 @@ export async function fetchTourismData(
   const url = `https://apis.data.go.kr/B551011/${service}/${operation}?serviceKey=${key}&${query}`;
   const response = await requestProvider(context, url, {
     headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
+    signal: parentSignal ? AbortSignal.any([parentSignal, AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism)]) : AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
   }, fetch);
   if (!response.ok) throw new Error(`관광 데이터 응답 ${response.status}`);
   const raw = await response.text();
