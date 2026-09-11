@@ -25,3 +25,13 @@
 ## 역할과 제한
 
 Owner가 기능 후보 전체 구현/병합/배포를 승인했다. AI가 현재 단위의 구현과 필요한 검증·GitHub 처리를 수행한다. 전체 조작 검수, 회귀 분석/리팩토링, 제출 전 점검은 최신 Owner 지시로 다음 작업에 보류한다. 다른 후보8/13 등은 별도로 이어서 구현하며 이 PR에 구현됐다고 표시하지 않는다. 비용 발생·개인 메시지·최종 제출은 수행하지 않는다.
+
+## 최종 제한 검증 — 2026-09-11
+
+- 공식 공통정보조회에서 `areacode`는 삭제예정 필드이며 `lDongRegnCd`가 법정동 시도코드임을 직접 확인했다. 경남48만 허용하고, 구코드38만 있거나 다른 법정동 코드인 경우 소개정보 조회를 하지 않는다.
+- 두 제공처 요청은 같은17.5초 예산을 공유하며 브라우저20초 안에 끝난다. 요청 병합으로 취소 신호가 공유되지 않는 경우도 응답 예산을 적용했다. 무응답 경계 포함 관련 단위21개 PASS.
+- 최신 main #478 (`7a046a7`) 정상 merge 후 `npm run typecheck`, `npm run lint`, `npm test` (821/821), `npm run build:vercel` PASS. 기존 lint 경고12개, 새 오류0. `npm run check:performance` PASS: CSS69.88/70KiB, Planner177.02/270KiB. 별도 CSS 및 예산 상향 없음.
+- 변경 기능 및 체류시간 연계 브라우저8/8 PASS. 1440/960/390/320 독립 QA에서 오류·재시도·접기/키보드·상세·체류시간·휴무일 변경, 미등록/조건부정보 PASS. 기본 테마 axe/overflow/pageerror0.
+- 독립 QA의 개발용 dark 경고색 대비 지적을 공통 `--ink`로 수정하고 대비13.77:1 및 axe0 재확인. 일반 상세에서는 일정 비교 문구를 제거하고 공식 이용정보임을 표시한다. 같은 공개기록 재사용/추가조회없음/Escape초점 복귀 PASS.
+- React 체크: 상세 컴포넌트 lazy 분리, 명시적 펼치기만 조회, pending dedupe·bounded memory cache, 원본시각 보존, unmount 이후 state 쓰기 차단, 일정 변경은 파생 계산. 기존 React/CSS 도구 재사용.
+- 증거: `D:/wave-completion-20260911/visit-hours-merged-quality.txt`, `visit-hours-merged-browser.txt`, `visit-hours-qa-ui.json`, `visit-hours-qa-final.json` 및 화면 PNG. 외부 제공처/개인 계정 쓰기 없이 fixture로 검증했다. PR/CI/실제 Production 결과는 병합 후 기록한다.
