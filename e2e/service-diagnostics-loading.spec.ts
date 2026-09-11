@@ -8,9 +8,11 @@ for (const failure of [false, true]) test(`service diagnostics load only when op
   if (failure) await page.route(/PlannerServiceDiagnostics/, route => route.abort("failed"));
   await page.goto("/planner");
   await expect(page.getByRole("button", { name: /^자연·휴양/ })).toBeEnabled();
-  expect(requests).toHaveLength(0);
   const details = page.locator(".planner-service-status");
+  await expect(details.locator("summary")).toBeVisible();
+  expect(requests).toHaveLength(0);
   await details.locator("summary").focus();
+  await expect(details.locator("summary")).toBeFocused();
   await page.keyboard.press("Enter");
   if (failure) await expect(details.getByRole("alert")).toContainText("일정은 유지됩니다");
   else await expect(details.getByRole("region", { name: "서비스 상태 상세" })).toContainText("인증키 연결과 실제 시간·운행정보 확인은 다른 상태");

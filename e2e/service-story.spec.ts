@@ -53,7 +53,7 @@ for (const locale of ["ko", "en"] as const) {
       await expectUsableTarget(page.locator(".landing-actions a[href='/planner']"));
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     }
-    expect(await page.locator("main > section").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
+    expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
     expect(errors).toEqual([]);
   });
 }

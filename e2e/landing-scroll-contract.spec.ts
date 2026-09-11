@@ -29,13 +29,13 @@ for (const width of [320, 390]) {
     await page.goto("/");
     await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
     // Ignore only the observer visibility marker; retain every section identity and order.
-    const classes = await page.locator("main > section").evaluateAll(nodes => nodes.map(node => Array.from(node.classList).filter(name => name !== "is-visible").join(" ")));
+    const classes = await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => Array.from(node.classList).filter(name => name !== "is-visible").join(" ")));
     expect(classes).toEqual(["landing-hero", "horizon-how", "region-story region-showcase", "horizon-account", "horizon-departure", "horizon-community", "landing-cta"]);
-    await expect(page.locator("main > section details, .journey-stage-controls, .region-showcase-selection, .region-map-details")).toHaveCount(0);
+    await expect(page.locator("main section[id] details, .journey-stage-controls, .region-showcase-selection, .region-map-details")).toHaveCount(0);
     await expect(page.getByRole("button", {name:/풍경 재생|영상 일시정지|실제 여행 계획 살펴보기|자동 넘김/})).toHaveCount(0);
     await expect(page.locator(".landing-actions a[href='/planner']")).toHaveAccessibleName("여행 계획하기");
     // Text/image failure cannot create a section consisting only of an empty spacer.
-    for (const section of await page.locator("main > section").all()) {
+    for (const section of await page.locator("main section[id]").all()) {
       const heading = (await section.getAttribute("id")) === "regions" ? section.locator(".selected-region strong") : section.locator("h1,h2").first();
       await heading.scrollIntoViewIfNeeded();
       await expect(heading).toBeVisible();

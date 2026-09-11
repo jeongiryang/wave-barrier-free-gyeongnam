@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { horizonPhotos } from "../horizon-photos";
@@ -12,7 +12,7 @@ const chapters = [
   { label: "일정 담기", title: ["하루의 순서는,", "내가 원하는 대로."], copy: "마음에 드는 장소를 담고, 날짜와 방문 순서를 정하세요. 일정과 이동을 한곳에서 살피며 우리에게 맞는 여행을 만들어가요.", en: ["Make room for", "your kind of day."], enCopy: "Save places, arrange dates and visiting order, then review your itinerary and journeys together.", tags: ["날짜별 일정", "방문 순서", "이동 확인"], enTags: ["Daily itinerary", "Visiting order", "Journeys"] },
 ];
 
-export default function LandingChapters() {
+export default function LandingChapters({ children }: { children: ReactNode }) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
   const root = useRef<HTMLDivElement>(null);
@@ -48,6 +48,7 @@ export default function LandingChapters() {
         <ul>{(en ? chapter.enTags : chapter.tags).map(tag => <li key={tag}>{tag}</li>)}</ul>
         {index === 2 && <Link className="horizon-text-link" href="/planner">{en ? "Plan my trip" : "여행 계획하기"}<span aria-hidden="true">↗</span></Link>}
       </article>)}</div>
+      {children}
     </div>
   </section>;
 }

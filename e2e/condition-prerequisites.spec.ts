@@ -47,7 +47,7 @@ for (const locale of ["ko", "en"] as const) {
     page.on("request", request => { if (request.url().includes("action=plan")) searches++; });
     await page.goto("/planner");
     await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
-    await page.locator(".condition-actions button").last().click();
+    await page.locator(".reference-progress button").nth(1).click();
     await page.locator(".profile-grid button").first().click();
     await page.locator(".condition-actions button").last().click();
     const search = page.locator(".condition-actions button").last();
@@ -59,7 +59,7 @@ for (const locale of ["ko", "en"] as const) {
     });
     await expect(page.locator(".reference-date-fields")).toBeVisible();
     expect(searches).toBe(0);
-    await page.locator(".reference-activity-edit").click();
+    await page.evaluate(() => { history.pushState(null, "", "/planner?question=2#conditions"); dispatchEvent(new PopStateEvent("popstate")); });
     const activity = page.locator(".theme-grid button").first();
     await activity.click();
     await expect(search).toBeEnabled();

@@ -156,7 +156,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .reference-region-card > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
 .reference-region-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,rgba(0,20,22,.53),rgba(0,20,22,.08) 50%,rgba(0,20,22,.7)); z-index: -1; }
 .reference-region-copy { padding: 26px; color: white; }
-.reference-region-copy h4 { margin: 0 0 7px; font-size: 23px; }
+.reference-region-copy :is(h3,h4) { margin: 0 0 7px; font-size: 23px; }
 .reference-region-copy p { margin: 0; font-size: 13px; }
 .reference-region-card.featured .reference-region-copy { padding: 30px; }
 .reference-region-card.featured h4 { font-size: 28px; }
@@ -343,7 +343,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
   .reference-region-card.featured { grid-column: auto; }
   .reference-region-card.featured .reference-region-copy { padding: 30px 22px; }
   .reference-region-copy { padding: 18px; }
-  .reference-region-copy h4 { font-size: 20px; }
+  .reference-region-copy :is(h3,h4) { font-size: 20px; }
   .reference-region-copy p { font-size: 11px; }
   .reference-photo-credit { font-size: 10px; left: 16px; }
   .reference-bottom-bar,.planner-reference .reference-bottom-bar { flex-wrap: wrap; padding: 16px; gap: 10px; }
