@@ -69,7 +69,7 @@ User authorizes continuation through design refinements, all 24 researched featu
 19. ACTIVE — Public saved-place anchor to nearby food/rest/tourism, same needs, preview and protected insertion/undo. Focused validation/release pending.
 20. ACTIVE — Separate short outing entry and three-step1–2-place selection, outbound/stay/return estimate, independent archive and time limits. Focused validation/release pending.
 21. COMPLETE #485 — Unseen/previously unvisited Gyeongnam candidates, next candidates and explicit nearby-region search retaining activity/needs. No invented popularity evidence. Independent QA, CI/CD and actual Production confirmed as candidate3.
-22. PENDING — Optional companion split and reunion segments.
+22. ACTIVE — Optional saved-place A/B split and reunion, common-prefix timing, preserved stays/rests/pins, guarded optional archive and stale-safe offline inclusion. Required focused QA and release pending.
 23. COMPLETE #490 — Optional bounded metadata-free visit photos with captions/date/publication choice and existing edit/delete/report flow. Independent QA, exact-head/main CI/CD and deployed1440/390 photo draft/failed-submit preservation/remove PASS. Migration012 succeeded. Photo editor checks used isolated synthetic auth/writes and a synthetic picture, no actual user/public-photo post. Same evidence as candidate15.
 24. PENDING — Voice interaction with explicit activation/confirmation and text fallback.
 
