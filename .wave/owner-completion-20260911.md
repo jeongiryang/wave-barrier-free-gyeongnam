@@ -4,7 +4,7 @@ User authorizes continuation through merge and Production, removes their separat
 
 ## Current stage
 
-- IN PROGRESS: frontend refinements implemented; required CI/merge/Production verification next.
+- IN PROGRESS: frontend refinements implemented in PR #466; required CI/merge/Production verification next.
 - PENDING: browser inventory of every click-driven existing feature, especially Planner, and design integration of all states.
 - PENDING: candidate implementation batches below, with integrated usable UI and focused verification.
 - PENDING: final regression analysis, fixes/refactoring, contest pre-submission review.
