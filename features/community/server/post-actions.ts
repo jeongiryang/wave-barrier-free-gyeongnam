@@ -26,7 +26,7 @@ export async function listPosts(request: Request) {
 export async function createPost(request: Request) {
   const auth = await authenticatedCommunityUser();
   if (auth.error) return auth.error;
-  const parsed = await readSameOriginJson(request, 14000);
+  const parsed = await readSameOriginJson(request, 360000);
   if (parsed.response) return parsed.response;
   const validated = validatePostInput(parsed.body);
   if (validated.error || !validated.value) {
@@ -51,7 +51,7 @@ export async function readPost(request: Request, postId: string) {
 export async function updatePost(request: Request, postId: string) {
   const auth = await authenticatedCommunityUser();
   if (auth.error) return auth.error;
-  const parsed = await readSameOriginJson(request, 14000);
+  const parsed = await readSameOriginJson(request, 360000);
   if (parsed.response) return parsed.response;
   const validated = validatePostInput(parsed.body);
   if (validated.error || !validated.value) {

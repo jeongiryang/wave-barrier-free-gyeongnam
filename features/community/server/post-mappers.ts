@@ -1,7 +1,9 @@
 import type { CommunityRow } from "./database";
 import { normalizeAccessibilityReports, normalizeJournalPlaces } from "../../../lib/community/field-report.js";
+import { normalizeVisitPhotos } from "../../../lib/community/visit-photos.js";
 
 export function mapCommunityPost(row: CommunityRow, userId = "") {
+  const visitPhotos = row.visit_photos === undefined ? undefined : normalizeVisitPhotos(row.visit_photos).photos || [];
   return {
     id: String(row.id),
     category: String(row.category),
@@ -20,6 +22,8 @@ export function mapCommunityPost(row: CommunityRow, userId = "") {
     visitDate: row.visit_date ? String(row.visit_date) : null,
     fieldReports: normalizeAccessibilityReports(row.field_reports),
     journalPlaces: normalizeJournalPlaces(row.journal_places),
+    photoCount: row.visit_photos === undefined ? Math.max(0, Math.min(2, Number(row.photo_count) || 0)) : visitPhotos?.length || 0,
+    ...(row.visit_photos === undefined ? {} : { visitPhotos }),
   };
 }
 

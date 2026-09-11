@@ -1,3 +1,5 @@
+import type { VisitPhoto } from "./visit-photos.js";
+
 export type CommunityPost = {
   id: string;
   category: "general" | "place" | "review";
@@ -16,6 +18,8 @@ export type CommunityPost = {
   visitDate: string | null;
   fieldReports: AccessibilityFieldReport[];
   journalPlaces: CommunityJournalPlace[];
+  visitPhotos?: VisitPhoto[];
+  photoCount?: number;
 };
 
 export type AccessibilityFieldReport = {

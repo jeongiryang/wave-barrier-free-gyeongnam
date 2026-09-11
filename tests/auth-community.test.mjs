@@ -104,7 +104,7 @@ test("community API derives identity from the session and enforces ownership", a
   assert.match(posts, /export async function createCommunityPost/);
   assert.equal(
     (posts.match(/p\.author_id <> 'wave-seed'/g) || []).length,
-    6,
+    7,
     "all public community list and detail reads must exclude retired seed posts",
   );
   assert.match(comments, /export async function createCommunityComment/);
@@ -117,7 +117,7 @@ test("community API derives identity from the session and enforces ownership", a
   assert.match(postActions, /짧은 시간에 많은 글/);
   assert.match(postActions, /rateLimitResponse/);
   assert.match(commentActions, /rateLimitResponse/);
-  assert.match(postActions, /readSameOriginJson\(request, 14000\)/);
+  assert.match(postActions, /readSameOriginJson\(request, 360000\)/);
   assert.match(commentActions, /readSameOriginJson\(request, 4000\)/);
   assert.doesNotMatch(route, /validatePostInput|validateCommentInput|requiredCommunityUser/);
   assert.doesNotMatch(route, /error\.message|console\.error/);

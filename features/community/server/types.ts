@@ -8,9 +8,11 @@ export type PostValue = {
   visitDate: string | null;
   fieldReports: Array<{ field: string; status: string; note: string }>;
   journalPlaces: Array<{ id: string; name: string; day: string }>;
+  visitPhotos?: Array<{ dataUrl: string; width: number; height: number; caption: string }>;
 };
 
 export type ListFilters = {
+  history?: boolean;
   category: string;
   search: string;
   placeId: string;

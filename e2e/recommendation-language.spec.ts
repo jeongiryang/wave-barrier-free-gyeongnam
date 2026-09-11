@@ -56,7 +56,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(evidence).toContainText(place.source);
     await expect(evidence).toContainText("Retrieval time is not the provider's facility update date");
     await expect(dialog.locator(".place-community-empty")).toContainText("There are no public visitor stories");
-    await expect(dialog.locator(".place-community-stories")).not.toContainText(/[가-힣]/);
+    await expect(dialog.getByRole("region", { name: "Visitor stories about this place", exact: true })).not.toContainText(/[가-힣]/);
     await expect(dialog.getByRole("link", { name: /Visitor reviews and photos/ })).toHaveAttribute("target", "_blank");
     await expect(dialog.getByRole("link", { name: /Write a field report/ })).toHaveAttribute("href", /placeId=evidence-place/);
     await expect(dialog.getByRole("button", { name: "Report a correction" })).toBeDisabled();
@@ -91,7 +91,7 @@ for (const locale of ["ko", "en"] as const) {
         return route.fulfill({ json: { posts: [] } });
       });
       await prepare(page, locale);
-      const stories = page.locator(".place-community-stories");
+      const stories = page.getByRole("region", { name: locale === "en" ? "Visitor stories about this place" : "이 장소의 여행자 현장 이야기", exact: true });
       await expect(stories.getByRole("status")).toContainText(locale === "en" ? "We couldn't load visitor stories" : "현장 후기를 불러오지 못했습니다");
       await expect(stories.locator(".place-community-empty")).toHaveCount(0);
       const retry = stories.getByRole("button", { name: locale === "en" ? "Reload visitor stories" : "현장 후기 다시 확인" });
@@ -124,7 +124,7 @@ test("English visitor stories and feedback stay separate from official evidence"
   const dialog = page.getByRole("dialog");
   await expect(dialog.locator(".place-community-story-list strong")).toHaveAttribute("lang", "ko");
   await expect(dialog.locator(".place-community-story-list")).toContainText("Visit date not supplied");
-  await expect(dialog.locator(".place-community-stories")).toContainText("excluded from official scores");
+  await expect(dialog.getByRole("region", { name: "Visitor stories about this place", exact: true })).toContainText("excluded from official scores");
   const text = dialog.getByRole("textbox", { name: "Has the facility information changed?" });
   await text.fill("The elevator has changed.");
   await dialog.getByRole("button", { name: "Report a correction" }).click();

@@ -3,6 +3,7 @@ import { COMMUNITY_CATEGORY_LABELS, communityDate } from "../../../lib/community
 import type { useCommunityDetail } from "../hooks/useCommunityDetail";
 import CommunityReportControl from "./CommunityReportControl";
 import CommunityFieldReport from "./CommunityFieldReport";
+import CommunityVisitPhotos from "./CommunityVisitPhotos";
 
 export default function CommunityPostArticle({ detail }: { detail: ReturnType<typeof useCommunityDetail> }) {
   const { post, message, sessionPending, toggleLike, deletePost, reportingTarget, reportTarget } = detail;
@@ -17,6 +18,7 @@ export default function CommunityPostArticle({ detail }: { detail: ReturnType<ty
     </header>
     <div className="detail-content">{post.content.split(/\n{2,}/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
     <CommunityFieldReport post={post} />
+    <CommunityVisitPhotos post={post} />
     <footer className="detail-actions">
       <button type="button" className={post.likedByMe ? "liked" : ""} aria-pressed={post.likedByMe} onClick={() => void toggleLike()} disabled={sessionPending}><span aria-hidden="true">♥</span>{post.likedByMe ? "공감했어요" : "도움이 됐어요"} <b>{post.likeCount}</b></button>
       {!post.isOwner && <CommunityReportControl label="게시글" busy={reportingTarget === `post:${post.id}`} onReport={(reason) => reportTarget("post", post.id, reason)} />}
