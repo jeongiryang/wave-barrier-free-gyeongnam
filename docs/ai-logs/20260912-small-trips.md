@@ -19,3 +19,5 @@
 순수 모델4건으로 편의 부정/미확인/거리/유효 ID/자정/시간 초과/반환 이동과 별도 아카이브 보존을 확인했다. 첫 focused E2E에서 SSR 준비 전에 입력이 지워지는 신규 결함을 inert 경계로 수정했고, innerText와 textContent를 혼용한 테스트를 실제 가시 텍스트 비교로 고쳤다. 최종 필수 검사·독립 QA·exact-head CI 및 실제 Production은 진행 중이며, 완료 전 구현/배포 성공을 단정하지 않는다.
 
 독립 QA에서 remote Image shim이 style을 전달하지 않아 후보 사진이400px로 늘어나는 문제를 확인했다. 원래 unoptimized였던 이 이미지 한 곳만 native img로 전환해 실제180px 높이·crop·둥근 모서리를 적용했다. 전역 스타일과 다른 사진은 변경하지 않았다. 수정 후 type/lint/build/performance와 focused E2E8건 PASS. 전체 단위871건 PASS 결과도 보존한다.
+
+추가 독립 QA의 부분 응답 안내 누락도 수정했다. 조건 화면뿐 아니라 후보와 일정 확인 화면에 제공처의 일부 정보 누락 안내를 유지한다. 새 후보 E2E는 실제 이미지180px/16px과 두 단계에서 부분 안내가 보이는지도 확인한다.
