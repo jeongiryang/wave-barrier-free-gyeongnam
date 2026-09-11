@@ -46,6 +46,7 @@ import RegionChangeDialog from "../../features/planner/components/RegionChangeDi
 
 const PlannerTripOverview = lazy(() => import("../../features/planner/components/PlannerTripOverview"));
 const AlternativeComparisonDialog = lazy(() => import("../../features/planner/components/AlternativeComparisonDialog"));
+const CourseExpansion = lazy(() => import("../../features/planner/components/CourseExpansion"));
 
 export default function PlannerPage() {
   const { hydrated, locale, motion, t } = useSitePreferences();
@@ -266,7 +267,7 @@ export default function PlannerPage() {
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerItineraryWorkspace
-                alternativeTools={<TripAlternativeTools trip={tripSelection} alternatives={alternatives} />}
+                alternativeTools={<><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /><Suspense fallback={<p role="status">코스 도구를 준비하고 있어요.</p>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={setSelectedPlace}/></Suspense></>}
                 mapView={itineraryMapView}
                 onMapViewChange={setItineraryMapView}
                 canAddPlaces={planController.resultCurrent}
