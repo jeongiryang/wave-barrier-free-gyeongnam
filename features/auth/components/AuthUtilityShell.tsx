@@ -18,7 +18,7 @@ export default function AuthUtilityShell({
     <main className="auth-page">
       <SkipLink href="#auth-title">계정 관리로 바로가기</SkipLink>
       <header className="auth-header">
-        <Link className="brand" href="/" aria-label="WAVE 홈"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>WAVE</span></Link>
+        <Link className="brand" href="/" aria-label="WAVE 홈"><span>WAVE</span></Link>
         <nav aria-label="주요 메뉴"><Link href="/">서비스 소개</Link><Link href="/planner">여행 계획</Link><Link href="/community">여행 후기</Link></nav>
         <div className="auth-header-actions"><PublicMobileNav links={[
           { href: "/", label: "서비스 소개" },

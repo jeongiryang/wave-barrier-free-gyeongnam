@@ -22,7 +22,8 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
   const { locale, motion, hydrated: ready } = useSitePreferences();
   const stage = useRef<HTMLDivElement>(null);
   const rail = useRef<HTMLDivElement>(null);
-  const film = useRegionFilm(rail, motion === "calm");
+  const counterRail = useRef<HTMLDivElement>(null);
+  const film = useRegionFilm(rail, counterRail, motion === "calm");
   const pointerRotationIntent = useRef<boolean | null>(null);
   const prefetched = useRef(new Set<string>());
   const [photoChoice, setPhotoChoice] = useState<{ region: string; index: number } | null>(null);
@@ -87,8 +88,14 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
   const photo = album[photoIndex] || album[0];
   const index = landingRegions.findIndex(region => region.name === active.name);
   const move = (direction: number) => choose(landingRegions[(index + direction + landingRegions.length) % landingRegions.length].name);
-  const neighbours = [1, 2].map(offset => landingRegions[(index + offset) % landingRegions.length]);
-  useEffect(() => { rail.current?.scrollTo({ left: 0, behavior: "instant" }); }, [active.name]);
+  const previousRegion = useRef(active.name);
+  useEffect(() => {
+    if (previousRegion.current === active.name) return;
+    previousRegion.current = active.name;
+    const card = stage.current?.querySelector<HTMLElement>(".region-featured-card");
+    const row = card?.closest<HTMLElement>(".region-card-rail");
+    if (card && row) row.scrollTo({ left: row.scrollLeft + card.getBoundingClientRect().left - row.getBoundingClientRect().left - 16, behavior: "instant" });
+  }, [active.name]);
   const rotationLabel = automatic
     ? (english ? "Pause automatic region changes" : "지역 자동 전환 일시정지")
     : (english ? "Resume automatic region changes" : "지역 자동 전환 재개");
@@ -115,25 +122,28 @@ export default function LandingRegionStory({ activeRegion, active, selectRegion 
         </div>
         <Link href={`/planner?region=${encodeURIComponent(active.name)}`}>{english ? `Plan a trip to ${regionLabel(active.name)}` : `이 지역으로 여행 시작`} <span aria-hidden="true">↗</span></Link>
       </div>
-      <div className="region-card-rail" ref={rail} aria-label={english ? "Regional landscape cards" : "지역 풍경 카드"}>
-      <article className="region-landscape-card region-featured-card">
-      <div id="region-photograph" className="region-photo-album" data-photo-count={album.length} data-photo-index={photoIndex}>
-        <RegionScenePhoto key={photo.id} photo={photo} name={regionLabel(active.name)} english={english} />
-      </div>
-      <div id="region-current" className="region-showcase-caption selected-region" aria-live={running ? "off" : "polite"} aria-atomic="true">
-        <small>{regionLabel(active.name)}</small>
-        <strong key={active.name} tabIndex={-1} lang="ko">{photo.title}</strong><p>{english ? "A landscape for your kind of day." : "마음이 머무는 풍경, 우리의 속도로."}</p>
-      </div>
-      <Link className="region-card-start" href={`/planner?region=${encodeURIComponent(active.name)}`} aria-label={`${regionLabel(active.name)} 여행 설계`}><span aria-hidden="true">↗</span></Link>
-      <div className="region-photo-selector" role="group" aria-label={`${regionLabel(active.name)} ${english ? "photographs" : "사진 선택"}`}>
-        {album.map((item, index) => <button key={item.id} type="button" lang="ko" aria-labelledby={`region-photo-${index}-name region-photo-${index}-action`} title={item.title} aria-pressed={index === photoIndex} aria-controls="region-photograph" onClick={() => { setAutomatic(false); setPhotoChoice({ region: active.name, index }); }}><span aria-hidden="true" /><b><span className="sr-only" id={`region-photo-${index}-name`} lang="ko">{item.title}</span><span className="sr-only" id={`region-photo-${index}-action`} lang={locale}> · {english ? "show photograph" : "사진 보기"}</span></b></button>)}
-      </div>
-      <div key={active.name + photoIndex + String(running)} className="region-showcase-progress" aria-hidden="true" />
-      </article>
-      {neighbours.map(region => <article key={region.name} className="region-landscape-card region-neighbour-card">
-        <RegionScenePhoto photo={regionShowcaseAlbums[region.name][0]} name={regionLabel(region.name)} english={english} creditId={`region-neighbour-${region.name}`} load={gallerySeen && !saving} />
-        <div className="region-neighbour-copy"><small>{regionLabel(region.name)}</small><h3 lang="ko">{regionShowcaseAlbums[region.name][0].title}</h3><button type="button" onClick={() => { choose(region.name); requestAnimationFrame(() => stage.current?.querySelector<HTMLElement>(".selected-region strong")?.focus({ preventScroll: true })); }}>{english ? `Explore ${regionLabel(region.name)}` : `${region.name} 풍경 살펴보기`} <span aria-hidden="true">↗</span></button></div>
-      </article>)}
+      <div className="region-film-rows">
+      {[landingRegions.slice(0, 9), landingRegions.slice(9)].map((regions, rowIndex) => <div key={rowIndex} className="region-card-rail" ref={rowIndex === 0 ? rail : counterRail} data-film-direction={rowIndex === 0 ? "right" : "left"} aria-label={english ? `Regional landscapes, row ${rowIndex + 1}` : `지역 풍경 카드 ${rowIndex + 1}번째 줄`}>
+      {regions.map(region => {
+        const featured = region.name === active.name;
+        const scene = featured ? photo : regionShowcaseAlbums[region.name][0];
+        return <article key={region.name} className={`region-landscape-card ${featured ? "region-featured-card" : "region-neighbour-card"}`}>
+          {featured ? <div id="region-photograph" className="region-photo-album" data-photo-count={album.length} data-photo-index={photoIndex}><RegionScenePhoto key={scene.id} photo={scene} name={regionLabel(region.name)} english={english} /></div>
+            : <RegionScenePhoto key={scene.id} photo={scene} name={regionLabel(region.name)} english={english} creditId={`region-neighbour-${region.name}`} load={gallerySeen && !saving} />}
+          <div id={featured ? "region-current" : undefined} className={featured ? "region-showcase-caption selected-region" : "region-neighbour-copy"} aria-live={featured && !running ? "polite" : "off"} aria-atomic={featured ? "true" : undefined}>
+            <small>{regionLabel(region.name)}</small>
+            {featured ? <><strong key={active.name} tabIndex={-1} lang="ko">{scene.title}</strong><p>{english ? "A landscape for your kind of day." : "마음이 머무는 풍경, 우리의 속도로."}</p></> : <><h3 lang="ko">{scene.title}</h3><button type="button" onClick={() => { choose(region.name); requestAnimationFrame(() => stage.current?.querySelector<HTMLElement>(".selected-region strong")?.focus({ preventScroll: true })); }}>{english ? `Explore ${regionLabel(region.name)}` : `${region.name} 풍경 살펴보기`} <span aria-hidden="true">↗</span></button></>}
+          </div>
+          {featured && <>
+            <Link className="region-card-start" href={`/planner?region=${encodeURIComponent(active.name)}`} aria-label={`${regionLabel(active.name)} 여행 설계`}><span aria-hidden="true">↗</span></Link>
+            <div className="region-photo-selector" role="group" aria-label={`${regionLabel(active.name)} ${english ? "photographs" : "사진 선택"}`}>
+              {album.map((item, index) => <button key={item.id} type="button" lang="ko" aria-labelledby={`region-photo-${index}-name region-photo-${index}-action`} title={item.title} aria-pressed={index === photoIndex} aria-controls="region-photograph" onClick={() => { setAutomatic(false); setPhotoChoice({ region: active.name, index }); }}><span aria-hidden="true" /><b><span className="sr-only" id={`region-photo-${index}-name`} lang="ko">{item.title}</span><span className="sr-only" id={`region-photo-${index}-action`} lang={locale}> · {english ? "show photograph" : "사진 보기"}</span></b></button>)}
+            </div>
+            <div key={active.name + photoIndex + String(running)} className="region-showcase-progress" aria-hidden="true" />
+          </>}
+        </article>;
+      })}
+      </div>)}
       </div>
     </div>
   </section>;

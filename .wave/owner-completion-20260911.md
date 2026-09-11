@@ -1,6 +1,6 @@
 # Owner completion scope — 2026-09-11
 
-User authorizes continuation through merge and Production, removes their separate visual approval gate, asks all 24 researched candidates to be implemented, then repository regression analysis, bug removal, refactoring, and pre-submission review. This is not authorization to submit the competition application or buy services. Korean/default theme. Keep existing data/auth/privacy boundaries. No messages to other people.
+Latest Owner scope update (2026-09-11): finish the additional frontend requests and all 24 researched feature candidates through merge and normal Production verification. Defer the exhaustive click-operation audit, repository regression/refactoring and pre-submission review to a later task. Keep focused direct visual/interaction checks of each changed feature and required release gates. This is not authorization to submit the competition application or buy services. Korean/default theme. Keep existing data/auth/privacy boundaries. No messages to other people.
 
 ## Current stage
 
@@ -8,9 +8,9 @@ User authorizes continuation through merge and Production, removes their separat
 - MERGED: PR #470 `3c4089b79a90708c5ceadf84d49e1bf641e8903a`: full-bleed Eight photo scenes, Ten centered text, region film after preparation, compact sequential Planner. Saved-view preference migration retains saved trips. Local quality, independent visual/keyboard QA and required PR CI 34577661837 PASS. Main CI 34578759862 and Production pending.
 - ACTIVE: branch `codex/wave-place-decisions-353`, candidate 4/7 facility comparison and visitor inquiry card. Latest main #470 integrated; focused browser and independent QA, required quality/performance checks precede PR.
 - COMPLETE: frontend refinements PR #466 merged as `6aff57054f43887f77163ccb1b7a738d29129539`; main CI34570067238 and CD34570878909 succeeded. Production read-only checks on five pages at desktop/mobile: HTTP200, no page errors, Noto Sans KR, intro skip absent. Mobile search summary geometry found during visual review is handled in the active follow-up.
-- PENDING: browser inventory of every click-driven existing feature, especially Planner, and design integration of all states.
+- DEFERRED BY OWNER: exhaustive browser inventory/audit of every click-driven existing feature. Changed-feature interaction and visual checks remain in scope.
 - PENDING: candidate implementation batches below, with integrated usable UI and focused verification.
-- PENDING: final regression analysis, fixes/refactoring, contest pre-submission review.
+- DEFERRED BY OWNER: final repository regression/refactoring and contest pre-submission review.
 - Notify the user on each completed PR merge; verify Production for every release.
 
 ## Baseline and preservation
