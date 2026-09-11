@@ -13,7 +13,7 @@ export default function WaveFooterTools() {
   if (path === "/login" || path === "/register") return null;
   return <footer className="wave-footer-tools" aria-label={en ? "WAVE support" : "WAVE 이용 안내"}>
     <Link href="/guide">{en ? "How to use WAVE" : "사용 가이드"}</Link>
-    <FooterAccountLink />
     <HelpCenter /><PreferenceControls />
+    <FooterAccountLink />
   </footer>;
 }

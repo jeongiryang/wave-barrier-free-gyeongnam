@@ -28,7 +28,7 @@ async function prepare(page: Page, en = false, crowdRate?: number) {
 for (const en of [false, true]) {
 test(`weather alternative search keeps focus during the return to conditions ${en ? "English" : "Korean"}`, async ({ page }) => {
   const search = await prepare(page, en);
-  await page.locator(".reference-search > button").nth(1).click();
+  await page.locator(".reference-search-sentence > button").nth(1).click();
   const date = await page.locator('input[type="date"]').first().inputValue();
   await page.locator(".reference-activity-edit").click();
   await page.route("**/api/weather?*", route => route.fulfill({ json: {

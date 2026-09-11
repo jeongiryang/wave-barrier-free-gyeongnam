@@ -1,8 +1,27 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPublicShellApi } from "./fixtures";
+import { arrivalBootstrap } from "../features/landing/arrival-bootstrap";
 
 test.beforeEach(async ({ page }) => { await mockPublicShellApi(page); });
+
+test("late streamed intro starts its fallback deadline after its markup arrives", async ({ page }) => {
+  await page.clock.install();
+  await page.setContent('<h1 id="landing-title" tabindex="-1">WAVE</h1>');
+  await page.addScriptTag({ content: arrivalBootstrap });
+  await page.clock.runFor(5400);
+  await page.evaluate(() => {
+    const intro = document.createElement("dialog");
+    intro.className = "arrival-intro";
+    intro.open = true;
+    document.body.append(intro);
+  });
+  await page.clock.runFor(4800);
+  await expect(page.locator(".arrival-intro")).toHaveAttribute("open", "");
+  await page.clock.runFor(500);
+  await expect(page.locator(".arrival-intro")).toBeHidden();
+  await expect(page.locator("#landing-title")).toBeFocused();
+});
 
 for (const scene of ["static", "failed"] as const) {
   test(`${scene} arrival automatically opens the service without visible controls`, async ({ page }) => {

@@ -57,8 +57,8 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(dialog.locator('.facility-evidence-list [data-state="unknown"] dd')).toHaveText(en ? "No information supplied. Please check with the venue." : "제공된 정보가 없습니다. 시설에 직접 확인해 주세요.");
     await expect(dialog.locator('.facility-evidence-list [data-state="negative"] dd')).toHaveText("승강기 없음");
     await expect(dialog.locator(".modal-visual > span")).toHaveAttribute("lang", "ko");
-    await expect(dialog.locator(".modal-visual > span")).toHaveCSS("color", "rgb(18, 59, 75)");
-    await expect(dialog.locator(".modal-close")).toHaveCSS("color", "rgb(18, 59, 75)");
+    await expect(dialog.locator(".modal-visual > span")).toHaveCSS("color", "rgb(43, 38, 50)");
+    await expect(dialog.locator(".modal-close")).toHaveCSS("color", "rgb(43, 38, 50)");
     expect(await dialog.locator(".modal-body > button").evaluate(button => Boolean(button.compareDocumentPosition(document.querySelector(".place-decision-summary")!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`detail-${en ? "en" : "ko"}-${theme}.png`) });

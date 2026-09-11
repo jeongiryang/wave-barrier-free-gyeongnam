@@ -20,7 +20,7 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   await expect(rail).toBeVisible();
   await expect(rail.getByRole("button", { name: /^1\. 여행 조건/ })).toHaveAttribute("aria-current", "step");
   await expect(page.locator(".reference-completion")).toHaveAttribute("aria-valuenow", "0");
-  await expect(page.locator(".reference-search")).toContainText("편의 선택");
+  await expect(page.locator(".reference-search")).toContainText("필요한 편의");
 
   const departureSelect = page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "경남 전체", exact: true });
   await departureSelect.focus();

@@ -16,10 +16,11 @@ test("OS 동작 줄이기는 저장된 full보다 우선하고 부분 번역 중
 
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(page.locator("html")).toHaveAttribute("lang", "ko");
+  await expect(page.locator("details.preference-controls")).toHaveAttribute("aria-busy", "false");
   await page.locator("details.preference-controls > summary").click();
   await expect(page.locator(".motion-toggle")).toHaveCount(0);
   await expect(page.locator(".preference-panel > p")).toContainText("운영체제의 동작 줄이기 설정");
-  expect(await page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
 });
 
 test("320px 공개 화면의 세 메뉴와 내 여행은 항상 보이고 키보드로 이동한다", async ({ page }) => {

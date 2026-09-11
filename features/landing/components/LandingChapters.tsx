@@ -38,8 +38,9 @@ export default function LandingChapters() {
       <p>{en ? "Start with a landscape. Find the information and the day that work for you." : "좋아하는 풍경에서 시작해, 필요한 정보와 나의 일정으로 이어집니다."}</p>
     </header>
     <div className="horizon-chapters" ref={root} data-active-chapter={active}>
-      <div className="horizon-chapter-backdrop-track"><div className="horizon-chapter-backdrops">{photos.map((photo, index) => <div key={photo.id} data-active={active === index} aria-hidden={active !== index} inert={active !== index}><EditorialPhoto photo={photo} /></div>)}</div></div>
-      <div className="horizon-chapter-index" aria-hidden="true"><b>{String(active + 1).padStart(2, "0")}</b><span>/ 03</span><small>{en ? "HOW TO WAVE" : "우리의 여행을 만드는 방법"}</small></div>
+      <div className="horizon-chapter-backdrop-track"><div className="horizon-chapter-backdrops">{photos.map((photo, index) => <div key={photo.id} data-active={active === index} aria-hidden={active !== index} inert={active !== index}><EditorialPhoto photo={photo} /></div>)}
+        <p className="horizon-chapter-index" aria-hidden="true"><b>{String(active + 1).padStart(2, "0")}</b><span>/ 03</span><small>{en ? "HOW TO WAVE" : "우리의 여행을 만드는 방법"}</small></p>
+      </div></div>
       <div className="horizon-chapter-stream">{chapters.map((chapter, index) => <article key={chapter.label} className="horizon-chapter-copy" data-chapter={index}>
         <p className="horizon-eyebrow">0{index + 1} / {en ? ["CHOOSE", "CHECK", "PLAN"][index] : chapter.label}</p>
         <h3>{(en ? chapter.en : chapter.title).map(line => <span key={line}>{line}</span>)}</h3>

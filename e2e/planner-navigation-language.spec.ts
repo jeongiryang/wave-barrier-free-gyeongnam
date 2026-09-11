@@ -30,6 +30,7 @@ test("English navigation preserves gates, stage history and keyboard focus", asy
   await expect(progress).toHaveAttribute("aria-valuenow", "0");
   await expect(page.locator(".journey-mode-toggle")).not.toContainText(/[가-힣]/);
   await expect(page.locator(".simple-footer")).not.toContainText(/[가-힣]/);
+  await page.getByRole("link", { name: "Account", exact: true }).hover();
   await expect(page.getByRole("link", { name: "Log in", exact: true })).toHaveAttribute("href", "/login?next=%2Fplanner");
   const menuTrigger = page.getByRole("button", { name: "Open main menu", exact: true });
   if (await menuTrigger.isVisible()) {

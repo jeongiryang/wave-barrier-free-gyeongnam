@@ -54,7 +54,7 @@ async function withKakaoStub(page: Page) {
 }
 
 async function savedCount(page: Page) {
-  const label = await page.locator(".header-action").first().textContent();
+  const label = await page.locator(".wave-trip-count").first().textContent();
   return Number((label || "").replace(/[^0-9]/g, "") || "0");
 }
 

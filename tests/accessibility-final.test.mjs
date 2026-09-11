@@ -60,5 +60,5 @@ test("전역 44px·calm·reflow 계약이 마지막 스타일 경계에 있다",
 test("자동 숨김 헤더는 focusin에서 상태를 복구한다", async () => {
   const chrome = await source("features/planner/hooks/usePlannerChrome.ts");
   assert.match(chrome, /document\.addEventListener\("focusin", restoreForKeyboard\)/);
-  assert.match(chrome, /closest\("\.site-header"\).*setHeaderHidden\(false\)/);
+  assert.match(chrome, /closest\("\.wave-header,\.site-header"\).*setHeaderHidden\(false\)/);
 });

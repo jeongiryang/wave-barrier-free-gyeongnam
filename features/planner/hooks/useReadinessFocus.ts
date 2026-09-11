@@ -14,7 +14,7 @@ export function useReadinessFocus() {
       const target = focused.current;
       if (!target?.isConnected || document.activeElement !== target) return;
       const box = target.getBoundingClientRect();
-      const headerBottom = document.querySelector(".site-header")?.getBoundingClientRect().bottom || 0;
+      const headerBottom = document.querySelector(".wave-header,.site-header")?.getBoundingClientRect().bottom || 0;
       const rail = document.querySelector(".journey-rail");
       const bottom = rail && getComputedStyle(rail).position === "fixed" ? rail.getBoundingClientRect().top : window.innerHeight;
       if (box.top < Math.max(0, headerBottom) + 8 || box.bottom > bottom - 8) {
@@ -40,6 +40,9 @@ export function useReadinessFocus() {
     const workspace = root.current?.closest(".journey-stage-stream");
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(reveal);
     if (workspace) observer?.observe(workspace);
+    const header = document.querySelector(".wave-header,.site-header");
+    if (header) observer?.observe(header);
+    window.addEventListener("resize", reveal, { signal: controller.signal });
     return () => { stopFollowing(); observer?.disconnect(); controller.abort(); };
   }, [reveal]);
 

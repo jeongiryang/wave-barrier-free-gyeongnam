@@ -31,7 +31,7 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await expect(details.locator(".motion-toggle")).toHaveCount(0);
     await expect(appearance).toBeFocused();
     await page.keyboard.press("Tab");
-    await expect(page.getByRole("link", { name: locale === "ko" ? "로그인" : "Log in", exact: true })).toBeFocused();
+    await expect(page.getByRole("link", { name: locale === "ko" ? "계정 관리" : "Account", exact: true })).toBeFocused();
     await expect(details).not.toHaveAttribute("open", "");
     await expect(details.locator(".preference-panel")).toBeHidden();
 

@@ -61,6 +61,14 @@ for (const width of [1440, 390]) {
       await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
       await page.goto(path);
       await expect(page.getByRole("button", { name: "도움말", exact: true })).toBeVisible();
+      await expect(page.locator(".preference-controls")).toHaveAttribute("aria-busy", "false");
+      const accountEntry = page.locator(".wave-footer-tools > a[href='/account']");
+      const entryArea = await hitArea(accountEntry);
+      expect(entryArea.covered).toBe(false);
+      expect(entryArea.width).toBeGreaterThanOrEqual(44);
+      expect(entryArea.height).toBeGreaterThanOrEqual(44);
+      await accountEntry.hover();
+      await expect(page.locator(".account-button")).toBeVisible();
       if (path === "/planner") {
         // The fixture deliberately has no Kakao key. Reach the actual map and
         // require its fallback state before measuring the reconnect control.
