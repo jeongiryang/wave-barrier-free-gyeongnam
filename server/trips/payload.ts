@@ -19,6 +19,9 @@ export function normalizeTripSelections(rawSelections: Record<string, unknown>) 
   const date = (value: unknown) => /^\d{4}-\d{2}-\d{2}$/.test(clean(value, 10))
     ? clean(value, 10)
     : "";
+  const selectedPlaceIds = [...new Set(rawSelectedPlaceIds
+    .map((value) => clean(value, 80))
+    .filter(Boolean))].slice(0, 12);
   return {
     region: regionCodes[requestedRegion] ? requestedRegion : "창원",
     theme: themes.join(","),
@@ -36,10 +39,8 @@ export function normalizeTripSelections(rawSelections: Record<string, unknown>) 
       .slice(0, 12)
       .map(([placeId, assignedDate]) => [clean(placeId, 80), date(assignedDate)])
       .filter(([placeId, assignedDate]) => placeId && assignedDate)),
-    selectedPlaceIds: [...new Set(rawSelectedPlaceIds
-      .map((value) => clean(value, 80))
-      .filter(Boolean))].slice(0, 12),
-    visitMinutesByPlaceId: sanitizeVisitDurations(rawSelections.visitMinutesByPlaceId, rawSelectedPlaceIds.map(id => clean(id, 80)).slice(0, 12)),
+    selectedPlaceIds,
+    visitMinutesByPlaceId: sanitizeVisitDurations(rawSelections.visitMinutesByPlaceId, selectedPlaceIds),
   };
 }
 

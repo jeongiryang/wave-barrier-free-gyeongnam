@@ -7,7 +7,7 @@ import {
 } from "../lib/saved-place-catalog.js";
 
 const changwon = {
-  id: "changwon-1", name: "창원 미술관", city: "창원", address: "경상남도 창원시",
+  id: "changwon-1", name: "창원 미술관", contentTypeId: "14", city: "창원", address: "경상남도 창원시",
   image: "https://wave.test/changwon.jpg", score: 88, knownFields: 4, source: "공식 관광정보",
   mapX: "128.6", mapY: "35.2", summary: "원본 설명", details: ["원본 세부정보"],
 };
@@ -19,7 +19,11 @@ const jinju = {
 
 test("saved place snapshots preserve public destination coordinates but omit raw details and device position", () => {
   const snapshot = sanitizeSavedPlaceSnapshot(changwon);
-  assert.deepEqual(Object.keys(snapshot).sort(), ["address", "city", "id", "image", "knownFields", "mapX", "mapY", "name", "score", "source"]);
+  assert.deepEqual(Object.keys(snapshot).sort(), ["address", "city", "contentTypeId", "id", "image", "knownFields", "mapX", "mapY", "name", "score", "source"]);
+  assert.equal(snapshot.contentTypeId, "14");
+  for (const contentTypeId of ["arbitrary raw detail", 14, null, {}, "999"]) {
+    assert.equal(sanitizeSavedPlaceSnapshot({ ...changwon, contentTypeId }).contentTypeId, "");
+  }
   assert.equal(snapshot.mapX, "128.6");
   assert.equal(snapshot.mapY, "35.2");
   assert.equal("origin" in sanitizeSavedPlaceSnapshot({ ...changwon, origin: { lat: 35.1, lng: 128.1 } }), false);
@@ -32,5 +36,6 @@ test("saved places from previous regions remain ordered after active results swi
   const resolved = resolveSavedPlaces(["changwon-1", "jinju-1"], [jinju], catalog);
   assert.deepEqual(resolved.map((place) => `${place.city}:${place.name}`), ["창원:창원 미술관", "진주:진주 수목원"]);
   assert.equal(resolved[0].mapX, "128.6");
+  assert.equal(resolved[0].contentTypeId, "14", "restoring a museum retains its default visit duration category");
   assert.equal(resolved[1].mapX, "128.1");
 });

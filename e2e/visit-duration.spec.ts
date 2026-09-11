@@ -27,8 +27,10 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await choice.selectOption("custom");
   const minutes = board.getByRole("spinbutton", { name: "체류시간(분)", exact: true });
   await minutes.fill("0");
+  await expect(minutes).toHaveAttribute("aria-invalid", "true");
   await expect(board.getByRole("button", { name: "시간 적용", exact: true })).toBeDisabled();
   await minutes.fill("137");
+  await expect(minutes).not.toHaveAttribute("aria-invalid", "true");
   await board.getByRole("button", { name: "취소", exact: true }).click();
   await expect(choice).toHaveValue("30");
   await choice.selectOption("custom");

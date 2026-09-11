@@ -29,9 +29,9 @@ export default function VisitDurationControl({ name, value, defaultMinutes = 90,
     </select>
     {editing && <div className="auth-field">
       <label htmlFor={`${id}-custom`}>{c("체류시간(분)", "Duration in minutes")}</label>
-      <input ref={input} id={`${id}-custom`} type="number" min={MIN_VISIT_MINUTES} max={MAX_VISIT_MINUTES} step={1} inputMode="numeric" value={draft} aria-invalid={!valid} aria-describedby={`${id}-hint`} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); apply(); } if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeEditor(); } }} />
+      <input ref={input} id={`${id}-custom`} type="number" min={MIN_VISIT_MINUTES} max={MAX_VISIT_MINUTES} step={1} inputMode="numeric" value={draft} aria-invalid={valid ? undefined : true} aria-describedby={`${id}-hint`} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); apply(); } if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeEditor(); } }} />
       <small id={`${id}-hint`}>{c("15~720분 사이로 입력해 주세요.", "Enter 15–720 whole minutes.")}</small>
-      <div className="travel-book-actions"><button type="button" disabled={!valid} onClick={apply}>{c("시간 적용", "Apply duration")}</button><button type="button" onClick={closeEditor}>{c("취소", "Cancel")}</button></div>
+      <div className="travel-book-actions" style={{ gridTemplateColumns: "1fr 1fr" }}><button className="primary" type="button" disabled={!valid} onClick={apply}>{c("시간 적용", "Apply duration")}</button><button type="button" onClick={closeEditor}>{c("취소", "Cancel")}</button></div>
     </div>}
   </div>;
 }
