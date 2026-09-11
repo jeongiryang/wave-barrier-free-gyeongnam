@@ -126,7 +126,9 @@ export function usePlannerStageView() {
     // Keep the native disclosure in the tab order. Its name is the visible
     // start of this panel; a nested heading can be below a long forecast.
     if (heading.tagName !== "SUMMARY") heading.setAttribute("tabindex", "-1");
-    heading.focus({ preventScroll: true });
+    heading.setAttribute("data-stage-focusing", "true");
+    try { heading.focus({ preventScroll: true }); }
+    finally { heading.removeAttribute("data-stage-focusing"); }
     scrollToSection(focusTarget.id, prefersReducedMotion());
     focusedRequest.current = focusTarget;
   }, [activeStepId, view, focusTarget]);

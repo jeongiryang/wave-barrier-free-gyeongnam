@@ -46,6 +46,9 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     revealRef.current = cancelReveal;
     const requestControl = window.document?.activeElement;
     const onInteraction = (event: Event) => {
+      // A stage heading focused by this navigation is part of the request,
+      // not a new user decision. Pointer/key input still cancels beforehand.
+      if (event.type === "focusin" && (event.target as HTMLElement | null)?.getAttribute?.("data-stage-focusing") === "true") return;
       if (event.target === requestControl && (event.type === "pointerdown"
         || (event.type === "keydown" && ["Enter", " "].includes((event as KeyboardEvent).key)))) return;
       cancelReveal();

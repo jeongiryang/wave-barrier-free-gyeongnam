@@ -66,6 +66,15 @@ test("focus moved after results arrived cancels the remaining automatic scroll",
   assert.equal(f.pendingTimers(), 0);
   assert.equal(f.plan(), plan);
 });
+test("the request's own stage-heading focus does not cancel its result reveal", async () => {
+  const f = requestFixture();
+  const event = new Event("focusin");
+  Object.defineProperty(event, "target", { value: { getAttribute: name => name === "data-stage-focusing" ? "true" : null } });
+  f.browser.dispatchEvent(event); f.resolve(plan);
+  assert.equal(await f.pending, true);
+  assert.equal(f.reveals(), 1);
+  assert.equal(f.pendingTimers(), 1);
+});
 test("a failed search never navigates away from its recovery controls", async () => {
   const f = requestFixture(); f.reject(new Error("Unavailable"));
   assert.equal(await f.pending, false); assert.equal(f.plan(), null); assert.equal(f.reveals(), 0);

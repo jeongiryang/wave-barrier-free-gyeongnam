@@ -109,7 +109,7 @@ html[data-theme="dark"] .map-tool-panel > div > button,html[data-theme="dark"] .
 /* Keep the download target under the pointer at its lower edge. The shared
    lift hover otherwise alternates on/off after a responsive drawer resize. */
 .map-tool-panel > .map-export-actions > button:hover { transform: none; }
-.map-tool-panel > .map-export-actions > button i { width: 42px; height: 32px; display: grid; place-items: center; border-radius: 9px; color: #6940a6; background: var(--sky); font-size: 0.875rem; font-weight: 600; }
+.map-tool-panel > .map-export-actions > button i { width: 42px; height: 32px; display: grid; place-items: center; border-radius: 9px; color: var(--ink); background: var(--sky); font-size: 0.875rem; font-weight: 600; }
 .map-share-wide { width: 100%; min-height: 46px; margin-top: 12px; border: 0; border-radius: 12px; color: #fff; background: #062736; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
 .map-share-wide:hover { background: #6940a6; }
 
