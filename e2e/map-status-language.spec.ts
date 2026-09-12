@@ -1,12 +1,16 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { deliverNearby, nearbyPlace, openNearby, type MapLayerFixture } from "./nearby-fixtures";
 
 async function changeLanguage(page: Page, english: boolean) {
   await page.keyboard.press("Control+Home");
+  await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
+  await openSupportMenu(page);
   await preferences.getByLabel(english ? "환경설정 열기" : "Open preferences", { exact: true }).click();
   await preferences.getByLabel(english ? "언어" : "Language", { exact: true }).selectOption(english ? "en" : "ko");
+  await openSupportMenu(page);
   await preferences.getByLabel(english ? "Open preferences" : "환경설정 열기", { exact: true }).click();
 }
 

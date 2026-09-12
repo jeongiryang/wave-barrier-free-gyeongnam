@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import { findLowContrastText, formatFindings } from "./contrast";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
@@ -44,6 +45,7 @@ test("OS 동작 감소에서도 환경설정의 모든 항목은 읽힌다", asy
   await page.goto("/community", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1_500);
 
+  await openSupportMenu(page);
   await page.locator("summary[aria-label='환경설정 열기']").first().click();
   await page.waitForTimeout(400);
   await expect(page.locator("button.motion-toggle")).toHaveCount(0);

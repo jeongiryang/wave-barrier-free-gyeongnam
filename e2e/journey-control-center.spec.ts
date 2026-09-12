@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
@@ -32,6 +33,7 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   expect(focusStyle.width).toBeGreaterThanOrEqual(3);
   expect(focusStyle.type).toBe("solid");
 
+  await openSupportMenu(page);
   const preference = page.locator("details.preference-controls");
   await preference.locator("summary").press("Enter");
   const language = preference.getByLabel("언어");

@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -92,7 +93,9 @@ test("changing locale updates an existing itinerary edit announcement without ch
   const itinerary = page.locator(".day-planner");
   await itinerary.getByRole("button", { name: "경남도립미술관 move later in the same day", exact: true }).click();
   await page.keyboard.press("Control+Home");
+  await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
+  await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
   await expect(itinerary.getByRole("status").first()).toHaveText("경남도립미술관 순서를 뒤로 옮겼습니다.");

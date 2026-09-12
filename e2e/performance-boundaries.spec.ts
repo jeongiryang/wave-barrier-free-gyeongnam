@@ -17,7 +17,7 @@ test("공개 랜딩은 첫 화면에서 인증 세션을 요청하지 않고 계
   await page.waitForTimeout(500);
   expect(sessionRequests).toBe(0);
 
-  await page.locator(".wave-footer-tools > a[href=\"/account\"]").hover();
+  await page.locator(":is(.wave-header-actions,.wave-footer-tools) > a[href=\"/account\"]").hover();
   await expect.poll(() => sessionRequests).toBeGreaterThan(0);
 });
 

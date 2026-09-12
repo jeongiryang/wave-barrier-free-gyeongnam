@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import { openNearby } from "./nearby-fixtures";
 
@@ -17,9 +18,12 @@ for (const entry of ["toolbar", "panel"] as const) {
     let previous = "ko";
     for (const locale of ["en", "ko", "en"]) {
       await page.keyboard.press("Control+Home");
+      await openSupportMenu(page);
       const preferences = page.locator(".preference-controls:visible");
+      await openSupportMenu(page);
       await preferences.getByLabel(previous === "ko" ? "환경설정 열기" : "Open preferences", { exact: true }).click();
       await preferences.getByLabel(previous === "ko" ? "언어" : "Language", { exact: true }).selectOption(locale);
+      await openSupportMenu(page);
       await preferences.getByLabel(locale === "ko" ? "환경설정 열기" : "Open preferences", { exact: true }).click();
       previous = locale;
       await expect(page.locator("html")).toHaveAttribute("lang", "ko");

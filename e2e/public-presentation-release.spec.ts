@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
@@ -23,6 +24,7 @@ for (const restored of [false, true]) for (const path of ["/", "/planner", "/com
       await page.keyboard.press("Escape");
       await expect(intro).toBeHidden();
     }
+    await openSupportMenu(page);
     const preferences = page.locator(".preference-controls:visible");
     await expect(preferences).toHaveAttribute("aria-busy", "false");
     const trigger = preferences.getByLabel("환경설정 열기", { exact: true });

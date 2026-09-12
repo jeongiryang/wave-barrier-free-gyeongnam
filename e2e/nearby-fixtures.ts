@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 
@@ -59,9 +60,12 @@ export async function openNearby(page: Page, english = false, theme = "light", p
   await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
   if (english) {
     await page.keyboard.press("Control+Home");
+    await openSupportMenu(page);
     const preferences = page.locator(".preference-controls:visible");
+    await openSupportMenu(page);
     await preferences.getByLabel("환경설정 열기", { exact: true }).click();
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+    await openSupportMenu(page);
     await preferences.getByLabel("Open preferences", { exact: true }).click();
   }
   await page.getByRole("button", { name: english ? "Map options" : "지도 도구", exact: true }).click();

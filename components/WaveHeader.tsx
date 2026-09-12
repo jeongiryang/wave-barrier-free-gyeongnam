@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSitePreferences } from "./SitePreferences";
 import { useSyncExternalStore } from "react";
 import { readTripValue } from "../lib/current-trip-storage.js";
+import WaveHeaderTools from "./WaveHeaderTools";
 
 function subscribe(update: () => void) {
   window.addEventListener("storage", update);
@@ -34,7 +35,7 @@ export default function WaveHeader({ current, savedCount, onSaved, className = "
       <Link href="/planner" aria-current={current === "planner" ? "page" : undefined}>{en ? "Plan a trip" : "여행 설계"}</Link>
       <Link href="/community" aria-current={current === "community" ? "page" : undefined}>{en ? "Community" : "커뮤니티"}</Link>
     </nav>
-    {onSaved ? <button className="wave-my-trips" type="button" onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
-      : <Link className="wave-my-trips" href="/travel-book" aria-current={current === "travel-book" ? "page" : undefined} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</Link>}
+    <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}><WaveHeaderTools />{onSaved ? <button className="wave-my-trips" type="button" onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
+      : <Link className="wave-my-trips" href="/travel-book" aria-current={current === "travel-book" ? "page" : undefined} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</Link>}</div>
   </header>;
 }

@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 import AxeBuilder from "@axe-core/playwright";
@@ -74,7 +75,9 @@ test("weather language changes keep the same forecast without another request", 
   await expect(board).toContainText("Feels like -2°");
   const before = requests;
   await page.keyboard.press("Control+Home");
+  await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
+  await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
   await expect(board).toContainText("체감 -2°");

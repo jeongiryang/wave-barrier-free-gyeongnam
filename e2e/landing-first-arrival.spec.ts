@@ -85,7 +85,11 @@ test("the region film follows forward and reverse scroll while reduced motion st
   await expect(scene).toHaveAttribute("data-film", "true");
   const progress: number[] = [];
   for (const offset of [0, .5, 1, .5, 0]) {
-    await scene.evaluate((node, offset) => scrollTo({ top: scrollY + node.getBoundingClientRect().top - 116 + ((node as HTMLElement).offsetHeight - (innerHeight - 116)) * offset, behavior: "instant" }), offset);
+    await scene.evaluate((node, offset) => {
+      const sticky = (node as HTMLElement).dataset.filmSticky === "true";
+      const distance = sticky ? (node as HTMLElement).offsetHeight - (innerHeight - 116) : (node as HTMLElement).offsetHeight + innerHeight - 116;
+      scrollTo({ top: scrollY + node.getBoundingClientRect().top - (sticky ? 116 : innerHeight) + distance * offset, behavior: "instant" });
+    }, offset);
     await expect.poll(() => rails.first().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth))).toBeCloseTo(1 - offset, 1);
     await expect.poll(() => rails.last().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth))).toBeCloseTo(offset, 1);
     progress.push(await rails.last().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth)));

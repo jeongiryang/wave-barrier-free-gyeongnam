@@ -10,16 +10,17 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: photo }));
 });
 
-test("primary navigation remains visible while scrolling and utilities live below content", async ({ page }) => {
+test("primary navigation remains visible while scrolling and utilities collapse into its menu", async ({ page }) => {
   await page.goto("/"); await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   const nav = page.locator(".wave-header");
   await page.evaluate(() => scrollTo({ top: 500, behavior: "instant" }));
   await expect(nav).toBeInViewport();
-  await expect(nav.locator(".preference-controls,.help-button")).toHaveCount(0);
+  await expect(nav.locator(".help-button")).toBeHidden();
   const home = nav.locator(".wave-wordmark"); await home.focus(); await expect(home).toBeFocused();
   await expect(nav.getByRole("navigation").getByRole("link")).toHaveCount(3);
   for (const control of [home,nav.locator(".wave-my-trips")]) { const box = await control.boundingBox(); expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44); }
-  await expect(page.locator(".wave-footer-tools .help-button")).toBeEnabled();
+  await expect(page.locator(".wave-header .help-button")).toBeEnabled();
+  await expect(page.locator(".wave-footer-tools")).toHaveCount(0);
 });
 
 for (const width of [320, 390]) {

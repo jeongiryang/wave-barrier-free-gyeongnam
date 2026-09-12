@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
@@ -122,7 +123,9 @@ test("changing language updates review and calendar feedback without changing it
   await card.getByRole("button", { name: "Save calendar (.ics)", exact: true }).click();
   await expect(card.getByRole("alert")).toContainText("calendar was not saved");
   await page.keyboard.press("Control+Home");
+  await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
+  await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
   await expect(card.getByRole("heading", { name: "출발 전에 이것만 다시 확인하세요.", exact: true })).toBeVisible();

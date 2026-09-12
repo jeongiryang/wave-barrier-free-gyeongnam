@@ -1,10 +1,5 @@
 
 /* Intro */
-@keyframes current { to { transform: scaleY(.35); opacity: .55; } }
-@keyframes letterRise { to { opacity: 1; transform: translateY(0); } }
-@keyframes lineGrow { from { transform: scaleX(0); } }
-@keyframes introOrbit { to { transform: rotate(1turn); } }
-@keyframes introExit { to { opacity: 0; visibility: hidden; transform: translateY(-100%); } }
 
 /* Header */
 .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 1.18rem; font-weight: 950; letter-spacing: -.035em; }

@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
@@ -103,11 +104,14 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await page.locator(".day-planner").getByLabel("용지호수공원 여행 날짜", { exact: true }).selectOption("2026-10-08");
     await page.locator(".day-planner").getByRole("button", { name: "내 일정에 저장", exact: true }).click();
     if (en) {
+      await openSupportMenu(page);
       const preferences = page.locator(".preference-controls:visible");
       await preferences.scrollIntoViewIfNeeded();
       await expect(preferences.getByLabel("환경설정 열기", { exact: true })).toBeInViewport();
+      await openSupportMenu(page);
       await preferences.getByLabel("환경설정 열기", { exact: true }).click();
       await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+      await openSupportMenu(page);
       await preferences.getByLabel("Open preferences", { exact: true }).click();
     }
     const picker = page.getByRole("group", { name: en ? "Choose a region" : "여행 지역 선택", exact: true });

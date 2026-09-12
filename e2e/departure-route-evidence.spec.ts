@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
@@ -12,9 +13,12 @@ for (const en of [false, true]) for (const color of ["light", "dark"]) test(`${e
   await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
   if (en) {
     await page.keyboard.press("Control+Home");
+    await openSupportMenu(page);
     const preferences = page.locator(".preference-controls:visible");
+    await openSupportMenu(page);
     await preferences.getByLabel("환경설정 열기", { exact: true }).click();
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+    await openSupportMenu(page);
     await preferences.getByLabel("Open preferences", { exact: true }).click();
   }
   const card = page.locator(".departure-readiness");

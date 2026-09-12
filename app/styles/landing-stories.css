@@ -281,7 +281,7 @@ html[data-theme="dark"] .landing-hero-copy::before {
 }
 
 /* #353: content remains usable independently of media and scroll motion. */
-.landing-page .landing-header { background: var(--surface); border-color: var(--line); }
+
 .landing-page .landing-hero { display: grid; grid-template-columns: 1fr; gap: 24px; padding: 0 var(--gutter) 40px; }
 .landing-page .landing-hero-copy { max-width: 740px; padding: clamp(24px, 4vw, 56px); border-radius: 4px 48px 4px 4px; background: var(--surface); translate: none; opacity: 1; }
 .landing-page .landing-hero-copy::before { content: none; }

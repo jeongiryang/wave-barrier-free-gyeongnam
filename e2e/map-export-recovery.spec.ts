@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
@@ -12,9 +13,12 @@ async function openImage(page: Page, en = false, theme = "light") {
   await expect(page.locator(".map-provider-badge.osm")).toBeVisible();
   if (en) {
     await page.keyboard.press("Control+Home");
+    await openSupportMenu(page);
     const preferences = page.locator(".preference-controls:visible");
+    await openSupportMenu(page);
     await preferences.getByLabel("환경설정 열기", { exact: true }).click();
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+    await openSupportMenu(page);
     await preferences.getByLabel("Open preferences", { exact: true }).click();
   }
   await page.getByRole("button", { name: en ? "Map options" : "지도 도구", exact: true }).click();

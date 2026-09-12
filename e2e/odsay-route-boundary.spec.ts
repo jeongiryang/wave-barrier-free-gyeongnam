@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 import { odsayProviderStatus } from "../lib/transport/odsay-response.js";
@@ -30,9 +31,12 @@ for (const [name, code, expected, expectedEnglish] of [
   await expect(page.locator(".route-compare-panel")).not.toContainText("untrusted upstream text");
   const before = requests;
   await page.keyboard.press("Control+Home");
+  await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
+  await openSupportMenu(page);
   await preferences.getByLabel("환경설정 열기", { exact: true }).click();
   await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+  await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await expect(notice).toHaveAttribute("lang", "en");
   await expect(page.locator("main.planner-page")).toHaveAttribute("lang", "en");

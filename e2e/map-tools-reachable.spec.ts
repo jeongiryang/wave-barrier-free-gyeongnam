@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
@@ -50,12 +51,14 @@ for (const locale of ["ko", "en"]) {
     await chooseTripConditions(page);
     await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
     if (locale === "en") {
+      await openSupportMenu(page);
       const preferences = page.locator(".preference-controls:visible");
       const trigger = preferences.getByLabel("환경설정 열기", { exact: true });
       await trigger.focus();
       await expect(trigger).toBeInViewport();
       await page.keyboard.press("Enter");
       await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+      await openSupportMenu(page);
       await preferences.getByLabel("Open preferences", { exact: true }).click();
     }
     const nav = page.locator("nav.map-command-bar");

@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
@@ -133,7 +134,9 @@ test("changing language preserves the selected transport dataset without queryin
   await details.locator(".transport-dataset-grid").getByRole("button", { name: /Rail service areas/ }).click();
   const before = requests;
   await page.keyboard.press("Control+Home");
+  await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
+  await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
   await expect(details.locator('button[aria-pressed="true"]')).toContainText("철도 지역코드");

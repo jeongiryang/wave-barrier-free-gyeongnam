@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -11,9 +12,11 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await mockPlannerApi(page, { plannerView: "guided" });
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
     await page.goto("/planner");
-    const details = page.locator(".preference-controls:visible");
+    await openSupportMenu(page);
+    const details = page.locator(".preference-controls");
     await expect(details).toHaveAttribute("aria-busy", "false");
     const trigger = details.locator("summary");
+    await openSupportMenu(page);
     await trigger.focus();
     await page.keyboard.press("Enter");
     await expect(details).toHaveAttribute("open", "");
@@ -35,6 +38,7 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await expect(details).not.toHaveAttribute("open", "");
     await expect(details.locator(".preference-panel")).toBeHidden();
 
+    await openSupportMenu(page);
     await trigger.focus();
     await page.keyboard.press("Enter");
     await page.keyboard.press("Tab");

@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
@@ -17,6 +18,7 @@ async function prepare(page: Page, english: boolean, end = "2026-10-08", theme =
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
   if (english) {
+    await openSupportMenu(page);
     const preferences = page.locator(".preference-controls:visible");
     // Preferences now live in the footer. Open the actual control after the
     // surrounding lazy content settles; the former hidden-header focus setup
@@ -26,6 +28,7 @@ async function prepare(page: Page, english: boolean, end = "2026-10-08", theme =
     await expect(preferenceTrigger).toBeFocused();
     await expect(preferenceTrigger).toBeInViewport();
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+    await openSupportMenu(page);
     await preferences.getByLabel("Open preferences", { exact: true }).click();
   }
   return page.locator(".day-planner");
