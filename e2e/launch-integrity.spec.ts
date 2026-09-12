@@ -24,9 +24,9 @@ test("first visit stays neutral and later stages are locked without a search", a
   await expect(page.locator(".condition-actions button")).toBeDisabled();
   await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "0");
   await expect(page.locator(".reference-journey-views")).toHaveCount(0);
-  await expect(page.locator(".reference-progress button").nth(2)).toBeDisabled();
+  await expect(page.locator(".planner-navigation nav button").nth(2)).toBeDisabled();
   expect(requests).toBe(0);
-  await expect(page.locator(".reference-progress button").first()).toHaveAttribute("aria-current", "step");
+  await expect(page.locator(".planner-navigation nav button").first()).toHaveAttribute("aria-current", "step");
 });
 
 test("a returning user can open an existing device itinerary before a new search", async ({ page }) => {
@@ -46,7 +46,7 @@ test("a returning user can open an existing device itinerary before a new search
     }]));
   });
   await page.goto("/planner");
-  const itineraryStep = page.locator(".reference-journey-views button").nth(1);
+  const itineraryStep = page.locator(".planner-navigation nav button").nth(3);
   await expect(itineraryStep).toBeEnabled();
   await itineraryStep.click();
   await expect(page.getByRole("heading", { name: /여행, 순서만 정하면 돼요/ })).toBeVisible();
@@ -310,9 +310,9 @@ test("trip completion requires every ordered leg and separate itinerary and depa
 test("guided itinerary unlocks the same dated journeys and transport control after saving places", async ({ page }) => {
   await mockPlannerApi(page, { plannerView: "guided" });
   await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
-  const itineraryStep = page.locator(".reference-journey-views button").nth(1);
+  const itineraryStep = page.locator(".planner-navigation nav button").nth(3);
   await expect(page.locator(".reference-journey-views")).toHaveCount(0);
-  await expect(page.locator(".reference-progress button").nth(2)).toBeDisabled();
+  await expect(page.locator(".planner-navigation nav button").nth(2)).toBeDisabled();
   await chooseTripConditions(page);
   await expect(itineraryStep).toBeDisabled();
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
@@ -343,7 +343,7 @@ test("clearing the last theme invalidates previous results without locking an ex
   await page.getByRole("button", { name: /자연·휴양 공원/ }).click();
   await expect(page.getByText("조건이 변경됐어요.", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true })).toBeDisabled();
-  await expect(page.locator(".reference-journey-views button").nth(1)).toBeEnabled();
+  await expect(page.locator(".planner-navigation nav button").nth(3)).toBeEnabled();
   await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "0");
   await expect(page.locator(".day-planner-grid li")).toContainText("경남도립미술관");
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);

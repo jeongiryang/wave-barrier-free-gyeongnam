@@ -1,3 +1,4 @@
+import LoadingState from "../../../components/LoadingState";
 import { lazy, Suspense, useState } from "react";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { Place, TransportProvider } from "../types";
@@ -25,7 +26,7 @@ export default function TransportDataOverview(props: TransportDataOverviewProps)
     <TransportModeSelector route={props.route} />
     <details className="transport-details" onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary>{english ? "Transport details" : "교통정보 상세"} <span>{english ? "Current information and official booking" : "현재 정보와 공식 예매"}</span></summary>
-      {open && <Suspense fallback={<p role="status">{english ? "Opening transport details…" : "교통 상세를 여는 중입니다…"}</p>}><TransportDetailsContents {...props} /></Suspense>}
+      {open && <Suspense fallback={<LoadingState>{english ? "Opening transport details…" : "교통 상세를 여는 중입니다…"}</LoadingState>}><TransportDetailsContents {...props} /></Suspense>}
     </details>
   </>;
 }

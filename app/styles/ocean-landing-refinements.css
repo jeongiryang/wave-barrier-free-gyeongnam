@@ -10,7 +10,6 @@
 
 .landing-hero { min-height: 0; padding-block: clamp(132px,12vw,176px) clamp(72px,8vw,112px); }
 .landing-hero::before { content: none; }
-.landing-hero-copy { position: relative; z-index: 1; }
 .landing-hero-copy > p span { background: #fff; }
 
 /* 핵심 여정만 남긴 콘텐츠 중심 Hero. */

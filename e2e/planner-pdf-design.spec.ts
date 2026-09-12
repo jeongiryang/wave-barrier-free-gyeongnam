@@ -11,7 +11,7 @@ test("8+10 시안: 지역부터 날짜·일정·전체보기까지 실제 저장
   await page.route("**/api/trips", route => route.fulfill({ json: { url: `${new URL(route.request().url()).origin}/trip/pdf-design-example` } }));
   await page.goto("/planner");
   await expect(page.getByRole("heading", { name: "경남, 어디부터 가볼까요?" })).toBeVisible();
-  await expect(page.locator(".reference-progress button")).toHaveCount(4);
+  await expect(page.locator(".planner-navigation nav button")).toHaveCount(5);
   await expect(page.getByRole("button", { name: "통영 지역 선택" })).toBeVisible();
   await page.screenshot({ path: info.outputPath("pdf-region.png"), fullPage: true });
   await chooseTripConditions(page);
@@ -24,7 +24,7 @@ test("8+10 시안: 지역부터 날짜·일정·전체보기까지 실제 저장
   await expect(page.locator(".place-carousel .place-card")).toHaveCount(2);
   await page.screenshot({ path: info.outputPath("pdf-places.png"), fullPage: true });
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".reference-search-sentence > button").nth(1).click();
+  await page.locator(".planner-nav-context > button").nth(1).click();
   await expect(page.getByRole("heading", { name: "언제 떠날까요?", exact: true })).toBeVisible();
   const fields = page.locator(".reference-date-fields");
   const existing = await fields.getByLabel("출발일").inputValue();

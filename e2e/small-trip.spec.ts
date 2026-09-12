@@ -5,7 +5,7 @@ import {alternativePlan} from './alternative-fixtures';
 const plan={...alternativePlan,explorationPlaces:[{...alternativePlan.places[2],id:'1010',name:'편의 미확인 공원',accessibility:alternativePlan.places[2].accessibility?.map(field=>({...field,state:'unknown'}))}]};
 async function setup(page:Page){await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true});await page.emulateMedia({reducedMotion:'reduce'});await page.route('**/api/wave?action=plan*',route=>route.fulfill({json:plan}));}
 test('anchor expansion previews one nearby stop, preserves the period, and undoes the exact addition',async({page},info)=>{
- await setup(page);await page.goto('/planner');await chooseTripConditions(page);await page.getByRole('button',{name:'경남도립미술관 일정에 추가',exact:true}).click();await page.locator('.reference-journey-views button').nth(1).click();
+ await setup(page);await page.goto('/planner');await chooseTripConditions(page);await page.getByRole('button',{name:'경남도립미술관 일정에 추가',exact:true}).click();await page.locator('.planner-navigation nav button').nth(3).click();
  await page.getByText('한 장소에서 코스 이어 담기',{exact:true}).click();const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});
  const before=await page.locator('.reference-day-list').innerText();
  const candidate=panel.getByRole('article').filter({has:page.getByRole('heading',{name:'용지호수공원',exact:true})});await candidate.getByRole('button',{name:'추가 미리보기',exact:true}).click();
@@ -15,7 +15,7 @@ test('anchor expansion previews one nearby stop, preserves the period, and undoe
  for(const width of info.project.name.includes('desktop')?[1440,960]:[390,320]){await page.setViewportSize({width,height:960});await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`course-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBe(0);expect((await new AxeBuilder({page}).include('[aria-label="한 장소에서 코스 확장"]').analyze()).violations).toEqual([]);}
 });
 test('a later pinned stop blocks course insertion and a new pin prevents undoing an edited addition',async({page})=>{
- await setup(page);await page.goto('/planner');await chooseTripConditions(page);for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 추가',exact:true}).click();await page.locator('.reference-journey-views button').nth(1).click();
+ await setup(page);await page.goto('/planner');await chooseTripConditions(page);for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 추가',exact:true}).click();await page.locator('.planner-navigation nav button').nth(3).click();
  const board=page.locator('.reference-day-list');await board.getByLabel('용지호수공원 일정 수정',{exact:true}).click();await board.getByLabel('용지호수공원 장소 고정',{exact:true}).selectOption('visit');await board.getByLabel('용지호수공원 일정 수정',{exact:true}).click();
  await page.getByText('한 장소에서 코스 이어 담기',{exact:true}).click();const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});await panel.getByRole('combobox',{name:'어느 장소 다음에 갈까요?',exact:true}).selectOption('1001');
  const park=panel.getByRole('article').filter({has:page.getByRole('heading',{name:'강변정원',exact:true})});await park.getByRole('button',{name:'추가 미리보기',exact:true}).click();await panel.getByRole('button',{name:'이 장소 이어 담기',exact:true}).click();await expect(panel).toContainText('고정 일정의 순서나 날짜를 지키기 위해 추가하지 않았어요');await expect(board.locator('.reference-stop')).toHaveCount(2);

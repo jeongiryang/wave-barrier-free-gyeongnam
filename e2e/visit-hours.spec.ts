@@ -15,7 +15,7 @@ test("visiting hours load on request, compare changed times and reuse the same r
   await page.goto("/planner");
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".reference-journey-views button").nth(1).click();
+  await page.locator(".planner-navigation nav button").nth(3).click();
   const board = page.locator(".reference-day-list");
   const hours = board.locator(".visit-hours");
   await expect(hours.locator("summary")).toBeVisible();
@@ -56,7 +56,7 @@ test("provider failure retries explicitly and conditional hours remain unconfirm
   await page.goto("/planner");
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".reference-journey-views button").nth(1).click();
+  await page.locator(".planner-navigation nav button").nth(3).click();
   const hours = page.locator(".reference-day-list .visit-hours");
   await hours.locator("summary").click();
   await expect(hours.getByRole("alert")).toContainText("불러오지 못했어요");

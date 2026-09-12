@@ -15,7 +15,7 @@ async function setup(page:Page) {
   await page.route('**/api/wave?action=visit-info*',route=>route.fulfill({json:{id:new URL(route.request().url()).searchParams.get('contentId'),status:'available',checkedAt:'2026-09-11T12:00:00Z',source:'ⓒ한국관광공사',hours:'09:00~18:00',phone:'055-123-4567',fees:'무료'}}));
   await page.goto('/planner');await chooseTripConditions(page);
   for(const name of ['경남도립미술관','용지호수공원','시민문화쉼터'])await page.getByRole('button',{name:name+' 일정에 추가',exact:true}).click();
-  await page.locator('.reference-journey-views button').nth(1).click();
+  await page.locator('.planner-navigation nav button').nth(3).click();
   await page.getByRole('button',{name:'다음: 전체보기',exact:true}).click();
 }
 const guide=(page:Page)=>page.getByRole('region',{name:'여행 당일 진행',exact:true});

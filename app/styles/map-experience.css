@@ -6,7 +6,6 @@
 ::view-transition-new(selected-region-card) { animation: region-card-in .42s cubic-bezier(.16,1,.3,1) both; }
 @keyframes region-card-out { to { opacity: 0; transform: translateY(8px) scale(.97); } }
 @keyframes region-card-in { from { opacity: 0; transform: translateY(-10px) scale(.96); filter: blur(6px); } }
-@keyframes region-preview-in { from { opacity: 0; transform: translate(-50%,calc(-100% - 8px)) scale(.85); } }
 @keyframes region-photo-loading { to { background-position-x: -220%; } }
 
 .map-provider-badge.kakao > span { background: #1cb3aa; box-shadow: 0 0 0 4px rgba(28,179,170,.14); }
@@ -19,8 +18,6 @@
 
 @supports (animation-timeline: view()) {
   /* Keep text fully opaque throughout scroll reveals so motion never lowers WCAG contrast. */
-  @keyframes native-scroll-rise { from { transform: translateY(55px) scale(.96); } to { transform: translateY(0) scale(1); } }
-  @keyframes native-scroll-map { from { transform: perspective(1000px) rotateX(7deg) translateY(65px); } to { transform: perspective(1000px) rotateX(0) translateY(0); } }
 }
 
 @media (max-width: 780px) {

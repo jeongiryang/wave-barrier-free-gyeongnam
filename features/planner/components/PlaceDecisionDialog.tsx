@@ -1,4 +1,5 @@
 "use client";
+import LoadingState from "../../../components/LoadingState";
 
 import { lazy, Suspense, type RefObject } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
@@ -38,7 +39,7 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
         {en && <p className="original-language-note">Place names, addresses and facility evidence are shown in their original language, which may be Korean. Visitor stories are not translated.</p>}
         <button type="button" aria-pressed={props.saved} disabled={!props.saved && props.canSave === false} onClick={props.onToggleSaved}>{props.saved ? en ? "Remove from itinerary" : "일정에서 빼기" : en ? "Add to itinerary" : "일정에 추가"}<span aria-hidden="true">{props.saved ? "−" : "+"}</span></button>
         {!props.saved && props.canSave === false && <p>{en ? "Only current recommendations with confirmed matching facilities can be added. Search again if you changed your preferences." : "현재 추천에서 필요한 편의가 확인된 장소만 일정에 추가할 수 있습니다. 조건을 바꿨다면 여행지를 다시 찾아주세요."}</p>}
-        <Suspense fallback={<p role="status">{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</p>}><PlaceDecisionContent {...props} location={location} /></Suspense>
+        <Suspense fallback={<LoadingState>{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</LoadingState>}><PlaceDecisionContent {...props} location={location} /></Suspense>
       </div>
   </dialog>;
 }

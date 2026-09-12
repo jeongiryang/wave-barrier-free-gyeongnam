@@ -31,7 +31,7 @@ for (const width of [320, 390]) {
     await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
     // Ignore only the observer visibility marker; retain every section identity and order.
     const classes = await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => Array.from(node.classList).filter(name => name !== "is-visible").join(" ")));
-    expect(classes).toEqual(["landing-hero", "horizon-how", "region-story region-showcase", "horizon-account", "horizon-departure", "horizon-community", "landing-cta"]);
+    expect(classes).toEqual(["landing-hero", "horizon-how", "region-story region-showcase", "landing-naru", "horizon-account", "horizon-departure", "horizon-community", "landing-cta"]);
     await expect(page.locator("main section[id] details, .journey-stage-controls, .region-showcase-selection, .region-map-details")).toHaveCount(0);
     await expect(page.getByRole("button", {name:/풍경 재생|영상 일시정지|실제 여행 계획 살펴보기|자동 넘김/})).toHaveCount(0);
     await expect(page.locator(".landing-actions a[href='/planner']")).toHaveAccessibleName("여행 계획하기");

@@ -21,6 +21,7 @@ export default function PlannerThemeDates({ t, planController, tripSelection, pa
       <legend className="step-label">{t("enjoy", "무엇을 하고 싶나요?")}</legend>
       <p>{en ? "You can choose more than one." : "여러 개 골라도 괜찮아요."}</p>
       <div className="theme-grid">{themes.map((item) => <button key={item.id} type="button" className={selectedThemes.includes(item.id) ? "active" : ""} onClick={() => toggleTheme(item.id)} aria-pressed={selectedThemes.includes(item.id)}><span>{en ? englishThemes[item.id].label : item.label}</span><small>{en ? englishThemes[item.id].description : item.description}</small></button>)}</div>
+      <button type="button" className="theme-any" onClick={() => planController.setTheme(themes.map(item => item.id).join(','))} aria-pressed={selectedThemes.length === themes.length}>{en ? 'Open to anything · choose all' : '아직 못 정했어요 · 모두 살펴보기'}</button>
     </fieldset>}
     {part !== "themes" && <div className="control-panel date-control">
       <span className="step-label">{en ? "When are you travelling?" : "언제 떠날까요?"}</span>

@@ -1,5 +1,5 @@
 /* --- 정식 계정 화면과 헤더 계정 상태 --- */
-.account-button,.account-loading,.account-menu > summary { min-height: 42px; padding: 8px 13px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: rgba(255,255,255,.9); font-size: .74rem; font-weight: 850; }
+.account-button,.account-loading,.account-menu > summary { padding: 8px 13px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: rgba(255,255,255,.9); font-size: .74rem; font-weight: 850; }
 .account-loading { width: 44px; padding: 0; }
 .account-loading i { width: 13px; height: 13px; border: 2px solid #bdd4df; border-top-color: var(--blue); border-radius: 50%; animation: accountSpin .8s linear infinite; }
 @keyframes accountSpin { to { transform: rotate(360deg); } }
@@ -22,10 +22,6 @@
 .auth-header-action { min-height: 44px; padding: 9px 14px; display: inline-flex; align-items: center; gap: 18px; border-radius: 12px; color: var(--white); background: var(--ink); font-size: .78rem; font-weight: 850; }
 .auth-layout { width: min(1160px,calc(100% - 48px)); min-height: calc(100svh - 78px); margin: 0 auto; padding: 70px 0 90px; display: grid; grid-template-columns: minmax(0,1fr) minmax(390px,480px); align-items: center; gap: clamp(52px,8vw,120px); }
 .auth-story h2 { margin: 14px 0 24px; font-size: clamp(2.8rem,5vw,5.25rem); line-height: 1.06; letter-spacing: -.07em; }
-@keyframes authPhraseFlow { from { opacity: 0; transform: translate3d(-.35em,.38em,0); filter: blur(3px); } to { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); } }
-@keyframes authPhraseCurrent { from { transform: translateX(0); opacity: 0; } 35% { opacity: .85; } to { transform: translateX(330%); opacity: 0; } }
-@keyframes authSignatureWave { from { transform: scaleX(0) skewX(-18deg); } 58% { transform: scaleX(1.04) skewX(3deg); } to { transform: scaleX(1) skewX(0); } }
-@keyframes authSignatureGlint { from { transform: translateX(0) skewX(-28deg); } to { transform: translateX(440%) skewX(-28deg); } }
 .auth-story > p:not(.section-kicker) { max-width: 570px; color: var(--muted); font-size: 1.02rem; line-height: 1.75; }
 .auth-journey-preview { max-width: 610px; margin-top: 38px; display: grid; gap: 10px; }
 .auth-journey-preview > span { padding: 16px 18px; display: grid; grid-template-columns: 34px 150px 1fr; align-items: center; gap: 12px; border: 1px solid rgba(38,112,144,.16); border-radius: 15px; background: rgba(255,255,255,.64); }
@@ -62,9 +58,9 @@ html[data-theme="dark"] .auth-message.success { color: #7ce0c8; }
 .auth-submit,.auth-primary-link { min-height: 52px; padding: 11px 16px; display: flex; align-items: center; justify-content: center; gap: 24px; border: 0; border-radius: 13px; color: var(--on-blue); background: var(--blue); font: inherit; font-weight: 880; box-shadow: 0 12px 25px rgba(10,107,175,.2); }
 .auth-submit:disabled { opacity: .65; cursor: wait; }
 .auth-switch { margin-top: 19px; text-align: center; color: var(--muted); font-size: .78rem; }
-.auth-switch a { min-height: 44px; margin: -10px 0 -10px 5px; padding: 10px 2px; display: inline-flex; align-items: center; color: var(--blue); font-weight: 900; }
+.auth-switch a { margin: -10px 0 -10px 5px; padding: 10px 2px; font-weight: 900; }
 .auth-recovery-link { margin-top: 12px; text-align: right; font-size: .75rem; }
-.auth-recovery-link a { min-height: 44px; padding-block: 10px; display: inline-flex; align-items: center; color: var(--blue-dark); font-weight: 850; text-decoration: underline; text-underline-offset: 3px; }
+.auth-recovery-link a { padding-block: 10px; color: var(--blue-dark); font-weight: 850; text-decoration: underline; text-underline-offset: 3px; }
 .auth-signed-in { display: grid; gap: 16px; }
 .auth-utility-layout .auth-story h1 { margin: 14px 0 24px; font-size: clamp(2.8rem,5vw,5.25rem); line-height: 1.06; letter-spacing: -.07em; }
 .auth-utility-layout .auth-story h1 span { color: var(--blue); }

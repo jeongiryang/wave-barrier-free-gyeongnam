@@ -759,7 +759,7 @@ test("core controls keep 44px targets on every viewport and pointer type", async
     ".travel-profile-actions button", ".travel-profile-clear", ".feedback-box button", ".help-button",
   ]) assert.match(globalTouchRules, new RegExp(selector.replaceAll(".", "\\.").replaceAll(">", "\\>")));
   assert.match(globalTouchRules, /min-height: 44px/);
-  assert.match(globalTouchRules, /\.map-provider-badge button::after[\s\S]+inset: -8px/);
+  assert.match(await source("app/styles/mobile-interaction-hardening.css"), /\.map-provider-badge button::after[\s\S]+inset: -8px/);
 });
 
 test("shared trips restore saved places, order and date assignments from official IDs", async () => {

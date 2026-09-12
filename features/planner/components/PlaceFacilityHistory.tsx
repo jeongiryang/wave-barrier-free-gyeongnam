@@ -39,7 +39,7 @@ export default function PlaceFacilityHistory({ place, region }: { place: Place; 
   return <section className="place-community-stories" aria-labelledby={id}>
     <header><div><small>여행자가 직접 확인한 기록</small><h3 id={id}>편의시설, 언제 확인했을까요?</h3></div></header>
     <p>공식 편의정보 아래에서 여행자의 실제 방문일과 경험을 비교하세요. 방문이나 시설 상태를 WAVE가 인증한 기록은 아니며 공식 점수에는 반영하지 않습니다.</p>
-    <button type="button" style={actionStyle} disabled={loading} onClick={() => void load(1)}>{loading ? "시설 제보 확인 중…" : page ? "최근 제보 다시 확인" : "시설 제보 이력 확인"}</button>
+    <button type="button" style={actionStyle} aria-busy={loading} disabled={loading} onClick={() => void load(1)}>{loading ? "시설 제보 확인 중…" : page ? "최근 제보 다시 확인" : "시설 제보 이력 확인"}</button>
     <div role="status">{message || (page ? `방문일 순으로 후기 ${posts.length}건을 불러왔어요.${hasMore ? " 더 이전 기록이 있습니다." : ""}` : "")}</div>
     {!!page && <div style={{ display: "grid", gap: 16, marginTop: 20 }}>
       {history.map(item => <article key={item.field} style={{ padding: 20, border: "1px solid var(--line)", borderRadius: 18, background: "var(--white)" }}>
@@ -55,7 +55,7 @@ export default function PlaceFacilityHistory({ place, region }: { place: Place; 
           {(["confirmed", "changed"] as const).map(status => <Link key={status} href={fieldReportDraftHref({ placeId: place.id, placeName: place.name, region, field: item.field, status })} style={{ display: "inline-flex", alignItems: "center", minHeight: 44, padding: "8px 14px", border: "1px solid var(--line)", borderRadius: 24 }}>{status === "confirmed" ? "직접 확인했어요" : "달라진 점이 있어요"}</Link>)}
         </div>
       </article>)}
-      {hasMore && (page < 10 ? <button type="button" style={actionStyle} disabled={loading} onClick={() => void load(page + 1)}>이전 방문 기록 더 보기</button> : <p>최근 후기 200건을 표시하고 있어요. 더 이전 내용은 <Link href={`/community?placeId=${encodeURIComponent(place.id)}`}>장소 전체 후기</Link>에서 확인하세요.</p>)}
+      {hasMore && (page < 10 ? <button type="button" style={actionStyle} aria-busy={loading} disabled={loading} onClick={() => void load(page + 1)}>이전 방문 기록 더 보기</button> : <p>최근 후기 200건을 표시하고 있어요. 더 이전 내용은 <Link href={`/community?placeId=${encodeURIComponent(place.id)}`}>장소 전체 후기</Link>에서 확인하세요.</p>)}
     </div>}
   </section>;
 }

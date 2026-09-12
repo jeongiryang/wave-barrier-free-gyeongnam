@@ -1,0 +1,18 @@
+[Unit]
+Description=WAVE Naru dedicated userspace network
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/mkdir -p %h/wave-naru/tailscale
+ExecStart=/usr/sbin/tailscaled --tun=userspace-networking --port=41642 --statedir=%h/wave-naru/tailscale --socket=%h/wave-naru/tailscale/tailscaled.sock --no-logs-no-support
+Restart=on-failure
+RestartSec=10
+UMask=0077
+NoNewPrivileges=true
+MemoryMax=256M
+CPUQuota=100%
+TasksMax=64
+
+[Install]
+WantedBy=default.target

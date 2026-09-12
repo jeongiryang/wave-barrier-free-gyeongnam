@@ -84,21 +84,24 @@ test("the region film follows forward and reverse scroll while reduced motion st
   await page.evaluate(() => document.fonts.ready);
   await expect(scene).toHaveAttribute("data-film", "true");
   const progress: number[] = [];
-  for (const offset of [0, .5, 1, .5, 0]) {
+  for (const offset of [0, .25, .75, 1, .75, .25, 0]) {
     await scene.evaluate((node, offset) => {
       const sticky = (node as HTMLElement).dataset.filmSticky === "true";
+      // The scene reserves 116px above its rails; sample its complete scroll range.
       const distance = sticky ? (node as HTMLElement).offsetHeight - (innerHeight - 116) : (node as HTMLElement).offsetHeight + innerHeight - 116;
       scrollTo({ top: scrollY + node.getBoundingClientRect().top - (sticky ? 116 : innerHeight) + distance * offset, behavior: "instant" });
     }, offset);
-    await expect.poll(() => rails.first().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth))).toBeCloseTo(1 - offset, 1);
-    await expect.poll(() => rails.last().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth))).toBeCloseTo(offset, 1);
+    await expect.poll(() => rails.first().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth))).toBeCloseTo(1 - Math.min(1, offset / .46), 1);
+    await expect.poll(() => rails.last().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth))).toBeCloseTo(Math.max(0, Math.min(1, (offset - .54) / .46)), 1);
     progress.push(await rails.last().evaluate(node => node.scrollLeft / (node.scrollWidth - node.clientWidth)));
     await page.screenshot({ path: test.info().outputPath(`expansion-${offset}-${progress.length}.png`) });
   }
-  expect(progress[1]).toBeGreaterThan(progress[0]);
+  expect(progress[1]).toBeCloseTo(progress[0], 1);
   expect(progress[2]).toBeGreaterThan(progress[1]);
-  expect(progress[3]).toBeCloseTo(progress[1], 1);
-  expect(progress[4]).toBeCloseTo(progress[0], 1);
+  expect(progress[3]).toBeGreaterThan(progress[2]);
+  expect(progress[4]).toBeCloseTo(progress[2], 1);
+  expect(progress[5]).toBeCloseTo(progress[1], 1);
+  expect(progress[6]).toBeCloseTo(progress[0], 1);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(scene).toHaveAttribute("data-film", "false");
   await expect(scene.locator(".region-showcase-stage")).toHaveCSS("position", "relative");

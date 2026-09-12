@@ -14,7 +14,7 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
-  await page.locator(".reference-journey-views button").nth(1).click();
+  await page.locator(".planner-navigation nav button").nth(3).click();
   const board = page.locator(".reference-day-list");
   await expect(board.locator(".reference-stop")).toHaveCount(2);
   await page.evaluate(() => document.fonts.ready);

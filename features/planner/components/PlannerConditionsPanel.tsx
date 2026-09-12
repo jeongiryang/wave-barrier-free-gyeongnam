@@ -1,4 +1,5 @@
 "use client";
+import LoadingState from "../../../components/LoadingState";
 
 import { lazy, Suspense, useRef } from "react";
 import Link from "next/link";
@@ -37,12 +38,11 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
   const en = locale === "en";
   const heading = useRef<HTMLHeadingElement>(null);
   const { region, selected, themes, loading, planError } = props.planController;
-  const lastAvailableQuestion = !region ? 0 : !selected.length ? 1 : !themes.length ? 2 : 3;
-  const question = props.question === 3 ? 3 : Math.min(props.question, lastAvailableQuestion);
+  const question = Math.max(0, Math.min(3, props.question));
   const guided = props.view === "guided";
   const showAvailability = Boolean(region) && (!guided || question !== 3);
   function go(next: number) {
-    if (next > lastAvailableQuestion) return;
+    if (next < 0 || next > 3) return;
     props.onQuestion(next);
     window.requestAnimationFrame(() => heading.current?.focus());
   }
@@ -52,13 +52,13 @@ export default function PlannerConditionsPanel(props: PlannerConditionsPanelProp
     <p className="reference-subtitle">{(en ? ["Choose a destination from its scenery.", "Choose the facilities you need to compare places.", "Choose your interests to find places for your trip.", "Select a start and end date for your trip."] : ["장소 이름을 외우지 않아도 풍경부터 고를 수 있어요.", "나에게 필요한 편의를 골라 여행지를 비교하세요.", "좋아하는 활동을 골라 나에게 맞는 여행을 찾아보세요.", "출발일과 도착일을 눌러 여행 기간을 선택하세요."])[question]}</p>
     {(!guided || question === 0) && <div className="travel-book-actions" style={{gridTemplateColumns:'1fr',margin:'16px 0'}}><Link href="/outings" onClick={()=>{try{sessionStorage.setItem('wave-outing-entry-v1',JSON.stringify({region,theme:props.planController.theme,profiles:selected,createdAt:Date.now()}));}catch{/* The outing page offers the same choices when storage is unavailable. */}}}>한두 곳만 가볍게, 짧은 나들이 →</Link></div>}
     <div className="condition-inputs" inert={!props.planController.criteriaReady || !props.tripSelection.storageReady} key={guided ? question : "overview"}>
-      {(!guided || question === 0) && <Suspense fallback={<p role="status">{en ? "Preparing destination choices…" : "여행 지역을 준비하고 있어요…"}</p>}><PlannerRegionDiscovery full={!guided} value={region} onChange={props.onRegionChange} onInterest={props.planController.setTheme} onFacilities={() => props.onQuestion(1)} /></Suspense>}
+      {(!guided || question === 0) && <Suspense fallback={<LoadingState>{en ? "Preparing destination choices…" : "여행 지역을 준비하고 있어요…"}</LoadingState>}><PlannerRegionDiscovery full={!guided} value={region} onChange={props.onRegionChange} onInterest={props.planController.setTheme} onFacilities={() => props.onQuestion(1)} /></Suspense>}
       {guided && question === 0 && <div className="condition-first-details"><details className="condition-date-disclosure"><summary><span>{en ? "Travel dates" : "여행 날짜"}</span><strong>{props.tripSelection.travelStart} {props.tripSelection.travelStart === props.tripSelection.travelEnd ? en ? " · Day trip" : " · 당일 여행" : `– ${props.tripSelection.travelEnd}`}</strong><b aria-hidden="true">⌄</b></summary><PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="dates" /></details><PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="themes" /></div>}
-      {(!guided || question === 1) && <Suspense fallback={<p role="status">{en ? "Preparing facility choices…" : "편의 선택 항목을 준비하고 있어요…"}</p>}><PlannerAccessibilityProfiles trip={props.tripSelection} t={props.t} planController={props.planController} /></Suspense>}
+      {(!guided || question === 1) && <Suspense fallback={<LoadingState>{en ? "Preparing facility choices…" : "편의 선택 항목을 준비하고 있어요…"}</LoadingState>}><PlannerAccessibilityProfiles trip={props.tripSelection} t={props.t} planController={props.planController} /></Suspense>}
       {(!guided || question === 2) && <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="themes" />}
-      {(!guided || question === 3) && <Suspense fallback={<p role="status">{en ? "Preparing calendar…" : "달력을 준비하고 있어요…"}</p>}><PlannerDateCalendar trip={props.tripSelection} region={region} onContinue={props.onItinerary} onPreferences={() => go(0)} /></Suspense>}
+      {(!guided || question === 3) && <Suspense fallback={<LoadingState>{en ? "Preparing calendar…" : "달력을 준비하고 있어요…"}</LoadingState>}><PlannerDateCalendar trip={props.tripSelection} region={region} onContinue={props.onItinerary} onPreferences={() => go(0)} /></Suspense>}
     </div>
-    {showAvailability && <Suspense fallback={<p role="status">{en ? "Preparing search results…" : "검색 결과를 준비하고 있어요…"}</p>}><PlannerAvailability en={en} region={region} selected={selected} themes={themes} /></Suspense>}
+    {showAvailability && <Suspense fallback={<LoadingState>{en ? "Preparing search results…" : "검색 결과를 준비하고 있어요…"}</LoadingState>}><PlannerAvailability en={en} region={region} selected={selected} themes={themes} /></Suspense>}
     {guided && planError && <p role="alert">{planFailureHeadings[planError][en ? 1 : 0]} {en ? "Your choices are kept. Please try again shortly." : "선택한 조건은 유지됩니다. 잠시 후 다시 찾아 주세요."}</p>}
     {question !== 3 && <div className="condition-actions reference-bottom-bar">
       <div><strong>{en ? regionNames[region] || "Gyeongnam trip" : region || "경남 여행"}</strong><small aria-live="polite">{!region ? en ? "Choose a region and an activity" : "지역과 활동을 골라주세요" : !themes.length ? en ? "Choose an activity" : "하고 싶은 활동을 골라주세요" : selected.length ? en ? `${selected.length} facilities · ${themes.length} activities` : `편의 ${selected.length}개 · 활동 ${themes.length}개` : en ? `${themes.length} activities · facilities next` : `활동 ${themes.length}개 · 다음은 편의 선택`}</small></div>

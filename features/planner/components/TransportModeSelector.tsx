@@ -1,3 +1,4 @@
+import LoadingState from "../../../components/LoadingState";
 import { lazy, Suspense } from "react";
 import { transportModes } from "../constants";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
@@ -22,6 +23,6 @@ export default function TransportModeSelector({ route }: { route: ReturnType<typ
     <div className="transport-mode-filter" role="group" aria-label={english ? "Filter transport information" : "교통수단별 결과 필터"}>
       {transportModes.map((mode) => <button type="button" aria-pressed={transportMode === mode.id} key={mode.id} className={transportMode === mode.id ? "active" : ""} onClick={() => setTransportMode(mode.id)}><b>{english ? englishModes[mode.id][0] : mode.label}</b><small>{english ? englishModes[mode.id][1] : mode.description}</small></button>)}
     </div>
-    {transportContext && (transportContext.nearbyStops.length > 0 || transportContext.arrivals.length > 0 || transportContext.korail.length > 0) && <Suspense fallback={<p className="transport-summary-note" role="status">{english ? "Opening transport summary…" : "교통 요약을 여는 중입니다…"}</p>}><TransportLiveSummary transportContext={transportContext} english={english} /></Suspense>}
+    {transportContext && (transportContext.nearbyStops.length > 0 || transportContext.arrivals.length > 0 || transportContext.korail.length > 0) && <Suspense fallback={<LoadingState skeleton={false}>{english ? "Opening transport summary…" : "교통 요약을 여는 중입니다…"}</LoadingState>}><TransportLiveSummary transportContext={transportContext} english={english} /></Suspense>}
   </>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import LoadingState from "../../../components/LoadingState";
 
 import { lazy, Suspense, useState } from "react";
 import type { KeyHealth, PlanData, TransportProvider } from "../types";
@@ -33,6 +34,6 @@ export default function PlannerServiceStatus(props: PlannerServiceStatusProps) {
       <span><small>문제 해결</small><strong>서비스 상태와 데이터 제공 범위</strong></span>
       <span className="service-status-summary">관광정보 {liveCount ? `${liveCount}개 확인` : "준비"} · 교통정보 {transportStatus} · {locale.toUpperCase()}</span>
     </summary>
-    {open && <Suspense fallback={<p role="status">상태 정보를 준비하고 있어요.</p>}><PlannerServiceDiagnostics {...props} /></Suspense>}
+    {open && <Suspense fallback={<LoadingState>상태 정보를 준비하고 있어요.</LoadingState>}><PlannerServiceDiagnostics {...props} /></Suspense>}
   </details>;
 }

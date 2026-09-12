@@ -38,15 +38,15 @@ for (const theme of ["light", "dark"] as const) {
 }
 
 for (const locale of ["ko", "en"] as const) {
-  test(`${locale}: all seven chapter links and the mobile selector transfer keyboard focus`, async ({ page }) => {
+  test(`${locale}: all eight chapter links and the mobile selector transfer keyboard focus`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
     await page.setViewportSize({ width: 1440, height: 960 });
     await page.goto("/"); await storyReady(page);
     const links = page.locator("#story-progress-list a");
-    await expect(links).toHaveCount(7);
+    await expect(links).toHaveCount(8);
     await expect(links.locator("span")).toHaveText(chapterNames[locale]);
-    for (let index = 0; index < 7; index++) {
+    for (let index = 0; index < 8; index++) {
       const link = links.nth(index);
       await expect(link).toHaveAttribute("href", `#${chapterIds[index]}`);
       await expectUsableTarget(link);
@@ -56,9 +56,9 @@ for (const locale of ["ko", "en"] as const) {
     }
     await page.setViewportSize({ width: 390, height: 844 });
     const select = page.getByLabel(locale === "en" ? "Jump to an introduction section" : "소개 섹션으로 이동");
-    await expect(select.locator("option")).toHaveCount(7);
+    await expect(select.locator("option")).toHaveCount(8);
     await expectUsableTarget(select);
-    for (let index = 0; index < 7; index++) {
+    for (let index = 0; index < 8; index++) {
       await select.selectOption(String(index));
       await expect(page.locator(`#${chapterIds[index]}`)).toBeFocused();
       await expect(select).toHaveValue(String(index));

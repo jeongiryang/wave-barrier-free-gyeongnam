@@ -1,0 +1,21 @@
+[Unit]
+Description=WAVE Naru private local model runtime
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/wave-naru
+EnvironmentFile=%h/wave-naru/runtime.env
+ExecStart=%h/wave-naru/runtime/bin/ollama serve
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+UMask=0077
+CPUQuota=800%
+MemoryMax=32G
+TasksMax=128
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=default.target

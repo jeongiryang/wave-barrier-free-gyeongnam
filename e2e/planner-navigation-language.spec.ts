@@ -18,10 +18,10 @@ test("English navigation preserves gates, stage history and keyboard focus", asy
   let searches = 0;
   page.on("request", request => { if (request.url().includes("action=plan")) searches++; });
   await prepare(page);
-  const rail = page.locator(".reference-progress");
+  const rail = page.locator(".planner-navigation nav");
   const status = page.locator(".journey-live-summary [role=status]");
   const progress = page.locator(".reference-completion");
-  await expect(rail.getByRole("button")).toHaveCount(4);
+  await expect(rail.getByRole("button")).toHaveCount(5);
   await expect(rail).not.toContainText(/[가-힣]/);
   await expect(page.locator(".reference-journey-views")).toHaveCount(0);
   await expect(rail.getByRole("button").last()).toBeDisabled();
@@ -56,7 +56,7 @@ test("English navigation preserves gates, stage history and keyboard focus", asy
   await page.goBack();
   await expect(rail.getByRole("button").nth(2)).toHaveAttribute("aria-current", "step");
   await expect(page.locator("#places")).toBeVisible();
-  expect((await new AxeBuilder({ page }).include(".reference-progress").include(".journey-mode-toggle").include(".simple-footer").analyze()).violations).toEqual([]);
+  expect((await new AxeBuilder({ page }).include(".planner-navigation nav").include(".journey-mode-toggle").include(".simple-footer").analyze()).violations).toEqual([]);
   await rail.getByRole("button").nth(1).click();
   await page.getByRole("button", { name: /Hearing information support/ }).click();
   await expect(status).toHaveText("Search again");
@@ -84,7 +84,7 @@ for (const response of ["empty", "error"] as const) {
     try { await expect(status).toHaveText("Loading"); } finally { release(); }
     await expect(status).toHaveText(response === "error" ? "Try again" : "No matching places");
     if (response === "error") await expect(page.locator(".reference-journey-views")).toHaveCount(0);
-    else await expect(page.locator(".reference-journey-views button").last()).toBeDisabled();
-    await expect(page.locator(".reference-progress button").last()).toBeDisabled();
+    else await expect(page.locator(".planner-navigation nav button").nth(3)).toBeDisabled();
+    await expect(page.locator(".planner-navigation nav button").last()).toBeDisabled();
   });
 }

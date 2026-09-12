@@ -15,7 +15,7 @@ async function prepare(page: Page) {
   await page.getByRole("button", { name: "Find places →", exact: true }).click();
   await page.getByRole("button", { name: "경남도립미술관 Add to itinerary", exact: true }).click();
   await expect(page.locator("main.planner-page")).toHaveAttribute("lang", "en");
-  expect(await page.getByRole("heading", { name: "What kind of day would you like?", exact: true }).evaluate(el => el.closest("[lang]")?.getAttribute("lang"))).toBe("en");
+  expect(await page.getByRole("heading", { name: "Your trip, at your pace.", exact: true }).evaluate(el => el.closest("[lang]")?.getAttribute("lang"))).toBe("en");
   const journeys = page.getByRole("region", { name: "Check every journey", exact: true });
   await expect(journeys.locator('li [lang="ko"]').filter({ hasText: "경남도립미술관" })).toHaveText("경남도립미술관");
 }
@@ -58,7 +58,8 @@ for (const theme of ["light", "dark"] as const) {
       })).toBe(true);
     }
     await page.screenshot({ path: test.info().outputPath(`departure-controls-${theme}-${width}.png`) });
-    for (const control of await card.locator("button, a").all()) {
+    // Kept-mounted drafts in the hidden guided overview are intentionally inert.
+    for (const control of await card.locator("button:visible, a:visible").all()) {
       const box = await control.boundingBox();
       expect(box!.height).toBeGreaterThanOrEqual(44);
       expect(box!.width).toBeGreaterThanOrEqual(44);

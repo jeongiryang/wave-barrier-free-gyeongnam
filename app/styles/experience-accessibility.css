@@ -41,7 +41,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 /* 기존에는 980px 아래에서 도움말을 숨겼다. 모바일에서도 투어에 접근할 수 있도록
    글자만 접고 44px 아이콘 버튼으로 유지한다. */
 @media (max-width: 980px) {
-  .help-button { width: 44px; min-width: 44px; min-height: 44px; padding: 0; justify-content: center; font-size: 0; }
+  .help-button { width: 44px; min-width: 44px; padding: 0; justify-content: center; font-size: 0; }
   .help-button span { width: 24px; height: 24px; font-size: .78rem; }
 }
 @media (max-width: 620px) {
@@ -55,25 +55,12 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 
 /* --- 추천 여행지 캐러셀 폭 -----------------------------------------------
    카드 안쪽 여백만큼만 좌우로 확장하며 100vw를 사용하지 않는다. */
-.planner-page > .places-section .place-carousel {
-  width: auto;
-  max-width: none;
-  margin-inline: calc(var(--card-pad-x) * -1);
-  padding: 4px var(--card-pad-x) 28px;
-}
 
 /* --- 유동형 와이드 레이아웃 ---------------------------------------------
    문단의 읽기 폭은 유지하고 섹션·지도·데이터 패널은 뷰포트를 활용한다. */
 @media (min-width: 1101px) {
   .landing-page > section, .landing-page > footer, .connection-diagnostics, .shared-header, .shared-hero, .shared-content, .simple-footer {
     padding-inline: max(var(--gutter), calc((100vw - var(--layout-max)) / 2));
-  }
-  .planner-page > .places-section,
-  .planner-page > .navigation-section,
-  .planner-page > .travel-layers,
-  .planner-page > .connection-diagnostics {
-    width: var(--content);
-    max-width: none;
   }
   .navigation-section .workspace-heading, .navigation-section .transport-mode-filter, .navigation-section .transport-provider-strip, .navigation-section .transport-live-rail, .navigation-section .transport-dataset-grid, .navigation-section .transport-data-panel, .navigation-workspace, .day-planner { width: 100%; max-width: none; }
 }
@@ -99,7 +86,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 .trip-point-list em { grid-column: 2 / -1; justify-self: start; }
 .map-provider-badge button { position: relative; }
 .map-provider-badge button::after {
-  content: ""; position: absolute; inset: -8px;
+  content: ""; position: absolute;
 }
 
 @media (max-width: 780px) {
@@ -116,7 +103,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
     -webkit-overflow-scrolling: touch; scroll-padding-inline: 16px;
   }
 
-  .carousel-actions button, .place-actions button, .feedback-box button, .rich-card button, .rich-empty button, .transport-dataset-grid > button, .transport-data-heading button, .map-command-bar button, .map-type-switch button, .day-planner select, .day-order-toolbar button, .day-order-buttons button {
+  .place-actions button, .feedback-box button, .rich-card button, .rich-empty button, .transport-dataset-grid > button, .transport-data-heading button, .map-command-bar button, .map-type-switch button, .day-planner select, .day-order-toolbar button, .day-order-buttons button {
     min-height: 44px;
   }
   .map-tool-panel header > button, .map-poi-results header > button,

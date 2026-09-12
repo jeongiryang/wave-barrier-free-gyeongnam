@@ -13,6 +13,7 @@ import { landingSections } from "../features/landing/sections";
 import LandingIntro from "../features/landing/components/LandingIntro";
 import LandingAccountStory from "../features/landing/components/LandingAccountStory";
 import LandingDepartureScene from "../features/landing/components/LandingDepartureScene";
+import LandingAssistantStory from "../features/landing/components/LandingAssistantStory";
 import { useLandingExperience } from "../features/landing/hooks/useLandingExperience";
 
 export default function LandingPage() {
@@ -38,6 +39,7 @@ export default function LandingPage() {
       switch (section.key) {
         case "hero": return <LandingHero key={section.id} t={t} />;
         case "region": return null;
+        case "assistant": return <LandingAssistantStory key={section.id} />;
         case "needs": return <LandingChapters key={section.id}><LandingRegionStory t={t} activeRegion={activeRegion} active={active} preview={preview} regionPhotos={regionPhotos} showRegionPreview={showRegionPreview} hideRegionPreview={hideRegionPreview} selectRegion={selectRegion} /></LandingChapters>;
         case "recommendation": return <LandingAccountStory key={section.id} />;
         case "departure": return <LandingDepartureScene key={section.id} />;

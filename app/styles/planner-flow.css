@@ -52,7 +52,6 @@
 html[data-theme="dark"] .condition-heading { color: #edf8fa; }
 html[data-theme="dark"] .condition-scope,html[data-theme="dark"] .date-scope-note,html[data-theme="dark"] .route-scope-note,html[data-theme="dark"] .facility-caution { color: #b8d7e0; }
 html[data-theme="dark"] .result-notice,html[data-theme="dark"] .outside-trip-dates { background: #0d3545; color: #e6f3f8; }
-.journey-editorial { background: var(--paper); }
 html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38; --muted: #bed2d6; --line: #355561; }
 .region-picker-compact { display: flex; flex-direction: column; align-items: stretch; gap: 18px; }
 .region-picker-compact .region-picker-list { gap: 8px; }
@@ -65,32 +64,28 @@ html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38;
 .region-map-disclosure .region-picker-visual { margin-top: 8px; }
 .region-map-disclosure svg { max-height: 300px; }
 .condition-actions button { min-width: 140px; border-radius: 8px; background: #2b2632; border-color: #2b2632; font-size: .95rem; }
-.journey-editorial .profile-grid { gap: 14px; }
-.journey-editorial .profile-card { min-height: 112px; padding: 20px; border-radius: 10px; box-shadow: none; transition: transform .2s,border-color .2s,background .2s; }
+.journey-editorial .profile-card { transition: transform .2s,border-color .2s,background .2s; }
 .journey-editorial .profile-card strong { font-size: 1rem; }
 .journey-editorial .profile-card small { font-size: .85rem; line-height: 1.6; }
-.journey-editorial .profile-card.active { transform: translateY(-3px); background: #2b2632; border-color: #2b2632; color: #fff; }
+.journey-editorial .profile-card.active { transform: translateY(-3px); }
 .journey-editorial .profile-card.active small { color: #d0e8e3; }
-.journey-editorial .profile-panel { background: transparent; padding: 0; border: 0; box-shadow: none; }
 .journey-editorial .profile-panel .preference-label > .step-label { display: none; }
 .journey-editorial .derived-note { font-size: .85rem; line-height: 1.7; }
-.journey-editorial .theme-grid button { min-height: 128px; border-radius: 10px; padding: 20px; }
 .journey-editorial .theme-grid strong { font-size: 1rem; }
 .journey-editorial .theme-grid small { font-size: .85rem; }
-.journey-editorial .place-card { display: flex; flex-direction: column; border-radius: var(--r-sm); box-shadow: none; background: var(--white); }
-.journey-editorial .place-visual { flex-shrink: 0; height: auto; aspect-ratio: 16 / 10; }
-.journey-editorial .place-content { flex: 1; display: flex; flex-direction: column; padding: 22px; }
+.journey-editorial .place-card { display: flex; flex-direction: column; }
+.journey-editorial .place-visual { flex-shrink: 0; }
+.journey-editorial .place-content { flex: 1; display: flex; flex-direction: column; }
 .place-content .place-region { align-self: flex-start; margin: 0; padding: 2px 0; color: var(--muted); background: var(--white); font-size: .85rem; font-weight: 750; }
-.journey-editorial .place-content h3 { margin: 8px 0; font-size: 1.5rem; line-height: 1.35; overflow-wrap: anywhere; }
+.journey-editorial .place-content h3 { line-height: 1.35; overflow-wrap: anywhere; }
 .journey-editorial .place-content .place-address { margin: 0 0 20px; font-size: .88rem; line-height: 1.65; overflow-wrap: anywhere; }
 .place-facilities { border-top: 1px solid var(--line); padding-top: 16px; font-size: .88rem; }
 .place-facilities strong { font-size: .82rem; color: var(--muted); }
 .place-facilities ul { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 0; margin: 10px 0 16px; list-style: none; }
 .place-facilities p { margin: 10px 0 16px; }
 .place-content .facility-caution { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 18px; color: var(--muted); }
-.journey-editorial .place-actions { margin-top: auto; padding-top: 16px; gap: 8px; border-color: var(--line); }
-.journey-editorial .place-actions button { position: relative; min-height: 48px; gap: 8px; padding: 10px 12px; font-size: .85rem; border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--ink); background: var(--white); }
-.journey-editorial .place-actions .primary { color: var(--on-blue); background: var(--blue); border-color: var(--blue); }
+.journey-editorial .place-actions { border-color: var(--line); }
+.journey-editorial .place-actions button { position: relative; gap: 8px; border: 1px solid var(--line); color: var(--ink); background: var(--white); }
 .journey-editorial .place-actions .saved { color: var(--ink); background: var(--paper); border-color: var(--ink); }
 .journey-editorial :focus-visible { outline: 3px solid #b36b16; outline-offset: 4px; }
 html[data-motion="calm"] .condition-inputs { animation: none; }
@@ -112,9 +107,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .condition-availability b { font-size: 1.7rem; font-variant-numeric: tabular-nums; }
 .condition-availability button { flex-shrink: 0; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--ink); background: var(--paper); }
 @media (max-width: 650px) {
- .journey-editorial .profile-card { padding: 16px; }
- .condition-actions button { flex: 1; min-width: 0; }
- .journey-editorial .place-visual { height: 220px; } }
+ .condition-actions button { flex: 1; min-width: 0; } }
 @media (prefers-reduced-motion: reduce) { .condition-inputs { animation: none; }.journey-editorial .profile-card { transition: none; transform: none; } }
 /* Owner 8+10, 2026-09-11: four chapters over the preserved functional planner. */
 .planner-reference {
@@ -128,28 +121,14 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference button:disabled { cursor: not-allowed; opacity: .5; }
 .planner-reference :is(button,a,input,select,summary):focus-visible { outline: 3px solid #c45450; outline-offset: 4px; }
 .planner-reference :is(h2,h3,h4,p) { letter-spacing: -.025em; }
-.reference-progress { max-width: 1050px; margin: 18px auto 22px; display: flex; justify-content: space-between; padding: 0 20px; }
-.reference-progress button { position: relative; display: grid; justify-items: center; gap: 10px; flex: 1; background: transparent; border: 0; color: #696071; min-height: 44px; padding: 6px 2px; font-size: 14px; }
-.reference-progress button::after { content: ''; position: absolute; top: 21px; left: 50%; width: 100%; height: 3px; background: #dcd8e4; }
-.reference-progress button:last-child::after { display: none; }
-.reference-progress i { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid #9ab5c8; color: #51475e; background: #efecf5; border-radius: 50%; z-index: 1; font-size: 14px; font-style: normal; }
-.reference-progress button:is([aria-current],[data-passed]) i { background: #6940a6; border-color: #6940a6; color: #fff; }
-.reference-progress [data-passed]::after { background: #6940a6; }
-.reference-progress [aria-current] { font-weight: 850; color: #58348d; }
-.reference-search { display: flex; align-items: center; width: min(1240px,calc(100% - 56px)); padding: 18px; margin: 0 auto 16px; border: 1px solid #e8e4ee; border-radius: 26px; background: white; box-shadow: 0 12px 40px #14364d04; }
-.reference-search small { font-size: 11px; color: #696071; }
-.reference-search strong { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.reference-search-submit svg { width: 25px; height: 25px; }
-.reference-stage-count { width: fit-content; margin: 0; padding: 8px 0; color: #696071; font-size: 12px; font-weight: 750; }
 .planner-reference > .planner-journey-workspace { width: min(1240px,calc(100% - 56px)); max-width: none; margin: 0 auto; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
-.planner-reference .journey-control-layout { display: block; }
 .planner-reference .journey-stage-stream { background: transparent; }
 .planner-reference .journey-stage-panel, .planner-reference .journey-workspace-block { min-height: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
 .planner-reference .journey-workspace-block > h2, .planner-reference .reference-overview > h2, .planner-reference .journey-subheading h2 { max-width: 100%; font-size: clamp(24px,2.5vw,34px); line-height: 1.35; margin: 0 0 14px; font-weight: 650; letter-spacing: -.045em; }
-.planner-reference .reference-subtitle, .planner-reference .stage-guidance { color: #696071; font-size: 14px; margin: 0 0 26px; line-height: 1.7; }
+.planner-reference .reference-subtitle, .planner-reference .stage-guidance { margin: 0 0 26px; }
 .reference-section-label { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 18px; }
 .reference-section-label h3 { font-size: 19px; margin: 0; }
-.reference-section-label button { min-height: 44px; border: 0; color: #58348d; background: none; text-decoration: underline; text-underline-offset: 4px; }
+.reference-section-label button { min-height: 44px; border: 0; color: var(--accent); background: none; text-decoration: underline; text-underline-offset: 4px; }
 .reference-region-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); grid-auto-rows: 300px; gap: 22px; }
 .reference-region-card { position: relative; border-radius: 26px; overflow: hidden; min-width: 0; background: #51475e; isolation: isolate; }
 .reference-region-card.featured { grid-row: auto; grid-column: auto; }
@@ -165,10 +144,10 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .reference-region-card > button[aria-pressed=true] { color: #58348d; box-shadow: 0 0 0 3px #6940a6; }
 .reference-photo-credit { position: absolute; bottom: 2px; left: 14px; right: 10px; color: white; font-size: 10px; text-decoration: underline; text-underline-offset: 3px; min-height: 26px; display: flex; align-items: center; }
 #reference-all-regions { margin-top: 24px; }
-.reference-bottom-bar, .planner-reference .reference-bottom-bar { display: flex; align-items: center; gap: 12px; margin: 24px 0; padding: 13px 16px; border: 1px solid #dcd8e4; border-radius: 18px; background: white; }
+.reference-bottom-bar, .planner-reference .reference-bottom-bar { display: flex; align-items: center; gap: 12px; margin: 24px 0; padding: 13px 16px; border: 1px solid #dcd8e4; border-radius: 18px; background: var(--white); }
 .reference-bottom-bar > div:first-child { margin-right: auto; display: grid; gap: 5px; }
 .reference-bottom-bar strong { font-size: 14px; }
-.reference-bottom-bar small { color: #696071; font-size: 12px; }
+.reference-bottom-bar small { color: var(--muted); font-size: 12px; }
 .reference-bottom-bar > button, .planner-reference .reference-primary { min-height: 46px; min-width: 170px; padding: 10px 24px; border: 0; border-radius: 99px; color: white; background: #6940a6; font-weight: 750; font-size: 13px; }
 .reference-bottom-bar > button.secondary, .reference-bottom-bar > button.reference-secondary { min-width: 100px; background: white; color: #2b2632; border: 1px solid #dcd8e4; }
 .planner-reference .profile-panel,.planner-reference .control-panel { padding: 0; background: transparent; border: 0; box-shadow: none; }
@@ -182,13 +161,10 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference .theme-grid button.active { background: #efecf5; color: #2b2632; border-color: #6940a6; }
 .planner-reference .selection-bar { background: #efecf5; color: #2b2632; border: 0; border-radius: 14px; }
 .planner-reference .selection-bar :is(b,span,p) { color: inherit; }
-.planner-reference .place-carousel { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; overflow: visible; padding: 0; }
-.planner-reference .carousel-actions { display: none; }
-.planner-reference .place-card { min-width: 0; width: auto; border: 1px solid #e8e4ee; border-radius: 26px; padding: 0; background: white; box-shadow: none; overflow: hidden; position: relative; }
+.planner-reference .place-card { min-width: 0; width: auto; padding: 0; background: white; box-shadow: none; overflow: hidden; position: relative; }
 .planner-reference .place-card:has(.saved) { border-color: #6940a6; box-shadow: 0 0 0 1px #6940a6; }
-.planner-reference .place-visual { height: 270px; min-height: 0; aspect-ratio: auto; border-radius: 0; }
-.planner-reference .place-content { padding: 24px; }
-.planner-reference .place-content h3 { font-size: 23px; margin: 0 0 12px; font-weight: 650; }
+.planner-reference .place-visual { min-height: 0; aspect-ratio: auto; border-radius: 0; }
+.planner-reference .place-content h3 { margin: 0 0 12px; }
 .planner-reference .place-region { font-size: 11px; margin: 0 0 5px; }
 .planner-reference .place-address { font-size: 12px; line-height: 1.5; min-height: 36px; }
 .planner-reference .place-facilities { padding: 8px 0; border: 0; background: none; }
@@ -198,36 +174,36 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference .place-facilities p { margin: 3px 0; font-size: 12px; }
 .planner-reference .facility-caution { font-size: 11px; }
 .planner-reference .place-actions { margin-top: 10px; gap: 8px; }
-.planner-reference .place-actions button { min-height: 44px; padding: 8px 12px; font-size: 12px; border-radius: 99px; }
+.planner-reference .place-actions button { min-height: 44px; padding: 8px 12px; border-radius: 99px; }
 .planner-reference .place-actions .primary { background: #6940a6; color: white; border-color: #6940a6; }
 .reference-date-layout { display: grid; grid-template-columns: minmax(0,1.7fr) minmax(260px,1fr); gap: 30px; }
-.reference-date-fields { padding: 10px 18px; display: flex; gap: 20px; margin-bottom: 16px; border: 1px solid #dcd8e4; border-radius: 18px; background: white; }
-.reference-date-fields label { display: grid; flex: 1; gap: 4px; min-width: 0; font-size: 11px; color: #696071; }
-.reference-date-fields input { border: 0; min-height: 34px; width: 100%; min-width: 0; color: #2b2632; font-size: 15px; font-weight: 700; background: white; }
-.reference-calendar,.reference-date-summary,.reference-schedule,.reference-info-card,.reference-day-list { background: white; border: 1px solid #dcd8e4; border-radius: 20px; padding: 22px; min-width: 0; }
+.reference-date-fields { padding: 10px 18px; display: flex; gap: 20px; margin-bottom: 16px; border: 1px solid #dcd8e4; border-radius: 18px; background: var(--white); }
+.reference-date-fields label { display: grid; flex: 1; gap: 4px; min-width: 0; font-size: 11px; color: var(--muted); }
+.reference-date-fields input { border: 0; width: 100%; min-width: 0; color: #2b2632; font-size: 15px; font-weight: 700; background: white; }
+.reference-calendar,.reference-date-summary,.reference-schedule,.reference-info-card,.reference-day-list { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 22px; min-width: 0; }
 .reference-calendar header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .reference-calendar header h3 { margin: 0; font-size: 18px; }
-.reference-calendar header button { width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: #2b2632; font-size: 24px; }
+.reference-calendar header button { width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font-size: 24px; }
 .reference-calendar-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); row-gap: 8px; }
 .reference-calendar-grid > * { display: grid; place-items: center; min-width: 0; }
-.reference-calendar-grid .weekday { font-size: 11px; color: #696071; height: 30px; }
-.reference-calendar-grid button { padding: 0; border: 0; background: transparent; color: #2b2632; min-height: 44px; font-size: 13px; }
-.reference-calendar-grid button[aria-pressed=true] { background: #efecf5; border-radius: 99px; }
+.reference-calendar-grid .weekday { font-size: 11px; color: var(--muted); height: 30px; }
+.reference-calendar-grid button { padding: 0; border: 0; background: transparent; color: var(--ink); min-height: 44px; font-size: 13px; }
+.reference-calendar-grid button[aria-pressed=true] { background: var(--surface); border-radius: 99px; }
 .reference-calendar-grid button span { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; }
 .reference-calendar-grid button[data-endpoint] span { color: white; background: #6940a6; }
-.reference-calendar > p { text-align: center; color: #696071; font-size: 12px; margin: 20px 0 0; }
+.reference-calendar > p { text-align: center; color: var(--muted); font-size: 12px; margin: 20px 0 0; }
 .reference-date-summary { padding: 28px; display: flex; flex-direction: column; align-items: stretch; }
-.reference-date-summary > small { color: #696071; }
+.reference-date-summary > small { color: var(--muted); }
 .reference-date-summary h3 { font-size: 23px; margin: 14px 0 8px; }
-.reference-date-summary > p { color: #696071; font-size: 13px; margin: 0 0 16px; }
-.reference-tint { background: #efecf5; border-radius: 14px; padding: 18px; color: #58348d; }
+.reference-date-summary > p { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+.reference-tint { background: var(--surface); border-radius: 14px; padding: 18px; color: var(--ink); }
 .reference-tint small { display: block; margin-top: 6px; font-size: 11px; }
 .reference-date-summary h4 { margin: 22px 0 16px; font-size: 13px; }
 .reference-date-summary ol { list-style: none; padding: 0 0 0 15px; margin: 0 0 24px; }
 .reference-date-summary li { position: relative; display: grid; gap: 4px; padding: 0 0 20px 20px; border-left: 2px solid #6940a6; font-size: 12px; }
 .reference-date-summary li::before { content: ''; position: absolute; left: -7px; top: 0; width: 12px; height: 12px; background: #6940a6; border-radius: 50%; }
 .reference-date-summary li:last-child { border-color: transparent; }
-.reference-date-summary li small { color: #696071; }
+.reference-date-summary li small { color: var(--muted); }
 .reference-date-summary > button { margin-top: auto; }
 .reference-view-tabs,.reference-day-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .reference-view-tabs button,.reference-day-tabs button { min-height: 44px; border-radius: 99px; border: 1px solid #dcd8e4; padding: 8px 20px; background: white; color: #2b2632; font-size: 12px; }
@@ -319,7 +295,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference .reference-archive .travel-book-archive-controls a { display: none; }
 .planner-reference .reference-archive p:empty,.planner-reference .reference-archive small:empty { display: none; }
 .reference-departure-details,.reference-itinerary-details { border-top: 1px solid #dcd8e4; margin-top: 24px; padding-top: 12px; }
-.reference-departure-details > summary,.reference-itinerary-details > summary { min-height: 48px; padding: 12px 0; color: #696071; font-size: 13px; cursor: pointer; }
+.reference-departure-details > summary,.reference-itinerary-details > summary { min-height: 48px; padding: 12px 0; color: var(--muted); font-size: 13px; cursor: pointer; }
 @media (max-width: 1100px) {
   .reference-itinerary-layout[data-map=true] { grid-template-columns: minmax(220px,1fr) minmax(0,2fr); }
   .reference-itinerary-layout[data-map=true] .reference-itinerary-aside { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
@@ -331,14 +307,8 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
   .reference-date-layout { gap: 20px; }
 }
 @media (max-width: 700px) {
-  .reference-progress { padding: 0 14px; margin-top: 10px; }
-  .reference-progress span { font-size: 11px; }
-  .reference-search { width: calc(100% - 32px); border-radius: 22px; margin: 8px auto 20px; padding: 10px 8px; flex-wrap: wrap; }
-  .reference-search strong { font-size: 12px; }
-  .reference-stage-count { font-size: 11px; }
   .planner-reference > .planner-journey-workspace { width: calc(100% - 32px); }
   .planner-reference .journey-workspace-block > h2,.planner-reference .reference-overview > h2,.planner-reference .journey-subheading h2 { max-width: none; font-size: 24px; }
-  .planner-reference .reference-subtitle { font-size: 13px; }
   .reference-region-grid { display: flex; overflow-x: auto; gap: 16px; scroll-snap-type: x mandatory; padding: 4px 0 14px; }.reference-region-card { flex: 0 0 86%; min-height: 290px; scroll-snap-align: start; }
   .reference-region-card.featured { grid-column: auto; }
   .reference-region-card.featured .reference-region-copy { padding: 30px 22px; }
@@ -352,8 +322,6 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
   .planner-reference .profile-grid,.planner-reference .theme-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
   .planner-reference .profile-card { padding: 15px; min-height: 156px; }
   .planner-reference .theme-grid button { min-height: 125px; padding: 18px; }
-  .planner-reference .place-carousel { grid-template-columns: 1fr; gap: 20px; }
-  .planner-reference .place-visual { height: 232px; }
   .reference-date-layout,.reference-overview-grid,.reference-itinerary-layout,.reference-itinerary-layout[data-map=true] { grid-template-columns: minmax(0,1fr); gap: 20px; }
   .reference-calendar { padding: 14px 8px; }
   .reference-calendar-grid { row-gap: 4px; }
@@ -378,14 +346,11 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
   .planner-reference .reference-archive .travel-book-archive-controls button { min-width: 0; width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .planner-reference *, .planner-reference *::before, .planner-reference *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
-.planner-reference .reference-progress { width: min(1050px,calc(100% - 56px)); }
-.planner-reference .reference-progress button { width: auto; max-width: none; min-width: 44px; flex: 1 1 0; }
-.planner-reference .reference-search small { font-size: .875rem; }
 .planner-reference .reference-stop :is(.smart-image-fallback,.smart-image-skeleton),.planner-reference .reference-add-place :is(.smart-image-fallback,.smart-image-skeleton) { position: absolute; inset: 0; padding: 8px; display: grid; place-items: center; }
 .planner-reference .reference-stop .smart-image-fallback > :is(i,b,span),.planner-reference .reference-add-place .smart-image-fallback > :is(i,b,span) { display: none; }
 .planner-reference .reference-stop .smart-image-fallback small,.planner-reference .reference-add-place .smart-image-fallback small { font-size: 10px; line-height: 1.5; color: #fff; text-align: center; }
-:root .planner-reference .simple-footer { margin: 36px auto 0; width: min(1240px,calc(100% - 56px)); padding: 22px 0; color: #696071; background: transparent; border-top: 1px solid #dcd8e4; display: flex; flex-wrap: wrap; gap: 18px; }
-:root .planner-reference .simple-footer :is(a,p,span) { color: #696071; }
+:root .planner-reference .simple-footer { margin: 36px auto 0; width: min(1240px,calc(100% - 56px)); padding: 22px 0; color: var(--muted); background: transparent; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 18px; }
+:root .planner-reference .simple-footer :is(a,p,span) { color: var(--muted); }
 .planner-reference .simple-footer .footer-notes { flex: 1; }
 .planner-reference .simple-footer .footer-brand { font-size: 14px; }
 .planner-reference .reference-weather p,.planner-reference .reference-info-card p { font-size: 12px; line-height: 1.6; }
@@ -396,12 +361,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .reference-date-reassign button { min-height: 44px; border: 1px solid #6940a6; border-radius: 10px; padding: 8px 12px; color: #58348d; background: #efecf5; }
 .reference-date-reassign small { display: block; margin-top: 8px; color: #696071; }
 .reference-view-preference { width: min(1240px,calc(100% - 56px)); margin: 24px auto; }
-.planner-reference .reference-view-preference .journey-mode-toggle { display: flex; justify-content: flex-end; align-items: center; gap: 20px; border: 0; background: none; padding: 0; }
-.planner-reference .reference-view-preference .journey-mode-toggle strong { color: #51475e; font-size: 12px; }
-.planner-reference .reference-view-preference .journey-mode-toggle span { color: #696071; font-size: 11px; }
-.planner-reference .reference-view-preference .journey-mode-toggle button { color: #58348d; background: #fff; border: 1px solid #dcd8e4; font-size: 11px; box-shadow: none; }
-.planner-reference .reference-view-preference .journey-mode-toggle button[aria-pressed=true] { background: #efecf5; border-color: #6940a6; }
-@media (max-width: 700px) { .reference-view-preference { width: calc(100% - 32px); } .planner-reference .reference-view-preference .journey-mode-toggle { display: grid; justify-content: stretch; gap: 10px; } :root .planner-reference .simple-footer { width: calc(100% - 32px); display: grid; } }
+@media (max-width: 700px) { .reference-view-preference { width: calc(100% - 32px); } :root .planner-reference .simple-footer { width: calc(100% - 32px); display: grid; } }
 .reference-result-meta { display: flex; align-items: center; justify-content: space-between; margin: 0 0 18px; font-size: 12px; color: #696071; }
 .reference-result-meta > span { padding: 9px 18px; background: #6940a6; color: white; border-radius: 99px; }
 .reference-transport-details > summary,.reference-route-details > summary { padding: 12px; min-height: 44px; border: 1px solid #dcd8e4; background: white; color: #51475e; font-size: 12px; border-radius: 12px; cursor: pointer; }
@@ -432,10 +392,6 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 @media (max-width: 700px) {
   .reference-interests { gap: 8px; }
   .reference-interests button { padding: 8px 12px; }.reference-interests small { display: none; }
-  .planner-reference .reference-progress { width: calc(100% - 24px); padding: 0; }
-}
-@media (max-width: 360px) {
-  .planner-reference .reference-progress button { min-width: 0; font-size: 9px; }
 }
 
 .planner-reference .planner-journey-workspace .theme-grid button.active small { color: #51475e; }
@@ -443,64 +399,62 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 
 .planner-reference .reference-board-map .route-map-shell:not(.expanded):not(:fullscreen) { height: auto; min-height: 0; }
 
-/* The PDF editor keeps its light surface even with a restored presentation preference. */
+/* Planner surfaces follow the selected theme, including their foreground tokens. */
 
 :root .planner-reference .journey-stage-stream,
 :root .planner-reference .journey-stage-panel,
-:root .planner-reference .journey-workspace-block { background: transparent; color: #2b2632; }
+:root .planner-reference .journey-workspace-block { background: transparent; color: var(--ink); }
 :root .planner-reference .condition-heading,
 :root .planner-reference #itinerary-stage-title,
-:root .planner-reference .journey-subheading h2 { color: #2b2632; }
+:root .planner-reference .journey-subheading h2 { color: var(--ink); }
 :root .planner-reference .planner-journey-workspace .profile-card,
-:root .planner-reference .planner-journey-workspace .theme-grid button { background: #fff; color: #2b2632; border-color: #dcd8e4; }
+:root .planner-reference .planner-journey-workspace .theme-grid button { background: var(--white); color: var(--ink); border-color: var(--line); }
 :root .planner-reference .planner-journey-workspace .profile-card.active,
-:root .planner-reference .planner-journey-workspace .theme-grid button.active { background: #efecf5; color: #2b2632; border-color: #6940a6; }
+:root .planner-reference .planner-journey-workspace .theme-grid button.active { background: var(--surface); color: var(--ink); border-color: var(--blue); }
 :root .planner-reference .planner-journey-workspace .profile-card small,
 :root .planner-reference .planner-journey-workspace .profile-card.active small,
-:root .planner-reference .planner-journey-workspace .theme-grid button small { color: #51475e; }
-:root .planner-reference .region-picker-list button { background: #fff; color: #2b2632; border-color: #dcd8e4; }
-:root .planner-reference .region-picker-list button[aria-pressed=true] { background: #6940a6; color: #fff; }
-:root .planner-reference .travel-profile-card { background: #fff; color: #2b2632; }
-:root .planner-reference .travel-profile-card small { color: #696071; }
-:root .planner-reference .condition-availability { color: #2b2632; }
-:root .planner-reference .place-carousel .place-card { background: #fff; color: #2b2632; }
-:root .planner-reference .place-content :is(h3,.place-region,.place-address,.place-facilities,.place-facilities p) { color: #2b2632; }
-:root .planner-reference .place-actions button { color: #2b2632; background: #fff; }
-:root .planner-reference .place-actions .primary { background: #6940a6; color: #fff; }
-:root .planner-reference .reference-result-meta { color: #2b2632; }
+:root .planner-reference .planner-journey-workspace .theme-grid button small { color: var(--ink-soft); }
+:root .planner-reference .region-picker-list button { background: var(--white); color: var(--ink); border-color: var(--line); }
+:root .planner-reference .region-picker-list button[aria-pressed=true] { background: var(--blue); color: var(--white); }
+:root .planner-reference .travel-profile-card { background: var(--white); color: var(--ink); }
+:root .planner-reference .travel-profile-card small { color: var(--muted); }
+:root .planner-reference .condition-availability { color: var(--ink); }
+:root .planner-reference .place-carousel .place-card { background: var(--white); color: var(--ink); }
+:root .planner-reference .place-content :is(h3,.place-region,.place-address,.place-facilities,.place-facilities p) { color: var(--ink); }
+:root .planner-reference .place-actions button { color: var(--ink); background: var(--white); }
+:root .planner-reference .place-actions .primary { background: var(--blue); color: var(--white); }
+:root .planner-reference .reference-result-meta { color: var(--ink); }
 
-:root .planner-page.planner-reference {     background: #f5f4f8; }
-:root .planner-reference .planner-journey-workspace { background: #f5f4f8; color: #2b2632; }
+:root .planner-page.planner-reference {     background: var(--paper); }
+:root .planner-reference .planner-journey-workspace { background: var(--paper); color: var(--ink); }
 :root .planner-reference .travel-profile-card p,
-:root .planner-reference .travel-profile-card b { color: #51475e; }
+:root .planner-reference .travel-profile-card b { color: var(--ink-soft); }
 :root .planner-reference .place-content .place-region { background: transparent; }
 :root .planner-reference .place-content .place-facilities strong,
-:root .planner-reference .place-content .facility-caution { color: #51475e; }
+:root .planner-reference .place-content .facility-caution { color: var(--ink-soft); }
 
 :root .planner-reference .planner-journey-workspace .profile-panel,
 :root .planner-reference .planner-journey-workspace .theme-control { background: transparent; }
 :root .planner-reference .planner-journey-workspace .planner-notice,
-:root .planner-reference .planner-journey-workspace .travel-profile-content p { color: #51475e; }
+:root .planner-reference .planner-journey-workspace .travel-profile-content p { color: var(--ink-soft); }
 .reference-result-meta > div { display: flex; flex-wrap: wrap; gap: 8px; }
 .reference-result-meta button { min-height: 44px; padding: 8px 16px; border: 1px solid #dcd8e4; border-radius: 99px; background: #fff; color: #51475e; font-size: 12px; }
 .reference-result-meta button[aria-pressed=true] { color: #fff; background: #6940a6; border-color: #6940a6; }
 @media (max-width: 700px) { .reference-result-meta { align-items: flex-start; flex-direction: column; gap: 12px; } }
 
 :root .planner-reference .planner-journey-workspace .derived-note,
-:root .planner-reference .planner-journey-workspace .travel-profile-notice { color: #51475e; }
+:root .planner-reference .planner-journey-workspace .travel-profile-notice { color: var(--ink-soft); }
 .reference-itinerary-details,.reference-departure-details { color: var(--ink); }
 
 :root .planner-reference .condition-availability :is(span,small),
 :root .planner-reference #conditions .preference-label > small,
 :root .planner-reference #places > .original-language-note,
-:root .planner-reference .reference-departure-details > p[role="status"] { color: #696071; }
+:root .planner-reference .reference-departure-details > p[role="status"] { color: var(--muted); }
 
-:root .planner-reference #conditions .theme-control > :is(legend,p) { color: #2b2632; }
+:root .planner-reference #conditions .theme-control > :is(legend,p) { color: var(--ink); }
 
 :root .planner-reference #itinerary { background: transparent; }
-:root .planner-reference .journey-live-summary,
-:root .planner-reference .region-map-disclosure > summary,
-:root .planner-reference .reference-departure-details > .departure-review-check { color: #696071; }
+:root .planner-reference .region-map-disclosure > summary,:root .planner-reference .reference-departure-details > .departure-review-check { color: var(--muted); }
 
 @media (max-width: 900px) {
   .planner-reference .route-map-shell:not(.expanded):not(:fullscreen) { height: auto; min-height: 0; }
@@ -508,6 +462,5 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
   .planner-reference .route-map-shell.drawer-open:not(.expanded):not(:fullscreen) .route-map-canvas { height: max(var(--route-map-height,500px),calc(var(--map-controls-bottom,150px) + 344px)); }
 }
 
-.reference-intro { width: min(1240px,calc(100% - 56px)); margin: 32px auto 0; color: #2b2632; }.reference-intro > p { color: #696071; font-size: 12px; letter-spacing: .13em; margin: 0 0 12px; }.reference-intro h1 { font-size: clamp(26px,3vw,42px); font-weight: 600; line-height: 1.35; letter-spacing: -.05em; margin: 0; }
-.reference-workspace-heading { width: min(1240px,calc(100% - 56px)); margin: 0 auto 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }.reference-journey-views { display: flex; gap: 6px; }.reference-journey-views button { min-height: 44px; padding: 8px 18px; border: 1px solid #dcd8e4; border-radius: 100px; background: #fff; color: #51475e; font-size: 12px; }.reference-journey-views button[aria-pressed=true] { background: #2b2632; color: #fff; border-color: #2b2632; }.reference-journey-views b { margin-left: 8px; font-variant-numeric: tabular-nums; }.reference-interests [aria-pressed=true] { border-color: #6940a6; background: #efecf5; }
-@media (max-width: 700px) { .reference-intro,.reference-workspace-heading { width: calc(100% - 32px); }.reference-intro { margin-top: 28px; }.reference-workspace-heading { flex-wrap: wrap; margin-bottom: 22px; }.reference-journey-views button { padding-inline: 12px; }.planner-reference .reference-search { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 44px; padding: 14px 10px; }.reference-progress { margin-bottom: 22px; } }
+.reference-intro { color: var(--ink); }.reference-intro > p { color: #696071; margin: 0 0 12px; }.reference-intro h1 { font-weight: 600; letter-spacing: -.05em; }.reference-interests [aria-pressed=true] { border-color: #6940a6; background: #efecf5; }
+@media (max-width: 700px) {.reference-intro { margin-top: 28px; } }

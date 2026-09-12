@@ -13,7 +13,7 @@ export default function PlannerDateCalendar({ trip, region, onContinue, onPrefer
   const [visibleMonth, setVisibleMonth] = useState("");
   const [selectingEnd, setSelectingEnd] = useState(false);
   const month = visibleMonth || trip.travelStart.slice(0, 7);
-  if (!month) return <p role="status">여행 날짜를 준비하고 있어요.</p>;
+  if (!month) return <p className="wave-loading-inline" role="status">여행 날짜를 준비하고 있어요.</p>;
   const [year, monthNumber] = month.split("-").map(Number);
   const first = (new Date(year, monthNumber - 1, 1).getDay() + 6) % 7;
   const count = new Date(year, monthNumber, 0).getDate();

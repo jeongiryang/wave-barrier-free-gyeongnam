@@ -8,7 +8,7 @@ interface RecommendationWorkspaceProps {
   activePlaces: Place[];
   planController: ReturnType<typeof usePlannerPlan>;
   tripSelection: ReturnType<typeof useTripSelection>;
-  onGenerate: (revealResults?: boolean) => void | Promise<void>;
+  onGenerate: (revealResults?: boolean, requestedTheme?: string) => void | Promise<void>;
   onSelectPlace: (place: Place) => void;
 }
 

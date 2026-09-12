@@ -20,13 +20,13 @@ test("Kakao card prepares a private-field-free public snapshot then opens the pi
   });
   await page.goto(`${origin}/my-trips/${id}`);
   expect(snapshots).toBe(0);
-  await page.getByRole("button", { name: "카카오톡 여행 카드 만들기" }).click();
-  await expect(page.getByRole("button", { name: "카카오톡으로 공유", exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "카카오톡 공유 카드" }).click();
+  await expect(page.getByRole("button", { name: "카카오톡으로 여행 공유", exact: true })).toBeEnabled();
   expect(await page.evaluate(() => (window as unknown as { __cards: unknown[] }).__cards.length)).toBe(0);
-  await page.getByRole("button", { name: "카카오톡으로 공유", exact: true }).click();
+  await page.getByRole("button", { name: "카카오톡으로 여행 공유", exact: true }).click();
   const cards = await page.evaluate(() => (window as unknown as { __cards: { content: { link: { webUrl: string } } }[] }).__cards);
   expect(cards[0].content.link.webUrl).toBe(`${origin}/trip/abcdef123456`); expect(snapshots).toBe(1);
-  await page.getByRole("button", { name: "카카오톡 여행 카드 만들기" }).click(); expect(snapshots).toBe(1);
+  await page.getByRole("button", { name: "카카오톡 공유 카드" }).click(); expect(snapshots).toBe(1);
   expect((await new AxeBuilder({ page }).include("#account-travel").analyze()).violations).toEqual([]);
 });
 test("self-chat requires explicit consent and send; taxi link never claims a booking", async ({ page }) => {
@@ -37,10 +37,10 @@ test("self-chat requires explicit consent and send; taxi link never claims a boo
   await page.goto(`/my-trips/${id}`);
   await expect(page.getByRole("link", { name: "카카오 T 열기 ↗" })).toHaveAttribute("href", "https://service.kakaomobility.com/launch/kakaot/?ref=KM_homepage_a");
   expect(sends).toBe(0);
-  await page.getByRole("button", { name: "카카오톡 나에게 보내기", exact: true }).click();
+  await page.getByRole("button", { name: "나와의 채팅에 보내기", exact: true }).click();
   await page.getByRole("button", { name: "카카오 메시지 전송 동의하기" }).click();
   expect(grants).toBe(1); expect(sends).toBe(1);
-  await page.getByRole("button", { name: "카카오톡 나에게 보내기", exact: true }).click();
+  await page.getByRole("button", { name: "나와의 채팅에 보내기", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "나와의 채팅으로 보냈어요" })).toBeVisible();
   for (const width of [1440, 960, 390]) { await page.setViewportSize({ width, height: 960 }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true); await page.screenshot({ path: test.info().outputPath(`kakao-travel-${width}.png`), fullPage: true }); }
 });

@@ -41,7 +41,7 @@
 }
 
 /* 알약형 칩·배지 */
-.transport-provider-strip > span, .place-card .stop-check {
+.transport-provider-strip > span {
   border-radius: var(--r-full);
 }
 

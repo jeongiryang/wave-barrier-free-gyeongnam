@@ -9,6 +9,7 @@ import { handleFeedbackApi } from "../server/trips/feedback-handler";
 import { handleTripsApi } from "../server/trips/handler";
 import { handleTripRetention } from "../server/trips/retention-handler";
 import { handleWeatherApi } from "../server/weather/handler";
+import { handleAssistant } from "../server/assistant/handler";
 
 
 
@@ -17,6 +18,7 @@ export async function handlePortableApi(request: Request): Promise<Response> {
   const url = new URL(request.url);
 
   if (url.pathname === "/api/wave") return handleWaveApi(request, env);
+  if (url.pathname === "/api/assistant") return handleAssistant(request);
   if (url.pathname === "/api/weather") return handleWeatherApi(request);
   if (url.pathname === "/api/location-search") return handleLocationSearch(request, env);
   if (url.pathname === "/api/route") return handleRouteApi(request, env);

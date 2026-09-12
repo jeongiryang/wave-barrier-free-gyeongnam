@@ -30,10 +30,9 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 98px; }
+html { scroll-behavior: smooth; }
 body {
   margin: 0;
-  background: var(--white);
   color: var(--ink);
   font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   font-size: clamp(1rem, .97rem + .12vw, 1.075rem);
@@ -65,7 +64,6 @@ html[data-theme="dark"] .route-state-page button,html[data-theme="dark"] .route-
 html[data-theme="dark"] .route-state-page button,html[data-theme="dark"] .route-state-page a.primary { color: #032331; border-color: var(--mint); background: var(--mint); }
 @media (prefers-reduced-motion: reduce) { .route-state-wave i { animation: none; } }
 ::selection { color: var(--on-blue); background: var(--blue); }
-:focus-visible { outline: 3px solid #ffb800; outline-offset: 4px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 .skip-link {

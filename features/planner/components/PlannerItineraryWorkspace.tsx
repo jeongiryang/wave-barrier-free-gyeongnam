@@ -1,4 +1,5 @@
 "use client";
+import LoadingState from "../../../components/LoadingState";
 
 import { lazy, Suspense, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
@@ -91,7 +92,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     <p className="reference-subtitle">시간과 이동 순서를 바꾸면 전체 일정이 함께 바뀝니다.</p>
     {props.alternativeTools}
     <div className="reference-view-tabs" role="group" aria-label="일정 보기 방식"><button type="button" aria-pressed={!mapView} onClick={() => setMapView(false)}>시간표</button><button type="button" aria-pressed={mapView} onClick={() => setMapView(true)}>지도 함께 보기</button></div>
-    {!props.expanded && <Suspense fallback={<p role="status">{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</p>}><PlannerItineraryBoard requiredKeys={props.plan?.criteria?.facilityKeys || []} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? props.activePlaces : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace
+    {!props.expanded && <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><PlannerItineraryBoard requiredKeys={props.plan?.criteria?.facilityKeys || []} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? props.activePlaces : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace
       mapEnabled={props.mapEnabled && mapView}
       compact
       activePlaces={navigationPlaces}
@@ -105,7 +106,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       onSaveMapPlaces={props.onSaveMapPlaces}
     />} /></Suspense>}
     <details className="reference-itinerary-details" open={props.expanded || undefined}><summary>날짜·이동 구간·여행 도구 자세히 보기</summary>
-    {props.tripSelection.orderedSavedPlaces.length ? <Suspense fallback={<p role="status">{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</p>}><TripDayPlanner
+    {props.tripSelection.orderedSavedPlaces.length ? <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><TripDayPlanner
       itineraryRouteMinutes={props.coverage.routeMinutes}
       plan={props.plan}
       tripSelection={props.tripSelection}
@@ -116,7 +117,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     /></Suspense> : <section className="day-planner empty" data-reveal aria-label={c("내 일정", "My itinerary")}>
       <div className="itinerary-empty-state"><span aria-hidden="true">+</span><h3>{c("아직 일정에 추가한 장소가 없어요.", "No places in your itinerary yet.")}</h3><p>{c("위 추천 여행지에서 ‘일정에 추가’를 누르면 이곳에서 날짜, 순서와 이동시간을 정리할 수 있습니다.", "Add a recommended place to arrange its date, order and travel time here.")}</p></div>
     </section>}
-    {props.tripSelection.orderedSavedPlaces.length > 0 && <Suspense fallback={<p role="status">{c("이동 구간 확인을 준비하고 있어요.", "Preparing journey checks.")}</p>}><ItineraryRouteCoverage coverage={props.coverage} route={props.route} trip={props.tripSelection} reviewed={props.reviewed} onReview={props.onReview} /></Suspense>}
+    {props.tripSelection.orderedSavedPlaces.length > 0 && <Suspense fallback={<LoadingState>{c("이동 구간 확인을 준비하고 있어요.", "Preparing journey checks.")}</LoadingState>}><ItineraryRouteCoverage coverage={props.coverage} route={props.route} trip={props.tripSelection} reviewed={props.reviewed} onReview={props.onReview} /></Suspense>}
     <nav className="itinerary-day-tabs" aria-label={c("지도에 표시할 날짜", "Date to show on the map")}>{tripDays.map((day) => <button type="button" key={day} aria-pressed={activeDay === day} onClick={() => setActiveDay(day)}>{day.slice(5).replace("-", "/")}</button>)}</nav>
     <p className="route-scope-note">{activeDay} · {c(`일정 ${itineraryPlaces.length}곳 중 지도에 표시할 수 있는 장소 ${navigationPlaces.length}곳`, `${navigationPlaces.length} of ${itineraryPlaces.length} itinerary places can be shown on the map`)}</p>
     <Suspense fallback={null}><SavedPlaceCoordinateRecovery key={`${props.archiveContext.region}|${tripDays}|${props.tripSelection.saved}`} places={props.tripSelection.orderedSavedPlaces} onRestore={props.tripSelection.rememberSavedPlaces} /></Suspense>

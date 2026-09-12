@@ -1,12 +1,16 @@
 "use client";
+import LoadingState from "../../components/LoadingState";
 
 import {
   lazy,
   Suspense,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import PlannerStagePortal from '../../features/planner/components/PlannerStagePortal';
 import { useSitePreferences } from "../../components/SitePreferences";
 import SkipLink from "../../components/SkipLink";
 import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
@@ -44,6 +48,8 @@ import PlannerStepSummary from "../../features/planner/components/PlannerStepSum
 
 import RegionChangeDialog from "../../features/planner/components/RegionChangeDialog";
 
+const PlannerAssistant = lazy(() => import("../../features/planner/components/PlannerAssistant"));
+
 const PlannerTripOverview = lazy(() => import("../../features/planner/components/PlannerTripOverview"));
 const AlternativeComparisonDialog = lazy(() => import("../../features/planner/components/AlternativeComparisonDialog"));
 const CourseExpansion = lazy(() => import("../../features/planner/components/CourseExpansion"));
@@ -63,7 +69,21 @@ export default function PlannerPage() {
 
   const activePlaces = useMemo(() => plan?.places ?? [], [plan]);
   usePlannerChrome(plan);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [assistantMounted, setAssistantMounted] = useState(false);
+  const assistantReturn = useRef<HTMLElement | null>(null);
+  const assistantLauncher = useRef<HTMLButtonElement | null>(null);
+  const showAssistant = useCallback(() => { assistantReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setAssistantMounted(true); setAssistantOpen(true); }, []);
+  const closeAssistant = useCallback(() => { setAssistantOpen(false); requestAnimationFrame(() => { const previous = assistantReturn.current; if (previous?.isConnected && previous !== document.body && previous.getClientRects().length) previous.focus({ preventScroll: true }); else assistantLauncher.current?.focus({ preventScroll: true }); }); }, []);
+  useEffect(() => {
+    if (!hydrated || new URLSearchParams(window.location.search).get('assistant') !== 'naru') return;
+    const frame = requestAnimationFrame(showAssistant);
+    return () => cancelAnimationFrame(frame);
+  }, [hydrated, showAssistant]);
+  const [assistantHost, setAssistantHost] = useState<HTMLDivElement | null>(null);
+  const [assistantTool, setAssistantTool] = useState("");
   const [departureDetailsOpen, setDepartureDetailsOpen] = useState(false);
+  const [departureVisited, setDepartureVisited] = useState(false);
   const [itineraryMapView, setItineraryMapView] = useState(false);
   const {
     origin, originLabel, privateOrigin, routeDestination,
@@ -222,24 +242,69 @@ export default function PlannerPage() {
     setRouteNotice,
   });
 
-  async function generatePlan(revealResults = true) {
+  async function generatePlan(revealResults = true, requestedTheme = theme) {
     await runPlan({
+      requestedTheme,
       resetRouteData,
       resetAudio,
       onRevealResults: () => stageView.changeStep("places", true),
     }, revealResults);
   }
 
-  return (
-    <main className="planner-page journey-editorial planner-reference" lang={locale}>
-      <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>
-      <PlannerReferenceChrome view={stageView.view} progress={journey.progress} requestState={planController.requestState} recommendedCount={activePlaces.length} region={region} dates={travelStart ? `${travelStart.slice(5).replace("-", "월 ")}일 - ${travelEnd.slice(5).replace("-", "월 ")}일` : ""} facilities={selected.map(id => accessibilityProfiles.find(p => p.id === id)?.label || id).join(" · ")} savedCount={saved.length} activeStep={journey.activeStepId} question={stageView.conditionQuestion}
-        activities={planController.themes.length ? `활동 ${planController.themes.length}개` : ""} resultsAvailable={journey.steps[1].available}
-        available={[true, Boolean(region), Boolean(region && selected.length), Boolean(region && selected.length && planController.themes.length), true, saved.length > 0, saved.length > 0]}
-        onQuestion={stageView.changeQuestion} onNavigate={journey.goToStep} onSearch={() => void generatePlan()} searching={planController.loading} />
-      <section className="planner-journey-workspace" id="planner" aria-label="여행 만들기">
-        <div className="journey-control-layout" data-compact-conditions={stageView.view === "guided" && journey.activeStepId === "conditions"}>
-          <div className="journey-stage-stream" data-view={stageView.view}>
+
+  if (!departureVisited && journey.activeStepId === "departure-readiness") setDepartureVisited(true);
+
+  function openAssistantTool(tool: string) {
+    setAssistantTool(tool);
+    stageView.changeView("guided");
+    if (["conditions", "facilities", "dates", "comfort"].includes(tool)) stageView.changeQuestion(tool === "dates" ? 3 : tool === "conditions" ? 0 : 1);
+    else if (["places", "compare", "inquiry"].includes(tool)) stageView.changeStep("places");
+    else if (["readiness", "weather", "transport", "calendar", "on-trip", "offline", "split", "budget"].includes(tool)) {
+      stageView.changeStep("departure-readiness");
+      if (["readiness", "weather", "calendar"].includes(tool)) setDepartureDetailsOpen(true);
+      if (tool === "weather") setSecondaryOpen(true);
+    } else { stageView.changeStep("itinerary"); setItineraryMapView(tool === "map" || tool === "transport"); }
+  }
+  useEffect(() => {
+    if (!assistantHost || !assistantTool) return;
+    const targets: Record<string, { selector: string; trigger?: boolean }> = {
+      comfort: { selector: ".trip-comfort-choices > summary", trigger: true },
+      budget: { selector: '[data-planner-tool="budget"] > summary', trigger: true },
+      offline: { selector: '[data-planner-tool="offline"]', trigger: true },
+      "on-trip": { selector: '[data-planner-tool="on-trip"]', trigger: true },
+      split: { selector: '[data-planner-tool="split"]', trigger: true },
+      alternatives: { selector: '[data-planner-tool="alternatives"] > summary', trigger: true },
+      course: { selector: '[data-planner-tool="course"] > summary', trigger: true },
+      share: { selector: ".itinerary-primary-actions > button" },
+      transport: { selector: '[data-planner-tool="transport"]', trigger: true },
+      calendar: { selector: ".readiness-actions button:last-child" },
+      weather: { selector: ".weather-heading > button" },
+      readiness: { selector: "#departure-readiness-title" },
+    };
+    const target = targets[assistantTool];
+    if (!target) return;
+    const initialFocus = document.activeElement;
+    const find = () => {
+      const node = assistantHost.querySelector<HTMLElement>(target.selector);
+      if (!node || node.closest("[hidden]")) return false;
+      const disclosures: HTMLDetailsElement[] = [];
+      for (let parent = node.parentElement; parent && parent !== assistantHost; parent = parent.parentElement) {
+        if (parent instanceof HTMLDetailsElement && !parent.open) disclosures.unshift(parent);
+      }
+      for (const details of disclosures) details.querySelector<HTMLElement>(":scope > summary")?.click();
+      if (target.trigger && node.tagName === "BUTTON" && node.getAttribute("aria-pressed") !== "true") node.click();
+      if (!node.matches("button,summary")) node.setAttribute("tabindex", "-1");
+      if (document.activeElement === initialFocus) node.focus({ preventScroll: true });
+      node.scrollIntoView({ block: "start", behavior: "instant" }); return true;
+    };
+    if (find()) return;
+    const observer = new MutationObserver(() => { if (find()) observer.disconnect(); });
+    observer.observe(assistantHost, { childList: true, subtree: true });
+    const timer = setTimeout(() => observer.disconnect(), 5000);
+    return () => { clearTimeout(timer); observer.disconnect(); };
+  }, [assistantHost, assistantTool]);
+
+  const plannerStages = <div className="journey-stage-stream" data-view={stageView.view}>
             <PlannerStageFrame view={stageView.view} step={journey.steps[0]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerConditionsPanel
                 onRegionChange={regionChange.request}
@@ -268,7 +333,7 @@ export default function PlannerPage() {
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[2]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
               <PlannerItineraryWorkspace
-                alternativeTools={<><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /><Suspense fallback={<p role="status">코스 도구를 준비하고 있어요.</p>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={setSelectedPlace}/></Suspense><Suspense fallback={<p role="status">음성·문자 도구를 준비하고 있어요.</p>}><VoiceTripControls trip={tripSelection} places={activePlaces} current={planController.resultCurrent} visible={stageView.view === "overview" || journey.activeStepId === "itinerary"} contextKey={JSON.stringify([region,theme,selected,origin,privateOrigin])} onSelectPlace={setSelectedPlace}/></Suspense></>}
+                alternativeTools={<><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /><Suspense fallback={<LoadingState>코스 도구를 준비하고 있어요.</LoadingState>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={setSelectedPlace}/></Suspense><Suspense fallback={<LoadingState>음성·문자 도구를 준비하고 있어요.</LoadingState>}><VoiceTripControls trip={tripSelection} places={activePlaces} current={planController.resultCurrent} visible={stageView.view === "overview" || journey.activeStepId === "itinerary"} contextKey={JSON.stringify([region,theme,selected,origin,privateOrigin])} onSelectPlace={setSelectedPlace}/></Suspense></>}
                 mapView={itineraryMapView}
                 onMapViewChange={setItineraryMapView}
                 canAddPlaces={planController.resultCurrent}
@@ -302,9 +367,9 @@ export default function PlannerPage() {
               />
             </PlannerStageFrame>
             <PlannerStageFrame view={stageView.view} step={journey.steps[3]} steps={journey.steps} activeStepId={journey.activeStepId} interactive={hydrated} onStepChange={journey.goToStep} onShowOverview={() => stageView.changeView("overview")}>
-              {stageView.view !== "overview" && journey.activeStepId === "departure-readiness" && <section className="reference-overview" aria-labelledby="reference-overview-title">
+              {(departureVisited || journey.activeStepId === "departure-readiness") && <section className="reference-overview" hidden={stageView.view === "overview"} aria-labelledby="reference-overview-title">
                 <h2 id="reference-overview-title">{region || "경남"} 여행, 한눈에 확인하세요.</h2>
-                <Suspense fallback={<p role="status">전체 일정을 준비하고 있어요.</p>}><PlannerTripOverview trip={tripSelection} participation={participation} coverage={itineraryRoutes} origin={origin} weather={weather} weatherLoading={weatherLoading} region={region} theme={travelThemes.find(item => item.id === theme)?.label || theme} profiles={selected.map(id => accessibilityProfiles.find(item => item.id === id)?.label || id)} onEdit={() => { setItineraryMapView(false); journey.goToStep("itinerary"); }} onMap={() => { setItineraryMapView(true); journey.goToStep("itinerary"); }} onSelectPlace={setSelectedPlace} onDetails={() => setDepartureDetailsOpen(true)} /></Suspense></section>}
+                <Suspense fallback={<LoadingState>전체 일정을 준비하고 있어요.</LoadingState>}><PlannerTripOverview trip={tripSelection} participation={participation} coverage={itineraryRoutes} origin={origin} weather={weather} weatherLoading={weatherLoading} region={region} theme={travelThemes.find(item => item.id === theme)?.label || theme} profiles={selected.map(id => accessibilityProfiles.find(item => item.id === id)?.label || id)} onEdit={() => { setItineraryMapView(false); journey.goToStep("itinerary"); }} onMap={() => { setItineraryMapView(true); journey.goToStep("itinerary"); }} onSelectPlace={setSelectedPlace} onDetails={() => setDepartureDetailsOpen(true)} /></Suspense></section>}
               <details className="reference-departure-details" open={stageView.view === "overview" || departureDetailsOpen} onToggle={event => setDepartureDetailsOpen(event.currentTarget.open)}><summary>출발 전 정보와 여행 도구 자세히 보기</summary>
               <DepartureReadinessCard
                 embedded
@@ -360,12 +425,22 @@ export default function PlannerPage() {
               />
               </details>
             </PlannerStageFrame>
-          </div>
-          {stageView.view === "guided" && journey.activeStepId === "conditions" && <PlannerStepSummary en={locale === "en"} region={region} dates={`${travelStart} – ${travelEnd}`} activities={planController.themes.map(id => travelThemes.find(item => item.id === id)?.label || id).join(" · ")} facilities={selected.map(id => accessibilityProfiles.find(item => item.id === id)?.label || id).join(" · ")} places={tripSelection.orderedSavedPlaces} onQuestion={stageView.changeQuestion} onItinerary={() => journey.goToStep("itinerary")} />}
+          </div>;
+  return (
+    <main className="planner-page journey-editorial planner-reference" lang={locale}>
+      <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>
+      <PlannerReferenceChrome interactive={hydrated && planController.criteriaReady && tripSelection.storageReady} view={stageView.view} progress={journey.progress} requestState={planController.requestState} recommendedCount={activePlaces.length} region={region} dates={travelStart ? `${travelStart.slice(5).replace("-", "월 ")}일 - ${travelEnd.slice(5).replace("-", "월 ")}일` : ""} facilities={selected.map(id => accessibilityProfiles.find(p => p.id === id)?.label || id).join(" · ")} savedCount={saved.length} activeStep={journey.activeStepId} question={stageView.conditionQuestion}
+        activities={planController.themes.length ? `활동 ${planController.themes.length}개` : ""} resultsAvailable={journey.steps[1].available}
+        available={[true, Boolean(region), Boolean(region && selected.length), Boolean(region && selected.length && planController.themes.length), true, saved.length > 0, saved.length > 0]}
+        onAssistant={showAssistant} onQuestion={stageView.changeQuestion} onNavigate={journey.goToStep} onSearch={() => void generatePlan()} searching={planController.loading} />
+      <section className="planner-journey-workspace" id="planner" aria-label="여행 만들기">
+        <div className="journey-control-layout" data-compact-conditions={stageView.view === "guided" && journey.activeStepId === "conditions"}>
+          {assistantHost && <div className="naru-working-placeholder"><h2>나루와 함께 여행을 정리하고 있어요.</h2><p>열어둔 대화 안에서 모든 여행 도구를 사용할 수 있어요.</p><button type="button" onClick={closeAssistant}>이 화면에서 계속하기</button></div>}<PlannerStagePortal host={assistantHost}>{plannerStages}</PlannerStagePortal>
+          {<PlannerStepSummary en={locale === "en"} region={region} dates={`${travelStart} – ${travelEnd}`} activities={planController.themes.map(id => travelThemes.find(item => item.id === id)?.label || id).join(" · ")} facilities={selected.map(id => accessibilityProfiles.find(item => item.id === id)?.label || id).join(" · ")} places={tripSelection.orderedSavedPlaces} onQuestion={stageView.changeQuestion} onItinerary={() => journey.goToStep("itinerary")} />}
         </div>
       </section>
 
-      {alternatives.original && alternatives.request && <Suspense fallback={<p role="status">대안을 비교할 화면을 준비하고 있어요.</p>}><AlternativeComparisonDialog
+      {alternatives.original && alternatives.request && <Suspense fallback={<LoadingState>대안을 비교할 화면을 준비하고 있어요.</LoadingState>}><AlternativeComparisonDialog
         key={alternatives.original.id} original={alternatives.original} initialReason={alternatives.request.reason}
         seenIds={alternatives.request.seenIds} trip={tripSelection} origin={origin} places={activePlaces}
         requiredKeys={plan?.criteria?.facilityKeys || []} current={planController.resultCurrent}
@@ -387,6 +462,8 @@ export default function PlannerPage() {
       />}
 
       {regionChange.pending && <RegionChangeDialog region={regionChange.pending} en={locale === "en"} error={regionChange.error} onCancel={regionChange.cancel} onAdd={regionChange.add} onNew={regionChange.startNew} />}
+      {!assistantOpen && <button type="button" ref={assistantLauncher} disabled={!hydrated || !planController.criteriaReady || !tripSelection.storageReady} className="naru-launcher" onClick={showAssistant} aria-label="WAVE 여행 가이드 나루와 대화 열기"><span className="naru-avatar" aria-hidden="true">✦</span><span><strong>나루</strong><small>여행을 도와드릴게요</small></span></button>}
+      {assistantMounted && <Suspense fallback={assistantOpen ? <div className="naru-panel"><LoadingState>나루와의 대화를 열고 있어요.</LoadingState></div> : null}><PlannerAssistant open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} onRegion={regionChange.request} onSearch={() => runPlan({ resetRouteData, resetAudio }, false)} onPlace={setSelectedPlace} onAlternative={id => alternatives.open(id)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} onToolHost={setAssistantHost} /></Suspense>}
       <div className="reference-view-preference"><PlannerJourneyModeToggle view={stageView.view} interactive={hydrated} onChange={stageView.changeView} /></div>
       <PlannerFooter />
     </main>

@@ -1,4 +1,5 @@
 "use client";
+import LoadingState from "../../../components/LoadingState";
 
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -114,7 +115,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
       {shareState === "error" && <small role="alert">{c("공유 링크를 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요.", "The shared link couldn't be created. Please try again.")}</small>}
       {shareState === "copy-error" && <small role="alert">{c("공유 링크는 만들었지만 복사하지 못했습니다. 공유 일정을 열어 주소를 직접 복사하거나 다시 시도해 주세요.", "The link was created but couldn't be copied. Open the shared itinerary and copy its address, or try again.")}</small>}
     </div>
-    <Suspense fallback={<p role="status">{c("여행집 보관 기능을 준비하고 있어요.", "Preparing saved itineraries.")}</p>}><TravelBookArchiveAction
+    <Suspense fallback={<LoadingState>{c("여행집 보관 기능을 준비하고 있어요.", "Preparing saved itineraries.")}</LoadingState>}><TravelBookArchiveAction
       places={orderedSavedPlaces}
       region={archiveContext.region}
       theme={archiveContext.theme}
@@ -130,7 +131,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
     /></Suspense>
     <details className="itinerary-secondary-actions" onToggle={(event) => { const open = event.currentTarget.open; if (!open) audioGuide.resetAudio(); setExtrasOpen(open); }}>
       <summary>{c("오디오 가이드와 여행 후기", "Audio guide and travel journal")} <span>{c("선택 사항", "Optional")}</span></summary>
-      {extrasOpen && <Suspense fallback={<p role="status">{c("오디오 해설을 준비하고 있어요.", "Preparing the audio guide.")}</p>}><AudioGuidePlayer audio={plan?.audio} controller={audioGuide} /></Suspense>}
+      {extrasOpen && <Suspense fallback={<LoadingState>{c("오디오 해설을 준비하고 있어요.", "Preparing the audio guide.")}</LoadingState>}><AudioGuidePlayer audio={plan?.audio} controller={audioGuide} /></Suspense>}
       {plan?.course && <div className="itinerary-course"><strong lang={originalLanguage(plan.course.name)}>{plan.course.name}</strong><p lang={originalLanguage(plan.course.summary)}>{plan.course.summary}</p><span>{plan.course.distance}km · {plan.course.minutes}{c("분 · 난이도", " min · difficulty")} {plan.course.level}</span></div>}
       <div className="day-journal-action"><div><strong>{c("다녀온 뒤 여행 후기로 이어가기", "Write a journal after your trip")}</strong><p>{c("장소와 날짜만 초안에 연결하며, 현장 경험은 공식 정보와 분리해 표시합니다.", "Only places and dates go into the draft. Visitor experiences stay separate from official information.")}</p></div><Link href={journalHref}>{c("후기 초안 만들기", "Create journal draft")} <span aria-hidden="true">→</span></Link></div>
     </details>

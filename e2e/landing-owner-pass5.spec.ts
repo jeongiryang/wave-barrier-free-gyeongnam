@@ -80,15 +80,15 @@ test("current section registry, desktop rail and mobile native selector stay in 
   await expect(page.locator(".story-progress")).toBeVisible();
   await page.evaluate(()=>history.replaceState({...history.state,storyTestMarker:"preserve"},""));
   if (page.viewportSize()!.width > 1280) {
-    await expect(page.locator("#story-progress-list a")).toHaveCount(7);
+    await expect(page.locator("#story-progress-list a")).toHaveCount(8);
     for (const link of await page.locator("#story-progress-list a").all()) await expect(link).toBeVisible();
     await expect(page.getByRole("button",{name:"소개 섹션 목록"})).toHaveCount(0);
     await page.locator("#story-progress-list a[href='#community']").press("Enter");
     await expect(page.locator("#community")).toBeFocused();
     await expect(page.locator("#story-progress-list a[aria-current]")).toHaveAttribute("href","#community");
   } else {
-    const select=page.getByLabel("소개 섹션으로 이동"); await select.selectOption("5");
-    await expect(page.locator("#community")).toBeFocused(); await expect(select).toHaveValue("5");
+    const select=page.getByLabel("소개 섹션으로 이동"); const communityIndex=String(landingSections.findIndex(section=>section.id==="community")); await select.selectOption(communityIndex);
+    await expect(page.locator("#community")).toBeFocused(); await expect(select).toHaveValue(communityIndex);
   }
   expect(await page.evaluate(()=>history.state.storyTestMarker)).toBe("preserve");
   await expect(page.locator(".itinerary-chapter,.map-chapter,.story-expansion,#journey-record-source")).toHaveCount(0);

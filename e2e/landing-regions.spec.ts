@@ -61,7 +61,7 @@ test("랜딩 기능 데모는 현재 한국어 순서와 비대화형 미리보�
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/");
   await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
-  expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(["top", "story", "regions", "recommendation", "departure", "community", "closing"]);
+  expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(["top", "story", "regions", "naru", "recommendation", "departure", "community", "closing"]);
   await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
   await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
   await expect(page.locator(".horizon-chapters input,.horizon-community input,.horizon-community form")).toHaveCount(0);
