@@ -11,6 +11,8 @@ import { buildTravelJournalHref } from "../../lib/community/field-report.js";
 import { travelBookRegions, type TravelBook } from "../../lib/travel-book.js";
 import { useTravelBook } from "../../features/travel-book/useTravelBook";
 import { emptyTrip, readTripValue, replaceCurrentTrip } from "../../lib/current-trip-storage.js";
+import { getTabStorage } from "../../lib/session-storage.js";
+import { saveSessionProfiles } from "../../lib/session-travel-profiles.js";
 import { localDate } from "../../features/planner/utils";
 import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
 import CloudSaveAction from "../../features/account-travel/CloudSaveAction";
@@ -143,6 +145,7 @@ export default function TravelBookPage() {
   function startNewTrip() {
     try { replaceCurrentTrip(window.localStorage, emptyTrip("", localDate(), localDate(1))); }
     catch { setNewTripError("새 여행을 저장하지 못했어요. 기존 일정은 유지됩니다. 저장 공간을 확인한 뒤 다시 시도해 주세요."); return; }
+    saveSessionProfiles(getTabStorage(), []);
     router.push("/planner#conditions");
   }
 

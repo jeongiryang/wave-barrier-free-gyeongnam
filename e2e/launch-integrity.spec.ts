@@ -218,7 +218,7 @@ for (const width of [280, 320, 390, 768, 1024, 1366, 1920, 2560]) {
 }
 
 test("rain response runs a new search and preserves accessibility needs and saved places", async ({ page }) => {
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { savedPlaces: confirmedAlternativePlan.places });
   await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: confirmedAlternativePlan }));
   await page.route("**/api/weather?*", async (route) => route.fulfill({ json: {
     region: "창원", source: "기상 정보", updatedAt: "2026-09-05T09:00:00Z",
@@ -241,7 +241,7 @@ test("rain response runs a new search and preserves accessibility needs and save
 });
 
 test("a confirmed crowd alternative replaces the itinerary instead of an unrelated map-only route", async ({ page }) => {
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { savedPlaces: confirmedAlternativePlan.places });
   await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: confirmedAlternativePlan }));
   await page.route("**/api/wave?action=crowd*", (route) => route.fulfill({ json: { crowd: { rate: 80, baseYmd: "20260905", place: "경남도립미술관" } } }));
   await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");

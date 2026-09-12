@@ -47,8 +47,25 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await expect(details.locator(".preference-panel")).toBeHidden();
     await expect(trigger).toBeFocused();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    const nav = page.locator('.wave-header nav');
+    const navBounds = await nav.boundingBox();
+    for (const link of await nav.getByRole('link').all()) {
+      const bounds = await link.boundingBox();
+      expect(bounds!.x).toBeGreaterThanOrEqual(navBounds!.x);
+      expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(navBounds!.x + navBounds!.width + 1);
+      if (/^\S+$/.test((await link.textContent())!.trim())) {
+        expect(await link.evaluate(element => {
+          const range = document.createRange(); range.selectNodeContents(element);
+          return new Set([...range.getClientRects()].filter(rect => rect.width > 0 && rect.height > 0).map(rect => Math.round(rect.top))).size;
+        }), 'A one-word navigation label must not split its last letter onto another line').toBe(1);
+      }
+    }
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     expect(errors).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`preferences-focus-${locale}-${width}.png`) });
+    const support = page.locator('.wave-support-menu');
+    await support.locator(':scope > summary').click();
+    await expect(support).not.toHaveAttribute('open', '');
+    await page.screenshot({ path: test.info().outputPath(`preferences-nav-${locale}-${width}.png`) });
   });
 }

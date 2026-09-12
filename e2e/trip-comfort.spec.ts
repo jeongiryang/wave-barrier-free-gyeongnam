@@ -59,7 +59,9 @@ test("walking evidence, planned rests and nearby restroom stops stay integrated 
   await page.locator(".planner-navigation nav button").nth(3).click();
   const board = page.locator(".reference-day-list"), comfort = board.locator(".trip-comfort-plan"), finder = board.locator(".rest-stop-finder");
   await comfort.locator("summary").click();
-  await expect(comfort).toContainText("아직 걷기 구간을 확인하지 않았어요");
+  // All ordered journeys are now checked automatically before an explicit
+  // recheck; both legs must contribute actual walking evidence.
+  await expect(comfort).toContainText("확인한 2구간의 걷기 54분");
   await comfort.getByRole("button", { name: "이동 구간 확인", exact: true }).click();
   await expect(comfort).toContainText("연속 걷기 15분, 고른 기준보다 길어요");
   await expect(comfort).toContainText("걷기 54분");

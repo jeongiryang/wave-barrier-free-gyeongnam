@@ -96,13 +96,20 @@ export async function chooseTripConditions(page: Page) {
   await page.locator(".condition-actions").getByRole("button", { name: "여행지 둘러보기 →", exact: true }).click();
 }
 
-export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview"; preserveView?: boolean; audio?: PlanData["audio"]; crowdRate?: number; placeCoordinate?: { mapX: string; mapY: string } } = {}) {
+export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview"; preserveView?: boolean; audio?: PlanData["audio"]; crowdRate?: number; placeCoordinate?: { mapX: string; mapY: string }; savedPlaces?: PlanData["places"] } = {}) {
   // Keep fixture-based UI tests independent of the external photo host.
   // Real photo loading is checked separately in the live browser review.
   await page.route("https://tong.visitkorea.or.kr/**", requestRoute => requestRoute.fulfill({
     status: 200, contentType: "image/svg+xml", body: transparentSvg,
   }));
   let enrichmentRequestCount = 0;
+  const responsePlaces = options.explorationOnly ? places.map((place, index) => ({
+    ...place,
+    score: index === 0 ? 0 : null,
+    knownFields: index === 0 ? 3 : 0,
+    features: ["상세 편의정보 확인 필요"],
+    details: ["제공된 편의정보가 제한적이므로 방문 전 시설 운영기관에 확인해 주세요."],
+  })) : places.map(place => ({ ...place, ...options.placeCoordinate }));
   if (!options.preserveView) await page.addInitScript((plannerView) => {
     window.localStorage.setItem("wave-planner-stage-view-v2", plannerView);
     window.sessionStorage.setItem("wave-planner-active-step-v1", "conditions");
@@ -120,6 +127,13 @@ export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; 
       region: url.searchParams.get("region"), themes: url.searchParams.get("themes")?.split(","), limit: 12,
       candidates: [{ id: "1001", profiles: ["wheel", "senior"] }, { id: "1002", profiles: ["wheel"] }], status: { state: "live", partial: false },
     }) });
+    if (url.pathname === "/api/wave" && action === "places") {
+      const ids = [...new Set((url.searchParams.get("ids") || "").split(",").filter(Boolean))];
+      // Rechecking a saved ID uses the same synthetic evidence as its plan.
+      // Unknown IDs stay missing; do not invent a place or confirm its facilities.
+      const catalog = options.savedPlaces ?? responsePlaces;
+      return requestRoute.fulfill({ json: { places: catalog.filter(place => ids.includes(place.id)), missing: ids.filter(id => !catalog.some(place => place.id === id)) } });
+    }
     if (url.pathname === "/api/wave" && action === "plan") {
       if (options.slowPlan) await new Promise((resolve) => setTimeout(resolve, 650));
       if (options.failPlan) return requestRoute.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "여행 정보를 잠시 확인할 수 없습니다." }) });
@@ -127,14 +141,8 @@ export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; 
         ...plan,
         places: [],
         stops: [],
-        explorationPlaces: places.map((place, index) => ({
-          ...place,
-          score: index === 0 ? 0 : null,
-          knownFields: index === 0 ? 3 : 0,
-          features: ["상세 편의정보 확인 필요"],
-          details: ["제공된 편의정보가 제한적이므로 방문 전 시설 운영기관에 확인해 주세요."],
-        })),
-      } : { ...plan, crowd: { ...plan.crowd, rate: options.crowdRate ?? plan.crowd.rate }, audio: options.audio ?? plan.audio, places: places.map(place => ({ ...place, ...options.placeCoordinate })), stops: plan.stops.map(stop => ({ ...stop, ...options.placeCoordinate })) };
+        explorationPlaces: responsePlaces,
+      } : { ...plan, crowd: { ...plan.crowd, rate: options.crowdRate ?? plan.crowd.rate }, audio: options.audio ?? plan.audio, places: responsePlaces, stops: plan.stops.map(stop => ({ ...stop, ...options.placeCoordinate })) };
       return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(responsePlan) });
     }
     if (url.pathname === "/api/wave" && action === "spot-photo") {

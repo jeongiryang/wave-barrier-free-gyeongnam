@@ -34,8 +34,8 @@ test("compact headers keep every navigation link and recover keyboard focus", as
   for(const path of ["/","/planner","/travel-book","/community"]) {
     await page.goto(path);
     const menu=page.locator(".wave-header");
-    await expect(menu.getByRole("navigation").getByRole("link")).toHaveCount(3);
-    for(const href of ["/planner","/travel-book","/community"]) { const link=menu.locator(`a[href='${href}']`); await expect(link).toBeVisible(); await link.focus(); await expect(link).toBeFocused(); }
+    await expect(menu.getByRole("navigation").getByRole("link")).toHaveText(["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
+    for(const href of ["/planner","/festivals","/travel-book","/community"]) { const link=menu.locator(`a[href='${href}']`); await expect(link).toBeVisible(); await link.focus(); await expect(link).toBeFocused(); }
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   }
 });

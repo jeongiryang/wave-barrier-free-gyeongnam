@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
 
-test("편의 조건은 저장 뒤에도 자동 적용하지 않고 사용자가 선택해 적용·삭제한다", async ({ page }) => {
+test("현재 탭의 편의 선택은 복구하고 저장한 프로필은 직접 불러와 적용·삭제한다", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
   await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
@@ -16,6 +16,13 @@ test("편의 조건은 저장 뒤에도 자동 적용하지 않고 사용자가 
 
   await page.reload();
   await expect(profileChoices.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "false");
+  await expect(profileChoices.getByRole("button", { name: /청각 정보 지원/ })).toHaveAttribute("aria-pressed", "true");
+  await profile.locator("summary").click();
+  await profile.getByRole("button", { name: "선택한 조건 모두 해제" }).click();
+  await expect(profileChoices.locator('[aria-pressed="true"]')).toHaveCount(0);
+  await page.reload();
+  // Reloading the explicitly cleared working trip must not apply the device's
+  // saved profile until the traveler chooses to load it.
   await expect(profileChoices.getByRole("button", { name: /청각 정보 지원/ })).toHaveAttribute("aria-pressed", "false");
   await profile.locator("summary").click();
   await expect(profile).toContainText("청각 정보 지원");

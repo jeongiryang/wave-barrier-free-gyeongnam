@@ -27,8 +27,10 @@ test('workspace keeps navigation and trip summary usable across desktop, half-wi
     await expect(navigation.getByRole('button', { name: /여행 조건/ })).toBeEnabled();
     if (width > 640 && width <= 1180) {
       const launcherBox = (await page.locator('.naru-launcher').boundingBox())!;
-      const nextBox = (await page.locator('.condition-actions > button').boundingBox())!;
-      expect(launcherBox.y + launcherBox.height).toBeLessThan(nextBox.y);
+      for (const action of await page.locator('.condition-actions > button').all()) {
+        const nextBox = (await action.boundingBox())!;
+        expect(launcherBox.y + launcherBox.height).toBeLessThan(nextBox.y);
+      }
     }
     await page.screenshot({ path: testInfo.outputPath(`workspace-${width}.png`) });
   }

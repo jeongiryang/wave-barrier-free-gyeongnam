@@ -1,5 +1,5 @@
 import { Spinner } from "../../../components/LoadingState";
-import { lazy, Suspense, useCallback, useMemo, useRef } from "react";
+import { lazy, Suspense, useCallback, useRef, useState } from "react";
 import type { MapPlace } from "../../routing/types";
 import type { useLocationSearch } from "../hooks/useLocationSearch";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
@@ -32,7 +32,10 @@ export default function RouteMapWorkspace({ focusedPlaceId, onPlaceFocus, compac
   const displayOrigin = route.routeStart || origin;
   const displayOriginLabel = route.routeStartLabel || originLabel;
   const { pointPicker, setPointPicker } = locationSearch;
-  const mapPlaces = useMemo(() => activePlaces, [activePlaces]);
+  const [mapPlaces, setMapPlaces] = useState(activePlaces);
+  // Switching search language can resolve the same saved place objects into a
+  // new array. Keep the map when its places and their order are unchanged.
+  if (mapPlaces.length !== activePlaces.length || mapPlaces.some((place, index) => place !== activePlaces[index])) setMapPlaces(activePlaces);
   const pointPickerTriggerRef = useRef<HTMLButtonElement | null>(null);
   const recalculateRef = useRef(false);
   const recalculate = async () => {

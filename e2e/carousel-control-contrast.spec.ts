@@ -29,11 +29,10 @@ for (const locale of ["ko", "en"] as const) for (const theme of ["light", "dark"
     await page.goto("/planner");
     await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
     await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
-    const nextQuestion = page.locator(".condition-actions button").last();
     await page.getByRole("button", { name: en ? /Nature and relaxation/ : /자연·휴양/ }).click();
-    await nextQuestion.click();
+    await page.locator(".condition-actions").getByRole("button", { name: en ? "Choose facilities" : "필요한 편의 선택", exact: true }).click();
     await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
-    await nextQuestion.click();
+    await page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 둘러보기 →", exact: true }).click();
     await expect(page.locator(".place-carousel article")).toHaveCount(2);
     const previous = page.locator(".place-card .reference-heart").first();
     const next = page.locator(".place-card .place-actions .primary").first();

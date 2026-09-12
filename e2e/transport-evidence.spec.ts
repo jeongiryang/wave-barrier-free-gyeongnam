@@ -36,6 +36,11 @@ async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "
   await page.locator(".transport-details > summary").click();
   const details = page.locator(".transport-details");
   await details.locator(".transport-dataset-grid").getByRole("button", { name: english ? /Bus arrivals/ : /버스도착/ }).click();
+  // Finish the automatic itinerary request before measuring an explicit
+  // transport recheck or a presentation-only language change.
+  const coverage = page.locator(".itinerary-route-coverage");
+  await expect(coverage.getByText(english ? "Recheck any unavailable journeys before leaving." : "조회가 끝났습니다. 확인되지 않은 구간과 실제 이동 편의를 방문 전에 다시 확인해 주세요.", { exact: true })).toBeVisible();
+  await expect(coverage.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
   return details;
 }
 

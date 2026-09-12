@@ -1,9 +1,11 @@
 import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi } from "./fixtures";
+import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
 
 async function restoredTrip(page: Page, locale: "ko" | "en") {
-  await mockPlannerApi(page, { plannerView: "guided" });
+  // This provider snapshot still lacks coordinates; a later explicit lookup or
+  // regional search can repair them without inventing an automatic map marker.
+  await mockPlannerApi(page, { plannerView: "guided", savedPlaces: plan.places.map(place => ({ ...place, mapX: "", mapY: "" })) });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ width: 320, height: 568 });
   await page.addInitScript(value => {

@@ -36,6 +36,7 @@ test("new trip from the travel book starts with empty conditions and keeps archi
   await page.reload();
   await expect(page.locator(".reference-region-grid")).toBeVisible();
   await expect(page.locator(".day-planner-grid li")).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "여행 편의 조건 선택" }).locator('[aria-pressed="true"]')).toHaveCount(0);
   await expect(page.getByRole("group", { name: "여행 지역 선택", exact: true }).locator('[aria-pressed="true"]')).toHaveCount(0);
 });
 
@@ -43,6 +44,8 @@ for (const theme of ["light", "dark"]) test(`${theme}: new trip cancellation and
   await page.addInitScript(theme => localStorage.setItem("wave-theme", theme), theme);
   const archive = await openSavedTravelBook(page);
   const before = await page.evaluate(() => Object.fromEntries(Object.entries(localStorage).filter(([key]) => /^wave-(current-trip|saved-place|trip-|planner-region)/.test(key))));
+  const sessionProfiles = await page.evaluate(() => sessionStorage.getItem("wave-session-facilities-v1"));
+  expect(JSON.parse(sessionProfiles || "[]")).toEqual(["wheel"]);
   const trigger = page.getByRole("button", { name: "새 여행 설계", exact: true });
   await trigger.click();
   const dialog = page.getByRole("dialog");
@@ -59,6 +62,7 @@ for (const theme of ["light", "dark"]) test(`${theme}: new trip cancellation and
   await dialog.getByRole("button", { name: "기존 일정 유지", exact: true }).click();
   await expect(trigger).toBeFocused();
   expect(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage).filter(([key]) => /^wave-(current-trip|saved-place|trip-|planner-region)/.test(key))))).toEqual(before);
+  expect(await page.evaluate(() => sessionStorage.getItem("wave-session-facilities-v1"))).toBe(sessionProfiles);
 
   await page.evaluate(() => {
     const original = Storage.prototype.setItem;
@@ -73,4 +77,5 @@ for (const theme of ["light", "dark"]) test(`${theme}: new trip cancellation and
   await expect(page).toHaveURL(/\/travel-book$/);
   expect(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage).filter(([key]) => /^wave-(current-trip|saved-place|trip-|planner-region)/.test(key))))).toEqual(before);
   expect(await page.evaluate(() => localStorage.getItem("wave-travel-book-v1"))).toBe(archive);
+  expect(await page.evaluate(() => sessionStorage.getItem("wave-session-facilities-v1"))).toBe(sessionProfiles);
 });
