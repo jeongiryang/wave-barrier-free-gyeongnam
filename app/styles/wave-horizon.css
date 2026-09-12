@@ -57,8 +57,8 @@ h1,h2,h3 { letter-spacing: -.055em; }
 .region-card-start,.region-neighbour-copy button { position: absolute; bottom: 62px; right: 24px; width: 46px; min-height: 46px; display: grid; place-items: center; border: 0; border-radius: 0; background: transparent; color: white; text-shadow: 0 1px 4px #001521; padding: 0; margin: 0; font-size: 24px; pointer-events: auto; }
 .region-neighbour-copy button { font-size: 0; }
 .region-neighbour-copy button span { font-size: 24px; }
-.region-photo-selector { position: absolute; top: 16px; bottom: auto; right: 20px; left: auto; padding: 0; }
-.region-photo-selector button > span { background: #ffffff6b; width: 22px; }
+.region-photo-selector { position: absolute; top: 16px; right: 20px; padding: 0; }
+.region-photo-selector button > span { background: #ffffffb3; width: 22px; box-shadow: 0 0 0 1px #001521; }
 .region-photo-selector button[aria-pressed=true] > span { background: white; }
 .region-photo-selector button { width: 34px; }
 .story-progress,.story-progress[data-surface=light],html[data-theme=dark] .story-progress[data-surface=light] { background: transparent; box-shadow: none; border: 0; backdrop-filter: none; }
