@@ -123,6 +123,7 @@ export default function TripDayPlanner({ plan, tripSelection, route, audioGuide,
       travelStart={tripSelection.travelStart}
       travelEnd={tripSelection.travelEnd}
       dayStartTime={dayStartTime}
+      travelMode={tripSelection.travelMode}
       scheduleAssignments={scheduleAssignments}
       visitMinutesByPlaceId={visitMinutesByPlaceId}
       fixedVisits={tripSelection.fixedVisits}

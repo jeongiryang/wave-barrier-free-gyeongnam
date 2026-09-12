@@ -30,7 +30,7 @@ function fixture(t) {
 }
 test("account trip storage has an explicit field allowlist and rejects corrupt dates/IDs", () => {
   const safe = accountTripPayload({ ...payload, latitude: 35, longitude: 128, email: "private@example.com", origin: { latitude: 35 }, profiles: ["wheelchair"], places: [{ summary: "Provider data" }], image: "private.jpg" });
-  assert.deepEqual(Object.keys(safe).sort(), ["version", "title", "region", "travelStart", "travelEnd", "dayStartTime", "themes", "placeIds", "scheduleAssignments", "visitMinutesByPlaceId", "breakMinutesByPlaceId", "restPurposeByPlaceId", "fixedVisits", "dayDeadlines", "status", "note"].sort());
+  assert.deepEqual(Object.keys(safe).sort(), ["version", "title", "region", "travelStart", "travelEnd", "dayStartTime", "travelMode", "themes", "placeIds", "scheduleAssignments", "visitMinutesByPlaceId", "breakMinutesByPlaceId", "restPurposeByPlaceId", "fixedVisits", "dayDeadlines", "status", "note"].sort());
   for (const change of [{ region: "서울" }, { travelStart: "2026-02-30" }, { travelEnd: "2026-09-30" }, { placeIds: ["https://example.com"] }, { placeIds: ["123456", "123456"] }, { scheduleAssignments: { "123456": "2026-09-30" } }]) assert.throws(() => accountTripPayload({ ...payload, ...change }));
   const converted = bookToAccountTrip({ ...payload, places: [{ id: "123456", name: "API title", image: "photo", latitude: 35 }] });
   assert.deepEqual(converted.placeIds, ["123456"]); assert.equal(JSON.stringify(converted).includes("API title"), false);
@@ -50,6 +50,17 @@ test("save retry is idempotent; stale concurrent edits retain both the current v
   assert.equal(results.find(result => result.status === "rejected").reason.status, 409);
   assert.equal((await repo.get("owner", id)).revision, 2);
   await assert.rejects(() => repo.remove("owner", id, 1), error => error.status === 409);
+});
+
+test("a legacy response retry remains idempotent, while a different transport choice requires a new save", async t => {
+  const { repo, sqlite } = fixture(t); const id = randomUUID();
+  await repo.create('owner', id, payload);
+  const legacy = accountTripPayload(payload); delete legacy.travelMode;
+  sqlite.prepare('UPDATE wave_account_trips SET payload = ? WHERE id = ?').run(JSON.stringify(legacy), id);
+  await repo.create('owner', id, payload);
+  await assert.rejects(() => repo.create('owner', id, { ...payload, travelMode: 'car' }), error => error.status === 409);
+  await repo.update('owner', id, 1, { ...payload, travelMode: 'car' });
+  assert.equal((await repo.get('owner', id)).payload.travelMode, 'car');
 });
 test("hash-only invitation requires current valid token; rotation, expiry and revocation stop new members", async t => {
   const { repo, sqlite, advance } = fixture(t); const id = randomUUID(); await repo.create("owner", id, payload);

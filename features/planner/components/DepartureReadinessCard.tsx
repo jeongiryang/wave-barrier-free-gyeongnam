@@ -101,6 +101,7 @@ export default function DepartureReadinessCard({
         travelStart,
         travelEnd,
         dayStartTime,
+        travelMode: tripSelection.travelMode,
         title: en ? `WAVE ${displayRegion} accessible trip` : `WAVE ${region} 무장애 여행`,
         region: displayRegion,
         placeNames: orderedSavedPlaces.map((place) => place.name),

@@ -7,10 +7,28 @@ for (const plannerView of ["guided", "overview"] as const) {
     await mockPlannerApi(page, { plannerView, crowdRate: 65 });
     await mockPublicShellApi(page);
     let crowdRequests = 0;
-    page.on("request", request => { if (new URL(request.url()).searchParams.get("action") === "crowd") crowdRequests++; });
+    let planRequests = 0;
+    page.on("request", request => {
+      const url = new URL(request.url());
+      if (url.pathname !== "/api/wave") return;
+      if (url.searchParams.get("action") === "crowd") crowdRequests++;
+      if (url.searchParams.get("action") === "plan") planRequests++;
+    });
     await page.goto("/planner");
     await chooseTripConditions(page);
+    // Adding the first stop starts a destination forecast independently of the
+    // shortcut. The plan's forecast is already visible before that request ends.
+    const initialCrowdResponse = page.waitForResponse(response => {
+      const url = new URL(response.url());
+      return url.pathname === "/api/wave" && url.searchParams.get("action") === "crowd"
+        && url.searchParams.get("region") === "창원" && url.searchParams.get("title") === "경남도립미술관";
+    });
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+    const initialCrowd = await initialCrowdResponse;
+    expect(initialCrowd.ok()).toBe(true);
+    await initialCrowd.finished();
+    expect(crowdRequests).toBe(1);
+    expect(planRequests).toBe(1);
     if (plannerView === "guided") {
       await page.getByRole("navigation", { name: "여행 만들기 단계" }).getByRole("button", { name: /^5\. 출발 전 확인/ }).click();
       await page.locator(".reference-departure-details > summary").click();
@@ -22,14 +40,14 @@ for (const plannerView of ["guided", "overview"] as const) {
     await expect(heading).toBeFocused();
     await expect(heading).toBeInViewport();
     await expect(page.locator(".impact-response")).toContainText("관광 집중률 예측");
-    const requests = crowdRequests;
     await page.locator("#layers > summary").click();
     await expect(page.locator("#layers")).not.toHaveAttribute("open");
     await shortcut.focus();
     await page.keyboard.press("Enter");
     await expect(heading).toBeFocused();
     await expect(heading).toBeInViewport();
-    expect(crowdRequests).toBe(requests);
+    expect(crowdRequests).toBe(1);
+    expect(planRequests).toBe(1);
     await page.locator("#layers > summary").click();
     await page.goBack();
     await page.goForward();
@@ -45,6 +63,8 @@ for (const plannerView of ["guided", "overview"] as const) {
     await page.getByRole("button", { name: "날씨·방문 경향 바로 확인하기", exact: true }).click();
     await expect(page.locator("#layers > summary")).toBeFocused();
     await expect(page).toHaveURL(/#layers$/);
+    expect(crowdRequests).toBe(1);
+    expect(planRequests).toBe(1);
   });
 }
 

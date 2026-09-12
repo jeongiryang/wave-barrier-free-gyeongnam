@@ -7,12 +7,12 @@ import { useRouteRequest } from "./useRouteRequest";
 import { useRouteView, type RouteTravelMode } from "./useRouteView";
 import { routeResultNotice } from "../route-copy";
 
-export function useRoutePlanning(region: string) {
+export function useRoutePlanning(region: string, journey: Parameters<typeof useRouteView>[2] & { storageReady: boolean }) {
   const routeRequest = useRouteRequest(region);
   const { clearRouteAlternatives, loadRouteData, routeAlternatives, transportContext } = routeRequest;
   const routeOrigin = useRouteOrigin(clearRouteAlternatives);
   const { origin, originLabel, privateOrigin, setRouteNotice } = routeOrigin;
-  const routeView = useRouteView(routeAlternatives, transportContext);
+  const routeView = useRouteView(routeAlternatives, transportContext, journey);
   const { setActiveRouteId, routeTravelMode } = routeView;
   const { displayRouteData } = routeRequest;
   const showItineraryRoute = useCallback((...args: Parameters<typeof displayRouteData>) => {
@@ -26,6 +26,7 @@ export function useRoutePlanning(region: string) {
     nextOriginIsPrivate = privateOrigin,
     nextOriginLabel = originLabel,
   ) => {
+    if (!journey.storageReady) return;
     await loadRouteData({
       place,
       origin: nextOrigin,
@@ -35,10 +36,10 @@ export function useRoutePlanning(region: string) {
       onNotice: setRouteNotice,
       onActiveRouteChange: setActiveRouteId,
     });
-  }, [loadRouteData, origin, originLabel, privateOrigin, routeTravelMode, setActiveRouteId, setRouteNotice]);
+  }, [journey.storageReady, loadRouteData, origin, originLabel, privateOrigin, routeTravelMode, setActiveRouteId, setRouteNotice]);
 
   const setRouteTravelMode = (mode: RouteTravelMode) => {
-    if (mode === routeTravelMode) return;
+    if (!journey.storageReady || mode === routeTravelMode) return;
     routeView.setRouteTravelMode(mode);
     const { routeDestination, routeStart, routeStartIsPrivate, routeStartLabel } = routeRequest;
     if (routeDestination && routeStart) void loadRouteData({

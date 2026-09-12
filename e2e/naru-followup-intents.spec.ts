@@ -82,7 +82,7 @@ test('이동수단만 바꾸면 새 일정 없이 저장한 장소·기간·순�
     await expect.poll(() => app.requests.length).toBe(6);
     expect(app.requests.slice(3).map(url => Object.fromEntries(url.searchParams))).toEqual(baseline.map(item => ({ ...item, mode: 'car' })));
     expect(app.completed()).toBe(3);
-    expect(await snapshot(page)).toEqual(before);
+    expect(await snapshot(page)).toEqual({ ...before, schedule: { ...before.schedule, travelMode: 'car' } });
     await expect(app.chat.getByRole('log')).toContainText('이동수단을 바꿨어요');
     await expect(app.chat.getByRole('log')).not.toContainText('경로 조회를 마쳤어요');
     gate.release(); await expect.poll(app.completed).toBe(6);
@@ -90,7 +90,7 @@ test('이동수단만 바꾸면 새 일정 없이 저장한 장소·기간·순�
     await app.chat.locator('.reference-itinerary-details > summary').click();
     await expect(app.chat.locator('.itinerary-route-coverage').getByRole('combobox', { name: '이동수단', exact: true })).toHaveValue('car');
     await expect(app.chat.locator('.itinerary-route-coverage')).toContainText('전체 2구간 중 2구간 확인');
-    expect(await snapshot(page)).toEqual(before); expect(app.journeyCalls()).toBe(0);
+    expect(await snapshot(page)).toEqual({ ...before, schedule: { ...before.schedule, travelMode: 'car' } }); expect(app.journeyCalls()).toBe(0);
   } finally { gate.release(); }
 });
 

@@ -42,6 +42,7 @@ export function buildTripCalendarIcs(options?: {
   travelStart: string;
   travelEnd: string;
   dayStartTime?: string;
+  travelMode?: import("./trip-travel-mode.js").TripTravelMode;
   title?: string;
   region?: string;
   placeNames?: string[];

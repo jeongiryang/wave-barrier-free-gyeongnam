@@ -1,6 +1,13 @@
 import type { NaruJourney } from '../../../lib/naru-journey.js';
 
 export default function NaruJourneyProposal({ draft, disabled, applied, onApply, onExplore }: { draft: NaruJourney; disabled: boolean; applied: boolean; onApply: () => void; onExplore: () => void }) {
+  if (draft.outcome?.kind === 'unchanged') return <section className="naru-journey-proposal" aria-label="나루의 일정 확인 결과">
+    <header><strong>현재 일정을 그대로 유지해요</strong><small>{draft.outcome.kept.length}곳 유지</small></header>
+    <p>공식 소개에서 실내 공간을 확인했어요. 장소·날짜·방문 시간·휴식·이동수단은 바꾸지 않았어요.</p>
+    <ol>{draft.outcome.kept.map(stop => <li key={stop.id}><strong>{stop.date.slice(5)} · {stop.name}</strong><span>기존 방문 유지</span></li>)}</ol>
+    {draft.warnings.length > 0 && <details open><summary>방문 전 확인</summary><ul>{draft.warnings.map(text => <li key={text}>{text}</li>)}</ul></details>}
+    {disabled && <p>여행 조건이 달라졌다면 현재 일정에서 다시 확인해 주세요.</p>}
+  </section>;
   const unknown = draft.stops.reduce((sum, stop) => sum + stop.unknown.length, 0);
   return <section className="naru-journey-proposal" aria-label="나루의 실제 일정안">
     <header><strong>{draft.region} · {draft.start.slice(5)}{draft.end !== draft.start && ` – ${draft.end.slice(5)}`} 일정안</strong><small>{draft.restOnly ? '방문 수와 휴식 조정' : `${draft.stops.length}곳 · ${draft.relaxed ? '쉬엄쉬엄' : '가볍게 둘러보기'}`}</small></header>

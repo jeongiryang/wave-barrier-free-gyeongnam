@@ -478,12 +478,13 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(savedPlaceIds, /readTripValue\(window\.localStorage, SAVED_PLACES_KEY\)[\s\S]+setStorageReady\(true\)/);
   assert.match(savedPlaceIds, /if \(!storageReady\) return;[\s\S]+writeTripValue\(window\.localStorage, SAVED_PLACES_KEY/);
   assert.match(tripSelection, /useSavedPlaceIds\(\)/);
-  assert.match(tripSelection, /useTripSchedule\(\)/);
+  assert.match(planner, /const schedule = useTripSchedule\(\)/);
+  assert.match(planner, /useTripSelection\(\{ schedule,/);
   assert.match(tripSelection, /useOptimizedTripOrder\(/);
   assert.match(tripSchedule, /ensurePlaceAssignment/);
   assert.match(optimizedTripOrder, /optimizeVisitOrder\(/);
   assert.match(routeView, /routeSort === "walk"[\s\S]+a\.totalWalk - b\.totalWalk/);
-  assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext\)/);
+  assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext, journey\)/);
   assert.match(routePlanning, /useRouteOrigin\(clearRouteAlternatives\)/);
   assert.match(routeOrigin, /navigator\.geolocation\.getCurrentPosition/);
   assert.match(routeOrigin, /WAVE 경로 API로 좌표를 보내거나 저장하지 않습니다/);

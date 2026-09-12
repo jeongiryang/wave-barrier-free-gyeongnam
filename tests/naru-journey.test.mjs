@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { journeyDays, selectJourneyStops, validateJourneyApplication } from '../lib/naru-journey.js';
+import { journeyDays, journeyOutcome, selectJourneyStops, validateJourneyApplication } from '../lib/naru-journey.js';
 import { validateAssistantAction } from '../lib/assistant-actions.js';
 
 const start = '2026-09-20';
@@ -70,6 +70,30 @@ test('indoor adaptation requires source evidence and preserves fixed and already
     indoorById: { '2001': { state: 'indoor-space' }, '1003': { state: 'indoor-space' } },
   });
   assert.deepEqual(selected.map(item => [item.place.id, item.date, item.replaces]), [['2001', days[1], '1004']]);
+});
+
+test('already-indoor adaptation returns a typed read-only outcome with the existing visits', () => {
+  const input = freeze({ action: 'adapt-itinerary', indoor: true, existing: [existing('1001'), existing('1002', days[1], true)],
+    indoorById: { '1001': { state: 'indoor-space' }, '1002': { state: 'indoor-space' } } });
+  const before = JSON.stringify(input);
+  const outcome = journeyOutcome(input);
+  assert.deepEqual(outcome, { kind: 'unchanged', reason: 'already-indoor', kept: [
+    { id: '1001', name: '합성 검증 장소 1001', date: start }, { id: '1002', name: '합성 검증 장소 1002', date: days[1] },
+  ] });
+  assert.equal(JSON.stringify(input), before);
+  assert.ok(validateJourneyApplication(draft([], { outcome }), state({ saved: ['1001', '1002'] })));
+  assert.ok(validateJourneyApplication(draft([stop('2001')], { outcome }), state()), 'Even a contradictory payload cannot apply an unchanged result.');
+});
+
+test('empty searches, provider failures, missing indoor evidence and other changes cannot become no-change success', () => {
+  const base = { action: 'adapt-itinerary', indoor: true, existing: [existing('1001')], indoorById: { '1001': { state: 'indoor-space' } } };
+  for (const patch of [{ action: 'create-itinerary' }, { existing: [] }, { indoor: false }, { providerFailed: true }, { conditionsChanged: true },
+    { indoorById: {} }, { indoorById: { '1001': { state: 'unknown' } } }, { existing: [{ id: '1001', date: start }] },
+    { existing: [existing('1001', 'invalid')] }, { existing: [{ ...existing('1001'), place: place('9999') }] }]) {
+    assert.deepEqual(journeyOutcome({ ...base, ...patch }), { kind: 'unavailable' });
+  }
+  assert.deepEqual(journeyOutcome({ ...base, stops: [stop('2001')] }), { kind: 'proposal' });
+  assert.deepEqual(journeyOutcome({ ...base, restOnly: true }), { kind: 'proposal' });
 });
 
 test('a relaxed walking proposal cannot add a candidate far from an existing visit', () => {

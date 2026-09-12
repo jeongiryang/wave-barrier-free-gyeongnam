@@ -4,6 +4,7 @@ import { languageServices, profileFields, regionCodes } from "../tourism/catalog
 import { normalizeThemes } from "../../lib/planner-criteria.js";
 import { sanitizeVisitDurations } from "../../lib/visit-durations.js";
 import { sanitizeFixedVisits, sanitizeDayDeadlines } from "../../lib/trip-time-constraints.js";
+import { sanitizeTravelMode } from "../../lib/trip-travel-mode.js";
 
 export function normalizeTripSelections(rawSelections: Record<string, unknown>) {
   const requestedRegion = clean(rawSelections.region, 20);
@@ -34,6 +35,7 @@ export function normalizeTripSelections(rawSelections: Record<string, unknown>) 
     locale: languageServices[requestedLocale] ? requestedLocale : "ko",
     travelStart: date(rawSelections.travelStart),
     travelEnd: date(rawSelections.travelEnd),
+    travelMode: sanitizeTravelMode(rawSelections.travelMode),
     dayStartTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(clean(rawSelections.dayStartTime, 5))
       ? clean(rawSelections.dayStartTime, 5)
       : "10:00",

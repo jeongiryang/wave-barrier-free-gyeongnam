@@ -146,6 +146,8 @@ html[data-motion=calm] .wave-spinner,html[data-motion=calm] .wave-loading-inline
 .naru-log { flex: 1; min-height: 80px; padding: 20px 16px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; background: #faf9fc; }
 .naru-message { margin: 0 0 18px; width: fit-content; max-width: 94%; border-radius: 16px 16px 16px 4px; padding: 14px; background: #fff; border: 1px solid #e9e4ef; }
 .naru-message p { font-size: .88rem; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }.naru-message > small { display: block; color: var(--muted); margin-top: 8px; }
+.naru-message > button { min-height: 44px; max-width: 100%; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--accent); font: inherit; font-size: .82rem; font-weight: 600; line-height: 1.5; text-align: left; white-space: normal; cursor: pointer; }
+.naru-message > button:disabled { opacity: .55; cursor: default; }
 .naru-message.user { margin-left: auto; color: #fff; background: var(--accent); border: 0; border-radius: 16px 16px 4px 16px; }
 .naru-proposal { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; display: grid; gap: 10px; }
 .naru-proposal strong { font-size: .85rem; line-height: 1.7; }.naru-proposal button { min-height: 44px; padding: 10px 12px; background: var(--accent); color: #fff; border-radius: 10px; font-size: .82rem; }
@@ -199,6 +201,7 @@ dialog.naru-panel:not([open]) { display: none; }
 .naru-demo-result { min-height: 156px; padding: 20px; background: #eee7f5; color: #3b294d; border-radius: 16px; }
 .naru-demo-result p { font-size: .88rem; line-height: 1.85; }
 .naru-demo-pause,.landing-naru-conversation > a { display: inline-flex; align-items: center; min-height: 44px; color: #533480; margin-top: 12px; background: transparent; }
+.naru-demo-pause { border: 1px solid #d8cce7; border-radius: 10px; padding: 10px 14px; background: #fff; font: inherit; font-size: .82rem; line-height: 1.5; cursor: pointer; }
 .landing-naru-conversation > small { margin-top: 16px; }
 .naru-character[data-state=thinking] img,.naru-character[data-state=planning] img { animation: naru-think 2s ease-in-out infinite; }
 .naru-character[data-state=searching] img,.naru-character[data-state=checking] img,.naru-character[data-state=routing] img { animation: naru-look 1.8s ease-in-out infinite; }
