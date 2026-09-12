@@ -10,7 +10,7 @@ h1,h2,h3 { letter-spacing: -.055em; }
 .wave-header nav { display: flex; gap: 3px; padding: 5px; border-radius: 50px; background: #f2f0f5; }
 .wave-header nav a { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 23px; border-radius: 50px; font-size: 14px; color: var(--muted); white-space: nowrap; }
 .wave-header nav a[aria-current] { color: var(--white); background: var(--ink); box-shadow: 0 3px 12px #2b263218; }
-.wave-header .wave-my-trips,.wave-header-actions > a,.wave-header-actions > details > summary { position: relative; display: grid; place-items: center; width: 44px; min-height: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: var(--ink); background: transparent; }
+.wave-header .wave-my-trips,.wave-header-actions > a,.wave-header-actions > details > summary { position: relative; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: var(--ink); background: transparent; }
 .wave-my-trips:hover,.wave-my-trips[aria-current] { background: var(--paper); }
 .wave-my-trips svg { width: 24px; height: 24px; }
 
@@ -52,7 +52,7 @@ html[data-theme=dark] .wave-header .account-popover { --ink: #eaf5f9; --muted: #
 .region-card-rail { padding: 0 var(--wave-gutter); margin: 0; gap: 24px; scroll-padding-inline: var(--wave-gutter); scrollbar-width: none; scroll-snap-type: none; }
 .region-card-rail::-webkit-scrollbar { display: none; }
 .region-film-rows { display: grid; gap: 18px; }
-.region-landscape-card { flex-basis: 38%; border: 0; border-radius: 5px; }
+.region-landscape-card { flex-basis: min(590px,39vw); border: 0; border-radius: 5px; }
 .region-scene-photo img,.region-scene-empty { height: clamp(380px,32vw,486px); }
 .region-scene-photo figcaption { position: absolute; z-index: 3; bottom: 4px; left: 16px; right: 16px; min-height: 44px; font-size: 11px; line-height: 1.5; padding: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 0 2px; color: #fff; background: transparent; text-shadow: 0 1px 4px #001521; }
 .region-scene-photo figcaption a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
