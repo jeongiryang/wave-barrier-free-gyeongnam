@@ -60,8 +60,36 @@ for (const en of [false, true]) for (const color of ["light", "dark"]) test(`${e
     await page.setViewportSize({ width, height: 900 });
     await card.screenshot({ path: test.info().outputPath(`departure-${en ? "en" : "ko"}-${color}-${width}.png`) });
   }
-  await page.reload();
-  await expect(journeys).toContainText(count(0));
-  await expect(journeys).toHaveClass("recheck");
-  await expect(mobility).toHaveClass("recheck");
+  // The chosen mode survives reload, but verified route evidence does not.
+  // Hold the fresh automatic requests so this boundary does not depend on API speed.
+  const freshRoutes: string[] = [];
+  let release!: () => void;
+  const pendingRoutes = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/api/route?*", async route => {
+    const params = new URL(route.request().url()).searchParams;
+    freshRoutes.push(["mode", "startLat", "startLng", "endLat", "endLng"].map(key => params.get(key)).join("/"));
+    await pendingRoutes;
+    await route.fallback();
+  });
+  try {
+    await page.reload();
+    await expect(mode).toHaveValue("car");
+    await expect.poll(() => [...new Set(freshRoutes)].sort()).toEqual([
+      "car/35.2422/128.6982/35.229/128.683",
+      "car/35.2422/128.6982/35.238/128.691",
+    ]);
+    await expect(page.locator(".itinerary-route-coverage").getByRole("status")).toHaveText(en
+      ? "0 of 2 journeys found for this transport"
+      : "선택한 이동수단: 전체 2구간 중 0구간 확인");
+    await expect(journeys).toContainText(en
+      ? "Checking the journeys for your current itinerary and transport."
+      : "현재 일정과 선택한 이동수단의 경로를 확인하고 있습니다.");
+    await expect(journeys).toHaveClass("recheck");
+    await expect(mobility).toHaveClass("recheck");
+    release();
+    await expect(journeys).toContainText(count(2));
+    await expect(journeys).toHaveClass("confirmed");
+    await expect(mobility).toHaveClass("recheck");
+    await expect(card.locator(".readiness-overall")).toHaveClass(/recheck/);
+  } finally { release(); }
 });
