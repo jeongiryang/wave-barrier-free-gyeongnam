@@ -11,11 +11,11 @@ for (const [name, code, expected, expectedEnglish] of [
   ["empty result", "-99", "이 구간에서 제공되는 대중교통 경로가 없습니다.", "No public transport route is available for this leg."],
   ["provider error", "500", "대중교통 경로 응답을 확인하지 못했습니다.", "Public transport information could not be checked."],
 ] as const) test(`transit ${name} is visible and cannot become a confirmed option`, async ({ page }) => {
-  let requests = 0;
+  const requests: string[] = [];
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   const status = odsayProviderStatus({ configured: true, error: { code, message: "untrusted upstream text" } });
-  await page.route("**/api/route?**", route => { requests++; return route.fulfill({
+  await page.route("**/api/route?**", route => { requests.push(route.request().url()); return route.fulfill({
     contentType: "application/json",
     body: JSON.stringify({ configured: false, alternatives: [], providers: [{ id: "odsay", name: "ODsay", role: "대중교통 경로", configured: true, ...status }], context: null }),
   }); });
@@ -29,7 +29,12 @@ for (const [name, code, expected, expectedEnglish] of [
   await expect(page.locator(".route-option")).toHaveCount(0);
   await expect(page.locator(".route-kakao-fallback a")).toBeVisible();
   await expect(page.locator(".route-compare-panel")).not.toContainText("untrusted upstream text");
-  const before = requests;
+  await expect(page.locator(".itinerary-route-coverage")).toContainText("조회가 끝났습니다.");
+  await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
+  expect(requests).toHaveLength(2);
+  expect(requests[1]).toBe(requests[0]);
+  expect(Object.fromEntries(new URL(requests[0]).searchParams)).toEqual({ startLat: "35.2422", startLng: "128.6982", endLat: "35.238", endLng: "128.691", mode: "transit" });
+  const before = [...requests];
   await page.keyboard.press("Control+Home");
   await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
@@ -43,5 +48,5 @@ for (const [name, code, expected, expectedEnglish] of [
   await expect(notice).toContainText(expectedEnglish);
   await expect(notice).not.toContainText(/[가-힣]/);
   await expect(page.locator(".route-option")).toHaveCount(0);
-  expect(requests).toBe(before);
+  expect(requests).toEqual(before);
 });

@@ -67,7 +67,7 @@ test("explicit multi-region addition preserves places and dates; rapid requests 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toHaveAccessibleName("하동 여행을 어떻게 시작할까요?");
   await dialog.getByRole("button", { name: "기존 일정에 지역 추가", exact: true }).click();
-  await page.locator(".condition-actions").getByRole("button", { name: "여행지 찾기 →", exact: true }).click();
+  await page.locator(".condition-actions").getByRole("button", { name: "여행지 둘러보기 →", exact: true }).click();
   await page.getByRole("button", { name: "하동 검증 장소 1 일정에 추가", exact: true }).click();
   await expect(page.locator(".day-planner-grid li")).toHaveCount(2);
   await expect(page.locator(".multi-region-notice")).toContainText("창원 · 하동");

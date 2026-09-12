@@ -36,6 +36,9 @@ export type KeyHealthItem = {
 export type KeyHealth = { ok?: boolean; scope?: "configuration"; checkedAt: string; keys: KeyHealthItem[] };
 
 export type Place = {
+  startDate?: string;
+  endDate?: string;
+  facilityLookupState?: string;
   id: string;
   contentTypeId: string;
   city: string;

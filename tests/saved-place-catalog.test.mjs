@@ -39,3 +39,23 @@ test("saved places from previous regions remain ordered after active results swi
   assert.equal(resolved[0].contentTypeId, "14", "restoring a museum retains its default visit duration category");
   assert.equal(resolved[1].mapX, "128.1");
 });
+
+test("late saved-ID records cannot replace newer facility evidence, including provider failures", () => {
+  const older = { ...changwon, checkedAt: "2026-09-12T01:00:00Z", accessibility: [{ key: "restroom", state: "confirmed" }] };
+  const negative = { ...changwon, checkedAt: "2026-09-12T02:00:00Z", accessibility: [{ key: "restroom", state: "negative" }] };
+  const failure = { ...changwon, checkedAt: "2026-09-12T03:00:00Z", facilityLookupState: "error", accessibility: [{ key: "restroom", state: "unknown" }] };
+  for (const records of [[negative, older], [older, negative]]) assert.equal(resolveSavedPlaces([changwon.id], records, [])[0], negative);
+  for (const records of [[failure, older, negative], [older, negative, failure]]) assert.equal(resolveSavedPlaces([changwon.id], records, [])[0], failure);
+  assert.equal(resolveSavedPlaces([changwon.id], [failure, { ...older, checkedAt: "invalid" }], [])[0], failure);
+});
+
+test("an ID-bound older location repairs missing coordinates without replacing newer unknown facility evidence", () => {
+  const location = { ...changwon, checkedAt: "2026-09-12T01:00:00Z", accessibility: [{ key: "restroom", state: "confirmed" }] };
+  const latest = { ...changwon, checkedAt: "2026-09-12T02:00:00Z", mapX: "", mapY: "", facilityLookupState: "error", accessibility: [{ key: "restroom", state: "unknown" }] };
+  for (const records of [[latest, location], [location, latest]]) {
+    const [resolved] = resolveSavedPlaces([changwon.id], records, []);
+    assert.deepEqual(resolved, { ...latest, mapX: location.mapX, mapY: location.mapY });
+  }
+  const [unrelated] = resolveSavedPlaces([changwon.id], [latest, { ...location, id: "another-place" }], []);
+  assert.equal(unrelated.mapX, "");
+});

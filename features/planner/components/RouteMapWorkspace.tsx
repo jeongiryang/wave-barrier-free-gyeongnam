@@ -1,5 +1,5 @@
 import { Spinner } from "../../../components/LoadingState";
-import { lazy, Suspense, useCallback, useMemo, useRef } from "react";
+import { lazy, Suspense, useCallback, useRef, useState } from "react";
 import type { MapPlace } from "../../routing/types";
 import type { useLocationSearch } from "../hooks/useLocationSearch";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
@@ -11,6 +11,8 @@ import { originalLanguage } from "../place-copy";
 
 interface RouteMapWorkspaceProps {
   compact?: boolean;
+  focusedPlaceId?: string;
+  onPlaceFocus?: (place: MapPlace) => void;
   mapEnabled: boolean;
   activePlaces: Place[];
   planCrowd: PlanData["crowd"];
@@ -23,14 +25,17 @@ interface RouteMapWorkspaceProps {
 
 const DeferredRouteMap = lazy(() => import("../../../components/RouteMap"));
 
-export default function RouteMapWorkspace({ compact = false, mapEnabled, activePlaces, planCrowd, route, locationSearch, onChoosePoint, onMapDestination, onSaveMapPlaces }: RouteMapWorkspaceProps) {
+export default function RouteMapWorkspace({ focusedPlaceId, onPlaceFocus, compact = false, mapEnabled, activePlaces, planCrowd, route, locationSearch, onChoosePoint, onMapDestination, onSaveMapPlaces }: RouteMapWorkspaceProps) {
   const { locale } = useSitePreferences();
   const english = locale === "en";
   const { origin, originLabel, routeDestination, destinationCrowd, routeLoading, loadRoutes, updateOrigin, activeRoute } = route;
   const displayOrigin = route.routeStart || origin;
   const displayOriginLabel = route.routeStartLabel || originLabel;
   const { pointPicker, setPointPicker } = locationSearch;
-  const mapPlaces = useMemo(() => activePlaces, [activePlaces]);
+  const [mapPlaces, setMapPlaces] = useState(activePlaces);
+  // Switching search language can resolve the same saved place objects into a
+  // new array. Keep the map when its places and their order are unchanged.
+  if (mapPlaces.length !== activePlaces.length || mapPlaces.some((place, index) => place !== activePlaces[index])) setMapPlaces(activePlaces);
   const pointPickerTriggerRef = useRef<HTMLButtonElement | null>(null);
   const recalculateRef = useRef(false);
   const recalculate = async () => {
@@ -53,7 +58,7 @@ export default function RouteMapWorkspace({ compact = false, mapEnabled, activeP
       <div className="map-toolbar"><button type="button" aria-expanded={pointPicker === "origin"} aria-controls="trip-point-picker" className={pointPicker === "origin" ? "point-active" : "point-button"} onClick={(event) => togglePointPicker("origin", event.currentTarget)}><span>{english ? "Change departure" : "출발 · 눌러서 변경"}</span><strong lang={originalLanguage(displayOriginLabel)}>{displayOriginLabel}</strong></button><i aria-hidden="true">→</i><button type="button" aria-expanded={pointPicker === "destination"} aria-controls="trip-point-picker" className={pointPicker === "destination" ? "point-active" : "point-button"} onClick={(event) => togglePointPicker("destination", event.currentTarget)}><span>{english ? "Change destination" : "도착 · 눌러서 변경"}</span><strong lang={originalLanguage(routeDestination?.name || activePlaces[0]?.name || "")}>{routeDestination?.name || activePlaces[0]?.name || (english ? "No destination yet" : "여행지 선택 전")}</strong></button><button type="button" className="recalculate-button" onClick={() => void recalculate()} disabled={!activePlaces.length} aria-disabled={routeLoading || undefined} aria-busy={routeLoading || undefined}>{routeLoading ? (english ? "Checking route" : "경로 확인 중") : (english ? "Recalculate" : "다시 계산")}</button></div>
       <TripPointPicker activePlaces={activePlaces} route={route} locationSearch={locationSearch} onChoosePoint={onChoosePoint} onClose={closePointPicker} />
       {mapEnabled ? <Suspense fallback={<div className="map-load-placeholder" role="status"><span><Spinner />{english ? "Preparing the interactive map." : "대화형 지도를 준비하고 있습니다."}</span></div>}>
-        <DeferredRouteMap origin={displayOrigin} places={mapPlaces} route={activeRoute} crowd={routeDestination ? destinationCrowd : planCrowd} crowdPlaceId={(routeDestination || activePlaces[0])?.id} onOriginChange={(point, label) => {
+        <DeferredRouteMap focusedPlaceId={focusedPlaceId} onPlaceFocus={onPlaceFocus} origin={displayOrigin} places={mapPlaces} route={activeRoute} crowd={routeDestination ? destinationCrowd : planCrowd} crowdPlaceId={(routeDestination || activePlaces[0])?.id} onOriginChange={(point, label) => {
           updateOrigin(point, label, label === "현재 위치");
           if (label !== "현재 위치" && (routeDestination || activePlaces[0])) void loadRoutes(routeDestination || activePlaces[0], point, false, label);
         }} onDestinationChange={onMapDestination} onSavePlaces={onSaveMapPlaces} />

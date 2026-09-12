@@ -17,6 +17,8 @@ async function changeLanguage(page: Page, english: boolean) {
 for (const theme of ["light", "dark"]) {
   test(`map commands, point selection and forecast switch language without rebuilding the map ${theme}`, async ({ page }) => {
     const errors: string[] = [];
+    const routeRequests: string[] = [];
+    page.on("request", request => { if (new URL(request.url()).pathname === "/api/route") routeRequests.push(request.url()); });
     page.on("pageerror", error => errors.push(error.message));
     const nearby = await openNearby(page, true, theme);
     await nearby.getByRole("button", { name: "Close nearby places", exact: true }).click();
@@ -55,7 +57,10 @@ for (const theme of ["light", "dark"]) {
     await page.keyboard.press("Escape"); await expect(expand).toBeFocused();
     await expect(expand).toHaveAttribute("aria-pressed", "false");
     await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
+    await expect(page.locator(".itinerary-route-coverage")).toContainText("Recheck any unavailable journeys before leaving.");
+    await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
     const count = await page.evaluate(() => (window as unknown as { mapLayerFixture: MapLayerFixture }).mapLayerFixture.maps.length);
+    const before = [...routeRequests];
     await changeLanguage(page, false);
     await expect(page.getByRole("navigation", { name: "지도 기능", exact: true })).toBeVisible();
     await expect(page.locator(".map-crowd-legend")).toContainText("여유");
@@ -63,6 +68,7 @@ for (const theme of ["light", "dark"]) {
     await changeLanguage(page, true);
     await expect(commands.getByRole("button", { name: "◎ My location", exact: true })).toBeEnabled();
     expect(await page.evaluate(() => (window as unknown as { mapLayerFixture: MapLayerFixture }).mapLayerFixture.maps.length)).toBe(count);
+    expect(routeRequests).toEqual(before);
     await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
     for (const width of [390, 960, 1366, 1440]) {
       await page.setViewportSize({ width, height: 844 });

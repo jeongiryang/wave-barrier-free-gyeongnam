@@ -1,6 +1,7 @@
 import { getAuth } from "../../../../lib/auth/server";
 import { privateAuthResponse } from "../../../../lib/auth/private-response.js";
 import { verifySameOriginMutation } from "../../../../lib/server-request";
+import { profileUpdateBody } from '../../../../lib/auth/profile.js';
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
@@ -30,7 +31,7 @@ async function runHandler(request: Request, context: RouteContext, method: "GET"
     if (process.env.WAVE_AUTH_BACKEND === "native") {
       const path = new URL(request.url).pathname.replace(/^\/api\/auth/, "");
       const get = /^\/(get-session|list-accounts|list-sessions|callback\/kakao|verify-email|delete-user\/callback|reset-password\/[A-Za-z0-9_-]+)$/;
-      const post = /^\/(sign-in\/(email|social)|sign-up\/email|sign-out|request-password-reset|reset-password|change-password|link-social|unlink-account|revoke-session|revoke-sessions|revoke-other-sessions)$/;
+      const post = /^\/(sign-in\/(email|social)|sign-up\/email|sign-out|request-password-reset|reset-password|change-password|link-social|unlink-account|revoke-session|revoke-sessions|revoke-other-sessions|update-user)$/;
       if (method === "GET" && path === "/error") return privateAuthResponse(Response.redirect(new URL("/login?error=kakao", request.url), 303));
       // Delete requests go through /api/account so a service-data cleanup grant always exists.
       // Provider tokens and unimplemented administrative/profile routes are never public.
@@ -54,6 +55,12 @@ const AUTH_BODY_LIMIT = 64 * 1024;
 async function guardedMutation(request: Request, context: RouteContext, method: "POST" | "PUT" | "PATCH" | "DELETE") {
   const guard = await verifySameOriginMutation(request, AUTH_BODY_LIMIT);
   if (guard) return privateAuthResponse(guard);
+  if (new URL(request.url).pathname === '/api/auth/update-user') {
+    const body = profileUpdateBody(await request.clone().json().catch(() => null));
+    if (method !== 'POST' || !body) return privateAuthResponse(Response.json({ error: '닉네임은 문자·숫자와 공백, ._-를 사용해 2~20자로 입력해 주세요.' }, { status: 400 }));
+    const headers = new Headers(request.headers); headers.delete('content-length');
+    request = new Request(request, { headers, body: JSON.stringify(body) });
+  }
   return runHandler(request, context, method);
 }
 

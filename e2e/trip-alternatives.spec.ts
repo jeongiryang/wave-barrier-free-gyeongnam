@@ -4,7 +4,7 @@ import { chooseTripConditions, mockPlannerApi, mockPublicShellApi } from "./fixt
 import { alternativePlan } from "./alternative-fixtures";
 
 async function setup(page: Page) {
-  await mockPublicShellApi(page); await mockPlannerApi(page, { preserveView: true });
+  await mockPublicShellApi(page); await mockPlannerApi(page, { preserveView: true, savedPlaces: alternativePlan.places });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => {
     if (!localStorage.getItem("wave-trip-schedule-v1")) {
@@ -64,10 +64,17 @@ test("indoor evidence is checked explicitly and nearby discovery retains facilit
   const dialog = await open(page);
   await dialog.getByRole("button", { name: "실내 공간으로", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true })).toHaveCount(0);
-  expect(calls).toHaveLength(0);
+  // Saved-place evidence may refresh in the background, but indoor details and
+  // alternative searches still require their own explicit action.
+  expect(calls.filter(url => url.searchParams.get("action") !== "places")).toHaveLength(0);
+  for (const lookup of calls) {
+    expect(lookup.searchParams.get("ids")?.split(",").sort()).toEqual(["1001", "1002"]);
+    expect(lookup.searchParams.get("profiles")).toBe("wheel");
+  }
   await dialog.locator(".travel-book-actions").filter({ hasText: "시민문화쉼터" }).getByRole("button", { name: "실내 공간 정보 확인", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true })).toBeVisible();
   expect(calls.filter(url => url.searchParams.get("action") === "visit-info")).toHaveLength(1);
+  expect(calls.find(url => url.searchParams.get("action") === "visit-info")?.searchParams.get("contentId")).toBe("1003");
   await dialog.getByRole("button", { name: "새로운 곳을 볼래요", exact: true }).click();
   await dialog.getByRole("button", { name: "다음 후보 보기", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true })).toHaveCount(0);
@@ -75,6 +82,7 @@ test("indoor evidence is checked explicitly and nearby discovery retains facilit
   await dialog.getByRole("combobox", { name: "살펴볼 지역", exact: true }).selectOption("함안");
   await dialog.getByRole("button", { name: "같은 편의로 후보 찾기", exact: true }).click();
   await expect(dialog.getByRole("status").filter({ hasText: "함안에서 후보" })).toBeVisible();
+  expect(calls.filter(url => url.searchParams.get("action") === "plan")).toHaveLength(1);
   const request = calls.find(url => url.searchParams.get("action") === "plan")!;
   expect(request.searchParams.get("region")).toBe("함안"); expect(request.searchParams.get("themes")).toBe("nature"); expect(request.searchParams.get("profiles")).toBe("wheel");
   await page.keyboard.press("Escape");

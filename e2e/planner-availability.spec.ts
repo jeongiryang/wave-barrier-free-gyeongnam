@@ -7,6 +7,11 @@ test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reduced
 test("편의·활동 단계는 현재 조건의 건수를 보여주고 편의 변경은 추가 조회하지 않는다", async ({ page }, info) => {
   await mockPlannerApi(page, { plannerView: "guided" });
   let calls = 0;
+  let searches = 0;
+  page.on("request", request => {
+    const url = new URL(request.url());
+    if (url.pathname === "/api/wave" && url.searchParams.get("action") === "plan") searches++;
+  });
   await page.route("**/api/wave?action=availability&**", async route => {
     calls++;
     const params = new URL(route.request().url()).searchParams;
@@ -27,7 +32,9 @@ test("편의·활동 단계는 현재 조건의 건수를 보여주고 편의 �
     await count.scrollIntoViewIfNeeded();
     await page.screenshot({ path: info.outputPath("facilities-960.png"), fullPage: false });
   }
-  await page.locator(".condition-actions").getByRole("button", { name: "하고 싶은 활동 고르기 →", exact: true }).click();
+  // Activities now live with the initial region and dates; changing optional
+  // needs returns there without starting a place search.
+  await page.locator(".condition-actions").getByRole("button", { name: "이전", exact: true }).click();
   await expect(count).toContainText("총 1건");
   await page.locator(".theme-grid").getByRole("button", { name: /역사/ }).click();
   await expect.poll(() => calls).toBe(2);
@@ -36,9 +43,11 @@ test("편의·활동 단계는 현재 조건의 건수를 보여주고 편의 �
   await page.screenshot({ path: info.outputPath("activities.png"), fullPage: false });
   expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.locator(".condition-actions").getByRole("button", { name: "이전", exact: true }).click();
+  await page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 선택", exact: true }).click();
   await expect(count).toContainText("현재 검색한 1개 후보 기준");
+  await expect(needs.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "true");
   expect(calls).toBe(2);
+  expect(searches).toBe(0);
 });
 
 test("조회 실패·부분 결과·정상 0건을 구분하고 다시 확인할 수 있다", async ({ page }) => {

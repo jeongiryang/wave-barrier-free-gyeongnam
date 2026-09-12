@@ -14,7 +14,7 @@ import { useMapFailureFocus } from "./useMapFailureFocus";
 import { useNearbyPlaces } from "./useNearbyPlaces";
 import { useRoadviewController } from "./useRoadviewController";
 
-export function useRouteMapController({ origin, places, route, crowd, crowdPlaceId, onOriginChange, onDestinationChange, onSavePlaces }: RouteMapProps) {
+export function useRouteMapController({ origin, places, route, crowd, crowdPlaceId, focusedPlaceId, onPlaceFocus, onOriginChange, onDestinationChange, onSavePlaces }: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const kakaoMapRef = useRef<KakaoMap | null>(null);
@@ -23,6 +23,8 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   const pickModeRef = useRef<MapPickMode>(null);
   const onOriginChangeRef = useRef(onOriginChange);
   const onDestinationChangeRef = useRef(onDestinationChange);
+  const onPlaceFocusRef = useRef(onPlaceFocus);
+  useEffect(() => { onPlaceFocusRef.current = onPlaceFocus; }, [onPlaceFocus]);
 
   const [provider, setProvider] = useState<MapProvider>("loading");
   const providerRef = useRef<MapProvider>("loading");
@@ -54,12 +56,34 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     if (!isMapAvailable()) return;
     setSelectedMapPlace(place);
     setToolPanel("place");
+    onPlaceFocusRef.current?.(place);
     const map = kakaoMapRef.current;
     const sdk = window.kakao?.maps;
     const lat = Number(place.mapY);
     const lng = Number(place.mapX);
     if (map && sdk && Number.isFinite(lat) && Number.isFinite(lng)) map.panTo(new sdk.LatLng(lat, lng));
   }, [isMapAvailable, setToolPanel]);
+
+  useEffect(() => {
+    if (!focusedPlaceId || provider === 'loading' || provider === 'error') return;
+    const place = places.find(item => item.id === focusedPlaceId);
+    if (!place) return;
+    const frame = requestAnimationFrame(() => {
+      setSelectedMapPlace(place);
+      const lat = Number(place.mapY), lng = Number(place.mapX);
+      if (lat >= 33 && lat <= 39 && lng >= 124 && lng <= 132) {
+        const sdk = window.kakao?.maps;
+        if (sdk && kakaoMapRef.current) kakaoMapRef.current.panTo(new sdk.LatLng(lat, lng));
+        else mapRef.current?.panTo([lat, lng], { animate: !matchMedia('(prefers-reduced-motion: reduce)').matches });
+      }
+      for (const marker of containerRef.current?.querySelectorAll<HTMLElement>('[data-place-id]') || []) {
+        const selected = marker.dataset.placeId === focusedPlaceId;
+        marker.classList.toggle('itinerary-focused', selected);
+        if (selected) marker.setAttribute('aria-current', 'location'); else marker.removeAttribute('aria-current');
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusedPlaceId, places, provider]);
 
   const { baseMap, activeLayers, layerError, layerRecovery, restoreMapLayers, clearAppliedMapLayers, changeBaseMap, toggleLayer } = useMapLayers(kakaoMapRef);
   const {

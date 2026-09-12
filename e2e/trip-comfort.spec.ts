@@ -8,7 +8,7 @@ test("companions combine needs without erasing existing choices; walking prefere
   await page.goto("/planner");
   await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
   await page.getByRole("button", { name: /자연·휴양/ }).click();
-  await page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 고르기 →", exact: true }).click();
+  await page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 선택", exact: true }).click();
   const selected = page.getByRole("group", { name: "여행 편의 조건 선택" });
   await selected.getByRole("button", { name: /휠체어 편의시설/ }).click();
   const panel = page.locator(".trip-comfort-choices");
@@ -59,7 +59,9 @@ test("walking evidence, planned rests and nearby restroom stops stay integrated 
   await page.locator(".planner-navigation nav button").nth(3).click();
   const board = page.locator(".reference-day-list"), comfort = board.locator(".trip-comfort-plan"), finder = board.locator(".rest-stop-finder");
   await comfort.locator("summary").click();
-  await expect(comfort).toContainText("아직 걷기 구간을 확인하지 않았어요");
+  // All ordered journeys are now checked automatically before an explicit
+  // recheck; both legs must contribute actual walking evidence.
+  await expect(comfort).toContainText("확인한 2구간의 걷기 54분");
   await comfort.getByRole("button", { name: "이동 구간 확인", exact: true }).click();
   await expect(comfort).toContainText("연속 걷기 15분, 고른 기준보다 길어요");
   await expect(comfort).toContainText("걷기 54분");

@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, chooseTripConditions } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions, plan } from "./fixtures";
 
-test("공식 편의근거가 없는 장소는 추천과 내 일정에서 분리한다", async ({ page }) => {
+test("명시적 편의 불일치와 미확인은 구분하고 불일치 장소는 일정에 추가하지 않는다", async ({ page }) => {
   await mockPlannerApi(page, { explorationOnly: true });
+  await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: { ...plan, places: [], stops: [], criteria: { facilityKeys: ["route"] }, explorationPlaces: plan.places.map((place, index) => ({ ...place, score: index ? null : 0, accessibility: [{ key: "route", label: "접근로", state: index ? "unknown" : "negative", detail: index ? "" : "접근로 없음" }], knownFields: index ? 0 : 1, unknownFields: index ? 1 : 0, negativeFields: index ? 0 : 1 })) } }));
   await page.goto("/planner");
   await chooseTripConditions(page);
 
@@ -18,7 +19,8 @@ test("공식 편의근거가 없는 장소는 추천과 내 일정에서 분리�
   await exploration.getByRole("button", { name: "이용 정보 확인" }).first().click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("button", { name: "일정에 추가" })).toBeDisabled();
-  await expect(dialog.getByText(/현재 추천에서 필요한 편의가 확인된 장소만/)).toBeVisible();
+  await expect(dialog.getByText(/필요한 편의가 제공되지 않는 것으로 기록된 장소는 추가할 수 없어요/)).toBeVisible();
+  await expect(dialog.getByRole("checkbox")).toHaveCount(0);
 });
 
 test("교통·요금·임시 이동값은 확인 범위를 그대로 말한다", async ({ page }) => {

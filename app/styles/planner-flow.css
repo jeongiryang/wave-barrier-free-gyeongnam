@@ -40,9 +40,14 @@
 .itinerary-route-coverage button,.itinerary-route-coverage select { min-height: 44px; margin: 8px 8px 0 0; max-width: 100%; padding: 8px 12px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
 .itinerary-route-coverage label { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .itinerary-route-coverage .departure-review-check { flex-wrap: nowrap; align-items: flex-start; }
+/* Automatic checks must not move a route choice being held below this panel. */
+.itinerary-route-coverage .coverage-leg-evidence,.itinerary-route-coverage .coverage-notice { display: grid; }
+.itinerary-route-coverage :is(.coverage-leg-evidence,.coverage-notice)::before { content: attr(data-reserve-text); visibility: hidden; grid-area: 1 / 1; }
+.itinerary-route-coverage :is(.coverage-leg-evidence,.coverage-notice) > span { grid-area: 1 / 1; }
+.itinerary-route-coverage button:disabled { cursor: not-allowed; opacity: .55; }
 .weather-illustration { width: 80px; height: 80px; flex-shrink: 0; }
 .facility-caution { font-size: .86rem; line-height: 1.5; color: #536b74; }
-.place-address { min-height: 2.8em; }
+
 .evidence-counts { display: flex; flex-wrap: wrap; gap: 8px; padding: 18px 0; }
 .evidence-counts span { background: #e8f2f5; color: #204c5a; padding: 8px 12px; border-radius: 8px; }
 .facility-evidence-list { display: grid; gap: 10px; }
@@ -81,8 +86,7 @@ html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38;
 .journey-editorial .place-content .place-address { margin: 0 0 20px; font-size: .88rem; line-height: 1.65; overflow-wrap: anywhere; }
 .place-facilities { border-top: 1px solid var(--line); padding-top: 16px; font-size: .88rem; }
 .place-facilities strong { font-size: .82rem; color: var(--muted); }
-.place-facilities ul { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 0; margin: 10px 0 16px; list-style: none; }
-.place-facilities p { margin: 10px 0 16px; }
+
 .place-content .facility-caution { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 18px; color: var(--muted); }
 .journey-editorial .place-actions { border-color: var(--line); }
 .journey-editorial .place-actions button { position: relative; gap: 8px; border: 1px solid var(--line); color: var(--ink); background: var(--white); }
@@ -111,7 +115,6 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 @media (prefers-reduced-motion: reduce) { .condition-inputs { animation: none; }.journey-editorial .profile-card { transition: none; transform: none; } }
 /* Owner 8+10, 2026-09-11: four chapters over the preserved functional planner. */
 .planner-reference {
-
 
     --reference-tint: #efecf5;
   background: #f5f4f8; color: #2b2632; min-height: 100vh; padding: 0 0 24px;
@@ -395,7 +398,6 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 }
 
 .planner-reference .planner-journey-workspace .theme-grid button.active small { color: #51475e; }
-
 
 .planner-reference .reference-board-map .route-map-shell:not(.expanded):not(:fullscreen) { height: auto; min-height: 0; }
 

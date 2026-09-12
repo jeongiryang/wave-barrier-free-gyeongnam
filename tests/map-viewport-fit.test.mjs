@@ -310,6 +310,7 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
     Polyline: Overlay, load: done => done(),
   };
   const layer = () => ({
+    getElement() { return { dataset: {} }; },
     addTo() {
       return this;
     }, bindPopup() {
@@ -326,7 +327,7 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
   const document = {
     createElement(tag) {
       return {
-        tag, children: [], style: { setProperty: noop },
+        tag, children: [], dataset: {}, style: { setProperty: noop },
         setAttribute(name, value) {
           this[name] = value;
         },

@@ -86,7 +86,11 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await page.getByRole("button", { name: en ? /Nature and relaxation/ : /자연·휴양 공원/ }).click();
     await trigger.click();
     await expect(add).toBeDisabled();
-    await expect(dialog).toContainText(en ? "Search again if you changed your preferences" : "조건을 바꿨다면 여행지를 다시 찾아주세요");
+    await expect(dialog.getByText(en
+      ? "Open a place from your current search before adding it. If your preferences or results changed, search again and reopen its details."
+      : "현재 검색의 장소를 확인한 뒤 담을 수 있어요. 조건이나 검색 결과가 바뀌었다면 다시 찾아 이용 정보를 열어 주세요.", { exact: true })).toBeVisible();
+    await expect(dialog.locator(".place-unknown-consent")).toHaveCount(0);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual([]);
     expect(errors).toEqual([]);
   });
 }

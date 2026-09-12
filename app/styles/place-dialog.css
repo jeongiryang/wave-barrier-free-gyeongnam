@@ -41,6 +41,10 @@ html[data-theme="dark"] .region-change-dialog { background: #082938; color: #eaf
 .feedback-box textarea::placeholder { color: var(--muted); opacity: 1; }
 .place-external-review { margin: 0 0 10px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 14px; border: 1px solid var(--line); border-radius: 11px; color: var(--ink); background: var(--paper); text-decoration: none; transition: transform .18s ease,border-color .18s,background .18s; }.place-external-review:hover { border-color: var(--blue); background: var(--sky); transform: translateY(-2px); }.place-external-review span { display: grid; gap: 2px; }.place-external-review b { font-size: 0.875rem; }.place-external-review small { color: #696071; font-size: 0.75rem; }.place-external-review i { color: var(--blue); font-style: normal; font-weight: 600; }
 .modal-body > button { width: 100%; min-height: 48px; margin: var(--s-4) 0; padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; border: 0; color: var(--on-blue); background: var(--blue); font-size: 0.875rem; font-weight: 600; }
+.place-unknown-consent { margin-block: 20px 8px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.place-unknown-consent p { margin: 0 0 12px; color: var(--ink); line-height: 1.7; }
+.place-unknown-consent label { display: flex; align-items: center; gap: 12px; min-height: 44px; color: var(--ink); cursor: pointer; }
+.place-unknown-consent input { flex: 0 0 22px; width: 22px; height: 22px; accent-color: var(--blue); }
 .modal-note { display: block; margin-top: 12px; color: #696071; font-size: 0.875rem; line-height: 1.6; }
 html[data-theme="dark"] .place-modal { color: var(--ink); background: var(--paper); }
 html[data-theme="dark"] .place-evidence, html[data-theme="dark"] .modal-data > span { color: var(--ink); border-color: var(--line); background: var(--surface); }
@@ -70,17 +74,16 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
 
 @media (max-width: 1100px) {
   :root { --content: min(94vw, 940px); }
-  .gyeongnam-map { inset: 0 4% 7%; }
+
   .profile-panel, .selection-bar, .planner-notice { grid-column: auto; }
   .guide-player { width: min(600px, 100%); margin: auto; }
 }
 
 @media (max-width: 780px) {
   :root { --content: calc(100vw - 24px); }
-  .gyeongnam-map { inset: 0 -6% 14%; }
+
   .places-section { padding: 88px 20px; }
-  .section-heading { margin-bottom: 38px; }
-  .section-heading h2 { font-size: clamp(2.3rem, 11vw, 3.6rem); }
+
   .theme-grid { grid-template-columns: 1fr 1fr; }
   .profile-grid { grid-template-columns: 1fr 1fr; }
   .selection-bar { align-items: stretch; flex-direction: column; }
@@ -98,7 +101,7 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
 @media (max-width: 520px) {
   .brand { font-size: 1rem; }
   .primary-button { justify-content: space-between; }
-  .gyeongnam-map { inset: 4% -13% 19%; }
+
   .control-panel { padding: 17px; border-radius: 18px; }
   .theme-grid, .profile-grid { grid-template-columns: 1fr; }
   .profile-card { min-height: 74px; }

@@ -31,7 +31,7 @@ jobs:
           persist-credentials: false
       - name: Confirm Production deployment SHA
         id: binding
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71
         with:
           script: await require(process.env.GITHUB_WORKSPACE + '/.github/automation/check-deployment.cjs').checkDeployment({github,context,core});
       - name: Node.js 설정
@@ -45,7 +45,7 @@ jobs:
         run: npm ci
       - name: Provider hold preflight
         id: hold
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71
         with:
           script: await require(process.env.GITHUB_WORKSPACE + '/.github/automation/provider-hold.cjs').preflight({github,context,core});
       - name: Production API·화면 실응답 검사
@@ -75,12 +75,12 @@ jobs:
         run: npx playwright test --config=playwright.production.config.ts
       - name: Recheck deployment after smoke
         if: ${{ !cancelled() && steps.binding.outcome == 'success' }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71
         with:
           script: await require(process.env.GITHUB_WORKSPACE + '/.github/automation/check-deployment.cjs').checkDeployment({github,context,core});
       - name: Production QA 증거 보관
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: post-deploy-production-qa-${{ github.event.workflow_run.head_sha }}
           path: |
@@ -105,7 +105,7 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
       - name: Record external operation once
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71
         env:
           PROVIDER_BLOCK: ${{ needs.verify.outputs.provider_block }}
         with:
@@ -126,7 +126,7 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
       - name: PM evidence handoff (accepted is not completed)
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71
         env:
           WAVE_PM_AGENT_TRIGGER_ID: ${{ secrets.WAVE_PM_AGENT_TRIGGER_ID }}
           WAVE_PM_AGENT_ACCESS_TOKEN: ${{ secrets.WAVE_PM_AGENT_ACCESS_TOKEN }}

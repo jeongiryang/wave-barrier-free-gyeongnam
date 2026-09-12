@@ -10,14 +10,23 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: photo }));
 });
 
-test("primary navigation remains visible while scrolling and utilities collapse into its menu", async ({ page }) => {
+test("navigation hides downward, returns after deliberate upward scrolling and stays available on keyboard focus", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/"); await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   const nav = page.locator(".wave-header");
+  await expect(nav).toHaveAttribute("data-hidden", "false");
   await page.evaluate(() => scrollTo({ top: 500, behavior: "instant" }));
+  await expect(nav).toHaveAttribute("data-hidden", "true");
+  await page.evaluate(() => scrollTo({ top: 460, behavior: "instant" }));
+  await expect(nav).toHaveAttribute("data-hidden", "true");
+  await page.evaluate(() => scrollTo({ top: 350, behavior: "instant" }));
+  await expect(nav).toHaveAttribute("data-hidden", "false");
   await expect(nav).toBeInViewport();
   await expect(nav.locator(".help-button")).toBeHidden();
   const home = nav.locator(".wave-wordmark"); await home.focus(); await expect(home).toBeFocused();
-  await expect(nav.getByRole("navigation").getByRole("link")).toHaveCount(3);
+  await page.evaluate(() => scrollTo({ top: 900, behavior: "instant" }));
+  await expect(nav).toHaveAttribute("data-hidden", "false");
+  await expect(nav.getByRole("navigation").getByRole("link")).toHaveText(["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
   for (const control of [home,nav.locator(".wave-my-trips")]) { const box = await control.boundingBox(); expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44); }
   await expect(page.locator(".wave-header .help-button")).toBeEnabled();
   await expect(page.locator(".wave-footer-tools")).toHaveCount(0);

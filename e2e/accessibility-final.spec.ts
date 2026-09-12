@@ -25,12 +25,12 @@ test("OS 동작 줄이기는 저장된 full보다 우선하고 부분 번역 중
   await expect.poll(() => page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
 });
 
-test("320px 공개 화면의 세 메뉴와 내 여행은 항상 보이고 키보드로 이동한다", async ({ page }) => {
+test("320px 공개 화면의 네 메뉴와 내 여행은 키보드로 접근할 수 있다", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page); await page.goto("/");
   const header = page.locator(".wave-header");
-  await expect(header.getByRole("navigation").getByRole("link")).toHaveCount(3);
+  await expect(header.getByRole("navigation").getByRole("link")).toHaveText(["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
   for (const link of await header.getByRole("link").all()) {
     await expect(link).toBeVisible(); const box = await link.boundingBox();
     expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44);

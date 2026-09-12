@@ -82,7 +82,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
         escapedRequests.push(request.method() + " " + url.origin + url.pathname);
         return route.abort("blockedbyclient");
       });
-      await mockPlannerApi(page, { crowdRate: 80 });
+      await mockPlannerApi(page, { crowdRate: 80, savedPlaces: places });
       // The actual region chooser now renders an official destination photo.
       // Keep this Leaflet geometry test fully local, including that new image.
       await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({

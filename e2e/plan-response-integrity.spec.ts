@@ -33,7 +33,7 @@ for (const invalid of ["invalid-json", "missing-fields", "damaged-place"] as con
       if (attempts > 1) return route.fallback();
       return route.fulfill({ status: 200, contentType: "application/json", body: invalid === "invalid-json" ? "not-json" : invalid === "missing-fields" ? "{}" : JSON.stringify({ ...plan, places: [null] }) });
     });
-    await page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true }).click();
+    await page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 둘러보기 →", exact: true }).click();
     await expect(page.locator(".result-notice.error")).toBeVisible();
     await expect(page.getByRole("button", { name: en ? "용지호수공원 Add to itinerary" : "용지호수공원 일정에 추가", exact: true })).toBeDisabled();
     await expect(page.getByRole("button", { name: en ? "경남도립미술관 Remove from itinerary" : "경남도립미술관 일정에서 빼기", exact: true })).toBeEnabled();

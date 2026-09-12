@@ -28,7 +28,7 @@ export default function TravelBookArchiveAction({ places, region, theme, profile
   const { locale } = useSitePreferences();
   const noticeId = useId();
   const c = (ko: string, en: string) => locale === "en" ? en : ko;
-  const { hydrated, archive } = useTravelBook();
+  const { hydrated, archive, storageError } = useTravelBook();
   const [saved, setSaved] = useState<boolean | null>(null);
   const accountBook = createTravelBookSnapshot({ places, region, theme, profiles, travelStart, travelEnd, dayStartTime, scheduleAssignments, visitMinutesByPlaceId, fixedVisits, dayDeadlines, comfort, breakMinutesByPlaceId, restPurposeByPlaceId });
   const outsideDates = places.some(place => scheduleAssignments[place.id] && (scheduleAssignments[place.id] < travelStart || scheduleAssignments[place.id] > travelEnd));
@@ -58,7 +58,7 @@ export default function TravelBookArchiveAction({ places, region, theme, profile
       <Link href="/travel-book">{c("저장한 일정 보기", "View saved itineraries")} <span aria-hidden="true">→</span></Link>
     </div>
     <p id={noticeId}>{outsideDates ? c("기간 밖 장소의 날짜를 선택하거나 일정에서 제외한 뒤 저장해 주세요. 원래 날짜는 자동으로 옮기지 않습니다.", "Choose dates for places outside this period or remove them before saving. Their original dates will not be moved automatically.") : ""}</p>
-    <small role="status" aria-live="polite">{notice}</small>
+    <small role="status" aria-live="polite">{storageError || notice}</small>
     {locale === "ko" && accountBook && <CloudSaveAction book={accountBook} />}
   </div>;
 }

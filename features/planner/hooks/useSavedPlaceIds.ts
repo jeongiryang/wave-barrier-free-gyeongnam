@@ -72,6 +72,10 @@ export function useSavedPlaceIds() {
   }, []);
 
   const resetSaved = useCallback(() => { setSaved([]); setCatalog([]); }, []);
+  const restoreSavedSnapshot = useCallback((places: Place[]) => {
+    const next = sanitizeSavedPlaceCatalog(places);
+    setSaved(next.map(place => place.id)); setCatalog(next);
+  }, []);
   const restoreSavedPlace = useCallback((place: Place, index: number) => {
     setSaved(current => {
       if (current.includes(place.id)) return current;
@@ -80,5 +84,5 @@ export function useSavedPlaceIds() {
     setCatalog(current => mergeSavedPlaceCatalog(current, [place]));
   }, []);
 
-  return { resetSaved, saved, catalog, storageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId, restoreSavedPlace };
+  return { resetSaved, restoreSavedSnapshot, saved, catalog, storageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId, restoreSavedPlace };
 }

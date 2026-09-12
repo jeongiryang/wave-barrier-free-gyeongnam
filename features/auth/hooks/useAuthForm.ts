@@ -63,7 +63,7 @@ export function useAuthForm(mode: AuthMode, returnTo?: string) {
       if (result.error) throw new Error(result.error.message || "인증을 완료하지 못했습니다.");
       completed = true;
       setSuccess(true);
-      setMessage(registering ? "WAVE 계정이 만들어졌습니다. 여행자 이야기로 이동합니다." : "로그인했습니다. 이전 화면으로 이동합니다.");
+      setMessage(registering ? "WAVE 계정이 만들어졌습니다. 내 여행으로 이동합니다." : "로그인했습니다. 이전 화면으로 이동합니다.");
       redirectTimer.current = window.setTimeout(() => router.push(next), 450);
     } catch (error) {
       // 요청 중 값을 고쳤다면 응답은 이전 값에 대한 것이므로 오래된 오류를 다시 띄우지 않는다.

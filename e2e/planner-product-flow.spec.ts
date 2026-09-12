@@ -21,7 +21,7 @@ test("390px·768px·1440px에서 네 단계 계획 흐름과 단일 일정이 �
   await chooseTripConditions(page);
     await expect(page.getByRole("heading", { name: "여행 조건 정하기" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "내 조건에 맞는 여행지" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /여행, 순서만 정하면 돼요/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "여행 순서를 편하게 정리하세요.", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "출발 전에 이것만 다시 확인하세요." })).toBeVisible();
     await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toHaveCount(0);
     await expect(page.getByRole("region", { name: "내 일정", exact: true })).toHaveCount(1);

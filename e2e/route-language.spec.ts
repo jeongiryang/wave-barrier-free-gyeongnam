@@ -16,6 +16,11 @@ async function prepare(page: Page, setup?: () => Promise<void>) {
   await page.getByRole("button", { name: "경남도립미술관 Add to itinerary", exact: true }).click();
   await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
   await page.locator(".itinerary-route-coverage select").selectOption("car");
+  // The selected map journey and the automatic itinerary check are separate
+  // operations. Let the automatic check finish before measuring a later action.
+  const coverage = page.locator(".itinerary-route-coverage");
+  await expect(coverage.getByRole("status")).toContainText("1 of 1 journeys found");
+  await expect(coverage.getByRole("button", { name: "Check all journeys", exact: true })).toHaveAttribute("aria-busy", "false");
 }
 
 for (const theme of ["light", "dark"] as const) {

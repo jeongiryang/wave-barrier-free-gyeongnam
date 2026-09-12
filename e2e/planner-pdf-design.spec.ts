@@ -40,7 +40,12 @@ test("8+10 시안: 지역부터 날짜·일정·전체보기까지 실제 저장
   await page.getByRole("button", { name: "다음: 일정 만들기", exact: true }).click();
   const board = page.locator(".reference-day-list");
   await expect(board.getByRole("button", { name: "경남도립미술관", exact: true })).toBeVisible();
+  // A changed date preserves saved visits but must refresh old recommendations
+  // before another place can be added under the new trip conditions.
+  await expect(page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "선택한 조건으로 여행지 찾기", exact: true }).click();
   await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
+  await page.locator(".planner-navigation nav button").nth(3).click();
   await expect(board.locator(".reference-stop")).toHaveCount(2);
   await board.getByRole("button", { name: "용지호수공원 같은 날 앞 순서로 이동" }).click();
   await expect(board.locator(".reference-stop-copy > button").first()).toHaveText("용지호수공원");

@@ -1,10 +1,6 @@
 import { clean, httpsUrl } from "../shared/http";
 import type { ProviderAttempt as Attempt, ProviderItem as KtoItem } from "../shared/provider-data";
-
-function hasMeaningfulValue(value: unknown) {
-  const text = clean(value);
-  return Boolean(text && !/(없음|미제공|해당없음|정보 없음|불가)/.test(text));
-}
+import { matchingAudioStories } from "../../lib/odii-evidence.js";
 
 export function courseFrom(result: Attempt) {
   if (!result.ok || !result.value.items.length) return null;
@@ -34,9 +30,11 @@ export function richSpot(item: KtoItem, source: string) {
   };
 }
 
-export function audioFrom(result: Attempt) {
-  if (!result.ok || !result.value.items.length) return null;
-  const item = result.value.items.find((value) => hasMeaningfulValue(value.audioUrl)) || result.value.items[0];
+export function audioFrom(result: Attempt, place?: { name: string; mapX: string; mapY: string }) {
+  if (!result.ok || !place) return null;
+  const stories = matchingAudioStories(result.value.items, place);
+  const item = stories.find((value: KtoItem) => httpsUrl(value.audioUrl)) || stories[0];
+  if (!item) return null;
   return {
     title: clean(item.title), audioTitle: clean(item.audioTitle || item.title),
     audioUrl: httpsUrl(item.audioUrl),

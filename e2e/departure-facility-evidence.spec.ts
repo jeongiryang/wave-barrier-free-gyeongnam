@@ -15,10 +15,18 @@ for (const scenario of ["complete", "partial", "negative", "legacy"] as const) f
   let omitSavedPlace = false;
   await page.route("**/api/wave?*", route => {
     const params = new URL(route.request().url()).searchParams;
-    if (params.get("action") !== "plan") return route.fallback();
-    searches++;
+    const action = params.get("action");
+    if (action !== "plan" && action !== "places") return route.fallback();
     const facilityKeys = [...fields.map(field => field.key), ...(params.get("profiles")?.split(",").includes("baby") ? ["stroller", "lactationroom", "babysparechair"] : [])];
-    return route.fulfill({ json: { ...plan, criteria: { facilityKeys }, places: plan.places.filter(place => !omitSavedPlace || place.id !== "1001").map(place => ({ ...place, score: 100, knownFields: 5, accessibility: scenario === "legacy" ? undefined : fields })) } });
+    const places = plan.places.filter(place => !omitSavedPlace || place.id !== "1001").map(place => ({ ...place, score: 100, knownFields: 5, accessibility: scenario === "legacy" ? undefined : fields }));
+    // The same synthetic facility record must also back the saved-ID refresh.
+    // Otherwise its generic legacy fixture races the item-level search response.
+    if (action === "places") {
+      const ids = (params.get("ids") || "").split(",");
+      return route.fulfill({ json: { places: places.filter(place => ids.includes(place.id)), missing: ids.filter(id => !places.some(place => place.id === id)) } });
+    }
+    searches++;
+    return route.fulfill({ json: { ...plan, criteria: { facilityKeys }, places } });
   });
   await page.goto("/planner");
   await chooseTripConditions(page);
@@ -55,7 +63,7 @@ for (const scenario of ["complete", "partial", "negative", "legacy"] as const) f
     await page.getByRole("button", { name: en ? /Facilities for young children/ : /유아 편의시설/ }).click();
     await expect(evidence).toHaveClass("recheck");
     expect(searches).toBe(before);
-    const search = page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true });
+    const search = page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 둘러보기 →", exact: true });
     await search.click();
     await expect(evidence).toHaveClass("partial");
     await expect(evidence).toContainText(en ? "Reported available 5" : "확인됨 5");

@@ -88,3 +88,5 @@ html[data-theme="dark"] .travel-book-archive-action { border-color: #376575; bac
 .account-trip-dates { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,180px),1fr)); gap: 16px; }
 #account-travel .travel-book-actions { grid-template-columns: repeat(auto-fit,minmax(min(100%,180px),1fr)); }
 #account-travel .travel-book-days section > header strong { color: var(--ink); font-size: 1rem; }
+.open-trip-in-planner > button { min-height: 44px; padding: 12px 18px; border: 0; border-radius: 12px; color: white; background: #6940a6; font: inherit; font-weight: 650; cursor: pointer; }
+.open-trip-in-planner > button:disabled { opacity: .6; cursor: wait; }

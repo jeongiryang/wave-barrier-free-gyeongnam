@@ -66,10 +66,7 @@ button {
 
 /* --- 접근성 아이콘 -------------------------------------------------------- */
 .profile-icon svg { display: block; }
-.profile-icon {
-  color: var(--blue-dark);
-  border-radius: var(--r-md);
-}
+
 .profile-card.active .profile-icon { color: var(--blue); }
 
 /* 브랜드 마크 옆 무장애 표식 */

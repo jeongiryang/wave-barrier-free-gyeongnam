@@ -119,7 +119,7 @@ test("여행집 UI는 로컬 저장·키보드·모바일·다크 테마 계약�
   assert.match(helper, /wave-travel-book-v1/);
   assert.match(hook, /wave-saved-places/);
   assert.match(hook, /wave-trip-schedule-v1/);
-  assert.match(privacy, /여행집은 브라우저 저장소에만 둡니다/);
+  assert.match(privacy, /여행집은 브라우저의 기기 저장소에 둡니다/);
   assert.match(page, /aria-pressed/);
   assert.match(page, /role="group"/);
   assert.match(page, /maxLength=\{1200\}/);

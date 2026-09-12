@@ -29,6 +29,7 @@ interface JourneyProgressOptions {
   routeDestinationName: string;
   weatherReady: boolean;
   searched?: boolean;
+  resultsAvailable?: boolean;
   reviewed?: boolean;
   itineraryReviewed?: boolean;
 }
@@ -47,6 +48,7 @@ export function useJourneyProgress({
   routeDestinationName,
   weatherReady,
   searched = false,
+  resultsAvailable = searched,
   reviewed = false,
   itineraryReviewed = false,
 }: JourneyProgressOptions) {
@@ -67,7 +69,7 @@ export function useJourneyProgress({
       label: en ? "Places" : "여행지",
       detail: recommendedCount ? en ? `${recommendedCount} places with official evidence` : `공식 근거 추천 ${recommendedCount}곳` : en ? "Check recommended places" : "공식 추천을 확인",
       complete: searched && recommendedCount > 0 && currentSavedCount > 0,
-      available: searched,
+      available: resultsAvailable,
     },
     {
       id: "itinerary",
@@ -85,7 +87,7 @@ export function useJourneyProgress({
       complete: searched && currentSavedCount > 0 && itineraryReviewed && reviewed,
       available: savedCount > 0,
     },
-  ], [en, currentSavedCount, recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady, searched, reviewed, itineraryReviewed]);
+  ], [en, currentSavedCount, recommendedCount, routeDestinationName, savedCount, selectedProfileCount, weatherReady, searched, resultsAvailable, reviewed, itineraryReviewed]);
 
   useEffect(() => {
     if (!observeSections) return;
@@ -129,8 +131,8 @@ export function useJourneyProgress({
     // Storage is read after the first render. An initial zero count is not an
     // empty trip: preserve the requested URL stage until restoration finishes.
     if (!tripReady) return;
-    if (!observeSections && !steps.find((step) => step.id === activeStepId)?.available) onActiveStepChange(searched ? "places" : "conditions");
-  }, [activeStepId, observeSections, onActiveStepChange, searched, steps, tripReady]);
+    if (!observeSections && !steps.find((step) => step.id === activeStepId)?.available) onActiveStepChange(resultsAvailable ? "places" : "conditions");
+  }, [activeStepId, observeSections, onActiveStepChange, resultsAvailable, steps, tripReady]);
 
   const completedCount = steps.filter((step) => step.complete).length;
   const nextStep = steps.find((step) => !step.complete) || steps.at(-1)!;

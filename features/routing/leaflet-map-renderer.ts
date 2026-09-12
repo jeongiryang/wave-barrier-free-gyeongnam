@@ -64,6 +64,7 @@ export async function renderLeafletMap(
   }).addTo(map);
 
   const bounds: Array<[number, number]> = [];
+  const venueMarkers: Array<{ marker: import("leaflet").Marker; id: string }> = [];
   const originIcon = L.divIcon({
     className: "wave-map-icon origin",
     html: "<span>출발</span>",
@@ -92,10 +93,11 @@ export async function renderLeafletMap(
       popupAnchor: image ? [0, -78] : [0, -24],
     });
     const evidenceLabel = "편의시설과 실제 이동 가능 여부는 방문 전 확인";
-    L.marker([lat, lng], { icon, title: place.name })
+    const venueMarker = L.marker([lat, lng], { icon, title: place.name })
       .addTo(map)
       .bindPopup(`<strong>${escapeMapHtml(place.name)}</strong><br>${evidenceLabel}`)
       .on("click", () => choosePlace(place));
+    venueMarkers.push({ marker: venueMarker, id: place.id });
     if (isCrowdPlace && crowdVisual) L.circle([lat, lng], {
       radius: crowdVisual.radius,
       color: crowdVisual.color,
@@ -137,6 +139,12 @@ export async function renderLeafletMap(
   // Leaflet queues marker layers until its first view. Measure again once
   // those DOM pins exist, also when a new day has the same shell dimensions.
   // This is synchronous for an initialized map and does not wait on a timer.
-  map.whenReady(fit);
+  map.whenReady(() => {
+    for (const { marker, id } of venueMarkers) {
+      const element = marker.getElement();
+      if (element) element.dataset.placeId = id;
+    }
+    fit();
+  });
   setProvider("osm");
 }

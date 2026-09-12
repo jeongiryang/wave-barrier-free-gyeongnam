@@ -18,10 +18,10 @@ const fields: Record<string, { hours?: string; rest?: string; fees?: string; pho
 };
 
 // The client supplies one public ID, never a provider type, location or itinerary.
-export async function handleVisitInfo(url: URL, env: Env) {
+export async function handleVisitInfo(url: URL, env: Env, parentSignal?: AbortSignal) {
   const id = url.searchParams.get("contentId") || "";
   if (!/^[1-9]\d{0,11}$/.test(id)) return json({ status: "invalid-id" }, 400);
-  const deadline = AbortSignal.timeout(SERVER_BUDGET_MS.visitInfo);
+  const deadline = AbortSignal.any([AbortSignal.timeout(SERVER_BUDGET_MS.visitInfo), ...(parentSignal ? [parentSignal] : [])]);
   const remaining = budgetClock(SERVER_BUDGET_MS.visitInfo);
   const lookup = (operation: string, params: Record<string, string>) => withinBudget(
     attemptProvider(fetchTourismData(env, "KorService2", operation, params, deadline)), remaining(),

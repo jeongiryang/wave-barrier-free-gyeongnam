@@ -30,7 +30,6 @@
 .journey-subheading h2 { margin: 0; display: grid; gap: 4px; color: var(--ink); font-size: clamp(1.45rem, 2.3vw, 2.2rem); letter-spacing: -.045em; }
 .journey-subheading h2 small { color: var(--blue); font-size: .58rem; font-weight: 900; letter-spacing: .08em; }
 .journey-subheading > p { margin: 0; color: var(--muted); font-size: .76rem; font-weight: 760; }
-.stage-guidance { margin: -14px 0 22px; color: var(--muted); font-size: .82rem; }
 
 /* 기존 최상위 전용 carousel 규칙을 통합 워크스페이스 안에서도 동일하게 유지한다. */
 .planner-journey-workspace > .places-section .place-carousel { width: auto; }
@@ -99,7 +98,7 @@
   .journey-subheading > div { align-items: flex-start; flex-direction: column; gap: 8px; }
   .route-mode-sections { grid-template-columns: 1fr; }
   .place-community-stories > header { align-items: flex-start; flex-direction: column; }
-  .stage-guidance { margin-top: -12px; }
+
   .itinerary-primary-actions { grid-template-columns: 1fr; }.itinerary-primary-actions a,.itinerary-primary-actions small { grid-column: 1; }
   .navigation-section .workspace-heading,.travel-layers > summary { align-items: flex-start; flex-direction: column; }
   .travel-layers > summary { padding: 16px 14px; }.travel-signal-content { padding: 0 14px 24px; }

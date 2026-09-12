@@ -44,6 +44,16 @@ test("device location stays out of external URLs and route requests with an expl
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect(page.locator(".route-option")).toHaveCount(2);
+  const coverage = page.locator(".itinerary-route-coverage");
+  // The map's selected-leg lookup and the automatic itinerary lookup finish
+  // independently. Establish the privacy boundary after both public checks.
+  await expect(coverage.getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
+  await expect(coverage.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
+  for (const request of requests) {
+    const params = new URL(request).searchParams;
+    expect(Object.fromEntries(params)).toEqual({ startLat: "35.2422", startLng: "128.6982", endLat: "35.238", endLng: "128.691", mode: params.get("mode") });
+    expect(["car", "transit"]).toContain(params.get("mode"));
+  }
   const before = requests.length;
   await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();
   page.once("dialog", dialog => dialog.accept());
@@ -51,6 +61,10 @@ test("device location stays out of external URLs and route requests with an expl
   const panel = page.locator(".route-compare-panel");
   await expect(panel).toContainText("현재 위치 좌표는 WAVE 경로 API나 외부 링크에 넣지 않습니다.");
   await expect(panel.locator('a[href^="https://map.kakao.com/"]')).toHaveAttribute("href", `https://map.kakao.com/link/to/${encodeURIComponent("경남도립미술관")},35.238,128.691`);
+  await expect(coverage.locator("ol")).toContainText("현재 위치는 전송하지 않습니다.");
+  await coverage.locator(".coverage-actions button").first().click();
+  await expect(coverage.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
   expect(requests.length).toBe(before);
+  expect(requests.some(request => new URL(request).searchParams.get("startLat") === "35.3" || new URL(request).searchParams.get("startLng") === "128.7")).toBe(false);
   await panel.screenshot({ path: test.info().outputPath("private-origin-recovery.png") });
 });

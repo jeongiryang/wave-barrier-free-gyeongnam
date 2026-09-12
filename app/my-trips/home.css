@@ -1,0 +1,9 @@
+.personal-trip-page .travel-book-hero { min-height: 0; padding-block: 36px; }
+.personal-trip-page .travel-book-hero h1 { font-size: clamp(1.8rem,3vw,2.6rem); }
+.personal-trip-page .travel-book-hero > dl,.personal-trip-page .travel-book-hero span { display: none; }
+.personal-trip-page .travel-book-list > div > .travel-book-actions { margin-block: 20px; }
+.current-trip-card { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 24px; align-items: center; padding: clamp(24px,4vw,48px); margin: 24px 0 40px; background: #f0f1e9; border: 1px solid #dddfd2; border-radius: 24px; }
+.current-trip-card h2 { font-size: clamp(1.4rem,2.5vw,2rem); line-height: 1.5; margin: 12px 0; }
+.current-trip-card p { font-size: 15px; line-height: 1.8; color: #5b5d53; overflow-wrap: anywhere; }
+.current-trip-card .naru-character { width: 120px; height: 120px; }
+@media(max-width:600px) { .current-trip-card { grid-template-columns: minmax(0,1fr); gap: 8px; }.current-trip-card .naru-character { width: 80px; height: 80px; } }

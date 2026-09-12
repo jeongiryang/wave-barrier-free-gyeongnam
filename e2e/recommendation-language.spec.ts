@@ -15,7 +15,7 @@ const place = {
 } satisfies Place;
 
 async function prepare(page: Page, locale: "ko" | "en" = "en") {
-  await mockPlannerApi(page, { plannerView: "overview" });
+  await mockPlannerApi(page, { plannerView: "overview", savedPlaces: [place] });
   await page.addInitScript((value) => localStorage.setItem("wave-locale", value), locale);
   await page.route("**/api/wave?action=plan*", (route) => route.fulfill({ json: {
     mode: "live", generatedAt: place.checkedAt, baseYm: "202608", course: null, audio: null, places: [place], stops: [], statuses: [],
@@ -63,11 +63,17 @@ for (const theme of ["light", "dark"] as const) {
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`evidence-${theme}.png`) });
     await dialog.getByRole("textbox").scrollIntoViewIfNeeded();
+    const audioSummary = dialog.locator('.place-audio-guide > summary');
+    await expect(audioSummary).toBeVisible();
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`participation-${theme}.png`) });
     await dialog.getByRole("button", { name: "Close", exact: true }).focus();
     await page.keyboard.press("Shift+Tab");
+    await expect(audioSummary).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
     await expect(dialog.getByRole("textbox")).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(audioSummary).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(dialog.getByRole("button", { name: "Close", exact: true })).toBeFocused();
     await page.keyboard.press("Escape");

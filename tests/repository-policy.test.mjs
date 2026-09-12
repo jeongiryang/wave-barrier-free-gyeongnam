@@ -310,11 +310,10 @@ test("pull requests must be revalidated against the latest main", async () => {
     source(".github/pull_request_template.md"),
   ]);
   assert.match(rules, /git merge-base --is-ancestor origin\/main HEAD/);
-  assert.match(rules, /이전 커밋의 성공 결과는 재사용하지 않는다/);
+  assert.match(rules, /내용이 달라진 이전 결과는 재사용하지 않는다/);
   assert.match(template, /최신 `origin\/main`/);
   assert.match(template, /npm run typecheck/);
-  assert.match(rules, /Owner의 명시적 승인이 없는 경우/);
-  assert.match(rules, /`syt83`, `unknownamed`를 reviewer/);
+  assert.match(rules, /이미 적용 중인 Owner 리뷰 면제를 다시 묻지 않는다/);
   assert.match(template, /Owner 승인 시 리뷰 3개 대기 면제; `validate` 성공은 필수/);
   assert.match(template, /PR 작성자를 담당자\(assignee\)/);
   assert.match(template, /기존 라벨/);
@@ -331,17 +330,18 @@ test("new issues receive an owner and a safe default label", async () => {
   assert.match(workflow, /labels = \["bug"\]/);
   assert.match(workflow, /process\.env\.ISSUE_TITLE/);
   assert.doesNotMatch(workflow, /const title = [`'"]\$\{\{/);
-  assert.match(rules, /최신 `main`을 기준으로 중복·적합성/);
-  assert.match(rules, /판단의 근거를 이슈 코멘트로 남긴다/);
+  assert.match(rules, /현재 사용자 목표와 수용 기준, 기존 코드·실제 Production·관련 이슈를 확인/);
+  assert.match(rules, /결과를 PR과/);
 });
 
 test("autonomous work stays bounded and merges only after fresh checks", async () => {
-  const rules = await source("CLAUDE.md");
-  assert.match(rules, /최신 `main` 반영, 전체 로컬 검사와 새 HEAD의 CI 성공/);
-  assert.match(rules, /실패·대기 중 검사는 우회하지 않는다/);
-  assert.match(rules, /Repository Owner `jeongiryang`이 명시적으로 승인하면 리뷰 승인 대기는 면제/);
-  assert.match(rules, /선행 PR의 결과가 필요한\s*작업은 그 PR이 병합된 최신 `main`/);
-  assert.match(rules, /승인된 범위의 완료 조건/);
+  const rules = `${await source("AGENTS.md")}\n${await source("CLAUDE.md")}`;
+  assert.match(rules, /최신 main 포함 여부와 필수 validate 성공을 확인/);
+  assert.match(rules, /실패하거나 대기 중인 CI를 우회하는 권한은 아니다/);
+  assert.match(rules, /2026-09-09 Owner 승인에 따라 리뷰 승인 대기는 면제/);
+  assert.match(rules, /같은 규칙을 별도로 재정의하지 않는다/);
+  assert.match(rules, /사용자가 승인한 목표를 구현·검증·PR·배포 확인까지 완수/);
+  assert.match(rules, /완료한 뒤 무관한 새 목표를 찾아 무기한 확장하지 않는다/);
   assert.doesNotMatch(rules, /모든 오류와 버그를 찾아내기 전에는/);
 });
 

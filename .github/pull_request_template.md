@@ -9,7 +9,8 @@
 - [ ] `npm run typecheck`
 - [ ] `npm test`
 - [ ] `npm run build:vercel`
-- [ ] 화면 변경 시 1440px·960px 렌더링 확인
+- [ ] 화면 변경 시 1440px·960px·390px 및 키보드 핵심 흐름 확인
+- [ ] `npm run check:performance`와 변경 범위의 실패·복구 흐름 확인
 - [ ] 비밀정보·GPS 좌표·한국관광공사 원본 응답을 새로 저장하지 않음
 - [ ] PR 작성자를 담당자(assignee)로 지정함
 - [ ] Owner `jeongiryang`의 명시적 승인을 기록했거나, 작성자를 제외한 협업자에게 리뷰를 요청함 (Owner 승인 시 리뷰 3개 대기 면제; `validate` 성공은 필수)

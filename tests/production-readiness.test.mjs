@@ -184,7 +184,8 @@ test("production metadata gives each route a canonical, social card and indexing
   assert.match(manifest, /src: "\/app-icon\.svg", sizes: "192x192"[\s\S]*src: "\/app-icon\.svg", sizes: "512x512"/);
   assert.match(manifest, /src: "\/maskable-icon\.svg", sizes: "192x192"[\s\S]*src: "\/maskable-icon\.svg", sizes: "512x512"/);
   assert.doesNotMatch(readme, /스페인어/);
-  assert.match(readme, /제공 언어는 한국어·영어/);
+  assert.match(readme, /공개 서비스는 한국어·밝은 화면/);
+  assert.match(readme, /영어·어두운 화면은 개발 검수에서만 활성화/);
   assert.doesNotMatch(readme, /영어·일본어·중국어·프랑스어·독일어·러시아어/);
 });
 
@@ -487,7 +488,8 @@ test("travel conditions require explicit search and keep previous results during
   assert.match(request, /planRequestRef\.current\?\.abort\(\)/);
   assert.match(request, /signal: controller\.signal/);
   assert.match(request, /resultSignature !== signature/);
-  assert.match(request, /if \(!region \|\| !requestedTheme \|\| !selected.length \|\| loading\) return false/);
+  assert.match(request, /if \(!requestedRegion \|\| !requestedTheme \|\| loading\) return false/);
+  assert.doesNotMatch(request, /if \([^\n]*!selected.length[^\n]*\) return false/);
   // Changing ordinary criteria must keep results. An explicit confirmed trip
   // replacement now has a separate reset command, covered by runtime tests.
   assert.match(request, /const resetPlan = useCallback/);
@@ -530,7 +532,7 @@ test("planner never substitutes prototype places when official data fails", asyn
   assert.match(planner, /planError &&.*role="alert"/);
 });
 
-test("only positive official accessibility evidence becomes a recommendation or itinerary stop", async () => {
+test("official recommendations stay distinct from explicitly acknowledged unknown itinerary candidates", async () => {
   const [planner, tourism] = await Promise.all([
     plannerProductSource(),
     Promise.all([
@@ -544,7 +546,8 @@ test("only positive official accessibility evidence becomes a recommendation or 
   assert.match(tourism, /recommended: places, exploration: explorationPlaces/);
   assert.match(tourism, /places\.filter\(hasPositiveOfficialEvidence\)/);
   assert.match(tourism, /evidenceState: "verified"/);
-  assert.match(planner, /추천과 일정 추가에서 제외/);
+  assert.match(planner, /필요한 편의가 모두 확인된 추천은 아니에요/);
+  assert.match(await source("features/planner/components/PlaceDecisionDialog.tsx"), /미확인 편의를 방문 전에 확인할 후보로 담기/);
   assert.match(planner, /아직 일정에 추가한 장소가 없어요/);
   assert.match(planner, /정보 미확인/);
   assert.doesNotMatch(planner, /PlannerRouteOverview|PlannerResultsPanel/);

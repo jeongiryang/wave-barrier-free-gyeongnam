@@ -23,7 +23,8 @@ test('나루에서 조건·검색·장소 추가·문의 도구를 사용하고 
   await chat.getByRole('button', { name: '확인하고 적용', exact: true }).click();
   await expect(chat.getByRole('button', { name: '확인한 작업', exact: true })).toBeFocused();
   await expect(chat).toContainText('여행 조건을 반영했어요');
-  await chat.getByRole('button', { name: '여행지 찾기', exact: true }).click();
+  await chat.getByRole('textbox').fill('이 조건으로 여행지를 찾아줘');
+  await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
   await chat.getByRole('button', { name: '열기 / 실행', exact: true }).click();
   const found = chat.locator('.naru-result-list');
   await expect(found).toContainText('경남도립미술관');

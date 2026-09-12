@@ -20,7 +20,7 @@ function savedSnapshot() {
 }
 
 export default function WaveHeader({ current, savedCount, onSaved, className = "" }: {
-  current: "intro" | "planner" | "community" | "travel-book";
+  current: "intro" | "planner" | "community" | "travel-book" | "festivals";
   savedCount?: number;
   onSaved?: () => void;
   className?: string;
@@ -52,6 +52,7 @@ export default function WaveHeader({ current, savedCount, onSaved, className = "
     <nav aria-label={en ? "Main menu" : "주요 메뉴"}>
       <Link href="/" aria-current={current === "intro" ? "page" : undefined}>{en ? "About WAVE" : "서비스 소개"}</Link>
       <Link href="/planner" aria-current={current === "planner" ? "page" : undefined}>{en ? "Plan a trip" : "여행 설계"}</Link>
+      <Link href="/festivals" aria-current={current === "festivals" ? "page" : undefined}>{en ? "Festivals" : "축제"}</Link>
       <Link href="/community" aria-current={current === "community" ? "page" : undefined}>{en ? "Community" : "커뮤니티"}</Link>
     </nav>
     <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}><WaveHeaderTools />{onSaved ? <button className="wave-my-trips" type="button" onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>

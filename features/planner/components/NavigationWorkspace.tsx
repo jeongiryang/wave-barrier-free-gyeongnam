@@ -8,6 +8,8 @@ import { useSitePreferences } from "../../../components/SitePreferences";
 
 interface NavigationWorkspaceProps {
   compact?: boolean;
+  focusedPlaceId?: string;
+  onPlaceFocus?: (place: MapPlace) => void;
   mapEnabled: boolean;
   activePlaces: Place[];
   planCrowd: PlanData["crowd"];
@@ -21,6 +23,7 @@ interface NavigationWorkspaceProps {
 }
 
 export default function NavigationWorkspace({
+  focusedPlaceId, onPlaceFocus,
   compact = false,
   mapEnabled,
   activePlaces,
@@ -46,7 +49,7 @@ export default function NavigationWorkspace({
       route={route}
       onCopyBookingRoute={onCopyBookingRoute}
     /></details>
-    <RouteMapWorkspace
+    <RouteMapWorkspace focusedPlaceId={focusedPlaceId} onPlaceFocus={onPlaceFocus}
       compact={compact}
       mapEnabled={mapEnabled}
       activePlaces={activePlaces}

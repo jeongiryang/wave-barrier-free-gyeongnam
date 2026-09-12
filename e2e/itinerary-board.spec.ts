@@ -1,6 +1,45 @@
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
+test("기본 지도 일정은 장소 핀과 일정 위치 버튼의 선택을 양방향으로 동기화한다", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockPlannerApi(page, { plannerView: "guided" });
+  await page.goto("/planner?travelStart=2026-09-20&travelEnd=2026-09-21");
+  await chooseTripConditions(page);
+  const results = page.locator("#places");
+  await results.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await results.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "다음: 일정 만들기 →", exact: true }).click();
+
+  const view = page.getByRole("group", { name: "일정 보기 방식", exact: true });
+  await expect(view.getByRole("button", { name: "지도 함께 보기", exact: true })).toHaveAttribute("aria-pressed", "true");
+  const map = page.locator(".reference-board-map");
+  await expect(map.locator(".leaflet-container")).toBeVisible();
+  const museumPin = map.locator('[data-place-id="1001"]');
+  const lakePin = map.locator('[data-place-id="1002"]');
+  const museum = page.locator("#itinerary-stop-1001"), lake = page.locator("#itinerary-stop-1002");
+  await expect(museumPin).toBeVisible();
+  await expect(lakePin).toBeVisible();
+  await lakePin.click();
+  await expect(lake).toHaveAttribute("data-selected", "true");
+  await expect(lakePin).toHaveAttribute("aria-current", "location");
+  await expect(museum).toHaveAttribute("data-selected", "false");
+  await museum.getByRole("button", { name: "경남도립미술관 지도에서 보기", exact: true }).click();
+  await expect(museum).toHaveAttribute("data-selected", "true");
+  await expect(museumPin).toHaveAttribute("aria-current", "location");
+  await expect(lake).toHaveAttribute("data-selected", "false");
+
+  const days = page.getByRole("group", { name: "일정 날짜", exact: true });
+  await days.getByRole("button", { name: "DAY 2 · 09/21", exact: true }).click();
+  await expect(map.locator("[data-place-id]")).toHaveCount(0);
+  await expect(page.locator(".reference-day-list > p")).toContainText("추가할 여행지를 고르거나 다른 날짜의 장소를 옮겨보세요");
+  await days.getByRole("button", { name: "DAY 1 · 09/20", exact: true }).click();
+  await expect(museumPin).toBeVisible();
+  await expect(lakePin).toBeVisible();
+  await expect(museum).toHaveAttribute("data-selected", "true");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+});
+
 test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순서를 보존한다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);

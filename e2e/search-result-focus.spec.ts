@@ -19,9 +19,8 @@ async function prepare(page: Page, en = false, crowdRate?: number) {
   await page.goto("/planner");
   await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>(".journey-mode-toggle button")?.disabled);
   await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
-  const next = page.locator(".condition-actions button").last();
   await page.getByRole("button", { name: en ? /Nature/ : /자연·휴양/ }).click();
-  await next.click();
+  await page.locator(".condition-actions").getByRole("button", { name: en ? "Choose facilities" : "필요한 편의 선택", exact: true }).click();
   await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
   return page.locator(".condition-actions").getByRole("button").last();
 }

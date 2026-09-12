@@ -51,55 +51,70 @@ test("reduced motion keeps the landing immediately usable", async ({ page }) => 
 
 test("planner supports decision, save, route-aware schedule and focus restoration", async ({ page }) => {
   const api = await mockPlannerApi(page);
-  await page.goto("/planner");
-  await chooseTripConditions(page);
-  await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
-  const museumCard = page.locator(".place-card").filter({ has: page.getByRole("heading", { name: "경남도립미술관" }) });
-  const parkCard = page.locator(".place-card").filter({ has: page.getByRole("heading", { name: "용지호수공원" }) });
-  await expect(museumCard.getByRole("img", { name: "경남도립미술관 관광사진" })).toBeVisible();
-  await expect(parkCard.getByText("공식 사진을 확인할 수 없어요", { exact: true })).toBeVisible();
+  let releaseAutomatic!: () => void;
+  const automaticHeld = new Promise<void>(resolve => { releaseAutomatic = resolve; });
+  let carRequests = 0;
+  await page.route("**/api/route?**", async route => {
+    if (new URL(route.request().url()).searchParams.get("mode") === "car" && ++carRequests === 2) await automaticHeld;
+    await route.fallback();
+  });
+  try {
+    await page.goto("/planner");
+    await chooseTripConditions(page);
+    await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
+    const museumCard = page.locator(".place-card").filter({ has: page.getByRole("heading", { name: "경남도립미술관" }) });
+    const parkCard = page.locator(".place-card").filter({ has: page.getByRole("heading", { name: "용지호수공원" }) });
+    await expect(museumCard.getByRole("img", { name: "경남도립미술관 관광사진" })).toBeVisible();
+    await expect(parkCard.getByText("공식 사진을 확인할 수 없어요", { exact: true })).toBeVisible();
 
-  const detailButton = page.getByRole("button", { name: "이용 정보" }).first();
-  await detailButton.focus();
-  await detailButton.click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("heading", { name: "경남도립미술관", exact: true })).toBeFocused();
-  await page.keyboard.press("Shift+Tab");
-  expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
-  await expect(dialog.getByText(/현장 접근 가능성을 보장하지 않습니다/)).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(dialog).toHaveCount(0);
-  await expect(detailButton).toBeFocused();
+    const detailButton = page.getByRole("button", { name: "이용 정보" }).first();
+    await detailButton.focus();
+    await detailButton.click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "경남도립미술관", exact: true })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
+    await expect(dialog.getByText(/현장 접근 가능성을 보장하지 않습니다/)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(detailButton).toBeFocused();
 
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
-  const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
-  await expect(itinerary).toBeVisible();
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
-  await expect(itinerary.getByText(/10:25 · 경남도립미술관/)).toBeVisible();
-  await expect(itinerary.getByText(/확인된 경로 이동 25분/)).toBeVisible();
-  await page.getByRole("button", { name: /여유 자동차 경로/ }).click();
-  await expect(itinerary.getByText(/10:40 · 경남도립미술관/)).toBeVisible();
-  await page.getByRole("button", { name: /추천 자동차 경로/ }).click();
-  await expect(itinerary.getByText(/10:25 · 경남도립미술관/)).toBeVisible();
-  await itinerary.getByLabel("하루 시작").fill("09:00");
-  await expect(itinerary.getByText(/09:25 · 경남도립미술관/)).toBeVisible();
+    await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
+    const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
+    await expect(itinerary).toBeVisible();
+    await page.locator(".itinerary-route-coverage select").selectOption("car");
+    await expect(itinerary.getByText(/10:25 · 경남도립미술관/)).toBeVisible();
+    await expect(itinerary.getByText(/확인된 경로 이동 25분/)).toBeVisible();
+    await expect.poll(() => carRequests).toBe(2);
+    await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "true");
+    await page.getByRole("button", { name: /여유 자동차 경로/ }).click();
+    await expect(itinerary.getByText(/10:40 · 경남도립미술관/)).toBeVisible();
+    releaseAutomatic();
+    await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
+    await expect(page.locator(".itinerary-route-coverage").getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
+    await expect(itinerary.getByText(/10:40 · 경남도립미술관/)).toBeVisible();
+    await page.getByRole("button", { name: /추천 자동차 경로/ }).click();
+    await expect(itinerary.getByText(/10:25 · 경남도립미술관/)).toBeVisible();
+    await itinerary.getByLabel("하루 시작").fill("09:00");
+    await expect(itinerary.getByText(/09:25 · 경남도립미술관/)).toBeVisible();
 
-  await page.getByRole("button", { name: "용지호수공원 일정에 추가" }).click();
-  await itinerary.locator(".itinerary-secondary-actions > summary").click();
-  await expect(itinerary.getByRole("link", { name: /후기 초안 만들기/ })).toHaveAttribute("href", /draft=journal/);
-  await expect(itinerary.getByText(/용지호수공원/)).toBeVisible();
-  await page.getByRole("button", { name: "용지호수공원 일정에서 빼기" }).click();
-  await expect(itinerary.getByText(/용지호수공원/)).toHaveCount(0);
-  await page.getByRole("button", { name: "용지호수공원 일정에 추가" }).click();
-  expect(api.enrichmentRequestCount()).toBe(0);
-  await page.locator(".travel-layers > summary").click();
-  await expect(page.getByRole("heading", { name: /사람들이 지금/ })).toBeVisible();
-  await expect.poll(api.enrichmentRequestCount).toBe(1);
-  await page.reload();
-  await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toBeVisible();
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expectNoSeriousA11yIssues(page);
+    await page.getByRole("button", { name: "용지호수공원 일정에 추가" }).click();
+    await itinerary.locator(".itinerary-secondary-actions > summary").click();
+    await expect(itinerary.getByRole("link", { name: /후기 초안 만들기/ })).toHaveAttribute("href", /draft=journal/);
+    await expect(itinerary.getByText(/용지호수공원/)).toBeVisible();
+    await page.getByRole("button", { name: "용지호수공원 일정에서 빼기" }).click();
+    await expect(itinerary.getByText(/용지호수공원/)).toHaveCount(0);
+    await page.getByRole("button", { name: "용지호수공원 일정에 추가" }).click();
+    expect(api.enrichmentRequestCount()).toBe(0);
+    await page.locator(".travel-layers > summary").click();
+    await expect(page.getByRole("heading", { name: /사람들이 지금/ })).toBeVisible();
+    await expect.poll(api.enrichmentRequestCount).toBe(1);
+    await page.reload();
+    await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toBeVisible();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expectNoSeriousA11yIssues(page);
+  } finally { releaseAutomatic(); }
 });
 
 test("planner exposes honest recovery when the official plan request fails", async ({ page }) => {

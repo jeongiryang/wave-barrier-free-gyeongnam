@@ -56,19 +56,20 @@ export async function buildPlan(request: Request, env: Env) {
   ], Math.min(6_000, remaining()), overBudget);
 
   const baseItems = mergePlaces(barrier.ok ? barrier.value.items : [], tour.ok ? tour.value.items : []).slice(0, 12);
-  const details = await eachWithinBudget(
+  const details = profiles.length ? await eachWithinBudget(
     baseItems.map((item) => attempt(fetchKto(env, "KorWithService2", "detailWithTour2", {
       ...commonParams("1"), contentId: clean(item.contentid),
     }))),
     remaining(),
     overBudget,
-  );
+  ) : [];
   // 원본 API의 인기 정렬보다 사용자가 선택한 편의조건의 공식 확인 근거를 우선한다.
   const rankedPlaces = sortPlacesByEvidence(baseItems
-    .map((item, index) => placeFrom(item, details[index]?.ok ? details[index].value.items[0] || {} : {}, region, profiles, index)));
+    .map((item, index) => ({ ...placeFrom(item, details[index]?.ok ? details[index].value.items[0] || {} : {}, region, profiles, index),
+      facilityLookupState: !profiles.length ? 'not-requested' : details[index]?.ok ? 'available' : 'error' })));
   // 0%는 공식 정보가 없다는 뜻일 수도, 선택 조건과 맞지 않는다는 뜻일 수도 있다.
   // 어느 쪽도 기본 추천으로 부르지 않고 별도의 추가 탐색 후보로 보낸다.
-  const { recommended: places, exploration: explorationPlaces } = partitionPlacesByEvidence(rankedPlaces);
+  const { recommended: places, exploration: explorationPlaces } = profiles.length ? partitionPlacesByEvidence(rankedPlaces) : { recommended: rankedPlaces, exploration: [] };
 
   const firstTitle = places[0]?.name || explorationPlaces[0]?.name || region;
   const [audio, crowd] = await eachWithinBudget([
@@ -93,7 +94,7 @@ export async function buildPlan(request: Request, env: Env) {
     places,
     explorationPlaces,
     course,
-    audio: audioFrom(audio),
+    audio: audioFrom(audio, places[0] || explorationPlaces[0]),
     photo: photoFrom(photo, region),
     crowd: crowd.ok && crowd.value.items.length ? {
       rate: Number(crowd.value.items[0].cnctrRate || 0),

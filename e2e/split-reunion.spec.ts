@@ -5,7 +5,7 @@ import { mockPublicShellApi, mockPlannerApi, chooseTripConditions } from './fixt
 import { alternativePlan } from './alternative-fixtures';
 const day='2026-10-08';
 async function setup(page:Page){
- await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true});await page.emulateMedia({reducedMotion:'reduce'});await page.route('**/api/wave?action=plan*',route=>route.fulfill({json:alternativePlan}));
+ await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true,savedPlaces:alternativePlan.places});await page.emulateMedia({reducedMotion:'reduce'});await page.route('**/api/wave?action=plan*',route=>route.fulfill({json:alternativePlan}));
  await page.addInitScript(()=>{if(localStorage.getItem('wave-trip-order-v1'))return;localStorage.setItem('wave-trip-order-v1',JSON.stringify({mode:'manual',ids:['1001','1002','1003']}));localStorage.setItem('wave-trip-schedule-v1',JSON.stringify({travelStart:'2026-10-08',travelEnd:'2026-10-09',dayStartTime:'10:00',scheduleAssignments:{1001:'2026-10-08',1002:'2026-10-08',1003:'2026-10-08'},visitMinutesByPlaceId:{1001:15,1002:30,1003:15},breakMinutesByPlaceId:{1002:15}}));});
  await page.goto('/planner');await chooseTripConditions(page);for(const name of ['경남도립미술관','용지호수공원','시민문화쉼터'])await page.getByRole('button',{name:name+' 일정에 추가',exact:true}).click();await page.locator('.planner-navigation nav button').nth(3).click();await page.getByRole('button',{name:'다음: 전체보기',exact:true}).click();await page.getByRole('button',{name:'동행과 합류 계획',exact:true}).click();
 }
@@ -25,6 +25,13 @@ test('late plans, storage conflicts and changed original schedules never claim a
  await setup(page);const tool=panel(page);await tool.getByLabel('다시 만날 시각',{exact:true}).fill('12:10');await tool.getByRole('button',{name:'A·B 합류 계획 보기',exact:true}).click();await expect(tool.getByRole('button',{name:'합류 약속 저장',exact:true})).toBeDisabled();await expect(tool).toContainText('늦어요');
  await tool.getByLabel('다시 만날 시각',{exact:true}).fill('16:00');await tool.getByRole('button',{name:'A·B 합류 계획 보기',exact:true}).click();await tool.getByRole('button',{name:'합류 약속 저장',exact:true}).click();await expect(tool).toContainText('합류 약속을 저장했어요');
  await page.evaluate(()=>{const key='wave-split-reunion-v1',rows=JSON.parse(localStorage.getItem(key)||'[]');rows[0].savedAt='2026-10-01T10:00:00Z';localStorage.setItem(key,JSON.stringify(rows));});await tool.getByRole('combobox',{name:'B 출발 장소에서 더 머무는 시간',exact:true}).selectOption('15');await tool.getByRole('button',{name:'A·B 합류 계획 보기',exact:true}).click();await tool.getByRole('button',{name:'합류 약속 저장',exact:true}).click();await expect(tool).toContainText('저장하지 못했어요');expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('wave-split-reunion-v1')||'[]')[0].choice.waitB)).toBe(0);
- await page.evaluate(()=>{const key='wave-trip-schedule-v1',state=JSON.parse(localStorage.getItem(key)||'{}');state.visitMinutesByPlaceId['1002']=60;localStorage.setItem(key,JSON.stringify(state));});await page.reload();await page.getByRole('button',{name:'동행과 합류 계획',exact:true}).click();await expect(tool.getByRole('button',{name:'바뀐 일정으로 다시 계획',exact:true})).toBeVisible();await expect(tool.getByRole('button',{name:'합류 약속 저장',exact:true})).toHaveCount(0);
+ // Change the real itinerary: legacy storage keys are only mirrors after migration.
+ await page.getByRole('button',{name:'일정 수정하기',exact:true}).click();
+ const board=page.locator('.reference-day-list');
+ await board.getByLabel('용지호수공원 일정 수정',{exact:true}).click();
+ await board.getByLabel('용지호수공원 머무는 시간',{exact:true}).selectOption('60');
+ await expect.poll(()=>page.evaluate(()=>JSON.parse(JSON.parse(localStorage.getItem('wave-current-trip-v1')||'{}').values['wave-trip-schedule-v1']).visitMinutesByPlaceId['1002'])).toBe(60);
+ await page.getByRole('button',{name:'다음: 전체보기',exact:true}).click();
+ await page.reload();await page.getByRole('button',{name:'동행과 합류 계획',exact:true}).click();await expect(tool.getByRole('button',{name:'바뀐 일정으로 다시 계획',exact:true})).toBeVisible();await expect(tool.getByRole('button',{name:'합류 약속 저장',exact:true})).toHaveCount(0);
  await page.getByRole('button',{name:'여행 요약 챙기기',exact:true}).click();const pack=page.getByRole('region',{name:'여행 요약 파일'});await pack.getByLabel('저장한 A·B 합류 약속 포함',{exact:true}).check();await pack.getByRole('button',{name:'텍스트로 저장',exact:true}).click();await expect(pack.getByRole('status')).toContainText('합류 약속');
 });

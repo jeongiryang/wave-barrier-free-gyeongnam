@@ -145,23 +145,34 @@ test("typing a new location cancels pending results and searching again uses onl
 });
 
 test("pending route recalculation retains keyboard focus and ignores duplicate activation", async ({ page }) => {
+  const automaticRequests: string[] = [];
+  page.on("request", request => { if (new URL(request.url()).pathname === "/api/route") automaticRequests.push(request.url()); });
   await prepare(page);
+  await expect(page.locator(".itinerary-route-coverage")).toContainText("Recheck any unavailable journeys before leaving.");
+  await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
+  expect(automaticRequests).toHaveLength(2);
+  expect(automaticRequests[1]).toBe(automaticRequests[0]);
+  expect(Object.fromEntries(new URL(automaticRequests[0]).searchParams)).toEqual({ startLat: "35.2422", startLng: "128.6982", endLat: "35.238", endLng: "128.691", mode: "transit" });
   let release!: () => void;
   const held = new Promise<void>((resolve) => { release = resolve; });
-  let requests = 0;
+  const requests: string[] = [];
   await page.route("**/api/route?**", async (route) => {
-    requests++;
+    requests.push(route.request().url());
     await held;
     await route.fulfill({ json: { configured: false, alternatives: [], providers: [], context: null } });
   });
-  const button = page.locator(".recalculate-button");
-  await button.focus();
-  await page.keyboard.press("Enter");
-  await expect.poll(() => requests).toBe(1);
-  await expect(button).toBeFocused();
-  await page.keyboard.press("Enter");
-  expect(requests).toBe(1);
-  release();
-  await expect(page.locator(".route-notice")).toContainText("No verified journey time");
-  await expect(button).toBeFocused();
+  try {
+    const button = page.locator(".recalculate-button");
+    await button.focus();
+    await page.keyboard.press("Enter");
+    await expect.poll(() => requests.length).toBe(1);
+    await expect(button).toHaveAttribute("aria-busy", "true");
+    await expect(button).toBeFocused();
+    await page.keyboard.press("Enter");
+    expect(requests).toEqual([automaticRequests[0]]);
+    release();
+    await expect(page.locator(".route-notice")).toContainText("No verified journey time");
+    await expect(button).toBeFocused();
+    expect(requests).toEqual([automaticRequests[0]]);
+  } finally { release(); }
 });
