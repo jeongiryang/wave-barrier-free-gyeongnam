@@ -4,6 +4,7 @@ import NaruAvatar from '../../components/NaruAvatar';
 import type { NaruJourney } from '../../lib/naru-journey.js';
 import { sanitizeSavedPlaceCatalog } from '../../lib/saved-place-catalog.js';
 import { REGION_KEY, THEMES_KEY } from '../../lib/current-trip-storage.js';
+import { explorationPlaceAction } from '../../lib/exploration-place-action.js';
 
 import {
   lazy,
@@ -72,6 +73,8 @@ export default function PlannerPage() {
   const placeDialogRef = usePlaceDialogFocus(Boolean(selectedPlace), closeSelectedPlace);
 
   const activePlaces = useMemo(() => plan?.places ?? [], [plan]);
+  const canSaveSelectedPlace = planController.resultCurrent && activePlaces.some(place => place === selectedPlace);
+  const explorationAction = explorationPlaceAction({ place: selectedPlace, plan, current: planController.resultCurrent, region, criteriaKey: JSON.stringify([region, theme, selected, locale]) });
   usePlannerChrome(plan);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [assistantMounted, setAssistantMounted] = useState(false);
@@ -294,6 +297,16 @@ export default function PlannerPage() {
       undo: () => { routePlanning.setRouteTravelMode(routePlanning.routeTravelMode); updateOrigin(origin, originLabel, privateOrigin); },
     };
   }
+  async function recalculateNaruRoute(transport?: NaruJourney['transport']) {
+    if (transport && transport !== routePlanning.routeTravelMode) {
+      // The existing automatic effect must observe the committed new mode.
+      // Calling checkRoutes here would still read this render's previous mode.
+      routePlanning.setRouteTravelMode(transport);
+      return 'changed' as const;
+    }
+    await itineraryRoutes.checkRoutes();
+    return 'checked' as const;
+  }
   useEffect(() => {
     if (!assistantHost || !assistantTool) return;
     const targets: Record<string, { selector: string; trigger?: boolean }> = {
@@ -480,19 +493,25 @@ export default function PlannerPage() {
         place={selectedPlace}
         region={region}
         saved={saved.includes(selectedPlace.id)}
-        canSave={planController.resultCurrent && activePlaces.some((place) => place.id === selectedPlace.id)}
+        canSave={canSaveSelectedPlace}
+        explorationAction={explorationAction}
         feedbackText={feedbackText}
         feedbackState={feedbackState}
         dialogRef={placeDialogRef}
         onClose={closeSelectedPlace}
-        onToggleSaved={() => { if (saved.includes(selectedPlace.id) || planController.resultCurrent && activePlaces.some((place) => place.id === selectedPlace.id)) toggleSaved(selectedPlace.id, selectedPlace); setSelectedPlace(null); }}
+        onToggleSaved={acknowledgedKey => {
+          if (saved.includes(selectedPlace.id) || canSaveSelectedPlace
+            || explorationAction.kind === "acknowledge" && acknowledgedKey === explorationAction.key) {
+            toggleSaved(selectedPlace.id, selectedPlace); setSelectedPlace(null);
+          }
+        }}
         onFeedbackChange={changeFeedbackText}
         onSubmitFeedback={() => void submitFeedback()}
       />}
 
       {regionChange.pending && <RegionChangeDialog region={regionChange.pending} en={locale === "en"} error={regionChange.error} onCancel={regionChange.cancel} onAdd={regionChange.add} onNew={regionChange.startNew} />}
       {!assistantOpen && <button type="button" ref={assistantLauncher} disabled={!hydrated || !planController.criteriaReady || !tripSelection.storageReady} className="naru-launcher" data-state={itineraryRoutes.loading && !['thinking', 'searching', 'checking', 'planning'].includes(naruActivity.phase) ? 'routing' : naruActivity.phase} onClick={showAssistant} aria-label="WAVE 여행 가이드 나루와 대화 열기"><NaruAvatar state={itineraryRoutes.loading && !['thinking', 'searching', 'checking', 'planning'].includes(naruActivity.phase) ? 'routing' : naruActivity.phase} /><span><strong>나루</strong><small role="status">{(itineraryRoutes.loading && !['thinking', 'searching', 'checking', 'planning'].includes(naruActivity.phase) ? '바뀐 일정의 이동 경로를 확인하고 있어요.' : naruActivity.text) || '어떤 여행을 만들까요?'}</small></span></button>}
-      {assistantMounted && <Suspense fallback={assistantOpen ? <div className="naru-panel"><LoadingState>나루와의 대화를 열고 있어요.</LoadingState></div> : null}><PlannerAssistant open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} onRegion={regionChange.request} onSearch={() => searchPlaces(false)} onPlace={setSelectedPlace} onAlternative={id => alternatives.open(id)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} onToolHost={setAssistantHost} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={itineraryRoutes.checkRoutes} onActivity={setNaruActivity} /></Suspense>}
+      {assistantMounted && <Suspense fallback={assistantOpen ? <div className="naru-panel"><LoadingState>나루와의 대화를 열고 있어요.</LoadingState></div> : null}><PlannerAssistant open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} onRegion={regionChange.request} onSearch={() => searchPlaces(false)} onPlace={setSelectedPlace} onAlternative={id => alternatives.open(id)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} onToolHost={setAssistantHost} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
       <div className="reference-view-preference"><PlannerJourneyModeToggle view={stageView.view} interactive={hydrated} onChange={stageView.changeView} /></div>
       <PlannerFooter />
     </main>

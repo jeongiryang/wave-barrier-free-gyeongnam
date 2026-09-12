@@ -3,6 +3,7 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import LoadingState, { Spinner } from '../../../components/LoadingState';
 import { localAssistantAction, validateAssistantAction, type AssistantAction } from '../../../lib/assistant-actions.js';
+import { explorationPlaceAction } from '../../../lib/exploration-place-action.js';
 import { onTripIdentity, readOnTrip } from '../../../lib/on-trip.js';
 import type { VoiceEditReceipt } from '../../../lib/voice-edit.js';
 import type { usePlannerPlan } from '../hooks/usePlannerPlan';
@@ -16,7 +17,7 @@ import NaruJourneyProposal from './NaruJourneyProposal';
 import NaruAvatar from '../../../components/NaruAvatar';
 
 type Message = { id: number; role: 'user'|'assistant'; text: string; source?: string; proposal?: AssistantAction; draft?: NaruJourney; revision?: string; applied?: boolean };
-type Props = { open: boolean; onClose: () => void; plan: ReturnType<typeof usePlannerPlan>; trip: ReturnType<typeof useTripSelection>; onRegion: (region: string, onCommitted?: () => void) => void; onSearch: () => Promise<boolean>; onPlace: (place: Place) => void; onAlternative: (placeId: string) => void; onUndoAlternative: () => boolean; canUndoAlternative: boolean; replacementVersion: number; onOpenTool: (tool: string) => void; onToolHost: (host: HTMLDivElement | null) => void; transport: 'walk'|'bicycle'|'transit'|'car'; routeRevision: string; onJourneyApplied: (draft: NaruJourney) => { undo: () => void; revision: string }; onRecalculate: () => Promise<void>; onActivity: (value: { phase: string; text: string }) => void };
+type Props = { open: boolean; onClose: () => void; plan: ReturnType<typeof usePlannerPlan>; trip: ReturnType<typeof useTripSelection>; onRegion: (region: string, onCommitted?: () => void) => void; onSearch: () => Promise<boolean>; onPlace: (place: Place) => void; onAlternative: (placeId: string) => void; onUndoAlternative: () => boolean; canUndoAlternative: boolean; replacementVersion: number; onOpenTool: (tool: string) => void; onToolHost: (host: HTMLDivElement | null) => void; transport: 'walk'|'bicycle'|'transit'|'car'; routeRevision: string; onJourneyApplied: (draft: NaruJourney) => { undo: () => void; revision: string }; onRecalculate: (transport?: AssistantAction['transport']) => Promise<'changed'|'checked'>; onActivity: (value: { phase: string; text: string }) => void };
 const toolGroups = [
   { title: '여행 시작', items: [['conditions','지역·활동'],['facilities','필요한 편의'],['dates','날짜·기간'],['places','여행지 찾기']] },
   { title: '내 일정', items: [['itinerary','날짜·순서·시간'],['map','지도·경로'],['alternatives','한 곳 바꾸기'],['comfort','이동 부담·휴식'],['course','코스 잇기'],['split','동행·합류']] },
@@ -24,6 +25,7 @@ const toolGroups = [
   { title: '저장과 활용', items: [['share','저장·공유'],['offline','오프라인 요약'],['calendar','캘린더'],['on-trip','여행 당일 안내']] },
 ];
 const toolLabel = (id: string) => toolGroups.flatMap(group => group.items).find(item => item[0] === id)?.[1] || '여행 도구';
+const transportLabels = { car: '자동차', transit: '대중교통', walk: '도보', bicycle: '자전거' };
 const PlannerAssistantPlaceTools = lazy(() => import('./PlannerAssistantPlaceTools'));
 
 export default function PlannerAssistant(props: Props) {
@@ -148,7 +150,7 @@ export default function PlannerAssistant(props: Props) {
   }
   function title(action: AssistantAction) {
     if (action.action === 'set-dates') return `${action.start} – ${action.end} 여행 기간`;
-    if (action.action === 'recalculate-route') return '현재 순서로 이동 경로 다시 확인';
+    if (action.action === 'recalculate-route') return action.transport ? `${transportLabels[action.transport]} 이동 경로 확인 · 기존 일정 유지` : '현재 순서로 이동 경로 다시 확인';
     if (action.action === 'save-trip') return '여행 저장·공유';
     const name = known.find(place => place.id === action.placeId)?.name || '';
     const titles: Record<string, string> = { settings: [action.region, action.profiles?.map(id => profiles.find(p => p.id === id)?.label).join(' · '), action.themes?.map(id => themes.find(t => t.id === id)?.label).join(' · ')].filter(Boolean).join(' / '), search: '현재 조건으로 여행지 찾기', add: `${name} 일정에 담기`, remove: `${name} 일정에서 빼기`, details: `${name} 이용 정보`, move: `${name} ${action.direction === 'up' ? '앞' : '뒤'}으로 이동`, visit: `${name} 체류 ${action.minutes}분`, break: `${name} 휴식 ${action.minutes}분`, day: `${action.date} 일정 보기`, 'start-time': `${action.time}에 출발`, deadline: `${action.time}까지 귀가`, readiness: '출발 전 확인할 것 정리', compare: '현재 장소의 편의 비교', alternatives: `${name} 대안 비교`, next: '다음 미방문 장소', undo: '마지막 변경 되돌리기', tool: toolLabel(action.tool || ''), help: '여행 도구 보기' };
@@ -188,7 +190,12 @@ export default function PlannerAssistant(props: Props) {
     setMessages(current => current.map(item => item.id === message.id ? { ...item, applied: true } : item));
     if (action.action === 'tool') { openTool(action.tool || 'conditions'); return; }
     if (action.action === 'save-trip') { openTool('share'); return; }
-    if (action.action === 'recalculate-route') { props.onActivity({ phase: 'routing', text: '바뀐 일정의 이동 구간을 확인하고 있어요.' }); await props.onRecalculate(); append('경로 조회를 마쳤어요. 확인되지 않은 구간은 지도·경로에서 다시 확인할 수 있어요.'); props.onActivity({ phase: 'done', text: '이동 구간 확인을 마쳤어요.' }); return; }
+    if (action.action === 'recalculate-route') {
+      props.onActivity({ phase: 'routing', text: '현재 일정의 이동 구간을 확인하고 있어요.' });
+      const result = await props.onRecalculate(action.transport);
+      append(result === 'changed' ? '이동수단을 바꿨어요. 장소·날짜·순서·고정 방문·편의·휴식은 유지했어요. 새 이동수단의 경로는 지도에서 이어서 확인할 수 있어요.' : '경로 조회를 마쳤어요. 확인되지 않은 구간은 지도·경로에서 다시 확인할 수 있어요.');
+      props.onActivity({ phase: 'done', text: result === 'changed' ? '이동수단을 반영했어요. 지도에서 경로 확인을 이어갑니다.' : '이동 구간 확인을 마쳤어요.' }); return;
+    }
     if (action.action === 'set-dates') {
       const outside = trip.orderedSavedPlaces.some(place => { const day = trip.scheduleAssignments[place.id] || trip.travelStart; return day < action.start! || day > action.end!; });
       if (outside) { append('기존 장소의 방문일이 새 기간 밖에 있어요. 날짜 화면에서 방문일을 함께 옮겨주세요.'); openTool('dates'); return; }
@@ -245,6 +252,10 @@ export default function PlannerAssistant(props: Props) {
       try { const identity = onTripIdentity(daily, trip.activeDay); const remembered = trip.progressMemory[identity]; const progress = remembered?.unsaved ? remembered.value : readOnTrip(localStorage, identity, daily.map(place => place.id), true); const next = daily.find(place => !progress.marks[place.id]); if (next) { append(`다음 장소는 ${next.name}예요. 방문 완료나 건너뛰기는 여행 당일 안내에서 표시할 수 있어요.`); props.onPlace(next); } else append('이 날짜에 남은 장소가 없어요. 날짜와 방문 기록을 확인해 주세요.'); } catch { append('방문 기록을 읽지 못했어요. 여행 당일 안내에서 확인해 주세요.'); } return;
     }
   }
+  const incompleteSources = plan.plan?.statuses.some(source => source.state === 'error' || source.partial);
+  const explorationStates = (plan.plan?.explorationPlaces || []).map(place => explorationPlaceAction({ place, plan: plan.plan, current: plan.resultCurrent, region: plan.region, criteriaKey: revision }).kind);
+  const explorationCount = explorationStates.filter(state => state === 'acknowledge').length;
+  const mismatchCount = explorationStates.filter(state => state === 'mismatch').length;
   if (!props.open) return null;
   return <dialog ref={dialogRef} lang="ko" className={`naru-panel${tool ? ' naru-expanded' : ''}`} aria-label="WAVE 여행 가이드 나루와 대화" onCancel={event => { event.preventDefault(); close(); }} >
     <div className="naru-conversation">
@@ -257,11 +268,11 @@ export default function PlannerAssistant(props: Props) {
           {message.proposal && <div className="naru-proposal">
             <strong>{title(message.proposal)}</strong>
             <button type="button" aria-disabled={message.applied || undefined} disabled={!message.applied && (busy || message.revision !== revision)} onClick={() => void apply(message)}>
-              {message.applied ? '확인한 작업' : message.revision !== revision ? '조건이 바뀌었어요 · 다시 요청' : ['settings','add','remove','move','visit','break','start-time','deadline','undo'].includes(message.proposal.action) ? '확인하고 적용' : '열기 / 실행'}
+              {message.applied ? '확인한 작업' : message.revision !== revision ? '조건이 바뀌었어요 · 다시 요청' : message.proposal.action === 'recalculate-route' && message.proposal.transport ? `${transportLabels[message.proposal.transport]} 이동으로 ${props.transport === message.proposal.transport ? '경로 다시 확인' : '변경'}` : ['settings','set-dates','add','remove','move','visit','break','start-time','deadline','undo'].includes(message.proposal.action) ? '확인하고 적용' : '열기 / 실행'}
             </button>
           </div>}
         </div>)}
-        {showPlaces && plan.resultCurrent && <div className="naru-result-list" aria-label="대화에서 찾은 여행지">{plan.plan?.places.length ? plan.plan.places.map(place => <article key={place.id}><strong>{place.name}</strong><p>{place.accessibility?.filter(field => field.state === 'confirmed').map(field => field.label).join(' · ') || '확인된 편의 정보 없음'}</p><button type="button" onClick={() => props.onPlace(place)}>편의 근거 보기</button><button type="button" disabled={trip.saved.includes(place.id)} onClick={() => append('이 장소를 담을까요?', { proposal: { action: 'add', placeId: place.id }, revision })}>{trip.saved.includes(place.id) ? '일정에 담았어요' : '일정에 담기'}</button></article>) : <p>맞는 여행지가 없어요. 필요한 편의를 유지하고 활동이나 지역을 바꿔볼 수 있어요.<button type="button" onClick={() => openTool('places')}>다른 방법으로 찾기</button></p>}</div>}
+        {showPlaces && plan.resultCurrent && <div className="naru-result-list" aria-label="대화에서 찾은 여행지">{plan.plan?.places.length ? plan.plan.places.map(place => <article key={place.id}><strong>{place.name}</strong><p>{place.accessibility?.filter(field => field.state === 'confirmed').map(field => field.label).join(' · ') || '확인된 편의 정보 없음'}</p><button type="button" onClick={() => props.onPlace(place)}>편의 근거 보기</button><button type="button" disabled={trip.saved.includes(place.id)} onClick={() => append('이 장소를 담을까요?', { proposal: { action: 'add', placeId: place.id }, revision })}>{trip.saved.includes(place.id) ? '일정에 담았어요' : '일정에 담기'}</button></article>) : <div><p>{incompleteSources ? '관광·편의정보 제공처에 연결하지 못했거나 응답을 모두 받지 못했어요. 필요한 편의는 유지하고 다시 확인할 수 있어요.' : explorationStates.length ? '필요한 편의를 모두 확인한 여행지는 아직 없어요.' : '맞는 여행지가 없어요. 필요한 편의를 유지하고 활동이나 지역을 바꿔볼 수 있어요.'}</p>{explorationCount > 0 && <p>필요한 편의가 미확인인 후보 {explorationCount}곳이 있어요. 여행지 도구에서 근거와 다음 방법을 살펴보세요.</p>}{mismatchCount > 0 && <p>필요한 편의와 맞지 않는 후보 {mismatchCount}곳은 일정 추가에서 제외했어요.</p>}<button type="button" onClick={() => openTool('places')}>다른 방법으로 찾기</button></div>}</div>}
         {showEvidence && <div className="naru-evidence" aria-label="현재 장소의 편의 근거">{(trip.orderedSavedPlaces.length ? trip.orderedSavedPlaces : known).map(place => <article key={place.id}><strong>{place.name}</strong><p>{place.accessibility?.map(field => `${field.label}: ${field.state === 'confirmed' ? '확인됨' : field.state === 'negative' ? '조건과 맞지 않음' : '미확인'}`).join(' · ') || '편의 정보 미확인'}</p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small><button type="button" onClick={() => props.onPlace(place)}>원문과 문의 정보</button></article>)}{!known.length && <p>여행지를 먼저 찾으면 장소별 근거를 모아드릴게요.</p>}<button type="button" onClick={() => openTool('readiness')}>날씨·이동까지 확인</button></div>}
         {busy && <div className="naru-typing" role="status"><Spinner /><span>{activity.text || '나루가 여행을 살펴보고 있어요'}</span></div>}
       </div>

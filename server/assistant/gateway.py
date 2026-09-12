@@ -128,7 +128,7 @@ class Handler(BaseHTTPRequestHandler):
             payload = {'model': MODEL, 'messages': messages, 'stream': False,
                        'think': False, 'format': FORMAT, 'keep_alive': -1,
                        'options': {'num_gpu': GPU_LAYERS, 'num_thread': 8, 'num_ctx': 8192, 'num_batch': 256, 'draft_num_predict': 0,
-                                   'num_predict': 320, 'temperature': 0.1}}
+                                   'num_predict': 320, 'temperature': 0}}
             request = urllib.request.Request(OLLAMA + '/api/chat', data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json'})
             with urllib.request.urlopen(request, timeout=40) as response:
                 result = json.loads(response.read(32000))

@@ -105,12 +105,12 @@ test('mentioning a different transport mode does not ground an invented car jour
 
 test('a later explicit mode correction supersedes the earlier visitor preference', () => {
   const said = [user('자동차로 여행할게'), { role: 'assistant', content: '자동차 경로를 살펴볼게요.' }, user('아니, 자동차는 빼고 대중교통으로 갈게')];
-  assert.notEqual(ground(proposal({ transport: 'car' }), said).transport, 'car');
+  assert.notEqual(ground(proposal({ transport: 'car' }), said)?.transport, 'car');
 });
 
 test('a later exclusion cannot resurrect the earlier transport mode when no replacement was named', () => {
   const actual = ground(proposal({ transport: 'car' }), [user('자동차로 여행할게'), user('자동차는 빼줘')]);
-  assert.notEqual(actual.transport, 'car');
+  assert.equal(actual, null, 'an exclusion alone does not authorize any itinerary mutation');
 });
 
 test('a general festival request permits any but cannot invent a specific named event', () => {
