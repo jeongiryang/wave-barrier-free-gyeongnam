@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
@@ -13,9 +14,12 @@ for (const failure of ["timeout", "server", "offline"] as const) for (const en o
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
     if (en) {
       await page.keyboard.press("Control+Home");
+      await openSupportMenu(page);
       const preferences = page.locator(".preference-controls:visible");
+      await openSupportMenu(page);
       await preferences.getByLabel("환경설정 열기", { exact: true }).click();
       await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+      await openSupportMenu(page);
       await preferences.getByLabel("Open preferences", { exact: true }).click();
       await page.locator(".reference-progress button").nth(1).click();
       await page.locator(".condition-actions").getByRole("button", { name: "Find places →", exact: true }).click();

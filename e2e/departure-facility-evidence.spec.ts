@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
@@ -24,9 +25,12 @@ for (const scenario of ["complete", "partial", "negative", "legacy"] as const) f
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   if (en) {
     await page.keyboard.press("Control+Home");
+    await openSupportMenu(page);
     const preferences = page.locator(".preference-controls:visible");
+    await openSupportMenu(page);
     await preferences.getByLabel("환경설정 열기", { exact: true }).click();
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+    await openSupportMenu(page);
     await preferences.getByLabel("Open preferences", { exact: true }).click();
     // Changing locale changes the recommendation contract: explicitly search again.
     await page.locator(".condition-actions").getByRole("button", { name: "Find places →", exact: true }).click();

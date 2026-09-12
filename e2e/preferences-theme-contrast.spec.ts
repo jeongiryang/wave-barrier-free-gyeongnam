@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPublicShellApi } from "./fixtures";
 
@@ -62,6 +63,7 @@ for (const theme of ["light", "dark"] as const) {
       window.localStorage.setItem("wave-theme", selectedTheme);
     }, theme);
     await page.goto("/community", { waitUntil: "domcontentloaded" });
+    await openSupportMenu(page);
     await page.locator(".preference-controls > summary").click();
     await expect(page.locator(".motion-toggle")).toHaveCount(0);
     await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");

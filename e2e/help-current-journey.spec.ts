@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test, type Locator } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
@@ -22,6 +23,7 @@ for (const locale of ["ko", "en"] as const) {
     await mockPublicShellApi(page);
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
     await page.goto("/");
+    await openSupportMenu(page);
     const help = page.getByRole("button", { name: locale === "en" ? "Help" : "도움말", exact: true });
     await help.click();
     const dialog = page.getByRole("dialog");
@@ -61,6 +63,7 @@ for (const populated of [false, true]) {
       await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
       await expect(page.locator(".day-planner .date-range-fields")).toBeVisible();
     }
+    await openSupportMenu(page);
     const help = page.getByRole("button", { name: "도움말", exact: true });
     await expect(page.locator(".journey-stage-stream")).toHaveAttribute("data-view", "overview");
     await expect(help).toBeEnabled();

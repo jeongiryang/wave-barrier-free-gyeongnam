@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
@@ -13,9 +14,12 @@ for (const invalid of ["invalid-json", "missing-fields", "damaged-place"] as con
     await expect(page.locator(".travel-book-archive-controls button")).toBeEnabled();
     if (en) {
       await page.keyboard.press("Control+Home");
+      await openSupportMenu(page);
       const preferences = page.locator(".preference-controls:visible");
+      await openSupportMenu(page);
       await preferences.getByLabel("환경설정 열기", { exact: true }).click();
       await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+      await openSupportMenu(page);
       await preferences.getByLabel("Open preferences", { exact: true }).click();
       await page.locator(".condition-actions").getByRole("button", { name: "Find places →", exact: true }).click();
       await expect(page.getByRole("button", { name: "용지호수공원 Add to itinerary", exact: true })).toBeEnabled();

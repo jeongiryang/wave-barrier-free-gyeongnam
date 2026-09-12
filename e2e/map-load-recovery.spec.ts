@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
@@ -19,9 +20,12 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   await expect.poll(() => failures).toBeGreaterThan(0);
   if (english) {
     await page.keyboard.press("Control+Home");
+    await openSupportMenu(page);
     const preferences = page.locator(".preference-controls:visible");
+    await openSupportMenu(page);
     await preferences.getByLabel("환경설정 열기", { exact: true }).click();
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+    await openSupportMenu(page);
     await preferences.getByLabel("Open preferences", { exact: true }).click();
   }
   const unavailable = page.locator(".map-unavailable");

@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
@@ -22,10 +23,13 @@ for (const locale of ["ko", "en"]) test(`departure follows the saved place inste
   await expect(forecast).toContainText("2026-10-08");
   await expect(forecast).toHaveClass("confirmed");
   if (locale === "en") {
+    await openSupportMenu(page);
     const preferences = page.locator(".preference-controls:visible");
     await preferences.locator("summary").focus();
+    await openSupportMenu(page);
     await preferences.getByLabel("환경설정 열기", { exact: true }).click();
     await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+    await openSupportMenu(page);
     await preferences.getByLabel("Open preferences", { exact: true }).click();
     await expect(forecast).toContainText("1 of 1 itinerary places");
     await expect(forecast.locator('[lang="ko"]')).toContainText("용지호수공원");

@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
@@ -60,9 +61,10 @@ for (const width of [1440, 390]) {
       await mockPlannerApi(page);
       await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
       await page.goto(path);
+      await openSupportMenu(page);
       await expect(page.getByRole("button", { name: "도움말", exact: true })).toBeVisible();
       await expect(page.locator(".preference-controls")).toHaveAttribute("aria-busy", "false");
-      const accountEntry = page.locator(".wave-footer-tools > a[href='/account']");
+      const accountEntry = page.locator(":is(.wave-header-actions,.wave-footer-tools) > a[href='/account']");
       const entryArea = await hitArea(accountEntry);
       expect(entryArea.covered).toBe(false);
       expect(entryArea.width).toBeGreaterThanOrEqual(44);

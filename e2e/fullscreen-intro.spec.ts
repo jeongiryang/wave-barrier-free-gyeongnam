@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPublicShellApi } from "./fixtures";
@@ -209,10 +210,13 @@ test("legacy app motion values cannot suppress the canonical intro and preferenc
   await page.keyboard.press("Escape");
   await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
+  await openSupportMenu(page);
   await page.getByLabel("환경설정 열기").click();
+  await openSupportMenu(page);
   const preferences = page.locator(".preference-controls");
   await expect(preferences.getByRole("button", { name: /동작|인트로/ })).toHaveCount(0);
   await expect(preferences.getByLabel("언어", { exact: true })).toBeVisible();
+  await openSupportMenu(page);
   await page.getByLabel("환경설정 열기").click();
   await expect(page.locator(".landing-hero button")).toHaveCount(0);
   await expect(page.locator(".landing-hero canvas")).toHaveCount(0);

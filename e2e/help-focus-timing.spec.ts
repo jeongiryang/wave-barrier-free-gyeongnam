@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
@@ -23,6 +24,7 @@ for (const locale of ["ko", "en"] as const) {
     }, locale);
     for (const path of ["/", "/planner", "/community", "/travel-book"]) {
       await page.goto(path);
+      await openSupportMenu(page);
       const trigger = page.getByRole("button", { name: locale === "en" ? "Help" : "도움말", exact: true });
       await expect(trigger).toBeEnabled();
       for (let attempt = 0; attempt < 2; attempt++) {

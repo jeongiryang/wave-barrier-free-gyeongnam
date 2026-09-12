@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
@@ -6,7 +7,8 @@ for (const path of ["/planner", "/community"]) {
     await mockPlannerApi(page);
     await mockPublicShellApi(page);
     await page.goto(path);
-    const details = page.locator(".preference-controls:visible");
+    await openSupportMenu(page);
+    const details = page.locator(".preference-controls");
     await expect(details).toHaveAttribute("aria-busy", "false");
     await details.locator("summary").click();
     await details.getByText("한국어 전체 지원", { exact: true }).click();

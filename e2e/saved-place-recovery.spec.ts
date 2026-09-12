@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 
@@ -36,7 +37,9 @@ for (const [mapX, mapY] of [["0", "0"], ["139.7", "35.6"], ["NaN", "35.2"], ["12
       if (locale === "en") {
         // Preferences now live in the footer beside the account and help tools.
         await page.locator(".preference-controls").scrollIntoViewIfNeeded();
+        await openSupportMenu(page);
         await expect(page.getByLabel("환경설정 열기", { exact: true })).toBeInViewport();
+        await openSupportMenu(page);
         await page.getByLabel("환경설정 열기", { exact: true }).click();
         await page.getByRole("combobox", { name: "언어", exact: true }).selectOption("en");
         await page.getByLabel("Open preferences", { exact: true }).click();

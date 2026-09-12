@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
@@ -10,7 +11,9 @@ test("English preferences preserve locale choices, runtime reduced motion and CT
   await mockPublicShellApi(page);
   await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
   await page.goto("/");
+  await openSupportMenu(page);
   const preferences = page.locator(".preference-controls");
+  await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await expect(preferences).not.toContainText(/[가-힣]/);
   const bounds = await preferences.locator(".preference-panel").boundingBox();
@@ -22,6 +25,7 @@ test("English preferences preserve locale choices, runtime reduced motion and CT
   await preferences.getByRole("button", { name: "Dark mode", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(preferences.getByRole("button", { name: /Motion|Replay/ })).toHaveCount(0);
+  await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   const cta = page.locator(".landing-actions a[href='/planner']");
   await expect(page.locator(".landing-hero button")).toHaveCount(0);
@@ -30,6 +34,7 @@ test("English preferences preserve locale choices, runtime reduced motion and CT
   await expect(cta).toBeFocused();
   await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-running", "false");
   await expect(page.getByRole("dialog", { name: "WAVE", exact: true })).toBeHidden();
+  await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await expect(preferences).not.toContainText(/[가-힣]/);
   expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
@@ -51,6 +56,7 @@ test("English help covers visible areas, traps focus and returns it on each publ
   page.on("pageerror", e => errors.push(e.message));
   for (const path of ["/", "/planner", "/community", "/travel-book"]) {
     await page.goto(path);
+    await openSupportMenu(page);
     const trigger = page.getByRole("button", { name: "Help", exact: true });
     await expect(trigger).toBeEnabled();
     if (path === "/planner") await expect(page.locator(".journey-stage-stream")).toHaveAttribute("data-view", "overview");
@@ -89,6 +95,7 @@ for (const locale of ["ko", "en"] as const) {
     await mockPlannerApi(page, { plannerView: "guided" });
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
     await page.goto("/planner");
+    await openSupportMenu(page);
     const trigger = page.getByRole("button", { name: locale === "en" ? "Help" : "도움말", exact: true });
     await trigger.click();
     const dialog = page.getByRole("dialog");
@@ -109,6 +116,7 @@ test("help loads only on request and gives a recoverable explanation when its fi
   let requests = 0;
   await page.route(contentPath, async route => { requests++; await route.abort("failed"); });
   await page.goto("/");
+  await openSupportMenu(page);
   const trigger = page.getByRole("button", { name: "Help", exact: true });
   await expect(trigger).toBeEnabled();
   expect(requests).toBe(0);
@@ -119,6 +127,7 @@ test("help loads only on request and gives a recoverable explanation when its fi
   await expect(page.getByRole("dialog")).toBeHidden();
   await page.unroute(contentPath);
   await page.reload();
+  await openSupportMenu(page);
   await trigger.click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
