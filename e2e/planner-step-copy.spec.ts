@@ -48,7 +48,7 @@ test("편의 조건을 고르기 전후 모두 요약 문장이 완결된다", a
   }
   await expect(summary).toHaveText("선택한 편의 조건 없음");
   await expect(page.locator(".generate-button")).toHaveCount(0);
-  await expect(page.getByText("필요한 편의를 하나 이상 골라주세요.")).toBeVisible();
+  await expect(page.getByText("필요한 편의가 없다면 선택 없이 둘러볼 수 있어요.")).toBeVisible();
 
   await toggleUntilPressed(cards.first(), true);
   await expect(summary).toHaveText(/^편의 조건 \d+개 선택$/);

@@ -67,5 +67,14 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
     setEvidence({ signature: "", data: {} }); setLoading(false); setNotice("");
   }
 
+  const automaticCheck = useRef(checkRoutes);
+  useEffect(() => { automaticCheck.current = checkRoutes; });
+  const lastAutomaticSignature = useRef('');
+  useEffect(() => {
+    if (!trip.storageReady || loading || !legs.length || lastAutomaticSignature.current === signature) return;
+    const timer = window.setTimeout(() => { lastAutomaticSignature.current = signature; void automaticCheck.current(); }, 650);
+    return () => window.clearTimeout(timer);
+  }, [signature, trip.storageReady, legs.length, loading]);
+
   return { costByPlaceId, walkingByPlaceId, resetItineraryRoutes, legs, data, loading, notice, signature, readyCount, complete: legs.length > 0 && readyCount === legs.length, routeMinutes, checkRoutes, cancel: () => controllerRef.current?.abort() };
 }

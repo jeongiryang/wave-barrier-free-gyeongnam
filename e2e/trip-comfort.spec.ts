@@ -8,7 +8,7 @@ test("companions combine needs without erasing existing choices; walking prefere
   await page.goto("/planner");
   await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
   await page.getByRole("button", { name: /자연·휴양/ }).click();
-  await page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 고르기 →", exact: true }).click();
+  await page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 선택", exact: true }).click();
   const selected = page.getByRole("group", { name: "여행 편의 조건 선택" });
   await selected.getByRole("button", { name: /휠체어 편의시설/ }).click();
   const panel = page.locator(".trip-comfort-choices");

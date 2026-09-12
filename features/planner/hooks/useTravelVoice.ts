@@ -6,7 +6,7 @@ export function useTravelVoice(){
  const active=useRef<Recognition|null>(null),timer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const [listening,setListening]=useState(false),[notice,setNotice]=useState('');
  const dispose=useCallback(()=>{const current=active.current;active.current=null;if(timer.current)clearTimeout(timer.current);timer.current=null;if(current){current.onresult=null;current.onerror=null;current.onend=null;current.onnomatch=null;current.onspeechend=null;try{current.abort();}catch{/* Already ended. */}}},[]);
- const cancel=useCallback(()=>{dispose();setListening(false);setNotice('듣기를 취소했어요. 일정은 바꾸지 않았습니다.');},[dispose]);
+ const cancel=useCallback(()=>{const wasListening=Boolean(active.current);dispose();setListening(false);if(wasListening)setNotice('듣기를 취소했어요. 일정은 바꾸지 않았습니다.');},[dispose]);
  useEffect(()=>{const hide=()=>{if(document.hidden&&active.current)cancel();};document.addEventListener('visibilitychange',hide);return()=>{document.removeEventListener('visibilitychange',hide);dispose();};},[cancel,dispose]);
  function start(onTranscript:(text:string)=>void){
   if(active.current)return;

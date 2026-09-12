@@ -40,7 +40,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await page.getByRole("button", { name: "통영", exact: true }).click();
     await expect(page.getByRole("button", { name: "통영 지역 선택" })).toHaveAttribute("aria-pressed", "true");
     await page.locator(".theme-grid button").first().click();
-    await page.locator(".condition-actions button").click();
+    await page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 선택", exact: true }).click();
     await expect(page.getByRole("heading", { name: "어떤 편의가 필요할까요?", exact: true })).toBeFocused();
     await page.locator(".profile-card").first().click();
     await expect(page.locator(".profile-card.active")).toHaveCount(1);

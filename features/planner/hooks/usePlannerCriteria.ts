@@ -1,10 +1,12 @@
 "use client";
+import { getTabStorage } from "../../../lib/session-storage.js";
 
 import { useCallback, useEffect, useState } from "react";
 import { regions } from "../constants";
 import { useTravelPreferenceProfile } from "./useTravelPreferenceProfile";
 import { selectedThemes } from "../../../lib/planner-criteria.js";
 import { readTripValue, writeTripValue, REGION_KEY, THEMES_KEY } from "../../../lib/current-trip-storage.js";
+import { readSessionProfiles, saveSessionProfiles } from '../../../lib/session-travel-profiles.js';
 
 export function usePlannerCriteria() {
   const [selected, setSelected] = useState<string[]>([]);
@@ -22,6 +24,7 @@ export function usePlannerCriteria() {
     const frame = window.requestAnimationFrame(() => {
       const query = new URLSearchParams(window.location.search);
       const queryRegion = query.get("region");
+      setSelected(readSessionProfiles(getTabStorage()));
       let existingRegion = "";
       let hasSaved = false;
       try {
@@ -39,6 +42,8 @@ export function usePlannerCriteria() {
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
+
+  useEffect(() => { if (criteriaReady) saveSessionProfiles(getTabStorage(), selected); }, [criteriaReady, selected]);
 
   useEffect(() => {
     if (!criteriaReady) return;

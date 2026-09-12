@@ -36,11 +36,13 @@ for (const [mapX, mapY] of [["0", "0"], ["139.7", "35.6"], ["NaN", "35.2"], ["12
       await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
       if (locale === "en") {
         // Preferences are revealed through the shared header support menu.
+        await page.keyboard.press("Control+Home");
         await openSupportMenu(page);
         await page.locator(".preference-controls").scrollIntoViewIfNeeded();
         await expect(page.getByLabel("환경설정 열기", { exact: true })).toBeInViewport();
         await page.getByLabel("환경설정 열기", { exact: true }).click();
         await page.getByRole("combobox", { name: "언어", exact: true }).selectOption("en");
+        await openSupportMenu(page);
         await page.getByLabel("Open preferences", { exact: true }).click();
       }
       const en = locale === "en";
@@ -83,13 +85,10 @@ for (const locale of ["ko", "en"] as const) {
     await page.locator(".journey-mode-toggle").getByRole("button", { name: en ? "Overview" : "전체 보기", exact: true }).click();
     await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
     const activity = page.getByRole("button", { name: en ? /Nature and relaxation/ : /자연·휴양 공원/ });
-    const search = page.getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true });
+    const search = page.getByRole("button", { name: en ? "Find places →" : "여행지 둘러보기 →", exact: true });
     await expect(activity).toHaveAttribute("aria-pressed", "true");
     await activity.click();
     await expect(activity).toHaveAttribute("aria-pressed", "false");
-    await expect(search).toBeDisabled();
-    await activity.click();
-    await expect(activity).toHaveAttribute("aria-pressed", "true");
     await expect(search).toBeEnabled();
     expect(searches).toBe(0);
     await search.click();

@@ -8,7 +8,7 @@ async function prepare(page: Page) {
   const conditions = page.locator("#conditions");
   await conditions.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
   await conditions.getByRole("button", { name: /Nature and relaxation/ }).click();
-  await conditions.locator(".condition-actions button").last().click();
+  await conditions.getByRole("button", { name: "Choose facilities", exact: true }).click();
   await conditions.getByRole("button", { name: /Wheelchair facilities/ }).click();
 }
 

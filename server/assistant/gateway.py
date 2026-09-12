@@ -23,12 +23,17 @@ RECENT = []
 FORMAT = {'type': 'object', 'properties': {
     'reply': {'type': 'string'},
     'proposal': {'anyOf': [{'type': 'null'}, {'type': 'object', 'properties': {
-        'action': {'type': 'string', 'enum': ['settings', 'search', 'add', 'remove', 'details', 'move', 'visit', 'break', 'day', 'start-time', 'deadline', 'readiness', 'compare', 'alternatives', 'next', 'undo', 'tool', 'help']}, 'region': {'type': 'string'},
+          'action': {'type': 'string', 'enum': ['create-itinerary', 'adapt-itinerary', 'set-dates', 'recalculate-route', 'save-trip', 'settings', 'search', 'add', 'remove', 'details', 'move', 'visit', 'break', 'day', 'start-time', 'deadline', 'readiness', 'compare', 'alternatives', 'next', 'undo', 'tool', 'help']}, 'region': {'type': 'string', 'enum': ['경남 전체', '창원', '진주', '통영', '사천', '김해', '밀양', '거제', '양산', '의령', '함안', '창녕', '고성', '남해', '하동', '산청', '함양', '거창', '합천']},
         'profiles': {'type': 'array', 'items': {'type': 'string', 'enum': ['wheel', 'senior', 'baby', 'pregnant', 'visual', 'hearing']}},
         'themes': {'type': 'array', 'items': {'type': 'string', 'enum': ['nature', 'history', 'leisure', 'food']}},
         'placeId': {'type': 'string'}, 'minutes': {'type': 'integer'},
         'direction': {'type': 'string'}, 'date': {'type': 'string'},
-        'time': {'type': 'string'}, 'tool': {'type': 'string'}},
+        'time': {'type': 'string'}, 'tool': {'type': 'string'},
+        'start': {'type': 'string'}, 'end': {'type': 'string'}, 'indoor': {'type': 'boolean'},
+        'pace': {'type': 'string', 'enum': ['relaxed', 'standard']},
+        'transport': {'type': 'string', 'enum': ['walk', 'bicycle', 'transit', 'car']},
+          'originRegion': {'type': 'string', 'enum': ['창원', '진주', '통영', '사천', '김해', '밀양', '거제', '양산', '의령', '함안', '창녕', '고성', '남해', '하동', '산청', '함양', '거창', '합천']}, 'festival': {'type': 'string', 'minLength': 1},
+        'reason': {'type': 'string', 'enum': ['rain', 'fatigue', 'change', 'closed']}},
         'required': ['action'], 'additionalProperties': False}]}
 }, 'required': ['reply', 'proposal'], 'additionalProperties': False}
 

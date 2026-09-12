@@ -194,8 +194,20 @@ export function useTripSchedule() {
     updateComfort(emptyComfort); setTripBreaks({}); setStopPurposes({});
   }, []);
 
+  const restoreScheduleSnapshot = useCallback((value: StoredSchedule) => {
+    if (!validTripDate(value.travelStart) || !validTripDate(value.travelEnd) || boundedTripEnd(String(value.travelStart), String(value.travelEnd)) !== value.travelEnd) return false;
+    setTravelStart(String(value.travelStart)); setTravelEnd(String(value.travelEnd));
+    if (typeof value.dayStartTime === 'string' && TIME_PATTERN.test(value.dayStartTime)) setDayStartTime(value.dayStartTime);
+    setScheduleAssignments(Object.fromEntries(Object.entries(value.scheduleAssignments || {}).filter(([, day]) => validTripDate(day))) as Record<string, string>);
+    setVisitMinutesByPlaceId(sanitizeVisitDurations(value.visitMinutesByPlaceId)); setTripBreaks(sanitizeTripBreaks(value.breakMinutesByPlaceId));
+    setStopPurposes(sanitizeStopPurposes(value.restPurposeByPlaceId)); setFixedVisits(sanitizeFixedVisits(value.fixedVisits));
+    setDayDeadlines(sanitizeDayDeadlines(value.dayDeadlines)); updateComfort(sanitizeComfort(value.comfort)); setDateNotice(null);
+    return true;
+  }, []);
+
   return {
     resetSchedule,
+    restoreScheduleSnapshot,
     storageReady,
     travelStart,
     travelEnd,

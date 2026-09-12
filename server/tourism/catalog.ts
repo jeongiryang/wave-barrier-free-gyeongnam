@@ -54,9 +54,9 @@ export const languageServices: Record<string, { service: string; name: string; s
 };
 
 export const profileFields: Record<string, Array<[string, string]>> = {
-  wheel: [["parking", "장애인 주차"], ["route", "접근로"], ["wheelchair", "휠체어"], ["elevator", "엘리베이터"], ["restroom", "장애인 화장실"]],
+  wheel: [["parking", "장애인 주차"], ["route", "접근로"], ["wheelchair", "휠체어 대여"], ["elevator", "엘리베이터"], ["restroom", "장애인 화장실"]],
   senior: [["route", "완만한 접근로"], ["elevator", "엘리베이터"], ["restroom", "화장실"]],
-  baby: [["stroller", "유모차"], ["lactationroom", "수유실"], ["babysparechair", "유아용 의자"]],
+  baby: [["stroller", "유모차 대여"], ["lactationroom", "수유실"], ["babysparechair", "유아용 의자"]],
   pregnant: [["elevator", "엘리베이터"], ["restroom", "화장실"], ["route", "접근로"]],
   visual: [["braileblock", "점자블록"], ["helpdog", "안내견"], ["guidehuman", "안내요원"], ["audioguide", "음성안내"], ["bigprint", "큰활자 안내"]],
   hearing: [["signguide", "수어안내"], ["videoguide", "영상안내"], ["hearingroom", "청각지원 객실"]],

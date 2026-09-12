@@ -35,7 +35,8 @@ test("README는 서비스 소개와 별도 운영·제출·검증 문서를 연�
   const readme = await source("README.md");
   assert.doesNotMatch(readme, /AI 작업 로그|docs\/ai-logs/);
   assert.match(readme, /docs\/contest-compliance.md/);
-  assert.match(readme, /docs\/launch-audit-2026-09-05.md/);
+  assert.match(readme, /docs\/product-upgrade-20260912.md/);
+  assert.match(readme, /docs\/ci-validation.md/);
   assert.match(readme, /\[운영·보안·개인정보 안내\]\(docs\/operations\.md\)/);
   assert.match(readme, /Neon 백업 일정이나 복구 시점 목표가 코드로 설정되어 있지 않으므로/);
 });

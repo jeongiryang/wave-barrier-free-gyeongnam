@@ -81,6 +81,7 @@ export async function renderKakaoMap(
     const image = safeMapImageUrl(place.image);
     const marker = document.createElement("button");
     marker.type = "button";
+    marker.dataset.placeId = place.id;
     const isCrowdPlace = Boolean(crowdVisual && crowdPlace?.id === place.id);
     marker.className = `${image ? "wave-map-icon place has-photo kakao-photo-marker" : "wave-map-icon place kakao-number-marker"}${isCrowdPlace ? ` crowd-aware crowd-${crowdVisual?.level}` : ""}`;
     if (isCrowdPlace && crowdVisual) {

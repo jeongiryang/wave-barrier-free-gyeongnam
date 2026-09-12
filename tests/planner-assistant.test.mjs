@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 import * as actions from '../lib/assistant-actions.js';
+import { groundAssistantProposal } from '../lib/assistant-grounding.js';
 import { navigationScroll } from '../lib/header-scroll.js';
 import { verifySameOriginMutation } from '../lib/security/request-boundaries.js';
 import { cacheControlHeader } from '../lib/http-cache.js';
@@ -21,6 +22,7 @@ function handler(responder, configured = true) {
   let requesters = 0;
   const { handleAssistant } = compile('../server/assistant/handler.ts', {
     '../shared/http': http, '../../lib/assistant-actions.js': actions,
+    '../../lib/assistant-grounding.js': { groundAssistantProposal },
     '../../lib/provider-failure.js': { ProviderRequestError },
     '../shared/provider-request.js': {
       createProviderRequester: () => {

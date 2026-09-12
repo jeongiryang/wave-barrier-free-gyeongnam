@@ -10,7 +10,7 @@ const archivedWorkflow = yaml.load(readFileSync(new URL("../.github/workflow-arc
 
 test("the protected CI gate rejects failed, cancelled and skipped dependencies", () => {
   const gate = workflow.jobs.validate;
-  assert.deepEqual(gate.needs, ["quality", "browser", "sandbox-boundary"]);
+  assert.deepEqual(gate.needs, ["quality", "browser", "sandbox-boundary", "certify"]);
   assert.equal(gate.if, "${{ always() }}");
   const step = gate.steps[0];
   assert.equal(step.env.QUALITY_RESULT, "${{ needs.quality.result }}");
@@ -30,6 +30,9 @@ test("the protected CI gate rejects failed, cancelled and skipped dependencies",
     const result = spawnSync(process.execPath, ["-e", script], { env: { ...process.env, QUALITY_RESULT: "success", BROWSER_RESULT: "success", BOUNDARY_RESULT: "success", [key]: status } });
     assert.equal(result.status, 1, `${key}/${status}`);
   }
+  const certified = { ...process.env, QUALITY_RESULT: 'success', BROWSER_RESULT: 'skipped', BOUNDARY_RESULT: 'skipped', CERTIFY_RESULT: 'success', REUSE_VERIFIED: 'true', GITHUB_EVENT_NAME: 'push', GITHUB_REF: 'refs/heads/main' };
+  assert.equal(spawnSync(process.execPath, ['-e', script], { env: certified }).status, 0);
+  for (const override of [{ QUALITY_RESULT: 'failure' }, { BROWSER_RESULT: 'failure' }, { BOUNDARY_RESULT: 'cancelled' }, { CERTIFY_RESULT: 'failure' }, { REUSE_VERIFIED: 'false' }, { GITHUB_EVENT_NAME: 'pull_request' }, { GITHUB_REF: 'refs/heads/feature' }]) assert.equal(spawnSync(process.execPath, ['-e', script], { env: { ...certified, ...override } }).status, 1);
 });
 test("CI retains all checks and runs every browser shard without fail-fast or secrets", () => {
   assert.deepEqual(workflow.permissions, { contents: "read" });
@@ -86,8 +89,15 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
 
 // The scope change preserves full-suite coverage and test configuration.
 test("RC separates complete hosted product validation from frozen bounded sandbox smoke", () => {
-  assert.deepEqual(workflow.jobs.quality, archivedWorkflow.jobs.quality);
+  const expectedQuality = structuredClone(archivedWorkflow.jobs.quality);
+  expectedQuality.steps[0].with.ref = '${{ github.sha }}';
+  expectedQuality.steps.push({ name: 'Record the exact tested PR merge tree', if: "${{ github.event_name == 'pull_request' }}", env: { PR_NUMBER: '${{ github.event.pull_request.number }}', PR_HEAD_SHA: '${{ github.event.pull_request.head.sha }}', PR_BASE_SHA: '${{ github.event.pull_request.base.sha }}' }, run: 'node scripts/write-ci-proof.mjs' },
+    { name: 'Preserve tested checkout proof', if: "${{ github.event_name == 'pull_request' }}", uses: 'actions/upload-artifact@v7', with: { name: 'ci-tree-proof', path: '${{ runner.temp }}/ci-tree-proof.json', 'retention-days': 7, 'if-no-files-found': 'error' } });
+  assert.deepEqual(workflow.jobs.quality, expectedQuality);
   const expectedBrowser = structuredClone(archivedWorkflow.jobs.browser);
+  expectedBrowser.steps[0].with.ref = '${{ github.sha }}';
+  expectedBrowser.needs = 'certify';
+  expectedBrowser.if = "${{ !cancelled() && needs.certify.outputs.verified != 'true' }}";
   expectedBrowser.strategy.matrix.device = ["desktop", "mobile"];
   expectedBrowser.strategy.matrix.shard = [1, 2, 3, 4];
   const installBrowser = workflow.jobs.browser.steps.find(step => step.name === "브라우저 설치");
@@ -98,12 +108,17 @@ test("RC separates complete hosted product validation from frozen bounded sandbo
   browserStep.env = { PLAYWRIGHT_HTML_REPORT: "playwright-report/${{ matrix.device }}" };
   browserStep.run = "npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/4 --output=test-results/${{ matrix.device }}";
   for (const step of expectedBrowser.steps.filter(step => step.uses?.startsWith("actions/upload-artifact@"))) {
+    step.uses = 'actions/upload-artifact@v7';
     step.with.name = step.with.name.replace("${{ matrix.shard }}", "${{ matrix.device }}-${{ matrix.shard }}");
   }
   assert.deepEqual(workflow.jobs.browser, expectedBrowser);
   // Apart from the reviewed distribution and an ephemeral runner APT-source
   // preparation, every boundary command, timeout and safety probe stays equal.
   const expectedBoundary = structuredClone(archivedWorkflow.jobs["sandbox-boundary"]);
+  expectedBoundary.steps[0].with.ref = '${{ github.sha }}';
+  expectedBoundary.needs = 'certify';
+  expectedBoundary.if = "${{ !cancelled() && needs.certify.outputs.verified != 'true' }}";
+  for (const step of expectedBoundary.steps.filter(step => step.uses?.startsWith('actions/upload-artifact@'))) step.uses = 'actions/upload-artifact@v7';
   const bootstrap = expectedBoundary.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution");
   bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "568f6b39760a09c1a3b9939047387276794b412f")
     .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "6fd043bece51e715044a448e307a8b973c77a9bce49c932ee9f783dc05f4e695");

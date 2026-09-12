@@ -14,14 +14,15 @@ async function expectNoOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
 }
 
-test("first visit stays neutral and later stages are locked without a search", async ({ page }) => {
+test("first visit stays neutral with optional conditions and locked unsearched results", async ({ page }) => {
   let requests = 0;
   await mockPlannerApi(page, { plannerView: "guided" });
   page.on("request", (request) => { if (request.url().includes("action=plan")) requests++; });
   await page.goto("/planner");
   await expect(page.getByRole("heading", { name: "경남, 어디부터 가볼까요?", exact: true })).toBeVisible();
   await expect(page.getByRole("group", { name: "여행 지역 선택", exact: true }).locator('[aria-pressed="true"]')).toHaveCount(0);
-  await expect(page.locator(".condition-actions button")).toBeDisabled();
+  await expect(page.locator(".condition-actions").getByRole("button", { name: "여행지 둘러보기 →", exact: true })).toBeEnabled();
+  await expect(page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 선택", exact: true })).toBeEnabled();
   await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "0");
   await expect(page.locator(".reference-journey-views")).toHaveCount(0);
   await expect(page.locator(".planner-navigation nav button").nth(2)).toBeDisabled();
@@ -49,7 +50,7 @@ test("a returning user can open an existing device itinerary before a new search
   const itineraryStep = page.locator(".planner-navigation nav button").nth(3);
   await expect(itineraryStep).toBeEnabled();
   await itineraryStep.click();
-  await expect(page.getByRole("heading", { name: /여행, 순서만 정하면 돼요/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "여행 순서를 편하게 정리하세요.", exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toContainText("기존 저장 여행지");
   await expect(page.locator('.reference-completion')).toHaveAttribute("aria-valuenow", "0");
   await page.getByRole("navigation", { name: "여행 만들기 단계" })
@@ -67,7 +68,7 @@ test("guided search failures stay visible with choices preserved and allow retry
   await page.goto("/planner");
   await chooseTripConditions(page);
   await expect(page.locator("#conditions").getByRole("alert")).toContainText("선택한 조건은 유지됩니다");
-  await expect(page.locator(".condition-actions").getByRole("button", { name: /여행지 찾기/ })).toBeEnabled();
+  await expect(page.locator(".condition-actions").getByRole("button", { name: "여행지 둘러보기 →", exact: true })).toBeEnabled();
   await expect(page.locator("#places")).toBeHidden();
 });
 

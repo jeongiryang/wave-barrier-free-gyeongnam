@@ -5,17 +5,14 @@
 .primary-button { padding: 12px 19px; display: inline-flex; align-items: center; gap: 24px; color: var(--on-blue); background: var(--blue); box-shadow: 0 16px 28px rgba(23,176,255,.23); font-weight: 820; }
 .primary-button:hover { transform: translateY(-3px); box-shadow: 0 19px 34px rgba(23,176,255,.3); }
 .play { display: grid; place-items: center; border-radius: 50%; color: var(--blue); background: #fff; box-shadow: 0 8px 20px rgba(8,47,65,.1); font-size: .58rem; }
-.gyeongnam-map { position: absolute; inset: 0 0 8%; isolation: isolate; }
-.gyeongnam-map > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: .72; filter: grayscale(1) sepia(1) saturate(5.3) hue-rotate(173deg) brightness(.9) contrast(1.12); mix-blend-mode: multiply; }
+
 .live-dot, .ready-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 6px rgba(125,235,233,.2); }
 .ready-dot { background: #77cffb; box-shadow: 0 0 0 6px rgba(119,207,251,.2); }
 
 /* Shared sections */
 .places-section { padding: 120px max(24px, calc((100vw - 1240px) / 2)); }
-.section-heading { max-width: 850px; margin: 0 auto 52px; text-align: center; }
+
 .section-kicker { margin: 0 0 13px; color: var(--blue); font-size: .74rem; font-weight: 900; letter-spacing: .16em; }
-.section-heading h2 { margin: 0; font-size: clamp(2.45rem, 4.2vw, 4.75rem); line-height: 1.08; letter-spacing: -.065em; }
-.section-heading > p:last-child { max-width: 700px; margin: 18px auto 0; color: var(--muted); font-size: 1rem; }
 
 /* Planner */
 .control-panel { min-width: 0; padding: 23px; border: 1px solid var(--line); border-radius: 22px; background: #fff; box-shadow: 0 12px 30px rgba(20,69,92,.055); }
@@ -34,14 +31,14 @@
 .date-range-fields { grid-template-columns: 1fr auto 1fr; align-items: end; }.date-range-fields > i { padding-bottom: 14px; color: var(--blue); font-style: normal; font-weight: 900; }.date-range-fields label { color: #6b8794; font-size: .72rem; font-weight: 800; }.date-range-fields input { font: inherit; font-weight: 800; }.date-control > p { margin: 10px 0 0; color: #6b8794; font-size: .76rem; }
 .preference-label { display: flex; align-items: center; justify-content: space-between; }
 .preference-label > small { color: var(--muted); font-size: .78rem; }
-.profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
 .profile-card { min-height: 84px; padding: 14px; display: grid; grid-template-columns: 44px 1fr 27px; align-items: center; gap: 11px; border: 1px solid #d7e6ee; border-radius: 16px; background: #fff; text-align: left; transition: transform .2s, border-color .2s, background .2s; }
 .profile-card:hover { transform: translateY(-3px); border-color: #82d4ff; }
 .profile-card.active { border-color: var(--blue); background: #f1faff; box-shadow: inset 0 0 0 1px var(--blue); }
 .profile-icon { width: 44px; height: 44px; display: grid; place-items: center; background: #f1f8fb; font-size: 1.25rem; }
 .profile-card.active .profile-icon { background: #dcf3ff; }
 .profile-card strong, .profile-card small { display: block; }
-.profile-card strong { font-size: .92rem; }
+
 .profile-card small { margin-top: 3px; color: #738f9c; font-size: .78rem; }
 .profile-card > i { width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid #d4e4eb; border-radius: 50%; color: #6d8a97; font-style: normal; }
 .profile-card.active > i { border-color: var(--blue); color: var(--on-blue); background: var(--blue); }
@@ -96,7 +93,7 @@
 .place-card:hover { transform: translateY(-7px); }
 .place-visual { height: 235px; position: relative; overflow: hidden; background-image: var(--place-image), linear-gradient(155deg, #abe5fd 0 46%, #5ab9de 46% 62%, #5b94ab 62% 66%, #8ac0ae 66%); background-size: cover; background-position: center; }
 .place-visual::after { content: ""; position: absolute; inset: 0; }
-.place-content { padding: 23px; }
+
 .place-content > button { width: 100%; min-height: 46px; padding: 10px 0 0; display: flex; align-items: center; justify-content: space-between; border: 0; border-top: 1px solid #e5edf1; background: transparent; font-size: .85rem; font-weight: 850; }
 
 /* 어두운 화면에서 "지금 선택한 지역" 칩이 밝게 남아 안쪽 글자가 묻혔다. */

@@ -1,11 +1,13 @@
 "use client";
 import WaveHeader from "../../../components/WaveHeader";
 import PlannerJourneyRail from './PlannerJourneyRail';
+import TripStorageNotice from './TripStorageNotice';
 import { useSitePreferences } from "../../../components/SitePreferences";
 import type { JourneyStepId } from "../hooks/useJourneyProgress";
 import type { PlannerStageView } from "../hooks/usePlannerStageView";
 
-export default function PlannerReferenceChrome({ region, dates, facilities, activities, savedCount, activeStep, question, available, resultsAvailable, onQuestion, onNavigate, onSearch, searching, progress, requestState, recommendedCount, onAssistant, interactive }: {
+export default function PlannerReferenceChrome({ region, dates, facilities, activities, savedCount, activeStep, question, available, resultsAvailable, onQuestion, onNavigate, onSearch, searching, progress, requestState, recommendedCount, onAssistant, interactive, storageSnapshot }: {
+  storageSnapshot: Record<string, string>;
   view: PlannerStageView; progress: number; requestState: string; recommendedCount: number;
   region: string; dates: string; facilities: string; activities: string; savedCount: number;
   activeStep: JourneyStepId; question: number; available: boolean[]; resultsAvailable: boolean;
@@ -33,7 +35,7 @@ export default function PlannerReferenceChrome({ region, dates, facilities, acti
         <button type="button" disabled={!interactive} onClick={() => onQuestion(2)}><small>{en ? "Activities" : "활동"}</small><strong>{activities || (en ? "Choose activities" : "활동 선택")}</strong><span aria-hidden="true">↗</span></button>
         <button className="planner-nav-search" type="button" aria-label={en ? "Find places with these preferences" : "선택한 조건으로 여행지 찾기"} disabled={!interactive || !available[3] || searching} aria-busy={searching} onClick={onSearch}>{searching ? en ? "Finding places…" : "여행지 찾는 중…" : en ? "Find places" : "이 조건으로 여행지 찾기"}</button>
       </div>
-      <p className="planner-nav-hint">{en ? "Your itinerary is kept on this device." : "담은 장소와 일정은 이 기기에 자동으로 보관돼요."}</p>
+      <TripStorageNotice snapshot={storageSnapshot} />
     </aside>
     <div className="sr-only reference-completion" role="progressbar" aria-label={en ? "Trip preparation progress" : "여행 준비 진행률"} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} />
     <div className="journey-live-summary sr-only"><span role="status">{requestState === "loading" ? en ? "Loading" : "불러오는 중" : requestState === "error" ? en ? "Try again" : "다시 시도 필요" : requestState === "dirty" ? en ? "Search again" : "다시 검색 필요" : requestState === "empty" ? en ? "No matching places" : "조건에 맞는 장소 없음" : requestState === "success" ? en ? `${recommendedCount} places` : `${recommendedCount}곳` : en ? "Not searched" : "검색 전"}</span></div>

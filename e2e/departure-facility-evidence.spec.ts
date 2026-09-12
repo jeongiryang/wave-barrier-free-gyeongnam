@@ -55,7 +55,7 @@ for (const scenario of ["complete", "partial", "negative", "legacy"] as const) f
     await page.getByRole("button", { name: en ? /Facilities for young children/ : /유아 편의시설/ }).click();
     await expect(evidence).toHaveClass("recheck");
     expect(searches).toBe(before);
-    const search = page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true });
+    const search = page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 둘러보기 →", exact: true });
     await search.click();
     await expect(evidence).toHaveClass("partial");
     await expect(evidence).toContainText(en ? "Reported available 5" : "확인됨 5");

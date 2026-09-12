@@ -57,7 +57,7 @@ test("관광 계획은 요청 전체에 예산을 둔다", async () => {
   assert.match(builder, /budgetClock\(PLAN_TOTAL_BUDGET_MS\)/);
   assert.match(builder, /const optionalSources = Promise.all/);
   assert.match(builder, /const \[barrier, tour\] = await eachWithinBudget/);
-  assert.match(builder, /const details = await eachWithinBudget/);
+  assert.match(builder, /const details = profiles.length \? await eachWithinBudget/);
   assert.match(builder, /const \[audio, crowd\] = await eachWithinBudget/);
   assert.ok(PLAN_TOTAL_BUDGET_MS < UPSTREAM_TIMEOUT_MS.tourism * 3, "단계별 최악을 그대로 더한 값보다 짧아야 한다");
 });

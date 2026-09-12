@@ -46,33 +46,33 @@ test("production deployment rejects missing or unsafe account configuration", ()
 test("CD migrates an unpromoted protected candidate before production promotion", async () => {
   const workflow = await readFile(new URL("../.github/workflows/cd.yml", import.meta.url), "utf8");
   assert.doesNotThrow(() => loadYaml(workflow));
-  const build = workflow.indexOf("vercel@50.15.1 build");
+  const build = workflow.indexOf("vercel@59.16.0 build");
   const candidate = workflow.indexOf("--skip-domain");
   const candidateHealth = workflow.indexOf("후보 health smoke test");
   const migration = workflow.indexOf("/api/deployment/migrate");
-  const promote = workflow.indexOf("vercel@50.15.1 promote");
+  const promote = workflow.indexOf("vercel@59.16.0 promote");
   assert.ok(build > 0 && build < candidate);
   assert.ok(candidate < candidateHealth && candidateHealth < migration && migration < promote);
   assert.match(workflow, /COMMUNITY_MIGRATION_TOKEN/);
   // Vercel Cron은 프로젝트 Production 환경의 CRON_SECRET을 Authorization Bearer로 보낸다.
   // CD가 배포마다 별도 값을 --env로 덮으면 스케줄러와 함수가 서로 다른 값을 보게 된다.
-  assert.match(workflow, /vercel@50\.15\.1 env ls production/);
+  assert.match(workflow, /vercel@59\.16\.0 env ls production/);
   assert.match(workflow, /env add CRON_SECRET production --sensitive/);
-  assert.ok(workflow.includes(`printf '%s' "$cron_secret" | npx --yes vercel@50.15.1 env add CRON_SECRET production --sensitive`));
+  assert.ok(workflow.includes(`printf '%s' "$cron_secret" | npx --yes vercel@59.16.0 env add CRON_SECRET production --sensitive`));
   assert.ok(!workflow.includes(`printf '%s\\n' "$cron_secret"`), "Cron credential input must not append a newline");
   assert.doesNotMatch(workflow, /--env CRON_SECRET=/);
   assert.doesNotMatch(workflow, /cron_token|cron_value/);
   // Native curl은 실제 curl 인자를 그대로 넘긴다. CI 인증과 프로젝트 선택은
   // VERCEL_TOKEN/VERCEL_ORG_ID/VERCEL_PROJECT_ID 환경변수와 pull로 만든 링크에 맡긴다.
-  assert.match(workflow, /vercel@54\.14\.0 curl \/api\/health --deployment "\$CANDIDATE_URL"/);
-  assert.match(workflow, /vercel@54\.14\.0 curl \/api\/deployment\/migrate --deployment "\$CANDIDATE_URL"/);
+  assert.match(workflow, /vercel@59\.16\.0 curl \/api\/health --deployment "\$CANDIDATE_URL"/);
+  assert.match(workflow, /vercel@59\.16\.0 curl \/api\/deployment\/migrate --deployment "\$CANDIDATE_URL"/);
   assert.match(workflow, /-X POST -H "Authorization: Bearer \$COMMUNITY_MIGRATION_TOKEN"/);
-  assert.doesNotMatch(workflow, /vercel@54\.14\.0[^\n]+--(?:scope|token)[^\n]+curl/);
-  assert.doesNotMatch(workflow, /vercel@54\.14\.0 curl[^\n]+--(?:scope|token)/);
+  assert.doesNotMatch(workflow, /vercel@59\.16\.0[^\n]+--(?:scope|token)[^\n]+curl/);
+  assert.doesNotMatch(workflow, /vercel@59\.16\.0 curl[^\n]+--(?:scope|token)/);
   assert.match(workflow, /VERCEL_TOKEN: \$\{\{ secrets\.VERCEL_TOKEN \}\}/);
   assert.match(workflow, /VERCEL_ORG_ID: \$\{\{ secrets\.VERCEL_ORG_ID \}\}/);
   assert.match(workflow, /VERCEL_PROJECT_ID: \$\{\{ secrets\.VERCEL_PROJECT_ID \}\}/);
-  assert.match(workflow, /vercel@50\.15\.1 (?:pull|build|deploy|promote)/);
+  assert.match(workflow, /vercel@59\.16\.0 (?:pull|build|deploy|promote)/);
   assert.match(workflow, /grep -Fq '\"ok\":true'/);
   assert.match(workflow, /grep -Fq '\"001_community\.sql\"'/);
   assert.match(workflow, /grep -Fq '\"002_community_moderation\.sql\"'/);
@@ -81,7 +81,7 @@ test("CD migrates an unpromoted protected candidate before production promotion"
   assert.match(workflow, /grep -Fq '\"005_community_field_reports\.sql\"'/);
   assert.match(workflow, /grep -Fq '\"006_retire_community_seed\.sql\"'/);
   assert.match(workflow, /grep -Fq '\"checkedAt\"'/);
-  assert.match(workflow, /vercel@50\.15\.1 rollback/);
+  assert.match(workflow, /vercel@59\.16\.0 rollback/);
   assert.match(workflow, /promote[^\n]+--scope="\$VERCEL_ORG_ID"/);
   assert.match(workflow, /rollback[^\n]+--scope="\$VERCEL_ORG_ID"/);
   assert.doesNotMatch(workflow, /steps\.[a-z0-9_]+-[a-z0-9_-]+/i);

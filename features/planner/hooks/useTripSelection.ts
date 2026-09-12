@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { resolveSavedPlaces } from "../../../lib/saved-place-catalog.js";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { journeyDays, validateJourneyApplication, type NaruJourney } from '../../../lib/naru-journey.js';
+import { resolveSavedPlaces, sanitizeSavedPlaceCatalog } from "../../../lib/saved-place-catalog.js";
+import { replaceCurrentTrip, readTripValue, REGION_KEY, THEMES_KEY } from '../../../lib/current-trip-storage.js';
 import { sanitizeTripBreaks, type StopPurpose } from "../../../lib/trip-comfort.js";
 import { canMoveVisitDate } from "../../../lib/trip-date-move.js";
 import { planVoiceEdit, voiceStateKey, canUndoVoiceEdit, type VoiceState, type VoiceEditReceipt } from "../../../lib/voice-edit.js";
@@ -11,22 +13,25 @@ import type { TripProgress, TripProgressMemory } from '../../../lib/on-trip.js';
 import { useOptimizedTripOrder } from "./useOptimizedTripOrder";
 import { useSavedPlaceIds } from "./useSavedPlaceIds";
 import { useTripSchedule } from "./useTripSchedule";
+import { useSavedPlaceEvidence } from './useSavedPlaceEvidence';
 
-export function useTripSelection({ activePlaces, origin, accessibilityProfileCount }: {
+export function useTripSelection({ activePlaces, origin, accessibilityProfileCount, selectedProfiles = [] }: {
+  selectedProfiles?: string[];
   activePlaces: Place[];
   origin: RoutePoint;
   accessibilityProfileCount: number;
 }) {
-  const { saved, catalog, resetSaved, storageReady: savedStorageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId, restoreSavedPlace } = useSavedPlaceIds();
+  const { saved, catalog, resetSaved, restoreSavedSnapshot, storageReady: savedStorageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId, restoreSavedPlace } = useSavedPlaceIds();
   const schedule = useTripSchedule();
   const [dayChoice, setActiveDay] = useState("");
   const [progressMemory, setProgressMemory] = useState<TripProgressMemory>({});
   const rememberProgress = useCallback((identity: string, value: TripProgress, unsaved = false) => setProgressMemory(current => Object.fromEntries([[identity, { value, unsaved }], ...Object.entries(current).filter(([key]) => key !== identity).slice(0, 19)])), []);
   const activeDay = schedule.tripDays.includes(dayChoice) ? dayChoice : schedule.tripDays[0];
   const { ensurePlaceAssignment, removePlaceAssignment, canChangePlace } = schedule;
+  const savedEvidence = useSavedPlaceEvidence(saved, selectedProfiles, savedStorageReady);
   const savedPlaces = useMemo(
-    () => resolveSavedPlaces(saved, activePlaces, catalog),
-    [activePlaces, catalog, saved],
+    () => resolveSavedPlaces(saved, [...activePlaces, ...savedEvidence.places], catalog),
+    [activePlaces, catalog, saved, savedEvidence.places],
   );
 
   useEffect(() => {
@@ -105,6 +110,54 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
 
   const voiceState: VoiceState = { saved, order: optimized.orderedPlaceIds, manualOrder: optimized.manualOrderIds, mode: optimized.orderMode, days: schedule.tripDays, activeDay, startTime: schedule.dayStartTime, assignments: schedule.scheduleAssignments, visits: schedule.visitMinutesByPlaceId, breaks: schedule.breakMinutesByPlaceId, purposes: schedule.restPurposeByPlaceId, fixed: schedule.fixedVisits, deadlines: schedule.dayDeadlines, comfort: schedule.comfort };
   const voiceRevision = voiceStateKey(voiceState);
+  const journeyUndo = useRef<{ before: VoiceState; places: Place[]; start: string; end: string; after: string; region: string; themes: string } | null>(null);
+  const commitJourney = (state: VoiceState, places: Place[], start: string, end: string, region: string, themes: string) => replaceCurrentTrip(window.localStorage, {
+    [REGION_KEY]: region, [THEMES_KEY]: themes,
+    'wave-saved-places': JSON.stringify(state.saved), 'wave-saved-place-catalog-v1': JSON.stringify(sanitizeSavedPlaceCatalog(places)),
+    'wave-trip-order-v1': JSON.stringify({ mode: state.mode, ids: state.manualOrder }),
+    'wave-trip-schedule-v1': JSON.stringify({ travelStart: start, travelEnd: end, dayStartTime: state.startTime, scheduleAssignments: state.assignments, visitMinutesByPlaceId: state.visits, breakMinutesByPlaceId: state.breaks, restPurposeByPlaceId: state.purposes, fixedVisits: state.fixed, dayDeadlines: state.deadlines, comfort: state.comfort }),
+  });
+  const restoreVoiceSchedule = (state: VoiceState, start: string, end: string) => schedule.restoreScheduleSnapshot({
+    travelStart: start, travelEnd: end, dayStartTime: state.startTime, scheduleAssignments: state.assignments,
+    visitMinutesByPlaceId: state.visits, breakMinutesByPlaceId: state.breaks, restPurposeByPlaceId: state.purposes,
+    fixedVisits: state.fixed, dayDeadlines: state.deadlines, comfort: state.comfort,
+  });
+  const applyJourneyDraft = (draft: NaruJourney) => {
+    if (!savedStorageReady || !schedule.storageReady || !optimized.orderStorageReady) return '저장한 여행을 불러온 뒤 다시 시도해 주세요.';
+    if (saved.some(id => !optimized.orderedSavedPlaces.some(place => place.id === id))) return '기존 일정에 아직 불러오지 못한 장소가 있어요. 장소 정보를 먼저 확인해 주세요. 기존 일정은 그대로 유지합니다.';
+    const error = validateJourneyApplication(draft, { saved, fixed: schedule.fixedVisits, assignments: schedule.scheduleAssignments, start: schedule.travelStart });
+    if (error) return error;
+    const replacements = new Map(draft.stops.filter(stop => stop.replaces).map(stop => [stop.replaces!, stop]));
+    const removed = new Set(draft.removed?.map(stop => stop.place.id) || []);
+    const nextPlaces = [...optimized.orderedSavedPlaces.filter(place => !removed.has(place.id)).map(place => replacements.get(place.id)?.place || place), ...draft.stops.filter(stop => !stop.replaces).map(stop => stop.place)];
+    const nextIds = nextPlaces.map(place => place.id);
+    const after: VoiceState = { ...voiceState, saved: nextIds, order: nextIds, manualOrder: nextIds, mode: 'manual', days: journeyDays(draft.start, draft.end), activeDay: draft.stops[0]?.date || draft.restDay || activeDay,
+      assignments: { ...voiceState.assignments, ...Object.fromEntries(saved.map(id => [id, voiceState.assignments[id] || schedule.travelStart])) }, visits: { ...voiceState.visits }, breaks: { ...voiceState.breaks }, purposes: { ...voiceState.purposes },
+      comfort: draft.relaxed ? { ...voiceState.comfort, maxWalkMinutes: voiceState.comfort.maxWalkMinutes ?? 15, breakEveryMinutes: voiceState.comfort.breakEveryMinutes ?? 60, breakMinutes: Math.max(20, voiceState.comfort.breakMinutes || 0) } : voiceState.comfort };
+    for (const stop of draft.stops) {
+      if (stop.replaces) { delete after.assignments[stop.replaces]; delete after.visits[stop.replaces]; delete after.breaks[stop.replaces]; delete after.purposes[stop.replaces]; }
+      after.assignments[stop.place.id] = stop.date; after.visits[stop.place.id] = stop.minutes; after.breaks[stop.place.id] = stop.breakMinutes;
+    }
+    for (const id of removed) { delete after.assignments[id]; delete after.visits[id]; delete after.breaks[id]; delete after.purposes[id]; }
+    if (draft.restOnly) for (const id of nextIds) if (!draft.restDay || after.assignments[id] === draft.restDay) after.breaks[id] = Math.max(20, after.breaks[id] || 0);
+    let previousRegion = '', previousThemes = '[]';
+    try {
+      previousRegion = readTripValue(window.localStorage, REGION_KEY) || ''; previousThemes = readTripValue(window.localStorage, THEMES_KEY) || '[]';
+      commitJourney(after, nextPlaces, draft.start, draft.end, draft.region, JSON.stringify(draft.themes));
+    } catch { return '이 일정안을 기기에 저장하지 못했어요. 기존 일정은 그대로입니다. 저장 공간을 확인한 뒤 다시 적용해 주세요.'; }
+    journeyUndo.current = { before: voiceState, places: optimized.orderedSavedPlaces, start: schedule.travelStart, end: schedule.travelEnd, after: voiceStateKey(after), region: previousRegion, themes: previousThemes };
+    restoreSavedSnapshot(nextPlaces); restoreVoiceSchedule(after, draft.start, draft.end);
+    optimized.restoreOrderSnapshot('manual', nextIds); setActiveDay(after.activeDay);
+    return '';
+  };
+  const undoJourneyDraft = () => {
+    const snapshot = journeyUndo.current;
+    if (!snapshot || snapshot.after !== voiceRevision) return false;
+    try { commitJourney(snapshot.before, snapshot.places, snapshot.start, snapshot.end, snapshot.region, snapshot.themes); } catch { return false; }
+    restoreSavedSnapshot(snapshot.places); restoreVoiceSchedule(snapshot.before, snapshot.start, snapshot.end);
+    optimized.restoreOrderSnapshot(snapshot.before.mode, snapshot.before.manualOrder); setActiveDay(snapshot.before.activeDay); journeyUndo.current = null;
+    return true;
+  };
   const applyVoiceEdit = (action: 'add' | 'remove', requested: Place, day: string) => {
     if (!savedStorageReady || !schedule.storageReady || !optimized.orderStorageReady) return { ok: false as const, reason: '저장한 여행을 불러온 뒤 다시 확인해 주세요.' };
     const place = (action === 'add' ? activePlaces : savedPlaces).find(item => item.id === requested.id);
@@ -128,7 +181,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
   };
 
   return {
-    voiceRevision, applyVoiceEdit, undoVoiceEdit, progressMemory, rememberProgress,
+    savedEvidence, voiceRevision, applyVoiceEdit, undoVoiceEdit, applyJourneyDraft, undoJourneyDraft, progressMemory, rememberProgress,
     rememberSavedPlaces,
     addSuggestedBreaks, addRestStop, addCourseStop,
     canMoveToDate, movePlaceToDate,

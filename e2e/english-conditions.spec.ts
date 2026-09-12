@@ -33,13 +33,16 @@ for (const theme of ["light", "dark"] as const) {
     await expect(conditions.locator(".travel-profile-notice")).toHaveText("Your facilities were saved.");
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-travel-profile-v1") || "null").selectedIds)).toEqual(["wheel", "hearing"]);
     await conditions.getByRole("button", { name: "Clear selected facilities", exact: true }).click();
-    await expect(conditions.locator(".condition-actions button").last()).toBeDisabled();
+    await expect(conditions.locator(".condition-actions button").last()).toBeEnabled();
+    await expect(facilities.locator('[aria-pressed="true"]')).toHaveCount(0);
+    await expect(conditions.getByRole("status").filter({ hasText: "You can continue without a facility filter." })).toBeVisible();
     await conditions.getByRole("button", { name: "Load saved facilities", exact: true }).click();
     await expect(conditions.locator(".travel-profile-notice")).toHaveText("The saved facilities were applied to this trip.");
     await expect(facilities.locator('[aria-pressed="true"]')).toHaveCount(2);
     await expect(conditions).not.toContainText(/[가-힣]/);
     expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
-    await conditions.locator(".condition-actions button").last().click();
+    // Activity and calendar deep links remain editable without starting a search.
+    await page.evaluate(() => { history.pushState(null, "", "/planner?question=2#conditions"); dispatchEvent(new PopStateEvent("popstate")); });
     await conditions.getByRole("button", { name: /Nature and relaxation/ }).click();
     await conditions.getByRole("button", { name: /History and culture/ }).click();
     await expect(conditions).not.toContainText(/[가-힣]/);
@@ -70,7 +73,7 @@ test("English: saved and damaged facilities remain opt-in with readable status",
   await openFacilities(page);
   const conditions = page.locator("#conditions");
   await expect(conditions.locator('.profile-grid [aria-pressed="true"]')).toHaveCount(0);
-  await expect(conditions.locator(".condition-actions button").last()).toBeDisabled();
+  await expect(conditions.locator(".condition-actions button").last()).toBeEnabled();
   await conditions.locator("summary").filter({ hasText: "Save and load facilities" }).click();
   await conditions.getByRole("button", { name: "Delete saved facilities", exact: true }).click();
   await expect(conditions.locator(".travel-profile-notice")).toHaveText("Your saved facilities were deleted.");

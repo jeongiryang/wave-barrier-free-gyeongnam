@@ -24,7 +24,7 @@ test("starting a new region trip clears old facilities and activities while keep
   await expect(activities).toBeVisible();
   await expect(facilities.locator('[aria-pressed="true"]')).toHaveCount(0);
   await expect(activities.locator('[aria-pressed="true"]')).toHaveCount(0);
-  await expect(page.locator(".condition-actions").getByRole("button", { name: "여행지 찾기 →", exact: true })).toBeDisabled();
+  await expect(page.locator(".condition-actions").getByRole("button", { name: "여행지 둘러보기 →", exact: true })).toBeEnabled();
   expect(await page.evaluate(() => localStorage.getItem("wave-travel-book-v1"))).toBe(archive);
   for (const width of [960, 1440]) {
     await page.setViewportSize({ width, height: 900 });

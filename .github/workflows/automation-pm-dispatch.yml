@@ -39,7 +39,7 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
       - name: Deliver exact GitHub evidence to the current Work PM
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # actions/github-script@v8
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # actions/github-script@v9
         env:
           WAVE_PM_AGENT_TRIGGER_ID: ${{ secrets.WAVE_PM_AGENT_TRIGGER_ID }}
           WAVE_PM_AGENT_ACCESS_TOKEN: ${{ secrets.WAVE_PM_AGENT_ACCESS_TOKEN }}

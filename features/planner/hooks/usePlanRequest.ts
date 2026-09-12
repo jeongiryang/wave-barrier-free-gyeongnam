@@ -13,6 +13,7 @@ interface PlanRunOptions {
   resetRouteData: () => void;
   resetAudio: () => void;
   requestedTheme?: string;
+  requestedRegion?: string;
   onRevealResults?: () => void;
 }
 
@@ -30,8 +31,8 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   const requestSignatureRef = useRef("");
 
   const abortPlan = useCallback(() => { planRequestRef.current?.abort(); revealRef.current?.(); }, []);
-  const runPlan = useCallback(async ({ resetRouteData, resetAudio, requestedTheme = theme, onRevealResults }: PlanRunOptions, revealResults = true) => {
-    if (!region || !requestedTheme || !selected.length || loading) return false;
+  const runPlan = useCallback(async ({ resetRouteData, resetAudio, requestedTheme = theme, requestedRegion = region, onRevealResults }: PlanRunOptions, revealResults = true) => {
+    if (!requestedRegion || !requestedTheme || loading) return false;
     planRequestRef.current?.abort();
     revealRef.current?.();
     const reveal = new AbortController();
@@ -60,13 +61,13 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     const controller = new AbortController();
     controller.signal.addEventListener("abort", cancelReveal, { once: true });
     planRequestRef.current = controller;
-    const requestedSignature = criteriaSignature({ region, themes: requestedTheme, selected, locale });
+    const requestedSignature = criteriaSignature({ region: requestedRegion, themes: requestedTheme, selected, locale });
     requestSignatureRef.current = requestedSignature;
     setLoading(true);
     setPlanError("");
     setNoticeKind("loading");
     try {
-      const params = new URLSearchParams({ action: "plan", region, themes: requestedTheme, profiles: selected.join(","), locale });
+      const params = new URLSearchParams({ action: "plan", region: requestedRegion, themes: requestedTheme, profiles: selected.join(","), locale });
       const response = await plannerJson<unknown>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.plan });
       if (controller.signal.aborted) return false;
       const data = planResponse(response);
@@ -109,7 +110,12 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     planRequestRef.current?.abort(); planRequestRef.current = null; revealRef.current?.();
     setPlan(null); setLoading(false); setPlanError(""); setResultSignature(""); setNoticeKind("idle");
   }, []);
+  const acceptPreparedPlan = useCallback((prepared: PlanData, criteria: { region: string; profiles: string[]; themes: string[] }) => {
+    planRequestRef.current?.abort(); revealRef.current?.();
+    const nextSignature = criteriaSignature({ region: criteria.region, themes: criteria.themes.join(','), selected: criteria.profiles, locale });
+    requestSignatureRef.current = nextSignature; setResultSignature(nextSignature); setPlan(prepared); setLoading(false); setPlanError(''); setNoticeKind('updated');
+  }, [locale]);
   const resultCurrent = Boolean(plan && !dirty && !loading && !planError);
-  const requestState = loading ? "loading" : dirty ? "dirty" : planError ? "error" : plan ? plan.places.length ? "success" : plan.statuses.some(status => status.state === "error") ? "error" : "empty" : selected.length ? "ready" : "idle";
-  return { resetPlan, plan, loading, planError, notice, setNotice: setNoticeKind, runPlan, abortPlan, dirty, resultCurrent, requestState };
+  const requestState = loading ? "loading" : dirty ? "dirty" : planError ? "error" : plan ? plan.places.length ? "success" : plan.statuses.some(status => status.state === "error") ? "error" : "empty" : region && theme ? "ready" : "idle";
+  return { resetPlan, acceptPreparedPlan, plan, loading, planError, notice, setNotice: setNoticeKind, runPlan, abortPlan, dirty, resultCurrent, requestState };
 }

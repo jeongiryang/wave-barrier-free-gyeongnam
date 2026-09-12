@@ -11,6 +11,8 @@ import { handleAvailability } from "./availability";
 import { handleVisitInfo } from "./visit-info";
 import { handleCrowdCalendar } from "./crowd-calendar";
 import { handleReturnTransport } from "../transport/return-transport";
+import { handlePlaceLookup } from './place-lookup';
+import { handlePlaceAudio } from './place-audio';
 
 function selectedRegion(url: URL) {
   const requested = clean(url.searchParams.get("region"), 20);
@@ -61,6 +63,8 @@ export async function handleWaveApi(request: Request, env: Env) {
   const url = new URL(request.url);
   const action = url.searchParams.get("action") || "plan";
   if (action === "availability") return handleAvailability(request, env);
+  if (action === 'places') return handlePlaceLookup(request, env);
+  if (action === 'place-audio') return handlePlaceAudio(request, env);
   if (action === "place-coordinates") return handlePlaceCoordinates(url, env);
   if (action === "visit-info") return handleVisitInfo(url, env);
   if (action === "return-transport") return handleReturnTransport(url, env);

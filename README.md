@@ -21,7 +21,7 @@
 [API·키 설정](docs/api-integration-audit.md) · [Vercel·Neon 배포](docs/vercel-neon-setup.md) ·
 [운영·장애 대응](docs/operations.md) · [공모전·제출 안내](docs/contest-compliance.md) · [공모전 운영·데이터 정책](docs/competition-operation-policy.md) ·
 [시연](docs/demo-script.md) · [이미지·지도 출처](docs/assets-and-licenses.md) ·
-[진행 중 검증](docs/launch-audit-2026-09-05.md)
+[제품 고도화·검증](docs/product-upgrade-20260912.md) · [CI 기준](docs/ci-validation.md)
 
 > #378을 포함한 Production `eab2442f90b72441fd311db13dd8bb935723527f`에서 실제 날짜별 지도·날씨 상세 초점·장소 ID/날짜/순서의 기기 저장·복원을 확인했습니다([독립 Production 검증 범위](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues/353#issuecomment-5592520788)). 같은 세션의 날짜·지도 화면을 연결하는 새 소개와 보조 도구 접기는 현재 커밋된 미배포 변경이며 아직 배포되지 않았습니다. #353의 후보 검증·최종 제출 캡처는 [현재 실행 기록](docs/launch-readiness-status.md)을 따릅니다.
 > 참가 부문은 **① 웹·앱 개발 부문**, 팀명은 **WAVE**, 접수 서비스명은 **사회적 약자 관광 편의 제공앱**입니다. 서비스 브랜드는 **W.A.V.E**, 유형은 **Web**, 특화 지역은 **경상남도**이며 1차 심사자료 마감은 **2026-09-21 16:00 KST**입니다. [공식 근거와 사람 확인 항목](docs/contest-compliance.md), [제출 원고](docs/submission/development-entry-draft.md)를 확인하세요. 기존 34e6021 검토 PDF는 역사적 초안이며 최종 제출본이 아닙니다.
@@ -36,7 +36,7 @@ W.A.V.E는 확인된 편의시설과 추가 확인이 필요한 항목을 구분
 등록 이메일로 비밀번호를 복구하고
 로그인 뒤 계정 관리에서 비밀번호를 변경할 수 있습니다. 자동 탈퇴는 Neon 제공처 설정 문제로 최종 검증이 필요합니다.
 
-1. [지역·필요한 편의·여행 취향을 직접 고르고 여행지를 찾습니다.](https://wave-barrier-free-gyeongnam.vercel.app/planner#conditions)
+1. [선택을 미루고 바로 여행지를 둘러보거나, 지역·필요한 편의·여행 취향을 고릅니다.](https://wave-barrier-free-gyeongnam.vercel.app/planner#conditions)
 2. [공식 편의근거가 확인된 장소와 추가 확인이 필요한 장소를 구분해 봅니다.](https://wave-barrier-free-gyeongnam.vercel.app/planner#places)
 3. [날짜·시각·순서를 편집하고 실제 경로와 추정 이동을 비교합니다.](https://wave-barrier-free-gyeongnam.vercel.app/planner#itinerary)
 4. [날씨·관광 집중률·교통·장소 근거를 다시 확인한 뒤 일정을 보관하거나 공유합니다.](https://wave-barrier-free-gyeongnam.vercel.app/planner#departure-readiness)
@@ -54,6 +54,10 @@ W.A.V.E는 확인된 편의시설과 추가 확인이 필요한 항목을 구분
 | 기능 | 주소 | 실제 제공 범위 |
 | --- | --- | --- |
 | 여행 조건과 추천 | [`/planner#conditions`](https://wave-barrier-free-gyeongnam.vercel.app/planner#conditions) · [`#places`](https://wave-barrier-free-gyeongnam.vercel.app/planner#places) | 경남 18개 시·군, 여행 주제, 직접 선택한 편의시설 조건(휠체어 편의시설·접근로와 승강기 등), 공식 편의근거 기반 추천 |
+| AI 여행 가이드 나루 | [`/planner?assistant=naru`](https://wave-barrier-free-gyeongnam.vercel.app/planner?assistant=naru) | 글·음성으로 실제 코스 생성, 날씨·피로 대안, 날짜·장소·휴식 수정, 적용 전 미리보기와 되돌리기. 대화 안의 도구로 직접 편집도 가능 |
+| 지금 열리는 축제 | [`/festivals`](https://wave-barrier-free-gyeongnam.vercel.app/festivals) | 실제 행사 날짜·지역·편의 정보 조회, 일정에 추가, 주변 관광지와 나루 코스로 연결 |
+| 나의 여행 홈 | [`/my-trips`](https://wave-barrier-free-gyeongnam.vercel.app/my-trips) | 닉네임, 현재 여행과 편의 조건, 계정 일정 복귀, 기존 일정 백업 후 같은 Planner에서 이어서 편집 |
+| 오디 해설 | 장소의 이용 정보 | 실제 관광지 이름·좌표와 일치하는 한국관광공사 Odii 음원과 대본. 제공되지 않거나 연결에 실패한 상태를 구분 |
 | 일정과 출발 준비 | [`/planner#itinerary`](https://wave-barrier-free-gyeongnam.vercel.app/planner#itinerary) · [`#departure-readiness`](https://wave-barrier-free-gyeongnam.vercel.app/planner#departure-readiness) | 날짜·시각·순서 편집, 이동·체류시간 계산, 날씨·집중률·교통·장소 상태, `.ics` 저장 |
 | 지도와 교통 | [`/planner#navigation`](https://wave-barrier-free-gyeongnam.vercel.app/planner#navigation) | Kakao Maps 또는 Leaflet 대체 지도, 자동차·철도·버스·환승 정보; 제공기관 키와 응답 상태에 따라 범위가 달라짐 |
 | 여행 상황 비교 | [`/planner#layers`](https://wave-barrier-free-gyeongnam.vercel.app/planner#layers) | 여행일 날씨와 관광 집중률 예측, 일정 영향, 다른 주제·장소 후보 |
@@ -62,7 +66,7 @@ W.A.V.E는 확인된 편의시설과 추가 확인이 필요한 항목을 구분
 | 여행자 이야기 | [`/community`](https://wave-barrier-free-gyeongnam.vercel.app/community) | 실제 이용자 작성 글의 공개 읽기, 계정 기반 글·댓글·좋아요·신고, 장소별 현장 제보와 여러 장소 여행일지 |
 | 계정 관리 | `/forgot-password` · `/reset-password` · `/account` | 계정 존재 여부를 노출하지 않는 이메일 비밀번호 복구, 비밀번호 변경, 인증 계정과 연결 커뮤니티 데이터 탈퇴 삭제 |
 | 공유 여행 | `/trip/{id}` | 선택 조건과 공식 장소 식별자를 30일간 보관하고 열 때 최신 관광정보로 다시 구성 |
-| 환경설정과 설치 | 화면 오른쪽 위 `환경설정` | 밝은·어두운 화면, 동작 감소, 언어 선택, 지원 브라우저의 명시적 앱 설치 요청 |
+| 환경설정과 설치 | 화면 오른쪽 위 도구 | 동작 감소, 지원 브라우저의 명시적 앱 설치 요청. 공개 서비스는 한국어·밝은 화면이며 영어·어두운 미리보기는 개발 검수 전용 |
 
 데이터의 출처와 성격은 합쳐 표시하지 않습니다.
 
@@ -94,10 +98,9 @@ ODsay 제공처 제한은 별도의 외부 운영 상태로 관리하며, 해제
 - 일정 순서와 날짜 변경은 드래그 없이 버튼과 키보드로도 할 수 있습니다.
 - 지도·외부 예약 사이트·제공기관 콘텐츠는 각 서비스의 접근성 수준에 영향을 받습니다.
   지도 없이도 장소 카드와 일정에서 핵심 정보를 확인할 수 있게 유지합니다.
-- 제공 언어는 한국어·영어입니다. 한국어가 전체 기준이며 영어 화면의 미번역 조작과
-  한국어만 제공되는 관광지 원문은 남은 검수 대상입니다. 삭제된 언어 저장값은 한국어로 복원합니다.
-- 테마·언어·동작 설정, 여행 프로필, 저장 장소, 일정과 내 여행집은 브라우저의
-  `localStorage`에 저장됩니다. 브라우저 데이터 삭제 시 함께 사라지며 서버 백업 대상이 아닙니다.
+- 공개 서비스는 한국어·밝은 화면입니다. 영어·어두운 화면은 개발 검수에서만 활성화하며 공개 빌드에는 전용 어두운 스타일을 싣지 않습니다.
+- 선택 중인 편의 조건은 현재 탭의 `sessionStorage`에서 복구합니다. 사용자가 따로 저장한 편의 프로필, 지역·활동, 장소·일정·여행집은 `localStorage`에 보관합니다. 사이트 데이터 삭제 시 함께 사라지며 서버 백업 대상이 아닙니다.
+- 나루 대화는 현재 페이지 메모리에만 남습니다. 무료 자체 운영 DSW 모델이 의도를 해석하고 서버가 실제 장소·시설·날씨를 조회합니다. AI 장애 때도 직접 편집과 저장을 계속할 수 있습니다.
 - 사진 코스는 원본 사진을 업로드하지 않습니다. 최대 200장의 EXIF 앞부분을 브라우저에서
   순서대로 읽고, 내보내기와 공유에서는 좌표를 제거합니다.
 - 현재 위치는 사용자가 버튼을 누를 때 브라우저 권한을 요청하며 기기에서 별도로 표시합니다.
@@ -176,7 +179,7 @@ npm run test:e2e
 npm run build:vercel
 ```
 
-CI는 위 검사를 실행합니다. `main`의 CI가 성공하면 CD가 같은 커밋으로 후보 배포를
+CI는 위 검사를 실행합니다. PR에서 검증한 실제 checkout tree·전체 job 성공·동일 run의 증명 artifact까지 일치할 때만 main의 중복 브라우저 검사를 재사용하며, 그 외에는 전체 검사합니다. main의 품질·보안 검사는 항상 실행합니다. 세부 기준은 [CI 검증과 재사용](docs/ci-validation.md)을 참고하세요. `main`의 CI가 성공하면 CD가 같은 커밋으로 후보 배포를
 만들고 `/api/health`를 확인한 뒤 데이터베이스 변경을 적용하고 프로덕션으로 승격합니다.
 승격 뒤 상태 확인이 실패하면 Vercel rollback을 실행합니다. Vercel 자체 Git 배포는
 중복 배포를 막기 위해 꺼져 있습니다.

@@ -45,6 +45,8 @@ export type RouteMapProps = {
   route: RouteAlternative | null;
   crowd?: CrowdSignal | null;
   crowdPlaceId?: string;
+  focusedPlaceId?: string;
+  onPlaceFocus?: (place: MapPlace) => void;
   onOriginChange?: (point: RoutePoint, label: string) => void;
   onDestinationChange?: (place: MapPlace) => void;
   /** 지도에 표시된 여행지를 내 일정에 추가하고 추가된 개수를 돌려준다. */

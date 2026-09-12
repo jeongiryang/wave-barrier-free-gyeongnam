@@ -1,7 +1,7 @@
 "use client";
 import LoadingState from "../../../components/LoadingState";
 
-import { lazy, Suspense, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { supportedPlacePoint } from "../../../lib/map-coordinates.js";
 import type { MapPlace } from "../../routing/types";
@@ -65,6 +65,19 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     [itineraryPlaces],
   );
   const navigationPlaces = routableItineraryPlaces;
+  const [focusChoice, setFocusChoice] = useState('');
+  const focusedPlaceId = itineraryPlaces.some(place => place.id === focusChoice) ? focusChoice : itineraryPlaces[0]?.id;
+  function focusStop(place: MapPlace, fromMap = false) {
+    const leg = props.coverage.legs.find(item => item.place.id === place.id && item.day === activeDay);
+    if (!leg) return;
+    setFocusChoice(place.id);
+    if (fromMap) document.getElementById(`itinerary-stop-${place.id}`)?.scrollIntoView({ block: 'nearest' });
+    if (leg.from && !leg.blocked) {
+      const data = props.coverage.data[leg.key];
+      if (data) props.route.displayRouteData(leg.place, leg.from, leg.fromLabel, data);
+      else void props.route.loadRoutes(leg.place, leg.from, false, leg.fromLabel);
+    }
+  }
   const loadRoutes = props.route.loadRoutes;
   const resetRouteData = props.route.resetRouteData;
   const savedSignature = `${activeDay}|${itineraryPlaces.map((place) => `${place.id}:${place.mapX}:${place.mapY}`).join(",")}|${props.route.origin.lat},${props.route.origin.lng}|${props.route.privateOrigin}`;
@@ -90,9 +103,9 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
     <h2 id="itinerary-stage-title">{mapView ? "여행 순서를 편하게 정리하세요." : `${props.archiveContext.region || "경남"} 여행, 순서만 정하면 돼요.`}</h2>
     <p className="reference-subtitle">시간과 이동 순서를 바꾸면 전체 일정이 함께 바뀝니다.</p>
-    {props.alternativeTools}
+    <div className="planner-notice" role="status">{props.tripSelection.savedEvidence.loading ? <LoadingState>담아둔 장소의 최신 정보를 확인하고 있어요.</LoadingState> : props.tripSelection.savedEvidence.notice}{!props.tripSelection.savedEvidence.loading && props.tripSelection.saved.length > 0 && <button type="button" onClick={props.tripSelection.savedEvidence.retry}>정보 다시 확인</button>}</div>
     <div className="reference-view-tabs" role="group" aria-label="일정 보기 방식"><button type="button" aria-pressed={!mapView} onClick={() => setMapView(false)}>시간표</button><button type="button" aria-pressed={mapView} onClick={() => setMapView(true)}>지도 함께 보기</button></div>
-    {!props.expanded && <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><PlannerItineraryBoard requiredKeys={props.plan?.criteria?.facilityKeys || []} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? props.activePlaces : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace
+    {!props.expanded && <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><PlannerItineraryBoard focusedPlaceId={focusedPlaceId} onFocusPlace={place => focusStop(place)} requiredKeys={props.plan?.criteria?.facilityKeys || []} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? props.activePlaces : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace focusedPlaceId={focusedPlaceId} onPlaceFocus={place => focusStop(place, true)}
       mapEnabled={props.mapEnabled && mapView}
       compact
       activePlaces={navigationPlaces}
@@ -102,9 +115,10 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       locationSearch={props.locationSearch}
       onChoosePoint={props.onChoosePoint}
       onCopyBookingRoute={props.onCopyBookingRoute}
-      onMapDestination={props.onMapDestination}
+      onMapDestination={place => navigationPlaces.some(item => item.id === place.id) ? focusStop(place, true) : props.onMapDestination(place)}
       onSaveMapPlaces={props.onSaveMapPlaces}
     />} /></Suspense>}
+    {props.alternativeTools}
     <details className="reference-itinerary-details" open={props.expanded || undefined}><summary>날짜·이동 구간·여행 도구 자세히 보기</summary>
     {props.tripSelection.orderedSavedPlaces.length ? <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><TripDayPlanner
       itineraryRouteMinutes={props.coverage.routeMinutes}
@@ -123,7 +137,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     <Suspense fallback={null}><SavedPlaceCoordinateRecovery key={`${props.archiveContext.region}|${tripDays}|${props.tripSelection.saved}`} places={props.tripSelection.orderedSavedPlaces} onRestore={props.tripSelection.rememberSavedPlaces} /></Suspense>
     {itineraryPlaces.some((place) => !routableItineraryPlaces.includes(place)) && <p role="status">{c("좌표를 확인하지 못한 장소:", "Coordinates unavailable:")} {itineraryPlaces.filter((place) => !routableItineraryPlaces.includes(place)).map((place) => place.name).join(", ")}. {c("일정에는 그대로 보관하며 지도에서는 제외합니다.", "Kept in your itinerary, but excluded from the map.")}</p>}
 
-      {props.expanded && <NavigationWorkspace mapEnabled={props.mapEnabled} activePlaces={navigationPlaces} planCrowd={props.planCrowd} effectiveProviders={props.effectiveProviders} route={props.route} locationSearch={props.locationSearch} onChoosePoint={props.onChoosePoint} onCopyBookingRoute={props.onCopyBookingRoute} onMapDestination={props.onMapDestination} onSaveMapPlaces={props.onSaveMapPlaces} />}
+      {props.expanded && <NavigationWorkspace focusedPlaceId={focusedPlaceId} onPlaceFocus={place => focusStop(place, true)} mapEnabled={props.mapEnabled} activePlaces={navigationPlaces} planCrowd={props.planCrowd} effectiveProviders={props.effectiveProviders} route={props.route} locationSearch={props.locationSearch} onChoosePoint={props.onChoosePoint} onCopyBookingRoute={props.onCopyBookingRoute} onMapDestination={place => navigationPlaces.some(item => item.id === place.id) ? focusStop(place, true) : props.onMapDestination(place)} onSaveMapPlaces={props.onSaveMapPlaces} />}
     </details>
   </section>;
 }

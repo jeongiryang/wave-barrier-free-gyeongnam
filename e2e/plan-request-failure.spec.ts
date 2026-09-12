@@ -38,7 +38,7 @@ for (const failure of ["timeout", "server", "offline"] as const) for (const en o
       await route.fallback().catch(() => {});
     });
     if (failure === "timeout") await page.clock.install();
-    const search = page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true });
+    const search = page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 둘러보기 →", exact: true });
     if (failure === "offline") {
       if (en) {
         await page.locator(".planner-navigation nav button").nth(3).click();

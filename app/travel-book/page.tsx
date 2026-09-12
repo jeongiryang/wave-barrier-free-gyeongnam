@@ -34,7 +34,7 @@ function journalHref(book: TravelBook) {
 
 function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
   book: TravelBook;
-  onUpdate: (id: string, patch: Partial<Pick<TravelBook, "status" | "note">>) => void;
+  onUpdate: (id: string, patch: Partial<Pick<TravelBook, "status" | "note">>) => boolean;
   onRemove: (id: string) => void;
   onRestore: (book: TravelBook) => void;
 }) {
@@ -69,12 +69,12 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
   }, [closeDelete, deleteReady]);
 
   function updateStatus(status: TravelBook["status"]) {
-    onUpdate(book.id, { status });
+    if (!onUpdate(book.id, { status })) { setAnnouncement('변경 내용을 저장하지 못했어요. 다시 시도해 주세요.'); return; }
     setAnnouncement(status === "visited" ? "다녀온 여행으로 표시했습니다." : "갈 여행으로 표시했습니다.");
   }
 
   function saveNote() {
-    if (note !== book.note) onUpdate(book.id, { note });
+    if (note !== book.note && !onUpdate(book.id, { note })) { setAnnouncement('메모를 저장하지 못했어요. 입력 내용은 그대로 남아 있어요.'); return; }
     setNoteState("saved");
   }
 
@@ -133,7 +133,7 @@ function NewTripDialog({ onCancel, onConfirm, error }: { onCancel: () => void; o
 
 export default function TravelBookPage() {
   const router = useRouter();
-  const { books, hydrated, update, remove, restore } = useTravelBook();
+  const { books, hydrated, update, remove, restore, storageError } = useTravelBook();
   const [announcement, setAnnouncement] = useState("");
   const [newTripReady, setNewTripReady] = useState(false);
   const [newTripError, setNewTripError] = useState("");
@@ -165,6 +165,7 @@ export default function TravelBookPage() {
     <section className="travel-book-paths" aria-label="여행을 이어가는 방법"><Link href="/planner"><small>01 · 계획</small><strong>다음 풍경 고르기 <span aria-hidden="true">↗</span></strong><p>지역과 필요한 편의부터, 나에게 맞는 하루를.</p></Link><Link href="/photo-course"><small>02 · 기록</small><strong>사진으로 다시 걷기 <span aria-hidden="true">↗</span></strong><p>사진 속 장소를 찾아 여행의 순서를 이어가요.</p></Link><Link href="/my-trips"><small>03 · 함께</small><strong>계정 여행 이어가기 <span aria-hidden="true">↗</span></strong><p>계정에 저장한 일정을 열고 동행자와 함께해요.</p></Link></section>
     <div className="travel-book-collection-heading" id="travel-book-collection"><p>MY COLLECTION</p><h2>나의 여행 모음</h2></div>
     <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
+    {storageError && <p className="result-notice error" role="alert">{storageError}</p>}
     {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>여행집을 펼치는 중이에요.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setAnnouncement(`${book.title} 여행을 여행집에서 삭제했습니다.`); }} onRestore={restore} />)}</section> : <section className="travel-book-empty">
       <span aria-hidden="true">＋</span><p>아직 펼쳐볼 여행이 없어요.</p><h2>먼저 나에게 맞는 여행을 설계해 볼까요?</h2><small>일정에서 ‘여행집에 보관’을 누르면 이곳에 카드가 생깁니다.</small><Link href="/planner">첫 여행 계획하기 <span aria-hidden="true">→</span></Link>
     </section>}

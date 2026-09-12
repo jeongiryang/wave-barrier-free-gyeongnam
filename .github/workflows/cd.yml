@@ -66,8 +66,9 @@ jobs:
         run: npm ci
 
       - name: Vercel 프로젝트 설정 동기화
-        run: npx --yes vercel@50.15.1 pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+        run: npx --yes vercel@59.16.0 pull --yes --environment=production
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
@@ -78,21 +79,22 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          env_listing="$(npx --yes vercel@50.15.1 env ls production --no-color --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN")"
+          env_listing="$(npx --yes vercel@59.16.0 env ls production --no-color --scope="$VERCEL_ORG_ID")"
           if printf '%s\n' "$env_listing" | grep -Eq '(^|[[:space:]])CRON_SECRET([[:space:]]|$)'; then
             echo "Vercel Production CRON_SECRET가 이미 설정되어 있습니다."
           else
             cron_secret="$(openssl rand -hex 32)"
             echo "::add-mask::$cron_secret"
-            printf '%s' "$cron_secret" | npx --yes vercel@50.15.1 env add CRON_SECRET production --sensitive --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
+            printf '%s' "$cron_secret" | npx --yes vercel@59.16.0 env add CRON_SECRET production --sensitive --scope="$VERCEL_ORG_ID"
             echo "Vercel Production CRON_SECRET를 생성했습니다."
           fi
           # 새로 생성했거나 기존 값을 사용하든 build/deploy가 같은 프로젝트 환경을 읽도록 다시 동기화한다.
-          npx --yes vercel@50.15.1 pull --yes --environment=production --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
+          npx --yes vercel@59.16.0 pull --yes --environment=production --scope="$VERCEL_ORG_ID"
 
       - name: 프로덕션 빌드
-        run: npx --yes vercel@50.15.1 build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+        run: npx --yes vercel@59.16.0 build --prod
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
@@ -106,12 +108,13 @@ jobs:
       - name: 승격 전 Production 후보 배포
         id: candidate
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           COMMUNITY_MIGRATION_TOKEN: ${{ steps.migration_token.outputs.value }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
-          url="$(npx --yes vercel@50.15.1 deploy --prebuilt --prod --skip-domain --meta githubCommitSha="$DEPLOYMENT_SHA" --env COMMUNITY_MIGRATION_TOKEN="$COMMUNITY_MIGRATION_TOKEN" --token="${{ secrets.VERCEL_TOKEN }}" | tail -n 1)"
+          url="$(npx --yes vercel@59.16.0 deploy --prebuilt --prod --skip-domain --meta githubCommitSha="$DEPLOYMENT_SHA" --env COMMUNITY_MIGRATION_TOKEN="$COMMUNITY_MIGRATION_TOKEN" | tail -n 1)"
           case "$url" in https://*.vercel.app) ;; *) echo "후보 배포 URL을 확인할 수 없습니다."; exit 1;; esac
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
@@ -122,7 +125,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          response="$(npx --yes vercel@54.14.0 curl /api/health --deployment "$CANDIDATE_URL")"
+          response="$(npx --yes vercel@59.16.0 curl /api/health --deployment "$CANDIDATE_URL")"
           printf '%s\n' "$response"
           printf '%s' "$response" | grep -Fq '"checkedAt"'
 
@@ -136,7 +139,7 @@ jobs:
           DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           PREFLIGHT_ONLY: ${{ inputs.preflight_only || false }}
         run: |
-          response="$(npx --yes vercel@54.14.0 curl /api/deployment/migrate --deployment "$CANDIDATE_URL" -X POST -H "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN" -H "X-Wave-Migration-Mode: inspect")"
+          response="$(npx --yes vercel@59.16.0 curl /api/deployment/migrate --deployment "$CANDIDATE_URL" -X POST -H "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN" -H "X-Wave-Migration-Mode: inspect")"
           printf '%s' "$response" | node scripts/check-database-preflight.mjs > "$RUNNER_TEMP/database-preflight.json"
           cat "$RUNNER_TEMP/database-preflight.json"
           printf '\nCandidate SHA: %s\nCandidate URL: %s\nPreflight-only: %s\n' "$DEPLOYMENT_SHA" "$CANDIDATE_URL" "$PREFLIGHT_ONLY" >> "$GITHUB_STEP_SUMMARY"
@@ -159,7 +162,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          response="$(npx --yes vercel@54.14.0 curl /api/deployment/migrate --deployment "$CANDIDATE_URL" -X POST -H "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN")"
+          response="$(npx --yes vercel@59.16.0 curl /api/deployment/migrate --deployment "$CANDIDATE_URL" -X POST -H "Authorization: Bearer $COMMUNITY_MIGRATION_TOKEN")"
           printf '%s\n' "$response"
           printf '%s' "$response" | grep -Fq '"ok":true'
           printf '%s' "$response" | grep -Fq '"001_community.sql"'
@@ -174,18 +177,20 @@ jobs:
       - name: 프로덕션 승격
         if: ${{ !inputs.preflight_only }}
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx --yes vercel@50.15.1 promote "$CANDIDATE_URL" --yes --scope="$VERCEL_ORG_ID" --token="${{ secrets.VERCEL_TOKEN }}"
+        run: npx --yes vercel@59.16.0 promote "$CANDIDATE_URL" --yes --scope="$VERCEL_ORG_ID"
 
       - name: 프로덕션 health와 실패 시 rollback
         if: ${{ !inputs.preflight_only }}
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if ! curl --fail --silent --show-error --retry 3 --retry-all-errors https://wave-barrier-free-gyeongnam.vercel.app/api/health; then
-            npx --yes vercel@50.15.1 rollback --yes --scope="$VERCEL_ORG_ID" --token="${{ secrets.VERCEL_TOKEN }}"
+            npx --yes vercel@59.16.0 rollback --yes --scope="$VERCEL_ORG_ID"
             exit 1
           fi

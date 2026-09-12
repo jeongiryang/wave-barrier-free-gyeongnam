@@ -47,7 +47,7 @@ for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: a fast pla
     await refresh.focus();
     await page.keyboard.press("Enter");
     await response;
-    await expect(page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 찾기 →", exact: true })).toBeEnabled();
+    await expect(page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 둘러보기 →", exact: true })).toBeEnabled();
     await expect.poll(() => weatherRequests).toBe(1);
     await expect(refresh).toHaveAttribute("aria-busy", "true");
     await expect(refresh).toHaveAttribute("aria-disabled", "true");
@@ -71,20 +71,24 @@ for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: a fast pla
   }
 });
 
-for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: missing facility preferences offers a weather-only refresh`, async ({ page }) => {
+for (const en of [false, true]) test(`${en ? "EN dark" : "KO light"}: missing facility preferences still refreshes places and weather without adding a filter`, async ({ page }) => {
   await prepare(page, en);
-  await page.locator(".profile-grid").getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
+  const facility = page.locator(".profile-grid").getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ });
+  await facility.click();
+  await expect(facility).toHaveAttribute("aria-pressed", "false");
   const refresh = page.locator(".readiness-actions button").first();
-  await expect(refresh).toHaveText(en ? "Refresh weather" : "날씨 다시 조회");
-  let searches = 0;
+  await expect(refresh).toHaveText(en ? "Refresh places and weather" : "장소·날씨 다시 조회");
+  const searches: URL[] = [];
   page.on("request", request => {
     const url = new URL(request.url());
-    if (url.pathname === "/api/wave" && url.searchParams.get("action") === "plan") searches++;
+    if (url.pathname === "/api/wave" && url.searchParams.get("action") === "plan") searches.push(url);
   });
   const weather = page.waitForResponse(response => new URL(response.url()).pathname === "/api/weather");
   await refresh.click();
   await weather;
   await expect(refresh).toHaveAttribute("aria-busy", "false");
-  expect(searches).toBe(0);
+  expect(searches).toHaveLength(1);
+  expect(searches[0].searchParams.get("profiles")).toBe("");
+  expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem("wave-session-facilities-v1") || "[]"))).toEqual([]);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
 });

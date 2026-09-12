@@ -37,13 +37,13 @@ jobs:
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Verify current issue and trusted PM handoff
         id: task
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71
         env:
           WAVE_PM_GITHUB_ACTORS: ${{ vars.WAVE_PM_GITHUB_ACTORS || '["jeongiryang"]' }}
         with:
           script: await require(process.env.GITHUB_WORKSPACE + '/.github/automation/authorize-task.cjs').run({github,context,core});
       - name: Store immutable approved prompt
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: approved-task-${{ github.run_id }}
           path: ${{ runner.temp }}/approved-task.md
@@ -69,7 +69,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Download immutable approved prompt
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: approved-task-${{ github.run_id }}
           path: ${{ runner.temp }}/approved-task
@@ -115,7 +115,7 @@ jobs:
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
       - name: 검증용 patch 보관
         if: steps.patch.outputs.has_changes == 'true'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: codex-engineering-patch-${{ github.event.issue.number }}
           path: ${{ runner.temp }}/codex.patch
@@ -141,7 +141,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Codex patch 다운로드
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: codex-engineering-patch-${{ github.event.issue.number }}
           path: ${{ runner.temp }}/codex-patch
@@ -182,7 +182,7 @@ jobs:
         run: npm run check:performance
       - name: 검증 증거 보관
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: codex-validation-${{ github.event.issue.number }}
           path: |
@@ -223,7 +223,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Revalidate immutable PM handoff before publish
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71
         env:
           WAVE_PM_GITHUB_ACTORS: ${{ vars.WAVE_PM_GITHUB_ACTORS || '["jeongiryang"]' }}
           EXPECTED_BRANCH: ${{ needs.authorize.outputs.branch }}
@@ -241,7 +241,7 @@ jobs:
             if ('codex/issue-'+issue.number+'-'+task.id+'-'+task.revision !== process.env.EXPECTED_BRANCH) throw new Error('PM handoff
             changed; do not publish stale work');
       - name: 검증된 patch 다운로드
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: codex-engineering-patch-${{ github.event.issue.number }}
           path: ${{ runner.temp }}/codex-patch
@@ -447,7 +447,7 @@ jobs:
           ref: ${{ needs.authorize.outputs.base_sha }}
           persist-credentials: false
       - name: 실패/미변경 상태를 원 Issue에 환류
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71
         env:
           CONFIGURED: ${{ needs.generate.outputs.configured }}
           HAS_CHANGES: ${{ needs.generate.outputs.has_changes }}

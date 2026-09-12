@@ -11,6 +11,7 @@ function DetailsUnavailable() {
   return <p role="alert">{locale === "en" ? "These details could not load. Close this dialog and reload the page to try again. Your itinerary remains available." : "상세 화면을 불러오지 못했어요. 닫고 페이지를 새로 열어 다시 시도해 주세요. 일정은 계속 이용할 수 있습니다."}</p>;
 }
 const PlaceDecisionContent = lazy(() => import("./PlaceDecisionContent").catch(() => ({ default: DetailsUnavailable })));
+const PlaceAudioGuide = lazy(() => import('./PlaceAudioGuide'));
 
 export type PlaceDecisionDialogProps = {
   place: Place;
@@ -40,7 +41,7 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
         <button type="button" aria-pressed={props.saved} disabled={!props.saved && props.canSave === false} onClick={props.onToggleSaved}>{props.saved ? en ? "Remove from itinerary" : "일정에서 빼기" : en ? "Add to itinerary" : "일정에 추가"}<span aria-hidden="true">{props.saved ? "−" : "+"}</span></button>
         {!props.saved && props.canSave === false && <p>{en ? "Only current recommendations with confirmed matching facilities can be added. Search again if you changed your preferences." : "현재 추천에서 필요한 편의가 확인된 장소만 일정에 추가할 수 있습니다. 조건을 바꿨다면 여행지를 다시 찾아주세요."}</p>}
         <Suspense fallback={<LoadingState>{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</LoadingState>}><PlaceDecisionContent {...props} location={location} /></Suspense>
+        <Suspense fallback={null}><PlaceAudioGuide key={place.id} id={place.id} /></Suspense>
       </div>
   </dialog>;
 }
-

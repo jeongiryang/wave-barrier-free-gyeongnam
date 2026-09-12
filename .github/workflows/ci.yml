@@ -10,6 +10,28 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  certify:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      verified: ${{ steps.evidence.outputs.verified }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Verify complete PR coverage for the identical main tree
+        id: evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/verify-ci-reuse.mjs
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -17,6 +39,7 @@ jobs:
       - name: 소스 체크아웃
         uses: actions/checkout@v7
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
       - name: Node.js 설정
         uses: actions/setup-node@v7
@@ -63,7 +86,25 @@ jobs:
       - name: 빌드 성능 예산 검사
         run: npm run check:performance
 
+      - name: Record the exact tested PR merge tree
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/write-ci-proof.mjs
+      - name: Preserve tested checkout proof
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-tree-proof
+          path: ${{ runner.temp }}/ci-tree-proof.json
+          retention-days: 7
+          if-no-files-found: error
+
   browser:
+    needs: certify
+    if: ${{ !cancelled() && needs.certify.outputs.verified != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
@@ -75,6 +116,7 @@ jobs:
       - name: 소스 체크아웃
         uses: actions/checkout@v7
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Node.js 설정
@@ -108,7 +150,7 @@ jobs:
 
       - name: 브라우저 검증 보고서 보관
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: browser-regression-${{ matrix.device }}-${{ matrix.shard }}
           path: playwright-report/
@@ -116,7 +158,7 @@ jobs:
           if-no-files-found: ignore
       - name: 화면 캡처와 오류 문맥 보관
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: browser-screenshots-${{ matrix.device }}-${{ matrix.shard }}
           path: |
@@ -126,11 +168,11 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-  # Preserve the protected check name. Skipped, cancelled and failed dependencies
-  # must all fail this gate, including a failure in either browser shard.
+  # Quality always runs. A skipped browser/boundary is accepted only with an
+  # independently checked certificate for the same main tree and complete PR jobs.
   validate:
     if: ${{ always() }}
-    needs: [quality, browser, sandbox-boundary]
+    needs: [quality, browser, sandbox-boundary, certify]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -139,17 +181,22 @@ jobs:
           QUALITY_RESULT: ${{ needs.quality.result }}
           BROWSER_RESULT: ${{ needs.browser.result }}
           BOUNDARY_RESULT: ${{ needs.sandbox-boundary.result }}
-        run: node -e 'if ([process.env.QUALITY_RESULT, process.env.BROWSER_RESULT, process.env.BOUNDARY_RESULT].some(result => result !== "success")) process.exit(1)'
+          CERTIFY_RESULT: ${{ needs.certify.result }}
+          REUSE_VERIFIED: ${{ needs.certify.outputs.verified }}
+        run: node -e 'const e=process.env; const full=e.BROWSER_RESULT==="success"&&e.BOUNDARY_RESULT==="success"; const reused=e.GITHUB_EVENT_NAME==="push"&&e.GITHUB_REF==="refs/heads/main"&&e.CERTIFY_RESULT==="success"&&e.REUSE_VERIFIED==="true"&&e.BROWSER_RESULT==="skipped"&&e.BOUNDARY_RESULT==="skipped"; if(e.QUALITY_RESULT!=="success"||(!full&&!reused))process.exit(1)'
 
   # Owner-approved RC scope: frozen boundary plus its existing bounded synthetic
   # npm smoke. Full product/browser coverage remains in quality + browser above.
   # Historical four-shard runtime is preserved outside the workflows directory.
   sandbox-boundary:
+    needs: certify
+    if: ${{ !cancelled() && needs.certify.outputs.verified != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
@@ -227,7 +274,7 @@ jobs:
         run: python3 -I -B "$RUNNER_TEMP/wave-trusted/tests/subscription-resource-boundary.py"
       - name: Preserve public resource diagnostics
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: public-resource-boundary
           path: ${{ runner.temp }}/wave-public-resources.json

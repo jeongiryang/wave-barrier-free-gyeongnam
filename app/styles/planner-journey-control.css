@@ -1,6 +1,5 @@
 /* Journey Control Center — 긴 플래너를 현재 상태와 다음 행동이 보이는 작업 공간으로 바꾼다. */
 
-.journey-stage-stream { min-width: 0; background: var(--white); }
 .journey-stage-stream > .journey-workspace-block:first-child { border-top: 0; }
 .journey-stage-panel:first-child > .journey-workspace-block { border-top: 0; }
 .journey-stage-panel[hidden] { display: none !important; }
@@ -25,12 +24,8 @@ html[data-theme="dark"] .journey-stage-stream .itinerary-stage { background: #0a
 }
 
 @media (max-width: 1040px) {
-  .journey-stage-stream { width: 100%; }
+
 }
-
-
-
-
 
 @media (max-width: 650px) {
  .journey-workspace-block { padding: 22px 18px; }

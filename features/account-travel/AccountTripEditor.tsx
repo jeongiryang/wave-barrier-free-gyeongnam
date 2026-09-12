@@ -1,4 +1,5 @@
 "use client";
+import { getTabStorage } from "../../lib/session-storage.js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -19,6 +20,8 @@ import DayDeadlineControl, { DayDeadlineSummary } from "../planner/components/Da
 import { sanitizeFixedVisits, sanitizeDayDeadlines } from "../../lib/trip-time-constraints.js";
 import { changeVisitDuration } from "../../lib/visit-durations.js";
 import KakaoTaxiLink from "../kakao-travel/KakaoTaxiLink";
+import { clearTripDraft, readTripDraft, writeTripDraft } from "../../lib/account-travel/draft.js";
+import OpenTripInPlanner from './OpenTripInPlanner';
 
 function Editor({ id, userId }: { id: string; userId: string }) {
   const router = useRouter();
@@ -30,51 +33,90 @@ function Editor({ id, userId }: { id: string; userId: string }) {
   const [busy, setBusy] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [recoverySaved, setRecoverySaved] = useState(true);
+  const [loginRequired, setLoginRequired] = useState(false);
   const lock = useRef(false);
   const draftRevision = useRef(0);
+  const editVersion = useRef(0);
   const copyId = useRef("");
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const refresh = useCallback(async () => {
     const data = await travelRequest<TripDetail>(`/${id}`); setTrip(data);
   }, [id]);
   useEffect(() => {
     const controller = new AbortController();
     travelRequest<TripDetail>(`/${id}`, undefined, controller.signal).then(data => {
-      setTrip(data); setDraft(data.payload); draftRevision.current = data.revision;
+      if (controller.signal.aborted) return;
+      const recovered = data.role === 'owner' ? readTripDraft(getTabStorage(), userId, id) : null;
+      const hasRecoveredChanges = recovered && JSON.stringify(recovered.payload) !== JSON.stringify(data.payload);
+      setTrip(data); setDraft(hasRecoveredChanges ? recovered.payload : data.payload); draftRevision.current = hasRecoveredChanges ? recovered.revision : data.revision;
+      if (hasRecoveredChanges) {
+        setNotice('이 탭에서 저장하지 못한 수정 내용을 복구했어요.');
+        setConflict(recovered.revision !== data.revision);
+      }
       return travelRequest<{ places: Place[]; missing: number }>(`/${id}/places`, {}, controller.signal).then(result => {
         if (!Array.isArray(result.places)) throw new Error("장소 응답을 확인하지 못했습니다.");
         if (!controller.signal.aborted) { setPlaces(result.places); setPlaceNotice(result.missing ? `${result.missing}곳의 최신 정보를 확인하지 못했습니다. 저장한 장소와 순서는 유지됩니다.` : "공식 관광정보로 장소를 확인했어요."); }
       }).catch(() => { if (!controller.signal.aborted) setPlaceNotice("장소 정보를 불러오지 못했습니다. 저장한 일정은 유지되며 아래에서 다시 확인할 수 있어요."); });
     }).catch(error => { if (!controller.signal.aborted) setNotice(error.message); });
     return () => controller.abort();
-  }, [id]);
+  }, [id, userId]);
   const run = useCallback((action: () => Promise<void>) => {
     if (lock.current) return;
     lock.current = true; setBusy(true); setNotice("");
     void action().catch(error => {
       setNotice(error instanceof Error ? error.message : "요청을 완료하지 못했습니다.");
       if (error instanceof AccountTravelError && error.status === 409) setConflict(true);
-      if (error instanceof AccountTravelError && [401, 403, 404].includes(error.status)) { setTrip(null); setDraft(null); setPlaces([]); }
+      if (error instanceof AccountTravelError && error.status === 401) setLoginRequired(true);
+      if (error instanceof AccountTravelError && [403, 404].includes(error.status)) { clearTripDraft(getTabStorage(), userId, id); setTrip(null); setDraft(null); setPlaces([]); }
     }).finally(() => { lock.current = false; setBusy(false); });
-  }, []);
+  }, [id, userId]);
   async function loadPlaces() {
     const result = await travelRequest<{ places: Place[]; missing: number }>(`/${id}/places`, {});
     if (!Array.isArray(result.places)) throw new Error("장소 응답을 확인하지 못했습니다.");
     setPlaces(result.places); setPlaceNotice(result.missing ? `${result.missing}곳의 최신 정보를 확인하지 못했습니다. 저장한 장소와 순서는 유지됩니다.` : "공식 관광정보로 장소를 확인했어요.");
   }
-  function change(patch: Partial<AccountTripPayload>) { setDraft(current => current ? { ...current, ...patch } : current); }
+  function change(patch: Partial<AccountTripPayload>) { editVersion.current++; setDraft(current => current ? { ...current, ...patch } : current); }
   const owner = trip?.role === "owner";
   const tripDays = draft && validTripDate(draft.travelStart) && validTripDate(draft.travelEnd) ? dateRange(draft.travelStart, boundedTripEnd(draft.travelStart, draft.travelEnd)) : [];
   const timedDays = draft ? buildItinerarySchedule({ places: draft.placeIds.map(id => places.find(place => place.id === id) || { id }), days: tripDays, assignments: draft.scheduleAssignments, startTime: draft.dayStartTime, visitMinutesByPlaceId: draft.visitMinutesByPlaceId, fixedVisits: draft.fixedVisits, breakMinutesByPlaceId: draft.breakMinutesByPlaceId }) : [];
   const changed = Boolean(draft && trip && JSON.stringify(draft) !== JSON.stringify(trip.payload));
+  useEffect(() => {
+    if (!draft || !trip || !owner) return;
+    if (!changed) { clearTripDraft(getTabStorage(), userId, id); return; }
+    setRecoverySaved(writeTripDraft(getTabStorage(), userId, id, draftRevision.current, draft));
+  }, [changed, draft, trip, owner, id, userId]);
   useEffect(() => { if (!changed) return; const handler = (event: BeforeUnloadEvent) => event.preventDefault(); window.addEventListener("beforeunload", handler); return () => window.removeEventListener("beforeunload", handler); }, [changed]);
+  useEffect(() => {
+    if (!changed || recoverySaved) return;
+    const guard = (event: MouseEvent) => {
+      if ((event.target as HTMLElement).closest('a[href]') && !window.confirm('브라우저 임시 저장을 사용할 수 없습니다. 저장하지 않은 수정을 두고 이동할까요?')) { event.preventDefault(); event.stopPropagation(); }
+    };
+    document.addEventListener('click', guard, true);
+    return () => document.removeEventListener('click', guard, true);
+  }, [changed, recoverySaved]);
+  async function saveDraft() {
+    const savingVersion = editVersion.current;
+    const result = await travelRequest<AccountTrip>(`/${id}`, { revision: draftRevision.current, payload: draft });
+    if (!mounted.current) return;
+    draftRevision.current = result.revision;
+    setTrip(current => current ? { ...current, ...result } : current);
+    if (editVersion.current === savingVersion) { setDraft(result.payload); clearTripDraft(getTabStorage(), userId, id); }
+    setConflict(false); setLoginRequired(false);
+    setNotice(editVersion.current === savingVersion ? '여행 변경 사항을 계정에 저장했어요.' : '저장 중 새로 입력한 내용은 그대로 남아 있어요. 한 번 더 저장해 주세요.');
+  }
   return <>
     <div className="travel-book-actions"><Link href="/my-trips">← 계정 여행 목록</Link><Link href="/guide#companions">사용 방법</Link></div><p role="status">{busy ? "여행을 반영하고 있어요…" : notice}</p>
+    {loginRequired && <p role="alert">수정 내용은 이 탭에 남아 있어요. <Link href={`/login?next=${encodeURIComponent(`/my-trips/${id}`)}`}>다시 로그인하고 이어가기</Link></p>}
+    {changed && !recoverySaved && <p role="alert">브라우저 임시 저장에 실패했어요. 이 화면을 떠나기 전에 계정에 저장하거나 아래에서 수정본을 파일로 내보내 주세요.</p>}
     {!trip || !draft ? <section className="travel-book-empty"><h2>{notice || "내 여행을 불러오고 있어요."}</h2><button type="button" onClick={() => window.location.reload()}>다시 불러오기</button></section> : <>
       <section className="account-settings" aria-labelledby="trip-edit-title"><h2 id="trip-edit-title">{trip.payload.title}</h2><p>{owner ? "내가 만든 여행 · 일정 편집과 동행자 초대" : "함께하는 여행 · 장소 투표와 의견 나누기"}</p>
         {owner && <><div className="auth-field"><label htmlFor="trip-title">여행 이름</label><input id="trip-title" value={draft.title} onChange={event => change({ title: event.target.value })} maxLength={80} /></div>
           <div className="account-trip-dates"><div className="auth-field"><label htmlFor="trip-start">시작 날짜</label><input id="trip-start" type="date" value={draft.travelStart} onChange={event => change({ travelStart: event.target.value })} /></div><div className="auth-field"><label htmlFor="trip-end">마지막 날짜</label><input id="trip-end" type="date" value={draft.travelEnd} onChange={event => change({ travelEnd: event.target.value })} /></div><div className="auth-field"><label htmlFor="trip-time">하루 시작 시간</label><input id="trip-time" type="time" value={draft.dayStartTime} onChange={event => change({ dayStartTime: event.target.value })} /></div></div>
           <div className="travel-book-status"><button type="button" aria-pressed={draft.status === "planned"} onClick={() => change({ status: "planned" })}>갈 여행</button><button type="button" aria-pressed={draft.status === "visited"} onClick={() => change({ status: "visited" })}>다녀온 여행</button></div></>}
         <p>{trip.payload.travelStart} — {trip.payload.travelEnd} · {trip.payload.placeIds.length}곳</p>
+        <OpenTripInPlanner id={trip.id} payload={draft} />
         <div className="travel-book-actions"><button type="button" disabled={busy} onClick={() => run(loadPlaces)}>장소 이름·최신 정보 확인</button></div><p role="status">{placeNotice}</p>
         <details className="place-evidence"><summary>날짜별 귀가·약속 시간</summary>{timedDays.map(({day, entries}) => <div key={day}><h3>{day}</h3>{owner ? <DayDeadlineControl day={day} value={draft.dayDeadlines?.[day]} entries={entries} onChange={value => { const next = { ...draft.dayDeadlines }; if (value) next[day] = value; else delete next[day]; change({ dayDeadlines: sanitizeDayDeadlines(next, tripDays) }); }} /> : <DayDeadlineSummary entries={entries} value={draft.dayDeadlines?.[day]} />}</div>)}</details>
         <div className="travel-book-days">{draft.placeIds.map((placeId, index) => {
@@ -92,12 +134,12 @@ function Editor({ id, userId }: { id: string; userId: string }) {
             </div>{place && <KakaoTaxiLink destination={place} />}</section>;
         })}</div>
         {owner ? <label className="travel-book-note"><span>동행자와 공유하는 여행 메모</span><textarea value={draft.note} onChange={event => change({ note: event.target.value })} maxLength={1200} placeholder="여행 준비물과 함께 확인할 내용을 적어보세요." /></label> : <p>{trip.payload.note || "아직 여행 메모가 없습니다."}</p>}
-        {owner && <div className="travel-book-actions"><button type="button" className="primary" disabled={busy || !changed} onClick={() => run(async () => { const result = await travelRequest<AccountTrip>(`/${id}`, { revision: draftRevision.current, payload: draft }); draftRevision.current = result.revision; setDraft(result.payload); setConflict(false); await refresh(); setNotice("여행 변경 사항을 계정에 저장했어요."); })}>변경 사항 저장</button><span>{changed ? "저장하지 않은 변경 사항이 있어요." : "계정에 저장된 일정입니다."}</span></div>}
+        {owner && <div className="travel-book-actions"><button type="button" className="primary" disabled={busy || !changed || conflict} onClick={() => run(saveDraft)}>변경 사항 저장</button><span>{changed ? "저장하지 않은 변경 사항이 있어요." : "계정에 저장된 일정입니다."}</span></div>}
         {conflict && <section><h3>다른 화면의 수정본과 내 수정본이 달라요.</h3><p>내 수정본을 별도 여행으로 보관하거나 최신 버전을 불러올 수 있습니다.</p><div className="travel-book-actions"><button type="button" disabled={busy} onClick={() => run(async () => { copyId.current ||= crypto.randomUUID(); const result = await travelRequest<AccountTrip>("", { id: copyId.current, payload: draft }); router.push(`/my-trips/${result.id}`); })}>내 수정본을 새 여행으로 저장</button><button type="button" disabled={busy} onClick={() => run(async () => { const result = await travelRequest<TripDetail>(`/${id}`); setTrip(result); setDraft(result.payload); draftRevision.current = result.revision; setConflict(false); setNotice("최신 버전을 불러왔어요."); })}>내 수정 취소하고 최신 불러오기</button></div></section>}
       </section>
       <section className="account-settings" aria-labelledby="kakao-travel-title"><h2 id="kakao-travel-title">카카오톡으로 여행 잇기</h2><p>마지막으로 계정에 저장한 일정을 보냅니다.{changed && " 수정한 내용을 보내려면 먼저 변경 사항을 저장해 주세요."}</p><KakaoTravelShare trip={trip.payload} /><KakaoSendToSelf key={trip.id} tripId={trip.id} disabled={changed} /></section>
       <TripCompanions trip={trip} userId={userId} onChange={refresh} run={run} busy={busy} />
-      <section className="account-settings"><h2>여행 보관 관리</h2><div className="travel-book-actions"><button type="button" onClick={() => { const url = URL.createObjectURL(new Blob([JSON.stringify(trip.payload, null, 2)], { type: "application/json" })); const a = document.createElement("a"); a.href = url; a.download = "wave-trip.json"; a.click(); URL.revokeObjectURL(url); }}>여행 파일로 내보내기</button>{owner && <button type="button" disabled={busy} onClick={() => setDeleting(true)}>계정에서 여행 삭제</button>}</div>
+      <section className="account-settings"><h2>여행 보관 관리</h2><div className="travel-book-actions"><button type="button" onClick={() => { const url = URL.createObjectURL(new Blob([JSON.stringify(draft, null, 2)], { type: "application/json" })); const a = document.createElement("a"); a.href = url; a.download = "wave-trip.json"; a.click(); URL.revokeObjectURL(url); }}>여행 파일로 내보내기</button>{owner && <button type="button" disabled={busy} onClick={() => setDeleting(true)}>계정에서 여행 삭제</button>}</div>
         {deleting && <div role="group" aria-label="계정 여행 삭제 확인"><p>이 여행과 동행자의 투표·의견을 모두 삭제할까요?</p><div className="travel-book-actions"><button type="button" onClick={() => setDeleting(false)}>유지하기</button><button type="button" disabled={busy} onClick={() => run(async () => { await travelRequest(`/${id}/delete`, { revision: draftRevision.current }); router.push("/my-trips"); })}>여행 삭제하기</button></div></div>}
       </section>
     </>}

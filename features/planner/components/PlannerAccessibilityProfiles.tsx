@@ -47,7 +47,7 @@ export default function PlannerAccessibilityProfiles({ t, planController, trip }
     </div>
     <div className="selection-bar" aria-live="polite">
       <div><span className="pulse-dot" aria-hidden="true" /><p><b>{activeProfiles.length ? en ? `${activeProfiles.length} facilities selected` : `편의 조건 ${activeProfiles.length}개 선택` : en ? "No facilities selected" : "선택한 편의 조건 없음"}</b><span>{activeProfiles.length ? activeProfiles.map((item) => profileCopy(item).label).join(" · ") : en ? "Choose your trip preferences" : "원하는 여행 조건을 골라주세요"}</span></p></div>
-      <p className="auto-refresh-note">{loading ? <><span className="button-loader" /> {en ? "Finding places…" : "여행지를 찾고 있어요."}</> : selected.length ? en ? "Finish your choices, then select Find places." : "선택을 마치고 여행지 찾기를 눌러주세요." : en ? "Select at least one required facility." : "필요한 편의를 하나 이상 골라주세요."}</p>
+      <p className="auto-refresh-note">{loading ? <><span className="button-loader" /> {en ? "Finding places…" : "여행지를 찾고 있어요."}</> : selected.length ? en ? "Finish your choices, then select Find places." : "선택을 마치고 여행지 찾기를 눌러주세요." : en ? "Continue without a facility filter, or choose any you need." : "필요한 편의가 없다면 선택 없이 둘러볼 수 있어요."}</p>
     </div>
     <p className="planner-notice" aria-live="polite">{notice}</p>
   </>;

@@ -184,7 +184,8 @@ test("production metadata gives each route a canonical, social card and indexing
   assert.match(manifest, /src: "\/app-icon\.svg", sizes: "192x192"[\s\S]*src: "\/app-icon\.svg", sizes: "512x512"/);
   assert.match(manifest, /src: "\/maskable-icon\.svg", sizes: "192x192"[\s\S]*src: "\/maskable-icon\.svg", sizes: "512x512"/);
   assert.doesNotMatch(readme, /스페인어/);
-  assert.match(readme, /제공 언어는 한국어·영어/);
+  assert.match(readme, /공개 서비스는 한국어·밝은 화면/);
+  assert.match(readme, /영어·어두운 화면은 개발 검수에서만 활성화/);
   assert.doesNotMatch(readme, /영어·일본어·중국어·프랑스어·독일어·러시아어/);
 });
 
@@ -487,7 +488,8 @@ test("travel conditions require explicit search and keep previous results during
   assert.match(request, /planRequestRef\.current\?\.abort\(\)/);
   assert.match(request, /signal: controller\.signal/);
   assert.match(request, /resultSignature !== signature/);
-  assert.match(request, /if \(!region \|\| !requestedTheme \|\| !selected.length \|\| loading\) return false/);
+  assert.match(request, /if \(!requestedRegion \|\| !requestedTheme \|\| loading\) return false/);
+  assert.doesNotMatch(request, /if \([^\n]*!selected.length[^\n]*\) return false/);
   // Changing ordinary criteria must keep results. An explicit confirmed trip
   // replacement now has a separate reset command, covered by runtime tests.
   assert.match(request, /const resetPlan = useCallback/);
