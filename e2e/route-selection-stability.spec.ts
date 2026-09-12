@@ -41,6 +41,17 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
   await mockPlannerApi(page);
   let release!: () => void;
   const held = new Promise<void>((resolve) => { release = resolve; });
+  let releaseCoverage!: () => void;
+  const heldCoverage = new Promise<void>((resolve) => { releaseCoverage = resolve; });
+  let carRequests = 0;
+  let heldCoverageRequests = 0;
+  await page.route("**/api/route?*", async (request) => {
+    if (new URL(request.request().url()).searchParams.get("mode") === "car" && ++carRequests === 2) {
+      heldCoverageRequests++;
+      await heldCoverage;
+    }
+    await request.fallback();
+  });
   let heldMapRequests = 0;
   await page.route(/\/components\/RouteMap\.tsx(?:\?|$)/, async (request) => {
     heldMapRequests += 1;
@@ -51,10 +62,13 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     await page.goto("/planner");
     await chooseTripConditions(page);
     await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
+    await page.locator(".itinerary-route-coverage select").selectOption("car");
     await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).getByText(/10:25 · 경남도립미술관/)).toBeVisible();
     await expect(page.locator(".map-load-placeholder")).toBeVisible();
     expect(heldMapRequests, "the delayed-map fixture must intercept the module request").toBeGreaterThan(0);
+    // A warm local module used to finish before the 650ms automatic journey
+    // response. Hold that response too so the same layout race runs everywhere.
+    await expect.poll(() => heldCoverageRequests).toBe(1);
     const calm = page.getByRole("button", { name: /여유 자동차 경로/ });
     await calm.hover();
     const start = await calm.boundingBox();
@@ -63,7 +77,11 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     await page.mouse.move(start!.x + start!.width / 2, start!.y + start!.height / 2);
     await page.mouse.down();
     release();
+    releaseCoverage();
     await expect(page.locator(".route-map-shell")).toBeVisible();
+    const coverage = page.locator(".itinerary-route-coverage");
+    await expect(coverage.getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
+    await expect(coverage.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
     const after = await calm.evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
     await page.mouse.up();
     expect(Math.abs(after - before), "map loading must not move route choices").toBeLessThanOrEqual(1);
@@ -74,7 +92,7 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     const axe = await new AxeBuilder({ page }).analyze();
     expect(axe.violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);
     await page.screenshot({ path: testInfo.outputPath(`route-selection-${width}.png`) });
-  } finally { release(); }
+  } finally { release(); releaseCoverage(); }
 });
 
 test("route selection stays under the pointer while map rendering settles", async ({ page }) => {

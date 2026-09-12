@@ -40,6 +40,11 @@
 .itinerary-route-coverage button,.itinerary-route-coverage select { min-height: 44px; margin: 8px 8px 0 0; max-width: 100%; padding: 8px 12px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
 .itinerary-route-coverage label { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .itinerary-route-coverage .departure-review-check { flex-wrap: nowrap; align-items: flex-start; }
+/* Automatic checks must not move a route choice being held below this panel. */
+.itinerary-route-coverage .coverage-leg-evidence,.itinerary-route-coverage .coverage-notice { display: grid; }
+.itinerary-route-coverage :is(.coverage-leg-evidence,.coverage-notice)::before { content: attr(data-reserve-text); visibility: hidden; grid-area: 1 / 1; }
+.itinerary-route-coverage :is(.coverage-leg-evidence,.coverage-notice) > span { grid-area: 1 / 1; }
+.itinerary-route-coverage button:disabled { cursor: not-allowed; opacity: .55; }
 .weather-illustration { width: 80px; height: 80px; flex-shrink: 0; }
 .facility-caution { font-size: .86rem; line-height: 1.5; color: #536b74; }
 

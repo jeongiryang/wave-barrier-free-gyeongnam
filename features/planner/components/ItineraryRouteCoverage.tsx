@@ -17,6 +17,9 @@ export default function ItineraryRouteCoverage({ coverage, route, trip, reviewed
 }) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
+  const completeNotice = en ? "Recheck any unavailable journeys before leaving." : "조회가 끝났습니다. 확인되지 않은 구간과 실제 이동 편의를 방문 전에 다시 확인해 주세요.";
+  const notice = coverage.notice ? en ? (coverage.loading ? "Fetching route information. You can cancel." : completeNotice) : coverage.notice
+    : en ? "Journeys update when your trip changes." : "날짜·순서·이동수단이 바뀌면 각 구간을 자동으로 확인합니다.";
   const transportLabelId = useId();
   const checkButton = useRef<HTMLButtonElement>(null);
   const cancelButton = useCallback((node: HTMLButtonElement | null) => {
@@ -36,14 +39,15 @@ export default function ItineraryRouteCoverage({ coverage, route, trip, reviewed
     <ol>{coverage.legs.map((leg) => {
       const best = usableLegRoutes(coverage.data[leg.key], route.routeTravelMode)[0];
       const unavailable = leg.blocked ? (en ? "Device location is not sent. Choose a public departure point." : "현재 위치는 전송하지 않습니다. 공개 출발 거점을 선택하세요.") : !leg.from || !leg.to ? (en ? "Coordinates unavailable" : "좌표 미확인") : (en ? "Not verified — retry or check with the operator" : "미확인 — 재조회하거나 운영기관에 확인하세요");
-      return <li key={leg.key}><span>{leg.day} · <span lang={originalLanguage(leg.fromLabel)}>{leg.fromLabel}</span> → <span lang={originalLanguage(leg.place.name)}>{leg.place.name}</span></span><strong>{best ? `${best.totalTime}${en ? " min" : "분"} · ${best.provider || (en ? "Route provider" : "경로 제공처")}` : unavailable}</strong>{best && <button type="button" onClick={() => {
+      return <li key={leg.key}><span>{leg.day} · <span lang={originalLanguage(leg.fromLabel)}>{leg.fromLabel}</span> → <span lang={originalLanguage(leg.place.name)}>{leg.place.name}</span></span><strong className="coverage-leg-evidence" data-reserve-text={unavailable}><span>{best ? `${best.totalTime}${en ? " min" : "분"} · ${best.provider || (en ? "Route provider" : "경로 제공처")}` : unavailable}</span></strong><button type="button" disabled={!best} onClick={() => {
+        if (!best) return;
         trip.setActiveDay(leg.day);
         route.displayRouteData(leg.place, leg.from!, leg.fromLabel, coverage.data[leg.key]);
         route.setActiveRouteId(best.id);
         document.getElementById("navigation")?.scrollIntoView({ block: "start" });
-      }}>{en ? "Show this journey" : "이 구간 지도에서 보기"}</button>}</li>;
+      }}>{en ? "Show this journey" : "이 구간 지도에서 보기"}</button></li>;
     })}</ol>
-    {coverage.notice && <p>{en ? (coverage.loading ? "Fetching route information. You can cancel." : "Recheck any unavailable journeys before leaving.") : coverage.notice}</p>}
+    <p className="coverage-notice" data-reserve-text={completeNotice}><span>{notice}</span></p>
     <label className="departure-review-check"><input type="checkbox" checked={reviewed} disabled={!coverage.complete || coverage.loading} onChange={(event) => onReview(event.target.checked)} />{en ? "I checked the dates, order, starting point and each journey for this transport. Facility access still needs a separate check." : "날짜·순서·출발지와 선택한 이동수단의 각 구간을 확인했어요. 시설 접근성은 별도로 확인해야 합니다."}</label>
   </section>;
 }
