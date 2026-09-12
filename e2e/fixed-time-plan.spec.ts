@@ -12,7 +12,7 @@ test("fixed visits keep their date and order, and return deadlines follow the li
   await page.goto("/planner"); await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
-  await page.locator(".reference-journey-views button").nth(1).click();
+  await page.locator(".planner-navigation nav button").nth(3).click();
   const board = page.locator(".reference-day-list");
   await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
   await board.getByLabel("경남도립미술관 장소 고정", { exact: true }).selectOption("event");

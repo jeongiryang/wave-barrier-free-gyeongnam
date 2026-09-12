@@ -44,7 +44,6 @@
 html[data-motion="calm"] .arrival-brand,html[data-motion="calm"] .arrival-film { animation: none; }
 
 /* One editorial rhythm: open coast, quiet needs, a shared planning stage, regions, horizon. */
-.story-edition { --story-space: clamp(72px,10vw,160px); }
 .story-edition .hero-opening { grid-template-columns: 1fr; min-height: 52vh; align-items: center; padding-inline: clamp(0px,3vw,64px); z-index: 2; }
 .story-edition .landing-hero-copy { max-width: 980px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #fff; }
 .story-edition .landing-hero-copy h1 { font-size: clamp(2.8rem,5.6vw,6.4rem); line-height: 1.17; letter-spacing: -.065em; color: #fff; }

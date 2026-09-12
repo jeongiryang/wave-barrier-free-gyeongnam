@@ -21,14 +21,10 @@
 
 /* W.A.V.E service identity — one continuous tide, clear and accessible controls */
 .landing-hero,.landing-cta { position: relative; isolation: isolate; }
-@keyframes softTide { to { transform: translateX(5vw) scaleY(1.2); } }
-
-.landing-hero-copy { position: relative; z-index: 1; }
-@keyframes coreWave { to { transform: translateX(12%) rotate(-4deg); } }
 
 .help-button,.account-button,.account-menu button { min-height: 42px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.88); font-size: .74rem; font-weight: 850; }
 .help-button { display: inline-flex; align-items: center; gap: 7px; }.help-button span { width: 21px; height: 21px; display: grid; place-items: center; border-radius: 50%; color: var(--on-blue); background: var(--blue); }
-.account-menu { display: flex; align-items: center; gap: 7px; }.account-menu > span { max-width: 130px; overflow: hidden; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.account-menu { align-items: center; gap: 7px; }.account-menu > span { max-width: 130px; overflow: hidden; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
 .dialog-kicker { color: var(--blue); font-size: .68rem; font-weight: 900; letter-spacing: .12em; }
 html[data-theme="dark"] .help-button,html[data-theme="dark"] .account-button,html[data-theme="dark"] .account-menu button { color: #eaf5f9; border-color: #30596b; background: #0a3244; }
 html[data-theme="dark"] .day-planner,html[data-theme="dark"] .day-planner-grid > article { color: var(--ink); border-color: #30596b; background: #0b2d3c; }

@@ -304,28 +304,22 @@ test("public product copy is release-ready and tourism data remains live", async
   assert.match(tourism, /TarRlteTarService1/);
 });
 
-test("the place carousel is sized by its card instead of the viewport", async () => {
-  const css = await styleSource();
-  const rule = css.match(/\.planner-page > \.places-section \.place-carousel \{[^}]+\}/)?.[0] ?? "";
-  assert.match(css, /--card-pad-x: clamp\(/);
-  assert.match(rule, /\.planner-page > \.places-section \.place-carousel/);
-  assert.match(rule, /width: auto/);
-  assert.match(rule, /margin-inline: calc\(var\(--card-pad-x\) \* -1\)/);
-  assert.match(rule, /padding: 4px var\(--card-pad-x\) 28px/);
+test("the place grid fits its workspace and becomes one column on mobile", async () => {
+  const css = await source("app/styles/planner-conversation.css");
+  const rule = css.match(/\.planner-reference \.place-carousel \{[^}]+\}/)?.[0] ?? "";
+  assert.match(rule, /display: grid/);
+  assert.match(rule, /grid-template-columns: repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.planner-reference \.place-carousel \{ grid-template-columns: 1fr/);
   assert.doesNotMatch(rule, /100vw/);
 });
 
-test("wide screens use available viewport width without breaking mobile gutters", async () => {
-  const css = await styleSource();
-  assert.match(css, /--layout-max: 1840px/);
-  assert.match(css, /--content: min\(var\(--layout-max\), calc\(100vw - var\(--gutter\) \* 2\)\)/);
-  const wide = css.slice(css.indexOf("/* --- 유동형 와이드 레이아웃"), css.indexOf("/* --- 모바일·터치 접근성 최종 보정"));
-  assert.match(wide, /@media \(min-width: 1101px\)/);
-  assert.match(await source("app/styles/wave-horizon.css"), /\.wave-header \{[\s\S]*width: min\(var\(--wave-max\)/);
-  assert.match(wide, /\.landing-page > section, \.landing-page > footer/);
-  assert.match(wide, /\.planner-page > \.navigation-section/);
-  assert.match(wide, /\.navigation-workspace, \.day-planner \{ width: 100%; max-width: none; \}/);
-  assert.match(css, /@media \(max-width: 780px\)[\s\S]*width: calc\(100vw - 16px\)/);
+test("wide screens use the planner workspace and a full-width header", async () => {
+  const css = await source("app/styles/planner-conversation.css");
+  assert.match(css, /\.wave-header \{[^}]*width: 100%/s);
+  assert.match(css, /grid-template-columns: minmax\(0,1fr\) 264px/);
+  assert.match(css, /@media \(max-width: 960px\)/);
+  assert.match(css, /\.planner-navigation \{[^}]*position: static/s);
+  assert.match(css, /\.planner-reference \.planner-journey-workspace \{[^}]*margin: 0 20px/s);
 });
 
 test("landing regional showcase is photo-led, while the verified boundary source is preserved", async () => {
@@ -474,11 +468,11 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
   assert.match(layout, /width: "device-width"/);
   assert.match(layout, /viewportFit: "cover"/);
   assert.match(css, /@media \(max-width: 780px\)/);
-  assert.match(await source("app/styles/wave-horizon.css"), /top: max\(8px,env\(safe-area-inset-top,0px\)\)/);
+  assert.match(await source("app/styles/planner-conversation.css"), /padding: max\(8px,env\(safe-area-inset-top,0px\)\)/);
   assert.match(css, /input, select, textarea \{ font-size: 16px; \}/);
   assert.match(css, /max-height: calc\(100svh - 20px\)/);
-  assert.match(css, /\.carousel-actions button,[\s\S]*min-height: 44px/);
-  assert.match(await source("app/styles/wave-horizon.css"), /@media \(max-width: 650px\)[\s\S]*width: calc\(100% - 24px\)/);
+  assert.match(css, /\.place-actions button,[\s\S]*min-height: 44px/);
+  assert.match(await source("app/styles/planner-conversation.css"), /@media \(max-width: 640px\)[\s\S]*width: 100%/);
   assert.match(css, /@media \(max-height: 520px\) and \(orientation: landscape\)/);
   assert.match(map, /className="map-command-scroll(?: [^"]+)?"/);
   assert.match(map, /className="map-expand-button"[\s\S]*⛶ 전체보기/);

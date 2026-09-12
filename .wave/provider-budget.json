@@ -20,6 +20,14 @@
   },
   "providers": [
     {
+      "id": "wave-local-llm", "family": "private-local-model", "request_file": "server/assistant/handler.ts",
+      "origin": "operator-configured WAVE_AI_BASE_URL", "operations": ["health", "chat"],
+      "key_sources": ["WAVE_AI_TOKEN"], "source": "https://docs.ollama.com/api/chat",
+      "core": false, "fallback": "Clearly labelled simple commands and the same planning tools; no generated facility facts.",
+      "limits": "One active model request and 12 admissions/minute at the private gateway; no automatic retries; 40s upstream timeout.",
+      "privacy": "Separate requester per incoming request: private chat requests must never coalesce by URL. No response cache or conversation persistence. No paid API."
+    },
+    {
       "id": "kto",
       "family": "public-data",
       "request_file": "server/shared/tourism-provider.ts",

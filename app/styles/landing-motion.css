@@ -46,7 +46,6 @@
 
 /* 강조어는 느린 수면 이동만 주어 계속 움직이되 읽기를 방해하지 않는다. */
 .landing-cta h2 em {
-  color: var(--blue);
   background: linear-gradient(105deg,var(--blue) 10%,#0c83be 42%,#25aaa8 58%,var(--blue) 90%);
   background-size: 220% 100%;
   -webkit-background-clip: text;

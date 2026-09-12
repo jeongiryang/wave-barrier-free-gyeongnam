@@ -1,3 +1,4 @@
+import LoadingState from "../../../components/LoadingState";
 import { lazy, Suspense } from "react";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import { routeModeLabel } from "../utils";
@@ -79,7 +80,7 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
     <p className="route-mode-order-note">{english ? "Select a travel mode to check its journey times. Check unavailable routes in Kakao Maps." : "이동수단을 선택하면 해당 수단의 경로와 시간을 조회합니다. 확인할 수 없는 경로는 카카오맵에서 이어서 확인하세요."}</p>
     <p className="route-notice" aria-live="polite"><span className={activeRoute?.configured ? "live-dot" : "ready-dot"} />{routeNotice[locale]}{routeNotice.subject && <> <span lang={originalLanguage(routeNotice.subject)}>{routeNotice.subject}</span></>}</p>
     {english && hasOriginalNames && <p className="route-mode-order-note">Route and stop names may be shown in their original language.</p>}
-    {transitStatus && (transitStatus.failure || transitStatus.detail) && transitStatus.state !== "connected" && <Suspense fallback={<p className="route-notice" role="status">{english ? "Preparing transport information." : "교통정보를 정리하고 있습니다."}</p>}><TransitProviderNotice provider={transitStatus} english={english} /></Suspense>}
+    {transitStatus && (transitStatus.failure || transitStatus.detail) && transitStatus.state !== "connected" && <Suspense fallback={<LoadingState skeleton={false}>{english ? "Preparing transport information." : "교통정보를 정리하고 있습니다."}</LoadingState>}><TransitProviderNotice provider={transitStatus} english={english} /></Suspense>}
     <div className="route-options" aria-busy={routeLoading}>
       {routeLoading && [0, 1, 2].map((item) => <div className="route-option-skeleton" key={`route-skeleton-${item}`} aria-hidden="true"><i /><div><b /><span /></div><em /></div>)}
       {!routeLoading && !routeDestination && <div className="route-empty"><span>↗</span><h3>{english ? "Choose a place to check routes." : "경로를 계산할 여행지를 선택하세요."}</h3><p>{english ? "Add a place to your itinerary, then check each journey leg. Times and routes appear only when available." : "장소를 일정에 추가한 뒤 이동 구간을 조회하세요. 확인된 이동수단만 시간과 경로를 표시합니다."}</p></div>}

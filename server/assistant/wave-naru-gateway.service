@@ -1,0 +1,22 @@
+[Unit]
+Description=WAVE Naru authenticated inference gateway
+Wants=wave-naru-model.service
+After=network-online.target wave-naru-model.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/wave-naru
+EnvironmentFile=%h/wave-naru/gateway.env
+ExecStart=/usr/bin/python3 %h/wave-naru/gateway.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+UMask=0077
+CPUQuota=200%
+MemoryMax=512M
+TasksMax=32
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=default.target

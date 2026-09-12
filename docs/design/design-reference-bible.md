@@ -1,3 +1,5 @@
+> 2026-09-12 여행 설계 개편: [나루 대화와 좌우 작업 공간](planner-naru-workspace-20260912.md)의 새 레이아웃을 적용한다. 기존 정보 근거·대비·키보드 기준은 유지한다.
+
 # W.A.V.E Design Reference Bible
 
 Latest Owner follow-up, 2026-09-11: the region section immediately below Hero adopts eight's `PLACES TO BEGIN` landscape cards. Keep all 18 albums and controls; the earlier full-frame presentation is superseded. My Travel adopts the same scenery/editorial rhythm. Three WAVE-authored starter articles supply the requested community examples without fictional member activity. Headers blend into pale blue product surfaces and use dark translucency over Hero. Existing functionality, Korean public defaults and mobile accessibility remain required. [Implementation and evidence](../ai-logs/20260911-scenery-card-refinement.md).

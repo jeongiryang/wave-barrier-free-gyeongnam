@@ -47,7 +47,7 @@ for (const locale of ["ko", "en"] as const) {
     page.on("request", request => { if (request.url().includes("action=plan")) searches++; });
     await page.goto("/planner");
     await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
-    await page.locator(".reference-progress button").nth(1).click();
+    await page.locator(".planner-navigation nav button").nth(1).click();
     await page.locator(".profile-grid button").first().click();
     await page.locator(".condition-actions button").last().click();
     const search = page.locator(".condition-actions button").last();
@@ -80,8 +80,8 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator(".landing-hero-copy")).toHaveCSS("opacity", "1");
     await expect(summary).toHaveAccessibleName(en ? "Introduction sections" : "서비스 소개 페이지 탐색");
     await expect(summary.locator("#story-progress-list a > span")).toHaveText(en
-      ? ["Welcome", "How it works", "Gyeongnam", "Together", "Before leaving", "Community", "Plan a trip"]
-      : ["처음", "여행 준비", "경남", "함께 여행", "출발 전", "여행 이야기", "여행 계획"]);
+      ? ["Welcome", "How it works", "Gyeongnam", "AI Naru", "Together", "Before leaving", "Community", "Plan a trip"]
+      : ["처음", "여행 준비", "경남", "AI 나루", "함께 여행", "출발 전", "여행 이야기", "여행 계획"]);
     if (en) await expect(summary).not.toContainText(/[가-힣]/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);

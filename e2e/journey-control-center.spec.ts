@@ -12,7 +12,7 @@ async function openPlanner(page: import("@playwright/test").Page, width: number,
     window.sessionStorage.setItem("wave-arrival-session-v1", "done");
   });
   await page.goto("/planner");
-  await page.locator(".reference-progress").waitFor();
+  await page.locator(".planner-navigation nav").waitFor();
 }
 
 test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을 제공한다", async ({ page }) => {
@@ -21,7 +21,7 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   await expect(rail).toBeVisible();
   await expect(rail.getByRole("button", { name: /^1\. 여행 조건/ })).toHaveAttribute("aria-current", "step");
   await expect(page.locator(".reference-completion")).toHaveAttribute("aria-valuenow", "0");
-  await expect(page.locator(".reference-search")).toContainText("필요한 편의");
+  await expect(page.locator(".planner-navigation")).toContainText("필요한 편의");
 
   const departureSelect = page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "경남 전체", exact: true });
   await departureSelect.focus();
@@ -45,16 +45,16 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   expect(results.violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);
 });
 
-test("모바일 4단계 진행 표시는 44px 탐색과 수평 안전 영역을 유지한다", async ({ page }) => {
+test("모바일 5단계 진행 표시는 44px 탐색과 수평 안전 영역을 유지한다", async ({ page }) => {
   await openPlanner(page, 390, 844);
-  const rail = page.locator(".reference-progress");
+  const rail = page.locator(".planner-navigation nav");
   await expect(rail).toBeVisible();
   expect(await rail.evaluate((element) => getComputedStyle(element).position)).not.toBe("fixed");
   const sizes = await rail.getByRole("button").evaluateAll((buttons) => buttons.map((button) => {
     const rect = button.getBoundingClientRect();
     return { width: rect.width, height: rect.height };
   }));
-  expect(sizes).toHaveLength(4);
+  expect(sizes).toHaveLength(5);
   for (const size of sizes) {
     expect(size.width).toBeGreaterThanOrEqual(44);
     expect(size.height).toBeGreaterThanOrEqual(44);

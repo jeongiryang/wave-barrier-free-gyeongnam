@@ -39,7 +39,10 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
       const parse = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
       const fg = parse(style.color), bg = parse(style.backgroundColor);
       const luminance = (rgb: number[]) => rgb.slice(0, 3).map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((s, v, i) => s + v * [.2126, .7152, .0722][i], 0);
-      const background = bg.slice(0, 3).map(v => v * (bg[3] ?? 1) + 255 * (1 - (bg[3] ?? 1)));
+      // Composite transparent labels over their actual card and page surfaces.
+      const layers: number[][] = [bg];
+      for (let parent = element.parentElement; parent; parent = parent.parentElement) layers.unshift(parse(getComputedStyle(parent).backgroundColor));
+      const background = layers.reduce((under, over) => over.slice(0, 3).map((v, i) => v * (over[3] ?? 1) + under[i] * (1 - (over[3] ?? 1))), [255, 255, 255]);
       const f = luminance(fg), b = luminance(background);
       return (Math.max(f, b) + .05) / (Math.min(f, b) + .05);
     });

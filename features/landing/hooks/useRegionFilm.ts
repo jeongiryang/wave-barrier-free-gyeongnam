@@ -21,10 +21,12 @@ export function useRegionFilm(rail: RefObject<HTMLDivElement | null>, counterRai
       const sticky = section.dataset.filmSticky === "true";
       const distance = Math.max(1, sticky ? section.offsetHeight - (innerHeight - stickyTop) : section.offsetHeight + innerHeight - stickyTop);
       const progress = Math.max(0, Math.min(1, ((sticky ? stickyTop : innerHeight) - rect.top) / distance));
-      // Scroll offsets run in opposite directions, so the top pictures travel
-      // right and the lower pictures travel left as the reader moves down.
-      viewport.scrollTo({ left: (1 - progress) * Math.max(0, viewport.scrollWidth - viewport.clientWidth), behavior: "instant" });
-      opposite.scrollTo({ left: progress * Math.max(0, opposite.scrollWidth - opposite.clientWidth), behavior: "instant" });
+      // Finish the first row before moving the second. The small pause between
+      // the two gives the eye time to follow the next row; reverse scroll retraces it.
+      const topProgress = Math.min(1, progress / .46);
+      const bottomProgress = Math.max(0, (progress - .54) / .46);
+      viewport.scrollTo({ left: (1 - topProgress) * Math.max(0, viewport.scrollWidth - viewport.clientWidth), behavior: "instant" });
+      opposite.scrollTo({ left: bottomProgress * Math.max(0, opposite.scrollWidth - opposite.clientWidth), behavior: "instant" });
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
     const configure = () => {

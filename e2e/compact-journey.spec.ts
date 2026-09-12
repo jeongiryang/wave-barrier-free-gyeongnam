@@ -45,12 +45,21 @@ test("landscape film follows scrolling, yields to controls, and releases with re
   const region = page.locator("#regions"), rails = region.locator(".region-card-rail");
   await expect(rails).toHaveCount(2);
   await expect(region).toHaveAttribute("data-film", "true");
-  await region.evaluate(el => window.scrollTo({ top: scrollY + el.getBoundingClientRect().top - 116 + 360, behavior: "instant" }));
+  const scrollProgress = (progress: number) => region.evaluate((el, fraction) => {
+    const sticky = (el as HTMLElement).dataset.filmSticky === "true";
+    const start = scrollY + el.getBoundingClientRect().top - (sticky ? 116 : innerHeight);
+    const range = sticky ? (el as HTMLElement).offsetHeight - (innerHeight - 116) : (el as HTMLElement).offsetHeight + innerHeight - 116;
+    window.scrollTo({ top: start + range * fraction, behavior: "instant" });
+  }, progress);
+  await scrollProgress(.2);
+  await expect.poll(() => rails.last().evaluate(el => el.scrollLeft)).toBe(0);
+  const initial = await rails.first().evaluate(el => el.scrollLeft);
+  await scrollProgress(.4);
+  await expect.poll(() => rails.first().evaluate(el => el.scrollLeft)).toBeLessThan(initial);
+  await expect.poll(() => rails.last().evaluate(el => el.scrollLeft)).toBe(0);
+  await scrollProgress(.7);
+  await expect.poll(() => rails.first().evaluate(el => el.scrollLeft)).toBe(0);
   await expect.poll(() => rails.last().evaluate(el => el.scrollLeft)).toBeGreaterThan(100);
-  const initial = await rails.evaluateAll(rows => rows.map(row => row.scrollLeft));
-  await page.evaluate(() => window.scrollBy({ top: 120, behavior: "instant" }));
-  await expect.poll(() => rails.first().evaluate(el => el.scrollLeft)).toBeLessThan(initial[0]);
-  await expect.poll(() => rails.last().evaluate(el => el.scrollLeft)).toBeGreaterThan(initial[1]);
   await expect(page.locator('.story-progress [aria-current="location"]')).toHaveAttribute("href", "#regions");
   await region.getByRole("button", { name: "다음 지역", exact: true }).click();
   await expect(region.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "하동");

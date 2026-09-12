@@ -103,7 +103,7 @@ for (const locale of ["ko", "en"] as const) {
     await expect(dialog.locator(".help-tour-progress")).toHaveAccessibleName(locale === "en" ? "Step 1 of 1" : "1단계 중 1단계");
     await expect(page.locator(".help-tour-spotlight")).toBeVisible();
     await expect(page.locator("#places")).toBeHidden();
-    await expect(page.locator('.reference-progress button').nth(3)).toBeDisabled();
+    await expect(page.locator('.planner-navigation nav button').nth(3)).toBeDisabled();
     await dialog.getByRole("button", { name: locale === "en" ? "Finish tour" : "투어 마치기", exact: true }).click();
     await expect(trigger).toBeFocused();
   });

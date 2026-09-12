@@ -1,0 +1,16 @@
+[Unit]
+Description=Preload WAVE Naru model before accepting conversations
+Requires=wave-naru-ollama.service
+After=wave-naru-ollama.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/wave-naru/gateway.env
+ExecStart=/usr/bin/python3 %h/wave-naru/warm-model.py
+TimeoutStartSec=190
+RemainAfterExit=true
+NoNewPrivileges=true
+UMask=0077
+
+[Install]
+WantedBy=default.target

@@ -56,7 +56,7 @@ test("walking evidence, planned rests and nearby restroom stops stay integrated 
   await page.goto("/planner"); await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
-  await page.locator(".reference-journey-views button").nth(1).click();
+  await page.locator(".planner-navigation nav button").nth(3).click();
   const board = page.locator(".reference-day-list"), comfort = board.locator(".trip-comfort-plan"), finder = board.locator(".rest-stop-finder");
   await comfort.locator("summary").click();
   await expect(comfort).toContainText("아직 걷기 구간을 확인하지 않았어요");

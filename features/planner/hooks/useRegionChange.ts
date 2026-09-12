@@ -12,8 +12,9 @@ export function useRegionChange({ region, ready, hasSaved, setRegion, resetTrip,
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const pendingRef = useRef<string | null>(null);
+  const afterCommit = useRef<(() => void) | null>(null);
   const initialUrlChecked = useRef(false);
-  const cancel = useCallback(() => { pendingRef.current = null; setPending(null); setError(false); }, []);
+  const cancel = useCallback(() => { pendingRef.current = null; afterCommit.current = null; setPending(null); setError(false); }, []);
   function updateUrl(next: string, fresh = false) {
     const url = new URL(window.location.href);
     url.searchParams.set("region", next);
@@ -30,10 +31,13 @@ export function useRegionChange({ region, ready, hasSaved, setRegion, resetTrip,
     // can repopulate the new region; keep the picker DOM for native focus return.
     clearResults(fresh);
     if (fresh) resetTrip(start, end);
-    setRegion(next); updateUrl(next, fresh); cancel();
+    setRegion(next); updateUrl(next, fresh);
+    const complete = afterCommit.current;
+    cancel(); complete?.();
   }
-  function request(next: string) {
+  function request(next: string, onCommitted?: () => void) {
     if (!ready || pendingRef.current !== null || next === region || !regions.includes(next)) return;
+    afterCommit.current = onCommitted || null;
     if (hasSaved) { pendingRef.current = next; setPending(next); setError(false); }
     else commit(next, false);
   }

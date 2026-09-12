@@ -1,3 +1,4 @@
+import LoadingState from "../../../components/LoadingState";
 import type {
   DestinationCrowd,
   EnrichmentData,
@@ -69,7 +70,7 @@ export default function TravelSignalsPanel({
   return <details open={secondaryOpen} className="journey-workspace-block travel-layers" id="layers" suppressHydrationWarning onToggle={(event) => { if (secondaryOpen !== event.currentTarget.open) onSecondaryOpenChange(event.currentTarget.open); }}>
     <summary><span>{english ? "Weather, visitor forecasts and nearby information" : "날씨·혼잡과 주변 정보 자세히 보기"}</span><small>{english ? "Optional · check when it affects your itinerary." : "선택 사항 · 일정에 영향을 줄 때만 확인하세요."}</small></summary>
     {secondaryOpen && <div className="travel-signal-content">
-      <Suspense fallback={<p role="status">{english ? "Opening weather…" : "날씨 화면을 여는 중입니다…"}</p>}><WeatherBoard region={region} weather={weather} failure={weatherFailure} loading={weatherLoading} onReload={onReloadWeather} /></Suspense>
+      <Suspense fallback={<LoadingState>{english ? "Opening weather…" : "날씨 화면을 여는 중입니다…"}</LoadingState>}><WeatherBoard region={region} weather={weather} failure={weatherFailure} loading={weatherLoading} onReload={onReloadWeather} /></Suspense>
       <div id="crowd">{plan ? <SituationImpactPanel
         tripImpact={tripImpact}
         impactCrowd={impactCrowd}
@@ -77,7 +78,7 @@ export default function TravelSignalsPanel({
         weatherLoading={weatherLoading}
         onImpactAction={onImpactAction}
       /> : <section><h3>{english ? "Visitor concentration forecast" : "관광 집중률 예측"}</h3><p>{english ? "No forecast has been checked for this itinerary. Review your trip preferences and search again to check current information." : "현재 일정의 관광 집중률은 아직 조회하지 않았습니다. 여행 조건을 확인하고 다시 검색하면 현재 정보를 확인할 수 있습니다."}</p></section>}</div>
-      <Suspense fallback={<div className="planner-secondary-loading" role="status">주변 여행 정보를 준비하고 있어요.</div>}>
+      <Suspense fallback={<LoadingState>{english ? "Preparing nearby travel information." : "주변 여행 정보를 준비하고 있어요."}</LoadingState>}>
         <PlannerSecondaryInsights
           region={region}
           enrichment={enrichment}

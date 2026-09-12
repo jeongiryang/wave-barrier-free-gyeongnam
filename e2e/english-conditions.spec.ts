@@ -6,7 +6,7 @@ async function openFacilities(page: Page) {
   await page.goto("/planner");
   await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>(".journey-mode-toggle button")?.disabled);
   await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
-  await page.locator(".reference-progress button").nth(1).click();
+  await page.locator(".planner-navigation nav button").nth(1).click();
 }
 
 for (const theme of ["light", "dark"] as const) {

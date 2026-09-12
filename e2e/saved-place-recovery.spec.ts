@@ -161,15 +161,15 @@ for (const locale of ["ko", "en"] as const) {
     });
     await page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true }).press("Enter");
     await started;
-    await page.locator(".reference-progress button").first().click();
+    await page.locator(".planner-navigation nav button").first().click();
     await page.getByRole("combobox", { name: en ? "Travel region" : "여행 지역", exact: true }).selectOption("하동");
     await page.getByRole("dialog").getByRole("button", { name: en ? "Start a new trip" : "새 여행으로 시작", exact: true }).click();
     release();
     await expect(page.locator(".reference-journey-views")).toHaveCount(0);
-    await expect(page.locator(".reference-progress button").nth(2)).toBeDisabled();
+    await expect(page.locator(".planner-navigation nav button").nth(2)).toBeDisabled();
     await page.reload();
     await expect(page.locator(".reference-journey-views")).toHaveCount(0);
-    await expect(page.locator(".reference-progress button").nth(2)).toBeDisabled();
+    await expect(page.locator(".planner-navigation nav button").nth(2)).toBeDisabled();
     await expect(page.getByRole("button", { name: "하동 지역 선택", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("region", { name: en ? "My itinerary What order works for your trip?" : "내 일정 어떤 순서로 움직이면 편할까요?", exact: true })).toHaveCount(0);
   });

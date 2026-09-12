@@ -8,14 +8,6 @@
   :root { --gutter: clamp(14px, 3.4vw, 26px); }
   .landing-hero-copy h1 { font-size: clamp(2.6rem, 8.2vw, 4.4rem); }
   .landing-cta h2 { font-size: clamp(2.2rem, 8vw, 4rem); }
-  .region-story, .landing-cta { padding-block: clamp(64px, 11vh, 104px); }
-  .planner-page > .places-section,
-  .planner-page > .navigation-section, .planner-page > .travel-layers,
-  .planner-page > .connection-diagnostics {
-    width: calc(100vw - var(--gutter) * 2);
-    padding: clamp(20px, 4vw, 30px) clamp(16px, 3.4vw, 26px);
-    border-radius: 20px;
-  }
 
 }
 @media (max-width: 620px) {

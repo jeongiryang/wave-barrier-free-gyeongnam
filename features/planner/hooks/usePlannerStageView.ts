@@ -124,7 +124,7 @@ export function usePlannerStageView() {
     }
     const heading = focusTarget.id === "layers"
       ? section.querySelector<HTMLElement>("summary") || section
-      : section.querySelector<HTMLElement>("h2, h3") || section;
+      : Array.from(section.querySelectorAll<HTMLElement>("h2, h3")).find(node => node.getClientRects().length > 0) || section;
     // Keep the native disclosure in the tab order. Its name is the visible
     // start of this panel; a nested heading can be below a long forecast.
     if (heading.tagName !== "SUMMARY") heading.setAttribute("tabindex", "-1");

@@ -26,7 +26,7 @@ test("every server provider transport uses the registered request boundary",()=>
     visit(ast);
   }
   assert.deepEqual([...observed].sort(),[...registered].sort());
-  assert.equal(observed.size,8);
+  assert.equal(observed.size,9);
 });
 test("all literal KTO operations plus dynamic language/facility services are inventoried",()=>{
   const operations=new Set(registry.providers.find(p=>p.id==="kto").operations);

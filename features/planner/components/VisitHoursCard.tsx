@@ -33,7 +33,7 @@ export default function VisitHoursCard({ id, name, visit, en = false }: { id: st
   return <details className="place-evidence visit-hours" style={{ margin: "12px 0", width: "100%", minWidth: 0 }} onToggle={event => { if (event.currentTarget.open) void load(); }}>
     <summary aria-label={c(`${name} 이용시간 확인`, `${name} visiting hours`)}>{c("이용시간 확인", "Visiting hours")}</summary>
     <div className="modal-data" style={{ overflowWrap: "anywhere", fontSize: 14, lineHeight: 1.65 }} aria-busy={state === "loading"}>
-      {state === "loading" && <p role="status">{c("공식 이용 정보를 불러오고 있어요…", "Loading official visitor information…")}</p>}
+      {state === "loading" && <p className="wave-loading-inline" role="status">{c("공식 이용 정보를 불러오고 있어요…", "Loading official visitor information…")}</p>}
       {state === "error" && <><p role="alert">{c("이용 정보를 불러오지 못했어요.", "Visitor information couldn't load.")}</p><div className="travel-book-actions"><button type="button" onClick={() => void load()}>{c("다시 확인", "Try again")}</button></div></>}
       {info && state === "ready" && <>
         {visit && <p className="modal-note">{visit.day} · {c("예상 방문", "Planned visit")} {formatScheduleTime(visit.startsAt)}–{formatScheduleTime(visit.endsAt)}</p>}

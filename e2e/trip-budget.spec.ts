@@ -13,7 +13,7 @@ async function setup(page:Page){
  }});
  await page.goto('/planner');await chooseTripConditions(page);
  for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 추가',exact:true}).click();
- await page.locator('.reference-journey-views button').nth(1).click();await page.getByRole('button',{name:'다음: 전체보기',exact:true}).click();
+ await page.locator('.planner-navigation nav button').nth(3).click();await page.getByRole('button',{name:'다음: 전체보기',exact:true}).click();
  await page.getByText('여행비 계획하기',{exact:true}).click();
  return page.getByRole('region',{name:'여행비 계획',exact:true});
 }

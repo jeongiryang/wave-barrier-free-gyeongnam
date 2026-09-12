@@ -45,18 +45,6 @@
   min-block-size: 44px;
   min-inline-size: 44px;
 }
-:where(.brand, .landing-header nav a, .site-header nav a, .community-header nav a,
-  .auth-header nav a, .landing-actions a, .community-write,
-  .community-state a, .landing-community-copy a) {
-  min-block-size: 44px;
-  display: inline-flex;
-  align-items: center;
-}
-:where(.brand, .landing-header nav a, .site-header nav a, .community-header nav a,
-  .auth-header nav a) {
-  min-inline-size: 44px;
-  justify-content: center;
-}
 
 /* 스크롤로 숨은 헤더 안에 키보드 초점이 들어오면 그 즉시 화면으로 복귀한다. */
 

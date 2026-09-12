@@ -3,21 +3,14 @@
 .planner-page > .simple-footer { order: 9; }
 
 .planner-journey-workspace {
-  width: var(--content);
-  margin: 108px auto 0;
   /*
    * `hidden`은 이 요소를 스크롤 컨테이너로 만들어 안쪽 Journey Control의
    * sticky 기준을 가로챈다. `clip`은 둥근 워크스페이스 경계는 유지하면서
    * 데스크톱 레일이 문서 스크롤에 붙도록 한다.
    */
-  overflow: clip;
-  border: 1px solid #cbdfe8;
-  border-radius: clamp(22px, 3vw, 36px);
-  background: #f8fcfe;
-  box-shadow: 0 24px 70px rgb(6 48 74 / 9%);
 }
 
-.journey-workspace-block { width: 100%; margin: 0; padding: clamp(34px, 4vw, 56px) clamp(20px, 4.2vw, 58px); scroll-margin-top: 96px; border-top: 1px solid #d7e6ec; }
+.journey-workspace-block { width: 100%; margin: 0; scroll-margin-top: 96px; border-top: 1px solid #d7e6ec; }
 .planner-journey-workspace .place-carousel,
 .planner-journey-workspace .day-planner,
 .planner-journey-workspace .weather-board,
@@ -101,8 +94,6 @@
 .place-field-report-link { margin-top: 9px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #b9ddcf; border-radius: 13px; color: var(--ink); background: #eef9f4; }.place-field-report-link b,.place-field-report-link small { display: block; }.place-field-report-link small { margin-top: 3px; color: var(--muted); font-size: 0.75rem; }.place-field-report-link i { color: #27775e; font-style: normal; }
 
 @media (max-width: 780px) {
-  .planner-journey-workspace { width: calc(100vw - 16px); margin-top: 84px; border-radius: 22px; }
-  .journey-workspace-block { padding: 30px 14px; }
   .planner-journey-workspace .navigation-section { padding: 24px 0 0; }
   .journey-subheading { align-items: flex-start; flex-direction: column; gap: 8px; }
   .journey-subheading > div { align-items: flex-start; flex-direction: column; gap: 8px; }

@@ -3,6 +3,7 @@ export const landingSections = [
   { key: "hero", id: "top", ko: "처음", en: "Welcome" },
   { key: "needs", id: "story", ko: "여행 준비", en: "How it works" },
   { key: "region", id: "regions", ko: "경남", en: "Gyeongnam" },
+  { key: "assistant", id: "naru", ko: "AI 나루", en: "AI Naru" },
   { key: "recommendation", id: "recommendation", ko: "함께 여행", en: "Together" },
   { key: "departure", id: "departure", ko: "출발 전", en: "Before leaving" },
   { key: "community", id: "community", ko: "여행 이야기", en: "Community" },

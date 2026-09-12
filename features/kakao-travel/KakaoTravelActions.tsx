@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import KakaoIcon from "./KakaoIcon";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useRef, useState } from "react";
 import { authClient } from "../../lib/auth/client";
@@ -38,8 +39,8 @@ export function KakaoTravelShare({ trip }: { trip: AccountTripPayload }) {
     finally { pending.current = false; setBusy(false); }
   }
   return <section aria-label="카카오톡 여행 카드">
-    <div className="travel-book-actions"><button type="button" disabled={busy} onClick={() => void prepare()}>{busy ? "여행 카드 준비 중…" : "카카오톡 여행 카드 만들기"}</button><Link href="/guide#kakao-share">공유 사용 방법</Link></div>
-    {url && <><p><b>{trip.region}에서 함께하는 여행</b><br />{trip.travelStart} — {trip.travelEnd} · 여행지 {trip.placeIds.length}곳</p><p>이 링크는 받은 사람이 30일 동안 볼 수 있습니다. 편의 조건·메모·현재 위치는 포함하지 않습니다.</p><div className="travel-book-actions"><button type="button" disabled={!sdkReady} onClick={() => { try { if (!window.Kakao?.Share) throw new Error(); window.Kakao.Share.sendDefault(travelCard(trip, url)); setNotice("카카오톡에서 보낼 대화방을 선택해 주세요."); } catch { setNotice("카카오톡 공유 창을 열지 못했어요. 팝업 허용을 확인하거나 링크를 복사해 주세요."); } }}>카카오톡으로 공유</button><button type="button" onClick={() => { if (!navigator.clipboard) { setNotice("아래 공유 일정 링크를 직접 복사해 주세요."); return; } void navigator.clipboard.writeText(url).then(() => setNotice("공유 링크를 복사했어요.")).catch(() => setNotice("아래 공유 일정 링크를 직접 복사해 주세요.")); }}>여행 링크 복사</button><a href={url}>공유 일정 열기</a></div></>}
+    <div className="travel-book-actions"><button type="button" className="kakao-action-button" aria-busy={busy} disabled={busy} onClick={() => void prepare()}><KakaoIcon />{busy ? "공유 카드 준비 중…" : "카카오톡 공유 카드"}</button><Link href="/guide#kakao-share">공유 사용 방법</Link></div>
+    {url && <><p><b>{trip.region}에서 함께하는 여행</b><br />{trip.travelStart} — {trip.travelEnd} · 여행지 {trip.placeIds.length}곳</p><p>이 링크는 받은 사람이 30일 동안 볼 수 있습니다. 편의 조건·메모·현재 위치는 포함하지 않습니다.</p><div className="travel-book-actions"><button type="button" className="kakao-action-button" aria-label="카카오톡으로 여행 공유" disabled={!sdkReady} onClick={() => { try { if (!window.Kakao?.Share) throw new Error(); window.Kakao.Share.sendDefault(travelCard(trip, url)); setNotice("카카오톡에서 보낼 대화방을 선택해 주세요."); } catch { setNotice("카카오톡 공유 창을 열지 못했어요. 팝업 허용을 확인하거나 링크를 복사해 주세요."); } }}><KakaoIcon />공유</button><button type="button" onClick={() => { if (!navigator.clipboard) { setNotice("아래 공유 일정 링크를 직접 복사해 주세요."); return; } void navigator.clipboard.writeText(url).then(() => setNotice("공유 링크를 복사했어요.")).catch(() => setNotice("아래 공유 일정 링크를 직접 복사해 주세요.")); }}>여행 링크 복사</button><a href={url}>공유 일정 열기</a></div></>}
     {notice && <p role="status">{notice}</p>}
   </section>;
 }
@@ -81,5 +82,5 @@ export function KakaoSendToSelf({ tripId, disabled = false }: { tripId: string; 
     catch { setNotice("다시 로그인할 준비를 하지 못했습니다. 잠시 후 다시 시도해 주세요."); }
     finally { pending.current = false; setBusy(false); }
   }
-  return <section aria-label="카카오톡 나에게 보내기">{params.get("kakao") === "cancelled" && <p role="status">카카오 메시지 동의를 완료하지 않았어요. 원할 때 다시 연결할 수 있습니다.</p>}<p>계정에 저장한 제목·날짜·장소 수와 내 여행 링크를 나와의 채팅으로 보냅니다.</p><div className="travel-book-actions"><button type="button" disabled={busy || disabled} onClick={() => void send()}>{busy ? "카카오톡 연결 중…" : "카카오톡 나에게 보내기"}</button>{consent && <button type="button" disabled={busy || disabled} onClick={() => void grant()}>카카오 메시지 전송 동의하기</button>}{login && <button type="button" disabled={busy || disabled} onClick={() => void reauthenticate()}>다시 로그인하고 계속하기</button>}</div>{consent && <p>동의 후 여행으로 돌아오면 보내기 버튼을 다시 누르세요. 동의하지 않아도 다른 여행 기능은 계속 이용할 수 있어요.</p>}{notice && <p role="status">{notice}</p>}</section>;
+  return <section aria-label="카카오톡 나에게 보내기">{params.get("kakao") === "cancelled" && <p role="status">카카오 메시지 동의를 완료하지 않았어요. 원할 때 다시 연결할 수 있습니다.</p>}<p>계정에 저장한 제목·날짜·장소 수와 내 여행 링크를 나와의 채팅으로 보냅니다.</p><div className="travel-book-actions"><button type="button" className="kakao-action-button" aria-busy={busy} disabled={busy || disabled} onClick={() => void send()}><KakaoIcon />{busy ? "카카오톡 연결 중…" : "나와의 채팅에 보내기"}</button>{consent && <button type="button" disabled={busy || disabled} onClick={() => void grant()}>카카오 메시지 전송 동의하기</button>}{login && <button type="button" disabled={busy || disabled} onClick={() => void reauthenticate()}>다시 로그인하고 계속하기</button>}</div>{consent && <p>동의 후 여행으로 돌아오면 보내기 버튼을 다시 누르세요. 동의하지 않아도 다른 여행 기능은 계속 이용할 수 있어요.</p>}{notice && <p role="status">{notice}</p>}</section>;
 }

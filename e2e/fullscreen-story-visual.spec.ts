@@ -27,7 +27,7 @@ test("the full-screen arrival leads through the complete Korean service story", 
   await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-phrase", "2");
   if (!isMobile) {
     const rail=page.locator("#story-progress-list a");
-    await expect(rail).toHaveCount(7);
+    await expect(rail).toHaveCount(8);
     for (const link of await rail.all()) await expect(link).toBeVisible();
     await page.screenshot({path:test.info().outputPath("02c-progress-always-visible.png")});
     await page.locator(".landing-actions a[href='/planner']").focus();
@@ -49,7 +49,7 @@ test("the full-screen arrival leads through the complete Korean service story", 
   }
   // Owner deferred the presentation to #386; Planner date/map functionality is untouched.
   await expect(page.locator(".journey-dated-scene,.story-expansion")).toHaveCount(0);
-  await expect(page.locator("main section[id]")).toHaveCount(7);
+  await expect(page.locator("main section[id]")).toHaveCount(8);
   await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
   await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
   // One complete static page documents the whole composition, separately from normal-motion scenes.

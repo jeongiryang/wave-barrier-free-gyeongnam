@@ -31,8 +31,8 @@ export async function expectUsableTarget(target: Locator) {
   })).toBe(true);
 }
 
-export const chapterIds = ["top", "story", "regions", "recommendation", "departure", "community", "closing"];
+export const chapterIds = ["top", "story", "regions", "naru", "recommendation", "departure", "community", "closing"];
 export const chapterNames = {
-  ko: ["처음", "여행 준비", "경남", "함께 여행", "출발 전", "여행 이야기", "여행 계획"],
-  en: ["Welcome", "How it works", "Gyeongnam", "Together", "Before leaving", "Community", "Plan a trip"],
+  ko: ["처음", "여행 준비", "경남", "AI 나루", "함께 여행", "출발 전", "여행 이야기", "여행 계획"],
+  en: ["Welcome", "How it works", "Gyeongnam", "AI Naru", "Together", "Before leaving", "Community", "Plan a trip"],
 };

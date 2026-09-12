@@ -7,6 +7,7 @@ import { canMoveVisitDate } from "../../../lib/trip-date-move.js";
 import { planVoiceEdit, voiceStateKey, canUndoVoiceEdit, type VoiceState, type VoiceEditReceipt } from "../../../lib/voice-edit.js";
 import type { RoutePoint } from "../../routing/types";
 import type { Place } from "../types";
+import type { TripProgress, TripProgressMemory } from '../../../lib/on-trip.js';
 import { useOptimizedTripOrder } from "./useOptimizedTripOrder";
 import { useSavedPlaceIds } from "./useSavedPlaceIds";
 import { useTripSchedule } from "./useTripSchedule";
@@ -19,6 +20,8 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
   const { saved, catalog, resetSaved, storageReady: savedStorageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId, restoreSavedPlace } = useSavedPlaceIds();
   const schedule = useTripSchedule();
   const [dayChoice, setActiveDay] = useState("");
+  const [progressMemory, setProgressMemory] = useState<TripProgressMemory>({});
+  const rememberProgress = useCallback((identity: string, value: TripProgress, unsaved = false) => setProgressMemory(current => Object.fromEntries([[identity, { value, unsaved }], ...Object.entries(current).filter(([key]) => key !== identity).slice(0, 19)])), []);
   const activeDay = schedule.tripDays.includes(dayChoice) ? dayChoice : schedule.tripDays[0];
   const { ensurePlaceAssignment, removePlaceAssignment, canChangePlace } = schedule;
   const savedPlaces = useMemo(
@@ -125,7 +128,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
   };
 
   return {
-    voiceRevision, applyVoiceEdit, undoVoiceEdit,
+    voiceRevision, applyVoiceEdit, undoVoiceEdit, progressMemory, rememberProgress,
     rememberSavedPlaces,
     addSuggestedBreaks, addRestStop, addCourseStop,
     canMoveToDate, movePlaceToDate,

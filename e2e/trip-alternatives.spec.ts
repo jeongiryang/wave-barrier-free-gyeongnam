@@ -20,7 +20,7 @@ async function setup(page: Page) {
   await page.goto("/planner"); await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
   await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
-  await page.locator(".reference-journey-views button").nth(1).click();
+  await page.locator(".planner-navigation nav button").nth(3).click();
   return page.locator(".reference-day-list");
 }
 async function open(page: Page, name = "경남도립미술관") {
