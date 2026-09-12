@@ -6,6 +6,7 @@ import * as durations from "../lib/visit-durations.js";
 import * as constraints from "../lib/trip-time-constraints.js";
 import * as comfort from "../lib/trip-comfort.js";
 import * as dateMove from "../lib/trip-date-move.js";
+import * as travelMode from "../lib/trip-travel-mode.js";
 
 function fixture(stored = {}, hydrate = true) {
   const slots = [], effects = [], frames = [];
@@ -29,6 +30,7 @@ function fixture(stored = {}, hydrate = true) {
     if (name.endsWith("trip-time-constraints.js")) return constraints;
     if (name.endsWith("trip-comfort.js")) return comfort;
     if (name.endsWith("trip-date-move.js")) return dateMove;
+    if (name.endsWith("trip-travel-mode.js")) return travelMode;
     throw Error(name);
   }, window);
   const actions = () => { cursor = 0; return mod.exports.useTripSchedule(); };
@@ -46,6 +48,22 @@ test("an earlier single-place date preserves other implicit days and bounded per
   assert.deepEqual(next.scheduleAssignments, { a: "2026-09-11", b: "2026-09-13", c: "2026-09-12" });
   assert.equal(next.movePlaceWithPeriod("c", "2026-09-18", ["a", "b", "c"]), false);
   assert.equal(f.actions().travelEnd, "2026-09-13");
+});
+
+test("travel mode hydrates with the schedule and survives field edits, snapshots and a fresh reset", () => {
+  const f = fixture({ ...initial, travelMode: 'car' }, false);
+  assert.equal(f.actions().storageReady, false);
+  f.commit(); f.commit();
+  assert.equal(f.actions().travelMode, 'car');
+  f.actions().setVisitMinutes('a', 120); f.actions().setDayStartTime('08:00'); f.commit();
+  assert.equal(f.actions().travelMode, 'car');
+  assert.equal(f.actions().restoreScheduleSnapshot({ ...initial, travelMode: 'bicycle' }), true);
+  assert.equal(f.actions().travelMode, 'bicycle');
+  assert.equal(f.actions().restoreScheduleSnapshot({ ...initial, travelMode: 'taxi' }), true);
+  assert.equal(f.actions().travelMode, 'transit');
+  f.actions().setTravelMode('walk');
+  f.actions().resetSchedule(initial.travelStart, initial.travelEnd);
+  assert.equal(f.actions().travelMode, 'transit');
 });
 
 test("fixed places protect their day until explicitly unlocked, and new trips clear constraints", () => {

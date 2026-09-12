@@ -9,6 +9,7 @@ import { publicTravelBody } from "../lib/kakao-travel.js";
 import { normalizeThemes } from "../lib/planner-criteria.js";
 import * as constraints from "../lib/trip-time-constraints.js";
 import * as comfort from "../lib/trip-comfort.js";
+import * as travelMode from "../lib/trip-travel-mode.js";
 
 function sharedPayload() {
   const output = ts.transpileModule(readFileSync(new URL("../server/trips/payload.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -20,6 +21,7 @@ function sharedPayload() {
     if (name.endsWith("visit-durations.js")) return { sanitizeVisitDurations };
     if (name.endsWith("trip-time-constraints.js")) return constraints;
     if (name.endsWith("trip-comfort.js")) return comfort;
+    if (name.endsWith("trip-travel-mode.js")) return travelMode;
     throw Error(name);
   });
   return mod.exports;
@@ -57,4 +59,15 @@ test("public fixed times exclude unselected IDs and preserve only the bounded us
   const result = normalizeTripSelections({ selectedPlaceIds: ["1001"], fixedVisits: { "1001": { kind: "event", position: 0, time: "13:00", address: "private" }, other: { kind: "stay", position: 1, time: "15:00" } }, dayDeadlines: { "2026-09-14": { time: "18:00", returnMinutes: null, bufferMinutes: 15, latitude: 35 } } });
   assert.deepEqual(result.fixedVisits, { "1001": { kind: "event", position: 0, time: "13:00" } });
   assert.deepEqual(result.dayDeadlines, { "2026-09-14": { time: "18:00", returnMinutes: null, bufferMinutes: 15 } });
+});
+
+test("public share transport retains only the travel mode enum, with a legacy transit default", () => {
+  const { normalizeTripSelections, storedTripPayload } = sharedPayload();
+  for (const value of ["walk", "bicycle", "transit", "car", undefined, "taxi", { mode: "car", latitude: 35 }]) {
+    const selections = normalizeTripSelections({ selectedPlaceIds: ["1001"], travelMode: value });
+    assert.equal(selections.travelMode, travelMode.sanitizeTravelMode(value));
+    const stored = storedTripPayload({ route: { geometry: [{ lat: 35, lng: 128 }] }, credentials: "secret" }, selections);
+    assert.equal(stored.selections.travelMode, selections.travelMode);
+    assert.doesNotMatch(JSON.stringify(stored), /geometry|latitude|credentials|secret/);
+  }
 });

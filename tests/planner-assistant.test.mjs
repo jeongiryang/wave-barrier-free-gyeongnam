@@ -139,3 +139,12 @@ test('the API grounds a tomorrow-only change to dates without a new itinerary or
   assert.match(data.reply, /날짜만 확인/); assert.doesNotMatch(data.reply, /새 장소|다시 만들/);
   assert.match(JSON.parse(h.calls[0].options.body).messages[0].content, /날짜만 내일로 바꿔줘/);
 });
+
+test('a low-burden same-day origin request searches nearby without assuming a car or promising accessible routes', async () => {
+  const h = handler(() => ({ choices: [{ message: { content: JSON.stringify({ reply: '접근 가능한 짧은 자동차 경로를 보장해요.', proposal: { action: 'create-itinerary', region: '양산', originRegion: '창원', transport: 'car', profiles: ['senior'] } }) } }] }));
+  const response = await h.run(request({ messages: [{ role: 'user', content: '부모님이 오래 걷기 힘들어. 창원에서 출발해서 당일치기로 여행하고 싶어.' }], context: { days: ['2026-09-20'], region: '', profiles: 'wheel', transport: 'transit', places: [] } }));
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.deepEqual(data.proposal, { action: 'create-itinerary', region: '창원', originRegion: '창원', profiles: ['senior'] });
+  assert.doesNotMatch(data.reply, /접근 가능|보장|자동차/);
+});

@@ -5,8 +5,9 @@ import { hasJourneyEstimate } from "../../../lib/route-estimates.js";
 import type { RouteAlternative } from "../../routing/types";
 import { transportModes } from "../constants";
 import type { TransportContext, TransportMode } from "../types";
+import type { TripTravelMode } from "../../../lib/trip-travel-mode.js";
 
-export type RouteTravelMode = "walk" | "bicycle" | "transit" | "car";
+export type RouteTravelMode = TripTravelMode;
 export type LegacyRouteSort = "time" | "fare" | "transfer" | "walk";
 
 const routeModeMeta: Array<{ id: RouteTravelMode; label: string; description: string }> = [
@@ -34,9 +35,8 @@ export function compareLegacyRoutePreference(routeSort: LegacyRouteSort, a: Rout
   return a.totalTime - b.totalTime;
 }
 
-export function useRouteView(routeAlternatives: RouteAlternative[], transportContext: TransportContext | null) {
+export function useRouteView(routeAlternatives: RouteAlternative[], transportContext: TransportContext | null, journey: { travelMode: RouteTravelMode; setTravelMode: (mode: RouteTravelMode) => void }) {
   const [activeRouteId, setActiveRouteId] = useState("");
-  const [selectedTravelMode, setSelectedTravelMode] = useState<RouteTravelMode>("transit");
   const [transportMode, setTransportMode] = useState<TransportMode>("all");
   const [selectedTransportDataset, setSelectedTransportDataset] = useState("bus-arrival");
 
@@ -52,9 +52,9 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
     return a.minutes - b.minutes || a.baseIndex - b.baseIndex;
   }), [routeAlternatives]);
 
-  const routeTravelMode = selectedTravelMode;
+  const routeTravelMode = journey.travelMode;
   const setRouteTravelMode = (mode: RouteTravelMode) => {
-    setSelectedTravelMode(mode);
+    journey.setTravelMode(mode);
     setActiveRouteId("");
   };
 
@@ -65,7 +65,7 @@ export function useRouteView(routeAlternatives: RouteAlternative[], transportCon
       return a.totalTime - b.totalTime;
     }), [routeAlternatives, routeTravelMode]);
 
-  const resetRouteView = () => { setActiveRouteId(""); setSelectedTravelMode("transit"); setSelectedTransportDataset("bus-arrival"); setTransportMode("all"); };
+  const resetRouteView = () => { setActiveRouteId(""); setSelectedTransportDataset("bus-arrival"); setTransportMode("all"); };
 
   return {
     resetRouteView,

@@ -28,7 +28,7 @@ export default function OfflineTripPack({trip,coverage,origin,region,progressMem
       const budget=savedBudget?summarizeBudget({places:trip.orderedSavedPlaces,days:trip.tripDays,assignments:trip.scheduleAssignments,budget:savedBudget,routes:coverage.costByPlaceId}):undefined;
       let splitLines:string[]=[];
       if(includeSplit){try{splitLines=savedSplitReunionLines(localStorage,{places:trip.orderedSavedPlaces,days:trip.tripDays,assignments:trip.scheduleAssignments,startTime:trip.dayStartTime,origin,visitMinutesByPlaceId:trip.visitMinutesByPlaceId,breakMinutesByPlaceId:trip.breakMinutesByPlaceId,fixedVisits:trip.fixedVisits,dayDeadlines:trip.dayDeadlines,routeMinutesByPlaceId:coverage.routeMinutes});}catch(error){setNotice(error instanceof Error&&error.message.startsWith('합류 약속')||error instanceof Error&&error.message.startsWith('저장한 합류')?error.message:'합류 약속을 읽지 못했어요. 저장 설정을 확인하거나 합류 약속 포함을 끄고 저장해 주세요.');return;}}
-      const input={title:`${region} · ${trip.travelStart} 여행`,schedule,info,savedAt:new Date().toISOString(),progress,budget,splitLines};
+      const input={title:`${region} · ${trip.travelStart} 여행`,travelMode:trip.travelMode,schedule,info,savedAt:new Date().toISOString(),progress,budget,splitLines};
       const content=kind==='html'?offlineTripHtml(input):offlineTripText(input),url=URL.createObjectURL(new Blob([content],{type:kind==='html'?'text/html;charset=utf-8':'text/plain;charset=utf-8'}));
       const anchor=document.createElement('a');anchor.href=url;anchor.download=`WAVE-여행요약-${trip.travelStart}.${kind}`;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setNotice('여행 요약을 저장했어요. 다운로드한 파일은 인터넷 없이도 열 수 있습니다.');
     } catch {setNotice('요약 파일을 만들지 못했어요. 다시 시도하거나 진행 기록·여행비 포함을 끄고 저장해 주세요.');}

@@ -132,8 +132,9 @@ export default function PlannerAssistant(props: Props) {
         const draft = await requestNaruJourney(proposal, { region: plan.region, profiles: plan.selected, themes: plan.themes, start: trip.travelStart, end: trip.travelEnd, transport: props.transport,
           stops: trip.orderedSavedPlaces.map(place => ({ id: place.id, date: trip.scheduleAssignments[place.id] || trip.tripDays[0], fixed: Boolean(trip.fixedVisits[place.id]) })) }, control.signal, progress);
         if (id !== sequence.current) return;
-        append(draft.stops.length || draft.restOnly ? '실제 관광 정보로 일정안을 준비했어요. 확인할 편의와 변경 내용을 살펴보고 적용해 주세요.' : '조건을 유지하며 찾아봤지만 바로 적용할 일정안을 만들지 못했어요. 아래에서 다음 방법을 골라주세요.', { source: 'AI 요청 · 공공 관광 데이터', draft, revision });
-        progress(draft.stops.length || draft.restOnly ? 'done' : 'warning', draft.restOnly ? '나루가 휴식과 방문 조정안을 준비했어요.' : draft.stops.length ? `나루가 ${draft.stops.length}곳의 일정안을 준비했어요.` : '나루가 찾은 결과와 다음 방법을 확인해 주세요.');
+        const unchanged = draft.outcome?.kind === 'unchanged';
+        append(unchanged ? '현재 장소 모두 공식 소개에서 실내 공간을 확인했어요. 기존 일정을 그대로 유지했어요.' : draft.stops.length || draft.restOnly ? '실제 관광 정보로 일정안을 준비했어요. 확인할 편의와 변경 내용을 살펴보고 적용해 주세요.' : '조건을 유지하며 찾아봤지만 바로 적용할 일정안을 만들지 못했어요. 아래에서 다음 방법을 골라주세요.', { source: 'AI 요청 · 공공 관광 데이터', draft, revision });
+        progress(unchanged || draft.stops.length || draft.restOnly ? 'done' : 'warning', unchanged ? '실내 정보를 확인했어요. 기존 일정은 그대로예요.' : draft.restOnly ? '나루가 휴식과 방문 조정안을 준비했어요.' : draft.stops.length ? `나루가 ${draft.stops.length}곳의 일정안을 준비했어요.` : '나루가 찾은 결과와 다음 방법을 확인해 주세요.');
         return;
       }
       append(typeof data.reply === 'string' ? data.reply.slice(0, 500) : '아래 작업을 확인해 주세요.', { source: 'AI', proposal: proposal || undefined, revision });
@@ -157,7 +158,7 @@ export default function PlannerAssistant(props: Props) {
     return titles[action.action] || '작업 확인';
   }
   function applyDraft(message: Message) {
-    if (busy || message.applied || !message.draft || message.revision !== revision) return;
+    if (busy || message.applied || !message.draft || message.draft.outcome?.kind === 'unchanged' || message.revision !== revision) return;
     const error = trip.applyJourneyDraft(message.draft);
     if (error) { append(error); return; }
     const draft = message.draft;

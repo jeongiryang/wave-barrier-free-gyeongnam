@@ -12,6 +12,7 @@ export interface TripSharingOptions {
   travelStart: string;
   travelEnd: string;
   dayStartTime: string;
+  travelMode: import("../../../lib/trip-travel-mode.js").TripTravelMode;
   scheduleAssignments: Record<string, string>;
   visitMinutesByPlaceId?: Record<string, number>;
   fixedVisits?: Record<string, import("../../../lib/trip-time-constraints.js").FixedVisit>;
@@ -28,6 +29,7 @@ export function useTripSharing(options: TripSharingOptions) {
     selections: {
       region: options.region, theme: options.theme, profiles: options.profiles, locale: options.locale,
       travelStart: options.travelStart, travelEnd: options.travelEnd, dayStartTime: options.dayStartTime,
+      travelMode: options.travelMode,
       scheduleAssignments: options.scheduleAssignments, selectedPlaceIds: options.selectedPlaceIds,
       visitMinutesByPlaceId: options.visitMinutesByPlaceId,
       fixedVisits: options.fixedVisits, dayDeadlines: options.dayDeadlines,

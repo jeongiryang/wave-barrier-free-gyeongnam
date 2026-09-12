@@ -42,7 +42,7 @@ async function snapshot(page: Page) {
       themes: JSON.parse(current['wave-trip-themes-v1'] || '[]'), profiles: JSON.parse(sessionStorage.getItem('wave-session-facilities-v1') || '[]') };
   });
 }
-async function setup(page: Page, gate?: ReturnType<typeof deferred>) {
+async function setup(page: Page, gate?: ReturnType<typeof deferred>, prepare = journey) {
   // Every API request is intercepted; an omitted fixture can never reach a real LLM or tourism service.
   await page.route('**/api/**', route => route.fulfill({ status: 503, json: { error: 'Unconfigured synthetic test API' } }));
   await mockPlannerApi(page, { plannerView: 'guided' });
@@ -64,7 +64,7 @@ async function setup(page: Page, gate?: ReturnType<typeof deferred>) {
     try { await route.fulfill({ contentType: 'application/x-ndjson; charset=utf-8', body: [
       { type: 'progress', phase: 'checking', text: '합성 관광 정보와 편의를 확인하고 있어요.' },
       { type: 'progress', phase: 'planning', text: '방문 날짜와 휴식을 정리하고 있어요.' },
-      { type: 'result', draft: journey() },
+      { type: 'result', draft: prepare() },
     ].map(event => JSON.stringify(event)).join('\n') + '\n' }); } catch { /* A deliberate user cancellation may already have aborted this request. */ }
     completed = true;
   });
@@ -100,6 +100,8 @@ test('NDJSON 일정안을 확인하고 적용한 뒤 장소·날짜·휴식·편
   await expect(proposal.getByRole('button', { name: '내 일정에 반영했어요', exact: true })).toBeDisabled();
   await expect.poll(async () => (await snapshot(page)).ids).toEqual(['1001', '2001', '2002']);
   const applied = await snapshot(page);
+  expect(before.schedule.travelMode).toBe('transit');
+  expect(applied.schedule.travelMode).toBe('car');
   expect(applied.schedule.scheduleAssignments).toEqual({ '1001': start, '2001': start, '2002': end });
   expect(applied.schedule.visitMinutesByPlaceId).toEqual({ '1001': 75, '2001': 60, '2002': 90 });
   expect(applied.schedule.breakMinutesByPlaceId).toEqual({ '1001': 35, '2001': 20, '2002': 25 });
@@ -186,4 +188,80 @@ test('일정안 저장이 실패하면 기존 여행을 보존하고 적용 완�
   await expect(apply).toBeEnabled();
   await expect(proposal.getByRole('button', { name: '내 일정에 반영했어요', exact: true })).toHaveCount(0);
   expect(await snapshot(page)).toEqual(before);
+});
+
+function unchanged(kept = [{ id: original.id, name: original.name, date: start }]): NaruJourney {
+  return { ...journey(), action: 'adapt-itinerary', stops: [], outcome: { kind: 'unchanged', reason: 'already-indoor', kept },
+    warnings: ['이동 구간과 미확인 편의는 방문 전 확인해 주세요.'] };
+}
+
+test('이미 실내인 일정은 읽기 전용 성공으로 표시하고 앞선 미적용 제안도 보존한다', async ({ page }) => {
+  let response = journey();
+  const { chat, launcher } = await setup(page, undefined, () => response);
+  await send(page);
+  const oldProposal = chat.getByRole('region', { name: '나루의 실제 일정안', exact: true });
+  const oldApply = oldProposal.getByRole('button', { name: '미확인 항목을 살펴보고 일정에 반영', exact: true });
+  await expect(oldApply).toBeEnabled();
+  const before = await snapshot(page);
+  await page.evaluate(() => {
+    const writes: string[] = [];
+    (window as Window & { naruNoopWrites?: string[] }).naruNoopWrites = writes;
+    const native = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (['wave-current-trip-v1', 'wave-session-facilities-v1'].includes(key)) writes.push(key);
+      native.call(this, key, value);
+    };
+  });
+  response = unchanged();
+  await chat.getByRole('textbox').fill('비가 올 때를 대비해서 지금 일정을 실내 위주로 바꿔줘.');
+  await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
+  const result = chat.getByRole('region', { name: '나루의 일정 확인 결과', exact: true });
+  await expect(result).toContainText('현재 일정을 그대로 유지해요');
+  await expect(result).toContainText(`09-20 · ${original.name}`);
+  await expect(result).toContainText('1곳 유지');
+  await expect(result).not.toContainText('0곳');
+  await expect(result.getByRole('button')).toHaveCount(0);
+  await expect(chat.getByRole('log')).not.toContainText('바로 적용할 일정안을 만들지 못했어요');
+  await expect(chat.getByRole('button', { name: '마지막 일정안 적용 되돌리기', exact: true })).toHaveCount(0);
+  expect(await snapshot(page)).toEqual(before);
+  expect(await page.evaluate(() => (window as Window & { naruNoopWrites?: string[] }).naruNoopWrites)).toEqual([]);
+  await page.screenshot({ path: test.info().outputPath('naru-unchanged.png') });
+  await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
+  await expect(launcher).toHaveAttribute('data-state', 'done');
+  await launcher.click();
+  await expect(oldApply).toBeEnabled();
+  await oldApply.click();
+  await expect.poll(async () => (await snapshot(page)).ids).toEqual(['1001', '2001', '2002']);
+});
+
+test('읽기 전용 실내 확인은 이전 일정 적용의 되돌리기를 덮어쓰지 않는다', async ({ page }) => {
+  let response = journey();
+  const { chat } = await setup(page, undefined, () => response);
+  const before = await snapshot(page);
+  await send(page);
+  await chat.getByRole('button', { name: '미확인 항목을 살펴보고 일정에 반영', exact: true }).click();
+  await expect.poll(async () => (await snapshot(page)).ids).toEqual(['1001', '2001', '2002']);
+  const applied = await snapshot(page);
+  response = unchanged([original, ...additions].map(place => ({ id: place.id, name: place.name, date: applied.schedule.scheduleAssignments[place.id] })));
+  await chat.getByRole('textbox').fill('비가 올 때를 대비해서 지금 일정을 실내 위주로 바꿔줘.');
+  await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
+  await expect(chat.getByRole('region', { name: '나루의 일정 확인 결과', exact: true })).toContainText('3곳 유지');
+  expect(await snapshot(page)).toEqual(applied);
+  const undo = chat.getByRole('button', { name: '마지막 일정안 적용 되돌리기', exact: true });
+  await expect(undo).toHaveCount(1);
+  await undo.click();
+  await expect.poll(() => snapshot(page)).toEqual(before);
+});
+
+test('빈 결과는 경고문에 실내라는 표현이 있어도 읽기 전용 성공으로 바꾸지 않는다', async ({ page }) => {
+  const response: NaruJourney = { ...journey(), stops: [], outcome: { kind: 'unavailable' }, warnings: ['현재 담은 장소 모두 공식 소개에 실내 공간이 기록되어 있어요.'] };
+  const { chat, launcher } = await setup(page, undefined, () => response);
+  const before = await snapshot(page);
+  await send(page);
+  await expect(chat.getByRole('log')).toContainText('바로 적용할 일정안을 만들지 못했어요');
+  await expect(chat.getByRole('region', { name: '나루의 일정 확인 결과', exact: true })).toHaveCount(0);
+  await expect(chat.getByRole('button', { name: '필요한 편의를 유지하고 다른 후보 찾기', exact: true })).toBeEnabled();
+  expect(await snapshot(page)).toEqual(before);
+  await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
+  await expect(launcher).toHaveAttribute('data-state', 'warning');
 });

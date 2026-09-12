@@ -1,7 +1,7 @@
 import { clean, json, readTrustedJson } from '../shared/http';
 import type { Env } from '../shared/env';
 import { validateAssistantAction, type AssistantAction } from '../../lib/assistant-actions.js';
-import { journeyDays, selectJourneyStops, fatigueRemovals, type ExistingStop, type NaruJourney } from '../../lib/naru-journey.js';
+import { journeyDays, journeyOutcome, selectJourneyStops, fatigueRemovals, type ExistingStop, type NaruJourney } from '../../lib/naru-journey.js';
 import type { VisitInfo } from '../../lib/visit-hours.js';
 import { validTripDate, offsetTripDate } from '../../lib/trip-dates.js';
 import { buildPlan } from '../tourism/plan-builder';
@@ -108,9 +108,14 @@ export async function prepareJourney(action: AssistantAction, context: Record<st
   if (!weather) warnings.push('날씨를 조회하지 못했어요. 일정은 유지하고 출발 전 다시 확인해 주세요.');
   else if (!days.every(day => weather?.days.some(forecast => forecast.date === day))) warnings.push('아직 예보가 나오지 않은 날짜가 있어요. 출발이 가까워지면 다시 확인해 주세요.');
   if (weather?.days.some(day => days.includes(day.date) && (day.rainProbability >= 60 || day.rain > 1)) && !indoorRequested) warnings.push('여행 기간에 비 예보가 있어요. 적용 후 나루에게 실내 대안을 요청할 수 있어요.');
-  if (!stops.length && !restOnly) warnings.push(indoorRequested && existing.length > 0 && existing.every(stop => indoorById[stop.id]?.state === 'indoor-space')
-    ? '현재 담은 장소 모두 공식 소개에 실내 공간이 기록되어 있어요. 기존 일정을 유지하고, 방문 전 이동 구간과 미확인 편의를 확인해 주세요.'
-    : indoorRequested ? '요청한 편의와 실내 공간을 함께 확인한 대안이 없어요. 필수 편의를 유지하고 다른 지역이나 원문 미확인 후보를 살펴보세요.' : '이 조건으로 바로 더할 장소를 찾지 못했어요. 필요한 편의는 유지하고 활동이나 지역을 넓혀볼 수 있어요.');
+  const conditionsChanged = Boolean(action.festival || action.originRegion || (action.region && action.region !== context.region)
+    || (action.start && action.start !== context.start) || (action.end && action.end !== context.end) || (action.transport && action.transport !== context.transport)
+    || action.profiles?.some(id => !allowedList(context.profiles, profileFields).includes(id))
+    || action.themes && JSON.stringify([...action.themes].sort()) !== JSON.stringify(allowedList(context.themes, contentTypes).sort()));
+  const outcome = journeyOutcome({ action: action.action, indoor: indoorRequested, existing, indoorById, stops, removed, restOnly, conditionsChanged,
+    providerFailed: !weather || plan.statuses.some(status => ['barrierfree','tour'].includes(status.id) && (status.state === 'error' || status.partial)) });
+  if (outcome.kind === 'unchanged') warnings.push('실내 공간의 기록이 이동 구간이나 모든 편의시설의 이용 가능 여부를 보장하지는 않아요. 방문 전 미확인 편의를 확인해 주세요.');
+  else if (!stops.length && !restOnly) warnings.push(indoorRequested ? '요청한 편의와 실내 공간을 함께 확인한 대안이 없어요. 필수 편의를 유지하고 다른 지역이나 원문 미확인 후보를 살펴보세요.' : '이 조건으로 바로 더할 장소를 찾지 못했어요. 필요한 편의는 유지하고 활동이나 지역을 넓혀볼 수 있어요.');
   if (restOnly) warnings.push(`${removed.length ? `고정하지 않은 방문 ${removed.length}곳을 줄이고, ` : ''}방문 사이 휴식을 20분 이상으로 제안해요. 이미 길게 잡은 휴식은 유지합니다.`);
   if (restOnly && days.some(day => existing.filter(stop => stop.date === day && stop.fixed).length > 2)) warnings.push('고정한 방문이 하루 두 곳을 넘는 날짜는 그대로 보존합니다. 더 줄이려면 고정을 먼저 확인해 주세요.');
   // The accepted plan must include every proposed venue, including a festival
@@ -119,8 +124,8 @@ export async function prepareJourney(action: AssistantAction, context: Record<st
   plan.explorationPlaces = plan.explorationPlaces?.filter(place => !plan.places.some(current => current.id === place.id));
   if (stops.some(stop => stop.unknown.length)) warnings.push('아래 별도 표시한 편의는 미확인입니다. 방문 전 문의가 필요한 후보로 구분했어요.');
   if (existing.some(stop => stop.fixed) && action.action === 'adapt-itinerary') warnings.push('고정한 장소와 방문일은 그대로 두었어요.');
-  warnings.push('체류·휴식 시간은 편집 가능한 제안입니다. 실제 이동시간과 통행 편의는 적용 후 경로에서 확인해 주세요.');
-  return { action: action.action, start, end, region, profiles, themes, transport, relaxed, removed, restOnly, restDay: action.date, originRegion: action.originRegion, stops, plan, weather, warnings, generatedAt: new Date().toISOString() };
+  if (outcome.kind !== 'unchanged') warnings.push('체류·휴식 시간은 편집 가능한 제안입니다. 실제 이동시간과 통행 편의는 적용 후 경로에서 확인해 주세요.');
+  return { action: action.action, outcome, start, end, region, profiles, themes, transport, relaxed, removed, restOnly, restDay: action.date, originRegion: action.originRegion, stops, plan, weather, warnings, generatedAt: new Date().toISOString() };
 }
 
 let active = 0;

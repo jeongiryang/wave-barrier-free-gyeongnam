@@ -8,6 +8,7 @@ import { boundedTripEnd, offsetTripDate, validTripDate } from "../../../lib/trip
 import { periodForDate } from "../../../lib/trip-date-move.js";
 import { changeVisitDuration, sanitizeVisitDurations } from "../../../lib/visit-durations.js";
 import { sanitizeFixedVisits, sanitizeDayDeadlines, type FixedVisit, type DayDeadline } from "../../../lib/trip-time-constraints.js";
+import { sanitizeTravelMode, type TripTravelMode } from "../../../lib/trip-travel-mode.js";
 
 import { emptyComfort, sanitizeComfort, sanitizeTripBreaks, sanitizeStopPurposes, type TripComfort, type StopPurpose } from "../../../lib/trip-comfort.js";
 
@@ -18,6 +19,7 @@ type StoredSchedule = {
   travelStart?: unknown;
   travelEnd?: unknown;
   dayStartTime?: unknown;
+  travelMode?: unknown;
   scheduleAssignments?: unknown;
   visitMinutesByPlaceId?: unknown;
   fixedVisits?: unknown;
@@ -42,6 +44,7 @@ export function useTripSchedule() {
   const [travelStart, setTravelStart] = useState("");
   const [travelEnd, setTravelEnd] = useState("");
   const [dayStartTime, setDayStartTime] = useState("10:00");
+  const [travelMode, updateTravelMode] = useState<TripTravelMode>("transit");
   const [scheduleAssignments, setScheduleAssignments] = useState<Record<string, string>>({});
   const [visitMinutesByPlaceId, setVisitMinutesByPlaceId] = useState<Record<string, number>>({});
   const [fixedVisits, setFixedVisits] = useState<Record<string, FixedVisit>>({});
@@ -74,6 +77,7 @@ export function useTripSchedule() {
       setTravelEnd(end);
       if (end !== requestedEnd) setDateNotice({ kind: "adjusted", end });
       setDayStartTime(typeof stored.dayStartTime === "string" && TIME_PATTERN.test(stored.dayStartTime) ? stored.dayStartTime : "10:00");
+      updateTravelMode(sanitizeTravelMode(stored.travelMode));
       setScheduleAssignments(assignments as Record<string, string>);
       setVisitMinutesByPlaceId(sanitizeVisitDurations(stored.visitMinutesByPlaceId));
       setFixedVisits(sanitizeFixedVisits(stored.fixedVisits));
@@ -93,6 +97,7 @@ export function useTripSchedule() {
         travelStart,
         travelEnd,
         dayStartTime,
+        travelMode,
         scheduleAssignments,
         visitMinutesByPlaceId,
         fixedVisits,
@@ -101,7 +106,9 @@ export function useTripSchedule() {
     } catch {
       // 저장소가 차단돼도 현재 탭의 일정 편집은 유지한다.
     }
-  }, [dayStartTime, scheduleAssignments, storageReady, travelEnd, travelStart, visitMinutesByPlaceId, fixedVisits, dayDeadlines, comfort, breakMinutesByPlaceId, restPurposeByPlaceId]);
+  }, [dayStartTime, travelMode, scheduleAssignments, storageReady, travelEnd, travelStart, visitMinutesByPlaceId, fixedVisits, dayDeadlines, comfort, breakMinutesByPlaceId, restPurposeByPlaceId]);
+
+  const setTravelMode = useCallback((value: TripTravelMode) => updateTravelMode(sanitizeTravelMode(value)), []);
 
   const setComfort = useCallback((value: TripComfort) => updateComfort(sanitizeComfort(value)), []);
   const setBreakMinutes = useCallback((id: string, minutes: number | null) => {
@@ -189,6 +196,7 @@ export function useTripSchedule() {
 
   const resetSchedule = useCallback((start: string, end: string) => {
     setTravelStart(start); setTravelEnd(end); setDayStartTime("10:00");
+    updateTravelMode("transit");
     setScheduleAssignments({}); setVisitMinutesByPlaceId({}); setDateNotice(null);
     setFixedVisits({}); setDayDeadlines({}); setConstraintNotice("");
     updateComfort(emptyComfort); setTripBreaks({}); setStopPurposes({});
@@ -198,6 +206,7 @@ export function useTripSchedule() {
     if (!validTripDate(value.travelStart) || !validTripDate(value.travelEnd) || boundedTripEnd(String(value.travelStart), String(value.travelEnd)) !== value.travelEnd) return false;
     setTravelStart(String(value.travelStart)); setTravelEnd(String(value.travelEnd));
     if (typeof value.dayStartTime === 'string' && TIME_PATTERN.test(value.dayStartTime)) setDayStartTime(value.dayStartTime);
+    updateTravelMode(sanitizeTravelMode(value.travelMode));
     setScheduleAssignments(Object.fromEntries(Object.entries(value.scheduleAssignments || {}).filter(([, day]) => validTripDate(day))) as Record<string, string>);
     setVisitMinutesByPlaceId(sanitizeVisitDurations(value.visitMinutesByPlaceId)); setTripBreaks(sanitizeTripBreaks(value.breakMinutesByPlaceId));
     setStopPurposes(sanitizeStopPurposes(value.restPurposeByPlaceId)); setFixedVisits(sanitizeFixedVisits(value.fixedVisits));
@@ -214,6 +223,8 @@ export function useTripSchedule() {
     lastTravelDate,
     dateNotice,
     dayStartTime,
+    travelMode,
+    setTravelMode,
     scheduleAssignments,
     visitMinutesByPlaceId,
     fixedVisits,

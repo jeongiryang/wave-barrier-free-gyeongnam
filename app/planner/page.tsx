@@ -43,6 +43,7 @@ import { useJourneyProgress } from "../../features/planner/hooks/useJourneyProgr
 import type { Place } from "../../features/planner/types";
 import { buildPlannerViewModel } from "../../features/planner/view-model";
 import { usePlannerStageView } from "../../features/planner/hooks/usePlannerStageView";
+import { useTripSchedule } from "../../features/planner/hooks/useTripSchedule";
 import { profiles as accessibilityProfiles, themes as travelThemes, departurePresets } from "../../features/planner/constants";
 
 import PlannerStageFrame from "../../features/planner/components/PlannerStageFrame";
@@ -67,7 +68,8 @@ export default function PlannerPage() {
     selected, region, theme, setTheme, plan,
     setNotice, runPlan,
   } = planController;
-  const routePlanning = useRoutePlanning(region);
+  const schedule = useTripSchedule();
+  const routePlanning = useRoutePlanning(region, schedule);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const closeSelectedPlace = useCallback(() => setSelectedPlace(null), []);
   const placeDialogRef = usePlaceDialogFocus(Boolean(selectedPlace), closeSelectedPlace);
@@ -99,7 +101,7 @@ export default function PlannerPage() {
     loadRoutes, resetRouteData, setRouteNotice, updateOrigin,
   } = routePlanning;
   const currentActivePlaces = useMemo(() => planController.resultCurrent ? activePlaces : [], [activePlaces, planController.resultCurrent]);
-  const tripSelection = useTripSelection({ activePlaces: currentActivePlaces, origin, accessibilityProfileCount: selected.length, selectedProfiles: selected });
+  const tripSelection = useTripSelection({ schedule, activePlaces: currentActivePlaces, origin, accessibilityProfileCount: selected.length, selectedProfiles: selected });
   const itineraryRoutes = useItineraryRoutes(tripSelection, routePlanning);
   const locationSearch = useLocationSearch(region);
   const audioGuide = useAudioGuide(plan?.audio);
@@ -110,7 +112,7 @@ export default function PlannerPage() {
     [REGION_KEY]: region, [THEMES_KEY]: JSON.stringify(planController.themes),
     'wave-saved-places': JSON.stringify(saved), 'wave-saved-place-catalog-v1': JSON.stringify(sanitizeSavedPlaceCatalog(tripSelection.orderedSavedPlaces)),
     'wave-trip-order-v1': JSON.stringify({ mode: tripSelection.orderMode, ids: tripSelection.manualOrderIds }),
-    'wave-trip-schedule-v1': JSON.stringify({ travelStart, travelEnd, dayStartTime, scheduleAssignments, visitMinutesByPlaceId, fixedVisits: tripSelection.fixedVisits, dayDeadlines: tripSelection.dayDeadlines, comfort: tripSelection.comfort, breakMinutesByPlaceId: tripSelection.breakMinutesByPlaceId, restPurposeByPlaceId: tripSelection.restPurposeByPlaceId }),
+    'wave-trip-schedule-v1': JSON.stringify({ travelStart, travelEnd, dayStartTime, travelMode: schedule.travelMode, scheduleAssignments, visitMinutesByPlaceId, fixedVisits: tripSelection.fixedVisits, dayDeadlines: tripSelection.dayDeadlines, comfort: tripSelection.comfort, breakMinutesByPlaceId: tripSelection.breakMinutesByPlaceId, restPurposeByPlaceId: tripSelection.restPurposeByPlaceId }),
   };
   const saveMapPlaces = useCallback(
     (mapPlaces: { id: string }[]) => savePlaceIds(mapPlaces.map((place) => place.id)),
@@ -129,6 +131,7 @@ export default function PlannerPage() {
     travelStart,
     travelEnd,
     dayStartTime,
+    travelMode: schedule.travelMode,
     scheduleAssignments,
     visitMinutesByPlaceId,
     selectedPlaceIds: orderedPlaceIds,

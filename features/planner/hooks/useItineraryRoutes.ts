@@ -44,7 +44,7 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
   useEffect(() => () => controllerRef.current?.abort(), []);
 
   async function checkRoutes() {
-    if (loading || controllerRef.current || !legs.length) return;
+    if (!trip.storageReady || loading || controllerRef.current || !legs.length) return;
     // A manual check also satisfies the pending automatic check for this trip.
     lastAutomaticSignature.current = signature;
     const controller = new AbortController();

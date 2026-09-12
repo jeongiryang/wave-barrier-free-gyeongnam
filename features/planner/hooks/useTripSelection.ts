@@ -12,17 +12,17 @@ import type { Place } from "../types";
 import type { TripProgress, TripProgressMemory } from '../../../lib/on-trip.js';
 import { useOptimizedTripOrder } from "./useOptimizedTripOrder";
 import { useSavedPlaceIds } from "./useSavedPlaceIds";
-import { useTripSchedule } from "./useTripSchedule";
+import type { useTripSchedule } from "./useTripSchedule";
 import { useSavedPlaceEvidence } from './useSavedPlaceEvidence';
 
-export function useTripSelection({ activePlaces, origin, accessibilityProfileCount, selectedProfiles = [] }: {
+export function useTripSelection({ schedule, activePlaces, origin, accessibilityProfileCount, selectedProfiles = [] }: {
+  schedule: ReturnType<typeof useTripSchedule>;
   selectedProfiles?: string[];
   activePlaces: Place[];
   origin: RoutePoint;
   accessibilityProfileCount: number;
 }) {
   const { saved, catalog, resetSaved, restoreSavedSnapshot, storageReady: savedStorageReady, addSavedIds, removeSavedId, rememberSavedPlaces, replaceSavedId, restoreSavedPlace } = useSavedPlaceIds();
-  const schedule = useTripSchedule();
   const [dayChoice, setActiveDay] = useState("");
   const [progressMemory, setProgressMemory] = useState<TripProgressMemory>({});
   const rememberProgress = useCallback((identity: string, value: TripProgress, unsaved = false) => setProgressMemory(current => Object.fromEntries([[identity, { value, unsaved }], ...Object.entries(current).filter(([key]) => key !== identity).slice(0, 19)])), []);
@@ -108,17 +108,17 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
     resetSaved(); schedule.resetSchedule(start, end); optimized.resetOrder(); setActiveDay("");
   };
 
-  const voiceState: VoiceState = { saved, order: optimized.orderedPlaceIds, manualOrder: optimized.manualOrderIds, mode: optimized.orderMode, days: schedule.tripDays, activeDay, startTime: schedule.dayStartTime, assignments: schedule.scheduleAssignments, visits: schedule.visitMinutesByPlaceId, breaks: schedule.breakMinutesByPlaceId, purposes: schedule.restPurposeByPlaceId, fixed: schedule.fixedVisits, deadlines: schedule.dayDeadlines, comfort: schedule.comfort };
+  const voiceState: VoiceState = { saved, order: optimized.orderedPlaceIds, manualOrder: optimized.manualOrderIds, mode: optimized.orderMode, travelMode: schedule.travelMode, days: schedule.tripDays, activeDay, startTime: schedule.dayStartTime, assignments: schedule.scheduleAssignments, visits: schedule.visitMinutesByPlaceId, breaks: schedule.breakMinutesByPlaceId, purposes: schedule.restPurposeByPlaceId, fixed: schedule.fixedVisits, deadlines: schedule.dayDeadlines, comfort: schedule.comfort };
   const voiceRevision = voiceStateKey(voiceState);
   const journeyUndo = useRef<{ before: VoiceState; places: Place[]; start: string; end: string; after: string; region: string; themes: string } | null>(null);
   const commitJourney = (state: VoiceState, places: Place[], start: string, end: string, region: string, themes: string) => replaceCurrentTrip(window.localStorage, {
     [REGION_KEY]: region, [THEMES_KEY]: themes,
     'wave-saved-places': JSON.stringify(state.saved), 'wave-saved-place-catalog-v1': JSON.stringify(sanitizeSavedPlaceCatalog(places)),
     'wave-trip-order-v1': JSON.stringify({ mode: state.mode, ids: state.manualOrder }),
-    'wave-trip-schedule-v1': JSON.stringify({ travelStart: start, travelEnd: end, dayStartTime: state.startTime, scheduleAssignments: state.assignments, visitMinutesByPlaceId: state.visits, breakMinutesByPlaceId: state.breaks, restPurposeByPlaceId: state.purposes, fixedVisits: state.fixed, dayDeadlines: state.deadlines, comfort: state.comfort }),
+    'wave-trip-schedule-v1': JSON.stringify({ travelStart: start, travelEnd: end, dayStartTime: state.startTime, travelMode: state.travelMode, scheduleAssignments: state.assignments, visitMinutesByPlaceId: state.visits, breakMinutesByPlaceId: state.breaks, restPurposeByPlaceId: state.purposes, fixedVisits: state.fixed, dayDeadlines: state.deadlines, comfort: state.comfort }),
   });
   const restoreVoiceSchedule = (state: VoiceState, start: string, end: string) => schedule.restoreScheduleSnapshot({
-    travelStart: start, travelEnd: end, dayStartTime: state.startTime, scheduleAssignments: state.assignments,
+    travelStart: start, travelEnd: end, dayStartTime: state.startTime, travelMode: state.travelMode, scheduleAssignments: state.assignments,
     visitMinutesByPlaceId: state.visits, breakMinutesByPlaceId: state.breaks, restPurposeByPlaceId: state.purposes,
     fixedVisits: state.fixed, dayDeadlines: state.deadlines, comfort: state.comfort,
   });
@@ -131,7 +131,7 @@ export function useTripSelection({ activePlaces, origin, accessibilityProfileCou
     const removed = new Set(draft.removed?.map(stop => stop.place.id) || []);
     const nextPlaces = [...optimized.orderedSavedPlaces.filter(place => !removed.has(place.id)).map(place => replacements.get(place.id)?.place || place), ...draft.stops.filter(stop => !stop.replaces).map(stop => stop.place)];
     const nextIds = nextPlaces.map(place => place.id);
-    const after: VoiceState = { ...voiceState, saved: nextIds, order: nextIds, manualOrder: nextIds, mode: 'manual', days: journeyDays(draft.start, draft.end), activeDay: draft.stops[0]?.date || draft.restDay || activeDay,
+    const after: VoiceState = { ...voiceState, saved: nextIds, order: nextIds, manualOrder: nextIds, mode: 'manual', travelMode: draft.transport, days: journeyDays(draft.start, draft.end), activeDay: draft.stops[0]?.date || draft.restDay || activeDay,
       assignments: { ...voiceState.assignments, ...Object.fromEntries(saved.map(id => [id, voiceState.assignments[id] || schedule.travelStart])) }, visits: { ...voiceState.visits }, breaks: { ...voiceState.breaks }, purposes: { ...voiceState.purposes },
       comfort: draft.relaxed ? { ...voiceState.comfort, maxWalkMinutes: voiceState.comfort.maxWalkMinutes ?? 15, breakEveryMinutes: voiceState.comfort.breakEveryMinutes ?? 60, breakMinutes: Math.max(20, voiceState.comfort.breakMinutes || 0) } : voiceState.comfort };
     for (const stop of draft.stops) {
