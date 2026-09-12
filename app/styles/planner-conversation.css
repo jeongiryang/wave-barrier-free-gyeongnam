@@ -196,7 +196,7 @@ html[data-theme=dark] .planner-reference .place-actions .primary { background: #
 .journey-mode-toggle button[aria-pressed=true] { color: var(--accent); background: var(--surface); border-color: var(--accent); }
 .journey-mode-toggle button:disabled { opacity: .6; }
 
-.planner-reference :is(button,a,input,select,textarea,summary) { scroll-margin-block: 140px; }
+.planner-reference :is(button,a,input,select,textarea,summary):focus-visible { scroll-margin-block: 140px; }
 
 @media (max-width: 1180px) { .naru-launcher { padding: 10px; }.naru-launcher > span:last-child { display: none; } }
 @media (min-width: 641px) and (max-width: 1180px) { .naru-launcher { bottom: 112px; } }
