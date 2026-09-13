@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 import { mockPlannerApi, mockPublicShellApi, plan } from './fixtures';
 import type { TripIdentity } from '../lib/trip-identity.js';
 
@@ -286,4 +287,90 @@ test('마지막 장소 제거를 850ms 전에 되돌리면 공유 종료를 취�
   expect(app.remote().payload.selections.selectedPlaceIds).toEqual(['1001']);
   expect(app.creates()).toHaveLength(1); expect(app.updates()).toHaveLength(0); expect(app.revokes()).toHaveLength(0);
   expect(app.errors).toEqual([]);
+});
+
+test('다운로드 안내는 다시 연 공유 메뉴의 복사·갱신 오류·종료 결과를 가리지 않는다', async ({ page, context }) => {
+  const app = await setup(page), gate = deferred();
+  let menu = await createShare(page);
+  const before = (await localState(page)).identity!.share!;
+  const downloadedNotice = '여행 파일을 내려받았어요.';
+  const conflictNotice = '다른 곳에서 공유 일정이 바뀌었어요';
+  async function downloadTrip(time: string) {
+    const pending = page.waitForEvent('download');
+    await menu.getByRole('button', { name: '여행 파일', exact: true }).click();
+    const download = await pending;
+    expect(download.suggestedFilename()).toBe('wave-trip.json');
+    expect(await download.failure()).toBeNull();
+    const file = await download.path(); expect(file).not.toBeNull();
+    const exported = JSON.parse(await readFile(file!, 'utf8'));
+    expect(exported).toMatchObject({ version: 1, format: 'wave-current-trip-v1' });
+    expect(JSON.parse(exported.values['wave-saved-places'])).toEqual(['1001']);
+    expect(JSON.parse(exported.values['wave-trip-schedule-v1'])).toMatchObject({ travelStart: start, travelEnd: end, dayStartTime: time,
+      travelMode: 'transit', scheduleAssignments: { '1001': start }, visitMinutesByPlaceId: { '1001': 60 } });
+    expect(exported.values).not.toHaveProperty('wave-trip-identity-v1');
+    expect(exported.values).not.toHaveProperty('wave-session-facilities-v1');
+    await expect(menu).toContainText(downloadedNotice);
+  }
+  const viewerPromise = context.waitForEvent('page');
+  await menu.getByRole('link', { name: '공유 일정 보기', exact: true }).click();
+  const viewer = await viewerPromise;
+  viewer.on('pageerror', error => app.errors.push(error.message));
+  try {
+    await expect(viewer.getByRole('heading', { name: original.name, level: 2, exact: true })).toBeVisible();
+    await page.bringToFront();
+    await downloadTrip('09:30');
+    await closeMenu(menu); menu = await openMenu(page);
+    // Feedback assertions stay soft so even a display regression still exercises
+    // the successful write/revocation and independently opened viewer contracts.
+    await expect.soft(menu).not.toContainText(downloadedNotice, { timeout: 2000 });
+    await menu.getByRole('button', { name: '링크 복사', exact: true }).click();
+    await expect.poll(() => copied(page)).toEqual([`${new URL(page.url()).origin}/trip/${shareId}`]);
+    await expect.soft(menu).toContainText('공유 링크를 복사했어요.', { timeout: 2000 });
+    await expect.soft(menu).not.toContainText(downloadedNotice, { timeout: 2000 });
+
+    await closeMenu(menu); app.remoteEdit(7, '14:00'); app.holdUpdate(gate);
+    await editTime(page, '11:00');
+    await expect.poll(() => app.updates().length).toBe(1);
+    menu = await openMenu(page);
+    // A real download may finish while a separate share update is pending. Both
+    // its success and the later share error must remain honest and visible.
+    await downloadTrip('11:00'); gate.release();
+    await expect(menu.getByRole('button', { name: '현재 일정으로 링크 갱신', exact: true })).toBeVisible();
+    await expect.soft(menu).toContainText(conflictNotice, { timeout: 2000 });
+    await expect(menu).toContainText(downloadedNotice);
+    expect((await localState(page)).time).toBe('11:00');
+    expect((await localState(page)).identity!.share!.revision).toBe(1);
+    expect(app.remote().payload.selections.dayStartTime).toBe('14:00');
+
+    await menu.getByRole('button', { name: '현재 일정으로 링크 갱신', exact: true }).click();
+    await expect.poll(async () => (await localState(page)).identity!.share!.revision).toBe(8);
+    await expect.soft(menu).not.toContainText(downloadedNotice, { timeout: 2000 });
+    await expect.soft(menu).not.toContainText(conflictNotice, { timeout: 2000 });
+    expect(app.statuses()).toHaveLength(1);
+    expect(app.updates().map(post => post.body.revision)).toEqual([1, 7]);
+    expect(app.remote().payload.selections.dayStartTime).toBe('11:00');
+    expect((await localState(page)).identity!.share).toMatchObject({ id: shareId, expiresAt: before.expiresAt });
+    expect(app.updates()[1].body.selections?.profiles).toEqual([]);
+    expect(app.updates()[1].body.origin).toEqual({ label: '' });
+    expect((await localState(page)).profiles).toEqual(['restroom']);
+
+    await downloadTrip('11:00');
+    await menu.getByRole('button', { name: '공유 종료', exact: true }).click();
+    await expect.poll(async () => (await localState(page)).identity!.share).toBeNull();
+    expect(app.revokes()).toEqual([{ path: `/api/trips/${shareId}`, body: { operation: 'revoke', revision: 8 } }]);
+    expect(app.remote().revoked).toBe(true);
+    await expect(menu.getByRole('link', { name: '공유 일정 보기', exact: true })).toHaveCount(0);
+    await expect(menu.getByRole('button', { name: '공유 종료', exact: true })).toHaveCount(0);
+    await expect.soft(menu).toContainText('공유를 종료했어요. 이전 링크로는 볼 수 없어요.', { timeout: 2000 });
+    await expect.soft(menu).not.toContainText(downloadedNotice, { timeout: 2000 });
+    const revoked = viewer.waitForResponse(response => new URL(response.url()).pathname === `/api/trips/${shareId}` && response.request().method() === 'GET');
+    await viewer.reload({ waitUntil: 'domcontentloaded' });
+    expect((await revoked).status()).toBe(404);
+    await expect(viewer.getByRole('alert')).toContainText('공유가 종료됐어요');
+    await expect(viewer.locator('.shared-content')).toHaveCount(0);
+    await expect(viewer.getByRole('heading', { name: original.name, exact: true })).toHaveCount(0);
+    expect((await localState(page)).identity!.id).toBe(tripId);
+    expect((await localState(page)).ids).toEqual(['1001']);
+    expect(app.creates()).toHaveLength(1); expect(app.updates()).toHaveLength(2); expect(app.errors).toEqual([]);
+  } finally { gate.release(); await viewer.close(); }
 });
