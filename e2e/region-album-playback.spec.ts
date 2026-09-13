@@ -19,8 +19,14 @@ for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choi
     await expect(card.locator("img")).toHaveAttribute("loading", "lazy");
   }
   expect([...requested].filter(url => allPhotos.has(url)).sort()).toEqual([...firstCovers].sort());
-  await page.getByRole("button", { name: "18개 지역 모두 보기", exact: true }).press("Enter");
+  const expand = page.getByRole("button", { name: "18개 지역 모두 보기", exact: true });
+  // The region control is disabled until its own hydration completes.
+  await expect(expand).toBeEnabled();
+  await expand.focus();
+  await expect(expand).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect(cards).toHaveCount(18);
+  await expect(page.getByRole("button", { name: "접기", exact: true })).toBeFocused();
   const last = cards.last();
   await last.scrollIntoViewIfNeeded();
   await expect.poll(() => last.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
