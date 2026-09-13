@@ -42,7 +42,8 @@ for (const width of [320, 390]) {
       await expect(section).toHaveAccessibleName(/\S/);
       await expectNoOverflow(page);
     }
-    await expect(page.locator(".simple-product-preview input,.simple-product-preview button,.simple-naru-example input,.simple-naru-example button")).toHaveCount(0);
+    await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+    await expect(page.locator(".simple-naru-example input,.simple-naru-example button")).toHaveCount(0);
     await expectUsableTarget(page.locator(".landing-actions a"));
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });

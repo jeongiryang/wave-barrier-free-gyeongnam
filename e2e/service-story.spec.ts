@@ -11,23 +11,24 @@ for (const locale of ["ko", "en"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/"); await storyReady(page);
     await expect(page.locator(".landing-page")).toHaveAttribute("lang", locale);
-    await expect(page.locator(".simple-feature-list")).toContainText(locale === "en" ? "missing information" : "확인되지 않은 정보");
+    await expect(page.locator(".horizon-chapter-copy").nth(1)).toContainText(locale === "en" ? "Details that still need checking are shown separately" : "아직 확인되지 않은 정보도 구분");
     await expect(page.locator("#naru")).toContainText(locale === "en" ? "AI travel guide" : "AI 여행 가이드");
-    await expect(page.locator(".simple-product-preview")).toContainText(locale === "en" ? "Example" : "화면 예시");
+    await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
     await expect(page.locator(".simple-naru-example")).toContainText(locale === "en" ? "Example" : "대화 예시");
     const photo = page.locator(".landing-hero-landscape");
     await expect(photo.locator("img")).toHaveAttribute("lang", "ko");
     await expect(photo.locator("figcaption")).toHaveAttribute("lang", "ko");
     await expect(photo.locator("img")).toHaveAttribute("alt", horizonPhotos.coast.title);
     await expect(photo.getByRole("link", { name: /사진 원본/ })).toHaveAttribute("href", horizonPhotos.coast.sourceUrl);
-    for (const selector of [".landing-actions a", "#story .simple-text-link", "#naru .simple-text-link"]) await expectUsableTarget(page.locator(selector));
+    for (const selector of [".landing-actions a", "#story .horizon-text-link", "#naru .simple-text-link[href*=assistant]"]) await expectUsableTarget(page.locator(selector));
     await expectNoOverflow(page);
     expect((await new AxeBuilder({ page }).include("#story").include("#naru").analyze()).violations).toEqual([]);
-    const action = page.locator(locale === "en" ? "#naru .simple-text-link" : ".landing-actions a");
+    const action = page.locator(locale === "en" ? "#naru .simple-text-link[href*=assistant]" : ".landing-actions a");
     const expected = locale === "en" ? "/planner?assistant=naru" : "/planner";
     await expect(action).toHaveAttribute("href", expected);
     await action.press("Enter");
-    await expect(page).toHaveURL(new URL(expected, test.info().project.use.baseURL as string).href);
+    await expect(page).toHaveURL(url => url.pathname === "/planner");
+    if (locale === "en") await expect(page.getByRole("dialog", { name: "WAVE 여행 가이드 나루와 대화", exact: true })).toBeVisible();
   });
 
   test(`${locale}: failed hero artwork preserves its original author, licence, all sections and keyboard planning`, async ({ page }) => {

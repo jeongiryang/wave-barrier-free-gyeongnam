@@ -56,7 +56,7 @@ for (const theme of ["light", "dark"]) {
     await expect(page.locator(".map-crowd-legend")).toContainText("여유");
     await expect(page.getByRole("complementary", { name: "혼잡 예측", exact: true })).toHaveAttribute("lang", "ko");
     await changeMapLanguage(page, true);
-    await expect(commands.getByRole("button", { name: "◎ My location", exact: true })).toBeEnabled();
+    await expect(commands.getByRole("button", { name: "Distance on this device", exact: true })).toBeEnabled();
     expect(await page.evaluate(() => (window as unknown as { mapLayerFixture: MapLayerFixture }).mapLayerFixture.maps.length)).toBe(count);
     expect(routeRequests).toEqual(before);
     await expect(page.locator(".simple-stops > li")).toHaveCount(1);

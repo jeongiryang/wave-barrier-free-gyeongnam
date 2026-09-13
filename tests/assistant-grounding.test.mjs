@@ -8,6 +8,14 @@ const user = content => ({ role: 'user', content });
 const proposal = patch => ({ action: 'create-itinerary', region: '통영', ...patch });
 const ground = (value, said, ctx = context) => groundAssistantProposal(value, Array.isArray(said) ? said : [user(said)], ctx);
 
+test('fatigue today does not move a saved future period to today', () => {
+  const actual = ground({ action: 'adapt-itinerary', reason: 'fatigue', pace: 'relaxed', start: context.today, end: context.today }, '오늘 피곤해. 방문 수를 줄이고 쉬는 시간을 늘려줘');
+  assert.equal(actual.start, undefined); assert.equal(actual.end, undefined);
+  assert.equal(actual.reason, 'fatigue');
+  const second = ground({ action: 'adapt-itinerary', start: context.days[1], end: context.days[1], reason: 'rain' }, '9월 21일에 비가 온대. 실내로 바꿔줘');
+  assert.equal(second.date, context.days[1]); assert.equal(second.start, undefined); assert.equal(second.end, undefined);
+});
+
 test('an unspecified journey cannot inherit model defaults for festival, departure, mode or dates', () => {
   const value = proposal({ festival: 'any', originRegion: '창원', transport: 'car', start: '2027-01-01', end: '2027-01-02', date: '2026-09-20', profiles: ['wheel'] });
   const before = JSON.stringify({ value, context });

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { ensureTripIdentity, readTripIdentity, writeTripIdentity, type TripIdentity } from "../../../lib/trip-identity.js";
 import { plannerJson } from "../services/api";
 import { sameOriginHttpUrl } from "../../../lib/security/same-origin-url.js";
+import { assertTripStorageOwner } from "../../../lib/current-trip-storage.js";
 
 export interface TripSharingOptions {
   region: string;
@@ -58,6 +59,7 @@ export function useTripSharing(options: TripSharingOptions) {
       await pending.current.promise.catch(() => {});
     }
     if (latest.current !== snapshot) throw new ChangedSnapshot('일정이 바뀌었어요. 최신 내용을 반영하고 있어요.');
+    assertTripStorageOwner(localStorage);
     const base = readTripIdentity(localStorage);
     if (!identity || base?.id !== identity.id) throw new Error('다른 여행이 열렸어요. 현재 여행을 확인해 주세요.');
     if (base.share && synced.current === snapshot && base.share.expiresAt > Date.now()) return `${window.location.origin}/trip/${base.share.id}`;
@@ -66,6 +68,8 @@ export function useTripSharing(options: TripSharingOptions) {
     setNow(Date.now()); setShareState('saving'); setShareNotice('');
     const request = (async () => {
       const snapshotHash = await hashSnapshot(snapshot);
+      assertTripStorageOwner(localStorage);
+      if (!isThisTrip() || latest.current !== snapshot) throw new ChangedSnapshot('일정이 바뀌었어요. 현재 여행을 확인해 주세요.');
       if (existing?.snapshotHash === snapshotHash) { synced.current = snapshot; setShareState('idle'); return `${window.location.origin}/trip/${existing.id}`; }
       const data = await plannerJson<{ id: string; url: string; revision: number; expiresAt: number }>(`/api/trips${existing ? `/${existing.id}` : ''}`, { method: 'POST', body: { ...JSON.parse(snapshot), ...(existing ? { revision: existing.revision } : {}) } });
       if (!isThisTrip()) throw new Error('공유를 준비하는 동안 다른 여행이 열렸어요.');
@@ -107,6 +111,7 @@ export function useTripSharing(options: TripSharingOptions) {
     if (!identity || base?.id !== identity.id || !base.share || pending.current) return false;
     revoking.current = true; setShareState('saving');
     try {
+      assertTripStorageOwner(localStorage);
       await plannerJson(`/api/trips/${base.share.id}`, { method: 'POST', body: { operation: 'revoke', revision: base.share.revision } });
       const active = readTripIdentity(localStorage);
       if (!mounted.current || active?.id !== base.id || JSON.stringify(active.share) !== JSON.stringify(base.share)) return false;

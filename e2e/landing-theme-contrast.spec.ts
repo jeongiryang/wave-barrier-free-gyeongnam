@@ -43,9 +43,9 @@ async function samples(page: Page, selector: string) {
 const CASES = [
   ".landing-hero-copy h1", ".landing-hero-description", ".landing-actions a",
   ".simple-section-heading h2", ".simple-section-heading p", ".simple-show-regions",
-  ".simple-feature-list strong", ".simple-feature-list p", ".simple-text-link",
-  ".preview-heading strong", ".preview-heading > span", ".preview-day",
-  ".preview-stop time", ".preview-stop strong", ".preview-stop span", ".preview-toolbar span",
+  ".horizon-section-heading h2", ".horizon-section-heading > p", ".horizon-chapter-copy h3",
+  ".horizon-chapter-copy > p", ".horizon-chapter-copy li", ".horizon-text-link", ".simple-text-link",
+  ".horizon-checks li", ".horizon-blue-button", ".restored-community h2", ".restored-community > div > p",
   ".simple-naru-story h2", ".simple-naru-story > div > p", ".simple-naru-example p",
   ".simple-naru-example-title small", ".example-undo",
 ];

@@ -15,6 +15,7 @@ async function plannerProductSource() {
     "features/planner/components/PlannerServiceDiagnostics.tsx",
     "features/planner/components/PlannerHeader.tsx",
     "features/planner/components/PlannerFooter.tsx",
+    "components/SiteFooter.tsx",
     "features/planner/components/PlannerConditionsPanel.tsx",
     "features/planner/components/PlannerRegionDiscovery.tsx",
     "features/planner/components/TripSettingsEditor.tsx",
@@ -76,6 +77,7 @@ async function landingProductSource() {
     "features/landing/components/LandingManifesto.tsx",
     "features/landing/components/LandingRegionStory.tsx",
     "features/landing/components/LandingClosing.tsx",
+    "components/SiteFooter.tsx",
     "features/landing/components/LandingProductStories.tsx",
     "features/landing/components/LandingDiscoveryStories.tsx",
     "features/landing/components/LandingJourneyStories.tsx",
@@ -404,7 +406,7 @@ test("decorative arrival uses one photo and wordmark and yields immediately to u
   assert.match(intro, /clearTimeout\(timer\); finish\(\)/);
   assert.match(css, /\.arrival-scene \{[^}]*pointer-events: none/);
   assert.match(css, /\.arrival-scene\[hidden\] \{ display: none/);
-  assert.doesNotMatch(landing, /<LandingSectionProgress|<LandingAccountStory|<LandingDepartureScene/);
+  assert.doesNotMatch(landing, /<LandingSectionProgress|<LandingAccountStory/);
 });
 
 test("interactive help follows real sections on every public journey and remains accessible on mobile", async () => {
@@ -429,7 +431,7 @@ test("interactive help follows real sections on every public journey and remains
   new Function("exports", ts.transpileModule(helpContent, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText)(tours);
   assert.deepEqual(tours.landingSteps.map(step => step.selector), ["#top", "#regions", "#story", "#naru"]);
   assert.deepEqual(tours.plannerSteps.map(step => step.selector), ["#conditions", "#places", "#itinerary", "#departure-readiness"]);
-  assert.deepEqual(tours.landingSteps.map(step => step.highlightSelector), ["#top .landing-hero-copy", ".simple-region-grid", ".simple-product-preview", "#naru"]);
+  assert.deepEqual(tours.landingSteps.map(step => step.highlightSelector), ["#top .landing-hero-copy", ".simple-region-grid", ".horizon-chapter-stream", "#naru"]);
   assert.deepEqual(tours.plannerSteps.map(step => step.highlightSelector), [".simple-search-bar", ".simple-results", ".simple-stops > li, .simple-empty, .simple-itinerary-map", "#departure-readiness > summary"]);
   for (const [steps, content] of [[tours.landingSteps, landing], [tours.plannerSteps, planner]]) {
     for (const step of steps) {
@@ -439,7 +441,7 @@ test("interactive help follows real sections on every public journey and remains
       assert.ok(step.title && step.copy, step.selector + " must have useful accessible guidance");
     }
   }
-  for (const selector of [".community-page", "#community-list", ".community-footer", ".travel-book-page", ".travel-book-paths", ".travel-book-list, .travel-book-empty"]) {
+  for (const selector of [".community-page", "#community-list", ".community-evidence-note", ".travel-book-page", ".travel-book-paths", ".travel-book-list, .travel-book-empty"]) {
     assert.match(help, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.match(communityHeader, /WaveHeader/);

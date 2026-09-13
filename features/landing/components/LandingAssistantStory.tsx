@@ -1,14 +1,18 @@
 "use client";
 import Link from "next/link";
+import { NARU_HELP } from "../../../lib/naru-help.js";
+import { useOpenNaru } from "../../../components/GlobalTravelWorkspace";
 import NaruAvatar from "../../../components/NaruAvatar";
 import { useSitePreferences } from "../../../components/SitePreferences";
 
 export default function LandingAssistantStory() {
+  const openNaru = useOpenNaru();
   const en = useSitePreferences().locale === "en";
   return <section id="naru" className="simple-naru-story simple-section" aria-labelledby="landing-naru-title" tabIndex={-1}>
     <div><h2 id="landing-naru-title">{en ? "Plan with Naru" : "나루에게 말해보세요"}</h2>
       <p>{en ? "Our AI travel guide finds places and helps edit your itinerary. Type or use your microphone." : "AI 여행 가이드 나루가 여행지를 찾고 일정을 정리해요. 글로 입력하거나 마이크로 말할 수 있어요."}</p>
       <Link className="simple-text-link" href="/planner?assistant=naru">{en ? "Chat with Naru" : "나루와 대화하기"} <span aria-hidden="true">→</span></Link>
+      <div lang="ko" className="landing-naru-usecases">{NARU_HELP.slice(0, 6).map(item => <button type="button" key={item.id} onClick={() => openNaru(item.example)}>{item.title}<span aria-hidden="true"> →</span></button>)}</div><Link lang="ko" className="simple-text-link" href="/guide#naru-guide">나루 사용 방법 →</Link>
     </div>
     <div className="simple-naru-example" aria-label={en ? "Example conversation" : "대화 예시"}>
       <div className="simple-naru-example-title"><NaruAvatar state="idle" /><strong>나루</strong><small>{en ? "Example" : "대화 예시"}</small></div>

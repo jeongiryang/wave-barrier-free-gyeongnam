@@ -117,17 +117,30 @@ test("changing required facilities blocks old results and cannot reuse a previou
   let dialog = await open(page);
   await dialog.getByLabel(consentName, { exact: true }).check();
   await page.keyboard.press("Escape");
-  let release!:()=>void;const gate=new Promise<void>(resolve=>{release=resolve;});let calls=0;
-  await page.route('**/api/wave?action=plan*',async route=>{calls++;await gate;await route.fulfill({json:response});});
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const requests: string[][] = [];
+  await page.route('**/api/wave?action=plan*', async route => {
+    requests.push((new URL(route.request().url()).searchParams.get('facilityKeys') || '').split(','));
+    await gate;
+    await route.fulfill({ json: response });
+  });
   await page.locator('.simple-facility-trigger').click();
   let picker=page.getByRole('dialog',{name:'필요한 편의',exact:true});await picker.getByRole('checkbox',{name:'유모차 대여',exact:true}).check();await picker.getByRole('button',{name:/^적용/}).click();
-  await expect.poll(()=>calls).toBe(1);
+  await expect.poll(() => requests.length).toBe(1);
+  expect(requests[0]).toEqual([...keys, 'stroller']);
   dialog = await open(page);
   await expect(dialog.getByLabel(consentName, { exact: true })).toHaveCount(0);
   await expect(dialog.getByRole("button", { name: "일정에 추가", exact: true })).toBeDisabled();
   await page.keyboard.press("Escape");
   await page.locator('.simple-facility-trigger').click();picker=page.getByRole('dialog',{name:'필요한 편의',exact:true});await picker.getByRole('checkbox',{name:'유모차 대여',exact:true}).uncheck();await picker.getByRole('button',{name:/^적용/}).click();
-  release();await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy','false');
+  // Restoring criteria cancels the first request, then schedules a fresh search.
+  // Its transient idle state is not proof that the second response is current.
+  await expect.poll(() => requests.length).toBe(2);
+  expect(requests[1]).toEqual(keys);
+  await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'true');
+  release();
+  await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'false');
   dialog = await open(page);
   await expect(dialog.getByLabel(consentName, { exact: true })).not.toBeChecked();
   await expect(dialog.getByRole("button", { name: "일정에 추가", exact: true })).toBeDisabled();

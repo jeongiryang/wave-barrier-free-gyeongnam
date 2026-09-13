@@ -1,7 +1,8 @@
+import type { CommunityLayout } from "../view-layout";
 import { COMMUNITY_CATEGORY_LABELS } from "../../../lib/community/types";
 import type { useCommunityBoard } from "../hooks/useCommunityBoard";
 
-export default function CommunityBoardToolbar({ board, layout, onLayout }: { board: ReturnType<typeof useCommunityBoard>; layout: "cards" | "list"; onLayout: (layout: "cards" | "list") => void }) {
+export default function CommunityBoardToolbar({ board, layout, onLayout }: { board: ReturnType<typeof useCommunityBoard>; layout: CommunityLayout; onLayout: (layout: CommunityLayout) => void }) {
   const { category, setCategory, search, setSearch, placeFilter, setPlaceFilter, submitSearch } = board;
   return <>
     <h2 id="community-list-title" className="sr-only">여행 후기와 질문</h2>
@@ -9,7 +10,7 @@ export default function CommunityBoardToolbar({ board, layout, onLayout }: { boa
     <div className="community-controls">
       <div className="community-tabs" role="group" aria-label="게시판 선택">{[["", "전체"], ...Object.entries(COMMUNITY_CATEGORY_LABELS)].map(([value, label]) => <button key={value || "all"} type="button" aria-pressed={category === value} onClick={() => setCategory(value)}>{label}</button>)}</div>
       <form role="search" onSubmit={submitSearch}><label className="sr-only" htmlFor="community-search">여행 후기 검색</label><input id="community-search" value={search} onChange={(event) => setSearch(event.target.value)} maxLength={80} placeholder="관광지, 지역, 제목 검색" /><button type="submit">검색</button></form>
-      <div className="community-layout-switch" role="group" aria-label="게시글 보기 방식"><button type="button" aria-pressed={layout === "cards"} onClick={() => onLayout("cards")}>카드</button><button type="button" aria-pressed={layout === "list"} onClick={() => onLayout("list")}>목록</button></div>
+      <div className="community-layout-switch" role="group" aria-label="게시글 보기 방식"><button type="button" aria-pressed={layout === "cards"} onClick={() => onLayout("cards")}><span className="community-density-desktop">2열</span><span className="community-density-mobile">1열</span></button><button type="button" aria-pressed={layout === "compact"} onClick={() => onLayout("compact")}><span className="community-density-desktop">4열</span><span className="community-density-mobile">2열</span></button><button type="button" aria-pressed={layout === "list"} onClick={() => onLayout("list")}>목록</button></div>
     </div>
   </>;
 }

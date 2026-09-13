@@ -44,10 +44,23 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
 
   await expect(page.getByText("사진 1장에서 1일치 코스를 만들었습니다.")).toBeVisible();
   const placeName = page.getByLabel("방문지 이름").first();
-  await expect(placeName).toHaveValue("남해 방문지 1");
+  const stopRegion = page.getByRole("combobox", { name: "시·군", exact: true }).first();
+  const officialLookup = page.getByRole("button", { name: "공식정보 확인", exact: true }).first();
+  // EXIF coordinates group photos locally; they cannot infer a region that will
+  // be sent to a provider. A typed place name does not grant that permission.
+  await expect(placeName).toHaveValue("방문지 1");
+  await expect(stopRegion).toHaveValue("");
+  await expect(officialLookup).toBeDisabled();
+  expect(outgoingSpotPhotoUrls).toHaveLength(0);
   await placeName.fill("남해 독일마을");
+  await expect(stopRegion).toHaveValue("");
+  await expect(officialLookup).toBeDisabled();
+  expect(outgoingSpotPhotoUrls).toHaveLength(0);
+  await stopRegion.selectOption("남해");
+  await expect(officialLookup).toBeEnabled();
+  expect(outgoingSpotPhotoUrls).toHaveLength(0);
 
-  await page.getByRole("button", { name: "공식정보 확인", exact: true }).first().click();
+  await officialLookup.click();
   await expect(page.getByText(/공식정보 번호 123456/)).toBeVisible();
   expect(outgoingSpotPhotoUrls).toHaveLength(1);
   const requestUrl = new URL(outgoingSpotPhotoUrls[0]);

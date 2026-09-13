@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { restStopCandidates } from "../../../lib/rest-stop-candidates.js";
-import type { StopPurpose } from "../../../lib/trip-comfort.js";
+
 import type { Place } from "../types";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import PlaceFacilitySummary from "./PlaceFacilitySummary";
@@ -9,7 +9,7 @@ import PlaceFacilitySummary from "./PlaceFacilitySummary";
 export default function RestStopFinder({ trip, places, requiredKeys, onSelectPlace, en = false }: {
   trip: ReturnType<typeof useTripSelection>; places: Place[]; requiredKeys: string[]; onSelectPlace: (place: Place) => void; en?: boolean;
 }) {
-  const [choice, setChoice] = useState(""), [purpose, setPurpose] = useState<StopPurpose>("rest");
+  const [choice, setChoice] = useState(""), [purpose, setPurpose] = useState<"rest" | "restroom">("rest");
   const [radius, setRadius] = useState(5), [includeUnknown, setIncludeUnknown] = useState(false), [minutes, setMinutes] = useState(15), [notice, setNotice] = useState("");
   const dayPlaces = trip.orderedSavedPlaces.filter(place => (trip.scheduleAssignments[place.id] || trip.tripDays[0]) === trip.activeDay);
   const anchor = dayPlaces.find(place => place.id === choice) || dayPlaces.at(-1);
@@ -23,7 +23,7 @@ export default function RestStopFinder({ trip, places, requiredKeys, onSelectPla
       <p>{say("현재 검색한 여행지에서 가까운 곳을 찾아 짧게 들러요. 확인된 편의와 미확인 정보를 구분해 고를 수 있습니다.", "Find a nearby place in the current results for a short stop. Review confirmed and unreported facilities.")}</p>
       {anchor ? <>
         <div className="auth-field"><label>{say("이 장소 다음에 들르기", "Stop after this place")}<select value={anchor.id} onChange={event => setChoice(event.target.value)}>{dayPlaces.map(place => <option key={place.id} value={place.id}>{place.name}</option>)}</select></label></div>
-        <div className="auth-field"><label>{say("필요한 곳", "Type of stop")}<select value={purpose} onChange={event => setPurpose(event.target.value as StopPurpose)}><option value="rest">{say("쉬어 갈 곳", "Rest stop")}</option><option value="restroom">{say("장애인 화장실", "Accessible restroom")}</option></select></label></div>
+        <div className="auth-field"><label>{say("필요한 곳", "Type of stop")}<select value={purpose} onChange={event => setPurpose(event.target.value as "rest" | "restroom")}><option value="rest">{say("쉬어 갈 곳", "Rest stop")}</option><option value="restroom">{say("장애인 화장실", "Accessible restroom")}</option></select></label></div>
         <div className="auth-field"><label>{say("주변 범위", "Search radius")}<select value={radius} onChange={event => setRadius(Number(event.target.value))}>{[1, 3, 5, 10, 20].map(value => <option value={value} key={value}>{say(`직선거리 ${value}km`, `Within ${value} km straight line`)}</option>)}</select></label></div>
         <div className="auth-field"><label>{say("잠시 머무는 시간", "Short visit duration")}<select value={minutes} onChange={event => setMinutes(Number(event.target.value))}>{[15, 30, 45, 60].map(value => <option key={value} value={value}>{value}{say("분", " min")}</option>)}</select></label></div>
         <label style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44 }}><input type="checkbox" checked={includeUnknown} onChange={event => setIncludeUnknown(event.target.checked)} />{say("편의 미확인 장소도 보기", "Include unreported facilities")}</label>

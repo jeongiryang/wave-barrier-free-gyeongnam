@@ -1,4 +1,5 @@
 "use client";
+import { localDistanceKilometres } from "../../lib/device-location.js";
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { exportRouteImage } from "./export-route-image";
@@ -29,10 +30,7 @@ export function useMapJourneyActions({
   origin,
   places,
   route,
-  onOriginChange,
   onSavePlaces,
-  kakaoMapRef,
-  setPickMode,
   setProviderDetail,
   isMapAvailable,
 }: JourneyActionOptions) {
@@ -40,16 +38,13 @@ export function useMapJourneyActions({
   const busy = useRef(false);
   const locationGeneration = useRef(0);
   const locationContext = `${origin.lat},${origin.lng}|${places.map(place => place.id).join("|")}`;
-  useEffect(() => {
-    return () => { locationGeneration.current++; };
-  }, [locationContext]);
+  const invalidateLocation = useCallback(() => { locationGeneration.current++; }, []);
+  useEffect(() => invalidateLocation, [locationContext, invalidateLocation]);
   const [actionStatus, setActionStatus] = useState<keyof typeof actionCopy | null>(null);
   const actionNotice = actionStatus ? actionCopy[actionStatus][locale === "en" ? 1 : 0] : "";
   const actionPending = actionStatus === "image-pending" || actionStatus === "share-pending";
   const moveToCurrentLocation = useCallback(() => {
     if (isMapAvailable && !isMapAvailable()) return;
-    const map = kakaoMapRef.current;
-    const sdk = window.kakao?.maps;
     if (!navigator.geolocation) {
       setProviderDetail("현재 브라우저에서 위치 기능을 사용할 수 없습니다.");
       return;
@@ -59,20 +54,13 @@ export function useMapJourneyActions({
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       if (generation !== locationGeneration.current) return;
       if (isMapAvailable && !isMapAvailable()) return;
-      if (map && sdk) {
-        const position = new sdk.LatLng(coords.latitude, coords.longitude);
-        map.panTo(position);
-        map.setLevel(5);
-        new sdk.Marker({ map, position, title: "내 위치" });
-      }
-      onOriginChange?.({ lat: coords.latitude, lng: coords.longitude }, "현재 위치");
-      setPickMode(null);
-      setProviderDetail("현재 위치로 지도를 이동했습니다.");
-    }, () => { if (generation === locationGeneration.current && (!isMapAvailable || isMapAvailable())) setProviderDetail("위치 권한을 허용하면 현재 위치로 이동할 수 있습니다."); }, {
+      const distance = localDistanceKilometres(coords, origin);
+      setProviderDetail(distance === null ? '위치를 확인하지 못했어요.' : `선택한 출발지까지 직선거리 약 ${distance}km입니다. 현재 위치는 기기 안에서만 계산하고 지도나 검색에 전송하지 않습니다.`);
+    }, () => { if (generation === locationGeneration.current && (!isMapAvailable || isMapAvailable())) setProviderDetail("위치 권한을 허용하면 기기 안에서 거리를 확인할 수 있습니다."); }, {
       enableHighAccuracy: false,
       timeout: 7000,
     });
-  }, [isMapAvailable, kakaoMapRef, locale, onOriginChange, setPickMode, setProviderDetail]);
+  }, [isMapAvailable, locale, origin, setProviderDetail]);
 
   // 예전에는 아무도 읽지 않는 저장소 키에 써 놓고 "저장했습니다"라고만 알렸다.
   // 현재 지도에 노출한 장소만 내 일정으로 넘기며, 위치 좌표 자체는 저장하지 않는다.

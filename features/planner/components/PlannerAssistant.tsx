@@ -15,15 +15,23 @@ import type { Place, PlanData } from '../types';
 import type { NaruJourney } from '../../../lib/naru-journey.js';
 import { requestNaruJourney } from '../services/naru-journey';
 import NaruJourneyProposal from './NaruJourneyProposal';
+import { NARU_HELP, naruLocalHelp } from '../../../lib/naru-help.js';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import NaruAvatar from '../../../components/NaruAvatar';
 import VoiceInputMeter from './VoiceInputMeter';
+import { naruDirectCommand, naruEditClarification } from '../../../lib/naru-direct-command.js';
+import { startNaruGuide, advanceNaruGuide, type NaruGuide } from '../../../lib/naru-guided-start.js';
+import { buildItinerarySchedule } from '../optimization/itinerary-schedule.js';
+import type { RoutePoint } from '../../routing/types';
+const NaruScheduleReview = lazy(() => import('./NaruScheduleReview'));
 
 type Message = { cancelled?: boolean; id: number; role: 'user'|'assistant'; text: string; source?: string; proposal?: AssistantAction; draft?: NaruJourney; revision?: string; applied?: boolean; results?: Place[]; receipt?: TripCommandReceipt; resultKey?: string };
-type Props = { open: boolean; onClose: () => void; plan: ReturnType<typeof usePlannerPlan>; trip: ReturnType<typeof useTripSelection>; onRegion: (region: string, onCommitted?: () => void) => void; onSearch: (criteria?: { region?: string; profiles?: string[]; themes?: string[] }) => Promise<PlanData | null>; onPlace: (place: Place) => void; onAlternative: (placeId: string) => void; onUndoAlternative: () => boolean; canUndoAlternative: boolean; replacementVersion: number; onOpenTool: (tool: string) => void; onToolHost: (host: HTMLDivElement | null) => void; transport: 'walk'|'bicycle'|'transit'|'car'; routeRevision: string; onJourneyApplied: (draft: NaruJourney) => { undo: () => void; revision: string }; onRecalculate: (transport?: AssistantAction['transport']) => Promise<'changed'|'checked'>; onActivity: (value: { phase: string; text: string }) => void };
+type Props = { origin: RoutePoint; routeMinutes: Record<string, number>; launchRequest?: { id: number; prompt: string }; pageContext?: string; open: boolean; onClose: () => void; plan: ReturnType<typeof usePlannerPlan>; trip: ReturnType<typeof useTripSelection>; onRegion: (region: string, onCommitted?: () => void) => void; onSearch: (criteria?: { region?: string; profiles?: string[]; themes?: string[] }) => Promise<PlanData | null>; onPlace: (place: Place) => void; onAlternative: (placeId: string) => void; onUndoAlternative: () => boolean; canUndoAlternative: boolean; replacementVersion: number; onOpenTool: (tool: string) => void; onToolHost: (host: HTMLDivElement | null) => void; transport: 'walk'|'bicycle'|'transit'|'car'; routeRevision: string; onJourneyApplied: (draft: NaruJourney) => { undo: () => void; revision: string }; onRecalculate: (transport?: AssistantAction['transport']) => Promise<'changed'|'checked'>; onActivity: (value: { phase: string; text: string }) => void };
 const toolGroups = [
   { title: '여행 시작', items: [['conditions','지역·활동'],['facilities','필요한 편의'],['dates','날짜·기간'],['places','여행지 찾기']] },
   { title: '내 일정', items: [['itinerary','날짜·순서·시간'],['map','지도·경로'],['alternatives','한 곳 바꾸기'],['comfort','이동 부담·휴식'],['course','코스 잇기'],['split','동행·합류']] },
-  { title: '여행 준비', items: [['readiness','출발 전 확인'],['weather','날씨'],['transport','교통·귀가'],['compare','편의 비교'],['inquiry','방문 전 문의'],['budget','여행비']] },
+  { title: '여행 준비', items: [['readiness','출발 전 확인'],['weather','날씨'],['transport','교통·귀가'],['compare','편의 비교'],['preview','주차·입구 미리보기'],['transcript','해설 대본'],['inquiry','방문 전 문의'],['budget','여행비']] },
   { title: '저장과 활용', items: [['save','내 여행에 저장'],['share','공유'],['offline','오프라인 요약'],['calendar','캘린더'],['on-trip','여행 당일 안내']] },
 ];
 const toolLabel = (id: string) => toolGroups.flatMap(group => group.items).find(item => item[0] === id)?.[1] || '여행 도구';
@@ -36,10 +44,14 @@ export default function PlannerAssistant(props: Props) {
   const [input, setInput] = useState(''), [busy, setBusy] = useState(false), [tool, setTool] = useState('');
   const [toolsOpen, setToolsOpen] = useState(false), [available, setAvailable] = useState<boolean | null>(null);
   const [showEvidence, setShowEvidence] = useState(false);
+  const [reviewHours, setReviewHours] = useState(false);
+  const [guide, setGuide] = useState<NaruGuide | null>(null);
+  const [toolPlaceId, setToolPlaceId] = useState('');
   const [activity, setActivity] = useState({ phase: 'idle', text: '' });
   const sequence = useRef(0), request = useRef<AbortController | null>(null), messageId = useRef(0);
   const cancelRequest = useCallback(() => { sequence.current++; request.current?.abort(); }, []);
   useEffect(() => () => cancelRequest(), [cancelRequest]);
+  useEffect(() => () => { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }, []);
   const journeyUndo = useRef<{ region: string; themes: string[]; profiles: string[]; criteria: string; route: { undo: () => void; revision: string } } | null>(null);
   const executed = useRef(new Set<number>());
   const shownPlaces = useRef<Place[]>([]), focusedPlace = useRef(''), scrollPosition = useRef(0);
@@ -49,15 +61,16 @@ export default function PlannerAssistant(props: Props) {
   const toolHostCallback = props.onToolHost;
   const mountToolHost = useCallback((node: HTMLDivElement | null) => toolHostCallback(node), [toolHostCallback]);
   const voice = useTravelVoice();
+  const pathname = usePathname();
   const known = [...new Map([...trip.orderedSavedPlaces, ...(plan.resultCurrent ? [...(plan.plan?.places || []), ...(plan.plan?.explorationPlaces || [])] : [])].map(place => [place.id, place])).values()];
   const revision = JSON.stringify([plan.region, plan.themes, plan.selected, plan.resultCurrent, plan.plan?.generatedAt, trip.voiceRevision, props.transport]);
   const liveRevision = useRef(revision);
   useLayoutEffect(() => { liveRevision.current = revision; }, [revision]);
   useEffect(() => {
-    const prompt = new URLSearchParams(window.location.search).get('prompt');
-    const frame = requestAnimationFrame(() => { if (prompt) setInput(prompt.slice(0, 1200)); });
+    if (!props.launchRequest?.prompt) return;
+    const frame = requestAnimationFrame(() => setInput(props.launchRequest!.prompt));
     return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [props.launchRequest]);
   const append = (text: string, extra: Partial<Message> = {}) => { const message = { id: ++messageId.current, role: 'assistant' as const, text, ...extra }; setMessages(current => [...current.slice(-29), message]); return message; };
 
   useEffect(() => {
@@ -83,9 +96,11 @@ export default function PlannerAssistant(props: Props) {
   useLayoutEffect(() => { const field = inputRef.current; if (field) { field.style.height = 'auto'; field.style.height = `${Math.min(128, Math.max(44, field.scrollHeight))}px`; } }, [input, props.open]);
   const { cancel: cancelVoice } = voice;
   useEffect(() => { if (!props.open) cancelVoice(); }, [props.open, cancelVoice]);
+  useEffect(() => () => cancelVoice(), [pathname, cancelVoice]);
 
   const close = useCallback(() => {
     if (log.current) scrollPosition.current = log.current.scrollTop;
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     setTool(''); onToolHost(null); onClose();
     returnFocus.current?.focus({ preventScroll: true });
   }, [onToolHost, onClose]);
@@ -101,8 +116,9 @@ export default function PlannerAssistant(props: Props) {
     dialog.addEventListener('keydown', onKeyDown);
     return () => dialog.removeEventListener('keydown', onKeyDown);
   }, [props.open, close]);
-  function openTool(id: string) {
-    const needsPlaces = !['conditions','facilities','dates','comfort','places','inquiry','compare'].includes(id);
+  function openTool(id: string, placeId = '') {
+    setToolPlaceId(placeId || focusedPlace.current);
+    const needsPlaces = !['conditions','facilities','dates','comfort','places','inquiry','compare','preview','transcript'].includes(id);
     if (needsPlaces && !trip.saved.length) {
       append(`${toolLabel(id)}는 일정에 장소를 담으면 이어서 사용할 수 있어요. 먼저 여행지를 골라볼까요?`);
       id = plan.resultCurrent ? 'places' : 'conditions';
@@ -110,22 +126,65 @@ export default function PlannerAssistant(props: Props) {
       append('여행 조건을 고르고 여행지를 찾아주세요. 결과에서 마음에 드는 곳을 담을 수 있어요.');
       id = 'conditions';
     }
-    if (!['inquiry','compare'].includes(id)) props.onOpenTool(id); else props.onToolHost(null);
+    if (!['inquiry','compare','preview','transcript'].includes(id)) props.onOpenTool(id); else props.onToolHost(null);
     setTool(id); setToolsOpen(false);
   }
 
   async function send(value = input) {
     const originalText = value.trim();
     if (!originalText || busy || voice.listening) return;
-    if (/취소|하지\s*마|하지\s*말/.test(originalText) && !/되돌|실행\s*취소/.test(originalText)) { setInput(''); setMessages(current => [...current.map(message => message.applied ? message : { ...message, cancelled: true }), { id: ++messageId.current, role: 'user', text: originalText }]); append('제안을 취소했어요. 일정은 변경하지 않았어요.'); return; }
-    const reference = resolveConversationReference(originalText, shownPlaces.current.length ? shownPlaces.current : trip.orderedSavedPlaces, focusedPlace.current);
+    if (/한\s*번에\s*(하나|한\s*가지)|하나씩.*(도와|질문|안내)/.test(originalText) && !guide) {
+      const next = startNaruGuide({ region: plan.region, start: trip.travelStart, end: trip.travelEnd, selected: plan.selected, revision });
+      setGuide(next); setInput(''); append(next.question); return;
+    }
+    if (guide) {
+      setInput(''); setMessages(current => [...current, { id: ++messageId.current, role: 'user', text: originalText }]);
+      if (originalText === '처음부터 다시') { const next = startNaruGuide({ region: plan.region, start: trip.travelStart, end: trip.travelEnd, selected: plan.selected, revision }); setGuide(next); append(next.question); return; }
+      if (guide.step === 'review' && (originalText === '이 조건으로 찾기' || acceptsPendingChange(originalText))) {
+        if (guide.revision !== liveRevision.current) { setGuide(null); append('그동안 여행 조건이 바뀌었어요. 현재 내용으로 다시 시작해 주세요.'); return; }
+        if (trip.saved.length && (guide.region !== plan.region || guide.start !== trip.travelStart || guide.end !== trip.travelEnd)) { setGuide(null); append('담아둔 일정이 있어요. 기존 여행을 보존하며 날짜·지역 변경 도구에서 변경 내용을 먼저 확인해 주세요.'); openTool(guide.region !== plan.region ? 'conditions' : 'dates'); return; }
+        if (guide.start && guide.start !== trip.travelStart || guide.end && guide.end !== trip.travelEnd) {
+          const receipt = trip.applyTripCommand({ type: 'schedule', start: guide.start, end: guide.end }, known);
+          if (!receipt.ok) { append(receipt.reason); return; }
+          append(receipt.label, { receipt });
+        }
+        const criteria = guide; setGuide(null); setBusy(true);
+        const searchId = ++sequence.current;
+        try { const result = await props.onSearch({ region: criteria.region, profiles: criteria.selected });
+          if (searchId !== sequence.current) return;
+          if (result) { shownPlaces.current = result.places; append(result.places.length ? '조건을 유지해 찾은 여행지예요. 원하는 장소를 담아주세요.' : '확인된 후보가 없어요. 편의는 유지하고 다른 지역이나 활동을 찾아볼 수 있어요.', { results: [...result.places, ...(result.explorationPlaces || [])] }); }
+          else append('여행지를 불러오지 못했어요. 조건은 유지했습니다.');
+        } catch { if (searchId === sequence.current) append('여행지를 불러오지 못했어요. 조건은 유지했습니다.'); } finally { if (searchId === sequence.current) setBusy(false); }
+        return;
+      }
+      const next = advanceNaruGuide(guide, originalText); setGuide(next); append(next?.question || '한 가지씩 안내를 끝냈어요. 여행은 변경하지 않았어요.'); return;
+    }
+    const referencePlaces = /일정(?:의|에서|에\s*(?:있는|담긴|저장된))|담아?\s*둔|담은|방문\s*순서/.test(originalText) ? trip.orderedSavedPlaces : shownPlaces.current.length ? shownPlaces.current : trip.orderedSavedPlaces;
+    const helpReference = resolveConversationReference(originalText, referencePlaces, focusedPlace.current);
+    const localHelp = naruLocalHelp(originalText);
+    if (localHelp) {
+      setInput(''); setMessages(current => [...current, { id: ++messageId.current, role: 'user', text: originalText }]);
+      if (localHelp === 'help') { setToolsOpen(true); append('시설 확인, 일정 변경, 문의 카드와 공유를 도와드려요. 아래 여행 도구를 고르거나 사용 예시를 눌러보세요.'); }
+      else { if (helpReference.unresolved) { append('어느 장소인지 이름이나 번호를 알려주세요.'); return; } openTool(localHelp, helpReference.placeId || ''); append(localHelp === 'transcript' ? '소리를 재생하지 않고 해설 대본을 읽을 수 있어요.' : localHelp === 'preview' ? '일정에 담은 장소의 주차·입구·시설을 차례로 살펴보세요.' : localHelp === 'inquiry' ? '직원에게 보여줄 질문을 큰 글자로 준비할 수 있어요.' : '현재 장소의 시설 정보를 함께 비교해보세요. 정보가 없는 항목은 미확인으로 남겨둡니다.'); }
+      return;
+    }
+    if (/취소|하지\s*마|하지\s*말/.test(originalText) && !/되돌|실행\s*취소/.test(originalText)) { setInput(''); setMessages(current => [...current.map(message => message.applied ? message : { ...message, cancelled: true }), { id: ++messageId.current, role: 'user', text: originalText }]); append('제안을 취소했어요. 일정은 변경하지 않았어요.'); inputRef.current?.focus({ preventScroll: true }); return; }
+    const reference = resolveConversationReference(originalText, referencePlaces, focusedPlace.current);
     const text = reference.text;
     if (reference.unresolved) { append('어느 장소인지 이름이나 목록의 번호를 알려주세요.'); return; }
-    const pending = [...messages].reverse().find(message => !message.applied && !message.cancelled && (message.draft || message.proposal));
+    const latestReply = [...messages].reverse().find(message => message.role === 'assistant');
+    const pending = latestReply && !latestReply.applied && !latestReply.cancelled && (latestReply.draft || latestReply.proposal) ? latestReply : null;
     if (acceptsPendingChange(text) && pending) {
       setInput(''); setMessages(current => [...current, { id: ++messageId.current, role: 'user', text: originalText }]);
       if (pending.draft) applyDraft(pending); else await apply(pending);
       return;
+    }
+    const clarification = naruEditClarification(text);
+    if (clarification) { setInput(''); setMessages(current => [...current, { id: ++messageId.current, role: 'user', text: originalText }]); append(clarification); return; }
+    const direct = naruDirectCommand(text, known);
+    if (direct) {
+      setInput(''); setMessages(current => [...current, { id: ++messageId.current, role: 'user', text: originalText }]);
+      await apply({ id: ++messageId.current, role: 'assistant', text: '', proposal: direct, revision }); return;
     }
     setInput(''); follow.current = true;
     const recent = [...messages.slice(-5).map(message => ({ role: message.role, content: message.text })), { role: 'user', content: text }];
@@ -137,7 +196,7 @@ export default function PlannerAssistant(props: Props) {
     const progress = (phase: string, text: string) => { if (id !== sequence.current) return; const next = { phase, text }; setActivity(next); props.onActivity(next); };
     progress('thinking', '나루가 여행 요청을 이해하고 있어요.');
     try {
-      const response = await fetch('/api/assistant', { method: 'POST', credentials: 'same-origin', signal: control.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: recent, context: { region: plan.region, profiles: plan.selected.join(','), themes: plan.theme, days: trip.tripDays, transport: props.transport, savedIds: trip.saved, resultIds: shownPlaces.current.map(place => place.id), focusedPlaceId: focusedPlace.current, places: known.map(({ id, name, city }) => ({ id, name, city })) } }) });
+      const response = await fetch('/api/assistant', { method: 'POST', credentials: 'same-origin', signal: control.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: recent, context: { page: props.pageContext || '여행 설계', region: plan.region, profiles: plan.selected.join(','), themes: plan.theme, days: trip.tripDays, transport: props.transport, savedIds: trip.saved, resultIds: shownPlaces.current.map(place => place.id), focusedPlaceId: focusedPlace.current, places: known.map(({ id, name, city }) => ({ id, name, city })) } }) });
       if (response.status === 429) { if (id === sequence.current) { setInput(current => current || text); append('나루가 다른 답변을 마무리하고 있어요. 질문은 입력창에 남겨두었으니 잠시 뒤 다시 보내주세요. 여행 도구는 바로 사용할 수 있어요.'); progress('warning', '잠시 뒤 질문을 다시 보내주세요.'); } return; }
       if (!response.ok) throw new Error('unavailable');
       const data = await response.json();
@@ -150,9 +209,10 @@ export default function PlannerAssistant(props: Props) {
         if (!proposal.start && !trip.travelStart) { append('언제 여행할까요? 날짜를 알려주시면 일정안을 만들게요. 날짜 없이 여행지만 찾아볼 수도 있어요.'); return; }
         journeyStarted = true;
         progress('searching', '실제 관광 데이터를 확인하고 있어요.');
-        const draft = await requestNaruJourney(proposal, { region: plan.region, profiles: plan.selected, themes: plan.themes, start: trip.travelStart, end: trip.travelEnd, transport: props.transport,
+        const prepared = await requestNaruJourney(proposal, { region: plan.region, profiles: plan.selected, themes: plan.themes, start: trip.travelStart, end: trip.travelEnd, transport: props.transport,
           stops: trip.orderedSavedPlaces.map(place => ({ id: place.id, date: trip.scheduleAssignments[place.id] || trip.tripDays[0], fixed: Boolean(trip.fixedVisits[place.id]) })) }, control.signal, progress);
         if (id !== sequence.current) return;
+        const draft = { ...prepared, stops: prepared.stops.map(stop => stop.replaces ? { ...stop, minutes: trip.visitMinutesByPlaceId[stop.replaces] ?? stop.minutes, breakMinutes: Math.max(trip.breakMinutesByPlaceId[stop.replaces] ?? 0, stop.breakMinutes) } : stop) };
         const unchanged = draft.outcome?.kind === 'unchanged';
         append(unchanged ? '현재 장소 모두 공식 소개에서 실내 공간을 확인했어요. 기존 일정을 그대로 유지했어요.' : draft.stops.length || draft.restOnly ? '실제 관광 정보로 일정안을 준비했어요. 확인할 편의와 변경 내용을 살펴보고 적용해 주세요.' : '조건을 유지하며 찾아봤지만 바로 적용할 일정안을 만들지 못했어요. 아래에서 다음 방법을 골라주세요.', { source: 'AI 요청 · 공공 관광 데이터', draft, revision });
         progress(unchanged || draft.stops.length || draft.restOnly ? 'done' : 'warning', unchanged ? '실내 정보를 확인했어요. 기존 일정은 그대로예요.' : draft.restOnly ? '나루가 휴식과 방문 조정안을 준비했어요.' : draft.stops.length ? `나루가 ${draft.stops.length}곳의 일정안을 준비했어요.` : '나루가 찾은 결과와 다음 방법을 확인해 주세요.');
@@ -195,6 +255,7 @@ export default function PlannerAssistant(props: Props) {
     journeyUndo.current = { region: plan.region, themes: plan.themes, profiles: plan.selected, criteria: JSON.stringify([draft.region, draft.themes, draft.profiles]), route: props.onJourneyApplied(draft) };
     setMessages(current => current.map(item => item.id === message.id ? { ...item, applied: true } : item));
     append(draft.restOnly ? '방문 수와 쉬는 시간을 조정했어요. 고정 방문과 기존의 긴 휴식은 유지했습니다.' : `${draft.stops.length}곳의 날짜·순서·체류·휴식을 반영했어요. 지도와 실제 이동시간을 이어서 확인하고, 원하는 곳은 직접 수정할 수 있어요.`);
+    setReviewHours(true);
     setActivity({ phase: 'done', text: '내 일정에 반영했어요. 지도와 이동 경로를 확인하고 있어요.' });
     props.onActivity({ phase: 'done', text: '내 일정에 반영했어요. 지도에서 이동 정보를 확인할 수 있어요.' });
   }
@@ -221,7 +282,7 @@ export default function PlannerAssistant(props: Props) {
     const command = (change: TripCommand) => {
       const result = trip.applyTripCommand(change, known);
       if (!result.ok) { executed.current.delete(message.id); append(result.reason); return false; }
-      committed(); append(result.label, { receipt: result }); return true;
+      committed(); append(result.label, { receipt: result }); setReviewHours(true); return true;
     };
     if (action.action === 'tool' || action.action === 'save-trip') { openTool(action.action === 'save-trip' ? 'save' : action.tool || 'conditions'); committed(); return; }
     if (action.action === 'recalculate-route') {
@@ -265,7 +326,7 @@ export default function PlannerAssistant(props: Props) {
       props.onAlternative(place.id); return;
     }
     if (['move','visit','break'].includes(action.action) && place) {
-      command(action.action === 'move' ? { type: 'move', id: place.id, direction: action.direction! } : { type: 'stop', id: place.id, ...(action.action === 'visit' ? { minutes: action.minutes! } : { breakMinutes: action.minutes! }) }); return;
+      command(action.action === 'move' ? { type: 'move', id: place.id, direction: action.direction! } : { type: 'stop', id: place.id, ...(action.action === 'visit' ? { minutes: action.minutes! } : { breakMinutes: action.minutes!, ...(action.purpose ? { purpose: action.purpose } : {}) }) }); return;
     }
     if (action.action === 'day') { if (!trip.tripDays.includes(action.date!)) { append('여행 기간 안의 날짜를 알려주세요.'); return; } trip.setActiveDay(action.date!); committed(); openTool('itinerary'); return; }
     if (action.action === 'start-time') { command({ type: 'schedule', startTime: action.time! }); return; }
@@ -277,28 +338,35 @@ export default function PlannerAssistant(props: Props) {
       try { const identity = onTripIdentity(daily, trip.activeDay); const remembered = trip.progressMemory[identity]; const progress = remembered?.unsaved ? remembered.value : readOnTrip(localStorage, identity, daily.map(place => place.id), true); const next = daily.find(place => !progress.marks[place.id]); if (next) { append(`다음 장소는 ${next.name}예요. 방문 완료나 건너뛰기는 여행 당일 안내에서 표시할 수 있어요.`); props.onPlace(next); } else append('이 날짜에 남은 장소가 없어요. 날짜와 방문 기록을 확인해 주세요.'); } catch { append('방문 기록을 읽지 못했어요. 여행 당일 안내에서 확인해 주세요.'); } return;
     }
   }
+  const reviewedVisits = reviewHours ? buildItinerarySchedule({ places: trip.orderedSavedPlaces, days: trip.tripDays, assignments: trip.scheduleAssignments, startTime: trip.dayStartTime, origin: props.origin, routeMinutesByPlaceId: props.routeMinutes, visitMinutesByPlaceId: trip.visitMinutesByPlaceId, breakMinutesByPlaceId: trip.breakMinutesByPlaceId, fixedVisits: trip.fixedVisits }).flatMap(day => day.entries.map(entry => ({ place: entry.place, day: day.day, startsAt: entry.startsAt, endsAt: entry.visitEndsAt, travelSource: entry.travelSource }))) : [];
   if (!props.open) return null;
   return <dialog ref={dialogRef} lang="ko" className={`naru-panel${tool ? ' naru-expanded' : ''}`} aria-label="WAVE 여행 가이드 나루와 대화" onCancel={event => { event.preventDefault(); close(); }} >
     <div className="naru-conversation">
-      <header className="naru-heading"><NaruAvatar state={busy ? activity.phase : 'idle'} /><div><strong>나루</strong><small>{available ? '여행 가이드' : available === null ? <><Spinner />대화 연결 확인 중</> : '여행 도구로 계속할 수 있어요'}</small></div><button type="button" onClick={close} aria-label="나루 대화 닫기">×</button></header>
+      <div className="naru-heading"><NaruAvatar state={busy ? activity.phase : 'idle'} /><div><strong>나루</strong><small>{available ? '여행 가이드' : available === null ? <><Spinner />대화 연결 확인 중</> : '여행 도구로 계속할 수 있어요'}</small></div><button type="button" onClick={close} aria-label="나루 대화 닫기">×</button></div>
+      <p className="naru-page-context">{props.pageContext || '여행 설계'} · 만들던 여행과 이어집니다.</p>
       <div className="naru-log" ref={log} role="log" aria-live="polite" aria-relevant="additions" onScroll={() => { if (log.current) { follow.current = log.current.scrollHeight - log.current.scrollTop - log.current.clientHeight < 100; scrollPosition.current = log.current.scrollTop; } }}>
         {messages.map(message => <div key={message.id} className={`naru-message ${message.role}`}>
           <p>{message.text}</p>
+          {message.role === 'assistant' && message.text && <button type="button" className="naru-readback" onClick={() => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance([message.text, ...(message.results || []).map((place, index) => `${index + 1}번 ${place.city} ${place.name}`), ...(message.draft?.stops || []).map(stop => `${stop.date}, ${stop.place.name}, ${stop.minutes}분 방문, 휴식 ${stop.breakMinutes}분. ${stop.unknown.length ? `미확인 항목: ${stop.unknown.join(', ')}` : ''}`), ...(message.draft?.warnings || [])].join('. ')); utterance.lang = 'ko-KR'; window.speechSynthesis.speak(utterance); } else append('이 브라우저는 읽어주기를 지원하지 않아요. 화면 읽기 프로그램으로 같은 내용을 확인할 수 있어요.'); }}>답변 읽어주기</button>}
           {message.draft && !message.cancelled && <NaruJourneyProposal draft={message.draft} disabled={busy || !message.applied && message.revision !== revision} applied={Boolean(message.applied)} onApply={() => applyDraft(message)} onExplore={() => { if (busy || message.applied || message.revision !== revision) return; plan.setRegion(message.draft!.region); plan.setSelected([...new Set([...plan.selected, ...message.draft!.profiles])]); plan.setTheme(message.draft!.themes.join(',')); plan.acceptPreparedPlan(message.draft!.plan, message.draft!); openTool('conditions'); }} />}
           {message.draft && message.applied && <button type="button" disabled={busy} onClick={() => { if (!undoJourney()) append('되돌릴 일정안이 없어요.'); }}>마지막 일정안 적용 되돌리기</button>}
           {message.proposal && !message.applied && !message.cancelled && <button type="button" className="naru-change-button" disabled={busy || message.revision !== revision} onClick={() => void apply(message)}>{message.revision !== revision ? '일정이 바뀌었어요 · 다시 요청해 주세요' : title(message.proposal)}</button>}
           {message.receipt && <button type="button" className="naru-undo" disabled={busy || message.receipt.afterKey !== trip.voiceRevision} onClick={() => { if (trip.undoCommand(message.receipt)) append('변경을 되돌렸어요.'); else append('이후에 일정이 바뀌어 되돌리지 못했어요.'); }}>되돌리기</button>}
           {message.results && <div className="naru-result-list" aria-label="대화에서 찾은 여행지">{message.results.map(place => <article key={place.id}><button type="button" className="naru-place-name" onClick={() => { focusedPlace.current = place.id; if (log.current) scrollPosition.current = log.current.scrollTop; props.onPlace(place); }}>{place.name}</button><small>{place.city}</small>{plan.resultCurrent && plan.plan?.places.some(item => item.id === place.id) ? <button type="button" disabled={trip.saved.includes(place.id)} onClick={() => void apply({ id: ++messageId.current, role: 'assistant', text: '', proposal: { action: 'add', placeId: place.id }, revision })}>{trip.saved.includes(place.id) ? '✓ 담았음' : '담기'}</button> : <button type="button" onClick={() => props.onPlace(place)}>시설 정보 확인</button>}</article>)}{!message.results.length && <button type="button" onClick={() => openTool('conditions')}>검색 조건 수정</button>}</div>}
         </div>)}
+        {guide && <div className="naru-guided-choices" role="group" aria-label="한 가지씩 안내 선택">{guide.choices.map(choice => <button type="button" key={choice} disabled={busy} onClick={() => void send(choice)}>{choice}</button>)}<button type="button" onClick={() => void send('안내 끝내기')}>안내 끝내기</button></div>}
+        {reviewHours && <Suspense fallback={<LoadingState>바뀐 일정을 확인하고 있어요.</LoadingState>}><NaruScheduleReview key={trip.voiceRevision} visits={reviewedVisits} onAlternative={props.onAlternative} onDetails={props.onPlace} /></Suspense>}
         {showEvidence && <div className="naru-evidence" aria-label="현재 장소의 편의 근거">{(trip.orderedSavedPlaces.length ? trip.orderedSavedPlaces : known).map(place => <article key={place.id}><strong>{place.name}</strong><p>{place.accessibility?.map(field => `${field.label}: ${field.state === 'confirmed' ? '확인됨' : field.state === 'negative' ? '조건과 맞지 않음' : '미확인'}`).join(' · ') || '편의 정보 미확인'}</p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small><button type="button" onClick={() => props.onPlace(place)}>원문과 문의 정보</button></article>)}{!known.length && <p>여행지를 먼저 찾으면 장소별 근거를 모아드릴게요.</p>}<button type="button" onClick={() => openTool('readiness')}>날씨·이동까지 확인</button></div>}
         {busy && <div className="naru-typing" role="status"><Spinner /><span>{activity.text || '나루가 여행을 살펴보고 있어요'}</span></div>}
       </div>
       {toolsOpen && <div className="naru-tools">{toolGroups.map(group => <div key={group.title}><strong>{group.title}</strong><div>{group.items.map(([id, label]) => <button key={id} type="button" onClick={() => openTool(id)}>{label}</button>)}</div></div>)}</div>}
+      <div className="naru-help-toolbar"><button type="button" aria-expanded={toolsOpen} onClick={() => setToolsOpen(!toolsOpen)}>여행 도구</button><Link href="/guide#naru-guide" onClick={close}>사용 방법</Link><button type="button" onClick={() => { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }}>읽기 중단</button></div>
+      <details className="naru-quick-help"><summary>이렇게 요청해보세요</summary><div>{props.pageContext === '축제' && <button type="button" onClick={() => { setInput('내 여행 날짜에 맞는 축제를 찾아줘'); inputRef.current?.focus(); }}>여행 날짜에 맞는 축제 찾기</button>}{props.pageContext === '커뮤니티' && <button type="button" onClick={() => openTool('share')}>내 여행 일정 공유하기</button>}<button type="button" onClick={() => void send('한 번에 하나씩 도와줘')}>한 번에 하나씩 안내</button>{NARU_HELP.map(item => <button key={item.id} type="button" onClick={() => { setInput(item.example); inputRef.current?.focus(); }}>{item.title}</button>)}</div></details>
       <VoiceInputMeter voice={voice} />
       <form className="naru-input" onSubmit={event => { event.preventDefault(); void send(); }}><label className="sr-only" htmlFor="naru-message">나루에게 여행 질문하기</label><textarea ref={inputRef} id="naru-message" value={input} maxLength={1200} rows={1} placeholder="나루에게 요청하기" onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} /><div><button type="button" aria-label={voice.listening ? '음성 입력 중단' : '음성으로 질문 입력'} aria-pressed={voice.listening} onClick={() => { if (voice.listening) voice.stop(); else voice.start(value => { setInput(value); inputRef.current?.focus(); }); }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg></button>{busy ? <button key="stop-response" type="button" onClick={event => { event.preventDefault(); event.stopPropagation(); sequence.current++; request.current?.abort(); request.current = null; plan.abortPlan(); setBusy(false); const stopped = { phase: 'idle', text: '작업을 중단했어요. 기존 일정은 그대로예요.' }; setActivity(stopped); props.onActivity(stopped); append('답변을 중단했어요. 원하는 내용을 다시 보내주세요.'); }}>중단</button> : <button key="send-message" type="submit" disabled={!input.trim() || voice.listening} aria-label="나루에게 보내기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m5 12 7-7 7 7M12 5v15"/></svg></button>}</div></form>
       {voice.notice && <p className="naru-note" role="status">{voice.notice}</p>}<details className="naru-privacy"><summary>대화·음성 정보</summary><p>대화는 WAVE의 AI 서버에서 처리하며 저장하지 않아요. 음성 인식은 브라우저 제공처에서 처리할 수 있어요. 소리 크기 표시는 이 기기에서만 처리해요.</p></details>
     </div>
-    {tool && <div className="naru-workspace"><header><strong>{toolLabel(tool)}</strong><button type="button" onClick={() => { setTool(''); props.onToolHost(null); requestAnimationFrame(() => inputRef.current?.focus()); }}>대화만 보기</button></header>{['inquiry','compare'].includes(tool) ? <div className="naru-tool-host"><Suspense fallback={<LoadingState>장소별 도구를 준비하고 있어요.</LoadingState>}><PlannerAssistantPlaceTools mode={tool} places={known} requiredKeys={plan.plan?.criteria?.facilityKeys || []} saved={trip.saved} current={plan.resultCurrent} onDetails={props.onPlace} onToggle={place => {
+    {tool && <div className="naru-workspace"><header><strong>{toolLabel(tool)}</strong><button type="button" onClick={() => { setTool(''); props.onToolHost(null); requestAnimationFrame(() => inputRef.current?.focus()); }}>대화만 보기</button></header>{['inquiry','compare','preview','transcript'].includes(tool) ? <div className="naru-tool-host"><Suspense fallback={<LoadingState>장소별 도구를 준비하고 있어요.</LoadingState>}><PlannerAssistantPlaceTools key={`${tool}:${toolPlaceId}`} initialPlaceId={toolPlaceId} mode={tool} places={known} requiredKeys={resolveFacilityKeys({ profiles: plan.selected })} saved={trip.saved} current={plan.resultCurrent} onDetails={props.onPlace} onToggle={place => {
         setTool(''); props.onToolHost(null); follow.current = true;
         void apply({ id: ++messageId.current, role: 'assistant', text: '', proposal: { action: trip.saved.includes(place.id) ? 'remove' : 'add', placeId: place.id }, revision });
         requestAnimationFrame(() => { const buttons = log.current?.querySelectorAll<HTMLButtonElement>('.naru-proposal button:not(:disabled):not([aria-disabled=true])'); buttons?.[buttons.length - 1]?.focus(); });

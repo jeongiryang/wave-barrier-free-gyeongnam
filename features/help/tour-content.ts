@@ -9,7 +9,7 @@ export type TourStep = {
 export const landingSteps: TourStep[] = [
   { selector: '#top', highlightSelector: '#top .landing-hero-copy', eyebrow: '서비스 소개', title: '경남 여행을 준비하는 곳이에요.', copy: '필요한 편의시설과 이동 정보를 확인하고 일정을 만들 수 있어요.' },
   { selector: '#regions', highlightSelector: '.simple-region-grid', eyebrow: '지역 선택', title: '여행할 지역을 고르세요.', copy: '사진을 누르면 그 지역의 여행지를 바로 찾아볼 수 있어요. 지역 더 보기로 경남 18개 시·군을 모두 볼 수 있어요.' },
-  { selector: '#story', highlightSelector: '.simple-product-preview', eyebrow: '일정 만들기', title: '날짜별로 장소를 담아보세요.', copy: '여행지 정보를 보고 담은 뒤 날짜와 시간을 정하세요. 일정과 지도는 함께 확인할 수 있어요.' },
+  { selector: '#story', highlightSelector: '.horizon-chapter-stream', eyebrow: '일정 만들기', title: '날짜별로 장소를 담아보세요.', copy: '여행지 정보를 보고 담은 뒤 날짜와 시간을 정하세요. 일정과 지도는 함께 확인할 수 있어요.' },
   { selector: '#naru', highlightSelector: '#naru', eyebrow: '나루', title: '말이나 글로도 요청할 수 있어요.', copy: '나루에게 지역이나 장소를 말해보세요. 요청한 변경은 화면의 일정에도 반영되고 되돌릴 수 있어요.' },
 ];
 
@@ -23,7 +23,7 @@ export const plannerSteps: TourStep[] = [
 export const communitySteps: TourStep[] = [
   { selector: ".community-page", highlightSelector: ".community-hero", eyebrow: "여행 후기", title: "여행자의 현장 경험을 살펴보세요.", copy: "공식 관광정보와 여행자가 직접 남긴 경험을 구분해 읽을 수 있습니다." },
   { selector: "#community-list", highlightSelector: "#community-list", eyebrow: "후기 목록", title: "필요한 여행 경험을 찾아봅니다.", copy: "장소와 편의조건으로 후기를 찾고, 여행자 경험과 공식 관광정보를 구분해 확인할 수 있습니다." },
-  { selector: ".community-footer", highlightSelector: ".community-footer", eyebrow: "정보 원칙", title: "후기는 공식 정보의 대체물이 아닙니다.", copy: "방문 전에는 운영기관의 최신 편의시설 정보를 다시 확인해 주세요." },
+  { selector: ".community-evidence-note", highlightSelector: ".community-evidence-note", eyebrow: "정보 원칙", title: "후기는 공식 정보의 대체물이 아닙니다.", copy: "방문 전에는 운영기관의 최신 편의시설 정보를 다시 확인해 주세요." },
 ];
 
 export const travelBookSteps: TourStep[] = [
@@ -44,7 +44,7 @@ const englishTourCopy: Record<string, Pick<TourStep, "eyebrow" | "title" | "copy
   "#departure-readiness": { eyebrow: "Before departure", title: "Recheck information and save your trip.", copy: "Review weather, crowds, transport and facility information that needs checking, then share or export your itinerary." },
   ".community-page": { eyebrow: "Travel stories", title: "Read travellers' experiences.", copy: "Read personal experiences separately from official tourism information." },
   "#community-list": { eyebrow: "Find stories", title: "Find experiences that help you plan.", copy: "Find stories by place and facility needs, keeping traveller experiences separate from official evidence." },
-  ".community-footer": { eyebrow: "Using information", title: "Stories do not replace official information.", copy: "Recheck the latest facility information with the place operator before visiting." },
+  ".community-evidence-note": { eyebrow: "Using information", title: "Stories do not replace official information.", copy: "Recheck the latest facility information with the place operator before visiting." },
   ".travel-book-page": { eyebrow: "Saved trips", title: "Keep upcoming and past trips together.", copy: "Save planner itineraries and reopen them to prepare for your next trip." },
   ".travel-book-paths": { eyebrow: "Travel memories", title: "Continue the journey after your trip.", copy: "Add notes and restore your photo course for your next journey." },
   ".travel-book-list, .travel-book-empty": { eyebrow: "Manage trips", title: "Reopen and update your trips.", copy: "Restore an itinerary, mark a trip as visited or continue adding travel notes." },

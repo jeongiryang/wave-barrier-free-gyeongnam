@@ -57,8 +57,14 @@ test("landing: region browsing follows ordinary scrolling and keeps focused choi
   await page.goto("/"); await storyReady(page);
   const region = page.locator("#regions"), cards = region.locator(".simple-region");
   await expect(cards.locator("h3")).toHaveText(firstRegions);
-  await region.getByRole("button", { name: "18개 지역 모두 보기", exact: true }).press("Enter");
+  const expand = region.getByRole("button", { name: "18개 지역 모두 보기", exact: true });
+  // The region control is disabled until its own hydration completes.
+  await expect(expand).toBeEnabled();
+  await expand.focus();
+  await expect(expand).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect(cards).toHaveCount(18);
+  await expect(region.getByRole("button", { name: "접기", exact: true })).toBeFocused();
   const last = cards.last().locator(".simple-region-link");
   await last.focus();
   const destination = await last.getAttribute("href");

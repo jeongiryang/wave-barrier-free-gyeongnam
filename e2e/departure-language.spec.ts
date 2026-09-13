@@ -7,7 +7,7 @@ import { enterDeparture, departureItem } from './departure-fixtures';
 async function prepare(page: Page) {
   await mockPlannerApi(page); await page.addInitScript(() => localStorage.setItem('wave-locale', 'en'));
   await page.emulateMedia({ reducedMotion: 'reduce' }); await page.goto('/planner?travelStart=2026-10-08&travelEnd=2026-10-09');
-  await enterDeparture(page); await expect(page.locator('main.planner-page')).toHaveAttribute('lang', 'en');
+  await enterDeparture(page); await expect(page.getByRole('main')).toHaveAttribute('lang', 'en');
   await expect(page.locator('.simple-readiness')).toHaveAttribute('lang', 'ko');
   await expect(page.locator('.simple-readiness-heading button')).toHaveAttribute('aria-busy', 'false');
 }
@@ -41,8 +41,8 @@ test('language changes preserve departure evidence, calendar feedback and itiner
   await menu.getByRole('button', { name: '캘린더', exact: true }).click(); await expect(menu.getByRole('status')).toContainText('캘린더를 만들지 못했어요'); await menu.getByRole('button', { name: '공유 닫기' }).click();
   const before = await page.evaluate(() => localStorage.getItem('wave-trip-schedule-v1'));
   await openSupportMenu(page); const preferences = page.locator('.preference-controls:visible'); await preferences.getByLabel('Open preferences', { exact: true }).click();
-  await preferences.getByLabel('Language', { exact: true }).selectOption('ko'); await expect(page.locator('main.planner-page')).toHaveAttribute('lang', 'ko');
-  await preferences.getByLabel('언어', { exact: true }).selectOption('en'); await expect(page.locator('main.planner-page')).toHaveAttribute('lang', 'en');
+  await preferences.getByLabel('Language', { exact: true }).selectOption('ko'); await expect(page.getByRole('main')).toHaveAttribute('lang', 'ko');
+  await preferences.getByLabel('언어', { exact: true }).selectOption('en'); await expect(page.getByRole('main')).toHaveAttribute('lang', 'en');
   expect(await page.evaluate(() => localStorage.getItem('wave-trip-schedule-v1'))).toBe(before); expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-saved-places') || '[]'))).toEqual(['1001']);
 });
 test('refresh preserves keyboard focus while waiting and after its response', async ({ page }) => {

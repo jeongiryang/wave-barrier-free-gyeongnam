@@ -1,3 +1,4 @@
+import GlobalTravelWorkspace from "../components/GlobalTravelWorkspace";
 import WaveFooterTools from "../components/WaveFooterTools";
 import type { Metadata, Viewport } from "next";
 import "./styles/wave-fonts.css";
@@ -30,7 +31,6 @@ import "./styles/account-auth.css";
 import "./styles/community.css";
 import "./styles/account-community.css";
 // #353 removed these scenes; preserve their source styles without shipping them.
-import "./styles/landing-community-active.css";
 import "./styles/landing-region-active.css";
 import "./styles/landing-cinematic.css";
 import "./styles/planner-unified-workspace.css";
@@ -48,6 +48,7 @@ import "./styles/planner-conversation.css";
 import "./styles/landing-split.css";
 import "./styles/simple-wave.css";
 import "./styles/simple-planner.css";
+import "./styles/wave-refinements.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN, SITE_TITLE, SOCIAL_IMAGE } from "../lib/site-metadata";
 
@@ -117,7 +118,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <noscript><style>{".arrival-intro{display:none!important}"}</style><p>WAVE 여행 설계를 이용하려면 브라우저에서 JavaScript를 허용해 주세요.</p></noscript>
-        <SitePreferencesProvider>{children}<WaveFooterTools /></SitePreferencesProvider>
+        <SitePreferencesProvider><GlobalTravelWorkspace>{children}</GlobalTravelWorkspace><WaveFooterTools /></SitePreferencesProvider>
       </body>
     </html>
   );

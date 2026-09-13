@@ -8,6 +8,7 @@ import { ensureTripIdentity, readTripIdentity, writeTripIdentity, type TripIdent
 import { createTravelBookSnapshot, sanitizeTravelBooks, upsertTravelBook, TRAVEL_BOOK_STORAGE_KEY, TRAVEL_BOOK_MAX_ITEMS, type TravelBookInput } from '../../lib/travel-book.js';
 import { AccountTravelError, travelRequest } from '../account-travel/client';
 import type { AccountTrip } from '../account-travel/types';
+import { assertTripStorageOwner } from '../../lib/current-trip-storage.js';
 
 type Props = TravelBookInput & { compact?: boolean };
 function bookScheduleKey(book: NonNullable<ReturnType<typeof createTravelBookSnapshot>>) {
@@ -36,6 +37,8 @@ export default function TravelBookArchiveAction(input: Props) {
   const saveRef = useRef<(automatic?: boolean) => Promise<void>>(async () => {});
   async function save(automatic = false, copy = false) {
     if (lock.current || !identity || isPending) return;
+    try { assertTripStorageOwner(window.localStorage); }
+    catch (error) { setFailed(true); setNotice(error instanceof Error ? error.message : '현재 여행을 확인해 주세요.'); return; }
     const base = readTripIdentity(window.localStorage);
     if (!base || base.id !== identity.id) { setFailed(true); setNotice('다른 여행이 열렸어요. 새로고침해서 현재 여행을 확인해 주세요.'); return; }
     const captured = current.current;
@@ -58,11 +61,14 @@ export default function TravelBookArchiveAction(input: Props) {
         const bound = !copy && base.binding?.kind === 'account' && base.binding.userId === userId && base.binding.role === 'owner' ? base.binding : null;
         const sourceBinding = base.binding?.kind === 'account' && base.binding.userId === userId ? base.binding : null;
         const source = sourceBinding ? await travelRequest<AccountTrip>(`/${sourceBinding.id}`) : null;
+        assertTripStorageOwner(localStorage);
         if (!isCurrent()) return;
+        if (current.current.inputKey !== captured.inputKey) return;
         const payload = { ...bookToAccountTrip(book), ...(source ? { title: source.payload.title, note: source.payload.note, status: source.payload.status } : {}) };
         unchanged = Boolean(automatic && bound && source && JSON.stringify(payload) === JSON.stringify(accountTripPayload(source.payload)));
         if (unchanged) binding = base.binding;
         else {
+          assertTripStorageOwner(localStorage);
           const result = await travelRequest<AccountTrip>(bound ? `/${bound.id}` : '', bound ? { revision: bound.revision, payload } : { id: attempt.current.id, payload });
           binding = { kind: 'account', id: result.id, userId, revision: result.revision, role: result.role };
         }
@@ -72,6 +78,8 @@ export default function TravelBookArchiveAction(input: Props) {
         if (automatic && !previous) throw new Error('저장한 여행이 삭제됐어요. 현재 일정을 확인한 뒤 다시 저장해 주세요.');
         if (books.length >= TRAVEL_BOOK_MAX_ITEMS && !previous) throw new Error('저장한 여행이 20개예요. 내 여행에서 정리한 뒤 저장해 주세요.');
         unchanged = Boolean(automatic && previous && bookScheduleKey(previous) === bookScheduleKey(book));
+        assertTripStorageOwner(localStorage);
+        if (!isCurrent()) return;
         if (!unchanged) localStorage.setItem(TRAVEL_BOOK_STORAGE_KEY, JSON.stringify(upsertTravelBook(books, { ...book, title: previous?.title || book.title })));
         binding = { kind: 'local', id: book.id };
       }

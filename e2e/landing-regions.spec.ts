@@ -56,7 +56,7 @@ test("regional entry: all 18 landing links and the planner selector use the same
 });
 
 
-test("landing: labelled itinerary and conversation examples preserve four-section order without provider requests", async ({ page }) => {
+test("landing: labelled itinerary and conversation examples preserve restored-section order without provider requests", async ({ page }) => {
   const writes: string[] = [], requests: string[] = [];
   page.on("request", request => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method())) writes.push(request.url());
@@ -67,10 +67,11 @@ test("landing: labelled itinerary and conversation examples preserve four-sectio
   await page.goto("/"); await storyReady(page);
   expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
   await page.locator("#story").scrollIntoViewIfNeeded();
-  await expect(page.locator(".simple-product-preview")).toContainText("화면 예시");
+  await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+  await expect(page.locator(".horizon-chapter-copy").last()).toContainText("날짜와 방문 순서를 정하세요");
   await page.locator("#naru").scrollIntoViewIfNeeded();
   await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
-  await expect(page.locator(".simple-product-preview,.simple-naru-example").locator("input,button,form,textarea,[contenteditable=true]")).toHaveCount(0);
+  await expect(page.locator(".simple-naru-example").locator("input,button,form,textarea,[contenteditable=true]")).toHaveCount(0);
   expect(writes).toEqual([]); expect(requests).toEqual([]);
 });
 

@@ -5,7 +5,7 @@ import { prepareStory, storyReady, expectUsableTarget, expectNoOverflow, chapter
 test.beforeEach(async ({ page }) => { await prepareStory(page); });
 
 for (const theme of ["light", "dark"] as const) {
-  test(`${theme}: four sections retain responsive hierarchy, readable examples and usable CTAs`, async ({ page }) => {
+  test(`${theme}: restored sections retain responsive hierarchy, readable examples and usable CTAs`, async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -24,15 +24,15 @@ for (const theme of ["light", "dark"] as const) {
         expect(box.x).toBeGreaterThanOrEqual(0);
         expect(box.x + box.width).toBeLessThanOrEqual(width + 1);
       }
-      await expect(page.locator(".simple-feature-list li")).toHaveCount(3);
-      await expect(page.locator(".preview-stop")).toHaveCount(2);
-      await expect(page.locator(".simple-product-preview")).toContainText("화면 예시");
+      await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+      await expect(page.locator(".horizon-chapter-copy ul li")).toHaveCount(9);
+      await expect(page.locator(".horizon-chapter-copy").nth(1)).toContainText("아직 확인되지 않은 정보도 구분");
       await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
-      for (const selector of [".landing-actions a", "#story .simple-text-link", "#naru .simple-text-link"]) {
+      for (const selector of [".landing-actions a", "#story .horizon-text-link", "#naru .simple-text-link[href*=assistant]"]) {
         await expectUsableTarget(page.locator(selector));
       }
       await expectNoOverflow(page);
-      expect((await new AxeBuilder({ page }).include("#top").include("#regions").include("#story").include("#naru").analyze()).violations).toEqual([]);
+      expect((await new AxeBuilder({ page }).include(".landing-page").analyze()).violations).toEqual([]);
     }
     expect(errors).toEqual([]);
   });
@@ -52,10 +52,10 @@ for (const locale of ["ko", "en"] as const) {
     await expect(explore).toBeFocused();
     await expect(explore).toHaveAccessibleName(locale === "en" ? "Explore places" : "여행지 둘러보기");
     await expect(explore).toHaveAttribute("href", "/planner");
-    await expect(page.locator("#story .simple-text-link")).toHaveAttribute("href", "/planner");
-    await expect(page.locator("#naru .simple-text-link")).toHaveAccessibleName(locale === "en" ? "Chat with Naru" : "나루와 대화하기");
-    await expect(page.locator("#naru .simple-text-link")).toHaveAttribute("href", "/planner?assistant=naru");
-    for (const selector of [".wave-wordmark", ".wave-my-trips", "#story .simple-text-link", "#naru .simple-text-link"]) {
+    await expect(page.locator("#story .horizon-text-link")).toHaveAttribute("href", "/planner");
+    await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAccessibleName(locale === "en" ? "Chat with Naru" : "나루와 대화하기");
+    await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAttribute("href", "/planner?assistant=naru");
+    for (const selector of [".wave-wordmark", ".wave-my-trips", "#story .horizon-text-link", "#naru .simple-text-link[href*=assistant]"]) {
       await expectUsableTarget(page.locator(selector));
     }
     await expectNoOverflow(page);

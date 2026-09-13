@@ -203,7 +203,7 @@ test("community UI supports public reading, protected participation and place li
   assert.match(planner, /PlaceDecisionDialog/);
   assert.match(placeDialog, /place-community-link/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
-  assert.match(landing, /simple-product-preview/);
+  assert.match(landing, /horizon-chapter-stream/);
   assert.match(await source("components/WaveHeader.tsx"), /community/);
   assert.match(landing, /href="\/planner"/);
   assert.doesNotMatch(landing, /작성 예시|실제 게시된 글이 아닙니다/);
@@ -237,7 +237,7 @@ test("preserved product preview sources remain Korean and non-interactive; curre
   assert.doesNotMatch(stories, /<button\b/);
   assert.match(stories, /className="[^"]*route-demo-path/);
   assert.match(stories, /className="[^"]*route-demo-vehicle/);
-  assert.match(community, /simple-product-preview/);
+  assert.match(community, /horizon-chapter-stream/);
   assert.match(await source("components/WaveHeader.tsx"), /community/);
   assert.doesNotMatch(community, /<button\b/);
   assert.match(community, /href="\/planner"/);

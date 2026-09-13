@@ -6,7 +6,7 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
-test("landing route composes four real sections and keeps browser effects inside their owners", async () => {
+test("landing route composes restored scenes and keeps browser effects inside their owners", async () => {
   const [page, hero, regions, story, naru] = await Promise.all([
     source("app/page.tsx"),
     source("features/landing/components/LandingHero.tsx"),
@@ -15,14 +15,14 @@ test("landing route composes four real sections and keeps browser effects inside
     source("features/landing/components/LandingAssistantStory.tsx"),
   ]);
   assert.deepEqual([...page.matchAll(/<(Landing[A-Za-z]+)\b/g)].map(match => match[1]),
-    ["LandingIntro", "LandingHeader", "LandingHero", "LandingRegionStory", "LandingChapters", "LandingAssistantStory", "LandingFooter"]);
+    ["LandingIntro", "LandingHeader", "LandingHero", "LandingChapters", "LandingRegionStory", "LandingAssistantStory", "LandingDepartureScene", "LandingCommunityScene", "LandingCallToAction", "LandingFooter"]);
   assert.deepEqual([hero, regions, story, naru].flatMap(content => [...content.matchAll(/<section\b[^>]*\bid="([^"]+)"/g)].map(match => match[1])), ["top", "regions", "story", "naru"]);
   assert.doesNotMatch(page, /useState|useEffect|IntersectionObserver|AbortController/);
   assert.match(regions, /new IntersectionObserver/);
   assert.match(regions, /observer\.disconnect\(\)/);
   assert.match(hero, /href="\/planner"/);
   assert.match(naru, /href="\/planner\?assistant=naru"/);
-  assert.match(story, /Example itinerary screen/);
+  assert.match(story, /horizon-chapter-stream/);
   assert.match(naru, /Example conversation/);
   assert.doesNotMatch(story + naru, /fetch\(|localStorage|sessionStorage|<form\b|<input\b|<textarea\b/);
 });

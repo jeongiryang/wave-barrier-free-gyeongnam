@@ -90,6 +90,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
       if (next.skipped.withoutPoint) parts.push(`위치 정보가 없는 ${next.skipped.withoutPoint}장은 시간만으로 묶었습니다.`);
       if (result.unreadable) parts.push(`읽을 수 없는 파일 ${result.unreadable}개는 건너뛰었습니다.`);
       if (result.truncated) parts.push(`한 번에 ${MAX_PHOTOS}장까지만 읽어 ${result.truncated}장은 이번 분석에서 제외했습니다.`);
+      parts.push("촬영 위치는 기기 안에서 사진을 묶는 데만 사용합니다. 관광정보를 찾을 지역은 직접 선택해 주세요.");
       setNotice(parts.join(" "));
     } catch {
       if (runId.current === run) setNotice("사진 촬영 정보를 읽지 못했습니다. 파일을 다시 선택해 주세요.");

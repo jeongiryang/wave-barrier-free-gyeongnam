@@ -11,7 +11,6 @@
 .editorial-photo figcaption { position: absolute; z-index: 2; bottom: 8px; left: 20px; right: 20px; color: #fff; font-size: .68rem; line-height: 1.6; text-align: left; text-shadow: 0 1px 5px #001521; }
 .editorial-photo figcaption a { color: inherit; background: transparent; padding: 0; border-radius: 0; display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 3px; margin-left: 6px; }
 .editorial-photo::after { content: ''; position: absolute; inset: 50% 0 0; pointer-events: none; background: linear-gradient(transparent,#062738c7); }
-.horizon-edition .hero-opening { display: block; width: 100%; min-height: 0; padding: 0; }
 .horizon-edition .landing-hero-copy { padding: 0; background: transparent; }
 .horizon-edition .landing-hero-copy > p { margin: 0 0 36px; font-size: .76rem; letter-spacing: .12em; }
 .horizon-edition .landing-hero-copy h1 { max-width: 1100px; margin: 0 0 32px; line-height: 1.24; }

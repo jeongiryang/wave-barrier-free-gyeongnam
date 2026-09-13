@@ -102,7 +102,7 @@ for (const [query, expected, initialRequest] of [
 
 async function current(page: Page) {
   return page.evaluate(() => {
-    const values: Record<string, string | null> = Object.fromEntries(["wave-current-trip-v1", "wave-saved-places", "wave-saved-place-catalog-v1", "wave-trip-schedule-v1", "wave-trip-order-v1", "wave-planner-region-v1", "wave-trip-themes-v1", "wave-travel-book-v1"].map(key => [key, localStorage.getItem(key)]));
+    const values: Record<string, string | null> = Object.fromEntries(["wave-current-trip-v1", "wave-trip-identity-v1", "wave-saved-places", "wave-saved-place-catalog-v1", "wave-trip-schedule-v1", "wave-trip-order-v1", "wave-planner-region-v1", "wave-trip-themes-v1", "wave-travel-book-v1"].map(key => [key, localStorage.getItem(key)]));
     values["wave-session-facilities-v1"] = sessionStorage.getItem("wave-session-facilities-v1");
     return values;
   });
@@ -126,6 +126,21 @@ for (const color of ["light", "dark"]) test(`shared redesign protects the curren
   } }));
   await page.goto("/trip/protected-theme");
   const before = await current(page);
+  const { "wave-travel-book-v1": beforeArchive, ...protectedCurrent } = before;
+  const beforeBooks = JSON.parse(beforeArchive || "[]");
+  expect(beforeBooks).toHaveLength(1);
+  const identity = JSON.parse(JSON.parse(before["wave-current-trip-v1"] || "{}").values["wave-trip-identity-v1"]);
+  expect(identity.id).toBe(beforeBooks[0].tripId);
+  expect(identity.binding).toEqual({ kind: "local", id: beforeBooks[0].id });
+  function expectRecoveryBackup(raw: string | null, earliestUpdatedAt: string) {
+    const books = JSON.parse(raw || "[]");
+    expect(books).toHaveLength(1);
+    // Backup precedes the new-trip commit. Only its write time and current
+    // binding may advance; every saved place, date and other field must survive.
+    expect(books[0]).toEqual({ ...beforeBooks[0], identity, updatedAt: books[0].updatedAt });
+    expect(Date.parse(books[0].updatedAt)).toBeGreaterThanOrEqual(Date.parse(earliestUpdatedAt));
+    return books[0];
+  }
   const trigger = page.getByRole("button", { name: "이 조건으로 다시 설계하기 →", exact: true });
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "공유한 조건으로 새 여행을 시작할까요?" });
@@ -155,7 +170,9 @@ for (const color of ["light", "dark"]) test(`shared redesign protects the curren
   });
   await dialog.getByRole("button", { name: "공유 조건으로 새 여행 시작", exact: true }).click();
   await expect(dialog.getByRole("alert")).toContainText("현재 여행은 유지됩니다");
-  expect(await current(page)).toEqual(before);
+  const { "wave-travel-book-v1": recoveryArchive, ...failedCurrent } = await current(page);
+  expect(failedCurrent).toEqual(protectedCurrent);
+  const recoveryBackup = expectRecoveryBackup(recoveryArchive, beforeBooks[0].updatedAt);
   await page.evaluate(() => (window as unknown as { themeFixtureRestore: () => void }).themeFixtureRestore());
   await dialog.getByRole("button", { name: "공유 조건으로 새 여행 시작", exact: true }).click();
   await expect(page.getByRole("button", { name: "역사·문화", exact: true })).toHaveAttribute("aria-pressed", "true");
@@ -165,7 +182,8 @@ for (const color of ["light", "dark"]) test(`shared redesign protects the curren
   // Shared preferences cannot import another person's facilities or erase ours.
   await assertFacilities(page, true);
   expect((await current(page))["wave-session-facilities-v1"]).toBe(before["wave-session-facilities-v1"]);
-  expect((await current(page))["wave-travel-book-v1"]).toBe(before["wave-travel-book-v1"]);
+  const preservedArchive = (await current(page))["wave-travel-book-v1"];
+  expectRecoveryBackup(preservedArchive, recoveryBackup.updatedAt);
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
   await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-10-08 — 2026-10-09");
@@ -173,5 +191,5 @@ for (const color of ["light", "dark"]) test(`shared redesign protects the curren
   await browse(page);
   await expect(page.getByRole("button", { name: "음식", exact: true })).toHaveAttribute("aria-pressed", "true");
   await assertFacilities(page, true);
-  expect((await current(page))["wave-travel-book-v1"]).toBe(before["wave-travel-book-v1"]);
+  expect((await current(page))["wave-travel-book-v1"]).toBe(preservedArchive);
 });

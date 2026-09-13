@@ -31,10 +31,11 @@ export async function buildPlan(request: Request, env: Env) {
   const startedAt = Date.now();
   const optionalRemaining = budgetClock(2_000);
 
+  const listSignal = AbortSignal.any([request.signal, AbortSignal.timeout(6000)]);
   const fetchThemes = async (service: string, params: typeof barrierLocationParams, localized = false): Promise<Attempt> => {
     const results = await eachWithinBudget(themes.map((theme) => fetchRegionalList(env, service, "areaBasedList2", {
       ...params, contentTypeId: localized && locale !== "ko" ? multilingualContentTypes[theme] : contentTypes[theme],
-    }, districts)), Math.min(6_000, remaining()), overBudget);
+    }, districts, listSignal)), Math.min(6_000, remaining()), overBudget);
     const successes = results.filter((result) => result.ok);
     if (!successes.length) return combineFailedProviderAttempts(results);
     const items = mergeThemeResults(successes.map((result) => result.ok ? result.value.items : []), Number.MAX_SAFE_INTEGER);

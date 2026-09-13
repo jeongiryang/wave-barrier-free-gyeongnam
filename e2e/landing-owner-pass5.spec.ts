@@ -4,7 +4,7 @@ import { prepareStory, storyReady, chapterIds, firstRegions } from "./landing-co
 
 test.beforeEach(async ({ page }) => { await prepareStory(page); });
 
-test("the four-section registry matches actual reading order without replacing history or saved trip state", async ({ page }) => {
+test("the restored-section registry matches actual reading order without replacing history or saved trip state", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/"); await storyReady(page);
   const sections = page.locator("main section[id]");
@@ -13,7 +13,8 @@ test("the four-section registry matches actual reading order without replacing h
   // and their section associations independently of that shorthand.
   const headings = [
     /경남 여행지를 찾고\s*일정을 짜보세요\./,
-    "지역으로 둘러보기", "장소 선택부터 일정 공유까지", "나루에게 말해보세요",
+    /멀게 느껴졌던 여행을,\s*조금 더 가까이\./, "지역으로 둘러보기", "나루에게 말해보세요",
+    /마음은 가볍게\.\s*준비는 한 번 더\./, /당신이 남긴 장면이\s*다음 여행의 시작\./, /다음 풍경에서\s*만나요\./,
   ];
   await expect(sections.locator("h1,h2")).toHaveText(headings);
   for (const [index, id] of chapterIds.entries()) {
@@ -33,7 +34,7 @@ test("the four-section registry matches actual reading order without replacing h
   expect(await page.evaluate(() => ({ ...localStorage }))).toEqual(state);
 });
 
-test("the itinerary and Naru examples stay explicitly labelled, noninteractive and free of provider requests or writes", async ({ page }) => {
+test("the travel narrative and labelled Naru example remain free of provider requests or trip writes", async ({ page }) => {
   const writes: string[] = [], requests: string[] = [];
   page.on("request", request => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method())) writes.push(request.url());
@@ -42,19 +43,20 @@ test("the itinerary and Naru examples stay explicitly labelled, noninteractive a
   await page.goto("/"); await storyReady(page);
   await expect.poll(() => page.evaluate(() => [localStorage.getItem("wave-locale"), localStorage.getItem("wave-theme")])).toEqual(["ko", "light"]);
   const state = await page.evaluate(() => ({ ...localStorage }));
-  const itinerary = page.locator(".simple-product-preview"), conversation = page.locator(".simple-naru-example");
-  await itinerary.scrollIntoViewIfNeeded();
-  await expect(itinerary).toHaveAttribute("aria-label", "일정 화면 예시");
-  await expect(itinerary).toContainText("화면 예시");
-  await expect(itinerary.locator(".preview-stop time")).toHaveText(["10:00", "11:30"]);
+  const narrative = page.locator(".horizon-chapter-copy"), conversation = page.locator(".simple-naru-example");
+  await expect(narrative).toHaveCount(3);
+  await narrative.last().scrollIntoViewIfNeeded();
+  await expect(narrative.last()).toContainText("날짜와 방문 순서를 정하세요");
+  await expect(narrative.nth(1)).toContainText("아직 확인되지 않은 정보도 구분");
   await conversation.scrollIntoViewIfNeeded();
   await expect(conversation).toHaveAttribute("aria-label", "대화 예시");
   await expect(conversation).toContainText("대화 예시");
   await expect(conversation).toContainText("90분");
   await expect(conversation).toContainText("되돌리기");
-  await expect(page.locator(".simple-product-preview,.simple-naru-example").locator("input,textarea,button,form,[contenteditable=true]")).toHaveCount(0);
-  await expect(page.locator("#story .simple-text-link")).toHaveAttribute("href", "/planner");
-  await expect(page.locator("#naru .simple-text-link")).toHaveAttribute("href", "/planner?assistant=naru");
+  await expect(conversation.locator("input,textarea,button,form,[contenteditable=true]")).toHaveCount(0);
+  await expect(page.locator(".landing-naru-usecases button")).toHaveCount(6);
+  await expect(page.locator("#story .horizon-text-link")).toHaveAttribute("href", "/planner");
+  await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAttribute("href", "/planner?assistant=naru");
   expect(await page.evaluate(() => ({ ...localStorage }))).toEqual(state);
   expect(writes).toEqual([]);
   expect(requests).toEqual([]);

@@ -12,6 +12,7 @@ function DetailsUnavailable() {
   return <p role="alert">{locale === "en" ? "These details could not load. Close this dialog and reload the page to try again. Your itinerary remains available." : "상세 화면을 불러오지 못했어요. 닫고 페이지를 새로 열어 다시 시도해 주세요. 일정은 계속 이용할 수 있습니다."}</p>;
 }
 const PlaceDecisionContent = lazy(() => import("./PlaceDecisionContent").catch(() => ({ default: DetailsUnavailable })));
+const PlaceArrivalPreview = lazy(() => import('./PlaceArrivalPreview'));
 const PlaceAudioGuide = lazy(() => import('./PlaceAudioGuide'));
 
 export type PlaceDecisionDialogProps = {
@@ -57,6 +58,7 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
         {en && <p className="original-language-note">Place names, addresses and facility evidence are shown in their original language, which may be Korean. Visitor stories are not translated.</p>}
         <PlaceSaveAction key={`${place.id}:${props.explorationAction?.key || "regular"}`} saved={props.saved} canSave={props.canSave} explorationAction={props.explorationAction} onToggleSaved={props.onToggleSaved} en={en} />
         <Suspense fallback={<LoadingState>{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</LoadingState>}><PlaceDecisionContent {...props} location={location} /></Suspense>
+        <details><summary>주차·입구·시설 미리보기</summary><Suspense fallback={<LoadingState>주차·입구 정보를 준비하고 있어요.</LoadingState>}><PlaceArrivalPreview key={place.id} place={place} /></Suspense></details>
         <Suspense fallback={null}><PlaceAudioGuide key={place.id} id={place.id} /></Suspense>
       </div>
   </dialog>;

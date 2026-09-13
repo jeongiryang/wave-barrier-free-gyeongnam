@@ -1,6 +1,5 @@
 import Link from "next/link";
-import GithubFooterLink from "../../../components/GithubFooterLink";
-import PolicyFooterLinks from "../../../components/PolicyFooterLinks";
+import SiteFooter from "../../../components/SiteFooter";
 import type { LandingTranslate } from "../content";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { horizonPhotos } from "../horizon-photos";
@@ -17,7 +16,7 @@ export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
   </section>;
 }
 
-export function LandingCallToAction({ t: _t }: { t: LandingTranslate }) {
+export function LandingCallToAction({}: { t: LandingTranslate }) {
   const en = useSitePreferences().locale === "en";
   return <section id="closing" tabIndex={-1} aria-labelledby="closing-title" className="landing-cta" data-cinematic="horizon" data-land-reveal>
     <EditorialPhoto photo={horizonPhotos.coast} className="closing-horizon" />
@@ -28,7 +27,6 @@ export function LandingCallToAction({ t: _t }: { t: LandingTranslate }) {
   </section>;
 }
 
-export function LandingFooter({ t }: { t: LandingTranslate }) {
-  const en = useSitePreferences().locale === "en";
-  return <footer className="simple-footer"><div className="brand footer-brand"><span>WAVE</span></div><div className="footer-notes"><p>{t("footer", "누구나 원하는 곳으로, 경남 무장애 여행 길잡이")}</p><p className="trust-notice">{en ? "WAVE is independently operated, not an official service of KTO or Gyeongsangnam-do. Check current information with the operator before departure." : "WAVE는 한국관광공사·경상남도의 공식 운영 서비스가 아닙니다. 출발 전 운영기관의 최신 정보를 확인해 주세요."}</p><PolicyFooterLinks /></div><div className="footer-meta"><p className="source">{en ? "Data: Korea Tourism Organization · Korea Tourism Content Lab" : "데이터 출처: 한국관광공사 · 한국관광콘텐츠랩"}</p><GithubFooterLink /></div></footer>;
+export function LandingFooter({}: { t: LandingTranslate }) {
+  return <SiteFooter />;
 }

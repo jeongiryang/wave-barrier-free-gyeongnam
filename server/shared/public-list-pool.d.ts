@@ -1,0 +1,1 @@
+export function createPublicListPool(options?: { concurrency?: number; ttlMs?: number; maxEntries?: number; now?: () => number }): <T>(key: string, load: (signal: AbortSignal) => Promise<T>, signal?: AbortSignal) => Promise<T>;

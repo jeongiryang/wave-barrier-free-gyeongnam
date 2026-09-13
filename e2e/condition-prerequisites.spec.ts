@@ -269,7 +269,7 @@ for (const locale of ["ko", "en"] as const) {
     } finally { gate.release(); }
   });
 
-  test(`landing: ${locale} four named sections explain places, itinerary and Naru in reading order`, async ({ page }) => {
+  test(`landing: ${locale} restored named sections explain places, itinerary and Naru in reading order`, async ({ page }) => {
     await prepareLandingMedia(page);
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -277,15 +277,15 @@ for (const locale of ["ko", "en"] as const) {
     await page.goto("/"); await storyReady(page);
     expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
     const names = en
-      ? [/Explore Gyeongnam/, /^Explore Gyeongnam$/, /^From places to an itinerary$/, /^Plan with Naru$/]
-      : [/경남 여행지를 찾고/, /^지역으로 둘러보기$/, /^장소 선택부터 일정 공유까지$/, /^나루에게 말해보세요$/];
+      ? [/Explore Gyeongnam/, /A journey that feels distant,\s*a little closer to you\./, /^Explore Gyeongnam$/, /^Plan with Naru$/, /A lighter heart\.\s*One more check\./, /당신이 남긴 장면이\s*다음 여행의 시작\./, /See you at\s*the next horizon\./]
+      : [/경남 여행지를 찾고/, /멀게 느껴졌던 여행을,\s*조금 더 가까이\./, /^지역으로 둘러보기$/, /^나루에게 말해보세요$/, /마음은 가볍게\.\s*준비는 한 번 더\./, /당신이 남긴 장면이\s*다음 여행의 시작\./, /다음 풍경에서\s*만나요\./];
     for (const [index, id] of chapterIds.entries()) {
       const section = page.locator(`#${id}`);
       await section.scrollIntoViewIfNeeded();
       await expect(section).toHaveAccessibleName(names[index]);
       await expect(section.locator("h1,h2").first()).toBeVisible();
     }
-    await expect(page.locator(".simple-product-preview")).toHaveAttribute("aria-label", en ? "Example itinerary screen" : "일정 화면 예시");
+    await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
     await expect(page.locator(".simple-naru-example")).toHaveAttribute("aria-label", en ? "Example conversation" : "대화 예시");
     await expect(page.locator(".landing-hero-copy")).toHaveCSS("opacity", "1");
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

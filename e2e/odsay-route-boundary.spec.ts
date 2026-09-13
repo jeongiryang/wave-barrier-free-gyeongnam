@@ -39,7 +39,7 @@ for (const [name, code, expected, expectedEnglish] of [
   const before = [...requests];
   await changeMapLanguage(page, true);
   await expect(notice).toHaveAttribute("lang", "en");
-  await expect(page.locator("main.planner-page")).toHaveAttribute("lang", "en");
+  await expect(page.getByRole("main")).toHaveAttribute("lang", "en");
   await expect(notice).toContainText(expectedEnglish);
   await expect(notice).not.toContainText(/[가-힣]/);
   await expect(page.locator(".route-option")).toHaveCount(0);

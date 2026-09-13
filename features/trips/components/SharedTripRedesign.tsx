@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
-import { emptyTrip, readTripValue, replaceCurrentTrip, THEMES_KEY } from "../../../lib/current-trip-storage.js";
+import { emptyTrip, readTripValue, THEMES_KEY } from "../../../lib/current-trip-storage.js";
+import { replaceTripWithBackup } from "../../../lib/trip-import.js";
 import { selectedThemes } from "../../../lib/planner-criteria.js";
 import { sanitizeTravelMode } from "../../../lib/trip-travel-mode.js";
 import { boundedTripEnd, validTripDate } from "../../../lib/trip-dates.js";
@@ -12,7 +12,6 @@ import { localDate } from "../../planner/utils";
 import type { SharedTrip } from "../types";
 
 export default function SharedTripRedesign({ selections }: { selections: SharedTrip["selections"] }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState(false);
   const cancel = useCallback(() => { setOpen(false); setError(false); }, []);
@@ -28,12 +27,14 @@ export default function SharedTripRedesign({ selections }: { selections: SharedT
       const start = validTripDate(selections.travelStart) ? selections.travelStart! : localDate();
       const end = boundedTripEnd(start, selections.travelEnd || start);
       const values = emptyTrip(region, start, end);
-      replaceCurrentTrip(window.localStorage, {
+      replaceTripWithBackup(window.localStorage, {
         ...values,
         "wave-trip-schedule-v1": JSON.stringify({ ...JSON.parse(values["wave-trip-schedule-v1"]), travelMode: sanitizeTravelMode(selections.travelMode) }),
         [THEMES_KEY]: JSON.stringify(selectedThemes(selections.themes ?? selections.theme)),
       });
-      router.push(`/planner?${new URLSearchParams({ region, travelStart: start, travelEnd: end })}#conditions`);
+      // A new trip identity must release all old document storage owners.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign(`/planner?${new URLSearchParams({ region, travelStart: start, travelEnd: end })}#conditions`);
     } catch { setError(true); }
   }
 
@@ -43,7 +44,7 @@ export default function SharedTripRedesign({ selections }: { selections: SharedT
     {!open && notice}
     {open && <dialog ref={dialogRef} className="region-change-dialog" aria-labelledby="shared-redesign-title" aria-describedby="shared-redesign-description">
       <h2 id="shared-redesign-title" tabIndex={-1}>공유한 조건으로 새 여행을 시작할까요?</h2>
-      <p id="shared-redesign-description">현재 편집 중인 일정은 비우고 공유 여행의 지역·날짜·활동·이동수단을 가져옵니다. 내 일정에 따로 보관한 여행은 유지합니다. 편의 조건은 직접 선택해 주세요.</p>
+      <p id="shared-redesign-description">현재 일정은 이 기기에 보관하고 공유 여행의 지역·날짜·활동·이동수단으로 새로 시작합니다. 내 일정에 따로 보관한 여행은 유지합니다. 편의 조건은 직접 선택해 주세요.</p>
       {notice}
       <div><button type="button" onClick={cancel}>취소하고 현재 여행 유지</button><button type="button" onClick={() => start(true)}>공유 조건으로 새 여행 시작</button></div>
     </dialog>}

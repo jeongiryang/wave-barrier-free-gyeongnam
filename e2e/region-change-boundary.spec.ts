@@ -65,7 +65,7 @@ for (const outcome of ["success", "failure"] as const) test(`new trip ignores a 
   const before = await current(page);
   await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();
   page.once("dialog", dialog => dialog.accept());
-  await page.locator("#map-panel-route").getByRole("button", { name: /현재 위치에서 출발/ }).click();
+  await page.locator("#map-panel-route").getByRole("button", { name: /기기에서 거리 확인/ }).click();
   expect(await page.evaluate(() => (window as unknown as { locationResetFixture: { calls: number } }).locationResetFixture.calls)).toBe(1);
   // Release the native callback immediately after the actual new-trip button
   // commits its new ID, before full-document navigation can destroy the callback.

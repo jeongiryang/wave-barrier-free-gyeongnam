@@ -9,15 +9,15 @@ import * as dateMove from "../lib/trip-date-move.js";
 import * as travelMode from "../lib/trip-travel-mode.js";
 
 function fixture(stored = {}, hydrate = true) {
-  const slots = [], effects = [], frames = [];
+  const slots = [], effects = [], frames = [], cleanups = [], listeners = new Map();
   let cursor = 0;
   const hooks = {
     useState(value) { const i = cursor++; if (!(i in slots)) slots[i] = value; return [slots[i], next => { slots[i] = typeof next === "function" ? next(slots[i]) : next; }]; },
     useCallback(fn) { cursor++; return fn; },
     useMemo(fn) { cursor++; return fn(); },
-    useEffect(fn, deps) { const i = cursor++, old = slots[i]; if (!old || deps.some((v, j) => v !== old[j])) { slots[i] = deps; effects.push(fn); } },
+    useEffect(fn, deps) { const i = cursor++, old = slots[i]; if (!old || deps.some((v, j) => v !== old[j])) { slots[i] = deps; effects.push(() => { cleanups[i]?.(); cleanups[i] = fn(); }); } },
   };
-  const window = { localStorage: { getItem: key => key === "wave-trip-schedule-v1" ? JSON.stringify(stored) : null, setItem() {} }, location: { search: "" }, requestAnimationFrame(fn) { frames.push(fn); return frames.length; }, cancelAnimationFrame() {} };
+  const window = { localStorage: { getItem: key => key === "wave-trip-schedule-v1" ? JSON.stringify(stored) : null, setItem() {} }, location: { pathname: "/planner", search: "" }, addEventListener(name, fn) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name).add(fn); }, removeEventListener(name, fn) { listeners.get(name)?.delete(fn); }, requestAnimationFrame(fn) { frames.push(fn); return frames.length; }, cancelAnimationFrame() {} };
   const compile = file => ts.transpileModule(readFileSync(new URL(file, import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const load = file => { const mod = { exports: {} }; new Function("module", "exports", "require", compile(file))(mod, mod.exports, dependency => { if (dependency.endsWith("trip-dates.js")) return load("../lib/trip-dates.js"); throw Error(dependency); }); return mod.exports; };
   const mod = { exports: {} };
@@ -36,7 +36,7 @@ function fixture(stored = {}, hydrate = true) {
   const actions = () => { cursor = 0; return mod.exports.useTripSchedule(); };
   const commit = () => { actions(); effects.splice(0).forEach(fn => fn()); frames.splice(0).forEach(fn => fn()); return actions(); };
   if (hydrate) { commit(); commit(); }
-  return { actions, commit };
+  return { actions, commit, navigate(pathname, search) { window.location.pathname = pathname; window.location.search = search; for (const fn of [...(listeners.get('wave:planner-navigation') || [])]) fn(); } };
 }
 const initial = { travelStart: "2026-09-07", travelEnd: "2026-09-08", scheduleAssignments: { a: "2026-09-07", b: "2026-09-08" } };
 
@@ -130,4 +130,24 @@ test("visit edits survive hydration and day changes but are removed with a repla
   assert.deepEqual(f.actions().visitMinutesByPlaceId, { b: 137 });
   f.actions().removePlaceAssignment("b");
   assert.deepEqual(f.actions().visitMinutesByPlaceId, {});
+});
+
+
+test('a persistent empty schedule consumes planner link dates only, preserving mode and start time', () => {
+  const f = fixture({ travelMode: 'car', dayStartTime: '09:00' });
+  f.navigate('/community', '?travelStart=2026-09-20');
+  assert.equal(f.actions().travelStart, '');
+  f.navigate('/planner', '?travelStart=2026-09-20&travelEnd=2026-09-21'); f.commit();
+  assert.equal(f.actions().travelStart, '2026-09-20'); assert.equal(f.actions().travelEnd, '2026-09-21');
+  assert.equal(f.actions().travelMode, 'car'); assert.equal(f.actions().dayStartTime, '09:00');
+  f.navigate('/planner', '?travelStart=2026-10-01');
+  assert.equal(f.actions().travelStart, '2026-09-20');
+});
+
+test('navigation dates cannot overwrite an existing dated or fixed itinerary', () => {
+  const f = fixture({ ...initial, fixedVisits: { a: { kind: 'event', position: 0, time: '13:00' } } });
+  f.navigate('/planner', '?travelStart=2026-10-01');
+  assert.equal(f.actions().travelStart, initial.travelStart);
+  assert.equal(f.actions().fixedVisits.a.time, '13:00');
+  assert.deepEqual(f.actions().scheduleAssignments, initial.scheduleAssignments);
 });

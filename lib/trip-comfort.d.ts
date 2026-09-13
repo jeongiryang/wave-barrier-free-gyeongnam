@@ -1,5 +1,5 @@
 export type TripComfort = { maxWalkMinutes: number | null; breakEveryMinutes: number | null; breakMinutes: number };
-export type StopPurpose = "rest" | "restroom";
+export type StopPurpose = "rest" | "restroom" | "nap" | "nursing";
 export type WalkingEvidence = { metres: number | null; minutes: number | null; longestMinutes: number | null };
 export const emptyComfort: TripComfort;
 export function sanitizeComfort(value: unknown): TripComfort;

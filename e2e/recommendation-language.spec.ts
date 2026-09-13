@@ -68,6 +68,8 @@ for (const theme of ["light", "dark"] as const) {
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`evidence-${theme}.png`) });
     await dialog.getByRole("textbox").scrollIntoViewIfNeeded();
+    const arrivalSummary = dialog.locator('summary').filter({ hasText: /^주차·입구·시설 미리보기$/ });
+    await expect(arrivalSummary).toBeVisible();
     const audioSummary = dialog.locator('.place-audio-guide > summary');
     await expect(audioSummary).toBeVisible();
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
@@ -77,7 +79,11 @@ for (const theme of ["light", "dark"] as const) {
     await page.keyboard.press("Shift+Tab");
     await expect(audioSummary).toBeFocused();
     await page.keyboard.press("Shift+Tab");
+    await expect(arrivalSummary).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
     await expect(dialog.getByRole("textbox")).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(arrivalSummary).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(audioSummary).toBeFocused();
     await page.keyboard.press("Tab");

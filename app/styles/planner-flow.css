@@ -218,27 +218,8 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .reference-day-list li:first-child .reference-stop { border-color: #12655b; }
 .reference-stop time { flex-shrink: 0; display: grid; place-items: center; height: 52px; width: 60px; border-radius: 10px; background: #edf4f1; color: #0a4d45; font-size: 13px; font-weight: 750; }
 .reference-stop .smart-spot-image { width: 94px; height: 72px; min-height: 0; flex-shrink: 0; aspect-ratio: auto; border-radius: 10px; }
-.reference-stop-copy { flex: 1; min-width: 0; }
-.reference-stop-copy > button { text-align: left; padding: 0; min-height: 32px; border: 0; color: #242b2a; background: none; font-size: 14px; font-weight: 800; }
-.reference-stop-copy > small { display: block; color: #5c6865; font-size: 11px; }
-.planner-reference .reference-stop-copy .place-facilities { padding: 4px 0; }
-.reference-stop-actions { display: flex; align-items: center; gap: 2px; }
-.reference-stop-actions > button,.reference-stop-actions summary { display: grid; place-items: center; height: 44px; width: 34px; min-width: 34px; padding: 0; border: 0; background: none; color: #43504d; border-radius: 8px; }
-.reference-stop-actions details { position: relative; }
-.reference-stop-actions details > div { position: absolute; z-index: 10; right: 0; top: 44px; min-width: 210px; max-height: 60svh; overflow-y: auto; overscroll-behavior: contain; padding: 16px; background: white; border: 1px solid #dce3e0; border-radius: 12px; box-shadow: 0 8px 28px rgb(36 50 54 / 14%); }
-.reference-stop-actions label { display: grid; gap: 8px; font-size: 14px; }
-.reference-stop-actions select,.reference-stop-actions details button { min-height: 44px; width: 100%; margin: 6px 0; border: 1px solid #dce3e0; border-radius: 8px; background: white; color: #242b2a; }
-.reference-leg-time { margin: 0 0 0 30px; padding: 8px 14px; border-left: 2px solid #86cfc4; color: #5c6865; font-size: 11px; }
-.reference-start-time { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #5c6865; }
-.reference-start-time input { min-height: 44px; border: 1px solid #dce3e0; border-radius: 10px; padding: 5px 10px; background: white; color: #242b2a; }
 .reference-itinerary-aside h3 { margin: 4px 0 12px; font-size: 18px; }
 .reference-itinerary-aside > p { color: #5c6865; font-size: 12px; }
-.reference-add-place { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid #dce3e0; border-radius: 16px; margin-bottom: 12px; }
-.reference-add-place .smart-spot-image { width: 96px; height: 82px; min-height: 0; aspect-ratio: auto; border-radius: 10px; flex-shrink: 0; }
-.reference-add-place > div:nth-child(2) { flex: 1; min-width: 0; }
-.reference-add-place > div > button { padding: 0; min-height: 40px; background: none; border: 0; color: #242b2a; font-size: 13px; font-weight: 800; text-align: left; }
-.reference-add-place small { display: block; font-size: 11px; color: #5c6865; }
-.planner-reference .reference-add-place .reference-primary { min-width: 60px; min-height: 44px; padding: 8px; font-size: 11px; }
 .reference-itinerary-aside .reference-tint { margin-top: 20px; font-size: 13px; }
 .reference-itinerary-aside .reference-tint p { font-size: 12px; line-height: 1.7; }
 .reference-itinerary-layout[data-map=true] { grid-template-columns: minmax(220px,.8fr) minmax(0,1.8fr) minmax(205px,.75fr); gap: 18px; }
@@ -246,7 +227,6 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .reference-itinerary-layout[data-map=true] .reference-stop { flex-wrap: wrap; gap: 8px; padding: 10px; }
 .reference-itinerary-layout[data-map=true] .reference-stop .smart-spot-image { display: none; }
 .reference-itinerary-layout[data-map=true] .reference-stop time { width: 48px; }
-.reference-itinerary-layout[data-map=true] .reference-stop-actions { width: 100%; justify-content: flex-end; }
 .reference-board-map { min-width: 0; }
 .planner-reference .reference-board-map .navigation-section { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
 .planner-reference .reference-board-map .workspace-heading { padding: 0 0 16px; }
@@ -305,9 +285,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
   .reference-itinerary-layout[data-map=true] .reference-itinerary-aside > h3 { grid-column: 1 / -1; }
   .reference-itinerary-layout { gap: 20px; grid-template-columns: minmax(0,1.5fr) minmax(250px,1fr); }
   .reference-stop { flex-wrap: wrap; }
-  .reference-stop-actions { margin-left: auto; }
-  .reference-add-place { flex-wrap: wrap; }
-  .reference-date-layout { gap: 20px; }
+.reference-date-layout { gap: 20px; }
 }
 @media (max-width: 700px) {
   .planner-reference > .planner-journey-workspace { width: calc(100% - 32px); }
@@ -334,12 +312,8 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
   .reference-stop { gap: 10px; }
   .reference-stop .smart-spot-image { width: 68px; height: 65px; }
   .reference-stop time { width: 46px; }
-  .reference-stop-copy { flex-basis: calc(100% - 145px); }
-  .reference-stop-actions > button,.reference-stop-actions summary { width: 44px; }
-  .reference-day-list { padding: 14px; }
-  .reference-add-place { flex-wrap: nowrap; }
-  .reference-add-place .smart-spot-image { width: 78px; }
-  .reference-itinerary-layout[data-map=true] .reference-itinerary-aside { display: block; }
+.reference-day-list { padding: 14px; }
+.reference-itinerary-layout[data-map=true] .reference-itinerary-aside { display: block; }
   .reference-trip-banner { align-items: start; flex-direction: column; padding: 20px; }
   .reference-route-chain { max-width: 100%; margin-left: 0; }
   .reference-schedule { padding: 18px; }
@@ -349,9 +323,6 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
   .planner-reference .reference-archive .travel-book-archive-controls button { min-width: 0; width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .planner-reference *, .planner-reference *::before, .planner-reference *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
-.planner-reference .reference-stop :is(.smart-image-fallback,.smart-image-skeleton),.planner-reference .reference-add-place :is(.smart-image-fallback,.smart-image-skeleton) { position: absolute; inset: 0; padding: 8px; display: grid; place-items: center; }
-.planner-reference .reference-stop .smart-image-fallback > :is(i,b,span),.planner-reference .reference-add-place .smart-image-fallback > :is(i,b,span) { display: none; }
-.planner-reference .reference-stop .smart-image-fallback small,.planner-reference .reference-add-place .smart-image-fallback small { font-size: 10px; line-height: 1.5; color: #fff; text-align: center; }
 :root .planner-reference .simple-footer { margin: 36px auto 0; width: min(1240px,calc(100% - 56px)); padding: 22px 0; color: var(--muted); background: transparent; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 18px; }
 :root .planner-reference .simple-footer :is(a,p,span) { color: var(--muted); }
 .planner-reference .simple-footer .footer-notes { flex: 1; }
@@ -359,7 +330,6 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference .reference-weather p,.planner-reference .reference-info-card p { font-size: 12px; line-height: 1.6; }
 .planner-reference .reference-overview-grid { align-items: start; }
 .reference-schedule { min-height: 370px; }
-.planner-reference .reference-stop-actions > button,.planner-reference .reference-stop-actions summary { min-width: 44px; width: 44px; }
 .reference-date-reassign { font-size: 12px; padding: 14px 0; }
 .reference-date-reassign button { min-height: 44px; border: 1px solid #12655b; border-radius: 10px; padding: 8px 12px; color: #0a4d45; background: #edf4f1; }
 .reference-date-reassign small { display: block; margin-top: 8px; color: #5c6865; }

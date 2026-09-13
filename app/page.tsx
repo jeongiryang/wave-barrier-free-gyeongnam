@@ -1,7 +1,10 @@
 "use client";
 import { useSitePreferences } from "../components/SitePreferences";
 import SkipLink from "../components/SkipLink";
-import { LandingFooter } from "../features/landing/components/LandingClosing";
+import "./styles/landing-restored.css";
+import LandingDepartureScene from "../features/landing/components/LandingDepartureScene";
+import LandingCommunityScene from "../features/landing/components/LandingCommunityScene";
+import { LandingFooter, LandingCallToAction } from "../features/landing/components/LandingClosing";
 import LandingHeader from "../features/landing/components/LandingHeader";
 import LandingHero from "../features/landing/components/LandingHero";
 import LandingChapters from "../features/landing/components/LandingChapters";
@@ -15,9 +18,12 @@ export default function LandingPage() {
     <SkipLink href="#top">{t("skip", "본문으로 바로가기")}</SkipLink>
     <LandingHeader scrolled={false} t={t} />
     <LandingHero t={t} />
-    <LandingRegionStory />
     <LandingChapters />
+    <LandingRegionStory />
     <LandingAssistantStory />
+    <LandingDepartureScene />
+    <LandingCommunityScene />
+    <LandingCallToAction t={t} />
     <LandingFooter t={t} />
   </main></>;
 }

@@ -32,7 +32,7 @@ test("landing: first arrival never blocks planning, remembers completion and has
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
   await expect(scene).toHaveCSS("pointer-events", "none");
   await expect(scene).toHaveAttribute("aria-hidden", "true");
-  await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
   await expect(planning).toHaveAccessibleName("여행지 둘러보기");
   await planning.focus();
   await page.clock.runFor(2000);
@@ -52,7 +52,7 @@ test("landing: reduced motion exposes the real planning action immediately witho
   await prepareLandingMedia(page);
   await page.goto("/"); await storyReady(page);
   await expect(page.locator(".arrival-scene")).toBeHidden();
-  await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
   const planning = page.locator(".landing-actions a");
   await expectUsableTarget(planning);
   await expect(planning).toHaveAccessibleName("여행지 둘러보기");

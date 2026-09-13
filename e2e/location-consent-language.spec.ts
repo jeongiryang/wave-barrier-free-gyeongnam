@@ -30,8 +30,8 @@ for (const entry of ["toolbar", "panel"] as const) {
       await expect(page.locator("html")).toHaveAttribute("lang", "ko");
       if (entry === "panel") await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();
       const button = entry === "toolbar"
-        ? page.locator(".map-command-bar").getByRole("button", { name: locale === "en" ? "◎ My location" : "◎ 내 위치", exact: true })
-        : page.locator("#map-panel-route").getByRole("button", { name: locale === "en" ? /Start at my location/ : /현재 위치에서 출발/ });
+        ? page.locator(".map-command-bar").getByRole("button", { name: locale === "en" ? "Distance on this device" : "기기에서 거리 확인", exact: true })
+        : page.locator("#map-panel-route").getByRole("button", { name: locale === "en" ? /Distance on this device/ : /기기에서 거리 확인/ });
       let message = "";
       let routeRequests = 0;
       const observe = (request: { url(): string }) => { if (new URL(request.url()).pathname === "/api/route") routeRequests++; };
@@ -40,9 +40,9 @@ for (const entry of ["toolbar", "panel"] as const) {
       await button.focus();
       await page.keyboard.press("Enter");
       await expect.poll(() => message).not.toBe("");
-      expect(message).toContain(locale === "en" ? "Show your current location?" : "현재 위치를 표시할까요?");
-      expect(message).toContain(locale === "en" ? "Kakao" : "카카오");
-      expect(message).toContain(locale === "en" ? "public departure point" : "공개 출발 거점");
+      expect(message).toContain(locale === "en" ? "Check distance on this device?" : "이 기기에서 거리를 확인할까요?");
+      expect(message).toContain(locale === "en" ? "not sent to WAVE, map providers or Naru, or saved" : "WAVE 서버·지도 제공처·나루에 전송하거나 저장하지 않습니다");
+      expect(message).toContain(locale === "en" ? "selected public departure" : "선택한 공개 출발지");
       await expect(button).toBeFocused();
       const target = await button.boundingBox();
       expect(target).not.toBeNull();
