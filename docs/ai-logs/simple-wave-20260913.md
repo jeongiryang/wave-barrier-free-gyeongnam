@@ -3,7 +3,7 @@
 - 브랜치: `feat/simple-wave-20260913`
 - 작성자·제품 결정: 정이량 (`jeongiryang`)
 - AI 도구: Codex, 역할을 나눈 독립 QA 에이전트
-- 상태: PR #507의 두 차례 전체 CI 실패를 재현·보완했다. 수정 후보의 전체 CI와 main CD·Production 결과는 해당 PR에 이어 기록한다.
+- 상태: PR #507의 전체 CI 실패와 간헐 실패 원인을 재현·보완했다. 수정 후보의 전체 CI와 main CD·Production 결과는 해당 PR에 이어 기록한다.
 
 ## 목적과 결정
 
@@ -67,6 +67,16 @@ QA에서 지연 모듈이 열린 뒤 편집의 자동 저장 누락, 이동수�
 - 편의를 해제한 직후 출발 정보를 다시 조회하면 명시 조회 완료 뒤 250ms 자동 검색이 같은 조건으로 중복 실행되는 실제 결함을 고정된 시계로 재현했다. 수동 조회도 실제 지역·활동·시설 조건의 대기 검색을 소비하도록 수정했다. 자동 검색 완료 뒤 다시 조회하는 경우와 debounce 전에 즉시 조회하는 경우를 나누어 정확한 조건의 요청·완료 1회, 기존 여행과 빈 시설 선택 보존을 검증한다.
 
 수정 후 desktop/mobile workers 1·retries 0으로 출발/측정값 12개, 자동 검색·키보드·날짜 없는 탐색 14개, 사용 방법 2개가 모두 통과했다. 검색 관련 단위 검사 11개, typecheck, 변경 파일 lint, diff check도 통과했다. 최종 등록 사례는 1,480개다. 변경하지 않은 전체 로컬 검사·경로 102개를 다시 반복하지 않고 최종 PR의 전체 CI에서 검증한다. 필수 조건, 요청 정확성, CI timeout·shard·재시도·성능 예산은 낮추지 않았다.
+
+## 세 번째 전체 CI 이후 보완
+
+[세 번째 CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34755656774)는 등록 1,480개 중 1,478 PASS·1 FLAKY·기존 SKIP 1개였다. 단일 지도 검사는 재시도에서 통과했으나 `failOnFlakyTests`에 따라 browser와 validate가 실패했으며 병합하지 않았다. 나머지 7개 browser shard, quality와 sandbox-boundary는 통과했다.
+
+원본 trace에서 390px 변경 직후 `showItineraryMap`의 즉시 visible 조회가 false로 끝나 버튼을 누르지 않은 것을 확인했다. 최종 화면에는 정상적인 보기 전환이 나타났지만 시간표가 선택된 상태였다. 제품의 지도 전환 오류나 HMR이 아닌 검사 준비 경합이었다. 위치 동의와 같은 경합이 있는 지도 도구 검사에서 좁은 화면의 보기 전환 표시를 기다린 뒤 지도 선택·pressed 상태·실제 지도 표시를 확인하도록 이관했다. 공통 helper와 제품 소스는 바꾸지 않았고 timeout·retry·CI 조건은 유지했다. 기존 런타임 언어·GPS 거절 시 좌표 및 route 요청 0회·여행 보존·가로 넘침 검사를 유지하고 44px·1023/1024px·wide→390px 복귀를 확인한다.
+
+수정 후 위치 동의 양기기 4개, 지도 도구 KO/EN 양기기 4개가 통과했다. 위치 동의의 3회 반복 12개는 11 PASS와 화면 캡처 중 브라우저 연결 종료 1개였다. 종료는 시작 약 7.15초·해당 캡처 약 635ms에서 발생하여 45초 test deadline이 아니었고, 정확한 프로세스 종료 원인은 확인되지 않았다. 원본을 보존하고 해당 mobile 사례만 같은 assertion·retry 0으로 다시 확인해 PASS와 정상 browser exit 0을 확인했다. 이를 반복 전체 성공으로 합산하지 않는다. 변경 파일 lint·typecheck·diff check도 통과했으며 최종 전체 CI에서 간헐 실패 없이 완료되는지 다시 확인한다.
+
+기존 SKIP 1개는 `planner-product-flow.spec.ts`가 대표 desktop 프로젝트에서 세 뷰포트를 직접 검증하므로 mobile의 같은 실행을 생략하는 기존 계약이다.
 
 ## 배포 영향과 제한
 

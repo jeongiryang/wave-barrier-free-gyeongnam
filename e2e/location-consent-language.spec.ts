@@ -44,18 +44,40 @@ for (const entry of ["toolbar", "panel"] as const) {
       expect(message).toContain(locale === "en" ? "Kakao" : "카카오");
       expect(message).toContain(locale === "en" ? "public departure point" : "공개 출발 거점");
       await expect(button).toBeFocused();
+      const target = await button.boundingBox();
+      expect(target).not.toBeNull();
+      expect(target!.width).toBeGreaterThanOrEqual(44);
+      expect(target!.height).toBeGreaterThanOrEqual(44);
       expect(await page.evaluate(() => (window as unknown as { locationRequestCount(): number }).locationRequestCount())).toBe(0);
       expect(routeRequests).toBe(0);
       page.off("request", observe);
       expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-saved-places') || '[]'))).toHaveLength(1);
       if (entry === "panel") await page.locator("#map-panel-route").getByRole("button", { name: locale === "en" ? "Close departure and destination settings" : "출발지 목적지 설정 닫기", exact: true }).click();
     }
-    for (const width of [390, 960, 1366, 1440]) {
-      await page.setViewportSize({ width, height: 844 }); await showItineraryMap(page);
-      await page.locator(".route-map-shell").scrollIntoViewIfNeeded();
+    for (const [index, width] of [390, 960, 1023, 1024, 1366, 1440, 390].entries()) {
+      await page.setViewportSize({ width, height: 844 });
+      const view = page.getByRole('group', { name: '일정 보기 방식', exact: true });
+      // Resizing completes before the matchMedia change has necessarily
+      // rendered React's mobile controls. Await the actual new layout first.
+      if (width < 1024) {
+        await expect(view).toBeVisible();
+        await showItineraryMap(page);
+        await expect(view.getByRole('button', { name: '지도', exact: true })).toHaveAttribute('aria-pressed', 'true');
+        for (const control of await view.getByRole('button').all()) {
+          const target = await control.boundingBox();
+          expect(target).not.toBeNull();
+          expect(target!.width).toBeGreaterThanOrEqual(44);
+          expect(target!.height).toBeGreaterThanOrEqual(44);
+        }
+      } else await expect(view).toHaveCount(0);
+      await expect(page.locator('.simple-itinerary-board')).toHaveAttribute('data-map', 'true');
+      const map = page.locator('.route-map-shell');
+      await expect(map).toBeVisible();
+      await map.scrollIntoViewIfNeeded();
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-      await page.screenshot({ path: test.info().outputPath(`location-cancel-${entry}-${width}.png`) });
+      await page.screenshot({ path: test.info().outputPath(`location-cancel-${entry}-${index}-${width}.png`) });
     }
+    expect(await page.evaluate(() => (window as unknown as { locationRequestCount(): number }).locationRequestCount())).toBe(0);
     expect(errors).toEqual([]);
   });
 }

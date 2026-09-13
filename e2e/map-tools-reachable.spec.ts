@@ -67,7 +67,15 @@ for (const locale of ["ko", "en"]) {
     await expect(nav.getByRole("button")).toHaveCount(11);
     for (const width of [1440, 1024, 900, 768, 320]) {
       await page.setViewportSize({ width, height: 960 });
-    await showItineraryMap(page);
+      const view = page.getByRole('group', { name: '일정 보기 방식', exact: true });
+      // The first desktop-to-mobile resize must render its controls before
+      // the helper decides whether to select the previously hidden map.
+      if (width < 1024) {
+        await expect(view).toBeVisible();
+        await showItineraryMap(page);
+        await expect(view.getByRole('button', { name: '지도', exact: true })).toHaveAttribute('aria-pressed', 'true');
+      } else await expect(view).toHaveCount(0);
+      await expect(page.locator('.route-map-shell')).toBeVisible();
       await nav.scrollIntoViewIfNeeded();
       await expect.poll(() => page.evaluate(() => {
         const badge = document.querySelector(".map-provider-badge")!.getBoundingClientRect();
