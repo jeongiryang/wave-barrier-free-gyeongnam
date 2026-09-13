@@ -4,6 +4,8 @@ Only the WAVE server can authenticate. Never expose Ollama itself. No prompts,
 tokens, request bodies, or travel preferences are logged or persisted.
 """
 import hmac
+import base64
+import binascii
 import json
 import os
 import threading
@@ -36,6 +38,64 @@ FORMAT = {'type': 'object', 'properties': {
         'reason': {'type': 'string', 'enum': ['rain', 'fatigue', 'change', 'closed']}},
         'required': ['action'], 'additionalProperties': False}]}
 }, 'required': ['reply', 'proposal'], 'additionalProperties': False}
+PHOTO_FORMAT = {'type': 'object', 'properties': {'reply': {'type': 'string'}, 'proposal': {'type': 'null'}}, 'required': ['reply', 'proposal'], 'additionalProperties': False}
+
+
+def validate_photo_messages(messages):
+    has_photo = False
+    for index, message in enumerate(messages):
+        if 'images' not in message:
+            continue
+        images = message['images']
+        if index != len(messages) - 1 or message['role'] != 'user' or not isinstance(images, list) or len(images) != 1 or not isinstance(images[0], str) or len(images[0]) > 1066668:
+            raise ValueError('invalid_photo')
+        data = base64.b64decode(images[0], validate=True)
+        if len(data) > 800000 or data[:2] != b'\xff\xd8' or data[-2:] != b'\xff\xd9':
+            raise ValueError('invalid_photo')
+        offset, dimensions, scanned = 2, False, False
+        while offset + 1 < len(data):
+            if data[offset] != 255:
+                raise ValueError('invalid_photo')
+            marker = data[offset + 1]
+            offset += 2
+            if marker == 217:
+                if not dimensions or not scanned or offset != len(data):
+                    raise ValueError('invalid_photo')
+                break
+            if marker == 254 or 225 <= marker <= 239:
+                raise ValueError('photo_metadata')
+            length = int.from_bytes(data[offset:offset + 2], 'big')
+            if length < 2 or offset + length > len(data):
+                raise ValueError('invalid_photo')
+            if marker in (192, 193, 194):
+                height = int.from_bytes(data[offset + 3:offset + 5], 'big')
+                width = int.from_bytes(data[offset + 5:offset + 7], 'big')
+                if length < 8 or not 0 < width <= 1600 or not 0 < height <= 1600:
+                    raise ValueError('photo_dimensions')
+                dimensions = True
+            offset += length
+            if marker == 218:
+                if not dimensions:
+                    raise ValueError('invalid_photo')
+                scanned = True
+                while offset + 1 < len(data):
+                    if data[offset] != 255:
+                        offset += 1
+                        continue
+                    next_marker = data[offset + 1]
+                    if next_marker == 0 or 208 <= next_marker <= 215:
+                        offset += 2
+                        continue
+                    if next_marker == 255:
+                        offset += 1
+                        continue
+                    break
+        else:
+            raise ValueError('invalid_photo')
+        if not dimensions:
+            raise ValueError('invalid_photo')
+        has_photo = True
+    return has_photo
 
 
 class BoundedServer(ThreadingHTTPServer):
@@ -104,8 +164,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(404, {'error': 'not_found'})
         try:
             length = int(self.headers.get('Content-Length', '0'))
-            # The public API admits 24 KB, then adds bounded system/context data.
-            if not 0 < length <= 36000 or self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
+            # Public API bounds one re-encoded JPEG plus text/system data.
+            if not 0 < length <= 1120000 or self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
                 return self.respond(413, {'error': 'invalid_body'})
             body = json.loads(self.rfile.read(length))
             messages = body.get('messages')
@@ -114,7 +174,12 @@ class Handler(BaseHTTPRequestHandler):
             for message in messages:
                 if not isinstance(message, dict) or message.get('role') not in ('system', 'user', 'assistant') or not isinstance(message.get('content'), str) or len(message['content']) > 6000:
                     raise ValueError()
-        except (ValueError, TypeError, OSError, AttributeError):
+            has_photo = validate_photo_messages(messages)
+            if not has_photo and length > 36000:
+                raise ValueError()
+            # Do not forward unrecognised client fields to the local runtime.
+            messages = [{key: message[key] for key in ('role', 'content', 'images') if key in message} for message in messages]
+        except (ValueError, TypeError, OSError, AttributeError, binascii.Error):
             return self.respond(400, {'error': 'invalid_body'})
         with RATE_LOCK:
             now = time.monotonic()
@@ -126,9 +191,9 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(429, {'error': 'busy'})
         try:
             payload = {'model': MODEL, 'messages': messages, 'stream': False,
-                       'think': False, 'format': FORMAT, 'keep_alive': -1,
+                       'think': False, 'format': PHOTO_FORMAT if has_photo else FORMAT, 'keep_alive': -1,
                        'options': {'num_gpu': GPU_LAYERS, 'num_thread': 8, 'num_ctx': 8192, 'num_batch': 256, 'draft_num_predict': 0,
-                                   'num_predict': 320, 'temperature': 0}}
+                                   'num_predict': 900 if has_photo else 320, 'temperature': 0}}
             request = urllib.request.Request(OLLAMA + '/api/chat', data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json'})
             with urllib.request.urlopen(request, timeout=40) as response:
                 result = json.loads(response.read(32000))

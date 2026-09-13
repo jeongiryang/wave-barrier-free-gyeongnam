@@ -41,7 +41,7 @@ async function closingPhotoContrast(page: Page, failed: boolean) {
     // White is the brightest possible photograph or failed-image backing pixel.
     // For white text this gives the lowest contrast across every possible image.
     const backing = overlay.slice(0, 3).map(channel => channel * alpha + 255 * (1 - alpha));
-    const samples = [...root.querySelectorAll(":scope > .closing-eyebrow, :scope > p")].map(node => {
+    const samples = [...root.querySelectorAll(".landing-closing-copy > .closing-eyebrow, .landing-closing-copy > p")].map(node => {
       const foreground = getComputedStyle(node), box = node.getBoundingClientRect();
       return {
         text: (node.textContent || "").replace(/\s+/g, " ").trim().slice(0, 24),

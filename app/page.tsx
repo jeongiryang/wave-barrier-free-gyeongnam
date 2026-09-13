@@ -1,4 +1,6 @@
 "use client";
+import { useRef } from "react";
+import useLandingReveal from "../features/landing/hooks/useLandingReveal";
 import { useSitePreferences } from "../components/SitePreferences";
 import SkipLink from "../components/SkipLink";
 import "./styles/landing-restored.css";
@@ -14,7 +16,9 @@ import LandingAssistantStory from "../features/landing/components/LandingAssista
 
 export default function LandingPage() {
   const { t, locale } = useSitePreferences();
-  return <><LandingIntro /><main className="landing-page horizon-edition simple-landing" lang={locale}>
+  const root = useRef<HTMLElement>(null);
+  useLandingReveal(root);
+  return <><LandingIntro /><main ref={root} className="landing-page horizon-edition simple-landing" lang={locale}>
     <SkipLink href="#top">{t("skip", "본문으로 바로가기")}</SkipLink>
     <LandingHeader scrolled={false} t={t} />
     <LandingHero t={t} />
