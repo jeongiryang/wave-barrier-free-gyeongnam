@@ -1,3 +1,4 @@
+import { FACILITIES } from "../../lib/facility-selection.js";
 import type { AccessIconName } from "../../components/AccessIcons";
 import type { RoutePoint } from "../routing/types";
 import type { ApiStatus, TransportMode, TransportProviderState } from "./types";
@@ -41,14 +42,7 @@ export const departurePresets: Array<{ id: string; name: string; detail: string;
   { id: "tongyeong", name: "통영종합버스터미널", detail: "통영 시내 출발", point: { lat: 34.8680, lng: 128.4155 } },
 ];
 
-export const profiles: Array<{ id: string; icon: AccessIconName; label: string; short: string }> = [
-  { id: "wheel", icon: "wheel", label: "휠체어 편의시설", short: "주차·접근로·대여·승강기·화장실" },
-  { id: "senior", icon: "senior", label: "접근로와 승강기", short: "접근로·승강기·장애인 화장실" },
-  { id: "baby", icon: "baby", label: "유아 편의시설", short: "유모차·수유실·유아용 의자" },
-  { id: "pregnant", icon: "pregnant", label: "화장실과 실내 이동", short: "장애인 화장실·승강기·접근로" },
-  { id: "visual", icon: "visual", label: "시각 정보 지원", short: "점자·음성 안내" },
-  { id: "hearing", icon: "hearing", label: "청각 정보 지원", short: "수어·영상 안내" },
-];
+export const profiles: Array<{ id: string; icon: AccessIconName; label: string; short: string }> = FACILITIES.map(item => ({ id: item.key, icon: "senior", label: item.label, short: "" }));
 
 export const regions = [
   "경남 전체", "창원", "진주", "통영", "사천", "김해", "밀양", "거제", "양산",

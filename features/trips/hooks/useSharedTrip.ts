@@ -28,6 +28,13 @@ export function useSharedTrip() {
     return () => { window.clearTimeout(timeout); controller.abort("unmount"); };
   }, [params.id, retry]);
 
+  useEffect(() => {
+    if (!trip?.live) return;
+    const refresh = () => { if (document.visibilityState === 'visible') setRetry(value => value + 1); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
+  }, [trip?.live]);
   const scheduledDates = useMemo(() => trip ? [...new Set(Object.values(trip.selections.scheduleAssignments || {}).filter(Boolean))].sort() : [], [trip]);
   return { trip, error, scheduledDates, retry: () => setRetry((current) => current + 1) };
 }

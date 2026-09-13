@@ -27,7 +27,7 @@ export async function handleAvailability(request: Request, env: Env) {
     const detail = details[index];
     const place = placeFrom(item, detail?.ok ? detail.value.items[0] || {} : {}, region, Object.keys(profileFields), index);
     const confirmed = new Set(place.accessibility.filter(field => field.state === "confirmed").map(field => field.key));
-    return { id: place.id, profiles: Object.entries(profileFields).filter(([, fields]) => fields.some(([key]) => confirmed.has(key))).map(([id]) => id) };
+    return { id: place.id, facilityKeys: [...confirmed], profiles: Object.entries(profileFields).filter(([, fields]) => fields.every(([key]) => confirmed.has(key))).map(([id]) => id) };
   });
   return json({ region, themes, candidates, limit: 12, status: { state: candidates.length ? "live" : "empty", partial } }, 200, true);
 }

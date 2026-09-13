@@ -34,7 +34,7 @@ for (const path of ["/planner", "/community"]) {
       await page.setViewportSize({ width, height: 900 });
       await details.locator(".preference-panel").screenshot({ path: test.info().outputPath(`preferences-picker-${width}.png`) });
     }
-    await (path === "/planner" ? page.locator(".condition-heading") : page.getByRole("heading", { level: 1 })).click();
+    await (path === "/planner" ? page.getByRole("heading", { name: "어디로 갈까요?", exact: true }) : page.getByRole("heading", { level: 1 })).click();
     await expect(details).not.toHaveAttribute("open", "");
   });
 }

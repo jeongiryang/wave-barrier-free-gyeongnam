@@ -1,6 +1,6 @@
 import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi, chooseTripConditions } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions, openFirstPlaceMap, showItineraryMap } from "./fixtures";
 
 /**
  * 기본 이동 제어와 추가 지도 도구를 분리해도 원래 모든 동작에 닿아야 한다.
@@ -48,7 +48,7 @@ for (const locale of ["ko", "en"]) {
     await mockPlannerApi(page);
     await withKakaoStub(page);
     await page.goto("/planner");
-    await chooseTripConditions(page);
+    await chooseTripConditions(page); await openFirstPlaceMap(page);
     await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
     if (locale === "en") {
       await openSupportMenu(page);
@@ -67,6 +67,15 @@ for (const locale of ["ko", "en"]) {
     await expect(nav.getByRole("button")).toHaveCount(11);
     for (const width of [1440, 1024, 900, 768, 320]) {
       await page.setViewportSize({ width, height: 960 });
+      const view = page.getByRole('group', { name: '일정 보기 방식', exact: true });
+      // The first desktop-to-mobile resize must render its controls before
+      // the helper decides whether to select the previously hidden map.
+      if (width < 1024) {
+        await expect(view).toBeVisible();
+        await showItineraryMap(page);
+        await expect(view.getByRole('button', { name: '지도', exact: true })).toHaveAttribute('aria-pressed', 'true');
+      } else await expect(view).toHaveCount(0);
+      await expect(page.locator('.route-map-shell')).toBeVisible();
       await nav.scrollIntoViewIfNeeded();
       await expect.poll(() => page.evaluate(() => {
         const badge = document.querySelector(".map-provider-badge")!.getBoundingClientRect();
@@ -101,8 +110,9 @@ test("기본 지도 제어와 펼친 추가 도구가 모든 폭에서 잘리지
   await withKakaoStub(page);
   for (const width of [...WIDTHS, 280]) {
     await page.setViewportSize({ width, height: 900 });
+    await showItineraryMap(page);
     await page.goto("/planner");
-    await chooseTripConditions(page);
+    await chooseTripConditions(page); await openFirstPlaceMap(page);
     const nav = page.locator("nav.map-command-bar");
     await nav.scrollIntoViewIfNeeded();
     await expect(nav.getByRole("button")).toHaveCount(4);
@@ -128,7 +138,7 @@ test("추가 도구에는 지도 유형·주변·표시·로드뷰·이미지·�
   await mockPlannerApi(page);
   await withKakaoStub(page);
   await page.goto("/planner");
-  await chooseTripConditions(page);
+  await chooseTripConditions(page); await openFirstPlaceMap(page);
   await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
   const nav = page.locator("nav.map-command-bar");
   const options = nav.getByRole("group", { name: "추가 지도 도구", exact: true });
@@ -151,7 +161,7 @@ test("키보드로 추가 도구를 열고 닫으면 초점이 지도 도구 버
   await mockPlannerApi(page);
   await withKakaoStub(page);
   await page.goto("/planner");
-  await chooseTripConditions(page);
+  await chooseTripConditions(page); await openFirstPlaceMap(page);
   await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
   const nav = page.locator("nav.map-command-bar");
   const more = nav.getByRole("button", { name: "지도 도구", exact: true });
@@ -178,7 +188,7 @@ test("확대 지도에서 Escape는 안쪽 도구부터 닫고 숨겨진 제어�
   await withKakaoStub(page);
   await page.addInitScript(() => { HTMLElement.prototype.requestFullscreen = async () => { throw new DOMException("Controlled unsupported fullscreen", "NotSupportedError"); }; });
   await page.goto("/planner");
-  await chooseTripConditions(page);
+  await chooseTripConditions(page); await openFirstPlaceMap(page);
   await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
   const count = () => page.evaluate(() => (window as unknown as { mapToolbarFixture: { maps: number } }).mapToolbarFixture.maps);
   const initial = await count();

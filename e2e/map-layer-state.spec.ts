@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { openNearby, type MapLayerFixture } from "./nearby-fixtures";
+import { openNearby, addAnotherMapPlace, ensureMapView, openMapTool, type MapLayerFixture } from "./nearby-fixtures";
 
 async function currentMap(page: Page) {
   return page.evaluate(() => { const maps=(window as unknown as {mapLayerFixture:MapLayerFixture}).mapLayerFixture.maps; const map=maps.at(-1)!;return {count:maps.length,base:map.base,layers:map.layers}; });
@@ -26,8 +26,9 @@ test("alternative map clears Kakao layer claims and reconnection restores the re
   await page.locator('button[aria-controls="map-panel-layers"]').click();
   const traffic=page.locator("#map-panel-layers").getByRole("button",{name:"교통정보",exact:true});await traffic.click();
   await page.route("**/api/map-config",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({provider:"osm"})}));
-  await page.getByRole("button",{name:"용지호수공원 일정에 추가",exact:true}).click();
+  await addAnotherMapPlace(page);
   await expect(page.locator(".map-provider-badge.osm")).toBeVisible();
+  await openMapTool(page, "layers");
   await expect(sky).toHaveAttribute("aria-pressed","false");await expect(sky).toBeDisabled();await expect(traffic).toHaveAttribute("aria-pressed","false");
   await expect(traffic).toHaveAttribute("aria-disabled","true");await traffic.focus();await page.keyboard.press("Enter");await expect(traffic).toHaveAttribute("aria-pressed","false");
   await page.route("**/api/map-config",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({provider:"kakao",javascriptKey:"e2e-stub-key"})}));
@@ -46,15 +47,30 @@ for (const kind of ["base", "layer"]) test(`map ${kind} selection stays true whe
     await page.locator("#map-panel-layers").getByRole("button",{name:"교통정보",exact:true}).click();
   }
   const before=await currentMap(page);expect(before.base).toBe(3);if(kind==="layer")expect(before.layers).toEqual([4]);
-  await page.getByRole("button",{name:"용지호수공원 일정에 추가",exact:true}).click();
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(2);
+  await addAnotherMapPlace(page);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(2);
   await expect.poll(async()=>(await currentMap(page)).count).toBeGreaterThan(before.count);
+  await openMapTool(page, "layers");
+  await test.info().attach("map-settings-after-itinerary-change", { body: JSON.stringify({ before, after: await currentMap(page) }, null, 2), contentType: "application/json" });
   await expect(sky).toHaveAttribute("aria-pressed","true");
   expect((await currentMap(page)).base).toBe(3);
-  if(kind==="layer") {await expect(page.locator("#map-panel-layers").getByRole("button",{name:"교통정보",exact:true})).toHaveAttribute("aria-pressed","true");expect((await currentMap(page)).layers).toEqual([4]);}
+  if(kind==="layer") {await openMapTool(page, "layers");await expect(page.locator("#map-panel-layers").getByRole("button",{name:"교통정보",exact:true})).toHaveAttribute("aria-pressed","true");expect((await currentMap(page)).layers).toEqual([4]);}
+  if (kind === "layer") {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await ensureMapView(page);
+    const beforeToggle = await currentMap(page);
+    await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "시간표", exact: true }).click();
+    await expect(page.locator("#route-map-canvas")).not.toBeVisible();
+    await ensureMapView(page);
+    await openMapTool(page, "layers");
+    await expect(sky).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("#map-panel-layers").getByRole("button", { name: "교통정보", exact: true })).toHaveAttribute("aria-pressed", "true");
+    expect(await currentMap(page), "switching mobile timetable/map keeps the same SDK instance and applied settings").toEqual(beforeToggle);
+  }
 });
 
 for (const english of [false, true]) for (const theme of ["light", "dark"]) test(`map layer controls and recovery are accessible in ${english ? "English" : "Korean"} ${theme}`, async ({page},testInfo) => {
+  await page.setViewportSize({ width: 320, height: 568 });
   const nearby = await openNearby(page, english, theme);
   await nearby.getByRole("button", {name: english ? "Close nearby places" : "주변 장소 닫기", exact:true}).click();
   await page.locator('button[aria-controls="map-panel-layers"]').click();
@@ -63,6 +79,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   await traffic.click(); await expect(traffic).toHaveAttribute("aria-pressed","true");
   for (const [width,height] of [[320,568],[360,640],[390,844],[430,932],[768,1024],[1024,768],[1280,720],[1366,768],[1440,900],[1920,1080],[2560,1440]]) {
     await page.setViewportSize({width,height});
+    await ensureMapView(page);
     const buttons=panel.getByRole("button");await expect(buttons).toHaveCount(9);
     expect(await buttons.evaluateAll(bs=>bs.map(b=>({name:b.textContent,width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height,scroll:b.scrollWidth,client:b.clientWidth})).filter(b=>b.width<44||b.height<44||b.scroll>b.client+1)),`${width}px ${theme} controls`).toEqual([]);
     const close=panel.getByRole("button",{name:english ? "Close map settings" : "지도 설정 닫기",exact:true});await close.focus();
@@ -77,6 +94,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   const retry=page.getByRole("button",{name:english ? "Reapply map settings" : "지도 설정 다시 적용",exact:true});
   for(const width of [390,1366]) {
     await page.setViewportSize({width,height:844});
+    await ensureMapView(page);
     await page.locator('.map-command-primary button[aria-controls="map-panel-route"]').focus();
     await page.keyboard.press("Shift+Tab"); await expect(retry).toBeFocused();
     expect(await retry.evaluate(b=>{const r=b.getBoundingClientRect();return r.width>=44&&r.height>=44&&b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));})).toBe(true);

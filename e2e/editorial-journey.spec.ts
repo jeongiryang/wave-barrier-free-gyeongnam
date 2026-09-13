@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { storyReady } from "./landing-contract";
 
 for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editorial introduction and working pages remain readable in ${theme}, size ${size}`, async ({ page }) => {
   await mockPublicShellApi(page);
@@ -19,8 +20,8 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     const width = widths[size];
     await page.setViewportSize({ width, height: 960 });
     await page.goto("/");
-    await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
-    for (const id of ["story", "community"]) {
+    await storyReady(page);
+    for (const id of ["top", "regions", "story", "naru"]) {
       const scene = page.locator(`#${id}`);
       await scene.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
       await expect(scene).toBeVisible();
@@ -28,25 +29,40 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await scene.screenshot({ path: test.info().outputPath(`${id}-${theme}-${width}.png`) });
     }
-    await expect(page.locator("main")).not.toContainText(/작성 예시|실제 게시된 글이 아닙니다|다시보기/);
+    await expect(page.locator(".simple-product-preview")).toContainText("화면 예시");
+    await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
     await page.goto("/planner");
-    await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
-    await expect(page.locator('.region-picker-list [aria-pressed="true"]')).toHaveCount(0);
-    await expect(page.locator(".reference-region-card")).toHaveCount(3);
-    await page.locator(".condition-region-field > button").click();
-    await expect(page.locator(".region-picker-list button")).toHaveCount(19);
+    const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
+    await expect(region).toBeEnabled();
+    await expect(region).toHaveValue("");
+    const regionCards = page.locator(".simple-region-entry .simple-region-link");
+    await expect(regionCards).toHaveCount(6);
+    await expect(page.locator('.simple-region-entry [aria-pressed="true"]')).toHaveCount(0);
+    await page.getByRole("button", { name: "전체 18개 지역", exact: true }).click();
+    await expect(regionCards).toHaveCount(18);
     expect((await new AxeBuilder({ page }).include("#planner").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`region-${theme}-${width}.png`), fullPage: true });
-    await page.getByRole("button", { name: "통영", exact: true }).click();
-    await expect(page.getByRole("button", { name: "통영 지역 선택" })).toHaveAttribute("aria-pressed", "true");
-    await page.locator(".theme-grid button").first().click();
-    await page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 선택", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "어떤 편의가 필요할까요?", exact: true })).toBeFocused();
-    await page.locator(".profile-card").first().click();
-    await expect(page.locator(".profile-card.active")).toHaveCount(1);
-    expect((await new AxeBuilder({ page }).include("#planner").analyze()).violations).toEqual([]);
+    await page.getByRole("button", { name: "통영 지역 선택", exact: true }).click();
+    await expect(region).toHaveValue("통영");
+    await expect(page.locator(".simple-place-row")).toHaveCount(2);
+    const activity = page.getByRole("group", { name: "하고 싶은 활동", exact: true }).getByRole("button").first();
+    await activity.click();
+    await expect(activity).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", { name: "필요한 편의", exact: true }).click();
+    const picker = page.getByRole("dialog", { name: "필요한 편의", exact: true });
+    await expect(picker.getByRole("heading", { name: "필요한 편의", exact: true })).toBeFocused();
+    await picker.getByRole("checkbox", { name: "접근로", exact: true }).check();
+    await expect(picker.getByRole("checkbox", { checked: true })).toHaveCount(1);
+    // A checkbox is a reviewable draft; opening and editing this dialog must
+    // not persist personal facility needs before the explicit apply action.
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem("wave-session-facilities-v1") || "[]"))).toEqual([]);
+    expect((await new AxeBuilder({ page }).include(".simple-facility-picker").analyze()).violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: test.info().outputPath(`facilities-${theme}-${width}.png`), fullPage: true });
+    await picker.getByRole("button", { name: "적용 · 1개", exact: true }).click();
+    await expect(picker).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeFocused();
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem("wave-session-facilities-v1") || "[]"))).toEqual(["route"]);
     await page.goto("/community");
     await expect(page.locator(".community-state")).toContainText("아직 등록된");
     if (width >= 390) {
@@ -72,14 +88,21 @@ test("English travel pages identify original Korean photography and community co
   const bitmap = await readFile("public/media/wave-story/hero-coast-small.webp");
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: bitmap }));
   await page.goto("/");
+  await storyReady(page);
   await expect(page.locator(".landing-page")).toHaveAttribute("lang", "en");
-  await expect(page.locator(".horizon-account-photo img")).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".horizon-account-photo figcaption")).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".horizon-account-photo figcaption a").first()).toContainText("사진 원본");
+  await expect(page.locator(".landing-hero-landscape img")).toHaveAttribute("lang", "ko");
+  await expect(page.locator(".landing-hero-landscape figcaption")).toHaveAttribute("lang", "ko");
+  await expect(page.locator(".landing-hero-landscape figcaption a").first()).toContainText("사진 원본");
   await page.goto("/planner");
-  await expect(page.locator(".region-picker-list")).toHaveAccessibleName("Choose a region");
-  await expect(page.locator(".reference-region-card img").first()).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".reference-region-card img")).toHaveCount(6);
+  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toBeEnabled();
+  const cards = page.locator(".simple-region-entry .simple-region");
+  await expect(cards).toHaveCount(6);
+  expect(await cards.locator("h3").allTextContents()).toEqual(["통영", "거제", "남해", "진주", "창원", "하동"]);
+  // The photos are decorative beside visible place names; Korean names and
+  // original photographer credits still need their own language boundary.
+  expect(await cards.locator("img").evaluateAll(nodes => nodes.every(node => node.getAttribute("alt") === ""))).toBe(true);
+  expect(await cards.locator(".simple-region-link, .simple-region-credit").evaluateAll(nodes => nodes.every(node => node.closest("[lang]")?.getAttribute("lang") === "ko"))).toBe(true);
+  await expect(page.getByRole("button", { name: "All 18 regions", exact: true })).toBeVisible();
   await page.goto("/community");
   await expect(page.locator(".community-editorial")).toHaveAttribute("lang", "ko");
   await expect(page.locator(".community-editorial h1")).toContainText("여행은 끝나도");

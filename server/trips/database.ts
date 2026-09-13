@@ -23,6 +23,7 @@ export const ensureTripDatabase = createSchemaBootstrap(async (): Promise<TripSq
     created_at BIGINT NOT NULL,
     expires_at BIGINT NOT NULL
   )`;
+  await sql`ALTER TABLE itineraries ADD COLUMN IF NOT EXISTS live BOOLEAN NOT NULL DEFAULT FALSE, ADD COLUMN IF NOT EXISTS revision INTEGER NOT NULL DEFAULT 1, ADD COLUMN IF NOT EXISTS owner_id TEXT, ADD COLUMN IF NOT EXISTS manage_hash TEXT, ADD COLUMN IF NOT EXISTS revoked BOOLEAN NOT NULL DEFAULT FALSE`;
   await sql`CREATE INDEX IF NOT EXISTS itineraries_expires_idx ON itineraries (expires_at)`;
   await sql`CREATE INDEX IF NOT EXISTS itineraries_created_idx ON itineraries (created_at)`;
   await sql`CREATE TABLE IF NOT EXISTS place_feedback (

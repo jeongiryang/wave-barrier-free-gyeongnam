@@ -48,15 +48,17 @@ test("planner page delegates derived data and browser lifecycles to feature modu
   assert.match(actions, /import \{ mapPlaceToPlannerPlace, richSpotToPlace \}/);
   assert.match(placeAdapters, /export function richSpotToPlace/);
   assert.match(placeAdapters, /export function mapPlaceToPlannerPlace/);
-  assert.match(dialogFocus, /previousFocus\.focus\(\)/);
-  assert.match(dialogFocus, /dialog.showModal\(\)/);
+  assert.match(dialogFocus, /previousFocus\?\.isConnected && previousFocus\.getClientRects\(\)\.length\) previousFocus\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(dialogFocus, /if \(sidePanel && media\.matches\) \{ dialog\.show\(\)/);
+  assert.match(dialogFocus, /else \{ dialog\.showModal\(\)/);
+  assert.match(dialogFocus, /if \(sidePanel && media\.matches\) \{[^\n]*event\.key === 'Escape'[^\n]*return/);
+  assert.match(dialogFocus, /media\.removeEventListener\(['"]change['"], present\)/);
   assert.match(requestFlow, /planRequestRef\.current\?\.abort\(\)/);
 });
 
 test("planner route composes feature sections instead of owning their dense UI", async () => {
   const page = await source("app/planner/page.tsx");
   for (const component of [
-    "PlannerServiceStatus",
     "PlannerConditionsPanel",
     "RecommendationWorkspace",
     "PlannerItineraryWorkspace",
@@ -65,6 +67,10 @@ test("planner route composes feature sections instead of owning their dense UI",
   ]) {
     assert.match(page, new RegExp(`<${component}`));
   }
+  assert.match(page, /<PlannerReferenceChrome/);
+  assert.match(page, /<PlannerStagePortal host=\{assistantOpen \? assistantHost : null\}>\{plannerStages\}/);
+  assert.match(page, /<details className="simple-departure"[^>]*open=\{departureDetailsOpen \|\| journey\.activeStepId === "departure-readiness"\}/);
+  assert.match(await source("features/planner/components/PlannerHeader.tsx"), /<TripStorageNotice snapshot=\{storageSnapshot\}/);
   assert.doesNotMatch(page, /className="planner-bento"|className="place-carousel"|className="weather-board"|className="navigation-workspace"|className="api-bento"/);
 });
 

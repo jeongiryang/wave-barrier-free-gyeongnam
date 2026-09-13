@@ -1,96 +1,101 @@
 import { expect, test } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { prepareStory, storyReady, firstRegions, expectNoOverflow } from "./landing-contract";
 
-test("compact first step preserves an existing trip when replacing the old overview preference", async ({ page }) => {
+test("compact browsing preserves an existing undated trip when replacing the old overview preference", async ({ page }) => {
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner");
-  await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
+  await expect(region).toBeEnabled(); await region.selectOption("창원");
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  const saved = await page.evaluate(() => localStorage.getItem("wave-current-trip-v1"));
   await page.evaluate(() => {
     localStorage.removeItem("wave-planner-stage-view-v2");
     localStorage.setItem("wave-planner-stage-view-v1", "overview");
     sessionStorage.removeItem("wave-planner-active-step-v1");
   });
-  // The fixture does not overwrite the same traveller's saved view on navigation.
   await page.goto("/planner?question=0#conditions");
-  await expect(page.locator(".journey-stage-stream")).toHaveAttribute("data-view", "guided");
-  await expect(page.locator(".reference-region-card")).toHaveCount(3);
-  await expect(page.locator(".condition-date-disclosure")).not.toHaveAttribute("open");
+  await expect(page.locator(".simple-browse-view")).toBeVisible();
+  await expect(page.locator(".journey-mode-toggle, .planner-navigation")).toHaveCount(0);
+  await expect(page.locator('.simple-browse-view input[type="date"]')).toHaveCount(0);
   await expect(page.locator(".wave-trip-count")).toHaveText("1");
-  await page.getByRole("button", { name: /내 여행/ }).first().click();
-  await expect(page.locator(".reference-day-list")).toContainText("경남도립미술관");
+  await page.getByRole("button", { name: /내 여행, 담은 장소 1곳/ }).click();
+  await expect(page.locator(".simple-initial-setup")).toContainText("경남도립미술관");
+  expect(await page.evaluate(() => localStorage.getItem("wave-current-trip-v1"))).toBe(saved);
 });
 
-test("dates can be edited before saving a place and return to the first step", async ({ page }) => {
+test("dates are chosen after collecting places and an unapplied date draft survives returning to browsing", async ({ page }) => {
   await mockPublicShellApi(page);
-  await mockPlannerApi(page, { plannerView: "guided" });
+  await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner?question=3#conditions");
-  await expect(page.getByRole("heading", { name: "언제 떠날까요?", exact: true })).toBeVisible();
-  const start = page.locator(".reference-date-fields input").first();
-  const date = await start.inputValue();
-  await page.getByRole("button", { name: "여행 조건으로 돌아가기", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "경남, 어디부터 가볼까요?", exact: true })).toBeFocused();
-  await expect(page.locator(".condition-date-disclosure summary")).toContainText(date);
-  await expect(page.locator(".reference-journey-views")).toHaveCount(0);
+  await expect(page.locator(".simple-region-entry h2")).toHaveText("어디로 갈까요?");
+  await expect(page.locator("#planner .simple-region-link")).toHaveCount(6);
+  const screens = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  await expect(screens.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await screens.getByRole("button", { name: /^내 일정/ }).click();
+  const setup = page.locator(".simple-initial-setup");
+  await expect(setup.getByRole("heading", { name: "언제 떠날까요?", exact: true })).toBeVisible();
+  await setup.getByLabel("시작일", { exact: true }).fill("2026-09-20");
+  await setup.getByLabel("마지막 날", { exact: true }).fill("2026-09-21");
+  await screens.getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await expect(page.locator(".simple-results")).toBeVisible();
+  const schedule = await page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values?.["wave-trip-schedule-v1"] || "{}"));
+  expect(schedule).toMatchObject({ travelStart: "", travelEnd: "", scheduleAssignments: {} });
+  await screens.getByRole("button", { name: /^내 일정/ }).click();
+  await expect(setup.getByLabel("시작일", { exact: true })).toHaveValue("2026-09-20");
+  await expect(setup.getByLabel("마지막 날", { exact: true })).toHaveValue("2026-09-21");
+  await expect(page.locator(".journey-mode-toggle, .reference-journey-views")).toHaveCount(0);
 });
 
-test("landscape film follows scrolling, yields to controls, and releases with reduced motion", async ({ page }) => {
-  await mockPublicShellApi(page);
-  await mockPlannerApi(page);
+test("landing: region browsing follows ordinary scrolling and keeps focused choices when motion is reduced", async ({ page }) => {
+  await prepareStory(page);
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
-  await page.goto("/");
-  const region = page.locator("#regions"), rails = region.locator(".region-card-rail");
-  await expect(rails).toHaveCount(2);
-  await expect(region).toHaveAttribute("data-film", "true");
-  const scrollProgress = (progress: number) => region.evaluate((el, fraction) => {
-    const sticky = (el as HTMLElement).dataset.filmSticky === "true";
-    const start = scrollY + el.getBoundingClientRect().top - (sticky ? 116 : innerHeight);
-    const range = sticky ? (el as HTMLElement).offsetHeight - (innerHeight - 116) : (el as HTMLElement).offsetHeight + innerHeight - 116;
-    window.scrollTo({ top: start + range * fraction, behavior: "instant" });
-  }, progress);
-  await scrollProgress(.2);
-  await expect.poll(() => rails.last().evaluate(el => el.scrollLeft)).toBe(0);
-  const initial = await rails.first().evaluate(el => el.scrollLeft);
-  await scrollProgress(.4);
-  await expect.poll(() => rails.first().evaluate(el => el.scrollLeft)).toBeLessThan(initial);
-  await expect.poll(() => rails.last().evaluate(el => el.scrollLeft)).toBe(0);
-  await scrollProgress(.7);
-  await expect.poll(() => rails.first().evaluate(el => el.scrollLeft)).toBe(0);
-  await expect.poll(() => rails.last().evaluate(el => el.scrollLeft)).toBeGreaterThan(100);
-  await expect(page.locator('.story-progress [aria-current="location"]')).toHaveAttribute("href", "#regions");
-  await region.getByRole("button", { name: "다음 지역", exact: true }).click();
-  await expect(region.locator("[data-region-stage]")).toHaveAttribute("data-active-region", "하동");
-  const manual = await rails.evaluateAll(rows => rows.map(row => row.scrollLeft));
-  await page.evaluate(() => window.scrollBy({ top: 90, behavior: "instant" }));
-  await expect.poll(() => rails.evaluateAll(rows => rows.map(row => row.scrollLeft))).toEqual(manual);
+  await page.goto("/"); await storyReady(page);
+  const region = page.locator("#regions"), cards = region.locator(".simple-region");
+  await expect(cards.locator("h3")).toHaveText(firstRegions);
+  await region.getByRole("button", { name: "18개 지역 모두 보기", exact: true }).press("Enter");
+  await expect(cards).toHaveCount(18);
+  const last = cards.last().locator(".simple-region-link");
+  await last.focus();
+  const destination = await last.getAttribute("href");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(region).toHaveAttribute("data-film", "false");
-  await expect(region.locator(".region-showcase-stage")).toHaveCSS("position", "relative");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  await expect(last).toBeFocused();
+  await expect(last).toHaveAttribute("href", destination!);
+  const before = await region.evaluate(node => ({ top: node.getBoundingClientRect().top, scroll: scrollY }));
+  await page.evaluate(() => scrollBy({ top: -90, behavior: "instant" }));
+  const after = await region.evaluate(node => ({ top: node.getBoundingClientRect().top, scroll: scrollY }));
+  expect(Math.abs(after.top - before.top + after.scroll - before.scroll)).toBeLessThanOrEqual(1);
+  expect(await region.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
+  await expectNoOverflow(page);
 });
 
-test("automatic album changes do not recenter a film owned by vertical scrolling", async ({ page }) => {
-  await mockPublicShellApi(page); await mockPlannerApi(page);
+test("landing: reading a region never rotates its photo, changes its destination or recentres the page", async ({ page }) => {
+  await prepareStory(page);
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.clock.install();
-  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
-  await page.goto("/");
-  const region = page.locator("#regions"), stage = region.locator("[data-region-stage]"), rails = region.locator(".region-card-rail");
-  await expect(region).toHaveAttribute("data-film", "true");
-  await region.evaluate(el => scrollTo({ top: scrollY + el.getBoundingClientRect().top - 116, behavior: "instant" }));
-  await page.clock.runFor(100);
-  await expect(stage).toHaveAttribute("data-running", "true");
-  const offsets = await rails.evaluateAll(rows => rows.map(row => row.scrollLeft));
-  const count = Number(await stage.locator(".region-photo-album").getAttribute("data-photo-count"));
-  for (let index = 0; index < count; index++) await page.clock.fastForward(4001);
-  await expect(stage).toHaveAttribute("data-active-region", "하동");
-  expect(await rails.evaluateAll(rows => rows.map(row => row.scrollLeft))).toEqual(offsets);
-  await page.evaluate(() => scrollBy({ top: 2, behavior: "instant" }));
-  await page.clock.runFor(32);
-  const moved = await rails.evaluateAll(rows => rows.map(row => row.scrollLeft));
-  for (let index = 0; index < 2; index++) expect(Math.abs(moved[index] - offsets[index])).toBeLessThan(10);
+  await page.goto("/"); await storyReady(page);
+  const cards = page.locator(".simple-region"), focused = cards.nth(4).locator(".simple-region-link");
+  // Establish a reading position without sampling native smooth-focus scrolling
+  // halfway through its movement. The subsequent <=1px hold stays strict.
+  await focused.evaluate(node => {
+    node.scrollIntoView({ block: "center", behavior: "instant" });
+    (node as HTMLElement).focus({ preventScroll: true });
+  });
+  await expect.poll(() => page.locator("#regions").evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
+  const original = await cards.evaluateAll(nodes => nodes.map(node => ({
+    name: node.querySelector("h3")?.textContent, href: node.querySelector("a")?.getAttribute("href"), image: node.querySelector("img")?.getAttribute("src"),
+  })));
+  const scroll = await page.evaluate(() => scrollY);
+  await page.clock.fastForward(60_000);
+  await expect(focused).toBeFocused();
+  expect(Math.abs(await page.evaluate(() => scrollY) - scroll)).toBeLessThanOrEqual(1);
+  expect(await cards.evaluateAll(nodes => nodes.map(node => ({
+    name: node.querySelector("h3")?.textContent, href: node.querySelector("a")?.getAttribute("href"), image: node.querySelector("img")?.getAttribute("src"),
+  })))).toEqual(original);
+  await expectNoOverflow(page);
 });

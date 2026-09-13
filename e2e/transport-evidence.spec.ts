@@ -1,10 +1,10 @@
-import { openSupportMenu } from "./support-menu";
+import { openPlannerMap, openRouteDetails, changeMapLanguage, ensureMapView } from "./nearby-fixtures";
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "unknown" | "arrival", english = false, snapshot?: { retrievedAt?: string }, beforeConditions?: () => Promise<void>) {
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.addInitScript((en) => localStorage.setItem("wave-locale", en ? "en" : "ko"), english);
   await page.emulateMedia({ reducedMotion: "reduce" });
   const arrival = {
@@ -26,13 +26,11 @@ async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "
   }) }));
   await page.goto("/planner");
   await beforeConditions?.();
-  if (english) {
-    await page.getByRole("button", { name: "Changwon", exact: true }).click();
-    await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-    await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-    await page.getByRole("button", { name: "Find places →", exact: true }).click();
-  } else await chooseTripConditions(page);
-  await page.getByRole("button", { name: english ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: english ? "경남도립미술관 add to itinerary" : "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
+  await page.locator(".reference-transport-details > summary").click();
   await page.locator(".transport-details > summary").click();
   const details = page.locator(".transport-details");
   await details.locator(".transport-dataset-grid").getByRole("button", { name: english ? /Bus arrivals/ : /버스도착/ }).click();
@@ -53,7 +51,7 @@ for (const fails of [false, true]) test(`transport summary loads after data and 
   expect(modules).toBe(1);
   await expect(details.locator(".transport-data-panel")).toContainText("도착시간 미확인");
   await expect(details.getByRole("button", { name: "현재 조건 다시 확인", exact: true })).toBeEnabled();
-  await expect(page.getByRole("button", { name: "경남도립미술관 일정에서 빼기", exact: true })).toHaveAttribute("aria-pressed", "true");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
   expect((await new AxeBuilder({ page }).include(".transport-data-panel").include(".transport-summary-note").analyze()).violations).toEqual([]);
 });
 
@@ -85,8 +83,9 @@ for (const english of [false, true]) for (const knownTime of [true, false]) {
     await expect.poll(() => requests).toBe(1);
     await expect(panel).toContainText(english ? "At retrieval: 2 min" : "조회 당시 2분");
     if (knownTime) await expect(panel.locator("time")).toHaveAttribute("datetime", retrievedAt!);
-    await expect(page.getByRole("button", { name: english ? "경남도립미술관 Remove from itinerary" : "경남도립미술관 일정에서 빼기", exact: true })).toHaveAttribute("aria-pressed", "true");
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
     if (!isMobile) await page.setViewportSize({ width: english ? 1440 : 960, height: 900 });
+    await ensureMapView(page);
     await panel.scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     expect((await new AxeBuilder({ page }).include(".transport-data-panel").include(".transport-live-rail").analyze()).violations).toEqual([]);
@@ -138,15 +137,10 @@ test("changing language preserves the selected transport dataset without queryin
   const details = await prepare(page, "empty", true);
   await details.locator(".transport-dataset-grid").getByRole("button", { name: /Rail service areas/ }).click();
   const before = requests;
-  await page.keyboard.press("Control+Home");
-  await openSupportMenu(page);
-  const preferences = page.locator(".preference-controls:visible");
-  await openSupportMenu(page);
-  await preferences.getByLabel("Open preferences", { exact: true }).click();
-  await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
+  await changeMapLanguage(page, false);
   await expect(details.locator('button[aria-pressed="true"]')).toContainText("철도 지역코드");
   await expect(details.locator(".transport-data-panel")).toContainText("지역코드 2개");
-  await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+  await changeMapLanguage(page, true);
   await expect(details.locator('button[aria-pressed="true"]')).toContainText("Rail service areas");
   await expect(details.locator(".transport-data-panel")).toContainText("2 area codes");
   expect(requests).toBe(before);
@@ -196,6 +190,7 @@ for (const theme of ["light", "dark"] as const) {
     expect(errors).toEqual([]);
     for (const width of [320, 390, 768, 1366]) {
       await page.setViewportSize({ width, height: 900 });
+      await ensureMapView(page);
       const pieces = page.locator(".transport-provider-strip b, .transport-data-results span, .transport-live-rail strong, .transport-mode-filter small");
       expect(await pieces.evaluateAll((elements) => elements.every((element) => !element.clientWidth || element.scrollWidth <= element.clientWidth))).toBe(true);
       for (const control of await details.locator("button,a,summary").all()) {
@@ -223,18 +218,22 @@ for (const theme of ["light", "dark"] as const) {
 test("transport details load on demand and a failed module leaves an accessible recovery", async ({ page }) => {
   let modules = 0;
   await page.route("**/TransportDetailsContents.tsx*", (route) => { modules += 1; return route.abort(); });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
   await page.goto("/planner");
   expect(modules).toBe(0);
-  await page.getByRole("button", { name: "Changwon", exact: true }).click();
-  await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-  await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-  await page.getByRole("button", { name: "Find places →", exact: true }).click();
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 add to itinerary", exact: true }).click();
   expect(modules).toBe(0);
+  await openPlannerMap(page);
+  await openRouteDetails(page);
+  await page.locator(".reference-transport-details > summary").click();
   await page.locator(".transport-details > summary").click();
   await expect(page.getByRole("status").filter({ hasText: "Transport details could not open" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reload this page", exact: true })).toBeVisible();
   expect(modules).toBeGreaterThan(0);
-  await expect(page.getByRole("button", { name: "경남도립미술관 Add to itinerary", exact: true })).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
+  const timetable = page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "시간표", exact: true });
+  if (await timetable.count()) await timetable.click();
+  await expect(page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true })).toBeEnabled();
 });

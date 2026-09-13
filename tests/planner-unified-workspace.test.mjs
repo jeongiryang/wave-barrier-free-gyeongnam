@@ -13,7 +13,9 @@ test("planner keeps photo restore secondary and uses one saved-place itinerary",
   ]);
   assert.doesNotMatch(page, /PhotoCourseRestore/);
   assert.match(page, /className="planner-journey-workspace"/);
-  assert.match(header, /<h1>.*우리의 속도로, 여행을 만들어요\./);
+  assert.match(header, /<h1>여행 설계<\/h1>/);
+  assert.match(header, /여행지 찾기/);
+  assert.match(header, /내 일정\{savedCount > 0/);
   assert.match(page, /<PlannerConditionsPanel/);
   assert.match(page, /<RecommendationWorkspace/);
   assert.match(page, /<PlannerItineraryWorkspace/);
@@ -21,7 +23,17 @@ test("planner keeps photo restore secondary and uses one saved-place itinerary",
   assert.match(page, /<TravelSignalsPanel/);
   assert.doesNotMatch(page, /PlannerResultsPanel|PlannerRouteOverview|PlannerEvidencePanel/);
   assert.match(itinerary, /<TripDayPlanner/);
+  const ts = (await import("typescript")).default;
+  const ast = ts.createSourceFile("PlannerItineraryWorkspace.tsx", itinerary, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const boards = [];
+  const visit = node => { if (ts.isJsxSelfClosingElement(node) && node.tagName.getText(ast) === "PlannerItineraryBoard") boards.push(node); ts.forEachChild(node, visit); };
+  visit(ast);
+  assert.equal(boards.length, 1, "the itinerary must have one real board");
+  const tripBinding = boards[0].attributes.properties.find(attribute => ts.isJsxAttribute(attribute) && attribute.name.getText(ast) === "trip");
+  assert.equal(tripBinding?.initializer?.getText(ast), "{props.tripSelection}");
   assert.match(itinerary, /<NavigationWorkspace/);
+  assert.match(itinerary, /activePlaces=\{navigationPlaces\}/);
+  assert.match(itinerary, /props\.tripSelection\.orderedSavedPlaces\.filter/);
   assert.doesNotMatch(header, /href="\/photo-course"/);
   assert.match(photoPage, /<PhotoCourseRestore/);
 });

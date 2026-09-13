@@ -32,7 +32,7 @@ function TravelList({ userId }: { userId: string }) {
     {!loading && !error && !trips.length && <section className="travel-book-empty"><span aria-hidden="true">＋</span><h2>함께 떠날 첫 여행을 만들어 보세요.</h2><p>여행 계획에서 장소를 담고 ‘계정에 저장’을 누르세요.</p><small>기존 일정은 직접 고른 여행만 계정으로 가져옵니다.</small></section>}
     {trips.map(trip => <article className="travel-book-card" key={trip.id}>
       <div className="travel-book-cover"><span aria-hidden="true">W</span><div><small>{trip.role === "owner" ? "내가 만든 여행" : "함께하는 여행"}</small><strong>{trip.payload.region}</strong></div></div>
-      <div className="travel-book-card-body"><header><div><span>{trip.payload.status === "visited" ? "다녀온 여행" : "다가오는 여행"}</span><h2>{trip.payload.title}</h2><p>{trip.payload.travelStart} — {trip.payload.travelEnd}</p></div></header><p>여행지 {trip.payload.placeIds.length}곳 · {trip.role === "owner" ? "일정 편집과 동행자 초대" : "장소 투표와 의견 나누기"}</p><OpenTripInPlanner id={trip.id} payload={trip.payload} /><div className="travel-book-actions"><Link href={`/my-trips/${trip.id}`}>계정 일정·동행 관리</Link></div></div>
+      <div className="travel-book-card-body"><header><div><span>{trip.payload.status === "visited" ? "다녀온 여행" : "다가오는 여행"}</span><h2>{trip.payload.title}</h2><p>{trip.payload.travelStart} — {trip.payload.travelEnd}</p></div></header><p>여행지 {trip.payload.placeIds.length}곳 · {trip.role === "owner" ? "일정 편집과 동행자 초대" : "장소 투표와 의견 나누기"}</p><OpenTripInPlanner revision={trip.revision} role={trip.role} id={trip.id} payload={trip.payload} /><div className="travel-book-actions"><Link href={`/my-trips/${trip.id}`}>계정 일정·동행 관리</Link></div></div>
     </article>)}
   </>;
 }

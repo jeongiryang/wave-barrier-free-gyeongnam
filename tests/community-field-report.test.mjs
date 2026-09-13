@@ -68,7 +68,7 @@ test("여행자 제보는 공식 근거와 별도 저장·표시되고 실제 �
     source("features/community/components/CommunityFieldReportEditor.tsx"),
     source("features/community/components/CommunityFieldReport.tsx"),
     source("features/community/components/CommunityBoard.tsx"),
-    source("features/planner/components/TripDayPlanner.tsx"),
+    source("features/planner/components/PlannerItineraryWorkspace.tsx"),
     source("migrations/005_community_field_reports.sql"),
   ]);
   assert.match(database, /field_reports JSONB/);

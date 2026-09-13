@@ -24,7 +24,7 @@ type Attempt = Awaited<ReturnType<typeof fetchCrowd>>;
 const overBudget = (): Attempt => ({ ok: false, error: "예산 시간 안에 확인하지 못했습니다." });
 
 export async function buildPlan(request: Request, env: Env) {
-  const { region, themes, locale, language, profiles, districts, barrierLocationParams, localizedLocationParams } = readPlanQuery(request);
+  const { region, themes, page, pageSlots, providerPage, pageOffset, locale, language, profiles, districts, barrierLocationParams, localizedLocationParams } = readPlanQuery(request);
   // 월별 반복 조회를 포함한 전체 상류 작업을 하나의 요청 예산으로 묶는다.
   // 시간이 모자라면 이미 확인한 공식 결과만 사용하고 나머지는 확인 필요로 남긴다.
   const remaining = budgetClock(PLAN_TOTAL_BUDGET_MS);
@@ -37,7 +37,7 @@ export async function buildPlan(request: Request, env: Env) {
     }, districts)), Math.min(6_000, remaining()), overBudget);
     const successes = results.filter((result) => result.ok);
     if (!successes.length) return combineFailedProviderAttempts(results);
-    const items = mergeThemeResults(successes.map((result) => result.ok ? result.value.items : []));
+    const items = mergeThemeResults(successes.map((result) => result.ok ? result.value.items : []), Number.MAX_SAFE_INTEGER);
     return { ok: true, value: combineProviderResults(items, results) };
   };
 
@@ -55,7 +55,10 @@ export async function buildPlan(request: Request, env: Env) {
     fetchThemes(language.service, localizedLocationParams, true),
   ], Math.min(6_000, remaining()), overBudget);
 
-  const baseItems = mergePlaces(barrier.ok ? barrier.value.items : [], tour.ok ? tour.value.items : []).slice(0, 12);
+  const batch = mergePlaces(barrier.ok ? barrier.value.items : [], tour.ok ? tour.value.items : []);
+  const baseItems = batch.slice(pageOffset, pageOffset + 12);
+  const providerMayHaveMore = [barrier, tour].some(result => result.ok && result.value.items.length >= 12);
+  const nextPage = pageOffset + 12 < batch.length ? page + 1 : providerPage < 5 && providerMayHaveMore ? providerPage * pageSlots + 1 : null;
   const details = profiles.length ? await eachWithinBudget(
     baseItems.map((item) => attempt(fetchKto(env, "KorWithService2", "detailWithTour2", {
       ...commonParams("1"), contentId: clean(item.contentid),
@@ -69,7 +72,9 @@ export async function buildPlan(request: Request, env: Env) {
       facilityLookupState: !profiles.length ? 'not-requested' : details[index]?.ok ? 'available' : 'error' })));
   // 0%는 공식 정보가 없다는 뜻일 수도, 선택 조건과 맞지 않는다는 뜻일 수도 있다.
   // 어느 쪽도 기본 추천으로 부르지 않고 별도의 추가 탐색 후보로 보낸다.
-  const { recommended: places, exploration: explorationPlaces } = profiles.length ? partitionPlacesByEvidence(rankedPlaces) : { recommended: rankedPlaces, exploration: [] };
+  const { recommended: places, exploration: explorationPlaces, unavailable: excludedPlaces } = profiles.length
+    ? partitionPlacesByEvidence(rankedPlaces, requestedAccessibilityFields(profiles).map(([key]) => key))
+    : { recommended: rankedPlaces, exploration: [], unavailable: [] };
 
   const firstTitle = places[0]?.name || explorationPlaces[0]?.name || region;
   const [audio, crowd] = await eachWithinBudget([
@@ -93,6 +98,8 @@ export async function buildPlan(request: Request, env: Env) {
     baseYm: hubPack.baseYm,
     places,
     explorationPlaces,
+    excludedPlaces,
+    pagination: { page, nextPage, hasMore: nextPage !== null, scope: "loaded-candidates" },
     course,
     audio: audioFrom(audio, places[0] || explorationPlaces[0]),
     photo: photoFrom(photo, region),

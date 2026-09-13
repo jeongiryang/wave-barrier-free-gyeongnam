@@ -1,5 +1,6 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
+import { ensureMapView, openPlannerMap } from "./nearby-fixtures";
 
 // Keep actual Leaflet code and its first-view/layer lifecycle. Only data, map
 // configuration and image/tile requests use existing trusted test fixtures.
@@ -43,7 +44,7 @@ async function readGeometry(page: Page, expectedIds: string[]) {
         }
       }
     }
-    return { issues, markers, controls, canvas: bounds.toJSON(), selectedDay: document.querySelector(".itinerary-day-tabs button[aria-pressed=true]")?.textContent, viewport: { width: innerWidth, height: innerHeight } };
+    return { issues, markers, controls, canvas: bounds.toJSON(), selectedDay: document.querySelector(".simple-day-tabs button[aria-pressed=true]")?.textContent, viewport: { width: innerWidth, height: innerHeight } };
   }, { knownPlaces: places.map(({ id, name }) => ({ id, name })), expectedIds });
 }
 
@@ -82,7 +83,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
         escapedRequests.push(request.method() + " " + url.origin + url.pathname);
         return route.abort("blockedbyclient");
       });
-      await mockPlannerApi(page, { crowdRate: 80, savedPlaces: places });
+      await mockPlannerApi(page, { crowdRate: 80, savedPlaces: places, preserveView: true });
       // The actual region chooser now renders an official destination photo.
       // Keep this Leaflet geometry test fully local, including that new image.
       await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({
@@ -100,28 +101,35 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
       const today = format(new Date()), tomorrow = format(new Date(Date.now() + 86400000));
       await page.goto("/planner?travelStart=" + today + "&travelEnd=" + tomorrow);
       await chooseTripConditions(page);
-      for (const place of places) await page.getByRole("button", { name: place.name + " 일정에 추가", exact: true }).click();
+      for (const place of places) await page.getByRole("button", { name: place.name + " 일정에 담기", exact: true }).click();
       await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]").sort())).toEqual(["1001", "1002"]);
+      await openPlannerMap(page);
       await assertSettledMarkers(page, info, "1366-two-places", ["1001", "1002"]);
       expect(pageErrors, "initial real Leaflet fitting must not throw").toEqual([]);
-      await page.getByLabel(places[1].name + " 여행 날짜", { exact: true }).selectOption(tomorrow);
-      const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
-      await expect(itinerary.getByLabel(places[0].name + " 여행 날짜", { exact: true })).toHaveValue(today);
-      await expect(itinerary.getByLabel(places[1].name + " 여행 날짜", { exact: true })).toHaveValue(tomorrow);
+      await page.getByRole("button", { name: places[1].name + " 일정 수정", exact: true }).click();
+      const editor = page.getByRole("dialog", { name: places[1].name + " 수정", exact: true });
+      await editor.getByRole("combobox", { name: "방문 날짜", exact: true }).selectOption(tomorrow);
+      await editor.getByRole("button", { name: "적용", exact: true }).click();
+      await expect.poll(() => page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values?.["wave-trip-schedule-v1"] || "{}").scheduleAssignments)).toEqual({ "1001": today, "1002": tomorrow });
+      const selectDay = async (date: string) => {
+        const timetable = page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "시간표", exact: true });
+        if (await timetable.count()) await timetable.click();
+        const tab = page.locator(".simple-day-tabs").getByRole("button", { name: new RegExp(date.slice(5).replace("-", "/") + "$") });
+        await tab.click();
+        await expect(tab).toHaveAttribute("aria-pressed", "true");
+        await ensureMapView(page);
+      };
       for (const width of [1366, 390]) {
         await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
         // Exercise repeated replacements while a transition may be pending;
         // the original settled checks for BOTH days still follow.
         for (let cycle = 0; cycle < 2; cycle++) {
           for (const date of [tomorrow, today]) {
-            await page.locator(".itinerary-day-tabs").getByRole("button", { name: date.slice(5).replace("-", "/"), exact: true }).click();
+            await selectDay(date);
           }
         }
         for (const [date, id] of [[tomorrow, "1002"], [today, "1001"]]) {
-          const day = date.slice(5).replace("-", "/");
-          const tab = page.locator(".itinerary-day-tabs").getByRole("button", { name: day, exact: true });
-          await tab.click();
-          await expect(tab).toHaveAttribute("aria-pressed", "true");
+          await selectDay(date);
           await assertSettledMarkers(page, info, width + "-" + id + "-day-map", [id]);
           expect(pageErrors, "dated map replacement must not leave a failing SDK animation").toEqual([]);
         }

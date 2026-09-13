@@ -1,20 +1,52 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
+import { mockPlannerApi, plan } from "./fixtures";
+
+async function setup(page: Page) {
+  await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
+  await mockPlannerApi(page, { preserveView: true });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+}
+async function browse(page: Page) {
+  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toBeEnabled();
+}
+async function facilities(page: Page) {
+  await page.getByRole("button", { name: /^필요한 편의/ }).click();
+  return page.getByRole("dialog", { name: "필요한 편의", exact: true });
+}
+async function selectAccessPath(page: Page) {
+  const picker = await facilities(page);
+  await picker.getByRole("checkbox", { name: "접근로", exact: true }).check();
+  await picker.getByRole("button", { name: /^적용/ }).click();
+}
+async function assertFacilities(page: Page, selected: boolean) {
+  const picker = await facilities(page);
+  await expect(picker.locator(".simple-facility-grid input:checked")).toHaveCount(selected ? 1 : 0);
+  if (selected) await expect(picker.getByRole("checkbox", { name: "접근로", exact: true })).toBeChecked();
+  await picker.getByRole("button", { name: "편의 선택 닫기", exact: true }).click();
+}
+async function addAndSave(page: Page) {
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  const initial = page.locator(".simple-initial-setup");
+  await initial.getByLabel("시작일", { exact: true }).fill("2026-10-07");
+  await initial.getByLabel("마지막 날", { exact: true }).fill("2026-10-08");
+  await initial.getByRole("button", { name: "시간표 만들기", exact: true }).click();
+  await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await expect(page.locator(".simple-save-control [role=status]")).toContainText("이 기기의 내 여행에 저장했어요");
+}
 
 for (const source of ["archive", "shared"] as const) test(`${source}: restoring a two-theme trip keeps both selected activities`, async ({ page }) => {
-  await mockPlannerApi(page);
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await setup(page);
   if (source === "archive") {
     await page.goto("/planner");
-    await chooseTripConditions(page);
-    await page.getByRole("button", { name: /^음식/ }).click();
-    await page.locator(".condition-actions").getByRole("button", { name: "여행지 둘러보기 →", exact: true }).click();
-    await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-    const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
-    await itinerary.getByRole("button", { name: "내 일정에 저장", exact: true }).click();
-    await expect(itinerary.locator(".travel-book-archive-action [role=status]")).toContainText("내 일정에 저장했어요");
-    await itinerary.getByRole("link", { name: /저장한 일정 보기/ }).click();
+    await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+    await page.getByRole("button", { name: "자연·휴양", exact: true }).click();
+    await page.getByRole("button", { name: "음식", exact: true }).click();
+    await selectAccessPath(page);
+    await addAndSave(page);
+    await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
     await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
   } else {
     await page.route("**/api/trips/shared-theme", route => route.fulfill({ json: {
@@ -23,48 +55,49 @@ for (const source of ["archive", "shared"] as const) test(`${source}: restoring 
     await page.goto("/trip/shared-theme");
     await page.getByRole("button", { name: "이 조건으로 다시 설계하기 →", exact: true }).click();
   }
-  await expect(page.getByRole("button", { name: /^자연·휴양/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("button", { name: /^음식/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("button", { name: /^역사·문화/ })).toHaveAttribute("aria-pressed", "false");
-  const selectedFacilities = page.getByRole("group", { name: "여행 편의 조건 선택" }).locator('[aria-pressed="true"]');
-  await expect(selectedFacilities).toHaveCount(source === "archive" ? 1 : 0);
-  if (source === "archive") await expect(selectedFacilities).toContainText("휠체어 편의시설");
+  await browse(page);
+  await expect(page.getByRole("button", { name: "자연·휴양", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "음식", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "역사·문화", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await assertFacilities(page, source === "archive");
   await page.reload();
-  await expect(page.getByRole("button", { name: /^자연·휴양/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("button", { name: /^음식/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(selectedFacilities).toHaveCount(source === "archive" ? 1 : 0);
-  if (source === "archive") await expect(selectedFacilities).toContainText("휠체어 편의시설");
+  await browse(page);
+  await expect(page.getByRole("button", { name: "자연·휴양", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "음식", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await assertFacilities(page, source === "archive");
   if (test.info().project.name === "desktop-chromium") for (const width of [960, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.locator("#conditions").screenshot({ path: test.info().outputPath(`theme-${source}-${width}.png`) });
   }
 });
 
-for (const [query, expected] of [
-  ["theme=leisure", ["레포츠"]],
-  ["theme=leisure&themes=food,nature,food,invalid", ["자연·휴양", "음식"]],
-  ["theme=nature&themes=invalid", []],
+for (const [query, expected, initialRequest] of [
+  ["theme=leisure", ["레포츠"], "leisure"],
+  ["theme=leisure&themes=food,nature,food,invalid", ["자연·휴양", "음식"], "nature,food"],
+  ["theme=nature&themes=invalid", [], ""],
 ] as const) test(`legacy and multi-theme URL ${query} preserves later edits on reload`, async ({ page }) => {
-  await mockPlannerApi(page);
+  await setup(page);
   const requests: string[] = [];
   page.on("request", request => { const url = new URL(request.url()); if (url.searchParams.get("action") === "plan") requests.push(url.searchParams.get("themes") || ""); });
   await page.goto(`/planner?region=창원&${query}`);
-  const activities = page.getByRole("group", { name: "무엇을 하고 싶나요?" });
-  await expect(page.getByRole("button", { name: /^음식/ })).toBeEnabled();
+  const activities = page.getByRole("group", { name: "하고 싶은 활동", exact: true });
+  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toBeEnabled();
   await expect(activities.locator('[aria-pressed="true"]')).toHaveCount(expected.length);
-  for (const label of expected) await expect(activities.getByRole("button", { name: new RegExp(`^${label}`) })).toHaveAttribute("aria-pressed", "true");
-  expect(requests).toEqual([]);
-  for (const label of expected) await activities.getByRole("button", { name: new RegExp(`^${label}`) }).click();
+  for (const label of expected) await expect(activities.getByRole("button", { name: label, exact: true })).toHaveAttribute("aria-pressed", "true");
+  // Region entry now searches automatically with the normalized URL themes.
+  await expect.poll(() => requests[0]).toBe(initialRequest);
+  for (const label of expected) await activities.getByRole("button", { name: label, exact: true }).click();
   await page.reload();
   await expect(activities.locator('[aria-pressed="true"]')).toHaveCount(0);
-  await activities.getByRole("button", { name: /^역사·문화/ }).click();
-  await activities.getByRole("button", { name: /^음식/ }).click();
+  await activities.getByRole("button", { name: "역사·문화", exact: true }).click();
+  await activities.getByRole("button", { name: "음식", exact: true }).click();
   await page.reload();
   await expect(activities.locator('[aria-pressed="true"]')).toHaveCount(2);
-  await page.locator(".profile-grid").getByRole("button", { name: /휠체어 편의시설/ }).click();
-  await page.locator(".condition-actions").getByRole("button", { name: "여행지 둘러보기 →", exact: true }).click();
-  await expect(page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true })).toBeVisible();
-  expect(requests).toEqual(["history,food"]);
+  await expect(activities.getByRole("button", { name: "역사·문화", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(activities.getByRole("button", { name: "음식", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await selectAccessPath(page);
+  await expect(page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true })).toBeEnabled();
+  await expect.poll(() => requests.at(-1)).toBe("history,food");
 });
 
 async function current(page: Page) {
@@ -76,18 +109,18 @@ async function current(page: Page) {
 }
 
 for (const color of ["light", "dark"]) test(`shared redesign protects the current trip on cancellation and storage failure in ${color}`, async ({ page }) => {
-  await mockPlannerApi(page);
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await setup(page);
   await page.addInitScript(color => localStorage.setItem("wave-theme", color), color);
   await page.goto("/planner");
-  await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.getByRole("button", { name: "내 일정에 저장", exact: true }).click();
-  await expect(page.locator(".travel-book-archive-action [role=status]")).toContainText("내 일정에 저장했어요");
+  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await page.getByRole("button", { name: "자연·휴양", exact: true }).click();
+  await selectAccessPath(page);
+  await addAndSave(page);
   // A theme-bearing URL cannot silently alter a trip that already has places.
   await page.goto("/planner?region=창원&themes=food");
-  await expect(page.getByRole("button", { name: /^자연·휴양/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("button", { name: /^음식/ })).toHaveAttribute("aria-pressed", "false");
+  await browse(page);
+  await expect(page.getByRole("button", { name: "자연·휴양", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "음식", exact: true })).toHaveAttribute("aria-pressed", "false");
   await page.route("**/api/trips/protected-theme", route => route.fulfill({ json: {
     plan, selections: { region: color === "light" ? "창원" : "진주", themes: ["food", "history"], theme: "nature", profiles: ["senior"], travelStart: "2026-10-08", travelEnd: "2026-10-09" }, expiresAt: Date.now() + 86_400_000,
   } }));
@@ -125,24 +158,20 @@ for (const color of ["light", "dark"]) test(`shared redesign protects the curren
   expect(await current(page)).toEqual(before);
   await page.evaluate(() => (window as unknown as { themeFixtureRestore: () => void }).themeFixtureRestore());
   await dialog.getByRole("button", { name: "공유 조건으로 새 여행 시작", exact: true }).click();
-  await expect(page.getByRole("button", { name: /^역사·문화/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("button", { name: /^음식/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("button", { name: /^자연·휴양/ })).toHaveAttribute("aria-pressed", "false");
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(0);
-  // A shared trip cannot import someone else's facilities or erase this tab's
-  // own explicit choice. The current user selected wheelchair facilities.
-  const selectedFacilities = page.getByRole("group", { name: "여행 편의 조건 선택" }).locator('[aria-pressed="true"]');
-  await expect(selectedFacilities).toHaveCount(1);
-  await expect(selectedFacilities).toContainText("휠체어 편의시설");
+  await expect(page.getByRole("button", { name: "역사·문화", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "음식", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "자연·휴양", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  // Shared preferences cannot import another person's facilities or erase ours.
+  await assertFacilities(page, true);
   expect((await current(page))["wave-session-facilities-v1"]).toBe(before["wave-session-facilities-v1"]);
-  // The date editor mounts only after the first place is added.
-  await page.locator(".condition-actions").getByRole("button", { name: "여행지 둘러보기 →", exact: true }).click();
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await expect(page.locator(".day-planner").getByLabel("여행 시작일", { exact: true })).toHaveValue("2026-10-08");
   expect((await current(page))["wave-travel-book-v1"]).toBe(before["wave-travel-book-v1"]);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-10-08 — 2026-10-09");
   await page.reload();
-  await expect(page.getByRole("button", { name: /^음식/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(selectedFacilities).toHaveCount(1);
-  await expect(selectedFacilities).toContainText("휠체어 편의시설");
+  await browse(page);
+  await expect(page.getByRole("button", { name: "음식", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await assertFacilities(page, true);
   expect((await current(page))["wave-travel-book-v1"]).toBe(before["wave-travel-book-v1"]);
 });

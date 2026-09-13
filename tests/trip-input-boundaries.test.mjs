@@ -182,7 +182,7 @@ test('a failed new-trip commit cannot evict an older saved trip from a full back
   assert.throws(() => replaceTripWithBackup(store, emptyTrip('거제', '2026-10-01', '2026-10-02')));
   assert.equal(store.getItem(CURRENT_TRIP_KEY), current);
   const after = JSON.parse(store.getItem(TRAVEL_BOOK_STORAGE_KEY));
-  for (const previous of books) assert.deepEqual(after.find(book => book.id === previous.id), previous, 'A rejected new trip must not delete or rewrite a different archived trip.');
+  for (const previous of books) assert.deepEqual(after.find(book => book.id === previous.id), JSON.parse(JSON.stringify(previous)), 'A rejected new trip must not delete or rewrite a different archived trip.');
 });
 
 test('new trip import rejects pending edits before modifying any backup or current-trip record', () => {

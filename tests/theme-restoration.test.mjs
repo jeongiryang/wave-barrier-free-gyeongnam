@@ -7,7 +7,7 @@ import { emptyTrip, replaceCurrentTrip, writeTripValue, readTripValue, THEMES_KE
 test("restored activity IDs are canonical and empty/invalid selections never invent an activity", () => {
   assert.deepEqual(selectedThemes(" food,nature,food,invalid,history "), ["nature", "history", "food"]);
   for (const value of [undefined, null, {}, [], "", "invalid", [null, {}, "bad"]]) assert.deepEqual(selectedThemes(value), []);
-  assert.deepEqual(normalizeThemes("invalid"), ["nature"], "existing server fallback is unchanged");
+  assert.deepEqual(normalizeThemes("invalid"), ["nature", "history", "leisure", "food"], "unrestricted search includes all activity categories");
 });
 
 test("archive migration prefers themes, including an explicit empty array, and preserves old single labels", () => {

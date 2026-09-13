@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
+import { openPlannerMap, openRouteDetails } from "./nearby-fixtures";
 
-for (const continuing of [false, true]) test(`a delayed search ${continuing ? "respects the next keyboard action" : "reveals results when the user waits"}`, async ({ page }) => {
+for (const continuing of [false, true]) test(`a delayed automatic search ${continuing ? "respects the next keyboard action" : "keeps region focus when the user waits"}`, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => {
     const original = Element.prototype.scrollIntoView;
@@ -13,13 +14,16 @@ for (const continuing of [false, true]) test(`a delayed search ${continuing ? "r
       return original.apply(this, args);
     };
   });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   let release!: () => void;
   const held = new Promise<void>((resolve) => { release = resolve; });
   await page.route(/\/api\/wave\?.*action=plan/, async (request) => { await held; await request.fallback(); });
   try {
     await page.goto("/planner");
-    await chooseTripConditions(page);
+    const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
+    await region.focus();
+    await region.selectOption("창원");
+    await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "true");
     if (continuing) await page.keyboard.press("Shift+Tab");
     const focused = await page.evaluateHandle(() => document.activeElement);
     release();
@@ -30,7 +34,10 @@ for (const continuing of [false, true]) test(`a delayed search ${continuing ? "r
       expect(await page.evaluate(() => (window as unknown as { resultScrolls: string[] }).resultScrolls)).not.toContain("places");
       expect(await focused.evaluate((element) => element === document.activeElement)).toBe(true);
     } else {
-      await expect.poll(() => page.evaluate(() => (window as unknown as { resultScrolls: string[] }).resultScrolls)).toContain("places");
+      await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
+      await page.waitForTimeout(200);
+      expect(await page.evaluate(() => (window as unknown as { resultScrolls: string[] }).resultScrolls)).not.toContain("places");
+      await expect(region).toBeFocused();
     }
   } finally { release(); }
 });
@@ -38,7 +45,7 @@ for (const continuing of [false, true]) test(`a delayed search ${continuing ? "r
 for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps route choices in place and preserves a held click`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 960 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   let release!: () => void;
   const held = new Promise<void>((resolve) => { release = resolve; });
   let releaseCoverage!: () => void;
@@ -61,9 +68,15 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
   try {
     await page.goto("/planner");
     await chooseTripConditions(page);
-    await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
-    await page.locator(".itinerary-route-coverage select").selectOption("car");
-    await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).getByText(/10:25 · 경남도립미술관/)).toBeVisible();
+    await page.getByRole("button", { name: "경남도립미술관 일정에 담기" }).click();
+    // Choose the initial transport before the first map opens. This keeps the
+    // real first-map request distinct from the automatic coverage being held;
+    // later mode changes now correctly reuse coverage rather than fetch twice.
+    await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+    await page.locator(".simple-initial-setup").getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("car");
+    await openPlannerMap(page);
+    await openRouteDetails(page);
+    await expect(page.locator("#itinerary-stop-1001 time")).toHaveText("10:25");
     await expect(page.locator(".map-load-placeholder")).toBeVisible();
     expect(heldMapRequests, "the delayed-map fixture must intercept the module request").toBeGreaterThan(0);
     // A warm local module used to finish before the 650ms automatic journey
@@ -87,7 +100,7 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     expect(Math.abs(after - before), "map loading must not move route choices").toBeLessThanOrEqual(1);
     await expect(calm).toHaveAttribute("aria-pressed", "true");
     await expect(calm).toBeFocused();
-    await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).getByText(/10:40 · 경남도립미술관/)).toBeVisible();
+    await expect(page.locator("#itinerary-stop-1001 time")).toHaveText("10:40");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const axe = await new AxeBuilder({ page }).analyze();
     expect(axe.violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);
@@ -98,15 +111,17 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
 test("route selection stays under the pointer while map rendering settles", async ({ page }) => {
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기" }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
   await page.locator(".itinerary-route-coverage select").selectOption("car");
-  const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
-  await expect(itinerary.getByText(/10:25 · 경남도립미술관/)).toBeVisible();
+  const arrival = page.locator("#itinerary-stop-1001 time");
+  await expect(arrival).toHaveText("10:25");
   await page.getByRole("button", { name: /여유 자동차 경로/ }).click();
-  await expect(itinerary.getByText(/10:40 · 경남도립미술관/)).toBeVisible();
+  await expect(arrival).toHaveText("10:40");
   const fast = page.getByRole("button", { name: /추천 자동차 경로/ });
   await fast.scrollIntoViewIfNeeded();
   const box = await fast.boundingBox();
@@ -121,5 +136,5 @@ test("route selection stays under the pointer while map rendering settles", asyn
   await page.mouse.up();
   await expect(fast).toHaveAttribute("aria-pressed", "true");
   await expect(fast).toBeFocused();
-  await expect(itinerary.getByText(/10:25 · 경남도립미술관/)).toBeVisible();
+  await expect(arrival).toHaveText("10:25");
 });

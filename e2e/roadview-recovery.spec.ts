@@ -1,8 +1,27 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { openNearby } from "./nearby-fixtures";
+import { ensureMapView, openNearby } from "./nearby-fixtures";
 
 interface RoadviewFixture { failure: string; requests: ((id: number | null) => void)[]; views: { pano?: number; listeners: Set<() => void> }[] }
+async function closeIconContrast(panel: Locator) {
+  return panel.locator("header > button").evaluate(button => {
+    const rgba = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
+    const over = (top: number[], base: number[]) => top.slice(0, 3).map((value, index) => value * (top[3] ?? 1) + base[index] * (1 - (top[3] ?? 1)));
+    const layers: number[][] = [];
+    for (let node: Element | null = button; node; node = node.parentElement) {
+      const style = getComputedStyle(node);
+      if (style.backgroundImage !== "none") throw new Error("Close-icon contrast needs an opaque surface before any background image.");
+      const colour = rgba(style.backgroundColor);
+      layers.push(colour);
+      if ((colour[3] ?? 1) === 1) break;
+    }
+    const background = layers.reverse().reduce((base, layer) => over(layer, base), [255, 255, 255]);
+    const foreground = over(rgba(getComputedStyle(button).color), background);
+    const luminance = (colour: number[]) => colour.map(value => value / 255).map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
+    const front = luminance(foreground), back = luminance(background);
+    return (Math.max(front, back) + .05) / (Math.min(front, back) + .05);
+  });
+}
 const browserErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
   const errors: string[] = []; browserErrors.set(page, errors);
@@ -70,7 +89,8 @@ test("a closing map panel cannot steal a later keyboard focus",async({page})=>{
 for(const english of [false,true])for(const theme of ["light","dark"])test(`Roadview readable controls ${english ? "English":"Korean"} ${theme}`,async({page},testInfo)=>{
   await prepare(page,english,theme);const panel=await choose(page,english);await deliver(page,0,null);
   for(const [width,height] of [[320,568],[360,640],[390,844],[430,932],[768,1024],[1024,768],[1280,720],[1366,768],[1440,900],[1920,1080],[2560,1440]]){
-    await page.setViewportSize({width,height});const retry=panel.getByRole("button",{name:english ? "Retry Roadview":"로드뷰 다시 시도",exact:true});await panel.getByRole("button",{name:english ? "Close Roadview":"로드뷰 닫기",exact:true}).focus();await page.keyboard.press("Tab");await expect(retry).toBeFocused();
+    await page.setViewportSize({width,height});await ensureMapView(page);const retry=panel.getByRole("button",{name:english ? "Retry Roadview":"로드뷰 다시 시도",exact:true});await panel.getByRole("button",{name:english ? "Close Roadview":"로드뷰 닫기",exact:true}).focus();await page.keyboard.press("Tab");await expect(retry).toBeFocused();
+    expect(await closeIconContrast(panel), `${theme} ${width}px close icon remains distinguishable from its actual background`).toBeGreaterThanOrEqual(3);
     expect(await panel.getByRole("button").evaluateAll(bs=>bs.map(b=>({w:b.getBoundingClientRect().width,h:b.getBoundingClientRect().height,overflow:b.scrollWidth-b.clientWidth})).filter(b=>b.w<44||b.h<44||b.overflow>1))).toEqual([]);
     expect(await retry.evaluate(b=>{const r=b.getBoundingClientRect();return b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),`${width}px retry reachable`).toBe(true);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
     if([390,1366].includes(width))await panel.screenshot({path:testInfo.outputPath(`roadview-${width}-${english ? "en":"ko"}-${theme}.png`)});
@@ -80,7 +100,7 @@ for(const english of [false,true])for(const theme of ["light","dark"])test(`Road
 for(const english of [false,true])for(const theme of ["light","dark"])test(`Roadview location selection stays reachable ${english ? "English":"Korean"} ${theme}`,async({page},testInfo)=>{
   await prepare(page,english,theme);await page.getByRole("button",{name:english ? "◉ Roadview":"◉ 로드뷰",exact:true}).click();const choice=page.locator("#map-roadview-choice");
   for(const [width,height] of [[320,568],[360,640],[390,844],[430,932],[768,1024],[1024,768],[1280,720],[1366,768],[1440,900],[1920,1080],[2560,1440]]){
-    await page.setViewportSize({width,height});const controls=choice.locator("button,select");await expect(controls).toHaveCount(3);await controls.last().focus();await page.keyboard.press("Shift+Tab");await page.keyboard.press("Shift+Tab");
+    await page.setViewportSize({width,height});await ensureMapView(page);const controls=choice.locator("button,select");await expect(controls).toHaveCount(3);await controls.last().focus();await page.keyboard.press("Shift+Tab");await page.keyboard.press("Shift+Tab");
     for(let index=0;index<3;index++){
       if(index)await page.keyboard.press("Tab");await expect(controls.nth(index)).toBeFocused();
       expect(await controls.nth(index).evaluate(b=>{const r=b.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return [{width:r.width,height:r.height,overflow:b.scrollWidth-b.clientWidth,verticalOverflow:b.scrollHeight-b.clientHeight,reachable:b.contains(hit),hit:hit?.className}].filter(v=>v.width<44||v.height<44||v.overflow>1||v.verticalOverflow>1||!v.reachable);}),`${width}px choice control ${index}`).toEqual([]);

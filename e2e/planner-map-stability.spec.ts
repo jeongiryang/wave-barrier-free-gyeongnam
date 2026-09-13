@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, chooseTripConditions } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions, openFirstPlaceMap } from "./fixtures";
 
 /**
  * 지도는 추천 결과가 실제로 바뀔 때만 다시 만들어야 한다. 렌더마다 새 배열을
@@ -14,8 +14,10 @@ test("스크롤은 지도를 다시 만들지 않는다", async ({ page }) => {
   });
 
   await page.goto("/planner");
-  await chooseTripConditions(page);
-  await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
+  await chooseTripConditions(page); await openFirstPlaceMap(page);
+  // Mobile shows one workspace at a time, so confirm the selected destination
+  // in the visible map toolbar instead of the hidden timetable heading.
+  await expect(page.locator(".map-toolbar").getByRole("button", { name: "도착 · 눌러서 변경 경남도립미술관", exact: true })).toBeVisible();
   const canvas = page.locator(".route-map-canvas");
   await canvas.scrollIntoViewIfNeeded();
   await expect(canvas).toBeVisible();

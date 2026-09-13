@@ -1,7 +1,11 @@
 import { expect, test } from "@playwright/test";
+import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { buildExifJpeg } from "../tests/helpers/exif-jpeg.mjs";
 
 test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식정보를 확인한다", async ({ page }) => {
+  await mockPublicShellApi(page);
+  await mockPlannerApi(page, { preserveView: true });
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const outgoingSpotPhotoUrls: string[] = [];
   await page.route(/\/api\/wave\?.*action=spot-photo/, async (route) => {
     outgoingSpotPhotoUrls.push(route.request().url());
@@ -55,12 +59,24 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
 
   await page.getByRole("button", { name: "여행 조건에 반영하기" }).click();
   await expect(page).toHaveURL(/\/planner\?[^#]*region=%EB%82%A8%ED%95%B4/);
-  await expect(page.getByRole("heading", { name: "우리의 속도로, 여행을 만들어요.", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "남해 지역 선택", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("group", { name: "여행 설계 보기 방식" }).getByRole("button", { name: /전체 보기/ }).click();
-  await expect(page.getByRole("navigation", { name: "지도에 표시할 날짜" })).toContainText("08/14");
-  await expect.poll(() => page.evaluate(() => {
-    const saved = JSON.parse(window.localStorage.getItem("wave-trip-schedule-v1") || "{}");
+  const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
+  await expect(region).toHaveValue("남해");
+  await expect(page.locator(".simple-results").getByRole("heading", { name: "남해 여행지", exact: true })).toBeVisible();
+  const period = () => page.evaluate(() => {
+    const values = JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values || {};
+    const saved = JSON.parse(values["wave-trip-schedule-v1"] || "{}");
     return [saved.travelStart, saved.travelEnd];
-  })).toEqual(["2026-08-14", "2026-08-14"]);
+  });
+  await expect.poll(period).toEqual(["2026-08-14", "2026-08-14"]);
+  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await tabs.getByRole("button", { name: /^내 일정/ }).click();
+  await expect(page.locator(".simple-initial-setup")).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "일정 날짜", exact: true })).toContainText("08/14");
+  await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-08-14");
+  expect(await period()).toEqual(["2026-08-14", "2026-08-14"]);
+  await page.reload();
+  await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-08-14");
+  expect(await period()).toEqual(["2026-08-14", "2026-08-14"]);
 });

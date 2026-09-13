@@ -8,6 +8,7 @@ import communitySeedRetirementMigration from "../../migrations/006_retire_commun
 import accountDeletionMigration from "../../migrations/007_account_deletion.sql?raw";
 import reviewDateIntegrityMigration from "../../migrations/008_review_date_integrity.sql?raw";
 import accountTravelMigration from "../../migrations/011_account_travel.sql?raw";
+import liveSharedTripsMigration from "../../migrations/013_live_shared_trips.sql?raw";
 import communityVisitPhotosMigration from "../../migrations/012_community_visit_photos.sql?raw";
 import { productionEnvironmentErrors } from "../../lib/deployment/production-env.js";
 import { securePostgresUrl } from "../../lib/deployment/environment-validation.js";
@@ -70,6 +71,7 @@ export async function handleProductionMigration(request: Request) {
     reviewDateIntegrityMigration,
     accountTravelMigration,
     communityVisitPhotosMigration,
+    liveSharedTripsMigration,
   ]);
   await sql.transaction(statements.map((statement) => sql.query(statement)));
   return json({ ok: true, migrations: PRODUCTION_MIGRATION_NAMES, statements: statements.length });

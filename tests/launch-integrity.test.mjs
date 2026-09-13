@@ -18,7 +18,7 @@ test("crowd signals require the selected attraction and a real numeric rate", ()
 test("legacy and multiple themes retain valid, unique choices", () => {
   assert.deepEqual(normalizeThemes("nature"), ["nature"]);
   assert.deepEqual(normalizeThemes("food,nature,food,invalid"), ["food", "nature"]);
-  assert.deepEqual(normalizeThemes("invalid"), ["nature"]);
+  assert.deepEqual(normalizeThemes("invalid"), ["nature", "history", "leisure", "food"]);
   assert.equal(criteriaSignature({ region: "창원", themes: "food,nature", selected: ["wheel", "visual"], locale: "ko" }), criteriaSignature({ region: "창원", themes: "nature,food", selected: ["visual", "wheel"], locale: "ko" }));
   const criteria = { region: "창원", selected: ["wheel"], locale: "ko" };
   assert.notEqual(criteriaSignature({ ...criteria, themes: "" }), criteriaSignature({ ...criteria, themes: "nature" }));
@@ -71,7 +71,7 @@ test("native place dialog makes the background inert and restores focus", async 
   assert.match(dialog, /<dialog/);
   assert.match(focus, /dialog.showModal\(\)/);
   assert.match(focus, /addEventListener\("cancel"/);
-  assert.match(focus, /previousFocus\.focus\(\)/);
+  assert.match(focus, /previousFocus\.focus\(\{ preventScroll: true \}\)/);
   assert.doesNotMatch(dialog, /place.score.*%/);
 });
 test("public community reads exclude future field experiences without deleting user content", async () => {

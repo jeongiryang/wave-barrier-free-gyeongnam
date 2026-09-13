@@ -7,7 +7,7 @@
 .place-compare-choice { width: 100%; margin-block: 8px; display: flex; justify-content: center; gap: 12px; }
 .place-inquiry-entry { padding: 22px; background: var(--paper); border-radius: var(--r-lg); }
 .place-inquiry-entry > div { flex: 1 1 240px; }.place-inquiry-entry h3 { margin: 0 0 8px; font-size: 1.2rem; }.place-inquiry-entry p { margin: 0; color: var(--muted); }
-.region-change-dialog:is(.place-comparison-dialog,.inquiry-dialog) { --ink: #2b2632; --muted: #696071; --paper: #f5f4f8; --line: #dcd8e4; width: min(960px,calc(100% - 24px)); padding: clamp(20px,3vw,36px); border: 0; border-radius: 28px; color: var(--ink); background: #fff; box-shadow: var(--shadow-3); }
+.region-change-dialog:is(.place-comparison-dialog,.inquiry-dialog) { --ink: #242b2a; --muted: #5c6865; --paper: #ffffff; --line: #dce3e0; width: min(960px,calc(100% - 24px)); padding: clamp(20px,3vw,36px); border: 0; border-radius: 28px; color: var(--ink); background: #fff; box-shadow: var(--shadow-3); }
 .place-comparison-dialog > header,.inquiry-dialog > header { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
 .place-comparison-dialog header button,.inquiry-dialog header button { flex: 0 0 44px; width: 44px; border: 1px solid var(--line); border-radius: 50%; font-size: 24px; }
 .place-comparison-dialog h2,.inquiry-dialog h2 { font-size: clamp(1.5rem,3vw,2rem); font-weight: 500; margin: 8px 0 20px; }

@@ -1,72 +1,54 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, plan } from "./fixtures";
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: "reduce" } });
 
-test("편의·활동 단계는 현재 조건의 건수를 보여주고 편의 변경은 추가 조회하지 않는다", async ({ page }, info) => {
-  await mockPlannerApi(page, { plannerView: "guided" });
-  let calls = 0;
-  let searches = 0;
-  page.on("request", request => {
-    const url = new URL(request.url());
-    if (url.pathname === "/api/wave" && url.searchParams.get("action") === "plan") searches++;
-  });
-  await page.route("**/api/wave?action=availability&**", async route => {
-    calls++;
-    const params = new URL(route.request().url()).searchParams;
-    const candidates = params.get("themes") === "history" ? [{ id: "museum", profiles: ["wheel"] }] : [{ id: "museum", profiles: ["wheel"] }, { id: "park", profiles: ["senior"] }];
-    await route.fulfill({ json: { region: params.get("region"), themes: params.get("themes")?.split(","), limit: 12, candidates, status: { partial: false } } });
-  });
-  await page.goto("/planner?region=창원&question=1");
-  const count = page.locator(".condition-availability");
-  await expect(count).toContainText("총 2건");
-  const needs = page.getByRole("group", { name: "여행 편의 조건 선택" });
-  await needs.getByRole("button", { name: /휠체어 편의시설/ }).click();
-  await expect(count).toContainText("총 1건");
-  expect(calls).toBe(1);
-  await count.scrollIntoViewIfNeeded();
-  await page.screenshot({ path: info.outputPath("facilities.png"), fullPage: false });
-  if (info.project.name === "desktop-chromium") {
-    await page.setViewportSize({ width: 960, height: 960 });
-    await count.scrollIntoViewIfNeeded();
-    await page.screenshot({ path: info.outputPath("facilities-960.png"), fullPage: false });
-  }
-  // Activities now live with the initial region and dates; changing optional
-  // needs returns there without starting a place search.
-  await page.locator(".condition-actions").getByRole("button", { name: "이전", exact: true }).click();
-  await expect(count).toContainText("총 1건");
-  await page.locator(".theme-grid").getByRole("button", { name: /역사/ }).click();
-  await expect.poll(() => calls).toBe(2);
-  await expect(count).toContainText("현재 검색한 1개 후보 기준");
-  await count.scrollIntoViewIfNeeded();
-  await page.screenshot({ path: info.outputPath("activities.png"), fullPage: false });
-  expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
+test("불러온 후보 수를 표시하고 편의 초안은 적용할 때만 검색한다", async ({ page }, info) => {
+  await mockPlannerApi(page);
+  const requests: URL[] = [];
+  page.on('request', request => { const url = new URL(request.url()); if (url.pathname === '/api/wave' && url.searchParams.get('action') === 'plan') requests.push(url); });
+  await page.goto('/planner?region=창원');
+  await expect(page.locator('.simple-results-heading')).toContainText('불러온 장소 2곳');
+  const before = requests.length;
+  await page.locator('.simple-facility-trigger').click();
+  await page.locator('.simple-facility-picker').getByRole('checkbox', { name: '접근로', exact: true }).check();
+  await expect(page.locator('.simple-facility-picker').getByRole('checkbox', { name: '접근로', exact: true })).toBeChecked();
+  expect(requests.length).toBe(before);
+  await page.screenshot({ path: info.outputPath('facility-draft.png') });
+  await page.locator('.simple-facility-picker').getByRole('button', { name: /^적용/ }).click();
+  await expect.poll(() => requests.at(-1)?.searchParams.get('facilityKeys')).toBe('route');
+  await expect(page.locator('.simple-results[aria-busy="false"]')).toBeVisible();
+  expect(requests.length).toBe(before + 1);
+  await page.locator('.simple-activity-filter').getByRole('button', { name: /문화/ }).click();
+  await expect.poll(() => requests.at(-1)?.searchParams.get('themes')).toBe('history');
+  expect(requests.at(-1)?.searchParams.get('facilityKeys')).toBe('route');
+  await expect(page.locator('.simple-results-heading')).toContainText('불러온 장소 2곳');
+  expect((await new AxeBuilder({ page }).include('#conditions').analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 선택", exact: true }).click();
-  await expect(count).toContainText("현재 검색한 1개 후보 기준");
-  await expect(needs.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "true");
-  expect(calls).toBe(2);
-  expect(searches).toBe(0);
 });
 
-test("조회 실패·부분 결과·정상 0건을 구분하고 다시 확인할 수 있다", async ({ page }) => {
-  await mockPlannerApi(page, { plannerView: "guided" });
-  let state = "error";
-  await page.route("**/api/wave?action=availability&**", async route => {
-    if (state === "error") return route.fulfill({ status: 503, json: { error: "Unavailable" } });
-    const params = new URL(route.request().url()).searchParams;
-    return route.fulfill({ json: { region: params.get("region"), themes: params.get("themes")?.split(","), candidates: [], limit: 12, status: { partial: state === "partial" } } });
+test("조회 실패·부분 결과·정상 0곳을 구분하고 같은 조건으로 재시도한다", async ({ page }) => {
+  await mockPlannerApi(page);
+  let state = 'error'; const queries: string[] = [];
+  await page.route('**/api/wave?**', async route => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get('action') !== 'plan') return route.fallback();
+    queries.push(url.searchParams.toString());
+    if (state === 'error') return route.fulfill({ status: 503, json: { error: 'Unavailable' } });
+    return route.fulfill({ json: { ...plan, places: [], stops: [], statuses: plan.statuses.map(status => ({ ...status, state: state === 'partial' ? 'error' : 'empty', count: 0 })) } });
   });
-  await page.goto("/planner?region=창원&question=1");
-  const count = page.locator(".condition-availability");
-  await expect(count).toContainText("검색 결과를 확인하지 못했어요");
-  await expect(count).not.toContainText("총 0건");
-  state = "partial";
-  await count.getByRole("button", { name: "다시 확인" }).click();
-  await expect(count).toContainText("일부 정보 확인 중");
-  state = "empty";
-  await count.getByRole("button", { name: "다시 확인" }).click();
-  await expect(count).toContainText("총 0건");
-  await expect(count.getByRole("button")).toHaveCount(0);
+  await page.goto('/planner?region=창원');
+  const results = page.locator('.simple-results');
+  await expect(results.locator('[role="alert"]')).toBeVisible();
+  await expect(results.locator('.simple-empty')).toHaveCount(0);
+  state = 'partial';
+  await results.getByRole('button', { name: '같은 조건으로 다시 시도', exact: true }).click();
+  await expect(results.locator('.simple-result-notice')).toContainText('일부 장소 정보를 불러오지 못했어요.');
+  await expect(results.locator('.simple-empty')).toHaveCount(0);
+  state = 'empty';
+  await results.getByRole('button', { name: '다시 시도', exact: true }).click();
+  await expect(results.locator('.simple-empty')).toContainText('이 조건으로 불러온 장소가 없어요.');
+  await expect(results.locator('.simple-result-notice')).toHaveCount(0);
+  expect(new Set(queries).size).toBe(1);
 });

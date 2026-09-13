@@ -32,7 +32,6 @@ import "./styles/account-community.css";
 // #353 removed these scenes; preserve their source styles without shipping them.
 import "./styles/landing-community-active.css";
 import "./styles/landing-region-active.css";
-import "./styles/landing-arrival.css";
 import "./styles/landing-cinematic.css";
 import "./styles/planner-unified-workspace.css";
 import "./styles/planner-journey-control.css";
@@ -46,9 +45,11 @@ import "./styles/policies.css";
 import "./styles/wave-horizon.css";
 import "./styles/place-decisions.css";
 import "./styles/planner-conversation.css";
+import "./styles/landing-split.css";
+import "./styles/simple-wave.css";
+import "./styles/simple-planner.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN, SITE_TITLE, SOCIAL_IMAGE } from "../lib/site-metadata";
-import { arrivalBootstrap } from "../features/landing/arrival-bootstrap";
 
 const productionUrl = new URL(SITE_ORIGIN);
 const preferenceBootScript = `(()=>{try{const d=document.documentElement;const e=${process.env.NODE_ENV === "development" ? "localStorage.getItem('wave-dev-presentation')==='enabled'" : "false"};const m=matchMedia('(prefers-color-scheme: dark)').matches;const r=matchMedia('(prefers-reduced-motion: reduce)').matches;const t=localStorage.getItem('wave-theme');d.dataset.theme=e?(t==='dark'||t==='light'?t:(m?'dark':'light')):'light';d.dataset.motion=r?'calm':'full';d.lang='ko';d.style.colorScheme=d.dataset.theme}catch{}try{document.documentElement.dataset.introSeen=sessionStorage.getItem('wave-arrival-session-v1')==='done'?'1':'0'}catch{}})()`;
@@ -113,7 +114,6 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="shortcut icon" href="/favicon.svg" />
         <script dangerouslySetInnerHTML={{ __html: preferenceBootScript }} />
-        <script dangerouslySetInnerHTML={{ __html: arrivalBootstrap }} />
       </head>
       <body className="antialiased">
         <noscript><style>{".arrival-intro{display:none!important}"}</style><p>WAVE 여행 설계를 이용하려면 브라우저에서 JavaScript를 허용해 주세요.</p></noscript>

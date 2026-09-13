@@ -1,6 +1,6 @@
 import { openSupportMenu } from "./support-menu";
 import { expect, type Page } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi } from "./fixtures";
+import { chooseTripConditions, mockPlannerApi, openItinerary } from "./fixtures";
 
 export interface NearbyFixturePlace { id: string; place_name: string; address_name: string; road_address_name: string; x: string; y: string; distance: string; place_url: string }
 interface NearbyFixture {
@@ -18,7 +18,7 @@ export async function deliverNearby(page: Page, index: number, status: string, p
   await page.evaluate(({ index, status, places }) => (window as unknown as { nearbyFixture: NearbyFixture }).nearbyFixture.requests[index].callback(places, status), { index, status, places });
 }
 export async function openNearby(page: Page, english = false, theme = "light", placeCoordinate?: { mapX: string; mapY: string }) {
-  await mockPlannerApi(page, { placeCoordinate });
+  await mockPlannerApi(page, { placeCoordinate, preserveView: true });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript((theme) => {
     localStorage.setItem("wave-theme", theme);
@@ -56,22 +56,57 @@ export async function openNearby(page: Page, english = false, theme = "light", p
   await page.route("**/api/map-config", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ provider: "kakao", javascriptKey: "e2e-stub-key" }) }));
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
   await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
-  if (english) {
-    await page.keyboard.press("Control+Home");
-    await openSupportMenu(page);
-    const preferences = page.locator(".preference-controls:visible");
-    await openSupportMenu(page);
-    await preferences.getByLabel("환경설정 열기", { exact: true }).click();
-    await preferences.getByLabel("언어", { exact: true }).selectOption("en");
-    await openSupportMenu(page);
-    await preferences.getByLabel("Open preferences", { exact: true }).click();
-  }
+  if (english) await changeMapLanguage(page, true);
   await page.getByRole("button", { name: english ? "Map options" : "지도 도구", exact: true }).click();
   await page.locator('.map-command-bar button[aria-controls="map-panel-nearby"]').click();
   const panel = page.getByRole("region", { name: english ? "Find nearby places" : "주변 장소 찾기", exact: true });
   await expect(panel).toBeVisible();
   expect(await nearbyRequests(page)).toBe(0);
+  return panel;
+}
+
+
+/** Enter the dated itinerary and use the real mobile time/map switch when shown. */
+export async function openPlannerMap(page: Page, dates = { start: "2026-10-08" } as { start: string; end?: string }) {
+  await openItinerary(page, dates);
+  await ensureMapView(page);
+}
+export async function ensureMapView(page: Page) {
+  const toggle = page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "지도", exact: true });
+  if (await toggle.count() && await toggle.getAttribute("aria-pressed") !== "true") await toggle.click();
+  await expect(page.locator("#navigation")).toBeVisible();
+}
+export async function openRouteDetails(page: Page) {
+  for (const selector of [".reference-route-details", ".simple-more-trip-tools"]) {
+    const details = page.locator(selector);
+    if (await details.getAttribute("open") === null) await details.locator(":scope > summary").click();
+  }
+}
+export async function changeMapLanguage(page: Page, english: boolean) {
+  await page.keyboard.press("Control+Home");
+  await openSupportMenu(page);
+  const preferences = page.locator(".preference-controls:visible");
+  if (await preferences.getAttribute("open") === null) await preferences.locator(":scope > summary").click();
+  await preferences.getByRole("combobox", { name: /^(언어|Language)$/ }).selectOption(english ? "en" : "ko");
+  await preferences.locator(":scope > summary").click();
+  await page.locator(".wave-support-menu > summary").click();
+}
+export async function addAnotherMapPlace(page: Page, name = "용지호수공원") {
+  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  const refresh = page.getByRole("button", { name: /^(현재 조건으로 다시 찾기|Search current preferences)$/ });
+  if (await refresh.count()) await refresh.click();
+  await page.getByRole("button", { name: new RegExp("^" + name + " (일정에 담기|add to itinerary)$") }).click();
+  await openPlannerMap(page);
+}
+export async function openMapTool(page: Page, tool: "nearby" | "layers" | "export" | "route") {
+  const panel = page.locator("#map-panel-" + tool);
+  if (await panel.isVisible()) return panel;
+  const trigger = page.locator('.map-command-bar button[aria-controls="map-panel-' + tool + '"]');
+  if (!await trigger.isVisible()) await page.getByRole("button", { name: /^(지도 도구|Map options)$/ }).click();
+  await trigger.click();
+  await expect(panel).toBeVisible();
   return panel;
 }

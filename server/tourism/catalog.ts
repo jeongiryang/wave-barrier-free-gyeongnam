@@ -1,3 +1,4 @@
+import { FACILITIES } from "../../lib/facility-selection.js";
 export const regionCodes: Record<string, { legal: string[]; full: string[] }> = {
   "경남 전체": { legal: [], full: [] },
   "창원": { legal: ["121", "123", "125", "127", "129"], full: ["48121", "48123", "48125", "48127", "48129"] },
@@ -54,6 +55,7 @@ export const languageServices: Record<string, { service: string; name: string; s
 };
 
 export const profileFields: Record<string, Array<[string, string]>> = {
+  ...Object.fromEntries(FACILITIES.map(item => [item.key, [[item.key, item.label]]])),
   wheel: [["parking", "장애인 주차"], ["route", "접근로"], ["wheelchair", "휠체어 대여"], ["elevator", "엘리베이터"], ["restroom", "장애인 화장실"]],
   senior: [["route", "완만한 접근로"], ["elevator", "엘리베이터"], ["restroom", "화장실"]],
   baby: [["stroller", "유모차 대여"], ["lactationroom", "수유실"], ["babysparechair", "유아용 의자"]],

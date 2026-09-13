@@ -27,7 +27,7 @@ export async function accountTravelHandler(request: Request) {
     const repo = accountTravelRepository();
     if (id === "preferences") {
       if (request.method === "GET") return response(await repo.preferences(userId));
-      if (request.method !== "POST" || !Array.isArray(body.selectedIds) || body.selectedIds.length > 6 || body.selectedIds.some(id => typeof id !== "string" || !profileFields[id]) || !Number.isInteger(body.revision) || Number(body.revision) < 0) return response({ error: "편의 조건을 확인해 주세요." }, 400);
+      if (request.method !== "POST" || !Array.isArray(body.selectedIds) || body.selectedIds.length > 16 || body.selectedIds.some(id => typeof id !== "string" || !profileFields[id]) || !Number.isInteger(body.revision) || Number(body.revision) < 0) return response({ error: "편의 조건을 확인해 주세요." }, 400);
       return response(await repo.savePreferences(userId, [...new Set(body.selectedIds)], body.revision));
     }
     if (request.method === "GET") {

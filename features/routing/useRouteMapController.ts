@@ -74,7 +74,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
       if (lat >= 33 && lat <= 39 && lng >= 124 && lng <= 132) {
         const sdk = window.kakao?.maps;
         if (sdk && kakaoMapRef.current) kakaoMapRef.current.panTo(new sdk.LatLng(lat, lng));
-        else mapRef.current?.panTo([lat, lng], { animate: !matchMedia('(prefers-reduced-motion: reduce)').matches });
+        else if (mapRef.current && Number.isFinite(mapRef.current.getZoom()) && containerRef.current?.clientWidth && containerRef.current.clientHeight) mapRef.current.panTo([lat, lng], { animate: false });
       }
       for (const marker of containerRef.current?.querySelectorAll<HTMLElement>('[data-place-id]') || []) {
         const selected = marker.dataset.placeId === focusedPlaceId;

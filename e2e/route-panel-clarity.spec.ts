@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
+import { openPlannerMap, openRouteDetails } from "./nearby-fixtures";
 
 /**
  * 길찾기 결과 패널은 같은 말을 여러 번 적고, 값이 들어갈 자리에 안내문을 넣고
@@ -7,12 +8,15 @@ import { mockPlannerApi, chooseTripConditions } from "./fixtures";
  */
 test("이동수단 카드의 시간 자리에 안내문을 값처럼 넣지 않는다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
   await page.locator(".itinerary-route-coverage select").selectOption("car");
-  await page.waitForTimeout(2_200);
+  await expect(page.locator(".route-option")).toHaveCount(2);
+  await expect(page.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
 
   const values = await page.evaluate(() =>
     [...document.querySelectorAll(".route-mode-sections button > strong")]
@@ -28,12 +32,15 @@ test("이동수단 카드의 시간 자리에 안내문을 값처럼 넣지 않�
 
 test("경로 카드가 같은 이름을 반복하지 않는다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
   await page.locator(".itinerary-route-coverage select").selectOption("car");
-  await page.waitForTimeout(2_200);
+  await expect(page.locator(".route-option")).toHaveCount(2);
+  await expect(page.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
 
   const cards = await page.evaluate(() =>
     [...document.querySelectorAll(".route-option")].map((node) => ({
@@ -51,12 +58,15 @@ test("경로 카드가 같은 이름을 반복하지 않는다", async ({ page }
 test("경로 카드는 예상 시간·요금·환승·도보를 그대로 보여 준다", async ({ page }) => {
   // 단순화가 정보 삭제가 되면 안 된다.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
   await page.locator(".itinerary-route-coverage select").selectOption("car");
-  await page.waitForTimeout(2_200);
+  await expect(page.locator(".route-option")).toHaveCount(2);
+  await expect(page.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
 
   const first = page.locator(".route-option").first();
   for (const label of ["예상 시간", "통행료", "환승", "도보"]) {

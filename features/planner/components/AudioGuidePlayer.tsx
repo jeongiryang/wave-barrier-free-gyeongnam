@@ -16,7 +16,7 @@ export default function AudioGuidePlayer({ audio, controller }: {
     handlePlay, handlePause,
   } = controller;
 
-  return <aside className="guide-player" aria-label={c("관광지 오디오 해설", "Place audio guide")}>
+  return <aside lang={locale} className="guide-player" aria-label={c("관광지 오디오 해설", "Place audio guide")}>
     <div className="guide-top"><span>{c("여행지 음성 해설", "Place audio guide")}</span><b>{controller.audioError ? c("재생 확인 필요", "Playback unavailable") : audio?.audioUrl ? c("재생 가능", "Audio available") : c("해설 없음", "No audio supplied")}</b></div>
     <div className="guide-art"><span aria-hidden="true" className={playing ? "sound playing" : "sound"}><i /><i /><i /><i /><i /></span><strong lang={audio?.audioTitle ? originalLanguage(audio.audioTitle) : undefined}>{audio?.audioTitle || c("여행지 이야기를\n음성과 대본으로", "Place stories in audio and text")}</strong><small>{audio ? c("한국관광공사 오디 해설", "Korea Tourism Organization audio; the original recording may be in Korean.") : c("추천 여행지에 해당하는 공식 해설을 확인하면 연결됩니다.", "Choose a place with an audio guide to listen here.")}</small></div>
     <audio preload="none" ref={audioRef} src={audio?.audioUrl || undefined} onError={controller.handleAudioError} onLoadedMetadata={handleLoadedMetadata} onPlay={handlePlay} onPause={handlePause} onEnded={handlePause} onTimeUpdate={handleTimeUpdate} />

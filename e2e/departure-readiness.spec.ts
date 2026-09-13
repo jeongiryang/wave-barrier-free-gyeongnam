@@ -1,90 +1,35 @@
-import AxeBuilder from "@axe-core/playwright";
-import { readFile } from "node:fs/promises";
-import { expect, test } from "@playwright/test";
-import { mockPlannerApi, chooseTripConditions } from "./fixtures";
-
-test("출발 준비 카드는 부분 성공을 구분하고 키보드로 한국 시간대 캘린더를 저장한다", async ({ page, baseURL }) => {
-  const now = new Date();
-  await page.clock.setFixedTime(now);
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(({ date }) => {
-    window.localStorage.setItem("wave-trip-schedule-v1", JSON.stringify({
-      travelStart: date, travelEnd: date, dayStartTime: "09:30", scheduleAssignments: {},
-    }));
-  }, { date: today });
-  await mockPlannerApi(page);
-  // This success fixture represents the selected itinerary place on its date.
-  // The default fixture is a historical reference and cannot confirm today's trip.
-  await page.route("**/api/wave?*", async (route) => {
-    if (new URL(route.request().url()).searchParams.get("action") !== "crowd") return route.fallback();
-    return route.fulfill({ status: 200, json: { crowd: { place: "경남도립미술관", rate: 24, baseYmd: today.replaceAll("-", "") } } });
-  });
-  await page.route("**/api/weather**", (route) => route.fulfill({
-    status: 200,
-    contentType: "application/json",
-    body: JSON.stringify({
-      region: "창원", source: "기상청 단기예보", updatedAt: `${today}T01:00:00.000Z`,
-      current: { temperature: 27, apparent: 29, code: 1, label: "대체로 맑음", wind: 2, precipitation: 0, isDay: true },
-      days: [{ date: today, code: 1, label: "맑음", max: 30, min: 23, rainProbability: 10, rain: 0, snow: 0, uv: 6, advice: [] }], advice: [],
-    }),
-  }));
-  await page.route("**/api/trips", (route) => route.fulfill({
-    status: 201, contentType: "application/json", body: JSON.stringify({ url: "/trip/share-123" }),
-  }));
-  await page.goto("/planner");
-  await chooseTripConditions(page);
-
-  const card = page.getByRole("region", { name: "출발 전에 이것만 다시 확인하세요." });
-  await expect(card).toBeVisible();
-  await expect(card.getByText("오늘 출발")).toBeVisible();
-  await expect(card.getByText("전체 재확인 필요")).toBeVisible();
-  await expect(card.getByText("먼저 장소를 일정에 추가하면 공유 일정과 캘린더를 만들 수 있습니다.")).toBeVisible();
-  await expect(card.getByText(/예측값이며 실시간 방문자 수가 아닙니다/)).toBeVisible();
-  await expect(card.getByRole("button", { name: "캘린더(.ics) 저장", exact: true })).toBeDisabled();
-
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
-  const journeys = card.locator("article").filter({ has: page.getByText("이동 경로·시간", { exact: true }) });
-  await expect(journeys).toContainText("전체 1구간 중 0구간");
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
-  await page.getByRole("button", { name: "모든 구간 조회하기", exact: true }).click();
-  await expect(journeys).toContainText("전체 1구간 중 1구간");
-  await expect(journeys).toHaveClass("confirmed");
-  await expect(card.locator("article").filter({ has: page.getByText("이동 편의", { exact: true }) })).toHaveClass("recheck");
-  await expect(card.getByText("전체 재확인 필요")).toBeVisible();
-  const calendarButton = card.getByRole("button", { name: "캘린더(.ics) 저장", exact: true });
-  await expect(calendarButton).toBeEnabled();
-  await calendarButton.focus();
-  await expect(calendarButton).toBeFocused();
-  const downloadPromise = page.waitForEvent("download");
-  await page.keyboard.press("Enter");
-  const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe(`wave-창원-${today}.ics`);
-  const path = await download.path();
-  expect(path).toBeTruthy();
-  const contents = await readFile(path || "", "utf8");
-  expect(contents).toContain("TZID:Asia/Seoul");
-  expect(contents).toContain(`DTSTART;TZID=Asia/Seoul:${today.replaceAll("-", "")}T093000`);
-  expect(contents).toContain(`URL:${new URL("/trip/share-123", baseURL).href}`);
-  await expect(card.getByText("캘린더 파일을 저장했습니다.")).toBeAttached();
-
-  const results = await new AxeBuilder({ page }).include(".departure-readiness").analyze();
-  expect(results.violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);
+import AxeBuilder from '@axe-core/playwright';
+import { readFile } from 'node:fs/promises';
+import { expect, test } from '@playwright/test';
+import { mockPlannerApi, chooseTripConditions, openItinerary } from './fixtures';
+import { departureItem, openDeparture, routeTools, validShareApi } from './departure-fixtures';
+test('departure disclosures distinguish partial evidence and keyboard calendar keeps Korea time', async ({ page, baseURL }) => {
+  await page.clock.setFixedTime(new Date('2026-10-08T01:00:00Z')); const today = '2026-10-08';
+  await page.emulateMedia({ reducedMotion: 'reduce' }); await mockPlannerApi(page);
+  await page.route('**/api/wave?*', async route => new URL(route.request().url()).searchParams.get('action') !== 'crowd' ? route.fallback() : route.fulfill({ json: { crowd: { place: '경남도립미술관', rate: 24, baseYmd: today.replaceAll('-', '') } } }));
+  await page.route('**/api/weather**', route => route.fulfill({ json: { region: '창원', source: '기상청 단기예보', updatedAt: `${today}T01:00:00.000Z`, current: { temperature: 27, apparent: 29, code: 1, label: '대체로 맑음', wind: 2, precipitation: 0, isDay: true }, days: [{ date: today, code: 1, label: '맑음', max: 30, min: 23, rainProbability: 10, rain: 0, snow: 0, uv: 6, advice: [] }], advice: [] } }));
+  await validShareApi(page); await page.goto('/planner'); await chooseTripConditions(page);
+  await expect(page.locator('.simple-planner-tabs button').nth(1)).toBeDisabled(); await expect(page.locator('button[data-planner-tool=share]')).not.toBeVisible();
+  await page.locator('.simple-place-row').first().locator('.simple-place-add').click(); await openItinerary(page, { start: today, end: today });
+  await page.getByRole('button', { name: '여행 설정', exact: true }).click(); const settings = page.getByRole('dialog', { name: '여행 설정', exact: true });
+  await settings.getByLabel('하루 시작', { exact: true }).fill('09:30'); await settings.getByRole('button', { name: '적용', exact: true }).click();
+  const card = await openDeparture(page); const weather = await departureItem(page, '날씨'); await expect(weather.locator('summary')).toContainText('조회한 정보 있음');
+  const crowd = await departureItem(page, '관광 집중률'); await expect(crowd).toContainText('실시간 방문자 수가 아닙니다');
+  const journeys = await departureItem(page, '이동 경로·시간'); await expect(journeys).toContainText('전체 1구간 중 0구간');
+  const coverage = await routeTools(page); await coverage.locator('select').selectOption('car'); await expect(journeys).toContainText('전체 1구간 중 1구간');
+  await expect(journeys.locator('summary')).toContainText('조회한 정보 있음'); const mobility = await departureItem(page, '이동 편의'); await expect(mobility.locator('summary')).toContainText('확인할 정보 있음');
+  expect((await new AxeBuilder({ page }).include('.simple-readiness').analyze()).violations).toEqual([]);
+  await page.locator('button[data-planner-tool=share]').click(); const menu = page.getByRole('dialog', { name: '여행 공유', exact: true });
+  const calendar = menu.getByRole('button', { name: '캘린더', exact: true }); await expect(calendar).toBeEnabled(); await calendar.focus();
+  const downloading = page.waitForEvent('download'); await page.keyboard.press('Enter'); const download = await downloading;
+  expect(download.suggestedFilename()).toBe('wave-trip.ics'); const contents = (await readFile((await download.path())!, 'utf8')).replaceAll('\r\n ', '');
+  expect(contents).toContain('TZID:Asia/Seoul'); expect(contents).toContain('DTSTART;TZID=Asia/Seoul:20261008T093000'); expect(contents).toContain(`URL:${new URL('/trip/abcdef123456', baseURL).href}`);
+  await menu.getByRole('button', { name: '공유 닫기' }).click(); await expect(card).toBeVisible();
 });
-
-test("지난 일정과 조회 실패는 출발 가능 상태로 표시하지 않는다", async ({ page }) => {
-  await page.addInitScript(() => {
-    window.localStorage.setItem("wave-trip-schedule-v1", JSON.stringify({
-      travelStart: "2026-08-01", travelEnd: "2026-08-01", dayStartTime: "10:00", scheduleAssignments: {},
-    }));
-  });
-  await mockPlannerApi(page);
-  await page.route("**/api/weather**", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "지연" }) }));
-  await page.goto("/planner");
-  await chooseTripConditions(page);
-  const card = page.getByRole("region", { name: "출발 전에 이것만 다시 확인하세요." });
-  await expect(card.getByText(/출발 전 확인 · 지난 일정/)).toBeVisible();
-  await expect(card.getByText("전체 재확인 필요")).toBeVisible();
-  await expect(card.getByText(/해당 날짜 예보가 없거나/)).toBeVisible();
-  await expect(card.getByRole("button", { name: "캘린더(.ics) 저장", exact: true })).toBeDisabled();
+test('past trips and forecast failures never claim departure readiness', async ({ page }) => {
+  await mockPlannerApi(page); await page.route('**/api/weather**', route => route.fulfill({ status: 503, json: { error: '지연' } }));
+  await page.goto('/planner?travelStart=2026-08-01&travelEnd=2026-08-01'); await chooseTripConditions(page);
+  await page.locator('.simple-place-row').first().locator('.simple-place-add').click(); await openItinerary(page); await openDeparture(page);
+  const weather = await departureItem(page, '날씨'); await expect(weather.locator('summary')).toContainText('확인할 정보 있음'); await expect(weather).toContainText('해당 날짜 예보가 없거나');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-trip-schedule-v1') || '{}').travelStart)).toBe('2026-08-01');
 });

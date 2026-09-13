@@ -1,3 +1,4 @@
+import { openPlannerMap, openRouteDetails } from "./nearby-fixtures";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
@@ -6,7 +7,7 @@ for (const focus of ["panel", "outside", "pending-location"]) test(`a final map 
   // Under CPU pressure an animation frame can run before React commits the error UI.
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => {
     const state = { calls: 0, release: () => undefined as void };
@@ -24,8 +25,12 @@ for (const focus of ["panel", "outside", "pending-location"]) test(`a final map 
   try {
     await page.goto("/planner");
     await chooseTripConditions(page);
-    await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+    await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+    await openPlannerMap(page);
+    await openRouteDetails(page);
     await page.locator(".itinerary-route-coverage select").selectOption("car");
+    await expect(page.locator(".itinerary-route-coverage").getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
+    await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
     await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();
     const panel = page.locator("#map-panel-route");
     await expect(panel).toBeVisible();
@@ -53,7 +58,7 @@ for (const focus of ["panel", "outside", "pending-location"]) test(`a final map 
     await expect(page.locator(".map-provider-badge.error")).toBeVisible();
     expect(routeRequests).toBe(requestsBefore);
     expect(await page.evaluate(() => (window as unknown as { locationFixture: { calls: number } }).locationFixture.calls)).toBe(focus === "pending-location" ? 1 : 0);
-    await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+    await expect(page.locator(".simple-stops > li")).toHaveCount(1);
     await retry.scrollIntoViewIfNeeded();
     expect(await retry.evaluate((element) => { const b = element.getBoundingClientRect(); return element.contains(document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2)); })).toBe(true);
     expect((await new AxeBuilder({ page }).include(".route-map-shell").analyze()).violations).toEqual([]);

@@ -44,3 +44,5 @@ next-env.d.ts
 /dist/
 /.output/
 /.vinext/
+
+/test-results-simple*/

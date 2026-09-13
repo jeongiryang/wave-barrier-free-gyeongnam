@@ -32,7 +32,7 @@ test("English preferences preserve locale choices, runtime reduced motion and CT
   await cta.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(cta).toBeFocused();
-  await expect(page.locator(".hero-copy-sequence")).toHaveAttribute("data-running", "false");
+  await expect(page.locator('.landing-hero-copy')).toBeVisible();
   await expect(page.getByRole("dialog", { name: "WAVE", exact: true })).toBeHidden();
   await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
@@ -59,7 +59,7 @@ test("English help covers visible areas, traps focus and returns it on each publ
     await openSupportMenu(page);
     const trigger = page.getByRole("button", { name: "Help", exact: true });
     await expect(trigger).toBeEnabled();
-    if (path === "/planner") await expect(page.locator(".journey-stage-stream")).toHaveAttribute("data-view", "overview");
+    if (path === "/planner") await expect(page.locator('.simple-planner-tabs button')).toHaveCount(2);
     await trigger.focus();
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog");
@@ -76,7 +76,7 @@ test("English help covers visible areas, traps focus and returns it on each publ
       if (await finish.count()) { await finish.click(); break; }
       await dialog.getByRole("button", { name: "Next area", exact: true }).click();
     }
-    if (path === "/planner") expect(visited).toBe(4);
+    if (path === "/planner") expect(visited).toBe(1);
     await expect(dialog).toBeHidden();
     await expect(trigger).toBeFocused();
     await page.keyboard.press("Enter");
@@ -99,11 +99,11 @@ for (const locale of ["ko", "en"] as const) {
     const trigger = page.getByRole("button", { name: locale === "en" ? "Help" : "도움말", exact: true });
     await trigger.click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog.getByRole("heading")).toHaveText(locale === "en" ? "Choose your trip preferences." : "내게 필요한 여행 조건을 고르세요.");
+    await expect(dialog.getByRole("heading")).toHaveText(locale === "en" ? "Choose your trip preferences." : "지역부터 골라보세요.");
     await expect(dialog.locator(".help-tour-progress")).toHaveAccessibleName(locale === "en" ? "Step 1 of 1" : "1단계 중 1단계");
     await expect(page.locator(".help-tour-spotlight")).toBeVisible();
     await expect(page.locator("#places")).toBeHidden();
-    await expect(page.locator('.planner-navigation nav button').nth(3)).toBeDisabled();
+    await expect(page.locator('.simple-planner-tabs button').nth(1)).toBeDisabled();
     await dialog.getByRole("button", { name: locale === "en" ? "Finish tour" : "투어 마치기", exact: true }).click();
     await expect(trigger).toBeFocused();
   });

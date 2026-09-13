@@ -6,49 +6,71 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
-test("landing route delegates section UI and browser effects to feature modules", async () => {
-  const [page, experience] = await Promise.all([
+test("landing route composes four real sections and keeps browser effects inside their owners", async () => {
+  const [page, hero, regions, story, naru] = await Promise.all([
     source("app/page.tsx"),
-    Promise.all([
-      source("features/landing/hooks/useLandingExperience.ts"),
-      source("features/landing/hooks/useLandingMotion.ts"),
-      source("features/landing/hooks/useLandingRegions.ts"),
-      source("features/landing/client/region-photo.ts"),
-    ]).then((parts) => parts.join("\n")),
+    source("features/landing/components/LandingHero.tsx"),
+    source("features/landing/components/LandingRegionStory.tsx"),
+    source("features/landing/components/LandingChapters.tsx"),
+    source("features/landing/components/LandingAssistantStory.tsx"),
   ]);
-  for (const component of ["LandingHeader", "LandingHero", "LandingChapters", "LandingRegionStory", "LandingAccountStory", "LandingDepartureScene", "LandingCommunityStory", "LandingSectionProgress", "LandingFooter"]) {
-    assert.match(page, new RegExp(`<${component}`));
-  }
-  assert.doesNotMatch(page, /LandingEvidenceStory|landing-pointer-glow|chapter-rail/);
+  assert.deepEqual([...page.matchAll(/<(Landing[A-Za-z]+)\b/g)].map(match => match[1]),
+    ["LandingIntro", "LandingHeader", "LandingHero", "LandingRegionStory", "LandingChapters", "LandingAssistantStory", "LandingFooter"]);
+  assert.deepEqual([hero, regions, story, naru].flatMap(content => [...content.matchAll(/<section\b[^>]*\bid="([^"]+)"/g)].map(match => match[1])), ["top", "regions", "story", "naru"]);
   assert.doesNotMatch(page, /useState|useEffect|IntersectionObserver|AbortController/);
-  assert.match(experience, /IntersectionObserver/);
-  assert.match(experience, /AbortController/);
+  assert.match(regions, /new IntersectionObserver/);
+  assert.match(regions, /observer\.disconnect\(\)/);
+  assert.match(hero, /href="\/planner"/);
+  assert.match(naru, /href="\/planner\?assistant=naru"/);
+  assert.match(story, /Example itinerary screen/);
+  assert.match(naru, /Example conversation/);
+  assert.doesNotMatch(story + naru, /fetch\(|localStorage|sessionStorage|<form\b|<input\b|<textarea\b/);
 });
 
-test("landing arrival can be skipped immediately and retains the underlying Hero", async () => {
-  const landing = await source("app/page.tsx");
-  const intro = await source("features/landing/components/LandingIntro.tsx");
+test("the two-second decorative arrival never intercepts navigation or moves keyboard focus", async () => {
+  const [landing, intro, css] = await Promise.all([
+    source("app/page.tsx"),
+    source("features/landing/components/LandingIntro.tsx"),
+    source("app/styles/simple-wave.css"),
+  ]);
   assert.match(landing, /<LandingIntro/);
   assert.match(landing, /<LandingHero/);
-  assert.doesNotMatch(intro, /<button|data-intro-skip/);
-  assert.match(intro, /onCancel=.*finish/);
-  assert.match(intro, /node\.close\(\)/);
-  assert.match(intro, /sessionStorage\.getItem\(SESSION_KEY\)/);
-  assert.match(intro, /prefers-reduced-motion/);
+  assert.match(intro, /<div ref=\{scene\} className="arrival-scene" hidden aria-hidden="true"/);
+  assert.doesNotMatch(intro, /<dialog|<button|showModal|\.focus\(|preventDefault\(|body\.style\.overflow/);
+  assert.match(css, /\.arrival-scene \{[^}]*pointer-events: none/);
+  assert.match(intro, /setTimeout\(finish, 2000\)/);
+  assert.match(intro, /root\.hidden = true/);
+  assert.match(intro, /animations\.forEach\(animation => animation\.cancel\(\)\)/);
+  assert.match(intro, /sessionStorage\.getItem\("wave-arrival-session-v1"\)/);
+  assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
+  assert.match(intro, /document\.documentElement\.dataset\.introSeen = "1"/);
+  assert.match(intro, /seen \|\| media\.matches/);
+  for (const event of ["pointerdown", "keydown", "wheel", "touchstart", "resize"]) assert.ok(intro.includes('"' + event + '"'), event);
+  assert.match(intro, /addEventListener\(name, finish, \{ passive: true, capture: true \}\)/);
+  assert.match(intro, /removeEventListener\(name, finish, true\)/);
+  assert.match(intro, /media\.addEventListener\("change", reduction\)/);
+  assert.match(intro, /media\.removeEventListener\("change", reduction\)/);
 });
 
-test("landing region photos time out and can retry after transient failures", async () => {
-  const landing = await Promise.all([
-    source("features/landing/hooks/useLandingRegions.ts"),
-    source("features/landing/client/region-photo.ts"),
-  ]).then((parts) => parts.join("\n"));
-  assert.match(landing, /const controller = new AbortController\(\)/);
-  assert.match(landing, /let timedOut = false/);
-  assert.match(landing, /timedOut = true;\s*controller\.abort\(\)/);
-  assert.match(landing, /if \(timedOut \|\| !controller\.signal\.aborted\)/);
-  assert.match(landing, /fetchRegionPhoto\(region, controller\.signal\)/);
-  assert.match(landing, /photoRequests\.current\.delete\(region\)/);
-  assert.match(landing, /window\.clearTimeout\(timeout\)/);
+test("place-photo recovery has a finite timeout and a stale result cannot replace the current card image", async () => {
+  const [row, photo, hook, client] = await Promise.all([
+    source("features/planner/components/PlaceResultRow.tsx"),
+    source("features/tourism/components/SmartSpotImage.tsx"),
+    source("features/tourism/hooks/useOfficialSpotImage.ts"),
+    source("features/tourism/client/spot-photo.ts"),
+  ]);
+  assert.match(row, /<SmartSpotImage[^>]*contentId=\{place\.id\}/);
+  assert.match(photo, /onLoad=\{photo\.onLoad\} onError=\{photo\.onError\}/);
+  assert.match(hook, /const controller = new AbortController\(\)/);
+  assert.match(hook, /setTimeout\(\(\) => controller\.abort\(\), 12000\)/);
+  assert.match(hook, /cancelled\(\) \|\| controller\.signal\.aborted \|\| fallbackRequest\.current !== request/);
+  assert.match(hook, /fallbackRequest\.current\?\.key === imageKey\) return/);
+  assert.match(hook, /fallbackRequest\.current\.controller\.abort\(\)/);
+  assert.match(hook, /window\.clearTimeout\(timeout\)/);
+  assert.match(hook, /window\.clearTimeout\(slowImage\)/);
+  assert.match(client, /action: "spot-photo"/);
+  assert.match(client, /params\.set\("contentId", query\.contentId\)/);
+  assert.match(client, /signal,/);
 });
 
 test("tourism images allow only normalized HTTPS URLs", async () => {

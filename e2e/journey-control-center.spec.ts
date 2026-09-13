@@ -1,32 +1,37 @@
 import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
+import { expect, test, type Page } from "@playwright/test";
+import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
-async function openPlanner(page: import("@playwright/test").Page, width: number, height: number) {
+async function openPlanner(page: Page, width: number, height: number) {
   await page.setViewportSize({ width, height });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
-  await mockPlannerApi(page);
-  await page.addInitScript(() => {
-    window.sessionStorage.setItem("wave-arrival-session-v1", "done");
-  });
+  await mockPlannerApi(page, { preserveView: true });
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/planner");
-  await page.locator(".planner-navigation nav").waitFor();
+  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toBeEnabled();
 }
 
-test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을 제공한다", async ({ page }) => {
-  await openPlanner(page, 1366, 900);
-  const rail = page.getByRole("navigation", { name: "여행 만들기 단계" });
-  await expect(rail).toBeVisible();
-  await expect(rail.getByRole("button", { name: /^1\. 여행 조건/ })).toHaveAttribute("aria-current", "step");
-  await expect(page.locator(".reference-completion")).toHaveAttribute("aria-valuenow", "0");
-  await expect(page.locator(".planner-navigation")).toContainText("필요한 편의");
+async function currentTrip(page: Page) {
+  return page.evaluate(() => {
+    const values = JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values || {};
+    return { ids: JSON.parse(values["wave-saved-places"] || "[]"), schedule: JSON.parse(values["wave-trip-schedule-v1"] || "{}"), facilities: JSON.parse(sessionStorage.getItem("wave-session-facilities-v1") || "[]") };
+  });
+}
 
-  const departureSelect = page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "경남 전체", exact: true });
-  await departureSelect.focus();
-  await expect(departureSelect).toBeFocused();
-  const focusStyle = await departureSelect.evaluate((element) => {
+test("데스크톱의 두 화면 전환은 현재 상태·다음 행동과 키보드 초점을 제공한다", async ({ page }) => {
+  await openPlanner(page, 1366, 900);
+  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  await expect(tabs.getByRole("button")).toHaveCount(2);
+  await expect(tabs.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(page.getByRole("heading", { name: "어디로 갈까요?", exact: true })).toBeVisible();
+
+  const region = page.getByRole("button", { name: "통영 지역 선택", exact: true });
+  await region.focus();
+  await expect(region).toBeFocused();
+  const focusStyle = await region.evaluate(element => {
     const style = getComputedStyle(element);
     return { width: Number.parseFloat(style.outlineWidth), type: style.outlineStyle };
   });
@@ -38,63 +43,56 @@ test("데스크톱 여정 레일은 상태·다음 행동과 키보드 초점을
   await preference.locator("summary").press("Enter");
   const language = preference.getByLabel("언어");
   await expect(language).toBeVisible();
-  const languageBox = await language.boundingBox();
-  expect(languageBox?.height || 0).toBeGreaterThanOrEqual(44);
-
+  expect((await language.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   const results = await new AxeBuilder({ page }).include(".planner-journey-workspace").analyze();
-  expect(results.violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);
+  expect(results.violations.filter(item => item.impact === "critical" || item.impact === "serious")).toEqual([]);
 });
 
-test("모바일 5단계 진행 표시는 44px 탐색과 수평 안전 영역을 유지한다", async ({ page }) => {
+test("모바일 두 화면 전환과 선택은 44px 탐색과 수평 안전 영역을 유지한다", async ({ page }) => {
   await openPlanner(page, 390, 844);
-  const rail = page.locator(".planner-navigation nav");
-  await expect(rail).toBeVisible();
-  expect(await rail.evaluate((element) => getComputedStyle(element).position)).not.toBe("fixed");
-  const sizes = await rail.getByRole("button").evaluateAll((buttons) => buttons.map((button) => {
-    const rect = button.getBoundingClientRect();
-    return { width: rect.width, height: rect.height };
-  }));
-  expect(sizes).toHaveLength(5);
-  for (const size of sizes) {
+  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  await expect(tabs).toBeVisible();
+  expect(await tabs.evaluate(element => getComputedStyle(element).position)).not.toBe("fixed");
+  const buttons = tabs.getByRole("button");
+  await expect(buttons).toHaveCount(2);
+  for (const button of [...await buttons.all(), page.getByRole("button", { name: "필요한 편의", exact: true })]) {
+    const size = (await button.boundingBox())!;
     expect(size.width).toBeGreaterThanOrEqual(44);
     expect(size.height).toBeGreaterThanOrEqual(44);
   }
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow).toBeLessThanOrEqual(1);
+  await expect(page.locator(".simple-region-entry .simple-region")).toHaveCount(6);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
 });
 
-test("한 단계씩 보기에서는 질문 하나만 보여 주고 전체 보기로 즉시 전환한다", async ({ page }) => {
-  await page.setViewportSize({ width: 1366, height: 900 });
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPublicShellApi(page);
-  await mockPlannerApi(page, { plannerView: "guided" });
-  await page.goto("/planner");
-
-  const mode = page.getByRole("group", { name: "여행 설계 보기 방식" });
-  await expect(mode.getByRole("button", { name: /한 단계씩/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("heading", { name: "경남, 어디부터 가볼까요?", exact: true })).toBeVisible();
-  await expect(page.locator("#places")).toBeHidden();
-
-  const journeyNavigation = page.getByRole("navigation", { name: "여행 만들기 단계" });
-  const placesStep = journeyNavigation.getByRole("button", { name: /여행지/ });
-  await expect(placesStep).toBeDisabled();
-  await chooseTripConditions(page);
-  await expect(page.getByRole("heading", { name: "경남도립미술관", exact: true })).toBeVisible();
-  await placesStep.click();
-  await expect.poll(
-    () => page.evaluate(() => window.sessionStorage.getItem("wave-planner-active-step-v1")),
-    { message: "여행지 단계 선택은 현재 탭의 단계 상태에 즉시 반영돼야 한다." },
-  ).toBe("places");
-  await expect(mode.getByRole("button", { name: /한 단계씩/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(placesStep).toHaveAttribute("aria-current", "step");
-  await expect(page.getByRole("heading", { name: "내 조건에 맞는 여행지" })).toBeVisible();
-  await expect(page.locator("#places")).toBeVisible();
-  await expect(page.locator("#conditions")).toBeHidden();
-
-  await mode.getByRole("button", { name: "전체 보기", exact: true }).click();
-  await expect(mode.getByRole("button", { name: /전체 보기/ })).toHaveAttribute("aria-pressed", "true");
+test("검색과 내 일정 전환은 같은 장소·필수 편의·날짜 미정 상태를 유지한다", async ({ page }) => {
+  await openPlanner(page, 1366, 900);
+  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  await expect(page.locator("#places")).toHaveCount(0);
+  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await page.getByRole("button", { name: "필요한 편의", exact: true }).click();
+  const picker = page.getByRole("dialog", { name: "필요한 편의", exact: true });
+  await picker.getByRole("checkbox", { name: "접근로", exact: true }).check();
+  await picker.getByRole("button", { name: "적용 · 1개", exact: true }).click();
+  await page.getByRole("button", { name: "창원 지역 선택", exact: true }).press("Enter");
   await expect(page.locator("#conditions")).toBeVisible();
-  await expect(page.locator("#itinerary")).toBeVisible();
-  await expect(page.locator("#departure-readiness")).toBeVisible();
+  await expect(page.locator("#places")).toBeVisible();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  const before = await currentTrip(page);
+  expect(before.ids).toEqual(["1001"]);
+  expect(before.facilities).toEqual(["route"]);
+  expect(before.schedule).toMatchObject({ travelStart: "", travelEnd: "", scheduleAssignments: {} });
+
+  await tabs.getByRole("button", { name: /^내 일정/ }).press("Enter");
+  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".simple-initial-setup")).toContainText("경남도립미술관");
+  await expect(page.locator(".simple-browse-view")).toBeHidden();
+  expect(await currentTrip(page)).toEqual(before);
+  await tabs.getByRole("button", { name: "여행지 찾기", exact: true }).press("Enter");
+  await expect(tabs.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#conditions")).toBeVisible();
+  await expect(page.locator("#places")).toBeVisible();
+  await expect(page.getByRole("button", { name: "경남도립미술관 담았음 · 일정에서 빼기", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeVisible();
+  expect(await currentTrip(page)).toEqual(before);
 });

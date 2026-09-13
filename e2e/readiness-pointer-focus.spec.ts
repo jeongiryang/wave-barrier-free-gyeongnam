@@ -1,5 +1,6 @@
+import { enterDeparture, departureItem } from './departure-fixtures';
 import { expect, test } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
 test("a pointer press near the viewport edge keeps the readiness action under the pointer", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 960 });
@@ -7,11 +8,10 @@ test("a pointer press near the viewport edge keeps the readiness action under th
   await mockPlannerApi(page, { crowdRate: 65 });
   await mockPublicShellApi(page);
   await page.goto("/planner");
-  await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  const shortcut = page.locator('.readiness-grid a[href="#crowd"]');
+  await enterDeparture(page); await departureItem(page, '관광 집중률');
+  const shortcut = page.locator('.simple-readiness a[href="#crowd"]');
   await shortcut.scrollIntoViewIfNeeded();
-  await expect(page.locator(".departure-readiness")).toHaveCSS("opacity", "1");
+  await expect(page.locator(".simple-readiness")).toHaveCSS("opacity", "1");
   // Lazy itinerary content can still change the page height during setup.
   // Establish a real, unobscured edge target before starting the press.
   await expect.poll(async () => {

@@ -4,6 +4,7 @@ const origin = "https://wave-barrier-free-gyeongnam.vercel.app";
 const id = "12345678-1234-4123-8123-123456789012";
 const payload = { version: 1, title: "통영 하루 여행", region: "통영", travelStart: "2026-09-20", travelEnd: "2026-09-20", dayStartTime: "10:00", themes: ["nature"], placeIds: ["1001"], scheduleAssignments: { "1001": "2026-09-20" }, note: "비공개 메모", status: "planned" };
 async function accountFixture(page: Page) {
+  await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
   await page.route("**/api/auth/get-session", route => route.fulfill({ json: { user: { id: "owner", name: "여행자" }, session: { id: "session" } } }));
   await page.route("**/api/account/travel/**", route => route.fulfill({ json: route.request().url().endsWith("/places") ? { places: [{ id: "1001", name: "통영 여행지", address: "경남 통영시", source: "한국관광공사" }], missing: 0 } : { id, payload, role: "owner", revision: 1, updatedAt: Date.now(), members: [], votes: [], comments: [], invitationActive: false } }));
 }

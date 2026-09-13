@@ -1,18 +1,6 @@
-import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
-import { deliverNearby, nearbyPlace, openNearby, type MapLayerFixture } from "./nearby-fixtures";
-
-async function changeLanguage(page: Page, english: boolean) {
-  await page.keyboard.press("Control+Home");
-  await openSupportMenu(page);
-  const preferences = page.locator(".preference-controls:visible");
-  await openSupportMenu(page);
-  await preferences.getByLabel(english ? "환경설정 열기" : "Open preferences", { exact: true }).click();
-  await preferences.getByLabel(english ? "언어" : "Language", { exact: true }).selectOption(english ? "en" : "ko");
-  await openSupportMenu(page);
-  await preferences.getByLabel(english ? "Open preferences" : "환경설정 열기", { exact: true }).click();
-}
+import { expect, test } from "@playwright/test";
+import { deliverNearby, nearbyPlace, openNearby, addAnotherMapPlace, changeMapLanguage, ensureMapView, openRouteDetails, type MapLayerFixture } from "./nearby-fixtures";
 
 for (const theme of ["light", "dark"]) {
   test(`map commands, point selection and forecast switch language without rebuilding the map ${theme}`, async ({ page }) => {
@@ -20,6 +8,7 @@ for (const theme of ["light", "dark"]) {
     const routeRequests: string[] = [];
     page.on("request", request => { if (new URL(request.url()).pathname === "/api/route") routeRequests.push(request.url()); });
     page.on("pageerror", error => errors.push(error.message));
+    await page.setViewportSize({ width: 390, height: 844 });
     const nearby = await openNearby(page, true, theme);
     await nearby.getByRole("button", { name: "Close nearby places", exact: true }).click();
     const commands = page.getByRole("navigation", { name: "Map tools", exact: true });
@@ -57,21 +46,23 @@ for (const theme of ["light", "dark"]) {
     await page.keyboard.press("Escape"); await expect(expand).toBeFocused();
     await expect(expand).toHaveAttribute("aria-pressed", "false");
     await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
+    await openRouteDetails(page);
     await expect(page.locator(".itinerary-route-coverage")).toContainText("Recheck any unavailable journeys before leaving.");
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
     const count = await page.evaluate(() => (window as unknown as { mapLayerFixture: MapLayerFixture }).mapLayerFixture.maps.length);
     const before = [...routeRequests];
-    await changeLanguage(page, false);
+    await changeMapLanguage(page, false);
     await expect(page.getByRole("navigation", { name: "지도 기능", exact: true })).toBeVisible();
     await expect(page.locator(".map-crowd-legend")).toContainText("여유");
     await expect(page.getByRole("complementary", { name: "혼잡 예측", exact: true })).toHaveAttribute("lang", "ko");
-    await changeLanguage(page, true);
+    await changeMapLanguage(page, true);
     await expect(commands.getByRole("button", { name: "◎ My location", exact: true })).toBeEnabled();
     expect(await page.evaluate(() => (window as unknown as { mapLayerFixture: MapLayerFixture }).mapLayerFixture.maps.length)).toBe(count);
     expect(routeRequests).toEqual(before);
-    await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+    await expect(page.locator(".simple-stops > li")).toHaveCount(1);
     for (const width of [390, 960, 1366, 1440]) {
       await page.setViewportSize({ width, height: 844 });
+      await ensureMapView(page);
       await departure.focus();
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await page.locator(".route-map-shell").screenshot({ path: test.info().outputPath(`map-language-${theme}-${width}.png`) });
@@ -85,14 +76,11 @@ for (const theme of ["light", "dark"]) {
     await nearby.getByRole("button", { name: "Close nearby places", exact: true }).click();
     let release!: () => void;
     const gate = new Promise<void>(resolve => { release = resolve; });
-    // Changing search language invalidates the old recommendation contract.
-    await page.getByRole("button", { name: "Find places →", exact: true }).click();
-    await expect(page.getByRole("button", { name: "용지호수공원 Add to itinerary", exact: true })).toBeEnabled();
     await page.route("**/api/map-config", async route => {
       await gate;
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ provider: "osm" }) });
     });
-    await page.getByRole("button", { name: "용지호수공원 Add to itinerary", exact: true }).click();
+    await addAnotherMapPlace(page);
     try {
       await expect(page.getByRole("status", { name: "Connecting map", exact: true })).toBeVisible();
       await expect(page.locator(".map-loading-skeleton")).toContainText("Connecting to Kakao Maps.");
@@ -100,10 +88,10 @@ for (const theme of ["light", "dark"]) {
     } finally { release(); }
     await expect(page.locator(".map-provider-badge.osm")).toContainText("The main map is unavailable. Showing an alternative map.");
     await expect(page.getByRole("button", { name: "Reconnect the main map", exact: true })).toBeVisible();
-    await expect(page.locator(".day-planner-grid li")).toHaveCount(2);
-    await changeLanguage(page, false);
+    await expect(page.locator(".simple-stops > li")).toHaveCount(2);
+    await changeMapLanguage(page, false);
     await expect(page.locator(".map-provider-badge.osm")).toContainText("기본 지도를 불러오지 못해 대체 지도를 표시합니다.");
-    await expect(page.locator(".day-planner-grid li")).toHaveCount(2);
+    await expect(page.locator(".simple-stops > li")).toHaveCount(2);
   });
 
   test(`English map place details distinguish location from accessibility evidence ${theme}`, async ({ page }) => {

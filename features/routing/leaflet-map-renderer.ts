@@ -30,12 +30,22 @@ export async function renderLeafletMap(
     keyboard: false,
     attributionControl: true,
     minZoom: 9,
+    maxZoom: 18,
     maxBounds: [[GYEONGNAM_MAP_BOUNDS.south, GYEONGNAM_MAP_BOUNDS.west], [GYEONGNAM_MAP_BOUNDS.north, GYEONGNAM_MAP_BOUNDS.east]],
     maxBoundsViscosity: 1,
     bounceAtZoomLimits: false,
   });
+  // Portalled/hidden containers can be too small to fit. Establish a finite
+  // view before any focus pan, then fit again when the canvas becomes visible.
+  map.setView([35.238, 128.692], 9, { animate: false });
   const travelBounds = L.latLngBounds([GYEONGNAM_MAP_BOUNDS.south, GYEONGNAM_MAP_BOUNDS.west], [GYEONGNAM_MAP_BOUNDS.north, GYEONGNAM_MAP_BOUNDS.east]);
-  const constrainZoom = () => map.setMinZoom(Math.max(9, map.getBoundsZoom(travelBounds, true)));
+  const constrainZoom = () => {
+    const minimum = Math.min(18, Math.max(9, map.getBoundsZoom(travelBounds, true)));
+    // setMinZoom otherwise starts an implicit zoom transition whose callback
+    // can outlive the map when an itinerary or route replaces it.
+    if (map.getZoom() < minimum) map.setZoom(minimum, { animate: false });
+    map.setMinZoom(minimum);
+  };
   map.on("resize", constrainZoom);
   constrainZoom();
   mapRef.current = map;

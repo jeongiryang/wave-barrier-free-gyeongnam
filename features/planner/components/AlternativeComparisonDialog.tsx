@@ -11,6 +11,7 @@ import { facilityName } from "../place-copy";
 import { fetchVisitInfo } from "../services/visit-info";
 import PlaceVisitHours from "./PlaceVisitHours";
 import PlaceDateComparison from "./PlaceDateComparison";
+import { visitDurationFor } from "../optimization/itinerary-schedule.js";
 import { useAlternativePool } from "../hooks/useAlternativePool";
 
 const reasonOptions = [{ id: "distance", label: "너무 멀어요" }, { id: "visited", label: "이미 가본 곳이에요" }, { id: "rest", label: "더 짧게 둘러볼래요" }, { id: "indoor", label: "실내 공간으로" }, { id: "discover", label: "새로운 곳을 볼래요" }] as const;
@@ -38,7 +39,7 @@ export default function AlternativeComparisonDialog({ original, initialReason, p
     finally { setLoading(""); }
   }
   return <dialog className="region-change-dialog place-comparison-dialog" ref={dialog} aria-labelledby="alternative-title">
-    <header><div><p className="section-kicker">나의 선택을 이어서</p><h2 id="alternative-title" tabIndex={-1}>이곳만 바꿔 볼까요?</h2></div><button type="button" onClick={onClose} aria-label="대안 비교 닫기">×</button></header>
+    <header><div><h2 id="alternative-title" tabIndex={-1}>이곳만 바꿔 볼까요?</h2></div><button type="button" onClick={onClose} aria-label="대안 비교 닫기">×</button></header>
     <p><b>{original.name}</b> · {day} · {position + 1}번째 방문. 다른 장소와 날짜·순서는 유지합니다.</p>
     <div className="travel-book-actions" role="group" aria-label="바꾸고 싶은 이유">{reasonOptions.map(option => <button key={option.id} type="button" aria-pressed={reason === option.id} style={{ background: reason === option.id ? "var(--accent)" : "var(--paper)", color: reason === option.id ? "white" : "var(--ink)" }} onClick={() => { setReason(option.id); setChoice(""); }}>{option.label}</button>)}</div>
     <p>{pool.source} · 현재 여행의 편의 {pool.requiredKeys.length}개를 기준으로 비교합니다. 모두 확인된 후보를 먼저 보여드려요.</p><label className="departure-review-check"><input type="checkbox" checked={includeUnknown} onChange={event => { setIncludeUnknown(event.target.checked); setChoice(""); }} />편의 미확인 후보도 직접 비교</label>{includeUnknown && <p>미확인 편의는 시설에 따로 확인해야 합니다. 조건과 맞지 않는다고 확인된 후보는 제외합니다.</p>}
@@ -47,7 +48,7 @@ export default function AlternativeComparisonDialog({ original, initialReason, p
     <details className="place-evidence"><summary>{reason === "indoor" ? "같은 편의로 문화 공간 찾기" : "경남의 다른 후보 살펴보기"}</summary><div className="modal-data">
       <p>{reason === "indoor" ? "실내 공간을 확인하기 위해 역사·문화 장소를 찾아요. 현재 일정과 편의는 유지합니다." : "고른 활동과 편의는 그대로, 아직 살펴보지 않은 경남의 여행지를 만나보세요."}</p>
       <label className="auth-field">살펴볼 지역<select value={pool.selectedRegion} onChange={event => pool.setSelectedRegion(event.target.value)}>{pool.regions.map(name => <option key={name}>{name}</option>)}</select></label>
-      <div className="travel-book-actions"><button type="button" aria-busy={pool.loading} disabled={pool.loading || !profiles.length || !themes} onClick={() => { setChoice(""); void pool.search(reason === "indoor"); }}>{pool.loading ? "후보 찾는 중…" : "같은 편의로 후보 찾기"}</button>{pool.loading && <button type="button" onClick={pool.cancel}>찾기 중단</button>}</div>
+      <div className="travel-book-actions"><button type="button" aria-busy={pool.loading} disabled={pool.loading} onClick={() => { setChoice(""); void pool.search(reason === "indoor"); }}>{pool.loading ? "후보 찾는 중…" : "같은 편의로 후보 찾기"}</button>{pool.loading && <button type="button" onClick={pool.cancel}>찾기 중단</button>}</div>
       <p role="status">{pool.notice}</p>
     </div></details>
     {reason === "indoor" && <>
@@ -61,12 +62,12 @@ export default function AlternativeComparisonDialog({ original, initialReason, p
       {reason === "discover" && <div className="travel-book-actions"><button type="button" onClick={() => { pool.rememberSeen(candidates.map(candidate => candidate.place.id)); setChoice(""); }}>다음 후보 보기</button></div>}
       <div className="place-comparison-scroll" tabIndex={0} role="region" aria-label="원안과 대안 비교표"><table style={{ minWidth: 80 + comparison.length * 140 }}><caption className="sr-only">원안과 후보 편의·시간 비교</caption><thead><tr><th scope="col">살펴볼 항목</th>{comparison.map((place, index) => <th scope="col" key={place.id}>{index === 0 ? "원래 일정" : `대안 ${index}`}<small>{place.name}</small></th>)}</tr></thead><tbody>
         <tr><th scope="row">앞뒤 이동 변화</th><td>현재 일정 기준</td>{candidates.map(candidate => <td key={candidate.place.id}>{candidate.travelDelta === null ? "미확인" : `거리 기반 추정 ${candidate.travelDelta > 0 ? "+" : ""}${candidate.travelDelta}분`}</td>)}</tr>
-        <tr><th scope="row">머무는 시간 변화</th><td>현재 일정 기준</td>{candidates.map(candidate => <td key={candidate.place.id}>{candidate.visitMinutes}분 · {candidate.visitDelta > 0 ? "+" : ""}{candidate.visitDelta}분</td>)}</tr>
+        <tr><th scope="row">머무는 시간</th><td>{trip.visitMinutesByPlaceId[original.id] || visitDurationFor(original)}분</td>{candidates.map(candidate => <td key={candidate.place.id}>{trip.visitMinutesByPlaceId[original.id] ? `${trip.visitMinutesByPlaceId[original.id]}분 · 직접 정한 시간 유지` : `${candidate.visitMinutes}분 · 장소 기본 시간`}</td>)}</tr>
         {rows.map(row => <tr key={row.key}><th scope="row">{facilityName(row.key, row.label, false)}</th>{row.values.map((value, index) => <td data-state={value.state} key={comparison[index].id}><b>{{ confirmed: "확인됨", negative: "조건과 맞지 않음", unknown: "미확인" }[value.state]}</b><p>{value.detail || "시설에 확인해 주세요."}</p></td>)}</tr>)}
         <tr><th scope="row">출처</th>{comparison.map(place => <td key={place.id}>{place.source}</td>)}</tr>
         <tr><th scope="row">내 선택</th><td>유지 중</td>{candidates.map(candidate => <td key={candidate.place.id}><button type="button" aria-pressed={choice === candidate.place.id} onClick={() => setChoice(candidate.place.id)}>{choice === candidate.place.id ? "✓ 선택됨" : `${candidate.place.name} 선택`}</button></td>)}</tr>
       </tbody></table></div>
-      {selected && <section className="account-settings"><h3>{selected.place.name}</h3>{selected.unknownKeys.length > 0 && <p role="status">이 후보는 필요한 편의 {selected.unknownKeys.length}개가 미확인입니다. 위 비교표와 문의처에서 확인하고 선택하세요.</p>}{selected.indoor && <p>공식 실내 공간 설명: {selected.indoor.detail}</p>}<PlaceVisitHours id={selected.place.id} name={selected.place.name} /><p>체류시간은 새 장소의 기본값으로 바뀝니다. 이전 장소에 넣은 휴식과 방문 목적은 해제되고, 다른 일정의 선택은 유지돼요.</p></section>}
+      {selected && <section className="account-settings"><h3>{selected.place.name}</h3>{selected.unknownKeys.length > 0 && <p role="status">이 후보는 필요한 편의 {selected.unknownKeys.length}개가 미확인입니다. 위 비교표와 문의처에서 확인하고 선택하세요.</p>}{selected.indoor && <p>공식 실내 공간 설명: {selected.indoor.detail}</p>}<PlaceVisitHours id={selected.place.id} name={selected.place.name} /><p>방문 날짜와 순서, 직접 정한 체류시간·휴식·방문 목적을 유지합니다. 교체한 뒤 일정 수정에서 조정할 수 있어요.</p></section>}
     </>}
     <p className="modal-note">이동 차이는 직선거리 기반 추정입니다. 새 경로의 실제 이동 편의와 시간·혼잡이 더 낫다는 보장은 아니므로 교체한 뒤 다시 확인하세요.</p>
     <p role="status">{notice}</p>

@@ -1,37 +1,94 @@
-import { expect, test } from '@playwright/test';
-import { mockPlannerApi, mockPublicShellApi } from './fixtures';
+import { expect, test, type Locator, type Page } from "@playwright/test";
+import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
-test('workspace keeps navigation and trip summary usable across desktop, half-window and mobile', async ({ page }, testInfo) => {
+async function expectTouchable(action: Locator) {
+  await action.scrollIntoViewIfNeeded();
+  const size = (await action.boundingBox())!;
+  expect(size.width).toBeGreaterThanOrEqual(44);
+  expect(size.height).toBeGreaterThanOrEqual(44);
+  expect(await action.evaluate(node => {
+    const box = node.getBoundingClientRect();
+    return node.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
+  }), "the launcher or header must not cover an action's centre").toBe(true);
+}
+
+async function tripSnapshot(page: Page) {
+  return page.evaluate(() => {
+    const values = JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values || {};
+    return { places: values["wave-saved-places"], order: values["wave-trip-order-v1"], schedule: values["wave-trip-schedule-v1"] };
+  });
+}
+
+test("workspace keeps two-screen navigation and one itinerary usable across desktop, half-window and mobile", async ({ page }, testInfo) => {
   await mockPublicShellApi(page);
-  await mockPlannerApi(page, { plannerView: 'guided' });
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/planner');
-  const navigation = page.locator('.planner-navigation');
-  const currentWork = page.locator('.journey-stage-stream');
-  const summary = page.locator('.condition-trip-summary');
-  await expect(page.getByRole('heading', { name: '경남, 어디부터 가볼까요?', exact: true })).toBeVisible();
-  await expect(page.locator('.reference-region-card')).toHaveCount(3);
+  await mockPlannerApi(page, { preserveView: true });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  const mapRequests: string[] = [];
+  page.on("request", request => {
+    if (["/api/map-config", "/api/route"].includes(new URL(request.url()).pathname)) mapRequests.push(request.url());
+  });
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.goto("/planner");
+  const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
+  await expect(region).toBeEnabled();
+  await expect(page.locator(".simple-region-entry .simple-region")).toHaveCount(6);
+  await region.selectOption("창원");
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openItinerary(page, { start: "2026-09-20" });
+  const before = await tripSnapshot(page);
+  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  const timetable = page.locator(".simple-timeboard"), map = page.locator(".simple-itinerary-map");
+  await expect(map.locator(".leaflet-container")).toBeVisible();
+  await expect(page.locator(".coverage-notice")).toContainText("조회가 끝났습니다.");
+  await expect(map.locator(".route-options")).toHaveAttribute("aria-busy", "false");
+  const pane = await map.locator(".leaflet-map-pane").elementHandle();
+  expect(pane).not.toBeNull();
+  const requestsBeforeResize = [...mapRequests];
+  await page.clock.install();
+
   for (const width of [1440, 1180, 960, 641, 390]) {
     await page.setViewportSize({ width, height: 960 });
-    await expect(navigation).toHaveCSS('position', width > 960 ? 'fixed' : 'static');
-    await expect(summary).toBeVisible();
-    const navBox = (await navigation.boundingBox())!;
-    const workBox = (await currentWork.boundingBox())!;
-    const summaryBox = (await summary.boundingBox())!;
-    if (width > 960) expect(navBox.x + navBox.width).toBeLessThan(workBox.x);
-    else expect(navBox.y + navBox.height).toBeLessThan(workBox.y);
-    if (width > 1180) expect(workBox.x + workBox.width).toBeLessThan(summaryBox.x);
-    else expect(workBox.y + workBox.height).toBeLessThan(summaryBox.y);
-    expect(summaryBox.x + summaryBox.width).toBeLessThanOrEqual(width);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-    await expect(navigation.getByRole('button', { name: /여행 조건/ })).toBeEnabled();
-    if (width > 640 && width <= 1180) {
-      const launcherBox = (await page.locator('.naru-launcher').boundingBox())!;
-      for (const action of await page.locator('.condition-actions > button').all()) {
-        const nextBox = (await action.boundingBox())!;
-        expect(launcherBox.y + launcherBox.height).toBeLessThan(nextBox.y);
-      }
+    await expect(tabs.getByRole("button", { name: /^내 일정/ })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(".simple-itinerary-board")).toHaveCount(1);
+    await expect(timetable).toBeVisible();
+    await expect(timetable.locator("#itinerary-stop-1001")).toContainText("경남도립미술관");
+    const mode = page.getByRole("group", { name: "일정 보기 방식", exact: true });
+    if (width >= 1024) {
+      await expect(mode).toHaveCount(0);
+      await expect(map.locator(".leaflet-container")).toBeVisible();
+      const left = (await timetable.boundingBox())!, right = (await map.boundingBox())!;
+      expect(left.x + left.width).toBeLessThanOrEqual(right.x + 1);
+      expect(right.x + right.width).toBeLessThanOrEqual(width);
+    } else {
+      await expect(mode.getByRole("button", { name: "시간표", exact: true })).toHaveAttribute("aria-pressed", "true");
+      // Keep the opened SDK, while excluding hidden map controls from both
+      // the accessibility tree and the keyboard path to the trip tools.
+      await expect(map).toHaveCount(1);
+      await expect(map).toBeHidden();
+      await expect(map).toHaveAttribute("hidden", "");
+      await expect(map.getByRole("button")).toHaveCount(0);
+      await timetable.locator(".simple-day-options > summary").focus();
+      await page.keyboard.press("Tab");
+      await expect(page.locator("#itinerary > .simple-more-trip-tools > summary")).toBeFocused();
+      for (const action of await mode.getByRole("button").all()) await expectTouchable(action);
+      await mode.getByRole("button", { name: "지도", exact: true }).click();
+      await expect(mode.getByRole("button", { name: "지도", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await expect(map.locator(".leaflet-container")).toBeVisible();
+      await expect(timetable).toBeHidden();
+      expect(await tripSnapshot(page)).toEqual(before);
+      await mode.getByRole("button", { name: "시간표", exact: true }).click();
+      await expect(timetable).toBeVisible();
+      await expect(map).toBeHidden();
     }
-    await page.screenshot({ path: testInfo.outputPath(`workspace-${width}.png`) });
+    await page.clock.runFor(1000);
+    expect(await map.locator(".leaflet-map-pane").evaluate((node, previous) => node === previous, pane!)).toBe(true);
+    expect(mapRequests).toEqual(requestsBeforeResize);
+    for (const action of [...await tabs.getByRole("button").all(), page.getByRole("button", { name: "여행 설정", exact: true }), page.getByRole("button", { name: "내 여행에 저장", exact: true }), page.getByRole("button", { name: "공유", exact: true })]) await expectTouchable(action);
+    expect(await tripSnapshot(page)).toEqual(before);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: testInfo.outputPath("workspace-" + width + ".png") });
   }
+  expect(errors).toEqual([]);
 });

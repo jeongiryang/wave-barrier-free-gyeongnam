@@ -2,11 +2,12 @@ import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { storyReady, expectUsableTarget } from "./landing-contract";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
 for (const restored of [false, true]) for (const path of ["/", "/planner", "/community", "/travel-book"]) {
-  test(`${path} uses Korean/light and hides deferred controls with ${restored ? "old preferences" : "OS dark mode"}`, async ({ page }, testInfo) => {
+  test(`${path === "/" ? "landing: " : ""}${path} uses Korean/light and hides deferred controls with ${restored ? "old preferences" : "OS dark mode"}`, async ({ page }, testInfo) => {
     await mockPublicShellApi(page);
     await mockPlannerApi(page);
     await page.route("**/api/community/posts?**", route => route.fulfill({ json: { posts: [], page: 1, hasMore: false } }));
@@ -20,9 +21,12 @@ for (const restored of [false, true]) for (const path of ["/", "/planner", "/com
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     await expect(page.locator("html")).toHaveAttribute("lang", "ko");
     if (path === "/") {
-      const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-      await page.keyboard.press("Escape");
-      await expect(intro).toBeHidden();
+      await storyReady(page);
+      await expect(page.locator(".arrival-scene")).toBeHidden();
+      await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+      const planning = page.locator(".landing-actions a");
+      await expect(planning).toHaveAccessibleName("여행지 둘러보기");
+      await expectUsableTarget(planning);
     }
     await openSupportMenu(page);
     const preferences = page.locator(".preference-controls:visible");

@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import type { PlanData } from "../features/planner/types";
 
 const places = [
@@ -79,21 +79,48 @@ export async function mockPublicShellApi(page: Page) {
 
 /** Real UI actions; tests no longer rely on automatic disability assumptions. */
 export async function chooseTripConditions(page: Page) {
-  const mode = page.getByRole("group", { name: "여행 설계 보기 방식" });
-  await mode.getByRole("button", { name: "전체 보기", exact: true }).waitFor();
-  await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('.journey-mode-toggle button')?.disabled);
-  const guided = await mode.getByRole("button", { name: "한 단계씩", exact: true }).getAttribute("aria-pressed") === "true";
-  if (guided) await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
-  else await page.getByRole("group", { name: "여행 지역 선택", exact: true }).getByRole("button", { name: "창원", exact: true }).click();
-  const nature = page.getByRole("button", { name: /자연·휴양/ });
-  if (guided) {
-    if (await nature.getAttribute("aria-pressed") !== "true") await nature.click();
-    await page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 선택", exact: true }).click();
+  const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
+  await region.waitFor();
+  await page.waitForFunction(() => !document.querySelector<HTMLSelectElement>('[aria-label="여행 지역"]')?.disabled);
+  let completed = false;
+  const onResponse = async (response: import('@playwright/test').Response) => {
+    const url = new URL(response.url());
+    const keys = (url.searchParams.get('facilityKeys') || '').split(',');
+    if (url.pathname === '/api/wave' && url.searchParams.get('action') === 'plan' && url.searchParams.get('region') === '창원'
+      && (url.searchParams.get('themes') || '').split(',').includes('nature') && ['parking','route','wheelchair','elevator','restroom'].every(key => keys.includes(key))) {
+      await response.finished(); completed = true;
+    }
+  };
+  page.on('response', onResponse);
+  try {
+    let changed = await region.inputValue() !== '창원';
+    await region.selectOption('창원');
+    const nature = page.getByRole('button', { name: '자연·휴양', exact: true });
+    if (await nature.getAttribute('aria-pressed') !== 'true') { changed = true; await nature.click(); }
+    await page.locator('.simple-facility-trigger').click();
+    const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+    for (const name of ['장애인 주차구역', '접근로', '휠체어 대여', '승강기', '장애인 화장실']) {
+      const field = picker.getByRole('checkbox', { name, exact: true });
+      if (!await field.isChecked()) { changed = true; await field.check(); }
+    }
+    await picker.getByRole('button', { name: /^적용/ }).click();
+    if (changed) await expect.poll(() => completed).toBe(true);
+    await page.locator('.simple-results[aria-busy="false"]').waitFor();
+  } finally { page.off('response', onResponse); }
+}
+
+/** Enter the schedule through the same explicit date/transport step as a visitor. */
+export async function openItinerary(page: Page, dates?: { start: string; end?: string }) {
+  await page.locator('.simple-planner-tabs button').nth(1).click();
+  const setup = page.locator('.simple-initial-setup');
+  if (await setup.isVisible()) {
+    if (dates) {
+      await setup.getByLabel('시작일', { exact: true }).fill(dates.start);
+      await setup.getByLabel('마지막 날', { exact: true }).fill(dates.end || dates.start);
+    }
+    await setup.getByRole('button', { name: '시간표 만들기', exact: true }).click();
   }
-  const needs = page.getByRole("group", { name: "여행 편의 조건 선택" }).getByRole("button", { name: /휠체어 편의시설/ });
-  if (await needs.getAttribute("aria-pressed") !== "true") await needs.click();
-  if (!guided && await nature.getAttribute("aria-pressed") !== "true") await nature.click();
-  await page.locator(".condition-actions").getByRole("button", { name: "여행지 둘러보기 →", exact: true }).click();
+  await page.locator('#itinerary').waitFor();
 }
 
 export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; slowPlan?: boolean; explorationOnly?: boolean; plannerView?: "guided" | "overview"; preserveView?: boolean; audio?: PlanData["audio"]; crowdRate?: number; placeCoordinate?: { mapX: string; mapY: string }; savedPlaces?: PlanData["places"] } = {}) {
@@ -164,4 +191,16 @@ export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; 
   });
   await page.route("https://wave.test/museum.svg", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "image/svg+xml", body: transparentSvg }));
   return { enrichmentRequestCount: () => enrichmentRequestCount };
+}
+
+/** Open the existing itinerary map through the desktop/mobile controls. */
+export async function showItineraryMap(page: Page) {
+  const view = page.getByRole('group', { name: '일정 보기 방식', exact: true });
+  if (await view.isVisible()) await view.getByRole('button', { name: '지도', exact: true }).click();
+}
+export async function openFirstPlaceMap(page: Page) {
+  const add = page.locator('.simple-place-row').first().locator('.simple-place-add');
+  if (await add.getAttribute('aria-pressed') !== 'true') await add.click();
+  await openItinerary(page); await showItineraryMap(page);
+  await expect(page.locator('.route-map-canvas')).toBeVisible();
 }

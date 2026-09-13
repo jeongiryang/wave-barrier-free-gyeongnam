@@ -29,15 +29,28 @@ const LITERAL_WHITE = /^(#fff(fff)?|white)$/i;
 /** 테마와 무관하게 안전한 값. */
 const THEME_NEUTRAL = /^(transparent|inherit|currentcolor|unset|initial)$/i;
 
-test("어두운 화면에서 --white는 --ink의 반대쪽에 있다", async () => {
-  const theme = await source("app/styles/theme-itinerary-foundations.css");
-  const globals = await source("app/globals.css");
-  // 밝은 화면: --ink는 어두운 글자색, --white는 흰색.
-  assert.match(globals, /--ink:\s*#2b2632/);
-  assert.match(globals, /--white:\s*#fff/);
-  // 어두운 화면에서는 둘 다 뒤집힌다. 그래서 --ink 배경에는 --white 글자가 짝이다.
-  assert.match(theme, /--ink:\s*#e8f5fb/);
-  assert.match(theme, /--white:\s*#04202f/);
+test("밝고 어두운 화면의 잉크와 반대색 토큰은 실제 대비 4.5 이상을 유지한다", async () => {
+  const [theme, globals] = await Promise.all([
+    source("app/styles/theme-itinerary-foundations.css"), source("app/globals.css"),
+  ]);
+  const light = rules(globals).find(rule => rule.selector.endsWith(":root"))?.body;
+  const dark = rules(theme).find(rule => rule.selector === 'html[data-theme="dark"]')?.body;
+  assert.ok(light && dark, "both active theme token declarations are required");
+  const color = (body, name) => {
+    const hex = body.match(new RegExp("--" + name + ":\\s*(#[0-9a-f]{3,6})\\b", "i"))?.[1];
+    assert.ok(hex, name + " must be a concrete theme color");
+    const digits = hex.slice(1).length === 3 ? [...hex.slice(1)].map(digit => digit + digit).join("") : hex.slice(1);
+    assert.equal(digits.length, 6);
+    const channels = [0, 2, 4].map(index => Number.parseInt(digits.slice(index, index + 2), 16) / 255);
+    return channels.map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4)
+      .reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
+  };
+  for (const [name, body, inverted] of [["light", light, false], ["dark", dark, true]]) {
+    const ink = color(body, "ink"), white = color(body, "white");
+    assert.equal(ink > white, inverted, name + " must invert the foreground/background pair");
+    const contrast = (Math.max(ink, white) + .05) / (Math.min(ink, white) + .05);
+    assert.ok(contrast >= 4.5, name + " token contrast was " + contrast.toFixed(2));
+  }
 });
 
 test("--ink 배경 위에 흰색을 직접 적지 않는다", async () => {

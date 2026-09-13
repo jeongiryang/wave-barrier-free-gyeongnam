@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import CommunityHeader from "../../components/CommunityHeader";
 import SkipLink from "../../components/SkipLink";
@@ -10,10 +9,10 @@ import GithubFooterLink from "../../components/GithubFooterLink";
 import { buildTravelJournalHref } from "../../lib/community/field-report.js";
 import { travelBookRegions, type TravelBook } from "../../lib/travel-book.js";
 import { useTravelBook } from "../../features/travel-book/useTravelBook";
-import { emptyTrip, readTripValue, replaceCurrentTrip } from "../../lib/current-trip-storage.js";
+import { emptyTrip, readTripValue } from "../../lib/current-trip-storage.js";
 import { getTabStorage } from "../../lib/session-storage.js";
 import { saveSessionProfiles } from "../../lib/session-travel-profiles.js";
-import { localDate } from "../../features/planner/utils";
+import { replaceTripWithBackup } from "../../lib/trip-import.js";
 import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
 import CloudSaveAction from "../../features/account-travel/CloudSaveAction";
 import EditorialPhoto from "../../features/landing/components/EditorialPhoto";
@@ -23,7 +22,7 @@ const dateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month:
 const shortDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
 
 function formatDate(value: string, formatter = dateFormatter) {
-  return formatter.format(new Date(`${value}T12:00:00`));
+  return value ? formatter.format(new Date(`${value}T12:00:00`)) : "날짜 미정";
 }
 
 function journalHref(book: TravelBook) {
@@ -97,7 +96,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
       {book.profiles.length > 0 && <ul className="travel-book-profiles" aria-label="선택한 편의조건">{book.profiles.map((profile) => <li key={profile}>{profile}</li>)}</ul>}
       <div className="travel-book-days">
         {days.map((day, dayIndex) => <section key={day}>
-          <header><small>DAY {String(dayIndex + 1).padStart(2, "0")}</small><strong>{formatDate(day, shortDateFormatter)} · {book.dayStartTime} 시작</strong></header>
+          <header>{day && <small>{dayIndex + 1}일차</small>}<strong>{formatDate(day, shortDateFormatter)}{day ? ` · ${book.dayStartTime} 시작` : ""}</strong></header>
           <ol>{book.places.filter((place) => book.scheduleAssignments[place.id] === day).map((place, placeIndex) => <li key={place.id}>
             <span>{placeIndex + 1}</span><div><strong>{place.name}</strong><small>{place.address || place.city}</small>{book.visitMinutesByPlaceId?.[place.id] && <small>체류 {book.visitMinutesByPlaceId[place.id]}분</small>}</div><em>방문 전 재확인</em>
           </li>)}</ol>
@@ -134,7 +133,6 @@ function NewTripDialog({ onCancel, onConfirm, error }: { onCancel: () => void; o
 }
 
 export default function TravelBookPage() {
-  const router = useRouter();
   const { books, hydrated, update, remove, restore, storageError } = useTravelBook();
   const [announcement, setAnnouncement] = useState("");
   const [newTripReady, setNewTripReady] = useState(false);
@@ -143,10 +141,10 @@ export default function TravelBookPage() {
   const visitedCount = books.filter((book) => book.status === "visited").length;
 
   function startNewTrip() {
-    try { replaceCurrentTrip(window.localStorage, emptyTrip("", localDate(), localDate(1))); }
+    try { replaceTripWithBackup(window.localStorage, emptyTrip("", "", "")); }
     catch { setNewTripError("새 여행을 저장하지 못했어요. 기존 일정은 유지됩니다. 저장 공간을 확인한 뒤 다시 시도해 주세요."); return; }
     saveSessionProfiles(getTabStorage(), []);
-    router.push("/planner#conditions");
+    window.location.assign("/planner#conditions");
   }
 
   function requestNewTrip() {

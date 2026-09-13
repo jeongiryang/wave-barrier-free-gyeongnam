@@ -1,7 +1,7 @@
 "use client";
 import LoadingState from "../../../components/LoadingState";
 
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { supportedPlacePoint } from "../../../lib/map-coordinates.js";
 import type { MapPlace } from "../../routing/types";
@@ -11,11 +11,21 @@ import type { usePlannerParticipation } from "../hooks/usePlannerParticipation";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place, PlanData, TransportProvider, WeatherData } from "../types";
+import Link from 'next/link';
+import TripBudgetEntry from './TripBudgetEntry';
+import TripDayTools from './TripDayTools';
+import { buildTravelJournalHref } from '../../../lib/community/field-report.js';
 import NavigationWorkspace from "./NavigationWorkspace";
+import TripSettingsEditor, { InitialTripSetup } from "./TripSettingsEditor";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
 
 const PlannerItineraryBoard = lazy(() => import("./PlannerItineraryBoard").catch(() => ({ default: ItineraryUnavailable })));
 
+const AudioGuidePlayer = lazy(() => import("./AudioGuidePlayer").catch(() => ({ default: AudioUnavailable })));
+function AudioUnavailable() {
+  const { locale } = useSitePreferences();
+  return <p role="status" lang={locale}>{locale === 'en' ? "The audio guide couldn't open. You can keep editing your itinerary. Reload this page to try the guide again." : '오디오 안내를 열지 못했어요. 일정은 계속 편집할 수 있어요. 안내를 다시 시도하려면 화면을 새로 불러와 주세요.'}</p>;
+}
 const ItineraryRouteCoverage = lazy(() => import("./ItineraryRouteCoverage"));
 const SavedPlaceCoordinateRecovery = lazy(() => import("./SavedPlaceCoordinateRecovery"));
 function ItineraryUnavailable() {
@@ -25,6 +35,7 @@ function ItineraryUnavailable() {
 const TripDayPlanner = lazy(() => import("./TripDayPlanner").catch(() => ({ default: ItineraryUnavailable })));
 
 interface PlannerItineraryWorkspaceProps {
+  active: boolean;
   alternativeTools?: ReactNode;
   mapView: boolean;
   onMapViewChange: (value: boolean) => void;
@@ -56,9 +67,22 @@ interface PlannerItineraryWorkspaceProps {
 
 export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspaceProps) {
   const { locale } = useSitePreferences();
-  const { mapView, onMapViewChange: setMapView } = props;
+  const [desktop, setDesktop] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [audioOpen, setAudioOpen] = useState(false);
+  // Load the board on its first visit; preserve map/editor state on later tab changes.
+  const [editorOpened, setEditorOpened] = useState(props.active);
+  useEffect(() => {
+    if (!props.active || editorOpened) return;
+    const frame = requestAnimationFrame(() => setEditorOpened(true));
+    return () => cancelAnimationFrame(frame);
+  }, [props.active, editorOpened]);
+  const closeSettings = useCallback(() => setSettingsOpen(false), []);
+  useEffect(() => { const media = matchMedia('(min-width:1024px)'); const update = () => setDesktop(media.matches); update(); media.addEventListener('change', update); return () => media.removeEventListener('change', update); }, []);
+  const mapView = desktop || props.mapView;
+  const setMapView = props.onMapViewChange;
   const c = (ko: string, en: string) => locale === "en" ? en : ko;
-  const { activeDay, setActiveDay, tripDays, scheduleAssignments } = props.tripSelection;
+  const { activeDay, tripDays, scheduleAssignments } = props.tripSelection;
   const itineraryPlaces = useMemo(() => props.tripSelection.orderedSavedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === activeDay), [props.tripSelection.orderedSavedPlaces, activeDay, scheduleAssignments, tripDays]);
   const routableItineraryPlaces = useMemo(
     () => itineraryPlaces.filter(place => supportedPlacePoint(place.mapX, place.mapY)),
@@ -78,34 +102,96 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       else void props.route.loadRoutes(leg.place, leg.from, false, leg.fromLabel);
     }
   }
+  function showStopOnMap(place: Place) {
+    focusStop(place);
+    setMapView(true);
+    if (!desktop) requestAnimationFrame(() => {
+      const heading = document.getElementById('navigation-title');
+      heading?.focus({ preventScroll: true });
+      heading?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    });
+  }
   const loadRoutes = props.route.loadRoutes;
   const resetRouteData = props.route.resetRouteData;
-  const savedSignature = `${activeDay}|${itineraryPlaces.map((place) => `${place.id}:${place.mapX}:${place.mapY}`).join(",")}|${props.route.origin.lat},${props.route.origin.lng}|${props.route.privateOrigin}`;
-  const previousSavedSignature = useRef("");
-  const previousTripSignature = useRef("");
-  const tripSignature = props.coverage.signature;
+  const displayRouteData = props.route.displayRouteData;
+  const { routeDestination, routeStart, routeStartIsPrivate, routeStartLabel, routeTravelMode } = props.route;
+  const region = props.archiveContext.region;
+  const structureSignature = `${region}|${activeDay}|${itineraryPlaces.map(place => `${place.id}:${place.mapX}:${place.mapY}`).join(',')}|${props.route.origin.lat},${props.route.origin.lng}|${props.route.privateOrigin}`;
+  const previousRouteScope = useRef<{ structure: string; mode: typeof routeTravelMode; region: string } | null>(null);
+  const pendingCoverageRoute = useRef<{ signature: string; key: string } | null>(null);
 
   useEffect(() => {
-    if (!routableItineraryPlaces.length) {
-      resetRouteData();
-      previousSavedSignature.current = savedSignature;
+    if (!props.mapEnabled || !props.tripSelection.storageReady) return;
+    if (!props.tripSelection.travelStart) {
+      previousRouteScope.current = null;
+      pendingCoverageRoute.current = null;
+      if (routeDestination || routeStart) resetRouteData();
       return;
     }
-    if (previousSavedSignature.current === savedSignature) return;
-    previousSavedSignature.current = savedSignature;
-    const sameTrip = previousTripSignature.current === tripSignature;
-    previousTripSignature.current = tripSignature;
-    if (sameTrip && itineraryPlaces.some((place) => place.id === props.route.routeDestination?.id) && props.route.routeStart) return;
-    resetRouteData();
-    void loadRoutes(routableItineraryPlaces[0]);
-  }, [loadRoutes, routableItineraryPlaces, savedSignature, resetRouteData, tripSignature, itineraryPlaces, props.route.routeDestination, props.route.routeStart]);
+    const previous = previousRouteScope.current;
+    const sameStructure = previous?.structure === structureSignature;
+    const sameMode = previous?.mode === routeTravelMode;
+    previousRouteScope.current = { structure: structureSignature, mode: routeTravelMode, region };
 
+    // A mode change already checks every itinerary leg. Reuse that exact leg
+    // for the map; a separately chosen map journey still needs its own request.
+    if (sameStructure && routeDestination && routeStart) {
+      const point = supportedPlacePoint(routeDestination.mapX, routeDestination.mapY);
+      const selectedLeg = props.coverage.legs.find(leg => leg.day === activeDay && !leg.blocked
+        && !routeStartIsPrivate && leg.place.id === routeDestination.id
+        && leg.from?.lat === routeStart.lat && leg.from?.lng === routeStart.lng
+        && leg.to?.lat === point?.lat && leg.to?.lng === point?.lng);
+      if (!sameMode) {
+        if (selectedLeg) {
+          const bundle = props.coverage.data[selectedLeg.key];
+          // Coverage can finish while this tab is hidden. Consume it now:
+          // no later coverage update would clear a newly added pending state.
+          const pending = !bundle && (props.coverage.checkedSignature !== props.coverage.signature || props.coverage.loading);
+          pendingCoverageRoute.current = pending ? { signature: props.coverage.signature, key: selectedLeg.key } : null;
+          displayRouteData(routeDestination, routeStart, routeStartLabel, bundle || {}, pending);
+        } else {
+          pendingCoverageRoute.current = null;
+          void loadRoutes(routeDestination, routeStart, routeStartIsPrivate, routeStartLabel);
+        }
+      } else if (pendingCoverageRoute.current) {
+        const pending = pendingCoverageRoute.current;
+        if (pending.signature !== props.coverage.signature || pending.key !== selectedLeg?.key) pendingCoverageRoute.current = null;
+        else {
+          const bundle = props.coverage.data[pending.key];
+          if (bundle || (!props.coverage.loading && props.coverage.checkedSignature === pending.signature)) {
+            pendingCoverageRoute.current = null;
+            displayRouteData(routeDestination, routeStart, routeStartLabel, bundle || {});
+          }
+        }
+      }
+      return;
+    }
+    pendingCoverageRoute.current = null;
+
+    // After a date, order or place change, use that date's current predecessor.
+    // Never reuse the departure point from a different day's displayed journey.
+    const currentLegs = props.coverage.legs.filter(leg => leg.day === activeDay && leg.from && leg.to);
+    const leg = currentLegs.find(item => item.place.id === routeDestination?.id) || currentLegs[0];
+    if (!leg?.from) {
+      if (routeDestination || routeStart) resetRouteData();
+      return;
+    }
+    const destinationPoint = routeDestination && supportedPlacePoint(routeDestination.mapX, routeDestination.mapY);
+    const sameJourney = routeDestination?.id === leg.place.id
+      && routeStart?.lat === leg.from.lat && routeStart?.lng === leg.from.lng
+      && destinationPoint?.lat === leg.to?.lat && destinationPoint?.lng === leg.to?.lng
+      && routeStartIsPrivate === leg.blocked;
+    if (sameMode && previous?.region === region && sameJourney) return;
+    void loadRoutes(leg.place, leg.from, leg.blocked, leg.fromLabel);
+  }, [props.mapEnabled, props.tripSelection.storageReady, props.tripSelection.travelStart, props.coverage.legs, props.coverage.signature, props.coverage.checkedSignature, props.coverage.data, props.coverage.loading, activeDay, structureSignature, region, routeTravelMode, routeDestination, routeStart, routeStartIsPrivate, routeStartLabel, loadRoutes, resetRouteData, displayRouteData]);
+
+  if (!props.tripSelection.travelStart) return <InitialTripSetup trip={props.tripSelection} />;
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
-    <h2 id="itinerary-stage-title">{mapView ? "여행 순서를 편하게 정리하세요." : `${props.archiveContext.region || "경남"} 여행, 순서만 정하면 돼요.`}</h2>
-    <p className="reference-subtitle">시간과 이동 순서를 바꾸면 전체 일정이 함께 바뀝니다.</p>
-    <div className="planner-notice" role="status">{props.tripSelection.savedEvidence.loading ? <LoadingState>담아둔 장소의 최신 정보를 확인하고 있어요.</LoadingState> : props.tripSelection.savedEvidence.notice}{!props.tripSelection.savedEvidence.loading && props.tripSelection.saved.length > 0 && <button type="button" onClick={props.tripSelection.savedEvidence.retry}>정보 다시 확인</button>}</div>
-    <div className="reference-view-tabs" role="group" aria-label="일정 보기 방식"><button type="button" aria-pressed={!mapView} onClick={() => setMapView(false)}>시간표</button><button type="button" aria-pressed={mapView} onClick={() => setMapView(true)}>지도 함께 보기</button></div>
-    {!props.expanded && <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><PlannerItineraryBoard focusedPlaceId={focusedPlaceId} onFocusPlace={place => focusStop(place)} requiredKeys={props.plan?.criteria?.facilityKeys || []} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? props.activePlaces : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace focusedPlaceId={focusedPlaceId} onPlaceFocus={place => focusStop(place, true)}
+    <div lang="ko" className="simple-itinerary-heading"><div><h2 id="itinerary-stage-title">내 일정</h2><p>{props.tripSelection.travelStart} — {props.tripSelection.travelEnd}</p></div><button type="button" onClick={() => setSettingsOpen(true)}>여행 설정</button></div>
+    {props.tripSelection.commandNotice && <div lang="ko" className="simple-command-receipt" role="status"><span>{props.tripSelection.commandNotice}</span>{props.tripSelection.canUndoCommand && <button type="button" onClick={() => props.tripSelection.undoCommand()}>되돌리기</button>}</div>}
+    <Suspense fallback={<LoadingState>여행 도구를 준비하고 있어요.</LoadingState>}><TripDayPlanner plan={props.plan} tripSelection={props.tripSelection} route={props.route} audioGuide={props.audioGuide} participation={props.participation} archiveContext={props.archiveContext} /></Suspense>
+    {!desktop && <div lang="ko" className="simple-map-switch" role="group" aria-label="일정 보기 방식"><button type="button" aria-pressed={!mapView} onClick={() => setMapView(false)}>시간표</button><button type="button" aria-pressed={mapView} onClick={() => setMapView(true)}>지도</button></div>}
+    {(props.active || editorOpened) && <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><PlannerItineraryBoard focusedPlaceId={focusedPlaceId} onFocusPlace={showStopOnMap} requiredKeys={props.plan?.criteria?.facilityKeys || []} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? [...props.activePlaces, ...(props.plan?.explorationPlaces || [])] : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace focusedPlaceId={focusedPlaceId} onPlaceFocus={place => focusStop(place, true)}
       mapEnabled={props.mapEnabled && mapView}
       compact
       activePlaces={navigationPlaces}
@@ -118,26 +204,15 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       onMapDestination={place => navigationPlaces.some(item => item.id === place.id) ? focusStop(place, true) : props.onMapDestination(place)}
       onSaveMapPlaces={props.onSaveMapPlaces}
     />} /></Suspense>}
-    {props.alternativeTools}
-    <details className="reference-itinerary-details" open={props.expanded || undefined}><summary>날짜·이동 구간·여행 도구 자세히 보기</summary>
-    {props.tripSelection.orderedSavedPlaces.length ? <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><TripDayPlanner
-      itineraryRouteMinutes={props.coverage.routeMinutes}
-      plan={props.plan}
-      tripSelection={props.tripSelection}
-      route={props.route}
-      audioGuide={props.audioGuide}
-      participation={props.participation}
-      archiveContext={props.archiveContext}
-    /></Suspense> : <section className="day-planner empty" data-reveal aria-label={c("내 일정", "My itinerary")}>
-      <div className="itinerary-empty-state"><span aria-hidden="true">+</span><h3>{c("아직 일정에 추가한 장소가 없어요.", "No places in your itinerary yet.")}</h3><p>{c("위 추천 여행지에서 ‘일정에 추가’를 누르면 이곳에서 날짜, 순서와 이동시간을 정리할 수 있습니다.", "Add a recommended place to arrange its date, order and travel time here.")}</p></div>
-    </section>}
-    {props.tripSelection.orderedSavedPlaces.length > 0 && <Suspense fallback={<LoadingState>{c("이동 구간 확인을 준비하고 있어요.", "Preparing journey checks.")}</LoadingState>}><ItineraryRouteCoverage coverage={props.coverage} route={props.route} trip={props.tripSelection} reviewed={props.reviewed} onReview={props.onReview} /></Suspense>}
-    <nav className="itinerary-day-tabs" aria-label={c("지도에 표시할 날짜", "Date to show on the map")}>{tripDays.map((day) => <button type="button" key={day} aria-pressed={activeDay === day} onClick={() => setActiveDay(day)}>{day.slice(5).replace("-", "/")}</button>)}</nav>
-    <p className="route-scope-note">{activeDay} · {c(`일정 ${itineraryPlaces.length}곳 중 지도에 표시할 수 있는 장소 ${navigationPlaces.length}곳`, `${navigationPlaces.length} of ${itineraryPlaces.length} itinerary places can be shown on the map`)}</p>
-    <Suspense fallback={null}><SavedPlaceCoordinateRecovery key={`${props.archiveContext.region}|${tripDays}|${props.tripSelection.saved}`} places={props.tripSelection.orderedSavedPlaces} onRestore={props.tripSelection.rememberSavedPlaces} /></Suspense>
-    {itineraryPlaces.some((place) => !routableItineraryPlaces.includes(place)) && <p role="status">{c("좌표를 확인하지 못한 장소:", "Coordinates unavailable:")} {itineraryPlaces.filter((place) => !routableItineraryPlaces.includes(place)).map((place) => place.name).join(", ")}. {c("일정에는 그대로 보관하며 지도에서는 제외합니다.", "Kept in your itinerary, but excluded from the map.")}</p>}
 
-      {props.expanded && <NavigationWorkspace focusedPlaceId={focusedPlaceId} onPlaceFocus={place => focusStop(place, true)} mapEnabled={props.mapEnabled} activePlaces={navigationPlaces} planCrowd={props.planCrowd} effectiveProviders={props.effectiveProviders} route={props.route} locationSearch={props.locationSearch} onChoosePoint={props.onChoosePoint} onCopyBookingRoute={props.onCopyBookingRoute} onMapDestination={place => navigationPlaces.some(item => item.id === place.id) ? focusStop(place, true) : props.onMapDestination(place)} onSaveMapPlaces={props.onSaveMapPlaces} />}
+    <details className="simple-more-trip-tools"><summary lang="ko">여행 도구</summary>{props.alternativeTools}
+      <TripBudgetEntry trip={props.tripSelection} coverage={props.coverage} region={props.archiveContext.region}/>
+      <TripDayTools onSelectPlace={props.onSelectPlace} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} region={props.archiveContext.region}/>
+      <details className="simple-audio-journal" onToggle={event => { setAudioOpen(event.currentTarget.open); if (!event.currentTarget.open) props.audioGuide.resetAudio(); }}><summary lang="ko">오디오 가이드·여행 후기</summary>{audioOpen && <Suspense fallback={<LoadingState>오디오를 준비하고 있어요.</LoadingState>}><AudioGuidePlayer audio={props.plan?.audio} controller={props.audioGuide}/></Suspense>}<Link lang="ko" href={buildTravelJournalHref({ places: props.tripSelection.orderedSavedPlaces.map(place => ({ id: place.id, name: place.name, day: props.tripSelection.scheduleAssignments[place.id] || props.tripSelection.tripDays[0] })), region: props.archiveContext.region, visitDate: props.tripSelection.tripDays[0] })}>여행 후기 작성</Link></details>
+      <Suspense fallback={<LoadingState>이동 구간을 준비하고 있어요.</LoadingState>}><ItineraryRouteCoverage onOpenMap={() => setMapView(true)} coverage={props.coverage} route={props.route} trip={props.tripSelection} reviewed={props.reviewed} onReview={props.onReview} /></Suspense>
+      <Suspense fallback={null}><SavedPlaceCoordinateRecovery key={`${props.archiveContext.region}|${tripDays}|${props.tripSelection.saved}`} places={props.tripSelection.orderedSavedPlaces} onRestore={props.tripSelection.rememberSavedPlaces} /></Suspense>
+      {itineraryPlaces.some(place => !routableItineraryPlaces.includes(place)) && <p role="status">좌표가 없는 장소는 일정에 보관하고 지도에서 제외해요: {itineraryPlaces.filter(place => !routableItineraryPlaces.includes(place)).map(place => place.name).join(', ')}</p>}
     </details>
+    {settingsOpen && <TripSettingsEditor trip={props.tripSelection} onClose={closeSettings} />}
   </section>;
 }

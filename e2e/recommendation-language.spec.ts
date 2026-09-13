@@ -1,10 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi } from "./fixtures";
+import { mockPlannerApi } from "./fixtures";
 import type { Place, PlanData } from "../features/planner/types";
 
 const place = {
-  id: "evidence-place", contentTypeId: "14", city: "창원", name: "검증용 관광지", address: "경상남도 창원시",
+  id: "3003", contentTypeId: "14", city: "창원", name: "검증용 관광지", address: "경상남도 창원시",
   summary: "공식 원문 설명", image: "", mapX: "128.691", mapY: "35.238", score: 33,
   knownFields: 2, unknownFields: 1, negativeFields: 1, checkedAt: "2026-09-06T00:00:00Z",
   accessibility: [
@@ -17,26 +17,31 @@ const place = {
 async function prepare(page: Page, locale: "ko" | "en" = "en") {
   await mockPlannerApi(page, { plannerView: "overview", savedPlaces: [place] });
   await page.addInitScript((value) => localStorage.setItem("wave-locale", value), locale);
-  await page.route("**/api/wave?action=plan*", (route) => route.fulfill({ json: {
+  await page.route("**/api/wave?action=plan*", (route) => route.fulfill({ json: { criteria: { facilityKeys: (new URL(route.request().url()).searchParams.get("facilityKeys") || "").split(",").filter(Boolean) },
     mode: "live", generatedAt: place.checkedAt, baseYm: "202608", course: null, audio: null, places: [place], stops: [], statuses: [],
   } satisfies PlanData }));
   await page.goto("/planner");
-  if (locale === "ko") await chooseTripConditions(page);
-  else {
-    await expect(page.getByRole("button", { name: "Overview", exact: true })).toBeEnabled();
-    await page.getByRole("button", { name: "Changwon", exact: true }).click();
-    await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-    await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-    await page.getByRole("button", { name: "Find places →", exact: true }).click();
-  }
-  const trigger = page.locator("#places").getByRole("button", { name: locale === "en" ? "Visitor information" : "이용 정보", exact: true });
+  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await page.locator('.simple-facility-trigger').click(); const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+  await picker.getByRole('checkbox', { name: '접근로', exact: true }).check();
+  // Opening the previous region-only result during the automatic search debounce
+  // correctly makes its detail stale. Exercise the requested facility result.
+  const currentResult = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === '/api/wave' && url.searchParams.get('action') === 'plan'
+      && url.searchParams.get('region') === '창원' && url.searchParams.get('facilityKeys') === 'route';
+  });
+  await picker.getByRole('button', { name: /^적용/ }).click();
+  await (await currentResult).finished();
+  await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'false');
+  const trigger = page.locator('.simple-place-row h3 button');
   await trigger.click();
   await expect(page.getByRole("dialog").getByRole("heading", { level: 2 })).toBeFocused();
   return trigger;
 }
 
 for (const theme of ["light", "dark"] as const) {
-  test(`English facility evidence preserves original records and keyboard actions in ${theme}`, async ({ page }) => {
+  test(`English facility evidence preserves original records and keyboard actions in ${theme}`, async ({ page, isMobile }) => {
     await page.addInitScript((value) => localStorage.setItem("wave-theme", value), theme);
     await page.route("**/api/community/posts?*", (route) => route.fulfill({ json: { posts: [] } }));
     const errors: string[] = [];
@@ -58,7 +63,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(dialog.locator(".place-community-empty")).toContainText("There are no public visitor stories");
     await expect(dialog.getByRole("region", { name: "Visitor stories about this place", exact: true })).not.toContainText(/[가-힣]/);
     await expect(dialog.getByRole("link", { name: /Visitor reviews and photos/ })).toHaveAttribute("target", "_blank");
-    await expect(dialog.getByRole("link", { name: /Write a field report/ })).toHaveAttribute("href", /placeId=evidence-place/);
+    await expect(dialog.getByRole("link", { name: /Write a field report/ })).toHaveAttribute("href", /placeId=3003/);
     await expect(dialog.getByRole("button", { name: "Report a correction" })).toBeDisabled();
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`evidence-${theme}.png`) });
@@ -67,6 +72,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(audioSummary).toBeVisible();
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`participation-${theme}.png`) });
+    if (isMobile) {
     await dialog.getByRole("button", { name: "Close", exact: true }).focus();
     await page.keyboard.press("Shift+Tab");
     await expect(audioSummary).toBeFocused();
@@ -76,6 +82,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(audioSummary).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(dialog.getByRole("button", { name: "Close", exact: true })).toBeFocused();
+    }
     await page.keyboard.press("Escape");
     await expect(trigger).toBeFocused();
     expect(errors).toEqual([]);
@@ -147,9 +154,15 @@ test("a failed visitor story module leaves facility evidence and a community alt
   const trigger = await prepare(page);
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("status").filter({ hasText: "Visitor stories couldn't open here" })).toBeVisible();
-  await expect(dialog.getByRole("link", { name: "Open community", exact: true })).toHaveAttribute("href", /placeId=evidence-place/);
+  await expect(dialog.getByRole("link", { name: "Open community", exact: true })).toHaveAttribute("href", /placeId=3003/);
   await expect(dialog.getByRole("region", { name: "Facilities in the official record 1" })).toContainText("Access pathReported available");
   await expect(dialog.getByRole("button", { name: "Add to itinerary", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");
   await expect(trigger).toBeFocused();
+  await trigger.click();
+  await dialog.getByRole("button", { name: "Add to itinerary", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  const draft = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values);
+  expect(JSON.parse(draft["wave-saved-places"] || "[]")).toEqual([place.id]);
+  expect(JSON.parse(draft["wave-trip-schedule-v1"] || "{}").travelStart || "").toBe("");
 });

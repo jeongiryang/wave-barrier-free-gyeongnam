@@ -1,70 +1,87 @@
-import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { expect, test, type Page } from "@playwright/test";
+import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
-/**
- * 조건 패널은 한 화면 안에서 번호를 두 번 매기고 있었고, 편의 조건을 고르기 전에는
- * 요약 문장이 "조건을개 선택"으로 끊겨 있었다. 두 가지 모두 눈으로 읽히는 문제라
- * 렌더링된 화면에서 확인한다.
- */
-
-async function openPlanner(page: import("@playwright/test").Page) {
+/** Test the labels a visitor reads, without requiring retired step numbers or
+ * repeating clicks to hide a control that is enabled before hydration. */
+async function openPlanner(page: Page) {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
-  await mockPlannerApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
+  await mockPlannerApi(page, { preserveView: true });
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/planner");
-  await page.locator(".selection-bar").first().waitFor();
+  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toBeEnabled();
 }
 
-/**
- * 조건 카드는 서버가 그린 HTML에 이미 있어서, 하이드레이션 전에 누르면 아무 일도
- * 일어나지 않는다. 상태가 실제로 뒤집힐 때까지 다시 눌러 본다.
- */
-async function toggleUntilPressed(card: import("@playwright/test").Locator, pressed: boolean) {
-  await expect(async () => {
-    if ((await card.getAttribute("aria-pressed")) === String(pressed)) return;
-    await card.click();
-    await expect(card).toHaveAttribute("aria-pressed", String(pressed), { timeout: 1_000 });
-  }).toPass({ timeout: 20_000 });
+async function collectMuseum(page: Page) {
+  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
 }
 
-test("조건 필드 라벨이 번호로 시작하지 않는다", async ({ page }) => {
-  await openPlanner(page);
-  const labels = await page.locator(".step-label").allInnerTexts();
-  expect(labels.length).toBeGreaterThan(0);
-  for (const label of labels) {
-    expect(label.trim(), "섹션 STEP 번호와 겹치는 자체 번호").not.toMatch(/^\d/);
-  }
-});
-
-test("편의 조건을 고르기 전후 모두 요약 문장이 완결된다", async ({ page }) => {
-  await openPlanner(page);
-  const summary = page.locator(".selection-bar p b").first();
-  const cards = page.locator(".profile-card");
-  // 카드를 인덱스로 하나씩 끈다. `[aria-pressed=true]` 목록은 클릭할 때마다 다시
-  // 풀려서, 리렌더 전에 같은 카드를 두 번 눌러 도로 켜는 일이 생긴다.
-  for (let index = 0; index < (await cards.count()); index += 1) {
-    await toggleUntilPressed(cards.nth(index), false);
-  }
-  await expect(summary).toHaveText("선택한 편의 조건 없음");
-  await expect(page.locator(".generate-button")).toHaveCount(0);
-  await expect(page.getByText("필요한 편의가 없다면 선택 없이 둘러볼 수 있어요.")).toBeVisible();
-
-  await toggleUntilPressed(cards.first(), true);
-  await expect(summary).toHaveText(/^편의 조건 \d+개 선택$/);
-  await expect(page.locator(".generate-button")).toHaveCount(0);
-  await expect(page.getByText("선택을 마치고 여행지 찾기를 눌러주세요.")).toBeVisible();
-});
-
-test("단계 제목이 모두 한국어로 읽힌다", async ({ page }) => {
-  await openPlanner(page);
-  const headings = await page.locator(".journey-subheading h2").allInnerTexts();
+async function expectKoreanHeadings(page: Page) {
+  const headings = await page.locator("main h1:visible, main h2:visible").allInnerTexts();
   expect(headings.length).toBeGreaterThan(0);
-  for (const heading of headings) {
-    expect(heading.trim(), "한글이 한 글자도 없는 제목").toMatch(/[가-힣]/);
-  }
-  await expect(page.getByRole("heading", { name: "여행 조건 정하기", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "내 조건에 맞는 여행지" })).toBeVisible();
-  await expect(page.locator("#itinerary-stage-title")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "출발 전에 이것만 다시 확인하세요." })).toBeVisible();
+  for (const heading of headings) expect(heading.trim(), "한글이 한 글자도 없는 제목").toMatch(/[가-힣]/);
+}
+
+test("검색과 여행 설정의 필드 라벨이 중복 단계 번호로 시작하지 않는다", async ({ page }) => {
+  await openPlanner(page);
+  const labels = await page.locator(".simple-search-bar label > span").allInnerTexts();
+  await collectMuseum(page);
+  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  await expect(page.locator(".simple-initial-setup")).toBeVisible();
+  labels.push(...await page.locator(".simple-settings-fields > label").evaluateAll(nodes => nodes.map(node => node.firstChild?.textContent?.trim() || "")));
+  expect(labels).toEqual(["지역", "시작일", "마지막 날", "이동 수단", "하루 시작"]);
+  for (const label of labels) expect(label.trim(), "화면 단계 번호와 겹치는 자체 번호").not.toMatch(/^\d/);
+});
+
+test("편의 선택 전·초안·적용·해제의 문구가 완결되고 자동 검색에 그대로 반영된다", async ({ page }) => {
+  await openPlanner(page);
+  const searches: URL[] = [];
+  page.on("request", request => { if (request.url().includes("action=plan")) searches.push(new URL(request.url())); });
+  const trigger = page.locator(".simple-facility-trigger");
+  await expect(trigger).toHaveAccessibleName("필요한 편의");
+  await trigger.click();
+  const picker = page.getByRole("dialog", { name: "필요한 편의", exact: true });
+  await expect(picker.getByRole("checkbox", { checked: true })).toHaveCount(0);
+  await picker.getByRole("checkbox", { name: "접근로", exact: true }).check();
+  await expect(picker.getByRole("button", { name: "적용 · 1개", exact: true })).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem("wave-session-facilities-v1") || "[]"))).toEqual([]);
+  await picker.getByRole("button", { name: "적용 · 1개", exact: true }).click();
+  await expect(trigger).toHaveAccessibleName("필요한 편의 · 1개");
+  expect(searches).toHaveLength(0);
+
+  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await expect(page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true })).toBeEnabled();
+  expect(searches).toHaveLength(1);
+  expect(searches[0].searchParams.get("facilityKeys")).toBe("route");
+  await trigger.click();
+  await picker.getByRole("button", { name: "선택 해제", exact: true }).click();
+  await expect(picker.getByRole("checkbox", { checked: true })).toHaveCount(0);
+  await expect(picker.getByRole("button", { name: "적용", exact: true })).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem("wave-session-facilities-v1") || "[]"))).toEqual(["route"]);
+  await picker.getByRole("button", { name: "적용", exact: true }).click();
+  await expect(trigger).toHaveAccessibleName("필요한 편의");
+  await expect.poll(() => searches.length).toBe(2);
+  expect(searches[1].searchParams.get("facilityKeys")).toBe("");
+  await expect(page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true })).toBeEnabled();
+});
+
+test("지역·검색 결과·날짜 설정·내 일정과 출발 전 확인은 한국어로 읽힌다", async ({ page }) => {
+  await openPlanner(page);
+  await expect(page.getByRole("heading", { name: "어디로 갈까요?", exact: true })).toBeVisible();
+  await expectKoreanHeadings(page);
+  await collectMuseum(page);
+  await expect(page.getByRole("heading", { name: "창원 여행지", exact: true })).toBeVisible();
+  await expectKoreanHeadings(page);
+  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  await expect(page.getByRole("heading", { name: "언제 떠날까요?", exact: true })).toBeVisible();
+  await expectKoreanHeadings(page);
+  await openItinerary(page, { start: "2026-09-20" });
+  await expect(page.getByRole("heading", { name: "내 일정", exact: true })).toBeVisible();
+  await expectKoreanHeadings(page);
+  const departure = page.locator(".simple-departure > summary");
+  await expect(departure.getByText("출발 전 확인", { exact: true })).toBeVisible();
+  await departure.press("Enter");
+  await expect(page.getByRole("region", { name: "출발 전 확인할 정보", exact: true })).toBeVisible();
+  await expectKoreanHeadings(page);
 });

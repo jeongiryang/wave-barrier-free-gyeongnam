@@ -67,52 +67,46 @@ test('rest correction preserves real identity and duration validation', () => {
   assert.deepEqual(ground({ action: 'visit', placeId: '1748884', minutes: 90 }, '3·15 아트센터 체류시간을 90분으로 바꿔줘.'), { action: 'visit', placeId: '1748884', minutes: 90 });
 });
 
-test('an explicit child festival request repairs omitted baby facilities without inventing fatigue', () => {
+test('a child festival request does not invent facilities or fatigue', () => {
   const value = { action: 'create-itinerary', region: '경남 전체', festival: 'any', reason: 'fatigue' };
   const actual = ground(value, '아이와 갈 만한 경남 축제랑 주변 장소로 당일 코스를 만들어줘.');
-  assert.deepEqual(actual, { action: 'create-itinerary', region: '경남 전체', festival: 'any', profiles: ['baby'], start: context.days[0], end: context.days[0] });
-  assert.equal(value.reason, 'fatigue', 'grounding cannot mutate model input');
-  assert.ok(validateAssistantAction(actual));
+  assert.deepEqual(actual, { action: 'create-itinerary', region: '경남 전체', festival: 'any', start: context.days[0], end: context.days[0] });
+  assert.equal(value.reason, 'fatigue'); assert.ok(validateAssistantAction(actual));
 });
 
-test('explicit child companions and stroller use add only the requested baby facility profile', () => {
-  for (const text of ['아기랑 갈 만한 여행 코스 만들어줘.', '아이를 데리고 경남 여행을 가고 싶어.', '유아 동행 여행을 만들어줘.', '유모차를 끌고 다닐 만한 코스를 만들어줘.', '유모차로 이동할 수 있는 축제 코스를 만들어줘.']) {
-    const actual = ground({ action: 'create-itinerary', profiles: ['wheel'], reason: 'fatigue' }, text);
-    assert.deepEqual(actual.profiles, ['wheel', 'baby'], text);
-    assert.equal(Object.hasOwn(actual, 'reason'), false, text);
-    assert.equal(Object.hasOwn(actual, 'transport'), false, 'a stroller does not mean driving a car');
+test('companions and stroller use do not imply rentals, a disability or transport', () => {
+  for (const text of ['아기랑 갈 만한 여행 코스 만들어줘.', '아이를 데리고 경남 여행을 가고 싶어.', '유아 동행 여행을 만들어줘.', '유모차를 끌고 다닐 만한 코스를 만들어줘.', '유모차로 이동할 수 있는 축제 코스를 만들어줘.', 'Plan a trip with my baby.', 'Plan a stroller-friendly trip.']) {
+    const actual = ground({ action: 'create-itinerary', profiles: ['wheel','baby'], reason: 'fatigue' }, text);
+    assert.equal(actual.profiles, undefined, text); assert.equal(actual.reason, undefined, text); assert.equal(actual.transport, undefined, text);
   }
 });
 
-test('a same-trip follow-up retains explicitly requested child facilities, but assistant suggestions do not authorize them', () => {
-  const initial = [{ role: 'user', content: '아이와 갈 만한 여행 코스를 만들어줘.' }, { role: 'assistant', content: '피곤할 테니 짧은 일정을 제안해요.' }];
-  const actual = groundAssistantProposal({ action: 'adapt-itinerary', reason: 'fatigue' }, [...initial, { role: 'user', content: '그 조건으로 축제도 넣어서 바꿔줘.' }], context);
-  assert.deepEqual(actual.profiles, ['baby']); assert.equal(Object.hasOwn(actual, 'reason'), false);
-  const unrequested = groundAssistantProposal({ action: 'create-itinerary', profiles: ['baby'] }, [{ role: 'assistant', content: '아이와 함께 여행해 보세요.' }, { role: 'user', content: '진주 여행 코스 만들어줘.' }], context);
-  assert.equal(Object.hasOwn(unrequested, 'profiles'), false);
+test('a same-trip follow-up preserves actually selected facilities but not assistant suggestions', () => {
+  const ctx = { ...context, profiles: 'lactationroom' };
+  const actual = groundAssistantProposal({ action: 'adapt-itinerary', profiles: ['baby'], reason: 'fatigue' }, [{ role: 'assistant', content: '유모차 대여도 넣어볼까요?' }, { role: 'user', content: '그 조건으로 축제도 넣어서 바꿔줘.' }], ctx);
+  assert.deepEqual(actual.profiles, ['lactationroom']); assert.equal(actual.reason, undefined);
+  const unrequested = groundAssistantProposal({ action: 'create-itinerary', profiles: ['baby'] }, [{ role: 'assistant', content: '수유실 있는 곳으로 갈까요?' }, { role: 'user', content: '진주 여행 코스 만들어줘.' }], context);
+  assert.equal(unrequested.profiles, undefined);
 });
 
-test('direct baby facilities and English companion requests remain valid without inferring a disability', () => {
-  for (const text of ['유아 편의시설이 있는 코스를 만들어줘.', '수유실 있는 코스를 만들어줘.', '기저귀 교환대가 있는 곳으로 코스를 만들어줘.', '아이와 첫 여행을 준비해줘.', 'Plan a trip with my baby.', 'Plan a stroller-friendly trip.']) {
-    for (const profiles of [undefined, ['baby']]) {
-      const actual = ground({ action: 'create-itinerary', ...(profiles ? { profiles } : {}) }, text);
-      assert.deepEqual(actual.profiles, ['baby'], text);
-    }
+test('a directly requested facility is repaired individually even when the model omitted it', () => {
+  for (const [text, key] of [['수유실 있는 코스를 만들어줘.', 'lactationroom'], ['유모차 대여가 되는 곳으로 코스를 만들어줘.', 'stroller'], ['장애인 화장실 있는 곳으로 코스를 만들어줘.', 'restroom']]) {
+    for (const model of [undefined, ['baby']]) assert.deepEqual(ground({ action: 'create-itinerary', ...(model ? { profiles: model } : {}) }, text).profiles, [key]);
   }
 });
 
-test('new trips, different parties and explicit child exclusions cannot resurrect earlier baby facilities', () => {
+test('different parties cannot resurrect unselected facilities or silently remove selected ones', () => {
   for (const text of ['새 여행을 진주로 만들어줘.', '이번에는 혼자 갈 만한 코스를 만들어줘.', '아이 없이 갈 거야. 다른 코스로 만들어줘.', '유모차는 안 가져갈게. 다른 코스로 바꿔줘.', '이번에는 성인끼리 여행할 거야.', '아이와 가지 않을 거야. 다른 코스를 만들어줘.']) {
-    const ctx = { ...context, profiles: 'wheel' };
+    const ctx = { ...context, profiles: 'route' };
     const actual = groundAssistantProposal({ action: 'create-itinerary', profiles: ['wheel', 'baby'] }, [{ role: 'user', content: '아이와 갈 만한 유모차 여행 코스 만들어줘.' }, { role: 'user', content: text }], ctx);
-    assert.deepEqual(actual.profiles, ['wheel'], text); assert.equal(ctx.profiles, 'wheel');
+    assert.deepEqual(actual.profiles, ['route'], text); assert.equal(ctx.profiles, 'route');
   }
 });
 
 test('mentions without child companionship cannot invent baby facilities', () => {
   for (const text of ['아이콘이 보기 쉬운 여행 코스 만들어줘.', '아이돌 공연 주변 장소로 여행을 만들어줘.', '어린이박물관 주변 여행 코스 만들어줘.', '아이와 갈까?']) {
     const actual = ground({ action: 'create-itinerary', profiles: ['baby'] }, text);
-    assert.equal(Object.hasOwn(actual, 'profiles'), false, text);
+    assert.equal(actual?.profiles, undefined, text);
   }
 });
 
@@ -122,7 +116,7 @@ test('fatigue adaptation requires a current positive fatigue or rest request', (
   }
   for (const text of ['창원 축제로 바꿔줘.', '피곤하지 않아. 축제를 추가해줘.', '안 피곤해. 장소만 바꿔줘.', '피곤하면 어떻게 해야 하나요?', '휴식은 필요 없어. 장소를 바꿔줘.', 'I am not tired. Add a festival to my itinerary.']) {
     const actual = groundAssistantProposal({ action: 'adapt-itinerary', reason: 'fatigue' }, [{ role: 'user', content: '많이 피곤해. 쉬고 싶어.' }, { role: 'user', content: text }], context);
-    assert.equal(Object.hasOwn(actual, 'reason'), false, text);
+    assert.equal(actual?.reason, undefined, text);
   }
 });
 

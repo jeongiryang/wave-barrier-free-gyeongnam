@@ -17,7 +17,9 @@ export function useRoutePlanning(region: string, journey: Parameters<typeof useR
   const { displayRouteData } = routeRequest;
   const showItineraryRoute = useCallback((...args: Parameters<typeof displayRouteData>) => {
     displayRouteData(...args);
-    setRouteNotice(routeResultNotice(args[3].alternatives || []));
+    setRouteNotice(args[4]
+      ? { ko: "일정의 이동 구간을 확인하고 있어요.", en: "Checking the journey in your itinerary." }
+      : routeResultNotice(args[3].alternatives || []));
   }, [displayRouteData, setRouteNotice]);
 
   const loadRoutes = useCallback(async (
@@ -41,11 +43,7 @@ export function useRoutePlanning(region: string, journey: Parameters<typeof useR
   const setRouteTravelMode = (mode: RouteTravelMode) => {
     if (!journey.storageReady || mode === routeTravelMode) return;
     routeView.setRouteTravelMode(mode);
-    const { routeDestination, routeStart, routeStartIsPrivate, routeStartLabel } = routeRequest;
-    if (routeDestination && routeStart) void loadRouteData({
-      place: routeDestination, origin: routeStart, privateOrigin: routeStartIsPrivate,
-      originLabel: routeStartLabel, mode, onNotice: setRouteNotice, onActiveRouteChange: setActiveRouteId,
-    });
+
   };
 
   return {

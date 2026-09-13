@@ -42,7 +42,7 @@ test("availability counts deduplicate candidates and keep confirmed facilities s
   });
   const response = await load("server/tourism/availability.ts").handleAvailability(new Request("https://wave.test/api/wave?action=availability&region=진주&themes=nature,history"), { TOUR_API_SERVICE_KEY_ENCODED: "fixture" });
   const data = await response.json();
-  assert.deepEqual(data.candidates, [{ id: "1001", profiles: ["wheel"] }]);
+  assert.deepEqual(data.candidates, [{ id: "1001", profiles: ["parking"], facilityKeys: ["parking"] }]);
   assert.equal(data.status.partial, false);
   assert.equal(calls.filter(url => url.pathname.endsWith("detailWithTour2")).length, 1);
   assert.ok(calls.every(url => ["areaBasedList2", "detailWithTour2"].some(operation => url.pathname.endsWith(operation))));

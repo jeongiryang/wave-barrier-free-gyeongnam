@@ -3,7 +3,7 @@
 import { readTripValue, writeTripValue } from "../../../lib/current-trip-storage.js";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { dateRange, localDate } from "../utils";
+import { dateRange } from "../utils";
 import { boundedTripEnd, offsetTripDate, validTripDate } from "../../../lib/trip-dates.js";
 import { periodForDate } from "../../../lib/trip-date-move.js";
 import { changeVisitDuration, sanitizeVisitDurations } from "../../../lib/visit-durations.js";
@@ -39,8 +39,8 @@ function readStoredSchedule(): StoredSchedule {
 }
 
 export function useTripSchedule() {
-  // SSR and the first browser render must agree even across time zones or
-  // midnight. Read today's local date only in the restoration effect below.
+  // Browsing and collecting places do not require dates. Never turn an
+  // undated draft into a trip for today during restoration.
   const [travelStart, setTravelStart] = useState("");
   const [travelEnd, setTravelEnd] = useState("");
   const [dayStartTime, setDayStartTime] = useState("10:00");
@@ -64,11 +64,14 @@ export function useTripSchedule() {
       const query = new URLSearchParams(window.location.search);
       const queryStart = query.get("travelStart") || "";
       const queryEnd = query.get("travelEnd") || "";
-      const storedStart = typeof stored.travelStart === "string" && validTripDate(stored.travelStart) ? stored.travelStart : localDate();
+      const storedStart = typeof stored.travelStart === "string" && validTripDate(stored.travelStart) ? stored.travelStart : "";
       const storedEnd = typeof stored.travelEnd === "string" && validTripDate(stored.travelEnd) ? stored.travelEnd : storedStart;
-      const start = validTripDate(queryStart) ? queryStart : storedStart;
-      const requestedEnd = validTripDate(queryStart) ? queryEnd || start : storedEnd;
-      const end = boundedTripEnd(start, requestedEnd);
+      let hasTrip = Boolean(storedStart);
+      try { hasTrip ||= JSON.parse(readTripValue(window.localStorage, 'wave-saved-places') || '[]').length > 0; } catch { hasTrip = true; }
+      const useQuery = !hasTrip && validTripDate(queryStart);
+      const start = useQuery ? queryStart : storedStart;
+      const requestedEnd = useQuery ? queryEnd || start : storedEnd;
+      const end = start ? boundedTripEnd(start, requestedEnd) : "";
       const assignments = stored.scheduleAssignments && typeof stored.scheduleAssignments === "object" && !Array.isArray(stored.scheduleAssignments)
         ? Object.fromEntries(Object.entries(stored.scheduleAssignments as Record<string, unknown>)
           .filter(([id, day]) => Boolean(id) && validTripDate(day)))
@@ -167,6 +170,7 @@ export function useTripSchedule() {
   }, [travelStart, travelEnd, canChangePlace]);
 
   const ensurePlaceAssignment = useCallback((placeId: string) => {
+    if (!travelStart) return;
     setScheduleAssignments((current) => ({
       ...current,
       [placeId]: current[placeId] || tripDays[0] || travelStart,
@@ -203,7 +207,8 @@ export function useTripSchedule() {
   }, []);
 
   const restoreScheduleSnapshot = useCallback((value: StoredSchedule) => {
-    if (!validTripDate(value.travelStart) || !validTripDate(value.travelEnd) || boundedTripEnd(String(value.travelStart), String(value.travelEnd)) !== value.travelEnd) return false;
+    const undated = value.travelStart === '' && value.travelEnd === '';
+    if (!undated && (!validTripDate(value.travelStart) || !validTripDate(value.travelEnd) || boundedTripEnd(String(value.travelStart), String(value.travelEnd)) !== value.travelEnd)) return false;
     setTravelStart(String(value.travelStart)); setTravelEnd(String(value.travelEnd));
     if (typeof value.dayStartTime === 'string' && TIME_PATTERN.test(value.dayStartTime)) setDayStartTime(value.dayStartTime);
     updateTravelMode(sanitizeTravelMode(value.travelMode));

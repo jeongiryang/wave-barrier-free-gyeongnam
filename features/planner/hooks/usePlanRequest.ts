@@ -14,11 +14,15 @@ interface PlanRunOptions {
   resetAudio: () => void;
   requestedTheme?: string;
   requestedRegion?: string;
+  requestedFacilities?: string[];
+  page?: number;
   onRevealResults?: () => void;
 }
 
 export function usePlanRequest({ locale, region, selected, theme }: { locale: string; region: string; selected: string[]; theme: string }) {
   const [plan, setPlan] = useState<PlanData | null>(null);
+  const latestPlan = useRef<PlanData | null>(null);
+  const getPlan = useCallback(() => latestPlan.current, []);
   const [loading, setLoading] = useState(false);
   const [planError, setPlanError] = useState<ReturnType<typeof planFailureKind> | "">("");
   const [noticeKind, setNoticeKind] = useState<keyof typeof planNotices>("idle");
@@ -31,8 +35,8 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   const requestSignatureRef = useRef("");
 
   const abortPlan = useCallback(() => { planRequestRef.current?.abort(); revealRef.current?.(); }, []);
-  const runPlan = useCallback(async ({ resetRouteData, resetAudio, requestedTheme = theme, requestedRegion = region, onRevealResults }: PlanRunOptions, revealResults = true) => {
-    if (!requestedRegion || !requestedTheme || loading) return false;
+  const runPlan = useCallback(async ({ resetAudio, requestedTheme = theme, requestedRegion = region, requestedFacilities = selected, page = 1, onRevealResults }: PlanRunOptions, revealResults = true) => {
+    if (!requestedRegion) return false;
     planRequestRef.current?.abort();
     revealRef.current?.();
     const reveal = new AbortController();
@@ -61,19 +65,28 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     const controller = new AbortController();
     controller.signal.addEventListener("abort", cancelReveal, { once: true });
     planRequestRef.current = controller;
-    const requestedSignature = criteriaSignature({ region: requestedRegion, themes: requestedTheme, selected, locale });
+    const requestedSignature = criteriaSignature({ region: requestedRegion, themes: requestedTheme, selected: requestedFacilities, locale });
     requestSignatureRef.current = requestedSignature;
     setLoading(true);
     setPlanError("");
     setNoticeKind("loading");
     try {
-      const params = new URLSearchParams({ action: "plan", region: requestedRegion, themes: requestedTheme, profiles: selected.join(","), locale });
+      const params = new URLSearchParams({ action: "plan", region: requestedRegion, themes: requestedTheme, facilityKeys: requestedFacilities.join(","), profiles: requestedFacilities.join(","), page: String(page), locale });
       const response = await plannerJson<unknown>(`/api/wave?${params.toString()}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.plan });
       if (controller.signal.aborted) return false;
       const data = planResponse(response);
       resetAudio();
-      resetRouteData();
-      setPlan(data);
+      // Search results do not change the saved itinerary or its selected route.
+      // The itinerary workspace refreshes routes only when that journey changes.
+      const previous = latestPlan.current;
+      const incomingIds = new Set([...data.places, ...(data.explorationPlaces || []), ...(data.excludedPlaces || [])].map(place => place.id));
+      const merge = (old: typeof data.places = [], next: typeof data.places = []) => [...old.filter(place => !incomingIds.has(place.id)), ...next];
+      const nextPlan = page > 1 && previous && requestedSignature === resultSignature ? { ...data,
+        places: merge(previous.places, data.places),
+        explorationPlaces: merge(previous.explorationPlaces, data.explorationPlaces),
+        excludedPlaces: merge(previous.excludedPlaces, data.excludedPlaces),
+      } : data;
+      latestPlan.current = nextPlan; setPlan(nextPlan);
       setResultSignature(requestedSignature);
       const available = data.statuses.some((status) => status.state === "live");
       setNoticeKind(data.statuses.some(status => status.state === "error" || status.partial) ? "error" : available ? "updated" : "empty");
@@ -99,7 +112,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
         setLoading(false);
       }
     }
-  }, [locale, region, selected, theme, loading]);
+  }, [locale, region, selected, theme, resultSignature]);
 
   useEffect(() => {
     if (requestSignatureRef.current !== signature) { planRequestRef.current?.abort(); revealRef.current?.(); }
@@ -108,14 +121,14 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   useEffect(() => () => { planRequestRef.current?.abort(); revealRef.current?.(); }, []);
   const resetPlan = useCallback(() => {
     planRequestRef.current?.abort(); planRequestRef.current = null; revealRef.current?.();
-    setPlan(null); setLoading(false); setPlanError(""); setResultSignature(""); setNoticeKind("idle");
+    latestPlan.current = null; setPlan(null); setLoading(false); setPlanError(""); setResultSignature(""); setNoticeKind("idle");
   }, []);
   const acceptPreparedPlan = useCallback((prepared: PlanData, criteria: { region: string; profiles: string[]; themes: string[] }) => {
     planRequestRef.current?.abort(); revealRef.current?.();
     const nextSignature = criteriaSignature({ region: criteria.region, themes: criteria.themes.join(','), selected: criteria.profiles, locale });
-    requestSignatureRef.current = nextSignature; setResultSignature(nextSignature); setPlan(prepared); setLoading(false); setPlanError(''); setNoticeKind('updated');
+    requestSignatureRef.current = nextSignature; setResultSignature(nextSignature); latestPlan.current = prepared; setPlan(prepared); setLoading(false); setPlanError(''); setNoticeKind('updated');
   }, [locale]);
   const resultCurrent = Boolean(plan && !dirty && !loading && !planError);
   const requestState = loading ? "loading" : dirty ? "dirty" : planError ? "error" : plan ? plan.places.length ? "success" : plan.statuses.some(status => status.state === "error") ? "error" : "empty" : region && theme ? "ready" : "idle";
-  return { resetPlan, acceptPreparedPlan, plan, loading, planError, notice, setNotice: setNoticeKind, runPlan, abortPlan, dirty, resultCurrent, requestState };
+  return { getPlan, resetPlan, acceptPreparedPlan, plan, loading, planError, notice, setNotice: setNoticeKind, runPlan, abortPlan, dirty, resultCurrent, requestState };
 }

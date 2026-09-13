@@ -1,4 +1,4 @@
-import { openSupportMenu } from "./support-menu";
+import { openPlannerMap, openRouteDetails, changeMapLanguage } from "./nearby-fixtures";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 import { odsayProviderStatus } from "../lib/transport/odsay-response.js";
@@ -13,7 +13,7 @@ for (const [name, code, expected, expectedEnglish] of [
 ] as const) test(`transit ${name} is visible and cannot become a confirmed option`, async ({ page }) => {
   const requests: string[] = [];
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   const status = odsayProviderStatus({ configured: true, error: { code, message: "untrusted upstream text" } });
   await page.route("**/api/route?**", route => { requests.push(route.request().url()); return route.fulfill({
     contentType: "application/json",
@@ -21,7 +21,9 @@ for (const [name, code, expected, expectedEnglish] of [
   }); });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
   const notice = page.locator(".route-compare-panel").getByRole("status");
   await expect(notice).toContainText(expected);
   await expect(notice).toBeVisible();
@@ -35,14 +37,7 @@ for (const [name, code, expected, expectedEnglish] of [
   expect(requests[1]).toBe(requests[0]);
   expect(Object.fromEntries(new URL(requests[0]).searchParams)).toEqual({ startLat: "35.2422", startLng: "128.6982", endLat: "35.238", endLng: "128.691", mode: "transit" });
   const before = [...requests];
-  await page.keyboard.press("Control+Home");
-  await openSupportMenu(page);
-  const preferences = page.locator(".preference-controls:visible");
-  await openSupportMenu(page);
-  await preferences.getByLabel("환경설정 열기", { exact: true }).click();
-  await preferences.getByLabel("언어", { exact: true }).selectOption("en");
-  await openSupportMenu(page);
-  await preferences.getByLabel("Open preferences", { exact: true }).click();
+  await changeMapLanguage(page, true);
   await expect(notice).toHaveAttribute("lang", "en");
   await expect(page.locator("main.planner-page")).toHaveAttribute("lang", "en");
   await expect(notice).toContainText(expectedEnglish);

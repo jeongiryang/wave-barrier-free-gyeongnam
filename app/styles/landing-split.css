@@ -1,0 +1,42 @@
+/* The Owner-selected split hero is isolated so its layout can be reverted alone. */
+.landing-page.horizon-edition .landing-hero.landing-hero-split {
+  width: min(1600px, calc(100% - var(--gutter) * 2));
+  max-width: none; margin: 0 auto; padding: clamp(40px, 6vw, 88px) 0;
+  min-height: 0; align-content: start;
+  display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: clamp(32px, 5vw, 80px); align-items: center; overflow: visible;
+}
+.landing-page.horizon-edition .landing-hero-split::before { content: none; }
+.landing-page.horizon-edition .landing-hero-split .landing-hero-copy {
+  max-width: 640px; padding: 0; color: var(--ink); background: transparent; border: 0; border-radius: 0;
+}
+.landing-page.horizon-edition .landing-hero-split h1 {
+  margin: 0; color: var(--ink); font-size: clamp(2rem, 3.4vw, 3.5rem);
+  line-height: 1.3; font-weight: 600; letter-spacing: -.045em;
+}
+.landing-page.horizon-edition .landing-hero-split .landing-hero-description {
+  margin: 24px 0 0; max-width: 430px; color: var(--muted);
+  font-size: 1.0625rem; line-height: 1.8; letter-spacing: 0; font-weight: 400;
+}
+.landing-page.horizon-edition .landing-hero-split .landing-actions { margin-top: 32px; }
+.landing-page.horizon-edition .landing-hero-split .landing-actions a {
+  min-height: 48px; padding: 12px 20px; gap: 24px; border-radius: 8px;
+  background: var(--blue); color: var(--on-blue); font-size: 1rem; font-weight: 500;
+}
+.landing-page .landing-hero-landscape {
+  position: relative; inset: auto; width: 100%; aspect-ratio: 4 / 3;
+  min-height: 0; margin: 0; border-radius: 12px; overflow: hidden; background: #d7e3e2;
+}
+.landing-page .landing-hero-landscape img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.landing-page .landing-hero-landscape::after { content: none; }
+.landing-page .landing-hero-landscape figcaption {
+  position: absolute; inset: auto 0 0; padding: 36px 16px 14px;
+  background: linear-gradient(transparent, rgba(12, 28, 27, .85)); color: #fff;
+  font-size: 12px; line-height: 1.6; z-index: 1;
+}
+@media (max-width: 767px) {
+  .landing-page.horizon-edition .landing-hero.landing-hero-split { grid-template-columns: minmax(0, 1fr); gap: 28px; padding: 36px 0 48px; }
+  .landing-page.horizon-edition .landing-hero-split .landing-hero-description { margin-top: 16px; }
+  .landing-page.horizon-edition .landing-hero-split .landing-actions { margin-top: 24px; }
+  .landing-page .landing-hero-landscape { aspect-ratio: 4 / 3; }
+}

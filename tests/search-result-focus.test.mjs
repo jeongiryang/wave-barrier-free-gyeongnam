@@ -52,6 +52,7 @@ test("a requested successful result invokes navigation once after storing its da
   const f = requestFixture(); f.resolve(plan);
   assert.equal(await f.pending, true);
   assert.equal(f.plan(), plan); assert.equal(f.reveals(), 1);
+  assert.deepEqual(f.resets(), [0, 1], "new search data must not reset the existing itinerary route");
 });
 for (const action of ["keydown", "pointerdown", "wheel", "touchstart", "focusin"]) test(`a pending result preserves a later ${action} decision while retaining new data`, async () => {
   const f = requestFixture(); f.browser.dispatchEvent(new Event(action)); f.resolve(plan);

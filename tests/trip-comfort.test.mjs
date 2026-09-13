@@ -18,7 +18,7 @@ test("comfort and rests accept bounded choices, never profile details or unselec
 
 test("combined choices preserve current needs and use the shortest chosen walking limit", () => {
   const result = combineCompanionNeeds([{ profiles: ["baby", "private"], maxWalkMinutes: 20 }, { profiles: ["hearing", "baby"], maxWalkMinutes: 10 }], ["wheel"], { maxWalkMinutes: 15, breakEveryMinutes: 90, breakMinutes: 20 });
-  assert.deepEqual(result, { selected: ["wheel", "baby", "hearing"], comfort: { maxWalkMinutes: 10, breakEveryMinutes: 90, breakMinutes: 20 } });
+  assert.deepEqual(result, { selected: ["parking", "route", "wheelchair", "elevator", "restroom", "stroller", "lactationroom", "babysparechair", "signguide", "videoguide", "hearingroom"], comfort: { maxWalkMinutes: 10, breakEveryMinutes: 90, breakMinutes: 20 } });
   assert.equal(combineCompanionNeeds([{ maxWalkMinutes: -1 }]).comfort.maxWalkMinutes, null);
 });
 
