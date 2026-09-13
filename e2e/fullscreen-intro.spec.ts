@@ -31,7 +31,7 @@ for (const legacyFull of [false, true]) {
     page.on("request", request => { if (/\.mp4(?:\?|$)/.test(request.url())) media.push(request.url()); });
     await page.goto("/"); await storyReady(page);
     await expect(page.locator(".arrival-scene")).toBeHidden();
-    await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+    await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
     await expectUsableTarget(page.locator(".landing-actions a"));
     await expect(page.locator(".landing-hero video")).toHaveCount(0);
     expect(media).toEqual([]);

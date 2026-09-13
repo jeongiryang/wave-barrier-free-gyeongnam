@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
-import { storyReady } from "./landing-contract";
+import { storyReady, chapterIds } from "./landing-contract";
 
 for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editorial introduction and working pages remain readable in ${theme}, size ${size}`, async ({ page }) => {
   await mockPublicShellApi(page);
@@ -21,7 +21,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await page.setViewportSize({ width, height: 960 });
     await page.goto("/");
     await storyReady(page);
-    for (const id of ["top", "regions", "story", "naru"]) {
+    for (const id of chapterIds) {
       const scene = page.locator(`#${id}`);
       await scene.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
       await expect(scene).toBeVisible();
@@ -29,7 +29,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await scene.screenshot({ path: test.info().outputPath(`${id}-${theme}-${width}.png`) });
     }
-    await expect(page.locator(".simple-product-preview")).toContainText("화면 예시");
+    await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
     await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
     await page.goto("/planner");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
@@ -93,6 +93,8 @@ test("English travel pages identify original Korean photography and community co
   await expect(page.locator(".landing-hero-landscape img")).toHaveAttribute("lang", "ko");
   await expect(page.locator(".landing-hero-landscape figcaption")).toHaveAttribute("lang", "ko");
   await expect(page.locator(".landing-hero-landscape figcaption a").first()).toContainText("사진 원본");
+  await expect(page.locator("#community h2")).toContainText("당신이 남긴 장면이");
+  expect(await page.locator("#community h2").evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");
   await page.goto("/planner");
   await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toBeEnabled();
   const cards = page.locator(".simple-region-entry .simple-region");

@@ -17,7 +17,8 @@ export function createProviderRequester({ now = Date.now, random = Math.random }
     if (circuit && halfOpen.has(key)) throw new ProviderRequestError(circuit.failure);
     // Full URLs stay only in this private, transient in-flight map, never receipts/logs.
     const requestKey = `${key}:${url}`;
-    if (inFlight.has(requestKey)) return inFlight.get(requestKey);
+    const existing = inFlight.get(requestKey);
+    if (existing && !existing.signal?.aborted) return existing.work;
     const lease = {};
     if (circuit) halfOpen.set(key, lease);
     const work = Promise.resolve().then(async () => {
@@ -55,11 +56,11 @@ export function createProviderRequester({ now = Date.now, random = Math.random }
         }
         throw new ProviderRequestError(failure);
       } finally {
-        inFlight.delete(requestKey);
+        if (inFlight.get(requestKey)?.work === work) inFlight.delete(requestKey);
         if (halfOpen.get(key) === lease) halfOpen.delete(key);
       }
     });
-    inFlight.set(requestKey, work);
+    inFlight.set(requestKey, { work, signal: options?.signal });
     return work;
   };
 }

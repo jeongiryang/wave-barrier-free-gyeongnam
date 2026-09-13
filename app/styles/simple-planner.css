@@ -87,7 +87,7 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
 .simple-departure > summary > small { color: var(--muted); }
 .simple-departure > summary > span:last-child { margin-left: auto; }
 .planner-simple .naru-launcher { width: 64px; height: 64px; min-height: 64px; padding: 5px; border-radius: 50%; border-color: var(--line); bottom: max(20px,env(safe-area-inset-bottom)); box-shadow: 0 4px 16px #162c241a; }
-.planner-simple .naru-launcher > span:last-child:not(.naru-avatar) { display: none; }
+
 .planner-simple > .simple-footer { margin: 40px 0 0; width: 100%; padding: 32px var(--wave-gutter) 100px; background: var(--paper); }
 @media(min-width:768px) {
   /* Keep a side margin for Naru so scrolling never places a trip action behind it. */

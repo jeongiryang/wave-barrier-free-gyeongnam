@@ -72,6 +72,7 @@ export function usePlannerStageView() {
   const [focusTarget, setFocusTarget] = useState<{ id: string; from: Element | null } | null>(null);
   const [conditionQuestion, setConditionQuestion] = useState(0);
   const focusedRequest = useRef(focusTarget);
+  const lastLinkedStep = useRef('');
 
   const changeView = useCallback((next: PlannerStageView) => {
     fallbackView = next;
@@ -84,7 +85,7 @@ export function usePlannerStageView() {
   }, []);
 
   const changeStep = useCallback((next: JourneyStepId, navigate = false, target: JourneyStepId | "layers" | "crowd" = next) => {
-    if (navigate) {
+    if (navigate && window.location.pathname === '/planner') {
       const url = new URL(window.location.href);
       if (url.hash !== `#${target}`) {
         url.hash = target;
@@ -104,6 +105,7 @@ export function usePlannerStageView() {
   const changeQuestion = useCallback((question: number) => {
     const next = Math.max(0, Math.min(3, question));
     setConditionQuestion(next);
+    if (window.location.pathname !== '/planner') { changeStep('conditions'); return; }
     const url = new URL(window.location.href);
     url.searchParams.set("question", String(next));
     url.hash = "conditions";
@@ -113,7 +115,7 @@ export function usePlannerStageView() {
   }, [changeStep]);
 
   useLayoutEffect(() => {
-    if (!focusTarget || focusedRequest.current === focusTarget) return;
+    if (window.location.pathname !== '/planner' || !focusTarget || focusedRequest.current === focusTarget) return;
     const section = document.getElementById(focusTarget.id);
     if (!section || section.closest("[hidden]")) return;
     // A result can commit after someone has already focused another control.
@@ -139,23 +141,32 @@ export function usePlannerStageView() {
     let firstFrame = 0;
     let secondFrame = 0;
     const sync = (event?: Event) => {
-      const question = Number(new URLSearchParams(window.location.search).get("question") || 0);
+      if (window.location.pathname !== '/planner') return;
+      const params = new URLSearchParams(window.location.search);
+      const linked = HASH_STEPS[window.location.hash.slice(1)];
+      if (!linked && !params.has('question')) return;
+      const signature = `${window.location.hash}:${params.get('question') || ''}`;
+      if (event?.type === 'wave:planner-navigation' && lastLinkedStep.current === signature) return;
+      lastLinkedStep.current = signature;
+      const question = Number(params.get("question") || 0);
       setConditionQuestion(Number.isInteger(question) && question >= 0 && question <= 3 ? question : 0);
-      const destination = HASH_STEPS[window.location.hash.slice(1)] || HASH_STEPS.conditions;
+      const destination = linked || HASH_STEPS.conditions;
       changeStep(destination.step);
       if (event) setFocusTarget({ id: destination.target, from: document.activeElement });
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
       firstFrame = window.requestAnimationFrame(() => {
-        secondFrame = window.requestAnimationFrame(() => scrollToSection(destination.target, prefersReducedMotion()));
+        secondFrame = window.requestAnimationFrame(() => { if (window.location.pathname === '/planner') scrollToSection(destination.target, prefersReducedMotion()); });
       });
     };
     if (window.location.hash || window.location.search) sync();
     window.addEventListener("popstate", sync);
     window.addEventListener("hashchange", sync);
+    window.addEventListener("wave:planner-navigation", sync);
     return () => {
       window.removeEventListener("popstate", sync);
       window.removeEventListener("hashchange", sync);
+      window.removeEventListener("wave:planner-navigation", sync);
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
     };

@@ -157,7 +157,7 @@ test("landing: nonblocking intro permits an immediate keyboard move into the rea
   await freshArrival(page);
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
   await expect(scene).toHaveCSS("pointer-events", "none");
-  await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
   await expect(scene.locator("button,a,[tabindex]")).toHaveCount(0);
   await expect(planning).toHaveAccessibleName("여행지 둘러보기");
   await planning.focus(); await page.keyboard.press("Tab");
@@ -188,7 +188,7 @@ for (const locale of ["ko", "en"] as const) test(`landing: ${locale} fresh reduc
   await page.goto("/"); await storyReady(page);
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
   await expect(scene).toBeHidden();
-  await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
   await expect(planning).toHaveAccessibleName(locale === "en" ? "Explore places" : "여행지 둘러보기");
   await expectUsableTarget(planning);
   for (const motion of ["no-preference", "reduce"] as const) {

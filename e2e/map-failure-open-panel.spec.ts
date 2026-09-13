@@ -37,7 +37,7 @@ for (const focus of ["panel", "outside", "pending-location"]) test(`a final map 
     const pick = panel.getByRole("button", { name: /지도에서 출발지 선택/ });
     if (focus === "pending-location") {
       page.once("dialog", (dialog) => dialog.accept());
-      await panel.getByRole("button", { name: /현재 위치에서 출발/ }).click();
+      await panel.getByRole("button", { name: /기기에서 거리 확인/ }).click();
       expect(await page.evaluate(() => (window as unknown as { locationFixture: { calls: number } }).locationFixture.calls)).toBe(1);
     } else {
       await pick.click();

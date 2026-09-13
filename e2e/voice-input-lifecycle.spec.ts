@@ -20,7 +20,7 @@ type VoiceHarness = {
   lateResult: RecognitionDouble['onresult'];
 };
 type VoiceWindow = Window & { voiceHarness: VoiceHarness };
-type SetupOptions = { permission?: 'immediate' | 'deferred' | 'denied'; resume?: 'immediate' | 'deferred'; unsupported?: boolean; reduced?: boolean; enterFromHome?: boolean };
+type SetupOptions = { permission?: 'immediate' | 'deferred' | 'denied'; resume?: 'immediate' | 'deferred'; unsupported?: boolean; reduced?: boolean; enterFromHome?: boolean; enterFromPrivacy?: boolean };
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -100,11 +100,20 @@ async function setup(page: Page, options: SetupOptions = {}) {
     sent.push(route.request().postDataJSON().messages.at(-1).content);
     return route.fulfill({ json: { reply: '보낸 질문을 확인했어요.', proposal: null, source: 'synthetic' } });
   });
-  if (options.enterFromHome) {
-    await page.goto('/');
+  if (options.enterFromHome || options.enterFromPrivacy) {
+    await page.goto(options.enterFromPrivacy ? '/privacy' : '/');
+    if (options.enterFromPrivacy) {
+      // This case verifies client unmount, not a full document navigation before hydration.
+      await expect(page.locator('.preference-controls')).toHaveAttribute('aria-busy', 'false');
+      await page.getByRole('navigation', { name: '정책 페이지 이동', exact: true }).getByRole('link', { name: 'WAVE 홈', exact: true }).click();
+      await expect(page).toHaveURL(/\/$/);
+    }
+    // On client navigation the URL can change while the previous page is still visible.
+    await expect(page.locator('.wave-header').getByRole('link', { name: '서비스 소개', exact: true })).toHaveAttribute('aria-current', 'page');
     await openSupportMenu(page);
     await expect(page.locator('.preference-controls')).toHaveAttribute('aria-busy', 'false');
     await page.locator('.wave-support-menu > summary').click();
+    await expect(page.locator('.wave-support-menu')).not.toHaveAttribute('open', '');
     await page.locator('.wave-header').getByRole('link', { name: '여행 설계', exact: true }).click();
     await expect(page).toHaveURL(/\/planner$/);
   } else await page.goto('/planner');
@@ -240,18 +249,46 @@ test('closing the panel before permission resolves cleans up the late stream and
   expect(app.sent).toEqual([]); expect(app.errors).toEqual([]);
 });
 
-test('client navigation unmounts the voice hook and releases a permission result arriving afterwards', async ({ page }) => {
-  const app = await setup(page, { permission: 'deferred', enterFromHome: true }); await app.mic.click();
-  // Browser Back stays available while the mobile modal correctly makes the
-  // background navigation inert. This must unmount without first closing voice.
+test('supported client navigation keeps one global conversation but cancels its microphone and rejects late speech', async ({ page }) => {
+  const app = await setup(page, { permission: 'deferred', enterFromHome: true });
+  await app.input.fill('소개에서도 이어 쓸 초안'); await app.mic.click();
+  await page.evaluate(() => { const h = (window as unknown as VoiceWindow).voiceHarness; h.lateResult = h.recognitions[0].onresult; });
+  // Browser Back is real navigation while the modal makes background links inert.
   await page.goBack();
-  await expect(page).toHaveURL(/\/$/); await expect(page.locator('.naru-panel')).toHaveCount(0);
+  await expect(page).toHaveURL(/\/$/); await expect(app.chat).toBeVisible();
+  await expect(page.locator('.naru-panel')).toHaveCount(1);
+  await expect(app.chat.locator('.naru-page-context')).toContainText('서비스 소개');
+  await expect(app.input).toHaveValue('소개에서도 이어 쓸 초안');
+  expect(await stats(page)).toMatchObject({ permissions: 1, starts: [1], aborts: [1], trackStops: [] });
+  await page.evaluate(() => {
+    const h = (window as unknown as VoiceWindow).voiceHarness; h.permissions[0].grant();
+    h.lateResult?.({ resultIndex: 0, results: [{ isFinal: true, 0: { transcript: '이동 전에 듣던 음성' } }] });
+  });
+  await expect(app.input).toHaveValue('소개에서도 이어 쓸 초안'); await released(page, 1, 0);
+  await expect(app.meter).toHaveCount(0);
+  await app.chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
+  await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
+  await expect(app.input).toHaveValue('소개에서도 이어 쓸 초안');
+  expect(app.sent).toEqual([]); expect(app.journey).toEqual([]); expect(app.errors).toEqual([]);
+});
+
+test('leaving supported routes unmounts the global voice session and rejects its late permission and captured result', async ({ page }) => {
+  const app = await setup(page, { permission: 'deferred', enterFromPrivacy: true });
+  await app.input.fill('기기를 떠난 뒤 보내지 않을 질문'); await app.mic.click();
+  await page.evaluate(() => { const h = (window as unknown as VoiceWindow).voiceHarness; h.lateResult = h.recognitions[0].onresult; });
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/); await expect(app.chat).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/privacy$/); await expect(page.locator('.naru-panel')).toHaveCount(0);
   expect(await page.evaluate(() => Boolean((window as unknown as VoiceWindow).voiceHarness))).toBe(true);
   expect(await stats(page)).toMatchObject({ permissions: 1, aborts: [1], trackStops: [] });
-  await page.evaluate(() => (window as unknown as VoiceWindow).voiceHarness.permissions[0].grant());
+  await page.evaluate(() => {
+    const h = (window as unknown as VoiceWindow).voiceHarness; h.permissions[0].grant();
+    h.lateResult?.({ resultIndex: 0, results: [{ isFinal: true, 0: { transcript: '페이지를 떠난 뒤 도착한 질문' } }] });
+  });
   await released(page, 1, 0);
   expect((await stats(page)).aborts).toEqual([1]);
-  expect(app.sent).toEqual([]); expect(app.errors).toEqual([]);
+  expect(app.sent).toEqual([]); expect(app.journey).toEqual([]); expect(app.errors).toEqual([]);
 });
 
 test('unsupported recognition never requests microphone permission and leaves the typed send path usable', async ({ page }) => {

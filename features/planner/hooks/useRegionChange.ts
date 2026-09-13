@@ -16,6 +16,7 @@ export function useRegionChange({ region, ready, hasSaved, setRegion, resetTrip,
   const initialUrlChecked = useRef(false);
   const cancel = useCallback(() => { pendingRef.current = null; afterCommit.current = null; setPending(null); setError(false); }, []);
   function updateUrl(next: string, fresh = false) {
+    if (window.location.pathname !== '/planner') return;
     const url = new URL(window.location.href);
     url.searchParams.set("region", next);
     if (fresh) { url.searchParams.delete("travelStart"); url.searchParams.delete("travelEnd"); }
@@ -43,6 +44,7 @@ export function useRegionChange({ region, ready, hasSaved, setRegion, resetTrip,
   useEffect(() => {
     if (!ready) return;
     const checkUrl = () => {
+      if (window.location.pathname !== '/planner') return;
       const next = new URLSearchParams(window.location.search).get("region");
       if (!next || next === region || !regions.includes(next)) return;
       // Browsing history cannot silently merge another region into this trip.
@@ -51,7 +53,8 @@ export function useRegionChange({ region, ready, hasSaved, setRegion, resetTrip,
     };
     if (!initialUrlChecked.current) { initialUrlChecked.current = true; checkUrl(); }
     window.addEventListener("popstate", checkUrl);
-    return () => window.removeEventListener("popstate", checkUrl);
+    window.addEventListener("wave:planner-navigation", checkUrl);
+    return () => { window.removeEventListener("popstate", checkUrl); window.removeEventListener("wave:planner-navigation", checkUrl); };
   });
   return { pending, error, cancel, request, add: () => { if (pendingRef.current) commit(pendingRef.current, false); }, startNew: () => { if (pendingRef.current) commit(pendingRef.current, true); } };
 }

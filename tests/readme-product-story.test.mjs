@@ -27,9 +27,9 @@ test("README는 가치에서 운영까지 실제 사용자 여정 순서로 설�
   assert.match(readme, /실패 응답은 캐시하지 않고/);
   assert.match(readme, /개인 편의 조건·메모·GPS 출발지는 포함하지 않습니다/);
   assert.match(readme, /30일 뒤 조회에서 제외/);
-  assert.match(readme, /GPS를 출발지로 선택한 동안 서버 경로 요청을 차단/);
-  assert.match(readme, /지도 지점의 경로는 W.A.V.E API를 거쳐 Kakao·ODsay에 요청/);
-  assert.match(readme, /모든 위치 처리가 기기 안에서 끝난다고 설명하지 않습니다/);
+  assert.match(readme, /현재 GPS는 사용자 요청 뒤 공개 출발지까지의 직선거리를 기기에서만 계산/);
+  assert.match(readme, /지도 SDK·타일·주변 검색·경로·나루·저장·공유에는 넣지 않습니다/);
+  assert.match(readme, /외부 지도는 공개 장소 또는 직접 고른 지점만 사용/);
 });
 
 test("README는 서비스 소개와 별도 운영·제출·검증 문서를 연결한다", async () => {

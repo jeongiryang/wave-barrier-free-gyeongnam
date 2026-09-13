@@ -1,3 +1,4 @@
+import { localDistanceKilometres } from "../lib/device-location.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -11,6 +12,7 @@ function journey() {
   const origins = [], notices = [], modes = [], cleanups = [];
   const compiledModule = { exports: {} };
   const require = (name) => {
+    if (name.endsWith("device-location.js")) return { localDistanceKilometres };
     if (name === "react") return { useCallback: (callback) => callback, useRef: (value) => ({ current: value }), useState: (value) => [value, () => undefined], useEffect: (effect) => cleanups.push(effect()) };
     if (name === "./export-route-image") return { exportRouteImage: () => false };
     if (name === "../../lib/location-consent.js") return { confirmMapLocationUse: () => true };
@@ -20,7 +22,7 @@ function journey() {
   const navigator = { geolocation: { getCurrentPosition: (onSuccess, onFailure) => { requests++; success = onSuccess; failure = onFailure; } } };
   new Function("module", "exports", "require", "window", "navigator", compiled)(compiledModule, compiledModule.exports, require, {}, navigator);
   const actions = compiledModule.exports.useMapJourneyActions({
-    origin: { lat: 35.2, lng: 128.6 }, places: [], route: null, kakaoMapRef: { current: null },
+    origin: { lat: 35.2, lng: 128.6 }, places: [], route: null, kakaoMapRef: { get current() { throw new Error('GPS callback must never touch the SDK'); } },
     onOriginChange: (...args) => origins.push(args), setProviderDetail: (message) => notices.push(message), setPickMode: (mode) => modes.push(mode),
     isMapAvailable: () => available,
   });
@@ -53,8 +55,10 @@ test("an available map still accepts an explicitly requested location response",
   fixture.actions.moveToCurrentLocation();
   fixture.success();
   assert.equal(fixture.requests(), 1);
-  assert.deepEqual(fixture.origins, [[{ lat: 35.3, lng: 128.7 }, "현재 위치"]]);
-  assert.deepEqual(fixture.modes, [null]);
+  assert.deepEqual(fixture.origins, []);
+  assert.match(fixture.notices[0], /기기 안에서만/);
+  assert.doesNotMatch(fixture.notices[0], /35\.3|128\.7/);
+  assert.deepEqual(fixture.modes, []);
 });
 
 test("a changed or unmounted itinerary rejects both late map location outcomes", () => {

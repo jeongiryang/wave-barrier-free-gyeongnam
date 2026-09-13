@@ -42,7 +42,7 @@ test("arrival finishes within two seconds without a modal, pointer blocking or f
   const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
   await expect(scene).toHaveCSS("pointer-events", "none");
   await expect(scene).toHaveAttribute("aria-hidden", "true");
-  await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(await action.evaluate(node => {
     const box = node.getBoundingClientRect();

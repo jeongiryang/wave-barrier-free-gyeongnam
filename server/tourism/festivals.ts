@@ -1,3 +1,4 @@
+import { festivalSources } from '../../lib/festival-links.js';
 import type { Env } from '../shared/env';
 import { clean, json } from '../shared/http';
 import { attemptProvider, commonParams, fetchTourismData } from '../shared/provider-data';
@@ -23,7 +24,7 @@ export async function fetchFestivals(env: Env, { region = '경남 전체', start
     const place = placeFrom(item, details?.ok ? details.value.items[0] || {} : {}, region, profiles, index);
     const startDate = dateFrom(item.eventstartdate), endDate = dateFrom(item.eventenddate);
     return { ...place, contentTypeId: '15', startDate, endDate, state: endDate < today ? 'ended' as const : startDate > today ? 'upcoming' as const : 'ongoing' as const,
-      phone: clean(item.tel, 100), officialUrl: clean(item.cotid) ? `https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=${encodeURIComponent(clean(item.cotid))}` : '',
+      phone: clean(item.tel, 100), ...festivalSources(item),
       facilityState: details?.ok ? 'checked' as const : details ? 'error' as const : 'unchecked' as const };
   }));
   return { items, state: items.length ? 'available' as const : 'empty' as const, checkedAt: new Date().toISOString(), partial: Boolean(result.value.partial || result.value.total > 500 || selected.length > 40) };
@@ -31,7 +32,16 @@ export async function fetchFestivals(env: Env, { region = '경남 전체', start
 
 export async function handleFestivals(request: Request, env: Env) {
   if (request.method !== 'GET') return json({ error: 'GET 요청만 지원합니다.' }, 405);
-  const url = new URL(request.url), region = url.searchParams.get('region') || '경남 전체';
+  const url = new URL(request.url);
+  if (url.searchParams.has('contentId')) {
+    const contentId = url.searchParams.get('contentId') || '';
+    if (!/^[1-9]\d{0,11}$/.test(contentId)) return json({ error: '축제 번호를 확인해 주세요.' }, 400);
+    const result = await attemptProvider(fetchTourismData(env, 'KorService2', 'detailCommon2', { ...commonParams('1'), contentId }, request.signal));
+    if (!result.ok) return json({ error: '행사 링크를 불러오지 못했어요.' }, 502);
+    const item = result.value.items.find(item => clean(item.contentid) === contentId && clean(item.contenttypeid) === '15');
+    return json({ ...festivalSources(item), checkedAt: new Date().toISOString() }, 200, true);
+  }
+  const region = url.searchParams.get('region') || '경남 전체';
   const start = url.searchParams.get('start') || koreaToday();
   if (!validTripDate(start)) return json({ error: '조회 시작 날짜를 확인해 주세요.' }, 400);
   const end = url.searchParams.get('end') || offsetTripDate(start, 30);

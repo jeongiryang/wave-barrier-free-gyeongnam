@@ -22,7 +22,7 @@ export function usePlannerCriteria() {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const query = new URLSearchParams(window.location.search);
+      const query = new URLSearchParams(window.location.pathname === '/planner' ? window.location.search : '');
       const queryRegion = query.get("region");
       setSelected(readSessionProfiles(getTabStorage()));
       let existingRegion = "";
@@ -47,7 +47,20 @@ export function usePlannerCriteria() {
 
   useEffect(() => {
     if (!criteriaReady) return;
+    const consume = () => {
+      if (window.location.pathname !== '/planner') return;
+      const query = new URLSearchParams(window.location.search);
+      if (!query.has('themes') && !query.has('theme')) return;
+      setTheme(query.get('themes') ?? query.get('theme') ?? '');
+    };
+    window.addEventListener('wave:planner-navigation', consume);
+    return () => window.removeEventListener('wave:planner-navigation', consume);
+  }, [criteriaReady, setTheme]);
+
+  useEffect(() => {
+    if (!criteriaReady) return;
     try { writeTripValue(window.localStorage, THEMES_KEY, JSON.stringify(themes)); } catch { /* Blocked storage does not prevent editing. */ }
+    if (window.location.pathname !== '/planner') return;
     const url = new URL(window.location.href);
     if (!url.searchParams.has("theme") && !url.searchParams.has("themes")) return;
     url.searchParams.delete("theme");

@@ -1,7 +1,8 @@
+import type { CommunityLayout } from "../view-layout";
 import { COMMUNITY_CATEGORY_LABELS, communityDate } from "../../../lib/community/types";
 import type { useCommunityBoard } from "../hooks/useCommunityBoard";
 
-export default function CommunityPostList({ board, layout }: { board: ReturnType<typeof useCommunityBoard>; layout: "cards" | "list" }) {
+export default function CommunityPostList({ board, layout }: { board: ReturnType<typeof useCommunityBoard>; layout: CommunityLayout }) {
   const { posts, placeFilter, page, hasMore, state, message, load, writeHref } = board;
   return <>
     <div aria-live="polite" aria-busy={state === "loading"}>

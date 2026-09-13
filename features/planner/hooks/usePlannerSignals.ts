@@ -27,15 +27,18 @@ export function usePlannerSignals({
   const [secondaryOpen, setSecondaryOpen] = useState(false);
   useEffect(() => {
     const openLinkedPanel = () => {
+      if (window.location.pathname !== '/planner') return;
       if (["#layers", "#crowd"].includes(window.location.hash)) setSecondaryOpen(true);
     };
     const frame = window.requestAnimationFrame(openLinkedPanel);
     window.addEventListener("hashchange", openLinkedPanel);
     window.addEventListener("popstate", openLinkedPanel);
+    window.addEventListener("wave:planner-navigation", openLinkedPanel);
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener("hashchange", openLinkedPanel);
       window.removeEventListener("popstate", openLinkedPanel);
+      window.removeEventListener("wave:planner-navigation", openLinkedPanel);
     };
   }, []);
   const health = useServiceHealth();

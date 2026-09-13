@@ -85,7 +85,7 @@ export default function MapCommandBar({
     }}>
       <div className="map-command-scroll map-command-primary" onFocusCapture={revealFocusedControl}>
         <button type="button" aria-expanded={toolPanel === "route"} aria-controls="map-panel-route" className={toolPanel === "route" ? "active" : ""} onClick={(event) => togglePanel("route", event.currentTarget)} disabled={!interactive || provider === "error"}>{english ? "⇄ Route points" : "⇄ 출발·도착"}</button>
-        <button type="button" onClick={onCurrentLocation} disabled={!interactive || provider === "error"}>{english ? "◎ My location" : "◎ 내 위치"}</button>
+        <button type="button" onClick={onCurrentLocation} disabled={!interactive || provider === "error"}>{english ? "Distance on this device" : "기기에서 거리 확인"}</button>
         <button ref={toolsTrigger} type="button" className="map-tools-toggle" aria-expanded={toolsOpen} aria-controls={toolsId} disabled={!interactive} onClick={() => setToolsOpen(value => !value)}>{english ? "Map options" : "지도 도구"} <span aria-hidden="true">{toolsOpen ? "−" : "+"}</span></button>
       </div>
       <button type="button" className="map-expand-button" aria-label={expanded ? (english ? "× Close expanded map" : "× 닫기") : (english ? "⛶ Expand map" : "⛶ 전체보기")} aria-pressed={expanded} aria-controls="route-map-canvas" onClick={(event) => onToggleExpanded(event.currentTarget)} disabled={!interactive}>{expanded ? "× " : "⛶ "}<span className="map-expand-label">{expanded ? (english ? "Close expanded map" : "닫기") : (english ? "Expand map" : "전체보기")}</span></button>

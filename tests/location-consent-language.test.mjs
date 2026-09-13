@@ -15,8 +15,8 @@ for (const locale of ["en", "ko", "ja", undefined]) {
     vm.runInContext(source, context);
     assert.equal(context.confirmMapLocationUse(locale), false);
     assert.equal(messages.length, 1);
-    assert.match(messages[0], locale === "en" ? /^Show your current location\?/ : /^현재 위치를 표시할까요\?/);
-    assert.match(messages[0], locale === "en" ? /Kakao.*public departure point/ : /카카오.*공개 출발 거점/);
+    assert.match(messages[0], locale === "en" ? /^Check distance on this device\?/ : /^이 기기에서 거리를 확인할까요\?/);
+    assert.match(messages[0], locale === "en" ? /not sent.*map providers.*public place/ : /지도 제공처.*전송하거나 저장하지.*공개 장소/);
   });
 }
 

@@ -260,7 +260,7 @@ test("a separate map-picked destination keeps its own exact request when the iti
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001", "1002"]);
 });
 
-test("changing transport with a private device origin never sends or stores its coordinates", async ({ page, context }) => {
+test("changing transport after device distance keeps the public origin and never sends or stores GPS coordinates", async ({ page, context }) => {
   const position = { latitude: 35.12345678, longitude: 128.87654321 };
   await context.grantPermissions(["geolocation"]);
   await context.setGeolocation(position);
@@ -276,17 +276,24 @@ test("changing transport with a private device origin never sends or stores its 
   const before = [...routeCalls];
   let consent = "";
   page.once("dialog", async dialog => { consent = dialog.message(); await dialog.accept(); });
-  await page.locator(".map-command-bar").getByRole("button", { name: "◎ 내 위치", exact: true }).click();
-  await expect(page.locator(".map-toolbar > button").nth(0)).toContainText("현재 위치");
-  expect(consent).toContain("공개 출발 거점");
+  await page.locator(".map-command-bar").getByRole("button", { name: "기기에서 거리 확인", exact: true }).click();
+  await expect(page.locator(".map-provider-badge")).toContainText(/직선거리 약 [\d.]+km/);
+  await expect(page.locator(".map-toolbar > button").nth(0)).toContainText("창원중앙역");
+  expect(consent).toContain("선택한 공개 출발지");
+  expect(consent).toContain("WAVE 서버·지도 제공처·나루에 전송하거나 저장하지 않습니다");
+  expect(routeCalls).toEqual(before);
   await page.clock.install();
   for (const mode of ["car", "walk", "transit"]) {
+    const count = routeCalls.length;
     await page.locator(".itinerary-route-coverage select").selectOption(mode);
     await page.clock.runFor(1000);
+    await expect.poll(() => routeCalls.length).toBe(count + 1);
+    expect(requestedJourney(new URL(routeCalls.at(-1)!))).toEqual({ mode, startLat: "35.2422", startLng: "128.6982", endLat: plan.places[0].mapY, endLng: plan.places[0].mapX });
     await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
-    await expect(page.locator(".route-option")).toHaveCount(0);
-    await expect(page.locator(".itinerary-route-coverage")).toContainText("현재 위치는 전송하지 않습니다.");
-    expect(routeCalls).toEqual(before);
+    await expect(page.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
+    await expect(page.locator(".map-toolbar > button").nth(0)).toContainText("창원중앙역");
+    await page.clock.runFor(1000);
+    expect(routeCalls).toHaveLength(count + 1);
   }
   const storage = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage } }));
   const externalLinks = await page.locator(".route-kakao-fallback a").evaluateAll(links => links.map(link => (link as HTMLAnchorElement).href).join(" "));

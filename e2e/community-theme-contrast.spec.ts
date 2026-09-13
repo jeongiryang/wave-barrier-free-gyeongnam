@@ -76,8 +76,9 @@ const TARGETS = [
   [".community-place-tag", "장소 태그"],
   [".community-list footer span", "작성자와 반응 수"],
   [".community-pagination button", "페이지 이동"],
-  [".community-footer p", "커뮤니티 안내"],
-  [".community-footer a", "여행 설계 링크"],
+  [".wave-balanced-footer p", "서비스 안내"],
+  [".wave-balanced-footer a", "사용 방법과 출처 링크"],
+  [".wave-balanced-footer small", "독립 서비스 고지"],
 ] as const;
 
 for (const theme of ["light", "dark"] as const) {
@@ -97,7 +98,7 @@ for (const theme of ["light", "dark"] as const) {
     await page.getByRole("button", { name: "목록", exact: true }).click();
     await expect(page.locator(".community-list")).toHaveAttribute("data-layout", "list");
     await expect(story).toContainText("좋아요 4 · 댓글 2");
-    await page.getByRole("button", { name: "카드", exact: true }).click();
+    await page.getByRole("group", { name: "게시글 보기 방식", exact: true }).getByRole("button", { name: page.viewportSize()!.width <= 600 ? "1열" : "2열", exact: true }).click();
     await expect(page.locator(".community-list")).toHaveAttribute("data-layout", "cards");
     await expect(story).toContainText("경남도립미술관");
   });

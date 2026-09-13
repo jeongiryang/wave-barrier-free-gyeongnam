@@ -1,7 +1,9 @@
 "use client";
+import type { CommunityLayout } from "../view-layout";
 
 import { useState } from "react";
 import CommunityHeader from "../../../components/CommunityHeader";
+import SiteFooter from "../../../components/SiteFooter";
 import SkipLink from "../../../components/SkipLink";
 import { useCommunityBoard, type PlaceFilter } from "../hooks/useCommunityBoard";
 import CommunityBoardToolbar from "./CommunityBoardToolbar";
@@ -11,7 +13,7 @@ import CommunityTravelStories from "./CommunityTravelStories";
 
 export default function CommunityPage({ initialPlace = null }: { initialPlace?: PlaceFilter | null }) {
   const board = useCommunityBoard(initialPlace);
-  const [layout, setLayout] = useState<"cards" | "list">("cards");
+  const [layout, setLayout] = useState<CommunityLayout>("cards");
   return <main className="community-page">
     <SkipLink href="#community-list">게시글 목록으로 바로가기</SkipLink>
     <CommunityHeader />
@@ -19,9 +21,10 @@ export default function CommunityPage({ initialPlace = null }: { initialPlace?: 
 
     <section className="community-workspace" id="community-list" aria-labelledby="community-list-title">
       <CommunityBoardToolbar board={board} layout={layout} onLayout={setLayout} />
-    {!board.placeFilter && !board.category && !board.query && board.page === 1 && <CommunityTravelStories />}
+    {!board.placeFilter && !board.category && !board.query && board.page === 1 && <CommunityTravelStories layout={layout} />}
+      <p className="community-evidence-note">여행자 후기는 작성자 한 명의 경험이며 공식 관광·접근성 정보와 구분합니다.</p>
       <CommunityPostList board={board} layout={layout} />
     </section>
-    <footer className="community-footer"><strong>WAVE</strong><p>여행자 후기는 작성자 한 명의 경험이며 공식 관광·접근성 정보와 분리해 표시합니다. 출발 전에는 운영기관의 최신 안내를 다시 확인해 주세요.</p><a href="/planner">여행 설계로 돌아가기 →</a></footer>
+    <SiteFooter />
   </main>;
 }

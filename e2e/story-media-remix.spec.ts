@@ -12,7 +12,7 @@ test("the current scenery stays loaded while retired videos, screenshots and bou
   await expect(hero).toHaveAttribute("src", horizonPhotos.coast.image);
   await expect.poll(() => hero.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
   for (const id of chapterIds) await page.locator(`#${id}`).scrollIntoViewIfNeeded();
-  await expectUsableTarget(page.locator("#naru .simple-text-link"));
+  await expectUsableTarget(page.locator("#naru .simple-text-link[href*=assistant]"));
   expect(requests.filter(url => /\.mp4(?:\?|$)|ocean-expand|journey-sequence|timeline-|date-before|date-after|RegionBoundarySurface|korea-sgis-2020/.test(url))).toEqual([]);
   await expect(page.locator("main video, #regions [data-region-boundary]")).toHaveCount(0);
 });

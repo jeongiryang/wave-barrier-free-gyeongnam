@@ -58,7 +58,7 @@ export default function PoliciesPage() {
         </div>
       </section>
       <section id="content-credits" className="content-credits">
-        <h2>콘텐츠 출처 및 이용안내</h2>
+        <h2>콘텐츠 출처 및 이용안내</h2><p>출처: ⓒ한국관광공사 · ⓒ한국관광콘텐츠랩. 관광정보·무장애 편의정보·축제 정보는 공공 관광 데이터를 연결해 제공합니다. 개별 사진의 저작자와 이용조건은 아래에서 확인할 수 있습니다.</p>
         <h3 id="horizon-photo-credits">소개 페이지의 풍경 사진</h3>
         <p>아래 사진은 Wikimedia Commons에 공개된 실제 관광 풍경입니다. 디자인 스튜디오에서 크기·압축을 조정한 파일을 사용하며, 화면 비율에 맞춰 잘라 표시하고 글자 가독성을 위한 음영을 얹습니다. 각 사진과 수정본은 표시된 동일조건변경허락 라이선스를 유지합니다.</p>
         <ul>{Object.values(horizonPhotos).map(photo => <li key={photo.id}><a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer">{photo.title} — 원본 및 저작자</a><p>저작자: {photo.photographer} · <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a><br /><a href={photo.image}>현재 사용하는 사진 파일</a></p></li>)}</ul>

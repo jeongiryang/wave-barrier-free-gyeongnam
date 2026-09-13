@@ -6,6 +6,8 @@ import { providerFailure, ProviderRequestError } from "../../lib/provider-failur
 import { attemptProvider, combineProviderResults, combineFailedProviderAttempts } from "./provider-attempt";
 import { normalizeItems } from "./provider-normalizers";
 import type { ProviderAttempt, ProviderResult } from "./provider-types";
+import { createPublicListPool } from './public-list-pool.js';
+const publicLists = createPublicListPool();
 
 export function commonParams(rows = "12") {
   return {
@@ -29,9 +31,10 @@ export async function fetchTourismData(
   if (!key) throw new ProviderRequestError(providerFailure(context,"missing_config"));
   const query = new URLSearchParams(params).toString();
   const url = `https://apis.data.go.kr/B551011/${service}/${operation}?serviceKey=${key}&${query}`;
+  const load = async (signal?: AbortSignal): Promise<ProviderResult> => {
   const response = await requestProvider(context, url, {
     headers: { Accept: "application/json" },
-    signal: parentSignal ? AbortSignal.any([parentSignal, AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism)]) : AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism)]) : AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.tourism),
   }, fetch);
   if (!response.ok) throw new Error(`관광 데이터 응답 ${response.status}`);
   const raw = await response.text();
@@ -43,6 +46,10 @@ export async function fetchTourismData(
   }
   try { return normalizeItems(data); }
   catch { throw new ProviderRequestError(providerFailure(context,"malformed_response")); }
+  };
+  return ['KorWithService2', 'KorService2'].includes(service) && ['areaBasedList2', 'searchKeyword2'].includes(operation)
+    ? publicLists(url, load, parentSignal)
+    : load(parentSignal);
 }
 
 export async function fetchRegionalList(
@@ -51,13 +58,14 @@ export async function fetchRegionalList(
   operation: string,
   params: Record<string, string>,
   districts: string[],
+  signal?: AbortSignal,
 ) {
   const calls = districts.length
     ? districts.map((district) => attemptProvider(fetchTourismData(env, service, operation, {
       ...params,
       lDongSignguCd: district,
-    })))
-    : [attemptProvider(fetchTourismData(env, service, operation, params))];
+    }, signal)))
+    : [attemptProvider(fetchTourismData(env, service, operation, params, signal))];
   const results = await Promise.all(calls);
   const successes = results.filter((result): result is Extract<ProviderAttempt, { ok: true }> => result.ok);
   if (!successes.length) return combineFailedProviderAttempts(results);

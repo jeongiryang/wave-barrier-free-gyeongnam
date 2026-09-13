@@ -1,6 +1,6 @@
 "use client";
 
-import { readTripValue, writeTripValue } from "../../../lib/current-trip-storage.js";
+import { readTripValue, writeTripValue, tripStorageFailed } from "../../../lib/current-trip-storage.js";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { dateRange } from "../utils";
@@ -61,7 +61,7 @@ export function useTripSchedule() {
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       const stored = readStoredSchedule();
-      const query = new URLSearchParams(window.location.search);
+      const query = new URLSearchParams(window.location.pathname === '/planner' ? window.location.search : '');
       const queryStart = query.get("travelStart") || "";
       const queryEnd = query.get("travelEnd") || "";
       const storedStart = typeof stored.travelStart === "string" && validTripDate(stored.travelStart) ? stored.travelStart : "";
@@ -92,6 +92,23 @@ export function useTripSchedule() {
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    const consume = () => {
+      if (window.location.pathname !== '/planner' || travelStart || travelEnd || Object.keys(scheduleAssignments).length || Object.keys(fixedVisits).length) return;
+      try {
+        if (tripStorageFailed(window.localStorage) || JSON.parse(readTripValue(window.localStorage, 'wave-saved-places') || '[]').length) return;
+        const query = new URLSearchParams(window.location.search), start = query.get('travelStart') || '';
+        if (!validTripDate(start)) return;
+        const end = boundedTripEnd(start, query.get('travelEnd') || start);
+        setTravelStart(start); setTravelEnd(end);
+      } catch { /* Preserve an unreadable or uncommitted trip. */ }
+    };
+    const frame = window.requestAnimationFrame(consume);
+    window.addEventListener('wave:planner-navigation', consume);
+    return () => { window.cancelAnimationFrame(frame); window.removeEventListener('wave:planner-navigation', consume); };
+  }, [storageReady, travelStart, travelEnd, scheduleAssignments, fixedVisits]);
 
   useEffect(() => {
     if (!storageReady) return;

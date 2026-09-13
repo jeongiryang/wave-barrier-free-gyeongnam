@@ -1,3 +1,4 @@
+import { localDistanceKilometres } from "../lib/device-location.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -8,6 +9,7 @@ function fixture(locale = "ko") {
   const slots = [], calls = [], privateChanges = [], consents = [];
   let cursor = 0;
   const hooks = {
+    useEffect() { cursor++; },
     useState(value) { const i = cursor++; if (!(i in slots)) slots[i] = value; return [slots[i], next => { slots[i] = next; }]; },
     useRef(value) { const i = cursor++; return slots[i] ||= { current: value }; },
     useCallback(fn) { cursor++; return fn; },
@@ -15,6 +17,7 @@ function fixture(locale = "ko") {
   const mod = { exports: {} };
   const departurePresets = [{ name: "Public station", point: { lat: 35.2, lng: 128.6 } }];
   new Function("module", "exports", "require", "navigator", code)(mod, mod.exports, name => {
+    if (name.endsWith("device-location.js")) return { localDistanceKilometres };
     if (name === "react") return hooks;
     if (name === "../constants") return { departurePresets };
     if (name.endsWith("location-consent.js")) return { confirmMapLocationUse: value => { consents.push(value); return true; } };
@@ -45,11 +48,12 @@ for (const locale of ["ko", "en"]) for (const outcome of ["success", "failure"])
 test("reset clears an already displayed private location and permits a new explicit location request", () => {
   const app = fixture(), initial = app.render();
   initial.requestCurrentLocation(); app.calls[0].success(position);
-  assert.equal(app.render().privateOrigin, true);
+  assert.equal(app.render().privateOrigin, false);
   app.render().resetOrigin();
   assert.deepEqual(app.render().routeNotice, initial.routeNotice);
   assert.deepEqual(app.render().origin, initial.origin);
   app.render().requestCurrentLocation(); app.calls[1].success(position);
-  assert.equal(app.render().privateOrigin, true);
-  assert.deepEqual(app.render().origin, { lat: 35.3, lng: 128.7 });
+  assert.equal(app.render().privateOrigin, false);
+  assert.deepEqual(app.render().origin, initial.origin);
+  assert.match(app.render().routeNotice.ko, /기기에서만 계산/);
 });

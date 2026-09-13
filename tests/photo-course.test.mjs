@@ -64,7 +64,8 @@ test("photos become day-by-day visits ordered by capture time", () => {
   assert.equal(course.days[0].stops.length, 2);
   assert.equal(course.days[0].stops[0].photoCount, 2);
   assert.equal(course.days[0].stops[0].timeLabel, "오전 9:30");
-  assert.equal(course.days[0].region, "남해");
+  assert.equal(course.days[0].region, "");
+  assert.deepEqual(course.regions, []);
 });
 
 test("date and visit order can be corrected without restoring coordinates", () => {

@@ -146,8 +146,12 @@ export function useTripSelection({ schedule, activePlaces, origin, accessibility
       assignments: { ...voiceState.assignments, ...Object.fromEntries(saved.map(id => [id, voiceState.assignments[id] || schedule.travelStart])) }, visits: { ...voiceState.visits }, breaks: { ...voiceState.breaks }, purposes: { ...voiceState.purposes },
       comfort: draft.relaxed ? { ...voiceState.comfort, maxWalkMinutes: voiceState.comfort.maxWalkMinutes ?? 15, breakEveryMinutes: voiceState.comfort.breakEveryMinutes ?? 60, breakMinutes: Math.max(20, voiceState.comfort.breakMinutes || 0) } : voiceState.comfort };
     for (const stop of draft.stops) {
+      const previousVisit = stop.replaces ? voiceState.visits[stop.replaces] : undefined;
+      const previousBreak = stop.replaces ? voiceState.breaks[stop.replaces] : undefined;
+      const previousPurpose = stop.replaces ? voiceState.purposes[stop.replaces] : undefined;
       if (stop.replaces) { delete after.assignments[stop.replaces]; delete after.visits[stop.replaces]; delete after.breaks[stop.replaces]; delete after.purposes[stop.replaces]; }
-      after.assignments[stop.place.id] = stop.date; after.visits[stop.place.id] = stop.minutes; after.breaks[stop.place.id] = stop.breakMinutes;
+      after.assignments[stop.place.id] = stop.date; after.visits[stop.place.id] = previousVisit ?? stop.minutes; after.breaks[stop.place.id] = Math.max(previousBreak ?? 0, stop.breakMinutes);
+      if (previousPurpose) after.purposes[stop.place.id] = previousPurpose;
     }
     for (const id of removed) { delete after.assignments[id]; delete after.visits[id]; delete after.breaks[id]; delete after.purposes[id]; }
     if (draft.restOnly) for (const id of nextIds) if (!draft.restDay || after.assignments[id] === draft.restDay) after.breaks[id] = Math.max(20, after.breaks[id] || 0);

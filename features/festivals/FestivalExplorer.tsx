@@ -5,6 +5,8 @@ import Image from 'next/image';
 import WaveHeader from '../../components/WaveHeader';
 import SkipLink from '../../components/SkipLink';
 import LoadingState, { Spinner } from '../../components/LoadingState';
+import SiteFooter from '../../components/SiteFooter';
+import { useOpenNaru } from '../../components/GlobalTravelWorkspace';
 import NaruAvatar from '../../components/NaruAvatar';
 import { regions, profiles as facilityProfiles } from '../planner/constants';
 import type { Place } from '../planner/types';
@@ -16,11 +18,20 @@ import { emptyTrip } from '../../lib/current-trip-storage.js';
 import { replaceTripWithBackup } from '../../lib/trip-import.js';
 import { addFestivalToTrip } from '../../lib/festival-trip.js';
 
-type Festival = Place & { startDate: string; endDate: string; phone: string; officialUrl: string; state: 'ended'|'ongoing'|'upcoming'; facilityState: string };
+type Festival = Place & { startDate: string; endDate: string; phone: string; officialUrl: string; websiteUrl?: string; state: 'ended'|'ongoing'|'upcoming'; facilityState: string };
 type Result = { items: Festival[]; state: string; partial: boolean; checkedAt: string };
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
 function FestivalCard({ festival, selectedProfiles, onOpen }: { festival: Festival; selectedProfiles: string[]; onOpen: (item: Festival, date: string, fresh: boolean, askNaru?: boolean) => void }) {
+  const openNaru = useOpenNaru();
+  const [sources, setSources] = useState({ websiteUrl: festival.websiteUrl || '', officialUrl: festival.officialUrl });
+  const [sourceState, setSourceState] = useState('idle');
+  useEffect(() => {
+    if (sourceState !== 'loading') return;
+    const controller = new AbortController();
+    void plannerJson<{websiteUrl: string; officialUrl: string}>(`/api/festivals?contentId=${encodeURIComponent(festival.id)}`, { signal: controller.signal, timeoutMs: 12000 }).then(value => { if (!controller.signal.aborted) { setSources(value); setSourceState('done'); } }).catch(() => { if (!controller.signal.aborted) setSourceState('error'); });
+    return () => controller.abort();
+  }, [sourceState, festival.id]);
   const [date, setDate] = useState(festival.startDate < today() ? today() > festival.endDate ? festival.endDate : today() : festival.startDate);
   const [failedImage, setFailedImage] = useState(false), [details, setDetails] = useState(false);
   const confirmed = festival.accessibility?.filter(field => field.state === 'confirmed') || [];
@@ -28,9 +39,10 @@ function FestivalCard({ festival, selectedProfiles, onOpen }: { festival: Festiv
   return <article className="festival-card"><div className="festival-card-photo">{festival.image && !failedImage ? <Image src={festival.image} alt={`${festival.name} 관광정보 사진`} fill sizes="(max-width: 700px) 100vw, (max-width: 1150px) 50vw, 33vw" unoptimized onError={() => setFailedImage(true)} /> : <div className="festival-photo-fallback"><NaruAvatar large /><span>사진 없이도 행사 정보를 확인할 수 있어요.</span></div>}<span className="festival-state">{festival.state === 'ongoing' ? '지금 열려요' : festival.state === 'upcoming' ? '곧 만나요' : '지난 행사'}</span></div>
     <div className="festival-card-copy"><small>{festival.city}</small><h2>{festival.name}</h2><p className="festival-period">{festival.startDate} – {festival.endDate}</p><p>{festival.address || '상세 행사장 주소 확인 필요'}</p>
       <p>{selectedProfiles.length ? festival.facilityState === 'error' ? '편의 정보를 불러오지 못했어요. 시설이 없다는 뜻은 아닙니다.' : confirmed.length ? `${confirmed.map(field => field.label).join(' · ')} 정보 확인` : '선택한 편의의 확인 근거가 아직 없어요.' : '필요한 편의를 선택하면 행사장 정보를 함께 비교해요.'}</p>
+      <div className="festival-source-links">{sources.websiteUrl && <a href={sources.websiteUrl} target="_blank" rel="noopener noreferrer">행사 홈페이지 ↗</a>}{sources.officialUrl && <a href={sources.officialUrl} target="_blank" rel="noopener noreferrer">관광정보 원문 ↗</a>}{!sources.websiteUrl && sourceState !== 'done' && <button type="button" disabled={sourceState === 'loading'} onClick={() => setSourceState('loading')}>{sourceState === 'loading' ? <><Spinner />행사 링크 확인 중</> : sourceState === 'error' ? '행사 링크 다시 확인' : '행사 홈페이지 확인'}</button>}{sourceState === 'done' && !sources.websiteUrl && <small>등록된 행사 홈페이지가 없어요.{festival.phone ? ` 문의 ${festival.phone}` : ''}</small>}{sourceState === 'error' && <small role="status">링크를 불러오지 못했어요. 잠시 후 다시 확인해 주세요.</small>}</div>
       <button type="button" className="festival-detail-toggle" aria-expanded={details} onClick={() => setDetails(!details)}>편의·문의 정보 {details ? '접기' : '보기'}</button>
       {details && <div className="festival-evidence">{festival.accessibility?.map(field => <p key={field.key}><strong>{field.label} · {field.state === 'confirmed' ? '확인됨' : field.state === 'negative' ? '조건과 맞지 않음' : '미확인'}</strong><span>{field.detail || '공식 정보에서 확인할 수 없어요.'}</span></p>)}{festival.phone && <p>행사 문의: {festival.phone}</p>}{festival.officialUrl && <a href={festival.officialUrl} target="_blank" rel="noreferrer">공식 관광정보 원문 ↗</a>}<small>ⓒ한국관광공사 · {festival.checkedAt?.slice(0, 10)} 조회</small></div>}
-      {festival.state !== 'ended' && <><label className="festival-visit-date">방문 날짜<input type="date" min={festival.startDate} max={festival.endDate} value={date} onChange={event => setDate(event.target.value)} /></label>{unavailable ? <p role="status">선택한 편의와 맞지 않는 항목이 있어요. 필요한 편의를 유지하고 다른 행사를 살펴보세요.</p> : <div className="festival-actions"><button type="button" onClick={() => onOpen(festival, date, false)}>내 일정에 담기</button><button type="button" onClick={() => onOpen(festival, date, true, true)}>나루와 주변 코스 만들기</button><button type="button" onClick={() => onOpen(festival, date, true)}>이 축제로 새 여행</button></div>}</>}
+      {festival.state !== 'ended' && <><label className="festival-visit-date">방문 날짜<input type="date" min={festival.startDate} max={festival.endDate} value={date} onChange={event => setDate(event.target.value)} /></label>{unavailable ? <p role="status">선택한 편의와 맞지 않는 항목이 있어요. 필요한 편의를 유지하고 다른 행사를 살펴보세요.</p> : <div className="festival-actions"><button type="button" onClick={() => onOpen(festival, date, false)}>내 일정에 담기</button><button type="button" onClick={() => openNaru(`${festival.city} ${festival.name} 축제를 ${date}에 가는 일정안을 만들어줘. 기존에 선택한 편의는 유지해줘.`)}>나루와 주변 코스 만들기</button><button type="button" onClick={() => onOpen(festival, date, true)}>이 축제로 새 여행</button></div>}</>}
     </div></article>;
 }
 
@@ -82,6 +94,6 @@ export default function FestivalExplorer() {
       {!pending && !failure && current && data && !shown.length && <div className="travel-book-empty"><h2>이 조건의 축제는 아직 확인하지 못했어요.</h2><p>편의 조건은 그대로 두고 지역이나 날짜를 넓혀보세요.</p><div className="travel-book-actions"><button type="button" onClick={() => { setRegion('경남 전체'); setQuery(''); }}>경남 전체 보기</button><button type="button" onClick={() => { const next = validTripDate(end) ? offsetTripDate(end, 1) : today(); setStart(next); setEnd(offsetTripDate(next, 30)); }}>다음 한 달 보기</button><Link href="/planner?assistant=naru">나루에게 다른 여행 물어보기</Link></div></div>}
       <div className="festival-grid" inert={pending || !current || Boolean(failure)}>{shown.map(item => <FestivalCard key={`${item.id}:${item.startDate}:${selected.join(',')}`} festival={item} selectedProfiles={selected} onOpen={openFestival} />)}</div>
       {pending && <div className="festival-grid" aria-hidden="true">{[0,1,2].map(id => <div className="festival-skeleton" key={id}><Spinner /></div>)}</div>}
-    </section><footer className="festival-footer">행사 일정은 변경될 수 있어요. 출발 전 운영기관의 최신 공지를 확인해 주세요. <Link href="/policies">사진·정보 출처</Link></footer>
+    </section><SiteFooter />
   </main>;
 }

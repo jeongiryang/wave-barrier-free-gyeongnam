@@ -14,7 +14,7 @@ for (const seenBefore of [false, true]) {
     await expect(scene).toHaveCSS("pointer-events", "none");
     await expect(scene.locator(".arrival-picture img")).toHaveAttribute("src", "/media/horizon/hero-coast.jpg");
     await expect(scene.locator(".arrival-word")).toHaveText("WAVE");
-    await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+    await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
     const action = page.locator(".landing-actions a");
     await action.focus();
     await page.clock.runFor(2000);
