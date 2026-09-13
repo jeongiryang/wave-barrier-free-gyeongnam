@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, type SetStateAction } from "react";
 import type { Map as LeafletMap } from "leaflet";
 import type { KakaoDrawingManager, KakaoMap } from "./kakao-sdk";
 import { describeCrowd } from "./map-utils";
@@ -39,7 +39,8 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     setToolPanelState(next);
   }, []);
   const [pickMode, setPickMode] = useState<MapPickMode>(null);
-  const [selectedMapPlace, setSelectedMapPlace] = useState<MapPlace | null>(places[0] || null);
+  const [selectedMapPlaceInput, setSelectedMapPlace] = useState<MapPlace | null>(places[0] || null);
+  const selectedMapPlace = places.find(place => place.id === selectedMapPlaceInput?.id) || selectedMapPlaceInput;
   const cancelMapPick = useCallback(() => {
     setPickMode(null);
     setProviderDetail("지도 위치 선택을 취소했습니다.");
@@ -64,9 +65,11 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     if (map && sdk && Number.isFinite(lat) && Number.isFinite(lng)) map.panTo(new sdk.LatLng(lat, lng));
   }, [isMapAvailable, setToolPanel]);
 
+  const focusedGeometryKey = JSON.stringify(places.map(place => [place.id, Number(place.mapX), Number(place.mapY)]));
+  const readFocusedPlace = useEffectEvent(() => places.find(item => item.id === focusedPlaceId));
   useEffect(() => {
     if (!focusedPlaceId || provider === 'loading' || provider === 'error') return;
-    const place = places.find(item => item.id === focusedPlaceId);
+    const place = readFocusedPlace();
     if (!place) return;
     const frame = requestAnimationFrame(() => {
       setSelectedMapPlace(place);
@@ -83,7 +86,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
       }
     });
     return () => cancelAnimationFrame(frame);
-  }, [focusedPlaceId, places, provider]);
+  }, [focusedPlaceId, focusedGeometryKey, provider]);
 
   const { baseMap, activeLayers, layerError, layerRecovery, restoreMapLayers, clearAppliedMapLayers, changeBaseMap, toggleLayer } = useMapLayers(kakaoMapRef);
   const {

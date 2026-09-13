@@ -44,7 +44,7 @@ export type KakaoSdk = {
     LatLngBounds: new () => { extend(position: KakaoLatLng): void };
     Marker: new (options: Record<string, unknown>) => KakaoMarker;
     CustomOverlay: new (options: { map: KakaoMap; position: KakaoLatLng; content: HTMLElement; yAnchor?: number; xAnchor?: number }) => { setMap(map: KakaoMap | null): void };
-    Polyline: new (options: Record<string, unknown>) => { setMap(map: KakaoMap): void };
+    Polyline: new (options: Record<string, unknown>) => { setMap(map: KakaoMap | null): void };
     Circle: new (options: Record<string, unknown>) => { setMap(map: KakaoMap | null): void };
     MapTypeId: Record<"ROADMAP" | "SKYVIEW" | "HYBRID" | "TRAFFIC" | "TERRAIN" | "BICYCLE" | "BICYCLE_HYBRID" | "USE_DISTRICT", unknown>;
     Roadview: new (node: HTMLElement) => { setPanoId(panoId: number, position: KakaoLatLng): void; relayout(): void };

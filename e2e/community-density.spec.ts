@@ -24,6 +24,75 @@ async function expectColumns(grid: Locator, columns: number) {
   for (const box of boxes) { expect(box.width).toBeGreaterThan(80); expect(box.x).toBeGreaterThanOrEqual(-1); }
 }
 
+test('community server controls wait for hydration before layout, filter and search actions work', async ({ page }) => {
+  const errors: string[] = [], requests: URL[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await mockPublicShellApi(page);
+  await page.route('**/api/community/posts**', route => {
+    requests.push(new URL(route.request().url()));
+    return route.fulfill({ json: { posts, page: 1, hasMore: false } });
+  });
+  let releaseScripts = () => {}, blockedScripts = 0;
+  const scriptGate = new Promise<void>(resolve => { releaseScripts = resolve; });
+  // Hold executable bundles, keeping the server-rendered DOM observable without
+  // substituting its HTML or manipulating the app's hydration state.
+  await page.route('**/*', async route => {
+    if (route.request().resourceType() !== 'script') return route.fallback();
+    blockedScripts += 1;
+    await scriptGate;
+    return route.fallback();
+  });
+  const controls = page.locator('.community-controls');
+  const view = page.getByRole('group', { name: '게시글 보기 방식', exact: true });
+  const clearPlace = page.getByRole('button', { name: '전체 후기 보기', exact: true });
+  const search = page.getByRole('textbox', { name: '여행 후기 검색', exact: true });
+  try {
+    const response = await page.goto('/community?placeId=1001&placeName=경남도립미술관&region=창원', { waitUntil: 'commit' });
+    expect(response?.status()).toBe(200);
+    expect(await response?.headerValue('content-type')).toContain('text/html');
+    await expect(controls).toBeVisible();
+    await expect.poll(() => blockedScripts).toBeGreaterThan(0);
+    await expect(controls).toHaveAttribute('aria-busy', 'true');
+    await expect(view.getByRole('button')).toHaveCount(3);
+    for (const control of await controls.locator('button, input').all()) await expect(control).toBeDisabled();
+    await expect(clearPlace).toBeDisabled();
+    await expect(search).toHaveValue('');
+    expect(requests).toHaveLength(0);
+  } finally {
+    releaseScripts();
+  }
+  await page.waitForLoadState('domcontentloaded');
+  await expect(controls).toHaveAttribute('aria-busy', 'false');
+  for (const control of await controls.locator('button, input').all()) await expect(control).toBeEnabled();
+  await expect(clearPlace).toBeEnabled();
+  const list = page.locator('.community-list');
+  await expect(list.locator('article')).toHaveCount(8);
+  expect(requests.at(-1)?.searchParams.get('placeId')).toBe('1001');
+  const baseline = requests.map(url => url.href);
+  const compact = view.getByRole('button', { name: page.viewportSize()!.width <= 600 ? '2열' : '4열', exact: true });
+  await compact.click();
+  await expect(compact).toHaveAttribute('aria-pressed', 'true');
+  await expect(list).toHaveAttribute('data-layout', 'compact');
+  expect(requests.map(url => url.href)).toEqual(baseline);
+  await clearPlace.click();
+  await expect(page.getByRole('complementary', { name: '관광지 필터', exact: true })).toHaveCount(0);
+  await expect.poll(() => requests.at(-1)?.searchParams.get('placeId')).toBeNull();
+  await expect(page.locator('.community-editorial-grid')).toHaveAttribute('data-layout', 'compact');
+  await controls.getByRole('button', { name: '여행 질문', exact: true }).click();
+  await expect.poll(() => requests.at(-1)?.searchParams.get('category')).toBe('general');
+  await expect(list.locator('article')).toHaveCount(8);
+  const beforeSearch = requests.map(url => url.href);
+  await search.fill('박물관');
+  expect(requests.map(url => url.href)).toEqual(beforeSearch);
+  await controls.getByRole('button', { name: '검색', exact: true }).click();
+  await expect.poll(() => requests.at(-1)?.searchParams.get('search')).toBe('박물관');
+  expect(requests.at(-1)?.searchParams.get('category')).toBe('general');
+  expect(requests.at(-1)?.searchParams.get('placeId')).toBeNull();
+  await expect(list.locator('h3')).toHaveText(posts.map(post => post.title));
+  await expect(list).toHaveAttribute('data-layout', 'compact');
+  expect(errors).toEqual([]);
+});
+
 test('community density changes both real post and editorial grids without changing records or fetching again', async ({ page }) => {
   const errors: string[] = [], requests: string[] = [];
   page.on('pageerror', error => errors.push(error.message));

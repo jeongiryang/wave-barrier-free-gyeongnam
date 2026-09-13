@@ -8,6 +8,10 @@ interface NearbyFixture {
   throwNext: boolean;
 }
 export interface MapLayerFixture { maps: { base: number; layers: number[] }[]; failBase: boolean; failLayer: boolean }
+export interface MapRenderFixture {
+  overlays: Array<{ kind: string; map: unknown; options: Record<string, unknown> }>;
+  viewportChanges: Array<{ kind: string; map: unknown }>;
+}
 export function nearbyPlace(index = 1): NearbyFixturePlace {
   return { id: String(index), place_name: `검증 장소 ${index}`, address_name: "경남 창원시", road_address_name: "", x: "128.68", y: "35.23", distance: String(index * 10), place_url: `https://place.map.kakao.com/${index}` };
 }
@@ -18,7 +22,7 @@ export async function deliverNearby(page: Page, index: number, status: string, p
   await expect.poll(() => page.evaluate(index => typeof (window as unknown as { nearbyFixture: NearbyFixture }).nearbyFixture.requests[index]?.callback, index), { message: `Nearby request ${index} must exist before its response is delivered` }).toBe("function");
   await page.evaluate(({ index, status, places }) => (window as unknown as { nearbyFixture: NearbyFixture }).nearbyFixture.requests[index].callback(places, status), { index, status, places });
 }
-export async function openNearby(page: Page, english = false, theme = "light", placeCoordinate?: { mapX: string; mapY: string }) {
+export async function openNearby(page: Page, english = false, theme = "light", placeCoordinate?: { mapX: string; mapY: string }, beforeNavigation?: () => Promise<void>) {
   await mockPlannerApi(page, { placeCoordinate, preserveView: true });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript((theme) => {
@@ -26,15 +30,26 @@ export async function openNearby(page: Page, english = false, theme = "light", p
     const noop = () => undefined;
     const state: NearbyFixture = { requests: [], throwNext: false };
     const layerState: MapLayerFixture = { maps: [], failBase: false, failLayer: false };
-    Object.assign(window, { nearbyFixture: state, mapLayerFixture: layerState });
-    class Overlay { setMap = noop; }
+    const renderState: MapRenderFixture = { overlays: [], viewportChanges: [] };
+    Object.assign(window, { nearbyFixture: state, mapLayerFixture: layerState, mapRenderFixture: renderState });
+    class Overlay {
+      record: MapRenderFixture["overlays"][number];
+      constructor(kind: string, options: Record<string, unknown> = {}) {
+        this.record = { kind, map: options.map, options };
+        renderState.overlays.push(this.record);
+      }
+      setMap(map: unknown) { this.record.map = map; }
+    }
     class LatLng { constructor(private lat: number, private lng: number) {} getLat() { return this.lat; } getLng() { return this.lng; } }
     const maps = {
       load: (callback: () => void) => callback(), LatLng, LatLngBounds: class { extend = noop; },
       Map: class {
         base = 1; layers: number[] = [];
         constructor() { layerState.maps.push(this); }
-        setBounds = noop; setCenter = noop; panTo = noop; setLevel = noop; relayout = noop; setMaxLevel = noop;
+        setBounds = () => { renderState.viewportChanges.push({ kind: "setBounds", map: this }); };
+        setCenter = () => { renderState.viewportChanges.push({ kind: "setCenter", map: this }); };
+        panTo = () => { renderState.viewportChanges.push({ kind: "panTo", map: this }); };
+        setLevel = noop; relayout = noop; setMaxLevel = noop;
         getLevel() { return 9; }
         getBounds() { return { getSouthWest: () => new LatLng(35.1, 128.5), getNorthEast: () => new LatLng(35.4, 128.9) }; }
         getCenter() { return new LatLng(35.23, 128.68); }
@@ -42,7 +57,10 @@ export async function openNearby(page: Page, english = false, theme = "light", p
         addOverlayMapTypeId(id: number) { if (layerState.failLayer) throw Error("controlled overlay failure"); this.layers = [...new Set([...this.layers, id])]; }
         removeOverlayMapTypeId(id: number) { if (layerState.failLayer) throw Error("controlled overlay failure"); this.layers = this.layers.filter((value) => value !== id); }
       },
-      Marker: Overlay, CustomOverlay: Overlay, Polyline: Overlay, Circle: Overlay,
+      Marker: class extends Overlay { constructor(options?: Record<string, unknown>) { super("Marker", options); } },
+      CustomOverlay: class extends Overlay { constructor(options?: Record<string, unknown>) { super("CustomOverlay", options); } },
+      Polyline: class extends Overlay { constructor(options?: Record<string, unknown>) { super("Polyline", options); } },
+      Circle: class extends Overlay { constructor(options?: Record<string, unknown>) { super("Circle", options); } },
       Roadview: class { setPanoId = noop; relayout = noop; },
       RoadviewClient: class { getNearestPanoId(_p: unknown, _r: number, callback: (id: number | null) => void) { callback(null); } },
       MapTypeId: { ROADMAP: 1, SKYVIEW: 2, HYBRID: 3, TRAFFIC: 4, TERRAIN: 5, BICYCLE: 6, BICYCLE_HYBRID: 7, USE_DISTRICT: 8 },
@@ -55,6 +73,7 @@ export async function openNearby(page: Page, english = false, theme = "light", p
     Object.defineProperty(window, "kakao", { value: { maps }, writable: true });
   }, theme);
   await page.route("**/api/map-config", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ provider: "kakao", javascriptKey: "e2e-stub-key" }) }));
+  await beforeNavigation?.();
   await page.goto("/planner");
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();

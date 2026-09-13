@@ -1,4 +1,4 @@
-import { pickedDestination, type MapRendererContext } from "./map-renderer-context";
+import { mapContentKey, mapMarkerState, restoreMapMarkerState, pickedDestination, type MapRenderContent, type MapRendererContext } from "./map-renderer-context";
 import { escapeMapHtml, mapFitPadding, safeMapImageUrl } from "./map-utils";
 import { GYEONGNAM_MAP_BOUNDS } from "../../lib/gyeongnam-map-viewport.js";
 
@@ -7,8 +7,8 @@ export async function renderLeafletMap(
   isCancelled: () => boolean,
 ) {
   const {
-    containerRef, mapRef, kakaoMapRef, drawingManagerRef, fitMapRef, origin, places, route,
-    crowdVisual, crowdPlace, pickModeRef, roadviewSelectModeRef,
+    containerRef, mapRef, kakaoMapRef, drawingManagerRef, fitMapRef, origin, places,
+    pickModeRef, roadviewSelectModeRef,
     onOriginChangeRef, onDestinationChangeRef, choosePlace, clearCategoryMarkers,
     setProvider, setProviderDetail, setSelectedMapPlace, setPickMode,
     setRoadviewSelectMode,
@@ -74,7 +74,7 @@ export async function renderLeafletMap(
   }).addTo(map);
 
   const bounds: Array<[number, number]> = [];
-  const venueMarkers: Array<{ marker: import("leaflet").Marker; id: string }> = [];
+  let venueMarkers: Array<{ marker: import("leaflet").Marker; id: string }> = [];
   const originIcon = L.divIcon({
     className: "wave-map-icon origin",
     html: "<span>출발</span>",
@@ -85,54 +85,85 @@ export async function renderLeafletMap(
     .addTo(map)
     .bindPopup("<strong>출발지</strong>");
   bounds.push([origin.lat, origin.lng]);
+  for (const place of places) {
+    const lat = Number(place.mapY), lng = Number(place.mapX);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) bounds.push([lat, lng]);
+  }
 
-  places.forEach((place, index) => {
-    const lat = Number(place.mapY);
-    const lng = Number(place.mapX);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-    const image = safeMapImageUrl(place.image);
-    const markerHtml = image
-      ? `<span class="photo-pin" style="background-image:url('${escapeMapHtml(image)}')"><b>${index + 1}</b></span>`
-      : `<span class="number-pin">${index + 1}</span>`;
-    const isCrowdPlace = Boolean(crowdVisual && crowdPlace?.id === place.id);
-    const icon = L.divIcon({
-      className: `wave-map-icon place${image ? " has-photo" : ""}${isCrowdPlace ? ` crowd-aware crowd-${crowdVisual?.level}` : ""}`,
-      html: markerHtml,
-      iconSize: image ? [84, 92] : [44, 44],
-      iconAnchor: image ? [42, 86] : [22, 22],
-      popupAnchor: image ? [0, -78] : [0, -24],
+  let latest: MapRenderContent = context;
+  let renderedKey: string | null = null;
+  let overlays: import("leaflet").Layer[] = [];
+  const clearContent = () => {
+    for (const overlay of overlays) overlay.remove();
+    overlays = [];
+    venueMarkers = [];
+  };
+  const update = (content: MapRenderContent) => {
+    if (isCancelled() || !containerRef.current) return;
+    latest = content;
+    const nextKey = mapContentKey(content);
+    if (nextKey === renderedKey) return;
+    renderedKey = nextKey;
+    const markerState = mapMarkerState(containerRef.current);
+    clearContent();
+    const { places, route, crowdVisual, crowdPlace } = content;
+    places.forEach((place, index) => {
+      const lat = Number(place.mapY);
+      const lng = Number(place.mapX);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      const image = safeMapImageUrl(place.image);
+      const markerHtml = image
+        ? `<span class="photo-pin" style="background-image:url('${escapeMapHtml(image)}')"><b>${index + 1}</b></span>`
+        : `<span class="number-pin">${index + 1}</span>`;
+      const isCrowdPlace = Boolean(crowdVisual && crowdPlace?.id === place.id);
+      const icon = L.divIcon({
+        className: `wave-map-icon place${image ? " has-photo" : ""}${isCrowdPlace ? ` crowd-aware crowd-${crowdVisual?.level}` : ""}`,
+        html: markerHtml,
+        iconSize: image ? [84, 92] : [44, 44],
+        iconAnchor: image ? [42, 86] : [22, 22],
+        popupAnchor: image ? [0, -78] : [0, -24],
+      });
+      const evidenceLabel = "편의시설과 실제 이동 가능 여부는 방문 전 확인";
+      const venueMarker = L.marker([lat, lng], { icon, title: place.name })
+        .addTo(map)
+        .bindPopup(`<strong>${escapeMapHtml(place.name)}</strong><br>${evidenceLabel}`)
+        .on("click", () => choosePlace(latest.places.find(current => current.id === place.id) || place));
+      venueMarkers.push({ marker: venueMarker, id: place.id });
+      overlays.push(venueMarker);
+      if (isCrowdPlace && crowdVisual) overlays.push(L.circle([lat, lng], {
+        radius: crowdVisual.radius,
+        color: crowdVisual.color,
+        weight: 3,
+        opacity: .78,
+        dashArray: "7 8",
+        fillColor: crowdVisual.color,
+        fillOpacity: .13,
+      }).addTo(map));
     });
-    const evidenceLabel = "편의시설과 실제 이동 가능 여부는 방문 전 확인";
-    const venueMarker = L.marker([lat, lng], { icon, title: place.name })
-      .addTo(map)
-      .bindPopup(`<strong>${escapeMapHtml(place.name)}</strong><br>${evidenceLabel}`)
-      .on("click", () => choosePlace(place));
-    venueMarkers.push({ marker: venueMarker, id: place.id });
-    if (isCrowdPlace && crowdVisual) L.circle([lat, lng], {
-      radius: crowdVisual.radius,
-      color: crowdVisual.color,
-      weight: 3,
-      opacity: .78,
-      dashArray: "7 8",
-      fillColor: crowdVisual.color,
-      fillOpacity: .13,
-    }).addTo(map);
-    bounds.push([lat, lng]);
-  });
 
-  const geometry = route?.geometry?.length
-    ? route.geometry
-    : bounds.map(([lat, lng]) => ({ lat, lng }));
-  if (geometry.length > 1) L.polyline(
-    geometry.map((point) => [point.lat, point.lng] as [number, number]),
-    {
-      color: route?.configured ? "#0a6baf" : "#5aa3c4",
-      weight: 6,
-      opacity: .82,
-      dashArray: route?.configured ? undefined : "9 10",
-      lineCap: "round",
-    },
-  ).addTo(map);
+    const geometry = route?.geometry?.length
+      ? route.geometry
+      : bounds.map(([lat, lng]) => ({ lat, lng }));
+    if (geometry.length > 1) overlays.push(L.polyline(
+      geometry.map((point) => [point.lat, point.lng] as [number, number]),
+      {
+        color: route?.configured ? "#0a6baf" : "#5aa3c4",
+        weight: 6,
+        opacity: .82,
+        dashArray: route?.configured ? undefined : "9 10",
+        lineCap: "round",
+      },
+    ).addTo(map));
+    map.whenReady(() => {
+      if (isCancelled() || !containerRef.current) return;
+      for (const { marker, id } of venueMarkers) {
+        const element = marker.getElement();
+        if (element) element.dataset.placeId = id;
+      }
+      restoreMapMarkerState(containerRef.current, markerState);
+    });
+  };
+  update(context);
   const fit = () => {
     const canvas = containerRef.current;
     if (isCancelled() || mapRef.current !== map || !canvas) return;
@@ -157,4 +188,5 @@ export async function renderLeafletMap(
     fit();
   });
   setProvider("osm");
+  return { update, dispose: clearContent };
 }

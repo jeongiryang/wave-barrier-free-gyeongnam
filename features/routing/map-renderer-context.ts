@@ -6,6 +6,31 @@ import type { MapPickMode, MapPlace, MapProvider, RouteAlternative, RoutePoint }
 
 export type MutableRef<T> = { current: T };
 
+export type MapRenderContent = Pick<MapRendererContext, "origin" | "places" | "route" | "crowdVisual" | "crowdPlace">;
+export type MapContentController = { update(content: MapRenderContent): void; dispose(): void };
+
+export function mapContentKey({ places, route, crowdVisual, crowdPlace }: MapRenderContent) {
+  return JSON.stringify([places.map(({ id, name, image, mapX, mapY }) => [id, name, image, mapX, mapY]), route?.configured, route?.geometry, crowdVisual, crowdPlace?.id]);
+}
+
+export function mapMarkerState(canvas: HTMLElement) {
+  const focused = canvas.ownerDocument?.activeElement;
+  return {
+    focusedId: focused && canvas.contains(focused) ? (focused as HTMLElement).dataset?.placeId : undefined,
+    selectedIds: new Set(Array.from(canvas.querySelectorAll<HTMLElement>('[data-place-id][aria-current="location"]'), marker => marker.dataset.placeId)),
+  };
+}
+
+export function restoreMapMarkerState(canvas: HTMLElement, state: ReturnType<typeof mapMarkerState>) {
+  for (const marker of canvas.querySelectorAll<HTMLElement>('[data-place-id]')) {
+    if (state.selectedIds.has(marker.dataset.placeId)) {
+      marker.classList.add('itinerary-focused');
+      marker.setAttribute('aria-current', 'location');
+    }
+    if (marker.dataset.placeId === state.focusedId) marker.focus({ preventScroll: true });
+  }
+}
+
 export interface MapRendererContext {
   containerRef: MutableRef<HTMLDivElement | null>;
   mapRef: MutableRef<LeafletMap | null>;

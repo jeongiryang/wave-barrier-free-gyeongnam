@@ -13,6 +13,14 @@ async function expectHealthyPage(page: Page, path: string) {
   await expect(page.locator("body")).toBeVisible();
   await expect(page.locator("body")).not.toContainText(/Application error|Internal Server Error|Unhandled Runtime Error/i);
 
+  if (new URL(page.url()).pathname === "/") {
+    // Wait for the interactive page before checking the arrival scene: its SSR
+    // markup starts hidden and is briefly revealed during the real handoff.
+    await expect(page.locator(".landing-page")).toBeVisible();
+    await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
+    await expect(page.locator(".arrival-scene")).toBeHidden();
+  }
+  await page.evaluate(() => document.fonts.ready);
   const overflow = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
@@ -72,12 +80,22 @@ test("reduced motion keeps the public entry flow usable", async ({ page }) => {
   await expectHealthyPage(page, "/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
-  const intro = page.getByRole("dialog", { name: "W.A.V.E", exact: true });
-  if (await intro.isVisible()) await intro.getByRole("button", { name: "소개로 건너뛰기", exact: true }).click();
+  const support = page.locator(".wave-support-menu");
+  await support.getByLabel("WAVE 이용 안내 메뉴", { exact: true }).click();
+  await expect(support).toHaveAttribute("open", "");
   const preferences = page.locator(".preference-controls:visible");
-  await expect(preferences.getByLabel("환경설정 열기", { exact: true })).toBeVisible();
+  await expect(preferences).toHaveAttribute("aria-busy", "false");
+  const trigger = preferences.getByLabel("환경설정 열기", { exact: true });
+  await trigger.click();
+  await expect(preferences.locator(".preference-panel")).toBeVisible();
+  await expect(preferences).toContainText("홈 화면");
   await expect(preferences.getByRole("combobox", { includeHidden: true })).toHaveCount(0);
   await expect(preferences.getByRole("button", { name: /다크모드|라이트모드|Dark mode|Light mode/, includeHidden: true })).toHaveCount(0);
+  await expectNoSeriousA11yIssues(page);
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(support).not.toHaveAttribute("open", "");
   const plannerLink = page.locator('a[href*="/planner"]:visible').first();
   await expect(plannerLink).toBeVisible({ timeout: 15_000 });
 });
