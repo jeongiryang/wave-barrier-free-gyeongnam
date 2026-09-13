@@ -46,6 +46,7 @@ import "./styles/policies.css";
 import "./styles/wave-horizon.css";
 import "./styles/place-decisions.css";
 import "./styles/planner-conversation.css";
+import "./styles/landing-split.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN, SITE_TITLE, SOCIAL_IMAGE } from "../lib/site-metadata";
 import { arrivalBootstrap } from "../features/landing/arrival-bootstrap";
