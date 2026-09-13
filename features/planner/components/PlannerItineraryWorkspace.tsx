@@ -113,15 +113,18 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   }
   const loadRoutes = props.route.loadRoutes;
   const resetRouteData = props.route.resetRouteData;
+  const displayRouteData = props.route.displayRouteData;
   const { routeDestination, routeStart, routeStartIsPrivate, routeStartLabel, routeTravelMode } = props.route;
   const region = props.archiveContext.region;
   const structureSignature = `${region}|${activeDay}|${itineraryPlaces.map(place => `${place.id}:${place.mapX}:${place.mapY}`).join(',')}|${props.route.origin.lat},${props.route.origin.lng}|${props.route.privateOrigin}`;
   const previousRouteScope = useRef<{ structure: string; mode: typeof routeTravelMode; region: string } | null>(null);
+  const pendingCoverageRoute = useRef<{ signature: string; key: string } | null>(null);
 
   useEffect(() => {
     if (!props.mapEnabled || !props.tripSelection.storageReady) return;
     if (!props.tripSelection.travelStart) {
       previousRouteScope.current = null;
+      pendingCoverageRoute.current = null;
       if (routeDestination || routeStart) resetRouteData();
       return;
     }
@@ -130,13 +133,40 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     const sameMode = previous?.mode === routeTravelMode;
     previousRouteScope.current = { structure: structureSignature, mode: routeTravelMode, region };
 
-    // All controls, chat commands and Undo change the same transport state.
-    // A mode-only change keeps the displayed journey, including a map-picked
-    // destination, and refreshes it once with the newly committed mode.
+    // A mode change already checks every itinerary leg. Reuse that exact leg
+    // for the map; a separately chosen map journey still needs its own request.
     if (sameStructure && routeDestination && routeStart) {
-      if (!sameMode) void loadRoutes(routeDestination, routeStart, routeStartIsPrivate, routeStartLabel);
+      const point = supportedPlacePoint(routeDestination.mapX, routeDestination.mapY);
+      const selectedLeg = props.coverage.legs.find(leg => leg.day === activeDay && !leg.blocked
+        && !routeStartIsPrivate && leg.place.id === routeDestination.id
+        && leg.from?.lat === routeStart.lat && leg.from?.lng === routeStart.lng
+        && leg.to?.lat === point?.lat && leg.to?.lng === point?.lng);
+      if (!sameMode) {
+        if (selectedLeg) {
+          const bundle = props.coverage.data[selectedLeg.key];
+          // Coverage can finish while this tab is hidden. Consume it now:
+          // no later coverage update would clear a newly added pending state.
+          const pending = !bundle && (props.coverage.checkedSignature !== props.coverage.signature || props.coverage.loading);
+          pendingCoverageRoute.current = pending ? { signature: props.coverage.signature, key: selectedLeg.key } : null;
+          displayRouteData(routeDestination, routeStart, routeStartLabel, bundle || {}, pending);
+        } else {
+          pendingCoverageRoute.current = null;
+          void loadRoutes(routeDestination, routeStart, routeStartIsPrivate, routeStartLabel);
+        }
+      } else if (pendingCoverageRoute.current) {
+        const pending = pendingCoverageRoute.current;
+        if (pending.signature !== props.coverage.signature || pending.key !== selectedLeg?.key) pendingCoverageRoute.current = null;
+        else {
+          const bundle = props.coverage.data[pending.key];
+          if (bundle || (!props.coverage.loading && props.coverage.checkedSignature === pending.signature)) {
+            pendingCoverageRoute.current = null;
+            displayRouteData(routeDestination, routeStart, routeStartLabel, bundle || {});
+          }
+        }
+      }
       return;
     }
+    pendingCoverageRoute.current = null;
 
     // After a date, order or place change, use that date's current predecessor.
     // Never reuse the departure point from a different day's displayed journey.
@@ -153,7 +183,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       && routeStartIsPrivate === leg.blocked;
     if (sameMode && previous?.region === region && sameJourney) return;
     void loadRoutes(leg.place, leg.from, leg.blocked, leg.fromLabel);
-  }, [props.mapEnabled, props.tripSelection.storageReady, props.tripSelection.travelStart, props.coverage.legs, activeDay, structureSignature, region, routeTravelMode, routeDestination, routeStart, routeStartIsPrivate, routeStartLabel, loadRoutes, resetRouteData]);
+  }, [props.mapEnabled, props.tripSelection.storageReady, props.tripSelection.travelStart, props.coverage.legs, props.coverage.signature, props.coverage.checkedSignature, props.coverage.data, props.coverage.loading, activeDay, structureSignature, region, routeTravelMode, routeDestination, routeStart, routeStartIsPrivate, routeStartLabel, loadRoutes, resetRouteData, displayRouteData]);
 
   if (!props.tripSelection.travelStart) return <InitialTripSetup trip={props.tripSelection} />;
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">

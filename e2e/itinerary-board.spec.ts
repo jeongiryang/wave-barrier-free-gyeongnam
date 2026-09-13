@@ -131,6 +131,11 @@ test("다른 지역으로 이동해도 이전 지역 장소가 날짜별 일정�
 for (const width of [1440, 960, 390]) test(`${width}px에서 일정 편집 조작이 장소 설명을 가리지 않는다`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 900 }); await setup(page); await twoPlaces(page);
   const itinerary = page.locator("#itinerary"), cards = itinerary.locator(".simple-stops > li");
+  // Opening the itinerary loads the board lazily; measure the rendered rows,
+  // never the empty DOM while its module is still being requested.
+  await expect(cards).toHaveCount(2);
+  await expect(cards.nth(0)).toBeVisible();
+  await expect(cards.nth(1)).toBeVisible();
   const layout = await cards.evaluateAll(items => items.map(item => {
     const card = item.getBoundingClientRect(), copy = item.querySelector(".simple-stop-copy")!.getBoundingClientRect();
     const edit = item.querySelector(".simple-edit-stop")!.getBoundingClientRect(), controls = item.querySelector(".simple-stop-controls")!.getBoundingClientRect();

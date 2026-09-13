@@ -35,7 +35,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
   const requestSignatureRef = useRef("");
 
   const abortPlan = useCallback(() => { planRequestRef.current?.abort(); revealRef.current?.(); }, []);
-  const runPlan = useCallback(async ({ resetRouteData, resetAudio, requestedTheme = theme, requestedRegion = region, requestedFacilities = selected, page = 1, onRevealResults }: PlanRunOptions, revealResults = true) => {
+  const runPlan = useCallback(async ({ resetAudio, requestedTheme = theme, requestedRegion = region, requestedFacilities = selected, page = 1, onRevealResults }: PlanRunOptions, revealResults = true) => {
     if (!requestedRegion) return false;
     planRequestRef.current?.abort();
     revealRef.current?.();
@@ -76,7 +76,8 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       if (controller.signal.aborted) return false;
       const data = planResponse(response);
       resetAudio();
-      resetRouteData();
+      // Search results do not change the saved itinerary or its selected route.
+      // The itinerary workspace refreshes routes only when that journey changes.
       const previous = latestPlan.current;
       const incomingIds = new Set([...data.places, ...(data.explorationPlaces || []), ...(data.excludedPlaces || [])].map(place => place.id));
       const merge = (old: typeof data.places = [], next: typeof data.places = []) => [...old.filter(place => !incomingIds.has(place.id)), ...next];

@@ -67,12 +67,13 @@ for (const theme of ["light", "dark"] as const) {
         expect(box!.x).toBeGreaterThanOrEqual(0);
         expect(box!.x + box!.width).toBeLessThanOrEqual(width);
       }
-      const textFits = await modes.locator("button").evaluateAll((buttons) => buttons.every((button) => {
+      const overflowing = await modes.locator("button").evaluateAll((buttons) => buttons.map((button) => {
         const label = button.querySelector("div")!;
         const time = button.querySelector("strong")!;
-        return label.scrollWidth <= label.clientWidth && label.getBoundingClientRect().right <= time.getBoundingClientRect().left;
-      }));
-      expect(textFits).toBe(true);
+        return { name: label.textContent, labelScroll: label.scrollWidth, labelWidth: label.clientWidth,
+          labelRight: label.getBoundingClientRect().right, timeLeft: time.getBoundingClientRect().left };
+      }).filter(item => item.labelScroll > item.labelWidth || item.labelRight > item.timeLeft));
+      expect(overflowing, `${width}px mode labels stay inside their own columns`).toEqual([]);
       expect((await new AxeBuilder({ page }).include(".route-compare-panel").analyze()).violations).toEqual([]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
       await panel.screenshot({ path: test.info().outputPath(`route-${width}-${theme}.png`) });

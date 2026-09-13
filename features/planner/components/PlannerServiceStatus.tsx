@@ -18,22 +18,9 @@ export interface PlannerServiceStatusProps {
 }
 
 export default function PlannerServiceStatus(props: PlannerServiceStatusProps) {
-  const { locale, effectiveProviders, liveCount } = props;
   const [open, setOpen] = useState(false);
-  const connectedTransportCount = effectiveProviders.filter((item) => item.state === "connected").length;
-  const readyTransportCount = effectiveProviders.filter((item) => item.state === "ready").length;
-  const transportStatus = connectedTransportCount
-    ? `${connectedTransportCount}개 직접 확인`
-    : effectiveProviders.some((item) => item.state === "error")
-      ? "확인 지연"
-      : readyTransportCount
-        ? "조회 준비"
-        : "준비";
-  return <details className="planner-service-status" onToggle={event => setOpen(event.currentTarget.open)}>
-    <summary>
-      <span><small>문제 해결</small><strong>서비스 상태와 데이터 제공 범위</strong></span>
-      <span className="service-status-summary">관광정보 {liveCount ? `${liveCount}개 확인` : "준비"} · 교통정보 {transportStatus} · {locale.toUpperCase()}</span>
-    </summary>
+  return <details lang="ko" className="planner-service-status" onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary>정보 연결 상태<span aria-hidden="true">⌄</span></summary>
     {open && <Suspense fallback={<LoadingState>상태 정보를 준비하고 있어요.</LoadingState>}><PlannerServiceDiagnostics {...props} /></Suspense>}
   </details>;
 }

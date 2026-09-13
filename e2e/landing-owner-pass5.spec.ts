@@ -1,14 +1,28 @@
 import { test, expect } from "@playwright/test";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
-import { prepareStory, storyReady, chapterIds, chapterNames, firstRegions } from "./landing-contract";
+import { prepareStory, storyReady, chapterIds, firstRegions } from "./landing-contract";
 
 test.beforeEach(async ({ page }) => { await prepareStory(page); });
 
 test("the four-section registry matches actual reading order without replacing history or saved trip state", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/"); await storyReady(page);
-  await expect(page.locator("main section[id]").locator("h1,h2")).toHaveText(chapterNames.ko);
-  expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
+  const sections = page.locator("main section[id]");
+  expect(await sections.evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
+  // Chapter labels are navigation shorthand. Check the actual reading headings
+  // and their section associations independently of that shorthand.
+  const headings = [
+    /경남 여행지를 찾고\s*일정을 짜보세요\./,
+    "지역으로 둘러보기", "장소 선택부터 일정 공유까지", "나루에게 말해보세요",
+  ];
+  await expect(sections.locator("h1,h2")).toHaveText(headings);
+  for (const [index, id] of chapterIds.entries()) {
+    const section = page.locator(`#${id}`);
+    const heading = section.getByRole("heading", { level: index === 0 ? 1 : 2 });
+    await expect(heading).toBeVisible();
+    await expect(heading).toHaveText(headings[index]);
+    await expect(section).toHaveAttribute("aria-labelledby", await heading.getAttribute("id") as string);
+  }
   await page.evaluate(() => history.replaceState({ ...history.state, storyTestMarker: "preserve" }, "", location.href));
   await expect.poll(() => page.evaluate(() => [localStorage.getItem("wave-locale"), localStorage.getItem("wave-theme")])).toEqual(["ko", "light"]);
   const state = await page.evaluate(() => ({ ...localStorage }));

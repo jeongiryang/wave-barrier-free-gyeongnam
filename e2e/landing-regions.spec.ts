@@ -5,50 +5,54 @@ import { regionNames } from "../lib/gyeongnam-region-names";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 import AxeBuilder from "@axe-core/playwright";
 
-test("실제 경계와 18개 텍스트 선택 대안은 같은 지역을 가리킨다", async ({ page }) => {
+test("regional entry: all 18 landing links and the planner selector use the same canonical regions", async ({ page }) => {
   await mockPlannerApi(page);
-  await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
-  await page.goto("/planner");
-  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
-  await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  const section = page.locator(".region-picker");
-  await section.scrollIntoViewIfNeeded();
-  await section.locator(".region-map-disclosure summary").click();
-  const surface = section.locator("svg");
-  await expect(surface).toHaveAttribute("viewBox", "0 0 800 814");
-  const shapes = surface.locator("[data-region-boundary]");
-  const markers = section.locator(".region-picker-list button:not(:first-child)");
-  await expect(shapes).toHaveCount(18);
-  await expect(markers).toHaveCount(18);
-  const expectedNames = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
-  expect((await markers.allTextContents()).map(value => value.trim()).sort()).toEqual([...expectedNames].sort());
-  expect((await shapes.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-region-boundary")))).sort()).toEqual([...expectedNames].sort());
-  await expect(surface.locator('[data-selected="true"]')).toHaveCount(0);
-  await expect(section.locator('[data-region-marker] svg, [data-region-marker] img')).toHaveCount(0);
-  await expect(page.locator('img[src*="wikimedia.org"]')).toHaveCount(0);
-  const positions = await shapes.evaluateAll((nodes) => {
-    const measured: Record<string, { x: number; y: number; width: number; height: number }> = {};
-    for (const node of nodes) {
-      const box = (node as SVGGraphicsElement).getBBox();
-      measured[node.getAttribute("data-region-boundary") || ""] = { x: box.x+box.width/2, y: box.y+box.height/2, width: box.width, height: box.height };
-    }
-    return measured;
-  });
-  for (const position of Object.values(positions)) {
-    expect(position.width).toBeGreaterThan(0); expect(position.height).toBeGreaterThan(0);
-    expect(position.x).toBeGreaterThan(0); expect(position.x).toBeLessThan(800);
-    expect(position.y).toBeGreaterThan(0); expect(position.y).toBeLessThan(814);
+  await prepareStory(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/"); await storyReady(page);
+  const section = page.locator("#regions");
+  const expand = section.getByRole("button", { name: "18개 지역 모두 보기", exact: true });
+  await expect(expand).toBeEnabled();
+  await expand.focus(); await expand.press("Space");
+  const links = section.locator(".simple-region-link");
+  await expect(links).toHaveCount(18);
+  const destinations: string[] = [];
+  for (const link of await links.all()) {
+    const url = new URL((await link.getAttribute("href"))!, page.url());
+    expect(url.origin).toBe(new URL(page.url()).origin);
+    expect(url.pathname).toBe("/planner");
+    const name = url.searchParams.get("region")!;
+    expect([...url.searchParams]).toEqual([["region", name]]);
+    destinations.push(name);
+    await expect(link).toHaveAccessibleName(`${name} 여행지 보기`);
   }
-  expect(positions["거창"].x).toBeLessThan(positions["합천"].x);
-  expect(positions["합천"].x).toBeLessThan(positions["창녕"].x);
-  expect(positions["창녕"].x).toBeLessThan(positions["양산"].x);
-  expect(positions["거창"].y).toBeLessThan(positions["남해"].y);
-  const geochang = markers.filter({ hasText: "거창" });
-  await geochang.focus(); await geochang.press("Enter");
-  await expect(geochang).toBeFocused();
-  await expect(geochang).toHaveAttribute("aria-pressed", "true");
-  await expect(surface.locator('[data-region-boundary="거창"]')).toHaveAttribute("data-selected", "true");
-  await expect(section.locator("svg text")).toHaveText("거창");
+  expect(destinations.sort()).toEqual([...allRegions].sort());
+  await expect(section.locator("[data-region-boundary]")).toHaveCount(0);
+  const destination = section.getByRole("link", { name: "거창 여행지 보기", exact: true });
+  await expectUsableTarget(destination);
+  const opened = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === "/api/wave" && url.searchParams.get("action") === "plan" && url.searchParams.get("region") === "거창";
+  });
+  await destination.press("Enter");
+  await (await opened).finished();
+  await expect(page).toHaveURL(url => url.pathname === "/planner" && url.searchParams.get("region") === "거창");
+  const select = page.getByRole("combobox", { name: "여행 지역", exact: true });
+  await expect(select).toHaveValue("거창");
+  const options = await select.locator("option").evaluateAll(nodes => nodes.map(node => (node as HTMLOptionElement).value).filter(value => value && value !== "경남 전체"));
+  expect(options.sort()).toEqual(destinations);
+  await expect(page.locator(".simple-results h2")).toHaveText("거창 여행지");
+  const changed = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === "/api/wave" && url.searchParams.get("action") === "plan" && url.searchParams.get("region") === "통영";
+  });
+  await select.focus(); await select.selectOption("통영");
+  await (await changed).finished();
+  await expect(select).toHaveValue("통영");
+  await expect(select).toBeFocused();
+  await expect(page).toHaveURL(url => url.pathname === "/planner" && url.searchParams.get("region") === "통영");
+  await expect(page.locator(".simple-results h2")).toHaveText("통영 여행지");
+  await expectNoOverflow(page);
 });
 
 

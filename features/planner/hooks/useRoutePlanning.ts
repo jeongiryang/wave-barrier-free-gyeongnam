@@ -17,7 +17,9 @@ export function useRoutePlanning(region: string, journey: Parameters<typeof useR
   const { displayRouteData } = routeRequest;
   const showItineraryRoute = useCallback((...args: Parameters<typeof displayRouteData>) => {
     displayRouteData(...args);
-    setRouteNotice(routeResultNotice(args[3].alternatives || []));
+    setRouteNotice(args[4]
+      ? { ko: "일정의 이동 구간을 확인하고 있어요.", en: "Checking the journey in your itinerary." }
+      : routeResultNotice(args[3].alternatives || []));
   }, [displayRouteData, setRouteNotice]);
 
   const loadRoutes = useCallback(async (

@@ -69,9 +69,13 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     await page.goto("/planner");
     await chooseTripConditions(page);
     await page.getByRole("button", { name: "경남도립미술관 일정에 담기" }).click();
+    // Choose the initial transport before the first map opens. This keeps the
+    // real first-map request distinct from the automatic coverage being held;
+    // later mode changes now correctly reuse coverage rather than fetch twice.
+    await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+    await page.locator(".simple-initial-setup").getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("car");
     await openPlannerMap(page);
     await openRouteDetails(page);
-    await page.locator(".itinerary-route-coverage select").selectOption("car");
     await expect(page.locator("#itinerary-stop-1001 time")).toHaveText("10:25");
     await expect(page.locator(".map-load-placeholder")).toBeVisible();
     expect(heldMapRequests, "the delayed-map fixture must intercept the module request").toBeGreaterThan(0);

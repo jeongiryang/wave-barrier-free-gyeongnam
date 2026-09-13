@@ -29,6 +29,7 @@ import RecommendationWorkspace from "../../features/planner/components/Recommend
 import DepartureReadinessCard from "../../features/planner/components/DepartureReadinessCard";
 import TravelSignalsPanel from "../../features/planner/components/TravelSignalsPanel";
 import PlannerItineraryWorkspace from "../../features/planner/components/PlannerItineraryWorkspace";
+import PlannerServiceStatus from "../../features/planner/components/PlannerServiceStatus";
 import { useAudioGuide } from "../../features/planner/hooks/useAudioGuide";
 import { useLocationSearch } from "../../features/planner/hooks/useLocationSearch";
 import { usePlannerParticipation } from "../../features/planner/hooks/usePlannerParticipation";
@@ -201,6 +202,9 @@ export default function PlannerPage() {
   });
   const {
     effectiveProviders,
+    liveCount,
+    providerErrors,
+    dataErrors,
     richItems,
     visitorTypes,
     demandMax,
@@ -377,7 +381,7 @@ export default function PlannerPage() {
     </div>
     <div hidden={browsing} className="simple-itinerary-view">
       <PlannerItineraryWorkspace active={!browsing}
-                alternativeTools={<><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /><Suspense fallback={<LoadingState>코스 도구를 준비하고 있어요.</LoadingState>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={setSelectedPlace}/></Suspense><Suspense fallback={<LoadingState>음성·문자 도구를 준비하고 있어요.</LoadingState>}><VoiceTripControls trip={tripSelection} places={activePlaces} current={planController.resultCurrent} visible={stageView.view === "overview" || journey.activeStepId === "itinerary"} contextKey={JSON.stringify([region,theme,selected,origin,privateOrigin])} onSelectPlace={setSelectedPlace}/></Suspense></>}
+                alternativeTools={<><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /><Suspense fallback={<LoadingState>코스 도구를 준비하고 있어요.</LoadingState>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={setSelectedPlace}/></Suspense><Suspense fallback={<LoadingState>음성·문자 도구를 준비하고 있어요.</LoadingState>}><VoiceTripControls trip={tripSelection} places={activePlaces} current={planController.resultCurrent} visible={stageView.view === "overview" || journey.activeStepId === "itinerary"} contextKey={JSON.stringify([region,theme,selected,origin,privateOrigin])} onSelectPlace={setSelectedPlace}/></Suspense><PlannerServiceStatus locale={locale} keyHealth={keyHealth} effectiveProviders={effectiveProviders} transportProviders={transportProviders} providerErrors={providerErrors} liveCount={liveCount} dataErrors={dataErrors} plan={plan}/></>}
                 mapView={itineraryMapView}
                 onMapViewChange={setItineraryMapView}
                 canAddPlaces={planController.resultCurrent}

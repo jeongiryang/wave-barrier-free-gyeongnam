@@ -90,5 +90,5 @@ export function useItineraryRoutes(trip: ReturnType<typeof useTripSelection>, ro
     return () => window.clearTimeout(timer);
   }, [signature, trip.storageReady, legs.length, loading]);
 
-  return { costByPlaceId, walkingByPlaceId, resetItineraryRoutes, legs, data, loading, notice, signature, readyCount, complete: legs.length > 0 && readyCount === legs.length, routeMinutes, checkRoutes, cancel: () => controllerRef.current?.abort() };
+  return { costByPlaceId, walkingByPlaceId, resetItineraryRoutes, legs, data, loading, notice, signature, checkedSignature: evidence.signature, readyCount, complete: legs.length > 0 && readyCount === legs.length, routeMinutes, checkRoutes, cancel: () => controllerRef.current?.abort() };
 }

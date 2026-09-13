@@ -58,7 +58,7 @@
 .travel-layers > summary small { color: var(--muted); font-weight: 700; }.travel-signal-content { padding: 0 clamp(20px,4.2vw,58px) 36px; }
 
 /* 길찾기 결과는 목적이 아니라 이동수단별 최소 시간으로 먼저 비교한다. */
-.route-mode-sections { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.route-mode-sections { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,300px),1fr)); gap: 8px; }
 .route-mode-sections button { min-height: 72px; padding: 12px 13px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; border: 1px solid #cfdee5; border-radius: 14px; color: var(--ink); background: #fff; text-align: left; cursor: pointer; transition: .2s ease; }
 .route-mode-sections button:hover { border-color: #82bbd2; transform: translateY(-1px); }
 .route-mode-sections button.active { color: #fff; border-color: #062736; background: #062736; box-shadow: 0 10px 24px rgb(6 39 54 / 16%); }

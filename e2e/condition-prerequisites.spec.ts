@@ -101,6 +101,10 @@ for (const locale of ["ko", "en"] as const) {
     await mockPlannerApi(page, { preserveView: true });
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
     const gate = deferred(), searches: URL[] = [];
+    const mapRequests: string[] = [];
+    page.on("request", request => {
+      if (["/api/map-config", "/api/route"].includes(new URL(request.url()).pathname)) mapRequests.push(request.url());
+    });
     await page.route("**/api/wave?**", async route => {
       const url = new URL(route.request().url());
       if (url.searchParams.get("action") !== "plan") return route.fallback();
@@ -142,11 +146,30 @@ for (const locale of ["ko", "en"] as const) {
       expect(selected.ids).toEqual(["1001"]); expect(selected.profiles).toEqual([]);
       expect(selected.schedule).toMatchObject({ travelStart: "2026-09-20", travelEnd: "2026-09-21", scheduleAssignments: { "1001": "2026-09-20" } });
       if (mobileLayout) {
+        const map = page.locator(".simple-itinerary-map");
+        await expect(page.locator(".coverage-notice")).toContainText(en ? "Recheck any unavailable journeys before leaving." : "조회가 끝났습니다.");
+        await expect(map.locator(".route-options")).toHaveAttribute("aria-busy", "false");
+        const pane = await map.locator(".leaflet-map-pane").elementHandle();
+        expect(pane).not.toBeNull();
+        const requestsBeforeToggle = [...mapRequests];
+        await page.clock.install();
         await view.getByRole("button", { name: "시간표", exact: true }).click();
-        await expect(page.locator(".simple-itinerary-map")).toHaveCount(0);
+        // A previously opened SDK stays mounted, but native hidden removes its
+        // controls from reading order and sequential keyboard navigation.
+        await expect(map).toHaveCount(1);
+        await expect(map).toBeHidden();
+        await expect(map).toHaveAttribute("hidden", "");
+        await expect(map.getByRole("button")).toHaveCount(0);
         await expect(page.locator(".simple-timeboard")).toBeVisible();
+        await page.locator(".simple-day-options > summary").focus();
+        await page.keyboard.press("Tab");
+        await expect(page.locator("#itinerary > .simple-more-trip-tools > summary")).toBeFocused();
         await view.getByRole("button", { name: "지도", exact: true }).click();
-        await expect(page.locator(".simple-itinerary-map .leaflet-container")).toBeVisible();
+        await expect(view.getByRole("button", { name: "지도", exact: true })).toHaveAttribute("aria-pressed", "true");
+        await expect(map.locator(".leaflet-container")).toBeVisible();
+        await page.clock.runFor(1000);
+        expect(await map.locator(".leaflet-map-pane").evaluate((node, previous) => node === previous, pane!)).toBe(true);
+        expect(mapRequests).toEqual(requestsBeforeToggle);
       }
       expect(await currentTrip(page)).toEqual(selected);
     } finally { gate.release(); }

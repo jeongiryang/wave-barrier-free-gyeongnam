@@ -23,7 +23,17 @@ async function prepare(page: Page, locale: "ko" | "en" = "en") {
   await page.goto("/planner");
   await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
   await page.locator('.simple-facility-trigger').click(); const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
-  await picker.getByRole('checkbox', { name: '접근로', exact: true }).check(); await picker.getByRole('button', { name: /^적용/ }).click();
+  await picker.getByRole('checkbox', { name: '접근로', exact: true }).check();
+  // Opening the previous region-only result during the automatic search debounce
+  // correctly makes its detail stale. Exercise the requested facility result.
+  const currentResult = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === '/api/wave' && url.searchParams.get('action') === 'plan'
+      && url.searchParams.get('region') === '창원' && url.searchParams.get('facilityKeys') === 'route';
+  });
+  await picker.getByRole('button', { name: /^적용/ }).click();
+  await (await currentResult).finished();
+  await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'false');
   const trigger = page.locator('.simple-place-row h3 button');
   await trigger.click();
   await expect(page.getByRole("dialog").getByRole("heading", { level: 2 })).toBeFocused();
@@ -149,4 +159,10 @@ test("a failed visitor story module leaves facility evidence and a community alt
   await expect(dialog.getByRole("button", { name: "Add to itinerary", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");
   await expect(trigger).toBeFocused();
+  await trigger.click();
+  await dialog.getByRole("button", { name: "Add to itinerary", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  const draft = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values);
+  expect(JSON.parse(draft["wave-saved-places"] || "[]")).toEqual([place.id]);
+  expect(JSON.parse(draft["wave-trip-schedule-v1"] || "{}").travelStart || "").toBe("");
 });

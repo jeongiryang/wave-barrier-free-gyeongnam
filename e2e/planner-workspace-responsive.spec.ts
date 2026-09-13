@@ -25,6 +25,10 @@ test("workspace keeps two-screen navigation and one itinerary usable across desk
   await page.emulateMedia({ reducedMotion: "reduce" });
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
+  const mapRequests: string[] = [];
+  page.on("request", request => {
+    if (["/api/map-config", "/api/route"].includes(new URL(request.url()).pathname)) mapRequests.push(request.url());
+  });
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.goto("/planner");
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
@@ -36,6 +40,13 @@ test("workspace keeps two-screen navigation and one itinerary usable across desk
   const before = await tripSnapshot(page);
   const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
   const timetable = page.locator(".simple-timeboard"), map = page.locator(".simple-itinerary-map");
+  await expect(map.locator(".leaflet-container")).toBeVisible();
+  await expect(page.locator(".coverage-notice")).toContainText("조회가 끝났습니다.");
+  await expect(map.locator(".route-options")).toHaveAttribute("aria-busy", "false");
+  const pane = await map.locator(".leaflet-map-pane").elementHandle();
+  expect(pane).not.toBeNull();
+  const requestsBeforeResize = [...mapRequests];
+  await page.clock.install();
 
   for (const width of [1440, 1180, 960, 641, 390]) {
     await page.setViewportSize({ width, height: 960 });
@@ -52,15 +63,28 @@ test("workspace keeps two-screen navigation and one itinerary usable across desk
       expect(right.x + right.width).toBeLessThanOrEqual(width);
     } else {
       await expect(mode.getByRole("button", { name: "시간표", exact: true })).toHaveAttribute("aria-pressed", "true");
-      await expect(map).toHaveCount(0);
+      // Keep the opened SDK, while excluding hidden map controls from both
+      // the accessibility tree and the keyboard path to the trip tools.
+      await expect(map).toHaveCount(1);
+      await expect(map).toBeHidden();
+      await expect(map).toHaveAttribute("hidden", "");
+      await expect(map.getByRole("button")).toHaveCount(0);
+      await timetable.locator(".simple-day-options > summary").focus();
+      await page.keyboard.press("Tab");
+      await expect(page.locator("#itinerary > .simple-more-trip-tools > summary")).toBeFocused();
       for (const action of await mode.getByRole("button").all()) await expectTouchable(action);
       await mode.getByRole("button", { name: "지도", exact: true }).click();
+      await expect(mode.getByRole("button", { name: "지도", exact: true })).toHaveAttribute("aria-pressed", "true");
       await expect(map.locator(".leaflet-container")).toBeVisible();
       await expect(timetable).toBeHidden();
       expect(await tripSnapshot(page)).toEqual(before);
       await mode.getByRole("button", { name: "시간표", exact: true }).click();
       await expect(timetable).toBeVisible();
+      await expect(map).toBeHidden();
     }
+    await page.clock.runFor(1000);
+    expect(await map.locator(".leaflet-map-pane").evaluate((node, previous) => node === previous, pane!)).toBe(true);
+    expect(mapRequests).toEqual(requestsBeforeResize);
     for (const action of [...await tabs.getByRole("button").all(), page.getByRole("button", { name: "여행 설정", exact: true }), page.getByRole("button", { name: "내 여행에 저장", exact: true }), page.getByRole("button", { name: "공유", exact: true })]) await expectTouchable(action);
     expect(await tripSnapshot(page)).toEqual(before);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

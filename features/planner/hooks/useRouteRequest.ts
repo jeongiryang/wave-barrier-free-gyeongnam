@@ -124,10 +124,10 @@ export function useRouteRequest(region: string) {
     setRouteOrigin(null);
   }, []);
 
-  const displayRouteData = useCallback((place: Place, start: RoutePoint, label: string, bundle: RouteDataBundle) => {
+  const displayRouteData = useCallback((place: Place, start: RoutePoint, label: string, bundle: RouteDataBundle, pending = false) => {
     routeRequestRef.current?.abort();
     routeRequestRef.current = null;
-    setRouteLoading(false);
+    setRouteLoading(pending);
     setRouteFailed(false);
     setRouteDestination(place);
     // Only public, unblocked itinerary legs are fetched and displayed here.

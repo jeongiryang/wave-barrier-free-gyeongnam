@@ -89,6 +89,10 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
 .planner-simple .naru-launcher { width: 64px; height: 64px; min-height: 64px; padding: 5px; border-radius: 50%; border-color: var(--line); bottom: max(20px,env(safe-area-inset-bottom)); box-shadow: 0 4px 16px #162c241a; }
 .planner-simple .naru-launcher > span:last-child:not(.naru-avatar) { display: none; }
 .planner-simple > .simple-footer { margin: 40px 0 0; width: 100%; padding: 32px var(--wave-gutter) 100px; background: var(--paper); }
+@media(min-width:768px) {
+  /* Keep a side margin for Naru so scrolling never places a trip action behind it. */
+  .planner-simple .simple-planner-heading,.planner-simple .planner-journey-workspace { width: auto; max-width: 1600px; margin-left: max(var(--wave-gutter),calc((100% - 1600px) / 2)); margin-right: max(104px,calc((100% - 1600px) / 2)); }
+}
 @media(min-width:1024px) {
   .planner-simple:has(.naru-panel[open]):not(:has(.naru-panel[hidden])) .planner-journey-workspace,.planner-simple:has(.simple-place-pane[open]) .planner-journey-workspace { width: auto; margin-left: var(--wave-gutter); margin-right: calc(min(42vw,560px) + var(--wave-gutter) + 28px); }
 }
@@ -295,3 +299,8 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 .simple-audio-journal .transcript-button span { font-size: 13px; }
 .simple-audio-journal .transcript { color: var(--ink); background: var(--paper); border-radius: 8px; font-size: 16px; }
 .simple-audio-journal .guide-player > [role=alert] { margin: 16px; color: var(--ink); }
+.simple-more-trip-tools .planner-service-status { margin-top: 16px; border-color: var(--line); background: var(--surface); }
+.simple-more-trip-tools .planner-service-status > summary { min-height: 48px; padding: 12px 0; font-size: 16px; }
+.simple-more-trip-tools .planner-service-status .connection-diagnostics { padding: 16px; background: var(--paper); border-color: var(--line); animation: none; }
+.simple-more-trip-tools .connection-diagnostics :is(header > p,footer,.diagnostic-grid p,.diagnostic-grid span) { font-size: 14px; color: var(--muted); }
+.simple-more-trip-tools .diagnostic-grid strong { font-size: 16px; }
