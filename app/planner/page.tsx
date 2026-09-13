@@ -268,11 +268,17 @@ export default function PlannerPage() {
     setRouteNotice,
   });
 
+  const searchKey = JSON.stringify([region, theme, selected]);
+  const automaticSearch = useRef("");
+
   async function generatePlan(revealResults = true, requestedTheme = theme) { await searchPlaces(revealResults, requestedTheme); }
   async function searchPlaces(revealResults = true, requestedTheme = theme) {
     const requestedRegion = region || "경남 전체";
     const effectiveTheme = requestedTheme;
     if (!region) planController.setRegion(requestedRegion);
+    // A manual refresh also fulfils the pending search for these conditions.
+    // Otherwise its completion schedules a second request after the debounce.
+    automaticSearch.current = JSON.stringify([requestedRegion, effectiveTheme, selected]);
     return await runPlan({
       requestedRegion, requestedTheme: effectiveTheme,
       resetRouteData,
@@ -281,8 +287,6 @@ export default function PlannerPage() {
     }, revealResults);
   }
 
-  const searchKey = JSON.stringify([region, theme, selected]);
-  const automaticSearch = useRef("");
   useEffect(() => {
     if (!hydrated || !planController.criteriaReady || !tripSelection.storageReady || !region || planController.loading || automaticSearch.current === searchKey) return;
     const timer = setTimeout(() => {

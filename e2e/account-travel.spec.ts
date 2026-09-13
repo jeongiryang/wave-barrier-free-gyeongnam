@@ -60,7 +60,11 @@ test("signed-out account travel remains private and help explains real entry poi
   await expect(page.getByRole("link", { name: "로그인하고 이어가기" })).toBeVisible();
   expect(privateRequests).toBe(0);
   await page.goto("/guide");
-  await expect(page.getByRole("heading", { name: "01. 내 여행을 여러 기기에서 이어가기" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "03. 동행자와 함께 계획하기" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "내 여행 저장과 이어하기", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "동행자 초대", exact: true })).toBeVisible();
+  const savedTravelGuide = page.locator("#account-travel-guide");
+  await expect(savedTravelGuide.getByRole("link", { name: "이 기기에 저장한 여행", exact: true })).toHaveAttribute("href", "/travel-book");
+  await expect(savedTravelGuide.getByRole("link", { name: "계정에 저장한 여행", exact: true })).toHaveAttribute("href", "/my-trips");
+  expect(privateRequests).toBe(0);
   expect((await new AxeBuilder({ page }).include("#account-travel").analyze()).violations).toEqual([]);
 });

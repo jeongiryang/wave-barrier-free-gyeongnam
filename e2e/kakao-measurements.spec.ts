@@ -44,20 +44,21 @@ test("inconsistent provider measurements stay unavailable and a deliberate reche
   await expect(panel.getByRole("button", { name: /자동차/ })).toContainText("시간 정보 없음");
   await expect(panel.getByRole("link", { name: /카카오맵에서 자동차 확인/ })).toBeVisible();
   await panel.screenshot({ path: test.info().outputPath("measurement-unavailable.png") });
-  // One request checks the selected map leg; one checks the same leg for the
-  // complete itinerary. Await the automatic check before deliberate retries.
-  await expect.poll(() => completed).toBe(2);
+  // The car mode change checks this itinerary leg once. The map uses that
+  // exact completed coverage bundle instead of requesting it a second time.
+  await expect.poll(() => completed).toBe(1);
   await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
-  expect(requests).toHaveLength(2);
-  expect(requests[1]).toBe(requests[0]);
+  await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
+  expect(requests).toHaveLength(1);
   expect(Object.fromEntries(new URL(requests[0]).searchParams)).toEqual({ startLat: "35.2422", startLng: "128.6982", endLat: "35.238", endLng: "128.691", mode: "car" });
 
   seconds = 900;
   await page.getByRole("button", { name: "다시 계산", exact: true }).click();
   await expect(panel.locator(".route-option")).toHaveCount(1);
   await expect(panel.locator(".route-option").getByText("15분", { exact: true })).toBeVisible();
-  expect(requests).toHaveLength(3);
-  expect(requests[2]).toBe(requests[0]);
+  await expect.poll(() => completed).toBe(2);
+  expect(requests).toHaveLength(2);
+  expect(requests[1]).toBe(requests[0]);
   await expect(page.locator(".simple-stops > li")).toHaveCount(1);
   await panel.screenshot({ path: test.info().outputPath("measurement-recovered.png") });
 
@@ -66,8 +67,9 @@ test("inconsistent provider measurements stay unavailable and a deliberate reche
   const stop = page.locator(".simple-stops > li").first();
   await expect(stop).toContainText("여기까지 이동 301분");
   await expect(stop.locator("time")).toContainText("15:01");
-  expect(requests).toHaveLength(4);
-  expect(requests[3]).toBe(requests[0]);
+  await expect.poll(() => completed).toBe(3);
+  expect(requests).toHaveLength(3);
+  expect(requests[2]).toBe(requests[0]);
   await page.getByRole("button", { name: "여행 설정", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
   await settings.getByLabel("하루 시작", { exact: true }).fill("23:00");
@@ -80,4 +82,6 @@ test("inconsistent provider measurements stay unavailable and a deliberate reche
     if (await timetable.count()) await timetable.click();
     await stop.screenshot({ path: test.info().outputPath(`long-route-arrival-${width}.png`) });
   }
+  await page.clock.install(); await page.clock.runFor(1000);
+  expect(requests).toHaveLength(3);
 });
