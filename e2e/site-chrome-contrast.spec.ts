@@ -1,8 +1,9 @@
 import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
+import { writeFile } from "node:fs/promises";
 import { findLowContrastText, formatFindings } from "./contrast";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
-import { storyReady } from "./landing-contract";
+import { expectUsableTarget, storyReady } from "./landing-contract";
 
 /**
  * 화면 어디에나 있는 공통 요소(환경설정 토글, 지역 칩)와 주요 공개 화면의 글자가
@@ -29,8 +30,12 @@ async function closingPhotoContrast(page: Page, failed: boolean) {
       const s = value / 255;
       return s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4;
     }).reduce((sum, channel, i) => sum + channel * [.2126, .7152, .0722][i], 0);
-    const style = getComputedStyle(root), scrim = getComputedStyle(root, "::before");
+    const style = getComputedStyle(root);
     const photo = root.querySelector(".closing-horizon")!;
+    const scrim = getComputedStyle(photo, "::after");
+    const caption = photo.querySelector("figcaption")!;
+    const captionStyle = getComputedStyle(caption);
+    const image = photo.querySelector("img");
     const frame = root.getBoundingClientRect(), picture = photo.getBoundingClientRect();
     const overlay = rgba(scrim.backgroundColor), alpha = (overlay[3] ?? 1) * Number(scrim.opacity);
     // White is the brightest possible photograph or failed-image backing pixel.
@@ -48,20 +53,31 @@ async function closingPhotoContrast(page: Page, failed: boolean) {
     });
     return {
       isolation: style.isolation, opacity: style.opacity,
-      scrim: { content: scrim.content, position: scrim.position, insets: [scrim.top, scrim.right, scrim.bottom, scrim.left], image: scrim.backgroundImage, color: scrim.backgroundColor, opacity: scrim.opacity },
-      photoBehindScrim: Number(getComputedStyle(photo).zIndex) < Number(scrim.zIndex) && Number(scrim.zIndex) < 0,
+      outerScrim: getComputedStyle(root, "::before").content,
+      scrim: { content: scrim.content, position: scrim.position, insets: [scrim.top, scrim.right, scrim.bottom, scrim.left], image: scrim.backgroundImage, color: scrim.backgroundColor, opacity: scrim.opacity, pointerEvents: scrim.pointerEvents },
+      photoBehindText: Number(getComputedStyle(photo).zIndex) < 0,
+      imageBelowScrim: (!image || getComputedStyle(image).position === "static") && Number(scrim.zIndex) > 0,
+      caption: { color: captionStyle.color, opacity: captionStyle.opacity, aboveScrim: captionStyle.position === "absolute" && Number(captionStyle.zIndex) > Number(scrim.zIndex), links: [...caption.querySelectorAll("a")].map(link => ({ color: getComputedStyle(link).color, opacity: getComputedStyle(link).opacity })) },
       photoFillsFrame: [picture.left - frame.left, picture.top - frame.top, picture.right - frame.right, picture.bottom - frame.bottom].every(value => Math.abs(value) <= 1),
       backing, samples,
     };
   });
   expect(result.isolation).toBe("isolate");
   expect(result.opacity).toBe("1");
+  expect(result.outerScrim).toBe("none");
   expect(result.scrim.content).not.toBe("none");
   expect(result.scrim.position).toBe("absolute");
   expect(result.scrim.insets).toEqual(["0px", "0px", "0px", "0px"]);
   expect(result.scrim.image).toBe("none");
   expect(result.scrim.opacity).toBe("1");
-  expect(result.photoBehindScrim).toBe(true);
+  expect(result.scrim.pointerEvents).toBe("none");
+  expect(result.photoBehindText).toBe(true);
+  expect(result.imageBelowScrim).toBe(true);
+  expect(result.caption.aboveScrim).toBe(true);
+  expect(result.caption.color).toBe("rgb(255, 255, 255)");
+  expect(result.caption.opacity).toBe("1");
+  expect(result.caption.links).toHaveLength(2);
+  for (const link of result.caption.links) expect(link).toEqual({ color: "rgb(255, 255, 255)", opacity: "1" });
   expect(result.photoFillsFrame).toBe(true);
   expect(result.samples).toHaveLength(2);
   for (const sample of result.samples) {
@@ -70,8 +86,21 @@ async function closingPhotoContrast(page: Page, failed: boolean) {
     expect(sample.covered).toBe(true);
     expect(sample.ratio, `${sample.text}: brightest-photo contrast`).toBeGreaterThanOrEqual(4.5);
   }
-  await test.info().attach(failed ? "closing-failed-photo-contrast" : "closing-photo-contrast", { body: Buffer.from(JSON.stringify(result)), contentType: "application/json" });
+  await expect(closing.locator("figcaption")).toHaveAttribute("lang", "ko");
+  // Credits share the same white foreground and scrim lower bound, and paint
+  // above that scrim rather than being dimmed together with the photograph.
+  const credits = closing.locator("figcaption a");
+  for (const credit of await credits.all()) await expectUsableTarget(credit);
+  await credits.first().focus();
+  await page.keyboard.press("Tab");
+  await expect(credits.last()).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(credits.first()).toBeFocused();
   await closing.screenshot({ path: test.info().outputPath(failed ? "closing-photo-failed.png" : "closing-photo-loaded.png") });
+  const evidenceName = failed ? "closing-failed-photo-contrast" : "closing-photo-contrast";
+  const evidencePath = test.info().outputPath(`${evidenceName}.json`);
+  await writeFile(evidencePath, JSON.stringify(result, null, 2));
+  await test.info().attach(evidenceName, { path: evidencePath, contentType: "application/json" });
   return result.samples;
 }
 
