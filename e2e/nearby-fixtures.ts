@@ -15,6 +15,7 @@ export async function nearbyRequests(page: Page) {
   return page.evaluate(() => (window as unknown as { nearbyFixture: NearbyFixture }).nearbyFixture.requests.length);
 }
 export async function deliverNearby(page: Page, index: number, status: string, places: unknown = []) {
+  await expect.poll(() => page.evaluate(index => typeof (window as unknown as { nearbyFixture: NearbyFixture }).nearbyFixture.requests[index]?.callback, index), { message: `Nearby request ${index} must exist before its response is delivered` }).toBe("function");
   await page.evaluate(({ index, status, places }) => (window as unknown as { nearbyFixture: NearbyFixture }).nearbyFixture.requests[index].callback(places, status), { index, status, places });
 }
 export async function openNearby(page: Page, english = false, theme = "light", placeCoordinate?: { mapX: string; mapY: string }) {
@@ -75,8 +76,17 @@ export async function openPlannerMap(page: Page, dates = { start: "2026-10-08" }
   await ensureMapView(page);
 }
 export async function ensureMapView(page: Page) {
-  const toggle = page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "지도", exact: true });
-  if (await toggle.count() && await toggle.getAttribute("aria-pressed") !== "true") await toggle.click();
+  const controls = page.getByRole("group", { name: "일정 보기 방식", exact: true });
+  // Resizing commits the media-query layout asynchronously. Require the current
+  // layout before deciding whether the real timetable/map switch is available.
+  if (await page.evaluate(() => matchMedia("(min-width:1024px)").matches)) {
+    await expect(controls).toHaveCount(0);
+  } else {
+    await expect(controls).toBeVisible();
+    const toggle = controls.getByRole("button", { name: "지도", exact: true });
+    if (await toggle.getAttribute("aria-pressed") !== "true") await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  }
   await expect(page.locator("#navigation")).toBeVisible();
 }
 export async function openRouteDetails(page: Page) {

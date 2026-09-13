@@ -47,6 +47,18 @@ for (const kind of ["base", "layer"]) test(`map ${kind} selection stays true whe
     await page.locator("#map-panel-layers").getByRole("button",{name:"교통정보",exact:true}).click();
   }
   const before=await currentMap(page);expect(before.base).toBe(3);if(kind==="layer")expect(before.layers).toEqual([4]);
+  let beforeEvidenceMap: number | undefined;
+  if (kind === "layer") {
+    let currentEvidenceReceived = false;
+    page.on("response", response => {
+      const url = new URL(response.url());
+      if (url.pathname === "/api/wave" && url.searchParams.get("action") === "places" && url.searchParams.get("ids") === "1001,1002") currentEvidenceReceived = true;
+    });
+    await page.route("**/api/map-config", async route => {
+      if (currentEvidenceReceived) beforeEvidenceMap = (await currentMap(page)).count;
+      await route.fallback();
+    });
+  }
   await addAnotherMapPlace(page);
   await expect(page.locator(".simple-stops > li")).toHaveCount(2);
   await expect.poll(async()=>(await currentMap(page)).count).toBeGreaterThan(before.count);
@@ -56,8 +68,17 @@ for (const kind of ["base", "layer"]) test(`map ${kind} selection stays true whe
   expect((await currentMap(page)).base).toBe(3);
   if(kind==="layer") {await openMapTool(page, "layers");await expect(page.locator("#map-panel-layers").getByRole("button",{name:"교통정보",exact:true})).toHaveAttribute("aria-pressed","true");expect((await currentMap(page)).layers).toEqual([4]);}
   if (kind === "layer") {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await ensureMapView(page);
+    // Rechecked saved-place evidence legitimately replaces the map. Finish that
+    // generation before measuring layout-only changes against the same SDK.
+    await expect.poll(() => beforeEvidenceMap).toBeDefined();
+    await expect.poll(async () => (await currentMap(page)).count).toBeGreaterThan(beforeEvidenceMap!);
+    await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
+    const beforeResize = await currentMap(page);
+    for (const width of [1023, 1024, 1440, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await ensureMapView(page);
+      expect(await currentMap(page), `${width}px layout changes retain the same SDK and selected layers`).toEqual(beforeResize);
+    }
     const beforeToggle = await currentMap(page);
     await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "시간표", exact: true }).click();
     await expect(page.locator("#route-map-canvas")).not.toBeVisible();

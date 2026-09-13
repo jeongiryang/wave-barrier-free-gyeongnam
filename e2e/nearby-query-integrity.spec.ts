@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { deliverNearby, nearbyPlace, nearbyRequests, openNearby, addAnotherMapPlace, ensureMapView, openMapTool } from "./nearby-fixtures";
+import { deliverNearby, nearbyPlace, nearbyRequests, openNearby, addAnotherMapPlace, ensureMapView, openMapTool, type MapLayerFixture } from "./nearby-fixtures";
 
 for (const english of [false, true]) for (const theme of ["light", "dark"]) test(`nearby errors, empty results and explicit retry remain accessible in ${english ? "English" : "Korean"} ${theme}`, async ({ page }) => {
   const errors: string[] = [];
@@ -46,9 +46,25 @@ test("category changes and panel closure reject earlier results without another 
 for (const completed of [false, true]) test(`changing itinerary replaces the map and clears ${completed ? "completed" : "pending"} nearby results`, async ({ page }) => {
   const panel = await openNearby(page);
   await panel.getByRole("button", { name: "음식점", exact: true }).click();
+  await expect.poll(() => nearbyRequests(page)).toBe(1);
   if (completed) { await deliverNearby(page, 0, "OK", [nearbyPlace()]); await expect(panel.locator("article")).toHaveCount(1); }
+  let currentEvidenceReceived = false, beforeEvidenceMap: number | undefined;
+  page.on("response", response => {
+    const url = new URL(response.url());
+    if (url.pathname === "/api/wave" && url.searchParams.get("action") === "places" && url.searchParams.get("ids") === "1001,1002") currentEvidenceReceived = true;
+  });
+  const mapCount = () => page.evaluate(() => (window as unknown as { mapLayerFixture: MapLayerFixture }).mapLayerFixture.maps.length);
+  await page.route("**/api/map-config", async route => {
+    if (currentEvidenceReceived) beforeEvidenceMap = await mapCount();
+    await route.fallback();
+  });
   await addAnotherMapPlace(page);
   await expect(page.locator(".simple-stops > li")).toHaveCount(2);
+  // The new saved IDs trigger a later evidence lookup and another legitimate
+  // map generation. Recheck that complete map, then issue the one fresh search.
+  await expect.poll(() => beforeEvidenceMap).toBeDefined();
+  await expect.poll(mapCount).toBeGreaterThan(beforeEvidenceMap!);
+  await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
   await openMapTool(page, "nearby");
   await expect(panel.getByRole("button", { name: "음식점", exact: true })).toHaveAttribute("aria-pressed", "false");
   await deliverNearby(page, 0, "OK", [nearbyPlace()]);
@@ -56,8 +72,72 @@ for (const completed of [false, true]) test(`changing itinerary replaces the map
   await expect(panel.getByRole("status")).toHaveCount(0);
   expect(await nearbyRequests(page)).toBe(1);
   await panel.getByRole("button", { name: "음식점", exact: true }).click();
+  await expect.poll(() => nearbyRequests(page), { message: "The explicit search on the new map creates exactly one fresh request" }).toBe(2);
   await deliverNearby(page, 1, "OK", [nearbyPlace(2)]);
   await expect(panel.locator("article")).toContainText("검증 장소 2");
+  expect(await nearbyRequests(page)).toBe(2);
+});
+
+test("nearby search waits for the replacement map and needs one explicit request after it is ready", async ({ page }, info) => {
+  const panel = await openNearby(page);
+  const food = panel.getByRole("button", { name: "음식점", exact: true });
+  await food.click();
+  await expect.poll(() => nearbyRequests(page)).toBe(1);
+  await deliverNearby(page, 0, "OK", [nearbyPlace()]);
+  await expect(panel.locator("article")).toHaveCount(1);
+  const mapCount = () => page.evaluate(() => (window as unknown as { mapLayerFixture: MapLayerFixture }).mapLayerFixture.maps.length);
+  const before = await mapCount();
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  let held = 0;
+  let evidenceReceived = false, renderedCurrentEvidence = false;
+  const evidence = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    const current = url.pathname === "/api/wave" && url.searchParams.get("action") === "places" && url.searchParams.get("ids") === "1001,1002";
+    if (current) evidenceReceived = true;
+    return current;
+  });
+  await page.route("**/api/map-config", async route => {
+    held++;
+    if (evidenceReceived) renderedCurrentEvidence = true;
+    await pending;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ provider: "kakao", javascriptKey: "e2e-stub-key" }) });
+  });
+  try {
+    await addAnotherMapPlace(page);
+    await expect.poll(() => held).toBeGreaterThan(0);
+    await expect(page.locator(".map-provider-badge.loading")).toBeVisible();
+    await expect(panel).toBeVisible();
+    await expect(food).toHaveAttribute("aria-pressed", "false");
+    await deliverNearby(page, 0, "OK", [nearbyPlace()]);
+    await expect(panel.locator("article")).toHaveCount(0);
+    await food.focus();
+    await page.keyboard.press("Enter");
+    await info.attach("nearby-search-during-map-replacement", { body: JSON.stringify({ before, during: await mapCount(), requests: await nearbyRequests(page), status: await panel.getByRole("status").allTextContents(), disabled: await food.isDisabled() }, null, 2), contentType: "application/json" });
+    await expect(food).toBeDisabled();
+    await expect(food).toBeFocused();
+    await expect(food).toHaveAttribute("aria-pressed", "false");
+    await expect(panel.getByRole("status")).toContainText("지도를 준비하고 있어요");
+    await expect(panel).not.toContainText("불러오지 못했습니다");
+    expect(await nearbyRequests(page)).toBe(1);
+    expect(await mapCount()).toBe(before);
+    // Saved-place evidence arrives after the itinerary changes. Hold the map
+    // through that response and its renderer request, so the later explicit
+    // search belongs to the completed replacement rather than an interim map.
+    await (await evidence).finished();
+    await expect.poll(() => renderedCurrentEvidence).toBe(true);
+  } finally { release(); }
+  await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
+  await expect.poll(mapCount).toBeGreaterThan(before);
+  await expect(food).toBeEnabled();
+  await expect(food).toHaveAttribute("aria-pressed", "false");
+  expect(await nearbyRequests(page), "Finishing the map replacement must not search automatically").toBe(1);
+  await food.click();
+  await expect.poll(() => nearbyRequests(page)).toBe(2);
+  await deliverNearby(page, 1, "OK", [nearbyPlace(2)]);
+  await expect(panel.locator("article")).toHaveCount(1);
+  await expect(panel.locator("article")).toContainText("검증 장소 2");
+  expect(await nearbyRequests(page)).toBe(2);
 });
 
 for (const failure of ["malformed", "coordinates", "origin", "radius", "throw", "timeout"]) test(`nearby ${failure} failure provides recovery and ignores late data`, async ({ page }) => {

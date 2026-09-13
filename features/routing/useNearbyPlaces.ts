@@ -39,14 +39,16 @@ export function useNearbyPlaces({ kakaoMapRef, choosePlace }: NearbyPlacesOption
   useEffect(() => clearCategoryMarkers, [clearCategoryMarkers]);
 
   function searchNearby(category: (typeof nearbyCategories)[number], retry = false) {
+    // A disposed map must not turn an in-flight click into a false search failure.
+    const map = kakaoMapRef.current;
+    if (!map) return;
     if (retry && pending.current) return;
     if (!retry && activeCategory === category.id) { cancelNearby(); return; }
     clearCategoryMarkers();
     setActiveCategory(category.id);
     setResult({ state: "loading", places: [], omitted: 0 });
-    const map = kakaoMapRef.current;
     const sdk = window.kakao?.maps;
-    if (!map || !sdk?.services) { setResult({ state: "error", places: [], omitted: 0 }); return; }
+    if (!sdk?.services) { setResult({ state: "error", places: [], omitted: 0 }); return; }
     const id = generation.current;
     pending.current = true;
     let settled = false;

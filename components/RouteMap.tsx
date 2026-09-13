@@ -106,6 +106,8 @@ export default function RouteMap(props: RouteMapProps) {
     />
 
     {toolPanel === "nearby" && <NearbyPlacesPanel
+      available={provider === "kakao"}
+      loading={provider === "loading"}
       activeCategory={activeCategory}
       categoryMessage={categoryMessage}
       categoryState={categoryState}
