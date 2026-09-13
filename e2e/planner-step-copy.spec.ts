@@ -18,7 +18,7 @@ async function collectMuseum(page: Page) {
 }
 
 async function expectKoreanHeadings(page: Page) {
-  const headings = await page.locator("main h1:visible, main h2:visible").allInnerTexts();
+  const headings = await page.getByRole("main").locator("h1:visible, h2:visible").allInnerTexts();
   expect(headings.length).toBeGreaterThan(0);
   for (const heading of headings) expect(heading.trim(), "한글이 한 글자도 없는 제목").toMatch(/[가-힣]/);
 }

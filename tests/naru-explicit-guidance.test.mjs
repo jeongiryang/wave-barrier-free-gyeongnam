@@ -5,6 +5,11 @@ import { startNaruGuide, advanceNaruGuide } from '../lib/naru-guided-start.js';
 import { validateAssistantAction } from '../lib/assistant-actions.js';
 import { sanitizeStopPurposes } from '../lib/trip-comfort.js';
 const places = [{ id: '1234', name: '정원' }];
+test('explicit undo uses the current command receipt without waiting for a model response', () => {
+  for (const text of ['되돌려줘', '되돌려 주세요', '마지막 변경 되돌려줘', '실행 취소해줘']) assert.deepEqual(naruDirectCommand(text), { action: 'undo' });
+  for (const text of ['되돌리지 마', '되돌려줘 말고 다음 일정 보여줘', '처음 날짜로 되돌려줘', '되돌리기는 어떻게 해?']) assert.equal(naruDirectCommand(text), null);
+  for (const text of ['되돌려줘 그리고 출발 시간도 오전 11시로 바꿔줘', '되돌려줘 그리고 두 번째 장소도 삭제해줘']) { assert.ok(naruEditClarification(text)); assert.equal(naruDirectCommand(text), null); }
+});
 test('explicit nap and nursing modify rest only; the purpose survives validation/storage', () => {
   for (const [text, purpose] of [['낮잠', 'nap'], ['수유', 'nursing']]) {
     const action = naruDirectCommand(`정원 뒤에 ${text} 60분 넣어줘`, places);

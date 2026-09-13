@@ -3,6 +3,17 @@ import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
+async function ensureResizedMapView(page: Page) {
+  const controls = page.getByRole("group", { name: "일정 보기 방식", exact: true });
+  const narrow = page.viewportSize()!.width < 1024;
+  // The media-query effect commits the two-pane or switchable layout after resize.
+  // Do not let the common helper inspect the previous viewport's missing switch.
+  if (narrow) await expect(controls).toBeVisible();
+  else await expect(controls).toHaveCount(0);
+  await ensureMapView(page);
+  if (narrow) await expect(controls.getByRole("button", { name: "지도", exact: true })).toHaveAttribute("aria-pressed", "true");
+}
+
 async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "unknown" | "arrival", english = false, snapshot?: { retrievedAt?: string }, beforeConditions?: () => Promise<void>) {
   await mockPlannerApi(page, { preserveView: true });
   await page.addInitScript((en) => localStorage.setItem("wave-locale", en ? "en" : "ko"), english);
@@ -85,7 +96,7 @@ for (const english of [false, true]) for (const knownTime of [true, false]) {
     if (knownTime) await expect(panel.locator("time")).toHaveAttribute("datetime", retrievedAt!);
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
     if (!isMobile) await page.setViewportSize({ width: english ? 1440 : 960, height: 900 });
-    await ensureMapView(page);
+    await ensureResizedMapView(page);
     await panel.scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     expect((await new AxeBuilder({ page }).include(".transport-data-panel").include(".transport-live-rail").analyze()).violations).toEqual([]);
@@ -190,7 +201,7 @@ for (const theme of ["light", "dark"] as const) {
     expect(errors).toEqual([]);
     for (const width of [320, 390, 768, 1366]) {
       await page.setViewportSize({ width, height: 900 });
-      await ensureMapView(page);
+      await ensureResizedMapView(page);
       const pieces = page.locator(".transport-provider-strip b, .transport-data-results span, .transport-live-rail strong, .transport-mode-filter small");
       expect(await pieces.evaluateAll((elements) => elements.every((element) => !element.clientWidth || element.scrollWidth <= element.clientWidth))).toBe(true);
       for (const control of await details.locator("button,a,summary").all()) {

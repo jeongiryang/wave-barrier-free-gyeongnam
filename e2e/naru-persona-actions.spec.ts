@@ -347,3 +347,47 @@ test('복수 시각 변경은 첫 시각을 적용하지 않고 모델 호출 �
   }
   expect(app.errors).toEqual([]);
 });
+
+test('대화의 명확한 실행 취소는 모델 없이 낮잠 변경만 정확히 되돌리고 부정·질문·혼합 요청은 보존한다', async ({ page }) => {
+  // Deliberately offer an unsafe model undo for non-direct requests: language
+  // guards must protect the actual trip even when the model over-interprets it.
+  const app = await setup(page, { seeded: true, assistant: () => ({
+    reply: '합성 모델은 실행 취소를 제안합니다.', proposal: { action: 'undo' },
+  }) });
+  const before = await snapshot(page);
+  const withNap = { ...before, schedule: { ...before.schedule,
+    breakMinutesByPlaceId: { '1001': 30 }, restPurposeByPlaceId: { '1001': 'nap' } } };
+  for (const request of ['되돌려줘', '실행 취소해줘']) {
+    await send(app.chat, '첫 번째 장소 뒤에 낮잠 30분 넣어줘');
+    await expect.poll(() => snapshot(page)).toEqual(withNap);
+    const modelCalls = app.assistantRequests.length;
+    const replies = await app.chat.locator('.naru-message.assistant').count();
+    await send(app.chat, request);
+    await expect(app.chat.locator('.naru-message.assistant')).toHaveCount(replies + 1);
+    await expect(latestReply(app.chat)).toContainText('변경을 되돌렸어요');
+    await expect.poll(() => snapshot(page)).toEqual(before);
+    expect(app.assistantRequests).toHaveLength(modelCalls);
+  }
+  expect(app.assistantRequests).toEqual([]);
+
+  await send(app.chat, '첫 번째 장소 뒤에 낮잠 30분 넣어줘');
+  await expect.poll(() => snapshot(page)).toEqual(withNap);
+  for (const request of [
+    '되돌리지 마',
+    '실행 취소할까요?',
+    '되돌려줘 그리고 출발 시간도 오전11시로 바꿔줘',
+    '되돌려줘 그리고 두 번째 장소도 삭제해줘',
+  ]) {
+    const replies = await app.chat.locator('.naru-message.assistant').count();
+    const modelCalls = app.assistantRequests.length;
+    await send(app.chat, request);
+    await expect(app.chat.locator('.naru-message.assistant')).toHaveCount(replies + 1);
+    await expect(app.chat.getByRole('button', { name: '중단', exact: true })).toHaveCount(0);
+    if (request.includes('그리고')) {
+      await expect(latestReply(app.chat)).toContainText('되돌리기와 다른 변경은 하나씩 처리할게요');
+      expect(app.assistantRequests).toHaveLength(modelCalls);
+    }
+    expect(await snapshot(page), request).toEqual(withNap);
+  }
+  expect(app.journeyCalls()).toBe(0); expect(app.errors).toEqual([]);
+});

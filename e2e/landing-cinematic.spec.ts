@@ -24,6 +24,7 @@ test("browsing and expanding photographs cannot rotate destinations, query a tri
   await page.clock.fastForward(60_000);
   expect(await cards.locator(".simple-region-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")))).toEqual(initial);
   const expand = page.getByRole("button", { name: "18개 지역 모두 보기", exact: true });
+  await expect(expand).toBeEnabled();
   await expand.press("Enter");
   await expect(cards).toHaveCount(18);
   await expect(page.getByRole("button", { name: "접기", exact: true })).toBeFocused();
@@ -68,9 +69,14 @@ test("all failed regional photographs leave eighteen separate keyboard destinati
   await page.setViewportSize({ width: 320, height: 568 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/"); await storyReady(page);
-  await page.getByRole("button", { name: "18개 지역 모두 보기", exact: true }).press("Enter");
+  const expand = page.getByRole("button", { name: "18개 지역 모두 보기", exact: true });
+  await expect(expand).toBeEnabled();
+  await expand.focus();
+  await expect(expand).toBeFocused();
+  await page.keyboard.press("Enter");
   const cards = page.locator(".simple-region");
   await expect(cards).toHaveCount(18);
+  await expect(page.getByRole("button", { name: "접기", exact: true })).toBeFocused();
   for (const card of await cards.all()) {
     await card.scrollIntoViewIfNeeded();
     await expect(card.locator("h3")).toBeVisible();

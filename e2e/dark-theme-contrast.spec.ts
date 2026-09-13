@@ -40,7 +40,7 @@ async function measure(page: Page, selector: string) {
 const CASES: Array<{ path: string; selector: string; name: string }> = [
   { path: "/", selector: ".landing-actions a[href='/planner']", name: "랜딩 시작 버튼" },
   { path: "/community", selector: ".community-tabs button[aria-pressed='true']", name: "선택된 게시판 탭" },
-  { path: "/community", selector: ".community-footer", name: "커뮤니티 푸터" },
+  { path: "/community", selector: ".wave-balanced-footer > p", name: "커뮤니티 푸터 안내" },
   { path: "/community", selector: ".community-write", name: "후기 작성 (기본 동작 버튼)" },
   { path: "/login", selector: ".auth-submit", name: "로그인 제출 (기본 동작 버튼)" },
   { path: "/login", selector: ".auth-guest a", name: "로그인 없이 둘러보기" },

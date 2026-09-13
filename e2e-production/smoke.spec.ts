@@ -43,7 +43,7 @@ test("production health endpoint is ready", async ({ request }) => {
 
 test("landing leads into the real planner without layout or accessibility blockers", async ({ page }) => {
   await expectHealthyPage(page, "/");
-  await expect(page.locator("main")).toBeVisible();
+  await expect(page.getByRole("main")).toBeVisible();
   await expectNoSeriousA11yIssues(page);
 
   const plannerLink = page.locator('a[href*="/planner"]:visible').first();
@@ -51,13 +51,13 @@ test("landing leads into the real planner without layout or accessibility blocke
   await plannerLink.click();
   await expect(page).toHaveURL(/\/planner(?:[?#]|$)/);
   await expectHealthyPage(page, page.url());
-  await expect(page.locator("main")).toBeVisible();
+  await expect(page.getByRole("main")).toBeVisible();
 });
 
 test("public trip surfaces stay readable without writes", async ({ page }) => {
   for (const path of ["/planner", "/travel-book", "/community"]) {
     await expectHealthyPage(page, path);
-    await expect(page.locator("main")).toBeVisible();
+    await expect(page.getByRole("main")).toBeVisible();
     await expectNoSeriousA11yIssues(page);
   }
 });

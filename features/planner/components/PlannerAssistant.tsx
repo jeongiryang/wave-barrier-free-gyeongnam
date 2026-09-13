@@ -159,7 +159,7 @@ export default function PlannerAssistant(props: Props) {
       }
       const next = advanceNaruGuide(guide, originalText); setGuide(next); append(next?.question || '한 가지씩 안내를 끝냈어요. 여행은 변경하지 않았어요.'); return;
     }
-    const referencePlaces = /일정|담아?\s*둔|담은|방문\s*순서/.test(originalText) ? trip.orderedSavedPlaces : shownPlaces.current.length ? shownPlaces.current : trip.orderedSavedPlaces;
+    const referencePlaces = /일정(?:의|에서|에\s*(?:있는|담긴|저장된))|담아?\s*둔|담은|방문\s*순서/.test(originalText) ? trip.orderedSavedPlaces : shownPlaces.current.length ? shownPlaces.current : trip.orderedSavedPlaces;
     const helpReference = resolveConversationReference(originalText, referencePlaces, focusedPlace.current);
     const localHelp = naruLocalHelp(originalText);
     if (localHelp) {
@@ -168,7 +168,7 @@ export default function PlannerAssistant(props: Props) {
       else { if (helpReference.unresolved) { append('어느 장소인지 이름이나 번호를 알려주세요.'); return; } openTool(localHelp, helpReference.placeId || ''); append(localHelp === 'transcript' ? '소리를 재생하지 않고 해설 대본을 읽을 수 있어요.' : localHelp === 'preview' ? '일정에 담은 장소의 주차·입구·시설을 차례로 살펴보세요.' : localHelp === 'inquiry' ? '직원에게 보여줄 질문을 큰 글자로 준비할 수 있어요.' : '현재 장소의 시설 정보를 함께 비교해보세요. 정보가 없는 항목은 미확인으로 남겨둡니다.'); }
       return;
     }
-    if (/취소|하지\s*마|하지\s*말/.test(originalText) && !/되돌|실행\s*취소/.test(originalText)) { setInput(''); setMessages(current => [...current.map(message => message.applied ? message : { ...message, cancelled: true }), { id: ++messageId.current, role: 'user', text: originalText }]); append('제안을 취소했어요. 일정은 변경하지 않았어요.'); return; }
+    if (/취소|하지\s*마|하지\s*말/.test(originalText) && !/되돌|실행\s*취소/.test(originalText)) { setInput(''); setMessages(current => [...current.map(message => message.applied ? message : { ...message, cancelled: true }), { id: ++messageId.current, role: 'user', text: originalText }]); append('제안을 취소했어요. 일정은 변경하지 않았어요.'); inputRef.current?.focus({ preventScroll: true }); return; }
     const reference = resolveConversationReference(originalText, referencePlaces, focusedPlace.current);
     const text = reference.text;
     if (reference.unresolved) { append('어느 장소인지 이름이나 목록의 번호를 알려주세요.'); return; }
@@ -342,7 +342,7 @@ export default function PlannerAssistant(props: Props) {
   if (!props.open) return null;
   return <dialog ref={dialogRef} lang="ko" className={`naru-panel${tool ? ' naru-expanded' : ''}`} aria-label="WAVE 여행 가이드 나루와 대화" onCancel={event => { event.preventDefault(); close(); }} >
     <div className="naru-conversation">
-      <header className="naru-heading"><NaruAvatar state={busy ? activity.phase : 'idle'} /><div><strong>나루</strong><small>{available ? '여행 가이드' : available === null ? <><Spinner />대화 연결 확인 중</> : '여행 도구로 계속할 수 있어요'}</small></div><button type="button" onClick={close} aria-label="나루 대화 닫기">×</button></header>
+      <div className="naru-heading"><NaruAvatar state={busy ? activity.phase : 'idle'} /><div><strong>나루</strong><small>{available ? '여행 가이드' : available === null ? <><Spinner />대화 연결 확인 중</> : '여행 도구로 계속할 수 있어요'}</small></div><button type="button" onClick={close} aria-label="나루 대화 닫기">×</button></div>
       <p className="naru-page-context">{props.pageContext || '여행 설계'} · 만들던 여행과 이어집니다.</p>
       <div className="naru-log" ref={log} role="log" aria-live="polite" aria-relevant="additions" onScroll={() => { if (log.current) { follow.current = log.current.scrollHeight - log.current.scrollTop - log.current.clientHeight < 100; scrollPosition.current = log.current.scrollTop; } }}>
         {messages.map(message => <div key={message.id} className={`naru-message ${message.role}`}>
