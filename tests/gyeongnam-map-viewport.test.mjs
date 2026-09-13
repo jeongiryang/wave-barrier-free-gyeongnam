@@ -34,22 +34,52 @@ test("the Kakao renderer constrains SDK pan/zoom events and ignores a replaced m
   const code = ts.transpileModule(readFileSync(new URL("../features/routing/kakao-map-viewport.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   new Function("module", "exports", "require", code)(mod, mod.exports, () => ({ constrainedGyeongnamViewport }));
   class LatLng { constructor(lat, lng) { this.lat = lat; this.lng = lng; } getLat() { return this.lat; } getLng() { return this.lng; } }
-  let listener, cancelled = false;
+  let listener, listenerCalls = 0, removeCalls = 0, cancelled = false;
   const map = {
     level: 14, center: new LatLng(35, 132), max: 14,
     setMaxLevel(value) { this.max = value; this.level = Math.min(this.level, value); },
     getLevel() { return this.level; }, setLevel(value) { this.level = value; listener?.(); },
-    getCenter() { return this.center; }, setCenter(value) { this.center = new LatLng(Math.round(value.lat / .0015) * .0015, Math.round(value.lng / .0015) * .0015); listener?.(); },
+    getCenter() { return this.center; },
+    setCenter(value) {
+      this.center = new LatLng(Math.round(value.lat / .0015) * .0015, Math.round(value.lng / .0015) * .0015);
+      if (listener) {
+        listener?.();
+        listenerCalls++;
+      }
+    },
     getBounds() { const r = 2 ** (this.level - 9) * .4, shift = .03 * (this.center.lng - 128.6); return { getSouthWest: () => new LatLng(this.center.lat - r + shift, this.center.lng - r), getNorthEast: () => new LatLng(this.center.lat + r + shift, this.center.lng + r) }; },
   };
-  const constrain = mod.exports.restrictKakaoViewport(map, { LatLng, event: { addListener(_map, event, callback) { assert.equal(event, "bounds_changed"); listener = callback; } } }, () => cancelled);
-  constrain();
+  const controller = mod.exports.restrictKakaoViewport(map, {
+    LatLng,
+    event: {
+      addListener(_map, event, callback) {
+        assert.equal(event, "bounds_changed");
+        listener = callback;
+      },
+      removeListener(_map, event, callback) {
+        if (event === "bounds_changed" && callback === listener) {
+          listener = undefined;
+          removeCalls++;
+        }
+      },
+    },
+  }, () => cancelled);
+  controller();
   assert.equal(map.max, 11);
   assert.ok(map.level < 11);
   assert.ok(map.getBounds().getNorthEast().getLng() <= bounds.east + 1e-8);
   map.setCenter(new LatLng(35, 121));
   assert.ok(map.getBounds().getSouthWest().getLng() >= bounds.west - 1e-8);
   assert.ok(map.getBounds().getSouthWest().getLat() >= bounds.south - 1e-8);
+
+  if (typeof controller.dispose === "function") {
+    const callsBefore = listenerCalls;
+    controller.dispose();
+    map.setCenter(new LatLng(35, 121));
+    assert.equal(removeCalls, 1);
+    assert.equal(listenerCalls, callsBefore, "disposed renderer should not invoke bounds callback");
+  }
+
   cancelled = true;
   map.setCenter(new LatLng(35, 132));
   assert.equal(map.center.lng, 132);

@@ -1,10 +1,19 @@
 import type { KakaoMap, KakaoSdk } from "./kakao-sdk";
 import { constrainedGyeongnamViewport } from "../../lib/gyeongnam-map-viewport.js";
 
-export function restrictKakaoViewport(map: KakaoMap, K: KakaoSdk["maps"], isCancelled: () => boolean) {
+type Cleanup = () => void;
+export type KakaoViewportController = (() => void) & { dispose?: Cleanup };
+
+export function restrictKakaoViewport(
+  map: KakaoMap,
+  K: KakaoSdk["maps"],
+  isCancelled: () => boolean,
+): KakaoViewportController {
   let adjusting = false;
   map.setMaxLevel(11);
-  const constrain = () => {
+  let removeListener: (() => void) | undefined;
+
+  const constrain: KakaoViewportController = (() => {
     if (adjusting || isCancelled()) return;
     adjusting = true;
     try {
@@ -17,7 +26,10 @@ export function restrictKakaoViewport(map: KakaoMap, K: KakaoSdk["maps"], isCanc
           { lat: sw.getLat(), lng: sw.getLng() },
           { lat: ne.getLat(), lng: ne.getLng() },
         );
-        if (next.tooWide && map.getLevel() > 1) { map.setLevel(map.getLevel() - 1); continue; }
+        if (next.tooWide && map.getLevel() > 1) {
+          map.setLevel(map.getLevel() - 1);
+          continue;
+        }
         if (Math.abs(next.lat - center.getLat()) > 0.000001 || Math.abs(next.lng - center.getLng()) > 0.000001) {
           map.setCenter(new K.LatLng(next.lat, next.lng));
           // Kakao's projected bounds change slightly when longitude changes.
@@ -27,7 +39,16 @@ export function restrictKakaoViewport(map: KakaoMap, K: KakaoSdk["maps"], isCanc
         break;
       }
     } finally { adjusting = false; }
+  }) as KakaoViewportController;
+
+  constrain.dispose = () => {
+    removeListener?.();
   };
-  K.event?.addListener(map, "bounds_changed", constrain);
+
+  if (K.event?.addListener) {
+    K.event.addListener(map, "bounds_changed", constrain);
+    if (K.event.removeListener) removeListener = () => K.event?.removeListener?.(map, "bounds_changed", constrain);
+  }
+
   return constrain;
 }

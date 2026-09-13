@@ -1,0 +1,8 @@
+.attachment { padding: 0 16px; font-size: 12px; }
+.attachment button { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: #284b46; cursor: pointer; }
+.attachment button:disabled { opacity: .55; cursor: wait; }
+.attachment button:focus-visible { outline: 2px solid #267267; outline-offset: 2px; }
+.attachment p { color: #4b5d58; margin: 4px 0 8px; line-height: 1.5; }
+.preview { display: flex; align-items: center; gap: 8px; }
+.preview img { object-fit: contain; border-radius: 6px; background: #f2f4f3; }
+.preview span { flex: 1; }

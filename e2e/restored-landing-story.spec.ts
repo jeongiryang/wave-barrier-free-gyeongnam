@@ -54,7 +54,7 @@ for (const motion of ['no-preference', 'reduce'] as const) test(`restored scener
   await expectUsableTarget(page.locator('#departure a[href="/planner"]'));
   await expect(page.locator('#departure .horizon-checks li')).toHaveText(['운영시간', '날씨', '이동수단', '편의시설']);
   await expectUsableTarget(page.locator('#community a[href="/community"]'));
-  await expectUsableTarget(page.locator('#closing > a[href="/planner"]'));
+  await expectUsableTarget(page.locator('#closing a[href="/planner"]'));
   await expect(page.locator('.simple-region')).toHaveCount(6);
   expect(requests).toEqual([]);
   await page.screenshot({ path: test.info().outputPath(`restored-scenes-${motion}-${width}.png`), fullPage: true });

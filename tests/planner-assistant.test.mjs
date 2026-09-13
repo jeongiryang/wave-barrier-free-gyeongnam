@@ -11,6 +11,7 @@ import { navigationScroll } from '../lib/header-scroll.js';
 import { verifySameOriginMutation } from '../lib/security/request-boundaries.js';
 import { cacheControlHeader } from '../lib/http-cache.js';
 import { ProviderRequestError } from '../lib/provider-failure.js';
+import { validateAssistantPhoto } from '../lib/assistant-photo.js';
 
 function compile(file, dependencies, globals = {}) {
   const exports = {};
@@ -25,6 +26,7 @@ function handler(responder, configured = true) {
   const { handleAssistant } = compile('../server/assistant/handler.ts', {
     '../../lib/facility-selection.js': facilities, '../shared/http': http, '../../lib/assistant-actions.js': actions,
     '../../lib/assistant-grounding.js': { groundAssistantProposal },
+    '../../lib/assistant-photo.js': { validateAssistantPhoto },
     '../../lib/provider-failure.js': { ProviderRequestError },
     '../shared/provider-request.js': {
       createProviderRequester: () => {
@@ -39,6 +41,28 @@ function handler(responder, configured = true) {
   return { run: handleAssistant, calls };
 }
 const request = (body = { messages: [{ role: 'user', content: '여행지 찾아줘' }], context: { places: [] } }, origin = 'https://wave.example') => new Request('https://wave.example/api/assistant', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+// Structural JPEG fixture for the admission boundary, not a vision model test.
+const photoFixture = (extra = []) => ({ mimeType: 'image/jpeg', data: Buffer.from([255,216, ...extra, 255,192,0,11,8,0,20,0,20,1,1,17,0,255,218,0,2,1,255,217]).toString('base64') });
+test('photo admission rejects metadata, oversized dimensions, wrong types and foreign origins', async () => {
+  assert.ok(validateAssistantPhoto(photoFixture()));
+  const h = handler();
+  for (const photo of [photoFixture([255,225,0,4,1,1]), { mimeType: 'image/png', data: 'aaaa' }, { mimeType: 'image/jpeg', data: 'a'.repeat(1100000) }, null]) {
+    const response = await h.run(request({ messages: [{ role: 'user', content: '사진 읽어줘' }], photo }));
+    assert.ok([400,413].includes(response.status));
+  }
+  assert.equal((await h.run(request({ messages: [{ role: 'user', content: '사진' }], photo: photoFixture() }, 'https://foreign.example'))).status, 403);
+  assert.equal(h.calls.length, 0);
+});
+test('photo output cannot execute actions and image history is not forwarded', async () => {
+  const h = handler(() => ({ choices: [{ message: { content: JSON.stringify({ reply: '사진에서 날짜를 읽었어요.', proposal: { action: 'remove', placeId: '1001' } }) } }] }));
+  const response = await h.run(request({ messages: [{ role: 'assistant', content: '이전 민감한 대화' }, { role: 'user', content: '이 사진 읽어줘' }], photo: photoFixture(), context: { places: [{ id: '1001', name: '일정 장소' }] } }));
+  assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store');
+  const result = await response.json(); assert.equal(result.proposal, null); assert.equal(result.photoReview, true);
+  const sent = JSON.parse(h.calls[0].options.body);
+  assert.equal(sent.messages.length, 2); assert.deepEqual(sent.messages.at(-1).images, [photoFixture().data]);
+  assert.ok(!h.calls[0].options.body.includes('이전 민감한 대화'));
+});
 
 test('assistant proposals accept only known actions and real current place identities', () => {
   for (const value of [{ action: 'shell', command: 'anything' }, { action: 'add', placeId: '9999' }, { action: 'settings', profiles: [] }, { action: 'settings', region: '서울' }, { action: 'break', placeId: '1001', minutes: 900 }, { action: 'deadline', time: '29:99' }, { action: 'tool', tool: 'email' }]) assert.equal(actions.validateAssistantAction(value, ['1001']), null);

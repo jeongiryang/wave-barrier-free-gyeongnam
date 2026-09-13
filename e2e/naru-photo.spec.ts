@@ -1,0 +1,42 @@
+import { expect, test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import { mockPlannerApi, mockPublicShellApi } from './fixtures';
+
+test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
+test('사진은 전송 전 제거할 수 있고 실패 후 재시도하며 읽은 내용을 확인한다', async ({ page }) => {
+  await page.route('**/api/**', route => route.fulfill({ status: 503, json: { error: 'Synthetic fixture only' } }));
+  await mockPlannerApi(page, { preserveView: true }); await mockPublicShellApi(page);
+  const requests: Array<Record<string, unknown>> = [];
+  await page.route('**/api/assistant', route => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { available: true } });
+    requests.push(route.request().postDataJSON());
+    return route.fulfill(requests.length === 1 ? { status: 503, json: { error: '사진 응답이 지연됐어요.' } } : { json: { reply: '합성 포스터에서 9월 20일 창원이라고 읽었어요. 맞나요?', photoReview: true, proposal: { action: 'search' } } });
+  });
+  await page.goto('/planner');
+  await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
+  const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
+  const image = await page.evaluate(() => { const canvas = document.createElement('canvas'); canvas.width = 1800; canvas.height = 300; const ctx = canvas.getContext('2d')!; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 1800, 300); ctx.fillStyle = '#111'; ctx.font = '40px sans-serif'; ctx.fillText('Synthetic poster 2026-09-20', 20, 80); return canvas.toDataURL('image/png').split(',')[1]; });
+  const upload = () => chat.getByLabel('나루에게 첨부할 사진 선택').setInputFiles({ name: 'fixture.png', mimeType: 'image/png', buffer: Buffer.from(image, 'base64') });
+  await upload();
+  await expect(chat.getByAltText('보내기 전 첨부 사진 미리보기')).toBeVisible();
+  expect(requests).toHaveLength(0);
+  await chat.getByRole('button', { name: '첨부 사진 삭제', exact: true }).click();
+  await expect(chat.getByAltText('보내기 전 첨부 사진 미리보기')).toHaveCount(0);
+  await upload();
+  await chat.getByRole('textbox').fill('포스터의 날짜를 읽어줘');
+  await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
+  await expect(chat.getByRole('textbox')).toHaveValue('포스터의 날짜를 읽어줘');
+  await expect(chat.getByAltText('보내기 전 첨부 사진 미리보기')).toBeVisible();
+  await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
+  await expect(chat).toContainText('합성 포스터에서 9월 20일 창원이라고 읽었어요. 맞나요?');
+  await expect(chat.getByAltText('보내기 전 첨부 사진 미리보기')).toHaveCount(0);
+  await expect(chat.locator('.naru-result-list')).toHaveCount(0);
+  expect(requests).toHaveLength(2);
+  const sent = requests[1].photo as { mimeType: string; data: string };
+  expect(sent.mimeType).toBe('image/jpeg'); expect(sent.data.length).toBeLessThan(1066669);
+  expect(JSON.stringify(requests)).not.toContain('fixture.png');
+  await chat.getByRole('button', { name: '읽은 내용으로 요청 작성', exact: true }).click();
+  await expect(chat.getByRole('textbox')).toBeFocused();
+  expect(requests).toHaveLength(2);
+  expect((await new AxeBuilder({ page }).include('.naru-panel').analyze()).violations).toEqual([]);
+});

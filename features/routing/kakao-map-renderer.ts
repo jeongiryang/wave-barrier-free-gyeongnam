@@ -33,9 +33,9 @@ export async function renderKakaoMap(
   const center = new K.LatLng(origin.lat, origin.lng);
   const map = new K.Map(containerRef.current, { center, level: 9, maxLevel: 11 });
   kakaoMapRef.current = map;
-  const constrainViewport = restrictKakaoViewport(map, K, isCancelled);
+  const viewportControl = restrictKakaoViewport(map, K, isCancelled);
 
-  K.event?.addListener(map, "click", (event) => {
+  const onMapClick = (event: { latLng: { getLat(): number; getLng(): number } }) => {
     const point = { lat: event.latLng.getLat(), lng: event.latLng.getLng() };
     if (roadviewSelectModeRef.current) {
       openRoadviewAt(point);
@@ -51,7 +51,12 @@ export async function renderKakaoMap(
     }
     setPickMode(null);
     setProviderDetail(mode === "origin" ? "새 출발지를 설정했습니다." : "새 목적지를 설정했습니다.");
-  });
+  };
+  let removeMapClickListener: (() => void) | undefined;
+  K.event?.addListener(map, "click", onMapClick);
+  if (K.event?.removeListener) {
+    removeMapClickListener = () => K.event?.removeListener?.(map, "click", onMapClick);
+  }
 
   if (K.drawing) {
     const manager = new K.drawing.DrawingManager({
@@ -153,7 +158,7 @@ export async function renderKakaoMap(
     const padding = mapFitPadding(canvas);
     if (canvas.clientWidth <= padding[1] + padding[3] || canvas.clientHeight <= padding[0] + padding[2]) return;
     map.setBounds(bounds, ...padding);
-    constrainViewport();
+    viewportControl();
   };
   fitMapRef.current = places.length ? fit : null;
   if (places.length) fit();
@@ -162,7 +167,17 @@ export async function renderKakaoMap(
     map.setLevel(9);
   }
   setProvider("kakao");
-  constrainViewport();
+  viewportControl();
   setProviderDetail("카카오 지도로 표시 중입니다.");
-  return { update, dispose: () => { clearContent(); originMarker.setMap(null); } };
+  return {
+    update,
+    dispose: () => {
+      viewportControl.dispose?.();
+      removeMapClickListener?.();
+      drawingManagerRef.current?.cancel();
+      drawingManagerRef.current = null;
+      clearContent();
+      originMarker.setMap(null);
+    },
+  };
 }
