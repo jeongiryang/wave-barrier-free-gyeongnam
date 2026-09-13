@@ -1,9 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi, chooseTripConditions, plan } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions, openItinerary, plan } from "./fixtures";
+
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
+});
 
 function observeRestoreRequests(page: Page) {
   const requests: URL[] = [];
-  page.on("request", request => {
+  page.on("requestfinished", request => {
     const url = new URL(request.url());
     if (url.pathname === "/api/wave") requests.push(url);
   });
@@ -11,37 +15,45 @@ function observeRestoreRequests(page: Page) {
 }
 
 async function expectRestoredEvidence(page: Page, requests: URL[]) {
-  // Wait beyond the 300ms saved-ID refresh; a warm render used to pass before
-  // this response while CI rendered the coordinates before reaching the check.
-  await expect(page.locator('.planner-notice[role="status"]')).toContainText("담아둔 장소의 최신 관광 정보를 확인했어요.");
-  expect(requests.filter(url => url.searchParams.get("action") === "plan")).toHaveLength(0);
+  // A restored region now starts a background recommendation automatically.
+  // Await both completed responses before asserting the saved-ID/map contract.
+  await expect.poll(() => requests.filter(url => url.searchParams.get("action") === "places").length).toBe(1);
+  await expect.poll(() => requests.filter(url => url.searchParams.get("action") === "plan").length).toBe(1);
+  await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
   const lookups = requests.filter(url => url.searchParams.get("action") === "places");
   expect(lookups).toHaveLength(1);
   expect(lookups[0].searchParams.get("ids")).toBe("1001");
-  expect(lookups[0].searchParams.get("profiles")).toBe("wheel");
+  expect(lookups[0].searchParams.get("profiles")?.split(",")).toEqual(["parking", "route", "wheelchair", "elevator", "restroom"]);
+  expect(await page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values["wave-saved-places"]))).toEqual(["1001"]);
 }
 
-test("안내형 보기에서 보관 일정을 열면 재검색 없이 일정과 누락된 지도 위치를 확인한다", async ({ page }) => {
+async function openMap(page: Page) {
+  if ((page.viewportSize()?.width || 1440) < 1024) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "지도", exact: true }).click();
+  await expect(page.locator(".route-map-canvas")).toBeVisible();
+  await expect(page.locator(".wave-map-icon.origin")).toHaveCount(1);
+}
+
+test("보관 일정을 열면 자동 조회 후에도 같은 일정과 누락된 지도 위치를 확인한다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   // In this branch the provider's saved-ID response also lacks coordinates.
   // A valid newer coordinate is allowed to repair a restored archive elsewhere.
-  await mockPlannerApi(page, { plannerView: "guided", savedPlaces: plan.places.map(place => ({ ...place, mapX: "", mapY: "" })) });
+  await mockPlannerApi(page, { preserveView: true, placeCoordinate: { mapX: "", mapY: "" }, savedPlaces: plan.places.map(place => ({ ...place, mapX: "", mapY: "" })) });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".planner-navigation nav button").nth(3).click();
-  await page.locator(".reference-itinerary-details > summary").click();
-  await page.getByRole("button", { name: "내 일정에 저장", exact: true }).click();
-  await expect(page.locator(".travel-book-archive-action [role=status]")).toContainText("내 일정에 저장했어요");
-  await page.getByRole("link", { name: /저장한 일정 보기/ }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openItinerary(page, { start: "2026-10-07" });
+  await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await expect(page.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
+  await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
   const restoreRequests = observeRestoreRequests(page);
   await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
   await expect(page).toHaveURL(/from=travel-book#itinerary$/);
-  await page.locator(".reference-itinerary-details > summary").click();
-  await expect(page.locator(".reference-day-list .reference-stop-copy").getByRole("button", { name: "경남도립미술관", exact: true })).toBeVisible();
+  await expect(page.locator(".simple-stops .simple-stop-copy").getByRole("button", { name: "경남도립미술관", exact: true })).toBeVisible();
   await expectRestoredEvidence(page, restoreRequests);
-  await expect(page.locator(".reference-itinerary-details > .route-scope-note")).toContainText("일정 1곳 중 지도에 표시할 수 있는 장소 0곳");
-  await expect(page.getByRole("status").filter({ hasText: "좌표를 확인하지 못한 장소:" })).toContainText("경남도립미술관");
+  await openMap(page);
+  await expect(page.locator(".wave-map-icon.place")).toHaveCount(0);
+  await page.locator(".simple-more-trip-tools > summary").click();
+  await expect(page.getByRole("status").filter({ hasText: "좌표가 없는 장소는 일정에 보관하고 지도에서 제외해요:" })).toContainText("경남도립미술관");
   // The privacy contract still excludes coordinates from the archive; never
   // substitute unrelated recommendations or invented markers during restore.
   expect(await page.evaluate(() => localStorage.getItem("wave-travel-book-v1"))).not.toMatch(/mapX|mapY|128\.691|35\.238/);
@@ -49,19 +61,20 @@ test("안내형 보기에서 보관 일정을 열면 재검색 없이 일정과 
 
 test("플래너의 일정은 로컬 여행집에서 기록하고 다시 복원할 수 있다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner?travelStart=2026-09-01&travelEnd=2026-09-02");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
-  const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
-  await itinerary.getByRole("button", { name: "내 일정에 저장", exact: true }).click();
-  await expect(itinerary.locator(".travel-book-archive-action [role=status]")).toContainText("내 일정에 저장했어요");
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openItinerary(page, { start: "2026-09-01", end: "2026-09-02" });
+  const itinerary = page.locator("#itinerary");
+  await itinerary.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await expect(itinerary.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
 
   const serialized = await page.evaluate(() => window.localStorage.getItem("wave-travel-book-v1") || "");
   expect(serialized).toContain("경남도립미술관");
   expect(serialized).not.toMatch(/mapX|mapY|128\.691|35\.238/);
 
-  await itinerary.getByRole("link", { name: /저장한 일정 보기/ }).click();
+  await itinerary.getByRole("link", { name: "저장한 여행", exact: true }).click();
   await expect(page).toHaveURL(/\/travel-book$/);
   await expect(page.getByRole("heading", { name: "창원 1곳 여행" })).toBeVisible();
   await expect(page.getByRole("link", { name: /계정 여행 이어가기/ })).toBeVisible();
@@ -79,16 +92,22 @@ test("플래너의 일정은 로컬 여행집에서 기록하고 다시 복원�
   await expect(page.getByPlaceholder(/현장에서 편했던 동선/)).toHaveValue("입구 경사로가 편했고 오전 방문이 여유로웠다.");
 
   const restoreRequests = observeRestoreRequests(page);
+  // The automatic recommendation does not contain the saved museum. Its exact
+  // ID refresh must restore it independently and must not add the park instead.
+  await page.route("**/api/wave?**", route => new URL(route.request().url()).searchParams.get("action") === "plan"
+    ? route.fulfill({ json: { ...plan, places: [plan.places[1]], stops: [plan.stops[1]] } }) : route.fallback());
   await page.getByRole("button", { name: /이 일정 다시 열기/ }).click();
   await expect(page).toHaveURL(/\/planner\?.*from=travel-book/);
   await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).getByText("경남도립미술관").first()).toBeVisible();
   await expectRestoredEvidence(page, restoreRequests);
-  // The correct saved ID can regain its public location without a new plan
-  // search, adding recommendations, changing dates, or copying it to the book.
-  await expect(page.locator(".reference-itinerary-details > .route-scope-note")).toContainText("일정 1곳 중 지도에 표시할 수 있는 장소 1곳");
-  await expect(page.getByRole("status").filter({ hasText: "좌표를 확인하지 못한 장소:" })).toHaveCount(0);
-  await expect(itinerary.getByLabel("여행 시작일", { exact: true })).toHaveValue("2026-09-01");
-  await expect(itinerary.getByLabel("여행 마지막 날", { exact: true })).toHaveValue("2026-09-02");
+  await openMap(page);
+  await expect(page.locator('.wave-map-icon.place[data-place-id="1001"]')).toHaveCount(1);
+  await expect(page.locator('.wave-map-icon.place[data-place-id="1002"]')).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "좌표가 없는 장소는 일정에 보관하고 지도에서 제외해요:" })).toHaveCount(0);
+  await itinerary.getByRole("button", { name: "여행 설정", exact: true }).click();
+  const settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
+  await expect(settings.getByLabel("시작일", { exact: true })).toHaveValue("2026-09-01");
+  await expect(settings.getByLabel("마지막 날", { exact: true })).toHaveValue("2026-09-02");
   expect(await page.evaluate(() => localStorage.getItem("wave-travel-book-v1"))).not.toMatch(/mapX|mapY|128\.691|35\.238/);
 });
 

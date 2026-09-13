@@ -14,9 +14,12 @@ async function plannerProductSource() {
     "features/planner/components/PlannerHeader.tsx",
     "features/planner/components/PlannerFooter.tsx",
     "features/planner/components/PlannerConditionsPanel.tsx",
+    "features/planner/components/PlannerRegionDiscovery.tsx",
+    "features/planner/components/TripSettingsEditor.tsx",
+    "features/planner/components/PlannerItineraryBoard.tsx",
+    "features/planner/components/StopEditor.tsx",
+    "features/planner/components/PlaceResultRow.tsx",
     "components/GyeongnamRegionPicker.tsx",
-    "features/planner/components/PlannerThemeDates.tsx",
-    "features/planner/components/PlannerAccessibilityProfiles.tsx",
     "features/planner/components/RecommendationWorkspace.tsx",
     "features/planner/components/RecommendationCarousel.tsx",
     "features/planner/components/PlaceFacilitySummary.tsx",
@@ -87,12 +90,11 @@ async function landingProductSource() {
   const paths = [
     "app/page.tsx",
     "features/landing/content.ts",
-    "features/landing/hooks/useLandingExperience.ts",
-    "features/landing/hooks/useLandingMotion.ts",
-    "features/landing/hooks/useLandingRegions.ts",
-    "features/landing/client/region-photo.ts",
+    "features/landing/components/LandingIntro.tsx",
     "features/landing/components/LandingHeader.tsx",
     "features/landing/components/LandingHero.tsx",
+    "features/landing/components/LandingChapters.tsx",
+    "features/landing/components/LandingAssistantStory.tsx",
     "features/landing/components/LandingManifesto.tsx",
     "features/landing/components/LandingRegionStory.tsx",
     "features/landing/components/LandingClosing.tsx",
@@ -101,7 +103,6 @@ async function landingProductSource() {
     "features/landing/components/LandingJourneyStories.tsx",
     "features/landing/components/LandingAdaptStory.tsx",
     "features/landing/components/LandingTravelBookStory.tsx",
-    "features/community/components/LandingCommunityStory.tsx",
   ];
   return (await Promise.all(paths.map(source))).join("\n");
 }
@@ -109,6 +110,8 @@ async function landingProductSource() {
 async function styleSource() {
   const paths = [
     "app/globals.css",
+    "app/styles/simple-wave.css",
+    "app/styles/simple-planner.css",
     "app/styles/site-shell.css",
     "app/styles/landing-explorer.css",
     "app/styles/landing-route-data.css",
@@ -252,7 +255,7 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(component, /smart-image-skeleton/);
   assert.match(component, /photo\.failed && <span className="smart-image-fallback"/);
   assert.match(component, /en \? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"/);
-  assert.match(planner, /className="place-visual"/);
+  assert.match(planner, /className="simple-place-photo" onClick=\{onDetails\}/);
   assert.match(planner, /region=\{place\.city \|\| region\}/);
   assert.match(planner, /contentId=\{place\.id\}/);
   assert.match(photos, /PhotoGalleryService1/);
@@ -271,19 +274,25 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(regionalPhoto, /for \(const keyword of keywords\)/);
 });
 
-test("all eighteen regions remain discoverable with named arrows and no remote map dependencies", async () => {
-  const landing = await landingProductSource();
+test("all eighteen regions remain discoverable through a named expansion and direct regional links", async () => {
+  const [content, region] = await Promise.all([
+    source("features/landing/content.ts"), source("features/landing/components/LandingRegionStory.tsx"),
+  ]);
   const names = ["거창", "합천", "창녕", "밀양", "양산", "함양", "산청", "의령", "함안", "김해", "창원", "하동", "진주", "사천", "고성", "남해", "통영", "거제"];
-  const regionConfig = landing.slice(landing.indexOf("export const landingRegions"), landing.indexOf("export const landingValues"));
-  for (const name of names) assert.match(regionConfig, new RegExp(`name: "${name}"`));
-  assert.equal((regionConfig.match(/\{ name: "/g) || []).length, 18);
-  assert.match(landing, /landingRegions\[\(index \+ direction \+ landingRegions\.length\) % landingRegions\.length\]/);
-  assert.match(landing, /aria-label=\{english \? "Previous region" : "이전 지역"\}/);
-  assert.match(landing, /aria-label=\{english \? "Next region" : "다음 지역"\}/);
-  assert.match(landing, /regionLabel\(active\.name\)/);
-  assert.doesNotMatch(landing, /RegionMascot/);
-  assert.doesNotMatch(landing, /upload\.wikimedia\.org|wikimedia commons/i);
-  assert.doesNotMatch(regionConfig, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);
+  const config = content.slice(content.indexOf("export const landingRegions"), content.indexOf("export const landingValues"));
+  const actual = [...config.matchAll(/name: "([^"]+)"/g)].map(match => match[1]);
+  assert.deepEqual([...actual].sort(), [...names].sort());
+  assert.equal(new Set(actual).size, 18);
+  assert.match(region, /landingRegions\.map\(region => region\.name\)\.filter\(name => !firstRegions\.includes\(name\)\)/);
+  assert.match(region, /orderedRegions\.slice\(0, expanded \? 18 : 6\)/);
+  assert.match(region, /18개 지역 모두 보기/);
+  assert.match(region, /View all 18 regions/);
+  assert.match(region, /aria-label=\{\x60\$\{label\}/);
+  assert.match(region, /aria-controls="region-grid"/);
+  assert.match(region, /href=\{\x60\/planner\?region=\$\{encodeURIComponent\(name\)\}\x60\}/);
+  assert.match(region, /regionNames\[name\]/);
+  assert.doesNotMatch(region, /RegionMascot|LandingBoundaryMap|fetch\(|upload\.wikimedia\.org/i);
+  assert.doesNotMatch(config, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);
 });
 
 test("device location is not persisted with saved routes", async () => {
@@ -392,11 +401,12 @@ test("saved preferences survive a reload", async () => {
 });
 
 test("motion follows the OS, retires legacy storage and has no app preference control", async () => {
-  const [storage, controls, catalog, engine, layout] = await Promise.all([
+  const [storage, controls, catalog, intro, regions, layout] = await Promise.all([
     source("features/preferences/storage.ts"),
     source("features/preferences/PreferenceControls.tsx"),
     source("features/preferences/locale-catalog.ts"),
-    source("features/motion/wave-field-engine.ts"),
+    source("features/landing/components/LandingIntro.tsx"),
+    source("features/landing/components/LandingRegionStory.tsx"),
     source("app/layout.tsx"),
   ]);
   assert.doesNotMatch(storage, /localStorage\.(getItem|setItem)\("wave-motion"/);
@@ -405,11 +415,19 @@ test("motion follows the OS, retires legacy storage and has no app preference co
   // Keep the hydration guards and require the newly added focus-leave handler.
   assert.match(controls, /<details ref=\{disclosure\} className="preference-controls" inert=\{!controlsReady\} aria-busy=\{!controlsReady\} suppressHydrationWarning\s+onBlur=/);
   assert.doesNotMatch(catalog, /motionCopy/);
-  assert.match(engine, /motion === "calm" \|\| window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  for (const component of [intro, regions]) assert.match(component, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(intro, /seen \|\| media\.matches \|\| document\.documentElement\.dataset\.motion === "calm"/);
+  assert.match(intro, /if \(media\.matches\) finish\(\)/);
+  assert.match(intro, /media\.addEventListener\("change", reduction\)/);
+  assert.match(intro, /media\.removeEventListener\("change", reduction\)/);
+  assert.match(regions, /if \(!entry\.isIntersecting \|\| media\.matches \|\| revealed\.current\.has\(entry\.target\)\) return/);
+  assert.match(regions, /if \(media\.matches\) \{ animations\.forEach\(animation => animation\.cancel\(\)\); animations\.clear\(\)/);
+  assert.match(regions, /media\.addEventListener\('change', configure\)/);
+  assert.match(regions, /observer\.disconnect\(\); media\.removeEventListener\('change', configure\)/);
   assert.match(layout, /prefers-reduced-motion: reduce/);
   assert.match(layout, /d\.dataset\.motion=r\?'calm':'full'/);
   assert.doesNotMatch(layout, /LandingIntro|wave-intro-seen/);
-  assert.match(await source("app/styles/landing-arrival.css"), /\.arrival-intro\[data-still="true"\] \.arrival-wave-canvas \{ visibility: hidden; \}/);
+  assert.match(await source("app/styles/simple-wave.css"), /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.arrival-scene \{ display: none/);
 });
 
 test("non-Korean locales are visibly marked as partial without breaking narrow headers", async () => {
@@ -496,12 +514,54 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.doesNotMatch(planner, /setPlanError\(|planRequestRef/);
   assert.doesNotMatch(planner, /plannerJson|setShareState\(|setFeedbackState\(/);
   assert.match(planController, /plannerJson<unknown>/);
-  assert.match(planController, /const data = planResponse\(response\);[\s\S]+setPlan\(data\)/);
+  assert.match(planController, /const data = planResponse\(response\);[\s\S]+const nextPlan = page > 1 && previous && requestedSignature === resultSignature/);
+  assert.match(planController, /latestPlan\.current = nextPlan; setPlan\(nextPlan\)/);
   assert.match(planController, /const abortPlan = useCallback/);
-  assert.match(participation, /plannerJson<\{ url\?: string \}>\("\/api\/trips"/);
+  // The public snapshot expression is executed from the real hook: sensitive
+  // needs and private origin labels cannot enter a live share or its hash.
+  const sharingSource = await source("features/planner/hooks/useTripSharing.ts");
+  const ts = (await import("typescript")).default;
+  const file = ts.createSourceFile("useTripSharing.ts", sharingSource, ts.ScriptTarget.Latest, true);
+  let snapshotNode, hashNode;
+  const visit = node => {
+    if (ts.isVariableDeclaration(node) && node.name.getText(file) === "snapshot") snapshotNode = node.initializer;
+    if (ts.isFunctionDeclaration(node) && node.name?.text === "hashSnapshot") hashNode = node;
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  assert.ok(snapshotNode && hashNode, "sharing owns one public snapshot and its content hash");
+  const compiled = ts.transpileModule("function project(options) { return " + snapshotNode.getText(file) + "; }\n" + hashNode.getText(file), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  const { project, hashSnapshot } = new Function(compiled + "\nreturn { project, hashSnapshot };")();
+  const options = {
+    region: "창원", theme: "history", profiles: ["route", "restroom"], locale: "ko", originLabel: "private-home-sentinel", userId: "private-account-sentinel",
+    travelStart: "2026-09-20", travelEnd: "2026-09-20", dayStartTime: "09:00", travelMode: "car",
+    scheduleAssignments: { "1001": "2026-09-20" }, selectedPlaceIds: ["1001"], visitMinutesByPlaceId: { "1001": 60 },
+    fixedVisits: {}, dayDeadlines: {}, breakMinutesByPlaceId: { "1001": 20 }, restPurposeByPlaceId: { "1001": "visit" },
+  };
+  const snapshot = project(options), projected = JSON.parse(snapshot);
+  assert.deepEqual(projected, { live: true, selections: {
+    region: "창원", theme: "history", profiles: [], locale: "ko", travelStart: "2026-09-20", travelEnd: "2026-09-20", dayStartTime: "09:00", travelMode: "car",
+    scheduleAssignments: { "1001": "2026-09-20" }, selectedPlaceIds: ["1001"], visitMinutesByPlaceId: { "1001": 60 },
+    fixedVisits: {}, dayDeadlines: {}, breakMinutesByPlaceId: { "1001": 20 }, restPurposeByPlaceId: { "1001": "visit" },
+  }, origin: { label: "" } });
+  assert.doesNotMatch(snapshot, /private-home-sentinel|private-account-sentinel|"route"|"restroom"/);
+  const hash = await hashSnapshot(snapshot);
+  assert.match(hash, /^[a-f\d]{64}$/);
+  assert.equal(await hashSnapshot(project({ ...options, profiles: ["parking"], originLabel: "another-private-home" })), hash);
+  assert.notEqual(await hashSnapshot(project({ ...options, travelMode: "transit" })), hash);
+  assert.notEqual(await hashSnapshot(project({ ...options, visitMinutesByPlaceId: { "1001": 90 } })), hash);
+  assert.match(sharingSource, /existing\?\.snapshotHash === snapshotHash/);
+  assert.match(sharingSource, /\/api\/trips\$\{existing \? \x60\/\$\{existing\.id\}\x60 : ''\}/);
+  assert.match(sharingSource, /existing \? \{ revision: existing\.revision \}/);
+  assert.match(sharingSource, /if \(!isThisTrip\(\)\) throw/);
+  assert.match(sharingSource, /JSON\.stringify\(active\.share\) !== JSON\.stringify\(base\.share\)/);
+  assert.match(sharingSource, /share: \{ id: data\.id, revision: data\.revision, expiresAt: data\.expiresAt, snapshotHash \}/);
+  assert.match(sharingSource, /sameOriginHttpUrl\(data\.url, window\.location\.origin\)/);
+  assert.match(sharingSource, /if \(latest\.current !== snapshot\) throw new ChangedSnapshot/);
+  assert.match(sharingSource, /if \(pending\.current\.snapshot === snapshot\) return pending\.current\.promise/);
   assert.match(participation, /plannerJson<\{ ok\?: boolean \}>\("\/api\/feedback"/);
   assert.match(participation, /const ensureShareUrl = useCallback/);
-  assert.match(participation, /navigator\.clipboard\?\.writeText\(url\)/);
+  assert.match(participation, /if \(latest\.current !== snapshot\) return;[\s\S]{0,150}await navigator\.clipboard\.writeText\(preparedUrl\)/);
   assert.match(signals, /optionalPlannerJson<KeyHealth>\("\/api\/health"\)/);
   assert.match(signals, /optionalPlannerJson<WeatherData>/);
   assert.match(audioGuide, /const resetAudio = useCallback/);
@@ -709,27 +769,24 @@ test("route-map rendering delegates controller, provider adapters, controls and 
   assert.match(imageExport, /URL\.revokeObjectURL/);
 });
 
-test("the wave canvas delegates React lifecycle, canvas engine, motion math and intro masks", async () => {
-  const [wave, renderer, engine, model, masks] = await Promise.all([
-    source("components/WaveField.tsx"),
-    source("features/motion/useWaveFieldRenderer.ts"),
-    source("features/motion/wave-field-engine.ts"),
-    source("features/motion/wave-model.ts"),
-    source("features/motion/intro-masks.ts"),
+test("arrival motion belongs to its component and cleans up animation, viewport and input listeners", async () => {
+  const [page, intro, css] = await Promise.all([
+    source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"),
+    source("app/styles/simple-wave.css"),
   ]);
-  assert.match(wave, /useWaveFieldRenderer\(\{ tone, mode, wordmark, motion: paused \? "calm" : motion \}, replay\)/);
-  assert.doesNotMatch(wave, /useEffect|requestAnimationFrame|createIntroMasks/);
-  assert.match(renderer, /startWaveFieldRenderer\(canvas/);
-  assert.doesNotMatch(renderer, /requestAnimationFrame|createIntroMasks|putImageData/);
-  assert.match(engine, /import \{ createIntroMasks \} from "\.\/intro-masks"/);
-  assert.match(engine, /const \{ tints, background \} = wavePalette\(tone\)/);
-  assert.doesNotMatch(engine, /new Float32Array\(SIN_STEPS\)|target\.bezierCurveTo/);
-  assert.match(model, /const SIN_STEPS = 4096/);
-  assert.match(model, /export const fastSin/);
-  assert.match(model, /export function stageWeight/);
-  assert.match(masks, /target\.bezierCurveTo/);
-  assert.match(masks, /target\.arc\(ux\(6\), uy\(28\)/);
-  assert.match(masks, /target\.fillText\(wordmark, centerX, centerY\)/);
+  assert.match(page, /<LandingIntro/);
+  assert.doesNotMatch(page, /requestAnimationFrame|createIntroMasks|useEffect|<WaveField/);
+  assert.match(intro, /useEffect\(\(\) =>/);
+  assert.match(intro, /const animations = \[/);
+  assert.match(intro, /animations\.forEach\(animation => animation\.cancel\(\)\)/);
+  assert.match(intro, /clearTimeout\(timer\); finish\(\)/);
+  assert.match(intro, /document\.removeEventListener\("visibilitychange", visibility\)/);
+  assert.match(intro, /media\.removeEventListener\("change", reduction\)/);
+  assert.match(intro, /window\.removeEventListener\(name, finish, true\)/);
+  assert.match(intro, /root\.hidden = true/);
+  assert.match(intro, /if \(media\.matches\) finish\(\)/);
+  assert.match(css, /\.arrival-scene \{[^}]*pointer-events: none/);
+  assert.doesNotMatch(intro, /requestAnimationFrame|putImageData|createIntroMasks|\.focus\(/);
 });
 
 test("every user-facing footer exposes the repository with an accessible tooltip", async () => {
@@ -798,33 +855,49 @@ test("travel preference profile is local, explicit and contains only selected ca
     source("features/planner/hooks/useTravelPreferenceProfile.ts"),
     source("features/planner/profile/travel-profile.js"),
   ]);
-  assert.match(planner, /편의 조건 저장·불러오기/);
+  assert.match(planner, /조건 저장·불러오기/);
   assert.match(planner, /저장한 조건 불러오기/);
-  assert.match(planner, /지금 선택으로 바꾸기/);
-  assert.match(planner, /저장 삭제/);
-  assert.match(planner, /선택한 편의 조건만 저장합니다/);
-  assert.match(planner, /건강 상태나 장애 유형을 추론하지 않습니다/);
+  assert.match(planner, /이 기기에 조건 저장/);
+  assert.match(planner, /저장한 조건 삭제/);
+  assert.match(planner, /선택한 편의만 저장해요/);
+  assert.match(planner, /건강 상태나 장애 유형을 추론하지 않아요/);
+  assert.match(planner, /onClick=\{\(\) => plan\.saveTravelProfile\(draft\)\}/);
+  assert.match(planner, /disabled=\{!draft\.length\}/);
+  assert.match(planner, /setDraft\(plan\.savedProfile\.selectedIds\)/);
+  assert.match(planner, /onClick=\{plan\.deleteTravelProfile\}/);
   assert.match(criteria, /if \(!travelProfile\.savedProfile\) return false/);
   assert.match(profile, /wave-travel-profile-v1/);
   assert.match(profile, /localStorage\.setItem/);
   assert.match(profile, /localStorage\.removeItem/);
   assert.match(model, /allowed\.has\(id\)/);
   assert.match(model, /TRAVEL_PROFILE_VERSION/);
+  const { createTravelProfile, sanitizeTravelProfile } = await import("../features/planner/profile/travel-profile.js");
+  const { FACILITIES } = await import("../lib/facility-selection.js");
+  const allowed = FACILITIES.map(item => item.key);
+  const saved = createTravelProfile(["route", "restroom", "route", "private-health-sentinel", "baby"], allowed, 1800000000000);
+  assert.deepEqual(saved, { version: 1, selectedIds: ["route", "restroom"], updatedAt: 1800000000000 });
+  assert.deepEqual(sanitizeTravelProfile({ ...saved, name: "private-name-sentinel", diagnosis: "private-health-sentinel", origin: { lat: 35, lng: 128 } }, allowed), saved);
+  assert.equal(sanitizeTravelProfile({ ...saved, selectedIds: ["private-health-sentinel"] }, allowed), null);
+  assert.equal(sanitizeTravelProfile({ ...saved, version: 999 }, allowed), null);
 });
 
-test("saved itinerary supports accessible manual order and local restoration", async () => {
+test("saved itinerary supports accessible same-day moves, explicit removal and local restoration", async () => {
   const [planner, order, schedule] = await Promise.all([
     plannerProductSource(),
     source("features/planner/hooks/useOptimizedTripOrder.ts"),
     source("features/planner/hooks/useTripSchedule.ts"),
   ]);
-  assert.match(planner, /추천 순서로 정렬/);
   assert.match(planner, /같은 날 앞 순서로 이동/);
   assert.match(planner, /같은 날 뒤 순서로 이동/);
-  assert.match(planner, /일정에서 제거/);
+  assert.match(planner, /일정에서 빼기/);
   assert.match(planner, /disabled=\{!movement\.up\}/);
   assert.match(planner, /disabled=\{!movement\.down\}/);
-  assert.match(planner, /role="status" aria-live="polite"/);
+  assert.match(planner, /type: 'move', id: entry\.place\.id, direction: 'up'/);
+  assert.match(planner, /type: 'move', id: entry\.place\.id, direction: 'down'/);
+  assert.match(planner, /type: 'remove', id/);
+  assert.match(planner, /trip\.applyTripCommand/);
+  assert.match(planner, /role="status"/);
+  assert.match(planner, /tripSelection\.undoCommand\(\)/);
   assert.match(order, /wave-trip-order-v1/);
   assert.match(order, /movePlaceWithinDay/);
   assert.match(order, /orderMode === "manual"/);

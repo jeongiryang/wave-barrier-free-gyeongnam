@@ -1,15 +1,19 @@
+import { routeTools } from './departure-fixtures';
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, chooseTripConditions } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions, openItinerary } from "./fixtures";
 
 test("통합 플래너는 실제 시간순 이동수단을 먼저 보여주고 없는 수단은 카카오로 연결한다", async ({ page }) => {
   await mockPlannerApi(page);
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await expect(page.getByRole("heading", { name: "우리의 속도로, 여행을 만들어요.", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "여행 설계", exact: true })).toBeVisible();
+  await page.locator('.simple-place-row').first().locator('.simple-place-add').click(); await openItinerary(page); await routeTools(page);
   // 이 목록은 예상 시간이 오면 빠른 순서로 다시 정렬돼 탭 목록이 아니라 선택 버튼 묶음이다.
   const modes = page.locator(".route-mode-sections button");
   await page.locator(".itinerary-route-coverage select").selectOption("car");
+  const mapToggle = page.getByRole('group', { name: '일정 보기 방식' }); if (await mapToggle.isVisible()) await mapToggle.getByRole('button', { name: '지도', exact: true }).click();
+  await page.locator('.reference-transport-details > summary').click(); await page.locator('.transport-details > summary').click();
+  await page.locator('.reference-route-details > summary').click();
   await expect(modes).toHaveCount(4);
   await expect(modes.first()).toContainText("자동차");
   await expect(modes.first()).toContainText("25분");
@@ -51,7 +55,7 @@ test("장소 상세는 카카오 후기와 정확히 연결된 WAVE 커뮤니티
 
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "이용 정보" }).first().click();
+  await page.locator('.simple-place-row').first().locator('h3 button').click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("link", { name: /방문 후기·사진/ })).toHaveAttribute("href", /map\.kakao\.com\/link\/search/);
   await expect(dialog.getByRole("heading", { name: "이 장소의 여행자 현장 이야기" })).toBeVisible();

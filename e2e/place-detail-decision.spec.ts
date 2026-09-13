@@ -1,16 +1,19 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
-import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, plan } from "./fixtures";
+
+const savedIds = (page: Page) => page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values?.["wave-saved-places"] || "[]"));
 
 async function prepare(page: Page, en = false) {
   await mockPlannerApi(page, { plannerView: "overview" });
+  await mockPublicShellApi(page);
   await page.addInitScript(value => localStorage.setItem("wave-locale", value ? "en" : "ko"), en);
   const image = await readFile("public/media/wave-story/hero-coast-small.webp");
   await page.route("https://wave.test/museum.svg", route => route.fulfill({ contentType: "image/webp", body: image }));
   await page.route("**/api/community/posts?*", route => route.fulfill({ json: { posts: [] } }));
   await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: {
-    ...plan, places: [{ ...plan.places[0], knownFields: 99, unknownFields: 98, negativeFields: 97,
+    ...plan, criteria: { facilityKeys: ["route"] }, places: [{ ...plan.places[0], knownFields: 99, unknownFields: 98, negativeFields: 97,
       accessibility: [
         { key: "elevator", label: "승강기", state: "negative", detail: "승강기 없음" },
         { key: "restroom", label: "화장실", state: "unknown", detail: "" },
@@ -19,22 +22,27 @@ async function prepare(page: Page, en = false) {
     }],
   } }));
   await page.goto("/planner");
-  if (!en) await chooseTripConditions(page);
-  else {
-    await expect(page.getByRole("button", { name: "Overview", exact: true })).toBeEnabled();
-    await page.getByRole("button", { name: "Changwon", exact: true }).click();
-    await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-    await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-    await page.getByRole("button", { name: "Find places →", exact: true }).click();
-  }
-  const trigger = page.locator(".place-card").first().getByRole("button", { name: en ? "Visitor information" : "이용 정보", exact: true });
+  // Route is the only selected requirement. Unselected negative/unknown fields
+  // remain intact, while aggregate counts deliberately conflict with evidence.
+  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await page.locator(".simple-facility-trigger").click();
+  const facilities = page.getByRole("dialog", { name: "필요한 편의", exact: true });
+  await facilities.getByRole("checkbox", { name: "접근로", exact: true }).check();
+  const searched = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === "/api/wave" && url.searchParams.get("action") === "plan" && url.searchParams.get("facilityKeys") === "route";
+  });
+  await facilities.getByRole("button", { name: /^적용/ }).click();
+  await (await searched).finished();
+  await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
+  const trigger = page.getByRole("button", { name: en ? "경남도립미술관 details" : "경남도립미술관 상세 보기", exact: true });
   await trigger.click();
   await expect(page.getByRole("dialog").getByRole("heading", { level: 2 })).toBeFocused();
   return trigger;
 }
 
 for (const en of [false, true]) for (const theme of ["light", "dark"]) {
-  test(`detail puts the trip action before grouped, unmodified evidence ${en ? "en" : "ko"} ${theme}`, async ({ page }) => {
+  test(`detail puts the trip action before grouped, unmodified evidence ${en ? "en" : "ko"} ${theme}`, async ({ page, isMobile }) => {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.addInitScript(value => localStorage.setItem("wave-theme", value), theme);
@@ -44,6 +52,12 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(add).toBeEnabled();
     await expect(add).toHaveAttribute("aria-pressed", "false");
     await page.keyboard.press("Tab");
+    if (!isMobile) {
+      // The desktop details are a nonmodal side pane: natural DOM order takes
+      // the focused heading directly to Add; reverse Tab still reaches Close.
+      await expect(add).toBeFocused();
+      await page.keyboard.press("Shift+Tab");
+    }
     await expect(dialog.getByRole("button", { name: en ? "Close" : "닫기", exact: true })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(add).toBeFocused();
@@ -57,8 +71,8 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(dialog.locator('.facility-evidence-list [data-state="unknown"] dd')).toHaveText(en ? "No information supplied. Please check with the venue." : "제공된 정보가 없습니다. 시설에 직접 확인해 주세요.");
     await expect(dialog.locator('.facility-evidence-list [data-state="negative"] dd')).toHaveText("승강기 없음");
     await expect(dialog.locator(".modal-visual > span")).toHaveAttribute("lang", "ko");
-    await expect(dialog.locator(".modal-visual > span")).toHaveCSS("color", "rgb(43, 38, 50)");
-    await expect(dialog.locator(".modal-close")).toHaveCSS("color", "rgb(43, 38, 50)");
+    // Theme colors can change; legibility is verified against their actual
+    // surface by axe rather than by pinning the old light-only palette.
     expect(await dialog.locator(".modal-body > button").evaluate(button => Boolean(button.compareDocumentPosition(document.querySelector(".place-decision-summary")!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`detail-${en ? "en" : "ko"}-${theme}.png`) });
@@ -72,25 +86,32 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await add.click();
     await expect(dialog).toHaveCount(0);
     await expect(trigger).toBeFocused();
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
+    expect(await savedIds(page)).toEqual(["1001"]);
     await trigger.click();
     const remove = dialog.getByRole("button", { name: en ? "Remove from itinerary" : "일정에서 빼기", exact: true });
     await expect(remove).toHaveAttribute("aria-pressed", "true");
     await remove.click();
     await expect(dialog).toHaveCount(0);
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual([]);
+    expect(await savedIds(page)).toEqual([]);
     await trigger.click();
     await expect(add).toHaveAttribute("aria-pressed", "false");
     await page.keyboard.press("Escape");
     await expect(trigger).toBeFocused();
-    await page.getByRole("button", { name: en ? /Nature and relaxation/ : /자연·휴양 공원/ }).click();
-    await trigger.click();
-    await expect(add).toBeDisabled();
-    await expect(dialog.getByText(en
-      ? "Open a place from your current search before adding it. If your preferences or results changed, search again and reopen its details."
-      : "현재 검색의 장소를 확인한 뒤 담을 수 있어요. 조건이나 검색 결과가 바뀌었다면 다시 찾아 이용 정보를 열어 주세요.", { exact: true })).toBeVisible();
-    await expect(dialog.locator(".place-unknown-consent")).toHaveCount(0);
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual([]);
+    let release!: () => void;
+    const pending = new Promise<void>(resolve => { release = resolve; });
+    let newSearches = 0;
+    await page.route("**/api/wave?action=plan*", async request => { newSearches++; await pending; return request.fallback(); });
+    try {
+      await page.getByRole("group", { name: "하고 싶은 활동", exact: true }).getByRole("button", { name: "자연·휴양", exact: true }).click();
+      await expect.poll(() => newSearches).toBe(1);
+      await trigger.click();
+      await expect(add).toBeDisabled();
+      await expect(dialog.getByText(en
+        ? "Open a place from your current search before adding it. If your preferences or results changed, search again and reopen its details."
+        : "현재 검색의 장소를 확인한 뒤 담을 수 있어요. 조건이나 검색 결과가 바뀌었다면 다시 찾아 이용 정보를 열어 주세요.", { exact: true })).toBeVisible();
+      await expect(dialog.locator(".place-unknown-consent")).toHaveCount(0);
+      expect(await savedIds(page)).toEqual([]);
+    } finally { release(); }
     expect(errors).toEqual([]);
   });
 }
@@ -103,5 +124,5 @@ test("a failed participation module leaves the primary trip action usable", asyn
   await expect(dialog.locator('.facility-evidence-list [data-state="confirmed"] dd')).toHaveText("출입구까지 턱이 없음");
   await dialog.getByRole("button", { name: "일정에 추가", exact: true }).click();
   await expect(dialog).toHaveCount(0);
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
+  expect(await savedIds(page)).toEqual(["1001"]);
 });

@@ -27,6 +27,8 @@ function status(value: unknown): boolean {
 export function planResponse(value: unknown): PlanData {
   const valid = fields(value, "generatedAt baseYm") && ["live", "partial", "fallback"].includes(String(value.mode))
     && list(value.places, place) && optional(value.explorationPlaces, items => list(items, place))
+    && optional(value.excludedPlaces, items => list(items, place))
+    && optional(value.pagination, item => record(item) && number(item.page) && Number.isInteger(item.page) && Number(item.page) >= 1 && Number(item.page) <= 200 && optional(item.nextPage, next => nullable(next, next => number(next) && Number.isInteger(next) && Number(next) > Number(item.page) && Number(next) <= 200)) && typeof item.hasMore === "boolean" && item.scope === "loaded-candidates")
     && list(value.statuses, status)
     && list(value.stops, item => fields(item, "title note source") && ["id", "contentTypeId", "mapX", "mapY"].every(key => optional(item[key], text)) && optional(item.visitMinutes, number))
     && nullable(value.course, item => fields(item, "name distance minutes level summary sigun"))

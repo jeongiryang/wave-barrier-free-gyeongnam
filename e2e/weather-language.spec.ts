@@ -1,6 +1,6 @@
 import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi, chooseTripConditions } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions, openItinerary } from "./fixtures";
 import AxeBuilder from "@axe-core/playwright";
 
 const forecast = {
@@ -11,7 +11,8 @@ const forecast = {
 };
 
 async function prepare(page: Page, english = false) {
-  await mockPlannerApi(page);
+  await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
+  await mockPlannerApi(page, { preserveView: true });
   await page.addInitScript((en) => localStorage.setItem("wave-locale", en ? "en" : "ko"), english);
   await page.emulateMedia({ reducedMotion: "reduce" });
 }
@@ -25,11 +26,14 @@ test("departure weather evidence opens the forecast with pointer and keyboard wi
   });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  const savedPlace = page.getByRole("button", { name: "경남도립미술관 일정에서 빼기", exact: true });
-  const weatherCard = page.locator(".readiness-grid article").filter({ has: page.getByText("날씨", { exact: true }) });
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openItinerary(page, { start: "2026-10-07" });
+  const savedPlace = page.locator("#itinerary-stop-1001");
+  await page.locator(".simple-departure > summary").click();
+  const weatherCard = page.locator(".simple-readiness > details").filter({ has: page.getByText("날씨", { exact: true }) });
+  await weatherCard.locator(":scope > summary").click();
   await expect(weatherCard).toContainText("해당 날짜 예보가 없거나 예보 범위 밖입니다.");
-  const evidence = weatherCard.getByRole("link", { name: "바로 확인하기", exact: true });
+  const evidence = weatherCard.getByRole("link", { name: "상세 정보 확인 →", exact: true });
   const panel = page.locator("#layers");
   const board = page.locator(".weather-board");
   await expect(panel).toHaveJSProperty("open", false);
@@ -42,7 +46,7 @@ test("departure weather evidence opens the forecast with pointer and keyboard wi
   await expect(board).toContainText("체감 -2°");
   await expect(page).toHaveURL(/#layers$/);
   await expect(panel.locator("summary")).toBeFocused();
-  await expect(savedPlace).toHaveAttribute("aria-pressed", "true");
+  await expect(savedPlace).toContainText("경남도립미술관");
 
   // Repeat from a closed panel with the same hash: no hashchange event is required.
   await panel.locator("summary").click();
@@ -61,7 +65,8 @@ test("departure weather evidence opens the forecast with pointer and keyboard wi
     const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
     return rect.top >= 0 && rect.bottom <= innerHeight && Boolean(hit && element.contains(hit));
   })).toBe(true);
-  await expect(savedPlace).toHaveAttribute("aria-pressed", "true");
+  await expect(savedPlace).toContainText("경남도립미술관");
+  expect(await page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values["wave-saved-places"]))).toEqual(["1001"]);
   expect(weatherRequests).toBe(requestsBefore);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: test.info().outputPath("departure-weather-evidence.png") });
@@ -125,13 +130,11 @@ for (const theme of ["light", "dark"] as const) {
 
 async function openWeather(page: Page, english = false) {
   await page.goto("/planner");
-  if (english) {
-    await page.getByRole("button", { name: "Changwon", exact: true }).click();
-    await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-    await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-    await page.getByRole("button", { name: "Find places →", exact: true }).click();
-  } else await chooseTripConditions(page);
-  await page.getByRole("button", { name: english ? "View weather and visitor forecasts" : "날씨·방문 경향 바로 확인하기", exact: true }).click();
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: `경남도립미술관 ${english ? "add to itinerary" : "일정에 담기"}`, exact: true }).click();
+  await openItinerary(page, { start: "2026-10-07" });
+  await page.locator(".simple-departure > summary").click();
+  await page.locator("#layers > summary").click();
   return page.locator(".weather-board");
 }
 
@@ -161,16 +164,17 @@ test("the weather view loads on demand and a failed module leaves the itinerary 
   await page.route("**/WeatherBoard.tsx*", (route) => { modules++; return route.abort(); });
   await page.goto("/planner");
   expect(modules).toBe(0);
-  await page.getByRole("button", { name: "Changwon", exact: true }).click();
-  await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-  await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-  await page.getByRole("button", { name: "Find places →", exact: true }).click();
-  await page.getByRole("button", { name: "경남도립미술관 Add to itinerary", exact: true }).click();
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 add to itinerary", exact: true }).click();
+  await openItinerary(page, { start: "2026-10-07" });
   expect(modules).toBe(0);
-  await page.getByRole("button", { name: "View weather and visitor forecasts", exact: true }).click();
+  await page.locator(".simple-departure > summary").click();
+  await page.locator("#layers > summary").click();
   await expect(page.getByRole("status").filter({ hasText: "The weather view could not open" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reload this page", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "경남도립미술관 Remove from itinerary", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#itinerary-stop-1001")).toContainText("경남도립미술관");
+  await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true })).toBeVisible();
   expect(modules).toBeGreaterThan(0);
 });
 
@@ -179,7 +183,6 @@ for (const kind of ["http", "malformed", "wrong-region"] as const) {
     await prepare(page);
     await page.route("**/api/weather**", (route) => route.fulfill({ status: kind === "http" ? 503 : 200, json: kind === "http" ? { error: "unavailable" } : kind === "wrong-region" ? { ...forecast, region: "진주" } : { current: null, days: [] } }));
     const board = await openWeather(page);
-    await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
     await expect(board).toContainText("예보를 잠시 불러오지 못했습니다.");
     const retry = board.getByRole("button", { name: "날씨 다시 확인", exact: true });
     await expect(retry).toBeVisible();
@@ -196,8 +199,7 @@ for (const kind of ["http", "malformed", "wrong-region"] as const) {
     await expect(board).toContainText("체감 -2°");
     await expect(retry).toBeFocused();
     expect(count).toBe(1);
-    const saved = page.getByRole("button", { name: "경남도립미술관 일정에서 빼기", exact: true });
-    await expect(saved).toBeVisible();
-    await expect(saved).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("#itinerary-stop-1001")).toContainText("경남도립미술관");
+    expect(await page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values["wave-saved-places"]))).toEqual(["1001"]);
   });
 }

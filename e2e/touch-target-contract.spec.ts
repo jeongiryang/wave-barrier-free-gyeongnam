@@ -1,6 +1,6 @@
 import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
 /**
  * "조작 대상은 최소 44px"은 이 저장소가 스스로 정한 규칙이다(CLAUDE.md).
@@ -15,7 +15,7 @@ import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 const CONTRACT: Array<{ path: string; selector: string; name: string }> = [
   { path: "/", selector: ".account-button", name: "계정" },
   { path: "/", selector: ".help-button", name: "도움말" },
-  { path: "/planner", selector: ".condition-actions > button", name: "다음 여행 단계" },
+  { path: "/planner", selector: ".simple-planner-tabs button:nth-child(2)", name: "내 일정 탭" },
   { path: "/planner", selector: ".map-provider-badge button", name: "지도 제공자 재연결" },
   { path: "/planner", selector: ".map-command-bar button", name: "지도 도구" },
   { path: "/planner", selector: ".map-type-switch button", name: "지도 종류" },
@@ -55,12 +55,15 @@ for (const width of [1440, 390]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     const failures: string[] = [];
     let checked = 0;
+    await mockPublicShellApi(page);
+    await mockPlannerApi(page);
+    await page.route("**/api/community/posts?*", route => route.fulfill({
+      status: 200, contentType: "application/json", body: JSON.stringify({ posts: [], page: 1, hasMore: false }),
+    }));
+    await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
 
     for (const path of [...new Set(CONTRACT.map((item) => item.path))]) {
-      await mockPublicShellApi(page);
-      await mockPlannerApi(page);
-      await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
-      await page.goto(path);
+      await page.goto(path, { waitUntil: "domcontentloaded" });
       await openSupportMenu(page);
       await expect(page.getByRole("button", { name: "도움말", exact: true })).toBeVisible();
       await expect(page.locator(".preference-controls")).toHaveAttribute("aria-busy", "false");
@@ -72,6 +75,10 @@ for (const width of [1440, 390]) {
       await accountEntry.hover();
       await expect(page.locator(".account-button")).toBeVisible();
       if (path === "/planner") {
+        await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+        await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+        await openItinerary(page);
+        if (width < 1024) await page.getByRole("group", { name: "일정 보기 방식" }).getByRole("button", { name: "지도", exact: true }).click();
         // The fixture deliberately has no Kakao key. Reach the actual map and
         // require its fallback state before measuring the reconnect control.
         // A fixed sleep races the lazy renderer; presence and 44px assertions
@@ -79,8 +86,7 @@ for (const width of [1440, 390]) {
         await page.locator("#navigation").scrollIntoViewIfNeeded();
         await expect(page.locator(".map-provider-badge")).toHaveClass(/\bosm\b/);
         await expect(page.getByRole("button", { name: "기본 지도 다시 연결", exact: true })).toBeVisible();
-      } else {
-        await page.waitForTimeout(2_000);
+        await page.getByRole("button", { name: "지도 도구", exact: true }).click();
       }
 
       for (const target of CONTRACT.filter((item) => item.path === path)) {

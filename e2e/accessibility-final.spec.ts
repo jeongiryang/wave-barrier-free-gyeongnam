@@ -1,6 +1,6 @@
 import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, chooseTripConditions, openItinerary } from "./fixtures";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
@@ -48,21 +48,21 @@ test("skip-link는 스크롤뿐 아니라 본문 초점도 실제로 옮긴다",
   await mockPublicShellApi(page);
   await page.goto("/");
 
-  const skip = page.getByRole("link", { name: /소개 바로가기|跳至正文/ });
+  const skip = page.getByRole("link", { name: "본문으로 바로가기", exact: true });
   // load can precede React revealing the streamed page from hidden #S:0.
   // Start keyboard interaction when the page exists in the visible document.
   await expect(skip).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(skip).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("story");
+  await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("top");
 });
 
 test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지한다", async ({ page }) => {
   await page.setViewportSize({ width: 1363, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
 
   // Streaming HTML can still be inside the hidden Suspense segment after load.
   // Measure the displayed, interactive page while retaining every target and size check.
@@ -73,12 +73,12 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
     const rect = node.getBoundingClientRect();
     return { name: node.textContent?.trim() || node.getAttribute("aria-label") || "조작", width: rect.width, height: rect.height };
   }));
-  // The 18 selectors now live in the Planner; retain the combined target inventory.
+  // The full region inventory is now disclosed from the photo gallery.
   await mockPlannerApi(page);
-  await page.goto("/planner");
-  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
-  await expect(page.locator(".region-picker-list button")).toHaveCount(19);
-  sizes.push(...await page.locator(".region-picker-list button").evaluateAll(nodes => nodes.map(node => {
+  await page.goto("/planner", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "전체 18개 지역", exact: true }).click();
+  await expect(page.locator(".simple-region-link")).toHaveCount(18);
+  sizes.push(...await page.locator(".simple-region-link, .simple-search-bar select, .simple-facility-trigger").evaluateAll(nodes => nodes.map(node => {
     const rect = node.getBoundingClientRect();
     return { name: node.textContent?.trim() || "지역", width: rect.width, height: rect.height };
   })));
@@ -98,7 +98,7 @@ for (const width of [320, 390]) {
     await page.goto("/");
 
     const home = page.getByRole("link", { name: "WAVE 홈", exact: true });
-    const skip = page.getByRole("link", { name: "소개 바로가기", exact: true });
+    const skip = page.getByRole("link", { name: "본문으로 바로가기", exact: true });
     await expect(home).toBeVisible();
     await expect(skip).toBeVisible();
     await expect(home).toHaveText("WAVE");
@@ -130,12 +130,14 @@ for (const width of [320, 390]) {
   });
 }
 
-test("지도 도구 패널은 컨트롤 관계와 Escape 초점 복귀를 유지한다", async ({ page }) => {
+test("지도 도구 패널은 컨트롤 관계와 Escape 초점 복귀를 유지한다", async ({ page, isMobile }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner");
-  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
   await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openItinerary(page);
+  if (isMobile) await page.getByRole("group", { name: "일정 보기 방식" }).getByRole("button", { name: "지도", exact: true }).click();
 
   const trigger = page.locator(".map-command-bar").getByRole("button", { name: /출발·도착/ });
   await trigger.scrollIntoViewIfNeeded();
@@ -157,7 +159,6 @@ test("플래너 헤더는 스크롤 뒤에도 키보드로 돌아갈 수 있다"
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner");
-  await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
   await chooseTripConditions(page);
   await page.getByRole("heading", { name: "경남도립미술관" }).first().waitFor();
 

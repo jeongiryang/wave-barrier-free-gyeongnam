@@ -1,0 +1,9 @@
+ALTER TABLE itineraries ADD COLUMN IF NOT EXISTS live BOOLEAN NOT NULL DEFAULT FALSE;
+-- migrate:split
+ALTER TABLE itineraries ADD COLUMN IF NOT EXISTS revision INTEGER NOT NULL DEFAULT 1;
+-- migrate:split
+ALTER TABLE itineraries ADD COLUMN IF NOT EXISTS owner_id TEXT;
+-- migrate:split
+ALTER TABLE itineraries ADD COLUMN IF NOT EXISTS manage_hash TEXT;
+-- migrate:split
+ALTER TABLE itineraries ADD COLUMN IF NOT EXISTS revoked BOOLEAN NOT NULL DEFAULT FALSE;

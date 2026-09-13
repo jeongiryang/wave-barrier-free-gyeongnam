@@ -1,20 +1,19 @@
-import { openSupportMenu } from "./support-menu";
+import { openPlannerMap, openRouteDetails, changeMapLanguage, ensureMapView } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 async function prepare(page: Page, setup?: () => Promise<void>) {
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await setup?.();
   await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
-  await page.getByRole("button", { name: "Changwon", exact: true }).click();
-  await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-  await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-  await page.getByRole("button", { name: "Find places →", exact: true }).click();
-  await page.getByRole("button", { name: "경남도립미술관 Add to itinerary", exact: true }).click();
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 add to itinerary", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(1);
   await page.locator(".itinerary-route-coverage select").selectOption("car");
   // The selected map journey and the automatic itinerary check are separate
   // operations. Let the automatic check finish before measuring a later action.
@@ -60,6 +59,7 @@ for (const theme of ["light", "dark"] as const) {
     await panel.screenshot({ path: test.info().outputPath(`route-${theme}.png`) });
     for (const width of [320, 768, 960, 1024, 1366, 1440]) {
       await page.setViewportSize({ width, height: 900 });
+      await ensureMapView(page);
       for (const control of await panel.locator("button,a").all()) {
         const box = await control.boundingBox();
         expect(box!.width).toBeGreaterThanOrEqual(44);
@@ -88,15 +88,10 @@ test("route comparison language changes without another route request or changin
   await expect(panel.locator(".route-option")).toHaveCount(2);
   await panel.locator(".route-option").last().click();
   const before = requests;
-  await page.keyboard.press("Control+Home");
-  await openSupportMenu(page);
-  const preferences = page.locator(".preference-controls:visible");
-  await openSupportMenu(page);
-  await preferences.getByLabel("Open preferences", { exact: true }).click();
-  await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
+  await changeMapLanguage(page, false);
   await expect(panel.getByRole("group", { name: "이동수단별 예상 시간", exact: true })).toBeVisible();
   await expect(panel.locator('.route-option[aria-pressed="true"]')).toContainText("40분");
-  await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+  await changeMapLanguage(page, true);
   await expect(panel.locator('.route-option[aria-pressed="true"]')).toContainText("40 min");
   await expect(panel.locator(".route-notice")).not.toContainText("실제 교통 경로");
   expect(requests).toBe(before);
@@ -130,7 +125,8 @@ for (const clipboard of ["missing", "denied", "available"] as const) {
     // The official site is outside this test; do not perform a booking or claim it loaded.
     await page.context().route("https://www.korail.com/**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "<title>Booking boundary</title>" }));
     await prepare(page);
-    await page.locator(".transport-details summary").click();
+    await page.locator(".reference-transport-details > summary").click();
+    await page.locator(".transport-details > summary").click();
     const booking = page.locator('.official-booking-strip a[href="https://www.korail.com/"]');
     await expect(booking).toHaveAttribute("target", "_blank");
     const popup = page.waitForEvent("popup");

@@ -270,6 +270,8 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
     setMaxLevel(level) { this.maxLevel = level; }
     getCenter() { return new LatLng(35.2, 128.6); }
     getBounds() { return { getSouthWest: () => new LatLng(35.1, 128.5), getNorthEast: () => new LatLng(35.4, 128.8) }; }
+    getZoom() { return this.zoom || 9; }
+    setZoom(zoom, options) { this.zoom = zoom; this.zoomOptions = options; return this; }
     setMinZoom(zoom) { this.minZoom = zoom; }
     getBoundsZoom() { return 9; }
     setView() {

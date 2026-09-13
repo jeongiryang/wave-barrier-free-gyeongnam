@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
+import { chooseTripConditions, mockPlannerApi, plan, openItinerary } from "./fixtures";
 
 for (const english of [false, true]) for (const zero of [false, true]) {
   test(`${english ? "EN dark" : "KO light"} regional information distinguishes ${zero ? "reported zero" : "unavailable figures"} across viewport widths`, async ({ page }, testInfo) => {
@@ -22,13 +22,8 @@ for (const english of [false, true]) for (const zero of [false, true]) {
       } });
     });
     await page.goto("/planner");
-    if (english) {
-      await page.getByRole("button", { name: "Changwon", exact: true }).click();
-      await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-      await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-      await page.getByRole("button", { name: "Find places →", exact: true }).click();
-    } else await chooseTripConditions(page);
-    await page.getByRole("button", { name: english ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
+    await chooseTripConditions(page); await page.locator('.simple-place-row').first().locator('.simple-place-add').click(); await openItinerary(page);
+    await page.locator('#departure-readiness > summary').click();
     await page.locator("#layers > summary").click();
     const insights = page.locator(".insight-board");
     await expect(insights).toHaveAttribute("aria-busy", "false");

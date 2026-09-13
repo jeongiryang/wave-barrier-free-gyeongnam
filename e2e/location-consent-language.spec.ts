@@ -1,3 +1,4 @@
+import { showItineraryMap } from './fixtures';
 import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import { openNearby } from "./nearby-fixtures";
@@ -46,11 +47,11 @@ for (const entry of ["toolbar", "panel"] as const) {
       expect(await page.evaluate(() => (window as unknown as { locationRequestCount(): number }).locationRequestCount())).toBe(0);
       expect(routeRequests).toBe(0);
       page.off("request", observe);
-      await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-saved-places') || '[]'))).toHaveLength(1);
       if (entry === "panel") await page.locator("#map-panel-route").getByRole("button", { name: locale === "en" ? "Close departure and destination settings" : "출발지 목적지 설정 닫기", exact: true }).click();
     }
     for (const width of [390, 960, 1366, 1440]) {
-      await page.setViewportSize({ width, height: 844 });
+      await page.setViewportSize({ width, height: 844 }); await showItineraryMap(page);
       await page.locator(".route-map-shell").scrollIntoViewIfNeeded();
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
       await page.screenshot({ path: test.info().outputPath(`location-cancel-${entry}-${width}.png`) });

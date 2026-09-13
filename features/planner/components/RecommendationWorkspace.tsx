@@ -10,6 +10,7 @@ interface RecommendationWorkspaceProps {
   tripSelection: ReturnType<typeof useTripSelection>;
   onGenerate: (revealResults?: boolean, requestedTheme?: string) => void | Promise<void>;
   onSelectPlace: (place: Place) => void;
+  onMore?: () => void | Promise<void>;
 }
 
 export default function RecommendationWorkspace(props: RecommendationWorkspaceProps) {

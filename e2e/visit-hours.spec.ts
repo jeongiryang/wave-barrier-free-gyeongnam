@@ -1,6 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { expect, test, type Page } from "@playwright/test";
+import { chooseTripConditions, mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
+
+async function startTime(page: Page, value: string) {
+  await page.getByRole("button", { name: "여행 설정", exact: true }).click();
+  const editor = page.getByRole("dialog", { name: "여행 설정", exact: true });
+  await editor.getByLabel("하루 시작", { exact: true }).fill(value);
+  await editor.getByRole("button", { name: "적용", exact: true }).click();
+}
 
 test("visiting hours load on request, compare changed times and reuse the same record", async ({ page }, info) => {
   await mockPublicShellApi(page);
@@ -14,23 +21,24 @@ test("visiting hours load on request, compare changed times and reuse the same r
   });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".planner-navigation nav button").nth(3).click();
-  const board = page.locator(".reference-day-list");
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openItinerary(page, { start: "2026-10-07" });
+  const board = page.locator(".simple-stops");
   const hours = board.locator(".visit-hours");
   await expect(hours.locator("summary")).toBeVisible();
   expect(requests).toEqual([]);
   await hours.locator("summary").click();
   await expect(hours).toContainText("등록된 이용시간 안에 머무는 일정이에요.");
   await expect(hours.getByRole("link", { name: "055-123-4567" })).toHaveAttribute("href", "tel:0551234567");
-  await board.locator(".reference-start-time input").fill("08:00");
+  await startTime(page, "08:00");
   await expect(hours).toContainText("예상 도착이 개장 전이에요.");
-  await board.locator(".reference-start-time input").fill("16:00");
+  await startTime(page, "16:00");
   await expect(hours).toContainText("머무는 동안 이용시간이 끝나요.");
-  await board.locator(".reference-stop-actions summary").click();
-  await board.getByRole("combobox", { name: "경남도립미술관 머무는 시간", exact: true }).selectOption("30");
+  await board.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
+  const stop = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
+  await stop.getByRole("combobox", { name: "경남도립미술관 머무는 시간", exact: true }).selectOption("30");
+  await stop.getByRole("button", { name: "적용", exact: true }).click();
   await expect(hours).toContainText("시간대 일치");
-  await board.locator(".reference-stop-actions summary").click();
   await hours.locator("summary").click();
   await hours.locator("summary").press("Enter");
   await expect(hours).toContainText("시간대 일치");
@@ -55,9 +63,9 @@ test("provider failure retries explicitly and conditional hours remain unconfirm
     : route.fulfill({ json: { id: "1001", status: "available", checkedAt: "2026-09-11T02:00:00Z", source: "ⓒ한국관광공사", hours: "하절기 09:00~18:00 / 동절기 10:00~17:00", restDays: "월요일 (공휴일은 다음날)" } }));
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".planner-navigation nav button").nth(3).click();
-  const hours = page.locator(".reference-day-list .visit-hours");
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openItinerary(page, { start: "2026-10-07" });
+  const hours = page.locator(".simple-stops .visit-hours");
   await hours.locator("summary").click();
   await expect(hours.getByRole("alert")).toContainText("불러오지 못했어요");
   expect(calls).toBe(1);
@@ -65,5 +73,5 @@ test("provider failure retries explicitly and conditional hours remain unconfirm
   await expect(hours.locator("[role=status]")).toContainText("확인 필요");
   await expect(hours).toContainText("하절기 09:00~18:00 / 동절기 10:00~17:00");
   expect(calls).toBe(2);
-  await expect(page.locator(".reference-stop-copy")).toContainText("경남도립미술관");
+  await expect(page.locator(".simple-stop-copy")).toContainText("경남도립미술관");
 });

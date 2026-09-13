@@ -2,13 +2,14 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import ts from "typescript";
+import { createRequire } from "node:module";
 
 function load(path) {
   const mod = { exports: {} };
   const code = ts.transpileModule(readFileSync(new URL(path, import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
-  new Function("module", "exports", code)(mod, mod.exports);
+  new Function("module", "exports", "require", code)(mod, mod.exports, createRequire(import.meta.url));
   return mod.exports;
 }
 const { planResponse } = load("../features/planner/services/plan-response.ts");

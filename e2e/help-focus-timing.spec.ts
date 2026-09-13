@@ -23,7 +23,7 @@ for (const locale of ["ko", "en"] as const) {
       });
     }, locale);
     for (const path of ["/", "/planner", "/community", "/travel-book"]) {
-      await page.goto(path);
+      await page.goto(path, { waitUntil: "domcontentloaded" });
       await openSupportMenu(page);
       const trigger = page.getByRole("button", { name: locale === "en" ? "Help" : "도움말", exact: true });
       await expect(trigger).toBeEnabled();
@@ -32,11 +32,13 @@ for (const locale of ["ko", "en"] as const) {
         await page.keyboard.press("Enter");
         const dialog = page.getByRole("dialog");
         await expect(dialog).toBeVisible();
+        await expect(page.locator(".wave-support-menu")).not.toHaveAttribute("open", "");
         await expect(page.locator("html")).toHaveAttribute("data-help-focus-at-open", "true");
         await page.keyboard.press("Shift+Tab");
         expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
         await page.keyboard.press("Escape");
         await expect(dialog).toHaveCount(0);
+        await expect(page.locator(".wave-support-menu")).toHaveAttribute("open", "");
         await expect(trigger).toBeFocused();
       }
     }

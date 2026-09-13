@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { deliverNearby, nearbyPlace, nearbyRequests, openNearby } from "./nearby-fixtures";
+import { deliverNearby, nearbyPlace, nearbyRequests, openNearby, addAnotherMapPlace, ensureMapView, openMapTool } from "./nearby-fixtures";
 
 for (const english of [false, true]) for (const theme of ["light", "dark"]) test(`nearby errors, empty results and explicit retry remain accessible in ${english ? "English" : "Korean"} ${theme}`, async ({ page }) => {
   const errors: string[] = [];
@@ -24,7 +24,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   expect((await new AxeBuilder({ page }).include("#map-panel-nearby").analyze()).violations).toEqual([]);
   await panel.getByRole("button", { name: english ? "View on map" : "지도에서 보기", exact: true }).click();
   await expect(page.locator("#map-panel-place")).toContainText("검증 장소 1");
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(1);
   expect(errors).toEqual([]);
 });
 
@@ -47,8 +47,9 @@ for (const completed of [false, true]) test(`changing itinerary replaces the map
   const panel = await openNearby(page);
   await panel.getByRole("button", { name: "음식점", exact: true }).click();
   if (completed) { await deliverNearby(page, 0, "OK", [nearbyPlace()]); await expect(panel.locator("article")).toHaveCount(1); }
-  await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(2);
+  await addAnotherMapPlace(page);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(2);
+  await openMapTool(page, "nearby");
   await expect(panel.getByRole("button", { name: "음식점", exact: true })).toHaveAttribute("aria-pressed", "false");
   await deliverNearby(page, 0, "OK", [nearbyPlace()]);
   await expect(panel.locator("article")).toHaveCount(0);
@@ -77,12 +78,14 @@ for (const failure of ["malformed", "coordinates", "origin", "radius", "throw", 
 });
 
 for (const theme of ["light", "dark"]) test(`nearby ${theme} shows all fifteen places and fourteen usable categories across required widths`, async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 568 });
   const panel = await openNearby(page, true, theme);
   await panel.getByRole("button", { name: "Restaurants", exact: true }).click();
   await deliverNearby(page, 0, "OK", Array.from({ length: 15 }, (_, index) => nearbyPlace(index + 1)));
   await expect(panel.locator("article")).toHaveCount(15);
   for (const [width, height] of [[320,568],[360,640],[390,844],[430,932],[768,1024],[1024,768],[1280,720],[1366,768],[1440,900],[1920,1080],[2560,1440]]) {
     await page.setViewportSize({ width, height });
+    await ensureMapView(page);
     const categories = panel.locator(".map-tool-grid > button"); await expect(categories).toHaveCount(14);
     expect(await categories.evaluateAll((buttons) => buttons.map((button) => { const b = button.getBoundingClientRect(); return { name: button.textContent, width: b.width, height: b.height, scrollWidth: button.scrollWidth, clientWidth: button.clientWidth }; }).filter((b) => b.width < 44 || b.height < 44 || b.scrollWidth > b.clientWidth + 1)), `${theme} categories at ${width}px`).toEqual([]);
     await panel.getByRole("button", { name: "Close nearby places", exact: true }).focus();
@@ -100,10 +103,12 @@ for (const theme of ["light", "dark"]) test(`nearby ${theme} shows all fifteen p
 });
 
 test("nearby category labels fit wider fallback fonts at every required width", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
   const panel = await openNearby(page, true);
   await page.addStyleTag({ content: ".map-nearby-panel button { font-family: Verdana, sans-serif !important; }" });
   for (const [width, height] of [[320,568],[360,640],[390,844],[430,932],[768,1024],[1024,768],[1280,720],[1366,768],[1440,900],[1920,1080],[2560,1440]]) {
     await page.setViewportSize({ width, height });
+    await ensureMapView(page);
     const categories = panel.locator(".map-tool-grid > button");
     await expect(categories).toHaveCount(14);
     expect(await categories.evaluateAll((buttons) => buttons.map((button) => { const b = button.getBoundingClientRect(); return { name: button.textContent, width: b.width, height: b.height, scrollWidth: button.scrollWidth, clientWidth: button.clientWidth }; }).filter((b) => b.width < 44 || b.height < 44 || b.scrollWidth > b.clientWidth + 1)), `fallback categories at ${width}px`).toEqual([]);

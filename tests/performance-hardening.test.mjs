@@ -47,23 +47,31 @@ test("사진 코스의 이전 공식정보 응답은 최신 편집을 덮지 않
   assert.match(hook, /finally \{[\s\S]*setReading\(false\)/);
 });
 
-test("숨은 플래너 지도와 원격 이미지는 초기 네트워크 비용을 만들지 않는다", async () => {
-  const [planner, workspace, regionStory, smartImage, photoCourse] = await Promise.all([
+test("검색 화면과 모바일 시간표는 지도를 지연하고 지역 사진은 실제 카드만 lazy 로드한다", async () => {
+  const [planner, itinerary, workspace, regionStory, smartImage, photoCourse] = await Promise.all([
     source("app/planner/page.tsx"),
+    source("features/planner/components/PlannerItineraryWorkspace.tsx"),
     source("features/planner/components/RouteMapWorkspace.tsx"),
     source("features/landing/components/LandingRegionStory.tsx"),
     source("features/tourism/components/SmartSpotImage.tsx"),
     source("features/photo-course/PhotoCourseRestore.tsx"),
   ]);
-  assert.match(planner, /mapEnabled=\{stageView\.view === "overview" \|\| journey\.activeStepId === "itinerary"\}/);
+  assert.match(planner, /mapEnabled=\{journey\.activeStepId === "itinerary" \|\| journey\.activeStepId === "departure-readiness"\}/);
+  assert.match(itinerary, /const mapView = desktop \|\| props\.mapView/);
+  assert.match(itinerary, /mapEnabled=\{props\.mapEnabled && mapView\}/);
+  assert.match(itinerary, /if \(!props\.tripSelection\.travelStart\) return <InitialTripSetup/);
   assert.match(workspace, /lazy\(\(\) => import\("\.\.\/\.\.\/\.\.\/components\/RouteMap"\)\)/);
-  assert.match(workspace, /mapEnabled \? <Suspense/);
-  assert.doesNotMatch(regionStory, /Wikimedia|upload\.wikimedia\.org/);
+  assert.match(workspace, /useState\(mapEnabled\)/);
+  assert.match(workspace, /if \(mapEnabled && !mapMounted\) setMapMounted\(true\)/);
+  assert.match(workspace, /mapMounted \? <Suspense/);
+  assert.doesNotMatch(regionStory, /Wikimedia|upload\.wikimedia\.org|<LandingBoundaryMap|korea-sgis-2020/);
   assert.equal((regionStory.match(/<img\b/g) || []).length, 1);
-  assert.match(regionStory, /<img src=\{photo\.image\}/);
-  assert.match(regionStory, /decoding="async" loading="lazy"/);
-  assert.doesNotMatch(regionStory, /<LandingBoundaryMap|korea-sgis-2020/);
-  assert.match(regionStory, /if \(!ready \|\| !inView \|\| !visible \|\| saving\) return/);
+  assert.match(regionStory, /orderedRegions\.slice\(0, expanded \? 18 : 6\)\.map/);
+  assert.match(regionStory, /src=\{photo\.image\}/);
+  assert.match(regionStory, /loading="lazy" decoding="async" width="640" height="480"/);
+  assert.doesNotMatch(regionStory, /fetch\(|setInterval|setTimeout|requestAnimationFrame/);
+  assert.match(regionStory, /media\.matches \|\| revealed\.current\.has\(entry\.target\)/);
+  assert.match(regionStory, /animations\.forEach\(animation => animation\.cancel\(\)\)/);
   const boundary = await source("features/landing/components/LandingBoundaryMap.tsx");
   assert.match(boundary, /new IntersectionObserver/);
   assert.match(boundary, /import\("\.\/RegionBoundarySurface"\)/);
@@ -75,13 +83,21 @@ test("숨은 플래너 지도와 원격 이미지는 초기 네트워크 비용�
   }
 });
 
-test("지역 사진은 hover intent 뒤에만 요청하고 이탈 시 취소한다", async () => {
-  const regions = await source("features/landing/hooks/useLandingRegions.ts");
-  assert.match(regions, /HOVER_INTENT_MS = 180/);
-  assert.match(regions, /window\.setTimeout\(show, HOVER_INTENT_MS\)/);
-  assert.match(regions, /cancelRegionPhoto\(region\)/);
-  assert.match(regions, /photoRequests\.current\.get\(region\)\?\.abort\(\)/);
-  assert.match(regions, /photoRequests\.current\.forEach\(\(controller\) => controller\.abort\(\)\)/);
+test("지역을 읽거나 hover해도 새 조회 없이 같은 사진과 목적지를 유지한다", async () => {
+  const [landing, planner] = await Promise.all([
+    source("features/landing/components/LandingRegionStory.tsx"),
+    source("features/planner/components/PlannerRegionDiscovery.tsx"),
+  ]);
+  for (const region of [landing, planner]) {
+    assert.match(region, /src=\{photo\.image\}/);
+    assert.match(region, /loading="lazy" decoding="async"/);
+    assert.doesNotMatch(region, /onMouseEnter|onPointerEnter|onMouseMove|fetch\(|setInterval/);
+    assert.match(region, /aria-expanded=\{expanded\}/);
+    assert.match(region, /regionPhotoSource\(photo\)\.href/);
+  }
+  assert.match(landing, /regionShowcaseAlbums\[name\]\[0\]/);
+  assert.match(planner, /regionShowcasePhotos\[name\]/);
+  assert.match(planner, /onClick=\{\(\) => onChange\(name\)\}/);
 });
 
 test("빌드 성능 예산은 전역 CSS와 랜딩 초기 비용을 별도로 제한한다", async () => {

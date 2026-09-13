@@ -1,10 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
 async function prepare(page: Page, en: boolean, theme: string, configure?: () => Promise<void>) {
   await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 390 : 1366, height: 844 });
   await mockPlannerApi(page);
+  await mockPublicShellApi(page);
   await configure?.();
   await page.addInitScript(({ en, theme }) => {
     localStorage.setItem("wave-locale", en ? "en" : "ko");
@@ -12,11 +13,9 @@ async function prepare(page: Page, en: boolean, theme: string, configure?: () =>
   }, { en, theme });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/planner");
-  await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>(".journey-mode-toggle button")?.disabled);
-  await page.getByRole("group", { name: en ? "Choose a region" : "여행 지역 선택", exact: true }).getByRole("button", { name: en ? "Changwon" : "창원", exact: true }).click();
-  await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
-  await page.getByRole("button", { name: en ? /Nature and relaxation/ : /자연·휴양 공원/ }).click();
-  await page.getByRole("button", { name: en ? "Find places →" : "여행지 둘러보기 →", exact: true }).click();
+  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await expect(page.locator(".simple-results > .simple-place-list article")).toHaveCount(2);
+  await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator("html")).toHaveAttribute("lang", "ko");
 }
 
@@ -25,15 +24,17 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await prepare(page, en, theme, async () => {
       await page.route("https://wave.test/museum.svg", route => route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><path fill="white" d="M0 0h800v600H0z"/></svg>' }));
     });
-    const photo = page.locator(".place-card .place-visual").first();
+    const photo = page.locator(".simple-place-row .simple-place-photo").first();
     const image = photo.locator("img");
     await expect(image).toBeAttached();
     await photo.scrollIntoViewIfNeeded();
     await expect(image).toBeVisible();
-    const region = page.locator(".place-card .place-region").first();
+    const region = page.locator(".simple-place-row .simple-place-city").first();
     await expect(region).toHaveText("창원");
     await expect(region).toHaveAttribute("lang", "ko");
-    expect((await region.boundingBox())!.y).toBeGreaterThanOrEqual((await photo.boundingBox())!.y + (await photo.boundingBox())!.height);
+    const photoBounds = (await photo.boundingBox())!, regionBounds = (await region.boundingBox())!;
+    expect(regionBounds.x >= photoBounds.x + photoBounds.width || regionBounds.y >= photoBounds.y + photoBounds.height
+      || regionBounds.x + regionBounds.width <= photoBounds.x || regionBounds.y + regionBounds.height <= photoBounds.y).toBe(true);
     const contrast = await region.evaluate(element => {
       const style = getComputedStyle(element);
       const parse = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
@@ -49,7 +50,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     expect(contrast).toBeGreaterThanOrEqual(4.5);
     await expect(image).toHaveAttribute("alt", en ? "경남도립미술관" : "경남도립미술관 관광사진");
     await expect(image).toHaveAttribute("lang", "ko");
-    expect((await new AxeBuilder({ page }).include(".place-carousel").analyze()).violations).toEqual([]);
+    expect((await new AxeBuilder({ page }).include(".simple-results").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`photo-${en ? "en" : "ko"}-${theme}.png`) });
   });
 
@@ -70,7 +71,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
       return route.fulfill({ status: state === "error" ? 503 : 200, contentType: "application/json", body: JSON.stringify({ image: "", status: "empty" }) });
       });
     });
-    const card = page.locator(".place-card").first();
+    const card = page.locator(".simple-place-row").first();
     await card.scrollIntoViewIfNeeded();
     const status = card.getByRole("status");
     try {
@@ -86,9 +87,11 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(fallback.locator("img")).toHaveCount(0);
     expect(queries).toEqual(["1001"]);
     await expect(fallback).not.toContainText(en ? "여행" : "Official photo");
-    await card.getByRole("button", { name: en ? "경남도립미술관 Add to itinerary" : "경남도립미술관 일정에 추가", exact: true }).click();
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
-    expect((await new AxeBuilder({ page }).include(".place-carousel").analyze()).violations).toEqual([]);
+    await card.getByRole("button", { name: en ? "경남도립미술관 add to itinerary" : "경남도립미술관 일정에 담기", exact: true }).click();
+    const draft = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values);
+    expect(JSON.parse(draft["wave-saved-places"] || "[]")).toEqual(["1001"]);
+    expect(JSON.parse(draft["wave-trip-schedule-v1"] || "{}").travelStart || "").toBe("");
+    expect((await new AxeBuilder({ page }).include(".simple-results").analyze()).violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     expect(pageErrors).toEqual([]);
   });

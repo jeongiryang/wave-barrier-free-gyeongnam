@@ -2,11 +2,12 @@ import fs from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect, type Page } from '@playwright/test';
-import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from './fixtures';
+import { mockPlannerApi, mockPublicShellApi, chooseTripConditions, openItinerary } from './fixtures';
 import { alternativePlan } from './alternative-fixtures';
 
 async function setup(page:Page) {
-  await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true});await page.emulateMedia({reducedMotion:'reduce'});
+  await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'Unconfigured synthetic API'}}));
+  await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true,savedPlaces:alternativePlan.places});await page.emulateMedia({reducedMotion:'reduce'});
   await page.route('**/api/wave?action=plan*',route=>route.fulfill({json:alternativePlan}));
   await page.addInitScript(()=>{if(!localStorage.getItem('wave-trip-schedule-v1')){
     localStorage.setItem('wave-trip-schedule-v1',JSON.stringify({travelStart:'2026-09-15',travelEnd:'2026-09-16',dayStartTime:'10:00',scheduleAssignments:{'1001':'2026-09-15','1002':'2026-09-15','1003':'2026-09-15'},visitMinutesByPlaceId:{'1001':45},breakMinutesByPlaceId:{'1001':15}}));
@@ -14,9 +15,8 @@ async function setup(page:Page) {
   }});
   await page.route('**/api/wave?action=visit-info*',route=>route.fulfill({json:{id:new URL(route.request().url()).searchParams.get('contentId'),status:'available',checkedAt:'2026-09-11T12:00:00Z',source:'ⓒ한국관광공사',hours:'09:00~18:00',phone:'055-123-4567',fees:'무료'}}));
   await page.goto('/planner');await chooseTripConditions(page);
-  for(const name of ['경남도립미술관','용지호수공원','시민문화쉼터'])await page.getByRole('button',{name:name+' 일정에 추가',exact:true}).click();
-  await page.locator('.planner-navigation nav button').nth(3).click();
-  await page.getByRole('button',{name:'다음: 전체보기',exact:true}).click();
+  for(const name of ['경남도립미술관','용지호수공원','시민문화쉼터'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();
+  await openItinerary(page);await page.locator('.simple-more-trip-tools > summary').click();
 }
 const guide=(page:Page)=>page.getByRole('region',{name:'여행 당일 진행',exact:true});
 
@@ -28,7 +28,7 @@ test('on-trip completion, skip, undo and resume keep the original schedule',asyn
   await panel.getByRole('button',{name:'이번에는 건너뛰기',exact:true}).click();await expect(panel).toContainText('1곳 건너뜀');await expect(panel.getByRole('heading',{name:'시민문화쉼터',exact:true})).toBeVisible();
   await panel.getByRole('button',{name:'직전 진행 되돌리기',exact:true}).click();await expect(panel.getByRole('heading',{name:'용지호수공원',exact:true})).toBeVisible();
   await panel.getByRole('button',{name:'잠시 멈추기',exact:true}).click();await expect(panel.getByRole('button',{name:'이곳 방문 완료',exact:true})).toBeDisabled();
-  await page.reload();await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();await expect(panel).toContainText('1곳 방문 완료');await panel.getByRole('button',{name:'이어서 진행',exact:true}).click();
+  await page.reload();await page.locator('.simple-more-trip-tools > summary').click();await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();await expect(panel).toContainText('1곳 방문 완료');await panel.getByRole('button',{name:'이어서 진행',exact:true}).click();
   await panel.getByLabel('이어갈 시각',{exact:true}).fill('17:00');await expect(panel).toContainText('17:00 출발 기준');
   const after=await page.evaluate(()=>({saved:localStorage.getItem('wave-saved-places'),schedule:localStorage.getItem('wave-trip-schedule-v1')}));expect(after).toEqual(before);
   for(const width of info.project.name.includes('desktop')?[1440,960]:[390,320]){

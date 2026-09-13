@@ -1,4 +1,5 @@
 import { apiStatus } from "./provider-model";
+import { classifyFacilities } from "../../lib/facility-selection.js";
 import type { ProviderAttempt } from "../shared/provider-data";
 
 type EvidencePlace = {
@@ -9,6 +10,9 @@ type EvidencePlace = {
   name: string;
   score: number | null;
   knownFields?: number;
+  unknownFields?: number;
+  negativeFields?: number;
+  accessibility?: Array<{ key: string; state: string }>;
   summary: string;
   source: string;
   features: string[];
@@ -25,15 +29,17 @@ type PlanStop = {
   evidenceState: "verified" | "limited" | "context";
 };
 
-export function hasPositiveOfficialEvidence(place: Pick<EvidencePlace, "score" | "knownFields">) {
-  return typeof place.score === "number" && place.score > 0 && (place.knownFields ?? 0) > 0;
+export function hasPositiveOfficialEvidence(place: Pick<EvidencePlace, "score" | "knownFields" | "accessibility" | "unknownFields" | "negativeFields">) {
+  if (place.accessibility?.length) return classifyFacilities(place, place.accessibility.map(item => item.key)) === "match";
+  return place.score === 100 && (place.knownFields ?? 0) > 0 && !place.unknownFields && !place.negativeFields;
 }
 
-export function partitionPlacesByEvidence<T extends Pick<EvidencePlace, "score" | "knownFields">>(places: T[]) {
-  return places.reduce<{ recommended: T[]; exploration: T[] }>((groups, place) => {
-    groups[hasPositiveOfficialEvidence(place) ? "recommended" : "exploration"].push(place);
+export function partitionPlacesByEvidence<T extends Pick<EvidencePlace, "score" | "knownFields" | "accessibility">>(places: T[], requiredKeys?: string[]) {
+  return places.reduce<{ recommended: T[]; exploration: T[]; unavailable: T[] }>((groups, place) => {
+    const state = requiredKeys ? classifyFacilities(place, requiredKeys) : hasPositiveOfficialEvidence(place) ? "match" : "unknown";
+    groups[state === "match" ? "recommended" : state === "absent" ? "unavailable" : "exploration"].push(place);
     return groups;
-  }, { recommended: [], exploration: [] });
+  }, { recommended: [], exploration: [], unavailable: [] });
 }
 
 export function sortPlacesByEvidence<T extends Pick<EvidencePlace, "score" | "knownFields">>(places: T[]) {

@@ -1,53 +1,31 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, chooseTripConditions } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions, openItinerary } from "./fixtures";
 
-async function recordScrollIntoViewBehavior(page: import("@playwright/test").Page) {
-  await page.addInitScript(() => {
-    const original = Element.prototype.scrollIntoView;
-    const calls: Array<ScrollBehavior | "unspecified"> = [];
-    Object.defineProperty(window, "__waveScrollBehaviors", { value: calls, configurable: true });
-    Element.prototype.scrollIntoView = function scrollIntoView(arg?: boolean | ScrollIntoViewOptions) {
-      calls.push(typeof arg === "object" && arg?.behavior ? arg.behavior : "unspecified");
-      return original.call(this, arg as ScrollIntoViewOptions | boolean | undefined);
-    };
+for (const reducedMotion of ['reduce', 'no-preference'] as const) {
+  test(`${reducedMotion}: 담기와 두 화면 전환에 불필요한 스크롤 애니메이션을 넣지 않는다`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion });
+    await page.addInitScript(() => {
+      const original = Element.prototype.scrollIntoView;
+      const calls: string[] = [];
+      Object.assign(window, { waveScrollBehaviors: calls });
+      Element.prototype.scrollIntoView = function (arg?: boolean | ScrollIntoViewOptions) {
+        calls.push(typeof arg === 'object' ? arg.behavior || 'unspecified' : 'unspecified');
+        return original.call(this, arg);
+      };
+    });
+    await mockPlannerApi(page); await page.goto('/planner'); await chooseTripConditions(page);
+    const row = page.locator('.simple-place-row').first();
+    await row.locator('.simple-place-add').click();
+    await expect(row.locator('.simple-place-add')).toHaveAttribute('aria-pressed', 'true');
+    // Adding stays in the current results. The old five-stage scroll is removed.
+    await expect(page.locator('.simple-planner-tabs button').first()).toHaveAttribute('aria-pressed', 'true');
+    await expect(row).toBeInViewport();
+    await openItinerary(page, { start: '2026-10-08' });
+    await expect(page.locator('.simple-stops > li')).toHaveCount(1);
+    await expect(page.locator('.simple-planner-tabs button').nth(1)).toHaveAttribute('aria-pressed', 'true');
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    const calls = await page.evaluate(() => (window as unknown as { waveScrollBehaviors: string[] }).waveScrollBehaviors);
+    expect(calls).not.toContain('smooth');
+    if (reducedMotion === 'reduce') expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');
   });
 }
-
-async function routeScrollBehavior(page: import("@playwright/test").Page) {
-  return page.evaluate(() => {
-    const calls = (window as typeof window & { __waveScrollBehaviors?: Array<ScrollBehavior | "unspecified"> }).__waveScrollBehaviors ?? [];
-    return calls.at(-1) ?? "unspecified";
-  });
-}
-
-test("움직임 줄이기를 켜면 여행지 이동이 애니메이션 없이 끝난다", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await recordScrollIntoViewBehavior(page);
-  await mockPlannerApi(page);
-  await page.goto("/planner");
-  await chooseTripConditions(page);
-  await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
-
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".planner-navigation nav button").nth(3).click();
-  await page.waitForTimeout(100);
-
-  expect(await routeScrollBehavior(page)).toBe("auto");
-});
-
-test("기본 설정에서는 부드러운 이동을 유지한다", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await recordScrollIntoViewBehavior(page);
-  await mockPlannerApi(page);
-  await page.goto("/planner");
-  await chooseTripConditions(page);
-  await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
-
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".planner-navigation nav button").nth(3).click();
-  await page.waitForTimeout(100);
-
-  // 프레임 수/중간 scrollY 개수는 기기 성능에 따라 달라진다. 실제 제품 계약인
-  // scrollIntoView의 behavior 인자를 검증해 빠른 CI에서도 결정적으로 확인한다.
-  expect(await routeScrollBehavior(page)).toBe("smooth");
-});

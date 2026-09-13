@@ -1,80 +1,39 @@
-import { openSupportMenu } from "./support-menu";
-import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
-
-for (const scenario of ["complete", "partial", "negative", "legacy"] as const) for (const en of [false, true]) test(`${scenario} ${en ? "EN dark" : "KO light"}: departure facilities require current item-level evidence`, async ({ page }) => {
-  await mockPlannerApi(page);
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(color => localStorage.setItem("wave-theme", color), en ? "dark" : "light");
-  const fields = ["parking", "route", "wheelchair", "elevator", "restroom"].map((key, index) => ({
-    key, label: key, detail: "Official facility record",
-    state: scenario !== "complete" && index === 3 ? "unknown" : scenario === "negative" && index === 4 ? "negative" : "confirmed",
-  }));
-  let searches = 0;
-  let omitSavedPlace = false;
-  await page.route("**/api/wave?*", route => {
-    const params = new URL(route.request().url()).searchParams;
-    const action = params.get("action");
-    if (action !== "plan" && action !== "places") return route.fallback();
-    const facilityKeys = [...fields.map(field => field.key), ...(params.get("profiles")?.split(",").includes("baby") ? ["stroller", "lactationroom", "babysparechair"] : [])];
-    const places = plan.places.filter(place => !omitSavedPlace || place.id !== "1001").map(place => ({ ...place, score: 100, knownFields: 5, accessibility: scenario === "legacy" ? undefined : fields }));
-    // The same synthetic facility record must also back the saved-ID refresh.
-    // Otherwise its generic legacy fixture races the item-level search response.
-    if (action === "places") {
-      const ids = (params.get("ids") || "").split(",");
-      return route.fulfill({ json: { places: places.filter(place => ids.includes(place.id)), missing: ids.filter(id => !places.some(place => place.id === id)) } });
-    }
-    searches++;
-    return route.fulfill({ json: { ...plan, criteria: { facilityKeys }, places } });
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test } from '@playwright/test';
+import { chooseTripConditions, mockPlannerApi, openItinerary, plan } from './fixtures';
+import { openDeparture, departureItem } from './departure-fixtures';
+for (const scenario of ['complete', 'partial', 'negative', 'legacy'] as const) for (const en of [false, true]) test(`${scenario} ${en ? 'EN dark' : 'KO light'}: departure facilities require current item-level evidence`, async ({ page }) => {
+  await mockPlannerApi(page); await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(({ en, place }) => {
+    localStorage.setItem('wave-locale', en ? 'en' : 'ko'); localStorage.setItem('wave-theme', en ? 'dark' : 'light');
+    localStorage.setItem('wave-saved-places', '["1001"]'); localStorage.setItem('wave-saved-place-catalog-v1', JSON.stringify([place]));
+  }, { en, place: plan.places[0] });
+  const fields = ['parking', 'route', 'wheelchair', 'elevator', 'restroom'].map((key, index) => ({ key, label: key, detail: 'Official facility record', state: scenario !== 'complete' && index === 3 ? 'unknown' : scenario === 'negative' && index === 4 ? 'negative' : 'confirmed' }));
+  let searches = 0, omitSavedPlace = false;
+  await page.route('**/api/wave?*', route => {
+    const params = new URL(route.request().url()).searchParams, action = params.get('action'); if (action !== 'plan' && action !== 'places') return route.fallback();
+    const places = plan.places.filter(place => !omitSavedPlace || place.id !== '1001').map(place => ({ ...place, score: 100, knownFields: 5, accessibility: scenario === 'legacy' ? undefined : fields }));
+    if (action === 'places') { const ids = (params.get('ids') || '').split(','); return route.fulfill({ json: { places: places.filter(place => ids.includes(place.id)), missing: ids.filter(id => !places.some(place => place.id === id)) } }); }
+    searches++; const facilityKeys = (params.get('facilityKeys') || '').split(',').filter(Boolean);
+    const isNegative = fields.some(field => facilityKeys.includes(field.key) && field.state === 'negative');
+    const isUnknown = scenario === 'legacy' || facilityKeys.some(key => !fields.some(field => field.key === key && field.state === 'confirmed'));
+    return route.fulfill({ json: { ...plan, criteria: { facilityKeys }, places: !isNegative && !isUnknown ? places : [], stops: [], explorationPlaces: !isNegative && isUnknown ? places : [], excludedPlaces: isNegative ? places : [] } });
   });
-  await page.goto("/planner");
-  await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  if (en) {
-    await page.keyboard.press("Control+Home");
-    await openSupportMenu(page);
-    const preferences = page.locator(".preference-controls:visible");
-    await openSupportMenu(page);
-    await preferences.getByLabel("환경설정 열기", { exact: true }).click();
-    await preferences.getByLabel("언어", { exact: true }).selectOption("en");
-    await openSupportMenu(page);
-    await preferences.getByLabel("Open preferences", { exact: true }).click();
-    // Changing locale changes the recommendation contract: explicitly search again.
-    await page.locator(".condition-actions").getByRole("button", { name: "Find places →", exact: true }).click();
-  }
-  const card = page.locator(".departure-readiness");
-  const evidence = card.locator("article").filter({ has: page.getByText(en ? "Place accessibility evidence" : "장소 편의근거", { exact: true }) });
-  await expect(evidence).toHaveClass(scenario === "complete" ? "confirmed" : scenario === "partial" ? "partial" : "recheck");
-  if (scenario !== "legacy") {
-    const confirmed = scenario === "complete" ? 5 : scenario === "partial" ? 4 : 3;
-    await expect(evidence).toContainText(en ? `Reported available ${confirmed}` : `확인됨 ${confirmed}`);
-    await expect(evidence).toContainText(en ? `Unknown ${scenario === "complete" ? 0 : 1}` : `미확인 ${scenario === "complete" ? 0 : 1}`);
-    await expect(evidence).toContainText(en ? `Reported unavailable ${scenario === "negative" ? 1 : 0}` : `미제공 기록 ${scenario === "negative" ? 1 : 0}`);
-  }
-  await card.scrollIntoViewIfNeeded();
-  expect((await new AxeBuilder({ page }).include(".departure-readiness").analyze()).violations).toEqual([]);
-  if (scenario === "negative" && test.info().project.name === "desktop-chromium") for (const width of [960, 1440]) {
-    await page.setViewportSize({ width, height: 900 });
-    await card.screenshot({ path: test.info().outputPath(`facilities-${en ? "en-dark" : "ko-light"}-${width}.png`) });
-  }
-  if (scenario === "complete") {
-    const before = searches;
-    await page.getByRole("button", { name: en ? /Facilities for young children/ : /유아 편의시설/ }).click();
-    await expect(evidence).toHaveClass("recheck");
-    expect(searches).toBe(before);
-    const search = page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 둘러보기 →", exact: true });
-    await search.click();
-    await expect(evidence).toHaveClass("partial");
-    await expect(evidence).toContainText(en ? "Reported available 5" : "확인됨 5");
-    await expect(evidence).toContainText(en ? "Unknown 3" : "미확인 3");
-    omitSavedPlace = true;
-    await search.click();
-    await expect(evidence).toHaveClass("recheck");
-    expect(searches).toBe(before + 2);
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
-    await page.reload();
-    await expect(evidence).toHaveClass("recheck");
-    expect(searches).toBe(before + 2);
+  await page.goto('/planner'); await chooseTripConditions(page); await openItinerary(page, { start: '2026-10-08' }); const card = await openDeparture(page);
+  const evidence = await departureItem(page, '장소 편의근거'); const state = scenario === 'complete' ? '조회한 정보 있음' : scenario === 'partial' ? '일부 정보 있음' : '확인할 정보 있음';
+  await expect(evidence.locator('summary')).toContainText(state);
+  if (scenario !== 'legacy') { await expect(evidence).toContainText(`확인됨 ${scenario === 'complete' ? 5 : scenario === 'partial' ? 4 : 3}`); await expect(evidence).toContainText(`미확인 ${scenario === 'complete' ? 0 : 1}`); await expect(evidence).toContainText(`미제공 기록 ${scenario === 'negative' ? 1 : 0}`); }
+  else await expect(evidence).toContainText('항목별 공식 편의근거와 조회 시각');
+  await card.scrollIntoViewIfNeeded(); expect((await new AxeBuilder({ page }).include('.simple-readiness').analyze()).violations).toEqual([]);
+  if (scenario === 'negative' && test.info().project.name === 'desktop-chromium') for (const width of [960, 1440]) { await page.setViewportSize({ width, height: 900 }); await card.screenshot({ path: test.info().outputPath(`facilities-${en}-${width}.png`) }); }
+  if (scenario === 'complete') {
+    const before = searches; await page.locator('.simple-planner-tabs button').first().click(); await page.locator('.simple-facility-trigger').click(); const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+    await picker.getByRole('checkbox', { name: '수유실', exact: true }).check(); expect(searches).toBe(before);
+    await picker.getByRole('button', { name: /^적용/ }).click(); await expect.poll(() => searches).toBe(before + 1); await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'false');
+    await page.locator('.simple-planner-tabs button').nth(1).click(); await openDeparture(page); await expect(evidence.locator('summary')).toContainText('일부 정보 있음'); await expect(evidence).toContainText('확인됨 5'); await expect(evidence).toContainText('미확인 1');
+    omitSavedPlace = true; await card.getByRole('button', { name: '다시 조회', exact: true }).click(); await expect(evidence.locator('summary')).toContainText('확인할 정보 있음');
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-saved-places') || '[]'))).toEqual(['1001']);
+    await page.reload(); await openItinerary(page); await openDeparture(page); await expect(evidence.locator('summary')).toContainText('확인할 정보 있음');
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-saved-places') || '[]'))).toEqual(['1001']);
   }
 });

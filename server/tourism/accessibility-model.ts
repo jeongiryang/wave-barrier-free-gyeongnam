@@ -28,7 +28,7 @@ export function placeFrom(item: KtoItem, detail: KtoItem, region: string, profil
     mapX: clean(item.mapx), mapY: clean(item.mapy), score, confidence,
     knownFields: known.length, unknownFields: Math.max(0, total - known.length), negativeFields: negative.length,
     checkedAt: new Date().toISOString(), accessibility,
-    features: featureLabels.length ? featureLabels.slice(0, 5) : ["상세 편의정보 확인 필요"],
+    features: featureLabels.slice(0, 5),
     details: details.length ? details : ["제공된 편의정보가 제한적이므로 방문 전 시설 운영기관에 확인해 주세요."],
     source: matched.length ? "무장애 여행정보 · 국문 관광정보" : "국문 관광정보",
   };

@@ -40,7 +40,7 @@ export default function NavigationWorkspace({
   const english = locale === "en";
   return <section className="navigation-section" id="navigation" aria-labelledby="navigation-title">
     <div className="workspace-heading" data-reveal>
-      <div><span aria-hidden="true">↗</span><h3 id="navigation-title">{english ? "Check your route" : "이동 경로 확인"}</h3></div>
+      <div><span aria-hidden="true">↗</span><h3 id="navigation-title" tabIndex={-1}>{english ? "Check your route" : "이동 경로 확인"}</h3></div>
       <p>{english ? "Choose departure and destination to compare available journey times, transfers and walking sections." : "출발지와 도착지를 고르면 실제로 확인된 시간, 환승과 도보 구간을 비교합니다."}</p>
     </div>
     <details className="reference-transport-details" open={compact ? undefined : true}><summary>상세 교통수단 보기</summary><TransportDataOverview

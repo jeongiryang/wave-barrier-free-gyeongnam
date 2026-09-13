@@ -25,7 +25,8 @@ test("README는 가치에서 운영까지 실제 사용자 여정 순서로 설�
     assert.ok(readme.includes(route), `${route} 링크가 필요합니다.`);
   }
   assert.match(readme, /실패 응답은 캐시하지 않고/);
-  assert.match(readme, /정확한 출발 좌표는 저장하지 않으며 30일 뒤/);
+  assert.match(readme, /개인 편의 조건·메모·GPS 출발지는 포함하지 않습니다/);
+  assert.match(readme, /30일 뒤 조회에서 제외/);
   assert.match(readme, /GPS를 출발지로 선택한 동안 서버 경로 요청을 차단/);
   assert.match(readme, /지도 지점의 경로는 W.A.V.E API를 거쳐 Kakao·ODsay에 요청/);
   assert.match(readme, /모든 위치 처리가 기기 안에서 끝난다고 설명하지 않습니다/);

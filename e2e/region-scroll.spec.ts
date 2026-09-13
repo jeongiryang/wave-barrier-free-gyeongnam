@@ -1,44 +1,56 @@
-import { expect, test } from "@playwright/test";
-import { mockPublicShellApi, mockPlannerApi } from "./fixtures";
+import { expect, test, type Page } from "@playwright/test";
+import { prepareStory, storyReady, expectNoOverflow } from "./landing-contract";
 
-for (const viewport of [{ width: 1440, height: 650 }, { width: 390, height: 844 }]) {
-  test(`region rows follow scroll sequentially without bars at ${viewport.width}`, async ({ page }) => {
-    await mockPublicShellApi(page); await mockPlannerApi(page);
-    await page.setViewportSize(viewport);
-    await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
-    await page.goto("/");
-    const region = page.locator("#regions"), rails = region.locator(".region-card-rail");
-    await expect(region).toHaveAttribute("data-film", "true");
-    await expect(region).toHaveAttribute("data-film-sticky", "false");
-    const reveal = (fraction: number) => region.evaluate((el, value) => scrollTo({ top: scrollY + el.getBoundingClientRect().top - innerHeight + ((el as HTMLElement).offsetHeight + innerHeight) * value, behavior: "instant" }), fraction);
-    await reveal(.2);
-    await expect.poll(() => rails.first().evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
-    expect(await rails.last().evaluate(el => el.scrollLeft)).toBe(0);
-    const firstBefore = await rails.first().evaluate(el => el.scrollLeft);
-    await reveal(.35);
-    await expect.poll(() => rails.first().evaluate(el => el.scrollLeft)).toBeLessThan(firstBefore);
-    expect(await rails.last().evaluate(el => el.scrollLeft)).toBe(0);
-    await reveal(.7);
-    await expect.poll(() => rails.first().evaluate(el => el.scrollLeft)).toBeLessThanOrEqual(1);
-    await expect.poll(() => rails.last().evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
-    const secondBefore = await rails.last().evaluate(el => el.scrollLeft);
-    await reveal(.8);
-    await expect.poll(() => rails.last().evaluate(el => el.scrollLeft)).toBeGreaterThan(secondBefore);
-    expect(await rails.first().evaluate(el => el.scrollLeft)).toBeLessThanOrEqual(1);
-    for (const row of await rails.all()) {
-      await expect(row).toHaveCSS("scrollbar-width", "none");
-      expect(await row.evaluate(el => getComputedStyle(el, "::-webkit-scrollbar").display)).toBe("none");
-    }
-    const arrow = region.locator(".region-card-start").first();
-    await expect(arrow).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-    const size = await arrow.boundingBox();
-    expect(size?.width).toBeGreaterThanOrEqual(44); expect(size?.height).toBeGreaterThanOrEqual(44);
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await expect(region).toHaveAttribute("data-film", "false");
-    await expect(region.locator(".region-showcase-stage")).toHaveCSS("position", "relative");
-    const still = await rails.evaluateAll(rows => rows.map(row => row.scrollLeft));
-    await page.evaluate(() => scrollBy({ top: 100, behavior: "instant" }));
-    await expect.poll(() => rails.evaluateAll(rows => rows.map(row => row.scrollLeft))).toEqual(still);
+async function observeRegionalMotion(page: Page) {
+  await page.addInitScript(() => {
+    const calls: string[] = [];
+    Object.defineProperty(window, "regionalMotionCalls", { value: calls });
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function(keyframes, options) {
+      if (this.matches(".simple-region")) calls.push(this.querySelector("h3")?.textContent || "");
+      return animate.call(this, keyframes, options);
+    };
   });
 }
+
+for (const width of [390, 1440]) test(`${width}px regions reveal as they enter and remain ordinary vertical content`, async ({ page }) => {
+  await prepareStory(page);
+  await observeRegionalMotion(page);
+  await page.setViewportSize({ width, height: 844 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/"); await storyReady(page);
+  const cards = page.locator(".simple-region");
+  for (const card of await cards.all()) {
+    const name = await card.locator("h3").innerText();
+    await card.scrollIntoViewIfNeeded();
+    await expect.poll(() => page.evaluate(value => (window as Window & { regionalMotionCalls?: string[] }).regionalMotionCalls?.filter(name => name === value).length, name)).toBe(1);
+    await expect.poll(() => card.evaluate(node => node.getAnimations().filter(animation => animation.playState === "running").length)).toBe(0);
+    await expectNoOverflow(page);
+  }
+  const before = await page.locator("#regions").evaluate(node => ({ top: node.getBoundingClientRect().top, scroll: scrollY }));
+  await page.evaluate(() => scrollBy({ top: -100, behavior: "instant" }));
+  const after = await page.locator("#regions").evaluate(node => ({ top: node.getBoundingClientRect().top, scroll: scrollY }));
+  expect(Math.abs((after.top - before.top) + (after.scroll - before.scroll))).toBeLessThanOrEqual(1);
+  expect(await page.locator("#regions").evaluate(node => getComputedStyle(node).position)).not.toBe("fixed");
+  expect(await page.evaluate(() => (window as Window & { regionalMotionCalls?: string[] }).regionalMotionCalls?.length)).toBe(6);
+});
+
+test("switching OS reduction on before scrolling prevents new regional motion and preserves keyboard focus", async ({ page }) => {
+  await prepareStory(page);
+  await observeRegionalMotion(page);
+  await page.setViewportSize({ width: 390, height: 568 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/"); await storyReady(page);
+  const action = page.locator(".landing-actions a");
+  await action.focus();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const previousCalls = await page.evaluate(() => [...((window as Window & { regionalMotionCalls?: string[] }).regionalMotionCalls || [])]);
+  for (const card of await page.locator(".simple-region").all()) {
+    await card.evaluate(node => node.scrollIntoView({ block: "center", behavior: "instant" }));
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    expect(await card.evaluate(node => node.getAnimations().filter(animation => animation.playState === "running").length)).toBe(0);
+  }
+  expect(await page.evaluate(() => (window as Window & { regionalMotionCalls?: string[] }).regionalMotionCalls)).toEqual(previousCalls);
+  await expect(action).toBeFocused();
+  await expectNoOverflow(page);
+});

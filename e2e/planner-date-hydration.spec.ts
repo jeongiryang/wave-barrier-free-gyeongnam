@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 
 for (const [timezoneId, expectedDate] of [["Asia/Seoul", "2030-01-01"], ["America/Los_Angeles", "2029-12-31"]]) {
   test.describe(`planner date hydration in ${timezoneId}`, () => {
@@ -13,12 +13,15 @@ for (const [timezoneId, expectedDate] of [["Asia/Seoul", "2030-01-01"], ["Americ
       // Leave timers/animation running while making client and SSR dates differ.
       await page.clock.setFixedTime(new Date("2030-01-01T00:30:00Z"));
       await page.goto("/planner");
-      const conditions = page.locator("#conditions");
-      await expect(conditions.getByLabel(locale === "en" ? "Start date" : "출발일", { exact: true })).toHaveValue(expectedDate);
-      await expect(page.locator(".itinerary-day-tabs button")).toHaveCount(1);
-      await expect(page.locator(".itinerary-day-tabs button")).toHaveText(expectedDate.slice(5).replace("-", "/"));
-      await page.reload();
-      await expect(conditions.getByLabel(locale === "en" ? "Start date" : "출발일", { exact: true })).toHaveValue(expectedDate);
+      const conditions = page.locator('#conditions'); await expect(conditions.locator('input[type=date]')).toHaveCount(0);
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-trip-schedule-v1') || '{}').travelStart || '')).toBe('');
+      await chooseTripConditions(page); await page.locator('.simple-place-row').first().locator('.simple-place-add').click();
+      await page.locator('.simple-planner-tabs button').nth(1).click();
+      const draft = page.locator('.simple-initial-setup'); await expect(draft.getByLabel('시작일', { exact: true })).toHaveValue(expectedDate);
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-trip-schedule-v1') || '{}').travelStart || '')).toBe('');
+      await page.reload(); await page.locator('.simple-planner-tabs button').nth(1).click();
+      await expect(draft.getByLabel('시작일', { exact: true })).toHaveValue(expectedDate);
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-trip-schedule-v1') || '{}').travelStart || '')).toBe('');
       expect(errors).toEqual([]);
     });
   });

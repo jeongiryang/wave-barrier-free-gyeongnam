@@ -39,7 +39,7 @@ function deferred() { let release!: () => void; const promise = new Promise<void
 async function setup(page: Page, seedCurrent = true) {
   // No account, map, tourism, or LLM request can escape the fixtures.
   await page.route('**/api/**', route => route.fulfill({ status: 503, json: { error: 'Unconfigured synthetic test API' } }));
-  await mockPlannerApi(page, { plannerView: 'guided' });
+  await mockPlannerApi(page, { preserveView: true });
   const state = { userId: ownerId, name: '바다여행자', signedIn: true, trip: detail(), listRequests: 0, placeRequests: 0, writes: 0, lookupFailure: false, missing: false, saveExpired: false, savedPayload: null as AccountTripPayload | null };
   await page.route('**/api/auth/get-session', route => route.fulfill({ json: state.signedIn ? { user: { id: state.userId, name: state.name, email: 'synthetic@example.com' }, session: { id: 'synthetic-session' } } : null }));
   await page.route('**/api/account/travel**', route => {
@@ -103,7 +103,7 @@ test('개인 홈에서 닉네임 저장 실패 뒤 입력을 유지하고 재시
   await expect(page.locator('.current-trip-card')).toContainText('2026-09-18 – 2026-09-19 · 2곳');
   await expect(page.locator('.current-trip-card')).toContainText('용지호수공원 · 경남도립미술관');
   await expect(page.locator('.current-trip-card')).toContainText('필요한 편의:');
-  const openBounds = await page.getByRole('button', { name: '지도·나루와 이어서 편집 →', exact: true }).boundingBox();
+  const openBounds = await page.getByRole('button', { name: '여행 설계에서 열기', exact: true }).boundingBox();
   expect(openBounds?.height).toBeGreaterThanOrEqual(44);
   expect(openBounds?.width).toBeGreaterThanOrEqual(44);
   await page.getByRole('button', { name: '닉네임 수정', exact: true }).click();
@@ -124,9 +124,9 @@ test('개인 홈에서 닉네임 저장 실패 뒤 입력을 유지하고 재시
 test('계정 일정을 Planner로 열면 조회된 실제 ID 순서·날짜·편의를 보존하고 이전 여행을 백업한다', async ({ page }) => {
   const state = await setup(page);
   await page.goto('/my-trips');
-  await page.getByRole('button', { name: '지도·나루와 이어서 편집 →', exact: true }).click();
+  await page.getByRole('button', { name: '여행 설계에서 열기', exact: true }).click();
   await expect(page).toHaveURL(/\/planner\?from=account#itinerary$/);
-  await expect(page.locator('.reference-day-list #itinerary-stop-1904774')).toContainText('창원과학체험관');
+  await expect(page.locator('.simple-stops #itinerary-stop-1904774')).toContainText('창원과학체험관');
   const current = await stored(page);
   expect(state.placeRequests).toBe(1);
   expect(state.writes).toBe(0);
@@ -134,7 +134,7 @@ test('계정 일정을 Planner로 열면 조회된 실제 ID 순서·날짜·편
   expect(current.order).toEqual({ mode: 'manual', ids: payload.placeIds });
   expect(current.region).toBe(payload.region);
   expect([...current.themes].sort()).toEqual([...payload.themes].sort());
-  expect(current.profiles).toEqual(['wheel']);
+  expect(current.profiles).toEqual(['parking', 'route', 'wheelchair', 'elevator', 'restroom']);
   expect(current.catalog.map((place: { id: string; name: string }) => [place.id, place.name])).toEqual([['1904774', '창원과학체험관'], ['1748884', '3·15 아트센터']]);
   expect(current.schedule).toMatchObject({ travelStart: start, travelEnd: end, dayStartTime: payload.dayStartTime,
     scheduleAssignments: payload.scheduleAssignments, visitMinutesByPlaceId: payload.visitMinutesByPlaceId,
@@ -150,7 +150,7 @@ test('계정 장소 조회가 실패하면 현재 여행을 유지하고 같은 
   const state = await setup(page); state.lookupFailure = true;
   await page.goto('/my-trips');
   const before = await stored(page);
-  const open = page.getByRole('button', { name: '지도·나루와 이어서 편집 →', exact: true });
+  const open = page.getByRole('button', { name: '여행 설계에서 열기', exact: true });
   await open.click();
   await expect(page.getByText('최신 장소 정보를 잠시 확인할 수 없어요. 다시 시도해 주세요.')).toBeVisible();
   await expect(page).toHaveURL('/my-trips');
@@ -166,7 +166,7 @@ test('계정 장소 조회가 실패하면 현재 여행을 유지하고 같은 
 test('일부 계정 장소 정보가 없어도 저장한 ID와 날짜를 삭제하지 않는다', async ({ page }) => {
   const state = await setup(page); state.missing = true;
   await page.goto('/my-trips');
-  await page.getByRole('button', { name: '지도·나루와 이어서 편집 →', exact: true }).click();
+  await page.getByRole('button', { name: '여행 설계에서 열기', exact: true }).click();
   await expect(page).toHaveURL(/\/planner\?from=account#itinerary$/);
   const current = await stored(page);
   expect(current.ids).toEqual(payload.placeIds);
@@ -244,7 +244,7 @@ test('계정 편집 중 Planner 열기 응답이 늦어도 새로 입력한 시�
     await route.fulfill({ json: { places: resolvedPlaces, missing: 0 } });
   });
   try {
-    await page.getByRole('button', { name: '지도·나루와 이어서 편집 →', exact: true }).click();
+    await page.getByRole('button', { name: '여행 설계에서 열기', exact: true }).click();
     await expect.poll(() => requests).toBe(1);
     await page.getByLabel('하루 시작 시간', { exact: true }).fill('08:00');
     gate.release();
@@ -252,7 +252,7 @@ test('계정 편집 중 Planner 열기 응답이 늦어도 새로 입력한 시�
     await expect(page).toHaveURL(`/my-trips/${tripId}`);
     expect(await stored(page)).toEqual(before);
     await expect(page.getByLabel('하루 시작 시간', { exact: true })).toHaveValue('08:00');
-    await page.getByRole('button', { name: '지도·나루와 이어서 편집 →', exact: true }).click();
+    await page.getByRole('button', { name: '여행 설계에서 열기', exact: true }).click();
     await expect(page).toHaveURL(/\/planner\?from=account#itinerary$/);
     expect((await stored(page)).schedule.dayStartTime).toBe('08:00');
     expect(requests).toBe(2);

@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi } from "./fixtures";
+import { prepareStory, storyReady, chapterIds, firstRegions, allRegions, expectUsableTarget, expectNoOverflow } from "./landing-contract";
+import { regionNames } from "../lib/gyeongnam-region-names";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 import AxeBuilder from "@axe-core/playwright";
 
@@ -50,140 +52,99 @@ test("실제 경계와 18개 텍스트 선택 대안은 같은 지역을 가리�
 });
 
 
-test("랜딩 기능 데모는 현재 한국어 순서와 비대화형 미리보기 계약을 지킨다", async ({ page }) => {
+test("landing: labelled itinerary and conversation examples preserve four-section order without provider requests", async ({ page }) => {
   const writes: string[] = [], requests: string[] = [];
   page.on("request", request => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method())) writes.push(request.url());
-    if (/\/api\/(wave|community)/.test(request.url())) requests.push(request.url());
+    if (/\/api\/(wave|assistant|community)(?:[/?]|$)/.test(request.url())) requests.push(request.url());
   });
+  await prepareStory(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPublicShellApi(page);
-  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
-  await page.goto("/");
-  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
-  expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(["top", "story", "regions", "naru", "recommendation", "departure", "community", "closing"]);
-  await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
-  await expect(page.locator(".horizon-community-photos img")).toHaveCount(2);
-  await expect(page.locator(".horizon-chapters input,.horizon-community input,.horizon-community form")).toHaveCount(0);
+  await page.goto("/"); await storyReady(page);
+  expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
+  await page.locator("#story").scrollIntoViewIfNeeded();
+  await expect(page.locator(".simple-product-preview")).toContainText("화면 예시");
+  await page.locator("#naru").scrollIntoViewIfNeeded();
+  await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
+  await expect(page.locator(".simple-product-preview,.simple-naru-example").locator("input,button,form,textarea,[contenteditable=true]")).toHaveCount(0);
   expect(writes).toEqual([]); expect(requests).toEqual([]);
 });
 
-test("scroll chapters follow the reader and OS reduction removes crossfade while preserving content", async ({ page }) => {
+test("landing: reduced motion keeps every section readable through forward scrolling, return and reload", async ({ page }) => {
+  await prepareStory(page);
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await mockPublicShellApi(page);
-  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
-  await page.goto("/");
-  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
-  for(const index of [0,1,2,1,0]) {
-    await page.locator(".horizon-chapter-copy").nth(index).evaluate(node=>node.scrollIntoView({block:"center",behavior:"instant"}));
-    await expect(page.locator(".horizon-chapters")).toHaveAttribute("data-active-chapter",String(index));
-  }
-  await page.emulateMedia({reducedMotion:"reduce"});
-  await expect(page.locator("html")).toHaveAttribute("data-motion","calm");
-  // The global accessibility reset uses 0.001ms to retain transition completion events.
-  expect(await page.locator(".horizon-chapter-backdrops > div").first().evaluate(node=>parseFloat(getComputedStyle(node).transitionDuration))).toBeLessThanOrEqual(.001);
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-motion","calm");
-  await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
-  await expect(page.locator("button.motion-toggle")).toHaveCount(0);
-});
-
-for (const locale of ["ko", "en"]) for (const width of [320, 390, 1440]) test(`지역 사진 자동 전환은 키보드로 일시정지하고 재개한다 ${locale} ${width}`, async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.setViewportSize({ width, height: 900 });
-  await mockPublicShellApi(page);
-  await page.addInitScript(locale => {
-    sessionStorage.setItem("wave-arrival-session-v1", "done");
-    localStorage.setItem("wave-locale", locale);
-  }, locale);
-  await page.clock.install();
-  await page.goto("/");
-  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
-
-  const stage = page.locator("[data-region-stage]");
-  await stage.scrollIntoViewIfNeeded();
-  await page.mouse.move(-10, -10);
-  await expect(stage).toHaveAttribute("data-running", "true");
-  const initialRegion = await stage.getAttribute("data-active-region");
-
-  const pauseName = locale === "en" ? "Pause automatic region changes" : "지역 자동 전환 일시정지";
-  const resumeName = locale === "en" ? "Resume automatic region changes" : "지역 자동 전환 재개";
-  const rotation = stage.locator(".region-rotation-control");
-  // Korean source titles retain their language within translated actions.
-  await expect(stage.locator("#region-photo-0-name")).toHaveAttribute("lang", "ko");
-  await expect(stage.locator("#region-photo-0-action")).toHaveAttribute("lang", locale);
-  await expect(stage.locator(".region-featured-card .region-scene-photo img")).toHaveAttribute("lang", "ko");
-  await expect(stage.locator(".region-featured-card .region-scene-photo img")).toHaveAttribute("alt", regionShowcaseAlbums[initialRegion!][0].title);
-  const target = await rotation.boundingBox();
-  expect(target?.width).toBeGreaterThanOrEqual(44);
-  expect(target?.height).toBeGreaterThanOrEqual(44);
-  // Check first keyboard entry before touch creates a native sequential-focus
-  // starting point (mobile WebKit retains the last tapped control).
-  await page.locator("#regions").focus();
-  await page.keyboard.press("Tab");
-  await expect(rotation).toBeFocused();
-  await expect(rotation).toHaveAccessibleName(resumeName);
-  await expect(stage).toHaveAttribute("data-running", "false");
-  await rotation.press("Space");
-  await expect(stage).toHaveAttribute("data-running", "true");
-  await rotation.press("Space");
-
-  await expect(stage).toHaveAttribute("data-running", "false");
-  await expect(rotation).toHaveAccessibleName(resumeName);
-  await expect(rotation).not.toHaveAttribute("aria-pressed");
-  await expect(stage.locator(".region-showcase-progress")).toHaveCSS("animation-name", "none");
-  await page.clock.fastForward(9000);
-  await expect(stage).toHaveAttribute("data-active-region", initialRegion || "");
-
-  const resume = page.getByRole("button", { name: resumeName });
-  await resume.press("Space");
-  await expect(stage).toHaveAttribute("data-running", "true");
-  await expect(rotation).toHaveAccessibleName(pauseName);
-  await expect(page.getByRole("button", { name: pauseName })).toBeFocused();
-  await expect(stage.locator(".region-showcase-progress")).toHaveCSS("animation-name", "region-progress");
-  for (let photo = 0; photo < regionShowcaseAlbums[initialRegion!].length; photo++) {
-    await expect(stage.locator(".region-photo-album")).toHaveAttribute("data-photo-index", String(photo));
-    await page.clock.fastForward(4000);
-  }
-  await expect(stage).not.toHaveAttribute("data-active-region", initialRegion || "");
-  await expect(page.getByRole("button", { name: pauseName })).toBeFocused();
-  if (test.info().project.name.includes("mobile") && width === 390) {
-    await page.getByRole("button", { name: pauseName }).tap();
-    await expect(rotation).toHaveAccessibleName(resumeName);
-    await expect(stage).toHaveAttribute("data-running", "false");
-    await rotation.tap();
-    await expect(rotation).toHaveAccessibleName(pauseName);
-    await expect(stage).toHaveAttribute("data-running", "true");
-  }
-  expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
-  // Every keyboard entry stops rotation, including the first control. Leaving
-  // the scene or disabling OS reduction never resumes without an explicit action.
-  await page.locator("#landing-title").focus();
-  await rotation.focus();
-  await expect(rotation).toBeFocused();
-  await expect(rotation).toHaveAccessibleName(resumeName);
-  await page.locator("#landing-title").focus();
-  const heldRegion = await stage.getAttribute("data-active-region");
-  await page.clock.fastForward(16000);
-  await expect(stage).toHaveAttribute("data-active-region", heldRegion!);
-  await expect(stage).toHaveAttribute("data-running", "false");
-  await stage.scrollIntoViewIfNeeded();
-  await page.mouse.move(-10, -10);
-  await rotation.focus();
-  await expect(rotation).toBeFocused();
-  await rotation.press("Space");
-  await expect(stage).toHaveAttribute("data-running", "true");
-  await stage.locator(".selected-region strong").hover();
-  await page.mouse.move(-10, -10);
-  await expect(stage).toHaveAttribute("data-running", "false");
-  await page.clock.fastForward(16000);
-  await expect(stage).toHaveAttribute("data-active-region", heldRegion!);
-  await rotation.press("Space");
+  await page.goto("/"); await storyReady(page);
+  const planning = page.locator(".landing-actions a");
+  await planning.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(rotation).toBeDisabled();
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await expect(rotation).toBeEnabled();
-  await expect(rotation).toHaveAccessibleName(resumeName);
-  await expect(stage).toHaveAttribute("data-running", "false");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  for (const id of [...chapterIds, ...chapterIds.toReversed()]) {
+    const section = page.locator(`#${id}`);
+    await section.scrollIntoViewIfNeeded();
+    await expect(section.locator("h1,h2").first()).toBeVisible();
+    await expect(section).toHaveAccessibleName(/\S/);
+  }
+  await expect(planning).toBeFocused();
+  expect(await page.locator(".simple-region-grid").evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
+  await page.reload(); await storyReady(page);
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(page.locator(".arrival-scene")).toBeHidden();
+  await expect(page.locator(".simple-region")).toHaveCount(6);
+  await expectUsableTarget(planning);
 });
+
+for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 1440]) {
+  test(`landing: ${locale} regional links and original credits stay usable through keyboard expansion at ${width}px`, async ({ page }) => {
+    const en = locale === "en";
+    await prepareStory(page);
+    await page.setViewportSize({ width, height: 900 });
+    await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.clock.install();
+    await page.goto("/"); await storyReady(page);
+    const region = page.locator("#regions"), cards = region.locator(".simple-region");
+    await expect(cards.locator("h3")).toHaveText(firstRegions.map(name => en ? regionNames[name] : name));
+    await region.focus(); await page.keyboard.press("Tab");
+    const first = cards.first().locator(".simple-region-link");
+    await expect(first).toBeFocused();
+    await expect(first).toHaveAccessibleName(en ? "Tongyeong places" : "통영 여행지 보기");
+    const expand = region.getByRole("button", { name: en ? "View all 18 regions" : "18개 지역 모두 보기", exact: true });
+    await expectUsableTarget(expand);
+    await expect(expand).toHaveAttribute("aria-expanded", "false");
+    await expand.press("Space");
+    await expect(cards).toHaveCount(18);
+    const collapse = region.getByRole("button", { name: en ? "Show fewer regions" : "접기", exact: true });
+    await expect(collapse).toBeFocused();
+    await expect(collapse).toHaveAttribute("aria-expanded", "true");
+    const destinations: string[] = [];
+    for (const card of await cards.all()) {
+      const link = card.locator(".simple-region-link");
+      const url = new URL((await link.getAttribute("href"))!, page.url());
+      expect(url.origin).toBe(new URL(page.url()).origin);
+      expect(url.pathname).toBe("/planner");
+      const name = url.searchParams.get("region")!;
+      destinations.push(name);
+      const photo = regionShowcaseAlbums[name][0];
+      await expect(link).toHaveAccessibleName(`${en ? regionNames[name] : name} ${en ? "places" : "여행지 보기"}`);
+      await expect(card.locator("img")).toHaveAttribute("src", photo.image);
+      await expect(card.locator(".simple-region-link > div > span")).toHaveAttribute("lang", "ko");
+      const credit = card.locator(".simple-region-credit");
+      await expect(credit).toHaveAttribute("href", photo.image);
+      await expect(credit).toHaveAccessibleName(`${photo.title} 사진 원본, 새 탭`);
+      expect(await credit.evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");
+    }
+    expect(destinations.sort()).toEqual([...allRegions].sort());
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const held = cards.last().locator(".simple-region-link");
+    await expectUsableTarget(held);
+    const href = await held.getAttribute("href");
+    await page.clock.fastForward(16_000);
+    await expect(held).toBeFocused();
+    await expect(held).toHaveAttribute("href", href!);
+    await collapse.press("Space");
+    await expect(cards).toHaveCount(6);
+    await expect(region.getByRole("button", { name: en ? "View all 18 regions" : "18개 지역 모두 보기", exact: true })).toBeFocused();
+    expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
+    await expectNoOverflow(page);
+  });
+}

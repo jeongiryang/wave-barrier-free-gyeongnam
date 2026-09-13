@@ -1,18 +1,18 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { chooseTripConditions, mockPlannerApi } from "./fixtures";
+import { ensureMapView, openPlannerMap, openRouteDetails } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
 
 async function prepare(page: Page) {
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
-  await page.getByRole("button", { name: "Changwon", exact: true }).click();
-  await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-  await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-  await page.getByRole("button", { name: "Find places →", exact: true }).click();
-  await page.getByRole("button", { name: "경남도립미술관 Add to itinerary", exact: true }).click();
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await chooseTripConditions(page);
+  await page.getByRole("button", { name: "경남도립미술관 add to itinerary", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(1);
 }
 
 test("English map endpoint controls expose their names and return keyboard focus on Escape", async ({ page }) => {
@@ -31,6 +31,7 @@ test("English map endpoint controls expose their names and return keyboard focus
 for (const theme of ["light", "dark"] as const) {
   test(`point picker ${theme} keeps ten results accessible across narrow and wide screens`, async ({ page }) => {
     await page.addInitScript((value) => localStorage.setItem("wave-theme", value), theme);
+    await page.setViewportSize({ width: 320, height: 844 });
     await prepare(page);
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -38,6 +39,7 @@ for (const theme of ["light", "dark"] as const) {
     const origin = page.locator(".map-toolbar").getByRole("button", { name: /Change departure/ });
     for (const width of [320, 390, 768, 1366]) {
       await page.setViewportSize({ width, height: 844 });
+      await ensureMapView(page);
       await origin.click();
       const picker = page.locator(".trip-point-picker");
       await picker.getByRole("textbox", { name: "Search places", exact: true }).fill("station");
@@ -98,7 +100,7 @@ test("a failed point search retries successfully without duplicate requests or c
   await expect(picker).toHaveCount(0);
   await expect(page.locator(".map-toolbar > button").first()).toBeFocused();
   await expect(page.locator(".map-toolbar > button").first()).toContainText("Public station");
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(1);
 });
 
 for (const state of ["empty", "error", "malformed"] as const) {
@@ -113,7 +115,7 @@ for (const state of ["empty", "error", "malformed"] as const) {
     await expect(picker.getByRole("status")).toContainText(state === "empty" ? "No places found" : "Places could not be checked");
     await expect(submit).toBeFocused();
     await expect(submit).toBeEnabled();
-    await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+    await expect(page.locator(".simple-stops > li")).toHaveCount(1);
   });
 }
 

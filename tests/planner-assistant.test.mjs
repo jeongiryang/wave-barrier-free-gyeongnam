@@ -1,3 +1,4 @@
+import * as facilities from '../lib/facility-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -22,7 +23,7 @@ function handler(responder, configured = true) {
   const calls = [];
   let requesters = 0;
   const { handleAssistant } = compile('../server/assistant/handler.ts', {
-    '../shared/http': http, '../../lib/assistant-actions.js': actions,
+    '../../lib/facility-selection.js': facilities, '../shared/http': http, '../../lib/assistant-actions.js': actions,
     '../../lib/assistant-grounding.js': { groundAssistantProposal },
     '../../lib/provider-failure.js': { ProviderRequestError },
     '../shared/provider-request.js': {
@@ -48,10 +49,10 @@ test('assistant proposals accept only known actions and real current place ident
 test('header requires sustained upward travel and keeps focused navigation visible', () => {
   let state = { y: 0, direction: 0, distance: 0, hidden: false };
   state = navigationScroll(state, 500); assert.equal(state.hidden, true);
-  state = navigationScroll(state, 430); assert.equal(state.hidden, true);
+  state = navigationScroll(state, 450); assert.equal(state.hidden, true);
   state = navigationScroll(state, 460); assert.equal(state.hidden, true);
-  state = navigationScroll(state, 350); assert.equal(state.hidden, true);
-  state = navigationScroll(state, 330); assert.equal(state.hidden, false);
+  state = navigationScroll(state, 410); assert.equal(state.hidden, true);
+  state = navigationScroll(state, 390); assert.equal(state.hidden, false);
   state = navigationScroll(state, 800, true); assert.equal(state.hidden, false);
   state = navigationScroll(state, 900); assert.equal(state.hidden, true);
   state = navigationScroll(state, -4); assert.equal(state.hidden, false);
@@ -119,14 +120,14 @@ test('the API corrects rest-only model visit output while preserving the known p
   assert.equal(response.status, 200); assert.deepEqual((await response.json()).proposal, { action: 'break', placeId: '1748884', minutes: 30 });
 });
 
-test('a model festival proposal keeps explicit child facilities and drops invented fatigue at the API boundary', async () => {
+test('a model festival proposal does not infer child facilities or fatigue at the API boundary', async () => {
   const h = handler(() => ({ choices: [{ message: { content: JSON.stringify({ reply: '피로를 줄이는 축제 코스를 만들게요.', proposal: { action: 'create-itinerary', region: '경남 전체', festival: 'any', reason: 'fatigue' } }) } }] }));
   const response = await h.run(request({ messages: [{ role: 'user', content: '아이와 갈 만한 경남 축제랑 주변 장소로 당일 코스를 만들어줘.' }], context: { profiles: 'wheel', places: [], days: ['2026-09-20'] } }));
   assert.equal(response.status, 200);
   const data = await response.json();
-  assert.deepEqual(data.proposal, { action: 'create-itinerary', region: '경남 전체', profiles: ['baby'], festival: 'any' });
+  assert.deepEqual(data.proposal, { action: 'create-itinerary', region: '경남 전체', profiles: ['parking', 'route', 'wheelchair', 'elevator', 'restroom'], festival: 'any' });
   assert.doesNotMatch(data.reply, /피로|피곤/);
-  assert.match(JSON.parse(h.calls[0].options.body).messages[0].content, /reason:fatigue는 최신 발화/);
+  assert.match(JSON.parse(h.calls[0].options.body).messages[0].content, /피로는 최신 발화에 직접 말했을 때만/);
 });
 
 test('the API grounds a tomorrow-only change to dates without a new itinerary or unrelated fields', async () => {
@@ -145,6 +146,6 @@ test('a low-burden same-day origin request searches nearby without assuming a ca
   const response = await h.run(request({ messages: [{ role: 'user', content: '부모님이 오래 걷기 힘들어. 창원에서 출발해서 당일치기로 여행하고 싶어.' }], context: { days: ['2026-09-20'], region: '', profiles: 'wheel', transport: 'transit', places: [] } }));
   assert.equal(response.status, 200);
   const data = await response.json();
-  assert.deepEqual(data.proposal, { action: 'create-itinerary', region: '창원', originRegion: '창원', profiles: ['senior'] });
+  assert.deepEqual(data.proposal, { action: 'create-itinerary', region: '창원', originRegion: '창원', profiles: ['parking', 'route', 'wheelchair', 'elevator', 'restroom'] });
   assert.doesNotMatch(data.reply, /접근 가능|보장|자동차/);
 });

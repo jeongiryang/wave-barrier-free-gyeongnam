@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import WaveHeader from '../../components/WaveHeader';
 import SkipLink from '../../components/SkipLink';
 import LoadingState, { Spinner } from '../../components/LoadingState';
@@ -36,7 +35,6 @@ function FestivalCard({ festival, selectedProfiles, onOpen }: { festival: Festiv
 }
 
 export default function FestivalExplorer() {
-  const router = useRouter();
   const [region, setRegion] = useState('경남 전체'), [start, setStart] = useState(''), [end, setEnd] = useState('');
   const [selected, setSelected] = useState<string[]>([]), [query, setQuery] = useState(''), [family, setFamily] = useState(false);
   const [data, setData] = useState<Result | null>(null), [loading, setLoading] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
@@ -70,7 +68,7 @@ export default function FestivalExplorer() {
       } else addFestivalToTrip(window.localStorage, item, date);
       saveSessionProfiles(getTabStorage(), selected);
       const prompt = askNaru ? `일정에 담은 ${item.name} 축제 전후로 가까운 여행지를 넣어줘. 날짜와 필요한 편의를 유지해줘.` : '';
-      router.push(`/planner?${new URLSearchParams({ ...(askNaru ? { assistant: 'naru', prompt } : {}), region: item.city })}#itinerary`);
+      window.location.assign(`/planner?${new URLSearchParams({ ...(askNaru ? { assistant: 'naru', prompt } : {}), region: item.city })}#itinerary`);
     } catch (failure) { setNotice(failure instanceof Error && /[가-힣]/.test(failure.message) ? failure.message : '기기에 저장하지 못했어요. 기존 여행은 유지됩니다. 저장 공간을 확인해 주세요.'); }
   }
   return <main className="festival-page"><SkipLink href="#festival-results">축제 목록으로 바로가기</SkipLink><WaveHeader current="festivals" />

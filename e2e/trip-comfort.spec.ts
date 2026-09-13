@@ -1,106 +1,50 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi, mockPublicShellApi, plan } from "./fixtures";
+import { expect, test, type Page } from "@playwright/test";
+import { mockPlannerApi, mockPublicShellApi, openItinerary, plan } from "./fixtures";
+import type { Place } from "../features/planner/types";
 
-test("companions combine needs without erasing existing choices; walking preferences are cancellable", async ({ page }, info) => {
-  await mockPublicShellApi(page); await mockPlannerApi(page, { preserveView: true });
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/planner");
-  await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
-  await page.getByRole("button", { name: /자연·휴양/ }).click();
-  await page.locator(".condition-actions").getByRole("button", { name: "필요한 편의 선택", exact: true }).click();
-  const selected = page.getByRole("group", { name: "여행 편의 조건 선택" });
-  await selected.getByRole("button", { name: /휠체어 편의시설/ }).click();
-  const panel = page.locator(".trip-comfort-choices");
-  await panel.locator("summary").first().click();
-  await panel.getByRole("combobox", { name: "연속 걷기 기준", exact: true }).selectOption("15");
-  await panel.getByRole("combobox", { name: "쉬어 갈 간격", exact: true }).selectOption("90");
-  await panel.getByRole("button", { name: "이 기준 적용", exact: true }).click();
-  await panel.getByText("동행자 조건 함께 모으기", { exact: true }).click();
-  const companion = panel.getByRole("group", { name: "동행 1 편의", exact: true });
-  await companion.getByRole("button", { name: "유아 편의시설", exact: true }).click();
-  await panel.getByRole("combobox", { name: "동행 1 연속 걷기", exact: true }).selectOption("10");
-  await panel.getByRole("button", { name: "함께 필요한 조건 적용", exact: true }).click();
-  await expect(selected.getByRole("button", { name: /휠체어 편의시설/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(selected.getByRole("button", { name: /유아 편의시설/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(panel.getByRole("combobox", { name: "연속 걷기 기준", exact: true })).toHaveValue("10");
-  const widths = info.project.name.startsWith("desktop") ? [1440, 960] : [390, 320];
-  for (const width of widths) {
-    await page.setViewportSize({ width, height: 960 }); await panel.scrollIntoViewIfNeeded();
-    await page.screenshot({ path: info.outputPath(`companion-${width}.png`) });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-    expect((await new AxeBuilder({ page }).include(".trip-comfort-choices").analyze()).violations).toEqual([]);
-  }
-  await panel.getByRole("combobox", { name: "연속 걷기 기준", exact: true }).selectOption("60");
-  await panel.getByRole("combobox", { name: "연속 걷기 기준", exact: true }).press("Escape");
-  await expect(panel.locator("summary").first()).toBeFocused();
-  await panel.locator("summary").first().click();
-  await expect(panel.getByRole("combobox", { name: "연속 걷기 기준", exact: true })).toHaveValue("10");
-  await page.reload();
-  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-trip-schedule-v1") || "{}"));
-  expect(stored.comfort).toEqual({ maxWalkMinutes: 10, breakEveryMinutes: 90, breakMinutes: 15 });
-  expect(stored.members).toBeUndefined();
+async function values(page:Page){return page.evaluate(()=>JSON.parse(localStorage.getItem('wave-current-trip-v1')||'{}').values||{});}
+async function stored(page:Page){return JSON.parse((await values(page))['wave-trip-schedule-v1']||'{}');}
+async function facilities(page:Page){return page.evaluate(()=>JSON.parse(sessionStorage.getItem('wave-session-facilities-v1')||'[]'));}
+async function timetable(page:Page){const view=page.getByRole('group',{name:'일정 보기 방식',exact:true});if(await view.count())await view.getByRole('button',{name:'시간표',exact:true}).click();}
+
+test("companions combine explicitly selected facilities and walking preferences remain cancellable until Apply",async({page},info)=>{
+  await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/planner');
+  await page.getByRole('combobox',{name:'여행 지역',exact:true}).selectOption('창원');
+  await page.locator('.simple-facility-trigger').click();let picker=page.getByRole('dialog',{name:'필요한 편의',exact:true});
+  await picker.getByRole('checkbox',{name:'장애인 화장실',exact:true}).check();await picker.getByRole('button',{name:/^적용/}).click();
+  await expect.poll(()=>facilities(page)).toEqual(['restroom']);const before=await stored(page);
+  await page.locator('.simple-facility-trigger').click();picker=page.getByRole('dialog',{name:'필요한 편의',exact:true});const panel=picker.locator('.trip-comfort-choices');await panel.locator(':scope > summary').click();
+  await panel.getByRole('combobox',{name:'연속 걷기 기준',exact:true}).selectOption('15');await panel.getByRole('combobox',{name:'쉬어 갈 간격',exact:true}).selectOption('90');await panel.getByRole('button',{name:'이 기준 선택',exact:true}).click();
+  await panel.getByText('동행자 조건 함께 모으기',{exact:true}).click();const companion=panel.getByRole('group',{name:'동행 1 편의',exact:true});await companion.getByRole('button',{name:'유모차 대여',exact:true}).click();await panel.getByRole('combobox',{name:'동행 1 연속 걷기',exact:true}).selectOption('10');await panel.getByRole('button',{name:'동행 조건 합치기',exact:true}).click();
+  await expect(picker.getByRole('checkbox',{name:'장애인 화장실',exact:true})).toBeChecked();await expect(picker.getByRole('checkbox',{name:'유모차 대여',exact:true})).toBeChecked();await expect(panel.getByRole('combobox',{name:'연속 걷기 기준',exact:true})).toHaveValue('10');
+  expect(await facilities(page)).toEqual(['restroom']);expect(await stored(page)).toEqual(before);
+  for(const width of info.project.name.startsWith('desktop')?[1440,960]:[390,320]){await page.setViewportSize({width,height:960});await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`companion-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect((await new AxeBuilder({page}).include('.simple-facility-picker').analyze()).violations).toEqual([]);}
+  await panel.getByRole('combobox',{name:'연속 걷기 기준',exact:true}).selectOption('60');await panel.getByRole('combobox',{name:'연속 걷기 기준',exact:true}).press('Escape');await expect(panel.locator(':scope > summary')).toBeFocused();await panel.locator(':scope > summary').click();await expect(panel.getByRole('combobox',{name:'연속 걷기 기준',exact:true})).toHaveValue('10');
+  await picker.getByRole('button',{name:/^적용/}).click();await expect.poll(()=>facilities(page)).toEqual(['restroom','stroller']);await expect.poll(async()=> (await stored(page)).comfort).toEqual({maxWalkMinutes:10,breakEveryMinutes:90,breakMinutes:15});
+  await page.reload();expect((await stored(page)).members).toBeUndefined();expect((await stored(page)).travelStart).toBe('');expect(await facilities(page)).toEqual(['restroom','stroller']);
 });
 
-test("walking evidence, planned rests and nearby restroom stops stay integrated with saved schedules", async ({ page }, info) => {
-  await mockPublicShellApi(page); await mockPlannerApi(page, { preserveView: true });
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(() => { if (!localStorage.getItem("wave-trip-schedule-v1")) localStorage.setItem("wave-trip-schedule-v1", JSON.stringify({ travelStart: "2026-09-14", travelEnd: "2026-09-14", dayStartTime: "10:00", scheduleAssignments: {}, comfort: { maxWalkMinutes: 10, breakEveryMinutes: 90, breakMinutes: 15 } })); });
-  const nearby = { ...plan.places[0], id: "1003", name: "가까운 문화쉼터", mapX: "128.682", mapY: "35.228", accessibility: [{ key: "route", label: "접근로", state: "confirmed", detail: "평탄한 접근로" }, { key: "restroom", label: "장애인 화장실", state: "confirmed", detail: "1층 장애인 화장실" }] };
-  const unknown = { ...nearby, id: "1004", name: "편의 확인이 필요한 쉼터", accessibility: [] };
-  await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: { ...plan, places: [...plan.places, nearby, unknown], criteria: { facilityKeys: ["route"] } } }));
-  await page.route("**/api/route?*", route => route.fulfill({ json: { configured: true, alternatives: [{ id: "walking-evidence", label: "대중교통 경로", mode: "transit", provider: "ODsay", configured: true, totalTime: 57, totalWalk: 2400, totalDistance: 8000, transfers: 0, payment: 1500, segments: [{ type: "walk", minutes: 5 }, { type: "walk", minutes: 10 }, { type: "bus", minutes: 30 }, { type: "walk", minutes: 12 }] }], providers: [], context: { nearbyStops: [], arrivals: [], korail: [], datasets: [] } } }));
-  const shares: Array<Record<string, unknown>> = [], errors: string[] = [];
-  page.on("pageerror", error => errors.push(error.message));
-  await page.route("**/api/trips", route => { shares.push(route.request().postDataJSON().selections); return route.fulfill({ json: { url: `${new URL(route.request().url()).origin}/trip/123456789abc` } }); });
-  await page.goto("/planner"); await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.getByRole("button", { name: "용지호수공원 일정에 추가", exact: true }).click();
-  await page.locator(".planner-navigation nav button").nth(3).click();
-  const board = page.locator(".reference-day-list"), comfort = board.locator(".trip-comfort-plan"), finder = board.locator(".rest-stop-finder");
-  await comfort.locator("summary").click();
-  // All ordered journeys are now checked automatically before an explicit
-  // recheck; both legs must contribute actual walking evidence.
-  await expect(comfort).toContainText("확인한 2구간의 걷기 54분");
-  await comfort.getByRole("button", { name: "이동 구간 확인", exact: true }).click();
-  await expect(comfort).toContainText("연속 걷기 15분, 고른 기준보다 길어요");
-  await expect(comfort).toContainText("걷기 54분");
-  const before = await board.locator(".reference-stop > time").nth(1).textContent();
-  await comfort.getByRole("button", { name: "제안한 휴식 1개 추가", exact: true }).click();
-  await expect(board.locator(".reference-stop > time").nth(1)).not.toHaveText(before!);
-  await expect(comfort).toContainText("연속 걷기 15분, 고른 기준보다 길어요");
-  await expect(board).toContainText("방문 뒤 15분 휴식");
-  await comfort.locator("summary").click();
-  await finder.locator("summary").click();
-  await finder.getByRole("combobox", { name: "필요한 곳", exact: true }).selectOption("restroom");
-  await expect(finder.locator("article")).toHaveCount(1);
-  await finder.getByLabel("편의 미확인 장소도 보기", { exact: true }).check();
-  await expect(finder.locator("article")).toHaveCount(2);
-  await finder.getByLabel("편의 미확인 장소도 보기", { exact: true }).uncheck();
-  const widths = info.project.name.startsWith("desktop") ? [1440, 960] : [390, 320];
-  for (const width of widths) {
-    await page.setViewportSize({ width, height: 960 }); await finder.locator("article").scrollIntoViewIfNeeded();
-    await page.screenshot({ path: info.outputPath(`rest-finder-${width}.png`) });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-    expect((await new AxeBuilder({ page }).include(".rest-stop-finder").analyze()).violations).toEqual([]);
-  }
-  await finder.getByRole("button", { name: "쉬는 일정에 추가", exact: true }).click();
-  await expect(board.locator(".reference-stop-copy > button")).toHaveText(["경남도립미술관", "용지호수공원", "가까운 문화쉼터"]);
-  await expect(board.locator(".reference-stop-copy").last()).toContainText("체류 15분");
-  await finder.locator("summary").click();
-  await board.getByLabel("가까운 문화쉼터 일정 수정", { exact: true }).click();
-  await expect(board.getByLabel("가까운 문화쉼터 방문 목적", { exact: true })).toHaveValue("restroom");
-  await board.getByLabel("가까운 문화쉼터 방문 뒤 휴식", { exact: true }).selectOption("5");
-  await page.screenshot({ path: info.outputPath("rest-menu.png") });
-  await board.getByLabel("가까운 문화쉼터 일정 수정", { exact: true }).click();
-  await page.reload(); await expect(board).toContainText("방문 뒤 15분 휴식"); await expect(board).toContainText("방문 뒤 5분 휴식");
-  await page.getByRole("button", { name: "다음: 전체보기", exact: true }).click();
-  await page.getByRole("button", { name: "공유하기", exact: true }).click();
-  await expect(page.getByRole("link", { name: "공유 일정 열기", exact: true })).toBeVisible();
-  expect(shares[0].breakMinutesByPlaceId).toEqual({ "1001": 15, "1003": 5 }); expect(shares[0].restPurposeByPlaceId).toEqual({ "1003": "restroom" }); expect(shares[0].comfort).toBeUndefined();
-  await page.locator(".reference-final-actions").getByRole("button", { name: "내 일정에 저장", exact: true }).click();
-  await page.goto("/travel-book"); await page.getByRole("button", { name: /이 일정 다시 열기/ }).click();
-  await expect(board).toContainText("방문 뒤 15분 휴식"); await expect(board).toContainText("화장실 이용");
-  const restored = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-trip-schedule-v1") || "{}")); expect(restored.comfort.maxWalkMinutes).toBe(10);
-  expect(errors).toEqual([]);
+test("walking evidence, planned rests and nearby restroom stops stay integrated with saved schedules",async({page},info)=>{
+  await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'Unconfigured synthetic comfort API'}}));await mockPublicShellApi(page);await page.emulateMedia({reducedMotion:'reduce'});
+  const base:Place[]=plan.places.map(place=>({...place,accessibility:[{key:'route',label:'접근로',state:'confirmed',detail:'평탄한 접근로'}]}));
+  const nearby:Place={...base[0],id:'1003',name:'가까운 문화쉼터',mapX:'128.682',mapY:'35.228',accessibility:[...base[0].accessibility!,{key:'restroom',label:'장애인 화장실',state:'confirmed',detail:'1층 장애인 화장실'}]};
+  const unknown:Place={...nearby,id:'1004',name:'편의 확인이 필요한 쉼터',accessibility:[]};
+  await mockPlannerApi(page,{preserveView:true,savedPlaces:[...base,nearby,unknown]});
+  await page.route('**/api/wave?action=plan*',route=>route.fulfill({json:{...plan,places:[...base,nearby],explorationPlaces:[unknown],criteria:{facilityKeys:['route']}}}));
+  await page.addInitScript(places=>{if(localStorage.getItem('wave-current-trip-v1'))return;localStorage.setItem('wave-current-trip-v1',JSON.stringify({version:1,values:{'wave-planner-region-v1':'창원','wave-trip-themes-v1':'[]','wave-saved-places':'["1001","1002"]','wave-saved-place-catalog-v1':JSON.stringify(places),'wave-trip-order-v1':'{"mode":"manual","ids":["1001","1002"]}','wave-trip-schedule-v1':JSON.stringify({travelStart:'2026-09-14',travelEnd:'2026-09-14',dayStartTime:'10:00',scheduleAssignments:{1001:'2026-09-14',1002:'2026-09-14'},comfort:{maxWalkMinutes:10,breakEveryMinutes:90,breakMinutes:15}})}}));sessionStorage.setItem('wave-session-facilities-v1','["route"]');},base);
+  await page.route('**/api/route?*',route=>route.fulfill({json:{configured:true,alternatives:[{id:'walking-evidence',label:'대중교통 경로',mode:'transit',provider:'ODsay',configured:true,totalTime:57,totalWalk:2400,totalDistance:8000,transfers:0,payment:1500,segments:[{type:'walk',minutes:5},{type:'walk',minutes:10},{type:'bus',minutes:30},{type:'walk',minutes:12}]}],providers:[],context:{nearbyStops:[],arrivals:[],korail:[],datasets:[]}}}));
+  const shares:Array<Record<string,unknown>>=[],errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.route('**/api/trips',route=>{shares.push(route.request().postDataJSON().selections);return route.fulfill({status:201,json:{id:'123456789abc',url:'/trip/123456789abc',revision:1,expiresAt:Date.now()+30*86400000}});});
+  await page.goto('/planner');await expect(page.getByRole('heading',{name:nearby.name,exact:true})).toBeVisible();await openItinerary(page);await timetable(page);
+  const board=page.locator('.simple-timeboard'),comfort=board.locator('.trip-comfort-plan'),finder=board.locator('.rest-stop-finder');await board.locator('.simple-day-options > summary').click();await comfort.locator('summary').click();
+  await expect(comfort).toContainText('확인한 2구간의 걷기 54분');await comfort.getByRole('button',{name:'이동 구간 확인',exact:true}).click();await expect(comfort).toContainText('연속 걷기 15분, 고른 기준보다 길어요');await expect(comfort).toContainText('걷기 54분');
+  const before=await board.locator('.simple-stop > time').nth(1).textContent();await comfort.getByRole('button',{name:'제안한 휴식 1개 추가',exact:true}).click();await expect(board.locator('.simple-stop > time').nth(1)).not.toHaveText(before!);await expect(comfort).toContainText('연속 걷기 15분, 고른 기준보다 길어요');await expect(board).toContainText('방문 뒤 15분 휴식');
+  await comfort.locator('summary').click();await finder.locator('summary').click();await finder.getByRole('combobox',{name:'필요한 곳',exact:true}).selectOption('restroom');await expect(finder.locator('article')).toHaveCount(1);await finder.getByLabel('편의 미확인 장소도 보기',{exact:true}).check();await expect(finder.locator('article')).toHaveCount(2);await expect(finder).toContainText('장애인 화장실 미확인');await finder.getByLabel('편의 미확인 장소도 보기',{exact:true}).uncheck();
+  for(const width of info.project.name.startsWith('desktop')?[1440,960]:[390,320]){await page.setViewportSize({width,height:960});await timetable(page);await finder.locator('article').scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`rest-finder-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect((await new AxeBuilder({page}).include('.rest-stop-finder').analyze()).violations).toEqual([]);}
+  await finder.getByRole('button',{name:'쉬는 일정에 추가',exact:true}).click();await expect(board.locator('.simple-stop-copy h3 > button')).toHaveText(['경남도립미술관','용지호수공원','가까운 문화쉼터']);await expect(board.locator('.simple-stop-copy').last()).toContainText('15분 머묾');await finder.locator('summary').click();
+  await board.getByLabel('가까운 문화쉼터 일정 수정',{exact:true}).click();const editor=page.getByRole('dialog',{name:'가까운 문화쉼터 수정',exact:true});await editor.locator('.simple-stop-options > summary').click();await expect(editor.getByLabel('가까운 문화쉼터 방문 목적',{exact:true})).toHaveValue('restroom');await editor.getByLabel('가까운 문화쉼터 방문 뒤 휴식',{exact:true}).selectOption('5');await page.screenshot({path:info.outputPath('rest-menu.png')});await editor.getByRole('button',{name:'적용',exact:true}).click();
+  await page.reload();await openItinerary(page);await timetable(page);await expect(board).toContainText('방문 뒤 15분 휴식');await expect(board).toContainText('방문 뒤 5분 휴식');
+  await page.locator('button[data-planner-tool=share]').click();const menu=page.getByRole('dialog',{name:'여행 공유',exact:true});await expect(menu.getByRole('link',{name:'공유 일정 보기',exact:true})).toBeVisible();expect(shares[0].breakMinutesByPlaceId).toEqual({'1001':15,'1003':5});expect(shares[0].restPurposeByPlaceId).toEqual({'1003':'restroom'});expect(shares[0].comfort).toBeUndefined();expect(shares[0].profiles).toEqual([]);await menu.getByRole('button',{name:'공유 닫기',exact:true}).click();
+  await page.getByRole('button',{name:'내 여행에 저장',exact:true}).click();await expect(page.getByRole('link',{name:'저장한 여행',exact:true})).toBeVisible();await page.goto('/travel-book');await page.getByRole('button',{name:/이 일정 다시 열기/}).click();await openItinerary(page);await timetable(page);await expect(board).toContainText('방문 뒤 15분 휴식');await expect(board).toContainText('화장실 이용');expect((await stored(page)).comfort.maxWalkMinutes).toBe(10);expect(errors).toEqual([]);
 });

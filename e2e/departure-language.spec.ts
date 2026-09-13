@@ -1,191 +1,64 @@
-import { openSupportMenu } from "./support-menu";
-import AxeBuilder from "@axe-core/playwright";
-import { readFile } from "node:fs/promises";
-import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
-
+import { openSupportMenu } from './support-menu';
+import AxeBuilder from '@axe-core/playwright';
+import { readFile } from 'node:fs/promises';
+import { expect, test, type Page } from '@playwright/test';
+import { mockPlannerApi } from './fixtures';
+import { enterDeparture, departureItem } from './departure-fixtures';
 async function prepare(page: Page) {
-  await mockPlannerApi(page);
-  await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
-  await page.getByRole("button", { name: "Changwon", exact: true }).click();
-  await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-  await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-  await page.getByRole("button", { name: "Find places →", exact: true }).click();
-  await page.getByRole("button", { name: "경남도립미술관 Add to itinerary", exact: true }).click();
-  await expect(page.locator("main.planner-page")).toHaveAttribute("lang", "en");
-  expect(await page.getByRole("heading", { name: "Your trip, at your pace.", exact: true }).evaluate(el => el.closest("[lang]")?.getAttribute("lang"))).toBe("en");
-  const journeys = page.getByRole("region", { name: "Check every journey", exact: true });
-  await expect(journeys.locator('li [lang="ko"]').filter({ hasText: "경남도립미술관" })).toHaveText("경남도립미술관");
+  await mockPlannerApi(page); await page.addInitScript(() => localStorage.setItem('wave-locale', 'en'));
+  await page.emulateMedia({ reducedMotion: 'reduce' }); await page.goto('/planner?travelStart=2026-10-08&travelEnd=2026-10-09');
+  await enterDeparture(page); await expect(page.locator('main.planner-page')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('.simple-readiness')).toHaveAttribute('lang', 'ko');
+  await expect(page.locator('.simple-readiness-heading button')).toHaveAttribute('aria-busy', 'false');
 }
-
-for (const theme of ["light", "dark"] as const) {
-  for (const width of [320, 960, 1366]) {
-  test(`English ${theme} departure review at ${width}px explains missing evidence and preserves dates`, async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (error) => errors.push(error.message));
-    await page.setViewportSize({ width, height: 900 });
-    await page.addInitScript((value) => {
-      localStorage.setItem("wave-theme", value);
-    }, theme);
-    await prepare(page);
-    const card = page.locator("#departure-readiness");
-    await expect(card.getByRole("heading", { name: "Check these details before leaving.", exact: true })).toBeVisible();
-    await expect(card.locator("article")).toHaveCount(5);
-    const journey = card.locator("article").filter({ has: page.getByText("Journey times", { exact: true }) });
-    const mobility = card.locator("article").filter({ has: page.getByText("Access along the journey", { exact: true }) });
-    await expect(journey).toHaveCount(1);
-    await expect(mobility).toHaveCount(1);
-    await expect(mobility).toContainText("Recheck needed");
-    await expect(card).toContainText("not a live visitor count");
-    await expect(card).toContainText("No forecast is available");
-    await expect(card).toContainText("2026-10-08 10:00");
-    await expect(card).toContainText("original language");
-    await expect(card.locator('[lang="ko"]')).not.toHaveCount(0);
-    const refresh = card.getByRole("button", { name: "Refresh places and weather", exact: true });
-    await card.locator("article a").last().focus();
-    await page.keyboard.press("Tab");
-    await expect(refresh).toBeFocused();
-    // Verify the real keyboard viewport before element screenshots scroll the tall card.
-    for (const [index, button] of (await card.locator(".readiness-actions button").all()).entries()) {
-      if (index) await page.keyboard.press("Tab");
-      await expect(button).toBeFocused();
-      await expect.poll(() => button.evaluate((element) => {
-        const box = element.getBoundingClientRect();
-        const top = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
-        return top === element || element.contains(top);
-      })).toBe(true);
-    }
-    await page.screenshot({ path: test.info().outputPath(`departure-controls-${theme}-${width}.png`) });
-    // Kept-mounted drafts in the hidden guided overview are intentionally inert.
-    for (const control of await card.locator("button:visible, a:visible").all()) {
-      const box = await control.boundingBox();
-      expect(box!.height).toBeGreaterThanOrEqual(44);
-      expect(box!.width).toBeGreaterThanOrEqual(44);
-    }
-    for (const text of await card.locator("article > div > span, dt, dd, footer p").all()) {
-      expect(await text.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
-    }
-    const violations = (await new AxeBuilder({ page }).include("#departure-readiness").analyze()).violations;
-    expect(violations).toEqual([]);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
-    await card.screenshot({ path: test.info().outputPath(`departure-${theme}-${width}.png`) });
-    expect(errors).toEqual([]);
-  });
-  }
-}
-
-test("calendar failure and retry keep keyboard focus, English notices and the saved trip", async ({ page, baseURL }) => {
-  const errors: string[] = [];
-  page.on("pageerror", (error) => errors.push(error.message));
-  await prepare(page);
-  let release: () => void = () => {};
-  const gate = new Promise<void>((resolve) => { release = resolve; });
-  let calls = 0;
-  await page.route("**/api/trips", async (route) => {
-    calls++;
-    if (calls === 1) {
-      await gate;
-      await route.fulfill({ status: 503, json: { error: "Unavailable" } });
-    } else await route.fulfill({ status: 201, json: { url: "/trip/english-calendar" } });
-  });
-  const card = page.locator("#departure-readiness");
-  const calendar = card.locator(".readiness-actions button").last();
-  await calendar.focus();
-  await page.keyboard.press("Enter");
-  await expect(calendar).toHaveText("Preparing calendar");
-  await expect(calendar).toBeFocused();
-  await page.keyboard.press("Enter");
-  expect(calls).toBe(1);
-  release();
-  await expect(card.getByRole("alert")).toContainText("calendar was not saved");
-  await expect(calendar).toBeFocused();
-  const downloading = page.waitForEvent("download");
-  await page.keyboard.press("Enter");
-  const download = await downloading;
-  const contents = (await readFile((await download.path())!, "utf8")).replaceAll("\r\n ", "");
-  expect(contents).toContain("SUMMARY:WAVE Changwon accessible trip");
-  expect(contents).toContain("DTSTART;TZID=Asia/Seoul:20261008T100000");
-  expect(contents).toContain("경남도립미술관");
-  expect(contents).toContain("Before leaving");
-  expect(contents).toContain(`URL:${new URL("/trip/english-calendar", baseURL).href}`);
-  await expect(card.locator("footer span[role=status]")).toHaveText("Calendar file saved.");
-  await expect(calendar).toBeFocused();
-  expect(calls).toBe(2);
-  expect(errors).toEqual([]);
+for (const theme of ['light', 'dark'] as const) for (const width of [320, 960, 1366]) test(`deferred English ${theme} review at ${width}px labels Korean evidence and preserves dates`, async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message)); await page.setViewportSize({ width, height: 900 });
+  await page.addInitScript(theme => localStorage.setItem('wave-theme', theme), theme); await prepare(page);
+  const card = page.locator('.simple-readiness'); await expect(card.locator(':scope > details')).toHaveCount(5);
+  for (const label of ['날씨', '관광 집중률', '이동 경로·시간', '이동 편의', '장소 편의근거']) await departureItem(page, label);
+  await expect(card).toContainText('실시간 방문자 수가 아닙니다'); await expect(card).toContainText('해당 날짜 예보가 없거나');
+  const mobility = await departureItem(page, '이동 편의'); await expect(mobility.locator('summary')).toContainText('확인할 정보 있음');
+  const refresh = card.getByRole('button', { name: '다시 조회', exact: true }); await refresh.focus(); await expect(refresh).toBeFocused();
+  expect(await refresh.evaluate(element => { const box = element.getBoundingClientRect(); return element.contains(document.elementFromPoint(box.x + box.width/2, box.y + box.height/2)); })).toBe(true);
+  for (const control of await card.locator('button:visible,a:visible,summary:visible').all()) { const box = await control.boundingBox(); expect(box!.height).toBeGreaterThanOrEqual(44); expect(box!.width).toBeGreaterThanOrEqual(44); }
+  expect((await new AxeBuilder({ page }).include('.simple-readiness').analyze()).violations).toEqual([]); expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  const schedule = await page.evaluate(() => JSON.parse(localStorage.getItem('wave-trip-schedule-v1') || '{}')); expect(schedule.travelStart).toBe('2026-10-08'); expect(schedule.travelEnd).toBe('2026-10-09');
+  await card.screenshot({ path: test.info().outputPath(`departure-${theme}-${width}.png`) }); expect(errors).toEqual([]);
 });
-
-test("changing language updates review and calendar feedback without changing itinerary dates", async ({ page }) => {
-  await prepare(page);
-  await page.route("**/api/trips", (route) => route.fulfill({ status: 503, json: { error: "Unavailable" } }));
-  const card = page.locator("#departure-readiness");
-  await card.getByRole("button", { name: "Save calendar (.ics)", exact: true }).click();
-  await expect(card.getByRole("alert")).toContainText("calendar was not saved");
-  await page.keyboard.press("Control+Home");
-  await openSupportMenu(page);
-  const preferences = page.locator(".preference-controls:visible");
-  await openSupportMenu(page);
-  await preferences.getByLabel("Open preferences", { exact: true }).click();
-  await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
-  await expect(card.getByRole("heading", { name: "출발 전에 이것만 다시 확인하세요.", exact: true })).toBeVisible();
-  await expect(card.getByRole("alert")).toContainText("캘린더를 저장하지 않았습니다");
-  await preferences.getByLabel("언어", { exact: true }).selectOption("en");
-  await expect(card.getByRole("alert")).toContainText("calendar was not saved");
-  await expect(card).toContainText("2026-10-08 10:00");
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
+test('calendar failure and retry preserve keyboard focus and the saved trip', async ({ page, baseURL }) => {
+  await prepare(page); let release!: () => void; const gate = new Promise<void>(resolve => { release = resolve; }); let calls = 0;
+  await page.route('**/api/trips', async route => { calls++; if (calls === 1) { await gate; return route.fulfill({ status: 503, json: { error: 'Unavailable' } }); } return route.fulfill({ status: 201, json: { id: 'abcdef123456', url: `${new URL(route.request().url()).origin}/trip/abcdef123456`, revision: 1, live: true, expiresAt: Date.now() + 30 * 86400000 } }); });
+  await page.locator('button[data-planner-tool=share]').click(); const menu = page.getByRole('dialog', { name: '여행 공유', exact: true }), calendar = menu.getByRole('button', { name: '캘린더', exact: true });
+  await calendar.focus(); await page.keyboard.press('Enter'); await expect(calendar).toHaveAttribute('aria-busy', 'true'); await expect(calendar).toBeFocused(); await page.keyboard.press('Enter'); expect(calls).toBe(1); release();
+  await expect(menu.getByRole('status')).toContainText('캘린더를 만들지 못했어요'); await expect(calendar).toBeFocused();
+  const downloading = page.waitForEvent('download'); await page.keyboard.press('Enter'); const download = await downloading;
+  const contents = (await readFile((await download.path())!, 'utf8')).replaceAll('\r\n ', ''); expect(contents).toContain('DTSTART;TZID=Asia/Seoul:20261008T100000'); expect(contents).toContain('경남도립미술관'); expect(contents).toContain(`URL:${new URL('/trip/abcdef123456', baseURL).href}`);
+  await expect(menu.getByRole('status')).toContainText('캘린더 파일을 내려받았어요'); await expect(calendar).toBeFocused(); expect(calls).toBe(2);
 });
-
-test("refresh preserves keyboard focus while waiting and after the response", async ({ page }) => {
-  await prepare(page);
-  let release: () => void = () => {};
-  const gate = new Promise<void>((resolve) => { release = resolve; });
-  let calls = 0;
-  await page.route("**/api/wave?*", async (route) => {
-    if (new URL(route.request().url()).searchParams.get("action") === "plan") { calls++; await gate; }
-    await route.fallback();
-  });
-  const refresh = page.locator("#departure-readiness .readiness-actions button").first();
-  await refresh.focus();
-  await page.keyboard.press("Enter");
-  await expect(refresh).toHaveText("Refreshing information");
-  await expect(refresh).toBeFocused();
-  await page.keyboard.press("Enter");
-  expect(calls).toBe(1);
-  release();
-  await expect(refresh).toHaveText("Refresh places and weather");
-  await expect(refresh).toBeFocused();
+test('language changes preserve departure evidence, calendar feedback and itinerary dates', async ({ page }) => {
+  await prepare(page); await page.route('**/api/trips', route => route.fulfill({ status: 503, json: { error: 'Unavailable' } }));
+  await page.locator('button[data-planner-tool=share]').click(); const menu = page.getByRole('dialog', { name: '여행 공유', exact: true });
+  await menu.getByRole('button', { name: '캘린더', exact: true }).click(); await expect(menu.getByRole('status')).toContainText('캘린더를 만들지 못했어요'); await menu.getByRole('button', { name: '공유 닫기' }).click();
+  const before = await page.evaluate(() => localStorage.getItem('wave-trip-schedule-v1'));
+  await openSupportMenu(page); const preferences = page.locator('.preference-controls:visible'); await preferences.getByLabel('Open preferences', { exact: true }).click();
+  await preferences.getByLabel('Language', { exact: true }).selectOption('ko'); await expect(page.locator('main.planner-page')).toHaveAttribute('lang', 'ko');
+  await preferences.getByLabel('언어', { exact: true }).selectOption('en'); await expect(page.locator('main.planner-page')).toHaveAttribute('lang', 'en');
+  expect(await page.evaluate(() => localStorage.getItem('wave-trip-schedule-v1'))).toBe(before); expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-saved-places') || '[]'))).toEqual(['1001']);
 });
-
-for (const scrollAway of [false, true]) {
-  test(`late itinerary loading respects ${scrollAway ? "manual scrolling away" : "the visible keyboard control"}`, async ({ page }) => {
-    await page.setViewportSize({ width: 1366, height: 900 });
-    let release: () => void = () => {};
-    const gate = new Promise<void>((resolve) => { release = resolve; });
-    await page.route("**/TripDayPlanner*", async (route) => { await gate; await route.continue(); });
-    await prepare(page);
-    await expect(page.getByText("Preparing your itinerary.", { exact: true })).toBeVisible();
-    const card = page.locator("#departure-readiness");
-    const button = card.getByRole("button", { name: "Refresh places and weather", exact: true });
-    await card.locator("article a").last().focus();
-    await page.keyboard.press("Tab");
-    await expect(button).toBeFocused();
-    await expect.poll(() => button.evaluate((element) => {
-      const box = element.getBoundingClientRect();
-      return document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2) === element;
-    })).toBe(true);
-    if (scrollAway) {
-      await page.mouse.move(1250, 500);
-      await page.mouse.wheel(0, -5000);
-      await expect.poll(() => button.evaluate((element) => element.getBoundingClientRect().top > innerHeight)).toBe(true);
-    }
-    release();
-    await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
-    await expect(button).toBeFocused();
-    await expect.poll(() => button.evaluate((element) => {
-      const box = element.getBoundingClientRect();
-      return document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2) === element;
-    })).toBe(!scrollAway);
-  });
-}
+test('refresh preserves keyboard focus while waiting and after its response', async ({ page }) => {
+  await prepare(page); let release!: () => void; const gate = new Promise<void>(resolve => { release = resolve; }); let calls = 0;
+  await page.route('**/api/wave?*', async route => { if (new URL(route.request().url()).searchParams.get('action') === 'plan') { calls++; await gate; } await route.fallback(); });
+  const refresh = page.locator('.simple-readiness-heading button');
+  try { await refresh.focus(); await page.keyboard.press('Enter'); await expect(refresh).toHaveAttribute('aria-busy', 'true'); await expect(refresh).toBeFocused(); await page.keyboard.press('Enter'); expect(calls).toBe(1); } finally { release(); }
+  await expect(refresh).toHaveText('다시 조회'); await expect(refresh).toBeFocused();
+});
+for (const scrollAway of [false, true]) test(`late forecast respects ${scrollAway ? 'manual scrolling away' : 'the visible keyboard control'}`, async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 900 }); await prepare(page);
+  let release!: () => void; const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/weather?*', async route => { await gate; await route.fallback(); }); const refresh = page.locator('.simple-readiness-heading button');
+  const hit = () => refresh.evaluate(element => { const box = element.getBoundingClientRect(); return element.contains(document.elementFromPoint(box.x + box.width/2, box.y + box.height/2)); });
+  try { await refresh.focus(); await page.keyboard.press('Enter'); await expect(refresh).toHaveAttribute('aria-busy', 'true'); await expect.poll(hit).toBe(true);
+    if (scrollAway) { await page.mouse.move(1250, 500); await page.mouse.wheel(0, -5000); await expect.poll(() => refresh.evaluate(element => element.getBoundingClientRect().top > innerHeight)).toBe(true); }
+  } finally { release(); }
+  await expect(refresh).toHaveText('다시 조회'); await expect(refresh).toBeFocused(); await expect.poll(hit).toBe(!scrollAway);
+});

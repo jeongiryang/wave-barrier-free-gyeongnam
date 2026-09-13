@@ -1,5 +1,5 @@
 import { expect, test, type Locator } from "@playwright/test";
-import { mockPlannerApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
 async function contrast(button: Locator) {
   return button.evaluate(element => {
@@ -17,48 +17,81 @@ async function contrast(button: Locator) {
 }
 
 for (const locale of ["ko", "en"] as const) for (const theme of ["light", "dark"] as const) {
-  test(`${locale} ${theme} photo card save controls have readable icons and keyboard focus`, async ({ page }) => {
+  test(locale + " " + theme + " photo result has one readable add control and predictable keyboard focus", async ({ page }) => {
     const en = locale === "en";
     await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 320 : 1366, height: 768 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await mockPlannerApi(page, { plannerView: "guided" });
+    await mockPublicShellApi(page);
+    await mockPlannerApi(page, { preserveView: true });
     await page.addInitScript(({ locale, theme }) => {
       localStorage.setItem("wave-locale", locale);
       localStorage.setItem("wave-theme", theme);
     }, { locale, theme });
     await page.goto("/planner");
-    await expect(page.locator(".journey-mode-toggle button").first()).toBeEnabled();
-    await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
-    await page.getByRole("button", { name: en ? /Nature and relaxation/ : /자연·휴양/ }).click();
-    await page.locator(".condition-actions").getByRole("button", { name: en ? "Choose facilities" : "필요한 편의 선택", exact: true }).click();
-    await page.getByRole("button", { name: en ? /Wheelchair facilities/ : /휠체어 편의시설/ }).click();
-    await page.locator(".condition-actions").getByRole("button", { name: en ? "Find places →" : "여행지 둘러보기 →", exact: true }).click();
-    await expect(page.locator(".place-carousel article")).toHaveCount(2);
-    const previous = page.locator(".place-card .reference-heart").first();
-    const next = page.locator(".place-card .place-actions .primary").first();
-    for (const button of [previous, next]) {
-      await expect(button).toBeVisible();
-      await expect(button).toBeEnabled();
-      expect(await contrast(button)).toBeGreaterThanOrEqual(4.5);
-      const size = await button.boundingBox();
+    const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
+    await expect(region).toBeEnabled();
+    await region.selectOption("창원");
+    const rows = page.locator(".simple-place-row");
+    await expect(rows).toHaveCount(2);
+    const row = rows.first();
+    const photo = row.getByRole("button", { name: en ? "경남도립미술관 details" : "경남도립미술관 상세 보기", exact: true });
+    const title = row.getByRole("button", { name: "경남도립미술관", exact: true });
+    const add = row.locator(".simple-place-add");
+    await expect(add).toHaveCount(1);
+    await expect(add).toHaveAccessibleName(en ? "경남도립미술관 add to itinerary" : "경남도립미술관 일정에 담기");
+    for (const control of [photo, title, add]) {
+      await expect(control).toBeVisible();
+      await expect(control).toBeEnabled();
+      const size = await control.boundingBox();
       expect(size?.width).toBeGreaterThanOrEqual(44);
       expect(size?.height).toBeGreaterThanOrEqual(44);
     }
-    await previous.focus();
-    await expect(previous).toBeFocused();
-    await previous.press("Tab");
-    await expect(next).toBeFocused();
-    expect(await next.evaluate(element => getComputedStyle(element).outlineStyle)).not.toBe("none");
-    await next.press("Enter");
-    await expect(next).toBeFocused();
-    await expect(page).toHaveURL(/#places$/);
-    await next.hover();
-    await expect.poll(() => contrast(next)).toBeGreaterThanOrEqual(4.5);
+    const initialContrast = await contrast(add);
+    expect(initialContrast).toBeGreaterThanOrEqual(4.5);
+    await photo.focus();
+    await photo.press("Tab");
+    await expect(title).toBeFocused();
+    await title.press("Tab");
+    await expect(add).toBeFocused();
+    expect(await add.evaluate(element => getComputedStyle(element).outlineStyle)).not.toBe("none");
+    const beforeUrl = page.url();
+    await add.press("Enter");
+    await expect(add).toBeFocused();
+    await expect(add).toHaveAttribute("aria-pressed", "true");
+    await expect(add).toHaveAccessibleName(en ? "경남도립미술관 added · remove from itinerary" : "경남도립미술관 담았음 · 일정에서 빼기");
+    await expect(page.locator(".simple-results")).toBeVisible();
+    expect(page.url()).toBe(beforeUrl);
+    await expect.poll(() => page.evaluate(() => {
+      const values = JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values || {};
+      const schedule = JSON.parse(values["wave-trip-schedule-v1"] || "{}");
+      return { ids: JSON.parse(values["wave-saved-places"] || "[]"), dates: [schedule.travelStart, schedule.travelEnd], assignments: schedule.scheduleAssignments };
+    })).toEqual({ ids: ["1001"], dates: ["", ""], assignments: {} });
+    expect(await contrast(add)).toBeGreaterThanOrEqual(4.5);
+    await add.hover();
+    await expect.poll(() => contrast(add)).toBeGreaterThanOrEqual(4.5);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await test.info().attach("control-contrast", {
-      body: Buffer.from(JSON.stringify({ locale, theme, previous: await contrast(previous), nextHover: await contrast(next) })),
+      body: Buffer.from(JSON.stringify({ locale, theme, initial: initialContrast, addedHover: await contrast(add) })),
       contentType: "application/json",
     });
-    await page.screenshot({ path: test.info().outputPath(`carousel-${locale}-${theme}.png`) });
+    await page.screenshot({ path: test.info().outputPath("result-" + locale + "-" + theme + ".png") });
+    const nextAdd = rows.last().locator(".simple-place-add");
+    await nextAdd.scrollIntoViewIfNeeded();
+    const hit = await nextAdd.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      const covering = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+      return { reachable: element.contains(covering), covering: covering?.closest("button")?.getAttribute("aria-label") || covering?.tagName, box: { x: box.x, y: box.y, width: box.width, height: box.height } };
+    });
+    await test.info().attach("next-add-hit-target", { body: Buffer.from(JSON.stringify(hit)), contentType: "application/json" });
+    expect(hit.reachable, "the visible add action must not be covered by the Naru launcher: " + hit.covering).toBe(true);
+    const launcher = page.getByRole("button", { name: "WAVE 여행 가이드 나루와 대화 열기", exact: true });
+    await expect(launcher).toBeVisible();
+    const launcherBox = (await launcher.boundingBox())!;
+    expect(launcherBox.width).toBeGreaterThanOrEqual(44);
+    expect(launcherBox.height).toBeGreaterThanOrEqual(44);
+    expect(await launcher.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      return element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
+    })).toBe(true);
   });
 }

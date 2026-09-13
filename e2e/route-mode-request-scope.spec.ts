@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
+import { openPlannerMap, openRouteDetails, ensureMapView } from "./nearby-fixtures";
 
 function bundle(mode: string, label = "fixture journey") {
   return { configured: mode === "car" || mode === "transit", providers: [], context: { nearbyStops: [], arrivals: [], korail: [], catalog: { trainCities: 0, expressTerminals: 0, intercityTerminals: 0 }, datasets: [] },
@@ -10,7 +11,7 @@ function bundle(mode: string, label = "fixture journey") {
 }
 
 test("selected modes reach the request, and ordinary rendering makes no new route request", async ({ page }) => {
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.emulateMedia({ reducedMotion: "reduce" });
   const calls: URL[] = [];
   await page.route("**/api/route?*", request => {
@@ -20,7 +21,9 @@ test("selected modes reach the request, and ordinary rendering makes no new rout
   await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
   await chooseTripConditions(page);
   expect(calls).toHaveLength(0);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
   const mode = page.locator(".itinerary-route-coverage select");
   await expect(mode).toHaveValue("transit");
   // One selected-map request and one automatic whole-itinerary request must
@@ -38,18 +41,18 @@ test("selected modes reach the request, and ordinary rendering makes no new rout
   }
   expect(calls.every(url => url.searchParams.get("startLng") === "128.6982")).toBe(true);
   expect(calls.every(url => url.searchParams.get("endLng") === plan.places[0].mapX)).toBe(true);
-  await page.getByRole("button", { name: "경남도립미술관 일정에서 제거", exact: true }).scrollIntoViewIfNeeded();
+  await page.locator(".simple-itinerary-heading").scrollIntoViewIfNeeded();
   await page.keyboard.press("Control+Home");
   await page.clock.install();
   await page.clock.fastForward(1_000);
   expect(calls).toHaveLength(10);
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(1);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
 test("switching modes cancels old coverage and cannot restore it by switching back", async ({ page }) => {
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.emulateMedia({ reducedMotion: "reduce" });
   let held = false;
   let heldRequests = 0;
@@ -63,11 +66,15 @@ test("switching modes cancels old coverage and cannot restore it by switching ba
   });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
   const coverage = page.locator(".itinerary-route-coverage"), mode = coverage.locator("select");
   await mode.selectOption("car");
   await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
   const check = coverage.getByRole("button", { name: "모든 구간 조회하기", exact: true });
+  await expect(coverage.getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
+  await expect(check).toHaveAttribute("aria-busy", "false");
   held = true;
   await check.click();
   await expect(coverage.getByRole("button", { name: "구간 확인 중…", exact: true })).toHaveAttribute("aria-busy", "true");
@@ -87,7 +94,7 @@ test("switching modes cancels old coverage and cannot restore it by switching ba
 });
 
 for (const english of [false, true]) test(`transport details deliberately switch the displayed second leg to transit: ${english ? "EN dark" : "KO light"}`, async ({ page }) => {
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(en => {
     localStorage.setItem("wave-locale", en ? "en" : "ko");
@@ -100,13 +107,10 @@ for (const english of [false, true]) test(`transport details deliberately switch
     return request.fulfill({ json: response });
   });
   await page.goto("/planner");
-  if (english) {
-    await page.getByRole("button", { name: "Changwon", exact: true }).click();
-    await page.getByRole("button", { name: /Wheelchair facilities/ }).click();
-    await page.getByRole("button", { name: /Nature and relaxation/ }).click();
-    await page.getByRole("button", { name: "Find places →", exact: true }).click();
-  } else await chooseTripConditions(page);
-  for (const place of plan.places) await page.getByRole("button", { name: `${place.name} ${english ? "Add to itinerary" : "일정에 추가"}`, exact: true }).click();
+  await chooseTripConditions(page);
+  for (const place of plan.places) await page.getByRole("button", { name: `${place.name} ${english ? "add to itinerary" : "일정에 담기"}`, exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
   const coverage = page.locator(".itinerary-route-coverage"), mode = coverage.locator("select");
   await mode.selectOption("car");
   await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
@@ -116,11 +120,13 @@ for (const english of [false, true]) test(`transport details deliberately switch
   await expect(coverage.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
   await journeys.nth(1).click();
   const before = calls.length;
+  await page.locator(".reference-transport-details > summary").click();
   await page.locator(".transport-details > summary").click();
   const panel = page.locator(".transport-data-panel");
   await expect(panel).toContainText(english ? "Select public transport to check bus and rail information for this journey." : "이 구간의 버스·철도 정보를 확인하려면 대중교통을 선택하세요.");
   expect(calls).toHaveLength(before);
   if (!test.info().project.name.startsWith("mobile")) await page.setViewportSize({ width: english ? 1440 : 960, height: 900 });
+  await ensureMapView(page);
   await panel.scrollIntoViewIfNeeded();
   expect((await new AxeBuilder({ page }).include(".transport-data-panel").analyze()).violations).toEqual([]);
   await page.screenshot({ path: test.info().outputPath("transport-mode-scope.png") });

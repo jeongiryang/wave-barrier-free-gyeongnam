@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
+import { openPlannerMap, openMapTool } from "./nearby-fixtures";
 
 /**
  * 지도 도구의 "저장"은 예전에 아무도 읽지 않는 저장소 키에 써 놓고
@@ -58,53 +59,53 @@ async function savedCount(page: Page) {
   return Number((label || "").replace(/[^0-9]/g, "") || "0");
 }
 
-test("지도에서 저장하면 내 일정에 추가되고 새로고침 뒤에도 남는다", async ({ page }) => {
+test("지도 저장은 직접 담은 장소만 보존하고 미선택 추천을 추가하지 않으며 새로고침 뒤에도 남는다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await withKakaoStub(page);
 
   await page.goto("/planner");
   await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
-  await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
-  await page.getByRole("button", { name: "지도 도구", exact: true }).click();
-  await expect(page.getByRole("button", { name: "지도 표시" })).toBeEnabled();
+  // Recommendations alone cannot open a route map or become an itinerary.
   expect(await savedCount(page)).toBe(0);
-
-  await page.getByRole("button", { name: "지도 표시" }).click();
-  const layerPanel = page.getByRole("region", { name: "지도 표시 설정" });
+  await expect(page.locator("#route-map-canvas")).toHaveCount(0);
+  await expect(page.locator(".simple-planner-tabs button").nth(1)).toBeDisabled();
+  expect(await page.evaluate(() => localStorage.getItem("wave-saved-map"))).toBeNull();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await expect.poll(() => savedCount(page)).toBe(1);
+  await openPlannerMap(page);
+  const layerPanel = await openMapTool(page, "layers");
   const saveButton = layerPanel.getByRole("button", { name: "내 일정에 추가", exact: true });
   await saveButton.focus();
   await saveButton.press("Enter");
-
-  // 미선택 추천이나 임의의 지도 중심을 실제 일정으로 저장하지 않는다.
-  expect(await savedCount(page)).toBe(0);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await expect.poll(() => savedCount(page)).toBe(1);
-  await saveButton.press("Enter");
   const afterSave = await savedCount(page);
+  expect(afterSave).toBe(1);
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("wave-saved-places") || "[]"))).toEqual(["1001"]);
 
   const stored = await page.evaluate(() => ({
     places: window.localStorage.getItem("wave-saved-places"),
     deadKey: window.localStorage.getItem("wave-saved-map"),
   }));
   expect(stored.deadKey, "아무도 읽지 않는 키에 다시 쓰면 안 된다").toBeNull();
-  expect(JSON.parse(stored.places || "[]").length).toBe(afterSave);
+  expect(JSON.parse(stored.places || "[]")).toEqual(["1001"]);
 
   await page.reload();
+  await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-10-08");
   await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toContainText("경남도립미술관");
   await expect.poll(() => savedCount(page)).toBe(afterSave);
 });
 
 test("이미 담긴 여행지를 다시 저장해도 중복으로 쌓이지 않는다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await withKakaoStub(page);
 
   await page.goto("/planner");
   await chooseTripConditions(page);
   await expect(page.getByRole("heading", { name: "경남도립미술관" }).first()).toBeVisible();
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
   await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
   await page.getByRole("button", { name: "지도 도구", exact: true }).click();
   const layerTrigger = page.getByRole("button", { name: "지도 표시" });

@@ -1,5 +1,5 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
-import { mockPlannerApi, plan } from './fixtures';
+import { mockPlannerApi, plan, showItineraryMap } from './fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
 
@@ -18,7 +18,7 @@ async function records(page: Page) { return page.evaluate(() => ({ trip: localSt
 async function setup(page: Page, handler?: (route: Route) => Promise<void>) {
   await page.clock.setFixedTime(new Date('2026-09-12T03:00:00.000Z'));
   await page.route('**/api/**', route => route.fulfill({ status: 503, json: { error: 'Unconfigured synthetic test API' } }));
-  await mockPlannerApi(page, { plannerView: 'guided' });
+  await mockPlannerApi(page, { preserveView: true });
   await page.route('**/api/wave?**', route => {
     const params = new URL(route.request().url()).searchParams;
     if (params.get('action') !== 'places') return route.fallback();
@@ -51,12 +51,11 @@ test('축제의 실제 개최일을 골라 담으면 기존 방문일과 고정 
   expect(current.fixedVisits).toEqual(schedule.fixedVisits); expect(current.breakMinutesByPlaceId).toEqual(schedule.breakMinutesByPlaceId);
   expect(current.comfort).toEqual(schedule.comfort);
   const dates = page.getByRole('group', { name: '일정 날짜', exact: true });
-  await expect(page.getByRole('group', { name: '일정 보기 방식', exact: true }).getByRole('button', { name: '지도 함께 보기', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('.reference-board-map .leaflet-container')).toBeVisible();
-  await dates.getByRole('button', { name: 'DAY 2 · 09/21', exact: true }).click();
+  await dates.getByRole('button', { name: /^2일차/ }).click();
   await expect(page.getByRole('region', { name: '날짜별 여행 일정', exact: true }).getByRole('button', { name: event.name, exact: true })).toBeVisible();
-  await expect(page.locator('.reference-board-map [data-place-id="3001"]')).toBeVisible();
-  await expect(page.locator('.reference-board-map [data-place-id="1001"]')).toHaveCount(0);
+  await showItineraryMap(page); await expect(page.locator('.simple-itinerary-map .leaflet-container')).toBeVisible();
+  await expect(page.locator('.simple-itinerary-map .wave-map-icon.place[data-place-id="3001"]')).toBeVisible();
+  await expect(page.locator('.simple-itinerary-map .wave-map-icon.place[data-place-id="1001"]')).toHaveCount(0);
 });
 
 for (const change of ['region', 'date'] as const) test(`축제 ${change === 'region' ? '지역' : '날짜'} 변경 중 이전 결과를 담을 수 없고 늦은 응답은 최신 결과를 덮지 않는다`, async ({ page }) => {

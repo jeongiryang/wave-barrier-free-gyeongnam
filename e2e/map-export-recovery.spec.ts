@@ -1,25 +1,20 @@
-import { openSupportMenu } from "./support-menu";
+import { openPlannerMap, openRouteDetails, changeMapLanguage, ensureMapView } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 
 async function openImage(page: Page, en = false, theme = "light") {
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.addInitScript((value) => localStorage.setItem("wave-theme", value), theme);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
   await expect(page.locator(".map-provider-badge.osm")).toBeVisible();
   if (en) {
-    await page.keyboard.press("Control+Home");
-    await openSupportMenu(page);
-    const preferences = page.locator(".preference-controls:visible");
-    await openSupportMenu(page);
-    await preferences.getByLabel("환경설정 열기", { exact: true }).click();
-    await preferences.getByLabel("언어", { exact: true }).selectOption("en");
-    await openSupportMenu(page);
-    await preferences.getByLabel("Open preferences", { exact: true }).click();
+    await changeMapLanguage(page, true);
   }
   await page.getByRole("button", { name: en ? "Map options" : "지도 도구", exact: true }).click();
   await page.locator('.map-command-bar button[aria-controls="map-panel-export"]').click();
@@ -35,12 +30,13 @@ test("failed image encoding is reported without claiming the file was saved", as
   await expect(panel.getByRole("status")).toContainText("이미지를 만들지 못했습니다.");
   await expect(page.locator(".map-provider-badge")).not.toContainText("저장했습니다");
   await expect(button).toBeFocused();
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(1);
 });
 
 for (const en of [false, true]) for (const theme of ["light", "dark"]) test(`image retries and downloads remain accessible in ${en ? "English" : "Korean"} ${theme}`, async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  await page.setViewportSize({ width: 320, height: 844 });
   const panel = await openImage(page, en, theme);
   await page.evaluate(() => {
     const original = HTMLCanvasElement.prototype.toBlob;
@@ -71,9 +67,10 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) test(`ima
   expect(await file.failure()).toBeNull();
   await expect(panel.getByRole("status")).toContainText(en ? "The image download has started." : "이미지 다운로드를 시작했습니다.");
   await expect(button).toBeFocused();
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(1);
   for (const width of [320, 390, 768, 960, 1366, 1440]) {
     await page.setViewportSize({ width, height: 844 });
+    await ensureMapView(page);
     await button.scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     const box = await button.boundingBox();
@@ -99,6 +96,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) test(`ima
 });
 
 test("native share failure remains readable from the toolbar and can be retried without duplicate requests", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
   const panel = await openImage(page);
   await panel.getByRole("button", { name: "이미지 저장 닫기", exact: true }).click();
   await page.evaluate(() => {
@@ -121,6 +119,8 @@ test("native share failure remains readable from the toolbar and can be retried 
   await expect(share).toBeFocused();
   for (const width of [320, 390, 768, 1366]) {
     await page.setViewportSize({ width, height: 844 });
+    await ensureMapView(page);
+    await expect(status).toContainText("페이지 링크를 공유하지 못했습니다.");
     expect(await status.locator("strong").evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   }

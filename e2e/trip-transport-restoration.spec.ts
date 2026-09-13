@@ -16,10 +16,12 @@ function bundle(mode: string, label = `current ${mode}`) {
   };
 }
 async function setup(page: Page, mode?: unknown) {
-  await mockPlannerApi(page, { plannerView: 'overview' });
+  await page.route('**/api/**', route => route.fulfill({ status: 503, json: { error: 'Unconfigured synthetic API' } }));
+  await mockPlannerApi(page, { preserveView: true });
+  await page.route('**/api/kakao/share', route => route.fulfill({ json: { javascriptKey: '' } }));
   await page.addInitScript(({ values, schedule, mode }) => {
     if (!localStorage.getItem('wave-current-trip-v1')) localStorage.setItem('wave-current-trip-v1', JSON.stringify({ version: 1, values: { ...values, 'wave-trip-schedule-v1': JSON.stringify({ ...schedule, ...(mode === undefined ? {} : { travelMode: mode }) }) } }));
-    sessionStorage.setItem('wave-session-facilities-v1', '["wheel"]');
+    if (!sessionStorage.getItem('wave-session-facilities-v1')) sessionStorage.setItem('wave-session-facilities-v1', '["parking","route","wheelchair","elevator","restroom"]');
   }, { values, schedule, mode });
   const calls: string[] = [];
   await page.route('**/api/route?*', route => {
@@ -35,27 +37,36 @@ async function stored(page: Page) {
   });
 }
 async function settled(page: Page, mode: string) {
+  await page.locator('#itinerary').waitFor();
+  const tools = page.locator('.simple-more-trip-tools');
+  if (await tools.getAttribute('open') === null) await tools.locator(':scope > summary').click();
   const coverage = page.locator('.itinerary-route-coverage');
   await expect(coverage.locator('select')).toHaveValue(mode);
   await expect(coverage.getByRole('status')).toContainText('전체 2구간 중 2구간 확인');
   await expect(coverage.locator('.coverage-actions > button').first()).toHaveAttribute('aria-busy', 'false');
   await expect.poll(async () => (await stored(page)).schedule.travelMode).toBe(mode);
 }
+async function chooseMode(page: Page, mode: string) {
+  await page.getByRole('button', { name: '여행 설정', exact: true }).click();
+  const editor = page.getByRole('dialog', { name: '여행 설정', exact: true });
+  await editor.getByRole('combobox', { name: '이동 수단', exact: true }).selectOption(mode);
+  await editor.getByRole('button', { name: '적용', exact: true }).click();
+}
 
 test('the chosen car mode survives reload, archive restore, sharing and calendar export with the same itinerary', async ({ page }) => {
   const calls = await setup(page);
   await page.goto('/planner#itinerary');
   await settled(page, 'transit');
-  await page.locator('.itinerary-route-coverage select').selectOption('car');
+  await chooseMode(page, 'car');
   await settled(page, 'car');
-  await expect(page.locator('.day-planner-grid').getByText(/이동 57분/).first()).toBeVisible();
+  await expect(page.locator('.simple-stops').getByText(/이동 57분/).first()).toBeVisible();
   calls.length = 0;
   await page.reload();
   await settled(page, 'car');
   expect(calls.length).toBeGreaterThanOrEqual(2);
   expect(calls.every(mode => mode === 'car')).toBe(true);
-  await page.getByRole('button', { name: '내 일정에 저장', exact: true }).click();
-  await expect(page.locator('.travel-book-archive-action [role=status]')).toContainText('내 일정에 저장했어요');
+  await page.getByRole('button', { name: '내 여행에 저장', exact: true }).click();
+  await expect(page.locator('.simple-save-control [role=status]')).toContainText('내 여행에 저장했어요');
   expect((await stored(page)).books[0]).toMatchObject({ ...schedule, travelMode: 'car' });
   await page.goto('/travel-book');
   calls.length = 0;
@@ -65,17 +76,22 @@ test('the chosen car mode survives reload, archive restore, sharing and calendar
   expect(calls.every(mode => mode === 'car')).toBe(true);
   const current = await stored(page);
   expect(current.schedule).toMatchObject({ ...schedule, travelMode: 'car' });
-  expect(current.ids).toEqual(ids); expect(current.order).toEqual({ mode: 'manual', ids }); expect(current.profiles).toEqual(['wheel']);
-  await expect(page.getByLabel('경남도립미술관 머무는 시간', { exact: true })).toHaveValue('120');
+  expect(current.ids).toEqual(ids); expect(current.order).toEqual({ mode: 'manual', ids }); expect(current.profiles).toEqual(['parking', 'route', 'wheelchair', 'elevator', 'restroom']);
+  await page.getByRole('group', { name: '일정 날짜', exact: true }).getByRole('button', { name: /^2일차/ }).click();
+  await page.getByRole('button', { name: '경남도립미술관 일정 수정', exact: true }).click();
+  const stop = page.getByRole('dialog', { name: '경남도립미술관 수정', exact: true });
+  await expect(stop.getByLabel('경남도립미술관 머무는 시간', { exact: true })).toHaveValue('120');
+  await stop.getByRole('button', { name: '취소', exact: true }).click();
   expect((await new AxeBuilder({ page }).include('.itinerary-route-coverage').analyze()).violations).toEqual([]);
   const shares: Array<{ selections: { travelMode: string; selectedPlaceIds: string[] } }> = [];
-  await page.route('**/api/trips', route => { shares.push(route.request().postDataJSON()); return route.fulfill({ json: { url: `${new URL(page.url()).origin}/trip/123456789abc` } }); });
-  await page.locator('.itinerary-primary-actions').getByRole('button').click();
-  await expect(page.locator('.itinerary-primary-actions').getByRole('link')).toHaveAttribute('href', /123456789abc$/);
+  await page.route('**/api/trips', route => { shares.push(route.request().postDataJSON()); return route.fulfill({ json: { id: '123456789abc', url: `${new URL(page.url()).origin}/trip/123456789abc`, revision: 1, expiresAt: Date.now() + 86_400_000 } }); });
+  await page.getByRole('button', { name: '공유', exact: true }).click();
+  const menu = page.getByRole('dialog', { name: '여행 공유', exact: true });
+  await expect(menu.getByRole('link', { name: '공유 일정 보기', exact: true })).toHaveAttribute('href', /123456789abc$/);
   expect(shares[0].selections.travelMode).toBe('car'); expect(shares[0].selections.selectedPlaceIds).toEqual(ids);
   expect(JSON.stringify(shares[0])).not.toMatch(/mapX|mapY|geometry|credentials/);
   const pending = page.waitForEvent('download');
-  await page.getByRole('button', { name: '캘린더(.ics) 저장', exact: true }).click();
+  await menu.getByRole('button', { name: '캘린더', exact: true }).click();
   const download = await pending;
   expect((await readFile((await download.path())!, 'utf8')).replace(/\r\n /g, '')).toContain('선택한 이동수단: 자동차');
   expect(shares).toHaveLength(1);
@@ -103,11 +119,11 @@ test('a delayed response for a restored mode cannot replace a newer choice or it
   try {
     await page.goto('/planner#itinerary');
     await expect.poll(() => held).toBeGreaterThanOrEqual(2);
-    await page.locator('.itinerary-route-coverage select').selectOption('bicycle');
+    await chooseMode(page, 'bicycle');
     gate.release();
     await settled(page, 'bicycle');
-    await expect(page.locator('.route-options')).not.toContainText('obsolete car route');
-    await expect(page.locator('.day-planner-grid')).not.toContainText('이동 57분');
+    await expect(page.locator('.route-options').filter({ hasText: 'obsolete car route' })).toHaveCount(0);
+    await expect(page.locator('.simple-stops')).not.toContainText('이동 57분');
     calls.length = 0;
     await page.reload();
     await settled(page, 'bicycle');
@@ -115,23 +131,33 @@ test('a delayed response for a restored mode cannot replace a newer choice or it
   } finally { gate.release(); }
 });
 
-test('a changed travel mode invalidates a pending shared itinerary before a new link can be used', async ({ page }) => {
+test('a changed travel mode updates pending shared content before the same live link can be used', async ({ page }) => {
   await setup(page, 'car');
   const gate = deferred(), modes: string[] = [];
-  await page.route('**/api/trips', async route => {
-    modes.push(route.request().postDataJSON().selections.travelMode);
+  await page.route(/\/api\/trips(?:\/123456789abc)?$/, async route => {
+    const body = route.request().postDataJSON();
+    expect(new URL(route.request().url()).pathname).toBe(modes.length ? '/api/trips/123456789abc' : '/api/trips');
+    if (modes.length) expect(body.revision).toBe(1);
+    modes.push(body.selections.travelMode);
     if (modes.length === 1) await gate.promise;
-    await route.fulfill({ json: { url: `${new URL(page.url()).origin}/trip/${modes.length === 1 ? 'obsolete-car' : 'current-bicycle'}` } });
+    await route.fulfill({ json: { id: '123456789abc', url: `${new URL(page.url()).origin}/trip/123456789abc`, revision: modes.length, expiresAt: Date.now() + 86_400_000 } });
   });
   try {
     await page.goto('/planner#itinerary'); await settled(page, 'car');
-    const actions = page.locator('.itinerary-primary-actions');
-    await actions.getByRole('button').click(); await expect.poll(() => modes.length).toBe(1);
-    await page.locator('.itinerary-route-coverage select').selectOption('bicycle');
-    gate.release(); await settled(page, 'bicycle');
-    await expect(actions.getByRole('link')).toHaveCount(0);
-    await actions.getByRole('button').click();
-    await expect(actions.getByRole('link')).toHaveAttribute('href', /current-bicycle$/);
+    await page.getByRole('button', { name: '공유', exact: true }).click();
+    const actions = page.getByRole('dialog', { name: '여행 공유', exact: true });
+    await expect.poll(() => modes.length).toBe(1);
+    await expect(actions.getByRole('button', { name: '링크 복사', exact: true })).toBeDisabled();
+    await actions.getByRole('button', { name: '공유 닫기', exact: true }).click();
+    await chooseMode(page, 'bicycle');
+    await page.getByRole('button', { name: '공유', exact: true }).click();
+    await expect(actions.getByRole('button', { name: '링크 복사', exact: true })).toBeDisabled();
+    gate.release();
+    await actions.getByRole('button', { name: '공유 닫기', exact: true }).click();
+    await settled(page, 'bicycle');
+    await page.getByRole('button', { name: '공유', exact: true }).click();
+    await expect(actions.getByRole('button', { name: '링크 복사', exact: true })).toBeEnabled();
+    await expect(actions.getByRole('link', { name: '공유 일정 보기', exact: true })).toHaveAttribute('href', /123456789abc$/);
     expect(modes).toEqual(['car', 'bicycle']);
   } finally { gate.release(); }
 });
@@ -153,15 +179,16 @@ test('an account itinerary restores its transport and backs up the previous trip
   await page.getByRole('button', { name: '여행 파일로 내보내기', exact: true }).click();
   const download = await pending;
   expect(JSON.parse(await readFile((await download.path())!, 'utf8')).travelMode).toBe('car');
-  await page.getByRole('button', { name: '지도·나루와 이어서 편집 →', exact: true }).click();
+  await page.getByRole('button', { name: '여행 설계에서 열기', exact: true }).click();
   await settled(page, 'car');
   const current = await stored(page);
   expect(current.schedule).toMatchObject({ ...schedule, travelMode: 'car' }); expect(current.ids).toEqual(ids);
   expect(current.books).toHaveLength(1); expect(current.books[0]).toMatchObject({ ...schedule, travelMode: 'walk' });
 });
 
-test('a failed transport save exports the current choice and retries without replacing the itinerary', async ({ page }) => {
+test('a failed atomic transport edit preserves the itinerary and draft until retry, then exports and restores the applied choice', async ({ page }) => {
   await setup(page, 'transit'); await page.goto('/planner#itinerary'); await settled(page, 'transit');
+  const before = await stored(page);
   await page.evaluate(() => {
     const original = Storage.prototype.setItem;
     Object.assign(window, { allowTravelSave: () => { Storage.prototype.setItem = original; } });
@@ -170,18 +197,40 @@ test('a failed transport save exports the current choice and retries without rep
       original.call(this, key, value);
     };
   });
-  await page.locator('.itinerary-route-coverage select').selectOption('car');
-  const warning = page.getByRole('alert').filter({ hasText: '이 탭에만 남아 있는 변경 사항이 있어요.' });
-  await expect(warning).toBeVisible();
-  expect((await stored(page)).schedule.travelMode).toBe('transit');
+  await chooseMode(page, 'car');
+  const editor = page.getByRole('dialog', { name: '여행 설정', exact: true });
+  await expect(editor.getByRole('alert')).toHaveText('변경 내용을 저장하지 못했어요. 기존 일정은 그대로예요.');
+  await expect(editor.getByRole('combobox', { name: '이동 수단', exact: true })).toHaveValue('car');
+  await expect(page.locator('.itinerary-route-coverage select')).toHaveValue('transit');
+  expect(await stored(page)).toEqual(before);
+  // Cancel discards only the unapplied form draft, never the saved itinerary.
+  await editor.getByRole('button', { name: '취소', exact: true }).click();
+  await expect(editor).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '여행 설정', exact: true })).toBeFocused();
+  expect(await stored(page)).toEqual(before);
+  await chooseMode(page, 'car');
+  await expect(editor.getByRole('alert')).toHaveText('변경 내용을 저장하지 못했어요. 기존 일정은 그대로예요.');
+  await expect(editor.getByRole('combobox', { name: '이동 수단', exact: true })).toHaveValue('car');
+  expect(await stored(page)).toEqual(before);
+  await page.evaluate(() => (window as unknown as { allowTravelSave: () => void }).allowTravelSave());
+  await editor.getByRole('button', { name: '적용', exact: true }).click();
+  await expect(editor).toHaveCount(0); await settled(page, 'car');
+  const applied = await stored(page);
+  expect(applied).toEqual({ ...before, schedule: { ...before.schedule, travelMode: 'car' } });
+  await page.route('**/api/trips', route => route.fulfill({ json: { id: '123456789abc', url: `${new URL(page.url()).origin}/trip/123456789abc`, revision: 1, expiresAt: Date.now() + 86_400_000 } }));
+  await page.getByRole('button', { name: '공유', exact: true }).click();
+  const menu = page.getByRole('dialog', { name: '여행 공유', exact: true });
+  await expect(menu.getByRole('link', { name: '공유 일정 보기', exact: true })).toHaveAttribute('href', /123456789abc$/);
   const pending = page.waitForEvent('download');
-  await warning.getByRole('button', { name: '여행 파일 내려받기', exact: true }).click();
+  await menu.getByRole('button', { name: '여행 파일', exact: true }).click();
   const download = await pending;
   const exported = JSON.parse(await readFile((await download.path())!, 'utf8'));
-  expect(JSON.parse(exported.values['wave-trip-schedule-v1'])).toMatchObject({ ...schedule, travelMode: 'car' });
-  await page.evaluate(() => (window as unknown as { allowTravelSave: () => void }).allowTravelSave());
-  await warning.getByRole('button', { name: '저장 다시 시도', exact: true }).click();
-  await expect(warning).toHaveCount(0); await settled(page, 'car');
-  expect((await stored(page)).ids).toEqual(ids);
+  expect(JSON.parse(exported.values['wave-trip-schedule-v1'])).toEqual(applied.schedule);
+  expect(JSON.parse(exported.values['wave-saved-places'])).toEqual(ids);
+  expect(JSON.parse(exported.values['wave-trip-order-v1'])).toEqual(applied.order);
+  expect(exported.values).not.toHaveProperty('wave-trip-identity-v1');
+  await menu.getByRole('button', { name: '공유 닫기', exact: true }).click();
   await page.reload(); await settled(page, 'car');
+  expect((await stored(page)).schedule).toEqual(applied.schedule);
+  expect((await stored(page)).ids).toEqual(ids);
 });

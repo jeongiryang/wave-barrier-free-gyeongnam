@@ -24,7 +24,7 @@ FORMAT = {'type': 'object', 'properties': {
     'reply': {'type': 'string'},
     'proposal': {'anyOf': [{'type': 'null'}, {'type': 'object', 'properties': {
           'action': {'type': 'string', 'enum': ['create-itinerary', 'adapt-itinerary', 'set-dates', 'recalculate-route', 'save-trip', 'settings', 'search', 'add', 'remove', 'details', 'move', 'visit', 'break', 'day', 'start-time', 'deadline', 'readiness', 'compare', 'alternatives', 'next', 'undo', 'tool', 'help']}, 'region': {'type': 'string', 'enum': ['경남 전체', '창원', '진주', '통영', '사천', '김해', '밀양', '거제', '양산', '의령', '함안', '창녕', '고성', '남해', '하동', '산청', '함양', '거창', '합천']},
-        'profiles': {'type': 'array', 'items': {'type': 'string', 'enum': ['wheel', 'senior', 'baby', 'pregnant', 'visual', 'hearing']}},
+        'profiles': {'type': 'array', 'items': {'type': 'string', 'enum': ['route', 'elevator', 'restroom', 'parking', 'wheelchair', 'stroller', 'lactationroom', 'babysparechair', 'braileblock', 'helpdog', 'guidehuman', 'audioguide', 'bigprint', 'signguide', 'videoguide', 'hearingroom', 'wheel', 'senior', 'baby', 'pregnant', 'visual', 'hearing']}},
         'themes': {'type': 'array', 'items': {'type': 'string', 'enum': ['nature', 'history', 'leisure', 'food']}},
         'placeId': {'type': 'string'}, 'minutes': {'type': 'integer'},
         'direction': {'type': 'string'}, 'date': {'type': 'string'},

@@ -1,3 +1,4 @@
+import * as facilitySelection from '../lib/facility-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -17,6 +18,7 @@ const facilities = [['parking', '장애인 주차'], ['route', '접근로'], ['w
 function fixture({ empty = false } = {}) {
   const calls = [];
   const dependencies = {
+    '../../lib/facility-selection.js': facilitySelection,
     '../shared/http': { clean: value => String(value || ''), json: value => Response.json(value) },
     '../../lib/assistant-actions.js': actions, '../../lib/naru-journey.js': journey, '../../lib/trip-dates.js': dates,
     '../tourism/plan-builder': { buildPlan: async request => {
@@ -30,7 +32,7 @@ function fixture({ empty = false } = {}) {
     '../tourism/festivals': { koreaToday: () => day, fetchFestivals: () => { throw new Error('unexpected festival request'); } },
     '../tourism/visit-info': { handleVisitInfo: async () => Response.json({ setting: { state: 'indoor-space', detail: '합성 실내 근거' } }) },
     '../weather/handler': { handleWeatherApi: async () => Response.json({ days: [{ date: day, label: '합성 날씨', rainProbability: 0, rain: 0 }] }) },
-    '../tourism/catalog': { profileFields: { wheel: facilities, senior: facilities.slice(1) }, contentTypes: { nature: '12', history: '14' }, regionCodes: Object.fromEntries(Object.keys(GYEONGNAM_REGION_POINTS).map(region => [region, {}])) },
+    '../tourism/catalog': { profileFields: Object.fromEntries(facilities.map(item => [item[0], [item]])), contentTypes: { nature: '12', history: '14' }, regionCodes: Object.fromEntries(Object.keys(GYEONGNAM_REGION_POINTS).map(region => [region, {}])) },
     '../shared/provider-data': { fetchTourismData: () => { throw new Error('unexpected saved-place lookup'); } },
     '../tourism/accessibility-model': {},
     '../../features/planner/services/plan-response': { planResponse: value => value },
@@ -47,10 +49,10 @@ test('grounded local search reaches journey preparation while transport and unco
   const result = await f.prepare(action);
   assert.deepEqual(f.calls.map(url => url.searchParams.get('region')), ['창원']);
   assert.equal(result.region, '창원'); assert.equal(result.originRegion, '창원'); assert.equal(result.transport, 'transit');
-  assert.deepEqual([...result.profiles], ['wheel', 'senior']);
+  assert.deepEqual([...result.profiles], ['parking', 'route', 'wheelchair', 'elevator', 'restroom']);
   assert.equal(result.start, day); assert.equal(result.end, day);
   assert.deepEqual(result.stops.map(stop => stop.place.id), ['1001', '1002']);
-  assert.ok(result.stops.every(stop => stop.date === day && stop.breakMinutes === 20 && stop.unknown.length === 5));
+  assert.ok(result.stops.every(stop => stop.date === day && stop.breakMinutes === 10 && stop.unknown.length === 5));
   assert.ok(result.warnings.some(warning => warning.includes('실제 이동시간과 통행 편의는 적용 후 경로에서 확인')));
   assert.equal(JSON.stringify(current), before);
 });
@@ -59,7 +61,7 @@ test('empty nearby evidence does not silently widen the search or release the re
   const f = fixture({ empty: true });
   const action = groundAssistantProposal({ action: 'create-itinerary', originRegion: '창원' }, [{ role: 'user', content: prompt }], current);
   const result = await f.prepare(action);
-  assert.deepEqual(f.calls.map(url => [url.searchParams.get('region'), url.searchParams.get('profiles')]), [['창원', 'wheel,senior']]);
+  assert.deepEqual(f.calls.map(url => [url.searchParams.get('region'), url.searchParams.get('profiles')]), [['창원', 'parking,route,wheelchair,elevator,restroom']]);
   assert.equal(result.stops.length, 0); assert.equal(result.transport, 'transit');
   assert.ok(result.warnings.some(warning => warning.includes('필요한 편의는 유지하고')));
 });

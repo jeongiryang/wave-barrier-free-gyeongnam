@@ -1,0 +1,30 @@
+"use client";
+import { lazy, Suspense, useId } from "react";
+import type { Place } from "../types";
+import { originalLanguage } from "../place-copy";
+import PlaceFacilitySummary from "./PlaceFacilitySummary";
+const SmartSpotImage = lazy(() => import("../../tourism/components/SmartSpotImage").catch(() => ({ default: () => <span className="simple-photo-placeholder" role="status">사진을 불러오지 못했어요</span> })));
+
+export default function PlaceResultRow({ place, region, saved, current, en, unknown = false, onToggle, onDetails, compare }: {
+  place: Place; region: string; saved: boolean; current: boolean; en: boolean; unknown?: boolean;
+  onToggle?: () => void; onDetails: () => void;
+  compare?: { selected: boolean; disabled: boolean; toggle: () => void };
+}) {
+  const id = useId();
+  const say = (ko: string, english: string) => en ? english : ko;
+  return <article className="simple-place-row" aria-labelledby={id} data-result-current={current}>
+    <button type="button" className="simple-place-photo" onClick={onDetails} aria-label={`${place.name} ${say("상세 보기", "details")}`}>
+      <Suspense fallback={<span className="simple-photo-placeholder" aria-hidden="true" />}><SmartSpotImage src={place.image} title={place.name} region={place.city || region} contentId={place.id} tag="" rank={0} showMeta={false} /></Suspense>
+    </button>
+    <div className="simple-place-copy"><span className="simple-place-city" lang={originalLanguage(place.city || region)}>{place.city || region}</span>
+      <h3 id={id} lang={originalLanguage(place.name)}><button type="button" onClick={onDetails}>{place.name}</button></h3>
+      <p className="simple-place-address" lang={originalLanguage(place.address)}>{place.address}</p>
+      <PlaceFacilitySummary place={place} en={en} />
+      {compare && <label className="simple-compare-check"><input type="checkbox" checked={compare.selected} disabled={compare.disabled} onChange={compare.toggle} />{say("비교", "Compare")}</label>}
+    </div>
+    <button type="button" className="simple-place-add" disabled={!unknown && !saved && !current} aria-pressed={saved} onClick={unknown ? onDetails : onToggle} aria-label={`${place.name} ${unknown ? say("편의 확인", "review facilities") : saved ? say("담았음 · 일정에서 빼기", "added · remove from itinerary") : say("일정에 담기", "add to itinerary")}`}>
+      <span aria-hidden="true">{saved ? "✓" : unknown ? "→" : "+"}</span>{saved ? say("담았음", "Added") : unknown ? say("편의 확인", "Details") : say("담기", "Add")}
+    </button>
+  </article>;
+}
+

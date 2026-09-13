@@ -23,13 +23,13 @@ async function snapshot(page: Page) {
 }
 async function send(chat: Locator, text: string) {
   await chat.getByRole('textbox').fill(text);
-  await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
+  await chat.getByRole('textbox').press('Enter');
 }
 async function setup(page: Page) {
   // Fixture the upstream mistake, then use the same grounding/action validation as the API.
   // No local model, tourism provider or external service is reachable from these tests.
   await page.route('**/api/**', route => route.fulfill({ status: 503, json: { error: 'Unconfigured synthetic API' } }));
-  await mockPlannerApi(page, { plannerView: 'guided' });
+  await mockPlannerApi(page, { preserveView: true });
   const requests: URL[] = [];
   let completed = 0, journeyCalls = 0, hold: ReturnType<typeof deferred> | null = null;
   await page.route('**/api/route?*', async route => {
@@ -50,11 +50,12 @@ async function setup(page: Page) {
   });
   await page.addInitScript(initial => {
     localStorage.setItem('wave-current-trip-v1', JSON.stringify({ version: 1, values: initial }));
-    sessionStorage.setItem('wave-session-facilities-v1', '["wheel","senior"]');
+    sessionStorage.setItem('wave-session-facilities-v1', '["restroom"]');
   }, { 'wave-planner-region-v1': '창원', 'wave-trip-themes-v1': '["nature","history"]',
     'wave-saved-places': '["1001","1002"]', 'wave-saved-place-catalog-v1': JSON.stringify(plan.places),
     'wave-trip-order-v1': '{"mode":"manual","ids":["1001","1002"]}', 'wave-trip-schedule-v1': JSON.stringify(schedule) });
   await page.goto('/planner');
+  await page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: /^내 일정/ }).click();
   // The map loads the selected first leg; automatic coverage checks both days.
   await expect.poll(() => completed).toBe(3);
   expect(requests.map(url => url.searchParams.get('endLat') + ',' + url.searchParams.get('endLng')).sort()).toEqual(['35.229,128.683', '35.238,128.691', '35.238,128.691']);
@@ -74,22 +75,30 @@ test('이동수단만 바꾸면 새 일정 없이 저장한 장소·기간·순�
   app.hold(gate);
   try {
     await send(app.chat, '자동차로 이동할게.');
-    const confirm = app.chat.getByRole('button', { name: '자동차 이동으로 변경', exact: true });
+    const confirm = app.chat.getByRole('button', { name: '자동차 이동 경로 확인 · 기존 일정 유지', exact: true });
     await expect(confirm).toBeEnabled();
     expect(await snapshot(page)).toEqual(before); expect(app.requests).toHaveLength(3);
     await confirm.click();
-    await expect(app.chat.getByRole('button', { name: '확인한 작업', exact: true })).toBeFocused();
-    await expect.poll(() => app.requests.length).toBe(6);
-    expect(app.requests.slice(3).map(url => Object.fromEntries(url.searchParams))).toEqual(baseline.map(item => ({ ...item, mode: 'car' })));
+    await expect(app.chat.getByRole('button', { name: '되돌리기', exact: true })).toBeEnabled();
+    // The shared schedule command checks both legs once. Selecting the first
+    // checked leg below must consume this coverage, without a duplicate fetch.
+    await expect.poll(() => app.requests.length).toBe(5);
+    const changed = app.requests.slice(3).map(url => Object.fromEntries(url.searchParams));
+    expect(changed.every(item => item.mode === 'car' && item.startLat === '35.2422' && item.startLng === '128.6982')).toBe(true);
+    expect(changed.map(item => `${item.endLat},${item.endLng}`).sort()).toEqual(['35.229,128.683', '35.238,128.691']);
     expect(app.completed()).toBe(3);
     expect(await snapshot(page)).toEqual({ ...before, schedule: { ...before.schedule, travelMode: 'car' } });
-    await expect(app.chat.getByRole('log')).toContainText('이동수단을 바꿨어요');
-    await expect(app.chat.getByRole('log')).not.toContainText('경로 조회를 마쳤어요');
-    gate.release(); await expect.poll(app.completed).toBe(6);
-    await app.chat.getByRole('button', { name: '지도·일정 보기', exact: true }).click();
-    await app.chat.locator('.reference-itinerary-details > summary').click();
-    await expect(app.chat.locator('.itinerary-route-coverage').getByRole('combobox', { name: '이동수단', exact: true })).toHaveValue('car');
-    await expect(app.chat.locator('.itinerary-route-coverage')).toContainText('전체 2구간 중 2구간 확인');
+    await expect(app.chat.getByRole('log')).toContainText('여행 설정을 수정했어요');
+    await expect(app.chat.getByRole('log')).not.toContainText('조회한 이동 구간을 지도에서 볼 수 있어요');
+    gate.release(); await expect.poll(app.completed).toBe(5);
+    await app.chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
+    await page.locator('.simple-more-trip-tools > summary').click();
+    await expect(page.locator('.itinerary-route-coverage').getByRole('combobox', { name: '이동수단', exact: true })).toHaveValue('car');
+    await expect(page.locator('.itinerary-route-coverage')).toContainText('전체 2구간 중 2구간 확인');
+    await page.locator('.itinerary-route-coverage').getByRole('button', { name: '이 구간 지도에서 보기', exact: true }).first().click();
+    await page.locator('#navigation .reference-route-details > summary').click();
+    await expect(page.locator('#navigation .route-mode-sections').getByRole('button', { name: /자동차/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(app.requests).toHaveLength(5);
     expect(await snapshot(page)).toEqual({ ...before, schedule: { ...before.schedule, travelMode: 'car' } }); expect(app.journeyCalls()).toBe(0);
   } finally { gate.release(); }
 });
@@ -99,76 +108,78 @@ test('같은 이동수단의 재확인은 실제 응답을 기다리고 휴식�
   app.hold(gate);
   try {
     await send(app.chat, '대중교통으로 이동할게.');
-    await app.chat.getByRole('button', { name: '대중교통 이동으로 경로 다시 확인', exact: true }).click();
+    await app.chat.getByRole('button', { name: '대중교통 이동 경로 확인 · 기존 일정 유지', exact: true }).click();
     await expect.poll(() => app.requests.length).toBe(5);
-    await expect(app.chat.getByRole('log')).not.toContainText('경로 조회를 마쳤어요');
+    await expect(app.chat.getByRole('log')).not.toContainText('조회한 이동 구간을 지도에서 볼 수 있어요');
     expect(app.requests.map(url => url.searchParams.get('mode'))).toEqual(['transit', 'transit', 'transit', 'transit', 'transit']);
     expect(await snapshot(page)).toEqual(before);
     gate.release(); await expect.poll(app.completed).toBe(5);
-    await expect(app.chat.getByRole('log')).toContainText('경로 조회를 마쳤어요');
+    await expect(app.chat.getByRole('log')).toContainText('조회한 이동 구간을 지도에서 볼 수 있어요');
     await send(app.chat, '용지호수공원에서 쉬는 시간만 30분으로 바꿔줘.');
-    await expect(app.chat.locator('.naru-proposal').last()).toContainText('용지호수공원 휴식 30분');
-    await app.chat.getByRole('button', { name: '확인하고 적용', exact: true }).click();
     await expect.poll(async () => (await snapshot(page)).schedule.breakMinutesByPlaceId['1002']).toBe(30);
+    await expect(app.chat.getByRole('button', { name: '되돌리기', exact: true })).toBeEnabled();
     expect(await snapshot(page)).toEqual({ ...before, schedule: { ...before.schedule, breakMinutesByPlaceId: { ...before.schedule.breakMinutesByPlaceId, '1002': 30 } } });
     expect(app.journeyCalls()).toBe(0); expect(app.requests).toHaveLength(5);
   } finally { gate.release(); }
 });
 
-test('날짜만 바꾸면 새 일정 없이 방문일 충돌을 날짜 도구로 안내하고 기존 여행을 보존한다', async ({ page }) => {
+test('날짜만 바꾸면 새 장소를 만들지 않고 기존 방문일을 기간 밖 목록에 보존한다', async ({ page }) => {
   const app = await setup(page), before = await snapshot(page);
   await send(app.chat, '여행 날짜만 내일로 바꿔줘.');
-  await expect(app.chat.locator('.naru-proposal').last()).toContainText('2026-09-13 – 2026-09-13 여행 기간');
-  expect(await snapshot(page)).toEqual(before); expect(app.journeyCalls()).toBe(0);
-  await app.chat.getByRole('button', { name: '확인하고 적용', exact: true }).click();
-  await expect(app.chat.locator('.naru-tool-host[data-tool=dates]')).toBeVisible();
-  await expect(app.chat.locator('input[type=date]').first()).toHaveValue(start);
-  expect(await snapshot(page)).toEqual(before); expect(app.journeyCalls()).toBe(0);
-  await app.chat.getByRole('button', { name: '대화만 보기', exact: true }).click();
-  // On mobile the active tool intentionally replaces the conversation pane.
-  await expect(app.chat.getByRole('log')).toContainText('기존 장소의 방문일이 새 기간 밖에 있어요');
+  await expect.poll(async () => (await snapshot(page)).schedule.travelStart).toBe('2026-09-13');
+  expect(await snapshot(page)).toEqual({ ...before, schedule: { ...before.schedule, travelStart: '2026-09-13', travelEnd: '2026-09-13' } });
+  expect(app.journeyCalls()).toBe(0);
+  await app.chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
+  const view = page.getByRole('group', { name: '일정 보기 방식', exact: true });
+  if (await view.count()) await view.getByRole('button', { name: '시간표', exact: true }).click();
+  const outside = page.locator('.simple-outside-dates');
+  await expect(outside).toContainText(`경남도립미술관 · ${start}`);
+  await expect(outside).toContainText(`용지호수공원 · ${end}`);
+  await expect(outside.getByRole('button', { name: '날짜 수정', exact: true })).toHaveCount(2);
+  await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
+  await app.chat.getByRole('button', { name: '되돌리기', exact: true }).click();
+  await expect.poll(() => snapshot(page)).toEqual(before);
   await send(app.chat, '여행 기간을 9월 20일부터 22일까지로 바꿔줘.');
-  await expect(app.chat.locator('.naru-proposal').last()).toContainText('2026-09-20 – 2026-09-22 여행 기간');
-  await app.chat.getByRole('button', { name: '확인하고 적용', exact: true }).click();
   await expect.poll(async () => (await snapshot(page)).schedule.travelEnd).toBe('2026-09-22');
   expect(await snapshot(page)).toEqual({ ...before, schedule: { ...before.schedule, travelEnd: '2026-09-22' } });
   expect(app.journeyCalls()).toBe(0);
 });
 
-test('채팅 검색은 제공처 실패·미확인 후보와 실제 빈 결과를 구분하고 편의를 유지한다', async ({ page }) => {
+test('채팅 검색은 제공처 실패·미확인·시설 부재·실제 빈 결과를 구분하고 편의를 유지한다', async ({ page }) => {
   const app = await setup(page), before = await snapshot(page);
   let scenario = 'unavailable';
   await page.route('**/api/wave?*', route => {
     if (new URL(route.request().url()).searchParams.get('action') !== 'plan') return route.fallback();
     const unavailable = scenario === 'unavailable';
+    const candidates = plan.places.map((place, index) => ({ ...place, id: `300${index + 1}`, name: index ? '합성 화장실 없는 장소' : '합성 편의 미확인 장소', image: '', score: 0,
+      facilityLookupState: unavailable ? 'error' : 'available', accessibility: [{ key: 'restroom', label: '장애인 화장실', detail: '', state: scenario === 'mismatch' && index ? 'negative' : 'unknown' }] }));
     return route.fulfill({ json: { ...plan, mode: unavailable ? 'partial' : 'live', criteria: { facilityKeys: ['restroom'] }, places: [], stops: [],
-      explorationPlaces: scenario !== 'empty' ? plan.places.map((place, index) => ({ ...place, score: 0, facilityLookupState: unavailable ? 'error' : 'available', accessibility: [{ key: 'restroom', label: '화장실', detail: '', state: scenario === 'mismatch' && index ? 'negative' : 'unknown' }] })) : [],
+      explorationPlaces: scenario === 'empty' ? [] : scenario === 'mismatch' ? [candidates[0]] : candidates,
+      excludedPlaces: scenario === 'mismatch' ? [candidates[1]] : [],
       statuses: plan.statuses.map(status => ({ ...status, state: unavailable ? 'error' : scenario === 'empty' ? 'empty' : 'live', count: 0, note: unavailable ? '제공처 요청 제한' : '결과 확인',
         ...(unavailable ? { failure: { provider: 'kto', operation: 'KorWithService2/detailWithTour2', kind: 'rate_limited', httpStatus: 429, code: null, retryAfterMs: 60000, resetAt: null, retryable: true } } : {}) })) } });
   });
   await send(app.chat, '현재 조건으로 여행지 찾아줘');
-  await app.chat.getByRole('button', { name: '열기 / 실행', exact: true }).click();
-  const results = app.chat.locator('.naru-result-list');
-  await expect(results).toContainText('제공처에 연결하지 못했거나 응답을 모두 받지 못했어요');
-  await expect(results).toContainText('미확인인 후보 2곳');
-  await expect(results).not.toContainText('맞는 여행지가 없어요');
-  await expect(results.getByRole('button', { name: '일정에 담기', exact: true })).toHaveCount(0);
-  await results.getByRole('button', { name: '다른 방법으로 찾기', exact: true }).click();
-  await expect(app.chat.locator('.naru-tool-host[data-tool=places]')).toBeVisible();
-  await expect(app.chat.locator('.naru-workspace')).toContainText('제공처의 요청 제한');
-  expect((await snapshot(page)).profiles).toEqual(before.profiles);
-  await app.chat.getByRole('button', { name: '대화만 보기', exact: true }).click();
-  scenario = 'mismatch';
-  await send(app.chat, '현재 조건으로 여행지 찾아줘');
-  await app.chat.getByRole('button', { name: '열기 / 실행', exact: true }).click();
-  await expect(results).toContainText('미확인인 후보 1곳');
-  await expect(results).toContainText('필요한 편의와 맞지 않는 후보 1곳은 일정 추가에서 제외');
-  await expect(results).not.toContainText('제공처에 연결하지 못했거나');
-  scenario = 'empty';
-  await send(app.chat, '현재 조건으로 여행지 찾아줘');
-  await app.chat.getByRole('button', { name: '열기 / 실행', exact: true }).click();
-  await expect(results).toContainText('맞는 여행지가 없어요');
-  await expect(results).not.toContainText('제공처에 연결하지 못했거나');
-  await expect(results).not.toContainText('미확인인 후보');
-  expect(await snapshot(page)).toEqual(before);
+  const answer = app.chat.locator('.naru-message.assistant').last(), results = app.chat.locator('.naru-result-list').last();
+  await expect(answer).toContainText('일부 관광 정보를 불러오지 못했어요');
+  await expect(results.locator('article')).toHaveCount(2);
+  await expect(results.getByRole('button', { name: '담기', exact: true })).toHaveCount(0);
+  await results.getByRole('button', { name: '시설 정보 확인', exact: true }).first().click();
+  const details = page.getByRole('dialog', { name: '합성 편의 미확인 장소', exact: true });
+  await expect(details).toContainText('편의정보 제공처에 연결하지 못했어요');
+  await expect(details.getByRole('button', { name: '일정에 추가', exact: true })).toBeDisabled();
+  await expect(details.getByRole('checkbox', { name: '방문 전 확인할 후보로 담기', exact: true })).not.toBeChecked();
+  await details.getByRole('button', { name: '닫기', exact: true }).click();
+  await expect(app.chat).toBeVisible(); expect(await snapshot(page)).toEqual(before);
+  scenario = 'mismatch'; await send(app.chat, '현재 조건으로 여행지 찾아줘');
+  await expect(results.locator('article')).toHaveCount(1);
+  await expect(answer).toContainText(/1곳.*제외|제외.*1곳/);
+  await expect(answer).not.toContainText('일부 관광 정보를 불러오지 못했어요');
+  await expect(results.getByRole('button', { name: '담기', exact: true })).toHaveCount(0);
+  scenario = 'empty'; await send(app.chat, '현재 조건으로 여행지 찾아줘');
+  await expect(answer).toContainText('조건에 맞는 후보가 없어요');
+  await expect(answer).not.toContainText('일부 관광 정보를 불러오지 못했어요');
+  await expect(answer).not.toContainText(/1곳.*제외|제외.*1곳/);
+  await expect(results.getByRole('button', { name: '검색 조건 수정', exact: true })).toBeEnabled();
+  expect(await snapshot(page)).toEqual(before); expect(app.journeyCalls()).toBe(0);
 });

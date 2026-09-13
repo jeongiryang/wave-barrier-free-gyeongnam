@@ -1,3 +1,4 @@
+import * as facilities from '../lib/facility-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -14,6 +15,7 @@ const action = { action: 'adapt-itinerary', reason: 'rain', indoor: true };
 
 function fixture({ sourceError = false, weatherError = false, missingIndoor = false, empty = false } = {}) {
   const dependencies = {
+    '../../lib/facility-selection.js': facilities,
     '../shared/http': { clean: value => String(value || ''), json: value => Response.json(value) },
     '../../lib/assistant-actions.js': actions, '../../lib/naru-journey.js': journey, '../../lib/trip-dates.js': dates,
     '../tourism/plan-builder': { buildPlan: async () => ({ places: empty ? [] : places, statuses: [{ id: 'tour', state: sourceError ? 'error' : 'live' }] }) },

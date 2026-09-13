@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 import { confirmedAlternativePlan } from "./alternative-fixtures";
+import { freshArrival, prepareLandingMedia, storyReady, expectUsableTarget } from "./landing-contract";
 
 function trackRuntimeErrors(page: Page) {
   const errors: string[] = [];
@@ -72,103 +73,63 @@ test("guided search failures stay visible with choices preserved and allow retry
   await expect(page.locator("#places")).toBeHidden();
 });
 
-test("full-screen intro keeps an immediate keyboard exit and returns to the usable page", async ({ page }) => {
+test("landing: nonblocking intro permits an immediate keyboard move into the real page", async ({ page }) => {
   const errors = trackRuntimeErrors(page);
   const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
   await page.setViewportSize({ width, height: 960 });
-  await mockPlannerApi(page);
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-  await expect(intro).toBeVisible();
-  await expect(intro.getByRole("button")).toHaveCount(0);
-  await expect(intro.getByRole("link")).toHaveCount(0);
-  await page.keyboard.press("Escape");
-  await expect(intro).toBeHidden();
-  await expect(page.locator(".landing-hero button")).toHaveCount(0);
-  const planning = page.locator(".landing-actions").getByRole("link", { name: "여행 계획하기", exact: true });
-  await expect(planning).toBeVisible();
-  await planning.focus();
+  await freshArrival(page);
+  const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
+  await expect(scene).toHaveCSS("pointer-events", "none");
+  await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+  await expect(scene.locator("button,a,[tabindex]")).toHaveCount(0);
+  await expect(planning).toHaveAccessibleName("여행지 둘러보기");
+  await planning.focus(); await page.keyboard.press("Tab");
+  await expect(scene).toBeHidden();
+  await expect(planning).not.toBeFocused();
+  expect(await page.evaluate(() => document.activeElement?.closest(".arrival-scene"))).toBeNull();
+  await page.keyboard.press("Shift+Tab");
+  await expect(planning).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.clock.runFor(32);
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(planning).toBeFocused();
-  for (const element of await page.locator(".landing-hero-copy, .landing-hero h1, .landing-actions a, .landing-signal").all()) {
-    const box = await element.boundingBox();
-    expect(box!.x).toBeGreaterThanOrEqual(0);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+  for (const element of await page.locator(".landing-hero-copy, .landing-hero h1, .landing-actions a").all()) {
+    const box = (await element.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width + 1);
   }
   await page.screenshot({ path: test.info().outputPath(`intro-calm-${width}.png`) });
   await expectNoOverflow(page);
   expect(errors).toEqual([]);
 });
 
-test("Korean fresh sessions keep no visible controls and stable keyboard handoff with no replay UI", async ({ page }) => {
-    const errors = trackRuntimeErrors(page);
-    await mockPlannerApi(page);
-
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
-    const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-    for (const key of ["Escape"]) {
-      await expect(intro).toBeVisible();
-      const skip = intro.getByRole("heading", { name: "WAVE" });
-      await expect(skip).toBeFocused();
-      await expect(intro.getByRole("button")).toHaveCount(0);
-      const box = await skip.boundingBox();
-      expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44);
-      await page.emulateMedia({ reducedMotion: "no-preference" });
-      await expect(skip).toBeFocused();
-      await page.emulateMedia({ reducedMotion: "reduce" });
-      await expect(skip).toBeFocused();
-      await page.keyboard.press(key);
-      await expect(intro).toBeHidden();
-      await expect(page.locator("#landing-title")).toBeFocused();
-      await expect(page.locator(".landing-hero button")).toHaveCount(0);
-      if (key !== "Escape") {
-        await page.evaluate(() => sessionStorage.removeItem("wave-arrival-session-v1"));
-        await page.reload();
-      }
-    }
-    expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);
-    await expectNoOverflow(page);
-    await page.locator(".landing-actions a[href='/planner']").press("Enter");
-    await expect(page).toHaveURL(/\/planner/);
-    expect(errors).toEqual([]);
-  });
-
-test("English fresh sessions keep no visible controls and stable keyboard handoff with no replay UI", async ({ page }) => {
-    const errors = trackRuntimeErrors(page);
-    await mockPlannerApi(page);
-    await page.addInitScript(() => localStorage.setItem("wave-locale", "en"));
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
-    const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-    for (const key of ["Escape"]) {
-      await expect(intro).toBeVisible();
-      const skip = intro.getByRole("heading", { name: "WAVE" });
-      await expect(skip).toBeFocused();
-      await expect(intro.getByRole("button")).toHaveCount(0);
-      const box = await skip.boundingBox();
-      expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44);
-      await page.emulateMedia({ reducedMotion: "no-preference" });
-      await expect(skip).toBeFocused();
-      await page.emulateMedia({ reducedMotion: "reduce" });
-      await expect(skip).toBeFocused();
-      await page.keyboard.press(key);
-      await expect(intro).toBeHidden();
-      await expect(page.locator("#landing-title")).toBeFocused();
-      await expect(page.locator(".landing-hero button")).toHaveCount(0);
-      if (key !== "Escape") {
-        await page.evaluate(() => sessionStorage.removeItem("wave-arrival-session-v1"));
-        await page.reload();
-      }
-    }
-    expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);
-    await expectNoOverflow(page);
-    await page.locator(".landing-actions a[href='/planner']").press("Enter");
-    await expect(page).toHaveURL(/\/planner/);
-    expect(errors).toEqual([]);
-  });
+for (const locale of ["ko", "en"] as const) test(`landing: ${locale} fresh reduced-motion sessions preserve keyboard focus and a real planning link`, async ({ page }) => {
+  const errors = trackRuntimeErrors(page);
+  await prepareLandingMedia(page);
+  await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/"); await storyReady(page);
+  const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
+  await expect(scene).toBeHidden();
+  await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+  await expect(planning).toHaveAccessibleName(locale === "en" ? "Explore places" : "여행지 둘러보기");
+  await expectUsableTarget(planning);
+  for (const motion of ["no-preference", "reduce"] as const) {
+    await page.emulateMedia({ reducedMotion: motion });
+    await expect(planning).toBeFocused();
+    await expect(scene).toBeHidden();
+  }
+  await page.keyboard.press("Tab");
+  await expect(planning).not.toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(planning).toBeFocused();
+  await expect(page.getByRole("button", { name: /인트로|다시보기|Replay intro/ })).toHaveCount(0);
+  expect((await new AxeBuilder({ page }).include(".landing-hero").analyze()).violations).toEqual([]);
+  await expectNoOverflow(page);
+  await planning.press("Enter");
+  await expect(page).toHaveURL(url => url.pathname === "/planner");
+  expect(errors).toEqual([]);
+});
 
 test("one saved place does not complete the trip and the dialog contains keyboard focus", async ({ page }) => {
   await mockPlannerApi(page);

@@ -1,10 +1,11 @@
 "use client";
+import { resolveFacilityKeys } from '../../lib/facility-selection.js';
+import { newTripIdentity } from '../../lib/trip-identity.js';
 import { replaceTripWithBackup } from "../../lib/trip-import.js";
 import { getTabStorage } from "../../lib/session-storage.js";
 
 import { useCallback, useEffect, useState } from "react";
-import { emptyTrip, THEMES_KEY } from "../../lib/current-trip-storage.js";
-import { useRouter } from "next/navigation";
+import { emptyTrip, THEMES_KEY, TRIP_IDENTITY_KEY } from "../../lib/current-trip-storage.js";
 import {
   TRAVEL_BOOK_STORAGE_KEY,
   createTravelBookSnapshot,
@@ -23,7 +24,6 @@ const SAVED_PLACES_KEY = "wave-saved-places";
 const TRIP_SCHEDULE_KEY = "wave-trip-schedule-v1";
 
 export function useTravelBook() {
-  const router = useRouter();
   const [books, setBooks] = useState<TravelBook[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [storageError, setStorageError] = useState('');
@@ -71,19 +71,23 @@ export function useTravelBook() {
     try {
       replaceTripWithBackup(window.localStorage, {
         ...emptyTrip(book.region, payload.schedule.travelStart, payload.schedule.travelEnd),
+        [TRIP_IDENTITY_KEY]: JSON.stringify({ ...(payload.identity || newTripIdentity()), ...(payload.tripId ? { id: payload.tripId } : {}), binding: { kind: 'local', id: book.id } }),
         [SAVED_PLACES_KEY]: JSON.stringify(payload.savedPlaceIds),
         [SAVED_PLACE_CATALOG_KEY]: JSON.stringify(sanitizeSavedPlaceCatalog(payload.savedPlaces)),
         [TRIP_SCHEDULE_KEY]: JSON.stringify(payload.schedule),
         [THEMES_KEY]: JSON.stringify(payload.themes),
         "wave-trip-order-v1": JSON.stringify({ mode: "manual", ids: payload.savedPlaceIds }),
       });
-      saveSessionProfiles(getTabStorage(), payload.profiles);
+      // Current archives deliberately omit private facility preferences. Only an
+      // older archive that actually carries preferences can replace this tab's choices.
+      const profiles = resolveFacilityKeys({ profiles: payload.profiles });
+      if (profiles.length) saveSessionProfiles(getTabStorage(), profiles);
     } catch {
       setStorageError('이 일정을 열지 못했어요. 현재 여행은 유지됩니다. 브라우저 저장 공간을 확인해 주세요.'); return false;
     }
-    router.push(payload.href);
+    window.location.assign(payload.href);
     return true;
-  }, [router]);
+  }, []);
 
   return { books, hydrated, storageError, archive, update, remove, restore };
 }

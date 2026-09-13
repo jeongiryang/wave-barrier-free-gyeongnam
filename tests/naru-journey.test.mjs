@@ -40,7 +40,7 @@ test('journey action schema accepts bounded intents without accepting model-supp
   assert.deepEqual(validateAssistantAction({ action: 'adapt-itinerary', date: days[1], reason: 'rain', indoor: true }), {
     action: 'adapt-itinerary', date: days[1], indoor: true, reason: 'rain',
   });
-  for (const patch of [{ start: [start] }, { start, end: [start] }, { start, end: '2026-09-27' }, { date: { toString: () => start } }, { indoor: 'true' }, { transport: 'taxi' }, { originRegion: '경남 전체' }, { profiles: [] }, { profiles: ['wheelchair'] }, { festival: 'x'.repeat(101) }]) {
+  for (const patch of [{ start: [start] }, { start, end: [start] }, { start, end: '2026-09-27' }, { date: { toString: () => start } }, { indoor: 'true' }, { transport: 'taxi' }, { originRegion: '경남 전체' }, { profiles: [] }, { profiles: ['invented-facility'] }, { festival: 'x'.repeat(101) }]) {
     assert.equal(validateAssistantAction({ action: 'create-itinerary', ...patch }), null);
   }
 });

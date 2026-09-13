@@ -1,71 +1,54 @@
 "use client";
+import { lazy, Suspense, useCallback, useState } from "react";
 import LoadingState from "../../../components/LoadingState";
-
-import { lazy, Suspense, useRef } from "react";
-import Link from "next/link";
-import { useSitePreferences } from "../../../components/SitePreferences";
-import type { PlannerStageView } from "../hooks/usePlannerStageView";
+import { FACILITIES } from "../../../lib/facility-selection.js";
+import { regions, themes as activities } from "../constants";
+import { usePlaceDialogFocus } from "../hooks/usePlaceDialogFocus";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
-import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
+import type { useRoutePlanning } from "../hooks/useRoutePlanning";
+import type { PlannerStageView } from "../hooks/usePlannerStageView";
 import type { Place } from "../types";
-import PlannerThemeDates from "./PlannerThemeDates";
-import { planFailureHeadings } from "../condition-copy";
-import { regionNames } from "../../../lib/gyeongnam-region-names";
-
-const PlannerDateCalendar = lazy(() => import("./PlannerDateCalendar"));
-
+const TravelComfortChoices = lazy(() => import("./TravelComfortChoices"));
 const PlannerRegionDiscovery = lazy(() => import("./PlannerRegionDiscovery"));
-const PlannerAccessibilityProfiles = lazy(() => import("./PlannerAccessibilityProfiles"));
-const PlannerAvailability = lazy(() => import("./PlannerAvailability"));
+const AccountPreferences = lazy(() => import("../../account-travel/AccountPreferences"));
 
-interface PlannerConditionsPanelProps {
-  question: number;
-  onQuestion: (question: number) => void;
-  onItinerary: () => void;
-  view: PlannerStageView;
-  onGenerate: () => void | Promise<void>;
-  onRegionChange: (region: string) => void;
-  t: (key: string, fallback: string) => string;
-  activePlaces: Place[];
-  planController: ReturnType<typeof usePlannerPlan>;
-  route: ReturnType<typeof useRoutePlanning>;
-  tripSelection: ReturnType<typeof useTripSelection>;
+type Props = {
+  question: number; onQuestion: (question: number) => void; onItinerary: () => void; view: PlannerStageView;
+  onGenerate: () => void | Promise<void>; onRegionChange: (region: string) => void;
+  t: (key: string, fallback: string) => string; activePlaces: Place[];
+  planController: ReturnType<typeof usePlannerPlan>; route: ReturnType<typeof useRoutePlanning>; tripSelection: ReturnType<typeof useTripSelection>;
+};
+function FacilityPicker({ plan, trip, onClose }: { plan: Props["planController"]; trip: Props["tripSelection"]; onClose: () => void }) {
+  const [draft, setDraft] = useState(plan.selected);
+  const [comfort, setComfort] = useState(trip.comfort), [error, setError] = useState('');
+  const dialog = usePlaceDialogFocus(true, onClose);
+  return <dialog ref={dialog} lang="ko" className="simple-dialog simple-facility-picker" aria-labelledby="facility-picker-title">
+    <header><h2 id="facility-picker-title" tabIndex={-1}>필요한 편의</h2><button type="button" onClick={onClose} aria-label="편의 선택 닫기">×</button></header>
+    <p>필요한 시설만 선택해 주세요.</p>
+    <fieldset className="simple-facility-grid"><legend className="sr-only">여행 편의 조건 선택</legend>{FACILITIES.map(item => <label key={item.key}><input type="checkbox" checked={draft.includes(item.key)} onChange={event => setDraft(current => event.target.checked ? [...current, item.key] : current.filter(key => key !== item.key))} /><span>{item.label}</span></label>)}</fieldset>
+    <Suspense fallback={<LoadingState>동행 조건을 불러오고 있어요.</LoadingState>}><TravelComfortChoices selected={draft} comfort={comfort} onSelected={setDraft} onComfort={setComfort}/></Suspense>
+    <details className="simple-saved-preferences"><summary>조건 저장·불러오기</summary><div><p>선택한 편의만 저장해요. 건강 상태나 장애 유형을 추론하지 않아요.</p>
+      <button type="button" disabled={!draft.length} onClick={() => plan.saveTravelProfile(draft)}>이 기기에 조건 저장</button>
+      <button type="button" disabled={!plan.savedProfile} onClick={() => { if (plan.savedProfile) setDraft(plan.savedProfile.selectedIds); }}>저장한 조건 불러오기</button>
+      {plan.savedProfile && <button type="button" onClick={plan.deleteTravelProfile}>저장한 조건 삭제</button>}
+      {plan.profileNotice && <p role="status">{plan.profileNotice}</p>}
+      <Suspense fallback={<LoadingState>저장한 조건을 불러오고 있어요.</LoadingState>}><AccountPreferences selected={draft} onApply={setDraft} /></Suspense>
+    </div></details>
+    {error && <p role="alert">{error}</p>}
+    <footer><button type="button" onClick={() => setDraft([])} disabled={!draft.length}>선택 해제</button><button type="button" className="primary" onClick={() => { if (JSON.stringify(comfort) !== JSON.stringify(trip.comfort)) { const result = trip.applyTripCommand({ type: 'comfort', value: comfort }); if (!result.ok) { setError(result.reason); return; } } plan.setSelected(draft); onClose(); }}>적용{draft.length ? ` · ${draft.length}개` : ""}</button></footer>
+  </dialog>;
 }
-
-export default function PlannerConditionsPanel(props: PlannerConditionsPanelProps) {
-  const { locale } = useSitePreferences();
-  const en = locale === "en";
-  const heading = useRef<HTMLHeadingElement>(null);
-  const { region, selected, themes, loading, planError } = props.planController;
-  const question = Math.max(0, Math.min(3, props.question));
-  const guided = props.view === "guided";
-  const showAvailability = Boolean(region) && (!guided || question !== 3);
-  function go(next: number) {
-    if (next < 0 || next > 3) return;
-    props.onQuestion(next);
-    window.requestAnimationFrame(() => heading.current?.focus());
-  }
-  return <div className="journey-workspace-block journey-conditions" id="conditions" data-compact={guided}>
-    {guided && <p className="condition-step-kicker">STEP {question === 1 ? "02" : "01"}<span>{en ? "Your trip, at your pace." : "준비도 우리의 속도로."}</span></p>}
-    <h2 ref={heading} tabIndex={-1} className="condition-heading">{guided ? (en ? ["Where would you like to go?", "What facilities do you need?", "What would you like to do?", "When are you travelling?"] : ["경남, 어디부터 가볼까요?", "어떤 편의가 필요할까요?", "무엇을 하고 싶나요?", "언제 떠날까요?"])[question] : en ? "Your trip preferences" : "여행 조건 정하기"}</h2>
-    <p className="reference-subtitle">{(en ? ["Choose a destination from its scenery.", "Choose the facilities you need to compare places.", "Choose your interests to find places for your trip.", "Select a start and end date for your trip."] : ["장소 이름을 외우지 않아도 풍경부터 고를 수 있어요.", "나에게 필요한 편의를 골라 여행지를 비교하세요.", "좋아하는 활동을 골라 나에게 맞는 여행을 찾아보세요.", "출발일과 도착일을 눌러 여행 기간을 선택하세요."])[question]}</p>
-    {(!guided || question === 0) && <div className="travel-book-actions" style={{gridTemplateColumns:'1fr',margin:'16px 0'}}><Link href="/outings" onClick={()=>{try{sessionStorage.setItem('wave-outing-entry-v1',JSON.stringify({region,theme:props.planController.theme,profiles:selected,createdAt:Date.now()}));}catch{/* The outing page offers the same choices when storage is unavailable. */}}}>한두 곳만 가볍게, 짧은 나들이 →</Link></div>}
-    <div className="condition-inputs" inert={!props.planController.criteriaReady || !props.tripSelection.storageReady} key={guided ? question : "overview"}>
-      {(!guided || question === 0) && <Suspense fallback={<LoadingState>{en ? "Preparing destination choices…" : "여행 지역을 준비하고 있어요…"}</LoadingState>}><PlannerRegionDiscovery full={!guided} value={region} onChange={props.onRegionChange} onInterest={props.planController.setTheme} onFacilities={() => props.onQuestion(1)} /></Suspense>}
-      {guided && question === 0 && <div className="condition-first-details"><details className="condition-date-disclosure"><summary><span>{en ? "Travel dates" : "여행 날짜"}</span><strong>{props.tripSelection.travelStart} {props.tripSelection.travelStart === props.tripSelection.travelEnd ? en ? " · Day trip" : " · 당일 여행" : `– ${props.tripSelection.travelEnd}`}</strong><b aria-hidden="true">⌄</b></summary><PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="dates" /></details><PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="themes" /></div>}
-      {(!guided || question === 1) && <Suspense fallback={<LoadingState>{en ? "Preparing facility choices…" : "편의 선택 항목을 준비하고 있어요…"}</LoadingState>}><PlannerAccessibilityProfiles trip={props.tripSelection} t={props.t} planController={props.planController} /></Suspense>}
-      {(!guided || question === 2) && <PlannerThemeDates t={props.t} planController={props.planController} tripSelection={props.tripSelection} part="themes" />}
-      {(!guided || question === 3) && <Suspense fallback={<LoadingState>{en ? "Preparing calendar…" : "달력을 준비하고 있어요…"}</LoadingState>}><PlannerDateCalendar trip={props.tripSelection} region={region} onContinue={props.onItinerary} onPreferences={() => go(0)} /></Suspense>}
+export default function PlannerConditionsPanel({ planController: plan, onRegionChange, tripSelection: trip }: Props) {
+  const [facilitiesOpen, setFacilitiesOpen] = useState(false);
+  const closeFacilities = useCallback(() => setFacilitiesOpen(false), []);
+  return <section lang="ko" className="simple-search-controls" id="conditions" aria-label="여행지 검색 조건">
+    <div className="simple-search-bar"><label><span>지역</span><select aria-label="여행 지역" value={plan.region} disabled={!plan.criteriaReady} onChange={event => onRegionChange(event.target.value)}><option value="" disabled>지역 선택</option>{regions.map(region => <option key={region}>{region}</option>)}</select></label>
+      <button type="button" className="simple-facility-trigger" onClick={() => setFacilitiesOpen(true)} disabled={!plan.criteriaReady}>필요한 편의{plan.selected.length > 0 ? ` · ${plan.selected.length}개` : ""}<span aria-hidden="true">⌄</span></button>
+      {plan.loading && <span className="simple-searching" role="status"><span className="button-loader" />검색 중</span>}
     </div>
-    {showAvailability && <Suspense fallback={<LoadingState>{en ? "Preparing search results…" : "검색 결과를 준비하고 있어요…"}</LoadingState>}><PlannerAvailability en={en} region={region} selected={selected} themes={themes} /></Suspense>}
-    {guided && planError && <p role="alert">{planFailureHeadings[planError][en ? 1 : 0]} {en ? "Your choices are kept. Please try again shortly." : "선택한 조건은 유지됩니다. 잠시 후 다시 찾아 주세요."}</p>}
-    {question !== 3 && <div className="condition-actions reference-bottom-bar">
-      <div><strong>{en ? regionNames[region] || "Gyeongnam trip" : region || "경남 전체"}</strong><small aria-live="polite">{selected.length ? en ? `${selected.length} facility needs kept` : `선택한 편의 ${selected.length}개 유지` : en ? "Facilities are optional" : "편의 조건은 필요한 경우에만 골라요"} · {themes.length ? en ? `${themes.length} interests` : `활동 ${themes.length}개` : en ? "All interests" : "모든 활동"}</small></div>
-      {guided && question > 0 && <button type="button" className="secondary" onClick={() => go(question - 1)}>{en ? "Previous" : "이전"}</button>}
-      {guided && question === 0 && <button type="button" className="secondary" onClick={() => go(1)}>{en ? "Choose facilities" : "필요한 편의 선택"}</button>}<button type="button" aria-disabled={loading || undefined} aria-busy={loading || undefined} onClick={() => { if (!loading) void props.onGenerate(); }}>{loading ? <><span className="button-loader" />{en ? "Finding places…" : "여행지 찾는 중…"}</> : en ? "Find places" : "여행지 둘러보기"} →</button>
-    </div>}
-    {(!guided || question === 1) && !selected.length && <p role="status">{en ? "You can continue without a facility filter." : "필요한 편의가 없다면 그대로 둘러보세요."}</p>}
-    {(!guided || question === 2) && !themes.length && <p role="status">{en ? "Leave this blank to explore all interests." : "아직 못 정했다면 모든 활동을 함께 살펴볼게요."}</p>}
-  </div>;
+    <div className="simple-activity-filter" role="group" aria-label="하고 싶은 활동">{activities.map(activity => <button type="button" key={activity.id} aria-pressed={plan.themes.includes(activity.id)} onClick={() => plan.toggleTheme(activity.id)}>{activity.label}</button>)}</div>
+    {!plan.region && <div className="simple-region-entry"><h2>어디로 갈까요?</h2><Suspense fallback={<LoadingState>지역을 불러오고 있어요.</LoadingState>}><PlannerRegionDiscovery full value="" onChange={onRegionChange} onInterest={plan.setTheme} onFacilities={() => setFacilitiesOpen(true)} /></Suspense><button type="button" className="simple-text-link" onClick={() => onRegionChange("경남 전체")}>경남 전체 둘러보기 <span aria-hidden="true">→</span></button></div>}
+    {facilitiesOpen && <FacilityPicker plan={plan} trip={trip} onClose={closeFacilities} />}
+  </section>;
 }

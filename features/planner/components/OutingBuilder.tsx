@@ -17,7 +17,6 @@ export default function OutingBuilder(){
  const resultHeading=useRef<HTMLHeadingElement>(null),reviewHeading=useRef<HTMLHeadingElement>(null);
  useEffect(()=>{const frame=requestAnimationFrame(()=>{
   setDate(localDate());
-  try{const seed=JSON.parse(sessionStorage.getItem('wave-outing-entry-v1')||'null');if(seed&&Date.now()-seed.createdAt>=0&&Date.now()-seed.createdAt<3600000){if(regions.includes(seed.region))setRegion(seed.region);if(typeof seed.theme==='string'&&seed.theme.split(',').every((id:string)=>availableThemes.some(item=>item.id===id)))setTheme(seed.theme);if(Array.isArray(seed.profiles))setProfiles(availableProfiles.filter(item=>seed.profiles.includes(item.id)).map(item=>item.id));}}catch{/* A new outing remains usable without stored preferences. */}
   setReady(true);
  });return()=>cancelAnimationFrame(frame);},[]);
  const search=useSmallTripSearch(region,theme,profiles),origin=departurePresets.find(item=>item.id===originId)||departurePresets[0];

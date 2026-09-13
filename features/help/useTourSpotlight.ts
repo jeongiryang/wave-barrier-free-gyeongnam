@@ -13,26 +13,39 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
     if (!open) return;
     const step = steps[stepIndex];
     const section = step ? document.querySelector<HTMLElement>(step.selector) : null;
-    const target = step ? document.querySelector<HTMLElement>(step.highlightSelector) || section : null;
-    if (!section || !target) return;
+    if (!step || !section) return;
+    const resolveTarget = () => [...document.querySelectorAll<HTMLElement>(step.highlightSelector)]
+      .find(node => node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden') || section;
+    let target = resolveTarget();
     section.dataset.helpTourActive = "true";
-    // A highlighted card may be outside either horizontal film row. Reveal it
-    // before calculating its vertical position, without moving the page sideways.
-    for (let parent = target.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
-      if (!/auto|scroll/.test(getComputedStyle(parent).overflowX) || parent.scrollWidth <= parent.clientWidth) continue;
-      const card = target.getBoundingClientRect(), rail = parent.getBoundingClientRect();
-      parent.scrollTo({ left: parent.scrollLeft + card.left - rail.left - (parent.clientWidth - card.width) / 2, behavior: "instant" });
-      break;
-    }
     const reduced = prefersReducedMotion();
-    const header = document.querySelector<HTMLElement>(".wave-header");
-    const headerBottom = header && /fixed|sticky/.test(getComputedStyle(header).position) ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
-    const targetTop = window.scrollY + target.getBoundingClientRect().top - Math.max(headerBottom + 16, Math.min(104, window.innerHeight * 0.16));
-    window.scrollTo({ top: Math.max(0, targetTop), behavior: reduced ? "auto" : "smooth" });
+    function revealTarget() {
+      for (let parent = target.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
+        if (!/auto|scroll/.test(getComputedStyle(parent).overflowX) || parent.scrollWidth <= parent.clientWidth) continue;
+        const card = target.getBoundingClientRect(), rail = parent.getBoundingClientRect();
+        parent.scrollTo({ left: parent.scrollLeft + card.left - rail.left - (parent.clientWidth - card.width) / 2, behavior: 'instant' });
+        break;
+      }
+      const header = document.querySelector<HTMLElement>('.wave-header');
+      const headerBottom = header && /fixed|sticky/.test(getComputedStyle(header).position) ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+      const targetTop = window.scrollY + target.getBoundingClientRect().top - Math.max(headerBottom + 16, Math.min(104, window.innerHeight * 0.16));
+      window.scrollTo({ top: Math.max(0, targetTop), behavior: reduced ? "auto" : "smooth" });
+    }
+    revealTarget();
+    let resizeObserver: ResizeObserver | null = null;
+    let contentObserver: MutationObserver | null = null;
 
     let frame = 0;
     const updateHighlight = () => {
       frame = 0;
+      const resolved = resolveTarget();
+      if (resolved !== target) {
+        resizeObserver?.unobserve(target);
+        target = resolved;
+        resizeObserver?.observe(target);
+        if (target !== section) contentObserver?.disconnect();
+        revealTarget();
+      }
       const rect = target.getBoundingClientRect();
       const gutter = 12;
       const dialog = dialogRef.current?.getBoundingClientRect();
@@ -55,8 +68,12 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
     const settleTimer = window.setTimeout(queueUpdate, reduced ? 0 : 520);
     window.addEventListener("scroll", queueUpdate, { passive: true, capture: true });
     window.addEventListener("resize", queueUpdate);
-    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(queueUpdate);
+    resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(queueUpdate);
     resizeObserver?.observe(target);
+    if (target === section && typeof MutationObserver !== 'undefined') {
+      contentObserver = new MutationObserver(queueUpdate);
+      contentObserver.observe(section, { childList: true, subtree: true });
+    }
     return () => {
       delete section.dataset.helpTourActive;
       window.clearTimeout(settleTimer);
@@ -64,6 +81,7 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
       window.removeEventListener("scroll", queueUpdate, true);
       window.removeEventListener("resize", queueUpdate);
       resizeObserver?.disconnect();
+      contentObserver?.disconnect();
     };
   }, [dialogRef, open, stepIndex, steps]);
 

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi } from "./fixtures";
+import { storyReady } from "./landing-contract";
 
 test.beforeEach(async ({ page }) => { await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done")); });
 
@@ -64,7 +65,7 @@ test("Landing loads no boundary module; actual Planner retains its inline map an
   page.on("request", request => requests.push(request.url()));
   await page.route("**/maps/korea-sgis-2020.svg", route => route.abort());
   await page.goto("/");
-  await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+  await storyReady(page);
   await page.locator("#regions").scrollIntoViewIfNeeded();
   await expect(page.locator("#regions [data-region-boundary]")).toHaveCount(0);
   expect(requests.filter(url => /RegionBoundarySurface|korea-sgis-2020/.test(url))).toEqual([]);

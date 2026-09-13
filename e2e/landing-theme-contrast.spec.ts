@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mockPublicShellApi } from "./fixtures";
+import { prepareStory, storyReady } from "./landing-contract";
 
 function luminance([red, green, blue]: number[]) {
   const channel = (value: number) => {
@@ -41,23 +41,26 @@ async function samples(page: Page, selector: string) {
 }
 
 const CASES = [
-  ".horizon-section-heading h2", ".horizon-section-heading > p",
-  ".horizon-chapter-copy h3", ".horizon-chapter-copy p", ".horizon-chapter-copy li",
-  ".horizon-account h2", ".horizon-account-copy p", ".horizon-account-benefits li",
-  ".horizon-community h2", ".horizon-community-copy p", ".horizon-community-copy a",
+  ".landing-hero-copy h1", ".landing-hero-description", ".landing-actions a",
+  ".simple-section-heading h2", ".simple-section-heading p", ".simple-show-regions",
+  ".simple-feature-list strong", ".simple-feature-list p", ".simple-text-link",
+  ".preview-heading strong", ".preview-heading > span", ".preview-day",
+  ".preview-stop time", ".preview-stop strong", ".preview-stop span", ".preview-toolbar span",
+  ".simple-naru-story h2", ".simple-naru-story > div > p", ".simple-naru-example p",
+  ".simple-naru-example-title small", ".example-undo",
 ];
 
 for (const theme of ["dark", "light"] as const) {
   test(`${theme === "dark" ? "어두운" : "밝은"} 랜딩의 미리보기 글자가 표면에 묻히지 않는다`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await mockPublicShellApi(page);
+    await prepareStory(page);
     await page.addInitScript(value => {
       sessionStorage.setItem("wave-arrival-session-v1", "done");
       localStorage.setItem("wave-theme", value);
     }, theme);
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-    await expect(page.locator(".landing-page.motion-ready")).toHaveCount(1);
+    await storyReady(page);
     for (const selector of CASES) {
       await page.locator(selector).first().scrollIntoViewIfNeeded();
       const measured = await samples(page, selector);

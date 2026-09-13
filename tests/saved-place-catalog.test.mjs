@@ -59,3 +59,16 @@ test("an ID-bound older location repairs missing coordinates without replacing n
   const [unrelated] = resolveSavedPlaces([changwon.id], [latest, { ...location, id: "another-place" }], []);
   assert.equal(unrelated.mapX, "");
 });
+
+
+test('new incomplete search records preserve only the same ID public location through reload', () => {
+  const next = { ...changwon, mapX: '', mapY: '', score: null, knownFields: 0, source: '새 조회' };
+  const merged = mergeSavedPlaceCatalog([changwon], [next]);
+  assert.equal(merged[0].mapX, changwon.mapX); assert.equal(merged[0].mapY, changwon.mapY);
+  assert.equal(merged[0].score, null); assert.equal(merged[0].knownFields, 0); assert.equal(merged[0].source, '새 조회');
+  assert.equal('accessibility' in merged[0], false);
+  const restored = resolveSavedPlaces([changwon.id], [{ ...next, accessibility: [{ key: 'route', state: 'negative' }] }], JSON.parse(JSON.stringify(merged)));
+  assert.equal(restored[0].mapX, changwon.mapX); assert.equal(restored[0].accessibility[0].state, 'negative');
+  assert.equal(mergeSavedPlaceCatalog([changwon], [{ ...next, id: 'other-id' }])[0].mapX, '');
+  assert.equal(mergeSavedPlaceCatalog([changwon], [{ ...next, mapX: '128.9', mapY: '35.4' }])[0].mapX, '128.9');
+});

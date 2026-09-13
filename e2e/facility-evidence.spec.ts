@@ -67,7 +67,7 @@ test("facility history loads on demand, retries, identifies conflicting dates an
     return route.fulfill({ json: { posts: [post, { ...post, id: "changed", createdAt: post.createdAt + 1, fieldReports: [{ field: "entrance", status: "changed", note: "정문이 공사 중이었어요." }] }], page: 1, hasMore: true } });
   });
   await page.goto("/planner"); await chooseTripConditions(page);
-  await page.locator(".place-card").first().getByRole("button", { name: "이용 정보", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 상세 보기", exact: true }).click();
   const history = page.getByRole("region", { name: "편의시설, 언제 확인했을까요?" });
   await expect(history.getByRole("button", { name: "시설 제보 이력 확인", exact: true })).toBeVisible(); expect(requests).toBe(0);
   await history.getByRole("button", { name: "시설 제보 이력 확인", exact: true }).click(); await expect(history.getByRole("status")).toContainText("다시 시도");

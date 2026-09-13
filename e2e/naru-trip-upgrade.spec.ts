@@ -24,7 +24,7 @@ const values = {
 };
 function journey(): NaruJourney {
   return {
-    action: 'create-itinerary', region: '창원', start, end, themes: ['nature', 'history'], profiles: ['wheel', 'senior'],
+    action: 'create-itinerary', region: '창원', start, end, themes: ['nature', 'history'], profiles: ['restroom', 'elevator'],
     relaxed: true, transport: 'car', generatedAt: '2026-09-12T03:00:00.000Z', weather: null,
     warnings: ['승강기의 이용 가능 여부는 방문 전에 확인해 주세요.'],
     stops: additions.map((place, index) => ({ place, date: index ? end : start, minutes: index ? 90 : 60, breakMinutes: index ? 25 : 20,
@@ -56,7 +56,7 @@ async function setup(page: Page, gate?: ReturnType<typeof deferred>, prepare = j
   });
   await page.route('**/api/assistant', route => route.fulfill({ json: route.request().method() === 'GET' ? { available: true } : {
     reply: '기존 일정을 유지하며 실제 일정안을 준비할게요.',
-    proposal: { action: 'create-itinerary', region: '창원', start, end, pace: 'relaxed', transport: 'car', profiles: ['wheel', 'senior'], themes: ['nature', 'history'] },
+    proposal: { action: 'create-itinerary', region: '창원', start, end, pace: 'relaxed', transport: 'car', profiles: ['restroom', 'elevator'], themes: ['nature', 'history'] },
   } }));
   await page.route('**/api/assistant/journey', async route => {
     journeyCalls++;
@@ -70,7 +70,7 @@ async function setup(page: Page, gate?: ReturnType<typeof deferred>, prepare = j
   });
   await page.addInitScript(initial => {
     localStorage.setItem('wave-current-trip-v1', JSON.stringify({ version: 1, values: initial }));
-    sessionStorage.setItem('wave-session-facilities-v1', '["wheel"]');
+    sessionStorage.setItem('wave-session-facilities-v1', '["restroom"]');
   }, values);
   await page.goto('/planner');
   const launcher = page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true });
@@ -108,20 +108,22 @@ test('NDJSON 일정안을 확인하고 적용한 뒤 장소·날짜·휴식·편
   expect(applied.schedule.fixedVisits).toEqual(before.schedule.fixedVisits);
   expect(applied.schedule.dayDeadlines).toEqual(before.schedule.dayDeadlines);
   expect(applied.schedule.comfort).toEqual({ maxWalkMinutes: 10, breakEveryMinutes: 45, breakMinutes: 20 });
-  expect(applied.profiles).toEqual(['wheel', 'senior']);
+  expect(applied.profiles).toEqual(['restroom', 'elevator']);
   await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
-  await expect(page.getByRole('group', { name: '일정 보기 방식', exact: true }).getByRole('button', { name: '지도 함께 보기', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('.reference-board-map .leaflet-container')).toBeVisible();
-  await expect(page.locator('.reference-day-list #itinerary-stop-2001')).toContainText('합성 바다 전시관');
+  await expect(page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: /^내 일정/ })).toHaveAttribute('aria-pressed', 'true');
+  if (test.info().project.name.includes('mobile')) await expect(page.getByRole('group', { name: '일정 보기 방식', exact: true }).getByRole('button', { name: '지도', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.simple-itinerary-map .leaflet-container')).toBeVisible();
+  await expect(page.locator('.simple-stops #itinerary-stop-2001')).toContainText('합성 바다 전시관');
   await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
   await chat.getByRole('button', { name: '마지막 일정안 적용 되돌리기', exact: true }).click();
   await expect(chat.getByRole('log')).toContainText('편의 조건·출발지·이동수단을 복원했어요');
   await expect.poll(() => snapshot(page)).toEqual(before);
-  await chat.getByRole('button', { name: '모든 여행 도구', exact: true }).click();
-  await chat.getByRole('button', { name: '필요한 편의', exact: true }).click();
-  const facilities = chat.getByRole('group', { name: '여행 편의 조건 선택', exact: true });
-  await expect(facilities.getByRole('button', { name: /휠체어 편의시설/ })).toHaveAttribute('aria-pressed', 'true');
-  await expect(facilities.getByRole('button', { name: /접근로와 승강기/ })).toHaveAttribute('aria-pressed', 'false');
+  await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
+  await page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: '여행지 찾기', exact: true }).click();
+  await page.getByRole('button', { name: /^필요한 편의/ }).click();
+  const facilities = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+  await expect(facilities.getByRole('checkbox', { name: '장애인 화장실', exact: true })).toBeChecked();
+  await expect(facilities.getByRole('checkbox', { name: '승강기', exact: true })).not.toBeChecked();
 });
 
 test('나루 패널을 닫아도 진행 중인 일정 요청이 완료되고 다시 열어 적용할 수 있다', async ({ page }) => {
@@ -149,16 +151,18 @@ test('요청 중 편의 조건을 바꾸면 오래된 일정안의 적용을 차
   try {
     const before = await snapshot(page);
     await send(page); await expect.poll(calls).toBe(1);
-    await chat.getByRole('button', { name: '모든 여행 도구', exact: true }).click();
-    await chat.getByRole('button', { name: '필요한 편의', exact: true }).click();
-    await chat.getByRole('group', { name: '여행 편의 조건 선택', exact: true }).getByRole('button', { name: /유아 편의시설/ }).click();
-    await chat.getByRole('button', { name: '대화만 보기', exact: true }).click();
+    await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
+    await page.getByRole('button', { name: /^필요한 편의/ }).click();
+    const facilities = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+    await facilities.getByRole('checkbox', { name: '유모차 대여', exact: true }).check();
+    await facilities.getByRole('button', { name: /^적용/ }).click();
+    await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
     gate.release();
     const stale = chat.getByRole('region', { name: '나루의 실제 일정안', exact: true });
     await expect(stale.getByRole('button', { name: '여행이 바뀌었어요 · 다시 요청', exact: true })).toBeDisabled();
     const after = await snapshot(page);
     expect(after.ids).toEqual(before.ids); expect(after.schedule).toEqual(before.schedule);
-    expect(after.profiles).toEqual(['wheel', 'baby']);
+    expect(after.profiles).toEqual(['restroom', 'stroller']);
   } finally { gate.release(); }
 });
 

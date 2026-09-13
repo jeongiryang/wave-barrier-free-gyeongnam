@@ -7,7 +7,7 @@ export async function handleTripsApi(request: Request, env: Env) {
   const id = clean(url.pathname.split("/").filter(Boolean)[2], 64);
   try {
     if (request.method === "GET") return loadSharedTrip(request, env, id, url);
-    if (request.method === "POST") return saveSharedTrip(request, url);
+    if (request.method === "POST") return saveSharedTrip(request, url, id);
     return json({ error: "지원하지 않는 요청입니다." }, 405);
   } catch {
     return json({

@@ -1,3 +1,4 @@
+import { resolveFacilityKeys } from '../../lib/facility-selection.js';
 import { clean, json, readTrustedJson } from '../shared/http';
 import type { Env } from '../shared/env';
 import { validateAssistantAction, type AssistantAction } from '../../lib/assistant-actions.js';
@@ -5,7 +6,7 @@ import { journeyDays, journeyOutcome, selectJourneyStops, fatigueRemovals, type 
 import type { VisitInfo } from '../../lib/visit-hours.js';
 import { validTripDate, offsetTripDate } from '../../lib/trip-dates.js';
 import { buildPlan } from '../tourism/plan-builder';
-import { fetchFestivals, koreaToday } from '../tourism/festivals';
+import { fetchFestivals } from '../tourism/festivals';
 import { handleVisitInfo } from '../tourism/visit-info';
 import { handleWeatherApi } from '../weather/handler';
 import { profileFields, regionCodes, contentTypes } from '../tourism/catalog';
@@ -16,21 +17,21 @@ import { planResponse } from '../../features/planner/services/plan-response';
 
 type Progress = (phase: string, text: string) => void;
 const object = (value: unknown): Record<string, unknown> => value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
-const allowedList = (value: unknown, allowed: Record<string, unknown>) => (Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : []).filter((id): id is string => typeof id === 'string' && Boolean(allowed[id])).slice(0, 6);
+const allowedList = (value: unknown, allowed: Record<string, unknown>) => (Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : []).filter((id): id is string => typeof id === 'string' && Boolean(allowed[id])).slice(0, 16);
 
 /** Read-only orchestration. All venue records are fetched by the server; no DB mutation. */
 export async function prepareJourney(action: AssistantAction, context: Record<string, unknown>, request: Request, env: Env, progress: Progress): Promise<NaruJourney> {
-  let start = action.start || (validTripDate(context.start) ? String(context.start) : koreaToday());
+  let start = action.start || (validTripDate(context.start) ? String(context.start) : '');
   let end = action.end || (validTripDate(context.end) ? String(context.end) : start);
   let days = journeyDays(start, end);
   if (!days.length || (action.date && !days.includes(action.date))) throw new Error('여행 기간 안의 날짜로 요청해 주세요. 한 여행은 7일까지 만들 수 있어요.');
-  const profiles = [...new Set([...allowedList(context.profiles, profileFields), ...(action.profiles || [])])];
+  const profiles = resolveFacilityKeys({ profiles: [...allowedList(context.profiles, profileFields), ...(action.profiles || [])] });
   const indoorRequested = action.indoor === true || action.reason === 'rain';
   const themes = indoorRequested ? ['history'] : action.themes || allowedList(context.themes, contentTypes);
   if (!themes.length) themes.push('nature', 'history');
   let region = action.region || (regionCodes[String(context.region)] ? String(context.region) : '경남 전체');
   const transport = action.transport || (['walk','bicycle','transit','car'].includes(String(context.transport)) ? context.transport as NaruJourney['transport'] : 'transit');
-  const relaxed = action.pace === 'relaxed' || action.reason === 'fatigue' || profiles.some(id => ['wheel','senior','pregnant','baby'].includes(id));
+  const relaxed = action.pace === 'relaxed' || action.reason === 'fatigue';
   const existing: ExistingStop[] = (Array.isArray(context.stops) ? context.stops : []).slice(0, 12).map(object).filter(stop => /^[1-9]\d{0,11}$/.test(String(stop.id)) && validTripDate(stop.date))
     .map(stop => ({ id: String(stop.id), date: String(stop.date), fixed: stop.fixed === true }));
   const warnings: string[] = [];

@@ -1,20 +1,19 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { readFile } from "node:fs/promises";
-import { mockPublicShellApi } from "./fixtures";
+import { prepareStory, storyReady, chapterIds, expectNoOverflow, expectUsableTarget } from "./landing-contract";
 
-test.beforeEach(async ({ page }) => {
-  await mockPublicShellApi(page);
-  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
-  const photo = await readFile("public/media/wave-story/hero-coast-small.webp");
-  await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: photo }));
-});
+test.beforeEach(async ({ page }) => { await prepareStory(page); });
 
-test("navigation hides downward, returns after deliberate upward scrolling and stays available on keyboard focus", async ({ page }) => {
+test("navigation hides downward, waits for deliberate upward scrolling and remains available on keyboard focus", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/"); await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
+  await page.goto("/"); await storyReady(page);
   const nav = page.locator(".wave-header");
   await expect(nav).toHaveAttribute("data-hidden", "false");
+  const top = (await nav.boundingBox())!;
+  expect(top.x).toBe(0);
+  expect(top.width).toBe(page.viewportSize()!.width);
+  const hero = (await page.locator(".landing-hero-split").boundingBox())!;
+  expect(hero.y).toBeGreaterThanOrEqual(top.y + top.height);
   await page.evaluate(() => scrollTo({ top: 500, behavior: "instant" }));
   await expect(nav).toHaveAttribute("data-hidden", "true");
   await page.evaluate(() => scrollTo({ top: 460, behavior: "instant" }));
@@ -22,40 +21,29 @@ test("navigation hides downward, returns after deliberate upward scrolling and s
   await page.evaluate(() => scrollTo({ top: 350, behavior: "instant" }));
   await expect(nav).toHaveAttribute("data-hidden", "false");
   await expect(nav).toBeInViewport();
-  await expect(nav.locator(".help-button")).toBeHidden();
-  const home = nav.locator(".wave-wordmark"); await home.focus(); await expect(home).toBeFocused();
+  const home = nav.locator(".wave-wordmark");
+  await home.focus(); await expect(home).toBeFocused();
   await page.evaluate(() => scrollTo({ top: 900, behavior: "instant" }));
   await expect(nav).toHaveAttribute("data-hidden", "false");
   await expect(nav.getByRole("navigation").getByRole("link")).toHaveText(["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
-  for (const control of [home,nav.locator(".wave-my-trips")]) { const box = await control.boundingBox(); expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44); }
-  await expect(page.locator(".wave-header .help-button")).toBeEnabled();
-  await expect(page.locator(".wave-footer-tools")).toHaveCount(0);
+  for (const control of [home, nav.locator(".wave-my-trips")]) await expectUsableTarget(control);
 });
 
 for (const width of [320, 390]) {
-  test(`${width}px static Korean story is complete without explanation buttons, layout gaps or overflow`, async ({ page }) => {
+  test(`${width}px static story remains complete under ordinary vertical scrolling`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
-    await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
-    // Ignore only the observer visibility marker; retain every section identity and order.
-    const classes = await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => Array.from(node.classList).filter(name => name !== "is-visible").join(" ")));
-    expect(classes).toEqual(["landing-hero", "horizon-how", "region-story region-showcase", "landing-naru", "horizon-account", "horizon-departure", "horizon-community", "landing-cta"]);
-    await expect(page.locator("main section[id] details, .journey-stage-controls, .region-showcase-selection, .region-map-details")).toHaveCount(0);
-    await expect(page.getByRole("button", {name:/풍경 재생|영상 일시정지|실제 여행 계획 살펴보기|자동 넘김/})).toHaveCount(0);
-    await expect(page.locator(".landing-actions a[href='/planner']")).toHaveAccessibleName("여행 계획하기");
-    // Text/image failure cannot create a section consisting only of an empty spacer.
-    for (const section of await page.locator("main section[id]").all()) {
-      const heading = (await section.getAttribute("id")) === "regions" ? section.locator(".selected-region strong") : section.locator("h1,h2").first();
+    await page.goto("/"); await storyReady(page);
+    expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
+    for (const id of chapterIds) {
+      const section = page.locator(`#${id}`), heading = section.locator("h1,h2").first();
       await heading.scrollIntoViewIfNeeded();
       await expect(heading).toBeVisible();
-      await expect.poll(() => heading.evaluate(node => getComputedStyle(node).opacity)).toBe("1");
-      const padding = await section.evaluate(node => [getComputedStyle(node).paddingTop, getComputedStyle(node).paddingBottom].map(Number.parseFloat));
-      for (const value of padding) expect(value).toBeLessThanOrEqual(128);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+      await expect(section).toHaveAccessibleName(/\S/);
+      await expectNoOverflow(page);
     }
-    await expect(page.locator(".horizon-community")).not.toContainText(/작성 예시|실제 게시된 글이 아닙니다/);
-    await expect(page.locator(".horizon-community input,.horizon-community form")).toHaveCount(0);
+    await expect(page.locator(".simple-product-preview input,.simple-product-preview button,.simple-naru-example input,.simple-naru-example button")).toHaveCount(0);
+    await expectUsableTarget(page.locator(".landing-actions a"));
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
 }

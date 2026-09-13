@@ -3,24 +3,21 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 /**
- * 플래너 조건 패널의 문구 회귀 테스트.
- *
- * 조건 패널은 섹션 제목이 이미 `STEP 01`을 달고 있는데 그 안의 다섯 필드가 다시
- * `01`~`05`를 달고 있었다. 번호가 두 겹이면 어느 쪽이 순서인지 읽는 사람이
- * 판단해야 한다. 안쪽 다섯 개는 아무 순서로나 채워도 되는 필드라 순서가 아니다.
+ * 지역 검색과 일정 편집의 라벨·선택 사항·응답 상태 계약.
+ * 실제 렌더링과 키보드 흐름은 simple planner 및 search-result-focus E2E가 검증한다.
  */
 
 const FIELD_FILES = [
   "features/planner/components/PlannerConditionsPanel.tsx",
-  "features/planner/components/PlannerThemeDates.tsx",
-  "features/planner/components/PlannerAccessibilityProfiles.tsx",
+  "features/planner/components/TripSettingsEditor.tsx",
+  "features/planner/components/StopEditor.tsx",
 ];
 
 async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
-test("조건 필드는 섹션의 STEP 번호와 겹치는 자체 번호를 달지 않는다", async () => {
+test("검색 조건과 일정 편집 필드는 강제 절차처럼 번호를 달지 않는다", async () => {
   const files = await Promise.all(FIELD_FILES.map(source));
   for (const [index, file] of files.entries()) {
     const numbered = file.match(/step-label"><b>[0-9]+<\/b>/g) ?? [];
@@ -28,33 +25,53 @@ test("조건 필드는 섹션의 STEP 번호와 겹치는 자체 번호를 달�
   }
 });
 
-test("편의 조건을 고르지 않은 상태에서도 문장이 끊기지 않는다", async () => {
-  const file = await source("features/planner/components/PlannerAccessibilityProfiles.tsx");
+test("편의 조건이 없어도 완전한 버튼 이름을 유지하고 적용 전 초안은 분리한다", async () => {
+  const file = await source("features/planner/components/PlannerConditionsPanel.tsx");
   // 예전에는 `{길이 || "조건을"}개 선택`이라 미선택일 때 "조건을개 선택"으로 찍혔다.
   assert.doesNotMatch(file, /\|\| "[^"]+"\}개 선택/);
-  assert.match(file, /선택한 편의 조건 없음/);
+  assert.match(file, /필요한 편의\{plan\.selected\.length > 0 \? ` · \$\{plan\.selected\.length\}개` : ""\}/);
+  assert.match(file, /const \[draft, setDraft\] = useState\(plan\.selected\)/);
+  assert.match(file, /plan\.setSelected\(draft\); onClose\(\)/);
+  assert.match(file, /<legend className="sr-only">여행 편의 조건 선택/);
 });
 
-test("단계 제목을 한국어로 읽을 수 있다", async () => {
+test("검색 결과와 일정 설정은 현재 할 일을 한국어로 안내한다", async () => {
   const files = await Promise.all([
-    source("app/planner/page.tsx"),
+    source("features/planner/components/PlannerHeader.tsx"),
     source("features/planner/components/PlannerConditionsPanel.tsx"),
     source("features/planner/components/RecommendationCarousel.tsx"),
     source("features/planner/components/PlannerItineraryWorkspace.tsx"),
-    source("features/planner/components/DepartureReadinessCard.tsx"),
-  ]).then((parts) => parts.join("\n"));
-  for (const title of ["여행 조건 정하기", "내 조건에 맞는 여행지", "내 일정", "출발 전에 이것만 다시 확인하세요"]) assert.match(files, new RegExp(title));
-  for (const question of ["경남, 어디부터 가볼까요?", "어떤 편의가 필요할까요?", "무엇을 하고 싶나요?", "언제 떠날까요?"]) assert.match(files, new RegExp(question));
+    source("features/planner/components/TripSettingsEditor.tsx"),
+    source("features/planner/components/PlannerItineraryBoard.tsx"),
+  ]).then(parts => parts.join("\n"));
+  for (const title of ["여행 설계", "여행지 찾기", "여행지 검색 결과", "내 일정", "여행 설정", "날짜별 여행 일정"]) assert.ok(files.includes(title), title);
+  for (const question of ["어디로 갈까요?", "언제 떠날까요?"]) assert.ok(files.includes(question), question);
+  for (const action of ["필요한 편의", "하고 싶은 활동", "이동 수단", "시간표 만들기", "시간표", "지도"]) assert.ok(files.includes(action), action);
 });
 
-test("추천 조회는 사용자가 명시적으로 시작한다", async () => {
-  const file = await source("features/planner/components/PlannerConditionsPanel.tsx");
-  assert.match(file, /onClick=\{\(\) => \{ if \(!loading\) void props\.onGenerate\(\); \}\}/);
-  assert.match(file, /aria-disabled=\{loading \|\| undefined\}/);
-  assert.match(file, /aria-busy=\{loading \|\| undefined\}/);
-  assert.doesNotMatch(file, /disabled=\{!region|disabled=\{!selected/);
-  assert.match(file, /여행지 둘러보기/);
-  assert.doesNotMatch(file, /추천이 자동으로 업데이트/);
+test("선택한 지역은 준비 완료 후 바로 조회하고 실패에는 같은 조건의 재시도를 제공한다", async () => {
+  const [page, conditions, results] = await Promise.all([
+    source("app/planner/page.tsx"),
+    source("features/planner/components/PlannerConditionsPanel.tsx"),
+    source("features/planner/components/RecommendationCarousel.tsx"),
+  ]);
+  const start = page.indexOf("const searchKey =");
+  const finish = page.indexOf("async function searchForNaru", start);
+  assert.ok(start >= 0 && finish > start);
+  const auto = page.slice(start, finish);
+  assert.match(auto, /JSON\.stringify\(\[region, theme, selected\]\)/);
+  for (const guard of ["!hydrated", "!planController.criteriaReady", "!tripSelection.storageReady", "!region", "planController.loading", "automaticSearch.current === searchKey"]) assert.ok(auto.includes(guard), guard);
+  assert.match(auto, /automaticSearch\.current = searchKey/);
+  assert.match(auto, /void runPlan\(\{ resetRouteData, resetAudio \}, false\)/);
+  assert.match(auto, /return \(\) => clearTimeout\(timer\)/);
+  assert.doesNotMatch(auto, /travelStart|travelEnd|!theme|!selected\.length/);
+  assert.match(conditions, /plan\.loading &&[\s\S]*role="status"[\s\S]*className="button-loader"/);
+  assert.match(results, /aria-busy=\{loading\}/);
+  assert.match(results, /planError \?[\s\S]*role="alert"/);
+  assert.match(results, /disabled=\{loading\} onClick=\{\(\) => void onGenerate\(false\)\}/);
+  assert.match(results, /같은 조건으로 다시 시도/);
+  assert.match(results, /dirty && !loading && !planError/);
+  assert.match(results, /loading && !plan &&[\s\S]*className="simple-place-skeleton"/);
 });
 
 test("쓰이지 않는 번호 배지 스타일을 남겨 두지 않는다", async () => {

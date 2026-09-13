@@ -41,11 +41,7 @@ export function useRoutePlanning(region: string, journey: Parameters<typeof useR
   const setRouteTravelMode = (mode: RouteTravelMode) => {
     if (!journey.storageReady || mode === routeTravelMode) return;
     routeView.setRouteTravelMode(mode);
-    const { routeDestination, routeStart, routeStartIsPrivate, routeStartLabel } = routeRequest;
-    if (routeDestination && routeStart) void loadRouteData({
-      place: routeDestination, origin: routeStart, privateOrigin: routeStartIsPrivate,
-      originLabel: routeStartLabel, mode, onNotice: setRouteNotice, onActiveRouteChange: setActiveRouteId,
-    });
+
   };
 
   return {

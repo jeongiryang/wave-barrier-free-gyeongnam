@@ -185,7 +185,7 @@ test("community UI supports public reading, protected participation and place li
       source("features/landing/components/LandingJourneyStories.tsx"),
       source("features/landing/components/LandingAdaptStory.tsx"),
       source("features/landing/components/LandingTravelBookStory.tsx"),
-      source("features/community/components/LandingCommunityStory.tsx"),
+      source("features/landing/components/LandingChapters.tsx"),
     ]).then((parts) => parts.join("\n")), source("app/sitemap.ts"),
   ]);
   assert.match(list, /CommunityPostList/);
@@ -203,9 +203,9 @@ test("community UI supports public reading, protected participation and place li
   assert.match(planner, /PlaceDecisionDialog/);
   assert.match(placeDialog, /place-community-link/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
-  assert.match(landing, /className="horizon-community-photos"/);
-  assert.match(landing, /href="\/community"/);
-  assert.match(landing, /<EditorialPhoto photo=\{horizonPhotos\.park\}/);
+  assert.match(landing, /simple-product-preview/);
+  assert.match(await source("components/WaveHeader.tsx"), /community/);
+  assert.match(landing, /href="\/planner"/);
   assert.doesNotMatch(landing, /작성 예시|실제 게시된 글이 아닙니다/);
   assert.doesNotMatch(landing, /fetch\(|localStorage|sessionStorage|usePlanner|createCommunityPost|<form\b|<input\b|<textarea\b/);
   assert.doesNotMatch(landing, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
@@ -225,7 +225,7 @@ test("preserved product preview sources remain Korean and non-interactive; curre
     source("app/styles/landing-stories.css"), source("app/styles/landing-feature-motion.css"), accountStyleSource(),
   ]);
   const css = `${storyCss}\n${featureMotionCss}\n${accountCss}`;
-  const community = await source("features/community/components/LandingCommunityStory.tsx");
+  const community = await source("features/landing/components/LandingChapters.tsx");
   const labels = [...stories.matchAll(/className="section-kicker">(\d{2} · [^<]+)</g)].map((match) => match[1]);
   assert.deepEqual(labels, ["01 · Your needs", "01 · 여행 조건", "02 · The evidence", "02 · 추천 근거", "03 · Your itinerary", "03 · 하루 일정", "04 · Each journey", "04 · 이동 경로", "05 · Before departure", "05 · 상황 대응", "06 · Keep your trip", "06 · 내 일정"]);
   assert.doesNotMatch(stories, /DISCOVER|ACCESS|PLAN|ROUTE|ADAPT|REMEMBER|COMMUNITY/);
@@ -237,11 +237,10 @@ test("preserved product preview sources remain Korean and non-interactive; curre
   assert.doesNotMatch(stories, /<button\b/);
   assert.match(stories, /className="[^"]*route-demo-path/);
   assert.match(stories, /className="[^"]*route-demo-vehicle/);
-  assert.match(community, /className="horizon-community-photos"/);
-  assert.match(community, /href="\/community"/);
+  assert.match(community, /simple-product-preview/);
+  assert.match(await source("components/WaveHeader.tsx"), /community/);
   assert.doesNotMatch(community, /<button\b/);
-  assert.match(community, /<EditorialPhoto photo=\{horizonPhotos\.park\}/);
-  assert.match(community, /<EditorialPhoto photo=\{horizonPhotos\.garden\}/);
+  assert.match(community, /href="\/planner"/);
   assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live|fetch\(|localStorage|sessionStorage/);
   assert.doesNotMatch(stories, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   assert.match(css, /\.product-story,.landing-community \{ min-height: 0; padding-block: clamp\(/);

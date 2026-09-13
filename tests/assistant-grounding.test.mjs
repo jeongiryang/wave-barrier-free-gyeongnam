@@ -11,9 +11,9 @@ const ground = (value, said, ctx = context) => groundAssistantProposal(value, Ar
 test('an unspecified journey cannot inherit model defaults for festival, departure, mode or dates', () => {
   const value = proposal({ festival: 'any', originRegion: '창원', transport: 'car', start: '2027-01-01', end: '2027-01-02', date: '2026-09-20', profiles: ['wheel'] });
   const before = JSON.stringify({ value, context });
-  const actual = ground(value, '통영의 휠체어 편의가 있는 관광지로 여행을 만들어줘');
+  const actual = ground(value, '통영의 접근로가 있는 관광지로 여행을 만들어줘');
   for (const field of ['festival', 'originRegion', 'transport', 'start', 'end', 'date']) assert.equal(Object.hasOwn(actual, field), false, `${field} was never requested`);
-  assert.deepEqual(actual.profiles, ['wheel']);
+  assert.deepEqual(actual.profiles, ['route']);
   assert.equal(JSON.stringify({ value, context }), before);
   assert.ok(validateAssistantAction(actual));
 });
@@ -144,4 +144,15 @@ test('weekday and next-weekend requests use a Monday-based Korean calendar, incl
     const result = groundAssistantProposal({ action: 'create-itinerary' }, [user(content)], sunday);
     assert.equal(result.start, start, content); assert.equal(result.end, end, content);
   }
+});
+
+
+test('real local-model search omissions are repaired from explicit current criteria only', () => {
+  assert.deepEqual(ground({ action: 'search' }, '진주 지역으로 찾아줘.'), { action: 'settings', region: '진주' });
+  assert.deepEqual(ground({ action: 'search' }, '장애인 화장실이 있는 여행지를 찾아줘.', { ...context, profiles: ['route'] }), { action: 'settings', profiles: ['route', 'restroom'] });
+  assert.deepEqual(ground({ action: 'search' }, '사천에서 출발해서 진주의 박물관을 찾아줘.'), { action: 'settings', region: '진주', themes: ['history'] });
+  for (const text of ['아이와 같이 갈 장소를 찾아줘.', '부모님과 갈 곳을 찾아줘.', '장애인 화장실은 필요 없는 여행지를 찾아줘.', '진주로 바꾸지 마.']) {
+    assert.deepEqual(ground({ action: 'search' }, text), { action: 'search' }, text);
+  }
+  assert.deepEqual(ground({ action: 'search' }, [{ role: 'assistant', content: '진주에 장애인 화장실이 있는 곳을 찾아볼까요?' }, user('현재 조건으로 찾아줘')]), { action: 'search' });
 });

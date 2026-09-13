@@ -4,32 +4,49 @@ import test from "node:test";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("8+10의 4개 장이 기존 실제 여행 상태와 연결된다", async () => {
-  const [page, rail, hook, styles] = await Promise.all([
+test("여행지와 내 일정 전환은 같은 여행 상태를 쓰며 날짜가 없어도 담은 장소를 편집할 수 있다", async () => {
+  const [page, header, itinerary, styles] = await Promise.all([
     source("app/planner/page.tsx"),
-    source("features/planner/components/PlannerJourneyRail.tsx"),
-    source("features/planner/hooks/useJourneyProgress.ts"),
-    source("app/styles/planner-journey-control.css"),
+    source("features/planner/components/PlannerHeader.tsx"),
+    source("features/planner/components/PlannerItineraryWorkspace.tsx"),
+    source("app/styles/simple-planner.css"),
   ]);
-  assert.match(await source("features/planner/components/PlannerHeader.tsx"), /<PlannerJourneyRail/);
-  assert.match(page, /journey-control-layout/);
-  assert.match(page, /reviewed: reviewedTrip === reviewSignature/);
-  for (const id of ["conditions", "places", "itinerary", "departure-readiness"]) {
-    assert.match(hook, new RegExp(`id: "${id}"`));
+  const ts = (await import("typescript")).default;
+  const jsx = await import("react/jsx-runtime");
+  const exports = {};
+  const compiled = ts.transpileModule(header, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
+  new Function("require", "exports", compiled)(name => {
+    if (name === "react/jsx-runtime") return jsx;
+    if (name.endsWith("/WaveHeader")) return { default: "WaveHeader" };
+    if (name === "./TripStorageNotice") return { default: "TripStorageNotice" };
+    throw new Error("Unexpected header dependency: " + name);
+  }, exports);
+  const descendants = node => [node, ...[node?.props?.children].flat(Infinity).filter(Boolean).flatMap(child => typeof child === "object" ? descendants(child) : [])];
+  const navigate = [];
+  const render = (savedCount, activeStep, interactive = true) => descendants(exports.default({ savedCount, activeStep, interactive, storageSnapshot: {}, onNavigate: step => navigate.push(step) }));
+  const empty = render(0, "conditions");
+  const emptyButtons = empty.filter(node => node.type === "button");
+  assert.equal(emptyButtons.length, 2);
+  assert.equal(emptyButtons[0].props["aria-pressed"], true);
+  assert.equal(emptyButtons[0].props.disabled, false);
+  assert.equal(emptyButtons[1].props.disabled, true);
+  assert.equal(empty.find(node => node.type === "WaveHeader").props.onSaved, undefined);
+  for (const step of ["conditions", "places", "itinerary", "departure-readiness"]) {
+    const nodes = render(2, step);
+    const buttons = nodes.filter(node => node.type === "button");
+    assert.equal(buttons[1].props.disabled, false, "saved places, not a new search or a date, unlock the itinerary");
+    assert.equal(buttons[1].props["aria-pressed"], step === "itinerary" || step === "departure-readiness");
+    buttons[0].props.onClick();
+    buttons[1].props.onClick();
+    nodes.find(node => node.type === "WaveHeader").props.onSaved();
+    assert.deepEqual(navigate.splice(0), ["conditions", "itinerary", "itinerary"]);
   }
-  assert.match(rail, /aria-current=\{index === current \? "step"/);
-  assert.match(rail, /aria-label=\{en \? "Trip planning steps" : "여행 만들기 단계"\}/);
-  assert.match(rail, /disabled=\{!available\[index\]\}/);
+  assert.ok(render(2, "places", false).filter(node => node.type === "button").every(node => node.props.disabled));
   assert.match(page, /savedCount: tripSelection\.orderedSavedPlaces\.length/);
   assert.match(page, /currentSavedCount: planController\.resultCurrent \? activePlaces\.filter\(\(place\) => saved\.includes\(place\.id\)\)\.length : 0/);
-  assert.match(hook, /id: "places"[\s\S]*complete: searched && recommendedCount > 0 && currentSavedCount > 0/);
-  assert.match(hook, /id: "itinerary"[\s\S]*available: savedCount > 0/);
-  assert.match(hook, /id: "departure-readiness"[\s\S]*available: savedCount > 0/);
-  assert.match(styles, /max-width: 1560px[\s\S]*\.journey-stage-stream \.navigation-workspace \{ grid-template-columns: minmax\(0,1fr\)/);
-  const referenceStyles = await source("app/styles/planner-conversation.css");
-  assert.match(referenceStyles, /\.planner-reference \.journey-control-layout \{[^}]*grid-template-columns: minmax\(0,1fr\) 264px/s);
-  assert.match(referenceStyles, /\.planner-navigation nav button \{[^}]*min-height: 68px/s);
-  assert.doesNotMatch(styles, /\.journey-rail nav button/);
+  assert.match(page, /reviewed: reviewedTrip === reviewSignature/);
+  assert.match(itinerary, /if \(!props\.tripSelection\.travelStart\) return <InitialTripSetup trip=\{props\.tripSelection\}/);
+  assert.match(styles, /\.simple-stage-stream \[hidden\] \{[^}]*display: none !important/);
 });
 
 test("환경설정과 플래너 select가 44px 및 키보드 초점 계약을 가진다", async () => {

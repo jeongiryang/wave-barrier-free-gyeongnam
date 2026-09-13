@@ -1,84 +1,104 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi, chooseTripConditions } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
 });
 
-test("390px·768px·1440px에서 네 단계 계획 흐름과 단일 일정이 유지된다", async ({ page }, testInfo) => {
+test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 일정으로 이어진다", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "대표 Chromium 프로젝트에서 세 뷰포트를 직접 확인합니다.");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   const consoleErrors: string[] = [];
-  page.on("pageerror", (error) => consoleErrors.push(error.message));
-  page.on("console", (message) => {
+  page.on("pageerror", error => consoleErrors.push(error.message));
+  page.on("console", message => {
     if (message.type() === "error" && !message.text().startsWith("Failed to load resource:")) consoleErrors.push(message.text());
   });
 
   for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     await page.goto("/planner");
-  await chooseTripConditions(page);
-    await expect(page.getByRole("heading", { name: "여행 조건 정하기" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "내 조건에 맞는 여행지" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "여행 순서를 편하게 정리하세요.", exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "출발 전에 이것만 다시 확인하세요." })).toBeVisible();
-    await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toHaveCount(0);
-    await expect(page.getByRole("region", { name: "내 일정", exact: true })).toHaveCount(1);
+    const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+    await tabs.getByRole("button", { name: "여행지 찾기", exact: true }).click();
+    await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+    const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
+    await expect(region).toBeEnabled();
+    await region.selectOption("창원");
+    await expect(page.locator(".simple-results").getByRole("heading", { name: "창원 여행지", exact: true })).toBeVisible();
+    await expect(page.locator("#conditions")).toBeVisible();
+    await expect(page.locator(".simple-itinerary-view")).toBeHidden();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), width + "px 화면의 가로 넘침").toBeLessThanOrEqual(1);
 
-    await expect(page.locator(".planner-navigation nav button").nth(3)).toBeDisabled();
-
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    expect(overflow, `${width}px 화면의 가로 넘침`).toBeLessThanOrEqual(1);
-
-    await page.getByRole("button", { name: "경남도립미술관 일정에 추가" }).click();
-    await page.locator(".planner-navigation nav button").nth(3).click();
-    await expect.poll(() => page.locator("#itinerary").evaluate((node) => node.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
-    const itinerary = page.getByRole("region", { name: "날짜별 여행 일정" });
+    await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+    await expect(page.locator(".simple-results")).toBeVisible();
+    await openItinerary(page, { start: "2026-09-20" });
+    const itinerary = page.getByRole("region", { name: "날짜별 여행 일정", exact: true });
     await expect(itinerary).toHaveCount(1);
-    await itinerary.scrollIntoViewIfNeeded();
-    await expect(itinerary.getByText("경남도립미술관").first()).toBeVisible();
-    const screenshotPath = testInfo.outputPath(`planner-${width}px.png`);
+    await expect(page.locator(".simple-itinerary-board")).toHaveCount(1);
+    await expect(page.locator(".simple-browse-view")).toBeHidden();
+    await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-09-20");
+    await expect(itinerary.locator("#itinerary-stop-1001")).toContainText("경남도립미술관");
+    await expect(page.locator(".simple-departure > summary").getByText("출발 전 확인", { exact: true })).toBeVisible();
+    await expect(page.locator(".simple-more-trip-tools")).not.toHaveAttribute("open");
+    const screenshotPath = testInfo.outputPath("planner-" + width + "px.png");
     await page.screenshot({ path: screenshotPath });
-    await testInfo.attach(`planner-${width}px`, { path: screenshotPath, contentType: "image/png" });
-    await page.getByRole("button", { name: "경남도립미술관 일정에서 제거" }).click();
+    await testInfo.attach("planner-" + width + "px", { path: screenshotPath, contentType: "image/png" });
+    await itinerary.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
+    await page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true }).getByRole("button", { name: "일정에서 빼기", exact: true }).click();
+    await expect(page.locator("#itinerary-stop-1001")).toHaveCount(0);
+    await expect(tabs.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+    await expect(region).toHaveValue("창원");
+    await expect(page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true })).toBeEnabled();
+    await expect.poll(() => page.evaluate(() => {
+      const values = JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values || {};
+      const schedule = JSON.parse(values["wave-trip-schedule-v1"] || "{}");
+      return { ids: JSON.parse(values["wave-saved-places"] || "[]"), dates: [schedule.travelStart, schedule.travelEnd] };
+    })).toEqual({ ids: [], dates: ["2026-09-20", "2026-09-20"] });
   }
-
   expect(consoleErrors).toEqual([]);
 });
 
-test("랜딩 딥링크와 플래너 헤더는 안내형 보기에서도 실제 일정·지도 단계를 연다", async ({ page }) => {
+test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유지한 실제 일정과 지도를 연다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
-  await mockPlannerApi(page, { plannerView: "guided" });
+  await mockPlannerApi(page, { preserveView: true });
   await page.goto("/");
   await expect(page.locator(".landing-actions a[href='/planner']")).toHaveAttribute("href", "/planner");
   await page.locator(".landing-actions a[href='/planner']").click();
   await expect(page).toHaveURL(/\/planner$/);
 
   await page.goto("/planner#navigation");
+  const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
+  await expect(region).toBeEnabled();
   await expect(page.locator("#conditions")).toBeVisible();
-  await expect(page.locator("#itinerary")).toBeHidden();
-  await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await page.locator(".planner-navigation nav button").nth(3).click();
-  await expect(page.locator(".journey-stage-stream")).toHaveAttribute("data-view", "guided");
-  await expect(page.locator("#itinerary")).toBeVisible();
-  await page.getByRole("button", { name: "지도 함께 보기", exact: true }).click();
-  await expect(page.locator("#navigation")).toBeVisible();
-  await expect(page.locator(".planner-navigation nav button").nth(3)).toHaveAttribute("aria-current", "step");
+  await expect(page.locator("#itinerary")).toHaveCount(0);
+  await page.getByRole("button", { name: "필요한 편의", exact: true }).click();
+  const picker = page.getByRole("dialog", { name: "필요한 편의", exact: true });
+  await picker.getByRole("checkbox", { name: "접근로", exact: true }).check();
+  await picker.getByRole("button", { name: "적용 · 1개", exact: true }).click();
+  await region.selectOption("창원");
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openItinerary(page, { start: "2026-09-20", end: "2026-09-21" });
+  if ((page.viewportSize()?.width || 1440) < 1024) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "지도", exact: true }).click();
+  await expect(page.locator("#navigation .leaflet-container")).toBeVisible();
+  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toHaveAttribute("aria-pressed", "true");
+  const snapshot = () => page.evaluate(() => {
+    const values = JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values || {};
+    return { places: values["wave-saved-places"], schedule: values["wave-trip-schedule-v1"], facilities: sessionStorage.getItem("wave-session-facilities-v1") };
+  });
+  const before = await snapshot();
 
-  const headerNavigation = page.getByRole("navigation", { name: "주요 메뉴" });
-  if (await headerNavigation.isVisible()) {
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    const conditionsLink = page.locator(".planner-nav-context > button").first();
-    await expect(conditionsLink).toBeInViewport();
-    await conditionsLink.click();
-    await expect(page.locator("#conditions")).toBeVisible();
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    const itineraryAction = page.locator(".wave-my-trips");
-    await expect(itineraryAction).toBeInViewport();
-    await itineraryAction.click();
-    await expect(page.locator("#itinerary")).toBeVisible();
-  }
+  await tabs.getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await expect(page.locator("#conditions")).toBeVisible();
+  await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeVisible();
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  const itineraryAction = page.getByRole("button", { name: "내 여행, 담은 장소 1곳", exact: true });
+  await expect(itineraryAction).toBeInViewport();
+  await itineraryAction.click();
+  await expect(page.locator("#itinerary")).toBeVisible();
+  await expect(page.locator("#navigation .leaflet-container")).toBeVisible();
+  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toHaveAttribute("aria-pressed", "true");
+  expect(await snapshot()).toEqual(before);
 });

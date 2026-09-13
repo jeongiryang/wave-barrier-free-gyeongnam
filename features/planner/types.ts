@@ -82,6 +82,8 @@ export type PlanData = {
   baseYm: string;
   places: Place[];
   explorationPlaces?: Place[];
+  excludedPlaces?: Place[];
+  pagination?: { page: number; nextPage?: number | null; hasMore: boolean; scope: "loaded-candidates" };
   course: Course | null;
   audio: AudioGuide | null;
   photo?: PhotoInfo | null;

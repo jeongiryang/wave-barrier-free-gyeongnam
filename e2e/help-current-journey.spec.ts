@@ -1,6 +1,6 @@
 import { openSupportMenu } from "./support-menu";
 import { expect, test, type Locator } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { chooseTripConditions, openItinerary, mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
 async function expectHighlightContains(spotlight: Locator, content: Locator) {
   await expect(spotlight).toBeVisible();
@@ -28,22 +28,18 @@ for (const locale of ["ko", "en"] as const) {
     await help.click();
     const dialog = page.getByRole("dialog");
     const active = page.locator('[data-help-tour-active="true"]');
-    for (const id of ["top", "regions", "story", "recommendation", "closing"]) {
+    for (const id of ["top", "regions", "story", "naru"]) {
       await expect(active).toHaveAttribute("id", id);
       await expect(page.locator(".help-tour-spotlight")).toBeVisible();
       if (id === "regions") {
-        await expect(dialog).toContainText(locale === "en" ? "photograph buttons" : "사진 선택 버튼");
+        await expect(dialog).toContainText(locale === "en" ? "Choose a photograph" : "사진을 누르면");
         await expect(dialog).not.toContainText(locale === "en" ? "on the map" : "지도에서");
-        await expectHighlightContains(page.locator(".help-tour-spotlight"), page.locator("#region-current strong"));
+        await expectHighlightContains(page.locator(".help-tour-spotlight"), page.locator(".simple-region-grid .simple-region:first-child h3"));
         const header = await page.locator(".wave-header").boundingBox();
-        const title = await page.locator("#region-current strong").boundingBox();
+        const title = await page.locator(".simple-region-grid .simple-region:first-child h3").boundingBox();
         expect(title!.y).toBeGreaterThanOrEqual(header!.y + header!.height + 8);
       }
-      if (id === "recommendation") {
-        await expect(dialog).toContainText(locale === "en" ? "KakaoTalk sharing" : "카카오톡 공유");
-        await expect(dialog.getByRole("link")).toHaveAttribute("href", "/guide");
-      }
-      await dialog.getByRole("button", { name: id === "closing"
+      await dialog.getByRole("button", { name: id === "naru"
         ? (locale === "en" ? "Finish tour" : "투어 마치기")
         : (locale === "en" ? "Next area" : "다음 영역"), exact: true }).click();
     }
@@ -60,32 +56,33 @@ for (const populated of [false, true]) {
     await page.goto("/planner");
     if (populated) {
       await chooseTripConditions(page);
-      await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-      await expect(page.locator(".day-planner .date-range-fields")).toBeVisible();
+      await page.locator('.simple-place-row').first().locator('.simple-place-add').click();
     }
     await openSupportMenu(page);
     const help = page.getByRole("button", { name: "도움말", exact: true });
-    await expect(page.locator(".journey-stage-stream")).toHaveAttribute("data-view", "overview");
+    await expect(page.locator('.simple-planner-tabs button')).toHaveCount(2);
     await expect(help).toBeEnabled();
     await help.focus();
     await expect(help).toBeInViewport();
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog");
-    await dialog.getByRole("button", { name: "다음 영역", exact: true }).click();
-    await expect(page.locator('#places[data-help-tour-active="true"]')).toBeVisible();
-    const spotlight = page.locator(".help-tour-spotlight");
-    const placeTitle = page.locator(populated ? ".place-card h3" : ".place-empty h3").first();
-    await expectHighlightContains(spotlight, placeTitle);
-    expect((await spotlight.boundingBox())!.height).toBeGreaterThan(100);
-    await page.screenshot({ path: test.info().outputPath(`help-places-${populated}.png`) });
-    if (test.info().project.name === "desktop-chromium") {
-      await page.setViewportSize({ width: 960, height: 960 });
-      await expectHighlightContains(spotlight, placeTitle);
-      await page.screenshot({ path: test.info().outputPath(`help-places-${populated}-960.png`) });
+    const spotlight = page.locator('.help-tour-spotlight');
+    if (populated) {
+      await dialog.getByRole('button', { name: '다음 영역', exact: true }).click();
+      await expect(page.locator('#places[data-help-tour-active="true"]')).toBeVisible();
+      await expectHighlightContains(spotlight, page.locator('.simple-place-row h3').first());
+      await page.screenshot({ path: test.info().outputPath('help-places.png') });
+      await dialog.getByRole('button', { name: '투어 마치기', exact: true }).click();
+      const support = page.locator('.wave-support-menu');
+      if (await support.getAttribute('open') !== null) await support.locator(':scope > summary').click();
+      await openItinerary(page); await openSupportMenu(page); await help.click();
+      await expect(page.locator('#itinerary[data-help-tour-active="true"]')).toBeVisible();
+      await expectHighlightContains(spotlight, page.locator('.simple-timeboard h3').first());
+    } else {
+      await expect(page.locator('#conditions[data-help-tour-active="true"]')).toBeVisible();
+      await expectHighlightContains(spotlight, page.locator('.simple-search-bar'));
+      await expect(dialog.getByRole('button', { name: '투어 마치기', exact: true })).toBeVisible();
     }
-    await dialog.getByRole("button", { name: "다음 영역", exact: true }).click();
-    await expect(page.locator('#itinerary[data-help-tour-active="true"]')).toBeVisible();
-    await expectHighlightContains(spotlight, page.locator(populated ? ".day-planner .date-range-fields" : ".itinerary-empty-state h3"));
     await page.keyboard.press("Escape");
     await expect(help).toBeFocused();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

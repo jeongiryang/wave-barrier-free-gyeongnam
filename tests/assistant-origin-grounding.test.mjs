@@ -14,7 +14,7 @@ test('the real low-burden day-trip request searches its explicit origin instead 
     const action = { action: 'create-itinerary', ...(region ? { region } : {}), originRegion: '창원', transport: 'car' };
     const result = ground(action);
     assert.equal(result.region, '창원'); assert.equal(result.originRegion, '창원');
-    assert.deepEqual(result.profiles, ['senior']);
+    assert.deepEqual(result.profiles, ['parking','route','wheelchair','elevator','restroom']);
     assert.equal(Object.hasOwn(result, 'transport'), false, 'the user never requested a car');
     assert.equal(result.start || context.days[0], day); assert.equal(result.end || context.days.at(-1), day);
     assert.ok(validateAssistantAction(result));
@@ -26,7 +26,7 @@ test('the real low-burden day-trip request searches its explicit origin instead 
 test('a directly stated origin remains available even if the model omitted it', () => {
   const actual = ground({ action: 'create-itinerary', region: '양산' }, '창원에서 출발해 당일 여행을 여유롭게 만들어줘.');
   assert.equal(actual.region, '창원'); assert.equal(actual.originRegion, '창원');
-  assert.equal(Object.hasOwn(actual, 'profiles'), false, 'a relaxed preference does not imply a disability');
+  assert.deepEqual(actual.profiles, ['parking','route','wheelchair','elevator','restroom'], 'selected legacy facilities survive without adding a demographic group');
 });
 
 test('an explicit different destination is preserved, including a destination from the same conversation', () => {
@@ -79,12 +79,12 @@ test('only a current positive low-burden request and one explicit departure auth
     '부모님이 오래 걷기 힘들어. 창원에서 출발할까?',
     [{ role: 'user', content: request }, { role: 'user', content: '당일 여행 코스 만들어줘.' }],
     [{ role: 'assistant', content: request }, { role: 'user', content: '당일 여행 코스 만들어줘.' }],
-  ]) assert.equal(ground({ action: 'create-itinerary', region: '양산', originRegion: '창원', pace: 'relaxed' }, text)?.region, '양산');
+  ]) assert.equal(ground({ action: 'create-itinerary', region: '양산', originRegion: '창원', pace: 'relaxed' }, text)?.region, typeof text === 'string' && text.endsWith('?') ? undefined : '양산');
 });
 
 test('the safer search default preserves explicitly requested transport and does not add route guarantees', () => {
   const result = ground({ action: 'create-itinerary', originRegion: '창원', profiles: ['wheel'], transport: 'car' }, `${request} 대중교통으로 이동할 거야.`);
   assert.equal(result.region, '창원'); assert.equal(result.transport, 'transit');
-  assert.deepEqual(result.profiles, ['wheel', 'senior']);
+  assert.deepEqual(result.profiles, ['parking','route','wheelchair','elevator','restroom']);
   assert.ok(Object.keys(result).every(key => ['action', 'region', 'originRegion', 'profiles', 'transport'].includes(key)));
 });

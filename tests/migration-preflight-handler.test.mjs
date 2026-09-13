@@ -82,10 +82,12 @@ test("apply requires successful read-only preflight and then keeps the canonical
   assert.deepEqual((await response.json()).migrations, migrations.PRODUCTION_MIGRATION_NAMES);
   assert.equal(good.calls.length, 2);
   assert.equal(good.calls[0].readOnly, true);
-  assert.match(good.calls[1].queries.at(-12), /SET moderation_status = 'under_review'/);
-  assert.match(good.calls[1].queries.at(-3), /CREATE TABLE IF NOT EXISTS wave_travel_limits/);
-  assert.match(good.calls[1].queries.at(-2), /ADD COLUMN IF NOT EXISTS visit_photos/);
-  assert.match(good.calls[1].queries.at(-1), /community_posts_facility_history_idx/);
+  assert.match(good.calls[1].queries.at(-17), /SET moderation_status = 'under_review'/);
+  assert.match(good.calls[1].queries.at(-8), /CREATE TABLE IF NOT EXISTS wave_travel_limits/);
+  assert.match(good.calls[1].queries.at(-7), /ADD COLUMN IF NOT EXISTS visit_photos/);
+  assert.match(good.calls[1].queries.at(-6), /community_posts_facility_history_idx/);
+  assert.match(good.calls[1].queries.at(-5), /ADD COLUMN IF NOT EXISTS live/);
+  assert.match(good.calls[1].queries.at(-1), /ADD COLUMN IF NOT EXISTS revoked/);
 });
 
 test("native candidate requires database and SMTP readiness before any migration", async () => {

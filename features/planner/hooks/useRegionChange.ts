@@ -38,8 +38,7 @@ export function useRegionChange({ region, ready, hasSaved, setRegion, resetTrip,
   function request(next: string, onCommitted?: () => void) {
     if (!ready || pendingRef.current !== null || next === region || !regions.includes(next)) return;
     afterCommit.current = onCommitted || null;
-    if (hasSaved) { pendingRef.current = next; setPending(next); setError(false); }
-    else commit(next, false);
+    commit(next, false);
   }
   useEffect(() => {
     if (!ready) return;

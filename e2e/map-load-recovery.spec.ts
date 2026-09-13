@@ -1,4 +1,4 @@
-import { openSupportMenu } from "./support-menu";
+import { openPlannerMap, openRouteDetails, changeMapLanguage, ensureMapView } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
@@ -6,7 +6,7 @@ import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 for (const english of [false, true]) for (const theme of ["light", "dark"]) test(`a failed alternative map preserves the itinerary and offers a page reload in ${english ? "English" : "Korean"} ${theme}`, async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await mockPlannerApi(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.addInitScript((value) => localStorage.setItem("wave-theme", value), theme);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 390 : 1366, height: 844 });
@@ -14,19 +14,14 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   await page.route(/\/leaflet\.js(?:\?|$)/, async (route) => { failures++; await route.abort(); });
   await page.goto("/planner");
   await chooseTripConditions(page);
-  await page.getByRole("button", { name: "경남도립미술관 일정에 추가", exact: true }).click();
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await openPlannerMap(page);
+  await openRouteDetails(page);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(1);
   await page.locator(".itinerary-route-coverage select").selectOption("car");
   await expect.poll(() => failures).toBeGreaterThan(0);
   if (english) {
-    await page.keyboard.press("Control+Home");
-    await openSupportMenu(page);
-    const preferences = page.locator(".preference-controls:visible");
-    await openSupportMenu(page);
-    await preferences.getByLabel("환경설정 열기", { exact: true }).click();
-    await preferences.getByLabel("언어", { exact: true }).selectOption("en");
-    await openSupportMenu(page);
-    await preferences.getByLabel("Open preferences", { exact: true }).click();
+    await changeMapLanguage(page, true);
   }
   const unavailable = page.locator(".map-unavailable");
   await expect(unavailable).toContainText(english ? "The map could not be loaded." : "지도를 불러오지 못했습니다.");
@@ -47,8 +42,10 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   await unavailable.screenshot({ path: test.info().outputPath(`map-unavailable-${theme}-${english ? "en" : "ko"}.png`) });
   await page.unroute(/\/leaflet\.js(?:\?|$)/);
   await page.keyboard.press("Enter");
+  await expect(page.locator(".simple-itinerary-heading")).toBeVisible();
+  await ensureMapView(page);
   await expect(page.locator(".map-provider-badge.osm")).toBeVisible();
   await expect(page.locator(".map-unavailable")).toHaveCount(0);
-  await expect(page.locator(".day-planner-grid li")).toHaveCount(1);
+  await expect(page.locator(".simple-stops > li")).toHaveCount(1);
   expect(errors).toEqual([]);
 });

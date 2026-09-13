@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
 /**
  * 어두운 화면에서 `--ink`는 밝은 색이 된다. 그 위에 글자색을 `#fff`로 고정해 두면
@@ -44,9 +44,26 @@ const CASES: Array<{ path: string; selector: string; name: string }> = [
   { path: "/community", selector: ".community-write", name: "후기 작성 (기본 동작 버튼)" },
   { path: "/login", selector: ".auth-submit", name: "로그인 제출 (기본 동작 버튼)" },
   { path: "/login", selector: ".auth-guest a", name: "로그인 없이 둘러보기" },
-  { path: "/planner", selector: ".departure-readiness h2", name: "출발 준비 카드 제목" },
-  { path: "/planner", selector: ".readiness-overall", name: "출발 준비 전체 상태" },
+  { path: "/planner", selector: ".simple-departure > summary > span:first-child", name: "출발 전 확인 제목" },
+  { path: "/planner", selector: ".simple-readiness-heading button", name: "출발 정보 다시 조회" },
 ];
+
+async function openSample(page: Page, item: typeof CASES[number]) {
+  const changedPage = new URL(page.url()).pathname !== item.path;
+  // Measure all controls on the same rendered page before navigating again.
+  // Reopening community three times and login twice adds unrelated SSR waits.
+  if (changedPage) await page.goto(item.path, { waitUntil: "domcontentloaded" });
+  if (changedPage && item.path === "/planner") {
+    await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+    await expect(page.locator(".simple-place-row").first()).toBeVisible();
+    const add = page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true });
+    if (await add.count()) await add.click();
+    await openItinerary(page);
+    await page.locator(".simple-departure > summary").click();
+  }
+  await expect(page.locator(item.selector)).toBeVisible();
+  if (item.path === "/login") await expect(page.locator(".auth-submit")).toBeEnabled();
+}
 
 test("어두운 화면에서 짙은 배경 위 글자가 배경에 묻히지 않는다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -58,9 +75,8 @@ test("어두운 화면에서 짙은 배경 위 글자가 배경에 묻히지 않
   });
 
   for (const item of CASES) {
-    await page.goto(item.path, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1_500);
-    expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("dark");
+    await openSample(page, item);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
     const sample = await measure(page, item.selector);
     expect(sample, `${item.name}(${item.selector})을 찾지 못했다`).not.toBeNull();
@@ -80,9 +96,10 @@ test("밝은 화면에서도 같은 요소의 대비가 유지된다", async ({ 
   });
 
   for (const item of CASES) {
-    await page.goto(item.path, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1_500);
+    await openSample(page, item);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     const sample = await measure(page, item.selector);
+    expect(sample, `${item.name}(${item.selector})을 찾지 못했다`).not.toBeNull();
     if (!sample) continue;
     const ratio = contrastRatio(sample.color, sample.background);
     expect(ratio, `${item.name} 대비 ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(4.5);

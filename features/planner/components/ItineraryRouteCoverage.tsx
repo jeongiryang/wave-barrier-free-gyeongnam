@@ -8,10 +8,11 @@ import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
 import type { useRoutePlanning } from "../hooks/useRoutePlanning";
 import type { useTripSelection } from "../hooks/useTripSelection";
 
-export default function ItineraryRouteCoverage({ coverage, route, trip, reviewed, onReview }: {
+export default function ItineraryRouteCoverage({ coverage, route, trip, onOpenMap }: {
   coverage: ReturnType<typeof useItineraryRoutes>;
   route: ReturnType<typeof useRoutePlanning>;
   trip: ReturnType<typeof useTripSelection>;
+  onOpenMap?: () => void;
   reviewed: boolean;
   onReview: (checked: boolean) => void;
 }) {
@@ -27,11 +28,11 @@ export default function ItineraryRouteCoverage({ coverage, route, trip, reviewed
     return () => { if (document.activeElement === node) checkButton.current?.focus({ preventScroll: true }); };
   }, []);
   if (!coverage.legs.length) return null;
-  return <section className="itinerary-route-coverage" aria-labelledby="route-coverage-title">
+  return <section lang={locale} className="itinerary-route-coverage" aria-labelledby="route-coverage-title">
     <h3 id="route-coverage-title">{en ? "Check every journey" : "일정의 모든 이동 구간 확인"}</h3>
     <p>{en ? "Each day starts from the departure point shown below. Review your actual starting point. Route availability does not confirm wheelchair access, slopes, low-floor buses or working lifts." : "각 날짜는 아래 출발 거점에서 시작합니다. 실제 출발지와 맞는지 먼저 확인하세요. 경로가 있어도 휠체어 통행, 경사, 저상버스나 승강기 운행을 보장하지 않습니다."}</p>
     <p><strong>{en ? "Daily starting point" : "하루 출발 거점"}: <span lang={originalLanguage(route.originLabel)}>{route.originLabel}</span></strong></p>
-    <label><span id={transportLabelId}>{en ? "Transport" : "이동수단"}</span><select aria-labelledby={transportLabelId} value={route.routeTravelMode} onChange={(event) => route.setRouteTravelMode(event.target.value as typeof route.routeTravelMode)}>
+    <label><span id={transportLabelId}>{en ? "Transport" : "이동수단"}</span><select aria-labelledby={transportLabelId} value={route.routeTravelMode} onChange={(event) => trip.applyTripCommand({ type: 'schedule', transport: event.target.value as typeof route.routeTravelMode })}>
       <option value="car">{en ? "Car" : "자동차"}</option><option value="transit">{en ? "Public transport" : "대중교통"}</option><option value="walk">{en ? "Walking — external check" : "도보 — 외부 지도 확인"}</option><option value="bicycle">{en ? "Cycling — external check" : "자전거 — 외부 지도 확인"}</option>
     </select></label>
     <div className="coverage-actions"><button ref={checkButton} type="button" onClick={() => void coverage.checkRoutes()} aria-disabled={coverage.loading} aria-busy={coverage.loading}>{coverage.loading ? (en ? "Checking…" : "구간 확인 중…") : (en ? "Check all journeys" : "모든 구간 조회하기")}</button>{coverage.loading && <button ref={cancelButton} type="button" onClick={coverage.cancel}>{en ? "Cancel" : "확인 중단"}</button>}</div>
@@ -44,10 +45,11 @@ export default function ItineraryRouteCoverage({ coverage, route, trip, reviewed
         trip.setActiveDay(leg.day);
         route.displayRouteData(leg.place, leg.from!, leg.fromLabel, coverage.data[leg.key]);
         route.setActiveRouteId(best.id);
-        document.getElementById("navigation")?.scrollIntoView({ block: "start" });
+        onOpenMap?.();
+        requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById("navigation")?.scrollIntoView({ block: "start" })));
       }}>{en ? "Show this journey" : "이 구간 지도에서 보기"}</button></li>;
     })}</ol>
     <p className="coverage-notice" data-reserve-text={completeNotice}><span>{notice}</span></p>
-    <label className="departure-review-check"><input type="checkbox" checked={reviewed} disabled={!coverage.complete || coverage.loading} onChange={(event) => onReview(event.target.checked)} />{en ? "I checked the dates, order, starting point and each journey for this transport. Facility access still needs a separate check." : "날짜·순서·출발지와 선택한 이동수단의 각 구간을 확인했어요. 시설 접근성은 별도로 확인해야 합니다."}</label>
+
   </section>;
 }

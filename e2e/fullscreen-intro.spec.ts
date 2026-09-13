@@ -1,251 +1,112 @@
-import { openSupportMenu } from "./support-menu";
-import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { mockPublicShellApi } from "./fixtures";
-import { arrivalBootstrap } from "../features/landing/arrival-bootstrap";
+import { freshArrival, prepareLandingMedia, storyReady, expectUsableTarget, expectNoOverflow } from "./landing-contract";
 
-test.beforeEach(async ({ page }) => { await mockPublicShellApi(page); });
-
-test("late streamed intro starts its fallback deadline after its markup arrives", async ({ page }) => {
-  await page.clock.install();
-  await page.setContent('<h1 id="landing-title" tabindex="-1">WAVE</h1>');
-  await page.addScriptTag({ content: arrivalBootstrap });
-  await page.clock.runFor(5400);
-  await page.evaluate(() => {
-    const intro = document.createElement("dialog");
-    intro.className = "arrival-intro";
-    intro.open = true;
-    document.body.append(intro);
-  });
-  await page.clock.runFor(4800);
-  await expect(page.locator(".arrival-intro")).toHaveAttribute("open", "");
-  await page.clock.runFor(500);
-  await expect(page.locator(".arrival-intro")).toBeHidden();
-  await expect(page.locator("#landing-title")).toBeFocused();
-});
-
-for (const scene of ["static", "failed"] as const) {
-  test(`${scene} arrival automatically opens the service without visible controls`, async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: scene === "static" ? "reduce" : "no-preference" });
-    if (scene === "failed") await page.route("**/hero-water-loop.mp4", route => route.abort());
-    await page.goto("/");
-    const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-    await expect(intro).toBeVisible();
-    await expect(intro.getByRole("button")).toHaveCount(0);
-    await expect(intro).toBeHidden({ timeout: 8000 });
-    await expect(page.locator("#landing-title")).toBeFocused();
-    expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
-  });
-}
-
-test("blocked application scripts cannot leave arrival covering the service", async ({ page }) => {
+test("blocked application scripts leave readable content without an arrival overlay", async ({ page }) => {
+  await prepareLandingMedia(page);
   await page.route(/\.(?:js|mjs|tsx)(?:\?|$)/, route => route.abort());
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  const intro = page.locator(".arrival-intro");
-  await expect(intro).toBeHidden({ timeout: 8000 });
-  await expect(page.locator(".landing-actions a[href='/planner']")).toBeVisible();
+  await expect(page.locator(".arrival-scene")).toBeHidden();
+  await expect(page.locator(".landing-actions a")).toBeVisible();
+  await expect(page.locator(".landing-actions a")).toHaveAttribute("href", "/planner");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
-test("without JavaScript the browser requirement remains readable without an intro overlay", async ({ browser }) => {
+test("without JavaScript the browser requirement remains readable without a covering scene", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
-  const page = await context.newPage();
-  await page.goto(test.info().project.use.baseURL + "/");
-  await expect(page.locator(".arrival-intro")).toBeHidden();
-  await expect(page.locator("noscript p")).toBeVisible();
-  await expect(page.locator("noscript p")).toContainText("JavaScript를 허용해 주세요");
-  await context.close();
+  try {
+    const page = await context.newPage();
+    await page.goto(test.info().project.use.baseURL + "/");
+    await expect(page.locator(".arrival-scene")).toBeHidden();
+    await expect(page.locator("noscript p")).toBeVisible();
+    await expect(page.locator("noscript p")).toContainText("JavaScript를 허용해 주세요");
+  } finally { await context.close(); }
 });
 
-test("first entry is a full viewport cinematic with immediately usable keyboard controls", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-  await expect(intro).toBeVisible();
-  await expect(intro.locator("video")).toHaveAttribute("src", "/media/wave-story/hero-water-loop.mp4");
-  await expect(intro.locator(".arrival-wave-canvas")).toHaveAttribute("data-intro-phase", /wave|accessibility|wordmark/);
-  await expect(intro.getByRole("button")).toHaveCount(0);
-  expect(await intro.evaluate(node => {
-    const r = node.getBoundingClientRect();
-    return { x: r.x, y: r.y, width: r.width, height: r.height, viewport: [innerWidth, innerHeight], modal: node.matches(":modal") };
-  })).toEqual({ x: 0, y: 0, width: page.viewportSize()!.width, height: page.viewportSize()!.height, viewport: [page.viewportSize()!.width, page.viewportSize()!.height], modal: true });
-  await expect(intro.getByRole("link")).toHaveCount(0);
-  expect(await intro.locator("video").evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
-  const skip = intro.getByRole("heading", { name: "WAVE" });
-  await skip.focus();
-  await page.keyboard.press("Shift+Tab");
-  await expect(skip).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(skip).toBeFocused();
-  await page.screenshot({ path: test.info().outputPath("fullscreen-cinematic.png") });
-  const audit = await new AxeBuilder({ page }).analyze();
-  expect(audit.violations).toEqual([]);
-  await page.keyboard.press("Escape");
-  await expect(intro).toBeHidden();
-  await expect(page.locator("#landing-title")).toBeFocused();
-  await expect(page.locator(".landing-hero .landing-actions a[href='/planner']")).toBeVisible();
-});
-
-test("a completed session stays on Landing after reload without replay controls or focus theft", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-  await page.keyboard.press("Escape");
-  await expect(page.locator("#landing-title")).toBeFocused();
-  expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
-  for (const mode of ["reduce", "no-preference", "reduce"] as const) {
-    await page.reload();
-    await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
-    await expect(intro).toBeHidden();
-    const cta = page.locator(".landing-actions a[href='/planner']");
-    await cta.focus();
-    await page.emulateMedia({ reducedMotion: mode });
-    await expect(cta).toBeFocused();
-    await expect(page.locator(".landing-hero button")).toHaveCount(0);
-    await expect(cta).toHaveAttribute("href", "/planner");
-  }
-});
-
-for (const preference of ["reduced", "legacy-full-with-os-reduced", "save-data"] as const) {
-  test(`${preference} has a full-screen static intro without video download`, async ({ page }) => {
-    const videoRequests: string[] = [];
-    page.on("request", request => { if (request.url().endsWith(".mp4")) videoRequests.push(request.url()); });
-    if (preference === "reduced") await page.emulateMedia({ reducedMotion: "reduce" });
-    else if (preference === "legacy-full-with-os-reduced") {
-      await page.addInitScript(() => localStorage.setItem("wave-motion", "full"));
-      await page.emulateMedia({ reducedMotion: "reduce" });
-    }
-    else await page.addInitScript(() => Object.defineProperty(navigator, "connection", { value: Object.assign(new EventTarget(), { saveData: true }), configurable: true }));
-    await page.goto("/");
-    const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-    await expect(intro).toBeVisible();
-    await expect(intro).toHaveAttribute("data-still", "true");
-    await expect(intro.locator("video")).not.toHaveAttribute("src");
-    await expect(intro.getByRole("heading", { name: "WAVE" })).toBeVisible();
-    await expect(intro.getByRole("heading", { name: "WAVE" })).toBeEnabled();
-    expect(videoRequests).toEqual([]);
-    await page.keyboard.press("Escape");
-    await expect(intro).toBeHidden();
+for (const legacyFull of [false, true]) {
+  test(`initial OS reduction skips arrival even with legacy full motion ${legacyFull}`, async ({ page }) => {
+    await prepareLandingMedia(page);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    if (legacyFull) await page.addInitScript(() => localStorage.setItem("wave-motion", "full"));
+    const media: string[] = [];
+    page.on("request", request => { if (/\.mp4(?:\?|$)/.test(request.url())) media.push(request.url()); });
+    await page.goto("/"); await storyReady(page);
+    await expect(page.locator(".arrival-scene")).toBeHidden();
+    await expect(page.locator(":modal, [inert]")).toHaveCount(0);
+    await expectUsableTarget(page.locator(".landing-actions a"));
+    await expect(page.locator(".landing-hero video")).toHaveCount(0);
+    expect(media).toEqual([]);
   });
 }
 
-test("failed media retains the brand, static scene and a working exit", async ({ page, browserName }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.route("**/media/wave-story/hero-water-loop.mp4", route => route.abort());
-  await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-  if (browserName === "webkit") {
-    // Windows WebKit's media request bypassed this route in the retained trace.
-    // Exercise a real decoder failure; Chromium retains the network-abort path.
-    await expect(intro).toHaveAttribute("data-ready", "true");
-    await expect(intro.locator("video")).toHaveAttribute("src", /hero-water-loop/);
-    await intro.locator("video").evaluate((video: HTMLVideoElement) => {
-      video.src = "data:video/mp4;base64,AA==";
-      video.load();
-    });
-    await expect.poll(() => intro.locator("video").evaluate((video: HTMLVideoElement) => video.error?.code)).toBeTruthy();
-  }
-  await expect(intro.getByRole("status")).toContainText("영상을 불러오지 못해");
-  await expect(intro.locator(".arrival-poster")).toBeVisible();
-  await expect(intro.getByRole("heading", { name: "WAVE" })).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.locator("#landing-title")).toBeFocused();
-});
-
-test("media end hands off to the actual Hero, not another waiting screen", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-  await expect.poll(() => intro.locator("video").evaluate((v: HTMLVideoElement) => Number.isFinite(v.duration) && v.duration > 0)).toBe(true);
-  await intro.locator("video").evaluate((v: HTMLVideoElement) => { v.currentTime = v.duration - .1; });
-  await expect(intro).toBeHidden();
-  await expect(page.locator("#landing-title")).toBeFocused();
-  await expect(page.locator(".landing-hero .landing-actions a[href='/planner']")).toHaveAttribute("href", "/planner");
-});
-
-test("runtime reduction keeps keyboard focus and stops downloading video", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-  const control = intro.getByRole("heading", { name: "WAVE" });
-  await expect(control).toHaveAccessibleName("WAVE");
-  await control.focus();
+test("runtime OS reduction ends the active arrival while retaining the user's real-page focus", async ({ page }) => {
+  await freshArrival(page);
+  const link = page.locator(".landing-actions a");
+  await link.focus();
+  await expect(link).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(control).toBeFocused();
-  await expect(control).toBeEnabled();
-  await expect(intro).toHaveAttribute("data-still", "true");
-  await expect(intro.locator("video")).not.toHaveAttribute("src");
-  await page.keyboard.press("Tab");
-  await expect(control).toBeFocused();
-  await expect(intro.locator("video")).not.toHaveAttribute("src");
-  await page.keyboard.press("Escape");
-  await expect(page.locator("#landing-title")).toBeFocused();
-});
-
-test("denied session storage still permits a keyboard exit and planning without replay controls", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(() => { Object.defineProperty(window, "sessionStorage", { get() { throw new DOMException("Storage denied", "SecurityError"); } }); });
-  await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-  await page.keyboard.press("Escape");
-  await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
-  await expect(intro).toBeHidden();
-  await expect(page.locator("#landing-title")).toBeFocused();
-  await expect(page.locator(".landing-hero button")).toHaveCount(0);
-  await page.reload();
-  await expect(intro).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(intro).toBeHidden();
-  await expect(page.locator("#landing-title")).toBeFocused();
-  await page.locator(".landing-actions a[href='/planner']").press("Enter");
-  await expect(page).toHaveURL(/\/planner/);
-});
-
-test("legacy app motion values cannot suppress the canonical intro and preferences have no motion or replay controls", async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem("wave-motion", "calm"));
+  await page.clock.runFor(32);
+  await expect(page.locator(".arrival-scene")).toBeHidden();
+  await expect(link).toBeFocused();
+  expect(await page.locator(".arrival-scene").evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-  await expect(intro).toHaveAttribute("data-still", "false");
-  await expect(intro.locator("video")).toHaveAttribute("src", "/media/wave-story/hero-water-loop.mp4");
-  await page.keyboard.press("Escape");
-  await expect(page.locator(".landing-page.motion-ready")).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
-  await openSupportMenu(page);
-  await page.getByLabel("환경설정 열기").click();
-  await openSupportMenu(page);
-  const preferences = page.locator(".preference-controls");
-  await expect(preferences.getByRole("button", { name: /동작|인트로/ })).toHaveCount(0);
-  await expect(preferences.getByLabel("언어", { exact: true })).toBeVisible();
-  await openSupportMenu(page);
-  await page.getByLabel("환경설정 열기").click();
-  await expect(page.locator(".landing-hero button")).toHaveCount(0);
-  await expect(page.locator(".landing-hero canvas")).toHaveCount(0);
-  await expect(page.locator(".landing-hero-copy")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await page.clock.runFor(2500);
+  await expect(page.locator(".arrival-scene")).toBeHidden();
+  await expect(link).toBeFocused();
 });
 
-test("320px short screens keep the brand, copy and every intro control separate and readable", async ({ page }) => {
+for (const denied of ["read", "write"] as const) {
+  test(`denied session storage ${denied} cannot block keyboard browsing or reload`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.addInitScript(mode => {
+      if (mode === "read") Object.defineProperty(window, "sessionStorage", { get() { throw new DOMException("Storage denied", "SecurityError"); } });
+      else {
+        const setItem = Storage.prototype.setItem;
+        Storage.prototype.setItem = function(key, value) {
+          if (this === window.sessionStorage && key === "wave-arrival-session-v1") throw new DOMException("Storage denied", "SecurityError");
+          setItem.call(this, key, value);
+        };
+      }
+    }, denied);
+    await freshArrival(page);
+    const link = page.locator(".landing-actions a");
+    await link.focus(); await page.keyboard.press("Tab");
+    await expect(page.locator(".arrival-scene")).toBeHidden();
+    expect(await page.evaluate(() => document.documentElement.dataset.introSeen)).toBe("1");
+    expect(await page.evaluate(() => document.activeElement?.closest(".arrival-scene"))).toBeNull();
+    await page.clock.resume();
+    await page.reload(); await storyReady(page);
+    // Denied persistence may replay, but the page remains immediately operable.
+    await link.focus(); await page.keyboard.press("Tab");
+    await expect(page.locator(".arrival-scene")).toBeHidden();
+    await expectUsableTarget(link);
+    expect(errors).toEqual([]);
+    await link.press("Enter"); await expect(page).toHaveURL(url => url.pathname === "/planner");
+  });
+}
+
+test("failed arrival photography still finishes on time and leaves its source and planning link", async ({ page }) => {
+  await page.route("**/media/horizon/hero-coast.jpg", route => route.abort());
+  await freshArrival(page);
+  const link = page.locator(".landing-actions a");
+  await link.focus();
+  await page.clock.runFor(2000);
+  await expect(page.locator(".arrival-scene")).toBeHidden();
+  await expect(link).toBeFocused();
+  await expect(page.locator(".landing-hero-landscape figcaption")).toContainText("사진을 불러오지 못했어요");
+  await expect(page.locator(".landing-hero-landscape figcaption a").first()).toHaveAttribute("href", /^https:/);
+  await expect(link).toHaveAttribute("href", "/planner");
+});
+
+test("a short 320px screen keeps the actual heading and planning action usable without intro controls", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
+  await prepareLandingMedia(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  const intro = page.getByRole("dialog", { name: "WAVE", exact: true });
-  for (const mode of ["reduce", "no-preference"] as const) {
-    await page.emulateMedia({ reducedMotion: mode });
-    if (mode === "no-preference") await expect(intro.locator("canvas")).toHaveAttribute("data-intro-phase", "wordmark");
-    await expect(intro.locator("h2")).toHaveCSS("opacity", "1");
-    const layout = await intro.evaluate(node => {
-      const words = [...node.querySelectorAll(".arrival-brand > *")].map(item => item.getBoundingClientRect());
-      const controls = [...node.querySelectorAll("button,a")].map(item => item.getBoundingClientRect());
-      const overlap = (a: DOMRect, b: DOMRect) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-      return {
-        copyCovered: words.some(word => controls.some(control => overlap(word, control))),
-        wordsOverlap: words.some((word, i) => words.some((other, j) => i !== j && overlap(word, other))),
-        controlsFit: controls.every(r => r.x >= 0 && r.right <= innerWidth && r.y >= 0 && r.bottom <= innerHeight && r.width >= 44 && r.height >= 44),
-        overflow: document.documentElement.scrollWidth > innerWidth,
-      };
-    });
-    expect(layout).toEqual({ copyCovered: false, wordsOverlap: false, controlsFit: true, overflow: false });
-    await page.screenshot({ path: test.info().outputPath(`intro-320-${mode}.png`) });
-  }
-  await page.keyboard.press("Escape");
-  await expect(intro).toBeHidden();
+  await page.addInitScript(() => localStorage.setItem("wave-motion", "calm"));
+  await page.goto("/"); await storyReady(page);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expectUsableTarget(page.locator(".landing-actions a"));
+  await expect(page.locator(".arrival-scene button,.arrival-scene a,.arrival-scene [tabindex]")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /인트로|다시보기/ })).toHaveCount(0);
+  await expectNoOverflow(page);
 });

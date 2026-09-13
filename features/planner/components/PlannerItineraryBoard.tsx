@@ -1,24 +1,21 @@
 "use client";
-
-import { useMemo } from "react";
-import type { ReactNode } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState, type ReactNode } from "react";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
 import type { RoutePoint } from "../../routing/types";
 import type { Place, WeatherData } from "../types";
-import TripBreakControl, { TripBreakSummary } from "./TripBreakControl";
+import { TripBreakSummary } from "./TripBreakControl";
+import { FixedVisitSummary } from "./FixedVisitControl";
+import DayDeadlineControl from "./DayDeadlineControl";
 import TripComfortPlan from "./TripComfortPlan";
 import RestStopFinder from "./RestStopFinder";
-import VisitDurationControl from "./VisitDurationControl";
-import FixedVisitControl, { FixedVisitSummary } from "./FixedVisitControl";
-import DayDeadlineControl from "./DayDeadlineControl";
 import PlaceVisitHours from "./PlaceVisitHours";
-import { visitDurationFor, buildItinerarySchedule } from "../optimization/itinerary-schedule.js";
-import SmartSpotImage from "../../tourism/components/SmartSpotImage";
+import { buildItinerarySchedule } from "../optimization/itinerary-schedule.js";
 import PlaceFacilitySummary from "./PlaceFacilitySummary";
-import { PlannerWeatherCard } from "./PlannerTripOverview";
-
-export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, trip, coverage, origin, places, requiredKeys, weather, weatherLoading, region, map, mapView, onSelectPlace, onContinue }: {
+import LoadingState from "../../../components/LoadingState";
+import { supportedPlacePoint } from "../../../lib/map-coordinates.js";
+const StopEditor = lazy(() => import('./StopEditor'));
+export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, trip, coverage, origin, places, requiredKeys, map, mapView, onSelectPlace }: {
   focusedPlaceId?: string; onFocusPlace: (place: Place) => void;
   trip: ReturnType<typeof useTripSelection>; coverage: ReturnType<typeof useItineraryRoutes>; origin: RoutePoint;
   places: Place[]; requiredKeys: string[]; weather: WeatherData | null; weatherLoading: boolean; region: string;
@@ -26,30 +23,31 @@ export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, tr
 }) {
   const schedule = useMemo(() => buildItinerarySchedule({ places: trip.orderedSavedPlaces, days: trip.tripDays, assignments: trip.scheduleAssignments, startTime: trip.dayStartTime, visitMinutesByPlaceId: trip.visitMinutesByPlaceId, fixedVisits: trip.fixedVisits, breakMinutesByPlaceId: trip.breakMinutesByPlaceId, origin, routeMinutesByPlaceId: coverage.routeMinutes }), [trip.orderedSavedPlaces, trip.tripDays, trip.scheduleAssignments, trip.dayStartTime, trip.visitMinutesByPlaceId, trip.fixedVisits, trip.breakMinutesByPlaceId, origin, coverage.routeMinutes]);
   const active = schedule.find(day => day.day === trip.activeDay);
-  const candidates = places.filter(place => !trip.saved.includes(place.id));
+  const [editing, setEditing] = useState<Place | null>(null);
+  const [mapMounted, setMapMounted] = useState(mapView);
+  if (mapView && !mapMounted) setMapMounted(true);
+  const closeEditor = useCallback(() => setEditing(null), []);
+  const outside = trip.orderedSavedPlaces.filter(place => trip.scheduleAssignments[place.id] && !trip.tripDays.includes(trip.scheduleAssignments[place.id]));
   return <>
-    <div className="reference-itinerary-layout" data-map={mapView}>
-      <section className="reference-day-list" aria-label="날짜별 여행 일정">
-        <div className="reference-day-tabs" role="group" aria-label="일정 날짜">{trip.tripDays.map((day, index) => <button type="button" key={day} aria-pressed={day === trip.activeDay} onClick={() => trip.setActiveDay(day)}>DAY {index + 1} · {day.slice(5).replace("-", "/")}</button>)}</div>
-        <label className="reference-start-time">하루 시작 <input type="time" value={trip.dayStartTime} onChange={event => trip.setDayStartTime(event.target.value)} /></label>
-        {trip.constraintNotice && <p className="modal-note" role="status">{trip.constraintNotice}</p>}
-        <ol>{active?.entries.map((entry, index) => {
+    <div className="simple-itinerary-board" data-map={mapView}>
+      <section lang="ko" className="simple-timeboard" aria-label="날짜별 여행 일정">
+        <div className="simple-day-tabs" role="group" aria-label="일정 날짜">{trip.tripDays.map((day, index) => <button type="button" key={day} aria-pressed={day === trip.activeDay} onClick={() => trip.setActiveDay(day)}>{index + 1}일차 <span>{day.slice(5).replace('-', '/')}</span></button>)}</div>
+        <ol className="simple-stops">{active?.entries.map(entry => {
           const movement = trip.movementFor(entry.place.id);
-          return <li key={entry.place.id} id={`itinerary-stop-${entry.place.id}`} data-selected={entry.place.id === focusedPlaceId}><article className="reference-stop">
-            <time>{entry.startsAtLabel}</time>
-            <SmartSpotImage src={entry.place.image} title={entry.place.name} region={entry.place.city || region} contentId={entry.place.id} tag="" rank={index + 1} showMeta={false} />
-            <div className="reference-stop-copy"><button type="button" onClick={() => { if (mapView) onFocusPlace(entry.place); onSelectPlace(entry.place); }}>{entry.place.name}</button><small>{entry.visitSource === "user" ? "체류" : "기본 체류 약"} {entry.visitMinutes}분 · {entry.visitEndsAtLabel}까지</small><PlaceFacilitySummary place={entry.place} en={false} /></div>
-            <div className="reference-stop-actions">{mapView && <button type="button" aria-label={`${entry.place.name} 지도에서 보기`} aria-pressed={entry.place.id === focusedPlaceId} onClick={() => onFocusPlace(entry.place)}>위치</button>}<button type="button" aria-label={`${entry.place.name} 같은 날 앞 순서로 이동`} disabled={!movement.up} onClick={() => trip.movePlace(entry.place.id, "up")}>↑</button><button type="button" aria-label={`${entry.place.name} 같은 날 뒤 순서로 이동`} disabled={!movement.down} onClick={() => trip.movePlace(entry.place.id, "down")}>↓</button><details><summary aria-label={`${entry.place.name} 일정 수정`}>⋮</summary><div><label>방문 날짜<select disabled={Boolean(trip.fixedVisits[entry.place.id])} aria-label={`${entry.place.name} 여행 날짜`} value={trip.scheduleAssignments[entry.place.id] || trip.tripDays[0]} onChange={event => trip.assignPlaceToDay(entry.place.id, event.target.value)}>{trip.tripDays.map(day => <option key={day} value={day}>{day}</option>)}</select></label><VisitDurationControl name={entry.place.name} value={trip.visitMinutesByPlaceId[entry.place.id]} defaultMinutes={visitDurationFor(entry.place)} onChange={value => trip.setVisitMinutes(entry.place.id, value)} /><TripBreakControl name={entry.place.name} value={trip.breakMinutesByPlaceId[entry.place.id]} purpose={trip.restPurposeByPlaceId[entry.place.id]} onChange={value => trip.setBreakMinutes(entry.place.id, value)} onPurpose={value => trip.setStopPurpose(entry.place.id, value)} /><FixedVisitControl name={entry.place.name} value={trip.fixedVisits[entry.place.id]} position={index} onChange={value => trip.setFixedVisit(entry.place.id, value)} /><button type="button" disabled={Boolean(trip.fixedVisits[entry.place.id])} onClick={() => trip.toggleSaved(entry.place.id)}>일정에서 제거</button></div></details></div>
-          </article><TripBreakSummary minutes={entry.breakMinutes} purpose={trip.restPurposeByPlaceId[entry.place.id]} start={entry.visitEndsAtLabel} end={entry.endsAtLabel} /><FixedVisitSummary fixed={trip.fixedVisits[entry.place.id]} waiting={entry.waitingMinutes} late={entry.lateMinutes} /><p className="reference-leg-time">{entry.travelSource === "route" ? `확인된 이동 ${entry.travelMinutes}분` : entry.travelSource === "estimate" ? `직선거리 기반 추정 ${entry.travelMinutes}분` : "이동 경로 미확인"}{entry.crossesDateBoundary ? " · 다음 날로 이어져요" : ""}</p><PlaceVisitHours id={entry.place.id} name={entry.place.name} visit={{ day: active.day, startsAt: entry.startsAt, endsAt: entry.endsAt }} /></li>;
+          return <li key={entry.place.id} id={`itinerary-stop-${entry.place.id}`} data-selected={entry.place.id === focusedPlaceId}>
+            <div className="simple-stop"><time>{entry.startsAtLabel}</time><div className="simple-stop-copy"><h3><button type="button" onClick={() => onSelectPlace(entry.place)}>{entry.place.name}</button></h3><p>{entry.visitMinutes}분 머묾 · {entry.visitEndsAtLabel}까지</p><PlaceFacilitySummary place={entry.place} en={false} /></div><button className="simple-edit-stop" type="button" onClick={() => setEditing(entry.place)} aria-label={`${entry.place.name} 일정 수정`}>수정</button></div>
+            <div className="simple-stop-details"><TripBreakSummary minutes={entry.breakMinutes} purpose={trip.restPurposeByPlaceId[entry.place.id]} start={entry.visitEndsAtLabel} end={entry.endsAtLabel} /><FixedVisitSummary fixed={trip.fixedVisits[entry.place.id]} waiting={entry.waitingMinutes} late={entry.lateMinutes} /><div className="simple-stop-controls"><button type="button" aria-label={`${entry.place.name} 같은 날 앞 순서로 이동`} disabled={!movement.up} onClick={() => trip.applyTripCommand({ type: 'move', id: entry.place.id, direction: 'up' })}>↑ 앞</button><button type="button" aria-label={`${entry.place.name} 같은 날 뒤 순서로 이동`} disabled={!movement.down} onClick={() => trip.applyTripCommand({ type: 'move', id: entry.place.id, direction: 'down' })}>↓ 뒤</button><button type="button" aria-label={`${entry.place.name} 지도에서 보기`} aria-pressed={entry.place.id === focusedPlaceId} disabled={!supportedPlacePoint(entry.place.mapX, entry.place.mapY)} onClick={() => onFocusPlace(entry.place)}>지도</button></div>
+              <PlaceVisitHours id={entry.place.id} name={entry.place.name} visit={{ day: active.day, startsAt: entry.startsAt, endsAt: entry.endsAt }} />
+              <p className="simple-leg-time">{entry.travelSource === 'route' ? `여기까지 이동 ${entry.travelMinutes}분` : entry.travelSource === 'estimate' ? `여기까지 이동 약 ${entry.travelMinutes}분 · 직선거리 추정` : '여기까지 이동시간 미확인'}{entry.crossesDateBoundary ? ' · 다음 날로 이어짐' : ''}</p>
+            </div>
+          </li>;
         })}</ol>
-        {!active?.entries.length && <p>추가할 여행지를 고르거나 다른 날짜의 장소를 옮겨보세요.</p>}
-        {trip.activeDay && <DayDeadlineControl key={trip.activeDay} day={trip.activeDay} value={trip.dayDeadlines[trip.activeDay]} entries={active?.entries || []} onChange={value => trip.setDayDeadline(trip.activeDay, value)} />}
-        <TripComfortPlan trip={trip} coverage={coverage} schedule={schedule} />
-        <RestStopFinder trip={trip} places={places} requiredKeys={requiredKeys} onSelectPlace={onSelectPlace} />
+        {!active?.entries.length && <p className="simple-empty">이 날짜에 담은 장소가 없어요.</p>}
+        {outside.length > 0 && <section className="simple-outside-dates"><h3>기간 밖에 남아 있는 장소</h3>{outside.map(place => <div key={place.id}><span>{place.name} · {trip.scheduleAssignments[place.id]}</span><button type="button" onClick={() => setEditing(place)}>날짜 수정</button></div>)}</section>}
+        <details className="simple-day-options"><summary>걷기·휴식·마치는 시각</summary>{trip.activeDay && <DayDeadlineControl key={trip.activeDay} day={trip.activeDay} value={trip.dayDeadlines[trip.activeDay]} entries={active?.entries || []} onChange={value => trip.applyTripCommand({ type: 'deadline', day: trip.activeDay, value })} />}<TripComfortPlan trip={trip} coverage={coverage} schedule={schedule} /><RestStopFinder trip={trip} places={places} requiredKeys={requiredKeys} onSelectPlace={onSelectPlace} /></details>
       </section>
-      {mapView && <div className="reference-board-map">{map}</div>}
-      <aside className="reference-itinerary-aside">{mapView ? <><h3>여행 정보</h3><PlannerWeatherCard weather={weather} loading={weatherLoading} region={region} /><div className="reference-tint"><strong>이동</strong><p>{coverage.readyCount} / {coverage.legs.length}구간 확인</p></div></> : <><h3>추가할 여행지</h3><p>현재 검색 조건에 맞는 장소</p>{candidates.slice(0, 4).map((place, index) => <article className="reference-add-place" key={place.id}><SmartSpotImage src={place.image} title={place.name} region={place.city || region} contentId={place.id} tag="" rank={index + 1} showMeta={false} /><div><button type="button" onClick={() => onSelectPlace(place)}>{place.name}</button><small>{place.city}</small></div><button className="reference-primary" type="button" aria-label={`${place.name} 일정에 추가`} onClick={() => { trip.toggleSaved(place.id, place); trip.assignPlaceToDay(place.id, trip.activeDay); }}>+ 추가</button></article>)}{!candidates.length && <p>검색한 여행지를 모두 일정에 담았어요.</p>}<div className="reference-tint"><strong>일정 편집 방법</strong><p>하루 시작 시간을 바꾸면 시간표가 함께 바뀝니다.</p><p>위·아래 버튼으로 순서를 바꾸고, 더보기에서 방문 날짜와 머무는 시간을 정하세요.</p></div></>}</aside>
+      {mapMounted && <div className="simple-itinerary-map" hidden={!mapView}>{map}</div>}
     </div>
-    <div className="reference-bottom-bar"><div><strong>DAY {trip.tripDays.indexOf(trip.activeDay) + 1} · {active?.entries.length || 0}곳</strong><small>미확인 이동 시간은 실제 경로 조회 후 확인해 주세요.</small></div><button type="button" onClick={onContinue}>다음: 전체보기</button></div>
+    {editing && <Suspense fallback={<LoadingState>일정 수정을 열고 있어요.</LoadingState>}><StopEditor key={editing.id} place={editing} trip={trip} onClose={closeEditor} /></Suspense>}
   </>;
 }

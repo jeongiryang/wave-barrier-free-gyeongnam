@@ -1,8 +1,9 @@
+import { resolveFacilityKeys } from "../../../lib/facility-selection.js";
 export const TRAVEL_PROFILE_VERSION = 1;
 
 function validIds(values, allowedIds) {
   const allowed = new Set(Array.isArray(allowedIds) ? allowedIds : []);
-  return [...new Set(Array.isArray(values) ? values.filter((id) => typeof id === "string" && allowed.has(id)) : [])].slice(0, 6);
+  return [...new Set(Array.isArray(values) ? values.filter((id) => typeof id === "string" && allowed.has(id)) : [])].slice(0, 16);
 }
 
 export function createTravelProfile(selectedIds, allowedIds, updatedAt = Date.now()) {
@@ -16,7 +17,7 @@ export function createTravelProfile(selectedIds, allowedIds, updatedAt = Date.no
 export function sanitizeTravelProfile(value, allowedIds) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   if (Number(value.version) !== TRAVEL_PROFILE_VERSION) return null;
-  const selectedIds = validIds(value.selectedIds, allowedIds);
+  const selectedIds = validIds(resolveFacilityKeys({ profiles: value.selectedIds }), allowedIds);
   const updatedAt = Number(value.updatedAt);
   if (!selectedIds.length || !Number.isFinite(updatedAt) || updatedAt <= 0) return null;
   return { version: TRAVEL_PROFILE_VERSION, selectedIds, updatedAt };

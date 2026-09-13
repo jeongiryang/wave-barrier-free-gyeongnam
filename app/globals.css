@@ -4,24 +4,24 @@
    경고·혼잡·성공 상태색과 보류된 다크 모드 토큰은 별도로 관리한다. */
 :root {
   --abyss: #04202f;
-  --ink: #2b2632;
-  --ink-soft: #51475e;
-  --blue: #6940a6;
-  --blue-dark: #58348d;
+  --ink: #242b2a;
+  --ink-soft: #43504d;
+  --blue: #12655b;
+  --blue-dark: #0a4d45;
   --surf: #17b8d4;
   --mint: #6fe3d0;
-  --sky: #efecf5;
-  --paper: #f5f4f8;
-  --line: #dcd8e4;
-  --muted: #696071;
+  --sky: #edf4f1;
+  --paper: #ffffff;
+  --line: #dce3e0;
+  --muted: #5c6865;
   --white: #fff;
   /* 파란 배경 위에 얹는 글자. 어두운 화면에서는 --blue가 밝아지므로 흰색을
      그대로 두면 대비가 2.47까지 떨어진다. 배경 토큰과 짝으로 뒤집는다. */
   --on-blue: #fff;
   --foam: #f7fcfe;
   /* 전 구역이 공유하는 바탕 */
-  --surface: #f5f4f8;
-  --surface-deep: #e9e3f3;
+  --surface: #ffffff;
+  --surface-deep: #e8eeec;
   --scroll-progress: 0%;
   --scroll-shift: 0px;
   --layout-max: 1840px;

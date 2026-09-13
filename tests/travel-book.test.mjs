@@ -81,9 +81,9 @@ test("오래된 기록의 손상된 날짜는 정리하되 유효한 원래 장�
   assert.equal(book.places.length, TRAVEL_BOOK_MAX_PLACES);
 });
 
-test("새 여행집은 7일 초과 또는 날짜 해결 전 장소를 다른 날짜로 저장하지 않는다", () => {
+test("7일 초과 기간은 거부하고 기간 밖 장소의 실제 날짜는 보관한다", () => {
   assert.equal(createTravelBookSnapshot(input({ travelEnd: "2026-09-09" })), null);
-  assert.equal(createTravelBookSnapshot(input({ travelEnd: "2026-09-01" })), null);
+  assert.equal(createTravelBookSnapshot(input({ travelEnd: "2026-09-01" })).scheduleAssignments.b, "2026-09-02");
   const original = input({ travelEnd: "2026-09-01" });
   assert.equal(travelBookRestorePayload(original).schedule.scheduleAssignments.b, "2026-09-02");
 });
