@@ -42,8 +42,10 @@ export default function TripShareMenu({ trip, participation, region }: { trip: R
     <button type="button" data-planner-tool="calendar" aria-disabled={busy} aria-busy={busy} onClick={() => void calendar()}>{busy ? <Spinner /> : <ShareIcon kind="calendar"/>}<span>캘린더</span></button>
   </div>{participation.shareState === 'saving' && <p role="status"><Spinner />공유 링크를 준비하고 있어요.</p>}
   <p className="simple-share-caption">같은 링크에 수정한 일정이 반영돼요. 발급일부터 30일 동안 볼 수 있고, 편의 조건·메모·현재 위치는 공유하지 않아요.</p>
-  {notice && <p role="status">{notice}</p>}
-  {participation.shareNotice && (!notice || ['error', 'copy-error'].includes(participation.shareState)) && <p role="status">{participation.shareNotice}</p>}
+  {(notice || participation.shareNotice) && <p role="status">
+    {notice}
+    {participation.shareNotice && (!notice || ['error', 'copy-error'].includes(participation.shareState)) && <>{notice && <br />}{participation.shareNotice}</>}
+  </p>}
   {participation.shareUrl && participation.shareState === 'error' && <button type="button" onClick={() => { setNotice(''); void participation.refreshShareVersion(); }}>현재 일정으로 링크 갱신</button>}
   {participation.shareUrl && <div className="simple-share-link"><a href={participation.shareUrl} target="_blank" rel="noreferrer">공유 일정 보기</a><button type="button" disabled={participation.shareState === 'saving'} onClick={() => { setNotice(''); void participation.revokeShare(); }}>공유 종료</button></div>}
   </dialog>}</>;

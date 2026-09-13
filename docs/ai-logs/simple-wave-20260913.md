@@ -88,6 +88,12 @@ QA에서 지연 모듈이 열린 뒤 편집의 자동 저장 누락, 이동수�
 
 수정 후 신규 양 기기 2개와 기존 공유 회귀 16개가 모두 PASS했다(workers 1·retry 0, 고유 18개). 변경 파일 lint·typecheck·diff check도 통과했다. Production 검증에는 같은 여행/저장 ID에서 나루의 45분 변경이 실제 자동 저장된 뒤 60분으로 되돌아오는지, 실제 assistant 응답의 source/proposal이 무엇인지 확인하는 절차를 추가했다. 모델 출처는 실제 응답을 그대로 기록하며 추정하지 않는다. 최종 등록 브라우저 사례는 1,482개다.
 
+## 다섯 번째 전체 CI 이후 공유 상태 영역 정리
+
+[다섯 번째 CI](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34757234017)는 1,477 PASS·4 FAIL·기존 SKIP 1개, FLAKY 0개였다. quality·boundary와 다른 6개 browser shard는 통과했으며 실패는 양 기기의 캘린더 안내 2사례에 한정됐다. 이전 다운로드 안내와 링크 오류를 별도 `status` 두 개로 표시하여 기존 단수 상태 영역 계약과 맞지 않았다.
+
+다운로드·캘린더 결과와 동시 발생한 링크 오류를 줄바꿈으로 구분하되 하나의 `role=status` 문단으로 묶었다. 기존 글자·여백 스타일을 유지하고 검사 선택자는 바꾸지 않았다. 해당 캘린더 4개와 동시 오류·공유 갱신/종료 신규 2개가 양 기기에서 모두 PASS했다. typecheck·변경 파일 lint·diff check도 통과했다. 독립 QA가 다른 내보내기 검사의 상태 영역은 별도 패널임을 한정 검색으로 확인했다. 최종 전체 CI와 실제 배포 결과는 PR에 기록한다.
+
 ## 배포 영향과 제한
 
 - `013_live_shared_trips.sql`은 기존 공유 일정 테이블에 기본값을 가진 컬럼을 추가한다. 기존 링크는 `live=false`와 기존 만료일을 유지한다. 새로운 환경 변수나 유료 공급자는 없다.
