@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 import { renderKakaoMap } from "./kakao-map-renderer";
 import { renderLeafletMap } from "./leaflet-map-renderer";
-import type { MapRendererContext } from "./map-renderer-context";
+import type { MapContentController, MapRendererContext } from "./map-renderer-context";
 
 interface UseMapRendererOptions extends MapRendererContext {
   retryNonce: number;
@@ -45,6 +45,11 @@ export function useMapRenderer(options: UseMapRendererOptions) {
     setSelectedMapPlace,
   } = options;
 
+  const contentRef = useRef<MapContentController | null>(null);
+  const readContent = useEffectEvent(() => ({ origin, places, route, crowdVisual, crowdPlace }));
+  // Only a different travel scope replaces the map and invalidates its searches.
+  const geometryKey = JSON.stringify([origin.lat, origin.lng, places.map(place => [place.id, Number(place.mapX), Number(place.mapY)])]);
+
   useEffect(() => {
     let cancelled = false;
     const context: MapRendererContext = {
@@ -53,11 +58,7 @@ export function useMapRenderer(options: UseMapRendererOptions) {
       kakaoMapRef,
       drawingManagerRef,
       fitMapRef,
-      origin,
-      places,
-      route,
-      crowdVisual,
-      crowdPlace,
+      ...readContent(),
       pickModeRef,
       roadviewSelectModeRef,
       onOriginChangeRef,
@@ -82,7 +83,13 @@ export function useMapRenderer(options: UseMapRendererOptions) {
       if (key) {
         try {
           const rendered = await renderKakaoMap(key, context, isCancelled);
-          if (rendered || cancelled) return;
+          if (rendered) {
+            if (cancelled) { rendered.dispose(); return; }
+            contentRef.current = rendered;
+            rendered.update(readContent());
+            return;
+          }
+          if (cancelled) return;
         } catch (error) {
           if (cancelled) return;
           setProviderDetail(error instanceof Error && error.message.includes("domain")
@@ -92,7 +99,12 @@ export function useMapRenderer(options: UseMapRendererOptions) {
       } else {
         setProviderDetail("기본 지도를 불러오지 못해 대체 지도를 표시합니다.");
       }
-      await renderLeafletMap(context, isCancelled);
+      const rendered = await renderLeafletMap(context, isCancelled);
+      if (rendered) {
+        if (cancelled) { rendered.dispose(); return; }
+        contentRef.current = rendered;
+        rendered.update(readContent());
+      }
     }
 
     void render().catch(() => {
@@ -102,6 +114,8 @@ export function useMapRenderer(options: UseMapRendererOptions) {
     });
     return () => {
       cancelled = true;
+      contentRef.current?.dispose();
+      contentRef.current = null;
       fitMapRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
@@ -110,12 +124,8 @@ export function useMapRenderer(options: UseMapRendererOptions) {
       clearCategoryMarkers();
     };
   }, [
-    origin,
-    places,
-    route,
+    geometryKey,
     retryNonce,
-    crowdVisual,
-    crowdPlace,
     clearCategoryMarkers,
     choosePlace,
     containerRef,
@@ -135,4 +145,12 @@ export function useMapRenderer(options: UseMapRendererOptions) {
     setRoadviewSelectMode,
     setSelectedMapPlace,
   ]);
+
+  useEffect(() => {
+    try { contentRef.current?.update({ origin, places, route, crowdVisual, crowdPlace }); }
+    catch {
+      setProvider("error");
+      setProviderDetail("지도를 불러오지 못했습니다.");
+    }
+  }, [origin, places, route, crowdVisual, crowdPlace, setProvider, setProviderDetail]);
 }

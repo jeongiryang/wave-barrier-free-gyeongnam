@@ -193,13 +193,14 @@ test('a replacement day map receives settled padding even at identical shell dim
   h.dispose();
 });
 test('renderer cleanup clears fitting callback before late configuration resolves', async () => {
-  let cleanup, release;
+  let release;
+  const cleanups = [];
   const pending = new Promise(resolve => release = resolve);
   const fitMapRef = { current: () => {
       throw Error('stale callback');
     } };
   const mod = { exports: {} };
-  const require = n => n === 'react' ? { useEffect: fn => cleanup = fn() } : n === './kakao-map-renderer' ? { renderKakaoMap: () => {
+  const require = n => n === 'react' ? { useRef: value => ({ current: value }), useEffectEvent: fn => fn, useEffect: fn => cleanups.push(fn()) } : n === './kakao-map-renderer' ? { renderKakaoMap: () => {
       throw Error('cancelled render ran');
     } } : { renderLeafletMap: () => {
       throw Error('cancelled fallback ran');
@@ -208,9 +209,10 @@ test('renderer cleanup clears fitting callback before late configuration resolve
   const noop = () => {
   };
   mod.exports.useMapRenderer({
+    origin: { lat: 35.2, lng: 128.6 }, places: [], route: null,
     fitMapRef, containerRef: { current: null }, mapRef: { current: null }, kakaoMapRef: { current: null }, drawingManagerRef: { current: null }, clearCategoryMarkers: noop, setProvider: noop, setProviderDetail: noop
   });
-  cleanup();
+  cleanups.forEach(cleanup => cleanup?.());
   assert.equal(fitMapRef.current, null);
   release(Response.json({ javascriptKey: '' }));
   await new Promise(setImmediate);
@@ -222,9 +224,15 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
   const f = fixture();
   let markersMounted = !deferredMarkers;
   const markerNodes = f.canvas.querySelectorAll;
-  f.canvas.querySelectorAll = () => markersMounted ? markerNodes() : [];
-  f.canvas.replaceChildren = () => { markersMounted = !deferredMarkers; };
-  const maps = [], overlays = [];
+  let mountedNodes = [];
+  const maps = [], overlays = [], layers = [], chosen = [], focusCalls = [];
+  const document = { activeElement: null };
+  const currentNodes = () => markersMounted ? mountedNodes.filter(node => node.dataset.placeId) : [];
+  f.canvas.ownerDocument = document;
+  f.canvas.contains = node => currentNodes().includes(node);
+  f.canvas.querySelectorAll = selector => selector === '.wave-map-icon.place' ? (markersMounted ? markerNodes() : [])
+    : selector.includes('aria-current') ? currentNodes().filter(node => node['aria-current'] === 'location') : currentNodes();
+  f.canvas.replaceChildren = () => { markersMounted = !deferredMarkers; mountedNodes = []; };
   const noop = () => undefined;
   const context = {
     containerRef: { current: f.canvas }, mapRef: { current: null },
@@ -241,7 +249,7 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
     route: null, crowdVisual: null, pickModeRef: { current: null },
     roadviewSelectModeRef: { current: false }, onOriginChangeRef: { current: noop },
     onDestinationChangeRef: { current: noop }, openRoadviewAt: noop,
-    choosePlace: noop, clearCategoryMarkers: noop, setProvider: noop,
+    choosePlace: place => chosen.push(place), clearCategoryMarkers: noop, setProvider: noop,
     setProviderDetail: noop, setSelectedMapPlace: noop, setPickMode: noop,
     setRoadviewSelectMode: noop, setMeasureSummary: noop,
   };
@@ -297,48 +305,56 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
   class Bounds {
     points = [];
     extend(point) {
-      this.points.push([point.getLat(), point.getLng()]);
+      // Geographic bounds extend idempotently; repeated visual updates cannot
+      // create additional itinerary points in the actual SDK bounds.
+      const next = [point.getLat(), point.getLng()];
+      if (!this.points.some(existing => existing[0] === next[0] && existing[1] === next[1])) this.points.push(next);
     }
   }
   class Overlay {
+    constructor(options = {}) { this.options = options; this.map = options.map; this.detached = 0; layers.push(this); }
+    setMap(map) {
+      this.map = map;
+      if (!map) { this.detached++; mountedNodes = mountedNodes.filter(node => node !== this.options.content); }
+    }
   }
   const sdk = {
     Map: MapAdapter, LatLng, LatLngBounds: Bounds, Marker: Overlay,
-    CustomOverlay: class {
+    CustomOverlay: class extends Overlay {
       constructor(options) {
+        super(options);
         overlays.push(options);
+        mountedNodes.push(options.content);
       }
     },
-    Polyline: Overlay, load: done => done(),
+    Polyline: Overlay, Circle: Overlay, load: done => done(),
   };
-  const layer = () => ({
-    getElement() { return { dataset: {} }; },
-    addTo() {
-      return this;
-    }, bindPopup() {
-      return this;
-    }, on() {
-      return this;
-    }
-  });
+  const node = tag => {
+    const element = { tag, children: [], dataset: {}, listeners: {}, className: '', style: { setProperty: noop },
+      setAttribute(name, value) { this[name] = value; }, appendChild(child) { this.children.push(child); },
+      addEventListener(name, callback) { this.listeners[name] = callback; },
+      focus(options) { document.activeElement = this; focusCalls.push(options); } };
+    element.classList = { add(name) { element.className = [...new Set([...element.className.split(' ').filter(Boolean), name])].join(' '); },
+      contains(name) { return element.className.split(' ').includes(name); } };
+    return element;
+  };
+  const layer = (kind, options = {}) => {
+    const element = node('button');
+    const item = { kind, options, element, handlers: {}, removed: 0,
+      getElement() { return markersMounted ? element : null; },
+      addTo(map) { this.map = map; if (kind === 'marker') mountedNodes.push(element); return this; },
+      bindPopup(html) { this.popup = html; return this; },
+      on(event, callback) { this.handlers[event] = callback; element.listeners[event] = callback; return this; },
+      remove() { this.removed++; this.map = null; mountedNodes = mountedNodes.filter(node => node !== element); } };
+    layers.push(item); return item;
+  };
   const leaflet = {
-    map: () => new MapAdapter(), control: { zoom: layer }, tileLayer: layer,
+    map: () => new MapAdapter(), control: { zoom: options => layer('control', options) }, tileLayer: (_url, options) => layer('tiles', options),
     latLngBounds: (...points) => points,
-    divIcon: options => options, marker: layer, polyline: layer,
+    divIcon: options => options, marker: (_position, options) => layer('marker', options),
+    polyline: (path, options) => layer('polyline', { path, ...options }), circle: (_position, options) => layer('circle', options),
   };
-  const document = {
-    createElement(tag) {
-      return {
-        tag, children: [], dataset: {}, style: { setProperty: noop },
-        setAttribute(name, value) {
-          this[name] = value;
-        },
-        appendChild(child) {
-          this.children.push(child);
-        }, addEventListener: noop
-      };
-    },
-  };
+  document.createElement = node;
   const require = name => {
     if (name === "../../lib/gyeongnam-map-viewport.js")
       return { GYEONGNAM_MAP_BOUNDS, constrainedGyeongnamViewport };
@@ -351,8 +367,11 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
       return utils.exports;
     if (name === "./kakao-sdk")
       return { loadKakaoSdk: async () => undefined };
-    if (name === "./map-renderer-context")
-      return { pickedDestination: noop };
+    if (name === "./map-renderer-context") {
+      const helpers = { exports: {} };
+      new Function('module', 'exports', compile('features/routing/map-renderer-context.ts'))(helpers, helpers.exports);
+      return helpers.exports;
+    }
     if (name === "leaflet")
       return leaflet;
     throw Error("Unexpected renderer dependency: " + name);
@@ -366,7 +385,7 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
     ? () => compiledModule.exports.renderKakaoMap("unit-only-no-network", context, () => cancelled)
     : () => compiledModule.exports.renderLeafletMap(context, () => cancelled);
   return {
-    ...f, maps, overlays, context, render, cancel: () => {
+    ...f, maps, overlays, layers, chosen, document, focusCalls, nodes: currentNodes, context, render, cancel: () => {
       cancelled = true;
     }
   };
@@ -411,6 +430,52 @@ for (const provider of ["kakao", "leaflet"]) {
     f.cancel();
     f.context.fitMapRef.current();
     assert.equal(nextMap.fits.length, currentCount);
+  });
+
+  test(provider + " visual refresh preserves SDK, viewport and marker focus while clicks use current metadata", async () => {
+    const f = rendererHarness(provider), content = await f.render();
+    const map = f.maps[0], fit = f.context.fitMapRef.current, fitCount = map.fits.length;
+    const firstNode = f.nodes().find(node => node.dataset.placeId === 'Junam');
+    assert.ok(firstNode);
+    firstNode.setAttribute('aria-current', 'location');
+    firstNode.focus({ preventScroll: true });
+    const layerCount = f.layers.length;
+    const metadata = f.context.places.map(place => ({ ...place, address: 'Newest official address', score: 42,
+      accessibility: [{ key: 'restroom', state: 'negative', detail: 'Latest official absence' }] }));
+    content.update({ ...f.context, places: metadata });
+    assert.equal(f.layers.length, layerCount, 'metadata-only arrivals must not redraw markers');
+    assert.equal(f.nodes().find(node => node.dataset.placeId === 'Junam'), firstNode);
+    firstNode.listeners.click();
+    assert.equal(f.chosen.at(-1), metadata[0], 'the existing click handler must pass the newest evidence, including negative evidence');
+
+    const oldContent = f.layers.filter(item => item.map === map && (item.options.content || item.kind === 'polyline' || item.kind === 'circle' || item.element?.dataset.placeId || item.options.path));
+    const refreshedPlaces = metadata.map((place, index) => ({ ...place, name: `${place.name} refreshed`, image: index ? '' : 'https://example.invalid/new-photo.jpg' }));
+    const route = { configured: true, geometry: [{ lat: 35.2, lng: 128.6 }, { lat: 35.3, lng: 128.65 }, { lat: 35.31, lng: 128.67 }] };
+    const update = { ...f.context, places: refreshedPlaces, route,
+      crowdVisual: { level: 'busy', color: '#ee6b3b', soft: 'orange', radius: 1850 }, crowdPlace: refreshedPlaces[0] };
+    content.update(update);
+    assert.equal(f.maps.length, 1); assert.equal(map.removed, undefined);
+    assert.equal(f.context.fitMapRef.current, fit); assert.equal(map.fits.length, fitCount, 'visual arrivals must not refit a user-panned viewport');
+    assert.ok(oldContent.every(item => item.map === null), 'old route and venue layers must detach instead of accumulating');
+    const currentNode = f.nodes().find(node => node.dataset.placeId === 'Junam');
+    assert.notEqual(currentNode, firstNode);
+    assert.equal(currentNode['aria-current'], 'location');
+    assert.equal(currentNode.classList.contains('itinerary-focused'), true);
+    assert.equal(f.document.activeElement, currentNode);
+    assert.deepEqual(f.focusCalls.at(-1), { preventScroll: true });
+    currentNode.listeners.click(); assert.equal(f.chosen.at(-1), refreshedPlaces[0]);
+    const lines = f.layers.filter(item => item.map === map && item.options.path);
+    assert.equal(lines.length, 1);
+    const path = lines[0].options.path.map(point => Array.isArray(point) ? point : [point.getLat(), point.getLng()]);
+    assert.deepEqual(path, route.geometry.map(point => [point.lat, point.lng]));
+
+    const currentLayers = f.layers.length;
+    content.update({ ...update, places: refreshedPlaces.map(place => ({ ...place })), route: { ...route, geometry: route.geometry.map(point => ({ ...point })) } });
+    assert.equal(f.layers.length, currentLayers, 'equivalent visual data must not create new SDK layers');
+    f.cancel(); content.update({ ...update, route: null });
+    assert.equal(f.layers.length, currentLayers, 'a cancelled map must ignore a late visual update');
+    content.dispose();
+    assert.equal(f.nodes().length, 0);
   });
 }
 

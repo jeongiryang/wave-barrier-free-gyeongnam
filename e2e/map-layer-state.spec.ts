@@ -47,33 +47,24 @@ for (const kind of ["base", "layer"]) test(`map ${kind} selection stays true whe
     await page.locator("#map-panel-layers").getByRole("button",{name:"교통정보",exact:true}).click();
   }
   const before=await currentMap(page);expect(before.base).toBe(3);if(kind==="layer")expect(before.layers).toEqual([4]);
-  let beforeEvidenceMap: number | undefined;
-  if (kind === "layer") {
-    let currentEvidenceReceived = false;
-    page.on("response", response => {
-      const url = new URL(response.url());
-      if (url.pathname === "/api/wave" && url.searchParams.get("action") === "places" && url.searchParams.get("ids") === "1001,1002") currentEvidenceReceived = true;
-    });
-    await page.route("**/api/map-config", async route => {
-      if (currentEvidenceReceived) beforeEvidenceMap = (await currentMap(page)).count;
-      await route.fallback();
-    });
-  }
+  const evidence = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === "/api/wave" && url.searchParams.get("action") === "places" && url.searchParams.get("ids") === "1001,1002";
+  });
   await addAnotherMapPlace(page);
   await expect(page.locator(".simple-stops > li")).toHaveCount(2);
-  await expect.poll(async()=>(await currentMap(page)).count).toBeGreaterThan(before.count);
+  await expect.poll(async()=>(await currentMap(page)).count).toBe(before.count + 1);
+  await (await evidence).finished();
   await openMapTool(page, "layers");
   await test.info().attach("map-settings-after-itinerary-change", { body: JSON.stringify({ before, after: await currentMap(page) }, null, 2), contentType: "application/json" });
   await expect(sky).toHaveAttribute("aria-pressed","true");
   expect((await currentMap(page)).base).toBe(3);
   if(kind==="layer") {await openMapTool(page, "layers");await expect(page.locator("#map-panel-layers").getByRole("button",{name:"교통정보",exact:true})).toHaveAttribute("aria-pressed","true");expect((await currentMap(page)).layers).toEqual([4]);}
   if (kind === "layer") {
-    // Rechecked saved-place evidence legitimately replaces the map. Finish that
-    // generation before measuring layout-only changes against the same SDK.
-    await expect.poll(() => beforeEvidenceMap).toBeDefined();
-    await expect.poll(async () => (await currentMap(page)).count).toBeGreaterThan(beforeEvidenceMap!);
+    // Same-ID evidence and responsive layout both preserve this geometry's SDK.
     await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
     const beforeResize = await currentMap(page);
+    expect(beforeResize.count).toBe(before.count + 1);
     for (const width of [1023, 1024, 1440, 390]) {
       await page.setViewportSize({ width, height: 844 });
       await ensureMapView(page);

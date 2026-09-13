@@ -1,5 +1,5 @@
 import { loadKakaoSdk } from "./kakao-sdk";
-import { pickedDestination, type MapRendererContext } from "./map-renderer-context";
+import { mapContentKey, mapMarkerState, restoreMapMarkerState, pickedDestination, type MapRenderContent, type MapRendererContext } from "./map-renderer-context";
 import { mapFitPadding, safeMapImageUrl, summarizeMeasurements } from "./map-utils";
 import { restrictKakaoViewport } from "./kakao-map-viewport";
 
@@ -9,8 +9,8 @@ export async function renderKakaoMap(
   isCancelled: () => boolean,
 ) {
   const {
-    containerRef, kakaoMapRef, drawingManagerRef, fitMapRef, origin, places, route,
-    crowdVisual, crowdPlace, pickModeRef, roadviewSelectModeRef,
+    containerRef, kakaoMapRef, drawingManagerRef, fitMapRef, origin, places,
+    pickModeRef, roadviewSelectModeRef,
     onOriginChangeRef, onDestinationChangeRef, openRoadviewAt, choosePlace,
     setProvider, setProviderDetail, setSelectedMapPlace, setPickMode,
     setMeasureSummary,
@@ -69,65 +69,84 @@ export async function renderKakaoMap(
   const addPoint = (lat: number, lng: number, title: string) => {
     const position = new K.LatLng(lat, lng);
     bounds.extend(position);
-    new K.Marker({ map, position, title });
+    return new K.Marker({ map, position, title });
   };
-  addPoint(origin.lat, origin.lng, "출발지");
-  places.forEach((place, index) => {
-    const lat = Number(place.mapY);
-    const lng = Number(place.mapX);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-    const position = new K.LatLng(lat, lng);
-    bounds.extend(position);
-    const image = safeMapImageUrl(place.image);
-    const marker = document.createElement("button");
-    marker.type = "button";
-    marker.dataset.placeId = place.id;
-    const isCrowdPlace = Boolean(crowdVisual && crowdPlace?.id === place.id);
-    marker.className = `${image ? "wave-map-icon place has-photo kakao-photo-marker" : "wave-map-icon place kakao-number-marker"}${isCrowdPlace ? ` crowd-aware crowd-${crowdVisual?.level}` : ""}`;
-    if (isCrowdPlace && crowdVisual) {
-      marker.style.setProperty("--crowd-color", crowdVisual.color);
-      marker.style.setProperty("--crowd-soft", crowdVisual.soft);
-    }
-    marker.title = `${place.name} · 편의시설과 실제 이동 가능 여부는 방문 전 확인`;
-    marker.setAttribute("aria-label", marker.title);
-    if (image) {
-      const photo = document.createElement("span");
-      photo.className = "photo-pin";
-      photo.style.backgroundImage = `url("${image.replace(/["\\]/g, "")}")`;
-      const rank = document.createElement("b");
-      rank.textContent = String(index + 1);
-      photo.appendChild(rank);
-      marker.appendChild(photo);
-    } else marker.textContent = String(index + 1);
-    marker.addEventListener("click", () => choosePlace(place));
-    new K.CustomOverlay({ map, position, content: marker, yAnchor: 1, xAnchor: .5 });
-    if (isCrowdPlace && crowdVisual) new K.Circle({
-      map,
-      center: position,
-      radius: crowdVisual.radius,
-      strokeWeight: 3,
-      strokeColor: crowdVisual.color,
-      strokeOpacity: .78,
-      strokeStyle: "shortdash",
-      fillColor: crowdVisual.color,
-      fillOpacity: .13,
+  const originMarker = addPoint(origin.lat, origin.lng, "출발지");
+  let latest: MapRenderContent = context;
+  let renderedKey: string | null = null;
+  let overlays: Array<{ setMap(map: typeof kakaoMapRef.current): void }> = [];
+  const clearContent = () => {
+    for (const overlay of overlays) { try { overlay.setMap(null); } catch { /* Detached by the provider. */ } }
+    overlays = [];
+  };
+  const update = (content: MapRenderContent) => {
+    if (isCancelled() || !containerRef.current) return;
+    latest = content;
+    const nextKey = mapContentKey(content);
+    if (nextKey === renderedKey) return;
+    renderedKey = nextKey;
+    const markerState = mapMarkerState(containerRef.current);
+    clearContent();
+    const { places, route, crowdVisual, crowdPlace } = content;
+    places.forEach((place, index) => {
+      const lat = Number(place.mapY);
+      const lng = Number(place.mapX);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      const position = new K.LatLng(lat, lng);
+      bounds.extend(position);
+      const image = safeMapImageUrl(place.image);
+      const marker = document.createElement("button");
+      marker.type = "button";
+      marker.dataset.placeId = place.id;
+      const isCrowdPlace = Boolean(crowdVisual && crowdPlace?.id === place.id);
+      marker.className = `${image ? "wave-map-icon place has-photo kakao-photo-marker" : "wave-map-icon place kakao-number-marker"}${isCrowdPlace ? ` crowd-aware crowd-${crowdVisual?.level}` : ""}`;
+      if (isCrowdPlace && crowdVisual) {
+        marker.style.setProperty("--crowd-color", crowdVisual.color);
+        marker.style.setProperty("--crowd-soft", crowdVisual.soft);
+      }
+      marker.title = `${place.name} · 편의시설과 실제 이동 가능 여부는 방문 전 확인`;
+      marker.setAttribute("aria-label", marker.title);
+      if (image) {
+        const photo = document.createElement("span");
+        photo.className = "photo-pin";
+        photo.style.backgroundImage = `url("${image.replace(/["\\]/g, "")}")`;
+        const rank = document.createElement("b");
+        rank.textContent = String(index + 1);
+        photo.appendChild(rank);
+        marker.appendChild(photo);
+      } else marker.textContent = String(index + 1);
+      marker.addEventListener("click", () => choosePlace(latest.places.find(current => current.id === place.id) || place));
+      overlays.push(new K.CustomOverlay({ map, position, content: marker, yAnchor: 1, xAnchor: .5 }));
+      if (isCrowdPlace && crowdVisual) overlays.push(new K.Circle({
+        map,
+        center: position,
+        radius: crowdVisual.radius,
+        strokeWeight: 3,
+        strokeColor: crowdVisual.color,
+        strokeOpacity: .78,
+        strokeStyle: "shortdash",
+        fillColor: crowdVisual.color,
+        fillOpacity: .13,
+      }));
     });
-  });
 
-  const fallbackGeometry = [
-    { lat: origin.lat, lng: origin.lng },
-    ...places.map((place) => ({ lat: Number(place.mapY), lng: Number(place.mapX) }))
-      .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng)),
-  ];
-  const geometry = route?.geometry?.length ? route.geometry : fallbackGeometry;
-  if (geometry.length > 1) new K.Polyline({
-    map,
-    path: geometry.map((point) => new K.LatLng(point.lat, point.lng)),
-    strokeWeight: 6,
-    strokeColor: route?.configured ? "#0a6baf" : "#5aa3c4",
-    strokeOpacity: .82,
-    strokeStyle: route?.configured ? "solid" : "shortdash",
-  });
+    const fallbackGeometry = [
+      { lat: origin.lat, lng: origin.lng },
+      ...places.map((place) => ({ lat: Number(place.mapY), lng: Number(place.mapX) }))
+        .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng)),
+    ];
+    const geometry = route?.geometry?.length ? route.geometry : fallbackGeometry;
+    if (geometry.length > 1) overlays.push(new K.Polyline({
+      map,
+      path: geometry.map((point) => new K.LatLng(point.lat, point.lng)),
+      strokeWeight: 6,
+      strokeColor: route?.configured ? "#0a6baf" : "#5aa3c4",
+      strokeOpacity: .82,
+      strokeStyle: route?.configured ? "solid" : "shortdash",
+    }));
+    restoreMapMarkerState(containerRef.current, markerState);
+  };
+  update(context);
   const fit = () => {
     const canvas = containerRef.current;
     if (isCancelled() || kakaoMapRef.current !== map || !canvas) return;
@@ -145,5 +164,5 @@ export async function renderKakaoMap(
   setProvider("kakao");
   constrainViewport();
   setProviderDetail("카카오 지도로 표시 중입니다.");
-  return true;
+  return { update, dispose: () => { clearContent(); originMarker.setMap(null); } };
 }
