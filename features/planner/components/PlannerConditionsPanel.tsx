@@ -43,15 +43,14 @@ export default function PlannerConditionsPanel({ planController: plan, onRegionC
   const [facilitiesOpen, setFacilitiesOpen] = useState(false);
   const closeFacilities = useCallback(() => setFacilitiesOpen(false), []);
   const ready = plan.criteriaReady && trip.storageReady;
-  const chooseRegion = (control: HTMLSelectElement) => {
-    onRegionChange(control.value);
+  const restoreRegionFocus = (control: HTMLSelectElement) => {
     window.requestAnimationFrame(() => {
       if (control.isConnected && (!document.activeElement || document.activeElement === document.body)) control.focus({ preventScroll: true });
     });
   };
   return <section lang="ko" className="simple-search-controls" id="conditions" aria-label="여행지 검색 조건" aria-busy={!ready}>
     {!ready && <LoadingState>여행 조건을 불러오고 있어요.</LoadingState>}
-    <div className="simple-search-bar"><label><span>지역</span><select aria-label="여행 지역" value={plan.region} disabled={!ready} onChange={event => chooseRegion(event.currentTarget)}><option value="" disabled>지역 선택</option>{regions.map(region => <option key={region}>{region}</option>)}</select></label>
+    <div className="simple-search-bar" onChange={event => { if (event.target instanceof HTMLSelectElement) restoreRegionFocus(event.target); }}><label><span>지역</span><select aria-label="여행 지역" value={plan.region} disabled={!ready} onChange={event => onRegionChange(event.target.value)}><option value="" disabled>지역 선택</option>{regions.map(region => <option key={region}>{region}</option>)}</select></label>
       <button type="button" className="simple-facility-trigger" onClick={() => setFacilitiesOpen(true)} disabled={!ready}>필요한 편의{plan.selected.length > 0 ? ` · ${plan.selected.length}개` : ""}<span aria-hidden="true">⌄</span></button>
       {plan.loading && <span className="simple-searching" role="status"><span className="button-loader" />검색 중</span>}
     </div>
