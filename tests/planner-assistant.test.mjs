@@ -12,6 +12,8 @@ import { verifySameOriginMutation } from '../lib/security/request-boundaries.js'
 import { cacheControlHeader } from '../lib/http-cache.js';
 import { ProviderRequestError } from '../lib/provider-failure.js';
 import { validateAssistantPhoto } from '../lib/assistant-photo.js';
+import * as guidance from '../lib/guidance-preferences.js';
+import * as comfort from '../lib/trip-comfort.js';
 
 function compile(file, dependencies, globals = {}) {
   const exports = {};
@@ -27,6 +29,8 @@ function handler(responder, configured = true) {
     '../../lib/facility-selection.js': facilities, '../shared/http': http, '../../lib/assistant-actions.js': actions,
     '../../lib/assistant-grounding.js': { groundAssistantProposal },
     '../../lib/assistant-photo.js': { validateAssistantPhoto },
+    '../../lib/guidance-preferences.js': guidance,
+    '../../lib/trip-comfort.js': comfort,
     '../../lib/provider-failure.js': { ProviderRequestError },
     '../shared/provider-request.js': {
       createProviderRequester: () => {

@@ -14,7 +14,7 @@ export default function TripStorageNotice({ snapshot }: { snapshot: Record<strin
   }, [unsaved]);
   if (!unsaved) return null;
   let conflict = false; try { conflict = tripStorageConflict(window.localStorage); } catch { /* Read failure keeps recovery. */ }
-  if (conflict) return <div className="result-notice error" role="alert"><p>다른 탭에서 여행이 바뀌었어요. 이 탭의 변경으로 덮어쓰지 않도록 편집을 멈췄어요.</p><button type="button" onClick={() => { intentionalLoad.current = true; window.location.assign("/planner"); }}>현재 여행 불러오기</button></div>;
+  if (conflict) return <div className="result-notice error" role="alert"><p>다른 탭에서 여행이 바뀌었어요. 이 탭의 변경으로 덮어쓰지 않도록 편집을 멈췄어요.</p><button type="button" onClick={() => { intentionalLoad.current = true; window.location.reload(); }}>현재 여행 불러오기</button></div>;
   return <div className="result-notice error" role="alert"><strong>이 탭에만 남아 있는 변경 사항이 있어요.</strong><p>브라우저 저장 공간을 사용할 수 없습니다. 화면을 닫기 전에 다시 저장하거나 여행 파일을 내려받아 주세요.</p>
     <button type="button" onClick={() => { try { replaceCurrentTrip(window.localStorage, snapshot); } catch { /* Keep the recovery controls visible. */ } }}>저장 다시 시도</button>
     <button type="button" onClick={() => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { emptyTrip, readTripValue, THEMES_KEY } from "../../../lib/current-trip-storage.js";
+import { emptyTrip, readTripValue, THEMES_KEY, FACILITIES_KEY, GUIDANCE_KEY } from "../../../lib/current-trip-storage.js";
 import { replaceTripWithBackup } from "../../../lib/trip-import.js";
 import { selectedThemes } from "../../../lib/planner-criteria.js";
 import { sanitizeTravelMode } from "../../../lib/trip-travel-mode.js";
@@ -29,6 +29,10 @@ export default function SharedTripRedesign({ selections }: { selections: SharedT
       const values = emptyTrip(region, start, end);
       replaceTripWithBackup(window.localStorage, {
         ...values,
+        // Shared links never import another traveller's access needs or erase
+        // the choices already made on this device.
+        [FACILITIES_KEY]: readTripValue(window.localStorage, FACILITIES_KEY) || '[]',
+        [GUIDANCE_KEY]: readTripValue(window.localStorage, GUIDANCE_KEY) || '{}',
         "wave-trip-schedule-v1": JSON.stringify({ ...JSON.parse(values["wave-trip-schedule-v1"]), travelMode: sanitizeTravelMode(selections.travelMode) }),
         [THEMES_KEY]: JSON.stringify(selectedThemes(selections.themes ?? selections.theme)),
       });

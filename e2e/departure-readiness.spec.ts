@@ -7,7 +7,7 @@ test('departure disclosures distinguish partial evidence and keyboard calendar k
   await page.clock.setFixedTime(new Date('2026-10-08T01:00:00Z')); const today = '2026-10-08';
   await page.emulateMedia({ reducedMotion: 'reduce' }); await mockPlannerApi(page);
   await page.route('**/api/wave?*', async route => new URL(route.request().url()).searchParams.get('action') !== 'crowd' ? route.fallback() : route.fulfill({ json: { crowd: { place: '경남도립미술관', rate: 24, baseYmd: today.replaceAll('-', '') } } }));
-  await page.route('**/api/weather**', route => route.fulfill({ json: { region: '창원', source: '기상청 단기예보', updatedAt: `${today}T01:00:00.000Z`, current: { temperature: 27, apparent: 29, code: 1, label: '대체로 맑음', wind: 2, precipitation: 0, isDay: true }, days: [{ date: today, code: 1, label: '맑음', max: 30, min: 23, rainProbability: 10, rain: 0, snow: 0, uv: 6, advice: [] }], advice: [] } }));
+  await page.route('**/api/weather**', route => route.fulfill({ json: { region: '창원', source: '기상청 단기예보', updatedAt: `${today}T01:00:00.000Z`, current: { temperature: 27, apparent: 29, code: 1, label: '대체로 맑음', windMps: 2, precipitation: 0, isDay: true }, days: [{ date: today, code: 1, label: '맑음', max: 30, min: 23, rainProbability: 10, rain: 0, snow: 0, uv: 6, advice: [] }], advice: [] } }));
   await validShareApi(page); await page.goto('/planner'); await chooseTripConditions(page);
   await expect(page.locator('.simple-planner-tabs button').nth(1)).toBeDisabled(); await expect(page.locator('button[data-planner-tool=share]')).not.toBeVisible();
   await page.locator('.simple-place-row').first().locator('.simple-place-add').click(); await openItinerary(page, { start: today, end: today });

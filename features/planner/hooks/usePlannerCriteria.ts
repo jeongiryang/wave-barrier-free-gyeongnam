@@ -5,8 +5,9 @@ import { useCallback, useEffect, useState } from "react";
 import { regions } from "../constants";
 import { useTravelPreferenceProfile } from "./useTravelPreferenceProfile";
 import { selectedThemes } from "../../../lib/planner-criteria.js";
-import { readTripValue, writeTripValue, REGION_KEY, THEMES_KEY } from "../../../lib/current-trip-storage.js";
+import { readTripValue, writeTripValue, REGION_KEY, THEMES_KEY, FACILITIES_KEY } from "../../../lib/current-trip-storage.js";
 import { readSessionProfiles, saveSessionProfiles } from '../../../lib/session-travel-profiles.js';
+import { resolveFacilityKeys } from '../../../lib/facility-selection.js';
 
 export function usePlannerCriteria() {
   const [selected, setSelected] = useState<string[]>([]);
@@ -24,7 +25,7 @@ export function usePlannerCriteria() {
     const frame = window.requestAnimationFrame(() => {
       const query = new URLSearchParams(window.location.pathname === '/planner' ? window.location.search : '');
       const queryRegion = query.get("region");
-      setSelected(readSessionProfiles(getTabStorage()));
+      let storedProfiles: string[] = [];
       let existingRegion = "";
       let hasSaved = false;
       try {
@@ -32,18 +33,28 @@ export function usePlannerCriteria() {
         const catalog = JSON.parse(readTripValue(window.localStorage, "wave-saved-place-catalog-v1") || "[]");
         existingRegion = readTripValue(window.localStorage, REGION_KEY) || catalog[0]?.city || "";
         const savedThemes = JSON.parse(readTripValue(window.localStorage, THEMES_KEY) || "[]");
+        const rawProfiles = readTripValue(window.localStorage, FACILITIES_KEY);
+        storedProfiles = rawProfiles === null
+          ? readSessionProfiles(getTabStorage())
+          : resolveFacilityKeys({ facilityKeys: JSON.parse(rawProfiles || '[]') });
         setThemes(selectedThemes(!hasSaved && (query.has("themes") || query.has("theme"))
           ? query.get("themes") ?? query.get("theme") : savedThemes));
       } catch { /* Invalid storage must not authorize merging trips. */ }
       if (hasSaved) { if (regions.includes(existingRegion)) setRegion(existingRegion); }
       else if (queryRegion && regions.includes(queryRegion)) setRegion(queryRegion);
       else if (regions.includes(existingRegion)) setRegion(existingRegion);
+      setSelected(storedProfiles);
       setCriteriaReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  useEffect(() => { if (criteriaReady) saveSessionProfiles(getTabStorage(), selected); }, [criteriaReady, selected]);
+  useEffect(() => {
+    if (!criteriaReady) return;
+    const safe = resolveFacilityKeys({ facilityKeys: selected });
+    saveSessionProfiles(getTabStorage(), safe);
+    try { writeTripValue(window.localStorage, FACILITIES_KEY, JSON.stringify(safe)); } catch { /* Keep editing when storage is blocked. */ }
+  }, [criteriaReady, selected]);
 
   useEffect(() => {
     if (!criteriaReady) return;

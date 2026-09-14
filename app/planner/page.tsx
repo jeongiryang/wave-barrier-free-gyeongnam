@@ -22,7 +22,6 @@ import {
 import { useSitePreferences } from "../../components/SitePreferences";
 import SkipLink from "../../components/SkipLink";
 import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
-import PlannerStagePortal from "../../features/planner/components/PlannerStagePortal";
 import PlannerConditionsPanel from "../../features/planner/components/PlannerConditionsPanel";
 import PlannerFooter from "../../features/planner/components/PlannerFooter";
 import RecommendationWorkspace from "../../features/planner/components/RecommendationWorkspace";
@@ -48,7 +47,8 @@ import type { Place } from "../../features/planner/types";
 import { buildPlannerViewModel } from "../../features/planner/view-model";
 import { usePlannerStageView } from "../../features/planner/hooks/usePlannerStageView";
 import { useTripSchedule } from "../../features/planner/hooks/useTripSchedule";
-import { profiles as accessibilityProfiles, themes as travelThemes, departurePresets } from "../../features/planner/constants";
+import { themes as travelThemes, departurePresets } from "../../features/planner/constants";
+import { useTripGuidancePreferences } from '../../features/planner/hooks/useTripGuidancePreferences';
 
 import { usePlannerChrome } from "../../features/planner/hooks/usePlannerChrome";
 import PlannerReferenceChrome from "../../features/planner/components/PlannerHeader";
@@ -70,6 +70,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     setNotice, runPlan,
   } = planController;
   const schedule = useTripSchedule();
+  const guidance = useTripGuidancePreferences();
   const routePlanning = useRoutePlanning(region, schedule);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -99,8 +100,6 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     const frame = requestAnimationFrame(closeAssistant);
     return () => cancelAnimationFrame(frame);
   }, [active, closeAssistant]);
-  const [assistantHost, setAssistantHost] = useState<HTMLDivElement | null>(null);
-  const [assistantTool, setAssistantTool] = useState("");
   const [newTripError, setNewTripError] = useState('');
   function startNewTrip() {
     try { replaceTripWithBackup(window.localStorage, emptyTrip('', '', '')); saveSessionProfiles(getTabStorage(), []); window.location.assign('/planner'); }
@@ -315,12 +314,19 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
   }
 
   function openAssistantTool(tool: string) {
-    setAssistantTool(tool);
     stageView.changeView("guided");
     if (["conditions", "facilities"].includes(tool)) stageView.changeStep('conditions');
-    else if (["places", "compare", "inquiry"].includes(tool)) stageView.changeStep('places');
+    else if (["places", "compare", "inquiry", "preview", "transcript"].includes(tool)) stageView.changeStep('places');
     else { stageView.changeStep('itinerary'); setItineraryMapView(tool === 'map'); if (['readiness','weather'].includes(tool)) { setDepartureDetailsOpen(true); if (tool === 'weather') setSecondaryOpen(true); } }
-
+    const selectors: Record<string, string> = { conditions: '.simple-search-bar select', facilities: '.simple-facility-trigger', dates: '.simple-itinerary-heading > button', comfort: '.simple-day-options > summary', budget: '[data-planner-tool="budget"] > summary', offline: '[data-planner-tool="offline"]', 'on-trip': '[data-planner-tool="on-trip"]', split: '[data-planner-tool="split"]', alternatives: '[data-planner-tool="alternatives"] > summary', course: '[data-planner-tool="course"] > summary', save: '[data-planner-tool="save"] > button', share: '[data-planner-tool="share"]', transport: '[data-planner-tool="transport"]', calendar: '[data-planner-tool="share"]', weather: '.weather-heading > button', readiness: '.simple-readiness', map: '#itinerary-map', itinerary: '#itinerary', places: '#places', compare: '#places', inquiry: '#places', preview: '#places', transcript: '#places' };
+    const focusTarget = () => {
+      const node = document.querySelector<HTMLElement>(selectors[tool] || '#planner');
+      if (!node) return;
+      for (let parent = node.parentElement; parent; parent = parent.parentElement) if (parent instanceof HTMLDetailsElement) parent.open = true;
+      if (!node.matches('button,summary,a,input,select')) node.setAttribute('tabindex', '-1');
+      node.scrollIntoView({ block: 'start', behavior: motion === 'calm' ? 'instant' : 'smooth' }); node.focus({ preventScroll: true });
+    };
+    requestAnimationFrame(() => requestAnimationFrame(() => { focusTarget(); requestAnimationFrame(focusTarget); }));
   }
   function applyNaruJourney(draft: NaruJourney) {
     routePlanning.setRouteTravelMode(draft.transport);
@@ -341,50 +347,6 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     await itineraryRoutes.checkRoutes();
     return 'checked' as const;
   }
-  useEffect(() => {
-    if (!assistantHost || !assistantTool) return;
-    const targets: Record<string, { selector: string; trigger?: boolean }> = {
-      conditions: { selector: ".simple-search-bar select" },
-      facilities: { selector: ".simple-facility-trigger", trigger: true },
-      dates: { selector: ".simple-itinerary-heading > button", trigger: true },
-      comfort: { selector: ".simple-day-options > summary", trigger: true },
-      budget: { selector: '[data-planner-tool="budget"] > summary', trigger: true },
-      offline: { selector: '[data-planner-tool="offline"]', trigger: true },
-      "on-trip": { selector: '[data-planner-tool="on-trip"]', trigger: true },
-      split: { selector: '[data-planner-tool="split"]', trigger: true },
-      alternatives: { selector: '[data-planner-tool="alternatives"] > summary', trigger: true },
-      course: { selector: '[data-planner-tool="course"] > summary', trigger: true },
-      save: { selector: '[data-planner-tool="save"] > button', trigger: true },
-      share: { selector: '[data-planner-tool="share"]', trigger: true },
-      transport: { selector: '[data-planner-tool="transport"]', trigger: true },
-      calendar: { selector: '[data-planner-tool="share"]', trigger: true },
-      weather: { selector: ".weather-heading > button" },
-      readiness: { selector: ".simple-readiness" },
-    };
-    const target = targets[assistantTool];
-    if (!target) return;
-    const initialFocus = document.activeElement;
-    const find = () => {
-      const node = assistantHost.querySelector<HTMLElement>(target.selector);
-      if (!node || node.closest("[hidden]")) return false;
-      const disclosures: HTMLDetailsElement[] = [];
-      for (let parent = node.parentElement; parent && parent !== assistantHost; parent = parent.parentElement) {
-        if (parent instanceof HTMLDetailsElement && !parent.open) disclosures.unshift(parent);
-      }
-      for (const details of disclosures) details.querySelector<HTMLElement>(":scope > summary")?.click();
-      if (target.trigger && node.tagName === "SUMMARY") (node.parentElement as HTMLDetailsElement).open = true;
-      if (target.trigger && node.tagName === "BUTTON" && node.getAttribute("aria-pressed") !== "true") node.click();
-      if (!node.matches("button,summary")) node.setAttribute("tabindex", "-1");
-      if (document.activeElement === initialFocus) node.focus({ preventScroll: true });
-      node.scrollIntoView({ block: "start", behavior: "instant" }); return true;
-    };
-    if (find()) return;
-    const observer = new MutationObserver(() => { if (find()) observer.disconnect(); });
-    observer.observe(assistantHost, { childList: true, subtree: true });
-    const timer = setTimeout(() => observer.disconnect(), 5000);
-    return () => { clearTimeout(timer); observer.disconnect(); };
-  }, [assistantHost, assistantTool]);
-
   const browsing = journey.activeStepId === "conditions" || journey.activeStepId === "places";
   const plannerStages = <div className="simple-stage-stream">
     <div hidden={!browsing} className="simple-browse-view">
@@ -418,7 +380,8 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
                 archiveContext={{
                   region,
                   theme: travelThemes.find((item) => item.id === theme)?.label || theme,
-                  profiles: selected.map((id) => accessibilityProfiles.find((item) => item.id === id)?.label || id),
+                  profiles: selected,
+                  guidancePreferences: guidance.value,
                 }}
                 onChoosePoint={choosePoint}
                 onCopyBookingRoute={copyBookingRoute}
@@ -475,7 +438,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
       {!embedded && <PlannerReferenceChrome storageSnapshot={storageSnapshot} interactive={hydrated && planController.criteriaReady && tripSelection.storageReady} savedCount={saved.length} activeStep={journey.activeStepId} onNavigate={journey.goToStep} onNew={startNewTrip} />}
       {newTripError && <p role="alert">{newTripError}</p>}
       <section className="planner-journey-workspace" id="planner" aria-label="여행 만들기">
-        <div className="simple-workspace-body"><PlannerStagePortal host={assistantOpen ? assistantHost : null}>{plannerStages}</PlannerStagePortal></div>
+        <div className="simple-workspace-body">{plannerStages}</div>
       </section>
 
       {alternatives.original && alternatives.request && <Suspense fallback={<LoadingState>대안을 비교할 화면을 준비하고 있어요.</LoadingState>}><AlternativeComparisonDialog
@@ -508,7 +471,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
       {regionChange.pending && <RegionChangeDialog region={regionChange.pending} en={locale === "en"} error={regionChange.error} onCancel={regionChange.cancel} onAdd={regionChange.add} onNew={regionChange.startNew} />}
       {!embedded && !assistantOpen && <NaruLauncher state={naruActivity.phase} buttonRef={mountAssistantLauncher} disabled={!hydrated || !planController.criteriaReady || !tripSelection.storageReady} onOpen={showAssistant} />}
 
-      {assistantMounted && <Suspense fallback={assistantOpen ? <div className="naru-panel"><LoadingState>나루와의 대화를 열고 있어요.</LoadingState></div> : null}><PlannerAssistant origin={origin} routeMinutes={itineraryRoutes.routeMinutes} launchRequest={launchRequest} pageContext={pageContext} open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} onRegion={regionChange.request} onSearch={searchForNaru} onPlace={place => { resumeAssistant.current = true; setAssistantOpen(false); setSelectedPlace(place); }} onAlternative={id => alternatives.open(id)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} onToolHost={setAssistantHost} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
+      {assistantMounted && <Suspense fallback={assistantOpen ? <div className="naru-panel"><LoadingState>나루와의 대화를 열고 있어요.</LoadingState></div> : null}><PlannerAssistant origin={origin} routeMinutes={itineraryRoutes.routeMinutes} launchRequest={launchRequest} pageContext={pageContext} open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} guidance={guidance} onRegion={regionChange.request} onSearch={searchForNaru} onPlace={place => { resumeAssistant.current = true; setAssistantOpen(false); setSelectedPlace(place); }} onAlternative={id => alternatives.open(id)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
       {!embedded && <PlannerFooter />}
     </main>
   );

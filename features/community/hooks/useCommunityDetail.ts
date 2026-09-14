@@ -27,6 +27,7 @@ export function useCommunityDetail(postId: string) {
   const comments = useCommunityCommentActions({
     postId,
     authenticated: Boolean(session?.user),
+    userId: session?.user?.id || '',
     onLogin: loginForCurrentPage,
     reload: resource.load,
     setMessage: resource.setMessage,

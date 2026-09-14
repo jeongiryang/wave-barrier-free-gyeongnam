@@ -5,7 +5,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 const forecast = {
   region: "창원", updatedAt: "2026-09-06T02:00:00Z", source: "Open-Meteo",
-  current: { temperature: 0, apparent: -2, code: 999, label: "날씨 정보 미확인", wind: 0, precipitation: 0, isDay: true },
+  current: { temperature: 0, apparent: -2, code: 999, label: "날씨 정보 미확인", windMps: 0, precipitation: 0, isDay: true },
   days: [{ date: "2026-09-01", code: 71, label: "눈", max: 3, min: -2, rainProbability: 0, rain: 0, snow: 1.2, uv: 0, advice: [] }],
   advice: ["눈 예보가 있어 방수 신발과 보온 장갑이 좋아요."],
 };

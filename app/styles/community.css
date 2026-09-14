@@ -116,6 +116,7 @@
 .comment-form label { font-size: 0.875rem; font-weight: 600; }
 .comment-form textarea,.comment-edit textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font: inherit; line-height: 1.55; resize: vertical; }
 .comment-form > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.comment-form > div > span { display: flex; gap: 8px; }
 .comment-form small { color: var(--muted); font-size: 0.75rem; }
 .comment-form button { min-height: 44px; padding: 8px 13px; border: 0; border-radius: 11px; color: var(--white); background: var(--ink); font: inherit; font-size: 0.875rem; font-weight: 600; }
 .comment-list { margin: 0; padding: 0; list-style: none; }

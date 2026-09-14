@@ -21,6 +21,7 @@ function fixture() {
     if (name.endsWith("request-budget.js")) return { CLIENT_BUDGET_MS: { plan: 1000 } };
     if (name.endsWith("reduced-motion.js")) return { scrollToSection: () => false };
     if (name.endsWith("planner-criteria.js")) return { criteriaSignature };
+    if (name.endsWith("plan-result-cache.js")) return { readPlanResultCache: () => null, writePlanResultCache: () => false };
     if (name === "../condition-copy") return { planNotices: Object.fromEntries(["idle", "loading", "updated", "empty", "error", "offline"].map(key => [key, [key, key]])) };
     if (name === "../services/api") return { plannerJson: (_url, options) => new Promise(resolve => calls.push({ resolve, signal: options.signal })) };
     if (name === "../services/plan-response") {

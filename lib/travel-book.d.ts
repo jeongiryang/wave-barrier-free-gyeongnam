@@ -24,6 +24,7 @@ export type TravelBook = {
   theme: string;
   themes?: string[];
   profiles: string[];
+  guidancePreferences?: import('./guidance-preferences.js').GuidancePreferences;
   travelStart: string;
   travelEnd: string;
   dayStartTime: string;
@@ -49,4 +50,4 @@ export function upsertTravelBook(current: unknown, input: unknown, now?: string)
 export function patchTravelBook(current: unknown, id: string, patch: Partial<Pick<TravelBook, "status" | "note" | "title">>, now?: string): TravelBook[];
 export function removeTravelBook(current: unknown, id: string): TravelBook[];
 export function buildTravelBookPlannerHref(book: unknown): string;
-export function travelBookRestorePayload(book: unknown): { identity?: import("./trip-identity.js").TripIdentity | null; tripId?: string; profiles: string[]; savedPlaceIds: string[]; savedPlaces: TravelBookPlace[]; themes: string[]; schedule: { travelStart: string; travelEnd: string; dayStartTime: string; travelMode: import("./trip-travel-mode.js").TripTravelMode; scheduleAssignments: Record<string, string>; visitMinutesByPlaceId?: Record<string, number>; fixedVisits?: Record<string, import("./trip-time-constraints.js").FixedVisit>; dayDeadlines?: Record<string, import("./trip-time-constraints.js").DayDeadline>; comfort?: import("./trip-comfort.js").TripComfort; breakMinutesByPlaceId?: Record<string, number>; restPurposeByPlaceId?: Record<string, import("./trip-comfort.js").StopPurpose> }; href: string } | null;
+export function travelBookRestorePayload(book: unknown): { identity?: import("./trip-identity.js").TripIdentity | null; tripId?: string; profiles: string[]; guidancePreferences?: import('./guidance-preferences.js').GuidancePreferences; savedPlaceIds: string[]; savedPlaces: TravelBookPlace[]; themes: string[]; schedule: { travelStart: string; travelEnd: string; dayStartTime: string; travelMode: import("./trip-travel-mode.js").TripTravelMode; scheduleAssignments: Record<string, string>; visitMinutesByPlaceId?: Record<string, number>; fixedVisits?: Record<string, import("./trip-time-constraints.js").FixedVisit>; dayDeadlines?: Record<string, import("./trip-time-constraints.js").DayDeadline>; comfort?: import("./trip-comfort.js").TripComfort; breakMinutesByPlaceId?: Record<string, number>; restPurposeByPlaceId?: Record<string, import("./trip-comfort.js").StopPurpose> }; href: string } | null;

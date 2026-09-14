@@ -13,8 +13,8 @@ export function weatherResponse(value: unknown, expectedRegion?: string): Weathe
     || typeof value.updatedAt !== "string" || !Number.isFinite(Date.parse(value.updatedAt)) || !strings(value.advice)) return null;
   if (expectedRegion !== undefined && value.region !== expectedRegion) return null;
   const current = value.current;
-  if (!["temperature", "apparent", "code", "wind", "precipitation"].every((key) => finite(current[key]))
-    || !Number.isInteger(current.code) || Number(current.wind) < 0 || Number(current.precipitation) < 0
+  if (!["temperature", "apparent", "code", "windMps", "precipitation"].every((key) => finite(current[key]))
+    || !Number.isInteger(current.code) || Number(current.windMps) < 0 || Number(current.precipitation) < 0
     || typeof current.label !== "string" || typeof current.isDay !== "boolean") return null;
   let previous = "";
   for (const day of value.days) {

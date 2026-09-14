@@ -52,7 +52,7 @@ const route = {
 
 const weather = {
   region: "창원", updatedAt: "2026-08-26T02:00:00.000Z", source: "기상 정보",
-  current: { temperature: 27, apparent: 29, code: 1, label: "대체로 맑음", wind: 2, precipitation: 0, isDay: true },
+  current: { temperature: 27, apparent: 29, code: 1, label: "대체로 맑음", windMps: 2, precipitation: 0, isDay: true },
   days: [{ date: "2026-08-26", code: 1, label: "대체로 맑음", max: 30, min: 23, rainProbability: 10, rain: 0, snow: 0, uv: 6, advice: [] }],
   advice: [],
 };

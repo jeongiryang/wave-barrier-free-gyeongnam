@@ -1,6 +1,9 @@
 export type AccountTripPayload = {
   version: number; title: string; region: string; travelStart: string; travelEnd: string;
   dayStartTime: string; themes: string[]; placeIds: string[]; scheduleAssignments: Record<string, string>;
+  profiles?: string[];
+  guidancePreferences?: import('../../lib/guidance-preferences.js').GuidancePreferences;
+  comfort?: import('../../lib/trip-comfort.js').TripComfort;
   travelMode?: import("../../lib/trip-travel-mode.js").TripTravelMode;
   status: "planned" | "visited"; note: string;
   breakMinutesByPlaceId?: Record<string, number>; restPurposeByPlaceId?: Record<string, import("../../lib/trip-comfort.js").StopPurpose>;

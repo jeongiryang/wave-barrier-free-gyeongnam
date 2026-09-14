@@ -27,9 +27,17 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
   await page.goto("/photo-course");
   await expect(page.getByRole("heading", { name: "사진 속 여행을 다시 코스로 연결해요." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "다녀온 사진을 고르면 날짜별 코스를 다시 만듭니다" })).toBeVisible();
+  await expect(page.locator(".photo-course[data-client-ready='true']")).toBeAttached();
+  const helpButton = page.locator(".photo-course-help-button");
+  await helpButton.click();
+  const help = page.getByRole("dialog", { name: "사진 코스 사용 방법", exact: true });
+  await expect(help).toBeVisible();
+  await expect(help.getByText("같은 지역의 동일 장소만 연결하고, 확인되지 않으면 비워 둡니다.", { exact: true })).toBeVisible();
+  await expect(help.getByRole("heading", { name: "사진 코스 사용 방법", exact: true })).toBeFocused();
+  await help.getByRole("button", { name: "확인", exact: true }).click();
+  await expect(helpButton).toBeFocused();
   const input = page.locator("#photo-course-input");
   await expect(input).toBeEnabled();
-  await expect(page.locator(".photo-course[data-client-ready='true']")).toBeAttached();
 
   const jpeg = Buffer.from(buildExifJpeg({
     takenAt: "2026:08:14 09:31:02",

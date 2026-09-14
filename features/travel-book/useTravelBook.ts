@@ -5,7 +5,7 @@ import { replaceTripWithBackup } from "../../lib/trip-import.js";
 import { getTabStorage } from "../../lib/session-storage.js";
 
 import { useCallback, useEffect, useState } from "react";
-import { emptyTrip, THEMES_KEY, TRIP_IDENTITY_KEY } from "../../lib/current-trip-storage.js";
+import { emptyTrip, THEMES_KEY, TRIP_IDENTITY_KEY, FACILITIES_KEY, GUIDANCE_KEY } from "../../lib/current-trip-storage.js";
 import {
   TRAVEL_BOOK_STORAGE_KEY,
   createTravelBookSnapshot,
@@ -76,12 +76,12 @@ export function useTravelBook() {
         [SAVED_PLACE_CATALOG_KEY]: JSON.stringify(sanitizeSavedPlaceCatalog(payload.savedPlaces)),
         [TRIP_SCHEDULE_KEY]: JSON.stringify(payload.schedule),
         [THEMES_KEY]: JSON.stringify(payload.themes),
+        [FACILITIES_KEY]: JSON.stringify(resolveFacilityKeys({ facilityKeys: payload.profiles })),
+        [GUIDANCE_KEY]: JSON.stringify(payload.guidancePreferences || {}),
         "wave-trip-order-v1": JSON.stringify({ mode: "manual", ids: payload.savedPlaceIds }),
       });
-      // Current archives deliberately omit private facility preferences. Only an
-      // older archive that actually carries preferences can replace this tab's choices.
       const profiles = resolveFacilityKeys({ profiles: payload.profiles });
-      if (profiles.length) saveSessionProfiles(getTabStorage(), profiles);
+      saveSessionProfiles(getTabStorage(), profiles);
     } catch {
       setStorageError('이 일정을 열지 못했어요. 현재 여행은 유지됩니다. 브라우저 저장 공간을 확인해 주세요.'); return false;
     }

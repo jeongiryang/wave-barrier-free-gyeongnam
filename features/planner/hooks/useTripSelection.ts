@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { journeyDays, validateJourneyApplication, type NaruJourney } from '../../../lib/naru-journey.js';
 import { resolveSavedPlaces, sanitizeSavedPlaceCatalog } from "../../../lib/saved-place-catalog.js";
-import { assertTripStorageOwner, replaceCurrentTrip, readTripValue, REGION_KEY, THEMES_KEY } from '../../../lib/current-trip-storage.js';
+import { assertTripStorageOwner, replaceCurrentTrip, readTripValue, REGION_KEY, THEMES_KEY, FACILITIES_KEY, GUIDANCE_KEY } from '../../../lib/current-trip-storage.js';
+import { resolveFacilityKeys } from '../../../lib/facility-selection.js';
 import { sanitizeTripBreaks, type StopPurpose } from "../../../lib/trip-comfort.js";
 import { canMoveVisitDate, periodForDate } from "../../../lib/trip-date-move.js";
 import { voiceStateKey, type VoiceState, type VoiceEditReceipt } from "../../../lib/voice-edit.js";
@@ -84,6 +85,8 @@ export function useTripSelection({ schedule, activePlaces, origin, accessibility
   const journeyUndo = useRef<{ before: VoiceState; places: Place[]; start: string; end: string; after: string; region: string; themes: string } | null>(null);
   const commitJourney = (state: VoiceState, places: Place[], start: string, end: string, region: string, themes: string) => { assertTripStorageOwner(window.localStorage); return replaceCurrentTrip(window.localStorage, {
     [REGION_KEY]: region, [THEMES_KEY]: themes,
+    [FACILITIES_KEY]: JSON.stringify(resolveFacilityKeys({ facilityKeys: selectedProfiles })),
+    [GUIDANCE_KEY]: readTripValue(window.localStorage, GUIDANCE_KEY) || '{}',
     'wave-saved-places': JSON.stringify(state.saved), 'wave-saved-place-catalog-v1': JSON.stringify(sanitizeSavedPlaceCatalog(places)),
     'wave-trip-order-v1': JSON.stringify({ mode: state.mode, ids: state.manualOrder }),
     'wave-trip-schedule-v1': JSON.stringify({ travelStart: start, travelEnd: end, dayStartTime: state.startTime, travelMode: state.travelMode, scheduleAssignments: state.assignments, visitMinutesByPlaceId: state.visits, breakMinutesByPlaceId: state.breaks, restPurposeByPlaceId: state.purposes, fixedVisits: state.fixed, dayDeadlines: state.deadlines, comfort: state.comfort }),

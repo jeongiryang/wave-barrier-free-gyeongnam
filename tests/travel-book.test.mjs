@@ -57,6 +57,8 @@ test("여행집 스냅샷은 복원에 필요한 일정만 남기고 위치·원
   assert.doesNotMatch(serialized, /mapX|mapY|lat|lng|128\.1|35\.1|rawPhoto|exif/i);
   const restored = travelBookRestorePayload(book);
   assert.deepEqual(restored.savedPlaceIds, ["a", "b"]);
+  assert.deepEqual(restored.profiles, ["parking", "route", "wheelchair", "elevator", "restroom"]);
+  assert.doesNotMatch(JSON.stringify(book), /휠체어 이용|걷기 불편/);
   assert.equal(restored.schedule.dayStartTime, "09:30");
   assert.match(restored.href, /^\/planner\?region=/);
   assert.match(buildTravelBookPlannerHref(book), /from=travel-book/);

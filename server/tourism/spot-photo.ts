@@ -2,6 +2,7 @@ import type { Env } from "../shared/env";
 import { clean, httpsUrl } from "../shared/http";
 import { attemptProvider as attempt, commonParams, fetchTourismData as fetchKto } from "../shared/provider-data";
 import { regionPhotoKeywords } from "./catalog";
+import { spotPhotoRegionMatches } from '../../lib/spot-photo-match.js';
 
 function normalizedSearchText(value: unknown) {
   return clean(value, 120).toLocaleLowerCase("ko-KR").replace(/[^\p{L}\p{N}]+/gu, "");
@@ -50,7 +51,7 @@ export async function fetchSpotPhoto(env: Env, region: string, title: string, ta
     const image = httpsUrl(item?.firstimage || item?.firstimage2);
     // 기존 사진 호출은 contentId 상세에 이미지가 있을 때만 즉시 종료한다.
     // 이미지가 없으면 아래 검색에서 공공누리 사진 fallback을 계속 찾는다.
-    if (image) {
+    if (image && (!strict || spotPhotoRegionMatches(region, item?.title, item?.addr1, item?.addr2))) {
       return {
         image,
         source: "한국관광공사 관광정보",
@@ -76,7 +77,7 @@ export async function fetchSpotPhoto(env: Env, region: string, title: string, ta
         title: clean(item.galTitle),
         source: "한국관광공사 관광사진",
         contentId: "",
-        address: "",
+        address: clean(item.galPhotographyLocation, 160),
       })) : []),
       ...(tour.ok ? tour.value.items.map((item) => ({
         image: httpsUrl(item.firstimage || item.firstimage2),
@@ -89,10 +90,11 @@ export async function fetchSpotPhoto(env: Env, region: string, title: string, ta
       .map((candidate) => ({
         ...candidate,
         titleScore: scoreSpotPhotoTitle(candidate.title, normalizedTitle),
+        regionMatched: spotPhotoRegionMatches(region, candidate.title, candidate.address),
       }))
       // 사진 코스는 사용자가 확인한 장소와 엄격히 일치할 때만 공식 카드로 보강한다.
       // 기존 추천 카드 호출은 예전처럼 지역 대표 사진 fallback을 유지한다.
-      .filter((candidate) => (candidate.image || candidate.contentId) && (!strict || candidate.titleScore >= 90))
+      .filter((candidate) => (candidate.image || candidate.contentId) && (!strict || candidate.titleScore >= 90 && candidate.regionMatched))
       .sort((left, right) => {
         const leftScore = left.titleScore + (left.contentId ? 40 : 0);
         const rightScore = right.titleScore + (right.contentId ? 40 : 0);

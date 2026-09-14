@@ -42,13 +42,20 @@ function FacilityPicker({ plan, trip, onClose }: { plan: Props["planController"]
 export default function PlannerConditionsPanel({ planController: plan, onRegionChange, tripSelection: trip }: Props) {
   const [facilitiesOpen, setFacilitiesOpen] = useState(false);
   const closeFacilities = useCallback(() => setFacilitiesOpen(false), []);
-  return <section lang="ko" className="simple-search-controls" id="conditions" aria-label="여행지 검색 조건">
-    <div className="simple-search-bar"><label><span>지역</span><select aria-label="여행 지역" value={plan.region} disabled={!plan.criteriaReady} onChange={event => onRegionChange(event.target.value)}><option value="" disabled>지역 선택</option>{regions.map(region => <option key={region}>{region}</option>)}</select></label>
-      <button type="button" className="simple-facility-trigger" onClick={() => setFacilitiesOpen(true)} disabled={!plan.criteriaReady}>필요한 편의{plan.selected.length > 0 ? ` · ${plan.selected.length}개` : ""}<span aria-hidden="true">⌄</span></button>
+  const ready = plan.criteriaReady && trip.storageReady;
+  const restoreRegionFocus = (control: HTMLSelectElement) => {
+    window.requestAnimationFrame(() => {
+      if (control.isConnected && (!document.activeElement || document.activeElement === document.body)) control.focus({ preventScroll: true });
+    });
+  };
+  return <section lang="ko" className="simple-search-controls" id="conditions" aria-label="여행지 검색 조건" aria-busy={!ready}>
+    {!ready && <LoadingState>여행 조건을 불러오고 있어요.</LoadingState>}
+    <div className="simple-search-bar" onChange={event => { if (event.target instanceof HTMLSelectElement) restoreRegionFocus(event.target); }}><label><span>지역</span><select aria-label="여행 지역" value={plan.region} disabled={!ready} onChange={event => onRegionChange(event.target.value)}><option value="" disabled>지역 선택</option>{regions.map(region => <option key={region}>{region}</option>)}</select></label>
+      <button type="button" className="simple-facility-trigger" onClick={() => setFacilitiesOpen(true)} disabled={!ready}>필요한 편의{plan.selected.length > 0 ? ` · ${plan.selected.length}개` : ""}<span aria-hidden="true">⌄</span></button>
       {plan.loading && <span className="simple-searching" role="status"><span className="button-loader" />검색 중</span>}
     </div>
-    <div className="simple-activity-filter" role="group" aria-label="하고 싶은 활동">{activities.map(activity => <button type="button" key={activity.id} aria-pressed={plan.themes.includes(activity.id)} onClick={() => plan.toggleTheme(activity.id)}>{activity.label}</button>)}</div>
-    {!plan.region && <div className="simple-region-entry"><h2>어디로 갈까요?</h2><Suspense fallback={<LoadingState>지역을 불러오고 있어요.</LoadingState>}><PlannerRegionDiscovery full value="" onChange={onRegionChange} onInterest={plan.setTheme} onFacilities={() => setFacilitiesOpen(true)} /></Suspense><button type="button" className="simple-text-link" onClick={() => onRegionChange("경남 전체")}>경남 전체 둘러보기 <span aria-hidden="true">→</span></button></div>}
+    <div className="simple-activity-filter" role="group" aria-label="하고 싶은 활동">{activities.map(activity => <button type="button" key={activity.id} disabled={!ready} aria-pressed={plan.themes.includes(activity.id)} onClick={() => plan.toggleTheme(activity.id)}>{activity.label}</button>)}</div>
+    {!plan.region && <div className="simple-region-entry"><h2>어디로 갈까요?</h2><Suspense fallback={<LoadingState>지역을 불러오고 있어요.</LoadingState>}><PlannerRegionDiscovery full value="" disabled={!ready} onChange={onRegionChange} onInterest={plan.setTheme} onFacilities={() => setFacilitiesOpen(true)} /></Suspense><button type="button" className="simple-text-link" disabled={!ready} onClick={() => onRegionChange("경남 전체")}>경남 전체 둘러보기 <span aria-hidden="true">→</span></button></div>}
     {facilitiesOpen && <FacilityPicker plan={plan} trip={trip} onClose={closeFacilities} />}
   </section>;
 }
