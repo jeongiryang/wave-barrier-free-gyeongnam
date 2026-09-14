@@ -50,6 +50,11 @@
 .simple-facility-summary .facility-missing { color: #923728; }
 html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb5a6; }
 .simple-facility-summary .facility-unknown { color: var(--muted); }
+.simple-facility-summary .facility-confirmed-label { flex-basis: 100%; margin-top: 4px; color: var(--ink); font-weight: 650; }
+.simple-facility-summary .facility-confirmed { color: var(--ink-soft); }
+.simple-facility-summary .facility-confirmed-more { flex-basis: 100%; }
+.simple-facility-summary .facility-confirmed-more > summary { display: flex; align-items: center; width: fit-content; min-height: 44px; color: var(--blue); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.simple-facility-summary .facility-confirmed-more > div { display: flex; flex-wrap: wrap; gap: 4px 12px; padding-bottom: 4px; }
 .simple-place-add { min-width: 76px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 14px; }
 .simple-place-add[aria-pressed=true] { color: var(--blue); border-color: var(--blue); background: var(--sky); }
 .simple-place-add > span { font-size: 18px; }
