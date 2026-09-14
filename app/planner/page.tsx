@@ -454,6 +454,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
         saved={saved.includes(selectedPlace.id)}
         canSave={canSaveSelectedPlace}
         explorationAction={explorationAction}
+        guidancePreferences={guidance.value}
         feedbackText={feedbackText}
         feedbackState={feedbackState}
         dialogRef={placeDialogRef}
