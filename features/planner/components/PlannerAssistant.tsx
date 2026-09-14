@@ -289,7 +289,7 @@ export default function PlannerAssistant(props: Props) {
       const proposal = localAssistantAction(text, known);
       if (proposal.action !== 'help' && canRunConversationAction(text, proposal, reference.placeId || '', known)) {
         append('AI 연결이 원활하지 않아 간편 명령으로 처리할게요.');
-        await apply({ id: ++messageId.current, role: 'assistant', text: '', proposal, revision }, true);
+        await apply({ id: ++messageId.current, role: 'assistant', text: '', proposal, revision }, true, true);
       } else { setInput(current => current || originalText); append('연결하지 못했어요. 입력한 내용은 남겨두었어요. 잠시 뒤 다시 보내주세요.'); }
       progress('warning', '연결을 확인해 주세요. 여행 도구는 사용할 수 있어요.');
     } finally { clearTimeout(timer); if (id === sequence.current) { setBusy(false); request.current = null; } }
@@ -329,7 +329,7 @@ export default function PlannerAssistant(props: Props) {
     append('적용 전 장소·날짜·시간·휴식과 편의 조건·출발지·이동수단을 복원했어요.');
     return true;
   }
-  async function apply(message: Message, automatic = false) {
+  async function apply(message: Message, automatic = false, navigateTool = false) {
     if ((!automatic && busy) || message.applied || message.cancelled || executed.current.has(message.id) || !message.proposal) return;
     if (message.revision !== liveRevision.current) { append('그동안 여행이 바뀌었어요. 현재 내용으로 다시 요청해 주세요.'); return; }
     const action = validateAssistantAction(message.proposal, known.map(place => place.id));
@@ -343,7 +343,15 @@ export default function PlannerAssistant(props: Props) {
       if (!result.ok) { executed.current.delete(message.id); append(result.reason); return false; }
       committed(); append(result.label, { receipt: result }); setReviewHours(true); return true;
     };
-    if (action.action === 'tool' || action.action === 'save-trip') { openTool(action.action === 'save-trip' ? 'save' : action.tool || 'conditions'); committed(); return; }
+    if (action.action === 'tool' || action.action === 'save-trip') {
+      const tool = action.action === 'save-trip' ? 'save' : action.tool || 'conditions';
+      committed();
+      // An offline command is already an explicit request such as “날씨
+      // 보여줘”, so complete that reversible navigation immediately. Connected
+      // model suggestions remain reviewable as a card in the conversation.
+      if (navigateTool && action.action === 'tool') goToTool(tool); else openTool(tool);
+      return;
+    }
     if (action.action === 'recalculate-route') {
       if (action.transport && action.transport !== props.transport) { command({ type: 'schedule', transport: action.transport }); return; }
       props.onActivity({ phase: 'routing', text: '이동 구간을 확인하고 있어요.' });
@@ -401,7 +409,16 @@ export default function PlannerAssistant(props: Props) {
   if (!props.open) return null;
   return <dialog ref={dialogRef} lang="ko" className={`naru-panel naru-${size}`} aria-label="WAVE 여행 가이드 나루와 대화" onCancel={event => { event.preventDefault(); close(); }} >
     <div className="naru-conversation">
-      <div className="naru-heading"><NaruAvatar state={busy ? activity.phase : 'idle'} /><div><strong>나루</strong><small>{available ? '여행 가이드' : checking || available === null ? <><Spinner />연결 확인 중</> : '여행 도구 사용 가능'}</small></div><div className="naru-heading-actions"><button type="button" className="naru-size-toggle" onClick={() => setSize(current => { const next = current === 'compact' ? 'large' : 'compact'; try { localStorage.setItem('wave-naru-size-v1', next); } catch { /* no-op */ } return next; })} aria-label={size === 'compact' ? '대화창 크게 보기' : '대화창 작게 보기'}>{size === 'compact' ? '□' : '▣'}</button><details className="naru-more"><summary aria-label="나루 메뉴">•••</summary><div><a href="/guide#naru-guide" onClick={close}>사용 방법</a>{available === false && <button type="button" onClick={recheck} disabled={checking}>연결 다시 확인</button>}{speaking && <button type="button" onClick={() => { speechSynthesis.cancel(); setSpeaking(false); }}>읽기 중단</button>}<p>대화와 사진은 AI 서버에서 처리하지만 저장하지 않아요. 사진은 위치정보를 제거한 뒤 보냅니다.</p></div></details><button type="button" onClick={close} aria-label="나루 대화 닫기">×</button></div></div>
+      <div className="naru-heading">
+        <NaruAvatar state={busy ? activity.phase : 'idle'} />
+        <div><strong>나루</strong><small>{available ? '여행 가이드' : checking || available === null ? <><Spinner />연결 확인 중</> : '여행 도구로 계속할 수 있어요'}</small></div>
+        <div className="naru-heading-actions">
+          <button type="button" className="naru-size-toggle" onClick={() => setSize(current => { const next = current === 'compact' ? 'large' : 'compact'; try { localStorage.setItem('wave-naru-size-v1', next); } catch { /* no-op */ } return next; })} aria-label={size === 'compact' ? '대화창 크게 보기' : '대화창 작게 보기'}>{size === 'compact' ? '□' : '▣'}</button>
+          <details className="naru-more"><summary aria-label="나루 메뉴">•••</summary><div><a href="/guide#naru-guide" onClick={close}>사용 방법</a>{speaking && <button type="button" onClick={() => { speechSynthesis.cancel(); setSpeaking(false); }}>읽기 중단</button>}<p>대화와 사진은 AI 서버에서 처리하지만 저장하지 않아요. 사진은 위치정보를 제거한 뒤 보냅니다.</p></div></details>
+          <button type="button" onClick={close} aria-label="나루 대화 닫기">×</button>
+        </div>
+      </div>
+      {available === false && <button type="button" className="naru-retry" onClick={recheck} disabled={checking}>연결 다시 확인</button>}
       <div className="naru-log" ref={log} role="log" aria-live="polite" aria-relevant="additions" onScroll={() => { if (log.current) { follow.current = log.current.scrollHeight - log.current.scrollTop - log.current.clientHeight < 100; scrollPosition.current = log.current.scrollTop; } }}>
         {!starterDone && <section className="naru-starter" aria-labelledby="naru-starter-title"><h2 id="naru-starter-title">어떤 도움이 필요할까요?</h2><p>필요한 것만 고르세요. 나중에 여행 조건에서 언제든 바꿀 수 있습니다.</p><div>{starterChoices.map(item => <button type="button" key={item.id} aria-pressed={starterSelected.includes(item.id)} onClick={() => setStarterSelected(current => current.includes(item.id) ? current.filter(id => id !== item.id) : [...current, item.id])}>{starterSelected.includes(item.id) ? '✓ ' : ''}{item.label}</button>)}</div><footer><button type="button" onClick={() => confirmStarter(true)}>건너뛰기</button><button type="button" className="primary" onClick={() => confirmStarter(false)}>선택 적용</button></footer></section>}
         {starterDone && messages.length === 1 && <section className="naru-prompt-starters" aria-labelledby="naru-prompt-title"><h2 id="naru-prompt-title">이렇게 시작해 보세요</h2>{starterPrompts.map(prompt => <button type="button" key={prompt} onClick={() => { setInput(prompt); inputRef.current?.focus(); }}>{prompt}</button>)}</section>}

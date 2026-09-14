@@ -24,7 +24,7 @@ export default function TravelBookArchiveAction(input: Props) {
   const [identity, setIdentity] = useState<TripIdentity | null>(null);
   const [failureStatus, setFailureStatus] = useState(0);
   const [busy, setBusy] = useState(false), [notice, setNotice] = useState(''), [failed, setFailed] = useState(false);
-  const lock = useRef(false), mounted = useRef(true), lastSaved = useRef('');
+  const lock = useRef(false), mounted = useRef(true), lastSaved = useRef(''), automaticScope = useRef('');
   const attempt = useRef({ tripId: '', id: '' });
   const inputKey = JSON.stringify({ ...input, compact: undefined, places: input.places.map(place => place.id) });
   const current = useRef({ input, inputKey, userId });
@@ -86,7 +86,9 @@ export default function TravelBookArchiveAction(input: Props) {
       const active = readTripIdentity(localStorage);
       if (!active || !isCurrent()) return;
       const next = unchanged ? active : writeTripIdentity(localStorage, { ...active, binding });
-      setIdentity(next); lastSaved.current = captured.inputKey;
+      setIdentity(next);
+      automaticScope.current = `${next.id}:${JSON.stringify(next.binding)}`;
+      lastSaved.current = captured.inputKey;
       if (!unchanged) setNotice(useAccount ? '내 여행에 저장했어요. 이후 변경도 자동으로 저장돼요.' : '이 기기의 내 여행에 저장했어요. 이후 변경도 자동으로 저장돼요.');
     } catch (error) {
       if (mounted.current) { setFailureStatus(error instanceof AccountTravelError ? error.status : 0); setFailed(true); setNotice(error instanceof Error ? error.message : '저장하지 못했어요. 수정한 일정은 이 기기에 남아 있어요.'); }
@@ -95,6 +97,15 @@ export default function TravelBookArchiveAction(input: Props) {
   useLayoutEffect(() => { saveRef.current = save; });
   useEffect(() => {
     if (!identity?.binding || isPending || failed || busy || lastSaved.current === inputKey) return;
+    const scope = `${identity.id}:${JSON.stringify(identity.binding)}`;
+    // Opening a saved trip establishes the local baseline. Network writes start
+    // only after a later planner edit, never merely because legacy data gained
+    // a local-only facility preference during restoration.
+    if (automaticScope.current !== scope) {
+      automaticScope.current = scope;
+      lastSaved.current = inputKey;
+      return;
+    }
     const timer = setTimeout(() => void saveRef.current(true), 900);
     return () => clearTimeout(timer);
   }, [identity, inputKey, isPending, userId, failed, busy]);

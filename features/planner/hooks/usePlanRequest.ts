@@ -53,12 +53,24 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     };
     revealRef.current = cancelReveal;
     const requestControl = window.document?.activeElement;
+    let userInteracted = false;
+    const restoreRequestFocus = () => {
+      const control = requestControl as HTMLElement | null | undefined;
+      if (!control || typeof control.focus !== 'function' || typeof window.requestAnimationFrame !== 'function') return;
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+        // A result render can temporarily remove focus from the select/button
+        // that started it. Restore only that accidental loss; never override a
+        // control the traveller deliberately focused while waiting.
+        if (!userInteracted && control.isConnected) control.focus({ preventScroll: true });
+      }));
+    };
     const onInteraction = (event: Event) => {
       // A stage heading focused by this navigation is part of the request,
       // not a new user decision. Pointer/key input still cancels beforehand.
       if (event.type === "focusin" && (event.target as HTMLElement | null)?.getAttribute?.("data-stage-focusing") === "true") return;
       if (event.target === requestControl && (event.type === "pointerdown"
         || (event.type === "keydown" && ["Enter", " "].includes((event as KeyboardEvent).key)))) return;
+      userInteracted = true;
       cancelReveal();
     };
     // A delayed result must not move someone who has already continued using the page.
@@ -86,7 +98,6 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       if (!actualPlaces.length && providerFailed && !providerWorked) {
         const cached = readPlanResultCache(window.localStorage, requestedSignature);
         if (cached) try { setRecentPlan({ signature: requestedSignature, plan: planResponse(cached.plan), checkedAt: cached.checkedAt, source: cached.source }); } catch { setRecentPlan(null); }
-        setPlanError('server'); setNoticeKind('error'); cancelReveal(); return false;
       }
       resetAudio();
       // Search results do not change the saved itinerary or its selected route.
@@ -112,6 +123,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
         window.addEventListener("scrollend", () => { scrolling = false; reveal.abort(); }, { once: true, signal: reveal.signal });
       }, 80);
       else cancelReveal();
+      restoreRequestFocus();
       return true;
     } catch (error) {
       cancelReveal();

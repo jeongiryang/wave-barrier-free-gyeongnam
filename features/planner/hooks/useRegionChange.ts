@@ -12,6 +12,7 @@ export function useRegionChange({ region, ready, hasSaved, setRegion, resetTrip,
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const pendingRef = useRef<string | null>(null);
+  const queuedRequest = useRef<{ region: string; onCommitted: (() => void) | null } | null>(null);
   const afterCommit = useRef<(() => void) | null>(null);
   const initialUrlChecked = useRef(false);
   const cancel = useCallback(() => { pendingRef.current = null; afterCommit.current = null; setPending(null); setError(false); }, []);
@@ -37,12 +38,28 @@ export function useRegionChange({ region, ready, hasSaved, setRegion, resetTrip,
     cancel(); complete?.();
   }
   function request(next: string, onCommitted?: () => void) {
-    if (!ready || pendingRef.current !== null || next === region || !regions.includes(next)) return;
+    if (pendingRef.current !== null || next === region || !regions.includes(next)) return;
+    // Region cards can finish rendering one frame before the saved-trip hooks.
+    // Remember that early click instead of silently discarding the visitor's choice.
+    if (!ready) {
+      queuedRequest.current = { region: next, onCommitted: onCommitted || null };
+      // Keep the native selector stable while the storage hooks finish their
+      // first read. The queued commit below remains the only storage write.
+      setRegion(next);
+      return;
+    }
     afterCommit.current = onCommitted || null;
     commit(next, false);
   }
   useEffect(() => {
     if (!ready) return;
+    const queued = queuedRequest.current;
+    if (queued) {
+      queuedRequest.current = null;
+      afterCommit.current = queued.onCommitted;
+      commit(queued.region, false);
+      return;
+    }
     const checkUrl = () => {
       if (window.location.pathname !== '/planner') return;
       const next = new URLSearchParams(window.location.search).get("region");
