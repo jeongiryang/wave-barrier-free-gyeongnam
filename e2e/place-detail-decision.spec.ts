@@ -41,6 +41,31 @@ async function prepare(page: Page, en = false) {
   return trigger;
 }
 
+test('Odii 해설은 소리·전체 대본·원문 기반 쉬운 설명을 한 자리에서 바꾼다', async ({ page }) => {
+  const requests: string[] = [];
+  await page.route('**/api/wave?action=place-audio*', route => {
+    const id = new URL(route.request().url()).searchParams.get('contentId') || '';
+    requests.push(id);
+    return route.fulfill({ json: { checkedAt: '2026-09-14T01:00:00.000Z', stories: [{
+      id: 'odii-1', title: '경남도립미술관', audioTitle: '미술관 이야기', audioUrl: '', playTime: '0',
+      script: '첫 번째 공식 문장입니다. 두 번째 공식 문장입니다. 세 번째 공식 문장입니다.',
+    }] } });
+  });
+  await prepare(page);
+  const dialog = page.getByRole('dialog');
+  const guide = dialog.locator('.place-audio-guide');
+  await guide.locator(':scope > summary').click();
+  await expect(guide.getByRole('button', { name: '소리로 듣기', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => requests).toEqual(['1001']);
+  await guide.getByRole('button', { name: '대본 읽기', exact: true }).click();
+  await expect(guide.getByRole('region', { name: '미술관 이야기 전체 대본', exact: true })).toHaveText('첫 번째 공식 문장입니다. 두 번째 공식 문장입니다. 세 번째 공식 문장입니다.');
+  await guide.getByRole('button', { name: '쉬운 설명', exact: true }).click();
+  const easy = guide.getByRole('region', { name: '미술관 이야기 핵심 문장', exact: true });
+  await expect(easy.getByRole('listitem')).toHaveText(['첫 번째 공식 문장입니다.', '두 번째 공식 문장입니다.', '세 번째 공식 문장입니다.']);
+  await expect(easy).toContainText('새로운 사실을 덧붙이지 않습니다.');
+  expect(requests).toEqual(['1001']);
+});
+
 for (const en of [false, true]) for (const theme of ["light", "dark"]) {
   test(`detail puts the trip action before grouped, unmodified evidence ${en ? "en" : "ko"} ${theme}`, async ({ page, isMobile }) => {
     const errors: string[] = [];

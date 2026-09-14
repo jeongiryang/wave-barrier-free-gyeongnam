@@ -177,6 +177,13 @@ dialog.naru-panel:not([open]) { display: none; }
 .place-audio-guide audio { display: block; width: 100%; max-width: 100%; }
 .place-audio-guide article { padding-block: 12px; }
 .place-audio-guide p { line-height: 1.85; overflow-wrap: anywhere; }
+.place-guide-modes { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; padding: 0; border: 0; }
+.place-guide-modes legend { width: 100%; margin-bottom: 4px; color: var(--muted); font-size: .78rem; }
+.place-guide-modes button { min-height: 44px; padding: 9px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--white); color: var(--ink); }
+.place-guide-modes button[aria-pressed=true] { border-color: var(--accent); background: var(--surface); color: var(--accent); font-weight: 700; }
+.place-guide-script { margin-top: 10px; padding: 16px; border-radius: 12px; background: var(--surface); color: var(--ink); line-height: 1.9; white-space: pre-wrap; }
+.place-guide-script.easy ol { display: grid; gap: 10px; margin: 0; padding-left: 22px; }
+.place-guide-script.easy small { display: block; margin-top: 14px; color: var(--muted); line-height: 1.7; }
 .naru-character[data-state=idle] img { animation: naru-think 5s ease-in-out infinite; }
 .naru-character[data-state=thinking] img,.naru-character[data-state=planning] img { animation: naru-think 2s ease-in-out infinite; }
 .naru-character[data-state=searching] img,.naru-character[data-state=checking] img,.naru-character[data-state=routing] img { animation: naru-look 1.8s ease-in-out infinite; }
@@ -238,6 +245,8 @@ html[data-theme=dark] .journey-mode-toggle button[aria-pressed=true],html[data-t
 .naru-heading > div:not(.naru-heading-actions) { flex: 1; min-width: 0; }
 .naru-heading-actions { position: relative; display: flex; align-items: center; gap: 4px; flex: 0 0 auto !important; }
 .naru-heading-actions > button,.naru-more > summary { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; background: transparent; color: var(--ink); font: inherit; cursor: pointer; list-style: none; }
+.naru-heading-actions > .naru-support-toggle { width: auto; min-width: 74px; padding-inline: 10px; border: 1px solid var(--line); border-radius: 999px; font-size: .72rem; white-space: nowrap; }
+.naru-heading-actions > .naru-support-toggle[aria-expanded=true] { border-color: var(--accent); color: var(--accent); background: var(--surface); }
 .naru-heading-actions > button:last-child { font-size: 26px; color: var(--muted); }
 .naru-more > summary::-webkit-details-marker,.naru-add-menu > summary::-webkit-details-marker { display: none; }
 .naru-more[open] { position: static; }
@@ -279,5 +288,6 @@ html[data-theme=dark] .journey-mode-toggle button[aria-pressed=true],html[data-t
   .naru-starter > div { grid-template-columns: 1fr; }
   .naru-log { padding: 14px; }
   .naru-message { max-width: 94%; }
+  .naru-heading-actions > .naru-support-toggle { min-width: 66px; padding-inline: 8px; font-size: .68rem; }
 }
 html[data-theme=dark] :is(.naru-starter,.naru-prompt-starters,.naru-tool-card,.naru-more[open] > div,.naru-add-menu[open] > :not(summary),.naru-tools) { background: var(--white); border-color: var(--line); }
