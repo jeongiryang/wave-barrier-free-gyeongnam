@@ -98,13 +98,16 @@ export default function TravelBookArchiveAction(input: Props) {
   useEffect(() => {
     if (!identity?.binding || isPending || failed || busy || lastSaved.current === inputKey) return;
     const scope = `${identity.id}:${JSON.stringify(identity.binding)}`;
-    // Opening a saved trip establishes the local baseline. Network writes start
-    // only after a later planner edit, never merely because legacy data gained
-    // a local-only facility preference during restoration.
+    // Opening an account trip establishes the local baseline. Network writes
+    // start only after a later planner edit, never merely because legacy data
+    // gained a local-only facility preference during restoration. A local
+    // archive still compares and saves edits made before this module mounted.
     if (automaticScope.current !== scope) {
       automaticScope.current = scope;
-      lastSaved.current = inputKey;
-      return;
+      if (identity.binding.kind === 'account') {
+        lastSaved.current = inputKey;
+        return;
+      }
     }
     const timer = setTimeout(() => void saveRef.current(true), 900);
     return () => clearTimeout(timer);
