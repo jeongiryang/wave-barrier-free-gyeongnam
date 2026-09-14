@@ -84,6 +84,10 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
 .simple-dialog > footer { display: flex; gap: 12px; justify-content: space-between; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
 .simple-dialog > footer > button { min-height: 48px; padding: 10px 20px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); }
 .simple-dialog > footer > .primary { color: var(--on-blue); background: var(--blue); border-color: var(--blue); }
+.simple-facility-picker[open] { display: grid; grid-template-rows: auto minmax(0,1fr) auto; overflow: hidden; }
+.simple-facility-picker-body { min-height: 0; overflow-y: auto; padding-right: 4px; }
+.simple-facility-picker-body > p { font-size: 14px; color: var(--muted); margin: 12px 0 20px; }
+.simple-facility-picker > footer { margin-top: 0; background: var(--surface); }
 .simple-saved-preferences { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 12px; font-size: 14px; }
 .simple-saved-preferences summary { min-height: 44px; padding: 12px 0; }
 .simple-saved-preferences button { min-height: 44px; padding: 8px 12px; }
@@ -272,9 +276,6 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 .simple-place-photo .smart-image-fallback p, .simple-place-photo .smart-image-fallback small { display: none; }
 .simple-results .simple-command-receipt button { min-height: 44px; border: 0; background: transparent; color: var(--purple); font-weight: 600; text-decoration: underline; }
 .simple-trip-actions { padding-block: 12px; }
-.simple-facility-picker .trip-comfort-choices { margin: 12px 0; padding: 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; box-shadow: none; background: transparent; }
-.simple-facility-picker .trip-comfort-choices > summary { padding: 14px 0; font-size: 16px; }
-
 .simple-place-photo .smart-image-fallback { min-height: 0; padding: 8px; display: flex; gap: 6px; align-items: center; justify-content: center; flex-direction: column; }
 .simple-place-photo .smart-image-fallback > b, .simple-place-photo .smart-image-fallback > span { display: none; }
 .simple-place-photo .smart-image-fallback > small { display: block; font-size: 11px; line-height: 1.35; font-weight: 400; }

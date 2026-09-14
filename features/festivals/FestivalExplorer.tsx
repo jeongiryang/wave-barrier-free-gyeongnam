@@ -48,7 +48,7 @@ function FestivalCard({ festival, selectedProfiles, onOpen }: { festival: Festiv
 
 export default function FestivalExplorer() {
   const [region, setRegion] = useState('경남 전체'), [start, setStart] = useState(''), [end, setEnd] = useState('');
-  const [selected, setSelected] = useState<string[]>([]), [query, setQuery] = useState(''), [family, setFamily] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]), [query, setQuery] = useState('');
   const [data, setData] = useState<Result | null>(null), [loading, setLoading] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [reload, setReload] = useState(0), [settled, setSettled] = useState('');
   useEffect(() => { const frame = requestAnimationFrame(() => { setStart(today()); setEnd(offsetTripDate(today(), 30)); setSelected(readSessionProfiles(getTabStorage())); }); return () => cancelAnimationFrame(frame); }, []);
@@ -69,7 +69,7 @@ export default function FestivalExplorer() {
   // The signature represents the complete request, including selected facilities.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature]);
-  const shown = (current && !failure ? data?.items : [])?.filter(item => item.name.includes(query.trim()) && (!family || !/맥주|와인|막걸리|주류|성인전용/.test(item.name))) || [];
+  const shown = (current && !failure ? data?.items : [])?.filter(item => item.name.includes(query.trim())) || [];
   function openFestival(item: Festival, date: string, fresh: boolean, askNaru = false) {
     try {
       if (!current || pending || failure || !shown.some(candidate => candidate.id === item.id && candidate.startDate === item.startDate && candidate.endDate === item.endDate)) throw new Error('현재 조건의 축제 정보를 확인한 뒤 다시 골라주세요.');
@@ -86,7 +86,7 @@ export default function FestivalExplorer() {
   return <main className="festival-page"><SkipLink href="#festival-results">축제 목록으로 바로가기</SkipLink><WaveHeader current="festivals" />
     <header className="festival-hero"><p className="horizon-eyebrow">A REASON TO GO</p><h1>축제가 열리는 날,<br />우리의 여행도 시작돼요.</h1><p>실제 개최 기간을 확인하고, 주변 여행지까지 한 번에 이어보세요.</p><Link href="/planner">만들던 여행 이어가기 ↗</Link></header>
     <section className="festival-filters" aria-label="축제 찾기"><label>지역<select value={region} onChange={event => setRegion(event.target.value)}>{regions.map(item => <option key={item}>{item}</option>)}</select></label><label>언제부터<input type="date" value={start} onChange={event => setStart(event.target.value)} /></label><label>언제까지<input type="date" value={end} min={start} onChange={event => setEnd(event.target.value)} /></label><label>행사 이름<input type="search" placeholder="축제 이름으로 찾기" value={query} onChange={event => setQuery(event.target.value)} /></label>
-      <div className="festival-preferences"><button type="button" aria-pressed={family} onClick={() => setFamily(!family)}>아이와 함께 · 주류 행사 제외</button><details><summary>필요한 편의 {selected.length ? `${selected.length}개 유지` : '선택'}</summary><div>{facilityProfiles.map(profile => <button key={profile.id} type="button" aria-pressed={selected.includes(profile.id)} onClick={() => setSelected(current => current.includes(profile.id) ? current.filter(id => id !== profile.id) : [...current, profile.id])}>{profile.label}</button>)}</div></details></div>
+      <div className="festival-preferences"><details><summary>필요한 편의 {selected.length ? `${selected.length}개 유지` : '선택'}</summary><div>{facilityProfiles.map(profile => <button key={profile.id} type="button" aria-pressed={selected.includes(profile.id)} onClick={() => setSelected(current => current.includes(profile.id) ? current.filter(id => id !== profile.id) : [...current, profile.id])}>{profile.label}</button>)}</div></details></div>
     </section>
     <section id="festival-results" className="festival-results" tabIndex={-1} aria-busy={pending}>{pending && <LoadingState>행사 날짜와 관광정보를 확인하고 있어요.</LoadingState>}{notice && <p className="result-notice" role="alert">{notice}</p>}{failure && <div className="result-notice error" role="alert"><p>{failure}</p><button type="button" onClick={() => setReload(current => current + 1)}>다시 조회</button></div>}
       {!validQuery && (start || end) && <p role="status">시작일부터 끝날까지 날짜를 골라주세요.</p>}
