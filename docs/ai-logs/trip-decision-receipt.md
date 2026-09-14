@@ -1,9 +1,9 @@
 # WAVE 결정 근거 영수증 AI 작업 로그
 
-- PR: 작성 후 링크 반영
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/526
 - 제목: 여행 결정 근거를 장소·경로 데이터로 설명하는 영수증 추가
 - 작성자: Codex, 요청·제품 결정 정이량
-- 최종 상태: PR 작성 예정
+- 최종 상태: PR 검토 중
 - AI 도구: Codex
 
 ## 목적
