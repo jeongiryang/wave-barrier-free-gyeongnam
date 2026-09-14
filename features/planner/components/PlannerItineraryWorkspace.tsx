@@ -58,7 +58,7 @@ interface PlannerItineraryWorkspaceProps {
   tripSelection: ReturnType<typeof useTripSelection>;
   audioGuide: ReturnType<typeof useAudioGuide>;
   participation: ReturnType<typeof usePlannerParticipation>;
-  archiveContext: { region: string; theme: string; profiles: string[] };
+  archiveContext: { region: string; theme: string; profiles: string[]; guidancePreferences?: import('../../../lib/guidance-preferences.js').GuidancePreferences };
   onChoosePoint: (place: Place) => void;
   onCopyBookingRoute: (provider: string) => Promise<void>;
   onMapDestination: (place: MapPlace) => void;

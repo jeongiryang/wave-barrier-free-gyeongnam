@@ -38,6 +38,7 @@ function requestFixture(previousPlan = null) {
       return result.exports;
     }
     if (name.endsWith("planner-criteria.js")) return { criteriaSignature: JSON.stringify };
+    if (name.endsWith("plan-result-cache.js")) return { readPlanResultCache: () => null, writePlanResultCache: () => false };
     if (name.endsWith("condition-copy")) return { planNotices: { idle: ["", ""] } };
     throw Error(name);
   }, browser, { onLine: true });

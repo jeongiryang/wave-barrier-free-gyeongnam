@@ -71,6 +71,7 @@ async function setup(page: Page, options: SetupOptions = {}) {
       cancel: () => { scope.personaSpeech.cancelled++; },
       speak: (utterance: SpeechSynthesisUtterance) => { scope.personaSpeech.spoken.push(utterance.text); },
     } });
+    localStorage.setItem('wave-naru-starter-v1', 'done');
   });
   await page.route('**/api/assistant/journey', route => { journeyCalls++; return route.fulfill({ status: 500, json: { error: 'Direct edits must not replace a journey' } }); });
   await page.route('**/api/assistant', route => {
@@ -214,24 +215,18 @@ test('늦은 운영정보 응답은 이후의 더 짧은 휴식으로 재계산�
   expect(app.assistantRequests).toEqual([]); expect(app.journeyCalls()).toBe(0); expect(app.errors).toEqual([]);
 });
 
-test('두 번째 장소의 공식 대본을 소리 없이 열고 대본이 없는 다른 장소로 바꿔도 이전 해설을 남기지 않는다', async ({ page }) => {
+test('해설 대본 요청은 자동 재생 없이 본문 여행 설계로 이어진다', async ({ page }) => {
   const app = await setup(page, { seeded: true }), before = await snapshot(page);
   expect(app.audioRequests).toEqual([]);
   await send(app.chat, '두 번째 장소의 해설 대본을 보여줘');
-  const selector = app.chat.getByRole('combobox', { name: '살펴볼 장소', exact: true });
-  await expect(selector).toHaveValue('1002');
-  await expect(app.chat.getByText('합성 공식 대본: 호수 곁에서 계절의 변화를 만납니다.', { exact: true })).toBeVisible();
-  expect(app.audioRequests).toEqual(['1002']);
-  const audio = app.chat.locator('audio');
-  await expect(audio).toHaveAttribute('preload', 'none');
-  expect(await audio.evaluate(node => ({ autoplay: (node as HTMLMediaElement).autoplay, paused: (node as HTMLMediaElement).paused }))).toEqual({ autoplay: false, paused: true });
+  const card = app.chat.locator('.naru-tool-card').last();
+  await expect(card).toContainText('해설 대본');
+  await expect(app.chat).toContainText('소리를 재생하지 않고 해설 대본을 읽을 수 있어요');
+  expect(app.audioRequests).toEqual([]);
   expect(await page.evaluate(() => (window as unknown as { personaMediaPlayCount: number }).personaMediaPlayCount)).toBe(0);
-  await selector.selectOption('1001');
-  await expect(app.chat).toContainText('이 장소와 일치하는 오디 해설은 아직 확인하지 못했어요');
-  await expect(app.chat.getByText('합성 공식 대본: 호수 곁에서 계절의 변화를 만납니다.', { exact: true })).toHaveCount(0);
-  expect(app.audioRequests).toEqual(['1002', '1001']);
-  await app.chat.getByRole('button', { name: '대화만 보기', exact: true }).click();
-  await expect(app.chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true })).toBeFocused();
+  await card.getByRole('button', { name: '여행 설계에서 자세히 보기', exact: true }).click();
+  await expect(app.chat).toBeHidden();
+  await expect(page.locator('#places')).toBeFocused();
   expect(await snapshot(page)).toEqual(before);
   expect(app.assistantRequests).toEqual([]); expect(app.journeyCalls()).toBe(0); expect(app.errors).toEqual([]);
 });
@@ -264,6 +259,7 @@ test('보이는 캐릭터로 시작해 한 번에 한 항목만 묻고 최종 �
   expect(speech.spoken).toHaveLength(1);
   expect(speech.spoken[0]).toContain(`1번 창원 ${places[0].name}`);
   expect(speech.spoken[0]).toContain(`2번 창원 ${places[1].name}`);
+  await app.chat.getByLabel('나루 메뉴').click();
   await app.chat.getByRole('button', { name: '읽기 중단', exact: true }).click();
   expect(await page.evaluate(() => (window as unknown as { personaSpeech: { cancelled: number } }).personaSpeech.cancelled)).toBe(speech.cancelled + 1);
   expect(app.assistantRequests).toEqual([]); expect(app.journeyCalls()).toBe(0); expect(app.errors).toEqual([]);
@@ -299,8 +295,10 @@ test('기존 일정의 날짜 변경을 안내로 답해도 방문과 필수 시
   await send(app.chat, '2026-10-08'); await question(app.chat, /꼭 필요한 시설/);
   await send(app.chat, '현재 편의 유지'); await question(app.chat, /이 조건으로 여행지를 찾을까요/);
   await send(app.chat, '네');
-  await expect(latestReply(app.chat)).toContainText('기존 여행을 보존');
-  await expect(app.chat.locator('.naru-tool-host[data-tool="dates"]')).toBeVisible();
+  await expect(app.chat.getByText(/담아둔 일정이 있어요.*기존 여행을 보존/)).toBeVisible();
+  const card = app.chat.locator('.naru-tool-card').last();
+  await expect(card).toContainText('날짜·기간');
+  await expect(card.getByRole('button', { name: '여행 설계에서 자세히 보기', exact: true })).toBeVisible();
   await expect(app.chat.getByRole('group', { name: '한 가지씩 안내 선택', exact: true })).toHaveCount(0);
   expect(await snapshot(page)).toEqual(before); expect(app.planRequests).toHaveLength(searches);
   expect(app.assistantRequests).toEqual([]); expect(app.journeyCalls()).toBe(0); expect(app.errors).toEqual([]);

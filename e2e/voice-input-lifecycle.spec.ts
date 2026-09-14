@@ -257,7 +257,7 @@ test('supported client navigation keeps one global conversation but cancels its 
   await page.goBack();
   await expect(page).toHaveURL(/\/$/); await expect(app.chat).toBeVisible();
   await expect(page.locator('.naru-panel')).toHaveCount(1);
-  await expect(app.chat.locator('.naru-page-context')).toContainText('서비스 소개');
+  await expect(app.chat.getByText('나루', { exact: true })).toBeVisible();
   await expect(app.input).toHaveValue('소개에서도 이어 쓸 초안');
   expect(await stats(page)).toMatchObject({ permissions: 1, starts: [1], aborts: [1], trackStops: [] });
   await page.evaluate(() => {

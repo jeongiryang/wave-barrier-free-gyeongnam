@@ -16,11 +16,11 @@ const TravelBookArchiveAction = lazy(() => import("../../travel-book/TravelBookA
 
 export default function TripDayPlanner({ tripSelection: trip, participation, archiveContext }: {
   itineraryRouteMinutes?: Record<string, number>; plan: PlanData | null; tripSelection: ReturnType<typeof useTripSelection>; route: ReturnType<typeof useRoutePlanning>;
-  audioGuide: ReturnType<typeof useAudioGuide>; participation: ReturnType<typeof usePlannerParticipation>; archiveContext: { region: string; theme: string; profiles: string[] };
+  audioGuide: ReturnType<typeof useAudioGuide>; participation: ReturnType<typeof usePlannerParticipation>; archiveContext: { region: string; theme: string; profiles: string[]; guidancePreferences?: import('../../../lib/guidance-preferences.js').GuidancePreferences };
 }) {
   return <div className="simple-trip-tools">
     <div className="simple-trip-actions">
-      <Suspense fallback={<LoadingState>저장을 준비하고 있어요.</LoadingState>}><TravelBookArchiveAction compact places={trip.orderedSavedPlaces} region={archiveContext.region} theme={archiveContext.theme} profiles={archiveContext.profiles} travelStart={trip.travelStart} travelEnd={trip.travelEnd} dayStartTime={trip.dayStartTime} travelMode={trip.travelMode} scheduleAssignments={trip.scheduleAssignments} visitMinutesByPlaceId={trip.visitMinutesByPlaceId} fixedVisits={trip.fixedVisits} dayDeadlines={trip.dayDeadlines} comfort={trip.comfort} breakMinutesByPlaceId={trip.breakMinutesByPlaceId} restPurposeByPlaceId={trip.restPurposeByPlaceId} /></Suspense>
+      <Suspense fallback={<LoadingState>저장을 준비하고 있어요.</LoadingState>}><TravelBookArchiveAction compact places={trip.orderedSavedPlaces} region={archiveContext.region} theme={archiveContext.theme} profiles={archiveContext.profiles} guidancePreferences={archiveContext.guidancePreferences} travelStart={trip.travelStart} travelEnd={trip.travelEnd} dayStartTime={trip.dayStartTime} travelMode={trip.travelMode} scheduleAssignments={trip.scheduleAssignments} visitMinutesByPlaceId={trip.visitMinutesByPlaceId} fixedVisits={trip.fixedVisits} dayDeadlines={trip.dayDeadlines} comfort={trip.comfort} breakMinutesByPlaceId={trip.breakMinutesByPlaceId} restPurposeByPlaceId={trip.restPurposeByPlaceId} /></Suspense>
       <TripShareMenu trip={trip} participation={participation} region={archiveContext.region}/>
     </div>
 

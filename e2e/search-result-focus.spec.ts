@@ -54,7 +54,7 @@ test("weather alternative search keeps focus in comparison without changing the 
   await prepare(page, en);
   await page.route("**/api/weather?*", route => route.fulfill({ json: {
     region: "창원", source: "Open-Meteo", updatedAt: "2026-09-20T00:00:00Z",
-    current: { temperature: 23, apparent: 23, code: 61, label: "비", wind: 2, precipitation: 3, isDay: true },
+    current: { temperature: 23, apparent: 23, code: 61, label: "비", windMps: 2, precipitation: 3, isDay: true },
     days: [{ date: "2026-09-20", code: 61, label: "비", max: 24, min: 20, rainProbability: 80, rain: 3, snow: 0, uv: 2, advice: [] }], advice: [],
   } }));
   await collectMuseum(page, en);

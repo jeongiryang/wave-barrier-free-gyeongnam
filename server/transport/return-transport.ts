@@ -9,6 +9,7 @@ type Snapshot = { result: Extract<ProviderAttempt, { ok: true }>; checkedAt: str
 const cache = new Map<string, Snapshot>();
 const pending = new Map<string, Promise<Snapshot | null>>();
 const baseUrl = 'https://apis.data.go.kr/1613000/';
+const isGyeongnamPlace = (place: Record<string, unknown>) => String(place.lDongRegnCd || '') === '48' || String(place.areacode || '') === '36';
 
 // Public place/stop/route records only, bounded to the warm instance. No itinerary or GPS storage.
 async function snapshot(key: string, ttl: number, remaining: () => number, work: () => Promise<ProviderAttempt>): Promise<Snapshot | null> {
@@ -36,7 +37,7 @@ export async function handleReturnTransport(url: URL, env: Env) {
   const common = await snapshot('place:' + id, 15 * 60000, remaining, () => attemptProvider(fetchTourismData(env, 'KorService2', 'detailCommon2', { ...commonParams('1'), contentId: id })));
   if (!common) return json({ ...base, status: 'provider-error', message: '장소 정보를 확인하지 못했어요. 잠시 후 다시 확인해 주세요.' }, 502);
   const place = common.result.value.items.find(item => String(item.contentid) === id);
-  const point = place && String(place.lDongRegnCd) === '48' ? supportedPlacePoint(place.mapx, place.mapy) : null;
+  const point = place && isGyeongnamPlace(place) ? supportedPlacePoint(place.mapx, place.mapy) : null;
   if (!place || !point) return json({ ...base, status: 'location-unconfirmed', message: '경남의 공식 장소 위치를 확인하지 못했어요.' });
   const fetchTago = (service: string, operation: string, params: Record<string, string>) => attemptProvider(fetchPublicTransportData(env, 'tago', baseUrl + service, operation, params));
   const nearby = await snapshot('stops:' + id, 2 * 60000, remaining, () => fetchTago('BusSttnInfoInqireService', 'getCrdntPrxmtSttnList', { gpsLati: String(point.lat), gpsLong: String(point.lng), numOfRows: '8' }));

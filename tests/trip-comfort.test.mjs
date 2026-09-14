@@ -74,6 +74,6 @@ test("only planned breaks and stop purposes enter account/public shares; local c
   const book = createTravelBookSnapshot(input), restored = travelBookRestorePayload(book).schedule;
   const account = bookToAccountTrip(book), shared = publicTravelBody(account).selections;
   for (const value of [book, restored, account, shared]) { assert.deepEqual(value.breakMinutesByPlaceId, { "1001": 15 }); assert.deepEqual(value.restPurposeByPlaceId, { "1001": "restroom" }); }
-  assert.equal(restored.comfort.maxWalkMinutes, 10); assert.equal(account.comfort, undefined); assert.equal(shared.comfort, undefined);
+  assert.equal(restored.comfort.maxWalkMinutes, 10); assert.equal(account.comfort.maxWalkMinutes, 10); assert.equal(shared.comfort, undefined);
   assert.equal(JSON.stringify([book, account, shared]).includes("private"), false);
 });

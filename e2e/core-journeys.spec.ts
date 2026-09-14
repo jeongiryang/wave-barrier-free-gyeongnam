@@ -279,8 +279,15 @@ test("authenticated travelers can publish, like and comment without losing sessi
 
   await page.getByRole("button", { name: /도움이 됐어요/ }).click();
   await expect(page.getByRole("button", { name: /공감했어요/ })).toHaveAttribute("aria-pressed", "true");
-  await page.getByLabel("댓글 남기기").fill("다음 방문자에게도 도움이 되길 바랍니다.");
+  const commentInput = page.getByLabel("댓글 남기기");
+  await commentInput.fill("로그인한 계정의 댓글 초안입니다.");
+  await page.reload();
+  await expect(commentInput).toHaveValue("로그인한 계정의 댓글 초안입니다.");
+  await page.getByRole("button", { name: "초안 지우기", exact: true }).click();
+  await expect(commentInput).toHaveValue("");
+  await commentInput.fill("다음 방문자에게도 도움이 되길 바랍니다.");
   await page.getByRole("button", { name: "댓글 등록" }).click();
   await expect(page.getByText("다음 방문자에게도 도움이 되길 바랍니다.")).toBeVisible();
   await expect(page.getByText("테스트 여행자").first()).toBeVisible();
+  expect(await page.evaluate(() => Object.keys(sessionStorage).filter(key => key.startsWith("wave-community-comment-draft-v1:")))).toEqual([]);
 });

@@ -8,6 +8,7 @@ export async function fetchOpenMeteoForecast(point: WeatherPoint) {
     longitude: String(point.lng),
     timezone: "Asia/Seoul",
     forecast_days: "7",
+    wind_speed_unit: "ms",
     current: "temperature_2m,apparent_temperature,weather_code,is_day,precipitation,rain,showers,snowfall,wind_speed_10m",
     daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,rain_sum,snowfall_sum,uv_index_max",
   });

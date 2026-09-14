@@ -12,7 +12,7 @@ import { assertTripStorageOwner } from '../../lib/current-trip-storage.js';
 
 type Props = TravelBookInput & { compact?: boolean };
 function bookScheduleKey(book: NonNullable<ReturnType<typeof createTravelBookSnapshot>>) {
-  return JSON.stringify({ region: book.region, themes: book.themes, places: book.places.map(place => place.id),
+  return JSON.stringify({ region: book.region, themes: book.themes, profiles: book.profiles, guidancePreferences: book.guidancePreferences, places: book.places.map(place => place.id),
     travelStart: book.travelStart, travelEnd: book.travelEnd, dayStartTime: book.dayStartTime, travelMode: book.travelMode,
     scheduleAssignments: book.scheduleAssignments, visitMinutesByPlaceId: book.visitMinutesByPlaceId,
     fixedVisits: book.fixedVisits, dayDeadlines: book.dayDeadlines, comfort: book.comfort,
@@ -26,7 +26,7 @@ export default function TravelBookArchiveAction(input: Props) {
   const [busy, setBusy] = useState(false), [notice, setNotice] = useState(''), [failed, setFailed] = useState(false);
   const lock = useRef(false), mounted = useRef(true), lastSaved = useRef('');
   const attempt = useRef({ tripId: '', id: '' });
-  const inputKey = JSON.stringify({ ...input, compact: undefined, profiles: undefined, places: input.places.map(place => place.id) });
+  const inputKey = JSON.stringify({ ...input, compact: undefined, places: input.places.map(place => place.id) });
   const current = useRef({ input, inputKey, userId });
   useLayoutEffect(() => { current.current = { input, inputKey, userId }; }, [input, inputKey, userId]);
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function TravelBookArchiveAction(input: Props) {
     };
     const useAccount = automatic ? base.binding?.kind === 'account' : Boolean(userId);
     if (automatic && useAccount && (base.binding?.kind !== 'account' || base.binding.userId !== userId || base.binding.role !== 'owner')) return;
-    const book = createTravelBookSnapshot({ ...captured.input, profiles: [], tripId: base.id, identity: base, id: base.binding?.kind === 'local' ? base.binding.id : `book-${base.id}` });
+    const book = createTravelBookSnapshot({ ...captured.input, tripId: base.id, identity: base, id: base.binding?.kind === 'local' ? base.binding.id : `book-${base.id}` });
     if (!book) { setFailed(true); setNotice('저장할 날짜와 장소를 확인해 주세요.'); return; }
     lock.current = true; setBusy(true); setFailed(false); setFailureStatus(0);
     try {

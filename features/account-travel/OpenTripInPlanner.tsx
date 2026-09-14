@@ -4,7 +4,7 @@ import { accountTripPayload } from '../../lib/account-travel/model.js';
 import { travelRequest } from './client';
 import type { AccountTripPayload } from './types';
 import type { Place } from '../planner/types';
-import { emptyTrip, THEMES_KEY, TRIP_IDENTITY_KEY } from '../../lib/current-trip-storage.js';
+import { emptyTrip, THEMES_KEY, TRIP_IDENTITY_KEY, FACILITIES_KEY, GUIDANCE_KEY } from '../../lib/current-trip-storage.js';
 import { replaceTripWithBackup } from '../../lib/trip-import.js';
 import { useHydratedSession } from '../auth/hooks/useHydratedSession';
 import { newTripIdentity } from '../../lib/trip-identity.js';
@@ -29,6 +29,7 @@ export default function OpenTripInPlanner({ id, payload: input, revision, role }
       }
       const places = payload.placeIds.map(id => data.places.find(place => place.id === id) || { id, name: `이름 확인이 필요한 장소 (${id})`, city: payload.region, source: '' });
       replaceTripWithBackup(window.localStorage, { ...emptyTrip(payload.region, payload.travelStart, payload.travelEnd), [THEMES_KEY]: JSON.stringify(payload.themes),
+        [FACILITIES_KEY]: JSON.stringify(payload.profiles || []), [GUIDANCE_KEY]: JSON.stringify(payload.guidancePreferences || {}),
         [TRIP_IDENTITY_KEY]: JSON.stringify({ ...newTripIdentity(), id, binding: { kind: 'account', id, revision, role, userId: session.user.id } }),
         'wave-saved-places': JSON.stringify(payload.placeIds), 'wave-saved-place-catalog-v1': JSON.stringify(places), 'wave-trip-order-v1': JSON.stringify({ mode: 'manual', ids: payload.placeIds }),
         'wave-trip-schedule-v1': JSON.stringify({ ...payload }),

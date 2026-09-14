@@ -73,3 +73,9 @@ html[data-theme="dark"] .photo-course-enrichment { background: #0a2735; }
 html[data-theme="dark"] .photo-course-enrichment p { color: #c4dde8; }
 html[data-theme="dark"] .photo-course-badge.is-unlocated { color: #f0c07a; }
 html[data-theme="dark"] .photo-course-applied { color: #eaf5f9; background: #123d4f; }
+.photo-course-help-button { min-height: 44px; margin-top: 18px; padding: 10px 16px; border: 1px solid currentColor; border-radius: 10px; background: transparent; color: inherit; }
+.photo-course-help { width: min(620px,calc(100vw - 32px)); }
+.photo-course-help ol { display: grid; gap: 16px; padding-left: 24px; }
+.photo-course-help li span { display: block; margin-top: 4px; color: var(--muted); line-height: 1.7; }
+.photo-course-help > p { padding: 14px; border-radius: 10px; background: var(--surface); line-height: 1.7; }
+.photo-course-help footer { display: flex; justify-content: flex-end; }

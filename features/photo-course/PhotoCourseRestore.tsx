@@ -1,8 +1,9 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- 한국관광공사 API가 반환하는 가변 HTTPS CDN URL을 서버에서 검증한 뒤 지연 렌더링한다. */
-import { useId, useRef, useSyncExternalStore } from "react";
+import { useCallback, useId, useRef, useState, useSyncExternalStore } from "react";
 import { MAX_PHOTOS, usePhotoCourse } from "./usePhotoCourse";
+import { usePlaceDialogFocus } from '../planner/hooks/usePlaceDialogFocus';
 
 const REGIONS = ["창원", "진주", "통영", "사천", "김해", "밀양", "거제", "양산", "의령", "함안", "창녕", "고성", "남해", "하동", "산청", "함양", "거창", "합천"];
 const subscribeClientReady = () => () => {};
@@ -21,6 +22,9 @@ export default function PhotoCourseRestore({ onApply }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const headingId = useId();
   const clientReady = useSyncExternalStore(subscribeClientReady, () => true, () => false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const closeHelp = useCallback(() => setHelpOpen(false), []);
+  const helpRef = usePlaceDialogFocus(helpOpen, closeHelp);
 
   return (
     <section className="photo-course" aria-labelledby={headingId} data-client-ready={clientReady ? "true" : "false"}>
@@ -31,7 +35,19 @@ export default function PhotoCourseRestore({ onApply }: Props) {
           사진의 촬영 순서를 따라 여행을 되살려 보세요.
           장소를 확인하고 공식 관광정보와 사진으로 코스를 채워 보세요.
         </p>
+        <button type="button" className="photo-course-help-button" onClick={() => setHelpOpen(true)}>사용 방법</button>
       </header>
+
+      {helpOpen && <dialog ref={helpRef} className="simple-dialog photo-course-help" aria-labelledby="photo-course-help-title">
+        <header><h2 id="photo-course-help-title" tabIndex={-1}>사진 코스 사용 방법</h2><button type="button" aria-label="사용 방법 닫기" onClick={closeHelp}>×</button></header>
+        <ol>
+          <li><strong>원본 사진을 고르세요.</strong><span>촬영 날짜와 위치가 남은 JPG·PNG·WebP·TIFF를 최대 {MAX_PHOTOS}장까지 읽습니다.</span></li>
+          <li><strong>장소명과 지역을 확인하세요.</strong><span>사진 순서만 먼저 만들며, 잘못 보이는 이름과 시·군은 직접 고칠 수 있습니다.</span></li>
+          <li><strong>공식정보를 확인한 뒤 반영하세요.</strong><span>같은 지역의 동일 장소만 연결하고, 확인되지 않으면 비워 둡니다.</span></li>
+        </ol>
+        <p>원본 사진과 GPS는 기기 밖으로 보내지 않습니다. 사진만 보고 계단·접근 가능 여부·안전을 판단하지 않으며, HEIC는 지원하지 않습니다.</p>
+        <footer><button type="button" className="primary" onClick={closeHelp}>확인</button></footer>
+      </dialog>}
 
       <div className="photo-course-actions">
         <input

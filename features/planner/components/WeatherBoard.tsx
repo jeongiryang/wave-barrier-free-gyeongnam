@@ -36,7 +36,7 @@ export default function WeatherBoard({ region, weather, loading, failure, onRelo
         <div>
           <WeatherVisual code={weather.current.code} />
           <strong>{Math.round(weather.current.temperature)}°</strong>
-          <p><b>{weatherCondition(weather.current.code, weather.current.label, english)}</b><span>{english ? "Feels like " : "체감 "}{Math.round(weather.current.apparent)}° · {english ? "Wind " : "바람 "}{weather.current.wind.toFixed(1)} km/h</span></p>
+          <p><b>{weatherCondition(weather.current.code, weather.current.label, english)}</b><span>{english ? "Feels like " : "체감 "}{Math.round(weather.current.apparent)}° · {english ? "Wind " : "바람 "}{weather.current.windMps.toFixed(1)} m/s</span></p>
         </div>
         <ul>{weather.advice.map((item) => { const text = weatherPreparation(item, english); return <li key={item} lang={originalLanguage(text)}>{text}</li>; })}</ul>
         {english && weather.advice.some((item) => originalLanguage(weatherPreparation(item, true))) && <p>{"Some advice is provided in its original Korean wording."}</p>}

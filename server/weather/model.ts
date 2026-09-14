@@ -66,7 +66,7 @@ export function normalizeWeatherForecast(raw: Record<string, unknown>, region: s
       apparent: number(current.apparent_temperature),
       code: currentCode,
       label: weatherLabel(currentCode),
-      wind: number(current.wind_speed_10m),
+      windMps: number(current.wind_speed_10m),
       precipitation: number(current.precipitation),
       isDay: Boolean(current.is_day),
     },
