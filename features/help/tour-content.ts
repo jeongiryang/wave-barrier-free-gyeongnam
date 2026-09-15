@@ -7,17 +7,17 @@ export type TourStep = {
 };
 
 export const landingSteps: TourStep[] = [
-  { selector: '#top', highlightSelector: '#top .landing-hero-copy', eyebrow: '서비스 소개', title: '경남 여행을 준비하는 곳이에요.', copy: '필요한 편의시설과 이동 정보를 확인하고 일정을 만들 수 있어요.' },
-  { selector: '#regions', highlightSelector: '.simple-region-grid', eyebrow: '지역 선택', title: '여행할 지역을 고르세요.', copy: '사진을 누르면 그 지역의 여행지를 바로 찾아볼 수 있어요. 지역 더 보기로 경남 18개 시·군을 모두 볼 수 있어요.' },
-  { selector: '#story', highlightSelector: '.horizon-chapter-stream', eyebrow: '일정 만들기', title: '날짜별로 장소를 담아보세요.', copy: '여행지 정보를 보고 담은 뒤 날짜와 시간을 정하세요. 일정과 지도는 함께 확인할 수 있어요.' },
-  { selector: '#naru', highlightSelector: '#naru', eyebrow: '나루', title: '말이나 글로도 요청할 수 있어요.', copy: '나루에게 지역이나 장소를 말해보세요. 요청한 변경은 화면의 일정에도 반영되고 되돌릴 수 있어요.' },
+  { selector: '#top', highlightSelector: '#top .landing-hero-copy', eyebrow: '서비스 소개', title: '경남 여행을 준비하는 곳이에요', copy: '필요한 편의시설과 이동 정보를 확인하고 일정을 만들 수 있어요' },
+  { selector: '#regions', highlightSelector: '.region-gallery', eyebrow: '지역 선택', title: '여행할 지역을 골라보세요', copy: '사진을 누르면 그 지역의 여행지를 찾을 수 있어요 경남 18개 시·군의 풍경을 차례로 둘러볼 수 있어요' },
+  { selector: '#story', highlightSelector: '.horizon-chapter-stream', eyebrow: '일정 만들기', title: '날짜별로 장소를 담아보세요', copy: '여행지 정보를 보고 담은 뒤 날짜와 시간을 정해보세요 일정과 지도는 함께 확인할 수 있어요' },
+  { selector: '#naru', highlightSelector: '#naru', eyebrow: '나루', title: '말이나 글로 요청할 수 있어요', copy: '나루에게 지역이나 장소를 말해보세요 요청한 변경은 화면의 일정에도 반영되고 되돌릴 수 있어요' },
 ];
 
 export const plannerSteps: TourStep[] = [
-  { selector: '#conditions', highlightSelector: '.simple-search-bar', eyebrow: '여행지 찾기', title: '지역부터 골라보세요.', copy: '지역을 고르면 장소가 나와요. 필요한 시설은 편의 버튼에서 골라 적용하고, 활동은 원할 때만 고르세요.' },
-  { selector: '#places', highlightSelector: '.simple-results', eyebrow: '여행지 정보', title: '사진이나 이름을 누르면 자세히 볼 수 있어요.', copy: '담기를 누른 뒤에도 계속 둘러볼 수 있어요. 필요한 시설이 확인되지 않은 후보는 따로 표시해요.' },
-  { selector: '#itinerary', highlightSelector: '.simple-stops > li, .simple-empty, .simple-itinerary-map', eyebrow: '내 일정', title: '방문할 날짜와 시간을 정하세요.', copy: '수정 버튼에서 머무는 시간과 날짜를 바꿀 수 있어요. 내 여행에 저장하거나 공유 버튼으로 링크를 보낼 수 있어요.' },
-  { selector: '#departure-readiness', highlightSelector: '#departure-readiness > summary', eyebrow: '출발 전 확인', title: '방문 정보를 확인하세요.', copy: '날씨와 운영시간, 이동과 편의시설 정보는 필요한 항목을 펼쳐서 확인하세요.' },
+  { selector: '#conditions', highlightSelector: '.simple-search-bar', eyebrow: '여행지 찾기', title: '여행할 지역을 골라보세요', copy: '선택한 지역의 장소를 살펴보고 필요한 시설은 편의 버튼에서 골라 적용할 수 있어요 활동은 원할 때만 고르면 돼요' },
+  { selector: '#places', highlightSelector: '.simple-results', eyebrow: '여행지 정보', title: '사진이나 이름을 누르면 자세히 볼 수 있어요', copy: '담기를 누른 뒤에도 계속 둘러볼 수 있어요 필요한 시설이 확인되지 않은 후보는 따로 표시해요' },
+  { selector: '#itinerary', highlightSelector: '.simple-stops > li, .simple-empty, .simple-itinerary-map', eyebrow: '내 일정', title: '방문할 날짜와 시간을 정해보세요', copy: '수정 버튼에서 머무는 시간과 날짜를 바꿀 수 있어요 내 여행에 저장하거나 공유 버튼으로 링크를 보낼 수 있어요' },
+  { selector: '#departure-readiness', highlightSelector: '#departure-readiness > summary', eyebrow: '출발 전 확인', title: '방문 정보를 확인해 보세요', copy: '날씨와 운영시간, 이동과 편의시설 정보는 필요한 항목을 펼쳐서 확인할 수 있어요' },
 ];
 
 export const communitySteps: TourStep[] = [

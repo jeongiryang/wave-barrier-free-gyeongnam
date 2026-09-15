@@ -334,24 +334,22 @@ test("wide screens keep the full-width header and put the itinerary beside its m
   assert.match(css, /\.simple-planner-tabs button \{[^}]*min-height: 48px/);
 });
 
-test("landing offers six fixed photo links then all eighteen, preserving sources and the verified boundary data", async () => {
+test("landing restores the PR 466 photo-led regional showcase", async () => {
   const [landing, css] = await Promise.all([
-    source("features/landing/components/LandingRegionStory.tsx"), source("app/styles/simple-wave.css"),
+    source("features/landing/components/LandingRegionStory.tsx"), source("app/styles/landing-cinematic.css"),
   ]);
-  const first = JSON.parse(landing.match(/const firstRegions = (\[[^\n]+\]);/)?.[1] || "null");
-  assert.deepEqual(first, ["통영", "거제", "남해", "진주", "창원", "하동"]);
-  assert.match(landing, /orderedRegions\.slice\(0, expanded \? 18 : 6\)\.map/);
-  assert.match(landing, /href=\{\x60\/planner\?region=\$\{encodeURIComponent\(name\)\}\x60\}/);
-  assert.match(landing, /aria-controls="region-grid"/);
-  assert.match(landing, /aria-expanded=\{expanded\}/);
-  assert.match(landing, /href=\{regionPhotoSource\(photo\)\.href\}/);
-  assert.match(landing, /className="simple-region-credit" lang="ko"/);
-  assert.doesNotMatch(landing, /setTimeout|setInterval|setAutomatic|RegionMascot|upload\.wikimedia\.org/i);
+  assert.match(landing, /data-region-stage/);
+  assert.match(landing, /aria-controls="region-current"/);
+  assert.match(landing, /onClick=\{\(\) => move\(-1\)\}/);
+  assert.match(landing, /onClick=\{\(\) => move\(1\)\}/);
+  assert.match(landing, /setTimeout[\s\S]*4000/);
+  assert.match(landing, /automatic && inView && visible && !saving/);
+  assert.match(landing, /onFocusCapture=\{\(\) => setAutomatic\(false\)\}/);
+  assert.doesNotMatch(landing, /RegionMascot|upload\.wikimedia\.org/i);
   const surface = await source("features/landing/components/RegionBoundarySurface.tsx");
   assert.match(surface, /viewBox="0 0 800 814"/);
   assert.match(surface, /data-region-boundary=\{region\.name\} data-selected=\{region\.name === selected\}/);
-  assert.match(css, /\.simple-region-link > img \{ width: 100%; height: 100%; object-fit: cover/);
-  assert.match(css, /\.simple-show-regions \{[^}]*min-height: 48px/);
+  assert.match(css, /\.region-arrows button \{[^}]*width: 48px;[^}]*height: 48px/);
   assert.match(landing, /prefers-reduced-motion: reduce/);
 });
 
@@ -391,22 +389,22 @@ test("preserved feature previews retain their order and motion safety; current c
 
 test("decorative arrival uses one photo and wordmark and yields immediately to user interaction", async () => {
   const [landing, intro, css] = await Promise.all([
-    source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"), source("app/styles/simple-wave.css"),
+    source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"), source("app/styles/landing-arrival.css"),
   ]);
-  assert.match(intro, /className="arrival-picture"><img src=\{horizonPhotos\.coast\.image\} alt=""/);
-  assert.match(intro, /className="arrival-word">WAVE/);
-  assert.doesNotMatch(intro, /WAVE_RAMP|canvas|requestAnimationFrame|putImageData/);
+  assert.match(intro, /<dialog[\s\S]*aria-labelledby="arrival-title"/);
+  assert.match(intro, /className="arrival-poster"/);
+  assert.match(intro, /className="arrival-wave-canvas"/);
   assert.match(landing, /<LandingIntro \/><main/);
-  assert.match(intro, /className="arrival-scene" hidden aria-hidden="true"/);
-  assert.doesNotMatch(intro, /<dialog|<button|<video|showModal|\.focus\(|preventDefault\(/);
+  assert.doesNotMatch(intro, /<button|data-intro-skip/);
+  assert.match(intro, /muted playsInline preload="none"/);
   assert.match(intro, /prefers-reduced-motion: reduce/);
-  assert.match(intro, /setTimeout\(finish, 2000\)/);
-  assert.match(intro, /window\.addEventListener\(name, finish, \{ passive: true, capture: true \}\)/);
-  assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
-  assert.match(intro, /clearTimeout\(timer\); finish\(\)/);
-  assert.match(css, /\.arrival-scene \{[^}]*pointer-events: none/);
-  assert.match(css, /\.arrival-scene\[hidden\] \{ display: none/);
-  assert.doesNotMatch(landing, /<LandingSectionProgress|<LandingAccountStory/);
+  assert.match(intro, /setTimeout\(finish, 5200\)/);
+  assert.match(intro, /const SESSION_KEY = "wave-arrival-session-v1"/);
+  assert.match(intro, /sessionStorage\.setItem\(SESSION_KEY, "done"\)/);
+  assert.match(intro, /getElementById\("landing-title"\)\?\.focus/);
+  assert.match(css, /height: 100dvh/);
+  assert.match(landing, /<LandingSectionProgress/);
+  assert.match(landing, /<LandingAccountStory/);
 });
 
 test("interactive help follows real sections on every public journey and remains accessible on mobile", async () => {
@@ -431,7 +429,7 @@ test("interactive help follows real sections on every public journey and remains
   new Function("exports", ts.transpileModule(helpContent, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText)(tours);
   assert.deepEqual(tours.landingSteps.map(step => step.selector), ["#top", "#regions", "#story", "#naru"]);
   assert.deepEqual(tours.plannerSteps.map(step => step.selector), ["#conditions", "#places", "#itinerary", "#departure-readiness"]);
-  assert.deepEqual(tours.landingSteps.map(step => step.highlightSelector), ["#top .landing-hero-copy", ".simple-region-grid", ".horizon-chapter-stream", "#naru"]);
+  assert.deepEqual(tours.landingSteps.map(step => step.highlightSelector), ["#top .landing-hero-copy", ".region-gallery", ".horizon-chapter-stream", "#naru"]);
   assert.deepEqual(tours.plannerSteps.map(step => step.highlightSelector), [".simple-search-bar", ".simple-results", ".simple-stops > li, .simple-empty, .simple-itinerary-map", "#departure-readiness > summary"]);
   for (const [steps, content] of [[tours.landingSteps, landing], [tours.plannerSteps, planner]]) {
     for (const step of steps) {

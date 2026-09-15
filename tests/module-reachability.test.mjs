@@ -23,6 +23,8 @@ const PRESERVED_LANDING_SCENES = [
   "features/landing/components/LandingExpansionScene.tsx",
   "features/landing/components/LandingJourneyScene.tsx",
   "features/landing/components/LandingProductStories.tsx",
+  "features/landing/components/LandingCommunityScene.tsx",
+  "features/landing/hooks/useLandingReveal.ts",
 ];
 
 async function walk(relative) {

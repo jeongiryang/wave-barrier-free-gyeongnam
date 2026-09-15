@@ -4,7 +4,30 @@
 
 /* 첫 화면은 조건에서 출발해 근거·일정·상황 대응으로 이어지는 흐름을 직접 보여준다. */
 
-/* Entry animations are transient: the photograph and copy stay visible by default. */
+/* 큰 카피는 뷰포트 중심을 지날 때 최대 ±16px만 천천히 떠다닌다. */
+.landing-cta h2 {
+  --land-drift: 0px;
+  translate: 0 var(--land-drift);
+  will-change: translate;
+  transition: translate .18s linear;
+}
+
+/* 섹션 내부 카피를 한 덩어리로 띄우지 않고 읽는 순서대로 stagger한다. */
+.landing-cta > * {
+  transition: opacity .65s ease, transform .72s cubic-bezier(.16,1,.3,1);
+}
+.landing-cta:not(.is-visible) > * {
+  opacity: 0;
+  transform: translateY(24px);
+}
+.landing-cta.is-visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+.landing-cta.is-visible > :nth-child(1) { transition-delay: .04s; }
+.landing-cta.is-visible > :nth-child(2) { transition-delay: .13s; }
+.landing-cta.is-visible > :nth-child(3) { transition-delay: .23s; }
+.landing-cta.is-visible > :nth-child(n+4) { transition-delay: .32s; }
 
 /* 키커의 짧은 파란 선이 텍스트 등장 후 따라 그려진다. */
 .section-kicker { width: fit-content; position: relative; }
@@ -21,11 +44,29 @@
 .is-visible > .section-kicker::after,
 .section-kicker.is-visible::after { transform: scaleX(1) translateY(-50%); }
 
+/* 강조어는 느린 수면 이동만 주어 계속 움직이되 읽기를 방해하지 않는다. */
+.landing-cta h2 em {
+  color: var(--blue);
+  background: linear-gradient(105deg,var(--blue) 10%,#0c83be 42%,#25aaa8 58%,var(--blue) 90%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: landingTextCurrent 7.5s ease-in-out infinite;
+}
+
+@keyframes landingTextCurrent {
+  0%,100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .landing-page.motion-ready [data-land-reveal] { opacity: 1; transform: none; transition: none; }
+  .landing-cta h2 { translate: none !important; transition: none; }
   .landing-cta > * { opacity: 1; transform: none; transition: none; }
   .section-kicker::after { transform: scaleX(1) translateY(-50%); transition: none; }
+  .landing-cta h2 em { animation: none; background-position: 0 50%; }
 }
 html[data-motion="calm"] .landing-hero-copy { translate: none !important; transform: none !important; scale: 1 !important; transition: none !important; }
+html[data-motion="calm"] .landing-cta h2 em { animation: none !important; }
 html[data-motion="calm"] [data-land-reveal],
 html[data-motion="calm"] .landing-cta > * { opacity: 1 !important; transform: none !important; translate: none !important; clip-path: none !important; transition: none !important; }

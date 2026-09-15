@@ -15,7 +15,7 @@ test("landing route composes restored scenes and keeps browser effects inside th
     source("features/landing/components/LandingAssistantStory.tsx"),
   ]);
   assert.deepEqual([...page.matchAll(/<(Landing[A-Za-z]+)\b/g)].map(match => match[1]),
-    ["LandingIntro", "LandingHeader", "LandingHero", "LandingChapters", "LandingRegionStory", "LandingAssistantStory", "LandingDepartureScene", "LandingCommunityScene", "LandingCallToAction", "LandingFooter"]);
+    ["LandingIntro", "LandingHeader", "LandingSectionProgress", "LandingHero", "LandingRegionStory", "LandingChapters", "LandingAccountStory", "LandingAssistantStory", "LandingDepartureScene", "LandingCommunityStory", "LandingCallToAction", "LandingFooter"]);
   assert.deepEqual([hero, regions, story, naru].flatMap(content => [...content.matchAll(/<section\b[^>]*\bid="([^"]+)"/g)].map(match => match[1])), ["top", "regions", "story", "naru"]);
   assert.doesNotMatch(page, /useState|useEffect|IntersectionObserver|AbortController/);
   assert.match(regions, /new IntersectionObserver/);
@@ -27,29 +27,25 @@ test("landing route composes restored scenes and keeps browser effects inside th
   assert.doesNotMatch(story + naru, /fetch\(|localStorage|sessionStorage|<form\b|<input\b|<textarea\b/);
 });
 
-test("the two-second decorative arrival never intercepts navigation or moves keyboard focus", async () => {
+test("the PR 466 arrival exits automatically and restores focus to the page", async () => {
   const [landing, intro, css] = await Promise.all([
     source("app/page.tsx"),
     source("features/landing/components/LandingIntro.tsx"),
-    source("app/styles/simple-wave.css"),
+    source("app/styles/landing-arrival.css"),
   ]);
   assert.match(landing, /<LandingIntro/);
   assert.match(landing, /<LandingHero/);
-  assert.match(intro, /<div ref=\{scene\} className="arrival-scene" hidden aria-hidden="true"/);
-  assert.doesNotMatch(intro, /<dialog|<button|showModal|\.focus\(|preventDefault\(|body\.style\.overflow/);
-  assert.match(css, /\.arrival-scene \{[^}]*pointer-events: none/);
-  assert.match(intro, /setTimeout\(finish, 2000\)/);
-  assert.match(intro, /root\.hidden = true/);
-  assert.match(intro, /animations\.forEach\(animation => animation\.cancel\(\)\)/);
-  assert.match(intro, /sessionStorage\.getItem\("wave-arrival-session-v1"\)/);
-  assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
+  assert.match(intro, /<dialog[\s\S]*aria-labelledby="arrival-title"/);
+  assert.doesNotMatch(intro, /<button|data-intro-skip/);
+  assert.match(intro, /setTimeout\(finish, 5200\)/);
+  assert.match(intro, /getElementById\("landing-title"\)\?\.focus/);
+  assert.match(css, /height: 100dvh/);
+  assert.match(intro, /const SESSION_KEY = "wave-arrival-session-v1"/);
+  assert.match(intro, /sessionStorage\.getItem\(SESSION_KEY\)/);
+  assert.match(intro, /sessionStorage\.setItem\(SESSION_KEY, "done"\)/);
   assert.match(intro, /document\.documentElement\.dataset\.introSeen = "1"/);
-  assert.match(intro, /seen \|\| media\.matches/);
-  for (const event of ["pointerdown", "keydown", "wheel", "touchstart", "resize"]) assert.ok(intro.includes('"' + event + '"'), event);
-  assert.match(intro, /addEventListener\(name, finish, \{ passive: true, capture: true \}\)/);
-  assert.match(intro, /removeEventListener\(name, finish, true\)/);
-  assert.match(intro, /media\.addEventListener\("change", reduction\)/);
-  assert.match(intro, /media\.removeEventListener\("change", reduction\)/);
+  assert.match(intro, /prefers-reduced-motion: reduce/);
+  assert.match(intro, /connection\?\.saveData === true/);
 });
 
 test("place-photo recovery has a finite timeout and a stale result cannot replace the current card image", async () => {

@@ -66,12 +66,12 @@ test("검색 화면과 모바일 시간표는 지도를 지연하고 지역 사�
   assert.match(workspace, /mapMounted \? <Suspense/);
   assert.doesNotMatch(regionStory, /Wikimedia|upload\.wikimedia\.org|<LandingBoundaryMap|korea-sgis-2020/);
   assert.equal((regionStory.match(/<img\b/g) || []).length, 1);
-  assert.match(regionStory, /orderedRegions\.slice\(0, expanded \? 18 : 6\)\.map/);
+  assert.match(regionStory, /const neighbours = \[1, 2\]\.map/);
   assert.match(regionStory, /src=\{photo\.image\}/);
-  assert.match(regionStory, /loading="lazy" decoding="async" width="640" height="480"/);
-  assert.doesNotMatch(regionStory, /fetch\(|setInterval|setTimeout|requestAnimationFrame/);
-  assert.match(regionStory, /media\.matches \|\| revealed\.current\.has\(entry\.target\)/);
-  assert.match(regionStory, /animations\.forEach\(animation => animation\.cancel\(\)\)/);
+  assert.match(regionStory, /decoding="async" loading="lazy" width="1280" height="960"/);
+  assert.doesNotMatch(regionStory, /fetch\(|setInterval/);
+  assert.match(regionStory, /setTimeout[\s\S]*4000/);
+  assert.match(regionStory, /connection\?\.saveData === true/);
   const boundary = await source("features/landing/components/LandingBoundaryMap.tsx");
   assert.match(boundary, /new IntersectionObserver/);
   assert.match(boundary, /import\("\.\/RegionBoundarySurface"\)/);
@@ -88,14 +88,16 @@ test("지역을 읽거나 hover해도 새 조회 없이 같은 사진과 목적�
     source("features/landing/components/LandingRegionStory.tsx"),
     source("features/planner/components/PlannerRegionDiscovery.tsx"),
   ]);
-  for (const region of [landing, planner]) {
-    assert.match(region, /src=\{photo\.image\}/);
-    assert.match(region, /loading="lazy" decoding="async"/);
-    assert.doesNotMatch(region, /onMouseEnter|onPointerEnter|onMouseMove|fetch\(|setInterval/);
-    assert.match(region, /aria-expanded=\{expanded\}/);
-    assert.match(region, /regionPhotoSource\(photo\)\.href/);
-  }
-  assert.match(landing, /regionShowcaseAlbums\[name\]\[0\]/);
+  assert.match(landing, /src=\{photo\.image\}/);
+  assert.match(landing, /decoding="async" loading="lazy"/);
+  assert.doesNotMatch(landing, /fetch\(|setInterval/);
+  assert.match(landing, /regionPhotoSource\(photo\)\.href/);
+  assert.match(landing, /regionShowcaseAlbums\[active\.name\]/);
+  assert.match(planner, /src=\{photo\.image\}/);
+  assert.match(planner, /loading="lazy" decoding="async"/);
+  assert.doesNotMatch(planner, /onMouseEnter|onPointerEnter|onMouseMove|fetch\(|setInterval/);
+  assert.match(planner, /aria-expanded=\{expanded\}/);
+  assert.match(planner, /regionPhotoSource\(photo\)\.href/);
   assert.match(planner, /regionShowcasePhotos\[name\]/);
   assert.match(planner, /onClick=\{\(\) => onChange\(name\)\}/);
 });

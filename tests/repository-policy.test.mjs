@@ -276,7 +276,7 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(regionalPhoto, /for \(const keyword of keywords\)/);
 });
 
-test("all eighteen regions remain discoverable through a named expansion and direct regional links", async () => {
+test("all eighteen regions remain discoverable through the PR 466 regional carousel", async () => {
   const [content, region] = await Promise.all([
     source("features/landing/content.ts"), source("features/landing/components/LandingRegionStory.tsx"),
   ]);
@@ -285,13 +285,10 @@ test("all eighteen regions remain discoverable through a named expansion and dir
   const actual = [...config.matchAll(/name: "([^"]+)"/g)].map(match => match[1]);
   assert.deepEqual([...actual].sort(), [...names].sort());
   assert.equal(new Set(actual).size, 18);
-  assert.match(region, /landingRegions\.map\(region => region\.name\)\.filter\(name => !firstRegions\.includes\(name\)\)/);
-  assert.match(region, /orderedRegions\.slice\(0, expanded \? 18 : 6\)/);
-  assert.match(region, /18개 지역 모두 보기/);
-  assert.match(region, /View all 18 regions/);
-  assert.match(region, /aria-label=\{\x60\$\{label\}/);
-  assert.match(region, /aria-controls="region-grid"/);
-  assert.match(region, /href=\{\x60\/planner\?region=\$\{encodeURIComponent\(name\)\}\x60\}/);
+  assert.match(region, /landingRegions\.findIndex\(region => region\.name === activeRegion\)/);
+  assert.match(region, /aria-label=\{english \? "Browse 18 regions" : "18개 지역 둘러보기"\}/);
+  assert.match(region, /aria-controls="region-current"/);
+  assert.match(region, /href=\{\x60\/planner\?region=\$\{encodeURIComponent\(active\.name\)\}\x60\}/);
   assert.match(region, /regionNames\[name\]/);
   assert.doesNotMatch(region, /RegionMascot|LandingBoundaryMap|fetch\(|upload\.wikimedia\.org/i);
   assert.doesNotMatch(config, /[🎭🎬🌾🎶⛰🌱🌿⚔🔥🏺🌸🍵🏮✈🦕🏘⛵🌼]/u);
@@ -418,14 +415,13 @@ test("motion follows the OS, retires legacy storage and has no app preference co
   assert.match(controls, /<details ref=\{disclosure\} className="preference-controls" inert=\{!controlsReady\} aria-busy=\{!controlsReady\} suppressHydrationWarning\s+onBlur=/);
   assert.doesNotMatch(catalog, /motionCopy/);
   for (const component of [intro, regions]) assert.match(component, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
-  assert.match(intro, /seen \|\| media\.matches \|\| document\.documentElement\.dataset\.motion === "calm"/);
-  assert.match(intro, /if \(media\.matches\) finish\(\)/);
-  assert.match(intro, /media\.addEventListener\("change", reduction\)/);
-  assert.match(intro, /media\.removeEventListener\("change", reduction\)/);
-  assert.match(regions, /if \(!entry\.isIntersecting \|\| media\.matches \|\| revealed\.current\.has\(entry\.target\)\) return/);
-  assert.match(regions, /if \(media\.matches\) \{ animations\.forEach\(animation => animation\.cancel\(\)\); animations\.clear\(\)/);
-  assert.match(regions, /media\.addEventListener\('change', configure\)/);
-  assert.match(regions, /observer\.disconnect\(\); media\.removeEventListener\('change', configure\)/);
+  assert.match(intro, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)\.matches/);
+  assert.match(intro, /connection\?\.saveData === true/);
+  assert.match(intro, /media\.addEventListener\("change", sync\)/);
+  assert.match(intro, /media\.removeEventListener\("change", sync\)/);
+  assert.match(regions, /const reduction = matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(regions, /reduction\.addEventListener\("change", sync\)/);
+  assert.match(regions, /reduction\.removeEventListener\("change", sync\)/);
   assert.match(layout, /prefers-reduced-motion: reduce/);
   assert.match(layout, /d\.dataset\.motion=r\?'calm':'full'/);
   assert.doesNotMatch(layout, /LandingIntro|wave-intro-seen/);
@@ -774,21 +770,20 @@ test("route-map rendering delegates controller, provider adapters, controls and 
 test("arrival motion belongs to its component and cleans up animation, viewport and input listeners", async () => {
   const [page, intro, css] = await Promise.all([
     source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"),
-    source("app/styles/simple-wave.css"),
+    source("app/styles/landing-arrival.css"),
   ]);
   assert.match(page, /<LandingIntro/);
   assert.doesNotMatch(page, /requestAnimationFrame|createIntroMasks|useEffect|<WaveField/);
   assert.match(intro, /useEffect\(\(\) =>/);
-  assert.match(intro, /const animations = \[/);
+  assert.match(intro, /const animations: Animation\[\] = \[\]/);
   assert.match(intro, /animations\.forEach\(animation => animation\.cancel\(\)\)/);
-  assert.match(intro, /clearTimeout\(timer\); finish\(\)/);
-  assert.match(intro, /document\.removeEventListener\("visibilitychange", visibility\)/);
-  assert.match(intro, /media\.removeEventListener\("change", reduction\)/);
-  assert.match(intro, /window\.removeEventListener\(name, finish, true\)/);
-  assert.match(intro, /root\.hidden = true/);
-  assert.match(intro, /if \(media\.matches\) finish\(\)/);
-  assert.match(css, /\.arrival-scene \{[^}]*pointer-events: none/);
-  assert.doesNotMatch(intro, /requestAnimationFrame|putImageData|createIntroMasks|\.focus\(/);
+  assert.match(intro, /if \(exitTimer\.current\) clearTimeout\(exitTimer\.current\)/);
+  assert.match(intro, /document\.removeEventListener\("visibilitychange", sync\)/);
+  assert.match(intro, /media\.removeEventListener\("change", sync\)/);
+  assert.match(intro, /node\.close\(\)/);
+  assert.match(intro, /prefers-reduced-motion: reduce/);
+  assert.match(css, /height: 100dvh/);
+  assert.doesNotMatch(intro, /putImageData|createIntroMasks/);
 });
 
 test("every user-facing footer exposes the repository with an accessible tooltip", async () => {
