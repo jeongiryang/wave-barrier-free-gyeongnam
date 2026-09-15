@@ -16,7 +16,7 @@ async function setup(page:Page) {
   await page.route('**/api/wave?action=visit-info*',route=>route.fulfill({json:{id:new URL(route.request().url()).searchParams.get('contentId'),status:'available',checkedAt:'2026-09-11T12:00:00Z',source:'ⓒ한국관광공사',hours:'09:00~18:00',phone:'055-123-4567',fees:'무료'}}));
   await page.goto('/planner');await chooseTripConditions(page);
   for(const name of ['경남도립미술관','용지호수공원','시민문화쉼터'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();
-  await openItinerary(page);await page.locator('.simple-more-trip-tools > summary').click();
+  await openItinerary(page);await expect(page).toHaveURL(/#itinerary$/);await page.locator('.simple-more-trip-tools > summary').click();
 }
 const guide=(page:Page)=>page.getByRole('region',{name:'여행 당일 진행',exact:true});
 
@@ -33,6 +33,35 @@ test('on-trip completion, skip, undo and resume keep the original schedule',asyn
   const after=await page.evaluate(()=>({saved:localStorage.getItem('wave-saved-places'),schedule:localStorage.getItem('wave-trip-schedule-v1')}));expect(after).toEqual(before);
   for(const width of info.project.name.includes('desktop')?[1440,960]:[390,320]){
     await page.setViewportSize({width,height:960});await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`on-trip-${width}.png`)});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBe(0);expect((await new AxeBuilder({page}).include('[aria-label="여행 당일 진행"]').analyze()).violations).toEqual([]);
+  }
+});
+
+test('easy on-trip uses the shared progress without location or network transfer',async({page},info)=>{
+  await page.addInitScript(()=>{
+    Object.assign(window,{easyTripLocationCalls:0});
+    Object.defineProperty(navigator,'geolocation',{configurable:true,value:{getCurrentPosition(){(window as unknown as {easyTripLocationCalls:number}).easyTripLocationCalls++;}}});
+  });
+  await setup(page);await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();const panel=guide(page);
+  await panel.getByRole('button',{name:'쉬운 보기',exact:true}).click();
+  await expect(panel.getByRole('heading',{name:'오늘 할 일',exact:true})).toBeVisible();
+  await expect(panel.getByText('지금',{exact:true})).toBeVisible();await expect(panel.getByText('다음',{exact:true})).toBeVisible();await expect(panel.getByText('그다음',{exact:true})).toBeVisible();
+  await expect(panel.getByRole('heading',{name:'경남도립미술관',exact:true})).toHaveAttribute('aria-current','step');
+  await page.waitForLoadState('networkidle');const transferred:string[]=[];page.on('request',request=>transferred.push(request.url()+(request.postData()||'')));
+  await panel.getByRole('button',{name:'잠깐 쉬기',exact:true}).click();await expect(panel.getByRole('heading',{name:'잠시 쉬는 중',exact:true})).toBeVisible();
+  await expect(panel.getByRole('heading',{name:'경남도립미술관',exact:true})).toBeVisible();await panel.getByRole('button',{name:'계속하기',exact:true}).click();
+  await panel.getByRole('button',{name:'다녀왔어요',exact:true}).click();await expect(panel.getByRole('status')).toContainText('경남도립미술관을 완료했어요. 다음은 용지호수공원이에요.');
+  await expect(panel.getByRole('heading',{name:'용지호수공원',exact:true})).toBeFocused();
+  await panel.getByRole('button',{name:'되돌리기',exact:true}).click();await expect(panel.getByRole('heading',{name:'경남도립미술관',exact:true})).toBeVisible();
+  await panel.getByRole('button',{name:'다녀왔어요',exact:true}).click();await panel.getByRole('button',{name:'이번 장소 건너뛰기',exact:true}).click();
+  await expect(panel).toContainText('완료한 장소로 표시하지 않아요.');await panel.getByRole('group',{name:'장소 건너뛰기 확인',exact:true}).getByRole('button',{name:'이번 장소 건너뛰기',exact:true}).click();
+  await expect(panel.getByRole('heading',{name:'시민문화쉼터',exact:true})).toBeVisible();
+  expect(await page.evaluate(()=>(window as unknown as {easyTripLocationCalls:number}).easyTripLocationCalls)).toBe(0);expect(transferred).toEqual([]);
+  const progress=await page.evaluate(()=>localStorage.getItem('wave-on-trip-v1'));expect(progress).toContain('done');expect(progress).toContain('skipped');expect(progress).not.toMatch(/latitude|longitude|accuracy|coords|mapX|mapY/);
+  await page.reload();await page.locator('.simple-more-trip-tools > summary').click();await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();await panel.getByRole('button',{name:'쉬운 보기',exact:true}).click();
+  await expect(panel.getByRole('heading',{name:'시민문화쉼터',exact:true})).toBeVisible();
+  for(const width of info.project.name.includes('desktop')?[1440,960]:[390,320]){
+    await page.setViewportSize({width,height:960});await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`easy-on-trip-${width}.png`)});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBe(0);expect((await new AxeBuilder({page}).include('[aria-label="여행 당일 진행"]').analyze()).violations).toEqual([]);
   }
 });
@@ -63,4 +92,11 @@ test('failed progress storage remains available to the offline pack and read err
   await page.getByRole('group',{name:'진행할 여행 날짜',exact:true}).getByRole('button',{name:'09월 16일',exact:true}).click();
   await expect(panel.getByRole('status')).toContainText('진행 기록을 불러오지 못했어요');
   expect(await page.evaluate(()=>localStorage.getItem('wave-trip-schedule-v1'))).toBe(original);
+});
+
+test('easy on-trip keeps working in memory when progress storage is unavailable',async({page})=>{
+  await setup(page);await page.evaluate(()=>{const write=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='wave-on-trip-v1')throw new DOMException('Full','QuotaExceededError');write.call(this,key,value);};});
+  await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();const panel=guide(page);await panel.getByRole('button',{name:'쉬운 보기',exact:true}).click();
+  await panel.getByRole('button',{name:'다녀왔어요',exact:true}).click();await expect(panel.getByRole('heading',{name:'용지호수공원',exact:true})).toBeVisible();
+  await expect(panel.getByRole('status')).toHaveText('진행 기록을 저장하지 못했어요. 이 화면에서는 계속 이용할 수 있어요.');
 });

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { onTripIdentity, cleanOnTrip, readOnTrip, saveOnTrip, remainingOnTrip, ON_TRIP_KEY } from '../lib/on-trip.js';
+import { onTripIdentity, cleanOnTrip, easyOnTripSteps, readOnTrip, saveOnTrip, remainingOnTrip, ON_TRIP_KEY } from '../lib/on-trip.js';
 import { offlineTripHtml, offlineTripText } from '../lib/trip-offline.js';
 const day='2026-09-15',origin={lat:35.22,lng:128.68};
 const places=['1001','1002','1003'].map((id,index)=>({id,name:`장소${index+1}`,mapX:String(128.68+index*.01),mapY:'35.23',contentTypeId:'12',address:'창원시 공개 장소',source:'한국관광공사',accessibility:[{key:'restroom',label:'화장실',state:'unknown',detail:'시설 확인 필요'}]}));
@@ -39,6 +39,26 @@ test('later restart time preserves fixed waiting, explicit rest and deadline inp
   const plan=remainingOnTrip({...base,progress,fixedVisits:{'1001':{time:'13:00',position:0,kind:'event'}}});
   assert.ok(plan.entries[0].lateMinutes>180);assert.equal(plan.entries[1].breakMinutes,15);assert.equal(base.visitMinutesByPlaceId['1002'],45);
   const complete={...progress,marks:Object.fromEntries(places.map(place=>[place.id,{state:'done',at:''}]))};assert.equal(remainingOnTrip({...base,progress:complete}).entries.length,0);
+});
+
+test('easy steps derive only now, next and after next from the shared progress',()=>{
+  const empty=remainingOnTrip({...base,places:[],progress:cleanOnTrip(null,[])});assert.deepEqual(easyOnTripSteps(empty),[]);
+  const one=remainingOnTrip({...base,places:places.slice(0,1),progress:cleanOnTrip(null,['1001'])});
+  assert.deepEqual(easyOnTripSteps(one).map(step=>[step.itineraryStopId,step.state]),[['1001','current']]);
+  const initial=cleanOnTrip(null,places.map(place=>place.id));
+  assert.deepEqual(easyOnTripSteps(remainingOnTrip({...base,progress:initial})).map(step=>step.itineraryStopId),['1001','1002','1003']);
+  const marked={...initial,marks:{'1001':{state:'done',at:''},'1002':{state:'skipped',at:''}},cursorId:'1001'};
+  const steps=easyOnTripSteps(remainingOnTrip({...base,progress:marked}));assert.equal(steps[0].itineraryStopId,'1003');assert.equal(steps[0].title,'장소3');
+});
+
+test('same-day itinerary additions and deletions retain only marks for unchanged stop ids',()=>{
+  const map=new Map(),storage={getItem:key=>map.get(key)||null,setItem:(key,value)=>map.set(key,value)};
+  const ids=places.map(place=>place.id),value={...cleanOnTrip(null,ids),marks:{'1001':{state:'done',at:'2026-09-15T01:00:00Z'},'1002':{state:'skipped',at:'2026-09-15T01:01:00Z'}},updatedAt:'2026-09-15T01:02:00Z'};
+  saveOnTrip(storage,onTripIdentity(places,day),value,ids);
+  const changed=[places[0],places[2],{...places[1],id:'1004'}],changedIds=changed.map(place=>place.id);
+  const restored=readOnTrip(storage,onTripIdentity(changed,day),changedIds);
+  assert.deepEqual(Object.keys(restored.marks),['1001']);assert.equal(restored.marks['1001'].state,'done');assert.equal(restored.marks['1004'],undefined);
+  assert.deepEqual(readOnTrip(storage,onTripIdentity(changed,'2026-09-16'),changedIds).marks,{});
 });
 
 test('offline pack remains readable without network, escapes markup and never turns missing information into free or accessible',()=>{
