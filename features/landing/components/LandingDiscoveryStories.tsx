@@ -9,13 +9,13 @@ export default function LandingDiscoveryStories() {
       <CompactJourneyVisual stage="conditions" />
       <div className="product-story-copy">
         {en ? <p className="section-kicker">01 · Your needs</p> : <p className="section-kicker">01 · 여행 조건</p>}
-        <h2>{en ? "Your needs first." : "장소보다 먼저,"}<br /><em>{en ? "Then the destination." : "내 여행 조건부터."}</em></h2>
-        <p>{en ? "Choose a region and the facilities you need, then search. Change your conditions whenever you want to find a different trip." : "지역과 필요한 편의를 고른 뒤 직접 검색하세요. 조건이 달라지면 다시 검색해 내 여행에 맞는 장소를 찾아요."}</p>
+        <h2>{en ? "Your needs first." : "내 여행 조건으로"}<br /><em>{en ? "Then the destination." : "장소를 만나보세요"}</em></h2>
+        <p>{en ? "Choose a region and the facilities you need, then search. Change your conditions whenever you want to find a different trip." : "지역과 필요한 편의를 한 화면에서 살펴보며 내 여행에 맞는 장소를 찾을 수 있어요"}</p>
         <a href="/planner#planner">{en ? "Start with my needs" : "내 조건으로 시작하기"} <span aria-hidden="true">→</span></a>
       </div>
-      <div className="product-preview condition-preview feature-motion" role="img" aria-label="필요한 이동과 편의 조건을 고르면 근거가 확인된 장소 추천으로 이어지는 흐름">
+      <div className="product-preview condition-preview feature-motion" role="img" aria-label="필요한 이동과 편의 조건이 근거가 확인된 장소 추천으로 이어지는 흐름">
         <div className="feature-preview-stage" aria-hidden="true">
-          <header><span>내 여행 조건</span><b>첫 번째 단계</b></header>
+          <header><span>내 여행 조건</span><b>여행에 필요한 편의</b></header>
           <div className="condition-preview-fieldset">
             <strong>어떤 도움이 필요하신가요?</strong>
             <div className="condition-preview-options">
@@ -25,7 +25,7 @@ export default function LandingDiscoveryStories() {
               <span className="condition-option motion-choice choice-four"><AccessIcon name="baby" size={22} />영유아 동반</span>
             </div>
           </div>
-          <footer><span><small>선택한 지역</small><strong>경남 18개 시·군 중 선택</strong></span><i>→</i><span><small>다음 단계</small><strong>근거가 있는 장소 추천</strong></span></footer>
+          <footer><span><small>선택한 지역</small><strong>경남 18개 시·군 중 선택</strong></span><i>→</i><span><small>추천 결과</small><strong>근거가 있는 장소 추천</strong></span></footer>
         </div>
       </div>
     </article>

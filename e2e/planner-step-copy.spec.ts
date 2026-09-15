@@ -42,6 +42,7 @@ test("편의 선택 전·초안·적용·해제의 문구가 완결되고 자동
   await expect(trigger).toHaveAccessibleName("필요한 편의");
   await trigger.click();
   const picker = page.getByRole("dialog", { name: "필요한 편의", exact: true });
+  await expect(picker.getByText("걷기·휴식·동행 조건", { exact: true })).toHaveCount(0);
   await expect(picker.getByRole("checkbox", { checked: true })).toHaveCount(0);
   await picker.getByRole("checkbox", { name: "접근로", exact: true }).check();
   await expect(picker.getByRole("button", { name: "적용 · 1개", exact: true })).toBeVisible();

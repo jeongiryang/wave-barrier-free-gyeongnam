@@ -19,7 +19,7 @@ export default function PlaceResultRow({ place, region, saved, current, en, unkn
     <div className="simple-place-copy"><span className="simple-place-city" lang={originalLanguage(place.city || region)}>{place.city || region}</span>
       <h3 id={id} lang={originalLanguage(place.name)}><button type="button" onClick={onDetails}>{place.name}</button></h3>
       <p className="simple-place-address" lang={originalLanguage(place.address)}>{place.address}</p>
-      <PlaceFacilitySummary place={place} en={en} />
+      <PlaceFacilitySummary place={place} en={en} highlightConfirmed={unknown} />
       {compare && <label className="simple-compare-check"><input type="checkbox" checked={compare.selected} disabled={compare.disabled} onChange={compare.toggle} />{say("비교", "Compare")}</label>}
     </div>
     <button type="button" className="simple-place-add" disabled={!unknown && !saved && !current} aria-pressed={saved} onClick={unknown ? onDetails : onToggle} aria-label={`${place.name} ${unknown ? say("편의 확인", "review facilities") : saved ? say("담았음 · 일정에서 빼기", "added · remove from itinerary") : say("일정에 담기", "add to itinerary")}`}>

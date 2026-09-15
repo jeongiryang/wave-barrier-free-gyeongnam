@@ -4,7 +4,7 @@ import { useSitePreferences } from "../../../components/SitePreferences";
 
 type Stage = "conditions" | "evidence" | "schedule" | "route" | "adapt" | "save" | "community";
 const labels: Record<Stage, [string, string]> = {
-  conditions: ["지역과 필요한 편의를 고른 뒤 추천 찾기", "Choose a region and facilities, then find places"],
+  conditions: ["지역과 필요한 편의로 추천 살펴보기", "Choose a region and facilities, then find places"],
   evidence: ["공식 정보의 확인·미확인·불일치 구분", "Distinguish reported, missing and unavailable facilities"],
   schedule: ["장소를 날짜별로 나누고 방문 순서 정하기", "Assign places to dates and order each day's visits"],
   route: ["출발지와 모든 인접 이동 구간 확인", "Check the starting point and every adjacent journey"],

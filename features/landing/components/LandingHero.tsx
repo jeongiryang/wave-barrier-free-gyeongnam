@@ -5,7 +5,7 @@ import EditorialPhoto from "./EditorialPhoto";
 import { horizonPhotos } from "../horizon-photos";
 import type { LandingTranslate } from "../content";
 
-export default function LandingHero(_props: { t: LandingTranslate }) {
+export default function LandingHero({}: { t: LandingTranslate }) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
   return <section className="landing-hero landing-hero-split" id="top" tabIndex={-1} aria-labelledby="landing-title">
