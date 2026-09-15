@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { deliverNearby, nearbyPlace, openMapTool, openNearby, openRouteDetails } from './nearby-fixtures';
+import { openOnsiteCommunication } from './onsite-communication-fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -125,4 +126,43 @@ for (const entry of ['toolbar', 'panel'] as const) test(`accepted ${entry} GPS m
   expect(routeRequests).toEqual(before);
   expect(await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'))).toBe(storedTrip);
   expect(errors).toEqual([]);
+});
+
+test('onsite communication never requests location, network, storage, URL, logs or shared data', async ({ page }) => {
+  const locationCalls: string[] = [], requests: string[] = [], logs: string[] = [];
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'geolocation', { configurable: true, value: {
+      getCurrentPosition: () => { (window as unknown as { locationCalls: string[] }).locationCalls.push('getCurrentPosition'); },
+      watchPosition: () => { (window as unknown as { locationCalls: string[] }).locationCalls.push('watchPosition'); return 1; },
+    } });
+    (window as unknown as { locationCalls: string[] }).locationCalls = [];
+  });
+  page.on('request', request => requests.push(request.url() + (request.postData() || '')));
+  page.on('console', message => logs.push(message.text()));
+  const board = await openOnsiteCommunication(page, false, () => { requests.length = 0; logs.length = 0; });
+  const before = await page.evaluate(async () => ({ local: { ...localStorage }, session: { ...sessionStorage }, href: location.href, cookie: document.cookie,
+    databases: await indexedDB.databases(), caches: 'caches' in window ? await caches.keys() : [] }));
+  const privateText = '현장대화-외부전송금지-528';
+  await board.getByRole('button', { name: '직원에게 보여주기', exact: true }).click();
+  await board.getByRole('button', { name: '직접 입력', exact: true }).click();
+  await board.getByRole('textbox', { name: '직접 입력', exact: true }).fill(privateText);
+  await board.getByRole('button', { name: '답변 확정', exact: true }).click();
+  await board.getByRole('button', { name: '다시 질문', exact: true }).click();
+  await board.getByRole('button', { name: '대화 끝내기', exact: true }).click();
+  const after = await page.evaluate(async () => ({ local: { ...localStorage }, session: { ...sessionStorage }, href: location.href, cookie: document.cookie,
+    databases: await indexedDB.databases(), caches: 'caches' in window ? await caches.keys() : [], locationCalls: (window as unknown as { locationCalls: string[] }).locationCalls }));
+  locationCalls.push(...after.locationCalls);
+  expect(locationCalls).toEqual([]);
+  expect(requests).toEqual([]);
+  expect(after.local).toEqual(before.local);
+  expect(after.session).toEqual(before.session);
+  expect(after.href).toBe(before.href);
+  expect(after.cookie).toBe(before.cookie);
+  expect(after.databases).toEqual(before.databases);
+  expect(after.caches).toEqual(before.caches);
+  for (const privateValue of [privateText, '이용 방법을 알기 쉽게 안내해 주세요.', '현장대화-외부전송금지-528']) {
+    expect(requests.join(' ')).not.toContain(privateValue);
+    expect(logs.join(' ')).not.toContain(privateValue);
+    expect(JSON.stringify(after)).not.toContain(privateValue);
+  }
 });
