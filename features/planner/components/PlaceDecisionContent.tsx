@@ -5,6 +5,7 @@ import { lazy, Suspense } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import type { Place } from "../types";
 import type { PlaceDecisionDialogProps } from "./PlaceDecisionDialog";
+import PlaceSensory from './PlaceSensory';
 import PlaceVisitHours from "./PlaceVisitHours";
 
 function DetailsUnavailable() {
@@ -30,6 +31,7 @@ export default function PlaceDecisionContent(props: PlaceDecisionDialogProps & {
   const { locale } = useSitePreferences();
   const en = locale === "en";
   return <>
+        <PlaceSensory place={place}/>
         <PlaceVisitHours id={place.id} name={place.name} en={en} />
         <Suspense fallback={<LoadingState>{en ? "Loading facility details…" : "편의정보를 불러오는 중…"}</LoadingState>}><PlaceEvidenceSummary place={place} /></Suspense>
         <Suspense fallback={<LoadingState>{en ? "Preparing visitor questions…" : "방문 전 문의를 준비하고 있어요…"}</LoadingState>}><PlaceInquiryCard key={place.id} place={place} en={en} /></Suspense>

@@ -1,12 +1,14 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import LoadingState from '../../../components/LoadingState';
 import { plannerJson } from '../services/api';
 type Story = { id: string; title: string; audioTitle: string; audioUrl: string; script: string; playTime: string };
+const SpatialAudio=lazy(()=>import('./SpatialAudio'));
 function AudioStory({ story, transcript = false }: { story: Story; transcript?: boolean }) {
   const [failed, setFailed] = useState(false);
+  const audio=useRef<HTMLAudioElement|null>(null);
   return <article><h4>{story.audioTitle}</h4><p>{story.title} · {story.audioUrl ? `약 ${Math.ceil(Number(story.playTime) / 60) || '?'}분 해설` : '대본 제공'}</p>
-    {story.audioUrl && <audio aria-label={`${story.audioTitle} 오디오 해설`} controls preload="none" src={story.audioUrl} onError={() => setFailed(true)} onCanPlay={() => setFailed(false)} />}
+    {story.audioUrl && <><audio ref={audio} aria-label={`${story.audioTitle} 오디오 해설`} controls preload="none" src={story.audioUrl} onPlay={()=>window.dispatchEvent(new Event('wave-stop-spatial'))} onError={() => setFailed(true)} onCanPlay={() => setFailed(false)} /><Suspense fallback={null}><SpatialAudio url={story.audioUrl} title={story.audioTitle} onStart={()=>audio.current?.pause()}/></Suspense></>}
     {failed && <p role="alert">음원에 연결하지 못했어요. 아래 대본을 읽거나 재생을 다시 시도해 주세요.</p>}
     <details open={transcript || undefined}><summary>대본 보기</summary><p tabIndex={0}>{story.script || '제공된 대본이 없어요.'}</p></details>
   </article>;
