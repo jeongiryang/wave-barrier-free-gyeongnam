@@ -5,32 +5,13 @@ import { requestProvider } from '../shared/provider-request.js';
 import { supportedPlacePoint } from '../../lib/map-coordinates.js';
 import { rankParkingAlternatives } from '../../lib/parking-alternatives.js';
 import type { ParkingAlternative } from '../../lib/parking-alternatives.js';
-import { SERVER_BUDGET_MS, budgetClock, withinBudget } from '../../lib/request-budget.js';
+import { SERVER_BUDGET_MS, budgetClock } from '../../lib/request-budget.js';
+import { createBoundedSnapshotCache } from '../shared/bounded-snapshot';
 
-type Snapshot<T> = { value: T; checkedAt: string; expires: number };
-const cache = new Map<string, Snapshot<unknown>>();
-const pending = new Map<string, Promise<Snapshot<unknown> | null>>();
+const snapshots = createBoundedSnapshotCache();
 const endpoint = 'https://api.data.go.kr/openapi/tn_pubr_prkplce_info_api';
 const allowedQueries = new Set(['action', 'contentId']);
 const isGyeongnamPlace = (place: Record<string, unknown>) => String(place.lDongRegnCd || '') === '48' || String(place.areacode || '') === '36';
-
-async function snapshot<T>(key: string, ttl: number, remaining: () => number, work: () => Promise<T | null>): Promise<Snapshot<T> | null> {
-  const stored = cache.get(key);
-  if (stored && stored.expires > Date.now()) return stored as Snapshot<T>;
-  if (remaining() <= 0) return null;
-  const existing = pending.get(key);
-  if (existing) return withinBudget(existing, remaining(), () => null) as Promise<Snapshot<T> | null>;
-  if (pending.size >= 50) return null;
-  const request = withinBudget(work(), remaining(), () => null).then(result => {
-    if (result === null) return null;
-    const value = { value: result, checkedAt: new Date().toISOString(), expires: Date.now() + ttl };
-    if (cache.size >= 100) cache.delete(cache.keys().next().value!);
-    cache.set(key, value);
-    return value;
-  }).finally(() => pending.delete(key));
-  pending.set(key, request as Promise<Snapshot<unknown> | null>);
-  return request;
-}
 
 function parkingItems(data: unknown): ProviderResult {
   const root = data as { response?: { header?: { resultCode?: string; resultMsg?: string }; body?: { items?: unknown; totalCount?: unknown } } };
@@ -61,7 +42,7 @@ export async function handleParkingAlternatives(url: URL, env: Env) {
     return json({ status: 'invalid-request', contentId, error: '공개 관광지 ID만 요청할 수 있습니다.' }, 400);
   }
   const remaining = budgetClock(SERVER_BUDGET_MS.parkingAlternatives);
-  const placeSnapshot = await snapshot(`parking-place:${contentId}`, 15 * 60000, remaining, async () => {
+  const placeSnapshot = await snapshots.get(`parking-place:${contentId}`, 15 * 60000, remaining, async () => {
     const result = await attemptProvider(fetchTourismData(env, 'KorService2', 'detailCommon2', { ...commonParams('1'), contentId }));
     return result.ok && !result.value.partial ? result.value.items : null;
   });
@@ -69,7 +50,7 @@ export async function handleParkingAlternatives(url: URL, env: Env) {
   const place = placeSnapshot.value.find(item => String(item.contentid) === contentId);
   const point = place && isGyeongnamPlace(place) ? supportedPlacePoint(place.mapx, place.mapy) : null;
   if (!place || !point) return json({ status: 'invalid-request', contentId, error: '경남의 공식 관광지 위치를 확인하지 못했습니다.' }, 400);
-  const parkingSnapshot = await snapshot<ParkingAlternative[]>(`parking:${contentId}`, 24 * 60 * 60000, remaining, async () => {
+  const parkingSnapshot = await snapshots.get<ParkingAlternative[]>(`parking:${contentId}`, 24 * 60 * 60000, remaining, async () => {
     const result = await attemptProvider(fetchParkingData(env));
     return result.ok && !result.value.partial ? rankParkingAlternatives(result.value.items, { latitude: point.lat, longitude: point.lng }) : null;
   });
@@ -78,4 +59,4 @@ export async function handleParkingAlternatives(url: URL, env: Env) {
   return json({ status: items.length ? 'available' : 'empty', contentId, checkedAt: parkingSnapshot.checkedAt, source: '전국주차장정보표준데이터', items });
 }
 
-export function resetParkingAlternativesCacheForTest() { cache.clear(); pending.clear(); }
+export function resetParkingAlternativesCacheForTest() { snapshots.clear(); }

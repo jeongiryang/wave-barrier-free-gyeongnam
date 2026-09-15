@@ -58,6 +58,7 @@ export type Place = {
   features: string[];
   details: string[];
   source: string;
+  temporaryStop?: { kind: "official-restroom"; sourceId: string; referenceDate: string; evidence: Record<string, string> };
 };
 
 export type Course = { name: string; distance: string; minutes: string; level: string; summary: string; sigun: string };

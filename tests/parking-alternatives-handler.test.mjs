@@ -12,12 +12,14 @@ const lot = { prkplceNo: 'P1', prkplceNm: '공영주차장', rdnmadr: '경상남
 
 function harness({ places = [place], lots = [lot], providerStatus = 200, invalidJson = false, partial = false, timeout = false } = {}) {
   const mod = { exports: {} }, calls = [];
+  const cached = new Map(), inFlight = new Map();
   new Function('module', 'exports', 'require', code)(mod, mod.exports, name => {
     if (name.endsWith('map-coordinates.js')) return coordinates;
     if (name.endsWith('parking-alternatives.js')) return parking;
     if (name.endsWith('request-budget.js')) return timeout ? { ...budgets, SERVER_BUDGET_MS: { ...budgets.SERVER_BUDGET_MS, parkingAlternatives: 5 } } : budgets;
+    if (name.endsWith('/bounded-snapshot')) return { createBoundedSnapshotCache: () => ({ get: async (key, _ttl, _remaining, work) => { if (cached.has(key)) return cached.get(key); if (inFlight.has(key)) return inFlight.get(key); const request = Promise.resolve(work()).then(value => value === null ? null : { value, checkedAt: new Date().toISOString(), expires: Infinity }); inFlight.set(key, request); const result = await request; inFlight.delete(key); if (result) cached.set(key, result); return result; }, clear: () => { cached.clear(); inFlight.clear(); } }) };
     if (name.endsWith('/http')) return { json: (body, status = 200) => ({ body, status }) };
-    if (name.endsWith('/provider-data')) return { commonParams: () => ({ numOfRows: '1' }), fetchTourismData: async (_env, service, operation, params) => { calls.push({ provider: 'kto', service, operation, params }); return timeout ? new Promise(() => {}) : { items: places, total: places.length, partial }; }, attemptProvider: async promise => { try { const value = await promise; return { ok: true, value }; } catch { return { ok: false, error: 'provider failed' }; } } };
+    if (name.endsWith('/provider-data')) return { commonParams: () => ({ numOfRows: '1' }), fetchTourismData: async (_env, service, operation, params) => { calls.push({ provider: 'kto', service, operation, params }); if (timeout) throw new Error('timeout'); return { items: places, total: places.length, partial }; }, attemptProvider: async promise => { try { const value = await promise; return { ok: true, value }; } catch { return { ok: false, error: 'provider failed' }; } } };
     if (name.endsWith('provider-request.js')) return { requestProvider: async (_context, url) => { calls.push({ provider: 'parking', url }); return { ok: providerStatus === 200, status: providerStatus, text: async () => invalidJson ? '<html>' : JSON.stringify({ response: { header: { resultCode: '00' }, body: { items: lots, totalCount: lots.length } } }) }; } };
     throw Error(name);
   });

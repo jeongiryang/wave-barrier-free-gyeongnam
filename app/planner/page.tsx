@@ -147,6 +147,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     scheduleAssignments,
     visitMinutesByPlaceId,
     selectedPlaceIds: orderedPlaceIds,
+    temporaryStops: tripSelection.orderedSavedPlaces.filter(place => place.temporaryStop),
     fixedVisits: tripSelection.fixedVisits,
     dayDeadlines: tripSelection.dayDeadlines,
     breakMinutesByPlaceId: tripSelection.breakMinutesByPlaceId, restPurposeByPlaceId: tripSelection.restPurposeByPlaceId,

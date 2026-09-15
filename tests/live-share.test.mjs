@@ -81,7 +81,7 @@ test('public projection excludes profiles, facilities, notes, current origin and
   const result = liveSharePayload(input);
   assert.deepEqual(Object.keys(result).sort(), ['origin', 'placeRefs', 'selections']);
   assert.deepEqual(Object.keys(result.selections).sort(), ['region', 'theme', 'profiles', 'locale', 'travelStart', 'travelEnd', 'dayStartTime', 'travelMode',
-    'selectedPlaceIds', 'scheduleAssignments', 'visitMinutesByPlaceId', 'fixedVisits', 'dayDeadlines', 'breakMinutesByPlaceId', 'restPurposeByPlaceId'].sort());
+    'selectedPlaceIds', 'scheduleAssignments', 'visitMinutesByPlaceId', 'fixedVisits', 'dayDeadlines', 'breakMinutesByPlaceId', 'restPurposeByPlaceId', 'temporaryStops'].sort());
   assert.deepEqual(result.selections.profiles, []);
   assert.deepEqual(result.origin, { label: '' });
   assert.equal(JSON.stringify(result).includes(privateValue), false);
@@ -99,7 +99,7 @@ test('public per-stop fields preserve actual order and calendar assignments, and
   const result = liveSharePayload({ selections: source });
   assert.deepEqual(result.placeRefs, [{ contentId: '1748884', order: 0 }, { contentId: '1904774', order: 1 }]);
   const { themes, ...expected } = selections();
-  assert.deepEqual(result.selections, { ...expected, theme: themes.join(','), profiles: [], locale: 'ko' });
+  assert.deepEqual(result.selections, { ...expected, theme: themes.join(','), profiles: [], locale: 'ko', temporaryStops: [] });
   assert.equal(JSON.stringify(result).includes(privateValue), false);
 });
 
