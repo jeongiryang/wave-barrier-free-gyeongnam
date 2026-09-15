@@ -9,8 +9,18 @@ const steps = [
   { title: '시설', keys: ['restroom', 'lactationroom', 'guidehuman', 'audioguide', 'signguide'], note: '필요한 시설의 위치·운영 여부는 장소 안내에서 확인하세요.' },
 ];
 export default function PlaceArrivalPreview({ place }: { place: Place }) {
-  const [active, setActive] = useState(0);
-  const [checked, setChecked] = useState<number[]>([]);
+  const [activeState, setActiveState] = useState({ placeId: place.id, value: 0 });
+  const [checkedState, setCheckedState] = useState<{ placeId: string; value: number[] }>({ placeId: place.id, value: [] });
+  const active = activeState.placeId === place.id ? activeState.value : 0;
+  const checked = checkedState.placeId === place.id ? checkedState.value : [];
+  const setActive = (next: number | ((value: number) => number)) => setActiveState(current => {
+    const value = current.placeId === place.id ? current.value : 0;
+    return { placeId: place.id, value: typeof next === 'function' ? next(value) : next };
+  });
+  const setChecked = (next: number[] | ((value: number[]) => number[])) => setCheckedState(current => {
+    const value = current.placeId === place.id ? current.value : [];
+    return { placeId: place.id, value: typeof next === 'function' ? next(value) : next };
+  });
   const step = steps[active];
   const lat = Number(place.mapY), lng = Number(place.mapX);
   const hasPoint = Boolean(place.mapX && place.mapY) && Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;

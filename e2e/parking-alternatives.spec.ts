@@ -70,3 +70,28 @@ test('permission denial, empty and provider error preserve manual sorting and pa
   await page.keyboard.press('Escape'); mode = 'empty'; panel = await openParking(page); await panel.getByRole('button', { name: '주변 주차장 보기', exact: true }).click(); await expect(panel).toContainText('조건에 맞는 주변 주차장을 찾지 못했어요.');
   await page.keyboard.press('Escape'); mode = 'error'; panel = await openParking(page); await panel.getByRole('button', { name: '주변 주차장 보기', exact: true }).click(); await expect(panel.getByRole('alert')).toContainText('관광지의 주차 안내는 계속 볼 수 있어요.'); await expect(page.getByRole('dialog')).toContainText('주차: 미확인');
 });
+
+test('closing place details aborts an unfinished parking request and preserves the itinerary', async ({ page }) => {
+  await page.addInitScript(() => {
+    const originalFetch = window.fetch.bind(window);
+    let parkingAborts = 0;
+    Object.assign(window, { parkingAbortCount: () => parkingAborts });
+    window.fetch = (input, init) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      if (url.includes('action=parking-alternatives')) init?.signal?.addEventListener('abort', () => parkingAborts++, { once: true });
+      return originalFetch(input, init);
+    };
+  });
+  await page.route('**/api/wave?action=parking-alternatives*', async route => {
+    await new Promise(resolve => setTimeout(resolve, 10_000));
+    await route.fulfill({ json: { status: 'empty', contentId: place.id, checkedAt: '2026-09-15T05:20:00Z', source: '전국주차장정보표준데이터', items: [] } });
+  });
+  const panel = await openParking(page);
+  const before = await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'));
+  await panel.getByRole('button', { name: '주변 주차장 보기', exact: true }).click();
+  await expect(panel.getByRole('button', { name: '주변 주차장을 찾고 있어요.', exact: true })).toHaveAttribute('aria-busy', 'true');
+  await page.getByRole('dialog').getByRole('button', { name: '닫기', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { parkingAbortCount: () => number }).parkingAbortCount())).toBe(1);
+  expect(await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'))).toBe(before);
+});

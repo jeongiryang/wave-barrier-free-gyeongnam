@@ -3,7 +3,7 @@
 - PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/538
 - 제목: 공식 데이터 기반 주변 장애인 주차장
 - 작성자: unknownamed
-- 최종 상태: PR #538 생성, CI 검증 중
+- 최종 상태: PR #538 생성, 최초 전체 CI 통과 후 취소 경계 보강
 - AI 도구: Codex
 
 ## 목적
@@ -24,7 +24,7 @@
 - `npm run lint`: 오류 0, 기존 경고 14.
 - `npm run build`: 통과.
 - `npm run check:performance`: 통과(CSS gzip 69.86KiB/70, Planner initial JS gzip 202.89KiB/270, 최대 JS chunk gzip 57.65KiB/110).
-- 관련 Playwright: 데스크톱·모바일에서 지연 호출, 성공/빈 결과/오류, 접기 캐시, 일정 보존, 목적지 전용 전화·지도 링크, 320px reflow, axe, 위치 수락·거부와 수동 기준 선택을 검증.
+- 관련 Playwright: 데스크톱·모바일에서 지연 호출, 성공/빈 결과/오류, 닫기 시 진행 요청 취소, 접기 캐시, 일정 보존, 목적지 전용 전화·지도 링크, 320px reflow, axe, 위치 수락·거부와 수동 기준 선택을 검증(14/14).
 - 개인정보 계측: 위치 허용 전 geolocation 호출 0회, `현재 위치에서 가까운 순` 클릭 뒤 1회. 네트워크 요청·POST body·console·현재 URL·localStorage·sessionStorage·화면 링크에서 정밀 좌표 문자열 0건.
 
 ## 결과와 제한
