@@ -278,7 +278,7 @@ for (const locale of ["ko", "en"] as const) {
     expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
     const names = en
       ? [/Keep the facilities you need/, /A journey that feels distant,\s*a little closer to you\./, /^Explore Gyeongnam$/, /^Plan with Naru$/, /A lighter heart\.\s*One more check\./, /당신이 남긴 장면이\s*다음 여행의 시작/, /See you at\s*the next horizon\./]
-      : [/필요한 편의를 끝까지 지키는/, /멀게 느껴졌던 여행을\s*조금 더 가까이/, /^지역으로 둘러보기$/, /^나루에게 말해보세요$/, /마음은 가볍게\s*준비는 한 번 더/, /당신이 남긴 장면이\s*다음 여행의 시작/, /다음 풍경에서\s*만나요/];
+      : [/경남 여행지를 찾고\s*일정을 짜보세요/, /멀게 느껴졌던 여행을\s*조금 더 가까이/, /^지역으로 둘러보기$/, /^나루에게 말해보세요$/, /마음은 가볍게\s*준비는 한 번 더/, /당신이 남긴 장면이\s*다음 여행의 시작/, /다음 풍경에서\s*만나요/];
     for (const [index, id] of chapterIds.entries()) {
       const section = page.locator(`#${id}`);
       await section.scrollIntoViewIfNeeded();
