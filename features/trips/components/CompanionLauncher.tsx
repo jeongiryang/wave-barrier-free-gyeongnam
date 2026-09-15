@@ -8,6 +8,7 @@ import {
   type CompanionSelections,
 } from "../../../lib/experience.js";
 import { readTripIdentity } from "../../../lib/trip-identity.js";
+import { assertTripStorageOwner } from "../../../lib/current-trip-storage.js";
 import type { TripCommand } from "../../../lib/trip-command.js";
 import styles from "../../planner/components/TravelExperience.module.css";
 export default function CompanionLauncher({
@@ -24,28 +25,49 @@ export default function CompanionLauncher({
     selections: CompanionSelections;
     revision: number;
     localRevision: string;
+    tripId: string;
   } | null>(null);
   const latest = useRef(trip.voiceRevision);
+  const scope = useRef("");
   useLayoutEffect(() => {
     latest.current = trip.voiceRevision;
   }, [trip.voiceRevision]);
   useEffect(() => {
-    const frame = requestAnimationFrame(() => {
+    const restore = () => {
       try {
         const identity = readTripIdentity(localStorage);
+        if (scope.current === (identity?.id || "")) return;
+        scope.current = identity?.id || "";
         const saved =
           identity &&
           localStorage.getItem(`wave-companion-room-${identity.id}`);
-        if (saved && /^[a-f0-9]{24}$/.test(saved)) setId(saved);
+        setId(saved && /^[a-f0-9]{24}$/.test(saved) ? saved : "");
+        setPreview(null);
       } catch {
         setNotice("동행 일정 연결을 복원하지 못했어요.");
       }
-    });
-    return () => cancelAnimationFrame(frame);
-  }, []);
+    };
+    const frame = requestAnimationFrame(restore);
+    window.addEventListener("storage", restore);
+    window.addEventListener("focus", restore);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("storage", restore);
+      window.removeEventListener("focus", restore);
+    };
+  }, [trip.voiceRevision]);
+  function assertScope() {
+    assertTripStorageOwner(localStorage);
+    const identity = readTripIdentity(localStorage);
+    if (!identity || identity.id !== scope.current)
+      throw new Error(
+        "다른 여행이 열렸어요. 현재 여행에서 동행 도우미를 다시 열어 주세요.",
+      );
+    return identity;
+  }
   function disconnect() {
     try {
-      const identity = readTripIdentity(localStorage);
+      const identity = assertScope();
       if (identity)
         localStorage.removeItem(`wave-companion-room-${identity.id}`);
       setId("");
@@ -62,9 +84,7 @@ export default function CompanionLauncher({
     setBusy(true);
     setNotice("");
     try {
-      const identity = readTripIdentity(localStorage);
-      if (!identity)
-        throw new Error("현재 여행을 저장한 뒤 다시 시도해 주세요.");
+      const identity = assertScope();
       const selections = companionSnapshot({
         region,
         theme: "",
@@ -86,6 +106,13 @@ export default function CompanionLauncher({
       });
       if (!/^[a-f0-9]{24}$/.test(data.id))
         throw new Error("동행 일정 주소를 확인하지 못했어요.");
+      if (
+        readTripIdentity(localStorage)?.id !== identity.id ||
+        scope.current !== identity.id
+      )
+        throw new Error(
+          "동행 일정을 만드는 동안 다른 여행이 열렸어요. 현재 여행에는 연결하지 않았습니다.",
+        );
       setId(data.id);
       try {
         localStorage.setItem(`wave-companion-room-${identity.id}`, data.id);
@@ -106,14 +133,18 @@ export default function CompanionLauncher({
     if (busy) return;
     setBusy(true);
     try {
+      const identity = assertScope();
       const localRevision = trip.voiceRevision;
       const data = await plannerJson<{
         selections: CompanionSelections;
         revision: number;
       }>(`/api/companions/${id}`);
-      if (latest.current !== localRevision)
+      if (
+        latest.current !== localRevision ||
+        readTripIdentity(localStorage)?.id !== identity.id
+      )
         throw new Error("조회 중 원래 일정이 바뀌었어요. 다시 확인해 주세요.");
-      setPreview({ ...data, localRevision });
+      setPreview({ ...data, localRevision, tripId: identity.id });
       setNotice("");
     } catch (e) {
       setNotice((e as Error).message);
@@ -125,12 +156,17 @@ export default function CompanionLauncher({
     if (!preview || busy) return;
     setBusy(true);
     try {
+      if (assertScope().id !== preview.tripId)
+        throw new Error(
+          "다른 여행의 변경안입니다. 현재 여행에서 다시 확인해 주세요.",
+        );
       const data = await plannerJson<{ revision: number }>(
         `/api/companions/${id}`,
       );
       if (
         data.revision !== preview.revision ||
-        latest.current !== preview.localRevision
+        latest.current !== preview.localRevision ||
+        readTripIdentity(localStorage)?.id !== preview.tripId
       )
         throw new Error(
           "동행 일정 또는 원래 일정이 바뀌었어요. 새 변경안을 다시 확인해 주세요.",
@@ -260,7 +296,11 @@ export default function CompanionLauncher({
             >
               확인한 변경을 내 일정에 반영
             </button>
-            <button type="button" onClick={() => setPreview(null)}>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setPreview(null)}
+            >
               취소
             </button>
           </div>

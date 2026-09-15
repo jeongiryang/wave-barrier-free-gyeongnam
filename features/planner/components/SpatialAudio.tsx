@@ -87,7 +87,8 @@ export default function SpatialAudio({
         offset += chunk.length;
       }
       const buffer = await run.audio.decodeAudioData(raw.buffer);
-      if (current.current !== run || run.controller.signal.aborted) return;
+      if (run.controller.signal.aborted) throw new Error("cancelled");
+      if (current.current !== run) return;
       const node = run.audio.createBufferSource();
       node.buffer = buffer;
       const position = run.audio.createPanner();

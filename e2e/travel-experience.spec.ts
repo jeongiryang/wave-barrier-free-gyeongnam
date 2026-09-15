@@ -161,6 +161,120 @@ test("nearby passport stamp stores method but never GPS coordinates", async ({
   ]);
 });
 const roomId = "abcdef123456abcdef123456";
+test("spatial guide decodes supplied audio and stops when its controls close", async ({
+  page,
+}) => {
+  await setup(page);
+  const wav = Buffer.alloc(44 + 16000 * 2 * 3);
+  wav.write("RIFF", 0);
+  wav.writeUInt32LE(wav.length - 8, 4);
+  wav.write("WAVEfmt ", 8);
+  wav.writeUInt32LE(16, 16);
+  wav.writeUInt16LE(1, 20);
+  wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(16000, 24);
+  wav.writeUInt32LE(32000, 28);
+  wav.writeUInt16LE(2, 32);
+  wav.writeUInt16LE(16, 34);
+  wav.write("data", 36);
+  wav.writeUInt32LE(wav.length - 44, 40);
+  await page.route("**/test-guide.wav", (route) =>
+    route.fulfill({ contentType: "audio/wav", body: wav }),
+  );
+  await page.route("**/api/wave?action=place-audio*", (route) =>
+    route.fulfill({
+      json: {
+        stories: [
+          {
+            id: "synthetic",
+            title: "합성 검증",
+            audioTitle: "검증 해설",
+            audioUrl: "/test-guide.wav",
+            script: "브라우저 재생 경계 검증용 합성 대본입니다.",
+            playTime: "3",
+          },
+        ],
+        checkedAt: new Date().toISOString(),
+      },
+    }),
+  );
+  await page
+    .getByRole("button", { name: "감각지도·지금 현장", exact: true })
+    .click();
+  await page.getByText("이 장소의 음성·대본 해설", { exact: true }).click();
+  await page.getByText("선택해서 듣는 공간 음향", { exact: true }).click();
+  await page
+    .getByRole("button", { name: "검증 해설 공간 음향 듣기", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "공간 음향 중지", exact: true }),
+  ).toBeEnabled();
+  await page.getByText("선택해서 듣는 공간 음향", { exact: true }).click();
+  await page.getByText("선택해서 듣는 공간 음향", { exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "공간 음향 중지", exact: true }),
+  ).toBeDisabled();
+});
+test("a delayed companion creation never attaches to a different current trip", async ({
+  page,
+}) => {
+  await setup(page);
+  let release!: () => void;
+  let started!: () => void;
+  const received = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  const wait = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/companions", async (route) => {
+    started();
+    await wait;
+    await route.fulfill({ json: { id: roomId } });
+  });
+  await page
+    .getByRole("button", { name: "동행과 함께 편집", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "동행 일정 만들기", exact: true })
+    .click();
+  await received;
+  const replacement = "bcbcbcbc-bcbc-4cbc-8cbc-bcbcbcbcbcbc";
+  await page.evaluate((id) => {
+    const key = "wave-trip-identity-v1";
+    const current = JSON.parse(localStorage.getItem(key) || "{}");
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        ...current,
+        version: 1,
+        id,
+        binding: null,
+        share: null,
+      }),
+    );
+    const record = JSON.parse(
+      localStorage.getItem("wave-current-trip-v1") || "{}",
+    );
+    if (record.values) {
+      record.values[key] = localStorage.getItem(key);
+      localStorage.setItem("wave-current-trip-v1", JSON.stringify(record));
+    }
+  }, replacement);
+  release();
+  await expect(
+    page.getByText(/동행 일정을 만드는 동안 다른 여행/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "동행 일정 열기 ↗" }),
+  ).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      (id) => localStorage.getItem(`wave-companion-room-${id}`),
+      replacement,
+    ),
+  ).toBeNull();
+});
 const room = () => ({
   id: roomId,
   role: "editor",
