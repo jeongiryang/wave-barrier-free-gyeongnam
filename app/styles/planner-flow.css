@@ -418,6 +418,27 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 :root .planner-reference .planner-journey-workspace .travel-profile-notice { color: var(--ink-soft); }
 .reference-itinerary-details,.reference-departure-details { color: var(--ink); }
 
+.easy-trip-toggle { display:flex; gap:4px; padding:4px; border-radius:999px; background:var(--paper); width:max-content; max-width:100%; }
+.easy-trip-toggle button { min-height:44px; padding:8px 16px; border:0; border-radius:999px; background:transparent; color:var(--ink); font:inherit; }
+.easy-trip-toggle button[aria-pressed=true] { background:var(--ink); color:var(--white); }
+.easy-on-trip,.easy-trip-list { display:grid; gap:16px; min-width:0; }
+.easy-on-trip > h2,.easy-trip-card :is(h3,p),.easy-trip-rest h3 { margin:0; }
+.easy-trip-card { display:grid; gap:10px; min-width:0; padding:18px; border:1px solid var(--line); border-radius:20px; background:var(--white); color:var(--ink); overflow-wrap:anywhere; }
+.easy-trip-card.current { padding:clamp(20px,4vw,32px); border:2px solid var(--accent); border-radius:24px; }
+.easy-trip-card small,.easy-trip-card time { color:var(--muted); }
+.easy-trip-card h3 { font-size:1.15rem; line-height:1.4; }
+.easy-trip-card.current h3 { font-size:clamp(1.5rem,4vw,2rem); }
+.easy-trip-card p { color:var(--muted); line-height:1.7; }
+.easy-trip-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
+.easy-trip-actions .easy-trip-primary { grid-column:1/-1; }
+.easy-trip-primary,.easy-trip-secondary,.easy-trip-link { min-height:44px; padding:12px 16px; border:1px solid var(--line); border-radius:14px; background:var(--paper); color:var(--ink); font:inherit; text-align:center; }
+.easy-trip-primary { min-height:56px; width:100%; border-color:var(--accent); background:var(--accent); color:var(--white); }
+.easy-trip-link { display:flex; align-items:center; justify-content:center; width:100%; text-decoration:none; }
+.easy-trip-rest { display:grid; gap:14px; padding:20px; border:1px solid var(--accent); border-radius:20px; background:var(--paper); }
+.easy-trip-confirm { display:grid; grid-column:1/-1; gap:10px; padding-top:8px; }
+.easy-trip-confirm p { margin:0; }
+@media(max-width:650px) { .easy-trip-actions { grid-template-columns:1fr; }.easy-trip-actions .easy-trip-primary,.easy-trip-confirm { grid-column:auto; }.easy-trip-actions button,.easy-trip-confirm button,.easy-on-trip > button { width:100%; } }
+
 :root .planner-reference .condition-availability :is(span,small),
 :root .planner-reference #conditions .preference-label > small,
 :root .planner-reference #places > .original-language-note,

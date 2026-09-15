@@ -14,6 +14,22 @@ type AuditWindow = Window & {
   mapLayerFixture: { maps: Array<Record<string, unknown>> };
 };
 
+test('easy trip completion never requests or transfers device location or progress',async({page})=>{
+  const requests:string[]=[];page.on('request',request=>requests.push(request.url()+(request.postData()||'')));
+  await page.addInitScript(()=>{
+    Object.assign(window,{easyTripPrivacyCalls:0});
+    Object.defineProperty(navigator,'geolocation',{configurable:true,value:{getCurrentPosition(){(window as unknown as {easyTripPrivacyCalls:number}).easyTripPrivacyCalls++;}}});
+  });
+  const nearby=await openNearby(page);await nearby.getByRole('button',{name:'주변 장소 닫기',exact:true}).click();await openRouteDetails(page);await expect(page).toHaveURL(/#itinerary$/);
+  await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();const panel=page.getByRole('region',{name:'여행 당일 진행',exact:true});
+  await page.waitForLoadState('networkidle');requests.length=0;
+  await panel.getByRole('button',{name:'쉬운 보기',exact:true}).click();await panel.getByRole('button',{name:'다녀왔어요',exact:true}).click();
+  await expect(panel.getByRole('heading',{name:'오늘 일정이 끝났어요',exact:true})).toBeVisible();
+  expect(await page.evaluate(()=>(window as unknown as {easyTripPrivacyCalls:number}).easyTripPrivacyCalls)).toBe(0);expect(requests).toEqual([]);
+  const state=await page.evaluate(()=>({onTrip:localStorage.getItem('wave-on-trip-v1'),trip:localStorage.getItem('wave-current-trip-v1')}));
+  expect(state.onTrip).toContain('done');expect(state.onTrip).not.toMatch(/latitude|longitude|accuracy|coords|mapX|mapY/);expect(state.trip).not.toContain('done');
+});
+
 for (const entry of ['toolbar', 'panel'] as const) test(`accepted ${entry} GPS measures locally while map, nearby, routes, Naru and storage retain public places`, async ({ page }) => {
   const position = { latitude: 35.12345678, longitude: 128.87654321 };
   const requests: string[] = [], routeRequests: string[] = [], assistantPayloads: unknown[] = [], errors: string[] = [];
