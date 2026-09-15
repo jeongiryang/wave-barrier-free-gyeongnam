@@ -69,10 +69,15 @@ test("pace preview, apply and undo preserve itinerary; sensory reports and passp
   await expect(page.getByText("쉬는 곳: 미확인", { exact: true })).toHaveCount(
     2,
   );
-  const axe = await new AxeBuilder({ page })
-    .include('[aria-label="오늘의 여행 도우미"]')
-    .analyze();
-  expect(axe.violations).toEqual([]);
+  for (const theme of ["dark", "light"]) {
+    await page.evaluate((value) => {
+      document.documentElement.dataset.theme = value;
+    }, theme);
+    const axe = await new AxeBuilder({ page })
+      .include('[aria-label="오늘의 여행 도우미"]')
+      .analyze();
+    expect(axe.violations).toEqual([]);
+  }
   await page.screenshot({ path: test.info().outputPath("sensory.png") });
   await page
     .getByRole("button", { name: "경남 여행여권", exact: true })

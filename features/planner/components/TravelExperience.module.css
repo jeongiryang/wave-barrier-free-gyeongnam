@@ -12,7 +12,7 @@
 .experience button {
   padding: 10px 14px;
   border: 1px solid #a6bdb5;
-  background: white;
+  background: var(--surface);
   color: var(--blue);
 }
 .experience button:is([aria-expanded="true"], [aria-pressed="true"]) {
