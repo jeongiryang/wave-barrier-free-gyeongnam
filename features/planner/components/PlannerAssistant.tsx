@@ -369,10 +369,11 @@ export default function PlannerAssistant(props: Props) {
         const result = await props.onSearch(action.action === 'settings' ? { region: action.region, profiles: [...new Set([...plan.selected, ...resolveFacilityKeys({ profiles: action.profiles || [] })])], themes: action.themes } : undefined);
         if (id !== sequence.current) return;
         if (!result) { executed.current.delete(message.id); append('검색을 마치지 못했어요. 같은 조건으로 다시 찾아달라고 말씀해 주세요.'); return; }
-        committed(); shownPlaces.current = [...result.places, ...(result.explorationPlaces || [])];
+        const displayed = [...result.places, ...(result.explorationPlaces || [])].filter(place => !action.region || action.region === '경남 전체' || place.city.includes(action.region)).slice(0, action.count || 24);
+        committed(); shownPlaces.current = displayed;
         const partial = result.statuses.some(status => status.state === 'error' || status.partial);
         const excludedNote = result.excludedPlaces?.length ? ` 선택한 시설이 없어 제외된 장소가 ${result.excludedPlaces.length}곳 있어요. 검색 결과에서 제외 이유를 확인할 수 있어요.` : '';
-        append((result.places.length ? `현재 불러온 후보 중 ${result.places.length}곳을 찾았어요.${partial ? ' 일부 정보는 아직 불러오지 못했어요.' : ''}` : partial ? '일부 관광 정보를 불러오지 못했어요. 조건은 유지하고 다시 시도할 수 있어요.' : result.explorationPlaces?.length ? '필요한 편의가 모두 확인된 곳은 없어요. 시설 정보가 부족한 후보를 자세히 볼 수 있어요.' : '조건에 맞는 후보가 없어요. 필요한 편의는 유지하고 다른 활동이나 지역을 찾아볼 수 있어요.') + excludedNote, { results: [...result.places, ...(result.explorationPlaces || [])], resultKey: JSON.stringify(result.criteria) });
+        append((result.places.length ? `현재 불러온 후보 중 ${displayed.length}곳을 찾았어요.${partial ? ' 일부 정보는 아직 불러오지 못했어요.' : ''}` : partial ? '일부 관광 정보를 불러오지 못했어요. 조건은 유지하고 다시 시도할 수 있어요.' : result.explorationPlaces?.length ? '필요한 편의가 모두 확인된 곳은 없어요. 시설 정보가 부족한 후보를 자세히 볼 수 있어요.' : '조건에 맞는 후보가 없어요. 필요한 편의는 유지하고 다른 활동이나 지역을 찾아볼 수 있어요.') + excludedNote, { results: displayed, resultKey: JSON.stringify(result.criteria) });
       } finally { if (!automatic && id === sequence.current) setBusy(false); }
       return;
     }
