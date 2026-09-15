@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "enabled": false,
-  "generatedAt": "2026-09-15T13:55:22.337Z",
+  "enabled": true,
+  "generatedAt": "2026-09-15T14:04:23.624Z",
   "source": {
     "pageUrl": "https://www.data.go.kr/data/15012892/standard.do",
     "downloadUrl": "https://file.localdata.go.kr/file/download/public_restroom_info/info?orgCode=6480000_ALL",
     "portalModifiedAt": "2026-06-05",
-    "retrievedAt": "2026-09-15T13:55:22.337Z",
+    "retrievedAt": "2026-09-15T14:04:23.624Z",
     "rowCount": 5041,
     "sha256": "d22a6b5936017a3826ffef1279bb77b12a9b49510c49865aa3f11a2d0b6b6870",
     "encoding": "CP949",
@@ -37,9 +37,21 @@
       "거창군": 86,
       "합천군": 139
     },
-    "geocodedRows": 0,
-    "geocodedCities": [],
+    "geocodedRows": 30,
+    "geocodedCities": [
+      "김해시",
+      "사천시",
+      "진주시",
+      "창원시",
+      "통영시"
+    ],
     "requiredRows": 30,
     "requiredCities": 5
+  },
+  "geocoding": {
+    "method": "Kakao Local keyword search through the existing WAVE production server",
+    "input": "official public facility address only",
+    "matched": "single normalized official address in Gyeongnam",
+    "verifiedAt": "2026-09-15T14:03:36.657Z"
   }
 }

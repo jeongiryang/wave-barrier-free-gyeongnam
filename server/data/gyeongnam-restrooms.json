@@ -1,1 +1,835 @@
-[]
+[
+  {
+    "id": "202453100000102246",
+    "name": "하얀울공원",
+    "address": "경상남도 진주시 충무공동 350",
+    "openingHours": "상시",
+    "phoneNumber": "0557498752",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-11-21"
+      }
+    ],
+    "destination": {
+      "latitude": 35.1732306305463,
+      "longitude": 128.155356084216
+    }
+  },
+  {
+    "id": "202453100000102314",
+    "name": "청락원",
+    "address": "경상남도 진주시 모덕로 47번길 40",
+    "openingHours": "09:00~18:00",
+    "phoneNumber": "0557495944",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-11-21"
+      }
+    ],
+    "destination": {
+      "latitude": 35.1858491910676,
+      "longitude": 128.102719398713
+    }
+  },
+  {
+    "id": "202453100000102024",
+    "name": "진주시 선거관리위원회",
+    "address": "경상남도 진주시 소호로 88",
+    "openingHours": "09:00~18:00",
+    "phoneNumber": "0557584809",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-11-21"
+      }
+    ],
+    "destination": {
+      "latitude": 35.176337644018695,
+      "longitude": 128.1359880018475
+    }
+  },
+  {
+    "id": "202453100000101978",
+    "name": "진양호지구대",
+    "address": "경상남도 진주시 평거로 42",
+    "openingHours": "상시",
+    "phoneNumber": "0557470112",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-11-21"
+      }
+    ],
+    "destination": {
+      "latitude": 35.1738590158378,
+      "longitude": 128.065174437736
+    }
+  },
+  {
+    "id": "202453100000102189",
+    "name": "모덕경기장(축구장)",
+    "address": "경상남도 진주시 모덕로 61번길 41",
+    "openingHours": "09:00~22:00",
+    "phoneNumber": "0557497432",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-11-21"
+      }
+    ],
+    "destination": {
+      "latitude": 35.18523415565289,
+      "longitude": 128.10246078121634
+    }
+  },
+  {
+    "id": "202453100000102022",
+    "name": "진주가좌동우체국",
+    "address": "경상남도 진주시 가좌길 15 (가좌동)",
+    "openingHours": "09:00~18:00",
+    "phoneNumber": "0557598400",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-11-21"
+      }
+    ],
+    "destination": {
+      "latitude": 35.156066263091496,
+      "longitude": 128.10582037945343
+    }
+  },
+  {
+    "id": "202453300000101357",
+    "name": "욕지 출렁다리",
+    "address": "경상남도 통영시 욕지면 옥동로117",
+    "openingHours": "상시",
+    "phoneNumber": "0556503594",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-12-27"
+      }
+    ],
+    "destination": {
+      "latitude": 34.62206745575785,
+      "longitude": 128.2770805496554
+    }
+  },
+  {
+    "id": "202453300000101248",
+    "name": "원문공원(기호마을)",
+    "address": "경상남도 통영시 용남면 장문리1024",
+    "openingHours": "상시",
+    "phoneNumber": "0556501413",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-12-27"
+      }
+    ],
+    "destination": {
+      "latitude": 34.8694040756228,
+      "longitude": 128.422457675553
+    }
+  },
+  {
+    "id": "202453300000101233",
+    "name": "중앙전통시장",
+    "address": "경상남도 통영시 중앙시장1길 7-7",
+    "openingHours": "상시",
+    "phoneNumber": "0556505213",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-12-27"
+      }
+    ],
+    "destination": {
+      "latitude": 34.8449986637197,
+      "longitude": 128.423981355703
+    }
+  },
+  {
+    "id": "202453300000101207",
+    "name": "용화사광장밑 공영주차장",
+    "address": "경상남도 통영시 봉수로 93",
+    "openingHours": "상시",
+    "phoneNumber": "0556505333",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-12-27"
+      }
+    ],
+    "destination": {
+      "latitude": 34.822927861094165,
+      "longitude": 128.41528933383643
+    }
+  },
+  {
+    "id": "202453300000101134",
+    "name": "경남남부세관 통영지원센터",
+    "address": "경상남도 통영시 통영해안로 257",
+    "openingHours": "09:00~18:00",
+    "phoneNumber": "0557338005",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-12-27"
+      }
+    ],
+    "destination": {
+      "latitude": 34.8399987023801,
+      "longitude": 128.42332239664
+    }
+  },
+  {
+    "id": "202453300000101387",
+    "name": "케이블카 파크랜드(오토캠핑장)",
+    "address": "경상남도 통영시 발개로 172-24",
+    "openingHours": "상시",
+    "phoneNumber": "0556500542",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-12-27"
+      }
+    ],
+    "destination": {
+      "latitude": 34.8235992436371,
+      "longitude": 128.422637954525
+    }
+  },
+  {
+    "id": "202453400000100075",
+    "name": "금문소공원",
+    "address": "경상남도 사천시 용현면 석양길 500",
+    "openingHours": "00:00-24:00",
+    "phoneNumber": "0558313138",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2023-12-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.0094178459443,
+      "longitude": 128.047311178625
+    }
+  },
+  {
+    "id": "202453400000100046",
+    "name": "곤명생태학습장",
+    "address": "경상남도 사천시 곤명면 흥신로 844",
+    "openingHours": "00:00-24:00",
+    "phoneNumber": "0558312763",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2023-12-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.1331300984761,
+      "longitude": 127.980460255413
+    }
+  },
+  {
+    "id": "202453400000100100",
+    "name": "사천대교휴게소",
+    "address": "경상남도 사천시 서포면 자구로 5",
+    "openingHours": "상시",
+    "phoneNumber": "0558313383",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2023-12-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.0046515765177,
+      "longitude": 128.018506271427
+    }
+  },
+  {
+    "id": "202453400000100024",
+    "name": "삼천포대교공원",
+    "address": "경상남도 사천시 사천대로 17 (대방동)",
+    "openingHours": "상시",
+    "phoneNumber": "0558312787",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2023-12-31"
+      }
+    ],
+    "destination": {
+      "latitude": 34.93227593145026,
+      "longitude": 128.0523405073979
+    }
+  },
+  {
+    "id": "202453400000100081",
+    "name": "미관광장",
+    "address": "경상남도 사천시 사남면 해안산업로 474",
+    "openingHours": "상시",
+    "phoneNumber": "0558313417",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2023-12-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.0587822911812,
+      "longitude": 128.04075044322
+    }
+  },
+  {
+    "id": "202453400000100214",
+    "name": "신송마을 화장실",
+    "address": "경상남도 사천시 용현면 신송1길 29",
+    "openingHours": "09:00-18:00",
+    "phoneNumber": "0558313243",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2023-12-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.0114766993163,
+      "longitude": 128.060365364543
+    }
+  },
+  {
+    "id": "202453500000100264",
+    "name": "생림 무척산(주차장) 공중화장실",
+    "address": "경상남도 김해시 생림면 마사로 36-68",
+    "openingHours": "상시",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2025-08-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.34708581296577,
+      "longitude": 128.85495804940246
+    }
+  },
+  {
+    "id": "202453500000100099",
+    "name": "선천들공원",
+    "address": "경상남도 김해시 주촌면 천곡로15번길 34",
+    "openingHours": "상시",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2025-08-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.2307751496363,
+      "longitude": 128.838160409892
+    }
+  },
+  {
+    "id": "202453500000100240",
+    "name": "주촌면행정복지센터 화장실",
+    "address": "경상남도 김해시 주촌면 서부로1638번길 12",
+    "openingHours": "09:00~18:00",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2025-08-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.2358075915758,
+      "longitude": 128.831015724458
+    }
+  },
+  {
+    "id": "202453500000100100",
+    "name": "선지공원",
+    "address": "경상남도 김해시 주촌면 선지로 70",
+    "openingHours": "상시",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2025-08-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.229689964044,
+      "longitude": 128.845157480251
+    }
+  },
+  {
+    "id": "202453500000100343",
+    "name": "한글박물관",
+    "address": "경상남도 김해시 분성로 221",
+    "openingHours": "09:00~18:00",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2025-08-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.2313234471988,
+      "longitude": 128.870422202782
+    }
+  },
+  {
+    "id": "202453500000100220",
+    "name": "수남공원",
+    "address": "경상남도 김해시 율하2로153번길 3",
+    "openingHours": "상시",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2025-08-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.1690228454163,
+      "longitude": 128.817414686929
+    }
+  },
+  {
+    "id": "202656701560100002",
+    "name": "광암항",
+    "address": "경상남도 창원시 마산합포구 진동면 광암회단지길 17",
+    "openingHours": "상시",
+    "phoneNumber": "0552204521",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2026-02-09"
+      }
+    ],
+    "destination": {
+      "latitude": 35.1041629117936,
+      "longitude": 128.499188026373
+    }
+  },
+  {
+    "id": "202356700000100237",
+    "name": "저도연륙교 주차장",
+    "address": "경상남도 창원시 마산합포구 구산면 해양관광로 1880",
+    "openingHours": "상시",
+    "phoneNumber": "0552204521",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2026-02-09"
+      }
+    ],
+    "destination": {
+      "latitude": 35.0681558510634,
+      "longitude": 128.562560877002
+    }
+  },
+  {
+    "id": "202356700000100100",
+    "name": "안청무궁화공원",
+    "address": "경상남도창원시진해구청안로265",
+    "openingHours": "상시",
+    "phoneNumber": "0555484501",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2026-02-05"
+      }
+    ],
+    "destination": {
+      "latitude": 35.0984523990066,
+      "longitude": 128.803016938077
+    }
+  },
+  {
+    "id": "202456701840100030",
+    "name": "중리체육공원",
+    "address": "경상남도창원시마산회원구내서읍광려천남로85",
+    "openingHours": "상시",
+    "phoneNumber": "0552304501",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2024-12-31"
+      }
+    ],
+    "destination": {
+      "latitude": 35.2448439688959,
+      "longitude": 128.509698657057
+    }
+  },
+  {
+    "id": "202356700000100838",
+    "name": "웅동1동 주민센터 1층 화장실",
+    "address": "경상남도창원시진해구웅동로57번가길6(마천동,웅동1동주민센터)",
+    "openingHours": "근무시간 내",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2022-11-23"
+      }
+    ],
+    "destination": {
+      "latitude": 35.1258740996911,
+      "longitude": 128.782704965178
+    }
+  },
+  {
+    "id": "202356700000100373",
+    "name": "감계1호근린공원",
+    "address": "경상남도 창원시 의창구 북면 감계로140번길 28",
+    "openingHours": "상시",
+    "phoneNumber": "0552124516",
+    "evidence": {
+      "accessibleToilet": "confirmed",
+      "entranceStep": "unknown",
+      "entranceDoor": "unknown",
+      "grabBars": "unknown",
+      "turningSpace": "unknown",
+      "sinkAccess": "unknown",
+      "elevatorRequired": "unknown",
+      "emergencyBell": "unknown"
+    },
+    "sources": [
+      {
+        "type": "official",
+        "provider": "행정안전부 전국공중화장실표준데이터",
+        "referenceDate": "2026-02-05"
+      }
+    ],
+    "destination": {
+      "latitude": 35.2988226265345,
+      "longitude": 128.591030534846
+    }
+  }
+]

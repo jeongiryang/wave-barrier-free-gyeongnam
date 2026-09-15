@@ -94,6 +94,7 @@ async function main() {
   const rows = parseCsv(new TextDecoder('euc-kr').decode(bytes));
   const normalized = rows.map(normalizeOfficialRestroom).filter(Boolean);
   const previous = await readFile(OUTPUT, 'utf8').then(JSON.parse).catch(() => []);
+  const previousManifest = await readFile(MANIFEST, 'utf8').then(JSON.parse).catch(() => ({}));
   const previousByKey = new Map(previous.map(item => [`${item.id}\n${item.address}`, item.destination]));
   const key = text(process.env.KAKAO_REST_API_KEY, 200);
   const limit = Math.max(0, Math.min(500, Number(process.env.RESTROOM_GEOCODE_LIMIT || 60)));
@@ -121,6 +122,7 @@ async function main() {
     schemaVersion: 1, enabled: gatePassed, generatedAt,
     source: { pageUrl: SOURCE_PAGE, downloadUrl: SOURCE_URL, portalModifiedAt: '2026-06-05', retrievedAt: generatedAt, rowCount: rows.length, sha256: createHash('sha256').update(bytes).digest('hex'), encoding: 'CP949', license: '이용허락범위 제한 없음', refresh: '매일 갱신·2일 전 기준 현행화', coordinates: '2025년 2월부터 원천 제공 중단' },
     audit: { eligibleBeforeGeocode: normalized.length, addressAndReferenceRate: addressAndReference / Math.max(1, rows.length), cityCounts, geocodedRows: items.length, geocodedCities: [...geocodedCities].sort(), requiredRows: 30, requiredCities: 5 },
+    geocoding: key ? { method: 'Kakao Local address API', input: 'official public facility address only', matched: 'single Gyeongnam address', verifiedAt: generatedAt } : previousManifest.geocoding,
   });
   console.log(JSON.stringify({ enabled: gatePassed, rows: rows.length, eligible: normalized.length, geocoded: items.length, cities: geocodedCities.size }));
 }

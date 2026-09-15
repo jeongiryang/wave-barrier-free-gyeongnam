@@ -31,10 +31,15 @@
 
 ## 좌표 게이트와 현재 결정
 
-원본에는 좌표가 없고 현재 worktree/로컬 환경에는 `KAKAO_REST_API_KEY`가 없다. 공개 주소를 기존 Kakao 주소 검색으로 사전 변환하는 갱신 스크립트는 추가했지만, 단일 경남 목적지로 확정된 레코드는 현재 0건이다. 사용자 위치나 다른 비공식 좌표로 보충하지 않았다.
+원본에는 좌표가 없고 현재 worktree/로컬 환경에는 `KAKAO_REST_API_KEY`가 없다. 공개 주소를 기존 Kakao 주소 검색으로 사전 변환하는 갱신 스크립트를 추가했다. 첫 artifact 생성은 이미 승인·운영 중인 W.A.V.E Production의 Kakao Local 서버 경로에 **공식 시설 주소만** 보내 수행했다. 이는 운영 키를 직접 확인한 결과가 아니며, 사용자 위치·일정·GPS는 요청하지 않았다.
 
-이에 따라 `server/data/gyeongnam-restrooms.manifest.json`은 `enabled:false`, 서버 artifact는 빈 배열이다. 최소 5개 시군·30개 단일 경남 목적지가 재현 가능한 방식으로 생성되기 전에는 사용자 UI를 노출하지 않는다. fixture는 이 데이터 게이트를 통과시키는 근거로 사용하지 않는다.
+- 주소 정규화 후 공식 주소와 단 하나의 경남 검색 결과가 정확히 일치한 표본만 채택했다.
+- 창원·진주·통영·사천·김해 각 6건, 합계 30건을 실제 응답으로 확인했다.
+- 30건 모두 공식 원본의 장애인용 대변기 양수, 주소, 개방시간, 기준일을 다시 결합했다.
+- 문턱·문폭·손잡이·회전공간·세면대 접근·승강기 필요·비상벨 근거는 전부 `unknown`이다.
+
+이에 따라 `server/data/gyeongnam-restrooms.manifest.json`은 `enabled:true`이며 서버 artifact에는 감사한 30건만 포함한다. fixture는 데이터 게이트 근거로 사용하지 않았다. 이후 정기 갱신은 승인된 서버 비밀 환경에서 `KAKAO_REST_API_KEY`로 직접 수행해야 한다.
 
 ## 다음 검증
 
-승인된 서버 비밀 환경에서 `KAKAO_REST_API_KEY`를 설정하고 `node scripts/update-gyeongnam-restrooms.mjs`를 실행한다. 생성 manifest의 `enabled`, `geocodedRows`, `geocodedCities`, 원본 해시를 검토하고 최소 5개 시군에서 30건 이상의 주소·좌표·장애인용 대변기 수·개방시간을 원본 CSV와 수동 대조해야 한다.
+승인된 서버 비밀 환경에서 `KAKAO_REST_API_KEY`를 설정하고 `node scripts/update-gyeongnam-restrooms.mjs`를 실행한다. 생성 manifest의 `enabled`, `geocodedRows`, `geocodedCities`, 원본 해시를 검토한다. 새 주소 또는 주소 변경 레코드는 단일 경남 주소로 확정될 때만 추가하며 기존 30건의 주소·좌표·장애인용 대변기 수·개방시간 대조 기준을 유지한다.
