@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { deliverNearby, nearbyPlace, openMapTool, openNearby, openRouteDetails } from './nearby-fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -13,6 +14,16 @@ type AuditWindow = Window & {
   kakao: { maps: { LatLng: new (...args: unknown[]) => object; services: { Places: { prototype: { categorySearch: (...args: unknown[]) => unknown } } } } };
   mapLayerFixture: { maps: Array<Record<string, unknown>> };
 };
+
+test('parking location boundary keeps GPS out of API and destination map URL contracts', () => {
+  const source = readFileSync(new URL('../features/planner/components/ParkingAlternatives.tsx', import.meta.url), 'utf8');
+  expect(source).toContain('navigator.geolocation.getCurrentPosition');
+  expect(source).toContain('/api/wave?action=parking-alternatives&contentId=');
+  expect(source).not.toMatch(/parking-alternatives[^`\n]*(?:lat|lng|latitude|longitude|accuracy|origin|currentLocation)=/i);
+  expect(source).toContain('https://map.kakao.com/link/map/');
+  expect(source).not.toMatch(/(?:from|sLat|sLng)=/);
+  expect(source).not.toMatch(/localStorage|sessionStorage|indexedDB|caches\./);
+});
 
 for (const entry of ['toolbar', 'panel'] as const) test(`accepted ${entry} GPS measures locally while map, nearby, routes, Naru and storage retain public places`, async ({ page }) => {
   const position = { latitude: 35.12345678, longitude: 128.87654321 };

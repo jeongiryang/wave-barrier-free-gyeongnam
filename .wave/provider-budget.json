@@ -20,6 +20,14 @@
   },
   "providers": [
     {
+      "id": "parking", "family": "public-data", "request_file": "server/tourism/parking-alternatives.ts",
+      "origin": "https://api.data.go.kr/openapi/", "operations": ["tn_pubr_prkplce_info_api"],
+      "key_sources": ["TOUR_API_SERVICE_KEY_ENCODED"], "source": "https://www.data.go.kr/data/15012896/openapi.do", "account_source": "https://www.data.go.kr/",
+      "core": false, "fallback": "Keep the official attraction parking evidence and manual reference sorting; never infer that no parking exists.",
+      "limits": "One explicit user-triggered lookup, no automatic retry; 17.5s total server budget; public contentId cache up to 24h/100 entries and 50 pending requests.",
+      "privacy": "Only the public KTO contentId reaches the server. Device coordinates remain browser-memory-only and never enter provider requests, cache keys, URLs, logs or storage."
+    },
+    {
       "id": "wave-local-llm", "family": "private-local-model", "request_file": "server/assistant/handler.ts",
       "origin": "operator-configured WAVE_AI_BASE_URL", "operations": ["health", "chat"],
       "key_sources": ["WAVE_AI_TOKEN"], "source": "https://docs.ollama.com/api/chat",

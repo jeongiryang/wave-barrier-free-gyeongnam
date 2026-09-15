@@ -100,6 +100,16 @@ checks.push(await jsonCheck("tourism:spot-photo", "/api/wave?action=spot-photo&r
   body?.status === "live" && typeof body?.image === "string" && body.image.startsWith("https://"), 30_000));
 checks.push(await jsonCheck("tourism:crowd", "/api/wave?action=crowd&region=%EC%B0%BD%EC%9B%90&title=%EA%B2%BD%EB%82%A8%EB%8F%84%EB%A6%BD%EB%AF%B8%EC%88%A0%EA%B4%80", (body) =>
   body?.status?.state === "live", 30_000));
+checks.push(await jsonCheck("tourism:accessible-parking", "/api/wave?action=parking-alternatives&contentId=2783785", (body) =>
+  ["available", "empty"].includes(body?.status)
+  && body?.contentId === "2783785"
+  && body?.source === "전국주차장정보표준데이터"
+  && typeof body?.checkedAt === "string"
+  && Array.isArray(body?.items)
+  && body.items.length <= 3
+  && body.items.every((item) => item?.accessibleZone === "confirmed"
+    && item?.destination && Number.isFinite(item.destination.latitude) && Number.isFinite(item.destination.longitude)
+    && typeof item?.referenceDate === "string"), 90_000));
 checks.push(await jsonCheck("community", "/api/community/posts?page=1", (body) => Array.isArray(body?.posts), 30_000));
 checks.push(await jsonCheck("auth", "/api/auth/get-session", (body) => body === null || Boolean(body?.user), 30_000));
 
