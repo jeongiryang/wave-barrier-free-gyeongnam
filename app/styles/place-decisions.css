@@ -34,7 +34,6 @@
 .communication-answer-grid button,.communication-direct { min-height:56px; padding:12px 16px; border:1px solid var(--line); border-radius:12px; text-align:center; }
 .communication-direct { width:100%; margin-top:10px; }
 .communication-custom { display:grid; gap:8px; }
-.communication-custom textarea { min-height:112px; }
 .communication-custom > div { display:flex; gap:8px; }
 .communication-custom > div button { flex:1; min-height:56px; border:1px solid var(--line); border-radius:12px; }
 .communication-answer { min-height:180px; display:grid!important; place-items:center; }
