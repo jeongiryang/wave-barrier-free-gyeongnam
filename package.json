@@ -26,6 +26,7 @@
     "check:photos": "node scripts/check-photo-coverage.mjs",
     "check:production": "node scripts/check-production-apis.mjs",
     "check:performance": "node scripts/check-performance-budget.mjs",
+    "update:restrooms": "node scripts/update-gyeongnam-restrooms.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vercel"
   },
