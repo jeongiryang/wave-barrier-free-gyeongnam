@@ -66,6 +66,16 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
 .simple-result-notice p { margin: 0; }
 .simple-result-notice button { color: var(--blue); min-height: 44px; background: none; padding: 8px 0; text-decoration: underline; }
 .simple-empty { padding: 20px 0; font-size: 16px; color: var(--muted); }
+.simple-condition-help { display: grid; gap: 16px; margin: 16px 0 24px; padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+.simple-condition-help h3,.simple-condition-help p { margin: 0; }
+.simple-condition-help h3 { font-size: 18px; }
+.simple-condition-help p,.simple-condition-help small { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.simple-condition-help fieldset { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.simple-condition-help label { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.simple-condition-help input { width: 20px; height: 20px; flex: 0 0 20px; accent-color: var(--blue); }
+.simple-condition-help label > span { display: grid; gap: 2px; }
+.simple-condition-help > button { justify-self: start; min-height: 46px; padding: 10px 16px; border: 1px solid var(--blue); border-radius: 6px; background: var(--blue); color: var(--on-blue); }
+.simple-condition-help > button:disabled { border-color: var(--line); background: var(--surface-deep); color: var(--muted); }
 .simple-place-skeleton { display: grid; grid-template-columns: 160px 1fr; gap: 24px; padding: 24px 0; }
 .simple-place-skeleton i,.simple-place-skeleton b,.simple-place-skeleton span { display: block; background: var(--surface-deep); border-radius: 6px; animation: simple-pulse 1.2s ease-in-out infinite alternate; }
 .simple-place-skeleton i { aspect-ratio: 4/3; }
@@ -180,10 +190,21 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 .simple-stop-copy p { font-size: 14px; color: var(--muted); margin: 0; }
 .simple-edit-stop { font-size: 14px; color: var(--blue); min-height: 44px; padding: 8px; background: none; }
 .simple-stop-details { margin-left: 68px; }
-.simple-stop-controls { display: flex; gap: 8px; margin-top: 8px; }
+.simple-stop-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .simple-stop-controls button { border: 1px solid var(--line); border-radius: 6px; min-width: 44px; min-height: 44px; padding: 8px; background: none; font-size: 13px; color: var(--muted); }
 .simple-stop-controls button:disabled { color: var(--muted); opacity: .5; }
 .simple-leg-time { font-size: 12px; line-height: 1.7; color: var(--muted); margin: 8px 0 0; }
+.simple-itinerary-attention { margin: 0 0 20px; padding: 18px; border: 1px solid #e2c57b; border-radius: 10px; background: #fff9e9; }
+.simple-itinerary-attention h3,.simple-itinerary-attention p { margin: 0; }
+.simple-itinerary-attention h3 { font-size: 17px; }
+.simple-itinerary-attention > p { margin-top: 4px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.simple-itinerary-attention ul { margin: 12px 0 0; padding: 0; list-style: none; }
+.simple-itinerary-attention li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid #ead9a9; }
+.simple-itinerary-attention li > div { display: grid; gap: 3px; min-width: 0; }
+.simple-itinerary-attention li span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.simple-itinerary-attention button { flex: 0 0 auto; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--blue); }
+html[data-theme=dark] .simple-itinerary-attention { border-color: #6f6038; background: #312c20; }
+html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 .simple-stop-details .place-visit-hours { margin-top: 4px; border: 0; background: none; padding: 0; }
 .simple-stop-details .place-visit-hours > summary { padding: 8px 0; font-size: 13px; min-height: 44px; }
 .simple-day-options,.simple-more-trip-tools,.simple-audio-journal { border-top: 1px solid var(--line); margin-top: 20px; }
@@ -215,6 +236,7 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
   .simple-stop-copy p { font-size: 13px; }
   .simple-stop > time { font-size: 14px; }
   .simple-stop-options .simple-settings-fields { grid-template-columns: minmax(0,1fr); }
+  .simple-itinerary-attention li { align-items: flex-start; }
 }
 :root .planner-simple .planner-journey-workspace { background: var(--surface); }
 .planner-simple .simple-place-pane { position: fixed; inset: 90px var(--wave-gutter) 24px auto; width: min(42vw,560px); max-width: none; height: auto; max-height: none; margin: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); overflow-y: auto; box-shadow: 0 8px 24px #18362b12; }

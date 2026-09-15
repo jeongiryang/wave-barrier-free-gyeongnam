@@ -12,9 +12,9 @@ test("the restored-section registry matches actual reading order without replaci
   // Chapter labels are navigation shorthand. Check the actual reading headings
   // and their section associations independently of that shorthand.
   const headings = [
-    /경남 여행지를 찾고\s*일정을 짜보세요\./,
-    /멀게 느껴졌던 여행을,\s*조금 더 가까이\./, "지역으로 둘러보기", "나루에게 말해보세요",
-    /마음은 가볍게\.\s*준비는 한 번 더\./, /당신이 남긴 장면이\s*다음 여행의 시작\./, /다음 풍경에서\s*만나요\./,
+    /필요한 편의를 끝까지 지키는\s*경남 여행 설계/,
+    /멀게 느껴졌던 여행을\s*조금 더 가까이/, "지역으로 둘러보기", "나루에게 말해보세요",
+    /마음은 가볍게\s*준비는 한 번 더/, /당신이 남긴 장면이\s*다음 여행의 시작/, /다음 풍경에서\s*만나요/,
   ];
   await expect(sections.locator("h1,h2")).toHaveText(headings);
   for (const [index, id] of chapterIds.entries()) {

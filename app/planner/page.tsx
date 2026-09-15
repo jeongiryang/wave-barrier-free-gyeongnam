@@ -363,6 +363,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
                 weather={weather}
                 weatherLoading={weatherLoading}
                 onSelectPlace={setSelectedPlace}
+                onAlternative={id => alternatives.open(id)}
                 onContinue={() => setDepartureDetailsOpen(true)}
                 coverage={itineraryRoutes}
                 reviewed={itineraryReviewed}

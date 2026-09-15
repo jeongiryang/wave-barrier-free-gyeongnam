@@ -24,9 +24,9 @@ function FacilityPicker({ plan, onClose }: { plan: Props["planController"]; onCl
   return <dialog ref={dialog} lang="ko" className="simple-dialog simple-facility-picker" aria-labelledby="facility-picker-title">
     <header><h2 id="facility-picker-title" tabIndex={-1}>필요한 편의</h2><button type="button" onClick={onClose} aria-label="편의 선택 닫기">×</button></header>
     <div className="simple-facility-picker-body">
-      <p>필요한 시설만 선택해 주세요.</p>
+      <p>필요한 시설만 선택해 주세요</p>
       <fieldset className="simple-facility-grid"><legend className="sr-only">여행 편의 조건 선택</legend>{FACILITIES.map(item => <label key={item.key}><input type="checkbox" checked={draft.includes(item.key)} onChange={event => setDraft(current => event.target.checked ? [...current, item.key] : current.filter(key => key !== item.key))} /><span>{item.label}</span></label>)}</fieldset>
-      <details className="simple-saved-preferences"><summary>조건 저장·불러오기</summary><div><p>선택한 편의만 저장해요. 건강 상태나 장애 유형을 추론하지 않아요.</p>
+      <details className="simple-saved-preferences"><summary>조건 저장·불러오기</summary><div><p>선택한 편의만 저장해요 건강 상태나 장애 유형을 추론하지 않아요</p>
         <button type="button" disabled={!draft.length} onClick={() => plan.saveTravelProfile(draft)}>이 기기에 조건 저장</button>
         <button type="button" disabled={!plan.savedProfile} onClick={() => { if (plan.savedProfile) setDraft(plan.savedProfile.selectedIds); }}>저장한 조건 불러오기</button>
         {plan.savedProfile && <button type="button" onClick={plan.deleteTravelProfile}>저장한 조건 삭제</button>}

@@ -27,10 +27,7 @@ async function setup(page: Page) {
   return page.locator(".simple-timeboard");
 }
 async function open(page: Page, name = "경남도립미술관") {
-  const more=page.locator('.simple-more-trip-tools');if(!await more.evaluate(node=>(node as HTMLDetailsElement).open))await more.locator(':scope > summary').click();
-  const tools = page.locator('[data-planner-tool="alternatives"]');
-  if (!await tools.getAttribute("open").then(value => value !== null)) await tools.locator("summary").click();
-  await tools.getByRole("button", { name: `${name} 비교`, exact: true }).click();
+  await page.getByRole("button", { name: `${name} 비슷한 장소로 교체`, exact: true }).click();
   return page.getByRole("dialog", { name: "이곳만 바꿔 볼까요?", exact: true });
 }
 
@@ -96,7 +93,7 @@ test("indoor evidence is checked explicitly and nearby discovery retains facilit
   const request = calls.find(url => url.searchParams.get("action") === "plan")!;
   expect(request.searchParams.get("region")).toBe("함안"); expect(request.searchParams.get("themes")).toBe("nature"); expect((request.searchParams.get("facilityKeys") || request.searchParams.get("profiles") || "").split(",")).toEqual(requiredKeys);
   await page.keyboard.press("Escape");
-  await expect(page.locator('[data-planner-tool="alternatives"]').getByRole("button", { name: "경남도립미술관 비교", exact: true })).toBeFocused();
+  await expect(page.getByRole("button", { name: "경남도립미술관 비슷한 장소로 교체", exact: true })).toBeFocused();
   expect(JSON.parse((await currentValues(page))["wave-saved-places"])).toEqual(["1001", "1002"]);
 });
 

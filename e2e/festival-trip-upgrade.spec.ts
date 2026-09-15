@@ -62,6 +62,20 @@ test('축제의 실제 개최일을 골라 담으면 기존 방문일과 고정 
   await expect(page.locator('.simple-itinerary-map .wave-map-icon.place[data-place-id="1001"]')).toHaveCount(0);
 });
 
+test('날짜 입력칸 어디를 눌러도 달력 열기를 요청한다', async ({ page }) => {
+  await setup(page);
+  await page.evaluate(() => {
+    HTMLInputElement.prototype.showPicker = function showPicker() { this.dataset.pickerOpened = 'true'; };
+  });
+  const filters = page.getByRole('region', { name: '축제 찾기', exact: true });
+  for (const name of ['언제부터', '언제까지']) {
+    const input = filters.getByLabel(name, { exact: true });
+    const box = await input.boundingBox();
+    await input.click({ position: { x: 12, y: Math.max(2, (box?.height || 46) / 2) } });
+    await expect(input).toHaveAttribute('data-picker-opened', 'true');
+  }
+});
+
 for (const change of ['region', 'date'] as const) test(`축제 ${change === 'region' ? '지역' : '날짜'} 변경 중 이전 결과를 담을 수 없고 늦은 응답은 최신 결과를 덮지 않는다`, async ({ page }) => {
   const gate = deferred(); let delayed = 0, completed = false;
   const handler = async (route: Route) => {
