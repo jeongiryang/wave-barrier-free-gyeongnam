@@ -8,7 +8,7 @@ const steps = [
   { title: '입구', keys: ['route', 'elevator'], note: '다른 출입구나 승강기 이용 안내가 있는지 확인하세요.' },
   { title: '시설', keys: ['restroom', 'lactationroom', 'guidehuman', 'audioguide', 'signguide'], note: '필요한 시설의 위치·운영 여부는 장소 안내에서 확인하세요.' },
 ];
-export default function PlaceArrivalPreview({ place }: { place: Place }) {
+export default function PlaceArrivalPreview({ place, onOpenRestrooms }: { place: Place; onOpenRestrooms?: () => void }) {
   const [activeState, setActiveState] = useState({ placeId: place.id, value: 0 });
   const [checkedState, setCheckedState] = useState<{ placeId: string; value: number[] }>({ placeId: place.id, value: [] });
   const active = activeState.placeId === place.id ? activeState.value : 0;
@@ -31,6 +31,7 @@ export default function PlaceArrivalPreview({ place }: { place: Place }) {
     {place.image && <details><summary>장소 대표 사진과 출처</summary><figure><img src={place.image} alt={`${place.name} 대표 사진`} loading="lazy" width={480} height={300} style={{ maxWidth: '100%', height: 'auto' }} /><figcaption>{place.source || '출처 미제공'} · <a href={place.image} target="_blank" rel="noopener noreferrer">사진 원본 ↗</a><p>주차장이나 입구를 특정한 사진은 아닙니다. 아래 등록된 시설 안내와 함께 살펴보세요.</p></figcaption></figure></details>}
     <div aria-live="polite"><h4>{step.title}</h4>{fields.length ? fields.map(item => <p key={item.key}><strong>{item.label}: {item.state === 'confirmed' ? '정보 있음' : item.state === 'negative' ? '이용 조건 확인' : '미확인'}</strong><br />{item.detail || '상세 안내가 제공되지 않았어요.'}</p>) : <p>이 장소의 {step.title} 상세 정보는 아직 확인하지 못했어요.</p>}<p>{step.note}</p></div>
     {active === 0 && <Suspense fallback={null}><ParkingAlternatives place={place} /></Suspense>}
+    {active === 2 && <p><button type="button" onClick={() => { window.dispatchEvent(new CustomEvent('wave:open-restroom-finder', { detail: { contentId: place.id } })); onOpenRestrooms?.(); }}>주변 공중화장실</button></p>}
     {hasPoint && <div><a target="_blank" rel="noopener noreferrer" href={`https://map.kakao.com/link/roadview/${lat},${lng}`}>장소 주변 로드뷰 열기 ↗</a><a target="_blank" rel="noopener noreferrer" href={`https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${lat},${lng}`}>장소 지도 열기 ↗</a></div>}
     <small>공개 관광지 좌표를 기준으로 엽니다. 실제 입구·시설의 정확한 지점이나 최신 촬영 자료가 제공되지 않을 수 있어요. 로드뷰와 사진만으로 통행 가능 여부를 확정하지 않습니다.</small>
     <p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small></p>

@@ -5,6 +5,7 @@ import { normalizeThemes } from "../../lib/planner-criteria.js";
 import { sanitizeVisitDurations } from "../../lib/visit-durations.js";
 import { sanitizeFixedVisits, sanitizeDayDeadlines } from "../../lib/trip-time-constraints.js";
 import { sanitizeTravelMode } from "../../lib/trip-travel-mode.js";
+import { sanitizeTemporaryRestroomStops } from "../../lib/restroom-temporary-stop.js";
 
 export function normalizeTripSelections(rawSelections: Record<string, unknown>) {
   const requestedRegion = clean(rawSelections.region, 20);
@@ -49,6 +50,7 @@ export function normalizeTripSelections(rawSelections: Record<string, unknown>) 
     dayDeadlines: sanitizeDayDeadlines(rawSelections.dayDeadlines),
     breakMinutesByPlaceId: sanitizeTripBreaks(rawSelections.breakMinutesByPlaceId, selectedPlaceIds),
     restPurposeByPlaceId: sanitizeStopPurposes(rawSelections.restPurposeByPlaceId, selectedPlaceIds),
+    temporaryStops: sanitizeTemporaryRestroomStops(rawSelections.temporaryStops),
   };
 }
 

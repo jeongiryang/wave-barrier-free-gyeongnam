@@ -25,6 +25,15 @@ test('parking location boundary keeps GPS out of API and destination map URL con
   expect(source).not.toMatch(/localStorage|sessionStorage|indexedDB|caches\./);
 });
 
+test('restroom location boundary keeps GPS out of API, storage and destination map URL contracts', () => {
+  const source = readFileSync(new URL('../features/planner/components/RestroomAlternativeCards.tsx', import.meta.url), 'utf8');
+  expect(source).toContain('navigator.geolocation.getCurrentPosition');
+  expect(source).toContain('/api/wave?action=restroom-alternatives&contentId=');
+  expect(source).not.toMatch(/restroom-alternatives[^`\n]*(?:lat|lng|latitude|longitude|accuracy|origin|currentLocation)=/i);
+  expect(source).toContain('https://map.kakao.com/link/map/'); expect(source).not.toMatch(/(?:from|sLat|sLng)=/);
+  expect(source).not.toMatch(/localStorage|sessionStorage|indexedDB|caches\./);
+});
+
 for (const entry of ['toolbar', 'panel'] as const) test(`accepted ${entry} GPS measures locally while map, nearby, routes, Naru and storage retain public places`, async ({ page }) => {
   const position = { latitude: 35.12345678, longitude: 128.87654321 };
   const requests: string[] = [], routeRequests: string[] = [], assistantPayloads: unknown[] = [], errors: string[] = [];

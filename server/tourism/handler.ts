@@ -14,6 +14,7 @@ import { handleReturnTransport } from "../transport/return-transport";
 import { handlePlaceLookup } from './place-lookup';
 import { handlePlaceAudio } from './place-audio';
 import { handleParkingAlternatives } from './parking-alternatives';
+import { handleRestroomAlternatives } from './restroom-alternatives';
 
 function selectedRegion(url: URL) {
   const requested = clean(url.searchParams.get("region"), 20);
@@ -70,6 +71,7 @@ export async function handleWaveApi(request: Request, env: Env) {
   if (action === "visit-info") return handleVisitInfo(url, env);
   if (action === "return-transport") return handleReturnTransport(url, env);
   if (action === "parking-alternatives") return handleParkingAlternatives(url, env);
+  if (action === "restroom-alternatives") return handleRestroomAlternatives(url, env);
   if (action === "crowd-calendar") return handleCrowdCalendar(url, env);
   if (action === "photo") return handlePhoto(url, env);
   if (action === "spot-photo") return handleSpotPhoto(url, env);

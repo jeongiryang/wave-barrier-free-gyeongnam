@@ -5,6 +5,7 @@ import { ensureTripIdentity, readTripIdentity, writeTripIdentity, type TripIdent
 import { plannerJson } from "../services/api";
 import { sameOriginHttpUrl } from "../../../lib/security/same-origin-url.js";
 import { assertTripStorageOwner } from "../../../lib/current-trip-storage.js";
+import type { Place } from "../types";
 
 export interface TripSharingOptions {
   region: string;
@@ -22,6 +23,7 @@ export interface TripSharingOptions {
   breakMinutesByPlaceId?: Record<string, number>;
   restPurposeByPlaceId?: Record<string, import("../../../lib/trip-comfort.js").StopPurpose>;
   selectedPlaceIds: string[];
+  temporaryStops?: Place[];
   originLabel: string;
 }
 
@@ -37,6 +39,7 @@ export function useTripSharing(options: TripSharingOptions) {
     scheduleAssignments: options.scheduleAssignments, selectedPlaceIds: options.selectedPlaceIds,
     visitMinutesByPlaceId: options.visitMinutesByPlaceId, fixedVisits: options.fixedVisits, dayDeadlines: options.dayDeadlines,
     breakMinutesByPlaceId: options.breakMinutesByPlaceId, restPurposeByPlaceId: options.restPurposeByPlaceId,
+    temporaryStops: options.temporaryStops?.filter(place => place.temporaryStop),
   }, origin: { label: '' } });
   type State = 'idle'|'saving'|'done'|'error'|'copy-error';
   const [shareState, setShareState] = useState<State>('idle');
