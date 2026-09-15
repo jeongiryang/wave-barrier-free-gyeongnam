@@ -1,6 +1,6 @@
 # Issue #528 AI 작업 로그
 
-- PR: 생성 후 갱신
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/534
 - 제목: 양방향 현장 의사소통판 구현
 - 작성자: unknownamed (Codex 지원)
 - 최종 상태: 검증 완료, PR 준비
