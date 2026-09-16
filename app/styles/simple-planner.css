@@ -31,6 +31,14 @@
 .simple-results-heading { display: flex; gap: 12px; align-items: baseline; justify-content: space-between; }
 .planner-simple .simple-results h2 { font-size: 22px; margin: 0; }
 .simple-results-heading > span { font-size: 13px; color: var(--muted); }
+.simple-direct-search { padding: 0 0 28px; border-bottom: 1px solid var(--line); }
+.simple-direct-search-heading { display: flex; gap: 12px; align-items: end; justify-content: space-between; margin-bottom: 16px; }
+.simple-direct-search-heading p { margin: 5px 0 0; color: var(--muted); font-size: 14px; }
+.simple-load-itinerary { min-height: 44px; }
+.simple-direct-search-form label { flex: 1; }.simple-direct-search-form input { min-width: 0; min-height: 46px; border: 0; color: var(--ink); background: transparent; font: inherit; }
+.simple-direct-region[data-active=true],.simple-direct-place[data-active=true] { outline: 2px solid var(--blue); }
+.simple-search-photo-placeholder { display: grid; place-content: center; color: var(--muted); font-size: 12px; text-align: center; }
+.simple-search-summary,.simple-search-facts { margin: 6px 0; color: var(--muted); font-size: 13px; }
 .simple-results .place-comparison-toolbar { margin: 4px 0; padding: 0; min-height: 44px; justify-content: flex-end; }
 .simple-results .place-comparison-toolbar > button { border: 0; border-radius: 6px; background: none; font-size: 14px; padding: 8px 12px; }
 .simple-place-list { display: grid; grid-template-columns: minmax(0,1fr); }
@@ -50,7 +58,7 @@
 .simple-facility-summary .facility-missing { color: #923728; }
 html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb5a6; }
 .simple-facility-summary .facility-unknown { color: var(--muted); }
-.simple-place-add { min-width: 76px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 14px; }
+.simple-place-add,.simple-direct-search-submit { min-width: 76px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 14px; }
 .simple-place-add[aria-pressed=true] { color: var(--blue); border-color: var(--blue); background: var(--sky); }
 .simple-place-add > span { font-size: 18px; }
 .simple-compare-check { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; font-size: 14px; }
@@ -115,6 +123,8 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
   .simple-region-discovery .simple-region-arrow { display: none; }
   .simple-region-discovery .simple-region-credit { font-size: 10px; min-height: 44px; }
   .simple-results-heading { flex-wrap: wrap; gap: 4px 12px; }
+  .simple-direct-search-heading { align-items: stretch; flex-direction: column; }
+  .simple-load-itinerary { width: 100%; }
   .planner-simple .simple-results h2 { font-size: 20px; }
   .simple-place-row { grid-template-columns: 88px minmax(0,1fr) auto; gap: 12px; padding: 20px 0; }
   .simple-place-photo { width: 88px; aspect-ratio: 1; }

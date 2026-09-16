@@ -27,7 +27,7 @@ export default function RestStopFinder({ trip, places, requiredKeys, onSelectPla
         <div className="auth-field"><label>{say("주변 범위", "Search radius")}<select value={radius} onChange={event => setRadius(Number(event.target.value))}>{[1, 3, 5, 10, 20].map(value => <option value={value} key={value}>{say(`직선거리 ${value}km`, `Within ${value} km straight line`)}</option>)}</select></label></div>
         <div className="auth-field"><label>{say("잠시 머무는 시간", "Short visit duration")}<select value={minutes} onChange={event => setMinutes(Number(event.target.value))}>{[15, 30, 45, 60].map(value => <option key={value} value={value}>{value}{say("분", " min")}</option>)}</select></label></div>
         <label style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44 }}><input type="checkbox" checked={includeUnknown} onChange={event => setIncludeUnknown(event.target.checked)} />{say("편의 미확인 장소도 보기", "Include unreported facilities")}</label>
-        {pinnedAfter && <p role="status">{say("이 뒤에 고정된 장소가 있어요. 고정된 장소 뒤를 선택하거나 먼저 고정을 해제해 주세요.", "A later visit has a fixed position. Choose a point after it or release its pin first.")}</p>}
+        {pinnedAfter && <p role="status">{say("이 뒤에 고정된 장소가 있어요. 고정된 장소 뒤를 선택하거나 고정을 해제해 주세요.", "A later visit has a fixed position. Choose a point after it or release its pin first.")}</p>}
         <p role="status">{say(`조건에 맞는 가까운 곳 ${candidates.length}곳`, `${candidates.length} nearby places in these results`)}</p>
         {!candidates.length && <p>{say("범위를 넓히거나 미확인 장소를 포함해 보세요. 다른 지역·활동을 검색해도 담아 둔 일정은 유지됩니다.", "Widen the radius or include unreported facilities. Searching another region or activity keeps your saved trip.")}</p>}
         {candidates.map(candidate => <article className="reference-info-card" key={candidate.place.id}>
@@ -42,7 +42,7 @@ export default function RestStopFinder({ trip, places, requiredKeys, onSelectPla
           }}>{say("쉬는 일정에 추가", "Add short stop")}</button></div>
         </article>)}
         {trip.saved.length >= 12 && <p>{say("저장·공유할 여행은 최대 12곳입니다. 장소 하나를 빼고 추가해 주세요.", "A saved/shared trip can contain 12 places. Remove a place before adding another.")}</p>}
-      </> : <p>{say("먼저 오늘 일정에 여행지를 담아주세요.", "Add a place to this day's itinerary first.")}</p>}
+      </> : <p>{say("오늘 일정에 여행지를 담아주세요", "Add a place to this day's itinerary first.")}</p>}
       <p role="status">{notice}</p>
     </div>
   </details>;

@@ -258,7 +258,7 @@ for (const locale of ["ko", "en"] as const) {
       await expect(results).toBeVisible();
       await expect(results.locator(".simple-results")).toHaveAttribute("aria-busy", "true");
       await expect(results.getByRole("button", { name: lakeName, exact: true })).toBeDisabled();
-      await expect(results.getByRole("button", { name: en ? "경남도립미술관 added · remove from itinerary" : "경남도립미술관 담았음 · 일정에서 빼기", exact: true })).toBeEnabled();
+      await expect(results.getByRole("button", { name: en ? "경남도립미술관 added · undo" : "경남도립미술관 담았음 · 되돌리기", exact: true })).toBeEnabled();
       await expect(results.locator('.simple-place-row[data-result-current="false"]')).toHaveCount(2);
       expect(await currentTrip(page)).toEqual(before);
       gate.release();

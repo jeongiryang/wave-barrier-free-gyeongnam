@@ -336,7 +336,7 @@ test('복수 시각 변경은 첫 시각을 적용하지 않고 모델 호출 �
     const replies = await app.chat.locator('.naru-message.assistant').count();
     await send(app.chat, request);
     await expect(app.chat.locator('.naru-message.assistant')).toHaveCount(replies + 1);
-    await expect(latestReply(app.chat)).toContainText('출발 시각이나 귀가 마감 중 하나를 먼저 알려주세요');
+    await expect(latestReply(app.chat)).toContainText('출발 시각이나 귀가 마감 중 하나만 알려주세요');
     expect(((await latestReply(app.chat).innerText()).match(/[?？]/g) || []).length).toBeLessThanOrEqual(1);
     await expect(app.chat.locator('.naru-change-button, .naru-undo')).toHaveCount(0);
     expect(await snapshot(page)).toEqual(before);

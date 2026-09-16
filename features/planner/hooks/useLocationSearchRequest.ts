@@ -6,7 +6,7 @@ import { plannerJson } from "../services/api";
 import type { Place, SearchPlace } from "../types";
 import { parseLocationResults } from "../location-results";
 
-export function useLocationSearchRequest(region: string) {
+export function useLocationSearchRequest(region: string, scope: "all" | "gyeongnam" = "all") {
   const [placeQuery, updatePlaceQuery] = useState("");
   const [placeSearchResults, setPlaceSearchResults] = useState<SearchPlace[]>([]);
   const [placeSearchState, setPlaceSearchState] = useState<"idle" | "loading" | "success" | "empty" | "error">("idle");
@@ -27,7 +27,7 @@ export function useLocationSearchRequest(region: string) {
     setPlaceSearchResults([]);
     setPlaceSearchState("loading");
     try {
-      const data = await plannerJson<unknown>(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.location });
+      const data = await plannerJson<unknown>(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}${scope === "gyeongnam" ? "&scope=gyeongnam" : ""}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.location });
       if (controller.signal.aborted || searchRequestRef.current !== controller) return;
       const places = parseLocationResults(data);
       setPlaceSearchResults(places);
@@ -42,7 +42,7 @@ export function useLocationSearchRequest(region: string) {
         searchRequestRef.current = null;
       }
     }
-  }, [placeQuery]);
+  }, [placeQuery, scope]);
 
   const clearSearchRequest = useCallback(() => {
     searchRequestRef.current?.abort();
@@ -55,16 +55,16 @@ export function useLocationSearchRequest(region: string) {
   const searchableToPlace = useCallback((item: SearchPlace): Place => ({
     id: item.id || `${item.name}-${item.mapX}`,
     contentTypeId: "12",
-    city: region,
+    city: item.region || region,
     name: item.name,
     address: item.address,
-    summary: item.category || "사용자가 직접 검색한 장소입니다.",
+    summary: item.summary || item.category || "직접 검색한 장소",
     image: "",
     mapX: item.mapX,
     mapY: item.mapY,
     score: null,
     features: [],
-    details: ["카카오 장소 검색 결과를 기준으로 경로를 계산합니다."],
+    details: ["카카오 장소 검색 결과", "운영시간·이동·편의정보는 방문 전에 확인해 주세요"],
     source: "사용자 장소 검색",
   }), [region]);
 

@@ -25,7 +25,7 @@ test("memo uses only self-chat endpoint; provider rejection and uncertain sends 
   await assert.rejects(() => sendKakaoMemo("fixture-token", {}, async () => Response.json({ code: -402, msg: "secret" }, { status: 403 })), e => e.code === "CONSENT_REQUIRED" && !e.message.includes("secret"));
   await assert.rejects(() => sendKakaoMemo("fixture-token", {}, async () => Response.json({ code: -10 }, { status: 429 })), e => e.status === 429);
   let timeouts = 0;
-  await assert.rejects(() => sendKakaoMemo("fixture-token", {}, async () => { timeouts++; throw new Error("secret"); }), /나와의 채팅을 먼저 확인/); assert.equal(timeouts, 1);
+  await assert.rejects(() => sendKakaoMemo("fixture-token", {}, async () => { timeouts++; throw new Error("secret"); }), /나와의 채팅을 확인/); assert.equal(timeouts, 1);
   await assert.rejects(() => sendKakaoMemo("fixture-token", {}, async () => Response.json({ result_code: 99 })), /보내지 못했습니다/);
 });
 function compile(path, dependencies) {

@@ -4,22 +4,21 @@ import { readFile } from "node:fs/promises";
 import { freshArrival, prepareStory, storyReady } from "./landing-contract";
 
 for (const seenBefore of [false, true]) {
-  test(`a legacy arrival marker ${seenBefore} cannot restore a modal or suppress the new handoff`, async ({ page }) => {
+  test(`a legacy marker ${seenBefore} does not suppress the current accessible intro`, async ({ page }) => {
     await page.addInitScript(seen => {
       if (seen) sessionStorage.setItem("wave-intro-seen-v2", "1");
     }, seenBefore);
     await freshArrival(page);
     const scene = page.locator(".arrival-scene");
-    await expect(scene).toHaveAttribute("aria-hidden", "true");
-    await expect(scene).toHaveCSS("pointer-events", "none");
+    await expect(scene).toHaveAttribute("open", "");
     await expect(scene.locator(".arrival-picture img")).toHaveAttribute("src", "/media/horizon/hero-coast.jpg");
     await expect(scene.locator(".arrival-word")).toHaveText("WAVE");
-    await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
+    await expect(scene).toContainText("WAVE가 당신의 발걸음을 응원합니다");
+    await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
     const action = page.locator(".landing-actions a");
-    await action.focus();
     await page.clock.runFor(2000);
     await expect(scene).toBeHidden();
-    await expect(action).toBeFocused();
+    await action.focus(); await expect(action).toBeFocused();
     expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
   });
 }

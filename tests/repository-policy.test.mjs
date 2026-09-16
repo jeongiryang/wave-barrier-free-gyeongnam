@@ -420,8 +420,8 @@ test("motion follows the OS, retires legacy storage and has no app preference co
   for (const component of [intro, regions]) assert.match(component, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(intro, /seen \|\| media\.matches \|\| document\.documentElement\.dataset\.motion === "calm"/);
   assert.match(intro, /if \(media\.matches\) finish\(\)/);
-  assert.match(intro, /media\.addEventListener\("change", reduction\)/);
-  assert.match(intro, /media\.removeEventListener\("change", reduction\)/);
+  assert.match(intro, /media\.addEventListener\("change", reduce\)/);
+  assert.match(intro, /media\.removeEventListener\("change", reduce\)/);
   assert.match(regions, /if \(!entry\.isIntersecting \|\| media\.matches \|\| revealed\.current\.has\(entry\.target\)\) return/);
   assert.match(regions, /if \(media\.matches\) \{ animations\.forEach\(animation => animation\.cancel\(\)\); animations\.clear\(\)/);
   assert.match(regions, /media\.addEventListener\('change', configure\)/);
@@ -429,7 +429,7 @@ test("motion follows the OS, retires legacy storage and has no app preference co
   assert.match(layout, /prefers-reduced-motion: reduce/);
   assert.match(layout, /d\.dataset\.motion=r\?'calm':'full'/);
   assert.doesNotMatch(layout, /LandingIntro|wave-intro-seen/);
-  assert.match(await source("app/styles/simple-wave.css"), /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.arrival-scene \{ display: none/);
+  assert.match(await source("features/landing/components/LandingIntro.module.css"), /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.scene \{ display: none/);
 });
 
 test("non-Korean locales are visibly marked as partial without breaking narrow headers", async () => {
@@ -771,24 +771,22 @@ test("route-map rendering delegates controller, provider adapters, controls and 
   assert.match(imageExport, /URL\.revokeObjectURL/);
 });
 
-test("arrival motion belongs to its component and cleans up animation, viewport and input listeners", async () => {
+test("arrival motion belongs to an isolated component and cleans up lifecycle listeners", async () => {
   const [page, intro, css] = await Promise.all([
     source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"),
-    source("app/styles/simple-wave.css"),
+    source("features/landing/components/LandingIntro.module.css"),
   ]);
   assert.match(page, /<LandingIntro/);
   assert.doesNotMatch(page, /requestAnimationFrame|createIntroMasks|useEffect|<WaveField/);
   assert.match(intro, /useEffect\(\(\) =>/);
-  assert.match(intro, /const animations = \[/);
-  assert.match(intro, /animations\.forEach\(animation => animation\.cancel\(\)\)/);
-  assert.match(intro, /clearTimeout\(timer\); finish\(\)/);
-  assert.match(intro, /document\.removeEventListener\("visibilitychange", visibility\)/);
-  assert.match(intro, /media\.removeEventListener\("change", reduction\)/);
-  assert.match(intro, /window\.removeEventListener\(name, finish, true\)/);
-  assert.match(intro, /root\.hidden = true/);
+  assert.match(intro, /window\.clearTimeout\(timer\)/);
+  assert.match(intro, /document\.removeEventListener\("visibilitychange", hide\)/);
+  assert.match(intro, /media\.removeEventListener\("change", reduce\)/);
+  assert.match(intro, /if \(node\.open\) node\.close\(\)/);
   assert.match(intro, /if \(media\.matches\) finish\(\)/);
-  assert.match(css, /\.arrival-scene \{[^}]*pointer-events: none/);
-  assert.doesNotMatch(intro, /requestAnimationFrame|putImageData|createIntroMasks|\.focus\(/);
+  assert.match(css, /@keyframes intro-reveal/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.doesNotMatch(intro, /requestAnimationFrame|putImageData|createIntroMasks/);
 });
 
 test("every user-facing footer exposes the repository with an accessible tooltip", async () => {

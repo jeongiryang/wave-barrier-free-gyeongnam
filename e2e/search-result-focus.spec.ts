@@ -137,7 +137,7 @@ test("keyboard region selection updates results without stealing input focus or 
   await expect(region).toHaveValue("창원");
   await expect(page.locator("#places")).toBeVisible();
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
-  await expect(page.locator("#places h2").first()).toHaveText(en ? "창원 places" : "창원 여행지");
+  await expect(page.locator("#places .simple-results h2").first()).toHaveText(en ? "창원 places" : "창원 여행지");
   await expect(region).toBeFocused();
   const expectedUrl = new URL(before.url);
   expectedUrl.searchParams.set("region", "창원");

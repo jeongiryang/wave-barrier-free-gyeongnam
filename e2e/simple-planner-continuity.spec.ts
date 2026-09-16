@@ -74,7 +74,7 @@ async function browse(page: Page) {
 
 async function add(page: Page, name: string) {
   await page.getByRole("button", { name: `${name} 일정에 담기`, exact: true }).click();
-  await expect(page.getByRole("button", { name: `${name} 담았음 · 일정에서 빼기`, exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: `${name} 담았음 · 되돌리기`, exact: true })).toHaveAttribute("aria-pressed", "true");
 }
 
 async function openItinerary(page: Page) {
@@ -226,7 +226,7 @@ test("저장 버튼 하나로 첫 저장 후 날짜·체류·장소 변경을 �
   await settings.getByRole("button", { name: "적용", exact: true }).click();
   await expect.poll(async () => (await books(page))[0].travelEnd).toBe("2026-10-15");
   await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
-  await page.getByRole("button", { name: `${lake} 담았음 · 일정에서 빼기`, exact: true }).click();
+  await page.getByRole("button", { name: `${lake} 담았음 · 되돌리기`, exact: true }).click();
   await openItinerary(page);
   await expect.poll(async () => (await books(page))[0].places.map(place => place.id)).toEqual(["1001"]);
   expect(await books(page)).toHaveLength(1);

@@ -389,23 +389,23 @@ test("preserved feature previews retain their order and motion safety; current c
   }
 });
 
-test("decorative arrival uses one photo and wordmark and yields immediately to user interaction", async () => {
+test("arrival intro reuses one landscape and supports explicit dismissal", async () => {
   const [landing, intro, css] = await Promise.all([
-    source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"), source("app/styles/simple-wave.css"),
+    source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"), source("features/landing/components/LandingIntro.module.css"),
   ]);
-  assert.match(intro, /className="arrival-picture"><img src=\{horizonPhotos\.coast\.image\} alt=""/);
-  assert.match(intro, /className="arrival-word">WAVE/);
+  assert.match(intro, /<img src=\{horizonPhotos\.coast\.image\} alt=""/);
+  assert.match(intro, /className="arrival-word" aria-hidden="true">WAVE/);
   assert.doesNotMatch(intro, /WAVE_RAMP|canvas|requestAnimationFrame|putImageData/);
   assert.match(landing, /<LandingIntro \/><main/);
-  assert.match(intro, /className="arrival-scene" hidden aria-hidden="true"/);
-  assert.doesNotMatch(intro, /<dialog|<button|<video|showModal|\.focus\(|preventDefault\(/);
+  assert.match(intro, /<dialog ref=\{dialog\}/);
+  assert.match(intro, /onCancel=/);
+  assert.match(intro, /건너뛰기/);
   assert.match(intro, /prefers-reduced-motion: reduce/);
   assert.match(intro, /setTimeout\(finish, 2000\)/);
-  assert.match(intro, /window\.addEventListener\(name, finish, \{ passive: true, capture: true \}\)/);
   assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
-  assert.match(intro, /clearTimeout\(timer\); finish\(\)/);
-  assert.match(css, /\.arrival-scene \{[^}]*pointer-events: none/);
-  assert.match(css, /\.arrival-scene\[hidden\] \{ display: none/);
+  assert.match(intro, /window\.clearTimeout\(timer\)/);
+  assert.match(css, /\.scene \{[^}]*position: fixed/);
+  assert.match(css, /object-fit: cover/);
   assert.doesNotMatch(landing, /<LandingSectionProgress|<LandingAccountStory/);
 });
 
@@ -595,7 +595,8 @@ test("official recommendations require every requested facility; unknown candida
   ]);
   assert.match(builder, /partitionPlacesByEvidence\(rankedPlaces, requestedAccessibilityFields\(profiles\)\.map/);
   assert.match(exploration, /current=\{false\} unknown/);
-  assert.match(row, /onClick=\{unknown \? onDetails : onToggle\}/);
+  assert.match(row, /onClick=\{saved \? onToggle : unknown \? onDetails : onToggle\}/);
+  assert.match(row, /담았음 · 되돌리기/);
   assert.match(dialog, /방문 전 확인할 후보로 담기/);
   assert.match(dialog, /disabled=\{!saved && canSave === false && !\(needsAcknowledgement && acknowledged\)\}/);
   assert.match(dialog, /onToggleSaved\(needsAcknowledgement && acknowledged \? explorationAction\.key : undefined\)/);

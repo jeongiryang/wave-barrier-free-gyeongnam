@@ -13,7 +13,7 @@ test("두 탭에서 날짜 없는 탐색부터 일정 편집·지도·저장·�
   await chooseTripConditions(page);
   await expect(page.locator('.simple-place-row')).toHaveCount(2);
   await page.getByRole('button', { name: '경남도립미술관 일정에 담기', exact: true }).click();
-  await expect(page.getByRole('button', { name: '경남도립미술관 담았음 · 일정에서 빼기', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '경남도립미술관 담았음 · 되돌리기', exact: true })).toBeVisible();
   await expect(page.locator('.simple-results')).toBeVisible();
   await openItinerary(page, { start: '2026-10-14', end: '2026-10-15' });
   await expect(page.locator('.simple-stops > li')).toHaveCount(1);

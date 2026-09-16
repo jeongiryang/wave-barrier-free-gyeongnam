@@ -1,0 +1,11 @@
+.scene { position: fixed; inset: 0; width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; overflow: hidden; background: var(--surface); }
+.scene::backdrop { background: var(--surface); }
+.photo { position: absolute; inset: clamp(72px,10vh,120px) clamp(16px,9vw,150px); overflow: hidden; border-radius: 12px; animation: intro-reveal 2s ease both; }
+.photo img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.copy { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 18px; padding: 24px; text-align: center; animation: intro-reveal 2s ease both; }
+.copy span { color: white; font-size: clamp(3rem,12vw,8rem); font-weight: 900; letter-spacing: -.08em; }
+.copy p { margin: 0; padding: 10px 16px; color: white; background: #173d37d9; font-size: clamp(1.05rem, 2vw, 1.35rem); font-weight: 700; line-height: 1.5; }
+.skip { position: absolute; right: 20px; top: 20px; min-width: 88px; min-height: 44px; border: 1px solid white; border-radius: 999px; color: white; background: #173d37cc; font: inherit; font-weight: 700; }
+.skip:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+@keyframes intro-reveal { 0%,100% { opacity: 0; } 18%,82% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .scene { display: none; } .photo, .copy { animation: none; } }

@@ -12,7 +12,7 @@ export default function TermsPage() {
     <nav aria-label="정책 페이지 이동"><Link href="/">WAVE 홈</Link><Link href="/policies">운영정책</Link><Link href="/privacy">개인정보처리방침</Link></nav>
     <header><p>TERMS OF SERVICE</p><h1>여행 결정에 필요한 근거와<br />확인할 한계를 함께 봅니다.</h1><span>약관 버전 1.0 · 시행일 2026년 9월 3일</span></header>
 
-    <aside className="policy-callout policy-callout-primary"><strong>먼저 확인해 주세요</strong><p>WAVE는 여행 계획을 돕는 독립 정보 서비스입니다. 예약·운송·시설 운영 주체가 아니며 특정 장소나 경로의 실제 이용 가능성을 보증하지 않습니다.</p></aside>
+    <aside className="policy-callout policy-callout-primary"><strong>이용 전 확인해 주세요</strong><p>WAVE는 여행 계획을 돕는 독립 정보 서비스입니다. 예약·운송·시설 운영 주체가 아니며 특정 장소나 경로의 실제 이용 가능성을 보증하지 않습니다.</p></aside>
 
     <nav className="policy-toc" aria-label="서비스 이용약관 목차"><a href="#terms-purpose">목적·범위</a><a href="#terms-account">계정</a><a href="#terms-content">사용자 콘텐츠</a><a href="#terms-conduct">이용 기준</a><a href="#terms-operation">운영·변경</a><a href="#terms-liability">책임·문의</a></nav>
 

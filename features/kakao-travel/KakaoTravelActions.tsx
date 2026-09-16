@@ -61,7 +61,7 @@ export function KakaoSendToSelf({ tripId, disabled = false }: { tripId: string; 
       const body = await response.json();
       if (body.code === "CONSENT_REQUIRED") setConsent(true);
       if (response.status === 401) setLogin(true);
-      if (!response.ok || body.ok !== true) throw new Error(body.error || "전송 결과를 확인하지 못했어요. 나와의 채팅을 먼저 확인해 주세요.");
+      if (!response.ok || body.ok !== true) throw new Error(body.error || "전송 결과를 확인하지 못했어요. 나와의 채팅을 확인해 주세요.");
       setConsent(false); setNotice("카카오톡 나와의 채팅으로 보냈어요. 내 여행 링크에서 이어갈 수 있습니다.");
     } catch (error) { setNotice(error instanceof Error ? error.message : "전송하지 못했습니다."); }
     finally { pending.current = false; setBusy(false); }

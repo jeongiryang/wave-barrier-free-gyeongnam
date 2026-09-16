@@ -14,6 +14,10 @@ export function parseLocationResults(data: unknown): SearchPlace[] {
       id: place.id, name: place.name, mapX: place.mapX, mapY: place.mapY,
       address: typeof place.address === "string" ? place.address : "",
       category: typeof place.category === "string" ? place.category : "",
+      categoryCode: typeof place.categoryCode === "string" ? place.categoryCode : "",
+      region: typeof place.region === "string" ? place.region : "",
+      resultType: ["region", "tourism", "cafe", "restaurant", "other"].includes(String(place.resultType)) ? place.resultType as SearchPlace["resultType"] : "other",
+      summary: typeof place.summary === "string" ? place.summary : "",
       ...(typeof place.placeUrl === "string" && place.placeUrl.startsWith("https://") ? { placeUrl: place.placeUrl } : {}),
     };
   });

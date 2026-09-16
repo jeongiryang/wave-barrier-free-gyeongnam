@@ -26,40 +26,16 @@ async function freshAnimatedArrival(page: Page) {
   await expect(page.locator(".arrival-scene")).toBeVisible();
 }
 
-test("arrival finishes within two seconds without a modal, pointer blocking or focus theft", async ({ page }) => {
-  await page.addInitScript(() => {
-    const timing: { start?: number; end?: number } = {};
-    Object.defineProperty(window, "simpleArrivalTiming", { value: timing });
-    new MutationObserver(() => {
-      const scene = document.querySelector<HTMLElement>(".arrival-scene");
-      if (!scene) return;
-      if (!scene.hidden && timing.start === undefined) timing.start = performance.now();
-      if (scene.hidden && timing.start !== undefined && timing.end === undefined) timing.end = performance.now();
-    }).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] });
-  });
+test("arrival finishes within two seconds and exposes a keyboard dismissal", async ({ page }) => {
   await freshAnimatedArrival(page);
   const scene = page.locator(".arrival-scene");
   const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
-  await expect(scene).toHaveCSS("pointer-events", "none");
-  await expect(scene).toHaveAttribute("aria-hidden", "true");
-  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  expect(await action.evaluate(node => {
-    const box = node.getBoundingClientRect();
-    return node.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
-  })).toBe(true);
-  await action.focus();
-  await expect(action).toBeFocused();
+  await expect(scene).toHaveAttribute("open", "");
+  await expect(scene).toContainText("WAVE가 당신의 발걸음을 응원합니다");
+  await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
   await page.clock.runFor(2_000);
   await expect(scene).toBeHidden();
-  await expect(action).toBeFocused();
-  const elapsed = await page.evaluate(() => {
-    const timing = (window as Window & { simpleArrivalTiming?: { start?: number; end?: number } }).simpleArrivalTiming;
-    return typeof timing?.start === "number" && typeof timing.end === "number" ? timing.end - timing.start : null;
-  });
-  expect(elapsed).not.toBeNull();
-  expect(elapsed!).toBeGreaterThan(0);
-  expect(elapsed!).toBeLessThanOrEqual(2_000);
+  await action.focus(); await expect(action).toBeFocused();
   expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
   await page.clock.resume();
   await page.reload();
@@ -68,31 +44,23 @@ test("arrival finishes within two seconds without a modal, pointer blocking or f
   await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
   await page.clock.runFor(2_000);
   await expect(scene).toBeHidden();
-  expect(await page.evaluate(() => {
-    const timing = (window as Window & { simpleArrivalTiming?: { start?: number } }).simpleArrivalTiming;
-    return timing ? timing.start : null;
-  })).toBeUndefined();
 });
 
-test("the real planning link accepts the first pointer click while the arrival scene is showing", async ({ page }) => {
+test("the skip action exposes the real planning link", async ({ page }) => {
   await freshAnimatedArrival(page);
+  await page.locator(".arrival-scene").getByRole("button", { name: "건너뛰기" }).click();
   await page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true }).click();
   await expect(page).toHaveURL(url => url.pathname === "/planner");
   expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
 });
 
-test("keyboard users can move outside the arrival scene without a dismissal step", async ({ page }) => {
+test("keyboard users can dismiss the arrival with Escape", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await freshAnimatedArrival(page);
-  const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
-  await action.focus();
-  await page.keyboard.press("Tab");
+  await page.keyboard.press("Escape");
   await expect(page.locator(".arrival-scene")).toBeHidden();
-  await expect(action).not.toBeFocused();
-  expect(await page.evaluate(() => {
-    const active = document.activeElement;
-    return active instanceof HTMLElement && active !== document.body && !active.closest(".arrival-scene");
-  })).toBe(true);
+  const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
+  await action.focus(); await expect(action).toBeFocused();
 });
 
 for (const width of [1440, 390]) test(`${width}px reduced motion keeps the split hero and all eighteen region choices usable`, async ({ page }, info) => {

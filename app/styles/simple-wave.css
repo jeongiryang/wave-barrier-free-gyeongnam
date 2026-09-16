@@ -39,12 +39,6 @@ button { font-weight: 500; }
 .example-undo { font-size: 14px; color: var(--blue); }
 .simple-landing > .simple-footer { width: 100%; max-width: none; padding: 40px var(--wave-gutter); border-top: 1px solid var(--line); background: var(--paper); }
 .simple-footer p { font-size: 13px; line-height: 1.7; }
-.arrival-scene { position: fixed; inset: 0; z-index: 1500; background: var(--surface); pointer-events: none; overflow: hidden; }
-.arrival-scene[hidden] { display: none; }
-.arrival-picture { position: absolute; transform-origin: top left; overflow: hidden; border-radius: 12px; }
-.arrival-picture > img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.arrival-letter-mask { position: absolute; inset: 0; width: 100%; height: 100%; }
-.arrival-word { position: absolute; color: var(--ink); display: flex; align-items: center; transform-origin: top left; }
 @media (max-width: 767px) {
   .wave-header { grid-template-columns: 1fr auto; gap: 4px 16px; padding: 8px 20px 0; }
   .wave-header nav { grid-column: 1 / -1; grid-row: 2; width: 100%; justify-content: space-between; gap: 8px; }
@@ -58,7 +52,7 @@ button { font-weight: 500; }
   .simple-region-credit { left: 12px; right: 12px; font-size: 11px; line-height: 1.5; }
   .simple-naru-story { grid-template-columns: minmax(0,1fr); gap: 28px; }
 }
-@media (prefers-reduced-motion: reduce) { .arrival-scene { display: none; }.wave-header { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .wave-header { transition: none; } }
 html[data-theme="dark"] { --surface: #14221f; --paper: #1b2c27; --surface-deep: #233b32; --ink: #eef5f1; --ink-soft: #c8d6d0; --muted: #b2c3bb; --line: #40564c; --blue: #80d2b8; --blue-dark: #9ee5cc; --accent: #80d2b8; --sky: #233b32; --on-blue: #132b23; --onaccent: #132b23; }
 html[data-theme="dark"] .wave-header { --ink: #eef5f1; --muted: #b2c3bb; --line: #40564c; --blue: #80d2b8; --paper: #1b2c27; background: #14221f; }
 .landing-page.horizon-edition.simple-landing { --surface: #fff; --ink: #242b2a; --ink-soft: #43504d; --muted: #5c6865; --paper: #f5f7f6; --blue: #12655b; --on-blue: #fff; --line: #dce3e0; background: var(--surface); color: var(--ink); }

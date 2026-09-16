@@ -92,7 +92,7 @@ test("검색과 내 일정 전환은 같은 장소·필수 편의·날짜 미정
   await expect(tabs.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("#conditions")).toBeVisible();
   await expect(page.locator("#places")).toBeVisible();
-  await expect(page.getByRole("button", { name: "경남도립미술관 담았음 · 일정에서 빼기", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "경남도립미술관 담았음 · 되돌리기", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeVisible();
   expect(await currentTrip(page)).toEqual(before);
 });
