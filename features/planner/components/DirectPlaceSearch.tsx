@@ -53,7 +53,7 @@ export default function DirectPlaceSearch({ region, trip, onRegionSelect, onBuil
     <div className="simple-results-heading simple-direct-search-heading"><div><h2 id="direct-place-search-title">이름으로 바로 찾기</h2><p>지역·관광지·카페·음식점 이름을 검색할 수 있어요</p></div>{trip.orderedSavedPlaces.length > 0 && <button type="button" className="simple-text-link simple-load-itinerary" onClick={onBuildItinerary}>담은 여행으로 일정 짜기</button>}</div>
     <form className="simple-search-bar simple-direct-search-form" role="search" onSubmit={submit}>
       <label htmlFor="direct-place-query"><span>여행지 검색</span><input id="direct-place-query" type="search" role="combobox" value={search.placeQuery} placeholder="예: 통영 케이블카, 창원 카페" autoComplete="off" aria-autocomplete="list" aria-controls="direct-place-results" aria-expanded={showResults} aria-activedescendant={active >= 0 ? `direct-result-${active}` : undefined} onChange={event => { search.setPlaceQuery(event.target.value); setActive(-1); }} onKeyDown={keydown} /></label>
-      <button type="submit" className="simple-facility-trigger" disabled={search.placeQuery.trim().length < 2 || search.placeSearchLoading}>{search.placeSearchLoading ? <><Spinner />찾는 중</> : "검색"}</button>
+      <button type="submit" className="simple-place-add simple-direct-search-submit" disabled={search.placeQuery.trim().length < 2 || search.placeSearchLoading}>{search.placeSearchLoading ? <><Spinner />찾는 중</> : "검색"}</button>
     </form>
     {search.placeSearchState === "error" && <p className="simple-empty" role="alert">검색 정보를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요</p>}
     {search.placeSearchState === "empty" && !matchingRegions.length && <p className="simple-empty" role="status">경남에서 일치하는 장소를 찾지 못했어요. 지역이나 상호명을 바꿔 보세요</p>}
