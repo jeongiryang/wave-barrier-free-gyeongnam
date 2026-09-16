@@ -23,7 +23,7 @@ test('first-use choices store only concrete facilities, comfort and interaction 
   assert.match(assistant, /어떤 도움이 필요할까요/);
   assert.match(assistant, /setInput\(prompt\)/);
   assert.doesNotMatch(assistant, /context: \{[^}]*starterSelected/);
-  assert.deepEqual(sanitizeGuidancePreferences({ briefAnswers: true, oneAtATime: true, textFirst: true, diagnosis: 'private' }), { briefAnswers: true, oneAtATime: true, textFirst: true });
+  assert.deepEqual(sanitizeGuidancePreferences({ briefAnswers: true, oneAtATime: true, textFirst: true, audioFirst: true, easyNarration: true, diagnosis: 'private' }), { briefAnswers: true, oneAtATime: true, textFirst: true, audioFirst: true, easyNarration: true });
   assert.deepEqual(resolveFacilityKeys({ facilityKeys: ['route', 'wheel', 'private'] }), ['route']);
 });
 

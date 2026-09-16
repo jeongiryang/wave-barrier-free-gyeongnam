@@ -308,3 +308,22 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 .simple-more-trip-tools .planner-service-status .connection-diagnostics { padding: 16px; background: var(--paper); border-color: var(--line); animation: none; }
 .simple-more-trip-tools .connection-diagnostics :is(header > p,footer,.diagnostic-grid p,.diagnostic-grid span) { font-size: 14px; color: var(--muted); }
 .simple-more-trip-tools .diagnostic-grid strong { font-size: 16px; }
+
+.evidence-coverage-card { display: grid; gap: 12px; margin: 8px 0 20px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); }
+.evidence-coverage-heading { display: grid; grid-template-columns: auto minmax(100px,1fr); align-items: end; gap: 18px; }
+.evidence-coverage-heading small { display: block; color: var(--muted); font-size: 12px; }
+.evidence-coverage-heading h3 { margin: 4px 0 0; font-size: 24px; }
+.evidence-coverage-meter { height: 10px; overflow: hidden; border-radius: 999px; background: var(--line); }
+.evidence-coverage-meter i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.evidence-coverage-card > p { margin: 0; font-size: 14px; line-height: 1.7; }
+.evidence-coverage-card ul { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.evidence-coverage-card li { display: grid; gap: 2px; padding: 10px; border-radius: 10px; background: var(--white); font-size: 12px; }
+.evidence-coverage-card li b { font-size: 18px; }
+.evidence-coverage-card .evidence-coverage-note { color: var(--muted); font-size: 12px; }
+.evidence-coverage-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.evidence-coverage-actions button { min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--white); color: var(--accent); }
+.evidence-coverage-card.compact { margin: 0 0 14px; padding: 14px; }
+.naru-evidence > .evidence-coverage-card { border: 1px solid var(--line) !important; border-radius: 14px !important; background: var(--surface) !important; }
+.naru-evidence > .evidence-coverage-card p { font-size: .8rem; }
+.naru-evidence > .evidence-coverage-card button { margin: 0; }
+@media (max-width: 560px) { .evidence-coverage-heading { grid-template-columns: 1fr; } .evidence-coverage-card ul { grid-template-columns: 1fr 1fr; } .evidence-coverage-card li:last-child { grid-column: 1/-1; } }

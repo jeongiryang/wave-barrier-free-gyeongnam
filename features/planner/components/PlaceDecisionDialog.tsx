@@ -6,6 +6,7 @@ import { useSitePreferences } from "../../../components/SitePreferences";
 import type { Place } from "../types";
 import { originalLanguage } from "../place-copy";
 import type { ExplorationPlaceAction } from "../../../lib/exploration-place-action.js";
+import type { GuidancePreferences } from "../../../lib/guidance-preferences.js";
 
 function DetailsUnavailable() {
   const { locale } = useSitePreferences();
@@ -21,6 +22,7 @@ export type PlaceDecisionDialogProps = {
   saved: boolean;
   canSave?: boolean;
   explorationAction?: ExplorationPlaceAction;
+  guidancePreferences?: GuidancePreferences;
   feedbackText: string;
   feedbackState: "idle" | "sending" | "done" | "error";
   dialogRef: RefObject<HTMLDialogElement | null>;
@@ -59,7 +61,7 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
         <PlaceSaveAction key={`${place.id}:${props.explorationAction?.key || "regular"}`} saved={props.saved} canSave={props.canSave} explorationAction={props.explorationAction} onToggleSaved={props.onToggleSaved} en={en} />
         <Suspense fallback={<LoadingState>{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</LoadingState>}><PlaceDecisionContent {...props} location={location} /></Suspense>
         <details><summary>주차·입구·시설 미리보기</summary><Suspense fallback={<LoadingState>주차·입구 정보를 준비하고 있어요.</LoadingState>}><PlaceArrivalPreview key={place.id} place={place} /></Suspense></details>
-        <Suspense fallback={null}><PlaceAudioGuide key={place.id} id={place.id} /></Suspense>
+        <Suspense fallback={null}><PlaceAudioGuide key={place.id} id={place.id} guidance={props.guidancePreferences} /></Suspense>
       </div>
   </dialog>;
 }
