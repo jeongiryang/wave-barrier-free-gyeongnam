@@ -39,71 +39,8 @@ test('parking is delayed until explicit open, keeps itinerary, and exposes desti
   await page.setViewportSize({ width: 1280, height: 960 });
   for (const zoom of ['2', '4']) { await page.evaluate(value => { document.documentElement.style.zoom = value; }, zoom); expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1); }
   await page.evaluate(() => { document.documentElement.style.zoom = ''; });
-  await map.focus(); await expect(map).toBeFocused(); await page.keyboard.press('Shift+Tab'); await expect(panel.getByRole('button', { name: '주차장에 문의하기', exact: true })).toBeFocused();
+  await map.focus(); await expect(map).toBeFocused(); await page.keyboard.press('Shift+Tab'); await expect(panel.getByRole('link', { name: '전화로 물어보기', exact: true })).toBeFocused();
   expect((await new AxeBuilder({ page }).include('.parking-alternatives').analyze()).violations).toEqual([]);
-});
-
-for (const clipboard of ['available', 'denied'] as const) test(`parking inquiry supports voice and relay without storing or transmitting user data, clipboard ${clipboard}`, async ({ page }, info) => {
-  const requests: string[] = [];
-  page.on('request', request => requests.push(request.url() + (request.postData() || '')));
-  await page.addInitScript(state => {
-    Object.defineProperty(navigator, 'geolocation', { configurable: true, value: { getCurrentPosition() { (window as unknown as { parkingInquiryGeo: number[] }).parkingInquiryGeo.push(1); } } });
-    Object.assign(window, { parkingInquiryGeo: [] as number[], parkingInquiryCopy: '' });
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (value: string) => {
-      if (state === 'denied') throw new DOMException('denied', 'NotAllowedError');
-      (window as unknown as { parkingInquiryCopy: string }).parkingInquiryCopy = value;
-    } } });
-  }, clipboard);
-  await page.route('**/api/wave?action=parking-alternatives*', route => route.fulfill({ json: { status: 'available', contentId: place.id, checkedAt: '2026-09-15T05:20:00Z', source: '전국주차장정보표준데이터', items: [item] } }));
-  const panel = await openParking(page);
-  await panel.getByRole('button', { name: '주변 주차장 보기', exact: true }).click();
-  const before = await page.evaluate(() => ({ url: location.href, local: { ...localStorage }, session: { ...sessionStorage }, cookie: document.cookie }));
-  const trigger = panel.getByRole('button', { name: '주차장에 문의하기', exact: true });
-  await trigger.click();
-  const contact = panel.getByRole('region', { name: '주차하기 전에 확인해 보세요' });
-  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-  await expect(contact.getByRole('link', { name: '전화 앱 열기' })).toHaveAttribute('href', 'tel:0551234567');
-  const kakao = contact.getByRole('link', { name: '카카오톡 문자중계 열기' });
-  const web = contact.getByRole('link', { name: '107 웹 문자중계 열기' });
-  await expect(kakao).toHaveAttribute('href', 'https://pf.kakao.com/_LBXwxj');
-  await expect(web).toHaveAttribute('href', 'https://relaycall.or.kr/user/service/text/text');
-  for (const link of [kakao, web]) { await expect(link).toHaveAttribute('target', '_blank'); await expect(link).toHaveAttribute('rel', /noopener/); expect(await link.getAttribute('href')).not.toMatch(/055|질문|latitude|longitude|35\.238|128\.691/i); }
-  await contact.getByRole('button', { name: '질문 복사하기' }).click();
-  if (clipboard === 'available') {
-    await expect(contact.getByRole('status')).toContainText('질문을 복사했어요.');
-    const copied = await page.evaluate(() => (window as unknown as { parkingInquiryCopy: string }).parkingInquiryCopy);
-    expect(copied).toContain('검증 공영주차장의 장애인전용주차구역을 이용하려고 합니다.');
-    expect(copied).toContain('주차장에서 검증용 관광지 입구까지 계단 없는 길');
-  } else {
-    await expect(contact.getByRole('status')).toContainText('직접 복사해 주세요.');
-    const fallback = contact.getByRole('textbox', { name: '직접 복사할 질문' });
-    await expect(fallback).toBeFocused();
-    await expect(fallback).toHaveValue(/전화번호: 0551234567/);
-  }
-  expect(await page.evaluate(() => (window as unknown as { parkingInquiryGeo: number[] }).parkingInquiryGeo.length)).toBe(0);
-  expect(await page.evaluate(() => ({ url: location.href, local: { ...localStorage }, session: { ...sessionStorage }, cookie: document.cookie }))).toEqual(before);
-  expect(requests.filter(url => url.includes('relaycall.or.kr') || url.includes('pf.kakao.com'))).toEqual([]);
-  await page.setViewportSize({ width: info.project.name.includes('desktop') ? 960 : 320, height: 960 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-  for (const zoom of ['2', '4']) { await page.evaluate(value => { document.documentElement.style.zoom = value; }, zoom); expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1); }
-  await page.evaluate(() => { document.documentElement.style.zoom = ''; });
-  await contact.getByRole('button', { name: '주차장 문의 닫기' }).focus();
-  await page.keyboard.press('Escape');
-  await expect(contact).toHaveCount(0); await expect(trigger).toBeFocused();
-  expect((await new AxeBuilder({ page }).include('.parking-alternatives').analyze()).violations).toEqual([]);
-});
-
-test('only one parking inquiry opens and a missing phone offers no unusable call action', async ({ page }) => {
-  const second = { ...item, id: 'P2', name: '연락처 없는 주차장', phoneNumber: undefined, address: '경상남도 창원시 다른길', destination: { latitude: 35.239, longitude: 128.692 } };
-  await page.route('**/api/wave?action=parking-alternatives*', route => route.fulfill({ json: { status: 'available', contentId: place.id, checkedAt: '2026-09-15T05:20:00Z', source: '전국주차장정보표준데이터', items: [item, second] } }));
-  const panel = await openParking(page); await panel.getByRole('button', { name: '주변 주차장 보기', exact: true }).click();
-  const triggers = panel.getByRole('button', { name: '주차장에 문의하기', exact: true });
-  await triggers.nth(0).click(); await expect(panel.getByRole('region', { name: '주차하기 전에 확인해 보세요' })).toHaveCount(1);
-  await triggers.nth(1).click();
-  const contact = panel.getByRole('region', { name: '주차하기 전에 확인해 보세요' });
-  await expect(contact).toHaveCount(1); await expect(contact).toContainText('문의 가능한 전화번호가 없어요.');
-  await expect(contact.getByRole('link', { name: '전화 앱 열기' })).toHaveCount(0);
-  await expect(triggers.nth(0)).toHaveAttribute('aria-expanded', 'false'); await expect(triggers.nth(1)).toHaveAttribute('aria-expanded', 'true');
 });
 
 test('current-position sorting requests permission only on its named action and leaks zero coordinates', async ({ page }) => {
