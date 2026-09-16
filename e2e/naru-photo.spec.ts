@@ -10,7 +10,7 @@ test('사진은 전송 전 제거할 수 있고 실패 후 재시도하며 읽�
   await page.route('**/api/assistant', route => {
     if (route.request().method() === 'GET') return route.fulfill({ json: { available: true } });
     requests.push(route.request().postDataJSON());
-    return route.fulfill(requests.length === 1 ? { status: 503, json: { error: '사진 응답이 지연됐어요.' } } : { json: { reply: '합성 포스터에서 9월 20일 창원이라고 읽었어요. 맞나요?', photoReview: true, proposal: { action: 'search' } } });
+    return route.fulfill(requests.length === 1 ? { status: 503, json: { error: '사진 응답이 지연됐어요.' } } : { json: { reply: '합성 포스터에서 9월 20일 창원이라고 읽었어요. 맞나요?', photoReview: true, photoFacts: [{ name: '경남도립미술관', region: '창원', date: '2026-09-20', startTime: '10:00', endTime: '' }], proposal: { action: 'search' } } });
   });
   await page.goto('/planner');
   await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
@@ -31,6 +31,10 @@ test('사진은 전송 전 제거할 수 있고 실패 후 재시도하며 읽�
   await expect(chat).toContainText('합성 포스터에서 9월 20일 창원이라고 읽었어요. 맞나요?');
   await expect(chat.getByAltText('보내기 전 첨부 사진 미리보기')).toHaveCount(0);
   await expect(chat.locator('.naru-result-list')).toHaveCount(0);
+  await expect(chat.getByText('공식 관광정보 대조', { exact: true })).toBeVisible();
+  await expect(chat.getByText(/같은 장소 확인/)).toBeVisible();
+  await chat.getByRole('button', { name: '확인된 장소로 일정안 만들기', exact: true }).click();
+  await expect(chat).toContainText('공식 관광정보의 장소 ID로 일정에 담았어요.');
   expect(requests).toHaveLength(2);
   const sent = requests[1].photo as { mimeType: string; data: string };
   expect(sent.mimeType).toBe('image/jpeg'); expect(sent.data.length).toBeLessThan(1066669);

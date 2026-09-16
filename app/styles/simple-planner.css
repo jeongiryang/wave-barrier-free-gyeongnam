@@ -86,6 +86,17 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
 .simple-departure > summary { display: flex; align-items: center; gap: 16px; min-height: 56px; padding: 12px 0; }
 .simple-departure > summary > small { color: var(--muted); }
 .simple-departure > summary > span:last-child { margin-left: auto; }
+.trip-decision-receipt { margin: 16px 0 4px; border-block: 1px solid var(--line); }
+.trip-decision-receipt > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 60px; cursor: pointer; }
+.trip-decision-receipt :is(small,.trip-decision-intro,.trip-decision-section-heading p,.trip-decision-limit,.trip-decision-counts) { color: var(--muted); font-size: 14px; }
+.trip-decision-body section,.trip-decision-places article { padding: 16px 0; border-top: 1px solid var(--line); }
+.trip-decision-criteria { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 0; }
+.trip-decision-criteria > div { padding: 12px; background: var(--paper); }
+.trip-decision-counts { display: flex; gap: 12px; }
+.trip-decision-places ul,.trip-decision-routes { list-style: none; margin: 16px 0; padding: 0; }
+.trip-decision-places li,.trip-decision-routes li { padding: 9px 0; border-top: 1px solid var(--line); }
+.trip-decision-places article > button,.trip-decision-download { min-height: 44px; padding: 9px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); }
+.trip-decision-download { background: var(--blue); border-color: var(--blue); color: var(--on-blue); }
 .planner-simple .naru-launcher { width: 64px; height: 64px; min-height: 64px; padding: 5px; border-radius: 50%; border-color: var(--line); bottom: max(20px,env(safe-area-inset-bottom)); box-shadow: 0 4px 16px #162c241a; }
 
 .planner-simple > .simple-footer { margin: 40px 0 0; width: 100%; padding: 32px var(--wave-gutter) 100px; background: var(--paper); }
@@ -114,6 +125,7 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
   .simple-region-discovery .simple-region h3 { font-size: 20px; }
   .simple-region-discovery .simple-region-arrow { display: none; }
   .simple-region-discovery .simple-region-credit { font-size: 10px; min-height: 44px; }
+  .trip-decision-criteria { grid-template-columns: 1fr; }
   .simple-results-heading { flex-wrap: wrap; gap: 4px 12px; }
   .planner-simple .simple-results h2 { font-size: 20px; }
   .simple-place-row { grid-template-columns: 88px minmax(0,1fr) auto; gap: 12px; padding: 20px 0; }
@@ -308,3 +320,13 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 .simple-more-trip-tools .planner-service-status .connection-diagnostics { padding: 16px; background: var(--paper); border-color: var(--line); animation: none; }
 .simple-more-trip-tools .connection-diagnostics :is(header > p,footer,.diagnostic-grid p,.diagnostic-grid span) { font-size: 14px; color: var(--muted); }
 .simple-more-trip-tools .diagnostic-grid strong { font-size: 16px; }
+
+.evidence-coverage-card { display: grid; gap: 12px; margin-block: 8px 20px; padding: 16px; border: 1px solid var(--line); background: var(--surface); }
+.evidence-coverage-heading,.evidence-coverage-actions { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.evidence-coverage-meter { height: 10px; overflow: hidden; border-radius: 999px; background: var(--line); }
+.evidence-coverage-meter i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.evidence-coverage-card ul { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.evidence-coverage-card li { padding: 10px; background: var(--white); }
+.evidence-coverage-card :is(small,.evidence-coverage-note) { color: var(--muted); font-size: 12px; }
+.evidence-coverage-actions button { min-height: 44px; }
+@media (max-width: 560px) { .evidence-coverage-card ul { grid-template-columns: 1fr; } }
