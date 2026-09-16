@@ -40,7 +40,7 @@ export default function PlaceAudioGuide({ id, transcript = false, guidance }: { 
     }, 0);
     return () => { clearTimeout(timer); controller.abort(); };
   }, [open, id, version]);
-  return <details className="place-audio-guide" open={open} onToggle={event => setOpen(event.currentTarget.open)}><summary>이 장소의 맞춤 음성·대본 해설</summary>
+  return <details className="place-audio-guide" open={open} onToggle={event => setOpen(event.currentTarget.open)}><summary>이 장소의 음성·대본 해설</summary>
     {open && <fieldset className="place-guide-modes"><legend>해설 방식</legend>{([['audio','소리로 듣기'],['text','대본 읽기'],['easy','쉬운 설명']] as const).map(([value, label]) => <button type="button" key={value} aria-pressed={mode === value} onClick={() => setSelectedMode(value)}>{label}</button>)}</fieldset>}
     {loading ? <LoadingState>Odii 해설과 대본을 확인하고 있어요.</LoadingState> : error ? <div role="alert"><p>{error}</p><button type="button" onClick={() => setVersion(value => value + 1)}>다시 확인</button></div> : result && <>
       {result.stories.length ? result.stories.map((story, index) => <AudioStory key={`${story.id}:${index}`} story={story} mode={mode} />) : <p>이 장소와 일치하는 Odii 해설은 아직 확인하지 못했어요. 장소의 운영 정보와 편의 안내는 계속 볼 수 있습니다.</p>}
