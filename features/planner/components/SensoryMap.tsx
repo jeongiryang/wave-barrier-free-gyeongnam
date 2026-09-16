@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   SENSORY_FIELDS,
@@ -13,6 +13,7 @@ import { plannerJson } from "../services/api";
 import type { Place } from "../types";
 import PlaceAudioGuide from "./PlaceAudioGuide";
 import styles from "./TravelExperience.module.css";
+import { buildEvidenceReviewQueue } from "../../../lib/evidence-cycle.js";
 export default function SensoryMap({
   places,
   onSelectPlace,
@@ -38,6 +39,7 @@ export default function SensoryMap({
     .slice(0, 12)
     .join(",");
   const place = places.find((p) => p.id === selected) || places[0];
+  const reviewQueue = useMemo(() => buildEvidenceReviewQueue(places, reports, now), [places, reports, now]);
   useEffect(() => {
     if (!ids) return;
     const controller = new AbortController();
@@ -283,6 +285,11 @@ export default function SensoryMap({
           );
         })}
       </ol>
+      <details className={styles.card}>
+        <summary>공식정보 재확인 목록 {reviewQueue.length ? `${reviewQueue.length}곳` : "없음"}</summary>
+        <p>최근 현장 관찰과 공식 접근로 정보를 대조합니다. 제보가 공식정보를 자동으로 바꾸지는 않으며, 다시 확인할 순서만 제안해요.</p>
+        {!reviewQueue.length ? <p>현재 자료에서 다시 확인할 항목이 없어요.</p> : <ol>{reviewQueue.map(item => <li className={styles.card} key={item.placeId}><strong>{item.name} · {item.priority === "high" ? "우선 확인" : item.priority === "medium" ? "확인 권장" : "다음 확인 때 참고"}</strong><p>{item.reason}</p><small>최근 제보 {item.reports}건 · 공식 접근로 {item.officialState === "confirmed" ? "확인됨" : item.officialState === "negative" ? "조건과 맞지 않음" : "미확인"}</small>{onSelectPlace && <button type="button" onClick={() => { const target = places.find(place => place.id === item.placeId); if (target) onSelectPlace(target); }}>공식 원문·문의 확인</button>}</li>)}</ol>}
+      </details>
       {place && (
         <section className={styles.card} key={place.id}>
           <h4>{place.name} 현장 살펴보기</h4>

@@ -12,12 +12,17 @@ const CompanionLauncher = lazy(
   () => import("../../trips/components/CompanionLauncher"),
 );
 const TravelPassport = lazy(() => import("./TravelPassport"));
+const TripResilienceLab = lazy(() => import("./TripResilienceLab"));
 export type ExperienceProps = {
   trip: ReturnType<typeof useTripSelection>;
   coverage: ReturnType<typeof useItineraryRoutes>;
   origin: RoutePoint;
   region: string;
   onSelectPlace: (place: Place) => void;
+  requiredKeys: string[];
+  weather: import("../types").WeatherData | null;
+  onProfiles: (keys: string[]) => void;
+  onAlternative: (id: string) => void;
 };
 export default function TravelExperience(props: ExperienceProps) {
   const [tab, setTab] = useState("");
@@ -33,6 +38,7 @@ export default function TravelExperience(props: ExperienceProps) {
           ["sensory", "감각지도·지금 현장"],
           ["companion", "동행과 함께 편집"],
           ["passport", "경남 여행여권"],
+          ["resilience", "여행 점검"],
         ].map(([id, label]) => (
           <button
             type="button"
@@ -61,11 +67,13 @@ export default function TravelExperience(props: ExperienceProps) {
               />
             ) : tab === "companion" ? (
               <CompanionLauncher trip={props.trip} region={props.region} />
-            ) : (
+            ) : tab === "passport" ? (
               <TravelPassport
                 places={props.trip.orderedSavedPlaces}
                 region={props.region}
               />
+            ) : (
+              <TripResilienceLab trip={props.trip} coverage={props.coverage} requiredKeys={props.requiredKeys} weather={props.weather} onProfiles={props.onProfiles} onAlternative={props.onAlternative} onSelectPlace={props.onSelectPlace}/>
             )}
           </Suspense>
         </div>

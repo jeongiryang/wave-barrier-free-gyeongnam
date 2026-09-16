@@ -387,6 +387,8 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
                 onCopyBookingRoute={copyBookingRoute}
                 onMapDestination={routeFromMapPlace}
                 onSaveMapPlaces={saveMapPlaces}
+                onProfiles={planController.setSelected}
+                onAlternative={id => alternatives.open(id)}
               />
       {travelStart && <details className="simple-departure" id="departure-readiness" open={departureDetailsOpen || journey.activeStepId === "departure-readiness"} onToggle={event => setDepartureDetailsOpen(event.currentTarget.open)}>
         <summary><span>출발 전 확인</span><small>날씨 · 운영시간 · 이동 · 편의</small><span aria-hidden="true">⌄</span></summary>

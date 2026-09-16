@@ -28,9 +28,11 @@ import type { AssistantPhoto } from '../../../lib/assistant-photo.js';
 import { useNaruAvailability } from '../hooks/useNaruAvailability';
 import type { GuidancePreferences } from '../../../lib/guidance-preferences.js';
 import EvidenceCoverageCard from './EvidenceCoverageCard';
+import { sanitizePhotoTripFacts, verifyPhotoTripFacts, type PhotoTripFact } from '../../../lib/photo-trip-facts.js';
 const NaruScheduleReview = lazy(() => import('./NaruScheduleReview'));
 
-type Message = { cancelled?: boolean; id: number; role: 'user'|'assistant'; text: string; source?: string; proposal?: AssistantAction; draft?: NaruJourney; revision?: string; applied?: boolean; results?: Place[]; receipt?: TripCommandReceipt; resultKey?: string; toolId?: string };
+type PhotoVerifiedItem = { fact: PhotoTripFact; state: 'verified'|'ambiguous'|'not-found'; place: Place | null };
+type Message = { cancelled?: boolean; id: number; role: 'user'|'assistant'; text: string; source?: string; proposal?: AssistantAction; draft?: NaruJourney; revision?: string; applied?: boolean; results?: Place[]; receipt?: TripCommandReceipt; resultKey?: string; toolId?: string; photoItems?: PhotoVerifiedItem[] };
 type Props = { origin: RoutePoint; routeMinutes: Record<string, number>; launchRequest?: { id: number; prompt: string }; pageContext?: string; open: boolean; onClose: () => void; plan: ReturnType<typeof usePlannerPlan>; trip: ReturnType<typeof useTripSelection>; guidance: { value: GuidancePreferences; update: (value: GuidancePreferences) => void }; onRegion: (region: string, onCommitted?: () => void) => void; onSearch: (criteria?: { region?: string; profiles?: string[]; themes?: string[] }) => Promise<PlanData | null>; onPlace: (place: Place) => void; onAlternative: (placeId: string) => void; onUndoAlternative: () => boolean; canUndoAlternative: boolean; replacementVersion: number; onOpenTool: (tool: string) => void; transport: 'walk'|'bicycle'|'transit'|'car'; routeRevision: string; onJourneyApplied: (draft: NaruJourney) => { undo: () => void; revision: string }; onRecalculate: (transport?: AssistantAction['transport']) => Promise<'changed'|'checked'>; onActivity: (value: { phase: string; text: string }) => void };
 const toolGroups = [
   { title: '여행 시작', items: [['conditions','지역·활동'],['facilities','필요한 편의'],['dates','날짜·기간'],['places','여행지 찾기']] },
@@ -186,8 +188,18 @@ export default function PlannerAssistant(props: Props) {
       if (id !== sequence.current) return;
       if (!response.ok || data.photoReview !== true || typeof data.reply !== 'string') throw new Error(typeof data.error === 'string' ? data.error : '사진을 읽지 못했어요.');
       markConnected(); setPhoto(null);
-      append(data.reply.slice(0, 1000), { source: 'local-vision' });
-      const done = { phase: 'done', text: '사진에서 읽은 내용을 확인해 주세요.' }; setActivity(done); props.onActivity(done);
+      const facts = sanitizePhotoTripFacts(data.photoFacts);
+      let candidates = known;
+      let items = verifyPhotoTripFacts(facts, candidates) as PhotoVerifiedItem[];
+      if (facts.some(fact => fact.name) && !items.some(item => item.state === 'verified')) {
+        const verifying = { phase: 'thinking', text: '사진의 장소를 관광 공공데이터에서 확인하고 있어요.' }; setActivity(verifying); props.onActivity(verifying);
+        const searched = await props.onSearch({ region: facts.find(fact => fact.region)?.region || plan.region || '경남 전체' });
+        if (id !== sequence.current) return;
+        candidates = searched ? [...searched.places, ...(searched.explorationPlaces || [])] : candidates;
+        items = verifyPhotoTripFacts(facts, candidates) as PhotoVerifiedItem[];
+      }
+      append(data.reply.slice(0, 1000), { source: 'local-vision', photoItems: items });
+      const done = { phase: 'done', text: items.some(item => item.state === 'verified') ? '사진 내용과 공식 장소를 함께 확인했어요.' : '사진 내용은 읽었지만 같은 공식 장소를 찾지 못했어요.' }; setActivity(done); props.onActivity(done);
     } catch (error) {
       if (id !== sequence.current) return;
       setInput(current => current || value);
@@ -195,6 +207,22 @@ export default function PlannerAssistant(props: Props) {
       const warning = { phase: 'warning', text: '사진은 입력창에 남아 있어요. 다시 보낼 수 있어요.' }; setActivity(warning); props.onActivity(warning);
     } finally { clearTimeout(timer); if (id === sequence.current) { setBusy(false); request.current = null; } }
   }
+  function applyPhotoItems(message: Message) {
+    const verified = (message.photoItems || []).filter((item): item is PhotoVerifiedItem & { place: Place } => item.state === 'verified' && Boolean(item.place));
+    const additions = verified.filter(item => !trip.saved.includes(item.place.id));
+    if (!additions.length) { append(verified.length ? '확인된 장소가 이미 일정에 담겨 있어요.' : '공식 관광정보에서 하나로 확인된 장소가 없어요.'); return; }
+    const commands: TripCommand[] = [];
+    const photoDates = additions.map(item => item.fact.date).filter(Boolean).sort();
+    const completePhotoDates = photoDates.length === additions.length;
+    if (!trip.saved.length && completePhotoDates) commands.push({ type: 'schedule', start: photoDates[0], end: photoDates.at(-1)! });
+    for (const item of additions) commands.push({ type: 'add', id: item.place.id, day: trip.saved.length ? (trip.tripDays.includes(item.fact.date) ? item.fact.date : trip.activeDay) : item.fact.date });
+    const receipt = trip.applyTripCommand(commands, additions.map(item => item.place));
+    if (!receipt.ok) { append(receipt.reason); return; }
+    setMessages(current => current.map(item => item.id === message.id ? { ...item, applied: true, receipt } : item));
+    const outside = trip.saved.length > 0 && additions.some(item => item.fact.date && !trip.tripDays.includes(item.fact.date));
+    append(`${additions.length}곳을 공식 관광정보의 장소 ID로 일정에 담았어요.${outside ? ' 사진의 날짜가 현재 여행 기간 밖인 장소는 현재 선택한 날에 담았어요.' : completePhotoDates ? ' 사진에서 확인한 날짜에 담았어요.' : ''}`);
+  }
+  const canApplyPhotoItems = (message: Message) => trip.saved.length > 0 || (message.photoItems || []).filter(item => item.state === 'verified').every(item => Boolean(item.fact.date));
   async function send(value = input) {
     const originalText = value.trim();
     if (busy || voice.listening || photoPreparing) return;
@@ -435,6 +463,7 @@ export default function PlannerAssistant(props: Props) {
         {starterDone && messages.map(message => <div key={message.id} className={`naru-message ${message.role}`}>
           <p>{message.text}</p>
           {message.source === 'local-vision' && <p className="naru-note">사진에서 읽은 내용이에요. 맞는지 확인한 뒤 장소와 날짜를 입력해 여행에 반영해 주세요. 일정은 아직 변경하지 않았어요.</p>}
+          {message.photoItems && <div className="naru-tool-card" aria-label="사진 내용과 관광정보 대조 결과"><strong>공식 관광정보 대조</strong>{message.photoItems.map((item, index) => <article key={`${item.fact.name}-${index}`}><b>{item.fact.name || '장소명 미확인'}</b><span>{item.state === 'verified' ? ' · 같은 장소 확인' : item.state === 'ambiguous' ? ' · 같은 이름이 여러 곳' : ' · 같은 장소를 찾지 못함'}</span>{item.fact.date && <small>{item.fact.date}{item.fact.startTime ? ` ${item.fact.startTime}` : ''}{item.fact.endTime ? `–${item.fact.endTime}` : ''}</small>}{item.place && <button type="button" onClick={() => props.onPlace(item.place!)}>공식 정보 보기</button>}</article>)}{message.photoItems.some(item => item.state === 'verified') && (canApplyPhotoItems(message) ? <button type="button" disabled={busy || message.applied} onClick={() => applyPhotoItems(message)}>{message.applied ? '일정에 반영됨' : '확인된 장소로 일정안 만들기'}</button> : <button type="button" onClick={() => openTool('dates')}>여행 날짜 먼저 정하기</button>)}<p className="naru-note">사진의 글자는 참고 자료이며, 같은 이름·지역·행사 날짜가 공공데이터와 맞은 장소만 담을 수 있어요.</p></div>}
           {message.source === 'local-vision' && <button type="button" disabled={busy} onClick={() => { setInput(`다음 사진 내용을 확인하고 필요한 부분을 수정해서 여행을 요청할게요: ${message.text}`.slice(0, 1100)); inputRef.current?.focus(); }}>읽은 내용으로 요청 작성</button>}
           {message.role === 'assistant' && message.text && <button type="button" className="naru-readback" onClick={() => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance([message.text, ...(message.results || []).map((place, index) => `${index + 1}번 ${place.city} ${place.name}`), ...(message.draft?.stops || []).map(stop => `${stop.date}, ${stop.place.name}, ${stop.minutes}분 방문, 휴식 ${stop.breakMinutes}분. ${stop.unknown.length ? `미확인 항목: ${stop.unknown.join(', ')}` : ''}`), ...(message.draft?.warnings || [])].join('. ')); utterance.lang = 'ko-KR'; utterance.onend = utterance.onerror = () => setSpeaking(false); setSpeaking(true); window.speechSynthesis.speak(utterance); } else append('이 브라우저는 읽어주기를 지원하지 않아요. 화면 읽기 프로그램으로 같은 내용을 확인할 수 있어요.'); }}>답변 읽어주기</button>}
           {message.draft && !message.cancelled && <NaruJourneyProposal draft={message.draft} disabled={busy || !message.applied && message.revision !== revision} applied={Boolean(message.applied)} onApply={() => applyDraft(message)} onExplore={() => { if (busy || message.applied || message.revision !== revision) return; plan.setRegion(message.draft!.region); plan.setSelected([...new Set([...plan.selected, ...message.draft!.profiles])]); plan.setTheme(message.draft!.themes.join(',')); plan.acceptPreparedPlan(message.draft!.plan, message.draft!); openTool('conditions'); }} />}
