@@ -18,6 +18,7 @@ import { buildTravelJournalHref } from '../../../lib/community/field-report.js';
 import NavigationWorkspace from "./NavigationWorkspace";
 import TripSettingsEditor, { InitialTripSetup } from "./TripSettingsEditor";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
+import TripDecisionReceipt from "./TripDecisionReceipt";
 
 const PlannerItineraryBoard = lazy(() => import("./PlannerItineraryBoard").catch(() => ({ default: ItineraryUnavailable })));
 
@@ -190,6 +191,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
     <div lang="ko" className="simple-itinerary-heading"><div><h2 id="itinerary-stage-title">내 일정</h2><p>{props.tripSelection.travelStart} — {props.tripSelection.travelEnd}</p></div><button type="button" onClick={() => setSettingsOpen(true)}>여행 설정</button></div>
     {props.tripSelection.commandNotice && <div lang="ko" className="simple-command-receipt" role="status"><span>{props.tripSelection.commandNotice}</span>{props.tripSelection.canUndoCommand && <button type="button" onClick={() => props.tripSelection.undoCommand()}>되돌리기</button>}</div>}
+    <TripDecisionReceipt archiveContext={props.archiveContext} coverage={props.coverage} route={props.route} trip={props.tripSelection} onSelectPlace={props.onSelectPlace} />
     <Suspense fallback={<LoadingState>여행 도구를 준비하고 있어요.</LoadingState>}><TripDayPlanner plan={props.plan} tripSelection={props.tripSelection} route={props.route} audioGuide={props.audioGuide} participation={props.participation} archiveContext={props.archiveContext} /></Suspense>
     <Suspense fallback={null}><TravelExperience trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} region={props.archiveContext.region} onSelectPlace={props.onSelectPlace}/></Suspense>
     {!desktop && <div lang="ko" className="simple-map-switch" role="group" aria-label="일정 보기 방식"><button type="button" aria-pressed={!mapView} onClick={() => setMapView(false)}>시간표</button><button type="button" aria-pressed={mapView} onClick={() => setMapView(true)}>지도</button></div>}
