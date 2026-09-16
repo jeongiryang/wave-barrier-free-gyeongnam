@@ -58,7 +58,7 @@ for (const locale of ["ko", "en"] as const) for (const theme of ["light", "dark"
     await add.press("Enter");
     await expect(add).toBeFocused();
     await expect(add).toHaveAttribute("aria-pressed", "true");
-    await expect(add).toHaveAccessibleName(en ? "경남도립미술관 added · remove from itinerary" : "경남도립미술관 담았음 · 일정에서 빼기");
+    await expect(add).toHaveAccessibleName(en ? "경남도립미술관 added · undo" : "경남도립미술관 담았음 · 되돌리기");
     await expect(page.locator(".simple-results")).toBeVisible();
     expect(page.url()).toBe(beforeUrl);
     await expect.poll(() => page.evaluate(() => {

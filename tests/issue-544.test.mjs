@@ -23,15 +23,17 @@ test("issue 544 direct search keeps unknown facts explicit and connects saved pl
 });
 
 test("issue 544 date control opens from the field and keyboard with a mobile target", async () => {
-  const [control, settings] = await Promise.all([
+  const [control, settings, stage] = await Promise.all([
     source("components/AccessibleDateInput.tsx"),
     source("features/planner/components/TripSettingsEditor.tsx"),
+    source("features/planner/hooks/usePlannerStageView.ts"),
   ]);
   assert.match(control, /showPicker/);
   assert.match(control, /event\.key === "Enter" \|\| event\.key === " "/);
   assert.match(control, /minHeight: 44/);
   assert.match(settings, /<AccessibleDateInput required value=\{start\}/);
-  assert.match(settings, /id="itinerary"/);
+  assert.match(settings, /id="itinerary-setup"/);
+  assert.match(stage, /id === "itinerary" \? document\.getElementById\("itinerary-setup"\)/);
 });
 
 test("issue 544 intro phrase is exact and its styles do not alter global tokens", async () => {

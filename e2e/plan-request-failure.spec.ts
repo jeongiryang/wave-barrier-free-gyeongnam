@@ -35,7 +35,7 @@ for (const failure of ["timeout", "server", "offline"] as const) for (const en o
     expect(await page.evaluate(() => JSON.parse((JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values?.["wave-saved-places"]) || "[]"))).toEqual(["1001"]);
     if (failure === "offline") await page.context().setOffline(false);
     await expect(page.getByRole("button", { name: en ? "용지호수공원 add to itinerary" : "용지호수공원 일정에 담기", exact: true })).toBeDisabled();
-    await expect(page.getByRole("button", { name: en ? "경남도립미술관 added · remove from itinerary" : "경남도립미술관 담았음 · 일정에서 빼기", exact: true })).toBeEnabled();
+    await expect(page.getByRole("button", { name: en ? "경남도립미술관 added · undo" : "경남도립미술관 담았음 · 되돌리기", exact: true })).toBeEnabled();
     expect((await new AxeBuilder({ page }).include(".simple-results").analyze()).violations).toEqual([]);
     if (testInfo.project.name === "desktop-chromium") {
       await page.setViewportSize({ width: en ? 1440 : 960, height: 960 });

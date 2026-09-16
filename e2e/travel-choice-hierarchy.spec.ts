@@ -39,7 +39,7 @@ for (const en of [false, true]) for (const theme of ['light', 'dark']) {
     await page.keyboard.press('Escape'); await expect(title).toBeFocused();
     await page.keyboard.press('Tab'); await expect(add).toBeFocused(); await page.keyboard.press('Enter');
     await expect(add).toHaveAttribute('aria-pressed', 'true');
-    await expect(add).toHaveAccessibleName(`경남도립미술관 ${en ? 'added · remove from itinerary' : '담았음 · 일정에서 빼기'}`);
+    await expect(add).toHaveAccessibleName(`경남도립미술관 ${en ? 'added · undo' : '담았음 · 되돌리기'}`);
     await expect(page.locator('.simple-results')).toBeVisible();
     const unknown = page.locator('.simple-exploration .simple-place-row');
     await expect(unknown.locator('.simple-place-add')).toHaveText(en ? '→Details' : '→편의 확인');

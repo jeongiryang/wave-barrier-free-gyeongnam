@@ -130,6 +130,6 @@ test("an empty itinerary does not load the editor and a missing editor module is
   await expect(page.locator("#itinerary").getByRole("status").filter({ hasText: "itinerary editor couldn't open" })).toBeVisible();
   expect(editorRequests).toBeGreaterThan(0);
   await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
-  const remove = page.getByRole("button", { name: "경남도립미술관 added · remove from itinerary", exact: true });
+  const remove = page.getByRole("button", { name: "경남도립미술관 added · undo", exact: true });
   await expect(remove).toBeEnabled(); await remove.click(); expect((await records(page)).ids).toEqual([]);
 });

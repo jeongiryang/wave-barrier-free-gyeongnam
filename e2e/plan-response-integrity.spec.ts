@@ -22,7 +22,7 @@ for (const invalid of ["invalid-json", "missing-fields", "damaged-place"] as con
     await page.locator(".simple-activity-filter").getByRole("button", { name: "역사·문화", exact: true }).click();
     await expect(page.locator(".simple-result-notice")).toBeVisible();
     await expect(page.getByRole("button", { name: en ? "용지호수공원 add to itinerary" : "용지호수공원 일정에 담기", exact: true })).toBeDisabled();
-    await expect(page.getByRole("button", { name: en ? "경남도립미술관 added · remove from itinerary" : "경남도립미술관 담았음 · 일정에서 빼기", exact: true })).toBeEnabled();
+    await expect(page.getByRole("button", { name: en ? "경남도립미술관 added · undo" : "경남도립미술관 담았음 · 되돌리기", exact: true })).toBeEnabled();
     expect(await page.evaluate(() => JSON.parse((JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values?.["wave-saved-places"]) || "[]"))).toEqual(["1001"]);
     expect(errors).toEqual([]);
     expect((await new AxeBuilder({ page }).include(".simple-results").analyze()).violations).toEqual([]);
@@ -74,7 +74,7 @@ test("a failed photo module keeps facility evidence, place actions and visitor d
   await expect(page.locator("dialog[open]")).toBeVisible();
   await expect(page.locator("dialog[open]")).toContainText("경남도립미술관");
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("button", { name: "경남도립미술관 담았음 · 일정에서 빼기", exact: true })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "경남도립미술관 담았음 · 되돌리기", exact: true })).toBeEnabled();
   expect(await page.evaluate(() => JSON.parse((JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values?.["wave-saved-places"]) || "[]"))).toEqual(["1001"]);
   expect((await new AxeBuilder({ page }).include(".simple-results").analyze()).violations).toEqual([]);
 });

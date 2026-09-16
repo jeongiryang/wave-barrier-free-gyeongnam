@@ -26,6 +26,10 @@ const HASH_STEPS: Record<string, { step: JourneyStepId; target: string }> = {
   crowd: { step: "departure-readiness", target: "crowd" },
 };
 
+function stageTarget(id: string) {
+  return document.getElementById(id) || (id === "itinerary" ? document.getElementById("itinerary-setup") : null);
+}
+
 function currentView(): PlannerStageView {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -116,7 +120,7 @@ export function usePlannerStageView() {
 
   useLayoutEffect(() => {
     if (window.location.pathname !== '/planner' || !focusTarget || focusedRequest.current === focusTarget) return;
-    const section = document.getElementById(focusTarget.id);
+    const section = stageTarget(focusTarget.id);
     if (!section || section.closest("[hidden]")) return;
     // A result can commit after someone has already focused another control.
     // Consume this request without taking that person's focus back.
@@ -133,7 +137,7 @@ export function usePlannerStageView() {
     heading.setAttribute("data-stage-focusing", "true");
     try { heading.focus({ preventScroll: true }); }
     finally { heading.removeAttribute("data-stage-focusing"); }
-    scrollToSection(focusTarget.id, prefersReducedMotion());
+    scrollToSection(section.id, prefersReducedMotion() || section.id === "itinerary-setup");
     focusedRequest.current = focusTarget;
   }, [activeStepId, view, focusTarget]);
 
@@ -156,7 +160,11 @@ export function usePlannerStageView() {
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
       firstFrame = window.requestAnimationFrame(() => {
-        secondFrame = window.requestAnimationFrame(() => { if (window.location.pathname === '/planner') scrollToSection(destination.target, prefersReducedMotion()); });
+        secondFrame = window.requestAnimationFrame(() => {
+          if (window.location.pathname !== '/planner') return;
+          const section = stageTarget(destination.target);
+          if (section) scrollToSection(section.id, prefersReducedMotion() || section.id === "itinerary-setup");
+        });
       });
     };
     if (window.location.hash || window.location.search) sync();

@@ -40,7 +40,7 @@ function SettingsForm({ trip, onClose }: Props) {
   </form>;
 }
 export function InitialTripSetup({ trip }: Props) {
-  return <section id="itinerary" lang="ko" className="simple-initial-setup" aria-labelledby="trip-setup-title"><h2 id="trip-setup-title">언제 떠날까요?</h2><SettingsForm trip={trip} /><p className="simple-collected-places">담은 장소 · {trip.orderedSavedPlaces.map(place => place.name).join(' · ')}</p></section>;
+  return <section id="itinerary-setup" lang="ko" className="simple-initial-setup" aria-labelledby="trip-setup-title"><h2 id="trip-setup-title">언제 떠날까요?</h2><SettingsForm trip={trip} /><p className="simple-collected-places">담은 장소 · {trip.orderedSavedPlaces.map(place => place.name).join(' · ')}</p></section>;
 }
 export default function TripSettingsEditor({ trip, onClose }: Props & { onClose: () => void }) {
   const ref = usePlaceDialogFocus(true, onClose);

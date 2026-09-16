@@ -30,11 +30,13 @@
 - `npm run typecheck`: PASS
 - `npm test`: 1,262 PASS
 - `npm run build:vercel`: PASS
-- `npm run check:performance`: PASS — CSS gzip 70.00/70KiB, 랜딩 초기 JS 135.71/155KiB, 플래너 초기 JS 205.30/270KiB, 최대 청크 58.07/110KiB
+- `npm run check:performance`: PASS — CSS gzip 70.00/70KiB, 랜딩 초기 JS 135.71/155KiB, 플래너 초기 JS 205.38/270KiB, 최대 청크 58.14/110KiB
 - 로컬 Chromium: 320·390·768·1440px 직접 검색, 미확인 정보, 담기, 같은 위치 되돌리기, 일정 버튼, 가로 넘침 없음 PASS
 - 로컬 Chromium: 인트로 자동 종료·Escape·건너뛰기·모션 감소·세션 저장 차단 복구 16건 중 최초 2건의 재노출 대기 경합을 수정했고 해당 2건 재검증 PASS
+- 전체 CI 1차 검증에서 직접 검색 제어가 기존 편의·장소 버튼의 CSS 선택자를 공유한 회귀를 발견했다. 검색 버튼·검색 제목·나루 안내를 독립 선택자로 분리하고, 날짜 미정 일정은 `itinerary-setup`으로 분리하면서 기존 `#itinerary` 계약과 즉시 초점 이동을 함께 보존했다.
+- 보정 과정에서 드러난 마지막 9건을 포함해 데스크톱 대상 30건이 모두 통과했다. 모바일 대상은 16건 통과, 프로젝트 정책에 따른 2건 건너뛰기였고 단위 회귀 1,262건도 모두 통과했다.
 
 ## 결과와 제한
 
 - 직접 검색의 장소 사진·운영시간·편의정보는 카카오 장소 API가 제공하지 않으므로 확인되지 않은 상태로 명시한다. 임의 이미지나 운영정보를 만들지 않는다.
-- 전체 브라우저 shard와 GitHub CI, Preview·Production 검증은 PR의 최종 커밋에서 한 번 실행하고 결과를 이 문서와 PR에 추가한다.
+- 보정 커밋의 전체 브라우저 shard와 GitHub CI를 다시 통과시킨 뒤 병합·Production 검증한다.
