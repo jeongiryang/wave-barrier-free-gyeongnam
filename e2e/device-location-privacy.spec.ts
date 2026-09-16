@@ -34,6 +34,15 @@ test('restroom location boundary keeps GPS out of API, storage and destination m
   expect(source).not.toMatch(/localStorage|sessionStorage|indexedDB|caches\./);
 });
 
+test('parking inquiry component has no location, storage, network, analytics, or dynamic external URL sink', () => {
+  const source = readFileSync(new URL('../features/planner/components/ParkingContactPanel.tsx', import.meta.url), 'utf8');
+  expect(source).not.toMatch(/geolocation|latitude|longitude|accuracy|currentLocation|userId|trip/i);
+  expect(source).not.toMatch(/fetch\(|optionalPlannerJson|localStorage|sessionStorage|indexedDB|document\.cookie|caches\.|analytics|sendBeacon/i);
+  expect(source).not.toMatch(/kakaotalk:|intent:|apps\.apple|play\.google|execCommand|postMessage/i);
+  expect(source).toContain("https://pf.kakao.com/_LBXwxj/chat");
+  expect(source).toContain("https://relaycall.or.kr/user/service/text/text");
+});
+
 for (const entry of ['toolbar', 'panel'] as const) test(`accepted ${entry} GPS measures locally while map, nearby, routes, Naru and storage retain public places`, async ({ page }) => {
   const position = { latitude: 35.12345678, longitude: 128.87654321 };
   const requests: string[] = [], routeRequests: string[] = [], assistantPayloads: unknown[] = [], errors: string[] = [];
