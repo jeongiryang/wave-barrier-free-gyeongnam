@@ -27,17 +27,14 @@ test.afterEach(async ({ page }) => {
   expect(pageErrors.get(page) || []).toEqual([]);
 });
 
-test("landing: first arrival never blocks planning, remembers completion and has no serious accessibility violations", async ({ page }) => {
+test("landing: first arrival is readable, dismissible and remembers completion", async ({ page }) => {
   await freshArrival(page);
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
-  await expect(scene).toHaveCSS("pointer-events", "none");
-  await expect(scene).toHaveAttribute("aria-hidden", "true");
-  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
-  await expect(planning).toHaveAccessibleName("여행지 둘러보기");
-  await planning.focus();
-  await page.clock.runFor(2000);
+  await expect(scene).toHaveAttribute("open", "");
+  await expect(scene).toContainText("WAVE가 당신의 발걸음을 응원합니다");
+  await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
+  await page.keyboard.press("Escape");
   await expect(scene).toBeHidden();
-  await expect(planning).toBeFocused();
   expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
   await page.clock.resume();
   await page.reload(); await storyReady(page);

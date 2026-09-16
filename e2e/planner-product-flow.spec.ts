@@ -5,6 +5,32 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
 });
 
+test("320px·390px·768px·1440px 직접 검색은 정보 상태·담기·되돌리기·일정 이동을 유지한다", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chromium", "대표 Chromium 프로젝트에서 네 뷰포트를 직접 확인합니다.");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.route("**/api/location-search?**", route => route.fulfill({ json: { places: [{ id: "544", name: "파도 카페", address: "경상남도 창원시 의창구", category: "카페", categoryCode: "CE7", region: "창원시", resultType: "cafe", summary: "음식점 · 카페", mapX: "128.68", mapY: "35.23", placeUrl: "https://place.map.kakao.com/544" }] } }));
+  await mockPlannerApi(page, { preserveView: true });
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto("/planner");
+    await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+    const search = page.getByRole("combobox", { name: "여행지 검색", exact: true });
+    await search.fill("파도 카페");
+    await search.press("Enter");
+    const result = page.locator("#direct-place-results").getByRole("listitem").filter({ hasText: "파도 카페" });
+    await expect(result).toContainText("창원시 · 카페");
+    await expect(result).toContainText("운영시간정보 확인 중");
+    await expect(result).toContainText("편의·접근성정보 확인 중");
+    await result.getByRole("button", { name: "파도 카페 일정에 담기", exact: true }).click();
+    await expect(result.getByRole("button", { name: "파도 카페 담았음 · 되돌리기", exact: true })).toHaveAttribute("aria-pressed", "true");
+    const build = page.getByRole("button", { name: "담은 여행으로 일정 짜기", exact: true });
+    await expect(build).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    await result.getByRole("button", { name: "파도 카페 담았음 · 되돌리기", exact: true }).click();
+    await expect(build).toHaveCount(0);
+  }
+});
+
 test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 일정으로 이어진다", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "대표 Chromium 프로젝트에서 세 뷰포트를 직접 확인합니다.");
   await page.emulateMedia({ reducedMotion: "reduce" });

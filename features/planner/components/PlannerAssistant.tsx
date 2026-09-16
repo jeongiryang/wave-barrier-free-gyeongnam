@@ -131,7 +131,7 @@ export default function PlannerAssistant(props: Props) {
     if (placeId) focusedPlace.current = placeId;
     const needsPlaces = !['conditions','facilities','dates','comfort','places','inquiry','compare','preview','transcript'].includes(id);
     if (needsPlaces && !trip.saved.length) {
-      append(`${toolLabel(id)}는 일정에 장소를 담으면 이어서 사용할 수 있어요. 먼저 여행지를 골라볼까요?`);
+      append(`${toolLabel(id)}는 일정에 장소를 담으면 이어서 사용할 수 있어요. 여행지를 골라볼까요?`);
       id = plan.resultCurrent ? 'places' : 'conditions';
     } else if (id === 'places' && !plan.resultCurrent) {
       append('여행 조건을 고르고 여행지를 찾아주세요. 결과에서 마음에 드는 곳을 담을 수 있어요.');
@@ -202,7 +202,7 @@ export default function PlannerAssistant(props: Props) {
       if (originalText === '처음부터 다시') { const next = startNaruGuide({ region: plan.region, start: trip.travelStart, end: trip.travelEnd, selected: plan.selected, revision }); setGuide(next); append(next.question); return; }
       if (guide.step === 'review' && (originalText === '이 조건으로 찾기' || acceptsPendingChange(originalText))) {
         if (guide.revision !== liveRevision.current) { setGuide(null); append('그동안 여행 조건이 바뀌었어요. 현재 내용으로 다시 시작해 주세요.'); return; }
-        if (trip.saved.length && (guide.region !== plan.region || guide.start !== trip.travelStart || guide.end !== trip.travelEnd)) { setGuide(null); append('담아둔 일정이 있어요. 기존 여행을 보존하며 날짜·지역 변경 도구에서 변경 내용을 먼저 확인해 주세요.'); openTool(guide.region !== plan.region ? 'conditions' : 'dates'); return; }
+        if (trip.saved.length && (guide.region !== plan.region || guide.start !== trip.travelStart || guide.end !== trip.travelEnd)) { setGuide(null); append('담아둔 일정이 있어요. 기존 여행을 보존하며 날짜·지역 변경 도구에서 변경 내용을 확인해 주세요.'); openTool(guide.region !== plan.region ? 'conditions' : 'dates'); return; }
         if (guide.start && guide.start !== trip.travelStart || guide.end && guide.end !== trip.travelEnd) {
           const receipt = trip.applyTripCommand({ type: 'schedule', start: guide.start, end: guide.end }, known);
           if (!receipt.ok) { append(receipt.reason); return; }
@@ -377,7 +377,7 @@ export default function PlannerAssistant(props: Props) {
       return;
     }
     if (['add','remove'].includes(action.action) && place) {
-      if (action.action === 'add' && (!plan.resultCurrent || !plan.plan?.places.some(p => p.id === place.id))) { executed.current.delete(message.id); append('필요한 시설 정보와 현재 검색 조건을 먼저 확인해 주세요.'); props.onPlace(place); return; }
+      if (action.action === 'add' && (!plan.resultCurrent || !plan.plan?.places.some(p => p.id === place.id))) { executed.current.delete(message.id); append('필요한 시설 정보와 현재 검색 조건을 확인해 주세요.'); props.onPlace(place); return; }
       focusedPlace.current = place.id; command({ type: action.action as 'add'|'remove', id: place.id }); return;
     }
     if (action.action === 'undo') {
@@ -389,7 +389,7 @@ export default function PlannerAssistant(props: Props) {
     }
     if (action.action === 'details' && place) { committed(); props.onPlace(place); return; }
     if (action.action === 'alternatives' && place) {
-      if (!trip.saved.includes(place.id)) { append('다른 장소로 바꾸려면 먼저 이 장소를 일정에 담아주세요. 후보들의 편의를 먼저 비교할 수도 있어요.'); openTool('compare'); return; }
+      if (!trip.saved.includes(place.id)) { append('다른 장소로 바꾸려면 이 장소를 일정에 담아주세요. 후보들의 편의를 비교할 수도 있어요.'); openTool('compare'); return; }
       props.onAlternative(place.id); return;
     }
     if (['move','visit','break'].includes(action.action) && place) {
@@ -436,7 +436,7 @@ export default function PlannerAssistant(props: Props) {
         </div>)}
         {guide && <div className="naru-guided-choices" role="group" aria-label="한 가지씩 안내 선택">{guide.choices.map(choice => <button type="button" key={choice} disabled={busy} onClick={() => void send(choice)}>{choice}</button>)}<button type="button" onClick={() => void send('안내 끝내기')}>안내 끝내기</button></div>}
         {reviewHours && <Suspense fallback={<LoadingState>바뀐 일정을 확인하고 있어요.</LoadingState>}><NaruScheduleReview key={trip.voiceRevision} visits={reviewedVisits} onAlternative={props.onAlternative} onDetails={props.onPlace} /></Suspense>}
-        {showEvidence && <div className="naru-evidence" aria-label="현재 장소의 편의 근거">{(trip.orderedSavedPlaces.length ? trip.orderedSavedPlaces : known).map(place => <article key={place.id}><strong>{place.name}</strong><p>{place.accessibility?.map(field => `${field.label}: ${field.state === 'confirmed' ? '확인됨' : field.state === 'negative' ? '조건과 맞지 않음' : '미확인'}`).join(' · ') || '편의 정보 미확인'}</p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small><button type="button" onClick={() => props.onPlace(place)}>원문과 문의 정보</button></article>)}{!known.length && <p>여행지를 먼저 찾으면 장소별 근거를 모아드릴게요.</p>}<button type="button" onClick={() => openTool('readiness')}>날씨·이동까지 확인</button></div>}
+        {showEvidence && <div className="naru-evidence" aria-label="현재 장소의 편의 근거">{(trip.orderedSavedPlaces.length ? trip.orderedSavedPlaces : known).map(place => <article key={place.id}><strong>{place.name}</strong><p>{place.accessibility?.map(field => `${field.label}: ${field.state === 'confirmed' ? '확인됨' : field.state === 'negative' ? '조건과 맞지 않음' : '미확인'}`).join(' · ') || '편의 정보 미확인'}</p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small><button type="button" onClick={() => props.onPlace(place)}>원문과 문의 정보</button></article>)}{!known.length && <p>여행지를 찾으면 장소별 근거를 모아드릴게요.</p>}<button type="button" onClick={() => openTool('readiness')}>날씨·이동까지 확인</button></div>}
         {busy && <div className="naru-typing" role="status"><Spinner /><span>{activity.text || '나루가 여행을 살펴보고 있어요'}</span></div>}
       </div>
       {toolsOpen && <div className="naru-tools">{toolGroups.map(group => <div key={group.title}><strong>{group.title}</strong><div>{group.items.map(([id, label]) => <button key={id} type="button" onClick={() => openTool(id)}>{label}</button>)}</div></div>)}</div>}

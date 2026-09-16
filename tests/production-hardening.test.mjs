@@ -27,29 +27,29 @@ test("landing route composes restored scenes and keeps browser effects inside th
   assert.doesNotMatch(story + naru, /fetch\(|localStorage|sessionStorage|<form\b|<input\b|<textarea\b/);
 });
 
-test("the two-second decorative arrival never intercepts navigation or moves keyboard focus", async () => {
+test("the arrival intro is dismissible, accessible and isolated from global landing styles", async () => {
   const [landing, intro, css] = await Promise.all([
     source("app/page.tsx"),
     source("features/landing/components/LandingIntro.tsx"),
-    source("app/styles/simple-wave.css"),
+    source("features/landing/components/LandingIntro.module.css"),
   ]);
   assert.match(landing, /<LandingIntro/);
   assert.match(landing, /<LandingHero/);
-  assert.match(intro, /<div ref=\{scene\} className="arrival-scene" hidden aria-hidden="true"/);
-  assert.doesNotMatch(intro, /<dialog|<button|showModal|\.focus\(|preventDefault\(|body\.style\.overflow/);
-  assert.match(css, /\.arrival-scene \{[^}]*pointer-events: none/);
+  assert.match(intro, /<dialog ref=\{dialog\} className=\{`\$\{styles\.scene\} arrival-scene`\}/);
+  assert.match(intro, /WAVE가 당신의 발걸음을 응원합니다<\/p>/);
+  assert.doesNotMatch(intro, /WAVE가 당신의 발걸음을 응원합니다\./);
+  assert.match(intro, /node\.showModal\(\)/);
+  assert.match(intro, /onCancel=\{\(event\) => \{ event\.preventDefault\(\); dismiss\(\); \}\}/);
+  assert.match(intro, /건너뛰기<\/button>/);
+  assert.match(css, /\.scene \{/);
   assert.match(intro, /setTimeout\(finish, 2000\)/);
-  assert.match(intro, /root\.hidden = true/);
-  assert.match(intro, /animations\.forEach\(animation => animation\.cancel\(\)\)/);
   assert.match(intro, /sessionStorage\.getItem\("wave-arrival-session-v1"\)/);
   assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
   assert.match(intro, /document\.documentElement\.dataset\.introSeen = "1"/);
   assert.match(intro, /seen \|\| media\.matches/);
-  for (const event of ["pointerdown", "keydown", "wheel", "touchstart", "resize"]) assert.ok(intro.includes('"' + event + '"'), event);
-  assert.match(intro, /addEventListener\(name, finish, \{ passive: true, capture: true \}\)/);
-  assert.match(intro, /removeEventListener\(name, finish, true\)/);
-  assert.match(intro, /media\.addEventListener\("change", reduction\)/);
-  assert.match(intro, /media\.removeEventListener\("change", reduction\)/);
+  assert.match(intro, /media\.addEventListener\("change", reduce\)/);
+  assert.match(intro, /media\.removeEventListener\("change", reduce\)/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
 });
 
 test("place-photo recovery has a finite timeout and a stale result cannot replace the current card image", async () => {

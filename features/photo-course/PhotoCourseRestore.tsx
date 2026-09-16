@@ -4,6 +4,7 @@
 import { useCallback, useId, useRef, useState, useSyncExternalStore } from "react";
 import { MAX_PHOTOS, usePhotoCourse } from "./usePhotoCourse";
 import { usePlaceDialogFocus } from '../planner/hooks/usePlaceDialogFocus';
+import AccessibleDateInput from '../../components/AccessibleDateInput';
 
 const REGIONS = ["창원", "진주", "통영", "사천", "김해", "밀양", "거제", "양산", "의령", "함안", "창녕", "고성", "남해", "하동", "산청", "함양", "거창", "합천"];
 const subscribeClientReady = () => () => {};
@@ -42,7 +43,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         <header><h2 id="photo-course-help-title" tabIndex={-1}>사진 코스 사용 방법</h2><button type="button" aria-label="사용 방법 닫기" onClick={closeHelp}>×</button></header>
         <ol>
           <li><strong>원본 사진을 고르세요.</strong><span>촬영 날짜와 위치가 남은 JPG·PNG·WebP·TIFF를 최대 {MAX_PHOTOS}장까지 읽습니다.</span></li>
-          <li><strong>장소명과 지역을 확인하세요.</strong><span>사진 순서만 먼저 만들며, 잘못 보이는 이름과 시·군은 직접 고칠 수 있습니다.</span></li>
+          <li><strong>장소명과 지역을 확인하세요.</strong><span>사진 순서를 자동으로 만들며, 잘못 보이는 이름과 시·군은 직접 고칠 수 있습니다.</span></li>
           <li><strong>공식정보를 확인한 뒤 반영하세요.</strong><span>같은 지역의 동일 장소만 연결하고, 확인되지 않으면 비워 둡니다.</span></li>
         </ol>
         <p>원본 사진과 GPS는 기기 밖으로 보내지 않습니다. 사진만 보고 계단·접근 가능 여부·안전을 판단하지 않으며, HEIC는 지원하지 않습니다.</p>
@@ -86,7 +87,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
               <div className="photo-course-day-head">
                 <label>
                   <span>여행 날짜</span>
-                  <input type="date" value={day.date} onChange={(event) => changeDayDate(dayIndex, event.target.value)} />
+                  <AccessibleDateInput value={day.date} onChange={(event) => changeDayDate(dayIndex, event.target.value)} />
                 </label>
                 <p>{day.region ? `${day.region} 중심 · ` : ""}방문지 {day.stops.length}곳</p>
               </div>

@@ -165,7 +165,7 @@ test("photo course UI documents limitations and supports accessible correction",
   const component = await source("features/photo-course/PhotoCourseRestore.tsx");
   assert.match(component, /사진 코스 저장/);
   assert.match(component, /HEIC는 이번 버전에서 지원하지 않습니다/);
-  assert.match(component, /type="date"/);
+  assert.match(component, /<AccessibleDateInput/);
   assert.match(component, /순서를 위로/);
   assert.match(component, /<select/);
   assert.match(component, /role="status"/);

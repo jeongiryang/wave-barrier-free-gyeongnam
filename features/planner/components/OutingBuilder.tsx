@@ -9,6 +9,7 @@ import {localDate} from '../utils';
 import OutingArchive from './OutingArchive';
 import VisitHoursCard from './VisitHoursCard';
 import {courseCard,courseGrid,courseActions,courseLabel,courseInput,courseCopy,coursePrimary} from './small-trip-styles';
+import AccessibleDateInput from '../../../components/AccessibleDateInput';
 
 export default function OutingBuilder(){
  const [region,setRegion]=useState('창원'),[profiles,setProfiles]=useState<string[]>([]),[theme,setTheme]=useState('nature'),[date,setDate]=useState(''),[time,setTime]=useState('10:00'),[hours,setHours]=useState(3),[stay,setStay]=useState(45),[originId,setOriginId]=useState('changwon'),[unknown,setUnknown]=useState(false);
@@ -27,14 +28,14 @@ export default function OutingBuilder(){
  const reviewing=Boolean(review&&review===selectionKey&&preview);
  const validInput=Boolean(date&&time&&profiles.length&&theme&&ready&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)&&Number(time.slice(0,2))*60+Number(time.slice(3))+hours*60<1440);
  async function find(){setChosen([]);setReview('');if(await search.search()){setStep(1);setPageNumber(0);requestAnimationFrame(()=>resultHeading.current?.focus());}}
- function choose(place:Place){setReview('');if(chosen.includes(place.id)){setChosen(chosen.filter(id=>id!==place.id));return;}if(selected.length>=2){setMessage('짧은 나들이는 두 곳까지 담을 수 있어요. 먼저 한 곳을 빼고 바꿔주세요.');return;}setChosen([...selected.map(item=>item.id),place.id]);setMessage('');}
+ function choose(place:Place){setReview('');if(chosen.includes(place.id)){setChosen(chosen.filter(id=>id!==place.id));return;}if(selected.length>=2){setMessage('짧은 나들이는 두 곳까지 담을 수 있어요. 한 곳을 빼고 바꿔주세요');return;}setChosen([...selected.map(item=>item.id),place.id]);setMessage('');}
  return <div style={{display:'grid',gap:24}}>
   <section aria-label="짧은 나들이 조건" hidden={step!==0} inert={!ready} style={step===0?courseCard:{display:'none'}}>
    <div><p style={courseCopy}>01 · 나에게 있는 시간</p><h2 style={{fontSize:26,margin:'8px 0'}}>몇 시간의 여유가 있나요?</h2><p style={courseCopy}>필요한 편의를 고르고 한두 곳을 천천히 만나보세요. 출발과 복귀는 아래 공개 장소를 기준으로 계산합니다.</p></div>
    <div style={courseGrid}>
     <label style={courseLabel}>여행 지역<select style={courseInput} value={region} onChange={event=>setRegion(event.target.value)}>{regions.map(value=><option key={value}>{value}</option>)}</select></label>
     <label style={courseLabel}>출발·복귀 장소<select style={courseInput} value={originId} onChange={event=>setOriginId(event.target.value)}>{departurePresets.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-    <label style={courseLabel}>여행 날짜<input type="date" style={courseInput} value={date} onChange={event=>setDate(event.target.value)}/></label>
+    <label style={courseLabel}>여행 날짜<AccessibleDateInput style={courseInput} value={date} onChange={event=>setDate(event.target.value)}/></label>
     <label style={courseLabel}>출발 시각<input type="time" style={courseInput} value={time} onChange={event=>setTime(event.target.value)}/></label>
     <label style={courseLabel}>쓸 수 있는 시간<select style={courseInput} value={hours} onChange={event=>setHours(Number(event.target.value))}>{[1,2,3,4,5,6].map(value=><option key={value} value={value}>{value}시간</option>)}</select></label>
     <label style={courseLabel}>한 장소에서 머무는 시간<select style={courseInput} value={stay} onChange={event=>setStay(Number(event.target.value))}>{[15,30,45,60,90,120].map(value=><option key={value} value={value}>{value}분</option>)}</select></label>

@@ -9,7 +9,7 @@ export default function LandingDiscoveryStories() {
       <CompactJourneyVisual stage="conditions" />
       <div className="product-story-copy">
         {en ? <p className="section-kicker">01 · Your needs</p> : <p className="section-kicker">01 · 여행 조건</p>}
-        <h2>{en ? "Your needs first." : "장소보다 먼저,"}<br /><em>{en ? "Then the destination." : "내 여행 조건부터."}</em></h2>
+        <h2>{en ? "Your needs first." : "장소를 고르기 전에,"}<br /><em>{en ? "Then the destination." : "내 여행 조건부터."}</em></h2>
         <p>{en ? "Choose a region and the facilities you need, then search. Change your conditions whenever you want to find a different trip." : "지역과 필요한 편의를 고른 뒤 직접 검색하세요. 조건이 달라지면 다시 검색해 내 여행에 맞는 장소를 찾아요."}</p>
         <a href="/planner#planner">{en ? "Start with my needs" : "내 조건으로 시작하기"} <span aria-hidden="true">→</span></a>
       </div>

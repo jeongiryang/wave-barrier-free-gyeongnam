@@ -43,7 +43,7 @@ export default function CourseExpansion({trip,region,themes,profiles,plan,curren
    {data&&!candidates.length&&<p style={courseCopy}>조건과 거리에 맞는 후보가 아직 없어요. 범위를 바꾸거나 다른 활동을 살펴보세요.</p>}
    {selected&&<section aria-label="추가할 장소 미리보기" style={courseCard}><h4 ref={previewHeading} tabIndex={-1} style={{margin:0,fontSize:20,scrollMarginTop:140}}>{anchor.name} → {selected.place.name}</h4><p style={courseCopy}>{trip.scheduleAssignments[anchor.id]||trip.tripDays[0]}에 한 곳을 더합니다. 이후 도착 시각은 새 머무는 시간과 이동에 따라 바뀝니다.</p><label style={courseLabel}>새 장소에서 머무는 시간<select style={courseInput} value={minutes} onChange={event=>setMinutes(Number(event.target.value))}>{[15,30,45,60,90,120].map(value=><option key={value} value={value}>{value}분</option>)}</select></label><div className="travel-book-actions" style={courseActions}><button type="button" style={coursePrimary} onClick={apply}>이 장소 이어 담기</button><button type="button" onClick={()=>setChosenId('')}>취소</button></div></section>}
    {undo&&<div className="travel-book-actions" style={courseActions}><button type="button" onClick={undoAddition}>방금 이어 담기 되돌리기</button></div>}
-   </>:<p style={courseCopy}>먼저 여행지 한 곳을 일정에 담으면 주변 코스를 이어갈 수 있어요.</p>}
+   </>:<p style={courseCopy}>여행지 한 곳을 일정에 담으면 주변 코스를 이어갈 수 있어요</p>}
   </section>
  </details>;
 }

@@ -99,7 +99,7 @@ export default function AccountSettings({ nativeAuth = false }: { nativeAuth?: b
   }
 
   if (isPending) return <LoadingState>계정 정보를 불러오는 중…</LoadingState>;
-  if (!session?.user) return <div className="auth-signed-in"><p>계정 관리를 사용하려면 먼저 로그인해 주세요.</p><a className="auth-primary-link" href="/login?next=%2Faccount">로그인</a></div>;
+  if (!session?.user) return <div className="auth-signed-in"><p>계정 관리를 사용하려면 로그인해 주세요.</p><a className="auth-primary-link" href="/login?next=%2Faccount">로그인</a></div>;
 
   return <div className="account-settings">
     <NicknameEditor key={session.user.id} name={session.user.name || '여행자'} onSaved={() => router.refresh()} />

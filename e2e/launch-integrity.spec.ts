@@ -150,22 +150,17 @@ test("search failures stay visible and retry the same optional choices without r
   expect((await current(page)).facilities).toEqual(facilities);
 });
 
-test("landing: nonblocking intro permits an immediate keyboard move into the real page", async ({ page }) => {
+test("landing: intro exposes its message and an immediate keyboard dismissal", async ({ page }) => {
   const errors = trackRuntimeErrors(page);
   const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
   await page.setViewportSize({ width, height: 960 });
   await freshArrival(page);
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
-  await expect(scene).toHaveCSS("pointer-events", "none");
-  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
-  await expect(scene.locator("button,a,[tabindex]")).toHaveCount(0);
-  await expect(planning).toHaveAccessibleName("여행지 둘러보기");
-  await planning.focus(); await page.keyboard.press("Tab");
+  await expect(scene).toContainText("WAVE가 당신의 발걸음을 응원합니다");
+  await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
+  await page.keyboard.press("Escape");
   await expect(scene).toBeHidden();
-  await expect(planning).not.toBeFocused();
-  expect(await page.evaluate(() => document.activeElement?.closest(".arrival-scene"))).toBeNull();
-  await page.keyboard.press("Shift+Tab");
-  await expect(planning).toBeFocused();
+  await planning.focus(); await expect(planning).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.clock.runFor(32);
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");

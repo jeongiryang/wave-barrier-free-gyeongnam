@@ -27,7 +27,7 @@ export const profileNotices = {
 } as const;
 
 export const planNotices = {
-  outsideTrip: ["이 장소는 현재 여행 기간 밖에 보관되어 있습니다. 일정에서 날짜를 먼저 옮겨주세요.", "This place is stored outside the trip dates. Move it into this trip first."],
+  outsideTrip: ["이 장소는 현재 여행 기간 밖에 보관되어 있습니다. 일정에서 날짜를 옮겨주세요.", "This place is stored outside the trip dates. Move it into this trip first."],
   replaced: ["선택한 장소로 바꿨어요. 갱신된 일정과 경로를 확인해 주세요.", "Place replaced. Check the updated itinerary and route."],
   idle: ["바로 여행지를 둘러보거나, 필요한 조건만 골라주세요.", "Browse places now, or choose only the conditions you need."],
   loading: ["필요한 편의가 확인된 여행지를 찾고 있어요.", "Finding places with information about your needs."],

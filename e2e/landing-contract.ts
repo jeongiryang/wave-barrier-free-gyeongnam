@@ -28,7 +28,6 @@ export async function storyReady(page: Page) {
   });
   await expect(page.locator(".landing-page.simple-landing")).toHaveCount(1);
   await expect(page.locator(".landing-page")).toBeVisible();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.evaluate(() => document.fonts.ready);
 }
 

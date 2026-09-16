@@ -109,7 +109,7 @@ export function useTripSelection({ schedule, activePlaces, origin, accessibility
     const receipt = { ...result, before: first.before, beforeKey: first.beforeKey, label: commands.length > 1 ? `${commands.length}개의 변경을 적용했어요.` : result.label };
     const after = receipt.after;
     const nextPlaces = after.saved.map(id => known.find(place => place.id === id)).filter((place): place is Place => Boolean(place));
-    if (nextPlaces.length !== after.saved.length) return { ok: false as const, reason: '장소 정보를 먼저 불러와 주세요.' };
+    if (nextPlaces.length !== after.saved.length) return { ok: false as const, reason: '장소 정보를 불러와 주세요.' };
     try { commitJourney(after, nextPlaces, after.days[0] || '', after.days.at(-1) || '', readTripValue(window.localStorage, REGION_KEY) || '', readTripValue(window.localStorage, THEMES_KEY) || '[]'); }
     catch (error) { const reason = error instanceof Error && error.message.startsWith('다른 탭') ? error.message : '변경 내용을 저장하지 못했어요. 기존 일정은 그대로예요.'; setCommandNotice(reason); return { ok: false as const, reason }; }
     committedRevision.current = voiceRevision;
@@ -138,7 +138,7 @@ export function useTripSelection({ schedule, activePlaces, origin, accessibility
   };
   const applyJourneyDraft = (draft: NaruJourney) => {
     if (!savedStorageReady || !schedule.storageReady || !optimized.orderStorageReady) return '저장한 여행을 불러온 뒤 다시 시도해 주세요.';
-    if (saved.some(id => !optimized.orderedSavedPlaces.some(place => place.id === id))) return '기존 일정에 아직 불러오지 못한 장소가 있어요. 장소 정보를 먼저 확인해 주세요. 기존 일정은 그대로 유지합니다.';
+    if (saved.some(id => !optimized.orderedSavedPlaces.some(place => place.id === id))) return '기존 일정에 아직 불러오지 못한 장소가 있어요. 장소 정보를 확인해 주세요. 기존 일정은 그대로 유지합니다.';
     const error = validateJourneyApplication(draft, { saved, fixed: schedule.fixedVisits, assignments: schedule.scheduleAssignments, start: schedule.travelStart });
     if (error) return error;
     const replacements = new Map(draft.stops.filter(stop => stop.replaces).map(stop => [stop.replaces!, stop]));

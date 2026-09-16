@@ -38,20 +38,18 @@ for (const legacyFull of [false, true]) {
   });
 }
 
-test("runtime OS reduction ends the active arrival while retaining the user's real-page focus", async ({ page }) => {
+test("runtime OS reduction ends the active arrival and restores the page", async ({ page }) => {
   await freshArrival(page);
   const link = page.locator(".landing-actions a");
-  await link.focus();
-  await expect(link).toBeFocused();
+  await expect(page.locator(".arrival-scene").getByRole("button", { name: "건너뛰기" })).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.clock.runFor(32);
   await expect(page.locator(".arrival-scene")).toBeHidden();
-  await expect(link).toBeFocused();
   expect(await page.locator(".arrival-scene").evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.clock.runFor(2500);
   await expect(page.locator(".arrival-scene")).toBeHidden();
-  await expect(link).toBeFocused();
+  await expectUsableTarget(link);
 });
 
 for (const denied of ["read", "write"] as const) {
@@ -70,14 +68,15 @@ for (const denied of ["read", "write"] as const) {
     }, denied);
     await freshArrival(page);
     const link = page.locator(".landing-actions a");
-    await link.focus(); await page.keyboard.press("Tab");
+    await page.keyboard.press("Escape");
     await expect(page.locator(".arrival-scene")).toBeHidden();
     expect(await page.evaluate(() => document.documentElement.dataset.introSeen)).toBe("1");
     expect(await page.evaluate(() => document.activeElement?.closest(".arrival-scene"))).toBeNull();
     await page.clock.resume();
     await page.reload(); await storyReady(page);
     // Denied persistence may replay, but the page remains immediately operable.
-    await link.focus(); await page.keyboard.press("Tab");
+    await expect(page.locator(".arrival-scene")).toBeVisible();
+    await page.keyboard.press("Escape");
     await expect(page.locator(".arrival-scene")).toBeHidden();
     await expectUsableTarget(link);
     expect(errors).toEqual([]);
@@ -89,16 +88,14 @@ test("failed arrival photography still finishes on time and leaves its source an
   await page.route("**/media/horizon/hero-coast.jpg", route => route.abort());
   await freshArrival(page);
   const link = page.locator(".landing-actions a");
-  await link.focus();
   await page.clock.runFor(2000);
   await expect(page.locator(".arrival-scene")).toBeHidden();
-  await expect(link).toBeFocused();
   await expect(page.locator(".landing-hero-landscape figcaption")).toContainText("사진을 불러오지 못했어요");
   await expect(page.locator(".landing-hero-landscape figcaption a").first()).toHaveAttribute("href", /^https:/);
   await expect(link).toHaveAttribute("href", "/planner");
 });
 
-test("a short 320px screen keeps the actual heading and planning action usable without intro controls", async ({ page }) => {
+test("a short 320px reduced-motion screen keeps the actual heading and planning action usable", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await prepareLandingMedia(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -106,7 +103,7 @@ test("a short 320px screen keeps the actual heading and planning action usable w
   await page.goto("/"); await storyReady(page);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expectUsableTarget(page.locator(".landing-actions a"));
-  await expect(page.locator(".arrival-scene button,.arrival-scene a,.arrival-scene [tabindex]")).toHaveCount(0);
+  await expect(page.locator(".arrival-scene button")).toBeHidden();
   await expect(page.getByRole("button", { name: /인트로|다시보기/ })).toHaveCount(0);
   await expectNoOverflow(page);
 });

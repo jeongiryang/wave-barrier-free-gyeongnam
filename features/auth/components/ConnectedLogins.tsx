@@ -50,7 +50,7 @@ export default function ConnectedLogins({ methods, onUnlink }: { methods: LoginM
       {methods.kakao
         ? methods.password
           ? <button className="auth-submit" type="button" disabled={pending} onClick={unlink}>카카오 연결 해제</button>
-          : <p>카카오 연결을 해제하려면 먼저 <a href="/forgot-password">이메일 비밀번호를 설정</a>해 주세요.</p>
+          : <p>카카오 연결을 해제하려면 <a href="/forgot-password">이메일 비밀번호를 설정</a>해 주세요.</p>
         : <button className="auth-submit kakao-login-button" type="button" disabled={pending} onClick={connect}>카카오 계정 연결</button>}
     </>}
     {(message || params.has("error")) && <p className="auth-message" role="status">{message || "카카오 계정을 연결하지 못했습니다. 두 계정의 이메일이 같은지 확인하고 다시 로그인해 주세요."}</p>}
