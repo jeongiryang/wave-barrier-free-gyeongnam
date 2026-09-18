@@ -46,7 +46,6 @@
 .simple-place-photo { width: 160px; aspect-ratio: 4 / 3; padding: 0; border: 0; border-radius: 8px; overflow: hidden; background: var(--paper); }
 .simple-place-photo .smart-spot-image { width: 100%; height: 100%; min-height: 0; border-radius: 0; }
 .simple-place-photo .smart-spot-image > img { width: 100%; height: 100%; object-fit: cover; }
-.simple-place-photo .smart-image-fallback { padding: 10px; font-size: 12px; }
 .simple-photo-placeholder { display: block; height: 100%; background: var(--paper); }
 .simple-place-copy { min-width: 0; }
 .simple-place-city { font-size: 13px; color: var(--muted); }
@@ -165,7 +164,7 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 .simple-map-switch { display: flex; gap: 20px; padding-top: 16px; border-bottom: 1px solid var(--line); }
 .simple-map-switch button { border: 0; min-width: 44px; min-height: 44px; padding: 8px 4px; background: none; border-bottom: 2px solid transparent; color: var(--muted); border-radius: 0; }
 .simple-map-switch button[aria-pressed=true] { color: var(--blue); border-bottom-color: var(--blue); }
-.simple-itinerary-board { display: grid; grid-template-columns: minmax(0,1fr); gap: 32px; align-items: start; margin-top: 24px; }
+.simple-itinerary-board { display: grid; grid-template-columns: minmax(0,1fr); gap: 32px; align-items: start; }
 .simple-timeboard { min-width: 0; }
 .simple-day-tabs { display: flex; gap: 8px; overflow-x: auto; max-width: 100%; }
 .simple-day-tabs button { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 0 0 auto; min-width: 68px; min-height: 52px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-size: 14px; }
@@ -196,8 +195,6 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 .simple-itinerary-map { min-width: 0; }
 .simple-itinerary-map .navigation-workspace { display: block; }
 .simple-itinerary-map .map-panel { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; }
-.simple-trip-actions { display: flex; align-items: start; gap: 12px; padding: 20px 0; }
-.simple-trip-actions > button { min-height: 46px; padding: 10px 20px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
 .planner-simple .simple-trip-actions .travel-book-archive-controls button { border-radius: 6px; min-width: 0; min-height: 46px; }
 @media(min-width:1024px) {
   .simple-itinerary-board[data-map=true] { grid-template-columns: minmax(360px,.9fr) minmax(0,1.1fr); }
@@ -273,7 +270,7 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 
 /* Keep short control labels and empty photo slots legible at narrow widths. */
 .simple-search-bar label > span { white-space: nowrap; flex-shrink: 0; }
-.simple-place-photo .smart-image-fallback { min-height: 0; height: 100%; padding: 8px; font-size: 11px; }
+.simple-place-photo .smart-image-fallback { height: 100%; font-size: 11px; }
 .simple-place-photo .smart-image-fallback p, .simple-place-photo .smart-image-fallback small { display: none; }
 .simple-results .simple-command-receipt button { min-height: 44px; border: 0; background: transparent; color: var(--purple); font-weight: 600; text-decoration: underline; }
 .simple-trip-actions { padding-block: 12px; }
