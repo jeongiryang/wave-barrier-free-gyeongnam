@@ -1,6 +1,6 @@
-# PR #번호 AI 작업 로그
+# PR #557 AI 작업 로그
 
-- PR: 링크
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/557
 - 제목: feat: 진동으로 확인하는 읽기 보조
 - 작성자: jeongiryang
 - 최종 상태: 열림 (base `fix/preferences-disclosure-focus-contract`)
