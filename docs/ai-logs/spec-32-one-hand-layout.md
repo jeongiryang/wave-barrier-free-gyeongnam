@@ -60,9 +60,9 @@
 
 ## 변경 파일
 
-- `features/planner/components/PlaceDecisionDialog.tsx`: `.modal-body` 맨 끝에 `닫기` 버튼 추가. 위 버튼은 `aria-label="닫기"`인 현재 형태 그대로 둔다.
+- `features/planner/components/PlaceDecisionDialog.tsx`: `.modal-body` 맨 끝에 `div.modal-close-end`로 감싼 `닫기` 버튼 추가. 위 버튼은 `aria-label="닫기"`인 현재 형태 그대로 둔다.
 - `app/styles/place-dialog.css`: 아래 닫기 버튼 스타일. 기본 `display:none`, `@media (max-width: 767px)`에서만 표시.
-- `app/styles/simple-planner.css`: 죽은 선언 제거(상쇄용).
+- `app/styles/simple-planner.css`, `app/styles/wave-horizon.css`: 죽은 선언 제거(상쇄용).
 - `e2e/one-hand-layout.spec.ts` (신규).
 
 새 CSS 파일, 새 컴포넌트, 새 설정, 새 저장 키, 새 상태를 만들지 않았다. `components/WaveHeader.tsx`는 건드리지 않았다. 간격 토큰 값을 바꾸지 않았다.
@@ -74,7 +74,7 @@
 | | `cssRawKiB` | `cssGzipKiB` (예산 70) | 실제 gzip 바이트 |
 | --- | --- | --- | --- |
 | `origin/main` | 367.99 | 70.00 | 71681 |
-| 이 PR | 367.85 | 70.00 | **71681 (동일)** |
+| 이 PR | 367.83 | 70.00 | **71681 (동일)** |
 
 추가한 CSS를 상쇄하기 위해 **뒤에 오는 같은 선택자가 무조건 덮어써서 계산된 스타일이 바뀔 수 없는 죽은 선언만** 제거했다. import가 0인 CSS 파일 삭제는 번들에 없어 효과가 없으므로 쓰지 않았다.
 
@@ -83,10 +83,35 @@
 3. `simple-planner.css` `.simple-place-photo .smart-image-fallback { padding: 10px; font-size: 12px; }` — 뒤의 같은 선택자가 `padding: 8px; font-size: 11px;`로 둘 다 덮어쓴다.
 4. `simple-planner.css` `.simple-itinerary-board { … margin-top: 24px; }` 중 `margin-top`만 — 뒤의 최상위 `.simple-itinerary-board{margin-top:24px}`가 같은 명시도·같은 값으로 무조건 덮어쓴다.
 5. `simple-planner.css` `.simple-place-photo .smart-image-fallback { min-height: 0; … padding: 8px; … }` 중 `min-height`와 `padding`만 — 뒤의 같은 선택자가 두 값을 같은 값으로 다시 선언한다.
+6. `wave-horizon.css` `html { scroll-padding-top }`, `body { background }`, `h1,h2,h3 { letter-spacing }`, `.wave-header nav a[aria-current] { color; background; box-shadow }` — 뒤에 import 되는 `simple-wave.css`가 같은 선택자로 같은 속성을 모두 다시 선언한다(`app/layout.tsx`에서 `wave-horizon.css` 45행, `simple-wave.css` 49행). 이 네 건은 감싼 버튼의 스타일이 늘어난 만큼을 상쇄하려고 추가로 제거했고, 제거 전후 390·768·1440px에서 `html`·`body`·첫 제목·`aria-current` 메뉴의 계산된 스타일이 완전히 동일함을 확인했다.
+6. `wave-horizon.css` `html { scroll-padding-top }`, `body { background }`, `h1,h2,h3 { letter-spacing }`, `.wave-header nav a[aria-current] { color; background; box-shadow }` — 뒤에 import 되는 `simple-wave.css`가 같은 선택자로 같은 속성을 모두 다시 선언한다(`app/layout.tsx`에서 `wave-horizon.css` 45행, `simple-wave.css` 49행). 이 네 건은 감싼 버튼의 스타일이 늘어난 만큼을 상쇄하려고 추가로 제거했고, 제거 전후 390·768·1440px에서 `html`·`body`·첫 제목·`aria-current` 메뉴의 계산된 스타일이 완전히 동일함을 확인했다.
 
 모두 최상위 규칙(미디어 쿼리 밖)이고, 덮어쓰는 쪽도 최상위·같은 명시도·뒤 순서라 조건 없이 이긴다.
 
 **근거를 말로만 두지 않고 실제로 확인했다.** 제거 전후로 390·768·960·1440px에서 `.simple-trip-actions`와 그 버튼의 계산된 스타일(display, align-items, gap, padding 4방향, flex-wrap, margin, min-height, border, border-radius, background-color, font-size, line-height, color)과 경계 상자를 받아 비교했고 **네 폭 모두 완전히 동일**했다.
+
+## 기존 e2e 충돌 (고치지 않고 남김)
+
+명세는 두 닫기 버튼의 **접근 가능한 이름을 같게** 하라고 요구한다(`아래 버튼에만 닫기를 두고 위 버튼은 aria-label="닫기"인 현재 형태를 유지한다`). 그 결과 768px 미만에서 dialog 안에 이름이 `닫기`(영문 `Close`)인 버튼이 둘이 되고, `getByRole("button", { name: "닫기", exact: true })`를 쓰는 기존 spec들이 Playwright strict mode 위반으로 실패한다.
+
+**기존 테스트를 고치지 않는다는 원칙에 따라 손대지 않았다.** `mobile-chromium`에서 실패하는 9건은 다음과 같고, 원인이 모두 하나다.
+
+| spec | 건수 |
+| --- | --- |
+| `e2e/place-detail-decision.spec.ts:45` (ko/en × light/dark) | 4 |
+| `e2e/recommendation-language.spec.ts:44` (light/dark) | 2 |
+| `e2e/core-journeys.spec.ts:62` | 1 |
+| `e2e/simple-naru-conversation.spec.ts:145` | 1 |
+| `e2e/naru-followup-intents.spec.ts:148` | 1 |
+
+`desktop-chromium`은 전부 통과한다. 768px 이상에서는 아래 닫기가 `display:none`이라 접근성 트리에 들어가지 않기 때문이다.
+
+첫 CI에서는 실패가 13건이었다. 그중 8건은 피할 수 있는 원인이었다. 아래 닫기를 `.modal-body`의 직계 자식 `button`으로 두면, 기존 계약이 주요 조작을 세는 데 쓰는 `.modal-body > button` 선택자에 함께 걸려 **768px 이상에서도** 장소 상세의 조작 순서 검사가 깨졌다. 버튼을 `div.modal-close-end`로 감싸 그 선택자에 걸리지 않게 고쳤고, 이제 768px 이상에서는 DOM 계약까지 변경 전과 같다. 이것은 기존 테스트를 고친 것이 아니라 제품 마크업을 기존 계약에 맞춘 것이다.
+
+남은 9건은 명세 요구사항 자체에서 나오는 충돌이라 구현으로 피할 수 없다. 검토자가 결정할 사항이며 두 가지 중 하나다.
+
+1. 명세대로 두 버튼의 이름을 같게 유지하고, 위 9건의 로케이터를 `.modal-close`처럼 고유한 것으로 바꾼다(별도 커밋·별도 판단).
+2. 아래 닫기의 접근 가능한 이름을 다르게 둔다. 이 경우 명세의 `접근 가능한 이름을 같게 하되` 요구를 바꿔야 한다.
 
 ## 검증
 
@@ -98,12 +123,15 @@
 - `npm run build:vercel` — 통과.
 - `npm run check:performance` — 통과. 위 표 참고.
 - `npm run test:e2e -- e2e/one-hand-layout.spec.ts --project=desktop-chromium` — 신규 5건 모두 통과.
+- `npm run test:e2e -- e2e/one-hand-layout.spec.ts e2e/place-detail-decision.spec.ts e2e/core-journeys.spec.ts e2e/recommendation-language.spec.ts e2e/simple-naru-conversation.spec.ts e2e/naru-followup-intents.spec.ts --project=desktop-chromium` — 40건 모두 통과.
+- 같은 목록을 `--project=mobile-chromium`으로 — 31건 통과, **9건 실패**. 위 `기존 e2e 충돌` 절 참고.
+- `npm run test:e2e -- e2e/one-hand-layout.spec.ts e2e/place-detail-decision.spec.ts e2e/core-journeys.spec.ts e2e/recommendation-language.spec.ts e2e/simple-naru-conversation.spec.ts e2e/naru-followup-intents.spec.ts --project=desktop-chromium` — 40건 모두 통과.
+- 같은 목록을 `--project=mobile-chromium`으로 — 31건 통과, **9건 실패**. 위 `기존 e2e 충돌` 절 참고.
 - `npm run test:e2e -- e2e/mobile-touch-targets.spec.ts e2e/touch-target-contract.spec.ts e2e/place-content-loading.spec.ts e2e/place-decisions.spec.ts e2e/planner-workspace-responsive.spec.ts --project=desktop-chromium` — 기존 10건 모두 통과. 명세가 계속 통과해야 한다고 지정한 `mobile-touch-targets`, `touch-target-contract`가 여기 포함된다.
 
 실행하지 않은 검사:
 
 - `npm run test:e2e` 전체는 돌리지 않았다. 지시에 따라 신규 spec과 관련 기존 spec만 선택 실행했다.
-- `--project=mobile-chromium`은 돌리지 않았다.
 - 명세가 요구한 `아주 크게` 상태 확인은 **할 수 없다.** 24번(글자 크게 보기)이 아직 병합되지 않았다. 확인 불가.
 - 화면 키보드가 올라온 상태에서 입력칸이 가려지는지는 확인하지 않았다. 이번 PR에 고정 영역이 없어 해당 위험이 생기지 않는다.
 
@@ -114,6 +142,6 @@
 
 ## 결과와 제한
 
-- 병합 커밋: 없음. 열린 PR이다. base는 `main`이다.
+- 병합 커밋: 없음. 열린 PR이다. base는 `main`이다. **CI가 초록이 아니다.** `mobile-chromium` 9건이 실패하며, 원인은 명세가 요구한 접근 가능한 이름 중복 하나다. 위 `기존 e2e 충돌` 절에 spec 이름과 건수를 그대로 적었다. 기준을 완화하거나 실패를 숨기지 않았고 기존 테스트도 고치지 않았다.
 - 남은 위험과 후속 작업: 내 일정의 `내 여행에 저장`은 여전히 29.9%에 있다. 위 구조적 충돌 절에 측정값과 이유를 남겼다. 주요 조작 영역을 내용 끝으로 옮기는 마크업 재설계는 768px 이상 배치 변경을 수반하므로 별도 이슈가 필요하다.
 - CSS gzip은 상한과 정확히 같은 바이트 수라 여유가 없다. 다음에 CSS를 늘리는 작업은 다시 상쇄가 필요하다.
