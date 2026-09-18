@@ -165,7 +165,8 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 .simple-map-switch { display: flex; gap: 20px; padding-top: 16px; border-bottom: 1px solid var(--line); }
 .simple-map-switch button { border: 0; min-width: 44px; min-height: 44px; padding: 8px 4px; background: none; border-bottom: 2px solid transparent; color: var(--muted); border-radius: 0; }
 .simple-map-switch button[aria-pressed=true] { color: var(--blue); border-bottom-color: var(--blue); }
-.simple-itinerary-board { display: grid; grid-template-columns: minmax(0,1fr); gap: 32px; align-items: start; margin-top: 24px; }
+/* margin-top 은 아래 같은 선택자가 덮어쓰는 죽은 선언이라 지웠다. */
+.simple-itinerary-board { display: grid; grid-template-columns: minmax(0,1fr); gap: 32px; align-items: start; }
 .simple-timeboard { min-width: 0; }
 .simple-day-tabs { display: flex; gap: 8px; overflow-x: auto; max-width: 100%; }
 .simple-day-tabs button { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 0 0 auto; min-width: 68px; min-height: 52px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-size: 14px; }
@@ -196,7 +197,8 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 .simple-itinerary-map { min-width: 0; }
 .simple-itinerary-map .navigation-workspace { display: block; }
 .simple-itinerary-map .map-panel { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; }
-.simple-trip-actions { display: flex; align-items: start; gap: 12px; padding: 20px 0; }
+/* display/align-items/gap 은 아래 같은 선택자가 덮어쓰는 죽은 선언이라 지웠다. */
+.simple-trip-actions { padding: 20px 0; }
 .simple-trip-actions > button { min-height: 46px; padding: 10px 20px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
 .planner-simple .simple-trip-actions .travel-book-archive-controls button { border-radius: 6px; min-width: 0; min-height: 46px; }
 @media(min-width:1024px) {

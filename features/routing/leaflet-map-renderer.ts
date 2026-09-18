@@ -11,7 +11,7 @@ export async function renderLeafletMap(
     pickModeRef, roadviewSelectModeRef,
     onOriginChangeRef, onDestinationChangeRef, choosePlace, clearCategoryMarkers,
     setProvider, setProviderDetail, setSelectedMapPlace, setPickMode,
-    setRoadviewSelectMode,
+    setRoadviewSelectMode, chooseFacilityMarker,
   } = context;
   const L = await import("leaflet");
   if (isCancelled() || !containerRef.current) return;
@@ -106,7 +106,7 @@ export async function renderLeafletMap(
     renderedKey = nextKey;
     const markerState = mapMarkerState(containerRef.current);
     clearContent();
-    const { places, route, crowdVisual, crowdPlace } = content;
+    const { places, route, crowdVisual, crowdPlace, facilityMarkers } = content;
     places.forEach((place, index) => {
       const lat = Number(place.mapY);
       const lng = Number(place.mapX);
@@ -140,6 +140,19 @@ export async function renderLeafletMap(
         fillOpacity: .13,
       }).addTo(map));
     });
+
+    // 편의 마커는 참고정보다. 자동 맞춤 범위(bounds)를 바꾸지 않는다.
+    for (const facility of facilityMarkers || []) {
+      const { latitude, longitude } = facility.destination;
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
+      const label = escapeMapHtml(`${facility.layerLabel} ${facility.name}`);
+      const html = `<button type="button" class="wave-map-icon facility-pin facility-${facility.official ? "official" : "place-search"}" data-facility-layer="${escapeMapHtml(facility.layerId)}" data-facility-marker-id="${escapeMapHtml(facility.id)}" title="${label}" aria-label="${label}"><span class="facility-pin-glyph">${escapeMapHtml(facility.glyph)}</span></button>`;
+      const icon = L.divIcon({ className: "wave-map-facility-icon", html, iconSize: [44, 44], iconAnchor: [22, 44] });
+      const layer = L.marker([latitude, longitude], { icon, keyboard: false })
+        .addTo(map)
+        .on("click", () => chooseFacilityMarker?.(facility));
+      overlays.push(layer);
+    }
 
     const geometry = route?.geometry?.length
       ? route.geometry

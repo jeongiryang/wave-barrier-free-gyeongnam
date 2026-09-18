@@ -13,7 +13,7 @@ export async function renderKakaoMap(
     pickModeRef, roadviewSelectModeRef,
     onOriginChangeRef, onDestinationChangeRef, openRoadviewAt, choosePlace,
     setProvider, setProviderDetail, setSelectedMapPlace, setPickMode,
-    setMeasureSummary,
+    setMeasureSummary, chooseFacilityMarker,
   } = context;
 
   await loadKakaoSdk(key);
@@ -92,7 +92,7 @@ export async function renderKakaoMap(
     renderedKey = nextKey;
     const markerState = mapMarkerState(containerRef.current);
     clearContent();
-    const { places, route, crowdVisual, crowdPlace } = content;
+    const { places, route, crowdVisual, crowdPlace, facilityMarkers } = content;
     places.forEach((place, index) => {
       const lat = Number(place.mapY);
       const lng = Number(place.mapX);
@@ -134,6 +134,26 @@ export async function renderKakaoMap(
         fillOpacity: .13,
       }));
     });
+
+    // 편의 마커는 일정 핀과 겹치지 않는 별도 오버레이다. 일정의 장소나
+    // 출발지를 바꾸지 않고, 지도 자동 맞춤(bounds)에도 넣지 않는다.
+    for (const facility of facilityMarkers || []) {
+      const { latitude, longitude } = facility.destination;
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `wave-map-icon facility-pin facility-${facility.official ? "official" : "place-search"}`;
+      button.dataset.facilityLayer = facility.layerId;
+      button.dataset.facilityMarkerId = facility.id;
+      button.title = `${facility.layerLabel} ${facility.name}`;
+      button.setAttribute("aria-label", button.title);
+      const glyph = document.createElement("span");
+      glyph.className = "facility-pin-glyph";
+      glyph.textContent = facility.glyph;
+      button.appendChild(glyph);
+      button.addEventListener("click", () => chooseFacilityMarker?.(facility));
+      overlays.push(new K.CustomOverlay({ map, position: new K.LatLng(latitude, longitude), content: button, yAnchor: 1, xAnchor: .5 }));
+    }
 
     const fallbackGeometry = [
       { lat: origin.lat, lng: origin.lng },

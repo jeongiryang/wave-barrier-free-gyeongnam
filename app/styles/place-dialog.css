@@ -52,7 +52,7 @@ html[data-theme="dark"] .modal-data small, html[data-theme="dark"] .modal-note {
 html[data-theme="dark"] .place-modal .place-community-link, html[data-theme="dark"] .place-modal .place-external-review { color: var(--ink); border-color: var(--line); background: var(--surface); }
 html[data-theme="dark"] .place-modal .place-external-review small, html[data-theme="dark"] .feedback-box textarea::placeholder { color: var(--muted); }
 .simple-footer { padding: 48px max(24px, calc((100vw - 1240px) / 2)); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px; color: #fff; background: #05202d; }
-.simple-footer p { margin: 0; color: #b5cbd5; font-size: .82rem; }
+.simple-footer p { margin: 0; color: #b5cbd5; }/* font-size 는 뒤에 오는 simple-wave.css 가 덮어쓰는 죽은 선언이라 지웠다. */
 .simple-footer .source { text-align: right; font-size: .76rem; }
 .footer-notes { display: grid; gap: 6px; text-align: center; }
 .policy-footer-links { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 14px; }

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, type
 import type { Map as LeafletMap } from "leaflet";
 import type { KakaoDrawingManager, KakaoMap } from "./kakao-sdk";
 import { describeCrowd } from "./map-utils";
-import type { MapPickMode, MapPlace, MapProvider, MapToolPanel, RouteMapProps } from "./types";
+import type { FacilityMapMarker, MapPickMode, MapPlace, MapProvider, MapToolPanel, RouteMapProps } from "./types";
 import { useMapDrawingTools } from "./useMapDrawingTools";
 import { useMapLayers } from "./useMapLayers";
 import { useMapJourneyActions } from "./useMapJourneyActions";
@@ -12,6 +12,7 @@ import { useMapRenderer } from "./useMapRenderer";
 import { useMapShell } from "./useMapShell";
 import { useMapFailureFocus } from "./useMapFailureFocus";
 import { useNearbyPlaces } from "./useNearbyPlaces";
+import { useFacilityLayers } from "./useFacilityLayers";
 import { useRoadviewController } from "./useRoadviewController";
 
 export function useRouteMapController({ origin, places, route, crowd, crowdPlaceId, focusedPlaceId, onPlaceFocus, onOriginChange, onDestinationChange, onSavePlaces }: RouteMapProps) {
@@ -102,6 +103,28 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   } = useNearbyPlaces({ kakaoMapRef, choosePlace });
   useEffect(() => { cancelNearbyRef.current = cancelNearby; }, [cancelNearby]);
   const {
+    facilitySelection,
+    facilityLayerStates,
+    facilityMarkers,
+    facilityNotice,
+    selectedFacility,
+    setSelectedFacility,
+    toggleFacility,
+    retryFacilityLayer,
+    clearFacilityLayers,
+  } = useFacilityLayers({ kakaoMapRef, provider, scopeKey: focusedGeometryKey });
+  const chooseFacilityMarker = useCallback((marker: FacilityMapMarker) => {
+    if (!isMapAvailable()) return;
+    setSelectedFacility(marker);
+    setToolPanel("facility");
+  }, [isMapAvailable, setSelectedFacility, setToolPanel]);
+  const panToFacility = useCallback((marker: FacilityMapMarker) => {
+    const sdk = window.kakao?.maps;
+    const map = kakaoMapRef.current;
+    if (map && sdk) map.panTo(new sdk.LatLng(marker.destination.latitude, marker.destination.longitude));
+    else mapRef.current?.panTo([marker.destination.latitude, marker.destination.longitude], { animate: false });
+  }, []);
+  const {
     measureMode,
     measureSummary,
     setMeasureSummary,
@@ -166,9 +189,11 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
       kakaoMapRef.current = null;
       drawingManagerRef.current = null;
       clearCategoryMarkers();
+      // 지도가 없으면 편의 마커를 그릴 곳도, 다시 찾을 기준도 없다.
+      clearFacilityLayers();
     }
     setProvider(next);
-  }, [cancelNearby, clearCategoryMarkers, clearAppliedMapLayers, closeRoadview, rememberFailureFocus, restoreMapLayers, roadviewSelectModeRef, setRoadviewPreviewOpen, setRoadviewSelectMode, setToolPanel]);
+  }, [cancelNearby, clearCategoryMarkers, clearAppliedMapLayers, clearFacilityLayers, closeRoadview, rememberFailureFocus, restoreMapLayers, roadviewSelectModeRef, setRoadviewPreviewOpen, setRoadviewSelectMode, setToolPanel]);
 
   useMapRenderer({
     fitMapRef,
@@ -182,6 +207,8 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     retryNonce,
     crowdVisual,
     crowdPlace,
+    facilityMarkers,
+    chooseFacilityMarker,
     pickModeRef,
     roadviewSelectModeRef,
     onOriginChangeRef,
@@ -217,6 +244,31 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     categoryPlaces,
     categoryMessage,
     categoryState,
+    facilitySelection,
+    facilityLayerStates,
+    facilityNotice,
+    selectedFacility,
+    toggleFacility,
+    retryFacilityLayer,
+    clearFacilityLayers,
+    closeFacilityCard: () => setSelectedFacility(null),
+    showFacilityOnMap: (marker: FacilityMapMarker) => {
+      if (!isMapAvailable()) return;
+      panToFacility(marker);
+      setProviderDetail(`${marker.name} 위치로 지도를 옮겼습니다.`);
+    },
+    setFacilityAsDestination: (marker: FacilityMapMarker) => {
+      if (!isMapAvailable()) return;
+      onDestinationChange?.({
+        id: `facility-${marker.id}`,
+        name: marker.name,
+        address: marker.address,
+        mapX: String(marker.destination.longitude),
+        mapY: String(marker.destination.latitude),
+        score: null,
+      });
+      setProviderDetail(`${marker.name}을 도착지로 선택했습니다.`);
+    },
     roadviewOpen,
     roadviewMessage,
     roadviewLoading,
