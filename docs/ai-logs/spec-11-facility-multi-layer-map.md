@@ -1,6 +1,6 @@
-# PR #번호 AI 작업 로그
+# PR #565 AI 작업 로그
 
-- PR: 링크
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/565
 - 제목: feat: 편의시설 여러 종류 동시 표시 지도
 - 작성자: jeongiryang
 - 최종 상태: 리뷰 대기
