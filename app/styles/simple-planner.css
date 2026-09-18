@@ -46,7 +46,6 @@
 .simple-place-photo { width: 160px; aspect-ratio: 4 / 3; padding: 0; border: 0; border-radius: 8px; overflow: hidden; background: var(--paper); }
 .simple-place-photo .smart-spot-image { width: 100%; height: 100%; min-height: 0; border-radius: 0; }
 .simple-place-photo .smart-spot-image > img { width: 100%; height: 100%; object-fit: cover; }
-.simple-place-photo .smart-image-fallback { padding: 10px; font-size: 12px; }
 .simple-photo-placeholder { display: block; height: 100%; background: var(--paper); }
 .simple-place-copy { min-width: 0; }
 .simple-place-city { font-size: 13px; color: var(--muted); }
@@ -273,7 +272,7 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 
 /* Keep short control labels and empty photo slots legible at narrow widths. */
 .simple-search-bar label > span { white-space: nowrap; flex-shrink: 0; }
-.simple-place-photo .smart-image-fallback { min-height: 0; height: 100%; padding: 8px; font-size: 11px; }
+.simple-place-photo .smart-image-fallback { height: 100%; font-size: 11px; }
 .simple-place-photo .smart-image-fallback p, .simple-place-photo .smart-image-fallback small { display: none; }
 .simple-results .simple-command-receipt button { min-height: 44px; border: 0; background: transparent; color: var(--purple); font-weight: 600; text-decoration: underline; }
 .simple-trip-actions { padding-block: 12px; }

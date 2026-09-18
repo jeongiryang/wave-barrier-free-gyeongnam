@@ -6,7 +6,9 @@
  * 색은 currentColor를 상속하므로 밝은 면에서도 짙은 면에서도 그대로 쓸 수 있다.
  */
 
-export type AccessIconName = "wheel" | "senior" | "baby" | "pregnant" | "visual" | "hearing" | "mark";
+import { statusShape, type StatusKind } from "../lib/status-shape.js";
+
+export type AccessIconName ="wheel" | "senior" | "baby" | "pregnant" | "visual" | "hearing" | "mark";
 
 const PATHS: Record<AccessIconName, React.ReactNode> = {
   // 휠체어 이용 — 바퀴를 밀며 앞으로 나아가는 자세
@@ -71,6 +73,50 @@ const PATHS: Record<AccessIconName, React.ReactNode> = {
     </>
   ),
 };
+
+/**
+ * 상태 모양 아이콘.
+ *
+ * 색 말고도 알 수 있는 단서를 더하기 위한 장식이므로 항상 낭독기에서 감춘다.
+ * 뜻은 함께 놓인 글자가 전달한다.
+ */
+const STATUS_PATHS: Record<ReturnType<typeof statusShape>, React.ReactNode> = {
+  check: <path d="m4.8 12.4 4.8 4.9L19.2 7" />,
+  question: (
+    <>
+      <path d="M9 9.2a3 3 0 1 1 3.6 3c-.5.2-.6.8-.6 1.4v.8" />
+      <circle cx="12" cy="18.2" r="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  slash: (
+    <>
+      <circle cx="12" cy="12" r="8.2" />
+      <path d="M6.2 17.8 17.8 6.2" />
+    </>
+  ),
+  dot: (
+    <>
+      <circle cx="12" cy="12" r="8.2" />
+      <circle cx="12" cy="12" r="3.4" fill="currentColor" stroke="none" />
+    </>
+  ),
+  triangle: (
+    <>
+      <path d="M12 4.4 21 19.6H3z" />
+      <path d="M12 10v4" />
+      <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  cross: <path d="M6.2 6.2l11.6 11.6M17.8 6.2 6.2 17.8" />,
+};
+
+export function StatusShapeIcon({ kind, className = "status-shape" }: { kind: StatusKind; className?: string }) {
+  return (
+    <svg className={className} width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {STATUS_PATHS[statusShape(kind)]}
+    </svg>
+  );
+}
 
 export default function AccessIcon({
   name,

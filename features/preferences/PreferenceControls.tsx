@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useSitePreferences } from "./context";
 import { localeOptions } from "./locale-catalog";
 import type { Locale } from "./types";
@@ -21,11 +21,12 @@ function positionPanel(details: HTMLDetailsElement | null) {
 
 export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean }) {
   const controlsReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
-  const { locale, theme, setLocale, toggleTheme, t } = useSitePreferences();
+  const { locale, theme, colorAssist, setColorAssist, setLocale, toggleTheme, t } = useSitePreferences();
   const en = locale === "en";
   const showPresentationOptions = controlsReady && presentationOptionsEnabled();
   const appInstall = useAppInstall();
   const disclosure = useRef<HTMLDetailsElement>(null);
+  const [colorAssistNotice, setColorAssistNotice] = useState("");
 
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
@@ -79,6 +80,17 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
           <span><b>{en ? "Appearance" : "화면 색상"}</b><small>{theme === "dark" ? en ? "Dark appearance" : "어두운 화면" : en ? "Light appearance" : "밝은 화면"}</small></span>
           <em aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</em>
         </button></>}
+        <button className="preference-row" type="button" aria-pressed={colorAssist === "on"} onClick={() => {
+          const next = colorAssist === "on" ? "off" : "on";
+          setColorAssist(next);
+          setColorAssistNotice(next === "on"
+            ? en ? "Colour-free cues are on." : "색 구분 보조를 켰어요."
+            : en ? "Colour-free cues are off." : "색 구분 보조를 껐어요.");
+        }}>
+          <span><b>{en ? "Colour-free cues" : "색 구분 보조"}</b><small>{en ? "Show status with words and shapes as well as colour." : "상태를 색과 함께 글자와 모양으로도 보여줘요."}</small></span>
+          <em aria-hidden="true">{colorAssist === "on" ? en ? "On" : "켜기" : en ? "Off" : "끄기"}</em>
+        </button>
+        <span className="sr-only" role="status" aria-live="polite">{colorAssistNotice}</span>
         {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label={en ? "Install WAVE" : "WAVE 앱 설치"}>
           <span><b>{en ? "Install as an app" : "앱으로 설치"}</b><small>{en ? "Open from your home screen" : "홈 화면에서 전체 화면으로 열기"}</small></span>
           <em aria-hidden="true">{appInstall.state === "installing" ? en ? "Preparing" : "준비 중" : en ? "Install" : "설치"}</em>

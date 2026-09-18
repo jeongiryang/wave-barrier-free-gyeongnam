@@ -61,3 +61,12 @@ html[data-theme="dark"] .wave-header { --ink: #eef5f1; --muted: #b2c3bb; --line:
 html[data-theme=dark] .landing-page.horizon-edition.simple-landing { --surface: #14221f; --ink: #eef5f1; --ink-soft: #c8d6d0; --muted: #b2c3bb; --paper: #1b2c27; --blue: #80d2b8; --on-blue: #132b23; --line: #40564c; }
 
 @media (max-width: 359px) { .simple-region-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* 색 구분 보조 — 색을 바꾸지 않고, 색 말고도 알 수 있는 단서를 더한다. */
+.status-shape { width: 1em; height: 1em; margin-right: 4px; vertical-align: -.14em; }
+.status-shape:not(.always),.status-word { display: none; }
+[data-color-assist=on] .status-shape { display: inline-block; }
+[data-color-assist=on] .status-word { display: inline; margin-right: 4px; font-weight: 800; }
+[data-color-assist=on] .map-tool-grid .status-word { display: block; margin: 0; font-size: .62rem; }
+[data-color-assist=on] .wave-map-icon.origin { border-radius: 4px; rotate: 45deg; }
+[data-color-assist=on] .wave-map-icon.origin > * { rotate: -45deg; }
