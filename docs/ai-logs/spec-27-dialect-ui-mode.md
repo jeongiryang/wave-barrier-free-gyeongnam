@@ -1,6 +1,6 @@
-# PR #번호 AI 작업 로그
+# PR #561 AI 작업 로그
 
-- PR: 링크
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/561
 - 제목: feat: 화면 말투 고르기
 - 작성자: jeongiryang
 - 최종 상태: 열림 (base `fix/preferences-disclosure-focus-contract`)
