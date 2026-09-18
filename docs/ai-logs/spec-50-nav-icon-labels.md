@@ -1,6 +1,6 @@
 # spec-50 메뉴 그림·글자 병기 AI 작업 로그
 
-- PR: (열린 뒤 링크를 채운다)
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/550
 - 제목: feat: 메뉴에 그림과 글자 함께 표시
 - 작성자: jeongiryang
 - 최종 상태: 작업 브랜치 `feat/spec-50-nav-icon-labels` 커밋 완료
