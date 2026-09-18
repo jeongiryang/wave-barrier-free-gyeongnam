@@ -29,7 +29,7 @@
 | `/planner` 내 일정 | 날짜 바꾸기(`1일차 …`) | 46.7% | 그대로 | 아니오 |
 | 장소 상세 dialog | 담기(`일정에 추가`) | 37.0% | 그대로 | 아니오 |
 | 장소 상세 dialog | 닫기 (위) | **1.4%** | 1.4% (습관대로 유지) | 예 |
-| 장소 상세 dialog | 닫기 (아래, 신규) | 없음 | **dialog 높이의 92.3% 지점, 48px 이상(실측 50px)** | — |
+| 장소 상세 dialog | 이 창 닫기 (아래, 신규) | 없음 | **dialog 높이의 92.3% 지점, 48px 이상(실측 50px)** | — |
 | 지도 도구 | 도구 열기(`지도 도구 +`) | 89.1% | 그대로 | 아니오 |
 | 지도 도구 | 레이어 고르기·닫기 | 도구 열림 후 하단 | 그대로 | 아니오 |
 | `/travel-book` | 여행 열기(`나의 여행 펼쳐보기`) | 44.9% | 그대로 | 아니오 |
@@ -60,7 +60,7 @@
 
 ## 변경 파일
 
-- `features/planner/components/PlaceDecisionDialog.tsx`: `.modal-body` 맨 끝에 `div.modal-close-end`로 감싼 `닫기` 버튼 추가. 위 버튼은 `aria-label="닫기"`인 현재 형태 그대로 둔다.
+- `features/planner/components/PlaceDecisionDialog.tsx`: `.modal-body` 맨 끝에 `div.modal-close-end`로 감싼 `이 창 닫기`(영문 `Close this dialog`) 버튼 추가. 위 버튼은 `aria-label="닫기"`인 현재 형태 그대로 둔다. 두 버튼의 접근 가능한 이름은 다르다.
 - `app/styles/place-dialog.css`: 아래 닫기 버튼 스타일. 기본 `display:none`, `@media (max-width: 767px)`에서만 표시.
 - `app/styles/simple-planner.css`, `app/styles/wave-horizon.css`: 죽은 선언 제거(상쇄용).
 - `e2e/one-hand-layout.spec.ts` (신규).
@@ -90,28 +90,44 @@
 
 **근거를 말로만 두지 않고 실제로 확인했다.** 제거 전후로 390·768·960·1440px에서 `.simple-trip-actions`와 그 버튼의 계산된 스타일(display, align-items, gap, padding 4방향, flex-wrap, margin, min-height, border, border-radius, background-color, font-size, line-height, color)과 경계 상자를 받아 비교했고 **네 폭 모두 완전히 동일**했다.
 
-## 기존 e2e 충돌 (고치지 않고 남김)
+## 기존 e2e 충돌
 
-명세는 두 닫기 버튼의 **접근 가능한 이름을 같게** 하라고 요구한다(`아래 버튼에만 닫기를 두고 위 버튼은 aria-label="닫기"인 현재 형태를 유지한다`). 그 결과 768px 미만에서 dialog 안에 이름이 `닫기`(영문 `Close`)인 버튼이 둘이 되고, `getByRole("button", { name: "닫기", exact: true })`를 쓰는 기존 spec들이 Playwright strict mode 위반으로 실패한다.
+### 해결됨: 닫기 버튼 이름 중복 (7건)
 
-**기존 테스트를 고치지 않는다는 원칙에 따라 손대지 않았다.** `mobile-chromium`에서 실패하는 9건은 다음과 같고, 원인이 모두 하나다.
+처음에는 명세가 두 닫기 버튼의 **접근 가능한 이름을 같게** 하라고 요구했다. 그 결과 768px 미만에서 dialog 안에 이름이 `닫기`(영문 `Close`)인 버튼이 둘이 되어, `getByRole("button", { name: "닫기", exact: true })`를 쓰는 기존 spec이 Playwright strict mode 위반으로 깨졌다.
 
-| spec | 건수 |
-| --- | --- |
-| `e2e/place-detail-decision.spec.ts:45` (ko/en × light/dark) | 4 |
-| `e2e/recommendation-language.spec.ts:44` (light/dark) | 2 |
-| `e2e/core-journeys.spec.ts:62` | 1 |
-| `e2e/simple-naru-conversation.spec.ts:145` | 1 |
-| `e2e/naru-followup-intents.spec.ts:148` | 1 |
+**명세 32의 2절이 수정되어 해결됐다.** 이제 이름을 다르게 둔다. 위 버튼은 기존 `aria-label="닫기"`를 그대로 두고, 아래 버튼만 `이 창 닫기`(영문 `Close this dialog`)로 바꿨다. 기존 테스트를 고친 것이 아니라 구현 쪽 버튼 이름을 바꾼 것이다. 이름이 같으면 화면 낭독기 사용자도 어느 것인지 구분할 수 없으므로 접근성 측면에서도 이쪽이 맞다.
 
-`desktop-chromium`은 전부 통과한다. 768px 이상에서는 아래 닫기가 `display:none`이라 접근성 트리에 들어가지 않기 때문이다.
+이 변경으로 다음 7건이 다시 통과한다.
 
-첫 CI에서는 실패가 13건이었다. 그중 8건은 피할 수 있는 원인이었다. 아래 닫기를 `.modal-body`의 직계 자식 `button`으로 두면, 기존 계약이 주요 조작을 세는 데 쓰는 `.modal-body > button` 선택자에 함께 걸려 **768px 이상에서도** 장소 상세의 조작 순서 검사가 깨졌다. 버튼을 `div.modal-close-end`로 감싸 그 선택자에 걸리지 않게 고쳤고, 이제 768px 이상에서는 DOM 계약까지 변경 전과 같다. 이것은 기존 테스트를 고친 것이 아니라 제품 마크업을 기존 계약에 맞춘 것이다.
+| spec | 건수 | 현재 |
+| --- | --- | --- |
+| `e2e/place-detail-decision.spec.ts:45` (ko/en × light/dark) | 4 | 통과 |
+| `e2e/core-journeys.spec.ts:62` | 1 | 통과 |
+| `e2e/simple-naru-conversation.spec.ts:145` | 1 | 통과 |
+| `e2e/naru-followup-intents.spec.ts:148` | 1 | 통과 |
 
-남은 9건은 명세 요구사항 자체에서 나오는 충돌이라 구현으로 피할 수 없다. 검토자가 결정할 사항이며 두 가지 중 하나다.
+### 남음: 초점 되감기 순서 (2건)
 
-1. 명세대로 두 버튼의 이름을 같게 유지하고, 위 9건의 로케이터를 `.modal-close`처럼 고유한 것으로 바꾼다(별도 커밋·별도 판단).
-2. 아래 닫기의 접근 가능한 이름을 다르게 둔다. 이 경우 명세의 `접근 가능한 이름을 같게 하되` 요구를 바꿔야 한다.
+`e2e/recommendation-language.spec.ts:44`의 `English facility evidence preserves original records and keyboard actions` light·dark 2건은 **여전히 실패한다. 원인이 다르다.**
+
+이 검사는 `isMobile`일 때만 도는 블록에서 위 닫기 버튼에 초점을 준 뒤 `Shift+Tab`을 눌러 오디오 가이드 요약에 초점이 가기를 기대한다. 위 닫기는 dialog에서 초점 순서가 처음이므로, 초점 가두기 때문에 `Shift+Tab`은 **마지막 요소로 감긴다.** 예전에는 그 마지막이 오디오 가이드 요약이었는데 이제는 새로 추가한 아래 닫기 버튼이다.
+
+브라우저에서 직접 확인했다.
+
+```
+from: modal-close | ×
+Shift+Tab -> BUTTON | 이 창 닫기
+```
+
+이것은 이름 문제가 아니라 **초점 순서 문제**이며, `dialog 아래 닫기 버튼이 초점 순서의 마지막이다`(상세 상호작용 계약 5)라는 명세 요구에서 직접 나온다. 아래 닫기를 초점 순서 마지막에 두는 한 피할 수 없다. **기존 테스트를 고치지 않는다는 원칙에 따라 손대지 않았다.** 검토자가 결정할 사항이다.
+
+1. 명세대로 아래 닫기를 초점 순서 마지막에 두고, `recommendation-language.spec.ts`의 되감기 기대값을 새 마지막 요소로 바꾼다(별도 커밋·별도 판단).
+2. 아래 닫기를 초점 순서 마지막에 두지 않는다. 이 경우 명세 상세 상호작용 계약 5를 바꿔야 한다.
+
+### 해결됨: `.modal-body > button` 계약 (8건)
+
+첫 CI에서는 실패가 13건이었다. 아래 닫기를 `.modal-body`의 직계 자식 `button`으로 두면 기존 계약이 주요 조작을 세는 데 쓰는 `.modal-body > button` 선택자에 함께 걸려, **768px 이상에서도** 장소 상세의 조작 순서 검사가 깨졌다. 버튼을 `div.modal-close-end`로 감싸 해결했고, 이제 768px 이상에서는 DOM 계약까지 변경 전과 같다. 명세 2절도 이 처리를 명시하도록 수정됐다.
 
 ## 검증
 
@@ -123,10 +139,10 @@
 - `npm run build:vercel` — 통과.
 - `npm run check:performance` — 통과. 위 표 참고.
 - `npm run test:e2e -- e2e/one-hand-layout.spec.ts --project=desktop-chromium` — 신규 5건 모두 통과.
-- `npm run test:e2e -- e2e/one-hand-layout.spec.ts e2e/place-detail-decision.spec.ts e2e/core-journeys.spec.ts e2e/recommendation-language.spec.ts e2e/simple-naru-conversation.spec.ts e2e/naru-followup-intents.spec.ts --project=desktop-chromium` — 40건 모두 통과.
-- 같은 목록을 `--project=mobile-chromium`으로 — 31건 통과, **9건 실패**. 위 `기존 e2e 충돌` 절 참고.
-- `npm run test:e2e -- e2e/one-hand-layout.spec.ts e2e/place-detail-decision.spec.ts e2e/core-journeys.spec.ts e2e/recommendation-language.spec.ts e2e/simple-naru-conversation.spec.ts e2e/naru-followup-intents.spec.ts --project=desktop-chromium` — 40건 모두 통과.
-- 같은 목록을 `--project=mobile-chromium`으로 — 31건 통과, **9건 실패**. 위 `기존 e2e 충돌` 절 참고.
+- 명세 2절 수정을 반영한 뒤 다시 확인했다.
+  - `npm run test:e2e -- e2e/place-detail-decision.spec.ts e2e/recommendation-language.spec.ts e2e/core-journeys.spec.ts e2e/simple-naru-conversation.spec.ts e2e/naru-followup-intents.spec.ts --project=mobile-chromium` — **33건 통과, 2건 실패**(9건 → 2건). 남은 2건은 위 `초점 되감기 순서` 절.
+  - 같은 목록을 `--project=desktop-chromium`으로 — **35건 모두 통과**.
+  - `npm run test:e2e -- e2e/one-hand-layout.spec.ts --project=desktop-chromium` — 5건 통과. `--project=mobile-chromium` — 5건 통과.
 - `npm run test:e2e -- e2e/mobile-touch-targets.spec.ts e2e/touch-target-contract.spec.ts e2e/place-content-loading.spec.ts e2e/place-decisions.spec.ts e2e/planner-workspace-responsive.spec.ts --project=desktop-chromium` — 기존 10건 모두 통과. 명세가 계속 통과해야 한다고 지정한 `mobile-touch-targets`, `touch-target-contract`가 여기 포함된다.
 
 실행하지 않은 검사:
@@ -138,10 +154,11 @@
 수동 확인 내용:
 
 - 390·768·960·1440px에서 dialog를 실제로 열어 아래 닫기의 표시 여부, 높이(50px), 접근 가능한 이름, 초점 순서를 확인했다. 768px 이상에서는 `display:none`이라 그려지지 않고 Tab 순서에도 없다.
+- 위 닫기에 초점을 준 뒤 `Shift+Tab`이 어디로 가는지 브라우저에서 직접 확인했다. 결과는 위 `초점 되감기 순서` 절에 적었다.
 - axe 위반 0건을 네 폭 모두에서 확인했다.
 
 ## 결과와 제한
 
-- 병합 커밋: 없음. 열린 PR이다. base는 `main`이다. **CI가 초록이 아니다.** `mobile-chromium` 9건이 실패하며, 원인은 명세가 요구한 접근 가능한 이름 중복 하나다. 위 `기존 e2e 충돌` 절에 spec 이름과 건수를 그대로 적었다. 기준을 완화하거나 실패를 숨기지 않았고 기존 테스트도 고치지 않았다.
+- 병합 커밋: 없음. 열린 PR이다. base는 `main`이다. **CI가 아직 초록이 아니다.** 명세 2절 수정으로 9건 중 7건이 해결됐고, `mobile-chromium` 2건(`recommendation-language.spec.ts:44` light·dark)이 남는다. 원인은 초점 되감기 순서이며 위 절에 적었다. 기준을 완화하거나 실패를 숨기지 않았고 기존 테스트도 고치지 않았다.
 - 남은 위험과 후속 작업: 내 일정의 `내 여행에 저장`은 여전히 29.9%에 있다. 위 구조적 충돌 절에 측정값과 이유를 남겼다. 주요 조작 영역을 내용 끝으로 옮기는 마크업 재설계는 768px 이상 배치 변경을 수반하므로 별도 이슈가 필요하다.
 - CSS gzip은 상한과 정확히 같은 바이트 수라 여유가 없다. 다음에 CSS를 늘리는 작업은 다시 상쇄가 필요하다.
