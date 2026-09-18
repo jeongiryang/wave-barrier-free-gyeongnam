@@ -6,6 +6,7 @@ import { localeOptions } from "./locale-catalog";
 import type { Locale, Tone } from "./types";
 import { useAppInstall } from "./useAppInstall";
 import { presentationOptionsEnabled } from "./presentation-release";
+import { dialectToneEnabled } from "./tone-release";
 
 const nextTone = (tone: Tone): Tone => (tone === "gyeongnam" ? "standard" : "gyeongnam");
 /** 말투 이름은 표준 한국어 라벨이다. 조작의 이름에는 사투리를 쓰지 않는다. */
@@ -28,6 +29,8 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
   const { locale, theme, tone, setLocale, setTone, toggleTheme, t } = useSitePreferences();
   const en = locale === "en";
   const showPresentationOptions = controlsReady && presentationOptionsEnabled();
+  // 사투리 응답 품질을 측정하기 전에는 말투 선택지를 감춘다(명세 28).
+  const showDialectTone = controlsReady && dialectToneEnabled();
   const appInstall = useAppInstall();
   const disclosure = useRef<HTMLDetailsElement>(null);
 
@@ -83,14 +86,14 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
           <span><b>{en ? "Appearance" : "화면 색상"}</b><small>{theme === "dark" ? en ? "Dark appearance" : "어두운 화면" : en ? "Light appearance" : "밝은 화면"}</small></span>
           <em aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</em>
         </button></>}
-        <button className="preference-row" type="button" data-preference="tone" onClick={() => setTone(tone === "gyeongnam" ? "standard" : "gyeongnam")}
+        {showDialectTone && <><button className="preference-row" type="button" data-preference="tone" onClick={() => setTone(tone === "gyeongnam" ? "standard" : "gyeongnam")}
           aria-label={en
             ? `Screen tone, currently ${toneName(tone, true)}. Switch to ${toneName(nextTone(tone), true)}.`
             : `화면 말투, 현재 ${toneName(tone, false)}. 눌러서 ${toneName(nextTone(tone), false)}로 바꾸기`}>
           <span><b>{en ? "Screen tone" : "화면 말투"}</b><small>{en ? "Only the tone of the Korean guidance changes. The information stays the same." : "안내 문구의 말투만 바뀌어요. 내용은 같아요."}</small></span>
           <em aria-hidden="true">{toneName(tone, en)}</em>
         </button>
-        <div className="sr-only" role="status" aria-live="polite">{en ? `Screen tone is ${toneName(tone, true)}.` : `화면 말투는 ${toneName(tone, false)}입니다.`}</div>
+        <div className="sr-only" role="status" aria-live="polite">{en ? `Screen tone is ${toneName(tone, true)}.` : `화면 말투는 ${toneName(tone, false)}입니다.`}</div></>}
         {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label={en ? "Install WAVE" : "WAVE 앱 설치"}>
           <span><b>{en ? "Install as an app" : "앱으로 설치"}</b><small>{en ? "Open from your home screen" : "홈 화면에서 전체 화면으로 열기"}</small></span>
           <em aria-hidden="true">{appInstall.state === "installing" ? en ? "Preparing" : "준비 중" : en ? "Install" : "설치"}</em>

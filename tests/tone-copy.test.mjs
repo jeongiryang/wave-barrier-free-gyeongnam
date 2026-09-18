@@ -85,7 +85,8 @@ test("말투 설정은 기기 안에만 두고 위치로 말투를 바꾸지 않
   ]);
   assert.match(storage, /wave-tone-v1/);
   assert.match(storage, /function readStoredTone\(\)[\s\S]*?try \{[\s\S]*?\} catch \{[\s\S]*?return "standard";/);
-  assert.match(layout, /dataset\.tone=localStorage\.getItem\('wave-tone-v1'\)==='gyeongnam'\?'gyeongnam':'standard'/);
+  // 명세 28의 품질 측정 전에는 저장된 값으로도 경남 말이 켜지지 않는다.
+  assert.match(layout, /dataset\.tone=e&&localStorage\.getItem\('wave-tone-v1'\)==='gyeongnam'\?'gyeongnam':'standard'/);
   assert.match(context, /document\.documentElement\.dataset\.tone = tone/);
   // 기본값은 표준말이다.
   assert.match(context, /useState<Tone>\("standard"\)/);

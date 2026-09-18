@@ -38,7 +38,23 @@ visit는 장소의 체류시간, break는 쉬는 시간/휴식시간입니다. '
 예시 입력: 여행지 찾아줘
 출력: {"reply":"선택한 조건으로 여행지를 찾아볼게요.","proposal":{"action":"search"}}
 검색 요청은 search이며 장소 추가 요청 없이 create-itinerary를 쓰지 마세요. 첫 번째/두 번째는 context.resultIds의 실제 표시 순서이고 거기는 context.focusedPlaceId입니다. 대상이 없으면 물어보세요. '빼지 마', '담지 마' 같은 부정문을 add/remove로 처리하지 마세요. 검색·열기는 앱이 바로 수행하며, 구체적인 변경은 앱이 저장한 뒤에만 완료 안내합니다.
-동명이거나 어떤 기존 장소인지 구별되지 않으면 한 가지씩 물어보세요. "비가 와"는 기존 일정이 있으면 adapt-itinerary,indoor:true,reason:rain. "쉬고 싶어"는 adapt-itinerary,pace:relaxed,reason:fatigue. "출발 전에 뭘 확인해"는 readiness. 실행했다고 말하지 마세요. reply에 시설 이용 가능이나 안전 보장을 쓰지 마세요.`;
+동명이거나 어떤 기존 장소인지 구별되지 않으면 한 가지씩 물어보세요. "비가 와"는 기존 일정이 있으면 adapt-itinerary,indoor:true,reason:rain. "쉬고 싶어"는 adapt-itinerary,pace:relaxed,reason:fatigue. "출발 전에 뭘 확인해"는 readiness.`;
+
+// 말투 지시는 시스템 프롬프트에 한 문단만 더한다. 프롬프트를 두 벌로 나누지 않는다.
+// 값은 두 개뿐이며 사용자 입력이나 자유 문자열을 프롬프트에 넣지 않는다.
+const toneInstruction = {
+  standard: `답변은 표준말로 존댓말을 씁니다.`,
+  gyeongnam: `답변은 경남 지역 말투로 존댓말을 씁니다. 과장된 표현을 쓰지 않습니다. 장소 이름, 시설 이름, 숫자, 시간, 확인·미확인 표시는 바꾸지 않습니다.`,
+} as const;
+
+// 기존 안전 규칙 문장이다. 지우지 않고 말투 문단 뒤에 두어 안전 규칙이 마지막에 오게 한다.
+const safetyRules = `실행했다고 말하지 마세요. reply에 시설 이용 가능이나 안전 보장을 쓰지 마세요.`;
+
+function systemInstructions(tone: "standard" | "gyeongnam") {
+  return `${instructions}
+${toneInstruction[tone]}
+${safetyRules}`;
+}
 
 let active = 0;
 const admissions: number[] = [];
@@ -85,6 +101,9 @@ export async function handleAssistant(request: Request) {
   const ctx = raw.context && typeof raw.context === 'object' ? raw.context as Record<string, unknown> : {};
   const places = (Array.isArray(ctx.places) ? ctx.places : []).slice(0, 24).filter(record).map(place => ({ id: clean(place.id, 12), name: clean(place.name, 100), city: clean(place.city, 30) })).filter(place => /^[1-9]\d{0,11}$/.test(place.id));
   const context = { page: ['여행 설계','서비스 소개','축제','커뮤니티'].includes(String(ctx.page)) ? ctx.page : '여행 설계', today: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date()), region: clean(ctx.region, 12), profiles: resolveFacilityKeys({ profiles: ctx.profiles }), guidancePreferences: sanitizeGuidancePreferences(ctx.guidancePreferences), comfort: sanitizeComfort(ctx.comfort), themes: clean(ctx.themes, 80), days: Array.isArray(ctx.days) ? ctx.days.slice(0, 7).map(day => clean(day, 10)) : [], transport: clean(ctx.transport, 12), resultIds: Array.isArray(ctx.resultIds) ? ctx.resultIds.filter(id => places.some(place => place.id === id)).slice(0, 24) : [], focusedPlaceId: places.some(place => place.id === ctx.focusedPlaceId) ? ctx.focusedPlaceId : null, savedIds: Array.isArray(ctx.savedIds) ? ctx.savedIds.filter(id => places.some(place => place.id === id)).slice(0, 12) : [], places };
+  // 값은 두 개뿐이다. 다른 값이 오면 standard로 본다. 시스템 프롬프트 선택에만 쓰고
+  // 모델 컨텍스트, DB, 로그, 공유 데이터에 넣지 않는다.
+  const tone = ctx.tone === 'gyeongnam' ? 'gyeongnam' : 'standard';
   const control = new AbortController();
   const now = Date.now();
   while (admissions[0] < now - 60000) admissions.shift();
@@ -98,7 +117,7 @@ export async function handleAssistant(request: Request) {
     // Only the operator's configured endpoint is used. The client cannot choose a host.
     const providerMessages = photo
       ? [{ role: 'system', content: photoInstructions }, { ...messages.at(-1), images: [photo.data] }]
-      : [{ role: 'system', content: instructions }, { role: 'system', content: `context=${JSON.stringify(context)}` }, ...messages];
+      : [{ role: 'system', content: systemInstructions(tone) }, { role: 'system', content: `context=${JSON.stringify(context)}` }, ...messages];
     const response = await requestProvider({ provider: 'wave-local-llm', operation: 'chat' }, endpoint.href, { method: 'POST', signal: control.signal, redirect: 'error', headers: { 'Content-Type': 'application/json', ...(process.env.WAVE_AI_TOKEN ? { Authorization: `Bearer ${process.env.WAVE_AI_TOKEN}` } : {}) }, body: JSON.stringify({ model, messages: providerMessages, temperature: 0, max_tokens: photo ? 900 : 500, stream: false, response_format: { type: 'json_object' } }) });
     if (response.status === 429) return json({ error: '나루가 답변을 준비 중이에요. 잠시 뒤 다시 보내주세요.', code: 'AI_BUSY' }, 429);
     if (!response.ok) throw new Error('provider');

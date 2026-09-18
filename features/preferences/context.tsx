@@ -5,6 +5,7 @@ import { copy } from "./translations";
 import { readStoredPreferences, writeStoredPreferences } from "./storage";
 import type { Locale, Motion, PreferencesValue, Theme, Tone } from "./types";
 import { presentationOptionsEnabled } from "./presentation-release";
+import { dialectToneEnabled } from "./tone-release";
 
 const PreferencesContext = createContext<PreferencesValue | null>(null);
 
@@ -64,7 +65,8 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     motion,
     toggleTheme: () => { if (presentationOptionsEnabled()) setTheme((current) => current === "dark" ? "light" : "dark"); },
     // 말투는 한국어 화면의 설정이므로 발표용 게이트로 막지 않는다.
-    setTone: (next) => setToneState(next === "gyeongnam" ? "gyeongnam" : "standard"),
+    // 사투리 응답 품질 측정 전에는 경남 말을 고를 수 없다(명세 28).
+    setTone: (next) => setToneState(next === "gyeongnam" && dialectToneEnabled() ? "gyeongnam" : "standard"),
     t: (key, fallback) => copy[locale][key] || fallback,
   }), [locale, theme, tone, hydrated, motion]);
 

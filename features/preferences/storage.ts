@@ -1,6 +1,7 @@
 import type { Locale, Theme, Tone } from "./types";
 import { localeOptions } from "./locale-catalog";
 import { presentationOptionsEnabled } from "./presentation-release";
+import { dialectToneEnabled } from "./tone-release";
 
 export type StoredPreferences = {
   locale: Locale;
@@ -8,8 +9,10 @@ export type StoredPreferences = {
   tone: Tone;
 };
 
-/** 말투는 한국어 화면의 설정이므로 presentationOptionsEnabled() 게이트 밖에서 읽는다. */
+/** 말투는 한국어 화면의 설정이므로 presentationOptionsEnabled() 게이트 밖에서 읽는다.
+ * 사투리 응답 품질을 측정하기 전에는 저장된 값으로도 경남 말을 켤 수 없다. */
 function readStoredTone(): Tone {
+  if (!dialectToneEnabled()) return "standard";
   try {
     return window.localStorage.getItem("wave-tone-v1") === "gyeongnam" ? "gyeongnam" : "standard";
   } catch {
