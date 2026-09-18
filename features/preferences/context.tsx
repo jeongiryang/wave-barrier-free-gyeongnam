@@ -3,7 +3,7 @@
 import { createContext, startTransition, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { copy } from "./translations";
 import { readStoredPreferences, writeStoredPreferences } from "./storage";
-import type { Locale, Motion, PreferencesValue, Theme } from "./types";
+import type { Haptics, Locale, Motion, PreferencesValue, Theme } from "./types";
 import { presentationOptionsEnabled } from "./presentation-release";
 
 const PreferencesContext = createContext<PreferencesValue | null>(null);
@@ -11,6 +11,7 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("ko");
   const [theme, setTheme] = useState<Theme>("light");
+  const [haptics, setHaptics] = useState<Haptics>("off");
   const [systemReducedMotion, setSystemReducedMotion] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const motion: Motion = systemReducedMotion ? "calm" : "full";
@@ -23,6 +24,7 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
       startTransition(() => {
         setLocaleState(stored.locale);
         setTheme(stored.theme);
+        setHaptics(stored.haptics);
         setSystemReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
         setHydrated(true);
       });
@@ -49,8 +51,8 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = "ko";
     document.documentElement.style.colorScheme = theme;
     document.documentElement.dataset.motion = motion;
-    writeStoredPreferences({ locale, theme });
-  }, [locale, theme, motion, hydrated]);
+    writeStoredPreferences({ locale, theme, haptics });
+  }, [locale, theme, motion, haptics, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
     locale,
@@ -59,8 +61,11 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     setLocale: (next) => { if (presentationOptionsEnabled()) setLocaleState(next); },
     motion,
     toggleTheme: () => { if (presentationOptionsEnabled()) setTheme((current) => current === "dark" ? "light" : "dark"); },
+    // 진동 설정은 presentationOptionsEnabled() 게이트를 적용하지 않는다.
+    haptics,
+    setHaptics,
     t: (key, fallback) => copy[locale][key] || fallback,
-  }), [locale, theme, hydrated, motion]);
+  }), [locale, theme, hydrated, motion, haptics]);
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }
