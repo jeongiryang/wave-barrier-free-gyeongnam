@@ -1,6 +1,6 @@
-# PR #번호 AI 작업 로그
+# PR #552 AI 작업 로그
 
-- PR: 링크
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/552
 - 제목: feat: 글자 크게 보기
 - 작성자: jeongiryang
 - 최종 상태: 작성 후 CI 확인 중
