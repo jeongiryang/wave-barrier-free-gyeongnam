@@ -3,7 +3,7 @@
 - PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/552
 - 제목: feat: 글자 크게 보기
 - 작성자: jeongiryang
-- 최종 상태: 작성 후 CI 확인 중
+- 최종 상태: PR 열림. CI `validate` 실패 — 아래 "기존 테스트와의 구조적 충돌" 4건 외 전부 통과
 - AI 도구: Claude Code (Opus 5)
 
 ## 목적
@@ -114,6 +114,6 @@ await expect(page.getByRole("link", { name: "계정 관리", exact: true })).toB
 ### 기타
 
 - `e2e/landing-scroll-contract.spec.ts:7`은 이 브랜치에서 실패하지만 `git stash`로 변경을 걷어낸 상태에서도 동일하게 실패한다. 이 변경과 무관한 기존 실패다.
-- e2e 전체(`npm run test:e2e`)는 실행하지 않았다. 신규 spec과 영향 범위의 기존 spec만 골라 돌렸다. 전체 결과는 PR CI로 확인한다.
+- e2e 전체(`npm run test:e2e`)는 로컬에서 돌리지 않았고 PR CI로 확인했다. CI run 35359180038 결과: `quality`·`sandbox-boundary`와 browser shard 8개 중 6개 성공, `browser (3, desktop)`·`browser (3, mobile)` 두 shard만 실패했고 실패 내용은 위 `preferences-disclosure-focus.spec.ts` 4건뿐이다(각 shard 190/188건 통과). `landing-scroll-contract.spec.ts`는 CI에서는 통과하므로 로컬 전용 실패였다.
 - `app/page.tsx`와 `features/landing/`은 이번 범위가 아니라 건드리지 않았다. 다만 `simple-wave.css`의 `.simple-region-*` 글자 크기는 소개 화면과 플래너 지역 선택이 함께 쓰는 선언이라 `rem` 치환의 영향을 받는다. 넘침·조작 영역 e2e로 두 화면 모두 확인했다.
 - 간격 토큰 `--s-1`~`--s-8` 값은 바꾸지 않았다.
