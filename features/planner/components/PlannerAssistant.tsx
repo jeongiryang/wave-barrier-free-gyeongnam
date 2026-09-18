@@ -18,6 +18,9 @@ import NaruJourneyProposal from './NaruJourneyProposal';
 import { naruLocalHelp } from '../../../lib/naru-help.js';
 import { usePathname } from 'next/navigation';
 import NaruAvatar from '../../../components/NaruAvatar';
+import { useSitePreferences } from '../../preferences/context';
+import { naruGuideTones } from '../naru-copy';
+import { toneText } from '../../../lib/tone-copy.js';
 import VoiceInputMeter from './VoiceInputMeter';
 import { naruDirectCommand, naruEditClarification } from '../../../lib/naru-direct-command.js';
 import { startNaruGuide, advanceNaruGuide, type NaruGuide } from '../../../lib/naru-guided-start.js';
@@ -53,6 +56,9 @@ const storedNaruStarter = () => { try { return typeof window !== 'undefined' ? l
 
 export default function PlannerAssistant(props: Props) {
   const { plan, trip, onClose } = props;
+  const { tone } = useSitePreferences();
+  // 안내 문구에만 말투를 적용한다. 버튼 이름과 오류 문구는 표준말로 고정한다.
+  const say = (entry: { standard: string; gyeongnam?: string }) => toneText(entry, tone);
   const [messages, setMessages] = useState<Message[]>([{ id: 0, role: 'assistant', text: '어디로 여행할까요? 지역이나 하고 싶은 일을 알려주세요.' }]);
   const [input, setInput] = useState(''), [busy, setBusy] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
@@ -420,8 +426,8 @@ export default function PlannerAssistant(props: Props) {
       </div>
       {available === false && <button type="button" className="naru-retry" onClick={recheck} disabled={checking}>연결 다시 확인</button>}
       <div className="naru-log" ref={log} role="log" aria-live="polite" aria-relevant="additions" onScroll={() => { if (log.current) { follow.current = log.current.scrollHeight - log.current.scrollTop - log.current.clientHeight < 100; scrollPosition.current = log.current.scrollTop; } }}>
-        {!starterDone && <section className="naru-starter" aria-labelledby="naru-starter-title"><h2 id="naru-starter-title">어떤 도움이 필요할까요?</h2><p>필요한 것만 고르세요. 나중에 여행 조건에서 언제든 바꿀 수 있습니다.</p><div>{starterChoices.map(item => <button type="button" key={item.id} aria-pressed={starterSelected.includes(item.id)} onClick={() => setStarterSelected(current => current.includes(item.id) ? current.filter(id => id !== item.id) : [...current, item.id])}>{starterSelected.includes(item.id) ? '✓ ' : ''}{item.label}</button>)}</div><footer><button type="button" onClick={() => confirmStarter(true)}>건너뛰기</button><button type="button" className="primary" onClick={() => confirmStarter(false)}>선택 적용</button></footer></section>}
-        {starterDone && messages.length === 1 && <section className="naru-prompt-starters" aria-labelledby="naru-prompt-title"><h2 id="naru-prompt-title">이렇게 시작해 보세요</h2>{starterPrompts.map(prompt => <button type="button" key={prompt} onClick={() => { setInput(prompt); inputRef.current?.focus(); }}>{prompt}</button>)}</section>}
+        {!starterDone && <section className="naru-starter" aria-labelledby="naru-starter-title"><h2 id="naru-starter-title">{say({ standard: "어떤 도움이 필요할까요?", gyeongnam: "어떤 도움이 필요하신가예?" })}</h2><p>{say(naruGuideTones.starterHint)}</p><div>{starterChoices.map(item => <button type="button" key={item.id} aria-pressed={starterSelected.includes(item.id)} onClick={() => setStarterSelected(current => current.includes(item.id) ? current.filter(id => id !== item.id) : [...current, item.id])}>{starterSelected.includes(item.id) ? '✓ ' : ''}{item.label}</button>)}</div><footer><button type="button" onClick={() => confirmStarter(true)}>건너뛰기</button><button type="button" className="primary" onClick={() => confirmStarter(false)}>선택 적용</button></footer></section>}
+        {starterDone && messages.length === 1 && <section className="naru-prompt-starters" aria-labelledby="naru-prompt-title"><h2 id="naru-prompt-title">{say(naruGuideTones.promptTitle)}</h2>{starterPrompts.map(prompt => <button type="button" key={prompt} onClick={() => { setInput(prompt); inputRef.current?.focus(); }}>{prompt}</button>)}</section>}
         {starterDone && messages.map(message => <div key={message.id} className={`naru-message ${message.role}`}>
           <p>{message.text}</p>
           {message.source === 'local-vision' && <p className="naru-note">사진에서 읽은 내용이에요. 맞는지 확인한 뒤 장소와 날짜를 입력해 여행에 반영해 주세요. 일정은 아직 변경하지 않았어요.</p>}
@@ -436,7 +442,7 @@ export default function PlannerAssistant(props: Props) {
         </div>)}
         {guide && <div className="naru-guided-choices" role="group" aria-label="한 가지씩 안내 선택">{guide.choices.map(choice => <button type="button" key={choice} disabled={busy} onClick={() => void send(choice)}>{choice}</button>)}<button type="button" onClick={() => void send('안내 끝내기')}>안내 끝내기</button></div>}
         {reviewHours && <Suspense fallback={<LoadingState>바뀐 일정을 확인하고 있어요.</LoadingState>}><NaruScheduleReview key={trip.voiceRevision} visits={reviewedVisits} onAlternative={props.onAlternative} onDetails={props.onPlace} /></Suspense>}
-        {showEvidence && <div className="naru-evidence" aria-label="현재 장소의 편의 근거">{(trip.orderedSavedPlaces.length ? trip.orderedSavedPlaces : known).map(place => <article key={place.id}><strong>{place.name}</strong><p>{place.accessibility?.map(field => `${field.label}: ${field.state === 'confirmed' ? '확인됨' : field.state === 'negative' ? '조건과 맞지 않음' : '미확인'}`).join(' · ') || '편의 정보 미확인'}</p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small><button type="button" onClick={() => props.onPlace(place)}>원문과 문의 정보</button></article>)}{!known.length && <p>여행지를 찾으면 장소별 근거를 모아드릴게요.</p>}<button type="button" onClick={() => openTool('readiness')}>날씨·이동까지 확인</button></div>}
+        {showEvidence && <div className="naru-evidence" aria-label="현재 장소의 편의 근거">{(trip.orderedSavedPlaces.length ? trip.orderedSavedPlaces : known).map(place => <article key={place.id}><strong>{place.name}</strong><p>{place.accessibility?.map(field => `${field.label}: ${field.state === 'confirmed' ? '확인됨' : field.state === 'negative' ? '조건과 맞지 않음' : '미확인'}`).join(' · ') || '편의 정보 미확인'}</p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small><button type="button" onClick={() => props.onPlace(place)}>원문과 문의 정보</button></article>)}{!known.length && <p>{say(naruGuideTones.evidenceEmpty)}</p>}<button type="button" onClick={() => openTool('readiness')}>날씨·이동까지 확인</button></div>}
         {busy && <div className="naru-typing" role="status"><Spinner /><span>{activity.text || '나루가 여행을 살펴보고 있어요'}</span></div>}
       </div>
       {toolsOpen && <div className="naru-tools">{toolGroups.map(group => <div key={group.title}><strong>{group.title}</strong><div>{group.items.map(([id, label]) => <button key={id} type="button" onClick={() => openTool(id)}>{label}</button>)}</div></div>)}</div>}

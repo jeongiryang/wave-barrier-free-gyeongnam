@@ -3,7 +3,7 @@
 import { createContext, startTransition, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { copy } from "./translations";
 import { readStoredPreferences, writeStoredPreferences } from "./storage";
-import type { Locale, Motion, PreferencesValue, Theme } from "./types";
+import type { Locale, Motion, PreferencesValue, Theme, Tone } from "./types";
 import { presentationOptionsEnabled } from "./presentation-release";
 
 const PreferencesContext = createContext<PreferencesValue | null>(null);
@@ -11,6 +11,7 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("ko");
   const [theme, setTheme] = useState<Theme>("light");
+  const [tone, setToneState] = useState<Tone>("standard");
   const [systemReducedMotion, setSystemReducedMotion] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const motion: Motion = systemReducedMotion ? "calm" : "full";
@@ -23,6 +24,7 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
       startTransition(() => {
         setLocaleState(stored.locale);
         setTheme(stored.theme);
+        setToneState(stored.tone);
         setSystemReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
         setHydrated(true);
       });
@@ -49,18 +51,22 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = "ko";
     document.documentElement.style.colorScheme = theme;
     document.documentElement.dataset.motion = motion;
-    writeStoredPreferences({ locale, theme });
-  }, [locale, theme, motion, hydrated]);
+    document.documentElement.dataset.tone = tone;
+    writeStoredPreferences({ locale, theme, tone });
+  }, [locale, theme, tone, motion, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
     locale,
     theme,
+    tone,
     hydrated,
     setLocale: (next) => { if (presentationOptionsEnabled()) setLocaleState(next); },
     motion,
     toggleTheme: () => { if (presentationOptionsEnabled()) setTheme((current) => current === "dark" ? "light" : "dark"); },
+    // 말투는 한국어 화면의 설정이므로 발표용 게이트로 막지 않는다.
+    setTone: (next) => setToneState(next === "gyeongnam" ? "gyeongnam" : "standard"),
     t: (key, fallback) => copy[locale][key] || fallback,
-  }), [locale, theme, hydrated, motion]);
+  }), [locale, theme, tone, hydrated, motion]);
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }
