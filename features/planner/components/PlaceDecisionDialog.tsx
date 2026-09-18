@@ -62,8 +62,10 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
         <Suspense fallback={null}><PlaceAudioGuide key={place.id} id={place.id} /></Suspense>
         {/* 한 손 조작: 위 닫기 버튼은 습관대로 남기고, 엄지가 닿는 내용 맨 아래에도
             같은 동작의 닫기를 하나 더 둔다. 좁은 화면에서만 보이므로 768px 이상
-            배치는 그대로다. 초점 순서의 마지막이며 order 로 순서를 뒤집지 않는다. */}
-        <button className="modal-close-bottom" type="button" onClick={onClose}>{en ? "Close" : "닫기"}</button>
+            배치는 그대로다. 초점 순서의 마지막이며 order 로 순서를 뒤집지 않는다.
+            `.modal-body > button` 은 기존 계약이 세는 주요 조작이므로, 감싸서
+            그 선택자에 걸리지 않게 둔다. */}
+        <div className="modal-close-end"><button type="button" onClick={onClose}>{en ? "Close" : "닫기"}</button></div>
       </div>
   </dialog>;
 }

@@ -36,7 +36,7 @@ test("390px 장소 상세는 내용 맨 아래에도 닫기를 두고 초점을 
   await expect(topClose).toHaveAttribute("aria-label", "닫기");
 
   // 아래 닫기는 같은 접근 가능한 이름을 가지며 엄지가 닿는 내용 맨 아래에 있다.
-  const bottomClose = dialog.locator(".modal-close-bottom");
+  const bottomClose = dialog.locator(".modal-close-end > button");
   await expect(bottomClose).toBeVisible();
   await expect(bottomClose).toHaveText("닫기");
   await expect(dialog.getByRole("button", { name: "닫기", exact: true })).toHaveCount(2);
@@ -73,7 +73,7 @@ for (const width of [768, 960, 1440]) {
     const dialog = placeDialog(page);
     await expect(dialog.locator(".modal-close")).toBeVisible();
     // display:none 이므로 그려지지 않고 Tab 순서에도 들어가지 않는다.
-    await expect(dialog.locator(".modal-close-bottom")).toBeHidden();
+    await expect(dialog.locator(".modal-close-end > button")).toBeHidden();
     await expect(dialog.getByRole("button", { name: "닫기", exact: true })).toHaveCount(1);
     expect((await new AxeBuilder({ page }).include(".native-place-dialog").analyze()).violations).toEqual([]);
   });

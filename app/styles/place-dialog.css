@@ -114,7 +114,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
 }
 
 /* 한 손 조작: 위 닫기는 습관대로 두고, 엄지가 닿는 내용 맨 아래에도 같은 동작의
-   닫기를 하나 더 둔다. 768px 이상에서는 보이지 않으므로 배치가 바뀌지 않는다.
-   나머지 모양은 위의 .modal-body > button 규칙을 그대로 쓴다. */
-.modal-body>.modal-close-bottom{display:none}
-@media (max-width:767px){.modal-body>.modal-close-bottom{display:block;border:1px solid var(--line);color:var(--ink);background:var(--surface)}}
+   닫기를 하나 더 둔다. 768px 이상에서는 보이지 않으므로 배치가 바뀌지 않는다. */
+.modal-body>.modal-close-end{display:none}
+@media (max-width:767px){.modal-body>.modal-close-end{display:block;margin-top:var(--s-4)}.modal-close-end>button{width:100%;min-height:48px;padding:var(--s-3);border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font:inherit;font-weight:600}}
