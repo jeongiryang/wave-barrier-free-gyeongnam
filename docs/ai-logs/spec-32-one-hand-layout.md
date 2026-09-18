@@ -1,6 +1,6 @@
-# PR #번호 AI 작업 로그
+# PR #559 AI 작업 로그
 
-- PR: 링크
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/559
 - 제목: feat: 한 손으로 쓰기 좋은 배치
 - 작성자: jeongiryang
 - 최종 상태: 열림 (base `main`)
