@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { navigationScroll } from "../lib/header-scroll.js";
 import { readTripValue } from "../lib/current-trip-storage.js";
 import WaveHeaderTools from "./WaveHeaderTools";
+import NavIcon from "./NavIcons";
 
 function subscribe(update: () => void) {
   window.addEventListener("storage", update);
@@ -50,10 +51,10 @@ export default function WaveHeader({ current, savedCount, onSaved, className = "
   return <header ref={header} className={`wave-header ${className}`} data-hidden={hidden}>
     <Link className="wave-wordmark" href={current === "intro" ? "#top" : "/"} aria-label={en ? "WAVE home" : "WAVE 홈"}>WAVE</Link>
     <nav aria-label={en ? "Main menu" : "주요 메뉴"}>
-      <Link href="/" aria-current={current === "intro" ? "page" : undefined}>{en ? "About WAVE" : "서비스 소개"}</Link>
-      <Link href="/planner" aria-current={current === "planner" ? "page" : undefined}>{en ? "Plan a trip" : "여행 설계"}</Link>
-      <Link href="/festivals" aria-current={current === "festivals" ? "page" : undefined}>{en ? "Festivals" : "축제"}</Link>
-      <Link href="/community" aria-current={current === "community" ? "page" : undefined}>{en ? "Community" : "커뮤니티"}</Link>
+      <Link href="/" aria-current={current === "intro" ? "page" : undefined}><NavIcon name="intro" /><span>{en ? "About WAVE" : "서비스 소개"}</span></Link>
+      <Link href="/planner" aria-current={current === "planner" ? "page" : undefined}><NavIcon name="planner" /><span>{en ? "Plan a trip" : "여행 설계"}</span></Link>
+      <Link href="/festivals" aria-current={current === "festivals" ? "page" : undefined}><NavIcon name="festivals" /><span>{en ? "Festivals" : "축제"}</span></Link>
+      <Link href="/community" aria-current={current === "community" ? "page" : undefined}><NavIcon name="community" /><span>{en ? "Community" : "커뮤니티"}</span></Link>
     </nav>
     <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}><WaveHeaderTools />{onSaved ? <button className="wave-my-trips" type="button" onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
       : <Link className="wave-my-trips" href="/travel-book" aria-current={current === "travel-book" ? "page" : undefined} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</Link>}</div>
