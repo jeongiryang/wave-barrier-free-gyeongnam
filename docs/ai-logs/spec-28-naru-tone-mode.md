@@ -1,6 +1,6 @@
-# PR #번호 AI 작업 로그
+# PR #563 AI 작업 로그
 
-- PR: 링크
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/563
 - 제목: feat: 나루 말투 고르기
 - 작성자: jeongiryang
 - 최종 상태: 열림 (base `feat/spec-27-dialect-ui-mode`)
