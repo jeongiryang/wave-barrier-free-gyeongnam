@@ -3,7 +3,7 @@
 - PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/550
 - 제목: feat: 메뉴에 그림과 글자 함께 표시
 - 작성자: jeongiryang
-- 최종 상태: 작업 브랜치 `feat/spec-50-nav-icon-labels` 커밋 완료
+- 최종 상태: PR #550 열림. CI `browser (3, desktop)`·`browser (3, mobile)` 실패 (아래 충돌 항목 참조)
 - AI 도구: Claude Code
 
 ## 목적
@@ -65,7 +65,31 @@ CSS를 더하자 70.06 KiB로 초과했다. 명세가 정한 완화책인 `app/s
 - `e2e/site-chrome-contrast.spec.ts` `e2e/dark-theme-contrast.spec.ts` `e2e/contrast-fixed-layers.spec.ts`
   `e2e/planner-workspace-responsive.spec.ts` `e2e/simple-landing.spec.ts`
   `e2e/public-presentation-release.spec.ts`: 20/20 PASS
-- 전체 `npm run test:e2e`는 시간 문제로 실행하지 않았다.
+- `e2e/preferences-disclosure-focus.spec.ts`: 4건 FAIL. 로컬과 CI(browser shard 3, desktop·mobile)에서
+  모두 재현된다. 아래 "명세와 기존 계약의 충돌" 참조. 테스트를 고치거나 skip 하지 않았다.
+- 로컬에서 위 목록 외 전체 `npm run test:e2e`는 시간 문제로 실행하지 않았다. CI는 browser shard 3을
+  제외한 모든 job이 통과했다(quality, sandbox-boundary, browser 1·2·4 desktop·mobile).
+
+## 명세와 기존 계약의 충돌 (사람 판단 필요)
+
+`e2e/preferences-disclosure-focus.spec.ts:60`은 한 단어짜리 메뉴 라벨이 줄바꿈되지 않았는지를
+`Range.selectNodeContents(link)`의 client rect들의 `Math.round(top)` 가짓수가 1인지로 검사한다.
+그림을 링크 안에 넣으면 그림 상자와 글자 상자가 같은 top을 가질 수 없어 이 가짓수가 늘어난다.
+실측값은 다음과 같다.
+
+- 1366px(가로 배치): tops `[25, 23, 24]` — 그림 20px, span 23px, 글자 20px. 글자는 줄바꿈되지
+  않았고 순전히 세로 정렬 차이다. 링크에 `line-height`를 맞추면 해결할 수 있다.
+- 320px(세로 배치): tops `[66, 92, 91]` — 그림이 글자 **위**에 있다. 이것은 명세
+  `진입과 화면` 절이 요구한 배치 그 자체다.
+
+즉 320px 실패는 명세가 요구한 세로 배치와 이 테스트의 판정 방식이 정면으로 충돌하는 것이고,
+둘 중 하나를 바꾸지 않으면 통과시킬 수 없다. 지시에 따라 기존 테스트를 고치지 않았고, 명세가
+정한 배치도 바꾸지 않았다. 1366px만 따로 고치는 것은 320px가 여전히 실패해 job이 붉게 남는
+데다, CSS gzip 예산에 남은 여유가 2바이트뿐이라 추가 CSS를 넣으려면 또 다른 파일을 정리해야
+해서 하지 않았다. 판단이 필요하다.
+
+- 안 1: 테스트의 판정을 "라벨(span) 안에서만" 줄 수를 세도록 바꾼다(그림을 범위에서 제외).
+- 안 2: 명세의 767px 이하 세로 배치를 포기하고 가로 배치를 유지한다.
 - 실제 렌더링으로 1440px·960px·390px·320px를 확인했다. 네 항목 모두 그림과 글자가 함께 보이고,
   767px 이하에서 그림이 글자 위로 올라가며, 320px에서도 가로 넘침이 없다. 비밀번호 재설정 화면의
   모바일 메뉴 패널에서도 그림이 함께 보인다.
