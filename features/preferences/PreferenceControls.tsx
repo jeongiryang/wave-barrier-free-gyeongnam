@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useSitePreferences } from "./context";
 import { localeOptions } from "./locale-catalog";
-import type { Locale } from "./types";
+import type { Locale, TextScale } from "./types";
 import { useAppInstall } from "./useAppInstall";
 import { presentationOptionsEnabled } from "./presentation-release";
+
+/** 세 단계는 루트 font-size 백분율로만 준다. 실제 크기를 함께 적어 고르게 한다. */
+const textScaleOptions: Array<{ id: TextScale; label: string; english: string; size: string; phrase: string }> = [
+  { id: "standard", label: "기본", english: "Standard", size: "16px", phrase: "기본으로" },
+  { id: "large", label: "크게", english: "Large", size: "18px", phrase: "크게로" },
+  { id: "larger", label: "아주 크게", english: "Larger", size: "20px", phrase: "아주 크게로" },
+];
 
 const subscribeToHydration = () => () => undefined;
 const browserReady = () => true;
@@ -21,11 +28,12 @@ function positionPanel(details: HTMLDetailsElement | null) {
 
 export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean }) {
   const controlsReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
-  const { locale, theme, setLocale, toggleTheme, t } = useSitePreferences();
+  const { locale, theme, textScale, setTextScale, setLocale, toggleTheme, t } = useSitePreferences();
   const en = locale === "en";
   const showPresentationOptions = controlsReady && presentationOptionsEnabled();
   const appInstall = useAppInstall();
   const disclosure = useRef<HTMLDetailsElement>(null);
+  const [textScaleNotice, setTextScaleNotice] = useState("");
 
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
@@ -79,6 +87,19 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
           <span><b>{en ? "Appearance" : "화면 색상"}</b><small>{theme === "dark" ? en ? "Dark appearance" : "어두운 화면" : en ? "Light appearance" : "밝은 화면"}</small></span>
           <em aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</em>
         </button></>}
+        <div className="preference-row preference-text-scale">
+          <span><b>{en ? "Text size" : "글자 크기"}</b><small>{en ? "Enlarges text on every screen" : "모든 화면의 글자를 키웁니다"}</small><small aria-live="polite">{textScaleNotice}</small></span>
+          <div role="radiogroup" aria-label={en ? "Text size" : "글자 크기"}>
+            {textScaleOptions.map((item) => <label key={item.id}>
+              <input type="radio" name="wave-text-scale" value={item.id} checked={textScale === item.id}
+                onChange={() => {
+                  setTextScale(item.id);
+                  setTextScaleNotice(en ? `Text size changed to ${item.english}.` : `글자 크기를 ${item.phrase} 바꿨어요.`);
+                }} />
+              <b>{en ? item.english : item.label}</b><small>{item.size}</small>
+            </label>)}
+          </div>
+        </div>
         {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label={en ? "Install WAVE" : "WAVE 앱 설치"}>
           <span><b>{en ? "Install as an app" : "앱으로 설치"}</b><small>{en ? "Open from your home screen" : "홈 화면에서 전체 화면으로 열기"}</small></span>
           <em aria-hidden="true">{appInstall.state === "installing" ? en ? "Preparing" : "준비 중" : en ? "Install" : "설치"}</em>
