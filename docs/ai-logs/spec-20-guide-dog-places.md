@@ -70,6 +70,13 @@
   `.access-badge`(design-system.css, 미수정)와 인라인 스타일만 사용했기 때문이다. 죽은 선언 제거는
   필요 없었다(증가분이 0이므로).
 
+## 수정 이력
+
+- 최초 커밋 이후 `npm run typecheck`를 e2e 파일 추가 시점에 재확인하지 않아, `PlanData.generatedAt`
+  (필수 `string`)에 선택 필드인 `Place.checkedAt`을 그대로 대입하는 타입 오류를 놓쳤다. 후속 커밋
+  (`fix: e2e/guide-dog.spec.ts의 타입 오류 수정`)으로 기본값을 두어 고쳤고, `npm run typecheck`가
+  다시 통과함을 확인했다.
+
 ## 알려진 구조적 충돌
 
 - `e2e/facility-layers.spec.ts`의 "공식 데이터 레이어가 하나도 없으면 그 구분을 그리지 않는다" 테스트가
