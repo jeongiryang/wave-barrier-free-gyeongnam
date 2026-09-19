@@ -1,5 +1,5 @@
 import { openSupportMenu } from "./support-menu";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions, openFirstPlaceMap, showItineraryMap } from "./fixtures";
 
 /**
@@ -42,6 +42,26 @@ async function withKakaoStub(page: Page) {
 
 const WIDTHS = [1440, 1024, 960, 900, 768, 620, 390];
 
+// 도구 개수를 고정하면 도구를 하나 더하거나 문구를 바꿀 때마다 깨지므로, 개수 대신 실제로 존재하는 도구 버튼 전부를 질의해 검사한다.
+const advancedTools = (nav: Locator) => nav.locator(".map-advanced-controls");
+
+/** 접힌 상태: 추가 도구는 감춰지고, 그 외 기본 제어는 하나도 빠짐없이 접근 가능한 이름으로 남는다. */
+async function expectToolsCollapsed(nav: Locator) {
+  await expect(advancedTools(nav)).toBeHidden();
+  const advanced = await advancedTools(nav).locator("button").count();
+  const rendered = await nav.locator("button").count();
+  expect(advanced).toBeGreaterThan(0);
+  await expect(nav.getByRole("button")).toHaveCount(rendered - advanced);
+}
+
+/** 펼친 상태: DOM에 있는 모든 도구 버튼이 빠짐없이 접근성 트리에 노출된다. */
+async function expectToolsExpanded(nav: Locator) {
+  await expect(advancedTools(nav)).toBeVisible();
+  const rendered = await nav.locator("button").count();
+  expect(await advancedTools(nav).locator("button").count()).toBeGreaterThan(0);
+  await expect(nav.getByRole("button")).toHaveCount(rendered);
+}
+
 for (const locale of ["ko", "en"]) {
   test(`connected map label leaves usable tool space without overlap ${locale}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -62,9 +82,9 @@ for (const locale of ["ko", "en"]) {
       await preferences.getByLabel("Open preferences", { exact: true }).click();
     }
     const nav = page.locator("nav.map-command-bar");
-    await expect(nav.getByRole("button")).toHaveCount(4);
+    await expectToolsCollapsed(nav);
     await nav.getByRole("button", { name: locale === "en" ? "Map options" : "지도 도구", exact: true }).click();
-    await expect(nav.getByRole("button")).toHaveCount(11);
+    await expectToolsExpanded(nav);
     for (const width of [1440, 1024, 900, 768, 320]) {
       await page.setViewportSize({ width, height: 960 });
       const view = page.getByRole('group', { name: '일정 보기 방식', exact: true });
@@ -115,12 +135,12 @@ test("기본 지도 제어와 펼친 추가 도구가 모든 폭에서 잘리지
     await chooseTripConditions(page); await openFirstPlaceMap(page);
     const nav = page.locator("nav.map-command-bar");
     await nav.scrollIntoViewIfNeeded();
-    await expect(nav.getByRole("button")).toHaveCount(4);
+    await expectToolsCollapsed(nav);
     const more = nav.getByRole("button", { name: "지도 도구", exact: true });
     await expect(more).toHaveAttribute("aria-expanded", "false");
     if ([1440, 960, 390].includes(width)) await page.locator(".route-map-shell").screenshot({ path: test.info().outputPath(`map-${width}-collapsed.png`) });
     await more.click();
-    await expect(nav.getByRole("button")).toHaveCount(11);
+    await expectToolsExpanded(nav);
     await expect.poll(() => nav.evaluate(node => {
       const box = node.getBoundingClientRect();
       return [...node.querySelectorAll("button")].filter(button => {
@@ -145,7 +165,11 @@ test("추가 도구에는 지도 유형·주변·표시·로드뷰·이미지·�
   await expect(options).toBeHidden();
   await nav.getByRole("button", { name: "지도 도구", exact: true }).click();
   await expect(options).toBeVisible();
-  await expect(options.getByRole("button")).toHaveText(["지도", "스카이뷰", "⌖ 주변", "▱ 지도 표시", "◉ 로드뷰", "⇩ 이미지", "↗ 페이지 링크"]);
+  // 이 검사의 뜻은 아래 도구가 모두 남아 있는지이므로, 완전 일치 대신 포함으로 확인해 도구가 늘어도 계약이 유지되게 한다.
+  const toolLabels = await options.getByRole("button").allTextContents();
+  for (const label of ["지도", "스카이뷰", "⌖ 주변", "▱ 지도 표시", "◉ 로드뷰", "⇩ 이미지", "↗ 페이지 링크"]) {
+    expect(toolLabels).toContain(label);
+  }
   for (const button of await options.getByRole("button").all()) {
     await button.focus();
     await expect(button).toBeFocused();
@@ -169,15 +193,16 @@ test("키보드로 추가 도구를 열고 닫으면 초점이 지도 도구 버
   await page.keyboard.press("Enter");
   await expect(more).toHaveAttribute("aria-expanded", "true");
   const controls = nav.getByRole("button");
-  // After the master button: expand, then each of the seven advanced actions.
-  for (let index = 3; index < 11; index++) {
+  // 도구 개수를 고정하지 않고 실제 렌더링된 버튼 수만큼 순회한다.
+  const toolCount = await nav.locator("button").count();
+  for (let index = 3; index < toolCount; index++) {
     await page.keyboard.press("Tab");
     await expect(controls.nth(index)).toBeFocused();
   }
   await page.keyboard.press("Escape");
   await expect(more).toHaveAttribute("aria-expanded", "false");
   await expect(more).toBeFocused();
-  await expect(nav.getByRole("button")).toHaveCount(4);
+  await expectToolsCollapsed(nav);
 });
 
 test("확대 지도에서 Escape는 안쪽 도구부터 닫고 숨겨진 제어로 초점을 보내지 않는다", async ({ page }) => {
