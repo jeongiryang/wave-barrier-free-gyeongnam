@@ -6,6 +6,7 @@ import { localAssistantAction, validateAssistantAction, type AssistantAction } f
 import { onTripIdentity, readOnTrip } from '../../../lib/on-trip.js';
 import type { TripCommand, TripCommandReceipt } from '../../../lib/trip-command.js';
 import { FACILITIES, resolveFacilityKeys } from '../../../lib/facility-selection.js';
+import { evidenceGroupTitle, evidenceSentence, evidenceStateText, groupByEvidence, placeFacilityState, tallyEvidence, weakestFacility } from '../../../lib/naru-evidence.js';
 import { guidancePreferenceText } from '../../../lib/guidance-preferences.js';
 import { acceptsPendingChange, canRunConversationAction, isChangeNegated, resolveConversationReference } from '../../../lib/assistant-conversation.js';
 import type { usePlannerPlan } from '../hooks/usePlannerPlan';
@@ -33,7 +34,9 @@ import NaruHelpHub from './NaruHelpHub';
 import { useTravelBook } from '../../travel-book/useTravelBook';
 const NaruScheduleReview = lazy(() => import('./NaruScheduleReview'));
 
-type Message = { cancelled?: boolean; id: number; role: 'user'|'assistant'; text: string; source?: string; proposal?: AssistantAction; draft?: NaruJourney; revision?: string; applied?: boolean; results?: Place[]; receipt?: TripCommandReceipt; resultKey?: string; toolId?: string };
+// evidenceKeys/evidenceRegion은 답변이 확정된 순간의 편의 조건과 지역을 함께
+//굳혀 둔다. 뒤에 조건을 바꿔도 이미 그려진 답변의 숫자가 흔들리지 않는다.
+type Message = { cancelled?: boolean; id: number; role: 'user'|'assistant'; text: string; source?: string; proposal?: AssistantAction; draft?: NaruJourney; revision?: string; applied?: boolean; results?: Place[]; receipt?: TripCommandReceipt; resultKey?: string; toolId?: string; evidenceKeys?: string[]; evidenceRegion?: string };
 type Props = { origin: RoutePoint; routeMinutes: Record<string, number>; launchRequest?: { id: number; prompt: string }; pageContext?: string; open: boolean; onClose: () => void; plan: ReturnType<typeof usePlannerPlan>; trip: ReturnType<typeof useTripSelection>; guidance: { value: GuidancePreferences; update: (value: GuidancePreferences) => void }; onRegion: (region: string, onCommitted?: () => void) => void; onSearch: (criteria?: { region?: string; profiles?: string[]; themes?: string[] }) => Promise<PlanData | null>; onPlace: (place: Place) => void; onAlternative: (placeId: string) => void; onUndoAlternative: () => boolean; canUndoAlternative: boolean; replacementVersion: number; onOpenTool: (tool: string) => void; transport: 'walk'|'bicycle'|'transit'|'car'; routeRevision: string; onJourneyApplied: (draft: NaruJourney) => { undo: () => void; revision: string }; onRecalculate: (transport?: AssistantAction['transport']) => Promise<'changed'|'checked'>; onActivity: (value: { phase: string; text: string }) => void };
 const toolGroups = [
   { title: '여행 시작', items: [['conditions','지역·활동'],['facilities','필요한 편의'],['dates','날짜·기간'],['places','여행지 찾기']] },
@@ -221,7 +224,7 @@ export default function PlannerAssistant(props: Props) {
         const searchId = ++sequence.current;
         try { const result = await props.onSearch({ region: criteria.region, profiles: criteria.selected });
           if (searchId !== sequence.current) return;
-          if (result) { shownPlaces.current = result.places; append(result.places.length ? '조건을 유지해 찾은 여행지예요. 원하는 장소를 담아주세요.' : '확인된 후보가 없어요. 편의는 유지하고 다른 지역이나 활동을 찾아볼 수 있어요.', { results: [...result.places, ...(result.explorationPlaces || [])] }); }
+          if (result) { shownPlaces.current = result.places; append(result.places.length ? '조건을 유지해 찾은 여행지예요. 원하는 장소를 담아주세요.' : '확인된 후보가 없어요. 편의는 유지하고 다른 지역이나 활동을 찾아볼 수 있어요.', { results: [...result.places, ...(result.explorationPlaces || [])], evidenceKeys: resolveFacilityKeys({ profiles: criteria.selected }), evidenceRegion: criteria.region }); }
           else append('여행지를 불러오지 못했어요. 조건은 유지했습니다.');
         } catch { if (searchId === sequence.current) append('여행지를 불러오지 못했어요. 조건은 유지했습니다.'); } finally { if (searchId === sequence.current) setBusy(false); }
         return;
@@ -395,7 +398,7 @@ export default function PlannerAssistant(props: Props) {
         committed(); shownPlaces.current = [...result.places, ...(result.explorationPlaces || [])];
         const partial = result.statuses.some(status => status.state === 'error' || status.partial);
         const excludedNote = result.excludedPlaces?.length ? ` 선택한 시설이 없어 제외된 장소가 ${result.excludedPlaces.length}곳 있어요. 검색 결과에서 제외 이유를 확인할 수 있어요.` : '';
-        append((result.places.length ? `현재 불러온 후보 중 ${result.places.length}곳을 찾았어요.${partial ? ' 일부 정보는 아직 불러오지 못했어요.' : ''}` : partial ? '일부 관광 정보를 불러오지 못했어요. 조건은 유지하고 다시 시도할 수 있어요.' : result.explorationPlaces?.length ? '필요한 편의가 모두 확인된 곳은 없어요. 시설 정보가 부족한 후보를 자세히 볼 수 있어요.' : '조건에 맞는 후보가 없어요. 필요한 편의는 유지하고 다른 활동이나 지역을 찾아볼 수 있어요.') + excludedNote, { results: [...result.places, ...(result.explorationPlaces || [])], resultKey: JSON.stringify(result.criteria) });
+        append((result.places.length ? `현재 불러온 후보 중 ${result.places.length}곳을 찾았어요.${partial ? ' 일부 정보는 아직 불러오지 못했어요.' : ''}` : partial ? '일부 관광 정보를 불러오지 못했어요. 조건은 유지하고 다시 시도할 수 있어요.' : result.explorationPlaces?.length ? '필요한 편의가 모두 확인된 곳은 없어요. 시설 정보가 부족한 후보를 자세히 볼 수 있어요.' : '조건에 맞는 후보가 없어요. 필요한 편의는 유지하고 다른 활동이나 지역을 찾아볼 수 있어요.') + excludedNote, { results: [...result.places, ...(result.explorationPlaces || [])], resultKey: JSON.stringify(result.criteria), evidenceKeys: result.criteria?.facilityKeys?.length ? resolveFacilityKeys({ facilityKeys: result.criteria.facilityKeys }) : resolveFacilityKeys({ profiles: plan.selected }), evidenceRegion: action.action === 'settings' && action.region ? action.region : plan.region });
       } finally { if (!automatic && id === sequence.current) setBusy(false); }
       return;
     }
@@ -434,6 +437,16 @@ export default function PlannerAssistant(props: Props) {
   const hubContext = { hasItinerary: Boolean(trip.travelStart), isTripDay: trip.tripDays.includes(todayKey), hasFocusedPlace: Boolean(focusedPlaceId), hasSavedTrip: savedTravelBooks.length > 0 };
   const priorityFacilityLabels = FACILITIES.filter(item => ['route', 'elevator', 'audioguide', 'bigprint', 'signguide'].includes(item.key) && plan.selected.includes(item.key)).map(item => item.label);
   const guidanceSummary = [...guidancePreferenceText(props.guidance.value), ...priorityFacilityLabels];
+  // 확인·미확인 개수와 항목별 상태는 장소 응답에서만 계산한다. 모델 출력에서
+  // 숫자나 상태를 파싱하지 않는다. 사용자가 편의 조건을 고르지 않았거나 응답에
+  // 편의 정보가 없으면 기준이 없으므로 표시하지 않는다.
+  const evidence = new Map(messages.flatMap(message => {
+    if (!message.results) return [];
+    const facilityKey = weakestFacility(message.results, message.evidenceKeys || []);
+    if (!facilityKey) return [];
+    return [[message.id, { facilityKey, tally: tallyEvidence(message.results, facilityKey), groups: groupByEvidence(message.results, facilityKey) }] as const];
+  }));
+  const resultRow = (place: Place, facilityKey: string | null, label: string) => <article key={place.id}><button type="button" className="naru-place-name" onClick={() => { setFocused(place.id); if (log.current) scrollPosition.current = log.current.scrollTop; props.onPlace(place); }}>{place.name}</button><small>{place.city}</small>{facilityKey && <span className="access-badge" data-evidence-state={placeFacilityState(place, facilityKey)}>{evidenceStateText(placeFacilityState(place, facilityKey), label)}</span>}{plan.resultCurrent && plan.plan?.places.some(item => item.id === place.id) ? <button type="button" disabled={trip.saved.includes(place.id)} onClick={() => void apply({ id: ++messageId.current, role: 'assistant', text: '', proposal: { action: 'add', placeId: place.id }, revision })}>{trip.saved.includes(place.id) ? '✓ 담았음' : '담기'}</button> : <button type="button" onClick={() => props.onPlace(place)}>시설 정보 확인</button>}</article>;
   return <dialog ref={dialogRef} lang="ko" className={`naru-panel naru-${size}`} aria-label="WAVE 여행 가이드 나루와 대화" onCancel={event => { event.preventDefault(); close(); }} >
     <div className="naru-conversation">
       <div className="naru-heading">
@@ -462,7 +475,17 @@ export default function PlannerAssistant(props: Props) {
           {message.draft && message.applied && <button type="button" disabled={busy} onClick={() => { if (!undoJourney()) append('되돌릴 일정안이 없어요.'); }}>마지막 일정안 적용 되돌리기</button>}
           {message.proposal && !message.applied && !message.cancelled && <button type="button" className="naru-change-button" disabled={busy || message.revision !== revision} onClick={() => void apply(message)}>{message.revision !== revision ? '일정이 바뀌었어요 · 다시 요청해 주세요' : title(message.proposal)}</button>}
           {message.receipt && <button type="button" className="naru-undo" disabled={busy || message.receipt.afterKey !== trip.voiceRevision} onClick={() => { if (trip.undoCommand(message.receipt)) append('변경을 되돌렸어요.'); else append('이후에 일정이 바뀌어 되돌리지 못했어요.'); }}>되돌리기</button>}
-          {message.results && <div className="naru-result-list" aria-label="대화에서 찾은 여행지">{message.results.map(place => <article key={place.id}><button type="button" className="naru-place-name" onClick={() => { setFocused(place.id); if (log.current) scrollPosition.current = log.current.scrollTop; props.onPlace(place); }}>{place.name}</button><small>{place.city}</small>{plan.resultCurrent && plan.plan?.places.some(item => item.id === place.id) ? <button type="button" disabled={trip.saved.includes(place.id)} onClick={() => void apply({ id: ++messageId.current, role: 'assistant', text: '', proposal: { action: 'add', placeId: place.id }, revision })}>{trip.saved.includes(place.id) ? '✓ 담았음' : '담기'}</button> : <button type="button" onClick={() => props.onPlace(place)}>시설 정보 확인</button>}</article>)}{!message.results.length && <button type="button" onClick={() => openTool('conditions')}>검색 조건 수정</button>}</div>}
+          {/* 근거 표시는 답변이 확정된 뒤에만 그려진다. 도착 중인 글자에는
+              붙지 않으므로 요약의 숫자가 스트리밍 도중 바뀌지 않는다. 숫자와
+              상태는 전부 lib/naru-evidence.js가 장소 응답에서 계산한 값이며
+              모델이 쓴 문장에서 읽지 않는다. */}
+          {message.results && evidence.get(message.id) && <p data-evidence-summary="true">{evidenceSentence(evidence.get(message.id)!.tally, message.evidenceRegion || plan.region)}</p>}
+          {message.results && <div className="naru-result-list" aria-label="대화에서 찾은 여행지">
+            {evidence.get(message.id)
+              ? (['confirmed', 'unconfirmed'] as const).map(kind => <div key={kind} role="group" data-evidence-group={kind} aria-label={evidenceGroupTitle(kind, evidence.get(message.id)!.groups[kind].length)}><p><strong>{evidenceGroupTitle(kind, evidence.get(message.id)!.groups[kind].length)}</strong></p>{evidence.get(message.id)!.groups[kind].map(place => resultRow(place, evidence.get(message.id)!.facilityKey, evidence.get(message.id)!.tally.label))}</div>)
+              : message.results.map(place => resultRow(place, null, ''))}
+            {!message.results.length && <button type="button" onClick={() => openTool('conditions')}>검색 조건 수정</button>}
+          </div>}
           {message.toolId && <div className="naru-tool-card"><strong>{toolLabel(message.toolId)}</strong><p>현재 여행을 유지한 채 해당 화면으로 이동합니다.</p><button type="button" onClick={() => goToTool(message.toolId!)}>여행 설계에서 자세히 보기</button></div>}
         </div>)}
         {guide && <div className="naru-guided-choices" role="group" aria-label="한 가지씩 안내 선택">{guide.choices.map(choice => <button type="button" key={choice} disabled={busy} onClick={() => void send(choice)}>{choice}</button>)}<button type="button" onClick={() => void send('안내 끝내기')}>안내 끝내기</button></div>}
