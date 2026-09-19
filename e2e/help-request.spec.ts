@@ -33,6 +33,10 @@ test('help dialog opens immediately with the intended first focus and default me
   // 검증 대상이 아닌 실패가 섞이므로, 이 기능이 실제로 의존하는 경계인
   // 서버 호출 자체를 차단해서 확인한다.
   await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
+  // Route checks start after a 650ms debounce, beyond networkidle's 500ms window.
+  // Wait for the itinerary's completed state before auditing this local-only tool.
+  await expect(page.locator('.coverage-notice')).toContainText('조회가 끝났습니다.');
+  await expect(page.locator('.coverage-actions > button').first()).toHaveAttribute('aria-busy', 'false');
   await page.waitForLoadState('networkidle');
   const apiCallUrls: string[] = [];
   await page.route('**/api/**', route => { apiCallUrls.push(route.request().url()); return route.fulfill({ status: 503, json: { error: 'must not be called by help request' } }); });

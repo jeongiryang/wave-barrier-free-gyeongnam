@@ -45,7 +45,18 @@ test('parking inquiry component has no location, storage, network, analytics, or
 });
 
 test('easy trip completion never requests or transfers device location or progress',async({page})=>{
-  const requests:string[]=[];page.on('request',request=>requests.push(request.url()+(request.postData()||'')));
+  const requests:string[]=[];
+  page.on('request', request => {
+    const url = new URL(request.url());
+    // Opening the lazy view may fetch its static Vite module on a cold worker.
+    // Allow only that exact same-origin, payload-free script; API, beacon,
+    // query-string and other requests remain part of the privacy audit.
+    const viewModule = url.origin === new URL(page.url()).origin
+      && url.pathname === '/features/planner/components/EasyOnTripView.tsx'
+      && !url.search && request.method() === 'GET'
+      && request.resourceType() === 'script' && request.postData() === null;
+    if (!viewModule) requests.push(request.url() + (request.postData() || ''));
+  });
   await page.addInitScript(()=>{
     Object.assign(window,{easyTripPrivacyCalls:0});
     Object.defineProperty(navigator,'geolocation',{configurable:true,value:{getCurrentPosition(){(window as unknown as {easyTripPrivacyCalls:number}).easyTripPrivacyCalls++;}}});
