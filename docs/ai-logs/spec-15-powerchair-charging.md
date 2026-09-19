@@ -1,6 +1,6 @@
 # PR #번호 AI 작업 로그
 
-- PR: (본문 작성 뒤 채움)
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/568
 - 제목: feat: 전동휠체어 충전 가능 장소
 - 작성자: Claude Code (Sonnet 5)
 - 최종 상태: 리뷰 대기
@@ -95,4 +95,4 @@
 - 남은 위험: 데이터 기준일·제공처 이름을 표시하는 카드/거리순 3개 카드 UI는 이번 PR에 없다
   (본 설계 전용 요구사항이며, 대체 설계 선택으로 해당하지 않음). 향후 공공데이터포털 API 키가
   확보되고 실제 호출로 경남 표본이 있음이 확인되면 본 설계로 후속 작업할 수 있다.
-- PR 링크는 생성 직후 이 파일에 채운다.
+- PR 링크는 채웠다: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/568
