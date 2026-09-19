@@ -4,7 +4,6 @@
 html { scroll-padding-top: 122px; }
 body { background: var(--surface); }
 input,textarea { font-family: inherit; }
-h1,h2,h3 { letter-spacing: -.055em; }
 .wave-header,.community-page .community-editorial-grid > article,.journey-conditions[data-compact=true],.condition-trip-summary,.trip-comfort-choices { --ink: #242b2a; --muted: #5c6865; --white: #fff; --paper: #ffffff; --line: #dce3e0; --blue: #12655b; color: var(--ink); }
 .wave-header { position: sticky; z-index: 50; display: grid; align-items: center; gap: 24px; color: var(--ink); }
 .wave-wordmark { min-height: 44px; display: flex; align-items: center; font-size: 29px; font-weight: 800; letter-spacing: -.065em; line-height: 1; width: fit-content; padding-block: 10px; }
