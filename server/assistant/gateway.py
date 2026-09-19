@@ -141,6 +141,52 @@ class Handler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
+    def begin_stream(self):
+        """Line-delimited JSON passthrough. No prompt, token or body is logged."""
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/x-ndjson; charset=utf-8')
+        self.send_header('Cache-Control', 'no-store')
+        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.end_headers()
+
+    def relay_stream(self, request):
+        """Forward model text as it arrives. The non-streaming path stays untouched."""
+        started, total = False, 0
+        try:
+            with urllib.request.urlopen(request, timeout=40) as response:
+                for line in response:
+                    if len(line) > 65536:
+                        break
+                    try:
+                        frame = json.loads(line)
+                    except ValueError:
+                        continue
+                    if not isinstance(frame, dict):
+                        continue
+                    piece = frame.get('message', {}).get('content', '') if isinstance(frame.get('message'), dict) else ''
+                    if isinstance(piece, str) and piece:
+                        if total + len(piece) > 6000:
+                            piece = piece[:6000 - total]
+                        total += len(piece)
+                        if not started:
+                            self.begin_stream()
+                            started = True
+                        self.wfile.write((json.dumps({'choices': [{'delta': {'content': piece}}]}, ensure_ascii=False) + '\n').encode())
+                        self.wfile.flush()
+                        if total >= 6000:
+                            break
+                    if frame.get('done') is True:
+                        break
+            if not started:
+                self.begin_stream()
+                started = True
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        except Exception:
+            # A failure before any byte keeps the existing error contract.
+            if not started:
+                self.respond(503, {'error': 'model_unavailable'})
+
     def authenticated(self):
         return bool(TOKEN) and hmac.compare_digest(self.headers.get('Authorization', ''), 'Bearer ' + TOKEN)
 
@@ -168,6 +214,7 @@ class Handler(BaseHTTPRequestHandler):
             if not 0 < length <= 1120000 or self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
                 return self.respond(413, {'error': 'invalid_body'})
             body = json.loads(self.rfile.read(length))
+            streamed = body.get('stream') is True
             messages = body.get('messages')
             if not isinstance(messages, list) or not 1 <= len(messages) <= 10:
                 raise ValueError()
@@ -189,12 +236,18 @@ class Handler(BaseHTTPRequestHandler):
             RECENT.append(now)
         if not ACTIVE.acquire(blocking=False):
             return self.respond(429, {'error': 'busy'})
+        # Photo review always keeps the schema-checked, non-streaming path.
+        wants_stream = streamed and not has_photo
         try:
-            payload = {'model': MODEL, 'messages': messages, 'stream': False,
-                       'think': False, 'format': PHOTO_FORMAT if has_photo else FORMAT, 'keep_alive': -1,
+            payload = {'model': MODEL, 'messages': messages, 'stream': wants_stream,
+                       'think': False, 'keep_alive': -1,
                        'options': {'num_gpu': GPU_LAYERS, 'num_thread': 8, 'num_ctx': 8192, 'num_batch': 256, 'draft_num_predict': 0,
                                    'num_predict': 900 if has_photo else 320, 'temperature': 0}}
+            if not wants_stream:
+                payload['format'] = PHOTO_FORMAT if has_photo else FORMAT
             request = urllib.request.Request(OLLAMA + '/api/chat', data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json'})
+            if wants_stream:
+                return self.relay_stream(request)
             with urllib.request.urlopen(request, timeout=40) as response:
                 result = json.loads(response.read(32000))
             content = result.get('message', {}).get('content', '')

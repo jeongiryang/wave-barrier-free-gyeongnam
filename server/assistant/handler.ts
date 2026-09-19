@@ -38,7 +38,9 @@ visit는 장소의 체류시간, break는 쉬는 시간/휴식시간입니다. '
 예시 입력: 여행지 찾아줘
 출력: {"reply":"선택한 조건으로 여행지를 찾아볼게요.","proposal":{"action":"search"}}
 검색 요청은 search이며 장소 추가 요청 없이 create-itinerary를 쓰지 마세요. 첫 번째/두 번째는 context.resultIds의 실제 표시 순서이고 거기는 context.focusedPlaceId입니다. 대상이 없으면 물어보세요. '빼지 마', '담지 마' 같은 부정문을 add/remove로 처리하지 마세요. 검색·열기는 앱이 바로 수행하며, 구체적인 변경은 앱이 저장한 뒤에만 완료 안내합니다.
-동명이거나 어떤 기존 장소인지 구별되지 않으면 한 가지씩 물어보세요. "비가 와"는 기존 일정이 있으면 adapt-itinerary,indoor:true,reason:rain. "쉬고 싶어"는 adapt-itinerary,pace:relaxed,reason:fatigue. "출발 전에 뭘 확인해"는 readiness.`;
+사용자가 고른 편의 조건(context.profiles)에 맞춰 장소 안내의 우선순위만 바꾸세요. elevator나 route가 있으면 승강기·접근로 정보를 먼저 언급하고, audioguide나 bigprint가 있으면 음성안내·큰글자안내 정보를 먼저 언급하세요. signguide가 있으면 수어안내 정보를 먼저 언급하고 확인되지 않았다면 tool:inquiry로 현장에서 직접 문의할 수 있다고 안내하세요. 이 우선순위 때문에 사용자가 고르지 않은 시설 정보를 빼거나, 확인/미확인 표시를 바꾸거나, 다른 사실을 말하지 마세요.
+장소를 찾았을 때 개수만 말하지 말고, 확인된 것과 확인되지 않은 것을 구분해 말하세요. 확인·미확인 개수와 항목별 상태는 앱 화면이 실제 관광 데이터에서 계산해 채우므로 당신이 세거나 판정하지 마세요. 숫자를 지어내지 말고 무엇을 기준으로 나눠 보여줄지만 한 문장으로 안내하세요. 확인된 곳이 없을 수 있다는 사실을 숨기거나 돌려 말하지 말고, 정보가 없는 장소를 목록에서 빼라고 제안하지 마세요.
+동명이거나 어떤 기존 장소인지 구별되지 않으면 한 가지씩 물어보세요. "비가 와"는 기존 일정이 있으면 adapt-itinerary,indoor:true,reason:rain. "쉬고 싶어"는 adapt-itinerary,pace:relaxed,reason:fatigue. "출발 전에 뭘 확인해"는 readiness. 실행했다고 말하지 마세요. reply에 시설 이용 가능이나 안전 보장을 쓰지 마세요.`;
 
 // 말투 지시는 시스템 프롬프트에 한 문단만 더한다. 프롬프트를 두 벌로 나누지 않는다.
 // 값은 두 개뿐이며 사용자 입력이나 자유 문자열을 프롬프트에 넣지 않는다.
@@ -55,6 +57,16 @@ function systemInstructions(tone: "standard" | "gyeongnam") {
 ${toneInstruction[tone]}
 ${safetyRules}`;
 }
+
+// 말·실행 분리 출력 형식. 위 instructions의 안전 규칙과 판단 기준은 그대로
+// 두고 출력 형식만 바꾼다. WAVE_AI_STREAM이 켜졌을 때만 덧붙인다.
+const streamFormat = `
+출력 형식만 다음과 같이 바꿉니다. 위의 모든 안전 규칙과 판단 기준은 그대로 지킵니다.
+먼저 사용자에게 보여줄 짧은 한국어 안내를 평문으로 씁니다. JSON이나 코드블록으로 시작하지 마세요.
+제안이 필요하면 안내 뒤에 줄을 바꿔 <<<PROPOSAL>>> 한 줄만 쓰고, 다음 줄에 {"action":"..."} 형태의 JSON 객체 하나만 씁니다.
+제안이 필요 없으면 <<<PROPOSAL>>>와 JSON을 쓰지 않습니다.
+<<<PROPOSAL>>>를 답변 본문에 쓰지 마세요. 이 구분자는 한 응답에 한 번만 나옵니다.`;
+const streamEnabled = () => ['1', 'true', 'on'].includes(String(process.env.WAVE_AI_STREAM || '').toLowerCase());
 
 let active = 0;
 const admissions: number[] = [];
@@ -112,13 +124,86 @@ export async function handleAssistant(request: Request) {
   const abort = () => control.abort();
   request.signal.addEventListener('abort', abort, { once: true });
   const timer = setTimeout(abort, 45000);
+  // 사진 경로는 스트리밍하지 않는다. 동작 경로와도 연결하지 않는다.
+  const streaming = !photo && streamEnabled();
+  let handedOff = false;
+  const release = () => { active--; clearTimeout(timer); request.signal.removeEventListener('abort', abort); };
+  // 제안은 전부 도착한 뒤에만 여기로 들어온다. 부분 파싱한 JSON으로 동작을 실행하지 않는다.
+  const finalize = (replyText: unknown, rawProposal: unknown, strict: boolean) => {
+    const grounded = groundAssistantProposal(rawProposal, messages, context);
+    const checked = validateAssistantAction(grounded, places.map(place => place.id));
+    if (grounded && !checked && strict) throw new Error('invalid-action');
+    const reply = rawProposal && !grounded ? '바꿀 항목을 한 가지만 구체적으로 알려주세요. 기존 일정은 그대로예요.'
+      : checked?.action === 'recalculate-route' ? '장소·날짜·순서와 필요한 편의는 유지하고 이동 경로만 확인할게요.'
+      : checked?.action === 'set-dates' ? '장소와 필요한 편의는 유지하고 여행 날짜만 확인할게요. 기존 방문일의 이동이 필요하면 날짜 도구에서 이어서 정할 수 있어요.'
+      : checked?.action === 'create-itinerary' ? '요청한 조건으로 실제 관광 정보를 확인하고 일정안을 준비할게요.' : checked?.action === 'adapt-itinerary' ? '기존 일정과 필요한 편의를 유지하며 바꿀 내용을 확인할게요.' : clean(replyText, 500) || '원하는 여행 조건을 알려주세요.';
+    // 검증에 실패한 제안은 전체를 버리고 대화만 남긴다. 부분 적용은 없다.
+    return { reply, proposal: checked || null };
+  };
   try {
     const endpoint = endpointFor(base, 'chat/completions');
     // Only the operator's configured endpoint is used. The client cannot choose a host.
     const providerMessages = photo
       ? [{ role: 'system', content: photoInstructions }, { ...messages.at(-1), images: [photo.data] }]
-      : [{ role: 'system', content: systemInstructions(tone) }, { role: 'system', content: `context=${JSON.stringify(context)}` }, ...messages];
-    const response = await requestProvider({ provider: 'wave-local-llm', operation: 'chat' }, endpoint.href, { method: 'POST', signal: control.signal, redirect: 'error', headers: { 'Content-Type': 'application/json', ...(process.env.WAVE_AI_TOKEN ? { Authorization: `Bearer ${process.env.WAVE_AI_TOKEN}` } : {}) }, body: JSON.stringify({ model, messages: providerMessages, temperature: 0, max_tokens: photo ? 900 : 500, stream: false, response_format: { type: 'json_object' } }) });
+      : [{ role: 'system', content: streaming ? `${systemInstructions(tone)}${streamFormat}` : systemInstructions(tone) }, { role: 'system', content: `context=${JSON.stringify(context)}` }, ...messages];
+    const headers = { 'Content-Type': 'application/json', ...(process.env.WAVE_AI_TOKEN ? { Authorization: `Bearer ${process.env.WAVE_AI_TOKEN}` } : {}) };
+    const body = JSON.stringify({ model, messages: providerMessages, temperature: 0, max_tokens: photo ? 900 : 500, stream: streaming, ...(streaming ? {} : { response_format: { type: 'json_object' } }) });
+    if (streaming) {
+      // 스트리밍 도우미는 켜졌을 때만 불러온다. 꺼진 경로는 지금 코드 그대로다.
+      const { createNaruStreamReader, naruStreamDelta, NARU_STREAM_LIMIT } = await import('../../lib/assistant-stream.js');
+      // 같은 제공처 경계를 지난다. stream 요청만 본문을 버퍼링하지 않는다.
+      const upstream = await requestProvider({ provider: 'wave-local-llm', operation: 'chat', stream: true }, endpoint.href, { method: 'POST', signal: control.signal, redirect: 'error', headers, body });
+      if (upstream.status === 429) return json({ error: '나루가 답변을 준비 중이에요. 잠시 뒤 다시 보내주세요.', code: 'AI_BUSY' }, 429);
+      if (!upstream.ok || !upstream.body) throw new Error('provider');
+      const reader = upstream.body.getReader();
+      const decoder = new TextDecoder();
+      const encoder = new TextEncoder();
+      const splitter = createNaruStreamReader({ limit: NARU_STREAM_LIMIT });
+      handedOff = true;
+      const stream = new ReadableStream({
+        async start(controller) {
+          const emit = (value: unknown) => controller.enqueue(encoder.encode(`${JSON.stringify(value)}\n`));
+          const forward = (text: string) => { if (text) emit({ type: 'text', value: text }); };
+          try {
+            let buffer = '';
+            for (;;) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+              for (const line of lines) forward(splitter.push(naruStreamDelta(line)));
+            }
+            forward(splitter.push(naruStreamDelta(buffer)));
+            const result = splitter.finish();
+            forward(result.text);
+            if (result.mode === 'json') {
+              // 구분자가 없고 전체가 기존 JSON이면 기존 파싱으로 돌아간다. 실패하면 전체를 답변 글자로 본다.
+              let legacy: unknown = null;
+              try { legacy = JSON.parse(result.raw.replace(/^```(?:json)?\s*|\s*```$/g, '')); } catch { /* 답변 글자로 처리 */ }
+              const settled = record(legacy) ? finalize(legacy.reply, legacy.proposal, false) : finalize(result.raw, null, false);
+              emit({ type: 'text', value: settled.reply });
+              emit({ type: 'done', reply: settled.reply, proposal: settled.proposal, source: 'local-llm' });
+            } else {
+              // 제안 파싱에 실패하면 제안만 버리고 대화는 남긴다.
+              let parsed: unknown = null;
+              if (result.proposalText) try { parsed = JSON.parse(result.proposalText.replace(/^```(?:json)?\s*|\s*```$/g, '').trim()); } catch { parsed = null; }
+              const settled = finalize(result.reply, parsed, false);
+              emit({ type: 'done', reply: settled.reply, proposal: settled.proposal, source: 'local-llm' });
+            }
+          } catch {
+            // 끊긴 스트림은 done 없이 닫는다. 받은 글자는 화면에 남는다. 새 오류 코드를 만들지 않는다.
+          } finally {
+            try { controller.close(); } catch { /* 이미 닫힘 */ }
+            void reader.cancel().catch(() => undefined);
+            release();
+          }
+        },
+        cancel() { control.abort(); },
+      });
+      return new Response(stream, { headers: { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' } });
+    }
+    const response = await requestProvider({ provider: 'wave-local-llm', operation: 'chat' }, endpoint.href, { method: 'POST', signal: control.signal, redirect: 'error', headers, body });
     if (response.status === 429) return json({ error: '나루가 답변을 준비 중이에요. 잠시 뒤 다시 보내주세요.', code: 'AI_BUSY' }, 429);
     if (!response.ok) throw new Error('provider');
     const payload = await response.json() as { choices?: Array<{ message?: { content?: unknown } }> };
@@ -131,16 +216,10 @@ export async function handleAssistant(request: Request) {
       if (!record(result) || typeof result.reply !== 'string' || !result.reply.trim()) throw new Error('photo-output');
       return json({ reply: clean(result.reply, 1000), proposal: null, source: 'local-vision', photoReview: true });
     }
-    const grounded = groundAssistantProposal(result.proposal, messages, context);
-    const proposal = validateAssistantAction(grounded, places.map(place => place.id));
-    if (grounded && !proposal) throw new Error('invalid-action');
-    const reply = result.proposal && !grounded ? '바꿀 항목을 한 가지만 구체적으로 알려주세요. 기존 일정은 그대로예요.'
-      : proposal?.action === 'recalculate-route' ? '장소·날짜·순서와 필요한 편의는 유지하고 이동 경로만 확인할게요.'
-      : proposal?.action === 'set-dates' ? '장소와 필요한 편의는 유지하고 여행 날짜만 확인할게요. 기존 방문일의 이동이 필요하면 날짜 도구에서 이어서 정할 수 있어요.'
-      : proposal?.action === 'create-itinerary' ? '요청한 조건으로 실제 관광 정보를 확인하고 일정안을 준비할게요.' : proposal?.action === 'adapt-itinerary' ? '기존 일정과 필요한 편의를 유지하며 바꿀 내용을 확인할게요.' : clean(result.reply, 500) || '원하는 여행 조건을 알려주세요.';
+    const { reply, proposal } = finalize(result.reply, result.proposal, true);
     return json({ reply, proposal, source: 'local-llm' });
   } catch (error) {
     if (error instanceof ProviderRequestError && error.failure.kind === 'rate_limited') return json({ error: '나루가 답변을 준비 중이에요. 잠시 뒤 다시 보내주세요.', code: 'AI_BUSY' }, 429);
     return json({ error: '나루의 답변을 받지 못했어요. 다시 보내거나 여행 도구로 계속할 수 있어요.', code: 'AI_UNAVAILABLE' }, 503);
-  } finally { active--; clearTimeout(timer); request.signal.removeEventListener('abort', abort); }
+  } finally { if (!handedOff) release(); }
 }
