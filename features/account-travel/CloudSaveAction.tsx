@@ -7,6 +7,8 @@ import type { TravelBook } from "../../lib/travel-book.js";
 import { travelRequest } from "./client";
 import type { AccountTrip, AccountTripPayload } from "./types";
 import { KakaoSendToSelf, KakaoTravelShare } from "../kakao-travel/KakaoTravelActions";
+import { useSitePreferences } from "../preferences/context";
+import { vibrate } from "../../lib/haptics.js";
 
 export default function CloudSaveAction({ book }: { book: TravelBook }) {
   const { data, isPending } = useHydratedSession();
@@ -15,6 +17,8 @@ export default function CloudSaveAction({ book }: { book: TravelBook }) {
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
   const attempt = useRef({ key: "", id: "" });
+  // 진동은 보조 신호다. 같은 결과를 아래 role="status" 문장이 그대로 전한다.
+  const { haptics } = useSitePreferences();
   const key = JSON.stringify([userId, book.title, book.region, book.travelStart, book.travelEnd, book.dayStartTime, book.travelMode, book.themes, book.theme, book.status, book.note, book.places.map(place => place.id), book.scheduleAssignments, book.visitMinutesByPlaceId, book.fixedVisits, book.dayDeadlines, book.breakMinutesByPlaceId, book.restPurposeByPlaceId]);
   async function save() {
     if (!userId || pending.current) return;
@@ -23,7 +27,8 @@ export default function CloudSaveAction({ book }: { book: TravelBook }) {
       if (attempt.current.key !== key) attempt.current = { key, id: crypto.randomUUID() };
       const trip = await travelRequest<AccountTrip>("", { id: attempt.current.id, payload: bookToAccountTrip(book) });
       setState({ key, userId, message: "계정에 저장했어요. 다른 기기에서도 이 여행을 열 수 있습니다.", id: trip.id });
-    } catch (error) { setState({ key, userId, message: error instanceof Error ? error.message : "저장하지 못했습니다." }); }
+      vibrate("confirm", haptics === "on");
+    } catch (error) { setState({ key, userId, message: error instanceof Error ? error.message : "저장하지 못했습니다." }); vibrate("alert", haptics === "on"); }
     finally { pending.current = false; setBusy(false); }
   }
   if (isPending) return null;

@@ -6,6 +6,7 @@ import { localeOptions } from "./locale-catalog";
 import type { Locale, TextScale } from "./types";
 import { useAppInstall } from "./useAppInstall";
 import { presentationOptionsEnabled } from "./presentation-release";
+import { hapticsSupported } from "../../lib/haptics.js";
 
 /** 세 단계는 루트 font-size 백분율로만 준다. 실제 크기를 함께 적어 고르게 한다. */
 const textScaleOptions: Array<{ id: TextScale; label: string; english: string; size: string; phrase: string }> = [
@@ -28,9 +29,12 @@ function positionPanel(details: HTMLDetailsElement | null) {
 
 export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean }) {
   const controlsReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
-  const { locale, theme, colorAssist, setColorAssist, textScale, setTextScale, setLocale, toggleTheme, t } = useSitePreferences();
+  const { locale, theme, colorAssist, setColorAssist, textScale, setTextScale, setLocale, toggleTheme, haptics, setHaptics, t } = useSitePreferences();
   const en = locale === "en";
   const showPresentationOptions = controlsReady && presentationOptionsEnabled();
+  // 진동을 지원하지 않는 브라우저에서는 항목 자체를 그리지 않는다.
+  // 언어·테마와 달리 presentationOptionsEnabled() 게이트를 적용하지 않는다.
+  const showHaptics = controlsReady && hapticsSupported();
   const appInstall = useAppInstall();
   const disclosure = useRef<HTMLDetailsElement>(null);
   const [colorAssistNotice, setColorAssistNotice] = useState("");
@@ -112,6 +116,10 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
           <em aria-hidden="true">{colorAssist === "on" ? en ? "On" : "켜기" : en ? "Off" : "끄기"}</em>
         </button>
         <span className="sr-only" role="status" aria-live="polite">{colorAssistNotice}</span>
+        {showHaptics && <button className="preference-row" type="button" data-haptics={haptics} aria-pressed={haptics === "on"} onClick={() => setHaptics(haptics === "on" ? "off" : "on")}>
+          <span><b>{en ? "Vibration alerts" : "진동 알림"}</b><small>{en ? "A short vibration at important moments. It may not work on some devices." : "중요한 순간에 짧게 진동해요. 기기에 따라 동작하지 않을 수 있어요."}</small></span>
+          <em aria-hidden="true">{haptics === "on" ? en ? "On" : "켜기" : en ? "Off" : "끄기"}</em>
+        </button>}
         {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label={en ? "Install WAVE" : "WAVE 앱 설치"}>
           <span><b>{en ? "Install as an app" : "앱으로 설치"}</b><small>{en ? "Open from your home screen" : "홈 화면에서 전체 화면으로 열기"}</small></span>
           <em aria-hidden="true">{appInstall.state === "installing" ? en ? "Preparing" : "준비 중" : en ? "Install" : "설치"}</em>

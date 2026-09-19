@@ -9,6 +9,8 @@ import { formatScheduleTime } from '../optimization/itinerary-schedule.js';
 import { DayDeadlineSummary } from './DayDeadlineControl';
 import { FixedVisitSummary } from './FixedVisitControl';
 import { validTripClock } from '../../../lib/trip-time-constraints.js';
+import { useSitePreferences } from '../../preferences/context';
+import { vibrate } from '../../../lib/haptics.js';
 
 const fieldLabelStyle = { display:'grid', gap:8, fontSize:14, fontWeight:500 } as const;
 const selectStyle = { width:'100%', minHeight:48, padding:'10px 12px', border:'1px solid var(--line)', borderRadius:12, background:'var(--paper)', color:'var(--ink)', font:'inherit', fontSize:16 } as const;
@@ -20,6 +22,8 @@ function DayGuide({ trip, coverage, origin, onSelectPlace, progressMemory, onPro
   const [ready, setReady] = useState(false), [running, setRunning] = useState(false), [notice, setNotice] = useState('');
   const [undo, setUndo] = useState<TripProgress|null>(null), [resetting, setResetting] = useState(false);
   const memory=useRef(progressMemory);
+  // 진동은 보조 신호다. 아래 안내 글과 role="status" 전달은 그대로 유지한다.
+  const { haptics } = useSitePreferences();
   useEffect(() => {
     const load = (external = false) => {
       if (external) {setRunning(false);setUndo(null);}
@@ -48,7 +52,10 @@ function DayGuide({ trip, coverage, origin, onSelectPlace, progressMemory, onPro
   function mark(state:'done'|'skipped') {
     if (!running || !validTripClock(progress.clock) || !next || (state === 'skipped' && trip.fixedVisits[next.id])) return;
     setUndo(progress);const value = {...progress, marks:{...progress.marks,[next.id]:{state,at:new Date().toISOString()}}, cursorId:state==='done'?next.id:progress.cursorId, clock:nowClock()};
-    if(persist(value))setNotice(`${next.name} ${state==='done'?'방문을 완료했어요.':'방문을 건너뛰었어요.'} 원래 계획은 보관됩니다.`);
+    const saved=persist(value);
+    if(saved)setNotice(`${next.name} ${state==='done'?'방문을 완료했어요.':'방문을 건너뛰었어요.'} 원래 계획은 보관됩니다.`);
+    // 사용자가 직접 누른 '이곳 방문 완료'에만 신호를 준다. 저장 실패는 두 번 떨린다.
+    if(state==='done')vibrate(saved?'confirm':'alert',haptics==='on');
   }
   return <section className="account-settings" aria-label="여행 당일 진행">
     <p className="section-kicker">여행을 이어서</p><h3>{trip.activeDay} · {remaining.done}곳 방문 완료</h3>

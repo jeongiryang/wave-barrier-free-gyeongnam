@@ -11,11 +11,15 @@ export type ColorAssist = "off" | "on";
 
 export type TextScale = "standard" | "large" | "larger";
 
+export type Haptics = "off" | "on";
+
 export type PreferencesValue = {
   locale: Locale;
   theme: Theme;
   textScale: TextScale;
   colorAssist: ColorAssist;
+  haptics: Haptics;
+  setHaptics: (value: Haptics) => void;
   hydrated: boolean;
   setLocale: (locale: Locale) => void;
   motion: Motion;
