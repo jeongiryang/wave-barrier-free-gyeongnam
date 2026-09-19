@@ -8,9 +8,13 @@ import {
   DINING_EVIDENCE_NOTE, DINING_GROUPS, dedupeNearbyDining, diningDistanceText, diningFacilityTagText, diningFacilityTags,
 } from '../../../lib/dining-accessibility.js';
 import { filterByFoodCategory, foodCategoryOf, foodCategoryOptions } from '../../../lib/food-category.js';
+import { repeatedNameIds } from '../../../lib/local-place-filter.js';
 import { loadKakaoSdk } from '../../routing/kakao-sdk';
 import { parseNearbyPlaces } from '../../routing/nearby-place-data';
-import FilterChipRow from './FilterChipRow';
+import FilterChipRow, { ToggleChip } from './FilterChipRow';
+
+/** 스펙 35: 반복 판정 기준. 설정으로 노출하지 않고 고정한다. */
+const LOCAL_NAME_THRESHOLD = 2;
 
 /**
  * 음식점 접근성 겹쳐 보기(스펙 08).
@@ -108,6 +112,24 @@ function useFoodCategoryFilter(items: DiningPlace[]) {
   return { options, selected, toggle, clear, display, uncategorizedCount, showUncategorized, setShowUncategorized };
 }
 
+/**
+ * 지역 가게 보기(스펙 35)의 "같은 이름이 여러 곳에 있는 가게 접어두기" 상태.
+ * 지금 화면의 결과 목록(전달받은 `items`, 다른 거르기가 적용되기 전 원본)
+ * 안에서만 반복을 판정한다. 반복 판정은 39번 종류 거르기와 독립이므로, 어느
+ * 거르기를 먼저 적용해도 같은 결과가 나온다. 결과를 지우지 않고 접기만
+ * 하며, 접힌 항목은 언제나 다시 펼칠 수 있다.
+ */
+function useLocalPlaceFilter(items: DiningPlace[]) {
+  const [collapseRepeated, setCollapseRepeated] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const repeatedIds = useMemo(() => new Set(repeatedNameIds(items, LOCAL_NAME_THRESHOLD)), [items]);
+  const toggle = useCallback(() => { setCollapseRepeated(value => !value); setExpanded(false); }, []);
+  const apply = useCallback((list: DiningPlace[]) => (
+    !collapseRepeated || expanded ? list : list.filter(item => !repeatedIds.has(item.id))
+  ), [collapseRepeated, expanded, repeatedIds]);
+  return { collapseRepeated, toggle, expanded, setExpanded, repeatedIds, apply };
+}
+
 export default function DiningAccessibilityList({ place, onClose }: { place: Place; onClose?: () => void }) {
   const placeId = place.id;
   const [attempt, setAttempt] = useState(0);
@@ -125,6 +147,19 @@ export default function DiningAccessibilityList({ place, onClose }: { place: Pla
   const requestedKeys = (place.accessibility || []).map(field => field.key);
   const officialFoodFilter = useFoodCategoryFilter(items);
   const nearbyFoodFilter = useFoodCategoryFilter(nearbyView.items);
+  const officialLocalFilter = useLocalPlaceFilter(items);
+  const nearbyLocalFilter = useLocalPlaceFilter(nearbyView.items);
+  // "관광정보에 등록된 곳만 보기": 08번의 두 묶음은 이미 근거로 나뉘어 있으므로
+  // (관광공사 등록 / 카카오 장소 검색), 이 선택은 확인되지 않은 카카오 묶음
+  // 섹션 전체를 숨기는 것으로 구현한다. 결과를 지우지 않고 화면에서 접을
+  // 뿐이며, 다시 끄면 그대로 되돌아온다.
+  const [officialOnly, setOfficialOnly] = useState(false);
+  const officialDisplay = officialLocalFilter.apply(officialFoodFilter.display);
+  const nearbyDisplay = nearbyLocalFilter.apply(nearbyFoodFilter.display);
+  const officialEmptyByFood = officialFoodFilter.selected.length > 0 && officialFoodFilter.display.length === 0;
+  const officialEmptyByLocal = !officialEmptyByFood && officialFoodFilter.display.length > 0 && officialDisplay.length === 0;
+  const nearbyEmptyByFood = nearbyFoodFilter.selected.length > 0 && nearbyFoodFilter.display.length === 0;
+  const nearbyEmptyByLocal = !nearbyEmptyByFood && nearbyFoodFilter.display.length > 0 && nearbyDisplay.length === 0;
 
   useEffect(() => {
     const request = new AbortController();
@@ -191,6 +226,10 @@ export default function DiningAccessibilityList({ place, onClose }: { place: Pla
   }, [place.mapX, place.mapY, placeId, items]);
 
   return <section className="dining-accessibility" aria-label={`${place.name} 주변 음식점 편의 정보`}>
+    <div style={actionRow}>
+      <ToggleChip pressed={officialOnly} onClick={() => setOfficialOnly(value => !value)}>관광정보에 등록된 곳만 보기</ToggleChip>
+    </div>
+    <p style={line}>한국관광공사 관광정보에 등록된 음식점이에요.</p>
     <h3>{DINING_GROUPS.official.title}</h3>
     <p style={line}>{DINING_GROUPS.official.evidence}</p>
     <div aria-live="polite">
@@ -212,34 +251,56 @@ export default function DiningAccessibilityList({ place, onClose }: { place: Pla
       {state === 'available' && <>
         <FilterChipRow options={officialFoodFilter.options} selected={officialFoodFilter.selected} onToggle={officialFoodFilter.toggle} onClear={officialFoodFilter.clear} ariaLabel="편의 정보가 확인된 음식점 종류" />
         {officialFoodFilter.uncategorizedCount > 0 && !officialFoodFilter.showUncategorized && <p style={line}>종류가 등록되지 않은 {officialFoodFilter.uncategorizedCount}곳은 숨겨졌어요. <button type="button" onClick={() => officialFoodFilter.setShowUncategorized(true)}>함께 보기</button></p>}
-        {officialFoodFilter.selected.length > 0 && officialFoodFilter.display.length === 0
+        <div style={actionRow}>
+          <ToggleChip pressed={officialLocalFilter.collapseRepeated} onClick={officialLocalFilter.toggle}>같은 이름이 여러 곳에 있는 가게 접어두기</ToggleChip>
+        </div>
+        <p style={line}>지금 결과 안에서 같은 이름이 2곳 이상 나온 가게예요. 체인인지 여부는 확인되지 않았어요.</p>
+        {officialLocalFilter.collapseRepeated && officialLocalFilter.repeatedIds.size > 0 && <p style={line}>
+          같은 이름 {officialLocalFilter.repeatedIds.size}곳 접음{' '}
+          <button type="button" onClick={() => officialLocalFilter.setExpanded(value => !value)}>{officialLocalFilter.expanded ? '접기' : '펼치기'}</button>
+        </p>}
+        {officialEmptyByFood
           ? <div><p>고른 종류에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={officialFoodFilter.clear}>선택 지우기</button></div></div>
-          : <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            {officialFoodFilter.display.map(item => <DiningCard key={item.id} item={item} requestedKeys={requestedKeys} />)}
-          </ul>}
+          : officialEmptyByLocal
+            ? <div><p>조건에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={officialLocalFilter.toggle}>조건 끄기</button></div></div>
+            : <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {officialDisplay.map(item => <DiningCard key={item.id} item={item} requestedKeys={requestedKeys} />)}
+            </ul>}
       </>}
     </div>
 
-    <h3>{DINING_GROUPS.placeSearch.title}</h3>
-    <p style={line}>{DINING_GROUPS.placeSearch.evidence}</p>
-    <div style={actionRow}>
-      <button type="button" onClick={() => void searchNearby()} disabled={nearbyView.state === 'loading'}>주변 음식점 더 보기</button>
-    </div>
-    <div aria-live="polite">
-      {nearbyView.state === 'idle' && <p style={line}>누르면 그때 카카오 장소 검색을 실행해요. 자동으로 부르지 않아요.</p>}
-      {nearbyView.state === 'loading' && <p>주변 음식점을 찾고 있어요.</p>}
-      {nearbyView.state === 'error' && <p role="alert">주변 음식점을 불러오지 못했어요. 위의 확인된 음식점 목록은 그대로예요.</p>}
-      {nearbyView.state === 'empty' && <p>여행지에서 {PLACE_SEARCH_RADIUS_METRES / 1000}km 안에서 찾은 음식점이 없어요.</p>}
-      {nearbyView.state === 'ready' && <>
-        <FilterChipRow options={nearbyFoodFilter.options} selected={nearbyFoodFilter.selected} onToggle={nearbyFoodFilter.toggle} onClear={nearbyFoodFilter.clear} ariaLabel="주변 음식점 종류" />
-        {nearbyFoodFilter.uncategorizedCount > 0 && !nearbyFoodFilter.showUncategorized && <p style={line}>종류가 등록되지 않은 {nearbyFoodFilter.uncategorizedCount}곳은 숨겨졌어요. <button type="button" onClick={() => nearbyFoodFilter.setShowUncategorized(true)}>함께 보기</button></p>}
-        {nearbyFoodFilter.selected.length > 0 && nearbyFoodFilter.display.length === 0
-          ? <div><p>고른 종류에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={nearbyFoodFilter.clear}>선택 지우기</button></div></div>
-          : <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            {nearbyFoodFilter.display.map(item => <DiningCard key={item.id} item={item} requestedKeys={requestedKeys} />)}
-          </ul>}
-      </>}
-    </div>
+    {!officialOnly && <>
+      <h3>{DINING_GROUPS.placeSearch.title}</h3>
+      <p style={line}>{DINING_GROUPS.placeSearch.evidence}</p>
+      <div style={actionRow}>
+        <button type="button" onClick={() => void searchNearby()} disabled={nearbyView.state === 'loading'}>주변 음식점 더 보기</button>
+      </div>
+      <div aria-live="polite">
+        {nearbyView.state === 'idle' && <p style={line}>누르면 그때 카카오 장소 검색을 실행해요. 자동으로 부르지 않아요.</p>}
+        {nearbyView.state === 'loading' && <p>주변 음식점을 찾고 있어요.</p>}
+        {nearbyView.state === 'error' && <p role="alert">주변 음식점을 불러오지 못했어요. 위의 확인된 음식점 목록은 그대로예요.</p>}
+        {nearbyView.state === 'empty' && <p>여행지에서 {PLACE_SEARCH_RADIUS_METRES / 1000}km 안에서 찾은 음식점이 없어요.</p>}
+        {nearbyView.state === 'ready' && <>
+          <FilterChipRow options={nearbyFoodFilter.options} selected={nearbyFoodFilter.selected} onToggle={nearbyFoodFilter.toggle} onClear={nearbyFoodFilter.clear} ariaLabel="주변 음식점 종류" />
+          {nearbyFoodFilter.uncategorizedCount > 0 && !nearbyFoodFilter.showUncategorized && <p style={line}>종류가 등록되지 않은 {nearbyFoodFilter.uncategorizedCount}곳은 숨겨졌어요. <button type="button" onClick={() => nearbyFoodFilter.setShowUncategorized(true)}>함께 보기</button></p>}
+          <div style={actionRow}>
+            <ToggleChip pressed={nearbyLocalFilter.collapseRepeated} onClick={nearbyLocalFilter.toggle}>같은 이름이 여러 곳에 있는 가게 접어두기</ToggleChip>
+          </div>
+          <p style={line}>지금 결과 안에서 같은 이름이 2곳 이상 나온 가게예요. 체인인지 여부는 확인되지 않았어요.</p>
+          {nearbyLocalFilter.collapseRepeated && nearbyLocalFilter.repeatedIds.size > 0 && <p style={line}>
+            같은 이름 {nearbyLocalFilter.repeatedIds.size}곳 접음{' '}
+            <button type="button" onClick={() => nearbyLocalFilter.setExpanded(value => !value)}>{nearbyLocalFilter.expanded ? '접기' : '펼치기'}</button>
+          </p>}
+          {nearbyEmptyByFood
+            ? <div><p>고른 종류에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={nearbyFoodFilter.clear}>선택 지우기</button></div></div>
+            : nearbyEmptyByLocal
+              ? <div><p>조건에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={nearbyLocalFilter.toggle}>조건 끄기</button></div></div>
+              : <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {nearbyDisplay.map(item => <DiningCard key={item.id} item={item} requestedKeys={requestedKeys} />)}
+              </ul>}
+        </>}
+      </div>
+    </>}
 
     <p style={line}>{DINING_EVIDENCE_NOTE}</p>
   </section>;

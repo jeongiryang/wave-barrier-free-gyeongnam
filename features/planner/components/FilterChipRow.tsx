@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 /**
  * 여러 개를 동시에 고를 수 있는 칩 선택 줄.
@@ -31,6 +31,17 @@ const offChip: CSSProperties = {
 };
 const onChip: CSSProperties = { ...offChip, border: '1px solid var(--accent)', background: 'var(--accent)', color: 'var(--on-blue)' };
 const CheckMark = () => <svg aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12"><path d="M1.5 6.4 4.3 9.2 10.5 3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+
+/**
+ * 하나만 켜고 끄는 단일 토글 칩. 스펙 35(지역 가게 보기)의 두 선택처럼 여러
+ * 개의 선택지 목록이 아니라 켜짐/꺼짐만 있는 조건에 쓴다. `FilterChipRow`와
+ * 같은 시각 언어(색+텍스트+체크 아이콘)를 공유한다.
+ */
+export function ToggleChip({ pressed, onClick, children }: { pressed: boolean; onClick: () => void; children: ReactNode }) {
+  return <button type="button" aria-pressed={pressed} style={pressed ? onChip : offChip} onClick={onClick}>
+    {pressed && <CheckMark />}{children}
+  </button>;
+}
 
 export default function FilterChipRow({ options, selected, onToggle, onClear, ariaLabel }: {
   options: FilterChipOption[];
