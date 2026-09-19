@@ -1,6 +1,6 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, plan } from "./fixtures";
 
 // Independent, public-guest journeys. All trip state is created by UI actions;
 // storage reads below are evidence, never setup or repair.
@@ -304,4 +304,88 @@ test("여행 설정 취소·적용·되돌리기가 날짜와 이동을 보존�
   await page.screenshot({ path: info.outputPath("itinerary-map.png"), fullPage: true });
   expect((await current(page)).ids).toEqual(before.ids);
   expect((await current(page)).identity?.id).toBe(before.identity?.id);
+});
+
+test("담기 다음 행동에서 날짜 전에 출발지를 고르고 같은 장소로 시간표를 만든다", async ({ page }) => {
+  await browse(page);
+  await add(page, museum);
+  const next = page.getByLabel('담은 장소로 이어가기', { exact: true });
+  await expect(next).toContainText('담은 장소 1곳');
+  await next.getByRole('button', { name: '담은 장소로 일정 정하기', exact: true }).click();
+  const setup = page.locator('.simple-initial-setup');
+  const origin = setup.getByRole('button', { name: '출발지 확인·변경 · 창원중앙역', exact: true });
+  await origin.click();
+  await expect(setup.getByRole('textbox', { name: '장소 검색', exact: true })).toBeFocused();
+  await setup.getByRole('button', { name: /통영종합버스터미널/ }).click();
+  await expect(setup.getByRole('button', { name: '출발지 확인·변경 · 통영종합버스터미널', exact: true })).toBeFocused();
+  await expect.poll(async () => (await current(page)).schedule?.travelStart || '').toBe('');
+  await setup.getByLabel('시작일', { exact: true }).fill('2026-10-14');
+  await setup.getByLabel('마지막 날', { exact: true }).fill('2026-10-14');
+  await setup.getByRole('button', { name: '시간표 만들기', exact: true }).click();
+  await expect(page.locator('.simple-timeboard')).toBeVisible();
+  await expect.poll(async () => (await current(page)).ids).toEqual(['1001']);
+  await page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: '여행지 찾기', exact: true }).click();
+  await expect(next.getByRole('button', { name: '담은 장소의 일정 보기', exact: true })).toBeVisible();
+});
+
+test("나루의 다음 행동이 빈 여행에서 날짜 없는 여행과 완성 일정까지 이어진다", async ({ page }) => {
+  await page.route('**/api/assistant', route => route.fulfill({ json: { available: true } }));
+  await browse(page);
+  const launcher = page.getByRole('button', { name: '나루와 계획하기', exact: true });
+  await launcher.click();
+  const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
+  await chat.getByRole('button', { name: '건너뛰기', exact: true }).click();
+  await expect(chat.getByRole('button', { name: '현재 일정에서 이동 부담을 줄여줘', exact: true })).toHaveCount(0);
+  await chat.getByRole('button', { name: '여행지 찾아 일정에 담기', exact: true }).click();
+  await expect(chat).not.toBeVisible();
+  await add(page, museum);
+  await launcher.click();
+  await chat.getByRole('button', { name: '담은 1곳의 날짜·출발지 정하기', exact: true }).click();
+  const setup = page.locator('.simple-initial-setup');
+  await expect(setup.getByLabel('시작일', { exact: true })).toBeFocused();
+  await setup.getByLabel('시작일', { exact: true }).fill('2026-10-14');
+  await setup.getByLabel('마지막 날', { exact: true }).fill('2026-10-14');
+  await setup.getByRole('button', { name: '시간표 만들기', exact: true }).click();
+  await expect(page.locator('.simple-timeboard')).toBeVisible();
+  await launcher.click();
+  await expect(chat.getByRole('button', { name: '내 일정 1곳 확인', exact: true })).toBeVisible();
+  await expect(chat.getByRole('button', { name: '현재 일정에서 이동 부담을 줄여줘', exact: true })).toBeVisible();
+});
+
+test("비교 후보가 한 곳이면 조건을 몰래 바꾸지 않고 검색 조건으로 돌아간다", async ({ page }) => {
+  await page.route('**/api/wave?*', route => {
+    if (new URL(route.request().url()).searchParams.get('action') !== 'plan') return route.fallback();
+    return route.fulfill({ json: { ...plan, places: plan.places.slice(0, 1), stops: plan.stops.slice(0, 1) } });
+  });
+  await page.goto('/planner');
+  const region = page.getByRole('combobox', { name: '여행 지역', exact: true });
+  await region.selectOption('창원');
+  await expect(page.locator('.simple-place-row')).toHaveCount(1);
+  await page.getByRole('button', { name: '편의 비교', exact: true }).click();
+  await expect(page.getByText('현재 목록에는 비교할 장소가 1곳뿐이에요.', { exact: false })).toBeVisible();
+  await page.getByRole('button', { name: '검색 조건 확인', exact: true }).click();
+  await expect(region).toBeFocused();
+  await expect(region).toHaveValue('창원');
+  await expect(page.locator('.simple-place-row')).toHaveCount(1);
+});
+
+test("나루 시작 버튼은 PC·태블릿·모바일에서 보이고 키보드로 열고 돌아온다", async ({ page }, info) => {
+  await page.route('**/api/assistant', route => route.fulfill({ json: { available: true } }));
+  await browse(page);
+  for (const width of info.project.name === 'desktop-chromium' ? [1440, 960, 390] : [390]) {
+    await page.setViewportSize({ width, height: 960 });
+    await noOverflow(page, '.simple-planner-actions button');
+    const entry = page.getByRole('button', { name: '나루와 계획하기', exact: true });
+    const rect = await entry.boundingBox();
+    expect(rect?.height).toBeGreaterThanOrEqual(44);
+    await entry.focus();
+    await entry.press('Enter');
+    const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
+    await expect(chat).toBeVisible();
+    await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
+    await expect(entry).toBeFocused();
+  }
+  const axe = await new AxeBuilder({ page }).include('.simple-planner-heading').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  expect(axe.violations).toEqual([]);
+  await page.screenshot({ path: info.outputPath('journey-actions.png'), fullPage: false });
 });

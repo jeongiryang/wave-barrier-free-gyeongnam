@@ -87,9 +87,14 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
   const assistantReturn = useRef<HTMLElement | null>(null);
   const assistantLauncher = useRef<HTMLButtonElement | null>(null);
   const restoreAssistantFocus = useRef(false);
-  const mountAssistantLauncher = useCallback((node: HTMLButtonElement | null) => { assistantLauncher.current = node; if (node && restoreAssistantFocus.current) { restoreAssistantFocus.current = false; requestAnimationFrame(() => { if (node.isConnected) node.focus({ preventScroll: true }); }); } }, []);
+  const restoreNaruFocus = useCallback(() => {
+    const previous = assistantReturn.current;
+    if (previous?.isConnected && previous !== document.body && previous.getClientRects().length) previous.focus({ preventScroll: true });
+    else assistantLauncher.current?.focus({ preventScroll: true });
+  }, []);
+  const mountAssistantLauncher = useCallback((node: HTMLButtonElement | null) => { assistantLauncher.current = node; if (node && restoreAssistantFocus.current) { restoreAssistantFocus.current = false; requestAnimationFrame(restoreNaruFocus); } }, [restoreNaruFocus]);
   const showAssistant = useCallback(() => { assistantReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; resumeAssistant.current = false; setSelectedPlace(null); setAssistantMounted(true); setAssistantOpen(true); onShow?.(); }, [onShow]);
-  const closeAssistant = useCallback(() => { restoreAssistantFocus.current = true; setAssistantOpen(false); onDismiss?.(); requestAnimationFrame(() => { const previous = assistantReturn.current; if (previous?.isConnected && previous !== document.body && previous.getClientRects().length) previous.focus({ preventScroll: true }); else assistantLauncher.current?.focus({ preventScroll: true }); }); }, [onDismiss]);
+  const closeAssistant = useCallback(() => { restoreAssistantFocus.current = true; setAssistantOpen(false); onDismiss?.(); requestAnimationFrame(restoreNaruFocus); }, [onDismiss, restoreNaruFocus]);
   useEffect(() => {
     if (!hydrated || !launchRequest.id) return;
     const frame = requestAnimationFrame(showAssistant);
@@ -321,7 +326,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     else { stageView.changeStep('itinerary'); setItineraryMapView(tool === 'map'); if (['readiness','weather'].includes(tool)) { setDepartureDetailsOpen(true); if (tool === 'weather') setSecondaryOpen(true); } }
     const selectors: Record<string, string> = { conditions: '.simple-search-bar select', facilities: '.simple-facility-trigger', dates: '.simple-itinerary-heading > button', receipt: '[data-planner-tool="receipt"] > summary', comfort: '.simple-day-options > summary', budget: '[data-planner-tool="budget"] > summary', offline: '[data-planner-tool="offline"]', 'on-trip': '[data-planner-tool="on-trip"]', split: '[data-planner-tool="split"]', alternatives: '[data-planner-tool="alternatives"] > summary', course: '[data-planner-tool="course"] > summary', save: '[data-planner-tool="save"] > button', share: '[data-planner-tool="share"]', transport: '[data-planner-tool="transport"]', calendar: '[data-planner-tool="share"]', weather: '.weather-heading > button', readiness: '.simple-readiness', map: '#itinerary-map', itinerary: '#itinerary', places: '#places', compare: '#places', inquiry: '#places', preview: '#places', transcript: '#places' };
     const focusTarget = () => {
-      const node = document.querySelector<HTMLElement>(selectors[tool] || '#planner');
+      const node = document.querySelector<HTMLElement>(tool === 'dates' && !travelStart ? '#itinerary-setup input' : selectors[tool] || '#planner');
       if (!node) return;
       for (let parent = node.parentElement; parent; parent = parent.parentElement) if (parent instanceof HTMLDetailsElement) parent.open = true;
       if (!node.matches('button,summary,a,input,select')) node.setAttribute('tabindex', '-1');
@@ -439,7 +444,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
   return (
     <main role={embedded ? "presentation" : undefined} className="planner-page journey-editorial planner-reference planner-simple" lang={locale}>
       {!embedded && <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>}
-      {!embedded && <PlannerReferenceChrome storageSnapshot={storageSnapshot} interactive={hydrated && planController.criteriaReady && tripSelection.storageReady} savedCount={saved.length} activeStep={journey.activeStepId} onNavigate={journey.goToStep} onNew={startNewTrip} />}
+      {!embedded && <PlannerReferenceChrome storageSnapshot={storageSnapshot} interactive={hydrated && planController.criteriaReady && tripSelection.storageReady} savedCount={saved.length} activeStep={journey.activeStepId} onNavigate={journey.goToStep} onNew={startNewTrip} onAskNaru={showAssistant} />}
       {newTripError && <p role="alert">{newTripError}</p>}
       <section className="planner-journey-workspace" id="planner" aria-label="여행 만들기">
         <div className="simple-workspace-body">{plannerStages}</div>

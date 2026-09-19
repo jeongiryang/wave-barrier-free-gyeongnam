@@ -19,6 +19,7 @@ import NavigationWorkspace from "./NavigationWorkspace";
 import TripSettingsEditor, { InitialTripSetup } from "./TripSettingsEditor";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
 import TripDecisionReceipt from "./TripDecisionReceipt";
+import TripPointPicker from "./TripPointPicker";
 
 const PlannerItineraryBoard = lazy(() => import("./PlannerItineraryBoard").catch(() => ({ default: ItineraryUnavailable })));
 
@@ -67,6 +68,18 @@ interface PlannerItineraryWorkspaceProps {
   onMapDestination: (place: MapPlace) => void;
   onSaveMapPlaces: (places: MapPlace[]) => number;
   onProfiles: (keys: string[]) => void;
+}
+
+function InitialDeparture({ route, locationSearch, tripSelection, onChoosePoint }: PlannerItineraryWorkspaceProps) {
+  const trigger = useRef<HTMLButtonElement>(null);
+  const { setPointPicker } = locationSearch;
+  const close = useCallback(() => { setPointPicker(null); requestAnimationFrame(() => trigger.current?.focus()); }, [setPointPicker]);
+  return <div className="simple-journey-guidance">
+    <p>하루 출발지</p>
+    <button ref={trigger} type="button" aria-expanded={locationSearch.pointPicker === 'origin'} aria-controls="trip-point-picker" onClick={() => setPointPicker(value => value === 'origin' ? null : 'origin')}>출발지 확인·변경 · {route.originLabel}</button>
+    <p>각 날짜의 이동은 이곳에서 시작해요. 현재 위치를 자동으로 사용하지 않아요.</p>
+    {locationSearch.pointPicker === 'origin' && <TripPointPicker route={route} locationSearch={locationSearch} activePlaces={tripSelection.orderedSavedPlaces} onChoosePoint={onChoosePoint} onClose={close} />}
+  </div>;
 }
 
 export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspaceProps) {
@@ -189,7 +202,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     void loadRoutes(leg.place, leg.from, leg.blocked, leg.fromLabel);
   }, [props.mapEnabled, props.tripSelection.storageReady, props.tripSelection.travelStart, props.coverage.legs, props.coverage.signature, props.coverage.checkedSignature, props.coverage.data, props.coverage.loading, activeDay, structureSignature, region, routeTravelMode, routeDestination, routeStart, routeStartIsPrivate, routeStartLabel, loadRoutes, resetRouteData, displayRouteData]);
 
-  if (!props.tripSelection.travelStart) return <InitialTripSetup trip={props.tripSelection} />;
+  if (!props.tripSelection.travelStart) return <InitialTripSetup trip={props.tripSelection}><InitialDeparture {...props} /></InitialTripSetup>;
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
     <div lang="ko" className="simple-itinerary-heading"><div><h2 id="itinerary-stage-title">내 일정</h2><p>{props.tripSelection.travelStart} — {props.tripSelection.travelEnd}</p></div><button type="button" onClick={() => setSettingsOpen(true)}>여행 설정</button></div>
     {props.tripSelection.commandNotice && <div lang="ko" className="simple-command-receipt" role="status"><span>{props.tripSelection.commandNotice}</span>{props.tripSelection.canUndoCommand && <button type="button" onClick={() => props.tripSelection.undoCommand()}>되돌리기</button>}</div>}

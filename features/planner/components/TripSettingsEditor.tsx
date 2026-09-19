@@ -1,5 +1,5 @@
 "use client";
-import { useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore, type ReactNode } from "react";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { TripTravelMode } from "../../../lib/trip-travel-mode.js";
 import { localDate } from "../utils";
@@ -39,8 +39,8 @@ function SettingsForm({ trip, onClose }: Props) {
     <div className="simple-editor-footer">{onClose && <button type="button" onClick={onClose}>취소</button>}<button type="submit" className="primary">{initial ? '시간표 만들기' : '적용'}</button></div>
   </form>;
 }
-export function InitialTripSetup({ trip }: Props) {
-  return <section id="itinerary-setup" lang="ko" className="simple-initial-setup" aria-labelledby="trip-setup-title"><h2 id="trip-setup-title">언제 떠날까요?</h2><SettingsForm trip={trip} /><p className="simple-collected-places">담은 장소 · {trip.orderedSavedPlaces.map(place => place.name).join(' · ')}</p></section>;
+export function InitialTripSetup({ trip, children }: Props & { children?: ReactNode }) {
+  return <section id="itinerary-setup" lang="ko" className="simple-initial-setup" aria-labelledby="trip-setup-title"><h2 id="trip-setup-title">언제 떠날까요?</h2>{children}<SettingsForm trip={trip} /><p className="simple-collected-places">담은 장소 · {trip.orderedSavedPlaces.map(place => place.name).join(' · ')}</p></section>;
 }
 export default function TripSettingsEditor({ trip, onClose }: Props & { onClose: () => void }) {
   const ref = usePlaceDialogFocus(true, onClose);
