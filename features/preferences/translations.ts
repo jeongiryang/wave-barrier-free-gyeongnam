@@ -5,7 +5,7 @@ export const copy: Record<Locale, Record<string, string>> = {
   en: {
     skip: "Skip to content", service: "Service", regions: "18 regions", data: "Data", use: "Use service",
     heroBadge: "Accessible travel in Gyeongsangnam-do", heroTitle: "Start with the facilities you need.", heroEm: "Find your way through Gyeongnam.",
-    heroCopy: "Find places with reported facilities, arrange your days and check each journey before you leave. Start without an account.", plan: "Plan my trip", learn: "Learn about WAVE",
+    heroCopy: "Find places with reported facilities, arrange your days and check each journey before you leave. Start without an account.", heroEvidenceDescription: "W.A.V.E distinguishes confirmed, mismatched and unknown facility information, then proposes an itinerary without silently relaxing your requirements.", plan: "Plan my trip", learn: "Learn about WAVE",
     tourism: "Tourism", accessible: "Accessibility", mobility: "Mobility", stories: "Local stories",
     whyTitle: "What would make your journey easier?",
     value1: "Needs first", value1Copy: "Choose the facilities you need, such as access paths, lifts and facilities for infants.",

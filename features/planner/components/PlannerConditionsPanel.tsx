@@ -25,7 +25,7 @@ function FacilityPicker({ plan, trip, onClose }: { plan: Props["planController"]
   const dialog = usePlaceDialogFocus(true, onClose);
   return <dialog ref={dialog} lang="ko" className="simple-dialog simple-facility-picker" aria-labelledby="facility-picker-title">
     <header><h2 id="facility-picker-title" tabIndex={-1}>필요한 편의</h2><button type="button" onClick={onClose} aria-label="편의 선택 닫기">×</button></header>
-    <p>필요한 시설만 선택해 주세요.</p>
+    <div className="simple-facility-picker-body"><p>필요한 시설만 선택해 주세요.</p>
     <fieldset className="simple-facility-grid"><legend className="sr-only">여행 편의 조건 선택</legend>{FACILITIES.map(item => <label key={item.key}><input type="checkbox" checked={draft.includes(item.key)} onChange={event => setDraft(current => event.target.checked ? [...current, item.key] : current.filter(key => key !== item.key))} /><span>{item.label}</span></label>)}</fieldset>
     <Suspense fallback={<LoadingState>동행 조건을 불러오고 있어요.</LoadingState>}><TravelComfortChoices selected={draft} comfort={comfort} onSelected={setDraft} onComfort={setComfort}/></Suspense>
     <details className="simple-saved-preferences"><summary>조건 저장·불러오기</summary><div><p>선택한 편의만 저장해요. 건강 상태나 장애 유형을 추론하지 않아요.</p>
@@ -36,7 +36,7 @@ function FacilityPicker({ plan, trip, onClose }: { plan: Props["planController"]
       <Suspense fallback={<LoadingState>저장한 조건을 불러오고 있어요.</LoadingState>}><AccountPreferences selected={draft} onApply={setDraft} /></Suspense>
     </div></details>
     {error && <p role="alert">{error}</p>}
-    <footer><button type="button" onClick={() => setDraft([])} disabled={!draft.length}>선택 해제</button><button type="button" className="primary" onClick={() => { if (JSON.stringify(comfort) !== JSON.stringify(trip.comfort)) { const result = trip.applyTripCommand({ type: 'comfort', value: comfort }); if (!result.ok) { setError(result.reason); return; } } plan.setSelected(draft); onClose(); }}>적용{draft.length ? ` · ${draft.length}개` : ""}</button></footer>
+    </div><footer><button type="button" onClick={() => setDraft([])} disabled={!draft.length}>선택 해제</button><button type="button" className="primary" onClick={() => { if (JSON.stringify(comfort) !== JSON.stringify(trip.comfort)) { const result = trip.applyTripCommand({ type: 'comfort', value: comfort }); if (!result.ok) { setError(result.reason); return; } } plan.setSelected(draft); onClose(); }}>적용{draft.length ? ` · ${draft.length}개` : ""}</button></footer>
   </dialog>;
 }
 export default function PlannerConditionsPanel({ planController: plan, onRegionChange, tripSelection: trip }: Props) {

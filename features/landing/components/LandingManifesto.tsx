@@ -6,9 +6,9 @@ export default function LandingManifesto({ t }: { t: LandingTranslate }) {
   const en = useSitePreferences().locale === "en";
   return <section className="manifesto needs-chapter" data-cinematic="right" id="story" tabIndex={-1} aria-labelledby="needs-story-title">
     <div className="needs-copy">
-      <p className="section-kicker">{en ? "Start with your needs" : "여행의 시작은, 나에게서"}</p>
-      <h2 id="needs-story-title">{t("whyTitle", "내게 필요한 편의를 골라보세요")}</h2>
-      <p>{en ? "Access paths, toilets and lifts. Choose the facilities you want to check for your trip." : "접근로부터 화장실, 승강기까지. 내 여행에서 확인하고 싶은 편의부터 골라보세요."}</p>
+      <p className="section-kicker">{en ? "Start with your needs" : "여행의 시작은 나에게서"}</p>
+      <h2 id="needs-story-title">{t("whyTitle", "내게 필요한 편의를 살펴보세요")}</h2>
+      <p>{en ? "Access paths, toilets and lifts. Choose the facilities you want to check for your trip." : "접근로 화장실 승강기까지 내 여행에서 확인하고 싶은 편의를 한눈에 볼 수 있어요"}</p>
       <LandingNeedsDemo />
     </div>
     <figure className="needs-portrait">
