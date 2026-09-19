@@ -77,6 +77,8 @@ for (const theme of ["light", "dark"] as const) {
     if (isMobile) {
     await dialog.getByRole("button", { name: "Close", exact: true }).focus();
     await page.keyboard.press("Shift+Tab");
+    await expect(dialog.getByRole("button", { name: "Close this dialog", exact: true })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
     await expect(audioSummary).toBeFocused();
     await page.keyboard.press("Shift+Tab");
     await expect(arrivalSummary).toBeFocused();
@@ -86,6 +88,8 @@ for (const theme of ["light", "dark"] as const) {
     await expect(arrivalSummary).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(audioSummary).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(dialog.getByRole("button", { name: "Close this dialog", exact: true })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(dialog.getByRole("button", { name: "Close", exact: true })).toBeFocused();
     }

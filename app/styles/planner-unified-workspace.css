@@ -11,8 +11,6 @@
 }
 
 .journey-workspace-block { width: 100%; margin: 0; scroll-margin-top: 96px; border-top: 1px solid #d7e6ec; }
-.planner-journey-workspace .place-carousel,
-.planner-journey-workspace .day-planner,
 .planner-journey-workspace .weather-board,
 .planner-journey-workspace .transport-mode-filter,
 .planner-journey-workspace .transport-details,
@@ -24,30 +22,6 @@
 .planner-journey-workspace .itinerary-stage { background: #eef5f8; }
 .planner-journey-workspace .navigation-section { width: 100%; margin: 28px 0 0; padding: 28px 0 0; border-top: 1px solid #cfdee5; background: transparent; }
 
-.journey-subheading { margin: 0 0 24px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
-.journey-subheading > div { display: flex; align-items: center; gap: 13px; }
-.journey-subheading > div > span { min-width: 70px; min-height: 32px; padding: 7px 10px; display: inline-grid; place-items: center; border-radius: 999px; color: var(--blue); background: var(--sky); font-size: .62rem; font-weight: 900; letter-spacing: .07em; }
-.journey-subheading h2 { margin: 0; display: grid; gap: 4px; color: var(--ink); font-size: clamp(1.45rem, 2.3vw, 2.2rem); letter-spacing: -.045em; }
-.journey-subheading h2 small { color: var(--blue); font-size: .58rem; font-weight: 900; letter-spacing: .08em; }
-.journey-subheading > p { margin: 0; color: var(--muted); font-size: .76rem; font-weight: 760; }
-
-/* 기존 최상위 전용 carousel 규칙을 통합 워크스페이스 안에서도 동일하게 유지한다. */
-.planner-journey-workspace > .places-section .place-carousel { width: auto; }
-
-/* 이 기기 일정만 일정의 source of truth로 사용한다. */
-.itinerary-empty-state { min-height: 210px; padding: 30px; display: grid; place-content: center; justify-items: center; text-align: center; }
-.itinerary-empty-state > span { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; color: var(--blue); background: var(--sky); font-size: 1.4rem; }
-.itinerary-empty-state h3 { margin: 16px 0 7px; font-size: 1.25rem; }.itinerary-empty-state p { max-width: 520px; margin: 0; color: var(--muted); line-height: 1.65; }
-.itinerary-primary-actions { margin-top: 18px; padding: 18px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 7px 16px; border: 1px solid #b8d9d0; border-radius: 16px; background: #eef9f4; }
-.itinerary-primary-actions strong,.itinerary-primary-actions p { display: block; }.itinerary-primary-actions p { margin: 4px 0 0; color: var(--muted); font-size: .72rem; }
-.itinerary-primary-actions button,.itinerary-primary-actions a { min-height: 44px; padding: 10px 13px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 11px; color: var(--on-blue); background: var(--blue); font: inherit; font-size: .72rem; font-weight: 900; }
-.itinerary-primary-actions a,.itinerary-primary-actions small { grid-column: 2; }.itinerary-primary-actions a { color: var(--blue); border: 1px solid #b8d4df; background: #fff; }
-.itinerary-primary-actions small { color: #a62f48; }
-.itinerary-secondary-actions { margin-top: 14px; border: 1px solid #cbdfe7; border-radius: 16px; background: #f8fcfe; }
-.itinerary-secondary-actions > summary { min-height: 52px; padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; font-size: .78rem; font-weight: 900; }
-.itinerary-secondary-actions > summary span { color: var(--muted); font-size: .65rem; font-weight: 700; }
-.itinerary-secondary-actions[open] { padding-bottom: 14px; }.itinerary-secondary-actions[open] > :not(summary) { margin-inline: 14px; }
-.itinerary-course { margin-top: 12px; padding: 15px; border-radius: 13px; background: var(--sky); }.itinerary-course p { margin: 5px 0; color: var(--muted); font-size: .72rem; }.itinerary-course span { font-size: .66rem; font-weight: 800; }
 
 .navigation-section .workspace-heading { margin-bottom: 18px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
 .navigation-section .workspace-heading > div { display: flex; align-items: center; gap: 10px; }.navigation-section .workspace-heading span { color: var(--blue); }.navigation-section .workspace-heading h3 { margin: 0; font-size: 1.25rem; }.navigation-section .workspace-heading > p { max-width: 560px; margin: 0; color: var(--muted); font-size: .75rem; }
@@ -94,12 +68,9 @@
 
 @media (max-width: 780px) {
   .planner-journey-workspace .navigation-section { padding: 24px 0 0; }
-  .journey-subheading { align-items: flex-start; flex-direction: column; gap: 8px; }
-  .journey-subheading > div { align-items: flex-start; flex-direction: column; gap: 8px; }
   .route-mode-sections { grid-template-columns: 1fr; }
   .place-community-stories > header { align-items: flex-start; flex-direction: column; }
 
-  .itinerary-primary-actions { grid-template-columns: 1fr; }.itinerary-primary-actions a,.itinerary-primary-actions small { grid-column: 1; }
   .navigation-section .workspace-heading,.travel-layers > summary { align-items: flex-start; flex-direction: column; }
   .travel-layers > summary { padding: 16px 14px; }.travel-signal-content { padding: 0 14px 24px; }
 }
@@ -108,21 +79,7 @@ html[data-theme="dark"] .planner-journey-workspace { border-color: #294e60; back
 html[data-theme="dark"] .journey-workspace-block { border-color: #294e60; }
 html[data-theme="dark"] .planner-journey-workspace .itinerary-stage { background: #0b2d3c; }
 html[data-theme="dark"] .planner-journey-workspace .navigation-section { border-color: #294e60; background: #0b2d3c; }
-html[data-theme="dark"] .journey-subheading h2 { color: #edf7fb; }
-html[data-theme="dark"] .journey-subheading h2 small { color: #76d5e5; }
-html[data-theme="dark"] .journey-subheading > p { color: #a6c2ce; }
-html[data-theme="dark"] .itinerary-primary-actions { border-color: #376d5d; background: #123e35; }
-html[data-theme="dark"] .itinerary-primary-actions a { color: #9addff; background: #0b2939; border-color: #547b8b; }
-html[data-theme="dark"] .itinerary-primary-actions small { color: #ffbdca; }
-html[data-theme="dark"] .day-start-control input { color: #e8f5fb; background: #102f40; border-color: #547b8b; }
-.day-planner .guide-player { color: #e8f5fb; background: #102f40; }
-.day-planner .guide-top span,.day-planner .guide-art small,.day-planner .player-time { color: #bdd7e2; }
-.day-planner .guide-top b { color: #9af0db; }
-.day-planner .transcript-button { color: #e8f5fb; background: #183f50; }
-.day-planner .transcript-button span { color: #bdd7e2; }
-.day-planner .guide-player > [role="alert"] { margin: 16px; color: #ffbdca; }
-.day-planner .player-controls button { min-width: 44px; min-height: 44px; }
-html[data-theme="dark"] .itinerary-secondary-actions,html[data-theme="dark"] .planner-journey-workspace .travel-layers { color: #edf7fb; border-color: #31596a; background: #0b2d3c; }
+html[data-theme="dark"] .planner-journey-workspace .travel-layers { color: #edf7fb; border-color: #31596a; background: #0b2d3c; }
 html[data-theme="dark"] .place-community-stories { border-color: #31596a; background: #0a2735; }
 html[data-theme="dark"] .place-community-story-list > a { color: #eaf5f9; background: #0e3748; }
 html[data-theme="dark"] .place-community-empty { background: #0e3748; }html[data-theme="dark"] .place-field-report-link { color: #eaf5f9; border-color: #376d5d; background: #123e35; }html[data-theme="dark"] .place-field-report-link i { color: #8ee5c8; }

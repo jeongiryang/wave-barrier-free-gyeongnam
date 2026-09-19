@@ -3,6 +3,7 @@
 import { useSitePreferences } from "../../../components/SitePreferences";
 import type { Place } from "../types";
 import { facilityName, originalLanguage } from "../place-copy";
+import { StatusShapeIcon } from "../../../components/AccessIcons";
 
 export default function PlaceEvidenceSummary({ place }: { place: Place }) {
   const { locale } = useSitePreferences();
@@ -29,7 +30,7 @@ export default function PlaceEvidenceSummary({ place }: { place: Place }) {
       return records.length > 0 && <section key={group.state} aria-labelledby={`facility-group-${group.state}`}>
       <h3 id={`facility-group-${group.state}`}>{group.title} <span>{records.length}</span></h3>
       <dl className="facility-evidence-list">{records.map((item) => <div key={item.key} data-state={item.state}>
-      <dt><span lang={originalLanguage(facilityName(item.key, item.label, en))}>{facilityName(item.key, item.label, en)}</span><span>{item.state === "confirmed" ? say("확인됨", "Reported available") : item.state === "negative" ? say("불일치", "Reported unavailable") : say("미확인", "Not reported")}</span></dt>
+      <dt><span lang={originalLanguage(facilityName(item.key, item.label, en))}>{facilityName(item.key, item.label, en)}</span><span><StatusShapeIcon kind={item.state === "confirmed" ? "confirmed" : item.state === "negative" ? "negative" : "unknown"} />{item.state === "confirmed" ? say("확인됨", "Reported available") : item.state === "negative" ? say("불일치", "Reported unavailable") : say("미확인", "Not reported")}</span></dt>
       <dd lang={originalLanguage(item.detail)}>{item.detail || say("제공된 정보가 없습니다. 시설에 직접 확인해 주세요.", "No information supplied. Please check with the venue.")}</dd>
     </div>)}</dl></section>;
     })}</div> : <p>{say("이전 저장 자료에는 항목별 근거가 없습니다. 최신 정보를 다시 조회해 주세요.", "This saved record has no item-level evidence. Search again for current information.")}</p>}

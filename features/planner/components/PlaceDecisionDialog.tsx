@@ -60,6 +60,14 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
         <Suspense fallback={<LoadingState>{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</LoadingState>}><PlaceDecisionContent {...props} location={location} /></Suspense>
         <details><summary>주차·입구·시설 미리보기</summary><Suspense fallback={<LoadingState>주차·입구 정보를 준비하고 있어요.</LoadingState>}><PlaceArrivalPreview key={place.id} place={place} /></Suspense></details>
         <Suspense fallback={null}><PlaceAudioGuide key={place.id} id={place.id} /></Suspense>
+        {/* 한 손 조작: 위 닫기 버튼은 습관대로 남기고, 엄지가 닿는 내용 맨 아래에도
+            같은 동작의 닫기를 하나 더 둔다. 좁은 화면에서만 보이므로 768px 이상
+            배치는 그대로다. 초점 순서의 마지막이며 order 로 순서를 뒤집지 않는다.
+            이름은 위 버튼과 다르게 둔다. 한 화면에 이름이 같은 버튼이 둘이면
+            화면 낭독기 사용자가 어느 것인지 구분할 수 없다.
+            `.modal-body > button` 은 기존 계약이 세는 주요 조작이므로, 감싸서
+            그 선택자에 걸리지 않게 둔다. */}
+        <div className="modal-close-end"><button type="button" onClick={onClose}>{en ? "Close this dialog" : "이 창 닫기"}</button></div>
       </div>
   </dialog>;
 }
