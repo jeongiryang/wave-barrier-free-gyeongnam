@@ -15,6 +15,7 @@ import { profiles, themes } from '../constants';
 import type { Place, PlanData } from '../types';
 import type { NaruJourney } from '../../../lib/naru-journey.js';
 import { requestNaruJourney } from '../services/naru-journey';
+import { isNaruStream, readNaruStream } from '../services/naru-stream';
 import NaruJourneyProposal from './NaruJourneyProposal';
 import { naruLocalHelp } from '../../../lib/naru-help.js';
 import { usePathname } from 'next/navigation';
@@ -68,6 +69,8 @@ export default function PlannerAssistant(props: Props) {
   const [photo, setPhoto] = useState<AssistantPhoto | null>(null), [photoPreparing, setPhotoPreparing] = useState(false);
   const [guide, setGuide] = useState<NaruGuide | null>(null);
   const [activity, setActivity] = useState({ phase: 'idle', text: '' });
+  // 도착 중인 글자. 완료되면 비우고 확정된 답변을 대화에 남긴다.
+  const [streamText, setStreamText] = useState('');
   const [focusedPlaceId, setFocusedPlaceId] = useState('');
   const { books: savedTravelBooks } = useTravelBook();
   const sequence = useRef(0), request = useRef<AbortController | null>(null), messageId = useRef(0);
@@ -110,7 +113,7 @@ export default function PlannerAssistant(props: Props) {
     if (log.current) log.current.scrollTop = scrollPosition.current;
     return () => { media.removeEventListener('change', present); if (dialog?.open) dialog.close(); if (returnFocus.current?.isConnected) returnFocus.current.focus({ preventScroll: true }); };
   }, [props.open, cancelRequest, size]);
-  useLayoutEffect(() => { if (follow.current && log.current) log.current.scrollTop = log.current.scrollHeight; }, [messages, busy, showEvidence]);
+  useLayoutEffect(() => { if (follow.current && log.current) log.current.scrollTop = log.current.scrollHeight; }, [messages, busy, showEvidence, streamText]);
   useLayoutEffect(() => { const field = inputRef.current; if (field) { field.style.height = 'auto'; field.style.height = `${Math.min(128, Math.max(44, field.scrollHeight))}px`; } }, [input, props.open]);
   const { cancel: cancelVoice } = voice;
   useEffect(() => { if (!props.open) cancelVoice(); }, [props.open, cancelVoice]);
@@ -265,7 +268,21 @@ export default function PlannerAssistant(props: Props) {
       const response = await fetch('/api/assistant', { method: 'POST', credentials: 'same-origin', signal: control.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: recent, context: { page: props.pageContext || '여행 설계', region: plan.region, profiles: plan.selected, guidancePreferences: props.guidance.value, comfort: trip.comfort, themes: plan.theme, days: trip.tripDays, transport: props.transport, savedIds: trip.saved, resultIds: shownPlaces.current.map(place => place.id), focusedPlaceId: focusedPlace.current, places: known.map(({ id, name, city }) => ({ id, name, city })) } }) });
       if (response.status === 429) { if (id === sequence.current) { setInput(current => current || text); append('나루가 다른 답변을 마무리하고 있어요. 질문은 입력창에 남겨두었으니 잠시 뒤 다시 보내주세요. 여행 도구는 바로 사용할 수 있어요.'); progress('warning', '잠시 뒤 질문을 다시 보내주세요.'); } return; }
       if (!response.ok) throw new Error('unavailable');
-      const data = await response.json();
+      let data;
+      if (isNaruStream(response)) {
+        const outcome = await readNaruStream(response, value => setStreamText(current => id === sequence.current ? current + value : current));
+        if (id !== sequence.current) return;
+        setStreamText('');
+        if (!outcome.done) {
+          markConnected();
+          const partial = outcome.text.trim();
+          if (partial) append(partial.slice(0, 500), { source: 'local-llm' });
+          append('답변이 끊겼어요. 다시 물어봐 주세요.');
+          progress('warning', '답변이 끊겼어요. 다시 물어봐 주세요.');
+          return;
+        }
+        data = { reply: outcome.reply, proposal: outcome.proposal, source: outcome.source };
+      } else data = await response.json();
       if (id !== sequence.current) return;
       markConnected();
       const proposal = validateAssistantAction(data.proposal, known.map(place => place.id));
@@ -298,7 +315,7 @@ export default function PlannerAssistant(props: Props) {
         await apply({ id: ++messageId.current, role: 'assistant', text: '', proposal, revision }, true, true);
       } else { setInput(current => current || originalText); append('연결하지 못했어요. 입력한 내용은 남겨두었어요. 잠시 뒤 다시 보내주세요.'); }
       progress('warning', '연결을 확인해 주세요. 여행 도구는 사용할 수 있어요.');
-    } finally { clearTimeout(timer); if (id === sequence.current) { setBusy(false); request.current = null; } }
+    } finally { clearTimeout(timer); if (id === sequence.current) { setBusy(false); setStreamText(''); request.current = null; } }
   }
   function title(action: AssistantAction) {
     if (action.action === 'set-dates') return `${action.start} – ${action.end} 여행 기간`;
@@ -451,6 +468,11 @@ export default function PlannerAssistant(props: Props) {
         {guide && <div className="naru-guided-choices" role="group" aria-label="한 가지씩 안내 선택">{guide.choices.map(choice => <button type="button" key={choice} disabled={busy} onClick={() => void send(choice)}>{choice}</button>)}<button type="button" onClick={() => void send('안내 끝내기')}>안내 끝내기</button></div>}
         {reviewHours && <Suspense fallback={<LoadingState>바뀐 일정을 확인하고 있어요.</LoadingState>}><NaruScheduleReview key={trip.voiceRevision} visits={reviewedVisits} onAlternative={props.onAlternative} onDetails={props.onPlace} /></Suspense>}
         {showEvidence && <div className="naru-evidence" aria-label="현재 장소의 편의 근거">{(trip.orderedSavedPlaces.length ? trip.orderedSavedPlaces : known).map(place => <article key={place.id}><strong>{place.name}</strong><p>{place.accessibility?.map(field => `${field.label}: ${field.state === 'confirmed' ? '확인됨' : field.state === 'negative' ? '조건과 맞지 않음' : '미확인'}`).join(' · ') || '편의 정보 미확인'}</p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small><button type="button" onClick={() => props.onPlace(place)}>원문과 문의 정보</button></article>)}{!known.length && <p>여행지를 찾으면 장소별 근거를 모아드릴게요.</p>}<button type="button" onClick={() => openTool('readiness')}>날씨·이동까지 확인</button></div>}
+        {/* 도착 중인 글자는 화면 낭독기가 끊기지 않도록 읽지 않는다. 완료된 답변만 대화에 추가되어 한 번 알려진다. */}
+        {streamText && <div className="naru-message assistant" data-streaming="true">
+          <p aria-hidden="true">{streamText}</p>
+          <button type="button" className="naru-readback" onClick={() => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(streamText); utterance.lang = 'ko-KR'; utterance.onend = utterance.onerror = () => setSpeaking(false); setSpeaking(true); window.speechSynthesis.speak(utterance); } }}>답변 읽어주기</button>
+        </div>}
         {busy && <div className="naru-typing" role="status"><Spinner /><span>{activity.text || '나루가 여행을 살펴보고 있어요'}</span></div>}
       </div>
       {toolsOpen && <div className="naru-tools">{toolGroups.map(group => <div key={group.title}><strong>{group.title}</strong><div>{group.items.map(([id, label]) => <button key={id} type="button" onClick={() => openTool(id)}>{label}</button>)}</div></div>)}</div>}
@@ -458,7 +480,7 @@ export default function PlannerAssistant(props: Props) {
       <NaruHelpHub context={hubContext} canTalk={available !== false} onOpenTool={tool => goToTool(tool)} onTalk={() => inputRef.current?.focus({ preventScroll: true })} />
       <VoiceInputMeter voice={voice} />
       {photo && <NaruPhotoAttachment photo={photo} disabled={busy || voice.listening} onChange={setPhoto} onPreparing={setPhotoPreparing} />}
-      <form className="naru-input" onSubmit={event => { event.preventDefault(); void send(); }}><details className="naru-add-menu"><summary aria-label="사진 또는 여행 도구 추가">+</summary>{!photo && <NaruPhotoAttachment photo={null} disabled={busy || voice.listening} onChange={setPhoto} onPreparing={setPhotoPreparing} />}<button type="button" onClick={event => { (event.currentTarget.closest('details') as HTMLDetailsElement).open = false; setToolsOpen(current => !current); }}>여행 도구</button></details><label className="sr-only" htmlFor="naru-message">나루에게 여행 질문하기</label><textarea ref={inputRef} id="naru-message" value={input} maxLength={1200} rows={1} placeholder="나루에게 요청하기" onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} /><div><button type="button" aria-label={voice.listening ? '음성 입력 중단' : '음성으로 질문 입력'} aria-pressed={voice.listening} onClick={() => { if (voice.listening) voice.stop(); else voice.start(value => { setInput(value); inputRef.current?.focus(); }); }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg></button>{busy ? <button key="stop-response" type="button" onClick={event => { event.preventDefault(); event.stopPropagation(); sequence.current++; request.current?.abort(); request.current = null; plan.abortPlan(); setBusy(false); const stopped = { phase: 'idle', text: '작업을 중단했어요. 기존 일정은 그대로예요.' }; setActivity(stopped); props.onActivity(stopped); append('답변을 중단했어요. 원하는 내용을 다시 보내주세요.'); }}>중단</button> : <button key="send-message" type="submit" disabled={(!input.trim() && !photo) || voice.listening || photoPreparing} aria-label="나루에게 보내기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m5 12 7-7 7 7M12 5v15"/></svg></button>}</div></form>
+      <form className="naru-input" onSubmit={event => { event.preventDefault(); void send(); }}><details className="naru-add-menu"><summary aria-label="사진 또는 여행 도구 추가">+</summary>{!photo && <NaruPhotoAttachment photo={null} disabled={busy || voice.listening} onChange={setPhoto} onPreparing={setPhotoPreparing} />}<button type="button" onClick={event => { (event.currentTarget.closest('details') as HTMLDetailsElement).open = false; setToolsOpen(current => !current); }}>여행 도구</button></details><label className="sr-only" htmlFor="naru-message">나루에게 여행 질문하기</label><textarea ref={inputRef} id="naru-message" value={input} maxLength={1200} rows={1} placeholder="나루에게 요청하기" onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} /><div><button type="button" aria-label={voice.listening ? '음성 입력 중단' : '음성으로 질문 입력'} aria-pressed={voice.listening} onClick={() => { if (voice.listening) voice.stop(); else voice.start(value => { setInput(value); inputRef.current?.focus(); }); }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg></button>{busy ? <button key="stop-response" type="button" onClick={event => { event.preventDefault(); event.stopPropagation(); sequence.current++; request.current?.abort(); request.current = null; plan.abortPlan(); setBusy(false); setStreamText(''); const stopped = { phase: 'idle', text: '작업을 중단했어요. 기존 일정은 그대로예요.' }; setActivity(stopped); props.onActivity(stopped); append('답변을 중단했어요. 원하는 내용을 다시 보내주세요.'); }}>중단</button> : <button key="send-message" type="submit" disabled={(!input.trim() && !photo) || voice.listening || photoPreparing} aria-label="나루에게 보내기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m5 12 7-7 7 7M12 5v15"/></svg></button>}</div></form>
       {voice.notice && <p className="naru-note" role="status">{voice.notice}</p>}
     </div>
   </dialog>;
