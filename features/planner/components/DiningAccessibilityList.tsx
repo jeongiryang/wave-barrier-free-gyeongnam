@@ -7,8 +7,10 @@ import { CLIENT_BUDGET_MS } from '../../../lib/request-budget.js';
 import {
   DINING_EVIDENCE_NOTE, DINING_GROUPS, dedupeNearbyDining, diningDistanceText, diningFacilityTagText, diningFacilityTags,
 } from '../../../lib/dining-accessibility.js';
+import { filterByFoodCategory, foodCategoryOf, foodCategoryOptions } from '../../../lib/food-category.js';
 import { loadKakaoSdk } from '../../routing/kakao-sdk';
 import { parseNearbyPlaces } from '../../routing/nearby-place-data';
+import FilterChipRow from './FilterChipRow';
 
 /**
  * 음식점 접근성 겹쳐 보기(스펙 08).
@@ -78,6 +80,34 @@ function focusCondition(selector: string, onClose?: () => void) {
   window.requestAnimationFrame(() => document.querySelector<HTMLElement>(selector)?.focus());
 }
 
+/**
+ * 음식 종류로 거르기(스펙 39)의 화면 상태. 두 묶음(관광공사 등록·카카오 장소
+ * 검색)은 근거가 다르므로 각자 독립된 선택 상태를 가진다. 관광공사 묶음은
+ * `category` 필드를 주지 않으므로(서버 `dining-accessibility.ts` 참고)
+ * `foodCategoryOptions`가 항상 빈 배열을 돌려주고, `FilterChipRow`는 그 경우
+ * 아무 것도 그리지 않는다. 종류 선택 줄을 조건문으로 따로 숨기지 않아도 관광
+ * 공사 묶음에는 자연히 나타나지 않는다.
+ */
+function useFoodCategoryFilter(items: DiningPlace[]) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const [showUncategorized, setShowUncategorized] = useState(false);
+  const options = useMemo(() => foodCategoryOptions(items), [items]);
+  const toggle = useCallback((id: string) => setSelected(prev => (prev.includes(id) ? prev.filter(value => value !== id) : [...prev, id])), []);
+  const clear = useCallback(() => { setSelected([]); setShowUncategorized(false); }, []);
+  const filtered = useMemo(() => filterByFoodCategory(items, selected), [items, selected]);
+  const uncategorizedCount = useMemo(
+    () => (selected.length ? items.filter(item => foodCategoryOf(item.category) === null).length : 0),
+    [items, selected],
+  );
+  const display = useMemo(() => {
+    if (!selected.length) return items;
+    if (!showUncategorized) return filtered;
+    const filteredIds = new Set(filtered.map(item => item.id));
+    return items.filter(item => filteredIds.has(item.id) || foodCategoryOf(item.category) === null);
+  }, [items, selected, showUncategorized, filtered]);
+  return { options, selected, toggle, clear, display, uncategorizedCount, showUncategorized, setShowUncategorized };
+}
+
 export default function DiningAccessibilityList({ place, onClose }: { place: Place; onClose?: () => void }) {
   const placeId = place.id;
   const [attempt, setAttempt] = useState(0);
@@ -93,6 +123,8 @@ export default function DiningAccessibilityList({ place, onClose }: { place: Pla
   // 요청된 편의 조건은 여행 조건에서 고른 것이며, 장소 상세가 이미 그 조건만
   // 담아 온다. 결과 수를 늘리려고 이 조건을 해제하지 않는다.
   const requestedKeys = (place.accessibility || []).map(field => field.key);
+  const officialFoodFilter = useFoodCategoryFilter(items);
+  const nearbyFoodFilter = useFoodCategoryFilter(nearbyView.items);
 
   useEffect(() => {
     const request = new AbortController();
@@ -177,9 +209,15 @@ export default function DiningAccessibilityList({ place, onClose }: { place: Pla
           <button type="button" onClick={() => focusCondition('.simple-facility-trigger', onClose)}>조건 바꾸기</button>
         </div>
       </div>}
-      {state === 'available' && <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {items.map(item => <DiningCard key={item.id} item={item} requestedKeys={requestedKeys} />)}
-      </ul>}
+      {state === 'available' && <>
+        <FilterChipRow options={officialFoodFilter.options} selected={officialFoodFilter.selected} onToggle={officialFoodFilter.toggle} onClear={officialFoodFilter.clear} ariaLabel="편의 정보가 확인된 음식점 종류" />
+        {officialFoodFilter.uncategorizedCount > 0 && !officialFoodFilter.showUncategorized && <p style={line}>종류가 등록되지 않은 {officialFoodFilter.uncategorizedCount}곳은 숨겨졌어요. <button type="button" onClick={() => officialFoodFilter.setShowUncategorized(true)}>함께 보기</button></p>}
+        {officialFoodFilter.selected.length > 0 && officialFoodFilter.display.length === 0
+          ? <div><p>고른 종류에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={officialFoodFilter.clear}>선택 지우기</button></div></div>
+          : <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {officialFoodFilter.display.map(item => <DiningCard key={item.id} item={item} requestedKeys={requestedKeys} />)}
+          </ul>}
+      </>}
     </div>
 
     <h3>{DINING_GROUPS.placeSearch.title}</h3>
@@ -192,9 +230,15 @@ export default function DiningAccessibilityList({ place, onClose }: { place: Pla
       {nearbyView.state === 'loading' && <p>주변 음식점을 찾고 있어요.</p>}
       {nearbyView.state === 'error' && <p role="alert">주변 음식점을 불러오지 못했어요. 위의 확인된 음식점 목록은 그대로예요.</p>}
       {nearbyView.state === 'empty' && <p>여행지에서 {PLACE_SEARCH_RADIUS_METRES / 1000}km 안에서 찾은 음식점이 없어요.</p>}
-      {nearbyView.state === 'ready' && <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {nearbyView.items.map(item => <DiningCard key={item.id} item={item} requestedKeys={requestedKeys} />)}
-      </ul>}
+      {nearbyView.state === 'ready' && <>
+        <FilterChipRow options={nearbyFoodFilter.options} selected={nearbyFoodFilter.selected} onToggle={nearbyFoodFilter.toggle} onClear={nearbyFoodFilter.clear} ariaLabel="주변 음식점 종류" />
+        {nearbyFoodFilter.uncategorizedCount > 0 && !nearbyFoodFilter.showUncategorized && <p style={line}>종류가 등록되지 않은 {nearbyFoodFilter.uncategorizedCount}곳은 숨겨졌어요. <button type="button" onClick={() => nearbyFoodFilter.setShowUncategorized(true)}>함께 보기</button></p>}
+        {nearbyFoodFilter.selected.length > 0 && nearbyFoodFilter.display.length === 0
+          ? <div><p>고른 종류에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={nearbyFoodFilter.clear}>선택 지우기</button></div></div>
+          : <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {nearbyFoodFilter.display.map(item => <DiningCard key={item.id} item={item} requestedKeys={requestedKeys} />)}
+          </ul>}
+      </>}
     </div>
 
     <p style={line}>{DINING_EVIDENCE_NOTE}</p>
