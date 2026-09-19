@@ -74,7 +74,7 @@ function InitialDeparture({ route, locationSearch, tripSelection, onChoosePoint 
   const trigger = useRef<HTMLButtonElement>(null);
   const { setPointPicker } = locationSearch;
   const close = useCallback(() => { setPointPicker(null); requestAnimationFrame(() => trigger.current?.focus()); }, [setPointPicker]);
-  return <div className="simple-result-notice">
+  return <div className="simple-journey-guidance">
     <p>하루 출발지</p>
     <button ref={trigger} type="button" aria-expanded={locationSearch.pointPicker === 'origin'} aria-controls="trip-point-picker" onClick={() => setPointPicker(value => value === 'origin' ? null : 'origin')}>출발지 확인·변경 · {route.originLabel}</button>
     <p>각 날짜의 이동은 이곳에서 시작해요. 현재 위치를 자동으로 사용하지 않아요.</p>

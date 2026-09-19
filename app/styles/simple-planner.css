@@ -8,7 +8,7 @@
 .simple-planner-tabs button[aria-current=true],.simple-planner-tabs button[aria-pressed=true] { border-bottom-color: var(--blue); color: var(--ink); }
 .simple-new-trip { margin-left: auto; min-height: 44px; }
 .simple-planner-actions { display:flex; flex-wrap:wrap; gap:8px; margin-left:auto; }
-.simple-naru-start { min-height:44px; padding:8px 12px; background:var(--blue); color:#fff; border:1px solid var(--blue); border-radius:8px; font-size:16px; }
+.simple-naru-start { min-height:44px; padding:8px 12px; background:var(--blue); color:var(--on-blue); border:1px solid var(--blue); border-radius:8px; font-size:16px; }
 .simple-storage-notice { flex-basis: 100%; }
 .simple-storage-notice:empty { display: none; }
 .planner-simple .journey-workspace-block { border: 0; padding: 24px 0; border-radius: 0; background: var(--surface); box-shadow: none; }
@@ -72,9 +72,9 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
 .simple-exploration { padding-top: 36px; }
 .simple-exploration > p { font-size: .875rem; margin: 8px 0; color: var(--muted); }
 .simple-load-more { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; margin: 24px 0 0; padding: 10px 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
-.simple-result-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding: 12px 0; font-size: .875rem; }
-.simple-result-notice p { margin: 0; }
-.simple-result-notice button { color: var(--blue); min-height: 44px; background: none; padding: 8px 0; text-decoration: underline; }
+.simple-result-notice,.simple-journey-guidance { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding: 12px 0; font-size: .875rem; }
+.simple-result-notice p,.simple-journey-guidance p { margin: 0; }
+.simple-result-notice button,.simple-journey-guidance button { color: var(--blue); min-height: 44px; background: none; padding: 8px 0; text-decoration: underline; }
 .simple-empty { padding: 20px 0; font-size: 1rem; color: var(--muted); }
 .simple-condition-help { display: grid; gap: 16px; margin: 16px 0 24px; padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
 .simple-condition-help h3,.simple-condition-help p { margin: 0; }
