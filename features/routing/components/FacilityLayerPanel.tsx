@@ -8,6 +8,7 @@ const englishLabels: Record<string, string> = {
   food: "Restaurants", cafe: "Cafes", store: "Convenience stores",
   pharmacy: "Pharmacies", hospital: "Hospitals", subway: "Subway stations",
   "helpdog-confirmed": "Guide dog access confirmed",
+  "braileblock-confirmed": "Tactile paving confirmed",
 };
 const layerName = (layer: FacilityLayer, english: boolean) => english ? englishLabels[layer.id] || layer.label : layer.label;
 

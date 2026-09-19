@@ -87,6 +87,10 @@ export const officialFacilityLayers: readonly FacilityLayer[] = [];
  */
 export const derivedFacilityLayers: readonly FacilityLayer[] = [
   { id: "helpdog-confirmed", label: "안내견 동반이 확인된 곳", source: "derived", derivedKey: "helpdog", glyph: "견" },
+  // 스펙 14: `braileblock`도 `KorWithService2/detailWithTour2`가 이미 주는
+  // 필드이고 `FACILITIES`·`profileFields`에 이미 연동돼 있다. 새 서버 호출을
+  // 만들지 않고 이미 받아온 장소 목록에서만 파생한다.
+  { id: "braileblock-confirmed", label: "점자블록이 확인된 곳", source: "derived", derivedKey: "braileblock", glyph: "점" },
 ];
 
 export const facilityLayers: readonly FacilityLayer[] = [

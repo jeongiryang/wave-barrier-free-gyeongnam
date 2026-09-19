@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { deliverFacility, facilityPlace, facilityRequests, openFacilityPanel } from "./facility-layer-fixtures";
+import { derivedFacilityLayers, officialFacilityLayers, placeSearchFacilityLayers } from "../features/routing/constants";
 
 const CODES = { food: "FD6", cafe: "CE7", store: "CS2", pharmacy: "PM9", hospital: "HP8", subway: "SW8" };
 
@@ -136,7 +137,11 @@ test("공식 데이터 레이어가 하나도 없으면 그 구분을 그리지 
   await expect(panel.getByRole("heading", { name: "공식 공공데이터", exact: true })).toHaveCount(0);
   // 범례는 글자로 남되, 등록되지 않은 공식 레이어의 버튼 구분은 그리지 않는다.
   await expect(panel.getByRole("heading", { name: "마커 범례", exact: true })).toBeVisible();
-  await expect(panel.locator(".map-tool-grid")).toHaveCount(1);
+  // 등록된 레이어가 없는 구분(공식 공공데이터)만 그리지 않는지 확인한다. 파생
+  // 레이어(스펙 20 안내견, 스펙 14 점자블록 등)는 등록돼 있으면 그려지므로
+  // 그룹 수를 특정 값으로 고정하지 않고, 실제 레이어가 있는 구분 수와 맞춰 본다.
+  const expectedGroups = [placeSearchFacilityLayers, officialFacilityLayers, derivedFacilityLayers].filter((layers) => layers.length > 0).length;
+  await expect(panel.locator(".map-tool-grid")).toHaveCount(expectedGroups);
 });
 
 test("키보드만으로 패널을 열고 레이어를 켜고 마커로 초점을 옮길 수 있다", async ({ page }) => {
