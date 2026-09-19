@@ -1,4 +1,4 @@
-import type { Locale, TextScale, Theme } from "./types";
+import type { ColorAssist, Locale, TextScale, Theme } from "./types";
 import { localeOptions } from "./locale-catalog";
 import { presentationOptionsEnabled } from "./presentation-release";
 
@@ -6,6 +6,7 @@ export type StoredPreferences = {
   locale: Locale;
   theme: Theme;
   textScale: TextScale;
+  colorAssist: ColorAssist;
 };
 
 function isTextScale(value: unknown): value is TextScale {
@@ -23,9 +24,15 @@ function readStoredTextScale(): TextScale {
   }
 }
 
+function readStoredColorAssist(): ColorAssist {
+  try { return window.localStorage.getItem("wave-color-assist-v1") === "on" ? "on" : "off"; }
+  catch { return "off"; }
+}
+
 export function readStoredPreferences(): StoredPreferences {
   const textScale = readStoredTextScale();
-  if (!presentationOptionsEnabled()) return { locale: "ko", theme: "light", textScale };
+  const colorAssist = readStoredColorAssist();
+  if (!presentationOptionsEnabled()) return { locale: "ko", theme: "light", textScale, colorAssist };
   const systemTheme: Theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   try {
     const storedLocale = window.localStorage.getItem("wave-locale") as Locale | null;
@@ -34,9 +41,10 @@ export function readStoredPreferences(): StoredPreferences {
       locale: storedLocale && localeOptions.some((item) => item.id === storedLocale) ? storedLocale : "ko",
       theme: storedTheme === "light" || storedTheme === "dark" ? storedTheme : systemTheme,
       textScale,
+      colorAssist,
     };
   } catch {
-    return { locale: "ko", theme: systemTheme, textScale };
+    return { locale: "ko", theme: systemTheme, textScale, colorAssist };
   }
 }
 
@@ -47,6 +55,7 @@ export function writeStoredPreferences(preferences: StoredPreferences) {
       window.localStorage.setItem("wave-locale", preferences.locale);
     }
     window.localStorage.setItem("wave-text-scale-v1", preferences.textScale);
+    window.localStorage.setItem("wave-color-assist-v1", preferences.colorAssist);
     // Retire the old manual choice; only the OS/browser can reduce motion now.
     window.localStorage.removeItem("wave-motion");
   } catch {

@@ -3,7 +3,7 @@
 import { createContext, startTransition, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { copy } from "./translations";
 import { readStoredPreferences, writeStoredPreferences } from "./storage";
-import type { Locale, Motion, PreferencesValue, TextScale, Theme } from "./types";
+import type { ColorAssist, Locale, Motion, PreferencesValue, TextScale, Theme } from "./types";
 import { presentationOptionsEnabled } from "./presentation-release";
 
 const PreferencesContext = createContext<PreferencesValue | null>(null);
@@ -11,6 +11,7 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("ko");
   const [theme, setTheme] = useState<Theme>("light");
+  const [colorAssist, setColorAssistState] = useState<ColorAssist>("off");
   const [textScale, setTextScale] = useState<TextScale>("standard");
   const [systemReducedMotion, setSystemReducedMotion] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -25,6 +26,7 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
         setLocaleState(stored.locale);
         setTheme(stored.theme);
         setTextScale(stored.textScale);
+        setColorAssistState(stored.colorAssist);
         setSystemReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
         setHydrated(true);
       });
@@ -52,13 +54,16 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.colorScheme = theme;
     document.documentElement.dataset.motion = motion;
     document.documentElement.dataset.textScale = textScale;
-    writeStoredPreferences({ locale, theme, textScale });
+    document.documentElement.dataset.colorAssist = colorAssist;
+    writeStoredPreferences({ locale, theme, textScale, colorAssist });
   }, [locale, theme, textScale, motion, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
     locale,
     theme,
     textScale,
+    colorAssist,
+    setColorAssist: setColorAssistState,
     hydrated,
     setLocale: (next) => { if (presentationOptionsEnabled()) setLocaleState(next); },
     motion,

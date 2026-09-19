@@ -72,7 +72,7 @@ html[data-theme=dark] .region-showcase .selected-region small {
 .planner-reference .reference-itinerary-layout { grid-template-columns: minmax(0,1fr); }
 .planner-reference .journey-control-layout[data-plan-stage=itinerary] { grid-template-columns: minmax(0,1fr); }
 .journey-control-layout[data-plan-stage=itinerary] > .condition-trip-summary { display: none; }
-.planner-notice > button { margin-left: 8px; min-height: 44px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--accent); }
+.planner-notice > button { padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--accent); }
 @media (min-width: 1181px) {
   .planner-reference .reference-itinerary-layout[data-map=true] { grid-template-columns: minmax(320px,.8fr) minmax(360px,1.2fr); align-items: start; gap: 20px; }
   .reference-itinerary-layout[data-map=true] .reference-day-list { max-height: 74vh; overflow-y: auto; padding-right: 12px; scrollbar-width: thin; }
@@ -141,7 +141,7 @@ html[data-motion=calm] .wave-spinner,html[data-motion=calm] .wave-loading-inline
 .naru-heading { display: flex; align-items: center; gap: 10px; padding: 18px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
 .naru-heading > div { flex: 1; min-width: 0; }.naru-heading strong { display: block; font-size: 1rem; }.naru-heading small { display: block; color: var(--muted); margin-top: 4px; }
 .naru-heading > button { width: 44px; height: 44px; padding: 0; color: var(--muted); background: transparent; font-size: 28px; border-radius: 50%; }
-.naru-log { flex: 1; min-height: 80px; padding: 20px 16px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; background: #faf9fc; }
+.naru-log { flex: 1; min-height: 80px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .naru-message { margin: 0 0 18px; width: fit-content; max-width: 94%; border-radius: 16px 16px 16px 4px; padding: 14px; background: #fff; border: 1px solid #e9e4ef; }
 .naru-message p { font-size: .88rem; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }.naru-message > small { display: block; color: var(--muted); margin-top: 8px; }
 .naru-message > button { min-height: 44px; max-width: 100%; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--accent); font: inherit; font-size: .82rem; font-weight: 600; line-height: 1.5; text-align: left; white-space: normal; cursor: pointer; }

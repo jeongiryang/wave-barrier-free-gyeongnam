@@ -8,11 +8,7 @@
   --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
   --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 72px;
 
-  /* 모서리 */
-  --r-sm: 10px;
-  --r-md: 14px;
-  --r-lg: 20px;
-  --r-xl: clamp(20px, 2.2vw, 28px);
+  /* 모서리 — --r-sm/md/lg/xl은 뒤에 오는 simple-wave.css :root가 덮어쓴다 */
   --r-full: 999px;
 
   /* 그림자 — 순수 검정 대신 파랑 기가 도는 잉크색 */
