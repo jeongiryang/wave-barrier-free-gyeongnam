@@ -49,8 +49,10 @@ export async function expectUsableTarget(target: Locator) {
   await expect(target).toBeFocused();
   const box = await target.boundingBox();
   expect(box).not.toBeNull();
-  expect(box!.height).toBeGreaterThanOrEqual(44);
-  expect(box!.width).toBeGreaterThanOrEqual(44);
+  // DOMRect subtraction can report 43.999969 for a computed 44px target.
+  // Round only floating-point noise; a real subpixel deficit still fails.
+  expect(Math.round(box!.height * 1000) / 1000).toBeGreaterThanOrEqual(44);
+  expect(Math.round(box!.width * 1000) / 1000).toBeGreaterThanOrEqual(44);
   expect(await target.evaluate(node => {
     const r = node.getBoundingClientRect();
     return node.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));

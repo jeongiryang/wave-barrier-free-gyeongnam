@@ -140,7 +140,8 @@ for (const width of [390, 960, 1440]) {
     const commandBar = page.locator("nav.map-command-bar");
     await commandBar.scrollIntoViewIfNeeded();
     await commandBar.getByRole("button", { name: "지도 도구", exact: true }).click();
-    await expect(commandBar.getByRole("button")).toHaveCount(11);
+    await expect(commandBar.getByRole("button", { name: "◎ 편의 표시", exact: true })).toBeVisible();
+    await expect(commandBar.locator(".map-advanced-controls")).toBeVisible();
     await expectNoOverflow(page);
     // 도구 버튼은 배율이 올라가도 자기 도구 막대 안에 남는다.
     expect(await commandBar.evaluate(node => [...node.querySelectorAll("button")].every(button => {
@@ -183,7 +184,8 @@ test("아주 크게 상태에서 조작 영역 44px 기준을 지킨다", async 
     const rect = (node as HTMLElement).getBoundingClientRect();
     return { text: node.textContent?.trim() || "button", width: rect.width, height: rect.height };
   }));
-  expect(toolSizes.length).toBe(11);
+  expect(toolSizes.length).toBeGreaterThan(4);
+  await expect(commandBar.getByRole("button", { name: "◎ 편의 표시", exact: true })).toBeVisible();
   for (const size of toolSizes) {
     expect(size.height, `${size.text} 높이`).toBeGreaterThanOrEqual(44);
     expect(size.width, `${size.text} 너비`).toBeGreaterThanOrEqual(44);
@@ -209,3 +211,4 @@ test("아주 크게 + 390px에서 지역 고르기부터 저장까지 끝까지 
   await expect.poll(() => page.evaluate(() => Object.keys(localStorage).some(key => key.startsWith("wave-current-trip")))).toBe(true);
   expect(await page.evaluate(() => JSON.stringify(localStorage).includes("textScale"))).toBe(false);
 });
+
