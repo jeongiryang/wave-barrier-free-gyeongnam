@@ -166,17 +166,21 @@ export async function handleAssistant(request: Request) {
           const emit = (value: unknown) => controller.enqueue(encoder.encode(`${JSON.stringify(value)}\n`));
           const forward = (text: string) => { if (text) emit({ type: 'text', value: text }); };
           try {
-            let buffer = '';
+            let buffer = '', received = 0;
             for (;;) {
               const { done, value } = await reader.read();
               if (done) break;
+              received += value.byteLength;
+              if (received > 1_000_000) throw new Error('stream-size');
               buffer += decoder.decode(value, { stream: true });
+              if (buffer.length > 100_000) throw new Error('stream-line-size');
               const lines = buffer.split('\n');
               buffer = lines.pop() || '';
               for (const line of lines) forward(splitter.push(naruStreamDelta(line)));
             }
             forward(splitter.push(naruStreamDelta(buffer)));
             const result = splitter.finish();
+            if (result.truncated) throw new Error("stream-truncated");
             forward(result.text);
             if (result.mode === 'json') {
               // 구분자가 없고 전체가 기존 JSON이면 기존 파싱으로 돌아간다. 실패하면 전체를 답변 글자로 본다.

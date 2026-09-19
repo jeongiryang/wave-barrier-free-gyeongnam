@@ -7,6 +7,7 @@ import * as facilities from '../lib/facility-selection.js';
 import * as actions from '../lib/assistant-actions.js';
 import * as grounding from '../lib/assistant-grounding.js';
 import * as photo from '../lib/assistant-photo.js';
+import * as photoFacts from '../lib/photo-trip-facts.js';
 import * as guidance from '../lib/guidance-preferences.js';
 import * as comfort from '../lib/trip-comfort.js';
 import * as providerFailure from '../lib/provider-failure.js';
@@ -82,7 +83,7 @@ const http = {
 const dependencies = {
   '../../lib/facility-selection.js': facilities, '../shared/http': http, '../../lib/assistant-actions.js': actions,
   '../shared/provider-request.js': providerRequest, '../../lib/provider-failure.js': providerFailure,
-  '../../lib/assistant-grounding.js': grounding, '../../lib/assistant-photo.js': photo,
+  '../../lib/photo-trip-facts.js': photoFacts, '../../lib/assistant-grounding.js': grounding, '../../lib/assistant-photo.js': photo,
   '../../lib/guidance-preferences.js': guidance, '../../lib/trip-comfort.js': comfort, '../../lib/assistant-stream.js': stream,
 };
 
@@ -235,4 +236,14 @@ test('회귀 고정: 시스템 프롬프트의 안전 규칙이 두 방식 모�
   // 스트리밍 프롬프트에만 구분자 사용 금지 문장이 붙는다.
   assert.ok(on.sent[0].body.messages[0].content.includes('<<<PROPOSAL>>>를 답변 본문에 쓰지 마세요.'));
   assert.ok(on.sent[0].body.messages[0].content.startsWith(off.sent[0].body.messages[0].content));
+});
+
+
+test('oversized or truncated streams never authorize a completed action', async () => {
+  for (const raw of ['x'.repeat(100001), JSON.stringify({ message: { content: '가'.repeat(6001) + NARU_PROPOSAL_DELIMITER + '{"action":"undo"}' } })]) {
+    const { call } = load({ streamFlag: '1', respond: () => ndjson([raw]) });
+    const output = await frames(await call());
+    assert.ok(!output.some(frame => frame.type === 'done'));
+    assert.ok(!output.some(frame => frame.proposal));
+  }
 });

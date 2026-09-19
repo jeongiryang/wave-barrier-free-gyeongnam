@@ -18,7 +18,8 @@ export function createProviderRequester({ now = Date.now, random = Math.random }
     // Full URLs stay only in this private, transient in-flight map, never receipts/logs.
     const requestKey = `${key}:${url}`;
     // A streamed body has a single reader, so it is never shared in flight.
-    const existing = context.stream ? undefined : inFlight.get(requestKey);
+    const shareable = !context.stream && (!options?.method || options.method.toUpperCase() === "GET");
+    const existing = shareable ? inFlight.get(requestKey) : undefined;
     if (existing && !existing.signal?.aborted) return existing.work;
     const lease = {};
     if (circuit) halfOpen.set(key, lease);
@@ -70,7 +71,7 @@ export function createProviderRequester({ now = Date.now, random = Math.random }
         if (halfOpen.get(key) === lease) halfOpen.delete(key);
       }
     });
-    inFlight.set(requestKey, { work, signal: options?.signal });
+    if (shareable) inFlight.set(requestKey, { work, signal: options?.signal });
     return work;
   };
 }

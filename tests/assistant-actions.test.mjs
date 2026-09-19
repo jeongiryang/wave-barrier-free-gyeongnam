@@ -5,14 +5,14 @@ import { ASSISTANT_ACTIONS, ASSISTANT_TOOLS, validateAssistantAction } from '../
 // Regression lock (spec 19): removing a value here breaks saved trips and
 // share links that still reference it. This list must never shrink.
 const EXISTING_ACTIONS = ['create-itinerary', 'adapt-itinerary', 'set-dates', 'recalculate-route', 'save-trip', 'settings', 'search', 'add', 'remove', 'details', 'move', 'visit', 'break', 'day', 'start-time', 'deadline', 'readiness', 'compare', 'alternatives', 'next', 'undo', 'tool', 'help'];
-const EXISTING_TOOLS = ['conditions', 'facilities', 'dates', 'places', 'itinerary', 'map', 'readiness', 'weather', 'transport', 'alternatives', 'comfort', 'budget', 'save', 'share', 'offline', 'calendar', 'on-trip', 'inquiry', 'preview', 'transcript', 'compare', 'course', 'split'];
+const EXISTING_TOOLS = ['conditions', 'facilities', 'dates', 'places', 'itinerary', 'receipt', 'map', 'readiness', 'weather', 'transport', 'alternatives', 'comfort', 'budget', 'save', 'share', 'offline', 'calendar', 'on-trip', 'inquiry', 'preview', 'transcript', 'compare', 'course', 'split'];
 
 test('no existing action or tool value has been removed', () => {
   for (const action of EXISTING_ACTIONS) assert.ok(ASSISTANT_ACTIONS.includes(action), `missing existing action: ${action}`);
   for (const tool of EXISTING_TOOLS) assert.ok(ASSISTANT_TOOLS.includes(tool), `missing existing tool: ${tool}`);
 });
 
-test('spec 19 added no new action or tool: facility changes reuse settings, on-site help reuses inquiry', () => {
+test('integrated whitelist adds only reviewed receipt viewing; facility and inquiry reuse existing actions', () => {
   assert.equal(ASSISTANT_ACTIONS.length, EXISTING_ACTIONS.length);
   assert.equal(ASSISTANT_TOOLS.length, EXISTING_TOOLS.length);
   assert.deepEqual([...ASSISTANT_ACTIONS].sort(), [...EXISTING_ACTIONS].sort());

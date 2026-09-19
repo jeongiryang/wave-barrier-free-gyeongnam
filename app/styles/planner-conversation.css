@@ -216,21 +216,12 @@ html[data-theme=dark] :is(.planner-guide-entry,.naru-result-list button,.naru-ev
 html[data-theme=dark] :is(.wave-skeleton-lines i,.place-card-skeleton .skeleton-visual) { background-image: linear-gradient(90deg,#143a49 25%,#28505c 50%,#143a49 75%); }
 @media (prefers-reduced-motion: reduce) { .naru-typing > span:last-child { animation: none; } }
 html[data-motion=calm] .naru-typing > span:last-child { animation: none; }
-html[data-theme=dark] .planner-reference .reference-heart { background: #143a49; color: #ecdfff; border-color: #726185; }
 html[data-theme=dark] .planner-reference .place-actions .primary { background: #d7bcff; color: #231334; }
-
-.journey-mode-toggle { display: flex; justify-content: flex-end; padding: 0; border: 0; background: none; }
-.journey-mode-toggle > div:first-child,.journey-mode-toggle button i { display: none; }
-.journey-mode-toggle [role=group] { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.journey-mode-toggle button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--white); font-size: .8rem; }
-.journey-mode-toggle button[aria-pressed=true] { color: var(--accent); background: var(--surface); border-color: var(--accent); }
-.journey-mode-toggle button:disabled { opacity: .6; }
 
 .planner-reference :is(button,a,input,select,textarea,summary):focus-visible { scroll-margin-block: 140px; }
 
 @media (max-width: 1180px) { .naru-launcher { padding: 10px; } }
 @media (min-width: 641px) and (max-width: 1180px) { .naru-launcher { bottom: 112px; } }
-html[data-theme=dark] .journey-mode-toggle button[aria-pressed=true],html[data-theme=dark] .reference-section-label button { color: #d7bcff; }
 
 .naru-panel.naru-compact { width: min(440px,calc(100vw - 32px)); border-color: #cfdad7; border-radius: 20px; }
 .naru-panel.naru-large { inset: 32px auto auto 50%; width: min(980px,calc(100vw - 48px)); height: min(860px,calc(100dvh - 64px)); max-height: none; margin: 0; transform: translateX(-50%); border-color: #cfdad7; border-radius: 20px; }
