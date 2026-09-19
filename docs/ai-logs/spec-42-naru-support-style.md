@@ -50,4 +50,4 @@
 
 ## PR
 
-- PR 링크: (push 후 채움)
+- PR 링크: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/592
