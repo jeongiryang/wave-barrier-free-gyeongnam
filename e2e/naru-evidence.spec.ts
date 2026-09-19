@@ -136,3 +136,25 @@ test('requested three Tongyeong places exclude other cities even when search ret
   await expect(app.chat).toContainText('후보 중 3곳');
   expect(app.errors).toEqual([]);
 });
+
+
+for (const failure of ['503', 'network'] as const) test(`offline ${failure} fallback preserves Tongyeong, exclusions, count and chosen facilities`, async ({ page }) => {
+  const records = ['창원', '통영', '거제', '통영', '통영', '통영'].map((city, index) => ({ ...mixed[0], id: String(8000 + index), name: city + ' 대체검증 장소 ' + index, city }));
+  const app = await setup(page, records, { chooseFacilities: true });
+  await search(app.chat); // An existing Changwon conversation must not leak into the new search.
+  const requests: URL[] = [];
+  page.on('request', request => { const url = new URL(request.url()); if (url.pathname === '/api/wave' && url.searchParams.get('action') === 'plan') requests.push(url); });
+  await page.route('**/api/assistant', route => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { available: true } });
+    return failure === '503' ? route.fulfill({ status: 503, json: { code: 'AI_UNAVAILABLE' } }) : route.abort('failed');
+  });
+  await app.chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill('통영 여행지를 3곳만 추천해줘. 창원이나 거제는 제외해줘.');
+  await app.chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
+  const results = app.chat.getByLabel('대화에서 찾은 여행지').last();
+  await expect(results.locator('.naru-place-name')).toHaveText([records[1].name, records[3].name, records[4].name]);
+  await expect(app.chat).toContainText('AI 연결이 원활하지 않아 간편 명령으로 처리할게요.');
+  await expect(app.chat).toContainText('후보 중 3곳');
+  expect(requests.at(-1)?.searchParams.get('region')).toBe('통영');
+  expect(requests.at(-1)?.searchParams.get('facilityKeys')).toContain('elevator');
+  expect(app.errors).toEqual([]);
+});

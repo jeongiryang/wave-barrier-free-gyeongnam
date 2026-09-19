@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ASSISTANT_ACTIONS, ASSISTANT_TOOLS, validateAssistantAction } from '../lib/assistant-actions.js';
+import { ASSISTANT_ACTIONS, ASSISTANT_TOOLS, localAssistantAction, validateAssistantAction } from '../lib/assistant-actions.js';
 
 // Regression lock (spec 19): removing a value here breaks saved trips and
 // share links that still reference it. This list must never shrink.
@@ -53,4 +53,17 @@ test('region, theme, date-range and time validation are unchanged', () => {
   assert.deepEqual(validateAssistantAction({ action: 'set-dates', start: '2026-09-20', end: '2026-09-22' }), { action: 'set-dates', start: '2026-09-20', end: '2026-09-22' });
   assert.equal(validateAssistantAction({ action: 'start-time', time: '9:00' }), null);
   assert.deepEqual(validateAssistantAction({ action: 'start-time', time: '09:00' }), { action: 'start-time', time: '09:00' });
+});
+
+
+test('offline fallback honours destination, exclusions and count rather than catalog order', () => {
+  for (const text of ['통영 여행지를 3곳만 추천해줘. 창원이나 거제는 제외해줘.', '창원, 거제는 제외하고 통영 여행지 3곳을 찾아줘.']) {
+    assert.deepEqual(localAssistantAction(text), { action: 'settings', region: '통영', count: 3 });
+  }
+});
+
+test('offline fallback does not turn an excluded city or negated request into a search', () => {
+  assert.deepEqual(localAssistantAction('창원은 제외하고 3곳을 추천해줘.'), { action: 'help' });
+  assert.deepEqual(localAssistantAction('통영으로 바꾸지 마'), { action: 'help' });
+  assert.deepEqual(localAssistantAction('통영 여행지를 찾아줘'), { action: 'settings', region: '통영' });
 });
