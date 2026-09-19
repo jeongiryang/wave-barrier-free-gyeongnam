@@ -53,7 +53,7 @@ import { SitePreferencesProvider } from "../components/SitePreferences";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN, SITE_TITLE, SOCIAL_IMAGE } from "../lib/site-metadata";
 
 const productionUrl = new URL(SITE_ORIGIN);
-const preferenceBootScript = `(()=>{try{const d=document.documentElement;const e=${process.env.NODE_ENV === "development" ? "localStorage.getItem('wave-dev-presentation')==='enabled'" : "false"};const m=matchMedia('(prefers-color-scheme: dark)').matches;const r=matchMedia('(prefers-reduced-motion: reduce)').matches;const t=localStorage.getItem('wave-theme');d.dataset.theme=e?(t==='dark'||t==='light'?t:(m?'dark':'light')):'light';d.dataset.motion=r?'calm':'full';d.lang='ko';d.style.colorScheme=d.dataset.theme}catch{}try{document.documentElement.dataset.introSeen=sessionStorage.getItem('wave-arrival-session-v1')==='done'?'1':'0'}catch{}})()`;
+const preferenceBootScript = `(()=>{try{const d=document.documentElement;const e=${process.env.NODE_ENV === "development" ? "localStorage.getItem('wave-dev-presentation')==='enabled'" : "false"};const m=matchMedia('(prefers-color-scheme: dark)').matches;const r=matchMedia('(prefers-reduced-motion: reduce)').matches;const t=localStorage.getItem('wave-theme');d.dataset.theme=e?(t==='dark'||t==='light'?t:(m?'dark':'light')):'light';d.dataset.motion=r?'calm':'full';const s=localStorage.getItem('wave-text-scale-v1');d.dataset.textScale=s==='large'||s==='larger'?s:'standard';d.lang='ko';d.style.colorScheme=d.dataset.theme}catch{}try{document.documentElement.dataset.introSeen=sessionStorage.getItem('wave-arrival-session-v1')==='done'?'1':'0'}catch{}})()`;
 
 export const metadata: Metadata = {
   metadataBase: productionUrl,

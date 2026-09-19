@@ -3,7 +3,7 @@
 import { createContext, startTransition, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { copy } from "./translations";
 import { readStoredPreferences, writeStoredPreferences } from "./storage";
-import type { Locale, Motion, PreferencesValue, Theme } from "./types";
+import type { Locale, Motion, PreferencesValue, TextScale, Theme } from "./types";
 import { presentationOptionsEnabled } from "./presentation-release";
 
 const PreferencesContext = createContext<PreferencesValue | null>(null);
@@ -11,6 +11,7 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("ko");
   const [theme, setTheme] = useState<Theme>("light");
+  const [textScale, setTextScale] = useState<TextScale>("standard");
   const [systemReducedMotion, setSystemReducedMotion] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const motion: Motion = systemReducedMotion ? "calm" : "full";
@@ -23,6 +24,7 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
       startTransition(() => {
         setLocaleState(stored.locale);
         setTheme(stored.theme);
+        setTextScale(stored.textScale);
         setSystemReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
         setHydrated(true);
       });
@@ -49,18 +51,21 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = "ko";
     document.documentElement.style.colorScheme = theme;
     document.documentElement.dataset.motion = motion;
-    writeStoredPreferences({ locale, theme });
-  }, [locale, theme, motion, hydrated]);
+    document.documentElement.dataset.textScale = textScale;
+    writeStoredPreferences({ locale, theme, textScale });
+  }, [locale, theme, textScale, motion, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
     locale,
     theme,
+    textScale,
     hydrated,
     setLocale: (next) => { if (presentationOptionsEnabled()) setLocaleState(next); },
     motion,
+    setTextScale,
     toggleTheme: () => { if (presentationOptionsEnabled()) setTheme((current) => current === "dark" ? "light" : "dark"); },
     t: (key, fallback) => copy[locale][key] || fallback,
-  }), [locale, theme, hydrated, motion]);
+  }), [locale, theme, textScale, hydrated, motion]);
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }

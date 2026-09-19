@@ -58,3 +58,12 @@ html[data-theme="dark"] .preference-row select,html[data-theme="dark"] .preferen
 @media (prefers-reduced-motion: reduce) {
   .preference-controls > summary,.preference-panel,.preference-row { transition: none; }
 }
+.preference-text-scale { flex-direction: column; align-items: stretch; gap: 8px; }
+.preference-text-scale [role="radiogroup"] { display: flex; gap: 6px; }
+.preference-text-scale label { flex: 1; min-width: 0; min-height: 44px; padding: 5px 4px; display: grid; place-items: center; gap: 1px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: #fff; text-align: center; }
+.preference-text-scale b { font-size: .72rem; font-weight: 800; }
+.preference-text-scale label:has(:checked) { color: var(--on-blue); border-color: var(--blue); background: var(--blue); }
+.preference-text-scale label:has(:checked) small { color: inherit; }
+.preference-text-scale label:has(:focus-visible) { outline: 3px solid #ffb800; outline-offset: 3px; }
+.preference-text-scale input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+html[data-theme="dark"] .preference-text-scale label:not(:has(:checked)) { border-color: #31596a; background: #0a2d3c; }
