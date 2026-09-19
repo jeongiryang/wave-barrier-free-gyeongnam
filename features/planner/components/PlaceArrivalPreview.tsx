@@ -5,12 +5,13 @@ import PlaceInquiryCard from './PlaceInquiryCard';
 import { WHEELCHAIR_ROUTE_DISCLAIMER, wheelchairRouteStateText } from '../../../lib/wheelchair-route-info.js';
 import { SLOPE_DESCRIPTION_DISCLAIMER } from '../../../lib/slope-description.js';
 const PowerchairChargingNotice = lazy(() => import('./PowerchairChargingNotice'));
+const DiningAccessibilityList = lazy(() => import('./DiningAccessibilityList'));
 const steps = [
   { title: '주차', keys: ['parking'], note: '주차장 위치와 출입구까지의 접근로를 함께 확인하세요.' },
   { title: '입구', keys: ['route', 'elevator'], note: '다른 출입구나 승강기 이용 안내가 있는지 확인하세요.' },
   { title: '시설', keys: ['restroom', 'lactationroom', 'guidehuman', 'audioguide', 'signguide', 'helpdog'], note: '필요한 시설의 위치·운영 여부는 장소 안내에서 확인하세요.' },
 ];
-export default function PlaceArrivalPreview({ place }: { place: Place }) {
+export default function PlaceArrivalPreview({ place, onClose }: { place: Place; onClose?: () => void }) {
   const [active, setActive] = useState(0);
   const [checked, setChecked] = useState<number[]>([]);
   const step = steps[active];
@@ -34,6 +35,8 @@ export default function PlaceArrivalPreview({ place }: { place: Place }) {
       : <p key={item.key}><strong>{item.label}: {item.state === 'confirmed' ? '정보 있음' : item.state === 'negative' ? '이용 조건 확인' : '미확인'}</strong><br />{item.detail || '상세 안내가 제공되지 않았어요.'}</p>) : <p>이 장소의 {step.title} 상세 정보는 아직 확인하지 못했어요.</p>}<p>{step.note}</p></div>
     {hasPoint && <div><a target="_blank" rel="noopener noreferrer" href={`https://map.kakao.com/link/roadview/${lat},${lng}`}>장소 주변 로드뷰 열기 ↗</a><a target="_blank" rel="noopener noreferrer" href={`https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${lat},${lng}`}>장소 지도 열기 ↗</a></div>}
     {step.title === '주차' && <Suspense fallback={null}><PowerchairChargingNotice /></Suspense>}
+    {/* 스펙 08: 음식점 편의 정보는 '시설' 단계에서만 요청한다. 기존 3단계 구조와 체크 기록은 그대로 둔다. */}
+    {step.title === '시설' && <Suspense fallback={null}><DiningAccessibilityList place={place} onClose={onClose} /></Suspense>}
     {step.title === '입구' && <div className="place-inquiry-entry">
       <div>
         <h3>휠체어 통행 정보</h3>

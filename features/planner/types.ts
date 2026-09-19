@@ -115,3 +115,37 @@ export type SearchPlaceType = "region" | "tourism" | "cafe" | "restaurant" | "ot
 export type SearchPlace = { id: string; name: string; address: string; category: string; categoryCode?: string; region?: string; resultType?: SearchPlaceType; summary?: string; mapX: string; mapY: string; placeUrl?: string };
 export type RichMode = "events" | "lodging" | "camping" | "pet" | "wellness" | "medical" | "water" | "language" | "awards" | "rests";
 export type DestinationCrowd = { rate: number; baseYmd: string; place: string };
+
+/**
+ * 음식점 접근성 겹쳐 보기(스펙 08).
+ *
+ * 개별 음식점의 후기 수·별점·조회수·순위를 주는 공식 제공처가 없다. 그래서
+ * 이 타입에는 그런 필드를 두지 않는다. 나중에 채우려는 자리도 만들지 않는다.
+ * 사용자 좌표를 표현하는 필드도 만들지 않는다. `destination`은 여행지의 공개
+ * 좌표이며, `distanceMeters`는 그 공개 좌표 기준의 직선거리다.
+ */
+export type DiningEvidence = "official" | "place-search";
+export type DiningFacility = { key: string; label: string; state: "confirmed" | "unknown" | "negative" };
+export type DiningPlace = {
+  id: string;
+  evidence: DiningEvidence;
+  name: string;
+  address: string;
+  category?: string;
+  distanceMeters: number;
+  destination: { latitude: number; longitude: number };
+  hours?: string;
+  phone?: string;
+  facilities: DiningFacility[];
+  placeUrl?: string;
+  checkedAt: string;
+  source: string;
+};
+export type DiningAccessibilityResponse = {
+  status: "available" | "empty" | "invalid-request" | "provider-error" | "location-unconfirmed";
+  contentId: string;
+  checkedAt: string;
+  source: string;
+  items: DiningPlace[];
+  message?: string;
+};

@@ -43,7 +43,9 @@ export function parseNearbyPlaces(value: unknown, area: NearbySearchArea): { pla
     const distance = typeof item.distance === "string" && item.distance.trim() !== "" && Number.isFinite(Number(item.distance)) && Number(item.distance) >= 0 ? item.distance : "";
     places.push({ id: item.id, place_name: item.place_name.trim(), x: item.x, y: item.y, distance,
       address_name: typeof item.address_name === "string" ? item.address_name : "",
-      road_address_name: typeof item.road_address_name === "string" ? item.road_address_name : "", place_url: placeLink(item.place_url) });
+      road_address_name: typeof item.road_address_name === "string" ? item.road_address_name : "", place_url: placeLink(item.place_url),
+      // 제공처가 준 분류 이름만 그대로 옮긴다. 없으면 빈 문자열로 두고 추측하지 않는다.
+      category_name: typeof item.category_name === "string" ? item.category_name.trim().slice(0, 80) : "" });
   }
   return { places, omitted: value.length - places.length };
 }

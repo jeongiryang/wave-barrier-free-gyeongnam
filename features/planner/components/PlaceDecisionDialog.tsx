@@ -58,7 +58,7 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
         {en && <p className="original-language-note">Place names, addresses and facility evidence are shown in their original language, which may be Korean. Visitor stories are not translated.</p>}
         <PlaceSaveAction key={`${place.id}:${props.explorationAction?.key || "regular"}`} saved={props.saved} canSave={props.canSave} explorationAction={props.explorationAction} onToggleSaved={props.onToggleSaved} en={en} />
         <Suspense fallback={<LoadingState>{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</LoadingState>}><PlaceDecisionContent {...props} location={location} /></Suspense>
-        <details><summary>주차·입구·시설 미리보기</summary><Suspense fallback={<LoadingState>주차·입구 정보를 준비하고 있어요.</LoadingState>}><PlaceArrivalPreview key={place.id} place={place} /></Suspense></details>
+        <details><summary>주차·입구·시설 미리보기</summary><Suspense fallback={<LoadingState>주차·입구 정보를 준비하고 있어요.</LoadingState>}><PlaceArrivalPreview key={place.id} place={place} onClose={onClose} /></Suspense></details>
         <Suspense fallback={null}><PlaceAudioGuide key={place.id} id={place.id} /></Suspense>
       </div>
   </dialog>;
