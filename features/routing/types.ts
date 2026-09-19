@@ -32,6 +32,13 @@ export type MapPlace = {
   mapX: string;
   mapY: string;
   score: number | null;
+  /**
+   * 이미 조회한 장소 목록에 실려 오는 편의 확인 상태. 새 타입이 아니라
+   * `server/tourism/accessibility-model.ts`의 `placeFrom` 결과와 같은 모양이다.
+   * "안내견 동반이 확인된 곳" 같은 파생 레이어가 새 서버 호출 없이 이 필드에서
+   * 마커를 만든다.
+   */
+  accessibility?: Array<{ key: string; label: string; state: "confirmed" | "unknown" | "negative"; detail?: string }>;
 };
 
 export type CrowdSignal = { rate: number; baseYmd?: string; place?: string };

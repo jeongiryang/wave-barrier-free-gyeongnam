@@ -112,7 +112,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     toggleFacility,
     retryFacilityLayer,
     clearFacilityLayers,
-  } = useFacilityLayers({ kakaoMapRef, provider, scopeKey: focusedGeometryKey });
+  } = useFacilityLayers({ kakaoMapRef, provider, scopeKey: focusedGeometryKey, places });
   const chooseFacilityMarker = useCallback((marker: FacilityMapMarker) => {
     if (!isMapAvailable()) return;
     setSelectedFacility(marker);

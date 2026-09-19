@@ -17,7 +17,7 @@ import { FACILITY_LAYER_LIMIT, FACILITY_MARKER_CAP, facilityLayers, type Facilit
 import type { KakaoMap, KakaoPlace } from "./kakao-sdk";
 import type { MutableRef } from "./map-renderer-context";
 import { NEARBY_RADIUS_METRES, parseNearbyPlaces, type NearbySearchArea } from "./nearby-place-data";
-import type { FacilityMapMarker } from "./types";
+import type { FacilityMapMarker, MapPlace } from "./types";
 
 export type FacilityLayerState = "idle" | "loading" | "ready" | "empty" | "error";
 
@@ -35,9 +35,11 @@ interface FacilityLayersOptions {
   provider: string;
   /** 일정의 장소 구성이 바뀌면 지도 기준점도 바뀐다. */
   scopeKey: string;
+  /** `derived` 레이어가 새 조회 없이 마커를 뽑아낼 이미 받아온 장소 목록. */
+  places: MapPlace[];
 }
 
-export function useFacilityLayers({ kakaoMapRef, provider, scopeKey }: FacilityLayersOptions) {
+export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: FacilityLayersOptions) {
   const [selection, setSelection] = useState<FacilityLayerSelection>(() => emptyFacilitySelection());
   const [layerStates, setLayerStates] = useState<Record<string, FacilityLayerState>>({});
   const [notice, setNotice] = useState("");
@@ -49,6 +51,8 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey }: FacilityL
   const timers = useRef<Record<string, number>>({});
   const selectionRef = useRef(selection);
   useEffect(() => { selectionRef.current = selection; }, [selection]);
+  const placesRef = useRef(places);
+  useEffect(() => { placesRef.current = places; }, [places]);
 
   const stopLayer = useCallback((layerId: string) => {
     generations.current[layerId] = (generations.current[layerId] || 0) + 1;
@@ -78,6 +82,20 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey }: FacilityL
     };
 
     setLayerStates((current) => ({ ...current, [layer.id]: "loading" }));
+
+    if (layer.source === "derived") {
+      // 새 조회를 하지 않는다. 이미 받아온 장소 목록에서 조건에 맞는 곳만 뽑는다.
+      const key = layer.derivedKey;
+      const map = kakaoMapRef.current;
+      const center = key && map?.getCenter ? map.getCenter() : null;
+      const origin = center ? { latitude: center.getLat(), longitude: center.getLng() } : null;
+      const markers = (key ? placesRef.current : [])
+        .filter((place) => place.accessibility?.some((item) => item.key === key && item.state === "confirmed"))
+        .map((place) => toDerivedMarker(layer, place, origin))
+        .filter((marker): marker is FacilityLayerMarker => marker !== null);
+      settle(markers.length ? "ready" : "empty", markers);
+      return;
+    }
 
     if (layer.source === "official") {
       // 공식 데이터 레이어를 부르는 자리.
@@ -196,7 +214,10 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey }: FacilityL
   // 정해 넘긴다.
   const facilityMarkers = useMemo<FacilityMapMarker[]>(() => visibleFacilityMarkers(selection, FACILITY_MARKER_CAP).map((marker) => {
     const layer = facilityLayers.find((item) => item.id === marker.layerId);
-    return { ...marker, layerLabel: layer?.label || "편의시설", glyph: layer?.glyph || "·", official: layer?.source === "official" };
+    // 지도 핀 모양은 두 가지뿐이다(사각·원형). `derived`는 이미 확인된 공식
+    // 관광정보에서 온 값이라 place-search(카카오 장소 검색)의 원형 핀과는
+    // 구분해야 하므로, 새 모양을 더하는 대신 official과 같은 사각 핀을 쓴다.
+    return { ...marker, layerLabel: layer?.label || "편의시설", glyph: layer?.glyph || "·", official: layer?.source === "official" || layer?.source === "derived" };
   }), [selection]);
   const hiddenMarkerCount = useMemo(() => hiddenFacilityMarkerCount(selection, FACILITY_MARKER_CAP), [selection]);
   const capNotice = hiddenMarkerCount ? `가까운 ${FACILITY_MARKER_CAP}곳만 표시했어요.` : "";
@@ -212,6 +233,24 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey }: FacilityL
     retryFacilityLayer,
     clearFacilityLayers,
     refreshFacilityLayers,
+  };
+}
+
+/** `derived` 레이어 전용. 좌표가 없거나 범위를 벗어난 장소는 마커로 만들지 않는다. */
+function toDerivedMarker(layer: FacilityLayer, place: MapPlace, origin: { latitude: number; longitude: number } | null): FacilityLayerMarker | null {
+  const latitude = Number(place.mapY), longitude = Number(place.mapX);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+  const destination = { latitude, longitude };
+  const detail = place.accessibility?.find((item) => item.key === layer.derivedKey)?.detail;
+  return {
+    id: `${layer.id}-${place.id}`,
+    layerId: layer.id,
+    name: place.name,
+    address: place.address || "",
+    destination,
+    distanceMeters: origin ? facilityDistanceMeters(origin, destination) : null,
+    source: "이미 조회한 여행지 목록",
+    ...(detail ? { detail } : {}),
   };
 }
 

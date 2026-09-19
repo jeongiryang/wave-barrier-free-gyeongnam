@@ -1,12 +1,13 @@
 import type { FacilityLayerSelection } from "../../../lib/facility-layers";
 import type { FacilityMapMarker } from "../types";
-import { FACILITY_LAYER_LIMIT, facilityLayers, officialFacilityLayers, placeSearchFacilityLayers, type FacilityLayer } from "../constants";
+import { FACILITY_LAYER_LIMIT, derivedFacilityLayers, facilityLayers, officialFacilityLayers, placeSearchFacilityLayers, type FacilityLayer } from "../constants";
 import type { FacilityLayerState } from "../useFacilityLayers";
 import { useSitePreferences } from "../../../components/SitePreferences";
 
 const englishLabels: Record<string, string> = {
   food: "Restaurants", cafe: "Cafes", store: "Convenience stores",
   pharmacy: "Pharmacies", hospital: "Hospitals", subway: "Subway stations",
+  "helpdog-confirmed": "Guide dog access confirmed",
 };
 const layerName = (layer: FacilityLayer, english: boolean) => english ? englishLabels[layer.id] || layer.label : layer.label;
 
@@ -103,11 +104,17 @@ export default function FacilityLayerPanel({
       {renderGroup(officialFacilityLayers)}
     </>}
 
+    {/* 새 조회 없이 이미 받아온 장소 목록에서 뽑은 레이어(스펙 20). */}
+    {derivedFacilityLayers.length > 0 && <>
+      <h4>{english ? "Already checked" : "이미 확인된 곳"}</h4>
+      {renderGroup(derivedFacilityLayers)}
+    </>}
+
     {/* 범례는 글자로만 제공한다. 색을 보지 못해도 종류를 알 수 있어야 한다. */}
     <h4>{english ? "Marker legend" : "마커 범례"}</h4>
     <p>{english
-      ? "Place search results use a round pin. Official public data would use a square outlined pin."
-      : "장소 검색 결과는 동그란 핀이에요. 공식 공공데이터는 테두리가 있는 사각 핀으로 구분해요."}</p>
+      ? "Place search results use a round pin. Official public data and facilities already confirmed in the trip's place list use a square outlined pin."
+      : "장소 검색 결과는 동그란 핀이에요. 공식 공공데이터와 여행지 목록에서 이미 확인된 정보는 테두리가 있는 사각 핀으로 구분해요."}</p>
     <p>{english
       ? "Each pin carries a letter for its facility type, and a marker is read as “{layer name} {facility name}”."
       : "핀 안의 글자가 시설 종류를 나타내고, 마커는 “{레이어 이름} {시설 이름}”으로 읽혀요."}</p>

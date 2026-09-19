@@ -6,7 +6,7 @@ const PowerchairChargingNotice = lazy(() => import('./PowerchairChargingNotice')
 const steps = [
   { title: '주차', keys: ['parking'], note: '주차장 위치와 출입구까지의 접근로를 함께 확인하세요.' },
   { title: '입구', keys: ['route', 'elevator'], note: '다른 출입구나 승강기 이용 안내가 있는지 확인하세요.' },
-  { title: '시설', keys: ['restroom', 'lactationroom', 'guidehuman', 'audioguide', 'signguide'], note: '필요한 시설의 위치·운영 여부는 장소 안내에서 확인하세요.' },
+  { title: '시설', keys: ['restroom', 'lactationroom', 'guidehuman', 'audioguide', 'signguide', 'helpdog'], note: '필요한 시설의 위치·운영 여부는 장소 안내에서 확인하세요.' },
 ];
 export default function PlaceArrivalPreview({ place }: { place: Place }) {
   const [active, setActive] = useState(0);

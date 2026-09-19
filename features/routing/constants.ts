@@ -22,8 +22,11 @@ export const nearbyCategories = [
  * - `official`: 공공데이터 제공처를 서버 경유로 조회한 결과.
  *
  * 두 갈래는 화면에서 섞지 않는다. 근거의 성격이 다르기 때문이다.
+ *
+ * - `derived`: 새 조회를 하지 않고 **이미 받아온 장소 목록**(`MapPlace.accessibility`)에서
+ *   조건에 맞는 곳만 걸러 마커로 그린다. 스펙 20(안내견 동반)이 이 갈래를 쓴다.
  */
-export type FacilityLayerSource = "official" | "place-search";
+export type FacilityLayerSource = "official" | "place-search" | "derived";
 
 export type FacilityLayer = {
   id: string;
@@ -34,6 +37,8 @@ export type FacilityLayer = {
   code?: string;
   /** official 전용. /api/wave 의 action 값. */
   action?: string;
+  /** derived 전용. 장소의 `accessibility` 배열에서 `state === "confirmed"`인 항목을 찾을 key. */
+  derivedKey?: string;
   /** 마커·범례에서 색이 아닌 글자로 종류를 알리는 짧은 기호. */
   glyph: string;
 };
@@ -75,9 +80,19 @@ export const placeSearchFacilityLayers: readonly FacilityLayer[] = [
  */
 export const officialFacilityLayers: readonly FacilityLayer[] = [];
 
+/**
+ * 이미 조회한 장소 목록에서 파생하는 레이어(스펙 20). 새 서버 호출이나 새
+ * 제공처를 더하지 않는다. `helpdog`는 `KorWithService2/detailWithTour2`가
+ * 이미 주는 필드이고 `FACILITIES`·`profileFields`에 이미 연동돼 있다.
+ */
+export const derivedFacilityLayers: readonly FacilityLayer[] = [
+  { id: "helpdog-confirmed", label: "안내견 동반이 확인된 곳", source: "derived", derivedKey: "helpdog", glyph: "견" },
+];
+
 export const facilityLayers: readonly FacilityLayer[] = [
   ...placeSearchFacilityLayers,
   ...officialFacilityLayers,
+  ...derivedFacilityLayers,
 ];
 
 /** 한 번에 켤 수 있는 레이어 수. 5번째는 켜진 것을 끄지 않고 안내만 한다. */
