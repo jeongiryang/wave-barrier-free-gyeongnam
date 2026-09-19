@@ -178,6 +178,8 @@ dialog.naru-panel:not([open]) { display: none; }
 .place-audio-guide audio { display: block; width: 100%; max-width: 100%; }
 .place-audio-guide article { padding-block: 12px; }
 .place-audio-guide p { line-height: 1.85; overflow-wrap: anywhere; }
+.place-guide-modes { display: flex; flex-wrap: wrap; gap: 8px; border: 0; }
+.place-guide-script { white-space: pre-wrap; }
 .naru-character[data-state=idle] img { animation: naru-think 5s ease-in-out infinite; }
 .naru-character[data-state=thinking] img,.naru-character[data-state=planning] img { animation: naru-think 2s ease-in-out infinite; }
 .naru-character[data-state=searching] img,.naru-character[data-state=checking] img,.naru-character[data-state=routing] img { animation: naru-look 1.8s ease-in-out infinite; }
@@ -239,6 +241,7 @@ html[data-theme=dark] .journey-mode-toggle button[aria-pressed=true],html[data-t
 .naru-heading > div:not(.naru-heading-actions) { flex: 1; min-width: 0; }
 .naru-heading-actions { position: relative; display: flex; align-items: center; gap: 4px; flex: 0 0 auto !important; }
 .naru-heading-actions > button,.naru-more > summary { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; background: transparent; color: var(--ink); font: inherit; cursor: pointer; list-style: none; }
+.naru-heading-actions > .naru-support-toggle { width: auto; padding-inline: 10px; border: 1px solid var(--line); border-radius: 999px; font-size: .72rem; white-space: nowrap; }
 .naru-heading-actions > button:last-child { font-size: 26px; color: var(--muted); }
 .naru-more > summary::-webkit-details-marker,.naru-add-menu > summary::-webkit-details-marker { display: none; }
 .naru-more[open] { position: static; }

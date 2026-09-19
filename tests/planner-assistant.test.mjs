@@ -14,6 +14,7 @@ import { ProviderRequestError } from '../lib/provider-failure.js';
 import { validateAssistantPhoto } from '../lib/assistant-photo.js';
 import * as guidance from '../lib/guidance-preferences.js';
 import * as comfort from '../lib/trip-comfort.js';
+import { sanitizePhotoTripFacts } from '../lib/photo-trip-facts.js';
 
 function compile(file, dependencies, globals = {}) {
   const exports = {};
@@ -31,6 +32,7 @@ function handler(responder, configured = true) {
     '../../lib/assistant-photo.js': { validateAssistantPhoto },
     '../../lib/guidance-preferences.js': guidance,
     '../../lib/trip-comfort.js': comfort,
+    '../../lib/photo-trip-facts.js': { sanitizePhotoTripFacts },
     '../../lib/provider-failure.js': { ProviderRequestError },
     '../shared/provider-request.js': {
       createProviderRequester: () => {
@@ -59,10 +61,11 @@ test('photo admission rejects metadata, oversized dimensions, wrong types and fo
   assert.equal(h.calls.length, 0);
 });
 test('photo output cannot execute actions and image history is not forwarded', async () => {
-  const h = handler(() => ({ choices: [{ message: { content: JSON.stringify({ reply: '사진에서 날짜를 읽었어요.', proposal: { action: 'remove', placeId: '1001' } }) } }] }));
+  const h = handler(() => ({ choices: [{ message: { content: JSON.stringify({ reply: '사진에서 날짜를 읽었어요.', facts: [{ name: '경남미술관', region: '창원', date: '2026-10-01', startTime: '10:00', url: 'https://ignore.example' }], proposal: { action: 'remove', placeId: '1001' } }) } }] }));
   const response = await h.run(request({ messages: [{ role: 'assistant', content: '이전 민감한 대화' }, { role: 'user', content: '이 사진 읽어줘' }], photo: photoFixture(), context: { places: [{ id: '1001', name: '일정 장소' }] } }));
   assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store');
   const result = await response.json(); assert.equal(result.proposal, null); assert.equal(result.photoReview, true);
+  assert.deepEqual(result.photoFacts, [{ name: '경남미술관', region: '창원', date: '2026-10-01', startTime: '10:00', endTime: '', address: '' }]);
   const sent = JSON.parse(h.calls[0].options.body);
   assert.equal(sent.messages.length, 2); assert.deepEqual(sent.messages.at(-1).images, [photoFixture().data]);
   assert.ok(!h.calls[0].options.body.includes('이전 민감한 대화'));

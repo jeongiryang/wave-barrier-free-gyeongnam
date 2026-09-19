@@ -1,3 +1,4 @@
+import { experienceDatabase } from '../../../server/trips/experience-database';
 import { communityDatabase, type CommunitySql } from "./database";
 
 const DELETION_GRANT_TTL_MS = 48 * 60 * 60 * 1000;
@@ -14,6 +15,7 @@ async function tokenHash(token: string) {
 export async function prepareCommunityAccountDeletion(userId: string) {
   const sql = await communityDatabase();
   if (!sql) return null;
+  if (!(await experienceDatabase())) return null;
   const token = bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
   const hash = await tokenHash(token);
   const now = Date.now();
@@ -35,6 +37,8 @@ export async function completeCommunityAccountDeletion(sql: CommunitySql, token:
   const userId = String(rows[0]?.user_id || "");
   if (!userId) return false;
   await sql.transaction([
+    sql`DELETE FROM wave_observations WHERE author_id=${userId}`,
+    sql`DELETE FROM wave_companions WHERE owner_id=${userId}`,
     sql`DELETE FROM wave_trip_votes WHERE user_id=${userId}`,
     sql`DELETE FROM wave_trip_comments WHERE user_id=${userId}`,
     sql`DELETE FROM wave_trip_members WHERE user_id=${userId}`,

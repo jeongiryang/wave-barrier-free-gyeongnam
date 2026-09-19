@@ -65,6 +65,10 @@ test('나루는 화면 크기에 맞고, 크기를 바꿔도 같은 대화와 �
 test('첫 화면은 필요한 도움만 받아 구체적인 시설과 안내 방식으로 저장한다', async ({ page }) => {
   await setup(page, false);
   const chat = await openChat(page);
+  await expect(chat.getByRole('button', { name: '도움 닫기', exact: true })).toHaveAttribute('aria-expanded', 'true');
+  await chat.getByRole('button', { name: '도움 닫기', exact: true }).click();
+  await expect(chat.getByRole('heading', { name: '어떤 도움이 필요할까요?', exact: true })).toHaveCount(0);
+  await chat.getByRole('button', { name: '맞춤 도움', exact: true }).click();
   await chat.getByRole('button', { name: '휠체어 이동에 필요한 시설', exact: true }).click();
   await chat.getByRole('button', { name: '문자·영상 안내', exact: true }).click();
   await chat.getByRole('button', { name: '짧게, 한 번에 하나씩', exact: true }).click();
@@ -86,6 +90,26 @@ test('예시 요청은 바로 보내지 않고 입력창만 채운다', async ({
   await chat.getByRole('button', { name: prompt, exact: true }).click();
   await expect(chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true })).toHaveValue(prompt);
   await expect(log.locator('.naru-message')).toHaveCount(1);
+});
+
+test('대화 중 맞춤 도움을 다시 열고 필요한 안내를 추가한 뒤 닫을 수 있다', async ({ page }) => {
+  await setup(page);
+  const chat = await openChat(page);
+  const toggle = chat.getByRole('button', { name: '맞춤 도움', exact: true });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
+  await expect(chat.getByRole('heading', { name: '어떤 도움이 필요할까요?', exact: true })).toBeVisible();
+  await chat.getByRole('button', { name: '유모차·수유·유아 시설', exact: true }).click();
+  await chat.getByRole('button', { name: '음성·큰 글자 안내', exact: true }).click();
+  await chat.getByRole('button', { name: '선택 적용', exact: true }).click();
+  await expect(chat.getByRole('heading', { name: '어떤 도움이 필요할까요?', exact: true })).toHaveCount(0);
+  await expect(chat.getByRole('button', { name: '맞춤 도움', exact: true })).toHaveAttribute('aria-expanded', 'false');
+  const values = await page.evaluate(() => JSON.parse(localStorage.getItem('wave-current-trip-v1') || '{}').values || {});
+  expect(JSON.parse(values['wave-trip-facilities-v1'])).toEqual(['stroller', 'lactationroom', 'babysparechair', 'audioguide', 'bigprint', 'guidehuman']);
+  expect(JSON.parse(values['wave-trip-guidance-v1'])).toEqual({ easyNarration: true, audioFirst: true });
+  await chat.getByRole('button', { name: '맞춤 도움', exact: true }).click();
+  await chat.getByRole('button', { name: '닫기', exact: true }).click();
+  await expect(chat.getByRole('heading', { name: '어떤 도움이 필요할까요?', exact: true })).toHaveCount(0);
 });
 
 test('여행 도구는 대화 안에 안내 카드를 남기고 본문 여행 설계로 이동한다', async ({ page }) => {

@@ -319,7 +319,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     if (["conditions", "facilities"].includes(tool)) stageView.changeStep('conditions');
     else if (["places", "compare", "inquiry", "preview", "transcript"].includes(tool)) stageView.changeStep('places');
     else { stageView.changeStep('itinerary'); setItineraryMapView(tool === 'map'); if (['readiness','weather'].includes(tool)) { setDepartureDetailsOpen(true); if (tool === 'weather') setSecondaryOpen(true); } }
-    const selectors: Record<string, string> = { conditions: '.simple-search-bar select', facilities: '.simple-facility-trigger', dates: '.simple-itinerary-heading > button', comfort: '.simple-day-options > summary', budget: '[data-planner-tool="budget"] > summary', offline: '[data-planner-tool="offline"]', 'on-trip': '[data-planner-tool="on-trip"]', split: '[data-planner-tool="split"]', alternatives: '[data-planner-tool="alternatives"] > summary', course: '[data-planner-tool="course"] > summary', save: '[data-planner-tool="save"] > button', share: '[data-planner-tool="share"]', transport: '[data-planner-tool="transport"]', calendar: '[data-planner-tool="share"]', weather: '.weather-heading > button', readiness: '.simple-readiness', map: '#itinerary-map', itinerary: '#itinerary', places: '#places', compare: '#places', inquiry: '#places', preview: '#places', transcript: '#places' };
+    const selectors: Record<string, string> = { conditions: '.simple-search-bar select', facilities: '.simple-facility-trigger', dates: '.simple-itinerary-heading > button', receipt: '[data-planner-tool="receipt"] > summary', comfort: '.simple-day-options > summary', budget: '[data-planner-tool="budget"] > summary', offline: '[data-planner-tool="offline"]', 'on-trip': '[data-planner-tool="on-trip"]', split: '[data-planner-tool="split"]', alternatives: '[data-planner-tool="alternatives"] > summary', course: '[data-planner-tool="course"] > summary', save: '[data-planner-tool="save"] > button', share: '[data-planner-tool="share"]', transport: '[data-planner-tool="transport"]', calendar: '[data-planner-tool="share"]', weather: '.weather-heading > button', readiness: '.simple-readiness', map: '#itinerary-map', itinerary: '#itinerary', places: '#places', compare: '#places', inquiry: '#places', preview: '#places', transcript: '#places' };
     const focusTarget = () => {
       const node = document.querySelector<HTMLElement>(selectors[tool] || '#planner');
       if (!node) return;
@@ -388,6 +388,8 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
                 onCopyBookingRoute={copyBookingRoute}
                 onMapDestination={routeFromMapPlace}
                 onSaveMapPlaces={saveMapPlaces}
+                onProfiles={planController.setSelected}
+                onAlternative={id => alternatives.open(id)}
               />
       {travelStart && <details className="simple-departure" id="departure-readiness" open={departureDetailsOpen || journey.activeStepId === "departure-readiness"} onToggle={event => setDepartureDetailsOpen(event.currentTarget.open)}>
         <summary><span>출발 전 확인</span><small>날씨 · 운영시간 · 이동 · 편의</small><span aria-hidden="true">⌄</span></summary>
@@ -455,6 +457,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
         saved={saved.includes(selectedPlace.id)}
         canSave={canSaveSelectedPlace}
         explorationAction={explorationAction}
+        guidancePreferences={guidance.value}
         feedbackText={feedbackText}
         feedbackState={feedbackState}
         dialogRef={placeDialogRef}

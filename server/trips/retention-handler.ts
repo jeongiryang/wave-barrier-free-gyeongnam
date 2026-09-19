@@ -1,4 +1,5 @@
 import { json } from "../shared/http";
+import { sweepExperience } from './experience-database';
 import { recordOperationalEvent } from "../shared/observability";
 import { sweepExpiredAccountDeletionGrants } from "../../features/community/server/account-repository";
 import { communityDatabase } from "../../features/community/server/database";
@@ -32,6 +33,7 @@ export async function handleTripRetention(request: Request) {
       sweepExpiredTrips(sql),
       sweepExpiredFeedback(sql),
       sweepExpiredAccountDeletionGrants(communitySql),
+      sweepExperience(),
     ]);
     recordOperationalEvent("trip_retention", { status: "success", trigger: "cron", deleted, deletedFeedback, expiredAccountDeletionGrants });
     return json({ ok: true, deleted, deletedFeedback, expiredAccountDeletionGrants });

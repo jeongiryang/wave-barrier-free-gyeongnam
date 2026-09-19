@@ -12,12 +12,16 @@ import { handleWeatherApi } from "../server/weather/handler";
 import { handleAssistant } from "../server/assistant/handler";
 import { handleJourneyPreparation } from "../server/assistant/planning";
 import { handleFestivals } from "../server/tourism/festivals";
+import { handleObservations } from '../server/trips/observations-handler';
+import { handleCompanions } from '../server/trips/companions-handler';
 
 
 
 export async function handlePortableApi(request: Request): Promise<Response> {
   const env = portableEnv();
   const url = new URL(request.url);
+  if (url.pathname === '/api/observations') return handleObservations(request);
+  if (url.pathname === '/api/companions' || /^\/api\/companions\/[a-f0-9]{24}$/.test(url.pathname)) return handleCompanions(request);
 
   if (url.pathname === "/api/wave") return handleWaveApi(request, env);
   if (url.pathname === "/api/assistant") return handleAssistant(request);
