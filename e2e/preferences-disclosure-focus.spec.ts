@@ -22,10 +22,16 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await expect(details).toHaveAttribute("open", "");
     await expect(details).toContainText(locale === "ko" ? "한국어 전체 지원" : "Some pages are in Korean");
     if (locale === "en") await expect(details).toContainText("Original place information and some features may appear in Korean.");
+    // 접근성 설정이 늘어나도 계약이 깨지지 않도록, 초점 대상 개수를 고정하지 않고 패널 안의 초점 가능한 요소를 실제로 질의해 마지막 컨트롤을 기준으로 검사한다.
+    const panelFocusable = details.locator('.preference-panel').locator('a[href], button:not([disabled]), select, input:not([disabled]), textarea, [tabindex]:not([tabindex="-1"])');
+    const panelFocusableCount = await panelFocusable.count();
+    expect(panelFocusableCount, 'The preferences panel must expose at least one focusable control').toBeGreaterThan(0);
     await page.keyboard.press("Tab");
+    await expect(panelFocusable.first()).toBeFocused();
     await expect(details.getByRole("combobox")).toBeFocused();
-    await page.keyboard.press("Tab");
-    await expect(details.getByRole("button", { name: locale === "ko" ? "다크모드" : "Dark mode", exact: true })).toBeFocused();
+    const themeToggle = details.getByRole("button", { name: locale === "ko" ? "다크모드" : "Dark mode", exact: true });
+    await themeToggle.focus();
+    await expect(themeToggle).toBeFocused();
     await page.keyboard.press("Space");
     await expect(details.getByRole("button", { name: locale === "ko" ? "라이트모드" : "Light mode", exact: true })).toBeFocused();
     const appearance = details.getByRole("button", { name: locale === "ko" ? "라이트모드" : "Light mode", exact: true });
@@ -33,6 +39,11 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
     await expect(details.locator(".motion-toggle")).toHaveCount(0);
     await expect(appearance).toBeFocused();
+    await panelFocusable.first().focus();
+    for (let index = 1; index < panelFocusableCount; index += 1) {
+      await page.keyboard.press("Tab");
+      await expect(panelFocusable.nth(index), 'Focus must stay inside the preferences panel until its last control').toBeFocused();
+    }
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: locale === "ko" ? "계정 관리" : "Account", exact: true })).toBeFocused();
     await expect(details).not.toHaveAttribute("open", "");
