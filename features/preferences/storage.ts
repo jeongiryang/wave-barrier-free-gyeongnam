@@ -40,8 +40,7 @@ function readStoredHaptics(): Haptics {
 
 function readStoredTone(): Tone {
   if (!dialectToneEnabled()) return "standard";
-  try { return window.localStorage.getItem("wave-tone-v1") === "gyeongnam" ? "gyeongnam" : "standard"; }
-  catch { return "standard"; }
+  try { return window.localStorage.getItem("wave-tone-v1") === "gyeongnam" ? "gyeongnam" : "standard"; } catch { return "standard"; }
 }
 
 export function readStoredPreferences(): StoredPreferences {

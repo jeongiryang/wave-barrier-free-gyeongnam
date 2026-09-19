@@ -145,7 +145,7 @@ export async function handleAssistant(request: Request) {
     // Only the operator's configured endpoint is used. The client cannot choose a host.
     const providerMessages = photo
       ? [{ role: 'system', content: photoInstructions }, { ...messages.at(-1), images: [photo.data] }]
-      : [{ role: 'system', content: streaming ? `${systemInstructions(tone)}${streamFormat}` : systemInstructions(tone) }, { role: 'system', content: `context=${JSON.stringify(context)}` }, ...messages];
+      : [{ role: 'system', content: systemInstructions(tone) + (streaming ? streamFormat : "") }, { role: 'system', content: `context=${JSON.stringify(context)}` }, ...messages];
     const headers = { 'Content-Type': 'application/json', ...(process.env.WAVE_AI_TOKEN ? { Authorization: `Bearer ${process.env.WAVE_AI_TOKEN}` } : {}) };
     const body = JSON.stringify({ model, messages: providerMessages, temperature: 0, max_tokens: photo ? 900 : 500, stream: streaming, ...(streaming ? {} : { response_format: { type: 'json_object' } }) });
     if (streaming) {
