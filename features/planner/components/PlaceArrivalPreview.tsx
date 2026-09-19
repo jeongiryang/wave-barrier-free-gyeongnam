@@ -40,6 +40,8 @@ export default function PlaceArrivalPreview({ place, onClose }: { place: Place; 
     {step.title === '시설' && <Suspense fallback={null}><DiningAccessibilityList place={place} onClose={onClose} /></Suspense>}
     {/* 스펙 48: 숙소(contentTypeId "32")일 때만 숙소 전용 편의 묶음을 더한다. 다른 타입의 화면은 바뀌지 않는다. */}
     {step.title === '시설' && place.contentTypeId === '32' && <Suspense fallback={null}><StayFacilityDetail place={place} /></Suspense>}
+    {/* 스펙 44: 1인 메뉴·단체석·좌석 형태를 주는 공공데이터가 없다는 사실만 안내한다. 거르기를 만들지 않는다. 문의 링크는 이 단계 아래의 PlaceInquiryCard(#545)를 그대로 쓴다. */}
+    {step.title === '시설' && <p style={{ color: 'var(--muted)', fontSize: '.85rem' }}>자리 형태와 1인 주문 가능 여부는 공공데이터에 등록돼 있지 않아요. 미리 물어보면 확실해요.</p>}
     {step.title === '입구' && <div className="place-inquiry-entry">
       <div>
         <h3>휠체어 통행 정보</h3>
