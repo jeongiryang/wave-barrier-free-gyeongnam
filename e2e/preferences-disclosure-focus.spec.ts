@@ -23,7 +23,8 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await expect(details).toContainText(locale === "ko" ? "한국어 전체 지원" : "Some pages are in Korean");
     if (locale === "en") await expect(details).toContainText("Original place information and some features may appear in Korean.");
     // 접근성 설정이 늘어나도 계약이 깨지지 않도록, 초점 대상 개수를 고정하지 않고 패널 안의 초점 가능한 요소를 실제로 질의해 마지막 컨트롤을 기준으로 검사한다.
-    const panelFocusable = details.locator('.preference-panel').locator('a[href], button:not([disabled]), select, input:not([disabled]), textarea, [tabindex]:not([tabindex="-1"])');
+    // Native radio groups have one Tab stop; arrow keys reach the other choices.
+    const panelFocusable = details.locator('.preference-panel').locator('a[href], button:not([disabled]), select, input:not([disabled]):not([type="radio"]), input[type="radio"]:checked, textarea, [tabindex]:not([tabindex="-1"])');
     const panelFocusableCount = await panelFocusable.count();
     expect(panelFocusableCount, 'The preferences panel must expose at least one focusable control').toBeGreaterThan(0);
     await page.keyboard.press("Tab");
@@ -66,7 +67,7 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(navBounds!.x + navBounds!.width + 1);
       if (/^\S+$/.test((await link.textContent())!.trim())) {
         expect(await link.evaluate(element => {
-          const range = document.createRange(); range.selectNodeContents(element);
+          const range = document.createRange(); range.selectNodeContents(element.querySelector(":scope > span") ?? element);
           return new Set([...range.getClientRects()].filter(rect => rect.width > 0 && rect.height > 0).map(rect => Math.round(rect.top))).size;
         }), 'A one-word navigation label must not split its last letter onto another line').toBe(1);
       }

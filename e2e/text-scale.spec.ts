@@ -52,12 +52,12 @@ test("글자 크기 세 단계가 즉시 반영되고 새로고침 뒤에도 유
   await expect(page.locator("html")).toHaveAttribute("data-text-scale", "large");
   expect(await rootSize()).toBeCloseTo(18, 1);
   // 변경 사실은 색이 아니라 문구로도 전달된다.
-  await expect(preferences.locator("[aria-live='polite']")).toHaveText("글자 크기를 크게로 바꿨어요.");
+  await expect(preferences.locator(".preference-text-scale [aria-live='polite']")).toHaveText("글자 크기를 크게로 바꿨어요.");
 
   await group.getByRole("radio", { name: /아주 크게/ }).check();
   await expect(page.locator("html")).toHaveAttribute("data-text-scale", "larger");
   expect(await rootSize()).toBeCloseTo(20, 1);
-  await expect(preferences.locator("[aria-live='polite']")).toHaveText("글자 크기를 아주 크게로 바꿨어요.");
+  await expect(preferences.locator(".preference-text-scale [aria-live='polite']")).toHaveText("글자 크기를 아주 크게로 바꿨어요.");
 
   expect(await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY)).toBe("larger");
 
