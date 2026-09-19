@@ -123,3 +123,16 @@ test('편의 조건을 고르지 않았으면 기준이 없으므로 근거 표�
   expect(app.errors).toEqual([]);
   expect((await new AxeBuilder({ page }).include('.naru-panel').analyze()).violations).toEqual([]);
 });
+
+
+test('requested three Tongyeong places exclude other cities even when search returns mixed regions', async ({ page }) => {
+  const records = ['창원', '통영', '거제', '통영', '통영', '통영'].map((city, index) => ({ ...mixed[0], id: String(7000 + index), name: city + ' 합성 장소 ' + index, city }));
+  const app = await setup(page, records);
+  await page.route('**/api/assistant', route => route.fulfill({ json: route.request().method() === 'GET' ? { available: true } : { reply: '요청한 지역과 개수로 확인할게요.', proposal: { action: 'settings', region: '통영', count: 3 } } }));
+  await app.chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill('통영 3곳 추천해줘. 창원, 거제는 제외해줘.');
+  await app.chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
+  const results = app.chat.getByLabel('대화에서 찾은 여행지').last();
+  await expect(results.locator('.naru-place-name')).toHaveText([records[1].name, records[3].name, records[4].name]);
+  await expect(app.chat).toContainText('후보 중 3곳');
+  expect(app.errors).toEqual([]);
+});

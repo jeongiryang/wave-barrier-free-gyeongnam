@@ -32,7 +32,7 @@ async function setup(page: Page, handler?: (route: Route) => Promise<void>) {
   }, values);
   await page.goto('/festivals');
   const filters = page.getByRole('region', { name: '축제 찾기', exact: true });
-  await expect(filters.getByRole('button', { name: '아이와 함께 · 주류 행사 제외', exact: true })).toHaveCount(0);
+  await expect(filters.getByRole('button', { name: '아이와 함께 · 주류 행사 제외', exact: true })).toBeVisible();
   await expect(filters.getByLabel('언제부터', { exact: true })).toHaveValue('2026-09-12');
   await expect(filters.getByLabel('언제까지', { exact: true })).toHaveValue('2026-10-12');
   await expect(page.getByRole('heading', { name: event.name, exact: true })).toBeVisible();

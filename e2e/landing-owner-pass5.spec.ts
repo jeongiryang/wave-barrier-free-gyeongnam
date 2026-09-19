@@ -13,7 +13,7 @@ test("the restored-section registry matches actual reading order without replaci
   // and their section associations independently of that shorthand.
   const headings = [
     /경남 여행지를 찾고\s*일정을 짜보세요/,
-    /멀게 느껴졌던 여행을\s*조금 더 가까이/, "지역으로 둘러보기", "나루에게 말해보세요",
+    /멀게 느껴졌던 여행을,?\s*조금 더 가까이/, "지역으로 둘러보기", "나루에게 말해보세요",
     /마음은 가볍게\s*준비는 한 번 더/, /당신이 남긴 장면이\s*다음 여행의 시작/, /다음 풍경에서\s*만나요/,
   ];
   await expect(sections.locator("h1,h2")).toHaveText(headings);
@@ -46,8 +46,8 @@ test("the travel narrative and labelled Naru example remain free of provider req
   const narrative = page.locator(".horizon-chapter-copy"), conversation = page.locator(".simple-naru-example");
   await expect(narrative).toHaveCount(3);
   await narrative.last().scrollIntoViewIfNeeded();
-  await expect(narrative.last()).toContainText("날짜와 방문 순서를 정하세요");
-  await expect(narrative.nth(1)).toContainText("아직 확인되지 않은 정보도 구분");
+  await expect(narrative.last()).toContainText("날짜와 방문 순서를 정해");
+  await expect(narrative.nth(1)).toContainText("확인되지 않은 정보도 따로 알려드려요");
   await conversation.scrollIntoViewIfNeeded();
   await expect(conversation).toHaveAttribute("aria-label", "대화 예시");
   await expect(conversation).toContainText("대화 예시");

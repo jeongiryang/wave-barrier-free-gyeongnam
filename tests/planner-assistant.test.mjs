@@ -180,3 +180,11 @@ test('a low-burden same-day origin request searches nearby without assuming a ca
   assert.deepEqual(data.proposal, { action: 'create-itinerary', region: '창원', originRegion: '창원', profiles: ['parking', 'route', 'wheelchair', 'elevator', 'restroom'] });
   assert.doesNotMatch(data.reply, /접근 가능|보장|자동차/);
 });
+
+
+test('explicit Tongyeong count and exclusions repair a mistaken model region', () => {
+  const proposal = groundAssistantProposal({ action: 'settings', region: '창원' }, [{ role: 'user', content: '통영 3곳 추천해줘. 창원, 거제는 제외해줘.' }], { profiles: ['route'] });
+  assert.deepEqual(proposal, { action: 'settings', region: '통영', count: 3 });
+  assert.equal(actions.validateAssistantAction({ ...proposal, count: 13 }), null);
+});
+

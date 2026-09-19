@@ -39,7 +39,7 @@ import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialog
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
 import { useTripAlternatives } from "../../features/planner/hooks/useTripAlternatives";
-import TripAlternativeTools from "../../features/planner/components/TripAlternativeTools";
+import TripAlternativeTools, { TripReplacementNotice } from "../../features/planner/components/TripAlternativeTools";
 import { useRegionChange } from "../../features/planner/hooks/useRegionChange";
 import { useItineraryRoutes } from "../../features/planner/hooks/useItineraryRoutes";
 import { useJourneyProgress } from "../../features/planner/hooks/useJourneyProgress";
@@ -355,6 +355,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
       {region && <RecommendationWorkspace region={region} activePlaces={activePlaces} planController={planController} tripSelection={tripSelection} onGenerate={generatePlan} onSelectPlace={setSelectedPlace} onRegionSelect={next => regionChange.request(next, () => stageView.changeStep("conditions", true))} onBuildItinerary={() => stageView.changeStep("itinerary", true)} onMore={async () => { await runPlan({ resetRouteData, resetAudio, page: plan?.pagination?.nextPage ?? (plan?.pagination?.page || 1) + 1 }, false); }} />}
     </div>
     <div hidden={browsing} className="simple-itinerary-view">
+      <TripReplacementNotice alternatives={alternatives} />
       <PlannerItineraryWorkspace active={!browsing}
                 alternativeTools={<><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /><Suspense fallback={<LoadingState>코스 도구를 준비하고 있어요.</LoadingState>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={setSelectedPlace}/></Suspense><button type="button" onClick={showAssistant}>나루에게 일정 변경 요청하기</button><PlannerServiceStatus locale={locale} keyHealth={keyHealth} effectiveProviders={effectiveProviders} transportProviders={transportProviders} providerErrors={providerErrors} liveCount={liveCount} dataErrors={dataErrors} plan={plan}/></>}
                 mapView={itineraryMapView}

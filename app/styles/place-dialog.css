@@ -88,7 +88,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
   .profile-grid { grid-template-columns: 1fr 1fr; }
   .selection-bar { align-items: stretch; flex-direction: column; }
   .selection-bar .auto-refresh-note { max-width: none; text-align: left; }
-  .place-carousel { width: calc(100vw - 20px); padding-right: 20px; }
   .place-card { flex-basis: min(380px, 86vw); }
   .place-modal { grid-template-columns: 1fr; }
   .modal-visual { min-height: clamp(160px, 24dvh, 260px); }
@@ -105,7 +104,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
   .control-panel { padding: 17px; border-radius: 18px; }
   .theme-grid, .profile-grid { grid-template-columns: 1fr; }
   .profile-card { min-height: 74px; }
-  .place-visual { height: 215px; }
   .modal-body { padding: 34px 22px 25px; }
 }
 
