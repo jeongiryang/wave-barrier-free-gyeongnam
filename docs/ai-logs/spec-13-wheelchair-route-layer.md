@@ -1,6 +1,6 @@
 # PR #번호 AI 작업 로그
 
-- PR: (push 후 채움)
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/572
 - 제목: feat: 휠체어 통행 정보 표시
 - 작성자: Claude Code (Sonnet 5)
 - 최종 상태: 리뷰 대기
