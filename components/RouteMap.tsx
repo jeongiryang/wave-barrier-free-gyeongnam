@@ -2,6 +2,7 @@
 
 import MapCommandBar from "../features/routing/components/MapCommandBar";
 import MapExportPanel from "../features/routing/components/MapExportPanel";
+import FacilityLayerPanel from "../features/routing/components/FacilityLayerPanel";
 import MapLayerPanel from "../features/routing/components/MapLayerPanel";
 import MapPlacePanel from "../features/routing/components/MapPlacePanel";
 import { MapCanvasStatusOverlays, RoadviewSelectionOverlays } from "../features/routing/components/MapStatusOverlays";
@@ -35,6 +36,16 @@ export default function RouteMap(props: RouteMapProps) {
     categoryPlaces,
     categoryMessage,
     categoryState,
+    facilitySelection,
+    facilityLayerStates,
+    facilityNotice,
+    selectedFacility,
+    toggleFacility,
+    retryFacilityLayer,
+    clearFacilityLayers,
+    closeFacilityCard,
+    showFacilityOnMap,
+    setFacilityAsDestination,
     roadviewOpen,
     roadviewMessage,
     roadviewLoading,
@@ -116,6 +127,22 @@ export default function RouteMap(props: RouteMapProps) {
       onSearch={searchNearby}
       onRetry={retryNearby}
       onChoosePlace={chooseKakaoPlace}
+    />}
+
+    {toolPanel === "facility" && <FacilityLayerPanel
+      available={provider === "kakao"}
+      loading={provider === "loading"}
+      selection={facilitySelection}
+      layerStates={facilityLayerStates}
+      notice={facilityNotice}
+      selectedFacility={selectedFacility}
+      onClose={() => setToolPanel(null)}
+      onToggleLayer={toggleFacility}
+      onRetryLayer={retryFacilityLayer}
+      onClearAll={clearFacilityLayers}
+      onCloseFacility={closeFacilityCard}
+      onShowOnMap={showFacilityOnMap}
+      onSetDestination={setFacilityAsDestination}
     />}
 
     {toolPanel === "route" && <RoutePointPanel

@@ -25,6 +25,8 @@ export type KakaoPlace = {
   y: string;
   distance: string;
   place_url: string;
+  /** 제공처가 준 분류 이름. 없을 수 있으므로 없으면 빈 문자열이다. */
+  category_name: string;
 };
 
 export type KakaoDrawingManager = {
@@ -50,7 +52,8 @@ export type KakaoSdk = {
     Roadview: new (node: HTMLElement) => { setPanoId(panoId: number, position: KakaoLatLng): void; relayout(): void };
     RoadviewClient: new () => { getNearestPanoId(position: KakaoLatLng, radius: number, callback: (panoId: number | null) => void): void };
     services?: {
-      Places: new (map: KakaoMap) => {
+      // 지도 없이도 장소 검색만 할 수 있다. 지도 위에 마커를 그리는 호출부만 지도를 넘긴다.
+      Places: new (map?: KakaoMap) => {
         categorySearch(code: string, callback: (result: KakaoPlace[], status: string) => void, options: Record<string, unknown>): void;
         keywordSearch(keyword: string, callback: (result: KakaoPlace[], status: string) => void, options: Record<string, unknown>): void;
       };

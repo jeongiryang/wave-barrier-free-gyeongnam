@@ -14,7 +14,8 @@
 .community-controls { margin: 0 0 36px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
 .community-tabs { display: flex; flex-wrap: wrap; gap: 7px; }
 .community-tabs button { min-height: 42px; padding: 8px 13px; color: var(--muted); background: #fff; font: inherit; font-size: .75rem; font-weight: 820; }
-.community-tabs button[aria-pressed="true"] { color: var(--white); border-color: var(--ink); background: var(--ink); }
+/* color/background 는 뒤에 오는 wave-horizon.css 의 같은 선택자가 덮어쓰는 죽은 선언이라 지웠다. */
+.community-tabs button[aria-pressed="true"] { border-color: var(--ink); }
 .community-controls form { flex: 1; width: min(390px,100%); min-width: 230px; display: grid; grid-template-columns: 1fr auto; }
 .community-controls input { min-width: 0; min-height: 46px; padding: 10px 18px; border: 1px solid var(--line); border-radius: 100px 0 0 100px; background: var(--white); font: inherit; font-size: .8rem; }
 .community-controls form button { min-width: 64px; border: 0; border-radius: 0 100px 100px 0; color: var(--white); background: var(--ink); font: inherit; font-size: .78rem; font-weight: 750; }
