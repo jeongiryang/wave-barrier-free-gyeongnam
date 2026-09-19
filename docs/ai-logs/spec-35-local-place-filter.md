@@ -1,9 +1,9 @@
 # PR #번호 AI 작업 로그
 
-- PR: (push 후 채움)
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/582
 - 제목: feat: 지역 가게 보기
 - 작성자: Claude Sonnet 5 (에이전트)
-- 최종 상태: 작업 중
+- 최종 상태: PR 오픈, 리뷰 대기
 - AI 도구: Claude Code
 
 ## 목적
