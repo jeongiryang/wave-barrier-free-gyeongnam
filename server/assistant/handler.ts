@@ -59,6 +59,19 @@ ${toneInstruction[tone]}
 ${safetyRules}`;
 }
 
+// The gateway accepts at most 6000 characters per message. Keep every trusted
+// instruction in order, splitting at paragraph boundaries without changing roles.
+function systemMessages(content: string) {
+  const messages: { role: 'system'; content: string }[] = [];
+  while (content.length > 5000) {
+    const boundary = content.lastIndexOf('\n', 4999) + 1 || 5000;
+    messages.push({ role: 'system', content: content.slice(0, boundary) });
+    content = content.slice(boundary);
+  }
+  messages.push({ role: 'system', content });
+  return messages;
+}
+
 // 말·실행 분리 출력 형식. 위 instructions의 안전 규칙과 판단 기준은 그대로
 // 두고 출력 형식만 바꾼다. WAVE_AI_STREAM이 켜졌을 때만 덧붙인다.
 const streamFormat = `
@@ -146,7 +159,7 @@ export async function handleAssistant(request: Request) {
     // Only the operator's configured endpoint is used. The client cannot choose a host.
     const providerMessages = photo
       ? [{ role: 'system', content: photoInstructions }, { ...messages.at(-1), images: [photo.data] }]
-      : [{ role: 'system', content: systemInstructions(tone) + (streaming ? streamFormat : "") }, { role: 'system', content: `context=${JSON.stringify(context)}` }, ...messages];
+      : [...systemMessages(systemInstructions(tone) + (streaming ? streamFormat : "")), { role: 'system', content: `context=${JSON.stringify(context)}` }, ...messages];
     const headers = { 'Content-Type': 'application/json', ...(process.env.WAVE_AI_TOKEN ? { Authorization: `Bearer ${process.env.WAVE_AI_TOKEN}` } : {}) };
     const body = JSON.stringify({ model, messages: providerMessages, temperature: 0, max_tokens: photo ? 900 : 500, stream: streaming, ...(streaming ? {} : { response_format: { type: 'json_object' } }) });
     if (streaming) {

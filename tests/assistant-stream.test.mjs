@@ -230,12 +230,18 @@ test('회귀 고정: 시스템 프롬프트의 안전 규칙이 두 방식 모�
   await off.call();
   const on = load({ streamFlag: '1', respond: () => ndjson(chunks('확인했어요.')) });
   await (await on.call()).text();
-  for (const prompt of [off.sent[0].body.messages[0].content, on.sent[0].body.messages[0].content]) for (const rule of rules) assert.ok(prompt.includes(rule), rule);
+  const promptOf = result => result.sent[0].body.messages.filter(message => message.role === 'system' && !message.content.startsWith('context=')).map(message => message.content).join('');
+  for (const prompt of [promptOf(off), promptOf(on)]) for (const rule of rules) assert.ok(prompt.includes(rule), rule);
+  for (const result of [off, on]) {
+    assert.ok(result.sent[0].body.messages.length <= 10);
+    assert.ok(result.sent[0].body.messages.every(message => message.content.length <= 6000));
+    assert.ok(Buffer.byteLength(result.sent[0].options.body) <= 36000);
+  }
   // 좌표 필드는 어느 방식에서도 요청 본문에 없다.
   for (const sent of [off.sent[0], on.sent[0]]) assert.ok(!/latitude|longitude|coords|accuracy/i.test(sent.options.body));
   // 스트리밍 프롬프트에만 구분자 사용 금지 문장이 붙는다.
-  assert.ok(on.sent[0].body.messages[0].content.includes('<<<PROPOSAL>>>를 답변 본문에 쓰지 마세요.'));
-  assert.ok(on.sent[0].body.messages[0].content.startsWith(off.sent[0].body.messages[0].content));
+  assert.ok(promptOf(on).includes('<<<PROPOSAL>>>를 답변 본문에 쓰지 마세요.'));
+  assert.ok(promptOf(on).startsWith(promptOf(off)));
 });
 
 
