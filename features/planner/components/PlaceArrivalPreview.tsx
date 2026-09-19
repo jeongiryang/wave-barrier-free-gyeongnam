@@ -2,6 +2,7 @@
 import { lazy, Suspense, useState } from 'react';
 import type { Place } from '../types';
 import PlaceInquiryCard from './PlaceInquiryCard';
+import { WHEELCHAIR_ROUTE_DISCLAIMER, wheelchairRouteStateText } from '../../../lib/wheelchair-route-info.js';
 const PowerchairChargingNotice = lazy(() => import('./PowerchairChargingNotice'));
 const steps = [
   { title: '주차', keys: ['parking'], note: '주차장 위치와 출입구까지의 접근로를 함께 확인하세요.' },
@@ -22,6 +23,14 @@ export default function PlaceArrivalPreview({ place }: { place: Place }) {
     <div aria-live="polite"><h4>{step.title}</h4>{fields.length ? fields.map(item => <p key={item.key}><strong>{item.label}: {item.state === 'confirmed' ? '정보 있음' : item.state === 'negative' ? '이용 조건 확인' : '미확인'}</strong><br />{item.detail || '상세 안내가 제공되지 않았어요.'}</p>) : <p>이 장소의 {step.title} 상세 정보는 아직 확인하지 못했어요.</p>}<p>{step.note}</p></div>
     {hasPoint && <div><a target="_blank" rel="noopener noreferrer" href={`https://map.kakao.com/link/roadview/${lat},${lng}`}>장소 주변 로드뷰 열기 ↗</a><a target="_blank" rel="noopener noreferrer" href={`https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${lat},${lng}`}>장소 지도 열기 ↗</a></div>}
     {step.title === '주차' && <Suspense fallback={null}><PowerchairChargingNotice /></Suspense>}
+    {step.title === '입구' && <div className="place-inquiry-entry">
+      <div>
+        <h3>휠체어 통행 정보</h3>
+        <p>{wheelchairRouteStateText(place.accessibility?.find(item => item.key === 'route')?.state)}</p>
+        <p>{WHEELCHAIR_ROUTE_DISCLAIMER}</p>
+      </div>
+      <p>현장에서 다른 점을 확인했다면 <button type="button" className="simple-text-link" onClick={() => setActive(steps.length - 1)}>문의 카드 만들기</button>로 미리 질문을 준비해 방문 시 물어보세요.</p>
+    </div>}
     <small>공개 관광지 좌표를 기준으로 엽니다. 실제 입구·시설의 정확한 지점이나 최신 촬영 자료가 제공되지 않을 수 있어요. 로드뷰와 사진만으로 통행 가능 여부를 확정하지 않습니다.</small>
     <p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small></p>
     <label><input type="checkbox" checked={checked.includes(active)} onChange={event => setChecked(previous => event.target.checked ? [...previous, active] : previous.filter(index => index !== active))} /> {step.title} 자료를 살펴봤어요</label>
