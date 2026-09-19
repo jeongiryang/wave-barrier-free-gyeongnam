@@ -432,7 +432,7 @@ test("interactive help follows real sections on every public journey and remains
   assert.deepEqual(tours.landingSteps.map(step => step.selector), ["#top", "#regions", "#story", "#naru"]);
   assert.deepEqual(tours.plannerSteps.map(step => step.selector), ["#conditions", "#places", "#itinerary", "#departure-readiness"]);
   assert.deepEqual(tours.landingSteps.map(step => step.highlightSelector), ["#top .landing-hero-copy", ".simple-region-grid", ".horizon-chapter-stream", "#naru"]);
-  assert.deepEqual(tours.plannerSteps.map(step => step.highlightSelector), [".simple-search-bar", ".simple-results", ".simple-stops > li, .simple-empty, .simple-itinerary-map", "#departure-readiness > summary"]);
+  assert.deepEqual(tours.plannerSteps.map(step => step.highlightSelector), [".simple-search-bar", ".simple-place-row", ".simple-stops > li, .simple-empty, .simple-itinerary-map", "#departure-readiness > summary"]);
   for (const [steps, content] of [[tours.landingSteps, landing], [tours.plannerSteps, planner]]) {
     for (const step of steps) {
       assert.ok(content.includes('id="' + step.selector.slice(1) + '"'), step.selector + " must exist in the current UI");

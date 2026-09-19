@@ -120,6 +120,11 @@
   .landing-page.horizon-edition .landing-hero-split h1 { font-size: 1.95rem; }
 }
 
+/* The refreshed light surfaces must not sit behind dark-theme text tokens. */
+html[data-theme="dark"] .simple-landing { background: var(--paper); }
+html[data-theme="dark"] .simple-landing :is(.horizon-section-heading, .simple-region-story, .restored-community, .simple-naru-story, .horizon-departure) { background: var(--paper); }
+html[data-theme="dark"] .simple-naru-example { background: var(--surface); border-color: var(--line); }
+
 @media (prefers-reduced-motion: reduce) {
   .simple-landing .horizon-checks .horizon-check-icon { transition: none; }
   .simple-landing .horizon-checks li:hover .horizon-check-icon { transform: none; }

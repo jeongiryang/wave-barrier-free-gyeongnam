@@ -68,7 +68,7 @@ test("landing: labelled itinerary and conversation examples preserve restored-se
   expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
   await page.locator("#story").scrollIntoViewIfNeeded();
   await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
-  await expect(page.locator(".horizon-chapter-copy").last()).toContainText("날짜와 방문 순서를 정하세요");
+  await expect(page.locator(".horizon-chapter-copy").last()).toContainText("날짜와 방문 순서를 정해");
   await page.locator("#naru").scrollIntoViewIfNeeded();
   await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
   await expect(page.locator(".simple-naru-example").locator("input,button,form,textarea,[contenteditable=true]")).toHaveCount(0);

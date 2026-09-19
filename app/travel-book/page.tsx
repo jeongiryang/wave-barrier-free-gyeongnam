@@ -17,6 +17,7 @@ import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialog
 import CloudSaveAction from "../../features/account-travel/CloudSaveAction";
 import EditorialPhoto from "../../features/landing/components/EditorialPhoto";
 import { horizonPhotos } from "../../features/landing/horizon-photos";
+import { facilityLabel, resolveFacilityKeys } from "../../lib/facility-selection.js";
 
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 const shortDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
@@ -93,7 +94,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
         </div>
       </header>
       <p className="travel-book-card-status" role="status" aria-live="polite">{announcement}</p>
-      {book.profiles.length > 0 && <ul className="travel-book-profiles" aria-label="선택한 편의조건">{book.profiles.map((profile) => <li key={profile}>{profile}</li>)}</ul>}
+      {book.profiles.length > 0 && <ul className="travel-book-profiles" aria-label="선택한 편의조건">{resolveFacilityKeys({ profiles: book.profiles }).map((profile) => <li key={profile}>{facilityLabel(profile)}</li>)}</ul>}
       <div className="travel-book-days">
         {days.map((day, dayIndex) => <section key={day}>
           <header>{day && <small>{dayIndex + 1}일차</small>}<strong>{formatDate(day, shortDateFormatter)}{day ? ` · ${book.dayStartTime} 시작` : ""}</strong></header>

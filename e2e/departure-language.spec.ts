@@ -14,8 +14,8 @@ async function prepare(page: Page) {
 for (const theme of ['light', 'dark'] as const) for (const width of [320, 960, 1366]) test(`deferred English ${theme} review at ${width}px labels Korean evidence and preserves dates`, async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message)); await page.setViewportSize({ width, height: 900 });
   await page.addInitScript(theme => localStorage.setItem('wave-theme', theme), theme); await prepare(page);
-  const card = page.locator('.simple-readiness'); await expect(card.locator(':scope > details')).toHaveCount(5);
-  for (const label of ['날씨', '관광 집중률', '이동 경로·시간', '이동 편의', '장소 편의근거']) await departureItem(page, label);
+  const card = page.locator('.simple-readiness'); await expect(card.locator(':scope > details')).toHaveCount(6);
+  for (const label of ['날씨', '관광 집중률', '이동 경로·시간', '이동 편의', '장소 편의근거', '보조기기']) await departureItem(page, label);
   await expect(card).toContainText('실시간 방문자 수가 아닙니다'); await expect(card).toContainText('해당 날짜 예보가 없거나');
   const mobility = await departureItem(page, '이동 편의'); await expect(mobility.locator('summary')).toContainText('확인할 정보 있음');
   const refresh = card.getByRole('button', { name: '다시 조회', exact: true }); await refresh.focus(); await expect(refresh).toBeFocused();

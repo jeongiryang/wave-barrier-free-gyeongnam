@@ -15,7 +15,7 @@ export const landingSteps: TourStep[] = [
 
 export const plannerSteps: TourStep[] = [
   { selector: '#conditions', highlightSelector: '.simple-search-bar', eyebrow: '여행지 찾기', title: '지역부터 골라보세요.', copy: '지역을 고르면 장소가 나와요. 필요한 시설은 편의 버튼에서 골라 적용하고, 활동은 원할 때만 고르세요.' },
-  { selector: '#places', highlightSelector: '.simple-results', eyebrow: '여행지 정보', title: '사진이나 이름을 누르면 자세히 볼 수 있어요.', copy: '담기를 누른 뒤에도 계속 둘러볼 수 있어요. 필요한 시설이 확인되지 않은 후보는 따로 표시해요.' },
+  { selector: '#places', highlightSelector: '.simple-place-row', eyebrow: '여행지 정보', title: '사진이나 이름을 누르면 자세히 볼 수 있어요.', copy: '담기를 누른 뒤에도 계속 둘러볼 수 있어요. 필요한 시설이 확인되지 않은 후보는 따로 표시해요.' },
   { selector: '#itinerary', highlightSelector: '.simple-stops > li, .simple-empty, .simple-itinerary-map', eyebrow: '내 일정', title: '방문할 날짜와 시간을 정하세요.', copy: '수정 버튼에서 머무는 시간과 날짜를 바꿀 수 있어요. 내 여행에 저장하거나 공유 버튼으로 링크를 보낼 수 있어요.' },
   { selector: '#departure-readiness', highlightSelector: '#departure-readiness > summary', eyebrow: '출발 전 확인', title: '방문 정보를 확인하세요.', copy: '날씨와 운영시간, 이동과 편의시설 정보는 필요한 항목을 펼쳐서 확인하세요.' },
 ];

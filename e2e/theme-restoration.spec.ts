@@ -72,7 +72,7 @@ for (const source of ["archive", "shared"] as const) test(`${source}: restoring 
 });
 
 for (const [query, expected, initialRequest] of [
-  ["theme=leisure", ["레포츠"], "leisure"],
+  ["theme=leisure", ["레저스포츠"], "leisure"],
   ["theme=leisure&themes=food,nature,food,invalid", ["자연·휴양", "음식"], "nature,food"],
   ["theme=nature&themes=invalid", [], ""],
 ] as const) test(`legacy and multi-theme URL ${query} preserves later edits on reload`, async ({ page }) => {

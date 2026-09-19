@@ -27,7 +27,8 @@ export default function OutingBuilder(){
  const selectionKey=JSON.stringify([region,profiles,theme,date,time,hours,stay,originId,unknown,selected.map(place=>place.id),search.data?.generatedAt]);
  const reviewing=Boolean(review&&review===selectionKey&&preview);
  const validInput=Boolean(date&&time&&profiles.length&&theme&&ready&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)&&Number(time.slice(0,2))*60+Number(time.slice(3))+hours*60<1440);
- async function find(){setChosen([]);setReview('');if(await search.search()){setStep(1);setPageNumber(0);requestAnimationFrame(()=>resultHeading.current?.focus());}}
+ useEffect(()=>{if(step!==1)return;const frame=requestAnimationFrame(()=>resultHeading.current?.focus());return()=>cancelAnimationFrame(frame);},[step]);
+ async function find(){setChosen([]);setReview('');if(await search.search()){setStep(1);setPageNumber(0);}}
  function choose(place:Place){setReview('');if(chosen.includes(place.id)){setChosen(chosen.filter(id=>id!==place.id));return;}if(selected.length>=2){setMessage('짧은 나들이는 두 곳까지 담을 수 있어요. 한 곳을 빼고 바꿔주세요');return;}setChosen([...selected.map(item=>item.id),place.id]);setMessage('');}
  return <div style={{display:'grid',gap:24}}>
   <section aria-label="짧은 나들이 조건" hidden={step!==0} inert={!ready} style={step===0?courseCard:{display:'none'}}>

@@ -41,5 +41,6 @@ export function useCommunityBoard(initialPlace: PlaceFilter | null) {
     setPlaceFilter,
     writeHref,
     submitSearch,
+    resetSearch: () => { setSearch(""); setQuery(""); setCategory(""); },
   };
 }

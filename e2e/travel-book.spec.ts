@@ -45,6 +45,7 @@ test("보관 일정을 열면 자동 조회 후에도 같은 일정과 누락된
   await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
   await expect(page.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
   await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
+  await expect(page.getByRole("list", { name: "선택한 편의조건" }).getByRole("listitem")).toHaveText(["장애인 주차구역", "접근로", "휠체어 대여", "승강기", "장애인 화장실"]);
   const restoreRequests = observeRestoreRequests(page);
   await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
   await expect(page).toHaveURL(/from=travel-book#itinerary$/);
