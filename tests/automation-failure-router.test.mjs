@@ -5,6 +5,38 @@ import yaml from "js-yaml";
 
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 const core = { info() {}, notice() {}, warning() {} };
+
+test("only a verified superseded cancellation with no real failure avoids issue triage", async () => {
+  const route = script("automation-failure-router.yml");
+  for (const scenario of ['superseded', 'newer failed', 'derived gate failure', 'unexpected gate failure', 'failed job', 'failed step', 'no successor', 'different PR', 'different repo', 'different workflow', 'manual main cancellation', 'lookup failure', 'unknown job']) {
+    const run = {id:123,workflow_id:10,run_attempt:1,name:'CI',path:'.github/workflows/ci.yml',event:'pull_request',conclusion:'cancelled',repository:{full_name:'owner/repo'},head_repository:{full_name:'owner/repo'},head_branch:'feature',pull_requests:[{number:7}]};
+    const next = {...structuredClone(run),id:124,conclusion:scenario === 'newer failed' ? 'failure' : null};
+    const jobs = [{conclusion:'cancelled',steps:[{conclusion:'success'},{conclusion:'cancelled'}]}];
+    if (scenario === 'derived gate failure') jobs.push({name:'validate',conclusion:'failure',steps:[{name:'모든 검증 결과 확인',conclusion:'failure'}]});
+    if (scenario === 'unexpected gate failure') jobs.push({name:'validate',conclusion:'failure',steps:[{name:'Set up job',conclusion:'failure'}]});
+    if (scenario === 'failed job') jobs[0].conclusion = 'failure';
+    if (scenario === 'failed step') jobs[0].steps[0].conclusion = 'failure';
+    if (scenario === 'unknown job') jobs[0].conclusion = null;
+    if (scenario === 'different PR') next.pull_requests[0].number = 8;
+    if (scenario === 'different repo') next.head_repository.full_name = 'outside/fork';
+    if (scenario === 'different workflow') next.workflow_id = 11;
+    if (scenario === 'manual main cancellation') run.event = 'push';
+    let writes = 0;
+    const github = {rest:{actions:{getWorkflowRun:async()=>({data:run}),listJobsForWorkflowRun:async()=>jobs,listWorkflowRuns:async()=>{
+      if(scenario === 'lookup failure') throw new Error('unavailable');
+      return {data:{workflow_runs:scenario === 'no successor' ? [] : [next]}};
+    }},issues:{listForRepo:async()=>[],create:async()=>{writes++;return {data:{number:1}};}}},paginate:async(fn,args)=>fn(args)};
+    const context = {repo:{owner:'owner',repo:'repo'},payload:{workflow_run:run,repository:{full_name:'owner/repo'}}};
+    await route(github,context,core);
+    assert.equal(writes, ['superseded','newer failed','derived gate failure'].includes(scenario) ? 0 : 1, scenario);
+    // Suppressing an older cancellation must not swallow the replacement's failure.
+    if (scenario === 'newer failed') {
+      Object.assign(run, next);
+      await route(github,context,core);
+      assert.equal(writes,1);
+    }
+  }
+});
 function script(file) {
   const workflow = yaml.load(readFileSync(`.github/workflows/${file}`, "utf8"));
   return new AsyncFunction("github", "context", "core", workflow.jobs[Object.keys(workflow.jobs)[0]].steps[0].with.script);

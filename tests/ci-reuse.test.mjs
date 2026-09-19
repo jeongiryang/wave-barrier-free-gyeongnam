@@ -33,6 +33,7 @@ for (const [name, change] of [
   ['overall failed run', d => { d.run.conclusion = 'failure'; }],
   ['expired evidence', d => { d.run.updated_at = '2026-09-01T00:00:00Z'; }],
   ['missing shard', d => { d.jobs.jobs.pop(); d.jobs.total_count--; }],
+  ['old four-shard evidence', d => { d.jobs.jobs = d.jobs.jobs.filter(j => !/^browser \([5-8],/.test(j.name)); d.jobs.total_count = d.jobs.jobs.length; }],
   ['cancelled mobile shard', d => { d.jobs.jobs.at(-1).conclusion = 'cancelled'; }],
   ['skipped boundary', d => { d.jobs.jobs.find(j => j.name === 'sandbox-boundary').conclusion = 'skipped'; }],
   ['duplicate job name', d => { d.jobs.jobs.push({ ...d.jobs.jobs[0] }); d.jobs.total_count++; }],

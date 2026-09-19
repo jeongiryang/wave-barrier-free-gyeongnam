@@ -2,7 +2,7 @@ import { appendFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-export const fullValidationJobs = ['quality', 'sandbox-boundary', 'validate', ...[1, 2, 3, 4].flatMap(shard => ['desktop', 'mobile'].map(device => `browser (${shard}, ${device})`))];
+export const fullValidationJobs = ['quality', 'sandbox-boundary', 'validate', ...[1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard => ['desktop', 'mobile'].map(device => `browser (${shard}, ${device})`))];
 const sha = value => typeof value === 'string' && /^[a-f0-9]{40}$/.test(value);
 
 /** Read-only certificate: unknown evidence always falls back to a full suite. */

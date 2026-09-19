@@ -110,7 +110,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
         device: [desktop, mobile]
     steps:
       - name: 소스 체크아웃
@@ -140,13 +140,13 @@ jobs:
             fi
           done
           npx playwright install --with-deps chromium
-      # Owner-approved latency improvement: four native shards per device.
+      # Owner-approved latency improvement: eight native shards per device.
       # Every test still runs once per device, with the same two workers,
       # assertions, retry policy, timeouts and protected aggregate gate.
       - name: 브라우저·접근성 회귀 테스트
         env:
           PLAYWRIGHT_HTML_REPORT: playwright-report/${{ matrix.device }}
-        run: npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/4 --output=test-results/${{ matrix.device }}
+        run: npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/8 --output=test-results/${{ matrix.device }}
 
       - name: 브라우저 검증 보고서 보관
         if: ${{ !cancelled() }}
