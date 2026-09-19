@@ -152,4 +152,4 @@ JSON 제안)을 분리해 말이 먼저 흐르게 한다. **이 작업은 글자
 
 ## PR
 
-- PR 링크: (작성 후 기록)
+- PR 링크: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/594
