@@ -13,9 +13,9 @@ export default function LandingDepartureScene() {
   return <section id="departure" tabIndex={-1} className="horizon-departure" aria-labelledby="departure-scene-title">
     <div className="horizon-section-heading" data-land-reveal>
       <p className="horizon-eyebrow">{en ? "BEFORE YOU GO" : "출발하기 전, 한 번 더"}</p>
-      <h2 id="departure-scene-title">{en ? "A lighter heart." : "마음은 가볍게."}<br /><em>{en ? "One more check." : "준비는 한 번 더."}</em></h2>
-      <p>{en ? "Opening hours, weather, transport and facilities. A little preparation makes room for your day." : <>운영시간과 날씨, 이동수단과 편의시설.<br />작은 확인이 여행의 여유를 만듭니다.</>}</p>
-      <ul className="horizon-checks" aria-label={en ? "What to recheck" : "출발 전 다시 살펴볼 정보"}>{items.map(item => <li key={item.ko}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={item.path} /></svg><span>{en ? item.en : item.ko}</span></li>)}</ul>
+      <h2 id="departure-scene-title">{en ? "A lighter heart." : "마음은 가볍게"}<br /><em>{en ? "One more check." : "준비는 한 번 더"}</em></h2>
+      <p>{en ? "Opening hours, weather, transport and facilities. A little preparation makes room for your day." : <>운영시간과 날씨, 이동수단과 편의시설<br />작은 확인이 여행의 여유를 만들어요</>}</p>
+      <ul className="horizon-checks" aria-label={en ? "What to recheck" : "출발 전 다시 살펴볼 정보"}>{items.map(item => <li key={item.ko}><span className="horizon-check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={item.path} /></svg></span><span>{en ? item.en : item.ko}</span></li>)}</ul>
       <Link href="/planner" className="horizon-blue-button">{en ? "Prepare my journey" : "내 여행 준비하기"}<span aria-hidden="true">↗</span></Link>
     </div>
   </section>;

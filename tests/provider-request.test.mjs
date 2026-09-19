@@ -130,3 +130,19 @@ test("late throttles cannot replace a hard restriction or shorten an existing co
     assert.equal(calls, 2);
   }
 });
+
+
+test("concurrent POST prompts and streaming readers never share another request's answer", async () => {
+  const run = createProviderRequester();
+  let release, calls = 0;
+  const ready = new Promise(resolve => { release = resolve; });
+  const fetcher = async (_url, options) => { calls++; await ready; return response(200, { prompt: options.body }); };
+  const stream = run({ ...context, stream: true }, "https://example.test/chat", { method: "POST", body: "stream" }, fetcher);
+  const a = run(context, "https://example.test/chat", { method: "POST", body: "first" }, fetcher);
+  const b = run(context, "https://example.test/chat", { method: "POST", body: "second" }, fetcher);
+  await Promise.resolve(); assert.equal(calls, 3); release();
+  const [streamed, first, second] = await Promise.all([stream, a, b]);
+  assert.deepEqual(await first.json(), { prompt: "first" });
+  assert.deepEqual(await second.json(), { prompt: "second" });
+  assert.deepEqual(await new Response(streamed.body).json(), { prompt: "stream" });
+});

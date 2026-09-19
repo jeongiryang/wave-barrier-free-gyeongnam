@@ -1,0 +1,131 @@
+/* A narrow visual refresh for the current landing page. Existing WAVE tokens and layout stay intact. */
+.simple-landing {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(202, 235, 247, .64), transparent 26rem),
+    radial-gradient(circle at 92% 22%, rgba(210, 241, 226, .7), transparent 30rem),
+    linear-gradient(180deg, #f7fbfd 0%, #f6fbf8 48%, #f8fbfd 100%);
+}
+
+.simple-landing :is(h1, h2, h3) {
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-weight: 520;
+  letter-spacing: -.028em;
+  text-wrap: balance;
+}
+
+.landing-page.horizon-edition .landing-hero.landing-hero-split {
+  position: relative;
+  min-height: calc(100svh - 72px);
+}
+
+.landing-page.horizon-edition .landing-hero-split h1 {
+  font-size: clamp(2.15rem, 4.1vw, 4.45rem);
+  font-weight: 520;
+  line-height: 1.28;
+  letter-spacing: -.04em;
+}
+
+.landing-page .landing-hero-landscape {
+  align-self: stretch;
+  min-height: min(68svh, 720px);
+  aspect-ratio: auto;
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(29, 92, 91, .15);
+}
+
+.landing-page .landing-hero-landscape img {
+  display: block;
+  object-position: center;
+}
+
+.simple-landing .horizon-how > .horizon-section-heading,
+.simple-landing .simple-region-story,
+.simple-landing .restored-community {
+  background: rgba(255, 255, 255, .54);
+}
+
+.simple-landing .horizon-section-heading h2,
+.simple-section h2 { font-weight: 520; }
+
+.simple-naru-story {
+  width: min(1680px, calc(100% - var(--wave-gutter) * 2));
+  margin-block: clamp(28px, 5vw, 72px);
+  padding: clamp(36px, 6vw, 84px);
+  border: 0;
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 88% 15%, rgba(185, 227, 245, .72), transparent 18rem),
+    linear-gradient(135deg, #eaf8f3 0%, #f1f8fc 100%);
+  overflow: hidden;
+}
+
+.simple-naru-example {
+  border-color: rgba(18, 101, 91, .18);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 20px 60px rgba(24, 91, 85, .12);
+}
+
+.simple-naru-example-title > .naru-character {
+  width: clamp(82px, 8vw, 118px);
+  height: clamp(82px, 8vw, 118px);
+  flex-basis: clamp(82px, 8vw, 118px);
+  padding: 10px;
+  border-radius: 28px;
+  background: linear-gradient(145deg, #d7f2e5, #dceffa);
+  box-shadow: 0 12px 30px rgba(26, 111, 99, .16);
+}
+
+.simple-naru-example-title strong { font-size: clamp(1.15rem, 2vw, 1.55rem); }
+
+.horizon-edition .horizon-departure {
+  background: linear-gradient(180deg, #eef8f5 0%, #f3f9fc 100%);
+}
+
+.simple-landing .horizon-checks { gap: clamp(18px, 3vw, 44px); }
+.simple-landing .horizon-checks li { min-width: 112px; font-weight: 550; }
+.simple-landing .horizon-checks .horizon-check-icon {
+  width: clamp(72px, 7vw, 92px);
+  height: clamp(72px, 7vw, 92px);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #12655b;
+  background: #d8f0e8;
+  transition: transform .22s ease, background-color .22s ease, color .22s ease, box-shadow .22s ease;
+}
+
+.simple-landing .horizon-checks li:nth-child(2) .horizon-check-icon { color: #286b8b; background: #dceef7; }
+.simple-landing .horizon-checks li:nth-child(3) .horizon-check-icon { color: #39734f; background: #e3f1d8; }
+.simple-landing .horizon-checks li:nth-child(4) .horizon-check-icon { color: #476c8c; background: #e2ebf5; }
+.simple-landing .horizon-checks .horizon-check-icon svg { width: 38px; height: 38px; }
+.simple-landing .horizon-checks li:hover .horizon-check-icon {
+  transform: translateY(-5px);
+  color: var(--on-blue);
+  background: var(--blue);
+  box-shadow: 0 14px 30px rgba(18, 101, 91, .22);
+}
+
+@media (max-width: 767px) {
+  .landing-page.horizon-edition .landing-hero.landing-hero-split { min-height: auto; }
+  .landing-page.horizon-edition .landing-hero-split h1 { font-size: clamp(2rem, 10vw, 3.15rem); line-height: 1.3; }
+  .landing-page .landing-hero-landscape { min-height: 58svh; border-radius: 20px; }
+  .simple-naru-story { padding: 32px 20px; border-radius: 26px; }
+  .simple-naru-example-title > .naru-character { width: 88px; height: 88px; flex-basis: 88px; }
+  .simple-landing .horizon-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .simple-landing .horizon-checks li { min-width: 0; }
+}
+
+@media (max-width: 360px) {
+  .landing-page.horizon-edition .landing-hero-split h1 { font-size: 1.95rem; }
+}
+
+/* The refreshed light surfaces must not sit behind dark-theme text tokens. */
+html[data-theme="dark"] .simple-landing { background: var(--paper); }
+html[data-theme="dark"] .simple-landing :is(.horizon-section-heading, .simple-region-story, .restored-community, .simple-naru-story, .horizon-departure) { background: var(--paper); }
+html[data-theme="dark"] .simple-naru-example { background: var(--surface); border-color: var(--line); }
+
+@media (prefers-reduced-motion: reduce) {
+  .simple-landing .horizon-checks .horizon-check-icon { transition: none; }
+  .simple-landing .horizon-checks li:hover .horizon-check-icon { transform: none; }
+}

@@ -17,13 +17,24 @@ export function createProviderRequester({ now = Date.now, random = Math.random }
     if (circuit && halfOpen.has(key)) throw new ProviderRequestError(circuit.failure);
     // Full URLs stay only in this private, transient in-flight map, never receipts/logs.
     const requestKey = `${key}:${url}`;
-    const existing = inFlight.get(requestKey);
+    // A streamed body has a single reader, so it is never shared in flight.
+    const shareable = !context.stream && (!options?.method || options.method.toUpperCase() === "GET");
+    const existing = shareable ? inFlight.get(requestKey) : undefined;
     if (existing && !existing.signal?.aborted) return existing.work;
     const lease = {};
     if (circuit) halfOpen.set(key, lease);
     const work = Promise.resolve().then(async () => {
       try {
         const response = await fetcher(url, options);
+        if (context.stream) {
+          // A streamed answer is forwarded as it arrives, so the body is never
+          // buffered here. Failures are still classified by status and the
+          // circuit state is updated exactly as for a buffered response.
+          const streamFailure = classifyProviderResponse(context, { status: response.status, retryAfter: response.headers?.get?.("retry-after"), now: now() });
+          if (streamFailure) throw new ProviderRequestError(streamFailure);
+          if (circuits.get(key) === circuit) circuits.delete(key);
+          return { ok: response.ok, status: response.status, headers: response.headers, body: response.body, text: async () => "", json: async () => { throw new ProviderRequestError(providerFailure(context, "malformed_response", { status: response.status })); } };
+        }
         const raw = typeof response.text === "function" ? await response.text() : JSON.stringify(await response.json());
         let body;
         try { body = JSON.parse(raw); } catch { /* XML adapters validate their own success schema. */ }
@@ -60,7 +71,7 @@ export function createProviderRequester({ now = Date.now, random = Math.random }
         if (halfOpen.get(key) === lease) halfOpen.delete(key);
       }
     });
-    inFlight.set(requestKey, { work, signal: options?.signal });
+    if (shareable) inFlight.set(requestKey, { work, signal: options?.signal });
     return work;
   };
 }

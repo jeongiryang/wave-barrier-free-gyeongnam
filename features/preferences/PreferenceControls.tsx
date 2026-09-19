@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useSitePreferences } from "./context";
 import { localeOptions } from "./locale-catalog";
-import type { Locale, TextScale } from "./types";
+import type { Locale, TextScale, Tone } from "./types";
 import { useAppInstall } from "./useAppInstall";
 import { presentationOptionsEnabled } from "./presentation-release";
 import { hapticsSupported } from "../../lib/haptics.js";
@@ -14,6 +14,11 @@ const textScaleOptions: Array<{ id: TextScale; label: string; english: string; s
   { id: "large", label: "크게", english: "Large", size: "18px", phrase: "크게로" },
   { id: "larger", label: "아주 크게", english: "Larger", size: "20px", phrase: "아주 크게로" },
 ];
+import { dialectToneEnabled } from "./tone-release";
+
+const nextTone = (tone: Tone): Tone => (tone === "gyeongnam" ? "standard" : "gyeongnam");
+/** 말투 이름은 표준 한국어 라벨이다. 조작의 이름에는 사투리를 쓰지 않는다. */
+const toneName = (tone: Tone, en: boolean) => (tone === "gyeongnam" ? (en ? "Gyeongnam Korean" : "경남 말") : (en ? "standard Korean" : "표준말"));
 
 const subscribeToHydration = () => () => undefined;
 const browserReady = () => true;
@@ -29,12 +34,13 @@ function positionPanel(details: HTMLDetailsElement | null) {
 
 export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean }) {
   const controlsReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
-  const { locale, theme, colorAssist, setColorAssist, textScale, setTextScale, setLocale, toggleTheme, haptics, setHaptics, t } = useSitePreferences();
+  const { locale, theme, colorAssist, setColorAssist, textScale, setTextScale, setLocale, toggleTheme, tone, setTone, haptics, setHaptics, t } = useSitePreferences();
   const en = locale === "en";
   const showPresentationOptions = controlsReady && presentationOptionsEnabled();
   // 진동을 지원하지 않는 브라우저에서는 항목 자체를 그리지 않는다.
   // 언어·테마와 달리 presentationOptionsEnabled() 게이트를 적용하지 않는다.
   const showHaptics = controlsReady && hapticsSupported();
+  const showDialectTone = controlsReady && dialectToneEnabled();
   const appInstall = useAppInstall();
   const disclosure = useRef<HTMLDetailsElement>(null);
   const [colorAssistNotice, setColorAssistNotice] = useState("");
@@ -120,6 +126,14 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
           <span><b>{en ? "Vibration alerts" : "진동 알림"}</b><small>{en ? "A short vibration at important moments. It may not work on some devices." : "중요한 순간에 짧게 진동해요. 기기에 따라 동작하지 않을 수 있어요."}</small></span>
           <em aria-hidden="true">{haptics === "on" ? en ? "On" : "켜기" : en ? "Off" : "끄기"}</em>
         </button>}
+        {showDialectTone && <><button className="preference-row" type="button" data-preference="tone" onClick={() => setTone(tone === "gyeongnam" ? "standard" : "gyeongnam")}
+          aria-label={en
+            ? `Screen tone, currently ${toneName(tone, true)}. Switch to ${toneName(nextTone(tone), true)}.`
+            : `화면 말투, 현재 ${toneName(tone, false)}. 눌러서 ${toneName(nextTone(tone), false)}로 바꾸기`}>
+          <span><b>{en ? "Screen tone" : "화면 말투"}</b><small>{en ? "Only the tone of the Korean guidance changes. The information stays the same." : "안내 문구의 말투만 바뀌어요. 내용은 같아요."}</small></span>
+          <em aria-hidden="true">{toneName(tone, en)}</em>
+        </button>
+        <div className="sr-only" role="status" aria-live="polite">{en ? `Screen tone is ${toneName(tone, true)}.` : `화면 말투는 ${toneName(tone, false)}입니다.`}</div></>}
         {appInstall.state === "available" || appInstall.state === "installing" ? <button className="preference-row app-install" type="button" onClick={() => void appInstall.install()} disabled={appInstall.state === "installing"} aria-label={en ? "Install WAVE" : "WAVE 앱 설치"}>
           <span><b>{en ? "Install as an app" : "앱으로 설치"}</b><small>{en ? "Open from your home screen" : "홈 화면에서 전체 화면으로 열기"}</small></span>
           <em aria-hidden="true">{appInstall.state === "installing" ? en ? "Preparing" : "준비 중" : en ? "Install" : "설치"}</em>

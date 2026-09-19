@@ -11,8 +11,8 @@ for (const locale of ["ko", "en"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/"); await storyReady(page);
     await expect(page.locator(".landing-page")).toHaveAttribute("lang", locale);
-    await expect(page.locator(".horizon-chapter-copy").nth(1)).toContainText(locale === "en" ? "Details that still need checking are shown separately" : "아직 확인되지 않은 정보도 구분");
-    await expect(page.locator("#naru")).toContainText(locale === "en" ? "AI travel guide" : "AI 여행 가이드");
+    await expect(page.locator(".horizon-chapter-copy").nth(1)).toContainText(locale === "en" ? "Details that still need checking are shown separately" : "확인되지 않은 정보도 따로 알려드려요");
+    await expect(page.locator("#naru")).toContainText(locale === "en" ? "AI travel guide" : "경남 여행을 함께 찾고 일정을 정리해요");
     await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
     await expect(page.locator(".simple-naru-example")).toContainText(locale === "en" ? "Example" : "대화 예시");
     const photo = page.locator(".landing-hero-landscape");

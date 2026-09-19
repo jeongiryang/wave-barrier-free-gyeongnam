@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "enabled": true,
+  "generatedAt": "2026-09-15T14:04:23.624Z",
+  "source": {
+    "pageUrl": "https://www.data.go.kr/data/15012892/standard.do",
+    "downloadUrl": "https://file.localdata.go.kr/file/download/public_restroom_info/info?orgCode=6480000_ALL",
+    "portalModifiedAt": "2026-06-05",
+    "retrievedAt": "2026-09-15T14:04:23.624Z",
+    "rowCount": 5041,
+    "sha256": "d22a6b5936017a3826ffef1279bb77b12a9b49510c49865aa3f11a2d0b6b6870",
+    "encoding": "CP949",
+    "license": "이용허락범위 제한 없음",
+    "refresh": "매일 갱신·2일 전 기준 현행화",
+    "coordinates": "2025년 2월부터 원천 제공 중단"
+  },
+  "audit": {
+    "eligibleBeforeGeocode": 2269,
+    "addressAndReferenceRate": 1,
+    "cityCounts": {
+      "창원시": 450,
+      "진주시": 228,
+      "통영시": 146,
+      "사천시": 118,
+      "김해시": 253,
+      "밀양시": 107,
+      "거제시": 129,
+      "양산시": 137,
+      "의령군": 69,
+      "함안군": 88,
+      "창녕군": 37,
+      "고성군": 96,
+      "남해군": 83,
+      "하동군": 42,
+      "산청군": 0,
+      "함양군": 61,
+      "거창군": 86,
+      "합천군": 139
+    },
+    "geocodedRows": 30,
+    "geocodedCities": [
+      "김해시",
+      "사천시",
+      "진주시",
+      "창원시",
+      "통영시"
+    ],
+    "requiredRows": 30,
+    "requiredCities": 5
+  },
+  "geocoding": {
+    "method": "Kakao Local keyword search through the existing WAVE production server",
+    "input": "official public facility address only",
+    "matched": "single normalized official address in Gyeongnam",
+    "verifiedAt": "2026-09-15T14:03:36.657Z"
+  }
+}

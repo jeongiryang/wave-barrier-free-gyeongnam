@@ -26,7 +26,7 @@ for (const theme of ["light", "dark"] as const) {
       }
       await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
       await expect(page.locator(".horizon-chapter-copy ul li")).toHaveCount(9);
-      await expect(page.locator(".horizon-chapter-copy").nth(1)).toContainText("아직 확인되지 않은 정보도 구분");
+      await expect(page.locator(".horizon-chapter-copy").nth(1)).toContainText("확인되지 않은 정보도 따로 알려드려요");
       await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
       for (const selector of [".landing-actions a", "#story .horizon-text-link", "#naru .simple-text-link[href*=assistant]"]) {
         await expectUsableTarget(page.locator(selector));

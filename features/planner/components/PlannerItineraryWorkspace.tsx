@@ -18,6 +18,7 @@ import { buildTravelJournalHref } from '../../../lib/community/field-report.js';
 import NavigationWorkspace from "./NavigationWorkspace";
 import TripSettingsEditor, { InitialTripSetup } from "./TripSettingsEditor";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
+import TripDecisionReceipt from "./TripDecisionReceipt";
 
 const PlannerItineraryBoard = lazy(() => import("./PlannerItineraryBoard").catch(() => ({ default: ItineraryUnavailable })));
 
@@ -28,6 +29,7 @@ function AudioUnavailable() {
 }
 const ItineraryRouteCoverage = lazy(() => import("./ItineraryRouteCoverage"));
 const SavedPlaceCoordinateRecovery = lazy(() => import("./SavedPlaceCoordinateRecovery"));
+const TravelExperience = lazy(() => import('./TravelExperience'));
 function ItineraryUnavailable() {
   const { locale } = useSitePreferences();
   return <p role="status">{locale === "en" ? "The itinerary editor couldn't open. Try reloading this page." : "일정 편집 화면을 열지 못했습니다. 페이지를 새로 열어 다시 시도해 주세요."}</p>;
@@ -44,6 +46,7 @@ interface PlannerItineraryWorkspaceProps {
   weather: WeatherData | null;
   weatherLoading: boolean;
   onSelectPlace: (place: Place) => void;
+  onAlternative: (id: string) => void;
   onContinue: () => void;
   coverage: ReturnType<typeof useItineraryRoutes>;
   reviewed: boolean;
@@ -63,6 +66,7 @@ interface PlannerItineraryWorkspaceProps {
   onCopyBookingRoute: (provider: string) => Promise<void>;
   onMapDestination: (place: MapPlace) => void;
   onSaveMapPlaces: (places: MapPlace[]) => number;
+  onProfiles: (keys: string[]) => void;
 }
 
 export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspaceProps) {
@@ -189,9 +193,11 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
     <div lang="ko" className="simple-itinerary-heading"><div><h2 id="itinerary-stage-title">내 일정</h2><p>{props.tripSelection.travelStart} — {props.tripSelection.travelEnd}</p></div><button type="button" onClick={() => setSettingsOpen(true)}>여행 설정</button></div>
     {props.tripSelection.commandNotice && <div lang="ko" className="simple-command-receipt" role="status"><span>{props.tripSelection.commandNotice}</span>{props.tripSelection.canUndoCommand && <button type="button" onClick={() => props.tripSelection.undoCommand()}>되돌리기</button>}</div>}
+    <TripDecisionReceipt archiveContext={props.archiveContext} coverage={props.coverage} route={props.route} trip={props.tripSelection} onSelectPlace={props.onSelectPlace} />
     <Suspense fallback={<LoadingState>여행 도구를 준비하고 있어요.</LoadingState>}><TripDayPlanner plan={props.plan} tripSelection={props.tripSelection} route={props.route} audioGuide={props.audioGuide} participation={props.participation} archiveContext={props.archiveContext} /></Suspense>
+    <Suspense fallback={null}><TravelExperience trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} region={props.archiveContext.region} onSelectPlace={props.onSelectPlace} requiredKeys={props.archiveContext.profiles} weather={props.weather} onProfiles={props.onProfiles} onAlternative={props.onAlternative}/></Suspense>
     {!desktop && <div lang="ko" className="simple-map-switch" role="group" aria-label="일정 보기 방식"><button type="button" aria-pressed={!mapView} onClick={() => setMapView(false)}>시간표</button><button type="button" aria-pressed={mapView} onClick={() => setMapView(true)}>지도</button></div>}
-    {(props.active || editorOpened) && <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><PlannerItineraryBoard focusedPlaceId={focusedPlaceId} onFocusPlace={showStopOnMap} requiredKeys={props.plan?.criteria?.facilityKeys || []} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? [...props.activePlaces, ...(props.plan?.explorationPlaces || [])] : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onContinue={props.onContinue} map={<NavigationWorkspace focusedPlaceId={focusedPlaceId} onPlaceFocus={place => focusStop(place, true)}
+    {(props.active || editorOpened) && <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><PlannerItineraryBoard focusedPlaceId={focusedPlaceId} onFocusPlace={showStopOnMap} requiredKeys={props.plan?.criteria?.facilityKeys || []} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? [...props.activePlaces, ...(props.plan?.explorationPlaces || [])] : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onAlternative={props.onAlternative} onContinue={props.onContinue} map={<NavigationWorkspace focusedPlaceId={focusedPlaceId} onPlaceFocus={place => focusStop(place, true)}
       mapEnabled={props.mapEnabled && mapView}
       compact
       activePlaces={navigationPlaces}

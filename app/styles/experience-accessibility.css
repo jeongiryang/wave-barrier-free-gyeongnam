@@ -99,7 +99,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   .place-modal { max-height: calc(100svh - 20px); }
   .route-option dl { grid-template-columns: repeat(2,minmax(0,1fr)); }
 
-  .place-carousel, .rich-rail, .weather-days, .layer-tabs, .map-command-bar {
+  .rich-rail,.weather-days,.layer-tabs,.map-command-bar {
     -webkit-overflow-scrolling: touch; scroll-padding-inline: 16px;
   }
 

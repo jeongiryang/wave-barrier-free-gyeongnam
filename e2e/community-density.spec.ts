@@ -12,6 +12,27 @@ const posts = Array.from({ length: 8 }, (_, index) => ({
   likeCount: 0, likedByMe: false, isOwner: false,
 }));
 
+test('empty search explains the filter and can recover without dropping the place', async ({ page }) => {
+  await mockPublicShellApi(page);
+  const requests: URL[] = [];
+  await page.route('**/api/community/posts**', route => {
+    const url = new URL(route.request().url());
+    requests.push(url);
+    return route.fulfill({ json: { posts: url.searchParams.has('search') ? [] : posts, page: 1, hasMore: false } });
+  });
+  await page.goto('/community?placeId=1001&placeName=경남도립미술관&region=창원');
+  await expect(page.locator('.community-list article')).toHaveCount(8);
+  await page.getByRole('textbox', { name: '여행 후기 검색', exact: true }).fill('없는검색어');
+  await page.getByRole('button', { name: '검색', exact: true }).click();
+  await expect(page.getByText('검색 조건에 맞는 게시글이 없습니다.', { exact: true })).toBeVisible();
+  await expect(page.getByText('아직 등록된 후기나 질문이 없습니다.', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: '검색 조건 초기화', exact: true }).click();
+  await expect(page.locator('.community-list article')).toHaveCount(8);
+  await expect(page.getByRole('textbox', { name: '여행 후기 검색', exact: true })).toHaveValue('');
+  expect(requests.at(-1)?.searchParams.get('placeId')).toBe('1001');
+  expect(requests.at(-1)?.searchParams.has('search')).toBe(false);
+});
+
 async function expectColumns(grid: Locator, columns: number) {
   await expect(grid).toBeVisible();
   await expect.poll(() => grid.evaluate(node => getComputedStyle(node).gridTemplateColumns.split(/\s+/).length)).toBe(columns);

@@ -90,23 +90,23 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
   assert.match(steps[tooling].run, /--ignore-scripts.*playwright@1\.62\.1/);
 });
 
+const EXPECTED_BROWSER_INSTALL_RUN = "# Restore the runner image's Chrome-repository exclusion. Chromium and\n# its Ubuntu dependencies do not use Google's independently updated APT index.\nfor source in /etc/apt/sources.list.d/google-chrome{,-stable}.{list,sources}; do\n  if [[ -f \"$source\" ]] && grep -Eq 'https?://dl\\.google\\.com/linux/chrome(-stable)?/deb/?([[:space:]]|$)' \"$source\"; then\n    echo \"Quarantining unused Chrome APT source: $source\"\n    sudo mv -- \"$source\" \"$RUNNER_TEMP/$(basename \"$source\").wave-disabled\"\n  fi\ndone\nnpx playwright install --with-deps chromium\n";
+const EXPECTED_BOUNDARY_APT_RUN = "# Fixed runner paths only; no checkout executable or security-policy change.\nfor source in /etc/apt/sources.list.d/google-chrome{,-stable}.{list,sources}; do\n  if [[ -f \"$source\" ]] && grep -Eq 'https?://dl\\.google\\.com/linux/chrome(-stable)?/deb/?([[:space:]]|$)' \"$source\"; then\n    echo \"Quarantining unused Chrome APT source: $source\"\n    sudo mv -- \"$source\" \"$RUNNER_TEMP/$(basename \"$source\").wave-disabled\"\n  fi\ndone\n";
+
 // The scope change preserves full-suite coverage and test configuration.
-test("RC separates complete hosted product validation from frozen bounded sandbox smoke", () => {
+function assertRcCiContract(candidate) {
   const expectedQuality = structuredClone(archivedWorkflow.jobs.quality);
   expectedQuality.steps[0].with.ref = '${{ github.sha }}';
   expectedQuality.steps.push({ name: 'Record the exact tested PR merge tree', if: "${{ github.event_name == 'pull_request' }}", env: { PR_NUMBER: '${{ github.event.pull_request.number }}', PR_HEAD_SHA: '${{ github.event.pull_request.head.sha }}', PR_BASE_SHA: '${{ github.event.pull_request.base.sha }}' }, run: 'node scripts/write-ci-proof.mjs' },
     { name: 'Preserve tested checkout proof', if: "${{ github.event_name == 'pull_request' }}", uses: 'actions/upload-artifact@v7', with: { name: 'ci-tree-proof', path: '${{ runner.temp }}/ci-tree-proof.json', 'retention-days': 7, 'if-no-files-found': 'error' } });
-  assert.deepEqual(workflow.jobs.quality, expectedQuality);
+  assert.deepEqual(candidate.jobs.quality, expectedQuality);
   const expectedBrowser = structuredClone(archivedWorkflow.jobs.browser);
   expectedBrowser.steps[0].with.ref = '${{ github.sha }}';
   expectedBrowser.needs = 'certify';
   expectedBrowser.if = "${{ !cancelled() && needs.certify.outputs.verified != 'true' }}";
   expectedBrowser.strategy.matrix.device = ["desktop", "mobile"];
   expectedBrowser.strategy.matrix.shard = [1, 2, 3, 4, 5, 6, 7, 8];
-  const installBrowser = workflow.jobs.browser.steps.find(step => step.name === "브라우저 설치");
-  assert.ok(installBrowser.run.trimEnd().endsWith("npx playwright install --with-deps chromium"));
-  assert.doesNotMatch(installBrowser.run, /allow-unauthenticated|AllowInsecure|Check-Valid-Until|continue-on-error|\|\| true/);
-  expectedBrowser.steps.find(step => step.name === "브라우저 설치").run = installBrowser.run;
+  expectedBrowser.steps.find(step => step.name === "브라우저 설치").run = EXPECTED_BROWSER_INSTALL_RUN;
   const browserStep = expectedBrowser.steps.find(step => step.name === "브라우저·접근성 회귀 테스트");
   browserStep.env = { PLAYWRIGHT_HTML_REPORT: "playwright-report/${{ matrix.device }}" };
   browserStep.run = "npm run test:e2e -- --project=${{ matrix.device }}-chromium --shard=${{ matrix.shard }}/8 --output=test-results/${{ matrix.device }}";
@@ -114,7 +114,7 @@ test("RC separates complete hosted product validation from frozen bounded sandbo
     step.uses = 'actions/upload-artifact@v7';
     step.with.name = step.with.name.replace("${{ matrix.shard }}", "${{ matrix.device }}-${{ matrix.shard }}");
   }
-  assert.deepEqual(workflow.jobs.browser, expectedBrowser);
+  assert.deepEqual(candidate.jobs.browser, expectedBrowser);
   // Apart from the reviewed distribution and an ephemeral runner APT-source
   // preparation, every boundary command, timeout and safety probe stays equal.
   const expectedBoundary = structuredClone(archivedWorkflow.jobs["sandbox-boundary"]);
@@ -125,11 +125,11 @@ test("RC separates complete hosted product validation from frozen bounded sandbo
   const bootstrap = expectedBoundary.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution");
   bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "568f6b39760a09c1a3b9939047387276794b412f")
     .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "6fd043bece51e715044a448e307a8b973c77a9bce49c932ee9f783dc05f4e695");
-  const actualBoundary = structuredClone(workflow.jobs["sandbox-boundary"]);
+  const actualBoundary = structuredClone(candidate.jobs["sandbox-boundary"]);
   const prepareApt = actualBoundary.steps.findIndex(step => step.name === "Exclude unused runner Chrome repository from APT");
   const verifyBootstrap = actualBoundary.steps.findIndex(step => step.name === "Reject tampered bootstrap before any checkout code executes");
   assert.equal(prepareApt, verifyBootstrap + 1);
-  assert.doesNotMatch(actualBoundary.steps[prepareApt].run, /GITHUB_WORKSPACE|scripts\/|apt-get|allow-unauthenticated|AllowInsecure/);
+  assert.deepEqual(actualBoundary.steps[prepareApt], { name: "Exclude unused runner Chrome repository from APT", shell: "bash", run: EXPECTED_BOUNDARY_APT_RUN });
   actualBoundary.steps.splice(prepareApt, 1);
   assert.deepEqual(actualBoundary, expectedBoundary);
   const boundary = readFileSync(new URL("./subscription-sandbox-boundary.py", import.meta.url), "utf8");
@@ -141,4 +141,48 @@ test("RC separates complete hosted product validation from frozen bounded sandbo
   assert.match(config, /workers: process\.env\.CI \? 2/);
   assert.match(config, /timeout: 45_000/);
   assert.match(config, /expect: \{ timeout: 8_000 \}/);
+}
+
+test("RC separates complete hosted product validation from frozen bounded sandbox smoke", () => { assertRcCiContract(workflow); });
+
+test("the canonical CI contract rejects browser and APT preparation mutations", () => {
+  const mutations = [
+    {
+      name: "appended browser host command",
+      apply(candidate) {
+        candidate.jobs.browser.steps.find(step => step.name === "브라우저 설치").run += "echo unreviewed\n";
+      },
+    },
+    {
+      name: "replaced browser install command",
+      apply(candidate) {
+        const step = candidate.jobs.browser.steps.find(item => item.name === "브라우저 설치");
+        step.run = step.run.replace("npx playwright install --with-deps chromium", "npx playwright install chromium");
+      },
+    },
+    {
+      name: "reordered APT preparation",
+      apply(candidate) {
+        const steps = candidate.jobs["sandbox-boundary"].steps;
+        const index = steps.findIndex(step => step.name === "Exclude unused runner Chrome repository from APT");
+        const [preparation] = steps.splice(index, 1);
+        const validation = steps.findIndex(step => step.name === "Actual validation sandbox boundary");
+        steps.splice(validation + 1, 0, preparation);
+      },
+    },
+    {
+      name: "extra APT preparation step",
+      apply(candidate) {
+        const steps = candidate.jobs["sandbox-boundary"].steps;
+        const index = steps.findIndex(step => step.name === "Exclude unused runner Chrome repository from APT");
+        steps.splice(index + 1, 0, { name: "Unreviewed host preparation", run: "sudo true" });
+      },
+    },
+  ];
+
+  for (const mutation of mutations) {
+    const candidate = structuredClone(workflow);
+    mutation.apply(candidate);
+    assert.throws(() => assertRcCiContract(candidate), assert.AssertionError, mutation.name);
+  }
 });

@@ -41,6 +41,10 @@ for (const en of [false, true]) for (const theme of ['light', 'dark']) {
     await expect(add).toHaveAttribute('aria-pressed', 'true');
     await expect(add).toHaveAccessibleName(`경남도립미술관 ${en ? 'added · undo' : '담았음 · 되돌리기'}`);
     await expect(page.locator('.simple-results')).toBeVisible();
+    const helper = page.locator('.simple-condition-help');
+    await expect(helper).toContainText(en ? 'Adjust only the conditions you choose' : '조건을 직접 조정하면 더 볼 수 있어요');
+    await helper.getByRole('checkbox', { name: en ? /Include places with unconfirmed facilities/ : /필요한 편의가 미확인인 장소 포함/ }).check();
+    await helper.getByRole('button', { name: en ? 'Apply selected changes' : '선택한 조건 적용', exact: true }).click();
     const unknown = page.locator('.simple-exploration .simple-place-row');
     await expect(unknown.locator('.simple-place-add')).toHaveText(en ? '→Details' : '→편의 확인');
     await expect(unknown.locator('.facility-unknown')).toContainText(en ? 'Access path not reported' : '접근로 정보 없음');

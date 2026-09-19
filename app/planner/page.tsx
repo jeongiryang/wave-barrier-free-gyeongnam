@@ -39,7 +39,7 @@ import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialog
 import { useRoutePlanning } from "../../features/planner/hooks/useRoutePlanning";
 import { useTripSelection } from "../../features/planner/hooks/useTripSelection";
 import { useTripAlternatives } from "../../features/planner/hooks/useTripAlternatives";
-import TripAlternativeTools from "../../features/planner/components/TripAlternativeTools";
+import TripAlternativeTools, { TripReplacementNotice } from "../../features/planner/components/TripAlternativeTools";
 import { useRegionChange } from "../../features/planner/hooks/useRegionChange";
 import { useItineraryRoutes } from "../../features/planner/hooks/useItineraryRoutes";
 import { useJourneyProgress } from "../../features/planner/hooks/useJourneyProgress";
@@ -147,6 +147,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     scheduleAssignments,
     visitMinutesByPlaceId,
     selectedPlaceIds: orderedPlaceIds,
+    temporaryStops: tripSelection.orderedSavedPlaces.filter(place => place.temporaryStop),
     fixedVisits: tripSelection.fixedVisits,
     dayDeadlines: tripSelection.dayDeadlines,
     breakMinutesByPlaceId: tripSelection.breakMinutesByPlaceId, restPurposeByPlaceId: tripSelection.restPurposeByPlaceId,
@@ -318,7 +319,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     if (["conditions", "facilities"].includes(tool)) stageView.changeStep('conditions');
     else if (["places", "compare", "inquiry", "preview", "transcript"].includes(tool)) stageView.changeStep('places');
     else { stageView.changeStep('itinerary'); setItineraryMapView(tool === 'map'); if (['readiness','weather'].includes(tool)) { setDepartureDetailsOpen(true); if (tool === 'weather') setSecondaryOpen(true); } }
-    const selectors: Record<string, string> = { conditions: '.simple-search-bar select', facilities: '.simple-facility-trigger', dates: '.simple-itinerary-heading > button', comfort: '.simple-day-options > summary', budget: '[data-planner-tool="budget"] > summary', offline: '[data-planner-tool="offline"]', 'on-trip': '[data-planner-tool="on-trip"]', split: '[data-planner-tool="split"]', alternatives: '[data-planner-tool="alternatives"] > summary', course: '[data-planner-tool="course"] > summary', save: '[data-planner-tool="save"] > button', share: '[data-planner-tool="share"]', transport: '[data-planner-tool="transport"]', calendar: '[data-planner-tool="share"]', weather: '.weather-heading > button', readiness: '.simple-readiness', map: '#itinerary-map', itinerary: '#itinerary', places: '#places', compare: '#places', inquiry: '#places', preview: '#places', transcript: '#places' };
+    const selectors: Record<string, string> = { conditions: '.simple-search-bar select', facilities: '.simple-facility-trigger', dates: '.simple-itinerary-heading > button', receipt: '[data-planner-tool="receipt"] > summary', comfort: '.simple-day-options > summary', budget: '[data-planner-tool="budget"] > summary', offline: '[data-planner-tool="offline"]', 'on-trip': '[data-planner-tool="on-trip"]', split: '[data-planner-tool="split"]', alternatives: '[data-planner-tool="alternatives"] > summary', course: '[data-planner-tool="course"] > summary', save: '[data-planner-tool="save"] > button', share: '[data-planner-tool="share"]', transport: '[data-planner-tool="transport"]', calendar: '[data-planner-tool="share"]', weather: '.weather-heading > button', readiness: '.simple-readiness', map: '#itinerary-map', itinerary: '#itinerary', places: '#places', compare: '#places', inquiry: '#places', preview: '#places', transcript: '#places' };
     const focusTarget = () => {
       const node = document.querySelector<HTMLElement>(selectors[tool] || '#planner');
       if (!node) return;
@@ -354,6 +355,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
       {region && <RecommendationWorkspace region={region} activePlaces={activePlaces} planController={planController} tripSelection={tripSelection} onGenerate={generatePlan} onSelectPlace={setSelectedPlace} onRegionSelect={next => regionChange.request(next, () => stageView.changeStep("conditions", true))} onBuildItinerary={() => stageView.changeStep("itinerary", true)} onMore={async () => { await runPlan({ resetRouteData, resetAudio, page: plan?.pagination?.nextPage ?? (plan?.pagination?.page || 1) + 1 }, false); }} />}
     </div>
     <div hidden={browsing} className="simple-itinerary-view">
+      <TripReplacementNotice alternatives={alternatives} />
       <PlannerItineraryWorkspace active={!browsing}
                 alternativeTools={<><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /><Suspense fallback={<LoadingState>코스 도구를 준비하고 있어요.</LoadingState>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={setSelectedPlace}/></Suspense><button type="button" onClick={showAssistant}>나루에게 일정 변경 요청하기</button><PlannerServiceStatus locale={locale} keyHealth={keyHealth} effectiveProviders={effectiveProviders} transportProviders={transportProviders} providerErrors={providerErrors} liveCount={liveCount} dataErrors={dataErrors} plan={plan}/></>}
                 mapView={itineraryMapView}
@@ -363,6 +365,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
                 weather={weather}
                 weatherLoading={weatherLoading}
                 onSelectPlace={setSelectedPlace}
+                onAlternative={id => alternatives.open(id)}
                 onContinue={() => setDepartureDetailsOpen(true)}
                 coverage={itineraryRoutes}
                 reviewed={itineraryReviewed}
@@ -387,6 +390,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
                 onCopyBookingRoute={copyBookingRoute}
                 onMapDestination={routeFromMapPlace}
                 onSaveMapPlaces={saveMapPlaces}
+                onProfiles={planController.setSelected}
               />
       {travelStart && <details className="simple-departure" id="departure-readiness" open={departureDetailsOpen || journey.activeStepId === "departure-readiness"} onToggle={event => setDepartureDetailsOpen(event.currentTarget.open)}>
         <summary><span>출발 전 확인</span><small>날씨 · 운영시간 · 이동 · 편의</small><span aria-hidden="true">⌄</span></summary>
@@ -454,6 +458,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
         saved={saved.includes(selectedPlace.id)}
         canSave={canSaveSelectedPlace}
         explorationAction={explorationAction}
+        guidancePreferences={guidance.value}
         feedbackText={feedbackText}
         feedbackState={feedbackState}
         dialogRef={placeDialogRef}

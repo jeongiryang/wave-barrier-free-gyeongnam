@@ -1,19 +1,43 @@
 import type { Place } from "../types";
-import { facilityLabel } from "../../../lib/facility-selection.js";
+import { FACILITIES, facilityLabel } from "../../../lib/facility-selection.js";
 import { StatusShapeIcon } from "../../../components/AccessIcons";
 import { guideDogLegalNote, guideDogStateText } from "../../../lib/guide-dog-facility.js";
 import { tactilePavingScopeNote, tactilePavingStateText } from "../../../lib/tactile-paving-facility.js";
 
-export default function PlaceFacilitySummary({ place, en }: { place: Place; en: boolean }) {
+const selectableFacilityKeys = new Set(FACILITIES.map((item) => item.key));
+
+function ConfirmedFacility({ facilityKey, en }: { facilityKey: string; en: boolean }) {
+  return <span className="facility-confirmed"><StatusShapeIcon kind="confirmed" className="status-shape always" />{facilityLabel(facilityKey, en)}</span>;
+}
+
+export default function PlaceFacilitySummary({ place, en, highlightConfirmed = false }: {
+  place: Place;
+  en: boolean;
+  highlightConfirmed?: boolean;
+}) {
   const items = place.accessibility ?? [];
-  if (!items.length && place.facilityLookupState !== 'error') return null;
+  if (!items.length && place.facilityLookupState !== "error") return null;
+
   // 안내견 동반과 점자블록은 세 상태를 정해진 문구로 항상 따로 보여준다. 그래서
   // 아래 일반 항목 목록에서는 제외한다.
   const guideDog = items.find(item => item.key === 'helpdog');
   const tactilePaving = items.find(item => item.key === 'braileblock');
   const rest = items.filter(item => item.key !== 'helpdog' && item.key !== 'braileblock');
+
+  const confirmedItems = rest.filter((item) =>
+    item.state === "confirmed" && selectableFacilityKeys.has(item.key),
+  );
+  const initiallyVisibleConfirmed = highlightConfirmed && confirmedItems.length >= 3
+    ? confirmedItems.slice(0, 2)
+    : highlightConfirmed
+      ? confirmedItems
+      : confirmedItems.slice(0, 3);
+  const additionalConfirmed = highlightConfirmed && confirmedItems.length >= 3
+    ? confirmedItems.slice(2)
+    : [];
+
   return <div className="simple-facility-summary">
-    {place.facilityLookupState === 'error' && <p>{en ? 'Facility information could not be loaded.' : '편의정보를 불러오지 못했어요.'}</p>}
+    {place.facilityLookupState === "error" && <p>{en ? "Facility information could not be loaded." : "편의정보를 불러오지 못했어요."}</p>}
     {guideDog && <>
       <span className="access-badge"><StatusShapeIcon kind={guideDog.state} />{guideDogStateText(guideDog.state, en)}</span>
       {guideDog.state !== 'confirmed' && <p style={{ color: 'var(--muted)', fontSize: '.85rem' }}>{guideDogLegalNote(en)}</p>}
@@ -22,8 +46,13 @@ export default function PlaceFacilitySummary({ place, en }: { place: Place; en: 
       <span className="access-badge"><StatusShapeIcon kind={tactilePaving.state} />{tactilePavingStateText(tactilePaving.state, en)}</span>
       <p style={{ color: 'var(--muted)', fontSize: '.85rem' }}>{tactilePavingScopeNote(en)}</p>
     </>}
-    {rest.filter(item => item.state === 'negative').map(item => <span className="facility-missing" key={item.key}><StatusShapeIcon kind="negative" />{facilityLabel(item.key, en)} {en ? 'unavailable' : '없음'}</span>)}
-    {rest.filter(item => item.state === 'unknown').map(item => <span className="facility-unknown" key={item.key}><StatusShapeIcon kind="unknown" />{facilityLabel(item.key, en)} {en ? 'not reported' : '정보 없음'}</span>)}
-    {rest.filter(item => item.state === 'confirmed').slice(0, 3).map(item => <span className="facility-confirmed" key={item.key}><StatusShapeIcon kind="confirmed" className="status-shape always" />{facilityLabel(item.key, en)}</span>)}
+    {highlightConfirmed && confirmedItems.length > 0 && <p className="facility-confirmed-label">{en ? "Facilities confirmed here" : "이 장소에서 확인된 편의"}</p>}
+    {initiallyVisibleConfirmed.map((item) => <ConfirmedFacility key={item.key} facilityKey={item.key} en={en} />)}
+    {additionalConfirmed.length > 0 && <details className="facility-confirmed-more">
+      <summary>{en ? `Show ${additionalConfirmed.length} more` : `확인된 편의 ${additionalConfirmed.length}개 더보기`}</summary>
+      <div>{additionalConfirmed.map((item) => <ConfirmedFacility key={item.key} facilityKey={item.key} en={en} />)}</div>
+    </details>}
+    {rest.filter((item) => item.state === "negative").map((item) => <span className="facility-missing" key={item.key}><StatusShapeIcon kind={item.state} />{facilityLabel(item.key, en)} {en ? "unavailable" : "없음"}</span>)}
+    {rest.filter((item) => item.state === "unknown").map((item) => <span className="facility-unknown" key={item.key}><StatusShapeIcon kind="unknown" />{facilityLabel(item.key, en)} {en ? "not reported" : "정보 없음"}</span>)}
   </div>;
 }
