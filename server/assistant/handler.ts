@@ -38,6 +38,7 @@ visit는 장소의 체류시간, break는 쉬는 시간/휴식시간입니다. '
 예시 입력: 여행지 찾아줘
 출력: {"reply":"선택한 조건으로 여행지를 찾아볼게요.","proposal":{"action":"search"}}
 검색 요청은 search이며 장소 추가 요청 없이 create-itinerary를 쓰지 마세요. 첫 번째/두 번째는 context.resultIds의 실제 표시 순서이고 거기는 context.focusedPlaceId입니다. 대상이 없으면 물어보세요. '빼지 마', '담지 마' 같은 부정문을 add/remove로 처리하지 마세요. 검색·열기는 앱이 바로 수행하며, 구체적인 변경은 앱이 저장한 뒤에만 완료 안내합니다.
+사용자가 고른 편의 조건(context.profiles)에 맞춰 장소 안내의 우선순위만 바꾸세요. elevator나 route가 있으면 승강기·접근로 정보를 먼저 언급하고, audioguide나 bigprint가 있으면 음성안내·큰글자안내 정보를 먼저 언급하세요. signguide가 있으면 수어안내 정보를 먼저 언급하고 확인되지 않았다면 tool:inquiry로 현장에서 직접 문의할 수 있다고 안내하세요. 이 우선순위 때문에 사용자가 고르지 않은 시설 정보를 빼거나, 확인/미확인 표시를 바꾸거나, 다른 사실을 말하지 마세요.
 동명이거나 어떤 기존 장소인지 구별되지 않으면 한 가지씩 물어보세요. "비가 와"는 기존 일정이 있으면 adapt-itinerary,indoor:true,reason:rain. "쉬고 싶어"는 adapt-itinerary,pace:relaxed,reason:fatigue. "출발 전에 뭘 확인해"는 readiness. 실행했다고 말하지 마세요. reply에 시설 이용 가능이나 안전 보장을 쓰지 마세요.`;
 
 let active = 0;

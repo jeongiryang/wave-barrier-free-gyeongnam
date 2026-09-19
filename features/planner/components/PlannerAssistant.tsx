@@ -5,7 +5,8 @@ import LoadingState, { Spinner } from '../../../components/LoadingState';
 import { localAssistantAction, validateAssistantAction, type AssistantAction } from '../../../lib/assistant-actions.js';
 import { onTripIdentity, readOnTrip } from '../../../lib/on-trip.js';
 import type { TripCommand, TripCommandReceipt } from '../../../lib/trip-command.js';
-import { resolveFacilityKeys } from '../../../lib/facility-selection.js';
+import { FACILITIES, resolveFacilityKeys } from '../../../lib/facility-selection.js';
+import { guidancePreferenceText } from '../../../lib/guidance-preferences.js';
 import { acceptsPendingChange, canRunConversationAction, isChangeNegated, resolveConversationReference } from '../../../lib/assistant-conversation.js';
 import type { usePlannerPlan } from '../hooks/usePlannerPlan';
 import type { useTripSelection } from '../hooks/useTripSelection';
@@ -414,6 +415,8 @@ export default function PlannerAssistant(props: Props) {
   if (!props.open) return null;
   const todayKey = (() => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; })();
   const hubContext = { hasItinerary: Boolean(trip.travelStart), isTripDay: trip.tripDays.includes(todayKey), hasFocusedPlace: Boolean(focusedPlaceId), hasSavedTrip: savedTravelBooks.length > 0 };
+  const priorityFacilityLabels = FACILITIES.filter(item => ['route', 'elevator', 'audioguide', 'bigprint', 'signguide'].includes(item.key) && plan.selected.includes(item.key)).map(item => item.label);
+  const guidanceSummary = [...guidancePreferenceText(props.guidance.value), ...priorityFacilityLabels];
   return <dialog ref={dialogRef} lang="ko" className={`naru-panel naru-${size}`} aria-label="WAVE 여행 가이드 나루와 대화" onCancel={event => { event.preventDefault(); close(); }} >
     <div className="naru-conversation">
       <div className="naru-heading">
@@ -426,6 +429,10 @@ export default function PlannerAssistant(props: Props) {
         </div>
       </div>
       {available === false && <button type="button" className="naru-retry" onClick={recheck} disabled={checking}>연결 다시 확인</button>}
+      <p className="naru-note" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <span>지금 안내 방식: {guidanceSummary.length ? guidanceSummary.join(' · ') : '기본 방식'}</span>
+        <button type="button" style={{ minHeight: '44px' }} onClick={() => goToTool('facilities')}>바꾸기</button>
+      </p>
       <div className="naru-log" ref={log} role="log" aria-live="polite" aria-relevant="additions" onScroll={() => { if (log.current) { follow.current = log.current.scrollHeight - log.current.scrollTop - log.current.clientHeight < 100; scrollPosition.current = log.current.scrollTop; } }}>
         {!starterDone && <section className="naru-starter" aria-labelledby="naru-starter-title"><h2 id="naru-starter-title">어떤 도움이 필요할까요?</h2><p>필요한 것만 고르세요. 나중에 여행 조건에서 언제든 바꿀 수 있습니다.</p><div>{starterChoices.map(item => <button type="button" key={item.id} aria-pressed={starterSelected.includes(item.id)} onClick={() => setStarterSelected(current => current.includes(item.id) ? current.filter(id => id !== item.id) : [...current, item.id])}>{starterSelected.includes(item.id) ? '✓ ' : ''}{item.label}</button>)}</div><footer><button type="button" onClick={() => confirmStarter(true)}>건너뛰기</button><button type="button" className="primary" onClick={() => confirmStarter(false)}>선택 적용</button></footer></section>}
         {starterDone && messages.length === 1 && <section className="naru-prompt-starters" aria-labelledby="naru-prompt-title"><h2 id="naru-prompt-title">이렇게 시작해 보세요</h2>{starterPrompts.map(prompt => <button type="button" key={prompt} onClick={() => { setInput(prompt); inputRef.current?.focus(); }}>{prompt}</button>)}</section>}
