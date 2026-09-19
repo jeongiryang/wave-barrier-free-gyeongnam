@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSitePreferences } from '../../preferences/context';
+import { vibrate } from '../../../lib/haptics.js';
 import {
   communicationAnswers,
   communicationAnswerText,
@@ -16,6 +18,7 @@ import {
 const RELAY_CENTER_URL = "https://mail.relaycall.or.kr/user/main";
 
 export default function OnsiteCommunicationBoard({ initialTopic, en, onEnd, onClose }: { initialTopic: CommunicationTopic; en: boolean; onEnd: () => void; onClose: () => void }) {
+  const { haptics } = useSitePreferences();
   const say = (ko: string, english: string) => en ? english : ko;
   const [session, setSession] = useState<LocalCommunicationSession>(() => ({ topic: initialTopic, question: communicationQuestion(initialTopic, en) }));
   const [stage, setStage] = useState<"question" | "staff" | "answer">("question");
@@ -37,14 +40,14 @@ export default function OnsiteCommunicationBoard({ initialTopic, en, onEnd, onCl
     setSession(current => ({ ...current, answer }));
     setStage("answer");
     setNotice(say("직원이 고른 답이에요.", "This is the staff member's answer."));
-    try { navigator.vibrate?.(80); } catch { /* Text and focus remain the complete signal. */ }
+    vibrate('confirm', haptics === 'on');
   }
   function confirmCustom() {
     const customAnswer = normalizeCustomAnswer(customDraft);
     if (!customAnswer) { setNotice(say("답변을 입력하거나 취소해 주세요.", "Type an answer or cancel.")); return; }
     setSession(current => ({ ...current, answer: "custom", customAnswer }));
     setStage("answer"); setCustomOpen(false); setNotice(say("직원이 고른 답이에요.", "This is the staff member's answer."));
-    try { navigator.vibrate?.(80); } catch { /* Text and focus remain the complete signal. */ }
+    vibrate('confirm', haptics === 'on');
   }
   function askAgain() {
     setSession(current => ({ topic: current.topic, question: current.question }));

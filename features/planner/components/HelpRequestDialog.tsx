@@ -7,6 +7,8 @@ import type { HelpSituation } from "../../../lib/help-request";
 // 정적으로 불러온다: 이 목록도 정적 데이터이므로, 이미 열려 있는 도움 요청 화면
 // 안에서 "기기가 고장 났어요" 상황을 고를 때 새 네트워크 요청이 없어야 한다.
 import EquipmentRentalList from "./EquipmentRentalList";
+import { useSitePreferences } from '../../preferences/context';
+import { vibrate } from '../../../lib/haptics.js';
 
 // 사람 확인 전에는 목록을 비워 둔다 (human-gate). 확인되지 않은 기관 이름·번호를
 // 임시로 적지 않는다. 확인되면 { name, phone, description }[] 형태로 채운다.
@@ -35,6 +37,7 @@ export default function HelpRequestDialog({ placeName, placeAddress, placeRegion
   onClose: () => void;
 }): ReactNode {
   const dialog = usePlaceDialogFocus(true, onClose);
+  const { haptics } = useSitePreferences();
   const primaryButtonRef = useRef<HTMLButtonElement>(null);
   const [situation, setSituation] = useState<HelpSituation | null>(null);
   const [large, setLarge] = useState(false);
@@ -49,9 +52,7 @@ export default function HelpRequestDialog({ placeName, placeAddress, placeRegion
   function showScreen() {
     setLarge(true);
     setNotice("");
-    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-      try { navigator.vibrate(30); } catch { /* 진동은 필수 신호가 아니다. */ }
-    }
+    vibrate('confirm', haptics === 'on');
   }
 
   async function copyMessage() {
