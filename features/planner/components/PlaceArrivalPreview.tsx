@@ -6,6 +6,7 @@ import { WHEELCHAIR_ROUTE_DISCLAIMER, wheelchairRouteStateText } from '../../../
 import { SLOPE_DESCRIPTION_DISCLAIMER } from '../../../lib/slope-description.js';
 const PowerchairChargingNotice = lazy(() => import('./PowerchairChargingNotice'));
 const DiningAccessibilityList = lazy(() => import('./DiningAccessibilityList'));
+const StayFacilityDetail = lazy(() => import('./StayFacilityDetail'));
 const steps = [
   { title: '주차', keys: ['parking'], note: '주차장 위치와 출입구까지의 접근로를 함께 확인하세요.' },
   { title: '입구', keys: ['route', 'elevator'], note: '다른 출입구나 승강기 이용 안내가 있는지 확인하세요.' },
@@ -37,6 +38,8 @@ export default function PlaceArrivalPreview({ place, onClose }: { place: Place; 
     {step.title === '주차' && <Suspense fallback={null}><PowerchairChargingNotice /></Suspense>}
     {/* 스펙 08: 음식점 편의 정보는 '시설' 단계에서만 요청한다. 기존 3단계 구조와 체크 기록은 그대로 둔다. */}
     {step.title === '시설' && <Suspense fallback={null}><DiningAccessibilityList place={place} onClose={onClose} /></Suspense>}
+    {/* 스펙 48: 숙소(contentTypeId "32")일 때만 숙소 전용 편의 묶음을 더한다. 다른 타입의 화면은 바뀌지 않는다. */}
+    {step.title === '시설' && place.contentTypeId === '32' && <Suspense fallback={null}><StayFacilityDetail place={place} /></Suspense>}
     {step.title === '입구' && <div className="place-inquiry-entry">
       <div>
         <h3>휠체어 통행 정보</h3>

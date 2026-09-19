@@ -35,6 +35,15 @@ export type KeyHealthItem = {
 };
 export type KeyHealth = { ok?: boolean; scope?: "configuration"; checkedAt: string; keys: KeyHealthItem[] };
 
+// 스펙 48: 숙소(contentTypeId "32") 편의시설을 들어가기/객실과 욕실/머무는
+// 동안 세 묶음으로 나눠 보여줄 때 쓰는 타입. `lib/stay-facility.js`의
+// `groupStayFacilities`가 만든다.
+export type StayFacilityGroup = {
+  id: "entry" | "room" | "stay";
+  title: string;
+  items: { key: string; label: string; state: "confirmed" | "unknown" | "negative"; detail?: string }[];
+};
+
 export type Place = {
   startDate?: string;
   endDate?: string;
