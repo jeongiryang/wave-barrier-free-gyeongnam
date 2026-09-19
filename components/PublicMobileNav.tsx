@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useSitePreferences } from "./SitePreferences";
+import NavIcon, { type NavIconName } from "./NavIcons";
 
 export type PublicNavLink = {
   href: string;
   label: string;
   current?: boolean;
+  /** 선택 항목. 없으면 지금처럼 글자만 보여준다. */
+  icon?: NavIconName;
 };
 
 /** A compact replacement for public header links that disappear on narrow screens. */
@@ -66,7 +69,7 @@ export default function PublicMobileNav({ links }: { links: PublicNavLink[] }) {
         href={link.href}
         aria-current={link.current ? "page" : undefined}
         onClick={() => setOpen(false)}
-      >{link.label}</Link>)}
+      >{link.icon ? <NavIcon name={link.icon} /> : null}<span>{link.label}</span></Link>)}
     </nav>}
   </div>;
 }

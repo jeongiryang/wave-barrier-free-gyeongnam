@@ -7,9 +7,8 @@ h1,h2,h3 { letter-spacing: -.055em; }
 .wave-header,.community-page .community-editorial-grid > article,.journey-conditions[data-compact=true],.condition-trip-summary,.trip-comfort-choices { --ink: #242b2a; --muted: #5c6865; --white: #fff; --paper: #ffffff; --line: #dce3e0; --blue: #12655b; color: var(--ink); }
 .wave-header { position: sticky; z-index: 50; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px; color: var(--ink); }
 .wave-wordmark { min-height: 44px; display: flex; align-items: center; font-size: 29px; font-weight: 800; letter-spacing: -.065em; line-height: 1; width: fit-content; padding-block: 10px; }
-.wave-header nav { display: flex; gap: 3px; padding: 5px; border-radius: 50px; background: #f2f0f5; }
-.wave-header nav a { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 23px; border-radius: 50px; font-size: 14px; color: var(--muted); white-space: nowrap; }
-.wave-header nav a[aria-current] { color: var(--white); background: var(--ink); box-shadow: 0 3px 12px #242b2a18; }
+.wave-header nav { display: flex; }
+.wave-header nav a { display: flex; align-items: center; justify-content: center; min-height: 44px; color: var(--muted); white-space: nowrap; }
 .wave-header .wave-my-trips,.wave-header-actions > a,.wave-header-actions > details > summary { position: relative; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: var(--ink); background: transparent; }
 .wave-my-trips:hover,.wave-my-trips[aria-current] { background: var(--paper); }
 .wave-my-trips svg { width: 24px; height: 24px; }
@@ -110,7 +109,6 @@ html[data-theme=dark] .auth-guest { color: #d4b8ff; }
  .wave-header { margin-top: 10px; grid-template-columns: 1fr auto; gap: 6px 12px; }
  .wave-wordmark { font-size: 23px; }
  .wave-header nav { grid-column: 1/-1; grid-row: 2; width: 100%; }
- .wave-header nav a { flex: 1; padding: 9px 10px; font-size: 12px; }
 
  .wave-header-actions { grid-column: 2; grid-row: 1; }
  .horizon-edition .landing-hero-copy h1 { font-size: clamp(2.1rem,8vw,3.2rem); }

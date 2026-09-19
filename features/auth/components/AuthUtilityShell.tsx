@@ -21,10 +21,10 @@ export default function AuthUtilityShell({
         <Link className="brand" href="/" aria-label="WAVE 홈"><span>WAVE</span></Link>
         <nav aria-label="주요 메뉴"><Link href="/">서비스 소개</Link><Link href="/planner">여행 계획</Link><Link href="/community">여행 후기</Link></nav>
         <div className="auth-header-actions"><PublicMobileNav links={[
-          { href: "/", label: "서비스 소개" },
-          { href: "/planner", label: "여행 계획" },
+          { href: "/", label: "서비스 소개", icon: "intro" },
+          { href: "/planner", label: "여행 계획", icon: "planner" },
           { href: "/travel-book", label: "내 일정" },
-          { href: "/community", label: "여행 후기" },
+          { href: "/community", label: "여행 후기", icon: "community" },
         ]} /><Link className="auth-header-action" href="/planner">로그인 없이 여행 설계 <span aria-hidden="true">↗</span></Link></div>
       </header>
       <div className="auth-layout auth-utility-layout">
