@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { deliverNearby, nearbyPlace, openMapTool, openNearby, openRouteDetails } from './nearby-fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -13,6 +14,34 @@ type AuditWindow = Window & {
   kakao: { maps: { LatLng: new (...args: unknown[]) => object; services: { Places: { prototype: { categorySearch: (...args: unknown[]) => unknown } } } } };
   mapLayerFixture: { maps: Array<Record<string, unknown>> };
 };
+
+test('parking location boundary keeps GPS out of API and destination map URL contracts', () => {
+  const source = readFileSync(new URL('../features/planner/components/ParkingAlternatives.tsx', import.meta.url), 'utf8');
+  expect(source).toContain('navigator.geolocation.getCurrentPosition');
+  expect(source).toContain('/api/wave?action=parking-alternatives&contentId=');
+  expect(source).not.toMatch(/parking-alternatives[^`\n]*(?:lat|lng|latitude|longitude|accuracy|origin|currentLocation)=/i);
+  expect(source).toContain('https://map.kakao.com/link/map/');
+  expect(source).not.toMatch(/(?:from|sLat|sLng)=/);
+  expect(source).not.toMatch(/localStorage|sessionStorage|indexedDB|caches\./);
+});
+
+test('restroom location boundary keeps GPS out of API, storage and destination map URL contracts', () => {
+  const source = readFileSync(new URL('../features/planner/components/RestroomAlternativeCards.tsx', import.meta.url), 'utf8');
+  expect(source).toContain('navigator.geolocation.getCurrentPosition');
+  expect(source).toContain('/api/wave?action=restroom-alternatives&contentId=');
+  expect(source).not.toMatch(/restroom-alternatives[^`\n]*(?:lat|lng|latitude|longitude|accuracy|origin|currentLocation)=/i);
+  expect(source).toContain('https://map.kakao.com/link/map/'); expect(source).not.toMatch(/(?:from|sLat|sLng)=/);
+  expect(source).not.toMatch(/localStorage|sessionStorage|indexedDB|caches\./);
+});
+
+test('parking inquiry component has no location, storage, network, analytics, or dynamic external URL sink', () => {
+  const source = readFileSync(new URL('../features/planner/components/ParkingContactPanel.tsx', import.meta.url), 'utf8');
+  expect(source).not.toMatch(/geolocation|latitude|longitude|accuracy|currentLocation|userId|trip/i);
+  expect(source).not.toMatch(/fetch\(|optionalPlannerJson|localStorage|sessionStorage|indexedDB|document\.cookie|caches\.|analytics|sendBeacon/i);
+  expect(source).not.toMatch(/kakaotalk:|intent:|apps\.apple|play\.google|execCommand|postMessage/i);
+  expect(source).toContain("https://pf.kakao.com/_LBXwxj/chat");
+  expect(source).toContain("https://relaycall.or.kr/user/service/text/text");
+});
 
 for (const entry of ['toolbar', 'panel'] as const) test(`accepted ${entry} GPS measures locally while map, nearby, routes, Naru and storage retain public places`, async ({ page }) => {
   const position = { latitude: 35.12345678, longitude: 128.87654321 };

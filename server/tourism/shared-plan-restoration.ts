@@ -4,6 +4,7 @@ import { attemptProvider as attempt, commonParams, fetchTourismData as fetchKto 
 import { profileFields, regionCodes } from "./catalog";
 import { buildPlan } from "./plan-builder";
 import { placeFrom } from "./accessibility-model";
+import { sanitizeTemporaryRestroomStops } from "../../lib/restroom-temporary-stop.js";
 
 export async function restoreSharedPlan(
   env: Env,
@@ -28,7 +29,10 @@ export async function restoreSharedPlan(
   const profiles = Array.isArray(selections.profiles)
     ? selections.profiles.map((value) => clean(value, 20)).filter((value) => profileFields[value]).slice(0, 6)
     : [];
+  const temporaryById = new Map(sanitizeTemporaryRestroomStops(selections.temporaryStops).map(place => [place.id, { ...place, contentTypeId: '', city: place.address.split(' ').slice(0, 2).join(' '), summary: '공식 공중화장실 임시 경유지', image: '', score: null, knownFields: 1, unknownFields: 7, negativeFields: 0, features: ['장애인용 대변기 등록 정보'], details: [] }]));
   const officialPlacesPromise = Promise.all(refs.map(async ({ contentId }, index) => {
+    const temporary = temporaryById.get(contentId);
+    if (temporary) return temporary;
     const [common, barrier] = await Promise.all([
       attempt(fetchKto(env, "KorService2", "detailCommon2", {
         ...commonParams("1"),

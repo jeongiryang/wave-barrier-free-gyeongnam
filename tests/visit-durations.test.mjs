@@ -10,6 +10,7 @@ import { normalizeThemes } from "../lib/planner-criteria.js";
 import * as constraints from "../lib/trip-time-constraints.js";
 import * as comfort from "../lib/trip-comfort.js";
 import * as travelMode from "../lib/trip-travel-mode.js";
+import { sanitizeTemporaryRestroomStops } from "../lib/restroom-temporary-stop.js";
 
 function sharedPayload() {
   const output = ts.transpileModule(readFileSync(new URL("../server/trips/payload.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -22,6 +23,7 @@ function sharedPayload() {
     if (name.endsWith("trip-time-constraints.js")) return constraints;
     if (name.endsWith("trip-comfort.js")) return comfort;
     if (name.endsWith("trip-travel-mode.js")) return travelMode;
+    if (name.endsWith("restroom-temporary-stop.js")) return { sanitizeTemporaryRestroomStops };
     throw Error(name);
   });
   return mod.exports;
