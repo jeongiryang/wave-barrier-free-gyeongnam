@@ -4,7 +4,7 @@
 - AI 도구: Claude Code, 로컬 명령
 - 기준: `feat/spec-51-naru-streaming` (계보: `main` `5ffa800` → #588 → #589 → #592 → #594 → 이번 작업)
 - 브랜치: `feat/spec-55-naru-evidence` (base `feat/spec-51-naru-streaming`)
-- PR: (PR을 연 뒤 채운다)
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/598
 - 상태: 구현과 로컬 검증 완료. 배포 대상 응답과 숫자 일치까지 확인했다. 병합·배포는 하지 않았다.
 
 ## 목적
