@@ -48,7 +48,7 @@ test("말투 문단은 한 문단이고 안전 규칙 앞에 온다", async () =
 test("tone은 두 값 외에는 standard로 정규화되고 프롬프트 선택에만 쓴다", async () => {
   const handler = await source("server/assistant/handler.ts");
   assert.match(handler, /const tone = ctx\.tone === 'gyeongnam' \? 'gyeongnam' : 'standard';/);
-  assert.match(handler, /content: systemInstructions\(tone\)/);
+  assert.match(handler, /systemMessages\(systemInstructions\(tone\)/);
   // 모델에 보내는 컨텍스트에 말투 값을 넣지 않는다.
   const contextLine = handler.match(/^\s*const context = \{[\s\S]*?places \};$/m);
   assert.ok(contextLine, "컨텍스트 재구성부를 찾지 못했습니다");
