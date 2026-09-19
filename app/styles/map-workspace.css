@@ -196,3 +196,19 @@ html[data-theme="dark"] .map-command-scroll::-webkit-scrollbar-thumb {
   font-weight: 800;
   text-align: center;
 }
+
+/* 편의 표시 패널: 기존 .map-tool-panel/.map-tool-grid 안에서 확장한다. */
+.map-facility-panel ul { margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; list-style: none; }
+.map-facility-panel li { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; }
+.facility-chip { min-height: 36px; padding: 3px 4px 3px 10px; border: 1px solid var(--line); border-radius: 999px; }
+.map-facility-panel li button { min-height: 32px; padding: 0 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: var(--paper); font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+.map-facility-panel > p,.facility-chip small { color: var(--muted); font-size: 0.75rem; }
+.map-facility-panel > p { margin: 8px 0 0; }
+.facility-pin { width: 44px; height: 44px; border: 0; cursor: pointer; }
+.facility-pin.facility-official { border-radius: 9px; }
+.facility-card { margin: 10px 0 0; padding: 11px 12px; display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+.facility-card dl { margin: 0; display: grid; gap: 3px; font-size: 0.75rem; }
+.facility-card dl > div { display: flex; gap: 7px; }
+.facility-card dt { color: var(--muted); }
+.facility-card dd { margin: 0; }
+.wave-map-facility-icon { border: 0; background: none; }

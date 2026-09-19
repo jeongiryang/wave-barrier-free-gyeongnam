@@ -15,6 +15,96 @@ export const nearbyCategories = [
   { id: "culture", label: "문화시설", icon: "▥", code: "CT1" },
 ] as const;
 
+/**
+ * 편의시설 레이어의 근거 구분.
+ *
+ * - `place-search`: 카카오 장소 검색(브라우저 SDK). 지도 중심 기준으로 찾는다.
+ * - `official`: 공공데이터 제공처를 서버 경유로 조회한 결과.
+ *
+ * 두 갈래는 화면에서 섞지 않는다. 근거의 성격이 다르기 때문이다.
+ *
+ * - `derived`: 새 조회를 하지 않고 **이미 받아온 장소 목록**(`MapPlace.accessibility`)에서
+ *   조건에 맞는 곳만 걸러 마커로 그린다. 스펙 20(안내견 동반)이 이 갈래를 쓴다.
+ */
+export type FacilityLayerSource = "official" | "place-search" | "derived";
+
+export type FacilityLayer = {
+  id: string;
+  /** 화면 문구. 시설 이름으로만 쓴다. */
+  label: string;
+  source: FacilityLayerSource;
+  /** place-search 전용. nearbyCategories 의 코드를 그대로 쓴다. */
+  code?: string;
+  /** official 전용. /api/wave 의 action 값. */
+  action?: string;
+  /** derived 전용. 장소의 `accessibility` 배열에서 `state === "confirmed"`인 항목을 찾을 key. */
+  derivedKey?: string;
+  /** 마커·범례에서 색이 아닌 글자로 종류를 알리는 짧은 기호. */
+  glyph: string;
+};
+
+/**
+ * 카카오 장소 검색 레이어. 코드는 `nearbyCategories`의 것을 그대로 쓴다.
+ * 이 작업에서 새 카테고리 코드를 만들지 않는다.
+ */
+export const placeSearchFacilityLayers: readonly FacilityLayer[] = [
+  { id: "food", label: "음식점", source: "place-search", code: "FD6", glyph: "식" },
+  { id: "cafe", label: "카페", source: "place-search", code: "CE7", glyph: "카" },
+  { id: "store", label: "편의점", source: "place-search", code: "CS2", glyph: "편" },
+  { id: "pharmacy", label: "약국", source: "place-search", code: "PM9", glyph: "약" },
+  { id: "hospital", label: "병원", source: "place-search", code: "HP8", glyph: "병" },
+  { id: "subway", label: "지하철역", source: "place-search", code: "SW8", glyph: "역" },
+];
+
+/**
+ * 공식 데이터 레이어 등록 지점 — 지금은 비어 있다.
+ *
+ * 11번 명세는 `accessible-parking`(#530)과 `accessible-restroom`(#531)이 이미
+ * 연동됐다고 전제하지만, 이 저장소에는 두 제공처를 부르는 서버 코드가 없다.
+ * (`server/tourism/handler.ts`의 action 목록에 `parking`·`restroom`·
+ * `facility-layers`가 없고, `server/tourism/`에도 해당 모듈이 없다.)
+ * 없는 데이터를 있는 것처럼 보이지 않게 하려고 여기에는 아무 것도 등록하지 않는다.
+ * 이 배열이 비어 있는 동안 패널은 "공식 데이터" 구분 자체를 그리지 않는다.
+ *
+ * 후속 명세(13·14·15·16·20·21·33·45)가 레이어를 붙이는 방법은 두 줄이다.
+ *
+ * 1. 각 명세가 `server/tourism/`에 제공처 모듈을 더하고
+ *    `server/tourism/handler.ts`에 자기 action 분기를 추가한다.
+ * 2. 아래 배열에 `{ id, label, source: "official", action: "<그 action>", glyph }`
+ *    한 줄을 더한다. 그러면 패널 버튼, 4개 상한, 칩, 실패·재시도, 마커 60개
+ *    상한, 지도 렌더링이 그대로 따라온다. 화면 코드를 고칠 필요가 없다.
+ *
+ * 공식 레이어를 부르는 클라이언트 경로는 `features/routing/useFacilityLayers.ts`의
+ * `source === "official"` 갈래에 있다. 거기에 `optionalPlannerJson` 호출과
+ * `SERVER_BUDGET_MS`/`CLIENT_BUDGET_MS` 항목을 함께 채우면 된다.
+ */
+export const officialFacilityLayers: readonly FacilityLayer[] = [];
+
+/**
+ * 이미 조회한 장소 목록에서 파생하는 레이어(스펙 20). 새 서버 호출이나 새
+ * 제공처를 더하지 않는다. `helpdog`는 `KorWithService2/detailWithTour2`가
+ * 이미 주는 필드이고 `FACILITIES`·`profileFields`에 이미 연동돼 있다.
+ */
+export const derivedFacilityLayers: readonly FacilityLayer[] = [
+  { id: "helpdog-confirmed", label: "안내견 동반이 확인된 곳", source: "derived", derivedKey: "helpdog", glyph: "견" },
+  // 스펙 14: `braileblock`도 `KorWithService2/detailWithTour2`가 이미 주는
+  // 필드이고 `FACILITIES`·`profileFields`에 이미 연동돼 있다. 새 서버 호출을
+  // 만들지 않고 이미 받아온 장소 목록에서만 파생한다.
+  { id: "braileblock-confirmed", label: "점자블록이 확인된 곳", source: "derived", derivedKey: "braileblock", glyph: "점" },
+];
+
+export const facilityLayers: readonly FacilityLayer[] = [
+  ...placeSearchFacilityLayers,
+  ...officialFacilityLayers,
+  ...derivedFacilityLayers,
+];
+
+/** 한 번에 켤 수 있는 레이어 수. 5번째는 켜진 것을 끄지 않고 안내만 한다. */
+export const FACILITY_LAYER_LIMIT = 4;
+
+/** 지도에 한 번에 그리는 마커 총량. 초과분은 그리지 않고 알린다. */
+export const FACILITY_MARKER_CAP = 60;
+
 export const overlayLayers = [
   { id: "TRAFFIC", label: "교통정보", icon: "🚦" },
   { id: "BICYCLE", label: "자전거", icon: "🚲" },

@@ -11,6 +11,7 @@ import { handleAvailability } from "./availability";
 import { handleVisitInfo } from "./visit-info";
 import { handleCrowdCalendar } from "./crowd-calendar";
 import { handleReturnTransport } from "../transport/return-transport";
+import { handleDiningAccessibility } from "./dining-accessibility";
 import { handlePlaceLookup } from './place-lookup';
 import { handlePlaceAudio } from './place-audio';
 
@@ -68,6 +69,7 @@ export async function handleWaveApi(request: Request, env: Env) {
   if (action === "place-coordinates") return handlePlaceCoordinates(url, env);
   if (action === "visit-info") return handleVisitInfo(url, env);
   if (action === "return-transport") return handleReturnTransport(url, env);
+  if (action === "dining-accessibility") return handleDiningAccessibility(url, env);
   if (action === "crowd-calendar") return handleCrowdCalendar(url, env);
   if (action === "photo") return handlePhoto(url, env);
   if (action === "spot-photo") return handleSpotPhoto(url, env);

@@ -5,6 +5,7 @@ import type { MapToolPanel } from "./types";
 
 const panelIds: Record<Exclude<MapToolPanel, null>, string> = {
   nearby: "map-panel-nearby",
+  facility: "map-panel-facility",
   route: "map-panel-route",
   place: "map-panel-place",
   layers: "map-panel-layers",

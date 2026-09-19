@@ -1,6 +1,7 @@
 /* A persistent workspace: settings, current task, and the trip being built. */
 .wave-header {
-  top: 0; width: 100%; margin: 0; min-height: 76px; padding: 10px clamp(20px,3vw,48px);
+  /* min-height/padding 는 뒤에 오는 simple-wave.css 의 .wave-header 가 덮어쓰는 죽은 선언이라 지웠다. */
+  top: 0; width: 100%; margin: 0;
   border-radius: 0; border-bottom: 1px solid var(--line); background: #fff;
   box-shadow: none; backdrop-filter: none; transition: transform .24s ease;
 }
@@ -129,7 +130,7 @@ html[data-theme=dark] .region-showcase .selected-region small {
   .planner-reference .place-carousel { grid-template-columns: 1fr; }
   .planner-reference .condition-actions { position: static; padding-bottom: 8px; }
 }
-@media (prefers-reduced-motion: reduce) { .wave-header { transition: none; }.wave-spinner,.wave-loading-inline::before,.planner-page button[aria-busy=true]::before,.wave-skeleton-lines i,.place-card-skeleton .skeleton-visual,.smart-spot-image.loading { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .wave-spinner,.wave-loading-inline::before,.planner-page button[aria-busy=true]::before,.wave-skeleton-lines i,.place-card-skeleton .skeleton-visual,.smart-spot-image.loading { animation: none; } }
 html[data-motion=calm] .wave-header { transition: none; }
 html[data-motion=calm] .wave-spinner,html[data-motion=calm] .wave-loading-inline::before,html[data-motion=calm] .planner-page button[aria-busy=true]::before,html[data-motion=calm] .wave-skeleton-lines i { animation: none; }
 
@@ -146,16 +147,16 @@ html[data-motion=calm] .wave-spinner,html[data-motion=calm] .wave-loading-inline
 .naru-message p { font-size: .88rem; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }.naru-message > small { display: block; color: var(--muted); margin-top: 8px; }
 .naru-message > button { min-height: 44px; max-width: 100%; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--accent); font: inherit; font-size: .82rem; font-weight: 600; line-height: 1.5; text-align: left; white-space: normal; cursor: pointer; }
 .naru-message > button:disabled { opacity: .55; cursor: default; }
-.naru-message.user { margin-left: auto; color: #fff; background: var(--accent); border: 0; border-radius: 16px 16px 4px 16px; }
+.naru-message.user { margin-left: auto; color: #fff; border: 0; border-radius: 16px 16px 4px 16px; }
 .naru-proposal { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; display: grid; gap: 10px; }
 .naru-proposal strong { font-size: .85rem; line-height: 1.7; }.naru-proposal button { min-height: 44px; padding: 10px 12px; background: var(--accent); color: #fff; border-radius: 10px; font-size: .82rem; }
 .naru-proposal button:disabled { opacity: .55; background: #eeeaf2; color: var(--muted); }
-.naru-tools { max-height: 260px; overflow-y: auto; padding: 8px 14px; border-bottom: 1px solid var(--line); overscroll-behavior: contain; }
+.naru-tools { overflow-y: auto; padding: 8px 14px; border-bottom: 1px solid var(--line); overscroll-behavior: contain; }
 .naru-tools > div { margin-bottom: 12px; }.naru-tools strong { display: block; font-size: .75rem; color: var(--muted); margin-bottom: 6px; }.naru-tools > div > div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
 .naru-tools button { min-height: 44px; font-size: .78rem; background: var(--surface); color: var(--ink); border-radius: 10px; padding: 8px; }
-.naru-input { display: flex; align-items: end; margin: 8px 12px 4px; padding: 10px; border: 1px solid #baa7d2; border-radius: 16px; background: #fff; }
+.naru-input { display: flex; align-items: end; margin: 8px 12px 4px; padding: 10px; border: 1px solid #baa7d2; background: #fff; }
 .naru-input textarea { flex: 1; width: 100%; min-width: 0; resize: none; border: 0; background: transparent; padding: 4px; color: var(--ink); font-size: 16px; line-height: 1.6; max-height: 160px; }
-.naru-input > div { display: flex; flex-direction: column; gap: 4px; }.naru-input button { min-width: 44px; height: 44px; padding: 10px; border-radius: 50%; background: var(--accent); color: #fff; }.naru-input button:first-child { background: var(--surface); color: var(--ink); }.naru-input button:disabled { opacity: .45; }.naru-input svg { width: 22px; height: 22px; }
+.naru-input > div { display: flex; gap: 4px; }.naru-input button { min-width: 44px; height: 44px; padding: 10px; border-radius: 50%; background: var(--accent); color: #fff; }.naru-input button:first-child { background: var(--surface); color: var(--ink); }.naru-input button:disabled { opacity: .45; }.naru-input svg { width: 22px; height: 22px; }
 .naru-note { line-height: 1.6; color: var(--muted); padding: 0 16px; margin: 4px 0 10px; }
 .naru-typing { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--muted); padding: 8px 0 16px; line-height: 1.7; }
 .naru-result-list article,.naru-evidence article { padding: 16px; margin: 12px 0; border: 1px solid var(--line); border-radius: 14px; background: #fff; }.naru-result-list strong,.naru-evidence strong { font-size: .95rem; }.naru-result-list p,.naru-evidence p { font-size: .8rem; line-height: 1.8; }.naru-evidence small { color: var(--muted); overflow-wrap: anywhere; }.naru-result-list button,.naru-evidence button { min-height: 44px; padding: 10px 12px; font-size: .78rem; margin: 6px 6px 0 0; color: var(--accent); background: #efe8f7; border-radius: 10px; }
@@ -166,7 +167,7 @@ dialog.naru-panel:not([open]) { display: none; }
 .naru-heading .wave-spinner { width: 12px; height: 12px; flex-basis: 12px; }
 @media (max-width: 800px) { .naru-panel { height: 100dvh; } }
 
-.naru-character { display: inline-grid; position: relative; flex: 0 0 56px; width: 56px; height: 56px; place-items: center; }
+.naru-character { display: inline-grid; flex: 0 0 56px; width: 56px; height: 56px; place-items: center; }
 .naru-character img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .reference-day-list li[data-selected=true] > .reference-stop { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 12px; }
 .wave-map-icon.itinerary-focused { outline: 4px solid #12655b; outline-offset: 4px; border-radius: 14px; }
