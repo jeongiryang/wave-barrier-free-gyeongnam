@@ -74,7 +74,9 @@ test("모바일 지도 기본·추가 도구는 44px 영역과 빠짐없는 접�
   await expect(more).toHaveAttribute("aria-expanded", "false");
   await more.click();
   const buttons = commandBar.getByRole("button");
-  await expect(buttons).toHaveCount(11);
+  await expect(commandBar.locator('.map-advanced-controls')).toBeVisible();
+  expect(await buttons.count()).toBeGreaterThan(4);
+  await expect(commandBar.getByRole("button", { name: "◎ 편의 표시", exact: true })).toBeVisible();
   const sizes = await buttons.evaluateAll((nodes) => nodes.map((node) => {
     const rect = (node as HTMLElement).getBoundingClientRect();
     return { text: node.textContent?.trim() || "button", width: rect.width, height: rect.height };

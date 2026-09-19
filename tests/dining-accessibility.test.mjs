@@ -68,13 +68,13 @@ function harness(options = {}) {
     listItems = [restaurant('2001', '가까운 국숫집', '128.6810', '35.2300'), restaurant('2002', '먼 해물탕', '128.7000', '35.2400')],
     withTour = { contentid: '2001', route: '주출입구에 경사로가 있습니다', restroom: '없음' },
     intro = { contentid: '2001', opentimefood: '11:00~21:00', infocenterfood: '055-000-0000' },
-    failAt, hangAt, budgetMs,
+    failAt, hangAt, budgetMs, listPartial = false,
   } = options;
   const responses = (service, operation) => {
     if (operation === hangAt) return 'hang';
     if (operation === failAt) return new Error('synthetic provider failure');
     if (operation === 'detailCommon2') return { items: commonItems, total: commonItems.length };
-    if (operation === 'areaBasedList2') return { items: listItems, total: listItems.length };
+    if (operation === 'areaBasedList2') return { items: listItems, total: listItems.length, partial: listPartial };
     if (operation === 'detailWithTour2') return { items: withTour ? [withTour] : [], total: withTour ? 1 : 0 };
     return { items: intro ? [intro] : [], total: intro ? 1 : 0 };
   };
@@ -211,6 +211,21 @@ test('a failed facility check leaves the list standing with unknown, never with 
   assert.equal(response.body.items.length, 2);
   assert.ok(response.body.items[0].facilities.length > 0);
   assert.ok(response.body.items[0].facilities.every((item) => item.state === 'unknown'));
+  assert.equal(response.cached, false);
+});
+
+test('restaurant destinations retain each restaurant coordinate, not the search anchor', async () => {
+  const response = await harness().run();
+  assert.deepEqual(response.body.items.map(item => item.destination), [
+    { latitude: 35.23, longitude: 128.681 },
+    { latitude: 35.24, longitude: 128.7 },
+  ]);
+});
+
+test('a partial empty provider response is not presented as an empty restaurant list', async () => {
+  const response = await harness({ listItems: [], listPartial: true }).run();
+  assert.equal(response.status, 502);
+  assert.equal(response.body.status, 'provider-error');
   assert.equal(response.cached, false);
 });
 

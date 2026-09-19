@@ -90,16 +90,16 @@ export async function handleDiningAccessibility(url: URL, env: Env) {
   });
   if (!list.ok) return json({ ...base, status: 'provider-error', message: '음식점 정보를 받지 못했어요.' } satisfies DiningResponse, 502);
 
-  const destination = { latitude: point.lat, longitude: point.lng };
   const nearby = list.value.items
     .flatMap((item) => {
       const spot = supportedPlacePoint(item.mapx, item.mapy);
       const contentId = clean(item.contentid);
       if (!spot || !contentId || contentId === id) return [];
-      return [{ item, contentId, distanceMeters: Math.round(mapDistanceMetres(point, spot)) }];
+      return [{ item, contentId, destination: { latitude: spot.lat, longitude: spot.lng }, distanceMeters: Math.round(mapDistanceMetres(point, spot)) }];
     })
     .sort((a, b) => a.distanceMeters - b.distanceMeters)
     .slice(0, ITEM_LIMIT);
+  if (!nearby.length && list.value.partial) return json({ ...base, status: 'provider-error', message: '음식점 정보를 받지 못했어요.' } satisfies DiningResponse, 502);
   if (!nearby.length) return json({ ...base, status: 'empty', message: '등록된 음식점 정보가 없어요.' } satisfies DiningResponse);
 
   // 편의 확인과 운영시간 조회는 상한 안에서만, 남은 예산 안에서만 한다. 예산을
@@ -116,7 +116,7 @@ export async function handleDiningAccessibility(url: URL, env: Env) {
 
   const labels = new Map(requestedAccessibilityFields(DINING_PROFILES));
   const checkedAt = new Date().toISOString();
-  const items: DiningPlace[] = nearby.map(({ item, contentId, distanceMeters }, index) => {
+  const items: DiningPlace[] = nearby.map(({ item, contentId, destination, distanceMeters }, index) => {
     const check = checks[index];
     const detail = check.detail.ok ? check.detail.value.items.find((entry) => String(entry.contentid) === contentId) || {} : {};
     const intro = check.intro.ok ? check.intro.value.items.find((entry) => String(entry.contentid) === contentId) : undefined;
