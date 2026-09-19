@@ -1,6 +1,6 @@
-# PR #번호 AI 작업 로그
+# PR #578 AI 작업 로그
 
-- PR: 링크
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/578
 - 제목: feat: 음식점 접근성 겹쳐 보기
 - 작성자: 황대겸
 - 최종 상태: 열림(리뷰 대기)
