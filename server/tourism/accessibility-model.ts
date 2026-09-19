@@ -10,7 +10,13 @@ export function requestedAccessibilityFields(profiles: string[]) {
 
 export function placeFrom(item: KtoItem, detail: KtoItem, region: string, profiles: string[], index: number) {
   const unique = requestedAccessibilityFields(profiles);
-  const accessibility = buildAccessibilityItems(unique, detail);
+  // `route`(접근로) 필드는 스펙 16에 따라 원문을 요약 없이 그대로 인용해 보여줘야
+  // 한다. `buildAccessibilityItems`의 기본 처리는 HTML 태그를 지우지 않고 300자로만
+  // 자르므로, 이 항목만 `clean()`으로 태그를 제거하고 더 넉넉한 길이(600자)를 준다.
+  // `clean()` 자체의 기본값(240)은 바꾸지 않는다.
+  const accessibility = buildAccessibilityItems(unique, detail).map((entry) =>
+    entry.key === "route" ? { ...entry, detail: clean(detail.route, 600) } : entry,
+  );
   const matched = unique.filter(([key]) => accessibility.some((entry) => entry.key === key && entry.state === "confirmed"));
   const known = accessibility.filter((entry) => entry.state !== "unknown");
   const negative = accessibility.filter((entry) => entry.state === "negative");
