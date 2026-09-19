@@ -32,7 +32,8 @@ test('help dialog opens immediately with the intended first focus and default me
   // context.setOffline으로 끊으면 이 화면과 무관한 지도 청크 로딩까지 함께 깨져
   // 검증 대상이 아닌 실패가 섞이므로, 이 기능이 실제로 의존하는 경계인
   // 서버 호출 자체를 차단해서 확인한다.
-  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
+  await page.waitForLoadState('networkidle');
   const apiCallUrls: string[] = [];
   await page.route('**/api/**', route => { apiCallUrls.push(route.request().url()); return route.fulfill({ status: 503, json: { error: 'must not be called by help request' } }); });
 

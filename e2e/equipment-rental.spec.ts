@@ -23,7 +23,7 @@ test('the equipment rental list opens from the help request "기기가 고장 �
   await setupPlanner(page);
   await page.locator('.simple-more-trip-tools > summary').click();
   await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
-  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.waitForLoadState('networkidle');
   const apiCallUrls: string[] = [];
   await page.route('**/api/**', route => { apiCallUrls.push(route.request().url()); return route.fulfill({ status: 503, json: { error: 'must not be called' } }); });
 
@@ -65,7 +65,7 @@ test('help request offline flow keeps working after the equipment situation is a
   await setupPlanner(page);
   await page.locator('.simple-more-trip-tools > summary').click();
   await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
-  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.waitForLoadState('networkidle');
   const apiCallUrls: string[] = [];
   await page.route('**/api/**', route => { apiCallUrls.push(route.request().url()); return route.fulfill({ status: 503, json: { error: 'must not be called' } }); });
 
