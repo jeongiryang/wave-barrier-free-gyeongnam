@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { load } from "js-yaml";
 import { DATABASE_PREFLIGHT_SQL, inspectProductionDatabase, matchesProductionDatabase, PRODUCTION_DATABASE_TARGET } from "../lib/deployment/database-preflight.js";
@@ -63,7 +64,7 @@ test("provider failures never leak raw messages into evidence", async () => {
 test("CI evidence renderer whitelists fields and fails closed on invalid or non-JSON provider responses", async () => {
   const report = await inspectProductionDatabase(database(), connection);
   const command = new URL("../scripts/check-database-preflight.mjs", import.meta.url);
-  const run = (input) => spawnSync(process.execPath, [command.pathname.replace(/^\/(\w:)/, "$1")], { input, encoding: "utf8" });
+  const run = (input) => spawnSync(process.execPath, [fileURLToPath(command)], { input, encoding: "utf8" });
   const success = run(JSON.stringify({ ...report, connection, privateUser: "not-for-logs" }));
   assert.equal(success.status, 0, success.stderr);
   assert.deepEqual(JSON.parse(success.stdout), report);

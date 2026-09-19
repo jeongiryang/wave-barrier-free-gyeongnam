@@ -79,7 +79,17 @@ test("inconsistent provider measurements stay unavailable and a deliberate reche
   for (const width of [960, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     const timetable = page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "시간표", exact: true });
-    if (await timetable.count()) await timetable.click();
+    // Wait for matchMedia's React update after crossing the 1024px breakpoint.
+    // An immediate count can see the previous mobile button, which disappears
+    // before click at desktop width (or miss it before it appears on tablet).
+    if (width < 1024) {
+      await expect(timetable).toBeVisible();
+      await timetable.click();
+      await expect(timetable).toHaveAttribute("aria-pressed", "true");
+    } else {
+      await expect(timetable).toHaveCount(0);
+    }
+    await expect(stop).toBeVisible();
     await stop.screenshot({ path: test.info().outputPath(`long-route-arrival-${width}.png`) });
   }
   await page.clock.install(); await page.clock.runFor(1000);
