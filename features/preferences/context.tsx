@@ -3,13 +3,16 @@
 import { createContext, startTransition, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { copy } from "./translations";
 import { readStoredPreferences, writeStoredPreferences } from "./storage";
-import type { ColorAssist, Haptics, Locale, Motion, PreferencesValue, TextScale, Theme } from "./types";
+import type { ColorAssist, Haptics, Locale, Motion, PreferencesValue, TextScale, Theme, Tone } from "./types";
 import { presentationOptionsEnabled } from "./presentation-release";
+
+import { dialectToneEnabled } from "./tone-release";
 
 const PreferencesContext = createContext<PreferencesValue | null>(null);
 
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("ko");
+  const [tone, setToneState] = useState<Tone>("standard");
   const [theme, setTheme] = useState<Theme>("light");
   const [colorAssist, setColorAssistState] = useState<ColorAssist>("off");
   const [haptics, setHaptics] = useState<Haptics>("off");
@@ -26,6 +29,7 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
       startTransition(() => {
         setLocaleState(stored.locale);
         setTheme(stored.theme);
+        setToneState(stored.tone);
         setHaptics(stored.haptics);
         setTextScale(stored.textScale);
         setColorAssistState(stored.colorAssist);
@@ -55,14 +59,17 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = "ko";
     document.documentElement.style.colorScheme = theme;
     document.documentElement.dataset.motion = motion;
+    document.documentElement.dataset.tone = tone;
     document.documentElement.dataset.textScale = textScale;
     document.documentElement.dataset.colorAssist = colorAssist;
-    writeStoredPreferences({ locale, theme, textScale, colorAssist, haptics });
-  }, [locale, theme, textScale, colorAssist, haptics, motion, hydrated]);
+    writeStoredPreferences({ locale, theme, tone, textScale, colorAssist, haptics });
+  }, [locale, theme, tone, textScale, colorAssist, haptics, motion, hydrated]);
 
   const value = useMemo<PreferencesValue>(() => ({
     locale,
     theme,
+    tone,
+    setTone: (next) => setToneState(next === "gyeongnam" && dialectToneEnabled() ? "gyeongnam" : "standard"),
     textScale,
     colorAssist,
     setColorAssist: setColorAssistState,
@@ -74,7 +81,7 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     setTextScale,
     toggleTheme: () => { if (presentationOptionsEnabled()) setTheme((current) => current === "dark" ? "light" : "dark"); },
     t: (key, fallback) => copy[locale][key] || fallback,
-  }), [locale, theme, textScale, colorAssist, haptics, hydrated, motion]);
+  }), [locale, theme, tone, textScale, colorAssist, haptics, hydrated, motion]);
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }
