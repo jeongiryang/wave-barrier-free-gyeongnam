@@ -38,6 +38,6 @@ export default function TripDayTools(props:{trip:ReturnType<typeof useTripSelect
   {mode==='progress'&&<div className="travel-book-actions" role="group" aria-label="진행할 여행 날짜">{props.trip.tripDays.map(day=><button type="button" key={day} aria-pressed={props.trip.activeDay===day} onClick={()=>props.trip.setActiveDay(day)}>{day.slice(5).replace('-', '월 ')}일</button>)}</div>}
   {mode&&mode!=='split'&&<Suspense fallback={<LoadingState>여행 정보를 준비하고 있어요.</LoadingState>}>{mode==='progress'?<OnTripGuide {...props} progressMemory={progressMemory} onProgressChange={rememberProgress}/>:mode==='transport'?<ReturnTransport trip={props.trip}/>:<OfflineTripPack {...props} progressMemory={progressMemory}/>}</Suspense>}
   {splitMounted&&<div hidden={mode!=='split'}><Suspense fallback={<LoadingState>합류 계획을 준비하고 있어요.</LoadingState>}><SplitReunion trip={props.trip} coverage={props.coverage} origin={props.origin}/></Suspense></div>}
-  {helpOpen&&<HelpRequestDialog placeName={currentPlace?.name ?? null} placeAddress={currentPlace?.address ?? null} onClose={closeHelp}/>}
+  {helpOpen&&<HelpRequestDialog placeName={currentPlace?.name ?? null} placeAddress={currentPlace?.address ?? null} placeRegion={currentPlace?.city ?? null} onClose={closeHelp}/>}
  </section>;
 }

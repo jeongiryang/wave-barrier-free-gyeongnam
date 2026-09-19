@@ -4,6 +4,9 @@ import { createPortal } from "react-dom";
 import { helpMessage, helpSituations } from "../../../lib/help-request.js";
 import { usePlaceDialogFocus } from "../hooks/usePlaceDialogFocus";
 import type { HelpSituation } from "../../../lib/help-request";
+// 정적으로 불러온다: 이 목록도 정적 데이터이므로, 이미 열려 있는 도움 요청 화면
+// 안에서 "기기가 고장 났어요" 상황을 고를 때 새 네트워크 요청이 없어야 한다.
+import EquipmentRentalList from "./EquipmentRentalList";
 
 // 사람 확인 전에는 목록을 비워 둔다 (human-gate). 확인되지 않은 기관 이름·번호를
 // 임시로 적지 않는다. 확인되면 { name, phone, description }[] 형태로 채운다.
@@ -25,9 +28,10 @@ const situationButtonStyle = (pressed: boolean): React.CSSProperties => ({
   textAlign: "center",
 });
 
-export default function HelpRequestDialog({ placeName, placeAddress, onClose }: {
+export default function HelpRequestDialog({ placeName, placeAddress, placeRegion = null, onClose }: {
   placeName: string | null;
   placeAddress: string | null;
+  placeRegion?: string | null;
   onClose: () => void;
 }): ReactNode {
   const dialog = usePlaceDialogFocus(true, onClose);
@@ -120,6 +124,13 @@ export default function HelpRequestDialog({ placeName, placeAddress, onClose }: 
             <p>{message}</p>
             <span>WAVE</span>
           </div>
+
+          {situation === "equipment" && (
+            <section aria-label="보조기기 대여처" style={{ marginTop: 16 }}>
+              <p style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)", margin: "0 0 8px" }}>가까운 보조기기 대여처</p>
+              <EquipmentRentalList region={placeRegion} />
+            </section>
+          )}
 
           <div className="inquiry-actions">
             <button type="button" ref={primaryButtonRef} onClick={showScreen}>이 화면 보여주기</button>
