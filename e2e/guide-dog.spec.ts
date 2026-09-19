@@ -29,7 +29,7 @@ async function openPlannerWithPlaces(page: Page) {
   await mockPlannerApi(page, { plannerView: "overview", savedPlaces: places });
   await page.route("**/api/wave?action=plan*", (route) => route.fulfill({ json: {
     criteria: { facilityKeys: (new URL(route.request().url()).searchParams.get("facilityKeys") || "").split(",").filter(Boolean) },
-    mode: "live", generatedAt: places[0].checkedAt, baseYm: "202609",
+    mode: "live", generatedAt: places[0].checkedAt || "2026-09-19T00:00:00Z", baseYm: "202609",
     course: null, audio: null, places, stops: [], statuses: [],
   } satisfies PlanData }));
   await page.route("**/api/community/posts?*", (route) => route.fulfill({ json: { posts: [] } }));
