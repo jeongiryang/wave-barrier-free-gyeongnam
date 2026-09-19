@@ -116,3 +116,21 @@
 - 후속: 명세가 적은 `조건을 유지한 채 다른 지역 보기`/`조건 바꾸기`는 지금 상세를
   닫고 기존 지역 선택·편의 선택 조작부로 초점을 옮기는 것까지만 한다. 조건을
   자동으로 바꾸지 않는다.
+
+## PR 연 뒤 CI 상태(2026-09-19 확인)
+
+- 통과: `quality`, `sandbox-boundary`, `browser (1, desktop/mobile)`,
+  `browser (3, desktop)`, `browser (4, desktop/mobile)`.
+- 실패: `browser (2, desktop)`, `browser (2, mobile)`, `browser (3, mobile)`,
+  그리고 그 결과를 모으는 `validate`.
+- `browser (2, *)`의 실패 5건은 모두 `e2e/map-tools-reachable.spec.ts`(4건)와
+  `e2e/mobile-touch-targets.spec.ts`(1건)이며, **base 브랜치 PR #576에서 같은
+  샤드가 정확히 같은 5건으로 실패한다.** 이 PR이 새로 만든 실패가 아니라 스택
+  아래에서 이미 실패 중인 기존 문제다. 고치지 않았다.
+- `browser (3, mobile)`은 197건 통과·2건 skip·flaky 1건
+  (`e2e/region-change-boundary.spec.ts:52` `new trip ignores a delayed map
+  location failure`)으로 exit 1이 됐다. 재시도에서 통과한 불안정 테스트이며
+  지도 지역 변경 흐름이라 이 PR의 변경 범위와 무관하다. spec 파일이 하나 늘어
+  샤드 배분이 밀리면서 이 테스트가 3번 샤드로 옮겨 온 것이다.
+- 이 PR이 추가한 `e2e/dining-accessibility.spec.ts` 18건은 CI와 로컬 양쪽에서
+  모두 통과했다. 기준을 완화하거나 테스트를 skip해서 통과시키지 않았다.
