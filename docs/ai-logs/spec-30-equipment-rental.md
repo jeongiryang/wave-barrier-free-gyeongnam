@@ -1,6 +1,6 @@
 # PR #번호 AI 작업 로그
 
-- PR: (push 후 채움)
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/600
 - 제목: feat: 보조기기 대여처 안내
 - 작성자: Claude Sonnet 5 (Claude Code)
 - 최종 상태: 리뷰 대기 (사람 확인 항목 있음, human-gate)
