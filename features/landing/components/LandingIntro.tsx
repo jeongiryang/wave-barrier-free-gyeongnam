@@ -33,6 +33,8 @@ export default function LandingIntro() {
       active = false;
       clear();
       node.close();
+      // Reset while hidden so replay never reverses the exit fade over the page.
+      setLeaving(false);
       document.documentElement.classList.remove("arrival-open");
       document.documentElement.style.overflow = previousOverflow;
       document.documentElement.dataset.introSeen = "1";

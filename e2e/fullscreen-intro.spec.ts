@@ -1,5 +1,21 @@
 import { expect, test } from "@playwright/test";
 import { freshArrival, prepareLandingMedia, storyReady, expectUsableTarget, expectNoOverflow } from "./landing-contract";
+import { openSupportMenu } from "./support-menu";
+
+test("replaying a completed intro starts opaque instead of revealing the page underneath", async ({ page }) => {
+  await freshArrival(page);
+  const scene = page.locator(".arrival-scene");
+  await page.clock.runFor(10450);
+  await expect(scene).toBeHidden();
+  await openSupportMenu(page);
+  await page.getByRole("button", { name: "인트로 다시 보기", exact: true }).click();
+  await expect(scene).toBeVisible();
+  // Do not retry this assertion: a fade from transparent eventually reaches 1
+  // but still exposes the underlying heading at the beginning of the replay.
+  expect(await scene.evaluate(node => getComputedStyle(node).opacity)).toBe("1");
+  await page.keyboard.press("Escape");
+  await expect(scene).toBeHidden();
+});
 
 test("blocked application scripts leave readable content without an arrival overlay", async ({ page }) => {
   await prepareLandingMedia(page);
