@@ -1,6 +1,6 @@
 # 여행 전 대비 체크리스트 AI 작업 로그
 
-- PR: 생성 후 기록
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/624
 - 제목: feat: 여행 전 대비 체크리스트 추가
 - 작성자: Codex (정이량 요청)
 - 최종 상태: 구현 및 로컬 검증 완료, PR 검토 대기
