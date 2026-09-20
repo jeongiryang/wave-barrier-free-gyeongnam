@@ -1,5 +1,18 @@
 # 이미지와 지도 자산
 
+## 지역 문화 카드 공식 링크 (2026-09-20 확인)
+
+음원·영상 파일을 복제하거나 재생하지 않고 국가유산청 국가유산포털의 공식 안내 페이지로만 연결한다. 화면의 짧은 소개는 각 페이지가 밝힌 종목과 소재지를 요약한 것이며, 지역 전체를 대표한다고 단정하지 않는다.
+
+| 지역 | 항목 | 제공 기관 | 공식 안내 |
+| --- | --- | --- | --- |
+| 밀양 | 밀양아리랑 | 국가유산청 국가유산포털 | https://heritage.go.kr/heri/cul/culSelectDetail.do?ccbaAsno=0000480000000&ccbaCpno=2223800480000&pageNo=1_1_1_1&sngl=Y |
+| 진주 | 진주검무 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1273800120000&pageNo=1_1_1_1 |
+| 통영 | 통영오광대 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1273800060000&pageNo=1_1_1_1 |
+| 고성 | 고성오광대 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1273800070000&pageNo=1_1_1_1 |
+| 사천 | 진주삼천포농악 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1273800110100&pageNo=1_1_2_0 |
+| 거창 | 거창삼베일소리 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=2223800170000&pageNo=1_1_2_0 |
+
 ## 행정경계
 
 - 원본: [StatGarten maps](https://github.com/statgarten/maps/blob/main/svg/simple/경상남도_시군구_경계.svg)
