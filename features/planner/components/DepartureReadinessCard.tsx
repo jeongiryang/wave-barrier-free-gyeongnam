@@ -8,6 +8,7 @@ import type { PlanData, WeatherData } from '../types';
 import { localDate } from '../utils';
 // 정적으로 불러온다: 목록 자체가 정적 데이터라서 새 네트워크 요청이 없다.
 import EquipmentRentalList from './EquipmentRentalList';
+import CompanionSupportCard from './CompanionSupportCard';
 import EvidenceCoverageCard from './EvidenceCoverageCard';
 import { useReadinessFocus } from '../hooks/useReadinessFocus';
 import { tripPrecautionItems } from '../../../lib/trip-precautions.js';
@@ -49,5 +50,6 @@ export default function DepartureReadinessCard({ region, plan, placeCriteriaCurr
         <a href={item.href} onClick={event => { if (item.href === '#layers' && !event.ctrlKey && !event.metaKey) { event.preventDefault(); onOpenSignals('layers'); } }}>{item.actionLabel}</a>
       </div>)}
     </fieldset>
+    <CompanionSupportCard />
   </section>;
 }
