@@ -393,10 +393,7 @@ test("arrival intro reuses the historical renderer and supports explicit dismiss
   const [landing, intro, css] = await Promise.all([
     source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"), source("features/landing/components/LandingIntro.module.css"),
   ]);
-  assert.doesNotMatch(intro, /EditorialPhoto|<img\b|<video\b/);
-  assert.match(intro, /<canvas ref=\{canvas\}[^>]*aria-hidden="true"/);
-  assert.match(intro, /const DURATION = 10400/);
-  assert.match(intro, /여행 설계[\s\S]*경남의 축제[\s\S]*WAVE 커뮤니티/);
+  assert.match(intro, /<EditorialPhoto photo=\{photo\}/);
   assert.match(intro, /arrival-word.*aria-hidden="true">WAVE/);
   assert.match(intro, /import\("\.\.\/\.\.\/motion\/wave-field-engine"\)/);
   assert.match(landing, /<LandingIntro \/><main/);
@@ -407,8 +404,8 @@ test("arrival intro reuses the historical renderer and supports explicit dismiss
   assert.match(intro, /setTimeout\(finish, DURATION\)/);
   assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
   assert.match(intro, /timers\.forEach\(window\.clearTimeout\)/);
-  assert.match(css, /\.scene\s*\{[^}]*position:\s*fixed/);
-  assert.match(css, /\.particles\s*\{[^}]*position:\s*absolute/);
+  assert.match(css, /\.scene \{[^}]*position:\s*fixed/);
+  assert.match(css, /object-fit:\s*cover/);
   assert.doesNotMatch(landing, /<LandingSectionProgress|<LandingAccountStory/);
 });
 
