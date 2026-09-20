@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
 
-test("Naru reveals keyboard focus without moving a control during a pointer click", async ({ page }) => {
+test("Naru reveals restored and keyboard focus without moving a control during a pointer click", async ({ page }) => {
   await page.setViewportSize({ width: 412, height: 839 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
@@ -31,6 +31,17 @@ test("Naru reveals keyboard focus without moving a control during a pointer clic
   await page.mouse.up();
   await expect(activity).toHaveAttribute("aria-pressed", "true");
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("wave-trip-themes-v1") || "[]"))).toContain("nature");
+
+  // Returning focus after a pointer action is programmatic, so Chromium may
+  // not assign :focus-visible. It still needs to clear the floating launcher.
+  await activity.evaluate(element => (element as HTMLElement).blur());
+  await alignWithLauncher();
+  await activity.evaluate(element => (element as HTMLElement).focus({ preventScroll: true }));
+  await expect(activity).toBeFocused();
+  await expect.poll(() => activity.evaluate(element => {
+    const target = element.getBoundingClientRect(), launcher = document.querySelector(".naru-discovery")!.getBoundingClientRect();
+    return target.bottom > launcher.top && target.top < launcher.bottom && target.right > launcher.left && target.left < launcher.right;
+  })).toBe(false);
 
   await activity.evaluate(element => (element as HTMLElement).blur());
   await page.keyboard.press("Tab");

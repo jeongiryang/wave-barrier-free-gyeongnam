@@ -15,12 +15,12 @@ export default function NaruLauncher({ onOpen, context = '여행 설계', disabl
     const revealFocusedControl = () => {
       cancelAnimationFrame(frame);
       // Moving a pressed control before pointerup can send the click elsewhere.
-      // Only reveal keyboard focus; pointer users already chose a visible point.
+      // Reveal keyboard and restored focus only outside an active pointer gesture.
       if (pointerActive) return;
       frame = requestAnimationFrame(() => {
         const target = document.activeElement;
         const launcher = discovery.current;
-        if (pointerActive || !(target instanceof HTMLElement) || !launcher || launcher.contains(target) || !target.matches(':focus-visible') || !target.matches('a,button,input,select,textarea,summary')) return;
+        if (pointerActive || !(target instanceof HTMLElement) || !launcher || launcher.contains(target) || !target.matches('a,button,input,select,textarea,summary')) return;
         const control = target.getBoundingClientRect(), floating = launcher.getBoundingClientRect();
         if (control.bottom > floating.top && control.top < floating.bottom && control.right > floating.left && control.left < floating.right) {
           target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });

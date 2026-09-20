@@ -54,5 +54,5 @@ html body .wave-night .wave-wordmark{flex-shrink:0}
 html body .wave-night :is(.place-inquiry-entry,.place-community-empty,.place-evidence,.travel-profile-card,.trip-comfort-choices,.easy-trip-card){--white:var(--paper)}
 body:has(.wave-night) .naru-panel{--white:#0b2035}
 body:has(.wave-night) .naru-panel :is(.naru-more>div,.naru-extra-help>div,.naru-tool-card,.naru-tool-result,.access-badge,.naru-note){background:#0b2035;color:#c5d7ed;border-color:#315777}
-body:has(.wave-night) .naru-panel :is(.naru-tool-card strong,.naru-tool-card b){color:#edf5ff}
+body:has(.wave-night) .naru-panel :is(.naru-tool-card strong,.naru-tool-card b,.naru-more>div>a){color:#edf5ff}
 @media(max-width:600px){html body .night-secondary .auth-layout{width:calc(100% - 24px);grid-template-columns:minmax(0,1fr);margin-top:20px}html body .night-secondary .auth-card{min-width:0;padding:24px 18px}html body .night-secondary .night-account-visual{display:none}html body .wave-night .wave-header{padding-inline:12px}html body .wave-night .wave-header nav{gap:12px}html body .wave-night .wave-header nav a{font-size:12px}html body .wave-night .wave-header-actions{gap:0}}

@@ -57,7 +57,16 @@ for (const clipboard of ['available', 'denied'] as const) test(`parking inquiry 
     } } });
   }, clipboard);
   await page.route('**/api/wave?action=parking-alternatives*', route => route.fulfill({ json: { status: 'available', contentId: place.id, checkedAt: '2026-09-15T05:20:00Z', source: '전국주차장정보표준데이터', items: [item] } }));
+  await page.route('**/api/community/posts?*', route => route.fulfill({ json: { posts: [], fieldReports: [], page: 1, hasMore: false } }));
+  // The detail dialog also mounts a lazy visitor preview. CI traces show this
+  // independent read starting after the parking list renders. Finish it before
+  // measuring the inquiry's strict zero-network contract; do not exclude APIs.
+  const visitorPreview = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === '/api/community/posts' && url.searchParams.get('placeId') === place.id && url.searchParams.get('placePreview') === '1';
+  });
   const panel = await openParking(page); await panel.getByRole('button', { name: '주변 주차장 보기', exact: true }).click();
+  expect(await (await visitorPreview).finished()).toBeNull();
   const before = await page.evaluate(() => ({ url: location.href, local: { ...localStorage }, session: { ...sessionStorage }, cookie: document.cookie }));
   const networkBefore = requests.length;
   const trigger = panel.getByRole('button', { name: '주차장에 문의하기', exact: true }); await trigger.click();
@@ -84,6 +93,7 @@ for (const clipboard of ['available', 'denied'] as const) test(`parking inquiry 
     expect(await fallback.evaluate(element => ({ start: (element as HTMLTextAreaElement).selectionStart, end: (element as HTMLTextAreaElement).selectionEnd, length: (element as HTMLTextAreaElement).value.length }))).toEqual(expect.objectContaining({ start: 0 }));
     expect(await fallback.evaluate(element => (element as HTMLTextAreaElement).selectionEnd === (element as HTMLTextAreaElement).value.length)).toBe(true);
   }
+  expect(requests).toHaveLength(networkBefore);
   expect(await page.evaluate(() => (window as unknown as { parkingInquiryAudit: { geolocationCalls: number } }).parkingInquiryAudit.geolocationCalls)).toBe(0);
   expect(await page.evaluate(() => ({ url: location.href, local: { ...localStorage }, session: { ...sessionStorage }, cookie: document.cookie }))).toEqual(before);
   expect(requests.filter(url => /relaycall\.or\.kr|pf\.kakao\.com|\/api\/assistant|map\.kakao/.test(url))).toEqual([]);
