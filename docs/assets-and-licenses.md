@@ -12,6 +12,11 @@
 | 고성 | 고성오광대 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1273800070000&pageNo=1_1_1_1 |
 | 사천 | 진주삼천포농악 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1273800110100&pageNo=1_1_2_0 |
 | 거창 | 거창삼베일소리 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=2223800170000&pageNo=1_1_2_0 |
+## 지역 배경 소리 검토 상태 (2026-09-20)
+
+명세 37의 0단계에 따라 공공누리·문화기관 공개 자료, CC 음원과 직접 녹음 자료를 후보 범위로 두었으나, 저장소 책임자가 제목·권리자·상업적 이용·변경 허용·표기 문구를 확인한 음원은 아직 없다. 따라서 `features/landing/region-sound.ts`의 공개 목록은 비어 있으며 `public/media/sound/`에 음원 파일을 추가하지 않았다. 후보 페이지의 공개 표기만으로 특정 녹음의 저작인접권과 공모전 재배포 권한을 확정하지 않는다.
+
+사람 확인 전에는 재생 버튼도 표시하지 않는다. 승인할 때에는 제목, 원본 URL, 저작권자, 라이선스와 원문 URL, 상업적 이용·변경 가능 여부, 필요한 출처 문구, 파일 크기·길이, 녹음 장소와 사람 목소리 포함 여부, 확인 날짜를 이 문서와 정책 화면에 먼저 기록한다.
 
 ## 행정경계
 
