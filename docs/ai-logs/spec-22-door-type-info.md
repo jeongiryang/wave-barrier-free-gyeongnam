@@ -1,9 +1,9 @@
-# PR (생성 예정) AI 작업 로그
+# PR #621 AI 작업 로그
 
-- PR: 생성 후 본문에 연결
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/621
 - 제목: feat: 출입문 문의와 현장 도움 요청 연결
 - 작성자: Codex
-- 최종 상태: 검증 후 PR 생성 예정
+- 최종 상태: PR 검토 대기(미병합)
 - AI 도구: Codex
 
 ## 목적
