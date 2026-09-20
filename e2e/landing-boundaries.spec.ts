@@ -7,10 +7,12 @@ import { findLowContrastText } from "./contrast";
 const boundaryAsset = /RegionBoundarySurface|LandingBoundaryMap|korea-sgis|gyeongnam-boundar|\.geojson(?:\?|$)/i;
 
 async function prepareRegions(page: Page) {
+  const requestedRegions: string[] = [];
   await mockPlannerApi(page);
   await mockPublicShellApi(page);
   await page.route("**/api/wave?action=plan*", route => {
     const region = new URL(route.request().url()).searchParams.get("region")!;
+    requestedRegions.push(region);
     // Distinct synthetic results ensure an old region cannot satisfy selection.
     return route.fulfill({ json: {
       ...plan, criteria: { facilityKeys: [] }, stops: [], statuses: [],
@@ -18,6 +20,7 @@ async function prepareRegions(page: Page) {
         name: `${region} 검증용 여행지`, address: `${region} 테스트 주소`, image: "", mapX: "", mapY: "" }],
     } });
   });
+  return requestedRegions;
 }
 
 function regionResponse(page: Page, region: string) {
@@ -62,7 +65,7 @@ test.beforeEach(async ({ page }) => { await page.addInitScript(() => sessionStor
 for (const width of [390, 1366]) test(`regional entry: all 18 gallery choices and native IDs remain keyboard usable at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await prepareRegions(page);
+  const requestedRegions = await prepareRegions(page);
   await page.goto("/planner");
   const { gallery, select } = await expandedPlannerRegions(page);
   expect((await gallery.locator("h3").allTextContents()).sort()).toEqual([...allRegions].sort());
@@ -72,17 +75,25 @@ for (const width of [390, 1366]) test(`regional entry: all 18 gallery choices an
   for (const name of allRegions) {
     const button = gallery.getByRole("button", { name: `${name} 지역 선택`, exact: true });
     await expectUsableTarget(button);
+    await expect(button).toBeInViewport({ ratio: 1 });
+    await expect(button.getByRole("heading", { name, exact: true })).toBeInViewport({ ratio: 1 });
     await expect(button).toHaveAttribute("aria-pressed", "false");
     await expect(button).toHaveAttribute("lang", "ko");
   }
   expect((await new AxeBuilder({ page }).include(".simple-search-controls").analyze()).violations).toEqual([]);
   expect(await gallery.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
   await expectNoOverflow(page);
-  await gallery.screenshot({ path: test.info().outputPath(`region-gallery-${width}.png`) });
   const first = gallery.getByRole("button", { name: "통영 지역 선택", exact: true });
+  await first.focus();
+  await expect(first).toBeFocused();
+  await expect(first).toBeInViewport({ ratio: 1 });
+  await page.screenshot({ path: test.info().outputPath(`region-gallery-${width}.png`) });
+  expect(await page.evaluate(() => innerWidth)).toBe(width);
+  expect(requestedRegions).toEqual([]);
   const chosen = regionResponse(page, "통영");
-  await first.focus(); await first.press("Enter");
+  await first.press("Enter");
   await expectRegion(page, "통영", chosen);
+  expect(requestedRegions).toEqual(["통영"]);
   // The native selector remains after the entry gallery gives way to results.
   for (const name of allRegions.filter(name => name !== "통영")) {
     const response = regionResponse(page, name);
@@ -97,7 +108,7 @@ for (const theme of ["light", "dark"] as const) test(`regional entry: English pr
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(value => { localStorage.setItem("wave-locale", "en"); localStorage.setItem("wave-theme", value); }, theme);
-  await prepareRegions(page);
+  const requestedRegions = await prepareRegions(page);
   await page.goto("/planner");
   const { gallery, select } = await expandedPlannerRegions(page, true);
   await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
@@ -108,10 +119,20 @@ for (const theme of ["light", "dark"] as const) test(`regional entry: English pr
   expect((await new AxeBuilder({ page }).include(".simple-search-controls").analyze()).violations).toEqual([]);
   expect((await findLowContrastText(page)).filter(item => /simple-region|simple-search/.test(item.where))).toEqual([]);
   await expectNoOverflow(page);
-  await gallery.screenshot({ path: test.info().outputPath(`region-controls-en-${theme}.png`) });
+  const first = gallery.getByRole("button", { name: "통영 지역 선택", exact: true });
+  await first.focus();
+  await expect(first).toBeFocused();
+  await expect(first).toBeInViewport({ ratio: 1 });
+  // A screenshot of the entire expanded gallery temporarily enlarges Chromium's
+  // viewport beyond this 390px case. Record the visible controls without resizing
+  // the viewport immediately before the real pointer-navigation assertion.
+  await page.screenshot({ path: test.info().outputPath(`region-controls-en-${theme}.png`) });
+  expect(await page.evaluate(() => innerWidth)).toBe(390);
+  expect(requestedRegions).toEqual([]);
   const chosen = regionResponse(page, "통영");
-  await gallery.getByRole("button", { name: "통영 지역 선택", exact: true }).click();
+  await first.click();
   await expectRegion(page, "통영", chosen);
+  expect(requestedRegions).toEqual(["통영"]);
   await expect(page.locator(".simple-results h2")).toHaveText("통영 places");
 });
 
@@ -199,14 +220,25 @@ test("regional entry: pointer hover stays stable and coastal or inland choices m
   page.on("request", request => { const url = new URL(request.url()); if (url.pathname === "/api/wave" && url.searchParams.get("action") === "plan") searches.push(url.searchParams.get("region")!); });
   await page.goto("/planner");
   const { gallery, select } = await expandedPlannerRegions(page);
-  for (const name of ["거제", "진주", "김해"]) {
-    const button = gallery.getByRole("button", { name: `${name} 지역 선택`, exact: true });
-    await button.evaluate(node => node.scrollIntoView({ block: "center", behavior: "instant" }));
-    const before = (await button.boundingBox())!;
-    await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
-    expect(Math.abs((await button.boundingBox())!.y - before.y), "hover must not scroll the target away").toBeLessThanOrEqual(1);
-    await expect(select).toHaveValue("");
-    expect(searches).toEqual([]);
+  for (const width of [1440, 960, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const name of ["거제", "진주", "김해"]) {
+      const button = gallery.getByRole("button", { name: `${name} 지역 선택`, exact: true });
+      await button.evaluate(node => node.scrollIntoView({ block: "center", behavior: "instant" }));
+      await expect(button).toBeInViewport({ ratio: 1 });
+      await expect(button.getByRole("heading", { name, exact: true })).toBeInViewport({ ratio: 1 });
+      const before = (await button.boundingBox())!;
+      expect(await button.evaluate(node => {
+        const box = node.getBoundingClientRect();
+        return node.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
+      })).toBe(true);
+      await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
+      expect(Math.abs((await button.boundingBox())!.y - before.y), "hover must not scroll the target away").toBeLessThanOrEqual(1);
+      await expect(select).toHaveValue("");
+      expect(searches).toEqual([]);
+    }
+    await expectNoOverflow(page);
+    await page.screenshot({ path: test.info().outputPath(`region-card-visible-${width}.png`) });
   }
   const coastal = gallery.getByRole("button", { name: "거제 지역 선택", exact: true });
   await coastal.evaluate(node => node.scrollIntoView({ block: "center", behavior: "instant" }));

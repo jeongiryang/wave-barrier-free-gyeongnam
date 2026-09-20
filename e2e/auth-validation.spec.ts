@@ -159,7 +159,11 @@ test("로그아웃 실패는 복구할 수 있고 연속 요청을 보내지 않
   await Promise.all([page.waitForEvent("domcontentloaded"), signOut.click()]);
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await page.locator(":is(.wave-header-actions,.wave-footer-tools) > a[href='/account']").hover();
-  await expect(page.getByRole("link", { name: "로그인", exact: true })).toBeVisible();
+  const accountLogin = page.locator(".wave-header-actions > a.account-button");
+  await expect(accountLogin).toHaveAccessibleName("로그인");
+  await expect(accountLogin).toHaveAttribute("href", "/login?next=%2Fcommunity");
+  await expect(accountLogin).toBeVisible();
+  await expect(page.getByRole("button", { name: /로컬 여행자 계정 메뉴/ })).toHaveCount(0);
   expect(attempts).toBe(2);
 });
 

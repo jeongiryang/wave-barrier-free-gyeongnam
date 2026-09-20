@@ -57,7 +57,7 @@ export default function LandingRegionStory() {
         </Link>
         {isDecliningRegion(name) && <div className="declining-region-notice" lang="ko"><p>{DECLINING_REGION_LABEL}</p><small>{decliningRegionSourceLabel()}</small></div>}
         {culture && <aside className="simple-region-culture" lang="ko" aria-label={`${name} 문화 이야기`}>
-          <details><summary>{culture.title}</summary>
+          <details inert={!interactive}><summary>{culture.title}</summary>
           <p>{culture.summary}</p>
           <small>{culture.institution} · {culture.checkedOn}</small>
           <a href={culture.url} target="_blank" rel="noopener noreferrer" aria-label={`${culture.title} 자세히 보기, 새 탭`}>자세히 보기 <span aria-hidden="true">↗</span></a></details>

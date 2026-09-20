@@ -1,9 +1,12 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { storyReady } from "./landing-contract";
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
+  await storyReady(page);
+  await expect(page.locator("#regions .simple-show-regions")).toBeEnabled();
   await page.locator("#regions").scrollIntoViewIfNeeded();
 });
 
@@ -21,8 +24,12 @@ test("확인된 지역에만 공식 문화 이야기와 출처를 표시한다",
 
 test("공식 안내 링크는 새 탭 보안 속성을 갖고 재생 기능이 없다", async ({ page }) => {
   const culture = page.locator("#regions .simple-region-culture").first();
-  await culture.locator("summary").click();
+  const disclosure = culture.locator("details");
+  await expect(disclosure).not.toHaveAttribute("open", "");
+  await disclosure.locator("summary").click();
+  await expect(disclosure).toHaveAttribute("open", "");
   const link = culture.getByRole("link", { name: /자세히 보기, 새 탭/ });
+  await expect(link).toBeVisible();
   await expect(link).toHaveAttribute("target", "_blank");
   await expect(link).toHaveAttribute("rel", "noopener noreferrer");
   await expect(link).toHaveAttribute("href", /^https:\/\/(www\.)?heritage\.go\.kr\//);
@@ -51,7 +58,9 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 960, height: 900 }
   test(`${viewport.width}px에서 카드 높이와 가로 배치가 유지된다`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.reload();
+    await storyReady(page);
     const regions = page.locator("#regions");
+    await expect(regions.locator(".simple-show-regions")).toBeEnabled();
     await regions.scrollIntoViewIfNeeded();
     const cards = await regions.locator(".simple-region-link").evaluateAll(nodes => nodes.map(node => ({ height: node.getBoundingClientRect().height, width: node.getBoundingClientRect().width })));
     expect(new Set(cards.map(card => Math.round(card.height))).size).toBe(1);
