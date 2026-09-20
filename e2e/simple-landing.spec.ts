@@ -63,7 +63,7 @@ test("keyboard users can dismiss the arrival with Escape", async ({ page }) => {
   await action.focus(); await expect(action).toBeFocused();
 });
 
-for (const width of [1440, 390]) test(`${width}px reduced motion keeps the split hero and all eighteen region choices usable`, async ({ page }, info) => {
+for (const width of [1440, 390]) test(`${width}px reduced motion keeps the photographic hero and all eighteen region choices usable`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: width === 390 ? 844 : 960 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await prepare(page);
@@ -80,8 +80,10 @@ for (const width of [1440, 390]) test(`${width}px reduced motion keeps the split
   await expect(photograph.locator("img")).toBeVisible();
   await expect.poll(() => photograph.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   const copyBox = (await copy.boundingBox())!, photoBox = (await photograph.boundingBox())!;
-  if (width === 1440) expect(copyBox.x + copyBox.width).toBeLessThan(photoBox.x);
-  else expect(copyBox.y + copyBox.height).toBeLessThan(photoBox.y);
+  expect(photoBox.x).toBeLessThanOrEqual(copyBox.x);
+  expect(photoBox.x + photoBox.width).toBeGreaterThanOrEqual(copyBox.x + copyBox.width);
+  expect(photoBox.y).toBeLessThanOrEqual(copyBox.y);
+  expect(photoBox.y + photoBox.height).toBeGreaterThanOrEqual(copyBox.y + copyBox.height);
   await expect(photograph.getByRole("link", { name: /사진 원본/ })).toHaveAttribute("href", horizonPhotos.coast.sourceUrl);
   await expect(photograph).toContainText(horizonPhotos.coast.photographer);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
