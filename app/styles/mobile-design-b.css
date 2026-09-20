@@ -61,7 +61,7 @@
  html:root body .wave-night .simple-search-bar>label,html:root body .wave-night .simple-facility-trigger{min-height:48px;padding:4px 9px!important;border-radius:24px;background:#181f27;font-size:14px}
  html:root body .wave-night .simple-search-bar>label>span{display:none}
  html:root body .wave-night .simple-search-bar select{height:40px;font-size:14px;padding:0 4px}
- html:root body .wave-night .simple-activity-filter{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:2px 0 5px}
+ html:root body .wave-night .simple-activity-filter{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 5px}
  html:root body .wave-night .simple-activity-filter button{flex:none;min-height:44px;padding:6px 12px;border-radius:22px;font-size:14px;background:#1b242d}
  html:root body .wave-night .simple-activity-filter [aria-pressed=true]{background:#634bc6;color:#fff}
  html:root body .wave-night .night-planner-submit{margin-top:8px}
@@ -91,14 +91,16 @@
  html:root body .wave-night .night-category-tabs [aria-pressed=true]{background:linear-gradient(120deg,#3484ec,#6960db);box-shadow:none}
  html:root body .wave-night .night-community-toolbar form{min-width:0;padding:3px 8px;flex:1}
  html:root body .wave-night .night-community-toolbar>.night-primary{flex:0 0 auto;min-width:44px;padding:8px 12px;font-size:14px}
- html:root body .wave-night .community-list{display:grid;grid-template-columns:1fr;gap:0}
+ html:root body .wave-night .community-list:not([data-layout=compact]){display:grid;grid-template-columns:1fr;gap:0}
  html:root body .wave-night .night-sortbar{font-size:14px;padding:8px;gap:5px;margin-top:16px}
  html:root body .wave-night .community-list article{padding:12px 0;border:0;border-bottom:1px solid #26323f;border-radius:0;background:none}
- html:root body .wave-night .community-list article>a{display:grid;grid-template-columns:68px minmax(0,1fr);column-gap:12px;padding:0;min-height:0;align-content:start}
- html:root body .wave-night .community-list article>a>*{grid-column:2;min-width:0}
- html:root body .wave-night .community-list .community-story-cover{grid-column:1;grid-row:1/6;height:68px;min-height:0;margin:0;padding:0;border-radius:7px;overflow:hidden}
+ html:root body .wave-night .community-list:not([data-layout=compact]) article>a{display:grid;grid-template-columns:68px minmax(0,1fr);column-gap:12px;padding:0;min-height:0;align-content:start}
+ html:root body .wave-night .community-list:not([data-layout=compact]) article>a>*{grid-column:2;min-width:0}
+ html:root body .wave-night .community-list:not([data-layout=compact]) .community-story-cover{grid-column:1;grid-row:1/6;height:68px;min-height:0;margin:0;padding:0;border-radius:7px;overflow:hidden}
+ .wave-night.planner-page:has(.simple-results) .naru-hint{display:none}
+ html:root body .wave-night .community-place-tag{color:#c2d9e8}
  html:root body .wave-night .community-list h3{font-size:14px;margin:4px 0}.wave-night .community-list p{font-size:14px}
- html:root body .wave-night .community-story-cover :is(.smart-spot-image,img){height:68px;min-height:0;width:68px;aspect-ratio:1}
+ html:root body .wave-night .community-list:not([data-layout=compact]) .community-story-cover :is(.smart-spot-image,img){height:68px;min-height:0;width:68px;aspect-ratio:1}
  html:root body .wave-night .community-list :is(.community-card-meta,.community-place-tag,footer){font-size:14px;margin:2px 0;padding:0;background:none;min-height:0}
  html:root body .wave-night .community-list p{font-size:14px;line-height:1.5;min-height:0;margin:3px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
  html:root body .wave-night .simple-planner-heading{gap:4px;padding-block:4px;flex-wrap:wrap}
