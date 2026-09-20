@@ -12,7 +12,7 @@ export default function PrivacyPage() {
   const kakaoEnabled = isKakaoAuthConfigured();
   return <main className="policy-page" id="main">
     <nav aria-label="정책 페이지 이동"><Link href="/">WAVE 홈</Link><Link href="/policies">운영정책</Link><Link href="/terms">서비스 이용약관</Link></nav>
-    <header><p>PRIVACY POLICY</p><h1>필요한 정보만,<br />쓰임과 저장 위치를 분명하게.</h1><span>정책 버전 1.4 · 시행일 2026년 9월 14일 · 나루 사진 처리 안내 추가</span></header>
+    <header><p>PRIVACY POLICY</p><h1>필요한 정보만,<br />쓰임과 저장 위치를 분명하게.</h1><span>정책 버전 1.5 · 시행일 2026년 9월 20일 · 현장 확인 정보 안내 추가</span></header>
 
     <aside className="policy-callout policy-callout-primary"><strong>한눈에 보기</strong><p>핵심 여행 설계와 지도는 계정 없이 사용할 수 있습니다. 정확한 현재 위치와 사진 원본은 서버에 저장하지 않습니다. 직접 게시한 현장 사진은 크기를 줄이고 메타데이터를 제거해 후기와 함께 공개·보관합니다. 광고 목적의 추적기는 사용하지 않습니다.</p></aside>
 
@@ -26,6 +26,7 @@ export default function PrivacyPage() {
           <tr><th scope="row">계정·인증</th><td>이메일, 직접 설정한 WAVE 닉네임, 인증정보, 세션정보, 인증 제공처 사용자 ID</td><td>가입, 로그인, 비밀번호 재설정, 계정 관리</td></tr>
           {kakaoEnabled && <tr><th scope="row">카카오 로그인</th><td>카카오 회원번호, 확인된 이메일, 암호화한 연결 인증 토큰</td><td>로그인과 명시적 계정 연결·연결 해제. 카카오 닉네임·사진·친구 목록은 요청하지 않습니다.</td></tr>}
           <tr><th scope="row">커뮤니티</th><td>사용자 ID, 표시 이름, 게시글·댓글·좋아요·신고 내용과 처리 상태, 실제 방문일·시설 경험, 선택한 현장 사진 최대 2장과 설명, 작성 시각</td><td>콘텐츠 공개, 작성자 권한 확인, 신고 검토. 현장 사진은 최대 800px·120KiB JPEG로 변환하고 위치·촬영기기 등 메타데이터를 제거합니다. 게시 전 공개 여부를 확인받습니다.</td></tr>
+          <tr><th scope="row">현장에서 확인한 정보</th><td>사용자 ID, 표시 이름, 선택한 공개 장소의 식별자·이름, 확인 날짜, 직접 작성한 내용</td><td>여행자 경험을 공식 시설정보와 분리해 공개합니다. 장애·건강·복지 수급 정보, 현재 위치·좌표, 사진은 요청하거나 저장하지 않습니다.</td></tr>
           <tr><th scope="row">공유 여행</th><td>무작위 공유 ID, 선택 지역·여행 조건·날짜·장소 식별자, 출발지 표시 이름</td><td>링크로 여행 계획 열기와 최신 정보 복원</td></tr>
           <tr><th scope="row">계정 여행·동행자</th><td>사용자 ID, 직접 저장한 여행 제목·지역·날짜·공식 장소 ID·순서·메모·상태, 동행자의 표시 이름·투표·의견, 초대 권한과 작성 시각</td><td>여러 기기에서 여행 이어하기, 초대받은 동행자의 참여와 의견 교환. 관광 API 응답·정밀 위치·사진 원본은 계정 여행 DB에 보관하지 않습니다.</td></tr>
           <tr><th scope="row">계정 편의 조건</th><td>사용자가 저장을 선택한 편의 조건과 변경 시각</td><td>다음 여행에서 조건 복원. 선택 사항이며 동행자와 공유하지 않습니다.</td></tr>

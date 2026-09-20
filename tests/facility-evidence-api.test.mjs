@@ -6,6 +6,7 @@ import ts from 'typescript';
 import * as validation from '../lib/community/validation.js';
 import * as boundaries from '../lib/security/request-boundaries.js';
 import { rateLimitResponse } from '../lib/rate-limit-response.js';
+import * as fieldReportBoard from '../lib/community/field-report-board.js';
 
 function load(path, modules) {
   const source=readFileSync(new URL('../'+path,import.meta.url),'utf8');
@@ -21,6 +22,7 @@ function actions({authenticated=true,owner=true}={}){
     '../../../lib/community/validation.js':validation,
     '../../../lib/rate-limit-response.js':{rateLimitResponse},
     '../../../lib/server-request':requestParser,
+    '../../../lib/community/field-report-board.js':fieldReportBoard,
     './posts-repository':{createCommunityPost:async(userId,name,value)=>{writes.push({userId,name,value});return{id:'created'};},updateCommunityPost:async(postId,userId,value)=>{writes.push({postId,userId,value});return true;}},
     './http':{authenticatedCommunityUser:async()=>authenticated?{user:{id:'session-owner'}}:{error:Response.json({error:'login'}, {status:401})},communityResponse:(value,status=200)=>Response.json(value,{status}),verifyCommunityOwnership:async()=>owner?null:Response.json({error:'owner'}, {status:403})},
     './session':{communityAuthorName:()=> '작성자'},

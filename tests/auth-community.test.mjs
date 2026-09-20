@@ -104,7 +104,7 @@ test("community API derives identity from the session and enforces ownership", a
   assert.match(posts, /export async function createCommunityPost/);
   assert.equal(
     (posts.match(/p\.author_id <> 'wave-seed'/g) || []).length,
-    7,
+    8,
     "all public community list and detail reads must exclude retired seed posts",
   );
   assert.match(comments, /export async function createCommunityComment/);
