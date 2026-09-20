@@ -330,8 +330,9 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     const selectors: Record<string, string> = { conditions: '.simple-search-bar select', facilities: '.simple-facility-trigger', dates: '.simple-itinerary-heading > button', receipt: '[data-planner-tool="receipt"] > summary', comfort: '.simple-day-options > summary', budget: '[data-planner-tool="budget"] > summary', offline: '[data-planner-tool="offline"]', 'on-trip': '[data-planner-tool="on-trip"]', split: '[data-planner-tool="split"]', alternatives: '[data-planner-tool="alternatives"] > summary', course: '[data-planner-tool="course"] > summary', save: '[data-planner-tool="save"] > button', share: '[data-planner-tool="share"]', transport: '[data-planner-tool="transport"]', calendar: '[data-planner-tool="share"]', weather: '.weather-heading > button', readiness: '.simple-readiness', map: '#itinerary-map', itinerary: '#itinerary', places: '#places', compare: '#places', inquiry: '#places', preview: '#places', transcript: '#places' };
     const focusTarget = () => {
       const node = document.querySelector<HTMLElement>(tool === 'dates' && !travelStart ? '#itinerary-setup input' : selectors[tool] || '#planner');
-      if (!node || !node.getClientRects().length) return false;
+      if (!node) return false;
       for (let parent = node.parentElement; parent; parent = parent.parentElement) if (parent instanceof HTMLDetailsElement) parent.open = true;
+      if (!node.getClientRects().length) return false;
       if (!node.matches('button,summary,a,input,select')) node.setAttribute('tabindex', '-1');
       node.scrollIntoView({ block: 'start', behavior: motion === 'calm' ? 'instant' : 'smooth' }); node.focus({ preventScroll: true });
       return document.activeElement === node;
