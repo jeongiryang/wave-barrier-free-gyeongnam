@@ -393,7 +393,10 @@ test("arrival intro reuses the historical renderer and supports explicit dismiss
   const [landing, intro, css] = await Promise.all([
     source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"), source("features/landing/components/LandingIntro.module.css"),
   ]);
-  assert.match(intro, /<EditorialPhoto photo=\{photo\}/);
+  assert.doesNotMatch(intro, /EditorialPhoto|<img\b|<video\b/);
+  assert.match(intro, /<canvas ref=\{canvas\}[^>]*aria-hidden="true"/);
+  assert.match(intro, /const DURATION = 10400/);
+  assert.match(intro, /여행 설계[\s\S]*경남의 축제[\s\S]*WAVE 커뮤니티/);
   assert.match(intro, /arrival-word.*aria-hidden="true">WAVE/);
   assert.match(intro, /import\("\.\.\/\.\.\/motion\/wave-field-engine"\)/);
   assert.match(landing, /<LandingIntro \/><main/);
@@ -404,8 +407,8 @@ test("arrival intro reuses the historical renderer and supports explicit dismiss
   assert.match(intro, /setTimeout\(finish, DURATION\)/);
   assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
   assert.match(intro, /timers\.forEach\(window\.clearTimeout\)/);
-  assert.match(css, /\.scene \{[^}]*position:\s*fixed/);
-  assert.match(css, /object-fit:\s*cover/);
+  assert.match(css, /\.scene\s*\{[^}]*position:\s*fixed/);
+  assert.match(css, /\.particles\s*\{[^}]*position:\s*absolute/);
   assert.doesNotMatch(landing, /<LandingSectionProgress|<LandingAccountStory/);
 });
 
@@ -431,7 +434,7 @@ test("interactive help follows real sections on every public journey and remains
   new Function("exports", ts.transpileModule(helpContent, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText)(tours);
   assert.deepEqual(tours.landingSteps.map(step => step.selector), ["#top", "#regions", "#story", "#naru"]);
   assert.deepEqual(tours.plannerSteps.map(step => step.selector), ["#conditions", "#places", "#itinerary", "#departure-readiness"]);
-  assert.deepEqual(tours.landingSteps.map(step => step.highlightSelector), ["#top .landing-hero-copy", ".simple-region-grid", ".horizon-chapter-stream", "#naru"]);
+  assert.deepEqual(tours.landingSteps.map(step => step.highlightSelector), ["#top .landing-hero-copy", ".simple-region-grid", ".night-journey-input", "#naru"]);
   assert.deepEqual(tours.plannerSteps.map(step => step.highlightSelector), [".simple-search-bar", ".simple-place-row", ".simple-stops > li, .simple-empty, .simple-itinerary-map", "#departure-readiness > summary"]);
   for (const [steps, content] of [[tours.landingSteps, landing], [tours.plannerSteps, planner]]) {
     for (const step of steps) {
@@ -441,7 +444,7 @@ test("interactive help follows real sections on every public journey and remains
       assert.ok(step.title && step.copy, step.selector + " must have useful accessible guidance");
     }
   }
-  for (const selector of [".community-page", "#community-list", ".community-evidence-note", ".travel-book-page", ".travel-book-paths", ".travel-book-list, .travel-book-empty"]) {
+  for (const selector of [".community-page", "#community-list", ".night-community-toolbar", ".travel-book-page", ".travel-book-paths", ".travel-book-list, .travel-book-empty"]) {
     assert.match(help, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.match(communityHeader, /WaveHeader/);

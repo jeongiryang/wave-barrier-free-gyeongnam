@@ -48,6 +48,7 @@ function AvailableRegionSoundPlayer({ sound }: { sound: RegionSound }) {
   }, [stop]);
 
   useEffect(() => {
+    if (!allowed) return;
     const node = audio.current;
     const stopWhenHidden = () => { if (document.hidden) stop(); };
     const stopForOtherSound = (event: Event) => {
@@ -67,7 +68,7 @@ function AvailableRegionSoundPlayer({ sound }: { sound: RegionSound }) {
       stop();
       if (node) { node.removeAttribute("src"); node.load(); }
     };
-  }, [source, stop]);
+  }, [allowed, source, stop]);
 
   async function play() {
     const node = audio.current;

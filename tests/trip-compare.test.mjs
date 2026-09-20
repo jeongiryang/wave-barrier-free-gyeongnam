@@ -4,6 +4,14 @@ import { readFileSync } from 'node:fs';
 import { compareTrips } from '../lib/trip-compare.js';
 
 const left = { id: 'a', title: 'A', region: '창원', dayCount: 1, placeCount: 3, facilityKeys: ['route'] };
+test('facility rows use canonical Korean labels while source keys remain intact', () => {
+  const right = { ...left, facilityKeys: ['restroom', 'route'] };
+  const row = compareTrips(left, right).find(item => item.label === '고른 편의');
+  assert.equal(row.left, '접근로');
+  assert.match(row.right, /장애인 화장실/);
+  assert.doesNotMatch(row.right, /restroom|route/);
+  assert.deepEqual(right.facilityKeys, ['restroom', 'route']);
+});
 test('different rows precede same rows and retain explicit same state', () => {
   const rows = compareTrips(left, { ...left, id: 'b', title: 'B', region: '통영', placeCount: 4 });
   assert.deepEqual(rows.slice(0, 2).map(row => row.label), ['지역', '장소 수']);

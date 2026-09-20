@@ -22,18 +22,19 @@ import { optionalPlannerJson } from "../planner/services/api";
 import { CLIENT_BUDGET_MS } from "../../lib/request-budget.js";
 import { lowFloorArrivalMarkers } from "../../lib/transport/low-floor-bus.js";
 
-export type FacilityLayerState = "idle" | "loading" | "ready" | "empty" | "error" | "location-unconfirmed";
+export type FacilityLayerState = "idle" | "loading" | "ready" | "partial" | "empty" | "error" | "location-unconfirmed";
 
 type OfficialFacilityResponse = {
   status: "available" | "empty" | "invalid-request" | "provider-error" | "location-unconfirmed";
   contentId: string;
-  kind: "no-smoking";
+  kind?: "no-smoking";
   checkedAt: string;
   source: string;
   items: Array<{
-    id: string; name: string; address: string; distanceMeters: number;
+    id: string; name?: string; address?: string; distanceMeters: number;
     destination: { latitude: number; longitude: number };
     institutionName?: string; note?: string; referenceDate: string;
+    kind?: string; locationNote?: string; availableHours?: string; usageNote?: string;
   }>;
 };
 
@@ -46,11 +47,72 @@ type ReturnStop = {
 };
 
 type ReturnTransportResponse = {
+  id?: string;
   status?: string;
   stops?: ReturnStop[];
   routes?: Array<{ routeName?: string; vehicles?: Array<{ vehicle?: string; seconds?: number | null; stopsAway?: number | null }> }>;
   arrivalCheckedAt?: string | null;
+  moreStops?: boolean;
+  moreArrivals?: boolean;
 };
+
+type OfficialResult = { state: FacilityLayerState; markers: FacilityLayerMarker[] };
+const publicId = (id?: string) => Boolean(id && /^[1-9]\d{0,11}$/.test(id));
+
+/** Each provider keeps its response contract; only public IDs leave this boundary. */
+export async function loadOfficialFacilityLayer(layer: FacilityLayer, contentId: string, signal: AbortSignal): Promise<OfficialResult> {
+  const result = (state: FacilityLayerState, markers: FacilityLayerMarker[] = []): OfficialResult => ({ state, markers });
+  if (!publicId(contentId)) return result("location-unconfirmed");
+  if (signal.aborted) return result("error");
+  if (layer.id === "low-floor-bus-arrival") {
+    const deadline = Date.now() + CLIENT_BUDGET_MS.returnTransport;
+    const baseUrl = `/api/wave?action=return-transport&contentId=${encodeURIComponent(contentId)}`;
+    const base = await optionalPlannerJson<ReturnTransportResponse>(baseUrl, { signal, timeoutMs: CLIENT_BUDGET_MS.returnTransport });
+    if (signal.aborted || !base || base.id !== contentId) return result("error");
+    if (base.status === "location-unconfirmed") return result("location-unconfirmed");
+    if (base.status !== "stops" && base.status !== "empty") return result("error");
+    if (!Array.isArray(base.stops)) return result("error");
+    const stops = base.stops.slice(0, 4);
+    if (!stops.length) return result(base.moreStops ? "partial" : "empty");
+    const observations = await Promise.all(stops.map(async stop => {
+      if (signal.aborted || Date.now() >= deadline || !stop.nodeId || !/^\d{2,8}$/.test(stop.cityCode)) return { stop, response: null };
+      const response = await optionalPlannerJson<ReturnTransportResponse>(`${baseUrl}&nodeId=${encodeURIComponent(stop.nodeId)}&cityCode=${encodeURIComponent(stop.cityCode)}`, { signal, timeoutMs: Math.max(1, deadline - Date.now()) });
+      return { stop, response };
+    }));
+    if (signal.aborted) return result("error");
+    const valid = observations.filter((item): item is { stop: ReturnStop; response: ReturnTransportResponse } => Boolean(item.response && item.response.id === contentId && ["arrivals", "no-arrivals"].includes(item.response.status || "") && Array.isArray(item.response.routes)));
+    if (!valid.length) return result("error");
+    const markers = lowFloorArrivalMarkers(valid);
+    const partial = Boolean(base.moreStops) || base.stops.length > stops.length || valid.length < stops.length || valid.some(item => item.response.moreArrivals);
+    return result(partial ? "partial" : markers.length ? "ready" : "empty", markers);
+  }
+  const configurations: Record<string, { action: string; budget: number }> = {
+    "no-smoking": { action: "smoking-area", budget: CLIENT_BUDGET_MS.smokingArea },
+    "sanitary-supply": { action: "sanitary-supply", budget: CLIENT_BUDGET_MS.sanitarySupply },
+    "trash-bin": { action: "trash-bin", budget: CLIENT_BUDGET_MS.trashBin },
+  };
+  const config = configurations[layer.id];
+  if (!config) return result("error");
+  const response = await optionalPlannerJson<OfficialFacilityResponse>(`/api/wave?action=${config.action}&contentId=${encodeURIComponent(contentId)}`, { signal, timeoutMs: config.budget });
+  if (signal.aborted || !response || response.contentId !== contentId || (layer.id === "no-smoking" && response.kind !== "no-smoking")) return result("error");
+  if (response.status === "location-unconfirmed") return result("location-unconfirmed");
+  if (!Array.isArray(response.items)) return result("error");
+  if (response.status === "empty" && response.items.length === 0) return result("empty");
+  if (response.status !== "available") return result("error");
+  if (!response.items.length || response.items.some(item => !item || !item.id ||
+    !Number.isFinite(item.destination?.latitude) || !Number.isFinite(item.destination?.longitude) ||
+    Math.abs(item.destination.latitude) > 90 || Math.abs(item.destination.longitude) > 180)) return result("error");
+  const markers = response.items.map((item): FacilityLayerMarker => ({
+    id: `${layer.id}-${item.id}`, layerId: layer.id,
+    name: layer.id === "trash-bin" ? item.kind || layer.label : item.name || layer.label,
+    address: item.locationNote || item.address || "", destination: item.destination,
+    distanceMeters: item.distanceMeters, source: response.source, referenceDate: item.referenceDate,
+    ...(item.kind ? { kind: item.kind } : {}), ...(item.locationNote ? { locationNote: item.locationNote } : {}),
+    ...(item.institutionName ? { institutionName: item.institutionName } : {}), ...(item.note ? { note: item.note } : {}),
+    ...(layer.id === "sanitary-supply" ? { detail: [item.availableHours, item.usageNote].filter(Boolean).join(" · ") } : {}),
+  }));
+  return result(markers.length ? "ready" : "empty", markers);
+}
 
 /**
  * 장소 검색은 브라우저 SDK가 직접 부른다. 기존 `useNearbyPlaces`와 같은 한도를
@@ -112,6 +174,9 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, contentId, 
       const timer = timers.current[layer.id];
       if (timer !== undefined) window.clearTimeout(timer);
       delete timers.current[layer.id];
+      delete controllers.current[layer.id];
+      // Invalidate late SDK callbacks after timeout as well as old HTTP replies.
+      generations.current[layer.id] = token + 1;
       setLayerStates((current) => ({ ...current, [layer.id]: next }));
       setSelection((current) => next === "error"
         ? failFacilityLayer(current, layer.id)
@@ -135,80 +200,12 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, contentId, 
     }
 
     if (layer.source === "official") {
-      if(layer.id === "no-smoking") {
-      if (!layer.action || !contentId || !/^[1-9]\d{0,11}$/.test(contentId)) { settle("location-unconfirmed"); return; }
+      const selectedId = publicId(contentId) ? contentId! : placesRef.current.find(place => publicId(place.id))?.id || "";
       const controller = new AbortController();
       controllers.current[layer.id] = controller;
-      void optionalPlannerJson<OfficialFacilityResponse>(
-        `/api/wave?action=${encodeURIComponent(layer.action)}&contentId=${encodeURIComponent(contentId)}`,
-        { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.smokingArea },
-      ).then((result) => {
-        if (generations.current[layer.id] !== token) return;
-        delete controllers.current[layer.id];
-        if (!result || result.contentId !== contentId || result.kind !== "no-smoking") { settle("error"); return; }
-        if (result.status === "location-unconfirmed") { settle("location-unconfirmed"); return; }
-        if (result.status === "empty") { settle("empty", []); return; }
-        if (result.status !== "available") { settle("error"); return; }
-        const markers: FacilityLayerMarker[] = result.items.map((item) => ({
-          id: item.id,
-          layerId: layer.id,
-          name: item.name,
-          address: item.address,
-          destination: item.destination,
-          distanceMeters: item.distanceMeters,
-          referenceDate: item.referenceDate,
-          source: result.source,
-          ...(item.institutionName ? { institutionName: item.institutionName } : {}),
-          ...(item.note ? { note: item.note } : {}),
-        }));
-        settle(markers.length ? "ready" : "empty", markers);
-      });
-      } else {
-      const map = kakaoMapRef.current;
-      if (layer.id === "low-floor-bus-arrival") {
-      const center = map?.getCenter ? map.getCenter() : null;
-      const origin = center ? { latitude: center.getLat(), longitude: center.getLng() } : null;
-      const publicPlace = placesRef.current
-        .filter((place) => /^[1-9]\d{0,11}$/.test(place.id) && Number.isFinite(Number(place.mapY)) && Number.isFinite(Number(place.mapX)))
-        .map((place) => ({ place, distance: origin ? facilityDistanceMeters(origin, { latitude: Number(place.mapY), longitude: Number(place.mapX) }) : null }))
-        .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))[0]?.place;
-      if (!publicPlace || layer.id !== "low-floor-bus-arrival") { settle("error"); return; }
-
-      // 서버에는 사용자의 현재 위치가 아니라 한국관광공사 공개 contentId만 보낸다.
-      // 가까운 정류장 네 곳까지만 명시적으로 조회해 TAGO 일일 한도를 지킨다.
-      void (async () => {
-        const base = await optionalPlannerJson<ReturnTransportResponse>(`/api/wave?action=return-transport&contentId=${encodeURIComponent(publicPlace.id)}`, { timeoutMs: CLIENT_BUDGET_MS.returnTransport });
-        if (!base || ["provider-error", "unavailable", "location-unconfirmed", "invalid-request"].includes(base.status || "")) { settle("error"); return; }
-        const stops = Array.isArray(base.stops) ? base.stops.slice(0, 4) : [];
-        if (!stops.length) { settle("empty", []); return; }
-        const observations = await Promise.all(stops.map(async (stop: ReturnStop) => ({
-          stop,
-          response: await optionalPlannerJson<ReturnTransportResponse>(`/api/wave?action=return-transport&contentId=${encodeURIComponent(publicPlace.id)}&nodeId=${encodeURIComponent(stop.nodeId)}&cityCode=${encodeURIComponent(stop.cityCode)}`, { timeoutMs: CLIENT_BUDGET_MS.returnTransport }) || {},
-        })));
-        const markers = lowFloorArrivalMarkers(observations);
-        settle(markers.length ? "ready" : "empty", markers);
-      })().catch(() => settle("error"));
-      } else {
-      const center = map?.getCenter?.();
-      const anchor = [...placesRef.current]
-        .filter(place => /^[1-9]\d{0,11}$/.test(place.id) && Number.isFinite(Number(place.mapX)) && Number.isFinite(Number(place.mapY)))
-        .sort((left, right) => center ?
-          (facilityDistanceMeters({ latitude: center.getLat(), longitude: center.getLng() }, { latitude: Number(left.mapY), longitude: Number(left.mapX) }) || 0) -
-          (facilityDistanceMeters({ latitude: center.getLat(), longitude: center.getLng() }, { latitude: Number(right.mapY), longitude: Number(right.mapX) }) || 0) : 0)[0];
-      if (!anchor || !layer.action) { settle("empty", []); return; }
-      const controller = new AbortController();
-      controllers.current[layer.id] = controller;
-      type OfficialResponse = { status: "available" | "empty" | "invalid-request" | "provider-error" | "location-unconfirmed"; source: string; items: Array<{ id: string; name: string; address: string; distanceMeters: number; destination: { latitude: number; longitude: number }; referenceDate: string; availableHours?: string; usageNote?: string; institutionName?: string }> };
-      void optionalPlannerJson<OfficialResponse>(`/api/wave?action=${encodeURIComponent(layer.action)}&contentId=${encodeURIComponent(anchor.id)}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.sanitarySupply }).then(result => {
-        delete controllers.current[layer.id];
-        if (!result) { settle("error"); return; }
-        if (result.status === "provider-error" || result.status === "invalid-request") { settle("error"); return; }
-        if (result.status === "empty" || result.status === "location-unconfirmed") { settle("empty", []); return; }
-        const markers = result.items.map(item => ({ id: `${layer.id}-${item.id}`, layerId: layer.id, name: item.name, address: item.address, destination: item.destination, distanceMeters: item.distanceMeters, source: result.source, referenceDate: item.referenceDate, detail: [item.availableHours, item.usageNote, item.institutionName].filter(Boolean).join(" · ") }));
-        settle(markers.length ? "ready" : "empty", markers);
-      });
-      }
-      }
+      void loadOfficialFacilityLayer(layer, selectedId, controller.signal)
+        .then(({ state, markers }) => settle(state, markers))
+        .catch(() => settle("error"));
       return;
     }
 
@@ -280,12 +277,12 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, contentId, 
 
   /** 패널을 닫을 때 완료된 표시는 유지하되 진행 중 네트워크 요청은 모두 취소한다. */
   const cancelFacilityRequests = useCallback(() => {
-    stopAll();
-    const loading = Object.entries(layerStates).filter(([, state]) => state === "loading").map(([id]) => id);
+    const loading = [...new Set([...Object.keys(controllers.current), ...Object.keys(timers.current)])];
+    for (const id of loading) stopLayer(id);
     if (!loading.length) return;
     setLayerStates((states) => Object.fromEntries(Object.entries(states).map(([id, state]) => [id, state === "loading" ? "error" : state])));
     setSelection((current) => loading.reduce((next, id) => failFacilityLayer(next, id), current));
-  }, [layerStates, stopAll]);
+  }, [stopLayer]);
 
   /** 기준이 바뀌었을 때 켜진 레이어를 한 번씩만 다시 찾는다. */
   const refreshFacilityLayers = useCallback(() => {
@@ -308,7 +305,7 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, contentId, 
   useEffect(() => {
     if (firstScope.current) { firstScope.current = false; return; }
     clearFacilityLayers();
-  }, [scopeKey, clearFacilityLayers]);
+  }, [scopeKey, contentId, clearFacilityLayers]);
 
   // 지도 중심이 확정된 뒤(드래그·확대가 끝난 뒤) 한 번만 다시 찾는다.
   // 카카오의 `idle`은 이동이 끝난 다음에만 일어나므로 스크롤·드래그 중에는

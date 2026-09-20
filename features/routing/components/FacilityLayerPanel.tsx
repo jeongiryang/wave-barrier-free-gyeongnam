@@ -12,6 +12,7 @@ const englishLabels: Record<string, string> = {
   "low-floor-bus-arrival": "Low-floor buses confirmed now",
   "no-smoking": "No-smoking areas",
   "trash-bin": "Trash bins",
+  "sanitary-supply": "Sanitary supplies",
 };
 const layerName = (layer: FacilityLayer, english: boolean) => english ? englishLabels[layer.id] || layer.label : layer.label;
 
@@ -70,7 +71,7 @@ export default function FacilityLayerPanel({
     <header>
       <div>
         <strong>{english ? "Show facilities" : "편의 표시"}</strong>
-        <span>{english ? `Up to ${FACILITY_LAYER_LIMIT} at once · within 10 km of the map centre` : `한 번에 ${FACILITY_LAYER_LIMIT}개까지 · 지도 중심 반경 10km`}</span>
+        <span>{english ? `Up to ${FACILITY_LAYER_LIMIT} at once · public data uses the selected destination` : `한 번에 ${FACILITY_LAYER_LIMIT}개까지 · 공식 정보는 선택한 여행지 기준`}</span>
       </div>
       <button type="button" onClick={onClose} aria-label={english ? "Close facility display" : "편의 표시 닫기"}>×</button>
     </header>
@@ -88,7 +89,8 @@ export default function FacilityLayerPanel({
           return <li key={id} className={failed ? "facility-chip failed" : "facility-chip"}>
             <span>{layer ? layerName(layer, english) : id}</span>
             {state === "loading" && <small>{english ? "Loading" : "불러오는 중"}</small>}
-            {state === "empty" && <small>{layer?.source === "official" ? (english ? "No registered locations" : "등록된 위치가 없어요.") : (english ? "No search results" : layer?.emptyLabel || "검색 결과 없음")}</small>}
+            {state === "empty" && <small>{id === "low-floor-bus-arrival" ? (english ? "No confirmed low-floor arrivals at the checked stops" : layer?.emptyLabel) : layer?.source === "official" ? (english ? "No registered locations" : "등록된 위치가 없어요.") : (english ? "No search results" : "검색 결과 없음")}</small>}
+            {state === "partial" && <><small>{english ? "Some arrivals could not be checked. Showing confirmed results only." : "일부 도착정보를 확인하지 못했어요. 확인된 결과만 표시합니다."}</small><button type="button" onClick={() => onRetryLayer(id)}>{english ? "Try again" : "다시 시도"}</button></>}
             {state === "location-unconfirmed" && <small>{english ? "The public coordinates for this destination could not be confirmed." : "이 여행지의 공개 좌표를 확인하지 못했어요."}</small>}
             {failed && <><small>{layer?.source === "official" ? (english ? "Location information could not be loaded." : "위치 정보를 받지 못했어요.") : (english ? "Could not load" : "불러오지 못함")}</small>
               <button type="button" onClick={() => onRetryLayer(id)}>{english ? "Try again" : "다시 시도"}</button></>}
@@ -151,6 +153,7 @@ export default function FacilityLayerPanel({
 
     <p className="facility-evidence">{active.includes("no-smoking")
       ? (english ? "This location is registered in public data. Current operation and the exact boundary have not been confirmed." : "공공데이터에 등록된 위치예요. 현재 운영 여부와 정확한 경계는 확인되지 않았어요.")
+      : active.includes("trash-bin") ? (english ? "This location is registered in public data. Its current installation has not been confirmed." : "공공데이터에 등록된 위치예요. 현재 설치 여부는 확인되지 않았어요.")
       : (english ? "These facilities come from public data records. Real-time availability and on-site conditions have not been checked." : "표시된 편의시설은 공공데이터에 등록된 정보예요. 실시간 이용 가능 여부와 현장 상태는 확인되지 않았어요.")}</p>
   </section>;
 }

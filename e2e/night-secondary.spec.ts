@@ -14,12 +14,12 @@ for (const path of ['/login', '/register', '/forgot-password', '/reset-password'
   });
 }
 
-test('header registration retains the selected trip and introduction stays outside night styling', async ({ page }) => {
+test('header registration retains the selected trip and introduction shares the approved night styling', async ({ page }) => {
   await page.goto('/login?next=%2Fmy-trips%2Ftrip-1');
   await expect(page.locator('.night-signup')).toHaveAttribute('href', '/register?next=%2Fmy-trips%2Ftrip-1');
   await page.goto('/');
-  await expect(page.locator('.wave-night')).toHaveCount(0);
-  await expect(page.locator('.night-wave-mark')).toHaveCount(0);
+  await expect(page.locator('.night-landing.wave-night')).toBeVisible();
+  await expect(page.locator('.night-wave-mark')).toHaveCount(1);
 });
 
 test('shared trip keeps readable official place cards and dated itinerary', async ({ page }) => {

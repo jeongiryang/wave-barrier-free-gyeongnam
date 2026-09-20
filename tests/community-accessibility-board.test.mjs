@@ -45,9 +45,10 @@ test("기능 플래그는 API 직접 접근과 장소 상세 조회에도 적용
   assert.match(actions, /filters\.category === "field-report" && !enabled/);
   assert.match(actions, /result\.post\.category === "field-report" && !fieldReportBoardEnabled/);
   assert.match(reads, /placeId && category[\s\S]*p\.place_id=\$\{placeId\} AND p\.category=\$\{category\}/);
-  assert.equal((reads.match(/\$\{fieldReportsVisible\} OR p\.category <> 'field-report'/g) || []).length, 8);
-  assert.match(placeStories, /category: "field-report"/);
-  assert.match(placeStories, /Promise\.all/);
+  assert.equal((reads.match(/\$\{fieldReportsVisible\} OR p\.category <> 'field-report'/g) || []).length, 9);
+  assert.match(placeStories, /placePreview: '1'/);
+  assert.doesNotMatch(placeStories, /Promise\.all/);
+  assert.match(reads, /PARTITION BY \(p\.category='field-report'\)/);
   assert.match(board, /이 관광지에서 확인한 정보 남기기/);
   assert.match(migration, /'travel-talk', 'field-report'/);
 });

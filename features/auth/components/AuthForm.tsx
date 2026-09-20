@@ -9,7 +9,7 @@ function FieldIcon({ kind }: { kind: "email" | "lock" | "eye" }) {
   return <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">{kind === "email" ? <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 6 9 7 9-7" /></> : kind === "lock" ? <><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2" /></> : <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>}</svg>;
 }
 
-export default function AuthForm({ mode, returnTo, kakaoEnabled = false }: { mode: AuthMode; returnTo?: string; kakaoEnabled?: boolean }) {
+export default function AuthForm({ mode, returnTo, kakaoEnabled = false, publicPreview = false }: { mode: AuthMode; returnTo?: string; kakaoEnabled?: boolean; publicPreview?: boolean }) {
   const auth = useAuthForm(mode, returnTo);
   function fieldProps(field: string, describedBy?: string) {
     const invalid = auth.invalidField === field;
@@ -27,6 +27,7 @@ export default function AuthForm({ mode, returnTo, kakaoEnabled = false }: { mod
     <h1 id="auth-title">{auth.registering ? "우리의 여행을 시작해요." : "여행을 이어가세요."}</h1>
     <p className="auth-description">{auth.registering ? <>마음에 드는 여행을 담고,<br />함께 나눌 이야기를 시작하세요.</> : <>저장한 여행과 나눈 이야기를<br />WAVE에서 다시 만나세요.</>}</p>
     {kakaoEnabled && <KakaoLogin returnTo={returnTo} />}
+    {!kakaoEnabled && publicPreview && <div className="kakao-auth"><p>로컬 미리보기에서는 계정 인증에 연결하지 않습니다. 카카오 로그인은 운영 WAVE에서 이용할 수 있어요.</p><a className="auth-primary-link" href={`https://wave-barrier-free-gyeongnam.vercel.app/login?next=${encodeURIComponent(auth.next)}`}>운영 WAVE에서 로그인</a><p className="kakao-auth-caption">운영 사이트에 로그인해도 이 미리보기의 로그인 상태는 바뀌지 않습니다.</p></div>}
     <HydratedAuthForm onSubmit={auth.submit} onInput={auth.clearError} noValidate>
       {auth.registering && <div className="auth-field"><label htmlFor="auth-name">표시 이름</label><input id="auth-name" name="name" autoComplete="name" placeholder="여행에서 사용할 이름" minLength={2} maxLength={40} required {...fieldProps("name", "auth-name-help")} /><small id="auth-name-help">2–40자로 입력해 주세요. 게시글과 댓글에 표시됩니다.</small></div>}
       <div className="auth-field"><label htmlFor="auth-email">{auth.registering ? "이메일" : "이메일 또는 ID"}</label><div className="auth-input-icon"><FieldIcon kind="email" /><input id="auth-email" name="email" type={auth.registering ? "email" : "text"} inputMode={auth.registering ? "email" : "text"} autoComplete="username" placeholder="hello@example.com" maxLength={254} required {...fieldProps("email")} /></div></div>

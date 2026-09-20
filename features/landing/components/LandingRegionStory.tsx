@@ -57,14 +57,14 @@ export default function LandingRegionStory() {
         </Link>
         {isDecliningRegion(name) && <div className="declining-region-notice" lang="ko"><p>{DECLINING_REGION_LABEL}</p><small>{decliningRegionSourceLabel()}</small></div>}
         {culture && <aside className="simple-region-culture" lang="ko" aria-label={`${name} 문화 이야기`}>
-          <strong>{culture.title}</strong>
+          <details><summary>{culture.title}</summary>
           <p>{culture.summary}</p>
           <small>{culture.institution} · {culture.checkedOn}</small>
-          <a href={culture.url} target="_blank" rel="noopener noreferrer" aria-label={`${culture.title} 자세히 보기, 새 탭`}>자세히 보기 <span aria-hidden="true">↗</span></a>
+          <a href={culture.url} target="_blank" rel="noopener noreferrer" aria-label={`${culture.title} 자세히 보기, 새 탭`}>자세히 보기 <span aria-hidden="true">↗</span></a></details>
         </aside>}
         <a className="simple-region-credit" lang="ko" href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer" aria-label={`${photo.title} 사진 원본, 새 탭`}>{photo.photographer || "한국관광공사"} · 사진 원본 ↗</a>
       </article>;
     })}</div>
-    <button className="simple-show-regions" type="button" disabled={!interactive} aria-expanded={expanded} aria-controls="region-grid" onClick={() => setExpanded(value => !value)}>{expanded ? (en ? "Show fewer regions" : "접기") : (en ? "View all 18 regions" : "18개 지역 모두 보기")} <span aria-hidden="true">{expanded ? "−" : "+"}</span></button>
+    <button className="simple-show-regions" type="button" disabled={!interactive} aria-expanded={expanded} aria-controls="region-grid" onClick={event => { setExpanded(value => !value); event.currentTarget.focus(); }}>{expanded ? (en ? "Show fewer regions" : "접기") : (en ? "View all 18 regions" : "18개 지역 모두 보기")} <span aria-hidden="true">{expanded ? "−" : "+"}</span></button>
   </section>;
 }

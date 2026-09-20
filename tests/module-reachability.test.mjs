@@ -11,7 +11,12 @@ const ROOT = new URL("../", import.meta.url);
 const IMPORTED_DIRECTORIES = ["components", "features", "lib", "server"];
 const SEARCH_DIRECTORIES = ["app", "components", "features", "lib", "server", "worker", "tests", "scripts"];
 const CODE = /\.(?:ts|tsx|js|jsx|mjs)$/;
-const SPECIFIER = /(?:^|\s)(?:import|export)[\s\S]{0,200}?from\s*["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g;
+const SPECIFIER = /(?:^|\s)(?:import|export)(?!\s*\()[\s\S]{0,200}?from\s*["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g;
+
+test("module discovery keeps lazy imports separate from the following static import", () => {
+  const code = `const Auth = lazy(() => import("./NightAuthLinks"));\nimport Footer from "./Footer";`;
+  assert.deepEqual([...code.matchAll(SPECIFIER)].map(match => match[1] || match[2]), ["./NightAuthLinks", "./Footer"]);
+});
 
 // Owner #353 retains these removed presentation scenes as source history;
 // itinerary/map introductions are deferred to #386, not loaded into Landing.

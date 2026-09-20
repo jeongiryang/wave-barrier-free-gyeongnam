@@ -8,7 +8,7 @@ import WaveHeader from '../../components/WaveHeader';
 import SkipLink from '../../components/SkipLink';
 import LoadingState, { Spinner } from '../../components/LoadingState';
 import SiteFooter from '../../components/SiteFooter';
-import { useOpenNaru } from '../../components/GlobalTravelWorkspace';
+import { useOpenNaru } from '../../components/NaruContext';
 import NaruAvatar from '../../components/NaruAvatar';
 import { regions, profiles as facilityProfiles } from '../planner/constants';
 import type { Place } from '../planner/types';

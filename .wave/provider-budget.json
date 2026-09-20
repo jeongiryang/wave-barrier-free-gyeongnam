@@ -20,6 +20,14 @@
   },
   "providers": [
     {
+      "id": "sanitary-supply", "family": "public-data", "request_file": "server/tourism/sanitary-supply.ts",
+      "origin": "operator-configured HTTPS endpoint", "operations": ["sanitary-supply-list"],
+      "key_sources": ["TOUR_API_SERVICE_KEY_ENCODED"], "source": "https://www.data.go.kr/", "account_source": "https://www.data.go.kr/",
+      "core": false, "fallback": "Distinguish provider failure, unconfirmed public coordinates and a verified empty list. Never infer inventory or current availability.",
+      "limits": "One explicit lookup without retries; 17.5s server budget; bounded successful public snapshots only.",
+      "privacy": "Only a public KTO contentId reaches the server; no device coordinates, history or layer choices are transmitted."
+    },
+    {
       "id": "no-smoking-area", "family": "public-data", "request_file": "server/tourism/smoking-area.ts",
       "origin": "https://api.data.go.kr/openapi/", "operations": ["tn_pubr_public_prhsmk_zn_api"],
       "key_sources": ["TOUR_API_SERVICE_KEY_ENCODED"], "source": "https://www.data.go.kr/data/15013192/standard.do", "account_source": "https://www.data.go.kr/",

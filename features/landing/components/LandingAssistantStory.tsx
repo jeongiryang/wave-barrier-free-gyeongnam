@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { NARU_HELP } from "../../../lib/naru-help.js";
-import { useOpenNaru } from "../../../components/GlobalTravelWorkspace";
+import { useOpenNaru } from "../../../components/NaruContext";
 import NaruAvatar from "../../../components/NaruAvatar";
 import { useSitePreferences } from "../../../components/SitePreferences";
 

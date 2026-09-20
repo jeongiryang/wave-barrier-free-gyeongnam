@@ -25,7 +25,7 @@ test("all approved communication topics have fixed Korean and English questions"
   assert.throws(() => communicationQuestion("location"), /Unknown communication topic/);
   assert.deepEqual(communicationQuestions("payment"), ["주문과 결제를 도와주세요.", "주문을 도와주실 수 있나요? 화면 대신 사람에게 주문하고 싶어요."]);
   assert.equal(communicationQuestions("payment", true).length, 2);
-  assert.equal(communicationTopics.length, 6, "새 주제를 만들면 안 된다");
+  assert.equal(communicationTopics.length, 7, "기존 여섯 주제와 승인된 출입문 도움만 제공한다");
 });
 
 test("door help uses the approved fixed question without adding a staff answer", () => {

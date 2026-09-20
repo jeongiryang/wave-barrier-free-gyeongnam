@@ -100,14 +100,14 @@ for (const denied of ["read", "write"] as const) {
   });
 }
 
-test("failed arrival photography still finishes on time and leaves its source and planning link", async ({ page }) => {
-  await page.route("**/media/horizon/hero-coast.jpg", route => route.abort());
+test("failed hero photography does not affect the particle intro or planning link", async ({ page }) => {
+  await page.route("**/media/night/coast.webp", route => route.abort());
   await freshArrival(page);
   const link = page.locator(".landing-actions a");
   await page.clock.runFor(10400);
   await expect(page.locator(".arrival-scene")).toBeHidden();
-  await expect(page.locator(".landing-hero-landscape figcaption")).toContainText("사진을 불러오지 못했어요");
-  await expect(page.locator(".landing-hero-landscape figcaption a").first()).toHaveAttribute("href", /^https:/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.locator(".arrival-scene img, .arrival-scene video")).toHaveCount(0);
   await expect(link).toHaveAttribute("href", "/planner");
 });
 

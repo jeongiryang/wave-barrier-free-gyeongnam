@@ -44,6 +44,7 @@ export async function freshArrival(page: Page) {
 }
 
 export async function expectUsableTarget(target: Locator) {
+  await expect(target).toBeEnabled();
   await target.evaluate(node => node.scrollIntoView({ block: "center", behavior: "instant" }));
   await target.focus();
   await expect(target).toBeFocused();

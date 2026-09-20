@@ -11,7 +11,9 @@ for (const seenBefore of [false, true]) {
     await freshArrival(page);
     const scene = page.locator(".arrival-scene");
     await expect(scene).toHaveAttribute("open", "");
-    await expect(scene.locator(".arrival-picture img").first()).toHaveAttribute("src", "/media/horizon/hero-coast.jpg");
+    await expect(scene.locator("canvas")).toHaveCount(1);
+    await expect(scene.locator("img, video")).toHaveCount(0);
+    await expect(scene).toHaveAttribute("data-stage", "0");
     await expect(scene.locator(".arrival-word")).toContainText("WAVE");
     await expect(scene).toContainText("모두의 여행이 같은 출발선에 설 수 있도록");
     await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();

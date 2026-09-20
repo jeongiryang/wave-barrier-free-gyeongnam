@@ -4,7 +4,6 @@ import useLandingReveal from "../features/landing/hooks/useLandingReveal";
 import { useSitePreferences } from "../components/SitePreferences";
 import SkipLink from "../components/SkipLink";
 import "./styles/landing-restored.css";
-import "./styles/landing-soft-refresh.css";
 import "./styles/night-landing.css";
 import LandingDepartureScene from "../features/landing/components/LandingDepartureScene";
 import LandingCommunityScene from "../features/landing/components/LandingCommunityScene";
@@ -31,8 +30,7 @@ export default function LandingPage() {
     <LandingChapters />
     <details className="night-feature-details"><summary>여행 도구 모두 보기</summary><LandingFeatureList /></details>
     <LandingAssistantStory />
-    <LandingDepartureScene />
-    <LandingCommunityScene />
+    <div className="night-discover-grid"><LandingCommunityScene /><LandingDepartureScene /></div>
     <LandingCallToAction t={t} />
     <LandingFooter t={t} />
   </main></>;

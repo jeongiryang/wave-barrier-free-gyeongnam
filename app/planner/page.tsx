@@ -464,7 +464,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
   </div>;
 
   return (
-    <main role={embedded ? "presentation" : undefined} className={`planner-page journey-editorial planner-reference planner-simple${embedded && pageContext === '서비스 소개' ? '' : ' wave-night'}`} lang={locale}>
+    <main role={embedded ? "presentation" : undefined} className={`planner-page journey-editorial planner-reference planner-simple wave-night`} lang={locale}>
       {!embedded && <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>}
       {!embedded && <PlannerReferenceChrome storageSnapshot={storageSnapshot} interactive={hydrated && planController.criteriaReady && tripSelection.storageReady} savedCount={saved.length} activeStep={journey.activeStepId} onNavigate={journey.goToStep} onNew={startNewTrip} onAskNaru={showAssistant} />}
       {newTripError && <p role="alert">{newTripError}</p>}

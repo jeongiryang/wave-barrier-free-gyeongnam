@@ -17,15 +17,11 @@ html[data-theme=dark] .region-showcase .selected-region small {
 
 .planner-reference .planner-journey-workspace { width: auto; max-width: none; margin: 0 28px 0 calc(var(--workspace-rail) + 28px); padding: 0 0 36px; }
 .planner-reference .journey-stage-stream { min-width: 0; }
-.planner-reference .journey-conditions[data-compact=true],.planner-reference .journey-workspace-block { padding: clamp(20px,2.2vw,36px); border: 1px solid #e7e2ed; border-radius: 24px; background: #fff; box-shadow: 0 4px 20px #242b2a03; margin: 0; width: 100%; }
-.planner-reference .condition-step-kicker { margin: 0 0 16px; font-size: .7rem; }
+.planner-reference .journey-workspace-block { padding: clamp(20px,2.2vw,36px); border: 1px solid #e7e2ed; border-radius: 24px; background: #fff; box-shadow: 0 4px 20px #242b2a03; margin: 0; width: 100%; }
 .planner-reference .condition-heading,.planner-reference .journey-workspace-block h2 { font-size: clamp(1.3rem,1.8vw,1.8rem); font-weight: 600; color: var(--ink); line-height: 1.5; }
 .planner-reference .reference-subtitle,.planner-reference .stage-guidance { font-size: .9rem; color: var(--muted); line-height: 1.8; }
 .planner-reference > .simple-footer { margin-left: calc(var(--workspace-rail) + 28px); width: auto; }
-.planner-reference .condition-actions { position: sticky; bottom: 0; z-index: 4; padding: 16px 0 0; margin-top: 20px; background: #fff; border-top: 1px solid var(--line); }
-.planner-reference .condition-availability { padding: 16px; border-radius: 12px; background: var(--surface); }
 .planner-reference .place-card { border: 1px solid var(--line); border-radius: 18px; }
-.planner-reference .place-empty { grid-column: 1/-1; padding: 28px; background: var(--surface); border-radius: 16px; }
 .planner-notice > button { padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--accent); }
 @media (min-width: 1181px) {
   .planner-reference:has(.naru-panel.naru-compact[open]) .planner-journey-workspace { margin-right: 464px; }
@@ -41,7 +37,6 @@ html[data-theme=dark] .region-showcase .selected-region small {
 .kakao-action-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; }
 @keyframes wave-spin { to { transform: rotate(360deg); } }
 @keyframes wave-shimmer { to { background-position: -200% 0; } }
-@media (min-width: 1760px) { }
 @media (max-width: 1180px) {
   .planner-reference { --workspace-rail: 184px; --workspace-gap: 18px; }
 }
@@ -54,8 +49,7 @@ html[data-theme=dark] .region-showcase .selected-region small {
   .wave-header nav { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); min-width: 0; }
   .wave-header nav a { white-space: normal; overflow-wrap: normal; word-break: keep-all; line-height: 1.35; text-align: center; }
   .planner-reference .planner-journey-workspace { margin-inline: 12px; }
-  .planner-reference .journey-conditions[data-compact=true],.planner-reference .journey-workspace-block { padding: 20px 12px; border-radius: 18px; }
-  .planner-reference .condition-actions { position: static; padding-bottom: 8px; }
+  .planner-reference .journey-workspace-block { padding: 20px 12px; border-radius: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { .wave-spinner,.wave-loading-inline::before,.planner-page button[aria-busy=true]::before,.wave-skeleton-lines i,.place-card-skeleton .skeleton-visual,.smart-spot-image.loading { animation: none; } }
 html[data-motion=calm] .wave-header { transition: none; }

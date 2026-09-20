@@ -6,13 +6,13 @@ import { useCommunityPostList } from "./useCommunityPostList";
 
 export type PlaceFilter = { id: string; name: string; region: string };
 
-export function useCommunityBoard(initialPlace: PlaceFilter | null) {
+export function useCommunityBoard(initialPlace: PlaceFilter | null, sort = 'latest') {
   const { data: session } = useHydratedSession();
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [placeFilter, setPlaceFilter] = useState<PlaceFilter | null>(initialPlace);
-  const list = useCommunityPostList({ category, query, placeId: placeFilter?.id });
+  const list = useCommunityPostList({ category, query, placeId: placeFilter?.id, sort });
 
   const writeHref = useMemo(() => {
     const params = new URLSearchParams();

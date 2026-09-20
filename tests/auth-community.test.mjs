@@ -67,7 +67,7 @@ test("formal auth pages use Neon Auth with accessible password and return flows"
   assert.match(hydratedSession, /data: hydrated \? session\.data : null/);
   assert.match(hydratedSession, /isPending: !hydrated \|\| session\.isPending/);
   assert.match(form, /href="\/planner">로그인 없이 둘러보기/);
-  assert.match(shell, /className="auth-page auth-focused"/);
+  assert.match(shell, /className="auth-page auth-focused(?: [^"]*)?"/);
   assert.doesNotMatch(shell, /auth-story|AuthMotionHeadline/);
   assert.match(authRoute, /getAuth\(\)\?\.handler/);
   assert.match(server, /secret\.length < 32/);
@@ -104,7 +104,7 @@ test("community API derives identity from the session and enforces ownership", a
   assert.match(posts, /export async function createCommunityPost/);
   assert.equal(
     (posts.match(/p\.author_id <> 'wave-seed'/g) || []).length,
-    8,
+    9,
     "all public community list and detail reads must exclude retired seed posts",
   );
   assert.match(comments, /export async function createCommunityComment/);
@@ -152,8 +152,6 @@ test("community UI supports public reading, protected participation and place li
   const [list, detail, clientApi, editor, planner, placeDialog, landing, sitemap] = await Promise.all([
     Promise.all([
       source("features/community/components/CommunityBoard.tsx"),
-      source("features/community/components/CommunityHero.tsx"),
-      source("features/community/components/CommunityBoardToolbar.tsx"),
       source("features/community/components/CommunityPostList.tsx"),
       source("features/community/hooks/useCommunityBoard.ts"),
       source("features/community/hooks/useCommunityPostList.ts"),
@@ -203,12 +201,13 @@ test("community UI supports public reading, protected participation and place li
   assert.match(planner, /PlaceDecisionDialog/);
   assert.match(placeDialog, /place-visitor-records/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
-  assert.match(landing, /horizon-chapter-stream/);
+  assert.match(landing, /night-journey-input/);
   assert.match(await source("components/WaveHeader.tsx"), /community/);
-  assert.match(landing, /href="\/planner"/);
+  assert.match(landing, /const href='\/planner\?region='\+encodeURIComponent\(region\)/);
+  assert.match(landing, /href=\{href\}/);
   assert.doesNotMatch(landing, /작성 예시|실제 게시된 글이 아닙니다/);
   assert.doesNotMatch(landing, /fetch\(|localStorage|sessionStorage|usePlanner|createCommunityPost|<form\b|<input\b|<textarea\b/);
-  assert.doesNotMatch(landing, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
+  assert.doesNotMatch(landing, /useCommunityPreview|posts\.map|post\.(?:title|content)/);
   assert.doesNotMatch(landing, /김철수|홍길동|test user/i);
   assert.match(sitemap, /`\$\{origin\}\/community`/);
 });
@@ -225,7 +224,7 @@ test("preserved product preview sources remain Korean and non-interactive; curre
     source("app/styles/landing-stories.css"), source("app/styles/landing-feature-motion.css"), accountStyleSource(),
   ]);
   const css = `${storyCss}\n${featureMotionCss}\n${accountCss}`;
-  const community = await source("features/landing/components/LandingChapters.tsx");
+  const community = await source("features/landing/components/LandingCommunityScene.tsx");
   const labels = [...stories.matchAll(/className="section-kicker">(\d{2} · [^<]+)</g)].map((match) => match[1]);
   assert.deepEqual(labels, ["01 · Your needs", "01 · 여행 조건", "02 · The evidence", "02 · 추천 근거", "03 · Your itinerary", "03 · 하루 일정", "04 · Each journey", "04 · 이동 경로", "05 · Before departure", "05 · 상황 대응", "06 · Keep your trip", "06 · 내 일정"]);
   assert.doesNotMatch(stories, /DISCOVER|ACCESS|PLAN|ROUTE|ADAPT|REMEMBER|COMMUNITY/);
@@ -237,10 +236,10 @@ test("preserved product preview sources remain Korean and non-interactive; curre
   assert.doesNotMatch(stories, /<button\b/);
   assert.match(stories, /className="[^"]*route-demo-path/);
   assert.match(stories, /className="[^"]*route-demo-vehicle/);
-  assert.match(community, /horizon-chapter-stream/);
+  assert.match(community, /id="community"/);
   assert.match(await source("components/WaveHeader.tsx"), /community/);
   assert.doesNotMatch(community, /<button\b/);
-  assert.match(community, /href="\/planner"/);
+  assert.match(community, /href="\/community"/);
   assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live|fetch\(|localStorage|sessionStorage/);
   assert.doesNotMatch(stories, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   assert.match(css, /\.product-story,.landing-community \{ min-height: 0; padding-block: clamp\(/);

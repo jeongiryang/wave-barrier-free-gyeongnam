@@ -32,7 +32,11 @@ export async function fetchTrashBinData(env: Env): Promise<Record<string, unknow
   const key = env.TOUR_API_SERVICE_KEY_ENCODED?.trim();
   if (!endpoint || !/^https:\/\//i.test(endpoint) || !key) throw new Error("쓰레기통 공식 데이터 연결 설정 필요");
   const url = new URL(endpoint);
-  url.searchParams.set("serviceKey", key);
+  // The shared environment accepts the portal's encoded key. Decode once before
+  // URLSearchParams performs the single encoding required for transport.
+  let decodedKey = key;
+  try { decodedKey = decodeURIComponent(key); } catch { /* Already a raw key. */ }
+  url.searchParams.set("serviceKey", decodedKey);
   url.searchParams.set("pageNo", "1");
   url.searchParams.set("numOfRows", "30000");
   url.searchParams.set("type", "json");

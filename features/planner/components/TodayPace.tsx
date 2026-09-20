@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useOpenNaru } from "../../../components/GlobalTravelWorkspace";
+import { useOpenNaru } from "../../../components/NaruContext";
 import { buildItinerarySchedule } from "../optimization/itinerary-schedule.js";
 import { suggestTripBreaks, assessWalking } from "../../../lib/trip-comfort.js";
 import {

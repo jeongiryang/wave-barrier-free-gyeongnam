@@ -8,7 +8,7 @@ import { CLIENT_BUDGET_MS } from '../../../lib/request-budget.js';
 import { nearbyDownstreamStops, returnArrivalLabel, type PublicStop, type ReturnTransportInfo } from '../../../lib/transport/return-transport.js';
 
 const copyStyle = { margin: 0, fontSize: 14, lineHeight: 1.65, color: 'var(--muted)' } as const;
-const cardStyle = { padding: 20, display: 'grid', gap: 12, alignContent: 'start', border: '1px solid var(--line)', borderRadius: 20, background: 'var(--white)', minWidth: 0 } as const;
+const cardStyle = { padding: 20, display: 'grid', gap: 12, alignContent: 'start', border: '1px solid var(--line)', borderRadius: 20, background: 'var(--paper)', minWidth: 0 } as const;
 const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,280px),1fr))', gap: 16 } as const;
 const actionsStyle = { gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,220px),1fr))' } as const;
 const labelStyle = { display: 'grid', gap: 8, fontSize: 14 } as const;

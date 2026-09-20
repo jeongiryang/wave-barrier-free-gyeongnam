@@ -27,17 +27,13 @@ export default function PlaceCommunityStories({ place, location }: { place: Plac
       setLoading(true);
       setFailed(false);
       try {
-        const exact = new URLSearchParams({ placeId: place.id, page: "1", limit: "3" });
-        const reports = new URLSearchParams({ placeId: place.id, category: "field-report", page: "1", limit: "3" });
-        const [exactResult, reportResult] = await Promise.all([
-          listCommunityPosts(exact, controller.signal),
-          listCommunityPosts(reports, controller.signal).catch(() => ({ posts: [] as CommunityPost[] })),
-        ]);
-        if (!Array.isArray(exactResult.posts) || !Array.isArray(reportResult.posts)) throw new Error("Invalid story list");
+        const exact = new URLSearchParams({ placeId: place.id, placePreview: '1', page: "1", limit: "3" });
+        const exactResult = await listCommunityPosts(exact, controller.signal) as { posts?: CommunityPost[]; fieldReports?: CommunityPost[] };
+        if (!Array.isArray(exactResult.posts)) throw new Error("Invalid story list");
         const next = exactResult.posts;
         if (active) {
           setPosts(next.filter((post) => post.category !== "field-report").slice(0, 3));
-          setFieldReports(reportResult.posts.filter((post) => post.category === "field-report").slice(0, 3));
+          setFieldReports((exactResult.fieldReports || []).filter((post) => post.category === "field-report").slice(0, 3));
         }
       } catch {
         if (!controller.signal.aborted && active) { setPosts([]); setFieldReports([]); setFailed(true); }

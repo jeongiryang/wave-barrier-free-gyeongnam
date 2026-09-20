@@ -12,20 +12,28 @@ const allowedQueries = new Set(['action', 'contentId']);
 const isGyeongnamPlace = (place: Record<string, unknown>) => String(place.lDongRegnCd || '') === '48' || String(place.areacode || '') === '36';
 
 function records(data: unknown): Record<string, unknown>[] {
+  if (!data || typeof data !== 'object') throw new Error('여성용품 데이터 응답 계약 오류');
   const root = data as { response?: { header?: { resultCode?: string }; body?: { items?: unknown } }; items?: unknown };
   if (root.response?.header && String(root.response.header.resultCode) !== '00') throw new Error('여성용품 데이터 응답 오류');
   const raw = root.response?.body?.items ?? root.items ?? data;
-  const list = Array.isArray(raw) ? raw : raw && typeof raw === 'object' && Array.isArray((raw as { item?: unknown }).item) ? (raw as { item: unknown[] }).item : [];
-  return list.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object' && !Array.isArray(item)));
+  const list = Array.isArray(raw) ? raw : raw && typeof raw === 'object' && Array.isArray((raw as { item?: unknown }).item) ? (raw as { item: unknown[] }).item : null;
+  if (!list) throw new Error('여성용품 데이터 응답 계약 오류');
+  if (list.some(item => !item || typeof item !== 'object' || Array.isArray(item))) throw new Error('여성용품 데이터 항목 오류');
+  return list as Record<string, unknown>[];
 }
 
 export async function fetchSanitarySupplyData(env: Env) {
   const endpoint = env.SANITARY_SUPPLY_API_URL?.trim();
   const key = env.TOUR_API_SERVICE_KEY_ENCODED?.trim();
   if (!endpoint || !key || !/^https:\/\//i.test(endpoint)) throw new Error('여성용품 공공데이터 연결 설정 필요');
-  const separator = endpoint.includes('?') ? '&' : '?';
-  const url = `${endpoint}${separator}serviceKey=${key}&pageNo=1&numOfRows=10000&type=json`;
-  const response = await requestProvider({ provider: 'sanitary-supply', family: 'public-data', operation: 'sanitary-supply-list' }, url, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(SERVER_BUDGET_MS.sanitarySupply) }, fetch);
+  const url = new URL(endpoint);
+  let decodedKey = key;
+  try { decodedKey = decodeURIComponent(key); } catch { /* Already a raw key. */ }
+  url.searchParams.set('serviceKey', decodedKey);
+  url.searchParams.set('pageNo', '1');
+  url.searchParams.set('numOfRows', '10000');
+  url.searchParams.set('type', 'json');
+  const response = await requestProvider({ provider: 'sanitary-supply', family: 'public-data', operation: 'sanitary-supply-list' }, url.toString(), { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(SERVER_BUDGET_MS.sanitarySupply) }, fetch);
   if (!response.ok) throw new Error(`여성용품 데이터 응답 ${response.status}`);
   try { return records(JSON.parse(await response.text())); } catch { throw new Error('여성용품 데이터 형식 오류'); }
 }
@@ -42,6 +50,7 @@ export async function handleSanitarySupply(url: URL, env: Env) {
   });
   if (!placeSnapshot) return json({ status: 'provider-error', contentId, checkedAt: new Date().toISOString(), source: '공공데이터', items: [] }, 502);
   const place = placeSnapshot.value.find(item => String(item.contentid) === contentId);
+  if (!place || !isGyeongnamPlace(place)) return json({ status: 'invalid-request', contentId, checkedAt: placeSnapshot.checkedAt, source: '공공데이터', items: [] }, 400);
   const point = place && isGyeongnamPlace(place) ? supportedPlacePoint(place.mapx, place.mapy) : null;
   if (!point) return json({ status: 'location-unconfirmed', contentId, checkedAt: placeSnapshot.checkedAt, source: '공공데이터', items: [] }, 200);
   const supplySnapshot = await snapshots.get<SanitarySupplyItem[]>(`sanitary:${contentId}`, 24 * 60 * 60000, remaining, async () => {

@@ -8,6 +8,7 @@ export default defineConfig(async () => {
   return {
     server: {
       host: "0.0.0.0",
+      watch: { ignored: ["**/integration-*/**", "**/test-results*/**", "**/playwright-report/**", "**/*.log"] },
     },
     // Nitro owns requests and its worker owns the RSC module runner. Keep
     // vinext's complete plugin stack, with no second standalone HTTP handler.

@@ -45,7 +45,8 @@ test("검색 결과와 일정 설정은 현재 할 일을 한국어로 안내한
     source("features/planner/components/PlannerItineraryBoard.tsx"),
   ]).then(parts => parts.join("\n"));
   for (const title of ["여행 설계", "여행지 찾기", "여행지 검색 결과", "내 일정", "여행 설정", "날짜별 여행 일정"]) assert.ok(files.includes(title), title);
-  for (const question of ["어디로 갈까요?", "언제 떠날까요?"]) assert.ok(files.includes(question), question);
+  assert.match(files, /<select aria-label="여행 지역"/);
+  assert.ok(files.includes("언제 떠날까요?"));
   for (const action of ["필요한 편의", "하고 싶은 활동", "이동 수단", "시간표 만들기", "시간표", "지도"]) assert.ok(files.includes(action), action);
 });
 

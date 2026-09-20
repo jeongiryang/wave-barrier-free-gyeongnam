@@ -9,6 +9,6 @@ export default function AuthShell({ mode, returnTo }: { mode: AuthMode; returnTo
   return <main className="auth-page auth-focused wave-night night-secondary">
     <SkipLink href="#auth-title">계정 입력으로 바로가기</SkipLink>
     <WaveHeader current="other" />
-    <div className="auth-layout"><NightAccountVisual /><AuthForm mode={mode} returnTo={returnTo} kakaoEnabled={isKakaoAuthConfigured()} /></div>
+    <div className="auth-layout"><NightAccountVisual /><AuthForm mode={mode} returnTo={returnTo} kakaoEnabled={isKakaoAuthConfigured()} publicPreview={process.env.WAVE_PUBLIC_PREVIEW === '1'} /></div>
   </main>;
 }

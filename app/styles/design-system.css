@@ -42,7 +42,7 @@
 }
 
 /* 입력·선택 요소는 같은 높이와 모서리를 쓴다 */
-.date-range-fields input, .feedback-box textarea {
+.feedback-box textarea {
   border-radius: var(--r-md);
 }
 

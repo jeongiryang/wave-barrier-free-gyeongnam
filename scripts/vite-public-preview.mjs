@@ -1,7 +1,8 @@
 // Opt-in local preview: read public WAVE data without copying production secrets.
 // Authentication, private records, and every write keep the local backend.
 export function publicPreviewReads() {
-  const allowed = new Set(['/api/wave', '/api/festivals', '/api/route', '/api/weather', '/api/map-config', '/api/location-search', '/api/assistant']);
+  // Assistant health must describe the same local backend that accepts its POST.
+  const allowed = new Set(['/api/wave', '/api/festivals', '/api/route', '/api/weather', '/api/map-config', '/api/location-search']);
   return {
     name: 'wave:public-preview-reads', apply: 'serve', enforce: 'pre',
     configureServer(server) {
