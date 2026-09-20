@@ -34,9 +34,11 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
   const [retryNonce, setRetryNonce] = useState(0);
   const [toolPanel, setToolPanelState] = useState<MapToolPanel>(null);
   const cancelNearbyRef = useRef<() => void>(() => undefined);
+  const cancelFacilityRef = useRef<() => void>(() => undefined);
   const setToolPanel = useCallback((next: SetStateAction<MapToolPanel>) => {
     // Every way out (including Escape, another tool or a map selection) ends the old query.
     cancelNearbyRef.current();
+    cancelFacilityRef.current();
     setToolPanelState(next);
   }, []);
   const [pickMode, setPickMode] = useState<MapPickMode>(null);
@@ -112,7 +114,9 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     toggleFacility,
     retryFacilityLayer,
     clearFacilityLayers,
-  } = useFacilityLayers({ kakaoMapRef, provider, scopeKey: focusedGeometryKey, places });
+    cancelFacilityRequests,
+  } = useFacilityLayers({ kakaoMapRef, provider, scopeKey: `${focusedGeometryKey}:${selectedMapPlace?.id || ""}`, places, contentId: selectedMapPlace?.id });
+  useEffect(() => { cancelFacilityRef.current = cancelFacilityRequests; }, [cancelFacilityRequests]);
   const chooseFacilityMarker = useCallback((marker: FacilityMapMarker) => {
     if (!isMapAvailable()) return;
     setSelectedFacility(marker);

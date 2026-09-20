@@ -137,12 +137,11 @@ test("place-search layers reuse the existing nearbyCategories codes", () => {
   }
 });
 
-test("no official layer is registered while no verified provider exists", () => {
-  // #530·#531 의 제공처가 이 저장소에 아직 없다. 빈 목록을 화면에 노출하지 않기
-  // 위해 등록된 공식 레이어가 0개인 것을 고정한다. 후속 명세가 서버 action 을
-  // 추가하면서 이 배열에 한 줄을 더하면 이 검사만 갱신하면 된다.
-  assert.equal(officialFacilityLayers.length, 0);
-  assert.equal(facilityLayers.filter((layer) => layer.source === "official").length, 0);
+test("trash-bin is registered as the official public-data layer", () => {
+  assert.deepEqual(officialFacilityLayers.map(({ id, action, source }) => ({ id, action, source })), [
+    { id: "trash-bin", action: "trash-bin", source: "official" },
+  ]);
+  assert.equal(facilityLayers.filter((layer) => layer.source === "official").length, 1);
 });
 
 test("every layer carries a non-colour cue and a unique id", () => {

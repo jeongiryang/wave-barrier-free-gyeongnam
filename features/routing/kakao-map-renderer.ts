@@ -142,7 +142,7 @@ export async function renderKakaoMap(
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `wave-map-icon facility-pin facility-${facility.official ? "official" : "place-search"}`;
+      button.className = `wave-map-icon facility-pin facility-${facility.official ? "official" : "place-search"}${facility.compact ? " facility-compact" : ""}`;
       button.dataset.facilityLayer = facility.layerId;
       button.dataset.facilityMarkerId = facility.id;
       button.title = `${facility.layerLabel} ${facility.name}`;

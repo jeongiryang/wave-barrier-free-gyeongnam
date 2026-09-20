@@ -56,29 +56,10 @@ export const placeSearchFacilityLayers: readonly FacilityLayer[] = [
   { id: "subway", label: "지하철역", source: "place-search", code: "SW8", glyph: "역" },
 ];
 
-/**
- * 공식 데이터 레이어 등록 지점 — 지금은 비어 있다.
- *
- * 11번 명세는 `accessible-parking`(#530)과 `accessible-restroom`(#531)이 이미
- * 연동됐다고 전제하지만, 이 저장소에는 두 제공처를 부르는 서버 코드가 없다.
- * (`server/tourism/handler.ts`의 action 목록에 `parking`·`restroom`·
- * `facility-layers`가 없고, `server/tourism/`에도 해당 모듈이 없다.)
- * 없는 데이터를 있는 것처럼 보이지 않게 하려고 여기에는 아무 것도 등록하지 않는다.
- * 이 배열이 비어 있는 동안 패널은 "공식 데이터" 구분 자체를 그리지 않는다.
- *
- * 후속 명세(13·14·15·16·20·21·33·45)가 레이어를 붙이는 방법은 두 줄이다.
- *
- * 1. 각 명세가 `server/tourism/`에 제공처 모듈을 더하고
- *    `server/tourism/handler.ts`에 자기 action 분기를 추가한다.
- * 2. 아래 배열에 `{ id, label, source: "official", action: "<그 action>", glyph }`
- *    한 줄을 더한다. 그러면 패널 버튼, 4개 상한, 칩, 실패·재시도, 마커 60개
- *    상한, 지도 렌더링이 그대로 따라온다. 화면 코드를 고칠 필요가 없다.
- *
- * 공식 레이어를 부르는 클라이언트 경로는 `features/routing/useFacilityLayers.ts`의
- * `source === "official"` 갈래에 있다. 거기에 `optionalPlannerJson` 호출과
- * `SERVER_BUDGET_MS`/`CLIENT_BUDGET_MS` 항목을 함께 채우면 된다.
- */
-export const officialFacilityLayers: readonly FacilityLayer[] = [];
+/** 서버가 공개 관광지 ID를 재검증한 뒤 돌려주는 공식 공공데이터 레이어. */
+export const officialFacilityLayers: readonly FacilityLayer[] = [
+  { id: "trash-bin", label: "쓰레기통", source: "official", action: "trash-bin", glyph: "휴" },
+];
 
 /**
  * 이미 조회한 장소 목록에서 파생하는 레이어(스펙 20). 새 서버 호출이나 새

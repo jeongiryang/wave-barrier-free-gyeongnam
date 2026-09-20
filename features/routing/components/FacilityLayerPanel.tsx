@@ -9,6 +9,7 @@ const englishLabels: Record<string, string> = {
   pharmacy: "Pharmacies", hospital: "Hospitals", subway: "Subway stations",
   "helpdog-confirmed": "Guide dog access confirmed",
   "braileblock-confirmed": "Tactile paving confirmed",
+  "trash-bin": "Trash bins",
 };
 const layerName = (layer: FacilityLayer, english: boolean) => english ? englishLabels[layer.id] || layer.label : layer.label;
 
@@ -84,8 +85,9 @@ export default function FacilityLayerPanel({
           return <li key={id} className={failed ? "facility-chip failed" : "facility-chip"}>
             <span>{layer ? layerName(layer, english) : id}</span>
             {state === "loading" && <small>{english ? "Loading" : "불러오는 중"}</small>}
-            {state === "empty" && <small>{english ? "No search results" : "검색 결과 없음"}</small>}
-            {failed && <><small>{english ? "Could not load" : "불러오지 못함"}</small>
+            {state === "empty" && <small>{layer?.id === "trash-bin" ? (english ? "No registered locations" : "등록된 위치가 없어요.") : (english ? "No search results" : "검색 결과 없음")}</small>}
+            {state === "location-unconfirmed" && <small>{english ? "This destination's public coordinates could not be confirmed." : "이 여행지의 공개 좌표를 확인하지 못했어요."}</small>}
+            {failed && <><small>{layer?.id === "trash-bin" ? (english ? "Could not receive location information." : "위치 정보를 받지 못했어요.") : (english ? "Could not load" : "불러오지 못함")}</small>
               <button type="button" onClick={() => onRetryLayer(id)}>{english ? "Try again" : "다시 시도"}</button></>}
             <button type="button" onClick={() => onToggleLayer(id)} aria-label={english ? `Turn off ${layer ? layerName(layer, english) : id}` : `${layer ? layer.label : id} 끄기`}>×</button>
           </li>;
@@ -129,17 +131,20 @@ export default function FacilityLayerPanel({
         <button type="button" onClick={onCloseFacility} aria-label={english ? "Close facility card" : "편의시설 정보 닫기"}>×</button>
       </header>
       <dl>
-        <div><dt>{english ? "Distance from the map centre" : "지도 중심에서 거리"}</dt><dd>{typeof selectedFacility.distanceMeters === "number" ? `${selectedFacility.distanceMeters.toLocaleString(english ? "en" : "ko")}m` : (english ? "Unavailable" : "정보 없음")}</dd></div>
+        {selectedFacility.kind && <div><dt>{english ? "Type" : "종류"}</dt><dd>{selectedFacility.kind}</dd></div>}
+        <div><dt>{english ? (selectedFacility.layerId === "trash-bin" ? "Straight-line distance from the destination" : "Distance from the map centre") : (selectedFacility.layerId === "trash-bin" ? "여행지 기준 직선거리" : "지도 중심에서 거리")}</dt><dd>{typeof selectedFacility.distanceMeters === "number" ? `${selectedFacility.distanceMeters.toLocaleString(english ? "en" : "ko")}m` : (english ? "Unavailable" : "정보 없음")}</dd></div>
         <div><dt>{english ? "Source" : "제공처"}</dt><dd>{selectedFacility.source}</dd></div>
         {selectedFacility.referenceDate && <div><dt>{english ? "Data reference date" : "데이터 기준일"}</dt><dd>{selectedFacility.referenceDate}</dd></div>}
       </dl>
       <div className="map-place-actions">
         <button type="button" onClick={() => onShowOnMap(selectedFacility)}>{english ? "View on map" : "지도에서 보기"}</button>
-        <button type="button" onClick={() => onSetDestination(selectedFacility)}>{english ? "Set as destination" : "도착지로 선택"}</button>
+        {selectedFacility.layerId !== "trash-bin" && <button type="button" onClick={() => onSetDestination(selectedFacility)}>{english ? "Set as destination" : "도착지로 선택"}</button>}
       </div>
     </article>}
 
-    <p className="facility-evidence">{english
+    <p className="facility-evidence">{active.includes("trash-bin")
+      ? (english ? "This location is registered in public data. Its current installation status has not been confirmed." : "공공데이터에 등록된 위치예요. 현재 설치 여부는 확인되지 않았어요.")
+      : english
       ? "These facilities come from public data records. Real-time availability and on-site conditions have not been checked."
       : "표시된 편의시설은 공공데이터에 등록된 정보예요. 실시간 이용 가능 여부와 현장 상태는 확인되지 않았어요."}</p>
   </section>;

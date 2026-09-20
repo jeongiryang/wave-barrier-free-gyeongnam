@@ -142,6 +142,7 @@ Windows PowerShell에서는 `Copy-Item .env.example .env.local`로 환경 파일
 | `KAKAO_REST_API_KEY` | 핵심 | 장소 검색·자동차 경로 서버 호출 |
 | `KORAIL_API_KEY`, `TAGO_API_KEY` | 선택 | 별도 발급한 철도·버스 키; 승인 범위에 따라 공통 키 사용 |
 | `ODSAY_API_KEY`, `EXPRESSWAY_API_KEY` | 선택 | 대중교통 경로·고속도로 정보 보강 |
+| `WASTE_BIN_API_URL`, `WASTE_BIN_API_SOURCE` | 선택 | 승인된 경남 공식 쓰레기통 JSON API 주소와 화면용 데이터셋 이름 |
 | `DATABASE_URL` | 저장 기능 | Neon pooled Postgres 연결 문자열 |
 | `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET` | 계정 기능 | Neon Auth 주소와 32자 이상 쿠키 서명 비밀값 |
 | `CRON_SECRET` | 운영 | 공유 여행 보관기간 정리 요청 인증 |
