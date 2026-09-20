@@ -9,22 +9,31 @@ export default function NaruLauncher({ onOpen, context = '여행 설계', disabl
   const [hint, setHint] = useState(-1), [dismissed, setDismissed] = useState(false);
   const discovery = useRef<HTMLElement>(null);
   useEffect(() => {
-    let frame = 0;
+    let frame = 0, pointerActive = false;
+    const beginPointer = () => { pointerActive = true; cancelAnimationFrame(frame); };
+    const endPointer = () => { pointerActive = false; };
     const revealFocusedControl = () => {
       cancelAnimationFrame(frame);
+      // Moving a pressed control before pointerup can send the click elsewhere.
+      // Only reveal keyboard focus; pointer users already chose a visible point.
+      if (pointerActive) return;
       frame = requestAnimationFrame(() => {
         const target = document.activeElement;
         const launcher = discovery.current;
-        if (!(target instanceof HTMLElement) || !launcher || launcher.contains(target) || !target.matches('a,button,input,select,textarea,summary')) return;
+        if (pointerActive || !(target instanceof HTMLElement) || !launcher || launcher.contains(target) || !target.matches(':focus-visible') || !target.matches('a,button,input,select,textarea,summary')) return;
         const control = target.getBoundingClientRect(), floating = launcher.getBoundingClientRect();
         if (control.bottom > floating.top && control.top < floating.bottom && control.right > floating.left && control.left < floating.right) {
           target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
         }
       });
     };
+    document.addEventListener('pointerdown', beginPointer, true);
+    window.addEventListener('pointerup', endPointer, true);
+    window.addEventListener('pointercancel', endPointer, true);
+    window.addEventListener('blur', endPointer);
     document.addEventListener('focusin', revealFocusedControl);
     window.addEventListener('resize', revealFocusedControl);
-    return () => { cancelAnimationFrame(frame); document.removeEventListener('focusin', revealFocusedControl); window.removeEventListener('resize', revealFocusedControl); };
+    return () => { cancelAnimationFrame(frame); document.removeEventListener('pointerdown', beginPointer, true); window.removeEventListener('pointerup', endPointer, true); window.removeEventListener('pointercancel', endPointer, true); window.removeEventListener('blur', endPointer); document.removeEventListener('focusin', revealFocusedControl); window.removeEventListener('resize', revealFocusedControl); };
   }, []);
   useEffect(() => {
     if (disabled || dismissed || motion === 'calm') return;

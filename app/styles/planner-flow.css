@@ -18,8 +18,7 @@
 .region-picker-list button { min-width: 0; min-height: 48px; padding: 10px 4px; border: 1px solid #a9c6cc; border-radius: 12px; color: #3e344c; background: #fff; font-size: .95rem; font-weight: 700; overflow-wrap: anywhere; }
 .region-picker > div > .declining-region-filter { min-height:44px; margin-bottom:12px; padding:8px 12px; border:1px solid var(--line); border-radius:6px; color:var(--ink); background:var(--surface); }
 .region-picker-list button > span { display:block; }
-.region-picker-list .declining-region-notice { margin-top:6px; color:var(--ink-soft); font-size:.75rem; font-weight:400; line-height:1.45; }
-.region-picker-list .declining-region-notice small { display:block; color:var(--muted); font-size:.6875rem; }
+.region-picker-source { margin:12px 0 0; color:var(--muted); font-size:.75rem; line-height:1.45; }
 .region-picker-list button[aria-pressed=true] { --ink-soft:var(--on-blue); --muted:var(--on-blue); }
 .region-picker-list button[aria-pressed="true"] { color: #fff; background: #12655b; border-color: #12655b; }
 .outside-trip-dates,.result-notice { margin: 20px 0; padding: 20px; border: 1px solid #aabec5; border-radius: 14px; background: #edf6f7; }

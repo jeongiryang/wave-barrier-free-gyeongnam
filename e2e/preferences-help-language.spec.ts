@@ -28,7 +28,8 @@ test("English preferences preserve locale choices, runtime reduced motion and CT
   await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   const cta = page.locator(".landing-actions a[href='/planner']");
-  await expect(page.locator(".landing-hero button")).toHaveCount(0);
+  await expect(page.locator(".landing-hero button")).toHaveCount(1);
+  await expect(page.locator(".landing-hero button")).toHaveAccessibleName("Find places");
   await cta.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(cta).toBeFocused();

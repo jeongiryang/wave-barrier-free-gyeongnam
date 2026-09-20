@@ -14,8 +14,10 @@ test('Design B destination, planning steps and Naru examples connect to the work
  await story.getByRole('button',{name:/일정 만들기/}).click();
  await expect(story.getByRole('heading',{name:'하루의 순서는, 내가 원하는 대로'})).toBeVisible();
  await page.locator('#naru .landing-naru-usecases button').first().click();
- await expect(page.locator('.naru-panel')).toBeVisible();
+ await expect(page.locator('dialog.naru-panel[open]')).toBeVisible();
+ await expect(page.locator('#naru-message')).toBeFocused();
  await page.keyboard.press('Escape');
+ await expect(page.locator('dialog.naru-panel')).toBeHidden();
  await page.locator('#landing-region').selectOption('거제');
  await page.getByRole('button',{name:'여행지 검색',exact:true}).click();
  await expect(page).toHaveURL(url=>url.pathname==='/planner'&&url.searchParams.get('region')==='거제');

@@ -20,12 +20,12 @@ export default function AuthUtilityShell({
       <div className="auth-layout auth-utility-layout">
         <section className="auth-story" aria-labelledby="auth-story-title">
           <p className="section-kicker">{eyebrow}</p>
-          <h1 id="auth-story-title">{title}</h1>
+          <h2 id="auth-story-title">{title}</h2>
           <p>{description}</p>
         </section>
         <section className="auth-card auth-utility-card" aria-labelledby="auth-title">
           <p className="auth-kicker">{eyebrow}</p>
-          <h2 id="auth-title">{title}</h2>
+          <h1 id="auth-title">{title}</h1>
           {children}
         </section>
       </div>

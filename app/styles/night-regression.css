@@ -7,7 +7,7 @@ html:root body .wave-night .transport-provider-strip .connected small{color:var(
 @media(max-width:600px){html:root body .wave-night .wave-header-actions :is(.night-search-link,.night-login){display:none!important}}
 html:root body .wave-night .skip-link{background:#091b2d;color:#edf4ff}
 html:root body .wave-night :is(.route-mode-sections>button>span,.route-mode-order-note,.route-notice){color:var(--muted)}
-html:root body .wave-night :is(.route-kakao-secondary,.restroom-alternatives button){background:var(--paper);color:var(--ink);border-color:var(--line)}
+html:root body .wave-night :is(.route-kakao-secondary,.restroom-alternatives button,.dining-accessibility button:not([aria-pressed])){background:var(--paper);color:var(--ink);border-color:var(--line)}
 html:root body .night-landing .landing-actions a[href='/planner']{background:#195dc5;color:#fff}
 html:root body .night-landing .brand-meaning p{color:#edf4ff}
 html:root body .wave-night :is(.map-command-bar button,.map-command-bar a,.map-type-switch button,.point-button:hover,.point-active){background:var(--paper);color:var(--ink);border-color:var(--line)}
@@ -15,8 +15,7 @@ html:root body .wave-night .map-command-bar button:is(.active,[aria-pressed=true
 html:root body .wave-night .community-list article footer span{color:var(--muted)}
 html:root body .wave-night :is(.route-compare-panel,.route-mode-sections>button,.route-option,.place-evidence,.trip-comfort-choices,.simple-dialog button:not(.primary)){background:var(--paper);color:var(--ink);border-color:var(--line)}
 html:root body .wave-night :is(.route-option small,.route-option dt,.route-mode-sections small,.place-evidence p,.trip-comfort-choices [role=status]){color:var(--muted)}
-html:root body .wave-night .region-picker-list button[aria-pressed=true] .declining-region-notice :is(span,small){color:#fff}
-html:root body .wave-night .easy-trip-primary{background:#195dc5;color:#fff}
+html:root body .wave-night :is(.easy-trip-primary,.parking-actions button){background:#195dc5;color:#fff}
 html:root body .wave-night :is(a,button,input,select,summary):focus-visible{outline-width:3px;scroll-margin-block:110px}
 html:root body .wave-night :is(.transport-data-results article,.place-field-report-link){background:var(--paper);color:var(--ink);border-color:var(--line)}
 html:root body .wave-night :is(.place-external-review small,.condition-scope,.transport-data-results small,.transport-data-results span){color:var(--muted)}

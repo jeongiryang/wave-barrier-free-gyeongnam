@@ -10,7 +10,10 @@ test("unapproved public programs leave no card, input or network activity", asyn
   const readiness = await enterDeparture(page);
   await expect(readiness.locator(".companion-support-card")).toHaveCount(0);
   await expect(readiness.getByRole("heading", { name: "동행 도움이 필요하다면", exact: true })).toHaveCount(0);
-  await expect(readiness.locator("input, textarea, form")).toHaveCount(0);
+  // The separate, approved travel-precaution checklist has four local-only
+  // checkboxes. The unapproved companion program must add no input of its own.
+  await expect(readiness.locator('.simple-readiness-precautions input[type="checkbox"]')).toHaveCount(4);
+  await expect(readiness.locator("input:not(.simple-readiness-precautions input), textarea, form")).toHaveCount(0);
 
   await page.waitForTimeout(1000);
   await page.waitForLoadState("networkidle");
