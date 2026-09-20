@@ -47,28 +47,47 @@ export function createIntroMasks({
   const ux = (value: number) => centerX + value * unit;
   const uy = (value: number) => centerY - 4 * unit + value * unit;
 
-  const routeMask = rasterize(target => {
+  const waveMask = rasterize((target) => {
+    target.lineWidth = 15 * unit;
+    target.beginPath();
+    target.moveTo(ux(-76), uy(44));
+    target.bezierCurveTo(ux(-58), uy(-16), ux(-10), uy(-48), ux(30), uy(-30));
+    target.bezierCurveTo(ux(64), uy(-15), ux(70), uy(24), ux(32), uy(32));
+    target.bezierCurveTo(ux(8), uy(37), ux(-2), uy(14), ux(18), uy(2));
+    target.stroke();
     target.lineWidth = 8 * unit;
-    target.beginPath(); target.moveTo(ux(-62),uy(40));
-    target.bezierCurveTo(ux(-35),uy(-30),ux(15),uy(65),ux(58),uy(-36)); target.stroke();
-    for (const [x,y] of [[-62,40],[0,18],[58,-36]]) {
-      target.beginPath(); target.arc(ux(x),uy(y),12*unit,0,Math.PI*2); target.fill();
-    }
+    [[-64, 54, -18, 54], [-40, 68, 26, 68]].forEach(([x1, y1, x2, y2]) => {
+      target.beginPath();
+      target.moveTo(ux(x1), uy(y1));
+      target.lineTo(ux(x2), uy(y2));
+      target.stroke();
+    });
   });
-  const festivalMask = rasterize(target => {
-    for(let i=0;i<16;i++) {
-      const angle=i*Math.PI/8;
-      target.lineWidth=(i%2?5:7)*unit;
-      target.beginPath(); target.moveTo(ux(Math.cos(angle)*28),uy(Math.sin(angle)*28));
-      target.lineTo(ux(Math.cos(angle)*65),uy(Math.sin(angle)*65)); target.stroke();
-      target.beginPath();target.arc(ux(Math.cos(angle)*80),uy(Math.sin(angle)*80),3*unit,0,Math.PI*2);target.fill();
-    }
-  });
-  const communityMask = rasterize(target => {
-    target.lineWidth=7*unit;
-    target.beginPath();target.roundRect(ux(-70),uy(-50),120*unit,80*unit,15*unit);target.stroke();
-    target.beginPath();target.moveTo(ux(-40),uy(30));target.lineTo(ux(-52),uy(52));target.lineTo(ux(-12),uy(30));target.stroke();
-    for(const x of [-38,-10,18]){target.beginPath();target.arc(ux(x),uy(-10),6*unit,0,Math.PI*2);target.fill();}
+
+  const accessMask = rasterize((target) => {
+    target.lineWidth = 7 * unit;
+    target.beginPath();
+    target.arc(ux(6), uy(28), 30 * unit, 0, Math.PI * 2);
+    target.stroke();
+    target.beginPath();
+    target.arc(ux(-26), uy(-46), 11 * unit, 0, Math.PI * 2);
+    target.fill();
+    target.lineWidth = 10 * unit;
+    target.beginPath();
+    target.moveTo(ux(-24), uy(-38));
+    target.lineTo(ux(-8), uy(-2));
+    target.stroke();
+    target.lineWidth = 8 * unit;
+    target.beginPath();
+    target.moveTo(ux(-19), uy(-23));
+    target.lineTo(ux(11), uy(-13));
+    target.stroke();
+    target.lineWidth = 9 * unit;
+    target.beginPath();
+    target.moveTo(ux(-8), uy(-2));
+    target.lineTo(ux(19), uy(2));
+    target.lineTo(ux(13), uy(22));
+    target.stroke();
   });
 
   const wordMask = rasterize((target) => {
@@ -83,5 +102,5 @@ export function createIntroMasks({
     target.fillText(wordmark, centerX, centerY);
   });
 
-  return [routeMask, festivalMask, communityMask, wordMask];
+  return [waveMask, accessMask, wordMask];
 }

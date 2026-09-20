@@ -59,7 +59,13 @@ test("runtime OS reduction ends the active arrival and restores the page", async
   const link = page.locator(".landing-actions a");
   await expect(page.locator(".arrival-scene").getByRole("button", { name: "건너뛰기" })).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.clock.runFor(32);
+  // CSS hides the scene before the queued media-change handler closes it.
+  // Observe actual modal cleanup before changing the OS setting again.
+  await expect.poll(async () => {
+    await page.clock.runFor(32);
+    return page.locator(".arrival-scene").evaluate((node: HTMLDialogElement) => node.open);
+  }).toBe(false);
+  await expect(page.locator("html")).toHaveAttribute("data-intro-seen", "1");
   await expect(page.locator(".arrival-scene")).toBeHidden();
   expect(await page.locator(".arrival-scene").evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
   await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -100,14 +106,16 @@ for (const denied of ["read", "write"] as const) {
   });
 }
 
-test("failed hero photography does not affect the particle intro or planning link", async ({ page }) => {
-  await page.route("**/media/night/coast.webp", route => route.abort());
+test("existing arrival photography failure retains its source and planning link", async ({ page }) => {
+  await page.route("**/media/horizon/hero-coast.jpg", route => route.abort());
   await freshArrival(page);
   const link = page.locator(".landing-actions a");
+  const source = page.locator(".arrival-picture figcaption").first();
+  await expect(source).toContainText("사진을 불러오지 못했어요");
+  await expect(source.locator("a").first()).toHaveAttribute("href", /^https:/);
   await page.clock.runFor(10400);
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.locator(".arrival-scene img, .arrival-scene video")).toHaveCount(0);
   await expect(link).toHaveAttribute("href", "/planner");
 });
 

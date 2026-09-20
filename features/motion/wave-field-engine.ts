@@ -5,8 +5,8 @@
  * 넘는 구간에 흐르는 난류를 더해 부서지는 물마루(whitewater)를 표현한다.
  * 포인터는 수면을 밀어 올리는 융기와 퍼져 나가는 물결을 함께 만든다.
  *
- * 인트로 모드에서는 물결 위로 네 개의 형상이 차례로 떠오른다.
- * 여행 경로 → 축제 → 커뮤니티 → WAVE 워드마크. 서비스가 무엇을 위한 것인지를
+ * 인트로 모드에서는 물결 위로 세 개의 형상이 차례로 떠오른다.
+ * 파도 → 무장애 심볼 → WAVE 워드마크. 서비스가 무엇을 위한 것인지를
  * 문장 없이 형상만으로 먼저 보여 주기 위한 순서다.
  *
  * 화면을 채우는 셀은 2만 개가 넘어 셀마다 캔버스 명령을 부르면 호출 부담만으로
@@ -177,25 +177,23 @@ export function startWaveFieldRenderer(
       // 인트로 5초: 문자가 흩뿌려져 차오르고, 파도 → 무장애 심볼 → 워드마크가
       // 차례로 물 위에 맺혔다가 다시 잠긴다.
       let materialize = 1;
-      let shapeW0 = 0, shapeW1 = 0, shapeW2 = 0, shapeW3 = 0;
+      let shapeW0 = 0, shapeW1 = 0, shapeW2 = 0;
       if (mode === "intro" && masks.length) {
         if (reduced) {
-          shapeW3 = 1;
+          shapeW1 = 1;
         } else {
           materialize = Math.min(1, Math.max(0, (elapsed - 0.25) / 1.15));
           shapeW0 = stageWeight(elapsed, INTRO_STAGES[0]);
           shapeW1 = stageWeight(elapsed, INTRO_STAGES[1]);
           shapeW2 = stageWeight(elapsed, INTRO_STAGES[2]);
-          shapeW3 = stageWeight(elapsed, INTRO_STAGES[3]);
           // The final wordmark stays visible; a late viewer never finds an empty stage.
-          if (elapsed >= INTRO_STAGES[3].in[1]) shapeW3 = 1;
+          if (elapsed >= INTRO_STAGES[2].in[1]) shapeW2 = 1;
         }
       }
-      const reveal = Math.min(1, shapeW0 + shapeW1 + shapeW2 + shapeW3);
+      const reveal = Math.min(1, shapeW0 + shapeW1 + shapeW2);
       const mask0 = shapeW0 > 0.002 ? masks[0] : null;
       const mask1 = shapeW1 > 0.002 ? masks[1] : null;
       const mask2 = shapeW2 > 0.002 ? masks[2] : null;
-      const mask3 = shapeW3 > 0.002 ? masks[3] : null;
 
       const [w0, w1, w2, w3] = WAVES;
       const p0 = w0.phase + time * w0.speed, p1 = w1.phase + time * w1.speed;
@@ -262,7 +260,6 @@ export function startWaveFieldRenderer(
             if (mask0) inside += mask0[index] * shapeW0;
             if (mask1) inside += mask1[index] * shapeW1;
             if (mask2) inside += mask2[index] * shapeW2;
-            if (mask3) inside += mask3[index] * shapeW3;
             if (inside > 1) inside = 1;
             // 형상 안쪽은 포말까지 끌어올리고 바깥 바다는 가라앉힌다.
             // 형상에도 물결 성분을 조금 남겨 그려진 그림이 아니라 물마루로 보이게 한다.
@@ -289,7 +286,7 @@ export function startWaveFieldRenderer(
 
       if (framePixels) context!.putImageData(framePixels, 0, 0);
       if (mode === "intro") {
-        const phase = reduced ? "static" : elapsed < INTRO_STAGES[1].in[0] ? "planner" : elapsed < INTRO_STAGES[2].in[0] ? "festival" : elapsed < INTRO_STAGES[3].in[0] ? "community" : "wordmark";
+        const phase = reduced ? "static" : elapsed < INTRO_STAGES[1].in[0] ? "wave" : elapsed < INTRO_STAGES[2].in[0] ? "accessibility" : "wordmark";
         if (canvas.dataset.introPhase !== phase) canvas.dataset.introPhase = phase;
       }
 

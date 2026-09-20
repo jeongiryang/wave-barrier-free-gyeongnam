@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { horizonPhotos } from "../horizon-photos";
+import EditorialPhoto from "./EditorialPhoto";
 import styles from "./LandingIntro.module.css";
 
-const messages = ["모두의 여행이 같은 출발선에 설 수 있도록", "경남의 특별한 순간을 만나고", "여행의 이야기를 함께 나눕니다", "WAVE가 당신의 발걸음을 응원합니다"];
-const chapters = ['여행 설계', '경남의 축제', 'WAVE 커뮤니티', '함께, WAVE'];
+const messages = ["모두의 여행이 같은 출발선에 설 수 있도록", "필요한 편의를 확인하고", "나에게 맞는 여행으로 이어갑니다", "WAVE가 당신의 발걸음을 응원합니다"];
+const photos = [horizonPhotos.coast, horizonPhotos.park, horizonPhotos.garden, horizonPhotos.coast];
 const DURATION = 10400;
 
 /** Reuses PR #466's halftone particle renderer inside the current native modal. */
@@ -57,7 +59,7 @@ export default function LandingIntro() {
       const ownGeneration = ++generation;
       import("../../motion/wave-field-engine").then(({ startWaveFieldRenderer }) => {
         if (active && ownGeneration === generation && canvas.current) disposeRenderer = startWaveFieldRenderer(canvas.current, { tone: "deep", mode: "intro", wordmark: "WAVE", motion: "full" });
-      }).catch(() => { /* The gradient stage and its text remain usable. */ });
+      }).catch(() => { /* Photos and text remain usable if decorative rendering fails. */ });
       for (let index = 1; index < 4; index++) timers.push(window.setTimeout(() => setStage(index), index * 2500));
       timers.push(window.setTimeout(() => setLeaving(true), 9800), window.setTimeout(finish, DURATION));
     };
@@ -71,10 +73,10 @@ export default function LandingIntro() {
     return () => { finish(); clear(); window.removeEventListener("wave-replay-intro", replay); media.removeEventListener("change", reduce); document.removeEventListener("visibilitychange", hide); };
   }, []);
 
-  return <dialog ref={dialog} className={`${styles.scene} arrival-scene`} data-stage={stage} data-leaving={leaving} aria-label="WAVE 시작 이야기" onCancel={event => { event.preventDefault(); finishRef.current(); }}>
-    <div className={styles.horizon} aria-hidden="true"><i/><i/><i/></div>
+  return <dialog ref={dialog} className={`${styles.scene} arrival-scene`} data-leaving={leaving} aria-label="WAVE 시작 이야기" onCancel={event => { event.preventDefault(); finishRef.current(); }}>
+    {photos.map((photo, index) => <div key={index} className={`${styles.photo} arrival-picture`} data-active={stage === index} aria-hidden={stage !== index} inert={stage !== index}><EditorialPhoto photo={photo} priority={index === 0} /></div>)}
     <canvas ref={canvas} className={styles.particles} aria-hidden="true" />
-    <div className={styles.copy} aria-live="polite" aria-atomic="true"><span className={styles.chapter}>{chapters[stage]}</span><p key={stage} data-final={stage === 3}>{messages[stage]}</p><span className="sr-only">{stage + 1} / 4 장면</span></div>
+    <div className={styles.copy} aria-live="polite" aria-atomic="true"><p key={stage} data-final={stage === 3}>{messages[stage]}</p><span className="sr-only">{stage + 1} / 4 장면</span></div>
     <span className={`${styles.progress} arrival-word`} aria-hidden="true">WAVE · {String(stage + 1).padStart(2, "0")} / 04</span>
     <button type="button" className={styles.skip} onClick={() => finishRef.current()}>건너뛰기</button>
   </dialog>;
