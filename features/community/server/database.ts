@@ -13,12 +13,12 @@ export const communityDatabase = createSchemaBootstrap(async (): Promise<Communi
   });
   if (!databaseUrl) return null;
   const sql = createSql(databaseUrl);
-  await sql`CREATE TABLE IF NOT EXISTS community_posts (id TEXT PRIMARY KEY, author_id TEXT NOT NULL, author_name TEXT NOT NULL, category TEXT NOT NULL CHECK (category IN ('general', 'place', 'review', 'tips', 'together')), title VARCHAR(120) NOT NULL, content TEXT NOT NULL, region VARCHAR(20), place_id VARCHAR(100), place_name VARCHAR(120), created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL, CHECK ((place_id IS NULL AND place_name IS NULL) OR (place_id IS NOT NULL AND place_name IS NOT NULL)))`;
-  await sql`DO $ BEGIN
-    IF EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='community_posts'::regclass AND conname='community_posts_category_check' AND position('tips' in pg_get_constraintdef(oid))=0) THEN
-      ALTER TABLE community_posts DROP CONSTRAINT community_posts_category_check, ADD CONSTRAINT community_posts_category_check CHECK (category IN ('general', 'place', 'review', 'tips', 'together'));
+  await sql`CREATE TABLE IF NOT EXISTS community_posts (id TEXT PRIMARY KEY, author_id TEXT NOT NULL, author_name TEXT NOT NULL, category TEXT NOT NULL CHECK (category IN ('general', 'place', 'review', 'tips', 'together', 'travel-talk')), title VARCHAR(120) NOT NULL, content TEXT NOT NULL, region VARCHAR(20), place_id VARCHAR(100), place_name VARCHAR(120), created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL, CHECK ((place_id IS NULL AND place_name IS NULL) OR (place_id IS NOT NULL AND place_name IS NOT NULL)))`;
+  await sql`DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='community_posts'::regclass AND conname='community_posts_category_check' AND position('travel-talk' in pg_get_constraintdef(oid))=0) THEN
+      ALTER TABLE community_posts DROP CONSTRAINT community_posts_category_check, ADD CONSTRAINT community_posts_category_check CHECK (category IN ('general', 'place', 'review', 'tips', 'together', 'travel-talk'));
     END IF;
-  END $`;
+  END $$`;
   await sql`CREATE TABLE IF NOT EXISTS community_comments (id TEXT PRIMARY KEY, post_id TEXT NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE, author_id TEXT NOT NULL, author_name TEXT NOT NULL, content VARCHAR(1000) NOT NULL, created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL)`;
   await sql`CREATE TABLE IF NOT EXISTS community_likes (post_id TEXT NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE, user_id TEXT NOT NULL, created_at BIGINT NOT NULL, PRIMARY KEY (post_id, user_id))`;
   await sql`ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS moderation_status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (moderation_status IN ('active', 'under_review', 'hidden'))`;
