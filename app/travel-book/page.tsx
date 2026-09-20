@@ -20,6 +20,7 @@ import { facilityLabel, resolveFacilityKeys } from "../../lib/facility-selection
 import TravelProfileSummary from "../../features/trips/components/TravelProfileSummary";
 import TripCompareDialog from "../../features/trips/components/TripCompareDialog";
 import RegionRecordList from "../../features/trips/components/RegionRecordList";
+import LocalMarketCard from "../../features/trips/components/LocalMarketCard";
 
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 const shortDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
@@ -186,6 +187,7 @@ export default function TravelBookPage() {
     {hydrated && <TravelProfileSummary books={books} onStart={startFromProfile} />}
     {books.length >= 2 && <div className="trip-compare-toolbar"><button type="button" disabled={compareIds.length !== 2} onClick={() => setCompareOpen(true)}>선택한 여행 2개 비교</button><span>{compareIds.length}/2개 선택</span></div>}
     {hydrated && <RegionRecordList books={books} />}
+    {hydrated && <LocalMarketCard books={books} />}
     <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
     {storageError && <p className="result-notice error" role="alert">{storageError}</p>}
     {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>저장한 여행을 불러오는 중입니다.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setCompareIds(current => current.filter(value => value !== id)); setAnnouncement(`${book.title} 여행을 여행집에서 삭제했습니다.`); }} onRestore={restore} compareEnabled={books.length >= 2} compareSelected={compareIds.includes(book.id)} onCompareToggle={id => setCompareIds(current => current.includes(id) ? current.filter(value => value !== id) : current.length < 2 ? [...current, id] : current)} />)}</section> : <section className="travel-book-empty">
