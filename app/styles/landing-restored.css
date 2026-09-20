@@ -8,6 +8,13 @@
 
 .simple-landing #departure{background:var(--surface);color:var(--ink)}
 
+.simple-landing .simple-region { aspect-ratio:auto; background:var(--surface); }
+.simple-landing .simple-region-link { position:relative; aspect-ratio:4/3; overflow:hidden; border-radius:12px; }
+.simple-landing .simple-region-credit { position:static; padding-inline:12px; color:var(--muted); }
+.simple-landing .declining-region-notice { padding:12px 12px 0; color:var(--ink-soft); }
+.simple-landing .declining-region-notice p { margin:0; color:var(--ink-soft); font-size:1rem; line-height:1.5; }
+.simple-landing .declining-region-notice small { display:block; margin-top:4px; color:var(--muted); font-size:.75rem; }
+
 /* Keep the closing photograph visible independently of the text entrance. */
 .simple-landing .landing-cta{color:#fff;background:#123b49}
 .simple-landing .landing-closing-copy{width:100%;max-width:960px}

@@ -6,6 +6,7 @@ import { regionShowcaseAlbums } from "../region-showcase-photos";
 import { regionPhotoSource } from "../region-photo-sources";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { regionNames } from "../../../lib/gyeongnam-region-names";
+import { DECLINING_REGION_LABEL, decliningRegionSourceLabel, isDecliningRegion } from "../../planner/declining-regions";
 
 // Server-rendered links work immediately; the disclosure becomes usable after hydration.
 const subscribeToClient = () => () => {};
@@ -48,6 +49,7 @@ export default function LandingRegionStory() {
           <img ref={node => { if (node?.complete && !node.naturalWidth) node.style.opacity = "0"; }} src={photo.image} alt="" loading="lazy" decoding="async" width="640" height="480" onError={event => { event.currentTarget.style.opacity = "0"; }} />
           <div><h3>{label}</h3><span lang="ko">{photo.title}</span></div><span className="simple-region-arrow" aria-hidden="true">↗</span>
         </Link>
+        {isDecliningRegion(name) && <div className="declining-region-notice" lang="ko"><p>{DECLINING_REGION_LABEL}</p><small>{decliningRegionSourceLabel()}</small></div>}
         <a className="simple-region-credit" lang="ko" href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer" aria-label={`${photo.title} 사진 원본, 새 탭`}>{photo.photographer || "한국관광공사"} · 사진 원본 ↗</a>
       </article>;
     })}</div>
