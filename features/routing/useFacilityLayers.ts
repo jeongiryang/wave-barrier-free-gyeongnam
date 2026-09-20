@@ -18,8 +18,23 @@ import type { KakaoMap, KakaoPlace } from "./kakao-sdk";
 import type { MutableRef } from "./map-renderer-context";
 import { NEARBY_RADIUS_METRES, parseNearbyPlaces, type NearbySearchArea } from "./nearby-place-data";
 import type { FacilityMapMarker, MapPlace } from "./types";
+import { optionalPlannerJson } from "../planner/services/api";
+import { CLIENT_BUDGET_MS } from "../../lib/request-budget.js";
 
-export type FacilityLayerState = "idle" | "loading" | "ready" | "empty" | "error";
+export type FacilityLayerState = "idle" | "loading" | "ready" | "empty" | "error" | "location-unconfirmed";
+
+type OfficialFacilityResponse = {
+  status: "available" | "empty" | "invalid-request" | "provider-error" | "location-unconfirmed";
+  contentId: string;
+  kind: "no-smoking";
+  checkedAt: string;
+  source: string;
+  items: Array<{
+    id: string; name: string; address: string; distanceMeters: number;
+    destination: { latitude: number; longitude: number };
+    institutionName?: string; note?: string; referenceDate: string;
+  }>;
+};
 
 /**
  * 장소 검색은 브라우저 SDK가 직접 부른다. 기존 `useNearbyPlaces`와 같은 한도를
@@ -35,11 +50,13 @@ interface FacilityLayersOptions {
   provider: string;
   /** 일정의 장소 구성이 바뀌면 지도 기준점도 바뀐다. */
   scopeKey: string;
+  /** 공식 관광지 ID. 서버는 이 ID로 공개 좌표를 다시 확인한다. */
+  contentId?: string;
   /** `derived` 레이어가 새 조회 없이 마커를 뽑아낼 이미 받아온 장소 목록. */
   places: MapPlace[];
 }
 
-export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: FacilityLayersOptions) {
+export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, contentId, places }: FacilityLayersOptions) {
   const [selection, setSelection] = useState<FacilityLayerSelection>(() => emptyFacilitySelection());
   const [layerStates, setLayerStates] = useState<Record<string, FacilityLayerState>>({});
   const [notice, setNotice] = useState("");
@@ -49,6 +66,7 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
   // 레이어의 진행 중 요청은 건드리지 않는다.
   const generations = useRef<Record<string, number>>({});
   const timers = useRef<Record<string, number>>({});
+  const controllers = useRef<Record<string, AbortController>>({});
   const selectionRef = useRef(selection);
   useEffect(() => { selectionRef.current = selection; }, [selection]);
   const placesRef = useRef(places);
@@ -59,6 +77,8 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
     const timer = timers.current[layerId];
     if (timer !== undefined) window.clearTimeout(timer);
     delete timers.current[layerId];
+    controllers.current[layerId]?.abort();
+    delete controllers.current[layerId];
   }, []);
 
   const stopAll = useCallback(() => {
@@ -98,16 +118,33 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
     }
 
     if (layer.source === "official") {
-      // 공식 데이터 레이어를 부르는 자리.
-      //
-      // 후속 명세가 `server/tourism/`에 제공처 모듈과 `handler.ts` 분기를 만든 뒤
-      // 여기에서 `optionalPlannerJson("<action>", { contentId })`로 호출하고,
-      // 응답의 `items`를 FacilityLayerMarker로 옮기면 된다. 요청에는 공개
-      // `contentId`만 싣는다. 사용자 좌표를 보내는 필드를 만들지 않는다.
-      //
-      // 지금은 검증된 공식 제공처가 하나도 없어 `officialFacilityLayers`가 비어
-      // 있다. 이 갈래는 그 배열에 레이어가 등록되기 전까지 실행되지 않는다.
-      settle("error");
+      if (!layer.action || !contentId || !/^[1-9]\d{0,11}$/.test(contentId)) { settle("location-unconfirmed"); return; }
+      const controller = new AbortController();
+      controllers.current[layer.id] = controller;
+      void optionalPlannerJson<OfficialFacilityResponse>(
+        `/api/wave?action=${encodeURIComponent(layer.action)}&contentId=${encodeURIComponent(contentId)}`,
+        { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.smokingArea },
+      ).then((result) => {
+        if (generations.current[layer.id] !== token) return;
+        delete controllers.current[layer.id];
+        if (!result || result.contentId !== contentId || result.kind !== "no-smoking") { settle("error"); return; }
+        if (result.status === "location-unconfirmed") { settle("location-unconfirmed"); return; }
+        if (result.status === "empty") { settle("empty", []); return; }
+        if (result.status !== "available") { settle("error"); return; }
+        const markers: FacilityLayerMarker[] = result.items.map((item) => ({
+          id: item.id,
+          layerId: layer.id,
+          name: item.name,
+          address: item.address,
+          destination: item.destination,
+          distanceMeters: item.distanceMeters,
+          referenceDate: item.referenceDate,
+          source: result.source,
+          ...(item.institutionName ? { institutionName: item.institutionName } : {}),
+          ...(item.note ? { note: item.note } : {}),
+        }));
+        settle(markers.length ? "ready" : "empty", markers);
+      });
       return;
     }
 
@@ -140,7 +177,7 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
         sort: sdk.services.SortBy.DISTANCE,
       });
     } catch { settle("error"); }
-  }, [kakaoMapRef, stopLayer]);
+  }, [contentId, kakaoMapRef, stopLayer]);
 
   const toggleFacility = useCallback((layerId: string) => {
     const layer = facilityLayers.find((item) => item.id === layerId);
@@ -176,6 +213,15 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
     setSelectedFacility(null);
     setNotice("");
   }, [stopAll]);
+
+  /** 패널을 닫을 때 완료된 표시는 유지하되 진행 중 네트워크 요청은 모두 취소한다. */
+  const cancelFacilityRequests = useCallback(() => {
+    stopAll();
+    const loading = Object.entries(layerStates).filter(([, state]) => state === "loading").map(([id]) => id);
+    if (!loading.length) return;
+    setLayerStates((states) => Object.fromEntries(Object.entries(states).map(([id, state]) => [id, state === "loading" ? "error" : state])));
+    setSelection((current) => loading.reduce((next, id) => failFacilityLayer(next, id), current));
+  }, [layerStates, stopAll]);
 
   /** 기준이 바뀌었을 때 켜진 레이어를 한 번씩만 다시 찾는다. */
   const refreshFacilityLayers = useCallback(() => {
@@ -232,6 +278,7 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
     toggleFacility,
     retryFacilityLayer,
     clearFacilityLayers,
+    cancelFacilityRequests,
     refreshFacilityLayers,
   };
 }

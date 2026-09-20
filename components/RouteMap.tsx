@@ -43,6 +43,7 @@ export default function RouteMap(props: RouteMapProps) {
     toggleFacility,
     retryFacilityLayer,
     clearFacilityLayers,
+    cancelFacilityRequests,
     closeFacilityCard,
     showFacilityOnMap,
     setFacilityAsDestination,
@@ -136,7 +137,7 @@ export default function RouteMap(props: RouteMapProps) {
       layerStates={facilityLayerStates}
       notice={facilityNotice}
       selectedFacility={selectedFacility}
-      onClose={() => setToolPanel(null)}
+      onClose={() => { cancelFacilityRequests(); setToolPanel(null); }}
       onToggleLayer={toggleFacility}
       onRetryLayer={retryFacilityLayer}
       onClearAll={clearFacilityLayers}

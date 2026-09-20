@@ -1,5 +1,9 @@
 # W.A.V.E API·환경 변수 전수조사
 
+2026-09-20 후보21: 공공데이터포털의 `전국금연구역표준데이터`를 금연구역 레이어로 연결한다. 공식 제공범위가 실외 금연구역이고 흡연 가능 구역 데이터가 아니므로 `흡연 구역`으로 뒤집어 해석하지 않는다. 요청 주소는 `https://api.data.go.kr/openapi/tn_pubr_public_prhsmk_zn_api`, JSON 필드는 `prhsmkNm`, `prhsmkScopeDesc`, `ctprvnNm`, `signguNm`, `rdnmadr`, `lnmadr`, `institutionNm`, `latitude`, `longitude`, `referenceDate`다. 기존 `TOUR_API_SERVICE_KEY_ENCODED`를 서버에서만 재사용한다.
+
+`/api/wave?action=smoking-area&contentId=…`는 KTO `detailCommon2`로 경남 공개 관광지 ID와 좌표를 재검증하고 주소의 시군구로 공식 데이터를 조회한다. 사용자 좌표·흡연 여부·레이어 선택은 받거나 저장하지 않는다. 좌표와 필수 근거가 있는 경남 레코드만 거리순 최대 10개로 표시하며, 정상 빈 결과·관광지 좌표 미확인·제공처 오류를 구분한다. 성공한 공개 스냅샷만 인스턴스 메모리 100개 FIFO에 관광지 15분·금연구역 24시간 보관하고 실패·부분 결과는 저장하지 않는다. 현재 계정의 해당 OpenAPI 활용승인/실호출은 확인하지 않았으며 Owner가 공공데이터포털에서 서비스를 등록한 뒤 Production 실호출과 경남 표본 건수를 별도로 확인해야 한다. 구현·합성 fixture 성공을 실제 제공처 정상으로 세지 않는다.
+
 2026-09-12 후보24: 선택적 `SpeechRecognition`/`webkitSpeechRecognition`을 직접 시작할 때만 사용한다. 한국어·단일 최종 결과·20초 상한, 중단/취소/화면 숨김·이탈 시 해제, 늦은 이벤트는 무시한다. WAVE 서버·DB·로그·브라우저 저장소로 음성이나 명령문을 보내지 않는다. 브라우저 제공처가 서버 기반 인식을 사용할 수 있으므로 기기 안 처리나 오프라인 동작을 보장하지 않는다. 미지원·권한 거부·실패는 동일 문자 조작으로 이어 간다. 유료 음성/LLM API·새 관광/교통 조회·메시지 호출 없음. [공식 Web API 문서](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
 
 2026-09-12 후보22: 동행 합류 계획은 이미 담은 공개 장소와 조회된 동일 구간 이동만 브라우저에서 재사용한다. 나뉜 구간은 거리 기반 추정으로 표시하며 새 API·ODsay·GPS 조회를 하지 않는다. 익명 A/B 배정·약속 시각은 별도 최대20개 저장본과 사용자가 선택한 오프라인 파일에만 남기고 계정·공유·서버·메시지로 보내지 않는다. 출발지 좌표는 저장하지 않는다. 저장 원본과 장소·순서·시간·고정 약속이 다르면 재확인 없이 오프라인 요약에 넣지 않는다.

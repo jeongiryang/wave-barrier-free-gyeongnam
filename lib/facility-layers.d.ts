@@ -10,6 +10,8 @@ export type FacilityLayerMarker = {
   /** 화면에 그대로 표시하는 제공처 이름. */
   source: string;
   detail?: string;
+  institutionName?: string;
+  note?: string;
 };
 
 export type FacilityLayerSelection = {

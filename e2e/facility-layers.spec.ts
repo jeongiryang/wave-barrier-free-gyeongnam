@@ -131,15 +131,12 @@ test("모두 끄기는 전부 지우고 패널을 닫아도 표시는 유지된�
   await expect(panel.locator(".facility-chip")).toHaveCount(0);
 });
 
-test("공식 데이터 레이어가 하나도 없으면 그 구분을 그리지 않는다", async ({ page }) => {
+test("검증된 금연구역 공식 데이터 레이어를 별도 구분에 표시한다", async ({ page }) => {
   const panel = await openFacilityPanel(page);
   await expect(panel.getByRole("heading", { name: "장소 검색", exact: true })).toBeVisible();
-  await expect(panel.getByRole("heading", { name: "공식 공공데이터", exact: true })).toHaveCount(0);
-  // 범례는 글자로 남되, 등록되지 않은 공식 레이어의 버튼 구분은 그리지 않는다.
+  await expect(panel.getByRole("heading", { name: "공식 공공데이터", exact: true })).toBeVisible();
+  await expect(panel.getByRole("button", { name: "금연 구역", exact: true })).toBeVisible();
   await expect(panel.getByRole("heading", { name: "마커 범례", exact: true })).toBeVisible();
-  // 등록된 레이어가 없는 구분(공식 공공데이터)만 그리지 않는지 확인한다. 파생
-  // 레이어(스펙 20 안내견, 스펙 14 점자블록 등)는 등록돼 있으면 그려지므로
-  // 그룹 수를 특정 값으로 고정하지 않고, 실제 레이어가 있는 구분 수와 맞춰 본다.
   const expectedGroups = [placeSearchFacilityLayers, officialFacilityLayers, derivedFacilityLayers].filter((layers) => layers.length > 0).length;
   await expect(panel.locator(".map-tool-grid")).toHaveCount(expectedGroups);
 });
