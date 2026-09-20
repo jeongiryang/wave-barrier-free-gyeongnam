@@ -11,6 +11,7 @@ test("the nonblocking arrival leads through a complete restored-section service 
   page.on("pageerror", error => errors.push(error.message));
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/"); await storyReady(page);
+  await expect(page.locator(".arrival-scene")).toBeVisible();
   await expect(page.locator(".arrival-scene")).toBeHidden({ timeout: 12_000 });
   await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
   expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
