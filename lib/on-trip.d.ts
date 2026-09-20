@@ -5,6 +5,7 @@ import type { buildItinerarySchedule } from '../features/planner/optimization/it
 export type TripProgress = { marks: Record<string, { state: 'done' | 'skipped'; at: string }>; cursorId: string; clock: string; updatedAt: string };
 export type TripProgressMemory = Record<string,{value:TripProgress;unsaved:boolean}>;
 export type EasyTripStep = { id:string; itineraryStopId:string; title:string; instruction:string; scheduledTime?:string; state:'completed'|'current'|'upcoming' };
+export type TripBoardCell = { id:string; order:number; title:string; state:'done'|'current'|'upcoming'|'skipped' };
 export const ON_TRIP_KEY: string;
 export function onTripIdentity(places: Array<{id:string}>, day: string): string;
 export function cleanOnTrip(value: unknown, ids: string[]): TripProgress;
@@ -12,3 +13,4 @@ export function readOnTrip(storage: Pick<Storage,'getItem'>, identity: string, i
 export function saveOnTrip(storage: Pick<Storage,'getItem'|'setItem'>, identity: string, value: TripProgress, ids: string[]): TripProgress;
 export function remainingOnTrip(options: {places: Place[]; day:string; progress:TripProgress; origin: RoutePoint; routeMinutesByPlaceId?: Record<string,number>; visitMinutesByPlaceId?:Record<string,number>; breakMinutesByPlaceId?:Record<string,number>; fixedVisits?:Record<string,FixedVisit>}): { entries: ReturnType<typeof buildItinerarySchedule>[number]['entries']; next: Place|null; done:number; skipped:number; from:string; progress:TripProgress };
 export function easyOnTripSteps(remaining: ReturnType<typeof remainingOnTrip>): EasyTripStep[];
+export function tripBoardCells(progress: TripProgress, stops: Array<{id:string;title:string}>): TripBoardCell[];

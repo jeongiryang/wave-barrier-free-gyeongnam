@@ -235,6 +235,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .easy-trip-rest { display:grid; gap:14px; padding:20px; border:1px solid var(--accent); border-radius:20px; background:var(--paper); }
 .easy-trip-confirm { display:grid; grid-column:1/-1; gap:10px; padding-top:8px; }
 .easy-trip-confirm p { margin:0; }
+.trip-board ol { margin:0; padding:0; display:grid; gap:8px; list-style:none; }.trip-board li { min-height:56px; border:1px solid var(--line); border-radius:14px; background:var(--white); }.trip-board li[data-state=done] { background:var(--sky); }.trip-board li[data-state=current] { border-left:3px solid var(--accent); }.trip-board li[data-state=skipped] { border-style:dashed; }.trip-board li button { width:100%; min-height:56px; padding:10px 12px; display:grid; grid-template-columns:32px minmax(0,1fr) auto; align-items:center; gap:10px; border:0; color:var(--ink); background:transparent; font:inherit; text-align:left; }.trip-board-order { width:30px; height:30px; display:grid; place-items:center; border:1px solid var(--line); border-radius:50%; }.trip-board-state { display:inline-flex; align-items:center; gap:5px; color:var(--muted); font-size:.875rem; }
 @media(max-width:650px) { .easy-trip-actions { grid-template-columns:1fr; }.easy-trip-actions .easy-trip-primary,.easy-trip-confirm { grid-column:auto; }.easy-trip-actions button,.easy-trip-confirm button,.easy-on-trip > button { width:100%; } }
 
 :root .planner-reference .condition-availability :is(span,small),
