@@ -7,6 +7,7 @@ import { regionPhotoSource } from "../region-photo-sources";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { regionNames } from "../../../lib/gyeongnam-region-names";
 import { DECLINING_REGION_LABEL, decliningRegionSourceLabel, isDecliningRegion } from "../../planner/declining-regions";
+import { regionCultureByName } from "../region-culture";
 
 // Server-rendered links work immediately; the disclosure becomes usable after hydration.
 const subscribeToClient = () => () => {};
@@ -44,12 +45,19 @@ export default function LandingRegionStory() {
     <div className="simple-region-grid" id="region-grid" ref={grid}>{orderedRegions.slice(0, expanded ? 18 : 6).map(name => {
       const photo = regionShowcaseAlbums[name][0];
       const label = en ? regionNames[name] : name;
+      const culture = regionCultureByName.get(name);
       return <article className="simple-region" key={name}>
         <Link href={`/planner?region=${encodeURIComponent(name)}`} className="simple-region-link" aria-label={`${label} ${en ? "places" : "여행지 보기"}`}>
           <img ref={node => { if (node?.complete && !node.naturalWidth) node.style.opacity = "0"; }} src={photo.image} alt="" loading="lazy" decoding="async" width="640" height="480" onError={event => { event.currentTarget.style.opacity = "0"; }} />
           <div><h3>{label}</h3><span lang="ko">{photo.title}</span></div><span className="simple-region-arrow" aria-hidden="true">↗</span>
         </Link>
         {isDecliningRegion(name) && <div className="declining-region-notice" lang="ko"><p>{DECLINING_REGION_LABEL}</p><small>{decliningRegionSourceLabel()}</small></div>}
+        {culture && <aside className="simple-region-culture" lang="ko" aria-label={`${name} 문화 이야기`}>
+          <strong>{culture.title}</strong>
+          <p>{culture.summary}</p>
+          <small>{culture.institution} · {culture.checkedOn}</small>
+          <a href={culture.url} target="_blank" rel="noopener noreferrer" aria-label={`${culture.title} 자세히 보기, 새 탭`}>자세히 보기 <span aria-hidden="true">↗</span></a>
+        </aside>}
         <a className="simple-region-credit" lang="ko" href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer" aria-label={`${photo.title} 사진 원본, 새 탭`}>{photo.photographer || "한국관광공사"} · 사진 원본 ↗</a>
       </article>;
     })}</div>
