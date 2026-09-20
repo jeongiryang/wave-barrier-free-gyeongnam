@@ -68,7 +68,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     if (width >= 390) {
       // The board's primary action must be reachable in the first viewport;
       // an inherited display headline previously pushed it below the fold.
-      const write = await page.locator(".community-editorial .community-write").boundingBox();
+      const write = await page.locator(".community-task-heading .community-write").boundingBox();
       expect(write!.y + write!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
     }
     expect((await new AxeBuilder({ page }).include(".community-page").analyze()).violations).toEqual([]);
@@ -106,6 +106,6 @@ test("English travel pages identify original Korean photography and community co
   expect(await cards.locator(".simple-region-link, .simple-region-credit").evaluateAll(nodes => nodes.every(node => node.closest("[lang]")?.getAttribute("lang") === "ko"))).toBe(true);
   await expect(page.getByRole("button", { name: "All 18 regions", exact: true })).toBeVisible();
   await page.goto("/community");
-  await expect(page.locator(".community-editorial")).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".community-editorial h1")).toContainText("여행은 끝나도");
+  await expect(page.locator(".community-task-heading")).toHaveAttribute("lang", "ko");
+  await expect(page.locator(".community-task-heading h1")).toHaveText("질문·후기");
 });

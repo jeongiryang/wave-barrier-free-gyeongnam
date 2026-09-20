@@ -145,6 +145,7 @@ test("a failed participation module leaves the primary trip action usable", asyn
   await page.route("**/features/planner/components/PlaceParticipationActions.tsx*", route => route.abort("failed"));
   await prepare(page);
   const dialog = page.getByRole("dialog");
+  await dialog.locator('.place-visitor-records > summary').click();
   await expect(dialog.getByRole("alert")).toContainText("상세 화면을 불러오지 못했어요");
   await expect(dialog.locator('.facility-evidence-list [data-state="confirmed"] dd')).toHaveText("출입구까지 턱이 없음");
   await dialog.getByRole("button", { name: "일정에 추가", exact: true }).click();

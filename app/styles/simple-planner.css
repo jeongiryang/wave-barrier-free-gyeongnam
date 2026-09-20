@@ -394,6 +394,7 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 .travel-book-task-heading :is(button,a),.community-task-heading > a { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; color: var(--blue); }
 .travel-book-task-heading button { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
 .community-task-heading svg { width: 20px; height: 20px; }
+.community-task-heading > a { color: var(--on-blue); }
 .community-guides { margin-block: 24px; border-top: 1px solid var(--line); }
 .community-guides > summary { min-height: 44px; padding: 12px 0; cursor: pointer; }
 .simple-itinerary-top { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; }

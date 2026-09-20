@@ -13,6 +13,7 @@ test("WAVE starter stories open their full articles and leave member search inta
   const writes: string[] = [];
   page.on("request", request => {if(!["GET","HEAD","OPTIONS"].includes(request.method())) writes.push(request.url());});
   await page.goto("/community");
+  await page.locator('.community-guides > summary').click();
   await expect(page.locator(".community-editorial-grid > article")).toHaveCount(3);
   await expect(page.locator(".community-story-author")).toHaveText(["WAVE","WAVE","WAVE"]);
   const links = await page.locator(".community-story-read").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")!));
@@ -40,12 +41,13 @@ test("compact headers keep every navigation link and recover keyboard focus", as
   }
 });
 
-test("saved-trip imagery and actions fit narrow, split and desktop viewports", async ({page})=>{
+test("saved-trip heading and actions fit narrow, split and desktop viewports", async ({page})=>{
   await page.goto("/travel-book");
-  await expect(page.locator(".travel-book-landscapes img")).toHaveCount(2);
+  await expect(page.getByRole('heading', { name: '내 여행', exact: true })).toBeVisible();
+  await expect(page.locator(".travel-book-landscapes img")).toHaveCount(0);
   for(const width of [320,390,960,1440]) {
     await page.setViewportSize({width,height:900});
-    for(const element of await page.locator(".travel-book-paths a").all()) {
+    for(const element of await page.locator(".travel-book-task-heading a,.travel-book-task-heading button").all()) {
       const box=await element.boundingBox();expect(box!.width).toBeGreaterThan(44);expect(box!.height).toBeGreaterThanOrEqual(44);
     }
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);

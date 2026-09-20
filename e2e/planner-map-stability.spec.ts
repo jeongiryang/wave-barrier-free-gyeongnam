@@ -17,7 +17,7 @@ test("스크롤은 지도를 다시 만들지 않는다", async ({ page }) => {
   await chooseTripConditions(page); await openFirstPlaceMap(page);
   // Mobile shows one workspace at a time, so confirm the selected destination
   // in the visible map toolbar instead of the hidden timetable heading.
-  await expect(page.locator(".map-toolbar").getByRole("button", { name: "도착 · 눌러서 변경 경남도립미술관", exact: true })).toBeVisible();
+  await expect(page.locator(".map-toolbar").getByRole("button", { name: "도착지 경남도립미술관", exact: true })).toBeVisible();
   const canvas = page.locator(".route-map-canvas");
   await canvas.scrollIntoViewIfNeeded();
   await expect(canvas).toBeVisible();

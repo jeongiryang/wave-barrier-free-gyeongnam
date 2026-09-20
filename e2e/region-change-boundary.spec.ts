@@ -85,7 +85,7 @@ for (const outcome of ["success", "failure"] as const) test(`new trip ignores a 
   await picker.selectOption("하동");
   await page.getByRole("button", { name: "하동 검증 장소 1 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-10-09" }); await map(page);
-  await expect(page.locator(".map-toolbar").getByRole("button", { name: "출발 · 눌러서 변경 창원중앙역", exact: true })).toBeVisible();
+  await expect(page.locator(".map-toolbar").getByRole("button", { name: "출발지 창원중앙역", exact: true })).toBeVisible();
   await expect(page.locator(".map-provider-badge")).not.toContainText("현재 위치");
   expect((await current(page)).ids).toEqual(["21000"]);
   expect(routeQueries.some(query => [...new URLSearchParams(query).values()].includes("35.3"))).toBe(false);
