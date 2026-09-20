@@ -14,6 +14,7 @@ import LandingChapters from "../features/landing/components/LandingChapters";
 import LandingRegionStory from "../features/landing/components/LandingRegionStory";
 import LandingIntro from "../features/landing/components/LandingIntro";
 import LandingAssistantStory from "../features/landing/components/LandingAssistantStory";
+import LandingFeatureList from "../features/landing/components/LandingFeatureList";
 
 export default function LandingPage() {
   const { t, locale } = useSitePreferences();
@@ -24,6 +25,7 @@ export default function LandingPage() {
     <LandingHeader scrolled={false} t={t} />
     <LandingHero />
     <LandingChapters />
+    <LandingFeatureList />
     <LandingRegionStory />
     <LandingAssistantStory />
     <LandingDepartureScene />
