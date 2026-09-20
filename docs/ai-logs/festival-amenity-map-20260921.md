@@ -1,9 +1,9 @@
 # 축제 현장 편의 지도 개편 AI 작업 로그
 
-- PR: 작성 후 연결
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/664
 - 제목: 축제 카드에 쉬는 곳·화장실 예시 지도 제공
 - 작성자: Codex
-- 최종 상태: 구현 및 로컬 검증 중
+- 최종 상태: 구현·로컬 검증 완료, PR CI 진행 중
 - AI 도구: Codex
 
 ## 목적
@@ -18,7 +18,10 @@
 ## 검증
 
 - `npm run typecheck`: 통과
+- `npm test`: 1,599개 통과
 - `npm run test:e2e -- e2e/festival-trip-upgrade.spec.ts`: desktop/mobile 14개 통과
+- `npm run build:vercel`, `npm run check:performance`: 통과
+- `npm run lint`: 오류 0, 기존 경고만 유지
 - 축제 카드에서 쉬는 곳·화장실 레이어 전환, 빨간 마커, 안내 문구, 제거 대상 UI 부재를 실제 렌더링으로 확인
 - 390px·960px·1440px 가로 넘침과 축제 편의 지도 axe 위반 없음 확인
 
