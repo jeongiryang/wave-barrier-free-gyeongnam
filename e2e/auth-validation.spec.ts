@@ -29,7 +29,7 @@ test("이메일을 비우면 이메일을 채우라고 말한다", async ({ page
 });
 
 test("형식이 아닌 이메일은 예시와 함께 알려 준다", async ({ page }) => {
-  const alert = await submit(page, "/login", { email: "notanemail", password: "verylongpassword1" });
+  const alert = await submit(page, "/login", { email: "not an email", password: "verylongpassword1" });
   await expect(alert).toHaveText(/이메일 형식/);
   await expect(alert).toHaveText(/wave@example\.com/);
 });
@@ -178,4 +178,20 @@ test("계정 메뉴 파일이 실패해도 계정 페이지로 이동할 수 있
   await fallback.press("Enter");
   await expect(page).toHaveURL(/\/account|\/login/);
   expect(errors).toEqual([]);
+});
+
+// Fixture credentials never create or authenticate a real review account.
+test("ID login sends the chosen username to the username endpoint", async ({ page }) => {
+  await mockPublicShellApi(page);
+  let username = "";
+  await page.route("**/api/auth/sign-in/username", async route => {
+    username = route.request().postDataJSON().username;
+    await route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ message: "invalid credentials" }) });
+  });
+  await page.goto("/login");
+  await page.getByLabel("이메일 또는 ID", { exact: true }).fill("openapi.review");
+  await page.locator("#auth-password").fill("fixture-password-123");
+  await page.locator(".auth-submit").click();
+  await expect.poll(() => username).toBe("openapi.review");
+  await expect(page.locator("[role=alert]")).toHaveText("입력한 계정 정보를 확인한 뒤 다시 시도해 주세요.");
 });

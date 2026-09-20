@@ -259,7 +259,10 @@ test('supported client navigation keeps one global conversation but cancels its 
   await expect(page.locator('.naru-panel')).toHaveCount(1);
   await expect(app.chat.getByText('나루', { exact: true })).toBeVisible();
   await expect(app.input).toHaveValue('소개에서도 이어 쓸 초안');
-  expect(await stats(page)).toMatchObject({ permissions: 1, starts: [1], aborts: [1], trackStops: [] });
+  // The URL changes before React commits the route and runs voice cleanup.
+  // The persistent chat/draft are already visible on both routes.
+  await expect(page.locator('.wave-header').getByRole('link', { name: '서비스 소개', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect.poll(() => stats(page)).toMatchObject({ permissions: 1, starts: [1], aborts: [1], trackStops: [] });
   await page.evaluate(() => {
     const h = (window as unknown as VoiceWindow).voiceHarness; h.permissions[0].grant();
     h.lateResult?.({ resultIndex: 0, results: [{ isFinal: true, 0: { transcript: '이동 전에 듣던 음성' } }] });

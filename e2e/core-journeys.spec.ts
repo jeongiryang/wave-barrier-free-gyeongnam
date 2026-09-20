@@ -31,7 +31,7 @@ test("landing: first arrival is readable, dismissible and remembers completion",
   await freshArrival(page);
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
   await expect(scene).toHaveAttribute("open", "");
-  await expect(scene).toContainText("WAVE가 당신의 발걸음을 응원합니다");
+  await expect(scene).toContainText("모두의 여행이 같은 출발선에 설 수 있도록");
   await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(scene).toBeHidden();
@@ -49,7 +49,7 @@ test("landing: reduced motion exposes the real planning action immediately witho
   await prepareLandingMedia(page);
   await page.goto("/"); await storyReady(page);
   await expect(page.locator(".arrival-scene")).toBeHidden();
-  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
+  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
   const planning = page.locator(".landing-actions a");
   await expectUsableTarget(planning);
   await expect(planning).toHaveAccessibleName("여행지 둘러보기");

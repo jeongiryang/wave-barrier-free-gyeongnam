@@ -51,6 +51,11 @@ export function useAuthForm(mode: AuthMode, returnTo?: string) {
       return;
     }
 
+    const username = String(new FormData(event.currentTarget).get("username") || "").trim();
+    if (registering && username && !/^[a-zA-Z0-9_.]{3,30}$/.test(username)) {
+      setMessage("ID는 영문·숫자·밑줄·마침표 3–30자로 입력해 주세요.");
+      setInvalidField("username"); setValidationAttempt(current => current + 1); return;
+    }
     submitLock.current = true;
     setSubmitting(true);
     const submittedRevision = inputRevision.current;
@@ -58,8 +63,8 @@ export function useAuthForm(mode: AuthMode, returnTo?: string) {
     try {
       const { email, password, name } = parsed.value;
       const result = registering
-        ? await authClient.signUp.email({ email, password, name })
-        : await authClient.signIn.email({ email, password });
+        ? await authClient.signUp.email({ email, password, name, ...(username ? { username } : {}) })
+        : email.includes("@") ? await authClient.signIn.email({ email, password }) : await authClient.signIn.username({ username: email, password });
       if (result.error) throw new Error(result.error.message || "인증을 완료하지 못했습니다.");
       completed = true;
       setSuccess(true);

@@ -124,7 +124,7 @@ test('community density changes both real post and editorial grids without chang
   });
   await page.goto('/community');
   const list = page.locator('.community-list'), stories = page.locator('.community-editorial-grid');
-  await page.locator('.community-guides > summary').click();
+  await page.locator('.community-guides > summary').filter({ hasText: /^이용 가이드$/ }).click();
   await expect(list.locator('article')).toHaveCount(8);
   await expect(stories.locator('article')).toHaveCount(3);
   const storyLinks = await stories.locator('h3 a').evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).getAttribute('href')));

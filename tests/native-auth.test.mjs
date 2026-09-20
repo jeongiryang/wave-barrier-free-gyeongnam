@@ -219,3 +219,17 @@ test("verified Kakao email never implicitly merges; explicit linking preserves t
   assert.equal((await revoked.json()).code, "SESSION_EXPIRED");
   assert.equal(f.db.prepare("SELECT count(*) AS n FROM account").get().n, 1);
 });
+
+test("username review login preserves email credentials and rejects wrong passwords and duplicates", async (t) => {
+  const f = await fixture(t);
+  const created = await f.request('/sign-up/email', { email: 'review@example.com', password, name: '시연 계정', username: 'openapi' });
+  assert.equal(created.status, 200, await created.clone().text());
+  const user = (await created.json()).user;
+  const login = await f.request('/sign-in/username', { username: 'openapi', password });
+  assert.equal(login.status, 200, await login.clone().text());
+  assert.equal((await login.json()).user.id, user.id);
+  assert.equal((await f.request('/sign-in/email', { email: 'review@example.com', password })).status, 200);
+  assert.equal((await f.request('/sign-in/username', { username: 'openapi', password: 'wrong-password-123' })).status, 401);
+  assert.notEqual((await f.request('/sign-up/email', { email: 'other@example.com', password, name:'Other user', username:'openapi' })).status, 200);
+  assert.equal((await f.request('/sign-in/email', { email, password })).status, 200);
+});

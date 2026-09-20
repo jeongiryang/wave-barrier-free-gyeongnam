@@ -25,7 +25,7 @@ test("공백만 있는 이메일도 빈 것으로 본다", () => {
 });
 
 test("형식이 아닌 이메일은 예시와 함께 돌려준다", () => {
-  for (const email of ["notanemail", "a@b", "a@@b.com", "@example.com", "wave@", "a b@example.com", "a@.com", "a@example."]) {
+  for (const email of ["not an email", "a@b", "a@@b.com", "@example.com", "wave@", "a b@example.com", "a@.com", "a@example."]) {
     const result = checkAuthCredentials("login", { email, password: OK_PASSWORD });
     assert.equal(result.field, "email", `${email}을 통과시켰다`);
     assert.match(result.error, /형식/);

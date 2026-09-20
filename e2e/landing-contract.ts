@@ -39,7 +39,7 @@ export async function freshArrival(page: Page) {
   await page.goto("/");
   await storyReady(page);
   await expect(page.locator(".arrival-scene")).toBeVisible();
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
+  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000));
   await expect(page.locator(".arrival-scene")).toBeVisible();
 }
 

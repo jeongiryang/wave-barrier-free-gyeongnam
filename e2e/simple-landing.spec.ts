@@ -22,18 +22,18 @@ async function freshAnimatedArrival(page: Page) {
   // otherwise the app's startup handoff cannot reveal the interactive page.
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".arrival-scene")).toBeVisible();
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
+  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000));
   await expect(page.locator(".arrival-scene")).toBeVisible();
 }
 
-test("arrival finishes within two seconds and exposes a keyboard dismissal", async ({ page }) => {
+test("arrival finishes within twelve seconds and exposes a keyboard dismissal", async ({ page }) => {
   await freshAnimatedArrival(page);
   const scene = page.locator(".arrival-scene");
   const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
   await expect(scene).toHaveAttribute("open", "");
-  await expect(scene).toContainText("WAVE가 당신의 발걸음을 응원합니다");
+  await expect(scene).toContainText("모두의 여행이 같은 출발선에 설 수 있도록");
   await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
-  await page.clock.runFor(2_000);
+  await page.clock.runFor(10_400);
   await expect(scene).toBeHidden();
   await action.focus(); await expect(action).toBeFocused();
   expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
@@ -41,8 +41,8 @@ test("arrival finishes within two seconds and exposes a keyboard dismissal", asy
   await page.reload();
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".landing-hero-split")).toBeVisible();
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
-  await page.clock.runFor(2_000);
+  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000));
+  await page.clock.runFor(10_400);
   await expect(scene).toBeHidden();
 });
 
@@ -63,7 +63,7 @@ test("keyboard users can dismiss the arrival with Escape", async ({ page }) => {
   await action.focus(); await expect(action).toBeFocused();
 });
 
-for (const width of [1440, 390]) test(`${width}px reduced motion keeps the split hero and all eighteen region choices usable`, async ({ page }, info) => {
+for (const width of [1440, 390]) test(`${width}px reduced motion keeps the photographic hero and all eighteen region choices usable`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: width === 390 ? 844 : 960 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await prepare(page);
@@ -80,8 +80,10 @@ for (const width of [1440, 390]) test(`${width}px reduced motion keeps the split
   await expect(photograph.locator("img")).toBeVisible();
   await expect.poll(() => photograph.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   const copyBox = (await copy.boundingBox())!, photoBox = (await photograph.boundingBox())!;
-  if (width === 1440) expect(copyBox.x + copyBox.width).toBeLessThan(photoBox.x);
-  else expect(copyBox.y + copyBox.height).toBeLessThan(photoBox.y);
+  expect(photoBox.x).toBeLessThanOrEqual(copyBox.x);
+  expect(photoBox.x + photoBox.width).toBeGreaterThanOrEqual(copyBox.x + copyBox.width);
+  expect(photoBox.y).toBeLessThanOrEqual(copyBox.y);
+  expect(photoBox.y + photoBox.height).toBeGreaterThanOrEqual(copyBox.y + copyBox.height);
   await expect(photograph.getByRole("link", { name: /사진 원본/ })).toHaveAttribute("href", horizonPhotos.coast.sourceUrl);
   await expect(photograph).toContainText(horizonPhotos.coast.photographer);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

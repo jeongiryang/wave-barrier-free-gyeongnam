@@ -15,10 +15,10 @@ test('task pages put actual collections first at desktop, tablet and mobile widt
       await expect(page.getByText('일정의 ‘내 여행에 저장’을 눌러 주세요.', { exact: true })).toBeVisible();
       await expect(page.locator('.travel-book-landscapes')).toHaveCount(0);
     } else {
-      await expect(page.locator('.community-guides')).not.toHaveAttribute('open', '');
-      await page.locator('.community-guides > summary').click();
+      await expect(page.locator('.community-guides').filter({ has: page.getByText('이용 가이드', { exact: true }) })).not.toHaveAttribute('open', '');
+      await page.locator('.community-guides > summary').filter({ hasText: /^이용 가이드$/ }).click();
       await expect(page.getByRole('heading', { name: '여행 준비 가이드' })).toBeVisible();
-      await page.locator('.community-guides > summary').click();
+      await page.locator('.community-guides > summary').filter({ hasText: /^이용 가이드$/ }).click();
     }
     for (const width of info.project.name.startsWith('desktop') ? [1440,960] : [390]) {
       await page.setViewportSize({width,height:960});
