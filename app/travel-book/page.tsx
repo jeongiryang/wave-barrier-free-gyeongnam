@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import CommunityHeader from "../../components/CommunityHeader";
@@ -9,13 +10,14 @@ import GithubFooterLink from "../../components/GithubFooterLink";
 import { buildTravelJournalHref } from "../../lib/community/field-report.js";
 import { travelBookRegions, type TravelBook } from "../../lib/travel-book.js";
 import { useTravelBook } from "../../features/travel-book/useTravelBook";
-import { emptyTrip, readTripValue } from "../../lib/current-trip-storage.js";
+import { emptyTrip, readTripValue, FACILITIES_KEY } from "../../lib/current-trip-storage.js";
 import { getTabStorage } from "../../lib/session-storage.js";
 import { saveSessionProfiles } from "../../lib/session-travel-profiles.js";
 import { replaceTripWithBackup } from "../../lib/trip-import.js";
 import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
 import CloudSaveAction from "../../features/account-travel/CloudSaveAction";
 import { facilityLabel, resolveFacilityKeys } from "../../lib/facility-selection.js";
+import TravelProfileSummary from "../../features/trips/components/TravelProfileSummary";
 
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 const shortDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
@@ -132,6 +134,7 @@ function NewTripDialog({ onCancel, onConfirm, error }: { onCancel: () => void; o
 }
 
 export default function TravelBookPage() {
+  const router = useRouter();
   const { books, hydrated, update, remove, restore, storageError } = useTravelBook();
   const [announcement, setAnnouncement] = useState("");
   const [newTripReady, setNewTripReady] = useState(false);
@@ -142,7 +145,7 @@ export default function TravelBookPage() {
     try { replaceTripWithBackup(window.localStorage, emptyTrip("", "", "")); }
     catch { setNewTripError("새 여행을 저장하지 못했어요. 기존 일정은 유지됩니다. 저장 공간을 확인한 뒤 다시 시도해 주세요."); return; }
     saveSessionProfiles(getTabStorage(), []);
-    window.location.assign("/planner#conditions");
+    router.push("/planner#conditions");
   }
 
   function requestNewTrip() {
@@ -151,6 +154,14 @@ export default function TravelBookPage() {
       if (JSON.parse(readTripValue(window.localStorage, "wave-saved-places") || "[]").length) { setNewTripReady(true); return; }
     } catch { setNewTripError("현재 일정을 확인하지 못했어요. 페이지를 새로 열어 다시 시도해 주세요."); return; }
     startNewTrip();
+  }
+
+  function startFromProfile(suggestion: { region: string | null; facilityKeys: string[] }) {
+    const profiles = resolveFacilityKeys({ facilityKeys: suggestion.facilityKeys });
+    try { replaceTripWithBackup(window.localStorage, { ...emptyTrip(suggestion.region || "경남 전체", "", ""), [FACILITIES_KEY]: JSON.stringify(profiles) }); }
+    catch { setNewTripError("새 여행 조건을 저장하지 못했어요. 기존 일정은 유지됩니다."); return; }
+    saveSessionProfiles(getTabStorage(), profiles);
+    router.push("/planner#conditions");
   }
 
   return <main className="travel-book-page">
@@ -162,6 +173,7 @@ export default function TravelBookPage() {
       <nav aria-label="여행 저장 위치"><a href="#travel-book-collection">이 기기</a><Link href="/my-trips">계정에 저장한 여행</Link></nav>
     </section>
     <div className="travel-book-collection-heading" id="travel-book-collection"><h2>저장한 여행</h2></div>
+    {hydrated && <TravelProfileSummary books={books} onStart={startFromProfile} />}
     <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
     {storageError && <p className="result-notice error" role="alert">{storageError}</p>}
     {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>저장한 여행을 불러오는 중입니다.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setAnnouncement(`${book.title} 여행을 여행집에서 삭제했습니다.`); }} onRestore={restore} />)}</section> : <section className="travel-book-empty">
