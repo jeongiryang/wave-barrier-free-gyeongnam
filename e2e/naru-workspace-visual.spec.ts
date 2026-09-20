@@ -11,7 +11,7 @@ async function checkBounds(page: Page, panel: Locator) {
   expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 1);
   for (const element of await panel.locator(':scope,.naru-workspace-body:visible,.naru-conversation-main:visible,.naru-log:visible,.naru-workspace-content:visible').all()) {
-    expect(await element.evaluate(node => node.scrollWidth - node.clientWidth), await element.getAttribute('class')).toBeLessThanOrEqual(1);
+    expect(await element.evaluate(node => node.scrollWidth - node.clientWidth), (await element.getAttribute('class')) || 'workspace element').toBeLessThanOrEqual(1);
   }
 }
 
