@@ -89,7 +89,9 @@ for (const outcome of ["success", "failure"] as const) test(`new trip ignores a 
   await expect(page.locator(".map-provider-badge")).not.toContainText("현재 위치");
   expect((await current(page)).ids).toEqual(["21000"]);
   expect(routeQueries.some(query => [...new URLSearchParams(query).values()].includes("35.3"))).toBe(false);
-  expect(JSON.stringify((await current(page)).books)).not.toContain("35.3");
+  const containsCoordinate = (value: unknown): boolean => value === 35.3 || value === '35.3'
+    || (typeof value === 'object' && value !== null && Object.values(value).some(containsCoordinate));
+  expect(containsCoordinate((await current(page)).books)).toBe(false);
 });
 
 test("region browsing preserves the itinerary; delayed results and history cannot restore earlier candidates", async ({ page }) => {

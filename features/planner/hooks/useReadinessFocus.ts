@@ -37,7 +37,7 @@ export function useReadinessFocus() {
     for (const type of ["pointerup", "pointercancel"]) {
       window.addEventListener(type, endPointer, { capture: true, passive: true, signal: controller.signal });
     }
-    const workspace = root.current?.closest(".journey-stage-stream");
+    const workspace = root.current?.closest("#planner, .journey-stage-stream");
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(reveal);
     if (workspace) observer?.observe(workspace);
     const header = document.querySelector(".wave-header,.site-header");
