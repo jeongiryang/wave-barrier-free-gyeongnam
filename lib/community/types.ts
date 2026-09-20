@@ -2,7 +2,7 @@ import type { VisitPhoto } from "./visit-photos.js";
 
 export type CommunityPost = {
   id: string;
-  category: "general" | "place" | "review" | "tips" | "together" | "travel-talk";
+  category: "general" | "place" | "review" | "tips" | "together" | "travel-talk" | "field-report";
   title: string;
   content: string;
   region: string | null;
@@ -28,6 +28,13 @@ export type AccessibilityFieldReport = {
   note: string;
 };
 
+export type FieldReport = {
+  kind: "field-report";
+  contentId: string;
+  checkedOn: string;
+  body: string;
+};
+
 export type CommunityJournalPlace = { id: string; name: string; day: string };
 
 export type CommunityComment = {
@@ -46,6 +53,7 @@ export const COMMUNITY_CATEGORY_LABELS = {
   tips: "여행 꿀팁",
   together: "함께 여행해요",
   "travel-talk": "여행 이야기와 질문",
+  "field-report": "현장에서 확인한 정보",
 } as const;
 
 export const COMMUNITY_REGIONS = ["", "창원", "진주", "통영", "사천", "김해", "밀양", "거제", "양산", "의령", "함안", "창녕", "고성", "남해", "하동", "산청", "함양", "거창", "합천"] as const;

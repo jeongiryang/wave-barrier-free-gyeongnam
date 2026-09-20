@@ -15,11 +15,14 @@ import {
   verifyCommunityOwnership,
 } from "./http";
 import { communityAuthorName, optionalCommunityUser } from "./session";
+import { fieldReportBoardEnabled } from "../../../lib/community/field-report-board.js";
 
 export async function listPosts(request: Request) {
+  const enabled = fieldReportBoardEnabled();
   const filters = communityListParams(new URL(request.url));
+  if (filters.category === "field-report" && !enabled) return communityResponse({ error: "현장 확인 정보는 현재 준비 중입니다." }, 404);
   const user = await optionalCommunityUser(request);
-  const result = await listCommunityPosts(filters, user?.id || "");
+  const result = await listCommunityPosts(filters, user?.id || "", { fieldReportEnabled: enabled });
   return result ? communityResponse(result) : databaseUnavailable();
 }
 
@@ -28,7 +31,7 @@ export async function createPost(request: Request) {
   if (auth.error) return auth.error;
   const parsed = await readSameOriginJson(request, 360000);
   if (parsed.response) return parsed.response;
-  const validated = validatePostInput(parsed.body);
+  const validated = validatePostInput(parsed.body, Date.now(), { fieldReportEnabled: fieldReportBoardEnabled() });
   if (validated.error || !validated.value) {
     return communityResponse({ error: validated.error || "게시글 내용을 확인해 주세요." }, 400);
   }
@@ -42,9 +45,10 @@ export async function createPost(request: Request) {
 
 export async function readPost(request: Request, postId: string) {
   const user = await optionalCommunityUser(request);
-  const result = await getCommunityPost(postId, user?.id || "");
+  const result = await getCommunityPost(postId, user?.id || "", { fieldReportEnabled: fieldReportBoardEnabled() });
   if (!result) return databaseUnavailable();
   if ("missing" in result) return communityResponse({ error: "게시글을 찾을 수 없습니다." }, 404);
+  if (result.post.category === "field-report" && !fieldReportBoardEnabled()) return communityResponse({ error: "게시글을 찾을 수 없습니다." }, 404);
   return communityResponse(result);
 }
 
@@ -53,7 +57,7 @@ export async function updatePost(request: Request, postId: string) {
   if (auth.error) return auth.error;
   const parsed = await readSameOriginJson(request, 360000);
   if (parsed.response) return parsed.response;
-  const validated = validatePostInput(parsed.body);
+  const validated = validatePostInput(parsed.body, Date.now(), { fieldReportEnabled: fieldReportBoardEnabled() });
   if (validated.error || !validated.value) {
     return communityResponse({ error: validated.error || "게시글 내용을 확인해 주세요." }, 400);
   }

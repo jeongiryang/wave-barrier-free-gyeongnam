@@ -4,6 +4,7 @@ import type { useCommunityDetail } from "../hooks/useCommunityDetail";
 import CommunityReportControl from "./CommunityReportControl";
 import CommunityFieldReport from "./CommunityFieldReport";
 import CommunityVisitPhotos from "./CommunityVisitPhotos";
+import CommunityAccessibilityReport from "./CommunityAccessibilityReport";
 
 export default function CommunityPostArticle({ detail }: { detail: ReturnType<typeof useCommunityDetail> }) {
   const { post, message, sessionPending, toggleLike, deletePost, reportingTarget, reportTarget } = detail;
@@ -17,6 +18,7 @@ export default function CommunityPostArticle({ detail }: { detail: ReturnType<ty
       {(post.region || post.placeName) && <Link className="detail-place" href={`/planner?region=${encodeURIComponent(post.region || "창원")}`}><span aria-hidden="true">⌖</span><div><small>연결된 여행지</small><strong>{post.region}{post.placeName ? `${post.region ? " · " : ""}${post.placeName}` : ""}</strong></div><i aria-hidden="true">→</i></Link>}
     </header>
     <div className="detail-content">{post.content.split(/\n{2,}/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
+    <CommunityAccessibilityReport post={post} />
     <CommunityFieldReport post={post} />
     <CommunityVisitPhotos post={post} />
     <footer className="detail-actions">

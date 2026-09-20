@@ -10,7 +10,7 @@ import CommunityPostList from "./CommunityPostList";
 import NightCommunityStories from "./NightCommunityStories";
 import NightCommunitySidebar from "./NightCommunitySidebar";
 import type {CommunityLayout} from "../view-layout";
-export default function CommunityPage({initialPlace=null}:{initialPlace?:PlaceFilter|null}) {
+export default function CommunityPage({initialPlace=null,fieldReportsEnabled=false}:{initialPlace?:PlaceFilter|null;fieldReportsEnabled?:boolean}) {
  const board=useCommunityBoard(initialPlace);
  const [layout,setLayout]=useState<CommunityLayout>('cards');
  const [sort,setSort]=useState('latest');
@@ -19,10 +19,10 @@ export default function CommunityPage({initialPlace=null}:{initialPlace?:PlaceFi
  return <main className="community-page wave-night"><SkipLink href="#community-list">게시글 목록으로 바로가기</SkipLink><CommunityHeader/><NightBanner kind="community"/>
  <section className="community-workspace" id="community-list" aria-labelledby="community-list-title">
  <h2 id="community-list-title" className="sr-only">여행 후기와 질문</h2>
- <div className="night-community-toolbar"><div className="night-category-tabs" role="group" aria-label="게시판 선택">{[['','전체'],['general','여행 질문'],['place','관광지 이야기'],['review','여행 후기'],['tips','여행 꿀팁'],['together','함께 여행해요']].map(([key,label])=><button key={key} type="button" aria-pressed={category===key} onClick={()=>board.setCategory(key)}>{label}</button>)}</div>
+ <div className="night-community-toolbar"><div className="night-category-tabs" role="group" aria-label="게시판 선택">{[['','전체'],['general','여행 질문'],['place','관광지 이야기'],['review','여행 후기'],['tips','여행 꿀팁'],['together','함께 여행해요'],['travel-talk','여행 이야기와 질문'],...(fieldReportsEnabled?[['field-report','현장 정보']]:[])].map(([key,label])=><button key={key} type="button" aria-pressed={category===key} onClick={()=>board.setCategory(key)}>{label}</button>)}</div>
  <form role="search" onSubmit={board.submitSearch}><NightIcon name="search"/><label className="sr-only" htmlFor="community-search">여행 후기 검색</label><input id="community-search" value={board.search} onChange={e=>board.setSearch(e.target.value)} placeholder="궁금한 내용을 검색해보세요." maxLength={80}/><button aria-label="검색" type="submit">검색</button></form><a className="night-primary" href={board.writeHref}><NightIcon name="edit"/>글 쓰기</a></div>
  {board.placeFilter&&<div className="community-place-filter"><b>{board.placeFilter.name}</b><button onClick={()=>board.setPlaceFilter(null)}>전체 후기 보기</button><p>여행자 후기는 작성자 한 명의 경험입니다. 방문 시점과 이동 조건을 함께 확인해 주세요.</p></div>}
- <div className="night-community-columns"><div>
+ {fieldReportsEnabled&&category==='field-report'&&<p className="community-field-report-notice">여행자가 직접 확인한 경험입니다. 방문 날짜와 이용 조건을 함께 확인해 주세요.</p>}{fieldReportsEnabled&&board.placeFilter&&<a href={board.fieldReportWriteHref}>이 관광지에서 확인한 정보 남기기</a>}<div className="night-community-columns"><div>
  {hasPresentation&&<><div className="night-section-heading"><h2><NightIcon name="star" size={28}/>지금 주목받는 이야기</h2><button type="button" onClick={()=>document.getElementById('night-all-stories')?.scrollIntoView({behavior:'smooth'})}>더보기 <NightIcon name="arrow" size={18}/></button></div><NightCommunityStories featured category={category} query={board.query} sort={sort} layout={layout}/></>}
  <div className="night-sortbar" id="night-all-stories"><div role="group" aria-label="게시글 정렬">{[['latest','최신순'],['popular','인기순'],['comments','댓글순']].map(([key,label])=><button key={key} type="button" aria-pressed={sort===key} onClick={()=>setSort(key)}>{label}</button>)}</div><div role="group" aria-label="게시글 보기 방식"><button type="button" aria-pressed={layout==='cards'} onClick={()=>setLayout('cards')}><NightIcon name="grid" size={17}/>카드형</button><button type="button" aria-pressed={layout==='list'} onClick={()=>setLayout('list')}><NightIcon name="list" size={17}/>목록형</button></div></div>
  {hasPresentation&&<NightCommunityStories featured={false} category={category} query={board.query} sort={sort} layout={layout}/>}

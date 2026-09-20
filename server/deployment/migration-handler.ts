@@ -2,6 +2,8 @@ import { neon } from "@neondatabase/serverless";
 import usernameMigration from "../../migrations/015_username_login.sql?raw";
 import retireTestPostsMigration from "../../migrations/016_retire_test_posts.sql?raw";
 import communityCategoriesMigration from "../../migrations/017_community_categories.sql?raw";
+import communityTravelTalkMigration from "../../migrations/017_community_travel_talk.sql?raw";
+import communityFieldReportKindMigration from "../../migrations/018_community_field_report_kind.sql?raw";
 import communityMigration from "../../migrations/001_community.sql?raw";
 import moderationMigration from "../../migrations/002_community_moderation.sql?raw";
 import tripsMigration from "../../migrations/003_trips.sql?raw";
@@ -80,6 +82,8 @@ export async function handleProductionMigration(request: Request) {
     usernameMigration,
     retireTestPostsMigration,
     communityCategoriesMigration,
+    communityTravelTalkMigration,
+    communityFieldReportKindMigration,
   ]);
   await sql.transaction(statements.map((statement) => sql.query(statement)));
   return json({ ok: true, migrations: PRODUCTION_MIGRATION_NAMES, statements: statements.length });

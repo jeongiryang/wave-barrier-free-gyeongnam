@@ -28,7 +28,7 @@ const emptyValues: CommunityPostInput = {
   photoConsent: false,
 };
 
-export function useCommunityEditor(postId?: string) {
+export function useCommunityEditor(postId?: string, fieldReportsEnabled = false) {
   const router = useRouter();
   const editing = Boolean(postId);
   const { data: session, isPending } = useHydratedSession();
@@ -53,7 +53,7 @@ export function useCommunityEditor(postId?: string) {
     const draft = parseTravelJournalDraft(params);
     const timer = window.setTimeout(() => setValues((current) => ({
       ...current,
-      category: draft ? "review" : requestedCategory && requestedCategory in COMMUNITY_CATEGORY_LABELS ? requestedCategory as CommunityPostInput["category"] : current.category,
+      category: draft ? "review" : requestedCategory && requestedCategory in COMMUNITY_CATEGORY_LABELS && (requestedCategory !== "field-report" || fieldReportsEnabled) ? requestedCategory as CommunityPostInput["category"] : current.category,
       title: draft ? `${region || "경남"} ${draft.journalPlaces.length}곳 무장애 여행일지` : current.title,
       content: draft ? "장소별 이동 동선과 실제로 확인한 편의정보를 기록해 주세요.\n\n공식 정보와 달랐던 점이나 다음 여행자에게 필요한 준비사항도 함께 남겨 주세요." : current.content,
       placeId: draft?.placeId || placeId,
@@ -64,7 +64,7 @@ export function useCommunityEditor(postId?: string) {
       fieldReports: parseFieldReportDraft(params) as CommunityPostInput["fieldReports"],
     })), 0);
     return () => window.clearTimeout(timer);
-  }, [editing]);
+  }, [editing, fieldReportsEnabled]);
 
   useEffect(() => {
     if (!editing || !postId) return;
