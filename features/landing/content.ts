@@ -2,6 +2,11 @@ export type LandingRegion = { name: string; story: string };
 export type RegionPhoto = { id: string; title: string; image: string; location: string; photographer: string; month: string };
 export type LandingTranslate = (key: string, fallback: string) => string;
 
+export const brandMeaning = {
+  ko: "모두를 위한 길, 모두를 위한 여행",
+  en: "Way for All, Voyage for Everyone",
+} as const;
+
 /** Region stories use the IDs of the shared administrative boundary data. */
 export const landingRegions: LandingRegion[] = [
   { name: "거창", story: "수승대와 산골 무대" },

@@ -50,7 +50,7 @@ for (const locale of ["ko", "en"] as const) {
     await page.keyboard.press("Tab");
     const explore = page.locator(".landing-actions a");
     await expect(explore).toBeFocused();
-    await expect(explore).toHaveAccessibleName(locale === "en" ? "Explore places" : "여행지 둘러보기");
+    await expect(explore).toHaveAccessibleName(locale === "en" ? "Start planning" : "여행 설계 시작하기");
     await expect(explore).toHaveAttribute("href", "/planner");
     await expect(page.locator("#story .horizon-text-link")).toHaveAttribute("href", "/planner");
     await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAccessibleName(locale === "en" ? "Chat with Naru" : "나루와 대화하기");

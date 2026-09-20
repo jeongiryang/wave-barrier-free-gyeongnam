@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./public/favicon.svg" width="88" alt="W.A.V.E 로고" />
   <h1>W.A.V.E</h1>
-  <p><strong>필요한 편의를 기준으로 경남 여행지를 찾고, 공식 정보의 확인 범위를 살펴 일정과 이동을 계획하는 Web 서비스입니다.</strong></p>
+  <p><strong>공공데이터로 확인된 경남 여행 편의 정보를 보여 주고, 확인되지 않은 것은 확인되지 않았다고 알려 주는 Web 서비스입니다.</strong></p>
 
   <p>
     <a href="https://wave-barrier-free-gyeongnam.vercel.app/"><img alt="W.A.V.E 서비스 열기" src="https://img.shields.io/badge/서비스_열기-0078BD?style=for-the-badge&logo=vercel&logoColor=white" /></a>

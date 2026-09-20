@@ -21,3 +21,6 @@
 .simple-landing .landing-closing-copy>p{margin-top:30px;color:#fff}
 .simple-landing .landing-closing-copy>a{background:#fff;color:#123b49;border-radius:999px;padding:16px 30px;text-decoration:none;display:inline-flex;align-items:center;gap:24px;min-height:50px}
 .simple-landing .landing-closing-copy h2 em{animation:none}
+.simple-landing .brand-meaning p{margin:0;color:var(--white);font-size:1.125rem;font-weight:600}
+.simple-landing .brand-meaning p[lang=en]{margin-top:6px;color:rgba(255,255,255,.78);font-size:.875rem;font-weight:400;letter-spacing:.02em}
+.guide-brand-ko{margin:0;color:var(--ink);font-size:1.125rem;font-weight:600}.guide-brand-en{margin:0;color:var(--muted);font-size:.875rem;letter-spacing:.02em}
