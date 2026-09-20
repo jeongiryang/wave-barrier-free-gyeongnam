@@ -87,6 +87,7 @@ export const officialFacilityLayers: readonly FacilityLayer[] = [
     emptyLabel: "가까운 정류장에서 현재 확인된 저상버스 도착정보가 없어요.",
   },
   { id: "sanitary-supply", label: "여성용품 비치", source: "official", action: "sanitary-supply", glyph: "용" },
+  { id: "no-smoking", label: "금연 구역", source: "official", action: "smoking-area", glyph: "금" },
 ];
 
 /**

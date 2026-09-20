@@ -22,7 +22,20 @@ import { optionalPlannerJson } from "../planner/services/api";
 import { CLIENT_BUDGET_MS } from "../../lib/request-budget.js";
 import { lowFloorArrivalMarkers } from "../../lib/transport/low-floor-bus.js";
 
-export type FacilityLayerState = "idle" | "loading" | "ready" | "empty" | "error";
+export type FacilityLayerState = "idle" | "loading" | "ready" | "empty" | "error" | "location-unconfirmed";
+
+type OfficialFacilityResponse = {
+  status: "available" | "empty" | "invalid-request" | "provider-error" | "location-unconfirmed";
+  contentId: string;
+  kind: "no-smoking";
+  checkedAt: string;
+  source: string;
+  items: Array<{
+    id: string; name: string; address: string; distanceMeters: number;
+    destination: { latitude: number; longitude: number };
+    institutionName?: string; note?: string; referenceDate: string;
+  }>;
+};
 
 type ReturnStop = {
   nodeId: string;
@@ -53,11 +66,13 @@ interface FacilityLayersOptions {
   provider: string;
   /** 일정의 장소 구성이 바뀌면 지도 기준점도 바뀐다. */
   scopeKey: string;
+  /** 공식 관광지 ID. 서버는 이 ID로 공개 좌표를 다시 확인한다. */
+  contentId?: string;
   /** `derived` 레이어가 새 조회 없이 마커를 뽑아낼 이미 받아온 장소 목록. */
   places: MapPlace[];
 }
 
-export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: FacilityLayersOptions) {
+export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, contentId, places }: FacilityLayersOptions) {
   const [selection, setSelection] = useState<FacilityLayerSelection>(() => emptyFacilitySelection());
   const [layerStates, setLayerStates] = useState<Record<string, FacilityLayerState>>({});
   const [notice, setNotice] = useState("");
@@ -119,6 +134,35 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
     }
 
     if (layer.source === "official") {
+      if(layer.id === "no-smoking") {
+      if (!layer.action || !contentId || !/^[1-9]\d{0,11}$/.test(contentId)) { settle("location-unconfirmed"); return; }
+      const controller = new AbortController();
+      controllers.current[layer.id] = controller;
+      void optionalPlannerJson<OfficialFacilityResponse>(
+        `/api/wave?action=${encodeURIComponent(layer.action)}&contentId=${encodeURIComponent(contentId)}`,
+        { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.smokingArea },
+      ).then((result) => {
+        if (generations.current[layer.id] !== token) return;
+        delete controllers.current[layer.id];
+        if (!result || result.contentId !== contentId || result.kind !== "no-smoking") { settle("error"); return; }
+        if (result.status === "location-unconfirmed") { settle("location-unconfirmed"); return; }
+        if (result.status === "empty") { settle("empty", []); return; }
+        if (result.status !== "available") { settle("error"); return; }
+        const markers: FacilityLayerMarker[] = result.items.map((item) => ({
+          id: item.id,
+          layerId: layer.id,
+          name: item.name,
+          address: item.address,
+          destination: item.destination,
+          distanceMeters: item.distanceMeters,
+          referenceDate: item.referenceDate,
+          source: result.source,
+          ...(item.institutionName ? { institutionName: item.institutionName } : {}),
+          ...(item.note ? { note: item.note } : {}),
+        }));
+        settle(markers.length ? "ready" : "empty", markers);
+      });
+      } else {
       const map = kakaoMapRef.current;
       if (layer.id === "low-floor-bus-arrival") {
       const center = map?.getCenter ? map.getCenter() : null;
@@ -163,6 +207,7 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
         settle(markers.length ? "ready" : "empty", markers);
       });
       }
+      }
       return;
     }
 
@@ -195,7 +240,7 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
         sort: sdk.services.SortBy.DISTANCE,
       });
     } catch { settle("error"); }
-  }, [kakaoMapRef, stopLayer]);
+  }, [contentId, kakaoMapRef, stopLayer]);
 
   const toggleFacility = useCallback((layerId: string) => {
     const layer = facilityLayers.find((item) => item.id === layerId);
@@ -231,6 +276,15 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
     setSelectedFacility(null);
     setNotice("");
   }, [stopAll]);
+
+  /** 패널을 닫을 때 완료된 표시는 유지하되 진행 중 네트워크 요청은 모두 취소한다. */
+  const cancelFacilityRequests = useCallback(() => {
+    stopAll();
+    const loading = Object.entries(layerStates).filter(([, state]) => state === "loading").map(([id]) => id);
+    if (!loading.length) return;
+    setLayerStates((states) => Object.fromEntries(Object.entries(states).map(([id, state]) => [id, state === "loading" ? "error" : state])));
+    setSelection((current) => loading.reduce((next, id) => failFacilityLayer(next, id), current));
+  }, [layerStates, stopAll]);
 
   /** 기준이 바뀌었을 때 켜진 레이어를 한 번씩만 다시 찾는다. */
   const refreshFacilityLayers = useCallback(() => {
@@ -294,6 +348,7 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
     toggleFacility,
     retryFacilityLayer,
     clearFacilityLayers,
+    cancelFacilityRequests,
     refreshFacilityLayers,
   };
 }

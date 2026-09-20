@@ -137,8 +137,8 @@ test("place-search layers reuse the existing nearbyCategories codes", () => {
   }
 });
 
-test("official layers retain both public provider adapters", () => {
-  assert.deepEqual(officialFacilityLayers.map(layer => layer.id), ["low-floor-bus-arrival", "sanitary-supply"]);
+test("official layers retain public provider adapters", () => {
+  assert.deepEqual(officialFacilityLayers.map(layer => layer.id), ["low-floor-bus-arrival", "sanitary-supply", "no-smoking"]);
 });
 
 test("every layer carries a non-colour cue and a unique id", () => {
