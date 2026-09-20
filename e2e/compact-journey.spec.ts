@@ -20,7 +20,7 @@ test("compact browsing preserves an existing undated trip when replacing the old
   await expect(page.locator(".journey-mode-toggle, .planner-navigation")).toHaveCount(0);
   await expect(page.locator('.simple-browse-view input[type="date"]')).toHaveCount(0);
   await expect(page.locator(".wave-trip-count")).toHaveText("1");
-  await page.getByRole("button", { name: /내 여행, 담은 장소 1곳/ }).click();
+  await page.locator(".simple-planner-tabs").getByRole("button", { name: /^내 일정/ }).click();
   await expect(page.locator(".simple-initial-setup")).toContainText("경남도립미술관");
   expect(await page.evaluate(() => localStorage.getItem("wave-current-trip-v1"))).toBe(saved);
 });

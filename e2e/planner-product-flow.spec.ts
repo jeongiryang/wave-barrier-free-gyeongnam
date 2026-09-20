@@ -123,7 +123,7 @@ test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유
   await expect(page.locator("#conditions")).toBeVisible();
   await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeVisible();
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-  const itineraryAction = page.getByRole("button", { name: "내 여행, 담은 장소 1곳", exact: true });
+  const itineraryAction = page.locator(".simple-planner-tabs").getByRole("button", { name: /^내 일정/ });
   await expect(itineraryAction).toBeInViewport();
   await itineraryAction.click();
   await expect(page.locator("#itinerary")).toBeVisible();

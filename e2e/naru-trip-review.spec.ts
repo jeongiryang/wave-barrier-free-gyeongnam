@@ -27,7 +27,7 @@ async function setup(page: Page, dated = true) {
     }}));
   }, { places: plan.places, dated });
   await page.goto('/planner');
-  await expect(page.getByRole('button', { name: '내 여행, 담은 장소 2곳', exact: true })).toBeVisible();
+  await expect(page.locator('.simple-planner-tabs').getByRole('button', { name: /^내 일정/ })).toBeEnabled();
   await page.getByRole('button', { name: '나루와 계획하기', exact: true }).click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
   return { chat, aiCalls: () => aiCalls };

@@ -109,7 +109,9 @@ async function setup(page: Page, options: SetupOptions = {}) {
       await expect(page).toHaveURL(/\/$/);
     }
     // On client navigation the URL can change while the previous page is still visible.
-    await expect(page.locator('.wave-header').getByRole('link', { name: '서비스 소개', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator('.landing-page .wave-header').getByRole('link', { name: 'WAVE 홈', exact: true })).toBeVisible();
+    await expect(page.locator('.landing-page .wave-header nav a[href="/"]')).toHaveAttribute('aria-current', 'page');
     await openSupportMenu(page);
     await expect(page.locator('.preference-controls')).toHaveAttribute('aria-busy', 'false');
     await page.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();
@@ -261,7 +263,9 @@ test('supported client navigation keeps one global conversation but cancels its 
   await expect(app.input).toHaveValue('소개에서도 이어 쓸 초안');
   // The URL changes before React commits the route and runs voice cleanup.
   // The persistent chat/draft are already visible on both routes.
-  await expect(page.locator('.wave-header').getByRole('link', { name: '서비스 소개', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator('.landing-page .wave-header').getByRole('link', { name: 'WAVE 홈', exact: true })).toBeVisible();
+    await expect(page.locator('.landing-page .wave-header nav a[href="/"]')).toHaveAttribute('aria-current', 'page');
   await expect.poll(() => stats(page)).toMatchObject({ permissions: 1, starts: [1], aborts: [1], trackStops: [] });
   await page.evaluate(() => {
     const h = (window as unknown as VoiceWindow).voiceHarness; h.permissions[0].grant();

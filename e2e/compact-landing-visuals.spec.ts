@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chapterIds, openLandingTools, prepareStory, storyReady, expectUsableTarget, expectNoOverflow } from "./landing-contract";
@@ -62,9 +63,10 @@ for (const locale of ["ko", "en"] as const) {
     await openLandingTools(page);
     await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAccessibleName(locale === "en" ? "Chat with Naru" : "나루와 대화하기");
     await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAttribute("href", "/planner?assistant=naru");
-    for (const selector of [".wave-wordmark", ".wave-my-trips", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {
+    for (const selector of [".wave-wordmark", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {
       await expectUsableTarget(page.locator(selector));
     }
+    await openSupportMenu(page); await expectUsableTarget(page.locator(".wave-support-menu .mobile-menu-link[href='/travel-book']"));
     await expectNoOverflow(page);
   });
 }

@@ -12,11 +12,11 @@ test.beforeEach(async ({ page }) => {
 
 test("네 메뉴의 글자는 보이고 장식은 접근 가능한 이름에 포함되지 않는다", async ({ page }) => {
   await page.goto("/");
-  const links = page.locator(".wave-header nav a");
-  await expect(links).toHaveCount(4);
-  await expect(links).toHaveText(LABELS);
+  const links = page.locator(".wave-header nav a:visible");
+  await expect(links).toHaveCount(page.viewportSize()!.width <= 600 ? 3 : 4);
+  await expect(links).toHaveText(page.viewportSize()!.width <= 600 ? LABELS.slice(1) : LABELS);
 
-  for (const [index, label] of LABELS.entries()) {
+  for (const [index, label] of (page.viewportSize()!.width <= 600 ? LABELS.slice(1) : LABELS).entries()) {
     const link = links.nth(index);
     // 승인된 텍스트 메뉴를 검증한다. 숨겨진 장식도 이름에 포함되지 않는다.
     await expect(link.locator("svg")).toHaveCount(1);
@@ -36,9 +36,11 @@ test("그림은 별도 초점 대상이 아니고 현재 항목만 aria-current�
   expect(await nav.locator("svg[tabindex], svg[role='img'], svg a").count()).toBe(0);
 
   await expect(nav.locator("a[aria-current='page']")).toHaveCount(1);
-  await expect(nav.locator("a[aria-current='page']")).toHaveAccessibleName("서비스 소개");
+  await expect(nav.locator("a[aria-current='page']")).toHaveText("서비스 소개");
+  const home = page.getByRole("link", { name: "WAVE 홈", exact: true });
+  await expect(home).toHaveAttribute("href", "#top"); await home.focus(); await expect(home).toBeFocused();
 
-  for (const label of LABELS) {
+  for (const label of (page.viewportSize()!.width <= 600 ? LABELS.slice(1) : LABELS)) {
     const link = nav.getByRole("link", { name: label, exact: true });
     await link.focus();
     await expect(link).toBeFocused();
@@ -49,10 +51,10 @@ for (const width of [390, 320]) {
   test(`${width}px 세로 배치에서도 이름이 같고 44px 조작 영역과 넘침 0을 지킨다`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/");
-    const links = page.locator(".wave-header nav a");
-    await expect(links).toHaveCount(4);
+    const links = page.locator(".wave-header nav a:visible");
+    await expect(links).toHaveCount(3);
 
-    for (const [index, label] of LABELS.entries()) {
+    for (const [index, label] of (page.viewportSize()!.width <= 600 ? LABELS.slice(1) : LABELS).entries()) {
       const link = links.nth(index);
       await expect(link).toHaveAccessibleName(label);
       await expect(link.locator("span")).toBeVisible();
@@ -63,12 +65,15 @@ for (const width of [390, 320]) {
 
     }
 
+    const home = page.getByRole("link", { name: "WAVE 홈", exact: true });
+    await expect(home).toHaveAttribute("href", "#top"); await home.focus(); await expect(home).toBeFocused();
+    const homeBox = (await home.boundingBox())!; expect(homeBox.width).toBeGreaterThanOrEqual(44); expect(homeBox.height).toBeGreaterThanOrEqual(44);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   });
 }
 
 test("메뉴에 axe 위반이 없다", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".wave-header nav a")).toHaveCount(4);
+  await expect(page.locator(".wave-header nav a:visible")).toHaveCount(page.viewportSize()!.width <= 600 ? 3 : 4);
   expect((await new AxeBuilder({ page }).include(".wave-header").analyze()).violations).toEqual([]);
 });
