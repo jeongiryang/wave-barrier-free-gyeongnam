@@ -1,8 +1,8 @@
-# WAVE intro checkpoint
+# WAVE intro final candidate
 
 - Author: unknownamed (Codex-assisted).
-- Status: open checkpoint PR; no merge or deployment requested or performed.
-- Human: requested preservation of the current standalone intro and supplied this repository.
-- Agent: preserved local source commit 208aee1, exported a source archive, checked SHA-256, created checkpoint documentation and PR.
+- Status: open PR awaiting owner review and merge decision.
+- Human: requested the latest standalone intro be committed, pushed to the existing PR and relabeled as the final intro.
+- Agent: committed local source as `d28c0ee`, regenerated the source archive, updated its checksum and refreshed the PR metadata.
 
-The source archive is a restore artifact, not executable application code in the main service. Standalone build, focused ESLint and local browser checks passed before the export. Main-service integration and production testing were not performed for this archive-only PR. Further boundary-opening / particle-exit changes are intentionally excluded.
+The archive is a restore and review artifact, not directly integrated application code. Local browser timing, mobile layout, completion, Escape and reduced-motion checks passed. Production integration and deployment remain the owner's next step after review.
