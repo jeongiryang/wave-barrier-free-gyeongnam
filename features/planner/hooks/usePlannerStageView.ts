@@ -24,6 +24,8 @@ const HASH_STEPS: Record<string, { step: JourneyStepId; target: string }> = {
   "departure-readiness": { step: "departure-readiness", target: "departure-readiness" },
   layers: { step: "departure-readiness", target: "layers" },
   crowd: { step: "departure-readiness", target: "crowd" },
+  "equipment-rental": { step: "departure-readiness", target: "equipment-rental" },
+  "more-trip-tools": { step: "itinerary", target: "more-trip-tools" },
 };
 
 function stageTarget(id: string) {
