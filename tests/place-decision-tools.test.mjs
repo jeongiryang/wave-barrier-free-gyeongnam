@@ -40,8 +40,8 @@ test("문의 항목 목록에 세 항목(좌석 형태·1인 주문·여럿 자�
   assert.deepEqual(inquiryOptions.slice(0, 7).map((option) => option.id), originalIds);
   const originalLabels = ["운영·입장 시간", "계단 없는 이동", "이용 가능한 화장실", "주차·승하차", "승강기", "앉아서 쉬기", "글·쉬운 안내"];
   assert.deepEqual(inquiryOptions.slice(0, 7).map((option) => option.label), originalLabels);
-  const addedIds = inquiryOptions.slice(7, 10).map((option) => option.id);
-  assert.deepEqual(new Set(addedIds), new Set(["seating", "solo", "groupSeating"]));
+  const addedIds = inquiryOptions.slice(7).map((option) => option.id);
+  assert.deepEqual(new Set(addedIds), new Set(["seating", "solo", "groupSeating", "door", "ordering"]));
   const seating = inquiryOptions.find((option) => option.id === "seating");
   const solo = inquiryOptions.find((option) => option.id === "solo");
   const group = inquiryOptions.find((option) => option.id === "groupSeating");

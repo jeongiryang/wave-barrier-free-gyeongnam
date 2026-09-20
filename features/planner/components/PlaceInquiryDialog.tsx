@@ -27,7 +27,7 @@ export default function PlaceInquiryDialog({ place, en, selected, extra, onSelec
   const communicationTrigger = useRef<HTMLButtonElement>(null);
   const text = inquiryText(place.name, selected, extra);
   const ready = selected.length > 0 || extra.trim().length > 0;
-  const initialTopic: CommunicationTopic = selected.includes("door") ? "door" : selected.includes("stepfree") ? "step_free_entrance" : selected.includes("toilet") ? "restroom" : selected.includes("elevator") ? "elevator" : selected.includes("guidance") ? "assistance" : "assistance";
+  const initialTopic: CommunicationTopic = selected.includes("door") ? "door" : selected.includes("ordering") ? "payment" : selected.includes("stepfree") ? "step_free_entrance" : selected.includes("toilet") ? "restroom" : selected.includes("elevator") ? "elevator" : selected.includes("guidance") ? "assistance" : "assistance";
   const say = (ko: string, english: string) => en ? english : ko;
   useEffect(() => { void onsiteCommunicationBoard.then(() => setBoardReady(true)); }, []);
   async function copy() {

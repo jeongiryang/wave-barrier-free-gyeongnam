@@ -9,12 +9,15 @@ import HelpRequestDialog from "./HelpRequestDialog";
 
 const InquiryDialog = lazy(() => import("./PlaceInquiryDialog").catch(() => ({ default: ({ onClose }: { onClose: () => void }) => <p role="alert">문의 카드를 열지 못했어요. <button type="button" onClick={onClose}>닫기</button></p> })));
 
-export default function PlaceInquiryCard({ place, en, suggestedOption, onsiteLabel }: { place: Place; en: boolean; suggestedOption?: string; onsiteLabel?: string }) {
-  const [open, setOpen] = useState(false);
+export default function PlaceInquiryCard({ place, en, suggestedOption, onsiteLabel, startMode }: { place: Place; en: boolean; suggestedOption?: string; onsiteLabel?: string; startMode?: "inquiry" | "communication" }) {
+  const [open, setOpen] = useState(Boolean(startMode));
   const [helpOpen, setHelpOpen] = useState(false);
-  const [selected, setSelected] = useState(() => defaultInquiryOptions(place));
+  const [selected, setSelected] = useState(() => {
+    const defaults = defaultInquiryOptions(place);
+    return startMode === "communication" && !defaults.includes("ordering") ? [...defaults, "ordering"] : defaults;
+  });
   const [extra, setExtra] = useState("");
-  const [startCommunicating, setStartCommunicating] = useState(false);
+  const [startCommunicating, setStartCommunicating] = useState(startMode === "communication");
   const close = useCallback(() => setOpen(false), []);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
   const openHelp = useCallback(() => { setOpen(false); setHelpOpen(true); }, []);
