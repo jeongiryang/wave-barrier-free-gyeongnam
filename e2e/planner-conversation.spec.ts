@@ -49,13 +49,17 @@ test('나루는 화면 크기에 맞고, 크기를 바꿔도 같은 대화와 �
     expect(box?.width).toBeCloseTo(viewport?.width || 0, 0);
     expect(box?.height).toBeCloseTo(viewport?.height || 0, 0);
   } else {
-    expect((await chat.boundingBox())?.width).toBeCloseTo(440, 0);
-    await chat.getByRole('button', { name: '대화창 크게 보기', exact: true }).click();
-    expect((await chat.boundingBox())?.width).toBeCloseTo(980, 0);
-    await expect(input).toHaveValue('작성 중인 통영 여행 질문');
+    const wideWidth = Math.min(1220, (viewport?.width || 0) * .96);
+    const compactWidth = Math.min(480, (viewport?.width || 0) * .96);
+    expect((await chat.boundingBox())?.width).toBeCloseTo(wideWidth, 0);
     await chat.getByRole('button', { name: '대화창 작게 보기', exact: true }).click();
-    expect((await chat.boundingBox())?.width).toBeCloseTo(440, 0);
+    expect((await chat.boundingBox())?.width).toBeCloseTo(compactWidth, 0);
+    await expect(input).toHaveValue('작성 중인 통영 여행 질문');
     expect(await page.evaluate(() => localStorage.getItem('wave-naru-size-v1'))).toBe('compact');
+    await chat.getByRole('button', { name: '대화창 크게 보기', exact: true }).click();
+    expect((await chat.boundingBox())?.width).toBeCloseTo(wideWidth, 0);
+    await expect(input).toHaveValue('작성 중인 통영 여행 질문');
+    expect(await page.evaluate(() => localStorage.getItem('wave-naru-size-v1'))).toBe('large');
   }
   expect((await new AxeBuilder({ page }).include('.naru-panel').analyze()).violations).toEqual([]);
   await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();

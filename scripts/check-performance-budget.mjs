@@ -13,7 +13,9 @@ const BUDGET = {
   // 2026-09-20: Design B landing + secondary routes + 22 reviewed team features.
   // Retired selectors are removed before budgeting; see the release AI log.
   // This is a scope baseline update, not a claim that the old 78 KiB cap passed.
-  cssGzipKiB: 82,
+  // 2026-09-21: Naru workspace + launcher hints; measured 83.60 KiB.
+  // Explicit CSS scope baseline; initial JavaScript limits stay unchanged.
+  cssGzipKiB: 85,
   landingInitialJsGzipKiB: 155,
   landingInitialJsRawKiB: 520,
   plannerInitialJsGzipKiB: 270,

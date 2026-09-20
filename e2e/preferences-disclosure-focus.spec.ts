@@ -25,8 +25,6 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     // 접근성 설정이 늘어나도 계약이 깨지지 않도록, 초점 대상 개수를 고정하지 않고 패널 안의 초점 가능한 요소를 실제로 질의해 마지막 컨트롤을 기준으로 검사한다.
     // Native radio groups have one Tab stop; arrow keys reach the other choices.
     const panelFocusable = details.locator('.preference-panel').locator('a[href], button:not([disabled]), select, input:not([disabled]):not([type="radio"]), input[type="radio"]:checked, textarea, [tabindex]:not([tabindex="-1"])');
-    const panelFocusableCount = await panelFocusable.count();
-    expect(panelFocusableCount, 'The preferences panel must expose at least one focusable control').toBeGreaterThan(0);
     await page.keyboard.press("Tab");
     await expect(panelFocusable.first()).toBeFocused();
     await expect(details.getByRole("combobox")).toBeFocused();
@@ -40,6 +38,13 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
     await expect(details.locator(".motion-toggle")).toHaveCount(0);
     await expect(appearance).toBeFocused();
+    // Count the current Tab stops after presentation updates. CI captured a
+    // checked attribute before the radio's live checked property settled;
+    // caching that earlier count omitted a stop from the later keyboard walk.
+    await expect(details.locator('input[type="radio"][value="standard"]')).toBeChecked();
+    await expect(details.locator('input[type="radio"]:checked')).toHaveCount(1);
+    const panelFocusableCount = await panelFocusable.count();
+    expect(panelFocusableCount, 'The preferences panel must expose at least one focusable control').toBeGreaterThan(0);
     await panelFocusable.first().focus();
     for (let index = 1; index < panelFocusableCount; index += 1) {
       await page.keyboard.press("Tab");

@@ -14,6 +14,19 @@ test("Naru reveals restored and keyboard focus without moving a control during a
     const target = element.getBoundingClientRect(), floating = launcher.getBoundingClientRect();
     window.scrollBy({ top: target.top - floating.top - 8, behavior: "instant" });
   });
+  // Reduced motion keeps the new discovery hint visible but static. Its entire
+  // footprint must reveal keyboard focus, not just the avatar underneath it.
+  await expect(page.locator('.naru-hint')).toBeVisible();
+  await alignWithLauncher();
+  await activity.evaluate(element => (element as HTMLElement).focus({ preventScroll: true }));
+  await expect(activity).toBeFocused();
+  await expect.poll(() => activity.evaluate(element => {
+    const target = element.getBoundingClientRect(), floating = document.querySelector('.naru-discovery')!.getBoundingClientRect();
+    return target.bottom > floating.top && target.top < floating.bottom && target.right > floating.left && target.left < floating.right;
+  })).toBe(false);
+  await expect(page.locator('.naru-hint')).toBeVisible();
+  await page.getByRole('button', { name: '나루 안내 그만 보기' }).click();
+  await expect(page.locator('.naru-hint')).toHaveCount(0);
   await alignWithLauncher();
   const before = (await activity.boundingBox())!;
   const floating = (await page.locator(".naru-discovery").boundingBox())!;

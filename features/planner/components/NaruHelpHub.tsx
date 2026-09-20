@@ -34,7 +34,7 @@ export default function NaruHelpHub({ context, canTalk, onOpenTool, onTalk }: Pr
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
       {items.map(item => <button key={item.id} type="button" onClick={() => open(item.tool)}>{item.label}</button>)}
     </div>
-    {canTalk && <button type="button" onClick={onTalk} style={{ background: 'var(--accent)', color: '#fff', alignSelf: 'flex-start' }}>직접 이야기하기</button>}
+    {canTalk && <button type="button" onClick={onTalk} style={{ background: 'var(--accent)', color: 'var(--on-accent, #fff)', alignSelf: 'flex-start' }}>직접 이야기하기</button>}
     {failed && <p role="status" aria-live="polite" className="naru-note" style={{ margin: 0, padding: 0 }}>지금은 열 수 없어요.</p>}
   </section>;
 }

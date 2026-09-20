@@ -109,10 +109,16 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     const frame = requestAnimationFrame(closeAssistant);
     return () => cancelAnimationFrame(frame);
   }, [active, closeAssistant]);
+  useEffect(() => {
+    if (!hydrated || !active) return;
+    try { if (!sessionStorage.getItem('wave-naru-resume')) return; } catch { return; }
+    const frame = requestAnimationFrame(showAssistant);
+    return () => cancelAnimationFrame(frame);
+  }, [hydrated, active, showAssistant]);
   const [newTripError, setNewTripError] = useState('');
   function startNewTrip() {
-    try { replaceTripWithBackup(window.localStorage, emptyTrip('', '', '')); saveSessionProfiles(getTabStorage(), []); window.location.assign('/planner'); }
-    catch (error) { setNewTripError(error instanceof Error ? error.message : '현재 여행을 보관하지 못했어요.'); }
+    try { replaceTripWithBackup(window.localStorage, emptyTrip('', '', '')); saveSessionProfiles(getTabStorage(), []); window.location.assign('/planner'); return true; }
+    catch (error) { setNewTripError(error instanceof Error ? error.message : '현재 여행을 보관하지 못했어요.'); return false; }
   }
   const [departureDetailsOpen, setDepartureDetailsOpen] = useState(false);
   const [itineraryMapView, setItineraryMapView] = useState(false);
@@ -503,7 +509,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
       {regionChange.pending && <RegionChangeDialog region={regionChange.pending} en={locale === "en"} error={regionChange.error} onCancel={regionChange.cancel} onAdd={regionChange.add} onNew={regionChange.startNew} />}
       {!embedded && !assistantOpen && <NaruLauncher state={naruActivity.phase} buttonRef={mountAssistantLauncher} disabled={!hydrated || !planController.criteriaReady || !tripSelection.storageReady} onOpen={showAssistant} />}
 
-      {assistantMounted && <Suspense fallback={assistantOpen ? <div className="naru-panel"><LoadingState>나루와의 대화를 열고 있어요.</LoadingState></div> : null}><PlannerAssistant origin={origin} routeMinutes={itineraryRoutes.routeMinutes} launchRequest={reviewRequest?.sourceId === launchRequest.id ? reviewRequest : launchRequest} pageContext={pageContext} open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} guidance={guidance} onRegion={regionChange.request} onSearch={searchForNaru} onPlace={place => { resumeAssistant.current = true; setAssistantOpen(false); setSelectedPlace(place); }} onAlternative={id => alternatives.open(id)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
+      {assistantMounted && <Suspense fallback={assistantOpen ? <div className="naru-panel"><LoadingState>나루와의 대화를 열고 있어요.</LoadingState></div> : null}><PlannerAssistant onNewTrip={startNewTrip} origin={origin} routeMinutes={itineraryRoutes.routeMinutes} launchRequest={reviewRequest?.sourceId === launchRequest.id ? reviewRequest : launchRequest} pageContext={pageContext} open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} guidance={guidance} onRegion={regionChange.request} onSearch={searchForNaru} onPlace={place => { resumeAssistant.current = true; setAssistantOpen(false); setSelectedPlace(place); }} onAlternative={id => alternatives.open(id)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
       {!embedded && <PlannerFooter />}
     </main>
   );
