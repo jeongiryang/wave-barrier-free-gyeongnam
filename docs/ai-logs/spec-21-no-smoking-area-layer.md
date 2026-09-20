@@ -1,6 +1,6 @@
 # 공식 금연구역 편의지도 레이어 AI 작업 로그
 
-- PR: 생성 후 갱신
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/629
 - 제목: feat: 공식 금연구역 편의지도 레이어 추가
 - 작성자: Codex
 - 최종 상태: PR 검토 대기
