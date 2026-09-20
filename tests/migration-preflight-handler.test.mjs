@@ -82,14 +82,9 @@ test("apply requires successful read-only preflight and then keeps the canonical
   assert.deepEqual((await response.json()).migrations, migrations.PRODUCTION_MIGRATION_NAMES);
   assert.equal(good.calls.length, 2);
   assert.equal(good.calls[0].readOnly, true);
-  assert.match(good.calls[1].queries.at(-27), /SET moderation_status = 'under_review'/);
-  assert.match(good.calls[1].queries.at(-18), /CREATE TABLE IF NOT EXISTS wave_travel_limits/);
-  assert.match(good.calls[1].queries.at(-17), /ADD COLUMN IF NOT EXISTS visit_photos/);
-  assert.match(good.calls[1].queries.at(-16), /community_posts_facility_history_idx/);
-  assert.match(good.calls[1].queries.at(-15), /ADD COLUMN IF NOT EXISTS live/);
-  assert.match(good.calls[1].queries.at(-11), /ADD COLUMN IF NOT EXISTS revoked/);
-  assert.match(good.calls[1].queries.at(-10), /CREATE TABLE IF NOT EXISTS wave_observations/);
-  assert.match(good.calls[1].queries.at(-7), /CREATE TABLE IF NOT EXISTS wave_companions/);
+  for (const pattern of [/SET moderation_status = 'under_review'/, /CREATE TABLE IF NOT EXISTS wave_travel_limits/, /ADD COLUMN IF NOT EXISTS visit_photos/, /community_posts_facility_history_idx/, /ADD COLUMN IF NOT EXISTS live/, /ADD COLUMN IF NOT EXISTS revoked/, /CREATE TABLE IF NOT EXISTS wave_observations/, /CREATE TABLE IF NOT EXISTS wave_companions/, /community_posts_field_report_place_idx/]) {
+    assert.ok(good.calls[1].queries.some((query) => pattern.test(query)), `missing migration statement ${pattern}`);
+  }
 });
 
 test("native candidate requires database and SMTP readiness before any migration", async () => {

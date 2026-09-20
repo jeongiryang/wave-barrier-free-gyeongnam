@@ -41,7 +41,7 @@ type ListState = 'loading' | 'available' | 'empty' | 'provider-error' | 'locatio
 type NearbyState = { state: 'idle' | 'loading' | 'ready' | 'empty' | 'error'; items: DiningPlace[] };
 
 const card: CSSProperties = {
-  background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--r-md)',
+  background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 'var(--r-md)',
   boxShadow: 'none', padding: '14px 16px', marginBlock: '10px', listStyle: 'none',
 };
 const line: CSSProperties = { margin: '2px 0', color: 'var(--muted)', fontSize: '.9rem' };

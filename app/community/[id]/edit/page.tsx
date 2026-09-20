@@ -2,6 +2,7 @@ import CommunityEditor from "../../../../features/community/components/Community
 import CommunityHeader from "../../../../components/CommunityHeader";
 import SkipLink from "../../../../components/SkipLink";
 import { pageMetadata } from "../../../../lib/site-metadata";
+import { fieldReportBoardEnabled } from "../../../../lib/community/field-report-board.js";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,5 +16,5 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function EditCommunityPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <main className="community-page community-form-page"><SkipLink href="#community-editor">글 입력으로 바로가기</SkipLink><CommunityHeader /><section id="community-editor"><CommunityEditor postId={id} /></section></main>;
+  return <main className="community-page wave-night night-secondary community-form-page"><SkipLink href="#community-editor">글 입력으로 바로가기</SkipLink><CommunityHeader /><section id="community-editor"><CommunityEditor postId={id} fieldReportsEnabled={fieldReportBoardEnabled()} /></section></main>;
 }

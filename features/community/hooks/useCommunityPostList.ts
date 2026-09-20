@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CommunityPost } from "../../../lib/community/types";
 import { communityErrorMessage, isCommunityRequestError, listCommunityPosts } from "../client/api";
 
-export function useCommunityPostList({ category, query, placeId }: { category: string; query: string; placeId?: string }) {
+export function useCommunityPostList({ category, query, placeId, sort = 'latest' }: { category: string; query: string; placeId?: string; sort?: string }) {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -20,6 +20,7 @@ export function useCommunityPostList({ category, query, placeId }: { category: s
     setMessage("");
     try {
       const params = new URLSearchParams({ page: String(nextPage), limit: "12" });
+      if (sort !== 'latest') params.set('sort', sort);
       if (category) params.set("category", category);
       if (query) params.set("search", query);
       if (placeId) params.set("placeId", placeId);
@@ -37,7 +38,7 @@ export function useCommunityPostList({ category, query, placeId }: { category: s
     } finally {
       if (requestRef.current === controller) requestRef.current = null;
     }
-  }, [category, placeId, query]);
+  }, [category, placeId, query, sort]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load(1), 0);

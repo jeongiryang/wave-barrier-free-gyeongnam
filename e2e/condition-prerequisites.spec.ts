@@ -1,7 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, plan } from "./fixtures";
-import { prepareLandingMedia, storyReady, chapterIds } from "./landing-contract";
+import { prepareLandingMedia, storyReady } from "./landing-contract";
+const chapterIds = ["top","regions","story","features","naru","community","departure","closing"];
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
@@ -277,15 +278,16 @@ for (const locale of ["ko", "en"] as const) {
     await page.goto("/"); await storyReady(page);
     expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
     const names = en
-      ? [/Explore Gyeongnam\s*Plan your trip/, /A journey that feels distant,\s*a little closer to you\./, /^Explore Gyeongnam$/, /^Plan with Naru$/, /A lighter heart\.\s*One more check\./, /당신이 남긴 장면이\s*다음 여행의 시작/, /See you at\s*the next horizon\./]
-      : [/경남 여행지를 찾고\s*일정을 짜보세요/, /멀게 느껴졌던 여행을,?\s*조금 더 가까이/, /^지역으로 둘러보기$/, /^나루에게 말해보세요$/, /마음은 가볍게\s*준비는 한 번 더/, /당신이 남긴 장면이\s*다음 여행의 시작/, /다음 풍경에서\s*만나요/];
+      ? [/A wider world\s*Together, WAVE/, /Design a journey\s*that feels like you\./, /^WAVE로 할 수 있는 일$/, /^Explore Gyeongnam$/, /^Plan with Naru$/, /A lighter heart\.\s*One more check\./, /Travel brings people together\./, /See you at\s*the next horizon\./]
+      : [/더 넓은 세상을\s*함께, WAVE/, /당신만의\s*여행을 설계하세요/, /^WAVE로 할 수 있는 일$/, /^경남, 모두의 여행지$/, /^나루에게 말해보세요$/, /여행을 더 편하게,\s*필요한 정보를 한곳에/, /여행이\s*사람을 연결합니다/, /다음 풍경에서\s*만나요/];
     for (const [index, id] of chapterIds.entries()) {
+      if (id === "features" && !await page.locator("#features").isVisible()) await page.getByText("여행 도구 모두 보기", {exact:true}).click();
       const section = page.locator(`#${id}`);
       await section.scrollIntoViewIfNeeded();
-      await expect(section).toHaveAccessibleName(names[index]);
+      await expect(section).toHaveAccessibleName(names[[0,3,1,2,4,6,5,7][index]]);
       await expect(section.locator("h1,h2").first()).toBeVisible();
     }
-    await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+    await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
     await expect(page.locator(".simple-naru-example")).toHaveAttribute("aria-label", en ? "Example conversation" : "대화 예시");
     await expect(page.locator(".landing-hero-copy")).toHaveCSS("opacity", "1");
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

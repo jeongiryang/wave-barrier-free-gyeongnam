@@ -1,5 +1,6 @@
 import CommunityBoard from "../../features/community/components/CommunityBoard";
 import { pageMetadata } from "../../lib/site-metadata";
+import { fieldReportBoardEnabled } from "../../lib/community/field-report-board.js";
 
 export const metadata = pageMetadata({
   title: "여행자 후기",
@@ -20,5 +21,5 @@ export default async function CommunityPage({ searchParams }: { searchParams: Co
   const region = single(params.region).slice(0, 20);
   const initialPlace = id && name ? { id, name, region } : null;
 
-  return <CommunityBoard initialPlace={initialPlace} />;
+  return <CommunityBoard initialPlace={initialPlace} fieldReportsEnabled={fieldReportBoardEnabled()} />;
 }

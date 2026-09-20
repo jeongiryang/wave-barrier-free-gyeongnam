@@ -20,6 +20,30 @@
   },
   "providers": [
     {
+      "id": "sanitary-supply", "family": "public-data", "request_file": "server/tourism/sanitary-supply.ts",
+      "origin": "operator-configured HTTPS endpoint", "operations": ["sanitary-supply-list"],
+      "key_sources": ["TOUR_API_SERVICE_KEY_ENCODED"], "source": "https://www.data.go.kr/", "account_source": "https://www.data.go.kr/",
+      "core": false, "fallback": "Distinguish provider failure, unconfirmed public coordinates and a verified empty list. Never infer inventory or current availability.",
+      "limits": "One explicit lookup without retries; 17.5s server budget; bounded successful public snapshots only.",
+      "privacy": "Only a public KTO contentId reaches the server; no device coordinates, history or layer choices are transmitted."
+    },
+    {
+      "id": "no-smoking-area", "family": "public-data", "request_file": "server/tourism/smoking-area.ts",
+      "origin": "https://api.data.go.kr/openapi/", "operations": ["tn_pubr_public_prhsmk_zn_api"],
+      "key_sources": ["TOUR_API_SERVICE_KEY_ENCODED"], "source": "https://www.data.go.kr/data/15013192/standard.do", "account_source": "https://www.data.go.kr/",
+      "core": false, "fallback": "Keep the layer selected and distinguish provider failure, unconfirmed destination coordinates and a verified empty response; never reinterpret no-smoking records as smoking areas.",
+      "limits": "One explicit layer lookup, no automatic retry; 17.5s total server budget; successful public place snapshots 15min and district records 24h, bounded to 100 entries/50 pending requests.",
+      "privacy": "Only a public KTO contentId reaches the server. Device coordinates, smoking preference and layer state never enter provider requests, cache keys, URLs, logs or storage."
+    },
+    {
+      "id": "trash-bin", "family": "public-data", "request_file": "server/tourism/trash-bin.ts",
+      "origin": "operator-configured HTTPS endpoint", "operations": ["operator-configured-official-dataset"],
+      "key_sources": ["TOUR_API_SERVICE_KEY_ENCODED"], "source": "https://www.data.go.kr/", "account_source": "https://www.data.go.kr/",
+      "core": false, "fallback": "Show an honest provider-error or empty state; never geocode addresses or fabricate bin points.",
+      "limits": "One explicit layer lookup, no automatic retry; 17.5s server budget; successful public snapshots only, 24h/100 entries and 50 pending requests.",
+      "privacy": "Only a validated public KTO contentId reaches the server. User coordinates, accuracy and movement history are never accepted or forwarded."
+    },
+    {
       "id": "parking", "family": "public-data", "request_file": "server/tourism/parking-alternatives.ts",
       "origin": "https://api.data.go.kr/openapi/", "operations": ["tn_pubr_prkplce_info_api"],
       "key_sources": ["TOUR_API_SERVICE_KEY_ENCODED"], "source": "https://www.data.go.kr/data/15012896/openapi.do", "account_source": "https://www.data.go.kr/",

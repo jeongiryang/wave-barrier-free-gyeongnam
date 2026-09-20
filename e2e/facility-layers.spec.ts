@@ -131,17 +131,37 @@ test("모두 끄기는 전부 지우고 패널을 닫아도 표시는 유지된�
   await expect(panel.locator(".facility-chip")).toHaveCount(0);
 });
 
-test("공식 데이터 레이어가 하나도 없으면 그 구분을 그리지 않는다", async ({ page }) => {
+test("통합된 네 공식 데이터 레이어를 별도 구분에 표시한다", async ({ page }) => {
   const panel = await openFacilityPanel(page);
   await expect(panel.getByRole("heading", { name: "장소 검색", exact: true })).toBeVisible();
-  await expect(panel.getByRole("heading", { name: "공식 공공데이터", exact: true })).toHaveCount(0);
-  // 범례는 글자로 남되, 등록되지 않은 공식 레이어의 버튼 구분은 그리지 않는다.
+  await expect(panel.getByRole("heading", { name: "공식 공공데이터", exact: true })).toBeVisible();
+  for (const name of ["현재 확인된 저상버스", "금연 구역", "여성용품 비치", "쓰레기통"]) await expect(panel.getByRole("button", { name, exact: true })).toBeVisible();
+  expect(officialFacilityLayers.map(layer => layer.id).sort()).toEqual(["low-floor-bus-arrival", "no-smoking", "sanitary-supply", "trash-bin"]);
   await expect(panel.getByRole("heading", { name: "마커 범례", exact: true })).toBeVisible();
-  // 등록된 레이어가 없는 구분(공식 공공데이터)만 그리지 않는지 확인한다. 파생
-  // 레이어(스펙 20 안내견, 스펙 14 점자블록 등)는 등록돼 있으면 그려지므로
-  // 그룹 수를 특정 값으로 고정하지 않고, 실제 레이어가 있는 구분 수와 맞춰 본다.
   const expectedGroups = [placeSearchFacilityLayers, officialFacilityLayers, derivedFacilityLayers].filter((layers) => layers.length > 0).length;
   await expect(panel.locator(".map-tool-grid")).toHaveCount(expectedGroups);
+});
+
+test("여성용품 공식 조회는 선택한 장소만 보내고 패널을 닫아도 완료된 마커를 유지한다", async ({ page }) => {
+  const panel = await openFacilityPanel(page);
+  const requests: string[] = [];
+  await page.route("**/api/wave?action=sanitary-supply**", route => {
+    const url = new URL(route.request().url()); requests.push(url.search);
+    return route.fulfill({ json: { status: "available", contentId: url.searchParams.get("contentId"), checkedAt: "2026-09-20", source: "경남 공식 데이터", items: [{ id: "S1", name: "공공시설 안내데스크", address: "경상남도 창원시", destination: { latitude: 35.231, longitude: 128.681 }, distanceMeters: 120, referenceDate: "2026-09-01", availableHours: "09:00–18:00", usageNote: "안내데스크 문의" }] } });
+  });
+  expect(requests).toEqual([]);
+  await panel.getByRole("button", { name: "여성용품 비치", exact: true }).click();
+  await expect.poll(() => requests.length).toBe(1);
+  expect([...new URLSearchParams(requests[0]).keys()].sort()).toEqual(["action", "contentId"]);
+  const marker = page.locator('[data-facility-layer="sanitary-supply"]');
+  await expect(marker).toHaveCount(1);
+  await marker.dispatchEvent("click");
+  await expect(panel.locator(".facility-card")).toContainText("안내데스크 문의");
+  await expect(panel.locator(".facility-card")).toContainText("2026-09-01");
+  await panel.getByRole("button", { name: "편의 표시 닫기", exact: true }).click();
+  await expect(panel).toBeHidden();
+  await expect(marker).toHaveCount(1);
+  expect(requests).toHaveLength(1);
 });
 
 test("키보드만으로 패널을 열고 레이어를 켜고 마커로 초점을 옮길 수 있다", async ({ page }) => {

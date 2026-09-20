@@ -17,13 +17,10 @@ html[data-theme="dark"] .community-state,html[data-theme="dark"] .comment-form,h
   .auth-header-action span { font-size: 1rem; }
   .auth-layout { width: calc(100% - 24px); padding: 38px 0 60px; }
   .auth-story h2 { font-size: clamp(2.5rem,12vw,4rem); }
-  .auth-journey-preview > span { grid-template-columns: 28px 1fr; }
-  .auth-journey-preview small { grid-column: 2; }
-  .auth-card { padding: 24px 18px; border-radius: 22px; }
+      .auth-card { padding: 24px 18px; border-radius: 22px; }
   .community-hero { width: calc(100% - 32px); padding: 55px 0; gap: 32px; }
   .community-hero h1 { font-size: clamp(3.1rem,16vw,5rem); }
   .community-workspace { padding: 55px 16px 80px; border-radius: 26px 26px 0 0; }
-  .community-write { width: 100%; justify-content: space-between; }
   .community-controls { align-items: stretch; flex-direction: column; }
   .community-controls form { width: 100%; }
   .community-list,.community-skeletons { grid-template-columns: 1fr; }

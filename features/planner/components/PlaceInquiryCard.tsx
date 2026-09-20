@@ -9,18 +9,28 @@ import HelpRequestDialog from "./HelpRequestDialog";
 
 const InquiryDialog = lazy(() => import("./PlaceInquiryDialog").catch(() => ({ default: ({ onClose }: { onClose: () => void }) => <p role="alert">문의 카드를 열지 못했어요. <button type="button" onClick={onClose}>닫기</button></p> })));
 
-export default function PlaceInquiryCard({ place, en }: { place: Place; en: boolean }) {
-  const [open, setOpen] = useState(false);
+export default function PlaceInquiryCard({ place, en, suggestedOption, onsiteLabel, startMode }: { place: Place; en: boolean; suggestedOption?: string; onsiteLabel?: string; startMode?: "inquiry" | "communication" }) {
+  const [open, setOpen] = useState(Boolean(startMode));
   const [helpOpen, setHelpOpen] = useState(false);
-  const [selected, setSelected] = useState(() => defaultInquiryOptions(place));
+  const [selected, setSelected] = useState(() => {
+    const defaults = defaultInquiryOptions(place);
+    return startMode === "communication" && !defaults.includes("ordering") ? [...defaults, "ordering"] : defaults;
+  });
   const [extra, setExtra] = useState("");
+  const [startCommunicating, setStartCommunicating] = useState(startMode === "communication");
   const close = useCallback(() => setOpen(false), []);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
   const openHelp = useCallback(() => { setOpen(false); setHelpOpen(true); }, []);
+  function openInquiry(communicating = false) {
+    if (suggestedOption) setSelected(current => current.includes(suggestedOption) ? current : [...current, suggestedOption]);
+    setStartCommunicating(communicating);
+    setOpen(true);
+  }
   return <section className="place-inquiry-entry">
     <div><h3>{en ? "Ask before you visit" : "방문 전에 물어보세요."}</h3><p>{en ? "Choose a question and show a Korean card, or keep it for your trip." : "필요한 질문을 골라 큰 글씨로 보여주거나 여행에 챙겨두세요."}</p></div>
-    <button type="button" onClick={() => setOpen(true)}>{en ? "Make an inquiry card" : "문의 카드 만들기"} ↗</button>
-    {open && <Suspense fallback={<LoadingState>{en ? "Preparing your card…" : "문의 카드를 준비하고 있어요…"}</LoadingState>}><InquiryDialog place={place} en={en} selected={selected} extra={extra} onSelection={setSelected} onExtra={setExtra} onClose={close} onHelpRequest={openHelp} /></Suspense>}
+    <button type="button" onClick={() => openInquiry()}>{en ? "Make an inquiry card" : "문의 카드 만들기"} ↗</button>
+    {onsiteLabel && <button type="button" onClick={() => openInquiry(true)}>{onsiteLabel}</button>}
+    {open && <Suspense fallback={<LoadingState>{en ? "Preparing your card…" : "문의 카드를 준비하고 있어요…"}</LoadingState>}><InquiryDialog place={place} en={en} selected={selected} extra={extra} onSelection={setSelected} onExtra={setExtra} onClose={close} onHelpRequest={openHelp} startCommunicating={startCommunicating} /></Suspense>}
     {helpOpen && <HelpRequestDialog placeName={place.name} placeAddress={place.address ?? null} placeRegion={place.city ?? null} onClose={closeHelp} />}
   </section>;
 }

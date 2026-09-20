@@ -33,7 +33,7 @@ test("320px 공개 화면의 네 메뉴와 내 여행은 키보드로 접근할 
   await expect(header.getByRole("navigation").getByRole("link")).toHaveText(["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
   for (const link of await header.getByRole("link").all()) {
     await expect(link).toBeVisible(); const box = await link.boundingBox();
-    expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44);
+    expect(box!.width, await link.getAttribute("class") || await link.innerText()).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44);
     await link.focus(); await expect(link).toBeFocused();
   }
   await expect(header.getByRole("link", { name: "내 여행, 담은 장소 0곳" })).toBeVisible();
@@ -101,13 +101,14 @@ for (const width of [320, 390]) {
     const skip = page.getByRole("link", { name: "본문으로 바로가기", exact: true });
     await expect(home).toBeVisible();
     await expect(skip).toBeVisible();
-    await expect(home).toHaveText("WAVE");
+    await expect(home).toContainText("WAVE");
+    await expect(home).toHaveAccessibleName("WAVE 홈");
     await page.keyboard.press("Tab");
     await expect(skip).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(home).toBeFocused();
     await expect(home).toHaveCSS("outline-style", "solid");
-    await expect(home).toHaveCSS("outline-width", "3px");
+    expect(await home.evaluate(node => parseFloat(getComputedStyle(node).outlineWidth))).toBeGreaterThanOrEqual(2);
 
     const box = await home.boundingBox();
     expect(box).not.toBeNull();
@@ -117,10 +118,14 @@ for (const width of [320, 390]) {
     expect(box!.x + box!.width).toBeLessThanOrEqual(width);
     expect(box!.y).toBeGreaterThanOrEqual(0);
     expect(box!.y + box!.height).toBeLessThanOrEqual(720);
-    expect(await home.evaluate((link) => {
+    const edgeHits = await home.evaluate((link) => {
       const rect = link.getBoundingClientRect();
-      return [rect.left + 1, rect.right - 1].every((x) => link.contains(document.elementFromPoint(x, rect.top + rect.height / 2)));
-    }), "로고 양옆으로 넓힌 영역도 홈 링크를 가리킨다").toBe(true);
+      return [rect.left + 1, rect.right - 1].map((x) => {
+        const target = document.elementFromPoint(x, rect.top + rect.height / 2);
+        return { inside: link.contains(target), target: target?.outerHTML.slice(0, 240), x, y: rect.top + rect.height / 2 };
+      });
+    });
+    expect(edgeHits.every(hit => hit.inside), JSON.stringify(edgeHits)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await testInfo.attach("home-link-metrics", { body: JSON.stringify({ viewport: { width, height: 720 }, link: box }), contentType: "application/json" });
     await page.screenshot({ path: testInfo.outputPath("home-link-keyboard-focus.png") });

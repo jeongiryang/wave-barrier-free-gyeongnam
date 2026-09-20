@@ -36,13 +36,14 @@ for (const width of [320, 390]) {
     await page.goto("/"); await storyReady(page);
     expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
     for (const id of chapterIds) {
+      if (id === "features") await page.getByText("여행 도구 모두 보기", { exact: true }).click();
       const section = page.locator(`#${id}`), heading = section.locator("h1,h2").first();
       await heading.scrollIntoViewIfNeeded();
       await expect(heading).toBeVisible();
       await expect(section).toHaveAccessibleName(/\S/);
       await expectNoOverflow(page);
     }
-    await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+    await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
     await expect(page.locator(".simple-naru-example input,.simple-naru-example button")).toHaveCount(0);
     await expectUsableTarget(page.locator(".landing-actions a"));
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);

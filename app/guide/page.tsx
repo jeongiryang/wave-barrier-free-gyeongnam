@@ -3,9 +3,11 @@ import GuideDisclosureLinks from "../../components/GuideDisclosureLinks";
 import Link from "next/link";
 import TravelShell from "../../features/account-travel/TravelShell";
 import { pageMetadata } from "../../lib/site-metadata";
+import { brandMeaning } from "../../features/landing/content";
 export const metadata = pageMetadata({ title: "WAVE 사용 방법", description: "여행 저장, 여러 기기에서 이어하기, 편의 조건과 동행자 초대 사용 방법을 알아보세요.", path: "/guide" });
 export default function Page() {
   return <TravelShell title="WAVE 사용 방법">
+    <section className="account-settings guide-brand" aria-labelledby="guide-brand-title"><h2 id="guide-brand-title">서비스 소개</h2><p className="guide-brand-ko">{brandMeaning.ko}</p><p className="guide-brand-en" lang="en">{brandMeaning.en}</p><p>공공데이터로 확인된 편의 정보를 함께 보여 줘요. 확인되지 않은 것은 확인되지 않았다고 알려 줘요.</p></section>
     <GuideDisclosureLinks />
     <nav className="guide-start" aria-label="시작할 도움말"><a href="#planner-guide">여행지 찾기</a><a href="#naru-guide">나루로 일정 바꾸기</a><a href="#naru-examples">필요한 도움 찾기</a><a href="#account-travel-guide">저장과 공유</a></nav>
     <NaruHelpExamples />

@@ -12,6 +12,8 @@ export type PostValue = {
 };
 
 export type ListFilters = {
+  sort?: 'latest' | 'popular' | 'comments';
+  placePreview?: boolean;
   history?: boolean;
   category: string;
   search: string;

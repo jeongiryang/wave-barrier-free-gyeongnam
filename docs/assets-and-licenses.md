@@ -1,5 +1,23 @@
 # 이미지와 지도 자산
 
+## 지역 문화 카드 공식 링크 (2026-09-20 확인)
+
+음원·영상 파일을 복제하거나 재생하지 않고 국가유산청 국가유산포털의 공식 안내 페이지로만 연결한다. 화면의 짧은 소개는 각 페이지가 밝힌 종목과 소재지를 요약한 것이며, 지역 전체를 대표한다고 단정하지 않는다.
+
+| 지역 | 항목 | 제공 기관 | 공식 안내 |
+| --- | --- | --- | --- |
+| 밀양 | 밀양아리랑 | 국가유산청 국가유산포털 | https://heritage.go.kr/heri/cul/culSelectDetail.do?ccbaAsno=0000480000000&ccbaCpno=2223800480000&pageNo=1_1_1_1&sngl=Y |
+| 진주 | 진주검무 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1273800120000&pageNo=1_1_1_1 |
+| 통영 | 통영오광대 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1273800060000&pageNo=1_1_1_1 |
+| 고성 | 고성오광대 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1273800070000&pageNo=1_1_1_1 |
+| 사천 | 진주삼천포농악 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1273800110100&pageNo=1_1_2_0 |
+| 거창 | 거창삼베일소리 | 국가유산청 국가유산포털 | https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=2223800170000&pageNo=1_1_2_0 |
+## 지역 배경 소리 검토 상태 (2026-09-20)
+
+명세 37의 0단계에 따라 공공누리·문화기관 공개 자료, CC 음원과 직접 녹음 자료를 후보 범위로 두었으나, 저장소 책임자가 제목·권리자·상업적 이용·변경 허용·표기 문구를 확인한 음원은 아직 없다. 따라서 `features/landing/region-sound.ts`의 공개 목록은 비어 있으며 `public/media/sound/`에 음원 파일을 추가하지 않았다. 후보 페이지의 공개 표기만으로 특정 녹음의 저작인접권과 공모전 재배포 권한을 확정하지 않는다.
+
+사람 확인 전에는 재생 버튼도 표시하지 않는다. 승인할 때에는 제목, 원본 URL, 저작권자, 라이선스와 원문 URL, 상업적 이용·변경 가능 여부, 필요한 출처 문구, 파일 크기·길이, 녹음 장소와 사람 목소리 포함 여부, 확인 날짜를 이 문서와 정책 화면에 먼저 기록한다.
+
 ## 행정경계
 
 - 원본: [StatGarten maps](https://github.com/statgarten/maps/blob/main/svg/simple/경상남도_시군구_경계.svg)

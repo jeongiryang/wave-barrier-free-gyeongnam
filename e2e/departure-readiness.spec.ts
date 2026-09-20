@@ -33,3 +33,38 @@ test('past trips and forecast failures never claim departure readiness', async (
   const weather = await departureItem(page, '날씨'); await expect(weather.locator('summary')).toContainText('확인할 정보 있음'); await expect(weather).toContainText('해당 날짜 예보가 없거나');
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-trip-schedule-v1') || '{}').travelStart)).toBe('2026-08-01');
 });
+
+test('optional trip precautions stay local to the view and link to existing planner screens', async ({ page }, testInfo) => {
+  await page.clock.setFixedTime(new Date('2026-10-08T01:00:00Z'));
+  await mockPlannerApi(page);
+  await page.goto('/planner');
+  await chooseTripConditions(page);
+  await page.locator('.simple-place-row').first().locator('.simple-place-add').click();
+  await openItinerary(page, { start: '2026-10-08', end: '2026-10-08' });
+  const card = await openDeparture(page);
+  const checks = card.locator('.simple-readiness-precautions input[type=checkbox]');
+  await expect(checks).toHaveCount(4);
+  await expect(card.getByText('그날 날씨를 확인하고 실내 대안을 준비했나요?')).toBeVisible();
+  await expect(card.getByText('이동 수단의 편의시설을 미리 확인했나요?')).toBeVisible();
+  await expect(card.getByText('보조기기가 고장 났을 때 연락할 곳을 알고 있나요?')).toBeVisible();
+  await expect(card.getByText('급할 때 연락할 곳을 저장해 두었나요?')).toBeVisible();
+
+  const before = await page.evaluate(() => JSON.stringify(localStorage));
+  await checks.nth(0).check();
+  await checks.nth(3).check();
+  expect(await page.evaluate(() => JSON.stringify(localStorage))).toBe(before);
+  await expect(page.locator('.simple-planner-tabs button').nth(1)).toBeEnabled();
+
+  await card.getByRole('link', { name: '날씨 확인' }).click();
+  await expect(page).toHaveURL(/#layers$/);
+  await expect(page.locator('#layers')).toBeVisible();
+  expect((await new AxeBuilder({ page }).include('.simple-readiness').analyze()).violations).toEqual([]);
+  await card.getByRole('link', { name: '도움 요청 확인' }).click();
+  await expect(page).toHaveURL(/#more-trip-tools$/);
+  await expect(page.locator('#more-trip-tools')).toHaveAttribute('open', '');
+  await expect(page.getByRole('button', { name: '도움이 필요해요' })).toBeVisible();
+  if (testInfo.project.name === 'desktop-chromium') for (const width of [390, 960, 1440]) {
+    await page.setViewportSize({ width, height: 960 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  }
+});

@@ -6,11 +6,12 @@ import { COMMUNITY_CATEGORY_LABELS, COMMUNITY_REGIONS } from "../../../lib/commu
 import { useCommunityEditor } from "../hooks/useCommunityEditor";
 import CommunityFieldReportEditor from "./CommunityFieldReportEditor";
 import CommunityVisitPhotosEditor from "./CommunityVisitPhotosEditor";
+import CommunityAccessibilityReportEditor from "./CommunityAccessibilityReportEditor";
 
-export default function CommunityEditor({ postId }: { postId?: string }) {
+export default function CommunityEditor({ postId, fieldReportsEnabled = false }: { postId?: string; fieldReportsEnabled?: boolean }) {
   const {
     editing, session, isPending, values, setValues, state, message, loginRequired, currentPath, submit,
-  } = useCommunityEditor(postId);
+  } = useCommunityEditor(postId, fieldReportsEnabled);
   const [photoBusy, setPhotoBusy] = useState(false);
 
   if (!isPending && !session?.user && !values.visitPhotos?.length) {
@@ -23,14 +24,16 @@ export default function CommunityEditor({ postId }: { postId?: string }) {
   return (
     <form className="community-editor" onSubmit={event => { if (photoBusy) event.preventDefault(); else void submit(event); }} aria-busy={state === "saving" || photoBusy}>
       <div className="editor-heading"><p className="section-kicker">{editing ? "후기 수정" : "후기 작성"}</p><h1>{editing ? "여행 후기 수정" : "경남 여행 후기와 질문을 남겨 주세요"}</h1><p>직접 확인한 경험과 궁금한 점을 구분해 작성해 주세요. 여행자 경험은 공식 시설 정보와 별도로 표시됩니다.</p></div>
-      {values.placeId && values.placeName && <aside className="editor-place"><span aria-hidden="true">⌖</span><div><small>연결된 관광지</small><strong>{values.region ? `${values.region} · ` : ""}{values.placeName}</strong></div><button type="button" onClick={() => setValues((current) => ({ ...current, placeId: "", placeName: "", fieldReports: [], journalPlaces: [], visitPhotos: [], photoConsent: false }))}>연결 해제</button></aside>}
+      {values.category !== "field-report" && values.placeId && values.placeName && <aside className="editor-place"><span aria-hidden="true">⌖</span><div><small>연결된 관광지</small><strong>{values.region ? `${values.region} · ` : ""}{values.placeName}</strong></div><button type="button" onClick={() => setValues((current) => ({ ...current, placeId: "", placeName: "", fieldReports: [], journalPlaces: [], visitPhotos: [], photoConsent: false }))}>연결 해제</button></aside>}
       {values.journalPlaces.length > 1 && <aside className="editor-journal-places" aria-labelledby="journal-places-title"><div><small>ITINERARY DRAFT</small><strong id="journal-places-title">일정에서 연결한 장소 {values.journalPlaces.length}곳</strong></div><ol>{values.journalPlaces.map((place) => <li key={place.id}><span>{place.day || "날짜 미지정"}</span><b>{place.name}</b></li>)}</ol></aside>}
       <div className="editor-grid">
-        <label>게시판<select value={values.category} onChange={(event) => setValues((current) => ({ ...current, category: event.target.value as keyof typeof COMMUNITY_CATEGORY_LABELS, ...(event.target.value === "review" ? {} : { visitDate: "", fieldReports: [], journalPlaces: [], visitPhotos: [], photoConsent: false }) }))}>{Object.entries(COMMUNITY_CATEGORY_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        <label>게시판<select value={values.category} onChange={(event) => setValues((current) => ({ ...current, category: event.target.value as keyof typeof COMMUNITY_CATEGORY_LABELS, ...(event.target.value === "review" || event.target.value === "field-report" ? {} : { visitDate: "", fieldReports: [], journalPlaces: [], visitPhotos: [], photoConsent: false }) }))}>{Object.entries(COMMUNITY_CATEGORY_LABELS).filter(([value]) => value !== "field-report" || fieldReportsEnabled || values.category === "field-report").map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <label>지역<select value={values.region} onChange={(event) => setValues((current) => ({ ...current, region: event.target.value }))}>{COMMUNITY_REGIONS.map((region) => <option key={region || "none"} value={region}>{region || "지역 선택 안 함"}</option>)}</select></label>
       </div>
-      <label>제목<input value={values.title} onChange={(event) => setValues((current) => ({ ...current, title: event.target.value }))} required minLength={5} maxLength={120} aria-describedby="editor-title-help" /><small id="editor-title-help">5자 이상 120자 이하</small></label>
-      <label>내용<textarea value={values.content} onChange={(event) => setValues((current) => ({ ...current, content: event.target.value }))} required minLength={10} maxLength={5000} rows={13} aria-describedby="editor-content-help" /><small id="editor-content-help">개인 연락처나 민감한 개인정보는 적지 마세요. 10자 이상 5,000자 이하</small></label>
+      {values.category === "travel-talk" && <p className="editor-public-notice">연락처와 개인정보를 본문에 적지 마세요. 공개된 글이에요.</p>}
+      {values.category !== "field-report" && <label>제목<input value={values.title} onChange={(event) => setValues((current) => ({ ...current, title: event.target.value }))} required minLength={5} maxLength={120} aria-describedby="editor-title-help" /><small id="editor-title-help">5자 이상 120자 이하</small></label>}
+      <CommunityAccessibilityReportEditor values={values} setValues={setValues} />
+      <label>{values.category === "field-report" ? "확인한 내용" : "내용"}<textarea value={values.content} onChange={(event) => setValues((current) => ({ ...current, content: event.target.value }))} required minLength={10} maxLength={5000} rows={13} aria-describedby="editor-content-help" /><small id="editor-content-help">개인 연락처나 민감한 개인정보는 적지 마세요. 10자 이상 5,000자 이하</small></label>
       <CommunityFieldReportEditor values={values} setValues={setValues} />
       {values.category === "review" && values.placeId && <CommunityVisitPhotosEditor values={values} setValues={setValues} saving={state === "saving"} onBusyChange={setPhotoBusy} />}
       {message && <p className="editor-message" role="alert">{message}</p>}

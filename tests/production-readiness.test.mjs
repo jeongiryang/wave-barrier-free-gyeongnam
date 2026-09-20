@@ -431,7 +431,7 @@ test("interactive help follows real sections on every public journey and remains
   new Function("exports", ts.transpileModule(helpContent, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText)(tours);
   assert.deepEqual(tours.landingSteps.map(step => step.selector), ["#top", "#regions", "#story", "#naru"]);
   assert.deepEqual(tours.plannerSteps.map(step => step.selector), ["#conditions", "#places", "#itinerary", "#departure-readiness"]);
-  assert.deepEqual(tours.landingSteps.map(step => step.highlightSelector), ["#top .landing-hero-copy", ".simple-region-grid", ".horizon-chapter-stream", "#naru"]);
+  assert.deepEqual(tours.landingSteps.map(step => step.highlightSelector), ["#top .landing-hero-copy", ".simple-region-grid", ".night-journey-input", "#naru"]);
   assert.deepEqual(tours.plannerSteps.map(step => step.highlightSelector), [".simple-search-bar", ".simple-place-row", ".simple-stops > li, .simple-empty, .simple-itinerary-map", "#departure-readiness > summary"]);
   for (const [steps, content] of [[tours.landingSteps, landing], [tours.plannerSteps, planner]]) {
     for (const step of steps) {
@@ -441,7 +441,7 @@ test("interactive help follows real sections on every public journey and remains
       assert.ok(step.title && step.copy, step.selector + " must have useful accessible guidance");
     }
   }
-  for (const selector of [".community-page", "#community-list", ".community-evidence-note", ".travel-book-page", ".travel-book-paths", ".travel-book-list, .travel-book-empty"]) {
+  for (const selector of [".community-page", "#community-list", ".night-community-toolbar", ".travel-book-page", ".travel-book-paths", ".travel-book-list, .travel-book-empty"]) {
     assert.match(help, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.match(communityHeader, /WaveHeader/);

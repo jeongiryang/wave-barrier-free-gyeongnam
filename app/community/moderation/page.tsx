@@ -11,5 +11,5 @@ export const metadata = pageMetadata({
 });
 
 export default function CommunityModerationPage() {
-  return <main className="community-page community-detail-page"><SkipLink href="#moderation">운영 목록으로 바로가기</SkipLink><CommunityHeader /><div id="moderation"><CommunityModerationQueue /></div></main>;
+  return <main className="community-page wave-night night-secondary community-detail-page"><SkipLink href="#moderation">운영 목록으로 바로가기</SkipLink><CommunityHeader /><div id="moderation"><CommunityModerationQueue /></div></main>;
 }

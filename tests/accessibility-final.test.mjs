@@ -6,27 +6,29 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
-test("공개 화면은 좁은 폭에서도 닫히지 않는 주요 메뉴와 실제 skip 초점을 제공한다", async () => {
-  const [mobileNav, skipLink, landingHeader, communityHeader, authShell, css] = await Promise.all([
-    source("components/PublicMobileNav.tsx"),
+test("공개 화면의 공통 헤더는 주요 메뉴와 현재 페이지 및 실제 skip 초점을 제공한다", async () => {
+  const [header, skipLink, landingHeader, communityHeader, authShell, banner] = await Promise.all([
+    source("components/WaveHeader.tsx"),
     source("components/SkipLink.tsx"),
     source("features/landing/components/LandingHeader.tsx"),
     source("components/CommunityHeader.tsx"),
     source("features/auth/components/AuthShell.tsx"),
-    source("app/styles/mobile-interaction-hardening.css"),
+    source("components/NightBanner.tsx"),
   ]);
-  assert.match(mobileNav, /aria-expanded=\{open\}/);
-  assert.match(mobileNav, /aria-controls=\{panelId\}/);
-  assert.match(mobileNav, /event\.key !== "Escape"/);
-  assert.match(mobileNav, /triggerRef\.current\?\.focus\(\)/);
+  assert.match(header, /contains\(document\.activeElement\)/);
+  assert.match(header, /addEventListener\("focusin", focus\)/);
+  assert.match(header, /removeEventListener\("focusin", focus\)/);
+  assert.match(header, /aria-current=\{current === "planner" \? "page" : undefined\}/);
   for (const header of [landingHeader, communityHeader]) assert.match(header, /WaveHeader/);
   assert.match(authShell, /SkipLink/);
-  const header = await source("components/WaveHeader.tsx");
   assert.match(header, /<nav aria-label/);
   for (const route of ["/planner", "/community", "/travel-book"]) assert.ok(header.includes(route));
   assert.match(skipLink, /target\.focus\(\{ preventScroll: true \}\)/);
   assert.match(skipLink, /scrollToSection\(id\)/);
-  assert.match(css, /\.public-mobile-nav-panel a \{[\s\S]*min-height: 48px/);
+  assert.match(banner, /aria-label="이전 배너"/);
+  assert.match(banner, /aria-label="다음 배너"/);
+  assert.match(banner, /aria-live="polite"/);
+  assert.match(banner, /alt="" aria-hidden="true"/);
 });
 
 test("지도·신고·여행 삭제 패널은 상태 관계와 Escape 초점 복귀를 노출한다", async () => {

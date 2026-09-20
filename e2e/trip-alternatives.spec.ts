@@ -71,10 +71,15 @@ test("indoor evidence is checked explicitly and nearby discovery retains facilit
   const dialog = await open(page);
   await dialog.getByRole("button", { name: "실내 공간으로", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true })).toHaveCount(0);
-  // Saved-place evidence may refresh in the background, but indoor details and
-  // alternative searches still require their own explicit action.
-  expect(calls.filter(url => url.searchParams.get("action") !== "places")).toHaveLength(0);
-  for (const lookup of calls) {
+  // Saved-place evidence and its visible photo may load in the background;
+  // indoor details and alternative searches require an explicit action.
+  expect(calls.filter(url => !["places", "spot-photo"].includes(url.searchParams.get("action") || ""))).toHaveLength(0);
+  for (const photo of calls.filter(url => url.searchParams.get("action") === "spot-photo")) {
+    expect(["1001", "1002"]).toContain(photo.searchParams.get("contentId"));
+    expect(photo.searchParams.has("latitude")).toBe(false);
+    expect(photo.searchParams.has("longitude")).toBe(false);
+  }
+  for (const lookup of calls.filter(url => url.searchParams.get("action") === "places")) {
     expect(lookup.searchParams.get("ids")?.split(",").sort()).toEqual(["1001", "1002"]);
     expect((lookup.searchParams.get("facilityKeys") || "").split(",")).toEqual(requiredKeys);
   }

@@ -46,23 +46,19 @@ test('parking inquiry component has no location, storage, network, analytics, or
 
 test('easy trip completion never requests or transfers device location or progress',async({page})=>{
   const requests:string[]=[];
-  page.on('request', request => {
-    const url = new URL(request.url());
-    // Opening the lazy view may fetch its static Vite module on a cold worker.
-    // Allow only that exact same-origin, payload-free script; API, beacon,
-    // query-string and other requests remain part of the privacy audit.
-    const viewModule = url.origin === new URL(page.url()).origin
-      && url.pathname === '/features/planner/components/EasyOnTripView.tsx'
-      && !url.search && request.method() === 'GET'
-      && request.resourceType() === 'script' && request.postData() === null;
-    if (!viewModule) requests.push(request.url() + (request.postData() || ''));
-  });
+  page.on('request', request => requests.push(request.url() + (request.postData() || '')));
   await page.addInitScript(()=>{
     Object.assign(window,{easyTripPrivacyCalls:0});
     Object.defineProperty(navigator,'geolocation',{configurable:true,value:{getCurrentPosition(){(window as unknown as {easyTripPrivacyCalls:number}).easyTripPrivacyCalls++;}}});
   });
   const nearby=await openNearby(page);await nearby.getByRole('button',{name:'주변 장소 닫기',exact:true}).click();await openRouteDetails(page);await expect(page).toHaveURL(/#itinerary$/);
   await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();const panel=page.getByRole('region',{name:'여행 당일 진행',exact:true});
+  // A network-idle interval can precede a cold lazy module's dependency fetch.
+  // These controls belong to the loaded OnTripGuide, whose static imports include
+  // EasyOnTripView and TripBoardView. Wait for that view and its progress state,
+  // then audit every request from the user's mode switch and completion action.
+  await expect(panel.getByRole('group',{name:'여행 당일 보기',exact:true})).toBeVisible();
+  await expect(panel.getByRole('button',{name:'여행 시작하기',exact:true})).toBeEnabled();
   await page.waitForLoadState('networkidle');requests.length=0;
   await panel.getByRole('button',{name:'쉬운 보기',exact:true}).click();await panel.getByRole('button',{name:'다녀왔어요',exact:true}).click();
   await expect(panel.getByRole('heading',{name:'오늘 일정이 끝났어요',exact:true})).toBeVisible();

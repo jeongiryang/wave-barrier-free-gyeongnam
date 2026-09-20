@@ -1,0 +1,58 @@
+/* Detail surfaces keep the same palette as the route that opens them. */
+html:root body .wave-night .community-state button{background:#195dc5;color:#fff}
+html:root body .wave-night .night-primary{background:linear-gradient(115deg,#086ba5,#244cdf 58%,#7236da);background-color:#195dc5;color:#fff}
+html:root body .wave-night .comment-form button[type=submit]{background:#195dc5;color:#fff}
+html:root body .wave-night .community-pagination button{background:var(--paper);color:var(--ink);border-color:var(--line)}
+html:root body .wave-night .transport-provider-strip .connected small{color:var(--muted)}
+@media(max-width:600px){html:root body .wave-night .wave-header-actions :is(.night-search-link,.night-login){display:none!important}}
+html:root body .wave-night .skip-link{background:#091b2d;color:#edf4ff}
+html:root body .wave-night :is(.route-mode-sections>button>span,.route-mode-order-note,.route-notice){color:var(--muted)}
+html:root body .wave-night :is(.route-kakao-secondary,.restroom-alternatives button,.dining-accessibility button:not([aria-pressed])){background:var(--paper);color:var(--ink);border-color:var(--line)}
+html:root body .night-landing .landing-actions a[href='/planner']{background:#195dc5;color:#fff}
+html:root body .night-landing .brand-meaning p{color:#edf4ff}
+html:root body .wave-night :is(.map-command-bar button,.map-command-bar a,.map-type-switch button,.point-button:hover,.point-active){background:var(--paper);color:var(--ink);border-color:var(--line)}
+html:root body .wave-night .map-command-bar button:is(.active,[aria-pressed=true]){background:#195dc5;color:#fff}
+html:root body .wave-night .community-list article footer span{color:var(--muted)}
+html:root body .wave-night :is(.route-compare-panel,.route-mode-sections>button,.route-option,.place-evidence,.trip-comfort-choices,.simple-dialog button:not(.primary)){background:var(--paper);color:var(--ink);border-color:var(--line)}
+html:root body .wave-night :is(.route-option small,.route-option dt,.route-mode-sections small,.place-evidence p,.trip-comfort-choices [role=status]){color:var(--muted)}
+html:root body .wave-night :is(.easy-trip-primary,.parking-actions button){background:#195dc5;color:#fff}
+html:root body .wave-night :is(a,button,input,select,summary):focus-visible{outline-width:3px;scroll-margin-block:110px}
+html:root body .wave-night :is(.transport-data-results article,.place-field-report-link){background:var(--paper);color:var(--ink);border-color:var(--line)}
+html:root body .wave-night :is(.place-external-review small,.condition-scope,.transport-data-results small,.transport-data-results span){color:var(--muted)}
+html:root body .wave-night .layer-principle{background:var(--surface);color:var(--ink)}
+html:root body .wave-night .layer-principle p{color:var(--muted)}
+html:root body .wave-night .preference-text-scale label:has(:checked){background:#195dc5;color:#fff}
+html:root body .wave-night :is(.transport-mode-filter button,.transport-provider-strip>span){background:var(--paper);color:var(--ink);border-color:var(--line)}
+html:root body .wave-night :is(.transport-data-heading p,.transport-details>summary,.transport-details>summary span,.reference-info-card p){color:var(--muted)}
+html:root body .wave-night .transport-mode-filter button.active{background:#195dc5;color:#fff}
+html:root body .wave-night .transport-mode-filter button.active :is(b,small){color:#fff}
+html:root body .wave-night .easy-trip-toggle button[aria-pressed=true]{background:#195dc5;color:#fff}
+@media(max-width:600px){html body .wave-night .simple-stop{grid-template-columns:44px 44px minmax(0,1fr) 44px;gap:8px}html body .wave-night .night-stop-photo{width:44px;height:54px}html body .wave-night .simple-stop-controls{grid-column:2/-1}}
+html body .wave-night :is(.community-report-control [role=group],.preference-controls>summary,.preference-panel,.preference-row select,.preference-row em,.preference-text-scale label){background:var(--paper);color:var(--ink)}
+html body .wave-night .preference-text-scale label:has(:checked){background:var(--blue);color:var(--on-blue)}
+html body .wave-night :is(.community-card-meta time,.transport-mode-filter b,.transport-mode-filter small,.transport-live-summary span,.transport-live-summary small,.transport-provider-strip b,.transport-provider-strip small){color:var(--muted)}
+html body .wave-night .transport-mode-filter button.active :is(b,small){color:#fff}
+html body .wave-night .place-arrival-preview nav button[aria-pressed=true]{background:#195dc5;color:#fff}
+html body .wave-night .evidence-coverage-card li{background:var(--surface);color:var(--ink)}
+html body .wave-night .wave-footer-tools>a{min-width:44px;min-height:44px}
+html body .wave-night .night-planner-region-map .region-picker-list button{min-width:44px}
+html body .night-landing .night-feature-details .landing-feature-card{background:#10253b;color:#eef5ff}
+html body .night-landing .night-feature-details .landing-feature-card :is(h3,p){color:inherit}
+@media(max-width:959px){html body .wave-night .night-benefits{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:100%}html body .wave-night .night-sortbar{flex-wrap:wrap;gap:8px}}
+@media(max-width:600px){html body .wave-night .simple-region-grid{grid-template-columns:repeat(3,minmax(0,1fr))}html body .wave-night .night-search-link{display:none}html body .wave-night .night-wave-mark{width:38px}html body .wave-night .wave-wordmark{gap:6px}}
+html body .wave-night :is(.place-modal,.region-change-dialog,.reference-info-card,.access-badge,.place-community-empty,.transport-data-panel,.transport-details,.transport-live-summary,.itinerary-route-coverage,.easy-trip-card,.travel-profile-card,.trip-budget,.trip-decision-receipt){background:var(--paper);color:var(--ink);border-color:var(--line)}
+html body .wave-night :is(.modal-note,.section-kicker,.transport-source-note,.map-legend,.point-button span,.map-route-status,.transport-mode-filter small){color:var(--muted)}
+html body .wave-night .simple-facility-summary .facility-missing{color:#ffb5a6}
+html body .wave-night :is(.point-button,.map-route-status,.trip-decision-download){background:var(--paper);color:var(--ink);border-color:var(--line)}
+html body .wave-night :is(.point-button strong,.map-route-status strong){color:var(--ink)}
+html body .wave-night :is(.transport-mode-filter button.active,.night-planner-submit .primary){background:#195dc5;color:#fff;border-color:#468dff}
+html body .wave-night :is(.place-inquiry-entry button,.community-report-control>button,.community-report-control [role=group],.community-report-control button){background:var(--paper);color:var(--ink);border-color:var(--line)}
+html body .wave-night :is(.community-report-control p,.community-report-control label){color:var(--muted)}
+html body .wave-night .wave-header :is(a,button){min-width:44px!important;min-height:44px!important}
+html body .wave-night :is(.simple-search-bar button,.simple-planner-actions button,.simple-planner-tabs button,.night-sortbar button){min-width:44px;min-height:44px}
+html body .wave-night .wave-wordmark{flex-shrink:0}
+html body .wave-night :is(.place-inquiry-entry,.place-community-empty,.place-evidence,.travel-profile-card,.trip-comfort-choices,.easy-trip-card){--white:var(--paper)}
+body:has(.wave-night) .naru-panel{--white:#0b2035}
+body:has(.wave-night) .naru-panel :is(.naru-more>div,.naru-extra-help>div,.naru-tool-card,.naru-tool-result,.access-badge,.naru-note){background:#0b2035;color:#c5d7ed;border-color:#315777}
+body:has(.wave-night) .naru-panel :is(.naru-tool-card strong,.naru-tool-card b,.naru-more>div>a){color:#edf5ff}
+@media(max-width:600px){html body .night-secondary .auth-layout{width:calc(100% - 24px);grid-template-columns:minmax(0,1fr);margin-top:20px}html body .night-secondary .auth-card{min-width:0;padding:24px 18px}html body .night-secondary .night-account-visual{display:none}html body .wave-night .wave-header{padding-inline:12px}html body .wave-night .wave-header nav{gap:12px}html body .wave-night .wave-header nav a{font-size:12px}html body .wave-night .wave-header-actions{gap:0}}

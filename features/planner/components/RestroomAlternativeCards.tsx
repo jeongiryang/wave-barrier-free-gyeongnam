@@ -32,6 +32,8 @@ export default function RestroomAlternativeCards({ anchor, trip, minutes, pinned
   };
   return <section aria-label="주변 공중화장실" className="restroom-alternatives">
     <h3>주변 공중화장실</h3><p>일정에 있는 장소뿐 아니라 주변 공중화장실도 찾아봐요.</p>
+    <p>일부 공공 화장실에 여성용품이 비치돼 있어요. 편의지도의 <strong>여성용품 비치</strong>에서 같은 공식 정보를 확인할 수 있어요.</p>
+    <p><small>공공데이터에 등록된 위치예요. 남아 있는 수량과 현재 운영 여부는 확인되지 않았어요.</small></p>
     <button type="button" disabled={state === 'loading'} aria-busy={state === 'loading'} onClick={() => void load()}>{state === 'loading' ? '공중화장실 정보를 찾고 있어요.' : '공중화장실 더 보기'}</button>
     {state === 'error' && <p role="alert">공중화장실 정보를 불러오지 못했어요. 일정은 그대로예요.</p>}
     {state === 'empty' && <p role="status">공식 데이터에서 주변 공중화장실을 찾지 못했어요.</p>}

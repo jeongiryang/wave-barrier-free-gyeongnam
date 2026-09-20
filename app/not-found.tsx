@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFoundPage() {
   return (
-    <main className="route-state-page">
+    <main className="route-state-page wave-night night-secondary">
       <div className="route-state-mark" aria-hidden="true">404</div>
       <p>여행 경로를 찾지 못했습니다</p>
       <h1>이 여행 경로는 찾을 수 없습니다.</h1>

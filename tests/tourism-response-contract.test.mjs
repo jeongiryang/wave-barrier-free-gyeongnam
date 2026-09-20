@@ -72,6 +72,16 @@ test("query facility keys include every requested field and match normalized pla
   assert.ok(result.accessibility.every(field => field.state === "unknown"));
 });
 
+test("place response carries only indoor setting confirmed by the existing overview evidence", () => {
+  const { placeFrom } = loadServer()("server/tourism/accessibility-model.ts");
+  const indoor = placeFrom({ contentid: "1001", title: "Museum", overview: "실내 전시 공간에서 작품을 관람합니다." }, {}, "창원", [], 0);
+  const indoorFromExistingDetail = placeFrom({ contentid: "1003", title: "Gallery" }, { overview: "본관 전시실을 관람할 수 있습니다." }, "창원", [], 0);
+  const unknown = placeFrom({ contentid: "1002", title: "Park", overview: "호수 주변을 산책합니다." }, {}, "창원", [], 0);
+  assert.equal(indoor.setting.state, "indoor-space");
+  assert.equal(indoorFromExistingDetail.setting.state, "indoor-space");
+  assert.equal(unknown.setting.state, "unknown");
+});
+
 test("actual flat KTO parameter error never becomes a successful empty result", () => {
   assert.throws(() => normalize(flatParameterError));
   assert.throws(() => normalize({ response: flatParameterError }));

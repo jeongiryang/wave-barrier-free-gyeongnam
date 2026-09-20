@@ -41,13 +41,25 @@ test("문의 항목 목록에 세 항목(좌석 형태·1인 주문·여럿 자�
   const originalLabels = ["운영·입장 시간", "계단 없는 이동", "이용 가능한 화장실", "주차·승하차", "승강기", "앉아서 쉬기", "글·쉬운 안내"];
   assert.deepEqual(inquiryOptions.slice(0, 7).map((option) => option.label), originalLabels);
   const addedIds = inquiryOptions.slice(7).map((option) => option.id);
-  assert.deepEqual(new Set(addedIds), new Set(["seating", "solo", "groupSeating"]));
+  assert.deepEqual(new Set(addedIds), new Set(["seating", "solo", "groupSeating", "door", "ordering"]));
   const seating = inquiryOptions.find((option) => option.id === "seating");
   const solo = inquiryOptions.find((option) => option.id === "solo");
   const group = inquiryOptions.find((option) => option.id === "groupSeating");
   assert.equal(solo.question, "혼자 먹을 수 있는 메뉴가 있나요?");
   assert.equal(group.question, "여러 명이 함께 앉을 자리가 있나요?");
   assert.equal(seating.question, "의자가 있는 자리가 있나요? 좌식만 있나요?");
+});
+
+test("출입문 질문은 기존 항목 뒤에 추가되고 기본 선택되지 않는다", () => {
+  const door = inquiryOptions.at(-1);
+  assert.deepEqual(door, {
+    id: "door",
+    label: "출입문",
+    question: "출입문이 회전문인가요? 옆에 여닫이문이나 자동문이 있나요?",
+    keys: [],
+  });
+  assert.equal(defaultInquiryOptions({}).includes("door"), false);
+  assert.match(inquiryText("미술관", ["door"]), /출입문이 회전문인가요/);
 });
 
 test("기본 선택 항목은 새 세 질문이 추가돼도 바뀌지 않는다(자리 관련 질문은 절대 기본 선택되지 않는다)", () => {
@@ -60,6 +72,7 @@ test("기본 선택 항목은 새 세 질문이 추가돼도 바뀌지 않는다
   assert.equal(withUnconfirmed.includes("seating"), false);
   assert.equal(withUnconfirmed.includes("solo"), false);
   assert.equal(withUnconfirmed.includes("groupSeating"), false);
+  assert.equal(withUnconfirmed.includes("door"), false);
 });
 
 test("자리 관련 데이터 필드를 만들지 않는다: 모듈 소스에 soloMenu/groupSeating/seatingType 필드가 없다", () => {

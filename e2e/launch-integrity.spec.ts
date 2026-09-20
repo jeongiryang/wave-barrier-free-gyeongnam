@@ -62,7 +62,7 @@ test("first visit stays neutral with optional conditions and locked unsearched r
   await mockPlannerApi(page, { preserveView: true });
   page.on("request", request => { if (request.url().includes("action=plan")) requests.push(new URL(request.url())); });
   await page.goto("/planner");
-  await expect(page.getByRole("heading", { name: "어디로 갈까요?", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "경남, 모두의 여행지", exact: true })).toBeVisible();
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
   await expect(region).toHaveValue("");
   await expect(page.getByRole("group", { name: "하고 싶은 활동", exact: true }).locator('[aria-pressed="true"]')).toHaveCount(0);
@@ -265,11 +265,11 @@ for (const width of [280, 320, 390, 768, 1024, 1366, 1920, 2560]) {
     await page.setViewportSize({ width, height: width < 768 ? 800 : 960 });
     await mockPlannerApi(page, { preserveView: true });
     await page.goto("/planner");
-    await expect(page.getByRole("heading", { name: "어디로 갈까요?", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "경남, 모두의 여행지", exact: true })).toBeVisible();
     await expect(page.locator(".simple-region-discovery .simple-region h3")).toHaveText(["통영", "거제", "남해", "진주", "창원", "하동"]);
     await page.evaluate(() => document.fonts.ready);
     const header = await page.locator(".wave-header").boundingBox();
-    const heading = await page.getByRole("heading", { name: "어디로 갈까요?", exact: true }).boundingBox();
+    const heading = await page.getByRole("heading", { name: "경남, 모두의 여행지", exact: true }).boundingBox();
     expect(heading!.y).toBeGreaterThanOrEqual(header!.y + header!.height);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: test.info().outputPath(`questions-${width}.png`), fullPage: true });

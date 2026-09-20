@@ -27,9 +27,15 @@
 .simple-region-entry { padding-top: 36px; }
 .simple-region-entry > h2 { font-size: 1.5rem; margin: 0 0 24px; }
 .simple-region-entry > .simple-text-link { margin-top: 8px; }
-.simple-region-discovery .simple-region { aspect-ratio: 16 / 10; }
 .simple-region-discovery .simple-region-link { background: #2c4a43; padding: 0; width: 100%; height: 100%; border: 0; border-radius: 0; text-align: left; }
 .simple-region-discovery .simple-region h3 { font-size: 1.5rem; }
+.simple-region-discovery > .declining-region-filter { min-height:44px; margin:0 0 16px; padding:8px 12px; border:1px solid var(--line); border-radius:6px; color:var(--ink); background:var(--surface); }
+.simple-region-discovery .simple-region { aspect-ratio:auto; background:var(--surface); }
+.simple-region-discovery .simple-region-link { position:relative; aspect-ratio:16/10; }
+.simple-region-discovery .simple-region-credit { position:static; padding-inline:12px; color:var(--muted); }
+.simple-region-discovery .declining-region-notice { padding:12px 12px 0; color:var(--ink-soft); }
+.simple-region-discovery .declining-region-notice p { margin:0; color:var(--ink-soft); font-size:1rem; line-height:1.5; }
+.simple-region-discovery .declining-region-notice small { display:block; margin-top:4px; color:var(--muted); font-size:.75rem; }
 .simple-results-heading { display: flex; gap: 12px; align-items: baseline; justify-content: space-between; }
 .planner-simple .simple-results h2 { font-size: 1.375rem; margin: 0; }
 .simple-results-heading > span { font-size: .8125rem; color: var(--muted); }
@@ -150,7 +156,6 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
   .simple-activity-filter { gap: 6px; }
   .simple-activity-filter button { flex: 1; padding-inline: 8px; font-size: .8125rem; }
   .simple-region-entry { padding-top: 28px; }
-  .simple-region-discovery .simple-region { aspect-ratio: 4/3; }
   .simple-region-discovery .simple-region h3 { font-size: 1.25rem; }
   .simple-region-discovery .simple-region-arrow { display: none; }
   .simple-region-discovery .simple-region-credit { font-size: .625rem; min-height: 44px; }
@@ -240,7 +245,6 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 .simple-itinerary-map { min-width: 0; }
 .simple-itinerary-map .navigation-workspace { display: block; }
 .simple-itinerary-map .map-panel { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; }
-.planner-simple .simple-trip-actions .travel-book-archive-controls button { border-radius: 6px; min-width: 0; min-height: 46px; }
 @media(min-width:1024px) {
   .simple-itinerary-board[data-map=true] { grid-template-columns: minmax(360px,.9fr) minmax(0,1.1fr); }
   .simple-itinerary-map { position: sticky; top: 90px; }
@@ -367,7 +371,7 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 .evidence-coverage-meter { height: 10px; overflow: hidden; border-radius: 999px; background: var(--line); }
 .evidence-coverage-meter i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
 .evidence-coverage-card ul { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
-.evidence-coverage-card li { padding: 10px; background: var(--white); }
+.evidence-coverage-card li { padding: 10px; background: var(--paper); }
 .evidence-coverage-card :is(small,.evidence-coverage-note) { color: var(--muted); font-size: .75rem; }
 .evidence-coverage-actions button { min-height: 44px; }
 @media (max-width: 560px) { .evidence-coverage-card ul { grid-template-columns: 1fr; } }
@@ -411,3 +415,22 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 [data-place-view=grid] .simple-direct-place .simple-search-photo-placeholder { aspect-ratio: auto; min-height: 44px; padding: 8px; }
 .simple-direct-search-heading:has(> div > .sr-only:only-child) { margin: 0; }
 @media(max-width:767px) { .simple-itinerary-top .simple-itinerary-heading { flex-basis: 100%; } }
+
+/* Optional pre-departure checks remain visually neutral and never grade risk. */
+.simple-readiness > details { scroll-margin-top: 96px; }
+.simple-readiness-precautions { display: grid; gap: 0; margin: 20px 0 0; padding: 0; border: 0; border-top: 1px solid var(--line); }
+.simple-readiness-precautions legend { padding: 20px 0 0; font-weight: 700; }
+.simple-readiness-precautions > p { margin: 8px 0 12px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.simple-readiness-precautions > div { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; border-top: 1px solid var(--line); }
+.simple-readiness-precautions label { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 0; line-height: 1.5; }
+.simple-readiness-precautions input { width: 20px; height: 20px; flex: 0 0 20px; accent-color: var(--blue); }
+.simple-readiness-precautions a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 0; color: var(--blue); }
+@media(max-width:600px) {
+  .simple-readiness { padding-inline: 16px; }
+  .simple-readiness-heading { align-items: flex-start; flex-direction: column; }
+  .simple-readiness-precautions > div { grid-template-columns: 1fr; }
+  .simple-readiness-precautions a { margin: -8px 0 8px 32px; }
+}
+.scenery-hint { margin: 10px 0 0; color: var(--ink-soft); font-size: .875rem; line-height: 1.6; }
+.scenery-hint span,.scenery-hint small { display: block; }
+.scenery-hint small { margin-top: 2px; color: var(--muted); font-size: .75rem; }

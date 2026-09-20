@@ -29,7 +29,7 @@ const offChip: CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '6px', minHeight: '44px', padding: '8px 14px',
   border: '1px solid var(--line)', borderRadius: 'var(--r-full, 999px)', background: 'var(--surface)', color: 'var(--ink)', fontSize: '.9rem',
 };
-const onChip: CSSProperties = { ...offChip, border: '1px solid var(--accent)', background: 'var(--accent)', color: 'var(--on-blue)' };
+const onChip: CSSProperties = { ...offChip, border: '1px solid var(--blue)', background: 'var(--blue)', color: 'var(--on-blue)' };
 const CheckMark = () => <svg aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12"><path d="M1.5 6.4 4.3 9.2 10.5 3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 
 /**

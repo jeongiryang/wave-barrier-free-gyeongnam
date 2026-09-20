@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useSitePreferences } from '../../preferences/context';
 import { vibrate } from '../../../lib/haptics.js';
 import {
   communicationAnswers,
   communicationAnswerText,
   communicationQuestion,
+  communicationQuestions,
   communicationTopics,
   MAX_CUSTOM_ANSWER_LENGTH,
   normalizeCustomAnswer,
@@ -14,8 +15,14 @@ import {
   type CommunicationTopic,
   type LocalCommunicationSession,
 } from "../../../lib/onsite-communication.js";
+import { speechCaptureSupported } from "../../../lib/speech-capture.js";
 
 const RELAY_CENTER_URL = "https://mail.relaycall.or.kr/user/main";
+const SpeechCapturePanel = lazy(() => import("./SpeechCapturePanel"));
+const subscribeToSpeechSupport = (notify: () => void) => {
+  queueMicrotask(notify);
+  return () => {};
+};
 
 export default function OnsiteCommunicationBoard({ initialTopic, en, onEnd, onClose }: { initialTopic: CommunicationTopic; en: boolean; onEnd: () => void; onClose: () => void }) {
   const { haptics } = useSitePreferences();
@@ -26,14 +33,21 @@ export default function OnsiteCommunicationBoard({ initialTopic, en, onEnd, onCl
   const [customOpen, setCustomOpen] = useState(false);
   const [customDraft, setCustomDraft] = useState("");
   const [notice, setNotice] = useState(() => say("질문을 확인해 주세요.", "Please check the question."));
+  const [speechCaptureOpen, setSpeechCaptureOpen] = useState(false);
+  const speechCaptureAvailable = useSyncExternalStore(subscribeToSpeechSupport, speechCaptureSupported, () => false);
   const showButton = useRef<HTMLButtonElement>(null);
   const answerTitle = useRef<HTMLHeadingElement>(null);
+  const speechCaptureTrigger = useRef<HTMLButtonElement>(null);
 
   useEffect(() => { showButton.current?.focus(); }, []);
   useEffect(() => { if (stage === "answer") answerTitle.current?.focus(); }, [stage]);
 
   function chooseTopic(topic: CommunicationTopic) {
     setSession({ topic, question: communicationQuestion(topic, en) });
+    setNotice(say("질문을 확인해 주세요.", "Please check the question."));
+  }
+  function chooseQuestion(question: string) {
+    setSession(current => ({ ...current, question }));
     setNotice(say("질문을 확인해 주세요.", "Please check the question."));
   }
   function chooseAnswer(answer: Exclude<CommunicationAnswer, "custom">) {
@@ -61,6 +75,10 @@ export default function OnsiteCommunicationBoard({ initialTopic, en, onEnd, onCl
   const answerText = session.answer === "custom" ? session.customAnswer || "" : session.answer ? communicationAnswerText(session.answer, en) : "";
   const step = stage === "question" ? 1 : stage === "staff" ? 2 : 3;
 
+  if (speechCaptureOpen) return <Suspense fallback={<p role="status">{say("음성 글자 화면을 준비하고 있어요…", "Preparing live speech text…")}</p>}>
+    <SpeechCapturePanel en={en} onClose={() => { setSpeechCaptureOpen(false); requestAnimationFrame(() => speechCaptureTrigger.current?.focus()); }} />
+  </Suspense>;
+
   return <div className="onsite-communication" data-stage={stage}>
     <header><div><p className="section-kicker">WAVE · 현장 의사소통</p>
     <h2 id="inquiry-title" tabIndex={-1} ref={stage === "answer" ? answerTitle : undefined}>{stage === "question" ? say("직원과 화면으로 대화", "Talk with staff on screen") : stage === "staff" ? say("답을 골라 주세요", "Choose an answer") : say("직원이 고른 답이에요", "The staff member chose this answer")}</h2></div><button type="button" onClick={onClose} aria-label={say("현장 의사소통판 닫기", "Close onsite communication board")}>×</button></header>
@@ -73,6 +91,9 @@ export default function OnsiteCommunicationBoard({ initialTopic, en, onEnd, onCl
       <div className="communication-topics" role="group" aria-label="질문 주제">
         {communicationTopics.map(topic => <button type="button" key={topic.id} aria-pressed={session.topic === topic.id} onClick={() => chooseTopic(topic.id)}>{en ? topic.questionEn : topic.label}</button>)}
       </div>
+      {communicationQuestions(session.topic, en).length > 1 && <div className="communication-topics" role="group" aria-label={say("질문 문장", "Question wording")}>
+        {communicationQuestions(session.topic, en).map(question => <button type="button" key={question} aria-pressed={session.question === question} onClick={() => chooseQuestion(question)}>{question}</button>)}
+      </div>}
       <div className="inquiry-card-preview"><p>{session.question}</p></div>
       <button className="communication-primary" ref={showButton} type="button" onClick={() => { setStage("staff"); setNotice(say("답을 골라 주세요.", "Please choose an answer.")); }}>{say("직원에게 보여주기", "Show to staff")}</button>
     </>}
@@ -84,6 +105,7 @@ export default function OnsiteCommunicationBoard({ initialTopic, en, onEnd, onCl
           {communicationAnswers.map(answer => <button type="button" key={answer.id} onClick={() => chooseAnswer(answer.id)}>{en ? answer.labelEn : answer.label}</button>)}
         </div>
         <button type="button" className="communication-direct" onClick={() => { setCustomOpen(true); setNotice(say("답변을 입력해 주세요.", "Please type an answer.")); }}>{say("직접 입력", "Type an answer")}</button>
+        {speechCaptureAvailable && <button ref={speechCaptureTrigger} type="button" className="communication-speech-capture" onClick={() => setSpeechCaptureOpen(true)}>{say("말한 내용을 글자로 보기", "Show speech as text")}</button>}
       </> : <div className="communication-custom">
         <label htmlFor="communication-custom-answer">{say("직접 입력", "Type an answer")}</label>
         <textarea id="communication-custom-answer" autoFocus rows={4} maxLength={MAX_CUSTOM_ANSWER_LENGTH} value={customDraft} onChange={event => { setCustomDraft(event.target.value); setNotice(""); }} />

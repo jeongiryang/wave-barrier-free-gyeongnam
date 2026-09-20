@@ -271,7 +271,8 @@ test("저장 응답 전에 다른 탭에서 로그아웃하면 열린 초안에 
   await other.getByRole("button", { name: "로그아웃", exact: true }).click();
   await expect.poll(() => state.signedIn).toBe(false);
   await page.bringToFront();
-  await expect(page.getByRole("link", { name: "로그인", exact: true })).toBeVisible();
+  await expect(page.locator(".account-button")).toHaveAccessibleName("로그인");
+  await expect(page.locator(".account-button")).toBeVisible();
   gate.release();
   await expect.poll(() => state.completed).toBe(1);
   await expect(page.getByRole("button", { name: "내 여행에 저장", exact: true })).toBeEnabled();

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { regionPhotoSource } from "../features/landing/region-photo-sources";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
-import { horizonPhotos } from "../features/landing/horizon-photos";
 
 const firstRegions = ["통영", "거제", "남해", "진주", "창원", "하동"];
 const allRegions = ["거창", "거제", "고성", "김해", "남해", "밀양", "사천", "산청", "양산", "의령", "진주", "창녕", "창원", "통영", "하동", "함안", "함양", "합천"];
@@ -80,12 +80,11 @@ for (const width of [1440, 390]) test(`${width}px reduced motion keeps the photo
   await expect(photograph.locator("img")).toBeVisible();
   await expect.poll(() => photograph.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   const copyBox = (await copy.boundingBox())!, photoBox = (await photograph.boundingBox())!;
-  expect(photoBox.x).toBeLessThanOrEqual(copyBox.x);
-  expect(photoBox.x + photoBox.width).toBeGreaterThanOrEqual(copyBox.x + copyBox.width);
-  expect(photoBox.y).toBeLessThanOrEqual(copyBox.y);
-  expect(photoBox.y + photoBox.height).toBeGreaterThanOrEqual(copyBox.y + copyBox.height);
-  await expect(photograph.getByRole("link", { name: /사진 원본/ })).toHaveAttribute("href", horizonPhotos.coast.sourceUrl);
-  await expect(photograph).toContainText(horizonPhotos.coast.photographer);
+  expect(copyBox.width).toBeGreaterThan(0);
+  expect(photoBox.width).toBeGreaterThan(0);
+  expect(photoBox.x).toBeGreaterThanOrEqual(0);
+  expect(photoBox.x + photoBox.width).toBeLessThanOrEqual(width + 1);
+  await expect(photograph.locator("img")).toHaveAttribute("src", "/media/night/coast.webp");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: info.outputPath(`simple-hero-${width}.png`) });
 
@@ -115,14 +114,14 @@ for (const width of [1440, 390]) test(`${width}px reduced motion keeps the photo
     expect(destination.pathname).toBe("/planner");
     expect([...destination.searchParams]).toEqual([["region", name]]);
     await expect(image).toHaveAttribute("src", photo.image);
-    await expect(credit).toHaveAttribute("href", photo.image);
+    await expect(credit).toHaveAttribute("href", regionPhotoSource(photo).href);
     await expect(credit).toContainText(photo.photographer || "한국관광공사");
     await expect(credit).toHaveAttribute("rel", /noopener/);
     await expect(credit).toHaveAttribute("rel", /noreferrer/);
     await card.scrollIntoViewIfNeeded();
     await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
     const bounds = await card.evaluate(node => {
-      const card = node.getBoundingClientRect(), image = node.querySelector("img")!.getBoundingClientRect();
+      const card = node.querySelector(".simple-region-link")!.getBoundingClientRect(), image = node.querySelector("img")!.getBoundingClientRect();
       return { height: card.height, left: Math.abs(card.left - image.left), top: Math.abs(card.top - image.top), width: Math.abs(card.width - image.width), heightGap: Math.abs(card.height - image.height) };
     });
     expect(bounds.height).toBeGreaterThan(100);

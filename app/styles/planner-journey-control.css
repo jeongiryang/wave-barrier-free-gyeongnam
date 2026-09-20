@@ -1,5 +1,5 @@
 /* Journey Control Center — 긴 플래너를 현재 상태와 다음 행동이 보이는 작업 공간으로 바꾼다. */
-.planner-journey-workspace { border: 0; border-radius: 0; box-shadow: none; background: var(--white); overflow: visible; }
+.planner-journey-workspace { border: 0; border-radius: 0; box-shadow: none; background: var(--paper); overflow: visible; }
 .journey-workspace-block { padding: 28px clamp(20px,3vw,44px); border-color: var(--line); }
 
 @media (max-width: 650px) {

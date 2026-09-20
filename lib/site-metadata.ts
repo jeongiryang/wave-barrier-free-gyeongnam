@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const SITE_ORIGIN = "https://wave-barrier-free-gyeongnam.vercel.app";
 export const SITE_NAME = "WAVE";
 export const SITE_TITLE = "WAVE 경남 무장애 여행 길잡이";
-export const SITE_DESCRIPTION = "경남 18개 시·군의 관광·무장애·교통 근거를 연결해 장소 선택부터 실제 경로, 일정과 출발 준비까지 돕습니다.";
+export const SITE_DESCRIPTION = "공공데이터로 확인된 경남 여행 편의 정보를 보여 주고, 확인되지 않은 것은 확인되지 않았다고 알려 줍니다.";
 export const SOCIAL_IMAGE = "https://raw.githubusercontent.com/jeongiryang/wave-barrier-free-gyeongnam/main/docs/screenshots/wave-landing-desktop.jpg";
 
 type PageMetadataOptions = {

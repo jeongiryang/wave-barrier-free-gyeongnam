@@ -1,12 +1,14 @@
 import { test, expect } from "@playwright/test";
-import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
+import { regionShowcaseAlbums, regionShowcasePhotos } from "../features/landing/region-showcase-photos";
 import { prepareStory, storyReady, firstRegions } from "./landing-contract";
 
-for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choices download only their six covers and never speculative albums`, async ({ page }) => {
+for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choices load covers and visible map thumbnails, never speculative albums`, async ({ page }) => {
   await prepareStory(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(value => Object.defineProperty(navigator, "connection", { configurable: true, value: Object.assign(new EventTarget(), { saveData: value }) }), saveData);
   const requested = new Set<string>();
+  const photoApiRequests: string[] = [];
+  page.on("request", request => { const url = new URL(request.url()); if (url.pathname === "/api/wave" && url.searchParams.get("action") === "photo") photoApiRequests.push(request.url()); });
   page.on("request", request => { if (request.resourceType() === "image") requested.add(request.url()); });
   const allPhotos = new Set(Object.values(regionShowcaseAlbums).flat().map(photo => photo.image));
   const firstCovers = new Set(firstRegions.map(name => regionShowcaseAlbums[name][0].image));
@@ -18,7 +20,17 @@ for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choi
     await expect.poll(() => card.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
     await expect(card.locator("img")).toHaveAttribute("loading", "lazy");
   }
-  expect([...requested].filter(url => allPhotos.has(url)).sort()).toEqual([...firstCovers].sort());
+  const loadedPhotos = [...requested].filter(url => allPhotos.has(url));
+  const mapCovers = new Set(["거창", "창녕", "산청", "하동", "김해", "통영"].map(name => regionShowcasePhotos[name].image));
+  const renderedMapPhotos = new Set(await page.locator(".night-journey-map svg image").evaluateAll(images => images.map(image => image.getAttribute("href"))));
+  for (const cover of firstCovers) expect(loadedPhotos).toContain(cover);
+  // The adjacent approved SVG map enters the lazy-loading margin on desktop.
+  // Its six visible thumbnails are covers, not speculative album slides.
+  for (const url of loadedPhotos.filter(url => !firstCovers.has(url))) {
+    expect(mapCovers.has(url)).toBe(true);
+    expect(renderedMapPhotos.has(url)).toBe(true);
+  }
+  expect(photoApiRequests).toEqual([]);
   const expand = page.getByRole("button", { name: "18개 지역 모두 보기", exact: true });
   // The region control is disabled until its own hydration completes.
   await expect(expand).toBeEnabled();
@@ -35,4 +47,5 @@ for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choi
   expect(requested.has((await last.locator("img").getAttribute("src"))!)).toBe(true);
   await page.getByRole("button", { name: "접기", exact: true }).press("Enter");
   await expect(cards.locator("h3")).toHaveText(firstRegions);
+  expect(photoApiRequests).toEqual([]);
 });

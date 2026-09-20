@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useSitePreferences } from "./SitePreferences";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { navigationScroll } from "../lib/header-scroll.js";
 import { readTripValue } from "../lib/current-trip-storage.js";
 import WaveHeaderTools from "./WaveHeaderTools";
 import NavIcon from "./NavIcons";
+const NightAuthLinks = lazy(() => import('./NightAuthLinks'));
+import NightIcon from './NightIcon';
 
 function subscribe(update: () => void) {
   window.addEventListener("storage", update);
@@ -21,12 +23,13 @@ function savedSnapshot() {
 }
 
 export default function WaveHeader({ current, savedCount, onSaved, className = "" }: {
-  current: "intro" | "planner" | "community" | "travel-book" | "festivals";
+  current: "intro" | "planner" | "community" | "travel-book" | "festivals" | "other";
   savedCount?: number;
   onSaved?: () => void;
   className?: string;
 }) {
   const en = useSitePreferences().locale === "en";
+  const night = true;
   const header = useRef<HTMLElement>(null);
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
@@ -49,14 +52,14 @@ export default function WaveHeader({ current, savedCount, onSaved, className = "
   const count = savedCount ?? storedCount;
   const bookmark = <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M6 20V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v15l-6-4-6 4Z" /></svg><span className="wave-trip-count" aria-hidden="true">{count}</span></>;
   return <header ref={header} className={`wave-header ${className}`} data-hidden={hidden}>
-    <Link className="wave-wordmark" href={current === "intro" ? "#top" : "/"} aria-label={en ? "WAVE home" : "WAVE 홈"}>WAVE</Link>
+    <Link className="wave-wordmark" href={current === "intro" ? "#top" : "/"} aria-label={en ? "WAVE home" : "WAVE 홈"}>{night && <svg className="night-wave-mark" viewBox="0 0 64 40" aria-hidden="true"><path fill="#17d6ff" d="M1 21C18 27 22-7 46 10L61 20C42 8 29 40 1 21Z"/><path fill="#1199ff" d="M6 28C28 37 36 10 62 23C42 19 37 50 6 28Z"/><path fill="#85eaff" d="M13 14C27 13 30-2 46 7C33 4 26 23 13 14Z"/></svg>}<span>WAVE</span>{night && <small>모두가 떠나는,<br/>더 넓은 경남</small>}</Link>
     <nav aria-label={en ? "Main menu" : "주요 메뉴"}>
       <Link href="/" aria-current={current === "intro" ? "page" : undefined}><NavIcon name="intro" /><span>{en ? "About WAVE" : "서비스 소개"}</span></Link>
       <Link href="/planner" aria-current={current === "planner" ? "page" : undefined}><NavIcon name="planner" /><span>{en ? "Plan a trip" : "여행 설계"}</span></Link>
       <Link href="/festivals" aria-current={current === "festivals" ? "page" : undefined}><NavIcon name="festivals" /><span>{en ? "Festivals" : "축제"}</span></Link>
       <Link href="/community" aria-current={current === "community" ? "page" : undefined}><NavIcon name="community" /><span>{en ? "Community" : "커뮤니티"}</span></Link>
     </nav>
-    <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}><WaveHeaderTools />{onSaved ? <button className="wave-my-trips" type="button" onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
+    <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}>{night && <><Link className="night-search-link" href="/planner#places" aria-label="여행지 검색"><NightIcon name="search"/></Link><Suspense fallback={<><span className="night-login">로그인</span><span className="night-signup">회원가입</span></>}><NightAuthLinks/></Suspense></>}<WaveHeaderTools />{onSaved ? <button className="wave-my-trips" type="button" onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
       : <Link className="wave-my-trips" href="/travel-book" aria-current={current === "travel-book" ? "page" : undefined} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</Link>}</div>
   </header>;
 }

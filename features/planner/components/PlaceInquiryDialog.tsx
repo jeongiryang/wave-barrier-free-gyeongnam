@@ -12,21 +12,22 @@ import type { CommunicationTopic } from "../../../lib/onsite-communication.js";
 const onsiteCommunicationBoard = import("./OnsiteCommunicationBoard");
 const OnsiteCommunicationBoard = lazy(() => onsiteCommunicationBoard);
 
-export default function PlaceInquiryDialog({ place, en, selected, extra, onSelection, onExtra, onClose, onHelpRequest }: {
+export default function PlaceInquiryDialog({ place, en, selected, extra, onSelection, onExtra, onClose, onHelpRequest, startCommunicating = false }: {
   place: Place; en: boolean; selected: string[]; extra: string;
   onSelection: (ids: string[]) => void; onExtra: (text: string) => void; onClose: () => void; onHelpRequest?: () => void;
+  startCommunicating?: boolean;
 }): ReactNode {
   const dialog = usePlaceDialogFocus(true, onClose);
   const [large, setLarge] = useState(false);
   const [notice, setNotice] = useState("");
   const [copyFallback, setCopyFallback] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [communicating, setCommunicating] = useState(false);
+  const [communicating, setCommunicating] = useState(startCommunicating);
   const [boardReady, setBoardReady] = useState(false);
   const communicationTrigger = useRef<HTMLButtonElement>(null);
   const text = inquiryText(place.name, selected, extra);
   const ready = selected.length > 0 || extra.trim().length > 0;
-  const initialTopic: CommunicationTopic = selected.includes("stepfree") ? "step_free_entrance" : selected.includes("toilet") ? "restroom" : selected.includes("elevator") ? "elevator" : selected.includes("guidance") ? "assistance" : "assistance";
+  const initialTopic: CommunicationTopic = selected.includes("door") ? "door" : selected.includes("ordering") ? "payment" : selected.includes("stepfree") ? "step_free_entrance" : selected.includes("toilet") ? "restroom" : selected.includes("elevator") ? "elevator" : selected.includes("guidance") ? "assistance" : "assistance";
   const say = (ko: string, english: string) => en ? english : ko;
   useEffect(() => { void onsiteCommunicationBoard.then(() => setBoardReady(true)); }, []);
   async function copy() {

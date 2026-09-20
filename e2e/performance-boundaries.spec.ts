@@ -21,6 +21,22 @@ test("공개 랜딩은 첫 화면에서 인증 세션을 요청하지 않고 계
   await expect.poll(() => sessionRequests).toBeGreaterThan(0);
 });
 
+test("랜딩 로그인 의도로 세션을 확인해도 키보드 초점과 링크를 유지한다", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await mockPublicShellApi(page);
+  let sessions = 0;
+  page.on("request", request => { if (new URL(request.url()).pathname === "/api/auth/get-session") sessions++; });
+  await page.goto("/");
+  await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
+  const login = page.locator(".night-login");
+  await expect(login).toHaveAttribute("href", "/login?next=%2F");
+  await login.focus();
+  await expect.poll(() => sessions).toBeGreaterThan(0);
+  await expect(login).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(url => url.pathname === "/login" && url.searchParams.get("next") === "/");
+});
+
 test("안내형 플래너의 숨은 지도는 일정 단계가 열릴 때까지 네트워크를 쓰지 않는다", async ({ page }) => {
   await mockPlannerApi(page, { plannerView: "guided" });
   let mapConfigRequests = 0;

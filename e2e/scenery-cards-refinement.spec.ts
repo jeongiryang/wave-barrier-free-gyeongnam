@@ -13,10 +13,15 @@ test("WAVE starter stories open their full articles and leave member search inta
   const writes: string[] = [];
   page.on("request", request => {if(!["GET","HEAD","OPTIONS"].includes(request.method())) writes.push(request.url());});
   await page.goto("/community");
-  await page.locator('.community-guides > summary').filter({ hasText: /^이용 가이드$/ }).click();
-  await expect(page.locator(".community-editorial-grid > article")).toHaveCount(3);
-  await expect(page.locator(".community-story-author")).toHaveText(["WAVE","WAVE","WAVE"]);
-  const links = await page.locator(".community-story-read").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")!));
+  await expect(page.locator(".night-story-card .night-bookmark").first()).toBeEnabled();
+  await page.locator('.night-story-card').first().getByRole('button',{name:/게시글 읽기$/}).click();
+  await expect(page.locator('.night-story-dialog')).toBeVisible();
+  await expect(page.locator('.night-story-dialog').getByRole('link',{name:'관광사진 출처'})).toHaveAttribute('href','/policies#content-credits');
+  await page.keyboard.press('Escape');
+  // Retained guide articles still preserve their original attribution.
+  await page.locator("details.community-guides > summary").click();
+  const links = await page.locator(".community-travel-stories h3 a").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")!));
+  expect(links).toHaveLength(3);
   for(const href of links) {
     await page.goto(href);
     await expect(page.locator(".community-travel-article h1")).toBeVisible();
@@ -25,7 +30,8 @@ test("WAVE starter stories open their full articles and leave member search inta
     expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
   }
   await page.goto("/community?placeId=1001&placeName=미술관&region=창원");
-  await expect(page.locator(".community-travel-stories")).toHaveCount(0);
+  await expect(page.locator("details.community-guides")).not.toHaveAttribute("open", "");
+  await expect(page.locator(".community-travel-stories")).toBeHidden();
   await expect(page.locator(".community-place-filter")).toContainText("미술관");
   expect(writes).toEqual([]);
 });

@@ -1,5 +1,7 @@
 "use client";
 import { lazy, Suspense, useCallback, useState } from "react";
+import GyeongnamRegionPicker from "../../../components/GyeongnamRegionPicker";
+import NightIcon from "../../../components/NightIcon";
 import LoadingState from "../../../components/LoadingState";
 import { FACILITIES } from "../../../lib/facility-selection.js";
 import { regions, themes as activities } from "../constants";
@@ -39,7 +41,7 @@ function FacilityPicker({ plan, trip, onClose }: { plan: Props["planController"]
     </div><footer><button type="button" onClick={() => setDraft([])} disabled={!draft.length}>선택 해제</button><button type="button" className="primary" onClick={() => { if (JSON.stringify(comfort) !== JSON.stringify(trip.comfort)) { const result = trip.applyTripCommand({ type: 'comfort', value: comfort }); if (!result.ok) { setError(result.reason); return; } } plan.setSelected(draft); onClose(); }}>적용{draft.length ? ` · ${draft.length}개` : ""}</button></footer>
   </dialog>;
 }
-export default function PlannerConditionsPanel({ planController: plan, onRegionChange, tripSelection: trip }: Props) {
+export default function PlannerConditionsPanel({ planController: plan, onRegionChange, tripSelection: trip, onGenerate, onItinerary }: Props) {
   const [facilitiesOpen, setFacilitiesOpen] = useState(false);
   const closeFacilities = useCallback(() => setFacilitiesOpen(false), []);
   const ready = plan.criteriaReady && trip.storageReady;
@@ -50,12 +52,16 @@ export default function PlannerConditionsPanel({ planController: plan, onRegionC
   };
   return <section lang="ko" className="simple-search-controls" id="conditions" aria-label="여행지 검색 조건" aria-busy={!ready}>
     {!ready && <LoadingState>여행 조건을 불러오고 있어요.</LoadingState>}
+    <div className="night-planner-hero"><div className="night-planner-form"><p className="night-eyebrow">WAVE TRAVEL PLANNER</p><h2>당신만의<br/>여행을 설계하세요<span>.</span></h2><p className="night-planner-intro">가고 싶은 곳과 필요한 편의를 고르면<br/>나루가 여행의 다음 걸음을 함께합니다.</p>
+    <ol className="night-planner-steps"><li data-active={!plan.region}><b>1</b>지역 선택</li><li data-active={Boolean(plan.region)}><b>2</b>테마 선택</li><li><b>3</b>경로 설정</li><li><b>4</b>추천 완료</li></ol>
     <div className="simple-search-bar" onChange={event => { if (event.target instanceof HTMLSelectElement) restoreRegionFocus(event.target); }}><label><span>지역</span><select aria-label="여행 지역" value={plan.region} disabled={!ready} onChange={event => onRegionChange(event.target.value)}><option value="" disabled>지역 선택</option>{regions.map(region => <option key={region}>{region}</option>)}</select></label>
       <button type="button" className="simple-facility-trigger" onClick={() => setFacilitiesOpen(true)} disabled={!ready}>필요한 편의{plan.selected.length > 0 ? ` · ${plan.selected.length}개` : ""}<span aria-hidden="true">⌄</span></button>
       {plan.loading && <span className="simple-searching" role="status"><span className="button-loader" />검색 중</span>}
     </div>
     <div className="simple-activity-filter" role="group" aria-label="하고 싶은 활동">{activities.map(activity => <button type="button" key={activity.id} disabled={!ready} aria-pressed={plan.themes.includes(activity.id)} onClick={() => plan.toggleTheme(activity.id)}>{activity.label}</button>)}</div>
-    {!plan.region && <div className="simple-region-entry"><h2>어디로 갈까요?</h2><Suspense fallback={<LoadingState>지역을 불러오고 있어요.</LoadingState>}><PlannerRegionDiscovery full value="" disabled={!ready} onChange={onRegionChange} onInterest={plan.setTheme} onFacilities={() => setFacilitiesOpen(true)} /></Suspense><button type="button" className="simple-text-link" disabled={!ready} onClick={() => onRegionChange("경남 전체")}>경남 전체 둘러보기 <span aria-hidden="true">→</span></button></div>}
+    <div className="night-planner-submit"><button className="primary" type="button" disabled={!ready || !plan.region || plan.loading} onClick={() => { void onGenerate(); }}>여행 플랜 추천하기 <NightIcon name="arrow"/></button>{trip.orderedSavedPlaces.length > 0 && <button type="button" onClick={onItinerary}>담은 장소로 일정 보기 →</button>}</div>
+    </div><div className="night-planner-region-map" aria-label="경남 지도에서 지역 고르기" inert={!ready}><GyeongnamRegionPicker value={plan.region} onChange={onRegionChange} includeAll night/><p className="night-map-caption">경남,<br/>새로운 시선으로</p></div></div>
+    {!plan.region && <div className="simple-region-entry"><h2>경남, 모두의 여행지</h2><p>아름다운 자연과 따뜻한 사람이 있는, 누구나 즐길 수 있는 여행</p><Suspense fallback={<LoadingState>지역을 불러오고 있어요.</LoadingState>}><PlannerRegionDiscovery full value="" disabled={!ready} onChange={onRegionChange} onInterest={plan.setTheme} onFacilities={() => setFacilitiesOpen(true)} /></Suspense><button type="button" className="simple-text-link" disabled={!ready} onClick={() => onRegionChange("경남 전체")}>경남 전체 둘러보기 <span aria-hidden="true">→</span></button></div>}
     {facilitiesOpen && <FacilityPicker plan={plan} trip={trip} onClose={closeFacilities} />}
   </section>;
 }

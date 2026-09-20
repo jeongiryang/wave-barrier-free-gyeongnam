@@ -8,9 +8,11 @@ import type { Place } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { originalLanguage } from "../place-copy";
 import PlaceFacilityHistory from "./PlaceFacilityHistory";
+import { fieldReportAgeMessage } from "../../../lib/community/field-report-board.js";
 
 export default function PlaceCommunityStories({ place, location }: { place: Place; location: string }) {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [fieldReports, setFieldReports] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -25,13 +27,16 @@ export default function PlaceCommunityStories({ place, location }: { place: Plac
       setLoading(true);
       setFailed(false);
       try {
-        const exact = new URLSearchParams({ placeId: place.id, page: "1", limit: "3" });
-        const exactResult = await listCommunityPosts(exact, controller.signal);
+        const exact = new URLSearchParams({ placeId: place.id, placePreview: '1', page: "1", limit: "3" });
+        const exactResult = await listCommunityPosts(exact, controller.signal) as { posts?: CommunityPost[]; fieldReports?: CommunityPost[] };
         if (!Array.isArray(exactResult.posts)) throw new Error("Invalid story list");
         const next = exactResult.posts;
-        if (active) setPosts(next.slice(0, 3));
+        if (active) {
+          setPosts(next.filter((post) => post.category !== "field-report").slice(0, 3));
+          setFieldReports((exactResult.fieldReports || []).filter((post) => post.category === "field-report").slice(0, 3));
+        }
       } catch {
-        if (!controller.signal.aborted && active) { setPosts([]); setFailed(true); }
+        if (!controller.signal.aborted && active) { setPosts([]); setFieldReports([]); setFailed(true); }
       } finally {
         if (active) setLoading(false);
       }
@@ -54,5 +59,5 @@ export default function PlaceCommunityStories({ place, location }: { place: Plac
         <small><span lang={originalLanguage(post.authorName)}>{post.authorName}</span> · {say("현장 항목", "Reported fields")} {post.fieldReports?.length || 0} · {say("댓글", "Comments")} {post.commentCount}</small>
       </Link>)}
     </div> : <div className="place-community-empty"><p>{say("이 장소에 연결된 공개 현장 후기가 아직 없습니다.", "There are no public visitor stories linked to this place yet.")}</p><Link href={`/community/new?category=review&placeId=${encodeURIComponent(place.id)}&placeName=${encodeURIComponent(place.name)}&region=${encodeURIComponent(location)}`}>{say("첫 현장 후기 남기기", "Write the first visitor story")}</Link></div>)}
-  </section><PlaceFacilityHistory key={place.id} place={place} region={location} /></>;
+  </section>{!loading && !failed && fieldReports.length > 0 && <section className="place-accessibility-reports" aria-labelledby="place-accessibility-reports-title"><header><small>여행자 경험 · 공식 시설정보와 별도</small><h3 id="place-accessibility-reports-title">여행자가 남긴 정보</h3></header><p>여행자가 직접 확인한 내용이에요. W.A.V.E가 확인한 정보가 아니에요.</p><div>{fieldReports.map((post) => <Link key={post.id} href={`/community/${encodeURIComponent(post.id)}`}><strong>{post.title}</strong><span>확인 {post.visitDate}{post.visitDate && fieldReportAgeMessage(post.visitDate) ? ` · ${fieldReportAgeMessage(post.visitDate)}` : ""}</span><small>{post.content}</small></Link>)}</div></section>}<PlaceFacilityHistory key={place.id} place={place} region={location} /></>;
 }

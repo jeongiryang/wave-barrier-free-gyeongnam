@@ -14,5 +14,5 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function CommunityPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <main className="community-page community-detail-page"><SkipLink href="#community-post">게시글로 바로가기</SkipLink><CommunityHeader /><section id="community-post"><CommunityDetail postId={id} /></section></main>;
+  return <main className="community-page wave-night night-secondary community-detail-page"><SkipLink href="#community-post">게시글로 바로가기</SkipLink><CommunityHeader /><section id="community-post"><CommunityDetail postId={id} /></section></main>;
 }

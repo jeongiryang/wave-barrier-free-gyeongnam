@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { onTripIdentity, cleanOnTrip, easyOnTripSteps, readOnTrip, saveOnTrip, remainingOnTrip, ON_TRIP_KEY } from '../lib/on-trip.js';
+import { onTripIdentity, cleanOnTrip, easyOnTripSteps, tripBoardCells, readOnTrip, saveOnTrip, remainingOnTrip, ON_TRIP_KEY } from '../lib/on-trip.js';
 import { offlineTripHtml, offlineTripText } from '../lib/trip-offline.js';
 const day='2026-09-15',origin={lat:35.22,lng:128.68};
 const places=['1001','1002','1003'].map((id,index)=>({id,name:`장소${index+1}`,mapX:String(128.68+index*.01),mapY:'35.23',contentTypeId:'12',address:'창원시 공개 장소',source:'한국관광공사',accessibility:[{key:'restroom',label:'화장실',state:'unknown',detail:'시설 확인 필요'}]}));
@@ -49,6 +49,17 @@ test('easy steps derive only now, next and after next from the shared progress',
   assert.deepEqual(easyOnTripSteps(remainingOnTrip({...base,progress:initial})).map(step=>step.itineraryStopId),['1001','1002','1003']);
   const marked={...initial,marks:{'1001':{state:'done',at:''},'1002':{state:'skipped',at:''}},cursorId:'1001'};
   const steps=easyOnTripSteps(remainingOnTrip({...base,progress:marked}));assert.equal(steps[0].itineraryStopId,'1003');assert.equal(steps[0].title,'장소3');
+});
+
+test('board cells derive one current stop and ordered states from shared progress only',()=>{
+  const stops=places.map(place=>({id:place.id,title:place.name}));
+  assert.deepEqual(tripBoardCells(cleanOnTrip(null,[]),[]),[]);
+  const initial=cleanOnTrip(null,stops.map(stop=>stop.id));
+  assert.deepEqual(tripBoardCells(initial,stops).map(cell=>[cell.order,cell.state]),[[1,'current'],[2,'upcoming'],[3,'upcoming']]);
+  const marked={...initial,marks:{'1001':{state:'done',at:''},'1002':{state:'skipped',at:''}}};
+  assert.deepEqual(tripBoardCells(marked,stops).map(cell=>cell.state),['done','skipped','current']);
+  const complete={...initial,marks:Object.fromEntries(stops.map(stop=>[stop.id,{state:'done',at:''}]))};
+  assert.equal(tripBoardCells(complete,stops).filter(cell=>cell.state==='current').length,0);
 });
 
 test('same-day itinerary additions and deletions retain only marks for unchanged stop ids',()=>{

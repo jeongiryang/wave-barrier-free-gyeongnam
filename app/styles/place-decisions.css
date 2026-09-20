@@ -1,6 +1,6 @@
 /* Shared with the Horizon cards; only the requested decision tools load UI. */
 .place-comparison-toolbar,.place-comparison-selection,.place-inquiry-entry { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-block: 20px; }
-.place-comparison-toolbar button,.place-comparison-selection button,.place-compare-choice,.place-inquiry-entry button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--line); border-radius: 24px; background: var(--white); color: var(--ink); font: inherit; font-size: .9rem; }
+.place-comparison-toolbar button,.place-comparison-selection button,.place-compare-choice,.place-inquiry-entry button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--line); border-radius: 24px; background: var(--paper); color: var(--ink); font: inherit; font-size: .9rem; }
 .place-comparison-toolbar > button[aria-pressed=true],.place-compare-choice[aria-pressed=true] { background: var(--accent); color: #fff; border-color: var(--accent); }
 .place-comparison-toolbar > span { flex: 1; color: var(--muted); font-size: .9rem; }
 .place-comparison-selection button { background: var(--paper); }
@@ -33,6 +33,7 @@
 .communication-answer-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
 .communication-answer-grid button,.communication-direct { min-height:56px; padding:12px 16px; border:1px solid var(--line); border-radius:12px; text-align:center; }
 .communication-direct { width:100%; margin-top:10px; }
+.communication-speech-capture { width:100%; min-height:48px; margin-top:10px; padding:12px 16px; border:1px solid var(--accent); border-radius:12px; color:var(--accent); }
 .communication-custom { display:grid; gap:8px; }
 .communication-custom > div { display:flex; gap:8px; }
 .communication-custom > div button { flex:1; min-height:56px; border:1px solid var(--line); border-radius:12px; }
@@ -42,6 +43,22 @@
 .communication-secondary-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:16px; }
 .communication-secondary-actions button,.communication-secondary-actions a { flex:1 1 130px; min-height:44px; padding:10px 16px; border:1px solid var(--line); border-radius:12px; color:var(--ink); text-align:center; text-decoration:none; }
 .communication-secondary-actions .communication-end { border:0; background:transparent; text-decoration:underline; }
-.inquiry-actions .onsite-communication-entry { color:var(--ink); background:var(--white); border-color:var(--line); }
+.inquiry-actions .onsite-communication-entry { color:var(--ink); background:var(--paper); border-color:var(--line); }
 @media(max-width:650px) { .communication-answer-grid { grid-template-columns:1fr; } }
 @media(max-width:360px) { .inquiry-dialog { max-height:calc(100dvh - 24px); overflow-y:auto; }.communication-secondary-actions > * { flex-basis:100%; } }
+.speech-capture-panel { display:grid; gap:16px; }
+.speech-capture-panel h2 { margin:0; font-size:clamp(1.5rem,3vw,2rem); }
+.speech-capture-panel > header { display:flex; align-items:start; justify-content:space-between; gap:16px; }
+.speech-capture-disclosure,.speech-capture-warning { margin:0; padding:16px; border:1px solid var(--line); border-radius:12px; background:var(--paper); line-height:1.7; }
+.speech-capture-state { display:flex; flex:0 0 auto; align-items:center; gap:8px; min-height:44px; padding:8px 12px; border:1px solid var(--line); border-radius:12px; font-weight:700; }
+.speech-capture-state span { width:12px; height:12px; border:2px solid currentColor; }
+.speech-capture-state[data-listening=true] span { border-radius:50%; background:currentColor; }
+.speech-capture-result { min-height:220px; padding:clamp(20px,4vw,36px); border:1px solid var(--line); border-radius:20px; background:var(--paper); overflow-wrap:anywhere; }
+.speech-capture-result p { margin:0; font-size:clamp(1.5rem,4vw,2.25rem); line-height:1.55; }
+.speech-capture-result p + p { margin-top:18px; }
+.speech-capture-result span { display:block; margin-bottom:8px; font-size:.8rem; font-weight:700; }
+.speech-capture-interim { color:var(--muted); text-decoration:underline; text-decoration-style:dotted; text-underline-offset:5px; }
+.speech-capture-empty,.speech-capture-error { color:var(--muted); }
+.speech-capture-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.speech-capture-actions button { flex:1 1 130px; min-height:48px; padding:12px 16px; border:1px solid var(--line); border-radius:12px; }
+@media(max-width:650px) { .speech-capture-panel > header { display:grid; }.speech-capture-state { justify-self:start; }.speech-capture-actions button { flex-basis:100%; } }

@@ -16,6 +16,9 @@ import { handlePlaceLookup } from './place-lookup';
 import { handlePlaceAudio } from './place-audio';
 import { handleParkingAlternatives } from './parking-alternatives';
 import { handleRestroomAlternatives } from './restroom-alternatives';
+import { handleSanitarySupply } from './sanitary-supply';
+import { handleSmokingArea } from './smoking-area';
+import { handleTrashBin } from './trash-bin';
 
 function selectedRegion(url: URL) {
   const requested = clean(url.searchParams.get("region"), 20);
@@ -60,11 +63,12 @@ async function handleCrowd(url: URL, env: Env) {
 
 export async function handleWaveApi(request: Request, env: Env) {
   if (request.method !== "GET") return json({ error: "GET 요청만 지원합니다." }, 405);
+  const url = new URL(request.url);
+  const action = url.searchParams.get("action") || "plan";
+  if (action === "smoking-area") return handleSmokingArea(url, env);
   if (!env.TOUR_API_SERVICE_KEY_ENCODED) {
     return json({ error: "서버 인증키 설정을 확인해 주세요." }, 503);
   }
-  const url = new URL(request.url);
-  const action = url.searchParams.get("action") || "plan";
   if (action === "availability") return handleAvailability(request, env);
   if (action === 'places') return handlePlaceLookup(request, env);
   if (action === 'place-audio') return handlePlaceAudio(request, env);
@@ -74,6 +78,8 @@ export async function handleWaveApi(request: Request, env: Env) {
   if (action === "dining-accessibility") return handleDiningAccessibility(url, env);
   if (action === "parking-alternatives") return handleParkingAlternatives(url, env);
   if (action === "restroom-alternatives") return handleRestroomAlternatives(url, env);
+  if (action === "sanitary-supply") return handleSanitarySupply(url, env);
+  if (action === "trash-bin") return handleTrashBin(url, env);
   if (action === "crowd-calendar") return handleCrowdCalendar(url, env);
   if (action === "photo") return handlePhoto(url, env);
   if (action === "spot-photo") return handleSpotPhoto(url, env);

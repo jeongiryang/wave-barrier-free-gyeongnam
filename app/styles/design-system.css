@@ -42,7 +42,7 @@
 }
 
 /* 입력·선택 요소는 같은 높이와 모서리를 쓴다 */
-.date-range-fields input, .feedback-box textarea {
+.feedback-box textarea {
   border-radius: var(--r-md);
 }
 
@@ -70,7 +70,7 @@ button {
   display: inline-flex; align-items: center; gap: var(--s-2);
   min-height: 34px; padding: 6px 12px 6px 9px;
   border: 1px solid var(--line); border-radius: var(--r-full);
-  color: var(--ink-soft); background: var(--white);
+  color: var(--ink-soft); background: var(--paper);
   font-size: .76rem; font-weight: 820;
 }
 

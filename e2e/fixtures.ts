@@ -5,6 +5,7 @@ const places = [
   {
     id: "1001", contentTypeId: "14", city: "창원", name: "경남도립미술관", address: "경상남도 창원시 의창구",
     summary: "실내 전시를 둘러볼 수 있는 문화 공간입니다.", image: "https://wave.test/museum.svg",
+    setting: { state: "indoor-space" as const, detail: "실내 전시 공간에서 작품을 관람합니다." },
     mapX: "128.691", mapY: "35.238", score: 100, confidence: 88, knownFields: 4, unknownFields: 1, negativeFields: 0,
     checkedAt: "2026-08-26T02:00:00.000Z", features: ["휠체어 출입", "장애인 화장실", "주차"],
     details: ["접근로: 주출입구까지 평탄한 접근로가 있습니다."], source: "무장애 여행정보 · 국문 관광정보",

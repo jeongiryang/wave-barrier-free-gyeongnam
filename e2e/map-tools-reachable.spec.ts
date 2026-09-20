@@ -171,12 +171,16 @@ test("추가 도구에는 지도 유형·주변·표시·로드뷰·이미지·�
     expect(toolLabels).toContain(label);
   }
   for (const button of await options.getByRole("button").all()) {
+    // Touch browsers do not consistently scroll a programmatically focused
+    // control into view. Exercise the same scroll a pointer user can perform.
+    await button.scrollIntoViewIfNeeded();
     await button.focus();
     await expect(button).toBeFocused();
-    expect(await button.evaluate(node => {
+    await expect.poll(() => button.evaluate(node => {
       const box = node.getBoundingClientRect();
-      return node.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
-    })).toBe(true);
+      const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+      return node.contains(hit) ? "reachable" : `${node.textContent}: ${hit?.tagName}.${(hit as HTMLElement | null)?.className}`;
+    }), { message: "Every map tool must be reachable after scrolling into view" }).toBe("reachable");
   }
 });
 

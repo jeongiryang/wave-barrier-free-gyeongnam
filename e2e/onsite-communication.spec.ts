@@ -36,6 +36,21 @@ test("custom answer validates input and renders it as text", async ({ page }) =>
   await expect(board.locator("img")).toHaveCount(0);
 });
 
+test("door topic works offline without a network request and restores focus", async ({ page }) => {
+  const requests: string[] = [];
+  const board = await openOnsiteCommunication(page, true, () => page.on("request", request => requests.push(request.url())));
+  await board.getByRole("button", { name: "출입문 도움", exact: true }).click();
+  await expect(board.locator(".inquiry-card-preview")).toContainText("문을 열기 어려워요. 도와주시거나 다른 출입구를 알려 주세요.");
+  await board.getByRole("button", { name: "직원에게 보여주기", exact: true }).click();
+  await expect(board.locator(".communication-answer-grid button")).toHaveCount(6);
+  await board.getByRole("button", { name: "제가 안내할게요", exact: true }).click();
+  await expect(board.getByRole("heading", { name: "직원이 고른 답이에요", exact: true })).toBeFocused();
+  expect(requests).toEqual([]);
+  expect((await new AxeBuilder({ page }).include(".inquiry-dialog").analyze()).violations).toEqual([]);
+  await board.getByRole("button", { name: "대화 끝내기", exact: true }).click();
+  await expect(page.getByRole("button", { name: "화면으로 대화", exact: true })).toBeFocused();
+});
+
 test("keyboard, Escape and rotation work at a 320px reflow viewport", async ({ page }) => {
   const board = await openOnsiteCommunication(page);
   await page.setViewportSize({ width: 320, height: 740 });

@@ -4,7 +4,7 @@ service:
   display_name: W.A.V.E 경남 무장애 여행 길잡이
   production_url: https://wave-barrier-free-gyeongnam.vercel.app/
   problem_statement: 여행자가 자신에게 필요한 편의를 기준으로 경남 여행지를 찾고 일정·이동·출발 전 정보를 한 흐름에서 확인하기 어렵다.
-  solution_statement: 경남 관광·무장애·교통 데이터를 연결해 필요한 편의를 기준으로 여행지를 탐색하고, 일정과 이동 및 출발 전 재확인 정보를 한 흐름으로 제공한다.
+  solution_statement: 공공데이터로 확인된 경남 여행 편의 정보를 함께 보여 주고, 확인되지 않은 것은 확인되지 않았다고 알리며 일정과 이동 계획을 돕는다.
   truthfulness_rule: 확인된 공식 정보, 미확인 정보, 조회 실패, 여행자 제보, W.A.V.E 계산·예측을 서로 구분한다.
 competition:
   category: 웹·앱 개발

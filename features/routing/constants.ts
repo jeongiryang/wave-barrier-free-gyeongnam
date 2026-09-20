@@ -37,6 +37,8 @@ export type FacilityLayer = {
   code?: string;
   /** official 전용. /api/wave 의 action 값. */
   action?: string;
+  /** 조회는 성공했지만 현재 표시할 확인 결과가 없을 때 쓰는 정직한 문구. */
+  emptyLabel?: string;
   /** derived 전용. 장소의 `accessibility` 배열에서 `state === "confirmed"`인 항목을 찾을 key. */
   derivedKey?: string;
   /** 마커·범례에서 색이 아닌 글자로 종류를 알리는 짧은 기호. */
@@ -57,16 +59,13 @@ export const placeSearchFacilityLayers: readonly FacilityLayer[] = [
 ];
 
 /**
- * 공식 데이터 레이어 등록 지점 — 지금은 비어 있다.
+ * 공식 데이터 레이어 등록 지점.
  *
- * 11번 명세는 `accessible-parking`(#530)과 `accessible-restroom`(#531)이 이미
- * 연동됐다고 전제하지만, 이 저장소에는 두 제공처를 부르는 서버 코드가 없다.
- * (`server/tourism/handler.ts`의 action 목록에 `parking`·`restroom`·
- * `facility-layers`가 없고, `server/tourism/`에도 해당 모듈이 없다.)
- * 없는 데이터를 있는 것처럼 보이지 않게 하려고 여기에는 아무 것도 등록하지 않는다.
- * 이 배열이 비어 있는 동안 패널은 "공식 데이터" 구분 자체를 그리지 않는다.
+ * 저상버스는 새 제공처를 만들지 않고 기존 TAGO 도착정보 action을 재사용한다.
+ * 차량유형이 현재 도착 응답에서 명시된 경우만 표시하므로 노선 전체의 상시 운행을
+ * 주장하지 않는다. 주차장·화장실 등 다른 제공처는 별도 검증 전까지 등록하지 않는다.
  *
- * 후속 명세(13·14·15·16·20·21·33·45)가 레이어를 붙이는 방법은 두 줄이다.
+ * 후속 명세(21·33·45)가 레이어를 붙이는 방법은 두 줄이다.
  *
  * 1. 각 명세가 `server/tourism/`에 제공처 모듈을 더하고
  *    `server/tourism/handler.ts`에 자기 action 분기를 추가한다.
@@ -78,7 +77,19 @@ export const placeSearchFacilityLayers: readonly FacilityLayer[] = [
  * `source === "official"` 갈래에 있다. 거기에 `optionalPlannerJson` 호출과
  * `SERVER_BUDGET_MS`/`CLIENT_BUDGET_MS` 항목을 함께 채우면 된다.
  */
-export const officialFacilityLayers: readonly FacilityLayer[] = [];
+export const officialFacilityLayers: readonly FacilityLayer[] = [
+  {
+    id: "low-floor-bus-arrival",
+    label: "현재 확인된 저상버스",
+    source: "official",
+    action: "return-transport",
+    glyph: "저",
+    emptyLabel: "가까운 정류장에서 현재 확인된 저상버스 도착정보가 없어요.",
+  },
+  { id: "sanitary-supply", label: "여성용품 비치", source: "official", action: "sanitary-supply", glyph: "용" },
+  { id: "no-smoking", label: "금연 구역", source: "official", action: "smoking-area", glyph: "금" },
+  { id: "trash-bin", label: "쓰레기통", source: "official", action: "trash-bin", glyph: "휴" },
+];
 
 /**
  * 이미 조회한 장소 목록에서 파생하는 레이어(스펙 20). 새 서버 호출이나 새

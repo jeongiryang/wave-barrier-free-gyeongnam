@@ -10,7 +10,10 @@ const rscRoot = join(root, "node_modules/.nitro/vite/services/rsc");
 // 현재 실측값에 작은 변동 여유를 둔다. 전역 CSS를 성급히 경로별로 쪼개
 // hydration 스타일 순서를 깨뜨리기보다, 전송비가 이 선을 넘을 때만 분할한다.
 const BUDGET = {
-  cssGzipKiB: 70,
+  // 2026-09-20: Design B landing + secondary routes + 22 reviewed team features.
+  // Retired selectors are removed before budgeting; see the release AI log.
+  // This is a scope baseline update, not a claim that the old 78 KiB cap passed.
+  cssGzipKiB: 82,
   landingInitialJsGzipKiB: 155,
   landingInitialJsRawKiB: 520,
   plannerInitialJsGzipKiB: 270,

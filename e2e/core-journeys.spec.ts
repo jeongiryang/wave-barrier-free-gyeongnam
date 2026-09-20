@@ -85,8 +85,13 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     const dialog = page.getByRole("dialog", { name: "경남도립미술관", exact: true });
     await expect(dialog.getByRole("heading", { name: "경남도립미술관", exact: true })).toBeFocused();
     const close = dialog.getByRole("button", { name: "닫기", exact: true });
-    await close.focus(); await page.keyboard.press("Shift+Tab");
-    expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(mobileLayout);
+    const firstControl = dialog.locator('button:visible:not([disabled]), a:visible[href], input:visible:not([disabled]), select:visible, textarea:visible, summary:visible, [tabindex="0"]:visible').first();
+    await firstControl.focus(); await page.keyboard.press("Shift+Tab");
+    // Chromium may include the scrollable, nonmodal dialog itself in the tab
+    // sequence before its first control. It must still let the next reverse
+    // Tab leave; a modal must continue to contain keyboard focus.
+    if (!mobileLayout && await dialog.evaluate(element => document.activeElement === element)) await page.keyboard.press("Shift+Tab");
+    expect(await dialog.evaluate(element => ({ contained: element.contains(document.activeElement), active: document.activeElement?.outerHTML.slice(0, 300) })) ).toMatchObject({ contained: mobileLayout });
     await expect(page.locator(":modal")).toHaveCount(mobileLayout ? 1 : 0);
     await expect(dialog.getByText(/공식 시설 정보는 안전 인증이나 접근 가능성 보장이 아닙니다/)).toBeVisible();
     await close.focus(); await page.keyboard.press("Escape");
@@ -183,7 +188,8 @@ test("community remains readable without login and protects writing", async ({ p
   await page.route("**/api/auth/get-session", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: "null" }));
   await page.route("**/api/community/posts**", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ posts: [], page: 1, hasMore: false }) }));
   await page.goto("/community");
-  await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.")).toBeVisible();
+  await expect(page.locator(".night-story-card").first()).toBeVisible();
+  await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.")).toHaveCount(0);
   await expectNoSeriousA11yIssues(page);
   await page.getByRole("link", { name: "글 쓰기", exact: true }).first().click();
   await expect(page).toHaveURL(/\/login\?next=%2Fcommunity%2Fnew/);

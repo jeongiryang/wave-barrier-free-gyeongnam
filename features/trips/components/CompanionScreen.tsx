@@ -179,7 +179,7 @@ export default function CompanionScreen({ id }: { id: string }) {
   }
   const canEdit = state?.role === "owner" || state?.role === "editor";
   return (
-    <>
+    <div className="wave-night night-secondary night-companion">
       <WaveHeader current="planner" />
       <main
         className={styles.experience}
@@ -648,6 +648,6 @@ export default function CompanionScreen({ id }: { id: string }) {
         )}
         <p role="status">{notice}</p>
       </main>
-    </>
+    </div>
   );
 }

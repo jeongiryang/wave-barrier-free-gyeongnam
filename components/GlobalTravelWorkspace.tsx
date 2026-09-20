@@ -1,5 +1,5 @@
 'use client';
-import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import LoadingState from './LoadingState';
@@ -8,8 +8,7 @@ import PlannerNavigation from './PlannerNavigation';
 import TravelWorkspaceBoundary from './TravelWorkspaceBoundary';
 
 const PlannerWorkspace = lazy(() => import('../app/planner/page').then(module => ({ default: module.PlannerWorkspace })));
-const NaruContext = createContext<(prompt?: string) => void>(() => {});
-export const useOpenNaru = () => useContext(NaruContext);
+import { NaruContext } from './NaruContext';
 
 /** One mounted journey engine across routes; neither chat nor needs are persisted here. */
 export default function GlobalTravelWorkspace({ children }: { children: ReactNode }) {

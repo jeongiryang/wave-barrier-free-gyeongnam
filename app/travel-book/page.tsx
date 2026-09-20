@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import CommunityHeader from "../../components/CommunityHeader";
@@ -9,13 +10,17 @@ import GithubFooterLink from "../../components/GithubFooterLink";
 import { buildTravelJournalHref } from "../../lib/community/field-report.js";
 import { travelBookRegions, type TravelBook } from "../../lib/travel-book.js";
 import { useTravelBook } from "../../features/travel-book/useTravelBook";
-import { emptyTrip, readTripValue } from "../../lib/current-trip-storage.js";
+import { emptyTrip, readTripValue, FACILITIES_KEY } from "../../lib/current-trip-storage.js";
 import { getTabStorage } from "../../lib/session-storage.js";
 import { saveSessionProfiles } from "../../lib/session-travel-profiles.js";
 import { replaceTripWithBackup } from "../../lib/trip-import.js";
 import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
 import CloudSaveAction from "../../features/account-travel/CloudSaveAction";
 import { facilityLabel, resolveFacilityKeys } from "../../lib/facility-selection.js";
+import TravelProfileSummary from "../../features/trips/components/TravelProfileSummary";
+import TripCompareDialog from "../../features/trips/components/TripCompareDialog";
+import RegionRecordList from "../../features/trips/components/RegionRecordList";
+import LocalMarketCard from "../../features/trips/components/LocalMarketCard";
 
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 const shortDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
@@ -32,11 +37,14 @@ function journalHref(book: TravelBook) {
   });
 }
 
-function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
+function TravelBookCard({ book, onUpdate, onRemove, onRestore, compareEnabled = false, compareSelected = false, onCompareToggle }: {
   book: TravelBook;
   onUpdate: (id: string, patch: Partial<Pick<TravelBook, "status" | "note">>) => boolean;
   onRemove: (id: string) => void;
   onRestore: (book: TravelBook) => void;
+  compareEnabled?: boolean;
+  compareSelected?: boolean;
+  onCompareToggle?: (id: string) => void;
 }) {
   const [deleteReady, setDeleteReady] = useState(false);
   const [note, setNote] = useState(book.note);
@@ -92,6 +100,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore }: {
         </div>
       </header>
       <p className="travel-book-card-status" role="status" aria-live="polite">{announcement}</p>
+      {compareEnabled && <label className="trip-compare-choice"><input type="checkbox" checked={compareSelected} onChange={() => onCompareToggle?.(book.id)} /> 비교할 여행으로 선택</label>}
       {book.profiles.length > 0 && <ul className="travel-book-profiles" aria-label="선택한 편의조건">{resolveFacilityKeys({ profiles: book.profiles }).map((profile) => <li key={profile}>{facilityLabel(profile)}</li>)}</ul>}
       <div className="travel-book-days">
         {days.map((day, dayIndex) => <section key={day}>
@@ -132,17 +141,20 @@ function NewTripDialog({ onCancel, onConfirm, error }: { onCancel: () => void; o
 }
 
 export default function TravelBookPage() {
+  const router = useRouter();
   const { books, hydrated, update, remove, restore, storageError } = useTravelBook();
   const [announcement, setAnnouncement] = useState("");
   const [newTripReady, setNewTripReady] = useState(false);
   const [newTripError, setNewTripError] = useState("");
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
   const closeNewTrip = useCallback(() => { setNewTripReady(false); setNewTripError(""); }, []);
 
   function startNewTrip() {
     try { replaceTripWithBackup(window.localStorage, emptyTrip("", "", "")); }
     catch { setNewTripError("새 여행을 저장하지 못했어요. 기존 일정은 유지됩니다. 저장 공간을 확인한 뒤 다시 시도해 주세요."); return; }
     saveSessionProfiles(getTabStorage(), []);
-    window.location.assign("/planner#conditions");
+    router.push("/planner#conditions");
   }
 
   function requestNewTrip() {
@@ -153,7 +165,17 @@ export default function TravelBookPage() {
     startNewTrip();
   }
 
-  return <main className="travel-book-page">
+  function startFromProfile(suggestion: { region: string | null; facilityKeys: string[] }) {
+    const profiles = resolveFacilityKeys({ facilityKeys: suggestion.facilityKeys });
+    try { replaceTripWithBackup(window.localStorage, { ...emptyTrip(suggestion.region || "경남 전체", "", ""), [FACILITIES_KEY]: JSON.stringify(profiles) }); }
+    catch { setNewTripError("새 여행 조건을 저장하지 못했어요. 기존 일정은 유지됩니다."); return; }
+    saveSessionProfiles(getTabStorage(), profiles);
+    router.push("/planner#conditions");
+  }
+  const compareBooks = compareIds.map(id => books.find(book => book.id === id)).filter((book): book is TravelBook => Boolean(book));
+  const summary = (book: TravelBook) => ({ id: book.id, title: book.title, region: book.region, dayCount: Math.max(1, Math.floor((Date.parse(`${book.travelEnd}T12:00:00Z`) - Date.parse(`${book.travelStart}T12:00:00Z`)) / 86_400_000) + 1), placeCount: book.places.length, facilityKeys: book.profiles });
+
+  return <main className="travel-book-page wave-night night-secondary">
     <SkipLink href="#travel-book-main">여행집 본문으로 바로가기</SkipLink>
     <CommunityHeader current="travel-book" />
     <section className="travel-book-task-heading" id="travel-book-main">
@@ -162,13 +184,18 @@ export default function TravelBookPage() {
       <nav aria-label="여행 저장 위치"><a href="#travel-book-collection">이 기기</a><Link href="/my-trips">계정에 저장한 여행</Link></nav>
     </section>
     <div className="travel-book-collection-heading" id="travel-book-collection"><h2>저장한 여행</h2></div>
+    {hydrated && <TravelProfileSummary books={books} onStart={startFromProfile} />}
+    {books.length >= 2 && <div className="trip-compare-toolbar"><button type="button" disabled={compareIds.length !== 2} onClick={() => setCompareOpen(true)}>선택한 여행 2개 비교</button><span>{compareIds.length}/2개 선택</span></div>}
+    {hydrated && <RegionRecordList books={books} />}
+    {hydrated && <LocalMarketCard books={books} />}
     <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
     {storageError && <p className="result-notice error" role="alert">{storageError}</p>}
-    {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>저장한 여행을 불러오는 중입니다.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setAnnouncement(`${book.title} 여행을 여행집에서 삭제했습니다.`); }} onRestore={restore} />)}</section> : <section className="travel-book-empty">
+    {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>저장한 여행을 불러오는 중입니다.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setCompareIds(current => current.filter(value => value !== id)); setAnnouncement(`${book.title} 여행을 여행집에서 삭제했습니다.`); }} onRestore={restore} compareEnabled={books.length >= 2} compareSelected={compareIds.includes(book.id)} onCompareToggle={id => setCompareIds(current => current.includes(id) ? current.filter(value => value !== id) : current.length < 2 ? [...current, id] : current)} />)}</section> : <section className="travel-book-empty">
       <span aria-hidden="true">＋</span><p>저장한 여행이 없습니다.</p><h2>여행을 저장하면 여기서 다시 열 수 있습니다.</h2><small>일정의 ‘내 여행에 저장’을 눌러 주세요.</small><Link href="/planner">여행 설계하기 <span aria-hidden="true">→</span></Link>
     </section>}
     <footer className="travel-book-footer"><Link href="/photo-course">사진으로 여행 찾기</Link><Link href="/community">여행자 후기 읽기</Link><Link href="/privacy">개인정보</Link><Link href="/terms">이용 안내</Link><GithubFooterLink /></footer>
     {!newTripReady && newTripError && <p role="alert">{newTripError}</p>}
     {newTripReady && <NewTripDialog onCancel={closeNewTrip} onConfirm={startNewTrip} error={newTripError} />}
+    {compareOpen && compareBooks.length === 2 && <TripCompareDialog left={summary(compareBooks[0])} right={summary(compareBooks[1])} onClose={() => setCompareOpen(false)} onStart={suggestion => startFromProfile(suggestion)} />}
   </main>;
 }

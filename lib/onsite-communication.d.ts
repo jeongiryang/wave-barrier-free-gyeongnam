@@ -1,11 +1,12 @@
-export type CommunicationTopic = "step_free_entrance" | "restroom" | "elevator" | "reservation" | "payment" | "assistance";
+export type CommunicationTopic = "step_free_entrance" | "restroom" | "elevator" | "reservation" | "payment" | "assistance" | "door";
 export type CommunicationAnswer = "left" | "right" | "behind_building" | "use_elevator" | "unavailable" | "i_will_guide" | "custom";
 export type LocalCommunicationSession = { topic: CommunicationTopic; question: string; answer?: CommunicationAnswer; customAnswer?: string };
-export const communicationTopics: ReadonlyArray<{ id: CommunicationTopic; label: string; question: string; questionEn: string }>;
+export const communicationTopics: ReadonlyArray<{ id: CommunicationTopic; label: string; question: string; questionEn: string; questions?: readonly string[]; questionsEn?: readonly string[] }>;
 export const communicationAnswers: ReadonlyArray<{ id: Exclude<CommunicationAnswer, "custom">; label: string; labelEn: string }>;
 export const MAX_CUSTOM_ANSWER_LENGTH: 200;
 export function isCommunicationTopic(value: unknown): value is CommunicationTopic;
 export function isCommunicationAnswer(value: unknown): value is CommunicationAnswer;
 export function communicationQuestion(topic: CommunicationTopic, english?: boolean): string;
+export function communicationQuestions(topic: CommunicationTopic, english?: boolean): readonly string[];
 export function communicationAnswerText(answer: Exclude<CommunicationAnswer, "custom">, english?: boolean): string;
 export function normalizeCustomAnswer(value: unknown): string;
