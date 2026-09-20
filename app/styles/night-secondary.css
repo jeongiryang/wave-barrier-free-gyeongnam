@@ -1,0 +1,82 @@
+/* Secondary routes use the approved desktop palette without changing the introduction. */
+html body .night-secondary{--accent:#32caff;--onaccent:#031725;--blue-soft:#102d49;--mint-dark:#67dfd7;padding-top:0}
+html body .night-secondary .wave-header{max-width:none;width:100%;margin:0;padding:0 max(32px,calc((100% - 1360px)/2));border-bottom:1px solid #173e5b}
+.night-secondary :is(input:not([type=checkbox],[type=radio]),textarea,select){color:var(--ink);background:#061423;border:1px solid #31506b;border-radius:10px;color-scheme:dark}
+.night-secondary :is(input,textarea)::placeholder{color:#91a8bf}
+.night-secondary :is(button,a,input,select,textarea,summary):focus-visible{outline:2px solid #5cdeff;outline-offset:4px}
+.night-secondary :is(h1,h2,h3){color:var(--ink);letter-spacing:-.035em}
+.night-secondary :is(.auth-card,.travel-book-card,.travel-book-empty,.travel-account-welcome,.account-settings,.current-trip-card,.photo-course,.shared-error,.shared-loading,.shared-places,.shared-itinerary,.community-detail,.community-editor,.community-gate){color:var(--ink);background:linear-gradient(135deg,#0d2238,#071522);border:1px solid var(--line);border-radius:16px;box-shadow:0 16px 48px #0002}
+.night-secondary :is(.auth-submit,.auth-primary-link,.travel-book-actions .primary,.travel-book-task-heading>button,.photo-course-pick){color:#fff;border:1px solid #469bff;border-radius:10px;background:linear-gradient(120deg,#0877cf,#3257e5 68%,#7043d4);box-shadow:0 0 20px #167def25}
+.night-secondary :is(.auth-submit,.auth-primary-link):hover{filter:brightness(1.12)}
+.night-secondary .kakao-login-button{color:#191919;background:#fee500;border-color:#fee500}
+html body .night-secondary.auth-focused{padding:0 0 64px}
+html body .night-secondary .auth-layout{width:min(1240px,calc(100% - 80px));min-height:0;margin:48px auto 0;padding:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(400px,.9fr);gap:28px;align-items:stretch}
+.night-account-visual{position:relative;min-height:650px;overflow:hidden;border:1px solid #214460;border-radius:18px;background:linear-gradient(180deg,#07162518 10%,#03101dbb 65%,#030f1af0),url('/media/night/coast.webp') center/cover}
+.night-account-visual>div{position:absolute;inset:auto 40px 44px}
+.night-account-visual h2{margin:18px 0;font-size:52px;line-height:1.22;font-weight:750}
+.night-account-visual h2 span{color:#58dfff}.night-account-visual p{color:#d2e4f6;font-size:16px;line-height:1.8}
+.night-account-visual p:first-child{font-size:12px;letter-spacing:.12em;color:#a9e7ff}
+.night-account-visual a{display:inline-flex;gap:42px;margin-top:20px;padding:10px 0;color:#6de0ff;border-bottom:1px solid #3a809f}
+html body .night-secondary .auth-card{padding:38px;border:1px solid #254461;border-radius:18px;background:#091b2deF;backdrop-filter:none;box-shadow:0 16px 48px #0003;align-content:center}
+html body .night-secondary .auth-card h1{font-size:30px;font-weight:700}
+.night-secondary .auth-card h2{font-size:28px}.night-secondary .auth-kicker{color:#57d9ff}
+.night-secondary .auth-field input{background:#041323;color:#edf4ff;border-color:#31506b}
+.night-secondary .password-field button{background:#102b43;color:#d7eeff;border-color:#31506b}
+.night-secondary .community-gate>a{color:#fff;background:#2465c5}.night-secondary .community-gate>a+a{background:transparent;color:#79dbff}
+html body .wave-night.night-secondary.night-outings{--white:#0b2034}
+.night-secondary .auth-field input[aria-invalid]{border-color:#ff9eab;box-shadow:inset 0 0 0 1px #ff9eab}
+.night-secondary :is(.auth-message,.editor-message,.detail-message){color:#ffb5c2}.night-secondary .auth-message.success{color:#78e4c2}
+.night-secondary .auth-guest{border-color:var(--line);color:#8cdfff}.night-secondary .auth-guest small{color:var(--muted)}
+.night-secondary :is(.auth-switch a,.auth-recovery-link a,.auth-legal a){color:#70dbff}
+.night-secondary .auth-story{padding:48px 38px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(0deg,#061422f5,#071a2ea6),url('/media/night/coast.webp') center/cover}
+.night-secondary .auth-story h1{font-size:44px;line-height:1.25}.night-secondary .auth-story>p{max-width:34ch;color:#bfd3e7}
+.night-secondary .account-settings{padding:24px;line-height:1.85}.night-secondary .auth-card .account-settings{border:0;padding:0;background:none;box-shadow:none}
+.night-secondary #account-travel .account-settings{background:#0b2034;border-color:var(--line);border-radius:16px}
+.night-secondary .naru-help-examples article{background:#0b263e}.night-secondary .current-trip-card p{color:var(--muted)}
+.night-secondary .account-settings section>p{font-size:14px;line-height:1.8}.night-secondary .account-danger{background:#2c1827;border-color:#864256}.night-secondary .account-danger h3{color:#ffb5c2}
+html body .night-secondary.policy-page{padding:0 max(32px,calc((100% - 1200px)/2)) 64px}
+.night-secondary.policy-page>.wave-header{width:calc(100% + 2 * max(32px,calc((100vw - 1200px)/2)));margin-left:calc(-1 * max(32px,calc((100vw - 1200px)/2)));max-width:none;padding-top:0;padding-bottom:0}
+.night-secondary.policy-page>nav:first-of-type{padding-top:32px}
+.night-secondary.policy-page>.wave-header span{margin:0;color:inherit;font-size:inherit}
+.night-secondary.policy-page>header:not(.wave-header){padding:44px 0 36px;max-width:100%}
+.night-secondary.policy-page>header:not(.wave-header) h1{font-size:44px;line-height:1.25;font-weight:700}
+.night-secondary.policy-page>header:not(.wave-header) p{color:#54d6ff}.night-secondary.policy-page>header:not(.wave-header) span{color:var(--muted)}
+.night-secondary.policy-page :is(.policy-summary,.policy-link-grid>a,.policy-detail-grid>section,.policy-table-wrap,.policy-list li,.policy-toc a),.night-secondary.policy-page>nav a,.night-secondary.policy-page>footer a{color:var(--ink);background:#0b2034;border-color:var(--line)}
+.night-secondary .policy-summary{padding:30px;margin-bottom:28px;border-radius:16px}.night-secondary .policy-summary h2{font-size:28px}
+.night-secondary .policy-link-grid{margin-bottom:48px;border-radius:14px;overflow:hidden}.night-secondary .policy-link-grid>a{min-height:145px;padding:40px 24px 24px}
+.night-secondary .policy-link-grid>a:hover{background:#13314c}.night-secondary .policy-callout{background:#092b34;border-color:#206076;border-radius:12px}
+.night-secondary .policy-callout strong{color:#70e2dd}.night-secondary .policy-callout p{color:#c1dee3}
+.night-secondary .policy-article{gap:48px}.night-secondary .policy-article>section{padding-bottom:30px;scroll-margin-top:28px}
+.night-secondary .policy-article>section>h2{font-size:28px;line-height:1.35}
+.night-secondary .policy-detail-grid{margin-top:24px}.night-secondary .policy-detail-grid>section{padding:24px;min-height:0}
+.night-secondary .policy-toc{padding:14px 0;margin-bottom:36px}.night-secondary .policy-table-wrap thead th{background:#12344b;color:#a2eaff}
+.night-secondary :is(.policy-section-kicker,.policy-article a,.policy-toc a){color:#6edfff}
+.night-secondary :is(.travel-book-hero,.travel-book-task-heading,.photo-course-page-intro){width:min(1240px,calc(100% - 80px));margin:36px auto 32px;padding:32px;display:block;border:1px solid var(--line);border-radius:16px;background:linear-gradient(100deg,#0b213af5,#0b213a80),url('/media/night/coast.webp') center 45%/cover}
+.night-secondary :is(.travel-book-hero h1,.travel-book-task-heading h1,.photo-course-page-intro h1){font-size:40px;line-height:1.25;font-weight:700}
+.night-secondary .travel-book-hero p{margin-bottom:12px;color:#69d9ff}.night-secondary .travel-book-list{width:min(1240px,calc(100% - 80px));gap:20px}
+.night-secondary .travel-book-task-heading nav{margin-top:18px}.night-secondary .travel-book-task-heading>button{padding:12px 20px;margin-top:12px}
+.night-secondary :is(.travel-book-days li,.travel-book-actions a,.travel-book-actions button,.guide-start a,.naru-help-examples a,.photo-course-day,.photo-course-stop,.photo-course-limits,.detail-journal li,.editor-field-grid fieldset,.editor-journal-places li,.comment-list article){background:#0c243b;color:var(--ink);border-color:var(--line)}
+.night-secondary .travel-book-days li>span{background:#164261;color:#8de4ff}.night-secondary .travel-book-days li em{color:#7de8cd}
+.night-secondary .travel-book-card{border-radius:16px}.night-secondary .travel-book-empty{min-height:260px;margin-top:28px}.night-secondary .travel-account-welcome{padding:40px}
+.night-secondary .travel-book-delete :is(button,span){color:#ffb5c2}.night-secondary .travel-book-delete button:hover{background:#362030}
+.night-secondary :is(.travel-book-footer,.shared-footer,.photo-course-page-footer){border-color:var(--line);color:var(--muted);background:transparent}
+.night-secondary .guide-start{display:flex;flex-wrap:wrap;gap:10px}.night-secondary .guide-start a{padding:12px 20px;border:1px solid var(--line);border-radius:10px}
+.night-secondary .photo-course{width:min(1240px,calc(100% - 80px));margin:0 auto;padding:32px}.night-secondary .photo-course-page-intro span{color:#c1d5e8}
+.night-secondary .shared-error,.night-secondary .shared-loading{max-width:1000px;margin:48px auto;padding:48px}
+.night-secondary .shared-content{margin-top:32px}.night-secondary .shared-error h1{font-size:36px}
+.night-secondary .shared-hero{padding:48px max(32px,calc((100% - 1240px)/2));background:linear-gradient(100deg,#071a30f5,#071a3080),url('/media/night/coast.webp') center/cover}
+.night-secondary .shared-hero h1{font-size:44px;line-height:1.25}.night-secondary .shared-content{padding:32px max(32px,calc((100% - 1240px)/2));gap:24px}
+.night-secondary .shared-places{background:none;border:0;box-shadow:none}.night-secondary .shared-places article,.night-secondary .shared-content>aside{background:#0b2034;border:1px solid var(--line);border-radius:14px;color:var(--ink)}
+.night-secondary .shared-places section>div span{background:#133b53;color:#bde7fa}.night-secondary .shared-places section>strong{position:static;display:block;margin-top:20px;font-size:14px;color:#88d9ed}
+.night-secondary .shared-places section>strong small{color:var(--muted)}.night-secondary .shared-content>aside li>span,.night-secondary .shared-content>aside>.shared-redesign{color:#061724}
+.night-secondary.night-companion>main{padding:32px;border:1px solid var(--line);border-radius:16px;background:#091c2e}
+.night-secondary.night-companion :is(article,details,fieldset),.night-secondary.night-outings :is(article,fieldset){color:var(--ink);background:#0c2338;border-color:var(--line)}
+.night-secondary.night-demo :is(.demo-page,.demo-trip,.demo-proposal,.demo-timeline li){color:var(--ink);background:#0b2034;border-color:var(--line)}
+.night-secondary :is(.community-detail,.community-editor){max-width:1120px;margin:32px auto;padding:36px}.night-secondary .community-gate{min-height:380px;max-width:1000px;margin:40px auto;padding:32px}
+.night-secondary .community-detail h1{font-size:36px}.night-secondary .community-gate h1{font-size:32px}.night-secondary .community-editor textarea{background:#041323}
+.night-secondary :is(.editor-actions a,.editor-place button,.editor-linked-place button,.editor-journal button,.detail-actions button){background:#13314a;color:#d7eeff;border-color:#315b79}
+.night-secondary .editor-actions button{background:#2465c5;color:#fff;border-color:#469bff}
+.night-secondary.route-state-page{display:grid;align-content:center;justify-items:center;padding:64px 32px;text-align:center}
+.night-secondary.route-state-page h1{font-size:36px}.night-secondary.route-state-page>span{color:var(--muted)}
+.night-secondary.route-state-page a{display:inline-flex;margin:24px 6px 0;padding:12px 20px;background:#143553;color:#d7efff;border:1px solid #315b79;border-radius:10px}
+@media(prefers-reduced-motion:reduce){.night-secondary *{scroll-behavior:auto}}

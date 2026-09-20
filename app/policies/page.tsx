@@ -1,3 +1,4 @@
+import WaveHeader from "../../components/WaveHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { regionShowcaseAlbums } from "../../features/landing/region-showcase-photos";
@@ -13,7 +14,8 @@ export const metadata: Metadata = {
 const inquiryUrl = "https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues";
 
 export default function PoliciesPage() {
-  return <main className="policy-page policy-hub" id="main">
+  return <main className="wave-night night-secondary policy-page policy-hub" id="main">
+    <WaveHeader current="other" />
     <nav aria-label="정책 페이지 이동"><Link href="/">WAVE 홈</Link><Link href="/privacy">개인정보처리방침</Link><Link href="/terms">서비스 이용약관</Link></nav>
     <header>
       <p>POLICY CENTER</p>

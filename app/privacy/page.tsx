@@ -1,3 +1,4 @@
+import WaveHeader from "../../components/WaveHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { isKakaoAuthConfigured } from "../../lib/auth/server";
@@ -10,7 +11,8 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   const kakaoEnabled = isKakaoAuthConfigured();
-  return <main className="policy-page" id="main">
+  return <main className="wave-night night-secondary policy-page" id="main">
+    <WaveHeader current="other" />
     <nav aria-label="정책 페이지 이동"><Link href="/">WAVE 홈</Link><Link href="/policies">운영정책</Link><Link href="/terms">서비스 이용약관</Link></nav>
     <header><p>PRIVACY POLICY</p><h1>필요한 정보만,<br />쓰임과 저장 위치를 분명하게.</h1><span>정책 버전 1.4 · 시행일 2026년 9월 14일 · 나루 사진 처리 안내 추가</span></header>
 

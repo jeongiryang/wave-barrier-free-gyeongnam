@@ -49,6 +49,8 @@ import "./styles/landing-split.css";
 import "./styles/simple-wave.css";
 import "./styles/simple-planner.css";
 import "./styles/wave-refinements.css";
+import "./styles/night-desktop.css";
+import "./styles/night-secondary.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN, SITE_TITLE, SOCIAL_IMAGE } from "../lib/site-metadata";
 

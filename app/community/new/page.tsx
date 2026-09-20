@@ -11,5 +11,5 @@ export const metadata = pageMetadata({
 });
 
 export default function NewCommunityPostPage() {
-  return <main className="community-page community-form-page"><SkipLink href="#community-editor">글 입력으로 바로가기</SkipLink><CommunityHeader /><section id="community-editor"><CommunityEditor /></section></main>;
+  return <main className="community-page wave-night night-secondary community-form-page"><SkipLink href="#community-editor">글 입력으로 바로가기</SkipLink><CommunityHeader /><section id="community-editor"><CommunityEditor /></section></main>;
 }

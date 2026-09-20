@@ -1,3 +1,4 @@
+import WaveHeader from "../../components/WaveHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,7 +9,8 @@ export const metadata: Metadata = {
 };
 
 export default function TermsPage() {
-  return <main className="policy-page" id="main">
+  return <main className="wave-night night-secondary policy-page" id="main">
+    <WaveHeader current="other" />
     <nav aria-label="정책 페이지 이동"><Link href="/">WAVE 홈</Link><Link href="/policies">운영정책</Link><Link href="/privacy">개인정보처리방침</Link></nav>
     <header><p>TERMS OF SERVICE</p><h1>여행 결정에 필요한 근거와<br />확인할 한계를 함께 봅니다.</h1><span>약관 버전 1.0 · 시행일 2026년 9월 3일</span></header>
 

@@ -153,7 +153,7 @@ export default function TravelBookPage() {
     startNewTrip();
   }
 
-  return <main className="travel-book-page">
+  return <main className="travel-book-page wave-night night-secondary">
     <SkipLink href="#travel-book-main">여행집 본문으로 바로가기</SkipLink>
     <CommunityHeader current="travel-book" />
     <section className="travel-book-task-heading" id="travel-book-main">

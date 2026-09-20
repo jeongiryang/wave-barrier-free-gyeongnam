@@ -32,11 +32,13 @@ async function setup(page: Page, handler?: (route: Route) => Promise<void>) {
   }, values);
   await page.goto('/festivals');
   const filters = page.getByRole('region', { name: '축제 찾기', exact: true });
-  await expect(filters.getByRole('button', { name: '아이와 함께 · 주류 행사 제외', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '주류 행사 제외', exact: true })).toBeVisible();
   await expect(filters.getByLabel('언제부터', { exact: true })).toHaveValue('2026-09-12');
   await expect(filters.getByLabel('언제까지', { exact: true })).toHaveValue('2026-10-12');
   await expect(page.getByRole('heading', { name: event.name, exact: true })).toBeVisible();
-  return page.locator('.festival-card').filter({ has: page.getByRole('heading', { name: event.name, exact: true }) });
+  const card = page.locator('.festival-card').filter({ has: page.getByRole('heading', { name: event.name, exact: true }) });
+  await card.locator('.night-festival-more > summary').click();
+  return card;
 }
 
 test('축제의 실제 개최일을 골라 담으면 기존 방문일과 고정 약속을 유지한다', async ({ page }) => {
@@ -88,13 +90,13 @@ for (const change of ['region', 'date'] as const) test(`축제 ${change === 'reg
   try {
     await setup(page, handler); const before = await records(page);
     const filters = page.getByRole('region', { name: '축제 찾기', exact: true });
-    if (change === 'region') await filters.getByRole('combobox', { name: '지역', exact: true }).selectOption('통영');
+    if (change === 'region') await filters.getByRole('combobox', { name: '지역 선택', exact: true }).selectOption('통영');
     else await filters.getByLabel('언제부터', { exact: true }).fill('2026-09-25');
     await expect(page.locator('#festival-results')).toHaveAttribute('aria-busy', 'true');
     await expect(page.getByRole('heading', { name: event.name, exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '내 일정에 담기', exact: true })).toHaveCount(0);
     await expect.poll(() => delayed).toBe(1);
-    if (change === 'region') await filters.getByRole('combobox', { name: '지역', exact: true }).selectOption('거제');
+    if (change === 'region') await filters.getByRole('combobox', { name: '지역 선택', exact: true }).selectOption('거제');
     else await filters.getByLabel('언제부터', { exact: true }).fill('2026-09-26');
     await expect(page.getByRole('heading', { name: nextEvent.name, exact: true })).toBeVisible();
     gate.release(); await expect.poll(() => completed).toBe(true);

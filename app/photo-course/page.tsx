@@ -3,21 +3,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PhotoCourseRestore from "../../features/photo-course/PhotoCourseRestore";
+import WaveHeader from "../../components/WaveHeader";
 import SkipLink from "../../components/SkipLink";
 
 export default function PhotoCoursePage() {
   const router = useRouter();
 
-  return <main className="photo-course-page">
+  return <main className="photo-course-page wave-night night-secondary">
     <SkipLink href="#photo-course-main">본문으로 바로가기</SkipLink>
-    <header className="photo-course-page-header">
-      <Link href="/" className="photo-course-brand" aria-label="WAVE 홈">WAVE</Link>
-      <nav aria-label="사진 코스 화면 이동">
-        <Link href="/planner">여행 설계</Link>
-        <Link href="/travel-book">내 여행</Link>
-        <Link href="/community">커뮤니티</Link>
-      </nav>
-    </header>
+    <WaveHeader current="other" />
     <section className="photo-course-page-intro" id="photo-course-main">
       <p>PHOTO COURSE</p>
       <h1>사진 속 여행을<br />다시 코스로 연결해요.</h1>

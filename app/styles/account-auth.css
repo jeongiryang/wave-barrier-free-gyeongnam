@@ -17,17 +17,8 @@
 .account-popover p { margin: 0; color: #a13c49; font-size: .7rem; }
 
 .auth-page { min-height: 100svh; color: var(--ink); background: radial-gradient(circle at 14% 24%,rgba(125,235,233,.2),transparent 28%),linear-gradient(135deg,#f6fcff 0%,#edf7fb 52%,#e8f3f9 100%); }
-.auth-header { width: min(1240px,calc(100% - 48px)); min-height: 78px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 28px; border-bottom: 1px solid rgba(42,103,130,.15); }
-.auth-header nav { display: flex; gap: 28px; font-size: .85rem; font-weight: 800; }
-.auth-header-action { min-height: 44px; padding: 9px 14px; display: inline-flex; align-items: center; gap: 18px; border-radius: 12px; color: var(--white); background: var(--ink); font-size: .78rem; font-weight: 850; }
 .auth-layout { width: min(1160px,calc(100% - 48px)); min-height: calc(100svh - 78px); margin: 0 auto; padding: 70px 0 90px; display: grid; grid-template-columns: minmax(0,1fr) minmax(390px,480px); align-items: center; gap: clamp(52px,8vw,120px); }
-.auth-story h2 { margin: 14px 0 24px; font-size: clamp(2.8rem,5vw,5.25rem); line-height: 1.06; letter-spacing: -.07em; }
 .auth-story > p:not(.section-kicker) { max-width: 570px; color: var(--muted); font-size: 1.02rem; line-height: 1.75; }
-.auth-journey-preview { max-width: 610px; margin-top: 38px; display: grid; gap: 10px; }
-.auth-journey-preview > span { padding: 16px 18px; display: grid; grid-template-columns: 34px 150px 1fr; align-items: center; gap: 12px; border: 1px solid rgba(38,112,144,.16); border-radius: 15px; background: rgba(255,255,255,.64); }
-.auth-journey-preview i { color: var(--blue); font-size: .67rem; font-style: normal; font-weight: 900; }
-.auth-journey-preview b { font-size: .84rem; }
-.auth-journey-preview small { color: var(--muted); line-height: 1.5; }
 .auth-card { padding: clamp(28px,4vw,44px); border: 1px solid rgba(255,255,255,.85); border-radius: 30px; background: rgba(255,255,255,.94); box-shadow: 0 30px 75px rgba(7,52,72,.18); backdrop-filter: blur(18px); }
 .auth-kicker { margin: 0; color: var(--blue); font-size: .68rem; font-weight: 900; letter-spacing: .14em; }
 .auth-card h2 { margin: 9px 0 9px; font-size: clamp(2rem,3.4vw,2.8rem); line-height: 1.12; letter-spacing: -.05em; }
@@ -84,10 +75,6 @@ html[data-theme="dark"] .auth-message.success { color: #7ce0c8; }
 /* 어두운 화면 — 이 파일의 표면 색은 흰색 계열로 고정돼 있다. 배경만 어둡게 바꾸고
    글자를 두면 반대 사고가 나므로 배경과 글자를 함께 옮긴다.
    .auth-card·.account-popover는 community.css의 다크 규칙이 이미 덮는다. */
-html[data-theme="dark"] .auth-journey-preview > span {
-  border-color: #2a5064;
-  background: rgba(9,44,60,.72);
-}
 html[data-theme="dark"] .password-field button {
   color: var(--ink);
   border-color: #2f5b6f;

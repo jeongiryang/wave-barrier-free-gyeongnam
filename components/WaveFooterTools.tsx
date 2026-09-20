@@ -12,6 +12,7 @@ export default function WaveFooterTools() {
   const en = useSitePreferences().locale === "en";
   if (path === "/demo" || path === "/" || path === "/planner" || path === "/travel-book" || path === "/outings" || path === "/guide" || path?.startsWith("/my-trips") || path?.startsWith("/join-trip") || path?.startsWith("/community")) return null;
   if (path === "/login" || path === "/register" || path?.startsWith("/festivals")) return null;
+  if (["/privacy", "/terms", "/policies", "/forgot-password", "/reset-password", "/photo-course"].includes(path || "") || path?.startsWith("/account") || path?.startsWith("/trip/") || path?.startsWith("/companion/")) return null;
   return <footer className="wave-footer-tools" style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 12, padding: 12, color: "var(--muted)", background: "var(--surface)", fontSize: ".8rem" }} aria-label={en ? "WAVE support" : "WAVE 이용 안내"}>
     <Link className="account-button" href="/guide">{en ? "How to use WAVE" : "사용 가이드"}</Link>
     <HelpCenter /><PreferenceControls />

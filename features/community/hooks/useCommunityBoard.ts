@@ -16,6 +16,7 @@ export function useCommunityBoard(initialPlace: PlaceFilter | null) {
 
   const writeHref = useMemo(() => {
     const params = new URLSearchParams();
+    if (category) params.set("category", category);
     if (placeFilter) {
       params.set("placeId", placeFilter.id);
       params.set("placeName", placeFilter.name);
@@ -23,7 +24,7 @@ export function useCommunityBoard(initialPlace: PlaceFilter | null) {
     }
     const target = `/community/new${params.size ? `?${params}` : ""}`;
     return session?.user ? target : `/login?next=${encodeURIComponent(target)}`;
-  }, [placeFilter, session?.user]);
+  }, [category, placeFilter, session?.user]);
 
   function submitSearch(event: FormEvent) {
     event.preventDefault();
@@ -36,6 +37,7 @@ export function useCommunityBoard(initialPlace: PlaceFilter | null) {
     setCategory,
     search,
     query,
+    setQuery,
     setSearch,
     placeFilter,
     setPlaceFilter,

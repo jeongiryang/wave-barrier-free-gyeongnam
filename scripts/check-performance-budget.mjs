@@ -10,7 +10,9 @@ const rscRoot = join(root, "node_modules/.nitro/vite/services/rsc");
 // 현재 실측값에 작은 변동 여유를 둔다. 전역 CSS를 성급히 경로별로 쪼개
 // hydration 스타일 순서를 깨뜨리기보다, 전송비가 이 선을 넘을 때만 분할한다.
 const BUDGET = {
-  cssGzipKiB: 70,
+  // Approved 2026-09-20 desktop replacement adds three routes' shared night UI.
+  // 70 KiB existing styles + 8 KiB for the new header, banners, cards and map.
+  cssGzipKiB: 78,
   landingInitialJsGzipKiB: 155,
   landingInitialJsRawKiB: 520,
   plannerInitialJsGzipKiB: 270,
