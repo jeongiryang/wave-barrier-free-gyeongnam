@@ -16,6 +16,7 @@ import { replaceTripWithBackup } from "../../lib/trip-import.js";
 import { usePlaceDialogFocus } from "../../features/planner/hooks/usePlaceDialogFocus";
 import CloudSaveAction from "../../features/account-travel/CloudSaveAction";
 import { facilityLabel, resolveFacilityKeys } from "../../lib/facility-selection.js";
+import LocalMarketCard from "../../features/trips/components/LocalMarketCard";
 
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 const shortDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
@@ -162,6 +163,7 @@ export default function TravelBookPage() {
       <nav aria-label="여행 저장 위치"><a href="#travel-book-collection">이 기기</a><Link href="/my-trips">계정에 저장한 여행</Link></nav>
     </section>
     <div className="travel-book-collection-heading" id="travel-book-collection"><h2>저장한 여행</h2></div>
+    {hydrated && <LocalMarketCard books={books} />}
     <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
     {storageError && <p className="result-notice error" role="alert">{storageError}</p>}
     {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>저장한 여행을 불러오는 중입니다.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setAnnouncement(`${book.title} 여행을 여행집에서 삭제했습니다.`); }} onRestore={restore} />)}</section> : <section className="travel-book-empty">
