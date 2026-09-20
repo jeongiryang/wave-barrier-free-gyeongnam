@@ -88,3 +88,5 @@ html[data-theme="dark"] .trip-point-picker { color: #e7f3f8; border-color: #3059
 @media (max-width: 960px) { .weather-board { grid-template-columns: 1fr; }.weather-days { grid-template-columns: repeat(7,minmax(95px,1fr)); }.trip-point-list { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .weather-board { padding: 12px; }.weather-current { min-height: 150px; }.weather-days { padding-bottom: 5px; }.weather-day { min-height: 146px; }.trip-point-picker { width: calc(100% - 18px); left: 9px; top: 128px; max-height: 68vh; }.trip-point-comparison { grid-template-columns: 1fr; }.trip-point-list { max-height: 210px; }.map-toolbar .point-button,.map-toolbar .point-active { min-height: 48px; }.map-toolbar .recalculate-button { grid-column: 1 / -1; } }
 @media (prefers-reduced-motion: reduce) { .smart-image-skeleton,.weather-skeleton > * { animation: none !important; } }
+.weather-scenery-hint { grid-column: 1 / -1; margin: 0; color: var(--ink-soft); font-size: .875rem; line-height: 1.6; }
+.weather-scenery-hint small { display: block; color: var(--muted); font-size: .75rem; }

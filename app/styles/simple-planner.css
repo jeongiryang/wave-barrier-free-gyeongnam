@@ -434,3 +434,6 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
   .simple-readiness-precautions > div { grid-template-columns: 1fr; }
   .simple-readiness-precautions a { margin: -8px 0 8px 32px; }
 }
+.scenery-hint { margin: 10px 0 0; color: var(--ink-soft); font-size: .875rem; line-height: 1.6; }
+.scenery-hint span,.scenery-hint small { display: block; }
+.scenery-hint small { margin-top: 2px; color: var(--muted); font-size: .75rem; }

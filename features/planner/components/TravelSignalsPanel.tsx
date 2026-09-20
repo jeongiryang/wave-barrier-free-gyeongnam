@@ -6,6 +6,7 @@ import type {
   RichMode,
   RichSpot,
   WeatherData,
+  Place,
 } from "../types";
 import type { TripImpact } from "../view-model";
 import { lazy, Suspense } from "react";
@@ -24,6 +25,8 @@ interface TravelSignalsPanelProps {
   region: string;
   plan: PlanData | null;
   weather: WeatherData | null;
+  places: Place[];
+  visitDate: string;
   weatherLoading: boolean;
   weatherFailure?: import("../../../lib/provider-failure.js").ProviderFailure;
   onReloadWeather: () => void;
@@ -47,6 +50,8 @@ export default function TravelSignalsPanel({
   region,
   plan,
   weather,
+  places,
+  visitDate,
   weatherLoading,
   weatherFailure,
   onReloadWeather,
@@ -70,7 +75,7 @@ export default function TravelSignalsPanel({
   return <details open={secondaryOpen} className="journey-workspace-block travel-layers" id="layers" suppressHydrationWarning onToggle={(event) => { if (secondaryOpen !== event.currentTarget.open) onSecondaryOpenChange(event.currentTarget.open); }}>
     <summary><span>{english ? "Weather, visitor forecasts and nearby information" : "날씨·혼잡과 주변 정보 자세히 보기"}</span><small>{english ? "Optional · check when it affects your itinerary." : "선택 사항 · 일정에 영향을 줄 때만 확인하세요."}</small></summary>
     {secondaryOpen && <div className="travel-signal-content">
-      <Suspense fallback={<LoadingState>{english ? "Opening weather…" : "날씨 화면을 여는 중입니다…"}</LoadingState>}><WeatherBoard region={region} weather={weather} failure={weatherFailure} loading={weatherLoading} onReload={onReloadWeather} /></Suspense>
+      <Suspense fallback={<LoadingState>{english ? "Opening weather…" : "날씨 화면을 여는 중입니다…"}</LoadingState>}><WeatherBoard region={region} weather={weather} places={places} visitDate={visitDate} failure={weatherFailure} loading={weatherLoading} onReload={onReloadWeather} /></Suspense>
       <div id="crowd">{plan ? <SituationImpactPanel
         tripImpact={tripImpact}
         impactCrowd={impactCrowd}

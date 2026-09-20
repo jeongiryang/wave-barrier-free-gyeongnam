@@ -1,3 +1,5 @@
+import { sceneryCondition, sceneryHint, type PlaceSetting, type SceneryHint } from "../../lib/scenery-hint.js";
+
 const conditions: Array<[number[], string]> = [
   [[0], "Clear"], [[1, 2], "Mostly clear"], [[3], "Cloudy"], [[45, 48], "Fog"],
   [[51, 53, 55, 56, 57], "Drizzle"], [[61, 63, 65, 66, 67, 80, 81, 82], "Rain"],
@@ -18,3 +20,17 @@ const advice: Record<string, string> = {
   "가벼운 겉옷을 겹쳐 입으면 편안해요.": "Bring a light outer layer.",
 };
 export const weatherPreparation = (text: string, english: boolean) => english ? advice[text] || text : text;
+
+const sceneryEnglish: Record<string, string> = {
+  "rain:outdoor": "Rain is forecast for this day. This place is viewed outdoors.",
+  "rain:indoor": "Rain is forecast for this day. This place can be viewed indoors.",
+  "clear:outdoor": "Clear weather is forecast for this day. This place is viewed outdoors.",
+};
+
+export function sceneryGuidance(day: { code: number; rainProbability: number } | undefined, setting: PlaceSetting, english: boolean): SceneryHint {
+  if (!day) return null;
+  const condition = sceneryCondition(day);
+  const hint = sceneryHint(condition, setting);
+  if (!hint || !english) return hint;
+  return { text: sceneryEnglish[`${condition}:${setting}`] || hint.text, source: "Open-Meteo forecast · tourism description evidence" };
+}

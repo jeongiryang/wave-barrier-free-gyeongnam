@@ -374,7 +374,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
   const plannerStages = <div className="simple-stage-stream">
     <div hidden={!browsing} className="simple-browse-view">
       <PlannerConditionsPanel onRegionChange={regionChange.request} view="guided" question={stageView.conditionQuestion} onQuestion={stageView.changeQuestion} onItinerary={() => journey.goToStep("itinerary")} onGenerate={generatePlan} t={t} activePlaces={activePlaces} planController={planController} route={routePlanning} tripSelection={tripSelection} />
-      {region && <RecommendationWorkspace region={region} activePlaces={activePlaces} planController={planController} tripSelection={tripSelection} onGenerate={generatePlan} onSelectPlace={setSelectedPlace} onRegionSelect={next => regionChange.request(next, () => stageView.changeStep("conditions", true))} onBuildItinerary={() => stageView.changeStep("itinerary", true)} onMore={async () => { await runPlan({ resetRouteData, resetAudio, page: plan?.pagination?.nextPage ?? (plan?.pagination?.page || 1) + 1 }, false); }} />}
+      {region && <RecommendationWorkspace region={region} activePlaces={activePlaces} planController={planController} tripSelection={tripSelection} weather={weather} weatherDate={travelStart} onGenerate={generatePlan} onSelectPlace={setSelectedPlace} onRegionSelect={next => regionChange.request(next, () => stageView.changeStep("conditions", true))} onBuildItinerary={() => stageView.changeStep("itinerary", true)} onMore={async () => { await runPlan({ resetRouteData, resetAudio, page: plan?.pagination?.nextPage ?? (plan?.pagination?.page || 1) + 1 }, false); }} />}
     </div>
     <div hidden={browsing} className="simple-itinerary-view">
       <TripReplacementNotice alternatives={alternatives} />
@@ -437,6 +437,8 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
                 onOpenSignals={openTravelSignals}
               /><TravelSignalsPanel
                 region={region}
+                places={tripSelection.orderedSavedPlaces}
+                visitDate={travelStart}
                 weatherFailure={weatherFailure}
                 onReloadWeather={reloadWeather}
                 plan={plan}

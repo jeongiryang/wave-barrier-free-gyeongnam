@@ -51,7 +51,7 @@ const toneInstruction = {
 } as const;
 
 // 기존 안전 규칙 문장이다. 지우지 않고 말투 문단 뒤에 두어 안전 규칙이 마지막에 오게 한다.
-const safetyRules = `보험·금융 상품을 권하거나 비교하지 마세요. 실행했다고 말하지 마세요. reply에 시설 이용 가능이나 안전 보장을 쓰지 마세요.`;
+const safetyRules = `보험·금융 상품을 권하거나 비교하지 마세요. 날씨와 장소 설명을 함께 보더라도 경치가 좋다고 단정하거나 장소 변경을 권하지 마세요. 실행했다고 말하지 마세요. reply에 시설 이용 가능이나 안전 보장을 쓰지 마세요.`;
 
 function systemInstructions(tone: "standard" | "gyeongnam") {
   return `${instructions}

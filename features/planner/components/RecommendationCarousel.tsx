@@ -5,7 +5,7 @@ import { useSitePreferences } from "../../../components/SitePreferences";
 import { Spinner } from "../../../components/LoadingState";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import type { useTripSelection } from "../hooks/useTripSelection";
-import type { Place } from "../types";
+import type { Place, WeatherData } from "../types";
 import { providerFailureMessage } from "../../../lib/provider-failure.js";
 import { facilityLabel } from "../../../lib/facility-selection.js";
 import { planFailureHeadings } from "../condition-copy";
@@ -13,8 +13,9 @@ import PlaceResultRow from "./PlaceResultRow";
 import PlaceComparison from "./PlaceComparison";
 const ExplorationPlaces = lazy(() => import("./ExplorationPlaces"));
 
-export default function RecommendationCarousel({ region, activePlaces, planController: control, tripSelection: trip, onGenerate, onMore, onSelectPlace }: {
+export default function RecommendationCarousel({ region, activePlaces, planController: control, tripSelection: trip, weather, weatherDate, onGenerate, onMore, onSelectPlace }: {
   region: string; activePlaces: Place[]; planController: ReturnType<typeof usePlannerPlan>; tripSelection: ReturnType<typeof useTripSelection>;
+  weather?: WeatherData | null; weatherDate?: string;
   onGenerate: (revealResults?: boolean, requestedTheme?: string) => void | Promise<void>;
   onMore?: () => void | Promise<void>; onSelectPlace: (place: Place) => void;
 }) {
@@ -59,9 +60,9 @@ export default function RecommendationCarousel({ region, activePlaces, planContr
     {plan && !loading && !planError && !incomplete && !activePlaces.length && <button type="button" className="simple-text-link" onClick={() => void onGenerate(false)}>{say('같은 조건으로 다시 시도', 'Retry with these preferences')}</button>}
     {trip.commandNotice && <p className="simple-command-receipt" role="status">{trip.commandNotice}{trip.canUndoCommand && <button type="button" onClick={() => trip.undoCommand()}>되돌리기</button>}</p>}
     <PlaceComparison places={activePlaces} requiredKeys={plan?.criteria?.facilityKeys || []} saved={trip.saved} current={resultCurrent} en={en} onReviewSearch={() => { const input = document.querySelector<HTMLSelectElement>('.simple-search-bar select'); input?.scrollIntoView({ block: 'center' }); input?.focus({ preventScroll: true }); }} onToggle={place => trip.toggleSaved(place.id)}>{compare => <div className="simple-place-list">
-      {activePlaces.map(place => <PlaceResultRow key={place.id} place={place} region={region} en={en} saved={trip.saved.includes(place.id)} current={resultCurrent} onToggle={() => trip.toggleSaved(place.id)} onDetails={() => onSelectPlace(place)} compare={compare.active ? { selected: compare.ids.includes(place.id), disabled: !compare.ids.includes(place.id) && compare.ids.length >= 3, toggle: () => compare.toggle(place.id) } : undefined} />)}
+      {activePlaces.map(place => <PlaceResultRow key={place.id} place={place} region={region} en={en} saved={trip.saved.includes(place.id)} current={resultCurrent} weather={weather} weatherDate={weatherDate} onToggle={() => trip.toggleSaved(place.id)} onDetails={() => onSelectPlace(place)} compare={compare.active ? { selected: compare.ids.includes(place.id), disabled: !compare.ids.includes(place.id) && compare.ids.length >= 3, toggle: () => compare.toggle(place.id) } : undefined} />)}
     </div>}</PlaceComparison>
-    {exploration.length > 0 && (!needsHelp || showUnknown) && <Suspense fallback={<p><Spinner />{say("다른 장소를 불러오고 있어요.", "Loading other places.")}</p>}><ExplorationPlaces places={exploration} region={region} saved={trip.saved} en={en} onToggle={place => trip.toggleSaved(place.id, place)} onSelectPlace={onSelectPlace} /></Suspense>}
+    {exploration.length > 0 && (!needsHelp || showUnknown) && <Suspense fallback={<p><Spinner />{say("다른 장소를 불러오고 있어요.", "Loading other places.")}</p>}><ExplorationPlaces places={exploration} region={region} saved={trip.saved} en={en} weather={weather} weatherDate={weatherDate} onToggle={place => trip.toggleSaved(place.id, place)} onSelectPlace={onSelectPlace} /></Suspense>}
     {excluded.length > 0 && <details className="simple-excluded"><summary>{say(`선택한 시설이 없어 제외된 장소 ${excluded.length}곳`, `${excluded.length} places excluded for unavailable facilities`)}</summary>
       <ul>{excluded.map(place => <li key={place.id}><button type="button" className="simple-text-link" onClick={() => onSelectPlace(place)}>{place.name}</button><p>{place.accessibility?.filter(item => item.state === 'negative' && (plan?.criteria?.facilityKeys || control.selected).includes(item.key)).map(item => `${facilityLabel(item.key, en)} ${say('없음', 'unavailable')}`).join(' · ')}</p></li>)}</ul>
     </details>}

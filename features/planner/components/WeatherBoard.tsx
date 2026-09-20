@@ -1,4 +1,4 @@
-import type { WeatherData } from "../types";
+import type { Place, WeatherData } from "../types";
 import { providerFailureMessage, type ProviderFailure } from "../../../lib/provider-failure.js";
 import { statusWord } from "../../../lib/status-shape.js";
 import WeatherVisual from "./WeatherVisual";
@@ -6,22 +6,26 @@ import { useSitePreferences } from "../../../components/SitePreferences";
 import { regionNames } from "../../../components/GyeongnamRegionPicker";
 import { useReadinessFocus } from "../hooks/useReadinessFocus";
 import { originalLanguage } from "../place-copy";
-import { weatherCondition, weatherPreparation } from "../weather-copy";
+import { sceneryGuidance, weatherCondition, weatherPreparation } from "../weather-copy";
 
 interface WeatherBoardProps {
   region: string;
   weather: WeatherData | null;
+  places?: Place[];
+  visitDate?: string;
   loading: boolean;
   failure?: ProviderFailure;
   onReload: () => void;
 }
 
-export default function WeatherBoard({ region, weather, loading, failure, onReload }: WeatherBoardProps) {
+export default function WeatherBoard({ region, weather, places = [], visitDate, loading, failure, onReload }: WeatherBoardProps) {
   const { locale } = useSitePreferences();
   const english = locale === "en";
   const focus = useReadinessFocus();
   const dateLocale = english ? "en-US" : "ko-KR";
   const dateFormat = new Intl.DateTimeFormat(dateLocale, { year: "numeric", month: "short", day: "numeric", weekday: "short", timeZone: "Asia/Seoul" });
+  const forecast = weather?.days.find(day => day.date === visitDate);
+  const placeHint = places.map(place => ({ place, hint: sceneryGuidance(forecast, place.setting?.state === 'indoor-space' ? 'indoor' : 'unknown', english) })).find(item => item.hint);
   return <section className="weather-board" data-reveal aria-busy={loading} aria-label={english ? `${regionNames[region] || region} travel weather` : `${region} 여행 날씨`} {...focus}>
     <header className="weather-heading"><p>{english ? "Forecast dates are shown in Korea time. Check again before leaving." : "예보 날짜는 한국 시간입니다. 출발 전에 다시 확인하세요."}</p><button type="button" onClick={() => { if (!loading) onReload(); }} aria-disabled={loading} aria-busy={loading}>{english ? "Check weather again" : "날씨 다시 확인"}</button></header>
     <p className="sr-only" role="status">{loading ? (english ? "Checking the forecast…" : "예보를 확인하고 있습니다…") : weather ? (english ? "Forecast received." : "예보를 확인했습니다.") : (english ? "The forecast could not be checked." : "예보를 확인하지 못했습니다.")}</p>
@@ -53,6 +57,7 @@ export default function WeatherBoard({ region, weather, loading, failure, onRelo
           {day.snow > 0 && <b>{english ? "Snow " : "눈 "}{day.snow.toFixed(1)} cm</b>}
         </article>
       ))}</div>
+      {placeHint?.hint && <p className="weather-scenery-hint"><span lang={originalLanguage(placeHint.place.name)}>{placeHint.place.name}</span> · {placeHint.hint.text}<small>{placeHint.hint.source}</small></p>}
     </>}
     {!loading && !weather && <div className="weather-empty">
       <strong><span className="status-word">{english ? "Error" : statusWord("error")}</span>{failure ? providerFailureMessage(failure, english) : english ? "The forecast is temporarily unavailable." : "예보를 잠시 불러오지 못했습니다."}</strong>
