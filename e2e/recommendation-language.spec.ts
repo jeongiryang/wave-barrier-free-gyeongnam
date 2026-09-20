@@ -37,6 +37,7 @@ async function prepare(page: Page, locale: "ko" | "en" = "en") {
   const trigger = page.locator('.simple-place-row h3 button');
   await trigger.click();
   await expect(page.getByRole("dialog").getByRole("heading", { level: 2 })).toBeFocused();
+  await page.locator(".place-visitor-records > summary").click();
   return trigger;
 }
 
@@ -83,7 +84,11 @@ for (const theme of ["light", "dark"] as const) {
     await page.keyboard.press("Shift+Tab");
     await expect(arrivalSummary).toBeFocused();
     await page.keyboard.press("Shift+Tab");
+    await expect(dialog.getByRole('button', { name: /Make an inquiry card/ })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
     await expect(dialog.getByRole("textbox")).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(dialog.getByRole('button', { name: /Make an inquiry card/ })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(arrivalSummary).toBeFocused();
     await page.keyboard.press("Tab");
@@ -114,7 +119,7 @@ for (const locale of ["ko", "en"] as const) {
         return route.fulfill({ json: { posts: [] } });
       });
       await prepare(page, locale);
-      const stories = page.getByRole("region", { name: locale === "en" ? "Visitor stories about this place" : "이 장소의 여행자 현장 이야기", exact: true });
+      const stories = page.getByRole("region", { name: locale === "en" ? "Visitor stories about this place" : "방문 후기", exact: true });
       await expect(stories.getByRole("status")).toContainText(locale === "en" ? "We couldn't load visitor stories" : "현장 후기를 불러오지 못했습니다");
       await expect(stories.locator(".place-community-empty")).toHaveCount(0);
       const retry = stories.getByRole("button", { name: locale === "en" ? "Reload visitor stories" : "현장 후기 다시 확인" });

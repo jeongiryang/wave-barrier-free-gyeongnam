@@ -21,9 +21,9 @@ export default function CommunityPage({ initialPlace = null }: { initialPlace?: 
 
     <section className="community-workspace" id="community-list" aria-labelledby="community-list-title">
       <CommunityBoardToolbar board={board} layout={layout} onLayout={setLayout} />
-    {!board.placeFilter && !board.category && !board.query && board.page === 1 && <CommunityTravelStories layout={layout} />}
       <p className="community-evidence-note">여행자 후기는 작성자 한 명의 경험이며 공식 관광·접근성 정보와 구분합니다.</p>
       <CommunityPostList board={board} layout={layout} />
+      <details className="community-guides"><summary>이용 가이드</summary><CommunityTravelStories layout={layout} /></details>
     </section>
     <SiteFooter />
   </main>;

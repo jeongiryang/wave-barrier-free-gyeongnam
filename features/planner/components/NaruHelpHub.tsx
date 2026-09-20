@@ -30,7 +30,7 @@ export default function NaruHelpHub({ context, canTalk, onOpenTool, onTalk }: Pr
     }
   };
   return <section className="naru-context-suggestions" aria-label="나루 도움 모음" style={{ flexWrap: 'wrap', overflowX: 'visible', flexDirection: 'column', alignItems: 'stretch', gap: 'var(--space-2, 8px)' }}>
-    <p className="naru-note" style={{ margin: 0, padding: 0 }}>누르면 바로 열려요. 대화를 입력하지 않아도 돼요.</p>
+
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
       {items.map(item => <button key={item.id} type="button" onClick={() => open(item.tool)}>{item.label}</button>)}
     </div>

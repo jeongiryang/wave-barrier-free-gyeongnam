@@ -57,7 +57,8 @@ test("장소 상세는 카카오 후기와 정확히 연결된 WAVE 커뮤니티
   await chooseTripConditions(page);
   await page.locator('.simple-place-row').first().locator('h3 button').click();
   const dialog = page.getByRole("dialog");
+  await dialog.locator(".place-visitor-records > summary").click();
   await expect(dialog.getByRole("link", { name: /방문 후기·사진/ })).toHaveAttribute("href", /map\.kakao\.com\/link\/search/);
-  await expect(dialog.getByRole("heading", { name: "이 장소의 여행자 현장 이야기" })).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "방문 후기" })).toBeVisible();
   await expect(dialog.getByText("창원 미술관 접근 동선 메모")).toBeVisible();
 });

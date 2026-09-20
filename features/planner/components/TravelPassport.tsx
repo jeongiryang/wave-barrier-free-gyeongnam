@@ -261,7 +261,7 @@ export default function TravelPassport({
             ? "내 방식으로 경남의 이야기를 만났어요."
             : entries.length
               ? "경남에 나만의 장면을 남겼어요."
-              : "어떤 방식으로든 첫 장면을 시작해 보세요."}
+              : "첫 방문 기록을 남겨보세요."}
       </p>
       <div className={styles.actions}>
         {Object.entries(PASSPORT_KINDS).map(([id, label]) => (
@@ -291,7 +291,7 @@ export default function TravelPassport({
           </li>
         ))}
       </ul>
-      {!entries.length && <p>아직 기록이 없어요. 첫 번째 풍경을 남겨보세요.</p>}
+      {!entries.length && <p>아직 방문 기록이 없습니다.</p>}
       <p>
         많이 걷거나 빨리 완주하지 않아도 참여할 수 있어요. 위치 기록은 기기에서
         200m 이내 근접을 확인한 개인 기록이며 공식 방문 인증이 아닙니다. 좌표는

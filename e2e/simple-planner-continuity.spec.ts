@@ -311,7 +311,7 @@ test("담기 다음 행동에서 날짜 전에 출발지를 고르고 같은 장
   await add(page, museum);
   const next = page.getByLabel('담은 장소로 이어가기', { exact: true });
   await expect(next).toContainText('담은 장소 1곳');
-  await next.getByRole('button', { name: '담은 장소로 일정 정하기', exact: true }).click();
+  await next.getByRole('button', { name: '날짜 정하기', exact: true }).click();
   const setup = page.locator('.simple-initial-setup');
   const origin = setup.getByRole('button', { name: '출발지 확인·변경 · 창원중앙역', exact: true });
   await origin.click();
@@ -325,7 +325,7 @@ test("담기 다음 행동에서 날짜 전에 출발지를 고르고 같은 장
   await expect(page.locator('.simple-timeboard')).toBeVisible();
   await expect.poll(async () => (await current(page)).ids).toEqual(['1001']);
   await page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: '여행지 찾기', exact: true }).click();
-  await expect(next.getByRole('button', { name: '담은 장소의 일정 보기', exact: true })).toBeVisible();
+  await expect(next.getByRole('button', { name: '내 일정 보기', exact: true })).toBeVisible();
 });
 
 test("나루의 다음 행동이 빈 여행에서 날짜 없는 여행과 완성 일정까지 이어진다", async ({ page }) => {
