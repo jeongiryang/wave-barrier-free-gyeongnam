@@ -184,7 +184,7 @@ for (const locale of ["ko", "en"] as const) test(`landing: ${locale} fresh reduc
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
   await expect(scene).toBeHidden();
   await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
-  await expect(planning).toHaveAccessibleName(locale === "en" ? "Explore places" : "여행지 둘러보기");
+  await expect(planning).toHaveAccessibleName(locale === "en" ? "Start planning" : "여행 설계 시작하기");
   await expectUsableTarget(planning);
   for (const motion of ["no-preference", "reduce"] as const) {
     await page.emulateMedia({ reducedMotion: motion });

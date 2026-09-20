@@ -52,7 +52,7 @@ test("landing: reduced motion exposes the real planning action immediately witho
   await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
   const planning = page.locator(".landing-actions a");
   await expectUsableTarget(planning);
-  await expect(planning).toHaveAccessibleName("여행지 둘러보기");
+  await expect(planning).toHaveAccessibleName("여행 설계 시작하기");
   await expect(planning).toHaveAttribute("href", "/planner");
   await page.keyboard.press("Tab");
   await expect(planning).not.toBeFocused();

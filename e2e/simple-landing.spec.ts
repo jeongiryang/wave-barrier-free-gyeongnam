@@ -29,7 +29,7 @@ async function freshAnimatedArrival(page: Page) {
 test("arrival finishes within twelve seconds and exposes a keyboard dismissal", async ({ page }) => {
   await freshAnimatedArrival(page);
   const scene = page.locator(".arrival-scene");
-  const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
+  const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행 설계 시작하기", exact: true });
   await expect(scene).toHaveAttribute("open", "");
   await expect(scene).toContainText("모두의 여행이 같은 출발선에 설 수 있도록");
   await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
@@ -49,7 +49,7 @@ test("arrival finishes within twelve seconds and exposes a keyboard dismissal", 
 test("the skip action exposes the real planning link", async ({ page }) => {
   await freshAnimatedArrival(page);
   await page.locator(".arrival-scene").getByRole("button", { name: "건너뛰기" }).click();
-  await page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true }).click();
+  await page.locator(".landing-hero-split").getByRole("link", { name: "여행 설계 시작하기", exact: true }).click();
   await expect(page).toHaveURL(url => url.pathname === "/planner");
   expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
 });
@@ -59,7 +59,7 @@ test("keyboard users can dismiss the arrival with Escape", async ({ page }) => {
   await freshAnimatedArrival(page);
   await page.keyboard.press("Escape");
   await expect(page.locator(".arrival-scene")).toBeHidden();
-  const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
+  const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행 설계 시작하기", exact: true });
   await action.focus(); await expect(action).toBeFocused();
 });
 

@@ -10,8 +10,8 @@ export default function LandingHero() {
   return <section className="landing-hero landing-hero-split" id="top" tabIndex={-1} aria-labelledby="landing-title">
     <div className="landing-hero-copy">
       <LandingHeroCopy />
-      <p className="landing-hero-description">{en ? "Check facilities and travel information, then share your itinerary." : "필요한 편의시설과 이동 정보를 확인하고 만든 일정을 공유할 수 있어요"}</p>
-      <div className="landing-actions"><Link href="/planner">{en ? "Explore places" : "여행지 둘러보기"}<span aria-hidden="true">→</span></Link></div>
+      <p className="landing-hero-description">{en ? "We show accessibility information confirmed by public data and clearly label what has not been confirmed." : "공공데이터로 확인된 편의 정보를 함께 보여 줘요. 확인되지 않은 것은 확인되지 않았다고 알려 줘요."}</p>
+      <div className="landing-actions"><Link href="/planner">{en ? "Start planning" : "여행 설계 시작하기"}<span aria-hidden="true">→</span></Link></div>
     </div>
     <EditorialPhoto photo={horizonPhotos.coast} className="landing-hero-landscape" priority />
   </section>;

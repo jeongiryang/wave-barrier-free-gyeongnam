@@ -4,6 +4,7 @@ import type { LandingTranslate } from "../content";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { horizonPhotos } from "../horizon-photos";
 import EditorialPhoto from "./EditorialPhoto";
+import { brandMeaning } from "../content";
 
 export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
   return <section className="evidence-story" id="evidence" aria-labelledby="data-principles-title">
@@ -21,6 +22,7 @@ export function LandingCallToAction({}: { t: LandingTranslate }) {
   return <section id="closing" tabIndex={-1} aria-labelledby="closing-title" className="landing-cta" data-cinematic="horizon">
     <EditorialPhoto photo={horizonPhotos.coast} className="closing-horizon" />
     <div className="landing-closing-copy" data-land-reveal>
+    <div className="brand-meaning"><p>{brandMeaning.ko}</p><p lang="en">{brandMeaning.en}</p></div>
     <span className="closing-eyebrow">{en ? "YOUR NEXT HORIZON" : "이제, 당신의 경남을 만날 차례"}</span>
     <h2 id="closing-title">{en ? "See you at" : "다음 풍경에서"}<br /><em>{en ? "the next horizon." : "만나요"}</em></h2>
     <Link href="/planner">{en ? "Plan my trip" : "여행 계획하기"} <span aria-hidden="true">↗</span></Link>
