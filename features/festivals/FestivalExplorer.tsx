@@ -19,7 +19,7 @@ import { readSessionProfiles, saveSessionProfiles } from '../../lib/session-trav
 import { getTabStorage } from '../../lib/session-storage.js';
 import { emptyTrip } from '../../lib/current-trip-storage.js';
 import { replaceTripWithBackup } from '../../lib/trip-import.js';
-import PlaceSensory from '../planner/components/PlaceSensory';
+import FestivalAmenities from './FestivalAmenities';
 import { addFestivalToTrip } from '../../lib/festival-trip.js';
 
 type Festival = Place & { startDate: string; endDate: string; phone: string; officialUrl: string; websiteUrl?: string; state: 'ended'|'ongoing'|'upcoming'; facilityState: string };
@@ -47,7 +47,7 @@ function FestivalCard({ festival, selectedProfiles, onOpen }: { festival: Festiv
       <button type="button" className="festival-detail-toggle" aria-expanded={details} onClick={() => setDetails(!details)}>편의·문의 정보 {details ? '접기' : '보기'}</button>
       {details && <div className="festival-evidence">{festival.accessibility?.map(field => <p key={field.key}><strong>{field.label} · {field.state === 'confirmed' ? '확인됨' : field.state === 'negative' ? '조건과 맞지 않음' : '미확인'}</strong><span>{field.detail || '공식 정보에서 확인할 수 없어요.'}</span></p>)}{festival.phone && <p>행사 문의: {festival.phone}</p>}{festival.officialUrl && <a href={festival.officialUrl} target="_blank" rel="noreferrer">공식 관광정보 원문 ↗</a>}<small>ⓒ한국관광공사 · {festival.checkedAt?.slice(0, 10)} 조회</small></div>}
       {festival.state !== 'ended' && <><label className="festival-visit-date">방문 날짜<AccessibleDateInput min={festival.startDate} max={festival.endDate} value={date} onChange={event => setDate(event.target.value)} /></label>{unavailable ? <p role="status">선택한 편의와 맞지 않는 항목이 있어요. 필요한 편의를 유지하고 다른 행사를 살펴보세요.</p> : <div className="festival-actions"><button type="button" onClick={() => onOpen(festival, date, false)}>내 일정에 담기</button><button type="button" onClick={() => openNaru(`${festival.city} ${festival.name} 축제를 ${date}에 가는 일정안을 만들어줘. 기존에 선택한 편의는 유지해줘.`)}>나루와 주변 코스 만들기</button><button type="button" onClick={() => onOpen(festival, date, true)}>이 축제로 새 여행</button></div>}</>}
-    </details></div><PlaceSensory place={festival}/></article>;
+    </details></div><FestivalAmenities place={festival}/></article>;
 }
 
 export default function FestivalExplorer() {
