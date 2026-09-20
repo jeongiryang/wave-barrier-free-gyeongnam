@@ -9,6 +9,7 @@ const englishLabels: Record<string, string> = {
   pharmacy: "Pharmacies", hospital: "Hospitals", subway: "Subway stations",
   "helpdog-confirmed": "Guide dog access confirmed",
   "braileblock-confirmed": "Tactile paving confirmed",
+  "low-floor-bus-arrival": "Low-floor buses confirmed now",
 };
 const layerName = (layer: FacilityLayer, english: boolean) => english ? englishLabels[layer.id] || layer.label : layer.label;
 
@@ -84,7 +85,7 @@ export default function FacilityLayerPanel({
           return <li key={id} className={failed ? "facility-chip failed" : "facility-chip"}>
             <span>{layer ? layerName(layer, english) : id}</span>
             {state === "loading" && <small>{english ? "Loading" : "불러오는 중"}</small>}
-            {state === "empty" && <small>{english ? "No search results" : "검색 결과 없음"}</small>}
+            {state === "empty" && <small>{english ? "No confirmed arrivals right now" : layer?.emptyLabel || "검색 결과 없음"}</small>}
             {failed && <><small>{english ? "Could not load" : "불러오지 못함"}</small>
               <button type="button" onClick={() => onRetryLayer(id)}>{english ? "Try again" : "다시 시도"}</button></>}
             <button type="button" onClick={() => onToggleLayer(id)} aria-label={english ? `Turn off ${layer ? layerName(layer, english) : id}` : `${layer ? layer.label : id} 끄기`}>×</button>
@@ -133,6 +134,7 @@ export default function FacilityLayerPanel({
         <div><dt>{english ? "Source" : "제공처"}</dt><dd>{selectedFacility.source}</dd></div>
         {selectedFacility.referenceDate && <div><dt>{english ? "Data reference date" : "데이터 기준일"}</dt><dd>{selectedFacility.referenceDate}</dd></div>}
       </dl>
+      {selectedFacility.official && selectedFacility.detail && <p>{selectedFacility.detail}</p>}
       <div className="map-place-actions">
         <button type="button" onClick={() => onShowOnMap(selectedFacility)}>{english ? "View on map" : "지도에서 보기"}</button>
         <button type="button" onClick={() => onSetDestination(selectedFacility)}>{english ? "Set as destination" : "도착지로 선택"}</button>
