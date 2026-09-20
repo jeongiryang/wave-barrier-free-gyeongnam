@@ -57,3 +57,5 @@
 - 원본 인트로: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/667
 
 - 최종 CI에서 발견한 저장한 글 진입 버튼의 밝은 배경/밝은 글자 충돌을 기존 night-sortbar 재사용으로 고쳤다. CSS 증가는 없으며 원래 night-desktop 6개와 북마크 전체 상태의 light/dark·desktop/mobile axe 12개가 통과했다. LandingChapters의 실제 지도 렌더 완료를 기다린 뒤 지역 버튼을 한 번 눌러 선택 상태와 기존 이동 경로를 확인하도록 검사 준비만 보완했고 12회 연속 통과했다.
+
+- CI 35537325785: quality and boundary passed; 14 of 16 browser shards passed. Both remaining failures were a strict test locator shared by the new saved-post toolbar. Scoped the hydration test to #night-all-stories, retained all existing assertions and added saved-post hydration assertions. Targeted desktop/mobile suite: 6/6 passed (12.5s). No production code changes.
