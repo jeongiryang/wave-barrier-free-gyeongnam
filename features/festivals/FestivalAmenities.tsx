@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { LayerGroup, Map as LeafletMap } from "leaflet";
 import { supportedPlacePoint } from "../../lib/map-coordinates.js";
 import type { Place } from "../planner/types";
+import { usePlaceDialogFocus } from "../planner/hooks/usePlaceDialogFocus";
 import styles from "./FestivalAmenities.module.css";
 
 type AmenityLayer = "rest" | "restroom";
@@ -72,6 +73,7 @@ function FestivalAmenityMap({ place }: { place: Place }) {
         markerGroupRef.current = L.layerGroup().addTo(map);
         leafletRef.current = L;
         setMapReady(true);
+        requestAnimationFrame(() => map.invalidateSize({ animate: false }));
       } catch {
         if (!cancelled) setMapError(true);
       }
@@ -142,8 +144,20 @@ function FestivalAmenityMap({ place }: { place: Place }) {
 
 export default function FestivalAmenities({ place }: { place: Place }) {
   const [open, setOpen] = useState(false);
-  return <details className="place-evidence" onToggle={(event) => setOpen(event.currentTarget.open)}>
-    <summary>지금 현장·감각 정보</summary>
-    {open && <FestivalAmenityMap place={place} />}
-  </details>;
+  const close = useCallback(() => setOpen(false), []);
+  return <>
+    <button type="button" className={styles.openButton} onClick={() => setOpen(true)}>지금 현장·감각 정보</button>
+    {open && <FestivalAmenityDialog place={place} onClose={close} />}
+  </>;
+}
+
+function FestivalAmenityDialog({ place, onClose }: { place: Place; onClose: () => void }) {
+  const dialog = usePlaceDialogFocus(true, onClose);
+  return <dialog ref={dialog} className={styles.dialog} aria-labelledby={`festival-amenity-title-${place.id}`} data-testid="festival-amenity-dialog">
+    <header className={styles.dialogHeader}>
+      <h2 id={`festival-amenity-title-${place.id}`} tabIndex={-1}>{place.name} 현장 편의 지도</h2>
+      <button type="button" aria-label="현장 편의 지도 닫기" onClick={onClose}>×</button>
+    </header>
+    <FestivalAmenityMap place={place} />
+  </dialog>;
 }
