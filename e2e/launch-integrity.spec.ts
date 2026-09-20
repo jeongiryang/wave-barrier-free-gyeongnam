@@ -9,7 +9,7 @@ import { routeTools } from "./departure-fixtures";
 function trackRuntimeErrors(page: Page) {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  page.on("console", (message) => { if (message.type() === "error") errors.push(`${message.text()} (${message.location().url})`); });
   return errors;
 }
 
@@ -322,6 +322,8 @@ test("a confirmed crowd alternative replaces the itinerary instead of an unrelat
   await expect.poll(async () => (await current(page)).ids).toEqual(["1002"]);
   expect((await current(page)).schedule.scheduleAssignments).toEqual({ "1002": "2026-10-08" });
   expect((await current(page)).facilities).toEqual(facilities);
+  if (await naruDialog(page).isVisible()) await closeNaruTool(page);
+  await expect(naruDialog(page)).toBeHidden();
   await showItineraryMap(page);
   await expect(page.locator('.simple-itinerary-map .wave-map-icon.place[data-place-id="1002"]')).toBeVisible();
   await expect(page.locator('.simple-itinerary-map .wave-map-icon.place[data-place-id="1001"]')).toHaveCount(0);
@@ -332,6 +334,10 @@ test("every ordered leg needs current route evidence while departure access stay
   const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
   await page.setViewportSize({ width, height: 960 });
   await mockPlannerApi(page, { preserveView: true });
+  // Opening internal travel tools mounts Naru's availability probe. It is
+  // independent of route evidence, and this suite must not call the provider.
+  await page.route('**/api/assistant', route => route.request().method() === 'GET'
+    ? route.fulfill({ json: { available: false } }) : route.fallback());
   const requests: URL[] = [];
   const museum = gate(), park = gate(), changedDays = gate();
   let daysChanged = false;

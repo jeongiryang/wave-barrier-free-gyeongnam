@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { mockPlannerApi } from './fixtures';
 import { enterDeparture, openDeparture } from './departure-fixtures';
+import { closeNaruTool } from './naru-tool-fixtures';
 async function prepare(page: Page, en: boolean) {
   await mockPlannerApi(page);
   await page.addInitScript(en => { localStorage.setItem('wave-theme', en ? 'dark' : 'light'); localStorage.setItem('wave-locale', en ? 'en' : 'ko'); }, en);
@@ -35,6 +36,7 @@ for (const en of [false, true]) test(`${en ? 'EN dark' : 'KO light'}: a fast pla
 });
 for (const en of [false, true]) test(`${en ? 'EN dark' : 'KO light'}: empty facility preferences refresh without adding a filter`, async ({ page }) => {
   await prepare(page, en);
+  await closeNaruTool(page);
   await page.locator('.simple-planner-tabs button').first().click(); await page.locator('.simple-facility-trigger').click();
   const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
   await picker.getByRole('button', { name: '선택 해제', exact: true }).click();
@@ -73,6 +75,7 @@ test('an immediate departure recheck consumes the pending search for cleared fac
     events.push({ phase, event: 'completed', url: response.url(), at: Date.now() });
   });
   try {
+    await closeNaruTool(page);
     await page.locator('.simple-planner-tabs button').first().click();
     await page.locator('.simple-facility-trigger').click();
     const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });

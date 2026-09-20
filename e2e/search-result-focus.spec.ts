@@ -1,4 +1,4 @@
-import { openNaruTool } from './naru-tool-fixtures';
+import { openNaruTool, naruDialog } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 import { confirmedAlternativePlan } from "./alternative-fixtures";
@@ -114,6 +114,9 @@ for (const action of ["nearby", "alternative"] as const) test("departure " + act
     await comparison.getByRole("button", { name: "선택한 장소로 교체", exact: true }).click();
   }
   const heading = page.locator("#itinerary-stage-title");
+  // A committed choice returns to the timetable; an open modal would keep
+  // that background heading inert even after the URL changes.
+  await expect(naruDialog(page)).toBeHidden();
   await expect(heading).toBeFocused();
   await expect(page).toHaveURL(/#itinerary$/);
   await expect(page.locator(".simple-stops > li")).toHaveCount(action === "nearby" ? 2 : 1);
@@ -127,6 +130,7 @@ for (const action of ["nearby", "alternative"] as const) test("departure " + act
   })).toBe(true);
   await page.goBack();
   await expect(page).toHaveURL(/#layers$/);
+  await expect(naruDialog(page)).toBeVisible();
   await expect(page.locator("#layers > summary")).toBeFocused();
 });
 

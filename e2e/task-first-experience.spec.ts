@@ -1,10 +1,13 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPublicShellApi, mockPlannerApi, openItinerary, plan } from './fixtures';
+import { prepareLandingMedia } from './landing-contract';
 
 test.use({ storageState: { cookies: [], origins: [] }, serviceWorkers: 'block' });
 test('task pages put actual collections first at desktop, tablet and mobile widths', async ({ page }, info) => {
-  await mockPublicShellApi(page);
+  // Community's curated cards use KTO images even with an empty post response.
+  // Keep remote image downloads from blocking the navigation load event.
+  await prepareLandingMedia(page);
   await page.route('**/api/community/posts?*', route => route.fulfill({ json: { posts: [], page: 1, hasMore: false } }));
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const path of ['/travel-book', '/community']) {

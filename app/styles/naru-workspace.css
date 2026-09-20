@@ -29,6 +29,7 @@ body .naru-panel.naru-workspace .naru-log { min-height:0;padding:20px;background
 body .naru-panel.naru-workspace :is(.naru-workspace-sidebar,.naru-workspace-content) { min-width:0;overflow:auto;overscroll-behavior:contain;padding:24px;background:#191a24; }
 body .naru-panel.naru-workspace .naru-workspace-sidebar { border-left:1px solid var(--line); }
 body .naru-panel.naru-workspace .naru-workspace-content { grid-column:1/-1;flex:1;min-height:0; }
+body .naru-panel.naru-workspace .naru-conversation > [role="tabpanel"]:not([hidden]):not(.naru-workspace-body) { display:flex;flex:1;min-height:0; }
 body .naru-panel.naru-workspace .naru-workspace-body[hidden] { display:none; }
 body .naru-panel.naru-workspace .naru-workspace-content .naru-tools { position:static;max-height:none;padding:16px;box-shadow:none;background:var(--surface); }
 body .naru-panel.naru-workspace .naru-workspace-notice { flex-shrink:0;margin:0;padding:10px 24px;color:var(--ink-soft);background:#292333;line-height:1.6; }

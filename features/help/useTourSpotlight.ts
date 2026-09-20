@@ -3,6 +3,7 @@
 import { useEffect, useState, type CSSProperties, type RefObject } from "react";
 import type { TourStep } from "./tour-content";
 import { prefersReducedMotion } from "../../lib/reduced-motion.js";
+import { isTourTargetVisible } from "./tour-visibility";
 
 export type TourHighlight = { top: number; left: number; width: number; height: number };
 
@@ -15,7 +16,7 @@ export function useTourSpotlight(open: boolean, steps: TourStep[], stepIndex: nu
     const section = step ? document.querySelector<HTMLElement>(step.selector) : null;
     if (!step || !section) return;
     const resolveTarget = () => [...document.querySelectorAll<HTMLElement>(step.highlightSelector)]
-      .find(node => node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden') || section;
+      .find(isTourTargetVisible) || section;
     let target = resolveTarget();
     section.dataset.helpTourActive = "true";
     const reduced = prefersReducedMotion();

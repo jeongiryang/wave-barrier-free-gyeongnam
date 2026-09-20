@@ -101,3 +101,19 @@ test('day tools activate directly and retain progress undo and draft choices thr
   await expect(split.getByRole('combobox', { name: 'B 출발 장소에서 더 머무는 시간', exact: true })).toHaveValue('60');
   expect(await stored(page)).toBe(before);
 });
+test('an empty trip opened from community returns to usable place search', async ({ page }) => {
+  await mockPublicShellApi(page); await mockPlannerApi(page, { preserveView: true });
+  await page.addInitScript(() => localStorage.setItem('wave-naru-starter-v1', 'done'));
+  await page.goto('/community');
+  await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
+  const chat = await openNaruTool(page, '이동 부담·휴식');
+  await expect(chat.getByRole('status').filter({ hasText: '여행지를 일정에 담으면' })).toBeVisible();
+  await chat.getByRole('button', { name: '여행지 찾기', exact: true }).click();
+  await expect(chat).toBeHidden();
+  await expect(page).toHaveURL(/\/planner#conditions$/);
+  const region = page.getByRole('combobox', { name: '여행 지역', exact: true });
+  await expect(region).toBeFocused();
+  await region.selectOption('창원');
+  await expect(page.locator('#places')).toBeVisible();
+  await expect(page.getByRole('combobox', { name: '여행지 검색', exact: true })).toBeEnabled();
+});

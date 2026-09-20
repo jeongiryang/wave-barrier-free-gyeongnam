@@ -14,6 +14,7 @@ const forecast = {
 async function prepare(page: Page, english = false) {
   await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
   await mockPlannerApi(page, { preserveView: true });
+  await page.route('**/api/assistant', route => route.request().method() === 'GET' ? route.fulfill({ json: { available: true } }) : route.fallback());
   await page.addInitScript((en) => localStorage.setItem("wave-locale", en ? "en" : "ko"), english);
   await page.emulateMedia({ reducedMotion: "reduce" });
 }

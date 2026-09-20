@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { prepareStory, storyReady, expectNoOverflow } from "./landing-contract";
+import { prepareStory, storyReady, expectNoOverflow, firstRegions } from "./landing-contract";
 
 async function observeRegionalMotion(page: Page) {
   await page.addInitScript(() => {
@@ -20,6 +20,7 @@ for (const width of [390, 1440]) test(`${width}px regions reveal as they enter a
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/"); await storyReady(page);
   const cards = page.locator(".simple-region");
+  await expect(cards.locator('h3')).toHaveText(firstRegions);
   for (const card of await cards.all()) {
     const name = await card.locator("h3").innerText();
     await card.scrollIntoViewIfNeeded();
@@ -32,7 +33,7 @@ for (const width of [390, 1440]) test(`${width}px regions reveal as they enter a
   const after = await page.locator("#regions").evaluate(node => ({ top: node.getBoundingClientRect().top, scroll: scrollY }));
   expect(Math.abs((after.top - before.top) + (after.scroll - before.scroll))).toBeLessThanOrEqual(1);
   expect(await page.locator("#regions").evaluate(node => getComputedStyle(node).position)).not.toBe("fixed");
-  expect(await page.evaluate(() => (window as Window & { regionalMotionCalls?: string[] }).regionalMotionCalls?.length)).toBe(6);
+  expect(await page.evaluate(() => (window as Window & { regionalMotionCalls?: string[] }).regionalMotionCalls?.length)).toBe(firstRegions.length);
 });
 
 test("switching OS reduction on before scrolling prevents new regional motion and preserves keyboard focus", async ({ page }) => {

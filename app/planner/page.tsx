@@ -178,8 +178,19 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   });
   const { feedbackText, feedbackState, changeFeedbackText, submitFeedback } = participation;
   const stageView = usePlannerStageView();
+  const itineraryRevealFrame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(itineraryRevealFrame.current), []);
+  function revealUpdatedItinerary() {
+    setAssistantOpen(false);
+    stageView.changeStep("itinerary");
+    cancelAnimationFrame(itineraryRevealFrame.current);
+    if (embedded) { router.push("/planner#itinerary"); return; }
+    // Native dialog cleanup restores its previous focus. Navigate after that
+    // cleanup so the finished itinerary receives focus rather than an inert page.
+    itineraryRevealFrame.current = requestAnimationFrame(() => stageView.changeStep("itinerary", true));
+  }
   const alternatives = useTripAlternatives(tripSelection, () => {
-    resetRouteData(); stageView.changeStep("itinerary", true);
+    resetRouteData(); revealUpdatedItinerary();
   });
   const openTravelSignals = useCallback((target: "layers" | "crowd") => {
     setDepartureDetailsOpen(true);
@@ -288,7 +299,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
         }
         tripSelection.setActiveDay(day);
       }
-      stageView.changeStep("itinerary", true);
+      revealUpdatedItinerary();
       return true;
     },
     onReplaceAlternative: () => {

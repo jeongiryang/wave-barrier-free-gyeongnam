@@ -1,3 +1,4 @@
+import { closeNaruTool } from './naru-tool-fixtures';
 import { routeTools } from './departure-fixtures';
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions, openItinerary } from "./fixtures";
@@ -11,6 +12,7 @@ test("통합 플래너는 실제 시간순 이동수단을 먼저 보여주고 �
   // 이 목록은 예상 시간이 오면 빠른 순서로 다시 정렬돼 탭 목록이 아니라 선택 버튼 묶음이다.
   const modes = page.locator(".route-mode-sections button");
   await page.locator(".itinerary-route-coverage select").selectOption("car");
+  await closeNaruTool(page);
   const mapToggle = page.getByRole('group', { name: '일정 보기 방식' }); if (await mapToggle.isVisible()) await mapToggle.getByRole('button', { name: '지도', exact: true }).click();
   await page.locator('.reference-transport-details > summary').click(); await page.locator('.transport-details > summary').click();
   await page.locator('.reference-route-details > summary').click();

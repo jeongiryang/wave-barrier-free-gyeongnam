@@ -9,6 +9,13 @@ test("Naru reveals restored and keyboard focus without moving a control during a
   const activity = page.getByRole("button", { name: "자연·휴양", exact: true });
   await expect(activity).toBeEnabled();
   await expect(page.locator('.simple-results[aria-busy="false"]')).toBeVisible();
+  // Arrange a real selectable control below the fold and wide enough to overlap
+  // the avatar. The hero's production spacing is independent of this focus race.
+  await activity.evaluate(element => {
+    const button = element as HTMLElement;
+    button.style.minWidth = '100%';
+    button.style.marginTop = `${innerHeight}px`;
+  });
   const alignWithLauncher = () => activity.evaluate(element => {
     const launcher = document.querySelector(".naru-discovery")!;
     const target = element.getBoundingClientRect(), floating = launcher.getBoundingClientRect();
@@ -33,9 +40,10 @@ test("Naru reveals restored and keyboard focus without moving a control during a
   expect(before.y + before.height).toBeGreaterThan(floating.y);
   expect(before.y).toBeLessThan(floating.y + floating.height);
   expect(before.x).toBeLessThan(floating.x + floating.width);
-  // The right side is visible even though another part of this real button
+  expect(before.x + before.width).toBeGreaterThan(floating.x);
+  // The middle is visible even though another part of this real button
   // overlaps the floating launcher. Keep pointerdown/up on that same point.
-  const point = { x: before.x + before.width - 5, y: before.y + before.height / 2 };
+  const point = { x: before.x + before.width / 2, y: before.y + before.height / 2 };
   expect(await activity.evaluate((element, point) => element.contains(document.elementFromPoint(point.x, point.y)), point)).toBe(true);
   await page.mouse.move(point.x, point.y);
   await page.mouse.down();
