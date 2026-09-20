@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions } from "./fixtures";
 import { openPlannerMap, openRouteDetails } from "./nearby-fixtures";
@@ -14,7 +15,8 @@ test("이동수단 카드의 시간 자리에 안내문을 값처럼 넣지 않�
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
+  await withRouteCoverage(page);
+  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
   await expect(page.locator(".route-option")).toHaveCount(2);
   await expect(page.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
 
@@ -38,7 +40,8 @@ test("경로 카드가 같은 이름을 반복하지 않는다", async ({ page }
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
+  await withRouteCoverage(page);
+  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
   await expect(page.locator(".route-option")).toHaveCount(2);
   await expect(page.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
 
@@ -64,7 +67,8 @@ test("경로 카드는 예상 시간·요금·환승·도보를 그대로 보여
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
+  await withRouteCoverage(page);
+  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
   await expect(page.locator(".route-option")).toHaveCount(2);
   await expect(page.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
 

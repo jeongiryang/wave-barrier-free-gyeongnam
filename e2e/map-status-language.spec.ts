@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { deliverNearby, nearbyPlace, openNearby, addAnotherMapPlace, changeMapLanguage, ensureMapView, openRouteDetails, type MapLayerFixture } from "./nearby-fixtures";
@@ -47,6 +48,7 @@ for (const theme of ["light", "dark"]) {
     await expect(expand).toHaveAttribute("aria-pressed", "false");
     await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
     await openRouteDetails(page);
+    await withRouteCoverage(page);
     await expect(page.locator(".itinerary-route-coverage")).toContainText("Recheck any unavailable journeys before leaving.");
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
     const count = await page.evaluate(() => (window as unknown as { mapLayerFixture: MapLayerFixture }).mapLayerFixture.maps.length);

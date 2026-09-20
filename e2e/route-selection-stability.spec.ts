@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
@@ -76,6 +77,7 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     await page.locator(".simple-initial-setup").getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("car");
     await openPlannerMap(page);
     await openRouteDetails(page);
+    await withRouteCoverage(page);
     await expect(page.locator("#itinerary-stop-1001 time")).toHaveText("10:25");
     await expect(page.locator(".map-load-placeholder")).toBeVisible();
     expect(heldMapRequests, "the delayed-map fixture must intercept the module request").toBeGreaterThan(0);
@@ -93,7 +95,7 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     releaseCoverage();
     await expect(page.locator(".route-map-shell")).toBeVisible();
     const coverage = page.locator(".itinerary-route-coverage");
-    await expect(coverage.getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
+    await expect(coverage.locator('[role="status"]')).toContainText("전체 1구간 중 1구간 확인");
     await expect(coverage.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
     const after = await calm.evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
     await page.mouse.up();
@@ -117,7 +119,8 @@ test("route selection stays under the pointer while map rendering settles", asyn
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기" }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
+  await withRouteCoverage(page);
+  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
   const arrival = page.locator("#itinerary-stop-1001 time");
   await expect(arrival).toHaveText("10:25");
   await page.getByRole("button", { name: /여유 자동차 경로/ }).click();

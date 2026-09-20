@@ -15,7 +15,7 @@ test("landing route composes restored scenes and keeps browser effects inside th
     source("features/landing/components/LandingAssistantStory.tsx"),
   ]);
   assert.deepEqual([...page.matchAll(/<(Landing[A-Za-z]+)\b/g)].map(match => match[1]),
-    ["LandingIntro", "LandingHeader", "LandingHero", "LandingRegionStory", "LandingFeatureLinks", "LandingChapters", "LandingFeatureList", "LandingAssistantStory", "LandingCommunityScene", "LandingDepartureScene", "LandingCallToAction", "LandingFooter"]);
+    ["LandingIntro", "LandingHeader", "LandingHero", "LandingRegionStory", "LandingFeatureLinks", "LandingChapters", "LandingCommunityScene", "LandingDepartureScene", "LandingAssistantStory", "LandingFeatureList", "LandingCallToAction", "LandingFooter"]);
   assert.deepEqual([hero, regions, story, naru].flatMap(content => [...content.matchAll(/<section\b[^>]*\bid="([^"]+)"/g)].map(match => match[1])), ["top", "regions", "story", "naru"]);
   assert.doesNotMatch(page, /useState|useEffect|IntersectionObserver|AbortController/);
   assert.match(regions, /new IntersectionObserver/);

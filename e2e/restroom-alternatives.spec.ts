@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { mockPlannerApi, openItinerary } from './fixtures';
@@ -12,7 +13,8 @@ async function openFinder(page: Page) {
   await page.route('**/api/wave?action=plan*', route => route.fulfill({ json: { mode: 'live', generatedAt: '2026-09-15T00:00:00Z', baseYm: '202609', places: [place], course: null, audio: null, stops: [], statuses: [] } satisfies PlanData }));
   await page.addInitScript(place => { if (localStorage.getItem('wave-current-trip-v1')) return; localStorage.setItem('wave-current-trip-v1', JSON.stringify({ version: 1, values: { 'wave-planner-region-v1': '창원', 'wave-trip-themes-v1': '[]', 'wave-saved-places': JSON.stringify([place.id]), 'wave-saved-place-catalog-v1': JSON.stringify([place]), 'wave-trip-order-v1': JSON.stringify({ mode: 'manual', ids: [place.id] }), 'wave-trip-schedule-v1': JSON.stringify({ travelStart: '2026-09-15', travelEnd: '2026-09-15', dayStartTime: '10:00', scheduleAssignments: { [place.id]: '2026-09-15' } }) } })); }, place);
   await page.goto('/planner'); await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원'); await openItinerary(page);
-  const options = page.locator('.simple-day-options'); if (!(await options.getAttribute('open'))) await options.locator('summary').first().click();
+  await openNaruTool(page, '이동 부담·휴식');
+  const options = page.locator('.simple-day-options');
   await options.getByRole('button', { name: '화장실 찾기', exact: true }).click();
   return page.getByRole('region', { name: '주변 공중화장실', exact: true });
 }

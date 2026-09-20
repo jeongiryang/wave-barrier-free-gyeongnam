@@ -1,3 +1,4 @@
+import { closeNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { chooseTripConditions, mockPlannerApi, openItinerary, plan } from './fixtures';
@@ -27,6 +28,7 @@ for (const scenario of ['complete', 'partial', 'negative', 'legacy'] as const) f
   await card.scrollIntoViewIfNeeded(); expect((await new AxeBuilder({ page }).include('.simple-readiness').analyze()).violations).toEqual([]);
   if (scenario === 'negative' && test.info().project.name === 'desktop-chromium') for (const width of [960, 1440]) { await page.setViewportSize({ width, height: 900 }); await card.screenshot({ path: test.info().outputPath(`facilities-${en}-${width}.png`) }); }
   if (scenario === 'complete') {
+    await closeNaruTool(page);
     const before = searches; await page.locator('.simple-planner-tabs button').first().click(); await page.locator('.simple-facility-trigger').click(); const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
     await picker.getByRole('checkbox', { name: '수유실', exact: true }).check(); expect(searches).toBe(before);
     await picker.getByRole('button', { name: /^적용/ }).click(); await expect.poll(() => searches).toBe(before + 1); await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'false');

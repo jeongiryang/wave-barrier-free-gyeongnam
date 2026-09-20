@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type Locator } from "@playwright/test";
@@ -20,8 +21,8 @@ async function records(page: Page) { return page.evaluate(() => {
   const values = JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values;
   return { ids: JSON.parse(values["wave-saved-places"]), order: JSON.parse(values["wave-trip-order-v1"]), schedule: JSON.parse(values["wave-trip-schedule-v1"]) };
 }); }
-async function settings(page: Page) { await page.getByRole("button", { name: "여행 설정", exact: true }).click(); return page.getByRole("dialog", { name: "여행 설정", exact: true }); }
-async function tools(page: Page) { await page.locator(".simple-more-trip-tools > summary").click(); }
+async function settings(page: Page) { if (await naruDialog(page).isVisible()) await closeNaruTool(page); await page.getByRole("button", { name: "여행 설정", exact: true }).click(); return page.getByRole("dialog", { name: "여행 설정", exact: true }); }
+async function tools(page: Page) { await openNaruTool(page, '이동 구간 확인'); await expect(page.locator('.itinerary-route-coverage')).toBeFocused(); }
 
 for (const theme of ["light", "dark"] as const) test(`English preference with Korean controls preserves itinerary data and declares each language in ${theme}`, async ({ page }, info) => {
   await page.addInitScript(value => localStorage.setItem("wave-theme", value), theme);
@@ -45,16 +46,16 @@ for (const theme of ["light", "dark"] as const) test(`English preference with Ko
   await itinerary.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
   await expect(itinerary.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
   await tools(page);
-  const coverage = itinerary.locator(".itinerary-route-coverage");
+  const coverage = page.locator(".itinerary-route-coverage");
   await expect(coverage).toContainText("Route availability does not confirm wheelchair access");
   expect(await language(coverage.getByRole("heading", { name: "Check every journey", exact: true }))).toBe("en");
-  await itinerary.locator(".simple-audio-journal > summary").click();
-  const audio = itinerary.getByRole("complementary", { name: "Place audio guide", exact: true });
+  await page.locator(".simple-audio-journal > summary").click();
+  const audio = page.getByRole("complementary", { name: "Place audio guide", exact: true });
   await expect(audio.getByRole("button", { name: "Play", exact: true })).toBeDisabled();
   await audio.getByRole("button", { name: /Show transcript/ }).click();
   await expect(audio.locator(".transcript")).toContainText("No transcript was supplied");
   expect(await language(audio.locator(".transcript"))).toBe("en");
-  expect((await new AxeBuilder({ page }).include("#itinerary").analyze()).violations).toEqual([]);
+  expect((await new AxeBuilder({ page }).include(".naru-panel").analyze()).violations).toEqual([]);
   for (const width of [320, 960, 1366]) {
     await page.setViewportSize({ width, height: 844 });
     editor = await settings(page); await editor.getByLabel("하루 시작", { exact: true }).focus();
@@ -78,7 +79,7 @@ test("changing locale updates translated journey evidence while preserving Korea
   await prepare(page); await page.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동", exact: true }).click();
   const receipt = page.locator("#itinerary .simple-command-receipt"), before = await records(page), notice = await receipt.innerText();
   await expect(receipt).toBeVisible(); expect(await language(receipt)).toBe("ko");
-  await tools(page); await openSupportMenu(page);
+  await tools(page); await closeNaruTool(page); await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
@@ -94,9 +95,9 @@ test("optional audio loads on request and a missing module leaves itinerary edit
   let guideRequests = 0; page.on("request", request => { if (request.url().includes("AudioGuidePlayer")) guideRequests++; });
   await prepare(page); expect(guideRequests).toBe(0);
   await page.route("**/AudioGuidePlayer*", route => route.abort()); await tools(page); expect(guideRequests).toBe(0);
-  const itinerary = page.locator("#itinerary"), toggle = itinerary.locator(".simple-audio-journal > summary");
-  await toggle.focus(); await page.keyboard.press("Enter");
-  await expect(itinerary.getByRole("status").filter({ hasText: "audio guide couldn't open" })).toBeVisible();
+  const toggle = page.locator(".simple-audio-journal > summary");
+  await toggle.focus(); await expect(toggle).toBeFocused(); await toggle.press("Enter");
+  await expect(page.getByRole("status").filter({ hasText: "audio guide couldn't open" })).toBeVisible();
   await expect(toggle).toBeFocused(); expect(guideRequests).toBeGreaterThan(0);
   const editor = await settings(page); await editor.getByLabel("하루 시작", { exact: true }).fill("10:30");
   await editor.getByRole("button", { name: "적용", exact: true }).click();

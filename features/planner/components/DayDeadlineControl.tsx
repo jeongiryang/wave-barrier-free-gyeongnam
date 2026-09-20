@@ -37,7 +37,7 @@ export default function DayDeadlineControl({ day, value, entries, onChange, en =
   return <div className="day-deadline" style={{ width: "100%", minWidth: 0 }}>
     <details ref={details} className="place-evidence">
       <summary onClick={() => { if (!details.current?.open) reset(); }} aria-label={`${day} ${en ? "return deadline" : "귀가·약속 시간"}`}>{en ? "Return / appointment time" : "귀가·약속 시간"}{value ? ` · ${value.time}` : ""}</summary>
-      <div className="modal-data" onKeyDown={event => { if (event.key === "Escape") { event.stopPropagation(); reset(); close(); } else if (event.key === "Enter" && event.target instanceof HTMLInputElement) { event.preventDefault(); apply(); } }}>
+      <div className="modal-data" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); reset(); close(); } else if (event.key === "Enter" && event.target instanceof HTMLInputElement) { event.preventDefault(); apply(); } }}>
         <p>{en ? "Set the time you need to arrive after the last visit." : "마지막 장소를 둘러본 뒤 도착해야 할 시각을 정해요."}</p>
         <div className="auth-field"><label>{en ? "Arrive by" : "도착 마감 시각"}<input type="time" value={time} aria-invalid={invalid && !validTripClock(time) || undefined} onChange={event => setTime(event.target.value)} /></label></div>
         <div className="auth-field"><label>{en ? "Return travel (minutes, optional)" : "마지막 장소부터 이동 (분, 선택)"}<input type="number" inputMode="numeric" min={0} max={720} step={1} value={returnMinutes} aria-invalid={invalid && returnMinutes !== "" && (!/^\d{1,3}$/.test(returnMinutes) || Number(returnMinutes) > 720) || undefined} placeholder={en ? "Unknown" : "모르면 비워두세요"} onChange={event => setReturnMinutes(event.target.value)} /></label></div>

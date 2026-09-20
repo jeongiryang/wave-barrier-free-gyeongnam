@@ -1,3 +1,4 @@
+import { closeNaruTool } from './naru-tool-fixtures';
 import { openSupportMenu } from './support-menu';
 import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
@@ -28,6 +29,7 @@ for (const theme of ['light', 'dark'] as const) for (const width of [320, 960, 1
 test('calendar failure and retry preserve keyboard focus and the saved trip', async ({ page, baseURL }) => {
   await prepare(page); let release!: () => void; const gate = new Promise<void>(resolve => { release = resolve; }); let calls = 0;
   await page.route('**/api/trips', async route => { calls++; if (calls === 1) { await gate; return route.fulfill({ status: 503, json: { error: 'Unavailable' } }); } return route.fulfill({ status: 201, json: { id: 'abcdef123456', url: `${new URL(route.request().url()).origin}/trip/abcdef123456`, revision: 1, live: true, expiresAt: Date.now() + 30 * 86400000 } }); });
+  await closeNaruTool(page);
   await page.locator('button[data-planner-tool=share]').click(); const menu = page.getByRole('dialog', { name: '여행 공유', exact: true }), calendar = menu.getByRole('button', { name: '캘린더', exact: true });
   await calendar.focus(); await page.keyboard.press('Enter'); await expect(calendar).toHaveAttribute('aria-busy', 'true'); await expect(calendar).toBeFocused(); await page.keyboard.press('Enter'); expect(calls).toBe(1); release();
   await expect(menu.getByRole('status')).toContainText('캘린더를 만들지 못했어요'); await expect(calendar).toBeFocused();
@@ -37,6 +39,7 @@ test('calendar failure and retry preserve keyboard focus and the saved trip', as
 });
 test('language changes preserve departure evidence, calendar feedback and itinerary dates', async ({ page }) => {
   await prepare(page); await page.route('**/api/trips', route => route.fulfill({ status: 503, json: { error: 'Unavailable' } }));
+  await closeNaruTool(page);
   await page.locator('button[data-planner-tool=share]').click(); const menu = page.getByRole('dialog', { name: '여행 공유', exact: true });
   await menu.getByRole('button', { name: '캘린더', exact: true }).click(); await expect(menu.getByRole('status')).toContainText('캘린더를 만들지 못했어요'); await menu.getByRole('button', { name: '공유 닫기' }).click();
   const before = await page.evaluate(() => localStorage.getItem('wave-trip-schedule-v1'));
@@ -58,7 +61,15 @@ for (const scrollAway of [false, true]) test(`late forecast respects ${scrollAwa
   await page.route('**/api/weather?*', async route => { await gate; await route.fallback(); }); const refresh = page.locator('.simple-readiness-heading button');
   const hit = () => refresh.evaluate(element => { const box = element.getBoundingClientRect(); return element.contains(document.elementFromPoint(box.x + box.width/2, box.y + box.height/2)); });
   try { await refresh.focus(); await page.keyboard.press('Enter'); await expect(refresh).toHaveAttribute('aria-busy', 'true'); await expect.poll(hit).toBe(true);
-    if (scrollAway) { await page.mouse.move(1250, 500); await page.mouse.wheel(0, -5000); await expect.poll(() => refresh.evaluate(element => element.getBoundingClientRect().top > innerHeight)).toBe(true); }
+    if (scrollAway) {
+      // Readiness now scrolls inside the Naru tool panel. Wheel scrolling away
+      // must not change the focused refresh control or let the response steal it.
+      const scroller = page.locator('.naru-workspace-content').filter({ has: refresh });
+      const box = (await scroller.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.wheel(0, 5000);
+      await expect.poll(hit).toBe(false);
+    }
   } finally { release(); }
   await expect(refresh).toHaveText('다시 조회'); await expect(refresh).toBeFocused(); await expect.poll(hit).toBe(!scrollAway);
 });

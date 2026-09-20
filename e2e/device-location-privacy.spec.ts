@@ -1,3 +1,5 @@
+import { openNaruTool } from "./naru-tool-fixtures";
+import { withRouteCoverage } from "./nearby-fixtures";
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { deliverNearby, nearbyPlace, openMapTool, openNearby, openRouteDetails } from './nearby-fixtures';
@@ -51,8 +53,9 @@ test('easy trip completion never requests or transfers device location or progre
     Object.assign(window,{easyTripPrivacyCalls:0});
     Object.defineProperty(navigator,'geolocation',{configurable:true,value:{getCurrentPosition(){(window as unknown as {easyTripPrivacyCalls:number}).easyTripPrivacyCalls++;}}});
   });
-  const nearby=await openNearby(page);await nearby.getByRole('button',{name:'주변 장소 닫기',exact:true}).click();await openRouteDetails(page);await expect(page).toHaveURL(/#itinerary$/);
-  await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();const panel=page.getByRole('region',{name:'여행 당일 진행',exact:true});
+  const nearby=await openNearby(page);await nearby.getByRole('button',{name:'주변 장소 닫기',exact:true}).click();await openRouteDetails(page);
+  await withRouteCoverage(page);await expect(page).toHaveURL(/#itinerary$/);
+  await openNaruTool(page, '여행 당일 안내');const panel=page.getByRole('region',{name:'여행 당일 진행',exact:true});
   // A network-idle interval can precede a cold lazy module's dependency fetch.
   // These controls belong to the loaded OnTripGuide, whose static imports include
   // EasyOnTripView and TripBoardView. Wait for that view and its progress state,
@@ -91,6 +94,7 @@ for (const entry of ['toolbar', 'panel'] as const) test(`accepted ${entry} GPS m
   const nearby = await openNearby(page);
   await nearby.getByRole('button', { name: '주변 장소 닫기', exact: true }).click();
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   await expect(page.locator('.coverage-actions > button').first()).toHaveAttribute('aria-busy', 'false');
   await expect(page.locator('.route-options')).toHaveAttribute('aria-busy', 'false');
   await expect(page.locator('.coverage-notice')).toContainText('조회가 끝났습니다.');
@@ -164,6 +168,7 @@ for (const entry of ['toolbar', 'panel'] as const) test(`accepted ${entry} GPS m
   await nearby.getByRole('button', { name: '주변 장소 닫기', exact: true }).click();
   await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
+  await chat.getByRole("tab", { name: "대화", exact: true }).click();
   await chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill('담은 일정을 요약해줘');
   await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
   await expect(chat).toContainText('담은 공개 여행지를 그대로 확인했어요.');

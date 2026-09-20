@@ -1,9 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { prepareStory, storyReady, expectUsableTarget,  expectNoOverflow } from "./landing-contract";
+import { chapterIds, openLandingTools, prepareStory, storyReady, expectUsableTarget,  expectNoOverflow } from "./landing-contract";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 import { regionPhotoSource } from "../features/landing/region-photo-sources";
-const chapterIds = ["top","regions","story","features","naru","community","departure","closing"];
+
 
 test.beforeEach(async ({ page }) => { await prepareStory(page); });
 
@@ -15,6 +15,7 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator(".landing-page")).toHaveAttribute("lang", locale);
     await page.locator(".night-journey-tabs button").nth(1).click();
     await expect(page.locator(".night-journey-step")).toContainText(locale === "en" ? "details that need checking" : "아직 확인이 필요한 항목");
+    await openLandingTools(page);
     await expect(page.locator("#naru")).toContainText(locale === "en" ? "AI travel guide" : "경남 여행을 함께 찾고 일정을 정리해요");
     await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
     await expect(page.locator(".simple-naru-example")).toContainText(locale === "en" ? "Example" : "대화 예시");

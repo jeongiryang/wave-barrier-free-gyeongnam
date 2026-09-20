@@ -83,6 +83,6 @@ test('여행 점검은 PC·태블릿·모바일에서 넘치지 않고 기존 �
     await page.screenshot({ path: info.outputPath(`review-${width}.png`) });
   }
   await review.getByRole('button', { name: '걷기·휴식·귀가 설정', exact: true }).click();
-  await expect(chat).toBeHidden();
-  await expect(page.locator('.simple-day-options > summary')).toBeFocused();
+  await expect(chat).toBeVisible();
+  await expect(chat.locator('.simple-day-options > summary')).toBeFocused();
 });

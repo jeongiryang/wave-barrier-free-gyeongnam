@@ -1,18 +1,22 @@
+import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
 async function editStop(page: Page) {
+  if (await naruDialog(page).isVisible()) await closeNaruTool(page);
   await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   const editor = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
   await editor.locator(".simple-stop-options > summary").click();
   return editor;
 }
 async function startTime(page: Page, value: string) {
+  await closeNaruTool(page);
   await page.getByRole("button", { name: "여행 설정", exact: true }).click();
   const editor = page.getByRole("dialog", { name: "여행 설정", exact: true });
   await editor.getByLabel("하루 시작", { exact: true }).fill(value);
   await editor.getByRole("button", { name: "적용", exact: true }).click();
+  await openNaruTool(page, "이동 부담·휴식");
 }
 
 test("fixed visits keep their date and order, and return deadlines follow the live schedule", async ({ page }, info) => {
@@ -40,8 +44,8 @@ test("fixed visits keep their date and order, and return deadlines follow the li
   await expect(board.locator(".simple-stop > time").first()).toHaveText("13:00");
   await expect(board).toContainText("고정 시각 전");
   await expect(board.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동", exact: true })).toBeDisabled();
-  await board.locator(".simple-day-options > summary").click();
-  const deadline = board.locator(".day-deadline"), summary = deadline.locator("summary");
+  await openNaruTool(page, "이동 부담·휴식");
+  const deadline = page.locator(".day-deadline"), summary = deadline.locator("summary");
   await summary.click();
   await deadline.getByLabel("도착 마감 시각", { exact: true }).fill("18:00");
   await deadline.getByRole("button", { name: "적용", exact: true }).click();
@@ -60,7 +64,9 @@ test("fixed visits keep their date and order, and return deadlines follow the li
   await summary.click(); await deadline.getByLabel("도착 마감 시각", { exact: true }).fill("12:00");
   await deadline.getByLabel("도착 마감 시각", { exact: true }).press("Escape"); await expect(summary).toBeFocused();
   await expect(summary).toContainText("18:00");
+  await closeNaruTool(page);
   await board.getByRole("button", { name: /^2일차/ }).click();
+  await openNaruTool(page, "이동 부담·휴식");
   await expect(deadline.locator(".day-deadline-summary")).toHaveCount(0);
   await summary.click();
   await deadline.getByLabel("도착 마감 시각", { exact: true }).fill("20:00");
@@ -68,6 +74,7 @@ test("fixed visits keep their date and order, and return deadlines follow the li
   await deadline.getByRole("button", { name: "적용", exact: true }).click();
   await expect(summary).toContainText("20:00");
   await summary.click(); await deadline.getByRole("button", { name: "마감 해제", exact: true }).click();
+  await closeNaruTool(page);
   await board.getByRole("button", { name: /^1일차/ }).click();
   for (const width of info.project.name.startsWith("desktop") ? [1440, 960] : [390, 320]) {
     await page.setViewportSize({ width, height: 960 });
@@ -81,13 +88,15 @@ test("fixed visits keep their date and order, and return deadlines follow the li
     await editor.getByRole("button", { name: "취소", exact: true }).click();
   }
   await page.reload(); await expect(board.locator(".simple-stop > time").first()).toHaveText("13:00");
-  await board.locator(".simple-day-options > summary").click(); await expect(deadline).toContainText("18:00");
+  await openNaruTool(page, "이동 부담·휴식"); await expect(deadline).toContainText("18:00");
+  await closeNaruTool(page);
   await board.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
   await expect(board.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
   await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
   await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
   await expect(board.locator(".simple-stop > time").first()).toHaveText("13:00");
-  await board.locator(".simple-day-options > summary").click(); await expect(deadline).toContainText("18:00");
+  await openNaruTool(page, "이동 부담·휴식"); await expect(deadline).toContainText("18:00");
+  await closeNaruTool(page);
   await page.getByRole("button", { name: "공유", exact: true }).click();
   const share = page.getByRole("dialog", { name: "여행 공유", exact: true });
   await expect(share.getByRole("link", { name: "공유 일정 보기", exact: true })).toBeVisible();

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import NightIcon from "../../../components/NightIcon";
 import { regionShowcasePhotos } from "../region-showcase-photos";
+const ItineraryMap = lazy(() => import("./LandingItineraryMap"));
 const RegionPicker = lazy(() => import("../../../components/GyeongnamRegionPicker"));
 
 export default function LandingChapters() {
@@ -26,6 +27,6 @@ export default function LandingChapters() {
    <Link className="night-primary" href={href}>{en?'Plan my trip':`${region} 여행 설계하기`} <NightIcon name="arrow"/></Link>
   </div>
   <div className="night-journey-map" data-land-reveal>{ready?<Suspense fallback={<div className="night-map-loading">경남 지도를 준비하고 있어요</div>}><RegionPicker night value={region} onChange={setRegion}/></Suspense>:<div className="night-map-loading">경남 18개 시·군</div>}<p className="night-map-signature">경남,<br/>새로운 시선으로</p></div>
-  <div className="night-itinerary-story" data-land-reveal><div><p className="night-eyebrow">YOUR TRAVEL, CONNECTED</p><h2>{en?'AI recommendations. Your itinerary.':<>AI가 추천하는<br/>나만의 여행 플랜</>}</h2><p>{en?'Explore places, save your choices and arrange each day.':'여행지를 찾고, 일정을 담고, 나루와 함께 조정해요.'}</p><Link className="simple-text-link" href={href}>{en?'Find my itinerary':'나에게 맞는 일정 만들기'} →</Link></div><div className="night-itinerary-cards">{['통영','거제','하동'].map((name,index)=><Link key={name} href={'/planner?region='+encodeURIComponent(name)}><span className="night-itinerary-number">0{index+1}</span><img src={regionShowcasePhotos[name].image} alt="" width="170" height="110" loading="lazy"/><div><strong>{name}</strong><span>{regionShowcasePhotos[name].title}</span><small>여행지 · 편의정보 · 일정</small></div><NightIcon name="arrow"/></Link>)}</div></div>
+  <div className="night-itinerary-story" data-land-reveal><div><p className="night-eyebrow">YOUR TRAVEL, CONNECTED</p><h2>{en?'AI recommendations. Your itinerary.':<>AI가 추천하는<br/>나만의 여행 플랜</>}</h2><p>{en?'Explore places, save your choices and arrange each day.':'여행지를 찾고, 일정을 담고, 나루와 함께 조정해요.'}</p><Link className="simple-text-link" href={href}>{en?'Find my itinerary':'나에게 맞는 일정 만들기'} →</Link><div className="night-itinerary-cards">{['통영','거제','하동'].map((name,index)=><Link key={name} href={'/planner?region='+encodeURIComponent(name)}><span className="night-itinerary-number">0{index+1}</span><img src={regionShowcasePhotos[name].image} alt="" width="170" height="110" loading="lazy"/><div><strong>{name}</strong><span>{regionShowcasePhotos[name].title}</span><small>여행지 · 편의정보 · 일정</small></div><NightIcon name="arrow"/></Link>)}</div></div>{ready && <Suspense fallback={<div className="night-map-loading">경남 여행 지도를 준비하고 있어요</div>}><ItineraryMap en={en}/></Suspense>}</div>
  </section>;
 }

@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions, openItinerary } from "./fixtures";
@@ -13,6 +14,7 @@ const forecast = {
 async function prepare(page: Page, english = false) {
   await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
   await mockPlannerApi(page, { preserveView: true });
+  await page.route('**/api/assistant', route => route.request().method() === 'GET' ? route.fulfill({ json: { available: true } }) : route.fallback());
   await page.addInitScript((en) => localStorage.setItem("wave-locale", en ? "en" : "ko"), english);
   await page.emulateMedia({ reducedMotion: "reduce" });
 }
@@ -29,7 +31,7 @@ test("departure weather evidence opens the forecast with pointer and keyboard wi
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-10-07" });
   const savedPlace = page.locator("#itinerary-stop-1001");
-  await page.locator(".simple-departure > summary").click();
+  await openNaruTool(page, "출발 전 확인");
   const weatherCard = page.locator(".simple-readiness > details").filter({ has: page.getByText("날씨", { exact: true }) });
   await weatherCard.locator(":scope > summary").click();
   await expect(weatherCard).toContainText("해당 날짜 예보가 없거나 예보 범위 밖입니다.");
@@ -79,6 +81,7 @@ test("weather language changes keep the same forecast without another request", 
   const board = await openWeather(page, true);
   await expect(board).toContainText("Feels like -2°");
   const before = requests;
+  await closeNaruTool(page);
   await page.keyboard.press("Control+Home");
   await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
@@ -133,7 +136,7 @@ async function openWeather(page: Page, english = false) {
   await chooseTripConditions(page);
   await page.getByRole("button", { name: `경남도립미술관 ${english ? "add to itinerary" : "일정에 담기"}`, exact: true }).click();
   await openItinerary(page, { start: "2026-10-07" });
-  await page.locator(".simple-departure > summary").click();
+  await openNaruTool(page, "출발 전 확인");
   await page.locator("#layers > summary").click();
   return page.locator(".weather-board");
 }
@@ -168,11 +171,12 @@ test("the weather view loads on demand and a failed module leaves the itinerary 
   await page.getByRole("button", { name: "경남도립미술관 add to itinerary", exact: true }).click();
   await openItinerary(page, { start: "2026-10-07" });
   expect(modules).toBe(0);
-  await page.locator(".simple-departure > summary").click();
+  await openNaruTool(page, "출발 전 확인");
   await page.locator("#layers > summary").click();
   await expect(page.getByRole("status").filter({ hasText: "The weather view could not open" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reload this page", exact: true })).toBeVisible();
   await expect(page.locator("#itinerary-stop-1001")).toContainText("경남도립미술관");
+  await closeNaruTool(page);
   await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true })).toBeVisible();
   expect(modules).toBeGreaterThan(0);

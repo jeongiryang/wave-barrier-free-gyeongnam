@@ -1,3 +1,4 @@
+import { closeNaruTool } from './naru-tool-fixtures';
 import { openDeparture, departureItem, routeTools } from './departure-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -42,11 +43,13 @@ for (const en of [false, true]) for (const color of ["light", "dark"]) test(`${e
   await expect(journeys).toContainText(count(2));
   let resumeDate!: () => void; const dateGate = new Promise<void>(resolve => { resumeDate = resolve; });
   await page.route('**/api/route?*', async route => { await dateGate; return route.fallback(); });
+  await closeNaruTool(page);
   const stop = page.locator('.simple-stops > li').filter({ hasText: '용지호수공원' });
   await stop.getByRole('button', { name: '용지호수공원 일정 수정', exact: true }).click();
   const editor = page.getByRole('dialog', { name: '용지호수공원 수정', exact: true });
   await editor.getByRole('combobox', { name: '방문 날짜', exact: true }).selectOption('2026-10-09');
   await editor.getByRole('button', { name: '적용', exact: true }).click();
+  await openDeparture(page);
   await expect(journeys).toContainText('현재 일정과 선택한 이동수단의 경로를 확인하고 있습니다.');
   await expect(journeys.locator('summary')).toContainText('확인할 정보 있음');
   resumeDate(); await page.unroute('**/api/route?*');

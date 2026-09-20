@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from '@axe-core/playwright';
 import {test,expect,type Page} from '@playwright/test';
 import {mockPlannerApi,mockPublicShellApi,chooseTripConditions,openItinerary} from './fixtures';
@@ -16,7 +17,7 @@ async function setup(page:Page){
  await page.goto('/planner');await chooseTripConditions(page);
  for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();
  await openItinerary(page, { start: '2026-10-08' });
- await page.locator('.simple-more-trip-tools > summary').click();
+ await openNaruTool(page, '이동 구간 확인');
  await page.getByRole('button',{name:'돌아가는 교통 확인',exact:true}).click();
  const panel=page.getByRole('region',{name:'돌아가는 교통 확인',exact:true});await panel.getByRole('combobox',{name:'어디에서 이동하나요?',exact:true}).selectOption('1001');return panel;
 }

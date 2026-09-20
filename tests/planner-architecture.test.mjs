@@ -68,7 +68,7 @@ test("planner route composes feature sections instead of owning their dense UI",
     assert.match(page, new RegExp(`<${component}`));
   }
   assert.match(page, /<PlannerReferenceChrome/);
-  assert.match(page, /<div className="simple-workspace-body">\{plannerStages\}<\/div>/);
+  assert.match(page, /<div className="simple-workspace-body">\{plannerStages\}<button/);
   assert.doesNotMatch(page, /PlannerStagePortal|assistantHost|naru-workspace/);
   assert.match(page, /<details className="simple-departure"[^>]*open=\{departureDetailsOpen \|\| journey\.activeStepId === "departure-readiness"\}/);
   assert.match(await source("features/planner/components/PlannerHeader.tsx"), /<TripStorageNotice snapshot=\{storageSnapshot\}/);

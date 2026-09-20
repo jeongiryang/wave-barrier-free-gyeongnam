@@ -1,8 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { prepareStory, storyReady, expectUsableTarget, expectNoOverflow } from "./landing-contract";
+import { chapterIds, openLandingTools, prepareStory, storyReady, expectUsableTarget, expectNoOverflow } from "./landing-contract";
 
-const chapterIds = ["top","regions","story","features","naru","community","departure","closing"];
+
 
 test.beforeEach(async ({ page }) => { await prepareStory(page); });
 
@@ -18,7 +18,7 @@ for (const theme of ["light", "dark"] as const) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
       for (const id of chapterIds) {
-        if (id === "features" && !await page.locator("#features").isVisible()) await page.getByText("여행 도구 모두 보기", {exact:true}).click();
+        if (id === "naru") await openLandingTools(page);
       const section = page.locator(`#${id}`);
         await section.locator("h1,h2").first().scrollIntoViewIfNeeded();
         await expect(section).toHaveAccessibleName(/\S/);
@@ -59,6 +59,7 @@ for (const locale of ["ko", "en"] as const) {
     await expect(explore).toHaveAccessibleName(locale === "en" ? "Explore places" : "여행지 둘러보기");
     await expect(explore).toHaveAttribute("href", "/planner");
     await expect(page.locator("#story .night-journey-input > .night-primary")).toHaveAttribute("href", /^\/planner\?region=/);
+    await openLandingTools(page);
     await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAccessibleName(locale === "en" ? "Chat with Naru" : "나루와 대화하기");
     await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAttribute("href", "/planner?assistant=naru");
     for (const selector of [".wave-wordmark", ".wave-my-trips", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {

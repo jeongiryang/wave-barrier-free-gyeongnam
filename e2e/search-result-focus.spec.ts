@@ -1,3 +1,4 @@
+import { openNaruTool, naruDialog } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 import { confirmedAlternativePlan } from "./alternative-fixtures";
@@ -35,7 +36,7 @@ async function collectMuseum(page: Page, en: boolean) {
   await openItinerary(page, { start: "2026-09-20" });
 }
 async function openSignals(page: Page) {
-  await page.locator(".simple-departure > summary").click();
+  await openNaruTool(page, "출발 전 확인");
   const weather = page.locator(".simple-readiness details").filter({ has: page.locator("summary strong").getByText("날씨", { exact: true }) });
   await weather.locator("summary").click();
   await weather.getByRole("link", { name: "상세 정보 확인 →", exact: true }).click();
@@ -113,6 +114,9 @@ for (const action of ["nearby", "alternative"] as const) test("departure " + act
     await comparison.getByRole("button", { name: "선택한 장소로 교체", exact: true }).click();
   }
   const heading = page.locator("#itinerary-stage-title");
+  // A committed choice returns to the timetable; an open modal would keep
+  // that background heading inert even after the URL changes.
+  await expect(naruDialog(page)).toBeHidden();
   await expect(heading).toBeFocused();
   await expect(page).toHaveURL(/#itinerary$/);
   await expect(page.locator(".simple-stops > li")).toHaveCount(action === "nearby" ? 2 : 1);
@@ -126,6 +130,7 @@ for (const action of ["nearby", "alternative"] as const) test("departure " + act
   })).toBe(true);
   await page.goBack();
   await expect(page).toHaveURL(/#layers$/);
+  await expect(naruDialog(page)).toBeVisible();
   await expect(page.locator("#layers > summary")).toBeFocused();
 });
 
@@ -218,7 +223,7 @@ test("a pending automatic search keeps keyboard input usable and does not duplic
 for (const end of ["cancel", "complete", "elsewhere"] as const) test("all-journey " + end + " preserves the user's focus " + (en ? "English" : "Korean"), async ({ page }) => {
   await prepare(page, en);
   await collectMuseum(page, en);
-  await page.locator(".simple-more-trip-tools > summary").click();
+  await openNaruTool(page, '이동 구간 확인');
   const coverage = page.locator(".itinerary-route-coverage");
   const transport = coverage.getByRole("combobox");
   await transport.selectOption("car");

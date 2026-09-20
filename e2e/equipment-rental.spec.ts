@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect, type Page } from '@playwright/test';
 import { mockPlannerApi, mockPublicShellApi, chooseTripConditions, openItinerary } from './fixtures';
@@ -21,7 +22,7 @@ async function setupPlanner(page: Page) {
 
 test('the equipment rental list opens from the help request "기기가 고장 났어요" situation, with no server calls', async ({ page }) => {
   await setupPlanner(page);
-  await page.locator('.simple-more-trip-tools > summary').click();
+  await openNaruTool(page, '이동 구간 확인');
   await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
   // Route checks start after a 650ms debounce, beyond networkidle's 500ms window.
   // Wait for the itinerary's completed state before auditing this local-only tool.
@@ -67,7 +68,7 @@ test('the departure readiness "보조기기" item has no automatic dialing and n
 
 test('help request offline flow keeps working after the equipment situation is added', async ({ page }) => {
   await setupPlanner(page);
-  await page.locator('.simple-more-trip-tools > summary').click();
+  await openNaruTool(page, '이동 구간 확인');
   await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
   // Route checks start after a 650ms debounce, beyond networkidle's 500ms window.
   // Wait for the itinerary's completed state before auditing this local-only tool.

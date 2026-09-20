@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
@@ -16,6 +17,7 @@ async function singlePublicJourney(page: Page) {
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   await expect(page.locator(".coverage-notice")).toContainText("조회가 끝났습니다.");
   await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
 }
@@ -38,15 +40,16 @@ test("selected modes reach the request, and ordinary rendering makes no new rout
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   const mode = page.locator(".itinerary-route-coverage select");
   await expect(mode).toHaveValue("transit");
   // One selected-map request and one automatic whole-itinerary request must
   // both settle. Ordinary rendering must not start a third request.
   await expect.poll(() => calls.map(url => url.searchParams.get("mode"))).toEqual(["transit", "transit"]);
-  await expect(page.locator(".itinerary-route-coverage").getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
+  await expect(page.locator('.itinerary-route-coverage [role="status"]')).toContainText("전체 1구간 중 1구간 확인");
   for (const value of ["car", "walk", "bicycle", "transit"]) {
     const count = calls.length;
-    await mode.selectOption(value);
+    await withRouteCoverage(page, async () => { await mode.selectOption(value); });
     // The map consumes this same itinerary leg's completed coverage bundle.
     // A mode change must make one request, never a duplicate selected-map call.
     await expect.poll(() => calls.length).toBe(count + 1);
@@ -87,26 +90,27 @@ test("switching modes cancels old coverage and cannot restore it by switching ba
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   const coverage = page.locator(".itinerary-route-coverage"), mode = coverage.locator("select");
-  await mode.selectOption("car");
+  await withRouteCoverage(page, async () => { await mode.selectOption("car"); });
   await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
   const check = coverage.getByRole("button", { name: "모든 구간 조회하기", exact: true });
-  await expect(coverage.getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
-  await expect(check).toHaveAttribute("aria-busy", "false");
+  await expect(coverage.locator('[role="status"]')).toContainText("전체 1구간 중 1구간 확인");
+  await withRouteCoverage(page, async () => { await expect(check).toHaveAttribute("aria-busy", "false"); });
   held = true;
-  await check.click();
-  await expect(coverage.getByRole("button", { name: "구간 확인 중…", exact: true })).toHaveAttribute("aria-busy", "true");
+  await withRouteCoverage(page, async () => { await check.click(); });
+  await withRouteCoverage(page, async () => { await expect(coverage.getByRole("button", { name: "구간 확인 중…", exact: true })).toHaveAttribute("aria-busy", "true"); });
   await expect.poll(() => heldRequests).toBe(1);
-  await mode.selectOption("walk");
+  await withRouteCoverage(page, async () => { await mode.selectOption("walk"); });
   release(); held = false;
-  await expect(coverage.getByRole("status")).toContainText("전체 1구간 중 0구간 확인");
+  await expect(coverage.locator('[role="status"]')).toContainText("전체 1구간 중 0구간 확인");
   await expect(page.locator(".route-option")).toHaveCount(0);
-  await mode.selectOption("car");
-  await expect(coverage.getByRole("status")).toContainText("전체 1구간 중 0구간 확인");
-  await expect(check).toHaveAttribute("aria-busy", "false");
-  await check.click();
-  await expect(coverage.getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
-  await coverage.getByRole("button", { name: "이 구간 지도에서 보기", exact: true }).click();
+  await withRouteCoverage(page, async () => { await mode.selectOption("car"); });
+  await expect(coverage.locator('[role="status"]')).toContainText("전체 1구간 중 0구간 확인");
+  await withRouteCoverage(page, async () => { await expect(check).toHaveAttribute("aria-busy", "false"); });
+  await withRouteCoverage(page, async () => { await check.click(); });
+  await expect(coverage.locator('[role="status"]')).toContainText("전체 1구간 중 1구간 확인");
+  await withRouteCoverage(page, async () => { await coverage.getByRole("button", { name: "이 구간 지도에서 보기", exact: true }).click(); });
   await expect(page.locator(".route-option")).toContainText("current journey");
   await expect(page.locator(".route-option")).not.toContainText("old car");
 });
@@ -129,14 +133,15 @@ for (const english of [false, true]) test(`transport details deliberately switch
   for (const place of plan.places) await page.getByRole("button", { name: `${place.name} ${english ? "add to itinerary" : "일정에 담기"}`, exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   const coverage = page.locator(".itinerary-route-coverage"), mode = coverage.locator("select");
-  await mode.selectOption("car");
+  await withRouteCoverage(page, async () => { await mode.selectOption("car"); });
   await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
-  await coverage.getByRole("button", { name: english ? "Check all journeys" : "모든 구간 조회하기", exact: true }).click();
+  await withRouteCoverage(page, async () => { await coverage.getByRole("button", { name: english ? "Check all journeys" : "모든 구간 조회하기", exact: true }).click(); });
   const journeys = coverage.getByRole("button", { name: english ? "Show this journey" : "이 구간 지도에서 보기", exact: true });
-  await expect(journeys).toHaveCount(2);
+  await withRouteCoverage(page, async () => { await expect(journeys).toHaveCount(2); });
   await expect(coverage.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
-  await journeys.nth(1).click();
+  await withRouteCoverage(page, async () => { await journeys.nth(1).click(); });
   const before = calls.length;
   await page.locator(".reference-transport-details > summary").click();
   await page.locator(".transport-details > summary").click();
@@ -162,7 +167,7 @@ for (const english of [false, true]) test(`transport details deliberately switch
     ["35.2422", "128.6982", plan.places[0].mapY, plan.places[0].mapX],
     [plan.places[0].mapY, plan.places[0].mapX, plan.places[1].mapY, plan.places[1].mapX],
   ].sort());
-  await expect(coverage.getByRole("status")).toContainText(english ? "2 of 2 journeys found" : "전체 2구간 중 2구간 확인");
+  await expect(coverage.locator('[role="status"]')).toContainText(english ? "2 of 2 journeys found" : "전체 2구간 중 2구간 확인");
   await expect(coverage.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
   await expect(action).toHaveAttribute("aria-busy", "false");
   await expect(action).toBeFocused();
@@ -195,7 +200,7 @@ for (const outcome of ["empty", "failure"] as const) test(`a held mode coverage 
     expect(calls).toHaveLength(2);
     const mode = page.locator(".itinerary-route-coverage select");
     await expect(page.locator(".route-option")).toContainText("current public journey");
-    await mode.selectOption("car");
+    await withRouteCoverage(page, async () => { await mode.selectOption("car"); });
     await expect.poll(() => calls.length).toBe(3);
     expect(requestedJourney(calls[2])).toEqual({ mode: "car", startLat: "35.2422", startLng: "128.6982", endLat: plan.places[0].mapY, endLng: plan.places[0].mapX });
     await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "true");
@@ -204,10 +209,10 @@ for (const outcome of ["empty", "failure"] as const) test(`a held mode coverage 
     release();
     await expect(page.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
     await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
-    await expect(page.locator(".itinerary-route-coverage").getByRole("status")).toContainText("전체 1구간 중 0구간 확인");
+    await expect(page.locator('.itinerary-route-coverage [role="status"]')).toContainText("전체 1구간 중 0구간 확인");
     await expect(page.locator(".route-kakao-fallback")).toContainText("자동차 예상 시간을 확인하지 못했습니다.");
     await expect(page.locator(".route-option")).toHaveCount(0);
-    await mode.selectOption("transit");
+    await withRouteCoverage(page, async () => { await mode.selectOption("transit"); });
     await expect(page.locator(".route-option")).toContainText("current public journey");
     await page.clock.install(); await page.clock.runFor(1000);
     expect(calls.map(url => url.searchParams.get("mode"))).toEqual(["transit", "transit", "car", "transit"]);
@@ -229,6 +234,7 @@ test("a separate map-picked destination keeps its own exact request when the iti
   for (const place of plan.places) await page.getByRole("button", { name: `${place.name} 일정에 담기`, exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   await expect(page.locator(".coverage-notice")).toContainText("조회가 끝났습니다.");
   await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
   expect(calls).toHaveLength(3);
@@ -241,7 +247,7 @@ test("a separate map-picked destination keeps its own exact request when the iti
   await expect(destination).toContainText(plan.places[1].name);
   await expect(page.locator(".route-option")).toContainText(`transit to ${plan.places[1].mapX}`);
   expect(calls).toHaveLength(4);
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
+  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
   await expect.poll(() => calls.length).toBe(7);
   expect(calls.slice(4).map(requestedJourney)).toEqual([
     { mode: "car", startLat: "35.2422", startLng: "128.6982", endLat: plan.places[1].mapY, endLng: plan.places[1].mapX },
@@ -285,7 +291,7 @@ test("changing transport after device distance keeps the public origin and never
   await page.clock.install();
   for (const mode of ["car", "walk", "transit"]) {
     const count = routeCalls.length;
-    await page.locator(".itinerary-route-coverage select").selectOption(mode);
+    await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption(mode); });
     await page.clock.runFor(1000);
     await expect.poll(() => routeCalls.length).toBe(count + 1);
     expect(requestedJourney(new URL(routeCalls.at(-1)!))).toEqual({ mode, startLat: "35.2422", startLng: "128.6982", endLat: plan.places[0].mapY, endLng: plan.places[0].mapX });
@@ -323,6 +329,7 @@ test("a mode change completed while browsing is already usable when returning to
   await views.getByRole("button", { name: "여행지 찾기", exact: true }).click();
   await page.getByRole("button", { name: "WAVE 여행 가이드 나루와 대화 열기", exact: true }).click();
   const chat = page.getByRole("dialog", { name: "WAVE 여행 가이드 나루와 대화", exact: true });
+  await chat.getByRole("tab", { name: "대화", exact: true }).click();
   await chat.getByRole("textbox").fill("자동차로 이동할게.");
   await chat.getByRole("textbox").press("Enter");
   const confirm = chat.getByRole("button", { name: "자동차 이동 경로 확인 · 기존 일정 유지", exact: true });

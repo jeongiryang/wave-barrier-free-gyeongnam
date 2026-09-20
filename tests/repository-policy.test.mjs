@@ -286,7 +286,7 @@ test("all eighteen regions remain discoverable through a named expansion and dir
   assert.deepEqual([...actual].sort(), [...names].sort());
   assert.equal(new Set(actual).size, 18);
   assert.match(region, /landingRegions\.map\(region => region\.name\)\.filter\(name => !firstRegions\.includes\(name\)\)/);
-  assert.match(region, /orderedRegions\.slice\(0, expanded \? 18 : 6\)/);
+  assert.match(region, /orderedRegions\.slice\(0, expanded \? 18 : 5\)/);
   assert.match(region, /18개 지역 모두 보기/);
   assert.match(region, /View all 18 regions/);
   assert.match(region, /aria-label=\{\x60\$\{label\}/);

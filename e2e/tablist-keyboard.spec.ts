@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, chooseTripConditions, openFirstPlaceMap } from "./fixtures";
 
@@ -16,7 +17,7 @@ async function openPlanner(page: import("@playwright/test").Page) {
   await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/planner");
   await chooseTripConditions(page); await openFirstPlaceMap(page);
-  await page.locator('#departure-readiness > summary').click();
+  await openNaruTool(page, '출발 전 확인');
   // 테마 탭은 접힌 ‘주변 여행 정보’ 안에 있고, 열어야 그때 불러온다. 펼치는 것은
   // React 상태라 하이드레이션 전에 누르면 <details>만 열리고 내용은 오지 않는다.
   const summary = page.locator("details.travel-layers > summary");
@@ -96,6 +97,7 @@ test("탭처럼 굴지 않는 선택 묶음은 탭이라고 말하지 않는다"
   await openPlanner(page);
   // 교통수단 필터는 예매 안내·운행정보·경로 목록 세 곳을 함께 바꿔 가리킬 패널이 없고,
   // 이동수단 요약은 예상 시간이 오면 다시 정렬돼 화살표로 갈 "옆 탭"이 없다.
+  await closeNaruTool(page);
   await page.locator('.reference-transport-details > summary').click(); await page.locator('.transport-details > summary').click();
   await page.locator('.reference-route-details > summary').click();
   for (const selector of [".transport-mode-filter", ".route-mode-sections"]) {
