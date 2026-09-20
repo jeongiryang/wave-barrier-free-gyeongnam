@@ -111,3 +111,51 @@ test("a restored itinerary hash preserves its unavailable forecast and shortcuts
   await expect(page.locator("#crowd h3")).toBeInViewport();
   expect(searches).toBe(1);
 });
+
+for (const manualScroll of [false, true]) {
+  test(`late weather layout ${manualScroll ? "respects manual scrolling" : "keeps the requested forecast heading visible"}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await mockPlannerApi(page, { crowdRate: 65 });
+    await mockPublicShellApi(page);
+    let releaseWeather!: () => void;
+    const weatherGate = new Promise<void>(resolve => { releaseWeather = resolve; });
+    let waitingForWeather = false;
+    await page.route("**/WeatherBoard.tsx*", async route => {
+      waitingForWeather = true;
+      await weatherGate;
+      await route.continue();
+    });
+    const requests: string[] = [];
+    page.on("request", request => {
+      const url = new URL(request.url());
+      if (url.pathname === "/api/wave" && ["crowd", "plan"].includes(url.searchParams.get("action") || "")) requests.push(url.search);
+    });
+    try {
+      await makeItinerary(page);
+      const requestsBeforeShortcut = [...requests];
+      const row = page.locator(".simple-readiness > details").filter({ has: page.locator("summary > strong").filter({ hasText: /^관광 집중률$/ }) });
+      await row.locator("summary").click();
+      await row.getByRole("link", { name: "상세 정보 확인 →", exact: true }).click();
+      const heading = page.locator(".impact-response h3");
+      await expect(heading).toBeFocused();
+      await expect(heading).toBeInViewport();
+      await expect.poll(() => waitingForWeather).toBe(true);
+      await expect(page.locator(".weather-board")).toHaveCount(0);
+      const scroller = page.locator(".naru-workspace-content");
+      if (manualScroll) {
+        await scroller.hover();
+        await page.mouse.wheel(0, -10000);
+        await expect.poll(() => scroller.evaluate(node => node.scrollTop)).toBe(0);
+      }
+      releaseWeather();
+      await expect(page.locator(".weather-board")).toBeAttached();
+      await expect(page.locator(".weather-board .weather-current")).toBeAttached();
+      await expect(heading).toBeFocused();
+      if (manualScroll) {
+        await expect(heading).not.toBeInViewport();
+        await expect.poll(() => scroller.evaluate(node => node.scrollTop)).toBe(0);
+      } else await expect(heading).toBeInViewport();
+      expect(requests).toEqual(requestsBeforeShortcut);
+    } finally { releaseWeather(); }
+  });
+}

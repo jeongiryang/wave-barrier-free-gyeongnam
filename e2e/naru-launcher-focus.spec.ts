@@ -64,10 +64,12 @@ test("Naru reveals restored and keyboard focus without moving a control during a
     return target.bottom > launcher.top && target.top < launcher.bottom && target.right > launcher.left && target.left < launcher.right;
   })).toBe(false);
 
-  await activity.evaluate(element => (element as HTMLElement).blur());
+  // Finish the native Tab transfer before arranging the next keyboard action.
+  // A programmatic focus racing that transfer can be overwritten by Chromium.
   await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "역사·문화", exact: true })).toBeFocused();
   await alignWithLauncher();
-  await activity.evaluate(element => (element as HTMLElement).focus({ preventScroll: true }));
+  await page.keyboard.press("Shift+Tab");
   await expect(activity).toBeFocused();
   await expect.poll(() => activity.evaluate(element => {
     const target = element.getBoundingClientRect(), launcher = document.querySelector(".naru-discovery")!.getBoundingClientRect();

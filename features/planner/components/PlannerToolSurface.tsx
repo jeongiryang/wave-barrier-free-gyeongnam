@@ -20,16 +20,33 @@ function Host({group,active}:{group:Group;active:boolean}) { const {register}=us
 export function PlannerToolSurfaces({visible}:{visible:boolean}) {
  const {request,hosts}=usePlannerTools(); const group=toolSurfaceGroup(request.id);
  useEffect(()=>{ if(!visible || !group) return; const host=hosts[group]; if(!host) return;
- let frame=0; let settled=false;
+ let frame=0; let revealFrame=0; let settled=false; let follow=true; let focusedNode:HTMLElement|null=null;
+ const scroller=host.closest<HTMLElement>('.naru-workspace-content');
+ const keepFocusedTargetVisible=()=>{
+   cancelAnimationFrame(revealFrame);
+   if(!follow || !focusedNode || !scroller) return;
+   revealFrame=requestAnimationFrame(()=>{
+     if(!follow || !focusedNode?.isConnected || document.activeElement!==focusedNode) return;
+     const target=focusedNode.getBoundingClientRect(), bounds=scroller.getBoundingClientRect();
+     if(target.top<bounds.top+8 || target.bottom>bounds.bottom-8) focusedNode.scrollIntoView({block:'nearest',behavior:'instant'});
+   });
+ };
+ // A lazy weather panel above the requested heading can expand after first
+ // focus. Keep that heading visible until the visitor takes control of scrolling.
+ const resizeObserver=new ResizeObserver(keepFocusedTargetVisible);
+ resizeObserver.observe(host); if(scroller) resizeObserver.observe(scroller);
+ const stopFollowing=()=>{follow=false;cancelAnimationFrame(revealFrame);};
+ const interaction=new AbortController();
+ for(const event of ['wheel','touchstart','pointerdown','keydown']) window.addEventListener(event,stopFollowing,{capture:true,passive:true,signal:interaction.signal});
  const observer=new MutationObserver(()=>{if(!settled){cancelAnimationFrame(frame);frame=requestAnimationFrame(focus);}});
  const focus=()=>{ const node=host.querySelector<HTMLElement>(targets[request.id] || `[data-planner-tool="${request.id}"]`); if(!node) return;
  for(let parent:HTMLElement|null=node;parent && parent!==host;parent=parent.parentElement) if(parent instanceof HTMLDetailsElement) parent.open=true;
  if(!node.getClientRects().length) return;
  settled=true; observer.disconnect();
  if(node instanceof HTMLButtonElement && ['on-trip','offline','transport','split'].includes(request.id) && node.getAttribute('aria-pressed')!=='true') node.click();
- if(!node.matches('button,summary,a,input,select')) node.tabIndex=-1; node.focus({preventScroll:true}); node.scrollIntoView({block:'nearest'});
+ if(!node.matches('button,summary,a,input,select')) node.tabIndex=-1; node.focus({preventScroll:true}); node.scrollIntoView({block:'nearest'}); focusedNode=node; keepFocusedTargetVisible();
  };
- observer.observe(host,{childList:true,subtree:true}); frame=requestAnimationFrame(focus); const timer=setTimeout(()=>observer.disconnect(),5000); return ()=>{clearTimeout(timer);cancelAnimationFrame(frame);observer.disconnect();};
+ observer.observe(host,{childList:true,subtree:true}); frame=requestAnimationFrame(focus); const timer=setTimeout(()=>observer.disconnect(),5000); return ()=>{clearTimeout(timer);cancelAnimationFrame(frame);cancelAnimationFrame(revealFrame);observer.disconnect();resizeObserver.disconnect();interaction.abort();};
  },[visible,group,request,hosts]);
  return <div className="naru-live-tools" hidden={!visible || !group}>{(['comfort','journey','readiness'] as const).map(item=><Host key={item} group={item} active={group===item}/>)}</div>;
 }

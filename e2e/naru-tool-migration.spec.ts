@@ -117,3 +117,12 @@ test('an empty trip opened from community returns to usable place search', async
   await expect(page.locator('#places')).toBeVisible();
   await expect(page.getByRole('combobox', { name: '여행지 검색', exact: true })).toBeEnabled();
 });
+
+test('the server-rendered Naru launcher waits for its interaction handler', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  try {
+    const page = await context.newPage();
+    await page.goto(`${baseURL}/community`, { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true })).toBeDisabled();
+  } finally { await context.close(); }
+});
