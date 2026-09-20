@@ -10,6 +10,27 @@ import { kakaoUnlinkWebhook } from "../lib/auth/kakao-webhook.js";
 
 const email = "fixture@example.com";
 const password = "Existing-wave-password-123!";
+
+test("native signup enforces new username and password lengths before creating accounts", async t => {
+  const f = await fixture(t);
+  const request = (username, password) => f.request('/sign-up/email', { email: `${username}@example.com`, name: '여행자', username, password });
+  for (const [username, secret] of [['abc', 'Pass-123!'], ['a'.repeat(13), 'Pass-123!'], ['validname', 'a'.repeat(17)]]) {
+    assert.equal((await request(username, secret)).status, 400);
+  }
+  assert.equal(f.db.prepare('SELECT count(*) AS n FROM user').get().n, 1);
+  const displayOnly = await fixture(t);
+  for (const displayUsername of ['abc', 'a'.repeat(13)]) {
+    const result = await displayOnly.request('/sign-up/email', { email: `${displayUsername}@example.com`, name: '여행자', displayUsername, password: 'Pass-123!' });
+    assert.equal(result.status, 400);
+  }
+  assert.equal(displayOnly.db.prepare('SELECT count(*) AS n FROM user').get().n, 1);
+  // Rate limiting is independent of validation; use a fresh isolated fixture.
+  const valid = await fixture(t);
+  for (const [username, secret] of [['abcd', 'a'.repeat(8)], ['a'.repeat(12), 'a'.repeat(16)]]) {
+    const result = await valid.request('/sign-up/email', { email: `${username}@example.com`, name: '여행자', username, password: secret });
+    assert.equal(result.status, 200, await result.clone().text());
+  }
+});
 function cookie(response) { return response.headers.getSetCookie().map((part) => part.split(";")[0]).join("; "); }
 
 async function fixture(t) {
@@ -60,11 +81,11 @@ test("password recovery mails a one-use token, preserves user identity, and revo
   assert.equal(f.mails.length, 1);
   const url = new URL(f.mails[0].url);
   const token = url.pathname.split("/").pop();
-  const changed = await f.request("/reset-password", { token, newPassword: "Recovered-password-456!" });
+  const changed = await f.request("/reset-password", { token, newPassword: "Recovered-456!" });
   assert.equal(changed.status, 200, await changed.clone().text());
   assert.equal(await (await f.request("/get-session", null, cookie(login))).json(), null);
-  assert.equal((await f.request("/reset-password", { token, newPassword: "Repeated-password-789!" })).status, 400);
-  const again = await f.request("/sign-in/email", { email, password: "Recovered-password-456!" });
+  assert.equal((await f.request("/reset-password", { token, newPassword: "Repeated-789!" })).status, 400);
+  const again = await f.request("/sign-in/email", { email, password: "Recovered-456!" });
   assert.equal((await again.json()).user.id, f.id);
   const absent = await f.request("/request-password-reset", { email: "absent@example.com", redirectTo: `${AUTH_ORIGIN}/reset-password` });
   assert.equal(absent.status, sent.status);
@@ -222,14 +243,15 @@ test("verified Kakao email never implicitly merges; explicit linking preserves t
 
 test("username review login preserves email credentials and rejects wrong passwords and duplicates", async (t) => {
   const f = await fixture(t);
-  const created = await f.request('/sign-up/email', { email: 'review@example.com', password, name: '시연 계정', username: 'openapi' });
+  const reviewPassword = "Review-1234!";
+  const created = await f.request('/sign-up/email', { email: 'review@example.com', password: reviewPassword, name: '시연 계정', username: 'openapi' });
   assert.equal(created.status, 200, await created.clone().text());
   const user = (await created.json()).user;
-  const login = await f.request('/sign-in/username', { username: 'openapi', password });
+  const login = await f.request('/sign-in/username', { username: 'openapi', password: reviewPassword });
   assert.equal(login.status, 200, await login.clone().text());
   assert.equal((await login.json()).user.id, user.id);
-  assert.equal((await f.request('/sign-in/email', { email: 'review@example.com', password })).status, 200);
+  assert.equal((await f.request('/sign-in/email', { email: 'review@example.com', password: reviewPassword })).status, 200);
   assert.equal((await f.request('/sign-in/username', { username: 'openapi', password: 'wrong-password-123' })).status, 401);
-  assert.notEqual((await f.request('/sign-up/email', { email: 'other@example.com', password, name:'Other user', username:'openapi' })).status, 200);
+  assert.notEqual((await f.request('/sign-up/email', { email: 'other@example.com', password: reviewPassword, name:'Other user', username:'openapi' })).status, 200);
   assert.equal((await f.request('/sign-in/email', { email, password })).status, 200);
 });

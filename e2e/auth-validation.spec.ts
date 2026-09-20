@@ -21,7 +21,7 @@ async function submit(page: import("@playwright/test").Page, path: string, field
 }
 
 test("이메일을 비우면 이메일을 채우라고 말한다", async ({ page }) => {
-  const alert = await submit(page, "/login", { password: "verylongpassword1" });
+  const alert = await submit(page, "/login", { password: "Valid-password1" });
   await expect(alert).toHaveText(/이메일을 입력/);
   // 서비스가 느린 것이 아니라 입력이 비어 있는 것이다.
   await expect(alert).not.toHaveText(/연결이 지연/);
@@ -29,7 +29,7 @@ test("이메일을 비우면 이메일을 채우라고 말한다", async ({ page
 });
 
 test("형식이 아닌 이메일은 예시와 함께 알려 준다", async ({ page }) => {
-  const alert = await submit(page, "/login", { email: "not an email", password: "verylongpassword1" });
+  const alert = await submit(page, "/login", { email: "not an email", password: "Valid-password1" });
   await expect(alert).toHaveText(/이메일 형식/);
   await expect(alert).toHaveText(/wave@example\.com/);
 });
@@ -41,7 +41,7 @@ test("빈 폼은 맨 위 항목부터 알려 준다", async ({ page }) => {
 });
 
 test("올바른 이메일은 형식 오류로 막지 않는다", async ({ page }) => {
-  const alert = await submit(page, "/login", { email: "wave.traveler+gyeongnam@example.co.kr", password: "verylongpassword1" });
+  const alert = await submit(page, "/login", { email: "wave.traveler+gyeongnam@example.co.kr", password: "Valid-password1" });
   // 계정 서비스가 없는 환경이라 이후 단계는 실패할 수 있다. 형식 오류로 막히지만
   // 않으면 된다.
   await expect(alert).not.toHaveText(/이메일 형식/);
@@ -49,7 +49,7 @@ test("올바른 이메일은 형식 오류로 막지 않는다", async ({ page }
 });
 
 test("오류가 난 칸으로 초점이 가고 그 칸이 표시된다", async ({ page }) => {
-  await submit(page, "/login", { password: "verylongpassword1" });
+  await submit(page, "/login", { password: "Valid-password1" });
   // 문구만 띄우면 어느 칸이 문제인지 되짚어 올라가야 한다.
   await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("auth-email");
   await expect(page.locator("#auth-email")).toHaveAttribute("aria-invalid", "true");
@@ -66,14 +66,14 @@ test("오류가 난 칸으로 초점이 가고 그 칸이 표시된다", async (
 test("가입 폼도 문제가 된 칸을 짚는다", async ({ page }) => {
   await submit(page, "/register", {
     name: "홍길동", email: "wave@example.com",
-    password: "verylongpassword1", confirmPassword: "different1234",
+    password: "Valid-password1", confirmPassword: "different1234",
   });
   await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("auth-confirm-password");
   await expect(page.locator("#auth-confirm-password")).toHaveAttribute("aria-invalid", "true");
 });
 
 test("고치기 시작하면 오류 표시를 걷는다", async ({ page }) => {
-  await submit(page, "/login", { password: "verylongpassword1" });
+  await submit(page, "/login", { password: "Valid-password1" });
   const message = page.locator("#auth-message");
   const email = page.locator("#auth-email");
   await expect(email).toHaveAttribute("aria-invalid", "true");
@@ -95,7 +95,7 @@ test("요청 중 입력을 고치면 이전 값의 오류를 다시 띄우지 �
   await page.goto("/login");
   await page.locator("#auth-email").fill("wave@example.com");
   const password = page.locator("#auth-password");
-  await password.fill("verylongpassword1");
+  await password.fill("Valid-password1");
   const submitButton = page.locator(".auth-submit");
   await submitButton.click();
   await expect(submitButton).toBeDisabled();
@@ -116,7 +116,7 @@ test("비밀번호 표시와 Enter 제출이 실제 폼 동작을 유지한다",
   await page.goto("/login");
   await page.locator("#auth-email").fill("wave@example.com");
   const password = page.locator("#auth-password");
-  await password.fill("verylongpassword1");
+  await password.fill("Valid-password1");
   await page.getByRole("button", { name: "비밀번호 표시" }).click();
   await expect(password).toHaveAttribute("type", "text");
   await expect(page.getByRole("button", { name: "비밀번호 숨기기" })).toHaveAttribute("aria-pressed", "true");
@@ -181,6 +181,17 @@ test("계정 메뉴 파일이 실패해도 계정 페이지로 이동할 수 있
 });
 
 // Fixture credentials never create or authenticate a real review account.
+test("new-account form uses compact ID and password limits", async ({ page }) => {
+  await mockPublicShellApi(page);
+  await page.goto("/register");
+  const username = page.getByLabel("로그인 ID (선택)", { exact: true });
+  await expect(username).toHaveAttribute("minlength", "4");
+  await expect(username).toHaveAttribute("maxlength", "12");
+  await expect(page.locator("#auth-password")).toHaveAttribute("maxlength", "16");
+  await expect(page.locator("#auth-confirm-password")).toHaveAttribute("maxlength", "16");
+  await expect(page.locator("#auth-password-help")).toHaveText("8–16자로 입력해 주세요.");
+});
+
 test("ID login sends the chosen username to the username endpoint", async ({ page }) => {
   await mockPublicShellApi(page);
   let username = "";

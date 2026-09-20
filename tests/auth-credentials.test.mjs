@@ -7,7 +7,19 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
-const OK_PASSWORD = "verylongpassword1";
+const OK_PASSWORD = "Valid-password1";
+
+test("new passwords use 8–16 characters while existing long passwords can still sign in", () => {
+  for (const length of [8, 16]) {
+    const password = "a".repeat(length);
+    assert.ok(checkAuthCredentials("register", { name: "여행자", email: "a@b.com", password, confirmPassword: password }).value);
+  }
+  for (const length of [7, 17]) {
+    const password = "a".repeat(length);
+    assert.equal(checkAuthCredentials("register", { name: "여행자", email: "a@b.com", password, confirmPassword: password }).field, "password");
+  }
+  assert.ok(checkAuthCredentials("login", { email: "a@b.com", password: "a".repeat(128) }).value);
+});
 
 test("빈 이메일을 그대로 통과시키지 않는다", () => {
   // 예전에는 이메일을 아예 검사하지 않아 서버까지 갔고, 요청이 실패한 뒤

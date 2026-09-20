@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "../../../lib/auth/client";
+import { validNewUsername } from "../../../lib/auth/credential-policy.js";
 import { authFieldInputId } from "../../../lib/auth/fields.js";
 import type { AuthMode } from "../types";
 import { friendlyAuthError, readAuthCredentials, safeAuthReturnPath } from "../validation";
@@ -52,8 +53,8 @@ export function useAuthForm(mode: AuthMode, returnTo?: string) {
     }
 
     const username = String(new FormData(event.currentTarget).get("username") || "").trim();
-    if (registering && username && !/^[a-zA-Z0-9_.]{3,30}$/.test(username)) {
-      setMessage("ID는 영문·숫자·밑줄·마침표 3–30자로 입력해 주세요.");
+    if (registering && username && !validNewUsername(username)) {
+      setMessage("ID는 영문·숫자·밑줄·마침표 4–12자로 입력해 주세요.");
       setInvalidField("username"); setValidationAttempt(current => current + 1); return;
     }
     submitLock.current = true;
