@@ -12,7 +12,7 @@ function AudioStory({ story, mode }: { story: Story; mode: AudioGuideMode }) {
   const audio=useRef<HTMLAudioElement|null>(null);
   const keySentences = audioGuideKeySentences(story.script);
   return <article><h4>{story.audioTitle}</h4><p>{story.title} · {story.audioUrl ? `약 ${Math.ceil(Number(story.playTime) / 60) || '?'}분 해설` : '대본 제공'}</p>
-    {mode === 'audio' && story.audioUrl && <><audio ref={audio} aria-label={`${story.audioTitle} 오디오 해설`} controls preload="none" src={story.audioUrl} onPlay={()=>window.dispatchEvent(new Event('wave-stop-spatial'))} onError={() => setFailed(true)} onCanPlay={() => setFailed(false)} /><Suspense fallback={null}><SpatialAudio url={story.audioUrl} title={story.audioTitle} onStart={()=>audio.current?.pause()}/></Suspense></>}
+    {mode === 'audio' && story.audioUrl && <><audio ref={audio} aria-label={`${story.audioTitle} 오디오 해설`} controls preload="none" src={story.audioUrl} onPlay={() => { window.dispatchEvent(new Event('wave-stop-spatial')); window.dispatchEvent(new CustomEvent('wave:audio-start', { detail: { source: 'place-audio-guide' } })); }} onError={() => setFailed(true)} onCanPlay={() => setFailed(false)} /><Suspense fallback={null}><SpatialAudio url={story.audioUrl} title={story.audioTitle} onStart={()=>audio.current?.pause()}/></Suspense></>}
     {mode === 'audio' && !story.audioUrl && <p>제공된 음원이 없어 대본으로 안내합니다.</p>}
     {failed && <p role="alert">음원에 연결하지 못했어요. 대본으로 바꾸거나 재생을 다시 시도해 주세요.</p>}
     {mode === 'text' && <div className="place-guide-script" role="region" aria-label={`${story.audioTitle} 전체 대본`} tabIndex={0}>{story.script || '제공된 대본이 없어요.'}</div>}

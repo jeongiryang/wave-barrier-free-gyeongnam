@@ -1,11 +1,14 @@
 "use client";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { landingRegions } from "../content";
 import { regionShowcaseAlbums } from "../region-showcase-photos";
 import { regionPhotoSource } from "../region-photo-sources";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { regionNames } from "../../../lib/gyeongnam-region-names";
+import { regionSounds } from "../region-sound";
+
+const RegionSoundPlayer = lazy(() => import("./RegionSoundPlayer"));
 
 // Server-rendered links work immediately; the disclosure becomes usable after hydration.
 const subscribeToClient = () => () => {};
@@ -40,6 +43,7 @@ export default function LandingRegionStory() {
   }, [expanded]);
   return <section id="regions" className="simple-regions simple-section" aria-labelledby="regions-title" tabIndex={-1}>
     <header className="simple-section-heading" data-land-reveal><h2 id="regions-title">{en ? "Explore Gyeongnam" : "지역으로 둘러보기"}</h2><p>{en ? "Choose a region to see its places." : "지역을 고르면 여행지를 바로 볼 수 있어요"}</p></header>
+    {regionSounds.length > 0 && <Suspense fallback={null}><RegionSoundPlayer sound={regionSounds[0]} /></Suspense>}
     <div className="simple-region-grid" id="region-grid" ref={grid}>{orderedRegions.slice(0, expanded ? 18 : 6).map(name => {
       const photo = regionShowcaseAlbums[name][0];
       const label = en ? regionNames[name] : name;

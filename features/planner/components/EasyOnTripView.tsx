@@ -34,6 +34,7 @@ export default function EasyOnTripView(props: Props) {
     currentTitle.current?.focus({ preventScroll: true });
     if (!('speechSynthesis' in window)) { setSpeechNotice('이 브라우저는 읽어주기를 지원하지 않아요. 화면의 같은 내용을 확인해 주세요.'); return; }
     window.speechSynthesis.cancel();
+    window.dispatchEvent(new CustomEvent('wave:audio-start', { detail: { source: 'easy-on-trip-speech' } }));
     const speech = new SpeechSynthesisUtterance([current.title, current.scheduledTime, current.instruction].filter(Boolean).join('. '));
     speech.lang = 'ko-KR'; speech.onerror = () => setSpeechNotice('읽어주기를 마치지 못했어요. 화면의 같은 내용을 확인해 주세요.');
     window.speechSynthesis.speak(speech); setSpeechNotice('지금 할 일을 다시 읽고 있어요.');
