@@ -31,6 +31,13 @@
 .readiness-actions button.secondary { color: var(--ink); border-color: var(--line); background: var(--surface); }
 .readiness-actions button:disabled { opacity: .58; cursor: not-allowed; }
 .departure-readiness > footer .readiness-error { color: #8b3022; }
+.companion-support-card { margin-top:20px; padding:20px; border:1px solid var(--line); border-radius:12px; color:var(--ink); background:var(--surface); }
+.companion-support-card h3,.companion-support-card p { margin:0; }
+.companion-support-card > p { margin-top:8px; color:var(--ink-soft); line-height:1.6; }
+.companion-support-card ul { margin:16px 0 0; padding:0; display:grid; gap:16px; list-style:none; }
+.companion-support-card li { padding-top:16px; display:grid; gap:6px; border-top:1px solid var(--line); }
+.companion-support-card li > span,.companion-support-card small,.companion-support-disclaimer { color:var(--muted); font-size:.8125rem; }
+.companion-support-card a { width:fit-content; min-height:44px; padding:10px 0; display:inline-flex; align-items:center; color:var(--accent); }
 html[data-theme=dark] .departure-readiness > footer .readiness-error { color: #ffb8ab; }
 @media (max-width: 640px) {
  .departure-readiness { padding: 20px 16px; }

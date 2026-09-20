@@ -8,6 +8,7 @@ import type { PlanData, WeatherData } from '../types';
 import { localDate } from '../utils';
 // 정적으로 불러온다: 목록 자체가 정적 데이터라서 새 네트워크 요청이 없다.
 import EquipmentRentalList from './EquipmentRentalList';
+import CompanionSupportCard from './CompanionSupportCard';
 import EvidenceCoverageCard from './EvidenceCoverageCard';
 import { useReadinessFocus } from '../hooks/useReadinessFocus';
 interface DepartureReadinessCardProps {
@@ -37,5 +38,6 @@ export default function DepartureReadinessCard({ region, plan, placeCriteriaCurr
     <EvidenceCoverageCard places={trip.orderedSavedPlaces} requiredKeys={plan?.criteria?.facilityKeys || []} />
     {assessment.items.map(item => <details key={item.id}><summary><strong>{item.label}</strong><span>{item.state === 'confirmed' ? '조회한 정보 있음' : item.state === 'partial' ? '일부 정보 있음' : '확인할 정보 있음'}</span><span aria-hidden="true">⌄</span></summary><div><p>{item.subject ? `${item.subject} · ` : ''}{item.summary}</p><small>{item.source}{item.checkedAt ? ` · ${item.checkedAt}` : ''}</small><a href={item.href} onClick={event => { if (['#layers','#crowd'].includes(item.href) && !event.ctrlKey && !event.metaKey) { event.preventDefault(); onOpenSignals(item.href === '#crowd' ? 'crowd' : 'layers'); } }}>상세 정보 확인 →</a></div></details>)}
     <details><summary><strong>보조기기</strong><span aria-hidden="true">⌄</span></summary><div><p>휠체어 등 보조기기가 고장 나면 빌릴 수 있는 곳을 미리 확인해 두세요.</p><EquipmentRentalList region={region || null} /></div></details>
+    <CompanionSupportCard />
   </section>;
 }
