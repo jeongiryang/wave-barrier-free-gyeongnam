@@ -39,7 +39,7 @@ export default function LandingRegionStory() {
     return () => { observer.disconnect(); media.removeEventListener('change', configure); animations.forEach(animation => animation.cancel()); };
   }, [expanded]);
   return <section id="regions" className="simple-regions simple-section" aria-labelledby="regions-title" tabIndex={-1}>
-    <header className="simple-section-heading" data-land-reveal><h2 id="regions-title">{en ? "Explore Gyeongnam" : "지역으로 둘러보기"}</h2><p>{en ? "Choose a region to see its places." : "지역을 고르면 여행지를 바로 볼 수 있어요"}</p></header>
+    <header className="simple-section-heading" data-land-reveal><h2 id="regions-title">{en ? "Explore Gyeongnam" : "경남, 모두의 여행지"}</h2><p>{en ? "Choose a region to see its places." : "아름다운 자연과 따뜻한 사람이 있는, 누구나 즐길 수 있는 여행"}</p></header>
     <div className="simple-region-grid" id="region-grid" ref={grid}>{orderedRegions.slice(0, expanded ? 18 : 6).map(name => {
       const photo = regionShowcaseAlbums[name][0];
       const label = en ? regionNames[name] : name;

@@ -29,7 +29,7 @@ export default function WaveHeader({ current, savedCount, onSaved, className = "
   className?: string;
 }) {
   const en = useSitePreferences().locale === "en";
-  const night = current !== 'intro';
+  const night = true;
   const header = useRef<HTMLElement>(null);
   const [hidden, setHidden] = useState(false);
   useEffect(() => {

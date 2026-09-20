@@ -2,8 +2,8 @@
 export const WAVE_RAMP = [" ", "·", "·", ":", ":", "-", "-", "~", "~", "="];
 
 const DEEP_TINTS = [
-  "#0a3a52", "#0d4a68", "#12587f", "#166b95", "#1a80a8",
-  "#2496b8", "#3aabc4", "#5cc2cf", "#86d6d8", "#b3e5e2",
+  "#071629", "#0b2342", "#113862", "#16528b", "#196fac",
+  "#248fc7", "#30b0e4", "#52d3fa", "#89e7ff", "#d2f4ff",
 ];
 
 const LIGHT_TINTS = [
@@ -13,7 +13,7 @@ const LIGHT_TINTS = [
 
 export function wavePalette(tone: "deep" | "light") {
   return tone === "deep"
-    ? { tints: DEEP_TINTS, background: "#04202f" }
+    ? { tints: DEEP_TINTS, background: "#030d1b" }
     : { tints: LIGHT_TINTS, background: "#eef7fc" };
 }
 
@@ -45,9 +45,10 @@ export const WAVES: Wave[] = [
 ];
 
 export const INTRO_STAGES = [
-  { in: [0.1, 0.9], out: [2.1, 2.7] },
-  { in: [2.5, 3.4], out: [4.6, 5.3] },
-  { in: [5, 6.5], out: [9.6, 9.8] },
+  { in: [0.1, 0.8], out: [2.1, 2.5] },
+  { in: [2.5, 3.2], out: [4.6, 5.0] },
+  { in: [5.0, 5.7], out: [7.1, 7.5] },
+  { in: [7.5, 8.2], out: [9.6, 9.8] },
 ];
 
 export function stageWeight(time: number, stage: { in: number[]; out: number[] }) {
