@@ -14,10 +14,16 @@ async function expectHealthyPage(page: Page, path: string) {
   await expect(page.locator("body")).not.toContainText(/Application error|Internal Server Error|Unhandled Runtime Error/i);
 
   if (new URL(page.url()).pathname === "/") {
-    // Wait for the interactive page before checking the arrival scene: its SSR
-    // markup starts hidden and is briefly revealed during the real handoff.
+    // Wait for hydration before using the real intro controls. The full intro
+    // now exceeds the generic assertion timeout; entry smoke tests its skip
+    // path, while reduced motion must still bypass the intro without a click.
     await expect(page.locator(".landing-page")).toBeVisible();
     await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
+    if (!await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+      const intro = page.getByRole("dialog", { name: "WAVE 시작 이야기", exact: true });
+      await expect(intro).toBeVisible();
+      await intro.getByRole("button", { name: "건너뛰기", exact: true }).click();
+    }
     await expect(page.locator(".arrival-scene")).toBeHidden();
   }
   await page.evaluate(() => document.fonts.ready);
@@ -82,7 +88,7 @@ test("reduced motion keeps the public entry flow usable", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   const support = page.locator(".wave-support-menu");
   await support.getByLabel("WAVE 이용 안내 메뉴", { exact: true }).click();
-  await expect(support).toHaveAttribute("open", "");
+  await expect(support).toHaveAttribute("data-open", "true");
   const preferences = page.locator(".preference-controls:visible");
   await expect(preferences).toHaveAttribute("aria-busy", "false");
   const trigger = preferences.getByLabel("환경설정 열기", { exact: true });
@@ -95,7 +101,7 @@ test("reduced motion keeps the public entry flow usable", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(trigger).toBeFocused();
   await page.keyboard.press("Escape");
-  await expect(support).not.toHaveAttribute("open", "");
+  await expect(support).toHaveAttribute("data-open", "false");
   const plannerLink = page.locator('a[href*="/planner"]:visible').first();
   await expect(plannerLink).toBeVisible({ timeout: 15_000 });
 });
