@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import { openPlannerMap, openRouteDetails, changeMapLanguage, ensureMapView } from "./nearby-fixtures";
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -41,6 +42,7 @@ async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "
   await page.getByRole("button", { name: english ? "경남도립미술관 add to itinerary" : "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   await page.locator(".reference-transport-details > summary").click();
   await page.locator(".transport-details > summary").click();
   const details = page.locator(".transport-details");
@@ -48,7 +50,7 @@ async function prepare(page: Page, scenario: "error" | "empty" | "unqueried" | "
   // Finish the automatic itinerary request before measuring an explicit
   // transport recheck or a presentation-only language change.
   const coverage = page.locator(".itinerary-route-coverage");
-  await expect(coverage.getByText(english ? "Recheck any unavailable journeys before leaving." : "조회가 끝났습니다. 확인되지 않은 구간과 실제 이동 편의를 방문 전에 다시 확인해 주세요.", { exact: true })).toBeVisible();
+  await withRouteCoverage(page, async () => { await expect(coverage.getByText(english ? "Recheck any unavailable journeys before leaving." : "조회가 끝났습니다. 확인되지 않은 구간과 실제 이동 편의를 방문 전에 다시 확인해 주세요.", { exact: true })).toBeVisible(); });
   await expect(coverage.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
   return details;
 }
@@ -238,6 +240,7 @@ test("transport details load on demand and a failed module leaves an accessible 
   expect(modules).toBe(0);
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   await page.locator(".reference-transport-details > summary").click();
   await page.locator(".transport-details > summary").click();
   await expect(page.getByRole("status").filter({ hasText: "Transport details could not open" })).toBeVisible();

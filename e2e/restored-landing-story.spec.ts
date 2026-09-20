@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 import { prepareStory, storyReady, chapterIds, expectNoOverflow, expectUsableTarget } from './landing-contract';
-import { horizonPhotos } from '../features/landing/horizon-photos';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -21,17 +20,14 @@ for (const motion of ['no-preference', 'reduce'] as const) test(`restored scener
     await expect(page.locator('.night-journey-input h3')).toBeVisible();
     await expectNoOverflow(page);
   }
-  const closing = page.locator('#closing .editorial-photo');
-  await expect(closing.locator('img')).toHaveAttribute('src', horizonPhotos.coast.image);
-  await expect(closing.getByRole('link', { name: /사진 원본/ })).toHaveAttribute('href', horizonPhotos.coast.sourceUrl);
-  await expect(closing.locator('figcaption')).toContainText(horizonPhotos.coast.photographer);
-  await expect(closing.locator('figcaption')).toContainText(horizonPhotos.coast.license);
+  const closing = page.locator('#closing');
+  await expect(closing.locator('img,a,button')).toHaveCount(0);
+  await expect(closing.getByRole('heading')).toHaveText('다음 풍경에서만나요');
   await expectUsableTarget(page.locator('.night-journey-input > .night-primary'));
   await expectUsableTarget(page.locator('#departure a[href="/guide"]'));
   await expect(page.locator('#departure .horizon-checks li')).toHaveText(['운영시간', '날씨', '이동수단', '편의시설']);
   await expectUsableTarget(page.locator('#community a.simple-text-link[href="/community"]'));
-  await expectUsableTarget(page.locator('#closing a[href="/planner"]'));
-  await expect(page.locator('.simple-region')).toHaveCount(6);
+  await expect(page.locator('.simple-region')).toHaveCount(5);
   expect(requests).toEqual([]);
   await page.screenshot({ path: test.info().outputPath(`restored-scenes-${motion}-${width}.png`), fullPage: true });
 });

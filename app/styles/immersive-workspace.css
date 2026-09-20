@@ -1,0 +1,29 @@
+@font-face{font-family:WaveScript;src:url('/fonts/handwriting/caveat.woff2') format('woff2');font-display:swap;font-weight:400 700}
+@font-face{font-family:WaveHand;src:url('/fonts/handwriting/nanum.woff2') format('woff2');font-display:swap;font-weight:400}
+html body :is(.night-hero-signature,.night-banner-note,.night-map-caption,.night-map-signature){font-family:WaveScript,WaveHand,cursive;font-style:normal;font-weight:400;letter-spacing:.025em;line-height:1.2;font-size:clamp(25px,2.25vw,48px);text-shadow:0 2px 12px #00152b;transform:rotate(-8deg)}
+html body .wave-night{--wave-gutter:clamp(20px,3vw,100px);position:relative;isolation:isolate}
+.wave-night::before{content:"";position:fixed;inset:-15%;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 14% 32%,#116caf24,transparent 40%),radial-gradient(ellipse at 85% 65%,#9464dd1a,transparent 38%),radial-gradient(ellipse at 50% 90%,#21bdc915,transparent 42%);animation:wave-ambient 24s ease-in-out infinite alternate;contain:strict}
+@keyframes wave-ambient{to{transform:translate3d(3%,-3%,0);opacity:.65}}
+html body .wave-night :is(.community-workspace,.night-festival-workspace,.simple-planner-heading,.simple-search-controls,.simple-itinerary-view){max-width:none;width:calc(100% - var(--wave-gutter)*2);margin-inline:auto}
+html body .wave-night .simple-itinerary-view .simple-planner-heading{width:100%}
+html body .wave-night .planner-journey-workspace{max-width:none}
+html body .wave-night .night-planner-form{max-width:900px}
+.naru-tools-entry{display:block;margin:24px auto;padding:14px 24px;background:#20263b;color:#dec9ff;border:1px solid #70628b;border-radius:12px}
+.naru-panel .naru-live-tools{margin-top:24px;border-top:1px solid #4a415b;padding-top:20px;min-width:0}
+.naru-panel .naru-live-tools :is(.simple-more-trip-tools,.simple-day-options,.simple-departure){margin:0;width:100%;max-width:none;background:transparent;border:0;padding:0}
+.naru-panel .naru-live-tools>div>details>summary{font-size:20px;padding:14px 0;color:#e4d2ff}
+.naru-panel .naru-live-tools .account-settings{max-width:none;width:100%;margin:16px 0}
+.naru-panel [hidden]{display:none!important}
+@media(min-width:1800px){html body .wave-night .night-planner-form h2{font-size:clamp(48px,3.2vw,82px)}html body .wave-night .night-planner-region-map svg{height:clamp(480px,32vw,900px)}html body .wave-night .night-planner-hero{min-height:74vh}html body .wave-night .night-community-columns{grid-template-columns:minmax(0,1fr) minmax(310px,24%)}html body .wave-night .night-story-card img{aspect-ratio:2/1;height:auto}}
+@media(prefers-reduced-motion:reduce){.wave-night::before{animation:none}}
+html[data-motion=calm] .wave-night::before{animation:none}
+
+html body .wave-night .night-banner-note{font-family:WaveHand,cursive;font-size:clamp(27px,2.2vw,46px)}
+.naru-workspace .naru-tool-catalog>.naru-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;background:none;padding:0;border:0}.naru-workspace .naru-tool-catalog>.naru-tools>div{padding:16px;border:1px solid #484250;border-radius:12px}.naru-workspace .naru-tool-catalog>.naru-tools h3{margin-top:0}
+@media(max-width:600px){.naru-workspace .naru-tool-catalog>.naru-tools{grid-template-columns:1fr}}
+
+html body .wave-night.planner-simple .planner-journey-workspace{width:auto;max-width:none;margin-inline:0;padding-top:0;background:transparent}
+
+.naru-panel{--onaccent:#191324}
+
+body .naru-panel .population-policy p small{color:var(--ink-soft)}

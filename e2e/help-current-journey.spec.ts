@@ -18,18 +18,21 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
 });
 
-for (const locale of ["ko", "en"] as const) {
-  test(`${locale} landing help follows the visible photo, chapters and companion scenes`, async ({ page }) => {
+for (const locale of ["ko", "en"] as const) for (const expanded of [false, true]) {
+  test(`${locale} landing help follows visible scenes with extra tools ${expanded ? 'expanded' : 'closed'}`, async ({ page }) => {
     await mockPublicShellApi(page);
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
     await page.goto("/");
+    if (expanded) await page.locator('.night-feature-details > summary').click();
     await openSupportMenu(page);
     const help = page.getByRole("button", { name: locale === "en" ? "Help" : "도움말", exact: true });
     await help.click();
     const dialog = page.getByRole("dialog");
     const active = page.locator('[data-help-tour-active="true"]');
-    for (const id of ["top", "regions", "story", "naru"]) {
+    const scenes = expanded ? ["top", "regions", "story", "naru"] : ["top", "regions", "story"];
+    for (const id of scenes) {
       await expect(active).toHaveAttribute("id", id);
+      await expect(active).toBeVisible();
       await expect(page.locator(".help-tour-spotlight")).toBeVisible();
       if (id === "regions") {
         await expect(dialog).toContainText(locale === "en" ? "Choose a photograph" : "사진을 누르면");
@@ -39,7 +42,7 @@ for (const locale of ["ko", "en"] as const) {
         const title = await page.locator(".simple-region-grid .simple-region:first-child h3").boundingBox();
         expect(title!.y).toBeGreaterThanOrEqual(header!.y + header!.height + 8);
       }
-      await dialog.getByRole("button", { name: id === "naru"
+      await dialog.getByRole("button", { name: id === scenes.at(-1)
         ? (locale === "en" ? "Finish tour" : "투어 마치기")
         : (locale === "en" ? "Next area" : "다음 영역"), exact: true }).click();
     }

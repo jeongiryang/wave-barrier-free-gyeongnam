@@ -14,7 +14,7 @@ for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choi
   const firstCovers = new Set(firstRegions.map(name => regionShowcaseAlbums[name][0].image));
   await page.goto("/"); await storyReady(page);
   const cards = page.locator(".simple-region");
-  await expect(cards).toHaveCount(6);
+  await expect(cards).toHaveCount(firstRegions.length);
   for (const card of await cards.all()) {
     await card.scrollIntoViewIfNeeded();
     await expect.poll(() => card.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
@@ -22,13 +22,15 @@ for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choi
   }
   const loadedPhotos = [...requested].filter(url => allPhotos.has(url));
   const mapCovers = new Set(["거창", "창녕", "산청", "하동", "김해", "통영"].map(name => regionShowcasePhotos[name].image));
-  const renderedMapPhotos = new Set(await page.locator(".night-journey-map svg image").evaluateAll(images => images.map(image => image.getAttribute("href"))));
+  const storyCovers = new Set(['통영', '거제', '하동'].map(name => regionShowcasePhotos[name].image));
   for (const cover of firstCovers) expect(loadedPhotos).toContain(cover);
   // The adjacent approved SVG map enters the lazy-loading margin on desktop.
-  // Its six visible thumbnails are covers, not speculative album slides.
+  // Map thumbnails and the adjacent itinerary cards are rendered covers,
+  // not speculative album slides.
   for (const url of loadedPhotos.filter(url => !firstCovers.has(url))) {
-    expect(mapCovers.has(url)).toBe(true);
-    expect(renderedMapPhotos.has(url)).toBe(true);
+    expect(mapCovers.has(url) || storyCovers.has(url), url).toBe(true);
+    // React may start an image request before the lazy SVG commit completes.
+    await expect.poll(() => page.locator(".night-journey-map svg image,.night-itinerary-cards img").evaluateAll(images => images.map(image => image.getAttribute("href") || image.getAttribute("src"))), { message: url }).toContain(url);
   }
   expect(photoApiRequests).toEqual([]);
   const expand = page.getByRole("button", { name: "18개 지역 모두 보기", exact: true });

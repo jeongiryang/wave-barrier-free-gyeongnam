@@ -17,7 +17,7 @@ const subscribeToClient = () => () => {};
 const clientReady = () => true;
 const serverReady = () => false;
 
-const firstRegions = ["통영", "거제", "남해", "진주", "창원", "하동"];
+const firstRegions = ["통영", "거제", "남해", "하동", "산청"];
 const orderedRegions = [...firstRegions, ...landingRegions.map(region => region.name).filter(name => !firstRegions.includes(name))];
 
 export default function LandingRegionStory() {
@@ -46,7 +46,7 @@ export default function LandingRegionStory() {
   return <section id="regions" className="simple-regions simple-section" aria-labelledby="regions-title" tabIndex={-1}>
     <header className="simple-section-heading" data-land-reveal><h2 id="regions-title">{en ? "Explore Gyeongnam" : "경남, 모두의 여행지"}</h2><p>{en ? "Choose a region to see its places." : "아름다운 자연과 따뜻한 사람이 있는, 누구나 즐길 수 있는 여행"}</p></header>
     {regionSounds.length > 0 && <Suspense fallback={null}><RegionSoundPlayer sound={regionSounds[0]} /></Suspense>}
-    <div className="simple-region-grid" id="region-grid" ref={grid}>{orderedRegions.slice(0, expanded ? 18 : 6).map(name => {
+    <div className="simple-region-grid" id="region-grid" ref={grid}>{orderedRegions.slice(0, expanded ? 18 : 5).map(name => {
       const photo = regionShowcaseAlbums[name][0];
       const label = en ? regionNames[name] : name;
       const culture = regionCultureByName.get(name);

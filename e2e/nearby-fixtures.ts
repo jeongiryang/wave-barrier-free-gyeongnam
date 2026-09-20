@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool, naruDialog } from "./naru-tool-fixtures";
 import { openSupportMenu } from "./support-menu";
 import { expect, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, openItinerary } from "./fixtures";
@@ -109,7 +110,7 @@ export async function ensureMapView(page: Page) {
   await expect(page.locator("#navigation")).toBeVisible();
 }
 export async function openRouteDetails(page: Page) {
-  for (const selector of [".reference-route-details", ".simple-more-trip-tools"]) {
+  for (const selector of [".reference-route-details"]) {
     const details = page.locator(selector);
     if (await details.getAttribute("open") === null) await details.locator(":scope > summary").click();
   }
@@ -138,4 +139,12 @@ export async function openMapTool(page: Page, tool: "nearby" | "layers" | "expor
   await trigger.click();
   await expect(panel).toBeVisible();
   return panel;
+}
+
+/** The same live route state is inspected through Naru, then the map regains input. */
+export async function withRouteCoverage(page: Page, action: () => Promise<void> = async () => {}) {
+  await openNaruTool(page, '이동 구간 확인');
+  await expect(page.locator('.itinerary-route-coverage')).toBeVisible();
+  await action();
+  if (await naruDialog(page).isVisible()) await closeNaruTool(page);
 }

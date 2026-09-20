@@ -68,7 +68,8 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 960, height: 800 
     await tabs.getByRole('tab', { name: '여행 도구', exact: true }).click();
     const tools = panel.getByRole('region', { name: '모든 여행 도구', exact: true });
     await expect(panel.locator('.naru-workspace-body')).toBeHidden();
-    await expect(tools.locator('.naru-tools button')).toHaveCount(24);
+    await expect(tools.locator('.naru-tools button')).toHaveCount(28);
+    expect(await tools.locator('.naru-tools button').allTextContents()).toEqual(expect.arrayContaining(['페이스·감각지도·여행여권', '오디오 가이드·후기', '장소 좌표 복원', '이동 구간 확인']));
     await checkTargets(tools.locator('.naru-tools button'));
     await checkBounds(page, panel);
     await tabs.getByRole('tab', { name: '저장한 내용', exact: true }).click();

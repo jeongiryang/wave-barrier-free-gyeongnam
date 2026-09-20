@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
@@ -25,11 +26,10 @@ for (const failure of [false, true]) test(`service diagnostics load only when op
   const toolsSummary = tools.locator(":scope > summary");
   const details = tools.locator(".planner-service-status");
   const summary = details.locator(":scope > summary");
-  await expect(tools).not.toHaveAttribute("open");
+  await expect(tools).toHaveCount(0);
   await expect(summary).toBeHidden();
   expect(requests).toHaveLength(0);
-  await toolsSummary.focus();
-  await page.keyboard.press("Enter");
+  await openNaruTool(page, "이동 구간 확인");
   await expect(summary).toHaveAccessibleName("정보 연결 상태");
   await expect(summary).toBeVisible();
   // Opening the tools drawer still must not download its optional diagnostics.
@@ -57,6 +57,7 @@ for (const failure of [false, true]) test(`service diagnostics load only when op
   await expect(toolsSummary).toBeFocused();
   expect(await tripValues(page)).toEqual(before);
 
+  await closeNaruTool(page);
   await page.getByRole("group", { name: "여행 설계 화면" }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
   const changedSearch = page.waitForResponse(response => {
     const url = new URL(response.url());

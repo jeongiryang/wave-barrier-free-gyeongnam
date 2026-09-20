@@ -1,3 +1,4 @@
+import { closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, openItinerary } from "./fixtures";
 
@@ -15,6 +16,11 @@ for (const view of ['overview', 'guided'] as const) for (const motion of ['reduc
         await page.evaluate(hash => { history.pushState(null, '', `#${hash}`); dispatchEvent(new PopStateEvent('popstate')); }, hash);
         await expect(page.locator('.simple-planner-tabs button').nth(itinerary ? 1 : 0)).toHaveAttribute('aria-pressed', 'true');
         await expect(page.locator(itinerary ? '#itinerary' : '#conditions')).toBeVisible();
+        if (hash === 'departure-readiness') {
+          await expect(naruDialog(page)).toBeVisible();
+          await expect(page.locator('#departure-readiness')).toBeVisible();
+          await closeNaruTool(page);
+        }
         if (hash === 'itinerary') await expect(page.locator('#itinerary-stage-title')).toBeFocused();
         expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       }

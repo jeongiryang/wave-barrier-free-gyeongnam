@@ -5,6 +5,7 @@ import type { TourStep } from "./tour-content";
 import { useSitePreferences } from "../../components/SitePreferences";
 import { useHelpTourFocus } from "./useHelpTourFocus";
 import { useTourSpotlight } from "./useTourSpotlight";
+import { isTourTargetVisible } from "./tour-visibility";
 
 export function useHelpTour() {
   const { locale } = useSitePreferences();
@@ -35,7 +36,7 @@ export function useHelpTour() {
             : loaded.landingSteps;
       const available = candidates.filter((step) => {
         const target = document.querySelector<HTMLElement>(step.selector);
-        return target && target.getClientRects().length > 0 && getComputedStyle(target).visibility !== "hidden";
+        return target && isTourTargetVisible(target);
       });
       spotlight.setHighlight(null);
       setSteps(available);

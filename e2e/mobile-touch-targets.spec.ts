@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, chooseTripConditions, openItinerary } from "./fixtures";
 
@@ -92,7 +93,7 @@ test("모바일 지도 기본·추가 도구는 44px 영역과 빠짐없는 접�
   }))).toBe(true);
   await expect(commandBar.getByRole("button", { name: "↗ 페이지 링크", exact: true })).toBeVisible();
 
-  await page.locator(".simple-departure > summary").click();
+  await openNaruTool(page, "출발 전 확인");
   for (const summary of await page.locator(".simple-readiness > details > summary").all()) await summary.click();
   const readinessActions = page.locator(".simple-readiness button, .simple-readiness a");
   // Four new precaution actions join the existing six readiness controls.

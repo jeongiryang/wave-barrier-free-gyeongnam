@@ -68,7 +68,7 @@ export default function SavedPlaceCoordinateRecovery({ places, onRestore }: {
   }
   // Keep the activated control mounted after success, preserving keyboard focus.
   if (!missing.length && !results.length) return null;
-  return <section lang={en ? "en" : "ko"} aria-label={en ? "Recheck saved place locations" : "저장 장소 위치 재확인"}>
+  return <section data-coordinate-recovery lang={en ? "en" : "ko"} aria-label={en ? "Recheck saved place locations" : "저장 장소 위치 재확인"}>
     <p>{en ? "Recheck public place IDs with the Korea Tourism Organization to restore map locations. Your dates and order stay unchanged. This does not recheck facilities or route access." : "한국관광공사에 공개 장소 ID로 위치를 다시 조회합니다. 날짜와 순서는 유지하며, 편의시설이나 이동 경로의 접근성을 재확인하는 것은 아닙니다."}</p>
     <button className="primary-button" type="button" onClick={() => { void restore(); }} aria-busy={busy} aria-disabled={busy || !missing.length}>{busy ? (en ? "Checking place locations" : "장소 위치 확인 중") : (en ? "Recheck place locations" : "장소 위치 다시 확인")}</button>
     <div role="status" aria-live="polite"><ul>{results.map(result => {

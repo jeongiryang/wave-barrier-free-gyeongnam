@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 
 test("확인된 지역에만 공식 문화 이야기와 출처를 표시한다", async ({ page }) => {
   const regions = page.locator("#regions");
-  await expect(regions.locator(".simple-region-culture")).toHaveCount(2);
+  await expect(regions.locator(".simple-region-culture")).toHaveCount(1);
   await expect(regions.locator(".simple-region-culture").first()).toContainText("통영오광대");
   await expect(regions.locator(".simple-region-culture").first()).toContainText("국가유산청 국가유산포털 · 2026-09-20");
   await expect(regions.getByRole("article").filter({ hasText: "거제" }).locator(".simple-region-culture")).toHaveCount(0);

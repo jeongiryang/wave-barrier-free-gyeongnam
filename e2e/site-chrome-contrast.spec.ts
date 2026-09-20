@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
 import { findLowContrastText, formatFindings } from "./contrast";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
-import { expectUsableTarget, storyReady } from "./landing-contract";
+import { storyReady } from "./landing-contract";
 
 /**
  * 화면 어디에나 있는 공통 요소(환경설정 토글, 지역 칩)와 주요 공개 화면의 글자가
@@ -11,97 +11,42 @@ import { expectUsableTarget, storyReady } from "./landing-contract";
  */
 const PAGES = ["/", "/planner", "/community", "/community/new", "/photo-course", "/travel-book"];
 
-async function closingPhotoContrast(page: Page, failed: boolean) {
+async function closingTextContrast(page: Page) {
   await storyReady(page);
   const closing = page.locator("#closing");
   await closing.scrollIntoViewIfNeeded();
   await expect(closing).toBeVisible();
-  // Removing a gradient must not leave the inherited transparent text fill.
-  await expect(closing.locator("h2 em")).toHaveCSS("-webkit-text-fill-color", "rgb(255, 255, 255)");
-  if (failed) {
-    await expect(closing.locator("img")).toHaveCount(0);
-    await expect(closing.locator("figcaption")).toContainText("사진을 불러오지 못했어요");
-  } else {
-    await expect.poll(() => closing.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
-  }
-  const result = await closing.evaluate(root => {
+  await expect(closing.locator("img,figcaption,a,button")).toHaveCount(0);
+  await expect(closing.locator("h2 em")).toHaveCSS("-webkit-text-fill-color", "rgb(236, 244, 255)");
+  const samples = await closing.evaluate(root => {
     const rgba = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
     const luminance = (rgb: number[]) => rgb.slice(0, 3).map(value => {
       const s = value / 255;
       return s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4;
     }).reduce((sum, channel, i) => sum + channel * [.2126, .7152, .0722][i], 0);
-    const style = getComputedStyle(root);
-    const photo = root.querySelector(".closing-horizon")!;
-    const scrim = getComputedStyle(photo, "::after");
-    const caption = photo.querySelector("figcaption")!;
-    const captionStyle = getComputedStyle(caption);
-    const image = photo.querySelector("img");
-    const frame = root.getBoundingClientRect(), picture = photo.getBoundingClientRect();
-    const overlay = rgba(scrim.backgroundColor), alpha = (overlay[3] ?? 1) * Number(scrim.opacity);
-    // White is the brightest possible photograph or failed-image backing pixel.
-    // For white text this gives the lowest contrast across every possible image.
-    const backing = overlay.slice(0, 3).map(channel => channel * alpha + 255 * (1 - alpha));
-    const samples = [...root.querySelectorAll(".landing-closing-copy > .closing-eyebrow, .landing-closing-copy > p")].map(node => {
+    const surface = getComputedStyle(root), background = rgba(surface.backgroundColor);
+    const frame = root.getBoundingClientRect();
+    return [...root.querySelectorAll(".brand-meaning p,h2,h2 em,.closing-eyebrow,.landing-closing-copy > p")].map(node => {
       const foreground = getComputedStyle(node), box = node.getBoundingClientRect();
-      return {
-        text: (node.textContent || "").replace(/\s+/g, " ").trim().slice(0, 24),
-        suffix: node.tagName === "P" ? " > p" : " > span.closing-eyebrow",
-        color: foreground.color, opacity: foreground.opacity,
+      const light = luminance(rgba(foreground.color)), dark = luminance(background);
+      return { text: node.textContent, color: foreground.color, opacity: foreground.opacity,
+        background: surface.backgroundColor, backgroundImage: surface.backgroundImage,
         covered: box.left >= frame.left && box.right <= frame.right && box.top >= frame.top && box.bottom <= frame.bottom,
-        ratio: (luminance(rgba(foreground.color)) + .05) / (luminance(backing) + .05),
-      };
+        ratio: (Math.max(light, dark) + .05) / (Math.min(light, dark) + .05) };
     });
-    return {
-      isolation: style.isolation, opacity: style.opacity,
-      outerScrim: getComputedStyle(root, "::before").content,
-      scrim: { content: scrim.content, position: scrim.position, insets: [scrim.top, scrim.right, scrim.bottom, scrim.left], image: scrim.backgroundImage, color: scrim.backgroundColor, opacity: scrim.opacity, pointerEvents: scrim.pointerEvents },
-      photoBehindText: Number(getComputedStyle(photo).zIndex) < 0,
-      imageBelowScrim: (!image || getComputedStyle(image).position === "static") && Number(scrim.zIndex) > 0,
-      caption: { color: captionStyle.color, opacity: captionStyle.opacity, aboveScrim: captionStyle.position === "absolute" && Number(captionStyle.zIndex) > Number(scrim.zIndex), links: [...caption.querySelectorAll("a")].map(link => ({ color: getComputedStyle(link).color, opacity: getComputedStyle(link).opacity })) },
-      photoFillsFrame: [picture.left - frame.left, picture.top - frame.top, picture.right - frame.right, picture.bottom - frame.bottom].every(value => Math.abs(value) <= 1),
-      backing, samples,
-    };
   });
-  expect(result.isolation).toBe("isolate");
-  expect(result.opacity).toBe("1");
-  expect(result.outerScrim).toBe("none");
-  expect(result.scrim.content).not.toBe("none");
-  expect(result.scrim.position).toBe("absolute");
-  expect(result.scrim.insets).toEqual(["0px", "0px", "0px", "0px"]);
-  expect(result.scrim.image).toBe("none");
-  expect(result.scrim.opacity).toBe("1");
-  expect(result.scrim.pointerEvents).toBe("none");
-  expect(result.photoBehindText).toBe(true);
-  expect(result.imageBelowScrim).toBe(true);
-  expect(result.caption.aboveScrim).toBe(true);
-  expect(result.caption.color).toBe("rgb(255, 255, 255)");
-  expect(result.caption.opacity).toBe("1");
-  expect(result.caption.links).toHaveLength(2);
-  for (const link of result.caption.links) expect(link).toEqual({ color: "rgb(255, 255, 255)", opacity: "1" });
-  expect(result.photoFillsFrame).toBe(true);
-  expect(result.samples).toHaveLength(2);
-  for (const sample of result.samples) {
-    expect(sample.color).toBe("rgb(255, 255, 255)");
+  expect(samples).toHaveLength(6);
+  for (const sample of samples) {
+    expect(sample.background).toBe("rgb(5, 14, 25)");
+    expect(sample.backgroundImage).toBe("none");
     expect(sample.opacity).toBe("1");
     expect(sample.covered).toBe(true);
-    expect(sample.ratio, `${sample.text}: brightest-photo contrast`).toBeGreaterThanOrEqual(4.5);
+    expect(sample.ratio, `${sample.text}: text-only closing contrast`).toBeGreaterThanOrEqual(4.5);
   }
-  await expect(closing.locator("figcaption")).toHaveAttribute("lang", "ko");
-  // Credits share the same white foreground and scrim lower bound, and paint
-  // above that scrim rather than being dimmed together with the photograph.
-  const credits = closing.locator("figcaption a");
-  for (const credit of await credits.all()) await expectUsableTarget(credit);
-  await credits.first().focus();
-  await page.keyboard.press("Tab");
-  await expect(credits.last()).toBeFocused();
-  await page.keyboard.press("Shift+Tab");
-  await expect(credits.first()).toBeFocused();
-  await closing.screenshot({ path: test.info().outputPath(failed ? "closing-photo-failed.png" : "closing-photo-loaded.png") });
-  const evidenceName = failed ? "closing-failed-photo-contrast" : "closing-photo-contrast";
-  const evidencePath = test.info().outputPath(`${evidenceName}.json`);
-  await writeFile(evidencePath, JSON.stringify(result, null, 2));
-  await test.info().attach(evidenceName, { path: evidencePath, contentType: "application/json" });
-  return result.samples;
+  await closing.screenshot({ path: test.info().outputPath("closing-text.png") });
+  const evidencePath = test.info().outputPath("closing-text-contrast.json");
+  await writeFile(evidencePath, JSON.stringify(samples, null, 2));
+  await test.info().attach("closing-text-contrast", { path: evidencePath, contentType: "application/json" });
 }
 
 for (const theme of ["light", "dark"] as const) {
@@ -120,20 +65,16 @@ for (const theme of ["light", "dark"] as const) {
       await page.goto(path, { waitUntil: "domcontentloaded" });
       await page.waitForTimeout(2_000);
       expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
-      const photoText = path === "/" ? await closingPhotoContrast(page, false) : [];
-      // The general ancestry-only measurement cannot see a sibling photograph or
-      // ::before. Exclude only the two texts already proven over that actual scrim.
-      const findings = (await findLowContrastText(page)).filter(finding => !photoText.some(sample =>
-        finding.where.includes("section.landing-cta") && finding.where.endsWith(sample.suffix) && finding.text === sample.text));
+      if (path === "/") await closingTextContrast(page);
+      const findings = await findLowContrastText(page);
       if (findings.length) failures.push(formatFindings(path, findings));
       if (path === "/") {
-        const photoUrl = "**/media/horizon/hero-coast.jpg";
+        const photoUrl = "**/media/night/coast.webp";
         await page.route(photoUrl, route => route.abort());
         await page.reload({ waitUntil: "domcontentloaded" });
-        const fallbackText = await closingPhotoContrast(page, true);
-        const fallbackFindings = (await findLowContrastText(page)).filter(finding => !fallbackText.some(sample =>
-          finding.where.includes("section.landing-cta") && finding.where.endsWith(sample.suffix) && finding.text === sample.text));
-        if (fallbackFindings.length) failures.push(formatFindings("/ (photo failed)", fallbackFindings));
+        await closingTextContrast(page);
+        const fallbackFindings = await findLowContrastText(page);
+        if (fallbackFindings.length) failures.push(formatFindings("/ (hero photo failed)", fallbackFindings));
         await page.unroute(photoUrl);
       }
     }

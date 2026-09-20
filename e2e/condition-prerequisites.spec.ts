@@ -1,8 +1,9 @@
+import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, plan } from "./fixtures";
-import { prepareLandingMedia, storyReady } from "./landing-contract";
-const chapterIds = ["top","regions","story","features","naru","community","departure","closing"];
+import { chapterIds, openLandingTools, prepareLandingMedia, storyReady } from "./landing-contract";
+
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
@@ -148,7 +149,9 @@ for (const locale of ["ko", "en"] as const) {
       expect(selected.schedule).toMatchObject({ travelStart: "2026-09-20", travelEnd: "2026-09-21", scheduleAssignments: { "1001": "2026-09-20" } });
       if (mobileLayout) {
         const map = page.locator(".simple-itinerary-map");
+        await openNaruTool(page, "이동 구간 확인");
         await expect(page.locator(".coverage-notice")).toContainText(en ? "Recheck any unavailable journeys before leaving." : "조회가 끝났습니다.");
+        await closeNaruTool(page);
         await expect(map.locator(".route-options")).toHaveAttribute("aria-busy", "false");
         const pane = await map.locator(".leaflet-map-pane").elementHandle();
         expect(pane).not.toBeNull();
@@ -162,9 +165,13 @@ for (const locale of ["ko", "en"] as const) {
         await expect(map).toHaveAttribute("hidden", "");
         await expect(map.getByRole("button")).toHaveCount(0);
         await expect(page.locator(".simple-timeboard")).toBeVisible();
-        await page.locator(".simple-day-options > summary").focus();
+        await page.locator(".simple-timeboard button:enabled").last().focus();
         await page.keyboard.press("Tab");
-        await expect(page.locator("#itinerary > .simple-more-trip-tools > summary")).toBeFocused();
+        // The retired drawers are no longer the next focus target. Walk the real
+        // boundary after the timetable and ensure the hidden map is skipped.
+        await expect(page.locator(":focus")).toBeVisible();
+        expect(await map.evaluate(element => element.contains(document.activeElement))).toBe(false);
+        await expect(page.locator(".simple-itinerary-view .simple-day-options, .simple-itinerary-view .simple-more-trip-tools")).toHaveCount(0);
         await view.getByRole("button", { name: "지도", exact: true }).click();
         await expect(view.getByRole("button", { name: "지도", exact: true })).toHaveAttribute("aria-pressed", "true");
         await expect(map.locator(".leaflet-container")).toBeVisible();
@@ -281,10 +288,10 @@ for (const locale of ["ko", "en"] as const) {
       ? [/A wider world\s*Together, WAVE/, /Design a journey\s*that feels like you\./, /^WAVE로 할 수 있는 일$/, /^Explore Gyeongnam$/, /^Plan with Naru$/, /A lighter heart\.\s*One more check\./, /Travel brings people together\./, /See you at\s*the next horizon\./]
       : [/더 넓은 세상을\s*함께, WAVE/, /당신만의\s*여행을 설계하세요/, /^WAVE로 할 수 있는 일$/, /^경남, 모두의 여행지$/, /^나루에게 말해보세요$/, /여행을 더 편하게,\s*필요한 정보를 한곳에/, /여행이\s*사람을 연결합니다/, /다음 풍경에서\s*만나요/];
     for (const [index, id] of chapterIds.entries()) {
-      if (id === "features" && !await page.locator("#features").isVisible()) await page.getByText("여행 도구 모두 보기", {exact:true}).click();
+      if (id === "naru") await openLandingTools(page);
       const section = page.locator(`#${id}`);
       await section.scrollIntoViewIfNeeded();
-      await expect(section).toHaveAccessibleName(names[[0,3,1,2,4,6,5,7][index]]);
+      await expect(section).toHaveAccessibleName(names[[0,3,1,6,5,4,2,7][index]]);
       await expect(section.locator("h1,h2").first()).toBeVisible();
     }
     await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);

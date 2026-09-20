@@ -53,6 +53,7 @@ import "./styles/night-desktop.css";
 import "./styles/night-secondary.css";
 import "./styles/night-regression.css";
 import "./styles/naru-workspace.css";
+import "./styles/immersive-workspace.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN, SITE_TITLE, SOCIAL_IMAGE } from "../lib/site-metadata";
 

@@ -1,4 +1,5 @@
 "use client";
+import { PlannerToolPortal } from "./PlannerToolSurface";
 import { lazy, Suspense, useCallback, useMemo, useState, type ReactNode } from "react";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { useItineraryRoutes } from "../hooks/useItineraryRoutes";
@@ -58,7 +59,7 @@ export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, tr
         })}</ol>
         {!active?.entries.length && <p className="simple-empty">이 날짜에 담은 장소가 없어요.</p>}
         {outside.length > 0 && <section className="simple-outside-dates"><h3>기간 밖에 남아 있는 장소</h3>{outside.map(place => <div key={place.id}><span>{place.name} · {trip.scheduleAssignments[place.id]}</span><button type="button" onClick={() => setEditing(place)}>날짜 수정</button></div>)}</section>}
-        <details className="simple-day-options"><summary>걷기·휴식·마치는 시각</summary>{trip.activeDay && <DayDeadlineControl key={trip.activeDay} day={trip.activeDay} value={trip.dayDeadlines[trip.activeDay]} entries={active?.entries || []} onChange={value => trip.applyTripCommand({ type: 'deadline', day: trip.activeDay, value })} />}<TripComfortPlan trip={trip} coverage={coverage} schedule={schedule} />{!!active?.entries.length && <div className="travel-book-actions"><button type="button" onClick={() => window.dispatchEvent(new CustomEvent('wave:open-restroom-finder', { detail: { contentId: active.entries.at(-1)?.place.id } }))}>화장실 찾기</button></div>}<RestStopFinder trip={trip} places={places} requiredKeys={requiredKeys} onSelectPlace={onSelectPlace} /></details>
+        <PlannerToolPortal group="comfort"><details className="simple-day-options"><summary>걷기·휴식·마치는 시각</summary>{trip.activeDay && <DayDeadlineControl key={trip.activeDay} day={trip.activeDay} value={trip.dayDeadlines[trip.activeDay]} entries={active?.entries || []} onChange={value => trip.applyTripCommand({ type: 'deadline', day: trip.activeDay, value })} />}<TripComfortPlan trip={trip} coverage={coverage} schedule={schedule} />{!!active?.entries.length && <div className="travel-book-actions"><button type="button" onClick={() => window.dispatchEvent(new CustomEvent('wave:open-restroom-finder', { detail: { contentId: active.entries.at(-1)?.place.id } }))}>화장실 찾기</button></div>}<RestStopFinder trip={trip} places={places} requiredKeys={requiredKeys} onSelectPlace={onSelectPlace} /></details></PlannerToolPortal>
       </section>
       {mapMounted && <div className="simple-itinerary-map" hidden={!mapView}>{map}</div>}
     </div>

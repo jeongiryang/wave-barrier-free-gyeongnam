@@ -28,7 +28,7 @@ export default function TravelExperience(props: ExperienceProps) {
   const [tab, setTab] = useState("");
   return (
     <section
-      className={styles.experience}
+      className={`${styles.experience} travel-experience`}
       lang="ko"
       aria-label="오늘의 여행 도우미"
     >

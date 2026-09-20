@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page, type Locator } from '@playwright/test';
 import { mockPlannerApi, plan } from './fixtures';
 import { groundAssistantProposal } from '../lib/assistant-grounding.js';
@@ -92,7 +93,7 @@ test('이동수단만 바꾸면 새 일정 없이 저장한 장소·기간·순�
     await expect(app.chat.getByRole('log')).not.toContainText('조회한 이동 구간을 지도에서 볼 수 있어요');
     gate.release(); await expect.poll(app.completed).toBe(5);
     await app.chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
-    await page.locator('.simple-more-trip-tools > summary').click();
+    await openNaruTool(page, '이동 구간 확인');
     await expect(page.locator('.itinerary-route-coverage').getByRole('combobox', { name: '이동수단', exact: true })).toHaveValue('car');
     await expect(page.locator('.itinerary-route-coverage')).toContainText('전체 2구간 중 2구간 확인');
     await page.locator('.itinerary-route-coverage').getByRole('button', { name: '이 구간 지도에서 보기', exact: true }).first().click();

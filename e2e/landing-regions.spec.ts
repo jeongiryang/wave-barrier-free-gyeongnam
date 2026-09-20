@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
-import { prepareStory, storyReady, chapterIds, firstRegions, allRegions, expectUsableTarget, expectNoOverflow } from "./landing-contract";
+import { openLandingTools, prepareStory, storyReady, chapterIds, firstRegions, allRegions, expectUsableTarget, expectNoOverflow } from "./landing-contract";
 import { regionNames } from "../lib/gyeongnam-region-names";
 import { regionPhotoSource } from "../features/landing/region-photo-sources";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
@@ -71,6 +71,7 @@ test("landing: labelled itinerary and conversation examples preserve restored-se
   await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
   await page.locator(".night-journey-tabs button").last().click();
   await expect(page.locator(".night-journey-preview")).toContainText("순서 바꾸기");
+  await openLandingTools(page);
   await page.locator("#naru").scrollIntoViewIfNeeded();
   await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
   await expect(page.locator(".simple-naru-example").locator("input,button,form,textarea,[contenteditable=true]")).toHaveCount(0);
@@ -81,7 +82,7 @@ test("landing: reduced motion keeps every section readable through forward scrol
   await prepareStory(page);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/"); await storyReady(page);
-  await page.getByText("여행 도구 모두 보기", { exact: true }).click();
+  await openLandingTools(page);
   const planning = page.locator(".landing-actions a");
   await planning.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -97,7 +98,7 @@ test("landing: reduced motion keeps every section readable through forward scrol
   await page.reload(); await storyReady(page);
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(page.locator(".arrival-scene")).toBeHidden();
-  await expect(page.locator(".simple-region")).toHaveCount(6);
+  await expect(page.locator(".simple-region")).toHaveCount(firstRegions.length);
   await expectUsableTarget(planning);
 });
 
@@ -150,7 +151,7 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 1440]
     await expect(held).toBeFocused();
     await expect(held).toHaveAttribute("href", href!);
     await collapse.press("Space");
-    await expect(cards).toHaveCount(6);
+    await expect(cards).toHaveCount(firstRegions.length);
     await expect(region.getByRole("button", { name: en ? "View all 18 regions" : "18개 지역 모두 보기", exact: true })).toBeFocused();
     expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
     await expectNoOverflow(page);

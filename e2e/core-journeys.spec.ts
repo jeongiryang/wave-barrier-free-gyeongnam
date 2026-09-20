@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -115,16 +116,19 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await expect(page.locator(".simple-itinerary-map .leaflet-container")).toBeVisible();
     await expect(arrival).toHaveText("10:25");
     await expect(itinerary.locator("#itinerary-stop-1001 .simple-leg-time")).toHaveText("여기까지 이동 25분");
-    await page.locator(".simple-more-trip-tools > summary").click();
+    await openNaruTool(page, '이동 구간 확인');
     await expect.poll(() => carRequests).toBe(2);
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "true");
+    await closeNaruTool(page);
     await page.locator(".reference-route-details > summary").click();
     await page.getByRole("button", { name: /여유 자동차 경로/ }).click();
     await expect(arrival).toHaveText("10:40");
     releaseAutomatic();
+    await openNaruTool(page, "이동 구간 확인");
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
     await expect(page.locator(".itinerary-route-coverage").getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
     await expect(arrival).toHaveText("10:40");
+    await closeNaruTool(page);
     await page.getByRole("button", { name: /추천 자동차 경로/ }).click();
     await expect(arrival).toHaveText("10:25");
     if (mobileLayout) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "시간표", exact: true }).click();
@@ -139,8 +143,9 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
     await screens.getByRole("button", { name: /^내 일정/ }).click();
     await expect(itinerary.locator("#itinerary-stop-1002")).toContainText("용지호수공원");
-    await page.locator(".simple-audio-journal > summary").click();
+    await openNaruTool(page, "오디오 가이드·후기");
     await expect(page.getByRole("link", { name: "여행 후기 작성", exact: true })).toHaveAttribute("href", /draft=journal/);
+    await closeNaruTool(page);
     await page.getByRole("button", { name: "용지호수공원 일정 수정", exact: true }).click();
     await page.getByRole("dialog", { name: "용지호수공원 수정", exact: true }).getByRole("button", { name: "일정에서 빼기", exact: true }).click();
     await expect(itinerary.locator("#itinerary-stop-1002")).toHaveCount(0);
@@ -148,7 +153,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
     await screens.getByRole("button", { name: /^내 일정/ }).click();
     expect(api.enrichmentRequestCount()).toBe(0);
-    await page.locator(".simple-departure > summary").click();
+    await openNaruTool(page, "출발 전 확인");
     await page.locator(".travel-layers > summary").click();
     await expect(page.getByRole("heading", { name: /사람들이 지금/ })).toBeVisible();
     await expect.poll(api.enrichmentRequestCount).toBe(1);

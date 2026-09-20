@@ -28,9 +28,8 @@ export default function LandingPage() {
     <LandingRegionStory />
     <LandingFeatureLinks />
     <LandingChapters />
-    <details className="night-feature-details"><summary>여행 도구 모두 보기</summary><LandingFeatureList /></details>
-    <LandingAssistantStory />
     <div className="night-discover-grid"><LandingCommunityScene /><LandingDepartureScene /></div>
+    <details className="night-feature-details"><summary>나루와 여행 도구 살펴보기</summary><LandingAssistantStory /><LandingFeatureList /></details>
     <LandingCallToAction t={t} />
     <LandingFooter t={t} />
   </main></>;

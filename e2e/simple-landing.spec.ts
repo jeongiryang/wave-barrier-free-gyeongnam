@@ -3,7 +3,7 @@ import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { regionPhotoSource } from "../features/landing/region-photo-sources";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 
-const firstRegions = ["통영", "거제", "남해", "진주", "창원", "하동"];
+const firstRegions = ["통영", "거제", "남해", "하동", "산청"];
 const allRegions = ["거창", "거제", "고성", "김해", "남해", "밀양", "사천", "산청", "양산", "의령", "진주", "창녕", "창원", "통영", "하동", "함안", "함양", "합천"];
 
 async function prepare(page: Page) {
@@ -89,7 +89,7 @@ for (const width of [1440, 390]) test(`${width}px reduced motion keeps the photo
   await page.screenshot({ path: info.outputPath(`simple-hero-${width}.png`) });
 
   const grid = page.locator(".simple-region-grid"), cards = grid.locator("article");
-  await expect(cards).toHaveCount(6);
+  await expect(cards).toHaveCount(firstRegions.length);
   await expect(cards.locator("h3")).toHaveText(firstRegions);
   const expand = page.getByRole("button", { name: "18개 지역 모두 보기", exact: true });
   await expect(expand).toHaveAttribute("aria-expanded", "false");
@@ -132,7 +132,7 @@ for (const width of [1440, 390]) test(`${width}px reduced motion keeps the photo
   await grid.scrollIntoViewIfNeeded();
   await page.screenshot({ path: info.outputPath(`simple-regions-${width}.png`) });
   await collapse.click();
-  await expect(cards).toHaveCount(6);
+  await expect(cards).toHaveCount(firstRegions.length);
   await expect(cards.locator("h3")).toHaveText(firstRegions);
   await expect(page.getByRole("button", { name: "18개 지역 모두 보기", exact: true })).toBeFocused();
   expect(errors).toEqual([]);

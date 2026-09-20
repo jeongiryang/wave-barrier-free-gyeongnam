@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState, type Ref } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type Ref } from 'react';
 import NaruAvatar from './NaruAvatar';
 import { useSitePreferences } from './SitePreferences';
 
@@ -11,8 +11,11 @@ const greetings = [
   { text: '저장한 여행을 이어서 준비해요', prompt: '저장한 여행을 이어서 준비하려면 어떻게 하나요?' },
 ];
 const hintDismissalKey = 'wave-naru-hint-dismissed-v1';
+const subscribeClientReady = () => () => undefined;
 export default function NaruLauncher({ onOpen, context = '여행 설계', disabled = false, buttonRef, state = 'idle' }: { onOpen: (prompt?: string) => void; context?: string; disabled?: boolean; buttonRef?: Ref<HTMLButtonElement>; state?: string }) {
   const { motion } = useSitePreferences();
+  const hydrated = useSyncExternalStore(subscribeClientReady, () => true, () => false);
+  const unavailable = disabled || !hydrated;
   const [hint, setHint] = useState(-1), [dismissed, setDismissed] = useState(false);
   const discovery = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -43,7 +46,7 @@ export default function NaruLauncher({ onOpen, context = '여행 설계', disabl
     return () => { cancelAnimationFrame(frame); document.removeEventListener('pointerdown', beginPointer, true); window.removeEventListener('pointerup', endPointer, true); window.removeEventListener('pointercancel', endPointer, true); window.removeEventListener('blur', endPointer); document.removeEventListener('focusin', revealFocusedControl); window.removeEventListener('resize', revealFocusedControl); };
   }, []);
   useEffect(() => {
-    if (disabled || dismissed) return;
+    if (unavailable || dismissed) return;
     try { if (sessionStorage.getItem(hintDismissalKey) === '1') return; } catch { /* The in-memory dismissal still works if storage is unavailable. */ }
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let timer: ReturnType<typeof setInterval> | undefined;
@@ -60,11 +63,11 @@ export default function NaruLauncher({ onOpen, context = '여행 설계', disabl
     start();
     reducedMotion.addEventListener('change', start);
     return () => { clearInterval(timer); reducedMotion.removeEventListener('change', start); };
-  }, [context, disabled, dismissed, motion]);
+  }, [context, unavailable, dismissed, motion]);
   const hide = () => { setHint(-1); setDismissed(true); try { sessionStorage.setItem(hintDismissalKey, '1'); } catch {} };
-  const hintVisible = hint >= 0 && !dismissed && !disabled;
+  const hintVisible = hint >= 0 && !dismissed && !unavailable;
   return <aside ref={discovery} className="naru-discovery" aria-label="나루 여행 도움">
     {hintVisible && <div className="naru-hint" aria-live="off"><button type="button" onClick={() => { hide(); onOpen(greetings[hint].prompt); }}>{greetings[hint].text}</button><button type="button" aria-label="나루 안내 그만 보기" onClick={hide}>×</button></div>}
-    <button ref={buttonRef} data-state={state} className="naru-launcher" type="button" disabled={disabled} aria-label="WAVE 여행 가이드 나루와 대화 열기" onClick={() => { hide(); onOpen(); }}><NaruAvatar state={hintVisible ? 'wave' : state} /></button>
+    <button ref={buttonRef} data-state={state} className="naru-launcher" type="button" disabled={unavailable} aria-label="WAVE 여행 가이드 나루와 대화 열기" onClick={() => { hide(); onOpen(); }}><NaruAvatar state={hintVisible ? 'wave' : state} /></button>
   </aside>;
 }

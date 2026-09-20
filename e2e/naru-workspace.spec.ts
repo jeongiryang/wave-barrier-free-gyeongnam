@@ -66,7 +66,7 @@ async function requestTrip(chat: Locator) {
   return proposal;
 }
 
-test('workspace tabs expose all 24 tools with keyboard and pointer targets', async ({ page }) => {
+test('workspace tabs expose all 28 tools with keyboard and pointer targets', async ({ page }) => {
   const { chat, prompts, journeys } = await setup(page);
   const tabs = chat.getByRole('tablist', { name: '나루 작업공간' });
   await tabs.getByRole('tab', { name: '대화', exact: true }).focus();
@@ -74,9 +74,9 @@ test('workspace tabs expose all 24 tools with keyboard and pointer targets', asy
   await expect(tabs.getByRole('tab', { name: '여행 도구', exact: true })).toBeFocused();
   await expect(tabs.getByRole('tab', { name: '여행 도구', exact: true })).toHaveAttribute('aria-selected', 'true');
   const tools = chat.getByRole('region', { name: '모든 여행 도구', exact: true }).locator('.naru-tools button');
-  await expect(tools).toHaveCount(24);
+  await expect(tools).toHaveCount(28);
   const labels = await tools.allTextContents();
-  expect(labels).toEqual(expect.arrayContaining(['지역·활동', '필요한 편의', '날짜·기간', '지도·경로', '동행·합류', '해설 대본', '방문 전 문의', '오프라인 요약', '여행 당일 안내']));
+  expect(labels).toEqual(expect.arrayContaining(['지역·활동', '필요한 편의', '날짜·기간', '지도·경로', '동행·합류', '해설 대본', '방문 전 문의', '오프라인 요약', '여행 당일 안내', '페이스·감각지도·여행여권', '오디오 가이드·후기', '장소 좌표 복원', '이동 구간 확인']));
   for (const button of await tools.all()) {
     await button.scrollIntoViewIfNeeded(); await button.focus(); await expect(button).toBeFocused();
     const box = (await button.boundingBox())!;
@@ -89,8 +89,7 @@ test('workspace tabs expose all 24 tools with keyboard and pointer targets', asy
   await expect(tabs.getByRole('tab', { name: '대화', exact: true })).toBeFocused();
   await tabs.getByRole('tab', { name: '여행 도구', exact: true }).click();
   await chat.getByRole('region', { name: '모든 여행 도구', exact: true }).getByRole('button', { name: '필요한 편의', exact: true }).click();
-  await chat.locator('.naru-tool-card').getByRole('button', { name: '여행 설계에서 자세히 보기', exact: true }).click();
-  await expect(chat).toHaveCount(0); await expect(page.locator('.simple-facility-trigger')).toBeFocused();
+  await expect(chat).toBeHidden(); await expect(page.locator('.simple-facility-trigger')).toBeFocused();
   expect(prompts).toEqual([]); expect(journeys).toEqual([]);
 });
 

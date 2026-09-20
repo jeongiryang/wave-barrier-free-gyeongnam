@@ -1,4 +1,5 @@
 "use client";
+import { PlannerToolPortal } from "./PlannerToolSurface";
 import LoadingState from "../../../components/LoadingState";
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -228,14 +229,14 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
       onSaveMapPlaces={props.onSaveMapPlaces}
     />} /></Suspense>}
 
-    <details className="simple-more-trip-tools" id="more-trip-tools" open={moreToolsOpen} onToggle={event => setMoreToolsOpen(event.currentTarget.open)}><summary lang="ko">여행 중·기록 도구</summary>    <Suspense fallback={null}><TravelExperience trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} region={props.archiveContext.region} onSelectPlace={props.onSelectPlace} requiredKeys={props.archiveContext.profiles} weather={props.weather} onProfiles={props.onProfiles} onAlternative={props.onAlternative}/></Suspense>    <TripDecisionReceipt archiveContext={props.archiveContext} coverage={props.coverage} route={props.route} trip={props.tripSelection} onSelectPlace={props.onSelectPlace} />{props.alternativeTools}
+    <PlannerToolPortal group="journey"><details className="simple-more-trip-tools" id="more-trip-tools" open={moreToolsOpen} onToggle={event => setMoreToolsOpen(event.currentTarget.open)}><summary lang="ko">여행 중·기록 도구</summary>    <Suspense fallback={null}><TravelExperience trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} region={props.archiveContext.region} onSelectPlace={props.onSelectPlace} requiredKeys={props.archiveContext.profiles} weather={props.weather} onProfiles={props.onProfiles} onAlternative={props.onAlternative}/></Suspense>    <TripDecisionReceipt archiveContext={props.archiveContext} coverage={props.coverage} route={props.route} trip={props.tripSelection} onSelectPlace={props.onSelectPlace} />{props.alternativeTools}
       <TripBudgetEntry trip={props.tripSelection} coverage={props.coverage} region={props.archiveContext.region}/>
       <TripDayTools onSelectPlace={props.onSelectPlace} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} region={props.archiveContext.region}/>
       <details className="simple-audio-journal" onToggle={event => { setAudioOpen(event.currentTarget.open); if (!event.currentTarget.open) props.audioGuide.resetAudio(); }}><summary lang="ko">오디오 가이드·여행 후기</summary>{audioOpen && <Suspense fallback={<LoadingState>오디오를 준비하고 있어요.</LoadingState>}><AudioGuidePlayer audio={props.plan?.audio} controller={props.audioGuide}/></Suspense>}<Link lang="ko" href={buildTravelJournalHref({ places: props.tripSelection.orderedSavedPlaces.map(place => ({ id: place.id, name: place.name, day: props.tripSelection.scheduleAssignments[place.id] || props.tripSelection.tripDays[0] })), region: props.archiveContext.region, visitDate: props.tripSelection.tripDays[0] })}>여행 후기 작성</Link></details>
       <Suspense fallback={<LoadingState>이동 구간을 준비하고 있어요.</LoadingState>}><ItineraryRouteCoverage onOpenMap={() => setMapView(true)} coverage={props.coverage} route={props.route} trip={props.tripSelection} reviewed={props.reviewed} onReview={props.onReview} /></Suspense>
       <Suspense fallback={null}><SavedPlaceCoordinateRecovery key={`${props.archiveContext.region}|${tripDays}|${props.tripSelection.saved}`} places={props.tripSelection.orderedSavedPlaces} onRestore={props.tripSelection.rememberSavedPlaces} /></Suspense>
       {itineraryPlaces.some(place => !routableItineraryPlaces.includes(place)) && <p role="status">좌표가 없는 장소는 일정에 보관하고 지도에서 제외해요: {itineraryPlaces.filter(place => !routableItineraryPlaces.includes(place)).map(place => place.name).join(', ')}</p>}
-    </details>
+    </details></PlannerToolPortal>
     {settingsOpen && <TripSettingsEditor trip={props.tripSelection} onClose={closeSettings} />}
   </section>;
 }

@@ -42,7 +42,6 @@
 .simple-direct-search { padding: 0 0 28px; border-bottom: 1px solid var(--line); }
 .simple-direct-search-heading { display: flex; gap: 12px; align-items: end; justify-content: space-between; margin-bottom: 16px; }
 .simple-direct-search-heading p { margin: 5px 0 0; color: var(--muted); font-size: .875rem; }
-.simple-load-itinerary { min-height: 44px; }
 .simple-direct-search-form label { flex: 1; }.simple-direct-search-form input { min-width: 0; min-height: 46px; border: 0; color: var(--ink); background: transparent; font: inherit; }
 .simple-direct-region[data-active=true],.simple-direct-place[data-active=true] { outline: 2px solid var(--blue); }
 .simple-search-photo-placeholder { display: grid; place-content: center; color: var(--muted); font-size: .75rem; text-align: center; }
@@ -162,7 +161,6 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
   .trip-decision-criteria { grid-template-columns: 1fr; }
   .simple-results-heading { flex-wrap: wrap; gap: 4px 12px; }
   .simple-direct-search-heading { align-items: stretch; flex-direction: column; }
-  .simple-load-itinerary { width: 100%; }
   .planner-simple .simple-results h2 { font-size: 1.25rem; }
   .simple-place-row { grid-template-columns: 88px minmax(0,1fr) auto; gap: 12px; padding: 20px 0; }
   .simple-place-photo { width: 88px; aspect-ratio: 1; }
@@ -234,8 +232,6 @@ html[data-theme=dark] .simple-editor-footer > .simple-remove { color: #ffb4a4; }
 .simple-itinerary-attention button { flex: 0 0 auto; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--blue); }
 html[data-theme=dark] .simple-itinerary-attention { border-color: #6f6038; background: #312c20; }
 html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
-.simple-stop-details .place-visit-hours { margin-top: 4px; border: 0; background: none; padding: 0; }
-.simple-stop-details .place-visit-hours > summary { padding: 8px 0; font-size: .8125rem; min-height: 44px; }
 .simple-day-options,.simple-more-trip-tools,.simple-audio-journal { border-top: 1px solid var(--line); margin-top: 20px; }
 .simple-day-options > summary,.simple-more-trip-tools > summary,.simple-audio-journal > summary { min-height: 48px; padding: 12px 0; font-size: .875rem; }
 .simple-outside-dates { font-size: .875rem; padding: 16px 0; }
@@ -293,11 +289,6 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 .naru-panel .naru-input button:first-child { color: var(--ink-soft); background: none; }
 .naru-panel .naru-input button[type=submit] { color: var(--on-blue); background: var(--blue); }
 .naru-panel .naru-note { font-size: .75rem; line-height: 1.6; margin: 4px 20px; padding: 0; }
-.naru-privacy { margin: 0 20px 8px; font-size: .6875rem; color: var(--muted); }
-.naru-privacy summary { min-height: 44px; padding: 12px 0; }
-.naru-privacy p { line-height: 1.7; }
-.naru-panel .naru-proposal { margin-top: 12px; padding: 12px 0; border: 0; }
-.naru-panel .naru-proposal > button { margin-top: 8px; border-radius: 6px; min-height: 44px; }
 .simple-voice-meter { margin: 8px 16px 0; padding: 12px; border: 1px solid var(--line); border-radius: 8px; font-size: .8125rem; background: var(--paper); }
 .simple-voice-bars { display: flex; gap: 3px; height: 36px; align-items: center; justify-content: center; }
 .simple-voice-bars span { display: block; width: 4px; border-radius: 2px; background: var(--blue); }
@@ -309,7 +300,6 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
   .planner-simple .simple-place-pane { inset: 0; margin: 0; width: 100%; height: 100dvh; max-height: none; border: 0; border-radius: 0; }
   .simple-place-pane .modal-body { padding: 24px 20px max(24px,env(safe-area-inset-bottom)); }
   .naru-panel .naru-input { margin-bottom: 0; }
-  .naru-privacy { padding-bottom: env(safe-area-inset-bottom); }
 }
 @media(max-width:800px) {
   .planner-simple .naru-panel.naru-compact,.planner-simple .naru-panel.naru-large { inset: 0; width: 100%; height: 100dvh; margin: 0; transform: none; border: 0; border-radius: 0; }
@@ -391,14 +381,12 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 [data-place-view=grid] .simple-place-skeleton { grid-column: 1/-1; }
 
 /* Task screens: put the user's work before supporting explanations. */
-.travel-book-task-heading,.community-task-heading { width: min(1240px,calc(100% - 48px)); margin: 32px auto 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-.travel-book-task-heading h1,.community-task-heading h1 { margin: 0; font-size: 1.75rem; line-height: 1.4; font-weight: 600; }
+.travel-book-task-heading { width: min(1240px,calc(100% - 48px)); margin: 32px auto 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.travel-book-task-heading h1 { margin: 0; font-size: 1.75rem; line-height: 1.4; font-weight: 600; }
 .travel-book-task-heading p { margin: 8px 0 0; color: var(--muted); }
 .travel-book-task-heading nav { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 20px; border-bottom: 1px solid var(--line); }
-.travel-book-task-heading :is(button,a),.community-task-heading > a { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; color: var(--blue); }
+.travel-book-task-heading :is(button,a) { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; color: var(--blue); }
 .travel-book-task-heading button { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
-.community-task-heading svg { width: 20px; height: 20px; }
-.community-task-heading > a { color: var(--on-blue); }
 .community-guides { margin-block: 24px; border-top: 1px solid var(--line); }
 .community-guides > summary { min-height: 44px; padding: 12px 0; cursor: pointer; }
 .simple-itinerary-top { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; }

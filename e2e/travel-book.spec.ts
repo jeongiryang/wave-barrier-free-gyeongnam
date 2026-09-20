@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions, openItinerary, plan } from "./fixtures";
 
@@ -53,7 +54,7 @@ test("보관 일정을 열면 자동 조회 후에도 같은 일정과 누락된
   await expectRestoredEvidence(page, restoreRequests);
   await openMap(page);
   await expect(page.locator(".wave-map-icon.place")).toHaveCount(0);
-  await page.locator(".simple-more-trip-tools > summary").click();
+  await openNaruTool(page, '장소 좌표 복원');
   await expect(page.getByRole("status").filter({ hasText: "좌표가 없는 장소는 일정에 보관하고 지도에서 제외해요:" })).toContainText("경남도립미술관");
   // The privacy contract still excludes coordinates from the archive; never
   // substitute unrelated recommendations or invented markers during restore.

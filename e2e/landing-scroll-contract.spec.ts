@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { prepareStory, storyReady, chapterIds, expectNoOverflow, expectUsableTarget } from "./landing-contract";
+import { openLandingTools, prepareStory, storyReady, chapterIds, expectNoOverflow, expectUsableTarget } from "./landing-contract";
 
 test.beforeEach(async ({ page }) => { await prepareStory(page); });
 
@@ -36,7 +36,7 @@ for (const width of [320, 390]) {
     await page.goto("/"); await storyReady(page);
     expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
     for (const id of chapterIds) {
-      if (id === "features") await page.getByText("여행 도구 모두 보기", { exact: true }).click();
+      if (id === "naru") await openLandingTools(page);
       const section = page.locator(`#${id}`), heading = section.locator("h1,h2").first();
       await heading.scrollIntoViewIfNeeded();
       await expect(heading).toBeVisible();

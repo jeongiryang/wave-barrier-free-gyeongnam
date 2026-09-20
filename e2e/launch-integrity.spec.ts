@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, openItinerary, plan, showItineraryMap } from "./fixtures";
@@ -8,7 +9,7 @@ import { routeTools } from "./departure-fixtures";
 function trackRuntimeErrors(page: Page) {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  page.on("console", (message) => { if (message.type() === "error") errors.push(`${message.text()} (${message.location().url})`); });
   return errors;
 }
 
@@ -31,6 +32,7 @@ async function current(page: Page) {
   });
 }
 async function timeboard(page: Page) {
+  if (await naruDialog(page).isVisible()) await closeNaruTool(page);
   const view = page.getByRole("group", { name: "일정 보기 방식", exact: true });
   if (await view.isVisible()) await view.getByRole("button", { name: "시간표", exact: true }).click();
 }
@@ -42,8 +44,7 @@ async function changeVisitDay(page: Page, name: string, day: string) {
   await dialog.getByRole("button", { name: "적용", exact: true }).click();
 }
 async function openDeparture(page: Page) {
-  const details = page.locator(".simple-departure");
-  if (await details.getAttribute("open") === null) await details.locator(":scope > summary").click();
+  await openNaruTool(page, "출발 전 확인");
   await expect(page.locator(".simple-readiness")).toBeVisible();
 }
 const readinessItem = (page: Page, label: string) => page.locator(".simple-readiness > details").filter({ has: page.locator("summary strong", { hasText: label }) });
@@ -321,6 +322,8 @@ test("a confirmed crowd alternative replaces the itinerary instead of an unrelat
   await expect.poll(async () => (await current(page)).ids).toEqual(["1002"]);
   expect((await current(page)).schedule.scheduleAssignments).toEqual({ "1002": "2026-10-08" });
   expect((await current(page)).facilities).toEqual(facilities);
+  if (await naruDialog(page).isVisible()) await closeNaruTool(page);
+  await expect(naruDialog(page)).toBeHidden();
   await showItineraryMap(page);
   await expect(page.locator('.simple-itinerary-map .wave-map-icon.place[data-place-id="1002"]')).toBeVisible();
   await expect(page.locator('.simple-itinerary-map .wave-map-icon.place[data-place-id="1001"]')).toHaveCount(0);
@@ -331,6 +334,10 @@ test("every ordered leg needs current route evidence while departure access stay
   const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
   await page.setViewportSize({ width, height: 960 });
   await mockPlannerApi(page, { preserveView: true });
+  // Opening internal travel tools mounts Naru's availability probe. It is
+  // independent of route evidence, and this suite must not call the provider.
+  await page.route('**/api/assistant', route => route.request().method() === 'GET'
+    ? route.fulfill({ json: { available: false } }) : route.fallback());
   const requests: URL[] = [];
   const museum = gate(), park = gate(), changedDays = gate();
   let daysChanged = false;
@@ -351,23 +358,23 @@ test("every ordered leg needs current route evidence while departure access stay
   if (await move.isEnabled()) await move.click();
   const coverage = await routeTools(page);
   expect((await current(page)).schedule).toMatchObject({ travelStart: dates.start, travelEnd: dates.end, scheduleAssignments: { "1001": dates.start, "1002": dates.start } });
-  await expect(coverage.getByRole("listitem")).toHaveText([
+  await expect(coverage.getByRole("listitem", { includeHidden: true })).toHaveText([
     /2026-10-08 · 창원중앙역 → 경남도립미술관/,
     /2026-10-08 · 경남도립미술관 → 용지호수공원/,
   ]);
   await expect(coverage.getByRole("combobox", { name: "이동수단", exact: true })).toBeVisible();
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
   await expect.poll(() => requests.filter(url => url.searchParams.get("endLat") === "35.229").length).toBeGreaterThan(0);
-  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
+  await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
   await openDeparture(page);
   const transport = readinessItem(page, "이동 경로·시간"), mobility = readinessItem(page, "이동 편의");
   await expect(transport.locator("summary")).toContainText("확인할 정보 있음");
   museum.release();
-  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 1구간 확인");
-  await expect(coverage.getByRole("listitem").nth(1).locator(".coverage-leg-evidence")).toContainText("미확인");
+  await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 1구간 확인");
+  await expect(coverage.getByRole("listitem", { includeHidden: true }).nth(1).locator(".coverage-leg-evidence")).toContainText("미확인");
   await expect(transport.locator("summary")).not.toContainText("조회한 정보 있음");
   park.release();
-  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
+  await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
   expect(requests.some((url) => url.searchParams.get("startLat") === "35.238" && url.searchParams.get("startLng") === "128.691" && url.searchParams.get("endLat") === "35.229")).toBe(true);
   await expect(transport.locator("summary")).toContainText("조회한 정보 있음");
   await transport.locator("summary").click();
@@ -376,26 +383,28 @@ test("every ordered leg needs current route evidence while departure access stay
   await mobility.locator("summary").click();
   await expect(mobility.locator("p")).toContainText("경로 시간이 있어도 접근 가능한 이동을 보장하지 않습니다");
   await expectNoOverflow(page);
+  await openNaruTool(page, "이동 구간 확인");
   expect((await new AxeBuilder({ page }).include(".itinerary-route-coverage").analyze()).violations).toEqual([]);
   await coverage.screenshot({ path: test.info().outputPath(`all-journeys-${width}.png`) });
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("transit");
-  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
+  await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
   await expect(transport.locator("summary")).toContainText("확인할 정보 있음");
   // The changed date creates a new origin→park leg. Hold its fresh response so
   // the prior museum→park result cannot satisfy the new journey in the meantime.
   daysChanged = true;
   await changeVisitDay(page, "용지호수공원", dates.end);
+  await openNaruTool(page, "이동 구간 확인");
   const beforeChanged = requests.length;
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
   await expect.poll(() => requests.slice(beforeChanged).filter(url => url.searchParams.get("endLat") === "35.229").length).toBeGreaterThan(0);
-  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
-  await expect(coverage.getByRole("listitem").nth(1)).toContainText("2026-10-09 · 창원중앙역 → 용지호수공원");
-  await expect(coverage.getByRole("listitem").nth(1)).not.toContainText("경남도립미술관 → 용지호수공원");
+  await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
+  await expect(coverage.getByRole("listitem", { includeHidden: true }).nth(1)).toContainText("2026-10-09 · 창원중앙역 → 용지호수공원");
+  await expect(coverage.getByRole("listitem", { includeHidden: true }).nth(1)).not.toContainText("경남도립미술관 → 용지호수공원");
   const nextPark = requests.slice(beforeChanged).find(url => url.searchParams.get("endLat") === "35.229")!;
   expect([nextPark.searchParams.get("startLat"), nextPark.searchParams.get("startLng")]).toEqual(["35.2422", "128.6982"]);
   await expect(transport.locator("summary")).toContainText("확인할 정보 있음");
   changedDays.release();
-  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
+  await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
   await expect(mobility.locator("summary")).toContainText("확인할 정보 있음");
   expect((await current(page)).schedule.scheduleAssignments).toEqual({ "1001": dates.start, "1002": dates.end });
   expect(errors).toEqual([]);
@@ -414,16 +423,16 @@ test("the itinerary tab unlocks dated journeys and the shared transport control 
   await openItinerary(page);
   await changeVisitDay(page, "용지호수공원", dates.end);
   const coverage = await routeTools(page);
-  await expect(coverage.getByRole("listitem")).toHaveText([
+  await expect(coverage.getByRole("listitem", { includeHidden: true })).toHaveText([
     /2026-10-08 · 창원중앙역 → 경남도립미술관/,
     /2026-10-09 · 창원중앙역 → 용지호수공원/,
   ]);
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
-  await expect(coverage.getByRole("status")).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
+  await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
   expect((await current(page)).schedule).toMatchObject({ travelMode: "car", scheduleAssignments: { "1001": dates.start, "1002": dates.end } });
   await openDeparture(page);
   await expect(readinessItem(page, "이동 편의").locator("summary")).toContainText("확인할 정보 있음");
-  expect((await new AxeBuilder({ page }).include("#itinerary").analyze()).violations).toEqual([]);
+  expect((await new AxeBuilder({ page }).include(".naru-panel").analyze()).violations).toEqual([]);
   await expectNoOverflow(page);
 });
 

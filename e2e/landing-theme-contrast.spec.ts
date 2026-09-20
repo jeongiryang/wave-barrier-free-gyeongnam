@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { prepareStory, storyReady } from "./landing-contract";
+import { openLandingTools, prepareStory, storyReady } from "./landing-contract";
 
 function luminance([red, green, blue]: number[]) {
   const channel = (value: number) => {
@@ -81,6 +81,7 @@ const CASES = [
   ".horizon-checks li", "#departure .simple-text-link", ".night-discover-card h2", ".night-discover-card > p",
   ".simple-naru-story h2", ".simple-naru-story > div > p", ".simple-naru-example p",
   ".simple-naru-example-title small", ".example-undo",
+  "#closing h2", "#closing .landing-closing-copy > p",
 ];
 
 for (const theme of ["dark", "light"] as const) {
@@ -94,6 +95,7 @@ for (const theme of ["dark", "light"] as const) {
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     await storyReady(page);
+    await openLandingTools(page);
     for (const selector of CASES) {
       await page.locator(selector).first().scrollIntoViewIfNeeded();
       const measured = await samples(page, selector);

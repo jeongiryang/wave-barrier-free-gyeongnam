@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import { openPlannerMap, openRouteDetails } from "./nearby-fixtures";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -28,8 +29,9 @@ for (const focus of ["panel", "outside", "pending-location"]) test(`a final map 
     await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
     await openPlannerMap(page);
     await openRouteDetails(page);
-    await page.locator(".itinerary-route-coverage select").selectOption("car");
-    await expect(page.locator(".itinerary-route-coverage").getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
+    await withRouteCoverage(page);
+    await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
+    await expect(page.locator('.itinerary-route-coverage [role="status"]')).toContainText("전체 1구간 중 1구간 확인");
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
     await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();
     const panel = page.locator("#map-panel-route");

@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { mockPlannerApi, chooseTripConditions, openItinerary } from './fixtures';
 import { departureItem, openDeparture, routeTools, validShareApi } from './departure-fixtures';
+import { closeNaruTool } from './naru-tool-fixtures';
 test('departure disclosures distinguish partial evidence and keyboard calendar keeps Korea time', async ({ page, baseURL }) => {
   await page.clock.setFixedTime(new Date('2026-10-08T01:00:00Z')); const today = '2026-10-08';
   await page.emulateMedia({ reducedMotion: 'reduce' }); await mockPlannerApi(page);
@@ -19,12 +20,13 @@ test('departure disclosures distinguish partial evidence and keyboard calendar k
   const coverage = await routeTools(page); await coverage.locator('select').selectOption('car'); await expect(journeys).toContainText('전체 1구간 중 1구간');
   await expect(journeys.locator('summary')).toContainText('조회한 정보 있음'); const mobility = await departureItem(page, '이동 편의'); await expect(mobility.locator('summary')).toContainText('확인할 정보 있음');
   expect((await new AxeBuilder({ page }).include('.simple-readiness').analyze()).violations).toEqual([]);
+  await closeNaruTool(page);
   await page.locator('button[data-planner-tool=share]').click(); const menu = page.getByRole('dialog', { name: '여행 공유', exact: true });
   const calendar = menu.getByRole('button', { name: '캘린더', exact: true }); await expect(calendar).toBeEnabled(); await calendar.focus();
   const downloading = page.waitForEvent('download'); await page.keyboard.press('Enter'); const download = await downloading;
   expect(download.suggestedFilename()).toBe('wave-trip.ics'); const contents = (await readFile((await download.path())!, 'utf8')).replaceAll('\r\n ', '');
   expect(contents).toContain('TZID:Asia/Seoul'); expect(contents).toContain('DTSTART;TZID=Asia/Seoul:20261008T093000'); expect(contents).toContain(`URL:${new URL('/trip/abcdef123456', baseURL).href}`);
-  await menu.getByRole('button', { name: '공유 닫기' }).click(); await expect(card).toBeVisible();
+  await menu.getByRole('button', { name: '공유 닫기' }).click(); await openDeparture(page); await expect(card).toBeVisible();
 });
 test('past trips and forecast failures never claim departure readiness', async ({ page }) => {
   await mockPlannerApi(page); await page.route('**/api/weather**', route => route.fulfill({ status: 503, json: { error: '지연' } }));

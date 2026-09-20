@@ -1,7 +1,7 @@
 import { regionPhotoSource } from "../features/landing/region-photo-sources";
 import { test, expect } from "@playwright/test";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
-import { prepareStory, storyReady, chapterIds, firstRegions } from "./landing-contract";
+import { openLandingTools, prepareStory, storyReady, chapterIds, firstRegions } from "./landing-contract";
 
 test.beforeEach(async ({ page }) => { await prepareStory(page); });
 
@@ -12,8 +12,8 @@ test("the restored-section registry matches actual reading order without replaci
   expect(await sections.evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
   // Chapter labels are navigation shorthand. Check the actual reading headings
   // and their section associations independently of that shorthand.
-  const headings = [/더 넓은 세상을/, "경남, 모두의 여행지", /당신만의\s*여행을 설계하세요/, "WAVE로 할 수 있는 일", "나루에게 말해보세요", /여행이\s*사람을 연결합니다/, /여행을 더 편하게/, /다음 풍경에서\s*만나요/];
-  await page.getByText("여행 도구 모두 보기", { exact: true }).click();
+  const headings = [/더 넓은 세상을/, "경남, 모두의 여행지", /당신만의\s*여행을 설계하세요/, /여행이\s*사람을 연결합니다/, /여행을 더 편하게/, "나루에게 말해보세요", "WAVE로 할 수 있는 일", /다음 풍경에서\s*만나요/];
+  await openLandingTools(page);
   for (const [index, id] of chapterIds.entries()) {
     const section = page.locator(`#${id}`);
     const heading = section.locator("h1,h2").first();
@@ -46,6 +46,7 @@ test("the travel narrative and labelled Naru example remain free of provider req
   await expect(page.locator(".night-journey-preview")).toContainText("순서 바꾸기");
   await narrative.nth(1).click();
   await expect(page.locator(".night-journey-input")).toContainText("아직 확인이 필요한 항목");
+  await openLandingTools(page);
   await conversation.scrollIntoViewIfNeeded();
   await expect(conversation).toHaveAttribute("aria-label", "대화 예시");
   await expect(conversation).toContainText("대화 예시");

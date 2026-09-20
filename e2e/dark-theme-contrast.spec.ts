@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
@@ -44,7 +45,7 @@ const CASES: Array<{ path: string; selector: string; name: string }> = [
   { path: "/community", selector: ".night-community-toolbar > .night-primary", name: "후기 작성 (기본 동작 버튼)" },
   { path: "/login", selector: ".auth-submit", name: "로그인 제출 (기본 동작 버튼)" },
   { path: "/login", selector: ".auth-guest a", name: "로그인 없이 둘러보기" },
-  { path: "/planner", selector: ".simple-departure > summary > span:first-child", name: "출발 전 확인 제목" },
+  { path: "/planner", selector: ".simple-readiness-heading p", name: "출발 전 확인 안내" },
   { path: "/planner", selector: ".simple-readiness-heading button", name: "출발 정보 다시 조회" },
 ];
 
@@ -59,7 +60,7 @@ async function openSample(page: Page, item: typeof CASES[number]) {
     const add = page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true });
     if (await add.count()) await add.click();
     await openItinerary(page);
-    await page.locator(".simple-departure > summary").click();
+    await openNaruTool(page, "출발 전 확인");
   }
   await expect(page.locator(item.selector)).toBeVisible();
   if (item.path === "/login") await expect(page.locator(".auth-submit")).toBeEnabled();
