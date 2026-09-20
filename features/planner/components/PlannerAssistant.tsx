@@ -38,6 +38,7 @@ import { useTravelBook } from '../../travel-book/useTravelBook';
 import EvidenceCoverageCard from './EvidenceCoverageCard';
 import { sanitizePhotoTripFacts, verifyPhotoTripFacts, type PhotoTripFact } from '../../../lib/photo-trip-facts.js';
 type PhotoVerifiedItem = { fact: PhotoTripFact; state: 'verified'|'ambiguous'|'not-found'; place: Place | null };
+const NaruTripReview = lazy(() => import('./NaruTripReview'));
 const NaruScheduleReview = lazy(() => import('./NaruScheduleReview'));
 
 // evidenceKeys/evidenceRegion은 답변이 확정된 순간의 편의 조건과 지역을 함께
@@ -78,6 +79,7 @@ export default function PlannerAssistant(props: Props) {
   const { available, checking, recheck, markConnected } = useNaruAvailability(props.open);
   const [showEvidence, setShowEvidence] = useState(false);
   const [reviewHours, setReviewHours] = useState(false);
+  const [reviewTrip, setReviewTrip] = useState(false);
   const [photo, setPhoto] = useState<AssistantPhoto | null>(null), [photoPreparing, setPhotoPreparing] = useState(false);
   const [guide, setGuide] = useState<NaruGuide | null>(null);
   const [activity, setActivity] = useState({ phase: 'idle', text: '' });
@@ -247,6 +249,12 @@ export default function PlannerAssistant(props: Props) {
     if (photo) { await sendPhoto(value, photo); return; }
     if (!originalText) return;
     if (!starterDone) finishStarter();
+    if (/^(?:내 |현재 )?(?:여행|일정)(?:을|이)?\s*(?:점검|검토)(?:해\s*줘|해|하기|해줘요|해주세요)?[.!?]?$/u.test(originalText)) {
+      setInput(''); setReviewTrip(true); setReviewHours(false); follow.current = true;
+      setMessages(current => [...current, { id: ++messageId.current, role: 'user', text: originalText }]);
+      append('현재 여행의 시간·휴식·귀가와 운영정보를 함께 점검할게요. 일정은 그대로 유지합니다.');
+      return;
+    }
     if (/한\s*번에\s*(하나|한\s*가지)|하나씩.*(도와|질문|안내)/.test(originalText) && !guide) {
       const next = startNaruGuide({ region: plan.region, start: trip.travelStart, end: trip.travelEnd, selected: plan.selected, revision });
       setGuide(next); setInput(''); append(next.question); return;
@@ -534,7 +542,8 @@ export default function PlannerAssistant(props: Props) {
           {message.toolId && <div className="naru-tool-card"><strong>{toolLabel(message.toolId)}</strong><p>현재 여행을 유지한 채 해당 화면으로 이동합니다.</p><button type="button" onClick={() => goToTool(message.toolId!)}>여행 설계에서 자세히 보기</button></div>}
         </div>)}
         {guide && <div className="naru-guided-choices" role="group" aria-label="한 가지씩 안내 선택">{guide.choices.map(choice => <button type="button" key={choice} disabled={busy} onClick={() => void send(choice)}>{choice}</button>)}<button type="button" onClick={() => void send('안내 끝내기')}>안내 끝내기</button></div>}
-        {reviewHours && <Suspense fallback={<LoadingState>바뀐 일정을 확인하고 있어요.</LoadingState>}><NaruScheduleReview key={trip.voiceRevision} visits={reviewedVisits} onAlternative={props.onAlternative} onDetails={props.onPlace} /></Suspense>}
+        {reviewTrip && <Suspense fallback={<LoadingState>여행 점검을 준비하고 있어요.</LoadingState>}><NaruTripReview places={trip.orderedSavedPlaces} days={trip.tripDays} assignments={trip.scheduleAssignments} startTime={trip.dayStartTime} origin={props.origin} routeMinutes={props.routeMinutes} visits={trip.visitMinutesByPlaceId} breaks={trip.breakMinutesByPlaceId} fixed={trip.fixedVisits} deadlines={trip.dayDeadlines} comfort={trip.comfort} onTool={goToTool} onDetails={props.onPlace} onAlternative={props.onAlternative} onRequest={prompt => { setInput(prompt); inputRef.current?.focus(); }} /></Suspense>}
+        {reviewHours && !reviewTrip && <Suspense fallback={<LoadingState>바뀐 일정을 확인하고 있어요.</LoadingState>}><NaruScheduleReview key={trip.voiceRevision} visits={reviewedVisits} onAlternative={props.onAlternative} onDetails={props.onPlace} /></Suspense>}
         {showEvidence && <div className="naru-evidence" aria-label="현재 장소의 편의 근거"><EvidenceCoverageCard compact places={trip.orderedSavedPlaces.length ? trip.orderedSavedPlaces : known} requiredKeys={plan.plan?.criteria?.facilityKeys || plan.selected} onCompare={() => openTool("compare")} onAlternatives={() => openTool("alternatives")} />{(trip.orderedSavedPlaces.length ? trip.orderedSavedPlaces : known).map(place => <article key={place.id}><strong>{place.name}</strong><p>{place.accessibility?.map(field => `${field.label}: ${field.state === 'confirmed' ? '확인됨' : field.state === 'negative' ? '조건과 맞지 않음' : '미확인'}`).join(' · ') || '편의 정보 미확인'}</p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small><button type="button" onClick={() => props.onPlace(place)}>원문과 문의 정보</button></article>)}{!known.length && <p>{say(naruGuideTones.evidenceEmpty)}</p>}<button type="button" onClick={() => openTool('readiness')}>날씨·이동까지 확인</button></div>}
         {/* 도착 중인 글자는 화면 낭독기가 끊기지 않도록 읽지 않는다. 완료된 답변만 대화에 추가되어 한 번 알려진다. */}
         {streamText && <div className="naru-message assistant" data-streaming="true">
@@ -545,6 +554,7 @@ export default function PlannerAssistant(props: Props) {
       </div>
       {toolsOpen && <div className="naru-tools">{toolGroups.map(group => <div key={group.title}><strong>{group.title}</strong><div>{group.items.map(([id, label]) => <button key={id} type="button" onClick={() => openTool(id)}>{label}</button>)}</div></div>)}</div>}
       {starterDone && <div className="naru-context-suggestions" aria-label="현재 여행에서 이어가기">
+        {(!props.pageContext || props.pageContext === '여행 설계') && <button type="button" disabled={busy} onClick={() => { setReviewTrip(true); setReviewHours(false); follow.current = true; append('현재 여행의 시간·휴식·귀가와 운영정보를 함께 점검할게요. 일정은 그대로 유지합니다.'); }}>내 여행 점검</button>}
         {(!props.pageContext || props.pageContext === '여행 설계') && <button type="button" disabled={busy} onClick={() => goToTool(trip.saved.length ? trip.travelStart ? 'itinerary' : 'dates' : 'places')}>{trip.saved.length ? trip.travelStart ? `내 일정 ${trip.saved.length}곳 확인` : `담은 ${trip.saved.length}곳의 날짜·출발지 정하기` : '여행지 찾아 일정에 담기'}</button>}
         {(props.pageContext === '축제' ? ['내 여행 날짜에 맞는 축제를 찾아줘','축제 접근 정보를 확인해줘'] : props.pageContext === '커뮤니티' ? ['내 여행 일정 공유 방법을 알려줘','이 경험을 내 일정에 참고하려면 어떻게 해?'] : !trip.saved.length ? ['선택한 조건으로 여행지를 찾아줘','필요한 편의를 고르는 방법을 알려줘'] : !trip.travelStart ? ['담은 장소들의 편의시설을 비교해줘'] : ['현재 일정에서 이동 부담을 줄여줘','출발 전에 확인할 것을 알려줘']).map(prompt => <button type="button" key={prompt} onClick={() => { setInput(prompt); inputRef.current?.focus(); }}>{prompt}</button>)}
       </div>}

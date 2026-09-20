@@ -319,7 +319,10 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     return ok ? planController.getPlan() : null;
   }
 
+  const assistantToolFocusCleanup = useRef<(() => void) | null>(null);
+  useEffect(() => () => assistantToolFocusCleanup.current?.(), []);
   function openAssistantTool(tool: string) {
+    assistantToolFocusCleanup.current?.();
     stageView.changeView("guided");
     if (["conditions", "facilities"].includes(tool)) stageView.changeStep('conditions');
     else if (["places", "compare", "inquiry", "preview", "transcript"].includes(tool)) stageView.changeStep('places');
@@ -327,12 +330,21 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
     const selectors: Record<string, string> = { conditions: '.simple-search-bar select', facilities: '.simple-facility-trigger', dates: '.simple-itinerary-heading > button', receipt: '[data-planner-tool="receipt"] > summary', comfort: '.simple-day-options > summary', budget: '[data-planner-tool="budget"] > summary', offline: '[data-planner-tool="offline"]', 'on-trip': '[data-planner-tool="on-trip"]', split: '[data-planner-tool="split"]', alternatives: '[data-planner-tool="alternatives"] > summary', course: '[data-planner-tool="course"] > summary', save: '[data-planner-tool="save"] > button', share: '[data-planner-tool="share"]', transport: '[data-planner-tool="transport"]', calendar: '[data-planner-tool="share"]', weather: '.weather-heading > button', readiness: '.simple-readiness', map: '#itinerary-map', itinerary: '#itinerary', places: '#places', compare: '#places', inquiry: '#places', preview: '#places', transcript: '#places' };
     const focusTarget = () => {
       const node = document.querySelector<HTMLElement>(tool === 'dates' && !travelStart ? '#itinerary-setup input' : selectors[tool] || '#planner');
-      if (!node) return;
+      if (!node || !node.getClientRects().length) return false;
       for (let parent = node.parentElement; parent; parent = parent.parentElement) if (parent instanceof HTMLDetailsElement) parent.open = true;
       if (!node.matches('button,summary,a,input,select')) node.setAttribute('tabindex', '-1');
       node.scrollIntoView({ block: 'start', behavior: motion === 'calm' ? 'instant' : 'smooth' }); node.focus({ preventScroll: true });
+      return document.activeElement === node;
     };
-    requestAnimationFrame(() => requestAnimationFrame(() => { focusTarget(); requestAnimationFrame(focusTarget); }));
+    // Tool sections may load after navigation; focus once the real target mounts.
+    let frame = 0;
+    const cleanup = () => { observer.disconnect(); clearTimeout(timeout); cancelAnimationFrame(frame); };
+    const scheduleFocus = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => { if (focusTarget()) cleanup(); }); };
+    const observer = new MutationObserver(scheduleFocus);
+    const timeout = setTimeout(cleanup, 5000);
+    observer.observe(document.getElementById('planner') || document.body, { childList: true, subtree: true });
+    frame = requestAnimationFrame(scheduleFocus);
+    assistantToolFocusCleanup.current = cleanup;
   }
   function applyNaruJourney(draft: NaruJourney) {
     routePlanning.setRouteTravelMode(draft.transport);
