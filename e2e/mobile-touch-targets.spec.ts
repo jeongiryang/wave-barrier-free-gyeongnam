@@ -95,7 +95,13 @@ test("모바일 지도 기본·추가 도구는 44px 영역과 빠짐없는 접�
   await page.locator(".simple-departure > summary").click();
   for (const summary of await page.locator(".simple-readiness > details > summary").all()) await summary.click();
   const readinessActions = page.locator(".simple-readiness button, .simple-readiness a");
-  await expect(readinessActions).toHaveCount(6);
+  // Four new precaution actions join the existing six readiness controls.
+  await expect(readinessActions).toHaveCount(10);
+  const precautions = page.getByRole("group", { name: "여행 대비 확인", exact: true });
+  await expect(precautions.getByRole("checkbox")).toHaveCount(4);
+  for (const [name, href] of [["날씨 확인", "#layers"], ["이동 화면 확인", "#navigation"], ["대여처 확인", "#equipment-rental"], ["도움 요청 확인", "#more-trip-tools"]]) {
+    await expect(precautions.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
+  }
   const readinessSizes = await readinessActions.evaluateAll((nodes) => nodes.map((node) => {
     const rect = (node as HTMLElement).getBoundingClientRect();
     return { text: node.textContent?.trim() || "button", width: rect.width, height: rect.height };

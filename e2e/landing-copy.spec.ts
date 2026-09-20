@@ -8,9 +8,9 @@ test("brand meaning is explained without replacing the Korean service promise", 
   await storyReady(page);
 
   const hero = page.locator("#top");
-  await expect(hero.getByRole("heading", { level: 1 })).toHaveText("경남 여행, 갈 수 있는지부터 확인하고 계획해요");
-  await expect(hero.locator(".landing-hero-description")).toHaveText("공공데이터로 확인된 편의 정보를 함께 보여 줘요. 확인되지 않은 것은 확인되지 않았다고 알려 줘요.");
-  await expect(hero.getByRole("link", { name: "여행 설계 시작하기" })).toBeVisible();
+  await expect(hero.getByRole("heading", { level: 1 })).toHaveText("더 넓은 세상을함께, WAVE");
+  await expect(hero.locator(".landing-hero-description")).toHaveText("장벽은 낮게, 더 많은 여행이 가능하게.경남의 새로운 여행을 경험하세요.");
+  await expect(hero.getByRole("link", { name: "여행지 둘러보기" })).toBeVisible();
   await expect(hero).not.toContainText("Way for All, Voyage for Everyone");
 
   const meaning = page.locator("#closing .brand-meaning");

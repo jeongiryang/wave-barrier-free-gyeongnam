@@ -68,8 +68,9 @@ test("landing: labelled itinerary and conversation examples preserve restored-se
   await page.goto("/"); await storyReady(page);
   expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
   await page.locator("#story").scrollIntoViewIfNeeded();
-  await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
-  await expect(page.locator(".horizon-chapter-copy").last()).toContainText("날짜와 방문 순서를 정해");
+  await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
+  await page.locator(".night-journey-tabs button").last().click();
+  await expect(page.locator(".night-journey-preview")).toContainText("순서 바꾸기");
   await page.locator("#naru").scrollIntoViewIfNeeded();
   await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
   await expect(page.locator(".simple-naru-example").locator("input,button,form,textarea,[contenteditable=true]")).toHaveCount(0);
@@ -80,6 +81,7 @@ test("landing: reduced motion keeps every section readable through forward scrol
   await prepareStory(page);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/"); await storyReady(page);
+  await page.getByText("여행 도구 모두 보기", { exact: true }).click();
   const planning = page.locator(".landing-actions a");
   await planning.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });

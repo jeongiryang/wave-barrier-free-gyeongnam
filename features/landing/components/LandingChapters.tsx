@@ -12,7 +12,7 @@ export default function LandingChapters() {
  const [ready,setReady]=useState(false);
  const [region,setRegion]=useState('통영');
  const [step,setStep]=useState(0);
- useEffect(()=>{const node=root.current;if(!node)return;const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){setReady(true);observer.disconnect();}},{rootMargin:'300px'});observer.observe(node);return()=>observer.disconnect();},[]);
+ useEffect(()=>{const node=root.current;if(!node)return;if(typeof IntersectionObserver!=="function"){let cancelled=false;queueMicrotask(()=>{if(!cancelled)setReady(true);});return()=>{cancelled=true;};}const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){setReady(true);observer.disconnect();}},{rootMargin:'300px'});observer.observe(node);return()=>observer.disconnect();},[]);
  const href='/planner?region='+encodeURIComponent(region);
  return <section id="story" ref={root} tabIndex={-1} className="night-journey-story" aria-labelledby="horizon-how-title">
   <div className="night-journey-input" data-land-reveal>

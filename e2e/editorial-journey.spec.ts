@@ -2,7 +2,8 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
-import { storyReady, chapterIds } from "./landing-contract";
+import { storyReady } from "./landing-contract";
+const chapterIds = ["top","regions","story","features","naru","community","departure","closing"];
 
 for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editorial introduction and working pages remain readable in ${theme}, size ${size}`, async ({ page }) => {
   await mockPublicShellApi(page);
@@ -22,6 +23,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await page.goto("/");
     await storyReady(page);
     for (const id of chapterIds) {
+      if (id === "features" && !await page.locator("#features").isVisible()) await page.getByText("여행 도구 모두 보기", {exact:true}).click();
       const scene = page.locator(`#${id}`);
       await scene.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
       await expect(scene).toBeVisible();
@@ -29,7 +31,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await scene.screenshot({ path: test.info().outputPath(`${id}-${theme}-${width}.png`) });
     }
-    await expect(page.locator(".horizon-chapter-copy")).toHaveCount(3);
+    await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
     await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
     await page.goto("/planner");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
@@ -64,11 +66,11 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeFocused();
     expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem("wave-session-facilities-v1") || "[]"))).toEqual(["route"]);
     await page.goto("/community");
-    await expect(page.locator(".community-state")).toContainText("아직 등록된");
+    await expect(page.locator(".night-story-card").first()).toBeVisible();
     if (width >= 390) {
       // The board's primary action must be reachable in the first viewport;
       // an inherited display headline previously pushed it below the fold.
-      const write = await page.locator(".community-task-heading .community-write").boundingBox();
+      const write = await page.locator(".night-community-toolbar .night-primary").boundingBox();
       expect(write!.y + write!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
     }
     expect((await new AxeBuilder({ page }).include(".community-page").analyze()).violations).toEqual([]);
@@ -90,11 +92,10 @@ test("English travel pages identify original Korean photography and community co
   await page.goto("/");
   await storyReady(page);
   await expect(page.locator(".landing-page")).toHaveAttribute("lang", "en");
-  await expect(page.locator(".landing-hero-landscape img")).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".landing-hero-landscape figcaption")).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".landing-hero-landscape figcaption a").first()).toContainText("사진 원본");
-  await expect(page.locator("#community h2")).toContainText("당신이 남긴 장면이");
-  expect(await page.locator("#community h2").evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");
+  await expect(page.locator(".landing-hero-landscape img")).toHaveAttribute("alt", "");
+  await expect(page.locator(".simple-region-credit").first()).toHaveAttribute("lang", "ko");
+  await expect(page.locator("#community h2")).toHaveText("Travel brings people together.");
+  expect(await page.locator("#community .night-discover-photos span").first().evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");
   await page.goto("/planner");
   await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toBeEnabled();
   const cards = page.locator(".simple-region-entry .simple-region");
@@ -106,6 +107,6 @@ test("English travel pages identify original Korean photography and community co
   expect(await cards.locator(".simple-region-link, .simple-region-credit").evaluateAll(nodes => nodes.every(node => node.closest("[lang]")?.getAttribute("lang") === "ko"))).toBe(true);
   await expect(page.getByRole("button", { name: "All 18 regions", exact: true })).toBeVisible();
   await page.goto("/community");
-  await expect(page.locator(".community-task-heading")).toHaveAttribute("lang", "ko");
-  await expect(page.locator(".community-task-heading h1")).toHaveText("질문·후기");
+  await expect(page.locator(".night-community-toolbar")).toBeVisible();
+  expect(await page.locator(".night-community-toolbar").evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");
 });

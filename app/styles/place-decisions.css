@@ -1,6 +1,6 @@
 /* Shared with the Horizon cards; only the requested decision tools load UI. */
 .place-comparison-toolbar,.place-comparison-selection,.place-inquiry-entry { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-block: 20px; }
-.place-comparison-toolbar button,.place-comparison-selection button,.place-compare-choice,.place-inquiry-entry button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--line); border-radius: 24px; background: var(--white); color: var(--ink); font: inherit; font-size: .9rem; }
+.place-comparison-toolbar button,.place-comparison-selection button,.place-compare-choice,.place-inquiry-entry button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--line); border-radius: 24px; background: var(--paper); color: var(--ink); font: inherit; font-size: .9rem; }
 .place-comparison-toolbar > button[aria-pressed=true],.place-compare-choice[aria-pressed=true] { background: var(--accent); color: #fff; border-color: var(--accent); }
 .place-comparison-toolbar > span { flex: 1; color: var(--muted); font-size: .9rem; }
 .place-comparison-selection button { background: var(--paper); }
@@ -43,7 +43,7 @@
 .communication-secondary-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:16px; }
 .communication-secondary-actions button,.communication-secondary-actions a { flex:1 1 130px; min-height:44px; padding:10px 16px; border:1px solid var(--line); border-radius:12px; color:var(--ink); text-align:center; text-decoration:none; }
 .communication-secondary-actions .communication-end { border:0; background:transparent; text-decoration:underline; }
-.inquiry-actions .onsite-communication-entry { color:var(--ink); background:var(--white); border-color:var(--line); }
+.inquiry-actions .onsite-communication-entry { color:var(--ink); background:var(--paper); border-color:var(--line); }
 @media(max-width:650px) { .communication-answer-grid { grid-template-columns:1fr; } }
 @media(max-width:360px) { .inquiry-dialog { max-height:calc(100dvh - 24px); overflow-y:auto; }.communication-secondary-actions > * { flex-basis:100%; } }
 .speech-capture-panel { display:grid; gap:16px; }

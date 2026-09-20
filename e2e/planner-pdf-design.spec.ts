@@ -9,7 +9,7 @@ test("두 탭에서 날짜 없는 탐색부터 일정 편집·지도·저장·�
   await page.route('**/api/trips', route => route.fulfill({ status: 201, json: { id: 'abcdef123456', url: `${new URL(route.request().url()).origin}/trip/abcdef123456`, revision: 1, expiresAt: Date.now() + 30 * 86400000, live: true } }));
   await page.goto('/planner');
   await expect(page.locator('.simple-planner-tabs button')).toHaveCount(2);
-  await expect(page.getByRole('heading', { name: '어디로 갈까요?', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '경남, 모두의 여행지', exact: true })).toBeVisible();
   await chooseTripConditions(page);
   await expect(page.locator('.simple-place-row')).toHaveCount(2);
   await page.getByRole('button', { name: '경남도립미술관 일정에 담기', exact: true }).click();

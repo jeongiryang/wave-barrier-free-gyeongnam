@@ -128,7 +128,7 @@ html[data-theme=dark] .auth-guest { color: #d4b8ff; }
 .community-workspace .community-travel-stories header h2 { font-size: 1.25rem; font-weight: 500; margin: 4px 0 20px; }
 .community-travel-stories > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 
-.trip-comfort-choices button[aria-pressed] { background: var(--white); color: var(--ink); border-color: var(--line); }
+.trip-comfort-choices button[aria-pressed] { background: var(--paper); color: var(--ink); border-color: var(--line); }
 .trip-comfort-choices button[aria-pressed=true] { background: var(--accent); color: var(--onaccent); }
 .rest-stop-finder .reference-info-card :is(p,button),.trip-comfort-choices label { font-size: 14px; }
 

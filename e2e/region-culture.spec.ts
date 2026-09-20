@@ -21,6 +21,7 @@ test("확인된 지역에만 공식 문화 이야기와 출처를 표시한다",
 
 test("공식 안내 링크는 새 탭 보안 속성을 갖고 재생 기능이 없다", async ({ page }) => {
   const culture = page.locator("#regions .simple-region-culture").first();
+  await culture.locator("summary").click();
   const link = culture.getByRole("link", { name: /자세히 보기, 새 탭/ });
   await expect(link).toHaveAttribute("target", "_blank");
   await expect(link).toHaveAttribute("rel", "noopener noreferrer");
@@ -31,6 +32,7 @@ test("공식 안내 링크는 새 탭 보안 속성을 갖고 재생 기능이 �
 });
 
 test("지역 문화 항목은 서버 API를 호출하거나 지역 선택 링크를 바꾸지 않는다", async ({ page }) => {
+  await page.waitForLoadState("networkidle");
   const requests: string[] = [];
   page.on("request", request => { if (new URL(request.url()).pathname.startsWith("/api/")) requests.push(request.url()); });
   const regions = page.locator("#regions");
@@ -51,7 +53,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 960, height: 900 }
     await page.reload();
     const regions = page.locator("#regions");
     await regions.scrollIntoViewIfNeeded();
-    const cards = await regions.locator(".simple-region").evaluateAll(nodes => nodes.map(node => ({ height: node.getBoundingClientRect().height, width: node.getBoundingClientRect().width })));
+    const cards = await regions.locator(".simple-region-link").evaluateAll(nodes => nodes.map(node => ({ height: node.getBoundingClientRect().height, width: node.getBoundingClientRect().width })));
     expect(new Set(cards.map(card => Math.round(card.height))).size).toBe(1);
     expect(cards.every(card => card.width >= 0)).toBe(true);
     expect(await regions.evaluate(node => node.scrollWidth > node.clientWidth + 1)).toBe(false);

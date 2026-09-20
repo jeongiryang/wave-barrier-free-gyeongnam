@@ -69,7 +69,7 @@ test("편의 선택 전·초안·적용·해제의 문구가 완결되고 자동
 
 test("지역·검색 결과·날짜 설정·내 일정과 출발 전 확인은 한국어로 읽힌다", async ({ page }) => {
   await openPlanner(page);
-  await expect(page.getByRole("heading", { name: "어디로 갈까요?", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "경남, 모두의 여행지", exact: true })).toBeVisible();
   await expectKoreanHeadings(page);
   await collectMuseum(page);
   await expect(page.getByRole("heading", { name: "창원 여행지", exact: true })).toBeVisible();

@@ -42,15 +42,15 @@ test("공개 관광지에 연결한 현장 확인 정보를 민감정보 없이 
   await expect(page.getByRole("heading", { name: "경남도립미술관 · 2026-06-15 현장 확인" })).toBeVisible();
 });
 
-test("장소 상세는 최신 일반글과 무관하게 현장 확인 정보를 전용 조회해 공식 영역과 분리한다", async ({ page }) => {
+test("장소 상세는 최신 일반글과 무관하게 현장 확인 정보를 함께 조회해 공식 영역과 분리한다", async ({ page }) => {
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { preserveView: true });
-  const requestedCategories: Array<string | null> = [];
+  const previewRequests: URLSearchParams[] = [];
   await page.route("**/api/community/posts?*", (route) => {
     const params = new URL(route.request().url()).searchParams;
-    requestedCategories.push(params.get("category"));
-    if (params.get("category") === "field-report") return route.fulfill({ json: { posts: [{ id: "report-older", category: "field-report", title: "경남도립미술관 · 2026-06-15 현장 확인", content: "입구 경사로 폭을 직접 확인했습니다.", region: "창원", placeId: "1001", placeName: "경남도립미술관", authorName: "현장 여행자", createdAt: 1780000000000, updatedAt: 1780000000000, commentCount: 0, likeCount: 0, likedByMe: false, isOwner: false, visitDate: "2026-06-15", fieldReports: [], journalPlaces: [] }], page: 1, hasMore: false } });
-    return route.fulfill({ json: { posts: Array.from({ length: 4 }, (_, index) => ({ id: `normal-${index}`, category: "review", title: `더 최신인 일반 후기 ${index + 1}`, content: "일반 여행 후기입니다.", region: "창원", placeId: "1001", placeName: "경남도립미술관", authorName: "여행자", createdAt: 1790000000000 + index, updatedAt: 1790000000000 + index, commentCount: 0, likeCount: 0, likedByMe: false, isOwner: false, visitDate: "2026-09-10", fieldReports: [], journalPlaces: [] })), page: 1, hasMore: true } });
+    previewRequests.push(params);
+    const fieldReports = [{ id: "report-older", category: "field-report", title: "경남도립미술관 · 2026-06-15 현장 확인", content: "입구 경사로 폭을 직접 확인했습니다.", region: "창원", placeId: "1001", placeName: "경남도립미술관", authorName: "현장 여행자", createdAt: 1780000000000, updatedAt: 1780000000000, commentCount: 0, likeCount: 0, likedByMe: false, isOwner: false, visitDate: "2026-06-15", fieldReports: [], journalPlaces: [] }];
+    return route.fulfill({ json: { fieldReports, posts: Array.from({ length: 4 }, (_, index) => ({ id: `normal-${index}`, category: "review", title: `더 최신인 일반 후기 ${index + 1}`, content: "일반 여행 후기입니다.", region: "창원", placeId: "1001", placeName: "경남도립미술관", authorName: "여행자", createdAt: 1790000000000 + index, updatedAt: 1790000000000 + index, commentCount: 0, likeCount: 0, likedByMe: false, isOwner: false, visitDate: "2026-09-10", fieldReports: [], journalPlaces: [] })), page: 1, hasMore: true } });
   });
   await page.goto("/planner");
   await chooseTripConditions(page);
@@ -60,6 +60,8 @@ test("장소 상세는 최신 일반글과 무관하게 현장 확인 정보를 
   await expect(reports).toContainText("경남도립미술관 · 2026-06-15 현장 확인");
   await expect(reports).toContainText(/\d+개월 전에 확인한 정보예요/);
   await expect(page.getByRole("region", { name: "방문 후기", exact: true })).toBeVisible();
-  expect(requestedCategories).toContain("field-report");
+  expect(previewRequests).toHaveLength(1);
+  expect(Object.fromEntries(previewRequests[0])).toMatchObject({ placeId: "1001", placePreview: "1", page: "1", limit: "3" });
+  await expect(page.getByRole("region", { name: "방문 후기", exact: true })).not.toContainText("현장 확인");
   expect(await reports.locator(".official-facility-summary").count()).toBe(0);
 });

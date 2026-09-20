@@ -21,7 +21,7 @@ html body main.wave-night:is(.community-page,.festival-page,.planner-page),html 
  font-size:14px; line-height:1.6;
 }
 .wave-night button,.wave-night input,.wave-night select { font:inherit; }
-.wave-night button { color:inherit; }
+:where(.wave-night button) { color:inherit; }
 .wave-night input,.wave-night select { color:var(--ink); background:#081c30; border:1px solid var(--line); border-radius:9px; }
 .wave-night :is(a,button,input,select,summary):focus-visible { outline:2px solid #6de4ff; outline-offset:4px; }
 .wave-night button:disabled { opacity:.45; cursor:not-allowed; }

@@ -31,7 +31,7 @@
 .itinerary-day-tabs button[aria-pressed="true"] { background: #12655b; color: #fff; }
 .departure-review-check { padding: 18px; display: flex; align-items: flex-start; gap: 12px; border: 1px solid #9fbec8; border-radius: 14px; line-height: 1.7; }
 .departure-review-check input { min-width: 24px; width: 24px; height: 24px; margin-top: 2px; }
-.itinerary-route-coverage { margin: 24px 0; padding: clamp(16px,3vw,28px); border: 1px solid var(--line); border-radius: 16px; background: var(--white); color: var(--ink); }
+.itinerary-route-coverage { margin: 24px 0; padding: clamp(16px,3vw,28px); border: 1px solid var(--line); border-radius: 16px; background: var(--paper); color: var(--ink); }
 .itinerary-route-coverage h3 { margin: 0; }
 .itinerary-route-coverage ol { padding-left: 24px; }
 .itinerary-route-coverage li { padding: 16px 0; border-top: 1px solid var(--line); }
@@ -59,7 +59,7 @@ html[data-theme="dark"] .result-notice,html[data-theme="dark"] .outside-trip-dat
 html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38; --muted: #bed2d6; --line: #355561; }
 .region-picker-compact { display: flex; flex-direction: column; align-items: stretch; gap: 18px; }
 .region-picker-compact .region-picker-list { gap: 8px; }
-.region-picker-compact .region-picker-list button { min-height: 44px; border-radius: 6px; font-size: .88rem; border-color: var(--line); background: var(--white); color: var(--ink); transition: background .18s,border-color .18s; }
+.region-picker-compact .region-picker-list button { min-height: 44px; border-radius: 6px; font-size: .88rem; border-color: var(--line); background: var(--paper); color: var(--ink); transition: background .18s,border-color .18s; }
 .region-picker-compact .region-picker-list button:hover { border-color: #14756d; }
 .region-picker-compact .region-picker-list button[aria-pressed="true"] { background: #242b2a; border-color: #242b2a; color: #fff; }
 .region-map-disclosure { border-top: 1px solid var(--line); font-size: .8rem; }
@@ -80,7 +80,7 @@ html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38;
 .place-facilities { border-top: 1px solid var(--line); padding-top: 16px; font-size: .88rem; }
 .place-facilities strong { font-size: .82rem; color: var(--muted); }
 .journey-editorial .place-actions { border-color: var(--line); }
-.journey-editorial .place-actions button { position: relative; gap: 8px; border: 1px solid var(--line); color: var(--ink); background: var(--white); }
+.journey-editorial .place-actions button { position: relative; gap: 8px; border: 1px solid var(--line); color: var(--ink); background: var(--paper); }
 .journey-editorial .place-actions .saved { color: var(--ink); background: var(--paper); border-color: var(--ink); }
 .journey-editorial :focus-visible { outline: 3px solid #b36b16; outline-offset: 4px; }
 html[data-motion="calm"] .condition-inputs { animation: none; }
@@ -135,7 +135,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference .place-actions { margin-top: 10px; gap: 8px; }
 .planner-reference .place-actions button { min-height: 44px; padding: 8px 12px; border-radius: 99px; }
 .planner-reference .place-actions .primary { background: #12655b; color: white; border-color: #12655b; }
-.reference-calendar,.reference-date-summary,.reference-schedule,.reference-info-card,.reference-day-list { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 22px; min-width: 0; }
+.reference-calendar,.reference-date-summary,.reference-schedule,.reference-info-card,.reference-day-list { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 22px; min-width: 0; }
 .reference-tint { background: var(--surface); border-radius: 14px; padding: 18px; color: var(--ink); }
 .reference-tint small { display: block; margin-top: 6px; font-size: 11px; }
 .reference-schedule h3,.reference-info-card h3 { font-size: 17px; margin: 0 0 12px; }
@@ -172,17 +172,17 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 :root .planner-reference #itinerary-stage-title,
 :root .planner-reference .journey-subheading h2 { color: var(--ink); }
 :root .planner-reference .planner-journey-workspace .profile-card,
-:root .planner-reference .planner-journey-workspace .theme-grid button { background: var(--white); color: var(--ink); border-color: var(--line); }
+:root .planner-reference .planner-journey-workspace .theme-grid button { background: var(--paper); color: var(--ink); border-color: var(--line); }
 :root .planner-reference .planner-journey-workspace .profile-card.active,
 :root .planner-reference .planner-journey-workspace .theme-grid button.active { background: var(--surface); color: var(--ink); border-color: var(--blue); }
 :root .planner-reference .planner-journey-workspace .profile-card small,
 :root .planner-reference .planner-journey-workspace .profile-card.active small,
 :root .planner-reference .planner-journey-workspace .theme-grid button small { color: var(--ink-soft); }
-:root .planner-reference .region-picker-list button { background: var(--white); color: var(--ink); border-color: var(--line); }
+:root .planner-reference .region-picker-list button { background: var(--paper); color: var(--ink); border-color: var(--line); }
 :root .planner-reference .region-picker-list button[aria-pressed=true] { background: var(--blue); color: var(--white); }
-:root .planner-reference .travel-profile-card { background: var(--white); color: var(--ink); }
+:root .planner-reference .travel-profile-card { background: var(--paper); color: var(--ink); }
 :root .planner-reference .travel-profile-card small { color: var(--muted); }
-:root .planner-reference .place-actions button { color: var(--ink); background: var(--white); }
+:root .planner-reference .place-actions button { color: var(--ink); background: var(--paper); }
 :root .planner-reference .place-actions .primary { background: var(--blue); color: var(--white); }
 
 :root .planner-page.planner-reference {     background: var(--paper); }
@@ -203,7 +203,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .easy-trip-toggle button[aria-pressed=true] { background:var(--ink); color:var(--white); }
 .easy-on-trip,.easy-trip-list { display:grid; gap:16px; min-width:0; }
 .easy-on-trip > h2,.easy-trip-card :is(h3,p),.easy-trip-rest h3 { margin:0; }
-.easy-trip-card { display:grid; gap:10px; min-width:0; padding:18px; border:1px solid var(--line); border-radius:20px; background:var(--white); color:var(--ink); overflow-wrap:anywhere; }
+.easy-trip-card { display:grid; gap:10px; min-width:0; padding:18px; border:1px solid var(--line); border-radius:20px; background:var(--paper); color:var(--ink); overflow-wrap:anywhere; }
 .easy-trip-card.current { padding:clamp(20px,4vw,32px); border:2px solid var(--accent); border-radius:24px; }
 .easy-trip-card small,.easy-trip-card time { color:var(--muted); }
 .easy-trip-card h3 { font-size:1.15rem; line-height:1.4; }
@@ -217,7 +217,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .easy-trip-rest { display:grid; gap:14px; padding:20px; border:1px solid var(--accent); border-radius:20px; background:var(--paper); }
 .easy-trip-confirm { display:grid; grid-column:1/-1; gap:10px; padding-top:8px; }
 .easy-trip-confirm p { margin:0; }
-.trip-board ol { margin:0; padding:0; display:grid; gap:8px; list-style:none; }.trip-board li { min-height:56px; border:1px solid var(--line); border-radius:14px; background:var(--white); }.trip-board li[data-state=done] { background:var(--sky); }.trip-board li[data-state=current] { border-left:3px solid var(--accent); }.trip-board li[data-state=skipped] { border-style:dashed; }.trip-board li button { width:100%; min-height:56px; padding:10px 12px; display:grid; grid-template-columns:32px minmax(0,1fr) auto; align-items:center; gap:10px; border:0; color:var(--ink); background:transparent; font:inherit; text-align:left; }.trip-board-order { width:30px; height:30px; display:grid; place-items:center; border:1px solid var(--line); border-radius:50%; }.trip-board-state { display:inline-flex; align-items:center; gap:5px; color:var(--muted); font-size:.875rem; }
+.trip-board ol { margin:0; padding:0; display:grid; gap:8px; list-style:none; }.trip-board li { min-height:56px; border:1px solid var(--line); border-radius:14px; background:var(--paper); }.trip-board li[data-state=done] { background:var(--sky); }.trip-board li[data-state=current] { border-left:3px solid var(--accent); }.trip-board li[data-state=skipped] { border-style:dashed; }.trip-board li button { width:100%; min-height:56px; padding:10px 12px; display:grid; grid-template-columns:32px minmax(0,1fr) auto; align-items:center; gap:10px; border:0; color:var(--ink); background:transparent; font:inherit; text-align:left; }.trip-board-order { width:30px; height:30px; display:grid; place-items:center; border:1px solid var(--line); border-radius:50%; }.trip-board-state { display:inline-flex; align-items:center; gap:5px; color:var(--muted); font-size:.875rem; }
 @media(max-width:650px) { .easy-trip-actions { grid-template-columns:1fr; }.easy-trip-actions .easy-trip-primary,.easy-trip-confirm { grid-column:auto; }.easy-trip-actions button,.easy-trip-confirm button,.easy-on-trip > button { width:100%; } }
 
 :root .planner-reference #conditions .preference-label > small,:root .planner-reference #places > .original-language-note,:root .planner-reference .reference-departure-details > p[role="status"] { color: var(--muted); }

@@ -64,9 +64,9 @@ export default function ParkingContactPanel({ id, parkingName, phoneNumber, plac
         <p role="status">자동으로 복사하지 못했어요.<br />아래 내용을 전체 선택해 복사해 주세요.</p>
         <label htmlFor={`${id}-question`}>직접 복사할 질문</label>
         <textarea id={`${id}-question`} ref={textarea} readOnly rows={9} value={question} style={{ font: 'inherit', maxWidth: '100%', minWidth: 0, padding: 12, width: '100%' }} />
-        <button type="button" style={{ background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)' }} onClick={selectQuestion}>전체 선택</button>
+        <button type="button" style={{ background: 'var(--paper)', border: '1px solid var(--line)', color: 'var(--ink)' }} onClick={selectQuestion}>전체 선택</button>
       </div>}
     </> : <p>문의 가능한 전화번호가 없어요.</p>}
-    <div className="parking-actions parking-contact-close"><button type="button" style={{ background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)' }} aria-label="주차장 문의 닫기" onClick={onClose}>닫기</button></div>
+    <div className="parking-actions parking-contact-close"><button type="button" style={{ background: 'var(--paper)', border: '1px solid var(--line)', color: 'var(--ink)' }} aria-label="주차장 문의 닫기" onClick={onClose}>닫기</button></div>
   </section>;
 }

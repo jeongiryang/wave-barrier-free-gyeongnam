@@ -8,7 +8,7 @@ import type { CommunityPost } from "../../../lib/community/types";
 import { communityErrorMessage, listCommunityPosts } from "../../community/client/api";
 import type { Place } from "../types";
 
-const actionStyle = { minHeight: 44, padding: "8px 16px", border: "1px solid var(--line)", borderRadius: 24, background: "var(--white)", color: "var(--blue)", fontSize: 14 };
+const actionStyle = { minHeight: 44, padding: "8px 16px", border: "1px solid var(--line)", borderRadius: 24, background: "var(--paper)", color: "var(--blue)", fontSize: 14 };
 const statusLabels = new Map(ACCESSIBILITY_REPORT_STATUSES.map(item => [item.id, item.label]));
 
 export default function PlaceFacilityHistory({ place, region }: { place: Place; region: string }) {
@@ -42,7 +42,7 @@ export default function PlaceFacilityHistory({ place, region }: { place: Place; 
     <button type="button" style={actionStyle} aria-busy={loading} disabled={loading} onClick={() => void load(1)}>{loading ? "시설 제보 확인 중…" : page ? "최근 제보 다시 확인" : "시설 제보 이력 확인"}</button>
     <div role="status">{message || (page ? `방문일 순으로 후기 ${posts.length}건을 불러왔어요.${hasMore ? " 더 이전 기록이 있습니다." : ""}` : "")}</div>
     {!!page && <div style={{ display: "grid", gap: 16, marginTop: 20 }}>
-      {history.map(item => <article key={item.field} style={{ padding: 20, border: "1px solid var(--line)", borderRadius: 18, background: "var(--white)" }}>
+      {history.map(item => <article key={item.field} style={{ padding: 20, border: "1px solid var(--line)", borderRadius: 18, background: "var(--paper)" }}>
         <h4 style={{ fontSize: 18, margin: "0 0 12px" }}>{item.label}</h4>
         {item.latest ? <>
           <p><strong>{statusLabels.get(item.latest.status)}</strong> · 방문 {item.latest.visitDate} · {item.ageDays}일 전</p>

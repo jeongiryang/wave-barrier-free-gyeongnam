@@ -373,7 +373,7 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 .evidence-coverage-meter { height: 10px; overflow: hidden; border-radius: 999px; background: var(--line); }
 .evidence-coverage-meter i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
 .evidence-coverage-card ul { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
-.evidence-coverage-card li { padding: 10px; background: var(--white); }
+.evidence-coverage-card li { padding: 10px; background: var(--paper); }
 .evidence-coverage-card :is(small,.evidence-coverage-note) { color: var(--muted); font-size: .75rem; }
 .evidence-coverage-actions button { min-height: 44px; }
 @media (max-width: 560px) { .evidence-coverage-card ul { grid-template-columns: 1fr; } }

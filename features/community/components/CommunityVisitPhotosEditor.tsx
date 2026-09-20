@@ -4,7 +4,7 @@ import type {CommunityPostInput} from '../client/api';
 import {prepareVisitPhoto} from '../client/prepare-visit-photo';
 
 export default function CommunityVisitPhotosEditor({values,setValues,saving,onBusyChange}:{values:CommunityPostInput;setValues:Dispatch<SetStateAction<CommunityPostInput>>;saving:boolean;onBusyChange:(value:boolean)=>void}){
- const actionStyle={minHeight:44,padding:'8px 16px',border:'1px solid var(--line)',borderRadius:24,background:'var(--white)',color:'var(--blue)',fontSize:14,marginTop:8};
+ const actionStyle={minHeight:44,padding:'8px 16px',border:'1px solid var(--line)',borderRadius:24,background:'var(--paper)',color:'var(--blue)',fontSize:14,marginTop:8};
  const inputId=useId(),alive=useRef(true),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
  const photos=values.visitPhotos||[];
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;onBusyChange(false);};},[onBusyChange]);

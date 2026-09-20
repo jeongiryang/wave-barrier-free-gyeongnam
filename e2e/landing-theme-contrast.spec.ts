@@ -33,14 +33,37 @@ async function samples(page: Page, selector: string) {
         }
         return {
           // Photo text uses a sibling scrim, not the white ancestor surface.
-          // Composite its lightest gradient stop over pure white (worst photo).
+          // Composite the lightest stop behind the text over pure white (worst photo).
           background: node.matches(".landing-hero-copy h1, .landing-hero-description")
             ? (() => {
                 const photo = document.querySelector(".landing-hero-landscape")!;
                 const scrim = getComputedStyle(photo, "::after");
                 if (scrim.content === "none") return [255, 255, 255];
-                const stops = [...scrim.backgroundImage.matchAll(/rgba?\(([^)]+)\)/g)].map(match => match[1].split(",").map(Number));
-                return [0, 1, 2].map(channel => Math.max(...stops.map(stop => stop[channel] * (stop[3] ?? 1) + 255 * (1 - (stop[3] ?? 1)))));
+                const stops = [...scrim.backgroundImage.matchAll(/(rgba?\([^)]+\)|transparent)(?:\s+([\d.]+)%)?/g)].map((match, index, all) => ({
+                  channels: match[1] === "transparent" ? [0, 0, 0, 0] : match[1].match(/[\d.]+/g)!.map(Number),
+                  position: match[2] === undefined ? index / (all.length - 1) : Number(match[2]) / 100,
+                }));
+                if (stops.length < 2) {
+                  const channels = scrim.backgroundColor.match(/[\d.]+/g)!.map(Number);
+                  const alpha = channels[3] ?? 1;
+                  return channels.slice(0, 3).map(channel => channel * alpha + 255 * (1 - alpha));
+                }
+                const frame = photo.getBoundingClientRect(), rect = node.getBoundingClientRect();
+                // Only the text's actual horizontal footprint needs a protective
+                // scrim. The uncovered photograph to its right carries no text.
+                const left = Math.max(0, (rect.left - frame.left) / frame.width);
+                const right = Math.min(1, (rect.right - frame.left) / frame.width);
+                const positions = [left, right, ...stops.map(stop => stop.position).filter(x => x > left && x < right)];
+                const backgrounds = positions.map(x => {
+                  const end = Math.max(1, stops.findIndex(stop => stop.position >= x));
+                  const start = stops[end - 1], finish = stops[end];
+                  const t = Math.max(0, Math.min(1, (x - start.position) / (finish.position - start.position)));
+                  // CSS gradients interpolate premultiplied alpha.
+                  const alpha = (start.channels[3] ?? 1) * (1 - t) + (finish.channels[3] ?? 1) * t;
+                  return [0, 1, 2].map(channel => start.channels[channel] * (start.channels[3] ?? 1) * (1 - t) + finish.channels[channel] * (finish.channels[3] ?? 1) * t + 255 * (1 - alpha));
+                });
+                return [0, 1, 2].map(channel => Math.max(...backgrounds.map(color => color[channel])));
+
               })()
             : parse(background),
           color: parse(getComputedStyle(node).color),
@@ -53,9 +76,9 @@ async function samples(page: Page, selector: string) {
 const CASES = [
   ".landing-hero-copy h1", ".landing-hero-description", ".landing-actions a",
   ".simple-section-heading h2", ".simple-section-heading p", ".simple-show-regions",
-  ".horizon-section-heading h2", ".horizon-section-heading > p", ".horizon-chapter-copy h3",
-  ".horizon-chapter-copy > p", ".horizon-chapter-copy li", ".horizon-text-link", ".simple-text-link",
-  ".horizon-checks li", ".horizon-blue-button", ".restored-community h2", ".restored-community > div > p",
+  ".night-journey-input > h2", ".night-journey-input > p", ".night-journey-input h3",
+  ".night-journey-tabs button", ".night-journey-input > .night-primary", ".simple-text-link",
+  ".horizon-checks li", "#departure .simple-text-link", ".night-discover-card h2", ".night-discover-card > p",
   ".simple-naru-story h2", ".simple-naru-story > div > p", ".simple-naru-example p",
   ".simple-naru-example-title small", ".example-undo",
 ];

@@ -63,8 +63,9 @@ test('community server controls wait for hydration before layout, filter and sea
     await scriptGate;
     return route.fallback();
   });
-  const controls = page.locator('.community-controls');
+  const controls = page.locator('.night-community-toolbar');
   const view = page.getByRole('group', { name: '게시글 보기 방식', exact: true });
+  const sortbar = page.locator('.night-sortbar');
   const clearPlace = page.getByRole('button', { name: '전체 후기 보기', exact: true });
   const search = page.getByRole('textbox', { name: '여행 후기 검색', exact: true });
   try {
@@ -74,6 +75,8 @@ test('community server controls wait for hydration before layout, filter and sea
     await expect(controls).toBeVisible();
     await expect.poll(() => blockedScripts).toBeGreaterThan(0);
     await expect(controls).toHaveAttribute('aria-busy', 'true');
+    await expect(sortbar).toHaveAttribute('aria-busy', 'true');
+    for (const control of await sortbar.getByRole('button').all()) await expect(control).toBeDisabled();
     await expect(view.getByRole('button')).toHaveCount(3);
     for (const control of await controls.locator('button, input').all()) await expect(control).toBeDisabled();
     await expect(clearPlace).toBeDisabled();
@@ -84,13 +87,15 @@ test('community server controls wait for hydration before layout, filter and sea
   }
   await page.waitForLoadState('domcontentloaded');
   await expect(controls).toHaveAttribute('aria-busy', 'false');
+  await expect(sortbar).toHaveAttribute('aria-busy', 'false');
+  for (const control of await sortbar.getByRole('button').all()) await expect(control).toBeEnabled();
   for (const control of await controls.locator('button, input').all()) await expect(control).toBeEnabled();
   await expect(clearPlace).toBeEnabled();
   const list = page.locator('.community-list');
   await expect(list.locator('article')).toHaveCount(8);
   expect(requests.at(-1)?.searchParams.get('placeId')).toBe('1001');
   const baseline = requests.map(url => url.href);
-  const compact = view.getByRole('button', { name: page.viewportSize()!.width <= 600 ? '2열' : '4열', exact: true });
+  const compact = view.getByRole('button', { name: '조밀한 카드', exact: true });
   await compact.click();
   await expect(compact).toHaveAttribute('aria-pressed', 'true');
   await expect(list).toHaveAttribute('data-layout', 'compact');
@@ -124,7 +129,7 @@ test('community density changes both real post and editorial grids without chang
   });
   await page.goto('/community');
   const list = page.locator('.community-list'), stories = page.locator('.community-editorial-grid');
-  await page.locator('.community-guides > summary').filter({ hasText: /^이용 가이드$/ }).click();
+  await page.locator('.community-guides > summary').filter({ hasText: /^여행 준비 가이드$/ }).click();
   await expect(list.locator('article')).toHaveCount(8);
   await expect(stories.locator('article')).toHaveCount(3);
   const storyLinks = await stories.locator('h3 a').evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).getAttribute('href')));
@@ -135,9 +140,9 @@ test('community density changes both real post and editorial grids without chang
     await page.setViewportSize({ width, height: 900 });
     const mobile = width <= 600;
     for (const [layout, name, columns] of [
-      ['cards', mobile ? '1열' : '2열', mobile ? 1 : 2],
-      ['compact', mobile ? '2열' : '4열', mobile ? 2 : 4],
-      ['list', '목록', 1],
+      ['cards', '카드형', mobile ? 1 : 2],
+      ['compact', '조밀한 카드', mobile ? 2 : 4],
+      ['list', '목록형', 1],
     ] as const) {
       const button = view.getByRole('button', { name, exact: true });
       await expect(button).toBeVisible(); await button.focus(); await button.press('Enter');
@@ -150,11 +155,11 @@ test('community density changes both real post and editorial grids without chang
       expect(await list.locator('article > a').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')))).toEqual(posts.map(post => `/community/${post.id}`));
       expect(await stories.locator('h3 a').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')))).toEqual(storyLinks);
       expect(await stories.locator('figcaption a').evaluateAll(nodes => nodes.map(node => ({ href: (node as HTMLAnchorElement).href, text: node.textContent })))).toEqual(credits);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), `${width}px ${layout} must fit the viewport`).toBeLessThanOrEqual(1);
       expect(requests).toEqual(baseline);
     }
     if (width === 1440 || width === 390) await page.locator('.community-workspace').screenshot({ path: test.info().outputPath(`community-density-${width}.png`) });
   }
-  expect((await new AxeBuilder({ page }).include('.community-controls').include('.community-list').analyze()).violations).toEqual([]);
+  expect((await new AxeBuilder({ page }).include('.night-community-toolbar').include('.night-sortbar').include('.community-list').analyze()).violations).toEqual([]);
   expect(errors).toEqual([]);
 });

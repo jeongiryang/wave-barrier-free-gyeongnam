@@ -29,7 +29,7 @@ test("dates are chosen after collecting places and an unapplied date draft survi
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner?question=3#conditions");
-  await expect(page.locator(".simple-region-entry h2")).toHaveText("어디로 갈까요?");
+  await expect(page.locator(".simple-region-entry h2")).toHaveText("경남, 모두의 여행지");
   await expect(page.locator("#planner .simple-region-link")).toHaveCount(6);
   const screens = page.getByRole("group", { name: "여행 설계 화면", exact: true });
   await expect(screens.getByRole("button", { name: /^내 일정/ })).toBeDisabled();

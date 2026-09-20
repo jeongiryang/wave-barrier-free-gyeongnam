@@ -17,7 +17,10 @@ test("travel condition controls stay inside their card before and after selectio
         return [...card.querySelectorAll("button")].filter(button => button.getClientRects().length).filter(button => {
           const box = button.getBoundingClientRect();
           return box.width < 44 || box.height < 44 || box.left < bounds.left || box.right > bounds.right + 1;
-        }).map(button => button.textContent);
+        }).map(button => {
+          const box = button.getBoundingClientRect();
+          return { text: button.textContent, className: button.className, width: box.width, height: box.height, left: box.left - bounds.left, right: box.right - bounds.right };
+        });
       }), { message: `${width}px ${selected ? "selected" : "initial"} conditions must fit their own card` }).toEqual([]);
     }
   }

@@ -1,6 +1,5 @@
 
 /* Data-rich regional explorer */
-.signals-shortcut { max-width: 100%; min-height: 44px; margin: 16px 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: var(--paper); font: inherit; font-weight: 750; cursor: pointer; }
 .travel-layers { padding: 130px max(24px, calc((100vw - 1240px) / 2)); overflow: hidden; color: #fff; background: #062736; }
 .insight-board { display: grid; grid-template-columns: 1.12fr 1fr .7fr; gap: 14px; }
 .insight-board > article,.layer-principle { min-height: 380px; padding: 28px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,.12); border-radius: 22px; background: rgba(255,255,255,.045); }

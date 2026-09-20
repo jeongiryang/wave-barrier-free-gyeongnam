@@ -8,11 +8,6 @@
 .wave-header[data-hidden=true] { transform: translateY(-105%); }
 .wave-header:focus-within { transform: none; }
 .horizon-edition .landing-hero { margin-top: 0; }
-.region-showcase .selected-region small,.region-neighbour-copy > small,
-html[data-theme=dark] .region-showcase .selected-region small {
-  padding: 0; background: transparent; color: #fff; font-size: 1rem; font-weight: 600;
-  text-shadow: 0 1px 5px #061c16,0 0 14px #061c16;
-}
 .planner-reference { --workspace-rail: 216px; --workspace-gap: 24px; }
 
 .planner-reference .planner-journey-workspace { width: auto; max-width: none; margin: 0 28px 0 calc(var(--workspace-rail) + 28px); padding: 0 0 36px; }
@@ -22,7 +17,7 @@ html[data-theme=dark] .region-showcase .selected-region small {
 .planner-reference .reference-subtitle,.planner-reference .stage-guidance { font-size: .9rem; color: var(--muted); line-height: 1.8; }
 .planner-reference > .simple-footer { margin-left: calc(var(--workspace-rail) + 28px); width: auto; }
 .planner-reference .place-card { border: 1px solid var(--line); border-radius: 18px; }
-.planner-notice > button { padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--accent); }
+.planner-notice > button { padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--accent); }
 @media (min-width: 1181px) {
   .planner-reference:has(.naru-panel.naru-compact[open]) .planner-journey-workspace { margin-right: 464px; }
 }
@@ -66,7 +61,7 @@ html[data-motion=calm] .wave-spinner,html[data-motion=calm] .wave-loading-inline
 .naru-log { flex: 1; min-height: 80px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .naru-message { margin: 0 0 18px; width: fit-content; max-width: 94%; border-radius: 16px 16px 16px 4px; padding: 14px; background: #fff; border: 1px solid #e9e4ef; }
 .naru-message p { font-size: .88rem; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }.naru-message > small { display: block; color: var(--muted); margin-top: 8px; }
-.naru-message > button { min-height: 44px; max-width: 100%; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--accent); font: inherit; font-size: .82rem; font-weight: 600; line-height: 1.5; text-align: left; white-space: normal; cursor: pointer; }
+.naru-message > button { min-height: 44px; max-width: 100%; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--accent); font: inherit; font-size: .82rem; font-weight: 600; line-height: 1.5; text-align: left; white-space: normal; cursor: pointer; }
 .naru-message > button:disabled { opacity: .55; cursor: default; }
 .naru-message.user { margin-left: auto; color: #fff; border: 0; border-radius: 16px 16px 4px 16px; }
 .naru-proposal { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; display: grid; gap: 10px; }
@@ -141,7 +136,7 @@ html[data-theme=dark] .planner-reference .place-actions .primary { background: #
 .naru-large .naru-conversation { width: 100%; }
 .naru-large .naru-log { padding-inline: max(20px,calc((100% - 760px)/2)); }
 .naru-large :is(.naru-input,.naru-context-suggestions,.naru-note) { width: min(760px,calc(100% - 24px)); box-sizing: border-box; margin-inline: auto; }
-.naru-heading { padding: 12px 16px; background: var(--white); }
+.naru-heading { padding: 12px 16px; background: var(--paper); }
 .naru-heading > div:not(.naru-heading-actions) { flex: 1; min-width: 0; }
 .naru-heading-actions { position: relative; display: flex; align-items: center; gap: 4px; flex: 0 0 auto !important; }
 .naru-heading-actions > button,.naru-more > summary { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; background: transparent; color: var(--ink); font: inherit; cursor: pointer; list-style: none; }
@@ -150,32 +145,32 @@ html[data-theme=dark] .planner-reference .place-actions .primary { background: #
 .naru-more > summary::-webkit-details-marker,.naru-add-menu > summary::-webkit-details-marker { display: none; }
 .naru-more[open] { position: static; }
 .naru-more[open]::before { content: ''; position: fixed; inset: 0; z-index: 1; }
-.naru-more[open] > div { position: absolute; right: 50px; top: 42px; z-index: 2; display: grid; gap: 6px; width: 250px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); box-shadow: 0 10px 30px #16312d22; }
+.naru-more[open] > div { position: absolute; right: 50px; top: 42px; z-index: 2; display: grid; gap: 6px; width: 250px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: 0 10px 30px #16312d22; }
 .naru-more[open] > div > :is(a,button) { min-height: 42px; padding: 10px; color: var(--accent); background: transparent; text-align: left; }
 .naru-more[open] > div > p { margin: 0; padding: 8px; border-top: 1px solid var(--line); color: var(--muted); font-size: .75rem; line-height: 1.6; }
 .naru-log { background: #f7f9f8; padding: 20px; }
 .naru-message { max-width: 86%; border-color: #dfe7e4; box-shadow: none; }
 .naru-message.user { background: #12655b; }
-.naru-starter,.naru-prompt-starters { display: grid; gap: 10px; margin: 0 auto 20px; max-width: 620px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--white); }
+.naru-starter,.naru-prompt-starters { display: grid; gap: 10px; margin: 0 auto 20px; max-width: 620px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); }
 .naru-starter h2,.naru-prompt-starters h2 { margin: 0; font-size: 1.05rem; }
 .naru-starter > p { margin: 0 0 6px; color: var(--muted); font-size: .82rem; line-height: 1.7; }
 .naru-starter > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.naru-starter button,.naru-prompt-starters button,.naru-context-suggestions button,.naru-tool-card button { min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--ink); text-align: left; font: inherit; font-size: .8rem; line-height: 1.5; }
+.naru-starter button,.naru-prompt-starters button,.naru-context-suggestions button,.naru-tool-card button { min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); text-align: left; font: inherit; font-size: .8rem; line-height: 1.5; }
 .naru-starter button[aria-pressed=true] { border-color: var(--accent); background: #eaf3f1; color: #0b5148; }
 .naru-starter footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
 .naru-starter footer .primary { background: var(--accent); color: #fff; }
 .naru-prompt-starters button:hover,.naru-context-suggestions button:hover { border-color: var(--accent); }
 .naru-tool-card { display: grid; gap: 6px; margin-top: 12px; padding: 14px; border: 1px solid #cbdad6; border-radius: 12px; background: #f3f8f6; }
 .naru-tool-card p { color: var(--muted); }
-.naru-tool-card button { width: fit-content; color: var(--accent); background: var(--white); }
+.naru-tool-card button { width: fit-content; color: var(--accent); background: var(--paper); }
 .naru-context-suggestions { display: flex; gap: 8px; padding: 8px 12px 0; overflow-x: auto; }
 .naru-context-suggestions button { flex: 0 0 auto; border-radius: 999px; }
-.naru-tools { position: absolute; inset: auto 12px 82px; z-index: 4; max-height: min(420px,55dvh); border: 1px solid var(--line); border-radius: 16px; background: var(--white); box-shadow: 0 12px 36px #16312d22; }
+.naru-tools { position: absolute; inset: auto 12px 82px; z-index: 4; max-height: min(420px,55dvh); border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: 0 12px 36px #16312d22; }
 .naru-input { position: relative; gap: 6px; border-color: #9eb7b1; border-radius: 18px; }
 .naru-input > details { flex: 0 0 auto; }
 .naru-add-menu > summary { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); color: var(--ink); font-size: 24px; cursor: pointer; list-style: none; }
 .naru-add-menu[open] { position: static; }
-.naru-add-menu[open] > :not(summary) { position: absolute; left: 0; bottom: 64px; z-index: 5; min-width: 210px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); box-shadow: 0 10px 30px #16312d22; }
+.naru-add-menu[open] > :not(summary) { position: absolute; left: 0; bottom: 64px; z-index: 5; min-width: 210px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: 0 10px 30px #16312d22; }
 .naru-add-menu[open] > button { bottom: 116px; border-radius: 12px; color: var(--accent); }
 .naru-input > div { flex-direction: row; }
 .naru-size-toggle { display: grid; }
@@ -188,4 +183,4 @@ html[data-theme=dark] .planner-reference .place-actions .primary { background: #
   .naru-log { padding: 14px; }
   .naru-message { max-width: 94%; }
 }
-html[data-theme=dark] :is(.naru-starter,.naru-prompt-starters,.naru-tool-card,.naru-more[open] > div,.naru-add-menu[open] > :not(summary),.naru-tools) { background: var(--white); border-color: var(--line); }
+html[data-theme=dark] :is(.naru-starter,.naru-prompt-starters,.naru-tool-card,.naru-more[open] > div,.naru-add-menu[open] > :not(summary),.naru-tools) { background: var(--paper); border-color: var(--line); }

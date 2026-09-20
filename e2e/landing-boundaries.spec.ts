@@ -4,7 +4,7 @@ import { mockPlannerApi, mockPublicShellApi, plan } from "./fixtures";
 import { allRegions, firstRegions, storyReady, expectUsableTarget, expectNoOverflow } from "./landing-contract";
 import { findLowContrastText } from "./contrast";
 
-const boundaryAsset = /RegionBoundarySurface|LandingBoundaryMap|region-boundaries|korea-sgis|gyeongnam-boundar|\.geojson(?:\?|$)/i;
+const boundaryAsset = /RegionBoundarySurface|LandingBoundaryMap|korea-sgis|gyeongnam-boundar|\.geojson(?:\?|$)/i;
 
 async function prepareRegions(page: Page) {
   await mockPlannerApi(page);
@@ -124,7 +124,8 @@ test("regional entry: both screens avoid boundary downloads and no-JS explicitly
   await page.goto("/", { waitUntil: "domcontentloaded" }); await storyReady(page);
   await page.getByRole("button", { name: "18개 지역 모두 보기", exact: true }).click();
   await expect(page.locator("#regions .simple-region")).toHaveCount(18);
-  await expect(page.locator("[data-region-boundary]")).toHaveCount(0);
+  await page.locator("#story").scrollIntoViewIfNeeded();
+  await expect(page.locator("#story [data-region-boundary]")).toHaveCount(18);
   expect(requests.filter(url => boundaryAsset.test(url))).toEqual([]);
   const plannerLink = page.locator('.wave-header nav a[href="/planner"]');
   await plannerLink.focus();
@@ -137,7 +138,7 @@ test("regional entry: both screens avoid boundary downloads and no-JS explicitly
   const chosen = regionResponse(page, "김해");
   await gallery.getByRole("button", { name: "김해 지역 선택", exact: true }).click();
   await expectRegion(page, "김해", chosen);
-  await expect(page.locator("[data-region-boundary]")).toHaveCount(0);
+  await expect(page.locator("[data-region-boundary]")).toHaveCount(18);
   expect(requests.filter(url => boundaryAsset.test(url))).toEqual([]);
 
   const context = await browser.newContext({ javaScriptEnabled: false, viewport: page.viewportSize()! });

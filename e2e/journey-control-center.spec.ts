@@ -26,7 +26,7 @@ test("데스크톱의 두 화면 전환은 현재 상태·다음 행동과 키�
   await expect(tabs.getByRole("button")).toHaveCount(2);
   await expect(tabs.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
-  await expect(page.getByRole("heading", { name: "어디로 갈까요?", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "경남, 모두의 여행지", exact: true })).toBeVisible();
 
   const region = page.getByRole("button", { name: "통영 지역 선택", exact: true });
   await region.focus();
