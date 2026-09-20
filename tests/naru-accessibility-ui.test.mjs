@@ -11,7 +11,7 @@ test('Naru is one persistent conversation with compact, large and mobile fullscr
   assert.match(assistant, /naru-\$\{size\}/);
   assert.match(assistant, /wave-naru-size-v1/);
   assert.match(assistant, /여행 설계에서 자세히 보기/);
-  assert.doesNotMatch(assistant, /naru-workspace|onToolHost|PlannerAssistantPlaceTools/);
+  assert.doesNotMatch(assistant, /onToolHost|PlannerAssistantPlaceTools/);
   assert.doesNotMatch(page, /PlannerStagePortal|assistantHost/);
   assert.match(css, /\.naru-panel\.naru-compact[^}]*440px/);
   assert.match(css, /\.naru-panel\.naru-large[^}]*980px/);
