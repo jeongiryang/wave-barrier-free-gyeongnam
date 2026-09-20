@@ -81,7 +81,7 @@ test("지역·검색 결과·날짜 설정·내 일정과 출발 전 확인은 �
   await expect(page.getByRole("heading", { name: "내 일정", exact: true })).toBeVisible();
   await expectKoreanHeadings(page);
   const departure = page.locator(".simple-departure > summary");
-  await expect(departure.getByText("출발 전 확인", { exact: true })).toBeVisible();
+  await expect(departure.getByText("일정 점검", { exact: true })).toBeVisible();
   await departure.press("Enter");
   await expect(page.getByRole("region", { name: "출발 전 확인할 정보", exact: true })).toBeVisible();
   await expectKoreanHeadings(page);

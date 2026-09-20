@@ -26,6 +26,9 @@ test('아무것도 고르지 않았으면 "지금 안내 방식"은 기본 방�
   await setup(page);
   const chat = await openChat(page);
   const summary = chat.locator('.naru-note', { hasText: '지금 안내 방식' }).locator('span');
+  await expect(summary).not.toBeVisible();
+  await chat.getByLabel('나루 메뉴', { exact: true }).click();
+  await expect(summary).toBeVisible();
   await expect(summary).toHaveText('지금 안내 방식: 기본 방식');
   expect((await new AxeBuilder({ page }).include('.naru-panel').analyze()).violations).toEqual([]);
 });
@@ -36,6 +39,7 @@ test('고른 편의 조건과 안내 선호만 "지금 안내 방식"에 나타�
   await chat.getByRole('button', { name: '휠체어 이동에 필요한 시설', exact: true }).click();
   await chat.getByRole('button', { name: '짧게, 한 번에 하나씩', exact: true }).click();
   await chat.getByRole('button', { name: '선택 적용', exact: true }).click();
+  await chat.getByLabel('나루 메뉴', { exact: true }).click();
   const summaryLine = chat.locator('.naru-note', { hasText: '지금 안내 방식' });
   const summary = summaryLine.locator('span');
   await expect(summary).toContainText('짧은 답변');

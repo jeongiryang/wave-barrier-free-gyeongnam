@@ -54,18 +54,18 @@ export default function TripDecisionReceipt({ archiveContext, coverage, route, t
   const placeById = new Map(trip.orderedSavedPlaces.map(place => [place.id, place]));
   return <details className="trip-decision-receipt" data-planner-tool="receipt">
     <summary>
-      <span><small>WAVE 결정 근거 영수증</small><strong>왜 이 일정인가요?</strong></span>
-      <span>확인 {receipt.totals.confirmed} · 미확인 {receipt.totals.unknown}</span>
+      <span><strong>선택한 편의 확인</strong></span>
+      <span>{receipt.criteria.facilities.length ? `확인 ${receipt.totals.confirmed} · 미확인 ${receipt.totals.unknown}` : '편의 조건 선택 안 함'}</span>
       <span aria-hidden="true">⌄</span>
     </summary>
     <div className="trip-decision-body">
-      <p className="trip-decision-intro">나루의 제안과 직접 편집 결과를 같은 기준으로 대조했습니다. 없는 정보는 추정하지 않습니다.</p>
+
       <section aria-labelledby="decision-criteria-title">
         <h3 id="decision-criteria-title">내가 정한 조건</h3>
         <dl className="trip-decision-criteria"><div><dt>지역·활동</dt><dd>{receipt.criteria.region} · {receipt.criteria.theme}</dd></div><div><dt>날짜·이동</dt><dd>{receipt.criteria.travelStart} — {receipt.criteria.travelEnd} · {receipt.criteria.travelMode}</dd></div><div><dt>필요한 편의</dt><dd>{receipt.criteria.facilities.length ? receipt.criteria.facilities.map(item => item.label).join(', ') : '선택 안 함'}</dd></div></dl>
       </section>
       <section aria-labelledby="decision-evidence-title">
-        <div className="trip-decision-section-heading"><div><h3 id="decision-evidence-title">장소별 공공데이터 근거</h3><p>관광 콘텐츠 ID와 자료 확인 시각을 함께 남깁니다.</p></div><div className="trip-decision-counts" aria-label="편의 정보 대조 결과"><span>확인 <b>{receipt.totals.confirmed}</b></span><span>없음 <b>{receipt.totals.negative}</b></span><span>미확인 <b>{receipt.totals.unknown}</b></span></div></div>
+        <div className="trip-decision-section-heading"><div><h3 id="decision-evidence-title">장소별 공공데이터 근거</h3></div><div className="trip-decision-counts" aria-label="편의 정보 대조 결과"><span>확인 <b>{receipt.totals.confirmed}</b></span><span>없음 <b>{receipt.totals.negative}</b></span><span>미확인 <b>{receipt.totals.unknown}</b></span></div></div>
         <div className="trip-decision-places">{receipt.places.map(place => <article key={place.id}>
           <div><h4>{place.name}</h4><p>{place.source} · 관광 콘텐츠 ID {place.id}</p><small title={place.checkedAt}>자료 확인 {checkedAtLabel(place.checkedAt)}</small></div>
           {place.evidence.length ? <ul>{place.evidence.map(item => <li key={item.key} data-state={item.state}><span>{item.label}</span><b>{stateLabel[item.state]}</b><small>{item.detail}</small></li>)}</ul> : <p>따로 선택한 편의 조건이 없습니다.</p>}

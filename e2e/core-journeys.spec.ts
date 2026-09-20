@@ -88,7 +88,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await close.focus(); await page.keyboard.press("Shift+Tab");
     expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(mobileLayout);
     await expect(page.locator(":modal")).toHaveCount(mobileLayout ? 1 : 0);
-    await expect(dialog.getByText(/현장 접근 가능성을 보장하지 않습니다/)).toBeVisible();
+    await expect(dialog.getByText(/공식 시설 정보는 안전 인증이나 접근 가능성 보장이 아닙니다/)).toBeVisible();
     await close.focus(); await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0); await expect(detailButton).toBeFocused();
 
@@ -185,7 +185,7 @@ test("community remains readable without login and protects writing", async ({ p
   await page.goto("/community");
   await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.")).toBeVisible();
   await expectNoSeriousA11yIssues(page);
-  await page.getByRole("link", { name: "이야기 남기기", exact: true }).first().click();
+  await page.getByRole("link", { name: "글 쓰기", exact: true }).first().click();
   await expect(page).toHaveURL(/\/login\?next=%2Fcommunity%2Fnew/);
   await expect(page.getByLabel("이메일")).toBeVisible();
   await expect(page.getByLabel("비밀번호", { exact: true })).toBeVisible();

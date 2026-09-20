@@ -10,15 +10,15 @@ test("issue 544 direct search keeps unknown facts explicit and connects saved pl
     source("features/planner/components/RecommendationWorkspace.tsx"),
     source("app/planner/page.tsx"),
   ]);
-  for (const label of ["지역", "관광지", "카페", "음식점", "기타"]) assert.match(search, new RegExp(label));
-  for (const fact of ["운영시간", "이동", "편의·접근성", "정보 확인 중"]) assert.match(search, new RegExp(fact));
+  for (const label of ["지역", "관광지", "카페", "식당", "기타"]) assert.match(search, new RegExp(label));
+  for (const fact of ["운영시간", "이동", "편의·접근성", "미확인"]) assert.match(search, new RegExp(fact));
   assert.match(search, /ArrowDown/);
   assert.match(search, /ArrowUp/);
   assert.match(search, /event\.key === "Escape"/);
   assert.match(search, /aria-activedescendant/);
-  assert.match(search, /담은 여행으로 일정 짜기/);
+  assert.match(workspace, /날짜 정하기/);
   assert.match(search, /trip\.toggleSaved\(result\.place\.id, result\.place\)/);
-  assert.match(workspace, /나루가 당신에게 맞는 경남 여행을 함께 찾아드려요/);
+  assert.match(workspace, /내 일정 보기/);
   assert.match(page, /onBuildItinerary=\{\(\) => stageView\.changeStep\("itinerary", true\)\}/);
 });
 

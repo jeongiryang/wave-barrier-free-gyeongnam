@@ -19,6 +19,7 @@ async function open(page: Page) {
   await launcher.click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
   await expect(chat).toBeVisible();
+  await chat.locator('.naru-extra-help > summary').click();
   return { chat, launcher };
 }
 

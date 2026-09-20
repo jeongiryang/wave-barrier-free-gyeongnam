@@ -201,7 +201,7 @@ test("community UI supports public reading, protected participation and place li
   assert.match(editor, /본인이 작성한 글만 수정/);
   assert.doesNotMatch(editor, /fetch\(/);
   assert.match(planner, /PlaceDecisionDialog/);
-  assert.match(placeDialog, /place-community-link/);
+  assert.match(placeDialog, /place-visitor-records/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
   assert.match(landing, /horizon-chapter-stream/);
   assert.match(await source("components/WaveHeader.tsx"), /community/);

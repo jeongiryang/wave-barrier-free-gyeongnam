@@ -19,11 +19,11 @@ test("320px·390px·768px·1440px 직접 검색은 정보 상태·담기·되돌
     await search.press("Enter");
     const result = page.locator("#direct-place-results").getByRole("listitem").filter({ hasText: "파도 카페" });
     await expect(result).toContainText("창원시 · 카페");
-    await expect(result).toContainText("운영시간정보 확인 중");
-    await expect(result).toContainText("편의·접근성정보 확인 중");
+    await expect(result).toContainText("운영시간미확인");
+    await expect(result).toContainText("편의·접근성미확인");
     await result.getByRole("button", { name: "파도 카페 일정에 담기", exact: true }).click();
     await expect(result.getByRole("button", { name: "파도 카페 담았음 · 되돌리기", exact: true })).toHaveAttribute("aria-pressed", "true");
-    const build = page.getByRole("button", { name: "담은 여행으로 일정 짜기", exact: true });
+    const build = page.getByRole("button", { name: "날짜 정하기", exact: true });
     await expect(build).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     await result.getByRole("button", { name: "파도 카페 담았음 · 되돌리기", exact: true }).click();
@@ -64,7 +64,7 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
     await expect(page.locator(".simple-browse-view")).toBeHidden();
     await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-09-20");
     await expect(itinerary.locator("#itinerary-stop-1001")).toContainText("경남도립미술관");
-    await expect(page.locator(".simple-departure > summary").getByText("출발 전 확인", { exact: true })).toBeVisible();
+    await expect(page.locator(".simple-departure > summary").getByText("일정 점검", { exact: true })).toBeVisible();
     await expect(page.locator(".simple-more-trip-tools")).not.toHaveAttribute("open");
     const screenshotPath = testInfo.outputPath("planner-" + width + "px.png");
     await page.screenshot({ path: screenshotPath });

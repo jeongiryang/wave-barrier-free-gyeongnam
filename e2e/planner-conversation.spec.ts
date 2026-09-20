@@ -115,13 +115,15 @@ test('대화 중 맞춤 도움을 다시 열고 필요한 안내를 추가한 �
 test('여행 도구는 대화 안에 안내 카드를 남기고 본문 여행 설계로 이동한다', async ({ page }) => {
   await setup(page);
   const chat = await openChat(page);
+  await expect.poll(() => page.evaluate(() => Boolean(localStorage.getItem('wave-current-trip-v1')))).toBe(true);
+  const before = await page.evaluate(() => JSON.parse(localStorage.getItem('wave-current-trip-v1') || '{}').values);
   await send(chat, toolQuestions.weather);
   const card = chat.locator('.naru-tool-card').last();
   await expect(card).toContainText('지역·활동');
-  await expect(card).toContainText('현재 여행을 유지');
   await card.getByRole('button', { name: '여행 설계에서 자세히 보기', exact: true }).click();
   await expect(chat).toBeHidden();
   await expect(page.getByRole('combobox', { name: '여행 지역', exact: true })).toBeFocused();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-current-trip-v1') || '{}').values)).toEqual(before);
 });
 
 for (const status of [429, 503]) test(`AI ${status} 응답 뒤에도 작성 중인 새 질문과 여행 설계가 유지된다`, async ({ page }) => {

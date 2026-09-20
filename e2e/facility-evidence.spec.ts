@@ -68,7 +68,8 @@ test("facility history loads on demand, retries, identifies conflicting dates an
   });
   await page.goto("/planner"); await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 상세 보기", exact: true }).click();
-  const history = page.getByRole("region", { name: "편의시설, 언제 확인했을까요?" });
+  await page.locator(".place-visitor-records > summary").click();
+  const history = page.getByRole("region", { name: "시설 제보 이력" });
   await expect(history.getByRole("button", { name: "시설 제보 이력 확인", exact: true })).toBeVisible(); expect(requests).toBe(0);
   await history.getByRole("button", { name: "시설 제보 이력 확인", exact: true }).click(); await expect(history.getByRole("status")).toContainText("다시 시도");
   await history.getByRole("button", { name: "시설 제보 이력 확인", exact: true }).click(); await expect(history).toContainText("같은 방문일의 제보가 서로 달라요.");

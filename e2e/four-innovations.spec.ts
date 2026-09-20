@@ -18,7 +18,8 @@ test('동행 공통분모·스트레스 테스트·현장 재확인 순환을 �
   await page.route('**/api/observations?*', route => route.fulfill({ json: { reports: [{ id: 'report-1', placeId: '1001', observedAt: Date.now(), readings: { mobility: 'blocked' } }], checkedAt: Date.now(), source: 'traveller', ttl: 7200000 } }));
   await page.goto('/planner');
   await openItinerary(page);
-  await page.getByRole('button', { name: '여행 점검', exact: true }).click();
+  await page.locator('.simple-departure > summary').click();
+  await page.getByText('비·휴무·피로에 대비하기', { exact: true }).click();
   const lab = page.getByRole('heading', { name: '여행 점검', exact: true }).locator('..');
   await lab.getByText('동행자 공통 조건', { exact: true }).click();
   await expect(lab).toContainText('함께 지킬 조건: 접근로');
@@ -26,7 +27,8 @@ test('동행 공통분모·스트레스 테스트·현장 재확인 순환을 �
   await lab.getByText('일정 스트레스 테스트', { exact: true }).click();
   await lab.getByRole('button', { name: '한 곳 휴무', exact: true }).click();
   await expect(lab).toContainText('휴무를 가정한 결과예요.');
-  expect((await new AxeBuilder({ page }).include('#experience-resilience').analyze()).violations).toEqual([]);
+  expect((await new AxeBuilder({ page }).include('#departure-readiness').analyze()).violations).toEqual([]);
+  await page.locator('.simple-more-trip-tools > summary').click();
   await page.getByRole('button', { name: '감각지도·지금 현장', exact: true }).click();
   await page.getByText(/공식정보 재확인 목록/).click();
   await expect(page.getByText('공식 접근로 정보와 최근 현장 관찰이 달라요.', { exact: true })).toBeVisible();

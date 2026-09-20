@@ -60,6 +60,9 @@ const PlannerAssistant = lazy(() => import("../../features/planner/components/Pl
 const AlternativeComparisonDialog = lazy(() => import("../../features/planner/components/AlternativeComparisonDialog"));
 const CourseExpansion = lazy(() => import("../../features/planner/components/CourseExpansion"));
 
+const NaruTripReview = lazy(() => import("../../features/planner/components/NaruTripReview"));
+const TripResilienceLab = lazy(() => import("../../features/planner/components/TripResilienceLab"));
+
 export default function PlannerPage() { return null; }
 
 export function PlannerWorkspace({ active = true, onShow, embedded = false, launchRequest = { id: 0, prompt: '' }, pageContext = '여행 설계', onDismiss }: { active?: boolean; onShow?: () => void; embedded?: boolean; launchRequest?: { id: number; prompt: string }; pageContext?: string; onDismiss?: () => void }) {
@@ -72,6 +75,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
   const schedule = useTripSchedule();
   const guidance = useTripGuidancePreferences();
   const routePlanning = useRoutePlanning(region, schedule);
+  const [reviewRequest, setReviewRequest] = useState<{ id: number; sourceId: number; prompt: string } | null>(null);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const resumeAssistant = useRef(false);
@@ -411,8 +415,11 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
                 onProfiles={planController.setSelected}
               />
       {travelStart && <details className="simple-departure" id="departure-readiness" open={departureDetailsOpen || journey.activeStepId === "departure-readiness"} onToggle={event => setDepartureDetailsOpen(event.currentTarget.open)}>
-        <summary><span>출발 전 확인</span><small>날씨 · 운영시간 · 이동 · 편의</small><span aria-hidden="true">⌄</span></summary>
-        <div><DepartureReadinessCard
+        <summary><span>일정 점검</span><small>시간 · 휴식 · 날씨 · 운영정보</small><span aria-hidden="true">⌄</span></summary>
+        <div>{(departureDetailsOpen || journey.activeStepId === 'departure-readiness') && <Suspense fallback={<LoadingState>점검 중</LoadingState>}>
+          <NaruTripReview autoFocus={false} places={tripSelection.orderedSavedPlaces} days={tripSelection.tripDays} assignments={tripSelection.scheduleAssignments} startTime={tripSelection.dayStartTime} origin={origin} routeMinutes={itineraryRoutes.routeMinutes} visits={tripSelection.visitMinutesByPlaceId} breaks={tripSelection.breakMinutesByPlaceId} fixed={tripSelection.fixedVisits} deadlines={tripSelection.dayDeadlines} comfort={tripSelection.comfort} onTool={openAssistantTool} onDetails={setSelectedPlace} onAlternative={id => alternatives.open(id)} onRequest={prompt => { setReviewRequest({ id: Date.now(), sourceId: launchRequest.id, prompt }); showAssistant(); }} />
+          <details><summary>비·휴무·피로에 대비하기</summary><TripResilienceLab trip={tripSelection} coverage={itineraryRoutes} requiredKeys={selected} weather={weather} onProfiles={planController.setSelected} onAlternative={id => alternatives.open(id)} onSelectPlace={setSelectedPlace}/></details>
+        </Suspense>}<DepartureReadinessCard
                 embedded
                 canRefreshPlaces={true}
                 placesLoading={planController.loading}
@@ -494,7 +501,7 @@ export function PlannerWorkspace({ active = true, onShow, embedded = false, laun
       {regionChange.pending && <RegionChangeDialog region={regionChange.pending} en={locale === "en"} error={regionChange.error} onCancel={regionChange.cancel} onAdd={regionChange.add} onNew={regionChange.startNew} />}
       {!embedded && !assistantOpen && <NaruLauncher state={naruActivity.phase} buttonRef={mountAssistantLauncher} disabled={!hydrated || !planController.criteriaReady || !tripSelection.storageReady} onOpen={showAssistant} />}
 
-      {assistantMounted && <Suspense fallback={assistantOpen ? <div className="naru-panel"><LoadingState>나루와의 대화를 열고 있어요.</LoadingState></div> : null}><PlannerAssistant origin={origin} routeMinutes={itineraryRoutes.routeMinutes} launchRequest={launchRequest} pageContext={pageContext} open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} guidance={guidance} onRegion={regionChange.request} onSearch={searchForNaru} onPlace={place => { resumeAssistant.current = true; setAssistantOpen(false); setSelectedPlace(place); }} onAlternative={id => alternatives.open(id)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
+      {assistantMounted && <Suspense fallback={assistantOpen ? <div className="naru-panel"><LoadingState>나루와의 대화를 열고 있어요.</LoadingState></div> : null}><PlannerAssistant origin={origin} routeMinutes={itineraryRoutes.routeMinutes} launchRequest={reviewRequest?.sourceId === launchRequest.id ? reviewRequest : launchRequest} pageContext={pageContext} open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} guidance={guidance} onRegion={regionChange.request} onSearch={searchForNaru} onPlace={place => { resumeAssistant.current = true; setAssistantOpen(false); setSelectedPlace(place); }} onAlternative={id => alternatives.open(id)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
       {!embedded && <PlannerFooter />}
     </main>
   );

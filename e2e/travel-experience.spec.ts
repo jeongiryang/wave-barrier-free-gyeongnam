@@ -28,6 +28,7 @@ async function setup(page: Page) {
       .getByRole("button", { name: `${p.name} 일정에 담기`, exact: true })
       .click();
   await openItinerary(page, { start: "2026-09-15" });
+  await page.locator(".simple-more-trip-tools > summary").click();
   await expect(
     page.getByRole("button", { name: "오늘의 페이스", exact: true }),
   ).toBeVisible();
@@ -92,7 +93,7 @@ test("pace preview, apply and undo preserve itinerary; sensory reports and passp
   ).toBeVisible();
   await page.getByRole("button", { name: /기록 삭제/ }).click();
   await expect(
-    page.getByText("아직 기록이 없어요.", { exact: false }),
+    page.getByText("아직 방문 기록이 없습니다.", { exact: false }),
   ).toBeVisible();
   expect(
     await page.evaluate(

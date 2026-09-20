@@ -11,7 +11,7 @@ const typeLabel: Record<SearchPlaceType, string> = { region: "지역", tourism: 
 
 type Result = { kind: "region"; id: string; name: string } | { kind: "place"; item: SearchPlace; place: Place };
 
-export default function DirectPlaceSearch({ region, trip, onRegionSelect, onBuildItinerary }: {
+export default function DirectPlaceSearch({ region, trip, onRegionSelect }: {
   region: string;
   trip: ReturnType<typeof useTripSelection>;
   onRegionSelect: (region: string) => void;
@@ -50,7 +50,7 @@ export default function DirectPlaceSearch({ region, trip, onRegionSelect, onBuil
 
   const showResults = results.length > 0 && (search.placeSearchState !== "idle" || matchingRegions.length > 0);
   return <section className="simple-direct-search" aria-labelledby="direct-place-search-title">
-    <div className="simple-direct-search-heading"><div><h2 id="direct-place-search-title">이름으로 바로 찾기</h2><p>지역·관광지·카페·음식점 이름을 검색할 수 있어요</p></div>{trip.orderedSavedPlaces.length > 0 && <button type="button" className="simple-text-link simple-load-itinerary" onClick={onBuildItinerary}>담은 여행으로 일정 짜기</button>}</div>
+    <div className="simple-direct-search-heading"><div><h2 id="direct-place-search-title" className="sr-only">여행지 검색</h2></div></div>
     <form className="simple-search-bar simple-direct-search-form" role="search" onSubmit={submit}>
       <label htmlFor="direct-place-query"><span>여행지 검색</span><input id="direct-place-query" type="search" role="combobox" value={search.placeQuery} placeholder="예: 통영 케이블카, 창원 카페" autoComplete="off" aria-autocomplete="list" aria-controls="direct-place-results" aria-expanded={showResults} aria-activedescendant={active >= 0 ? `direct-result-${active}` : undefined} onChange={event => { search.setPlaceQuery(event.target.value); setActive(-1); }} onKeyDown={keydown} /></label>
       <button type="submit" className="simple-direct-search-submit" disabled={search.placeQuery.trim().length < 2 || search.placeSearchLoading}>{search.placeSearchLoading ? <><Spinner />찾는 중</> : "검색"}</button>
@@ -61,8 +61,8 @@ export default function DirectPlaceSearch({ region, trip, onRegionSelect, onBuil
       {results.map((result, index) => result.kind === "region" ? <article ref={node => { resultNodes.current[index] = node; }} id={`direct-result-${index}`} key={result.id} className="simple-result-notice simple-direct-region" role="listitem" data-active={active === index}>
         <div><span>지역</span><h3>{result.name}</h3><p>{result.name}의 관광지와 편의정보를 살펴봐요</p></div><button type="button" className="simple-text-link" onClick={() => choose(result)}>이 지역으로 바꾸기</button>
       </article> : <article ref={node => { resultNodes.current[index] = node; }} id={`direct-result-${index}`} key={result.item.id} className="simple-place-row simple-direct-place" role="listitem" data-active={active === index}>
-        <div className="simple-place-photo simple-search-photo-placeholder" role="img" aria-label={`${result.item.name} 사진 정보 확인 중`}>사진<br/>정보 확인 중</div>
-        <div className="simple-place-copy"><span className="simple-place-city">{result.item.region || "경남"} · {typeLabel[result.item.resultType || "other"]}</span><h3>{result.item.placeUrl ? <a href={result.item.placeUrl} target="_blank" rel="noreferrer">{result.item.name}<span className="sr-only"> 새 창</span></a> : result.item.name}</h3><p className="simple-place-address">{result.item.address || "주소 정보 확인 중"}</p><p className="simple-search-summary">{result.item.summary || result.item.category || "장소 설명 정보 확인 중"}</p><dl className="simple-search-facts"><div><dt>운영시간</dt><dd>정보 확인 중</dd></div><div><dt>이동</dt><dd>일정에 담으면 경로 확인</dd></div><div><dt>편의·접근성</dt><dd>정보 확인 중</dd></div></dl></div>
+        <div className="simple-place-photo simple-search-photo-placeholder" role="img" aria-label={`${result.item.name} 사진 없음`}>사진 없음</div>
+        <div className="simple-place-copy"><span className="simple-place-city">{result.item.region || "경남"} · {typeLabel[result.item.resultType || "other"]}</span><h3>{result.item.placeUrl ? <a href={result.item.placeUrl} target="_blank" rel="noreferrer">{result.item.name}<span className="sr-only"> 새 창</span></a> : result.item.name}</h3><p className="simple-place-address">{result.item.address || "주소 미제공"}</p><p className="simple-search-summary">{result.item.summary || result.item.category || ""}</p><dl className="simple-search-facts"><div><dt>운영시간</dt><dd>미확인</dd></div><div><dt>이동</dt><dd>일정에 담으면 경로 확인</dd></div><div><dt>편의·접근성</dt><dd>미확인</dd></div></dl></div>
         <button type="button" className="simple-place-add" disabled={!trip.storageReady} aria-pressed={trip.saved.includes(result.place.id)} onClick={() => trip.toggleSaved(result.place.id, result.place)} aria-label={`${result.item.name} ${trip.saved.includes(result.place.id) ? "담았음 · 되돌리기" : "일정에 담기"}`}><span aria-hidden="true">{trip.saved.includes(result.place.id) ? "↶" : "+"}</span>{trip.saved.includes(result.place.id) ? "되돌리기" : "담기"}</button>
       </article>)}
     </div>}

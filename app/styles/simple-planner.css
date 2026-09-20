@@ -385,3 +385,29 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 [data-place-view=grid] .simple-place-add { width: 100%; flex-direction: row; gap: 8px; font-size: .875rem; }
 [data-place-view=grid] .simple-direct-region { grid-column: 1/-1; }
 [data-place-view=grid] .simple-place-skeleton { grid-column: 1/-1; }
+
+/* Task screens: put the user's work before supporting explanations. */
+.travel-book-task-heading,.community-task-heading { width: min(1240px,calc(100% - 48px)); margin: 32px auto 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.travel-book-task-heading h1,.community-task-heading h1 { margin: 0; font-size: 1.75rem; line-height: 1.4; font-weight: 600; }
+.travel-book-task-heading p { margin: 8px 0 0; color: var(--muted); }
+.travel-book-task-heading nav { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 20px; border-bottom: 1px solid var(--line); }
+.travel-book-task-heading :is(button,a),.community-task-heading > a { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; color: var(--blue); }
+.travel-book-task-heading button { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.community-task-heading svg { width: 20px; height: 20px; }
+.community-task-heading > a { color: var(--on-blue); }
+.community-guides { margin-block: 24px; border-top: 1px solid var(--line); }
+.community-guides > summary { min-height: 44px; padding: 12px 0; cursor: pointer; }
+.simple-itinerary-top { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; }
+.simple-itinerary-top .simple-itinerary-heading { flex: 1 1 360px; margin: 0; }
+.simple-itinerary-top .simple-trip-tools { margin: 0; }
+.naru-extra-help { margin: 0 20px; }
+.naru-extra-help > summary { min-height: 44px; padding: 12px 0; cursor: pointer; }
+.naru-context-suggestions { flex-wrap: wrap; align-items: flex-start; overflow-x: visible; }
+.naru-context-suggestions button { flex-shrink: 1; white-space: normal; }
+.naru-trip-context { flex: 0 0 100%; margin: 0; color: var(--muted); font-size: .875rem; }
+.place-visitor-records { margin-block: 16px; border-block: 1px solid var(--line); }
+.place-visitor-records > summary { min-height: 48px; padding: 12px 0; cursor: pointer; font-weight: 600; }
+.place-evidence-refresh button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--blue); }
+[data-place-view=grid] .simple-direct-place .simple-search-photo-placeholder { aspect-ratio: auto; min-height: 44px; padding: 8px; }
+.simple-direct-search-heading:has(> div > .sr-only:only-child) { margin: 0; }
+@media(max-width:767px) { .simple-itinerary-top .simple-itinerary-heading { flex-basis: 100%; } }

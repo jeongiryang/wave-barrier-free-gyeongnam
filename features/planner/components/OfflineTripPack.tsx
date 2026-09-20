@@ -34,7 +34,7 @@ export default function OfflineTripPack({trip,coverage,origin,region,progressMem
     } catch {setNotice('요약 파일을 만들지 못했어요. 다시 시도하거나 진행 기록·여행비 포함을 끄고 저장해 주세요.');}
   }
   return <section className="account-settings" aria-label="여행 요약 파일">
-    <h3>연결이 약해도, 여행은 이어서</h3><p style={{fontSize:14,lineHeight:1.7}}>여행 날짜·순서·주소·편의 정보를 읽기 쉬운 파일로 챙겨두세요. 문의처와 이용시간은 아래에서 확인한 내용이 함께 담깁니다.</p>
+    <h3>오프라인 일정 저장</h3><p style={{fontSize:14,lineHeight:1.7}}>여행 날짜·순서·주소·편의 정보를 읽기 쉬운 파일로 챙겨두세요. 문의처와 이용시간은 아래에서 확인한 내용이 함께 담깁니다.</p>
     <details className="place-evidence"><summary>담을 장소와 문의처 확인</summary><div className="modal-data">{trip.orderedSavedPlaces.map(place=><article key={place.id}><h4>{place.name}</h4><p style={{fontSize:14,lineHeight:1.7}}>{place.address||'주소 미확인'}</p><p style={{fontSize:14,lineHeight:1.7}}>{info[place.id]?.phone?`문의 ${info[place.id].phone}`:'문의처 미확인'}</p><div className="travel-book-actions"><button type="button" style={{fontSize:14}} aria-busy={Boolean(loading)} disabled={Boolean(loading)} onClick={()=>void check(place.id)}>{loading===place.id?'이용 정보 확인 중…':`${place.name} 문의·이용 정보 확인`}</button></div></article>)}</div></details>
     <label className="departure-review-check"><input type="checkbox" checked={includeProgress} onChange={event=>setIncludeProgress(event.target.checked)}/>직접 표시한 방문 완료·건너뛰기 기록 포함</label>
     <label className="departure-review-check"><input type="checkbox" checked={includeBudget} onChange={event=>setIncludeBudget(event.target.checked)}/>저장한 여행비 계획 포함</label>

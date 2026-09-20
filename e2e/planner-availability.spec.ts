@@ -9,7 +9,7 @@ test("불러온 후보 수를 표시하고 편의 초안은 적용할 때만 검
   const requests: URL[] = [];
   page.on('request', request => { const url = new URL(request.url()); if (url.pathname === '/api/wave' && url.searchParams.get('action') === 'plan') requests.push(url); });
   await page.goto('/planner?region=창원');
-  await expect(page.locator('.simple-results-heading')).toContainText('불러온 장소 2곳');
+  await expect(page.locator('.simple-results-heading')).toContainText('2곳 조회');
   const before = requests.length;
   await page.locator('.simple-facility-trigger').click();
   await page.locator('.simple-facility-picker').getByRole('checkbox', { name: '접근로', exact: true }).check();
@@ -23,7 +23,7 @@ test("불러온 후보 수를 표시하고 편의 초안은 적용할 때만 검
   await page.locator('.simple-activity-filter').getByRole('button', { name: /문화/ }).click();
   await expect.poll(() => requests.at(-1)?.searchParams.get('themes')).toBe('history');
   expect(requests.at(-1)?.searchParams.get('facilityKeys')).toBe('route');
-  await expect(page.locator('.simple-results-heading')).toContainText('불러온 장소 2곳');
+  await expect(page.locator('.simple-results-heading')).toContainText('2곳 조회');
   expect((await new AxeBuilder({ page }).include('#conditions').analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

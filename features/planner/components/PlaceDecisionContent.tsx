@@ -33,12 +33,15 @@ export default function PlaceDecisionContent(props: PlaceDecisionDialogProps & {
   return <>
         <PlaceSensory place={place}/>
         <PlaceVisitHours id={place.id} name={place.name} en={en} />
-        <Suspense fallback={<LoadingState>{en ? "Loading facility details…" : "편의정보를 불러오는 중…"}</LoadingState>}><PlaceEvidenceSummary place={place} /></Suspense>
-        <Suspense fallback={<LoadingState>{en ? "Preparing visitor questions…" : "방문 전 문의를 준비하고 있어요…"}</LoadingState>}><PlaceInquiryCard key={place.id} place={place} en={en} /></Suspense>
+        <Suspense fallback={<LoadingState>{en ? "Loading facility details…" : "편의정보를 불러오는 중…"}</LoadingState>}><PlaceEvidenceSummary key={place.id} place={place} /></Suspense>
+
+        <details className="place-visitor-records"><summary>{en ? "Visitor records" : "방문자 기록"}</summary>
         <Suspense fallback={<LoadingState>{en ? "Preparing visitor stories." : "현장 후기 화면을 준비하고 있어요."}</LoadingState>}>
           <PlaceCommunityStories place={place} location={location} />
         </Suspense>
         <Suspense fallback={<LoadingState>{en ? "Loading visitor links and correction form…" : "후기 링크와 제보 양식을 불러오는 중…"}</LoadingState>}><PlaceParticipationActions place={place} location={location} feedbackText={props.feedbackText} feedbackState={props.feedbackState} onFeedbackChange={props.onFeedbackChange} onSubmitFeedback={props.onSubmitFeedback} /></Suspense>
+        </details>
+        <Suspense fallback={<LoadingState>{en ? "Preparing visitor questions…" : "방문 전 문의를 준비하고 있어요…"}</LoadingState>}><PlaceInquiryCard key={place.id} place={place} en={en} /></Suspense>
         <small className="modal-note">{en ? "Facility records are not a safety certification. Missing information does not mean a facility is absent. Confirm current conditions with the venue before visiting." : "공식 시설 정보는 안전 인증이나 접근 가능성 보장이 아닙니다. 미확인은 시설이 없다는 뜻이 아닙니다. 방문 전 시설에 현재 운영 상태를 확인해 주세요."}</small>
   </>;
 }

@@ -12,16 +12,16 @@ type Props = {
   places: Place[]; days: string[]; assignments: Record<string, string>; startTime: string;
   origin: RoutePoint; routeMinutes: Record<string, number>; visits: Record<string, number>;
   breaks: Record<string, number>; fixed: Record<string, FixedVisit>; deadlines: Record<string, DayDeadline>;
-  comfort: TripComfort; onTool: (id: string) => void; onDetails: (place: Place) => void;
+  autoFocus?: boolean; comfort: TripComfort; onTool: (id: string) => void; onDetails: (place: Place) => void;
   onAlternative: (id: string) => void; onRequest: (text: string) => void;
 };
 
 /** Read the same timetable as the planner. Checking never mutates the trip. */
 export default function NaruTripReview(props: Props) {
   const panel = useRef<HTMLElement>(null);
-  useEffect(() => { panel.current?.focus(); }, []);
+  useEffect(() => { if (props.autoFocus !== false) panel.current?.focus(); }, [props.autoFocus]);
   if (!props.places.length || !props.days.length) return <section ref={panel} tabIndex={-1} className="naru-schedule-review" aria-label="나루 여행 점검">
-    <h3>여행을 이어서 완성해요</h3>
+    <h3>일정 점검</h3>
     <p>{props.places.length ? `담은 ${props.places.length}곳은 그대로예요. 날짜와 출발지를 정하면 시간표를 점검할 수 있어요.` : '가고 싶은 장소부터 담아주세요. 날짜는 나중에 정해도 괜찮아요.'}</p>
     <button type="button" onClick={() => props.onTool(props.places.length ? 'dates' : 'places')}>{props.places.length ? '날짜·출발지 정하기' : '여행지 찾기'}</button>
   </section>;
@@ -32,10 +32,8 @@ export default function NaruTripReview(props: Props) {
   const visits = days.flatMap(day => day.entries.map(entry => ({ place: entry.place, day: day.day,
     startsAt: entry.startsAt, endsAt: entry.visitEndsAt, travelSource: entry.travelSource })));
   return <section ref={panel} tabIndex={-1} className="naru-schedule-review" aria-label="나루 여행 점검">
-    <h3>내 여행, 어디를 다듬으면 좋을까요?</h3>
-    <p>현재 시간표를 바탕으로 확인했어요. 점검으로 일정이 바뀌지는 않아요.</p>
-    <p>{props.comfort.maxWalkMinutes ? `연속 걷기 ${props.comfort.maxWalkMinutes}분 기준 · ` : '걷기 기준 미설정 · '}{props.comfort.breakEveryMinutes ? `${props.comfort.breakEveryMinutes}분마다 ${props.comfort.breakMinutes}분 휴식 기준` : '휴식 간격 미설정'}</p>
-    <small>이동시간은 걷기시간과 다릅니다. 실제 보행 구간과 쉬어 갈 시설은 따로 확인해 주세요.</small>
+    <h3>시간·휴식·귀가</h3>
+
     {days.map(day => {
       const late = day.entries.filter(entry => entry.lateMinutes > 0);
       const estimate = day.entries.filter(entry => entry.travelSource !== 'route').length;
@@ -44,7 +42,7 @@ export default function NaruTripReview(props: Props) {
       return <article key={day.day}>
         <h4>{day.day} · {day.entries.length}곳</h4>
         {!day.entries.length ? <p>아직 방문 장소가 없는 날이에요.</p> : <>
-          <p>{day.entries[0].startsAtLabel} 첫 방문 → {day.entries.at(-1)!.endsAtLabel} 마지막 휴식까지 · 체류 {day.entries.reduce((sum, entry) => sum + entry.visitMinutes, 0)}분 · 휴식 {day.entries.reduce((sum, entry) => sum + entry.breakMinutes, 0)}분</p>
+
           <ul>
             {late.map(entry => <li key={entry.place.id}>{entry.place.name}: 고정 시각 {entry.fixedTime}보다 예상 도착이 {entry.lateMinutes}분 늦어요.</li>)}
             {day.entries.some(entry => entry.crossesDateBoundary) && <li>일정이 다음 날까지 이어져요. 방문 수와 시간을 조정해 주세요.</li>}
@@ -55,6 +53,7 @@ export default function NaruTripReview(props: Props) {
             {estimate > 0 && <li>{estimate}개 이동 구간은 추정값이에요. 실제 교통편을 확인하면 시간표가 달라질 수 있어요.</li>}
             {rests.length > 0 && <li>설정한 휴식 간격에 따라 {rests.map(entry => entry.place.name).join(', ')} 방문 뒤 휴식을 검토해 주세요.</li>}
           </ul>
+          <details><summary>이 날의 시간표 요약</summary><p>{day.entries[0].startsAtLabel} 첫 방문 → {day.entries.at(-1)!.endsAtLabel} 마지막 휴식까지 · 체류 {day.entries.reduce((sum, entry) => sum + entry.visitMinutes, 0)}분 · 휴식 {day.entries.reduce((sum, entry) => sum + entry.breakMinutes, 0)}분</p></details>
         </>}
       </article>;
     })}
@@ -62,8 +61,12 @@ export default function NaruTripReview(props: Props) {
       <button type="button" onClick={() => props.onTool('itinerary')}>날짜·방문시간 수정</button>
       <button type="button" onClick={() => props.onTool('comfort')}>걷기·휴식·귀가 설정</button>
       <button type="button" onClick={() => props.onTool('transport')}>실제 이동 확인</button>
+      <button type="button" onClick={() => props.onTool('readiness')}>날씨·출발 전 확인</button>
       <button type="button" onClick={() => props.onRequest('기존 날짜와 고정 방문을 유지하고 현재 일정에서 이동 부담을 줄여줘')}>나루에게 여유로운 변경안 요청</button>
     </div>
+    <details><summary>계산 기준</summary>    <p>{props.comfort.maxWalkMinutes ? `연속 걷기 ${props.comfort.maxWalkMinutes}분 기준 · ` : '걷기 기준 미설정 · '}{props.comfort.breakEveryMinutes ? `${props.comfort.breakEveryMinutes}분마다 ${props.comfort.breakMinutes}분 휴식 기준` : '휴식 간격 미설정'}</p>
+    <small>이동시간은 걷기시간과 다릅니다. 실제 보행 구간과 쉬어 갈 시설은 따로 확인해 주세요.</small>
+</details>
     <NaruScheduleReview visits={visits} onDetails={props.onDetails} onAlternative={props.onAlternative} />
   </section>;
 }

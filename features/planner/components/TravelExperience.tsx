@@ -12,7 +12,7 @@ const CompanionLauncher = lazy(
   () => import("../../trips/components/CompanionLauncher"),
 );
 const TravelPassport = lazy(() => import("./TravelPassport"));
-const TripResilienceLab = lazy(() => import("./TripResilienceLab"));
+
 export type ExperienceProps = {
   trip: ReturnType<typeof useTripSelection>;
   coverage: ReturnType<typeof useItineraryRoutes>;
@@ -38,7 +38,6 @@ export default function TravelExperience(props: ExperienceProps) {
           ["sensory", "감각지도·지금 현장"],
           ["companion", "동행과 함께 편집"],
           ["passport", "경남 여행여권"],
-          ["resilience", "여행 점검"],
         ].map(([id, label]) => (
           <button
             type="button"
@@ -73,7 +72,7 @@ export default function TravelExperience(props: ExperienceProps) {
                 region={props.region}
               />
             ) : (
-              <TripResilienceLab trip={props.trip} coverage={props.coverage} requiredKeys={props.requiredKeys} weather={props.weather} onProfiles={props.onProfiles} onAlternative={props.onAlternative} onSelectPlace={props.onSelectPlace}/>
+              null
             )}
           </Suspense>
         </div>
