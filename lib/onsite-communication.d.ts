@@ -1,4 +1,4 @@
-export type CommunicationTopic = "step_free_entrance" | "restroom" | "elevator" | "reservation" | "payment" | "assistance";
+export type CommunicationTopic = "step_free_entrance" | "restroom" | "elevator" | "reservation" | "payment" | "assistance" | "door";
 export type CommunicationAnswer = "left" | "right" | "behind_building" | "use_elevator" | "unavailable" | "i_will_guide" | "custom";
 export type LocalCommunicationSession = { topic: CommunicationTopic; question: string; answer?: CommunicationAnswer; customAnswer?: string };
 export const communicationTopics: ReadonlyArray<{ id: CommunicationTopic; label: string; question: string; questionEn: string }>;

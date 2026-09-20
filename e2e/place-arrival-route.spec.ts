@@ -68,6 +68,20 @@ test("문의 기능으로 가는 링크가 있고, 눌러도 서버 요청이 �
   expect(calls).toEqual([]);
 });
 
+test("입구 단계에서 출입문 데이터 부재를 안내하고 문의·현장 요청으로 연결한다", async ({ page }) => {
+  const dialog = await openArrivalPreview(page, "unknown");
+  const door = dialog.locator(".door-inquiry-entry");
+  await expect(door).toContainText("미리 물어보거나 현장에서 화면으로 요청할 수 있어요.");
+  await door.getByRole("button", { name: "문의 카드 만들기 ↗", exact: true }).click();
+  const inquiry = page.getByRole("dialog", { name: "이렇게 물어보세요." });
+  await expect(inquiry.getByRole("checkbox", { name: "출입문", exact: true })).toBeChecked();
+  await expect(inquiry.locator(".inquiry-card-preview")).toContainText("출입문이 회전문인가요? 옆에 여닫이문이나 자동문이 있나요?");
+  await inquiry.getByRole("button", { name: "문의 카드 닫기", exact: true }).click();
+  await door.getByRole("button", { name: "현장에서 화면으로 요청하기", exact: true }).click();
+  const board = page.getByRole("dialog", { name: "직원과 화면으로 대화", exact: true });
+  await expect(board.locator(".inquiry-card-preview")).toContainText("문을 열기 어려워요. 도와주시거나 다른 출입구를 알려 주세요.");
+});
+
 test("1440/960/390px에서 가로 스크롤이 없고 axe 위반이 없다", async ({ page }) => {
   const dialog = await openArrivalPreview(page, "negative");
   for (const width of [1440, 960, 390]) {

@@ -63,6 +63,10 @@ export default function PlaceArrivalPreview({ place, onOpenRestrooms, onClose }:
       </div>
       <p>현장에서 다른 점을 확인했다면 <button type="button" className="simple-text-link" onClick={() => setActive(steps.length - 1)}>문의 카드 만들기</button>로 미리 질문을 준비해 방문 시 물어보세요.</p>
     </div>}
+    {step.title === '입구' && <div className="door-inquiry-entry">
+      <p>출입문 종류는 공공데이터에 등록돼 있지 않아요. 미리 물어보거나 현장에서 화면으로 요청할 수 있어요.</p>
+      <PlaceInquiryCard place={place} en={false} suggestedOption="door" onsiteLabel="현장에서 화면으로 요청하기" />
+    </div>}
     <small>공개 관광지 좌표를 기준으로 엽니다. 실제 입구·시설의 정확한 지점이나 최신 촬영 자료가 제공되지 않을 수 있어요. 로드뷰와 사진만으로 통행 가능 여부를 확정하지 않습니다.</small>
     <p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small></p>
     <label><input type="checkbox" checked={checked.includes(active)} onChange={event => setChecked(previous => event.target.checked ? [...previous, active] : previous.filter(index => index !== active))} /> {step.title} 자료를 살펴봤어요</label>
