@@ -26,14 +26,14 @@ async function freshAnimatedArrival(page: Page) {
   await expect(page.locator(".arrival-scene")).toBeVisible();
 }
 
-test("arrival finishes within two seconds and exposes a keyboard dismissal", async ({ page }) => {
+test("arrival finishes within twelve seconds and exposes a keyboard dismissal", async ({ page }) => {
   await freshAnimatedArrival(page);
   const scene = page.locator(".arrival-scene");
   const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
   await expect(scene).toHaveAttribute("open", "");
-  await expect(scene).toContainText("WAVE가 당신의 발걸음을 응원합니다");
+  await expect(scene).toContainText("모두의 여행이 같은 출발선에 설 수 있도록");
   await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
-  await page.clock.runFor(2_000);
+  await page.clock.runFor(10_400);
   await expect(scene).toBeHidden();
   await action.focus(); await expect(action).toBeFocused();
   expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
@@ -42,7 +42,7 @@ test("arrival finishes within two seconds and exposes a keyboard dismissal", asy
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".landing-hero-split")).toBeVisible();
   await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
-  await page.clock.runFor(2_000);
+  await page.clock.runFor(10_400);
   await expect(scene).toBeHidden();
 });
 

@@ -156,7 +156,7 @@ test("landing: intro exposes its message and an immediate keyboard dismissal", a
   await page.setViewportSize({ width, height: 960 });
   await freshArrival(page);
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
-  await expect(scene).toContainText("WAVE가 당신의 발걸음을 응원합니다");
+  await expect(scene).toContainText("모두의 여행이 같은 출발선에 설 수 있도록");
   await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(scene).toBeHidden();
@@ -183,7 +183,7 @@ for (const locale of ["ko", "en"] as const) test(`landing: ${locale} fresh reduc
   await page.goto("/"); await storyReady(page);
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
   await expect(scene).toBeHidden();
-  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
+  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
   await expect(planning).toHaveAccessibleName(locale === "en" ? "Explore places" : "여행지 둘러보기");
   await expectUsableTarget(planning);
   for (const motion of ["no-preference", "reduce"] as const) {
