@@ -78,7 +78,9 @@ export const placeSearchFacilityLayers: readonly FacilityLayer[] = [
  * `source === "official"` 갈래에 있다. 거기에 `optionalPlannerJson` 호출과
  * `SERVER_BUDGET_MS`/`CLIENT_BUDGET_MS` 항목을 함께 채우면 된다.
  */
-export const officialFacilityLayers: readonly FacilityLayer[] = [];
+export const officialFacilityLayers: readonly FacilityLayer[] = [
+  { id: "sanitary-supply", label: "여성용품 비치", source: "official", action: "sanitary-supply", glyph: "용" },
+];
 
 /**
  * 이미 조회한 장소 목록에서 파생하는 레이어(스펙 20). 새 서버 호출이나 새
