@@ -4,6 +4,7 @@ import HydratedAuthForm from "./HydratedAuthForm";
 import type { AuthMode } from "../types";
 import { useAuthForm } from "../hooks/useAuthForm";
 import KakaoLogin from "./KakaoLogin";
+import LoadingState from '../../../components/LoadingState';
 
 function FieldIcon({ kind }: { kind: "email" | "lock" | "eye" }) {
   return <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">{kind === "email" ? <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 6 9 7 9-7" /></> : kind === "lock" ? <><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2" /></> : <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>}</svg>;
@@ -15,7 +16,8 @@ export default function AuthForm({ mode, returnTo, kakaoEnabled = false, publicP
     const invalid = auth.invalidField === field;
     return { "aria-invalid": invalid || undefined, "aria-describedby": [describedBy, invalid ? "auth-message" : ""].filter(Boolean).join(" ") || undefined };
   }
-  if (!auth.isPending && auth.session?.user) return <section className="auth-card auth-signed-in" aria-labelledby="auth-title">
+  if (auth.isPending) return <section className="auth-card" aria-label="계정 확인" aria-busy="true"><LoadingState>계정 정보를 확인하는 중…</LoadingState></section>;
+  if (auth.session?.user) return <section className="auth-card auth-signed-in" aria-labelledby="auth-title">
     <p className="auth-kicker">WELCOME TO WAVE</p><h1 id="auth-title">여행을 이어가세요.</h1>
     <p>{auth.session.user.name || auth.session.user.email}님, 다시 만나 반가워요.</p>
     <a className="auth-primary-link" href={auth.next}>계속하기 <span aria-hidden="true">→</span></a>

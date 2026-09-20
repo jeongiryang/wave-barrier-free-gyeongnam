@@ -139,11 +139,12 @@ export function useTripSelection({ schedule, activePlaces, origin, accessibility
   const applyJourneyDraft = (draft: NaruJourney) => {
     if (!savedStorageReady || !schedule.storageReady || !optimized.orderStorageReady) return '저장한 여행을 불러온 뒤 다시 시도해 주세요.';
     if (saved.some(id => !optimized.orderedSavedPlaces.some(place => place.id === id))) return '기존 일정에 아직 불러오지 못한 장소가 있어요. 장소 정보를 확인해 주세요. 기존 일정은 그대로 유지합니다.';
-    const error = validateJourneyApplication(draft, { saved, fixed: schedule.fixedVisits, assignments: schedule.scheduleAssignments, start: schedule.travelStart });
+    const error = validateJourneyApplication(draft, { saved: optimized.orderedSavedPlaces.map(place=>place.id), fixed: schedule.fixedVisits, assignments: schedule.scheduleAssignments, start: schedule.travelStart });
     if (error) return error;
     const replacements = new Map(draft.stops.filter(stop => stop.replaces).map(stop => [stop.replaces!, stop]));
     const removed = new Set(draft.removed?.map(stop => stop.place.id) || []);
-    const nextPlaces = [...optimized.orderedSavedPlaces.filter(place => !removed.has(place.id)).map(place => replacements.get(place.id)?.place || place), ...draft.stops.filter(stop => !stop.replaces).map(stop => stop.place)];
+    let nextPlaces = [...optimized.orderedSavedPlaces.filter(place => !removed.has(place.id)).map(place => replacements.get(place.id)?.place || place), ...draft.stops.filter(stop => !stop.replaces).map(stop => stop.place)];
+    if (draft.adjustment) nextPlaces = draft.adjustment.order.map(id=>nextPlaces.find(place=>place.id===id)!);
     const nextIds = nextPlaces.map(place => place.id);
     const after: VoiceState = { ...voiceState, saved: nextIds, order: nextIds, manualOrder: nextIds, mode: 'manual', travelMode: draft.transport, days: journeyDays(draft.start, draft.end), activeDay: draft.stops[0]?.date || draft.restDay || activeDay,
       assignments: { ...voiceState.assignments, ...Object.fromEntries(saved.map(id => [id, voiceState.assignments[id] || schedule.travelStart])) }, visits: { ...voiceState.visits }, breaks: { ...voiceState.breaks }, purposes: { ...voiceState.purposes },
@@ -157,6 +158,7 @@ export function useTripSelection({ schedule, activePlaces, origin, accessibility
       if (previousPurpose) after.purposes[stop.place.id] = previousPurpose;
     }
     for (const id of removed) { delete after.assignments[id]; delete after.visits[id]; delete after.breaks[id]; delete after.purposes[id]; }
+    if (draft.adjustment) after.assignments = {...after.assignments,...draft.adjustment.assignments};
     if (draft.restOnly) for (const id of nextIds) if (!draft.restDay || after.assignments[id] === draft.restDay) after.breaks[id] = Math.max(20, after.breaks[id] || 0);
     let previousRegion = '', previousThemes = '[]';
     try {

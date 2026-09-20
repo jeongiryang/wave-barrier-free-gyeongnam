@@ -4,9 +4,9 @@ import { expect, type Page } from "@playwright/test";
 export async function openSupportMenu(page: Page) {
   const menu = page.locator(".wave-support-menu");
   if (await menu.count()) {
-    if (await menu.getAttribute("open") === null) {
-      await menu.locator(":scope > summary").click();
+    if (await menu.getAttribute("data-open") !== "true") {
+      await menu.locator(":scope > .wave-support-trigger").click();
     }
-    await expect(menu).toHaveAttribute("open", "");
+    await expect(menu).toHaveAttribute("data-open", "true");
   }
 }

@@ -104,7 +104,7 @@ async function setup(page: Page, options: SetupOptions = {}) {
     await page.goto(options.enterFromPrivacy ? '/privacy' : '/');
     if (options.enterFromPrivacy) {
       // This case verifies client unmount, not a full document navigation before hydration.
-      await expect(page.locator('.preference-controls')).toHaveAttribute('aria-busy', 'false');
+      await expect(page.locator('.wave-support-menu')).toHaveAttribute('aria-busy', 'false');
       await page.getByRole('navigation', { name: '정책 페이지 이동', exact: true }).getByRole('link', { name: 'WAVE 홈', exact: true }).click();
       await expect(page).toHaveURL(/\/$/);
     }
@@ -112,8 +112,8 @@ async function setup(page: Page, options: SetupOptions = {}) {
     await expect(page.locator('.wave-header').getByRole('link', { name: '서비스 소개', exact: true })).toHaveAttribute('aria-current', 'page');
     await openSupportMenu(page);
     await expect(page.locator('.preference-controls')).toHaveAttribute('aria-busy', 'false');
-    await page.locator('.wave-support-menu > summary').click();
-    await expect(page.locator('.wave-support-menu')).not.toHaveAttribute('open', '');
+    await page.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();
+    await expect(page.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ })).toHaveAttribute('aria-expanded', 'false');
     await page.locator('.wave-header').getByRole('link', { name: '여행 설계', exact: true }).click();
     await expect(page).toHaveURL(/\/planner$/);
   } else await page.goto('/planner');

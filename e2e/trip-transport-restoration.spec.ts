@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { readFile } from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
@@ -89,6 +90,7 @@ test('the chosen car mode survives reload, archive restore, sharing and calendar
   const shares: Array<{ selections: { travelMode: string; selectedPlaceIds: string[] } }> = [];
   await page.route('**/api/trips', route => { shares.push(route.request().postDataJSON()); return route.fulfill({ json: { id: '123456789abc', url: `${new URL(page.url()).origin}/trip/123456789abc`, revision: 1, expiresAt: Date.now() + 86_400_000 } }); });
   await page.getByRole('button', { name: '공유', exact: true }).click();
+  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
   const menu = page.getByRole('dialog', { name: '여행 공유', exact: true });
   await expect(menu.getByRole('link', { name: '공유 일정 보기', exact: true })).toHaveAttribute('href', /123456789abc$/);
   expect(shares[0].selections.travelMode).toBe('car'); expect(shares[0].selections.selectedPlaceIds).toEqual(ids);
@@ -148,17 +150,20 @@ test('a changed travel mode updates pending shared content before the same live 
   try {
     await page.goto('/planner#itinerary'); await settled(page, 'car');
     await page.getByRole('button', { name: '공유', exact: true }).click();
+  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
     const actions = page.getByRole('dialog', { name: '여행 공유', exact: true });
     await expect.poll(() => modes.length).toBe(1);
     await expect(actions.getByRole('button', { name: '링크 복사', exact: true })).toBeDisabled();
     await actions.getByRole('button', { name: '공유 닫기', exact: true }).click();
     await chooseMode(page, 'bicycle');
     await page.getByRole('button', { name: '공유', exact: true }).click();
+  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
     await expect(actions.getByRole('button', { name: '링크 복사', exact: true })).toBeDisabled();
     gate.release();
     await actions.getByRole('button', { name: '공유 닫기', exact: true }).click();
     await settled(page, 'bicycle');
     await page.getByRole('button', { name: '공유', exact: true }).click();
+  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
     await expect(actions.getByRole('button', { name: '링크 복사', exact: true })).toBeEnabled();
     await expect(actions.getByRole('link', { name: '공유 일정 보기', exact: true })).toHaveAttribute('href', /123456789abc$/);
     expect(modes).toEqual(['car', 'bicycle']);
@@ -222,6 +227,7 @@ test('a failed atomic transport edit preserves the itinerary and draft until ret
   expect(applied).toEqual({ ...before, schedule: { ...before.schedule, travelMode: 'car' } });
   await page.route('**/api/trips', route => route.fulfill({ json: { id: '123456789abc', url: `${new URL(page.url()).origin}/trip/123456789abc`, revision: 1, expiresAt: Date.now() + 86_400_000 } }));
   await page.getByRole('button', { name: '공유', exact: true }).click();
+  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
   const menu = page.getByRole('dialog', { name: '여행 공유', exact: true });
   await expect(menu.getByRole('link', { name: '공유 일정 보기', exact: true })).toHaveAttribute('href', /123456789abc$/);
   const pending = page.waitForEvent('download');

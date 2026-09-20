@@ -14,7 +14,7 @@ async function toggleColorAssist(page: Page) {
   await openSupportMenu(page);
   const details = page.locator(".preference-controls");
   await expect(details).toHaveAttribute("aria-busy", "false");
-  await details.locator("summary").click();
+  await details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
   const row = details.locator(".preference-row").filter({ hasText: "색 구분 보조" });
   await expect(row).toHaveCount(1);
   await row.click();

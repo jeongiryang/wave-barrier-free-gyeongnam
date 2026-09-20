@@ -14,7 +14,7 @@ input,textarea { font-family: inherit; }
 .wave-my-trips svg { width: 24px; height: 24px; }
 
 .wave-header-actions > details { position: static; }
-.wave-support-menu:not([open]) > div { display: none; }
+.wave-support-menu:not([data-open="true"]) > div { display: none; }
 html[data-theme=dark] .wave-header .account-popover { --ink: #eaf5f9; --muted: #b0c4ce; background: #0a2d3c; color: var(--ink); }
 .wave-support-panel { width: min(320px,calc(100vw - 48px)); max-height: calc(100dvh - 160px); overflow: auto; }.wave-header .wave-support-panel .preference-panel { position: static; width: auto; box-shadow: none; border: 0; padding: 8px 0 0; }
 .wave-support-panel > button,.wave-support-panel summary,.wave-support-panel .preference-row { width: 100%; min-height: 44px; background: transparent; color: inherit; }

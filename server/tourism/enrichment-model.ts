@@ -26,7 +26,7 @@ export function buildEnrichmentModel(sources: EnrichmentSources, expresswayConfi
   }, {});
   const demandItems = demandPack.result.ok ? demandPack.result.value.items : [];
   const statuses = [
-    apiStatus("visitor", "지역별 방문자수", "최근 7일 방문 흐름과 방문자 구성", visitorPack.result, visitorItems.length),
+    apiStatus("visitor", "지역별 방문자수", "제공된 집계 기간의 방문 흐름과 방문자 구성", visitorPack.result, visitorItems.length),
     apiStatus("camping", "고캠핑", "지역 캠핑장과 운영·시설 정보", camping),
     apiStatus("pet", "반려동물 동반여행", "반려동물과 함께 갈 수 있는 관광·숙박·음식", pet),
     apiStatus("wellness", "웰니스 관광", "휴식·명상·스파·자연치유 여행 후보", wellness),

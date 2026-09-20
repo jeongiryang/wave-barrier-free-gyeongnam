@@ -29,7 +29,7 @@ test("설치 프롬프트는 환경설정에서 사용자가 설치 버튼을 �
   await expect.poll(() => page.evaluate(() => (window as Window & { __waveInstallPromptCalls?: number }).__waveInstallPromptCalls)).toBe(0);
 
   await openSupportMenu(page);
-  await page.locator("summary[aria-label='환경설정 열기']").first().click();
+  await page.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).first().click();
   const panel = page.locator(".preference-panel").first();
   const install = panel.getByRole("button", { name: "WAVE 앱 설치" });
   await expect(install).toBeVisible();
@@ -51,7 +51,7 @@ test("설치 이벤트가 없으면 자동 요청 없이 수동 홈 화면 추�
   await page.addInitScript(() => window.sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await page.goto("/");
   await openSupportMenu(page);
-  await page.locator("summary[aria-label='환경설정 열기']").first().click();
+  await page.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).first().click();
   const panel = page.locator(".preference-panel").first();
   await expect(panel.getByText("홈 화면에 추가", { exact: true })).toBeVisible();
   await expect(panel.getByText(/브라우저 메뉴에서/)).toBeVisible();

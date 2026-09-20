@@ -1,13 +1,13 @@
 /* --- 정식 계정 화면과 헤더 계정 상태 --- */
-.account-button,.account-loading,.account-menu > summary { padding: 8px 13px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: rgba(255,255,255,.9); font-size: .74rem; font-weight: 850; }
+.account-button,.account-loading,.account-menu > :is(summary,.wave-support-trigger) { padding: 8px 13px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: rgba(255,255,255,.9); font-size: .74rem; font-weight: 850; }
 .account-loading { width: 44px; padding: 0; }
 .account-loading i { width: 13px; height: 13px; border: 2px solid #bdd4df; border-top-color: var(--blue); border-radius: 50%; animation: accountSpin .8s linear infinite; }
 @keyframes accountSpin { to { transform: rotate(360deg); } }
 .account-menu { position: relative; display: block; }
-.account-menu > summary { max-width: 160px; gap: 8px; list-style: none; cursor: pointer; }
-.account-menu > summary::-webkit-details-marker { display: none; }
-.account-menu > summary span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.account-menu > summary i { font-style: normal; transition: transform .2s; }
+.account-menu > :is(summary,.wave-support-trigger) { max-width: 160px; gap: 8px; list-style: none; cursor: pointer; }
+.account-menu > :is(summary,.wave-support-trigger)::-webkit-details-marker { display: none; }
+.account-menu > :is(summary,.wave-support-trigger) span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-menu > :is(summary,.wave-support-trigger) i { font-style: normal; transition: transform .2s; }
 .account-menu[open] > summary i { transform: rotate(180deg); }
 .account-popover { width: 230px; padding: 15px; position: absolute; z-index: 100; top: calc(100% + 9px); right: 0; display: grid; gap: 7px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: 0 20px 48px rgba(4,38,53,.2); }
 .account-popover strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .84rem; }
@@ -56,7 +56,6 @@ html[data-theme="dark"] .auth-message.success { color: #7ce0c8; }
 .auth-utility-layout .auth-story h1 { margin: 14px 0 24px; font-size: clamp(2.8rem,5vw,5.25rem); line-height: 1.06; letter-spacing: -.07em; }
 .auth-utility-layout .auth-story h1 span { color: var(--blue); }
 .auth-utility-card { align-self: center; }
-.auth-account-status { min-height: 120px; display: grid; place-items: center; color: var(--muted); }
 .account-settings { display: grid; gap: 24px; }
 .account-settings > section { padding-top: 22px; border-top: 1px solid var(--line); }
 .account-settings h3 { margin: 0 0 6px; font-size: 1.06rem; }
@@ -82,7 +81,7 @@ html[data-theme="dark"] .password-field button {
 }
 html[data-theme="dark"] .account-button,
 html[data-theme="dark"] .account-loading,
-html[data-theme="dark"] .account-menu > summary {
+html[data-theme="dark"] .account-menu > :is(summary,.wave-support-trigger) {
   color: var(--ink);
   border-color: #2a5064;
   background: rgba(9,44,60,.9);

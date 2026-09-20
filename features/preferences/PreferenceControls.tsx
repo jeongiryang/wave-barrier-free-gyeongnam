@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { useSitePreferences } from "./context";
 import { localeOptions } from "./locale-catalog";
 import type { Locale, TextScale, Tone } from "./types";
@@ -24,9 +24,9 @@ const subscribeToHydration = () => () => undefined;
 const browserReady = () => true;
 const serverReady = () => false;
 
-function positionPanel(details: HTMLDetailsElement | null) {
-  if (!details?.open) return;
-  const top = details.querySelector("summary")?.getBoundingClientRect().top;
+function positionPanel(details: HTMLDivElement | null) {
+  if (details?.dataset.open !== "true") return;
+  const top = details.querySelector(".preference-trigger")?.getBoundingClientRect().top;
   if (top === undefined) return;
   const bottom = Math.min(window.innerHeight - 96, Math.max(16, window.innerHeight - top + 10));
   details.style.setProperty("--preference-bottom", `${bottom}px`);
@@ -42,14 +42,18 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
   const showHaptics = controlsReady && hapticsSupported();
   const showDialectTone = controlsReady && dialectToneEnabled();
   const appInstall = useAppInstall();
-  const disclosure = useRef<HTMLDetailsElement>(null);
+  const disclosure = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
+  const [open, setOpen] = useState(false);
+  useEffect(() => { if (open) positionPanel(disclosure.current); }, [open]);
   const [colorAssistNotice, setColorAssistNotice] = useState("");
   const [textScaleNotice, setTextScaleNotice] = useState("");
 
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
       const details = disclosure.current;
-      if (details?.open && event.target instanceof Node && !details.contains(event.target)) details.open = false;
+      if (event.target instanceof Node && !details?.contains(event.target)) setOpen(false);
     };
     document.addEventListener("pointerdown", closeOutside);
     const reposition = () => positionPanel(disclosure.current);
@@ -66,24 +70,23 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
   }, []);
 
   return (
-    <details ref={disclosure} className="preference-controls" inert={!controlsReady} aria-busy={!controlsReady} suppressHydrationWarning
+    <div ref={disclosure} data-open={open} className="preference-controls" inert={!controlsReady} aria-busy={!controlsReady} suppressHydrationWarning
       onBlur={(event) => {
         // Label clicks temporarily blur to null before forwarding focus to the
         // native select. Hiding its parent here can crash Chromium's picker.
-        if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+        if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
-      onToggle={(event) => positionPanel(event.currentTarget)}
       onKeyDown={(event) => {
-        if (event.key !== "Escape" || event.defaultPrevented || !event.currentTarget.open) return;
+        if (event.key !== "Escape" || event.defaultPrevented || !open) return;
         event.preventDefault();
-        event.currentTarget.open = false;
-        event.currentTarget.querySelector("summary")?.focus();
+        setOpen(false);
+        trigger.current?.focus();
       }}
     >
-      <summary title={en ? "Preferences" : "환경설정"} aria-label={en ? "Open preferences" : "환경설정 열기"}>
+      <button type="button" className="preference-trigger" ref={trigger} aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(value => !value)} title={en ? "Preferences" : "환경설정"} aria-label={en ? "Open preferences" : "환경설정 열기"}>
         {iconOnly ? <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m9 3-.6 2.4-2 .9-2.2-.7L2 9.4l1.8 1.7v1.8L2 14.6l2.2 3.8 2.2-.7 2 .9L9 21h6l.6-2.4 2-.9 2.2.7 2.2-3.8-1.8-1.7v-1.8L22 9.4l-2.2-3.8-2.2.7-2-.9L15 3Z"/><circle cx="12" cy="12" r="3.1"/></svg> : <><span aria-hidden="true">Aa</span><b>{en ? "Preferences" : "환경설정"}</b></>}
-      </summary>
-      <div className="preference-panel">
+      </button>
+      {open && <div className="preference-panel" id={panelId}>
         <div className="preference-panel-heading">
           <b>{en ? "Preferences" : "환경설정"}</b>
           <small>{en ? "Adjust the screen for comfortable reading." : "읽기 편한 화면으로 조정합니다."}</small>
@@ -143,7 +146,7 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
           <em aria-hidden="true">{appInstall.state === "installed" ? en ? "Done" : "완료" : en ? "Help" : "안내"}</em>
         </div>}
         <p>{en ? "Original place information and some features may appear in Korean. " : ""}{en ? "Your device's reduced motion preference is followed by default." : "운영체제의 동작 줄이기 설정을 기본으로 따릅니다."}</p>
-      </div>
-    </details>
+      </div>}
+    </div>
   );
 }

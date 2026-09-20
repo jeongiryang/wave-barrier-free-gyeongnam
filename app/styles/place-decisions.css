@@ -1,10 +1,9 @@
 /* Shared with the Horizon cards; only the requested decision tools load UI. */
 .place-comparison-toolbar,.place-comparison-selection,.place-inquiry-entry { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-block: 20px; }
-.place-comparison-toolbar button,.place-comparison-selection button,.place-compare-choice,.place-inquiry-entry button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--line); border-radius: 24px; background: var(--paper); color: var(--ink); font: inherit; font-size: .9rem; }
-.place-comparison-toolbar > button[aria-pressed=true],.place-compare-choice[aria-pressed=true] { background: var(--accent); color: #fff; border-color: var(--accent); }
+.place-comparison-toolbar button,.place-comparison-selection button,.place-inquiry-entry button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--line); border-radius: 24px; background: var(--paper); color: var(--ink); font: inherit; font-size: .9rem; }
+.place-comparison-toolbar > button[aria-pressed=true] { background: var(--accent); color: #fff; border-color: var(--accent); }
 .place-comparison-toolbar > span { flex: 1; color: var(--muted); font-size: .9rem; }
 .place-comparison-selection button { background: var(--paper); }
-.place-compare-choice { width: 100%; margin-block: 8px; display: flex; justify-content: center; gap: 12px; }
 .place-inquiry-entry { padding: 22px; background: var(--paper); border-radius: var(--r-lg); }
 .place-inquiry-entry > div { flex: 1 1 240px; }.place-inquiry-entry h3 { margin: 0 0 8px; font-size: 1.2rem; }.place-inquiry-entry p { margin: 0; color: var(--muted); }
 .region-change-dialog:is(.place-comparison-dialog,.inquiry-dialog) { --ink: #242b2a; --muted: #5c6865; --paper: #ffffff; --line: #dce3e0; width: min(960px,calc(100% - 24px)); padding: clamp(20px,3vw,36px); border: 0; border-radius: 28px; color: var(--ink); background: #fff; box-shadow: var(--shadow-3); }

@@ -28,7 +28,7 @@ html:root body .wave-night .transport-mode-filter button.active{background:#195d
 html:root body .wave-night .transport-mode-filter button.active :is(b,small){color:#fff}
 html:root body .wave-night .easy-trip-toggle button[aria-pressed=true]{background:#195dc5;color:#fff}
 @media(max-width:600px){html body .wave-night .simple-stop{grid-template-columns:44px 44px minmax(0,1fr) 44px;gap:8px}html body .wave-night .night-stop-photo{width:44px;height:54px}html body .wave-night .simple-stop-controls{grid-column:2/-1}}
-html body .wave-night :is(.community-report-control [role=group],.preference-controls>summary,.preference-panel,.preference-row select,.preference-row em,.preference-text-scale label){background:var(--paper);color:var(--ink)}
+html body .wave-night :is(.community-report-control [role=group],.preference-controls>.preference-trigger,.preference-panel,.preference-row select,.preference-row em,.preference-text-scale label){background:var(--paper);color:var(--ink)}
 html body .wave-night .preference-text-scale label:has(:checked){background:var(--blue);color:var(--on-blue)}
 html body .wave-night :is(.community-card-meta time,.transport-mode-filter b,.transport-mode-filter small,.transport-live-summary span,.transport-live-summary small,.transport-provider-strip b,.transport-provider-strip small){color:var(--muted)}
 html body .wave-night .transport-mode-filter button.active :is(b,small){color:#fff}

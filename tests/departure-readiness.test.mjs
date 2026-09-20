@@ -86,6 +86,16 @@ test("긴 한글 iCalendar 행을 UTF-8 75바이트 경계에 맞춰 접는다",
   assert.ok(lines.slice(1).every((line) => line.startsWith(" ")));
 });
 
+test("공개 링크 없이 기기에 저장할 캘린더를 만든다", () => {
+  const input = { travelStart: "2026-09-01", travelEnd: "2026-09-02", dayStartTime: "09:30", title: "창원 여행", region: "창원", placeNames: ["경남도립미술관"] };
+  const ics = buildTripCalendarIcs(input);
+  assert.match(ics, /DTSTART;TZID=Asia\/Seoul:20260901T093000/);
+  assert.match(ics, /경남도립미술관/);
+  assert.doesNotMatch(ics, /(?:^|\r\n)URL:|공유 일정:/);
+  assert.equal(ics.match(/UID:([^\r]+)/)[1], buildTripCalendarIcs(input).match(/UID:([^\r]+)/)[1]);
+  assert.notEqual(ics.match(/UID:([^\r]+)/)[1], buildTripCalendarIcs({ ...input, placeNames: ["용지호수공원"] }).match(/UID:([^\r]+)/)[1]);
+});
+
 test("늦은 출발은 자정 뒤 종료 시각으로 계산하고 위험한 공유 스킴은 거부한다", () => {
   const ics = buildTripCalendarIcs({
     travelStart: "2026-09-01", travelEnd: "2026-09-01", dayStartTime: "20:30",

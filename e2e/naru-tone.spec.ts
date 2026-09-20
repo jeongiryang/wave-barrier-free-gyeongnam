@@ -38,7 +38,7 @@ async function switchTone(page: Page) {
   await openSupportMenu(page);
   const details = page.locator(".preference-controls");
   await expect(details).toHaveAttribute("aria-busy", "false");
-  await details.locator("summary").click();
+  await details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
   await details.locator("[data-preference='tone']").click();
   await expect(page.locator("html")).toHaveAttribute("data-tone", "gyeongnam");
   await page.keyboard.press("Escape");

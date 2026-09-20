@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
@@ -98,6 +99,7 @@ test("fixed visits keep their date and order, and return deadlines follow the li
   await openNaruTool(page, "이동 부담·휴식"); await expect(deadline).toContainText("18:00");
   await closeNaruTool(page);
   await page.getByRole("button", { name: "공유", exact: true }).click();
+  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
   const share = page.getByRole("dialog", { name: "여행 공유", exact: true });
   await expect(share.getByRole("link", { name: "공유 일정 보기", exact: true })).toBeVisible();
   expect(shares[0].fixedVisits).toEqual({ "1001": { kind: "event", time: "13:00", position: 0 } });

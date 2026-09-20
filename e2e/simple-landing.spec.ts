@@ -2,6 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { regionPhotoSource } from "../features/landing/region-photo-sources";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
+import { arrivalPlaybackReady } from './landing-contract';
+import { INTRO_DURATION_MS } from '../features/landing/intro/wave-timing';
 
 const firstRegions = ["통영", "거제", "남해", "하동", "산청"];
 const allRegions = ["거창", "거제", "고성", "김해", "남해", "밀양", "사천", "산청", "양산", "의령", "진주", "창녕", "창원", "통영", "하동", "함안", "함양", "합천"];
@@ -26,14 +28,19 @@ async function freshAnimatedArrival(page: Page) {
   await expect(page.locator(".arrival-scene")).toBeVisible();
 }
 
-test("arrival finishes within twelve seconds and exposes a keyboard dismissal", async ({ page }) => {
+test("approved arrival completes its 12.731-second playback and exposes keyboard dismissal", async ({ page }) => {
   await freshAnimatedArrival(page);
   const scene = page.locator(".arrival-scene");
   const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
   await expect(scene).toHaveAttribute("open", "");
-  await expect(scene).toContainText("모두의 여행이 같은 출발선에 설 수 있도록");
+  await arrivalPlaybackReady(page);
+  await expect(scene.locator('img, video')).toHaveCount(0);
+  await expect(scene.locator('[aria-live=polite]').last()).toContainText('/ 7');
   await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
-  await page.clock.runFor(10_400);
+  const elapsed = Number(await scene.locator('.wave-intro').getAttribute('data-time-ms'));
+  await page.clock.runFor(INTRO_DURATION_MS - elapsed - 100);
+  await expect(scene).toBeVisible();
+  await page.clock.runFor(200);
   await expect(scene).toBeHidden();
   await action.focus(); await expect(action).toBeFocused();
   expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
@@ -42,7 +49,7 @@ test("arrival finishes within twelve seconds and exposes a keyboard dismissal", 
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".landing-hero-split")).toBeVisible();
   await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000));
-  await page.clock.runFor(10_400);
+  await page.clock.runFor(INTRO_DURATION_MS + 100);
   await expect(scene).toBeHidden();
 });
 

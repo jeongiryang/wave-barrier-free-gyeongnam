@@ -3,16 +3,13 @@ import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi } from './fixtures';
 
 test.use({ viewport: { width: 1440, height: 1050 }, storageState: { cookies: [], origins: [] } });
-test('community mockup navigation, stored reactions and category write destination', async ({ page }) => {
+test('community banner navigation and category write destination use real posts only', async ({ page }) => {
   await page.route('**/api/auth/get-session', route => route.fulfill({ json: null }));
   await page.route('**/api/community/posts**', route => route.fulfill({ json: { posts: [], page: 1, hasMore: false } }));
   await page.goto('/community');
-  const first = page.locator('.night-story-card').first();
-  const like = first.getByRole('button', { name: /좋아요$/ });
-  await like.click();
-  await expect(like).toHaveAttribute('aria-pressed','true');
-  await page.reload();
-  await expect(page.locator('.night-story-card').first().getByRole('button', { name: /좋아요$/ })).toHaveAttribute('aria-pressed','true');
+  await expect(page.getByText('아직 등록된 후기나 질문이 없습니다.', { exact: true })).toBeVisible();
+  await expect(page.locator('.night-story-card')).toHaveCount(0);
+  await expect(page.locator('.night-popular-region')).not.toContainText(['342개의 이야기']);
   await page.getByRole('button', { name: '다음 배너', exact: true }).click();
   await expect(page.locator('.night-banner')).toContainText('02 / 03');
   await page.getByRole('button', { name: '함께 여행해요', exact: true }).click();
@@ -31,7 +28,7 @@ test('festival keyword never clears the alcohol preference', async ({ page }) =>
   await page.getByRole('button',{name:'문화예술',exact:true}).click();
   await expect(family).toHaveAttribute('aria-pressed','true');
   await page.getByRole('button',{name:'경남 전체 보기',exact:true}).click();
-  await expect(page.getByRole('button',{name:'전체',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(page.getByRole('group',{name:'축제 키워드'}).getByRole('button',{name:'전체',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(family).toHaveAttribute('aria-pressed','true');
 });
 

@@ -121,7 +121,7 @@ for (const width of [390, 960, 1440]) {
     for (const path of SCREENS) {
       await page.goto(path, { waitUntil: "domcontentloaded" });
       await expect(page.locator("html")).toHaveAttribute("data-text-scale", "larger");
-      await expect(page.locator(".preference-controls").first()).toHaveAttribute("aria-busy", "false");
+      await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
       await expectNoOverflow(page);
     }
 

@@ -17,7 +17,7 @@ for(const width of [1440,960,390]) for(const route of ['/','/planner','/communit
     const sheet=document.querySelector<HTMLStyleElement>('style[data-vite-dev-id$="/app/styles/night-landing.css"]')?.sheet;
     return Boolean(sheet?.cssRules.length);
    });
-   await expect(page.locator('.night-landing')).toHaveCSS('background-color','rgb(5, 14, 25)');
+   await expect(page.locator('.night-landing')).toHaveCSS('background-color',width<=600?'rgb(9, 13, 18)':'rgb(5, 14, 25)');
    await page.evaluate(()=>document.fonts.ready);
   }await expect(page.locator('h1').first()).toBeVisible();
   const violations=(await new AxeBuilder({page}).analyze()).violations.filter(v=>v.impact==='critical'||v.impact==='serious');

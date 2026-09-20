@@ -10,9 +10,9 @@ for (const path of ["/planner", "/community"]) {
     await openSupportMenu(page);
     const details = page.locator(".preference-controls");
     await expect(details).toHaveAttribute("aria-busy", "false");
-    await details.locator("summary").click();
+    await details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
     await details.getByText("한국어 전체 지원", { exact: true }).click();
-    await expect(details).toHaveAttribute("open", "");
+    await expect(details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ })).toHaveAttribute('aria-expanded', 'true');
     const language = details.getByRole("combobox", { name: "언어", exact: true });
     await expect(language).toBeFocused();
     await page.keyboard.press("ArrowDown");
@@ -25,16 +25,16 @@ for (const path of ["/planner", "/community"]) {
     // The first Escape dismisses the native picker. The next leaves the
     // preferences disclosure; do not hide a select while its picker is active.
     await page.keyboard.press("Escape");
-    await expect(details).toHaveAttribute("open", "");
+    await expect(details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ })).toHaveAttribute('aria-expanded', 'true');
     await page.keyboard.press("Escape");
-    await expect(details).not.toHaveAttribute("open", "");
-    await expect(details.locator("summary")).toBeFocused();
-    await details.locator("summary").click();
+    await expect(details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ })).toHaveAttribute('aria-expanded', 'false');
+    await expect(details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ })).toBeFocused();
+    await details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
     for (const width of [960, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await details.locator(".preference-panel").screenshot({ path: test.info().outputPath(`preferences-picker-${width}.png`) });
     }
-    await (path === "/planner" ? page.getByRole("heading", { name: "경남, 모두의 여행지", exact: true }) : page.getByRole("heading", { level: 1 })).click();
-    await expect(details).not.toHaveAttribute("open", "");
+    await page.getByRole("heading", { level: 1 }).click();
+    await expect(details.locator(".preference-panel")).toBeHidden();
   });
 }

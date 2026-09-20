@@ -9,8 +9,8 @@ async function openPreferences(page: import("@playwright/test").Page) {
   await openSupportMenu(page);
   const details = page.locator(".preference-controls");
   await expect(details).toHaveAttribute("aria-busy", "false");
-  await details.locator("summary").click();
-  await expect(details).toHaveAttribute("open", "");
+  await details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
+  await expect(details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ })).toHaveAttribute('aria-expanded', 'true');
   return details;
 }
 

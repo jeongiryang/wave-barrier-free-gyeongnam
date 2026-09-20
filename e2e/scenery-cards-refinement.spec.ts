@@ -13,11 +13,8 @@ test("WAVE starter stories open their full articles and leave member search inta
   const writes: string[] = [];
   page.on("request", request => {if(!["GET","HEAD","OPTIONS"].includes(request.method())) writes.push(request.url());});
   await page.goto("/community");
-  await expect(page.locator(".night-story-card .night-bookmark").first()).toBeEnabled();
-  await page.locator('.night-story-card').first().getByRole('button',{name:/게시글 읽기$/}).click();
-  await expect(page.locator('.night-story-dialog')).toBeVisible();
-  await expect(page.locator('.night-story-dialog').getByRole('link',{name:'관광사진 출처'})).toHaveAttribute('href','/policies#content-credits');
-  await page.keyboard.press('Escape');
+  await expect(page.getByText('아직 등록된 후기나 질문이 없습니다.', { exact: true })).toBeVisible();
+  await expect(page.locator('.night-story-card')).toHaveCount(0);
   // Retained guide articles still preserve their original attribution.
   await page.locator("details.community-guides > summary").click();
   const links = await page.locator(".community-travel-stories h3 a").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")!));

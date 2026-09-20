@@ -6,7 +6,10 @@ import { plannerJson } from "../services/api";
 import type { Place, SearchPlace } from "../types";
 import { parseLocationResults } from "../location-results";
 
-export function useLocationSearchRequest(region: string, scope: "all" | "gyeongnam" = "all") {
+export function useLocationSearchRequest(region: string, scope: "all" | "gyeongnam" = "all", officialProfiles?: string[]) {
+  const officialQuery = officialProfiles ? `&official=1&profiles=${encodeURIComponent(officialProfiles.join(','))}` : '';
+  const [officialPlaces, setOfficialPlaces] = useState<Place[]>([]);
+  const [officialState, setOfficialState] = useState('idle');
   const [placeQuery, updatePlaceQuery] = useState("");
   const [placeSearchResults, setPlaceSearchResults] = useState<SearchPlace[]>([]);
   const [placeSearchState, setPlaceSearchState] = useState<"idle" | "loading" | "success" | "empty" | "error">("idle");
@@ -16,7 +19,7 @@ export function useLocationSearchRequest(region: string, scope: "all" | "gyeongn
     searchRequestRef.current?.abort();
     searchRequestRef.current = null;
     updatePlaceQuery(query);
-    setPlaceSearchResults([]);
+    setPlaceSearchResults([]); setOfficialPlaces([]); setOfficialState("idle");
     setPlaceSearchState("idle");
   }, []);
 
@@ -24,17 +27,22 @@ export function useLocationSearchRequest(region: string, scope: "all" | "gyeongn
     if (placeQuery.trim().length < 2 || searchRequestRef.current) return;
     const controller = new AbortController();
     searchRequestRef.current = controller;
-    setPlaceSearchResults([]);
+    setPlaceSearchResults([]); setOfficialPlaces([]); setOfficialState("idle");
     setPlaceSearchState("loading");
     try {
-      const data = await plannerJson<unknown>(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}${scope === "gyeongnam" ? "&scope=gyeongnam" : ""}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.location });
+      const data = await plannerJson<unknown>(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}${scope === "gyeongnam" ? "&scope=gyeongnam" : ""}${officialQuery}`, { signal: controller.signal, timeoutMs: officialQuery ? CLIENT_BUDGET_MS.officialLocation : CLIENT_BUDGET_MS.location });
       if (controller.signal.aborted || searchRequestRef.current !== controller) return;
       const places = parseLocationResults(data);
+      if (officialQuery && data && typeof data === 'object') {
+        const official = data as { officialPlaces?: Place[]; officialState?: string };
+        setOfficialPlaces(Array.isArray(official.officialPlaces) ? official.officialPlaces : []);
+        setOfficialState(official.officialState || 'unavailable');
+      }
       setPlaceSearchResults(places);
       setPlaceSearchState(places.length ? "success" : "empty");
     } catch {
       if (!controller.signal.aborted && searchRequestRef.current === controller) {
-        setPlaceSearchResults([]);
+        setPlaceSearchResults([]); setOfficialPlaces([]); setOfficialState("idle");
         setPlaceSearchState("error");
       }
     } finally {
@@ -42,13 +50,13 @@ export function useLocationSearchRequest(region: string, scope: "all" | "gyeongn
         searchRequestRef.current = null;
       }
     }
-  }, [placeQuery, scope]);
+  }, [placeQuery, scope, officialQuery]);
 
   const clearSearchRequest = useCallback(() => {
     searchRequestRef.current?.abort();
     searchRequestRef.current = null;
     updatePlaceQuery("");
-    setPlaceSearchResults([]);
+    setPlaceSearchResults([]); setOfficialPlaces([]); setOfficialState("idle");
     setPlaceSearchState("idle");
   }, []);
 
@@ -69,5 +77,5 @@ export function useLocationSearchRequest(region: string, scope: "all" | "gyeongn
   }), [region]);
 
   useEffect(() => () => searchRequestRef.current?.abort(), []);
-  return { placeQuery, setPlaceQuery, placeSearchResults, placeSearchState, placeSearchLoading: placeSearchState === "loading", searchLocations, clearSearchRequest, searchableToPlace };
+  return { officialPlaces, officialState, placeQuery, setPlaceQuery, placeSearchResults, placeSearchState, placeSearchLoading: placeSearchState === "loading", searchLocations, clearSearchRequest, searchableToPlace };
 }

@@ -43,6 +43,15 @@ export async function freshArrival(page: Page) {
   await expect(page.locator(".arrival-scene")).toBeVisible();
 }
 
+/** The WebGL renderer starts its clock only after its scene is ready. */
+export async function arrivalPlaybackReady(page: Page) {
+  await page.clock.resume();
+  await expect.poll(async () => Number(await page.locator('.wave-intro').getAttribute('data-time-ms'))).toBeGreaterThan(0);
+  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 32));
+  await expect(page.locator('.arrival-scene')).toBeVisible();
+  await expect(page.locator('.wave-intro canvas')).toBeVisible();
+}
+
 export async function expectUsableTarget(target: Locator) {
   await expect(target).toBeEnabled();
   await target.evaluate(node => node.scrollIntoView({ block: "center", behavior: "instant" }));

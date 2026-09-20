@@ -14,7 +14,7 @@ html body .wave-night .night-planner-form{max-width:900px}
 .naru-panel .naru-live-tools>div>details>summary{font-size:20px;padding:14px 0;color:#e4d2ff}
 .naru-panel .naru-live-tools .account-settings{max-width:none;width:100%;margin:16px 0}
 .naru-panel [hidden]{display:none!important}
-@media(min-width:1800px){html body .wave-night .night-planner-form h2{font-size:clamp(48px,3.2vw,82px)}html body .wave-night .night-planner-region-map svg{height:clamp(480px,32vw,900px)}html body .wave-night .night-planner-hero{min-height:74vh}html body .wave-night .night-community-columns{grid-template-columns:minmax(0,1fr) minmax(310px,24%)}html body .wave-night .night-story-card img{aspect-ratio:2/1;height:auto}}
+@media(min-width:1800px){html body .wave-night .night-planner-form h2{font-size:clamp(48px,3.2vw,82px)}html body .wave-night .night-planner-region-map svg{height:clamp(480px,32vw,900px)}html body .wave-night .night-planner-hero{min-height:74vh}html body .wave-night .night-community-columns{grid-template-columns:minmax(0,1fr) minmax(310px,24%)}}
 @media(prefers-reduced-motion:reduce){.wave-night::before{animation:none}}
 html[data-motion=calm] .wave-night::before{animation:none}
 
@@ -25,5 +25,3 @@ html body .wave-night .night-banner-note{font-family:WaveHand,cursive;font-size:
 html body .wave-night.planner-simple .planner-journey-workspace{width:auto;max-width:none;margin-inline:0;padding-top:0;background:transparent}
 
 .naru-panel{--onaccent:#191324}
-
-body .naru-panel .population-policy p small{color:var(--ink-soft)}

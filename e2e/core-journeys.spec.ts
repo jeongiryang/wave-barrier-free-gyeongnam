@@ -193,8 +193,8 @@ test("community remains readable without login and protects writing", async ({ p
   await page.route("**/api/auth/get-session", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: "null" }));
   await page.route("**/api/community/posts**", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ posts: [], page: 1, hasMore: false }) }));
   await page.goto("/community");
-  await expect(page.locator(".night-story-card").first()).toBeVisible();
-  await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.")).toHaveCount(0);
+  await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.", { exact: true })).toBeVisible();
+  await expect(page.locator(".night-story-card")).toHaveCount(0);
   await expectNoSeriousA11yIssues(page);
   await page.getByRole("link", { name: "글 쓰기", exact: true }).first().click();
   await expect(page).toHaveURL(/\/login\?next=%2Fcommunity%2Fnew/);

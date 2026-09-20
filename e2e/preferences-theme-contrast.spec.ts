@@ -64,7 +64,7 @@ for (const theme of ["light", "dark"] as const) {
     }, theme);
     await page.goto("/community", { waitUntil: "domcontentloaded" });
     await openSupportMenu(page);
-    await page.locator(".preference-controls > summary").click();
+    await page.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
     await expect(page.locator(".motion-toggle")).toHaveCount(0);
     await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);

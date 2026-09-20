@@ -18,7 +18,7 @@ test("a missing asset returns 404 without broadcasting an RSC overlay to another
   expect(response.status()).toBe(404);
   await openSupportMenu(page);
   await preferences.getByLabel("환경설정 열기", { exact: true }).click();
-  await expect(preferences).toHaveAttribute("open");
+  await expect(preferences.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ })).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   expect(errors).toEqual([]);
 });

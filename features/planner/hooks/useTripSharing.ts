@@ -23,6 +23,7 @@ export interface TripSharingOptions {
   breakMinutesByPlaceId?: Record<string, number>;
   restPurposeByPlaceId?: Record<string, import("../../../lib/trip-comfort.js").StopPurpose>;
   selectedPlaceIds: string[];
+  selectedPlaces?: Place[];
   temporaryStops?: Place[];
   originLabel: string;
 }
@@ -33,8 +34,9 @@ async function hashSnapshot(snapshot: string) {
 }
 class ChangedSnapshot extends Error {}
 export function useTripSharing(options: TripSharingOptions) {
+  const itineraryRegion = options.selectedPlaceIds.map(id => options.selectedPlaces?.find(place => place.id === id)?.city).find(Boolean) || options.region;
   const snapshot = JSON.stringify({ live: true, selections: {
-    region: options.region, theme: options.theme, profiles: [], locale: options.locale,
+    region: itineraryRegion, theme: '', profiles: [], locale: options.locale,
     travelStart: options.travelStart, travelEnd: options.travelEnd, dayStartTime: options.dayStartTime, travelMode: options.travelMode,
     scheduleAssignments: options.scheduleAssignments, selectedPlaceIds: options.selectedPlaceIds,
     visitMinutesByPlaceId: options.visitMinutesByPlaceId, fixedVisits: options.fixedVisits, dayDeadlines: options.dayDeadlines,

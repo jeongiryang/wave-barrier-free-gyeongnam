@@ -9,8 +9,10 @@ import { createTravelBookSnapshot, sanitizeTravelBooks, upsertTravelBook, TRAVEL
 import { AccountTravelError, travelRequest } from '../account-travel/client';
 import type { AccountTrip } from '../account-travel/types';
 import { assertTripStorageOwner } from '../../lib/current-trip-storage.js';
+import { tripTimingWarnings } from '../planner/trip-timing-review';
+import { useTripTimingConfirmation } from '../planner/components/TripTimingConfirmation';
 
-type Props = TravelBookInput & { compact?: boolean };
+type Props = TravelBookInput & { compact?: boolean; timingWarnings?: string[] };
 function bookScheduleKey(book: NonNullable<ReturnType<typeof createTravelBookSnapshot>>) {
   return JSON.stringify({ region: book.region, themes: book.themes, profiles: book.profiles, guidancePreferences: book.guidancePreferences, places: book.places.map(place => place.id),
     travelStart: book.travelStart, travelEnd: book.travelEnd, dayStartTime: book.dayStartTime, travelMode: book.travelMode,
@@ -27,6 +29,7 @@ export default function TravelBookArchiveAction(input: Props) {
   const lock = useRef(false), mounted = useRef(true), lastSaved = useRef(''), automaticScope = useRef('');
   const attempt = useRef({ tripId: '', id: '' });
   const inputKey = JSON.stringify({ ...input, compact: undefined, places: input.places.map(place => place.id) });
+  const timing = useTripTimingConfirmation(input.timingWarnings ?? tripTimingWarnings(input), inputKey);
   const current = useRef({ input, inputKey, userId });
   useLayoutEffect(() => { current.current = { input, inputKey, userId }; }, [input, inputKey, userId]);
   useEffect(() => {
@@ -37,6 +40,10 @@ export default function TravelBookArchiveAction(input: Props) {
   const saveRef = useRef<(automatic?: boolean) => Promise<void>>(async () => {});
   async function save(automatic = false, copy = false) {
     if (lock.current || !identity || isPending) return;
+    if (!automatic && timing.needsReview()) {
+      timing.request(() => void save(false, copy));
+      return;
+    }
     try { assertTripStorageOwner(window.localStorage); }
     catch (error) { setFailed(true); setNotice(error instanceof Error ? error.message : '현재 여행을 확인해 주세요.'); return; }
     const base = readTripIdentity(window.localStorage);
@@ -66,6 +73,7 @@ export default function TravelBookArchiveAction(input: Props) {
         if (current.current.inputKey !== captured.inputKey) return;
         const payload = { ...bookToAccountTrip(book), ...(source ? { title: source.payload.title, note: source.payload.note, status: source.payload.status } : {}) };
         unchanged = Boolean(automatic && bound && source && JSON.stringify(payload) === JSON.stringify(accountTripPayload(source.payload)));
+        if (!unchanged && automatic && timing.needsReview()) { setFailed(true); setNotice('일정의 시간과 날짜를 확인한 뒤 저장해 주세요.'); return; }
         if (unchanged) binding = base.binding;
         else {
           assertTripStorageOwner(localStorage);
@@ -78,6 +86,7 @@ export default function TravelBookArchiveAction(input: Props) {
         if (automatic && !previous) throw new Error('저장한 여행이 삭제됐어요. 현재 일정을 확인한 뒤 다시 저장해 주세요.');
         if (books.length >= TRAVEL_BOOK_MAX_ITEMS && !previous) throw new Error('저장한 여행이 20개예요. 내 여행에서 정리한 뒤 저장해 주세요.');
         unchanged = Boolean(automatic && previous && bookScheduleKey(previous) === bookScheduleKey(book));
+        if (!unchanged && automatic && timing.needsReview()) { setFailed(true); setNotice('일정의 시간과 날짜를 확인한 뒤 저장해 주세요.'); return; }
         assertTripStorageOwner(localStorage);
         if (!isCurrent()) return;
         if (!unchanged) localStorage.setItem(TRAVEL_BOOK_STORAGE_KEY, JSON.stringify(upsertTravelBook(books, { ...book, title: previous?.title || book.title })));
@@ -112,5 +121,5 @@ export default function TravelBookArchiveAction(input: Props) {
     const timer = setTimeout(() => void saveRef.current(true), 900);
     return () => clearTimeout(timer);
   }, [identity, inputKey, isPending, userId, failed, busy]);
-  return <div lang="ko" className="simple-save-control" data-planner-tool="save"><button type="button" className="primary" disabled={!identity || isPending || busy || !input.places.length} onClick={() => void save()}>{busy ? <><Spinner />저장 중</> : failed ? '저장 다시 시도' : identity?.binding?.kind === 'account' && identity.binding.role === 'member' ? '내 여행에 사본 저장' : '내 여행에 저장'}</button>{identity?.binding && <Link href={identity.binding.kind === 'account' ? `/my-trips/${identity.binding.id}` : '/travel-book'}>저장한 여행</Link>}{notice && <p role={failed ? 'alert' : 'status'}>{notice}{failed && failureStatus === 401 && <Link href="/login?next=%2Fplanner">다시 로그인</Link>}{failed && failureStatus === 409 && <button type="button" disabled={busy} onClick={() => void save(false, true)}>현재 일정을 사본으로 저장</button>}</p>}</div>;
+  return <div lang="ko" className="simple-save-control" data-planner-tool="save"><button type="button" className="primary" disabled={!identity || isPending || busy || !input.places.length} onClick={() => void save()}>{busy ? <><Spinner />저장 중</> : failed ? '저장 다시 시도' : identity?.binding?.kind === 'account' && identity.binding.role === 'member' ? '내 여행에 사본 저장' : '내 여행에 저장'}</button>{identity?.binding && <Link href={identity.binding.kind === 'account' ? `/my-trips/${identity.binding.id}` : '/travel-book'}>저장한 여행</Link>}{notice && <p role={failed ? 'alert' : 'status'}>{notice}{failed && failureStatus === 401 && <Link href="/login?next=%2Fplanner">다시 로그인</Link>}{failed && failureStatus === 409 && <button type="button" disabled={busy} onClick={() => void save(false, true)}>현재 일정을 사본으로 저장</button>}</p>}{timing.confirmation}</div>;
 }

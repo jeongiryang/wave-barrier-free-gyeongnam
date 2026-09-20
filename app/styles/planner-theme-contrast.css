@@ -1,11 +1,6 @@
 /* 여행 설계의 작은 보조 글자는 일반 본문과 같은 4.5:1 기준을 지킨다. */
-.planner-journey-workspace .theme-grid button.active small { color: var(--mint); }
 
-.planner-journey-workspace .theme-grid small,
 .planner-journey-workspace .profile-card small,
-.planner-journey-workspace .date-control > p,
-.planner-journey-workspace .derived-note,
-.planner-journey-workspace .planner-notice,
 .planner-journey-workspace .map-legend,
 .planner-journey-workspace .route-notice,
 .planner-journey-workspace .route-mode-order-note,
@@ -49,7 +44,6 @@
 .planner-journey-workspace .map-crowd-legend.crowd-very-busy strong { color: #b31f37; }
 
 /* 뒤에서 불러오는 작업공간 CSS가 초기 다크 테마 표면을 되돌리지 않게 한다. */
-html[data-theme="dark"] .planner-journey-workspace .theme-grid button,
 html[data-theme="dark"] .planner-journey-workspace .profile-card,
 html[data-theme="dark"] .planner-journey-workspace .map-toolbar .point-button,
 html[data-theme="dark"] .planner-journey-workspace .route-mode-sections button,
@@ -65,7 +59,6 @@ html[data-theme="dark"] .planner-journey-workspace .map-legend {
   background: #0f3749;
 }
 
-html[data-theme="dark"] .planner-journey-workspace .theme-grid button.active,
 html[data-theme="dark"] .planner-journey-workspace .profile-card.active {
   color: #e8f5fb;
   border-color: #3d83a2;
@@ -77,11 +70,7 @@ html[data-theme="dark"] .planner-journey-workspace .route-option-rank {
   background: #15485c;
 }
 
-html[data-theme="dark"] .planner-journey-workspace .theme-grid small,
 html[data-theme="dark"] .planner-journey-workspace .profile-card small,
-html[data-theme="dark"] .planner-journey-workspace .date-control > p,
-html[data-theme="dark"] .planner-journey-workspace .derived-note,
-html[data-theme="dark"] .planner-journey-workspace .planner-notice,
 html[data-theme="dark"] .planner-journey-workspace .map-legend,
 html[data-theme="dark"] .planner-journey-workspace .route-notice,
 html[data-theme="dark"] .planner-journey-workspace .route-mode-order-note,
@@ -152,10 +141,6 @@ html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend small {
 }
 
 /* 선택 요약과 편의조건 칩은 밝은 표면을 유지하므로 안쪽 글자를 어둡게 둔다. */
-html[data-theme="dark"] .planner-journey-workspace .selection-bar p span {
-  color: #2f5063;
-}
-html[data-theme="dark"] .planner-journey-workspace .selection-bar .auto-refresh-note { color: #2f5063; }
 
 html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-low em,
 html[data-theme="dark"] .planner-journey-workspace .map-crowd-legend.crowd-low strong { color: #56d3a2; }

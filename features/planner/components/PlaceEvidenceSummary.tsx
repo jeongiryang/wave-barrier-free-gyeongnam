@@ -28,7 +28,7 @@ export default function PlaceEvidenceSummary({ place: original }: { place: Place
     {items.length > 0 && <div className="evidence-counts" role="group" aria-label={say("공식 데이터 확인 범위", "Official information coverage")}>
       <span>{say("확인됨", "Reported available")} {confirmed}</span>
       <span>{say("미확인", "Not reported")} {unknown}</span>
-      <span>{say("불일치", "Reported unavailable")} {negative}</span>
+      <span>{say("없음으로 기록", "Reported unavailable")} {negative}</span>
     </div>}
 
     {items.length > 0 ? <div className="place-decision-summary">{groups.map((group) => {
@@ -36,14 +36,14 @@ export default function PlaceEvidenceSummary({ place: original }: { place: Place
       return records.length > 0 && <section key={group.state} aria-labelledby={`facility-group-${group.state}`}>
       <h3 id={`facility-group-${group.state}`}>{group.title} <span>{records.length}</span></h3>
       <dl className="facility-evidence-list">{records.map((item) => <div key={item.key} data-state={item.state}>
-      <dt><span lang={originalLanguage(facilityName(item.key, item.label, en))}>{facilityName(item.key, item.label, en)}</span><span><StatusShapeIcon kind={item.state === "confirmed" ? "confirmed" : item.state === "negative" ? "negative" : "unknown"} />{item.state === "confirmed" ? say("확인됨", "Reported available") : item.state === "negative" ? say("불일치", "Reported unavailable") : say("미확인", "Not reported")}</span></dt>
+      <dt><span lang={originalLanguage(facilityName(item.key, item.label, en))}>{facilityName(item.key, item.label, en)}</span><span><StatusShapeIcon kind={item.state === "confirmed" ? "confirmed" : item.state === "negative" ? "negative" : "unknown"} />{item.state === "confirmed" ? say("확인됨", "Reported available") : item.state === "negative" ? say("없음으로 기록", "Reported unavailable") : say("미확인", "Not reported")}</span></dt>
       <dd lang={originalLanguage(item.detail)}>{item.detail || say("제공된 정보가 없습니다. 시설에 직접 확인해 주세요.", "No information supplied. Please check with the venue.")}</dd>
     </div>)}</dl></section>;
     })}</div> : <p>{say("항목별 편의정보가 없습니다. 최신 정보를 확인해 주세요.", "This saved record has no item-level evidence. Search again for current information.")}</p>}
     {(!items.length || requested) && <div className="place-evidence-refresh"><button type="button" disabled={refreshed.loading} onClick={() => { if (requested) refreshed.retry(); else setRequested(true); }}>{refreshed.loading ? say('편의정보 조회 중', 'Loading facilities') : say('편의정보 다시 조회', 'Reload facilities')}</button><p role="status">{refreshed.notice}</p></div>}
     <details className="place-evidence"><summary>{say("출처·확인 시각·계산 방법", "Source, retrieval time and method")}</summary>
       <div className="modal-data"><span><small>{say("출처", "Source")}</small><span lang={originalLanguage(place.source)}>{place.source}</span></span><span><small>{say("조회 시각", "Retrieved")}</small>{place.checkedAt ? new Date(place.checkedAt).toLocaleString(en ? "en-GB" : "ko-KR") : say("확인되지 않음", "Not available")}</span></div>
-      <p>{say("추천 정렬에는 선택한 공식 항목 중 긍정적으로 확인된 항목의 비율(확인됨 ÷ 전체 선택 항목)을 사용합니다. 불일치와 미확인은 구분하며 사진·인기·후기는 계산에 넣지 않습니다. 조회 시각은 제공처의 시설 갱신일이 아닙니다.", "Recommendations use the proportion of selected fields reported available. Missing and negative records remain distinct. Photos, popularity and reviews do not change the calculation. Retrieval time is not the provider's facility update date.")}</p>
+      <p>{say("추천 정렬에는 선택한 공식 항목 중 긍정적으로 확인된 항목의 비율(확인됨 ÷ 전체 선택 항목)을 사용합니다. 시설 없음과 미확인은 구분하며 사진·인기·후기는 계산에 넣지 않습니다. 조회 시각은 제공처의 시설 갱신일이 아닙니다.", "Recommendations use the proportion of selected fields reported available. Missing and negative records remain distinct. Photos, popularity and reviews do not change the calculation. Retrieval time is not the provider's facility update date.")}</p>
     </details>
   </>;
 }

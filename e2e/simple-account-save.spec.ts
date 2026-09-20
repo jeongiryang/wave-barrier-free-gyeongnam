@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, plan } from "./fixtures";
 import type { AccountTripPayload, TripDetail } from "../features/account-travel/types";
@@ -132,6 +133,14 @@ async function editVisit(page: Page, minutes = "180") {
   await expect(page.locator("#itinerary-stop-1001")).toContainText(`${minutes}분 머묾`);
   await expect.poll(async () => (await stored(page)).schedule.visitMinutesByPlaceId["1001"]).toBe(Number(minutes));
 }
+async function reviewPausedSave(page: Page) {
+  const control = page.locator('.simple-save-control');
+  await expect(control.getByRole('alert')).toContainText('일정의 시간과 날짜를 확인한 뒤 저장해 주세요.');
+  expect(states.get(page)!.writes).toHaveLength(0);
+  await control.getByRole('button', { name: '저장 다시 시도', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '저장·공유 전 일정 확인', exact: true })).toBeVisible();
+  await acceptTripTimingWarning(page);
+}
 async function freshTrip(page: Page) {
   await page.goto("/planner");
   await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
@@ -147,7 +156,7 @@ async function freshTrip(page: Page) {
 }
 async function loadAccountMenu(page: Page) {
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  await page.locator(".wave-header-actions > a[href='/account']").hover();
+  await page.locator(".wave-header-actions > a:is(.wave-profile-entry,.account-button)[href='/account']").hover();
   await expect(page.getByRole("button", { name: `${userName} 계정 메뉴`, exact: true })).toBeVisible();
 }
 test.afterEach(async ({ context }, info) => {
@@ -162,7 +171,7 @@ test.afterEach(async ({ context }, info) => {
   }
 });
 
-test("계정 원본을 열면 ID·revision·순서를 유지하고 수정 한 번은 같은 행에 자동 저장된다", async ({ page }, info) => {
+test("계정 원본을 열면 ID·revision·순서를 유지하고 빈 날짜 확인 뒤 같은 행에 저장하고 다음 수정은 자동 저장된다", async ({ page }, info) => {
   const state = fixtureState(); await install(page, state, info); await openSource(page, state);
   const before = await stored(page);
   expect(before.identity?.id).toBe(sourceId);
@@ -174,14 +183,20 @@ test("계정 원본을 열면 ID·revision·순서를 유지하고 수정 한 �
   await page.waitForTimeout(1200);
   expect(state.writes).toHaveLength(0);
   await editVisit(page);
+  await reviewPausedSave(page);
   await expect.poll(() => state.writes.length).toBe(1);
   await expect.poll(async () => (await stored(page)).identity?.binding).toEqual({ kind: "account", id: sourceId, revision: 5, role: "owner", userId });
   expect(state.writes[0]).toMatchObject({ path: `/api/account/travel/${sourceId}`, body: { revision: 4, payload: { title: originalPayload.title, note: originalPayload.note, status: originalPayload.status, placeIds: originalPayload.placeIds, visitMinutesByPlaceId: { "1001": 180, "1002": 60 } } } });
   expect(state.trips.size).toBe(1);
+  await editVisit(page, "120");
+  await expect.poll(() => state.writes.length).toBe(2);
+  await expect.poll(async () => { const binding = (await stored(page)).identity?.binding; return binding?.kind === "account" ? binding.revision : null; }).toBe(6);
+  expect(state.writes[1]).toMatchObject({ path: `/api/account/travel/${sourceId}`, body: { revision: 5, payload: { visitMinutesByPlaceId: { "1001": 120 } } } });
+  await expect(page.getByRole('dialog', { name: '저장·공유 전 일정 확인', exact: true })).toHaveCount(0);
   await page.reload();
-  await expect(page.locator("#itinerary-stop-1001")).toContainText("180분 머묾");
-  expect((await stored(page)).identity).toMatchObject({ id: sourceId, binding: { id: sourceId, revision: 5 } });
-  expect(state.writes).toHaveLength(1);
+  await expect(page.locator("#itinerary-stop-1001")).toContainText("120분 머묾");
+  expect((await stored(page)).identity).toMatchObject({ id: sourceId, binding: { id: sourceId, revision: 6 } });
+  expect(state.writes).toHaveLength(2);
   await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
   await expect(page.getByLabel("여행 이름", { exact: true })).toHaveValue(originalPayload.title);
   await expect(page.getByRole("textbox", { name: "동행자와 공유하는 여행 메모", exact: true })).toHaveValue(originalPayload.note);
@@ -195,6 +210,7 @@ test("동행자 일정의 수정은 원본을 자동 갱신하지 않고 명시�
   await page.waitForTimeout(1200);
   expect(state.writes).toHaveLength(0);
   await page.getByRole("button", { name: "내 여행에 사본 저장", exact: true }).click();
+  await acceptTripTimingWarning(page);
   await expect.poll(() => state.writes.length).toBe(1);
   const request = state.writes[0];
   expect(request.path).toBe("/api/account/travel");
@@ -218,6 +234,7 @@ test("401 저장 실패는 로그인 복구를 안내하고 초안을 유지한 
   const state = fixtureState(); await install(page, state, info); await openSource(page, state);
   state.nextFailure = 401;
   await editVisit(page);
+  await reviewPausedSave(page);
   const control = page.locator(".simple-save-control");
   await expect(control.getByRole("alert")).toContainText("로그인이 만료됐어요");
   await expect(control.getByRole("link", { name: /로그인/ })).toBeVisible();
@@ -240,6 +257,7 @@ test("409 충돌은 원본과 수정 초안을 보존하고 명시적으로 수�
   state.trips.set(sourceId, { ...state.trips.get(sourceId)!, revision: 5, payload: { ...structuredClone(originalPayload), title: "다른 화면에서 바꾼 제목", note: "원본의 최신 메모" } });
   const latestSource = structuredClone(state.trips.get(sourceId)!);
   await editVisit(page);
+  await reviewPausedSave(page);
   const control = page.locator(".simple-save-control");
   await expect(control.getByRole("alert")).toBeVisible();
   expect((await stored(page)).identity?.binding).toMatchObject({ id: sourceId, revision: 4 });
@@ -264,6 +282,7 @@ test("저장 응답 전에 다른 탭에서 로그아웃하면 열린 초안에 
   await loadAccountMenu(page);
   const before = await stored(page), gate = deferred(); state.nextGate = gate;
   await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await acceptTripTimingWarning(page);
   await expect.poll(() => state.writes.length).toBe(1);
   const other = await context.newPage(); await install(other, state, info); await other.goto("/guide");
   await loadAccountMenu(other);
@@ -288,6 +307,7 @@ test("저장 응답 전에 다른 여행으로 전환하면 이전 응답은 새
   const state = fixtureState(); await install(page, state, info); await freshTrip(page);
   const before = await stored(page), gate = deferred(); state.nextGate = gate;
   await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await acceptTripTimingWarning(page);
   await expect.poll(() => state.writes.length).toBe(1);
   const other = await context.newPage(); await install(other, state, info); await other.goto("/planner");
   await expect(other.getByRole("button", { name: "새 여행", exact: true })).toBeEnabled();

@@ -414,8 +414,14 @@ test("motion follows the OS, retires legacy storage and has no app preference co
   assert.doesNotMatch(storage, /localStorage\.(getItem|setItem)\("wave-motion"/);
   assert.match(storage, /localStorage\.removeItem\("wave-motion"\)/);
   assert.doesNotMatch(controls, /toggleMotion|motion-toggle|onReplayIntro/);
-  // Keep the hydration guards and require the newly added focus-leave handler.
-  assert.match(controls, /<details ref=\{disclosure\} className="preference-controls" inert=\{!controlsReady\} aria-busy=\{!controlsReady\} suppressHydrationWarning\s+onBlur=/);
+  // Controlled disclosure preserves hydration protection, named activation,
+  // panel linkage and focus-leave/Escape cleanup without native details AX loss.
+  assert.match(controls, /<div ref=\{disclosure\} data-open=\{open\} className="preference-controls" inert=\{!controlsReady\} aria-busy=\{!controlsReady\} suppressHydrationWarning\s+onBlur=/);
+  assert.match(controls, /if \(event\.relatedTarget && !event\.currentTarget\.contains\(event\.relatedTarget\)\) setOpen\(false\)/);
+  assert.match(controls, /<button[^>]+className="preference-trigger"[^>]+aria-expanded=\{open\} aria-controls=\{panelId\}/);
+  assert.match(controls, /aria-label=\{en \? "Open preferences" : "환경설정 열기"\}/);
+  assert.match(controls, /\{open && <div className="preference-panel" id=\{panelId\}/);
+  assert.match(controls, /event\.key !== "Escape"[\s\S]*setOpen\(false\);\s*trigger\.current\?\.focus\(\)/);
   assert.doesNotMatch(catalog, /motionCopy/);
   for (const component of [intro, regions]) assert.match(component, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(intro, /media\.matches \|\| document\.documentElement\.dataset\.motion === "calm"/);
@@ -429,7 +435,7 @@ test("motion follows the OS, retires legacy storage and has no app preference co
   assert.match(layout, /prefers-reduced-motion: reduce/);
   assert.match(layout, /d\.dataset\.motion=r\?'calm':'full'/);
   assert.doesNotMatch(layout, /LandingIntro|wave-intro-seen/);
-  assert.match(await source("features/landing/components/LandingIntro.module.css"), /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.scene \{ display: none/);
+  assert.match(await source("features/landing/components/LandingIntro.module.css"), /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.scene\s*\{\s*display:\s*none/);
 });
 
 test("non-Korean locales are visibly marked as partial without breaking narrow headers", async () => {
@@ -445,7 +451,7 @@ test("non-Korean locales are visibly marked as partial without breaking narrow h
   // require the unreachable KO-partial/EN-full branches of the old lookup.
   assert.match(controls, /en \? "Some pages are in Korean" : "한국어 전체 지원"/);
   assert.match(controls, /en \? "Original place information and some features may appear in Korean\. " : ""/);
-  assert.match(css, /\.preference-controls > summary \{[\s\S]*min-height: 44px/);
+  assert.match(css, /\.preference-controls > \.preference-trigger \{[\s\S]*min-height: 44px/);
   assert.match(css, /@media \(max-width: 680px\)[\s\S]*\.preference-panel \{ position: fixed/);
 });
 
@@ -524,25 +530,26 @@ test("planner state is divided into testable feature hooks without overwriting s
   const sharingSource = await source("features/planner/hooks/useTripSharing.ts");
   const ts = (await import("typescript")).default;
   const file = ts.createSourceFile("useTripSharing.ts", sharingSource, ts.ScriptTarget.Latest, true);
-  let snapshotNode, hashNode;
+  let snapshotNode, hashNode, regionNode;
   const visit = node => {
     if (ts.isVariableDeclaration(node) && node.name.getText(file) === "snapshot") snapshotNode = node.initializer;
+    if (ts.isVariableDeclaration(node) && node.name.getText(file) === "itineraryRegion") regionNode = node.initializer;
     if (ts.isFunctionDeclaration(node) && node.name?.text === "hashSnapshot") hashNode = node;
     ts.forEachChild(node, visit);
   };
   visit(file);
-  assert.ok(snapshotNode && hashNode, "sharing owns one public snapshot and its content hash");
-  const compiled = ts.transpileModule("function project(options) { return " + snapshotNode.getText(file) + "; }\n" + hashNode.getText(file), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  assert.ok(snapshotNode && hashNode && regionNode, "sharing owns one public snapshot, its saved-place region and content hash");
+  const compiled = ts.transpileModule("function project(options) { const itineraryRegion = " + regionNode.getText(file) + "; return " + snapshotNode.getText(file) + "; }\n" + hashNode.getText(file), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   const { project, hashSnapshot } = new Function(compiled + "\nreturn { project, hashSnapshot };")();
   const options = {
-    region: "창원", theme: "history", profiles: ["route", "restroom"], locale: "ko", originLabel: "private-home-sentinel", userId: "private-account-sentinel",
+    region: "거제", selectedPlaces: [{ id: "1001", city: "창원" }], theme: "history", profiles: ["route", "restroom"], locale: "ko", originLabel: "private-home-sentinel", userId: "private-account-sentinel",
     travelStart: "2026-09-20", travelEnd: "2026-09-20", dayStartTime: "09:00", travelMode: "car",
     scheduleAssignments: { "1001": "2026-09-20" }, selectedPlaceIds: ["1001"], visitMinutesByPlaceId: { "1001": 60 },
     fixedVisits: {}, dayDeadlines: {}, breakMinutesByPlaceId: { "1001": 20 }, restPurposeByPlaceId: { "1001": "visit" },
   };
   const snapshot = project(options), projected = JSON.parse(snapshot);
   assert.deepEqual(projected, { live: true, selections: {
-    region: "창원", theme: "history", profiles: [], locale: "ko", travelStart: "2026-09-20", travelEnd: "2026-09-20", dayStartTime: "09:00", travelMode: "car",
+    region: "창원", theme: "", profiles: [], locale: "ko", travelStart: "2026-09-20", travelEnd: "2026-09-20", dayStartTime: "09:00", travelMode: "car",
     scheduleAssignments: { "1001": "2026-09-20" }, selectedPlaceIds: ["1001"], visitMinutesByPlaceId: { "1001": 60 },
     fixedVisits: {}, dayDeadlines: {}, breakMinutesByPlaceId: { "1001": 20 }, restPurposeByPlaceId: { "1001": "visit" },
   }, origin: { label: "" } });
@@ -550,6 +557,7 @@ test("planner state is divided into testable feature hooks without overwriting s
   const hash = await hashSnapshot(snapshot);
   assert.match(hash, /^[a-f\d]{64}$/);
   assert.equal(await hashSnapshot(project({ ...options, profiles: ["parking"], originLabel: "another-private-home" })), hash);
+  assert.equal(await hashSnapshot(project({ ...options, region: "김해", theme: "nature" })), hash, "unrelated search filters do not rename or republish an existing itinerary");
   assert.notEqual(await hashSnapshot(project({ ...options, travelMode: "transit" })), hash);
   assert.notEqual(await hashSnapshot(project({ ...options, visitMinutesByPlaceId: { "1001": 90 } })), hash);
   assert.match(sharingSource, /existing\?\.snapshotHash === snapshotHash/);
@@ -772,20 +780,22 @@ test("route-map rendering delegates controller, provider adapters, controls and 
 });
 
 test("arrival motion belongs to an isolated component and cleans up lifecycle listeners", async () => {
-  const [page, intro, css] = await Promise.all([
+  const [page, intro, css, renderer] = await Promise.all([
     source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"),
     source("features/landing/components/LandingIntro.module.css"),
+    source("features/landing/intro/wave-intro.tsx"),
   ]);
   assert.match(page, /<LandingIntro/);
   assert.doesNotMatch(page, /requestAnimationFrame|createIntroMasks|useEffect|<WaveField/);
   assert.match(intro, /useEffect\(\(\) =>/);
-  assert.match(intro, /timers\.forEach\(window\.clearTimeout\)/);
-  assert.match(intro, /document\.removeEventListener\("visibilitychange", hide\)/);
+  assert.match(intro, /clearTimeout\(watchdog\)/);
+  assert.match(renderer, /document\.removeEventListener\("visibilitychange", resetClock\)/);
+  assert.match(renderer, /cancelAnimationFrame\(frame\)/);
+  assert.match(renderer, /document\.hidden \|\| controls\.current\.paused \? 0/);
   assert.match(intro, /media\.removeEventListener\("change", reduce\)/);
   assert.match(intro, /node\.close\(\)/);
   assert.match(intro, /if \(media\.matches\) finish\(\)/);
-  assert.match(css, /@keyframes phrase/);
-  assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(intro, /requestAnimationFrame|putImageData|createIntroMasks/);
 });
 
@@ -810,11 +820,11 @@ test("core controls keep 44px targets on every viewport and pointer type", async
   const touchStart = css.indexOf("포인터 종류와 화면 폭에 관계없이");
   const globalTouchRules = css.slice(touchStart, css.indexOf("@media (max-width: 780px)", touchStart));
   for (const selector of [
-    ".play", ".reference-heart", ".player-controls button", ".map-command-bar button",
+    ".play", ".player-controls button", ".map-command-bar button",
     ".map-type-switch button", ".map-side-drawer header > button",
     ".trip-point-picker header > button", ".transport-dataset-grid > button",
-    ".day-planner select", ".day-order-toolbar button", ".day-order-buttons button",
-    ".travel-profile-actions button", ".travel-profile-clear", ".feedback-box button", ".help-button",
+    ".map-roadview-panel header > button", ".trip-point-picker input", ".map-poi-results article > button",
+    ".travel-profile-actions button", ".shared-error button", ".feedback-box button", ".help-button",
   ]) assert.match(globalTouchRules, new RegExp(selector.replaceAll(".", "\\.").replaceAll(">", "\\>")));
   assert.match(globalTouchRules, /min-height: 44px/);
   assert.match(await source("app/styles/mobile-interaction-hardening.css"), /\.map-provider-badge button::after[\s\S]+inset: -8px/);

@@ -74,8 +74,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
 
 @media (max-width: 1100px) {
   :root { --content: min(94vw, 940px); }
-
-  .profile-panel, .selection-bar, .planner-notice { grid-column: auto; }
   .guide-player { width: min(600px, 100%); margin: auto; }
 }
 
@@ -83,11 +81,7 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
   :root { --content: calc(100vw - 24px); }
 
   .places-section { padding: 88px 20px; }
-
-  .theme-grid { grid-template-columns: 1fr 1fr; }
   .profile-grid { grid-template-columns: 1fr 1fr; }
-  .selection-bar { align-items: stretch; flex-direction: column; }
-  .selection-bar .auto-refresh-note { max-width: none; text-align: left; }
   .place-card { flex-basis: min(380px, 86vw); }
   .place-modal { grid-template-columns: 1fr; }
   .modal-visual { min-height: clamp(160px, 24dvh, 260px); }
@@ -100,9 +94,7 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
 @media (max-width: 520px) {
   .brand { font-size: 1rem; }
   .primary-button { justify-content: space-between; }
-
-  .control-panel { padding: 17px; border-radius: 18px; }
-  .theme-grid, .profile-grid { grid-template-columns: 1fr; }
+  .profile-grid { grid-template-columns: 1fr; }
   .profile-card { min-height: 74px; }
   .modal-body { padding: 34px 22px 25px; }
 }

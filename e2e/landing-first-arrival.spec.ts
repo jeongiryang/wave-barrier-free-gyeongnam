@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { freshArrival, openLandingTools, prepareStory, storyReady } from "./landing-contract";
+import { arrivalPlaybackReady, freshArrival, openLandingTools, prepareStory, storyReady } from "./landing-contract";
+import { INTRO_DURATION_MS } from '../features/landing/intro/wave-timing';
 
 for (const seenBefore of [false, true]) {
   test(`a legacy marker ${seenBefore} does not suppress the current accessible intro`, async ({ page }) => {
@@ -11,15 +12,13 @@ for (const seenBefore of [false, true]) {
     await freshArrival(page);
     const scene = page.locator(".arrival-scene");
     await expect(scene).toHaveAttribute("open", "");
-    await expect(scene.locator(".arrival-picture img").first()).toHaveAttribute("src", "/media/horizon/hero-coast.jpg");
-    await expect(scene.locator(".arrival-word")).toContainText("WAVE");
-    await expect(scene).toContainText("모두의 여행이 같은 출발선에 설 수 있도록");
+    await arrivalPlaybackReady(page);
+    await expect(scene.locator('img, video')).toHaveCount(0);
+    await expect(scene.locator('.wave-intro canvas')).toBeVisible();
     await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
     const action = page.locator(".landing-actions a");
-    await page.clock.runFor(8200);
-    await expect(scene.locator("p")).toHaveText("WAVE가 당신의 발걸음을 응원합니다");
-    await expect(scene.locator("p")).toHaveCSS("opacity", "1");
-    await page.clock.runFor(2200);
+    const elapsed = Number(await scene.locator('.wave-intro').getAttribute('data-time-ms'));
+    await page.clock.runFor(INTRO_DURATION_MS - elapsed + 100);
     await expect(scene).toBeHidden();
     await action.focus(); await expect(action).toBeFocused();
     expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");

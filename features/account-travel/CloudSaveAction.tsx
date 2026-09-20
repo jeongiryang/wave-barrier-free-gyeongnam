@@ -9,6 +9,8 @@ import type { AccountTrip, AccountTripPayload } from "./types";
 import { KakaoSendToSelf, KakaoTravelShare } from "../kakao-travel/KakaoTravelActions";
 import { useSitePreferences } from "../preferences/context";
 import { vibrate } from "../../lib/haptics.js";
+import { tripTimingWarnings } from '../planner/trip-timing-review';
+import { useTripTimingConfirmation } from '../planner/components/TripTimingConfirmation';
 
 export default function CloudSaveAction({ book }: { book: TravelBook }) {
   const { data, isPending } = useHydratedSession();
@@ -20,6 +22,7 @@ export default function CloudSaveAction({ book }: { book: TravelBook }) {
   // 진동은 보조 신호다. 같은 결과를 아래 role="status" 문장이 그대로 전한다.
   const { haptics } = useSitePreferences();
   const key = JSON.stringify([userId, book.title, book.region, book.travelStart, book.travelEnd, book.dayStartTime, book.travelMode, book.themes, book.theme, book.status, book.note, book.places.map(place => place.id), book.scheduleAssignments, book.visitMinutesByPlaceId, book.fixedVisits, book.dayDeadlines, book.breakMinutesByPlaceId, book.restPurposeByPlaceId]);
+  const timing = useTripTimingConfirmation(tripTimingWarnings(book), key);
   async function save() {
     if (!userId || pending.current) return;
     pending.current = true; setBusy(true);
@@ -35,10 +38,11 @@ export default function CloudSaveAction({ book }: { book: TravelBook }) {
   let shareTrip;
   try { shareTrip = bookToAccountTrip(book) as AccountTripPayload; } catch { /* Legacy or incomplete local travel remains usable. */ }
   return <div className="account-trip-save">
-    <div className="travel-book-actions">{userId ? <button type="button" disabled={busy} onClick={() => void save()}>{busy ? "계정에 저장 중…" : "계정에 저장"}</button> : <Link href="/login?next=%2Ftravel-book">로그인하고 여러 기기에서 이어가기 →</Link>}</div>
+    <div className="travel-book-actions">{userId ? <button type="button" disabled={busy} onClick={() => timing.request(() => void save())}>{busy ? "계정에 저장 중…" : "계정에 저장"}</button> : <Link href="/login?next=%2Ftravel-book">로그인하고 여러 기기에서 이어가기 →</Link>}</div>
     {userId && <small>여행 제목·장소·일정·메모를 저장합니다. 편의 조건은 별도로 선택해 저장할 수 있어요.</small>}
     {userId && state.userId === userId && state.key === key && state.message && <p role="status">{state.message} {state.id && <Link href={`/my-trips/${state.id}`}>저장한 여행 열기 →</Link>}</p>}
     {shareTrip && <KakaoTravelShare trip={shareTrip} />}
     {userId && state.userId === userId && state.key === key && state.id && <KakaoSendToSelf key={state.id} tripId={state.id} />}
+    {timing.confirmation}
   </div>;
 }

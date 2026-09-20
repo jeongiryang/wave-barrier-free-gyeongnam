@@ -8,11 +8,6 @@
 .travel-book-hero dl { grid-column: 1/-1; margin: 0; padding: 16px 0; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; border-block: 1px solid var(--line); }
 .travel-book-hero dl div { min-height: 64px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .travel-book-hero dt { color: var(--muted); font-size: 0.8rem; font-weight: 600; }.travel-book-hero dd { margin: 0; color: var(--blue); font-size: 1.5rem; font-weight: 600; }
-.travel-book-landscapes { display: grid; grid-template-columns: 1.25fr .8fr; gap: 18px; padding-bottom: 42px; }
-.travel-book-landscapes .editorial-photo { min-height: 390px; border-radius: 100px 8px 8px 8px; }
-.travel-book-landscapes .editorial-photo:nth-child(2) { margin-top: 80px; margin-bottom: -42px; border-radius: 8px 8px 80px 8px; }
-.travel-book-landscapes .editorial-photo img { position: absolute; inset: 0; }
-.travel-book-landscapes figcaption { left: 14px; right: 14px; font-size: 0.75rem; }
 .travel-book-paths { width: min(1240px,calc(100% - 48px)); margin: 0 auto 72px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
 .travel-book-paths > a { padding: 24px 0; border-bottom: 1px solid var(--line); transition: border-color .2s; }.travel-book-paths > a:hover { border-color: var(--blue); }
 .travel-book-paths small,.travel-book-collection-heading > p { color: var(--blue); font-size: 0.75rem; letter-spacing: .1em; }
@@ -64,7 +59,7 @@ html[data-theme="dark"] .travel-book-note textarea { color: #edf7fb; border-colo
 html[data-theme="dark"] .travel-book-empty { border-color: #386273; background: #0a2b39; }html[data-theme="dark"] .travel-book-empty > span { background: #123f50; }
 
 @media (max-width: 860px) {
-  .travel-book-hero { grid-template-columns: 1fr; }.travel-book-landscapes { max-width: 660px; width: 100%; margin: auto; }.travel-book-hero dl div { align-items: flex-start; flex-direction: column; }
+  .travel-book-hero { grid-template-columns: 1fr; }.travel-book-hero dl div { align-items: flex-start; flex-direction: column; }
   .travel-book-card { grid-template-columns: 1fr; }.travel-book-cover { min-height: 260px; }.travel-book-card-body > header { flex-direction: column; }.travel-book-status { width: 100%; }.travel-book-status button { flex: 1; }
 }
 @media (max-width: 620px) {
@@ -73,7 +68,6 @@ html[data-theme="dark"] .travel-book-empty { border-color: #386273; background: 
   .region-record-list { width:calc(100% - 16px); padding:18px 14px; }.region-record-list > header { align-items:flex-start; flex-direction:column; }.region-record-list ul { grid-template-columns:1fr; }
   .travel-book-hero,.travel-book-list,.travel-book-footer { width: calc(100% - 16px); }.travel-book-empty { width: calc(100% - 24px); }
   .travel-book-hero { margin-top: 8px; padding: 26px 12px 0; gap: 28px; }.travel-book-hero h1 { font-size: clamp(2.3rem,9vw,3.6rem); }.travel-book-hero dl div { min-height: 64px; padding: 8px 4px; gap: 8px; }.travel-book-hero dt { font-size: 0.75rem; }
-  .travel-book-landscapes { gap: 12px; }.travel-book-landscapes .editorial-photo { min-height: 290px; border-radius: 60px 6px 6px; }.travel-book-landscapes .editorial-photo:nth-child(2) { margin-top: 48px; }.travel-book-landscapes figcaption { font-size: 0.75rem; left: 10px; right: 10px; }
   .travel-book-paths { grid-template-columns: 1fr; gap: 0; margin-bottom: 44px; }.travel-book-paths > a { padding: 20px 0; }.travel-book-paths strong { margin-top: 8px; }.travel-book-card { border-radius: 22px; }.travel-book-cover { min-height: 220px; }.travel-book-card-body { padding: 20px 14px; }.travel-book-days li { grid-template-columns: 30px 1fr; }.travel-book-days li em { grid-column: 2; white-space: normal; }.travel-book-days section > header { align-items: flex-start; flex-direction: column; }
   .travel-book-actions { grid-template-columns: 1fr; }.travel-book-delete { align-items: stretch; flex-wrap: wrap; }.travel-book-delete-confirm { width: 100%; align-items: stretch; flex-wrap: wrap; }.travel-book-delete span { width: 100%; }.travel-book-footer { flex-direction: column; align-items: center; }
 }

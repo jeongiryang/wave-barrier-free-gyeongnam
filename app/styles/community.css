@@ -53,6 +53,7 @@
 .community-pagination { margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 15px; }
 .community-pagination button { min-height: 42px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 11px; background: #fff; font: inherit; font-size: 0.875rem; font-weight: 600; }
 .community-pagination span { color: var(--muted); font-size: 0.875rem; }
+.wave-night .community-state :is(button,a),.wave-night .community-gate > a:first-of-type { color:#fff; background:#235bd0; }
 
 .community-form-page > section,.community-detail-page > section { padding: 72px max(24px,calc((100vw - 980px)/2)) 110px; }
 .community-editor { padding: clamp(24px,5vw,52px); display: grid; gap: 23px; border: 1px solid var(--line); border-radius: 28px; background: #fff; box-shadow: 0 22px 55px rgba(6,50,70,.09); }

@@ -1,22 +1,7 @@
-.scene { position:fixed; inset:0; width:100%; max-width:none; height:100dvh; max-height:none; margin:0; padding:0; border:0; overflow:hidden; background:#04202f; color:#fff; opacity:1; transition:opacity .6s ease; }
-.scene::backdrop { background:transparent; }
-.scene[data-leaving=true] { opacity:0; pointer-events:none; }
-.photo { position:absolute; inset:0; opacity:0; transition:opacity .8s ease; }
-.photo[data-active=true] { opacity:1; }
-.photo figure { margin:0; width:100%; height:100%; }
-.photo img { width:100%; height:100%; object-fit:cover; animation:drift 11s linear both; }
-.photo figcaption { position:absolute; bottom:18px; left:24px; right:24px; z-index:3; font-size:11px; color:#fff; }
-.photo figcaption a { color:inherit; }
-.photo::after { content:""; position:absolute; inset:0; background:linear-gradient(#04202f80,#04202fb8); }
-.particles { position:absolute; inset:0; width:100%; height:100%; opacity:.78; mix-blend-mode:screen; pointer-events:none; }
-.copy { position:absolute; inset:0; display:grid; align-content:end; justify-items:center; padding:24px 24px max(20vh,90px); text-align:center; pointer-events:none; }
-.copy p { margin:0; max-width:26ch; color:#fff; font-size:clamp(1.35rem,3.2vw,3rem); font-weight:750; line-height:1.5; text-wrap:balance; text-shadow:0 2px 18px #04202f; animation:phrase 2.5s ease both; }
-.progress { position:absolute; top:28px; left:24px; font-size:14px; letter-spacing:.15em; }
-.skip { position:absolute; right:20px; top:16px; min-width:88px; min-height:44px; border:1px solid #fff; border-radius:999px; color:#fff; background:#173d37; font:inherit; font-weight:700; }
-.skip:focus-visible { outline:3px solid #fff; outline-offset:4px; }
-@keyframes phrase { 0% { opacity:0; transform:translateY(32px); } 22%,88% { opacity:1; transform:none; } 100% { opacity:0; transform:translateY(-4px); } }
-@keyframes drift { from { transform:scale(1.035); } to { transform:scale(1); } }
-@media (prefers-reduced-motion: reduce) { .scene { display: none; transition:none; } .photo,.photo img,.copy p { animation:none; transition:none; } }
-.scene:not([open]) :is(img,p) { animation:none; }
-.copy p[data-final=true] { animation:final-phrase .6s ease both; }
-@keyframes final-phrase { from { opacity:0; transform:translateY(32px); } to { opacity:1; transform:none; } }
+.scene{position:fixed;inset:0;width:100%;max-width:none;height:100dvh;max-height:none;margin:0;padding:0;border:0;overflow:hidden;background:#020817;color:#fff}
+.scene::backdrop{background:transparent}.scene[data-leaving=true]{background:transparent}
+.controls{position:absolute;z-index:200;top:max(16px,env(safe-area-inset-top));right:clamp(12px,3vw,40px);display:flex;align-items:center;gap:8px;color:#fff;font-size:14px}
+.controls button{min-width:44px;min-height:44px;padding:8px 12px;background:#091627e6;border:1px solid #6385a1;border-radius:999px;color:#fff;font:inherit}
+.controls button:focus-visible{outline:3px solid #8de8ff;outline-offset:3px}.controls button:disabled{opacity:.45}.controls span{margin-right:8px}
+.fallback{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font-size:clamp(24px,4vw,48px)}
+@media(prefers-reduced-motion:reduce){.scene{display:none}}

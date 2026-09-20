@@ -23,6 +23,8 @@ import { changeVisitDuration } from "../../lib/visit-durations.js";
 import KakaoTaxiLink from "../kakao-travel/KakaoTaxiLink";
 import { clearTripDraft, readTripDraft, writeTripDraft } from "../../lib/account-travel/draft.js";
 import OpenTripInPlanner from './OpenTripInPlanner';
+import { tripTimingWarnings } from '../planner/trip-timing-review';
+import { useTripTimingConfirmation } from '../planner/components/TripTimingConfirmation';
 
 function Editor({ id, userId }: { id: string; userId: string }) {
   const router = useRouter();
@@ -41,6 +43,8 @@ function Editor({ id, userId }: { id: string; userId: string }) {
   const editVersion = useRef(0);
   const copyId = useRef("");
   const mounted = useRef(true);
+  const timingWarnings = draft ? tripTimingWarnings({ ...draft, places: draft.placeIds.map((placeId, index) => places.find(place => place.id === placeId) || { id: placeId, name: `여행지 ${index + 1}` }) }) : [];
+  const timing = useTripTimingConfirmation(timingWarnings, JSON.stringify([id, userId, draft, timingWarnings]));
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const refresh = useCallback(async () => {
     const data = await travelRequest<TripDetail>(`/${id}`); setTrip(data);
@@ -108,6 +112,7 @@ function Editor({ id, userId }: { id: string; userId: string }) {
     setNotice(editVersion.current === savingVersion ? '여행 변경 사항을 계정에 저장했어요.' : '저장 중 새로 입력한 내용은 그대로 남아 있어요. 한 번 더 저장해 주세요.');
   }
   return <>
+    {timing.confirmation}
     <div className="travel-book-actions"><Link href="/my-trips">← 계정 여행 목록</Link><Link href="/guide#companions">사용 방법</Link></div><p role="status">{busy ? "여행을 반영하고 있어요…" : notice}</p>
     {loginRequired && <p role="alert">수정 내용은 이 탭에 남아 있어요. <Link href={`/login?next=${encodeURIComponent(`/my-trips/${id}`)}`}>다시 로그인하고 이어가기</Link></p>}
     {changed && !recoverySaved && <p role="alert">브라우저 임시 저장에 실패했어요. 이 화면을 떠나기 전에 계정에 저장하거나 아래에서 수정본을 파일로 내보내 주세요.</p>}
@@ -135,8 +140,8 @@ function Editor({ id, userId }: { id: string; userId: string }) {
             </div>{place && <KakaoTaxiLink destination={place} />}</section>;
         })}</div>
         {owner ? <label className="travel-book-note"><span>동행자와 공유하는 여행 메모</span><textarea value={draft.note} onChange={event => change({ note: event.target.value })} maxLength={1200} placeholder="여행 준비물과 함께 확인할 내용을 적어보세요." /></label> : <p>{trip.payload.note || "아직 여행 메모가 없습니다."}</p>}
-        {owner && <div className="travel-book-actions"><button type="button" className="primary" disabled={busy || !changed || conflict} onClick={() => run(saveDraft)}>변경 사항 저장</button><span>{changed ? "저장하지 않은 변경 사항이 있어요." : "계정에 저장된 일정입니다."}</span></div>}
-        {conflict && <section><h3>다른 화면의 수정본과 내 수정본이 달라요.</h3><p>내 수정본을 별도 여행으로 보관하거나 최신 버전을 불러올 수 있습니다.</p><div className="travel-book-actions"><button type="button" disabled={busy} onClick={() => run(async () => { copyId.current ||= crypto.randomUUID(); const result = await travelRequest<AccountTrip>("", { id: copyId.current, payload: draft }); router.push(`/my-trips/${result.id}`); })}>내 수정본을 새 여행으로 저장</button><button type="button" disabled={busy} onClick={() => run(async () => { const result = await travelRequest<TripDetail>(`/${id}`); setTrip(result); setDraft(result.payload); draftRevision.current = result.revision; setConflict(false); setNotice("최신 버전을 불러왔어요."); })}>내 수정 취소하고 최신 불러오기</button></div></section>}
+        {owner && <div className="travel-book-actions"><button type="button" className="primary" disabled={busy || !changed || conflict} onClick={() => timing.request(() => run(saveDraft))}>변경 사항 저장</button><span>{changed ? "저장하지 않은 변경 사항이 있어요." : "계정에 저장된 일정입니다."}</span></div>}
+        {conflict && <section><h3>다른 화면의 수정본과 내 수정본이 달라요.</h3><p>내 수정본을 별도 여행으로 보관하거나 최신 버전을 불러올 수 있습니다.</p><div className="travel-book-actions"><button type="button" disabled={busy} onClick={() => timing.request(() => run(async () => { copyId.current ||= crypto.randomUUID(); const result = await travelRequest<AccountTrip>("", { id: copyId.current, payload: draft }); router.push(`/my-trips/${result.id}`); }))}>내 수정본을 새 여행으로 저장</button><button type="button" disabled={busy} onClick={() => run(async () => { const result = await travelRequest<TripDetail>(`/${id}`); setTrip(result); setDraft(result.payload); draftRevision.current = result.revision; setConflict(false); setNotice("최신 버전을 불러왔어요."); })}>내 수정 취소하고 최신 불러오기</button></div></section>}
       </section>
       <section className="account-settings" aria-labelledby="kakao-travel-title"><h2 id="kakao-travel-title">카카오톡으로 여행 잇기</h2><p>마지막으로 계정에 저장한 일정을 보냅니다.{changed && " 수정한 내용을 보내려면 변경 사항을 저장해 주세요."}</p><KakaoTravelShare trip={trip.payload} /><KakaoSendToSelf key={trip.id} tripId={trip.id} disabled={changed} /></section>
       <TripCompanions trip={trip} userId={userId} onChange={refresh} run={run} busy={busy} />

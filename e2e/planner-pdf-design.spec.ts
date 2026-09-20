@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { chooseTripConditions, mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
@@ -36,6 +37,7 @@ test("두 탭에서 날짜 없는 탐색부터 일정 편집·지도·저장·�
   await expect(page.locator('.simple-save-control')).toContainText('저장');
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('wave-travel-book-v1') || '[]').length)).toBe(1);
   await page.locator('.simple-trip-actions').getByRole('button', { name: '공유', exact: true }).click();
+  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
   const share = page.getByRole('dialog', { name: '여행 공유', exact: true });
   await expect(share.getByRole('button', { name: '링크 복사', exact: true })).toBeEnabled();
   await share.getByRole('button', { name: '공유 닫기', exact: true }).click();

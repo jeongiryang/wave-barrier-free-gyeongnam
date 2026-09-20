@@ -59,7 +59,7 @@ export default function WaveHeader({ current, savedCount, onSaved, className = "
       <Link href="/festivals" aria-current={current === "festivals" ? "page" : undefined}><NavIcon name="festivals" /><span>{en ? "Festivals" : "축제"}</span></Link>
       <Link href="/community" aria-current={current === "community" ? "page" : undefined}><NavIcon name="community" /><span>{en ? "Community" : "커뮤니티"}</span></Link>
     </nav>
-    <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}>{night && <><Link className="night-search-link" href="/planner#places" aria-label="여행지 검색"><NightIcon name="search"/></Link><Suspense fallback={<><span className="night-login">로그인</span><span className="night-signup">회원가입</span></>}><NightAuthLinks/></Suspense></>}<WaveHeaderTools />{onSaved ? <button className="wave-my-trips" type="button" onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
+    <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}>{night && <><Link className="night-search-link" href="/planner#places" aria-label="여행지 검색"><NightIcon name="search"/></Link><Suspense fallback={<Link className="night-login" href="/account">계정</Link>}><NightAuthLinks/></Suspense></>}<WaveHeaderTools />{onSaved ? <button className="wave-my-trips" type="button" onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
       : <Link className="wave-my-trips" href="/travel-book" aria-current={current === "travel-book" ? "page" : undefined} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</Link>}</div>
   </header>;
 }

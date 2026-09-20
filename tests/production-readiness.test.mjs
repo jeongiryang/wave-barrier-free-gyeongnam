@@ -389,23 +389,26 @@ test("preserved feature previews retain their order and motion safety; current c
   }
 });
 
-test("arrival intro reuses the historical renderer and supports explicit dismissal", async () => {
+test("arrival intro hosts the approved renderer with explicit playback and bounded recovery", async () => {
   const [landing, intro, css] = await Promise.all([
     source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"), source("features/landing/components/LandingIntro.module.css"),
   ]);
-  assert.match(intro, /<EditorialPhoto photo=\{photo\}/);
-  assert.match(intro, /arrival-word.*aria-hidden="true">WAVE/);
-  assert.match(intro, /import\("\.\.\/\.\.\/motion\/wave-field-engine"\)/);
+  assert.match(intro, /import\("\.\.\/intro\/wave-intro"\)/);
+  assert.doesNotMatch(intro, /EditorialPhoto|<img|<video/);
   assert.match(landing, /<LandingIntro \/><main/);
   assert.match(intro, /<dialog ref=\{dialog\}/);
   assert.match(intro, /onCancel=/);
   assert.match(intro, /건너뛰기/);
   assert.match(intro, /prefers-reduced-motion: reduce/);
-  assert.match(intro, /setTimeout\(finish, DURATION\)/);
+  assert.match(intro, /onComplete=\{\(\)=>finishRef\.current\(\)\}/);
+  assert.match(intro, /watchdog\s*=\s*setTimeout\([\s\S]*!ready\.current[\s\S]*8000\)/);
+  assert.match(intro, /onFailure=\{\(\)=>setFailed\(true\)\}/);
+  assert.match(intro, /일시정지/);
+  assert.match(intro, /이전 장면/);
+  assert.match(intro, /다음 장면/);
   assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
-  assert.match(intro, /timers\.forEach\(window\.clearTimeout\)/);
-  assert.match(css, /\.scene \{[^}]*position:\s*fixed/);
-  assert.match(css, /object-fit:\s*cover/);
+  assert.match(intro, /clearTimeout\(watchdog\)/);
+  assert.match(css, /\.scene\s*\{[^}]*position:\s*fixed/);
   assert.doesNotMatch(landing, /<LandingSectionProgress|<LandingAccountStory/);
 });
 

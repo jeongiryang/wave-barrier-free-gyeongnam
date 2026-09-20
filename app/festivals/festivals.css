@@ -9,9 +9,9 @@
 .festival-filters input,.festival-filters select,.festival-visit-date input { width: 100%; min-width: 0; min-height: 46px; border: 1px solid #d8d3e1; border-radius: 10px; padding: 10px 12px; color: inherit; background: white; font: inherit; }
 .festival-filters input[type=date],.festival-visit-date input[type=date] { cursor: pointer; }
 .festival-preferences { display: flex; gap: 12px; flex-wrap: wrap; grid-column: 1/-1; }
-.festival-preferences button,.festival-preferences summary { min-height: 44px; padding: 10px 14px; border: 1px solid #ddd5e8; border-radius: 12px; background: #faf8fc; color: #554667; cursor: pointer; font: inherit; font-size: 14px; }
+.festival-preferences button,.festival-preferences .festival-preference-trigger { min-height: 44px; padding: 10px 14px; border: 1px solid #ddd5e8; border-radius: 12px; background: #faf8fc; color: #554667; cursor: pointer; font: inherit; font-size: 14px; }
 .festival-preferences [aria-pressed=true] { background: #ede4f8; border-color: #764ca7; color: #542a80; }
-.festival-preferences details > div { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 12px; }
+.festival-preferences .festival-preference-panel { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 12px; }
 .festival-results { padding: 28px 0 56px; }
 .festival-results > p { color: #625d6a; }
 .festival-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; align-items: start; }

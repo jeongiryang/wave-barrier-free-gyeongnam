@@ -48,7 +48,7 @@ export default function RecommendationWorkspace(props: RecommendationWorkspacePr
       <button type="button" aria-pressed={view === 'list'} onClick={() => changeView('list')}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 5h4v4H3zm0 10h4v4H3zM11 7h10M11 17h10" /></svg>{en ? 'List' : '목록형'}</button>
       <button type="button" aria-pressed={view === 'grid'} onClick={() => changeView('grid')}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z" /></svg>{en ? 'Grid' : '격자형'}</button>
     </div>
-    <DirectPlaceSearch region={props.region} trip={props.tripSelection} onRegionSelect={props.onRegionSelect} onBuildItinerary={props.onBuildItinerary} />
+    <DirectPlaceSearch officialPlaces={props.activePlaces} profiles={props.planController.selected} onPlace={props.onSelectPlace} region={props.region} trip={props.tripSelection} onRegionSelect={props.onRegionSelect} onBuildItinerary={props.onBuildItinerary} />
 
     <RecommendationCarousel {...props} />
     {props.tripSelection.saved.length > 0 && <div lang="ko" className="simple-journey-guidance" aria-label="담은 장소로 이어가기"><p>담은 장소 {props.tripSelection.saved.length}곳 · {props.tripSelection.travelStart ? '날짜·순서·이동을 내 일정에서 확인해요.' : '날짜와 출발지를 정하면 시간표로 이어져요.'}</p><button type="button" onClick={props.onBuildItinerary}>{props.tripSelection.travelStart ? '내 일정 보기' : '날짜 정하기'}</button></div>}

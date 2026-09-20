@@ -77,7 +77,7 @@ for (const populated of [false, true]) {
       await page.screenshot({ path: test.info().outputPath('help-places.png') });
       await dialog.getByRole('button', { name: '투어 마치기', exact: true }).click();
       const support = page.locator('.wave-support-menu');
-      if (await support.getAttribute('open') !== null) await support.locator(':scope > summary').click();
+      if (await support.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).getAttribute('aria-expanded') === 'true') await support.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();
       await openItinerary(page); await openSupportMenu(page); await help.click();
       await expect(page.locator('#itinerary[data-help-tour-active="true"]')).toBeVisible();
       await expectHighlightContains(spotlight, page.locator('.simple-timeboard h3').first());

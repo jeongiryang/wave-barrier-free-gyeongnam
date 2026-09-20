@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 import { mockPlannerApi, chooseTripConditions, openItinerary } from './fixtures';
 import { departureItem, openDeparture, routeTools, validShareApi } from './departure-fixtures';
 import { closeNaruTool } from './naru-tool-fixtures';
-test('departure disclosures distinguish partial evidence and keyboard calendar keeps Korea time', async ({ page, baseURL }) => {
+test('departure disclosures distinguish partial evidence and keyboard calendar keeps Korea time', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-10-08T01:00:00Z')); const today = '2026-10-08';
   await page.emulateMedia({ reducedMotion: 'reduce' }); await mockPlannerApi(page);
   await page.route('**/api/wave?*', async route => new URL(route.request().url()).searchParams.get('action') !== 'crowd' ? route.fallback() : route.fulfill({ json: { crowd: { place: '경남도립미술관', rate: 24, baseYmd: today.replaceAll('-', '') } } }));
@@ -25,7 +25,7 @@ test('departure disclosures distinguish partial evidence and keyboard calendar k
   const calendar = menu.getByRole('button', { name: '캘린더', exact: true }); await expect(calendar).toBeEnabled(); await calendar.focus();
   const downloading = page.waitForEvent('download'); await page.keyboard.press('Enter'); const download = await downloading;
   expect(download.suggestedFilename()).toBe('wave-trip.ics'); const contents = (await readFile((await download.path())!, 'utf8')).replaceAll('\r\n ', '');
-  expect(contents).toContain('TZID:Asia/Seoul'); expect(contents).toContain('DTSTART;TZID=Asia/Seoul:20261008T093000'); expect(contents).toContain(`URL:${new URL('/trip/abcdef123456', baseURL).href}`);
+  expect(contents).toContain('TZID:Asia/Seoul'); expect(contents).toContain('DTSTART;TZID=Asia/Seoul:20261008T093000'); expect(contents).not.toMatch(/^URL:/m);
   await menu.getByRole('button', { name: '공유 닫기' }).click(); await openDeparture(page); await expect(card).toBeVisible();
 });
 test('past trips and forecast failures never claim departure readiness', async ({ page }) => {

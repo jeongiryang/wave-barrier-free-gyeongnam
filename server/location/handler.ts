@@ -1,4 +1,8 @@
-import { UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
+import { attemptProvider, commonParams, fetchTourismData } from '../shared/provider-data';
+import { lookupPlaces } from '../tourism/place-lookup';
+import { profileFields } from '../tourism/catalog';
+import { canonicalPublicPlace } from '../../lib/place-identity';
+import { SERVER_BUDGET_MS, UPSTREAM_TIMEOUT_MS } from "../../lib/request-budget.js";
 import type { Env } from "../shared/env";
 import { clean, httpsUrl, json } from "../shared/http";
 import { requestProvider } from "../shared/provider-request.js";
@@ -24,17 +28,17 @@ export async function handleLocationSearch(request: Request, env: Env) {
   const query = clean(url.searchParams.get("q"), 100);
   const gyeongnamOnly = url.searchParams.get("scope") === "gyeongnam";
   if (query.length < 2) return json({ error: "두 글자 이상 입력해 주세요." }, 400);
+  const searchSignal = AbortSignal.any([request.signal, AbortSignal.timeout(SERVER_BUDGET_MS.officialLocation)]);
   try {
     const scopedQuery = gyeongnamOnly && !/(경상남도|경남)/.test(query) ? `경상남도 ${query}` : query;
     const params = new URLSearchParams({ query: scopedQuery, size: "12", sort: "accuracy" });
     const response = await requestProvider({provider:"kakao-local",family:"kakao",operation:"keyword.json"}, `https://dapi.kakao.com/v2/local/search/keyword.json?${params.toString()}`, {
-      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.location),
+      signal: AbortSignal.any([searchSignal, AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.location)]),
       headers: { Authorization: `KakaoAK ${key}`, Accept: "application/json" },
     }, fetch);
     if (!response.ok) throw new Error(`장소 검색 응답 ${response.status}`);
     const data = await response.json() as { documents?: Array<Record<string, string>> };
-    return json({
-      places: (data.documents || []).filter(item => !gyeongnamOnly || /^(경상남도|경남)\s/.test(clean(item.road_address_name || item.address_name))).map((item) => ({
+    const places = (data.documents || []).filter(item => !gyeongnamOnly || /^(경상남도|경남)\s/.test(clean(item.road_address_name || item.address_name))).map((item) => ({
         id: clean(item.id),
         name: clean(item.place_name),
         address: clean(item.road_address_name || item.address_name),
@@ -46,8 +50,17 @@ export async function handleLocationSearch(request: Request, env: Env) {
         mapX: clean(item.x),
         mapY: clean(item.y),
         placeUrl: httpsUrl(item.place_url),
-      })),
-    }, 200, true);
+      }));
+    if (gyeongnamOnly && url.searchParams.get('official') === '1') {
+      const signal = searchSignal;
+      const profiles = [...new Set((url.searchParams.get('profiles') || '').split(',').filter(id => profileFields[id]))].slice(0, 6);
+      const official = await attemptProvider(fetchTourismData(env, 'KorService2', 'searchKeyword2', { ...commonParams('12'), lDongRegnCd: '48', keyword: query }, signal));
+      const candidates = official.ok ? official.value.items.map(item => ({ id: clean(item.contentid), name: clean(item.title), address: clean(item.addr1), mapX: clean(item.mapx), mapY: clean(item.mapy) })).filter(item => /^[1-9]\d{0,11}$/.test(item.id)) : [];
+      const ids = [...new Set(places.map(item => canonicalPublicPlace(item, candidates)?.id).filter((id): id is string => Boolean(id)))].slice(0, 3);
+      const officialPlaces = ids.length ? await lookupPlaces(ids, profiles, env, signal) : [];
+      return json({ places, officialPlaces, officialState: !official.ok || official.value.partial || ids.some(id => !officialPlaces.some(place => place.id === id)) ? 'error' : 'available' }, 200, false);
+    }
+    return json({ places }, 200, true);
   } catch (error) {
     const failure = caughtProviderFailure(error,{provider:"kakao-local",operation:"keyword.json"});
     return json({ error:providerFailureMessage(failure),failure }, 502);

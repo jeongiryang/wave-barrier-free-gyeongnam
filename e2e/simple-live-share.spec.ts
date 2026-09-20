@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { mockPlannerApi, mockPublicShellApi, plan } from './fixtures';
@@ -26,7 +27,7 @@ async function localState(page: Page) {
   });
 }
 async function copied(page: Page) { return page.evaluate(() => JSON.parse(sessionStorage.getItem('test-live-share-copied') || '[]') as string[]); }
-async function setup(page: Page, options: { createGate?: ReturnType<typeof deferred>; restored?: boolean } = {}) {
+async function setup(page: Page, options: { createGate?: ReturnType<typeof deferred>; restored?: boolean; filterRegion?: string } = {}) {
   const context = page.context();
   await context.route('**/api/**', route => route.fulfill({ status: 503, json: { error: 'Unconfigured synthetic live-share API' } }));
   await mockPlannerApi(page, { preserveView: true, savedPlaces: [original] });
@@ -65,12 +66,12 @@ async function setup(page: Page, options: { createGate?: ReturnType<typeof defer
     else remote.payload = structuredClone(body) as PublicSnapshot;
     return route.fulfill({ json: { ...reply(), revoked: remote.revoked } });
   });
-  await page.addInitScript(({ restored, expiresAt, initial, tripId, shareId }) => {
+  await page.addInitScript(({ restored, expiresAt, initial, tripId, shareId, filterRegion }) => {
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (url: string) => {
       sessionStorage.setItem('test-live-share-copied', JSON.stringify([...JSON.parse(sessionStorage.getItem('test-live-share-copied') || '[]'), url]));
     } } });
     if (localStorage.getItem('wave-current-trip-v1')) return;
-    const values = { 'wave-planner-region-v1': '창원', 'wave-trip-themes-v1': '[]', 'wave-saved-places': '["1001"]',
+    const values = { 'wave-planner-region-v1': filterRegion, 'wave-trip-themes-v1': '[]', 'wave-saved-places': '["1001"]',
       'wave-saved-place-catalog-v1': JSON.stringify([initial]), 'wave-trip-order-v1': '{"mode":"manual","ids":["1001"]}',
       'wave-trip-identity-v1': JSON.stringify({ version: 1, id: tripId, binding: null, share: restored ? { id: shareId, revision: 4, expiresAt, snapshotHash: 'a'.repeat(64) } : null }),
       'wave-trip-schedule-v1': JSON.stringify({ travelStart: '2026-09-20', travelEnd: '2026-09-21', dayStartTime: restored ? '11:30' : '09:30', travelMode: 'transit',
@@ -78,7 +79,7 @@ async function setup(page: Page, options: { createGate?: ReturnType<typeof defer
         comfort: { maxWalkMinutes: null, breakEveryMinutes: null, breakMinutes: 15 } }) };
     localStorage.setItem('wave-current-trip-v1', JSON.stringify({ version: 1, values }));
     sessionStorage.setItem('wave-session-facilities-v1', '["restroom"]');
-  }, { restored: Boolean(options.restored), expiresAt, initial: original, tripId, shareId });
+  }, { restored: Boolean(options.restored), expiresAt, initial: original, tripId, shareId, filterRegion: options.filterRegion || '창원' });
   await page.goto('/planner');
   await itinerary(page);
   return { posts, gets, errors, remote: () => remote!, holdUpdate: (gate: ReturnType<typeof deferred>) => { updateGate = gate; },
@@ -100,6 +101,8 @@ async function openMenu(page: Page) {
 async function closeMenu(menu: Locator) { await menu.getByRole('button', { name: '공유 닫기', exact: true }).click(); }
 async function createShare(page: Page) {
   const menu = await openMenu(page);
+  await menu.getByRole('button', { name: '공개 링크 만들기', exact: true }).click();
+  await acceptTripTimingWarning(page);
   await expect(menu.getByRole('link', { name: '공유 일정 보기', exact: true })).toHaveAttribute('href', new RegExp(`/trip/${shareId}$`));
   await expect.poll(async () => (await localState(page)).identity?.share?.revision).toBe(1);
   return menu;
@@ -114,10 +117,59 @@ async function editTime(page: Page, value: string) {
 }
 async function passDebounce(page: Page) { await page.clock.runFor(2000); }
 
+test('공유 메뉴·여행 파일·캘린더는 공개 링크를 만들지 않고 명시한 생성만 공개한다', async ({ page }) => {
+  const app = await setup(page);
+  const menu = await openMenu(page);
+  await expect(menu.locator('#share-public-conditions')).toContainText('링크를 가진 누구나');
+  await expect(menu.getByRole('button', { name: '공개 링크 만들기', exact: true })).toHaveAccessibleDescription(/30일/);
+  for (const label of ['여행 파일', '캘린더']) {
+    const pending = page.waitForEvent('download');
+    await menu.getByRole('button', { name: label, exact: true }).click();
+    const download = await pending;
+    expect(await download.failure()).toBeNull();
+    const content = await readFile((await download.path())!, 'utf8');
+    if (label === '캘린더') {
+      expect(content).toContain('BEGIN:VCALENDAR');
+      expect(content).not.toMatch(/^URL:/m);
+      expect(content).not.toContain('/trip/');
+    }
+    await passDebounce(page);
+    expect(app.posts).toEqual([]);
+    expect((await localState(page)).identity?.share).toBeNull();
+  }
+  await closeMenu(menu);
+  const reopened = await openMenu(page);
+  await passDebounce(page);
+  expect(app.posts).toEqual([]);
+  await reopened.getByRole('button', { name: '공개 링크 만들기', exact: true }).click();
+  await acceptTripTimingWarning(page);
+  await expect(reopened.getByRole('link', { name: '공유 일정 보기', exact: true })).toBeVisible();
+  expect(app.creates()).toHaveLength(1);
+  expect(await copied(page)).toEqual([]);
+});
+
+test('공유 지역과 공개 제목은 다른 검색 필터가 아닌 저장 장소에서 정한다', async ({ page, context }) => {
+  const app = await setup(page, { filterRegion: '거제' });
+  const menu = await createShare(page);
+  expect(app.creates()[0].body.selections?.region).toBe('창원');
+  const viewerReady = context.waitForEvent('page');
+  await menu.getByRole('link', { name: '공유 일정 보기', exact: true }).click();
+  const viewer = await viewerReady;
+  try {
+    await expect(viewer.getByRole('heading', { level: 1 })).toHaveText('창원 여행 일정');
+    await expect(viewer.locator('.shared-hero')).toContainText('출발지는 공유하지 않은 일정');
+    await expect(viewer.locator('.shared-hero')).not.toContainText('선택 출발지');
+    await expect(viewer.locator('.shared-hero')).not.toContainText('집중률');
+  } finally { await viewer.close(); }
+});
+
 test('공유 메뉴를 다시 열거나 반복 복사해도 최초 링크를 한 번만 만든다', async ({ page }) => {
   const gate = deferred(), app = await setup(page, { createGate: gate });
   try {
     let menu = await openMenu(page);
+    expect(app.creates()).toHaveLength(0);
+    await menu.getByRole('button', { name: '공개 링크 만들기', exact: true }).click();
+  await acceptTripTimingWarning(page);
     await expect.poll(() => app.creates().length).toBe(1);
     await expect(menu.getByRole('button', { name: '링크 복사', exact: true })).toBeDisabled();
     await closeMenu(menu); menu = await openMenu(page);
