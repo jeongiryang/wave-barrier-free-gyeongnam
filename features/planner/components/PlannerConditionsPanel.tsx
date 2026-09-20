@@ -2,6 +2,7 @@
 import { lazy, Suspense, useCallback, useState } from "react";
 import GyeongnamRegionPicker from "../../../components/GyeongnamRegionPicker";
 import NightIcon from "../../../components/NightIcon";
+import MobileDisclosure from "../../../components/MobileDisclosure";
 import LoadingState from "../../../components/LoadingState";
 import { FACILITIES } from "../../../lib/facility-selection.js";
 import { regions, themes as activities } from "../constants";
@@ -60,7 +61,7 @@ export default function PlannerConditionsPanel({ planController: plan, onRegionC
     </div>
     <div className="simple-activity-filter" role="group" aria-label="하고 싶은 활동">{activities.map(activity => <button type="button" key={activity.id} disabled={!ready} aria-pressed={plan.themes.includes(activity.id)} onClick={() => plan.toggleTheme(activity.id)}>{activity.label}</button>)}</div>
     <div className="night-planner-submit"><button className="primary" type="button" disabled={!ready || !plan.region || plan.loading} onClick={() => { void onGenerate(); }}>여행 플랜 추천하기 <NightIcon name="arrow"/></button>{trip.orderedSavedPlaces.length > 0 && <button type="button" onClick={onItinerary}>담은 장소로 일정 보기 →</button>}</div>
-    </div><div className="night-planner-region-map" aria-label="경남 지도에서 지역 고르기" inert={!ready}><GyeongnamRegionPicker value={plan.region} onChange={onRegionChange} includeAll night/><p className="night-map-caption">경남,<br/>새로운 시선으로</p></div></div>
+    </div><MobileDisclosure title="지도에서 지역 고르기" className="night-planner-map-disclosure"><div className="night-planner-region-map" aria-label="경남 지도에서 지역 고르기" inert={!ready}><GyeongnamRegionPicker value={plan.region} onChange={onRegionChange} includeAll night/><p className="night-map-caption">경남,<br/>새로운 시선으로</p></div></MobileDisclosure></div>
     {!plan.region && <div className="simple-region-entry"><h2>경남, 모두의 여행지</h2><p>아름다운 자연과 따뜻한 사람이 있는, 누구나 즐길 수 있는 여행</p><Suspense fallback={<LoadingState>지역을 불러오고 있어요.</LoadingState>}><PlannerRegionDiscovery full value="" disabled={!ready} onChange={onRegionChange} onInterest={plan.setTheme} onFacilities={() => setFacilitiesOpen(true)} /></Suspense><button type="button" className="simple-text-link" disabled={!ready} onClick={() => onRegionChange("경남 전체")}>경남 전체 둘러보기 <span aria-hidden="true">→</span></button></div>}
     {facilitiesOpen && <FacilityPicker plan={plan} trip={trip} onClose={closeFacilities} />}
   </section>;

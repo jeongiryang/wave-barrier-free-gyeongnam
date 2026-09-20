@@ -39,8 +39,8 @@ test("데스크톱의 두 화면 전환은 현재 상태·다음 행동과 키�
   expect(focusStyle.type).toBe("solid");
 
   await openSupportMenu(page);
-  const preference = page.locator("details.preference-controls");
-  await preference.locator("summary").press("Enter");
+  const preference = page.locator(".preference-controls");
+  await preference.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).press("Enter");
   const language = preference.getByLabel("언어");
   await expect(language).toBeVisible();
   expect((await language.boundingBox())!.height).toBeGreaterThanOrEqual(44);

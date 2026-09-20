@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import NightBanner from '../../components/NightBanner';
 import NightIcon from '../../components/NightIcon';
+import MobileDisclosure from '../../components/MobileDisclosure';
 import WaveHeader from '../../components/WaveHeader';
 import SkipLink from '../../components/SkipLink';
 import LoadingState, { Spinner } from '../../components/LoadingState';
@@ -20,7 +21,7 @@ import { emptyTrip } from '../../lib/current-trip-storage.js';
 import { replaceTripWithBackup } from '../../lib/trip-import.js';
 import FestivalAmenities from './FestivalAmenities';
 import FestivalDetailDialog, { type FestivalDetail } from './FestivalDetailDialog';
-import { addFestivalToTrip } from '../../lib/festival-trip.js';
+import { addFestivalToTrip, existingFestivalVisit, rescheduleFestivalVisit } from '../../lib/festival-trip.js';
 
 type Festival = FestivalDetail;
 type Result = { items: Festival[]; state: string; partial: boolean; checkedAt: string };
@@ -55,6 +56,18 @@ export default function FestivalExplorer() {
   const [selected, setSelected] = useState<string[]>([]), [query, setQuery] = useState(''), [family, setFamily] = useState(false);
   const [data, setData] = useState<Result | null>(null), [loading, setLoading] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [keyword, setKeyword] = useState('전체'), [sort, setSort] = useState('추천순'), [listView, setListView] = useState(false);
+  const [eventState, setEventState] = useState('all');
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const preferencesId = useId();
+  const preferencesRef = useRef<HTMLDivElement>(null);
+  const preferencesTrigger = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const close = (event: PointerEvent) => { if (event.target instanceof Node && !preferencesRef.current?.contains(event.target)) setPreferencesOpen(false); };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, []);
+  const [duplicate, setDuplicate] = useState<{ item: Festival; date: string; previous: string; revision: string } | null>(null);
+  useEffect(() => { if (duplicate) document.getElementById('festival-existing-visit')?.focus(); }, [duplicate]);
   const [reload, setReload] = useState(0), [settled, setSettled] = useState('');
   useEffect(() => { const frame = requestAnimationFrame(() => { setStart(today()); setEnd(offsetTripDate(today(), 30)); setSelected(readSessionProfiles(getTabStorage())); }); return () => cancelAnimationFrame(frame); }, []);
   const signature = JSON.stringify([region, start, end, selected, reload]);
@@ -75,7 +88,7 @@ export default function FestivalExplorer() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature]);
   const matchesKeyword = (name: string) => keyword === '전체' || keyword === '가족 추천' || ({ '가을축제': /가을|국화|코스모스|단풍|억새/, '먹거리 축제': /음식|먹거리|수산|전어|대하|한우|사과/, '문화예술': /문화|예술|영화|음악|공연/, '국악·전통': /국악|전통|탈춤|유등/, '꽃 축제': /꽃|국화|코스모스|벚꽃|장미/, '바다·해양': /바다|해양|항|수산/ }[keyword]?.test(name) ?? true);
-  const shown = (current && !failure ? data?.items : [])?.filter(item => item.name.includes(query.trim()) && matchesKeyword(item.name) && (!family || !/맥주|와인|막걸리|주류|성인전용/.test(item.name))) || [];
+  const shown = (current && !failure ? data?.items : [])?.filter(item => (eventState === 'all' || item.state === eventState) && item.name.includes(query.trim()) && matchesKeyword(item.name) && (!family || !/맥주|와인|막걸리|주류|성인전용/.test(item.name))) || [];
   if (sort === '가까운 날짜순') shown.sort((a, b) => a.startDate.localeCompare(b.startDate));
   if (sort === '이름순') shown.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
   function openFestival(item: Festival, date: string, fresh: boolean, askNaru = false) {
@@ -85,7 +98,13 @@ export default function FestivalExplorer() {
       if (fresh) {
         const values = { ...emptyTrip(item.city, date, date), 'wave-saved-places': JSON.stringify([item.id]), 'wave-saved-place-catalog-v1': JSON.stringify([item]), 'wave-trip-order-v1': JSON.stringify({ mode: 'manual', ids: [item.id] }), 'wave-trip-schedule-v1': JSON.stringify({ travelStart: date, travelEnd: date, dayStartTime: '10:00', scheduleAssignments: { [item.id]: date }, visitMinutesByPlaceId: { [item.id]: 120 } }) };
         replaceTripWithBackup(window.localStorage, values);
-      } else addFestivalToTrip(window.localStorage, item, date);
+      } else if (!addFestivalToTrip(window.localStorage, item, date)) {
+        const existing = existingFestivalVisit(window.localStorage, item.id);
+        if (!existing) throw new Error('기존 일정을 다시 확인해 주세요.');
+        setDuplicate({ item, date, previous: existing.date, revision: existing.revision });
+        setNotice('');
+        return;
+      }
       saveSessionProfiles(getTabStorage(), selected);
       const prompt = askNaru ? `일정에 담은 ${item.name} 축제 전후로 가까운 여행지를 넣어줘. 날짜와 필요한 편의를 유지해줘.` : '';
       window.location.assign(`/planner?${new URLSearchParams({ ...(askNaru ? { assistant: 'naru', prompt } : {}), region: item.city })}#itinerary`);
@@ -94,14 +113,31 @@ export default function FestivalExplorer() {
   return <main className="festival-page wave-night"><SkipLink href="#festival-results">축제 목록으로 바로가기</SkipLink><WaveHeader current="festivals" />
     <NightBanner kind="festival" />
     <div className="night-festival-workspace">
+    {duplicate && <section className="result-notice festival-existing-visit" id="festival-existing-visit" tabIndex={-1} aria-label="이미 담긴 축제">
+      <h2>이미 일정에 담겨 있어요</h2><p>{duplicate.item.name} · 기존 방문일 {duplicate.previous}</p>
+      {duplicate.date !== duplicate.previous && <p>선택한 날짜는 {duplicate.date}입니다. 확인하기 전에는 기존 날짜를 바꾸지 않아요.</p>}
+      <div className="travel-book-actions"><Link href={`/planner?${new URLSearchParams({ region: duplicate.item.city, visit: duplicate.item.id })}#itinerary`}>기존 일정 보기</Link>
+      {duplicate.date !== duplicate.previous && <><button type="button" onClick={() => { setNotice(`기존 방문일 ${duplicate.previous}을 유지했어요.`); setDuplicate(null); }}>기존 날짜 유지</button><button type="button" onClick={() => {
+        try {
+          if (!current || pending || failure) throw new Error('축제 조회가 끝나면 날짜 변경을 다시 확인해 주세요.');
+          rescheduleFestivalVisit(window.localStorage, duplicate.item, duplicate.date, duplicate.revision);
+          setNotice(`방문 날짜를 ${duplicate.date}로 변경했어요. 다른 일정과 여행 기간은 유지됩니다.`);
+          setDuplicate({ ...duplicate, previous: duplicate.date, revision: existingFestivalVisit(window.localStorage, duplicate.item.id)!.revision });
+        } catch (error) { setNotice(error instanceof Error && /[가-힣]/.test(error.message) ? error.message : '날짜를 저장하지 못했어요. 기존 일정은 유지됩니다.'); }
+      }}>선택 날짜로 변경</button></>}
+      <button type="button" onClick={() => setDuplicate(null)}>닫기</button></div>
+    </section>}
+    <MobileDisclosure title="축제 검색 조건" className="mobile-festival-filters">
     <section className="festival-filters" aria-label="축제 찾기">
       <label><NightIcon name="pin"/><span>지역 선택<select value={region} onChange={event => setRegion(event.target.value)}>{regions.map(item => <option key={item}>{item}</option>)}</select></span></label>
       <div className="night-festival-dates"><NightIcon name="calendar"/><span>날짜 범위<span className="night-date-pair"><AccessibleDateInput aria-label="언제부터" value={start} onChange={event => setStart(event.target.value)} /><span>~</span><AccessibleDateInput aria-label="언제까지" value={end} min={start} onChange={event => setEnd(event.target.value)} /></span></span></div>
       <label><NightIcon name="search"/><span>행사명 검색<input type="search" placeholder="축제 이름을 입력하세요" value={query} onChange={event => setQuery(event.target.value)} /></span></label>
-      <div className="festival-preferences"><NightIcon name="access"/><details><summary>접근성 조건 <span>{selected.length ? `${selected.length}개 선택` : '전체'}</span></summary><div>{facilityProfiles.map(profile => <button key={profile.id} type="button" aria-pressed={selected.includes(profile.id)} onClick={() => setSelected(current => current.includes(profile.id) ? current.filter(id => id !== profile.id) : [...current, profile.id])}>{profile.label}</button>)}</div></details></div>
+      <div className="festival-preferences" ref={preferencesRef} onBlur={event => { if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) setPreferencesOpen(false); }} onKeyDown={event => { if (event.key === 'Escape' && preferencesOpen && !event.defaultPrevented) { event.preventDefault(); setPreferencesOpen(false); preferencesTrigger.current?.focus(); } }}><NightIcon name="access"/><div className="festival-preference-disclosure"><button type="button" className="festival-preference-trigger" ref={preferencesTrigger} aria-expanded={preferencesOpen} aria-controls={preferencesId} onClick={() => setPreferencesOpen(value => !value)}>접근성 조건 <span>{selected.length ? `${selected.length}개 선택` : '전체'}</span></button>{preferencesOpen && <div id={preferencesId} className="festival-preference-panel">{facilityProfiles.map(profile => <button key={profile.id} type="button" aria-label={profile.label} aria-pressed={selected.includes(profile.id)} onClick={() => setSelected(current => current.includes(profile.id) ? current.filter(id => id !== profile.id) : [...current, profile.id])}>{profile.label}</button>)}</div>}</div></div>
       <button className="primary night-festival-search" type="button" onClick={() => setReload(current => current + 1)}>축제 검색하기 <NightIcon name="arrow"/></button>
     </section>
     <div className="night-festival-keywords" role="group" aria-label="축제 키워드"><strong>인기 키워드</strong>{['전체','가을축제','먹거리 축제','문화예술','국악·전통','꽃 축제','바다·해양','가족 추천'].map(item => <button type="button" key={item} disabled={!start} aria-pressed={keyword === item} onClick={() => { setKeyword(item); if (item === '가족 추천') setFamily(true); }}>{item}</button>)}<button type="button" className="night-family-toggle" disabled={!start} aria-pressed={family} onClick={() => setFamily(!family)}>주류 행사 제외</button></div>
+    </MobileDisclosure>
+    <div className="festival-state-tabs" role="group" aria-label="축제 진행 상태">{[['all','전체'],['ongoing','진행 중'],['upcoming','예정'],['ended','종료']].map(([value,label]) => <button type="button" key={value} aria-pressed={eventState === value} onClick={() => setEventState(value)}>{label}</button>)}</div>
     <div className="night-festival-heading"><h2><NightIcon name="star"/>지금, 경남에서 만나는 축제 <em>{current && !pending && !failure ? shown.length : ''}</em></h2><div><select aria-label="축제 정렬" value={sort} onChange={event => setSort(event.target.value)}>{['추천순','가까운 날짜순','이름순'].map(item => <option key={item}>{item}</option>)}</select><button type="button" aria-label={listView ? '카드형으로 보기' : '목록형으로 보기'} aria-pressed={listView} onClick={() => setListView(!listView)}><NightIcon name={listView ? 'grid' : 'list'}/></button></div></div>
     <section id="festival-results" className="festival-results" tabIndex={-1} aria-busy={pending}>{pending && <LoadingState>행사 날짜와 관광정보를 확인하고 있어요.</LoadingState>}{notice && <p className="result-notice" role="alert">{notice}</p>}{failure && <div className="result-notice error" role="alert"><p>{failure}</p><button type="button" onClick={() => setReload(current => current + 1)}>다시 조회</button></div>}
       {!validQuery && (start || end) && <p role="status">시작일부터 끝날까지 날짜를 골라주세요.</p>}

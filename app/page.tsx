@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useSyncExternalStore } from "react";
 import useLandingReveal from "../features/landing/hooks/useLandingReveal";
 import { useSitePreferences } from "../components/SitePreferences";
 import SkipLink from "../components/SkipLink";
@@ -17,16 +17,26 @@ import LandingAssistantStory from "../features/landing/components/LandingAssista
 import LandingFeatureLinks from "../features/landing/components/LandingFeatureLinks";
 import LandingFeatureList from "../features/landing/components/LandingFeatureList";
 
+function subscribeCompact(onChange: () => void) {
+  const query = window.matchMedia("(max-width: 600px)");
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+const compactSnapshot = () => window.matchMedia("(max-width: 600px)").matches;
+const desktopSnapshot = () => false;
+
 export default function LandingPage() {
   const { t, locale } = useSitePreferences();
   const root = useRef<HTMLElement>(null);
+  const compact = useSyncExternalStore(subscribeCompact, compactSnapshot, desktopSnapshot);
   useLandingReveal(root);
   return <><LandingIntro /><main ref={root} className="landing-page horizon-edition simple-landing wave-night night-landing" lang={locale}>
     <SkipLink href="#top">{t("skip", "본문으로 바로가기")}</SkipLink>
     <LandingHeader scrolled={false} t={t} />
     <LandingHero />
-    <LandingRegionStory />
-    <LandingFeatureLinks />
+    {compact
+      ? [<LandingFeatureLinks key="features" />, <LandingRegionStory key="regions" />]
+      : [<LandingRegionStory key="regions" />, <LandingFeatureLinks key="features" />]}
     <LandingChapters />
     <div className="night-discover-grid"><LandingCommunityScene /><LandingDepartureScene /></div>
     <details className="night-feature-details"><summary>나루와 여행 도구 살펴보기</summary><LandingAssistantStory /><LandingFeatureList /></details>

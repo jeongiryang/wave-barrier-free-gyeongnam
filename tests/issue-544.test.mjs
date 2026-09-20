@@ -36,14 +36,14 @@ test("issue 544 date control opens from the field and keyboard with a mobile tar
   assert.match(stage, /id === "itinerary" \? document\.getElementById\("itinerary-setup"\)/);
 });
 
-test("issue 544 intro phrase is exact and its styles do not alter global tokens", async () => {
+test("approved PR 667 supersedes the old intro phrase while preserving isolated styles", async () => {
   const [intro, css] = await Promise.all([
     source("features/landing/components/LandingIntro.tsx"),
     source("features/landing/components/LandingIntro.module.css"),
   ]);
-  assert.match(intro, /"WAVE가 당신의 발걸음을 응원합니다"/);
-  assert.doesNotMatch(intro, />WAVE가 당신의 발걸음을 응원합니다\.<\/p>/);
+  assert.match(intro, /"모두의 발걸음이 닿는 경상남도"/);
+  assert.match(intro, /import\("\.\.\/intro\/wave-intro"\)/);
   assert.match(intro, /onCancel/);
-  assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(css, /:root|--wave-|\.wave-header|\.simple-place-row/);
 });

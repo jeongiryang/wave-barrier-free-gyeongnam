@@ -31,7 +31,7 @@ async function runHandler(request: Request, context: RouteContext, method: "GET"
     if (process.env.WAVE_AUTH_BACKEND === "native") {
       const path = new URL(request.url).pathname.replace(/^\/api\/auth/, "");
       const get = /^\/(get-session|list-accounts|list-sessions|callback\/kakao|verify-email|delete-user\/callback|reset-password\/[A-Za-z0-9_-]+)$/;
-      const post = /^\/(sign-in\/(email|social)|sign-up\/email|sign-out|request-password-reset|reset-password|change-password|link-social|unlink-account|revoke-session|revoke-sessions|revoke-other-sessions|update-user)$/;
+      const post = /^\/(sign-in\/(email|username|social)|sign-up\/email|sign-out|request-password-reset|reset-password|change-password|link-social|unlink-account|revoke-session|revoke-sessions|revoke-other-sessions|update-user)$/;
       if (method === "GET" && path === "/error") return privateAuthResponse(Response.redirect(new URL("/login?error=kakao", request.url), 303));
       // Delete requests go through /api/account so a service-data cleanup grant always exists.
       // Provider tokens and unimplemented administrative/profile routes are never public.

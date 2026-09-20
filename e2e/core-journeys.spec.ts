@@ -1,3 +1,4 @@
+import { arrivalPlaybackReady } from './landing-contract';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -32,7 +33,8 @@ test("landing: first arrival is readable, dismissible and remembers completion",
   await freshArrival(page);
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
   await expect(scene).toHaveAttribute("open", "");
-  await expect(scene).toContainText("모두의 여행이 같은 출발선에 설 수 있도록");
+  await arrivalPlaybackReady(page);
+  await expect(scene).toContainText("모두의 발걸음이 닿는 경상남도");
   await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(scene).toBeHidden();
@@ -193,8 +195,8 @@ test("community remains readable without login and protects writing", async ({ p
   await page.route("**/api/auth/get-session", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: "null" }));
   await page.route("**/api/community/posts**", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ posts: [], page: 1, hasMore: false }) }));
   await page.goto("/community");
-  await expect(page.locator(".night-story-card").first()).toBeVisible();
-  await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.")).toHaveCount(0);
+  await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.", { exact: true })).toBeVisible();
+  await expect(page.locator(".night-story-card")).toHaveCount(0);
   await expectNoSeriousA11yIssues(page);
   await page.getByRole("link", { name: "글 쓰기", exact: true }).first().click();
   await expect(page).toHaveURL(/\/login\?next=%2Fcommunity%2Fnew/);

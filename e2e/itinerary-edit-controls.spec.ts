@@ -19,7 +19,7 @@ for (const { en, theme, width } of [{ en: false, theme: "light", width: 960 }, {
       await preferences.getByLabel("언어", { exact: true }).selectOption("en");
       await preferences.getByLabel("Open preferences", { exact: true }).click();
       const support = page.locator(".wave-support-menu");
-      if (await support.getAttribute("open") !== null) await support.locator(":scope > summary").click();
+      if (await support.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).getAttribute('aria-expanded') === 'true') await support.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();
     }
     await openItinerary(page);
     const panel = page.locator("#itinerary"), settingsButton = panel.getByRole("button", { name: "여행 설정", exact: true });

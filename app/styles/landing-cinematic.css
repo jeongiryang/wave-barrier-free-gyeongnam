@@ -3,8 +3,8 @@
 .horizon-edition section { scroll-margin-top: 100px; }
 .horizon-edition > .skip-link { color: #fff; background: #242b2a; }
 .horizon-edition em { font-style: normal; }
-.horizon-edition .preference-controls > summary::marker { content: ''; }
-.horizon-edition .preference-controls > summary::after { display: none; }
+.horizon-edition .preference-controls > .preference-trigger::marker { content: ''; }
+.horizon-edition .preference-controls > .preference-trigger::after { display: none; }
 .horizon-edition .landing-hero { display: block; padding: 0; max-width: none; }
 .editorial-photo { position: relative; margin: 0; background: #254e5f; overflow: hidden; }
 .editorial-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }

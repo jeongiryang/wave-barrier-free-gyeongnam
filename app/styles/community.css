@@ -1,10 +1,6 @@
 
 /* --- 여행자 커뮤니티 --- */
 .community-page { min-height: 100svh; padding-top: 1px; color: var(--ink); background: var(--surface); }
-.community-hero { width: min(1240px,calc(100% - 48px)); min-height: 500px; margin: 0 auto; padding: 90px 0 70px; display: grid; grid-template-columns: 1.1fr .9fr; align-items: end; gap: clamp(50px,8vw,110px); }
-.community-hero h1 { margin: 14px 0 22px; font-size: clamp(3.5rem,6.8vw,7.2rem); line-height: .96; letter-spacing: -.075em; }
-.community-hero h1 em { color: var(--blue); font-style: normal; }
-.community-hero > div:first-child > p:last-child { max-width: 650px; color: var(--muted); font-size: 1rem; line-height: 1.75; }
 .community-workspace { padding: 32px max(24px,calc((100vw - 1240px)/2)) 90px; background: var(--surface); }
 .community-place-filter { margin-top: 30px; padding: 15px 17px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid #aadbe9; border-radius: 16px; background: #eaf9fd; }
 .community-place-filter small,.community-place-filter strong { display: block; }
@@ -53,6 +49,7 @@
 .community-pagination { margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 15px; }
 .community-pagination button { min-height: 42px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 11px; background: #fff; font: inherit; font-size: 0.875rem; font-weight: 600; }
 .community-pagination span { color: var(--muted); font-size: 0.875rem; }
+.wave-night .community-state :is(button,a),.wave-night .community-gate > a:first-of-type { color:#fff; background:#235bd0; }
 
 .community-form-page > section,.community-detail-page > section { padding: 72px max(24px,calc((100vw - 980px)/2)) 110px; }
 .community-editor { padding: clamp(24px,5vw,52px); display: grid; gap: 23px; border: 1px solid var(--line); border-radius: 28px; background: #fff; box-shadow: 0 22px 55px rgba(6,50,70,.09); }

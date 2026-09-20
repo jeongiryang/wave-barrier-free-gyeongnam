@@ -27,9 +27,6 @@
 .account-menu { align-items: center; gap: 7px; }.account-menu > span { max-width: 130px; overflow: hidden; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
 .dialog-kicker { color: var(--blue); font-size: .68rem; font-weight: 900; letter-spacing: .12em; }
 html[data-theme="dark"] .help-button,html[data-theme="dark"] .account-button,html[data-theme="dark"] .account-menu button { color: #eaf5f9; border-color: #30596b; background: #0a3244; }
-html[data-theme="dark"] .day-planner,html[data-theme="dark"] .day-planner-grid > article { color: var(--ink); border-color: #30596b; background: #0b2d3c; }
-html[data-theme="dark"] .day-planner-grid li,html[data-theme="dark"] .day-planner select,html[data-theme="dark"] .date-control input { color: var(--ink); border-color: #30596b; background: #0f3749; }
-@media (max-width: 780px) {.day-planner { padding: 20px 15px; }.day-planner > header { align-items: start; flex-direction: column; }.day-start-control { width: 100%; }.day-start-control small { text-align: left; } }
 
 /* Official-photo states: no blank cards, no oversized placeholder shapes. */
 .rich-card .smart-spot-image { min-height: 225px; border-radius: 0; background: #10445b; }

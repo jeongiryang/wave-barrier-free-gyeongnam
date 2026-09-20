@@ -66,7 +66,8 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeFocused();
     expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem("wave-session-facilities-v1") || "[]"))).toEqual(["route"]);
     await page.goto("/community");
-    await expect(page.locator(".night-story-card").first()).toBeVisible();
+    await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.", { exact: true })).toBeVisible();
+    await expect(page.locator(".night-story-card")).toHaveCount(0);
     if (width >= 390) {
       // The board's primary action must be reachable in the first viewport;
       // an inherited display headline previously pushed it below the fold.

@@ -100,3 +100,5 @@ body .naru-panel.naru-workspace .naru-workspace-confirm{padding:16px;border:1px 
 
 /* Place details occupy the floating assistant corner; keep their controls reachable. */
 body:has(.simple-place-pane[open]) .naru-discovery { visibility:hidden;pointer-events:none; }
+
+.naru-tool-search{display:flex;gap:8px;margin:8px 0 20px}.naru-tool-search input{min-width:0;flex:1;min-height:44px}.naru-latest{position:absolute;z-index:2;bottom:160px;left:35%;min-height:44px;border:1px solid var(--accent);border-radius:99px;padding:8px 16px;background:var(--surface);color:var(--ink)}

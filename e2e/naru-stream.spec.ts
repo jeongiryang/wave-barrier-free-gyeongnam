@@ -68,6 +68,48 @@ async function ask(page: Page, text: string) {
 const streaming = (page: Page) => page.evaluate(() => { (window as unknown as StreamHooks).__naruStreaming = true; });
 const send = (page: Page, frame: unknown) => page.evaluate(value => (window as unknown as StreamHooks).__naruSend(value), frame);
 
+test('긴 합성 답변은 아래를 따라가되 위로 읽는 위치를 지키고 최신 답변에서 따라가기를 재개한다', async ({ page }) => {
+  await setup(page);
+  await streaming(page);
+  const chat = await ask(page, '여행 준비 순서를 자세히 설명해 줘');
+  const log = chat.getByRole('log');
+  const arriving = chat.locator('[data-streaming="true"]');
+  const latest = chat.getByRole('button', { name: '최신 답변으로', exact: false });
+  const bottomGap = () => log.evaluate(node => node.scrollHeight - node.clientHeight - node.scrollTop);
+  // 합성 텍스트로 스크롤 동작만 검증하며 모델 응답 품질이나 실제 관광 정보를 주장하지 않는다.
+  let reply = Array.from({ length: 45 }, (_, index) => `${index + 1}. 여행 준비 확인 항목을 차근차근 읽어 보세요.\n`).join('');
+  await send(page, { type: 'text', value: reply });
+  await expect(arriving).toContainText('45. 여행 준비');
+  await expect.poll(() => log.evaluate(node => node.scrollHeight - node.clientHeight)).toBeGreaterThan(400);
+  await expect.poll(bottomGap).toBeLessThanOrEqual(2);
+  const append = async (text: string) => {
+    reply += text;
+    await send(page, { type: 'text', value: text });
+    await expect(arriving).toContainText(text.trim());
+  };
+  await append('자동 따라가기 확인 문장입니다.\n');
+  await expect.poll(bottomGap).toBeLessThanOrEqual(2);
+
+  await log.hover();
+  await page.mouse.wheel(0, -400);
+  await expect(latest).toBeVisible();
+  await expect.poll(bottomGap).toBeGreaterThan(100);
+  const readingPosition = await log.evaluate(node => node.scrollTop);
+  await append('위쪽 내용을 읽는 중에도 다음 답변이 도착합니다.\n'.repeat(8));
+  await expect.poll(() => log.evaluate(node => node.scrollTop)).toBeCloseTo(readingPosition, 0);
+  await expect(latest).toBeVisible();
+
+  await latest.click();
+  await expect(latest).toBeHidden();
+  await expect.poll(bottomGap).toBeLessThanOrEqual(2);
+  await append('최신 답변으로 돌아온 뒤의 마지막 안내입니다.\n'.repeat(8));
+  await expect.poll(bottomGap).toBeLessThanOrEqual(2);
+  await send(page, { type: 'done', reply, proposal: null, source: 'local-llm' });
+  await page.evaluate(() => (window as unknown as StreamHooks).__naruClose());
+  await expect(arriving).toHaveCount(0);
+  await expect.poll(bottomGap).toBeLessThanOrEqual(2);
+});
+
 test('WAVE_AI_STREAM이 꺼진 응답에서는 지금과 같이 완성된 답변만 나타난다', async ({ page }) => {
   await setup(page);
   const chat = await ask(page, '여행 준비를 도와줄래');

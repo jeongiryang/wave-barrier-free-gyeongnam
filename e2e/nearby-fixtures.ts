@@ -119,10 +119,10 @@ export async function changeMapLanguage(page: Page, english: boolean) {
   await page.keyboard.press("Control+Home");
   await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
-  if (await preferences.getAttribute("open") === null) await preferences.locator(":scope > summary").click();
+  if (await preferences.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).getAttribute('aria-expanded') !== 'true') await preferences.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
   await preferences.getByRole("combobox", { name: /^(언어|Language)$/ }).selectOption(english ? "en" : "ko");
-  await preferences.locator(":scope > summary").click();
-  await page.locator(".wave-support-menu > summary").click();
+  await preferences.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
+  await page.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();
 }
 export async function addAnotherMapPlace(page: Page, name = "용지호수공원") {
   await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();

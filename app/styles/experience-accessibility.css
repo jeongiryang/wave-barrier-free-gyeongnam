@@ -59,10 +59,10 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 /* --- 유동형 와이드 레이아웃 ---------------------------------------------
    문단의 읽기 폭은 유지하고 섹션·지도·데이터 패널은 뷰포트를 활용한다. */
 @media (min-width: 1101px) {
-  .landing-page > section, .landing-page > footer, .connection-diagnostics, .shared-header, .shared-hero, .shared-content, .simple-footer {
+  .landing-page > section, .landing-page > footer, .connection-diagnostics, .shared-hero, .shared-content, .simple-footer {
     padding-inline: max(var(--gutter), calc((100vw - var(--layout-max)) / 2));
   }
-  .navigation-section .workspace-heading, .navigation-section .transport-mode-filter, .navigation-section .transport-provider-strip, .navigation-section .transport-live-rail, .navigation-section .transport-dataset-grid, .navigation-section .transport-data-panel, .navigation-workspace, .day-planner { width: 100%; max-width: none; }
+  .navigation-section .workspace-heading, .navigation-section .transport-mode-filter, .navigation-section .transport-provider-strip, .navigation-section .transport-live-rail, .navigation-section .transport-dataset-grid, .navigation-section .transport-data-panel, .navigation-workspace { width: 100%; max-width: none; }
 }
 
 /* --- 모바일·터치 접근성 최종 보정 ---------------------------------------
@@ -71,10 +71,10 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
 
 /* 포인터 종류와 화면 폭에 관계없이 핵심 조작은 44px 이상을 유지한다.
    데스크톱 터치스크린과 확대 화면도 모바일과 같은 접근성 기준을 적용한다. */
-.play, .reference-heart, .player-controls button, .map-side-drawer header > button, .map-roadview-panel header > button, .trip-point-picker header > button, .roadview-pick-banner header button, .kakao-number-marker {
+.play, .player-controls button, .map-side-drawer header > button, .map-roadview-panel header > button, .trip-point-picker header > button, .roadview-pick-banner header button, .kakao-number-marker {
   width: 44px; min-width: 44px; height: 44px; min-height: 44px;
 }
-.day-planner select, .day-order-toolbar button, .day-order-buttons button, .day-journal-action a, .feedback-box button, .rich-card button, .rich-empty button, .travel-profile-actions button, .travel-profile-clear, .transport-dataset-grid > button, .transport-data-heading button, .map-toolbar .recalculate-button, .map-command-bar button, .map-type-switch button, .map-poi-results article > button, .help-button, .account-button, .shared-error button, .shared-error a {
+.feedback-box button, .rich-card button, .rich-empty button, .travel-profile-actions button, .transport-dataset-grid > button, .transport-data-heading button, .map-toolbar .recalculate-button, .map-command-bar button, .map-type-switch button, .map-poi-results article > button, .help-button, .account-button, .shared-error button, .shared-error a {
   min-height: 44px;
 }
 .map-poi-results article > button { display: flex; align-items: center; }
@@ -103,7 +103,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
     -webkit-overflow-scrolling: touch; scroll-padding-inline: 16px;
   }
 
-  .place-actions button, .feedback-box button, .rich-card button, .rich-empty button, .transport-dataset-grid > button, .transport-data-heading button, .map-command-bar button, .map-type-switch button, .day-planner select, .day-order-toolbar button, .day-order-buttons button {
+  .place-actions button, .feedback-box button, .rich-card button, .rich-empty button, .transport-dataset-grid > button, .transport-data-heading button, .map-command-bar button, .map-type-switch button {
     min-height: 44px;
   }
   .map-tool-panel header > button, .map-poi-results header > button,

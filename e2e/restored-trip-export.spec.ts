@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
@@ -25,6 +26,7 @@ for (const restoration of ["reload", "archive"] as const) {
     await stop.getByRole("button", { name: "적용", exact: true }).click();
     if (restoration === "archive") {
       await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await acceptTripTimingWarning(page);
       await expect(page.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
       await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
       searches = 0;
@@ -50,6 +52,7 @@ for (const restoration of ["reload", "archive"] as const) {
       await route.fulfill({ json: { id: shareId, url: `${new URL(page.url()).origin}/trip/${shareId}`, revision: 1, expiresAt, live: true } });
     });
     await page.getByRole("button", { name: "공유", exact: true }).click();
+  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
     const menu = page.getByRole("dialog", { name: "여행 공유", exact: true });
     await expect(menu.getByRole("link", { name: "공유 일정 보기", exact: true })).toHaveAttribute("href", new RegExp(`/trip/${shareId}$`));
     expect(snapshots[0].selections.selectedPlaceIds).toEqual(["1001"]);
@@ -64,7 +67,8 @@ for (const restoration of ["reload", "archive"] as const) {
     const contents = await readFile((await download.path())!, "utf8");
     expect(contents).toContain("BEGIN:VCALENDAR");
     expect(contents).toContain("경남도립미술관");
-    expect(contents).toContain(`/trip/${shareId}`);
+    expect(contents).not.toContain(`/trip/${shareId}`);
+    expect(contents).not.toMatch(/^URL:/m);
     expect(snapshots).toHaveLength(1);
     expect(searches).toBe(1);
     for (const width of info.project.name.startsWith("desktop") ? [960, 1440] : [390, 320]) {

@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { openLandingTools, prepareStory, storyReady, chapterIds, expectNoOverflow, expectUsableTarget } from "./landing-contract";
@@ -25,8 +26,10 @@ test("navigation hides downward, waits for deliberate upward scrolling and remai
   await home.focus(); await expect(home).toBeFocused();
   await page.evaluate(() => scrollTo({ top: 900, behavior: "instant" }));
   await expect(nav).toHaveAttribute("data-hidden", "false");
-  await expect(nav.getByRole("navigation").getByRole("link")).toHaveText(["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
-  for (const control of [home, nav.locator(".wave-my-trips")]) await expectUsableTarget(control);
+  await expect(nav.getByRole("navigation").getByRole("link")).toHaveText(page.viewportSize()!.width <= 600 ? ["여행 설계", "축제", "커뮤니티"] : ["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
+  await expectUsableTarget(home);
+  if (page.viewportSize()!.width <= 600) { await openSupportMenu(page); await expectUsableTarget(nav.locator(".mobile-menu-link[href='/travel-book']")); }
+  else await expectUsableTarget(nav.locator(".wave-my-trips"));
 });
 
 for (const width of [320, 390]) {

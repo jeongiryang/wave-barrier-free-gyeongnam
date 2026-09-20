@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, chooseTripConditions, openItinerary, plan, showItineraryMap } from "./fixtures";
@@ -69,6 +70,7 @@ test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순�
   const settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
   await settings.getByLabel("하루 시작", { exact: true }).fill("08:30"); await settings.getByRole("button", { name: "적용", exact: true }).click();
   await page.getByRole("button", { name: "공유", exact: true }).click();
+  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
   const share = page.getByRole("dialog", { name: "여행 공유", exact: true });
   await expect(share.getByRole("link", { name: "공유 일정 보기", exact: true })).toBeVisible();
   expect(shares[0]).toMatchObject({ dayStartTime: "08:30", selectedPlaceIds: ["1002", "1001"], profiles: [] });

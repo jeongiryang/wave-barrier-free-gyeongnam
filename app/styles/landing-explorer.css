@@ -34,9 +34,6 @@
 /* 어두운 화면에서 "지금 선택한 지역" 칩이 밝게 남아 안쪽 글자가 묻혔다. */
 
 /* 날짜별 일정은 드래그 없이도 순서·날짜·제거를 모두 편집할 수 있다. */
-@media (min-width: 1100px) { }
-@media (max-width: 780px) {
-}
 
 .travel-profile-card { margin-top: 16px; padding: 18px; border: 1px solid #c9dde6; border-radius: 17px; background: #f7fbfd; }
 .travel-profile-card > summary { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; }
@@ -45,19 +42,15 @@
 .travel-profile-card time { color: var(--muted); font-size: .64rem; }
 .travel-profile-content > p:not(.travel-profile-notice) { margin: 12px 0; color: #486a79; font-size: .76rem; }
 .travel-profile-actions { display: flex; flex-wrap: wrap; gap: 7px; }
-.travel-profile-actions button,.travel-profile-clear { padding: 8px 12px; border: 1px solid #b7d2dd; border-radius: 10px; color: var(--ink); background: #fff; font-size: .68rem; font-weight: 850; }
+.travel-profile-actions button { padding: 8px 12px; border: 1px solid #b7d2dd; border-radius: 10px; color: var(--ink); background: #fff; font-size: .68rem; font-weight: 850; }
 .travel-profile-actions button:first-child { color: var(--on-blue); border-color: var(--blue); background: var(--blue); }
 .travel-profile-actions button.delete { color: #963849; border-color: #e1bdc5; background: #fff7f8; }
-.travel-profile-actions button:disabled,.travel-profile-clear:disabled { opacity: .45; cursor: not-allowed; }
-.travel-profile-clear { width: 100%; margin-top: 8px; }
-.travel-profile-privacy { display: block; margin-top: 12px; color: #3f6270; font-size: .63rem; line-height: 1.55; }
-.travel-profile-notice { min-height: 1em; margin: 7px 0 0; color: #325f70; font-size: .66rem; font-weight: 750; }
+.travel-profile-actions button:disabled { opacity: .45; cursor: not-allowed; }
 html[data-theme="dark"] .travel-profile-card { color: #e8f5fa; border-color: #315a6b; background: #0e3445; }
-html[data-theme="dark"] .travel-profile-content > p:not(.travel-profile-notice),html[data-theme="dark"] .travel-profile-privacy,html[data-theme="dark"] .travel-profile-card time { color: #b5cfda; }
-html[data-theme="dark"] .travel-profile-actions button,html[data-theme="dark"] .travel-profile-clear { color: #e8f5fa; border-color: #477387; background: #123e50; }
+html[data-theme="dark"] .travel-profile-content > p:not(.travel-profile-notice),html[data-theme="dark"] .travel-profile-card time { color: #b5cfda; }
+html[data-theme="dark"] .travel-profile-actions button { color: #e8f5fa; border-color: #477387; background: #123e50; }
 html[data-theme="dark"] .travel-profile-actions button:first-child { color: #062737; border-color: var(--mint); background: var(--mint); }
 html[data-theme="dark"] .travel-profile-actions button.delete { color: #ffd5dd; border-color: #82505b; background: #492b35; }
-html[data-theme="dark"] .travel-profile-notice { color: #b9e9f7; }
 @media (max-width: 560px) {
   .travel-profile-actions { display: grid; grid-template-columns: 1fr; }
   .travel-profile-actions button { width: 100%; }

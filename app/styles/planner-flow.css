@@ -1,6 +1,6 @@
 /* Components for explicit trip questions and evidence-led place selection. */
 .result-notice button { min-height: 48px; padding: 12px 20px; border: 1px solid #12655b; border-radius: 12px; background: #12655b; color: #fff; font-weight: 750; }
-.condition-scope,.date-scope-note,.route-scope-note { margin: 18px 0; font-size: .9rem; line-height: 1.65; color: #5c6865; }
+.condition-scope,.route-scope-note { margin: 18px 0; font-size: .9rem; line-height: 1.65; color: #5c6865; }
 .route-scope-note { padding: 12px; border-radius: 8px; background: var(--paper); }
 .region-picker { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: 24px; }
 .region-picker-visual { padding: 20px; border-radius: 24px; background: #e3f0f1; text-align: center; color: #285565; }
@@ -43,7 +43,7 @@
 .facility-evidence-list > div { padding: 14px; border: 1px solid #b8cdd5; border-radius: 10px; }
 .facility-evidence-list dt { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; font-weight: 800; }
 .facility-evidence-list dd { margin: 10px 0 0; line-height: 1.6; }
-html[data-theme="dark"] .condition-scope,html[data-theme="dark"] .date-scope-note,html[data-theme="dark"] .route-scope-note { color: #b8d7e0; }
+html[data-theme="dark"] .condition-scope,html[data-theme="dark"] .route-scope-note { color: #b8d7e0; }
 html[data-theme="dark"] .result-notice { background: #0d3545; color: #e6f3f8; }
 html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38; --muted: #bed2d6; --line: #355561; }
 .region-picker-compact { display: flex; flex-direction: column; align-items: stretch; gap: 18px; }
@@ -88,9 +88,8 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference :is(h2,h3,h4,p) { letter-spacing: -.025em; }
 .planner-reference > .planner-journey-workspace { width: min(1240px,calc(100% - 56px)); max-width: none; margin: 0 auto; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
 .planner-reference .journey-stage-stream { background: transparent; }
-.planner-reference .journey-stage-panel, .planner-reference .journey-workspace-block { min-height: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
-.planner-reference .journey-workspace-block > h2, .planner-reference .reference-overview > h2, .planner-reference .journey-subheading h2 { max-width: 100%; font-size: clamp(24px,2.5vw,34px); line-height: 1.35; margin: 0 0 14px; font-weight: 650; letter-spacing: -.045em; }
-.planner-reference .reference-subtitle, .planner-reference .stage-guidance { margin: 0 0 26px; }
+.planner-reference .journey-workspace-block { min-height: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.planner-reference .journey-workspace-block > h2 { max-width: 100%; font-size: clamp(24px,2.5vw,34px); line-height: 1.35; margin: 0 0 14px; font-weight: 650; letter-spacing: -.045em; }
 #reference-all-regions { margin-top: 24px; }
 .planner-reference .profile-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
 .planner-reference .profile-card { min-height: 132px; border: 1px solid #dce3e0; border-radius: 24px; background: white; color: #242b2a; padding: 24px; box-shadow: none; }
@@ -100,15 +99,15 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .planner-reference .place-actions { margin-top: 10px; gap: 8px; }
 .planner-reference .place-actions button { min-height: 44px; padding: 8px 12px; border-radius: 99px; }
 .planner-reference .place-actions .primary { background: #12655b; color: white; border-color: #12655b; }
-.reference-calendar,.reference-date-summary,.reference-schedule,.reference-info-card,.reference-day-list { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 22px; min-width: 0; }
+.reference-info-card { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 22px; min-width: 0; }
 .reference-tint { background: var(--surface); border-radius: 14px; padding: 18px; color: var(--ink); }
 .reference-tint small { display: block; margin-top: 6px; font-size: 11px; }
-.reference-schedule h3,.reference-info-card h3 { font-size: 17px; margin: 0 0 12px; }
+.reference-info-card h3 { font-size: 17px; margin: 0 0 12px; }
 .reference-info-card p { color: #5c6865; font-size: 12px; line-height: 1.6; }
 .reference-info-card button { border: 0; border-radius: 12px; background: #edf4f1; padding: 10px; min-height: 44px; color: #0a4d45; width: 100%; font-size: 12px; text-align: left; }
 @media (max-width: 700px) {
   .planner-reference > .planner-journey-workspace { width: calc(100% - 32px); }
-  .planner-reference .journey-workspace-block > h2,.planner-reference .reference-overview > h2,.planner-reference .journey-subheading h2 { max-width: none; font-size: 24px; }
+  .planner-reference .journey-workspace-block > h2 { max-width: none; font-size: 24px; }
   .planner-reference .profile-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
   .planner-reference .profile-card { padding: 15px; min-height: 156px; }
 }
@@ -117,7 +116,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 :root .planner-reference .simple-footer :is(a,p,span) { color: var(--muted); }
 .planner-reference .simple-footer .footer-notes { flex: 1; }
 .planner-reference .simple-footer .footer-brand { font-size: 14px; }
-.planner-reference .reference-weather p,.planner-reference .reference-info-card p { font-size: 12px; line-height: 1.6; }
+.planner-reference .reference-info-card p { font-size: 12px; line-height: 1.6; }
 @media (max-width: 700px) { :root .planner-reference .simple-footer { width: calc(100% - 32px); display: grid; } }
 .reference-transport-details > summary,.reference-route-details > summary { padding: 12px; min-height: 44px; border: 1px solid #dce3e0; background: white; color: #43504d; font-size: 12px; border-radius: 12px; cursor: pointer; }
 .reference-route-details { margin-top: 12px; }
@@ -128,10 +127,8 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 /* Planner surfaces follow the selected theme, including their foreground tokens. */
 
 :root .planner-reference .journey-stage-stream,
-:root .planner-reference .journey-stage-panel,
 :root .planner-reference .journey-workspace-block { background: transparent; color: var(--ink); }
-:root .planner-reference #itinerary-stage-title,
-:root .planner-reference .journey-subheading h2 { color: var(--ink); }
+:root .planner-reference #itinerary-stage-title { color: var(--ink); }
 :root .planner-reference .planner-journey-workspace .profile-card { background: var(--paper); color: var(--ink); border-color: var(--line); }
 :root .planner-reference .planner-journey-workspace .profile-card.active { background: var(--surface); color: var(--ink); border-color: var(--blue); }
 :root .planner-reference .planner-journey-workspace .profile-card small,
@@ -147,12 +144,7 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 :root .planner-reference .planner-journey-workspace { background: var(--paper); color: var(--ink); }
 :root .planner-reference .travel-profile-card p,
 :root .planner-reference .travel-profile-card b { color: var(--ink-soft); }
-
-:root .planner-reference .planner-journey-workspace .theme-control { background: transparent; }
-:root .planner-reference .planner-journey-workspace .planner-notice,
 :root .planner-reference .planner-journey-workspace .travel-profile-content p { color: var(--ink-soft); }
-
-:root .planner-reference .planner-journey-workspace .travel-profile-notice { color: var(--ink-soft); }
 
 .easy-trip-toggle { display:flex; gap:4px; padding:4px; border-radius:999px; background:var(--paper); width:max-content; max-width:100%; }
 .easy-trip-toggle button { min-height:44px; padding:8px 16px; border:0; border-radius:999px; background:transparent; color:var(--ink); font:inherit; }
@@ -176,12 +168,12 @@ html[data-motion="calm"] .journey-editorial .profile-card { transition: none; tr
 .trip-board ol { margin:0; padding:0; display:grid; gap:8px; list-style:none; }.trip-board li { min-height:56px; border:1px solid var(--line); border-radius:14px; background:var(--paper); }.trip-board li[data-state=done] { background:var(--sky); }.trip-board li[data-state=current] { border-left:3px solid var(--accent); }.trip-board li[data-state=skipped] { border-style:dashed; }.trip-board li button { width:100%; min-height:56px; padding:10px 12px; display:grid; grid-template-columns:32px minmax(0,1fr) auto; align-items:center; gap:10px; border:0; color:var(--ink); background:transparent; font:inherit; text-align:left; }.trip-board-order { width:30px; height:30px; display:grid; place-items:center; border:1px solid var(--line); border-radius:50%; }.trip-board-state { display:inline-flex; align-items:center; gap:5px; color:var(--muted); font-size:.875rem; }
 @media(max-width:650px) { .easy-trip-actions { grid-template-columns:1fr; }.easy-trip-actions .easy-trip-primary,.easy-trip-confirm { grid-column:auto; }.easy-trip-actions button,.easy-trip-confirm button,.easy-on-trip > button { width:100%; } }
 
-:root .planner-reference #places > .original-language-note,:root .planner-reference .reference-departure-details > p[role="status"] { color: var(--muted); }
+:root .planner-reference #places > .original-language-note { color: var(--muted); }
 
 :root .planner-reference #conditions .theme-control > :is(legend,p) { color: var(--ink); }
 
 :root .planner-reference #itinerary { background: transparent; }
-:root .planner-reference .region-map-disclosure > summary,:root .planner-reference .reference-departure-details > .departure-review-check { color: var(--muted); }
+:root .planner-reference .region-map-disclosure > summary { color: var(--muted); }
 
 @media (max-width: 900px) {
   .planner-reference .route-map-shell:not(.expanded):not(:fullscreen) { height: auto; min-height: 0; }

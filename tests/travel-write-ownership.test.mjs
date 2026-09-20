@@ -6,6 +6,15 @@ import * as storageApi from '../lib/current-trip-storage.js';
 import * as identities from '../lib/trip-identity.js';
 import * as books from '../lib/travel-book.js';
 import * as accountModel from '../lib/account-travel/model.js';
+import * as itinerarySchedule from '../features/planner/optimization/itinerary-schedule.js';
+import * as visitHours from '../lib/visit-hours.js';
+
+function loadTs(path, dependencies) {
+  const exports = {};
+  const code = ts.transpileModule(readFileSync(new URL(path, import.meta.url), 'utf8'), { compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  new Function('exports', 'require', code)(exports, name => { assert.ok(dependencies[name], name); return dependencies[name]; });
+  return exports;
+}
 
 // Execute the real save handler with in-memory Storage and React hook slots.
 // No browser, account endpoint, timer or provider is started.
@@ -21,6 +30,8 @@ function fixture({ account = false, afterRead } = {}) {
   const hooks = {
     useState(value) { const i = cursor++; if (!(i in slots)) slots[i] = value; return [slots[i], next => { slots[i] = typeof next === 'function' ? next(slots[i]) : next; }]; },
     useRef(value) { const i = cursor++; return slots[i] ||= { current: value }; }, useEffect: effect, useLayoutEffect: effect,
+    useCallback(fn) { return fn; },
+    useSyncExternalStore(_subscribe, snapshot) { return snapshot(); },
   };
   const conflict = () => { const current = JSON.parse(values.get(storageApi.CURRENT_TRIP_KEY)); current.values[storageApi.REGION_KEY] = '하동'; values.set(storageApi.CURRENT_TRIP_KEY, JSON.stringify(current)); };
   const dependencies = {
@@ -34,6 +45,19 @@ function fixture({ account = false, afterRead } = {}) {
       return { id: identity.binding.id, revision: 2, role: 'owner' };
     } },
   };
+  // Exercise the real warning decision too; only native dialog DOM behavior is
+  // outside this ownership harness (covered by browser confirmation tests).
+  dependencies['../planner/trip-timing-review'] = loadTs('../features/planner/trip-timing-review.ts', {
+    './optimization/itinerary-schedule.js': itinerarySchedule,
+    './utils': loadTs('../features/planner/utils.ts', {}),
+    '../../lib/visit-hours.js': visitHours,
+    './services/visit-info': { cachedVisitInfo: () => null },
+  });
+  dependencies['../planner/components/TripTimingConfirmation'] = loadTs('../features/planner/components/TripTimingConfirmation.tsx', {
+    react: hooks, 'react/jsx-runtime': dependencies['react/jsx-runtime'],
+    '../hooks/usePlaceDialogFocus': { usePlaceDialogFocus: () => ({ current: null }) },
+    '../services/visit-info': { subscribeVisitInfo: () => () => {}, visitInfoVersion: () => 0, serverVisitInfoVersion: () => 0 },
+  });
   const exports = {}, code = ts.transpileModule(readFileSync(new URL('../features/travel-book/TravelBookArchiveAction.tsx', import.meta.url), 'utf8'), { compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   new Function('exports', 'require', 'window', 'localStorage', 'requestAnimationFrame', 'cancelAnimationFrame', 'setTimeout', 'clearTimeout', code)(exports, name => { assert.ok(dependencies[name], name); return dependencies[name]; }, { localStorage: storage }, storage, fn => frames.push(fn), () => {}, () => 1, () => {});
   const input = { region: '창원', themes: [], theme: '', profiles: [], travelStart: '2026-09-20', travelEnd: '2026-09-20', dayStartTime: '10:00', travelMode: 'car', scheduleAssignments: { '1001': '2026-09-20' }, places: [{ id: '1001', name: '여행지', city: '창원', source: '합성 테스트' }] };

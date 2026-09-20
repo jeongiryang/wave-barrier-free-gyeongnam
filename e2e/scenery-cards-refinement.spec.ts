@@ -1,3 +1,4 @@
+import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi } from "./fixtures";
@@ -13,11 +14,8 @@ test("WAVE starter stories open their full articles and leave member search inta
   const writes: string[] = [];
   page.on("request", request => {if(!["GET","HEAD","OPTIONS"].includes(request.method())) writes.push(request.url());});
   await page.goto("/community");
-  await expect(page.locator(".night-story-card .night-bookmark").first()).toBeEnabled();
-  await page.locator('.night-story-card').first().getByRole('button',{name:/게시글 읽기$/}).click();
-  await expect(page.locator('.night-story-dialog')).toBeVisible();
-  await expect(page.locator('.night-story-dialog').getByRole('link',{name:'관광사진 출처'})).toHaveAttribute('href','/policies#content-credits');
-  await page.keyboard.press('Escape');
+  await expect(page.getByText('아직 등록된 후기나 질문이 없습니다.', { exact: true })).toBeVisible();
+  await expect(page.locator('.night-story-card')).toHaveCount(0);
   // Retained guide articles still preserve their original attribution.
   await page.locator("details.community-guides > summary").click();
   const links = await page.locator(".community-travel-stories h3 a").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")!));
@@ -41,8 +39,9 @@ test("compact headers keep every navigation link and recover keyboard focus", as
   for(const path of ["/","/planner","/travel-book","/community"]) {
     await page.goto(path);
     const menu=page.locator(".wave-header");
-    await expect(menu.getByRole("navigation").getByRole("link")).toHaveText(["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
-    for(const href of ["/planner","/festivals","/travel-book","/community"]) { const link=menu.locator(`a[href='${href}']`); await expect(link).toBeVisible(); await link.focus(); await expect(link).toBeFocused(); }
+    await expect(menu.getByRole("navigation").getByRole("link")).toHaveText(["여행 설계", "축제", "커뮤니티"]);
+    for(const href of ["/","/planner","/festivals","/community"]) { const link=href === "/" ? menu.getByRole("link", { name: "WAVE 홈", exact: true }) : menu.getByRole("navigation").locator(`a[href='${href}']`); await expect(link).toBeVisible(); await link.focus(); await expect(link).toBeFocused(); }
+    await openSupportMenu(page); const archive = menu.locator(".mobile-menu-link[href='/travel-book']"); await expect(archive).toBeVisible(); await archive.focus(); await expect(archive).toBeFocused();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   }
 });

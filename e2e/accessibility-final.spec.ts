@@ -17,9 +17,9 @@ test("OS 동작 줄이기는 저장된 full보다 우선하고 부분 번역 중
 
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(page.locator("html")).toHaveAttribute("lang", "ko");
-  await expect(page.locator("details.preference-controls")).toHaveAttribute("aria-busy", "false");
   await openSupportMenu(page);
-  await page.locator("details.preference-controls > summary").click();
+  await expect(page.locator(".preference-controls")).toHaveAttribute("aria-busy", "false");
+  await page.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
   await expect(page.locator(".motion-toggle")).toHaveCount(0);
   await expect(page.locator(".preference-panel > p")).toContainText("운영체제의 동작 줄이기 설정");
   await expect.poll(() => page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
@@ -30,15 +30,20 @@ test("320px 공개 화면의 네 메뉴와 내 여행은 키보드로 접근할 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page); await page.goto("/");
   const header = page.locator(".wave-header");
-  await expect(header.getByRole("navigation").getByRole("link")).toHaveText(["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
+  await expect(header.getByRole("navigation").getByRole("link")).toHaveText(["여행 설계", "축제", "커뮤니티"]);
   for (const link of await header.getByRole("link").all()) {
     await expect(link).toBeVisible(); const box = await link.boundingBox();
     expect(box!.width, await link.getAttribute("class") || await link.innerText()).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44);
     await link.focus(); await expect(link).toBeFocused();
   }
-  await expect(header.getByRole("link", { name: "내 여행, 담은 장소 0곳" })).toBeVisible();
+  await expect(header.getByRole("link", { name: "WAVE 홈", exact: true })).toHaveAttribute("href", "#top");
+  await openSupportMenu(page);
+  const archive = header.locator(".mobile-menu-link[href='/travel-book']");
+  await expect(archive).toBeVisible(); await archive.focus(); await expect(archive).toBeFocused();
+  const archiveBox = (await archive.boundingBox())!; expect(archiveBox.width).toBeGreaterThanOrEqual(44); expect(archiveBox.height).toBeGreaterThanOrEqual(44);
+  await header.getByRole("button", { name: "WAVE 이용 안내 메뉴", exact: true }).click();
   await expect(header.locator(".help-button")).toBeHidden();
-  await expect(header.locator(".wave-support-menu > summary")).toBeVisible();
+  await expect(header.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ })).toBeVisible();
   await expect(page.locator(".wave-footer-tools")).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });

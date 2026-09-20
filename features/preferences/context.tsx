@@ -7,10 +7,12 @@ import type { ColorAssist, Haptics, Locale, Motion, PreferencesValue, TextScale,
 import { presentationOptionsEnabled } from "./presentation-release";
 
 import { dialectToneEnabled } from "./tone-release";
+import { AppInstallContext, useAppInstallController } from "./useAppInstall";
 
 const PreferencesContext = createContext<PreferencesValue | null>(null);
 
 export function SitePreferencesProvider({ children }: { children: ReactNode }) {
+  const appInstall = useAppInstallController();
   const [locale, setLocaleState] = useState<Locale>("ko");
   const [tone, setToneState] = useState<Tone>("standard");
   const [theme, setTheme] = useState<Theme>("light");
@@ -83,7 +85,7 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
     t: (key, fallback) => copy[locale][key] || fallback,
   }), [locale, theme, tone, textScale, colorAssist, haptics, hydrated, motion]);
 
-  return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
+  return <PreferencesContext.Provider value={value}><AppInstallContext.Provider value={appInstall}>{children}</AppInstallContext.Provider></PreferencesContext.Provider>;
 }
 
 export function useSitePreferences() {

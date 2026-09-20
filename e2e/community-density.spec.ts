@@ -65,7 +65,8 @@ test('community server controls wait for hydration before layout, filter and sea
   });
   const controls = page.locator('.night-community-toolbar');
   const view = page.getByRole('group', { name: '게시글 보기 방식', exact: true });
-  const sortbar = page.locator('.night-sortbar');
+  const sortbar = page.locator('#night-all-stories');
+  const savedPosts = page.getByRole('button', { name: '저장한 글', exact: true });
   const clearPlace = page.getByRole('button', { name: '전체 후기 보기', exact: true });
   const search = page.getByRole('textbox', { name: '여행 후기 검색', exact: true });
   try {
@@ -76,6 +77,7 @@ test('community server controls wait for hydration before layout, filter and sea
     await expect.poll(() => blockedScripts).toBeGreaterThan(0);
     await expect(controls).toHaveAttribute('aria-busy', 'true');
     await expect(sortbar).toHaveAttribute('aria-busy', 'true');
+    await expect(savedPosts).toBeDisabled();
     for (const control of await sortbar.getByRole('button').all()) await expect(control).toBeDisabled();
     await expect(view.getByRole('button')).toHaveCount(3);
     for (const control of await controls.locator('button, input').all()) await expect(control).toBeDisabled();
@@ -88,6 +90,7 @@ test('community server controls wait for hydration before layout, filter and sea
   await page.waitForLoadState('domcontentloaded');
   await expect(controls).toHaveAttribute('aria-busy', 'false');
   await expect(sortbar).toHaveAttribute('aria-busy', 'false');
+  await expect(savedPosts).toBeEnabled();
   for (const control of await sortbar.getByRole('button').all()) await expect(control).toBeEnabled();
   for (const control of await controls.locator('button, input').all()) await expect(control).toBeEnabled();
   await expect(clearPlace).toBeEnabled();

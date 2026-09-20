@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { chooseTripConditions, mockPlannerApi, openItinerary } from "./fixtures";
@@ -15,6 +16,7 @@ async function openSavedTravelBook(page: Page) {
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-10-07", end: "2026-10-08" });
   await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+    await acceptTripTimingWarning(page);
   await expect(page.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
   await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
   await expect(page.getByRole("heading", { name: "창원 1곳 여행" })).toBeVisible();

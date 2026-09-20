@@ -31,6 +31,15 @@ export async function storyReady(page: Page) {
   await page.evaluate(() => document.fonts.ready);
 }
 
+/** Freeze wall time before pausing so protocol latency cannot make the target stale.
+ * Restore advancing Date semantics after timers have stopped; rAF elapsed time is unchanged. */
+export async function pauseCurrentClock(page: Page) {
+  const now = new Date(await page.evaluate(() => Date.now()));
+  await page.clock.setFixedTime(now);
+  await page.clock.pauseAt(now);
+  await page.clock.setSystemTime(now);
+}
+
 /** Do not pause startup timers before the streamed page has hydrated. */
 export async function freshArrival(page: Page) {
   await prepareLandingMedia(page);
@@ -39,8 +48,17 @@ export async function freshArrival(page: Page) {
   await page.goto("/");
   await storyReady(page);
   await expect(page.locator(".arrival-scene")).toBeVisible();
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000));
+  await pauseCurrentClock(page);
   await expect(page.locator(".arrival-scene")).toBeVisible();
+}
+
+/** The WebGL renderer starts its clock only after its scene is ready. */
+export async function arrivalPlaybackReady(page: Page) {
+  await page.clock.resume();
+  await expect.poll(async () => Number(await page.locator('.wave-intro').getAttribute('data-time-ms'))).toBeGreaterThan(0);
+  await pauseCurrentClock(page);
+  await expect(page.locator('.arrival-scene')).toBeVisible();
+  await expect(page.locator('.wave-intro canvas')).toBeVisible();
 }
 
 export async function expectUsableTarget(target: Locator) {

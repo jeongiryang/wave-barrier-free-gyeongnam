@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, mockPublicShellApi, openItinerary, plan } from "./fixtures";
@@ -71,6 +72,7 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await expect(board.locator(".simple-stop-copy").first()).toContainText("137분 머묾");
   expect((await new AxeBuilder({ page }).include(".simple-stops").analyze()).violations).toEqual([]);
   await page.getByRole("button", { name: "공유", exact: true }).click();
+  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
   await expect(page.getByRole("link", { name: "공유 일정 보기", exact: true })).toBeVisible();
   expect(shares[0].selections.visitMinutesByPlaceId).toEqual({ "1001": 137 });
   await page.getByRole("button", { name: "공유 닫기", exact: true }).click();

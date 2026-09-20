@@ -26,22 +26,26 @@ for (const theme of ['light', 'dark'] as const) for (const width of [320, 960, 1
   const schedule = await page.evaluate(() => JSON.parse(localStorage.getItem('wave-trip-schedule-v1') || '{}')); expect(schedule.travelStart).toBe('2026-10-08'); expect(schedule.travelEnd).toBe('2026-10-09');
   await card.screenshot({ path: test.info().outputPath(`departure-${theme}-${width}.png`) }); expect(errors).toEqual([]);
 });
-test('calendar failure and retry preserve keyboard focus and the saved trip', async ({ page, baseURL }) => {
-  await prepare(page); let release!: () => void; const gate = new Promise<void>(resolve => { release = resolve; }); let calls = 0;
-  await page.route('**/api/trips', async route => { calls++; if (calls === 1) { await gate; return route.fulfill({ status: 503, json: { error: 'Unavailable' } }); } return route.fulfill({ status: 201, json: { id: 'abcdef123456', url: `${new URL(route.request().url()).origin}/trip/abcdef123456`, revision: 1, live: true, expiresAt: Date.now() + 30 * 86400000 } }); });
+test('local calendar failure and retry preserve keyboard focus without publishing the trip', async ({ page }) => {
+  await prepare(page); let calls = 0;
+  await page.route('**/api/trips', route => { calls++; return route.fulfill({ status: 503, json: { error: 'Unavailable' } }); });
+  await page.evaluate(() => {
+    const create = URL.createObjectURL.bind(URL); let fail = true;
+    URL.createObjectURL = value => { if (fail) { fail = false; throw new Error('Synthetic local download failure'); } return create(value); };
+  });
   await closeNaruTool(page);
   await page.locator('button[data-planner-tool=share]').click(); const menu = page.getByRole('dialog', { name: '여행 공유', exact: true }), calendar = menu.getByRole('button', { name: '캘린더', exact: true });
-  await calendar.focus(); await page.keyboard.press('Enter'); await expect(calendar).toHaveAttribute('aria-busy', 'true'); await expect(calendar).toBeFocused(); await page.keyboard.press('Enter'); expect(calls).toBe(1); release();
+  await calendar.focus(); await page.keyboard.press('Enter');
   await expect(menu.getByRole('status')).toContainText('캘린더를 만들지 못했어요'); await expect(calendar).toBeFocused();
   const downloading = page.waitForEvent('download'); await page.keyboard.press('Enter'); const download = await downloading;
-  const contents = (await readFile((await download.path())!, 'utf8')).replaceAll('\r\n ', ''); expect(contents).toContain('DTSTART;TZID=Asia/Seoul:20261008T100000'); expect(contents).toContain('경남도립미술관'); expect(contents).toContain(`URL:${new URL('/trip/abcdef123456', baseURL).href}`);
-  await expect(menu.getByRole('status')).toContainText('캘린더 파일을 내려받았어요'); await expect(calendar).toBeFocused(); expect(calls).toBe(2);
+  const contents = (await readFile((await download.path())!, 'utf8')).replaceAll('\r\n ', ''); expect(contents).toContain('DTSTART;TZID=Asia/Seoul:20261008T100000'); expect(contents).toContain('경남도립미술관'); expect(contents).not.toMatch(/^URL:/m);
+  await expect(menu.getByRole('status')).toContainText('캘린더 파일을 내려받았어요'); await expect(calendar).toBeFocused(); expect(calls).toBe(0);
 });
 test('language changes preserve departure evidence, calendar feedback and itinerary dates', async ({ page }) => {
   await prepare(page); await page.route('**/api/trips', route => route.fulfill({ status: 503, json: { error: 'Unavailable' } }));
   await closeNaruTool(page);
   await page.locator('button[data-planner-tool=share]').click(); const menu = page.getByRole('dialog', { name: '여행 공유', exact: true });
-  await menu.getByRole('button', { name: '캘린더', exact: true }).click(); await expect(menu.getByRole('status')).toContainText('캘린더를 만들지 못했어요'); await menu.getByRole('button', { name: '공유 닫기' }).click();
+  await menu.getByRole('button', { name: '캘린더', exact: true }).click(); await expect(menu.getByRole('status')).toContainText('캘린더 파일을 내려받았어요'); await menu.getByRole('button', { name: '공유 닫기' }).click();
   const before = await page.evaluate(() => localStorage.getItem('wave-trip-schedule-v1'));
   await openSupportMenu(page); const preferences = page.locator('.preference-controls:visible'); await preferences.getByLabel('Open preferences', { exact: true }).click();
   await preferences.getByLabel('Language', { exact: true }).selectOption('ko'); await expect(page.getByRole('main')).toHaveAttribute('lang', 'ko');

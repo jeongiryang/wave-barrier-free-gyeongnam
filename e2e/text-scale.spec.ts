@@ -121,7 +121,7 @@ for (const width of [390, 960, 1440]) {
     for (const path of SCREENS) {
       await page.goto(path, { waitUntil: "domcontentloaded" });
       await expect(page.locator("html")).toHaveAttribute("data-text-scale", "larger");
-      await expect(page.locator(".preference-controls").first()).toHaveAttribute("aria-busy", "false");
+      await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
       await expectNoOverflow(page);
     }
 
@@ -172,6 +172,10 @@ test("아주 크게 상태에서 조작 영역 44px 기준을 지킨다", async 
   }
   await expectNoOverflow(page);
   await page.keyboard.press("Escape");
+  await expect(preferences.locator('.preference-panel')).toBeHidden();
+  await expect(page.locator('.wave-support-menu')).toHaveAttribute('data-open', 'true');
+  await page.keyboard.press("Escape");
+  await expect(page.locator('.wave-support-menu')).toHaveAttribute('data-open', 'false');
 
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();

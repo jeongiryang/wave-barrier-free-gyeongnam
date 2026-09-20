@@ -2,7 +2,7 @@ import { resolveFacilityKeys } from '../../lib/facility-selection.js';
 import { clean, json, readTrustedJson } from '../shared/http';
 import type { Env } from '../shared/env';
 import { validateAssistantAction, type AssistantAction } from '../../lib/assistant-actions.js';
-import { journeyDays, journeyOutcome, selectJourneyStops, fatigueRemovals, type ExistingStop, type NaruJourney } from '../../lib/naru-journey.js';
+import { journeyDays, journeyOutcome, selectJourneyStops, type ExistingStop, type NaruJourney } from '../../lib/naru-journey.js';
 import type { VisitInfo } from '../../lib/visit-hours.js';
 import { validTripDate, offsetTripDate } from '../../lib/trip-dates.js';
 import { buildPlan } from '../tourism/plan-builder';
@@ -97,8 +97,8 @@ export async function prepareJourney(action: AssistantAction, context: Record<st
   }));
   signal.throwIfAborted();
   progress('planning', '기존 방문을 보존하면서 날짜·방문 순서·휴식을 정리하고 있어요.');
-  const restOnly = action.action === 'adapt-itinerary' && action.reason === 'fatigue' && existing.length > 0;
-  const removed = restOnly ? fatigueRemovals(existing, days, action.date) : [];
+  const restOnly = action.action === 'adapt-itinerary' && relaxed && !indoorRequested && action.reason !== 'closed' && existing.length > 0;
+  const removed: NaruJourney['removed'] = [];
   const stops = restOnly ? [] : selectJourneyStops({ places: candidates, days, profiles, indoor: indoorRequested, indoorById, visitById, relaxed, transport, existing, targetDay: action.date,
     replace: action.action === 'adapt-itinerary', anchorId: festival?.id });
   if ((!action.region || action.region === '경남 전체') && stops[0]?.place.city && regionCodes[stops[0].place.city] && region !== stops[0].place.city) {
@@ -117,7 +117,7 @@ export async function prepareJourney(action: AssistantAction, context: Record<st
     providerFailed: !weather || plan.statuses.some(status => ['barrierfree','tour'].includes(status.id) && (status.state === 'error' || status.partial)) });
   if (outcome.kind === 'unchanged') warnings.push('실내 공간의 기록이 이동 구간이나 모든 편의시설의 이용 가능 여부를 보장하지는 않아요. 방문 전 미확인 편의를 확인해 주세요.');
   else if (!stops.length && !restOnly) warnings.push(indoorRequested ? '요청한 편의와 실내 공간을 함께 확인한 대안이 없어요. 필수 편의를 유지하고 다른 지역이나 원문 미확인 후보를 살펴보세요.' : '이 조건으로 바로 더할 장소를 찾지 못했어요. 필요한 편의는 유지하고 활동이나 지역을 넓혀볼 수 있어요.');
-  if (restOnly) warnings.push(`${removed.length ? `고정하지 않은 방문 ${removed.length}곳을 줄이고, ` : ''}방문 사이 휴식을 20분 이상으로 제안해요. 이미 길게 잡은 휴식은 유지합니다.`);
+  if (restOnly) warnings.push('현재 장소를 모두 보존하고 날짜 분산·방문 순서·20분 이상의 휴식을 먼저 제안해요. 장소 교체나 제외는 별도로 요청할 때 확인합니다.');
   if (restOnly && days.some(day => existing.filter(stop => stop.date === day && stop.fixed).length > 2)) warnings.push('고정한 방문이 하루 두 곳을 넘는 날짜는 그대로 보존합니다. 더 줄이려면 고정을 먼저 확인해 주세요.');
   // The accepted plan must include every proposed venue, including a festival
   // whose missing facility evidence is explicitly reviewed by the user.

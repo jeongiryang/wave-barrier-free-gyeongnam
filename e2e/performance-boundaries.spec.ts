@@ -17,7 +17,7 @@ test("공개 랜딩은 첫 화면에서 인증 세션을 요청하지 않고 계
   await page.waitForTimeout(500);
   expect(sessionRequests).toBe(0);
 
-  await page.locator(":is(.wave-header-actions,.wave-footer-tools) > a[href=\"/account\"]").hover();
+  await page.locator(":is(.wave-header-actions,.wave-footer-tools) > a:is(.wave-profile-entry,.account-button)[href=\"/account\"]").hover();
   await expect.poll(() => sessionRequests).toBeGreaterThan(0);
 });
 
@@ -29,10 +29,11 @@ test("랜딩 로그인 의도로 세션을 확인해도 키보드 초점과 링�
   await page.goto("/");
   await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
   const login = page.locator(".night-login");
-  await expect(login).toHaveAttribute("href", "/login?next=%2F");
+  await expect(login).toHaveAttribute("href", "/account");
   await login.focus();
   await expect.poll(() => sessions).toBeGreaterThan(0);
   await expect(login).toBeFocused();
+  await expect(login).toHaveAttribute("href", "/login?next=%2F");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(url => url.pathname === "/login" && url.searchParams.get("next") === "/");
 });

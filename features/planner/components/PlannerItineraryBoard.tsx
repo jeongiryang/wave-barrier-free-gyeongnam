@@ -17,6 +17,7 @@ import SmartSpotImage from "../../tourism/components/SmartSpotImage";
 import LoadingState from "../../../components/LoadingState";
 import { supportedPlacePoint } from "../../../lib/map-coordinates.js";
 import { facilityLabel } from "../../../lib/facility-selection.js";
+import { useOpenNaru } from "../../../components/NaruContext";
 const StopEditor = lazy(() => import('./StopEditor'));
 export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, trip, coverage, origin, places, requiredKeys, map, mapView, onSelectPlace, onAlternative }: {
   focusedPlaceId?: string; onFocusPlace: (place: Place) => void;
@@ -24,6 +25,7 @@ export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, tr
   places: Place[]; requiredKeys: string[]; weather: WeatherData | null; weatherLoading: boolean; region: string;
   map: ReactNode; mapView: boolean; onSelectPlace: (place: Place) => void; onAlternative: (id: string) => void; onContinue: () => void;
 }) {
+  const openNaru = useOpenNaru();
   const schedule = useMemo(() => buildItinerarySchedule({ places: trip.orderedSavedPlaces, days: trip.tripDays, assignments: trip.scheduleAssignments, startTime: trip.dayStartTime, visitMinutesByPlaceId: trip.visitMinutesByPlaceId, fixedVisits: trip.fixedVisits, breakMinutesByPlaceId: trip.breakMinutesByPlaceId, origin, routeMinutesByPlaceId: coverage.routeMinutes }), [trip.orderedSavedPlaces, trip.tripDays, trip.scheduleAssignments, trip.dayStartTime, trip.visitMinutesByPlaceId, trip.fixedVisits, trip.breakMinutesByPlaceId, origin, coverage.routeMinutes]);
   const active = schedule.find(day => day.day === trip.activeDay);
   const [editing, setEditing] = useState<Place | null>(null);
@@ -31,6 +33,15 @@ export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, tr
   if (mapView && !mapMounted) setMapMounted(true);
   const closeEditor = useCallback(() => setEditing(null), []);
   const outside = trip.orderedSavedPlaces.filter(place => trip.scheduleAssignments[place.id] && !trip.tripDays.includes(trip.scheduleAssignments[place.id]));
+  const timingWarnings = schedule.flatMap(day => {
+    const label = day.day.slice(5).replace('-', '/');
+    if (!day.entries.length && trip.orderedSavedPlaces.length && schedule.length > 1) return [`${label}에는 담은 장소가 없어요`];
+    const notices: string[] = [];
+    if (day.entries.some(entry => entry.crossesDateBoundary)) notices.push(`${label} 일정이 자정을 넘겨요`);
+    const late = day.entries.filter(entry => entry.lateMinutes > 0);
+    if (late.length) notices.push(`${label} 고정 방문 ${late.length}곳에 늦을 수 있어요`);
+    return notices;
+  });
   const attention = trip.orderedSavedPlaces.map(place => ({
     place,
     items: requiredKeys.flatMap(key => {
@@ -41,6 +52,12 @@ export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, tr
   return <>
     <div className="simple-itinerary-board" data-map={mapView}>
       <section lang="ko" className="simple-timeboard" aria-label="날짜별 여행 일정">
+        {!!timingWarnings.length && <section className="simple-itinerary-attention" aria-labelledby="itinerary-timing-title">
+          <h3 id="itinerary-timing-title">시간과 날짜를 한 번 더 확인해 주세요</h3>
+          <ul>{timingWarnings.map(message => <li key={message}>{message}</li>)}</ul>
+          <p>현재 이동·체류·휴식 시간을 합산한 결과예요. 조회되지 않은 이동시간은 추정값입니다.</p>
+          <button type="button" onClick={() => openNaru('현재 담은 장소와 고정 방문을 모두 유지하면서 날짜별 방문을 분산하고 이동 부담을 줄여줘')}>나루와 일정 조정하기</button>
+        </section>}
         {attention.length > 0 && <section className="simple-itinerary-attention" aria-labelledby="itinerary-attention-title">
           <h3 id="itinerary-attention-title">추가 확인이 필요한 장소 {attention.length}곳</h3>
           <p>현재 공식정보에서 확인되지 않았거나 선택한 조건과 맞지 않는 항목이에요</p>

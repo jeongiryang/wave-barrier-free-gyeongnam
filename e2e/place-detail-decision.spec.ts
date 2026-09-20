@@ -88,7 +88,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(add).toBeFocused();
     await expect(add).toBeInViewport();
     expect((await add.boundingBox())!.height).toBeGreaterThanOrEqual(48);
-    await expect(dialog.locator(".evidence-counts")).toHaveText(en ? "Reported available 1Not reported 1Reported unavailable 1" : "확인됨 1미확인 1불일치 1");
+    await expect(dialog.locator(".evidence-counts")).toHaveText(en ? "Reported available 1Not reported 1Reported unavailable 1" : "확인됨 1미확인 1없음으로 기록 1");
     await expect(dialog.locator(".place-decision-summary h3")).toHaveText(en ? [
       "Facilities in the official record 1", "Facilities to check before visiting 1", "Facilities reported unavailable 1",
     ] : ["공식 기록에 있는 편의 1", "방문 전 확인할 편의 1", "제공되지 않는 것으로 기록된 편의 1"]);

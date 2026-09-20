@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, openItinerary, plan } from "./fixtures";
 
@@ -18,6 +19,7 @@ test("an explicit new region trip clears this trip's facilities and activities w
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-10-07", end: "2026-10-08" });
   await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await acceptTripTimingWarning(page);
   await expect(page.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
   const archive = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-travel-book-v1") || "[]")[0]);
   await page.getByRole("button", { name: "새 여행", exact: true }).click();

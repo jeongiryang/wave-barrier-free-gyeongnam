@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions, openItinerary, plan } from "./fixtures";
@@ -44,6 +45,7 @@ test("보관 일정을 열면 자동 조회 후에도 같은 일정과 누락된
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-10-07" });
   await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await acceptTripTimingWarning(page);
   await expect(page.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
   await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
   await expect(page.getByRole("list", { name: "선택한 편의조건" }).getByRole("listitem")).toHaveText(["장애인 주차구역", "접근로", "휠체어 대여", "승강기", "장애인 화장실"]);
@@ -70,6 +72,7 @@ test("플래너의 일정은 로컬 여행집에서 기록하고 다시 복원�
   await openItinerary(page, { start: "2026-09-01", end: "2026-09-02" });
   const itinerary = page.locator("#itinerary");
   await itinerary.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await acceptTripTimingWarning(page);
   await expect(itinerary.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
 
   const serialized = await page.evaluate(() => window.localStorage.getItem("wave-travel-book-v1") || "");

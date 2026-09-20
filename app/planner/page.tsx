@@ -158,6 +158,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
     weather, weatherFailure, weatherLoading, reloadWeather, loadEnrichment, resetWeather, resetEnrichment,
   } = usePlannerSignals({ plan, region, theme, locale, travelStart, travelEnd });
   const participation = usePlannerParticipation({
+    selectedPlaces: tripSelection.orderedSavedPlaces,
     region,
     theme,
     profiles: selected,

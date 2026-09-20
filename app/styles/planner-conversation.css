@@ -13,8 +13,7 @@
 .planner-reference .planner-journey-workspace { width: auto; max-width: none; margin: 0 28px 0 calc(var(--workspace-rail) + 28px); padding: 0 0 36px; }
 .planner-reference .journey-stage-stream { min-width: 0; }
 .planner-reference .journey-workspace-block { padding: clamp(20px,2.2vw,36px); border: 1px solid #e7e2ed; border-radius: 24px; background: #fff; box-shadow: 0 4px 20px #242b2a03; margin: 0; width: 100%; }
-.planner-reference .condition-heading,.planner-reference .journey-workspace-block h2 { font-size: clamp(1.3rem,1.8vw,1.8rem); font-weight: 600; color: var(--ink); line-height: 1.5; }
-.planner-reference .reference-subtitle,.planner-reference .stage-guidance { font-size: .9rem; color: var(--muted); line-height: 1.8; }
+.planner-reference .journey-workspace-block h2 { font-size: clamp(1.3rem,1.8vw,1.8rem); font-weight: 600; color: var(--ink); line-height: 1.5; }
 .planner-reference > .simple-footer { margin-left: calc(var(--workspace-rail) + 28px); width: auto; }
 @media (min-width: 1181px) {
   .planner-reference:has(.naru-panel.naru-compact[open]) .planner-journey-workspace { margin-right: 464px; }
@@ -25,7 +24,7 @@
 .wave-skeleton-lines { display: grid; gap: 10px; }
 .wave-skeleton-lines i { height: 12px; display: block; border-radius: 6px; background: linear-gradient(90deg,#ece8f1 25%,#faf8fd 50%,#ece8f1 75%); background-size: 200% 100%; animation: wave-shimmer 1.6s ease-in-out infinite; }
 .wave-skeleton-lines i:nth-child(2) { width: 82%; }.wave-skeleton-lines i:nth-child(3) { width: 60%; }
-.place-card-skeleton .skeleton-visual,.smart-spot-image.loading { background: linear-gradient(90deg,#ece8f1 25%,#faf8fd 50%,#ece8f1 75%); background-size: 200% 100%; animation: wave-shimmer 1.6s ease-in-out infinite; }
+.smart-spot-image.loading { background: linear-gradient(90deg,#ece8f1 25%,#faf8fd 50%,#ece8f1 75%); background-size: 200% 100%; animation: wave-shimmer 1.6s ease-in-out infinite; }
 .kakao-action-icon { background: #fee500; color: #191919; padding: 7px; width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; }
 .kakao-action-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; }
 @keyframes wave-spin { to { transform: rotate(360deg); } }
@@ -44,7 +43,7 @@
   .planner-reference .planner-journey-workspace { margin-inline: 12px; }
   .planner-reference .journey-workspace-block { padding: 20px 12px; border-radius: 18px; }
 }
-@media (prefers-reduced-motion: reduce) { .wave-spinner,.wave-loading-inline::before,.planner-page button[aria-busy=true]::before,.wave-skeleton-lines i,.place-card-skeleton .skeleton-visual,.smart-spot-image.loading { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .wave-spinner,.wave-loading-inline::before,.planner-page button[aria-busy=true]::before,.wave-skeleton-lines i,.smart-spot-image.loading { animation: none; } }
 html[data-motion=calm] .wave-header { transition: none; }
 html[data-motion=calm] .wave-spinner,html[data-motion=calm] .wave-loading-inline::before,html[data-motion=calm] .planner-page button[aria-busy=true]::before,html[data-motion=calm] .wave-skeleton-lines i { animation: none; }
 

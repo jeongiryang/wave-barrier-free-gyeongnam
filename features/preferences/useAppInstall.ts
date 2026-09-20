@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 interface InstallChoice {
   outcome: "accepted" | "dismissed";
@@ -14,7 +14,11 @@ interface BeforeInstallPromptEvent extends Event {
 
 type InstallState = "manual" | "available" | "installing" | "installed";
 
-export function useAppInstall() {
+export const AppInstallContext = createContext<{ state: InstallState; install: () => Promise<void> } | null>(null);
+
+// The browser may offer installation before the preferences menu is opened.
+// Keep one listener in the persistent provider, independently of menu lifetime.
+export function useAppInstallController() {
   const promptRef = useRef<BeforeInstallPromptEvent | null>(null);
   const [state, setState] = useState<InstallState>("manual");
 
@@ -55,5 +59,11 @@ export function useAppInstall() {
     }
   }, []);
 
-  return { state, install };
+  return useMemo(() => ({ state, install }), [state, install]);
+}
+
+export function useAppInstall() {
+  const value = useContext(AppInstallContext);
+  if (!value) throw new Error("AppInstallContext is required");
+  return value;
 }

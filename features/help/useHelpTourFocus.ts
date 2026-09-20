@@ -6,9 +6,9 @@ export function useHelpTourFocus(open: boolean, dialogRef: RefObject<HTMLDivElem
   useLayoutEffect(() => {
     if (!open) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : triggerRef.current;
-    const supportMenu = triggerRef.current?.closest<HTMLDetailsElement>('.wave-support-menu');
-    const restoreMenu = Boolean(supportMenu?.open);
-    if (supportMenu) supportMenu.open = false;
+    const supportMenu = triggerRef.current?.closest<HTMLElement>('.wave-support-menu');
+    const restoreMenu = supportMenu?.dataset.open === "true";
+    if (restoreMenu) supportMenu?.dispatchEvent(new CustomEvent("wave:support-tour", { detail: true }));
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -37,8 +37,11 @@ export function useHelpTourFocus(open: boolean, dialogRef: RefObject<HTMLDivElem
     dialogRef.current?.querySelector<HTMLButtonElement>(".help-tour-close")?.focus();
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      if (restoreMenu && supportMenu?.isConnected) supportMenu.open = true;
-      previousFocus?.focus();
+      if (restoreMenu && supportMenu?.isConnected) {
+        supportMenu.dispatchEvent(new CustomEvent("wave:support-tour", { detail: false }));
+        // The controlled disclosure must commit its visible panel before focus returns.
+        requestAnimationFrame(() => { if (previousFocus?.isConnected) previousFocus.focus(); });
+      } else previousFocus?.focus();
     };
   }, [close, dialogRef, open, triggerRef]);
 }

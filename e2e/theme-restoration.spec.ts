@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, plan } from "./fixtures";
@@ -34,6 +35,7 @@ async function addAndSave(page: Page) {
   await initial.getByLabel("마지막 날", { exact: true }).fill("2026-10-08");
   await initial.getByRole("button", { name: "시간표 만들기", exact: true }).click();
   await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+    await acceptTripTimingWarning(page);
   await expect(page.locator(".simple-save-control [role=status]")).toContainText("이 기기의 내 여행에 저장했어요");
 }
 

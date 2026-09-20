@@ -32,6 +32,12 @@ async function setup(page: Page, handler?: (route: Route) => Promise<void>) {
     if (!sessionStorage.getItem('wave-session-facilities-v1')) sessionStorage.setItem('wave-session-facilities-v1', '["wheel"]');
   }, values);
   await page.goto('/festivals');
+  const compactFilters = page.getByRole('button', { name: '축제 검색 조건', exact: false });
+  if (page.viewportSize()!.width <= 600) {
+    await expect(compactFilters).toBeEnabled();
+    await compactFilters.click();
+    await expect(compactFilters).toHaveAttribute('aria-expanded', 'true');
+  }
   const filters = page.getByRole('region', { name: '축제 찾기', exact: true });
   await expect(page.getByRole('button', { name: '주류 행사 제외', exact: true })).toBeVisible();
   await expect(filters.getByLabel('언제부터', { exact: true })).toHaveValue('2026-09-12');
@@ -42,39 +48,27 @@ async function setup(page: Page, handler?: (route: Route) => Promise<void>) {
   return card;
 }
 
-test('축제 현장 정보는 쉬는 곳과 화장실 예시만 실제 지도에 표시한다', async ({ page }) => {
-  await page.route('https://*.tile.openstreetmap.org/**', route => route.fulfill({ status: 204 }));
+test('축제 현장 편의 위치를 모를 때 임의 시설 핀이나 지도 요청을 만들지 않는다', async ({ page }) => {
+  const tileRequests: string[] = [];
+  page.on('request', request => { if (request.url().includes('tile.openstreetmap.org')) tileRequests.push(request.url()); });
   const card = await setup(page);
-  await expect(card.getByTestId('festival-amenity-map')).toHaveCount(0);
-  await card.getByRole('button', { name: '지금 현장·감각 정보', exact: true }).click();
+  const opener = card.getByRole('button', { name: '지금 현장·감각 정보', exact: true });
+  await opener.click();
   const dialog = page.getByTestId('festival-amenity-dialog');
   await expect(dialog).toBeVisible();
-  const map = dialog.getByTestId('festival-amenity-map');
-  await expect(map).toBeVisible();
-  await expect(dialog.getByRole('button', { name: '쉬는 곳', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(dialog.locator('[data-amenity-marker="rest"]')).toHaveCount(3);
-  await expect(dialog.getByRole('button', { name: '쉬는 곳 입구 벤치', exact: true })).toBeVisible();
-
-  await dialog.getByRole('button', { name: '화장실', exact: true }).click();
-  await expect(dialog.getByRole('button', { name: '화장실', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(dialog.locator('[data-amenity-marker="restroom"]')).toHaveCount(3);
-  await expect(dialog.getByRole('button', { name: '화장실 컨테이너 화장실', exact: true })).toBeVisible();
-  await expect(dialog.getByText('임의의 데이터를 사용하여 표시한 마크입니다. 실제 지도를 확인해 주세요.', { exact: true })).toBeVisible();
-  await dialog.getByRole('button', { name: '쉬는 곳', exact: true }).focus();
-  await expect(dialog.getByRole('button', { name: '쉬는 곳', exact: true })).toBeFocused();
-
-  for (const removed of ['소리', '혼잡', '휠체어 이동', '빛', '현장 정보 새로 확인', '내 근처 일정 장소 찾기']) {
-    await expect(dialog.getByRole('button', { name: removed, exact: true })).toHaveCount(0);
-  }
-  await expect(dialog.getByText('공식정보 재확인 목록', { exact: false })).toHaveCount(0);
-  await expect(dialog.getByText('지금 이 장소에서 직접 본 정보 공유', { exact: true })).toHaveCount(0);
+  await expect(dialog.getByRole('heading', { name: '현장 편의시설 위치정보 없음', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('status')).toContainText('공식 현장 지도가 아직 제공되지 않았어요.');
+  await expect(dialog.getByTestId('festival-amenity-map')).toHaveCount(0);
+  await expect(dialog.locator('[data-amenity-marker]')).toHaveCount(0);
+  expect(tileRequests).toEqual([]);
   expect((await new AxeBuilder({ page }).include('[data-testid="festival-amenity-dialog"]').analyze()).violations).toEqual([]);
-  await page.screenshot({ path: test.info().outputPath('festival-amenities.png'), fullPage: true });
-
   for (const width of [390, 960, 1440]) {
     await page.setViewportSize({ width, height: 960 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
   }
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
 });
 
 test('축제 포스터나 제목을 누르면 포스터와 기본 정보가 나란히 열린다', async ({ page }) => {

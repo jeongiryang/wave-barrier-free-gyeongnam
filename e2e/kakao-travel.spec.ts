@@ -3,15 +3,15 @@ import AxeBuilder from "@axe-core/playwright";
 const origin = "https://wave-barrier-free-gyeongnam.vercel.app";
 const id = "12345678-1234-4123-8123-123456789012";
 const payload = { version: 1, title: "통영 하루 여행", region: "통영", travelStart: "2026-09-20", travelEnd: "2026-09-20", dayStartTime: "10:00", themes: ["nature"], placeIds: ["1001"], scheduleAssignments: { "1001": "2026-09-20" }, note: "비공개 메모", status: "planned" };
-async function accountFixture(page: Page) {
+async function accountFixture(page: Page, tripPayload = payload) {
   await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
   await page.route("**/api/auth/get-session", route => route.fulfill({ json: { user: { id: "owner", name: "여행자" }, session: { id: "session" } } }));
-  await page.route("**/api/account/travel/**", route => route.fulfill({ json: route.request().url().endsWith("/places") ? { places: [{ id: "1001", name: "통영 여행지", address: "경남 통영시", source: "한국관광공사" }], missing: 0 } : { id, payload, role: "owner", revision: 1, updatedAt: Date.now(), members: [], votes: [], comments: [], invitationActive: false } }));
+  await page.route("**/api/account/travel/**", route => route.fulfill({ json: route.request().url().endsWith("/places") ? { places: [{ id: "1001", name: "통영 여행지", address: "경남 통영시", source: "한국관광공사" }], missing: 0 } : { id, payload: tripPayload, role: "owner", revision: 1, updatedAt: Date.now(), members: [], votes: [], comments: [], invitationActive: false } }));
 }
-test("Kakao card prepares a private-field-free public snapshot then opens the picker only on click", async ({ page, baseURL }) => {
+for (const late of [false, true]) test(`Kakao card with late schedule ${late} prepares a private-field-free public snapshot then opens the picker only on click`, async ({ page, baseURL }) => {
   // Serve the local implementation under the registered origin; no requests reach Production.
   await page.route(`${origin}/**`, async route => { const url = new URL(route.request().url()); const local = new URL(baseURL!); const response = await route.fetch({ url: `${baseURL}${url.pathname}${url.search}`, headers: { ...route.request().headers(), host: local.host, origin: local.origin, referer: `${local.origin}/` } }); await route.fulfill({ response }); });
-  await accountFixture(page);
+  await accountFixture(page, { ...payload, dayStartTime: late ? '23:00' : '10:00' });
   await page.addInitScript(() => { (window as unknown as { __cards: unknown[] }).__cards = []; window.Kakao = { init: () => { window.Kakao!.Share = { sendDefault: card => { (window as unknown as { __cards: unknown[] }).__cards.push(card); } }; }, isInitialized: () => Boolean(window.Kakao?.Share) }; });
   await page.route("**/api/kakao/share", route => route.fulfill({ json: { javascriptKey: "a".repeat(32) } }));
   let snapshots = 0;
@@ -22,6 +22,12 @@ test("Kakao card prepares a private-field-free public snapshot then opens the pi
   await page.goto(`${origin}/my-trips/${id}`);
   expect(snapshots).toBe(0);
   await page.getByRole("button", { name: "카카오톡 공유 카드" }).click();
+  if (late) {
+    const warning = page.getByRole('dialog', { name: '저장·공유 전 일정 확인', exact: true });
+    await expect(warning).toContainText('자정을 넘겨요');
+    expect(snapshots).toBe(0);
+    await warning.getByRole('button', { name: '확인하고 계속', exact: true }).click();
+  }
   await expect(page.getByRole("button", { name: "카카오톡으로 여행 공유", exact: true })).toBeEnabled();
   expect(await page.evaluate(() => (window as unknown as { __cards: unknown[] }).__cards.length)).toBe(0);
   await page.getByRole("button", { name: "카카오톡으로 여행 공유", exact: true }).click();

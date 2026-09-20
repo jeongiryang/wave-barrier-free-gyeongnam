@@ -46,6 +46,6 @@ export function buildTripCalendarIcs(options?: {
   title?: string;
   region?: string;
   placeNames?: string[];
-  shareUrl: string;
+  shareUrl?: string;
   createdAt?: Date;
 }): string;

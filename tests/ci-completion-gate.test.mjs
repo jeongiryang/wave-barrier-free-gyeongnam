@@ -72,7 +72,7 @@ test("sandbox jobs import only the immutable external runtime and never prepare 
   for (const job of [workflow.jobs["sandbox-boundary"], archivedWorkflow.jobs["sandbox-application"]]) {
     const runs = job.steps.map(step => step.run || "").join("\n");
     const bootstrap = job.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution").run;
-    const distribution = job === workflow.jobs["sandbox-boundary"] ? "568f6b39760a09c1a3b9939047387276794b412f" : "b02726fd4407a8537c2ece3b5d2af80ddd3e3edf";
+    const distribution = job === workflow.jobs["sandbox-boundary"] ? "5b9c9c319b2d0c6893cb4d4d5f8edc6371069945" : "b02726fd4407a8537c2ece3b5d2af80ddd3e3edf";
     assert.ok(bootstrap.includes(`${distribution}/scripts/subscription-ci-bootstrap.py`));
     if (job === workflow.jobs["sandbox-boundary"]) {
       const bytes = readFileSync(new URL("../scripts/subscription-ci-bootstrap.py", import.meta.url), "utf8").replaceAll("\r\n", "\n");
@@ -123,8 +123,8 @@ function assertRcCiContract(candidate) {
   expectedBoundary.if = "${{ !cancelled() && needs.certify.outputs.verified != 'true' }}";
   for (const step of expectedBoundary.steps.filter(step => step.uses?.startsWith('actions/upload-artifact@'))) step.uses = 'actions/upload-artifact@v7';
   const bootstrap = expectedBoundary.steps.find(step => step.name === "Verify immutable CI bootstrap before candidate execution");
-  bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "568f6b39760a09c1a3b9939047387276794b412f")
-    .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "6fd043bece51e715044a448e307a8b973c77a9bce49c932ee9f783dc05f4e695");
+  bootstrap.run = bootstrap.run.replaceAll("b02726fd4407a8537c2ece3b5d2af80ddd3e3edf", "5b9c9c319b2d0c6893cb4d4d5f8edc6371069945")
+    .replaceAll("add5ef22f9ff8f37638498ca4db0848655ecdb17430b5e31de076e72b81e5f25", "cfcde4821762a6c1b1d36e3a528ecbc379900b6521bb17cba76f6578b37c22b8");
   const actualBoundary = structuredClone(candidate.jobs["sandbox-boundary"]);
   const prepareApt = actualBoundary.steps.findIndex(step => step.name === "Exclude unused runner Chrome repository from APT");
   const verifyBootstrap = actualBoundary.steps.findIndex(step => step.name === "Reject tampered bootstrap before any checkout code executes");

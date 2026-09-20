@@ -43,3 +43,16 @@ API 오류·불명확한 근거·직접 main push·다른 tree는 전체 검증�
 - issue triage와 상태 routing은 읽은 이벤트를 분류하는 용도다. API 기반 Codex worker/독립 QA 자동화는 기존 비활성·Owner-only 경계를 유지했다. 유료 호출을 활성화하지 않았다. immutable bootstrap과 과거 sandbox archive는 변경하지 않았다.
 
 근거: [GitHub workflow REST API](https://docs.github.com/en/rest/actions/workflow-runs), [artifact release](https://github.com/actions/upload-artifact/releases/tag/v7.0.1), [github-script v9](https://github.com/actions/github-script/releases/tag/v9.0.0), [Vercel CLI](https://vercel.com/docs/cli).
+
+
+## 2026-09-21 승인된 인트로 의존성의 immutable pin 재등록
+
+- PR #667의 사용자 승인 인트로를 통합하면서 `three@0.186.0`, `@react-three/fiber@9.7.0`, `@types/three@0.183.1`과 전이 의존성이 추가됐다. 검토 대상 소스는 커밋 `208d47261c5702773d03827f86eb44bfa943e1fb`이다.
+- 기존 lock 대비 패키지 20개가 추가됐고 기존 패키지 항목은 변경되지 않았다(루트 의존성 목록만 추가). 추가 항목은 모두 `https://registry.npmjs.org/` 다운로드와 sha512 integrity가 있으며 install-script 플래그가 없다. 이는 코드의 무해성을 자동 보장하는 정책이 아니라 이번 승인 범위의 고정 의존성 검토 기록이다.
+- CI 35532800570은 후보 실행 전 `package-lock.json`의 기존 고정 해시와 새 lock이 달라 `BLOCKED_SANDBOX`로 거부했다. 외부 bootstrap의 SHA256은 정상이며 나머지 helper 12개와 추가 경계 파일 4개의 해시는 그대로 일치했다.
+- lock pin만 `ae0ef08fa49232fc4b36fc81c0c5328c563800767a353a9b810f185b6a3fb25b`에서 `93283120fe309e14434c83d452fe038ddf6a02c5d5b484e5bf1402a8bb48fb91`로 바꾼다. 다운로드 원본 SOURCE_SHA도 위 검토 커밋으로 고정한다. 검증 함수·권한·네트워크·격리·변조 거부 코드는 변경하지 않는다.
+- 배포본을 먼저 별도 immutable 커밋 A로 원격 고정하고, 후속 커밋 B에서 workflow URL과 SHA256을 A로 갱신한다. 후보 branch의 최신 내용을 자동으로 허용하거나 해시 검사를 제거하지 않는다. 이후 lock 변경도 별도 검토와 재배포가 필요하다.
+
+- 배포 커밋 A: `5b9c9c319b2d0c6893cb4d4d5f8edc6371069945`. 외부 bootstrap SHA256: `cfcde4821762a6c1b1d36e3a528ecbc379900b6521bb17cba76f6578b37c22b8`.
+- 원격 A의 고정 URL에서 bootstrap을 내려받아 위 해시를 검사한 뒤, checkout 밖 임시 디렉터리에서 Python `-I -B`로 실행했다. 검토 대상 파일 13개를 검사하고 17개 배포 파일의 다운로드 해시를 검증했다. 후보 코드는 실행하지 않았다.
+- 기존 고정 CI bootstrap 공격 테스트와 installed bootstrap 공격 테스트를 변경 없이 실행했다. helper·entrypoint·lockfile 변조는 다운로드/실행 이전에 거부됐고, 위조 배포 응답과 공개 sentinel/네트워크 접근 시도도 차단됐다. Linux bubblewrap/AppArmor·자원 경계의 최종 증거는 새 SHA의 GitHub Actions 결과로 남긴다.

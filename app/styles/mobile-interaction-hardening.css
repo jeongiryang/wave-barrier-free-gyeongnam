@@ -13,7 +13,7 @@
  */
 .account-button,
 .account-loading,
-.account-menu > summary {
+.account-menu > :is(summary,.wave-support-trigger) {
   min-height: 44px;
 }
 
@@ -70,12 +70,6 @@ html[data-motion="calm"] *::after {
 }
 
 /* 좁은 공개 화면에서 데스크톱 nav가 사라질 때 제공되는 키보드 메뉴. */
-.public-mobile-nav { display: none; position: relative; flex: none; }
-.auth-header-actions { display: flex; align-items: center; gap: 8px; }
-
-@media (max-width: 980px) {
-  .public-mobile-nav { display: block; }
-}
 
 @media (max-width: 780px) {
   .map-command-scroll {
@@ -100,11 +94,6 @@ html[data-motion="calm"] *::after {
     min-width: 44px;
     min-height: 44px;
   }
-}
-
-@media (max-width: 430px) {
-  .auth-header .brand > span:last-child { display: none; }
-  .auth-header-actions { min-width: 0; gap: 4px; }
 }
 
 /* 320px와 200% 확대에서도 긴 상태·외부 데이터 문구가 화면을 밀지 않는다. */

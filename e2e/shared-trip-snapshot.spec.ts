@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, openItinerary } from "./fixtures";
@@ -37,7 +38,13 @@ async function server(page: Page, gates: { create?: ReturnType<typeof deferred>;
   });
   return { posts, creates: () => posts.filter(post => post.path === "/api/trips"), revision: () => revision };
 }
-async function menu(page: Page) { await page.getByRole("button", { name: "공유", exact: true }).click(); return page.getByRole("dialog", { name: "여행 공유", exact: true }); }
+async function menu(page: Page) {
+  await page.getByRole("button", { name: "공유", exact: true }).click();
+  const panel = page.getByRole("dialog", { name: "여행 공유", exact: true });
+  const create = panel.getByRole("button", { name: "공개 링크 만들기", exact: true });
+  if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); }
+  return panel;
+}
 async function closeMenu(page: Page) { await page.getByRole("button", { name: "공유 닫기", exact: true }).click(); }
 async function startTime(page: Page, value: string) {
   await page.getByRole("button", { name: "여행 설정", exact: true }).click();

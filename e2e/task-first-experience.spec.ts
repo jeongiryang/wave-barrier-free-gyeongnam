@@ -67,7 +67,7 @@ test('missing facility evidence can recover from an error without changing the s
   const saved = await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'));
   await page.locator('.simple-place-row h3 button').first().click();
   const dialog = page.getByRole('dialog');
-  await expect(dialog.getByText('항목별 편의정보가 없습니다. 최신 정보를 확인해 주세요.')).toBeVisible();
+  await expect(dialog.getByText('공식 데이터에서 항목별 편의정보를 아직 확인하지 못했어요. 시설이 없다는 뜻은 아니며, 다시 조회하거나 방문 전에 문의해 주세요.')).toBeVisible();
   await expect(dialog.locator('.evidence-counts')).toHaveCount(0);
   let calls = 0;
   await page.route('**/api/wave?action=places*', route => {

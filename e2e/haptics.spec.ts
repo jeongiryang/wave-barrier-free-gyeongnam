@@ -48,8 +48,8 @@ async function openPreferences(page: Page) {
   await openSupportMenu(page);
   const details = page.locator(".preference-controls");
   await expect(details).toHaveAttribute("aria-busy", "false");
-  if (await details.getAttribute("open") === null) await details.locator("summary").click();
-  await expect(details).toHaveAttribute("open", "");
+  if (await details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).getAttribute('aria-expanded') !== 'true') await details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
+  await expect(details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ })).toHaveAttribute('aria-expanded', 'true');
 }
 
 test("the vibration preference defaults to off, toggles on and is stored only in localStorage", async ({ page }) => {

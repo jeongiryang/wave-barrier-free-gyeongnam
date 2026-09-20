@@ -32,6 +32,25 @@ export default function AccountSettings({ nativeAuth = false }: { nativeAuth?: b
   const [deleting, setDeleting] = useState(false);
   const changeLock = useRef(false);
   const deleteLock = useRef(false);
+  const signOutLock = useRef(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
+
+  async function signOut() {
+    if (signOutLock.current) return;
+    signOutLock.current = true;
+    setSigningOut(true);
+    setSignOutError('');
+    try {
+      const result = await authClient.signOut();
+      if (result.error) throw new Error('sign-out-failed');
+      window.location.reload();
+    } catch {
+      setSignOutError('로그아웃을 완료하지 못했습니다. 다시 시도해 주세요.');
+      setSigningOut(false);
+      signOutLock.current = false;
+    }
+  }
 
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,6 +121,12 @@ export default function AccountSettings({ nativeAuth = false }: { nativeAuth?: b
   if (!session?.user) return <div className="auth-signed-in"><p>계정 관리를 사용하려면 로그인해 주세요.</p><a className="auth-primary-link" href="/login?next=%2Faccount">로그인</a></div>;
 
   return <div className="account-settings">
+    <section aria-labelledby="account-session-title">
+      <h3 id="account-session-title">로그인 관리</h3>
+      <p id="account-signout-description">로그아웃해도 이 기기에 담은 여행과 일정은 남아 있어요. 공용 기기를 사용했다면 기기에 보관한 여행도 확인해 주세요.</p>
+      <button className="auth-submit" type="button" aria-describedby="account-signout-description" disabled={signingOut || deleting || changing} onClick={signOut}>{signingOut ? '로그아웃 중…' : '로그아웃'}</button>
+      {signOutError && <p className="auth-message" role="alert">{signOutError}</p>}
+    </section>
     <NicknameEditor key={session.user.id} name={session.user.name || '여행자'} onSaved={() => router.refresh()} />
     <section><h3>내 여행 이어가기</h3><p>여행을 계정에 저장하고, 여러 기기에서 편집하거나 동행자와 의견을 나눌 수 있습니다.</p><Link className="auth-primary-link" href="/my-trips">계정에 저장한 여행 →</Link></section>
     <p className="auth-description"><strong>{session.user.name || session.user.email}</strong> 계정의 보안과 삭제를 직접 관리합니다.</p>

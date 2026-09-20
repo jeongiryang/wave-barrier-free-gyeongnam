@@ -93,6 +93,41 @@ test('workspace tabs expose all 28 tools with keyboard and pointer targets', asy
   expect(prompts).toEqual([]); expect(journeys).toEqual([]);
 });
 
+test('plain-language tool search finds difficult tools without changing the current trip', async ({page})=>{
+  const {chat}=await setup(page,true);
+  const before=await state(page);
+  await chat.getByRole('tab',{name:'여행 도구',exact:true}).click();
+  const search=chat.getByLabel('무엇을 확인할까요?',{exact:true});
+  await search.fill('막차');
+  const tools=chat.getByRole('region',{name:'모든 여행 도구',exact:true}).locator('.naru-tools button');
+  await expect(tools).toHaveCount(1);
+  await expect(tools.first()).toContainText('교통');
+  await search.fill('없는도구검색');
+  await expect(tools).toHaveCount(0);
+  await search.fill('');
+  await expect(tools).toHaveCount(28);
+  expect(await state(page)).toEqual(before);
+});
+
+test('gentle itinerary proposal preserves existing visits, waits for apply and undoes atomically', async ({page})=>{
+  const {chat}=await setup(page,true);
+  await page.route('**/api/assistant',route=>route.fulfill({json:route.request().method()==='GET'?{available:true}:{reply:'기존 장소를 유지하는 조정안을 준비했어요.',proposal:{action:'adapt-itinerary',reason:'fatigue',pace:'relaxed'}}}));
+  await page.route('**/api/assistant/journey',route=>route.fulfill({contentType:'application/x-ndjson',body:JSON.stringify({type:'result',draft:{...draft(),action:'adapt-itinerary',stops:[],removed:[],restOnly:true,restDay:undefined}})+'\n'}));
+  const before=await state(page);
+  await chat.getByRole('textbox',{name:'나루에게 여행 질문하기',exact:true}).fill('부모님이 피곤하니 담은 장소를 유지하고 더 여유롭게 바꿔줘');
+  await chat.getByRole('button',{name:'나루에게 보내기',exact:true}).click();
+  const proposal=chat.getByRole('region',{name:'나루의 실제 일정안',exact:true});
+  await expect(proposal).toContainText(original.name);
+  await expect(proposal).toContainText('20분');
+  expect(await state(page)).toEqual(before);
+  await proposal.getByRole('button',{name:'이 일정으로 반영하기',exact:true}).click();
+  await expect.poll(async()=>(await state(page)).schedule.breakMinutesByPlaceId['1001']).toBe(20);
+  expect((await state(page)).ids).toEqual(before.ids);
+  expect((await state(page)).schedule.visitMinutesByPlaceId).toEqual(before.schedule.visitMinutesByPlaceId);
+  await chat.getByRole('button',{name:'마지막 일정안 적용 되돌리기',exact:true}).click();
+  await expect.poll(()=>state(page)).toEqual(before);
+});
+
 test('travel preparation sends one complete request, previews changes and supports apply and undo', async ({ page }) => {
   const { chat, prompts, journeys } = await setup(page, true);
   const before = await state(page), proposal = await requestTrip(chat);

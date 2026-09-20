@@ -10,12 +10,20 @@ for (const path of ["/login", "/register", "/forgot-password", "/reset-password?
     });
     await page.goto(`${baseURL}${path}`);
     const form = page.locator("form");
-    await expect(form).toHaveAttribute("method", "post");
-    const fields = form.locator("input");
-    expect(await fields.count()).toBeGreaterThan(0);
-    for (const field of await fields.all()) await expect(field).toBeDisabled();
-    await expect(form.locator('button[type="submit"]')).toBeDisabled();
-    await expect(page.getByText("이 안내가 계속 보이면 브라우저의 JavaScript를 켜고 다시 열어 주세요.", { exact: false })).toBeVisible();
+    if (path === "/login" || path === "/register") {
+      // Pending authentication exposes neither editable credentials nor a native form.
+      await expect(page.getByRole('region', { name: '계정 확인', exact: true })).toHaveAttribute('aria-busy', 'true');
+      await expect(form).toHaveCount(0);
+      await expect(page.locator('input[type=password]')).toHaveCount(0);
+      await expect(page.locator('noscript p')).toContainText('JavaScript를 허용해 주세요');
+    } else {
+      await expect(form).toHaveAttribute("method", "post");
+      const fields = form.locator("input");
+      expect(await fields.count()).toBeGreaterThan(0);
+      for (const field of await fields.all()) await expect(field).toBeDisabled();
+      await expect(form.locator('button[type="submit"]')).toBeDisabled();
+      await expect(page.getByText("이 안내가 계속 보이면 브라우저의 JavaScript를 켜고 다시 열어 주세요.", { exact: false })).toBeVisible();
+    }
     expect(submissions).toEqual([]);
     expect(new URL(page.url()).searchParams.has("password")).toBe(false);
     await context.close();

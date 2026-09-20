@@ -5,10 +5,12 @@ test("Naru reveals restored and keyboard focus without moving a control during a
   await page.setViewportSize({ width: 412, height: 839 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
-  await page.goto("/planner?region=창원");
+  // The initial conditions view intentionally keeps the static discovery hint.
+  // Mobile search results hide the hint while retaining the avatar (density suite).
+  await page.goto("/planner");
   const activity = page.getByRole("button", { name: "자연·휴양", exact: true });
   await expect(activity).toBeEnabled();
-  await expect(page.locator('.simple-results[aria-busy="false"]')).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
   // Arrange a real selectable control below the fold and wide enough to overlap
   // the avatar. The hero's production spacing is independent of this focus race.
   await activity.evaluate(element => {

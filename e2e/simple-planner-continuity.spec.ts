@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, mockPublicShellApi, plan } from "./fixtures";
@@ -224,6 +225,10 @@ test("저장 버튼 하나로 첫 저장 후 날짜·체류·장소 변경을 �
   const settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
   await settings.getByLabel("마지막 날", { exact: true }).fill("2026-10-15");
   await settings.getByRole("button", { name: "적용", exact: true }).click();
+  await expect(control.getByRole("alert")).toContainText("일정의 시간과 날짜를 확인한 뒤 저장해 주세요.");
+  expect((await books(page))[0].travelEnd).toBe("2026-10-14");
+  await control.getByRole("button").click();
+  await acceptTripTimingWarning(page);
   await expect.poll(async () => (await books(page))[0].travelEnd).toBe("2026-10-15");
   await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
   await page.getByRole("button", { name: `${lake} 담았음 · 되돌리기`, exact: true }).click();

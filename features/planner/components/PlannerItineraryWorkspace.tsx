@@ -108,6 +108,26 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
   const setMapView = props.onMapViewChange;
   const c = (ko: string, en: string) => locale === "en" ? en : ko;
   const { activeDay, tripDays, scheduleAssignments } = props.tripSelection;
+  const linkedVisit = useRef('');
+  useEffect(() => {
+    if (!props.active || !props.tripSelection.storageReady) return;
+    const id = new URLSearchParams(window.location.search).get('visit') || '';
+    if (!/^[1-9]\d{0,11}$/.test(id) || linkedVisit.current === id || !props.tripSelection.saved.includes(id)) return;
+    const day = scheduleAssignments[id] || tripDays[0];
+    if (!tripDays.includes(day)) return;
+    if (activeDay !== day) { props.tripSelection.setActiveDay(day); return; }
+    const reveal = () => {
+      const stop = document.getElementById(`itinerary-stop-${id}`);
+      if (!stop) return;
+      const target = stop.querySelector<HTMLElement>('h3 button,button') || stop;
+      target.focus({ preventScroll: true }); stop.scrollIntoView({ block: 'center', behavior: 'instant' });
+      linkedVisit.current = id; observer.disconnect();
+    };
+    const observer = new MutationObserver(reveal);
+    observer.observe(document.body, { childList: true, subtree: true });
+    const frame = requestAnimationFrame(reveal);
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); };
+  }, [props.active, props.tripSelection, activeDay, scheduleAssignments, tripDays]);
   const itineraryPlaces = useMemo(() => props.tripSelection.orderedSavedPlaces.filter((place) => (scheduleAssignments[place.id] || tripDays[0]) === activeDay), [props.tripSelection.orderedSavedPlaces, activeDay, scheduleAssignments, tripDays]);
   const routableItineraryPlaces = useMemo(
     () => itineraryPlaces.filter(place => supportedPlacePoint(place.mapX, place.mapY)),
@@ -212,7 +232,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
 
   if (!props.tripSelection.travelStart) return <InitialTripSetup trip={props.tripSelection}><InitialDeparture {...props} /></InitialTripSetup>;
   return <section className="journey-workspace-block itinerary-stage" id="itinerary" aria-labelledby="itinerary-stage-title">
-    <div className="simple-itinerary-top"><div lang="ko" className="simple-itinerary-heading"><div><h2 id="itinerary-stage-title">내 일정</h2><p>{props.tripSelection.travelStart} — {props.tripSelection.travelEnd}</p></div><button type="button" onClick={() => setSettingsOpen(true)}>여행 설정</button></div><Suspense fallback={<LoadingState>여행 도구를 준비하고 있어요.</LoadingState>}><TripDayPlanner plan={props.plan} tripSelection={props.tripSelection} route={props.route} audioGuide={props.audioGuide} participation={props.participation} archiveContext={props.archiveContext} /></Suspense></div>
+    <div className="simple-itinerary-top"><div lang="ko" className="simple-itinerary-heading"><div><h2 id="itinerary-stage-title">내 일정</h2><p>{props.tripSelection.travelStart} — {props.tripSelection.travelEnd}</p></div><button type="button" onClick={() => setSettingsOpen(true)}>여행 설정</button></div><Suspense fallback={<LoadingState>여행 도구를 준비하고 있어요.</LoadingState>}><TripDayPlanner itineraryRouteMinutes={props.coverage.routeMinutes} plan={props.plan} tripSelection={props.tripSelection} route={props.route} audioGuide={props.audioGuide} participation={props.participation} archiveContext={props.archiveContext} /></Suspense></div>
     {props.tripSelection.commandNotice && <div lang="ko" className="simple-command-receipt" role="status"><span>{props.tripSelection.commandNotice}</span>{props.tripSelection.canUndoCommand && <button type="button" onClick={() => props.tripSelection.undoCommand()}>되돌리기</button>}</div>}
     {!desktop && <div lang="ko" className="simple-map-switch" role="group" aria-label="일정 보기 방식"><button type="button" aria-pressed={!mapView} onClick={() => setMapView(false)}>시간표</button><button type="button" aria-pressed={mapView} onClick={() => setMapView(true)}>지도</button></div>}
     {(props.active || editorOpened) && <Suspense fallback={<LoadingState>{c("일정 편집을 준비하고 있어요.", "Preparing your itinerary.")}</LoadingState>}><PlannerItineraryBoard focusedPlaceId={focusedPlaceId} onFocusPlace={showStopOnMap} requiredKeys={props.plan?.criteria?.facilityKeys || []} trip={props.tripSelection} coverage={props.coverage} origin={props.route.origin} places={props.canAddPlaces ? [...props.activePlaces, ...(props.plan?.explorationPlaces || [])] : []} weather={props.weather} weatherLoading={props.weatherLoading} region={props.archiveContext.region} mapView={mapView} onSelectPlace={props.onSelectPlace} onAlternative={props.onAlternative} onContinue={props.onContinue} map={<NavigationWorkspace focusedPlaceId={focusedPlaceId} onPlaceFocus={place => focusStop(place, true)}

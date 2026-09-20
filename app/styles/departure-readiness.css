@@ -7,19 +7,9 @@
 .departure-readiness h2 small { font-size: inherit; font-weight: 600; }
 .departure-readiness h2 > span { display: none; }
 .departure-readiness > header p { max-width: 62ch; margin: 8px 0 0; color: var(--muted); font-size: .88rem; line-height: 1.7; }
-.readiness-overall { min-height: 44px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 8px; border-radius: 24px; font-size: .78rem; }
-.readiness-overall i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.readiness-overall.confirmed { color: #155c40; background: #d9f5e7; }
-.readiness-overall.partial { color: #6a4800; background: #fff0b8; }
-.readiness-overall.recheck { color: #7b3024; background: #ffe0da; }
 .departure-readiness > footer { display: grid; gap: 12px; padding: 20px 0 0; }
 .departure-readiness > footer strong { font-size: .85rem; }
 .departure-readiness > footer p { margin: 4px 0 0; color: var(--muted); font-size: .78rem; }
-.readiness-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.readiness-actions button { min-height: 44px; padding: 10px 13px; border: 1px solid var(--blue); border-radius: 11px; color: var(--on-blue); background: var(--blue); font-size: .8rem; }
-.readiness-actions button.secondary { color: var(--ink); border-color: var(--line); background: var(--surface); }
-.readiness-actions button:disabled { opacity: .58; cursor: not-allowed; }
-.departure-readiness > footer .readiness-error { color: #8b3022; }
 .companion-support-card { margin-top:20px; padding:20px; border:1px solid var(--line); border-radius:12px; color:var(--ink); background:var(--surface); }
 .companion-support-card h3,.companion-support-card p { margin:0; }
 .companion-support-card > p { margin-top:8px; color:var(--ink-soft); line-height:1.6; }
@@ -27,9 +17,7 @@
 .companion-support-card li { padding-top:16px; display:grid; gap:6px; border-top:1px solid var(--line); }
 .companion-support-card li > span,.companion-support-card small,.companion-support-disclaimer { color:var(--muted); font-size:.8125rem; }
 .companion-support-card a { width:fit-content; min-height:44px; padding:10px 0; display:inline-flex; align-items:center; color:var(--accent); }
-html[data-theme=dark] .departure-readiness > footer .readiness-error { color: #ffb8ab; }
 @media (max-width: 640px) {
  .departure-readiness { padding: 20px 16px; }
- .readiness-actions { display: grid; }
 }
 @media (prefers-reduced-motion: reduce) { .departure-readiness * { scroll-behavior: auto; transition: none !important; } }

@@ -15,11 +15,11 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await openSupportMenu(page);
     const details = page.locator(".preference-controls");
     await expect(details).toHaveAttribute("aria-busy", "false");
-    const trigger = details.locator("summary");
+    const trigger = details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ });
     await openSupportMenu(page);
     await trigger.focus();
     await page.keyboard.press("Enter");
-    await expect(details).toHaveAttribute("open", "");
+    await expect(details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ })).toHaveAttribute('aria-expanded', 'true');
     await expect(details).toContainText(locale === "ko" ? "한국어 전체 지원" : "Some pages are in Korean");
     if (locale === "en") await expect(details).toContainText("Original place information and some features may appear in Korean.");
     // 접근성 설정이 늘어나도 계약이 깨지지 않도록, 초점 대상 개수를 고정하지 않고 패널 안의 초점 가능한 요소를 실제로 질의해 마지막 컨트롤을 기준으로 검사한다.
@@ -52,7 +52,7 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     }
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: locale === "ko" ? "계정 관리" : "Account", exact: true })).toBeFocused();
-    await expect(details).not.toHaveAttribute("open", "");
+    await expect(page.getByRole("button", { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ })).toHaveAttribute("aria-expanded", "false");
     await expect(details.locator(".preference-panel")).toBeHidden();
 
     await openSupportMenu(page);
@@ -81,8 +81,8 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     expect(errors).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`preferences-focus-${locale}-${width}.png`) });
     const support = page.locator('.wave-support-menu');
-    await support.locator(':scope > summary').click();
-    await expect(support).not.toHaveAttribute('open', '');
+    await support.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();
+    await expect(support.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ })).toHaveAttribute('aria-expanded', 'false');
     await page.screenshot({ path: test.info().outputPath(`preferences-nav-${locale}-${width}.png`) });
   });
 }
