@@ -1,0 +1,32 @@
+.panel { padding: 16px 0 4px; }
+.panel h3 { margin: 0 0 8px; font-size: 1.05rem; line-height: 1.5; }
+.panel > p { margin: 0 0 14px; font-size: 14px; line-height: 1.7; }
+.layerButtons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.layerButtons button { min-width: 104px; min-height: 44px; padding: 9px 14px; border: 1px solid #2f5968; border-radius: 6px; color: #e9f8ff; background: transparent; font: inherit; font-weight: 700; }
+.layerButtons button[aria-pressed="true"] { color: #fff; border-color: #147b68; background: #147b68; }
+.layerButtons button:focus-visible { outline: 3px solid #85eaff; outline-offset: 3px; }
+.mapFrame { position: relative; width: 100%; min-height: 280px; overflow: hidden; border: 1px solid #31596a; border-radius: 8px; background: #e7f1ed; }
+.map { width: 100%; height: 280px; }
+.mapStatus { position: absolute; z-index: 500; inset: 50% auto auto 50%; margin: 0; padding: 8px 12px; transform: translate(-50%,-50%); border-radius: 6px; color: #173b50; background: rgba(255,255,255,.94); font-size: 14px; }
+.markerIcon { border: 0; background: transparent; }
+.markerPin { width: 32px; height: 32px; display: block; position: relative; border: 3px solid #fff; border-radius: 50% 50% 50% 0; background: #d52b2b; box-shadow: 0 3px 10px rgba(77,0,0,.35); transform: rotate(-45deg); }
+.markerPin::after { content: ""; width: 8px; height: 8px; position: absolute; inset: 9px; border-radius: 50%; background: #fff; }
+.markerIcon:focus-visible { outline: 3px solid #062736; outline-offset: 3px; }
+.coordinateNotice { color: #dcecf4; }
+.panel .disclaimer { margin: 12px 0 0; color: #b8d7e7; font-weight: 600; }
+.openButton { width: calc(100% - 48px); min-height: 46px; margin: 0 24px 24px; padding: 10px 14px; border: 1px solid #31596a; border-radius: 8px; color: #e9f8ff; background: #0d3549; font: inherit; font-weight: 700; }
+.openButton:focus-visible,.dialogHeader button:focus-visible { outline: 3px solid #85eaff; outline-offset: 3px; }
+.dialog { width: min(760px,calc(100vw - 32px)); max-height: 90dvh; margin: auto; padding: 0 24px 24px; overflow: auto; border: 1px solid #31596a; border-radius: 18px; color: #edf4ff; background: #081b2e; color-scheme: dark; box-shadow: 0 28px 80px rgba(0,0,0,.38); }
+.dialog::backdrop { background: rgba(0,10,23,.8); backdrop-filter: blur(6px); }
+.dialogHeader { position: sticky; z-index: 600; top: 0; margin: 0 -24px; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #31596a; background: #081b2e; }
+.dialogHeader h2 { margin: 0; font-size: clamp(1.15rem,3vw,1.55rem); line-height: 1.4; }
+.dialogHeader button { width: 44px; height: 44px; flex: 0 0 44px; border: 1px solid #7095b7; border-radius: 50%; color: #fff; background: #071726; font-size: 26px; line-height: 1; }
+@media (max-width: 700px) {
+  .panel { padding-top: 14px; }
+  .layerButtons { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .layerButtons button { width: 100%; min-width: 0; }
+  .mapFrame,.map { min-height: 240px; height: 240px; }
+  .openButton { width: calc(100% - 32px); margin: 0 16px 20px; }
+  .dialog { width: calc(100vw - 20px); padding-inline: 16px; }
+  .dialogHeader { margin-inline: -16px; padding: 14px 12px 14px 16px; }
+}
