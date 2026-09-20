@@ -19,15 +19,19 @@ CSS 예산을 늘리지 않고 현재 TS/TSX/JS/JSX에서 사용되지 않는 �
 - npm test: 1,502 통과.
 - npm run typecheck: 통과.
 - npm run lint: 오류 0, 이미지 관련 등을 포함한 경고 14.
-- npm run build / check:performance: 통과. 최종 수치는 PR 기록 참조.
+- npm run build / check:performance: 통과. CSS gzip 68.93KiB, 랜딩 초기 JS gzip 139.24KiB.
 - Playwright: 시연 1440/960/390px의 미리보기·적용·되돌리기·저장 분리·axe, ID 로그인 요청, 기존 가입 검증, 밝은/어두운 사진 위 대비, 기존 스토리 회귀 38건 통과.
 - 별도 인트로 테스트: 자동 종료, 최종 문구 유지, Esc, 저장소 read/write 거부, 사진 실패, 모션 감소, JavaScript 미실행 시 사용 가능 확인.
 - 브라우저 직접 확인: 입자 인트로 다시 보기, 사진형 hero, 시연 여행 화면.
 - 독립 QA: 인증 호환성·migration·시연 분리·인트로 lifecycle 점검. ID 마침표 불일치와 마지막 문구 조기 소멸을 수정했다.
+- 추가 회귀: 서비스 소개 전체 58개, 기존 계정 복구·커뮤니티 보기·이용 가이드 32개 통과. 새 사진형 hero/ID 라벨/시연 메뉴에 맞춰 기존 검사 대상을 명확히 했다.
+- 이미지 로딩 실패의 기본 배경을 어둡게 보완했다. 인트로의 장식 canvas는 30fps·DPR 1로 제한해 모바일 픽셀 복사와 CPU 부담을 낮춘다. 타이머 테스트는 브라우저와 실행기 사이의 지연보다 작은 100ms 시각 오차를 제거했다.
 
 ## 운영 나루 확인
 
 2026-09-20 운영 /api/assistant GET 200 available=true(3.10초). 공개 합성 여행 조건과 `자동차로 이동할게.` 요청 POST 200(5.24초), source=local-llm, proposal action=recalculate-route / transport=car를 확인했다. handler가 실제 provider 성공 뒤 source를 반환하는 것도 확인했다. 1회 표본이며 장시간 안정성 전체를 입증하지 않는다. 다른 사용자의 모델·GPU·서버 설정은 변경하지 않았다.
+
+운영 브라우저에서도 나루 요청·응답을 확인했다. 명확한 대중교통 요청은 현재 이동 경로 확인으로 연결됐으나 `자동차로 이동할게. 변경안을 보여줘.`는 보수적인 grounding에서 재질문했다. 따라서 연결 정상과 모든 자연어 표현의 이해를 동일하게 주장하지 않는다.
 
 ## 역할과 남은 절차
 

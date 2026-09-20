@@ -13,7 +13,7 @@ test("WAVE starter stories open their full articles and leave member search inta
   const writes: string[] = [];
   page.on("request", request => {if(!["GET","HEAD","OPTIONS"].includes(request.method())) writes.push(request.url());});
   await page.goto("/community");
-  await page.locator('.community-guides > summary').click();
+  await page.locator('.community-guides > summary').filter({ hasText: /^이용 가이드$/ }).click();
   await expect(page.locator(".community-editorial-grid > article")).toHaveCount(3);
   await expect(page.locator(".community-story-author")).toHaveText(["WAVE","WAVE","WAVE"]);
   const links = await page.locator(".community-story-read").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")!));

@@ -22,7 +22,7 @@ async function freshAnimatedArrival(page: Page) {
   // otherwise the app's startup handoff cannot reveal the interactive page.
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".arrival-scene")).toBeVisible();
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
+  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000));
   await expect(page.locator(".arrival-scene")).toBeVisible();
 }
 
@@ -41,7 +41,7 @@ test("arrival finishes within twelve seconds and exposes a keyboard dismissal", 
   await page.reload();
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".landing-hero-split")).toBeVisible();
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 100));
+  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000));
   await page.clock.runFor(10_400);
   await expect(scene).toBeHidden();
 });

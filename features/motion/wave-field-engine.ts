@@ -61,6 +61,7 @@ export function startWaveFieldRenderer(
     let cellXs: Float32Array = new Float32Array(0);
     let cellYs: Float32Array = new Float32Array(0);
     let frame = 0;
+    let lastDraw = -Infinity;
     let inViewport = true;
     let start = 0;
     let pointer = { x: -9999, y: -9999, active: false };
@@ -95,7 +96,7 @@ export function startWaveFieldRenderer(
       const rect = canvas.getBoundingClientRect();
       const width = Math.max(1, Math.round(rect.width));
       const height = Math.max(1, Math.round(rect.height));
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, mode === "intro" ? 1 : 2);
 
       // 격자가 성기면 형상의 사선이 계단으로 뭉개진다. 촘촘하게 시작하되,
       // 넓은 화면에서 셀 수가 폭발하지 않도록 총량 상한에 걸리면 글자를 키운다.
@@ -162,6 +163,12 @@ export function startWaveFieldRenderer(
     function draw(now: number) {
       frame = 0;
       if (!start) start = now;
+      // Decorative halftone motion does not need a full-resolution 60fps buffer.
+      if (!reduced && mode === "intro" && now - lastDraw < 1000 / 30) {
+        frame = window.requestAnimationFrame(draw);
+        return;
+      }
+      lastDraw = now;
       const elapsed = (now - start) / 1000;
       const time = reduced ? 6 : elapsed;
 

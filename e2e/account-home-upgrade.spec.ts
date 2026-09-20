@@ -202,7 +202,7 @@ test('저장 중 401이 나면 수정본을 탭에 보존하고 재로그인 복
   await expect(page).toHaveURL(/\/login\?next=/);
   // A new page revalidates the expired auth cache, just as a real login return does.
   await page.reload();
-  await page.getByRole('textbox', { name: '이메일', exact: true }).fill('synthetic@example.com');
+  await page.getByRole('textbox', { name: '이메일 또는 ID', exact: true }).fill('synthetic@example.com');
   await page.getByLabel('비밀번호', { exact: true }).fill('synthetic-test-password');
   await page.getByRole('button', { name: '로그인', exact: true }).click();
   await expect(page).toHaveURL(`/my-trips/${tripId}`);
