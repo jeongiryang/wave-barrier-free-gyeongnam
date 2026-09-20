@@ -41,7 +41,7 @@ export default function AccountSettings({ nativeAuth = false }: { nativeAuth?: b
     setPasswordMessage("");
     setPasswordSuccess(false);
     if (values.currentPassword.length < 8 || values.currentPassword.length > 128) return setPasswordMessage("현재 비밀번호를 확인해 주세요.");
-    if (values.newPassword.length < 8 || values.newPassword.length > 128) return setPasswordMessage("새 비밀번호는 8자 이상 128자 이하로 입력해 주세요.");
+    if (values.newPassword.length < 8 || values.newPassword.length > 16) return setPasswordMessage("새 비밀번호는 8자 이상 16자 이하로 입력해 주세요.");
     if (values.newPassword !== values.confirmation) return setPasswordMessage("새 비밀번호 확인이 일치하지 않습니다.");
     changeLock.current = true;
     setChanging(true);
@@ -111,8 +111,8 @@ export default function AccountSettings({ nativeAuth = false }: { nativeAuth?: b
       <p>변경하면 현재 기기를 제외한 다른 로그인 세션을 종료합니다.</p>
       <HydratedAuthForm onSubmit={changePassword} noValidate>
         <div className="auth-field"><label htmlFor="account-current-password">현재 비밀번호</label><input id="account-current-password" name="currentPassword" type="password" autoComplete="current-password" minLength={8} maxLength={128} required /></div>
-        <div className="auth-field"><label htmlFor="account-new-password">새 비밀번호</label><input id="account-new-password" name="newPassword" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /></div>
-        <div className="auth-field"><label htmlFor="account-confirm-password">새 비밀번호 확인</label><input id="account-confirm-password" name="confirmation" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /></div>
+        <div className="auth-field"><label htmlFor="account-new-password">새 비밀번호</label><input id="account-new-password" name="newPassword" type="password" autoComplete="new-password" minLength={8} maxLength={16} required /></div>
+        <div className="auth-field"><label htmlFor="account-confirm-password">새 비밀번호 확인</label><input id="account-confirm-password" name="confirmation" type="password" autoComplete="new-password" minLength={8} maxLength={16} required /></div>
         <p className={`auth-message${passwordSuccess ? " success" : ""}`} role={passwordMessage ? "status" : undefined} aria-live="polite">{passwordMessage}</p>
         <button className="auth-submit" type="submit" disabled={changing}>{changing ? "변경하는 중…" : "비밀번호 변경"}</button>
       </HydratedAuthForm>

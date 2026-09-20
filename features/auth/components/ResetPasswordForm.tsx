@@ -22,8 +22,8 @@ export default function ResetPasswordForm({ token: serverToken }: { token?: stri
     const newPassword = String(form.get("password") || "");
     const confirmation = String(form.get("confirmPassword") || "");
     setMessage("");
-    if (newPassword.length < 8 || newPassword.length > 128) {
-      setMessage("새 비밀번호는 8자 이상 128자 이하로 입력해 주세요.");
+    if (newPassword.length < 8 || newPassword.length > 16) {
+      setMessage("새 비밀번호는 8자 이상 16자 이하로 입력해 주세요.");
       document.getElementById("reset-password")?.focus();
       return;
     }
@@ -50,8 +50,8 @@ export default function ResetPasswordForm({ token: serverToken }: { token?: stri
   return <>
     <p className="auth-description">새 비밀번호를 설정하면 이전 링크는 다시 사용할 수 없습니다.</p>
     <HydratedAuthForm onSubmit={submit} noValidate>
-      <div className="auth-field"><label htmlFor="reset-password">새 비밀번호</label><div className="password-field"><input id="reset-password" name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} maxLength={128} required aria-describedby="reset-password-help reset-message" /><button type="button" aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"} aria-pressed={showPassword} onClick={() => setShowPassword((current) => !current)}>{showPassword ? "숨기기" : "보기"}</button></div><small id="reset-password-help">8자 이상 128자 이하로 입력해 주세요.</small></div>
-      <div className="auth-field"><label htmlFor="reset-confirm-password">새 비밀번호 확인</label><input id="reset-confirm-password" name="confirmPassword" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} maxLength={128} required aria-describedby="reset-message" /></div>
+      <div className="auth-field"><label htmlFor="reset-password">새 비밀번호</label><div className="password-field"><input id="reset-password" name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} maxLength={16} required aria-describedby="reset-password-help reset-message" /><button type="button" aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"} aria-pressed={showPassword} onClick={() => setShowPassword((current) => !current)}>{showPassword ? "숨기기" : "보기"}</button></div><small id="reset-password-help">8자 이상 16자 이하로 입력해 주세요.</small></div>
+      <div className="auth-field"><label htmlFor="reset-confirm-password">새 비밀번호 확인</label><input id="reset-confirm-password" name="confirmPassword" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} maxLength={16} required aria-describedby="reset-message" /></div>
       <p id="reset-message" className={`auth-message${success ? " success" : ""}`} role={message ? "alert" : undefined} aria-live="polite">{message}</p>
       <button className="auth-submit" type="submit" disabled={!token || submitting || success}>{submitting ? "변경하는 중…" : success ? "변경 완료" : "새 비밀번호 저장"}</button>
     </HydratedAuthForm>

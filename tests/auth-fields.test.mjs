@@ -14,7 +14,7 @@ test("검사가 짚는 모든 칸에 갈 곳이 있다", () => {
     ["register", {}],
     ["register", { name: "홍길동" }],
     ["register", { name: "홍길동", email: "a@b.com" }],
-    ["register", { name: "홍길동", email: "a@b.com", password: "verylongpassword1", confirmPassword: "다름" }],
+    ["register", { name: "홍길동", email: "a@b.com", password: "Valid-password1", confirmPassword: "다름" }],
     ["login", {}],
   ];
   for (const [mode, input] of cases) {
