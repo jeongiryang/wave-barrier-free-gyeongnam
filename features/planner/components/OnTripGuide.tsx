@@ -12,6 +12,7 @@ import { validTripClock } from '../../../lib/trip-time-constraints.js';
 import { useSitePreferences } from '../../preferences/context';
 import { vibrate } from '../../../lib/haptics.js';
 import EasyOnTripView from './EasyOnTripView';
+import TripBoardView from './TripBoardView';
 
 const fieldLabelStyle = { display:'grid', gap:8, fontSize:14, fontWeight:500 } as const;
 const selectStyle = { width:'100%', minHeight:48, padding:'10px 12px', border:'1px solid var(--line)', borderRadius:12, background:'var(--paper)', color:'var(--ink)', font:'inherit', fontSize:16 } as const;
@@ -67,6 +68,7 @@ function DayGuide({ trip, coverage, origin, onSelectPlace, progressMemory, onPro
     {view==='easy'?<EasyOnTripView steps={easyOnTripSteps(remaining)} done={remaining.done} skipped={remaining.skipped} fixedCurrent={Boolean(next&&trip.fixedVisits[next.id])} ready={ready} canUndo={Boolean(undo)} notice={notice} onDone={()=>mark('done')} onSkip={()=>mark('skipped')} onUndo={restoreUndo} onBasicView={()=>setView('basic')}/>:<>
     <h3>{trip.activeDay} · {remaining.done}곳 방문 완료</h3>
     <p style={{fontSize:14,lineHeight:1.7}}>{remaining.skipped ? `${remaining.skipped}곳 건너뜀 · ` : ''}{remaining.entries.length}곳 남았어요. 실제 방문한 곳은 직접 완료로 표시해 주세요.</p>
+    <details className="place-evidence"><summary>전체 보기</summary><div className="modal-data"><TripBoardView progress={progress} stops={places.map(place => ({ id: place.id, title: place.name }))} onSelectPlace={id => { const place = places.find(item => item.id === id); if (place) onSelectPlace(place); }} /></div></details>
     <div className="auth-field"><label style={fieldLabelStyle}>어디에서 이어가나요?<select style={selectStyle} value={progress.cursorId} disabled={!ready} onChange={event => {persist({...progress,cursorId:event.target.value});setUndo(null);}}><option value="">기존 출발지</option>{places.map(place=><option value={place.id} key={place.id}>{place.name}</option>)}</select></label></div>
     <div className="auth-field"><label style={fieldLabelStyle}>이어갈 시각<input style={{fontSize:16}} type="time" value={progress.clock} disabled={!ready} onChange={event=>{setUndo(null);if(validTripClock(event.target.value))persist({...progress,clock:event.target.value});else setProgress({...progress,clock:event.target.value});}}/></label></div>
     <div className="travel-book-actions"><button type="button" style={{fontSize:14}} disabled={!ready} onClick={()=>{setUndo(null);const value={...progress,clock:nowClock()};if(persist(value))setNotice('현재 한국 시각을 반영했어요.');}}>지금 시각으로</button><button type="button" style={{fontSize:14}} disabled={!ready || !validTripClock(progress.clock)} onClick={()=>{if(running){setRunning(false);if(persist(progress))setNotice('잠시 멈췄어요. 기록한 곳부터 다시 이어갈 수 있습니다.');}else{if(persist(progress))setNotice('선택한 위치와 시각부터 남은 일정을 보여드려요.');setRunning(true);}}}>{running?'잠시 멈추기':Object.keys(progress.marks).length?'이어서 진행':'여행 시작하기'}</button></div>
