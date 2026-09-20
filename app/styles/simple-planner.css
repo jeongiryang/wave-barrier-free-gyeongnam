@@ -411,3 +411,19 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 [data-place-view=grid] .simple-direct-place .simple-search-photo-placeholder { aspect-ratio: auto; min-height: 44px; padding: 8px; }
 .simple-direct-search-heading:has(> div > .sr-only:only-child) { margin: 0; }
 @media(max-width:767px) { .simple-itinerary-top .simple-itinerary-heading { flex-basis: 100%; } }
+
+/* Optional pre-departure checks remain visually neutral and never grade risk. */
+.simple-readiness > details { scroll-margin-top: 96px; }
+.simple-readiness-precautions { display: grid; gap: 0; margin: 20px 0 0; padding: 0; border: 0; border-top: 1px solid var(--line); }
+.simple-readiness-precautions legend { padding: 20px 0 0; font-weight: 700; }
+.simple-readiness-precautions > p { margin: 8px 0 12px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.simple-readiness-precautions > div { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; border-top: 1px solid var(--line); }
+.simple-readiness-precautions label { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 0; line-height: 1.5; }
+.simple-readiness-precautions input { width: 20px; height: 20px; flex: 0 0 20px; accent-color: var(--blue); }
+.simple-readiness-precautions a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 0; color: var(--blue); }
+@media(max-width:600px) {
+  .simple-readiness { padding-inline: 16px; }
+  .simple-readiness-heading { align-items: flex-start; flex-direction: column; }
+  .simple-readiness-precautions > div { grid-template-columns: 1fr; }
+  .simple-readiness-precautions a { margin: -8px 0 8px 32px; }
+}

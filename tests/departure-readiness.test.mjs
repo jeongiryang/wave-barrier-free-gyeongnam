@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { assessDepartureReadiness, assessTripDatePhase, buildTripCalendarIcs, foldIcsLine } from "../lib/departure-readiness.js";
+import { tripPrecautionItems } from "../lib/trip-precautions.js";
 
 const verifiedPlace = {
   id: "1001", name: "경남도립미술관", score: 100, knownFields: 4,
@@ -10,6 +11,19 @@ const weather = {
   source: "기상청 단기예보", updatedAt: "2026-08-30T02:00:00.000Z",
   days: [{ date: "2026-08-31", label: "맑음", rainProbability: 10, min: 22, max: 29 }],
 };
+
+test("여행 대비 네 항목은 내부 화면만 연결하고 금융 관련 표현을 쓰지 않는다", () => {
+  const items = tripPrecautionItems();
+  assert.deepEqual(items.map(item => item.label), [
+    "그날 날씨를 확인하고 실내 대안을 준비했나요?",
+    "이동 수단의 편의시설을 미리 확인했나요?",
+    "보조기기가 고장 났을 때 연락할 곳을 알고 있나요?",
+    "급할 때 연락할 곳을 저장해 두었나요?",
+  ]);
+  assert.deepEqual(items.map(item => item.href), ["#layers", "#navigation", "#equipment-rental", "#more-trip-tools"]);
+  assert.ok(items.every(item => item.href.startsWith("#")));
+  assert.doesNotMatch(items.map(item => item.label).join(" "), /보험|상품|가입/);
+});
 
 test("여행 날짜 없음·과거·당일·임박 상태를 구분한다", () => {
   assert.equal(assessTripDatePhase("", "2026-08-31").id, "no-date");
