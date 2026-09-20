@@ -25,6 +25,24 @@ test("comparison preserves negative and missing evidence without inventing avail
   assert.equal(row[1].values[1].detail, "입구 계단 있음");
 });
 
+test("comparison presents provider break tags as text spacing without changing evidence or evaluating markup", () => {
+  const details = [
+    "장애인 전용 화장실 있음<br />\n전시실이 위치한 1,2,3층에 위치",
+    "입구 계단 있음<BR/>경사로 없음",
+    "문의 필요<br>운영기관 확인 <img src=x onerror=alert(1)>",
+  ];
+  const places = details.map((detail, index) => ({ accessibility: [{ key: "restroom", label: "장애인 화장실", state: ["confirmed", "negative", "unknown"][index], detail }] }));
+  const before = structuredClone(places);
+  const values = facilityComparison(places, ["restroom"])[0].values;
+  assert.deepEqual(values.map(value => value.state), ["confirmed", "negative", "unknown"]);
+  assert.deepEqual(values.map(value => value.detail), [
+    "장애인 전용 화장실 있음 전시실이 위치한 1,2,3층에 위치",
+    "입구 계단 있음 경사로 없음",
+    "문의 필요 운영기관 확인 <img src=x onerror=alert(1)>",
+  ]);
+  assert.deepEqual(places, before);
+});
+
 test("inquiry defaults follow unconfirmed facility records, never inferred personal conditions", () => {
   assert.deepEqual(defaultInquiryOptions({}), ["hours"]);
   assert.deepEqual(defaultInquiryOptions({accessibility:[

@@ -26,7 +26,7 @@ async function open(page: Page) {
   await expect(chat).toBeVisible();
   return chat;
 }
-async function setup(page: Page, withTrip = false) {
+async function setup(page: Page, withTrip = false, initialRegion = '창원') {
   await page.route('**/*', route => new URL(route.request().url()).hostname === '127.0.0.1' ? route.fallback() : route.abort());
   await page.route('**/api/**', route => route.fulfill({ status: 503, json: { error: 'Unconfigured synthetic API' } }));
   await mockPlannerApi(page, { preserveView: true, savedPlaces: [original, ...additions] });
@@ -46,7 +46,7 @@ async function setup(page: Page, withTrip = false) {
     sessionStorage.setItem('workspace-fixture-seeded', '1');
     localStorage.setItem('wave-current-trip-v1', JSON.stringify({ version: 1, values: initial }));
   }, { 'wave-planner-region-v1': '창원', 'wave-trip-themes-v1': '[]', 'wave-saved-places': '["1001"]', 'wave-saved-place-catalog-v1': JSON.stringify([original]), 'wave-trip-order-v1': '{"mode":"manual","ids":["1001"]}', 'wave-trip-schedule-v1': JSON.stringify(schedule) });
-  await page.goto('/planner?region=창원');
+  await page.goto(initialRegion ? `/planner?region=${encodeURIComponent(initialRegion)}` : '/planner');
   await expect(page.getByRole('combobox', { name: '여행 지역', exact: true })).toBeEnabled();
   if (withTrip) await expect.poll(async () => (await state(page)).ids).toEqual(['1001']);
   return { chat: await open(page), prompts, journeys };
@@ -107,6 +107,45 @@ test('plain-language tool search finds difficult tools without changing the curr
   await search.fill('');
   await expect(tools).toHaveCount(28);
   expect(await state(page)).toEqual(before);
+});
+
+test('follow-up itinerary remains applicable when the first apply finishes its background search', async ({page,isMobile})=>{
+  const {chat}=await setup(page,false,'');
+  let releaseSearch!:()=>void, releaseJourney!:()=>void;
+  const searchGate=new Promise<void>(resolve=>{releaseSearch=resolve;});
+  const journeyGate=new Promise<void>(resolve=>{releaseJourney=resolve;});
+  let searchStarted=false, searchFinished=false, followupStarted=false;
+  await page.route('**/api/wave?**',async route=>{
+    if(new URL(route.request().url()).searchParams.get('action')!=='plan')return route.fallback();
+    searchStarted=true;await searchGate;
+    await route.fulfill({json:{...draft().plan,generatedAt:'2026-09-21T00:05:00Z'}});searchFinished=true;
+  });
+  try {
+    const proposal=await requestTrip(chat);
+    await proposal.getByRole('button',{name:'이 일정으로 반영하기',exact:true}).click();
+    await expect.poll(async()=>(await state(page)).ids).toEqual(['2001','2002']);
+    await expect.poll(()=>searchStarted).toBe(true);
+    const before=await state(page);
+    await page.route('**/api/assistant',route=>route.fulfill({json:route.request().method()==='GET'?{available:true}:{reply:'합성 휴식 조정안',proposal:{action:'adapt-itinerary',reason:'fatigue',pace:'relaxed'}}}));
+    await page.route('**/api/assistant/journey',async route=>{followupStarted=true;await journeyGate;await route.fulfill({contentType:'application/x-ndjson',body:JSON.stringify({type:'result',draft:{...draft(),action:'adapt-itinerary',stops:[],removed:[],restOnly:true}})+'\n'});});
+    await chat.getByRole('textbox',{name:'나루에게 여행 질문하기',exact:true}).fill('담은 장소를 유지하고 더 여유롭게 바꿔줘');
+    await chat.getByRole('button',{name:'나루에게 보내기',exact:true}).click();
+    await expect.poll(()=>followupStarted).toBe(true);
+    releaseSearch();await expect.poll(()=>searchFinished).toBe(true);
+    await expect(page.locator('.simple-searching')).toHaveCount(0);
+    releaseJourney();
+    const adjustment=chat.getByRole('region',{name:'나루의 실제 일정안',exact:true}).last();
+    await expect(adjustment).toContainText('기존 장소');
+    await expect(adjustment.getByRole('button',{name:'이 일정으로 반영하기',exact:true})).toBeEnabled();
+    if(!isMobile){
+      await chat.getByRole('button',{name:'변경안과 확인할 사항 보기 →',exact:true}).click();
+      await expect(adjustment.locator('header')).toBeInViewport();
+    }
+    expect(await state(page)).toEqual(before);
+    await adjustment.getByRole('button',{name:'이 일정으로 반영하기',exact:true}).click();
+    await expect(adjustment.getByRole('button',{name:'내 일정에 반영했어요',exact:true})).toBeDisabled();
+    expect((await state(page)).ids).toEqual(before.ids);
+  } finally {releaseSearch();releaseJourney();}
 });
 
 test('gentle itinerary proposal preserves existing visits, waits for apply and undoes atomically', async ({page})=>{
