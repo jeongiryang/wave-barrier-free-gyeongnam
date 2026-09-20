@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import { openPlannerMap, openRouteDetails, changeMapLanguage, ensureMapView } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
@@ -12,6 +13,7 @@ async function openImage(page: Page, en = false, theme = "light") {
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   await expect(page.locator(".map-provider-badge.osm")).toBeVisible();
   if (en) {
     await changeMapLanguage(page, true);

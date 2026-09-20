@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import {test,expect,type Page} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {mockPublicShellApi,mockPlannerApi,chooseTripConditions,openItinerary} from './fixtures';
@@ -10,16 +11,18 @@ async function tripState(page:Page){return page.evaluate(()=>{
  return {ids:JSON.parse(values['wave-saved-places']||'[]'),order:JSON.parse(values['wave-trip-order-v1']||'[]'),schedule:JSON.parse(values['wave-trip-schedule-v1']||'{}'),facilities:sessionStorage.getItem('wave-session-facilities-v1')};
 });}
 async function setPin(page:Page,name:string,value:string){
+ const reopen=await naruDialog(page).isVisible();if(reopen)await closeNaruTool(page);
  await page.getByRole('button',{name:name+' 일정 수정',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:name+' 수정',exact:true});
  await dialog.locator('.simple-stop-options > summary').click();
  await dialog.getByRole('combobox',{name:name+' 장소 고정',exact:true}).selectOption(value);
  await dialog.getByRole('button',{name:'적용',exact:true}).click();
  await expect(dialog).not.toBeVisible();
+ if(reopen)await openNaruTool(page, "이동 구간 확인");
 }
 
 test('anchor expansion previews one nearby stop, preserves the period, and undoes the exact addition',async({page},info)=>{
- await setup(page);await page.goto('/planner');await chooseTripConditions(page);await page.getByRole('button',{name:'경남도립미술관 일정에 담기',exact:true}).click();await openItinerary(page,{start:'2026-10-02',end:'2026-10-03'});await page.locator('.simple-more-trip-tools > summary').click();
+ await setup(page);await page.goto('/planner');await chooseTripConditions(page);await page.getByRole('button',{name:'경남도립미술관 일정에 담기',exact:true}).click();await openItinerary(page,{start:'2026-10-02',end:'2026-10-03'});await openNaruTool(page, '이동 구간 확인');
  await page.getByText('한 장소에서 코스 이어 담기',{exact:true}).click();const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});
  const before=await tripState(page);
  const candidate=panel.getByRole('article').filter({has:page.getByRole('heading',{name:'용지호수공원',exact:true})});await candidate.getByRole('button',{name:'추가 미리보기',exact:true}).click();
@@ -29,7 +32,7 @@ test('anchor expansion previews one nearby stop, preserves the period, and undoe
  for(const width of info.project.name.includes('desktop')?[1440,960]:[390,320]){await page.setViewportSize({width,height:960});await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`course-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBe(0);expect((await new AxeBuilder({page}).include('[aria-label="한 장소에서 코스 확장"]').analyze()).violations).toEqual([]);}
 });
 test('a later pinned stop blocks course insertion and a new pin prevents undoing an edited addition',async({page})=>{
- await setup(page);await page.goto('/planner');await chooseTripConditions(page);for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();await openItinerary(page,{start:'2026-10-02'});await page.locator('.simple-more-trip-tools > summary').click();
+ await setup(page);await page.goto('/planner');await chooseTripConditions(page);for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();await openItinerary(page,{start:'2026-10-02'});await openNaruTool(page, '이동 구간 확인');
  const board=page.locator('.simple-timeboard');await setPin(page,'용지호수공원','visit');
  await page.getByText('한 장소에서 코스 이어 담기',{exact:true}).click();const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});await panel.getByRole('combobox',{name:'어느 장소 다음에 갈까요?',exact:true}).selectOption('1001');
  const park=panel.getByRole('article').filter({has:page.getByRole('heading',{name:'강변정원',exact:true})});await park.getByRole('button',{name:'추가 미리보기',exact:true}).click();await panel.getByRole('button',{name:'이 장소 이어 담기',exact:true}).click();await expect(panel).toContainText('고정 일정의 순서나 날짜를 지키기 위해 추가하지 않았어요');await expect(board.locator('.simple-stops > li')).toHaveCount(2);

@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import fs from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
 import {test,expect,type Page} from '@playwright/test';
@@ -14,7 +15,7 @@ async function setup(page:Page){
  }});
  await page.goto('/planner');await chooseTripConditions(page);
  for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();
- await openItinerary(page);await page.locator('.simple-more-trip-tools > summary').click();
+ await openItinerary(page);await openNaruTool(page, '이동 구간 확인');
  await page.getByText('여행비 계획하기',{exact:true}).click();
  return page.getByRole('region',{name:'여행비 계획',exact:true});
 }
@@ -28,7 +29,7 @@ test('budget distinguishes unknown from zero, combines per-person and group cost
  await page.getByText('여행비 계획하기',{exact:true}).click();await page.getByRole('button',{name:'여행 당일 진행',exact:true}).click();await page.getByText('여행비 계획하기',{exact:true}).click();await expect(panel.getByLabel('목표 예산 (원)',{exact:true})).toHaveValue('30000');
  await panel.getByRole('button',{name:'여행비 저장',exact:true}).click();await expect(panel.getByRole('status')).toHaveText('여행비 계획을 저장했어요.');
  await panel.getByLabel('목표 예산 (원)',{exact:true}).fill('1000');await expect(panel).toContainText('전체 예산보다 30,000원 많아요');await panel.getByRole('button',{name:'저장한 내용으로 되돌리기',exact:true}).click();await expect(panel.getByLabel('목표 예산 (원)',{exact:true})).toHaveValue('30000');
-  await page.reload();await page.locator('.simple-more-trip-tools > summary').click();await page.getByText('여행비 계획하기',{exact:true}).click();await expect(panel).toContainText('확인한 금액 33,000원');expect(await page.evaluate(()=>localStorage.getItem('wave-trip-schedule-v1'))).toBe(before);
+  await page.reload();await openNaruTool(page, '이동 구간 확인');await page.getByText('여행비 계획하기',{exact:true}).click();await expect(panel).toContainText('확인한 금액 33,000원');expect(await page.evaluate(()=>localStorage.getItem('wave-trip-schedule-v1'))).toBe(before);
   await page.getByRole('button',{name:'여행 요약 챙기기',exact:true}).click();const pack=page.getByRole('region',{name:'여행 요약 파일',exact:true});await pack.getByLabel('저장한 여행비 계획 포함',{exact:true}).check();const event=page.waitForEvent('download');await pack.getByRole('button',{name:'여행 요약 파일 저장',exact:true}).click();const file=info.outputPath('budget-in-trip.html');await(await event).saveAs(file);const html=await fs.readFile(file,'utf8');expect(html).toContain('확인한 금액 33,000원');expect(html).toContain('전체 예산 90,000원');
  for(const width of info.project.name.includes('desktop')?[1440,960]:[390,320]){await page.setViewportSize({width,height:960});await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`budget-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBe(0);expect((await new AxeBuilder({page}).include('[aria-label="여행비 계획"]').analyze()).violations).toEqual([]);}
 });

@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 import { confirmedAlternativePlan } from "./alternative-fixtures";
@@ -35,7 +36,7 @@ async function collectMuseum(page: Page, en: boolean) {
   await openItinerary(page, { start: "2026-09-20" });
 }
 async function openSignals(page: Page) {
-  await page.locator(".simple-departure > summary").click();
+  await openNaruTool(page, "출발 전 확인");
   const weather = page.locator(".simple-readiness details").filter({ has: page.locator("summary strong").getByText("날씨", { exact: true }) });
   await weather.locator("summary").click();
   await weather.getByRole("link", { name: "상세 정보 확인 →", exact: true }).click();
@@ -218,7 +219,7 @@ test("a pending automatic search keeps keyboard input usable and does not duplic
 for (const end of ["cancel", "complete", "elsewhere"] as const) test("all-journey " + end + " preserves the user's focus " + (en ? "English" : "Korean"), async ({ page }) => {
   await prepare(page, en);
   await collectMuseum(page, en);
-  await page.locator(".simple-more-trip-tools > summary").click();
+  await openNaruTool(page, '이동 구간 확인');
   const coverage = page.locator(".itinerary-route-coverage");
   const transport = coverage.getByRole("combobox");
   await transport.selectOption("car");

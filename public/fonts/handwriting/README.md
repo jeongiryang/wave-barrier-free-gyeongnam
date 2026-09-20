@@ -1,0 +1,1 @@
+Decorative signatures use Nanum Pen Script and Caveat, subset from https://github.com/google/fonts/tree/main/ofl/nanumpenscript and https://github.com/google/fonts/tree/main/ofl/caveat. Licensed under SIL OFL 1.1; see adjacent license files. Body text uses the existing site font.

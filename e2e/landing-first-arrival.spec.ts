@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { freshArrival, prepareStory, storyReady } from "./landing-contract";
+import { freshArrival, openLandingTools, prepareStory, storyReady } from "./landing-contract";
 
 for (const seenBefore of [false, true]) {
   test(`a legacy marker ${seenBefore} does not suppress the current accessible intro`, async ({ page }) => {
@@ -31,6 +31,7 @@ test("archived product recordings preserve their original bytes and dates withou
   const requests: string[] = [];
   page.on("request", request => requests.push(request.url()));
   await page.goto("/"); await storyReady(page);
+  await openLandingTools(page);
   for (const id of ["story", "naru"]) await page.locator(`#${id}`).scrollIntoViewIfNeeded();
   expect(requests.filter(url => /timeline-|date-before|date-after|map-two-desktop|places-two/.test(url))).toEqual([]);
   // The old recordings remain historical evidence, not fabricated current UI.

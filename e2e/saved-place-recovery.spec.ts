@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, plan } from "./fixtures";
 
@@ -20,8 +21,7 @@ async function map(page: Page) {
   await expect(page.locator(".wave-map-icon.origin")).toHaveCount(1);
 }
 async function tools(page: Page) {
-  const disclosure = page.locator(".simple-more-trip-tools");
-  if (await disclosure.getAttribute("open") === null) await disclosure.locator(":scope > summary").click();
+  await openNaruTool(page, "장소 좌표 복원");
 }
 async function snapshot(page: Page) {
   return page.evaluate(() => {
@@ -190,6 +190,7 @@ for (const locale of ["ko", "en"] as const) {
     try {
       await page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true }).press("Enter");
       await expect.poll(() => requested).toBe(1);
+      await closeNaruTool(page);
       await page.getByRole("button", { name: "새 여행", exact: true }).click();
       await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
       await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("하동");

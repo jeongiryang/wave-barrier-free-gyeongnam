@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
@@ -16,9 +17,10 @@ async function makeItinerary(page: Page) {
   const initialCrowd = await initialCrowdResponse;
   expect(initialCrowd.ok()).toBe(true);
   await initialCrowd.finished();
+  await openNaruTool(page, "이동 구간 확인");
   await expect(page.locator(".itinerary-route-coverage .coverage-notice")).toContainText("조회가 끝났습니다.");
   await expect(page.locator(".itinerary-route-coverage .coverage-actions > button")).toHaveAttribute("aria-busy", "false");
-  await page.locator(".simple-departure > summary").click();
+  await openNaruTool(page, "출발 전 확인");
 }
 
 for (const input of ["pointer", "keyboard"] as const) {

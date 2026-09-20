@@ -1,6 +1,6 @@
 import { expect,test } from '@playwright/test';
 import { mockPlannerApi } from './fixtures';
-import { prepareStory,storyReady } from './landing-contract';
+import { openLandingTools, prepareStory,storyReady } from './landing-contract';
 
 test('Design B destination, planning steps and Naru examples connect to the working journey',async({page})=>{
  await prepareStory(page);await mockPlannerApi(page,{preserveView:true});
@@ -13,6 +13,7 @@ test('Design B destination, planning steps and Naru examples connect to the work
  await expect(story.getByRole('heading',{name:'내게 필요한 편의까지'})).toBeVisible();
  await story.getByRole('button',{name:/일정 만들기/}).click();
  await expect(story.getByRole('heading',{name:'하루의 순서는, 내가 원하는 대로'})).toBeVisible();
+ await openLandingTools(page);
  await page.locator('#naru .landing-naru-usecases button').first().click();
  await expect(page.locator('dialog.naru-panel[open]')).toBeVisible();
  await expect(page.locator('#naru-message')).toBeFocused();

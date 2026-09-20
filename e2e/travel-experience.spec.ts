@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import {
@@ -28,7 +29,7 @@ async function setup(page: Page) {
       .getByRole("button", { name: `${p.name} 일정에 담기`, exact: true })
       .click();
   await openItinerary(page, { start: "2026-09-15" });
-  await page.locator(".simple-more-trip-tools > summary").click();
+  await openNaruTool(page, '페이스·감각지도·여행여권');
   await expect(
     page.getByRole("button", { name: "오늘의 페이스", exact: true }),
   ).toBeVisible();
@@ -53,6 +54,7 @@ test("pace preview, apply and undo preserve itinerary; sensory reports and passp
   await expect(
     page.getByText("오늘의 페이스를 반영했어요.", { exact: false }),
   ).toBeVisible();
+  await closeNaruTool(page);
   await page
     .locator(".simple-command-receipt")
     .getByRole("button", { name: "되돌리기" })
@@ -62,6 +64,7 @@ test("pace preview, apply and undo preserve itinerary; sensory reports and passp
       page.evaluate(() => localStorage.getItem("wave-trip-schedule-v1")),
     )
     .toBe(before);
+  await openNaruTool(page, "페이스·감각지도·여행여권");
   await page
     .getByRole("button", { name: "감각지도·지금 현장", exact: true })
     .click();

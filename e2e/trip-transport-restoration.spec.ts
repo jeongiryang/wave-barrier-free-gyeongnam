@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { readFile } from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
@@ -38,13 +39,13 @@ async function stored(page: Page) {
 }
 async function settled(page: Page, mode: string) {
   await page.locator('#itinerary').waitFor();
-  const tools = page.locator('.simple-more-trip-tools');
-  if (await tools.getAttribute('open') === null) await tools.locator(':scope > summary').click();
+  await openNaruTool(page, '이동 구간 확인');
   const coverage = page.locator('.itinerary-route-coverage');
   await expect(coverage.locator('select')).toHaveValue(mode);
   await expect(coverage.getByRole('status')).toContainText('전체 2구간 중 2구간 확인');
   await expect(coverage.locator('.coverage-actions > button').first()).toHaveAttribute('aria-busy', 'false');
   await expect.poll(async () => (await stored(page)).schedule.travelMode).toBe(mode);
+  await closeNaruTool(page);
 }
 async function chooseMode(page: Page, mode: string) {
   await page.getByRole('button', { name: '여행 설정', exact: true }).click();
@@ -82,7 +83,9 @@ test('the chosen car mode survives reload, archive restore, sharing and calendar
   const stop = page.getByRole('dialog', { name: '경남도립미술관 수정', exact: true });
   await expect(stop.getByLabel('경남도립미술관 머무는 시간', { exact: true })).toHaveValue('120');
   await stop.getByRole('button', { name: '취소', exact: true }).click();
+  await openNaruTool(page, '이동 구간 확인');
   expect((await new AxeBuilder({ page }).include('.itinerary-route-coverage').analyze()).violations).toEqual([]);
+  await closeNaruTool(page);
   const shares: Array<{ selections: { travelMode: string; selectedPlaceIds: string[] } }> = [];
   await page.route('**/api/trips', route => { shares.push(route.request().postDataJSON()); return route.fulfill({ json: { id: '123456789abc', url: `${new URL(page.url()).origin}/trip/123456789abc`, revision: 1, expiresAt: Date.now() + 86_400_000 } }); });
   await page.getByRole('button', { name: '공유', exact: true }).click();

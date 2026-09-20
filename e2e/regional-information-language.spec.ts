@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, plan, openItinerary } from "./fixtures";
@@ -23,7 +24,7 @@ for (const english of [false, true]) for (const zero of [false, true]) {
     });
     await page.goto("/planner");
     await chooseTripConditions(page); await page.locator('.simple-place-row').first().locator('.simple-place-add').click(); await openItinerary(page);
-    await page.locator('#departure-readiness > summary').click();
+    await openNaruTool(page, '출발 전 확인');
     await page.locator("#layers > summary").click();
     const insights = page.locator(".insight-board");
     await expect(insights).toHaveAttribute("aria-busy", "false");

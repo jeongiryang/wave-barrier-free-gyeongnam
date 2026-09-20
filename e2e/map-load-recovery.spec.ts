@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import { openPlannerMap, openRouteDetails, changeMapLanguage, ensureMapView } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -17,8 +18,9 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   await expect(page.locator(".simple-stops > li")).toHaveCount(1);
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
+  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
   await expect.poll(() => failures).toBeGreaterThan(0);
   if (english) {
     await changeMapLanguage(page, true);

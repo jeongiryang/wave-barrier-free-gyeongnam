@@ -64,10 +64,17 @@ export async function expectNoOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 }
 
-export const chapterIds = ["top", "regions", "story", "features", "naru", "community", "departure", "closing"];
+export const chapterIds = ["top", "regions", "story", "community", "departure", "naru", "features", "closing"];
 export const chapterNames = {
   ko: ["처음", "이용 방법", "할 수 있는 일", "지역", "나루", "출발 전", "커뮤니티", "여행 시작"],
   en: ["Welcome", "How it works", "What you can do", "Regions", "Naru", "Before you go", "Community", "Plan a trip"],
 };
-export const firstRegions = ["통영", "거제", "남해", "진주", "창원", "하동"];
+export const firstRegions = ["통영", "거제", "남해", "하동", "산청"];
 export const allRegions = ["거창", "거제", "고성", "김해", "남해", "밀양", "사천", "산청", "양산", "의령", "진주", "창녕", "창원", "통영", "하동", "함안", "함양", "합천"];
+
+/** Optional tools remain reachable through the visitor-facing disclosure. */
+export async function openLandingTools(page: Page) {
+  const details = page.locator('.night-feature-details');
+  if (await details.getAttribute('open') === null) await details.locator(':scope > summary').click();
+  await expect(details).toHaveAttribute('open', '');
+}

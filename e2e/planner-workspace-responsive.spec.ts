@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
@@ -41,7 +42,9 @@ test("workspace keeps two-screen navigation and one itinerary usable across desk
   const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
   const timetable = page.locator(".simple-timeboard"), map = page.locator(".simple-itinerary-map");
   await expect(map.locator(".leaflet-container")).toBeVisible();
+  await openNaruTool(page, "이동 구간 확인");
   await expect(page.locator(".coverage-notice")).toContainText("조회가 끝났습니다.");
+  await closeNaruTool(page);
   await expect(map.locator(".route-options")).toHaveAttribute("aria-busy", "false");
   const pane = await map.locator(".leaflet-map-pane").elementHandle();
   expect(pane).not.toBeNull();
@@ -69,9 +72,13 @@ test("workspace keeps two-screen navigation and one itinerary usable across desk
       await expect(map).toBeHidden();
       await expect(map).toHaveAttribute("hidden", "");
       await expect(map.getByRole("button")).toHaveCount(0);
-      await timetable.locator(".simple-day-options > summary").focus();
+      await page.locator(".simple-timeboard button:enabled").last().focus();
       await page.keyboard.press("Tab");
-      await expect(page.locator("#itinerary > .simple-more-trip-tools > summary")).toBeFocused();
+      // The retired drawers are no longer the next focus target. Walk the real
+        // boundary after the timetable and ensure the hidden map is skipped.
+        await expect(page.locator(":focus")).toBeVisible();
+        expect(await map.evaluate(element => element.contains(document.activeElement))).toBe(false);
+        await expect(page.locator(".simple-itinerary-view .simple-day-options, .simple-itinerary-view .simple-more-trip-tools")).toHaveCount(0);
       for (const action of await mode.getByRole("button").all()) await expectTouchable(action);
       await mode.getByRole("button", { name: "지도", exact: true }).click();
       await expect(mode.getByRole("button", { name: "지도", exact: true })).toHaveAttribute("aria-pressed", "true");

@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import { expect, test } from "@playwright/test";
 import { fetchKakaoRoute } from "../server/transport/kakao-route";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
@@ -37,6 +38,7 @@ test("inconsistent provider measurements stay unavailable and a deliberate reche
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   const panel = page.locator(".route-compare-panel");
   await expect(panel.locator(".route-option")).toHaveCount(0);
   await panel.getByRole("group", { name: "이동수단별 예상 시간" }).getByRole("button", { name: /자동차/ }).click();

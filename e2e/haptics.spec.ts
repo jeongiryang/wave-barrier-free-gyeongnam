@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, chooseTripConditions, openItinerary } from "./fixtures";
@@ -35,7 +36,7 @@ async function setup(page: Page, haptics?: "on" | "off") {
   await chooseTripConditions(page);
   for (const name of ["경남도립미술관", "용지호수공원", "시민문화쉼터"]) await page.getByRole("button", { name: name + " 일정에 담기", exact: true }).click();
   await openItinerary(page);
-  await page.locator(".simple-more-trip-tools > summary").click();
+  await openNaruTool(page, '이동 구간 확인');
 }
 
 const guide = (page: Page) => page.getByRole("region", { name: "여행 당일 진행", exact: true });
@@ -43,6 +44,7 @@ const hapticsRow = (page: Page) => page.locator(".preference-controls button[dat
 
 /** 공개 탐색 경로를 따라 환경설정 패널을 연다. */
 async function openPreferences(page: Page) {
+  if (await naruDialog(page).isVisible()) await closeNaruTool(page);
   await openSupportMenu(page);
   const details = page.locator(".preference-controls");
   await expect(details).toHaveAttribute("aria-busy", "false");

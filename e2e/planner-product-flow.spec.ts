@@ -1,3 +1,4 @@
+import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
@@ -64,8 +65,10 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
     await expect(page.locator(".simple-browse-view")).toBeHidden();
     await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-09-20");
     await expect(itinerary.locator("#itinerary-stop-1001")).toContainText("경남도립미술관");
-    await expect(page.locator(".simple-departure > summary").getByText("일정 점검", { exact: true })).toBeVisible();
-    await expect(page.locator(".simple-more-trip-tools")).not.toHaveAttribute("open");
+    await expect(page.locator(".simple-itinerary-view .simple-departure, .simple-itinerary-view .simple-more-trip-tools")).toHaveCount(0);
+    await openNaruTool(page, "출발 전 확인");
+    await expect(page.locator("#departure-readiness")).toBeVisible();
+    await closeNaruTool(page);
     const screenshotPath = testInfo.outputPath("planner-" + width + "px.png");
     await page.screenshot({ path: screenshotPath });
     await testInfo.attach("planner-" + width + "px", { path: screenshotPath, contentType: "image/png" });

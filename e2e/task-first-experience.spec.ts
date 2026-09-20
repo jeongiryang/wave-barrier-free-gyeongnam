@@ -35,7 +35,7 @@ test('saved trip shows a short Naru start and the timetable before optional tool
   await page.getByRole('combobox',{name:'여행 지역',exact:true}).selectOption('창원');
   await page.getByRole('button',{name:'경남도립미술관 일정에 담기',exact:true}).click();
   await openItinerary(page,{start:'2026-10-14'});
-  await expect(page.locator('.simple-more-trip-tools')).not.toHaveAttribute('open','');
+  await expect(page.locator('.simple-more-trip-tools')).toHaveCount(0);
   await expect(page.locator('.simple-stops')).toBeVisible();
   await page.getByRole('button',{name:'나루와 계획하기',exact:true}).click();
   const chat=page.getByRole('dialog',{name:'WAVE 여행 가이드 나루와 대화'});

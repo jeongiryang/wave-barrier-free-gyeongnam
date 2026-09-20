@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import { openPlannerMap, openRouteDetails, changeMapLanguage, ensureMapView } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
@@ -13,13 +14,14 @@ async function prepare(page: Page, setup?: () => Promise<void>) {
   await page.getByRole("button", { name: "경남도립미술관 add to itinerary", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   await expect(page.locator(".simple-stops > li")).toHaveCount(1);
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
+  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
   // The selected map journey and the automatic itinerary check are separate
   // operations. Let the automatic check finish before measuring a later action.
   const coverage = page.locator(".itinerary-route-coverage");
-  await expect(coverage.getByRole("status")).toContainText("1 of 1 journeys found");
-  await expect(coverage.getByRole("button", { name: "Check all journeys", exact: true })).toHaveAttribute("aria-busy", "false");
+  await expect(coverage.locator('[role="status"]')).toContainText("1 of 1 journeys found");
+  await withRouteCoverage(page, async () => { await expect(coverage.getByRole("button", { name: "Check all journeys", exact: true })).toHaveAttribute("aria-busy", "false"); });
 }
 
 for (const theme of ["light", "dark"] as const) {
@@ -172,10 +174,10 @@ test("showing a cached itinerary journey updates its estimate count without anot
     ], providers: [], context: null } });
   });
   const coverage = page.locator(".itinerary-route-coverage");
-  await coverage.getByRole("button", { name: "Check all journeys", exact: true }).click();
-  await expect(coverage.getByRole("status")).toContainText("1 of 1 journeys found");
+  await withRouteCoverage(page, async () => { await coverage.getByRole("button", { name: "Check all journeys", exact: true }).click(); });
+  await expect(coverage.locator('[role="status"]')).toContainText("1 of 1 journeys found");
   expect(requests).toBe(1);
-  await coverage.getByRole("button", { name: "Show this journey", exact: true }).click();
+  await withRouteCoverage(page, async () => { await coverage.getByRole("button", { name: "Show this journey", exact: true }).click(); });
   await expect(panel.locator(".route-option")).toHaveCount(1);
   await expect(panel.locator(".route-notice")).toContainText("Compare 1 route with estimated journey times.");
   await expect(panel.locator('.route-option[aria-pressed="true"]')).toContainText("18 min");
@@ -218,9 +220,9 @@ for (const staleId of ["car-fast", "absent-old-id"]) test(`cached same-mode jour
     return route.fulfill({ json: { configured: true, alternatives: sameModeEstimates(staleId), providers: [], context: null } });
   });
   const coverage = page.locator(".itinerary-route-coverage");
-  await coverage.getByRole("button", { name: "Check all journeys", exact: true }).click();
-  await expect(coverage.getByRole("status")).toContainText("1 of 1 journeys found");
-  await coverage.getByRole("button", { name: "Show this journey", exact: true }).click();
+  await withRouteCoverage(page, async () => { await coverage.getByRole("button", { name: "Check all journeys", exact: true }).click(); });
+  await expect(coverage.locator('[role="status"]')).toContainText("1 of 1 journeys found");
+  await withRouteCoverage(page, async () => { await coverage.getByRole("button", { name: "Show this journey", exact: true }).click(); });
   await expect(panel.locator(".route-option")).toHaveCount(1);
   await expect(panel.locator('.route-option[aria-pressed="true"]')).toContainText("Confirmed journey");
   await expect(panel.locator(".route-notice .live-dot")).toHaveCount(1);

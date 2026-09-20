@@ -1,3 +1,4 @@
+import { openNaruTool } from './naru-tool-fixtures';
 import fs from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
@@ -27,7 +28,7 @@ test('the decision receipt explains selected evidence, route limits and download
   for (const name of ['경남도립미술관', '용지호수공원']) await page.getByRole('button', { name: `${name} 일정에 담기`, exact: true }).click();
   await openItinerary(page, { start: '2026-09-20' });
 
-  await page.locator('.simple-more-trip-tools > summary').click();
+  await openNaruTool(page, '이동 구간 확인');
   const receipt = page.locator('[data-planner-tool="receipt"]');
   await expect(receipt.getByText('선택한 편의 확인', { exact: true })).toBeVisible();
   await receipt.locator(':scope > summary').click();

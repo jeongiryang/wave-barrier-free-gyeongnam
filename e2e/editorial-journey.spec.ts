@@ -2,8 +2,8 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
-import { storyReady } from "./landing-contract";
-const chapterIds = ["top","regions","story","features","naru","community","departure","closing"];
+import { chapterIds, openLandingTools, storyReady } from "./landing-contract";
+
 
 for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editorial introduction and working pages remain readable in ${theme}, size ${size}`, async ({ page }) => {
   await mockPublicShellApi(page);
@@ -23,7 +23,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await page.goto("/");
     await storyReady(page);
     for (const id of chapterIds) {
-      if (id === "features" && !await page.locator("#features").isVisible()) await page.getByText("여행 도구 모두 보기", {exact:true}).click();
+      if (id === "naru") await openLandingTools(page);
       const scene = page.locator(`#${id}`);
       await scene.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
       await expect(scene).toBeVisible();

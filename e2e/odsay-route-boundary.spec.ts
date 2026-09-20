@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import { openPlannerMap, openRouteDetails, changeMapLanguage } from "./nearby-fixtures";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
@@ -24,6 +25,7 @@ for (const [name, code, expected, expectedEnglish] of [
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   const notice = page.locator(".route-compare-panel").getByRole("status");
   await expect(notice).toContainText(expected);
   await expect(notice).toBeVisible();

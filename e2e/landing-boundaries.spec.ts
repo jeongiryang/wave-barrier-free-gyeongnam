@@ -48,7 +48,7 @@ async function expandedPlannerRegions(page: Page, en = false) {
   await expect(select).toBeEnabled();
   await expect(select).toHaveValue("");
   const gallery = page.locator(".simple-region-discovery");
-  await expect(gallery.locator(".simple-region h3")).toHaveText(firstRegions);
+  await expect(gallery.locator(".simple-region h3")).toHaveText(["통영", "거제", "남해", "진주", "창원", "하동"]);
   const expand = gallery.getByRole("button", { name: en ? "All 18 regions" : "전체 18개 지역", exact: true });
   await expectUsableTarget(expand);
   await expect(expand).toHaveAttribute("aria-controls", "planner-region-options");
@@ -171,7 +171,7 @@ test("regional entry: both screens avoid boundary downloads and no-JS explicitly
     await expect(staticPage.locator("noscript p")).toBeVisible();
     await expect(staticPage.locator("noscript p")).toContainText("JavaScript를 허용해 주세요");
     const links = staticPage.locator("#regions .simple-region-link");
-    await expect(links).toHaveCount(6);
+    await expect(links).toHaveCount(firstRegions.length);
     // The framework's streamed client subtree is hidden without JavaScript.
     // Its safe markup URLs are not a supported no-script region picker.
     for (const [index, name] of firstRegions.entries()) {

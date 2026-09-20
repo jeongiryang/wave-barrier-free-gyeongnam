@@ -1,3 +1,4 @@
+import { withRouteCoverage } from "./nearby-fixtures";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 import { ensureMapView, openPlannerMap, openRouteDetails } from "./nearby-fixtures";
@@ -12,6 +13,7 @@ async function prepare(page: Page) {
   await page.getByRole("button", { name: "경남도립미술관 add to itinerary", exact: true }).click();
   await openPlannerMap(page);
   await openRouteDetails(page);
+  await withRouteCoverage(page);
   await expect(page.locator(".simple-stops > li")).toHaveCount(1);
 }
 

@@ -334,13 +334,13 @@ test("wide screens keep the full-width header and put the itinerary beside its m
   assert.match(css, /\.simple-planner-tabs button \{[^}]*min-height: 48px/);
 });
 
-test("landing offers six fixed photo links then all eighteen, preserving sources and the verified boundary data", async () => {
+test("landing offers five fixed photo links then all eighteen, preserving sources and the verified boundary data", async () => {
   const [landing, css] = await Promise.all([
     source("features/landing/components/LandingRegionStory.tsx"), source("app/styles/simple-wave.css"),
   ]);
   const first = JSON.parse(landing.match(/const firstRegions = (\[[^\n]+\]);/)?.[1] || "null");
-  assert.deepEqual(first, ["통영", "거제", "남해", "진주", "창원", "하동"]);
-  assert.match(landing, /orderedRegions\.slice\(0, expanded \? 18 : 6\)\.map/);
+  assert.deepEqual(first, ["통영", "거제", "남해", "하동", "산청"]);
+  assert.match(landing, /orderedRegions\.slice\(0, expanded \? 18 : 5\)\.map/);
   assert.match(landing, /href=\{\x60\/planner\?region=\$\{encodeURIComponent\(name\)\}\x60\}/);
   assert.match(landing, /aria-controls="region-grid"/);
   assert.match(landing, /aria-expanded=\{expanded\}/);
