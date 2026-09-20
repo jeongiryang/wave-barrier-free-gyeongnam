@@ -41,7 +41,7 @@ test("issue 544 intro phrase is exact and its styles do not alter global tokens"
     source("features/landing/components/LandingIntro.tsx"),
     source("features/landing/components/LandingIntro.module.css"),
   ]);
-  assert.match(intro, />WAVE가 당신의 발걸음을 응원합니다<\/p>/);
+  assert.match(intro, /"WAVE가 당신의 발걸음을 응원합니다"/);
   assert.doesNotMatch(intro, />WAVE가 당신의 발걸음을 응원합니다\.<\/p>/);
   assert.match(intro, /onCancel/);
   assert.match(css, /prefers-reduced-motion: reduce/);

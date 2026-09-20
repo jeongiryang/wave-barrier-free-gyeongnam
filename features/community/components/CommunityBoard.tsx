@@ -1,4 +1,5 @@
 "use client";
+import DemoStories from "../../demo/DemoStories";
 import type { CommunityLayout } from "../view-layout";
 
 import { useState } from "react";
@@ -23,7 +24,7 @@ export default function CommunityPage({ initialPlace = null }: { initialPlace?: 
       <CommunityBoardToolbar board={board} layout={layout} onLayout={setLayout} />
       <p className="community-evidence-note">여행자 후기는 작성자 한 명의 경험이며 공식 관광·접근성 정보와 구분합니다.</p>
       <CommunityPostList board={board} layout={layout} />
-      {!board.placeFilter && !board.category && !board.query && board.page === 1 && <details className="community-guides"><summary>이용 가이드</summary><CommunityTravelStories layout={layout} /></details>}
+      {!board.placeFilter && !board.category && !board.query && board.page === 1 && <><details className="community-guides"><summary>시연용 게시글 보기</summary><DemoStories /></details><details className="community-guides"><summary>이용 가이드</summary><CommunityTravelStories layout={layout} /></details></>}
     </section>
     <SiteFooter />
   </main>;

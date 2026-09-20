@@ -32,7 +32,17 @@ async function samples(page: Page, selector: string) {
           background = walker ? getComputedStyle(walker).backgroundColor : "rgb(255, 255, 255)";
         }
         return {
-          background: parse(background),
+          // Photo text uses a sibling scrim, not the white ancestor surface.
+          // Composite its lightest gradient stop over pure white (worst photo).
+          background: node.matches(".landing-hero-copy h1, .landing-hero-description")
+            ? (() => {
+                const photo = document.querySelector(".landing-hero-landscape")!;
+                const scrim = getComputedStyle(photo, "::after");
+                if (scrim.content === "none") return [255, 255, 255];
+                const stops = [...scrim.backgroundImage.matchAll(/rgba?\(([^)]+)\)/g)].map(match => match[1].split(",").map(Number));
+                return [0, 1, 2].map(channel => Math.max(...stops.map(stop => stop[channel] * (stop[3] ?? 1) + 255 * (1 - (stop[3] ?? 1)))));
+              })()
+            : parse(background),
           color: parse(getComputedStyle(node).color),
           text: node.textContent?.replace(/\s+/g, " ").trim().slice(0, 80) || node.tagName.toLowerCase(),
         };

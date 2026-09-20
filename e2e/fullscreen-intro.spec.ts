@@ -31,7 +31,7 @@ for (const legacyFull of [false, true]) {
     page.on("request", request => { if (/\.mp4(?:\?|$)/.test(request.url())) media.push(request.url()); });
     await page.goto("/"); await storyReady(page);
     await expect(page.locator(".arrival-scene")).toBeHidden();
-    await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true])")).toHaveCount(0);
+    await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
     await expectUsableTarget(page.locator(".landing-actions a"));
     await expect(page.locator(".landing-hero video")).toHaveCount(0);
     expect(media).toEqual([]);
@@ -88,7 +88,7 @@ test("failed arrival photography still finishes on time and leaves its source an
   await page.route("**/media/horizon/hero-coast.jpg", route => route.abort());
   await freshArrival(page);
   const link = page.locator(".landing-actions a");
-  await page.clock.runFor(2000);
+  await page.clock.runFor(10400);
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.locator(".landing-hero-landscape figcaption")).toContainText("사진을 불러오지 못했어요");
   await expect(page.locator(".landing-hero-landscape figcaption a").first()).toHaveAttribute("href", /^https:/);

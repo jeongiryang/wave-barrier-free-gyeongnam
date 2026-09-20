@@ -389,23 +389,23 @@ test("preserved feature previews retain their order and motion safety; current c
   }
 });
 
-test("arrival intro reuses one landscape and supports explicit dismissal", async () => {
+test("arrival intro reuses the historical renderer and supports explicit dismissal", async () => {
   const [landing, intro, css] = await Promise.all([
     source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"), source("features/landing/components/LandingIntro.module.css"),
   ]);
-  assert.match(intro, /<img src=\{horizonPhotos\.coast\.image\} alt=""/);
-  assert.match(intro, /className="arrival-word" aria-hidden="true">WAVE/);
-  assert.doesNotMatch(intro, /WAVE_RAMP|canvas|requestAnimationFrame|putImageData/);
+  assert.match(intro, /<EditorialPhoto photo=\{photo\}/);
+  assert.match(intro, /arrival-word.*aria-hidden="true">WAVE/);
+  assert.match(intro, /import\("\.\.\/\.\.\/motion\/wave-field-engine"\)/);
   assert.match(landing, /<LandingIntro \/><main/);
   assert.match(intro, /<dialog ref=\{dialog\}/);
   assert.match(intro, /onCancel=/);
   assert.match(intro, /건너뛰기/);
   assert.match(intro, /prefers-reduced-motion: reduce/);
-  assert.match(intro, /setTimeout\(finish, 2000\)/);
+  assert.match(intro, /setTimeout\(finish, DURATION\)/);
   assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
-  assert.match(intro, /window\.clearTimeout\(timer\)/);
-  assert.match(css, /\.scene \{[^}]*position: fixed/);
-  assert.match(css, /object-fit: cover/);
+  assert.match(intro, /timers\.forEach\(window\.clearTimeout\)/);
+  assert.match(css, /\.scene \{[^}]*position:\s*fixed/);
+  assert.match(css, /object-fit:\s*cover/);
   assert.doesNotMatch(landing, /<LandingSectionProgress|<LandingAccountStory/);
 });
 
