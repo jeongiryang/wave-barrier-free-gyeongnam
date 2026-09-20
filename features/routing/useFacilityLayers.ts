@@ -18,8 +18,26 @@ import type { KakaoMap, KakaoPlace } from "./kakao-sdk";
 import type { MutableRef } from "./map-renderer-context";
 import { NEARBY_RADIUS_METRES, parseNearbyPlaces, type NearbySearchArea } from "./nearby-place-data";
 import type { FacilityMapMarker, MapPlace } from "./types";
+import { optionalPlannerJson } from "../planner/services/api";
+import { CLIENT_BUDGET_MS } from "../../lib/request-budget.js";
+import { lowFloorArrivalMarkers } from "../../lib/transport/low-floor-bus.js";
 
 export type FacilityLayerState = "idle" | "loading" | "ready" | "empty" | "error";
+
+type ReturnStop = {
+  nodeId: string;
+  cityCode: string;
+  name: string;
+  point?: { lat: number; lng: number } | null;
+  distance?: number | null;
+};
+
+type ReturnTransportResponse = {
+  status?: string;
+  stops?: ReturnStop[];
+  routes?: Array<{ routeName?: string; vehicles?: Array<{ vehicle?: string; seconds?: number | null; stopsAway?: number | null }> }>;
+  arrivalCheckedAt?: string | null;
+};
 
 /**
  * 장소 검색은 브라우저 SDK가 직접 부른다. 기존 `useNearbyPlaces`와 같은 한도를
@@ -98,16 +116,29 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
     }
 
     if (layer.source === "official") {
-      // 공식 데이터 레이어를 부르는 자리.
-      //
-      // 후속 명세가 `server/tourism/`에 제공처 모듈과 `handler.ts` 분기를 만든 뒤
-      // 여기에서 `optionalPlannerJson("<action>", { contentId })`로 호출하고,
-      // 응답의 `items`를 FacilityLayerMarker로 옮기면 된다. 요청에는 공개
-      // `contentId`만 싣는다. 사용자 좌표를 보내는 필드를 만들지 않는다.
-      //
-      // 지금은 검증된 공식 제공처가 하나도 없어 `officialFacilityLayers`가 비어
-      // 있다. 이 갈래는 그 배열에 레이어가 등록되기 전까지 실행되지 않는다.
-      settle("error");
+      const map = kakaoMapRef.current;
+      const center = map?.getCenter ? map.getCenter() : null;
+      const origin = center ? { latitude: center.getLat(), longitude: center.getLng() } : null;
+      const publicPlace = placesRef.current
+        .filter((place) => /^[1-9]\d{0,11}$/.test(place.id) && Number.isFinite(Number(place.mapY)) && Number.isFinite(Number(place.mapX)))
+        .map((place) => ({ place, distance: origin ? facilityDistanceMeters(origin, { latitude: Number(place.mapY), longitude: Number(place.mapX) }) : null }))
+        .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))[0]?.place;
+      if (!publicPlace || layer.id !== "low-floor-bus-arrival") { settle("error"); return; }
+
+      // 서버에는 사용자의 현재 위치가 아니라 한국관광공사 공개 contentId만 보낸다.
+      // 가까운 정류장 네 곳까지만 명시적으로 조회해 TAGO 일일 한도를 지킨다.
+      void (async () => {
+        const base = await optionalPlannerJson<ReturnTransportResponse>(`/api/wave?action=return-transport&contentId=${encodeURIComponent(publicPlace.id)}`, { timeoutMs: CLIENT_BUDGET_MS.returnTransport });
+        if (!base || ["provider-error", "unavailable", "location-unconfirmed", "invalid-request"].includes(base.status || "")) { settle("error"); return; }
+        const stops = Array.isArray(base.stops) ? base.stops.slice(0, 4) : [];
+        if (!stops.length) { settle("empty", []); return; }
+        const observations = await Promise.all(stops.map(async (stop: ReturnStop) => ({
+          stop,
+          response: await optionalPlannerJson<ReturnTransportResponse>(`/api/wave?action=return-transport&contentId=${encodeURIComponent(publicPlace.id)}&nodeId=${encodeURIComponent(stop.nodeId)}&cityCode=${encodeURIComponent(stop.cityCode)}`, { timeoutMs: CLIENT_BUDGET_MS.returnTransport }) || {},
+        })));
+        const markers = lowFloorArrivalMarkers(observations);
+        settle(markers.length ? "ready" : "empty", markers);
+      })().catch(() => settle("error"));
       return;
     }
 
@@ -205,10 +236,17 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
     const map = kakaoMapRef.current;
     const sdk = window.kakao?.maps;
     if (!map || !sdk?.event?.addListener || !sdk.event.removeListener) return;
-    const onIdle = () => refreshFacilityLayers();
+    const onIdle = () => {
+      // 공식 도착정보는 지도 드래그마다 다시 호출하지 않는다. 사용자가 끄고 켜거나
+      // 명시적으로 재시도할 때만 갱신해 제공처 한도를 지킨다.
+      for (const id of selectionRef.current.active) {
+        const layer = facilityLayers.find((item) => item.id === id);
+        if (layer && layer.source !== "official") requestLayer(layer);
+      }
+    };
     sdk.event.addListener(map, "idle", onIdle);
     return () => sdk.event?.removeListener?.(map, "idle", onIdle);
-  }, [provider, activeCount, kakaoMapRef, refreshFacilityLayers]);
+  }, [provider, activeCount, kakaoMapRef, refreshFacilityLayers, requestLayer]);
 
   // 지도 렌더러는 레이어 목록을 모른다. 어떻게 읽히고 어떤 모양인지를 여기에서
   // 정해 넘긴다.
