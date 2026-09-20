@@ -53,7 +53,7 @@ export function useCommunityEditor(postId?: string) {
     const draft = parseTravelJournalDraft(params);
     const timer = window.setTimeout(() => setValues((current) => ({
       ...current,
-      category: draft || requestedCategory === "review" ? "review" : current.category,
+      category: draft || requestedCategory === "review" ? "review" : requestedCategory === "travel-talk" ? "travel-talk" : current.category,
       title: draft ? `${region || "경남"} ${draft.journalPlaces.length}곳 무장애 여행일지` : current.title,
       content: draft ? "장소별 이동 동선과 실제로 확인한 편의정보를 기록해 주세요.\n\n공식 정보와 달랐던 점이나 다음 여행자에게 필요한 준비사항도 함께 남겨 주세요." : current.content,
       placeId: draft?.placeId || placeId,
