@@ -16,6 +16,7 @@ const steps = [
 export default function PlaceArrivalPreview({ place, onOpenRestrooms, onClose }: { place: Place; onOpenRestrooms?: () => void; onClose?: () => void }) {
   const [activeState, setActiveState] = useState({ placeId: place.id, value: 0 });
   const [checkedState, setCheckedState] = useState<{ placeId: string; value: number[] }>({ placeId: place.id, value: [] });
+  const [orderHelp, setOrderHelp] = useState<{ token: number; mode: 'inquiry' | 'communication' } | null>(null);
   const active = activeState.placeId === place.id ? activeState.value : 0;
   const checked = checkedState.placeId === place.id ? checkedState.value : [];
   const setActive = (next: number | ((value: number) => number)) => setActiveState(current => {
@@ -54,7 +55,10 @@ export default function PlaceArrivalPreview({ place, onOpenRestrooms, onClose }:
     {/* 스펙 48: 숙소(contentTypeId "32")일 때만 숙소 전용 편의 묶음을 더한다. 다른 타입의 화면은 바뀌지 않는다. */}
     {step.title === '시설' && place.contentTypeId === '32' && <Suspense fallback={null}><StayFacilityDetail place={place} /></Suspense>}
     {/* 스펙 44: 1인 메뉴·단체석·좌석 형태를 주는 공공데이터가 없다는 사실만 안내한다. 거르기를 만들지 않는다. 문의 링크는 이 단계 아래의 PlaceInquiryCard(#545)를 그대로 쓴다. */}
-    {step.title === '시설' && <p style={{ color: 'var(--muted)', fontSize: '.85rem' }}>자리 형태와 1인 주문 가능 여부는 공공데이터에 등록돼 있지 않아요. 미리 물어보면 확실해요.</p>}
+    {step.title === '시설' && <>
+      <p style={{ color: 'var(--muted)', fontSize: '.85rem' }}>자리 형태와 1인 주문 가능 여부는 공공데이터에 등록돼 있지 않아요. 미리 물어보면 확실해요.</p>
+      <div className="place-inquiry-entry"><div><h3>주문 방식 확인</h3><p>주문 방식은 공공데이터에 등록돼 있지 않아요. 미리 물어보거나 현장에서 화면으로 요청할 수 있어요.</p></div><p><button type="button" onClick={() => setOrderHelp({ token: Date.now(), mode: 'inquiry' })}>방문 전에 문의하기</button> <button type="button" onClick={() => setOrderHelp({ token: Date.now(), mode: 'communication' })}>현장에서 화면으로 요청</button></p></div>
+    </>}
     {step.title === '입구' && <div className="place-inquiry-entry">
       <div>
         <h3>휠체어 통행 정보</h3>
@@ -67,6 +71,6 @@ export default function PlaceArrivalPreview({ place, onOpenRestrooms, onClose }:
     <p><small>{place.source || '출처 미제공'} · {place.checkedAt || '조회 시각 미제공'}</small></p>
     <label><input type="checkbox" checked={checked.includes(active)} onChange={event => setChecked(previous => event.target.checked ? [...previous, active] : previous.filter(index => index !== active))} /> {step.title} 자료를 살펴봤어요</label>
     <p>{checked.length}/3단계 살펴봄 · 직접 읽은 기록이며 시설 이용 가능을 확인한 표시는 아닙니다.</p>
-    {active < steps.length - 1 ? <button type="button" onClick={() => setActive(index => index + 1)}>다음: {steps[active + 1].title}</button> : <PlaceInquiryCard place={place} en={false} />}
+    {active < steps.length - 1 ? <button type="button" onClick={() => setActive(index => index + 1)}>다음: {steps[active + 1].title}</button> : <PlaceInquiryCard key={`${place.id}:${orderHelp?.token || 0}`} place={place} en={false} startMode={orderHelp?.mode} />}
   </section>;
 }

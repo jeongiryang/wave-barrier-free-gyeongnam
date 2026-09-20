@@ -7,6 +7,7 @@ import {
   communicationAnswers,
   communicationAnswerText,
   communicationQuestion,
+  communicationQuestions,
   communicationTopics,
   MAX_CUSTOM_ANSWER_LENGTH,
   normalizeCustomAnswer,
@@ -34,6 +35,10 @@ export default function OnsiteCommunicationBoard({ initialTopic, en, onEnd, onCl
 
   function chooseTopic(topic: CommunicationTopic) {
     setSession({ topic, question: communicationQuestion(topic, en) });
+    setNotice(say("질문을 확인해 주세요.", "Please check the question."));
+  }
+  function chooseQuestion(question: string) {
+    setSession(current => ({ ...current, question }));
     setNotice(say("질문을 확인해 주세요.", "Please check the question."));
   }
   function chooseAnswer(answer: Exclude<CommunicationAnswer, "custom">) {
@@ -73,6 +78,9 @@ export default function OnsiteCommunicationBoard({ initialTopic, en, onEnd, onCl
       <div className="communication-topics" role="group" aria-label="질문 주제">
         {communicationTopics.map(topic => <button type="button" key={topic.id} aria-pressed={session.topic === topic.id} onClick={() => chooseTopic(topic.id)}>{en ? topic.questionEn : topic.label}</button>)}
       </div>
+      {communicationQuestions(session.topic, en).length > 1 && <div className="communication-topics" role="group" aria-label={say("질문 문장", "Question wording")}>
+        {communicationQuestions(session.topic, en).map(question => <button type="button" key={question} aria-pressed={session.question === question} onClick={() => chooseQuestion(question)}>{question}</button>)}
+      </div>}
       <div className="inquiry-card-preview"><p>{session.question}</p></div>
       <button className="communication-primary" ref={showButton} type="button" onClick={() => { setStage("staff"); setNotice(say("답을 골라 주세요.", "Please choose an answer.")); }}>{say("직원에게 보여주기", "Show to staff")}</button>
     </>}

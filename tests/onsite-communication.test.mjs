@@ -4,6 +4,7 @@ import {
   communicationAnswers,
   communicationAnswerText,
   communicationQuestion,
+  communicationQuestions,
   communicationTopics,
   isCommunicationAnswer,
   isCommunicationTopic,
@@ -20,6 +21,9 @@ test("all approved communication topics have fixed Korean and English questions"
   }
   assert.equal(isCommunicationTopic("location"), false);
   assert.throws(() => communicationQuestion("location"), /Unknown communication topic/);
+  assert.deepEqual(communicationQuestions("payment"), ["주문과 결제를 도와주세요.", "주문을 도와주실 수 있나요? 화면 대신 사람에게 주문하고 싶어요."]);
+  assert.equal(communicationQuestions("payment", true).length, 2);
+  assert.equal(communicationTopics.length, 6, "새 주제를 만들면 안 된다");
 });
 
 test("all approved staff answers use the fixed Korean and English text", () => {
