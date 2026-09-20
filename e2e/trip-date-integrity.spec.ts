@@ -83,6 +83,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(itinerary.locator(".simple-outside-dates")).toContainText("용지호수공원 · 2026-10-08");
     await expect(itinerary.locator(".simple-stops > li")).toHaveCount(1);
     await itinerary.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+    await acceptTripTimingWarning(page);
     await expect(itinerary.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
     const archive = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-travel-book-v1") || "[]")[0]);
     expect(archive).toMatchObject({ travelEnd: "2026-10-07", scheduleAssignments: { "1001": "2026-10-07", "1002": "2026-10-08" } });
@@ -97,6 +98,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) {
     });
     await itinerary.getByRole("button", { name: "공유", exact: true }).click();
     await page.getByRole("button", { name: "공개 링크 만들기", exact: true }).click();
+    await acceptTripTimingWarning(page);
     const share = page.getByRole("dialog", { name: "여행 공유", exact: true });
     await expect(share.getByRole("status")).toContainText("기간 밖 장소의 방문 날짜");
     await expect(share.getByRole("link", { name: "공유 일정 보기", exact: true })).toHaveCount(0);

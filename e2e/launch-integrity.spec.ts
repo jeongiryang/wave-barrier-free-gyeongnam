@@ -1,3 +1,4 @@
+import { arrivalPlaybackReady } from './landing-contract';
 import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
@@ -157,7 +158,8 @@ test("landing: intro exposes its message and an immediate keyboard dismissal", a
   await page.setViewportSize({ width, height: 960 });
   await freshArrival(page);
   const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
-  await expect(scene).toContainText("모두의 여행이 같은 출발선에 설 수 있도록");
+  await arrivalPlaybackReady(page);
+  await expect(scene).toContainText("모두의 발걸음이 닿는 경상남도");
   await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(scene).toBeHidden();

@@ -92,6 +92,7 @@ test("fixed visits keep their date and order, and return deadlines follow the li
   await openNaruTool(page, "이동 부담·휴식"); await expect(deadline).toContainText("18:00");
   await closeNaruTool(page);
   await board.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await acceptTripTimingWarning(page);
   await expect(board.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
   await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
   await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();

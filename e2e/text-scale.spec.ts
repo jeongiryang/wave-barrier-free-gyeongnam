@@ -172,6 +172,10 @@ test("아주 크게 상태에서 조작 영역 44px 기준을 지킨다", async 
   }
   await expectNoOverflow(page);
   await page.keyboard.press("Escape");
+  await expect(preferences.locator('.preference-panel')).toBeHidden();
+  await expect(page.locator('.wave-support-menu')).toHaveAttribute('data-open', 'true');
+  await page.keyboard.press("Escape");
+  await expect(page.locator('.wave-support-menu')).toHaveAttribute('data-open', 'false');
 
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();

@@ -1,3 +1,4 @@
+import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, openItinerary, plan } from "./fixtures";
@@ -35,6 +36,7 @@ async function map(page: Page) {
 }
 async function save(page: Page) {
   await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await acceptTripTimingWarning(page);
   await expect(page.locator(".simple-save-control [role=status]")).toContainText("이 기기의 내 여행에 저장했어요");
 }
 async function initial(page: Page, en = false) {

@@ -26,6 +26,7 @@ for (const restoration of ["reload", "archive"] as const) {
     await stop.getByRole("button", { name: "적용", exact: true }).click();
     if (restoration === "archive") {
       await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
+  await acceptTripTimingWarning(page);
       await expect(page.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
       await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
       searches = 0;

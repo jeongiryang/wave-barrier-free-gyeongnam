@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { regionPhotoSource } from "../features/landing/region-photo-sources";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
-import { arrivalPlaybackReady } from './landing-contract';
+import { arrivalPlaybackReady, pauseCurrentClock } from './landing-contract';
 import { INTRO_DURATION_MS } from '../features/landing/intro/wave-timing';
 
 const firstRegions = ["통영", "거제", "남해", "하동", "산청"];
@@ -24,7 +24,7 @@ async function freshAnimatedArrival(page: Page) {
   // otherwise the app's startup handoff cannot reveal the interactive page.
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".arrival-scene")).toBeVisible();
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000));
+  await pauseCurrentClock(page);
   await expect(page.locator(".arrival-scene")).toBeVisible();
 }
 
@@ -48,7 +48,7 @@ test("approved arrival completes its 12.731-second playback and exposes keyboard
   await page.reload();
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".landing-hero-split")).toBeVisible();
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000));
+  await pauseCurrentClock(page);
   await page.clock.runFor(INTRO_DURATION_MS + 100);
   await expect(scene).toBeHidden();
 });

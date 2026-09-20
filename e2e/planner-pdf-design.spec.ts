@@ -34,6 +34,7 @@ test("두 탭에서 날짜 없는 탐색부터 일정 편집·지도·저장·�
   await expect(page.locator('.simple-itinerary-map .leaflet-container')).toBeVisible();
   await page.screenshot({ path: info.outputPath('simple-map.png') });
   await page.locator('.simple-trip-actions').getByRole('button', { name: '내 여행에 저장', exact: true }).click();
+  await acceptTripTimingWarning(page);
   await expect(page.locator('.simple-save-control')).toContainText('저장');
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('wave-travel-book-v1') || '[]').length)).toBe(1);
   await page.locator('.simple-trip-actions').getByRole('button', { name: '공유', exact: true }).click();
