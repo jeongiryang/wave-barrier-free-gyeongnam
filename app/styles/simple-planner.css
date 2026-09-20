@@ -371,3 +371,17 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 .evidence-coverage-card :is(small,.evidence-coverage-note) { color: var(--muted); font-size: .75rem; }
 .evidence-coverage-actions button { min-height: 44px; }
 @media (max-width: 560px) { .evidence-coverage-card ul { grid-template-columns: 1fr; } }
+
+/* One view preference for recommended, unconfirmed and direct-search places. */
+.simple-view-switch { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.simple-view-switch > span { color: var(--muted); font-size: .875rem; margin-right: 4px; }
+.simple-view-switch button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: .875rem; }
+.simple-view-switch button[aria-pressed=true] { border-color: var(--blue); color: var(--blue); background: var(--sky); font-weight: 600; }
+.simple-view-switch svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+[data-place-view=grid] .simple-place-list { grid-template-columns: repeat(auto-fill,minmax(min(100%,260px),1fr)); gap: 20px; margin-block: 16px; }
+[data-place-view=grid] .simple-place-row { min-width: 0; grid-template-columns: minmax(0,1fr); grid-template-rows: auto 1fr auto; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+[data-place-view=grid] .simple-place-photo { width: 100%; aspect-ratio: 4/3; }
+[data-place-view=grid] .simple-place-address { display: block; overflow-wrap: anywhere; }
+[data-place-view=grid] .simple-place-add { width: 100%; flex-direction: row; gap: 8px; font-size: .875rem; }
+[data-place-view=grid] .simple-direct-region { grid-column: 1/-1; }
+[data-place-view=grid] .simple-place-skeleton { grid-column: 1/-1; }

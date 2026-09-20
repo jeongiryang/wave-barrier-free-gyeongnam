@@ -1,8 +1,25 @@
+import { useSyncExternalStore } from "react";
+import { useSitePreferences } from "../../../components/SitePreferences";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place } from "../types";
 import RecommendationCarousel from "./RecommendationCarousel";
 import DirectPlaceSearch from "./DirectPlaceSearch";
+
+type PlaceView = 'list' | 'grid';
+const viewKey = 'wave-place-view-v1';
+let temporaryView: PlaceView | null = null;
+function readView(): PlaceView {
+  if (temporaryView) return temporaryView;
+  try { return localStorage.getItem(viewKey) === 'grid' ? 'grid' : 'list'; } catch { return 'list'; }
+}
+function subscribeView(notify: () => void) {
+  const stored = (event: StorageEvent) => { if (event.key === viewKey || event.key === null) notify(); };
+  window.addEventListener('storage', stored);
+  window.addEventListener(viewKey, notify);
+  return () => { window.removeEventListener('storage', stored); window.removeEventListener(viewKey, notify); };
+}
+const serverView = (): PlaceView => 'list';
 
 interface RecommendationWorkspaceProps {
   region: string;
@@ -17,7 +34,18 @@ interface RecommendationWorkspaceProps {
 }
 
 export default function RecommendationWorkspace(props: RecommendationWorkspaceProps) {
-  return <div className="journey-workspace-block places-section" id="places">
+  const view = useSyncExternalStore(subscribeView, readView, serverView);
+  const en = useSitePreferences().locale === 'en';
+  function changeView(next: PlaceView) {
+    try { localStorage.setItem(viewKey, next); temporaryView = null; } catch { temporaryView = next; }
+    window.dispatchEvent(new Event(viewKey));
+  }
+  return <div className="journey-workspace-block places-section" id="places" data-place-view={view}>
+    <div className="simple-view-switch" role="group" aria-label={en ? 'Place view' : '여행지 보기 형식'}>
+      <span>{en ? 'View' : '보기'}</span>
+      <button type="button" aria-pressed={view === 'list'} onClick={() => changeView('list')}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 5h4v4H3zm0 10h4v4H3zM11 7h10M11 17h10" /></svg>{en ? 'List' : '목록형'}</button>
+      <button type="button" aria-pressed={view === 'grid'} onClick={() => changeView('grid')}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z" /></svg>{en ? 'Grid' : '격자형'}</button>
+    </div>
     <DirectPlaceSearch region={props.region} trip={props.tripSelection} onRegionSelect={props.onRegionSelect} onBuildItinerary={props.onBuildItinerary} />
     {!props.planController.plan && !props.planController.loading && <p className="simple-naru-intro">나루가 당신에게 맞는 경남 여행을 함께 찾아드려요</p>}
     <RecommendationCarousel {...props} />
