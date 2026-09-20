@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import type { useTripSelection } from "../hooks/useTripSelection";
-import type { Place } from "../types";
+import type { Place, WeatherData } from "../types";
 import RecommendationCarousel from "./RecommendationCarousel";
 import DirectPlaceSearch from "./DirectPlaceSearch";
 
@@ -26,6 +26,8 @@ interface RecommendationWorkspaceProps {
   activePlaces: Place[];
   planController: ReturnType<typeof usePlannerPlan>;
   tripSelection: ReturnType<typeof useTripSelection>;
+  weather: WeatherData | null;
+  weatherDate: string;
   onGenerate: (revealResults?: boolean, requestedTheme?: string) => void | Promise<void>;
   onSelectPlace: (place: Place) => void;
   onMore?: () => void | Promise<void>;

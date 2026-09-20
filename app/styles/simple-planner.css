@@ -411,3 +411,6 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 [data-place-view=grid] .simple-direct-place .simple-search-photo-placeholder { aspect-ratio: auto; min-height: 44px; padding: 8px; }
 .simple-direct-search-heading:has(> div > .sr-only:only-child) { margin: 0; }
 @media(max-width:767px) { .simple-itinerary-top .simple-itinerary-heading { flex-basis: 100%; } }
+.scenery-hint { margin: 10px 0 0; color: var(--ink-soft); font-size: .875rem; line-height: 1.6; }
+.scenery-hint span,.scenery-hint small { display: block; }
+.scenery-hint small { margin-top: 2px; color: var(--muted); font-size: .75rem; }

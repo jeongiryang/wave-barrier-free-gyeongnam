@@ -54,6 +54,7 @@ export type Place = {
   name: string;
   address: string;
   summary: string;
+  setting?: import("../../lib/indoor-evidence.js").IndoorEvidence;
   image: string;
   mapX: string;
   mapY: string;
