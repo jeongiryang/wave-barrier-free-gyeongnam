@@ -16,6 +16,7 @@ import LandingRegionStory from "../features/landing/components/LandingRegionStor
 import LandingIntro from "../features/landing/components/LandingIntro";
 import LandingAssistantStory from "../features/landing/components/LandingAssistantStory";
 import LandingFeatureLinks from "../features/landing/components/LandingFeatureLinks";
+import LandingFeatureList from "../features/landing/components/LandingFeatureList";
 
 export default function LandingPage() {
   const { t, locale } = useSitePreferences();
@@ -28,6 +29,7 @@ export default function LandingPage() {
     <LandingRegionStory />
     <LandingFeatureLinks />
     <LandingChapters />
+    <details className="night-feature-details"><summary>여행 도구 모두 보기</summary><LandingFeatureList /></details>
     <LandingAssistantStory />
     <LandingDepartureScene />
     <LandingCommunityScene />
