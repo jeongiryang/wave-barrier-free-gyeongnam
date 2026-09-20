@@ -5,6 +5,7 @@ import CommunityReportControl from "./CommunityReportControl";
 import CommunityFieldReport from "./CommunityFieldReport";
 import CommunityVisitPhotos from "./CommunityVisitPhotos";
 import CommunityAccessibilityReport from "./CommunityAccessibilityReport";
+import CommunityBookmarkButton from './CommunityBookmarkButton';
 
 export default function CommunityPostArticle({ detail }: { detail: ReturnType<typeof useCommunityDetail> }) {
   const { post, message, sessionPending, toggleLike, deletePost, reportingTarget, reportTarget } = detail;
@@ -22,6 +23,7 @@ export default function CommunityPostArticle({ detail }: { detail: ReturnType<ty
     <CommunityFieldReport post={post} />
     <CommunityVisitPhotos post={post} />
     <footer className="detail-actions">
+      <CommunityBookmarkButton postId={post.id}/>
       <button type="button" className={post.likedByMe ? "liked" : ""} aria-pressed={post.likedByMe} onClick={() => void toggleLike()} disabled={sessionPending}><span aria-hidden="true">♥</span>{post.likedByMe ? "공감했어요" : "도움이 됐어요"} <b>{post.likeCount}</b></button>
       {!post.isOwner && <CommunityReportControl label="게시글" busy={reportingTarget === `post:${post.id}`} onReport={(reason) => reportTarget("post", post.id, reason)} />}
       {post.isOwner && <div><Link href={`/community/${post.id}/edit`}>수정</Link><button type="button" onClick={() => void deletePost()}>삭제</button></div>}

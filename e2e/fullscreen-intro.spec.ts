@@ -18,7 +18,7 @@ test("replaying a completed intro starts opaque instead of revealing the page un
   await freshArrival(page);
   const scene = page.locator(".arrival-scene");
   await arrivalPlaybackReady(page);
-  await page.clock.runFor(INTRO_DURATION_MS + 100);
+  await page.clock.fastForward(INTRO_DURATION_MS + 100);
   await expect(scene).toBeHidden();
   await openSupportMenu(page);
   await page.getByRole("button", { name: "인트로 다시 보기", exact: true }).click();
@@ -45,11 +45,18 @@ test('pause, all seven scene controls and keyboard containment remain usable wit
   await arrivalPlaybackReady(page);
   const scene = page.locator('.arrival-scene'), animation = scene.locator('.wave-intro');
   await scene.getByRole('button', { name: '일시정지', exact: true }).click();
+  // Scene preparation and font loading can already consume several stages
+  // before arrivalPlaybackReady freezes elapsed time on a slow CI renderer.
+  // Use the public controls to establish the first stage, never assume it.
+  const previous = scene.getByRole('button', { name: '이전 장면', exact: true });
+  for (let step = 0; step < 6 && await previous.isEnabled(); step++) await previous.click();
+  await expect(previous).toBeDisabled();
+  const progress = scene.locator('[aria-live=polite]').last();
+  await expect(progress).toContainText('1 / 7');
   const pausedAt = await animation.getAttribute('data-time-ms');
-  await page.clock.runFor(INTRO_DURATION_MS + 1000);
+  await page.clock.fastForward(INTRO_DURATION_MS + 1000);
   await expect(scene).toBeVisible();
   await expect(animation).toHaveAttribute('data-time-ms', pausedAt!);
-  const progress = scene.locator('[aria-live=polite]').last();
   for (let stage = 2; stage <= 7; stage++) {
     await scene.getByRole('button', { name: '다음 장면', exact: true }).click();
     await expect(progress).toContainText(`${stage} / 7`);
@@ -64,7 +71,7 @@ test('pause, all seven scene controls and keyboard containment remain usable wit
   await page.keyboard.press('Tab');
   expect(await page.evaluate(() => Boolean(document.activeElement?.closest('.arrival-scene')))).toBe(true);
   await scene.getByRole('button', { name: '재생', exact: true }).click();
-  await page.clock.runFor(4000);
+  await page.clock.fastForward(4000);
   await expect(scene).toBeHidden();
   await expect(page.locator('#top')).toBeFocused();
   await expect(page.locator(':modal')).toHaveCount(0);
@@ -75,7 +82,7 @@ test('failed intro module never blocks the page or leaves a modal focus trap', a
   await page.route(/(?:\/features\/landing\/intro\/wave-intro\.(?:tsx|js)|\/assets\/wave-intro-[^/]+\.js)(?:\?|$)/, route => { blocked++; return route.abort(); });
   await freshArrival(page);
   await expect.poll(() => blocked, 'The actual intro module must be blocked in dev and built previews').toBeGreaterThan(0);
-  await page.clock.runFor(8000);
+  await page.clock.fastForward(8000);
   await expect(page.locator('.arrival-scene')).toBeHidden();
   await expect(page.locator(':modal')).toHaveCount(0);
   await dismissExpectedDevelopmentError(page, /Failed to fetch dynamically imported module/);
@@ -124,7 +131,7 @@ test("runtime OS reduction ends the active arrival and restores the page", async
   await expect(page.locator(".arrival-scene")).toBeHidden();
   expect(await page.locator(".arrival-scene").evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.clock.runFor(2500);
+  await page.clock.fastForward(2500);
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expectUsableTarget(link);
 });
@@ -171,7 +178,7 @@ test("unavailable WebGL exits within the bounded watchdog and restores planning"
   });
   await freshArrival(page);
   const link = page.locator(".landing-actions a");
-  await page.clock.runFor(8000);
+  await page.clock.fastForward(8000);
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(link).toHaveAttribute("href", "/planner");

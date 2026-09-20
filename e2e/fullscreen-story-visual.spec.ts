@@ -14,7 +14,7 @@ test("the nonblocking arrival leads through a complete restored-section service 
   await freshArrival(page);
   await arrivalPlaybackReady(page);
   await expect(page.locator(".arrival-scene")).toBeVisible();
-  await page.clock.runFor(INTRO_DURATION_MS + 100);
+  await page.clock.fastForward(INTRO_DURATION_MS + 100);
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await page.clock.resume();
   await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);

@@ -38,7 +38,9 @@ test("approved arrival completes its 12.731-second playback and exposes keyboard
   await expect(scene.locator('[aria-live=polite]').last()).toContainText('/ 7');
   await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
   const elapsed = Number(await scene.locator('.wave-intro').getAttribute('data-time-ms'));
-  await page.clock.runFor(INTRO_DURATION_MS - elapsed - 100);
+  // Production advances its timeline by performance elapsed time. Jump to the
+  // boundary without synthesizing hundreds of expensive WebGL frames in CI.
+  await page.clock.fastForward(INTRO_DURATION_MS - elapsed - 100);
   await expect(scene).toBeVisible();
   await page.clock.runFor(200);
   await expect(scene).toBeHidden();
@@ -49,7 +51,7 @@ test("approved arrival completes its 12.731-second playback and exposes keyboard
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".landing-hero-split")).toBeVisible();
   await pauseCurrentClock(page);
-  await page.clock.runFor(INTRO_DURATION_MS + 100);
+  await page.clock.fastForward(INTRO_DURATION_MS + 100);
   await expect(scene).toBeHidden();
 });
 

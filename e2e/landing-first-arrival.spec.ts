@@ -18,7 +18,7 @@ for (const seenBefore of [false, true]) {
     await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
     const action = page.locator(".landing-actions a");
     const elapsed = Number(await scene.locator('.wave-intro').getAttribute('data-time-ms'));
-    await page.clock.runFor(INTRO_DURATION_MS - elapsed + 100);
+    await page.clock.fastForward(INTRO_DURATION_MS - elapsed + 100);
     await expect(scene).toBeHidden();
     await action.focus(); await expect(action).toBeFocused();
     expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
