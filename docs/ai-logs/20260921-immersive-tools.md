@@ -25,5 +25,5 @@
 - 지도 68개 데스크톱 및 19개 모바일 대상 검사를 완료하고 발견된 구식 진입점과 HMR 간섭을 구분해 해당 실패를 재검했다. 좌표·요청 횟수·늦은 응답·개인정보 경계는 유지했다.
 - 중첩 편집 Escape, 접근성 탭 관계, 밝은 설정에서 나루 내 텍스트 대비, 이전 hash/back/forward 동작의 실제 회귀를 수정했다. 최종 결함 재검 10/10, 모바일 핵심 8/8 통과.
 - 기존 2D 지도와 손글씨 서체를 눈으로 확인했다. 인트로 관련 파일은 변경하지 않았다.
-- Vercel 빌드 및 성능 예산 통과: CSS gzip 84.97 KiB, 랜딩 초기 JS gzip 141.91 KiB, Planner 253.26 KiB. 쓰이지 않는 closing CTA 스타일을 제거했으며 예산은 올리지 않았다.
+- Vercel 빌드 및 성능 예산 통과: CSS gzip 84.79 KiB, 랜딩 초기 JS gzip 141.93 KiB, Planner 253.26 KiB. 최신 main의 #664 축제 팝업을 합친 뒤, 렌더링 소스에 없는 이전 community-controls, condition-first-details, theme-grid, place-card, naru-proposal 등의 선택자와 closing CTA 스타일을 제거했다. 동적 클래스와 인트로는 유지했으며 예산은 올리지 않았다.
 - 전체 CI·배포 및 Production 검증은 대기 중이다. 브라우저 검사는 합성 제공처 응답을 사용했으며 실제 로컬 모델 연동의 새 검증 결과가 아니다.
