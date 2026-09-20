@@ -23,7 +23,7 @@ test('failed health probe can recover through explicit retry without losing draf
   const input = chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true });
   await input.fill('돌아와서 보낼 질문');
   await chat.getByRole('button', { name: '연결 다시 확인', exact: true }).click();
-  await expect(chat.locator('.naru-heading small')).toHaveText('여행 가이드');
+  await expect(chat.locator('.naru-heading small')).toHaveText('여행을 함께 설계하는 AI');
   await expect(input).toHaveValue('돌아와서 보낼 질문');
   expect(probes).toBe(2);
 });
@@ -41,9 +41,9 @@ test('successful conversation stays connected when older health failure arrives'
     await chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill('이번 여행에서 기억할 점을 설명해줘');
     await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
     await expect(chat.getByRole('log')).toContainText('합성 응답: 필요한 여행 정보를 알려주세요.');
-    await expect(chat.locator('.naru-heading small')).toHaveText('여행 가이드');
+    await expect(chat.locator('.naru-heading small')).toHaveText('여행을 함께 설계하는 AI');
     delayed.release(); await expect.poll(() => completed).toBe(true);
-    await expect(chat.locator('.naru-heading small')).toHaveText('여행 가이드');
+    await expect(chat.locator('.naru-heading small')).toHaveText('여행을 함께 설계하는 AI');
     await expect(chat.getByRole('button', { name: '연결 다시 확인', exact: true })).toHaveCount(0);
   } finally { delayed.release(); }
 });
@@ -62,8 +62,8 @@ test('reopening replaces abandoned probe and ignores its delayed failure', async
     await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
     await open(page);
     await expect.poll(() => probes).toBe(2);
-    await expect(chat.locator('.naru-heading small')).toHaveText('여행 가이드');
+    await expect(chat.locator('.naru-heading small')).toHaveText('여행을 함께 설계하는 AI');
     delayed.release(); await expect.poll(() => completed).toBe(true);
-    await expect(chat.locator('.naru-heading small')).toHaveText('여행 가이드');
+    await expect(chat.locator('.naru-heading small')).toHaveText('여행을 함께 설계하는 AI');
   } finally { delayed.release(); }
 });

@@ -62,8 +62,9 @@ body .naru-panel.naru-workspace :is(.naru-message,.naru-starter,.naru-prompt-sta
 body .naru-panel.naru-workspace .naru-message { padding:16px;border-radius:16px;margin-bottom:16px;overflow-wrap:anywhere; }
 body .naru-panel.naru-workspace .naru-message.user { background:#382c4c;color:#f3effa; }
 body .naru-panel.naru-workspace :is(.naru-tool-card strong,.naru-tool-card b,.naru-more>div>a) { color:var(--ink); }
-body .naru-panel.naru-workspace .naru-context-suggestions { width:auto;flex-shrink:0;flex-wrap:nowrap;margin:0;padding:8px 20px;background:var(--paper);max-height:80px;overflow:auto; }
-body .naru-panel.naru-workspace .naru-context-suggestions>* { flex:0 0 auto;white-space:nowrap; }
+body .naru-panel.naru-workspace .naru-context-suggestions { width:auto;min-width:0;flex-shrink:0;flex-wrap:wrap;margin:0;padding:8px 20px;background:var(--paper);max-height:140px;overflow:auto; }
+body .naru-panel.naru-workspace .naru-context-suggestions>* { flex:0 1 auto;max-width:100%;white-space:normal;overflow-wrap:anywhere; }
+body .naru-panel.naru-workspace .naru-context-suggestions>.naru-trip-context { flex-basis:100%; }
 body .naru-panel.naru-workspace .naru-input { width:auto;flex-shrink:0;margin:14px 24px 20px;padding:10px;border-radius:18px;background:var(--surface);border-color:#655a78; }
 body .naru-panel.naru-workspace .naru-input textarea { background:transparent;color:var(--ink); }
 body .naru-panel.naru-workspace .naru-input textarea::placeholder { color:var(--muted);opacity:1; }
@@ -93,3 +94,6 @@ body .naru-panel.naru-workspace .naru-message-avatar .naru-character{width:36px;
 body .naru-panel.naru-workspace .naru-message p{font-size:16px;line-height:1.7}
 body .naru-panel.naru-workspace .naru-workspace-confirm{padding:16px;border:1px solid var(--accent);border-radius:14px;margin-bottom:16px}
 @media(max-width:700px){body .naru-panel.naru-workspace .naru-workspace-tabs>button{gap:6px;font-size:14px}body .naru-panel.naru-workspace .naru-workspace-icon{width:20px;height:20px}}
+
+/* Place details occupy the floating assistant corner; keep their controls reachable. */
+body:has(.simple-place-pane[open]) .naru-discovery { visibility:hidden;pointer-events:none; }
