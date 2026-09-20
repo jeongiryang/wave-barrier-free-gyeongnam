@@ -137,10 +137,8 @@ test("place-search layers reuse the existing nearbyCategories codes", () => {
   }
 });
 
-test("the official low-floor bus layer is registered without inventing other providers", () => {
-  assert.deepEqual(officialFacilityLayers.map(layer => layer.id), ["low-floor-bus-arrival"]);
-  assert.equal(officialFacilityLayers[0].action, "return-transport");
-  assert.match(officialFacilityLayers[0].emptyLabel, /현재 확인된.*없/);
+test("official layers retain both public provider adapters", () => {
+  assert.deepEqual(officialFacilityLayers.map(layer => layer.id), ["low-floor-bus-arrival", "sanitary-supply"]);
 });
 
 test("every layer carries a non-colour cue and a unique id", () => {

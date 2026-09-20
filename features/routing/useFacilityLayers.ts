@@ -67,6 +67,7 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
   // 레이어의 진행 중 요청은 건드리지 않는다.
   const generations = useRef<Record<string, number>>({});
   const timers = useRef<Record<string, number>>({});
+  const controllers = useRef<Record<string, AbortController>>({});
   const selectionRef = useRef(selection);
   useEffect(() => { selectionRef.current = selection; }, [selection]);
   const placesRef = useRef(places);
@@ -77,6 +78,8 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
     const timer = timers.current[layerId];
     if (timer !== undefined) window.clearTimeout(timer);
     delete timers.current[layerId];
+    controllers.current[layerId]?.abort();
+    delete controllers.current[layerId];
   }, []);
 
   const stopAll = useCallback(() => {
@@ -117,6 +120,7 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
 
     if (layer.source === "official") {
       const map = kakaoMapRef.current;
+      if (layer.id === "low-floor-bus-arrival") {
       const center = map?.getCenter ? map.getCenter() : null;
       const origin = center ? { latitude: center.getLat(), longitude: center.getLng() } : null;
       const publicPlace = placesRef.current
@@ -139,6 +143,26 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, places }: F
         const markers = lowFloorArrivalMarkers(observations);
         settle(markers.length ? "ready" : "empty", markers);
       })().catch(() => settle("error"));
+      } else {
+      const center = map?.getCenter?.();
+      const anchor = [...placesRef.current]
+        .filter(place => /^[1-9]\d{0,11}$/.test(place.id) && Number.isFinite(Number(place.mapX)) && Number.isFinite(Number(place.mapY)))
+        .sort((left, right) => center ?
+          (facilityDistanceMeters({ latitude: center.getLat(), longitude: center.getLng() }, { latitude: Number(left.mapY), longitude: Number(left.mapX) }) || 0) -
+          (facilityDistanceMeters({ latitude: center.getLat(), longitude: center.getLng() }, { latitude: Number(right.mapY), longitude: Number(right.mapX) }) || 0) : 0)[0];
+      if (!anchor || !layer.action) { settle("empty", []); return; }
+      const controller = new AbortController();
+      controllers.current[layer.id] = controller;
+      type OfficialResponse = { status: "available" | "empty" | "invalid-request" | "provider-error" | "location-unconfirmed"; source: string; items: Array<{ id: string; name: string; address: string; distanceMeters: number; destination: { latitude: number; longitude: number }; referenceDate: string; availableHours?: string; usageNote?: string; institutionName?: string }> };
+      void optionalPlannerJson<OfficialResponse>(`/api/wave?action=${encodeURIComponent(layer.action)}&contentId=${encodeURIComponent(anchor.id)}`, { signal: controller.signal, timeoutMs: CLIENT_BUDGET_MS.sanitarySupply }).then(result => {
+        delete controllers.current[layer.id];
+        if (!result) { settle("error"); return; }
+        if (result.status === "provider-error" || result.status === "invalid-request") { settle("error"); return; }
+        if (result.status === "empty" || result.status === "location-unconfirmed") { settle("empty", []); return; }
+        const markers = result.items.map(item => ({ id: `${layer.id}-${item.id}`, layerId: layer.id, name: item.name, address: item.address, destination: item.destination, distanceMeters: item.distanceMeters, source: result.source, referenceDate: item.referenceDate, detail: [item.availableHours, item.usageNote, item.institutionName].filter(Boolean).join(" · ") }));
+        settle(markers.length ? "ready" : "empty", markers);
+      });
+      }
       return;
     }
 

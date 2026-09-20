@@ -42,6 +42,7 @@ export default function FacilityLayerPanel({
 }: FacilityLayerPanelProps) {
   const english = useSitePreferences().locale === "en";
   const active = selection.active;
+  const sanitarySupplyActive = active.includes("sanitary-supply");
 
   const renderGroup = (layers: readonly FacilityLayer[]) => <div className="map-tool-grid">
     {layers.map((layer) => {
@@ -95,6 +96,7 @@ export default function FacilityLayerPanel({
       </ul>}
 
     <p className="facility-notice" role="status" aria-live="polite" aria-atomic="true">{notice}</p>
+    {sanitarySupplyActive && <p className="facility-evidence">공공데이터에 등록된 위치예요. 남아 있는 수량과 현재 운영 여부는 확인되지 않았어요.</p>}
 
     <h4>{english ? "Place search" : "장소 검색"}</h4>
     {renderGroup(placeSearchFacilityLayers)}
@@ -134,7 +136,7 @@ export default function FacilityLayerPanel({
         <div><dt>{english ? "Source" : "제공처"}</dt><dd>{selectedFacility.source}</dd></div>
         {selectedFacility.referenceDate && <div><dt>{english ? "Data reference date" : "데이터 기준일"}</dt><dd>{selectedFacility.referenceDate}</dd></div>}
       </dl>
-      {selectedFacility.official && selectedFacility.detail && <p>{selectedFacility.detail}</p>}
+      {selectedFacility.detail && <p>{selectedFacility.detail}</p>}
       <div className="map-place-actions">
         <button type="button" onClick={() => onShowOnMap(selectedFacility)}>{english ? "View on map" : "지도에서 보기"}</button>
         <button type="button" onClick={() => onSetDestination(selectedFacility)}>{english ? "Set as destination" : "도착지로 선택"}</button>

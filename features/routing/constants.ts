@@ -86,6 +86,7 @@ export const officialFacilityLayers: readonly FacilityLayer[] = [
     glyph: "저",
     emptyLabel: "가까운 정류장에서 현재 확인된 저상버스 도착정보가 없어요.",
   },
+  { id: "sanitary-supply", label: "여성용품 비치", source: "official", action: "sanitary-supply", glyph: "용" },
 ];
 
 /**
