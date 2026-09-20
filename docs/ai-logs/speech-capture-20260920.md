@@ -1,9 +1,9 @@
-# PR 생성 예정 · 현장 음성 글자 표시
+# PR #623 · 현장 음성 글자 표시
 
-- PR: 생성 후 이 문서에 연결
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/623
 - 제목: feat: 현장 음성을 큰 글자로 표시
 - 작성자: Codex
-- 최종 상태: 검증 완료, PR 준비
+- 최종 상태: 검증 완료, PR 검토 중
 - AI 도구: OpenAI Codex
 
 ## 목적
