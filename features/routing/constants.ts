@@ -88,6 +88,7 @@ export const officialFacilityLayers: readonly FacilityLayer[] = [
   },
   { id: "sanitary-supply", label: "여성용품 비치", source: "official", action: "sanitary-supply", glyph: "용" },
   { id: "no-smoking", label: "금연 구역", source: "official", action: "smoking-area", glyph: "금" },
+  { id: "trash-bin", label: "쓰레기통", source: "official", action: "trash-bin", glyph: "휴" },
 ];
 
 /**

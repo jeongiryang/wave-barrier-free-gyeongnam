@@ -146,7 +146,7 @@ export async function renderLeafletMap(
       const { latitude, longitude } = facility.destination;
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
       const label = escapeMapHtml(`${facility.layerLabel} ${facility.name}`);
-      const html = `<button type="button" class="wave-map-icon facility-pin facility-${facility.official ? "official" : "place-search"}" data-facility-layer="${escapeMapHtml(facility.layerId)}" data-facility-marker-id="${escapeMapHtml(facility.id)}" title="${label}" aria-label="${label}"><span class="facility-pin-glyph">${escapeMapHtml(facility.glyph)}</span></button>`;
+      const html = `<button type="button" class="wave-map-icon facility-pin facility-${facility.official ? "official" : "place-search"}${facility.compact ? " facility-compact" : ""}" data-facility-layer="${escapeMapHtml(facility.layerId)}" data-facility-marker-id="${escapeMapHtml(facility.id)}" title="${label}" aria-label="${label}"><span class="facility-pin-glyph">${escapeMapHtml(facility.glyph)}</span></button>`;
       const icon = L.divIcon({ className: "wave-map-facility-icon", html, iconSize: [44, 44], iconAnchor: [22, 44] });
       const layer = L.marker([latitude, longitude], { icon, keyboard: false })
         .addTo(map)

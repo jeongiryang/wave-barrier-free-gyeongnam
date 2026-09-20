@@ -7,6 +7,10 @@ export interface Env {
   KORAIL_API_KEY?: string;
   TAGO_API_KEY?: string;
   SANITARY_SUPPLY_API_URL?: string;
+  /** 공공데이터포털에서 승인받은 경남 쓰레기통 JSON API의 HTTPS 주소. */
+  WASTE_BIN_API_URL?: string;
+  /** 화면에 표시할 정확한 지자체·데이터셋 이름. */
+  WASTE_BIN_API_SOURCE?: string;
 }
 
 /** Vercel Functions에서는 공개 클라이언트 값이 아닌 서버 환경 변수만 읽는다. */
@@ -21,5 +25,7 @@ export function portableEnv(): Env {
     KORAIL_API_KEY: values.KORAIL_API_KEY,
     TAGO_API_KEY: values.TAGO_API_KEY,
     SANITARY_SUPPLY_API_URL: values.SANITARY_SUPPLY_API_URL,
+    WASTE_BIN_API_URL: values.WASTE_BIN_API_URL,
+    WASTE_BIN_API_SOURCE: values.WASTE_BIN_API_SOURCE,
   };
 }

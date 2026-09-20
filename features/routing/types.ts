@@ -75,4 +75,6 @@ export type FacilityMapMarker = FacilityLayerMarker & {
   glyph: string;
   /** 공식 공공데이터는 사각 핀, 장소 검색은 원형 핀으로 모양을 구분한다. */
   official: boolean;
+  /** 조작 영역은 44px로 유지하면서 안쪽 도형만 작게 그리는 고밀도 레이어. */
+  compact?: boolean;
 };

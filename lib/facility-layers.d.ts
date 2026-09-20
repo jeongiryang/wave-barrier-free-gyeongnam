@@ -12,6 +12,8 @@ export type FacilityLayerMarker = {
   detail?: string;
   institutionName?: string;
   note?: string;
+  kind?: string;
+  locationNote?: string;
 };
 
 export type FacilityLayerSelection = {

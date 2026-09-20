@@ -18,6 +18,7 @@ import { handleParkingAlternatives } from './parking-alternatives';
 import { handleRestroomAlternatives } from './restroom-alternatives';
 import { handleSanitarySupply } from './sanitary-supply';
 import { handleSmokingArea } from './smoking-area';
+import { handleTrashBin } from './trash-bin';
 
 function selectedRegion(url: URL) {
   const requested = clean(url.searchParams.get("region"), 20);
@@ -78,6 +79,7 @@ export async function handleWaveApi(request: Request, env: Env) {
   if (action === "parking-alternatives") return handleParkingAlternatives(url, env);
   if (action === "restroom-alternatives") return handleRestroomAlternatives(url, env);
   if (action === "sanitary-supply") return handleSanitarySupply(url, env);
+  if (action === "trash-bin") return handleTrashBin(url, env);
   if (action === "crowd-calendar") return handleCrowdCalendar(url, env);
   if (action === "photo") return handlePhoto(url, env);
   if (action === "spot-photo") return handleSpotPhoto(url, env);

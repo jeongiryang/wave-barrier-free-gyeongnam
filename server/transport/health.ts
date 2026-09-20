@@ -15,6 +15,7 @@ export function handleHealthApi(env: Env) {
     { id: "public-transport", name: "KORAIL·TAGO", state: publicData ? "configured" : "missing", optional: false, note: "별도 키가 아니라 승인된 API에 공공데이터포털 인증키를 사용" },
     { id: "odsay", name: "ODsay", state: env.ODSAY_API_KEY?.trim() ? "configured" : "optional", optional: true, note: "문 앞까지 대중교통 통합 경로가 필요할 때만 추가" },
     { id: "expressway", name: "테마휴게소", state: env.EXPRESSWAY_API_KEY?.trim() ? "configured" : "optional", optional: true, note: "한국도로공사 별도 포털 키가 있을 때 활성화" },
+    { id: "trash-bin", name: "경남 쓰레기통 위치", state: env.WASTE_BIN_API_URL?.trim() ? "configured" : "optional", optional: true, note: "승인된 공식 JSON API 주소를 WASTE_BIN_API_URL에 연결하면 활성화" },
   ] as const;
   const ok = keys.every((key) => key.optional || key.state === "configured");
   return json({

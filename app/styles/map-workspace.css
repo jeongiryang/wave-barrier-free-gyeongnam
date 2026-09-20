@@ -206,6 +206,8 @@ html[data-theme="dark"] .map-command-scroll::-webkit-scrollbar-thumb {
 .map-facility-panel > p { margin: 8px 0 0; }
 .facility-pin { width: 44px; height: 44px; border: 0; cursor: pointer; }
 .facility-pin.facility-official { border-radius: 9px; }
+.facility-pin.facility-compact { background: transparent; box-shadow: none; }
+.facility-pin.facility-compact .facility-pin-glyph { width: 28px; height: 28px; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 4px; color: var(--ink); background: var(--paper); box-shadow: var(--shadow-soft); }
 .facility-card { margin: 10px 0 0; padding: 11px 12px; display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
 .facility-card dl { margin: 0; display: grid; gap: 3px; font-size: 0.75rem; }
 .facility-card dl > div { display: flex; gap: 7px; }

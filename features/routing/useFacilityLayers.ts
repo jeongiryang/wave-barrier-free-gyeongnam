@@ -70,6 +70,7 @@ interface FacilityLayersOptions {
   contentId?: string;
   /** `derived` 레이어가 새 조회 없이 마커를 뽑아낼 이미 받아온 장소 목록. */
   places: MapPlace[];
+
 }
 
 export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, contentId, places }: FacilityLayersOptions) {
@@ -290,12 +291,16 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, contentId, 
   const refreshFacilityLayers = useCallback(() => {
     const active = selectionRef.current.active;
     if (!active.length) return;
-    stopAll();
     for (const id of active) {
       const layer = facilityLayers.find((item) => item.id === id);
-      if (layer) requestLayer(layer);
+      // 공식 레이어의 기준은 지도 중심이 아니라 선택한 공개 관광지다. 지도 이동
+      // 때 같은 API를 다시 부르지 않고, 장소 ID가 바뀌는 scope 효과에서만 갱신한다.
+      if (layer && layer.source !== "official") {
+        stopLayer(id);
+        requestLayer(layer);
+      }
     }
-  }, [requestLayer, stopAll]);
+  }, [requestLayer, stopLayer]);
 
   // 지도 자체가 바뀌면(다른 일정·다른 지도 인스턴스) 이전 중심 기준의 결과는
   // 더 이상 맞지 않는다. 진행 중 요청을 모두 취소하고 표시를 비운다.
@@ -333,7 +338,7 @@ export function useFacilityLayers({ kakaoMapRef, provider, scopeKey, contentId, 
     // 지도 핀 모양은 두 가지뿐이다(사각·원형). `derived`는 이미 확인된 공식
     // 관광정보에서 온 값이라 place-search(카카오 장소 검색)의 원형 핀과는
     // 구분해야 하므로, 새 모양을 더하는 대신 official과 같은 사각 핀을 쓴다.
-    return { ...marker, layerLabel: layer?.label || "편의시설", glyph: layer?.glyph || "·", official: layer?.source === "official" || layer?.source === "derived" };
+    return { ...marker, layerLabel: layer?.label || "편의시설", glyph: layer?.glyph || "·", official: layer?.source === "official" || layer?.source === "derived", compact: marker.layerId === "trash-bin" };
   }), [selection]);
   const hiddenMarkerCount = useMemo(() => hiddenFacilityMarkerCount(selection, FACILITY_MARKER_CAP), [selection]);
   const capNotice = hiddenMarkerCount ? `가까운 ${FACILITY_MARKER_CAP}곳만 표시했어요.` : "";

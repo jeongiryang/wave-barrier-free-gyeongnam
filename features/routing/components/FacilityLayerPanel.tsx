@@ -11,6 +11,7 @@ const englishLabels: Record<string, string> = {
   "braileblock-confirmed": "Tactile paving confirmed",
   "low-floor-bus-arrival": "Low-floor buses confirmed now",
   "no-smoking": "No-smoking areas",
+  "trash-bin": "Trash bins",
 };
 const layerName = (layer: FacilityLayer, english: boolean) => english ? englishLabels[layer.id] || layer.label : layer.label;
 
@@ -87,9 +88,9 @@ export default function FacilityLayerPanel({
           return <li key={id} className={failed ? "facility-chip failed" : "facility-chip"}>
             <span>{layer ? layerName(layer, english) : id}</span>
             {state === "loading" && <small>{english ? "Loading" : "불러오는 중"}</small>}
-            {state === "empty" && <small>{layer?.id === "no-smoking" ? (english ? "No registered locations" : "등록된 위치가 없어요.") : (english ? "No search results" : layer?.emptyLabel || "검색 결과 없음")}</small>}
+            {state === "empty" && <small>{layer?.source === "official" ? (english ? "No registered locations" : "등록된 위치가 없어요.") : (english ? "No search results" : layer?.emptyLabel || "검색 결과 없음")}</small>}
             {state === "location-unconfirmed" && <small>{english ? "The public coordinates for this destination could not be confirmed." : "이 여행지의 공개 좌표를 확인하지 못했어요."}</small>}
-            {failed && <><small>{layer?.id === "no-smoking" ? (english ? "Location information could not be loaded." : "위치 정보를 받지 못했어요.") : (english ? "Could not load" : "불러오지 못함")}</small>
+            {failed && <><small>{layer?.source === "official" ? (english ? "Location information could not be loaded." : "위치 정보를 받지 못했어요.") : (english ? "Could not load" : "불러오지 못함")}</small>
               <button type="button" onClick={() => onRetryLayer(id)}>{english ? "Try again" : "다시 시도"}</button></>}
             <button type="button" onClick={() => onToggleLayer(id)} aria-label={english ? `Turn off ${layer ? layerName(layer, english) : id}` : `${layer ? layer.label : id} 끄기`}>×</button>
           </li>;
@@ -134,7 +135,8 @@ export default function FacilityLayerPanel({
         <button type="button" onClick={onCloseFacility} aria-label={english ? "Close facility card" : "편의시설 정보 닫기"}>×</button>
       </header>
       <dl>
-        <div><dt>{selectedFacility.layerId === "no-smoking" ? (english ? "Distance from the destination" : "여행지 기준 직선거리") : (english ? "Distance from the map centre" : "지도 중심에서 거리")}</dt><dd>{typeof selectedFacility.distanceMeters === "number" ? `${selectedFacility.distanceMeters.toLocaleString(english ? "en" : "ko")}m` : (english ? "Unavailable" : "정보 없음")}</dd></div>
+        {selectedFacility.kind && <div><dt>{english ? "Type" : "종류"}</dt><dd>{selectedFacility.kind}</dd></div>}
+        <div><dt>{selectedFacility.official ? (english ? "Distance from the destination" : "여행지 기준 직선거리") : (english ? "Distance from the map centre" : "지도 중심에서 거리")}</dt><dd>{typeof selectedFacility.distanceMeters === "number" ? `${selectedFacility.distanceMeters.toLocaleString(english ? "en" : "ko")}m` : (english ? "Unavailable" : "정보 없음")}</dd></div>
         <div><dt>{english ? "Source" : "제공처"}</dt><dd>{selectedFacility.source}</dd></div>
         {selectedFacility.referenceDate && <div><dt>{english ? "Data reference date" : "데이터 기준일"}</dt><dd>{selectedFacility.referenceDate}</dd></div>}
         {selectedFacility.institutionName && <div><dt>{english ? "Managing institution" : "관리기관"}</dt><dd>{selectedFacility.institutionName}</dd></div>}
@@ -143,7 +145,7 @@ export default function FacilityLayerPanel({
       {selectedFacility.detail && <p>{selectedFacility.detail}</p>}
       <div className="map-place-actions">
         <button type="button" onClick={() => onShowOnMap(selectedFacility)}>{english ? "View on map" : "지도에서 보기"}</button>
-        {selectedFacility.layerId !== "no-smoking" && <button type="button" onClick={() => onSetDestination(selectedFacility)}>{english ? "Set as destination" : "도착지로 선택"}</button>}
+        {!["no-smoking", "trash-bin"].includes(selectedFacility.layerId) && <button type="button" onClick={() => onSetDestination(selectedFacility)}>{english ? "Set as destination" : "도착지로 선택"}</button>}
       </div>
     </article>}
 
