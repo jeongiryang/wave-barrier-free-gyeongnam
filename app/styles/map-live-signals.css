@@ -47,6 +47,7 @@
 .map-crowd-legend strong { color: var(--crowd-color); font-size: .84rem; }
 .map-crowd-legend p { margin: 0; overflow: hidden; color: #50717f; font-size: .61rem; text-overflow: ellipsis; white-space: nowrap; }
 .map-crowd-legend em { padding: 7px 9px; border-radius: 999px; color: var(--crowd-color); background: var(--crowd-soft); font-size: .72rem; font-style: normal; font-weight: 900; }
+.map-crowd-evidence { grid-column: 1 / -1; display: grid; gap: 2px; font-size: .68rem; line-height: 1.5; overflow-wrap: anywhere; }
 html[data-theme="dark"] .map-crowd-legend { color: #edf7fb; border-color: var(--crowd-color); background: rgba(7,37,51,.94); }
 html[data-theme="dark"] .map-crowd-legend p { color: #b7cdd7; }
 
