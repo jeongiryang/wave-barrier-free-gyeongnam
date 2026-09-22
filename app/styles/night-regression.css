@@ -8,7 +8,6 @@ html:root body .wave-night .transport-provider-strip .connected small{color:var(
 html:root body .wave-night .skip-link{background:#091b2d;color:#edf4ff}
 html:root body .wave-night :is(.route-mode-sections>button>span,.route-mode-order-note,.route-notice){color:var(--muted)}
 html:root body .wave-night :is(.route-kakao-secondary,.restroom-alternatives button,.dining-accessibility button:not([aria-pressed])){background:var(--paper);color:var(--ink);border-color:var(--line)}
-html:root body .night-landing .landing-actions a[href='/planner']{background:#195dc5;color:#fff}
 html:root body .night-landing .brand-meaning p{color:#edf4ff}
 html:root body .wave-night :is(.map-command-bar button,.map-command-bar a,.map-type-switch button,.point-button:hover,.point-active){background:var(--paper);color:var(--ink);border-color:var(--line)}
 html:root body .wave-night .map-command-bar button:is(.active,[aria-pressed=true]){background:#195dc5;color:#fff}

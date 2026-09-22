@@ -7,23 +7,21 @@ const officialRegions = ["거창", "고성", "남해", "밀양", "산청", "의�
 const notice = "행정안전부 인구감소지역이에요.";
 const source = "행정안전부 고시 · 확인 2026-09-20";
 
-test("landing shows the dated official notice only on designated region cards", async ({ page }) => {
+test("landing omits declining-region controls and notices", async ({ page }) => {
   await prepareStory(page);
   await page.goto("/");
   await storyReady(page);
   const section = page.locator("#regions");
   await section.getByRole("button", { name: "18개 지역 모두 보기", exact: true }).click();
-  await expect(section.getByText(notice, { exact: true })).toHaveCount(11);
-  await expect(section.getByText(source, { exact: true })).toHaveCount(11);
-  for (const name of officialRegions) {
-    await expect(section.locator(".simple-region", { has: page.getByRole("heading", { name, exact: true }) }).getByText(notice, { exact: true })).toBeVisible();
-  }
-  await expect(section.locator(".simple-region", { has: page.getByRole("heading", { name: "통영", exact: true }) }).getByText(notice, { exact: true })).toHaveCount(0);
+  await expect(section.getByText(notice, { exact: true })).toHaveCount(0);
+  await expect(section.getByText(source, { exact: true })).toHaveCount(0);
+  await expect(page.locator("#story").getByRole("button", { name: "이 지역들 먼저 보기", exact: true })).toHaveCount(0);
+  await expect(page.locator("#story .region-picker-source")).toHaveCount(0);
   expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
   for (const width of [390, 960, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-    await expect(section.getByText(source, { exact: true }).first()).toBeVisible();
+    await expect(section.locator(".simple-region-link").first()).toBeVisible();
   }
 });
 
