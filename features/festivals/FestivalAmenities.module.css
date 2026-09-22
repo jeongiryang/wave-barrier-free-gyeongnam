@@ -1,6 +1,8 @@
 .panel { padding: 16px 0 4px; }
 .panel h3 { margin: 0 0 8px; font-size: 1.05rem; line-height: 1.5; }
 .panel > p { margin: 0 0 14px; font-size: 14px; line-height: 1.7; }
+.markerIcon { border: 0; background: transparent; }
+.markerPin { width: 32px; height: 32px; display: block; border: 4px solid #fff; border-radius: 50%; background: #d52b2b; }
 .openButton { width: calc(100% - 48px); min-height: 46px; margin: 0 24px 24px; padding: 10px 14px; border: 1px solid #31596a; border-radius: 8px; color: #e9f8ff; background: #0d3549; font: inherit; font-weight: 700; }
 .openButton:focus-visible,.dialogHeader button:focus-visible { outline: 3px solid #85eaff; outline-offset: 3px; }
 .dialog { width: min(760px,calc(100vw - 32px)); max-height: 90dvh; margin: auto; padding: 0 24px 24px; overflow: auto; border: 1px solid #31596a; border-radius: 18px; color: #edf4ff; background: #081b2e; color-scheme: dark; box-shadow: 0 28px 80px rgba(0,0,0,.38); }
