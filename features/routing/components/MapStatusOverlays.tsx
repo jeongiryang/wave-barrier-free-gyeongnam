@@ -3,7 +3,7 @@ import { safeMapImageUrl } from "../map-utils";
 import type { CrowdSignal, MapPlace, MapProvider, RoutePoint } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { isSupportedMapCoordinate } from "../../../lib/map-coordinates.js";
-import { mapCrowdText, mapTextLanguage } from "../map-status-copy";
+import { mapCrowdReferenceDate, mapCrowdText, mapTextLanguage } from "../map-status-copy";
 
 interface CrowdVisual {
   level: string;
@@ -71,6 +71,7 @@ export function MapCanvasStatusOverlays({ provider, roadviewOpen, roadviewMessag
   const { locale } = useSitePreferences();
   const english = locale === "en";
   const crowdText = crowdVisual ? mapCrowdText(crowdVisual, english) : null;
+  const crowdDate = mapCrowdReferenceDate(crowd?.baseYmd);
   return <>
     {provider === "error" && <div lang={locale} className="route-empty map-unavailable">
       <div role="status" aria-live="polite"><h3>{english ? "The map could not be loaded." : "지도를 불러오지 못했습니다."}</h3><p>{english ? "Your itinerary and journey details are still available." : "일정과 이동 구간 정보는 계속 확인할 수 있습니다."}</p></div>
@@ -81,6 +82,10 @@ export function MapCanvasStatusOverlays({ provider, roadviewOpen, roadviewMessag
       <span className="crowd-visual"><i /></span>
       <div><small><span lang={locale}>{english ? "30-day crowd forecast" : "30일 혼잡 예측"}</span> · <span lang={mapTextLanguage(crowdPlace.name, english)}>{crowdPlace.name}</span></small><strong lang={mapTextLanguage(crowdText.label, english)}>{crowdText.label}</strong><p lang={mapTextLanguage(crowdText.message, english)}>{crowdText.message}</p></div>
       <em>{crowd.rate.toFixed(1)}%</em>
+      <span className="map-crowd-evidence">
+        <span>{english ? "Korea Tourism Organization forecast" : "한국관광공사 예측"} · {crowdDate ? <>{english ? "Reference date " : "기준일 "}<time dateTime={crowdDate}>{crowdDate}</time></> : english ? "Reference date unavailable" : "기준일 미확인"}</span>
+        <span>{english ? "Not a live headcount or waiting time" : "실시간 인원·대기시간 아님"}</span>
+      </span>
     </aside>}
     {provider === "loading" && <div lang={locale} className="map-loading-skeleton" role="status" aria-label={english ? "Connecting map" : "지도 연결 중"}><div><i /><i /><i /><span /></div><p><b />{english ? "Connecting to Kakao Maps." : "카카오 지도를 안전하게 연결하고 있습니다."}</p></div>}
     {roadviewOpen && <section id="map-roadview-panel" onFocusCapture={revealKeyboardControl} className="map-roadview-panel" aria-label={english ? "Kakao Roadview" : "카카오 로드뷰"} tabIndex={-1}>

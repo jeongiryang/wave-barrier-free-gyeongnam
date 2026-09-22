@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mapCrowdText, mapStatusText } from "../features/routing/map-status-copy.ts";
+import { mapCrowdReferenceDate, mapCrowdText, mapStatusText } from "../features/routing/map-status-copy.ts";
 
 test("map notices keep unknown provider text and original place names intact", () => {
   for (const text of ["", "외부 제공처의 별도 안내", "constructor", "__proto__", "<script>example</script>"]) {
@@ -37,4 +37,13 @@ test("forecast language preserves the given level and does not reinterpret unkno
   }
   const unknown = { level: "unconfirmed", label: "확인 불가", message: "아직 확인되지 않음" };
   assert.equal(mapCrowdText(unknown, true), unknown);
+});
+
+test("crowd reference dates preserve actual calendar dates and never substitute today for missing or invalid values", () => {
+  assert.equal(mapCrowdReferenceDate("20260918"), "2026-09-18");
+  assert.equal(mapCrowdReferenceDate("2028-02-29"), "2028-02-29");
+  assert.equal(mapCrowdReferenceDate("20280229"), "2028-02-29");
+  for (const value of [undefined, null, "", 20260918, ["20260918"], "20260230", "20260229", "2026-13-01", "202609", "latest", "2026-09-18T00:00:00Z"]) {
+    assert.equal(mapCrowdReferenceDate(value), "");
+  }
 });

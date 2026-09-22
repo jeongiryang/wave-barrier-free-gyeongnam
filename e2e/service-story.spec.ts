@@ -11,7 +11,13 @@ for (const locale of ["ko", "en"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/"); await storyReady(page);
     await expect(page.locator(".landing-page")).toHaveAttribute("lang", locale);
-    await page.locator(".night-journey-tabs button").nth(1).click();
+    // The chapter's effect-driven lazy map proves its client UI has committed;
+    // the shell hydration timestamp only records hydrateRoot being scheduled.
+    await page.locator("#story").scrollIntoViewIfNeeded();
+    await expect(page.locator("#story").getByRole("group", { name: locale === "en" ? "Choose a region" : "여행 지역 선택", exact: true })).toBeVisible();
+    const facilityTab = page.locator(".night-journey-tabs button").nth(1);
+    await facilityTab.click();
+    await expect(facilityTab).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".night-journey-step")).toContainText(locale === "en" ? "details that need checking" : "아직 확인이 필요한 항목");
     await openLandingTools(page);
     await expect(page.locator("#naru")).toContainText(locale === "en" ? "AI travel guide" : "경남 여행을 함께 찾고 일정을 정리해요");
