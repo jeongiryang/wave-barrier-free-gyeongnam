@@ -75,3 +75,16 @@
 - 격리 서버 :4191에서 `playwright test e2e/dark-theme-contrast.spec.ts e2e/simple-landing.spec.ts --grep '그라데이션|reduced motion keeps' --workers=2`: desktop/mobile 12개 통과(40.6초). 새 랜딩 대비·반례와 390/960/1440px reduced-motion 검사를 실행했고 mixed 나루 시나리오는 실행하지 않았다. 앞서 기록한 Node와 E2E_EXECUTABLE_PATH override를 동일하게 사용했다.
 - 전체 `npm test`: 1,629개 통과, 실패/skip 0(24.6초). 로그: C:/Users/user/Documents/wave-audit-20260922/pr682-gradient-unit.log. `tsc --noEmit`, 변경 두 spec의 ESLint, `git diff --check` 통과. 후속 PR CI와 독립 한정 검토를 별도로 확인한다.
 - 독립 코드 QA에서 RGB 사이의 미지원 color(display-p3) stop을 놓칠 수 있는 parser 경계를 발견했다. RGB 구간을 제거한 뒤 미지원 색상 함수가 남으면 거부하고, 어두운 RGB 사이의 밝은 display-p3 중간 stop 반례를 추가했다. 같은 gradient 6개 desktop/mobile 검사 재실행 통과(6.9초), 변경 spec ESLint 통과. 복잡한 색상 지원으로 확장하지 않았다.
+
+### 이슈 #681 추가 요구: 인트로 전 본문 첫 프레임 노출 방지
+
+- 2026-09-22 갱신된 이슈 본문의 첫 프레임 요구를 다시 대조했다. 기존 검사는 React 시작 뒤 인트로 renderer만 늦춰 초기 HTML 노출을 놓쳤다. 기존 LandingIntro는 SSR에서 닫힌 dialog이며 useEffect에서만 showModal을 호출했다.
+- 앱 entry-browser 모듈을 보류한 469c562 제품의 390px 회귀는 예상대로 실패했다. 화면에 인트로 뒤의 제목·사진·CTA가 노출됐고 hydration 표식은 없었다. 증거는 C:/Users/user/Documents/wave-audit-20260922/intro-first-paint-before에 보존했다.
+- head의 동기 bootstrap이 처음 방문한 루트 화면에서만 인트로와 같은 불투명 배경을 먼저 표시한다. 본문은 숨기고 실제 dialog showModal 이후 같은 프레임에 덮개를 제거한다. bootstrap 중에도 Tab으로44px 건너뛰기에 접근해 Enter로 종료하거나 Esc로 즉시 본문을 볼 수 있다. 앱 코드가 오지 않으면8초 watchdog이 복구하며 뒤늦은 앱 로딩은 인트로를 다시 덮지 않는다.
+- 이미 본 세션, OS 모션 감소, JavaScript 비활성화, 비랜딩 경로와 명시적인 /#regions 본문 방문은 덮개 없이 기존 화면을 보여준다. 재생 요청은 기존대로 동작한다. 외부 CSS/React 적용 전에 필요한 최소 스타일을 head에 함께 넣었다.
+- 첫 후보22개 실행은21개 통과, 기존 desktop 키보드 검사1개 실패였다. trace에서 Vite 초기 로딩 중 scrollY133이 복원돼 기존 scrollY>24 예외가 인트로를 건너뛴 사실을 확인했다(8초 watchdog 실패가 아님). pending 동안 본문 스크롤을 막고 fresh-root pending에서만 복원된 오프셋을 시작 거부로 간주하지 않게 좁혔다. 명시적 hash는 bootstrap과 자동 시작에서 모두 제외해 사용자의 본문 탐색 의도를 보존한다.
+- 최종 제품·브라우저 후보562594f. `playwright test e2e/landing-initial-paint.spec.ts e2e/fullscreen-intro.spec.ts --grep 'first paint|visitors do not|pre-hydration|failed app startup|intentional navigation|blocked application|without JavaScript|omits playback' --workers=2`: desktop/mobile26개 통과(28.4초). 390/960/1440px 첫 paint·불투명 전환, 복원 오프셋, Tab/Enter44px, Esc, seen/reduced/noJS, login/#regions,8초 시계 복구를 확인했다.
+- `playwright test e2e/simple-landing.spec.ts e2e/fullscreen-intro.spec.ts --grep 'approved arrival|the skip action|keyboard users|runtime OS|denied session|unavailable WebGL|initial OS reduction' --workers=2`: desktop/mobile18개 통과(41.8초). 실제 자동 재생 완료·다시 불러오기·계획 이동, Esc, 모션 변경, 저장소 읽기/쓰기 거부, WebGL 실패 복구를 확인했다. 나루 UI·모델 검사는 실행하지 않았다.
+- 첫 전체 단위 실행은 새 hash/pending 조건을 거부한 기존 소스 문자열 assertion1개가 실패했다(1,628통과). seen/hash/비pending scroll 예외를 유지하는 조건으로 수정 후 전체 `npm test`1,629개 통과, 실패/skip0(33.6초). 최종 로그 C:/Users/user/Documents/wave-audit-20260922/pr682-initial-paint-unit-final.log.
+- 최종 `tsc --noEmit`, 변경 파일 ESLint, `git diff --check`, `npm run build:vercel`, `npm run check:performance` 통과. CSS gzip84.67/85KiB, landing JS144.29/155KiB, planner JS264.41/270KiB. 빌드 로그 C:/Users/user/Documents/wave-audit-20260922/pr682-initial-paint-build.log. :4191 및 앞서 기록한 Node/browser 실행 경로를 사용했다.
+- 이 보완은469c562 위에서 작업했으며 최신 main 병합은 관리 담당이 수행한다. 독립 첫 paint QA와 최종 PR CI/배포 결과는 이후 확인한다.
