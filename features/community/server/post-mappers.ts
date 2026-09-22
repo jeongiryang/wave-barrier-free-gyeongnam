@@ -24,6 +24,7 @@ export function mapCommunityPost(row: CommunityRow, userId = "") {
     journalPlaces: normalizeJournalPlaces(row.journal_places),
     photoCount: row.visit_photos === undefined ? Math.max(0, Math.min(2, Number(row.photo_count) || 0)) : visitPhotos?.length || 0,
     ...(row.visit_photos === undefined ? {} : { visitPhotos }),
+    demoBatchId: row.demo_batch_id ? String(row.demo_batch_id) : null,
   };
 }
 
@@ -35,5 +36,6 @@ export function mapCommunityComment(row: CommunityRow, userId = "") {
     createdAt: Number(row.created_at),
     updatedAt: Number(row.updated_at),
     isOwner: Boolean(userId && row.author_id === userId),
+    demoBatchId: row.demo_batch_id ? String(row.demo_batch_id) : null,
   };
 }

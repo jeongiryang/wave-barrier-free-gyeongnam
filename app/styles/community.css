@@ -15,6 +15,8 @@
 .community-card-meta > span { padding: 5px 8px; border-radius: 999px; color: #075779; background: #e3f6fd; font-size: .66rem; font-weight: 900; }
 .community-card-meta > span.category-review { color: #72510b; background: #fff2c9; }
 .community-card-meta > span.category-general { color: #4d477a; background: #eeebff; }
+.community-card-meta > span.community-demo-label,.comment-list .community-demo-label { color: #75461b; background: #fff0dc; }
+.comment-list .community-demo-label { margin-right: auto; padding: 4px 7px; border-radius: 999px; font-size: .68rem; font-weight: 800; }
 .community-card-meta time { color: #526f7c; font-size: .65rem; }
 .community-list h3 { margin: 24px 0 14px; line-height: 1.5; letter-spacing: -.04em; }
 .community-list article > a > p { margin: 0; display: -webkit-box; overflow: hidden; color: var(--muted); font-size: .79rem; line-height: 1.65; -webkit-line-clamp: 3; -webkit-box-orient: vertical; white-space: pre-line; }
