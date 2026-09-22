@@ -58,3 +58,10 @@
 - 최종 회귀는 320/390/601/960/1440px의 한국어·영어 18개 카드 모두에서 출처와 실제 글자 비중첩, 글자의 카드 내 표시, 44px 조작 영역, 원본 URL, 키보드 초점을 확인한다.
 - `tsc --noEmit`는 보완 후보에서 통과했다. 최초 독립 후보는 d2460fb이며 반응형 보완은 후속 커밋에 기록한다.
 - 최종 `playwright test e2e/landing-regions.spec.ts --grep "original credits" --workers=2`: desktop/mobile 20개 통과 (2.6분).
+
+### CI quality 실패 후 전체 단위 검사
+
+- CI run 35684990459의 quality job 106609792551은 tests/performance-hardening.test.mjs의 오래된 assertion 한 개에서 실패했다. 기존 PR이 출처 링크 전체 삭제를 기대하던 `doesNotMatch(regionPhotoSource(photo).href)` 조건이 이슈 #681에 맞춰 복원한 링크를 거부했다.
+- 해당 조건만 `match`로 바꿨다. hover/읽기 시 새 fetch·타이머를 만들지 않는 조건, 같은 사진 album·목적지·lazy loading 조건은 유지했다. 제품 코드는 변경하지 않았다.
+- 선택 검사로 놓친 같은 종류의 stale assertion을 확인하기 위해 이번에는 전체 `npm test`를 실행했다. 1,629개 통과, 실패/취소/skip 0, 15.2초. 기존 단위 테스트 전체를 실행한 결과이며 별도의 나루 UI 또는 실제 모델 요청을 실행한 것은 아니다.
+- 전체 실행 로그: C:/Users/user/Documents/wave-audit-20260922/pr682-full-unit.log. `git diff --check` 통과. 필수 PR CI는 후속 커밋으로 다시 실행한다.

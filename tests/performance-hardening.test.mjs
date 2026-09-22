@@ -94,7 +94,7 @@ test("지역을 읽거나 hover해도 새 조회 없이 같은 사진과 목적�
     assert.doesNotMatch(region, /onMouseEnter|onPointerEnter|onMouseMove|fetch\(|setInterval/);
     assert.match(region, /aria-expanded=\{expanded\}/);
   }
-  assert.doesNotMatch(landing, /regionPhotoSource\(photo\)\.href/);
+  assert.match(landing, /regionPhotoSource\(photo\)\.href/);
   assert.match(planner, /regionPhotoSource\(photo\)\.href/);
   assert.match(landing, /regionShowcaseAlbums\[name\]\[0\]/);
   assert.match(planner, /regionShowcasePhotos\[name\]/);
