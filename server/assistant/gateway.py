@@ -17,6 +17,8 @@ TOKEN = os.environ.get('WAVE_GATEWAY_TOKEN', '')
 MODEL = os.environ.get('WAVE_GATEWAY_MODEL', 'gemma4:26b')
 OLLAMA = os.environ.get('WAVE_OLLAMA_URL', 'http://127.0.0.1:11434')
 PORT = int(os.environ.get('WAVE_GATEWAY_PORT', '18765'))
+BACKEND = os.environ.get('WAVE_MODEL_BACKEND', 'ollama')
+LM_STUDIO = os.environ.get('WAVE_LM_STUDIO_URL', 'http://127.0.0.1:1234').rstrip('/')
 # The shared DSW runtime defaults to CPU. A dedicated runtime can opt into GPU.
 GPU_LAYERS = int(os.environ.get('WAVE_OLLAMA_GPU_LAYERS', '0'))
 ACTIVE = threading.BoundedSemaphore(1)
@@ -38,7 +40,25 @@ FORMAT = {'type': 'object', 'properties': {
         'reason': {'type': 'string', 'enum': ['rain', 'fatigue', 'change', 'closed']}},
         'required': ['action'], 'additionalProperties': False}]}
 }, 'required': ['reply', 'proposal'], 'additionalProperties': False}
-PHOTO_FORMAT = {'type': 'object', 'properties': {'reply': {'type': 'string'}, 'proposal': {'type': 'null'}}, 'required': ['reply', 'proposal'], 'additionalProperties': False}
+# Duration edits are incomplete without both the target and numeric duration.
+# Constrain generation as well as the application's independent validation.
+_action_schema = FORMAT['properties']['proposal']['anyOf'][1]
+_duration_schema = json.loads(json.dumps(_action_schema))
+_duration_schema['properties']['action']['enum'] = ['visit', 'break']
+_duration_schema['required'] = ['action', 'placeId', 'minutes']
+_action_schema['properties']['action']['enum'] = [
+    action for action in _action_schema['properties']['action']['enum']
+    if action not in ('visit', 'break')]
+FORMAT['properties']['proposal']['anyOf'].append(_duration_schema)
+PHOTO_FORMAT = {'type': 'object', 'properties': {
+    'reply': {'type': 'string'}, 'proposal': {'type': 'null'},
+    'facts': {'type': 'array', 'maxItems': 4, 'items': {
+        'type': 'object', 'properties': {
+            key: {'type': 'string'} for key in
+            ('name', 'region', 'date', 'startTime', 'endTime', 'address')
+        }, 'required': ['name', 'region', 'date', 'startTime', 'endTime', 'address'],
+        'additionalProperties': False}}
+}, 'required': ['reply', 'proposal', 'facts'], 'additionalProperties': False}
 
 
 def validate_photo_messages(messages):
@@ -96,6 +116,52 @@ def validate_photo_messages(messages):
             raise ValueError('invalid_photo')
         has_photo = True
     return has_photo
+
+
+def lm_messages(messages):
+    result = []
+    for message in messages:
+        content = message['content']
+        if message.get('images'):
+            content = [{'type': 'text', 'text': content},
+                       {'type': 'image_url', 'image_url': {
+                           'url': 'data:image/jpeg;base64,' + message['images'][0]}}]
+        result.append({'role': message['role'], 'content': content})
+    return result
+
+
+def model_ready():
+    url = LM_STUDIO + '/api/v1/models' if BACKEND == 'lmstudio' else OLLAMA + '/api/ps'
+    with urllib.request.urlopen(url, timeout=3) as response:
+        data = json.loads(response.read(262144))
+    if BACKEND == 'lmstudio':
+        return any(instance.get('id') == MODEL
+                   for model in data.get('models', [])
+                   for instance in model.get('loaded_instances', []))
+    return any(model.get('name') == MODEL for model in data.get('models', []))
+
+
+def model_request(messages, has_photo, streaming):
+    if BACKEND == 'lmstudio':
+        payload = {'model': MODEL, 'messages': lm_messages(messages),
+                   'stream': streaming, 'temperature': 0, 'max_tokens': 900 if has_photo else 500,
+                   'reasoning_effort': 'none'}
+        if not streaming:
+            payload['response_format'] = {'type': 'json_schema', 'json_schema': {
+                'name': 'naru', 'strict': True,
+                'schema': PHOTO_FORMAT if has_photo else FORMAT}}
+        url = LM_STUDIO + '/v1/chat/completions'
+    else:
+        payload = {'model': MODEL, 'messages': messages, 'stream': streaming,
+                   'think': False, 'keep_alive': -1,
+                   'options': {'num_gpu': GPU_LAYERS, 'num_thread': 8, 'num_ctx': 8192,
+                               'num_batch': 256, 'draft_num_predict': 0,
+                               'num_predict': 900 if has_photo else 320, 'temperature': 0}}
+        if not streaming:
+            payload['format'] = PHOTO_FORMAT if has_photo else FORMAT
+        url = OLLAMA + '/api/chat'
+    return urllib.request.Request(url, data=json.dumps(payload).encode(),
+                                  headers={'Content-Type': 'application/json'})
 
 
 class BoundedServer(ThreadingHTTPServer):
@@ -157,6 +223,12 @@ class Handler(BaseHTTPRequestHandler):
                 for line in response:
                     if len(line) > 65536:
                         break
+                    if BACKEND == 'lmstudio':
+                        if not line.startswith(b'data: '):
+                            continue
+                        line = line[6:].strip()
+                        if line == b'[DONE]':
+                            break
                     try:
                         frame = json.loads(line)
                     except ValueError:
@@ -164,6 +236,9 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(frame, dict):
                         continue
                     piece = frame.get('message', {}).get('content', '') if isinstance(frame.get('message'), dict) else ''
+                    if BACKEND == 'lmstudio':
+                        choices = frame.get('choices', [])
+                        piece = choices[0].get('delta', {}).get('content', '') if choices else ''
                     if isinstance(piece, str) and piece:
                         if total + len(piece) > 6000:
                             piece = piece[:6000 - total]
@@ -196,9 +271,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != '/v1/health':
             return self.respond(404, {'error': 'not_found'})
         try:
-            with urllib.request.urlopen(OLLAMA + '/api/ps', timeout=3) as response:
-                data = json.loads(response.read(65536))
-            ready = any(model.get('name') == MODEL for model in data.get('models', []))
+            ready = model_ready()
             self.respond(200 if ready else 503, {'ready': ready})
         except Exception:
             self.respond(503, {'ready': False})
@@ -239,18 +312,17 @@ class Handler(BaseHTTPRequestHandler):
         # Photo review always keeps the schema-checked, non-streaming path.
         wants_stream = streamed and not has_photo
         try:
-            payload = {'model': MODEL, 'messages': messages, 'stream': wants_stream,
-                       'think': False, 'keep_alive': -1,
-                       'options': {'num_gpu': GPU_LAYERS, 'num_thread': 8, 'num_ctx': 8192, 'num_batch': 256, 'draft_num_predict': 0,
-                                   'num_predict': 900 if has_photo else 320, 'temperature': 0}}
-            if not wants_stream:
-                payload['format'] = PHOTO_FORMAT if has_photo else FORMAT
-            request = urllib.request.Request(OLLAMA + '/api/chat', data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json'})
+            request = model_request(messages, has_photo, wants_stream)
             if wants_stream:
                 return self.relay_stream(request)
             with urllib.request.urlopen(request, timeout=40) as response:
                 result = json.loads(response.read(32000))
             content = result.get('message', {}).get('content', '')
+            if BACKEND == 'lmstudio':
+                choice = result.get('choices', [{}])[0]
+                if choice.get('finish_reason') != 'stop':
+                    raise ValueError('incomplete')
+                content = choice.get('message', {}).get('content', '')
             if not isinstance(content, str) or len(content) > 6000 or result.get('done_reason') == 'length':
                 raise ValueError('incomplete')
             decoded = json.loads(content)
@@ -264,6 +336,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == '__main__':
+    if BACKEND not in ('ollama', 'lmstudio'):
+        raise SystemExit('Unsupported WAVE_MODEL_BACKEND')
     if len(TOKEN) < 32:
         raise SystemExit('WAVE_GATEWAY_TOKEN must contain at least 32 characters')
     BoundedServer(('127.0.0.1', PORT), Handler).serve_forever()
