@@ -11,7 +11,11 @@ for (const locale of ["ko", "en"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/"); await storyReady(page);
     await expect(page.locator(".landing-page")).toHaveAttribute("lang", locale);
-    await page.locator(".night-journey-tabs button").nth(1).click();
+    await expect(page.locator("#story")).toHaveAttribute("data-interactive", "true");
+    const facilitiesStep = page.locator(".night-journey-tabs button").nth(1);
+    await facilitiesStep.focus();
+    await facilitiesStep.press("Enter");
+    await expect(facilitiesStep).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".night-journey-step")).toContainText(locale === "en" ? "details that need checking" : "아직 확인이 필요한 항목");
     await openLandingTools(page);
     await expect(page.locator("#naru")).toContainText(locale === "en" ? "AI travel guide" : "경남 여행을 함께 찾고 일정을 정리해요");
@@ -25,7 +29,10 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator("#regions .simple-region-credit,#regions .simple-region-arrow")).toHaveCount(0);
     const heroAction = page.locator(".landing-actions a");
     await expect(heroAction).toHaveCSS("border-radius", "12px");
-    expect((await heroAction.boundingBox())!.width).toBeGreaterThan(300);
+    expect((await heroAction.boundingBox())!.width).toBeGreaterThanOrEqual(240);
+    expect((await heroAction.boundingBox())!.width).toBeLessThanOrEqual(300);
+    await expect(page.locator(".night-feature-details > summary")).toHaveCount(0);
+    await expect(page.locator("#naru")).toBeVisible();
     for (const selector of [".landing-actions a", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) await expectUsableTarget(page.locator(selector));
     await expectNoOverflow(page);
     expect((await new AxeBuilder({ page }).include("#story").include("#naru").analyze()).violations).toEqual([]);
@@ -58,6 +65,28 @@ for (const locale of ["ko", "en"] as const) {
     expect(errors).toEqual([]);
   });
 }
+
+test("desktop destination, story and information cards use the requested scale and alignment", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/"); await storyReady(page);
+  const regionCards = page.locator("#regions .simple-region");
+  await expect(regionCards).toHaveCount(5);
+  const regionBox = (await regionCards.first().boundingBox())!;
+  expect(Math.abs(regionBox.width - regionBox.height)).toBeLessThanOrEqual(2);
+  const storyCards = page.locator(".night-discover-grid > .night-discover-card");
+  await expect(storyCards).toHaveCount(3);
+  const heights = await storyCards.evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().height));
+  expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1);
+  for (const item of await page.locator("#departure .horizon-checks li").all()) {
+    const centers = await item.evaluate(node => {
+      const cell = node.getBoundingClientRect();
+      const icon = node.querySelector(".horizon-check-icon")!.getBoundingClientRect();
+      return { cell: cell.left + cell.width / 2, icon: icon.left + icon.width / 2 };
+    });
+    expect(Math.abs(centers.cell - centers.icon)).toBeLessThanOrEqual(1);
+  }
+});
 
 for (const connectionMode of ["available", "unsupported"] as const) {
   test(`${connectionMode} data-saving API retains static copy and focus without requesting video`, async ({ page }) => {

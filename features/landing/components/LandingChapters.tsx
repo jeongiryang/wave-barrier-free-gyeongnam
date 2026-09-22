@@ -13,9 +13,10 @@ export default function LandingChapters() {
  const [ready,setReady]=useState(false);
  const [region,setRegion]=useState('통영');
  const [step,setStep]=useState(0);
+ useEffect(()=>{if(root.current)root.current.dataset.interactive='true';},[]);
  useEffect(()=>{const node=root.current;if(!node)return;if(typeof IntersectionObserver!=="function"){let cancelled=false;queueMicrotask(()=>{if(!cancelled)setReady(true);});return()=>{cancelled=true;};}const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){setReady(true);observer.disconnect();}},{rootMargin:'300px'});observer.observe(node);return()=>observer.disconnect();},[]);
  const href='/planner?region='+encodeURIComponent(region);
- return <section id="story" ref={root} tabIndex={-1} className="night-journey-story" aria-labelledby="horizon-how-title">
+ return <section id="story" ref={root} tabIndex={-1} className="night-journey-story" aria-labelledby="horizon-how-title" data-interactive="false">
   <div className="night-journey-input" data-land-reveal>
    <h2 id="horizon-how-title">{en?'Design a journey':'당신만의'}<br/><em>{en?'that feels like you.':'여행을 설계하세요'}</em></h2>
    <p>{en?'Find places that suit you, and shape your own itinerary.':'AI가 추천하는 맞춤 여행 코스로, 모두를 위한 여행을 시작하세요.'}</p>

@@ -90,9 +90,9 @@ export const chapterNames = {
 export const firstRegions = ["통영", "거제", "남해", "하동", "산청"];
 export const allRegions = ["거창", "거제", "고성", "김해", "남해", "밀양", "사천", "산청", "양산", "의령", "진주", "창녕", "창원", "통영", "하동", "함안", "함양", "합천"];
 
-/** Optional tools remain reachable through the visitor-facing disclosure. */
+/** The Naru and tool stories are immediately visible without a disclosure. */
 export async function openLandingTools(page: Page) {
-  const details = page.locator('.night-feature-details');
-  if (await details.getAttribute('open') === null) await details.locator(':scope > summary').click();
-  await expect(details).toHaveAttribute('open', '');
+  const tools = page.locator('.night-feature-details');
+  await expect(tools).toBeVisible();
+  await expect(tools.locator(':scope > summary')).toHaveCount(0);
 }

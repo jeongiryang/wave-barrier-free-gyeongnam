@@ -18,18 +18,18 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
 });
 
-for (const locale of ["ko", "en"] as const) for (const expanded of [false, true]) {
-  test(`${locale} landing help follows visible scenes with extra tools ${expanded ? 'expanded' : 'closed'}`, async ({ page }) => {
+for (const locale of ["ko", "en"] as const) {
+  test(`${locale} landing help follows the always-visible Naru story`, async ({ page }) => {
     await mockPublicShellApi(page);
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
     await page.goto("/");
-    if (expanded) await page.locator('.night-feature-details > summary').click();
+    await expect(page.locator('.night-feature-details > summary')).toHaveCount(0);
     await openSupportMenu(page);
     const help = page.getByRole("button", { name: locale === "en" ? "Help" : "도움말", exact: true });
     await help.click();
     const dialog = page.getByRole("dialog");
     const active = page.locator('[data-help-tour-active="true"]');
-    const scenes = expanded ? ["top", "regions", "story", "naru"] : ["top", "regions", "story"];
+    const scenes = ["top", "regions", "story", "naru"];
     for (const id of scenes) {
       await expect(active).toHaveAttribute("id", id);
       await expect(active).toBeVisible();

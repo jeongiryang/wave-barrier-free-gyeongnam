@@ -16,7 +16,8 @@ async function closingTextContrast(page: Page) {
   const closing = page.locator("#closing");
   await closing.scrollIntoViewIfNeeded();
   await expect(closing).toBeVisible();
-  await expect(closing.locator("img,figcaption,a,button")).toHaveCount(0);
+  await expect(closing.locator(".landing-closing-media img")).toHaveCount(1);
+  await expect(closing.locator("figcaption,a,button")).toHaveCount(0);
   await expect(closing.locator("h2 em")).toHaveCSS("-webkit-text-fill-color", "rgb(236, 244, 255)");
   const samples = await closing.evaluate(root => {
     const rgba = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
@@ -41,7 +42,7 @@ async function closingTextContrast(page: Page) {
     expect(sample.backgroundImage).toBe("none");
     expect(sample.opacity).toBe("1");
     expect(sample.covered).toBe(true);
-    expect(sample.ratio, `${sample.text}: text-only closing contrast`).toBeGreaterThanOrEqual(4.5);
+    expect(sample.ratio, `${sample.text}: photographic closing overlay contrast`).toBeGreaterThanOrEqual(4.5);
   }
   await closing.screenshot({ path: test.info().outputPath("closing-text.png") });
   const evidencePath = test.info().outputPath("closing-text-contrast.json");

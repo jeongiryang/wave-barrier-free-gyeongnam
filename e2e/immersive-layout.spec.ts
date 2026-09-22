@@ -24,7 +24,8 @@ for (const width of [1366, 2560, 3840]) test(`immersive landing and planner use 
   const closing = page.locator('#closing');
   await closing.scrollIntoViewIfNeeded();
   await expect(closing.locator('h2')).toBeVisible();
-  await expect(closing.locator('img,video,canvas,button,a')).toHaveCount(0);
+  await expect(closing.locator('.landing-closing-media img')).toHaveCount(1);
+  await expect(closing.locator('video,canvas,button,a')).toHaveCount(0);
   await expect(closing).toHaveCSS('background-image', 'none');
   await page.screenshot({ path: test.info().outputPath(`closing-${width}.png`) });
   await page.goto('/planner');
