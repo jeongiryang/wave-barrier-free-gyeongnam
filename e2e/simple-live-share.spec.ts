@@ -207,23 +207,37 @@ test('일정 수정은 같은 공유 ID와 보관기한을 유지하며 다음 r
 });
 
 test('갱신 응답을 기다리며 다시 편집하면 순차 갱신으로 가장 최신 일정에 수렴한다', async ({ page }) => {
-  const app = await setup(page), menu = await createShare(page), gate = deferred();
+  const app = await setup(page), menu = await createShare(page), gate = deferred(), latestGate = deferred();
   await closeMenu(menu); app.holdUpdate(gate);
   try {
-    await editTime(page, '11:00'); await expect.poll(() => app.updates().length).toBe(1);
+    await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 100);
+    await editTime(page, '11:00');
+    const pendingMenu = await openMenu(page), view = pendingMenu.getByRole('link', { name: '공유 일정 보기', exact: true });
+    await expect(view).toBeDisabled(); await expect(view).not.toHaveAttribute('href');
+    expect(app.updates()).toHaveLength(0);
+    await passDebounce(page); await expect.poll(() => app.updates().length).toBe(1);
+    await expect(view).toBeDisabled(); await expect(view).not.toHaveAttribute('href');
+    await closeMenu(pendingMenu);
     await editTime(page, '12:00'); await editTime(page, '13:00');
     expect(app.updates()).toHaveLength(1);
     expect((await localState(page)).identity?.share?.revision).toBe(1);
+    await openMenu(page); app.holdUpdate(latestGate);
     gate.release();
+    await expect.poll(async () => (await localState(page)).identity?.share?.revision).toBe(2);
+    await expect(view).toBeDisabled(); await expect(view).not.toHaveAttribute('href');
+    await passDebounce(page);
     await expect.poll(() => app.updates().length).toBe(2);
+    await expect(view).toBeDisabled(); await expect(view).not.toHaveAttribute('href');
+    latestGate.release();
     await expect.poll(async () => (await localState(page)).identity?.share?.revision).toBe(3);
+    await expect(view).toBeEnabled(); await expect(view).toHaveAttribute('href', new RegExp(`/trip/${shareId}$`));
     expect(app.updates().map(post => post.body.revision)).toEqual([1, 2]);
     expect(app.updates().map(post => post.body.selections?.dayStartTime)).toEqual(['11:00', '13:00']);
     expect(app.remote().payload.selections.dayStartTime).toBe('13:00');
     expect((await localState(page)).time).toBe('13:00');
     await passDebounce(page);
     expect(app.creates()).toHaveLength(1); expect(app.updates()).toHaveLength(2); expect(app.errors).toEqual([]);
-  } finally { gate.release(); }
+  } finally { gate.release(); latestGate.release(); }
 });
 
 test('재진입한 로컬 일정의 snapshot hash가 다르면 같은 링크를 갱신하고 다음 reload에서는 중복 쓰지 않는다', async ({ page }) => {
@@ -236,6 +250,8 @@ test('재진입한 로컬 일정의 snapshot hash가 다르면 같은 링크를 
   const synced = (await localState(page)).identity!.share!;
   expect(synced.snapshotHash).toMatch(/^[a-f\d]{64}$/); expect(synced.snapshotHash).not.toBe('a'.repeat(64));
   await page.reload(); await itinerary(page); await passDebounce(page);
+  const menu = await openMenu(page);
+  await expect(menu.getByRole('link', { name: '공유 일정 보기', exact: true })).toHaveAttribute('href', new RegExp(`/trip/${shareId}$`));
   expect((await localState(page)).identity!.share).toEqual(synced);
   expect(app.updates()).toHaveLength(1); expect(app.creates()).toHaveLength(0); expect(app.errors).toEqual([]);
 });
@@ -247,14 +263,23 @@ test('409 충돌은 양쪽 일정을 보존하고 명시적인 현재 일정 갱
     await editTime(page, '11:00'); await expect.poll(() => app.updates().length).toBe(1);
     const conflict = await openMenu(page); gate.release();
     await expect(conflict).toContainText('다른 곳에서 공유 일정이 바뀌었어요');
+    const view = conflict.getByRole('link', { name: '공유 일정 보기', exact: true });
+    await expect(view).toBeDisabled(); await expect(view).not.toHaveAttribute('href');
+    await expect(conflict.getByRole('button', { name: '공유 종료', exact: true })).toBeEnabled();
     await passDebounce(page);
     expect(app.remote().payload.selections.dayStartTime).toBe('14:00'); expect(app.remote().revision).toBe(7);
     expect((await localState(page)).time).toBe('11:00'); expect((await localState(page)).identity?.share?.revision).toBe(1);
     expect(app.updates()).toHaveLength(1); expect(app.statuses()).toHaveLength(0);
+    // Returning to the previously acknowledged local snapshot cannot dismiss
+    // a conflict: the server now contains the other editor's 14:00 revision.
+    await closeMenu(conflict); await editTime(page, '09:30'); await openMenu(page);
+    await expect(view).toBeDisabled(); await expect(view).not.toHaveAttribute('href');
+    await closeMenu(conflict); await editTime(page, '11:00'); await openMenu(page);
     await conflict.getByRole('button', { name: /현재.*일정.*갱신/ }).click();
     await expect.poll(() => app.statuses().length).toBe(1);
     await expect.poll(() => app.updates().length).toBe(2);
     await expect.poll(async () => (await localState(page)).identity?.share?.revision).toBe(8);
+    await expect(view).toBeEnabled(); await expect(view).toHaveAttribute('href', new RegExp(`/trip/${shareId}$`));
     expect(app.updates()[1].body.revision).toBe(7);
     expect(app.remote().payload.selections.dayStartTime).toBe('11:00');
     expect(app.creates()).toHaveLength(1); expect(app.errors).toEqual([]);
