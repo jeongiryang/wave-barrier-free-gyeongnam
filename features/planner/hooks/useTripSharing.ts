@@ -47,6 +47,7 @@ export function useTripSharing(options: TripSharingOptions) {
   const [shareState, setShareState] = useState<State>('idle');
   const [shareNotice, setShareNotice] = useState('');
   const [identity, setIdentity] = useState<TripIdentity | null>(null);
+  const [publishedSnapshot, setPublishedSnapshot] = useState('');
   const [now, setNow] = useState(0);
   const latest = useRef(snapshot), synced = useRef(''), mounted = useRef(true), revoking = useRef(false);
   const pending = useRef<{ snapshot: string; promise: Promise<string> } | null>(null);
@@ -57,6 +58,9 @@ export function useTripSharing(options: TripSharingOptions) {
     return () => { mounted.current = false; cancelAnimationFrame(frame); };
   }, []);
   const shareUrl = identity?.share && identity.share.expiresAt > now && typeof window !== 'undefined' ? `${window.location.origin}/trip/${identity.share.id}` : '';
+  // A stored URL may still describe an earlier edit during the debounce or a
+  // pending response. Only the snapshot acknowledged by the server is viewable.
+  const shareIsCurrent = Boolean(shareUrl && publishedSnapshot === snapshot && !['saving', 'error'].includes(shareState));
   const ensureShareUrl = useCallback(async () => {
     if (revoking.current) throw new Error('공유 종료를 처리하고 있어요.');
     while (pending.current) {
@@ -75,7 +79,7 @@ export function useTripSharing(options: TripSharingOptions) {
       const snapshotHash = await hashSnapshot(snapshot);
       assertTripStorageOwner(localStorage);
       if (!isThisTrip() || latest.current !== snapshot) throw new ChangedSnapshot('일정이 바뀌었어요. 현재 여행을 확인해 주세요.');
-      if (existing?.snapshotHash === snapshotHash) { synced.current = snapshot; setShareState('idle'); return `${window.location.origin}/trip/${existing.id}`; }
+      if (existing?.snapshotHash === snapshotHash) { synced.current = snapshot; setPublishedSnapshot(snapshot); setShareState('idle'); return `${window.location.origin}/trip/${existing.id}`; }
       const data = await plannerJson<{ id: string; url: string; revision: number; expiresAt: number }>(`/api/trips${existing ? `/${existing.id}` : ''}`, { method: 'POST', body: { ...JSON.parse(snapshot), ...(existing ? { revision: existing.revision } : {}) } });
       if (!isThisTrip()) throw new Error('공유를 준비하는 동안 다른 여행이 열렸어요.');
       const url = sameOriginHttpUrl(data.url, window.location.origin);
@@ -83,7 +87,7 @@ export function useTripSharing(options: TripSharingOptions) {
       const active = readTripIdentity(localStorage)!;
       if (JSON.stringify(active.share) !== JSON.stringify(base.share)) throw new Error('다른 곳에서 공유 링크가 바뀌었어요.');
       const next = writeTripIdentity(localStorage, { ...active, share: { id: data.id, revision: data.revision, expiresAt: data.expiresAt, snapshotHash } });
-      synced.current = snapshot; setIdentity(next); setShareState('idle');
+      synced.current = snapshot; setPublishedSnapshot(snapshot); setIdentity(next); setShareState('idle');
       if (latest.current !== snapshot) throw new ChangedSnapshot('일정이 바뀌었어요. 최신 내용을 반영하고 있어요.');
       return url;
     })();
@@ -120,7 +124,7 @@ export function useTripSharing(options: TripSharingOptions) {
       await plannerJson(`/api/trips/${base.share.id}`, { method: 'POST', body: { operation: 'revoke', revision: base.share.revision } });
       const active = readTripIdentity(localStorage);
       if (!mounted.current || active?.id !== base.id || JSON.stringify(active.share) !== JSON.stringify(base.share)) return false;
-      const next = writeTripIdentity(localStorage, { ...readTripIdentity(localStorage)!, share: null }); setIdentity(next); synced.current = ''; setShareState('idle'); setShareNotice('공유를 종료했어요. 이전 링크로는 볼 수 없어요.'); return true;
+      const next = writeTripIdentity(localStorage, { ...readTripIdentity(localStorage)!, share: null }); setIdentity(next); synced.current = ''; setPublishedSnapshot(''); setShareState('idle'); setShareNotice('공유를 종료했어요. 이전 링크로는 볼 수 없어요.'); return true;
     } catch (error) { setShareState('error'); setShareNotice(error instanceof Error ? error.message : '공유를 종료하지 못했어요.'); return false; } finally { revoking.current = false; }
   }, [identity]);
   useEffect(() => {
@@ -137,8 +141,8 @@ export function useTripSharing(options: TripSharingOptions) {
       const active = readTripIdentity(localStorage);
       if (!mounted.current || active?.id !== base.id || JSON.stringify(active.share) !== JSON.stringify(base.share)) return;
       if (!Number.isSafeInteger(data.revision) || data.revision < 1) throw new Error('링크의 최신 버전을 확인하지 못했어요.');
-      setIdentity(writeTripIdentity(localStorage, { ...active, share: { id: base.share.id, expiresAt: base.share.expiresAt, revision: data.revision } })); synced.current = ''; setShareState('idle'); setShareNotice('현재 일정으로 공유 링크를 갱신하고 있어요.');
+      setIdentity(writeTripIdentity(localStorage, { ...active, share: { id: base.share.id, expiresAt: base.share.expiresAt, revision: data.revision } })); synced.current = ''; setPublishedSnapshot(''); setShareState('idle'); setShareNotice('현재 일정으로 공유 링크를 갱신하고 있어요.');
     } catch (error) { if (mounted.current) { setShareState('error'); setShareNotice(error instanceof Error ? error.message : '링크의 최신 버전을 확인하지 못했어요.'); } }
   }, [identity]);
-  return { shareState, shareUrl, shareNotice, sharePlan, ensureShareUrl, revokeShare, refreshShareVersion };
+  return { shareState, shareUrl, shareIsCurrent, shareNotice, sharePlan, ensureShareUrl, revokeShare, refreshShareVersion };
 }
