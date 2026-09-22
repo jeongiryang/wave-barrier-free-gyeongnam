@@ -71,7 +71,7 @@ test("keyboard users can dismiss the arrival with Escape", async ({ page }) => {
   await action.focus(); await expect(action).toBeFocused();
 });
 
-for (const width of [1440, 390]) test(`${width}px reduced motion keeps the photographic hero and all eighteen region choices usable`, async ({ page }, info) => {
+for (const width of [1440, 960, 390]) test(`${width}px reduced motion keeps the photographic hero and all eighteen region choices usable`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: width === 390 ? 844 : 960 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await prepare(page);
@@ -85,6 +85,14 @@ for (const width of [1440, 390]) test(`${width}px reduced motion keeps the photo
   await expect(page.getByRole("dialog")).toHaveCount(0);
   const hero = page.locator(".landing-hero-split"), copy = hero.locator(".landing-hero-copy"), photograph = hero.locator(".landing-hero-landscape");
   await expect(copy).toBeVisible();
+  const planning = page.locator('.landing-actions a');
+  // Hydration can precede Vite's client stylesheet handoff. Wait for the
+  // required paint, then inspect its colors; a missing gradient still fails.
+  await expect(planning).toHaveCSS('background-image', /linear-gradient\(/);
+  const gradient = await planning.evaluate(node => getComputedStyle(node).backgroundImage);
+  expect(gradient).toContain('linear-gradient');
+  expect(gradient).toContain('rgb(45, 107, 183)');
+  expect(gradient).toContain('rgb(110, 49, 220)');
   await expect(photograph.locator("img")).toBeVisible();
   await expect.poll(() => photograph.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   const copyBox = (await copy.boundingBox())!, photoBox = (await photograph.boundingBox())!;

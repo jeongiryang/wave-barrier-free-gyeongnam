@@ -101,7 +101,7 @@ test("landing: reduced motion keeps every section readable through forward scrol
   await expectUsableTarget(planning);
 });
 
-for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 1440]) {
+for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 601, 960, 1440]) {
   test(`landing: ${locale} regional links and original credits stay usable through keyboard expansion at ${width}px`, async ({ page }) => {
     const en = locale === "en";
     await prepareStory(page);

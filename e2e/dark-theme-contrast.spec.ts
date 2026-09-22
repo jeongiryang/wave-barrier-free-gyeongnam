@@ -39,7 +39,6 @@ async function measure(page: Page, selector: string) {
 }
 
 const CASES: Array<{ path: string; selector: string; name: string }> = [
-  { path: "/", selector: ".landing-actions a[href='/planner']", name: "랜딩 시작 버튼" },
   { path: "/community", selector: ".night-category-tabs button[aria-pressed='true']", name: "선택된 게시판 탭" },
   { path: "/community", selector: ".wave-balanced-footer > p", name: "커뮤니티 푸터 안내" },
   { path: "/community", selector: ".night-community-toolbar > .night-primary", name: "후기 작성 (기본 동작 버튼)" },
@@ -48,6 +47,64 @@ const CASES: Array<{ path: string; selector: string; name: string }> = [
   { path: "/planner", selector: ".simple-readiness-heading p", name: "출발 전 확인 안내" },
   { path: "/planner", selector: ".simple-readiness-heading button", name: "출발 정보 다시 조회" },
 ];
+
+async function measureOpaqueGradient(page: Page, selector: string) {
+  return page.locator(selector).evaluate(node => {
+    const style = getComputedStyle(node);
+    const gradient = style.backgroundImage;
+    // This probe covers an opaque sRGB linear gradient, not arbitrary images
+    // or alpha layers. Reject unsupported paint instead of measuring behind it.
+    if (!/^linear-gradient\(/.test(gradient) || /\),\s*(?:url|.*gradient)\(/.test(gradient)) {
+      throw new Error(`Expected one opaque linear gradient: ${gradient}`);
+    }
+    const stops = gradient.match(/rgba?\([^)]+\)/g) || [];
+    const remaining = gradient.replace(/^linear-gradient\(/, "").replace(/rgba?\([^)]+\)/g, "");
+    if (stops.length < 2 || /\bin\s/.test(gradient) || /[a-z-]+\(/i.test(remaining)) {
+      throw new Error(`Unsupported gradient: ${gradient}`);
+    }
+    const parseOpaque = (color: string) => {
+      const channels = (color.match(/[\d.]+/g) || []).map(Number);
+      if (channels.length !== 3 && !(channels.length === 4 && channels[3] === 1)) {
+        throw new Error(`Expected opaque RGB color: ${color}`);
+      }
+      return channels.slice(0, 3);
+    };
+    return { color: parseOpaque(style.color), stops: stops.map(parseOpaque) };
+  });
+}
+
+for (const theme of ["light", "dark"]) test(`랜딩 그라데이션의 모든 색상은 ${theme} 화면에서 흰 글자 대비를 유지한다`, async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockPublicShellApi(page);
+  await page.addInitScript(value => {
+    sessionStorage.setItem("wave-arrival-session-v1", "done");
+    localStorage.setItem("wave-theme", value);
+  }, theme);
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+  const selector = ".landing-actions a[href='/planner']";
+  await expect(page.locator(selector)).toBeVisible();
+  // Visibility and hydration do not promise that streamed route CSS is painted.
+  await expect(page.locator(selector)).toHaveCSS("background-image", /linear-gradient\(/);
+  const sample = await measureOpaqueGradient(page, selector);
+  expect(sample.color).toEqual([255, 255, 255]);
+  // With white text, the brightest stop is the worst contrast: luminance is
+  // convex along an opaque sRGB interpolation, so no interior is brighter.
+  const worst = Math.min(...sample.stops.map(stop => contrastRatio(sample.color, stop)));
+  expect(worst, `랜딩 시작 버튼 그라데이션 최소 대비 ${worst.toFixed(2)}`).toBeGreaterThanOrEqual(4.5);
+});
+
+test("그라데이션 대비 측정은 밝은 중간 색상과 지원하지 않는 배경을 놓치지 않는다", async ({ page }) => {
+  await page.setContent('<a style="color:white;background:linear-gradient(90deg,#123,#fff,#234)">검사</a>');
+  const sample = await measureOpaqueGradient(page, "a");
+  expect(Math.min(...sample.stops.map(stop => contrastRatio(sample.color, stop)))).toBe(1);
+  await page.locator("a").evaluate(node => { (node as HTMLElement).style.backgroundImage = "none"; });
+  await expect(measureOpaqueGradient(page, "a")).rejects.toThrow("Expected one opaque linear gradient");
+  await page.locator("a").evaluate(node => { (node as HTMLElement).style.backgroundImage = "linear-gradient(90deg,transparent,#123)"; });
+  await expect(measureOpaqueGradient(page, "a")).rejects.toThrow("Expected opaque RGB color");
+  await page.locator("a").evaluate(node => { (node as HTMLElement).style.backgroundImage = "linear-gradient(90deg,rgb(17,34,51),color(display-p3 1 1 1),rgb(34,51,68))"; });
+  await expect(measureOpaqueGradient(page, "a")).rejects.toThrow("Unsupported gradient");
+});
 
 async function openSample(page: Page, item: typeof CASES[number]) {
   const changedPage = new URL(page.url()).pathname !== item.path;

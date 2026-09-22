@@ -32,8 +32,12 @@ test("replaying a completed intro starts opaque instead of revealing the page un
 
 test("blocked application scripts leave readable content without an arrival overlay", async ({ page }) => {
   await prepareLandingMedia(page);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.route(/\.(?:js|mjs|tsx)(?:\?|$)/, route => route.abort());
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator('#arrival-boot')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#arrival-boot')).toBeHidden();
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.locator(".landing-actions a")).toBeVisible();
   await expect(page.locator(".landing-actions a")).toHaveAttribute("href", "/planner");
@@ -41,16 +45,33 @@ test("blocked application scripts leave readable content without an arrival over
 });
 
 test('the intro omits playback controls while keeping direct keyboard dismissal', async ({ page }) => {
-  await freshArrival(page);
-  await arrivalPlaybackReady(page);
-  const scene = page.locator('.arrival-scene');
-  await expect(scene.getByRole('button')).toHaveCount(1);
-  await expect(scene.getByRole('button', { name: '건너뛰기', exact: true })).toBeFocused();
-  await expect(scene.getByRole('button', { name: /이전 장면|다음 장면|일시정지|재생/ })).toHaveCount(0);
-  await page.keyboard.press('Escape');
-  await expect(scene).toBeHidden();
-  await expect(page.locator('#top')).toBeFocused();
-  await expect(page.locator(':modal')).toHaveCount(0);
+  // Dismissal belongs to the dialog shell and must work before WebGL loads.
+  // Hold the module so renderer startup cannot consume the assertion budget;
+  // real playback and completion remain covered by the other arrival tests.
+  let release = () => {}, requested = 0;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  await page.route(/(?:\/features\/landing\/intro\/wave-intro\.(?:tsx|js)|\/assets\/wave-intro-[^/]+\.js)(?:\?|$)/, async route => {
+    requested += 1;
+    await pending;
+    await route.continue();
+  });
+  try {
+    await freshArrival(page);
+    await expect.poll(() => requested).toBeGreaterThan(0);
+    const scene = page.locator('.arrival-scene');
+    const skip = scene.getByRole('button', { name: '건너뛰기', exact: true });
+    await expect(scene.getByRole('button')).toHaveCount(1);
+    await expectUsableTarget(skip);
+    await page.keyboard.press('Tab');
+    await expect(skip).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(skip).toBeFocused();
+    await expect(scene.getByRole('button', { name: /이전 장면|다음 장면|일시정지|재생/ })).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(scene).toBeHidden();
+    await expect(page.locator('#top')).toBeFocused();
+    await expect(page.locator(':modal')).toHaveCount(0);
+  } finally { release(); }
 });
 
 test('failed intro module never blocks the page or leaves a modal focus trap', async ({ page }) => {

@@ -95,7 +95,36 @@ function endpointFor(base: string, path: string) {
 export async function handleAssistant(request: Request) {
   // A separate requester per incoming conversation prevents URL-only in-flight
   // deduplication from sharing one visitor's private answer with another.
-  const requestProvider = createProviderRequester();
+  const primaryRequester = createProviderRequester();
+  const requestProvider: typeof primaryRequester = async (context, url, options) => {
+    const fallbackBase = process.env.WAVE_AI_FALLBACK_BASE_URL;
+    const fallbackModel = process.env.WAVE_AI_FALLBACK_MODEL;
+    const fallbackToken = process.env.WAVE_AI_FALLBACK_TOKEN;
+    if (!fallbackBase || !fallbackModel || !fallbackToken) return primaryRequester(context, url, options);
+    // Retry inference only before returning any response bytes. Model output is
+    // still validated and applied by the existing single confirmation path.
+    const fallbackUrl = endpointFor(fallbackBase, context.operation === 'health' ? 'health' : 'chat/completions');
+    if (fallbackUrl.href === url) return primaryRequester(context, url, options);
+    const primaryControl = new AbortController();
+    const primaryTimer = setTimeout(() => primaryControl.abort(), context.operation === 'health' ? 3000 : 15000);
+    const boundedSignal = primaryControl.signal;
+    const primaryOptions = { ...options, signal: options?.signal
+      ? AbortSignal.any([options.signal, boundedSignal]) : boundedSignal };
+    try {
+      const response = await primaryRequester(context, url, primaryOptions);
+      if (context.operation !== 'health') return response;
+      const health = await response.json();
+      if (record(health) && health.ready === true) return response;
+    } catch (error) {
+      if (options?.signal?.aborted) throw error;
+      if (!(error instanceof ProviderRequestError) || !['timeout', 'upstream_error', 'rate_limited'].includes(error.failure.kind)) throw error;
+    } finally { clearTimeout(primaryTimer); }
+    if (options?.signal?.aborted) throw new Error('cancelled');
+    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${fallbackToken}` };
+    const body = typeof options?.body === 'string'
+      ? JSON.stringify({ ...JSON.parse(options.body), model: fallbackModel }) : options?.body;
+    return createProviderRequester()(context, fallbackUrl.href, { ...options, headers, body });
+  };
   const base = process.env.WAVE_AI_BASE_URL;
   const model = process.env.WAVE_AI_MODEL;
   if (request.method === 'GET') {
