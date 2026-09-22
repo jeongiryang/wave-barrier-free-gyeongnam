@@ -62,3 +62,8 @@
 - Windows 전용 supervisor는 기존 프로세스를 죽이지 않고 loopback 상태를 확인해 종료된 전용 런타임만 복구하고 모델을 예열한다. 사용자 시작프로그램 바로가기로 로그인 후 실행한다. 예약 작업 방식은 실행 오류로 제거했으며 재부팅 검증은 하지 않았다. 실행 중 시스템 절전만 방지하고 화면 절전은 허용한다.
 - 운영 Secret에 주/예비 모델 설정 6개를 저장했다. 기존 Secret은 Vercel에서 재다운로드할 수 없으므로 로컬 pull 결과를 실제 복구용 비밀값으로 취급하지 않는다. 구 DSW GPU를 다시 사용하지 않는다.
 - 남은 배포 검증: PR 전체 CI, GitHub Actions CD, Production 브라우저 여정. Mint는 현재 사용자 gateway 서비스와 LM Studio가 실행 중이지만 로그아웃/재부팅 후 모델 자동 복구는 아직 보장하지 않는다. 양쪽 PC의 전원·네트워크·로그인 세션 유지가 필요하다.
+
+### 로그인 세션 복구 추가 확인
+- Windows gateway PID를 종료한 뒤 supervisor가 새 gateway를 실행하고 공개 HTTPS ready=true로 복구한 것을 확인했다. 단일 인스턴스 잠금으로 watchdog 중복 실행을 막는다.
+- Mint 로그인 시작프로그램에 기존 LM Studio와 모델 상태 확인 supervisor를 등록했다. supervisor는 실행 중이며 모델이 내려가면 WAVE 지정 모델만 8K/동시 1로 다시 적재한다. 기존에 적재된 정상 모델 설정이나 다른 모델은 강제로 내리지 않는다. 사용자 gateway 서비스는 이미 enabled/active다.
+- Mint AC 자동 절전 timeout은 기존 값 0이며 변경하지 않았다. 양쪽 로그인 후 시작은 구성했지만 실제 재부팅/로그아웃 시험은 미실행이다. Mint Linger=no이므로 로그인 전 무인 가동을 보장하지 않는다.
