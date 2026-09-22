@@ -138,36 +138,51 @@ test('a delayed response for a restored mode cannot replace a newer choice or it
 
 test('a changed travel mode updates pending shared content before the same live link can be used', async ({ page }) => {
   await setup(page, 'car');
-  const gate = deferred(), modes: string[] = [];
+  await page.clock.install();
+  const gate = deferred(), updateGate = deferred(), modes: string[] = [];
   await page.route(/\/api\/trips(?:\/123456789abc)?$/, async route => {
     const body = route.request().postDataJSON();
     expect(new URL(route.request().url()).pathname).toBe(modes.length ? '/api/trips/123456789abc' : '/api/trips');
     if (modes.length) expect(body.revision).toBe(1);
     modes.push(body.selections.travelMode);
     if (modes.length === 1) await gate.promise;
+    else await updateGate.promise;
     await route.fulfill({ json: { id: '123456789abc', url: `${new URL(page.url()).origin}/trip/123456789abc`, revision: modes.length, expiresAt: Date.now() + 86_400_000 } });
   });
   try {
-    await page.goto('/planner#itinerary'); await settled(page, 'car');
+    await page.goto('/planner#itinerary');
+    await expect(page.locator('#itinerary')).toBeVisible();
+    await expect.poll(async () => (await stored(page)).schedule.travelMode).toBe('car');
     await page.getByRole('button', { name: '공유', exact: true }).click();
   { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
     const actions = page.getByRole('dialog', { name: '여행 공유', exact: true });
     await expect.poll(() => modes.length).toBe(1);
     await expect(actions.getByRole('button', { name: '링크 복사', exact: true })).toBeDisabled();
     await actions.getByRole('button', { name: '공유 닫기', exact: true }).click();
+    // Control the real sharing debounce after hydration, without opening any
+    // route tool. The direct editor and stored trip are the relevant state.
+    await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 100);
     await chooseMode(page, 'bicycle');
     await page.getByRole('button', { name: '공유', exact: true }).click();
   { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
     await expect(actions.getByRole('button', { name: '링크 복사', exact: true })).toBeDisabled();
     gate.release();
-    await actions.getByRole('button', { name: '공유 닫기', exact: true }).click();
-    await settled(page, 'bicycle');
-    await page.getByRole('button', { name: '공유', exact: true }).click();
-  { const create = page.getByRole('button', { name: '공개 링크 만들기', exact: true }); if (await create.isVisible() && await create.isEnabled()) { await create.click(); await acceptTripTimingWarning(page); } }
+    const view = actions.getByRole('link', { name: '공유 일정 보기', exact: true });
+    await expect(view).toBeVisible();
+    await expect(view).toBeDisabled();
+    await expect(view).not.toHaveAttribute('href');
+    expect(modes).toEqual(['car']);
+    await expect.poll(async () => (await stored(page)).schedule.travelMode).toBe('bicycle');
+    await page.clock.runFor(1000);
+    await expect.poll(() => modes).toEqual(['car', 'bicycle']);
+    await expect(view).toBeDisabled();
+    await expect(view).not.toHaveAttribute('href');
+    updateGate.release();
+    await expect(view).toBeEnabled();
     await expect(actions.getByRole('button', { name: '링크 복사', exact: true })).toBeEnabled();
     await expect(actions.getByRole('link', { name: '공유 일정 보기', exact: true })).toHaveAttribute('href', /123456789abc$/);
     expect(modes).toEqual(['car', 'bicycle']);
-  } finally { gate.release(); }
+  } finally { gate.release(); updateGate.release(); }
 });
 
 test('an account itinerary restores its transport and backs up the previous trip with its own mode', async ({ page }) => {

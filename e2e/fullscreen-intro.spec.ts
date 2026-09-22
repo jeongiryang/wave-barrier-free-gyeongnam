@@ -32,57 +32,56 @@ test("replaying a completed intro starts opaque instead of revealing the page un
 
 test("blocked application scripts leave readable content without an arrival overlay", async ({ page }) => {
   await prepareLandingMedia(page);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.route(/\.(?:js|mjs|tsx)(?:\?|$)/, route => route.abort());
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator('#arrival-boot')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#arrival-boot')).toBeHidden();
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.locator(".landing-actions a")).toBeVisible();
   await expect(page.locator(".landing-actions a")).toHaveAttribute("href", "/planner");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
-test('pause, all seven scene controls and keyboard containment remain usable without silently ending the intro', async ({ page }) => {
-  await freshArrival(page);
-  await arrivalPlaybackReady(page);
-  const scene = page.locator('.arrival-scene'), animation = scene.locator('.wave-intro');
-  await scene.getByRole('button', { name: '일시정지', exact: true }).click();
-  // Scene preparation and font loading can already consume several stages
-  // before arrivalPlaybackReady freezes elapsed time on a slow CI renderer.
-  // Use the public controls to establish the first stage, never assume it.
-  const previous = scene.getByRole('button', { name: '이전 장면', exact: true });
-  for (let step = 0; step < 6 && await previous.isEnabled(); step++) await previous.click();
-  await expect(previous).toBeDisabled();
-  const progress = scene.locator('[aria-live=polite]').last();
-  await expect(progress).toContainText('1 / 7');
-  const pausedAt = await animation.getAttribute('data-time-ms');
-  await page.clock.fastForward(INTRO_DURATION_MS + 1000);
-  await expect(scene).toBeVisible();
-  await expect(animation).toHaveAttribute('data-time-ms', pausedAt!);
-  for (let stage = 2; stage <= 7; stage++) {
-    await scene.getByRole('button', { name: '다음 장면', exact: true }).click();
-    await expect(progress).toContainText(`${stage} / 7`);
-  }
-  await expect(scene.getByRole('button', { name: '다음 장면', exact: true })).toBeDisabled();
-  await expect(progress).toContainText('모두의 발걸음이 닿는 경상남도');
-  const finalTime = Number(await animation.getAttribute('data-time-ms'));
-  await scene.getByRole('button', { name: '이전 장면', exact: true }).click();
-  await expect(progress).toContainText('6 / 7');
-  await expect.poll(async () => Number(await animation.getAttribute('data-time-ms'))).toBeLessThan(finalTime);
-  await scene.getByRole('button', { name: '건너뛰기', exact: true }).focus();
-  await page.keyboard.press('Tab');
-  expect(await page.evaluate(() => Boolean(document.activeElement?.closest('.arrival-scene')))).toBe(true);
-  await scene.getByRole('button', { name: '재생', exact: true }).click();
-  await page.clock.fastForward(4000);
-  await expect(scene).toBeHidden();
-  await expect(page.locator('#top')).toBeFocused();
-  await expect(page.locator(':modal')).toHaveCount(0);
+test('the intro omits playback controls while keeping direct keyboard dismissal', async ({ page }) => {
+  // Dismissal belongs to the dialog shell and must work before WebGL loads.
+  // Hold the module so renderer startup cannot consume the assertion budget;
+  // real playback and completion remain covered by the other arrival tests.
+  let release = () => {}, requested = 0;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  await page.route(/(?:\/features\/landing\/intro\/wave-intro\.(?:tsx|js)|\/assets\/wave-intro-[^/]+\.js)(?:\?|$)/, async route => {
+    requested += 1;
+    await pending;
+    await route.continue();
+  });
+  try {
+    await freshArrival(page);
+    await expect.poll(() => requested).toBeGreaterThan(0);
+    const scene = page.locator('.arrival-scene');
+    const skip = scene.getByRole('button', { name: '건너뛰기', exact: true });
+    await expect(scene.getByRole('button')).toHaveCount(1);
+    await expectUsableTarget(skip);
+    await page.keyboard.press('Tab');
+    await expect(skip).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(skip).toBeFocused();
+    await expect(scene.getByRole('button', { name: /이전 장면|다음 장면|일시정지|재생/ })).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(scene).toBeHidden();
+    await expect(page.locator('#top')).toBeFocused();
+    await expect(page.locator(':modal')).toHaveCount(0);
+  } finally { release(); }
 });
 
 test('failed intro module never blocks the page or leaves a modal focus trap', async ({ page }) => {
   let blocked = 0;
   await page.route(/(?:\/features\/landing\/intro\/wave-intro\.(?:tsx|js)|\/assets\/wave-intro-[^/]+\.js)(?:\?|$)/, route => { blocked++; return route.abort(); });
-  await freshArrival(page);
+  await prepareLandingMedia(page);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  await storyReady(page);
   await expect.poll(() => blocked, 'The actual intro module must be blocked in dev and built previews').toBeGreaterThan(0);
-  await page.clock.fastForward(8000);
   await expect(page.locator('.arrival-scene')).toBeHidden();
   await expect(page.locator(':modal')).toHaveCount(0);
   await dismissExpectedDevelopmentError(page, /Failed to fetch dynamically imported module/);

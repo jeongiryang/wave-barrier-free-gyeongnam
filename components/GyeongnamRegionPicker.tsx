@@ -10,7 +10,7 @@ import { DECLINING_REGION_LABEL, decliningRegionSourceLabel, decliningRegionsFir
 import { regionNames } from "../lib/gyeongnam-region-names";
 export { regionNames } from "../lib/gyeongnam-region-names";
 
-export default function GyeongnamRegionPicker({ value, onChange, includeAll = false, compact = false, night = false }: { value: string; onChange: (region: string) => void; includeAll?: boolean; compact?: boolean; night?: boolean }) {
+export default function GyeongnamRegionPicker({ value, onChange, includeAll = false, compact = false, night = false, showDecliningInfo = true }: { value: string; onChange: (region: string) => void; includeAll?: boolean; compact?: boolean; night?: boolean; showDecliningInfo?: boolean }) {
   const clipPrefix = useId().replace(/:/g, "");
   const regionNoticeId = `${clipPrefix}-region-notice`;
   const keyboardHintId = `${clipPrefix}-keyboard-hint`;
@@ -20,7 +20,7 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
   const [decliningFirst, setDecliningFirst] = useState(false);
   const label = (name: string) => en ? regionNames[name] || name : name;
   const names = decliningRegionsFirst(Object.keys(regionNames).filter((name) => includeAll || name !== "경남 전체"));
-  const orderedNames = decliningFirst ? names : Object.keys(regionNames).filter((name) => includeAll || name !== "경남 전체");
+  const orderedNames = showDecliningInfo && decliningFirst ? names : Object.keys(regionNames).filter((name) => includeAll || name !== "경남 전체");
   const map = <div className="region-picker-visual">
       <span>{en ? "SOUTH KOREA · SOUTHEAST" : "대한민국 남동쪽, 경상남도"}</span>
       <svg viewBox="0 0 800 814" aria-label={en ? "Gyeongnam city and county boundaries" : "경상남도 시·군 행정경계"}>
@@ -32,13 +32,13 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
     </div>;
   return <div className={`region-picker${compact ? " region-picker-compact" : ""}`}>
     {!compact && map}
-    <div><button type="button" className="declining-region-filter" aria-pressed={decliningFirst} onClick={() => setDecliningFirst(current => !current)}>{decliningFirst ? "인구감소지역 먼저 보는 중" : "이 지역들 먼저 보기"}</button><p className="sr-only" id={keyboardHintId}>{en ? "Use arrow keys to move between regions, then Enter to choose." : "방향키로 지역을 이동하고 Enter로 선택할 수 있습니다."}</p><div className="region-picker-list" role="group" aria-describedby={keyboardHintId} aria-label={en ? "Choose a region" : "여행 지역 선택"}>{orderedNames.map((name, index) => <button type="button" key={name} tabIndex={value === name || !value && index === 0 ? 0 : -1} onClick={() => onChange(name)} onKeyDown={(event) => {
+    <div>{showDecliningInfo && <button type="button" className="declining-region-filter" aria-pressed={decliningFirst} onClick={() => setDecliningFirst(current => !current)}>{decliningFirst ? "인구감소지역 먼저 보는 중" : "이 지역들 먼저 보기"}</button>}<p className="sr-only" id={keyboardHintId}>{en ? "Use arrow keys to move between regions, then Enter to choose." : "방향키로 지역을 이동하고 Enter로 선택할 수 있습니다."}</p><div className="region-picker-list" role="group" aria-describedby={keyboardHintId} aria-label={en ? "Choose a region" : "여행 지역 선택"}>{orderedNames.map((name, index) => <button type="button" key={name} tabIndex={value === name || !value && index === 0 ? 0 : -1} onClick={() => onChange(name)} onKeyDown={(event) => {
       const direction = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
       const next = event.key === "Home" ? 0 : event.key === "End" ? orderedNames.length - 1 : direction ? (index + direction + orderedNames.length) % orderedNames.length : -1;
       if (next < 0) return;
       event.preventDefault();
       event.currentTarget.parentElement?.querySelectorAll("button")[next]?.focus();
-    }} aria-pressed={value === name} aria-describedby={isDecliningRegion(name) ? regionNoticeId : undefined}><span>{label(name)}{value === name && <span aria-hidden="true"> ✓</span>}{isDecliningRegion(name) && <sup aria-hidden="true"> *</sup>}</span></button>)}</div><p className="region-picker-source" id={regionNoticeId} lang="ko">* {DECLINING_REGION_LABEL}<br/><small>{decliningRegionSourceLabel()}</small></p></div>
+    }} aria-pressed={value === name} aria-describedby={showDecliningInfo && isDecliningRegion(name) ? regionNoticeId : undefined}><span>{label(name)}{value === name && <span aria-hidden="true"> ✓</span>}{showDecliningInfo && isDecliningRegion(name) && <sup aria-hidden="true"> *</sup>}</span></button>)}</div>{showDecliningInfo && <p className="region-picker-source" id={regionNoticeId} lang="ko">* {DECLINING_REGION_LABEL}<br/><small>{decliningRegionSourceLabel()}</small></p>}</div>
     {compact && <details className="region-map-disclosure"><summary>{en ? "See regions on the map" : "지도에서 지역 위치 보기"}<span aria-hidden="true">↗</span></summary>{map}</details>}
   </div>;
 }

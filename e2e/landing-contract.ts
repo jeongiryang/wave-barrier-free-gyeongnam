@@ -55,7 +55,14 @@ export async function freshArrival(page: Page) {
 /** The WebGL renderer starts its clock only after its scene is ready. */
 export async function arrivalPlaybackReady(page: Page) {
   await page.clock.resume();
-  await expect.poll(async () => Number(await page.locator('.wave-intro').getAttribute('data-time-ms'))).toBeGreaterThan(0);
+  // Observe the first frame in the browser: repeated protocol reads can consume
+  // the readiness deadline while software WebGL is rendering. Keep the same
+  // positive playback-time condition and the existing eight-second bound.
+  await page.waitForFunction(
+    () => Number(document.querySelector('.wave-intro')?.getAttribute('data-time-ms')) > 0,
+    undefined,
+    { timeout: 8_000 },
+  );
   await pauseCurrentClock(page);
   await expect(page.locator('.arrival-scene')).toBeVisible();
   await expect(page.locator('.wave-intro canvas')).toBeVisible();

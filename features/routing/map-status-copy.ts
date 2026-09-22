@@ -1,3 +1,5 @@
+import { validTripDate } from "../../lib/trip-dates.js";
+
 // Translate only messages authored by this app. Keep unknown provider text intact.
 // Resolve at render time so a language change does not recreate the map or its state.
 const notices: Record<string, string> = {
@@ -57,4 +59,10 @@ const crowdCopy: Record<string, { label: string; message: string }> = {
 
 export function mapCrowdText(visual: { level: string; label: string; message: string }, english: boolean) {
   return english && Object.hasOwn(crowdCopy, visual.level) ? crowdCopy[visual.level] : visual;
+}
+
+export function mapCrowdReferenceDate(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const date = /^\d{8}$/.test(value) ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}` : value;
+  return validTripDate(date) ? date : "";
 }

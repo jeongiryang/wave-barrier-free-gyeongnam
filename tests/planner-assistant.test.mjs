@@ -23,7 +23,7 @@ function compile(file, dependencies, globals = {}) {
   return exports;
 }
 const http = compile('../server/shared/http.ts', { '../../lib/http-cache.js': { cacheControlHeader }, '../../lib/security/request-boundaries.js': { verifySameOriginMutation } });
-function handler(responder, configured = true) {
+function handler(responder, configured = true, extraEnv = {}) {
   const calls = [];
   let requesters = 0;
   const { handleAssistant } = compile('../server/assistant/handler.ts', {
@@ -39,11 +39,12 @@ function handler(responder, configured = true) {
         const instance = ++requesters;
         return async (context, url, options) => {
           calls.push({ instance, context, url, options });
-          return { ok: true, status: 200, json: async () => responder ? responder(context, options) : { choices: [{ message: { content: JSON.stringify({ reply: '확인할 내용을 골라주세요.', proposal: { action: 'search' } }) } }] } };
+          const responseBody = responder ? responder(context, options, url) : { choices: [{ message: { content: JSON.stringify({ reply: '확인할 내용을 골라주세요.', proposal: { action: 'search' } }) } }] };
+          return { ok: true, status: 200, json: async () => responseBody };
         };
       },
     },
-  }, { process: { env: configured ? { WAVE_AI_BASE_URL: 'http://127.0.0.1:18765/v1', WAVE_AI_MODEL: 'fixture-local', WAVE_AI_TOKEN: 'fixture-not-a-real-token' } : {} } });
+  }, { process: { env: configured ? { WAVE_AI_BASE_URL: 'http://127.0.0.1:18765/v1', WAVE_AI_MODEL: 'fixture-local', WAVE_AI_TOKEN: 'fixture-not-a-real-token', ...extraEnv } : {} } });
   return { run: handleAssistant, calls };
 }
 const request = (body = { messages: [{ role: 'user', content: '여행지 찾아줘' }], context: { places: [] } }, origin = 'https://wave.example') => new Request('https://wave.example/api/assistant', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -207,3 +208,35 @@ test('explicit Tongyeong count and exclusions repair a mistaken model region', (
   assert.equal(actions.validateAssistantAction({ ...proposal, count: 13 }), null);
 });
 
+
+const fallbackEnv = { WAVE_AI_FALLBACK_BASE_URL: 'https://backup.example/v1', WAVE_AI_FALLBACK_MODEL: 'backup', WAVE_AI_FALLBACK_TOKEN: 'backup-test-token' };
+test('primary not-ready health falls back to the independently authenticated backup', async () => {
+  const h = handler((_context, _options, url) => ({ ready: url.includes('backup.example') }), true, fallbackEnv);
+  assert.equal((await (await h.run(new Request('https://wave.example/api/assistant'))).json()).available, true);
+  assert.equal(h.calls.length, 2);
+  assert.equal(h.calls[1].options.headers.Authorization, 'Bearer backup-test-token');
+});
+test('failed inference retries once on backup with identical context and backup model', async () => {
+  const h = handler((_context, _options, url) => {
+    if (!url.includes('backup.example')) throw new ProviderRequestError({kind:'upstream_error'});
+    return {choices:[{message:{content:JSON.stringify({reply:'검색할게요.',proposal:{action:'search'}})}}]};
+  }, true, fallbackEnv);
+  const result=await h.run(request());
+  assert.equal(result.status,200);
+  assert.equal(h.calls.length,2);
+  const primary=JSON.parse(h.calls[0].options.body), backup=JSON.parse(h.calls[1].options.body);
+  assert.deepEqual(backup.messages,primary.messages);
+  assert.equal(backup.model,'backup');
+  assert.notEqual(h.calls[0].instance,h.calls[1].instance);
+});
+test('auth failure and invalid model action are not disguised by a fallback retry', async () => {
+  for(const failure of ['auth','invalid']) {
+    const h=handler(()=>{
+      if(failure==='auth') throw new ProviderRequestError({kind:'auth_error'});
+      return {choices:[{message:{content:JSON.stringify({reply:'변경',proposal:{action:'remove',placeId:'invented'}})}}]};
+    },true,fallbackEnv);
+    const response=await h.run(request());
+    assert.equal(response.status,503);
+    assert.equal(h.calls.length,1);
+  }
+});
