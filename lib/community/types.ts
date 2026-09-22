@@ -20,6 +20,7 @@ export type CommunityPost = {
   journalPlaces: CommunityJournalPlace[];
   visitPhotos?: VisitPhoto[];
   photoCount?: number;
+  demoBatchId: string | null;
 };
 
 export type AccessibilityFieldReport = {
@@ -44,6 +45,7 @@ export type CommunityComment = {
   createdAt: number;
   updatedAt: number;
   isOwner: boolean;
+  demoBatchId: string | null;
 };
 
 export const COMMUNITY_CATEGORY_LABELS = {

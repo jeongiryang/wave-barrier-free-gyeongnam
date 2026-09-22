@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
 import { openLandingTools, prepareStory, storyReady, chapterIds, firstRegions, allRegions, expectUsableTarget, expectNoOverflow } from "./landing-contract";
 import { regionNames } from "../lib/gyeongnam-region-names";
-import { regionPhotoSource } from "../features/landing/region-photo-sources";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 import AxeBuilder from "@axe-core/playwright";
 
@@ -102,7 +101,7 @@ test("landing: reduced motion keeps every section readable through forward scrol
   await expectUsableTarget(planning);
 });
 
-for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 1440]) {
+for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 601, 960, 1440]) {
   test(`landing: ${locale} regional links and original credits stay usable through keyboard expansion at ${width}px`, async ({ page }) => {
     const en = locale === "en";
     await prepareStory(page);
@@ -137,10 +136,35 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 1440]
       await expect(link).toHaveAccessibleName(`${en ? regionNames[name] : name} ${en ? "places" : "여행지 보기"}`);
       await expect(card.locator("img")).toHaveAttribute("src", photo.image);
       await expect(card.locator(".simple-region-link > div > span")).toHaveAttribute("lang", "ko");
+      await expect(card.locator(".simple-region-arrow")).toHaveCount(0);
       const credit = card.locator(".simple-region-credit");
-      await expect(credit).toHaveAttribute("href", regionPhotoSource(photo).href);
+      await expect(credit).toHaveAttribute("href", photo.image);
+      await expect(credit).toHaveAttribute("target", "_blank");
       await expect(credit).toHaveAccessibleName(`${photo.title} 사진 원본, 새 탭`);
-      expect(await credit.evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");
+      await expectUsableTarget(credit);
+      const overlay = await credit.evaluate(node => {
+        const source = node.getBoundingClientRect(), photo = node.parentElement!.querySelector("img")!.getBoundingClientRect();
+        return source.left >= photo.left - 1 && source.right <= photo.right + 1 && source.top >= photo.top - 1 && source.bottom <= photo.bottom + 1;
+      });
+      expect(overlay, 'The source must overlay the photograph without adding a footer').toBe(true);
+      const overlapsText = await credit.evaluate(node => {
+        const source = node.getBoundingClientRect();
+        return [...node.parentElement!.querySelectorAll('.simple-region-link h3, .simple-region-link > div > span')].some(text => {
+          const range = document.createRange();
+          range.selectNodeContents(text);
+          return [...range.getClientRects()].some(rect => Math.min(source.right, rect.right) > Math.max(source.left, rect.left) + 1 && Math.min(source.bottom, rect.bottom) > Math.max(source.top, rect.top) + 1);
+        });
+      });
+      expect(overlapsText, 'Photo credits must not cover city or photograph names').toBe(false);
+      const clippedText = await card.evaluate(node => {
+        const card = node.getBoundingClientRect();
+        return [...node.querySelectorAll('.simple-region-link h3, .simple-region-link > div > span')].some(text => {
+          const range = document.createRange();
+          range.selectNodeContents(text);
+          return [...range.getClientRects()].some(rect => rect.left < card.left - 1 || rect.right > card.right + 1 || rect.top < card.top - 1 || rect.bottom > card.bottom + 1);
+        });
+      });
+      expect(clippedText, 'City and photograph names must remain inside their card').toBe(false);
     }
     expect(destinations.sort()).toEqual([...allRegions].sort());
     await page.emulateMedia({ reducedMotion: "reduce" });

@@ -29,8 +29,6 @@ button { font-weight: 500; }
 .simple-region-link > div > span { font-size: .875rem; text-shadow: 0 1px 6px #132921; }
 .simple-region-arrow { position: absolute; right: 24px; bottom: 34px; color: #fff; font-size: 24px; z-index: 1; }
 .simple-region-credit { position: absolute; bottom: 0; left: 14px; right: 45px; z-index: 2; min-height: 44px; display: flex; align-items: center; color: #fff; font-size: .75rem; text-decoration: underline; }
-.simple-region-culture { position: absolute; inset: auto 12px 44px; z-index: 3; min-height: 132px; padding: 10px 12px 4px; display: grid; grid-template-rows: auto auto auto 44px; align-content: start; border: 1px solid var(--line); border-radius: 10px 10px 0 0; color: var(--ink); background: var(--paper); }
-.simple-region-culture strong { color: var(--ink); font-size: .875rem; }.simple-region-culture p { margin: 2px 0; color: var(--ink-soft); font-size: .75rem; line-height: 1.45; }.simple-region-culture small { color: var(--muted); font-size: .625rem; line-height: 1.35; }.simple-region-culture a { min-height: 44px; display: inline-flex; align-items: center; color: var(--ink); font-size: .75rem; font-weight: 750; text-decoration: underline; }
 .simple-region:focus-within { outline: 3px solid var(--blue); outline-offset: 3px; }
 .simple-show-regions { display: flex; align-items: center; justify-content: center; gap: 20px; min-height: 48px; margin: 28px auto 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 10px 24px; }
 .simple-naru-story { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(32px,6vw,100px); align-items: center; }
