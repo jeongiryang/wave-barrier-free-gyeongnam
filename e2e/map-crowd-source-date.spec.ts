@@ -42,12 +42,34 @@ for (const baseYmd of ['20260918', '', '20260230']) test(`지도 혼잡 예측�
     await expect(legend.locator('time')).toHaveCount(0);
     await expect(legend).not.toContainText('기준일 2026-09-21');
   }
-  for (const width of info.project.name.startsWith('mobile') ? [390] : [1440, 960, 390, 1440]) {
+  for (const width of info.project.name.startsWith('mobile') ? [390, 320] : [1440, 960, 390, 320, 1440]) {
     await page.setViewportSize({ width, height: 960 });
     await showCrowdMap(page);
     await expect(legend.locator('.map-crowd-evidence')).toBeVisible();
     expect(await legend.locator('.map-crowd-evidence').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    // Put the evidence near the fixed launcher's vertical range, as when the
+    // visitor scrolls to the map bottom. Inspect text, not transparent padding.
+    await legend.evaluate(node => window.scrollBy(0, node.getBoundingClientRect().bottom - innerHeight + 12));
+    await expect(page.locator('.naru-launcher')).toBeVisible();
+    const geometry = await legend.locator('.map-crowd-evidence').evaluate(node => {
+      const launcher = document.querySelector('.naru-launcher')!.getBoundingClientRect();
+      const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+      const overlaps: string[] = [];
+      let text: Node | null;
+      while ((text = walker.nextNode())) {
+        if (!text.textContent?.trim()) continue;
+        const range = document.createRange(); range.selectNodeContents(text);
+        for (const rect of range.getClientRects()) {
+          if (Math.min(rect.right, launcher.right) > Math.max(rect.left, launcher.left) && Math.min(rect.bottom, launcher.bottom) > Math.max(rect.top, launcher.top)) overlaps.push(text.textContent);
+        }
+      }
+      const legendBox = node.closest('.map-crowd-legend')!.getBoundingClientRect();
+      const map = node.closest('.route-map-shell')!.getBoundingClientRect();
+      return { overlaps, legendHeight: legendBox.height, mapHeight: map.height };
+    });
+    expect(geometry.overlaps, `${width}px crowd evidence must remain readable beside the fixed launcher`).toEqual([]);
+    expect(geometry.legendHeight, `${width}px map retains room for places and routes`).toBeLessThanOrEqual(geometry.mapHeight * .4);
     if (baseYmd === '20260918') await legend.screenshot({ path: info.outputPath(`crowd-evidence-${width}.png`) });
   }
 });
