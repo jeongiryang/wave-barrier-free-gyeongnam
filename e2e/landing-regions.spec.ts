@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
 import { openLandingTools, prepareStory, storyReady, chapterIds, firstRegions, allRegions, expectUsableTarget, expectNoOverflow } from "./landing-contract";
 import { regionNames } from "../lib/gyeongnam-region-names";
-import { regionPhotoSource } from "../features/landing/region-photo-sources";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 import AxeBuilder from "@axe-core/playwright";
 
@@ -137,10 +136,7 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 1440]
       await expect(link).toHaveAccessibleName(`${en ? regionNames[name] : name} ${en ? "places" : "여행지 보기"}`);
       await expect(card.locator("img")).toHaveAttribute("src", photo.image);
       await expect(card.locator(".simple-region-link > div > span")).toHaveAttribute("lang", "ko");
-      const credit = card.locator(".simple-region-credit");
-      await expect(credit).toHaveAttribute("href", regionPhotoSource(photo).href);
-      await expect(credit).toHaveAccessibleName(`${photo.title} 사진 원본, 새 탭`);
-      expect(await credit.evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");
+      await expect(card.locator(".simple-region-credit,.simple-region-arrow")).toHaveCount(0);
     }
     expect(destinations.sort()).toEqual([...allRegions].sort());
     await page.emulateMedia({ reducedMotion: "reduce" });

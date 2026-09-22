@@ -1,8 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chapterIds, openLandingTools, prepareStory, storyReady, expectUsableTarget,  expectNoOverflow } from "./landing-contract";
-import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
-import { regionPhotoSource } from "../features/landing/region-photo-sources";
 
 
 test.beforeEach(async ({ page }) => { await prepareStory(page); });
@@ -18,12 +16,16 @@ for (const locale of ["ko", "en"] as const) {
     await openLandingTools(page);
     await expect(page.locator("#naru")).toContainText(locale === "en" ? "AI travel guide" : "경남 여행을 함께 찾고 일정을 정리해요");
     await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
+    await expect(page.locator("#story")).not.toContainText("WAVE TRAVEL PLANNER");
+    await expect(page.locator("#story")).not.toContainText("YOUR TRAVEL, CONNECTED");
+    await expect(page.locator("#story").getByRole("button", { name: "이 지역들 먼저 보기", exact: true })).toHaveCount(0);
     await expect(page.locator(".simple-naru-example")).toContainText(locale === "en" ? "Example" : "대화 예시");
     const photo = page.locator(".landing-hero-landscape");
     await expect(photo.locator("img")).toHaveAttribute("alt", "");
-    const credit=page.locator(".simple-region-credit").first();
-    await expect(credit).toHaveAttribute("lang", "ko");
-    await expect(credit).toHaveAttribute("href", regionPhotoSource(regionShowcaseAlbums["통영"][0]).href);
+    await expect(page.locator("#regions .simple-region-credit,#regions .simple-region-arrow")).toHaveCount(0);
+    const heroAction = page.locator(".landing-actions a");
+    await expect(heroAction).toHaveCSS("border-radius", "12px");
+    expect((await heroAction.boundingBox())!.width).toBeGreaterThan(300);
     for (const selector of [".landing-actions a", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) await expectUsableTarget(page.locator(selector));
     await expectNoOverflow(page);
     expect((await new AxeBuilder({ page }).include("#story").include("#naru").analyze()).violations).toEqual([]);
@@ -35,7 +37,7 @@ for (const locale of ["ko", "en"] as const) {
     if (locale === "en") await expect(page.getByRole("dialog", { name: "WAVE 여행 가이드 나루와 대화", exact: true })).toBeVisible();
   });
 
-  test(`${locale}: failed decorative hero preserves region credits, all sections and keyboard planning`, async ({ page }) => {
+  test(`${locale}: failed decorative hero preserves all sections and keyboard planning`, async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
@@ -45,7 +47,7 @@ for (const locale of ["ko", "en"] as const) {
     const photo = page.locator(".landing-hero-landscape");
     await expect(photo.locator("img")).toHaveAttribute("alt", "");
     await expect(page.getByRole("heading",{level:1})).toBeVisible();
-    await expect(page.locator(".simple-region-credit").first()).toHaveAttribute("href", regionPhotoSource(regionShowcaseAlbums["통영"][0]).href);
+    await expect(page.locator("#regions .simple-region-credit,#regions .simple-region-arrow")).toHaveCount(0);
     expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
     for (const width of [320, 1440]) {
       await page.setViewportSize({ width, height: 844 });

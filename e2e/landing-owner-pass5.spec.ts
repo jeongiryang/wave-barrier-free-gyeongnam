@@ -1,4 +1,3 @@
-import { regionPhotoSource } from "../features/landing/region-photo-sources";
 import { test, expect } from "@playwright/test";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 import { openLandingTools, prepareStory, storyReady, chapterIds, firstRegions } from "./landing-contract";
@@ -61,7 +60,7 @@ test("the travel narrative and labelled Naru example remain free of provider req
   expect(requests).toEqual([]);
 });
 
-test("all eighteen regional cover photographs retain the exact original, author and safe named source link", async ({ page }) => {
+test("all eighteen regional cards retain the exact original photo and destination", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/"); await storyReady(page);
   await expect(page.locator(".simple-region h3")).toHaveText(firstRegions);
@@ -71,14 +70,7 @@ test("all eighteen regional cover photographs retain the exact original, author 
     await expect(card.locator("img")).toHaveAttribute("src", photo.image);
     await expect(card.locator(".simple-region-link")).toHaveAttribute("href", "/planner?region=" + encodeURIComponent(name));
     await expect(card.locator(".simple-region-link > div > span")).toHaveAttribute("lang", "ko");
-    const credit = card.locator(".simple-region-credit");
-    await expect(credit).toHaveAttribute("href", regionPhotoSource(photo).href);
-    await expect(credit).toHaveAttribute("target", "_blank");
-    await expect(credit).toHaveAttribute("rel", /noopener/);
-    await expect(credit).toHaveAttribute("rel", /noreferrer/);
-    await expect(credit).toHaveAccessibleName(`${photo.title} 사진 원본, 새 탭`);
-    await expect(credit).toContainText(photo.photographer || "한국관광공사");
-    await expect(credit).toHaveCSS("text-decoration-line", "underline");
+    await expect(card.locator(".simple-region-credit,.simple-region-culture,.declining-region-notice,.simple-region-arrow")).toHaveCount(0);
   }
   await page.goto("/policies#content-credits");
   await expect(page.getByRole("heading", { name: "콘텐츠 출처 및 이용안내" })).toBeVisible();

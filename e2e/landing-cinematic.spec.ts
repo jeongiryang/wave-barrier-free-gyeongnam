@@ -40,7 +40,7 @@ test("browsing and expanding photographs cannot rotate destinations, query a tri
 });
 
 for (const locale of ["ko", "en"] as const) {
-  test(`${locale}: failure of one photograph retains its destination and credit without hiding a neighbouring photo`, async ({ page }) => {
+  test(`${locale}: failure of one photograph retains its destination without hiding a neighbouring photo`, async ({ page }) => {
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 390, height: 844 });
@@ -52,19 +52,17 @@ for (const locale of ["ko", "en"] as const) {
     await expect.poll(() => failed.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth === 0)).toBe(true);
     await expect(failed.locator("img")).toHaveCSS("opacity", "0");
     await expect(failed.locator("h3")).toHaveText(locale === "en" ? "Tongyeong" : "통영");
-    await expect(failed.locator(".simple-region-credit")).toHaveAttribute("href", failedPhoto.image);
     await expectUsableTarget(failed.locator(".simple-region-link"));
-    await expectUsableTarget(failed.locator(".simple-region-credit"));
     await next.scrollIntoViewIfNeeded();
     await expect.poll(() => next.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
     await expect(next.locator("img")).toHaveCSS("opacity", "1");
-    await expect(next.locator(".simple-region-credit")).toHaveAttribute("href", regionShowcaseAlbums["거제"][0].image);
+    await expect(next.locator(".simple-region-credit,.simple-region-arrow")).toHaveCount(0);
     expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
     await expectNoOverflow(page);
   });
 }
 
-test("all failed regional photographs leave eighteen separate keyboard destinations and credits at 320px", async ({ page }) => {
+test("all failed regional photographs leave eighteen separate keyboard destinations at 320px", async ({ page }) => {
   await page.route("https://tong.visitkorea.or.kr/**", route => route.abort());
   await page.setViewportSize({ width: 320, height: 568 });
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -82,9 +80,7 @@ test("all failed regional photographs leave eighteen separate keyboard destinati
     await expect(card.locator("h3")).toBeVisible();
     await expect.poll(() => card.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth === 0)).toBe(true);
     await expectUsableTarget(card.locator(".simple-region-link"));
-    await expectUsableTarget(card.locator(".simple-region-credit"));
-    const heading = (await card.locator("h3").boundingBox())!, credit = (await card.locator(".simple-region-credit").boundingBox())!;
-    expect(heading.y + heading.height).toBeLessThanOrEqual(credit.y);
+    await expect(card.locator(".simple-region-credit,.simple-region-arrow")).toHaveCount(0);
     await expectNoOverflow(page);
   }
   expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);

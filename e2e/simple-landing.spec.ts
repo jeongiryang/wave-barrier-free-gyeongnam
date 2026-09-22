@@ -1,6 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
-import { regionPhotoSource } from "../features/landing/region-photo-sources";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 import { arrivalPlaybackReady, pauseCurrentClock } from './landing-contract';
 import { INTRO_DURATION_MS } from '../features/landing/intro/wave-timing';
@@ -35,7 +34,7 @@ test("approved arrival completes its 12.731-second playback and exposes keyboard
   await expect(scene).toHaveAttribute("open", "");
   await arrivalPlaybackReady(page);
   await expect(scene.locator('img, video')).toHaveCount(0);
-  await expect(scene.locator('[aria-live=polite]').last()).toContainText('/ 7');
+  await expect(scene.getByRole('button')).toHaveCount(1);
   await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
   const elapsed = Number(await scene.locator('.wave-intro').getAttribute('data-time-ms'));
   // Production advances its timeline by performance elapsed time. Jump to the
@@ -117,16 +116,13 @@ for (const width of [1440, 390]) test(`${width}px reduced motion keeps the photo
     const name = await card.locator("h3").innerText();
     const photo = regionShowcaseAlbums[name][0];
     const link = card.getByRole("link", { name: `${name} 여행지 보기`, exact: true });
-    const image = link.locator("img"), credit = card.getByRole("link", { name: `${photo.title} 사진 원본, 새 탭`, exact: true });
+    const image = link.locator("img");
     const destination = new URL((await link.getAttribute("href"))!, page.url());
     expect(destination.origin).toBe(new URL(page.url()).origin);
     expect(destination.pathname).toBe("/planner");
     expect([...destination.searchParams]).toEqual([["region", name]]);
     await expect(image).toHaveAttribute("src", photo.image);
-    await expect(credit).toHaveAttribute("href", regionPhotoSource(photo).href);
-    await expect(credit).toContainText(photo.photographer || "한국관광공사");
-    await expect(credit).toHaveAttribute("rel", /noopener/);
-    await expect(credit).toHaveAttribute("rel", /noreferrer/);
+    await expect(card.locator(".simple-region-credit,.simple-region-culture,.declining-region-notice,.simple-region-arrow")).toHaveCount(0);
     await card.scrollIntoViewIfNeeded();
     await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
     const bounds = await card.evaluate(node => {

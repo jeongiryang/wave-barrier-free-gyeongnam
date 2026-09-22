@@ -53,7 +53,7 @@ test("the arrival intro is dismissible, accessible and isolated from global land
   assert.match(landing, /<LandingIntro/);
   assert.match(landing, /<LandingHero/);
   assert.match(intro, /<dialog ref=\{dialog\} className=\{`\$\{styles\.scene\} arrival-scene`\}/);
-  assert.match(intro, /"모두의 발걸음이 닿는 경상남도"/);
+  assert.match(intro, /모두의 발걸음이 닿는 경상남도/);
   assert.match(intro, /node\.showModal\(\)/);
   assert.match(intro, /onCancel=\{event\s*=>\s*\{\s*event\.preventDefault\(\);\s*finishRef\.current\(\);\s*\}\}/);
   assert.match(intro, /건너뛰기<\/button>/);

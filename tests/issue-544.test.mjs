@@ -41,7 +41,7 @@ test("approved PR 667 supersedes the old intro phrase while preserving isolated 
     source("features/landing/components/LandingIntro.tsx"),
     source("features/landing/components/LandingIntro.module.css"),
   ]);
-  assert.match(intro, /"모두의 발걸음이 닿는 경상남도"/);
+  assert.match(intro, /모두의 발걸음이 닿는 경상남도/);
   assert.match(intro, /import\("\.\.\/intro\/wave-intro"\)/);
   assert.match(intro, /onCancel/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);

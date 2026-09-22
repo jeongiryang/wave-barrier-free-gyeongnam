@@ -334,7 +334,7 @@ test("wide screens keep the full-width header and put the itinerary beside its m
   assert.match(css, /\.simple-planner-tabs button \{[^}]*min-height: 48px/);
 });
 
-test("landing offers five fixed photo links then all eighteen, preserving sources and the verified boundary data", async () => {
+test("landing offers five fixed full-photo links then all eighteen and preserves the verified boundary data", async () => {
   const [landing, css] = await Promise.all([
     source("features/landing/components/LandingRegionStory.tsx"), source("app/styles/simple-wave.css"),
   ]);
@@ -344,8 +344,7 @@ test("landing offers five fixed photo links then all eighteen, preserving source
   assert.match(landing, /href=\{\x60\/planner\?region=\$\{encodeURIComponent\(name\)\}\x60\}/);
   assert.match(landing, /aria-controls="region-grid"/);
   assert.match(landing, /aria-expanded=\{expanded\}/);
-  assert.match(landing, /href=\{regionPhotoSource\(photo\)\.href\}/);
-  assert.match(landing, /className="simple-region-credit" lang="ko"/);
+  assert.doesNotMatch(landing, /regionPhotoSource|simple-region-credit|simple-region-culture|declining-region-notice|simple-region-arrow/);
   assert.doesNotMatch(landing, /setTimeout|setInterval|setAutomatic|RegionMascot|upload\.wikimedia\.org/i);
   const surface = await source("features/landing/components/RegionBoundarySurface.tsx");
   assert.match(surface, /viewBox="0 0 800 814"/);
@@ -402,10 +401,8 @@ test("arrival intro hosts the approved renderer with explicit playback and bound
   assert.match(intro, /prefers-reduced-motion: reduce/);
   assert.match(intro, /onComplete=\{\(\)=>finishRef\.current\(\)\}/);
   assert.match(intro, /watchdog\s*=\s*setTimeout\([\s\S]*!ready\.current[\s\S]*8000\)/);
-  assert.match(intro, /onFailure=\{\(\)=>setFailed\(true\)\}/);
-  assert.match(intro, /일시정지/);
-  assert.match(intro, /이전 장면/);
-  assert.match(intro, /다음 장면/);
+  assert.match(intro, /onFailure=\{\(\)=>finishRef\.current\(\)\}/);
+  assert.doesNotMatch(intro, /일시정지|이전 장면|다음 장면/);
   assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
   assert.match(intro, /clearTimeout\(watchdog\)/);
   assert.match(css, /\.scene\s*\{[^}]*position:\s*fixed/);
