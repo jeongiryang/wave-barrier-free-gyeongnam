@@ -70,7 +70,7 @@ test("all eighteen regional cards retain the exact original photo and destinatio
     await expect(card.locator("img")).toHaveAttribute("src", photo.image);
     await expect(card.locator(".simple-region-link")).toHaveAttribute("href", "/planner?region=" + encodeURIComponent(name));
     await expect(card.locator(".simple-region-link > div > span")).toHaveAttribute("lang", "ko");
-    await expect(card.locator(".simple-region-credit,.simple-region-culture,.declining-region-notice,.simple-region-arrow")).toHaveCount(0);
+    await expect(card.locator(".simple-region-culture,.declining-region-notice,.simple-region-arrow")).toHaveCount(0);
   }
   await page.goto("/policies#content-credits");
   await expect(page.getByRole("heading", { name: "콘텐츠 출처 및 이용안내" })).toBeVisible();

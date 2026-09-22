@@ -22,7 +22,7 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator(".simple-naru-example")).toContainText(locale === "en" ? "Example" : "대화 예시");
     const photo = page.locator(".landing-hero-landscape");
     await expect(photo.locator("img")).toHaveAttribute("alt", "");
-    await expect(page.locator("#regions .simple-region-credit,#regions .simple-region-arrow")).toHaveCount(0);
+    await expect(page.locator("#regions .simple-region-arrow")).toHaveCount(0);
     const heroAction = page.locator(".landing-actions a");
     await expect(heroAction).toHaveCSS("border-radius", "12px");
     expect((await heroAction.boundingBox())!.width).toBeGreaterThan(300);
@@ -47,7 +47,7 @@ for (const locale of ["ko", "en"] as const) {
     const photo = page.locator(".landing-hero-landscape");
     await expect(photo.locator("img")).toHaveAttribute("alt", "");
     await expect(page.getByRole("heading",{level:1})).toBeVisible();
-    await expect(page.locator("#regions .simple-region-credit,#regions .simple-region-arrow")).toHaveCount(0);
+    await expect(page.locator("#regions .simple-region-arrow")).toHaveCount(0);
     expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
     for (const width of [320, 1440]) {
       await page.setViewportSize({ width, height: 844 });

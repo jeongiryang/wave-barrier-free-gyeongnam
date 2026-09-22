@@ -12,9 +12,10 @@ test.beforeEach(async ({ page }) => {
 
 test("지역 사진 카드는 별도 문화·출처 패널 없이 사진으로 채운다", async ({ page }) => {
   const regions = page.locator("#regions");
-  await expect(regions.locator(".simple-region-culture,.simple-region-credit,.declining-region-notice,.simple-region-arrow")).toHaveCount(0);
+  await expect(regions.locator(".simple-region-culture,.declining-region-notice,.simple-region-arrow")).toHaveCount(0);
   await regions.getByRole("button", { name: /18개 지역 모두 보기/ }).click();
-  await expect(regions.locator(".simple-region-culture,.simple-region-credit,.declining-region-notice,.simple-region-arrow")).toHaveCount(0);
+  await expect(regions.locator(".simple-region-culture,.declining-region-notice,.simple-region-arrow")).toHaveCount(0);
+  await expect(regions.locator(".simple-region-credit")).toHaveCount(18);
   const fill = await regions.locator(".simple-region").first().evaluate(node => {
     const card = node.getBoundingClientRect(), link = node.querySelector(".simple-region-link")!.getBoundingClientRect(), image = node.querySelector("img")!.getBoundingClientRect();
     return [Math.abs(card.height-link.height), Math.abs(link.height-image.height), Math.abs(link.width-image.width)];

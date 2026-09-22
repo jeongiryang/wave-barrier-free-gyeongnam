@@ -344,7 +344,9 @@ test("landing offers five fixed full-photo links then all eighteen and preserves
   assert.match(landing, /href=\{\x60\/planner\?region=\$\{encodeURIComponent\(name\)\}\x60\}/);
   assert.match(landing, /aria-controls="region-grid"/);
   assert.match(landing, /aria-expanded=\{expanded\}/);
-  assert.doesNotMatch(landing, /regionPhotoSource|simple-region-credit|simple-region-culture|declining-region-notice|simple-region-arrow/);
+  assert.match(landing, /href=\{regionPhotoSource\(photo\)\.href\}/);
+  assert.match(landing, /className="simple-region-credit"/);
+  assert.doesNotMatch(landing, /simple-region-culture|declining-region-notice|simple-region-arrow/);
   assert.doesNotMatch(landing, /setTimeout|setInterval|setAutomatic|RegionMascot|upload\.wikimedia\.org/i);
   const surface = await source("features/landing/components/RegionBoundarySurface.tsx");
   assert.match(surface, /viewBox="0 0 800 814"/);

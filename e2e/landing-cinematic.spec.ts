@@ -56,7 +56,7 @@ for (const locale of ["ko", "en"] as const) {
     await next.scrollIntoViewIfNeeded();
     await expect.poll(() => next.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
     await expect(next.locator("img")).toHaveCSS("opacity", "1");
-    await expect(next.locator(".simple-region-credit,.simple-region-arrow")).toHaveCount(0);
+    await expect(next.locator(".simple-region-arrow")).toHaveCount(0);
     expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
     await expectNoOverflow(page);
   });
@@ -80,7 +80,7 @@ test("all failed regional photographs leave eighteen separate keyboard destinati
     await expect(card.locator("h3")).toBeVisible();
     await expect.poll(() => card.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth === 0)).toBe(true);
     await expectUsableTarget(card.locator(".simple-region-link"));
-    await expect(card.locator(".simple-region-credit,.simple-region-arrow")).toHaveCount(0);
+    await expect(card.locator(".simple-region-arrow")).toHaveCount(0);
     await expectNoOverflow(page);
   }
   expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);

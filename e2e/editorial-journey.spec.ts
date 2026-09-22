@@ -94,7 +94,7 @@ test("English travel pages identify original Korean photography and community co
   await storyReady(page);
   await expect(page.locator(".landing-page")).toHaveAttribute("lang", "en");
   await expect(page.locator(".landing-hero-landscape img")).toHaveAttribute("alt", "");
-  await expect(page.locator("#regions .simple-region-credit")).toHaveCount(0);
+  await expect(page.locator("#regions .simple-region-credit")).toHaveCount(5);
   await expect(page.locator("#community h2")).toHaveText("Travel brings people together.");
   expect(await page.locator("#community .night-discover-photos span").first().evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");
   await page.goto("/planner");

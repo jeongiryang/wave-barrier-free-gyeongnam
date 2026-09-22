@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } fro
 import Link from "next/link";
 import { landingRegions } from "../content";
 import { regionShowcaseAlbums } from "../region-showcase-photos";
+import { regionPhotoSource } from "../region-photo-sources";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { regionNames } from "../../../lib/gyeongnam-region-names";
 import { regionSounds } from "../region-sound";
@@ -51,6 +52,7 @@ export default function LandingRegionStory() {
           <img ref={node => { if (node?.complete && !node.naturalWidth) node.style.opacity = "0"; }} src={photo.image} alt="" loading="lazy" decoding="async" width="640" height="480" onError={event => { event.currentTarget.style.opacity = "0"; }} />
           <div><h3>{label}</h3><span lang="ko">{photo.title}</span></div>
         </Link>
+        <a className="simple-region-credit" lang="ko" href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer" aria-label={`${photo.title} 사진 원본, 새 탭`}>사진 출처</a>
       </article>;
     })}</div>
     <button className="simple-show-regions" type="button" disabled={!interactive} aria-expanded={expanded} aria-controls="region-grid" onClick={event => { setExpanded(value => !value); event.currentTarget.focus(); }}>{expanded ? (en ? "Show fewer regions" : "접기") : (en ? "View all 18 regions" : "18개 지역 모두 보기")} <span aria-hidden="true">{expanded ? "−" : "+"}</span></button>
