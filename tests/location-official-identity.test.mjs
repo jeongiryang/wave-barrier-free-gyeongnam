@@ -39,3 +39,25 @@ for(const failed of [false,true])test(`official direct search ${failed?'preserve
  if(failed){assert.equal(result.officialState,'error');assert.deepEqual(result.officialPlaces,[]);}
  else{assert.equal(result.officialPlaces[0].id,'1001');assert.equal(result.officialPlaces[0].accessibility[0].state,'confirmed');assert.equal(calls.length,4);}
 });
+
+test('actual-shaped museum road addresses resolve the official ID and facilities while its library remains separate', async () => {
+  const museum = { contentid: '1622590', title: '경남도립미술관', addr1: '경상남도 창원시 의창구 용지로 296 (퇴촌동)', mapx: '128.6908827248', mapy: '35.2395039295', lDongRegnCd: '48', contenttypeid: '14' };
+  const searched = { id: '23821302', place_name: museum.title, road_address_name: '경남 창원시 의창구 용지로 296', x: '128.69085550149', y: '35.2394650280721', category_group_code: 'CT1', category_name: '문화,예술 > 문화시설 > 미술관' };
+  const requestedIds = [];
+  const load = loadServer(async input => {
+    const url = new URL(input);
+    if (url.hostname === 'dapi.kakao.com') return Response.json({ documents: [searched, { ...searched, id: '10173325', place_name: '경남도립미술관 도서자료실' }] });
+    if (url.pathname.endsWith('searchKeyword2')) return payload([museum]);
+    requestedIds.push(url.searchParams.get('contentId'));
+    if (url.pathname.endsWith('detailCommon2')) return payload([museum]);
+    return payload([{ contentid: museum.contentid, restroom: '장애인 전용 화장실 있음' }]);
+  });
+  const response = await load('server/location/handler.ts').handleLocationSearch(new Request('https://wave.test/api/location-search?q=경남도립미술관&scope=gyeongnam&official=1&profiles=restroom'), env);
+  const result = await response.json();
+  assert.equal(result.officialState, 'available');
+  assert.deepEqual(result.officialPlaces.map(place => place.id), ['1622590']);
+  assert.equal(result.officialPlaces[0].accessibility[0].state, 'confirmed');
+  assert.equal(result.officialPlaces[0].source, '무장애 여행정보 · 국문 관광정보');
+  assert.ok(requestedIds.length > 0 && requestedIds.every(id => id === '1622590'));
+  assert.equal(result.places.length, 2, 'The separately named library remains a search result without inheriting museum evidence.');
+});
