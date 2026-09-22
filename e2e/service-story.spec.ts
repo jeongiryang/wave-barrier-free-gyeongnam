@@ -15,6 +15,7 @@ for (const locale of ["ko", "en"] as const) {
     // the shell hydration timestamp only records hydrateRoot being scheduled.
     await page.locator("#story").scrollIntoViewIfNeeded();
     await expect(page.locator("#story").getByRole("group", { name: locale === "en" ? "Choose a region" : "여행 지역 선택", exact: true })).toBeVisible();
+    await expect(page.locator("#story .region-picker-visual > small")).toHaveCount(0);
     const facilityTab = page.locator(".night-journey-tabs button").nth(1);
     await facilityTab.focus();
     await facilityTab.press("Enter");

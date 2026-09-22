@@ -10,7 +10,7 @@ import { DECLINING_REGION_LABEL, decliningRegionSourceLabel, decliningRegionsFir
 import { regionNames } from "../lib/gyeongnam-region-names";
 export { regionNames } from "../lib/gyeongnam-region-names";
 
-export default function GyeongnamRegionPicker({ value, onChange, includeAll = false, compact = false, night = false, showDecliningInfo = true }: { value: string; onChange: (region: string) => void; includeAll?: boolean; compact?: boolean; night?: boolean; showDecliningInfo?: boolean }) {
+export default function GyeongnamRegionPicker({ value, onChange, includeAll = false, compact = false, night = false, showDecliningInfo = true, showBoundarySource = true }: { value: string; onChange: (region: string) => void; includeAll?: boolean; compact?: boolean; night?: boolean; showDecliningInfo?: boolean; showBoundarySource?: boolean }) {
   const clipPrefix = useId().replace(/:/g, "");
   const regionNoticeId = `${clipPrefix}-region-notice`;
   const keyboardHintId = `${clipPrefix}-keyboard-hint`;
@@ -28,7 +28,7 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
         {regionBoundaries.map((region) => <g key={region.name} aria-hidden="true" aria-pressed={region.name === value} onClick={() => onChange(region.name)}><path data-region-boundary={region.name} data-selected={region.name === value} d={region.path} fillRule="evenodd" /><circle cx={region.x} cy={region.y} r="5" />{(night || region.name === value) && <text x={region.x} y={region.y - 14} textAnchor="middle">{label(region.name)}</text>}</g>)}
       {night && regionBoundaries.filter(r=>photoRegions.includes(r.name)).map(r=><g key={r.name} aria-hidden="true" onClick={()=>onChange(r.name)} style={{cursor:"pointer"}}><image href={regionShowcasePhotos[r.name]?.image} x={r.x-28} y={r.y-53} width="56" height="56" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clipPrefix+r.name})`}/><circle className="night-map-photo-ring" cx={r.x} cy={r.y-25} r="29"/><text x={r.x} y={r.y+21} textAnchor="middle">{label(r.name)}</text></g>)}
       </svg>
-      <small>{en ? "SGIS 2020 · simplified boundaries / StatGarten" : "통계청 SGIS 2020 · 경계 단순화 / StatGarten"}</small>
+      {showBoundarySource && <small>{en ? "SGIS 2020 · simplified boundaries / StatGarten" : "통계청 SGIS 2020 · 경계 단순화 / StatGarten"}</small>}
     </div>;
   return <div className={`region-picker${compact ? " region-picker-compact" : ""}`}>
     {!compact && map}
