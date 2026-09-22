@@ -20,8 +20,9 @@ export default function LandingIntro() {
   const [generation, setGeneration] = useState(0);
 
   useEffect(() => {
+    const reveal = () => window.dispatchEvent(new Event("wave-arrival-ready"));
     const node = dialog.current;
-    if (!node) return;
+    if (!node) { reveal(); return; }
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     let playing = false;
     let previousOverflow = "";
@@ -45,7 +46,8 @@ export default function LandingIntro() {
       if (playing) return;
       let seen = document.documentElement.dataset.introSeen === "1";
       try { seen ||= sessionStorage.getItem("wave-arrival-session-v1") === "done"; } catch { /* Do not block entry. */ }
-      if (media.matches || document.documentElement.dataset.motion === "calm" || (!replay && (seen || window.scrollY > 24))) return;
+      const booting = document.documentElement.hasAttribute("data-intro-pending");
+      if (media.matches || document.documentElement.dataset.motion === "calm" || (!replay && (seen || window.location.hash || (!booting && window.scrollY > 24)))) { reveal(); return; }
       playing = true; ready.current = false;
       setLeaving(false);
       setGeneration(value=>value+1); setActive(true);
@@ -54,6 +56,7 @@ export default function LandingIntro() {
       document.documentElement.style.overflow = "hidden";
       document.documentElement.classList.add("arrival-open");
       node.showModal();
+      reveal();
       node.querySelector<HTMLButtonElement>("button[data-skip]")?.focus();
       // A failed import/context must never lock visitors out of the service.
       watchdog = setTimeout(()=>{ if (!ready.current) finish(); }, 8000);

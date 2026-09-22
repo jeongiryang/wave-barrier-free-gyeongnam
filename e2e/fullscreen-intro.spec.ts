@@ -32,8 +32,12 @@ test("replaying a completed intro starts opaque instead of revealing the page un
 
 test("blocked application scripts leave readable content without an arrival overlay", async ({ page }) => {
   await prepareLandingMedia(page);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.route(/\.(?:js|mjs|tsx)(?:\?|$)/, route => route.abort());
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator('#arrival-boot')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#arrival-boot')).toBeHidden();
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.locator(".landing-actions a")).toBeVisible();
   await expect(page.locator(".landing-actions a")).toHaveAttribute("href", "/planner");
