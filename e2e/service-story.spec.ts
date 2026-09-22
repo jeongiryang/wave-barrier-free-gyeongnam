@@ -14,7 +14,7 @@ for (const locale of ["ko", "en"] as const) {
     // The chapter's effect-driven lazy map proves its client UI has committed;
     // the shell hydration timestamp only records hydrateRoot being scheduled.
     await page.locator("#story").scrollIntoViewIfNeeded();
-    await expect(page.locator("#story").getByRole("group", { name: "여행 지역 선택", exact: true })).toBeVisible();
+    await expect(page.locator("#story").getByRole("group", { name: locale === "en" ? "Choose a region" : "여행 지역 선택", exact: true })).toBeVisible();
     const facilityTab = page.locator(".night-journey-tabs button").nth(1);
     await facilityTab.click();
     await expect(facilityTab).toHaveAttribute("aria-pressed", "true");
