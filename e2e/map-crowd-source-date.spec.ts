@@ -1,7 +1,19 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { mockPlannerApi, mockPublicShellApi, openItinerary, plan, showItineraryMap } from './fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
+
+async function showCrowdMap(page: Page) {
+  const compact = page.viewportSize()!.width < 1024;
+  const view = page.getByRole('group', { name: '일정 보기 방식', exact: true });
+  // Resizing returns before React handles matchMedia's change event. Wait for
+  // the responsive controls before the shared helper checks their visibility.
+  await expect(view).toHaveCount(compact ? 1 : 0);
+  if (compact) await expect(view).toBeVisible();
+  await showItineraryMap(page);
+  if (compact) await expect(view.getByRole('button', { name: '지도', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.simple-itinerary-board')).toHaveAttribute('data-map', 'true');
+}
 
 for (const baseYmd of ['20260918', '', '20260230']) test(`지도 혼잡 예측에 ${baseYmd === '20260918' ? '유효한 기준일' : baseYmd ? '잘못된 기준일의 미확인 상태' : '누락된 기준일의 미확인 상태'}과 제공처를 표시한다`, async ({ page }, info) => {
   const crowd = { rate: 76.7, baseYmd, place: plan.places[0].name };
@@ -17,7 +29,7 @@ for (const baseYmd of ['20260918', '', '20260230']) test(`지도 혼잡 예측�
   await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
   await page.getByRole('button', { name: '경남도립미술관 일정에 담기', exact: true }).click();
   await openItinerary(page, { start: '2026-09-21', end: '2026-09-21' });
-  await showItineraryMap(page);
+  await showCrowdMap(page);
   const legend = page.getByRole('complementary', { name: '혼잡 예측', exact: true });
   await expect(legend).toContainText('76.7%');
   await expect(legend).toContainText('한국관광공사 예측');
@@ -30,9 +42,9 @@ for (const baseYmd of ['20260918', '', '20260230']) test(`지도 혼잡 예측�
     await expect(legend.locator('time')).toHaveCount(0);
     await expect(legend).not.toContainText('기준일 2026-09-21');
   }
-  for (const width of info.project.name.startsWith('mobile') ? [390] : [1440, 960]) {
+  for (const width of info.project.name.startsWith('mobile') ? [390] : [1440, 960, 390, 1440]) {
     await page.setViewportSize({ width, height: 960 });
-    await showItineraryMap(page);
+    await showCrowdMap(page);
     await expect(legend.locator('.map-crowd-evidence')).toBeVisible();
     expect(await legend.locator('.map-crowd-evidence').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
