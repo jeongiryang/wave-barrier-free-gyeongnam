@@ -27,6 +27,12 @@
 - 독립 PGlite SQL 검증 9개 통과: 메타데이터 migration 무데이터, 360/720 적용, 재적용 멱등성, 잘못된 소유자 거부, 외부 게시글/댓글 ID 충돌 거부, 중간 실패 전체 롤백, 숨김 롤백, 실제 댓글·좋아요·신고 보존, 재적용 복구를 확인했다.
 - 카테고리는 수량을 맞추기 위해 회전하지 않고 글 의도에 고정했다. 동행 속도·아침형/늦잠형·식사 리듬은 `together`, 실제 시설 사실이 없는 사진·기념품 대화는 `place`, 회고는 `review`, 짐·앨범·일기는 `tips`로 검증했다.
 
+### CI 후속 검증
+
+- PR CI의 mobile transport 실패 trace에서 768px 제어 수를 5개로 읽은 직후 live `nth()` locator의 세 번째 항목이 사라져 전체 제한 시간까지 기다리는 DOM 재렌더 경쟁을 확인했다. 같은 trace의 mocked route 응답은 17ms와 22ms에 완료됐고 page error나 console error는 없었다.
+- 테스트는 각 viewport에서 `Transport details`, 세 데이터셋, 재확인 버튼의 실제 영문 라벨 5개와 `aria-busy=false`, 44px 최소 크기, 가로 경계를 한 번의 browser 평가로 함께 확인하도록 바꿨다. timeout, retry, CI gate와 제품 코드는 바꾸지 않았다.
+- desktop/mobile Chromium에서 light/dark를 각각 2회, 단일 worker로 반복한 focused 검사 8개가 3분 30초에 모두 통과했다. 별도 6-worker 과부하 실행에서는 mobile 6개가 통과하고 desktop 6개가 개별 assertion 없이 전체 45초 제한에 도달해, 최종 판정에는 CI 샤드에 가까운 단일-worker 반복 결과를 사용했다.
+
 ## 결과와 제한
 
 - 실제 데이터 파일은 `data/community-demo-wave-2026-v1.json`이며 게시글·댓글 모두 영속 `demo_batch_id`를 갖는다. 기존 실제 이용자 행은 `NULL`을 유지한다.

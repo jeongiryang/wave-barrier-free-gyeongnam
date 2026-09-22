@@ -201,19 +201,29 @@ for (const theme of ["light", "dark"] as const) {
     await page.addInitScript((value) => localStorage.setItem("wave-theme", value), theme);
     const details = await prepare(page, "arrival", true);
     expect(errors).toEqual([]);
+    const expectedControls = [
+      "Transport details Current information and official booking",
+      "Bus stops Information received",
+      "Bus arrivals Information received",
+      "Rail service areas List received",
+      "Check these conditions again",
+    ];
     for (const width of [320, 390, 768, 1366]) {
       await page.setViewportSize({ width, height: 900 });
       await ensureResizedMapView(page);
       const pieces = page.locator(".transport-provider-strip b, .transport-data-results span, .transport-live-rail strong, .transport-mode-filter small");
       expect(await pieces.evaluateAll((elements) => elements.every((element) => !element.clientWidth || element.scrollWidth <= element.clientWidth))).toBe(true);
-      for (const control of await details.locator("button,a,summary").all()) {
-        const box = await control.boundingBox();
-        expect(box).not.toBeNull();
-        expect(box!.width).toBeGreaterThanOrEqual(44);
-        expect(box!.height).toBeGreaterThanOrEqual(44);
-        expect(box!.x).toBeGreaterThanOrEqual(0);
-        expect(box!.x + box!.width).toBeLessThanOrEqual(width);
-      }
+      const controls = details.locator("button,a,summary");
+      await expect.poll(() => controls.evaluateAll((elements, viewportWidth) => {
+        const normalize = (value: string) => value.replace(/\s+/g, " ").trim();
+        const boxes = elements.map((element) => element.getBoundingClientRect());
+        return {
+          count: elements.length,
+          labels: elements.map((element) => normalize((element as HTMLElement).innerText)),
+          ready: elements.at(-1)?.getAttribute("aria-busy") === "false",
+          withinBounds: boxes.every((box) => box.width >= 44 && box.height >= 44 && box.x >= 0 && box.right <= viewportWidth),
+        };
+      }, width)).toEqual({ count: expectedControls.length, labels: expectedControls, ready: true, withinBounds: true });
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
       expect((await new AxeBuilder({ page }).include(".transport-details").include(".transport-mode-filter").include(".transport-live-rail").analyze()).violations).toEqual([]);
       const retry = details.getByRole("button", { name: "Check these conditions again", exact: true });
