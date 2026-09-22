@@ -86,6 +86,9 @@ for (const width of [1440, 960, 390]) test(`${width}px reduced motion keeps the 
   const hero = page.locator(".landing-hero-split"), copy = hero.locator(".landing-hero-copy"), photograph = hero.locator(".landing-hero-landscape");
   await expect(copy).toBeVisible();
   const planning = page.locator('.landing-actions a');
+  // Hydration can precede Vite's client stylesheet handoff. Wait for the
+  // required paint, then inspect its colors; a missing gradient still fails.
+  await expect(planning).toHaveCSS('background-image', /linear-gradient\(/);
   const gradient = await planning.evaluate(node => getComputedStyle(node).backgroundImage);
   expect(gradient).toContain('linear-gradient');
   expect(gradient).toContain('rgb(45, 107, 183)');

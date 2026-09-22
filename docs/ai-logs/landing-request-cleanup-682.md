@@ -65,3 +65,13 @@
 - 해당 조건만 `match`로 바꿨다. hover/읽기 시 새 fetch·타이머를 만들지 않는 조건, 같은 사진 album·목적지·lazy loading 조건은 유지했다. 제품 코드는 변경하지 않았다.
 - 선택 검사로 놓친 같은 종류의 stale assertion을 확인하기 위해 이번에는 전체 `npm test`를 실행했다. 1,629개 통과, 실패/취소/skip 0, 15.2초. 기존 단위 테스트 전체를 실행한 결과이며 별도의 나루 UI 또는 실제 모델 요청을 실행한 것은 아니다.
 - 전체 실행 로그: C:/Users/user/Documents/wave-audit-20260922/pr682-full-unit.log. `git diff --check` 통과. 필수 PR CI는 후속 커밋으로 다시 실행한다.
+
+### CI 그라데이션 측정·스타일 준비 오류 보완
+
+- CI run 35685329093에서 desktop/mobile 밝은 화면 대비 검사는 1.822로 실패했다. 기존 측정기는 `backgroundImage`를 읽지 않고 투명 `backgroundColor`의 상위 배경만 비교했다. 실제 CTA의 흰 글자와 세 그라데이션 stop의 대비는 5.38678/6.38954/6.69689로 모두 4.5 이상이다. 독립 QA의 390px 스크린샷 배경 336픽셀 측정도 최소 5.46이었다.
+- 같은 run desktop shard 7의 reduced-motion 검사는 hydration 직후 `backgroundImage=none`을 한 번 읽고 실패했다. trace에서 night-landing.css의 초기 요청(213127ms) 뒤 client module 요청(214060ms)이 발생했고, 즉시 평가가 214356ms에 끝났다. 실패 직후 스크린샷에는 올바른 그라데이션이 표시됐다. hydration 표식과 route CSS 적용 시점이 다를 수 있으므로 기존 8초 assertion 범위에서 `toHaveCSS`로 필수 그라데이션을 확인한 뒤 색상을 검사한다. 지속적인 누락은 여전히 실패한다.
+- 랜딩 대비를 독립 light/dark 케이스로 분리해 opaque sRGB 그라데이션 모든 stop과 흰 글자를 실제 computed style에서 측정한다. 흰 글자 대비에서 sRGB 보간의 휘도는 볼록하므로 가장 밝은 stop이 최악값이다. 밝은 중간 stop(대비 1), 배경 없음, 투명 stop 반례를 추가했다. 지원하지 않는 배경을 건너뛰거나 상위 색으로 대체하지 않는다. 기존 단색 요소의 측정과 4.5 기준은 유지했다.
+- 제품 코드, CSS, CI timeout/retry/failOnFlakyTests/workflow는 변경하지 않았다.
+- 격리 서버 :4191에서 `playwright test e2e/dark-theme-contrast.spec.ts e2e/simple-landing.spec.ts --grep '그라데이션|reduced motion keeps' --workers=2`: desktop/mobile 12개 통과(40.6초). 새 랜딩 대비·반례와 390/960/1440px reduced-motion 검사를 실행했고 mixed 나루 시나리오는 실행하지 않았다. 앞서 기록한 Node와 E2E_EXECUTABLE_PATH override를 동일하게 사용했다.
+- 전체 `npm test`: 1,629개 통과, 실패/skip 0(24.6초). 로그: C:/Users/user/Documents/wave-audit-20260922/pr682-gradient-unit.log. `tsc --noEmit`, 변경 두 spec의 ESLint, `git diff --check` 통과. 후속 PR CI와 독립 한정 검토를 별도로 확인한다.
+- 독립 코드 QA에서 RGB 사이의 미지원 color(display-p3) stop을 놓칠 수 있는 parser 경계를 발견했다. RGB 구간을 제거한 뒤 미지원 색상 함수가 남으면 거부하고, 어두운 RGB 사이의 밝은 display-p3 중간 stop 반례를 추가했다. 같은 gradient 6개 desktop/mobile 검사 재실행 통과(6.9초), 변경 spec ESLint 통과. 복잡한 색상 지원으로 확장하지 않았다.
