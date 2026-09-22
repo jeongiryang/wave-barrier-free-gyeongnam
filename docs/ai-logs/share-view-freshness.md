@@ -2,7 +2,7 @@
 
 - 작성자: unknownamed
 - AI 도구: Codex
-- 상태: 독립 QA용 로컬 후보. 최종 최신 main 반영·PR 필수 CI·병합·배포 확인은 관리 담당과 조정한다.
+- 상태: 독립 QA 승인 후 최신 main 반영 완료, 별도 PR의 필수 CI·병합·배포 확인 대기.
 
 ## 목적과 근거
 
@@ -34,3 +34,9 @@ PR #682의 CI35686558145 mobile shard8에서 자동차 공유 생성 응답을 �
 - 구현 담당: 원인 조사, 제품·회귀 수정, 위 검사, PR 준비.
 - 독립 QA: 별도 main worktree에서 원래 결함을 재현했고 새 후보를 별도 replay한다. 오류 guard 보완 의견을 반영했다.
 - 관리 담당: 최신 main 적용 시점 조정, 필수 CI 확인, squash 병합·배포 검증. 이 수정은 환경 변수·DB migration·workflow 변경이 없다.
+
+## 독립 QA 및 최종 main 반영
+
+- 후보 dd41eb4는 독립 worktree의 브라우저6개 검사에서 모두 통과했다(21.2초, skip/flaky0). 오래된 생성 응답과850ms 대기, 진행 중인 현재 갱신,503 실패와 복사 재시도, car→bicycle→walk 연속 편집의 늦은 중간 응답에서 href 차단·aria-disabled·tabIndex를 확인했다. 같은 공유 ID의 최신 revision 복원과 클립보드 복사도 확인했다.
+- 독립 소스 검토에서 error 차단과 copy-error 허용을 확인하고 승인했다.
+- 최종 origin/main d332175706a086baca7d42e819a1f72d1f53b3e5를 충돌 없이 병합했다. 승인된 두 제품 파일과 두 회귀 spec은 dd41eb4와 내용이 동일하며 `git diff --check`가 통과했다. 외부에서 병합된 나루 설정 변경은 그대로 보존하고 별도 검수·수정하지 않았다. 위 단위1,632개는 dd41eb4 후보에서 실행한 결과이며 최신 병합 tree의 전체 CI 결과로 바꾸어 주장하지 않는다.
