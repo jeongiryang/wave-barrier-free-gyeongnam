@@ -95,21 +95,21 @@ function FestivalAmenityMap({ place }: { place: Place }) {
   }, [amenities, layer, mapReady]);
 
   return <section className={styles.panel} aria-labelledby={descriptionId}>
-    <div className={styles.demoNotice} role="note"><strong>[시연용 예시 지도]</strong><span>빨간 마커는 기능 시연을 위한 임의 위치이며 실제 시설 위치가 아닙니다.</span></div>
+    <div role="note" style={{ marginBottom: 16, padding: "12px 14px", display: "grid", gap: 4, border: "2px solid #ff9f43", borderRadius: 10, color: "#fff3dc", background: "#4a2605", lineHeight: 1.55 }}><strong style={{ color: "#ffd39a" }}>[시연용 예시 지도]</strong><span style={{ fontSize: 13 }}>빨간 마커는 기능 시연을 위한 임의 위치이며 실제 시설 위치가 아닙니다.</span></div>
     <h3 id={descriptionId}>쉬는 곳·화장실 지도 시연</h3>
     <p>축제 현장에서 편의시설 위치를 확인하는 기능을 예시 데이터로 체험할 수 있어요.</p>
-    <div className={styles.layerButtons} role="group" aria-label="지도에 표시할 시연 편의시설">
-      <button type="button" aria-pressed={layer === "rest"} onClick={() => setLayer("rest")}>예시 쉬는 곳</button>
-      <button type="button" aria-pressed={layer === "restroom"} onClick={() => setLayer("restroom")}>예시 화장실</button>
+    <div role="group" aria-label="지도에 표시할 시연 편의시설" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+      <button type="button" aria-pressed={layer === "rest"} onClick={() => setLayer("rest")} style={{ minHeight: 44, padding: "9px 14px", border: `1px solid ${layer === "rest" ? "#147b68" : "#2f5968"}`, borderRadius: 6, color: "#fff", background: layer === "rest" ? "#147b68" : "transparent", fontWeight: 700 }}>예시 쉬는 곳</button>
+      <button type="button" aria-pressed={layer === "restroom"} onClick={() => setLayer("restroom")} style={{ minHeight: 44, padding: "9px 14px", border: `1px solid ${layer === "restroom" ? "#147b68" : "#2f5968"}`, borderRadius: 6, color: "#fff", background: layer === "restroom" ? "#147b68" : "transparent", fontWeight: 700 }}>예시 화장실</button>
     </div>
-    {!officialPoint && <p className={styles.coordinateNotice}>축제 좌표가 없어 경남 중심을 기준으로 시연 지도를 표시합니다.</p>}
-    <div className={styles.mapFrame}>
-      <div ref={mapContainerRef} className={styles.map} data-testid="festival-amenity-map" role="region" aria-label={`${place.name} ${layer === "rest" ? "쉬는 곳" : "화장실"} 시연용 임의 위치 지도`} />
-      <span className={styles.mapDemoBadge} aria-hidden="true">시연 · 임의 위치</span>
-      {!mapReady && !mapError && <p className={styles.mapStatus} role="status">지도를 불러오고 있어요.</p>}
-      {mapError && <p className={styles.mapStatus} role="alert">지도를 불러오지 못했어요.</p>}
+    {!officialPoint && <p style={{ color: "#dcecf4" }}>축제 좌표가 없어 경남 중심을 기준으로 시연 지도를 표시합니다.</p>}
+    <div style={{ position: "relative", overflow: "hidden", border: "1px solid #31596a", borderRadius: 8 }}>
+      <div ref={mapContainerRef} style={{ width: "100%", height: "clamp(240px, 35vw, 280px)" }} data-testid="festival-amenity-map" role="region" aria-label={`${place.name} ${layer === "rest" ? "쉬는 곳" : "화장실"} 시연용 임의 위치 지도`} />
+      <span aria-hidden="true" style={{ position: "absolute", zIndex: 500, top: 10, left: 10, padding: "7px 10px", borderRadius: 999, color: "#fff", background: "#a51d1d", fontSize: 12, fontWeight: 800 }}>시연 · 임의 위치</span>
+      {!mapReady && !mapError && <p style={{ position: "absolute", zIndex: 500, inset: "50% auto auto 50%", margin: 0, padding: "8px 12px", transform: "translate(-50%,-50%)", borderRadius: 6, color: "#173b50", background: "rgba(255,255,255,.94)", fontSize: 14 }} role="status">지도를 불러오고 있어요.</p>}
+      {mapError && <p style={{ position: "absolute", zIndex: 500, inset: "50% auto auto 50%", margin: 0, padding: "8px 12px", transform: "translate(-50%,-50%)", borderRadius: 6, color: "#173b50", background: "rgba(255,255,255,.94)", fontSize: 14 }} role="alert">지도를 불러오지 못했어요.</p>}
     </div>
-    <p className={styles.disclaimer}>실제 방문 전에는 반드시 축제 주최 측의 공식 현장 지도와 편의시설 운영 여부를 확인해 주세요.</p>
+    <p style={{ marginTop: 12, color: "#ffd39a", fontWeight: 700 }}>실제 방문 전에는 반드시 축제 주최 측의 공식 현장 지도와 편의시설 운영 여부를 확인해 주세요.</p>
   </section>;
 }
 
