@@ -6,7 +6,8 @@ import test from "node:test";
 import ts from "typescript";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { readDemoData, validateDemoData } from "../scripts/community-demo.mjs";
+import { demoFixtureSha256, readDemoData, runProductionDemo, validateDemoData } from "../scripts/community-demo.mjs";
+import { COMMUNITY_DEMO_PRODUCTION_TARGET } from "../lib/deployment/community-demo-operation.js";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -79,6 +80,50 @@ test("dry-run is read-only and succeeds without DATABASE_URL", () => {
   assert.equal(report.readOnly, true);
   assert.equal(report.posts, 360);
   assert.equal(report.comments, 720);
+  assert.match(report.fixtureSha256, /^[a-f0-9]{64}$/);
+});
+
+test("validator freezes approved batch metadata and the title disclosure", async () => {
+  const data = await readDemoData();
+  assert.match(await demoFixtureSha256(), /^[a-f0-9]{64}$/);
+  const wrongBatch = structuredClone(data);
+  wrongBatch.batch.id = "another-batch";
+  assert.match(validateDemoData(wrongBatch).errors.join("\n"), /approved fixture/);
+  const wrongTitle = structuredClone(data);
+  wrongTitle.posts[0].title = wrongTitle.posts[0].title.replace("[시연] ", "");
+  assert.match(validateDemoData(wrongTitle).errors.join("\n"), /valid \[시연\] title/);
+});
+
+test("production preflight requires the exact non-secret target and returns only sanitized counts", async () => {
+  const data = await readDemoData();
+  let calls = 0;
+  const snapshot = {
+    database_name: "neondb", read_only: "on", schema_matches: true, batch_metadata_matches: true,
+    batch_rows: "0", posts_total: "4", posts_active: "3", posts_non_demo: "4", posts_non_demo_active: "3",
+    posts_batch: "0", posts_batch_active: "0", posts_batch_hidden: "0", comments_total: "2", comments_active: "2",
+    comments_non_demo: "2", comments_non_demo_active: "2", comments_batch: "0", comments_batch_active: "0",
+    comments_batch_hidden: "0", real_comments_on_batch_posts: "0", likes_total: "1", likes_on_batch_posts: "0",
+    likes_on_non_batch_posts: "1", reports_total: "1", reports_open: "1", reports_on_batch_posts: "0",
+    reports_on_non_batch_posts: "1", foreign_post_collisions: "0", foreign_comment_collisions: "0",
+    extra_batch_posts: "0", extra_batch_comments: "0",
+  };
+  const sql = {
+    query: (text, params = []) => ({ text, params }),
+    transaction: async (_queries, options) => {
+      calls += 1;
+      assert.deepEqual(options, { readOnly: true, isolationLevel: "RepeatableRead" });
+      return [[], [snapshot]];
+    },
+  };
+  const databaseUrl = "postgresql://owner:secret@ep-nameless-voice-azo6m14c.ap-southeast-1.aws.neon.tech/neondb?sslmode=require";
+  const rejected = await runProductionDemo(sql, data, { mode: "preflight", databaseUrl, target: "wrong/neondb" });
+  assert.deepEqual(rejected, { ok: false, reason: "production-target-mismatch" });
+  assert.equal(calls, 0);
+  const accepted = await runProductionDemo(sql, data, { mode: "preflight", databaseUrl, target: COMMUNITY_DEMO_PRODUCTION_TARGET });
+  assert.equal(accepted.ok, true);
+  assert.equal(accepted.snapshot.postsNonDemo, 4);
+  assert.equal(JSON.stringify(accepted).includes("secret"), false);
+  assert.equal(calls, 1);
 });
 
 test("mutations require explicit batch ownership and a database", () => {

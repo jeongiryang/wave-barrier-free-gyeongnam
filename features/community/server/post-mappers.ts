@@ -7,7 +7,7 @@ export function mapCommunityPost(row: CommunityRow, userId = "") {
   return {
     id: String(row.id),
     category: String(row.category),
-    title: String(row.title),
+    title: row.demo_batch_id && !String(row.title).startsWith("[시연]") ? `[시연] ${String(row.title)}` : String(row.title),
     content: String(row.content),
     region: row.region ? String(row.region) : null,
     placeId: row.place_id ? String(row.place_id) : null,
