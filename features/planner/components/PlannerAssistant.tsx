@@ -695,11 +695,12 @@ export default function PlannerAssistant(props: Props) {
           <p aria-hidden="true">{streamText}</p>
           <button type="button" className="naru-readback" onClick={() => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); window.dispatchEvent(new CustomEvent('wave:audio-start', { detail: { source: 'naru-speech' } })); const utterance = new SpeechSynthesisUtterance(streamText); utterance.lang = 'ko-KR'; utterance.onend = utterance.onerror = () => setSpeaking(false); setSpeaking(true); window.speechSynthesis.speak(utterance); } }}>답변 읽어주기</button>
         </div>}
+      {toolsOpen && <details className="naru-suggestions"><summary>모든 여행 도구 펼치기</summary><div className="naru-tools">{toolGroups.map(group => <div key={group.title}><strong>{group.title}</strong><div>{group.items.map(([id, label]) => <button key={id} type="button" onClick={() => openTool(id)}>{label}</button>)}</div></div>)}</div></details>}
         {busy && <div className="naru-typing" role="status"><Spinner /><span>{activity.text || '나루가 여행을 살펴보고 있어요'}</span></div>}
       </div>
       {showLatest && <button className="naru-latest" type="button" onClick={()=>{if(log.current)log.current.scrollTop=log.current.scrollHeight;follow.current=true;setShowLatest(false);}}>최신 답변으로 ↓</button>}
       </div>
-      {toolsOpen && <div className="naru-tools">{toolGroups.map(group => <div key={group.title}><strong>{group.title}</strong><div>{group.items.map(([id, label]) => <button key={id} type="button" onClick={() => openTool(id)}>{label}</button>)}</div></div>)}</div>}
+
 
       </div>
 

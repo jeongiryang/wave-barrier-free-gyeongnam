@@ -33,7 +33,7 @@ body .naru-panel.naru-workspace .naru-workspace-sidebar { border-left:1px solid 
 body .naru-panel.naru-workspace .naru-workspace-content { grid-column:1/-1;flex:1;min-height:0; }
 body .naru-panel.naru-workspace .naru-conversation > [role="tabpanel"]:not([hidden]):not(.naru-workspace-body) { display:flex;flex:1;min-height:0; }
 body .naru-panel.naru-workspace .naru-workspace-body[hidden] { display:none; }
-body .naru-panel.naru-workspace .naru-workspace-content .naru-tools { position:static;max-height:none;padding:16px;box-shadow:none;background:var(--surface); }
+body .naru-panel.naru-workspace .naru-tools { position:static;max-height:none;padding:16px;box-shadow:none;background:var(--surface); }
 body .naru-panel.naru-workspace .naru-workspace-notice { flex-shrink:0;margin:0;padding:10px 24px;color:var(--ink-soft);background:#292333;line-height:1.6; }
 body .naru-panel.naru-workspace :is(.naru-work-request,.naru-saved-workspaces>article) { display:grid;gap:14px;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--surface);margin-bottom:18px; }
 body .naru-panel.naru-workspace .naru-work-request header { display:flex;align-items:center;justify-content:space-between;gap:12px; }

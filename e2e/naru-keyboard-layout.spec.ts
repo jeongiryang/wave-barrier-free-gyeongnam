@@ -116,3 +116,19 @@ test('photo preview and its recovery controls do not consume the conversation ab
   await expect(preview).toHaveCount(0);
   await expect(chat.getByRole('textbox')).toHaveValue('사진을 읽어줘');
 });
+
+test('asking for help never replaces the readable answer with a fixed wall of tools', async ({ page }) => {
+  const chat = await setup(page);
+  await keyboard(page, 390);
+  await chat.getByRole('textbox').fill('어떤 것을 도와줄 수 있어?');
+  await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
+  const log = chat.getByRole('log');
+  await expect(log).toContainText('시설 확인, 일정 변경, 문의 카드와 공유를 도와드려요.');
+  expect((await log.boundingBox())!.height).toBeGreaterThan(180);
+  await log.getByText('모든 여행 도구 펼치기', { exact: true }).click();
+  await expect(log.locator('.naru-tools button')).toHaveCount(28);
+  expect((await log.boundingBox())!.height).toBeGreaterThan(180);
+  await log.getByRole('button', { name: '지역·활동', exact: true }).click();
+  await expect(log).toContainText('지역·활동에서 현재 여행을 이어서 확인할 수 있어요.');
+  await expect(chat.getByRole('textbox')).toHaveValue('');
+});
