@@ -37,6 +37,7 @@ const saved = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getIte
 test('모델 연결 없이 일정 지각·귀가 미확인·휴식·추정 구간을 설명하고 여행을 보존한다', async ({ page }) => {
   const { chat, aiCalls } = await setup(page);
   const before = await saved(page);
+  await chat.locator('.naru-suggestions > summary').click();
   await chat.getByRole('button', { name: '내 여행 점검', exact: true }).click();
   const review = chat.getByRole('region', { name: '나루 여행 점검', exact: true });
   await expect(review).toBeFocused();
@@ -71,6 +72,7 @@ test('날짜 없는 여행 점검은 날짜 입력으로 연결하고 임의 날
 
 test('여행 점검은 PC·태블릿·모바일에서 넘치지 않고 기존 설정으로 연결된다', async ({ page }, info) => {
   const { chat } = await setup(page);
+  await chat.locator('.naru-suggestions > summary').click();
   await chat.getByRole('button', { name: '내 여행 점검', exact: true }).click();
   const review = chat.getByRole('region', { name: '나루 여행 점검', exact: true });
   await expect(review).toBeVisible();

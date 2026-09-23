@@ -341,6 +341,7 @@ test("나루의 다음 행동이 빈 여행에서 날짜 없는 여행과 완성
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
   await chat.getByRole('button', { name: '건너뛰기', exact: true }).click();
   await expect(chat.getByRole('button', { name: '현재 일정에서 이동 부담을 줄여줘', exact: true })).toHaveCount(0);
+  await chat.locator('.naru-suggestions > summary').click();
   await chat.getByRole('button', { name: '여행지 찾아 일정에 담기', exact: true }).click();
   await expect(chat).not.toBeVisible();
   await add(page, museum);
