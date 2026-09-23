@@ -192,7 +192,13 @@ test('an actual visit-date edit invalidates an older Naru proposal and a later m
   await command(page, '다음 장소 보여줘');
   const details = page.getByRole('dialog', { name: '경남도립미술관', exact: true });
   await expect(details).toBeVisible(); await page.keyboard.press('Escape');
-  await expect(input(page)).toBeFocused(); expect(await snapshot(page)).toEqual(changed);
+  // Returning to the mobile conversation should not reopen the software keyboard.
+  // Desktop keeps the immediate typing shortcut; both return inside the dialog.
+  if (page.viewportSize()!.width <= 800) {
+    await expect(panel(page).getByRole('tab', { name: '대화', exact: true })).toBeFocused();
+    await expect(input(page)).not.toBeFocused();
+  } else await expect(input(page)).toBeFocused();
+  expect(await snapshot(page)).toEqual(changed);
   expect(app.journeyCalls()).toBe(0); expect(app.errors).toEqual([]);
 });
 
