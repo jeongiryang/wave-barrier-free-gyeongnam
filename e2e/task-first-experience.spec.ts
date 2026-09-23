@@ -45,6 +45,8 @@ test('saved trip shows a short Naru start and the timetable before optional tool
   await expect(chat.getByRole('button',{name:'건너뛰기',exact:true})).toHaveCount(0);
   await expect(chat.locator('.naru-prompt-starters')).toHaveCount(0);
   await expect(chat.locator('.naru-trip-context')).toContainText('담은 장소 1곳');
+  await expect(chat.locator('.naru-suggestions')).not.toHaveAttribute('open', '');
+  await chat.locator('.naru-suggestions > summary').click();
   await expect(chat.getByLabel('현재 여행에서 이어가기').getByRole('button')).toHaveCount(3);
   await expect(chat.locator('.naru-extra-help')).not.toHaveAttribute('open','');
   await expect(chat.getByText('지금 안내 방식:',{exact:false})).not.toBeVisible();

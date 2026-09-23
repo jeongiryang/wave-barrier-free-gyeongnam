@@ -29,12 +29,12 @@ export default function NaruWorkspaceAside(props: Props) {
       <ol>{(draft && !draft.restOnly ? draft.stops.map(stop => ({ id: stop.place.id, name: stop.place.name, detail: `${stop.date.slice(5)} · 체류 ${stop.minutes}분 · 휴식 ${stop.breakMinutes}분` })) : places.map(place => ({ ...place, detail: '' }))).map(place => <li key={place.id}><strong>{place.name}</strong>{place.detail && <small>{place.detail}</small>}</li>)}</ol>
       <button type="button" onClick={draft ? props.onResult : () => props.onTool('itinerary')}>{draft ? '변경안과 확인할 사항 보기' : '내 일정 자세히 보기'} →</button>
     </section>}
-    <section className="naru-workspace-actions" aria-label="빠른 도구">
-      <h3>빠른 도구</h3>
+    <details className="naru-sidebar-tools"><summary>빠른 도구</summary>
+    <div className="naru-workspace-actions" aria-label="빠른 도구">
       <button type="button" disabled={props.busy} onClick={props.onPhoto}>사진에서 정보 읽기 <span aria-hidden="true">›</span></button>
       <button type="button" disabled={props.busy} onClick={props.onReview}>내 일정 점검 <span aria-hidden="true">›</span></button>
       <button type="button" onClick={() => props.onTool('facilities')}>편의시설 선택 <span aria-hidden="true">›</span></button>
       <button type="button" onClick={() => props.onTool('places')}>일정에 담기 <span aria-hidden="true">›</span></button>
-    </section>
+    </div></details>
   </aside>;
 }
