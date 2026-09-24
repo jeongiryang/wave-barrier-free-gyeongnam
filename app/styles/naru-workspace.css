@@ -1,4 +1,18 @@
 /* Naru workspace: shared conversation behaviour, independent visual surface. */
+.naru-guidance-settings { box-sizing:border-box;width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 32px);margin:auto;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--paper);color:var(--ink);overflow:auto;overscroll-behavior:contain; }
+.naru-guidance-settings::backdrop { background:#080a12b8; }
+.naru-guidance-settings header,.naru-guidance-settings footer { display:flex;align-items:center;justify-content:space-between;gap:12px; }
+.naru-guidance-settings h2 { margin:0;font-size:1.25rem; }
+.naru-guidance-settings p,.naru-guidance-settings small { color:var(--ink-soft);line-height:1.6; }
+.naru-guidance-settings fieldset { display:grid;gap:8px;min-width:0;margin:16px 0;padding:0;border:0; }
+.naru-guidance-settings legend { margin-bottom:8px; }
+.naru-guidance-settings label { display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;cursor:pointer; }
+.naru-guidance-settings label:has(:checked) { border-color:var(--accent); }
+.naru-guidance-settings small { display:block;margin-top:4px; }
+.naru-guidance-settings input { flex-shrink:0;width:20px;height:20px;accent-color:var(--accent); }
+.naru-guidance-settings button { min-width:44px;padding:10px 12px;border:1px solid var(--line);border-radius:10px; }
+.naru-guidance-settings footer { flex-wrap:wrap; }
+.naru-guidance-summary { display:grid;gap:8px; }
 body .naru-discovery .naru-hint { box-sizing:border-box;width:min(260px,calc(100vw - 108px));max-width:none;height:88px;flex:none;padding:10px;background:#fff;color:#233b55;border:1px solid #bfcdea;border-radius:18px;box-shadow:0 8px 32px #0004; }
 body .naru-discovery .naru-hint>button:first-child { flex:1;min-width:0;height:66px;font-size:14px;line-height:1.6;overflow-wrap:anywhere; }
 body .naru-discovery .naru-hint>button:last-child { flex:none;width:44px;height:44px;font-size:22px; }
