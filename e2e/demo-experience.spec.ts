@@ -5,6 +5,14 @@ for (const width of [1440,960,390]) test(`isolated demo at ${width}px previews a
  await mockPublicShellApi(page); await page.setViewportSize({width,height:900});
  await page.addInitScript(()=>localStorage.setItem('wave-saved-places',JSON.stringify(['real-sentinel'])));
  await page.goto('/demo'); await expect(page.getByRole('heading',{name:'[시연] 예시 여행으로 먼저 해보세요'})).toBeVisible();
+ const stories=page.locator('#demo-community');
+ await expect(stories.locator('article')).toHaveCount(3);
+ await expect(stories.locator('small')).toHaveText(['여행 후기','여행 질문','시설 제보']);
+ for(const heading of await stories.locator('h3').all()) await expect(heading).toContainText('[시연]');
+ for(const image of await stories.locator('img').all()) await expect(image).toHaveAttribute('alt', /AI 생성 삽화/);
+ await expect(stories).not.toContainText('이미지: AI 생성');
+ await expect(stories).not.toContainText('실제 예보나 특정 시설의 운영 안내가 아닌 시연 상황입니다.');
+ await expect(stories).not.toContainText('실제 방문자가 작성한 제보가 아닙니다.');
  const before=await page.locator('.demo-timeline').innerText();
  await page.getByRole('button',{name:'첫 장소 뒤 20분 쉬기',exact:true}).click();
  await expect(page.locator('.demo-timeline')).toHaveText(before, { useInnerText: true });
