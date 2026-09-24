@@ -78,7 +78,7 @@ const CASES = [
   ".simple-section-heading h2", ".simple-section-heading p", ".simple-show-regions",
   ".night-journey-input > h2", ".night-journey-input > p", ".night-journey-input h3",
   ".night-journey-tabs button", ".night-journey-input > .night-primary", ".simple-text-link",
-  ".horizon-checks li", "#departure .simple-text-link", ".night-discover-card h2", ".night-discover-card > p",
+  ".horizon-checks li", "#departure .simple-text-link", ".night-discover-card h2", ".night-discover-copy > p",
   ".simple-naru-story h2", ".simple-naru-story > div > p", ".simple-naru-example p",
   ".simple-naru-example-title small", ".example-undo",
   "#closing h2", "#closing .landing-closing-copy > p",
