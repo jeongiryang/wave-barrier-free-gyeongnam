@@ -50,17 +50,18 @@ async function setup(page: Page, handler?: (route: Route) => Promise<void>) {
 
 test('축제 현장 편의 시연 지도는 임의 위치를 명시하고 쉬는 곳과 화장실을 전환한다', async ({ page }) => {
   const card = await setup(page);
-  const opener = card.getByRole('button', { name: '현장 편의 지도 · 시연', exact: true });
+  const opener = card.getByRole('button', { name: '현장 편의 지도', exact: true });
   await opener.click();
   const dialog = page.getByTestId('festival-amenity-dialog');
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole('heading', { name: `[시연] ${event.name} 현장 편의 예시 지도`, exact: true })).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: `[시연] ${event.name} 현장 편의 지도`, exact: true })).toBeVisible();
   await expect(dialog.getByRole('note')).toContainText('실제 시설 위치가 아닙니다.');
   await expect(dialog.getByTestId('festival-amenity-map')).toBeVisible();
   await expect(dialog.locator('[data-amenity-marker="rest"]')).toHaveCount(3);
-  await dialog.getByRole('button', { name: '예시 화장실', exact: true }).click();
+  await dialog.getByRole('button', { name: '화장실', exact: true }).click();
   await expect(dialog.locator('[data-amenity-marker="restroom"]')).toHaveCount(3);
-  await expect(dialog.getByText('시연 · 임의 위치', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('시연 · 임의 위치', { exact: true })).toHaveCount(0);
+  await expect(dialog.getByRole('note')).toHaveText('마커는 임의 위치이며 실제 시설 위치가 아닙니다.');
   await expect(dialog).toContainText('축제 주최 측의 공식 현장 지도');
   expect((await new AxeBuilder({ page }).include('[data-testid="festival-amenity-dialog"]').analyze()).violations).toEqual([]);
   for (const width of [390, 960, 1440]) {

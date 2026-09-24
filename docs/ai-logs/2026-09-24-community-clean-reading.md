@@ -10,3 +10,7 @@ Owner 추가 요청: 제목 `[시연]`은 유지하고 반복되는 본문 서�
 검증: node unit 1654/1654, 관련 Playwright 12/12(데스크톱·모바일, 390~1440px, axe 포함), typecheck, lint(0 errors, 기존 25 warnings), build:vercel, performance 예산 통과. 기존 fixture와 본문 외 ID·연결·날짜·반응 계획 동일. 브라우저 가이드 details를 hydration 직전에 여는 기존 테스트 경로에서 open 속성 경고가 관측됐으나 모든 UI/접근성 검사는 통과했다.
 
 이 구현 단계에서는 운영 DB 쓰기·PR 병합·배포를 하지 않았다. 릴리스 담당자가 CI 확인 후 배포하고, docs/community-demo-data.md의 승인된 운영 preflight/apply로 동일 배치를 갱신해야 실제 운영 본문이 변경된다. 적용 전후 실제 상호작용 보존과 시연 360글/720댓글/8654좋아요 유지, 제목 표시·본문·정렬·두 보기 방식을 운영에서 확인한다.
+
+추가 요청 반영: 축제 현장 지도는 제목 `[시연]`, 임의 위치/실제 시설 아님 한 줄, 공식 현장 지도 확인 안내를 유지하고 반복 소개·배지·버튼의 예시 수식어를 제거했다. 지도 마커의 스크린리더 이름은 임의 위치임을 계속 알린다.
+
+추가 축제 범위 검증: festival-demo-map unit 1/1, festival-trip-upgrade Playwright 16/16(데스크톱·모바일/axe 포함), typecheck와 변경파일 lint 통과.
