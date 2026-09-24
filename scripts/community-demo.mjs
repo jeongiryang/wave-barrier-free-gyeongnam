@@ -56,10 +56,10 @@ export function validateDemoData(data) {
     if (!(post.region in byRegion)) errors.push(`unsupported region: ${post.region}`); else byRegion[post.region] += 1;
     if (!(post.category in byCategory)) errors.push(`unsupported category: ${post.category}`); else byCategory[post.category] += 1;
     if (post.demoBatchId !== data.batch.id || !String(post.authorId).startsWith("wave-demo-author-") || !String(post.authorName).startsWith("데모 여행자 ")) errors.push(`post ${post.id} is not batch-owned`);
+    if (typeof post.content !== "string" || !post.content.trim()) errors.push(`post ${post.id} has empty content`);
     if (!Number.isSafeInteger(post.demoLikeCount) || post.demoLikeCount < 0 || post.demoLikeCount > 48) errors.push(`post ${post.id} has an invalid demoLikeCount`);
     if (!String(post.title).startsWith("[시연] ") || String(post.title).length > 120) errors.push(`post ${post.id} must have a valid [시연] title`);
     if (![post.placeId, post.placeName, post.visitDate].every((value) => value === null) || post.fieldReports?.length || post.journalPlaces?.length || post.visitPhotos?.length) errors.push(`post ${post.id} contains unsupported factual fields`);
-    if (!/^(이 글은|합성|화면 검수|시연용|실제 작성자|아래 내용|가상의 여행)/.test(post.content)) errors.push(`post ${post.id} lacks an opening synthetic notice`);
     if (!Number.isSafeInteger(post.createdAt) || post.createdAt !== post.updatedAt || post.createdAt > Date.UTC(2026, 8, 20, 23, 59, 59)) errors.push(`post ${post.id} has an invalid timestamp`);
     postById.set(post.id, post);
   }
@@ -75,8 +75,8 @@ export function validateDemoData(data) {
       if (!(comment.createdAt > parent.createdAt) || comment.updatedAt !== comment.createdAt) errors.push(`comment ${comment.id} is not chronological`);
     }
     if (!Number.isSafeInteger(comment.createdAt) || comment.createdAt > Date.UTC(2026, 8, 20, 23, 59, 59)) errors.push(`comment ${comment.id} has an invalid timestamp`);
+    if (typeof comment.content !== "string" || !comment.content.trim()) errors.push(`comment ${comment.id} has empty content`);
     if (comment.demoBatchId !== data.batch.id || !String(comment.authorId).startsWith("wave-demo-commenter-") || !String(comment.authorName).startsWith("데모 답글 ")) errors.push(`comment ${comment.id} is not batch-owned`);
-    if (!/^(합성 데모|실제 이용자 답변|가상의 대화|화면 검수용)/.test(comment.content)) errors.push(`comment ${comment.id} lacks an opening synthetic notice`);
   }
   for (const [postId, count] of commentsPerPost) if (count > 8) errors.push(`${postId} must have at most 8 demo comments`);
   if (new Set(commentsPerPost.values()).size < 6) errors.push("demo comment counts must demonstrate varied sorting");

@@ -6,7 +6,6 @@ import CommunityFieldReport from "./CommunityFieldReport";
 import CommunityVisitPhotos from "./CommunityVisitPhotos";
 import CommunityAccessibilityReport from "./CommunityAccessibilityReport";
 import CommunityBookmarkButton from './CommunityBookmarkButton';
-import CommunityDemoLabel from "./CommunityDemoLabel";
 
 export default function CommunityPostArticle({ detail }: { detail: ReturnType<typeof useCommunityDetail> }) {
   const { post, message, sessionPending, toggleLike, deletePost, reportingTarget, reportTarget } = detail;
@@ -14,7 +13,7 @@ export default function CommunityPostArticle({ detail }: { detail: ReturnType<ty
   return <>
     <header>
       <Link href="/community" className="detail-back">← 여행자 이야기</Link>
-      <div className="community-card-meta"><span className={`category-${post.category}`}>{COMMUNITY_CATEGORY_LABELS[post.category]}</span><CommunityDemoLabel demoBatchId={post.demoBatchId}/><time dateTime={new Date(post.createdAt).toISOString()}>{communityDate(post.createdAt)}</time></div>
+      <div className="community-card-meta"><span className={`category-${post.category}`}>{COMMUNITY_CATEGORY_LABELS[post.category]}</span><time dateTime={new Date(post.createdAt).toISOString()}>{communityDate(post.createdAt)}</time></div>
       <h1>{post.title}</h1>
       <div className="detail-byline"><strong>{post.authorName}</strong>{post.updatedAt > post.createdAt && <small>수정됨</small>}</div>
       {(post.region || post.placeName) && <Link className="detail-place" href={`/planner?region=${encodeURIComponent(post.region || "창원")}`}><span aria-hidden="true">⌖</span><div><small>연결된 여행지</small><strong>{post.region}{post.placeName ? `${post.region ? " · " : ""}${post.placeName}` : ""}</strong></div><i aria-hidden="true">→</i></Link>}
