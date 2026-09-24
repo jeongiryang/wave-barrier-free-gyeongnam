@@ -56,6 +56,7 @@ export function validateDemoData(data) {
     if (!(post.region in byRegion)) errors.push(`unsupported region: ${post.region}`); else byRegion[post.region] += 1;
     if (!(post.category in byCategory)) errors.push(`unsupported category: ${post.category}`); else byCategory[post.category] += 1;
     if (post.demoBatchId !== data.batch.id || !String(post.authorId).startsWith("wave-demo-author-") || !String(post.authorName).startsWith("데모 여행자 ")) errors.push(`post ${post.id} is not batch-owned`);
+    if (!Number.isSafeInteger(post.demoLikeCount) || post.demoLikeCount < 0 || post.demoLikeCount > 48) errors.push(`post ${post.id} has an invalid demoLikeCount`);
     if (!String(post.title).startsWith("[시연] ") || String(post.title).length > 120) errors.push(`post ${post.id} must have a valid [시연] title`);
     if (![post.placeId, post.placeName, post.visitDate].every((value) => value === null) || post.fieldReports?.length || post.journalPlaces?.length || post.visitPhotos?.length) errors.push(`post ${post.id} contains unsupported factual fields`);
     if (!/^(이 글은|합성|화면 검수|시연용|실제 작성자|아래 내용|가상의 여행)/.test(post.content)) errors.push(`post ${post.id} lacks an opening synthetic notice`);
@@ -77,7 +78,8 @@ export function validateDemoData(data) {
     if (comment.demoBatchId !== data.batch.id || !String(comment.authorId).startsWith("wave-demo-commenter-") || !String(comment.authorName).startsWith("데모 답글 ")) errors.push(`comment ${comment.id} is not batch-owned`);
     if (!/^(합성 데모|실제 이용자 답변|가상의 대화|화면 검수용)/.test(comment.content)) errors.push(`comment ${comment.id} lacks an opening synthetic notice`);
   }
-  for (const [postId, count] of commentsPerPost) if (count !== 2) errors.push(`${postId} must have 2 comments`);
+  for (const [postId, count] of commentsPerPost) if (count > 8) errors.push(`${postId} must have at most 8 demo comments`);
+  if (new Set(commentsPerPost.values()).size < 6) errors.push("demo comment counts must demonstrate varied sorting");
   return { ok: errors.length === 0, errors, summary: { posts: posts.length, comments: comments.length, regions: byRegion, categories: byCategory, uniqueTitles: new Set(posts.map((post) => post.title)).size, uniqueBodies: new Set(posts.map((post) => post.content)).size, uniqueComments: new Set(comments.map((comment) => comment.content)).size } };
 }
 
@@ -151,6 +153,12 @@ export async function applyDemo(sql, data, options = {}) {
     sql.query("SELECT 1 / ((EXISTS (SELECT 1 FROM community_demo_batches WHERE id=$1 AND owner_key=$2 AND label=$3 AND created_at=$4))::int) ownership_ok", [data.batch.id, data.batch.ownerKey, data.batch.label, COMMUNITY_DEMO_BATCH.createdAt]),
     sql.query("SELECT 1 / ((NOT EXISTS (SELECT 1 FROM community_posts WHERE id=ANY($1::text[]) AND demo_batch_id IS DISTINCT FROM $2))::int) post_ids_ok", [postIds, data.batch.id]),
     sql.query("SELECT 1 / ((NOT EXISTS (SELECT 1 FROM community_comments WHERE id=ANY($1::text[]) AND demo_batch_id IS DISTINCT FROM $2))::int) comment_ids_ok", [commentIds, data.batch.id]),
+    sql.query(`SELECT 1 / ((NOT EXISTS (
+      SELECT 1 FROM jsonb_to_recordset($1::jsonb) AS fixture(id text, "postId" text)
+      JOIN community_comments c ON c.id=fixture.id
+      JOIN community_reports r ON r.target_type='comment' AND r.target_id=c.id
+      WHERE c.post_id<>fixture."postId"
+    ))::int) reported_comment_parents_ok`, [JSON.stringify(data.comments.map(({ id, postId }) => ({ id, postId })))]),
   ];
   for (let offset = 0; offset < data.posts.length; offset += 20) {
     const query = insertQuery("community_posts", postColumns, data.posts.slice(offset, offset + 20), { fieldReports: "::jsonb", journalPlaces: "::jsonb", visitPhotos: "::jsonb" });
@@ -164,6 +172,15 @@ export async function applyDemo(sql, data, options = {}) {
     queries.push(sql.query(query.text, query.params));
   }
   queries.push(sql.query(preservationAssertionSql(), preserveParams));
+  // Existing interactions have been verified unchanged above. Add only the
+  // explicitly requested, namespaced demo likes; never update/delete any like.
+  queries.push(sql.query(`INSERT INTO community_likes (post_id,user_id,created_at)
+    SELECT p.id, 'wave-demo-like:wave-community-demo-2026-v1:' || n, p.created_at + n * 60000
+    FROM jsonb_to_recordset($1::jsonb) AS fixture(id text, "demoLikeCount" integer)
+    JOIN community_posts p ON p.id=fixture.id AND p.demo_batch_id=$2
+    CROSS JOIN LATERAL generate_series(1,fixture."demoLikeCount") AS n
+    WHERE EXISTS (SELECT 1 FROM community_demo_batches WHERE id=$2 AND owner_key=$3)
+    ON CONFLICT (post_id,user_id) DO NOTHING`, [JSON.stringify(data.posts.map(({ id, demoLikeCount }) => ({ id, demoLikeCount }))), data.batch.id, data.batch.ownerKey]));
   queries.push(sql.query("SELECT 1 / (((SELECT count(*) FROM community_posts WHERE demo_batch_id=$1)=$2 AND (SELECT count(*) FROM community_posts WHERE demo_batch_id=$1 AND moderation_status='active')=$2 AND (SELECT count(*) FROM community_posts WHERE demo_batch_id=$1 AND title LIKE '[시연] %')=$2 AND (SELECT count(*) FROM community_comments WHERE demo_batch_id=$1)=$3 AND (SELECT count(*) FROM community_comments WHERE demo_batch_id=$1 AND moderation_status='active')=$3)::int) counts_ok", [data.batch.id, COMMUNITY_DEMO_BATCH.posts, COMMUNITY_DEMO_BATCH.comments]));
   queries.push(sql.query(COMMUNITY_DEMO_SNAPSHOT_SQL, snapshot));
   const results = await sql.transaction(queries, { isolationLevel: "Serializable" });
