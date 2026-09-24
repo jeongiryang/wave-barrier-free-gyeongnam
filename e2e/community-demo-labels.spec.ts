@@ -27,7 +27,7 @@ test("synthetic badges remain visible in list, detail and comments while ordinar
   await page.goto("/community");
   const demoCard = page.locator(".community-list article").filter({ hasText: demoPost.title });
   const realCard = page.locator(".community-list article").filter({ hasText: realPost.title });
-  await expect(demoCard.locator(".community-demo-label")).toHaveText("합성 데모 예시");
+  await expect(demoCard.locator(".community-demo-label")).toHaveText("합성 데모 예시 · 반응 수 시연 포함");
   await expect(demoCard.getByRole("heading")).toHaveText(demoPost.title);
   await expect(demoCard.locator("footer")).toContainText("데모 여행자 01");
   await expect(realCard.locator(".community-demo-label")).toHaveCount(0);
@@ -36,10 +36,10 @@ test("synthetic badges remain visible in list, detail and comments while ordinar
   await page.getByRole("button", { name: "검색", exact: true }).click();
   await expect(realCard).toHaveCount(0);
   await expect(demoCard.getByRole("heading")).toHaveText(demoPost.title);
-  await expect(demoCard.locator(".community-demo-label")).toHaveText("합성 데모 예시");
+  await expect(demoCard.locator(".community-demo-label")).toHaveText("합성 데모 예시 · 반응 수 시연 포함");
 
   await demoCard.getByRole("link", { name: `${demoPost.title} 게시글 읽기` }).click();
-  await expect(page.locator(".community-detail > header .community-demo-label")).toHaveText("합성 데모 예시");
+  await expect(page.locator(".community-detail > header .community-demo-label")).toHaveText("합성 데모 예시 · 반응 수 시연 포함");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(demoPost.title);
   const demoComment = page.locator(".comment-list li").filter({ hasText: comments[0].content });
   const realComment = page.locator(".comment-list li").filter({ hasText: comments[1].content });
