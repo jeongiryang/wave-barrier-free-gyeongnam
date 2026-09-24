@@ -121,3 +121,8 @@ body .naru-panel.naru-workspace[data-short-viewport=true] .naru-input { margin-b
 body .naru-panel.naru-workspace[data-short-viewport=true] .naru-input textarea { max-height:64px; }
 
 body .naru-panel.naru-workspace .naru-photo-preview { flex-shrink:0;max-height:20%;overflow:auto; }
+
+body .naru-panel.naru-workspace .naru-pace label { display:flex;align-items:center;gap:12px;width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;cursor:pointer; }
+body .naru-panel.naru-workspace .naru-pace input { width:20px;min-height:20px;flex-shrink:0;accent-color:var(--accent); }
+.naru-pace label:has(:checked) { background:var(--paper); }
+.naru-pace small { display:block;margin-top:4px;line-height:1.5;color:var(--ink-soft); }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { GYEONGNAM_REGION_POINTS } from '../../../lib/gyeongnam-regions.js';
 import { validTripDate, boundedTripEnd } from '../../../lib/trip-dates.js';
 
@@ -6,6 +6,7 @@ export default function NaruWorkRequest({ region, start, end, transport, disable
   region: string; start: string; end: string; transport: string; disabled: boolean;
   onSubmit: (prompt: string) => void; onClose: () => void;
 }) {
+  const paceId = useId();
   const [area, setArea] = useState(region || '경남 전체');
   const [from, setFrom] = useState(start), [to, setTo] = useState(end || start);
   const [party, setParty] = useState(''), [pace, setPace] = useState('보통');
@@ -20,7 +21,13 @@ export default function NaruWorkRequest({ region, start, end, transport, disable
     <div><label>출발 날짜<input type="date" required value={from} onChange={event => { setFrom(event.target.value); if (!to || to < event.target.value) setTo(event.target.value); }} /></label><label>마지막 날짜<input type="date" required min={from} value={to} onChange={event => setTo(event.target.value)} /></label></div>
     <label>동행<select value={party} onChange={event => setParty(event.target.value)}><option value="">선택하지 않음</option>{['혼자', '부모님과', '친구와', '아이와', '연인과'].map(value => <option key={value}>{value}</option>)}</select></label>
     <label>이동수단<select value={mode} onChange={event => setMode(event.target.value)}><option value="car">자동차</option><option value="transit">대중교통</option><option value="walk">도보</option><option value="bicycle">자전거</option></select></label>
-    <fieldset><legend>이동 부담</legend>{['가볍게', '보통'].map(value => <button type="button" key={value} aria-pressed={pace === value} onClick={() => setPace(value)}>{value}</button>)}</fieldset>
+    <fieldset className="naru-pace"><legend>어떤 속도로 여행할까요?</legend>{[
+      { value: '가볍게', title: '여유롭게 쉬어가기', description: '이동은 짧게, 쉬는 시간은 넉넉하게' },
+      { value: '보통', title: '적당히 둘러보기', description: '보통 속도로 관광하고 중간중간 쉬기' },
+    ].map(({ value, title, description }, index) => <label key={value}>
+      <input type="radio" name={`${paceId}-pace`} value={value} checked={pace === value} aria-labelledby={`${paceId}-title-${index}`} aria-describedby={`${paceId}-${index}`} onChange={() => setPace(value)} />
+      <span><strong id={`${paceId}-title-${index}`}>{title}</strong><small id={`${paceId}-${index}`}>{description}</small></span>
+    </label>)}</fieldset>
     {notice && <p role="status">{notice}</p>}
     <button type="submit" disabled={disabled}>이 조건으로 여행 준비 맡기기 →</button>
     <p>먼저 일정안을 보여드려요. 확인하고 적용할 수 있습니다.</p>
