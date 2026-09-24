@@ -24,6 +24,8 @@ test('four headlines rotate while idle, keep one accessible title, and pause for
   const search = page.getByRole('combobox', { name: '어디로 떠나고 싶으세요?', exact: true });
   await search.focus();
   await page.mouse.move(2, 2);
+  // Freeze the timer only after the OS motion preference has hydrated.
+  await expect(page.getByRole('button', { name: '대표 문구 전환 일시정지', exact: true })).toBeVisible();
   await pauseCurrentClock(page);
   const initialPhrase = (await phrase.textContent())!;
   const initialIndex = phrases.indexOf(initialPhrase);
@@ -174,7 +176,15 @@ test('cold Naru loading stays a dark bounded dismissible surface instead of flas
     await expect(loading).toBeHidden();
     await expect(page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true })).toBeVisible();
     release();
+    await expect(page.locator('.global-travel-workspace .planner-page')).toBeAttached();
+    // Let the lazy workspace's launch effect run, so an immediate pre-mount
+    // absence cannot hide a late reopen after cancellation.
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     await expect(loading).toHaveCount(0);
+    await expect(naruDialog(page)).toBeHidden();
+    await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
+    await expect(naruDialog(page)).toBeVisible();
+    await closeNaruTool(page);
     await expect(naruDialog(page)).toBeHidden();
     await expectNoOverflow(page);
   } finally { release(); }

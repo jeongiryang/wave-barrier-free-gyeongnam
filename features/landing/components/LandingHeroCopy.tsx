@@ -7,20 +7,20 @@ const messages = {
   en: [['A wider world', 'Together, WAVE'], ['At your own pace', 'A gentler journey'], ['Discover Gyeongnam', 'With Naru'], ['Travel together', 'Feel closer']],
 };
 export default function LandingHeroCopy() {
-  const { locale, motion } = useSitePreferences();
+  const { locale, motion, hydrated } = useSitePreferences();
   const [index, setIndex] = useState(0), [paused, setPaused] = useState(false);
   const [hovered, setHovered] = useState(false), [focused, setFocused] = useState(false);
   const root = useRef<HTMLDivElement>(null);
-  const en = locale === 'en', calm = motion === 'calm';
+  const en = locale === 'en', calm = !hydrated || motion === 'calm';
   useEffect(() => {
     if (calm || paused || hovered || focused) return;
     let visible = true;
-    const observer = new IntersectionObserver(entries => { visible = entries[0]?.isIntersecting ?? false; });
-    if (root.current) observer.observe(root.current);
+    const observer = typeof IntersectionObserver === 'function' ? new IntersectionObserver(entries => { visible = entries[0]?.isIntersecting ?? false; }) : null;
+    if (root.current) observer?.observe(root.current);
     const timer = window.setInterval(() => {
       if (visible && !document.hidden && !document.documentElement.dataset.introPending && !document.querySelector('.arrival-scene[open]')) setIndex(current => (current + 1) % 4);
     }, 6000);
-    return () => { clearInterval(timer); observer.disconnect(); };
+    return () => { clearInterval(timer); observer?.disconnect(); };
   }, [calm, paused, hovered, focused]);
   const copy = messages[en ? 'en' : 'ko'][calm ? 0 : index];
   return <div className="night-hero-headline" ref={root} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocus={() => setFocused(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>

@@ -28,10 +28,12 @@ test("English preferences preserve locale choices, runtime reduced motion and CT
   await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   const cta = page.locator(".landing-actions a[href='/planner']");
-  await expect(page.locator(".landing-hero button")).toHaveCount(1);
-  await expect(page.locator(".landing-hero button")).toHaveAccessibleName("Find places");
+  await expect(page.locator(".landing-hero button")).toHaveCount(2);
+  await expect(page.locator(".landing-hero").getByRole('button', { name: 'Find places', exact: true })).toBeVisible();
+  await expect(page.locator(".landing-hero").getByRole('button', { name: 'Pause headline rotation', exact: true })).toBeVisible();
   await cta.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator(".night-hero-motion")).toHaveCount(0);
   await expect(cta).toBeFocused();
   await expect(page.locator('.landing-hero-copy')).toBeVisible();
   await expect(page.getByRole("dialog", { name: "WAVE", exact: true })).toBeHidden();
