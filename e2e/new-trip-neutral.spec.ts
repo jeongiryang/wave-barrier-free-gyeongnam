@@ -39,7 +39,7 @@ test("an explicit new region trip clears this trip's facilities and activities w
   expect(requests[0].searchParams.get("region")).toBe("고성");
   expect(requests[0].searchParams.get("facilityKeys") || "").toBe("");
   expect(requests[0].searchParams.get("themes") || "").toBe("");
-  await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeEnabled();
   await page.locator(".simple-facility-trigger").click();
   await expect(facilities.locator(".simple-facility-grid input:checked")).toHaveCount(0);
   await facilities.locator(".simple-saved-preferences > summary").click();

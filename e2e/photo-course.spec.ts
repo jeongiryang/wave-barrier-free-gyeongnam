@@ -90,7 +90,7 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
   });
   await expect.poll(period).toEqual(["2026-08-14", "2026-08-14"]);
   const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
-  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeEnabled();
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await tabs.getByRole("button", { name: /^내 일정/ }).click();
   await expect(page.locator(".simple-initial-setup")).toHaveCount(0);

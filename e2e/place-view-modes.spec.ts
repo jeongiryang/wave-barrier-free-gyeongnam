@@ -13,7 +13,18 @@ test('place view preserves selection, survives reload and remains readable', asy
   await region.selectOption('창원');
   await expect(page.locator('.simple-results .simple-place-row')).toHaveCount(2);
   const views = page.getByRole('group', { name: '여행지 보기 형식' });
+  await expect(views.locator(':scope > span')).toHaveCount(0);
   await expect(views.getByRole('button', { name: '목록형' })).toHaveAttribute('aria-pressed', 'true');
+  const searchForm = page.locator('.simple-direct-search-form');
+  const searchButton = searchForm.getByRole('button', { name: '검색', exact: true });
+  await expect(searchButton).toBeEnabled();
+  await searchButton.click();
+  await expect(page.getByText('장소나 지역을 두 글자 이상 입력해 주세요.', { exact: true })).toBeVisible();
+  if (info.project.name === 'desktop-chromium') {
+    const formWidth = (await searchForm.boundingBox())!.width;
+    const workspaceWidth = (await page.locator('#places').boundingBox())!.width;
+    expect(formWidth / workspaceWidth).toBeLessThanOrEqual(.52);
+  }
   await page.getByRole('button', { name: '경남도립미술관 일정에 담기', exact: true }).click();
   await views.getByRole('button', { name: '격자형' }).focus();
   await page.keyboard.press('Enter');
@@ -21,7 +32,7 @@ test('place view preserves selection, survives reload and remains readable', asy
   await expect(page.getByRole('button', { name: '경남도립미술관 담았음 · 되돌리기', exact: true })).toHaveAttribute('aria-pressed', 'true');
   for (const width of info.project.name === 'desktop-chromium' ? [1440, 960] : [390]) {
     await page.setViewportSize({ width, height: 960 });
-    await expect.poll(async () => page.locator('.simple-results .simple-place-list').first().evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length)).toBeGreaterThanOrEqual(width === 390 ? 1 : 2);
+    await expect.poll(async () => page.locator('.simple-results .simple-place-list').first().evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length)).toBe(width === 1440 ? 5 : width === 960 ? 3 : 1);
     const boxes = await page.locator('.simple-results .simple-place-row').evaluateAll(nodes => nodes.map(node => {
       const photo = node.querySelector('.simple-place-photo')!.getBoundingClientRect();
       const copy = node.querySelector('.simple-place-copy')!.getBoundingClientRect();

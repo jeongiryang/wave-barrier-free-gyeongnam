@@ -47,7 +47,7 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
     await page.goto("/planner");
     const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
     await tabs.getByRole("button", { name: "여행지 찾기", exact: true }).click();
-    await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+    await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeEnabled();
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
     await expect(region).toBeEnabled();
     await region.selectOption("창원");
@@ -76,7 +76,7 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
     await page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true }).getByRole("button", { name: "일정에서 빼기", exact: true }).click();
     await expect(page.locator("#itinerary-stop-1001")).toHaveCount(0);
     await expect(tabs.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+    await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeEnabled();
     await expect(region).toHaveValue("창원");
     await expect(page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true })).toBeEnabled();
     await expect.poll(() => page.evaluate(() => {

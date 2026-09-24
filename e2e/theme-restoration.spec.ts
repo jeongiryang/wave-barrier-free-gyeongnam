@@ -180,7 +180,7 @@ for (const color of ["light", "dark"]) test(`shared redesign protects the curren
   await expect(page.getByRole("button", { name: "역사·문화", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "음식", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "자연·휴양", exact: true })).toHaveAttribute("aria-pressed", "false");
-  await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeEnabled();
   // Shared preferences cannot import another person's facilities or erase ours.
   await assertFacilities(page, true);
   expect((await current(page))["wave-session-facilities-v1"]).toBe(before["wave-session-facilities-v1"]);

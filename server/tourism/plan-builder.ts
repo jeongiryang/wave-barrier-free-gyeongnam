@@ -12,7 +12,7 @@ import { fetchCrowd, fetchHub, fetchRelated } from "./insights";
 import { placeFrom, requestedAccessibilityFields } from "./accessibility-model";
 import { audioFrom, courseFrom } from "./content-model";
 import { buildPlanStatuses, buildPlanStops, partitionPlacesByEvidence, sortPlacesByEvidence } from "./plan-model";
-import { readPlanQuery } from "./plan-query";
+import { PLAN_PAGE_SIZE, readPlanQuery } from "./plan-query";
 import { mergePlaces } from "./provider-model";
 import { fetchPhoto, photoFrom } from "./photos";
 import { recordOperationalEvent } from "../shared/observability";
@@ -57,9 +57,9 @@ export async function buildPlan(request: Request, env: Env) {
   ], Math.min(6_000, remaining()), overBudget);
 
   const batch = mergePlaces(barrier.ok ? barrier.value.items : [], tour.ok ? tour.value.items : []);
-  const baseItems = batch.slice(pageOffset, pageOffset + 12);
-  const providerMayHaveMore = [barrier, tour].some(result => result.ok && result.value.items.length >= 12);
-  const nextPage = pageOffset + 12 < batch.length ? page + 1 : providerPage < 5 && providerMayHaveMore ? providerPage * pageSlots + 1 : null;
+  const baseItems = batch.slice(pageOffset, pageOffset + PLAN_PAGE_SIZE);
+  const providerMayHaveMore = [barrier, tour].some(result => result.ok && result.value.items.length >= PLAN_PAGE_SIZE);
+  const nextPage = pageOffset + PLAN_PAGE_SIZE < batch.length ? page + 1 : providerPage < 5 && providerMayHaveMore ? providerPage * pageSlots + 1 : null;
   const details = profiles.length ? await eachWithinBudget(
     baseItems.map((item) => attempt(fetchKto(env, "KorWithService2", "detailWithTour2", {
       ...commonParams("1"), contentId: clean(item.contentid),

@@ -21,6 +21,8 @@ export default function DirectPlaceSearch({ region, trip, onRegionSelect, offici
 }) {
   const search = useLocationSearchRequest(region, "gyeongnam", profiles);
   const [active, setActive] = useState(-1);
+  const [queryNotice, setQueryNotice] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const resultNodes = useRef<Array<HTMLElement | null>>([]);
   const matchingRegions = useMemo(() => {
     const query = search.placeQuery.trim().replace(/^(경상남도|경남)\s*/, "");
@@ -37,7 +39,17 @@ export default function DirectPlaceSearch({ region, trip, onRegionSelect, offici
     }).sort((a,b) => Number(b.official) - Number(a.official) || Number(b.item.resultType === 'tourism') - Number(a.item.resultType === 'tourism')),
   ], [matchingRegions, search, officialPlaces]);
 
-  const submit = (event?: FormEvent) => { event?.preventDefault(); setActive(-1); void search.searchLocations(); };
+  const submit = (event?: FormEvent) => {
+    event?.preventDefault();
+    setActive(-1);
+    if (search.placeQuery.trim().length < 2) {
+      setQueryNotice("장소나 지역을 두 글자 이상 입력해 주세요.");
+      inputRef.current?.focus();
+      return;
+    }
+    setQueryNotice("");
+    void search.searchLocations();
+  };
   const choose = (result: Result) => {
     if (result.kind === "region") { onRegionSelect(result.name); search.clearSearchRequest(); return; }
     const node = resultNodes.current[results.indexOf(result)];
@@ -59,9 +71,10 @@ export default function DirectPlaceSearch({ region, trip, onRegionSelect, offici
   return <section className="simple-direct-search" aria-labelledby="direct-place-search-title">
     <div className="simple-direct-search-heading"><div><h2 id="direct-place-search-title" className="sr-only">여행지 검색</h2></div></div>
     <form className="simple-search-bar simple-direct-search-form" role="search" onSubmit={submit}>
-      <label htmlFor="direct-place-query"><span>여행지 검색</span><input id="direct-place-query" type="search" role="combobox" aria-label="여행지 검색" value={search.placeQuery} placeholder="예: 통영 케이블카, 창원 카페" autoComplete="off" aria-autocomplete="list" aria-controls="direct-place-results" aria-expanded={showResults} aria-activedescendant={active >= 0 ? `direct-result-${active}` : undefined} onChange={event => { search.setPlaceQuery(event.target.value); setActive(-1); }} onKeyDown={keydown} /></label>
-      <button type="submit" className="simple-direct-search-submit" disabled={search.placeQuery.trim().length < 2 || search.placeSearchLoading}>{search.placeSearchLoading ? <><Spinner />찾는 중</> : "검색"}</button>
+      <label htmlFor="direct-place-query"><span>여행지 검색</span><input ref={inputRef} id="direct-place-query" type="search" role="combobox" aria-label="여행지 검색" value={search.placeQuery} placeholder="예: 통영 케이블카, 창원 카페" autoComplete="off" aria-autocomplete="list" aria-controls="direct-place-results" aria-expanded={showResults} aria-activedescendant={active >= 0 ? `direct-result-${active}` : undefined} onChange={event => { search.setPlaceQuery(event.target.value); setActive(-1); setQueryNotice(""); }} onKeyDown={keydown} /></label>
+      <button type="submit" className="simple-direct-search-submit" disabled={search.placeSearchLoading}>{search.placeSearchLoading ? <><Spinner />찾는 중</> : "검색"}</button>
     </form>
+    {queryNotice && <p className="simple-search-hint" role="status">{queryNotice}</p>}
     {search.placeSearchState === "error" && <p className="simple-empty" role="alert">검색 정보를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요</p>}
     {search.placeSearchState === "empty" && !matchingRegions.length && <p className="simple-empty" role="status">경남에서 일치하는 장소를 찾지 못했어요. 지역이나 상호명을 바꿔 보세요</p>}
     {search.officialState === 'error' && <p role="status">공식 관광정보 일부를 조회하지 못했어요. 확인된 기존 근거는 유지하며 나머지 편의는 미확인입니다.</p>}

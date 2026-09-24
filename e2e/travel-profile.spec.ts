@@ -3,7 +3,9 @@ import { mockPlannerApi } from "./fixtures";
 
 async function setup(page: Page) {
   await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
-  await mockPlannerApi(page, { preserveView: true }); await page.goto("/planner");
+  await mockPlannerApi(page, { preserveView: true });
+  await page.route("**/api/auth/get-session", route => route.fulfill({ json: { user: { id: "profile-owner", name: "여행자", email: "profile@example.test" }, session: { id: "profile-session" } } }));
+  await page.goto("/planner");
 }
 async function picker(page: Page) {
   await page.locator(".simple-facility-trigger").click();
@@ -38,9 +40,26 @@ test("현재 탭의 편의 선택은 복구하고 저장한 프로필은 직접 
   dialog = await picker(page);
   await dialog.getByRole("button", { name: "선택 해제", exact: true }).click();
   await dialog.getByRole("button", { name: "저장한 조건 삭제", exact: true }).click();
-  await expect(dialog.getByRole("button", { name: "저장한 조건 불러오기", exact: true })).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "저장한 조건 불러오기", exact: true })).toBeEnabled();
+  await dialog.getByRole("button", { name: "저장한 조건 불러오기", exact: true }).click();
+  await expect(dialog.getByRole("alert")).toContainText("이 기기에 저장한 편의 조건이 없어요");
   expect(await page.evaluate(() => localStorage.getItem("wave-travel-profile-v1"))).toBeNull();
   await dialog.getByRole("button", { name: /^적용/ }).click(); expect(await selected(page)).toEqual([]);
+});
+
+test("로그인하지 않은 사용자가 조건 저장이나 불러오기를 누르면 로그인으로 이어진다", async ({ page }) => {
+  await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
+  await mockPlannerApi(page, { preserveView: true });
+  await page.goto("/planner");
+  let dialog = await picker(page);
+  await dialog.getByRole("checkbox", { name: "휠체어 대여", exact: true }).check();
+  await dialog.getByRole("button", { name: "이 기기에 조건 저장", exact: true }).click();
+  await expect(page).toHaveURL(/\/login\?next=%2Fplanner%23conditions$/);
+
+  await page.goto("/planner");
+  dialog = await picker(page);
+  await dialog.getByRole("button", { name: "저장한 조건 불러오기", exact: true }).click();
+  await expect(page).toHaveURL(/\/login\?next=%2Fplanner%23conditions$/);
 });
 
 test("손상되거나 차단된 프로필 저장소는 현재 선택을 잃지 않고 설명한다", async ({ page }) => {

@@ -32,7 +32,7 @@ test("dates are chosen after collecting places and an unapplied date draft survi
   await expect(page.locator(".simple-region-entry h2")).toHaveText("경남, 모두의 여행지");
   await expect(page.locator("#planner .simple-region-link")).toHaveCount(6);
   const screens = page.getByRole("group", { name: "여행 설계 화면", exact: true });
-  await expect(screens.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(screens.getByRole("button", { name: /^내 일정/ })).toBeEnabled();
   await page.getByRole("button", { name: "창원 지역 선택", exact: true }).click();
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await screens.getByRole("button", { name: /^내 일정/ }).click();

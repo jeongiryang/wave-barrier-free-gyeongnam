@@ -225,7 +225,7 @@ for (const locale of ["ko", "en"] as const) {
     await page.getByRole("button", { name: "경남 전체 둘러보기", exact: false }).click();
     const results = page.locator("#places");
     await expect(results.getByText(en ? "No places were returned for these preferences." : "이 조건으로 불러온 장소가 없어요.", { exact: true })).toBeVisible();
-    await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+    await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeEnabled();
     const before = await currentTrip(page);
     expect(before.ids).toEqual([]); expect(before.profiles).toEqual([]);
     await results.getByRole("button", { name: en ? "Retry with these preferences" : "같은 조건으로 다시 시도", exact: true }).click();

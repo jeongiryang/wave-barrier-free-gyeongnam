@@ -51,7 +51,7 @@ for (const duplicate of [false, true]) test(`all districts and activity pages re
   do {
     pages.push(page);
     const response = await f.build(new Request(`https://wave.example/api/wave?region=${encodeURIComponent('창원')}&themes=nature,history&facilityKeys=restroom&page=${page}`), {});
-    assert.ok(response.places.length <= 12, 'per-page facility lookups and rendered results stay bounded');
+    assert.ok(response.places.length <= 10, 'per-page facility lookups and rendered results stay bounded');
     assert.deepEqual(response.criteria.profiles, ['restroom'], 'load-more cannot relax required facilities');
     seen.push(...response.places.map(place => place.id));
     if (!response.pagination.hasMore) break;
@@ -62,6 +62,6 @@ for (const duplicate of [false, true]) test(`all districts and activity pages re
   assert.equal(new Set(seen).size, seen.length, 'duplicate source records are not displayed twice');
   assert.deepEqual(new Set(seen), f.expected, 'advancing the provider must not discard remaining returned records');
   assert.equal(seen.length, duplicate ? 120 : 240);
-  assert.equal(pages.at(-1), 21, 'skip unused subpages only after every candidate in the batch was shown');
+  assert.equal(pages.at(-1), 25, 'skip unused subpages only after every candidate in the batch was shown');
   assert.ok(f.calls.every(call => call.pageNo === '1' || call.pageNo === '2'));
 });

@@ -25,7 +25,7 @@ test("데스크톱의 두 화면 전환은 현재 상태·다음 행동과 키�
   const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
   await expect(tabs.getByRole("button")).toHaveCount(2);
   await expect(tabs.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeEnabled();
   await expect(page.getByRole("heading", { name: "경남, 모두의 여행지", exact: true })).toBeVisible();
 
   const region = page.getByRole("button", { name: "통영 지역 선택", exact: true });
@@ -46,6 +46,14 @@ test("데스크톱의 두 화면 전환은 현재 상태·다음 행동과 키�
   expect((await language.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   const results = await new AxeBuilder({ page }).include(".planner-journey-workspace").analyze();
   expect(results.violations.filter(item => item.impact === "critical" || item.impact === "serious")).toEqual([]);
+});
+
+test("로그인하지 않은 사용자가 빈 내 일정을 누르면 로그인으로 이어진다", async ({ page }) => {
+  await openPlanner(page, 1366, 900);
+  const itinerary = page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ });
+  await expect(itinerary).toBeEnabled();
+  await itinerary.click();
+  await expect(page).toHaveURL(/\/login\?next=%2Ftravel-book$/);
 });
 
 test("모바일 두 화면 전환과 선택은 44px 탐색과 수평 안전 영역을 유지한다", async ({ page }) => {
@@ -69,7 +77,7 @@ test("검색과 내 일정 전환은 같은 장소·필수 편의·날짜 미정
   await openPlanner(page, 1366, 900);
   const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
   await expect(page.locator("#places")).toHaveCount(0);
-  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeEnabled();
   await page.getByRole("button", { name: "필요한 편의", exact: true }).click();
   const picker = page.getByRole("dialog", { name: "필요한 편의", exact: true });
   await picker.getByRole("checkbox", { name: "접근로", exact: true }).check();

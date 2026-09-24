@@ -31,7 +31,7 @@ async function expectEmptyConditions(page: Page) {
   const facilities = page.getByRole("dialog", { name: "필요한 편의", exact: true });
   await expect(facilities.locator(".simple-facility-grid input:checked")).toHaveCount(0);
   await facilities.getByRole("button", { name: "편의 선택 닫기", exact: true }).click();
-  await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeEnabled();
 }
 
 test("new trip from the travel book starts with empty conditions and keeps archived trips", async ({ page }) => {
