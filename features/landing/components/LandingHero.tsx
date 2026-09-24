@@ -13,6 +13,5 @@ export default function LandingHero() {
       <div className="landing-actions"><Link href="/planner">{en ? "Explore places" : "여행지 둘러보기"}<span aria-hidden="true">→</span></Link></div>
     </div>
     <span className="night-hero-signature" aria-hidden="true">Travel<br/>Without Barriers</span>
-    <figure className="landing-hero-landscape"><img src="/media/night/coast.webp" alt="" fetchPriority="high" /></figure>
   </section>;
 }

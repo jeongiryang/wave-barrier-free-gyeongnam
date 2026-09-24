@@ -25,10 +25,9 @@ test("공개 화면의 공통 헤더는 주요 메뉴와 현재 페이지 및 �
   for (const route of ["/planner", "/community", "/travel-book"]) assert.ok(header.includes(route));
   assert.match(skipLink, /target\.focus\(\{ preventScroll: true \}\)/);
   assert.match(skipLink, /scrollToSection\(id\)/);
-  assert.match(banner, /aria-label="이전 배너"/);
-  assert.match(banner, /aria-label="다음 배너"/);
-  assert.match(banner, /aria-live="polite"/);
-  assert.match(banner, /alt="" aria-hidden="true"/);
+  assert.match(banner, /className="sr-only"/);
+  assert.match(banner, /aria-hidden="true"/);
+  assert.doesNotMatch(banner, /aria-label="(?:이전|다음) 배너"/);
 });
 
 test("지도·신고·여행 삭제 패널은 상태 관계와 Escape 초점 복귀를 노출한다", async () => {

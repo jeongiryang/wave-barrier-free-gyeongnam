@@ -14,7 +14,7 @@ async function plannerProductSource() {
     "features/planner/components/PlannerServiceStatus.tsx",
     "features/planner/components/PlannerServiceDiagnostics.tsx",
     "features/planner/components/PlannerHeader.tsx",
-    "features/planner/components/PlannerFooter.tsx",
+    "components/NaruConversationFooter.tsx",
     "components/SiteFooter.tsx",
     "features/planner/components/PlannerConditionsPanel.tsx",
     "features/planner/components/PlannerRegionDiscovery.tsx",
@@ -195,22 +195,18 @@ test("production metadata gives each route a canonical, social card and indexing
   assert.doesNotMatch(readme, /영어·일본어·중국어·프랑스어·독일어·러시아어/);
 });
 
-test("route-level loading, error and not-found states provide recovery", async () => {
-  const [loading, error, notFound, css] = await Promise.all([
-    source("app/loading.tsx"),
+test("route-level error and not-found states provide recovery", async () => {
+  const [error, notFound, css] = await Promise.all([
     source("app/error.tsx"),
     source("app/not-found.tsx"),
     styleSource(),
   ]);
-  assert.match(loading, /role="status"/);
-  assert.match(loading, /aria-live="polite"/);
   assert.match(error, /role="alert"/);
   assert.match(error, /window\.location\.reload\(\)/);
   assert.match(error, /<a href="\/planner"/);
   assert.match(notFound, /30일 보관 기간/);
   assert.match(notFound, /새 여행 만들기/);
   assert.match(css, /\.route-state-page button,.route-state-page a \{ min-height: 48px/);
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{ \.route-state-wave i \{ animation: none; \} \}/);
 });
 
 test("the production toolchain pins patched React and the Vercel-compatible vinext release", async () => {

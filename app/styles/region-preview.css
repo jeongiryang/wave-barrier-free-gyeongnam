@@ -1,0 +1,11 @@
+.region-picker-preview{position:relative;overflow:visible}
+.region-picker-preview .region-photo-preview{position:absolute;z-index:70;width:280px;max-width:calc(100% - 16px);transform:translate(-50%,-100%);border:1px solid #48728e;border-radius:16px;background:#0c2437;color:#f3f8ff;text-align:left;box-shadow:0 12px 36px #0008;overflow:auto;pointer-events:auto}
+.region-picker-preview .region-photo-preview[data-below=true]{transform:translateX(-50%)}
+.region-picker-preview .region-photo-preview img{display:block;width:100%;height:132px;object-fit:cover}
+.region-picker-preview .region-photo-preview>div{padding:12px 14px}
+.region-picker-preview .region-photo-preview strong{font-size:18px;color:#fff}
+.region-picker-preview .region-photo-preview p{margin:5px 0;color:#88ddff;font-size:14px;line-height:1.5}
+.region-picker-preview .region-photo-preview span{display:block;font-size:13px;line-height:1.6;color:#edf5ff}
+.region-picker-preview .region-photo-preview small{display:block;margin-top:8px;font-size:11px;color:#c0d5e6}
+html body .region-picker-preview .night-map-photo-ring{r:26px;fill:none;stroke:#83d8ff;stroke-width:2;pointer-events:none}
+html body .region-picker-preview .region-photo-clip{r:25px}

@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import NightScene from '../../components/NightScene';
 import NightBanner from '../../components/NightBanner';
 import NightIcon from '../../components/NightIcon';
 import MobileDisclosure from '../../components/MobileDisclosure';
@@ -111,8 +112,8 @@ export default function FestivalExplorer() {
       window.location.assign(`/planner?${new URLSearchParams({ ...(askNaru ? { assistant: 'naru', prompt } : {}), region: item.city })}#itinerary`);
     } catch (failure) { setNotice(failure instanceof Error && /[가-힣]/.test(failure.message) ? failure.message : '기기에 저장하지 못했어요. 기존 여행은 유지됩니다. 저장 공간을 확인해 주세요.'); }
   }
-  return <main className="festival-page wave-night"><SkipLink href="#festival-results">축제 목록으로 바로가기</SkipLink><WaveHeader current="festivals" />
-    <NightBanner kind="festival" />
+  return <main className="festival-page wave-night"><SkipLink href="#festival-results">축제 목록으로 바로가기</SkipLink><NightScene kind="festival"><WaveHeader current="festivals" />
+    <NightBanner kind="festival" /></NightScene>
     <div className="night-festival-workspace">
     {duplicate && <section className="result-notice festival-existing-visit" id="festival-existing-visit" tabIndex={-1} aria-label="이미 담긴 축제">
       <h2>이미 일정에 담겨 있어요</h2><p>{duplicate.item.name} · 기존 방문일 {duplicate.previous}</p>
@@ -147,7 +148,7 @@ export default function FestivalExplorer() {
       <div className={`festival-grid${listView ? " night-festival-list" : ""}`} inert={pending || !current || Boolean(failure)}>{shown.map(item => <FestivalCard key={`${item.id}:${item.startDate}:${selected.join(',')}`} festival={item} selectedProfiles={selected} onOpen={openFestival} />)}</div>
       {pending && <div className="festival-grid" aria-hidden="true">{[0,1,2,3].map(id => <div className="festival-skeleton" key={id}><Spinner /></div>)}</div>}
     </section>
-    <section className="night-festival-courses"><header><NightIcon name="pin"/><h2>축제와 함께 여행을 떠나보세요</h2><p>축제 주변의 여행지를 일정으로 이어보세요.</p><Link href="/planner">전체 여행 코스 보기 →</Link></header><div><Link className="night-course-map" href="/planner"><NightIcon name="map" size={52}/><strong>축제가 있는<br/>더 넓은 경남</strong><span>경남 전체 지도 보기 →</span></Link>{shown.slice(0,3).map(item => <Link className="night-course-card" key={item.id} href={`/planner?region=${encodeURIComponent(item.city)}`}><span>{item.image && <Image src={item.image} alt="" fill sizes="120px" unoptimized/>}</span><div><strong>{item.city} 축제와 주변 여행</strong><p>{item.name}</p><small>주변 여행지 둘러보기 →</small></div></Link>)}{!shown.length && <Link className="night-course-empty" href="/planner">여행 지역을 고르고 나에게 맞는 코스를 만들어보세요 <NightIcon name="arrow"/></Link>}</div></section>
-    </div><SiteFooter />
+    </div><NightScene kind="festival" closing><section className="night-festival-courses"><header><NightIcon name="pin"/><h2>축제와 함께 여행을 떠나보세요</h2><p>축제 주변의 여행지를 일정으로 이어보세요.</p><Link href="/planner">전체 여행 코스 보기 →</Link></header><div><Link className="night-course-map" href="/planner"><NightIcon name="map" size={52}/><strong>축제가 있는<br/>더 넓은 경남</strong><span>경남 전체 지도 보기 →</span></Link>{shown.slice(0,3).map(item => <Link className="night-course-card" key={item.id} href={`/planner?region=${encodeURIComponent(item.city)}`}><span>{item.image && <Image src={item.image} alt="" fill sizes="120px" unoptimized/>}</span><div><strong>{item.city} 축제와 주변 여행</strong><p>{item.name}</p><small>주변 여행지 둘러보기 →</small></div></Link>)}{!shown.length && <Link className="night-course-empty" href="/planner">여행 지역을 고르고 나에게 맞는 코스를 만들어보세요 <NightIcon name="arrow"/></Link>}</div></section>
+    <SiteFooter /></NightScene>
   </main>;
 }

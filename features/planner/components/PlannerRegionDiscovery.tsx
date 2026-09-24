@@ -14,7 +14,7 @@ export default function PlannerRegionGallery({ value, onChange, full = false, di
   const ordered = decliningFirst ? decliningRegionsFirst(all) : all;
   const names = decliningFirst ? ordered : expanded ? ordered : full ? featured : featured.slice(0, 3);
   return <div className="simple-region-discovery">
-    <button type="button" className="declining-region-filter" disabled={disabled} aria-pressed={decliningFirst} onClick={() => setDecliningFirst(value => !value)}>{decliningFirst ? "인구감소지역 먼저 보는 중" : "이 지역들 먼저 보기"}</button>
+    <button type="button" className="declining-region-filter" disabled={disabled} aria-pressed={decliningFirst} onClick={() => setDecliningFirst(value => !value)}>{decliningFirst ? "인구감소지역 먼저 보는 중" : "인구감소지역 우선 보기"}</button>
     <div className="simple-region-grid" id="planner-region-options">{names.map(name => {
       const photo = regionShowcasePhotos[name];
       return <article className="simple-region" key={name}>
