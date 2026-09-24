@@ -53,6 +53,15 @@ test('four headlines rotate while idle, keep one accessible title, and pause for
   await page.clock.runFor(6100);
   await expect(phrase).toHaveText(phrases[(initialIndex + 1) % 4]);
 
+  for (const width of [320, 390, 960, 1440, 2560]) {
+    await page.setViewportSize({ width, height: 960 });
+    const copyBox = (await title.boundingBox())!;
+    const controlBox = (await page.locator('.night-hero-motion').boundingBox())!;
+    expect(controlBox.y + controlBox.height).toBeLessThanOrEqual(copyBox.y);
+    expect(controlBox.y).toBeGreaterThanOrEqual(0);
+    await expectNoOverflow(page);
+  }
+
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(page.locator('.night-hero-motion')).toHaveCount(0);
   await expect(phrase).toHaveText(phrases[0]);
