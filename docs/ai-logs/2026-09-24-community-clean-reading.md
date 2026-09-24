@@ -16,3 +16,5 @@ Owner 추가 요청: 제목 `[시연]`은 유지하고 반복되는 본문 서�
 추가 축제 범위 검증: festival-demo-map unit 1/1, festival-trip-upgrade Playwright 16/16(데스크톱·모바일/axe 포함), typecheck와 변경파일 lint 통과.
 
 마지막 /demo 범위: 제목 [시연]과 상단 가상 장소·시설·운영시간·이동시간/AI 이미지 안내를 유지하며 시설 각행 배지와 시간표 각행 설명을 통합했다. 이야기 제목은 여행 이야기로 정리했다. demo-experience 브라우저 6/6 통과(390/960/1440px, 실제 저장소 불변·적용·되돌리기).
+
+CI35946181622의 desktop shard5에서 night-desktop 커뮤니티 test 최초/재시도 모두 goto load45초 초과. 첨부 trace2개에서 관광공사 이미지5건이 응답완료 없이 종료됨을 확인했다. 해당 테스트의 외부사진 host만 고정 SVG로 격리하고 기존 배너탐색·카테고리·글쓰기경로·axe 계약과 timeout을 그대로 유지했다. night-desktop 로컬 browser6/6 통과. 다른 CI job은 모두성공했으나 validate 실패를 우회하지 않고 수정head 전체 CI를 다시 확인한다.
