@@ -61,3 +61,83 @@ test('actual-shaped museum road addresses resolve the official ID and facilities
   assert.ok(requestedIds.length > 0 && requestedIds.every(id => id === '1622590'));
   assert.equal(result.places.length, 2, 'The separately named library remains a search result without inheriting museum evidence.');
 });
+
+const flower = { contentid: '2758443', title: '대산플라워랜드', addr1: '경상남도 창원시 의창구 대산면 모산리', mapx: '128.75', mapy: '35.35', lDongRegnCd: '48', contenttypeid: '12' };
+const flowerSearch = { id: 'kakao-flower', place_name: '대산 플라워랜드', address_name: `${flower.addr1} 4-11`, x: flower.mapx, y: String(Number(flower.mapy) + 11 / 111320), category_group_code: 'AT4' };
+const searchRequest = query => new Request(`https://wave.test/api/location-search?${new URLSearchParams({ q: query, scope: 'gyeongnam', official: '1', profiles: 'route,restroom' })}`);
+
+test('an exact Kakao venue with an empty spaced KTO search retries the compact keyword once and preserves official identity', async () => {
+  const calls = [];
+  const load = loadServer(async input => {
+    const url = new URL(input); calls.push(url);
+    if (url.hostname === 'dapi.kakao.com') return Response.json({ documents: [flowerSearch] });
+    if (url.pathname.endsWith('searchKeyword2')) return payload(url.searchParams.get('keyword') === '대산플라워랜드' ? [flower] : []);
+    if (url.pathname.endsWith('detailCommon2')) return payload([flower]);
+    return payload([{ contentid: flower.contentid, route: '계단 없는 접근로', restroom: '장애인 전용 화장실 있음' }]);
+  });
+  const result = await (await load('server/location/handler.ts').handleLocationSearch(searchRequest('대산 플라워랜드'), env)).json();
+  assert.deepEqual(calls.filter(url => url.pathname.endsWith('searchKeyword2')).map(url => url.searchParams.get('keyword')), ['대산 플라워랜드', '대산플라워랜드']);
+  assert.equal(calls.length, 5, 'One extra keyword search; detail queries remain bounded to the canonical ID.');
+  assert.equal(result.officialState, 'available');
+  assert.deepEqual(result.officialPlaces.map(place => place.id), ['2758443']);
+  assert.ok(result.officialPlaces[0].accessibility.every(item => item.state === 'confirmed'));
+  assert.equal(result.places[0].id, flowerSearch.id);
+  assert.ok(calls.filter(url => url.pathname.includes('searchKeyword')).every(url => url.searchParams.get('lDongRegnCd') === '48'));
+});
+
+test('spacing fallback is not a generic retry on failures, existing results, unrelated names or unspaced queries', async () => {
+  for (const scenario of ['failure', 'existing', 'no-kakao', 'unrelated-name', 'unspaced', 'incomplete-total']) {
+    const searches = [];
+    const load = loadServer(async input => {
+      const url = new URL(input);
+      if (url.hostname === 'dapi.kakao.com') return Response.json({ documents: scenario === 'no-kakao' ? [] : [{ ...flowerSearch, ...(scenario === 'unrelated-name' ? { place_name: '대산플라워랜드 옆 카페' } : {}) }] });
+      if (url.pathname.endsWith('searchKeyword2')) {
+        searches.push(url.searchParams.get('keyword'));
+        if (scenario === 'failure') return new Response('unavailable', { status: 503 });
+        if (scenario === 'incomplete-total') return Response.json({ response: { header: { resultCode: '0000' }, body: { items: { item: [] }, totalCount: 3 } } });
+        return payload(scenario === 'existing' ? [flower] : []);
+      }
+      if (url.pathname.endsWith('detailCommon2')) return payload([flower]);
+      return payload([{ contentid: flower.contentid }]);
+    });
+    const result = await (await load('server/location/handler.ts').handleLocationSearch(searchRequest(scenario === 'unspaced' ? '대산플라워랜드' : '대산 플라워랜드'), env)).json();
+    assert.equal(searches.length, 1, scenario);
+    if (scenario === 'failure') assert.equal(result.officialState, 'error');
+  }
+});
+
+test('compact keyword candidates still cannot bypass locality, distance or canonical ambiguity', async () => {
+  for (const scenario of ['different-locality', 'distant', 'ambiguous']) {
+    const searches = [], detailCalls = [];
+    const candidate = { ...flower, ...(scenario === 'different-locality' ? { addr1: '경상남도 창원시 의창구 대산면 가술리' } : scenario === 'distant' ? { mapy: String(Number(flower.mapy) + 100 / 111320) } : {}) };
+    const load = loadServer(async input => {
+      const url = new URL(input);
+      if (url.hostname === 'dapi.kakao.com') return Response.json({ documents: [flowerSearch] });
+      if (url.pathname.endsWith('searchKeyword2')) {
+        searches.push(url.searchParams.get('keyword'));
+        return payload(searches.length === 1 ? [] : scenario === 'ambiguous' ? [candidate, { ...candidate, contentid: '2758444' }] : [candidate]);
+      }
+      detailCalls.push(url.pathname); throw Error('Unmatched candidates must not trigger facility lookups');
+    });
+    const result = await (await load('server/location/handler.ts').handleLocationSearch(searchRequest('대산 플라워랜드'), env)).json();
+    assert.equal(searches.length, 2, scenario);
+    assert.deepEqual(detailCalls, [], scenario);
+    assert.deepEqual(result.officialPlaces, [], scenario);
+    assert.equal(result.places.length, 1, 'Kakao evidence stays available without false facility inheritance.');
+  }
+});
+
+test('a failed compact search keeps the original Kakao result and exposes official failure', async () => {
+  let searches = 0;
+  const load = loadServer(async input => {
+    const url = new URL(input);
+    if (url.hostname === 'dapi.kakao.com') return Response.json({ documents: [flowerSearch] });
+    assert.ok(url.pathname.endsWith('searchKeyword2'));
+    return ++searches === 1 ? payload([]) : new Response('unavailable', { status: 503 });
+  });
+  const result = await (await load('server/location/handler.ts').handleLocationSearch(searchRequest('대산 플라워랜드'), env)).json();
+  assert.equal(searches, 2);
+  assert.equal(result.officialState, 'error');
+  assert.deepEqual(result.officialPlaces, []);
+  assert.equal(result.places[0].id, flowerSearch.id);
+});

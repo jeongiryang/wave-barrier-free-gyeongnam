@@ -67,6 +67,10 @@ test('소개 마지막 영역과 푸터가 화면 폭에 맞고 수평 넘침이
   expect(Math.abs(measured.left)).toBeLessThanOrEqual(1);
   expect(Math.abs(measured.right - measured.width)).toBeLessThanOrEqual(1);
   expect(measured.overflow).toBe(false); expect(measured.background).toBe('rgb(5, 14, 25)');
+  const closingPadding = await page.locator('#closing .landing-closing-copy').evaluate(node => ({
+    top: getComputedStyle(node).paddingTop, mobile: window.innerWidth <= 600,
+  }));
+  expect(closingPadding.top).toBe(closingPadding.mobile ? '36px' : '44px');
   expect((await new AxeBuilder({ page }).include('.landing-page').analyze()).violations).toEqual([]);
 });
 

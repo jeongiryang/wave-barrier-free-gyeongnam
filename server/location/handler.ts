@@ -54,7 +54,16 @@ export async function handleLocationSearch(request: Request, env: Env) {
     if (gyeongnamOnly && url.searchParams.get('official') === '1') {
       const signal = searchSignal;
       const profiles = [...new Set((url.searchParams.get('profiles') || '').split(',').filter(id => profileFields[id]))].slice(0, 6);
-      const official = await attemptProvider(fetchTourismData(env, 'KorService2', 'searchKeyword2', { ...commonParams('12'), lDongRegnCd: '48', keyword: query }, signal));
+      let official = await attemptProvider(fetchTourismData(env, 'KorService2', 'searchKeyword2', { ...commonParams('12'), lDongRegnCd: '48', keyword: query }, signal));
+      const compactQuery = query.replace(/\s+/g, '');
+      // KTO keyword search can miss a venue solely because of spacing. Retry once
+      // only after a complete empty response and an exact space-insensitive Kakao
+      // name match. The same deadline and strict address/coordinate identity apply.
+      if (official.ok && !official.value.partial && official.value.total === 0 && !official.value.items.length
+        && compactQuery !== query && !signal.aborted
+        && places.some(place => place.name.replace(/\s+/g, '').toLowerCase() === compactQuery.toLowerCase())) {
+        official = await attemptProvider(fetchTourismData(env, 'KorService2', 'searchKeyword2', { ...commonParams('12'), lDongRegnCd: '48', keyword: compactQuery }, signal));
+      }
       const candidates = official.ok ? official.value.items.map(item => ({ id: clean(item.contentid), name: clean(item.title), address: clean(item.addr1), mapX: clean(item.mapx), mapY: clean(item.mapy) })).filter(item => /^[1-9]\d{0,11}$/.test(item.id)) : [];
       const ids = [...new Set(places.map(item => canonicalPublicPlace(item, candidates)?.id).filter((id): id is string => Boolean(id)))].slice(0, 3);
       const officialPlaces = ids.length ? await lookupPlaces(ids, profiles, env, signal) : [];

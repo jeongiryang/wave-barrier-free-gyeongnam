@@ -11,7 +11,7 @@ html body .landing-page.night-landing > .wave-balanced-footer.simple-footer {
 html body .landing-page.night-landing #closing {
   min-height: clamp(340px, 48svh, 480px) !important; padding: 0;
 }
-html body .landing-page.night-landing #closing .landing-closing-copy { padding: 44px 24px; }
+html body .landing-page.night-landing.simple-landing #closing .landing-closing-copy { padding: 44px 24px; }
 html body .landing-page.night-landing #closing h2 { margin-block: 24px; }
 .landing-page.night-landing .night-journey-story { margin-block: 40px; }
 .landing-page.night-landing .night-itinerary-story { padding-top: 40px; margin-top: 0; }
@@ -20,14 +20,13 @@ html body .landing-page.night-landing #closing h2 { margin-block: 24px; }
 @media (max-width: 600px) {
   .landing-page.night-landing .night-journey-story,
   .landing-page.night-landing .night-discover-grid { margin-block: 28px; }
-  html body .landing-page.night-landing #closing .landing-closing-copy { padding: 36px 20px; }
+  html body .landing-page.night-landing.simple-landing #closing .landing-closing-copy { padding: 36px 20px; }
 }
 
 .comparison-facilities{display:flex;flex-wrap:wrap;gap:8px 16px;padding:12px;border:1px solid var(--line);border-radius:12px}
 .comparison-facilities label{display:flex;align-items:center;gap:8px;min-height:44px}
 .festival-detail-visit{margin-top:24px;padding-top:20px;border-top:1px solid #31596a}
 .festival-detail-visit .festival-actions{display:flex;flex-direction:column;gap:10px}
-
 
 
 
