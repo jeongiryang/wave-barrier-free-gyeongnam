@@ -43,6 +43,7 @@ import type { RoutePoint } from '../../routing/types';
 import NaruPhotoAttachment from './NaruPhotoAttachment';
 import type { AssistantPhoto } from '../../../lib/assistant-photo.js';
 import { useNaruViewport } from '../hooks/useNaruViewport';
+import { useNaruDrag } from '../hooks/useNaruDrag';
 import { useNaruAvailability } from '../hooks/useNaruAvailability';
 import type { GuidancePreferences } from '../../../lib/guidance-preferences.js';
 import NaruHelpHub from './NaruHelpHub';
@@ -128,6 +129,7 @@ export default function PlannerAssistant(props: Props) {
   const focusedLaunch = useRef<number | undefined>(undefined);
   const dialogRef = useRef<HTMLDialogElement>(null);
   useNaruViewport(props.open, dialogRef, log, follow);
+  useNaruDrag(props.open, size, dialogRef);
   const voice = useTravelVoice();
   const pathname = usePathname();
   const known = [...new Map([...trip.orderedSavedPlaces, ...(plan.resultCurrent ? [...(plan.plan?.places || []), ...(plan.plan?.explorationPlaces || [])] : [])].map(place => [place.id, place])).values()];

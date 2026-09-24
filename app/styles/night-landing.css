@@ -64,3 +64,32 @@ html body .landing-page.night-landing #closing h2{color:#ecf4ff;font-size:clamp(
 
 @media (min-width:601px) and (max-width:1100px){.landing-page.horizon-edition.night-landing .simple-region-link>div{padding-bottom:12px}}
 @media (min-width:601px) and (max-width:900px){.landing-page.horizon-edition.night-landing .simple-region-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* One story at a time, with natural scrolling and no equal-height empty columns. */
+.landing-page.night-landing .night-discover-grid{display:grid;grid-template-columns:1fr;gap:32px;max-width:1600px}
+.landing-page.night-landing .night-discover-card{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.4fr);align-items:center;gap:clamp(24px,4vw,64px);padding:clamp(24px,4vw,64px);scroll-margin-top:100px}
+.night-discover-copy .simple-text-link{margin-top:24px;display:inline-flex;min-height:44px;align-items:center;gap:16px}
+.landing-page.night-landing .night-discover-card h2{font-size:clamp(28px,3vw,48px)}
+.landing-page.night-landing .night-discover-photos{margin:0;gap:12px}
+.landing-page.night-landing .night-discover-photos a{aspect-ratio:3/4;isolation:isolate;display:flex;align-items:flex-end}
+.landing-page.night-landing .night-discover-photos img{position:absolute;inset:0;height:100%;z-index:-1}
+.landing-page.night-landing .night-discover-photos span{width:100%;padding:48px 12px 18px;background:linear-gradient(transparent,#03101ff2);font-size:13px}
+.landing-page.night-landing .night-discover-info .horizon-checks{margin:0}
+.landing-page.night-landing .night-discover-info .horizon-checks li{min-height:140px;font-size:16px}
+.landing-page.night-landing .night-festival-preview-banner{margin:0}
+.landing-page.night-landing .night-festival-preview-cards>a{position:relative;isolation:isolate;display:flex;align-items:flex-end;min-height:240px;background:#10253b;color:#fff}
+.landing-page.night-landing .night-festival-preview-cards img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
+.night-festival-preview-copy{width:100%;padding:52px 12px 16px;background:linear-gradient(transparent,#020c19f5 45%);overflow-wrap:anywhere}
+.night-festival-preview-copy :is(strong,small,span){padding:0;color:#f4f8ff;line-height:1.6}
+.night-festival-preview-copy strong{font-size:14px;margin-bottom:6px}
+.night-festival-preview-copy small{font-size:12px}
+.night-festival-preview-copy span{font-size:12px;margin-top:6px}
+.night-hero-headline{position:relative}
+.night-hero-phrase{display:block;min-height:2.4em;animation:night-phrase-enter .65s cubic-bezier(.22,1,.36,1) both}
+.night-hero-phrase>span,.night-hero-phrase>em{display:block}
+.night-hero-motion{display:grid;place-items:center;position:absolute;right:0;bottom:0;width:44px;height:44px;border:1px solid #61768e;border-radius:50%;color:#e3efff;background:#071726c9;font-size:15px}
+@keyframes night-phrase-enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@media(max-width:800px){.landing-page.night-landing .night-discover-card{grid-template-columns:1fr;gap:24px}.landing-page.night-landing .night-discover-photos a{aspect-ratio:3/4}.night-hero-motion{right:-8px;bottom:-22px}}
+@media(max-width:480px){.landing-page.night-landing .night-festival-preview-cards{grid-template-columns:1fr}.landing-page.night-landing .night-festival-preview-cards>a{min-height:220px}.landing-page.night-landing .night-discover-photos{grid-template-columns:1fr}.landing-page.night-landing .night-discover-photos a{aspect-ratio:16/9}}
+@media(prefers-reduced-motion:reduce){.night-hero-phrase{animation:none}}
+html[data-motion=calm] .night-hero-phrase{animation:none}

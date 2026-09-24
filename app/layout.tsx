@@ -126,7 +126,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="shortcut icon" href="/favicon.svg" />
         <script dangerouslySetInnerHTML={{ __html: preferenceBootScript }} />
-        <style>{arrivalBootStyle}</style>
+        <style>{`html,html body{background-color:#020d19}${arrivalBootStyle}`}</style>
         <script dangerouslySetInnerHTML={{ __html: arrivalBootScript }} />
       </head>
       <body className="antialiased">
