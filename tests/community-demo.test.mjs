@@ -36,10 +36,10 @@ test("all 18 regions include practical varied topics with coherent synthetic rep
     const regional = data.posts.filter((post) => post.region === region);
     assert.equal(regional.length, 20);
     assert.ok(topicWords.every((word) => regional.some((post) => post.title.includes(word))));
-    const sample = regional.find((post) => post.category === "review");
+    const sample = regional.find((post) => post.category === "review" && data.comments.some((comment) => comment.postId === post.id));
     assert.ok(sample && /여행|사진|일정|가방|동행/.test(sample.content));
     const replies = data.comments.filter((comment) => comment.postId === sample.id);
-    assert.equal(replies.length, 2);
+    assert.ok(replies.length >= 1 && replies.length <= 8);
     assert.ok(replies.every((comment) => comment.content.includes(region) && comment.content.includes(`‘${sample.title.split(", ")[1]}’`)));
   }
   const together = data.posts.filter((post) => post.category === "together").map((post) => post.content).join("\n");
@@ -60,7 +60,7 @@ test("demo categories follow each conversation's intent", async () => {
   for (const post of data.posts) assert.equal(post.category, expected.get(post.title.split(", ")[1]));
 });
 
-test("search and pagination cover the full opt-in corpus without synthetic likes", async () => {
+test("search and pagination cover the full opt-in corpus", async () => {
   const data = await readDemoData();
   const pageSize = 12;
   assert.equal(Math.ceil(data.posts.length / pageSize), 30);
@@ -68,6 +68,34 @@ test("search and pagination cover the full opt-in corpus without synthetic likes
   assert.equal(data.posts.filter((post) => post.title.includes("충전기")).length, 18);
   assert.equal(data.posts.filter((post) => post.category === "review").length, 72);
   assert.equal("likes" in data, false);
+});
+
+test("latest, popular and comment sorting have distinct varied first pages", async () => {
+  const data = await readDemoData();
+  const counts = new Map(data.posts.map((post) => [post.id, 0]));
+  for (const comment of data.comments) counts.set(comment.postId, counts.get(comment.postId) + 1);
+  assert.deepEqual([...new Set(counts.values())].sort((a, b) => a - b), [0, 1, 2, 3, 5, 8]);
+  assert.equal(new Set(data.posts.map((post) => post.demoLikeCount)).size, 49);
+  const pages = [
+    [...data.posts].sort((a, b) => b.createdAt - a.createdAt),
+    [...data.posts].sort((a, b) => b.demoLikeCount - a.demoLikeCount || b.createdAt - a.createdAt),
+    [...data.posts].sort((a, b) => counts.get(b.id) - counts.get(a.id) || b.createdAt - a.createdAt),
+  ].map((posts) => posts.slice(0, 12));
+  assert.equal(new Set(pages.map((page) => page[0].id)).size, 3);
+  for (let a = 0; a < pages.length; a += 1) {
+    assert.ok(new Set(pages[a].map((post) => post.region)).size >= 6);
+    for (let b = a + 1; b < pages.length; b += 1) {
+      assert.ok(pages[a].filter((post) => pages[b].some((other) => other.id === post.id)).length <= 3);
+    }
+  }
+});
+
+test("demo like bounds reject unbounded or invalid synthetic reactions", async () => {
+  for (const value of [-1, 49, 1.5, "12", null]) {
+    const data = await readDemoData();
+    data.posts[0].demoLikeCount = value;
+    assert.match(validateDemoData(data).errors.join("\n"), /invalid demoLikeCount/);
+  }
 });
 
 test("dry-run is read-only and succeeds without DATABASE_URL", () => {

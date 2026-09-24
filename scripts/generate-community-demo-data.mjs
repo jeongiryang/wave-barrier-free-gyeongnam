@@ -59,28 +59,41 @@ const commentStarts = ["합성 데모 댓글입니다.", "실제 이용자 답�
 const posts = [];
 const comments = [];
 const start = Date.UTC(2026, 6, 1, 0, 0, 0);
+// Retain all previously published IDs while redistributing synthetic replies.
+const commentIds = regions.flatMap((region) => scenarios.flatMap((_, index) =>
+  [1, 2].map((reply) => `demo-2026-${region.slug}-${String(index + 1).padStart(2, "0")}-comment-${reply}`)));
+const replyCounts = [0, 1, 0, 3, 2, 0, 5, 1, 0, 8];
+const extraReplies = [
+  "저라면 동행이 가장 중요하게 생각하는 것을 하나씩 적어 보고 우선순위를 맞추겠어요.",
+  "계획을 완벽하게 정하기보다 여유 시간을 남겨 두자는 의견에 공감해요.",
+  "이런 고민은 출발 전에 함께 이야기하면 서로의 기대를 맞추기 좋겠네요.",
+  "저는 선택지를 두 개로 줄여서 동행에게 물어보고 싶어요. 결정 부담이 덜할 것 같습니다.",
+  "각자 편한 방식을 먼저 말하고 작은 것부터 맞춰 가면 좋겠어요.",
+  "나중에 계획을 바꿀 수도 있으니 한 가지 방법만 고집하지 않으려고요.",
+];
 
 for (const [regionIndex, region] of regions.entries()) {
   for (const [scenarioIndex, scenario] of scenarios.entries()) {
     const globalIndex = regionIndex * scenarios.length + scenarioIndex;
     const ordinal = String(scenarioIndex + 1).padStart(2, "0");
     const postId = `demo-2026-${region.slug}-${ordinal}`;
-    const createdAt = start + globalIndex * 4 * 60 * 60 * 1000;
+    const createdAt = start + ((globalIndex * 137 + 13) % 360) * 4 * 60 * 60 * 1000;
     const detail = details[regionIndex];
     posts.push({
       id: postId, authorId: `wave-demo-author-${String((globalIndex % 24) + 1).padStart(2, "0")}`, authorName: `데모 여행자 ${String((globalIndex % 24) + 1).padStart(2, "0")}`,
-      category: scenario.category, title: `${region.name}, ${scenario.title}`,
+      category: scenario.category, title: `[시연] ${region.name}, ${scenario.title}`,
       content: [notices[(regionIndex * 2 + scenarioIndex) % notices.length], ...scenario.body(region, detail, regionIndex)].join(" "),
       region: region.name, placeId: null, placeName: null, visitDate: null, fieldReports: [], journalPlaces: [], visitPhotos: [],
       createdAt, updatedAt: createdAt, moderationStatus: "active", demoBatchId: BATCH.id,
+      demoLikeCount: (globalIndex * 17 + 7) % 49,
     });
-    for (let replyIndex = 0; replyIndex < 2; replyIndex += 1) {
-      const commentIndex = globalIndex * 2 + replyIndex;
-      const commentCreatedAt = createdAt + (replyIndex === 0 ? 23 : 71) * 60 * 1000;
+    for (let replyIndex = 0; replyIndex < replyCounts[(scenarioIndex + regionIndex * 3) % replyCounts.length]; replyIndex += 1) {
+      const commentIndex = comments.length;
+      const commentCreatedAt = createdAt + (23 + replyIndex * 48) * 60 * 1000;
       comments.push({
-        id: `${postId}-comment-${replyIndex + 1}`, postId,
+        id: commentIds[commentIndex], postId,
         authorId: `wave-demo-commenter-${String((commentIndex % 36) + 1).padStart(2, "0")}`, authorName: `데모 답글 ${String((commentIndex % 36) + 1).padStart(2, "0")}`,
-        content: `${commentStarts[(regionIndex + scenarioIndex + replyIndex * 2) % commentStarts.length]} ${region.name}의 ‘${scenario.title}’ 이야기라면 ${scenario.replies[replyIndex](region, detail, regionIndex)}`,
+        content: `${commentStarts[(regionIndex + scenarioIndex + replyIndex * 2) % commentStarts.length]} ${region.name}의 ‘${scenario.title}’ 이야기라면 ${replyIndex < 2 ? scenario.replies[replyIndex](region, detail, regionIndex) : extraReplies[replyIndex - 2]}`,
         createdAt: commentCreatedAt, updatedAt: commentCreatedAt, moderationStatus: "active", demoBatchId: BATCH.id,
       });
     }
