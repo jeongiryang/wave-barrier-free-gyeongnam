@@ -81,7 +81,6 @@ const CASES = [
   ".horizon-checks li", "#departure .simple-text-link", ".night-discover-card h2", ".night-discover-card > p",
   ".simple-naru-story h2", ".simple-naru-story > div > p", ".simple-naru-example p",
   ".simple-naru-example-title small", ".example-undo",
-  "#closing h2", "#closing .landing-closing-copy > p",
 ];
 
 for (const theme of ["dark", "light"] as const) {

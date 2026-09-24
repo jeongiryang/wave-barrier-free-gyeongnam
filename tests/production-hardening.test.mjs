@@ -24,7 +24,7 @@ test("landing route composes restored scenes and keeps browser effects inside th
   assert.deepEqual(sceneNames(branches[2]), ["LandingRegionStory", "LandingFeatureLinks"]);
   for (const [index, middle] of [[1, ["LandingFeatureLinks", "LandingRegionStory"]], [2, ["LandingRegionStory", "LandingFeatureLinks"]]]) {
     assert.deepEqual(sceneNames(page.replace(responsiveScenes, branches[index])),
-      ["LandingIntro", "LandingHeader", "LandingHero", ...middle, "LandingChapters", "LandingCommunityScene", "LandingDepartureScene", "LandingAssistantStory", "LandingFeatureList", "LandingCallToAction", "LandingFooter"]);
+      ["LandingIntro", "LandingHeader", "LandingHero", ...middle, "LandingChapters", "LandingCommunityScene", "LandingDepartureScene", "LandingAssistantStory", "LandingFeatureList", "LandingFooter"]);
   }
   assert.match(page, /useSyncExternalStore\(subscribeCompact, compactSnapshot, desktopSnapshot\)/);
   assert.match(page, /query\.addEventListener\("change", onChange\)/);

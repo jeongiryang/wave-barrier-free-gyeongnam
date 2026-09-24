@@ -1,11 +1,7 @@
-"use client";
-import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import SiteFooter from "../../../components/SiteFooter";
 import type { LandingTranslate } from "../content";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { brandMeaning } from "../content";
-import { regionShowcaseAlbums } from "../region-showcase-photos";
 
 export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
   return <section className="evidence-story" id="evidence" aria-labelledby="data-principles-title">
@@ -20,27 +16,7 @@ export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
 
 export function LandingCallToAction({}: { t: LandingTranslate }) {
   const en = useSitePreferences().locale === "en";
-  const photos = useMemo(() => Object.values(regionShowcaseAlbums).flat(), []);
-  const [photoIndex, setPhotoIndex] = useState(0);
-  useEffect(() => {
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let timer: ReturnType<typeof setInterval> | undefined;
-    const configure = () => {
-      if (timer) clearInterval(timer);
-      timer = reducedMotion.matches || photos.length < 2
-        ? undefined
-        : setInterval(() => setPhotoIndex(index => (index + 1) % photos.length), 2_000);
-    };
-    configure();
-    reducedMotion.addEventListener("change", configure);
-    return () => {
-      if (timer) clearInterval(timer);
-      reducedMotion.removeEventListener("change", configure);
-    };
-  }, [photos.length]);
-  const photo = photos[photoIndex];
   return <section id="closing" tabIndex={-1} aria-labelledby="closing-title" className="landing-cta">
-    {photo && <div className="landing-closing-media" aria-hidden="true"><Image key={photo.image} src={photo.image} alt="" fill sizes="100vw" unoptimized onError={() => setPhotoIndex(index => (index + 1) % photos.length)} /></div>}
     <div className="landing-closing-copy" data-land-reveal>
     <div className="brand-meaning"><p>{brandMeaning.ko}</p><p lang="en">{brandMeaning.en}</p></div>
     <span className="closing-eyebrow">{en ? "YOUR NEXT HORIZON" : "이제, 당신의 경남을 만날 차례"}</span>

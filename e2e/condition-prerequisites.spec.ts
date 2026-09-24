@@ -285,13 +285,13 @@ for (const locale of ["ko", "en"] as const) {
     await page.goto("/"); await storyReady(page);
     expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
     const names = en
-      ? [/A wider world\s*Together, WAVE/, /Design a journey\s*that feels like you\./, /^WAVE로 할 수 있는 일$/, /^Explore Gyeongnam$/, /^Plan with Naru$/, /A lighter heart\.\s*One more check\./, /Travel brings people together\./, /See you at\s*the next horizon\./]
-      : [/더 넓은 세상을\s*함께, WAVE/, /당신만의\s*여행을 설계하세요/, /^WAVE로 할 수 있는 일$/, /^경남, 모두의 여행지$/, /^나루에게 말해보세요$/, /여행을 더 편하게,\s*필요한 정보를 한곳에/, /여행이\s*사람을 연결합니다/, /다음 풍경에서\s*만나요/];
+      ? [/A wider world\s*Together, WAVE/, /Design a journey\s*that feels like you\./, /^WAVE로 할 수 있는 일$/, /^Explore Gyeongnam$/, /^Plan with Naru$/, /A lighter heart\.\s*One more check\./, /Travel brings people together\./]
+      : [/더 넓은 세상을\s*함께, WAVE/, /당신만의\s*여행을 설계하세요/, /^WAVE로 할 수 있는 일$/, /^경남, 모두의 여행지$/, /^나루에게 말해보세요$/, /여행을 더 편하게,\s*필요한 정보를 한곳에/, /여행이\s*사람을 연결합니다/];
     for (const [index, id] of chapterIds.entries()) {
       if (id === "naru") await openLandingTools(page);
       const section = page.locator(`#${id}`);
       await section.scrollIntoViewIfNeeded();
-      await expect(section).toHaveAccessibleName(names[[0,3,1,6,5,4,2,7][index]]);
+      await expect(section).toHaveAccessibleName(names[[0,3,1,6,5,4,2][index]]);
       await expect(section.locator("h1,h2").first()).toBeVisible();
     }
     await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);

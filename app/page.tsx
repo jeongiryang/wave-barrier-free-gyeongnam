@@ -7,7 +7,7 @@ import "./styles/landing-restored.css";
 import "./styles/night-landing.css";
 import LandingDepartureScene from "../features/landing/components/LandingDepartureScene";
 import LandingCommunityScene from "../features/landing/components/LandingCommunityScene";
-import { LandingFooter, LandingCallToAction } from "../features/landing/components/LandingClosing";
+import { LandingFooter } from "../features/landing/components/LandingClosing";
 import LandingHeader from "../features/landing/components/LandingHeader";
 import LandingHero from "../features/landing/components/LandingHero";
 import LandingChapters from "../features/landing/components/LandingChapters";
@@ -40,7 +40,6 @@ export default function LandingPage() {
     <LandingChapters />
     <div className="night-discover-grid"><LandingCommunityScene /><LandingDepartureScene /></div>
     <div className="night-feature-details"><LandingAssistantStory /><LandingFeatureList /></div>
-    <LandingCallToAction t={t} />
     <LandingFooter t={t} />
   </main></>;
 }

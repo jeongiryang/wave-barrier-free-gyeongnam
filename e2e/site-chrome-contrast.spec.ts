@@ -1,6 +1,5 @@
 import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
-import { writeFile } from "node:fs/promises";
 import { findLowContrastText, formatFindings } from "./contrast";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { storyReady } from "./landing-contract";
@@ -13,41 +12,7 @@ const PAGES = ["/", "/planner", "/community", "/community/new", "/photo-course",
 
 async function closingTextContrast(page: Page) {
   await storyReady(page);
-  const closing = page.locator("#closing");
-  await closing.scrollIntoViewIfNeeded();
-  await expect(closing).toBeVisible();
-  await expect(closing.locator(".landing-closing-media img")).toHaveCount(1);
-  await expect(closing.locator("figcaption,a,button")).toHaveCount(0);
-  await expect(closing.locator("h2 em")).toHaveCSS("-webkit-text-fill-color", "rgb(236, 244, 255)");
-  const samples = await closing.evaluate(root => {
-    const rgba = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
-    const luminance = (rgb: number[]) => rgb.slice(0, 3).map(value => {
-      const s = value / 255;
-      return s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4;
-    }).reduce((sum, channel, i) => sum + channel * [.2126, .7152, .0722][i], 0);
-    const surface = getComputedStyle(root), background = rgba(surface.backgroundColor);
-    const frame = root.getBoundingClientRect();
-    return [...root.querySelectorAll(".brand-meaning p,h2,h2 em,.closing-eyebrow,.landing-closing-copy > p")].map(node => {
-      const foreground = getComputedStyle(node), box = node.getBoundingClientRect();
-      const light = luminance(rgba(foreground.color)), dark = luminance(background);
-      return { text: node.textContent, color: foreground.color, opacity: foreground.opacity,
-        background: surface.backgroundColor, backgroundImage: surface.backgroundImage,
-        covered: box.left >= frame.left && box.right <= frame.right && box.top >= frame.top && box.bottom <= frame.bottom,
-        ratio: (Math.max(light, dark) + .05) / (Math.min(light, dark) + .05) };
-    });
-  });
-  expect(samples).toHaveLength(6);
-  for (const sample of samples) {
-    expect(sample.background).toBe("rgb(5, 14, 25)");
-    expect(sample.backgroundImage).toBe("none");
-    expect(sample.opacity).toBe("1");
-    expect(sample.covered).toBe(true);
-    expect(sample.ratio, `${sample.text}: photographic closing overlay contrast`).toBeGreaterThanOrEqual(4.5);
-  }
-  await closing.screenshot({ path: test.info().outputPath("closing-text.png") });
-  const evidencePath = test.info().outputPath("closing-text-contrast.json");
-  await writeFile(evidencePath, JSON.stringify(samples, null, 2));
-  await test.info().attach("closing-text-contrast", { path: evidencePath, contentType: "application/json" });
+  await expect(page.locator("#closing")).toHaveCount(0);
 }
 
 for (const theme of ["light", "dark"] as const) {

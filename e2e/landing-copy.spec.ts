@@ -13,10 +13,8 @@ test("brand meaning is explained without replacing the Korean service promise", 
   await expect(hero.getByRole("link", { name: "여행지 둘러보기" })).toBeVisible();
   await expect(hero).not.toContainText("Way for All, Voyage for Everyone");
 
-  const meaning = page.locator("#closing .brand-meaning");
-  await expect(meaning).toContainText("모두를 위한 길, 모두를 위한 여행");
-  await expect(meaning.locator('[lang="en"]')).toHaveText("Way for All, Voyage for Everyone");
-  expect((await new AxeBuilder({ page }).include("#top").include("#closing").analyze()).violations).toEqual([]);
+  await expect(page.locator("#closing")).toHaveCount(0);
+  expect((await new AxeBuilder({ page }).include("#top").analyze()).violations).toEqual([]);
 });
 
 test("guide explains the same brand meaning once", async ({ page }) => {

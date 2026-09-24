@@ -11,7 +11,7 @@ test("the restored-section registry matches actual reading order without replaci
   expect(await sections.evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
   // Chapter labels are navigation shorthand. Check the actual reading headings
   // and their section associations independently of that shorthand.
-  const headings = [/더 넓은 세상을/, "경남, 모두의 여행지", /당신만의\s*여행을 설계하세요/, /여행이\s*사람을 연결합니다/, /여행을 더 편하게/, "나루에게 말해보세요", "WAVE로 할 수 있는 일", /다음 풍경에서\s*만나요/];
+  const headings = [/더 넓은 세상을/, "경남, 모두의 여행지", /당신만의\s*여행을 설계하세요/, /여행이\s*사람을 연결합니다/, /여행을 더 편하게/, "나루에게 말해보세요", "WAVE로 할 수 있는 일"];
   await openLandingTools(page);
   for (const [index, id] of chapterIds.entries()) {
     const section = page.locator(`#${id}`);
