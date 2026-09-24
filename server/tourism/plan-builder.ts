@@ -1,3 +1,4 @@
+import { statisticalCandidates } from "./exploration-model";
 import type { Env } from "../shared/env";
 import { clean } from "../shared/http";
 import {
@@ -83,7 +84,8 @@ export async function buildPlan(request: Request, env: Env) {
     fetchCrowd(env, region, firstTitle),
   ], Math.min(2_000, remaining()), overBudget);
   const [durunubi, hubPack, photo, relatedPack] = await optionalSources;
-  const course = courseFrom(durunubi);
+  const localCourses = durunubi.ok ? { ...durunubi, value: { ...durunubi.value, items: durunubi.value.items.filter(item => /경남|경상남도/.test(clean(item.sigun))) } } : durunubi;
+  const course = courseFrom(localCourses);
   const stops = buildPlanStops(places);
   const { statuses, mode } = buildPlanStatuses({
     barrier: barrier.ok ? { ok: true, value: combineProviderResults(barrier.value.items, [barrier, ...details]) } : barrier,
@@ -102,6 +104,7 @@ export async function buildPlan(request: Request, env: Env) {
     excludedPlaces,
     pagination: { page, nextPage, hasMore: nextPage !== null, scope: "loaded-candidates" },
     course,
+    additionalExploration: [...statisticalCandidates(hubPack.result, "hub", hubPack.baseYm, region), ...statisticalCandidates(relatedPack.result, "related", relatedPack.baseYm, region)],
     audio: audioFrom(audio, places[0] || explorationPlaces[0]),
     photo: photoFrom(photo, region),
     crowd: crowd.ok && crowd.value.items.length ? {

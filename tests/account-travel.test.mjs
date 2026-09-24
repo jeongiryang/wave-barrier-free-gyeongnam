@@ -109,3 +109,13 @@ test("trip deletion cascades shared data; place lookup and writes have bounded d
   for (let i = 0; i < 3; i++) await repo.reservePlaceLookup("owner");
   await assert.rejects(() => repo.reservePlaceLookup("owner"), error => error.status === 429);
 });
+
+
+test("private account save and restore retain rest purpose independently of public projection", async t => {
+  const { repo, db } = fixture(t); const id = randomUUID();
+  const input = { ...payload, breakMinutesByPlaceId: { '123456': 30 }, restPurposeByPlaceId: { '123456': 'nursing' } };
+  await repo.create('owner', id, input);
+  const restored = await travelRepository(db).get('owner', id);
+  assert.deepEqual(restored.payload.restPurposeByPlaceId, { '123456': 'nursing' });
+  assert.deepEqual(restored.payload.breakMinutesByPlaceId, { '123456': 30 });
+});

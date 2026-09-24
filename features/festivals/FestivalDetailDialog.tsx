@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { usePlaceDialogFocus } from "../planner/hooks/usePlaceDialogFocus";
 import type { Place } from "../planner/types";
 import styles from "./FestivalDetailDialog.module.css";
@@ -41,9 +41,10 @@ function stateLabel(festival: FestivalDetail) {
   return `D-${Math.max(0, Math.ceil((Date.parse(festival.startDate) - Date.parse(today)) / 86400000))}`;
 }
 
-export default function FestivalDetailDialog({ festival, websiteUrl, onClose }: {
+export default function FestivalDetailDialog({ festival, websiteUrl, onClose, visitActions }: {
   festival: FestivalDetail;
   websiteUrl?: string;
+  visitActions?: ReactNode;
   onClose: () => void;
 }) {
   const dialog = usePlaceDialogFocus(true, onClose);
@@ -68,6 +69,7 @@ export default function FestivalDetailDialog({ festival, websiteUrl, onClose }: 
         </dl>
         {primaryUrl && <a className={styles.officialLink} style={ui.officialLink} href={primaryUrl} target="_blank" rel="noopener noreferrer">공식 홈페이지 ↗</a>}
         <p style={ui.evidence}>일정과 운영 정보는 방문 전에 공식 홈페이지에서 다시 확인해 주세요.</p>
+        {visitActions && <div className="festival-detail-visit">{visitActions}</div>}
       </section>
     </div>
   </dialog>;

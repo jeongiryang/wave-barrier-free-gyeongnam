@@ -55,6 +55,7 @@ import "./styles/night-regression.css";
 import "./styles/naru-workspace.css";
 import "./styles/immersive-workspace.css";
 import "./styles/mobile-design-b.css";
+import "./styles/submission-refinements.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN, SITE_TITLE, SOCIAL_IMAGE } from "../lib/site-metadata";
 

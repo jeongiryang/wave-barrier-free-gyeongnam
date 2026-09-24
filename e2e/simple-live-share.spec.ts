@@ -121,6 +121,9 @@ test('공유 메뉴·여행 파일·캘린더는 공개 링크를 만들지 않�
   const app = await setup(page);
   const menu = await openMenu(page);
   await expect(menu.locator('#share-public-conditions')).toContainText('링크를 가진 누구나');
+  await expect(menu.locator('#share-public-conditions')).toContainText('자동');
+  await expect(menu.locator('#share-public-conditions')).toContainText('휴식 목적');
+  await expect(menu.getByText('현재 공개 중 · 일정 변경 자동 반영', { exact: true })).toHaveCount(0);
   await expect(menu.getByRole('button', { name: '공개 링크 만들기', exact: true })).toHaveAccessibleDescription(/30일/);
   for (const label of ['여행 파일', '캘린더']) {
     const pending = page.waitForEvent('download');
@@ -145,6 +148,7 @@ test('공유 메뉴·여행 파일·캘린더는 공개 링크를 만들지 않�
   await acceptTripTimingWarning(page);
   await expect(reopened.getByRole('link', { name: '공유 일정 보기', exact: true })).toBeVisible();
   expect(app.creates()).toHaveLength(1);
+  await expect(reopened.getByText('현재 공개 중 · 일정 변경 자동 반영', { exact: true })).toBeVisible();
   expect(await copied(page)).toEqual([]);
 });
 

@@ -23,14 +23,14 @@ export function useLocationSearchRequest(region: string, scope: "all" | "gyeongn
     setPlaceSearchState("idle");
   }, []);
 
-  const searchLocations = useCallback(async () => {
-    if (placeQuery.trim().length < 2 || searchRequestRef.current) return;
+  const searchLocations = useCallback(async (requestedQuery = placeQuery) => {
+    if (requestedQuery.trim().length < 2 || searchRequestRef.current) return;
     const controller = new AbortController();
     searchRequestRef.current = controller;
     setPlaceSearchResults([]); setOfficialPlaces([]); setOfficialState("idle");
     setPlaceSearchState("loading");
     try {
-      const data = await plannerJson<unknown>(`/api/location-search?q=${encodeURIComponent(placeQuery.trim())}${scope === "gyeongnam" ? "&scope=gyeongnam" : ""}${officialQuery}`, { signal: controller.signal, timeoutMs: officialQuery ? CLIENT_BUDGET_MS.officialLocation : CLIENT_BUDGET_MS.location });
+      const data = await plannerJson<unknown>(`/api/location-search?q=${encodeURIComponent(requestedQuery.trim())}${scope === "gyeongnam" ? "&scope=gyeongnam" : ""}${officialQuery}`, { signal: controller.signal, timeoutMs: officialQuery ? CLIENT_BUDGET_MS.officialLocation : CLIENT_BUDGET_MS.location });
       if (controller.signal.aborted || searchRequestRef.current !== controller) return;
       const places = parseLocationResults(data);
       if (officialQuery && data && typeof data === 'object') {

@@ -405,7 +405,10 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
       if (!node.getClientRects().length) return false;
       if (!node.matches('button,summary,a,input,select')) node.setAttribute('tabindex', '-1');
       node.scrollIntoView({ block: 'start', behavior: motion === 'calm' ? 'instant' : 'smooth' }); node.focus({ preventScroll: true });
-      return document.activeElement === node;
+      if (document.activeElement !== node) return false;
+      if (tool === 'compare') window.dispatchEvent(new Event('wave:open-comparison'));
+      if (tool === 'calendar' || tool === 'share') window.dispatchEvent(new Event('wave:open-share'));
+      return true;
     };
     if (embedded) router.push(`/planner#${["conditions","facilities"].includes(tool) ? "conditions" : ["places","compare","inquiry","preview","transcript"].includes(tool) ? "places" : "itinerary"}`);
     // Tool sections may load after navigation; focus once the real target mounts.

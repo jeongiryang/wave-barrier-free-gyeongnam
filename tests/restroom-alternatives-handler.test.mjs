@@ -50,3 +50,27 @@ test('available, empty, partial and timeout stay distinct and never use private 
 test('warm cache deduplicates pending KTO and public artifact ranking by contentId', async () => {
   const h = harness(); await Promise.all([h.run('action=restroom-alternatives&contentId=1001'), h.run('action=restroom-alternatives&contentId=1001')]); assert.equal(h.calls.filter(call => call.provider === 'kto').length, 1);
 });
+
+test('only supported public radii are accepted and no device-location query reaches the provider', async () => {
+  const query = 'action=restroom-alternatives&contentId=1001';
+  for (const radius of [1, 3, 5, 10, 20]) {
+    const h = harness(), response = await h.run(`${query}&radiusKm=${radius}`);
+    assert.equal(response.status, 200); assert.equal(response.body.radiusKm, radius);
+    assert.deepEqual(h.calls[0].params, { numOfRows: '1', contentId: '1001' });
+  }
+  for (const suffix of ['radiusKm=0', 'radiusKm=2', 'radiusKm=21', 'radiusKm=-1', 'radiusKm=Infinity', 'radiusKm=NaN', 'radiusKm=5&radiusKm=20', 'radiusKm=5&latitude=35', 'radiusKm=5&longitude=128', 'radiusKm=5&lat=35', 'radiusKm=5&lng=128', 'radiusKm=5&accuracy=1', 'radiusKm=5&origin=35,128', 'radiusKm=5&currentLocation=35,128']) {
+    const h = harness(), response = await h.run(`${query}&${suffix}`);
+    assert.equal(response.status, 400, suffix); assert.equal(h.calls.length, 0, suffix);
+  }
+});
+
+test('radius changes get distinct cached results while reusing only the verified public anchor', async () => {
+  const distant = { ...toilet, destination: { latitude: Number(place.mapy) + 12500 / 6371000 * 180 / Math.PI, longitude: Number(place.mapx) } };
+  const h = harness({ artifact: [distant] }), query = 'action=restroom-alternatives&contentId=1001';
+  const small = await h.run(query);
+  assert.equal(small.body.radiusKm, 5); assert.equal(small.body.status, 'empty'); assert.deepEqual(small.body.items, []);
+  const expanded = await h.run(`${query}&radiusKm=20`);
+  assert.equal(expanded.body.status, 'available'); assert.equal(expanded.body.items[0].id, distant.id);
+  assert.equal((await h.run(`${query}&radiusKm=5`)).body.status, 'empty');
+  assert.equal(h.calls.length, 1, 'radius changes must not requery the public anchor or upload a private location');
+});

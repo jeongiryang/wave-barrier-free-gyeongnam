@@ -99,7 +99,7 @@ test('public per-stop fields preserve actual order and calendar assignments, and
   const result = liveSharePayload({ selections: source });
   assert.deepEqual(result.placeRefs, [{ contentId: '1748884', order: 0 }, { contentId: '1904774', order: 1 }]);
   const { themes, ...expected } = selections();
-  assert.deepEqual(result.selections, { ...expected, theme: themes.join(','), profiles: [], locale: 'ko', temporaryStops: [] });
+  assert.deepEqual(result.selections, { ...expected, restPurposeByPlaceId: {}, theme: themes.join(','), profiles: [], locale: 'ko', temporaryStops: [] });
   assert.equal(JSON.stringify(result).includes(privateValue), false);
 });
 
@@ -261,4 +261,50 @@ test('live writes use the same-origin JSON and actual body-size boundary before 
   const req = request({ ...body(), revision: 1 });
   assert.equal((await f.saveSharedTrip(req, new URL(req.url), id)).status, 200);
   assert.equal(f.writes.length, 1);
+});
+
+
+test('public creation projection removes every private rest purpose without mutating the source', () => {
+  for (const purpose of ['rest', 'restroom', 'nap', 'nursing']) {
+    const input = body({ restPurposeByPlaceId: { '1904774': purpose } });
+    const result = liveSharePayload(input);
+    assert.deepEqual(result.selections.restPurposeByPlaceId, {});
+    assert.deepEqual(result.selections.breakMinutesByPlaceId, { '1904774': 30 });
+    assert.equal(input.selections.restPurposeByPlaceId['1904774'], purpose);
+  }
+});
+
+test('legacy and live shared reads redact already stored rest purposes while preserving timing', async () => {
+  for (const live of [false, true]) {
+    const payload = { selections: { ...selections(), profiles: ['wheelchair'], restPurposeByPlaceId: { '1904774': 'nursing' } }, origin: { label: privateValue } };
+    const row = { payload, revision: 2, live, created_at: Date.now(), expires_at: Date.now() + 1_000_000 };
+    const f = itinerary({ row });
+    const req = new Request(`${origin}/api/trips/${id}`);
+    const response = await f.loadSharedTrip(req, {}, id, new URL(req.url));
+    assert.equal(response.status, 200);
+    const result = await response.json();
+    assert.deepEqual(result.selections.restPurposeByPlaceId, {});
+    assert.deepEqual(result.selections.profiles, []);
+    assert.deepEqual(result.origin, { label: '' });
+    assert.deepEqual(result.selections.breakMinutesByPlaceId, { '1904774': 30 });
+    assert.equal(payload.selections.restPurposeByPlaceId['1904774'], 'nursing');
+    assert.equal(new URL(f.providerCalls[0]).searchParams.get('profiles'), '');
+  }
+});
+
+test('live create and update persist only redacted rest purposes at the SQL boundary', async () => {
+  for (const updating of [false, true]) {
+    const row = { revision: 3, owner_id: 'owner', manage_hash: null, expires_at: Date.now() + 1_000_000 };
+    const f = writer({ user: { id: 'owner' }, row });
+    const input = { ...body({ restPurposeByPlaceId: { '1904774': 'nursing' } }), revision: 3 };
+    const response = await f.write(request(input, '', updating ? id : ''), input, updating ? id : '');
+    assert.equal(response.status, updating ? 200 : 201);
+    const write = f.calls.find(call => call.text.startsWith(updating ? 'UPDATE' : 'INSERT'));
+    const stored = write.values.find(value => typeof value === 'string' && value.startsWith('{'));
+    assert.ok(stored, 'the actual persistence call must contain the public payload');
+    const payload = JSON.parse(stored);
+    assert.deepEqual(payload.selections.restPurposeByPlaceId, {});
+    assert.deepEqual(payload.selections.breakMinutesByPlaceId, { '1904774': 30 });
+    assert.equal(input.selections.restPurposeByPlaceId['1904774'], 'nursing');
+  }
 });

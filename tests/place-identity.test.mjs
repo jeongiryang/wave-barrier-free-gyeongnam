@@ -9,6 +9,26 @@ const searchedMuseum = { id: '23821302', name: '경남도립미술관', address:
 test('cross-provider match preserves the exact official record and ID', () => {
   assert.equal(canonicalPublicPlace(external, [official]), official);
 });
+
+test('an omitted parcel matches only the same full locality within 30 metres, preserving official evidence', () => {
+  const officialPark = { ...official, id: '2758443', name: '대산플라워랜드', address: '경상남도 창원시 의창구 대산면 모산리', mapX: '128.7', mapY: '35.3' };
+  const searched = { ...officialPark, id: 'kakao-park', name: '대산 플라워랜드', address: '경남 창원시 의창구 대산면 모산리 4-11' };
+  const atDistance = metres => ({ ...searched, mapY: String(Number(officialPark.mapY) + metres / 111320) });
+  for (const distance of [0, 11, 29.99]) {
+    assert.equal(canonicalPublicPlace(atDistance(distance), [officialPark]), officialPark);
+    assert.equal(canonicalPublicPlace(officialPark, [atDistance(distance)])?.id, searched.id);
+  }
+  for (const distance of [30.01, 100, 151]) assert.equal(canonicalPublicPlace(atDistance(distance), [officialPark]), undefined);
+  for (const change of [
+    { address: '경남 창원시 의창구 동읍 모산리 4-11' },
+    { address: '경남 창원시 의창구 대산면 가술리 4-11' },
+    { address: '경남 창원시 의창구 대산면 모산리 4-11 2층' },
+    { name: '대산플라워랜드 카페' },
+  ]) assert.equal(canonicalPublicPlace({ ...searched, ...change }, [officialPark]), undefined);
+  assert.equal(canonicalPublicPlace(searched, [officialPark, { ...officialPark, id: '9999' }]), undefined);
+  assert.equal(canonicalPublicPlace(searched, [{ ...officialPark, address: `${officialPark.address} 4-12` }]), undefined);
+  assert.equal(canonicalPublicPlace({ ...searched, address: '모산리 4-11' }, [{ ...officialPark, address: '모산리' }]), undefined, 'locality-only text lacks the full administrative identity');
+});
 test('names alone, adjoining shops, different coordinates and ambiguous IDs never merge', () => {
   for (const value of [{ ...external, name: '거제식물원 카페' }, { ...external, address: '' }, { ...external, address: '경남 거제시 다른로 1' }, { ...external, mapX: '128.8' }, { ...external, mapX: '' }]) assert.equal(canonicalPublicPlace(value, [official]), undefined);
   assert.equal(canonicalPublicPlace(external, [official, { ...official, id: '2002' }]), undefined);
