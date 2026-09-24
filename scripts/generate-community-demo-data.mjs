@@ -54,33 +54,44 @@ const scenarios = [
   { category: "tips", title: "여행 뒤 영수증과 메모 정리", body: (r,d,i) => [`${r.name} 여행 뒤 가방에서 구겨진 종이와 메모가 한꺼번에 나왔어요.`, `${withAnd(d.note)} 사진을 날짜별로 묶어 두니 버릴 것과 남길 것이 보이기 시작했습니다.`, ...(i%4===3?["정리를 미루면 기억도 같이 흐려지는 기분이라 이번에는 바로 해 봤어요."]:[]), "여행이 끝난 날 바로 정리하는 편인가요?"], replies: [(r,d)=>`저는 ${d.note}만 먼저 옮겨 적고 종이는 사진으로 남길지 결정할 것 같아요. ${r.name} 앨범과 같은 제목을 쓰면 찾기도 쉽겠네요.`,()=>"돌아온 날에는 피곤해서 사진에 별표만 하고, 다음 날 짧게 정리하는 방식이 저한테는 현실적일 것 같아요."] },
 ];
 
-const notices = ["이 글은 실제 이용자의 경험이 아닌 합성 데모 예시입니다.", "화면 검수를 위해 만든 가상의 커뮤니티 글입니다.", "시연용으로 작성한 합성 여행 이야기입니다.", "실제 작성자나 방문 경험이 없는 데모 게시물입니다.", "아래 내용은 커뮤니티 동작을 보여 주는 합성 예시입니다.", "가상의 여행 상황을 담은 데모 글입니다."];
-const commentStarts = ["합성 데모 댓글입니다.", "실제 이용자 답변이 아닌 시연용 댓글이에요.", "가상의 대화를 이어 가는 데모 댓글입니다.", "화면 검수용으로 만든 합성 답글입니다."];
 const posts = [];
 const comments = [];
 const start = Date.UTC(2026, 6, 1, 0, 0, 0);
+// Retain all previously published IDs while redistributing synthetic replies.
+const commentIds = regions.flatMap((region) => scenarios.flatMap((_, index) =>
+  [1, 2].map((reply) => `demo-2026-${region.slug}-${String(index + 1).padStart(2, "0")}-comment-${reply}`)));
+const replyCounts = [0, 1, 0, 3, 2, 0, 5, 1, 0, 8];
+const extraReplies = [
+  "저라면 동행이 가장 중요하게 생각하는 것을 하나씩 적어 보고 우선순위를 맞추겠어요.",
+  "계획을 완벽하게 정하기보다 여유 시간을 남겨 두자는 의견에 공감해요.",
+  "이런 고민은 출발 전에 함께 이야기하면 서로의 기대를 맞추기 좋겠네요.",
+  "저는 선택지를 두 개로 줄여서 동행에게 물어보고 싶어요. 결정 부담이 덜할 것 같습니다.",
+  "각자 편한 방식을 먼저 말하고 작은 것부터 맞춰 가면 좋겠어요.",
+  "나중에 계획을 바꿀 수도 있으니 한 가지 방법만 고집하지 않으려고요.",
+];
 
 for (const [regionIndex, region] of regions.entries()) {
   for (const [scenarioIndex, scenario] of scenarios.entries()) {
     const globalIndex = regionIndex * scenarios.length + scenarioIndex;
     const ordinal = String(scenarioIndex + 1).padStart(2, "0");
     const postId = `demo-2026-${region.slug}-${ordinal}`;
-    const createdAt = start + globalIndex * 4 * 60 * 60 * 1000;
+    const createdAt = start + ((globalIndex * 137 + 13) % 360) * 4 * 60 * 60 * 1000;
     const detail = details[regionIndex];
     posts.push({
       id: postId, authorId: `wave-demo-author-${String((globalIndex % 24) + 1).padStart(2, "0")}`, authorName: `데모 여행자 ${String((globalIndex % 24) + 1).padStart(2, "0")}`,
-      category: scenario.category, title: `${region.name}, ${scenario.title}`,
-      content: [notices[(regionIndex * 2 + scenarioIndex) % notices.length], ...scenario.body(region, detail, regionIndex)].join(" "),
+      category: scenario.category, title: `[시연] ${region.name}, ${scenario.title}`,
+      content: scenario.body(region, detail, regionIndex).join(" "),
       region: region.name, placeId: null, placeName: null, visitDate: null, fieldReports: [], journalPlaces: [], visitPhotos: [],
       createdAt, updatedAt: createdAt, moderationStatus: "active", demoBatchId: BATCH.id,
+      demoLikeCount: (globalIndex * 17 + 7) % 49,
     });
-    for (let replyIndex = 0; replyIndex < 2; replyIndex += 1) {
-      const commentIndex = globalIndex * 2 + replyIndex;
-      const commentCreatedAt = createdAt + (replyIndex === 0 ? 23 : 71) * 60 * 1000;
+    for (let replyIndex = 0; replyIndex < replyCounts[(scenarioIndex + regionIndex * 3) % replyCounts.length]; replyIndex += 1) {
+      const commentIndex = comments.length;
+      const commentCreatedAt = createdAt + (23 + replyIndex * 48) * 60 * 1000;
       comments.push({
-        id: `${postId}-comment-${replyIndex + 1}`, postId,
+        id: commentIds[commentIndex], postId,
         authorId: `wave-demo-commenter-${String((commentIndex % 36) + 1).padStart(2, "0")}`, authorName: `데모 답글 ${String((commentIndex % 36) + 1).padStart(2, "0")}`,
-        content: `${commentStarts[(regionIndex + scenarioIndex + replyIndex * 2) % commentStarts.length]} ${region.name}의 ‘${scenario.title}’ 이야기라면 ${scenario.replies[replyIndex](region, detail, regionIndex)}`,
+        content: `${region.name}의 ‘${scenario.title}’ 이야기라면 ${replyIndex < 2 ? scenario.replies[replyIndex](region, detail, regionIndex) : extraReplies[replyIndex - 2]}`,
         createdAt: commentCreatedAt, updatedAt: commentCreatedAt, moderationStatus: "active", demoBatchId: BATCH.id,
       });
     }

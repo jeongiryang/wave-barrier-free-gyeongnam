@@ -15,7 +15,7 @@ const prompt = '부모님이 오래 걷기 힘들어. 창원에서 출발해서 
 const current = { today: '2026-09-13', days: [day], start: day, end: day, region: '', savedIds: [], stops: [], profiles: ['wheel'], transport: 'transit' };
 const facilities = [['parking', '장애인 주차'], ['route', '접근로'], ['wheelchair', '휠체어 대여'], ['elevator', '엘리베이터'], ['restroom', '장애인 화장실']];
 
-function fixture({ empty = false } = {}) {
+function fixture({ empty = false, now, forecastDates = [day] } = {}) {
   const calls = [];
   const dependencies = {
     '../../lib/facility-selection.js': facilitySelection,
@@ -31,7 +31,7 @@ function fixture({ empty = false } = {}) {
     } },
     '../tourism/festivals': { koreaToday: () => day, fetchFestivals: () => { throw new Error('unexpected festival request'); } },
     '../tourism/visit-info': { handleVisitInfo: async () => Response.json({ setting: { state: 'indoor-space', detail: '합성 실내 근거' } }) },
-    '../weather/handler': { handleWeatherApi: async () => Response.json({ days: [{ date: day, label: '합성 날씨', rainProbability: 0, rain: 0 }] }) },
+    '../weather/handler': { handleWeatherApi: async () => Response.json({ days: forecastDates.map(date => ({ date, label: '합성 날씨', rainProbability: 0, rain: 0 })) }) },
     '../tourism/catalog': { profileFields: Object.fromEntries(facilities.map(item => [item[0], [item]])), contentTypes: { nature: '12', history: '14' }, regionCodes: Object.fromEntries(Object.keys(GYEONGNAM_REGION_POINTS).map(region => [region, {}])) },
     '../shared/provider-data': { fetchTourismData: () => { throw new Error('unexpected saved-place lookup'); } },
     '../tourism/accessibility-model': {},
@@ -39,7 +39,7 @@ function fixture({ empty = false } = {}) {
   };
   const exports = {};
   const source = ts.transpileModule(readFileSync(new URL('../server/assistant/planning.ts', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  vm.runInNewContext(source, { exports, require: name => { assert.ok(dependencies[name], name); return dependencies[name]; }, Request, Response, URL, URLSearchParams, AbortSignal, AbortController, TextEncoder, ReadableStream, Date });
+  vm.runInNewContext(source, { exports, require: name => { assert.ok(dependencies[name], name); return dependencies[name]; }, Request, Response, URL, URLSearchParams, AbortSignal, AbortController, TextEncoder, ReadableStream, Date: now ? class extends Date { constructor(...args) { super(...(args.length ? args : [now])); } static now() { return new Date(now).getTime(); } } : Date });
   return { calls, prepare: (action, context = current) => exports.prepareJourney(action, context, new Request('https://wave.example/api/assistant/journey'), {}, () => {}) };
 }
 
@@ -72,4 +72,19 @@ test('explicit Jinju remains the journey search destination despite a Changwon d
   const result = await f.prepare(action);
   assert.deepEqual(f.calls.map(url => url.searchParams.get('region')), ['진주']);
   assert.equal(result.region, '진주'); assert.equal(result.originRegion, '창원');
+});
+
+
+test('past weather and future forecast gaps are distinguished without changing the requested itinerary dates', async () => {
+  for (const [selectedDay, past] of [['2026-09-20', true], ['2026-10-01', false]]) {
+    const f = fixture({ now: '2026-09-23T15:01:00Z', forecastDates: ['2026-09-24'] });
+    const ctx = { ...current, days: [selectedDay], start: selectedDay, end: selectedDay, region: '통영' };
+    const before = JSON.stringify(ctx);
+    const result = await f.prepare({ action: 'create-itinerary', region: '통영' }, ctx);
+    assert.equal(result.start, selectedDay); assert.equal(result.end, selectedDay);
+    assert.equal(result.warnings.some(text => text.includes('지난 날짜가 포함된 여행')), past);
+    assert.ok(result.warnings.some(text => text.includes('현재 제공되는 예보 범위')));
+    assert.ok(!result.warnings.some(text => text.includes('아직 예보가 나오지 않은')));
+    assert.equal(JSON.stringify(ctx), before);
+  }
 });

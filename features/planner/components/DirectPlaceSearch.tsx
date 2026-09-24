@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import Image from "next/image";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { canonicalPublicPlace, conflictingFacilities } from "../../../lib/place-identity";
 import { Spinner } from "../../../components/LoadingState";
 import { regions } from "../constants";
@@ -20,9 +21,15 @@ export default function DirectPlaceSearch({ region, trip, onRegionSelect, offici
   onBuildItinerary: () => void;
 }) {
   const search = useLocationSearchRequest(region, "gyeongnam", profiles);
+  const { setPlaceQuery, searchLocations } = search;
   const [active, setActive] = useState(-1);
   const [queryNotice, setQueryNotice] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const find = (event: Event) => { const query = (event as CustomEvent<unknown>).detail; if (typeof query !== 'string' || query.length > 250) return; setPlaceQuery(query); setActive(-1); void searchLocations(query); };
+    window.addEventListener('wave:search-official-candidate', find);
+    return () => window.removeEventListener('wave:search-official-candidate', find);
+  }, [setPlaceQuery, searchLocations]);
   const resultNodes = useRef<Array<HTMLElement | null>>([]);
   const matchingRegions = useMemo(() => {
     const query = search.placeQuery.trim().replace(/^(경상남도|경남)\s*/, "");
@@ -82,8 +89,8 @@ export default function DirectPlaceSearch({ region, trip, onRegionSelect, offici
       {results.map((result, index) => result.kind === "region" ? <article ref={node => { resultNodes.current[index] = node; }} id={`direct-result-${index}`} key={result.id} className="simple-result-notice simple-direct-region" role="listitem" data-active={active === index}>
         <div><span>지역</span><h3>{result.name}</h3><p>{result.name}의 관광지와 편의정보를 살펴봐요</p></div><button type="button" className="simple-text-link" onClick={() => choose(result)}>이 지역으로 바꾸기</button>
       </article> : <article ref={node => { resultNodes.current[index] = node; }} id={`direct-result-${index}`} key={result.item.id} className="simple-place-row simple-direct-place" role="listitem" data-active={active === index}>
-        <div className="simple-place-photo simple-search-photo-placeholder" role="img" aria-label={`${result.item.name} 사진 없음`}>사진 없음</div>
-        <div className="simple-place-copy"><span className="simple-place-city">{result.item.region || "경남"} · {typeLabel[result.item.resultType || "other"]}</span><h3>{result.official && onPlace ? <button type="button" className="simple-text-link" onClick={() => onPlace(result.place)}>{result.place.name}</button> : result.item.placeUrl ? <a href={result.item.placeUrl} target="_blank" rel="noreferrer">{result.item.name}<span className="sr-only"> 새 창</span></a> : result.item.name}</h3><p className="simple-place-address">{result.item.address || "주소 미제공"}</p><p className="simple-search-summary">{result.item.summary || result.item.category || ""}</p><dl className="simple-search-facts"><div><dt>운영시간</dt><dd>미확인</dd></div><div><dt>이동</dt><dd>일정에 담으면 경로 확인</dd></div><div><dt>편의·접근성</dt><dd>{result.official ? result.place.accessibility?.length ? result.place.accessibility.map(item => `${item.label} ${item.state === 'confirmed' ? '확인됨' : item.state === 'negative' ? '없음으로 기록' : '미확인'}`).join(' · ') : '항목별 정보 미확인' : '미확인'}</dd></div></dl>{result.conflicts.length > 0 && <p role="status">공식 조회 시점 간 정보 불일치: {result.conflicts.join(" · ")}. 최근 공식 조회를 표시했어요. 기존 추천과 다른 항목은 방문 전에 확인해 주세요.</p>}{result.official && <p className="simple-search-summary">{result.place.source}{result.place.facilityLookupState === 'error' ? ' · 편의정보 제공처 조회 실패' : ''}</p>}</div>
+        {result.official && result.place.image ? <div className="simple-place-photo"><Image src={result.place.image} alt={`${result.place.name} 공식 관광정보 사진`} fill sizes="(max-width:600px) 96px,160px" unoptimized /></div> : <div className="simple-place-photo simple-search-photo-placeholder" role="img" aria-label={`${result.item.name} 사진 없음`}>사진 없음</div>}
+        <div className="simple-place-copy"><span className="simple-place-city">{result.item.region || "경남"} · {typeLabel[result.item.resultType || "other"]}</span><h3>{result.official && onPlace ? <button type="button" className="simple-text-link" onClick={() => onPlace(result.place)}>{result.place.name}</button> : result.item.placeUrl ? <a href={result.item.placeUrl} target="_blank" rel="noreferrer">{result.item.name}<span className="sr-only"> 새 창</span></a> : result.item.name}</h3><p className="simple-place-address">{result.item.address || "주소 미제공"}</p><p className="simple-search-summary">{result.item.summary || result.item.category || ""}</p><dl className="simple-search-facts"><div><dt>운영시간</dt><dd>미확인</dd></div><div><dt>이동</dt><dd>일정에 담으면 경로 확인</dd></div><div><dt>편의·접근성</dt><dd>{result.official ? result.place.accessibility?.length ? result.place.accessibility.map(item => `${item.label} ${item.state === 'confirmed' ? '확인됨' : item.state === 'negative' ? '없음으로 기록' : '미확인'}`).join(' · ') : '항목별 정보 미확인' : '공식 관광정보 연결 미확인 · 시설은 별도 확인'}</dd></div></dl>{result.conflicts.length > 0 && <p role="status">공식 조회 시점 간 정보 불일치: {result.conflicts.join(" · ")}. 최근 공식 조회를 표시했어요. 기존 추천과 다른 항목은 방문 전에 확인해 주세요.</p>}{result.official && <p className="simple-search-summary">{result.place.source}{result.place.facilityLookupState === 'error' ? ' · 편의정보 제공처 조회 실패' : ''}</p>}</div>
         <button type="button" className="simple-place-add" disabled={!trip.storageReady} aria-pressed={trip.saved.includes(result.place.id)} onClick={() => trip.toggleSaved(result.place.id, result.place)} aria-label={`${result.item.name} ${trip.saved.includes(result.place.id) ? "담았음 · 되돌리기" : "일정에 담기"}`}><span aria-hidden="true">{trip.saved.includes(result.place.id) ? "↶" : "+"}</span>{trip.saved.includes(result.place.id) ? "되돌리기" : "담기"}</button>
       </article>)}
     </div>}

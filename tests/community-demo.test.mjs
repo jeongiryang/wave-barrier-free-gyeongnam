@@ -1,12 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
 import test from "node:test";
 import ts from "typescript";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { readDemoData, validateDemoData } from "../scripts/community-demo.mjs";
+import { demoFixtureSha256, readDemoData, runProductionDemo, validateDemoData } from "../scripts/community-demo.mjs";
+import { COMMUNITY_DEMO_PRODUCTION_TARGET } from "../lib/deployment/community-demo-operation.js";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -35,10 +33,10 @@ test("all 18 regions include practical varied topics with coherent synthetic rep
     const regional = data.posts.filter((post) => post.region === region);
     assert.equal(regional.length, 20);
     assert.ok(topicWords.every((word) => regional.some((post) => post.title.includes(word))));
-    const sample = regional.find((post) => post.category === "review");
+    const sample = regional.find((post) => post.category === "review" && data.comments.some((comment) => comment.postId === post.id));
     assert.ok(sample && /여행|사진|일정|가방|동행/.test(sample.content));
     const replies = data.comments.filter((comment) => comment.postId === sample.id);
-    assert.equal(replies.length, 2);
+    assert.ok(replies.length >= 1 && replies.length <= 8);
     assert.ok(replies.every((comment) => comment.content.includes(region) && comment.content.includes(`‘${sample.title.split(", ")[1]}’`)));
   }
   const together = data.posts.filter((post) => post.category === "together").map((post) => post.content).join("\n");
@@ -59,7 +57,7 @@ test("demo categories follow each conversation's intent", async () => {
   for (const post of data.posts) assert.equal(post.category, expected.get(post.title.split(", ")[1]));
 });
 
-test("search and pagination cover the full opt-in corpus without synthetic likes", async () => {
+test("search and pagination cover the full opt-in corpus", async () => {
   const data = await readDemoData();
   const pageSize = 12;
   assert.equal(Math.ceil(data.posts.length / pageSize), 30);
@@ -67,6 +65,34 @@ test("search and pagination cover the full opt-in corpus without synthetic likes
   assert.equal(data.posts.filter((post) => post.title.includes("충전기")).length, 18);
   assert.equal(data.posts.filter((post) => post.category === "review").length, 72);
   assert.equal("likes" in data, false);
+});
+
+test("latest, popular and comment sorting have distinct varied first pages", async () => {
+  const data = await readDemoData();
+  const counts = new Map(data.posts.map((post) => [post.id, 0]));
+  for (const comment of data.comments) counts.set(comment.postId, counts.get(comment.postId) + 1);
+  assert.deepEqual([...new Set(counts.values())].sort((a, b) => a - b), [0, 1, 2, 3, 5, 8]);
+  assert.equal(new Set(data.posts.map((post) => post.demoLikeCount)).size, 49);
+  const pages = [
+    [...data.posts].sort((a, b) => b.createdAt - a.createdAt),
+    [...data.posts].sort((a, b) => b.demoLikeCount - a.demoLikeCount || b.createdAt - a.createdAt),
+    [...data.posts].sort((a, b) => counts.get(b.id) - counts.get(a.id) || b.createdAt - a.createdAt),
+  ].map((posts) => posts.slice(0, 12));
+  assert.equal(new Set(pages.map((page) => page[0].id)).size, 3);
+  for (let a = 0; a < pages.length; a += 1) {
+    assert.ok(new Set(pages[a].map((post) => post.region)).size >= 6);
+    for (let b = a + 1; b < pages.length; b += 1) {
+      assert.ok(pages[a].filter((post) => pages[b].some((other) => other.id === post.id)).length <= 3);
+    }
+  }
+});
+
+test("demo like bounds reject unbounded or invalid synthetic reactions", async () => {
+  for (const value of [-1, 49, 1.5, "12", null]) {
+    const data = await readDemoData();
+    data.posts[0].demoLikeCount = value;
+    assert.match(validateDemoData(data).errors.join("\n"), /invalid demoLikeCount/);
+  }
 });
 
 test("dry-run is read-only and succeeds without DATABASE_URL", () => {
@@ -79,6 +105,50 @@ test("dry-run is read-only and succeeds without DATABASE_URL", () => {
   assert.equal(report.readOnly, true);
   assert.equal(report.posts, 360);
   assert.equal(report.comments, 720);
+  assert.match(report.fixtureSha256, /^[a-f0-9]{64}$/);
+});
+
+test("validator freezes approved batch metadata and the title disclosure", async () => {
+  const data = await readDemoData();
+  assert.match(await demoFixtureSha256(), /^[a-f0-9]{64}$/);
+  const wrongBatch = structuredClone(data);
+  wrongBatch.batch.id = "another-batch";
+  assert.match(validateDemoData(wrongBatch).errors.join("\n"), /approved fixture/);
+  const wrongTitle = structuredClone(data);
+  wrongTitle.posts[0].title = wrongTitle.posts[0].title.replace("[시연] ", "");
+  assert.match(validateDemoData(wrongTitle).errors.join("\n"), /valid \[시연\] title/);
+});
+
+test("production preflight requires the exact non-secret target and returns only sanitized counts", async () => {
+  const data = await readDemoData();
+  let calls = 0;
+  const snapshot = {
+    database_name: "neondb", read_only: "on", schema_matches: true, batch_metadata_matches: true,
+    batch_rows: "0", posts_total: "4", posts_active: "3", posts_non_demo: "4", posts_non_demo_active: "3",
+    posts_batch: "0", posts_batch_active: "0", posts_batch_hidden: "0", comments_total: "2", comments_active: "2",
+    comments_non_demo: "2", comments_non_demo_active: "2", comments_batch: "0", comments_batch_active: "0",
+    comments_batch_hidden: "0", real_comments_on_batch_posts: "0", likes_total: "1", likes_on_batch_posts: "0",
+    likes_on_non_batch_posts: "1", reports_total: "1", reports_open: "1", reports_on_batch_posts: "0",
+    reports_on_non_batch_posts: "1", foreign_post_collisions: "0", foreign_comment_collisions: "0",
+    extra_batch_posts: "0", extra_batch_comments: "0",
+  };
+  const sql = {
+    query: (text, params = []) => ({ text, params }),
+    transaction: async (_queries, options) => {
+      calls += 1;
+      assert.deepEqual(options, { readOnly: true, isolationLevel: "RepeatableRead" });
+      return [[], [snapshot]];
+    },
+  };
+  const databaseUrl = "postgresql://owner:secret@ep-nameless-voice-azo6m14c.ap-southeast-1.aws.neon.tech/neondb?sslmode=require";
+  const rejected = await runProductionDemo(sql, data, { mode: "preflight", databaseUrl, target: "wrong/neondb" });
+  assert.deepEqual(rejected, { ok: false, reason: "production-target-mismatch" });
+  assert.equal(calls, 0);
+  const accepted = await runProductionDemo(sql, data, { mode: "preflight", databaseUrl, target: COMMUNITY_DEMO_PRODUCTION_TARGET });
+  assert.equal(accepted.ok, true);
+  assert.equal(accepted.snapshot.postsNonDemo, 4);
+  assert.equal(JSON.stringify(accepted).includes("secret"), false);
+  assert.equal(calls, 1);
 });
 
 test("mutations require explicit batch ownership and a database", () => {
@@ -115,29 +185,17 @@ test("repository projections and mappers carry the persisted demo marker", async
   assert.equal(loaded.exports.mapCommunityComment(row).demoBatchId, "wave-community-demo-2026-v1");
 });
 
-test("list, detail and comment UI label mapped demo rows but leave real rows unlabelled", async () => {
-  const [mapperSource, labelSource, list, detail, comments] = await Promise.all([
-    source("features/community/server/post-mappers.ts"), source("features/community/components/CommunityDemoLabel.tsx"),
-    source("features/community/components/CommunityPostList.tsx"), source("features/community/components/CommunityPostArticle.tsx"), source("features/community/components/CommunityComments.tsx"),
-  ]);
-  const mapperJs = ts.transpileModule(mapperSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  const mapper = { exports: {} };
-  new Function("require", "module", "exports", mapperJs)((name) => name.includes("field-report")
-    ? { normalizeAccessibilityReports: () => [], normalizeJournalPlaces: () => [] }
-    : { normalizeVisitPhotos: () => ({ photos: [] }) }, mapper, mapper.exports);
-  const base = { id: "post", category: "general", title: "title", content: "body", author_name: "작성자", author_id: "author", created_at: 1, updated_at: 1, field_reports: [], journal_places: [], photo_count: 0 };
-  const demoPost = mapper.exports.mapCommunityPost({ ...base, demo_batch_id: "wave-community-demo-2026-v1" });
-  const realPost = mapper.exports.mapCommunityPost({ ...base, demo_batch_id: null });
-  const demoComment = mapper.exports.mapCommunityComment({ ...base, demo_batch_id: "wave-community-demo-2026-v1" });
-
-  const labelJs = ts.transpileModule(labelSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-  const label = { exports: {} };
-  new Function("require", "module", "exports", labelJs)(createRequire(import.meta.url), label, label.exports);
-  const Label = label.exports.default;
-  assert.match(renderToStaticMarkup(createElement(Label, { demoBatchId: demoPost.demoBatchId })), /합성 데모 예시/);
-  assert.match(renderToStaticMarkup(createElement(Label, { demoBatchId: demoComment.demoBatchId, kind: "comment" })), /합성 데모 댓글/);
-  assert.equal(renderToStaticMarkup(createElement(Label, { demoBatchId: realPost.demoBatchId })), "");
-  for (const component of [list, detail, comments]) assert.match(component, /CommunityDemoLabel/);
+test("demo disclosure stays in titles without repetitive body notices or badges", async () => {
+  const data = await readDemoData();
+  for (const post of data.posts) assert.ok(post.title.startsWith("[시연] "));
+  for (const row of [...data.posts, ...data.comments]) {
+    assert.ok(row.content.trim().length > 20);
+    assert.doesNotMatch(row.content, /합성 데모|화면 검수|시연용으로|데모 게시물|데모 글|시연용 댓글|데모 댓글/);
+  }
+  for (const name of ["CommunityPostList", "CommunityPostArticle", "CommunityComments"]) {
+    assert.doesNotMatch(await source(`features/community/components/${name}.tsx`), /CommunityDemoLabel/);
+  }
+  assert.doesNotMatch(await source("features/community/components/CommunityBoard.tsx"), /조밀한 카드|setLayout\('compact'\)/);
 });
 
 test("metadata migration is additive and legacy seed retirement remains untouched", async () => {

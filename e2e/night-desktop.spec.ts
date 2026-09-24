@@ -4,6 +4,10 @@ import { mockPlannerApi } from './fixtures';
 
 test.use({ viewport: { width: 1440, height: 1050 }, storageState: { cookies: [], origins: [] } });
 test('community banner navigation and category write destination use real posts only', async ({ page }) => {
+  // The navigation contract must not wait on third-party tourism image delivery.
+  await page.route('https://tong.visitkorea.or.kr/**', route => route.fulfill({
+    contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="520"><rect width="800" height="520" fill="#d6edf5"/></svg>',
+  }));
   await page.route('**/api/auth/get-session', route => route.fulfill({ json: null }));
   await page.route('**/api/community/posts**', route => route.fulfill({ json: { posts: [], page: 1, hasMore: false } }));
   await page.goto('/community');

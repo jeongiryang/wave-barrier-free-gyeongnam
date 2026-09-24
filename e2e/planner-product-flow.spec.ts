@@ -21,7 +21,7 @@ test("320px·390px·768px·1440px 직접 검색은 정보 상태·담기·되돌
     const result = page.locator("#direct-place-results").getByRole("listitem").filter({ hasText: "파도 카페" });
     await expect(result).toContainText("창원시 · 카페");
     await expect(result).toContainText("운영시간미확인");
-    await expect(result).toContainText("편의·접근성미확인");
+    await expect(result).toContainText("공식 관광정보 연결 미확인 · 시설은 별도 확인");
     await result.getByRole("button", { name: "파도 카페 일정에 담기", exact: true }).click();
     await expect(result.getByRole("button", { name: "파도 카페 담았음 · 되돌리기", exact: true })).toHaveAttribute("aria-pressed", "true");
     const build = page.getByRole("button", { name: "날짜 정하기", exact: true });

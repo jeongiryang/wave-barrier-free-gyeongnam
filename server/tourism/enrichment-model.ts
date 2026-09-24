@@ -44,7 +44,7 @@ export function buildEnrichmentModel(sources: EnrichmentSources, expresswayConfi
   return {
     generatedAt: new Date().toISOString(),
     visitor: { total: visitorTotal, byType: visitorByType, startYmd: visitorPack.startYmd, endYmd: visitorPack.endYmd },
-    demand: demandItems.map((item) => ({ name: clean(item.tarSvcDemIxNm), value: Number(item.tarSvcDemIxVal || 0), baseYm: clean(item.baseYm || demandPack.baseYm) })).slice(0, 8),
+    demand: demandItems.map((item) => ({ name: clean(item.tarSvcDemIxNm), value: Number(item.tarSvcDemIxVal || 0), baseYm: clean(item.baseYm || demandPack.baseYm), scope: clean(item.signguNm || demandPack.scope) })).slice(0, 8),
     camping: spots(camping, "고캠핑"), pet: spots(pet, "반려동물 동반여행"), wellness: spots(wellness, "웰니스 관광"),
     medical: spots(medical, "의료 관광"), language: spots(languageTour, language.source), awards: spots(awards, "관광공모전 수상작"),
     water: [...spots(waterCourses, "낙동강 수변 코스"), ...spots(waterPlaces, "낙동강 수변 명소")].slice(0, 8),

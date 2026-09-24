@@ -184,3 +184,40 @@ test('채팅 검색은 제공처 실패·미확인·시설 부재·실제 빈 �
   await expect(results.getByRole('button', { name: '검색 조건 수정', exact: true })).toBeEnabled();
   expect(await snapshot(page)).toEqual(before); expect(app.journeyCalls()).toBe(0);
 });
+
+for (const [request, expected] of [
+  ['첫 번째 장소 대신 비가 오니까 다른 곳을 찾아줘', '실내 공간으로'],
+  ['첫 번째 장소 대신 실내 대안을 찾아줘', '실내 공간으로'],
+  ['첫 번째 장소 대신 실내 말고 다른 곳을 찾아줘', null],
+  ['첫 번째 장소 대신 다른 곳을 찾아줘', '이미 가본 곳이에요'],
+] as const) test(`대안 이유는 사용자 요청만 따른다: ${request}`, async ({ page }) => {
+  const app = await setup(page), before = await snapshot(page);
+  await page.route('**/api/assistant', route => route.request().method() === 'POST'
+    ? route.fulfill({ json: { reply: '비가 오니 실내를 추천합니다', source: 'local-llm', proposal: { action: 'alternatives', placeId: '1001' } } })
+    : route.fulfill({ json: { available: true, configured: true } }));
+  await send(app.chat, request);
+  const comparison = page.locator('dialog[aria-labelledby=alternative-title]');
+  if (!expected) {
+    await expect(app.chat.getByRole('log')).toContainText('일정은 변경하지 않았어요');
+    await expect(comparison).toHaveCount(0);
+    expect(await snapshot(page)).toEqual(before); return;
+  }
+  const proposal = app.chat.getByRole('button', { name: /대안 비교/ });
+  if (await proposal.isVisible()) await proposal.click();
+  await expect(comparison).toBeVisible();
+  await expect(comparison.getByRole('button', { name: expected, exact: true })).toHaveAttribute('aria-pressed', 'true');
+  expect(await snapshot(page)).toEqual(before);
+});
+
+
+
+test('rain request retains indoor context when the local model chooses the alternatives tool', async ({ page }) => {
+  const app = await setup(page), before = await snapshot(page);
+  await page.route('**/api/assistant', route => route.request().method() === 'POST'
+    ? route.fulfill({ json: { reply: '다른 곳을 비교해요', source: 'local-llm', proposal: { action: 'tool', tool: 'alternatives' } } })
+    : route.fulfill({ json: { available: true, configured: true } }));
+  await send(app.chat, '비가 오니 실내 대안을 찾아줘');
+  await expect(page.locator('dialog[aria-labelledby=alternative-title]')).toBeVisible();
+  await expect(page.getByRole('button', { name: '실내 공간으로', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  expect(await snapshot(page)).toEqual(before);
+});

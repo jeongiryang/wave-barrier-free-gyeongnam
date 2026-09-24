@@ -1,1 +1,1 @@
-export type CommunityLayout = 'cards' | 'compact' | 'list';
+export type CommunityLayout = 'cards' | 'list';

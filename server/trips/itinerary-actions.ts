@@ -25,7 +25,9 @@ export async function loadSharedTrip(request: Request, env: Env, id: string, url
   if (!row) return json({ error: "공유 여행을 찾을 수 없거나 보관 기간이 지났습니다." }, 404);
 
   const saved = row.payload || {};
-  const selections = (saved.selections || {}) as Record<string, unknown>;
+  // Apply the current public boundary to old snapshots as well as new links.
+  const selections: Record<string, unknown> = { ...((saved.selections || {}) as Record<string, unknown>), profiles: [], restPurposeByPlaceId: {} };
+  const publicSaved = { ...saved, selections, origin: { label: '' } };
   const params = new URLSearchParams({
     region: clean(selections.region, 20),
     themes: Array.isArray(selections.themes) ? selections.themes.join(",") : clean(selections.theme, 100),
@@ -35,7 +37,7 @@ export async function loadSharedTrip(request: Request, env: Env, id: string, url
     locale: clean(selections.locale || "ko", 20),
   });
   const currentPlan = buildPlan(new Request(`${url.origin}/api/wave?${params.toString()}`), env);
-  const restored = await restoreSharedPlan(env, saved, selections, currentPlan);
+  const restored = await restoreSharedPlan(env, publicSaved, selections, currentPlan);
   if (row.live) {
     const current = await sql`SELECT revision FROM itineraries WHERE id = ${id} AND revoked = FALSE AND expires_at > ${Date.now()} LIMIT 1`;
     if (!current.length) return json({ error: '공유가 종료됐어요.' }, 404);
@@ -43,7 +45,7 @@ export async function loadSharedTrip(request: Request, env: Env, id: string, url
   }
   return json({
     id, live: Boolean(row.live), revision: Number(row.revision || 1),
-    ...saved,
+    ...publicSaved,
     ...restored,
     createdAt: Number(row.created_at),
     expiresAt: Number(row.expires_at),

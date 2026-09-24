@@ -48,19 +48,21 @@ async function setup(page: Page, handler?: (route: Route) => Promise<void>) {
   return card;
 }
 
-test('축제 현장 편의 위치를 모를 때 임의 시설 핀이나 지도 요청을 만들지 않는다', async ({ page }) => {
-  const tileRequests: string[] = [];
-  page.on('request', request => { if (request.url().includes('tile.openstreetmap.org')) tileRequests.push(request.url()); });
+test('축제 현장 편의 시연 지도는 임의 위치를 명시하고 쉬는 곳과 화장실을 전환한다', async ({ page }) => {
   const card = await setup(page);
-  const opener = card.getByRole('button', { name: '지금 현장·감각 정보', exact: true });
+  const opener = card.getByRole('button', { name: '현장 편의 지도', exact: true });
   await opener.click();
   const dialog = page.getByTestId('festival-amenity-dialog');
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole('heading', { name: '현장 편의시설 위치정보 없음', exact: true })).toBeVisible();
-  await expect(dialog.getByRole('status')).toContainText('공식 현장 지도가 아직 제공되지 않았어요.');
-  await expect(dialog.getByTestId('festival-amenity-map')).toHaveCount(0);
-  await expect(dialog.locator('[data-amenity-marker]')).toHaveCount(0);
-  expect(tileRequests).toEqual([]);
+  await expect(dialog.getByRole('heading', { name: `[시연] ${event.name} 현장 편의 지도`, exact: true })).toBeVisible();
+  await expect(dialog.getByRole('note')).toContainText('실제 시설 위치가 아닙니다.');
+  await expect(dialog.getByTestId('festival-amenity-map')).toBeVisible();
+  await expect(dialog.locator('[data-amenity-marker="rest"]')).toHaveCount(3);
+  await dialog.getByRole('button', { name: '화장실', exact: true }).click();
+  await expect(dialog.locator('[data-amenity-marker="restroom"]')).toHaveCount(3);
+  await expect(dialog.getByText('시연 · 임의 위치', { exact: true })).toHaveCount(0);
+  await expect(dialog.getByRole('note')).toHaveText('마커는 임의 위치이며 실제 시설 위치가 아닙니다.');
+  await expect(dialog).toContainText('축제 주최 측의 공식 현장 지도');
   expect((await new AxeBuilder({ page }).include('[data-testid="festival-amenity-dialog"]').analyze()).violations).toEqual([]);
   for (const width of [390, 960, 1440]) {
     await page.setViewportSize({ width, height: 960 });
@@ -113,6 +115,24 @@ test('축제의 실제 개최일을 골라 담으면 기존 방문일과 고정 
   await showItineraryMap(page); await expect(page.locator('.simple-itinerary-map .leaflet-container')).toBeVisible();
   await expect(page.locator('.simple-itinerary-map .wave-map-icon.place[data-place-id="3001"]')).toBeVisible();
   await expect(page.locator('.simple-itinerary-map .wave-map-icon.place[data-place-id="1001"]')).toHaveCount(0);
+});
+
+test('축제 상세 안에서 선택한 방문 날짜로 담고 기존 고정 방문과 휴식을 보존한다', async ({ page }) => {
+  const card = await setup(page);
+  await card.getByRole('button', { name: `${event.name} 축제 상세 보기`, exact: true }).click();
+  const dialog = page.getByTestId('festival-detail-dialog');
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel('방문 날짜', { exact: true }).fill('2026-09-21');
+  await dialog.getByRole('button', { name: '내 일정에 담기', exact: true }).click();
+  await expect(page).toHaveURL(/\/planner\?region=.*#itinerary$/);
+  await expect(page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true })).toBeEnabled();
+  const after = JSON.parse((await records(page)).trip!).values;
+  expect(JSON.parse(after['wave-saved-places'])).toEqual(['1001', '3001']);
+  const current = JSON.parse(after['wave-trip-schedule-v1']);
+  expect(current.scheduleAssignments).toEqual({ '1001': '2026-09-20', '3001': '2026-09-21' });
+  expect(current.fixedVisits).toEqual(schedule.fixedVisits);
+  expect(current.breakMinutesByPlaceId).toEqual(schedule.breakMinutesByPlaceId);
+  expect(current.comfort).toEqual(schedule.comfort);
 });
 
 test('날짜 입력칸 어디를 눌러도 달력 열기를 요청한다', async ({ page }) => {

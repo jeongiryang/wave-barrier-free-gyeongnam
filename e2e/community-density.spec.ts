@@ -79,7 +79,7 @@ test('community server controls wait for hydration before layout, filter and sea
     await expect(sortbar).toHaveAttribute('aria-busy', 'true');
     await expect(savedPosts).toBeDisabled();
     for (const control of await sortbar.getByRole('button').all()) await expect(control).toBeDisabled();
-    await expect(view.getByRole('button')).toHaveCount(3);
+    await expect(view.getByRole('button')).toHaveCount(2);
     for (const control of await controls.locator('button, input').all()) await expect(control).toBeDisabled();
     await expect(clearPlace).toBeDisabled();
     await expect(search).toHaveValue('');
@@ -98,15 +98,15 @@ test('community server controls wait for hydration before layout, filter and sea
   await expect(list.locator('article')).toHaveCount(8);
   expect(requests.at(-1)?.searchParams.get('placeId')).toBe('1001');
   const baseline = requests.map(url => url.href);
-  const compact = view.getByRole('button', { name: '조밀한 카드', exact: true });
+  const compact = view.getByRole('button', { name: '목록형', exact: true });
   await compact.click();
   await expect(compact).toHaveAttribute('aria-pressed', 'true');
-  await expect(list).toHaveAttribute('data-layout', 'compact');
+  await expect(list).toHaveAttribute('data-layout', 'list');
   expect(requests.map(url => url.href)).toEqual(baseline);
   await clearPlace.click();
   await expect(page.getByRole('complementary', { name: '관광지 필터', exact: true })).toHaveCount(0);
   await expect.poll(() => requests.at(-1)?.searchParams.get('placeId')).toBeNull();
-  await expect(page.locator('.community-editorial-grid')).toHaveAttribute('data-layout', 'compact');
+  await expect(page.locator('.community-editorial-grid')).toHaveAttribute('data-layout', 'list');
   await controls.getByRole('button', { name: '여행 질문', exact: true }).click();
   await expect.poll(() => requests.at(-1)?.searchParams.get('category')).toBe('general');
   await expect(list.locator('article')).toHaveCount(8);
@@ -118,7 +118,7 @@ test('community server controls wait for hydration before layout, filter and sea
   expect(requests.at(-1)?.searchParams.get('category')).toBe('general');
   expect(requests.at(-1)?.searchParams.get('placeId')).toBeNull();
   await expect(list.locator('h3')).toHaveText(posts.map(post => post.title));
-  await expect(list).toHaveAttribute('data-layout', 'compact');
+  await expect(list).toHaveAttribute('data-layout', 'list');
   expect(errors).toEqual([]);
 });
 
@@ -144,7 +144,7 @@ test('community density changes both real post and editorial grids without chang
     const mobile = width <= 600;
     for (const [layout, name, columns] of [
       ['cards', '카드형', mobile ? 1 : 2],
-      ['compact', '조밀한 카드', mobile ? 2 : 4],
+      
       ['list', '목록형', 1],
     ] as const) {
       const button = view.getByRole('button', { name, exact: true });

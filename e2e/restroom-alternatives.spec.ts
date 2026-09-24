@@ -49,8 +49,8 @@ test('GPS is requested only by 가까운 순 and never leaves memory; denial and
 
 test('empty and provider failure keep the current itinerary', async ({ page }) => {
   let mode: 'empty'|'error' = 'empty'; await page.route('**/api/wave?action=restroom-alternatives*', route => mode === 'error' ? route.fulfill({ status: 502, json: { error: 'unavailable' } }) : route.fulfill({ json: { status: 'empty', contentId: place.id, checkedAt: '2026-09-15T00:00:00Z', items: [] } }));
-  let panel = await openFinder(page); const before = await page.evaluate(() => localStorage.getItem('wave-current-trip-v1')); await panel.getByRole('button', { name: '공중화장실 더 보기', exact: true }).click(); await expect(panel).toContainText('공식 데이터에서 주변 공중화장실을 찾지 못했어요.'); expect(await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'))).toBe(before);
-  mode = 'error'; await page.reload(); panel = await openFinder(page); await panel.getByRole('button', { name: '공중화장실 더 보기', exact: true }).click(); await expect(panel.getByRole('alert')).toContainText('일정은 그대로예요.');
+  let panel = await openFinder(page); const before = await page.evaluate(() => localStorage.getItem('wave-current-trip-v1')); await panel.getByRole('button', { name: '공중화장실 더 보기', exact: true }).click(); await expect(panel.getByRole('status')).toContainText('직선거리 5km 이내에 등록된 공중화장실 자료가 없어요.'); await expect(panel.getByRole('status')).toContainText('주변 범위를 넓힌 뒤 다시 조회'); await expect(panel.getByRole('status')).toContainText('실제 시설이 없다는 뜻은 아닙니다.'); expect(await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'))).toBe(before);
+  mode = 'error'; await page.reload(); panel = await openFinder(page); await panel.getByRole('button', { name: '공중화장실 더 보기', exact: true }).click(); await expect(panel.getByRole('alert')).toContainText('일정은 그대로예요.'); expect(await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'))).toBe(before);
 });
 
 test('location denial retains the place-based order and complete manual controls', async ({ page }) => {

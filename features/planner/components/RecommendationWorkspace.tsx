@@ -4,6 +4,7 @@ import type { usePlannerPlan } from "../hooks/usePlannerPlan";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place, WeatherData } from "../types";
 import RecommendationCarousel from "./RecommendationCarousel";
+import OfficialExploration from "./OfficialExploration";
 import DirectPlaceSearch from "./DirectPlaceSearch";
 
 type PlaceView = 'list' | 'grid';
@@ -50,6 +51,7 @@ export default function RecommendationWorkspace(props: RecommendationWorkspacePr
     <DirectPlaceSearch officialPlaces={props.activePlaces} profiles={props.planController.selected} onPlace={props.onSelectPlace} region={props.region} trip={props.tripSelection} onRegionSelect={props.onRegionSelect} onBuildItinerary={props.onBuildItinerary} />
 
     <RecommendationCarousel {...props} />
+    <OfficialExploration plan={props.planController.plan} current={props.planController.resultCurrent} />
     {props.tripSelection.saved.length > 0 && <div lang="ko" className="simple-journey-guidance" aria-label="담은 장소로 이어가기"><p>담은 장소 {props.tripSelection.saved.length}곳 · {props.tripSelection.travelStart ? '날짜·순서·이동을 내 일정에서 확인해요.' : '날짜와 출발지를 정하면 시간표로 이어져요.'}</p><button type="button" onClick={props.onBuildItinerary}>{props.tripSelection.travelStart ? '내 일정 보기' : '날짜 정하기'}</button></div>}
   </div>;
 }

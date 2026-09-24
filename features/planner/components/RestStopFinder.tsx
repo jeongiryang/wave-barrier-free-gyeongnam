@@ -45,7 +45,7 @@ export default function RestStopFinder({ trip, places, requiredKeys, onSelectPla
           }}>{say("쉬는 일정에 추가", "Add short stop")}</button></div>
         </article>)}
         {trip.saved.length >= 12 && <p>{say("저장·공유할 여행은 최대 12곳입니다. 장소 하나를 빼고 추가해 주세요.", "A saved/shared trip can contain 12 places. Remove a place before adding another.")}</p>}
-        {purpose === 'restroom' && <RestroomAlternativeCards key={anchor.id} anchor={anchor} trip={trip} minutes={minutes} pinnedAfter={Boolean(pinnedAfter)} />}
+        {purpose === 'restroom' && <RestroomAlternativeCards key={`${anchor.id}:${radius}`} radiusKm={radius} anchor={anchor} trip={trip} minutes={minutes} pinnedAfter={Boolean(pinnedAfter)} />}
       </> : <p>{say("오늘 일정에 여행지를 담아주세요", "Add a place to this day's itinerary first.")}</p>}
       <p role="status">{notice}</p>
     </div>

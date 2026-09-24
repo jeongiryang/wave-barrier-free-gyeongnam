@@ -15,7 +15,9 @@ const BUDGET = {
   // This is a scope baseline update, not a claim that the old 78 KiB cap passed.
   // 2026-09-21: Naru workspace + launcher hints; measured 83.60 KiB.
   // Explicit CSS scope baseline; initial JavaScript limits stay unchanged.
-  cssGzipKiB: 85,
+  // 2026-09-24: in-dialog facilities + consistent footer/Kakao controls; 85.11 KiB.
+  // Retired compact-card rules removed first; explicit 1 KiB scope allowance.
+  cssGzipKiB: 86,
   landingInitialJsGzipKiB: 155,
   landingInitialJsRawKiB: 520,
   plannerInitialJsGzipKiB: 270,

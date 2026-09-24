@@ -107,7 +107,7 @@ test("빌드 성능 예산은 전역 CSS와 랜딩 초기 비용을 별도로 �
     source("package.json"),
     source(".github/workflows/ci.yml"),
   ]);
-  assert.match(script, /cssGzipKiB: 85/);
+  assert.match(script, /cssGzipKiB: 86/);
   assert.match(script, /landingInitialJsGzipKiB: 155/);
   assert.match(script, /plannerInitialJsGzipKiB: 270/);
   assert.match(script, /공개 랜딩이 인증 chunk를 초기 요청/);

@@ -33,7 +33,7 @@ test('추천에 담은 실제 주소 형태의 미술관은 직접 검색에서�
   await expect(venue).toContainText('장애인 화장실 확인됨');
   await expect(venue).toContainText('무장애 여행정보 · 국문 관광정보');
   await expect(venue.getByRole('button', { name: '경남도립미술관 담았음 · 되돌리기', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(results.getByRole('listitem').nth(1)).toContainText('편의·접근성미확인');
+  await expect(results.getByRole('listitem').nth(1)).toContainText('공식 관광정보 연결 미확인 · 시설은 별도 확인');
   // The saved action reverses the same official visit; it cannot add a second
   // Kakao-ID visit with unknown facilities to the existing recommendation.
   await venue.getByRole('button', { name: '경남도립미술관 담았음 · 되돌리기', exact: true }).click();

@@ -80,3 +80,14 @@ test('offline pack remains readable without network, escapes markup and never tu
   assert.doesNotMatch(html,/<script|<img|<iframe|src=|href=/);assert.match(html,/&lt;script&gt;/);assert.match(html,/default-src 'none'/);assert.match(html,/<h2>2026-09-15<\/h2>/);assert.doesNotMatch(html,/mapX|128\.68|lat|lng|profile|cursorId/);
   assert.doesNotMatch(offlineTripText({...snapshot,info:{'1001':{...snapshot.info['1001'],id:'9999'}}}),/055-123-4567/);
 });
+
+
+test('offline text and HTML explicitly preserve an empty travel day beside populated days', () => {
+  const progress=cleanOnTrip(null,places.map(place=>place.id)),entries=remainingOnTrip({...base,progress}).entries;
+  const snapshot={title:'빈 날이 있는 여행',schedule:[{day:'2026-09-14',entries:[]},{day,entries}]};
+  const text=offlineTripText(snapshot), html=offlineTripHtml(snapshot);
+  assert.match(text,/2026-09-14\n아직 방문 장소가 없는 날입니다\./);
+  assert.match(html,/<h2>2026-09-14<\/h2><p>아직 방문 장소가 없는 날입니다\.<\/p>/);
+  assert.equal(text.split('아직 방문 장소가 없는 날입니다.').length-1,1);
+  assert.ok(text.includes(entries[0].place.name));
+});

@@ -96,6 +96,7 @@ export type PlanData = {
   excludedPlaces?: Place[];
   pagination?: { page: number; nextPage?: number | null; hasMore: boolean; scope: "loaded-candidates" };
   course: Course | null;
+  additionalExploration?: Array<{ name: string; scope: string; source: string; baseYm: string; relatedTo: string }>;
   audio: AudioGuide | null;
   photo?: PhotoInfo | null;
   crowd?: { rate: number; baseYmd: string; place: string } | null;
@@ -107,7 +108,7 @@ export type RichSpot = { id: string; title: string; address: string; summary: st
 export type EnrichmentData = {
   generatedAt: string;
   visitor: { total: number; byType: Record<string, number>; startYmd: string; endYmd: string };
-  demand: Array<{ name: string; value: number; baseYm: string }>;
+  demand: Array<{ name: string; value: number; baseYm: string; scope?: string }>;
   camping: RichSpot[];
   pet: RichSpot[];
   wellness: RichSpot[];

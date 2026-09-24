@@ -23,7 +23,13 @@ export function samePublicPlace(left: Identity, right: Identity) {
   const dy = (Number(left.mapY) - Number(right.mapY)) * 111320;
   // Different entrances may be reported within the same building parcel; require
   // the same road/building address as well, so adjoining shops cannot inherit facilities.
-  return Math.hypot(dx, dy) <= 150 && sameAddress(left.address, right.address);
+  const distance = Math.hypot(dx, dy);
+  // Public attractions sometimes omit a parcel number. Require the exact full
+  // locality, exact name, very close points and a unique canonical candidate.
+  const parcel = (address: string) => address.normalize('NFKC').trim().replace(/^경남\s/, '경상남도 ').match(/^(경상남도\s+[가-힣]+(?:시|군)\s+(?:[가-힣]+(?:구|읍|면)\s+)*[가-힣]+(?:동|리))(?:\s+(\d+(?:-\d+)?))?$/);
+  const a = parcel(left.address), b = parcel(right.address);
+  const missingParcel = a && b && Boolean(a[2]) !== Boolean(b[2]) && addressKey(a[1]) === addressKey(b[1]);
+  return distance <= 150 && (sameAddress(left.address, right.address) || (distance <= 30 && Boolean(missingParcel)));
 }
 
 export function canonicalPublicPlace<T extends Identity>(search: Identity, candidates: T[]): T | undefined {

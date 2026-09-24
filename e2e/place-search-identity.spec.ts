@@ -16,7 +16,7 @@ test('direct search reuses official evidence and ID while unrelated businesses r
   const venue=results.getByRole('listitem').first();
   await expect(venue).toContainText('승강기 확인됨');
   await expect(venue).toContainText('휠체어 대여 없음으로 기록');
-  await expect(results.getByRole('listitem').nth(1)).toContainText('편의·접근성미확인');
+  await expect(results.getByRole('listitem').nth(1)).toContainText('공식 관광정보 연결 미확인 · 시설은 별도 확인');
   await venue.getByRole('button',{name:place.name+' 일정에 담기',exact:true}).click();
   await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('wave-saved-places')||'[]'))).toEqual([place.id]);
   await venue.getByRole('button',{name:place.name,exact:true}).click();
@@ -30,6 +30,6 @@ test('official lookup failure keeps external search usable and does not invent f
   await page.getByRole('combobox', {name:'여행 지역',exact:true}).selectOption('창원');
   const query=page.getByRole('combobox',{name:'여행지 검색',exact:true}); await query.fill('별도 카페');await query.press('Enter');
   await expect(page.getByRole('status').filter({hasText:'공식 관광정보 일부'})).toBeVisible();
-  await expect(page.locator('#direct-place-results')).toContainText('편의·접근성미확인');
+  await expect(page.locator('#direct-place-results')).toContainText('공식 관광정보 연결 미확인 · 시설은 별도 확인');
   await expect(page.getByRole('button',{name:'별도 카페 일정에 담기',exact:true})).toBeEnabled();
 });
