@@ -1,11 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
 import test from "node:test";
 import ts from "typescript";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import { demoFixtureSha256, readDemoData, runProductionDemo, validateDemoData } from "../scripts/community-demo.mjs";
 import { COMMUNITY_DEMO_PRODUCTION_TARGET } from "../lib/deployment/community-demo-operation.js";
 
@@ -188,29 +185,17 @@ test("repository projections and mappers carry the persisted demo marker", async
   assert.equal(loaded.exports.mapCommunityComment(row).demoBatchId, "wave-community-demo-2026-v1");
 });
 
-test("list, detail and comment UI label mapped demo rows but leave real rows unlabelled", async () => {
-  const [mapperSource, labelSource, list, detail, comments] = await Promise.all([
-    source("features/community/server/post-mappers.ts"), source("features/community/components/CommunityDemoLabel.tsx"),
-    source("features/community/components/CommunityPostList.tsx"), source("features/community/components/CommunityPostArticle.tsx"), source("features/community/components/CommunityComments.tsx"),
-  ]);
-  const mapperJs = ts.transpileModule(mapperSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  const mapper = { exports: {} };
-  new Function("require", "module", "exports", mapperJs)((name) => name.includes("field-report")
-    ? { normalizeAccessibilityReports: () => [], normalizeJournalPlaces: () => [] }
-    : { normalizeVisitPhotos: () => ({ photos: [] }) }, mapper, mapper.exports);
-  const base = { id: "post", category: "general", title: "title", content: "body", author_name: "작성자", author_id: "author", created_at: 1, updated_at: 1, field_reports: [], journal_places: [], photo_count: 0 };
-  const demoPost = mapper.exports.mapCommunityPost({ ...base, demo_batch_id: "wave-community-demo-2026-v1" });
-  const realPost = mapper.exports.mapCommunityPost({ ...base, demo_batch_id: null });
-  const demoComment = mapper.exports.mapCommunityComment({ ...base, demo_batch_id: "wave-community-demo-2026-v1" });
-
-  const labelJs = ts.transpileModule(labelSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-  const label = { exports: {} };
-  new Function("require", "module", "exports", labelJs)(createRequire(import.meta.url), label, label.exports);
-  const Label = label.exports.default;
-  assert.match(renderToStaticMarkup(createElement(Label, { demoBatchId: demoPost.demoBatchId })), /합성 데모 예시/);
-  assert.match(renderToStaticMarkup(createElement(Label, { demoBatchId: demoComment.demoBatchId, kind: "comment" })), /합성 데모 댓글/);
-  assert.equal(renderToStaticMarkup(createElement(Label, { demoBatchId: realPost.demoBatchId })), "");
-  for (const component of [list, detail, comments]) assert.match(component, /CommunityDemoLabel/);
+test("demo disclosure stays in titles without repetitive body notices or badges", async () => {
+  const data = await readDemoData();
+  for (const post of data.posts) assert.ok(post.title.startsWith("[시연] "));
+  for (const row of [...data.posts, ...data.comments]) {
+    assert.ok(row.content.trim().length > 20);
+    assert.doesNotMatch(row.content, /합성 데모|화면 검수|시연용으로|데모 게시물|데모 글|시연용 댓글|데모 댓글/);
+  }
+  for (const name of ["CommunityPostList", "CommunityPostArticle", "CommunityComments"]) {
+    assert.doesNotMatch(await source(`features/community/components/${name}.tsx`), /CommunityDemoLabel/);
+  }
+  assert.doesNotMatch(await source("features/community/components/CommunityBoard.tsx"), /조밀한 카드|setLayout\('compact'\)/);
 });
 
 test("metadata migration is additive and legacy seed retirement remains untouched", async () => {
