@@ -9,13 +9,21 @@ async function prepare(page: Page) {
   await mockPublicShellApi(page);
   await page.route("**/api/community/posts?*", route => route.fulfill({ json: { posts: [], page: 1, hasMore: false } }));
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.route("**/api/wave?*", route => {
-    if (new URL(route.request().url()).searchParams.get("action") !== "plan") return route.fallback();
-    const places = Array.from({ length: 4 }, (_, i) => ({ ...plan.places[i % 2], id: String(1001 + i), name: ["경남도립미술관", "용지호수공원", "창원수목원", "해안공원"][i], accessibility: [
+  const places = Array.from({ length: 4 }, (_, i) => ({ ...plan.places[i % 2], id: String(1001 + i), name: ["경남도립미술관", "용지호수공원", "창원수목원", "해안공원"][i], accessibility: [
       { key: "parking", label: "장애인 주차", state: "confirmed", detail: "전용 주차 공간 있음" },
       ...(i === 0 ? [{ key: "restroom", label: "장애인 화장실", state: "unknown", detail: "" }] : []),
       ...(i === 2 ? [] : [{ key: "route", label: "접근로", state: i === 1 ? "negative" : "confirmed", detail: i === 1 ? "입구에 계단이 있음" : "계단 없는 입구" }]),
-    ] }));
+  ] }));
+  await page.route("**/api/wave?*", route => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("action") === "places") {
+      const ids = (url.searchParams.get("ids") || "").split(",");
+      const keys = (url.searchParams.get("profiles") || "").split(",");
+      // The fresh official lookup must describe the same places as the plan,
+      // and missing fields remain missing instead of receiving invented evidence.
+      return route.fulfill({ json: { places: places.filter(place => ids.includes(place.id)).map(place => ({ ...place, accessibility: place.accessibility.filter(item => keys.includes(item.key)) })), missing: ids.filter(id => !places.some(place => place.id === id)) } });
+    }
+    if (url.searchParams.get("action") !== "plan") return route.fallback();
     return route.fulfill({ json: { ...plan, places, criteria: { facilityKeys: ["parking"] } } });
   });
   await page.goto("/planner");
@@ -46,6 +54,16 @@ test("comparison limits selection, distinguishes missing evidence, and keeps sav
   await open.click();
   const dialog = page.getByRole("dialog", { name: "편의를 나란히 살펴보세요." });
   await expect(dialog.getByRole("heading")).toBeFocused();
+  const refreshed = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === "/api/wave" && url.searchParams.get("action") === "places"
+      && url.searchParams.get("ids") === "1001,1002,1003"
+      && url.searchParams.get("profiles") === "parking,route,restroom";
+  });
+  await dialog.getByRole("checkbox", { name: "접근로", exact: true }).check();
+  await dialog.getByRole("checkbox", { name: "장애인 화장실", exact: true }).check();
+  expect((await refreshed).ok()).toBe(true);
+  await expect(dialog.getByRole("status")).toHaveCount(0);
   const route = dialog.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "접근로", exact: true }) });
   await expect(route.locator("td strong")).toHaveText(["확인됨", "조건과 맞지 않음", "미확인"]);
   await expect(dialog.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "장애인 화장실", exact: true }) }).locator("td strong")).toHaveText(["미확인", "미확인", "미확인"]);

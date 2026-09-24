@@ -157,8 +157,9 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     expect(api.enrichmentRequestCount()).toBe(0);
     await openNaruTool(page, "출발 전 확인");
     await page.locator(".travel-layers > summary").click();
-    await expect(page.getByRole("heading", { name: /사람들이 지금/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /기준월의 관심을\s*살펴봅니다\./ })).toBeVisible();
     await expect.poll(api.enrichmentRequestCount).toBe(1);
+    await expect(page.locator(".demand-insight")).toContainText("지역 관광자원 수요지수의 최신 가용월 자료가 제공되면 표시합니다.");
     await page.reload();
     await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toBeVisible();
     await expect(page.locator("#itinerary-stop-1001 time").first()).toHaveText("09:25");
