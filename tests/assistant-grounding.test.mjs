@@ -164,3 +164,33 @@ test('real local-model search omissions are repaired from explicit current crite
   }
   assert.deepEqual(ground({ action: 'search' }, [{ role: 'assistant', content: '진주에 장애인 화장실이 있는 곳을 찾아볼까요?' }, user('현재 조건으로 찾아줘')]), { action: 'search' });
 });
+
+test('Korean one through twelve and numeric search quantities survive grounding with destination exclusions', () => {
+  const words = ['한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열', '열한', '열두'];
+  words.forEach((word, index) => {
+    for (const quantity of [word, String(index + 1)]) {
+      const actual = ground({ action: 'search', count: 12 }, `통영에서 ${quantity} 곳을 추천해줘. 창원과 거제는 제외해줘.`);
+      assert.deepEqual(actual, { action: 'settings', region: '통영', count: index + 1 });
+      assert.ok(validateAssistantAction(actual));
+    }
+  });
+  for (const quantity of ['0', '13', '113', '열세']) {
+    const actual = ground({ action: 'search' }, `통영에서 ${quantity} 곳을 찾아줘`);
+    assert.equal(actual.count, undefined, quantity);
+  }
+  assert.deepEqual(ground({ action: 'search' }, [{ role: 'assistant', content: '세 곳을 추천할까요?' }, user('통영을 찾아줘')]), { action: 'settings', region: '통영' });
+});
+
+test('explicit car journey preparation is accepted without authorising transport questions or negated changes', () => {
+  for (const text of ['통영에서 자동차로 여행 준비해줘', '부모님과 2026년 9월 26일 통영 당일 여행을 자동차로 준비해줘']) {
+    const actual = ground(proposal({ transport: 'car' }), text);
+    assert.equal(actual.action, 'create-itinerary', text);
+    assert.equal(actual.transport, 'car', text);
+    assert.equal(actual.region, '통영', text);
+  }
+  for (const text of ['자동차로 여행 준비하지 마', '자동차로 여행 준비해도 돼?', '자동차로 갈 수 있어?']) {
+    assert.equal(ground(proposal({ transport: 'car' }), text), null, text);
+  }
+  const actual = ground(proposal({ transport: 'car' }), [user('통영 여행을 만들어줘'), user('자동차로 바꿔줘')]);
+  assert.deepEqual(actual, { action: 'recalculate-route', transport: 'car' });
+});

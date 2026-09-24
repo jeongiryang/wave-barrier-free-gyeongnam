@@ -25,12 +25,13 @@ export async function fetchVisitorInsight(env: Env, region: string) {
       const items = result.value.items.filter((item) => {
         const name = clean(item.signguNm);
         const code = clean(item.signguCode || item.signguCd);
-        return region === "경남 전체" ? code.startsWith("48") : name.includes(region) || regionCodes[region]?.full.includes(code);
+        if (code) return region === '경남 전체' ? code.startsWith('48') : Boolean(regionCodes[region]?.full.includes(code));
+        return /경남|경상남도/.test(name) && (region === '경남 전체' || name.includes(region));
       });
       if (items.length) return { result: { ok: true, value: { items, total: items.length } } as Attempt, startYmd: ymd(offset + 6), endYmd: ymd(offset) };
     }
   }
-  return { result: last, startYmd: "", endYmd: "" };
+  return { result: last.ok ? { ...last, value: { ...last.value, items: [], total: 0 } } : last, startYmd: "", endYmd: "" };
 }
 
 export async function fetchDemandInsight(env: Env, region: string) {
@@ -42,7 +43,7 @@ export async function fetchDemandInsight(env: Env, region: string) {
       ...commonParams("30"), baseYm, areaCd: "48", ...(region !== "경남 전체" ? { signguCd: code } : {}), tarSvcDemIxCd: "11",
     }));
     last = result;
-    if (result.ok && result.value.items.length) return { result, baseYm };
+    if (result.ok && result.value.items.length) return { result, baseYm, scope: region === '경남 전체' ? '경상남도' : region === '창원' ? '창원시 의창구' : region };
   }
-  return { result: last, baseYm: "" };
+  return { result: last, baseYm: "", scope: region };
 }

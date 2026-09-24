@@ -16,6 +16,7 @@ const catalog = compile('server/tourism/catalog.ts', { '../../lib/facility-selec
 const commonParams = rows => ({ numOfRows: rows, pageNo: '1' });
 const query = compile('server/tourism/plan-query.ts', { '../shared/http': http, '../../lib/facility-selection.js': facilities, '../../lib/planner-criteria.js': criteria, '../shared/provider-data': { commonParams }, './catalog': catalog });
 const providerModel = compile('server/tourism/provider-model.ts', { '../shared/http': http });
+const explorationModel = compile('server/tourism/exploration-model.ts', { '../shared/http': http });
 const empty = () => ({ ok: true, value: { items: [], total: 0 } });
 function fixture(duplicate = false) {
   const calls = [], expected = new Set();
@@ -39,6 +40,7 @@ function fixture(duplicate = false) {
     './insights': { fetchCrowd: async () => empty(), fetchHub: async () => ({ result: empty(), baseYm: '' }), fetchRelated: async () => ({ result: empty(), baseYm: '' }) },
     './accessibility-model': { placeFrom: item => ({ id: item.contentid, name: item.title, image: '' }), requestedAccessibilityFields: keys => keys.map(key => [key, key]) },
     './content-model': { audioFrom: () => null, courseFrom: () => null },
+    './exploration-model': explorationModel,
     './plan-model': { sortPlacesByEvidence: items => items, partitionPlacesByEvidence: recommended => ({ recommended, exploration: [], unavailable: [] }), buildPlanStops: () => [], buildPlanStatuses: () => ({ statuses: [], mode: 'live' }) },
     './plan-query': query, './provider-model': providerModel, './photos': { fetchPhoto: async () => empty(), photoFrom: () => null },
     '../shared/observability': { recordOperationalEvent() {} }, '../../lib/request-budget.js': budgets, '../../lib/planner-criteria.js': criteria, './catalog': catalog,

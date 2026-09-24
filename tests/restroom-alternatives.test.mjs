@@ -11,6 +11,16 @@ test('official toilet evidence never promotes absent detailed accessibility fiel
   for (const key of ['entranceStep', 'entranceDoor', 'grabBars', 'turningSpace', 'sinkAccess', 'elevatorRequired', 'emergencyBell']) assert.equal(item.evidence[key], 'unknown');
 });
 
+test('default five-kilometre radius filters distant toilets before the three-result cap and expands explicitly', () => {
+  const at = metres => ({ ...record, id: `R-${metres}`, address: `경상남도 창원시 거리로 ${metres}`, destination: { latitude: origin.latitude + metres / 6371000 * 180 / Math.PI, longitude: origin.longitude } });
+  const values = [at(16000), at(13000), at(12500), at(5001), at(4999), at(3000), at(999)];
+  assert.deepEqual(rankRestroomAlternatives(values, origin).map(item => item.id), ['R-999', 'R-3000', 'R-4999']);
+  assert.deepEqual(rankRestroomAlternatives(values, origin, 3, 1).map(item => item.id), ['R-999']);
+  assert.deepEqual(rankRestroomAlternatives(values.slice(0, 3), origin), []);
+  assert.deepEqual(rankRestroomAlternatives(values.slice(0, 3), origin, 3, 20).map(item => item.id), ['R-12500', 'R-13000', 'R-16000']);
+  assert.equal(values[0].destination.latitude > origin.latitude, true);
+});
+
 test('community evidence stays separate and cannot replace required official evidence', () => {
   const mixed = normalizeRestroomAlternative({ ...record, evidence: { ...record.evidence, entranceStep: 'user_reported' }, sources: [...record.sources, { type: 'community', provider: 'W.A.V.E 이용자 제보', reportedAt: '2026-09-14T10:00:00Z' }] });
   assert.equal(mixed.sources[0].type, 'official'); assert.equal(mixed.sources[1].type, 'community'); assert.equal(mixed.evidence.entranceStep, 'user_reported');

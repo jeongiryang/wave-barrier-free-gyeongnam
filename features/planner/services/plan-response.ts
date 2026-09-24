@@ -31,6 +31,7 @@ export function planResponse(value: unknown): PlanData {
     && optional(value.pagination, item => record(item) && number(item.page) && Number.isInteger(item.page) && Number(item.page) >= 1 && Number(item.page) <= 200 && optional(item.nextPage, next => nullable(next, next => number(next) && Number.isInteger(next) && Number(next) > Number(item.page) && Number(next) <= 200)) && typeof item.hasMore === "boolean" && item.scope === "loaded-candidates")
     && list(value.statuses, status)
     && list(value.stops, item => fields(item, "title note source") && ["id", "contentTypeId", "mapX", "mapY"].every(key => optional(item[key], text)) && optional(item.visitMinutes, number))
+    && optional(value.additionalExploration, items => list(items, item => fields(item, "name scope source baseYm relatedTo")))
     && nullable(value.course, item => fields(item, "name distance minutes level summary sigun"))
     && nullable(value.audio, item => fields(item, "title audioTitle audioUrl script playTime"))
     && optional(value.photo, item => nullable(item, photo => fields(photo, "id title image location photographer month")))

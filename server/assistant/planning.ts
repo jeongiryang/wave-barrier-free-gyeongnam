@@ -106,8 +106,9 @@ export async function prepareJourney(action: AssistantAction, context: Record<st
     progress('checking', `선택한 ${region} 코스의 날씨를 다시 확인하고 있어요.`);
     weather = await handleWeatherApi(new Request(new URL(`/api/weather?region=${encodeURIComponent(region)}`, request.url), { signal })).then(async response => response.ok ? await response.json() as WeatherData : null).catch(() => null);
   }
+  if (days.some(day => day < new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()))) warnings.push('지난 날짜가 포함된 여행이에요. 과거 날씨는 예보로 확인할 수 없어요. 날짜 변경은 직접 확인한 뒤 적용해 주세요.');
   if (!weather) warnings.push('날씨를 조회하지 못했어요. 일정은 유지하고 출발 전 다시 확인해 주세요.');
-  else if (!days.every(day => weather?.days.some(forecast => forecast.date === day))) warnings.push('아직 예보가 나오지 않은 날짜가 있어요. 출발이 가까워지면 다시 확인해 주세요.');
+  else if (!days.every(day => weather?.days.some(forecast => forecast.date === day))) warnings.push('여행 날짜 중 현재 제공되는 예보 범위에 없는 날이 있어요. 과거 날짜는 예보 대상이 아니며, 앞으로의 일정은 출발 전에 다시 확인해 주세요.');
   if (weather?.days.some(day => days.includes(day.date) && (day.rainProbability >= 60 || day.rain > 1)) && !indoorRequested) warnings.push('여행 기간에 비 예보가 있어요. 적용 후 나루에게 실내 대안을 요청할 수 있어요.');
   const conditionsChanged = Boolean(action.festival || action.originRegion || (action.region && action.region !== context.region)
     || (action.start && action.start !== context.start) || (action.end && action.end !== context.end) || (action.transport && action.transport !== context.transport)

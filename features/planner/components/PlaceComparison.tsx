@@ -1,6 +1,6 @@
 "use client";
 import LoadingState from "../../../components/LoadingState";
-import { lazy, Suspense, useCallback, useState, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
 import type { Place } from "../types";
 import { toggleComparison } from "../../../lib/place-decision-tools.js";
 
@@ -15,6 +15,7 @@ export default function PlaceComparison({ places, requiredKeys, saved, current, 
   const [active, setActive] = useState(initialActive);
   const [ids, setIds] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
+  useEffect(() => { const show = () => setActive(true); window.addEventListener('wave:open-comparison', show); return () => window.removeEventListener('wave:open-comparison', show); }, []);
   const close = useCallback(() => setOpen(false), []);
   const selected = places.filter(place => ids.includes(place.id));
   const selectedIds = selected.map(place => place.id);

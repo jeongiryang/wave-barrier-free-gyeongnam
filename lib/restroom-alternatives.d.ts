@@ -2,4 +2,4 @@ export type EvidenceState = 'confirmed' | 'partially_confirmed' | 'user_reported
 export type RestroomEvidence = { accessibleToilet: EvidenceState; entranceStep: EvidenceState; entranceDoor: EvidenceState; grabBars: EvidenceState; turningSpace: EvidenceState; sinkAccess: EvidenceState; elevatorRequired: EvidenceState; emergencyBell: EvidenceState };
 export type RestroomAlternative = { id: string; name: string; floor?: string; address: string; distanceFromPlaceMeters: number; openingHours?: string; phoneNumber?: string; evidence: RestroomEvidence; sources: Array<{ type: 'official' | 'community'; provider: string; referenceDate?: string; reportedAt?: string }>; destination: { latitude: number; longitude: number } };
 export function normalizeRestroomAlternative(value: unknown): Omit<RestroomAlternative, 'distanceFromPlaceMeters'> | null;
-export function rankRestroomAlternatives(values: unknown, origin: { latitude: number; longitude: number }, limit?: number): RestroomAlternative[];
+export function rankRestroomAlternatives(values: unknown, origin: { latitude: number; longitude: number }, limit?: number, radiusKm?: number): RestroomAlternative[];

@@ -34,10 +34,11 @@ export default function RegionalInsights({ enrichment, loading, visitorTypes, de
 
     <article className="demand-insight">
       <div className="insight-label"><span>02</span><p>{english ? "Tourism demand" : "관광 수요 지표"}</p></div>
-      <h3>{english ? "What are travellers looking for?" : <>사람들이 지금<br />무엇을 찾는지 봅니다.</>}</h3>
+      <h3>{english ? "Monthly travel interests" : <>기준월의 관심을<br />살펴봅니다.</>}</h3>
       <div className="demand-list">
         {loading ? <><div className="insight-skeleton short" /><div className="insight-skeleton short" /></> : enrichment?.demand.length ? enrichment.demand.slice(0, 5).map((item) => <div key={`${item.name}-${item.baseYm}`}>
-          <span><b lang={originalLanguage(item.name)}>{item.name}</b><em>{item.value.toFixed(1)}</em></span>
+          <span><b lang={originalLanguage(item.name)}>{item.name}</b><em>{item.value.toFixed(1)} {english ? 'index' : '지수'}</em></span>
+          <small>{english ? 'Reference month' : '기준월'}: {/^\d{6}$/.test(item.baseYm) ? `${item.baseYm.slice(0, 4)}-${item.baseYm.slice(4)}` : english ? 'Unavailable' : '미제공'}{item.scope ? ` · ${item.scope}` : ''}</small>
           <i><b style={{ width: `${Math.max(0, (item.value / demandMax) * 100)}%` }} /></i>
         </div>) : <p>{english ? "The latest available monthly demand index appears here when supplied." : "지역 관광자원 수요지수의 최신 가용월 자료가 제공되면 표시합니다."}</p>}
       </div>

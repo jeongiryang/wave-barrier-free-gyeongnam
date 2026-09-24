@@ -69,11 +69,14 @@ test("scheduled rests extend the timeline and return budget without shortening a
   assert.deepEqual(buildItinerarySchedule({ ...input, breakMinutesByPlaceId: { a: 121, b: "15" } }), buildItinerarySchedule(input));
 });
 
-test("only planned breaks and stop purposes enter account/public shares; local comfort survives archive", () => {
+test("planned break duration is public while stop purposes remain in private account and archive", () => {
   const input = { region: "창원", travelStart: "2026-09-14", travelEnd: "2026-09-14", places: [{ id: "1001", name: "미술관" }], comfort: { maxWalkMinutes: 10, breakEveryMinutes: 90, breakMinutes: 15, person: "private" }, breakMinutesByPlaceId: { "1001": 15, other: 30 }, restPurposeByPlaceId: { "1001": "restroom", other: "rest" } };
   const book = createTravelBookSnapshot(input), restored = travelBookRestorePayload(book).schedule;
   const account = bookToAccountTrip(book), shared = publicTravelBody(account).selections;
-  for (const value of [book, restored, account, shared]) { assert.deepEqual(value.breakMinutesByPlaceId, { "1001": 15 }); assert.deepEqual(value.restPurposeByPlaceId, { "1001": "restroom" }); }
+  for (const value of [book, restored, account, shared]) assert.deepEqual(value.breakMinutesByPlaceId, { "1001": 15 });
+  for (const value of [book, restored, account]) assert.deepEqual(value.restPurposeByPlaceId, { "1001": "restroom" });
+  assert.deepEqual(shared.restPurposeByPlaceId, {});
+  assert.deepEqual(account.restPurposeByPlaceId, { "1001": "restroom" }, "public projection must not mutate the private account trip");
   assert.equal(restored.comfort.maxWalkMinutes, 10); assert.equal(account.comfort.maxWalkMinutes, 10); assert.equal(shared.comfort, undefined);
   assert.equal(JSON.stringify([book, account, shared]).includes("private"), false);
 });

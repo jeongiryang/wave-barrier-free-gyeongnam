@@ -25,6 +25,7 @@ export default function TripShareMenu({ trip, participation, timingWarnings = []
     void loadKakaoShare().then(() => { if (active) setSdk(true); }).catch(() => { if (active) setSdk(false); });
     return () => { active = false; };
   }, [open]);
+  useEffect(() => { const show = () => { setNotice(''); setOpen(true); }; window.addEventListener('wave:open-share', show); return () => window.removeEventListener('wave:open-share', show); }, []);
   async function calendar() {
     if (busy) return;
     setBusy(true); setNotice('');
@@ -40,13 +41,13 @@ export default function TripShareMenu({ trip, participation, timingWarnings = []
     <button type="button" onClick={() => { try { const values = Object.fromEntries(CURRENT_TRIP_EXPORT_KEYS.map(key => [key, readTripValue(localStorage, key)])); download(JSON.stringify({ version: 1, values, format: CURRENT_TRIP_KEY }, null, 2), 'application/json', 'wave-trip.json'); setNotice('여행 파일을 내려받았어요.'); } catch { setNotice('여행 파일을 읽지 못했어요. 화면의 일정은 그대로예요.'); } }}><ShareIcon kind="file"/><span>여행 파일</span></button>
     <button type="button" data-planner-tool="calendar" aria-disabled={busy} aria-busy={busy} onClick={() => void calendar()}>{busy ? <Spinner /> : <ShareIcon kind="calendar"/>}<span>캘린더</span></button>
   </div>{participation.shareState === 'saving' && <p role="status"><Spinner />공유 링크를 준비하고 있어요.</p>}
-  <p id="share-public-conditions" className="simple-share-caption">링크를 가진 누구나 일정의 장소와 날짜를 볼 수 있어요. 같은 링크에 수정한 일정이 반영돼요. 발급일부터 30일 동안 볼 수 있고, 편의 조건·메모·현재 위치는 공유하지 않아요.</p>
+  <p id="share-public-conditions" className="simple-share-caption">링크를 가진 누구나 일정의 장소와 날짜를 볼 수 있어요. 공개 중에는 수정한 일정이 같은 링크에 자동 반영돼요. 발급일부터 30일 동안 볼 수 있고, 편의 조건·휴식 목적·메모·현재 위치는 공유하지 않아요.</p>
   {!participation.shareUrl && <button type="button" aria-describedby="share-public-conditions" disabled={participation.shareState === 'saving'} onClick={() => timing.request(() => { setNotice(''); void participation.ensureShareUrl().catch(() => {}); })}>공개 링크 만들기</button>}
   {(notice || participation.shareNotice) && <p role="status">
     {notice}
     {participation.shareNotice && (!notice || ['error', 'copy-error'].includes(participation.shareState)) && <>{notice && <br />}{participation.shareNotice}</>}
   </p>}
   {participation.shareUrl && participation.shareState === 'error' && <button type="button" onClick={() => { setNotice(''); void participation.refreshShareVersion(); }}>현재 일정으로 링크 갱신</button>}
-  {participation.shareUrl && <div className="simple-share-link"><a role="link" aria-disabled={!participation.shareIsCurrent} tabIndex={participation.shareIsCurrent ? undefined : -1} href={participation.shareIsCurrent ? participation.shareUrl : undefined} target="_blank" rel="noreferrer">공유 일정 보기</a><button type="button" disabled={participation.shareState === 'saving'} onClick={() => { setNotice(''); void participation.revokeShare(); }}>공유 종료</button></div>}
+  {participation.shareUrl && <p role="status">현재 공개 중 · 일정 변경 자동 반영</p>}{participation.shareUrl && <div className="simple-share-link"><a role="link" aria-disabled={!participation.shareIsCurrent} tabIndex={participation.shareIsCurrent ? undefined : -1} href={participation.shareIsCurrent ? participation.shareUrl : undefined} target="_blank" rel="noreferrer">공유 일정 보기</a><button type="button" disabled={participation.shareState === 'saving'} onClick={() => { setNotice(''); void participation.revokeShare(); }}>공유 종료</button></div>}
   </dialog>}{timing.confirmation}</>;
 }

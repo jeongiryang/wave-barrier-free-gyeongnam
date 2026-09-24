@@ -41,7 +41,7 @@ export default function NaruTripReview(props: Props) {
       const rests = day.entries.filter(entry => suggested[entry.place.id]);
       return <article key={day.day}>
         <h4>{day.day} · {day.entries.length}곳</h4>
-        {!day.entries.length ? <p>아직 방문 장소가 없는 날이에요.</p> : <>
+        {!day.entries.length ? <div><p>아직 방문 장소가 없는 날이에요.</p><button type="button" onClick={() => props.onTool('itinerary')}>이 날에 장소 배치하기</button></div> : <>
 
           <ul>
             {late.map(entry => <li key={entry.place.id}>{entry.place.name}: 고정 시각 {entry.fixedTime}보다 예상 도착이 {entry.lateMinutes}분 늦어요.</li>)}

@@ -12,7 +12,7 @@ type Response = { status: 'available' | 'empty'; contentId: string; checkedAt: s
 const labels: Record<string, string> = { entranceStep: '입구 문턱', entranceDoor: '출입문', grabBars: '손잡이', turningSpace: '회전공간', sinkAccess: '세면대 접근', elevatorRequired: '승강기 필요 여부', emergencyBell: '비상벨' };
 const stateLabel: Record<string, string> = { confirmed: '등록 정보 있음', partially_confirmed: '일부 정보만 있음', needs_confirmation: '전화 확인 필요', unavailable: '정보 없음', unknown: '정보 없음', user_reported: '이용자 제보' };
 
-export default function RestroomAlternativeCards({ anchor, trip, minutes, pinnedAfter }: { anchor: Place; trip: ReturnType<typeof useTripSelection>; minutes: number; pinnedAfter: boolean }) {
+export default function RestroomAlternativeCards({ anchor, trip, minutes, pinnedAfter, radiusKm = 5 }: { anchor: Place; trip: ReturnType<typeof useTripSelection>; minutes: number; pinnedAfter: boolean; radiusKm?: number }) {
   const [data, setData] = useState<Response | null>(null), [state, setState] = useState<'idle'|'loading'|'empty'|'available'|'error'>('idle');
   const [preview, setPreview] = useState(''), [notice, setNotice] = useState(''), [device, setDevice] = useState<PublicPoint | null>(null), [locationMessage, setLocationMessage] = useState('');
   const controller = useRef<AbortController | null>(null), generation = useRef(0);
@@ -21,7 +21,7 @@ export default function RestroomAlternativeCards({ anchor, trip, minutes, pinned
   const load = async () => {
     controller.current?.abort(); const current = ++generation.current, request = new AbortController(); controller.current = request;
     setState('loading'); setNotice(''); loadedFor.current = anchor.id;
-    const result = await optionalPlannerJson<Response>(`/api/wave?action=restroom-alternatives&contentId=${encodeURIComponent(anchor.id)}`, { signal: request.signal, timeoutMs: CLIENT_BUDGET_MS.restroomAlternatives });
+    const result = await optionalPlannerJson<Response>(`/api/wave?action=restroom-alternatives&contentId=${encodeURIComponent(anchor.id)}&radiusKm=${radiusKm}`, { signal: request.signal, timeoutMs: CLIENT_BUDGET_MS.restroomAlternatives });
     if (request.signal.aborted || current !== generation.current || loadedFor.current !== anchor.id) return;
     controller.current = null; if (!result) { setState('error'); return; } setData(result); setState(result.status);
   };
@@ -31,12 +31,12 @@ export default function RestroomAlternativeCards({ anchor, trip, minutes, pinned
     navigator.geolocation.getCurrentPosition(({ coords }) => { setDevice({ latitude: coords.latitude, longitude: coords.longitude }); setLocationMessage('현재 위치와 공개 화장실 좌표를 이 기기 메모리에서만 비교했어요.'); }, error => { setDevice(null); setLocationMessage(error.code === error.TIMEOUT ? '위치 확인 시간이 지나 일정 장소 기준 순서를 유지해요.' : '위치 권한 없이 일정 장소 기준 순서를 유지해요.'); }, { enableHighAccuracy: false, timeout: 7000, maximumAge: 0 });
   };
   return <section aria-label="주변 공중화장실" className="restroom-alternatives">
-    <h3>주변 공중화장실</h3><p>일정에 있는 장소뿐 아니라 주변 공중화장실도 찾아봐요.</p>
+    <h3>주변 공중화장실</h3><p>{anchor.name}에서 직선거리 {radiusKm}km 이내의 등록 자료를 찾아봐요. 현재 위치 정렬은 조회된 후보 안에서만 적용됩니다.</p>
     <p>일부 공공 화장실에 여성용품이 비치돼 있어요. 편의지도의 <strong>여성용품 비치</strong>에서 같은 공식 정보를 확인할 수 있어요.</p>
     <p><small>공공데이터에 등록된 위치예요. 남아 있는 수량과 현재 운영 여부는 확인되지 않았어요.</small></p>
     <button type="button" disabled={state === 'loading'} aria-busy={state === 'loading'} onClick={() => void load()}>{state === 'loading' ? '공중화장실 정보를 찾고 있어요.' : '공중화장실 더 보기'}</button>
     {state === 'error' && <p role="alert">공중화장실 정보를 불러오지 못했어요. 일정은 그대로예요.</p>}
-    {state === 'empty' && <p role="status">공식 데이터에서 주변 공중화장실을 찾지 못했어요.</p>}
+    {state === 'empty' && <p role="status">직선거리 {radiusKm}km 이내에 등록된 공중화장실 자료가 없어요. 위의 주변 범위를 넓힌 뒤 다시 조회할 수 있어요. 실제 시설이 없다는 뜻은 아닙니다.</p>}
     {state === 'available' && <><div className="parking-sort-controls"><label>기준 장소 선택<select value="place" onChange={() => setDevice(null)}><option value="place">{anchor.name}</option></select></label><button type="button" onClick={nearMe}>현재 위치에서 가까운 순</button>{locationMessage && <p role="status">{locationMessage}</p>}</div>
       <div className="restroom-list">{sorted.map(item => { const official = item.sources.find(source => source.type === 'official'); const unknown = Object.entries(item.evidence).filter(([key, value]) => key !== 'accessibleToilet' && value === 'unknown'); return <article className="reference-info-card" key={item.id}>
         <h4>{item.name}{item.floor ? ` · ${item.floor}` : ''}</h4><p><a target="_blank" rel="noopener noreferrer" href={`https://map.kakao.com/link/map/${encodeURIComponent(item.name)},${item.destination.latitude},${item.destination.longitude}`}>{item.address}</a></p>

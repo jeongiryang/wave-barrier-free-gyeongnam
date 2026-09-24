@@ -117,6 +117,24 @@ test('축제의 실제 개최일을 골라 담으면 기존 방문일과 고정 
   await expect(page.locator('.simple-itinerary-map .wave-map-icon.place[data-place-id="1001"]')).toHaveCount(0);
 });
 
+test('축제 상세 안에서 선택한 방문 날짜로 담고 기존 고정 방문과 휴식을 보존한다', async ({ page }) => {
+  const card = await setup(page);
+  await card.getByRole('button', { name: `${event.name} 축제 상세 보기`, exact: true }).click();
+  const dialog = page.getByTestId('festival-detail-dialog');
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel('방문 날짜', { exact: true }).fill('2026-09-21');
+  await dialog.getByRole('button', { name: '내 일정에 담기', exact: true }).click();
+  await expect(page).toHaveURL(/\/planner\?region=.*#itinerary$/);
+  await expect(page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true })).toBeEnabled();
+  const after = JSON.parse((await records(page)).trip!).values;
+  expect(JSON.parse(after['wave-saved-places'])).toEqual(['1001', '3001']);
+  const current = JSON.parse(after['wave-trip-schedule-v1']);
+  expect(current.scheduleAssignments).toEqual({ '1001': '2026-09-20', '3001': '2026-09-21' });
+  expect(current.fixedVisits).toEqual(schedule.fixedVisits);
+  expect(current.breakMinutesByPlaceId).toEqual(schedule.breakMinutesByPlaceId);
+  expect(current.comfort).toEqual(schedule.comfort);
+});
+
 test('날짜 입력칸 어디를 눌러도 달력 열기를 요청한다', async ({ page }) => {
   await setup(page);
   await page.evaluate(() => {
