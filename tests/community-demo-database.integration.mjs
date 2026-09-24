@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { PGlite } from "@electric-sql/pglite";
+const { PGlite } = await import(process.env.WAVE_PGLITE_MODULE || "@electric-sql/pglite");
 import ts from "typescript";
 import { applyDemo, readDemoData, rollbackDemo } from "../scripts/community-demo.mjs";
 

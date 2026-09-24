@@ -21,7 +21,7 @@ node --test tests/community-demo*.test.mjs
 node scripts/community-demo.mjs --apply --allow-remote --batch=wave-community-demo-2026-v1 --owner=wave-community-demo-fixtures
 ```
 
-`--rollback`으로 바꾸면 같은 배치만 숨깁니다. 비운영 명령에 운영 URL이나 `VERCEL_ENV=production`을 사용하면 거부합니다. SQL 단위 검증용 PGlite와 실제 Neon HTTP 전송은 서로 다른 검증 범위입니다.
+`--rollback`으로 바꾸면 같은 배치만 숨깁니다. 비운영 명령에 운영 URL이나 `VERCEL_ENV=production`을 사용하면 거부합니다. SQL 통합 검증용 PGlite와 실제 Neon HTTP 전송은 서로 다른 검증 범위입니다. 저장소의 보안 고정 lockfile은 변경하지 않습니다. PGlite 0.5.8을 별도 도구 디렉터리에 설치한 후 `WAVE_PGLITE_MODULE`에 해당 패키지의 `dist/index.js` file URL을 설정하고 `node --test tests/community-demo-database.integration.mjs`로 선택적 DB 통합 검증을 실행합니다. 기본 `npm test`에는 외부 도구가 필요하지 않습니다.
 
 ## Owner: 운영 사전 점검
 
