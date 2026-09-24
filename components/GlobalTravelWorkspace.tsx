@@ -1,5 +1,5 @@
 'use client';
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import LoadingState from './LoadingState';
@@ -18,9 +18,10 @@ export default function GlobalTravelWorkspace({ children }: { children: ReactNod
   const [mounted, setMounted] = useState(planner);
   const [opened, setOpened] = useState(false);
   const [request, setRequest] = useState({ id: 0, prompt: '' });
-  const openNaru = useCallback((prompt = '') => { setMounted(true); setOpened(true); setRequest(value => ({ id: value.id + 1, prompt: prompt.slice(0, 1200) })); }, []);
+  const sequence = useRef(0);
+  const openNaru = useCallback((prompt = '') => { setMounted(true); setOpened(true); setRequest({ id: ++sequence.current, prompt: prompt.slice(0, 1200) }); }, []);
   const show = useCallback(() => setOpened(true), []);
-  const dismiss = useCallback(() => setOpened(false), []);
+  const dismiss = useCallback(() => { setOpened(false); setRequest({ id: 0, prompt: '' }); }, []);
   useEffect(() => {
     if (supported && !planner) return;
     const frame = requestAnimationFrame(() => {
@@ -34,7 +35,7 @@ export default function GlobalTravelWorkspace({ children }: { children: ReactNod
     <Suspense fallback={null}><PlannerNavigation onNaru={openNaru} /></Suspense>
     {!planner && children}
     {supported && (mounted || planner) && <div className="global-travel-workspace" data-embedded={!planner} hidden={!planner && (!opened || !supported)}>
-      <TravelWorkspaceBoundary embedded={!planner} onClose={dismiss}><Suspense fallback={<LoadingState>여행과 나루를 준비하고 있어요.</LoadingState>}><PlannerWorkspace active={supported} onShow={show} embedded={!planner} launchRequest={request} pageContext={pageContext} onDismiss={dismiss} /></Suspense></TravelWorkspaceBoundary>
+      <TravelWorkspaceBoundary embedded={!planner} onClose={dismiss}><Suspense fallback={<div className="global-workspace-loading"><LoadingState skeleton={false}>여행과 나루를 준비하고 있어요.</LoadingState>{!planner && <button type="button" onClick={dismiss} aria-label="나루 준비 닫기">×</button>}</div>}><PlannerWorkspace active={supported} onShow={show} embedded={!planner} launchRequest={request} pageContext={pageContext} onDismiss={dismiss} /></Suspense></TravelWorkspaceBoundary>
     </div>}
     {supported && !planner && !opened && <NaruLauncher onOpen={openNaru} context={pageContext} />}
   </NaruContext.Provider>;

@@ -66,7 +66,7 @@ for (const locale of ["ko", "en"] as const) {
 }
 
 for (const connectionMode of ["available", "unsupported"] as const) {
-  test(`${connectionMode} data-saving API retains static copy and focus without requesting video`, async ({ page }) => {
+  test(`${connectionMode} data-saving API retains an accessible title and focus without requesting video`, async ({ page }) => {
     await page.addInitScript(mode => Object.defineProperty(navigator, "connection", {
       configurable: true, value: mode === "available" ? Object.assign(new EventTarget(), { saveData: false }) : undefined,
     }), connectionMode);
@@ -74,7 +74,7 @@ for (const connectionMode of ["available", "unsupported"] as const) {
     page.on("request", request => { if (/\.mp4(?:\?|$)/.test(request.url())) videos.push(request.url()); });
     await page.clock.install();
     await page.goto("/"); await storyReady(page);
-    const copy = await page.getByRole("heading", { level: 1 }).innerText(), action = page.locator(".landing-actions a");
+    const title = page.getByRole("heading", { level: 1 }), action = page.locator(".landing-actions a");
     await action.focus();
     if (connectionMode === "available") await page.evaluate(() => {
       const connection = (navigator as Navigator & { connection?: EventTarget & { saveData: boolean } }).connection;
@@ -82,7 +82,8 @@ for (const connectionMode of ["available", "unsupported"] as const) {
       connection.saveData = true; connection.dispatchEvent(new Event("change"));
     });
     await page.clock.fastForward(60_000);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy, { useInnerText: true });
+    await expect(title).toHaveAccessibleName("더 넓은 세상을 함께, WAVE");
+    await expect(title).toHaveText(/^(더 넓은 세상을함께, WAVE|나만의 속도로편안한 여행을|새로운 경남을나루와 함께|함께 떠날수록더 가까운 여행)$/);
     await expect(action).toBeFocused();
     await expect(page.locator(".landing-hero video")).toHaveCount(0);
     expect(videos).toEqual([]);

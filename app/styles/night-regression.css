@@ -9,6 +9,17 @@ html:root body .wave-night .skip-link{background:#091b2d;color:#edf4ff}
 html:root body .wave-night :is(.route-mode-sections>button>span,.route-mode-order-note,.route-notice){color:var(--muted)}
 html:root body .wave-night :is(.route-kakao-secondary,.restroom-alternatives button,.dining-accessibility button:not([aria-pressed])){background:var(--paper);color:var(--ink);border-color:var(--line)}
 html:root body .night-landing .brand-meaning p{color:#edf4ff}
+/* Loading surfaces follow the rendered night UI, not the legacy light preference. */
+:is(.wave-night,.naru-workspace) .wave-skeleton-lines i,
+.wave-night :is(.community-skeletons i,.account-loading i,.community-detail-state i),
+.wave-night .route-option-skeleton :is(i,b,span,em) {
+  background:linear-gradient(100deg,#172b42 20%,#263d55 50%,#172b42 80%);background-size:200% 100%;
+}
+.wave-night .route-option-skeleton{background:#0b1b2d;border-color:#25425c}
+.global-workspace-loading{padding:24px;background:#081726;color:#e7f1ff;min-height:180px}
+.global-travel-workspace[data-embedded=true] .global-workspace-loading{position:fixed;z-index:1600;right:24px;bottom:24px;width:min(440px,calc(100vw - 48px));min-height:0;border:1px solid #484250;border-radius:18px;display:flex;align-items:center;gap:12px}
+.global-workspace-loading .wave-loading{flex:1;min-width:0;color:inherit}
+.global-workspace-loading button{flex:none;min-width:44px;min-height:44px;border:1px solid #484250;background:#211e2b;color:#f3effa;border-radius:10px;font-size:24px}
 html:root body .wave-night :is(.map-command-bar button,.map-command-bar a,.map-type-switch button,.point-button:hover,.point-active){background:var(--paper);color:var(--ink);border-color:var(--line)}
 html:root body .wave-night .map-command-bar button:is(.active,[aria-pressed=true]){background:#195dc5;color:#fff}
 html:root body .wave-night .community-list article footer span{color:var(--muted)}

@@ -14,6 +14,11 @@ body .naru-panel.naru-workspace .naru-conversation { min-height:0; }
 body .naru-panel.naru-workspace .naru-heading { min-height:84px;padding:16px 24px;background:var(--paper);border-color:var(--line); }
 body .naru-panel.naru-workspace .naru-heading strong { font-size:26px;font-weight:750; }
 body .naru-panel.naru-workspace .naru-heading small { font-size:15px; }
+@media (min-width:801px) and (pointer:fine) {
+  body .naru-workspace .naru-heading { cursor:grab;user-select:none; }
+  body .naru-workspace[data-dragging] .naru-heading { cursor:grabbing; }
+  body .naru-workspace .naru-heading :is(button,summary,a) { cursor:pointer; }
+}
 body .naru-panel.naru-workspace .naru-avatar { width:48px;height:48px;flex-shrink:0; }
 body .naru-panel.naru-workspace :is(button,input,textarea,summary) { color:var(--ink);background:var(--surface);border-color:var(--line); }
 body .naru-panel.naru-workspace :is(button,summary) { min-height:44px; }
