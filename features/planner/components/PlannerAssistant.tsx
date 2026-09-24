@@ -55,8 +55,8 @@ const NaruScheduleReview = lazy(() => import('./NaruScheduleReview'));
 
 // evidenceKeys/evidenceRegion은 답변이 확정된 순간의 편의 조건과 지역을 함께
 //굳혀 둔다. 뒤에 조건을 바꿔도 이미 그려진 답변의 숫자가 흔들리지 않는다.
-type Message = { cancelled?: boolean; id: number; role: 'user'|'assistant'; text: string; source?: string; proposal?: AssistantAction; draft?: NaruJourney; revision?: string; applied?: boolean; results?: Place[]; receipt?: TripCommandReceipt; resultKey?: string; toolId?: string; evidenceKeys?: string[]; evidenceRegion?: string; photoItems?: PhotoVerifiedItem[] };
-type Props = { onNewTrip: () => boolean; origin: RoutePoint; routeMinutes: Record<string, number>; launchRequest?: { id: number; prompt: string }; pageContext?: string; open: boolean; onClose: () => void; plan: ReturnType<typeof usePlannerPlan>; trip: ReturnType<typeof useTripSelection>; guidance: { value: GuidancePreferences; update: (value: GuidancePreferences) => void }; onRegion: (region: string, onCommitted?: () => void) => void; onSearch: (criteria?: { region?: string; profiles?: string[]; themes?: string[] }) => Promise<PlanData | null>; onPlace: (place: Place) => void; onAlternative: (placeId: string) => void; onUndoAlternative: () => boolean; canUndoAlternative: boolean; replacementVersion: number; onOpenTool: (tool: string) => void; transport: 'walk'|'bicycle'|'transit'|'car'; routeRevision: string; onJourneyApplied: (draft: NaruJourney) => { undo: () => void; revision: string }; onRecalculate: (transport?: AssistantAction['transport']) => Promise<'changed'|'checked'>; onActivity: (value: { phase: string; text: string }) => void };
+type Message = { requestText?: string; cancelled?: boolean; id: number; role: 'user'|'assistant'; text: string; source?: string; proposal?: AssistantAction; draft?: NaruJourney; revision?: string; applied?: boolean; results?: Place[]; receipt?: TripCommandReceipt; resultKey?: string; toolId?: string; evidenceKeys?: string[]; evidenceRegion?: string; photoItems?: PhotoVerifiedItem[] };
+type Props = { onNewTrip: () => boolean; origin: RoutePoint; routeMinutes: Record<string, number>; launchRequest?: { id: number; prompt: string }; pageContext?: string; open: boolean; onClose: () => void; plan: ReturnType<typeof usePlannerPlan>; trip: ReturnType<typeof useTripSelection>; guidance: { value: GuidancePreferences; update: (value: GuidancePreferences) => void }; onRegion: (region: string, onCommitted?: () => void) => void; onSearch: (criteria?: { region?: string; profiles?: string[]; themes?: string[] }) => Promise<PlanData | null>; onPlace: (place: Place) => void; onAlternative: (placeId: string, reason?: 'indoor' | 'visited') => void; onUndoAlternative: () => boolean; canUndoAlternative: boolean; replacementVersion: number; onOpenTool: (tool: string) => void; transport: 'walk'|'bicycle'|'transit'|'car'; routeRevision: string; onJourneyApplied: (draft: NaruJourney) => { undo: () => void; revision: string }; onRecalculate: (transport?: AssistantAction['transport']) => Promise<'changed'|'checked'>; onActivity: (value: { phase: string; text: string }) => void };
 const toolGroups = [
   { title: '여행 시작', items: [['conditions','지역·활동'],['facilities','필요한 편의'],['dates','날짜·기간'],['places','여행지 찾기']] },
   { title: '내 일정', items: [['itinerary','날짜·순서·시간'],['receipt','일정 선정 근거'],['map','지도·경로'],['alternatives','한 곳 바꾸기'],['comfort','이동 부담·휴식'],['course','코스 잇기'],['split','동행·합류']] },
@@ -338,7 +338,7 @@ export default function PlannerAssistant(props: Props) {
     const direct = naruDirectCommand(text, known);
     if (direct) {
       setInput(''); setMessages(current => [...current, { id: ++messageId.current, role: 'user', text: originalText }]);
-      await apply({ id: ++messageId.current, role: 'assistant', text: '', proposal: direct, revision }); return;
+      await apply({ id: ++messageId.current, role: 'assistant', text: '', requestText: originalText, proposal: direct, revision }); return;
     }
     setInput(''); follow.current = true;
     const recent = [...messages.filter(message => !['local-vision', 'photo-input'].includes(message.source || '')).slice(-5).map(message => ({ role: message.role, content: message.text })), { role: 'user', content: text }];
@@ -387,8 +387,8 @@ export default function PlannerAssistant(props: Props) {
         return;
       }
       if (proposal && canRunConversationAction(text, proposal, reference.placeId || '', known)) {
-        await apply({ id: ++messageId.current, role: 'assistant', text: '', proposal, revision }, true);
-      } else if (proposal) append('이렇게 변경할까요?', { proposal, revision });
+        await apply({ id: ++messageId.current, role: 'assistant', text: '', requestText: originalText, proposal, revision }, true);
+      } else if (proposal) append('이렇게 변경할까요?', { proposal, revision, requestText: originalText });
       else append(typeof data.reply === 'string' ? data.reply.slice(0, 500) : '요청을 조금 더 구체적으로 알려주세요.');
       progress('done', '나루의 답변이 도착했어요.');
     } catch {
@@ -397,7 +397,7 @@ export default function PlannerAssistant(props: Props) {
       const proposal = localAssistantAction(text, known);
       if (proposal.action !== 'help' && canRunConversationAction(text, proposal, reference.placeId || '', known)) {
         append('AI 연결이 원활하지 않아 간편 명령으로 처리할게요.');
-        await apply({ id: ++messageId.current, role: 'assistant', text: '', proposal, revision }, true, true);
+        await apply({ id: ++messageId.current, role: 'assistant', text: '', requestText: originalText, proposal, revision }, true, true);
       } else { setInput(current => current || originalText); append('연결하지 못했어요. 입력한 내용은 남겨두었어요. 잠시 뒤 다시 보내주세요.'); }
       progress('warning', '연결을 확인해 주세요. 여행 도구는 사용할 수 있어요.');
     } finally { clearTimeout(timer); if (id === sequence.current) { setBusy(false); setStreamText(''); request.current = null; } }
@@ -445,6 +445,11 @@ export default function PlannerAssistant(props: Props) {
     executed.current.add(message.id);
     const committed = () => setMessages(current => current.map(item => item.id === message.id ? { ...item, applied: true } : item));
     const place = known.find(place => place.id === action.placeId);
+    // Use only the user turn that produced this action, never the model's reply or an older request.
+    const requested = message.requestText || '';
+    const excludesIndoor = /실내(?:는|를|가|도|로)?\s*(?:말고|제외|빼|싫|아니|원하지|필요\s*없)|야외(?:로|를)?\s*(?:원해|찾아|추천)/.test(requested);
+    const indoor = !isChangeNegated(requested) && !excludesIndoor && (/실내/.test(requested) || /(?:비가?\s*(?:와|오(?:니|면|는|니까)|올)|우천|rain(?:y|ing)?)/i.test(requested));
+
     follow.current = true;
     const command = (change: TripCommand) => {
       const result = trip.applyTripCommand(change, known);
@@ -454,6 +459,10 @@ export default function PlannerAssistant(props: Props) {
     if (action.action === 'tool' || action.action === 'save-trip') {
       const tool = action.action === 'save-trip' ? 'save' : action.tool || 'conditions';
       committed();
+      if (tool === 'alternatives' && indoor) {
+        const target = trip.orderedSavedPlaces.find(item => item.id === focusedPlace.current) || trip.orderedSavedPlaces[0];
+        if (target) { props.onAlternative(target.id, 'indoor'); return; }
+      }
       // An offline command is already an explicit request such as “날씨
       // 보여줘”, so complete that reversible navigation immediately. Connected
       // model suggestions remain reviewable as a card in the conversation.
@@ -499,7 +508,7 @@ export default function PlannerAssistant(props: Props) {
     if (action.action === 'details' && place) { committed(); props.onPlace(place); return; }
     if (action.action === 'alternatives' && place) {
       if (!trip.saved.includes(place.id)) { append('다른 장소로 바꾸려면 이 장소를 일정에 담아주세요. 후보들의 편의를 비교할 수도 있어요.'); openTool('compare'); return; }
-      props.onAlternative(place.id); return;
+      props.onAlternative(place.id, indoor ? 'indoor' : 'visited'); return;
     }
     if (['move','visit','break'].includes(action.action) && place) {
       command(action.action === 'move' ? { type: 'move', id: place.id, direction: action.direction! } : { type: 'stop', id: place.id, ...(action.action === 'visit' ? { minutes: action.minutes! } : { breakMinutes: action.minutes!, ...(action.purpose ? { purpose: action.purpose } : {}) }) }); return;
