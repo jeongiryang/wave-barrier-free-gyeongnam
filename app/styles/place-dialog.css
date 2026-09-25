@@ -9,6 +9,7 @@
 html[data-theme="dark"] .region-change-dialog { background: #082938; color: #eaf5f9; }
 .place-modal { position: fixed; inset: 0; margin: auto; padding: 0; border: 0; width: min(980px, calc(100% - 24px)); max-height: calc(100dvh - 24px); overflow: auto; grid-template-columns: .65fr 1fr; border-radius: 25px; color: #242b2a; background: #fff; box-shadow: 0 42px 100px rgba(0,0,0,.3); }
 .place-modal[open] { display: grid; }
+.planner-simple .simple-place-pane { z-index: 60; } /* Desktop show() stays above page sections and below Naru (70). */
 .place-modal:not([open]) { display: none; }
 .place-modal::backdrop { background: rgb(2 20 32 / 74%); }
 .modal-close { position: absolute; z-index: 2; right: 16px; top: 16px; width: 44px; height: 44px; border: 0; border-radius: 50%; color: #242b2a; background: rgba(255,255,255,.94); font-size: 1.5rem; }

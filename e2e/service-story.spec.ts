@@ -1,9 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chapterIds, openLandingTools, prepareStory, storyReady, expectUsableTarget,  expectNoOverflow } from "./landing-contract";
+import { awardHeroImage, mockAwardHero } from './landing-photo-fixture';
 
 
-test.beforeEach(async ({ page }) => { await prepareStory(page); });
+test.beforeEach(async ({ page }) => { await prepareStory(page); await mockAwardHero(page); });
 
 for (const locale of ["ko", "en"] as const) {
   test(`${locale}: the service explains unknown facilities and connects its real planning and Naru actions`, async ({ page }) => {
@@ -26,12 +27,15 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator("#story")).not.toContainText("YOUR TRAVEL, CONNECTED");
     await expect(page.locator("#story").getByRole("button", { name: "이 지역들 먼저 보기", exact: true })).toHaveCount(0);
     await expect(page.locator(".simple-naru-example")).toContainText(locale === "en" ? "Example" : "대화 예시");
-    const photo = page.locator(".landing-hero-landscape");
+    const photo = page.locator(".landing-opening .award-panorama");
     await expect(photo.locator("img")).toHaveAttribute("alt", "");
     await expect(page.locator("#regions .simple-region-arrow")).toHaveCount(0);
     const heroAction = page.locator(".landing-actions a");
     await expect(heroAction).toHaveCSS("border-radius", "12px");
-    expect((await heroAction.boundingBox())!.width).toBeGreaterThan(300);
+    // The centered opening uses a compact 220px action instead of the old
+    // full-column CTA; its text and keyboard target must remain intact.
+    expect((await heroAction.boundingBox())!.width).toBeGreaterThanOrEqual(220);
+    expect(await heroAction.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
     for (const selector of [".landing-actions a", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) await expectUsableTarget(page.locator(selector));
     await expectNoOverflow(page);
     expect((await new AxeBuilder({ page }).include("#story").include("#naru").analyze()).violations).toEqual([]);
@@ -47,11 +51,15 @@ for (const locale of ["ko", "en"] as const) {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
-    await page.route("**/media/night/coast.webp", route => route.abort());
+    await mockAwardHero(page, true);
     await page.emulateMedia({ reducedMotion: "reduce" });
+    const imageFailure = page.waitForEvent('requestfailed', request => request.url() === awardHeroImage);
     await page.goto("/"); await storyReady(page);
-    const photo = page.locator(".landing-hero-landscape");
-    await expect(photo.locator("img")).toHaveAttribute("alt", "");
+    await imageFailure;
+    const photo = page.locator(".landing-opening .award-panorama");
+    await expect(photo).toBeVisible();
+    await expect(photo.locator("img")).toHaveCount(0);
+    await expect(photo.locator('.award-panorama-credit')).toHaveCount(0);
     await expect(page.getByRole("heading",{level:1})).toBeVisible();
     await expect(page.locator("#regions .simple-region-arrow")).toHaveCount(0);
     expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);

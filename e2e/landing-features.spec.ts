@@ -8,8 +8,9 @@ for (const width of [390, 960, 1440]) test(`${width}px shows every verified feat
   await prepareStory(page);
   await page.goto("/");
   await storyReady(page);
-  await expect(page.locator('#naru')).toBeHidden();
-  await expect(page.locator('#features')).toBeHidden();
+  // Both sections are now part of the reading flow without a disclosure.
+  await expect(page.locator('#naru')).toBeVisible();
+  await expect(page.locator('#features')).toBeVisible();
   await openLandingTools(page);
   const section = page.locator("#features");
   await expect(section.locator(".landing-feature-card")).toHaveCount(landingFeatures.length);

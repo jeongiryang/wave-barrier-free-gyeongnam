@@ -120,7 +120,7 @@ html:root body .naru-discovery .naru-hint{background:#fff;color:#233b55;border:1
 html:root body .naru-discovery .naru-hint button{background:transparent;color:#233b55;border:0}
 html:root body .naru-discovery .naru-launcher{background:#fff;border:0;box-shadow:0 8px 30px #213d6b26}
 html:root body .naru-discovery .naru-launcher:hover{box-shadow:0 8px 30px #3066ba40}
-html:root body .naru-panel.naru-workspace{--ink:#233b55;--ink-soft:#405a75;--muted:#526782;--paper:#fff;--surface:#f4f7fc;--white:#fff;--line:#c5d5e7;--accent:#3659ba;--blue:#3659ba;--on-blue:#fff;--on-accent:#fff;background:#fff;color:#233b55;color-scheme:light}
+html:root body .naru-panel.naru-workspace{--ink:#233b55;--ink-soft:#405a75;--muted:#526782;--paper:#fff;--surface:#f4f7fc;--white:#fff;--line:#c5d5e7;--accent:#3659ba;--blue:#3659ba;--on-blue:#fff;--on-accent:#fff;--onaccent:#fff;background:#fff;color:#233b55;color-scheme:light}
 html:root body .naru-panel.naru-workspace :is(.naru-message.assistant,.naru-message.user){color:#233b55;box-shadow:0 3px 14px #29456c0b}
 html:root body .naru-panel.naru-workspace .naru-message.assistant{background:#eeebff;border-color:#ddd5fa;border-radius:18px 18px 18px 4px}
 html:root body .naru-panel.naru-workspace .naru-message.user{background:#e8f1ff;border-color:#cfdef7;border-radius:18px 18px 4px 18px}
@@ -377,3 +377,13 @@ html:root body .landing-page .night-hero-motion{top:-50px;right:calc(50% - 22px)
 html:root body .wave-night dialog.naru-guidance-settings{background:var(--paper);color:var(--ink);border-color:var(--line);color-scheme:light}
 html:root body .naru-panel .naru-guidance-settings label:has(:checked){background:#e8f1ff;border-color:#3659ba}
 html:root body .naru-panel.naru-workspace .layer-tabs button[aria-selected=true],html:root body .naru-panel.naru-workspace .layer-tabs button[aria-selected=true] :is(b,small){color:var(--on-accent)}
+/* Comparison and inquiry dialogs share the surrounding navy surface tokens. */
+html:root body .wave-night .region-change-dialog:is(.place-comparison-dialog,.inquiry-dialog){--paper:#10273b;--ink:#edf6ff;--ink-soft:#d1e2f2;--muted:#b9cee1;--line:#476983;color:var(--ink);background:var(--paper)}
+html:root body .wave-night .region-change-dialog:is(.place-comparison-dialog,.inquiry-dialog) .modal-note{color:var(--muted)}
+html:root body .wave-night .place-comparison-scroll td[data-state=confirmed] strong{color:#8be4b4}
+html:root body .wave-night .place-comparison-scroll td[data-state=negative] strong{color:#ffb9bf}
+
+/* Detailed place actions retain their established one-handed touch size. */
+html:root body .wave-night .simple-place-pane :is(.modal-body>button,.modal-close-end>button){min-height:48px}
+
+html:root body .naru-panel.naru-workspace details:not(.account-menu)>summary:hover{background:var(--surface-deep,#e8f1ff)}

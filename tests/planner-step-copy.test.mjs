@@ -66,7 +66,9 @@ test("선택한 지역은 준비 완료 후 바로 조회하고 실패에는 같
   assert.match(auto, /void runPlan\(\{ resetRouteData, resetAudio \}, false\)/);
   assert.match(auto, /return \(\) => clearTimeout\(timer\)/);
   assert.doesNotMatch(auto, /travelStart|travelEnd|!theme|!selected\.length/);
-  assert.match(conditions, /plan\.loading &&[\s\S]*role="status"[\s\S]*className="button-loader"/);
+  // Keep the loading row in layout while announcing it only during a request.
+  assert.match(conditions, /className="simple-searching" role=\{plan\.loading \? "status" : undefined\}/);
+  assert.match(conditions, /aria-hidden=\{!plan\.loading\}[\s\S]*visibility: plan\.loading \? "visible" : "hidden"[\s\S]*className="button-loader"/);
   assert.match(results, /aria-busy=\{loading\}/);
   assert.match(results, /planError \?[\s\S]*role="alert"/);
   assert.match(results, /disabled=\{loading\} onClick=\{\(\) => void onGenerate\(false\)\}/);

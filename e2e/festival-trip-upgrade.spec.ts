@@ -77,7 +77,9 @@ test('축제 포스터나 제목을 누르면 포스터와 기본 정보가 나�
   const posterEvent = { ...event, image: '/media/night/festival.webp' };
   const card = await setup(page, route => route.fulfill({ json: result([posterEvent]) }));
   const opener = card.getByRole('button', { name: `${event.name} 축제 상세 보기`, exact: true });
-  await opener.click();
+  // The full-card photograph shares its lower area with editable details.
+  // Click the exposed photograph above the text, leaving those controls usable.
+  await opener.click({ position: { x: 70, y: 65 } });
   const dialog = page.getByTestId('festival-detail-dialog');
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('heading', { name: event.name, exact: true })).toBeVisible();
@@ -119,7 +121,7 @@ test('축제의 실제 개최일을 골라 담으면 기존 방문일과 고정 
 
 test('축제 상세 안에서 선택한 방문 날짜로 담고 기존 고정 방문과 휴식을 보존한다', async ({ page }) => {
   const card = await setup(page);
-  await card.getByRole('button', { name: `${event.name} 축제 상세 보기`, exact: true }).click();
+  await card.getByRole('button', { name: `${event.name} 축제 상세 보기`, exact: true }).click({ position: { x: 70, y: 65 } });
   const dialog = page.getByTestId('festival-detail-dialog');
   await expect(dialog).toBeVisible();
   await dialog.getByLabel('방문 날짜', { exact: true }).fill('2026-09-21');

@@ -2,8 +2,8 @@ import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
 import { findLowContrastText, formatFindings } from "./contrast";
-import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
-import { storyReady } from "./landing-contract";
+import { mockPlannerApi } from "./fixtures";
+import { prepareLandingMedia, storyReady } from "./landing-contract";
 
 /**
  * 화면 어디에나 있는 공통 요소(환경설정 토글, 지역 칩)와 주요 공개 화면의 글자가
@@ -16,6 +16,7 @@ async function closingTextContrast(page: Page) {
   const closing = page.locator("#closing");
   await closing.scrollIntoViewIfNeeded();
   await expect(closing).toBeVisible();
+  await expect(page.locator(".landing-finale img,.landing-finale .award-panorama")).toHaveCount(0);
   await expect(closing.locator("img,figcaption,a,button")).toHaveCount(0);
   await expect(closing.locator("h2 em")).toHaveCSS("-webkit-text-fill-color", "rgb(236, 244, 255)");
   const samples = await closing.evaluate(root => {
@@ -24,10 +25,13 @@ async function closingTextContrast(page: Page) {
       const s = value / 255;
       return s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4;
     }).reduce((sum, channel, i) => sum + channel * [.2126, .7152, .0722][i], 0);
-    const surface = getComputedStyle(root), background = rgba(surface.backgroundColor);
+    let painted: Element = root;
+    while (getComputedStyle(painted).backgroundColor === "rgba(0, 0, 0, 0)" && painted.parentElement) painted = painted.parentElement;
+    const surface = getComputedStyle(painted);
     const frame = root.getBoundingClientRect();
     return [...root.querySelectorAll(".brand-meaning p,h2,h2 em,.closing-eyebrow,.landing-closing-copy > p")].map(node => {
       const foreground = getComputedStyle(node), box = node.getBoundingClientRect();
+      const background = rgba(surface.backgroundColor);
       const light = luminance(rgba(foreground.color)), dark = luminance(background);
       return { text: node.textContent, color: foreground.color, opacity: foreground.opacity,
         background: surface.backgroundColor, backgroundImage: surface.backgroundImage,
@@ -37,7 +41,7 @@ async function closingTextContrast(page: Page) {
   });
   expect(samples).toHaveLength(6);
   for (const sample of samples) {
-    expect(sample.background).toBe("rgb(5, 14, 25)");
+    expect(sample.background).toBe("rgb(7, 23, 37)");
     expect(sample.backgroundImage).toBe("none");
     expect(sample.opacity).toBe("1");
     expect(sample.covered).toBe(true);
@@ -53,7 +57,7 @@ for (const theme of ["light", "dark"] as const) {
   test(`${theme === "dark" ? "어두운" : "밝은"} 화면에서 읽기 어려운 글자가 없다`, async ({ page }) => {
     test.slow();
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await mockPublicShellApi(page);
+    await prepareLandingMedia(page);
     await mockPlannerApi(page);
     await page.addInitScript((value) => {
       window.sessionStorage.setItem("wave-arrival-session-v1", "done");
@@ -69,7 +73,7 @@ for (const theme of ["light", "dark"] as const) {
       const findings = await findLowContrastText(page);
       if (findings.length) failures.push(formatFindings(path, findings));
       if (path === "/") {
-        const photoUrl = "**/media/night/coast.webp";
+        const photoUrl = "https://tong.visitkorea.or.kr/**";
         await page.route(photoUrl, route => route.abort());
         await page.reload({ waitUntil: "domcontentloaded" });
         await closingTextContrast(page);
@@ -86,7 +90,7 @@ for (const theme of ["light", "dark"] as const) {
 test("OS 동작 감소에서도 환경설정의 모든 항목은 읽힌다", async ({ page }) => {
   // Keep the contrast regression over every remaining preference after retiring the manual motion control.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPublicShellApi(page);
+  await prepareLandingMedia(page);
   await mockPlannerApi(page);
   await page.addInitScript(() => {
     window.sessionStorage.setItem("wave-arrival-session-v1", "done");

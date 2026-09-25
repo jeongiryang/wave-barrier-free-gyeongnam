@@ -337,7 +337,7 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 .simple-audio-journal .guide-top { border-color: var(--line); flex-wrap: wrap; gap: 8px; }
 .simple-audio-journal .guide-top span { font-size: .875rem; letter-spacing: 0; font-weight: 500; }
 .simple-audio-journal .guide-top span,.simple-audio-journal .guide-art small,.simple-audio-journal .player-time,.simple-audio-journal .transcript-button span { color: var(--muted); }
-.simple-audio-journal .guide-top b { color: var(--blue); background: var(--sky); font-size: .75rem; }
+.simple-audio-journal .guide-top b { color: var(--ink); background: var(--paper); font-size: .75rem; }
 .simple-audio-journal .guide-art { background: var(--paper); }
 .simple-audio-journal .guide-art strong { color: var(--ink); }
 .simple-audio-journal .guide-art small { font-size: .875rem; }

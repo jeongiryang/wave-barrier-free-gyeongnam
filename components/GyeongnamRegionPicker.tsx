@@ -20,6 +20,11 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
   const [visible, setVisible] = useState(false);
   const photos = useRegionApiPhotos(regionBoundaries.map(region => region.name), visible);
   useEffect(() => {
+    if (typeof IntersectionObserver !== 'function') {
+      // Match the observer's asynchronous notification without requiring the API.
+      const frame = requestAnimationFrame(() => setVisible(true));
+      return () => cancelAnimationFrame(frame);
+    }
     const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } }, { rootMargin: '200px' });
     if (root.current) observer.observe(root.current);
     return () => observer.disconnect();

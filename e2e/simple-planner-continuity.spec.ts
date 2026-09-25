@@ -381,7 +381,9 @@ test("나루 시작 버튼은 PC·태블릿·모바일에서 보이고 키보드
   await browse(page);
   for (const width of info.project.name === 'desktop-chromium' ? [1440, 960, 390] : [390]) {
     await page.setViewportSize({ width, height: 960 });
-    await noOverflow(page, '.simple-planner-actions button');
+    // The duplicated planner action row was removed; validate the actual entry
+    // and current header actions instead of the retired container.
+    await noOverflow(page, '.wave-header-actions button, .naru-launcher');
     const entry = page.getByRole("button", { name: "WAVE 여행 가이드 나루와 대화 열기", exact: true });
     const rect = await entry.boundingBox();
     expect(rect?.height).toBeGreaterThanOrEqual(44);

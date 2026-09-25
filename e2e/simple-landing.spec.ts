@@ -3,6 +3,7 @@ import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 import { arrivalPlaybackReady, pauseCurrentClock } from './landing-contract';
 import { INTRO_DURATION_MS } from '../features/landing/intro/wave-timing';
+import { awardHeroImage, mockAwardHero } from './landing-photo-fixture';
 
 const firstRegions = ["통영", "거제", "남해", "하동", "산청"];
 const allRegions = ["거창", "거제", "고성", "김해", "남해", "밀양", "사천", "산청", "양산", "의령", "진주", "창녕", "창원", "통영", "하동", "함안", "함양", "합천"];
@@ -12,6 +13,7 @@ async function prepare(page: Page) {
   // Only provider responses and remote photograph bytes are synthetic. The real
   // local page, source URLs, links and browser interactions remain under test.
   await mockPlannerApi(page, { preserveView: true });
+  await mockAwardHero(page);
 }
 
 async function freshAnimatedArrival(page: Page) {
@@ -83,7 +85,7 @@ for (const width of [1440, 960, 390]) test(`${width}px reduced motion keeps the 
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  const hero = page.locator(".landing-hero-split"), copy = hero.locator(".landing-hero-copy"), photograph = hero.locator(".landing-hero-landscape");
+  const hero = page.locator(".landing-hero-split"), copy = hero.locator(".landing-hero-copy"), photograph = page.locator(".landing-opening .award-panorama");
   await expect(copy).toBeVisible();
   const planning = page.locator('.landing-actions a');
   // Hydration can precede Vite's client stylesheet handoff. Wait for the
@@ -100,7 +102,7 @@ for (const width of [1440, 960, 390]) test(`${width}px reduced motion keeps the 
   expect(photoBox.width).toBeGreaterThan(0);
   expect(photoBox.x).toBeGreaterThanOrEqual(0);
   expect(photoBox.x + photoBox.width).toBeLessThanOrEqual(width + 1);
-  await expect(photograph.locator("img")).toHaveAttribute("src", "/media/night/coast.webp");
+  await expect(photograph.locator("img")).toHaveAttribute("src", awardHeroImage);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: info.outputPath(`simple-hero-${width}.png`) });
 

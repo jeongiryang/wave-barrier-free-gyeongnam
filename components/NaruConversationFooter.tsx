@@ -20,17 +20,20 @@ export default function NaruConversationFooter({ onOpen, onTools }: { onOpen: ()
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const query = matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReduced(query.matches);
+    const canObserve = typeof IntersectionObserver === 'function';
+    const update = () => setReduced(query.matches || !canObserve);
     update(); query.addEventListener('change', update);
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0 });
-    if (root.current) observer.observe(root.current);
-    const arrival = new IntersectionObserver(([entry]) => { if (entry.isIntersecting && entry.intersectionRatio >= .75) { setStarted(true); arrival.disconnect(); } }, { threshold: .75 });
-    if (intro.current) arrival.observe(intro.current);
+    const observer = canObserve ? new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0 }) : null;
+    if (root.current) observer?.observe(root.current);
+    const arrival = canObserve ? new IntersectionObserver(([entry]) => { if (entry.isIntersecting && entry.intersectionRatio >= .75) { setStarted(true); arrival?.disconnect(); } }, { threshold: .75 }) : null;
+    if (intro.current) arrival?.observe(intro.current);
+    // Deliver fallback visibility after mount, like an observer notification.
+    const fallbackFrame = !canObserve ? requestAnimationFrame(() => { setVisible(true); setStarted(true); }) : null;
     const visibility = () => setForeground(!document.hidden);
     document.addEventListener('visibilitychange', visibility);
     let active = true;
     document.fonts.load('400 40px WaveHand', '나루와 함께해요').then(() => { if (active) setFontReady(true); }).catch(() => { if (active) setFontReady(true); });
-    return () => { document.removeEventListener('visibilitychange', visibility); active = false; observer.disconnect(); arrival.disconnect(); query.removeEventListener('change', update); };
+    return () => { document.removeEventListener('visibilitychange', visibility); active = false; if (fallbackFrame !== null) cancelAnimationFrame(fallbackFrame); observer?.disconnect(); arrival?.disconnect(); query.removeEventListener('change', update); };
   }, []);
   useEffect(() => {
     if (!started || !visible || !foreground || reduced || !fontReady || !ready || step >= 4) return;

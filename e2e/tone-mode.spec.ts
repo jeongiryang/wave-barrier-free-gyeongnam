@@ -36,6 +36,8 @@ test("말투를 바꿔도 버튼·메뉴 이름과 오류 문구가 바뀌지 �
   await mockPlannerApi(page, { plannerView: "guided" });
   const sessionReady = page.waitForResponse(response => new URL(response.url()).pathname === "/api/auth/get-session");
   await page.goto("/planner");
+  await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
+  await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
   await page.locator(".wave-header .wave-profile-entry").press("Enter");
   await (await sessionReady).finished();
   // The header's lazy fallback contains spans. Compare only after its real

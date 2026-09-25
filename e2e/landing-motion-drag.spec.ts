@@ -95,7 +95,7 @@ test('mouse header dragging stays bounded and resets on size, close and compact 
   await expect(panel).toBeVisible();
   await panel.getByRole('button', { name: '대화창 작게 보기', exact: true }).click();
   await expect(panel).toHaveClass(/naru-compact/);
-  const handle = panel.locator('.naru-heading strong');
+  const handle = panel.locator('.naru-heading > div > strong');
   const initial = (await panel.boundingBox())!;
   await drag(page, handle, -120, 50);
   await expect(panel).toHaveAttribute('data-moved', 'true');

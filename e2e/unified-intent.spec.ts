@@ -31,6 +31,8 @@ test('closing keeps the message and ordinary links with compact solid spacing', 
     await expect(closing.locator('#closing-title')).toBeVisible();
     await expect(closing.locator('img,.award-panorama,.award-panorama-credit')).toHaveCount(0);
     expect(await closing.locator('footer a').count()).toBeGreaterThan(0);
+    await expect(closing.locator('#closing')).toHaveCSS('min-height', '0px');
+    await expect(closing.locator('.landing-closing-copy')).toHaveCSS('padding-top', '0px');
     expect(await closing.evaluate(node => {
       const style = getComputedStyle(node);
       return { top: style.paddingTop, bottom: style.paddingBottom, min: style.minHeight, photo: style.backgroundImage };

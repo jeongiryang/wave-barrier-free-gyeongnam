@@ -112,3 +112,30 @@ Inventory only; unlisted root causes remain unclassified pending focused reprodu
 - `mockPlannerApi` now supplies a deterministic empty photo response. `mockPublicShellApi` supplies scoped empty photo/enrichment responses, allowing later specialized route overrides. This removes real provider 503s from unrelated fixture tests without suppressing API-error test coverage.
 - Returning saved-trip launch plus share initial/create/edit/re-entry desktop checks: 4 passed (13.7s).
 - Entire mobile `simple-live-share.spec.ts`: 11 passed (34.2s), including conflict handling, update serialization, revoke/reload, last-place removal and undo. No additional share-state product changes were needed.
+
+## Final focused state regression run
+
+Five suites (`naru-followup-intents`, `trip-date-integrity`, `region-change-boundary`, `planner-date-hydration`, `simple-planner-continuity`) across desktop/mobile: 83 passed, one stale locator failed in 3.4 minutes. The sole failure referenced removed `.simple-planner-actions button`; changed overflow check to real `.wave-header-actions button, .naru-launcher`, preserving keyboard launch/return and axe checks. Targeted rerun passed both projects (2 passed, 8.6 seconds). All 84 distinct cases therefore have passing verification; the original batch itself was not a clean all-green run. No further product state changes were required.
+
+## PR #709 mobile shard 5: confirmed pointer layout shift
+
+Downloaded `browser-regression-mobile-5` for run36145244144. The one-hand1440px failure is not a missed response-listener flag: trace `20c49b36657c1913919a0344a1b9f9d644553ada.zip` records both plan requests with empty themes, while the final five facilities are correct. Nature remains aria-pressed=false after a completed click. Input point is x83.65/y469.84. Before/after screencast frames show the newly inserted `검색 중` row pushing theme buttons down during the click.
+
+Product fix: keep `.simple-searching` in layout, hidden and aria-hidden while idle; set role=status only while loading. This retains status announcement and avoids a timing workaround in the shared fixture.
+
+Added `planner-status-stability.spec.ts`: hold the real mocked response, press mouse down on a theme, release the response, require unchanged theme coordinates, then mouse up and require selected state. 390/1440 desktop/mobile all4 passed (9.7s). Original1440 mobile one-hand case passed two repeats (7.2s). Earlier three pre-fix passes were not treated as proof of correctness; CI trace supplied the actual cause.
+
+Additional completed first-head jobs downloaded: browser7mobile and browser1desktop. They contain stale landing image/footer selectors, old solid-color assertions, landing axe results already under active fixes, and the retired planner-action selector corrected above. Their failures must be checked against the final CI rather than declared resolved by log classification alone.
+
+## Final candidate corrections after first integrated CI
+
+- Restored the established 48px place-detail primary and bottom-close targets; desktop detail panes remain above the conversation footer. Parking, arrival, comparison and inquiry interactions pass focused reruns without forced clicks.
+- Kept a complete dark halo on the opening text itself, with no photo/scrim changes. Axe now checks the actual readable heading; the photo failure cases use explicit failed-image fixtures rather than depending on a live provider.
+- Removed the remaining old `#closing` minimum height and inner vertical padding. The outer closing section alone owns the approved 64px/40px padding; tests check both the outer spacing and inner automatic height.
+- Corrected light Naru token pairs for selected cards, audio status, split-plan actions and hovered disclosure summaries. Preserved all contrast assertions.
+- Added static visible fallbacks when IntersectionObserver is unavailable for the panorama, region picker and both Naru scenes. Tests require no page errors and all region links/closing content.
+- Deduplicated panorama image URLs before shuffling; duplicate records cannot produce consecutive identical photos. Existing 4.5-second timing and reduced-motion behavior remain.
+- Photo-card click tests now target the visible upper photo area rather than the controls layered over its lower portion. No forced pointer interactions or reduced target assertions.
+- Existing landing tests now inspect the authorized compact centered hero, permanent Naru tools, photo failure behavior and solid closing. Retained keyboard, overflow, contrast and side-effect checks; no test deletion, timeout increase or performance-budget increase.
+
+Focused follow-up results include 30/30 scene/fallback tests, 28/28 festival/equipment/search/photo cases plus the corrected footer check, 17/17 parking/arrival/comparison/intent desktop cases, 10/10 slope/stay/fullscreen cases, and state-sharing/alternative-plan regressions. These focused runs do not substitute for the final full PR CI. The authoritative complete final result is the latest check suite on PR #709.

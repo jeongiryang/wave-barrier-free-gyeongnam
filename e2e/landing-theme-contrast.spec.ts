@@ -34,8 +34,8 @@ async function samples(page: Page, selector: string) {
         return {
           // Photo text uses a sibling scrim, not the white ancestor surface.
           // Composite the lightest stop behind the text over pure white (worst photo).
-          background: parseFloat(getComputedStyle(node).webkitTextStrokeWidth) >= 2 && getComputedStyle(node).paintOrder === 'stroke'
-            ? parse(getComputedStyle(node).webkitTextStrokeColor)
+          background: (getComputedStyle(node).textShadow.match(/rgb\(20, 45, 67\)/g) || []).length === 8
+            ? [20, 45, 67]
             : node.matches(".landing-hero-copy h1, .landing-hero-description")
             ? (() => {
                 const photo = document.querySelector(".landing-opening .award-panorama")!;

@@ -14,9 +14,11 @@ export function AwardPhotoProvider({ children }: { children: ReactNode }) {
       if (!response.ok) return;
       const data = await response.json();
       if (controller.signal.aborted || !Array.isArray(data.awards)) return;
+      const seen = new Set<string>();
       const pool: Photo[] = data.awards.filter((p: Photo) => p && typeof p.address === 'string'
         && /경상남도|경남/.test(p.address) && p.source === '관광공모전 수상작'
-        && typeof p.image === 'string' && /^https:\/\/tong\.visitkorea\.or\.kr\//.test(p.image)).slice(0, 8);
+        && typeof p.image === 'string' && /^https:\/\/tong\.visitkorea\.or\.kr\//.test(p.image)
+        && !seen.has(p.image) && seen.add(p.image)).slice(0, 8);
       for (let i = pool.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [pool[i], pool[j]] = [pool[j], pool[i]];

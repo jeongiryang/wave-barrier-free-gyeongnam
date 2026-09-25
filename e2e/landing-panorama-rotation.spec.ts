@@ -8,7 +8,7 @@ test('landing photographs rotate promptly without consecutive repeats and respec
   await page.route('https://tong.visitkorea.or.kr/**', route => route.fulfill({ contentType: 'image/webp', body: image }));
   await page.route('**/api/wave?**', route => {
     if (new URL(route.request().url()).searchParams.get('action') !== 'enrich') return route.fallback();
-    return route.fulfill({ json: { awards: [0, 1, 2].map(id => ({ id: String(id), title: `검증 사진 ${id}`, address: '경상남도', source: '관광공모전 수상작', image: `https://tong.visitkorea.or.kr/test-${id}.webp` })) } });
+    return route.fulfill({ json: { awards: [0, 1, 1, 2].map(id => ({ id: String(id), title: `검증 사진 ${id}`, address: '경상남도', source: '관광공모전 수상작', image: `https://tong.visitkorea.or.kr/test-${id}.webp` })) } });
   });
   await page.addInitScript(() => sessionStorage.setItem('wave-arrival-session-v1', 'done'));
   await page.emulateMedia({ reducedMotion: 'no-preference' });

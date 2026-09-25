@@ -13,16 +13,19 @@ export default function NaruHeaderScene() {
   const [ready, setReady] = useState<string[]>([]);
   useEffect(() => {
     const media = matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReduced(media.matches);
+    const canObserve = typeof IntersectionObserver === 'function';
+    const update = () => setReduced(media.matches || !canObserve);
     const focus = () => setForeground(!document.hidden);
     update(); focus(); media.addEventListener('change', update);
     document.addEventListener('visibilitychange', focus);
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: .5 });
-    if (root.current) observer.observe(root.current);
+    const observer = canObserve ? new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: .5 }) : null;
+    if (root.current) observer?.observe(root.current);
+    // Deliver fallback visibility after mount, like an observer notification.
+    const fallbackFrame = !canObserve ? requestAnimationFrame(() => setVisible(true)) : null;
     let active = true;
     document.fonts.load('400 22px WaveHand', '나루와 함께해요').then(() => { if (active) setFontReady(true); }).catch(() => { if (active) setFontReady(true); });
     setReady(Array.from(root.current?.querySelectorAll('img') || []).filter(img => img.complete && img.naturalWidth > 0).map(img => img.getAttribute('src') || ''));
-    return () => { active = false; observer.disconnect(); media.removeEventListener('change', update); document.removeEventListener('visibilitychange', focus); };
+    return () => { active = false; if (fallbackFrame !== null) cancelAnimationFrame(fallbackFrame); observer?.disconnect(); media.removeEventListener('change', update); document.removeEventListener('visibilitychange', focus); };
   }, []);
   useEffect(() => {
     if (!visible || !foreground || reduced || !fontReady) return;

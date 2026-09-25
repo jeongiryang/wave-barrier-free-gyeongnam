@@ -44,7 +44,7 @@ html body .landing-page.horizon-edition.night-landing :is(.simple-section,.horiz
 
 .landing-page.horizon-edition.night-landing .simple-region-link::after{background:none}.landing-page.horizon-edition.night-landing .simple-region-link>div{top:auto;left:0;right:0;bottom:0}
 
-html body .landing-page.night-landing #closing{width:100%;max-width:none;margin:0;min-height:380px;background:#050e19;border:0;border-radius:0;box-shadow:none;display:grid;place-items:center;text-align:center;isolation:isolate}
+html body .landing-page.night-landing #closing{width:100%;max-width:none;margin:0;min-height:0;background:#050e19;border:0;border-radius:0;box-shadow:none;display:grid;place-items:center;text-align:center;isolation:isolate}
 html body .landing-page.night-landing #closing::before,html body .landing-page.night-landing #closing::after,html body .landing-page.night-landing .landing-closing-copy::before{display:none}
 html body .landing-page.night-landing #closing .landing-closing-copy{background:none;position:relative;padding:70px 24px;max-width:none;width:100%}
 html body .landing-page.night-landing #closing h2{color:#ecf4ff;font-size:clamp(36px,4vw,80px)}
