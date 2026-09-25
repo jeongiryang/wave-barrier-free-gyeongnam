@@ -1,3 +1,4 @@
+import { finishNewTrip, newTripAction, startNewTrip } from './planner-header-fixtures';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -25,7 +26,7 @@ async function current(page: Page) {
   });
 }
 async function browse(page: Page) {
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   return page.getByRole("combobox", { name: "여행 지역", exact: true });
 }
 async function map(page: Page) {
@@ -71,10 +72,11 @@ for (const outcome of ["success", "failure"] as const) test(`new trip ignores a 
   expect(await page.evaluate(() => (window as unknown as { locationResetFixture: { calls: number } }).locationResetFixture.calls)).toBe(1);
   // Release the native callback immediately after the actual new-trip button
   // commits its new ID, before full-document navigation can destroy the callback.
-  await page.getByRole("button", { name: "새 여행", exact: true }).evaluate((button, outcome) => {
+  await (await newTripAction(page)).evaluate((button, outcome) => {
     (button as HTMLButtonElement).click();
     (window as unknown as { locationResetFixture: { release: (outcome: "success" | "failure") => void } }).locationResetFixture.release(outcome);
   }, outcome);
+  await finishNewTrip(page);
   const picker = page.getByRole("combobox", { name: "여행 지역", exact: true });
   await expect(picker).toHaveValue("");
   await expect(picker).toBeEnabled();
@@ -167,7 +169,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) test(`reg
   await page.reload();
   await expect(picker).toHaveValue("하동");
   expectSchedulePreserved(await current(page), before);
-  await page.getByRole("button", { name: "새 여행", exact: true }).click();
+  await startNewTrip(page);
   await expect(picker).toHaveValue("");
   await expect(picker).toBeEnabled();
   const fresh = await current(page);
@@ -178,12 +180,12 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) test(`reg
   expect(fresh.books).toHaveLength(1);
   expect(fresh.books[0].tripId).toBe(before.identity.id);
   expect(fresh.books[0].scheduleAssignments).toEqual(before.schedule.scheduleAssignments);
-  const itineraryTab = page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ });
-  await expect(itineraryTab).toBeDisabled();
+  const itineraryTab = page.locator(".wave-header").locator(".wave-my-trips");
+  await expect(itineraryTab).toHaveAttribute("href", "/travel-book");
   await picker.selectOption("진주");
   await page.reload();
   await expect(picker).toHaveValue("진주");
-  await expect(itineraryTab).toBeDisabled();
+  await expect(itineraryTab).toHaveAttribute("href", "/travel-book");
   expect((await current(page)).ids).toEqual([]);
   expect((await current(page)).identity.id).toBe(fresh.identity.id);
   await page.goto("/travel-book");

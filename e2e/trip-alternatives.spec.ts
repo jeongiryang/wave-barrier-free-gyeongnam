@@ -139,7 +139,7 @@ test('optional facilities and activities do not block another-region alternative
   await setup(page);
   const requests:URL[]=[];
   await page.route('**/api/wave?action=plan*',route=>{const url=new URL(route.request().url());requests.push(url);const region=url.searchParams.get('region')||'창원';const keys=(url.searchParams.get('facilityKeys')||url.searchParams.get('profiles')||'').split(',').filter(Boolean);return route.fulfill({json:{...result,criteria:{facilityKeys:keys},places:result.places.map(place=>({...place,city:region}))}});});
-  await page.getByRole('group',{name:'여행 설계 화면',exact:true}).getByRole('button',{name:'여행지 찾기',exact:true}).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   await page.getByRole('button',{name:'자연·휴양',exact:true}).click();await page.locator('.simple-facility-trigger').click();const picker=page.getByRole('dialog',{name:'필요한 편의',exact:true});await picker.getByRole('button',{name:'선택 해제',exact:true}).click();await picker.getByRole('button',{name:'적용',exact:true}).click();
   await expect.poll(()=>requests.some(url=>!url.searchParams.get('themes')&&!url.searchParams.get('facilityKeys')&&!url.searchParams.get('profiles'))).toBe(true);await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy','false');
   await openItinerary(page);const before=await currentValues(page);const dialog=await open(page);await expect(dialog).toContainText('현재 여행의 편의 0개');await dialog.getByText('경남의 다른 후보 살펴보기',{exact:true}).click();await dialog.getByRole('combobox',{name:'살펴볼 지역',exact:true}).selectOption('함안');await dialog.getByRole('button',{name:'같은 편의로 후보 찾기',exact:true}).click();

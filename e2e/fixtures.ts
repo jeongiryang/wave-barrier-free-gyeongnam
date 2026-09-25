@@ -112,7 +112,7 @@ export async function chooseTripConditions(page: Page) {
 
 /** Enter the schedule through the same explicit date/transport step as a visitor. */
 export async function openItinerary(page: Page, dates?: { start: string; end?: string }) {
-  await page.locator('.simple-planner-tabs button').nth(1).click();
+  await page.locator(".wave-header .wave-my-trips").click();
   const setup = page.locator('.simple-initial-setup');
   if (await setup.isVisible()) {
     if (dates) {

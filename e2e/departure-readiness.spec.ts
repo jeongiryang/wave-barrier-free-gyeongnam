@@ -10,7 +10,7 @@ test('departure disclosures distinguish partial evidence and keyboard calendar k
   await page.route('**/api/wave?*', async route => new URL(route.request().url()).searchParams.get('action') !== 'crowd' ? route.fallback() : route.fulfill({ json: { crowd: { place: '경남도립미술관', rate: 24, baseYmd: today.replaceAll('-', '') } } }));
   await page.route('**/api/weather**', route => route.fulfill({ json: { region: '창원', source: '기상청 단기예보', updatedAt: `${today}T01:00:00.000Z`, current: { temperature: 27, apparent: 29, code: 1, label: '대체로 맑음', windMps: 2, precipitation: 0, isDay: true }, days: [{ date: today, code: 1, label: '맑음', max: 30, min: 23, rainProbability: 10, rain: 0, snow: 0, uv: 6, advice: [] }], advice: [] } }));
   await validShareApi(page); await page.goto('/planner'); await chooseTripConditions(page);
-  await expect(page.locator('.simple-planner-tabs button').nth(1)).toBeDisabled(); await expect(page.locator('button[data-planner-tool=share]')).not.toBeVisible();
+  await expect(page.locator(".wave-header .wave-my-trips")).toHaveAttribute("href", "/travel-book"); await expect(page.locator('button[data-planner-tool=share]')).not.toBeVisible();
   await page.locator('.simple-place-row').first().locator('.simple-place-add').click(); await openItinerary(page, { start: today, end: today });
   await page.getByRole('button', { name: '여행 설정', exact: true }).click(); const settings = page.getByRole('dialog', { name: '여행 설정', exact: true });
   await settings.getByLabel('하루 시작', { exact: true }).fill('09:30'); await settings.getByRole('button', { name: '적용', exact: true }).click();
@@ -55,7 +55,7 @@ test('optional trip precautions stay local to the view and link to existing plan
   await checks.nth(0).check();
   await checks.nth(3).check();
   expect(await page.evaluate(() => JSON.stringify(localStorage))).toBe(before);
-  await expect(page.locator('.simple-planner-tabs button').nth(1)).toBeEnabled();
+  await expect(page.locator(".wave-header .wave-my-trips")).toBeEnabled();
 
   await card.getByRole('link', { name: '날씨 확인' }).click();
   await expect(page).toHaveURL(/#layers$/);

@@ -9,6 +9,4 @@
 .landing-hero-copy > span { max-width: 620px; margin-top: 30px; display: block; font-size: 1.04rem; }
 .landing-actions { margin-top: 34px; display: flex; align-items: center; gap: 20px; }.landing-actions a:first-child { min-height: 52px; padding: 12px 18px; display: inline-flex; align-items: center; gap: 32px; border-radius: 13px; color: var(--on-blue); background: var(--blue); font-weight: 850; }.landing-actions a:last-child { min-height: 44px; display: inline-flex; align-items: center; font-weight: 800; }
 [data-land-reveal] { opacity: 1; transform: none; }
-.landing-page.motion-ready [data-land-reveal] { opacity: 0; transform: translateY(34px); transition: opacity .75s ease, transform .75s cubic-bezier(.22,1,.36,1); }
-.landing-page.motion-ready [data-land-reveal].is-visible { opacity: 1; transform: none; }
 .landing-cta { padding: 150px 24px; text-align: center; }.landing-cta > p { font-size: .75rem; font-weight: 900; letter-spacing: .18em; }.landing-cta h2 { margin: 16px 0 35px; font-size: clamp(3.2rem,6vw,6.6rem); letter-spacing: -.075em; }.landing-cta a { padding: 12px 18px; display: inline-flex; align-items: center; gap: 45px; font-weight: 850; }

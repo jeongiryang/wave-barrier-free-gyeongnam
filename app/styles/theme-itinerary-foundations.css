@@ -7,9 +7,8 @@ html[data-theme="dark"] {
 }
 html[data-theme="dark"] body,html[data-theme="dark"] .landing-page,html[data-theme="dark"] .planner-page,html[data-theme="dark"] .places-section,html[data-theme="dark"] .shared-trip-page { color: var(--ink); background: #061f2b; }
 html[data-theme="dark"] .landing-hero { background: linear-gradient(135deg,#061f2b,#0a3143 54%,#0e3f55); }
-html[data-theme="dark"] .place-card,html[data-theme="dark"] .route-compare-panel,html[data-theme="dark"] .route-option,html[data-theme="dark"] .rich-card,html[data-theme="dark"] .shared-places article { color: var(--ink); border-color: #284b5b; background: #0b2d3c; }
-html[data-theme="dark"] .profile-card,html[data-theme="dark"] .feedback-box,html[data-theme="dark"] .feedback-box textarea { color: var(--ink); border-color: #30586a; background: #0f3749; }
-html[data-theme="dark"] .profile-card.active { color: var(--on-blue); background: var(--blue); }
+html[data-theme="dark"] .route-compare-panel,html[data-theme="dark"] .route-option,html[data-theme="dark"] .rich-card,html[data-theme="dark"] .shared-places article { color: var(--ink); border-color: #284b5b; background: #0b2d3c; }
+html[data-theme="dark"] .feedback-box,html[data-theme="dark"] .feedback-box textarea { color: var(--ink); border-color: #30586a; background: #0f3749; }
 html[data-theme="dark"] .simple-footer,html[data-theme="dark"] .navigation-section { background: #051c26; }
 html[data-theme="dark"] .rich-card p { color: #a8c3cf; }
 
@@ -39,7 +38,7 @@ html[data-theme="dark"] .rich-card p { color: #a8c3cf; }
 }
 
 @media (max-width: 520px) {
-  .landing-actions { align-items: stretch; flex-direction: column; }.landing-actions a { justify-content: space-between; }.map-toolbar strong { max-width: 110px; }.route-option dl { grid-template-columns: 1fr 1fr; }.route-option { padding: 11px; }.place-actions { grid-template-columns: 1fr; }.place-actions button + button { padding-left: 8px; border-left: 0; border-top: 1px solid #e5edf1; }.place-decision-summary { grid-template-columns: 1fr; }.visitor-insight > strong { font-size: 3.5rem; }.visitor-bars > div { grid-template-columns: 62px 1fr 62px; }.rich-card { flex-basis: 84vw; }
+  .landing-actions { align-items: stretch; flex-direction: column; }.landing-actions a { justify-content: space-between; }.map-toolbar strong { max-width: 110px; }.route-option dl { grid-template-columns: 1fr 1fr; }.route-option { padding: 11px; }.place-decision-summary { grid-template-columns: 1fr; }.visitor-insight > strong { font-size: 3.5rem; }.visitor-bars > div { grid-template-columns: 62px 1fr 62px; }.rich-card { flex-basis: 84vw; }
 }
 
 @media (prefers-reduced-motion: reduce) {

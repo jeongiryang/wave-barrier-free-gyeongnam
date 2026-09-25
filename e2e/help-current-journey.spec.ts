@@ -63,7 +63,7 @@ for (const populated of [false, true]) {
     }
     await openSupportMenu(page);
     const help = page.getByRole("button", { name: "도움말", exact: true });
-    await expect(page.locator('.simple-planner-tabs button')).toHaveCount(2);
+    await expect(page.locator(".wave-header .night-search-link, .wave-header .wave-my-trips")).toHaveCount(2);
     await expect(help).toBeEnabled();
     await help.focus();
     await expect(help).toBeInViewport();

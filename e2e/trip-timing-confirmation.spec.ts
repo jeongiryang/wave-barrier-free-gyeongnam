@@ -24,7 +24,7 @@ async function prepare(page: Page, account: boolean, warning = true) {
     } }));
   }, { places: plan.places, start, end, id, warning });
   await page.goto('/planner');
-  await page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: /^내 일정/ }).click();
+  await page.locator(".wave-header").locator(".wave-my-trips").click();
   await expect(page.locator('[data-planner-tool=save] > button')).toBeEnabled();
   return { writes, shares };
 }

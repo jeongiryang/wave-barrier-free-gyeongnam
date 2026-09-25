@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import NightIcon from "../../../components/NightIcon";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { canonicalPublicPlace, conflictingFacilities } from "../../../lib/place-identity";
 import { Spinner } from "../../../components/LoadingState";
@@ -66,7 +67,7 @@ export default function DirectPlaceSearch({ region, trip, onRegionSelect, offici
   return <section className="simple-direct-search" aria-labelledby="direct-place-search-title">
     <div className="simple-direct-search-heading"><div><h2 id="direct-place-search-title" className="sr-only">여행지 검색</h2></div></div>
     <form className="simple-search-bar simple-direct-search-form" role="search" onSubmit={submit}>
-      <label htmlFor="direct-place-query"><span>여행지 검색</span><input id="direct-place-query" type="search" role="combobox" aria-label="여행지 검색" value={search.placeQuery} placeholder="예: 통영 케이블카, 창원 카페" autoComplete="off" aria-autocomplete="list" aria-controls="direct-place-results" aria-expanded={showResults} aria-activedescendant={active >= 0 ? `direct-result-${active}` : undefined} onChange={event => { search.setPlaceQuery(event.target.value); setActive(-1); }} onKeyDown={keydown} /></label>
+      <label htmlFor="direct-place-query"><NightIcon name="search" size={22} /><span>여행지 검색</span><input id="direct-place-query" type="search" role="combobox" aria-label="여행지 검색" value={search.placeQuery} placeholder="예: 통영 케이블카, 창원 카페" autoComplete="off" aria-autocomplete="list" aria-controls="direct-place-results" aria-expanded={showResults} aria-activedescendant={active >= 0 ? `direct-result-${active}` : undefined} onChange={event => { search.setPlaceQuery(event.target.value); setActive(-1); }} onKeyDown={keydown} /></label>
       <button type="submit" className="simple-direct-search-submit" disabled={search.placeQuery.trim().length < 2 || search.placeSearchLoading}>{search.placeSearchLoading ? <><Spinner />찾는 중</> : "검색"}</button>
     </form>
     {search.placeSearchState === "error" && <p className="simple-empty" role="alert">검색 정보를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요</p>}

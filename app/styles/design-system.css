@@ -27,12 +27,12 @@
 /* --- 반복되는 형태를 하나의 규칙으로 모은다 ------------------------------- */
 
 /* 카드류: 테두리·모서리·그림자를 같은 값으로 통일 */
-.place-card, .rich-card, .route-option, .route-compare-panel, .weather-day, .diagnostic-grid article, .transport-data-results article, .shared-places article, .insight-board > article {
+.rich-card,.route-option,.route-compare-panel,.weather-day,.diagnostic-grid article,.transport-data-results article,.shared-places article,.insight-board > article {
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-1);
   transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-1) ease;
 }
-.place-card:hover, .rich-card:hover {
+.rich-card:hover {
   box-shadow: var(--shadow-3);
 }
 

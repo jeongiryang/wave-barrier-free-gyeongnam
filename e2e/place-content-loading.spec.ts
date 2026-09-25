@@ -33,5 +33,5 @@ for (const failed of [false, true]) test(`place details load on opening; ${faile
   const draft = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values);
   expect(JSON.parse(draft["wave-saved-places"] || "[]")).toEqual(["1001"]);
   expect(JSON.parse(draft["wave-trip-schedule-v1"] || "{}").travelStart || "").toBe("");
-  await expect(page.getByRole("group", { name: "여행 설계 화면" }).getByRole("button", { name: /^내 일정/ })).toContainText("1");
+  await expect(page.locator(".wave-header").locator(".wave-my-trips")).toContainText("1");
 });

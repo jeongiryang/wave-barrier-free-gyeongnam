@@ -28,7 +28,7 @@ test("검색과 여행 설정의 필드 라벨이 중복 단계 번호로 시작
   await openPlanner(page);
   const labels = await page.locator(".simple-search-bar label > span").allInnerTexts();
   await collectMuseum(page);
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  await page.locator(".wave-header").locator(".wave-my-trips").click();
   await expect(page.locator(".simple-initial-setup")).toBeVisible();
   labels.push(...await page.locator(".simple-settings-fields > label").evaluateAll(nodes => nodes.map(node => node.firstChild?.textContent?.trim() || "")));
   expect(labels).toEqual(["지역", "시작일", "마지막 날", "이동 수단", "하루 시작"]);
@@ -75,7 +75,7 @@ test("지역·검색 결과·날짜 설정·내 일정과 출발 전 확인은 �
   await collectMuseum(page);
   await expect(page.getByRole("heading", { name: "창원 여행지", exact: true })).toBeVisible();
   await expectKoreanHeadings(page);
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  await page.locator(".wave-header").locator(".wave-my-trips").click();
   await expect(page.getByRole("heading", { name: "언제 떠날까요?", exact: true })).toBeVisible();
   await expectKoreanHeadings(page);
   await openItinerary(page, { start: "2026-09-20" });

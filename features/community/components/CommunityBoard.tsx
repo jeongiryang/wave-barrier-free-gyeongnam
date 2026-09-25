@@ -33,5 +33,5 @@ export default function CommunityPage({initialPlace=null,fieldReportsEnabled=fal
  {savedOpen&&<div id="community-saved-posts"><CommunitySavedPosts/></div>}
  <CommunityPostList board={board} layout={layout}/>
  </div><NightCommunitySidebar onRegion={name=>{board.setPlaceFilter(null);board.setCategory('');board.setSearch(name);board.setQuery(name);}}/></div>
- </section><NightScene kind="community" closing><details className="community-guides"><summary>여행 준비 가이드</summary><CommunityTravelStories layout={layout}/></details><SiteFooter/></NightScene></main>;
+ </section><NightScene kind="community" closing><section className="community-closing-invite"><h2>다음 여행도, 함께 나눠요</h2><p>다녀온 이야기와 궁금한 여행을 들려주세요.</p><a className="wave-gradient-button" href={board.writeHref}>여행 이야기 쓰기</a></section><details className="community-guides"><summary>여행 준비 가이드</summary><CommunityTravelStories layout={layout}/></details><SiteFooter/></NightScene></main>;
 }

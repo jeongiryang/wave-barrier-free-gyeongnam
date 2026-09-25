@@ -72,7 +72,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await route.fallback();
   });
   const mobileLayout = (page.viewportSize()?.width || 1440) < 1024;
-  const screens = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  const screens = page.locator(".wave-header");
   try {
     await page.goto("/planner");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
@@ -102,7 +102,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
 
     await museumCard.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
     await expect(page.locator(".simple-results")).toBeVisible();
-    await screens.getByRole("button", { name: /^내 일정/ }).click();
+    await screens.locator(".wave-my-trips").click();
     const setup = page.locator(".simple-initial-setup");
     await expect(setup).toContainText("경남도립미술관");
     await setup.getByLabel("시작일", { exact: true }).fill("2026-09-20");
@@ -141,9 +141,9 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await settings.getByRole("button", { name: "적용", exact: true }).click();
     await expect(arrival).toHaveText("09:25");
 
-    await screens.getByRole("button", { name: "여행지 찾기", exact: true }).click();
+    await screens.locator(".night-search-link").click();
     await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
-    await screens.getByRole("button", { name: /^내 일정/ }).click();
+    await screens.locator(".wave-my-trips").click();
     await expect(itinerary.locator("#itinerary-stop-1002")).toContainText("용지호수공원");
     await openNaruTool(page, "오디오 가이드·후기");
     await expect(page.getByRole("link", { name: "여행 후기 작성", exact: true })).toHaveAttribute("href", /draft=journal/);
@@ -151,9 +151,9 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await page.getByRole("button", { name: "용지호수공원 일정 수정", exact: true }).click();
     await page.getByRole("dialog", { name: "용지호수공원 수정", exact: true }).getByRole("button", { name: "일정에서 빼기", exact: true }).click();
     await expect(itinerary.locator("#itinerary-stop-1002")).toHaveCount(0);
-    await screens.getByRole("button", { name: "여행지 찾기", exact: true }).click();
+    await screens.locator(".night-search-link").click();
     await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
-    await screens.getByRole("button", { name: /^내 일정/ }).click();
+    await screens.locator(".wave-my-trips").click();
     expect(api.enrichmentRequestCount()).toBe(0);
     await openNaruTool(page, "출발 전 확인");
     await page.locator(".travel-layers > summary").click();

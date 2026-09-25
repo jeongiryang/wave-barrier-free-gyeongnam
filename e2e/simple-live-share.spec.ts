@@ -88,9 +88,9 @@ async function setup(page: Page, options: { createGate?: ReturnType<typeof defer
     statuses: () => posts.filter(post => post.body.operation === 'status'), revokes: () => posts.filter(post => post.body.operation === 'revoke') };
 }
 async function itinerary(page: Page) {
-  const views = page.getByRole('group', { name: '여행 설계 화면', exact: true });
-  await expect(views.getByRole('button', { name: /^내 일정/ })).toBeEnabled();
-  await views.getByRole('button', { name: /^내 일정/ }).click();
+  const views = page.locator(".wave-header");
+  await expect(views.locator(".wave-my-trips")).toBeEnabled();
+  await views.locator(".wave-my-trips").click();
   await expect(page.locator('button[data-planner-tool=share]')).toBeVisible();
 }
 async function openMenu(page: Page) {

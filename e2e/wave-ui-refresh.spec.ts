@@ -7,11 +7,12 @@ test('Naru greeting progresses to a child conversation and respects reduced moti
   await mockPublicShellApi(page); await mockPlannerApi(page);
   await page.goto('/planner');
   const story = page.locator('.naru-conversation-footer');
-  await story.scrollIntoViewIfNeeded();
+  await story.locator('.naru-conversation-intro').scrollIntoViewIfNeeded();
   await expect(story).toHaveAttribute('data-font-ready', 'true');
   await expect(story).toHaveAttribute('data-step', '4', { timeout: 25000 });
   await expect(story.locator('.naru-story-dialogue li.is-visible')).toHaveCount(4);
   await expect(story.getByText('나루야, 공룡 보러 가고 싶어!')).toBeVisible();
+  await expect.poll(() => story.locator('.naru-story-dialogue li').last().evaluate(node => getComputedStyle(node).opacity)).toBe('1');
   expect((await new AxeBuilder({ page }).include('.naru-conversation-footer').analyze()).violations).toEqual([]);
   await story.getByRole('button', { name: '나루와 대화하기' }).click();
   await expect(page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화' })).toBeVisible();

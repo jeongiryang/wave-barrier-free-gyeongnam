@@ -16,10 +16,10 @@ for (const [timezoneId, expectedDate] of [["Asia/Seoul", "2030-01-01"], ["Americ
       const conditions = page.locator('#conditions'); await expect(conditions.locator('input[type=date]')).toHaveCount(0);
       expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-trip-schedule-v1') || '{}').travelStart || '')).toBe('');
       await chooseTripConditions(page); await page.locator('.simple-place-row').first().locator('.simple-place-add').click();
-      await page.locator('.simple-planner-tabs button').nth(1).click();
+      await page.locator(".wave-header .wave-my-trips").click();
       const draft = page.locator('.simple-initial-setup'); await expect(draft.getByLabel('시작일', { exact: true })).toHaveValue(expectedDate);
       expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-trip-schedule-v1') || '{}').travelStart || '')).toBe('');
-      await page.reload(); await page.locator('.simple-planner-tabs button').nth(1).click();
+      await page.reload(); await page.locator(".wave-header .wave-my-trips").click();
       await expect(draft.getByLabel('시작일', { exact: true })).toHaveValue(expectedDate);
       expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-trip-schedule-v1') || '{}').travelStart || '')).toBe('');
       expect(errors).toEqual([]);

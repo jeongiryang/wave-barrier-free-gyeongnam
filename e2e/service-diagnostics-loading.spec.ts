@@ -58,7 +58,7 @@ for (const failure of [false, true]) test(`service diagnostics load only when op
   expect(await tripValues(page)).toEqual(before);
 
   await closeNaruTool(page);
-  await page.getByRole("group", { name: "여행 설계 화면" }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   const changedSearch = page.waitForResponse(response => {
     const url = new URL(response.url());
     return url.pathname === "/api/wave" && url.searchParams.get("action") === "plan"

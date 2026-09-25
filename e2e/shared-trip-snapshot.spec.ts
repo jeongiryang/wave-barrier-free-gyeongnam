@@ -78,7 +78,7 @@ test("editing a shared itinerary updates the same live link with current dates, 
   for (let i = 0; i < 2; i++) await panel.getByRole("button", { name: "링크 복사", exact: true }).click();
   await expect.poll(() => copied(page)).toEqual([url, url]);
   await closeMenu(page);
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   await page.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
   await openItinerary(page);
   await visitDate(page, "용지호수공원", "2026-10-08");

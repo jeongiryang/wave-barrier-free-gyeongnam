@@ -89,10 +89,10 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
     return [saved.travelStart, saved.travelEnd];
   });
   await expect.poll(period).toEqual(["2026-08-14", "2026-08-14"]);
-  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
-  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  const tabs = page.locator(".wave-header");
+  await expect(tabs.locator(".wave-my-trips")).toHaveAttribute("href", "/travel-book");
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
-  await tabs.getByRole("button", { name: /^내 일정/ }).click();
+  await tabs.locator(".wave-my-trips").click();
   await expect(page.locator(".simple-initial-setup")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "일정 날짜", exact: true })).toContainText("08/14");
   await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-08-14");

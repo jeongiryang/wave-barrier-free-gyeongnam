@@ -475,7 +475,7 @@ test("mobile screens keep controls touchable and content inside safe areas", asy
   assert.match(await source("app/styles/planner-conversation.css"), /padding: max\(8px,env\(safe-area-inset-top,0px\)\)/);
   assert.match(css, /input, select, textarea \{ font-size: 16px; \}/);
   assert.match(css, /max-height: calc\(100svh - 20px\)/);
-  assert.match(css, /\.place-actions button,[\s\S]*min-height: 44px/);
+  assert.match(css, /\.feedback-box button,[\s\S]*min-height: 44px/);
   assert.match(await source("app/styles/planner-conversation.css"), /@media \(max-width: 640px\)[\s\S]*width: 100%/);
   assert.match(css, /@media \(max-height: 520px\) and \(orientation: landscape\)/);
   assert.match(map, /className="map-command-scroll(?: [^"]+)?"/);

@@ -81,8 +81,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
   :root { --content: calc(100vw - 24px); }
 
   .places-section { padding: 88px 20px; }
-  .profile-grid { grid-template-columns: 1fr 1fr; }
-  .place-card { flex-basis: min(380px, 86vw); }
   .place-modal { grid-template-columns: 1fr; }
   .modal-visual { min-height: clamp(160px, 24dvh, 260px); }
   .simple-footer { grid-template-columns: 1fr; text-align: center; }
@@ -94,8 +92,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
 @media (max-width: 520px) {
   .brand { font-size: 1rem; }
   .primary-button { justify-content: space-between; }
-  .profile-grid { grid-template-columns: 1fr; }
-  .profile-card { min-height: 74px; }
   .modal-body { padding: 34px 22px 25px; }
 }
 

@@ -56,7 +56,7 @@ async function setup(page: Page) {
     'wave-saved-places': '["1001","1002"]', 'wave-saved-place-catalog-v1': JSON.stringify(plan.places),
     'wave-trip-order-v1': '{"mode":"manual","ids":["1001","1002"]}', 'wave-trip-schedule-v1': JSON.stringify(schedule) });
   await page.goto('/planner');
-  await page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: /^내 일정/ }).click();
+  await page.locator(".wave-header").locator(".wave-my-trips").click();
   // The map loads the selected first leg; automatic coverage checks both days.
   await expect.poll(() => completed).toBe(3);
   expect(requests.map(url => url.searchParams.get('endLat') + ',' + url.searchParams.get('endLng')).sort()).toEqual(['35.229,128.683', '35.238,128.691', '35.238,128.691']);

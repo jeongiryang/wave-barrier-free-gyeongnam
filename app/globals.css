@@ -68,9 +68,3 @@ html[data-theme="dark"] .route-state-page button,html[data-theme="dark"] .route-
   font-weight: 800; transition: top .2s ease;
 }
 .skip-link:focus { top: 18px; }
-.scroll-progress {
-  position: fixed; z-index: 101; inset: 0 auto auto 0;
-  width: var(--scroll-progress); height: 3px;
-  background: linear-gradient(90deg, var(--blue), var(--mint));
-  box-shadow: 0 0 14px rgba(23,176,255, .5);
-}

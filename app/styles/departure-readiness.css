@@ -1,15 +1,4 @@
 /* Compact evidence rows: each fact keeps its source, timestamp and next action. */
-.departure-readiness { width: 100%; margin: 0; padding: 24px; scroll-margin-top: 96px; border: 1px solid var(--line); border-radius: 20px; color: var(--ink); background: var(--paper); }
-.departure-readiness > header { display: flex; align-items: start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
-.departure-readiness > header > div > span { color: var(--accent); font-size: .75rem; font-weight: 600; }
-.departure-readiness > header span b { width: 32px; height: 32px; margin-right: 8px; display: inline-grid; place-items: center; border-radius: 50%; color: var(--on-blue); background: var(--blue); }
-.departure-readiness h2 { margin: 8px 0; font-size: 1.5rem; line-height: 1.5; letter-spacing: -.04em; }
-.departure-readiness h2 small { font-size: inherit; font-weight: 600; }
-.departure-readiness h2 > span { display: none; }
-.departure-readiness > header p { max-width: 62ch; margin: 8px 0 0; color: var(--muted); font-size: .88rem; line-height: 1.7; }
-.departure-readiness > footer { display: grid; gap: 12px; padding: 20px 0 0; }
-.departure-readiness > footer strong { font-size: .85rem; }
-.departure-readiness > footer p { margin: 4px 0 0; color: var(--muted); font-size: .78rem; }
 .companion-support-card { margin-top:20px; padding:20px; border:1px solid var(--line); border-radius:12px; color:var(--ink); background:var(--surface); }
 .companion-support-card h3,.companion-support-card p { margin:0; }
 .companion-support-card > p { margin-top:8px; color:var(--ink-soft); line-height:1.6; }
@@ -17,7 +6,3 @@
 .companion-support-card li { padding-top:16px; display:grid; gap:6px; border-top:1px solid var(--line); }
 .companion-support-card li > span,.companion-support-card small,.companion-support-disclaimer { color:var(--muted); font-size:.8125rem; }
 .companion-support-card a { width:fit-content; min-height:44px; padding:10px 0; display:inline-flex; align-items:center; color:var(--accent); }
-@media (max-width: 640px) {
- .departure-readiness { padding: 20px 16px; }
-}
-@media (prefers-reduced-motion: reduce) { .departure-readiness * { scroll-behavior: auto; transition: none !important; } }

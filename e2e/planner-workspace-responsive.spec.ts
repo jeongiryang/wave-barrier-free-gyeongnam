@@ -39,7 +39,7 @@ test("workspace keeps two-screen navigation and one itinerary usable across desk
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-09-20" });
   const before = await tripSnapshot(page);
-  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  const tabs = page.locator(".wave-header");
   const timetable = page.locator(".simple-timeboard"), map = page.locator(".simple-itinerary-map");
   await expect(map.locator(".leaflet-container")).toBeVisible();
   await openNaruTool(page, "이동 구간 확인");
@@ -53,7 +53,7 @@ test("workspace keeps two-screen navigation and one itinerary usable across desk
 
   for (const width of [1440, 1180, 960, 641, 390]) {
     await page.setViewportSize({ width, height: 960 });
-    await expect(tabs.getByRole("button", { name: /^내 일정/ })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("#itinerary")).toBeVisible();
     await expect(page.locator(".simple-itinerary-board")).toHaveCount(1);
     await expect(timetable).toBeVisible();
     await expect(timetable.locator("#itinerary-stop-1001")).toContainText("경남도립미술관");
@@ -92,7 +92,7 @@ test("workspace keeps two-screen navigation and one itinerary usable across desk
     await page.clock.runFor(1000);
     expect(await map.locator(".leaflet-map-pane").evaluate((node, previous) => node === previous, pane!)).toBe(true);
     expect(mapRequests).toEqual(requestsBeforeResize);
-    for (const action of [...await tabs.getByRole("button").all(), page.getByRole("button", { name: "여행 설정", exact: true }), page.getByRole("button", { name: "내 여행에 저장", exact: true }), page.getByRole("button", { name: "공유", exact: true })]) await expectTouchable(action);
+    for (const action of [...await tabs.locator(".night-search-link, .wave-my-trips").all(), page.getByRole("button", { name: "여행 설정", exact: true }), page.getByRole("button", { name: "내 여행에 저장", exact: true }), page.getByRole("button", { name: "공유", exact: true })]) await expectTouchable(action);
     expect(await tripSnapshot(page)).toEqual(before);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: testInfo.outputPath("workspace-" + width + ".png") });

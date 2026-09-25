@@ -1,11 +1,11 @@
 /* Naru workspace: shared conversation behaviour, independent visual surface. */
-body .naru-discovery .naru-hint { box-sizing:border-box;width:min(260px,calc(100vw - 108px));max-width:none;height:88px;flex:none;padding:10px;background:#211e2b;color:#f3effa;border:1px solid #8871ab;border-radius:18px;box-shadow:0 8px 32px #0004; }
+body .naru-discovery .naru-hint { box-sizing:border-box;width:min(260px,calc(100vw - 108px));max-width:none;height:88px;flex:none;padding:10px;background:#fff;color:#233b55;border:1px solid #bfcdea;border-radius:18px;box-shadow:0 8px 32px #0004; }
 body .naru-discovery .naru-hint>button:first-child { flex:1;min-width:0;height:66px;font-size:14px;line-height:1.6;overflow-wrap:anywhere; }
 body .naru-discovery .naru-hint>button:last-child { flex:none;width:44px;height:44px;font-size:22px; }
 body .naru-discovery .naru-hint button:focus-visible { outline:2px solid #c4a9ff;outline-offset:2px;border-radius:8px; }
 body .naru-panel.naru-workspace {
-  --ink:#f3effa;--ink-soft:#d4cddd;--muted:#b8b0c5;--paper:#15171f;--surface:#1d1e29;--surface-deep:#272634;--white:#1d1e29;--line:#484250;--accent:#c4a9ff;--blue:#c4a9ff;--blue-dark:#d9c6ff;--on-blue:#251b37;--on-accent:#251b37;
-  background:var(--paper);color:var(--ink);color-scheme:dark;box-shadow:0 24px 100px #0009;
+  --ink:#233b55;--ink-soft:#405a75;--muted:#526782;--paper:#fff;--surface:#f4f7fc;--surface-deep:#e8f1ff;--white:#fff;--line:#c5d5e7;--accent:#3659ba;--blue:#3659ba;--blue-dark:#294593;--on-blue:#fff;--on-accent:#fff;
+  background:var(--paper);color:var(--ink);color-scheme:light;box-shadow:0 24px 100px #0009;
 }
 body .naru-panel.naru-workspace:is(.naru-large,.naru-compact) { inset:0;margin:auto;transform:none;width:min(1220px,96vw);height:calc(100dvh - 48px);max-height:none;max-width:none;padding:0;border:1px solid var(--line);border-radius:24px;overflow:hidden; }
 body .naru-panel.naru-workspace.naru-compact { width:min(480px,96vw);height:min(780px,calc(100dvh - 48px)); }
@@ -27,25 +27,25 @@ body .naru-panel.naru-workspace :is(button[aria-pressed=true],button.primary,.na
 body .naru-panel.naru-workspace :is(.naru-heading-actions>button,.naru-more>summary) { background:transparent;border:0;box-shadow:none; }
 body .naru-panel.naru-workspace .naru-workspace-tabs { display:flex;gap:8px;flex-shrink:0;padding:0 24px 14px;border-bottom:1px solid var(--line); }
 body .naru-panel.naru-workspace .naru-workspace-tabs>button { flex:1;min-height:56px;border:1px solid transparent;border-radius:12px;padding:10px 12px;font-size:18px;font-weight:650; }
-body .naru-panel.naru-workspace .naru-workspace-tabs>button:is([aria-pressed=true],[aria-selected=true]) { color:#decfff;background:#30283e;border-color:#9b80c9; }
+body .naru-panel.naru-workspace .naru-workspace-tabs>button:is([aria-pressed=true],[aria-selected=true]) { color:#354f94;background:linear-gradient(110deg,#e4f5ff,#eeebff);border-color:#91ade3; }
 body .naru-panel.naru-workspace .layer-tabs button.active { color:var(--on-accent);background:var(--accent);border-color:var(--accent); }
 body .naru-panel.naru-workspace .layer-tabs button.active small { color:inherit; }
 body .naru-panel.naru-workspace .naru-workspace-body { display:grid;grid-template-columns:minmax(0,1.78fr) minmax(0,1fr);flex:1;min-height:0;overflow:hidden; }
 body .naru-panel.naru-workspace .naru-conversation-main { display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden; }
 body .naru-panel.naru-workspace .naru-log { min-height:0;padding:20px;background:var(--paper);scrollbar-color:#625772 transparent; }
-body .naru-panel.naru-workspace :is(.naru-workspace-sidebar,.naru-workspace-content) { min-width:0;overflow:auto;overscroll-behavior:contain;padding:24px;background:#191a24; }
+body .naru-panel.naru-workspace :is(.naru-workspace-sidebar,.naru-workspace-content) { min-width:0;overflow:auto;overscroll-behavior:contain;padding:24px;background:#f8faff; }
 body .naru-panel.naru-workspace .naru-workspace-sidebar { border-left:1px solid var(--line); }
 body .naru-panel.naru-workspace .naru-workspace-content { grid-column:1/-1;flex:1;min-height:0; }
 body .naru-panel.naru-workspace .naru-conversation > [role="tabpanel"]:not([hidden]):not(.naru-workspace-body) { display:flex;flex:1;min-height:0; }
 body .naru-panel.naru-workspace .naru-workspace-body[hidden] { display:none; }
 body .naru-panel.naru-workspace .naru-tools { position:static;max-height:none;padding:16px;box-shadow:none;background:var(--surface); }
-body .naru-panel.naru-workspace .naru-workspace-notice { flex-shrink:0;margin:0;padding:10px 24px;color:var(--ink-soft);background:#292333;line-height:1.6; }
+body .naru-panel.naru-workspace .naru-workspace-notice { flex-shrink:0;margin:0;padding:10px 24px;color:var(--ink-soft);background:#eeebff;line-height:1.6; }
 body .naru-panel.naru-workspace :is(.naru-work-request,.naru-saved-workspaces>article) { display:grid;gap:14px;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--surface);margin-bottom:18px; }
 body .naru-panel.naru-workspace .naru-work-request header { display:flex;align-items:center;justify-content:space-between;gap:12px; }
 body .naru-panel.naru-workspace .naru-work-request header h3 { margin:0; }
 body .naru-panel.naru-workspace .naru-work-request header button { min-width:44px;font-size:24px; }
 body .naru-panel.naru-workspace .naru-work-request label { display:grid;gap:8px;min-width:0;font-size:.875rem; }
-body .naru-panel.naru-workspace :is(.naru-work-request input,.naru-work-request select,.naru-workspace-content>input) { box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #655a78;border-radius:10px;background:var(--paper);color:var(--ink);font:inherit; }
+body .naru-panel.naru-workspace :is(.naru-work-request input,.naru-work-request select,.naru-workspace-content>input) { box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #a8bedb;border-radius:10px;background:var(--paper);color:var(--ink);font:inherit; }
 body .naru-panel.naru-workspace .naru-work-request>div { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px; }
 body .naru-panel.naru-workspace .naru-work-request fieldset { display:flex;flex-wrap:wrap;gap:8px;min-width:0;margin:0;padding:12px;border:1px solid var(--line);border-radius:12px; }
 body .naru-panel.naru-workspace :is(.naru-work-request button,.naru-workspace-content button) { padding:10px 14px;border:1px solid var(--line);border-radius:10px;overflow-wrap:anywhere; }
@@ -68,12 +68,12 @@ body .naru-panel.naru-workspace .naru-workspace-progress { color:var(--ink-soft)
 body .naru-panel.naru-workspace .naru-workspace-progress progress { width:100%;accent-color:var(--accent); }
 body .naru-panel.naru-workspace :is(.naru-message,.naru-starter,.naru-prompt-starters,.naru-proposal,.naru-guided-choices,.naru-tool-card,.naru-tool-result,.naru-more>div,.naru-extra-help,.naru-extra-help>div,.access-badge,.naru-note) { background:var(--surface);color:var(--ink);border-color:var(--line); }
 body .naru-panel.naru-workspace .naru-message { padding:16px;border-radius:16px;margin-bottom:16px;overflow-wrap:anywhere; }
-body .naru-panel.naru-workspace .naru-message.user { background:#382c4c;color:#f3effa; }
+body .naru-panel.naru-workspace .naru-message.user { background:#e8f1ff;color:#233b55; }
 body .naru-panel.naru-workspace :is(.naru-tool-card strong,.naru-tool-card b,.naru-more>div>a) { color:var(--ink); }
 body .naru-panel.naru-workspace .naru-context-suggestions { width:auto;min-width:0;flex-shrink:0;flex-wrap:wrap;margin:0;padding:8px 20px;background:var(--paper);max-height:none;overflow:visible; }
 body .naru-panel.naru-workspace .naru-context-suggestions>* { flex:0 1 auto;max-width:100%;white-space:normal;overflow-wrap:anywhere; }
 body .naru-panel.naru-workspace .naru-context-suggestions>.naru-trip-context { flex-basis:100%; }
-body .naru-panel.naru-workspace .naru-input { width:auto;flex-shrink:0;margin:14px 24px 20px;padding:10px;border-radius:18px;background:var(--surface);border-color:#655a78; }
+body .naru-panel.naru-workspace .naru-input { width:auto;flex-shrink:0;margin:14px 24px 20px;padding:10px;border-radius:18px;background:var(--surface);border-color:#a8bedb; }
 body .naru-panel.naru-workspace .naru-input textarea { background:transparent;color:var(--ink); }
 body .naru-panel.naru-workspace .naru-input textarea::placeholder { color:var(--muted);opacity:1; }
 body .naru-panel.naru-workspace .naru-input button { border-radius:12px; }

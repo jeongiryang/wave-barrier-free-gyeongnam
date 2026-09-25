@@ -22,10 +22,10 @@ async function currentTrip(page: Page) {
 
 test("데스크톱의 두 화면 전환은 현재 상태·다음 행동과 키보드 초점을 제공한다", async ({ page }) => {
   await openPlanner(page, 1366, 900);
-  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
-  await expect(tabs.getByRole("button")).toHaveCount(2);
-  await expect(tabs.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  const tabs = page.locator(".wave-header");
+  await expect(tabs.locator(".night-search-link, .wave-my-trips")).toHaveCount(2);
+  await expect(page.locator("#conditions")).toBeVisible();
+  await expect(tabs.locator(".wave-my-trips")).toHaveAttribute("href", "/travel-book");
   await expect(page.getByRole("heading", { name: "경남, 모두의 여행지", exact: true })).toBeVisible();
 
   const region = page.getByRole("button", { name: "통영 지역 선택", exact: true });
@@ -50,10 +50,10 @@ test("데스크톱의 두 화면 전환은 현재 상태·다음 행동과 키�
 
 test("모바일 두 화면 전환과 선택은 44px 탐색과 수평 안전 영역을 유지한다", async ({ page }) => {
   await openPlanner(page, 390, 844);
-  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  const tabs = page.locator(".wave-header");
   await expect(tabs).toBeVisible();
   expect(await tabs.evaluate(element => getComputedStyle(element).position)).not.toBe("fixed");
-  const buttons = tabs.getByRole("button");
+  const buttons = tabs.locator(".night-search-link, .wave-my-trips");
   await expect(buttons).toHaveCount(2);
   for (const button of [...await buttons.all(), page.getByRole("button", { name: "필요한 편의", exact: true })]) {
     const size = (await button.boundingBox())!;
@@ -67,9 +67,9 @@ test("모바일 두 화면 전환과 선택은 44px 탐색과 수평 안전 영�
 
 test("검색과 내 일정 전환은 같은 장소·필수 편의·날짜 미정 상태를 유지한다", async ({ page }) => {
   await openPlanner(page, 1366, 900);
-  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
+  const tabs = page.locator(".wave-header");
   await expect(page.locator("#places")).toHaveCount(0);
-  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(tabs.locator(".wave-my-trips")).toHaveAttribute("href", "/travel-book");
   await page.getByRole("button", { name: "필요한 편의", exact: true }).click();
   const picker = page.getByRole("dialog", { name: "필요한 편의", exact: true });
   await picker.getByRole("checkbox", { name: "접근로", exact: true }).check();
@@ -83,14 +83,14 @@ test("검색과 내 일정 전환은 같은 장소·필수 편의·날짜 미정
   expect(before.facilities).toEqual(["route"]);
   expect(before.schedule).toMatchObject({ travelStart: "", travelEnd: "", scheduleAssignments: {} });
 
-  await tabs.getByRole("button", { name: /^내 일정/ }).press("Enter");
-  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toHaveAttribute("aria-pressed", "true");
+  await tabs.locator(".wave-my-trips").press("Enter");
+  await expect(page.locator(".simple-itinerary-view")).toBeVisible();
   await expect(page.locator(".simple-initial-setup")).toContainText("경남도립미술관");
   await expect(page.locator(".simple-browse-view")).toBeHidden();
   expect(await currentTrip(page)).toEqual(before);
-  await tabs.getByRole("button", { name: "여행지 찾기", exact: true }).press("Enter");
-  await expect(tabs.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await tabs.locator(".night-search-link").press("Enter");
   await expect(page.locator("#conditions")).toBeVisible();
+  await expect(page).toHaveURL(/#places$/);
   await expect(page.locator("#places")).toBeVisible();
   await expect(page.getByRole("button", { name: "경남도립미술관 담았음 · 되돌리기", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeVisible();

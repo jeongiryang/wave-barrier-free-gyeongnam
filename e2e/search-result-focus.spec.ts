@@ -156,7 +156,7 @@ test("keyboard region selection updates results without stealing input focus or 
 test("a delayed automatic search does not hide the itinerary the user returned to " + (en ? "English" : "Korean"), async ({ page }) => {
   await prepare(page, en);
   await collectMuseum(page, en);
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   const before = await tripSnapshot(page);
   let release!: () => void;
   const gate = new Promise<void>(resolve => { release = resolve; });
@@ -169,7 +169,7 @@ test("a delayed automatic search does not hide the itinerary the user returned t
   await activity.focus(); await activity.press("Enter");
   await expect.poll(() => started).toBe(true);
   try {
-    const itinerary = page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ });
+    const itinerary = page.locator(".wave-header").locator(".wave-my-trips");
     await itinerary.focus(); await itinerary.press("Enter");
     await expect(page.locator("#itinerary-stage-title")).toBeFocused();
   } finally { release(); }
@@ -185,9 +185,9 @@ test("keyboard itinerary tab focuses its displayed heading and keeps explicitly 
   await prepare(page, en);
   await collectMuseum(page, en);
   const before = await tripSnapshot(page);
-  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
-  await tabs.getByRole("button", { name: "여행지 찾기", exact: true }).click();
-  const itinerary = tabs.getByRole("button", { name: /^내 일정/ });
+  const tabs = page.locator(".wave-header");
+  await tabs.locator(".night-search-link").click();
+  const itinerary = tabs.locator(".wave-my-trips");
   await itinerary.focus(); await itinerary.press("Enter");
   await expect(page.locator("#itinerary")).toBeVisible();
   await expect(page.locator("#itinerary-stage-title")).toBeFocused();

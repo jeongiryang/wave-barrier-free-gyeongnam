@@ -14,7 +14,7 @@ for (const view of ['overview', 'guided'] as const) for (const motion of ['reduc
       await page.setViewportSize({ width, height: 900 });
       for (const [hash, itinerary] of [['conditions', false], ['itinerary', true], ['places', false], ['departure-readiness', true], ['conditions', false]] as const) {
         await page.evaluate(hash => { history.pushState(null, '', `#${hash}`); dispatchEvent(new PopStateEvent('popstate')); }, hash);
-        await expect(page.locator('.simple-planner-tabs button').nth(itinerary ? 1 : 0)).toHaveAttribute('aria-pressed', 'true');
+        await expect(page.locator(itinerary ? '#itinerary' : '.simple-browse-view')).toBeVisible();
         await expect(page.locator(itinerary ? '#itinerary' : '#conditions')).toBeVisible();
         if (hash === 'departure-readiness') {
           await expect(naruDialog(page)).toBeVisible();
@@ -27,7 +27,7 @@ for (const view of ['overview', 'guided'] as const) for (const motion of ['reduc
     }
     const after = await read();
     for (const key of ['wave-trip-schedule-v1', 'wave-saved-places', 'wave-trip-order-v1', 'wave-trip-identity-v1']) expect(after[key]).toBe(before[key]);
-    await page.locator('.simple-planner-tabs button').nth(1).focus(); await page.keyboard.press('Enter');
+    await page.locator(".wave-header .wave-my-trips").focus(); await page.keyboard.press('Enter');
     await expect(page.locator('#itinerary-stage-title')).toBeFocused();
   });
 }

@@ -9,7 +9,7 @@ test("두 탭에서 날짜 없는 탐색부터 일정 편집·지도·저장·�
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await page.route('**/api/trips', route => route.fulfill({ status: 201, json: { id: 'abcdef123456', url: `${new URL(route.request().url()).origin}/trip/abcdef123456`, revision: 1, expiresAt: Date.now() + 30 * 86400000, live: true } }));
   await page.goto('/planner');
-  await expect(page.locator('.simple-planner-tabs button')).toHaveCount(2);
+  await expect(page.locator(".wave-header .night-search-link, .wave-header .wave-my-trips")).toHaveCount(2);
   await expect(page.getByRole('heading', { name: '경남, 모두의 여행지', exact: true })).toBeVisible();
   await chooseTripConditions(page);
   await expect(page.locator('.simple-place-row')).toHaveCount(2);
@@ -18,7 +18,7 @@ test("두 탭에서 날짜 없는 탐색부터 일정 편집·지도·저장·�
   await expect(page.locator('.simple-results')).toBeVisible();
   await openItinerary(page, { start: '2026-10-14', end: '2026-10-15' });
   await expect(page.locator('.simple-stops > li')).toHaveCount(1);
-  await page.locator('.simple-planner-tabs button').first().click();
+  await page.locator(".wave-header .night-search-link").click();
   await expect(page.getByRole('button', { name: '용지호수공원 일정에 담기', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: '용지호수공원 일정에 담기', exact: true }).click();
   await openItinerary(page);

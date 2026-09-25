@@ -13,33 +13,361 @@ html:root body .wave-night .places-section{margin-top:32px;padding-top:32px;bord
 .places-results-heading p{font-size:14px;color:#c0d4e5;margin:0}
 html:root body .wave-night .places-results-heading .simple-view-switch{display:flex;align-items:center;gap:8px;margin:0;flex-wrap:wrap}
 html:root body .wave-night .places-results-heading .simple-view-switch>span{color:#c0d4e5;font-size:13px}
-html:root body .wave-night .simple-direct-search-form{display:flex;align-items:center;gap:10px;padding:8px!important;border:1px solid #3b5d79;border-radius:22px;background:#10273a;max-width:none;width:100%;box-sizing:border-box}
+html:root body .wave-night .simple-direct-search-form{display:flex;align-items:center;gap:10px;padding:8px!important;border:1px solid #577b98;border-radius:22px;background:#203e55;max-width:none;width:94%;margin-inline:auto;box-sizing:border-box}
 html:root body .wave-night .simple-direct-search-form>label{display:flex;align-items:center;gap:12px;flex:1;min-width:0;border:0;background:transparent;padding:4px 12px!important;min-height:44px}
 html:root body .wave-night .simple-direct-search-form>label>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+html:root body .wave-night .simple-direct-search-form>label>svg{flex:0 0 22px;color:#b5e6ff}
+html:root body .wave-night .simple-direct-search-form:focus-within{border-color:#8ad8ff;box-shadow:0 0 0 3px #69cbff25}
 html:root body .wave-night .simple-direct-search-form input{width:100%;min-width:0;border:0;background:transparent;color:#eef6ff;font-size:16px;padding:10px 0;outline-offset:3px}
 html:root body .wave-night .simple-direct-search-form input::placeholder{color:#b9cdde}
 html:root body .wave-night .simple-direct-search-submit{flex:0 0 auto;width:auto;min-width:84px}
 /* The invitation, story and legal footer share one uninterrupted white canvas. */
-html:root body .wave-night .naru-conversation-footer{background:#fff;color:#18364c;position:relative;isolation:isolate;margin-top:60px;padding:56px 0 0;text-align:center;width:100%}
-.naru-conversation-intro h2{font-family:WaveHand,sans-serif;font-size:clamp(36px,4vw,56px);color:#305879;margin:0 0 12px;font-weight:400}
+html:root body .wave-night .naru-conversation-footer{background:#fff;color:#18364c;position:relative;isolation:isolate;margin-top:32px;padding:28px 0 0;text-align:center;width:100%}
+.naru-conversation-intro h2{font-family:WaveHand,sans-serif;font-size:clamp(30px,3vw,38px);line-height:1.25;color:#305879;margin:0 0 8px;font-weight:400}
 .naru-conversation-intro h2 [aria-hidden=true]>span{font-family:inherit;white-space:pre;opacity:0;animation:naru-write .15s linear forwards;animation-delay:var(--write-delay)}
 .naru-conversation-footer[data-font-ready=false] h2 [aria-hidden=true]>span{animation-play-state:paused}
-.naru-conversation-intro>p{color:#476078;font-size:16px;margin:0}
-.naru-story-stage{position:relative;max-width:1120px;min-height:650px;margin:0 auto}
-.naru-story-art{position:absolute;inset:0;overflow:hidden}
-.naru-story-art img{position:absolute;inset:auto 0 0;width:100%;height:340px;object-fit:contain;opacity:0;transition:opacity 1s ease}
-.naru-story-art img.naru-story-solo{width:360px;height:360px;inset:70px auto auto 50%;transform:translateX(-50%)}
+.naru-conversation-intro>p{color:#476078;font-size:14px;margin:0}
+.naru-story-stage{position:relative;max-width:960px;margin:20px auto 0;padding:0 24px;display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,1.6fr);align-items:center;gap:24px}
+.naru-story-art{position:relative;height:240px;overflow:hidden}
+.naru-story-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity 1s ease}
+.naru-story-art img.naru-story-solo{width:100%;height:100%;inset:0}
 .naru-story-art img.is-visible{opacity:1}
-.naru-story-dialogue{position:relative;z-index:1;list-style:none;margin:0 auto;padding:24px 20px 0;max-width:640px;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.naru-story-dialogue{position:relative;z-index:1;list-style:none;margin:0 auto;padding:0;max-width:640px;width:100%;display:flex;flex-direction:column;gap:10px;pointer-events:none}
 .naru-story-dialogue li{width:75%;text-align:left;opacity:0;transform:translateY(12px);transition:opacity .5s,transform .5s;border-radius:20px 20px 20px 4px;background:#e8f1ff;box-shadow:0 4px 18px #1d466b15;padding:10px 16px;color:#233b55}
 .naru-story-dialogue li[data-speaker=naru]{align-self:flex-end;background:#eeebff;border-radius:20px 20px 4px 20px}
 .naru-story-dialogue li.is-visible{opacity:1;transform:none}
 .naru-story-dialogue li>span{font-size:11px;font-weight:700;color:#475b78}
 .naru-story-dialogue li>p{font-size:15px;line-height:1.6;margin:3px 0 0}
-.naru-story-actions{position:relative;padding:16px 20px 24px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.naru-story-actions{position:relative;padding:20px 20px 16px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
 .naru-story-actions>p{width:100%;font-size:12px;color:#536b7c;margin:0 0 8px}
 html:root body .wave-night .naru-conversation-footer .simple-footer{background:transparent;border:0;box-shadow:none;margin:0;padding:24px 20px 32px;color:#405b71}
 html:root body .wave-night .naru-conversation-footer .simple-footer :is(p,small,a){color:#405b71}
 @keyframes naru-write{to{opacity:1}}
-@media(max-width:700px){.places-results-heading{align-items:flex-start;flex-direction:column;padding-inline:16px;gap:16px}.naru-story-stage{min-height:640px}.naru-story-art img{height:auto;bottom:0}.naru-story-art img.naru-story-solo{width:260px;height:260px;top:80px}.naru-story-dialogue{padding:20px 16px 0}.naru-story-dialogue li{width:85%;box-sizing:border-box}.naru-conversation-intro{padding-inline:16px}html:root body .wave-night .simple-direct-search-form{gap:2px}html:root body .wave-night .simple-direct-search-submit{padding-inline:16px}html:root body .wave-night .region-picker-list button{padding:8px 12px}}
+@media(max-width:700px){.places-results-heading{align-items:flex-start;flex-direction:column;padding-inline:16px;gap:16px}.naru-story-stage{grid-template-columns:1fr;gap:12px;margin-top:12px;padding:0 16px}.naru-story-art{height:130px}.naru-story-dialogue{padding:0}.naru-story-dialogue li{width:85%;box-sizing:border-box}.naru-conversation-intro{padding-inline:16px}html:root body .wave-night .simple-direct-search-form{gap:2px}html:root body .wave-night .simple-direct-search-submit{padding-inline:16px}html:root body .wave-night .region-picker-list button{padding:8px 12px}}
 @media(prefers-reduced-motion:reduce){html:root body .wave-night :is(#landing-title em,.night-banner h1 em){animation:none}.naru-conversation-intro h2 [aria-hidden=true]>span{animation:none;opacity:1}.naru-story-art img,.naru-story-dialogue li{transition:none}}
+/* Compact, shared white canvas for the planner's two navigation rows. */
+html:root body .wave-night .planner-welcome-header{position:relative;background:#fff;color:#25435b}
+html:root body .wave-night .planner-welcome-header .wave-header{position:relative;background:transparent;border:0;box-shadow:none;backdrop-filter:none}
+html:root body .wave-night .planner-welcome-header .wave-header :is(.wave-wordmark,nav a,.night-search-link,.wave-support-trigger,.wave-my-trips,.wave-profile-entry,.account-menu>summary){color:#29445c}
+html:root body .wave-night .planner-welcome-header .wave-wordmark small{color:#526b80;border-color:#ccdbe5}
+html:root body .wave-night .planner-welcome-header .wave-header nav a[aria-current=page]{color:#066493;border-color:#1483bf}
+html:root body .wave-night .planner-welcome-header .simple-planner-heading{background:transparent;border:0;padding:8px 0 16px;gap:16px;align-items:center}
+.planner-welcome-title{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.planner-welcome-title img{width:100px;height:66px;object-fit:contain}
+html:root body .wave-night .planner-welcome-title h1{color:#29445c;margin:0}
+html:root body .wave-night .planner-welcome-header .simple-planner-tabs button:not([aria-pressed=true]){background:#eaf0f7;color:#465c74;border-color:#bacddb}
+html:root body .wave-night .naru-conversation-footer .simple-footer{width:94%;max-width:1200px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px 0 8px}
+html:root body .wave-night .naru-conversation-footer .simple-footer :is(p,nav,small){margin:0}
+html:root body .wave-night .naru-conversation-footer .simple-footer nav{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px 22px}
+html:root body .wave-night .naru-conversation-footer .simple-footer nav a{min-height:44px;display:inline-flex;align-items:center}
+html:root body .wave-night .naru-conversation-footer .simple-footer>small{align-self:flex-end;text-align:right;max-width:100%;font-size:.75rem!important;line-height:1.6;margin-top:12px}
+html:root body .wave-night .naru-story-disclosure{width:94%;max-width:1200px;margin:0 auto;padding:0 0 28px;text-align:right;font-size:.75rem;color:#405b71;line-height:1.6}
+/* Native select semantics and keyboard controls, with a styled browser picker. */
+@supports (appearance:base-select){
+html:root body :is(.wave-night,dialog,.account-popover) select:not([multiple]):not([size]),html:root body :is(.wave-night,dialog,.account-popover) select:not([multiple]):not([size])::picker(select){appearance:base-select}
+html:root body select::picker(select){background:#132e45;color:#edf6ff;border:1px solid #587b9a;border-radius:18px;padding:8px;box-shadow:0 16px 48px #0005;max-height:min(55dvh,420px);overflow:auto}
+html:root body select option{padding:10px 14px;min-height:44px;border-radius:10px;cursor:pointer;font-size:14px;line-height:1.5}
+html:root body select option:checked{background:linear-gradient(115deg,#146f9e,#3659c0,#6549b5);color:#fff;font-weight:700}
+html:root body select option:hover,html:root body select option:focus-visible{background:#294d69;color:#fff;outline:2px solid #88d9ff;outline-offset:-2px}
+html:root body select option:disabled{color:#aac0d3;cursor:default}
+html:root body select::picker-icon{color:#8ddcff;transition:transform .18s}
+html:root body select:open::picker-icon{transform:rotate(180deg)}
+}
+html:root body :is(.wave-night,.wave-support-panel) :is(.account-popover,.simple-share-menu,.preference-panel){border:1px solid #587b9a;border-radius:18px;background:#132e45;color:#edf6ff;box-shadow:0 12px 36px #0004;padding:12px}
+html:root body .wave-night .account-popover :is(a,button){border-radius:10px;color:#edf6ff;min-height:44px}
+html:root body .wave-night .account-popover :is(a,button):hover{background:#294d69}
+html:root body .wave-night dialog:not(.naru-panel){border:1px solid #587b9a;border-radius:24px;background:#10273b;color:#edf6ff;box-shadow:0 20px 70px #0006}
+html:root body .wave-night dialog:not(.naru-panel)::backdrop{background:#020d1b99;backdrop-filter:blur(5px)}
+html:root body .wave-night :is(details:not(.account-menu)>summary,.mobile-disclosure-toggle){border-radius:12px;transition:background-color .15s}
+html:root body .wave-night details:not(.account-menu)>summary:hover{background:#1b3a5155}
+html:root body .wave-night details[open]:not(.account-menu)>summary{color:#87daff}
+html:root body .wave-night .simple-facility-grid label{border-radius:14px;padding:12px;background:#18364d;border:1px solid #466680}
+html:root body .wave-night .simple-facility-grid label:has(input:checked){background:#254273;border-color:#a6c4ff}
+@media(max-width:600px){.planner-welcome-title img{width:68px;height:46px}.planner-welcome-title{gap:8px}html:root body .wave-night .planner-welcome-header .simple-planner-heading{gap:10px;flex-wrap:wrap}.planner-welcome-header .simple-planner-actions{width:100%;justify-content:flex-end}html:root body .wave-night .naru-conversation-footer .simple-footer nav{gap:4px 16px}html:root body .wave-night .naru-conversation-footer .simple-footer>small,html:root body .wave-night .naru-story-disclosure{padding-inline:58px;box-sizing:border-box}}
+
+@supports (appearance:base-select){html:root body select option:disabled{background:transparent;font-weight:400}}
+html:root body .wave-night .account-popover .preference-trigger{background:#213f58;color:#edf6ff;border:1px solid #587b9a}
+html:root body .wave-night .account-popover .preference-trigger:hover{background:#315573}
+
+@media(max-width:600px){html:root body .wave-night .naru-story-disclosure{padding-bottom:84px}}
+.naru-header-scene{width:142px;height:104px;position:relative;flex-shrink:0;pointer-events:none}
+.naru-header-writing{text-align:center;font-family:WaveHand,cursive;font-size:22px;color:#305879;line-height:1.2;white-space:nowrap}
+.naru-header-writing>span{font-family:inherit;opacity:0;animation:naru-write .15s linear forwards;animation-delay:var(--write-delay);white-space:pre}
+.naru-header-scene[data-playing=false] .naru-header-writing>span{animation-play-state:paused}
+.naru-header-images{position:absolute;inset:28px 0 0}
+html:root body .planner-welcome-title .naru-header-images img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .8s ease}
+html:root body .planner-welcome-title .naru-header-images img.is-visible{opacity:1}
+@media(max-width:600px){.naru-header-scene{width:118px;height:92px}.naru-header-writing{font-size:19px}.naru-header-images{top:25px}}
+@media(prefers-reduced-motion:reduce){.naru-header-writing>span{opacity:1;animation:none}html:root body .planner-welcome-title .naru-header-images img{transition:none}}
+/* Expanded planner surfaces share explicit tokens, including portalled dialogs. */
+html:root body .wave-night .simple-dialog:not(.naru-panel){--paper:#10273b;--surface:#16334b;--white:#16334b;--ink:#edf6ff;--ink-soft:#d1e2f2;--muted:#b9cee1;--line:#476983;--blue:#76cfff;--on-blue:#082237;color-scheme:dark;box-sizing:border-box}
+html:root body .wave-night .simple-dialog:not(.naru-panel) :is(header,footer){background:transparent}
+html:root body .wave-night .simple-dialog:not(.naru-panel) :is(button,summary){min-height:44px;border-radius:12px}
+html:root body .wave-night .simple-dialog:not(.naru-panel) button{padding:10px 16px;border:1px solid #537590;background:#1b3c56;color:#edf6ff}
+html:root body .wave-night .simple-dialog:not(.naru-panel) button:disabled{opacity:.45;box-shadow:none}
+html:root body .wave-night .simple-dialog>header>button{width:44px;height:44px;padding:0;border:0;border-radius:50%;background:#213e56}
+html:root body .wave-night .simple-dialog:not(.naru-panel) button.primary,html:root body .wave-night .simple-dialog:not(.naru-panel) button[aria-pressed=true]{background:linear-gradient(115deg,#08769e,#285dd5 54%,#6840ce);color:#fff;border-color:#79baf0;border-radius:999px}
+html:root body .wave-night .simple-dialog:not(.naru-panel) :is(.trip-comfort-choices,.simple-saved-preferences){background:#16334b;border:1px solid #476983;border-radius:16px;padding:0;margin-block:14px;min-width:0}
+html:root body .wave-night .simple-dialog:not(.naru-panel) :is(.trip-comfort-choices,.simple-saved-preferences)>summary{padding:14px 16px;color:#e6f1ff;background:transparent}
+html:root body .wave-night .simple-dialog:not(.naru-panel) :is(.travel-profile-content,.simple-saved-preferences>div){padding:0 16px 16px;min-width:0}
+html:root body .wave-night .simple-dialog:not(.naru-panel) :is(p,label,legend){color:var(--ink-soft)}
+html:root body .wave-night .simple-dialog:not(.naru-panel) :is(.auth-field,.auth-field label){min-width:0;display:grid;gap:8px;margin-block:12px}
+html:root body .wave-night .simple-dialog:not(.naru-panel) select{box-sizing:border-box;width:100%;min-width:0;max-width:100%;padding:12px;border-radius:12px}
+html:root body .wave-night .simple-dialog:not(.naru-panel) .modal-data{min-width:0;padding:12px}
+html:root body .wave-night .simple-dialog:not(.naru-panel) .travel-profile-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
+html:root body .wave-night .simple-dialog:not(.naru-panel) .travel-profile-actions button{width:auto;max-width:100%;font-size:14px;white-space:normal;overflow-wrap:anywhere}
+html:root body .wave-night .simple-facility-picker-body{overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#6687a4 transparent}
+html:root body .wave-night .simple-facility-grid input{appearance:none;display:grid;place-content:center;width:22px;height:22px;flex:0 0 22px;background:#0c2438;border:1px solid #83a4c2;border-radius:6px}
+html:root body .wave-night .simple-facility-grid input:checked{background:#3467d9;border-color:#b0d5ff}
+html:root body .wave-night .simple-facility-grid input:checked::after{content:'✓';color:#fff;font-size:17px;font-weight:700}
+html:root body .wave-night .official-exploration-card{display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:22px;border:1px solid #365872;border-radius:20px;background:linear-gradient(135deg,#143047,#152a42);overflow-wrap:anywhere;min-width:0}
+html:root body .wave-night .official-exploration-card :is(h3,p,small){margin:0;line-height:1.7}
+html:root body .wave-night .official-exploration-card small{color:#b8cee1}
+html:root body .wave-night .official-exploration-card .wave-gradient-button{margin-top:auto}
+html:root body .wave-night .official-exploration-grid{margin-top:16px}
+/* White Naru canvas with the same blue/lavender speech colors as the footer. */
+html:root body .naru-discovery .naru-hint{background:#fff;color:#233b55;border:1px solid #dce5f3;box-shadow:0 8px 30px #213d6b26}
+html:root body .naru-discovery .naru-hint button{background:transparent;color:#233b55;border:0}
+html:root body .naru-discovery .naru-launcher{background:#fff;border:0;box-shadow:0 8px 30px #213d6b26}
+html:root body .naru-discovery .naru-launcher:hover{box-shadow:0 8px 30px #3066ba40}
+html:root body .naru-panel.naru-workspace{--ink:#233b55;--ink-soft:#405a75;--muted:#526782;--paper:#fff;--surface:#f4f7fc;--white:#fff;--line:#c5d5e7;--accent:#3659ba;--blue:#3659ba;--on-blue:#fff;--on-accent:#fff;background:#fff;color:#233b55;color-scheme:light}
+html:root body .naru-panel.naru-workspace :is(.naru-message.assistant,.naru-message.user){color:#233b55;box-shadow:0 3px 14px #29456c0b}
+html:root body .naru-panel.naru-workspace .naru-message.assistant{background:#eeebff;border-color:#ddd5fa;border-radius:18px 18px 18px 4px}
+html:root body .naru-panel.naru-workspace .naru-message.user{background:#e8f1ff;border-color:#cfdef7;border-radius:18px 18px 4px 18px}
+html:root body .naru-panel.naru-workspace :is(.naru-heading,.naru-workspace-tabs,.naru-log){background:#fff}
+html:root body .naru-panel.naru-workspace :is(.naru-input,.naru-tools,.naru-extra-help,.naru-more>div,.naru-add-menu[open],.naru-starter,.naru-guided-choices){background:var(--surface);color:var(--ink);border-color:var(--line)}
+html:root body .naru-panel.naru-workspace :is(p,small,label,summary,h2,h3,.naru-tool-card strong,.naru-tool-card b){color:var(--ink)}
+html:root body .naru-panel.naru-workspace :is(button,input,textarea,select){color:var(--ink);background:var(--surface);border-color:var(--line);color-scheme:light}
+html:root body .naru-panel.naru-workspace :is(button.primary,button[aria-pressed=true],.naru-input button[type=submit],.naru-work-request>button[type=submit]){background:linear-gradient(115deg,#08769e,#285dd5 54%,#6840ce);border-color:#8bacdf;color:#fff}
+html:root body .naru-panel.naru-workspace .naru-workspace-tabs>button[aria-selected=true]{background:linear-gradient(110deg,#e4f5ff,#eeebff);color:#354f94;border-color:#91ade3}
+html:root body .naru-panel.naru-workspace :is(.naru-more>div,.naru-add-menu[open]){border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px #29456c20}
+html:root body .naru-panel.naru-workspace .naru-live-tools>div>details>summary{color:#354f94}
+html:root body .naru-panel.naru-workspace .naru-tool-catalog>.naru-tools>div{border-color:var(--line)}
+html:root body .naru-panel.naru-workspace select::picker(select){background:#fff;color:#233b55}
+html:root body .naru-panel.naru-workspace select option{color:#233b55}
+html:root body .naru-panel.naru-workspace select option:checked{color:#fff}
+@media(forced-colors:active){html:root body .wave-night .simple-facility-grid input{appearance:auto}}
+
+html:root body .wave-night .simple-dialog .trip-comfort-choices{--paper:inherit;--surface:inherit;--white:inherit;--ink:inherit;--ink-soft:inherit;--muted:inherit;--line:inherit;--blue:inherit}
+html:root body .naru-panel.naru-workspace select option:is(:hover,:focus-visible){background:#e8f1ff;color:#233b55;outline-color:#3659ba}
+html:root body .naru-panel.naru-workspace button{border-style:solid;border-width:1px;border-radius:12px;min-height:44px;padding:8px 12px;font:inherit;cursor:pointer}
+html:root body .naru-panel.naru-workspace button:disabled{opacity:.5;cursor:not-allowed}
+html:root body .naru-panel.naru-workspace .naru-heading-actions>button{border:0;border-radius:50%;padding:8px;background:#f4f7fc}
+html:root body .naru-panel.naru-workspace button:not(:disabled):hover{box-shadow:0 0 0 2px #94bde650}
+html:root body .wave-night .simple-dialog:not(.naru-panel)>header>button{display:grid;place-content:center;line-height:1;padding:0}
+/* Detail dialogs retain readable inputs and consistent secondary actions. */
+html:root body .simple-place-pane :is(button,textarea,select,input:not([type=checkbox])){color:#edf6ff;background:#16334b;border:1px solid #537590;border-radius:12px;min-height:44px;padding:10px 14px;font:inherit;box-sizing:border-box}
+html:root body .simple-place-pane textarea{width:100%;max-width:100%;resize:vertical}
+html:root body .simple-place-pane textarea::placeholder{color:#b9cee1;opacity:1}
+html:root body .simple-place-pane button:disabled{opacity:.5;background:#213e56;color:#d1e2f2}
+html:root body .simple-place-pane button:is([aria-pressed=true],.primary){background:linear-gradient(115deg,#08769e,#285dd5 54%,#6840ce);color:#fff;border-radius:999px}
+html:root body .simple-place-pane summary{min-height:44px;padding:12px;border-radius:12px;cursor:pointer}
+html:root body .simple-place-pane details[open]>summary{background:#1b3c56;color:#a7e3ff}
+html:root body .inquiry-dialog{--blue:#3659ba;--accent:#3659ba;--ink:#233b55;--muted:#526782;--line:#c5d5e7;--paper:#fff;--surface:#f4f7fc;color:#233b55;accent-color:#3659ba}
+html:root body .inquiry-dialog button{border-radius:999px;min-height:44px;border:1px solid #b8cde5;padding:10px 16px;color:#233b55;background:#e8f1ff}
+html:root body .wave-night .simple-saved-preferences>div>button{margin:4px 8px 8px 0}
+html:root body .naru-panel.naru-workspace details[open]:not(.account-menu)>summary{color:#354f94;background:#e8f1ff}
+html:root body .naru-panel.naru-workspace .naru-add-menu[open]>div>button{width:100%;height:auto;display:flex;align-items:center;justify-content:flex-start;white-space:nowrap;gap:10px}
+html:root body .naru-panel.naru-workspace .naru-workspace-content>button{margin-right:8px}
+html:root body .wave-support-panel .preference-panel{--ink:#edf6ff;--ink-soft:#d1e2f2;--muted:#b9cee1;color:#edf6ff;background:#16334b;border:1px solid #537590;border-radius:16px}
+html:root body .wave-support-panel .preference-panel :is(p,small,label){color:#b9cee1}
+html:root body .wave-support-panel .preference-panel button{background:#21445f;color:#edf6ff;border:1px solid #63839d;border-radius:12px;min-height:44px}
+html:root body .wave-support-panel .preference-panel button:is([aria-pressed=true],[role=switch][aria-checked=true]){background:linear-gradient(115deg,#08769e,#285dd5 54%,#6840ce);color:#fff}
+html:root body .wave-support-panel .preference-text-scale label,html:root body .wave-support-panel .preference-row em{background:#21445f;color:#edf6ff;border:1px solid #63839d;border-radius:10px}
+html:root body .wave-support-panel .preference-text-scale label:has(input:checked){background:linear-gradient(115deg,#08769e,#285dd5 54%,#6840ce);color:#fff}
+html:root body .wave-support-panel .preference-text-scale label:has(input:checked) small{color:#fff}
+
+/* The first lazy-load frame uses the same light palette as the conversation. */
+html:root body .naru-panel.naru-loading-panel{background:#fff;color:#233b55;border:1px solid #d5e0ee;box-shadow:0 16px 60px #213d6b26;color-scheme:light}
+html:root body .naru-loading-panel .wave-loading{width:100%;box-sizing:border-box;padding:28px 24px;color:#526782}
+html:root body .naru-loading-panel .wave-loading p{gap:10px;line-height:1.6}
+html:root body .naru-loading-panel .wave-spinner{color:#6279b6;flex-shrink:0}
+html:root body .naru-loading-panel .wave-skeleton-lines{gap:12px}
+html:root body .naru-loading-panel .wave-skeleton-lines i{background:linear-gradient(90deg,#e8f1ff 25%,#f8f9ff 50%,#eeebff 75%);background-size:200% 100%;height:12px;border-radius:8px}
+/* Consistent spacing inside expanded controls and conversation actions. */
+html:root body .wave-night .simple-dialog .auth-field{margin-block:16px}
+html:root body .wave-night .simple-dialog .auth-field label{margin:0;gap:8px}
+html:root body .wave-night .simple-dialog .travel-profile-content>p{margin:12px 0 16px;line-height:1.7}
+html:root body .wave-night .simple-dialog .travel-profile-actions{margin-block:12px}
+html:root body .naru-panel.naru-workspace .naru-workspace-content>button{margin-block:8px 12px}
+html:root body .naru-panel.naru-workspace :is(.naru-context-suggestions button,.naru-workspace-tabs button){word-break:keep-all;overflow-wrap:anywhere;line-height:1.5}
+html:root body .naru-panel.naru-workspace .naru-workspace-content>h2{margin-bottom:12px}
+.naru-loading-backdrop{position:fixed;inset:0;z-index:70;background:#080a12b8}
+html:root body .naru-panel.naru-loading-panel .wave-loading{padding:24px}
+html:root body .wave-night .night-benefits{padding:14px 18px;gap:14px 24px;max-width:100%;box-sizing:border-box}
+html:root body .wave-night .night-benefits>div{border:0;padding:0;gap:10px;min-width:0}
+html:root body .wave-night .night-benefits :is(strong,small){word-break:keep-all;overflow-wrap:anywhere}
+html:root body .wave-night .simple-planner-tabs{gap:10px}
+@media(max-width:600px){html:root body .wave-night .planner-welcome-header .simple-planner-actions{justify-content:flex-end;gap:10px}html:root body .wave-night .planner-welcome-header .simple-planner-actions button{flex:0 1 auto;margin:0}html:root body .wave-night .night-benefits{gap:12px 16px;padding:14px}html:root body .wave-night .night-benefits svg{width:26px;height:26px}}
+/* Place expanded festival actions across the full card, including thumbnail layouts. */
+html:root body .wave-night.festival-page .festival-card{background:linear-gradient(145deg,#092036,#03111f);border-color:#315570;border-radius:16px}
+html:root body .wave-night .festival-card>.night-festival-more{grid-column:1/-1;min-width:0;padding:12px 16px 16px;margin:0}
+html:root body .wave-night .festival-card>.night-festival-more>summary{min-height:44px;gap:12px;font-size:14px}
+html:root body .wave-night .festival-evidence :is(p,small,strong,span){color:#d2e5ff;line-height:1.7}
+html:root body .wave-night .festival-actions{gap:10px}
+html:root body .wave-night .festival-actions button{min-height:44px;border-radius:999px;padding:10px 14px;font-size:14px;line-height:1.5}
+html:root body .wave-night .festival-actions button:first-child{background:linear-gradient(115deg,#08769e,#285dd5 54%,#6840ce);color:#fff;border-color:#79baf0}
+html:root body .wave-night .festival-visit-date{display:grid;gap:8px;margin-block:16px}
+html:root body .wave-night .festival-source-links{gap:8px 12px;margin-block:12px}
+html:root body .wave-night .festival-source-links :is(a,button){min-height:44px;display:inline-flex;align-items:center;font-size:13px}
+html:root body .night-journey-map .region-picker-list{max-height:none;overflow:visible}
+@media(max-width:600px){html:root body .wave-night .night-planner-form{padding-top:24px}html:root body .wave-night .night-planner-form h2{line-height:1.35;margin:0 0 20px}html:root body .wave-night .night-planner-steps{margin-bottom:16px}html:root body .wave-night .simple-search-bar>label,html:root body .wave-night .simple-facility-trigger,html:root body .wave-night .simple-activity-filter button:not([aria-pressed=true]){background:#132e45}html:root body .wave-night .simple-search-bar{margin-bottom:12px}html:root body .wave-night .night-planner-submit{margin-top:16px}html:root body .wave-night .festival-card>.night-festival-more{padding:8px 4px 4px}}
+/* A shared opening height keeps the three working pages at the same rhythm. */
+html:root body .wave-night{--wave-opening-height:480px}
+html:root body .wave-night :is(.night-photo-opening,.planner-welcome-header){min-height:var(--wave-opening-height);box-sizing:border-box;display:flex;flex-direction:column}
+html:root body .wave-night .night-photo-opening .night-banner{height:auto;min-height:0;flex:1;display:flex;align-items:center}
+html:root body .wave-night .night-banner-copy{padding:28px var(--wave-gutter);box-sizing:border-box}
+html:root body .wave-night .planner-welcome-header>.naru-header-scene{width:calc(100% - var(--wave-gutter)*2);max-width:1120px;margin:auto;flex:1;min-height:270px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;column-gap:32px;align-content:center;padding-block:12px;box-sizing:border-box;pointer-events:none}
+html:root body .naru-header-scene .naru-header-writing{font-size:38px;grid-column:1;align-self:end;text-align:left;line-height:1.3;margin-bottom:14px}
+html:root body .naru-header-scene .naru-header-images{position:relative;inset:auto;grid-column:2;grid-row:1/3;min-height:230px}
+html:root body .naru-header-scene .naru-header-images img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .8s}
+html:root body .naru-header-scene .naru-header-images img.is-visible{opacity:1}
+.naru-header-dialogue{display:flex;flex-direction:column;gap:10px;align-self:start;min-height:156px}
+.naru-header-dialogue>div{width:88%;box-sizing:border-box;border-radius:18px 18px 18px 4px;background:#e8f1ff;color:#233b55;padding:12px 16px;opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.naru-header-dialogue>div[data-speaker=naru]{align-self:flex-end;background:#eeebff;border-radius:18px 18px 4px 18px}
+.naru-header-dialogue>div.is-visible{opacity:1;transform:none}
+.naru-header-dialogue small{font-size:12px;color:#475b78;font-weight:700}
+.naru-header-dialogue p{font-size:15px;line-height:1.6;margin:4px 0 0;word-break:keep-all;overflow-wrap:anywhere}
+html:root body .wave-night .planner-welcome-header .simple-planner-heading{padding-block:12px 20px;min-height:76px;box-sizing:border-box;flex-shrink:0}
+@media(max-width:600px){html:root body .wave-night{--wave-opening-height:600px}html:root body .wave-night .planner-welcome-header>.naru-header-scene{min-height:390px;grid-template-columns:1fr;grid-template-rows:auto 150px auto;gap:8px;padding-block:12px}html:root body .naru-header-scene .naru-header-writing{font-size:30px;text-align:center;margin:0;grid-column:1}html:root body .naru-header-scene .naru-header-images{grid-column:1;grid-row:2;min-height:150px}html:root body .naru-header-scene .naru-header-dialogue{grid-row:3;min-height:166px}.naru-header-dialogue>div{padding:10px 14px}.naru-header-dialogue p{font-size:14px}html:root body .wave-night .planner-welcome-header .simple-planner-heading{justify-content:center;gap:10px;padding-block:12px}html:root body .wave-night .planner-welcome-header .simple-planner-actions{width:auto;margin:0;justify-content:center}html:root body .wave-night .night-photo-opening .night-banner{padding:0}html:root body .wave-night .night-banner-copy{padding:24px 16px;width:100%}html:root body .wave-night .night-benefits{display:grid;grid-template-columns:1fr 1fr;margin-top:24px}.night-banner-copy>p br{display:none}}
+@media(prefers-reduced-motion:reduce){html:root body .naru-header-scene .naru-header-images img,.naru-header-dialogue>div{transition:none}}
+html:root body .wave-night .official-exploration-card{position:relative;isolation:isolate;overflow:hidden;min-height:240px}
+.official-exploration-photo{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.official-exploration-photo img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s}
+.official-exploration-photo[data-loaded=true] img{opacity:1}
+.official-exploration-photo[data-loaded=true]::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,#041322eb,#07182acc 60%,#05172bbf)}
+html:root body .wave-night .official-exploration-card:has(.official-exploration-photo[data-loaded=true]){padding-bottom:40px}
+html:root body .wave-night .official-photo-credit{position:absolute;right:14px;bottom:10px;z-index:1;font-size:11px!important;color:#d9e9fa;line-height:1.4}
+@media(prefers-reduced-motion:reduce){.official-exploration-photo img{transition:none}}
+/* Profile portraits and names stay together beside each speech bubble. */
+html:root body :is(.naru-header-dialogue>div,.naru-story-dialogue li){display:flex;align-items:center;gap:12px;background:transparent;padding:0;box-shadow:none;width:100%;border-radius:0}
+html:root body :is(.naru-header-dialogue>div,.naru-story-dialogue li)[data-speaker=naru]{flex-direction:row-reverse;background:transparent}
+html:root body :is(.naru-header-dialogue,.naru-story-dialogue) .naru-dialogue-profile{display:flex;flex:0 0 74px;flex-direction:column;align-items:center;gap:5px;color:#475b78}
+.naru-dialogue-portrait{display:block;width:52px;height:52px;border-radius:50%;background-color:#fff;background-image:url('/naru/conversation-hello.webp');background-size:340% auto;background-position:19% 33%;box-shadow:0 2px 10px #30557915;border:1px solid #dbe5f4}
+.naru-dialogue-profile[data-speaker=naru] .naru-dialogue-portrait{background-position:74% 40%;border-color:#e1dcf5}
+.naru-dialogue-name{font-size:11px;line-height:1.4;white-space:nowrap;font-weight:600}
+html:root body :is(.naru-header-dialogue>div,.naru-story-dialogue li)>p{margin:0;padding:12px 16px;background:#e8f1ff;border-radius:18px 18px 18px 4px;color:#233b55;flex:1;line-height:1.6;min-width:0}
+html:root body :is(.naru-header-dialogue>div,.naru-story-dialogue li)[data-speaker=naru]>p{background:#eeebff;border-radius:18px 18px 4px 18px}
+html:root body .wave-night .official-exploration{width:94%;box-sizing:border-box;margin:24px auto;border:1px solid #365872;border-radius:16px;padding:0;overflow:hidden}
+html:root body .wave-night .official-exploration>summary{display:flex;align-items:center;gap:12px;min-height:56px;padding:12px 18px;box-sizing:border-box;cursor:pointer;list-style:none;font-weight:700;line-height:1.5}
+.official-exploration>summary::-webkit-details-marker{display:none}
+.official-exploration>summary::before{content:'›';font-size:24px;line-height:1;transform:rotate(0deg);transition:transform .15s}
+.official-exploration[open]>summary::before{transform:rotate(90deg)}
+html:root body .wave-night .official-exploration>:not(summary){margin:16px 18px}
+html:root body .wave-night .planner-welcome-header .simple-planner-heading{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center}
+html:root body .wave-night .planner-welcome-header .simple-planner-tabs{justify-self:start}
+html:root body .wave-night .planner-welcome-header .simple-planner-actions{margin:0;gap:10px}
+@media(max-width:700px){html:root body .wave-night .planner-welcome-header .simple-planner-heading{grid-template-columns:1fr 1fr;gap:12px}.planner-welcome-title{grid-column:1/-1;justify-content:center}html:root body .wave-night .planner-welcome-header .simple-planner-tabs{grid-column:1/-1;justify-self:center}html:root body .wave-night .planner-welcome-header .simple-planner-actions{grid-column:1/-1;justify-content:center}html:root body :is(.naru-header-dialogue,.naru-story-dialogue) .naru-dialogue-profile{flex-basis:60px}.naru-dialogue-portrait{width:46px;height:46px}html:root body :is(.naru-header-dialogue>div,.naru-story-dialogue li){gap:8px}html:root body :is(.naru-header-dialogue>div,.naru-story-dialogue li)>p{padding:10px 12px;font-size:14px}}
+/* Photo cards share a full-bleed image and a readable, persistent scrim. */
+html:root body .wave-night :is(.simple-place-row,.rich-card:not(.rich-loading),.community-list article,.festival-card){position:relative;isolation:isolate;overflow:hidden;border-radius:20px}
+html:root body .wave-night .simple-place-row{display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:14px;min-height:300px;padding:100px 20px 20px;box-sizing:border-box}
+html:root body .wave-night .simple-place-row>.simple-place-photo{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;border-radius:inherit;z-index:-1}
+html:root body .wave-night :is(.simple-place-photo,.community-story-cover,.rich-card)>.smart-spot-image{width:100%;height:100%;min-height:0;aspect-ratio:auto}
+html:root body .wave-night :is(.simple-place-photo,.community-story-cover,.rich-card) .smart-spot-image img{width:100%;height:100%;min-height:0;object-fit:cover;aspect-ratio:auto}
+html:root body .wave-night :is(.simple-place-photo,.community-story-cover,.festival-card-photo,.rich-card>.smart-spot-image)::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#04132130 0%,#041321bd 35%,#041321f5 100%)}
+html:root body .wave-night .simple-place-copy{width:100%;min-width:0;padding:0}
+html:root body .wave-night .simple-place-row .simple-place-add{align-self:stretch;width:100%;min-height:44px;border-radius:999px;background:linear-gradient(115deg,#08769e,#285dd5 54%,#6840ce);color:#fff;border:1px solid #83b7ec}
+html:root body .wave-night .community-list article>a{position:relative;display:flex;flex-direction:column;min-height:360px;padding:100px 22px 22px;gap:12px;box-sizing:border-box}
+html:root body .wave-night .community-list:not([data-layout=compact]) .community-story-cover{position:absolute;inset:0;z-index:-1;width:100%;height:100%;min-height:0;margin:0;padding:0;border-radius:0;display:block}
+html:root body .wave-night .community-list:not([data-layout=compact]) .community-story-cover :is(.smart-spot-image,img){width:100%;height:100%;min-height:0;aspect-ratio:auto}
+html:root body .wave-night .community-list :is(h3,p,footer,.community-card-meta,.community-place-tag){margin:0;line-height:1.6}
+html:root body .wave-night .community-list .community-place-tag{background:#0b263dbf;color:#e1efff;padding:6px 10px;border-radius:10px}
+html:root body .wave-night .community-list footer{margin-top:auto;gap:12px;flex-wrap:wrap}
+html:root body .wave-night .community-list .detail-actions{position:relative;padding:0 22px 16px;background:#041321}
+html:root body .wave-night.festival-page .festival-card{display:flex;flex-direction:column;min-height:380px;padding-top:90px}
+html:root body .wave-night.festival-page .festival-card-photo{position:absolute;inset:0;width:100%;height:100%;min-height:0;aspect-ratio:auto;border-radius:0;z-index:-1}
+html:root body .wave-night .festival-state{z-index:1}
+html:root body .wave-night.festival-page .festival-card-copy{padding:20px 20px 8px}
+html:root body .wave-night .festival-card>.night-festival-more{margin-top:auto;padding:8px 20px 20px;background:#04132166;border-top:0}
+html:root body .wave-night .rich-card:not(.rich-loading){min-height:320px;padding-top:100px}
+html:root body .wave-night .rich-card>.smart-spot-image{position:absolute;inset:0;z-index:-1}
+html:root body .wave-night .rich-card>section{position:relative;background:transparent;padding:20px}
+html:root body .wave-night :is(.simple-place-copy,.community-list,.festival-card-copy,.rich-card>section) :is(h2,h3,h3 button){color:#f5f8ff}
+html:root body .wave-night :is(.simple-place-copy,.community-list,.festival-card-copy,.rich-card>section) :is(p,time,footer,small,.simple-place-city){color:#d4e2f3}
+html:root body .wave-night .festival-period-help{color:#bfd1e5;margin:8px 0 20px;line-height:1.6;font-size:14px}
+html:root body .wave-night .festival-period::before{content:none}
+html:root body .wave-night :is(.simple-place-photo,.community-story-cover,.rich-card>.smart-spot-image) .smart-image-fallback{opacity:.2}
+@media(max-width:600px){html:root body .wave-night .community-list article>a{min-height:340px;padding:90px 18px 18px}html:root body .wave-night.festival-page .festival-card{min-height:350px}html:root body .wave-night .simple-place-row{min-height:280px;padding:90px 18px 18px}}
+@media(max-width:600px){html:root body .wave-night .night-photo-opening .night-banner{flex-direction:column;align-items:stretch;justify-content:center}html:root body .wave-night .night-banner-note{position:static;align-self:flex-end;max-width:calc(100% - 32px);margin:0 16px 18px;font-size:18px;transform:none;text-align:right}html:root body .wave-night .night-banner-copy>p br{display:initial}}
+html:root body .naru-dialogue-profile[data-speaker=naru] .naru-dialogue-portrait{background-size:300% auto;background-position:78% 38%}
+html:root body .wave-night.festival-page .festival-state{top:12px;left:12px;bottom:auto;right:auto;max-width:calc(100% - 24px)}
+@media(min-width:601px) and (max-width:1000px){html:root body .wave-night.festival-page .festival-grid{grid-template-columns:repeat(2,minmax(0,1fr))}html:root body .wave-night .night-festival-courses>div{grid-template-columns:repeat(2,minmax(0,1fr))}}
+html:root body .wave-night .night-course-card{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:flex-end;min-height:220px;border-radius:18px;padding:18px;box-sizing:border-box}
+html:root body .wave-night .night-course-card>span{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+html:root body .wave-night .night-course-card>span::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#04132135,#041321ee)}
+html:root body .wave-night .night-course-card>div{width:100%;min-width:0;padding:0}
+html:root body .wave-night .night-course-card :is(strong,p,small){color:#e2edfa;overflow-wrap:anywhere}
+html:root body .naru-dialogue-profile[data-speaker=naru] .naru-dialogue-portrait{background-position:72% 38%}
+html:root body .wave-night :is(.simple-place-copy,.festival-card-copy){pointer-events:none}
+html:root body .wave-night :is(.simple-place-copy,.festival-card-copy) :is(button,a,input,label){pointer-events:auto}
+/* Keep the illustrated footer subordinate to the planning workspace. */
+html:root body .naru-story-dialogue .naru-dialogue-profile{flex-basis:58px;gap:3px}
+html:root body .naru-story-dialogue .naru-dialogue-portrait{width:40px;height:40px}
+html:root body .naru-story-dialogue .naru-dialogue-name{font-size:10px}
+html:root body .naru-story-dialogue li>p{font-size:14px;padding:9px 12px}
+html:root body .wave-night .naru-conversation-footer .simple-footer{display:grid;grid-template-columns:1fr auto auto;gap:8px 24px;align-items:center;text-align:left;padding:12px 0 6px}
+html:root body .wave-night .naru-conversation-footer .simple-footer>small{grid-column:1/-1;justify-self:end;margin:0}
+@media(max-width:700px){html:root body .wave-night .naru-conversation-footer .simple-footer{grid-template-columns:1fr;text-align:center;gap:4px;padding-top:12px}html:root body .wave-night .naru-conversation-footer .simple-footer>small{padding-inline:28px}html:root body .wave-night .naru-story-disclosure{padding-inline:28px}html:root body .naru-story-dialogue li>p{font-size:13px}}
+
+body:has(.naru-conversation-footer[data-visible=true]) .naru-hint{display:none}
+html:root body .wave-night .simple-footer .github-footer-link{display:inline-flex;align-items:center;justify-content:center;padding:0;width:44px;height:44px;flex-shrink:0}
+/* Intro focus lands on the noninteractive hero; do not frame its background. */
+html:root body .wave-night .landing-hero[tabindex="-1"]:focus{outline:none}
+/* Matching opening/closing frames, with room to grow for expanded content. */
+html:root body .wave-night{--wave-opening-height:680px}
+html:root body .wave-night :is(.night-photo-footer,.naru-conversation-footer){min-height:var(--wave-opening-height);display:flex;flex-direction:column;box-sizing:border-box;justify-content:center}
+html:root body .wave-night .naru-conversation-footer .naru-story-stage{width:100%}
+html:root body .wave-night .night-photo-footer{padding:28px var(--wave-gutter,24px)}
+html:root body .wave-night .night-photo-footer>.simple-footer{margin:20px auto 0;padding:16px 0 48px;width:100%;border:0;background:transparent}
+html:root body .wave-night .community-closing-invite{text-align:center;margin:auto;padding:24px 16px}
+.community-closing-invite h2{font-size:clamp(26px,3vw,38px);line-height:1.35;margin:0 0 14px}
+.community-closing-invite p{color:#cfdeee;margin:0 0 24px}
+.community-closing-invite a{display:inline-flex;align-items:center;justify-content:center}
+html:root body .wave-night .night-photo-footer>.community-guides{width:100%;margin:16px auto 0;max-width:1120px}
+html:root body .wave-night .night-festival-courses{width:100%;margin:0;padding:0}
+html:root body .wave-night .night-festival-courses>div{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+html:root body .wave-night .night-course-map{min-height:220px;height:auto}
+html:root body .landing-page .landing-opening,html:root body .landing-page .landing-finale{min-height:max(760px,100svh);display:flex;flex-direction:column;box-sizing:border-box}
+html:root body .landing-page.horizon-edition.simple-landing.night-landing .landing-opening .landing-hero.landing-hero-split{flex:1;min-height:0;display:flex;align-items:center;padding-block:48px 100px}
+html:root body .landing-page .landing-finale .landing-cta{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:48px 24px 24px}
+html:root body .landing-page .landing-finale .simple-footer{padding:16px 24px 88px;margin:0 auto}
+@media(max-width:700px){html:root body .wave-night{--wave-opening-height:840px}html:root body .wave-night .naru-story-art{height:100px}html:root body .wave-night .naru-conversation-footer{padding-top:20px}html:root body .wave-night .naru-story-disclosure{padding-bottom:60px}html:root body .wave-night .night-festival-courses>div{display:flex;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:12px}html:root body .wave-night .night-festival-courses>div>a{flex:0 0 78%;scroll-snap-align:start;min-height:200px}html:root body .wave-night .night-photo-footer{padding:24px 16px}html:root body .landing-page .landing-opening,html:root body .landing-page .landing-finale{min-height:max(840px,100svh)}html:root body .landing-page .landing-finale .simple-footer{padding-bottom:100px}}
+
+html:root body .wave-night .night-festival-courses>div:has(.night-course-empty){display:grid;grid-template-columns:1fr 1fr}
+html:root body .wave-night .night-course-empty{grid-column:auto;min-height:44px;white-space:normal;line-height:1.7}
+@media(max-width:700px){html:root body .wave-night .night-festival-courses>div:has(.night-course-empty){grid-template-columns:1fr}html:root body .wave-night .night-festival-courses>div>a.night-course-empty{min-height:44px}}
+/* Photo surfaces retain their source brightness; contrast belongs to the text. */
+html:root body .wave-night :is(.night-itinerary-cards>a,.night-festival-preview-cards>a,.night-discover-photos>a){position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;min-height:200px;padding:18px;box-sizing:border-box;background:#102337;gap:6px}
+html:root body .wave-night :is(.night-itinerary-cards>a,.night-festival-preview-cards>a,.night-discover-photos>a)>img{position:absolute;inset:0;z-index:-1;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+html:root body .wave-night :is(.night-itinerary-cards>a,.night-festival-preview-cards>a,.night-discover-photos>a) :is(strong,span,small){color:#fff;padding:0;font-weight:650;line-height:1.55;paint-order:stroke fill;-webkit-text-stroke:2.5px #142d43}
+html:root body .wave-night .night-itinerary-cards>a{min-height:180px;padding:20px 48px 20px 20px}
+html:root body .wave-night .night-itinerary-cards .night-itinerary-number{color:#fff!important;position:absolute;top:14px;left:20px}
+html:root body .wave-night .night-itinerary-cards>a>svg{position:absolute;right:18px;bottom:24px;color:#fff;filter:drop-shadow(0 1px 1px #142d43)}
+html:root body .wave-night .night-itinerary-cards strong{font-size:20px}
+html:root body .wave-night .night-festival-preview-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+html:root body .wave-night .night-festival-preview-cards>a{min-height:230px;padding:12px 10px}
+html:root body .wave-night .night-festival-preview-cards strong{font-size:14px}
+html:root body .wave-night .night-festival-preview-cards :is(small,span){font-size:12px}
+html:root body .wave-night .night-discover-photos>a{padding:12px;min-height:190px}
+html:root body .wave-night .night-itinerary-map{background:#f1f8fd;border-color:#31526c;align-self:center}
+html:root body .wave-night .night-itinerary-map svg{box-sizing:border-box;background:#e1eff8}
+html:root body .wave-night .night-itinerary-map path{fill:#8bbbd9;stroke:#f1f8fd}
+html:root body .wave-night .night-itinerary-map path[data-featured=true]{fill:#3b83bc}
+html:root body .wave-night .night-itinerary-map>div{width:100%;box-sizing:border-box}
+html:root body .wave-night .horizon-checks li{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;text-align:center;gap:12px}
+html:root body .wave-night .horizon-checks li .horizon-check-icon{display:flex;align-items:center;justify-content:center;background:transparent;border:0;box-shadow:none;color:#52d8ff;padding:0}
+html:root body .wave-night .simple-place-row .simple-place-add{align-self:flex-end;width:44px;min-width:44px;height:44px;min-height:44px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:24px;line-height:1}
+html:root body .wave-night .simple-place-row .simple-place-add span{font-size:inherit;line-height:1}
+html:root body .wave-night .planner-welcome-header>.naru-header-scene[data-frame="0"]{grid-template-columns:1fr;grid-template-rows:auto 280px;align-content:center;flex:1}
+html:root body .naru-header-scene[data-frame="0"] .naru-header-writing{grid-column:1;grid-row:1;text-align:center;font-size:clamp(40px,4.5vw,58px);align-self:center}
+html:root body .naru-header-scene[data-frame="0"] .naru-header-images{grid-column:1;grid-row:2;min-height:0;width:100%;height:280px}
+html:root body .naru-header-scene[data-frame="0"] .naru-header-dialogue{display:none}
+html:root body .naru-conversation-footer[data-step="0"] .naru-story-stage{position:relative}
+html:root body .naru-conversation-footer[data-step="0"] .naru-story-art{grid-column:1/-1}
+html:root body .naru-conversation-footer[data-step="0"] .naru-story-dialogue{position:absolute;visibility:hidden}
+@media(max-width:700px){html:root body .wave-night .planner-welcome-header>.naru-header-scene[data-frame="0"]{grid-template-rows:auto 240px}html:root body .naru-header-scene[data-frame="0"] .naru-header-images{height:240px}html:root body .naru-conversation-footer[data-step="0"] .naru-story-art{height:240px}html:root body .wave-night .naru-conversation-footer[data-step="0"] .naru-story-stage{min-height:398px;align-items:center}}
+/* Keep direct search and the current itinerary reachable after removing the tab row. */
+@media(max-width:600px){html:root body .wave-night .wave-header{grid-template-columns:1fr auto;grid-template-rows:48px 44px;height:96px;min-height:96px}html:root body .wave-night .wave-header .wave-wordmark{grid-row:1;grid-column:1}html:root body .wave-night .wave-header nav{grid-row:2;grid-column:1/-1;justify-content:space-evenly}html:root body .wave-night .wave-header-actions{grid-row:1;grid-column:2}html:root body .wave-night .wave-header .wave-header-actions :is(.night-search-link,.wave-my-trips){display:grid!important;place-items:center;width:44px;height:44px;min-height:44px;padding:0}}
+html:root body .wave-night .night-festival-preview{container-type:inline-size}
+html:root body .wave-night .night-festival-preview-cards :is(strong,small,span){max-width:100%;overflow-wrap:anywhere}
+@container(max-width:560px){html:root body .wave-night .night-festival-preview-cards{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(180px,70%);overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:8px}html:root body .wave-night .night-festival-preview-cards>a{scroll-snap-align:start}}

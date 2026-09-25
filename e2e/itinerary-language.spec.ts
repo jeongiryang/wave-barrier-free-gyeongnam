@@ -124,13 +124,13 @@ test("an audio playback rejection offers the original transcript without an unha
 test("an empty itinerary does not load the editor and a missing editor module is explained", async ({ page }) => {
   let editorRequests = 0; page.on("request", request => { if (request.url().includes("PlannerItineraryBoard")) editorRequests++; });
   await setup(page);
-  await expect(page.locator(".simple-planner-tabs button").nth(1)).toBeDisabled(); expect(editorRequests).toBe(0);
+  await expect(page.locator(".wave-header .wave-my-trips")).toHaveAttribute("href", "/travel-book"); expect(editorRequests).toBe(0);
   await page.route("**/PlannerItineraryBoard*", route => route.abort());
   await page.getByRole("button", { name: "경남도립미술관 add to itinerary", exact: true }).click(); expect(editorRequests).toBe(0);
   await openItinerary(page);
   await expect(page.locator("#itinerary").getByRole("status").filter({ hasText: "itinerary editor couldn't open" })).toBeVisible();
   expect(editorRequests).toBeGreaterThan(0);
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   const remove = page.getByRole("button", { name: "경남도립미술관 added · undo", exact: true });
   await expect(remove).toBeEnabled(); await remove.click(); expect((await records(page)).ids).toEqual([]);
 });

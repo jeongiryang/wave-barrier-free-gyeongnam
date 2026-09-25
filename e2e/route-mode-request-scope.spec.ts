@@ -325,8 +325,8 @@ test("a mode change completed while browsing is already usable when returning to
     : { reply: "자동차 이동으로 바꿀게요.", proposal: { action: "recalculate-route", transport: "car" } } }));
   await singlePublicJourney(page);
   expect(calls).toHaveLength(2);
-  const views = page.getByRole("group", { name: "여행 설계 화면", exact: true });
-  await views.getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  const views = page.locator(".wave-header");
+  await views.locator(".night-search-link").click();
   await page.getByRole("button", { name: "WAVE 여행 가이드 나루와 대화 열기", exact: true }).click();
   const chat = page.getByRole("dialog", { name: "WAVE 여행 가이드 나루와 대화", exact: true });
   await chat.getByRole("tab", { name: "대화", exact: true }).click();
@@ -342,8 +342,8 @@ test("a mode change completed while browsing is already usable when returning to
   await expect(page.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "false");
   await expect(page.locator(".coverage-notice")).toContainText("조회가 끝났습니다.");
   await chat.getByRole("button", { name: "나루 대화 닫기", exact: true }).click();
-  await expect(views.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await views.getByRole("button", { name: /^내 일정/ }).click();
+  await expect(page.locator("#conditions")).toBeVisible();
+  await views.locator(".wave-my-trips").click();
   await ensureMapView(page);
   await expect(page.locator(".route-options")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator(".route-option")).toContainText("car current journey");

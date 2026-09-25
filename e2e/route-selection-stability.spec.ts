@@ -73,7 +73,7 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     // Choose the initial transport before the first map opens. This keeps the
     // real first-map request distinct from the automatic coverage being held;
     // later mode changes now correctly reuse coverage rather than fetch twice.
-    await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+    await page.locator(".wave-header").locator(".wave-my-trips").click();
     await page.locator(".simple-initial-setup").getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("car");
     await openPlannerMap(page);
     await openRouteDetails(page);

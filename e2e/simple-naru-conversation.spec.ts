@@ -114,7 +114,7 @@ async function search(chat: Locator) {
 }
 async function changeFacilities(page: Page, chat: Locator) {
   await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
-  await page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: '여행지 찾기', exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   await page.locator('.simple-facility-trigger').click();
   const chooser = page.getByRole('dialog', { name: '필요한 편의', exact: true });
   await chooser.getByRole('checkbox', { name: '장애인 주차구역', exact: true }).check();

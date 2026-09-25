@@ -53,7 +53,7 @@ export default function PlannerConditionsPanel({ planController: plan, onRegionC
   };
   return <section lang="ko" className="simple-search-controls" id="conditions" aria-label="여행지 검색 조건" aria-busy={!ready}>
     {!ready && <LoadingState>여행 조건을 불러오고 있어요.</LoadingState>}
-    <div className="night-planner-hero"><div className="night-planner-form"><p className="night-eyebrow">WAVE TRAVEL PLANNER</p><h2>당신만의<br/>여행을 설계하세요<span>.</span></h2><p className="night-planner-intro">가고 싶은 곳과 필요한 편의를 고르면<br/>나루가 여행의 다음 걸음을 함께합니다.</p>
+    <div className="night-planner-hero"><div className="night-planner-form"><p className="night-eyebrow">WAVE TRAVEL PLANNER</p><h2>당신만의<br/>여행을 설계하세요</h2><p className="night-planner-intro">가고 싶은 곳과 필요한 편의를 고르면<br/>나루가 여행의 다음 걸음을 함께합니다.</p>
     <ol className="night-planner-steps"><li data-active={!plan.region}><b>1</b>지역 선택</li><li data-active={Boolean(plan.region)}><b>2</b>테마 선택</li><li><b>3</b>경로 설정</li><li><b>4</b>추천 완료</li></ol>
     <div className="simple-search-bar" onChange={event => { if (event.target instanceof HTMLSelectElement) restoreRegionFocus(event.target); }}><label><span>지역</span><select aria-label="여행 지역" value={plan.region} disabled={!ready} onChange={event => onRegionChange(event.target.value)}><option value="" disabled>지역 선택</option>{regions.map(region => <option key={region}>{region}</option>)}</select></label>
       <button type="button" className="simple-facility-trigger" onClick={() => setFacilitiesOpen(true)} disabled={!ready}>필요한 편의{plan.selected.length > 0 ? ` · ${plan.selected.length}개` : ""}<span aria-hidden="true">⌄</span></button>

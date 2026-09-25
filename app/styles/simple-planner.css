@@ -274,7 +274,6 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 .planner-simple .naru-panel[open] { display: flex; }
 .naru-panel .naru-conversation { flex: 1; min-width: 0; width: 100%; display: flex; flex-direction: column; overflow: hidden; }
 .naru-panel .naru-heading { padding: 12px 16px; min-height: 72px; border-bottom: 1px solid var(--line); background: var(--surface); gap: 12px; }
-.naru-panel .naru-heading .naru-avatar { width: 40px; height: 40px; }
 .naru-panel .naru-heading strong { font-size: 1rem; font-weight: 600; }
 .naru-panel .naru-heading small { font-size: .75rem; }
 .naru-panel .naru-heading > button { border: 0; border-radius: 6px; min-width: 44px; min-height: 44px; font-size: 28px; }

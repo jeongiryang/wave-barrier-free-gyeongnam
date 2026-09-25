@@ -45,9 +45,9 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
   for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     await page.goto("/planner");
-    const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
-    await tabs.getByRole("button", { name: "여행지 찾기", exact: true }).click();
-    await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+    const tabs = page.locator(".wave-header");
+    await tabs.locator(".night-search-link").click();
+    await expect(tabs.locator(".wave-my-trips")).toHaveAttribute("href", "/travel-book");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
     await expect(region).toBeEnabled();
     await region.selectOption("창원");
@@ -75,8 +75,8 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
     await itinerary.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
     await page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true }).getByRole("button", { name: "일정에서 빼기", exact: true }).click();
     await expect(page.locator("#itinerary-stop-1001")).toHaveCount(0);
-    await expect(tabs.getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await expect(tabs.getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+    await expect(page.locator("#conditions")).toBeVisible();
+    await expect(tabs.locator(".wave-my-trips")).toHaveAttribute("href", "/travel-book");
     await expect(region).toHaveValue("창원");
     await expect(page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true })).toBeEnabled();
     await expect.poll(() => page.evaluate(() => {
@@ -111,23 +111,23 @@ test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유
   await openItinerary(page, { start: "2026-09-20", end: "2026-09-21" });
   if ((page.viewportSize()?.width || 1440) < 1024) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "지도", exact: true }).click();
   await expect(page.locator("#navigation .leaflet-container")).toBeVisible();
-  const tabs = page.getByRole("group", { name: "여행 설계 화면", exact: true });
-  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toHaveAttribute("aria-pressed", "true");
+  const tabs = page.locator(".wave-header");
+  await expect(page.locator("#itinerary")).toBeVisible();
   const snapshot = () => page.evaluate(() => {
     const values = JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values || {};
     return { places: values["wave-saved-places"], schedule: values["wave-trip-schedule-v1"], facilities: sessionStorage.getItem("wave-session-facilities-v1") };
   });
   const before = await snapshot();
 
-  await tabs.getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await tabs.locator(".night-search-link").click();
   await expect(page.locator("#conditions")).toBeVisible();
   await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeVisible();
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-  const itineraryAction = page.locator(".simple-planner-tabs").getByRole("button", { name: /^내 일정/ });
+  const itineraryAction = page.locator(".wave-header").locator(".wave-my-trips");
   await expect(itineraryAction).toBeInViewport();
   await itineraryAction.click();
   await expect(page.locator("#itinerary")).toBeVisible();
   await expect(page.locator("#navigation .leaflet-container")).toBeVisible();
-  await expect(tabs.getByRole("button", { name: /^내 일정/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page).toHaveURL(/#itinerary$/);
   expect(await snapshot()).toEqual(before);
 });

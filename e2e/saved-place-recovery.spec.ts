@@ -1,3 +1,4 @@
+import { startNewTrip } from './planner-header-fixtures';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, plan } from "./fixtures";
@@ -10,7 +11,7 @@ async function setup(page: Page, locale: "ko" | "en", coordinates: { mapX: strin
   await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
 }
 async function itinerary(page: Page) {
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  await page.locator(".wave-header").locator(".wave-my-trips").click();
   await expect(page.locator("#itinerary")).toBeVisible();
 }
 async function map(page: Page) {
@@ -191,19 +192,19 @@ for (const locale of ["ko", "en"] as const) {
       await page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true }).press("Enter");
       await expect.poll(() => requested).toBe(1);
       await closeNaruTool(page);
-      await page.getByRole("button", { name: "새 여행", exact: true }).click();
+      await startNewTrip(page);
       await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
       await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("하동");
       const fresh = await snapshot(page);
       expect(fresh.identity.id).not.toBe(before.identity.id);
       expect(fresh.ids).toEqual([]);
       release();
-      const tripTab = page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ });
-      await expect(tripTab).toBeDisabled();
+      const tripTab = page.locator(".wave-header").locator(".wave-my-trips");
+      await expect(tripTab).toHaveAttribute("href", "/travel-book");
       await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
       expect((await snapshot(page)).ids).toEqual([]);
       await page.reload();
-      await expect(tripTab).toBeDisabled();
+      await expect(tripTab).toHaveAttribute("href", "/travel-book");
       await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("하동");
       await expect(page.locator("#itinerary")).toHaveCount(0);
       expect((await snapshot(page)).identity.id).toBe(fresh.identity.id);

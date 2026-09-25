@@ -16,7 +16,7 @@ export default function CommunityPostArticle({ detail }: { detail: ReturnType<ty
       <div className="community-card-meta"><span className={`category-${post.category}`}>{COMMUNITY_CATEGORY_LABELS[post.category]}</span><time dateTime={new Date(post.createdAt).toISOString()}>{communityDate(post.createdAt)}</time></div>
       <h1>{post.title}</h1>
       <div className="detail-byline"><strong>{post.authorName}</strong>{post.updatedAt > post.createdAt && <small>수정됨</small>}</div>
-      {(post.region || post.placeName) && <Link className="detail-place" href={`/planner?region=${encodeURIComponent(post.region || "창원")}`}><span aria-hidden="true">⌖</span><div><small>연결된 여행지</small><strong>{post.region}{post.placeName ? `${post.region ? " · " : ""}${post.placeName}` : ""}</strong></div><i aria-hidden="true">→</i></Link>}
+      {(post.region || post.placeName) && <Link className="detail-place" href={`/planner?region=${encodeURIComponent(post.region || "창원")}`}><div><small>연결된 여행지</small><strong>{post.region}{post.placeName ? `${post.region ? " · " : ""}${post.placeName}` : ""}</strong></div><i aria-hidden="true">→</i></Link>}
     </header>
     <div className="detail-content">{post.content.split(/\n{2,}/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
     <CommunityAccessibilityReport post={post} />

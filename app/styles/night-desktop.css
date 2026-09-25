@@ -71,8 +71,9 @@ html body main.wave-night:is(.community-page,.festival-page,.planner-page),html 
 .night-banner h1 em { font-style:normal; color:#36d9ff; background:linear-gradient(100deg,#d29aff,#76b4ff,#00dfff); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
 .night-banner-copy>p { color:#e0eaf6; font-size:14px; margin:0 0 15px; line-height:1.65; }
 .night-benefits { display:flex; width:max-content; padding:9px 14px; border:1px solid #3a6c95; border-radius:12px; background:#03162ac7; backdrop-filter:blur(6px); }
-.night-benefits>div { display:flex; align-items:center; gap:12px; padding:0 19px; border-right:1px solid #34516c; }
-.night-benefits>div:first-child { padding-left:0; }.night-benefits>div:last-child { padding-right:0; border:0; }
+.night-benefits>div { display:flex; align-items:center; gap:12px; min-width:0; padding:0; border:0; }
+.night-benefits { gap:16px 28px; }
+.night-benefits svg { flex-shrink:0; }
 .night-benefits svg { color:#00c8ff; filter:drop-shadow(0 0 5px #008bff60); }
 .night-benefits strong,.night-benefits small { display:block; font-size:11px; line-height:1.7; color:#eef5ff; }
 .night-benefits small { font-weight:400; color:#bccde4; }
