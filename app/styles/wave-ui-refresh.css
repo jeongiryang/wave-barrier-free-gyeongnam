@@ -371,3 +371,13 @@ html:root body .naru-conversation-footer[data-step="0"] .naru-story-dialogue{pos
 html:root body .wave-night .night-festival-preview{container-type:inline-size}
 html:root body .wave-night .night-festival-preview-cards :is(strong,small,span){max-width:100%;overflow-wrap:anywhere}
 @container(max-width:560px){html:root body .wave-night .night-festival-preview-cards{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(180px,70%);overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:8px}html:root body .wave-night .night-festival-preview-cards>a{scroll-snap-align:start}}
+/* A compact centered introduction leaves more of the destination visible. */
+html:root body .landing-page.horizon-edition.simple-landing.night-landing .landing-opening .landing-hero.landing-hero-split{justify-content:center;text-align:center}
+html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy{width:100%;max-width:600px;margin-inline:auto;text-align:center}
+html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy h1{font-size:clamp(34px,3.7vw,52px);line-height:1.25;letter-spacing:-.04em;margin:0 0 20px}
+html:root body .landing-page.horizon-edition.night-landing .landing-hero-description{font-size:16px;line-height:1.7;margin:0 auto 24px;max-width:32em}
+html:root body .landing-page.horizon-edition.night-landing .night-hero-search{width:min(100%,380px);margin-inline:auto}
+html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy .landing-actions{width:min(100%,220px);margin:14px auto 0}
+html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy .landing-actions a{font-size:14px;min-height:48px;padding:10px 18px}
+html:root body .landing-page .night-hero-motion{top:-50px;right:calc(50% - 22px)}
+@media(max-width:600px){html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy h1{font-size:32px}html:root body .landing-page.horizon-edition.night-landing .landing-hero-description{font-size:14px}}

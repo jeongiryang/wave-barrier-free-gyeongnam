@@ -14,9 +14,14 @@ export function AwardPhotoProvider({ children }: { children: ReactNode }) {
       if (!response.ok) return;
       const data = await response.json();
       if (controller.signal.aborted || !Array.isArray(data.awards)) return;
-      setPhotos(data.awards.filter((p: Photo) => p && typeof p.address === 'string'
+      const pool: Photo[] = data.awards.filter((p: Photo) => p && typeof p.address === 'string'
         && /경상남도|경남/.test(p.address) && p.source === '관광공모전 수상작'
-        && typeof p.image === 'string' && /^https:\/\/tong\.visitkorea\.or\.kr\//.test(p.image)).slice(0, 8));
+        && typeof p.image === 'string' && /^https:\/\/tong\.visitkorea\.or\.kr\//.test(p.image)).slice(0, 8);
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      setPhotos(pool);
     }).catch(() => { /* Keep the readable gradient when the provider is unavailable. */ });
     return () => controller.abort();
   }, []);
@@ -25,10 +30,10 @@ export function AwardPhotoProvider({ children }: { children: ReactNode }) {
 
 export default function AwardPanorama({ closing = false }: { closing?: boolean }) {
   const photos = useContext(Photos);
-  return <PhotoPanorama photos={photos} closing={closing} />;
+  return <PhotoPanorama photos={photos} closing={closing} shuffle intervalMs={4500} />;
 }
 
-export function PhotoPanorama({ photos, closing = false, credit = true }: { photos: Photo[]; closing?: boolean; credit?: boolean }) {
+export function PhotoPanorama({ photos, closing = false, credit = true, shuffle = false, intervalMs = 9000 }: { photos: Photo[]; closing?: boolean; credit?: boolean; shuffle?: boolean; intervalMs?: number }) {
   const root = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(closing ? 2 : 0);
   const [visible, setVisible] = useState(false);
@@ -54,10 +59,14 @@ export function PhotoPanorama({ photos, closing = false, credit = true }: { phot
   useEffect(() => {
     if (reduced || !visible || available.length < 2) return;
     const timer = setInterval(() => {
-      if (!document.hidden && ready.includes(available[(active + 1) % available.length].image)) setIndex(active + 1);
-    }, 9000);
+      if (document.hidden) return;
+      if (shuffle) {
+        const candidates = available.map((photo, i) => ({ photo, i })).filter(({ photo, i }) => i !== active && ready.includes(photo.image));
+        if (candidates.length) setIndex(candidates[Math.floor(Math.random() * candidates.length)].i);
+      } else if (ready.includes(available[(active + 1) % available.length].image)) setIndex(active + 1);
+    }, intervalMs);
     return () => clearInterval(timer);
-  }, [reduced, visible, available, active, ready]);
+  }, [reduced, visible, available, active, ready, shuffle, intervalMs]);
   return <div ref={root} className="award-panorama" data-paused={reduced || !visible}>
     <div className="award-panorama-images" aria-hidden="true">
       {available.map((photo, i) => <img key={photo.image} src={photo.image} alt="" decoding="async"
