@@ -13,7 +13,7 @@ test('landing photographs rotate promptly without consecutive repeats and respec
   await page.addInitScript(() => sessionStorage.setItem('wave-arrival-session-v1', 'done'));
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
-  for (const section of ['.landing-opening', '.landing-finale']) {
+  for (const section of ['.landing-opening']) {
     const panorama = page.locator(`${section} .award-panorama`);
     await panorama.scrollIntoViewIfNeeded();
     await expect(panorama).toHaveAttribute('data-paused', 'false');
@@ -22,9 +22,11 @@ test('landing photographs rotate promptly without consecutive repeats and respec
     const first = await panorama.locator('img.is-current').getAttribute('src');
     await expect(panorama.locator('img.is-current')).not.toHaveAttribute('src', first!, { timeout: 6500 });
   }
+  await expect(page.locator('.landing-finale img, .landing-finale .award-panorama-credit')).toHaveCount(0);
+  await expect(page.locator('.night-feature-content #naru')).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  const current = page.locator('.landing-finale img.is-current');
-  await expect(page.locator('.landing-finale .award-panorama')).toHaveAttribute('data-paused', 'true');
+  const current = page.locator('.landing-opening img.is-current');
+  await expect(page.locator('.landing-opening .award-panorama')).toHaveAttribute('data-paused', 'true');
   const still = await current.getAttribute('src');
   await page.waitForTimeout(4800);
   await expect(current).toHaveAttribute('src', still!);

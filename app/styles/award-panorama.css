@@ -9,20 +9,20 @@
 .award-panorama-credit span{max-width:420px;text-shadow:0 1px 5px #000}
 .award-panorama-credit small{display:block;margin-top:5px;line-height:1.6;color:#fff}
 .simple-landing .landing-finale .landing-cta,.simple-landing .landing-finale .simple-footer{background:transparent!important;color:#fff}
-.landing-finale .award-panorama:after{background:linear-gradient(#04132188,#041321bb)}
-.simple-landing .landing-finale .simple-footer{padding-bottom:112px}
+
+
 .simple-landing .landing-finale .simple-footer :is(p,small,a){color:#eaf2ff}
 .simple-landing .landing-hero{padding-bottom:110px}
 .simple-landing .night-hero-signature{display:none}
 @keyframes award-drift{from{transform:translateX(-2%)}to{transform:translateX(2%)}}
-@media(max-width:600px){.award-panorama-credit{bottom:18px;left:20px;right:20px;font-size:11px}.award-panorama-credit span{max-width:260px}.award-panorama:after{background:linear-gradient(90deg,#03101dd9,#03101d77)}.simple-landing .landing-finale .simple-footer{padding-bottom:136px}}
+@media(max-width:600px){.award-panorama-credit{bottom:18px;left:20px;right:20px;font-size:11px}.award-panorama-credit span{max-width:260px}.award-panorama:after{background:linear-gradient(90deg,#03101dd9,#03101d77)}}
 @media(prefers-reduced-motion:reduce){.award-panorama-images img{animation:none;transition:none}}
 html body .landing-page.night-landing .landing-opening .landing-hero-split{background:transparent;padding-bottom:110px;isolation:auto}
 html:root body .wave-night .landing-opening .wave-header{background:transparent;border-bottom-color:#ffffff26;backdrop-filter:none}
 .award-panorama-credit{justify-content:flex-start;text-align:left;padding-right:60px}
 html:root body .landing-page.horizon-edition.simple-landing.night-landing .landing-opening .landing-hero.landing-hero-split{background:transparent;padding-bottom:130px;isolation:auto}
-.landing-finale .award-panorama-credit{bottom:110px}
-.simple-landing .landing-finale .simple-footer{padding-bottom:220px}
+
+
 .night-photo-scene{position:relative;isolation:isolate;width:100%;max-width:none;background:#071725}
 html:root body .wave-night :is(.landing-opening,.night-photo-opening) .wave-header{background:transparent;border:0;box-shadow:none;backdrop-filter:none}
 html:root body .wave-night .night-photo-opening .night-banner{background:transparent;isolation:auto;min-height:300px;height:auto;padding-bottom:65px}
@@ -44,3 +44,11 @@ html:root body .wave-night .night-photo-footer :is(.community-guides,.night-fest
 .night-photo-footer .award-panorama:after{background:linear-gradient(#041321b8,#041321a8)}
 html:root body .wave-night .night-photo-footer .night-festival-courses header p{color:#edf5ff}
 html:root body .wave-night .night-photo-footer .night-course-card{background:#071725b8}
+
+/* Keep navigation reachable beyond the opening photograph. */
+html:root body .landing-page .landing-opening{overflow:visible;padding-top:76px}
+html:root body .landing-page .landing-opening .wave-header{position:fixed;top:0;left:0;background:#071725}
+@media(max-width:600px){html:root body .landing-page .landing-opening{padding-top:96px}}
+
+/* Contrast follows the letters without changing photograph exposure. */
+html:root body .landing-opening .landing-hero-copy :is(h1,.landing-hero-description){paint-order:stroke fill;-webkit-text-stroke:2.5px #142d43}

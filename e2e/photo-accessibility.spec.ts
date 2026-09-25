@@ -33,20 +33,29 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(region).toHaveText("창원");
     await expect(region).toHaveAttribute("lang", "ko");
     const photoBounds = (await photo.boundingBox())!, regionBounds = (await region.boundingBox())!;
-    expect(regionBounds.x >= photoBounds.x + photoBounds.width || regionBounds.y >= photoBounds.y + photoBounds.height
-      || regionBounds.x + regionBounds.width <= photoBounds.x || regionBounds.y + regionBounds.height <= photoBounds.y).toBe(true);
-    const contrast = await region.evaluate(element => {
-      const style = getComputedStyle(element);
-      const parse = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
-      const fg = parse(style.color), bg = parse(style.backgroundColor);
+    // Full-background cards place the region label over the photograph.
+    expect(regionBounds.x).toBeGreaterThanOrEqual(photoBounds.x);
+    expect(regionBounds.y).toBeGreaterThanOrEqual(photoBounds.y);
+    expect(regionBounds.x + regionBounds.width).toBeLessThanOrEqual(photoBounds.x + photoBounds.width + 1);
+    expect(regionBounds.y + regionBounds.height).toBeLessThanOrEqual(photoBounds.y + photoBounds.height + 1);
+    const foreground = await region.evaluate(element => getComputedStyle(element).color);
+    // Sample the rendered background, including the photo and its pseudo-element
+    // scrim. An ancestry-only CSS calculation misses those painted layers.
+    const background = await region.screenshot({ style: '.simple-place-city { color: transparent !important; text-shadow: none !important; }' });
+    const contrast = await page.evaluate(async ({ foreground, screenshot }) => {
+      const bitmap = new Image(); bitmap.src = `data:image/png;base64,${screenshot}`; await bitmap.decode();
+      const canvas = document.createElement('canvas'); canvas.width = bitmap.width; canvas.height = bitmap.height;
+      const context = canvas.getContext('2d')!; context.drawImage(bitmap, 0, 0);
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+      const fg = (foreground.match(/[\d.]+/g) || []).map(Number);
       const luminance = (rgb: number[]) => rgb.slice(0, 3).map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((s, v, i) => s + v * [.2126, .7152, .0722][i], 0);
-      // Composite transparent labels over their actual card and page surfaces.
-      const layers: number[][] = [bg];
-      for (let parent = element.parentElement; parent; parent = parent.parentElement) layers.unshift(parse(getComputedStyle(parent).backgroundColor));
-      const background = layers.reduce((under, over) => over.slice(0, 3).map((v, i) => v * (over[3] ?? 1) + under[i] * (1 - (over[3] ?? 1))), [255, 255, 255]);
-      const f = luminance(fg), b = luminance(background);
-      return (Math.max(f, b) + .05) / (Math.min(f, b) + .05);
-    });
+      const f = luminance(fg); let minimum = Infinity;
+      for (let i = 0; i < pixels.length; i += 4) {
+        const b = luminance([pixels[i], pixels[i + 1], pixels[i + 2]]);
+        minimum = Math.min(minimum, (Math.max(f, b) + .05) / (Math.min(f, b) + .05));
+      }
+      return minimum;
+    }, { foreground, screenshot: background.toString('base64') });
     expect(contrast).toBeGreaterThanOrEqual(4.5);
     await expect(image).toHaveAttribute("alt", en ? "경남도립미술관" : "경남도립미술관 관광사진");
     await expect(image).toHaveAttribute("lang", "ko");

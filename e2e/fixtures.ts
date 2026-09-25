@@ -61,6 +61,14 @@ const weather = {
 const transparentSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="520"><rect width="800" height="520" fill="#d6edf5"/><path d="M0 350 Q200 250 400 350 T800 350 V520 H0Z" fill="#087aa5"/></svg>';
 
 export async function mockPublicShellApi(page: Page) {
+  // Read-only photo decoration is allowed on public pages, but fixture tests
+  // must not depend on configured production providers or network credentials.
+  await page.route("**/api/wave?*", requestRoute => {
+    const action = new URL(requestRoute.request().url()).searchParams.get("action");
+    if (action === "photo") return requestRoute.fulfill({ json: { photo: null, status: "empty" } });
+    if (action === "enrich") return requestRoute.fulfill({ json: { generatedAt: plan.generatedAt, visitor: { total: 0, byType: {}, startYmd: "", endYmd: "" }, demand: [], camping: [], pet: [], wellness: [], medical: [], language: [], awards: [], water: [], rests: [], events: [], lodging: [], statuses: [] } });
+    return requestRoute.fallback();
+  });
   await page.route("**/api/auth/get-session", (requestRoute) => requestRoute.fulfill({
     status: 200,
     contentType: "application/json",
@@ -175,6 +183,9 @@ export async function mockPlannerApi(page: Page, options: { failPlan?: boolean; 
         explorationPlaces: responsePlaces,
       } : { ...plan, crowd: { ...plan.crowd, rate: options.crowdRate ?? plan.crowd.rate }, audio: options.audio ?? plan.audio, places: responsePlaces, stops: plan.stops.map(stop => ({ ...stop, ...options.placeCoordinate })) };
       return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(responsePlan) });
+    }
+    if (url.pathname === "/api/wave" && action === "photo") {
+      return requestRoute.fulfill({ json: { photo: null, status: "empty" } });
     }
     if (url.pathname === "/api/wave" && action === "spot-photo") {
       return requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ image: "", status: "empty" }) });

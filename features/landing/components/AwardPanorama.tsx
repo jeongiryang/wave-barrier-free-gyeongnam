@@ -52,6 +52,10 @@ export function PhotoPanorama({ photos, closing = false, credit = true, shuffle 
     const query = matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => setReduced(query.matches);
     update(); query.addEventListener('change', update);
+    if (!window.IntersectionObserver) {
+      // A static, readable photograph is preferable to a crashed page.
+      return () => query.removeEventListener('change', update);
+    }
     const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
     if (root.current) observer.observe(root.current);
     return () => { query.removeEventListener('change', update); observer.disconnect(); };

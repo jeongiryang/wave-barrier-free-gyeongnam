@@ -46,8 +46,8 @@ html body .wave-night .place-arrival-preview nav button[aria-pressed=true]{backg
 html body .wave-night .evidence-coverage-card li{background:var(--surface);color:var(--ink)}
 html body .wave-night .wave-footer-tools>a{min-width:44px;min-height:44px}
 html body .wave-night .night-planner-region-map .region-picker-list button{min-width:44px}
-html body .night-landing .night-feature-details .landing-feature-card{background:#10253b;color:#eef5ff}
-html body .night-landing .night-feature-details .landing-feature-card :is(h3,p){color:inherit}
+html body .night-landing .night-feature-content .landing-feature-card{background:#10253b;color:#eef5ff}
+html body .night-landing .night-feature-content .landing-feature-card :is(h3,p){color:inherit}
 @media(max-width:959px){html body .wave-night .night-benefits{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:100%}html body .wave-night .night-sortbar{flex-wrap:wrap;gap:8px}}
 @media(max-width:600px){html body .wave-night .simple-region-grid{grid-template-columns:repeat(3,minmax(0,1fr))}html body .wave-night .night-search-link{display:none}html body .wave-night .night-wave-mark{width:38px}html body .wave-night .wave-wordmark{gap:6px}}
 html body .wave-night :is(.place-modal,.region-change-dialog,.reference-info-card,.access-badge,.place-community-empty,.transport-data-panel,.transport-details,.transport-live-summary,.itinerary-route-coverage,.easy-trip-card,.travel-profile-card,.trip-budget,.trip-decision-receipt){background:var(--paper);color:var(--ink);border-color:var(--line)}

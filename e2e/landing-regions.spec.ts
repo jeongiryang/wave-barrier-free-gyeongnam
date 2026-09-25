@@ -1,3 +1,4 @@
+import { expectOnlyLandingReads } from "./landing-contract";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
 import { openLandingTools, prepareStory, storyReady, chapterIds, firstRegions, allRegions, expectUsableTarget, expectNoOverflow } from "./landing-contract";
@@ -56,7 +57,7 @@ test("regional entry: all 18 landing links and the planner selector use the same
 });
 
 
-test("landing: labelled itinerary and conversation examples preserve restored-section order without provider requests", async ({ page }) => {
+test("landing: labelled itinerary and conversation examples preserve restored-section order without trip requests", async ({ page }) => {
   const writes: string[] = [], requests: string[] = [];
   page.on("request", request => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method())) writes.push(request.url());
@@ -74,7 +75,7 @@ test("landing: labelled itinerary and conversation examples preserve restored-se
   await page.locator("#naru").scrollIntoViewIfNeeded();
   await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
   await expect(page.locator(".simple-naru-example").locator("input,button,form,textarea,[contenteditable=true]")).toHaveCount(0);
-  expect(writes).toEqual([]); expect(requests).toEqual([]);
+  expect(writes).toEqual([]); expectOnlyLandingReads(requests);
 });
 
 test("landing: reduced motion keeps every section readable through forward scrolling, return and reload", async ({ page }) => {

@@ -62,17 +62,7 @@ html:root body .wave-night .naru-conversation-footer .simple-footer nav{display:
 html:root body .wave-night .naru-conversation-footer .simple-footer nav a{min-height:44px;display:inline-flex;align-items:center}
 html:root body .wave-night .naru-conversation-footer .simple-footer>small{align-self:flex-end;text-align:right;max-width:100%;font-size:.75rem!important;line-height:1.6;margin-top:12px}
 html:root body .wave-night .naru-story-disclosure{width:94%;max-width:1200px;margin:0 auto;padding:0 0 28px;text-align:right;font-size:.75rem;color:#405b71;line-height:1.6}
-/* Native select semantics and keyboard controls, with a styled browser picker. */
-@supports (appearance:base-select){
-html:root body :is(.wave-night,dialog,.account-popover) select:not([multiple]):not([size]),html:root body :is(.wave-night,dialog,.account-popover) select:not([multiple]):not([size])::picker(select){appearance:base-select}
-html:root body select::picker(select){background:#132e45;color:#edf6ff;border:1px solid #587b9a;border-radius:18px;padding:8px;box-shadow:0 16px 48px #0005;max-height:min(55dvh,420px);overflow:auto}
-html:root body select option{padding:10px 14px;min-height:44px;border-radius:10px;cursor:pointer;font-size:14px;line-height:1.5}
-html:root body select option:checked{background:linear-gradient(115deg,#146f9e,#3659c0,#6549b5);color:#fff;font-weight:700}
-html:root body select option:hover,html:root body select option:focus-visible{background:#294d69;color:#fff;outline:2px solid #88d9ff;outline-offset:-2px}
-html:root body select option:disabled{color:#aac0d3;cursor:default}
-html:root body select::picker-icon{color:#8ddcff;transition:transform .18s}
-html:root body select:open::picker-icon{transform:rotate(180deg)}
-}
+/* Keep native select keyboard navigation and operating-system picker semantics. */
 html:root body :is(.wave-night,.wave-support-panel) :is(.account-popover,.simple-share-menu,.preference-panel){border:1px solid #587b9a;border-radius:18px;background:#132e45;color:#edf6ff;box-shadow:0 12px 36px #0004;padding:12px}
 html:root body .wave-night .account-popover :is(a,button){border-radius:10px;color:#edf6ff;min-height:44px}
 html:root body .wave-night .account-popover :is(a,button):hover{background:#294d69}
@@ -85,7 +75,7 @@ html:root body .wave-night .simple-facility-grid label{border-radius:14px;paddin
 html:root body .wave-night .simple-facility-grid label:has(input:checked){background:#254273;border-color:#a6c4ff}
 @media(max-width:600px){.planner-welcome-title img{width:68px;height:46px}.planner-welcome-title{gap:8px}html:root body .wave-night .planner-welcome-header .simple-planner-heading{gap:10px;flex-wrap:wrap}.planner-welcome-header .simple-planner-actions{width:100%;justify-content:flex-end}html:root body .wave-night .naru-conversation-footer .simple-footer nav{gap:4px 16px}html:root body .wave-night .naru-conversation-footer .simple-footer>small,html:root body .wave-night .naru-story-disclosure{padding-inline:58px;box-sizing:border-box}}
 
-@supports (appearance:base-select){html:root body select option:disabled{background:transparent;font-weight:400}}
+
 html:root body .wave-night .account-popover .preference-trigger{background:#213f58;color:#edf6ff;border:1px solid #587b9a}
 html:root body .wave-night .account-popover .preference-trigger:hover{background:#315573}
 
@@ -267,7 +257,7 @@ html:root body .wave-night :is(.simple-place-photo,.community-story-cover,.rich-
 html:root body .wave-night :is(.simple-place-photo,.community-story-cover,.festival-card-photo,.rich-card>.smart-spot-image)::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#04132130 0%,#041321bd 35%,#041321f5 100%)}
 html:root body .wave-night .simple-place-copy{width:100%;min-width:0;padding:0}
 html:root body .wave-night .simple-place-row .simple-place-add{align-self:stretch;width:100%;min-height:44px;border-radius:999px;background:linear-gradient(115deg,#08769e,#285dd5 54%,#6840ce);color:#fff;border:1px solid #83b7ec}
-html:root body .wave-night .community-list article>a{position:relative;display:flex;flex-direction:column;min-height:360px;padding:100px 22px 22px;gap:12px;box-sizing:border-box}
+html:root body .wave-night .community-list:not([data-layout=compact]) article>a{position:relative;display:flex;flex-direction:column;min-height:360px;padding:100px 22px 22px;gap:12px;box-sizing:border-box}
 html:root body .wave-night .community-list:not([data-layout=compact]) .community-story-cover{position:absolute;inset:0;z-index:-1;width:100%;height:100%;min-height:0;margin:0;padding:0;border-radius:0;display:block}
 html:root body .wave-night .community-list:not([data-layout=compact]) .community-story-cover :is(.smart-spot-image,img){width:100%;height:100%;min-height:0;aspect-ratio:auto}
 html:root body .wave-night .community-list :is(h3,p,footer,.community-card-meta,.community-place-tag){margin:0;line-height:1.6}
@@ -287,7 +277,7 @@ html:root body .wave-night :is(.simple-place-copy,.community-list,.festival-card
 html:root body .wave-night .festival-period-help{color:#bfd1e5;margin:8px 0 20px;line-height:1.6;font-size:14px}
 html:root body .wave-night .festival-period::before{content:none}
 html:root body .wave-night :is(.simple-place-photo,.community-story-cover,.rich-card>.smart-spot-image) .smart-image-fallback{opacity:.2}
-@media(max-width:600px){html:root body .wave-night .community-list article>a{min-height:340px;padding:90px 18px 18px}html:root body .wave-night.festival-page .festival-card{min-height:350px}html:root body .wave-night .simple-place-row{min-height:280px;padding:90px 18px 18px}}
+@media(max-width:600px){html:root body .wave-night .community-list:not([data-layout=compact]) article>a{min-height:340px;padding:90px 18px 18px}html:root body .wave-night.festival-page .festival-card{min-height:350px}html:root body .wave-night .simple-place-row{min-height:280px;padding:90px 18px 18px}}
 @media(max-width:600px){html:root body .wave-night .night-photo-opening .night-banner{flex-direction:column;align-items:stretch;justify-content:center}html:root body .wave-night .night-banner-note{position:static;align-self:flex-end;max-width:calc(100% - 32px);margin:0 16px 18px;font-size:18px;transform:none;text-align:right}html:root body .wave-night .night-banner-copy>p br{display:initial}}
 html:root body .naru-dialogue-profile[data-speaker=naru] .naru-dialogue-portrait{background-size:300% auto;background-position:78% 38%}
 html:root body .wave-night.festival-page .festival-state{top:12px;left:12px;bottom:auto;right:auto;max-width:calc(100% - 24px)}
@@ -327,11 +317,13 @@ html:root body .wave-night .night-photo-footer>.community-guides{width:100%;marg
 html:root body .wave-night .night-festival-courses{width:100%;margin:0;padding:0}
 html:root body .wave-night .night-festival-courses>div{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
 html:root body .wave-night .night-course-map{min-height:220px;height:auto}
-html:root body .landing-page .landing-opening,html:root body .landing-page .landing-finale{min-height:max(760px,100svh);display:flex;flex-direction:column;box-sizing:border-box}
+html:root body .landing-page .landing-opening{min-height:max(760px,100svh);display:flex;flex-direction:column;box-sizing:border-box}
 html:root body .landing-page.horizon-edition.simple-landing.night-landing .landing-opening .landing-hero.landing-hero-split{flex:1;min-height:0;display:flex;align-items:center;padding-block:48px 100px}
-html:root body .landing-page .landing-finale .landing-cta{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:48px 24px 24px}
-html:root body .landing-page .landing-finale .simple-footer{padding:16px 24px 88px;margin:0 auto}
-@media(max-width:700px){html:root body .wave-night{--wave-opening-height:840px}html:root body .wave-night .naru-story-art{height:100px}html:root body .wave-night .naru-conversation-footer{padding-top:20px}html:root body .wave-night .naru-story-disclosure{padding-bottom:60px}html:root body .wave-night .night-festival-courses>div{display:flex;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:12px}html:root body .wave-night .night-festival-courses>div>a{flex:0 0 78%;scroll-snap-align:start;min-height:200px}html:root body .wave-night .night-photo-footer{padding:24px 16px}html:root body .landing-page .landing-opening,html:root body .landing-page .landing-finale{min-height:max(840px,100svh)}html:root body .landing-page .landing-finale .simple-footer{padding-bottom:100px}}
+html:root body .landing-page .landing-finale{min-height:0;height:auto;padding-block:64px;background:#071725}
+html:root body .landing-page .landing-finale .landing-cta{min-height:0;padding:0 24px 32px}
+html:root body .landing-page .landing-finale h2{font-size:clamp(32px,4vw,48px);margin:20px 0}
+html:root body .landing-page .landing-finale .simple-footer{padding:16px 24px 0;margin:0 auto}
+@media(max-width:700px){html:root body .wave-night{--wave-opening-height:840px}html:root body .wave-night .naru-story-art{height:100px}html:root body .wave-night .naru-conversation-footer{padding-top:20px}html:root body .wave-night .naru-story-disclosure{padding-bottom:60px}html:root body .wave-night .night-festival-courses>div{display:flex;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:12px}html:root body .wave-night .night-festival-courses>div>a{flex:0 0 78%;scroll-snap-align:start;min-height:200px}html:root body .wave-night .night-photo-footer{padding:24px 16px}html:root body .landing-page .landing-opening{min-height:max(840px,100svh)}html:root body .landing-page .landing-finale{padding-block:40px}}
 
 html:root body .wave-night .night-festival-courses>div:has(.night-course-empty){display:grid;grid-template-columns:1fr 1fr}
 html:root body .wave-night .night-course-empty{grid-column:auto;min-height:44px;white-space:normal;line-height:1.7}
@@ -381,3 +373,7 @@ html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy .l
 html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy .landing-actions a{font-size:14px;min-height:48px;padding:10px 18px}
 html:root body .landing-page .night-hero-motion{top:-50px;right:calc(50% - 22px)}
 @media(max-width:600px){html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy h1{font-size:32px}html:root body .landing-page.horizon-edition.night-landing .landing-hero-description{font-size:14px}}
+
+html:root body .wave-night dialog.naru-guidance-settings{background:var(--paper);color:var(--ink);border-color:var(--line);color-scheme:light}
+html:root body .naru-panel .naru-guidance-settings label:has(:checked){background:#e8f1ff;border-color:#3659ba}
+html:root body .naru-panel.naru-workspace .layer-tabs button[aria-selected=true],html:root body .naru-panel.naru-workspace .layer-tabs button[aria-selected=true] :is(b,small){color:var(--on-accent)}

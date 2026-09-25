@@ -21,9 +21,11 @@ function savedSnapshot() {
   } catch { return 0; }
 }
 
-export default function WaveHeader({ current, savedCount, onSaved, onSearch, onNew, className = "" }: {
+export default function WaveHeader({ current, savedCount, savedReady = true, onSaved, onSearch, onNew, className = "" }: {
   current: "intro" | "planner" | "community" | "travel-book" | "festivals" | "other";
   savedCount?: number;
+  // Do not expose the empty-trip link until device restoration determines its destination.
+  savedReady?: boolean;
   onSaved?: () => void;
   onSearch?: () => void;
   onNew?: () => void;
@@ -60,7 +62,7 @@ export default function WaveHeader({ current, savedCount, onSaved, onSearch, onN
       <Link href="/festivals" aria-current={current === "festivals" ? "page" : undefined}><NavIcon name="festivals" /><span>{en ? "Festivals" : "축제"}</span></Link>
       <Link href="/community" aria-current={current === "community" ? "page" : undefined}><NavIcon name="community" /><span>{en ? "Community" : "커뮤니티"}</span></Link>
     </nav>
-    <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}>{night && <><Link className="night-search-link" href="/planner#places" onClick={event => { if (onSearch && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onSearch(); } }} aria-label="여행지 검색"><NightIcon name="search"/></Link></>}<WaveHeaderTools onNew={onNew} />{onSaved ? <button className="wave-my-trips" type="button" onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
+    <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}>{night && <><Link className="night-search-link" href="/planner#places" onClick={event => { if (onSearch && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onSearch(); } }} aria-label="여행지 검색"><NightIcon name="search"/></Link></>}<WaveHeaderTools onNew={onNew} />{!savedReady || onSaved ? <button className="wave-my-trips" type="button" disabled={!savedReady} onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
       : <Link className="wave-my-trips" href="/travel-book" aria-current={current === "travel-book" ? "page" : undefined} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</Link>}</div>
   </header>;
 }

@@ -1,3 +1,4 @@
+import { expectOnlyLandingReads } from "./landing-contract";
 import { test, expect } from "@playwright/test";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
 import { openLandingTools, prepareStory, storyReady, chapterIds, firstRegions } from "./landing-contract";
@@ -30,7 +31,7 @@ test("the restored-section registry matches actual reading order without replaci
   expect(await page.evaluate(() => ({ ...localStorage }))).toEqual(state);
 });
 
-test("the travel narrative and labelled Naru example remain free of provider requests or trip writes", async ({ page }) => {
+test("the travel narrative and labelled Naru example remain free of trip requests or writes", async ({ page }) => {
   const writes: string[] = [], requests: string[] = [];
   page.on("request", request => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method())) writes.push(request.url());
@@ -57,7 +58,7 @@ test("the travel narrative and labelled Naru example remain free of provider req
   await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAttribute("href", "/planner?assistant=naru");
   expect(await page.evaluate(() => ({ ...localStorage }))).toEqual(state);
   expect(writes).toEqual([]);
-  expect(requests).toEqual([]);
+  expectOnlyLandingReads(requests);
 });
 
 test("all eighteen regional cards retain the exact original photo and destination", async ({ page }) => {

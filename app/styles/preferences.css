@@ -67,3 +67,6 @@ html[data-theme="dark"] .preference-row select,html[data-theme="dark"] .preferen
 .preference-text-scale label:has(:focus-visible) { outline: 3px solid #ffb800; outline-offset: 3px; }
 .preference-text-scale input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 html[data-theme="dark"] .preference-text-scale label:not(:has(:checked)) { border-color: #31596a; background: #0a2d3c; }
+
+/* The support surface stays navy in both themes; pair its select text and fill. */
+html:root body .wave-support-panel .preference-row select { color:#edf6ff; background:#16334b; border-color:#63839d; color-scheme:dark; }

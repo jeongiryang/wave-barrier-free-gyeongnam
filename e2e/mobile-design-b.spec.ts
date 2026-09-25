@@ -15,20 +15,23 @@ async function setup(page: Page) {
 for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile reference ${route}: compact header and functional content`, async ({ page }, info) => {
   await setup(page); await page.goto(route);
   if (route === '/') await storyReady(page);
-  await expect(page.locator('.wave-header')).toHaveCSS('height', '60px');
+  // The approved mobile header has a 44px action row and a navigation row.
+  await expect(page.locator('.wave-header')).toHaveCSS('height', '96px');
   for (const width of [320, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   }
   await page.setViewportSize({ width: 390, height: 844 });
   if (route === '/') {
-    await expect(page.locator('.landing-hero-landscape')).toHaveCSS('position', 'relative');
-    await expect(page.locator('#landing-title')).toHaveCSS('font-size', '34px');
+    await expect(page.locator('.landing-opening .award-panorama')).toBeVisible();
+    await expect(page.locator('.landing-hero-copy h1')).toHaveCSS('font-size', '32px');
     const shortcuts = page.locator('.night-feature-links');
-    await expect.poll(() => shortcuts.evaluate(node => node.previousElementSibling?.classList.contains('landing-hero'))).toBe(true);
+    await expect.poll(() => shortcuts.evaluate(node => node.previousElementSibling?.classList.contains('landing-opening'))).toBe(true);
     for (const link of (await shortcuts.getByRole('link').all()).slice(0, 4)) {
+      await link.scrollIntoViewIfNeeded();
       const box = (await link.boundingBox())!;
-      expect(box.y + box.height).toBeLessThan(844);
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.y + box.height).toBeLessThanOrEqual(844);
       expect(box.x + box.width).toBeLessThanOrEqual(390);
       expect(box.height).toBeGreaterThanOrEqual(44);
     }
@@ -39,8 +42,12 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
     await expect(page.locator('#conditions')).toHaveAttribute('aria-busy', 'false');
     const regionCards = page.locator('#planner-region-options .simple-region-link');
     await expect(regionCards).toHaveCount(6);
+    // The 840px opening now precedes discovery; every region remains reachable.
+    await regionCards.last().scrollIntoViewIfNeeded();
     const lastRegion = (await regionCards.last().boundingBox())!;
-    expect(lastRegion.y + lastRegion.height).toBeLessThanOrEqual(910);
+    expect(lastRegion.y).toBeGreaterThanOrEqual(0);
+    expect(lastRegion.y + lastRegion.height).toBeLessThanOrEqual(844);
+    expect(lastRegion.height).toBeGreaterThanOrEqual(44);
     const metadata = page.locator('.simple-region-metadata').first();
     await expect(metadata.locator('.simple-region-credit')).toBeHidden();
     const metadataToggle = metadata.getByRole('button');
@@ -55,8 +62,14 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
   } else if (route === '/community') {
     await expect(page.locator('.community-list article')).toHaveCount(1);
     await expect(page.getByRole('link', { name: '통영 여행 이야기 게시글 읽기' })).toBeVisible();
-    await expect(page.locator('.community-story-cover')).toHaveCSS('height', '68px');
-    expect((await page.locator('.community-list article').boundingBox())!.height).toBeLessThan(230);
+    const card = page.locator('.community-list article');
+    const cover = page.locator('.community-story-cover');
+    await expect(cover).toHaveCSS('position', 'absolute');
+    // The local-save action is outside the photographic story link.
+    const cardBounds = (await card.locator(':scope > a').boundingBox())!, coverBounds = (await cover.boundingBox())!;
+    expect(Math.abs(coverBounds.height - cardBounds.height)).toBeLessThanOrEqual(2);
+    expect(Math.abs(coverBounds.width - cardBounds.width)).toBeLessThanOrEqual(2);
+    expect(cardBounds.height).toBeGreaterThanOrEqual(340);
   } else {
     await expect(page.locator('.festival-card')).toHaveCount(2);
     await expect(page.getByRole('region', { name: '축제 찾기', exact: true })).toBeHidden();

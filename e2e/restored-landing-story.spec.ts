@@ -1,3 +1,4 @@
+import { expectOnlyLandingReads } from "./landing-contract";
 import { expect, test } from '@playwright/test';
 import { prepareStory, storyReady, chapterIds, expectNoOverflow, expectUsableTarget } from './landing-contract';
 
@@ -28,6 +29,6 @@ for (const motion of ['no-preference', 'reduce'] as const) test(`restored scener
   await expect(page.locator('#departure .horizon-checks li')).toHaveText(['운영시간', '날씨', '이동수단', '편의시설']);
   await expectUsableTarget(page.locator('#community a.simple-text-link[href="/community"]'));
   await expect(page.locator('.simple-region')).toHaveCount(5);
-  expect(requests).toEqual([]);
+  expectOnlyLandingReads(requests);
   await page.screenshot({ path: test.info().outputPath(`restored-scenes-${motion}-${width}.png`), fullPage: true });
 });

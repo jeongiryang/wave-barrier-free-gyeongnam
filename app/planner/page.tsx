@@ -538,7 +538,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   return (
     <main role={embedded ? "presentation" : undefined} className={`planner-page journey-editorial planner-reference planner-simple wave-night`} lang={locale}>
       {!embedded && <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>}
-      {!embedded && <PlannerReferenceChrome storageSnapshot={storageSnapshot} savedCount={saved.length} onNavigate={journey.goToStep} onNew={startNewTrip} />}
+      {!embedded && <PlannerReferenceChrome storageReady={tripSelection.storageReady} storageSnapshot={storageSnapshot} savedCount={saved.length} onNavigate={journey.goToStep} onNew={startNewTrip} />}
       {newTripError && <p role="alert">{newTripError}</p>}
       <section className="planner-journey-workspace" id="planner" aria-label="여행 만들기">
         <div className="simple-workspace-body">{plannerStages}</div>
