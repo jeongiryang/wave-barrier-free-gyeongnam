@@ -94,7 +94,8 @@ async function setup(page: Page, options: Setup = {}) {
   await expect(launcher).toBeEnabled();
   if (options.seeded) {
     await expect.poll(() => planRequests.length).toBe(1);
-    await expect(page.locator('.simple-searching')).toHaveCount(0);
+    await expect(page.locator('.simple-searching')).toBeHidden();
+    await expect(page.locator('.simple-searching')).toHaveAttribute('aria-hidden', 'true');
   }
   await launcher.click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
@@ -213,7 +214,8 @@ test('진행 중 편의가 바뀐 오래된 일정안은 자연어 승인으로�
     await expect.poll(app.journeyCalls).toBe(1);
     await changeFacilities(page, app.chat);
     await expect.poll(() => app.planRequests.length).toBe(2);
-    await expect(page.locator('.simple-searching')).toHaveCount(0);
+    await expect(page.locator('.simple-searching')).toBeHidden();
+    await expect(page.locator('.simple-searching')).toHaveAttribute('aria-hidden', 'true');
     const changed = await snapshot(page);
     gate.release(); await expect.poll(app.journeyCompleted).toBe(true);
     await app.launcher.click();
@@ -236,7 +238,8 @@ test('장소 추가 응답을 기다리는 사이 조건을 바꾸면 늦은 자
     await expect.poll(() => app.assistantRequests.length).toBe(2);
     await changeFacilities(page, app.chat);
     await expect.poll(() => app.planRequests.length).toBe(2);
-    await expect(page.locator('.simple-searching')).toHaveCount(0);
+    await expect(page.locator('.simple-searching')).toBeHidden();
+    await expect(page.locator('.simple-searching')).toHaveAttribute('aria-hidden', 'true');
     const changed = await snapshot(page);
     gate.release(); await expect.poll(app.assistantCompletions).toBe(2);
     await app.launcher.click();

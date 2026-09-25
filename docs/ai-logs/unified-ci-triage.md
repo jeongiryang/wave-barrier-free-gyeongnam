@@ -140,3 +140,11 @@ Additional completed first-head jobs downloaded: browser7mobile and browser1desk
 - Existing landing tests now inspect the authorized compact centered hero, permanent Naru tools, photo failure behavior and solid closing. Retained keyboard, overflow, contrast and side-effect checks; no test deletion, timeout increase or performance-budget increase.
 
 Focused follow-up results include 30/30 scene/fallback tests, 28/28 festival/equipment/search/photo cases plus the corrected footer check, 17/17 parking/arrival/comparison/intent desktop cases, 10/10 slope/stay/fullscreen cases, and state-sharing/alternative-plan regressions. These focused runs do not substitute for the final full PR CI. The authoritative complete final result is the latest check suite on PR #709.
+
+## Full-suite contract follow-up
+
+Run `36149290397` confirmed the formerly failing landing, pointer, dialog and contrast cases across multiple complete shards. Its Naru tests still expected `.simple-searching` to be removed after a request; that contradicts the fixed-position status row introduced to prevent missed clicks. Changed all five affected waits to require both hidden state and `aria-hidden=true`. All three conversation/workspace/persona suites pass in desktop and mobile: 56/56. The lifecycle, stale-response, undo and saved-state assertions still execute unchanged.
+
+The same run found an old closing-copy 44px/36px padding assertion after the approved duplicate-padding removal. It now checks the outer 64px/40px top and bottom padding and zero inner padding; both desktop/mobile cases pass with axe and overflow checks intact. No product behavior or limits changed in this follow-up.
+
+The two voice lifecycle navigation cases attempted to focus the header while the first-visit intro dialog still made it inert. Their setup now uses the real Skip action and waits for the intro to close before navigating. Microphone cancellation, late permission/result rejection, persistent draft and route-unmount assertions remain unchanged; the global menu helper and intro implementation are unchanged.

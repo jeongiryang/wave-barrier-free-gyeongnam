@@ -132,7 +132,8 @@ test('follow-up itinerary remains applicable when the first apply finishes its b
     await chat.getByRole('button',{name:'나루에게 보내기',exact:true}).click();
     await expect.poll(()=>followupStarted).toBe(true);
     releaseSearch();await expect.poll(()=>searchFinished).toBe(true);
-    await expect(page.locator('.simple-searching')).toHaveCount(0);
+    await expect(page.locator('.simple-searching')).toBeHidden();
+    await expect(page.locator('.simple-searching')).toHaveAttribute('aria-hidden', 'true');
     releaseJourney();
     const adjustment=chat.getByRole('region',{name:'나루의 실제 일정안',exact:true}).last();
     await expect(adjustment).toContainText('기존 장소');
