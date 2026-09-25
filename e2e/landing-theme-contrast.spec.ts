@@ -76,7 +76,7 @@ async function samples(page: Page, selector: string) {
 }
 
 const CASES = [
-  ".landing-hero-copy h1", ".landing-hero-description", ".landing-actions a",
+  ".landing-hero-copy h1", ".landing-hero-copy h1 em", ".landing-hero-description", ".landing-actions a",
   ".simple-section-heading h2", ".simple-section-heading p", ".simple-show-regions",
   ".night-journey-input > h2", ".night-journey-input > p", ".night-journey-input h3",
   ".night-journey-tabs button", ".night-journey-input > .night-primary", ".simple-text-link",

@@ -131,6 +131,7 @@ Additional completed first-head jobs downloaded: browser7mobile and browser1desk
 
 - Restored the established 48px place-detail primary and bottom-close targets; desktop detail panes remain above the conversation footer. Parking, arrival, comparison and inquiry interactions pass focused reruns without forced clicks.
 - Kept a complete dark halo on the opening text itself, with no photo/scrim changes. Axe now checks the actual readable heading; the photo failure cases use explicit failed-image fixtures rather than depending on a live provider.
+- Actual-provider screenshots caught an inherited transparent gradient fill on the emphasized hero text. Scoped the solid text fill above that old selector and added the nested emphasis to contrast sampling; the photograph remains untouched.
 - Removed the remaining old `#closing` minimum height and inner vertical padding. The outer closing section alone owns the approved 64px/40px padding; tests check both the outer spacing and inner automatic height.
 - Corrected light Naru token pairs for selected cards, audio status, split-plan actions and hovered disclosure summaries. Preserved all contrast assertions.
 - Added static visible fallbacks when IntersectionObserver is unavailable for the panorama, region picker and both Naru scenes. Tests require no page errors and all region links/closing content.

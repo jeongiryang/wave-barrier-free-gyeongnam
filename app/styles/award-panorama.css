@@ -53,4 +53,4 @@ html:root body .landing-page .landing-opening .wave-header{position:fixed;top:0;
 /* Contrast follows the letters without changing photograph exposure. */
 html:root body .landing-opening .landing-hero-copy :is(h1,.landing-hero-description){text-shadow:-1px -1px #142d43,0 -1px #142d43,1px -1px #142d43,-1px 0 #142d43,1px 0 #142d43,-1px 1px #142d43,0 1px #142d43,1px 1px #142d43}
 
-html:root body .landing-opening .landing-hero-copy h1 em{background:none;-webkit-text-fill-color:currentColor;color:#fff}
+html:root body .landing-opening .landing-hero-copy #landing-title em{background:none;-webkit-text-fill-color:#fff;color:#fff;animation:none}
