@@ -1,3 +1,4 @@
+import { closeNewTripMenu, newTripAction, startNewTrip } from './planner-header-fixtures';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -79,7 +80,7 @@ async function add(page: Page, name: string) {
 }
 
 async function openItinerary(page: Page) {
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  await page.locator(".wave-header").locator(".wave-my-trips").click();
 }
 
 async function timetable(page: Page, end = "2026-10-14") {
@@ -147,11 +148,11 @@ test("지역만 고르면 후보를 자동 조회하고 날짜 없이 담아도 
   expect(await page.locator('.simple-browse-view input[type="date"]').count()).toBe(0);
   await add(page, museum);
   await add(page, lake);
-  await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#conditions")).toBeVisible();
   await expect(page.locator(".simple-results")).toBeVisible();
   await expect.poll(async () => (await current(page)).ids).toEqual(["1001", "1002"]);
   expect((await current(page)).schedule).toMatchObject({ travelStart: "", travelEnd: "", scheduleAssignments: {} });
-  await noOverflow(page, ".simple-search-controls, .simple-place-row, .simple-planner-heading");
+  await noOverflow(page, ".simple-search-controls, .simple-place-row, .wave-header");
   await page.screenshot({ path: info.outputPath("browse-undated.png"), fullPage: true });
   await openItinerary(page);
   await expect(page.locator(".simple-initial-setup")).toContainText(`${museum} · ${lake}`);
@@ -187,7 +188,7 @@ test("첫 날짜 설정 뒤 장소 수정은 적용 전까지 보존되고 취�
 test("새 여행은 미정 날짜의 이전 여행을 백업하고 다시 열어도 날짜와 ID를 바꾸지 않는다", async ({ page }) => {
   await browse(page); await add(page, museum); await add(page, lake);
   const before = await current(page);
-  await page.getByRole("button", { name: "새 여행", exact: true }).click();
+  await startNewTrip(page);
   await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
   await expect.poll(async () => (await current(page)).ids).toEqual([]);
   const fresh = await current(page), archived = await books(page);
@@ -230,7 +231,7 @@ test("저장 버튼 하나로 첫 저장 후 날짜·체류·장소 변경을 �
   await control.getByRole("button").click();
   await acceptTripTimingWarning(page);
   await expect.poll(async () => (await books(page))[0].travelEnd).toBe("2026-10-15");
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   await page.getByRole("button", { name: `${lake} 담았음 · 되돌리기`, exact: true }).click();
   await openItinerary(page);
   await expect.poll(async () => (await books(page))[0].places.map(place => place.id)).toEqual(["1001"]);
@@ -252,8 +253,8 @@ test("다른 탭에서 새 여행을 열면 기존 편집 초안과 자동 저�
   const other = await context.newPage();
   await prepare(other, info);
   await other.goto("/planner");
-  await expect(other.getByRole("button", { name: "새 여행", exact: true })).toBeEnabled();
-  await other.getByRole("button", { name: "새 여행", exact: true }).click();
+  await newTripAction(other); await closeNewTripMenu(other);
+  await startNewTrip(other);
   await expect(other.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
   await expect.poll(async () => (await current(other)).ids).toEqual([]);
   const fresh = await current(other);
@@ -301,7 +302,7 @@ test("여행 설정 취소·적용·되돌리기가 날짜와 이동을 보존�
   expect((await current(page)).schedule.scheduleAssignments).toEqual(before.schedule.scheduleAssignments);
   await page.locator(".simple-command-receipt").getByRole("button", { name: "되돌리기", exact: true }).click();
   await expect.poll(async () => (await current(page)).schedule).toEqual(before.schedule);
-  await noOverflow(page, ".simple-timeboard, .simple-trip-actions, .simple-planner-heading");
+  await noOverflow(page, ".simple-timeboard, .simple-trip-actions, .wave-header");
   await page.screenshot({ path: info.outputPath("timetable.png"), fullPage: true });
   if (info.project.name === "mobile-chromium") await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "지도", exact: true }).click();
   await expect(page.locator(".simple-itinerary-map .leaflet-container")).toBeVisible();
@@ -329,14 +330,14 @@ test("담기 다음 행동에서 날짜 전에 출발지를 고르고 같은 장
   await setup.getByRole('button', { name: '시간표 만들기', exact: true }).click();
   await expect(page.locator('.simple-timeboard')).toBeVisible();
   await expect.poll(async () => (await current(page)).ids).toEqual(['1001']);
-  await page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: '여행지 찾기', exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   await expect(next.getByRole('button', { name: '내 일정 보기', exact: true })).toBeVisible();
 });
 
 test("나루의 다음 행동이 빈 여행에서 날짜 없는 여행과 완성 일정까지 이어진다", async ({ page }) => {
   await page.route('**/api/assistant', route => route.fulfill({ json: { available: true } }));
   await browse(page);
-  const launcher = page.getByRole('button', { name: '나루와 계획하기', exact: true });
+  const launcher = page.getByRole("button", { name: "WAVE 여행 가이드 나루와 대화 열기", exact: true });
   await launcher.click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
   await chat.getByRole('button', { name: '건너뛰기', exact: true }).click();
@@ -380,8 +381,10 @@ test("나루 시작 버튼은 PC·태블릿·모바일에서 보이고 키보드
   await browse(page);
   for (const width of info.project.name === 'desktop-chromium' ? [1440, 960, 390] : [390]) {
     await page.setViewportSize({ width, height: 960 });
-    await noOverflow(page, '.simple-planner-actions button');
-    const entry = page.getByRole('button', { name: '나루와 계획하기', exact: true });
+    // The duplicated planner action row was removed; validate the actual entry
+    // and current header actions instead of the retired container.
+    await noOverflow(page, '.wave-header-actions button, .naru-launcher');
+    const entry = page.getByRole("button", { name: "WAVE 여행 가이드 나루와 대화 열기", exact: true });
     const rect = await entry.boundingBox();
     expect(rect?.height).toBeGreaterThanOrEqual(44);
     await entry.focus();
@@ -391,7 +394,7 @@ test("나루 시작 버튼은 PC·태블릿·모바일에서 보이고 키보드
     await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
     await expect(entry).toBeFocused();
   }
-  const axe = await new AxeBuilder({ page }).include('.simple-planner-heading').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  const axe = await new AxeBuilder({ page }).include('.wave-header').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
   expect(axe.violations).toEqual([]);
   await page.screenshot({ path: info.outputPath('journey-actions.png'), fullPage: false });
 });

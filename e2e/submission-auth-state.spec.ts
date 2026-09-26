@@ -12,17 +12,18 @@ for (const authenticated of [false, true]) test(`pending account never flashes a
   await expect.poll(() => requests).toBeGreaterThan(0);
   await expect(page.getByRole('region', { name: '계정 확인', exact: true })).toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('#auth-email, #auth-password')).toHaveCount(0);
-  await expect(page.locator('.wave-header .night-login')).toHaveText('계정');
+  await page.locator('.wave-header .wave-profile-entry').press('Enter');
+  await expect(page.locator('.wave-header .account-loading')).toBeVisible();
   await expect(page.locator('.wave-header .night-signup')).toHaveCount(0);
   gate.release();
   if (authenticated) {
     await expect(page.getByRole('link', { name: '계속하기' })).toHaveAttribute('href', '/planner');
     await expect(page.locator('#auth-email, #auth-password')).toHaveCount(0);
-    await expect(page.locator('.wave-header .night-login')).toHaveText('계정 관리');
+    await expect(page.locator('.wave-header').getByRole('button', { name: '계정 확인 여행자 계정 메뉴', exact: true })).toBeVisible();
   } else {
     await expect(page.locator('#auth-email')).toBeVisible();
     await expect(page.locator('#auth-password')).toBeVisible();
-    await expect(page.locator('.wave-header .night-login')).toHaveText('로그인');
+    await expect(page.locator('.wave-header').getByRole('link', { name: '로그인', exact: true })).toBeVisible();
   }
 });
 
@@ -34,16 +35,18 @@ test('public introduction defers session lookup and retains keyboard focus when 
   await page.route('**/api/auth/get-session', async route => { requests++; await gate.promise; await route.fulfill({ json: null }); });
   await page.goto('/');
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  const entry = page.locator('.wave-header .night-login');
-  await expect(entry).toHaveText('계정');
+  const entry = page.locator('.wave-header .wave-profile-entry');
+  await expect(entry).toHaveAccessibleName('계정 관리');
   expect(requests).toBe(0);
   await entry.focus();
+  await expect(entry).toBeFocused();
+  await entry.press('Enter');
   await expect.poll(() => requests).toBeGreaterThan(0);
-  await expect(entry).toBeFocused();
+  await expect(page.locator('.wave-header .account-loading')).toBeVisible();
   gate.release();
-  await expect(entry).toHaveText('로그인');
-  await expect(entry).toBeFocused();
-  await expect(entry).toHaveAttribute('href', '/login?next=%2F');
+  const login = page.locator('.wave-header').getByRole('link', { name: '로그인', exact: true });
+  await expect(login).toBeFocused();
+  await expect(login).toHaveAttribute('href', '/login');
 });
 
 test('account settings exposes logout, recovers failure, and keeps current-device travel on success', async ({ page }) => {

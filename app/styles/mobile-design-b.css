@@ -32,9 +32,6 @@
  html:root body .landing-page.night-landing .night-hero-search select{background:transparent;color:#c7d2df;height:44px;font-size:14px}
  html:root body .landing-page.night-landing .night-hero-search button{background:linear-gradient(120deg,#438bf9,#6362eb);border:0}
  html:root body .landing-page.night-landing .landing-actions{margin:2px 0 10px}
- html:root body .landing-page.horizon-edition.night-landing .landing-hero-landscape{position:relative;inset:auto;z-index:auto;width:100%;height:auto;aspect-ratio:2.5;min-height:0;margin:0;border-radius:8px;overflow:hidden;background:#10202d}
- html:root body .landing-page.night-landing .landing-hero-landscape::after{display:none}
- html:root body .landing-page.night-landing .landing-hero-landscape img{height:100%;width:100%;object-fit:cover}
  .landing-page.night-landing .night-hero-signature{display:none}
  html:root body .landing-page.night-landing .simple-section{padding:26px 0}
  html:root body .landing-page.night-landing .simple-section-heading{margin:0 0 12px}

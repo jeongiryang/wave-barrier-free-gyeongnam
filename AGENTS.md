@@ -30,6 +30,8 @@ Repository Owner·Product Owner·Release Authority는 정이량(`jeongiryang`)�
 
 ## 검증과 협업
 
+9월 말 개발 작업은 [전문 하네스](docs/release-harness.md)에서 가장 관련 있는 주 역할 하나를 선택해 적용한다. 나루 동작은 `harness/personas/naru.md`, 화면 흐름은 `frontend-ux.md`, 상태·비동기·저장 회귀는 `frontend-fix.md`, 시각 디자인은 `design.md`, 데이터·API는 `api.md`를 읽는다. 제출 주장 대조는 `judge.md`, 여행자 과업 검토는 `traveler.md`를 사용한다. 뒤의 여섯 파일도 같은 `harness/personas/` 폴더에 있다. 관련 요구 ID만 `harness/features.json`에서 찾아 범위를 좁힌다. 모든 역할과 전체 과거 기록을 매번 실행·로딩하지 않는다. `npm run harness -- brief <역할> --task '<구체적 작업>'`으로 바로 사용할 브리프를 만들 수 있다.
+
 작업 중에는 변경 위험에 맞는 검증을 하고, 같은 근거로 통과한 검사를 이유 없이 반복하지 않는다. 최종 후보에는 품질·보안·브라우저·접근성·성능과 핵심 여정을 검증한다. 주장에는 실제 실행 범위와 결과를 붙인다.
 
 구현과 독립된 QA를 사용한다. 하위 에이전트에 구체적인 회귀·사용성·보안 검증을 맡길 수 있으며, 겹치지 않는 파일과 bounded 범위를 지정한다. 합성 응답 검증과 실제 제공처·Production 검증을 구분한다.

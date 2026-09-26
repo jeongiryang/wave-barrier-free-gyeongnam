@@ -14,8 +14,9 @@ test('community banner navigation and category write destination use real posts 
   await expect(page.getByText('아직 등록된 후기나 질문이 없습니다.', { exact: true })).toBeVisible();
   await expect(page.locator('.night-story-card')).toHaveCount(0);
   await expect(page.locator('.night-popular-region')).not.toContainText(['342개의 이야기']);
-  await page.getByRole('button', { name: '다음 배너', exact: true }).click();
-  await expect(page.locator('.night-banner')).toContainText('02 / 03');
+  await expect(page.getByRole('region', { name: 'WAVE 커뮤니티 소개' })).toBeVisible();
+  await expect(page.locator('.night-banner h1')).toContainText('WAVE 커뮤니티');
+  await expect(page.getByRole('button', { name: '다음 배너', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '함께 여행해요', exact: true }).click();
   await expect(page.getByRole('link', { name: '글 쓰기', exact: true })).toHaveAttribute('href',/category%3Dtogether/);
   await page.getByRole('button', { name: '전체', exact: true }).click();

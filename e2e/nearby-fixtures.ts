@@ -125,7 +125,7 @@ export async function changeMapLanguage(page: Page, english: boolean) {
   await page.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();
 }
 export async function addAnotherMapPlace(page: Page, name = "용지호수공원") {
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   const refresh = page.getByRole("button", { name: /^(현재 조건으로 다시 찾기|Search current preferences)$/ });
   if (await refresh.count()) await refresh.click();
   await page.getByRole("button", { name: new RegExp("^" + name + " (일정에 담기|add to itinerary)$") }).click();

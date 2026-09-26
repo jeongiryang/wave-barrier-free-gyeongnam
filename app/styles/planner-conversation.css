@@ -11,7 +11,6 @@
 .planner-reference { --workspace-rail: 216px; --workspace-gap: 24px; }
 
 .planner-reference .planner-journey-workspace { width: auto; max-width: none; margin: 0 28px 0 calc(var(--workspace-rail) + 28px); padding: 0 0 36px; }
-.planner-reference .journey-stage-stream { min-width: 0; }
 .planner-reference .journey-workspace-block { padding: clamp(20px,2.2vw,36px); border: 1px solid #e7e2ed; border-radius: 24px; background: #fff; box-shadow: 0 4px 20px #242b2a03; margin: 0; width: 100%; }
 .planner-reference .journey-workspace-block h2 { font-size: clamp(1.3rem,1.8vw,1.8rem); font-weight: 600; color: var(--ink); line-height: 1.5; }
 .planner-reference > .simple-footer { margin-left: calc(var(--workspace-rail) + 28px); width: auto; }
@@ -116,7 +115,6 @@ html[data-motion=calm] .naru-character[data-state] img { animation: none; }
 html[data-theme=dark] :is(.wave-skeleton-lines i,.place-card-skeleton .skeleton-visual) { background-image: linear-gradient(90deg,#143a49 25%,#28505c 50%,#143a49 75%); }
 @media (prefers-reduced-motion: reduce) { .naru-typing > span:last-child { animation: none; } }
 html[data-motion=calm] .naru-typing > span:last-child { animation: none; }
-html[data-theme=dark] .planner-reference .place-actions .primary { background: #d7bcff; color: #231334; }
 
 .planner-reference :is(button,a,input,select,textarea,summary):focus-visible { scroll-margin-block: 140px; }
 

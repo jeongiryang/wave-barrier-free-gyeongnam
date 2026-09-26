@@ -8,7 +8,6 @@ html body .wave-night :is(.community-workspace,.night-festival-workspace,.simple
 html body .wave-night .simple-itinerary-view .simple-planner-heading{width:100%}
 html body .wave-night .planner-journey-workspace{max-width:none}
 html body .wave-night .night-planner-form{max-width:900px}
-.naru-tools-entry{display:block;margin:24px auto;padding:14px 24px;background:#20263b;color:#dec9ff;border:1px solid #70628b;border-radius:12px}
 .naru-panel .naru-live-tools{margin-top:24px;border-top:1px solid #4a415b;padding-top:20px;min-width:0}
 .naru-panel .naru-live-tools :is(.simple-more-trip-tools,.simple-day-options,.simple-departure){margin:0;width:100%;max-width:none;background:transparent;border:0;padding:0}
 .naru-panel .naru-live-tools>div>details>summary{font-size:20px;padding:14px 0;color:#e4d2ff}

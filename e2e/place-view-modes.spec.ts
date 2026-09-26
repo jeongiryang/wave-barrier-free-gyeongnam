@@ -26,9 +26,9 @@ test('place view preserves selection, survives reload and remains readable', asy
       const photo = node.querySelector('.simple-place-photo')!.getBoundingClientRect();
       const copy = node.querySelector('.simple-place-copy')!.getBoundingClientRect();
       const add = node.querySelector('.simple-place-add')!.getBoundingClientRect();
-      return { vertical: copy.top >= photo.bottom, touch: add.height >= 44, overflow: node.scrollWidth > node.clientWidth + 1 };
+      return { contained: copy.top >= photo.top && copy.bottom <= photo.bottom && copy.left >= photo.left && copy.right <= photo.right, touch: add.height >= 44, overflow: node.scrollWidth > node.clientWidth + 1 };
     }));
-    expect(boxes.every(box => box.vertical && box.touch && !box.overflow)).toBe(true);
+    expect(boxes.every(box => box.contained && box.touch && !box.overflow)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.locator('.simple-results').screenshot({ path: info.outputPath(`grid-${width}.png`) });
   }
@@ -65,7 +65,7 @@ test('grid also covers direct search when preference writes are blocked', async 
   const card = page.locator('#direct-place-results .simple-place-row');
   await expect(card).toHaveCount(1);
   await expect(card).toContainText('편의·접근성');
-  expect(await card.evaluate(node => node.querySelector('.simple-place-copy')!.getBoundingClientRect().top >= node.querySelector('.simple-place-photo')!.getBoundingClientRect().bottom)).toBe(true);
+  expect(await card.evaluate(node => node.querySelector('.simple-place-copy')!.getBoundingClientRect().bottom <= node.querySelector('.simple-place-photo')!.getBoundingClientRect().bottom)).toBe(true);
   await views.getByRole('button', { name: '목록형' }).click();
   await expect(views.getByRole('button', { name: '목록형' })).toHaveAttribute('aria-pressed', 'true');
   await expect(card).toContainText('테스트 카페');

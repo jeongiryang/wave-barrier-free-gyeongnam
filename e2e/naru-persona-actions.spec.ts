@@ -134,7 +134,8 @@ async function setup(page: Page, options: SetupOptions = {}) {
   }
   if (options.seeded) {
     await expect.poll(() => planRequests.length).toBe(1);
-    await expect(page.locator('.simple-searching')).toHaveCount(0);
+    await expect(page.locator('.simple-searching')).toBeHidden();
+    await expect(page.locator('.simple-searching')).toHaveAttribute('aria-hidden', 'true');
     await expect.poll(async () => (await snapshot(page)).ids).toEqual(['1001', '1002']);
   }
   await launcher.click();

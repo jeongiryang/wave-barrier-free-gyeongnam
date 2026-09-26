@@ -103,7 +103,7 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
     -webkit-overflow-scrolling: touch; scroll-padding-inline: 16px;
   }
 
-  .place-actions button, .feedback-box button, .rich-card button, .rich-empty button, .transport-dataset-grid > button, .transport-data-heading button, .map-command-bar button, .map-type-switch button {
+  .feedback-box button,.rich-card button,.rich-empty button,.transport-dataset-grid > button,.transport-data-heading button,.map-command-bar button,.map-type-switch button {
     min-height: 44px;
   }
   .map-tool-panel header > button, .map-poi-results header > button,

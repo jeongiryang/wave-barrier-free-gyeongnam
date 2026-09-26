@@ -2,24 +2,23 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions, openItinerary } from "./fixtures";
 
-test('English shell preserves the two-tab itinerary gate, history and focus', async ({ page }) => {
+test('English header navigation preserves the empty-trip destination, history and focus', async ({ page }) => {
   await mockPlannerApi(page); await page.addInitScript(() => localStorage.setItem('wave-locale', 'en'));
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/planner');
-  const tabs = page.locator('.simple-planner-tabs button');
-  await expect(tabs).toHaveCount(2); await expect(tabs.nth(1)).toBeDisabled();
+  const tabs = page.locator(".wave-header .night-search-link, .wave-header .wave-my-trips");
+  await expect(tabs).toHaveCount(2); await expect(tabs.nth(1)).toHaveAttribute("href", "/travel-book");
   await expect(page.getByRole('navigation', { name: 'Main menu', exact: true })).toBeVisible();
   await chooseTripConditions(page);
   await expect(page.locator('.simple-results-heading')).toContainText('2 places loaded');
   await page.getByRole('button', { name: '경남도립미술관 add to itinerary', exact: true }).click();
   await expect(tabs.nth(1)).toBeEnabled();
   await openItinerary(page, { start: '2026-10-14' });
-  await tabs.first().click(); await expect(page).toHaveURL(/#conditions$/);
+  await tabs.first().click(); await expect(page).toHaveURL(/#places$/);
   await page.goBack();
-  await expect(tabs.nth(1)).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#itinerary')).toBeVisible();
   await expect(page.locator('#itinerary-stage-title')).toBeFocused();
-  expect((await new AxeBuilder({ page }).include('.simple-planner-heading').include('.simple-footer').analyze()).violations).toEqual([]);
+  expect((await new AxeBuilder({ page }).include('.wave-header').include('.simple-footer').analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
@@ -36,6 +35,6 @@ for (const response of ['empty', 'error'] as const) {
     await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'false');
     if (response === 'error') { await expect(page.locator('.simple-result-notice[role="alert"]')).toBeVisible(); await expect(page.locator('.simple-empty')).toHaveCount(0); }
     else await expect(page.locator('.simple-empty')).toHaveText('No places were returned for these preferences.');
-    await expect(page.locator('.simple-planner-tabs button').nth(1)).toBeDisabled();
+    await expect(page.locator(".wave-header .wave-my-trips")).toHaveAttribute("href", "/travel-book");
   });
 }

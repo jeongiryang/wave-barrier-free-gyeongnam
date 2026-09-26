@@ -62,7 +62,7 @@ test("English help covers visible areas, traps focus and returns it on each publ
     await openSupportMenu(page);
     const trigger = page.getByRole("button", { name: "Help", exact: true });
     await expect(trigger).toBeEnabled();
-    if (path === "/planner") await expect(page.locator('.simple-planner-tabs button')).toHaveCount(2);
+    if (path === "/planner") await expect(page.locator(".wave-header .night-search-link, .wave-header .wave-my-trips")).toHaveCount(2);
     await trigger.focus();
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog");
@@ -106,7 +106,7 @@ for (const locale of ["ko", "en"] as const) {
     await expect(dialog.locator(".help-tour-progress")).toHaveAccessibleName(locale === "en" ? "Step 1 of 1" : "1단계 중 1단계");
     await expect(page.locator(".help-tour-spotlight")).toBeVisible();
     await expect(page.locator("#places")).toBeHidden();
-    await expect(page.locator('.simple-planner-tabs button').nth(1)).toBeDisabled();
+    await expect(page.locator(".wave-header .wave-my-trips")).toHaveAttribute("href", "/travel-book");
     await dialog.getByRole("button", { name: locale === "en" ? "Finish tour" : "투어 마치기", exact: true }).click();
     await expect(trigger).toBeFocused();
   });

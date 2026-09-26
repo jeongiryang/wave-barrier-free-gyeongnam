@@ -37,7 +37,7 @@ for (const en of [false, true]) test(`${en ? 'EN dark' : 'KO light'}: a fast pla
 for (const en of [false, true]) test(`${en ? 'EN dark' : 'KO light'}: empty facility preferences refresh without adding a filter`, async ({ page }) => {
   await prepare(page, en);
   await closeNaruTool(page);
-  await page.locator('.simple-planner-tabs button').first().click(); await page.locator('.simple-facility-trigger').click();
+  await page.locator(".wave-header .night-search-link").click(); await page.locator('.simple-facility-trigger').click();
   const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
   await picker.getByRole('button', { name: '선택 해제', exact: true }).click();
   const automatic = page.waitForResponse(response => {
@@ -47,7 +47,7 @@ for (const en of [false, true]) test(`${en ? 'EN dark' : 'KO light'}: empty faci
   });
   await picker.getByRole('button', { name: /^적용/ }).click(); await (await automatic).finished();
   await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'false');
-  await page.locator('.simple-planner-tabs button').nth(1).click(); await openDeparture(page);
+  await page.locator(".wave-header .wave-my-trips").click(); await openDeparture(page);
   const refresh = page.locator('.simple-readiness-heading button'); await expect(refresh).toHaveAttribute('aria-busy', 'false');
   const searches: URL[] = []; page.on('request', request => { const url = new URL(request.url()); if (url.pathname === '/api/wave' && url.searchParams.get('action') === 'plan') searches.push(url); });
   const weather = page.waitForResponse(response => new URL(response.url()).pathname === '/api/weather');
@@ -76,13 +76,13 @@ test('an immediate departure recheck consumes the pending search for cleared fac
   });
   try {
     await closeNaruTool(page);
-    await page.locator('.simple-planner-tabs button').first().click();
+    await page.locator(".wave-header .night-search-link").click();
     await page.locator('.simple-facility-trigger').click();
     const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
     await picker.getByRole('button', { name: '선택 해제', exact: true }).click();
     await picker.getByRole('button', { name: /^적용/ }).click();
     expect(events.filter(event => event.event === 'request')).toHaveLength(0);
-    await page.locator('.simple-planner-tabs button').nth(1).click(); await openDeparture(page);
+    await page.locator(".wave-header .wave-my-trips").click(); await openDeparture(page);
     const refresh = page.locator('.simple-readiness-heading button');
     await expect(refresh).toHaveAttribute('aria-busy', 'false');
     phase = 'explicit recheck before debounce';

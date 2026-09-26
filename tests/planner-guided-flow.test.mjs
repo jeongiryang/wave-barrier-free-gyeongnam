@@ -13,8 +13,8 @@ test("지역을 고르면 결과를 보고 담은 장소는 별도 내 일정 �
     source("features/planner/components/TripSettingsEditor.tsx"),
     source("features/planner/components/PlannerItineraryWorkspace.tsx"),
   ]);
-  assert.match(header, /aria-label="여행 설계 화면"/);
-  assert.match(header, /onNavigate\("conditions"\)/);
+  assert.doesNotMatch(header, /simple-planner-tabs/);
+  assert.match(await source("components/WaveHeader.tsx"), /href="\/planner#places"/);
   assert.match(header, /onNavigate\("itinerary"\)/);
   assert.match(page, /const browsing = journey\.activeStepId === "conditions" \|\| journey\.activeStepId === "places"/);
   assert.match(page, /<div hidden=\{!browsing\} className="simple-browse-view">/);

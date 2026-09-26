@@ -91,7 +91,7 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator('.simple-browse-view input[type="date"]')).toHaveCount(0);
     expect((await new AxeBuilder({ page }).include("#conditions").analyze()).violations).toEqual([]);
     await add.click();
-    await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+    await page.locator(".wave-header").locator(".wave-my-trips").click();
     const setup = page.locator(".simple-initial-setup");
     await setup.getByLabel("시작일", { exact: true }).fill("2026-09-20");
     await setup.getByLabel("마지막 날", { exact: true }).fill("2026-09-21");
@@ -131,7 +131,7 @@ for (const locale of ["ko", "en"] as const) {
       gate.release();
       await results.getByRole("button", { name: en ? "경남도립미술관 add to itinerary" : "경남도립미술관 일정에 담기", exact: true }).click();
       await expect(results).toBeVisible();
-      await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+      await page.locator(".wave-header").locator(".wave-my-trips").click();
       const view = page.getByRole("group", { name: "일정 보기 방식", exact: true });
       const mobileLayout = (page.viewportSize()?.width || 1440) < 1024;
       await expect(page.locator(".simple-timeboard")).toContainText("경남도립미술관");
@@ -225,7 +225,7 @@ for (const locale of ["ko", "en"] as const) {
     await page.getByRole("button", { name: "경남 전체 둘러보기", exact: false }).click();
     const results = page.locator("#places");
     await expect(results.getByText(en ? "No places were returned for these preferences." : "이 조건으로 불러온 장소가 없어요.", { exact: true })).toBeVisible();
-    await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+    await expect(page.locator(".wave-header").locator(".wave-my-trips")).toHaveAttribute("href", "/travel-book");
     const before = await currentTrip(page);
     expect(before.ids).toEqual([]); expect(before.profiles).toEqual([]);
     await results.getByRole("button", { name: en ? "Retry with these preferences" : "같은 조건으로 다시 시도", exact: true }).click();

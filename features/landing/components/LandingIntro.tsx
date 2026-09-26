@@ -75,7 +75,7 @@ export default function LandingIntro() {
     if(event.shiftKey && document.activeElement===first){event.preventDefault();last?.focus();}
     else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first?.focus();}
   }}>
-    {active && <IntroBoundary key={generation} onFailure={()=>finishRef.current()}><Suspense fallback={<p className={styles.fallback}>WAVE</p>}><ApprovedIntro onReady={()=>{ready.current=true;}} onExitStart={()=>setLeaving(true)} onComplete={()=>finishRef.current()}/></Suspense></IntroBoundary>}
+    {active && <IntroBoundary key={generation} onFailure={()=>finishRef.current()}><Suspense fallback={null}><ApprovedIntro onReady={()=>{ready.current=true;}} onExitStart={()=>setLeaving(true)} onComplete={()=>finishRef.current()}/></Suspense></IntroBoundary>}
     <button type="button" className={styles.skip} data-skip onClick={()=>finishRef.current()}>건너뛰기</button>
   </dialog>;
 }

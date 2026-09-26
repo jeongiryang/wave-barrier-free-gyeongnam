@@ -28,14 +28,17 @@ test("랜딩 로그인 의도로 세션을 확인해도 키보드 초점과 링�
   page.on("request", request => { if (new URL(request.url()).pathname === "/api/auth/get-session") sessions++; });
   await page.goto("/");
   await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
-  const login = page.locator(".night-login");
-  await expect(login).toHaveAttribute("href", "/account");
-  await login.focus();
+  const account = page.locator('.wave-header .wave-profile-entry');
+  await expect(account).toHaveAttribute('href', '/account');
+  await account.focus();
+  await expect(account).toBeFocused();
+  await account.press('Enter');
   await expect.poll(() => sessions).toBeGreaterThan(0);
+  const login = page.locator('.wave-header').getByRole('link', { name: '로그인', exact: true });
   await expect(login).toBeFocused();
-  await expect(login).toHaveAttribute("href", "/login?next=%2F");
-  await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(url => url.pathname === "/login" && url.searchParams.get("next") === "/");
+  await expect(login).toHaveAttribute('href', '/login');
+  await login.press('Enter');
+  await expect(page).toHaveURL(url => url.pathname === '/login');
 });
 
 test("안내형 플래너의 숨은 지도는 일정 단계가 열릴 때까지 네트워크를 쓰지 않는다", async ({ page }) => {

@@ -9,7 +9,7 @@ async function setup(page: Page) {
   await page.emulateMedia({ reducedMotion: "reduce" });
 }
 async function browse(page: Page) {
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toBeEnabled();
 }
 async function facilities(page: Page) {
@@ -29,7 +29,7 @@ async function assertFacilities(page: Page, selected: boolean) {
 }
 async function addAndSave(page: Page) {
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  await page.locator(".wave-header").locator(".wave-my-trips").click();
   const initial = page.locator(".simple-initial-setup");
   await initial.getByLabel("시작일", { exact: true }).fill("2026-10-07");
   await initial.getByLabel("마지막 날", { exact: true }).fill("2026-10-08");
@@ -180,14 +180,14 @@ for (const color of ["light", "dark"]) test(`shared redesign protects the curren
   await expect(page.getByRole("button", { name: "역사·문화", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "음식", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "자연·휴양", exact: true })).toHaveAttribute("aria-pressed", "false");
-  await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(page.locator(".wave-header").locator(".wave-my-trips")).toHaveAttribute("href", "/travel-book");
   // Shared preferences cannot import another person's facilities or erase ours.
   await assertFacilities(page, true);
   expect((await current(page))["wave-session-facilities-v1"]).toBe(before["wave-session-facilities-v1"]);
   const preservedArchive = (await current(page))["wave-travel-book-v1"];
   expectRecoveryBackup(preservedArchive, recoveryBackup.updatedAt);
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  await page.locator(".wave-header").locator(".wave-my-trips").click();
   await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-10-08 — 2026-10-09");
   await page.reload();
   await browse(page);

@@ -110,7 +110,7 @@ test('NDJSON 일정안을 확인하고 적용한 뒤 장소·날짜·휴식·편
   expect(applied.schedule.comfort).toEqual({ maxWalkMinutes: 10, breakEveryMinutes: 45, breakMinutes: 20 });
   expect(applied.profiles).toEqual(['restroom', 'elevator']);
   await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
-  await expect(page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: /^내 일정/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator("#itinerary")).toBeVisible();
   if (test.info().project.name.includes('mobile')) await expect(page.getByRole('group', { name: '일정 보기 방식', exact: true }).getByRole('button', { name: '지도', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.simple-itinerary-map .leaflet-container')).toBeVisible();
   await expect(page.locator('.simple-stops #itinerary-stop-2001')).toContainText('합성 바다 전시관');
@@ -119,7 +119,7 @@ test('NDJSON 일정안을 확인하고 적용한 뒤 장소·날짜·휴식·편
   await expect(chat.getByRole('log')).toContainText('편의 조건·출발지·이동수단을 복원했어요');
   await expect.poll(() => snapshot(page)).toEqual(before);
   await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
-  await page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: '여행지 찾기', exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   await page.getByRole('button', { name: /^필요한 편의/ }).click();
   const facilities = page.getByRole('dialog', { name: '필요한 편의', exact: true });
   await expect(facilities.getByRole('checkbox', { name: '장애인 화장실', exact: true })).toBeChecked();

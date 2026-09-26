@@ -17,7 +17,12 @@ const BUDGET = {
   // Explicit CSS scope baseline; initial JavaScript limits stay unchanged.
   // 2026-09-24: in-dialog facilities + consistent footer/Kakao controls; 85.11 KiB.
   // Retired compact-card rules removed first; explicit 1 KiB scope allowance.
-  cssGzipKiB: 86,
+  // 2026-09-24: owner-requested panorama, region previews and Naru conversation.
+  // Retired banner controls removed; measured 87.87 KiB (previous 86 KiB cap exceeded).
+  // Explicit 3 KiB scope allowance; all JavaScript budgets unchanged.
+  // 2026-09-25: full-photo cards, responsive previews and simplified planner chrome;
+  // measured 93.18 KiB. Keep a narrow allowance instead of removing the guard.
+  cssGzipKiB: 96,
   landingInitialJsGzipKiB: 155,
   landingInitialJsRawKiB: 520,
   plannerInitialJsGzipKiB: 270,

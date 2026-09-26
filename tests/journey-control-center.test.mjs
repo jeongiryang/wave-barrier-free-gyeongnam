@@ -17,6 +17,7 @@ test("여행지와 내 일정 전환은 같은 여행 상태를 쓰며 날짜가
   const compiled = ts.transpileModule(header, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   new Function("require", "exports", compiled)(name => {
     if (name === "react/jsx-runtime") return jsx;
+    if (name.endsWith("/NaruHeaderScene")) return { default: "NaruHeaderScene" };
     if (name.endsWith("/WaveHeader")) return { default: "WaveHeader" };
     if (name === "./TripStorageNotice") return { default: "TripStorageNotice" };
     throw new Error("Unexpected header dependency: " + name);
@@ -25,23 +26,13 @@ test("여행지와 내 일정 전환은 같은 여행 상태를 쓰며 날짜가
   const navigate = [];
   const render = (savedCount, activeStep, interactive = true) => descendants(exports.default({ savedCount, activeStep, interactive, storageSnapshot: {}, onNavigate: step => navigate.push(step) }));
   const empty = render(0, "conditions");
-  const emptyButtons = empty.filter(node => node.type === "button");
-  assert.equal(emptyButtons.length, 2);
-  assert.equal(emptyButtons[0].props["aria-pressed"], true);
-  assert.equal(emptyButtons[0].props.disabled, false);
-  assert.equal(emptyButtons[1].props.disabled, true);
+  assert.equal(empty.filter(node => node.type === "button").length, 0);
   assert.equal(empty.find(node => node.type === "WaveHeader").props.onSaved, undefined);
   for (const step of ["conditions", "places", "itinerary", "departure-readiness"]) {
     const nodes = render(2, step);
-    const buttons = nodes.filter(node => node.type === "button");
-    assert.equal(buttons[1].props.disabled, false, "saved places, not a new search or a date, unlock the itinerary");
-    assert.equal(buttons[1].props["aria-pressed"], step === "itinerary" || step === "departure-readiness");
-    buttons[0].props.onClick();
-    buttons[1].props.onClick();
     nodes.find(node => node.type === "WaveHeader").props.onSaved();
-    assert.deepEqual(navigate.splice(0), ["conditions", "itinerary", "itinerary"]);
+    assert.deepEqual(navigate.splice(0), ["itinerary"]);
   }
-  assert.ok(render(2, "places", false).filter(node => node.type === "button").every(node => node.props.disabled));
   assert.match(page, /savedCount: tripSelection\.orderedSavedPlaces\.length/);
   assert.match(page, /currentSavedCount: planController\.resultCurrent \? activePlaces\.filter\(\(place\) => saved\.includes\(place\.id\)\)\.length : 0/);
   assert.match(page, /reviewed: reviewedTrip === reviewSignature/);

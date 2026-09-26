@@ -44,11 +44,11 @@ export default function RecommendationWorkspace(props: RecommendationWorkspacePr
     window.dispatchEvent(new Event(viewKey));
   }
   return <div className="journey-workspace-block places-section" id="places" data-place-view={view}>
-    <div className="simple-view-switch" role="group" aria-label={en ? 'Place view' : '여행지 보기 형식'}>
-      <span>{en ? 'View' : '보기'}</span>
+    <header className="places-results-heading"><div><h2>{en ? "Explore travel destinations" : "여행지 찾아보기"}</h2><p>{en ? "Search by place name or explore recommendations below." : "장소 이름으로 검색하거나 아래 추천 여행지를 살펴보세요."}</p></div><div className="simple-view-switch" role="group" aria-label={en ? 'Place view' : '여행지 보기 형식'}>
+      <span>{en ? 'Results layout' : '여행지 표시 방식'}</span>
       <button type="button" aria-pressed={view === 'list'} onClick={() => changeView('list')}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 5h4v4H3zm0 10h4v4H3zM11 7h10M11 17h10" /></svg>{en ? 'List' : '목록형'}</button>
       <button type="button" aria-pressed={view === 'grid'} onClick={() => changeView('grid')}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z" /></svg>{en ? 'Grid' : '격자형'}</button>
-    </div>
+    </div></header>
     <DirectPlaceSearch officialPlaces={props.activePlaces} profiles={props.planController.selected} onPlace={props.onSelectPlace} region={props.region} trip={props.tripSelection} onRegionSelect={props.onRegionSelect} onBuildItinerary={props.onBuildItinerary} />
 
     <RecommendationCarousel {...props} />

@@ -40,7 +40,7 @@ test('saved trip shows a short Naru start and the timetable before optional tool
   await openItinerary(page,{start:'2026-10-14'});
   await expect(page.locator('.simple-more-trip-tools')).toHaveCount(0);
   await expect(page.locator('.simple-stops')).toBeVisible();
-  await page.getByRole('button',{name:'나루와 계획하기',exact:true}).click();
+  await page.getByRole("button", { name: "WAVE 여행 가이드 나루와 대화 열기", exact: true }).click();
   const chat=page.getByRole('dialog',{name:'WAVE 여행 가이드 나루와 대화'});
   await expect(chat.getByRole('button',{name:'건너뛰기',exact:true})).toHaveCount(0);
   await expect(chat.locator('.naru-prompt-starters')).toHaveCount(0);

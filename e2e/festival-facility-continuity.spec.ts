@@ -36,7 +36,7 @@ for (const legacy of [false, true]) test(`축제를 담고 돌아와도 ${legacy
   await card.getByLabel('방문 날짜', { exact: true }).fill('2026-09-21');
   await card.getByRole('button', { name: '내 일정에 담기', exact: true }).click();
   await expect(page).toHaveURL(/\/planner\?region=.*#itinerary$/);
-  await page.locator('.simple-planner-tabs button').first().click();
+  await page.locator(".wave-header .night-search-link").click();
   await page.locator('.simple-facility-trigger').click();
   const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
   await expect(picker.getByRole('checkbox', { name: '장애인 화장실', exact: true })).toBeChecked();

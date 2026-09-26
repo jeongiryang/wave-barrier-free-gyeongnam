@@ -1,3 +1,4 @@
+import { expectOnlyLandingReads } from "./landing-contract";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
@@ -35,7 +36,7 @@ test("browsing and expanding photographs cannot rotate destinations, query a tri
   await expect(last).toBeFocused();
   await expect(last).toHaveAttribute("href", selectedHref!);
   expect(await page.evaluate(() => ({ ...localStorage }))).toStrictEqual(stored);
-  expect(requests).toEqual([]);
+  expectOnlyLandingReads(requests);
   expect(writes).toEqual([]);
 });
 

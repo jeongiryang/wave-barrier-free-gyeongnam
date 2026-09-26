@@ -43,7 +43,6 @@ export default function ThemeExplorer({
     <div className="rich-rail" role="tabpanel" id="theme-panel" aria-labelledby={`theme-tab-${richMode}`} tabIndex={-1}>
       {loading && [0, 1, 2].map((item) => <div className="rich-card rich-loading" key={item}><i /><span /><b /></div>)}
       {!loading && !richItems.length && <div className="rich-empty">
-        <span>⌁</span>
         <h3>{english ? `No ${catalog.find(item => item.id === richMode)?.label.toLowerCase()} records match your current preferences.` : `현재 조건에 맞는 ${catalog.find(item => item.id === richMode)?.label} 자료가 없습니다.`}</h3>
         <p>{english ? "Public information coverage varies by region." : "공공데이터의 지역별 제공 범위에 따라 결과가 없을 수 있습니다."}</p>
         <button type="button" onClick={onReload}>{english ? "Search again" : "다시 조회"}</button>

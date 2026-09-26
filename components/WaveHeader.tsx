@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useSitePreferences } from "./SitePreferences";
-import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { navigationScroll } from "../lib/header-scroll.js";
 import { readTripValue } from "../lib/current-trip-storage.js";
 import WaveHeaderTools from "./WaveHeaderTools";
 import NavIcon from "./NavIcons";
-const NightAuthLinks = lazy(() => import('./NightAuthLinks'));
 import NightIcon from './NightIcon';
 
 function subscribe(update: () => void) {
@@ -22,10 +21,14 @@ function savedSnapshot() {
   } catch { return 0; }
 }
 
-export default function WaveHeader({ current, savedCount, onSaved, className = "" }: {
+export default function WaveHeader({ current, savedCount, savedReady = true, onSaved, onSearch, onNew, className = "" }: {
   current: "intro" | "planner" | "community" | "travel-book" | "festivals" | "other";
   savedCount?: number;
+  // Do not expose the empty-trip link until device restoration determines its destination.
+  savedReady?: boolean;
   onSaved?: () => void;
+  onSearch?: () => void;
+  onNew?: () => void;
   className?: string;
 }) {
   const en = useSitePreferences().locale === "en";
@@ -59,7 +62,7 @@ export default function WaveHeader({ current, savedCount, onSaved, className = "
       <Link href="/festivals" aria-current={current === "festivals" ? "page" : undefined}><NavIcon name="festivals" /><span>{en ? "Festivals" : "축제"}</span></Link>
       <Link href="/community" aria-current={current === "community" ? "page" : undefined}><NavIcon name="community" /><span>{en ? "Community" : "커뮤니티"}</span></Link>
     </nav>
-    <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}>{night && <><Link className="night-search-link" href="/planner#places" aria-label="여행지 검색"><NightIcon name="search"/></Link><Suspense fallback={<Link className="night-login" href="/account">계정</Link>}><NightAuthLinks/></Suspense></>}<WaveHeaderTools />{onSaved ? <button className="wave-my-trips" type="button" onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
+    <div className="wave-header-actions" style={{ position: "relative", display: "flex", justifySelf: "end" }}>{night && <><Link className="night-search-link" href="/planner#places" onClick={event => { if (onSearch && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onSearch(); } }} aria-label="여행지 검색"><NightIcon name="search"/></Link></>}<WaveHeaderTools onNew={onNew} />{!savedReady || onSaved ? <button className="wave-my-trips" type="button" disabled={!savedReady} onClick={onSaved} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</button>
       : <Link className="wave-my-trips" href="/travel-book" aria-current={current === "travel-book" ? "page" : undefined} aria-label={`내 여행, 담은 장소 ${count}곳`}>{bookmark}</Link>}</div>
   </header>;
 }

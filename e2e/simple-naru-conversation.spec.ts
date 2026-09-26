@@ -94,7 +94,8 @@ async function setup(page: Page, options: Setup = {}) {
   await expect(launcher).toBeEnabled();
   if (options.seeded) {
     await expect.poll(() => planRequests.length).toBe(1);
-    await expect(page.locator('.simple-searching')).toHaveCount(0);
+    await expect(page.locator('.simple-searching')).toBeHidden();
+    await expect(page.locator('.simple-searching')).toHaveAttribute('aria-hidden', 'true');
   }
   await launcher.click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
@@ -114,7 +115,7 @@ async function search(chat: Locator) {
 }
 async function changeFacilities(page: Page, chat: Locator) {
   await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
-  await page.getByRole('group', { name: '여행 설계 화면', exact: true }).getByRole('button', { name: '여행지 찾기', exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   await page.locator('.simple-facility-trigger').click();
   const chooser = page.getByRole('dialog', { name: '필요한 편의', exact: true });
   await chooser.getByRole('checkbox', { name: '장애인 주차구역', exact: true }).check();
@@ -213,7 +214,8 @@ test('진행 중 편의가 바뀐 오래된 일정안은 자연어 승인으로�
     await expect.poll(app.journeyCalls).toBe(1);
     await changeFacilities(page, app.chat);
     await expect.poll(() => app.planRequests.length).toBe(2);
-    await expect(page.locator('.simple-searching')).toHaveCount(0);
+    await expect(page.locator('.simple-searching')).toBeHidden();
+    await expect(page.locator('.simple-searching')).toHaveAttribute('aria-hidden', 'true');
     const changed = await snapshot(page);
     gate.release(); await expect.poll(app.journeyCompleted).toBe(true);
     await app.launcher.click();
@@ -236,7 +238,8 @@ test('장소 추가 응답을 기다리는 사이 조건을 바꾸면 늦은 자
     await expect.poll(() => app.assistantRequests.length).toBe(2);
     await changeFacilities(page, app.chat);
     await expect.poll(() => app.planRequests.length).toBe(2);
-    await expect(page.locator('.simple-searching')).toHaveCount(0);
+    await expect(page.locator('.simple-searching')).toBeHidden();
+    await expect(page.locator('.simple-searching')).toHaveAttribute('aria-hidden', 'true');
     const changed = await snapshot(page);
     gate.release(); await expect.poll(app.assistantCompletions).toBe(2);
     await app.launcher.click();

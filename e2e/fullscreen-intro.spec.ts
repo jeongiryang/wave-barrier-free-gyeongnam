@@ -67,6 +67,7 @@ test('the intro omits playback controls while keeping direct keyboard dismissal'
     await page.keyboard.press('Shift+Tab');
     await expect(skip).toBeFocused();
     await expect(scene.getByRole('button', { name: /이전 장면|다음 장면|일시정지|재생/ })).toHaveCount(0);
+    await expect(scene.getByText("WAVE", { exact: true })).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(scene).toBeHidden();
     await expect(page.locator('#top')).toBeFocused();

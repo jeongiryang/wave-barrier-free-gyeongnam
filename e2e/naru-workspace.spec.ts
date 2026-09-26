@@ -59,7 +59,7 @@ async function requestTrip(chat: Locator) {
   await form.getByLabel('마지막 날짜', { exact: true }).fill(end);
   await form.getByRole('combobox', { name: '동행', exact: true }).selectOption('부모님과');
   await form.getByRole('combobox', { name: '이동수단', exact: true }).selectOption('car');
-  await form.getByRole('button', { name: '가볍게', exact: true }).click();
+  await form.getByRole('radio', { name: '여유롭게 쉬어가기', exact: true }).check();
   await form.getByRole('button', { name: '이 조건으로 여행 준비 맡기기 →', exact: true }).click();
   const proposal = chat.getByRole('region', { name: '나루의 실제 일정안', exact: true });
   await expect(proposal).toContainText('작업공간 검증 장소 2');
@@ -132,7 +132,8 @@ test('follow-up itinerary remains applicable when the first apply finishes its b
     await chat.getByRole('button',{name:'나루에게 보내기',exact:true}).click();
     await expect.poll(()=>followupStarted).toBe(true);
     releaseSearch();await expect.poll(()=>searchFinished).toBe(true);
-    await expect(page.locator('.simple-searching')).toHaveCount(0);
+    await expect(page.locator('.simple-searching')).toBeHidden();
+    await expect(page.locator('.simple-searching')).toHaveAttribute('aria-hidden', 'true');
     releaseJourney();
     const adjustment=chat.getByRole('region',{name:'나루의 실제 일정안',exact:true}).last();
     await expect(adjustment).toContainText('기존 장소');

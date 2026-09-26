@@ -15,7 +15,7 @@ import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 const CONTRACT: Array<{ path: string; selector: string; name: string }> = [
   { path: "/", selector: ".account-button", name: "계정" },
   { path: "/", selector: ".help-button", name: "도움말" },
-  { path: "/planner", selector: ".simple-planner-tabs button:nth-child(2)", name: "내 일정 탭" },
+  { path: "/planner", selector: ".wave-header .wave-my-trips", name: "내 일정 탭" },
   { path: "/planner", selector: ".map-provider-badge button", name: "지도 제공자 재연결" },
   { path: "/planner", selector: ".map-command-bar button", name: "지도 도구" },
   { path: "/planner", selector: ".map-type-switch button", name: "지도 종류" },

@@ -70,7 +70,7 @@ test("지도 저장은 직접 담은 장소만 보존하고 미선택 추천을 
   // Recommendations alone cannot open a route map or become an itinerary.
   expect(await savedCount(page)).toBe(0);
   await expect(page.locator("#route-map-canvas")).toHaveCount(0);
-  await expect(page.locator(".simple-planner-tabs button").nth(1)).toBeDisabled();
+  await expect(page.locator(".wave-header .wave-my-trips")).toHaveAttribute("href", "/travel-book");
   expect(await page.evaluate(() => localStorage.getItem("wave-saved-map"))).toBeNull();
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await expect.poll(() => savedCount(page)).toBe(1);

@@ -20,7 +20,7 @@ async function expectNoOverflow(page: Page) {
 
 const facilities = ["parking", "route", "wheelchair", "elevator", "restroom"];
 const dates = { start: "2026-10-08", end: "2026-10-09" };
-const itineraryTab = (page: Page) => page.locator(".simple-planner-tabs").getByRole("button", { name: /^내 일정/ });
+const itineraryTab = (page: Page) => page.locator(".wave-header").locator(".wave-my-trips");
 const add = (page: Page, name: string) => page.getByRole("button", { name: `${name} 일정에 담기`, exact: true });
 async function current(page: Page) {
   return page.evaluate(() => {
@@ -69,8 +69,8 @@ test("first visit stays neutral with optional conditions and locked unsearched r
   await expect(region).toHaveValue("");
   await expect(page.getByRole("group", { name: "하고 싶은 활동", exact: true }).locator('[aria-pressed="true"]')).toHaveCount(0);
   await expect(page.locator(".simple-facility-trigger")).toBeEnabled();
-  await expect(page.locator(".simple-planner-tabs button")).toHaveCount(2);
-  await expect(itineraryTab(page)).toBeDisabled();
+  await expect(page.locator(".wave-header .night-search-link, .wave-header .wave-my-trips")).toHaveCount(2);
+  await expect(itineraryTab(page)).toHaveAttribute("href", "/travel-book");
   await expect(page.locator(".simple-results")).toHaveCount(0);
   expect(requests).toEqual([]);
   expect((await current(page)).facilities).toEqual([]);
@@ -83,7 +83,7 @@ test("first visit stays neutral with optional conditions and locked unsearched r
     expect(request.searchParams.get("facilityKeys") || "").toBe("");
   }
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(itineraryTab(page)).toBeDisabled();
+  await expect(itineraryTab(page)).toHaveAttribute("href", "/travel-book");
 });
 
 test("a returning user can open an existing device itinerary before refreshed search results arrive", async ({ page }) => {
@@ -116,7 +116,7 @@ test("a returning user can open an existing device itinerary before refreshed se
   expect(before.schedule).toMatchObject({ travelStart: dates.start, travelEnd: dates.end, scheduleAssignments: { "9901": dates.start } });
   refreshedSearch.release();
   await expect.poll(() => completedSearches).toBeGreaterThan(0);
-  await page.locator(".simple-planner-tabs").getByRole("button", { name: "여행지 찾기", exact: true }).click();
+  await page.locator(".wave-header").locator(".night-search-link").click();
   await chooseTripConditions(page);
   await expect(page.locator(".simple-results")).not.toContainText("기존 저장 여행지");
   await openItinerary(page);
@@ -416,9 +416,9 @@ test("the itinerary tab unlocks dated journeys and the shared transport control 
   await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner?travelStart=2026-10-08&travelEnd=2026-10-09");
   await expect(page.locator(".simple-stops > li")).toHaveCount(0);
-  await expect(itineraryTab(page)).toBeDisabled();
+  await expect(itineraryTab(page)).toHaveAttribute("href", "/travel-book");
   await chooseTripConditions(page);
-  await expect(itineraryTab(page)).toBeDisabled();
+  await expect(itineraryTab(page)).toHaveAttribute("href", "/travel-book");
   await add(page, "경남도립미술관").click();
   await add(page, "용지호수공원").click();
   await expect(itineraryTab(page)).toBeEnabled();

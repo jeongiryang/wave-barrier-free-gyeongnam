@@ -172,18 +172,18 @@ test("regional entry: both screens avoid boundary downloads and no-JS explicitly
     await expect(staticPage.locator("noscript p")).toContainText("JavaScript를 허용해 주세요");
     const links = staticPage.locator("#regions .simple-region-link");
     await expect(links).toHaveCount(firstRegions.length);
-    // The framework's streamed client subtree is hidden without JavaScript.
-    // Its safe markup URLs are not a supported no-script region picker.
+    // The server renders safe destination links even before hydration.
+    // The no-script notice still explains that interactive planning needs JavaScript.
     for (const [index, name] of firstRegions.entries()) {
       const link = links.nth(index), target = new URL((await link.getAttribute("href"))!, origin);
       expect(target.origin).toBe(origin); expect(target.pathname).toBe("/planner");
       expect([...target.searchParams]).toEqual([["region", name]]);
       await expect(link).toHaveAttribute("aria-label", `${name} 여행지 보기`);
-      await expect(link).toBeHidden();
-      await expect(staticPage.getByRole("link", { name: `${name} 여행지 보기`, exact: true })).toHaveCount(0);
+      await expect(link).toBeVisible();
+      await expect(staticPage.getByRole("link", { name: `${name} 여행지 보기`, exact: true })).toHaveCount(1);
     }
     await expect(staticPage.locator("#regions .simple-show-regions")).toBeDisabled();
-    await expect(staticPage.getByRole("button", { name: "18개 지역 모두 보기", exact: true })).toHaveCount(0);
+    await expect(staticPage.getByRole("button", { name: "18개 지역 모두 보기", exact: true })).toBeDisabled();
     await staticPage.screenshot({ path: test.info().outputPath("no-script-requirement.png") });
   } finally { await context.close(); }
 });

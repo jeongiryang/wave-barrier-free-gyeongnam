@@ -54,10 +54,10 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 960, height: 800 
     await form.getByLabel('출발 날짜', { exact: true }).fill('2026-10-03');
     await form.getByLabel('마지막 날짜', { exact: true }).fill('2026-10-04');
     await form.getByRole('combobox', { name: '동행', exact: true }).selectOption('부모님과');
-    await form.getByRole('button', { name: '가볍게', exact: true }).click();
-    await checkTargets(form.locator('button,input,select'));
+    await form.getByRole('radio', { name: '여유롭게 쉬어가기', exact: true }).check();
+    await checkTargets(form.locator('button,input:not([type=radio]),select,.naru-pace label'));
     await checkBounds(page, panel);
-    await form.locator('header').scrollIntoViewIfNeeded();
+    await form.locator('.naru-pace').scrollIntoViewIfNeeded();
     await page.screenshot({ path: testInfo.outputPath(`naru-workspace-${viewport.width}.png`) });
     const formA11y = await new AxeBuilder({ page }).include('.naru-panel').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
     expect(formA11y.violations).toEqual([]);

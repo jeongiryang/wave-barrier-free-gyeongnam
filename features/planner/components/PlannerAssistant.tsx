@@ -1,4 +1,5 @@
 "use client";
+import NaruGuidanceSettings from './NaruGuidanceSettings';
 import { PlannerToolSurfaces, usePlannerTools, toolSurfaceGroup } from "./PlannerToolSurface";
 
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -92,6 +93,11 @@ export default function PlannerAssistant(props: Props) {
   const [toolQuery, setToolQuery] = useState('');
   const [showLatest, setShowLatest] = useState(false);
   const filteredTools = toolGroups.map(group=>({...group, items:group.items.filter(([id,label])=>`${label} ${toolKeywords[id] || ''}`.replace(/\s/g,'').includes(toolQuery.replace(/\s/g,'')))})).filter(group=>group.items.length);
+  const [guidanceOpen, setGuidanceOpen] = useState(false);
+  const closeGuidance = useCallback(() => {
+    setGuidanceOpen(false);
+    requestAnimationFrame(() => dialogRef.current?.querySelector<HTMLElement>('.naru-more > summary')?.focus({ preventScroll: true }));
+  }, []);
   const [workspaceTab, setWorkspaceTab] = useState<'conversation'|'tools'|'saved'>('conversation');
   const [toolSequence, setToolSequence] = useState(0);
   if (toolSequence !== internalTools.request.sequence) { setToolSequence(internalTools.request.sequence); setWorkspaceTab('tools'); }
@@ -155,8 +161,13 @@ export default function PlannerAssistant(props: Props) {
     const media = window.matchMedia('(max-width: 800px)');
     const present = () => {
       if (!dialog) return;
+      // Reopening the parent must not cover its active settings dialog.
+      const settings = dialog.querySelector<HTMLDialogElement>('.naru-guidance-settings[open]');
+      const focused = settings?.contains(document.activeElement) ? document.activeElement as HTMLElement : null;
+      settings?.close();
       if (dialog.open) dialog.close();
       if (media.matches || size === 'large') dialog.showModal(); else dialog.show();
+      settings?.showModal(); focused?.focus({ preventScroll: true });
     };
     present();
     media.addEventListener('change', present);
@@ -177,6 +188,7 @@ export default function PlannerAssistant(props: Props) {
   const close = useCallback(() => {
     if (log.current) scrollPosition.current = log.current.scrollTop;
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    setGuidanceOpen(false);
     onClose();
     returnFocus.current?.focus({ preventScroll: true });
   }, [onClose]);
@@ -609,8 +621,7 @@ export default function PlannerAssistant(props: Props) {
   // Keep tool hosts mounted so closing Naru does not discard unsaved tool input.
   const todayKey = (() => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; })();
   const hubContext = { hasItinerary: Boolean(trip.travelStart), isTripDay: trip.tripDays.includes(todayKey), hasFocusedPlace: Boolean(focusedPlaceId), hasSavedTrip: savedTravelBooks.length > 0 };
-  const priorityFacilityLabels = FACILITIES.filter(item => ['route', 'elevator', 'audioguide', 'bigprint', 'signguide'].includes(item.key) && plan.selected.includes(item.key)).map(item => item.label);
-  const guidanceSummary = [...guidancePreferenceText(props.guidance.value), ...priorityFacilityLabels];
+  const guidanceSummary = guidancePreferenceText(props.guidance.value);
   // 확인·미확인 개수와 항목별 상태는 장소 응답에서만 계산한다. 모델 출력에서
   // 숫자나 상태를 파싱하지 않는다. 사용자가 편의 조건을 고르지 않았거나 응답에
   // 편의 정보가 없으면 기준이 없으므로 표시하지 않는다.
@@ -626,6 +637,10 @@ export default function PlannerAssistant(props: Props) {
     if (event.key !== 'Escape' || event.defaultPrevented || document.querySelector('dialog[open]:not(.naru-panel)')) return;
     event.preventDefault(); event.stopPropagation(); close();
   }} >
+    {props.open && guidanceOpen && <NaruGuidanceSettings value={props.guidance.value} onClose={closeGuidance} onApply={value => {
+      props.guidance.update(value); setWorkspaceTab('conversation');
+      setWorkspaceNotice('안내 설정을 적용했어요. 다음 질문부터 반영됩니다.'); closeGuidance();
+    }} />}
     <div className="naru-conversation">
       <div className="naru-heading">
         <NaruAvatar state={busy ? activity.phase : 'idle'} />
@@ -634,10 +649,14 @@ export default function PlannerAssistant(props: Props) {
           <button type="button" aria-label="저장한 여행 작업 열기" onClick={() => setWorkspaceTab('saved')}><NaruWorkspaceIcon name="history" /></button>
           <button type="button" className="naru-support-toggle" aria-expanded={starterOpen} aria-controls="naru-support-picker" onClick={() => starterOpen && !starterDone ? confirmStarter(true) : toggleStarter()}>{starterOpen ? '도움 닫기' : '맞춤 도움'}</button>
           <button type="button" className="naru-size-toggle" onClick={() => setSize(current => { const next = current === 'compact' ? 'large' : 'compact'; try { localStorage.setItem('wave-naru-size-v1', next); } catch { /* no-op */ } return next; })} aria-label={size === 'compact' ? '대화창 크게 보기' : '대화창 작게 보기'}><NaruWorkspaceIcon name={size === 'compact' ? 'expand' : 'compact'} /></button>
-          <details className="naru-more"><summary aria-label="나루 메뉴">•••</summary><div>      <p className="naru-note" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        <span>지금 안내 방식: {guidanceSummary.length ? guidanceSummary.join(' · ') : '기본 방식'}</span>
-        <button type="button" style={{ minHeight: '44px' }} onClick={() => goToTool('facilities')}>바꾸기</button>
-      </p>
+          <details className="naru-more"><summary aria-label="나루 메뉴">•••</summary><div>      <div className="naru-guidance-summary">
+        <strong>나루 안내 설정</strong>
+        <p>{guidanceSummary.length ? guidanceSummary.join(' · ') : '기본 안내 · 추가 요청 없음'}</p>
+        <button type="button" aria-haspopup="dialog" onClick={event => {
+          const menu = event.currentTarget.closest('details'); if (menu) menu.open = false;
+          setGuidanceOpen(true);
+        }}>안내 설정 열기</button>
+      </div>
 <a href="/guide#naru-guide" onClick={close}>사용 방법</a>{speaking && <button type="button" onClick={() => { speechSynthesis.cancel(); setSpeaking(false); }}>읽기 중단</button>}<p>대화와 사진은 AI 서버에서 처리하지만 서버에 보관하지 않아요. 저장을 누른 대화는 이 기기에 보관되며 사진 원본은 저장하지 않습니다. 사진은 위치정보를 제거한 뒤 보냅니다.</p></div></details>
           <button type="button" onClick={close} aria-label="나루 대화 닫기">×</button>
         </div>

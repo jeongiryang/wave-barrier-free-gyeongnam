@@ -29,10 +29,10 @@ for (const scenario of ['complete', 'partial', 'negative', 'legacy'] as const) f
   if (scenario === 'negative' && test.info().project.name === 'desktop-chromium') for (const width of [960, 1440]) { await page.setViewportSize({ width, height: 900 }); await card.screenshot({ path: test.info().outputPath(`facilities-${en}-${width}.png`) }); }
   if (scenario === 'complete') {
     await closeNaruTool(page);
-    const before = searches; await page.locator('.simple-planner-tabs button').first().click(); await page.locator('.simple-facility-trigger').click(); const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+    const before = searches; await page.locator(".wave-header .night-search-link").click(); await page.locator('.simple-facility-trigger').click(); const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
     await picker.getByRole('checkbox', { name: '수유실', exact: true }).check(); expect(searches).toBe(before);
     await picker.getByRole('button', { name: /^적용/ }).click(); await expect.poll(() => searches).toBe(before + 1); await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'false');
-    await page.locator('.simple-planner-tabs button').nth(1).click(); await openDeparture(page); await expect(evidence.locator('summary')).toContainText('일부 정보 있음'); await expect(evidence).toContainText('확인됨 5'); await expect(evidence).toContainText('미확인 1');
+    await page.locator(".wave-header .wave-my-trips").click(); await openDeparture(page); await expect(evidence.locator('summary')).toContainText('일부 정보 있음'); await expect(evidence).toContainText('확인됨 5'); await expect(evidence).toContainText('미확인 1');
     omitSavedPlace = true; await card.getByRole('button', { name: '다시 조회', exact: true }).click(); await expect(evidence.locator('summary')).toContainText('확인할 정보 있음');
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-saved-places') || '[]'))).toEqual(['1001']);
     await page.reload(); await openItinerary(page); await openDeparture(page); await expect(evidence.locator('summary')).toContainText('확인할 정보 있음');

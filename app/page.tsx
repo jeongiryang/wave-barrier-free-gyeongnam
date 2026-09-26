@@ -5,6 +5,8 @@ import { useSitePreferences } from "../components/SitePreferences";
 import SkipLink from "../components/SkipLink";
 import "./styles/landing-restored.css";
 import "./styles/night-landing.css";
+import "./styles/award-panorama.css";
+import AwardPanorama, { AwardPhotoProvider } from "../features/landing/components/AwardPanorama";
 import LandingDepartureScene from "../features/landing/components/LandingDepartureScene";
 import LandingCommunityScene from "../features/landing/components/LandingCommunityScene";
 import { LandingFooter, LandingCallToAction } from "../features/landing/components/LandingClosing";
@@ -30,17 +32,17 @@ export default function LandingPage() {
   const root = useRef<HTMLElement>(null);
   const compact = useSyncExternalStore(subscribeCompact, compactSnapshot, desktopSnapshot);
   useLandingReveal(root);
-  return <><LandingIntro /><main ref={root} className="landing-page horizon-edition simple-landing wave-night night-landing" lang={locale}>
+  return <AwardPhotoProvider><LandingIntro /><main ref={root} className="landing-page horizon-edition simple-landing wave-night night-landing" lang={locale}>
     <SkipLink href="#top">{t("skip", "본문으로 바로가기")}</SkipLink>
-    <LandingHeader scrolled={false} t={t} />
-    <LandingHero />
+    <div className="landing-opening"><AwardPanorama /><LandingHeader scrolled={false} t={t} />
+    <LandingHero /></div>
     {compact
       ? [<LandingFeatureLinks key="features" />, <LandingRegionStory key="regions" />]
       : [<LandingRegionStory key="regions" />, <LandingFeatureLinks key="features" />]}
     <LandingChapters />
     <div className="night-discover-grid"><LandingCommunityScene /><LandingDepartureScene /></div>
-    <details className="night-feature-details"><summary>나루와 여행 도구 살펴보기</summary><LandingAssistantStory /><LandingFeatureList /></details>
-    <LandingCallToAction t={t} />
-    <LandingFooter t={t} />
-  </main></>;
+    <div className="night-feature-content"><LandingAssistantStory /><LandingFeatureList /></div>
+    <div className="landing-finale"><LandingCallToAction t={t} />
+    <LandingFooter t={t} /></div>
+  </main></AwardPhotoProvider>;
 }

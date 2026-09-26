@@ -8,7 +8,8 @@ for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choi
   await page.addInitScript(value => Object.defineProperty(navigator, "connection", { configurable: true, value: Object.assign(new EventTarget(), { saveData: value }) }), saveData);
   const requested = new Set<string>();
   const photoApiRequests: string[] = [];
-  page.on("request", request => { const url = new URL(request.url()); if (url.pathname === "/api/wave" && url.searchParams.get("action") === "photo") photoApiRequests.push(request.url()); });
+  const photoMethods: string[] = [];
+  page.on("request", request => { const url = new URL(request.url()); if (url.pathname === "/api/wave" && url.searchParams.get("action") === "photo") { photoApiRequests.push(request.url()); photoMethods.push(request.method()); } });
   page.on("request", request => { if (request.resourceType() === "image") requested.add(request.url()); });
   const allPhotos = new Set(Object.values(regionShowcaseAlbums).flat().map(photo => photo.image));
   const firstCovers = new Set(firstRegions.map(name => regionShowcaseAlbums[name][0].image));
@@ -32,7 +33,17 @@ for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choi
     // React may start an image request before the lazy SVG commit completes.
     await expect.poll(() => page.locator(".night-journey-map svg image,.night-itinerary-cards img").evaluateAll(images => images.map(image => image.getAttribute("href") || image.getAttribute("src"))), { message: url }).toContain(url);
   }
-  expect(photoApiRequests).toEqual([]);
+  // The approved map requests one representative photo for each rendered
+  // region. This is distinct from speculatively downloading album slides.
+  const assertMapPhotoReads = async () => {
+    const names = await page.locator('.night-journey-map [data-region-photo]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-region-photo')));
+    const regions = photoApiRequests.map(value => new URL(value).searchParams.get('region'));
+    expect(regions.every(region => names.includes(region))).toBe(true);
+    expect(new Set(regions).size).toBe(regions.length);
+    expect(photoMethods.every(method => method === 'GET')).toBe(true);
+    for (const value of photoApiRequests) expect([...new URL(value).searchParams.keys()].sort()).toEqual(['action', 'region']);
+  };
+  await assertMapPhotoReads();
   const expand = page.getByRole("button", { name: "18개 지역 모두 보기", exact: true });
   // The region control is disabled until its own hydration completes.
   await expect(expand).toBeEnabled();
@@ -49,5 +60,5 @@ for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choi
   expect(requested.has((await last.locator("img").getAttribute("src"))!)).toBe(true);
   await page.getByRole("button", { name: "접기", exact: true }).press("Enter");
   await expect(cards.locator("h3")).toHaveText(firstRegions);
-  expect(photoApiRequests).toEqual([]);
+  await assertMapPhotoReads();
 });

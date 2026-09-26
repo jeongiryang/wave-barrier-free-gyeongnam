@@ -1,3 +1,4 @@
+import { closeNewTripMenu, newTripAction, startNewTrip } from './planner-header-fixtures';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, plan } from "./fixtures";
@@ -145,7 +146,7 @@ async function freshTrip(page: Page) {
   await page.goto("/planner");
   await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
   await page.getByRole("button", { name: `${museum} 일정에 담기`, exact: true }).click();
-  await page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ }).click();
+  await page.locator(".wave-header").locator(".wave-my-trips").click();
   const setup = page.locator(".simple-initial-setup");
   await setup.getByLabel("시작일", { exact: true }).fill(start);
   await setup.getByLabel("마지막 날", { exact: true }).fill(end);
@@ -310,9 +311,9 @@ test("저장 응답 전에 다른 여행으로 전환하면 이전 응답은 새
   await acceptTripTimingWarning(page);
   await expect.poll(() => state.writes.length).toBe(1);
   const other = await context.newPage(); await install(other, state, info); await other.goto("/planner");
-  await expect(other.getByRole("button", { name: "새 여행", exact: true })).toBeEnabled();
-  await other.getByRole("button", { name: "새 여행", exact: true }).click();
-  await expect(other.getByRole("button", { name: "새 여행", exact: true })).toBeEnabled();
+  await newTripAction(other); await closeNewTripMenu(other);
+  await startNewTrip(other);
+  await newTripAction(other); await closeNewTripMenu(other);
   await expect(other.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
   const fresh = await stored(other);
   expect(fresh.identity?.id).not.toBe(before.identity?.id);

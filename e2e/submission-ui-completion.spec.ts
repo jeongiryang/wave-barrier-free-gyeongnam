@@ -56,7 +56,7 @@ test('나루 캘린더 도구가 공유 메뉴를 직접 열고 사용자 클릭
 
 test('소개 마지막 영역과 푸터가 화면 폭에 맞고 수평 넘침이 없다', async ({ page }) => {
   await prepareStory(page); await page.goto('/'); await storyReady(page);
-  const footer = page.locator('.landing-page > .wave-balanced-footer');
+  const footer = page.locator('.landing-page .landing-finale > .wave-balanced-footer');
   await footer.scrollIntoViewIfNeeded(); await expect(footer).toBeVisible();
   const measured = await footer.evaluate(node => {
     const box = node.getBoundingClientRect();
@@ -66,11 +66,13 @@ test('소개 마지막 영역과 푸터가 화면 폭에 맞고 수평 넘침이
   });
   expect(Math.abs(measured.left)).toBeLessThanOrEqual(1);
   expect(Math.abs(measured.right - measured.width)).toBeLessThanOrEqual(1);
-  expect(measured.overflow).toBe(false); expect(measured.background).toBe('rgb(5, 14, 25)');
-  const closingPadding = await page.locator('#closing .landing-closing-copy').evaluate(node => ({
-    top: getComputedStyle(node).paddingTop, mobile: window.innerWidth <= 600,
+  expect(measured.overflow).toBe(false); expect(measured.background).toBe('rgba(0, 0, 0, 0)');
+  const closingPadding = await page.locator('.landing-finale').evaluate(node => ({
+    top: getComputedStyle(node).paddingTop, bottom: getComputedStyle(node).paddingBottom, mobile: window.innerWidth <= 600,
   }));
-  expect(closingPadding.top).toBe(closingPadding.mobile ? '36px' : '44px');
+  expect(closingPadding.top).toBe(closingPadding.mobile ? '40px' : '64px');
+  expect(closingPadding.bottom).toBe(closingPadding.top);
+  await expect(page.locator('#closing .landing-closing-copy')).toHaveCSS('padding-top', '0px');
   expect((await new AxeBuilder({ page }).include('.landing-page').analyze()).violations).toEqual([]);
 });
 

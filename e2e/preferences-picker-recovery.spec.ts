@@ -34,7 +34,7 @@ for (const path of ["/planner", "/community"]) {
       await page.setViewportSize({ width, height: 900 });
       await details.locator(".preference-panel").screenshot({ path: test.info().outputPath(`preferences-picker-${width}.png`) });
     }
-    await page.getByRole("heading", { level: 1 }).click();
+    await page.locator(".night-planner-form h2, .night-banner h1").first().click();
     await expect(details.locator(".preference-panel")).toBeHidden();
   });
 }

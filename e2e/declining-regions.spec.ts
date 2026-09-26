@@ -15,7 +15,7 @@ test("landing omits declining-region controls and notices", async ({ page }) => 
   await section.getByRole("button", { name: "18개 지역 모두 보기", exact: true }).click();
   await expect(section.getByText(notice, { exact: true })).toHaveCount(0);
   await expect(section.getByText(source, { exact: true })).toHaveCount(0);
-  await expect(page.locator("#story").getByRole("button", { name: "이 지역들 먼저 보기", exact: true })).toHaveCount(0);
+  await expect(page.locator("#story").getByRole("button", { name: "인구감소지역 우선 보기", exact: true })).toHaveCount(0);
   await expect(page.locator("#story .region-picker-source")).toHaveCount(0);
   expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
   for (const width of [390, 960, 1440]) {
@@ -35,7 +35,7 @@ test("planner filter reorders all regions without hiding or requesting data and 
   await expect(discovery.locator(".simple-region")).toHaveCount(18);
   const apiRequests: string[] = [];
   page.on("request", request => { if (/\/api\//.test(request.url())) apiRequests.push(request.url()); });
-  const filter = discovery.getByRole("button", { name: "이 지역들 먼저 보기", exact: true });
+  const filter = discovery.getByRole("button", { name: "인구감소지역 우선 보기", exact: true });
   await filter.click();
   await expect(discovery.getByRole("button", { name: "인구감소지역 먼저 보는 중", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(discovery.locator(".simple-region")).toHaveCount(18);
@@ -46,6 +46,6 @@ test("planner filter reorders all regions without hiding or requesting data and 
   expect((await new AxeBuilder({ page }).include(".simple-region-entry").analyze()).violations).toEqual([]);
 
   await page.reload();
-  await expect(page.locator(".simple-region-discovery").getByRole("button", { name: "이 지역들 먼저 보기", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".simple-region-discovery").getByRole("button", { name: "인구감소지역 우선 보기", exact: true })).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator(".simple-region-discovery .simple-region")).toHaveCount(6);
 });

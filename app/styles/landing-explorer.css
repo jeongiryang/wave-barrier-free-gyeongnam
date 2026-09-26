@@ -15,15 +15,6 @@
 .section-kicker { margin: 0 0 13px; color: var(--blue); font-size: .74rem; font-weight: 900; letter-spacing: .16em; }
 
 /* Planner */
-
-.profile-card { min-height: 84px; padding: 14px; display: grid; grid-template-columns: 44px 1fr 27px; align-items: center; gap: 11px; border: 1px solid #d7e6ee; border-radius: 16px; background: #fff; text-align: left; transition: transform .2s, border-color .2s, background .2s; }
-.profile-card:hover { transform: translateY(-3px); border-color: #82d4ff; }
-.profile-card.active { border-color: var(--blue); background: #f1faff; box-shadow: inset 0 0 0 1px var(--blue); }
-.profile-card strong, .profile-card small { display: block; }
-
-.profile-card small { margin-top: 3px; color: #738f9c; font-size: .78rem; }
-.profile-card > i { width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid #d4e4eb; border-radius: 50%; color: #6d8a97; font-style: normal; }
-.profile-card.active > i { border-color: var(--blue); color: var(--on-blue); background: var(--blue); }
 @keyframes pulse { 50% { box-shadow: 0 0 0 11px rgba(125,235,233,0); } }
 .button-loader { width: 17px; height: 17px; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(1turn); } }

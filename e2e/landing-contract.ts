@@ -5,6 +5,12 @@ import { mockPublicShellApi } from "./fixtures";
 /** Real page behavior with deterministic, decoded tourism photograph bytes. */
 export async function prepareLandingMedia(page: Page) {
   await mockPublicShellApi(page);
+  await page.route('**/api/wave?**', route => {
+    const action = new URL(route.request().url()).searchParams.get('action');
+    if (action === 'enrich') return route.fulfill({ json: { awards: [] } });
+    if (action === 'photo') return route.fulfill({ json: { photo: null } });
+    return route.fallback();
+  });
   const bitmap = await readFile("public/media/wave-story/hero-coast-small.webp");
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: bitmap }));
 }
@@ -97,9 +103,21 @@ export const chapterNames = {
 export const firstRegions = ["통영", "거제", "남해", "하동", "산청"];
 export const allRegions = ["거창", "거제", "고성", "김해", "남해", "밀양", "사천", "산청", "양산", "의령", "진주", "창녕", "창원", "통영", "하동", "함안", "함양", "합천"];
 
-/** Optional tools remain reachable through the visitor-facing disclosure. */
+/** Public photo reads are allowed; rendering never asks Naru or creates a trip. */
+export function expectOnlyLandingReads(requests: string[]) {
+  const unexpected = requests.filter(value => {
+    const url = new URL(value);
+    return !(url.pathname === '/api/wave' && ['enrich', 'photo', 'spot-photo', 'places'].includes(url.searchParams.get('action') || ''))
+      && url.pathname !== '/api/community/posts';
+  });
+  expect(unexpected).toEqual([]);
+}
+
+/** Naru and the tools are immediately available without a disclosure. */
 export async function openLandingTools(page: Page) {
-  const details = page.locator('.night-feature-details');
-  if (await details.getAttribute('open') === null) await details.locator(':scope > summary').click();
-  await expect(details).toHaveAttribute('open', '');
+  const tools = page.locator('.night-feature-content');
+  await tools.scrollIntoViewIfNeeded();
+  await expect(tools.locator('#naru')).toBeVisible();
+  await expect(tools.locator('#features')).toBeVisible();
+  await expect(tools.locator(':scope > summary')).toHaveCount(0);
 }

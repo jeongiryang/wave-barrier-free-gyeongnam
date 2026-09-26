@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { chapterIds, openLandingTools, storyReady } from "./landing-contract";
+import { mockAwardHero } from './landing-photo-fixture';
 
 
 for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editorial introduction and working pages remain readable in ${theme}, size ${size}`, async ({ page }) => {
@@ -15,6 +16,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
   await page.emulateMedia({ reducedMotion: "reduce" });
   const bitmap = await readFile("public/media/wave-story/hero-coast-small.webp");
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: bitmap }));
+  await mockAwardHero(page);
   await page.route("**/api/community/posts?**", route => route.fulfill({ json: { posts: [], page: 1, hasMore: false } }));
   const widths = test.info().project.name.includes("mobile") ? [280, 390] : [960, 1440];
   {
@@ -69,9 +71,12 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await expect(page.getByText("아직 등록된 후기나 질문이 없습니다.", { exact: true })).toBeVisible();
     await expect(page.locator(".night-story-card")).toHaveCount(0);
     if (width >= 390) {
-      // The board's primary action must be reachable in the first viewport;
-      // an inherited display headline previously pushed it below the fold.
-      const write = await page.locator(".night-community-toolbar .night-primary").boundingBox();
+      // The full-height introduction precedes the board. Its primary action
+      // remains keyboard reachable and fully visible when scrolled into view.
+      const action = page.locator(".night-community-toolbar .night-primary");
+      await action.scrollIntoViewIfNeeded();
+      const write = await action.boundingBox();
+      expect(write!.y).toBeGreaterThanOrEqual(0);
       expect(write!.y + write!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
     }
     expect((await new AxeBuilder({ page }).include(".community-page").analyze()).violations).toEqual([]);
@@ -90,10 +95,11 @@ test("English travel pages identify original Korean photography and community co
   await page.emulateMedia({ reducedMotion: "reduce" });
   const bitmap = await readFile("public/media/wave-story/hero-coast-small.webp");
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: bitmap }));
+  await mockAwardHero(page);
   await page.goto("/");
   await storyReady(page);
   await expect(page.locator(".landing-page")).toHaveAttribute("lang", "en");
-  await expect(page.locator(".landing-hero-landscape img")).toHaveAttribute("alt", "");
+  await expect(page.locator(".landing-opening .award-panorama img")).toHaveAttribute("alt", "");
   await expect(page.locator("#regions .simple-region-credit")).toHaveCount(5);
   await expect(page.locator("#community h2")).toHaveText("Travel brings people together.");
   expect(await page.locator("#community .night-discover-photos span").first().evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");

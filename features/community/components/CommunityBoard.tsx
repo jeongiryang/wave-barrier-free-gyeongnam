@@ -3,6 +3,7 @@ import { useState, useSyncExternalStore } from "react";
 import CommunityHeader from "../../../components/CommunityHeader";
 import SiteFooter from "../../../components/SiteFooter";
 import SkipLink from "../../../components/SkipLink";
+import NightScene from "../../../components/NightScene";
 import NightBanner from "../../../components/NightBanner";
 import NightIcon from "../../../components/NightIcon";
 import {useCommunityBoard,type PlaceFilter} from "../hooks/useCommunityBoard";
@@ -20,7 +21,7 @@ export default function CommunityPage({initialPlace=null,fieldReportsEnabled=fal
  const board=useCommunityBoard(initialPlace,sort);
  const ready=useSyncExternalStore(subscribe,()=>true,()=>false);
  const category=board.category;
- return <main className="community-page wave-night"><SkipLink href="#community-list">게시글 목록으로 바로가기</SkipLink><CommunityHeader/><NightBanner kind="community"/>
+ return <main className="community-page wave-night"><SkipLink href="#community-list">게시글 목록으로 바로가기</SkipLink><NightScene kind="community"><CommunityHeader/><NightBanner kind="community"/></NightScene>
  <section className="community-workspace" id="community-list" aria-labelledby="community-list-title">
  <h2 id="community-list-title" className="sr-only">여행 후기와 질문</h2>
  <div className="night-community-toolbar" aria-busy={!ready}><div className="night-category-tabs" tabIndex={0} role="group" aria-label="게시판 선택">{[['','전체'],['general','여행 질문'],['place','관광지 이야기'],['review','여행 후기'],['tips','여행 꿀팁'],['together','함께 여행해요'],['travel-talk','여행 이야기와 질문'],...(fieldReportsEnabled?[['field-report','현장 정보']]:[])].map(([key,label])=><button key={key} type="button" disabled={!ready} aria-pressed={category===key} onClick={()=>board.setCategory(key)}>{label}</button>)}</div>
@@ -32,5 +33,5 @@ export default function CommunityPage({initialPlace=null,fieldReportsEnabled=fal
  {savedOpen&&<div id="community-saved-posts"><CommunitySavedPosts/></div>}
  <CommunityPostList board={board} layout={layout}/>
  </div><NightCommunitySidebar onRegion={name=>{board.setPlaceFilter(null);board.setCategory('');board.setSearch(name);board.setQuery(name);}}/></div>
- <details className="community-guides"><summary>여행 준비 가이드</summary><CommunityTravelStories layout={layout}/></details></section><SiteFooter/></main>;
+ </section><NightScene kind="community" closing><section className="community-closing-invite"><h2>다음 여행도, 함께 나눠요</h2><p>다녀온 이야기와 궁금한 여행을 들려주세요.</p><a className="wave-gradient-button" href={board.writeHref}>여행 이야기 쓰기</a></section><details className="community-guides"><summary>여행 준비 가이드</summary><CommunityTravelStories layout={layout}/></details><SiteFooter/></NightScene></main>;
 }

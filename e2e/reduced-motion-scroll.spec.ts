@@ -18,11 +18,11 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     await row.locator('.simple-place-add').click();
     await expect(row.locator('.simple-place-add')).toHaveAttribute('aria-pressed', 'true');
     // Adding stays in the current results. The old five-stage scroll is removed.
-    await expect(page.locator('.simple-planner-tabs button').first()).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator("#conditions")).toBeVisible();
     await expect(row).toBeInViewport();
     await openItinerary(page, { start: '2026-10-08' });
     await expect(page.locator('.simple-stops > li')).toHaveCount(1);
-    await expect(page.locator('.simple-planner-tabs button').nth(1)).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator("#itinerary")).toBeVisible();
     await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     const calls = await page.evaluate(() => (window as unknown as { waveScrollBehaviors: string[] }).waveScrollBehaviors);
     expect(calls).not.toContain('smooth');

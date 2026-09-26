@@ -1,3 +1,4 @@
+import { startNewTrip } from './planner-header-fixtures';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, openItinerary, plan } from "./fixtures";
@@ -22,7 +23,7 @@ test("an explicit new region trip clears this trip's facilities and activities w
   await acceptTripTimingWarning(page);
   await expect(page.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
   const archive = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-travel-book-v1") || "[]")[0]);
-  await page.getByRole("button", { name: "새 여행", exact: true }).click();
+  await startNewTrip(page);
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
   await expect(region).toHaveValue("");
   await expect(activities.locator('[aria-pressed="true"]')).toHaveCount(0);
@@ -39,7 +40,7 @@ test("an explicit new region trip clears this trip's facilities and activities w
   expect(requests[0].searchParams.get("region")).toBe("고성");
   expect(requests[0].searchParams.get("facilityKeys") || "").toBe("");
   expect(requests[0].searchParams.get("themes") || "").toBe("");
-  await expect(page.getByRole("group", { name: "여행 설계 화면", exact: true }).getByRole("button", { name: /^내 일정/ })).toBeDisabled();
+  await expect(page.locator(".wave-header").locator(".wave-my-trips")).toHaveAttribute("href", "/travel-book");
   await page.locator(".simple-facility-trigger").click();
   await expect(facilities.locator(".simple-facility-grid input:checked")).toHaveCount(0);
   await facilities.locator(".simple-saved-preferences > summary").click();

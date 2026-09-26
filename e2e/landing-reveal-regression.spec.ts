@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { prepareStory, storyReady, expectNoOverflow } from "./landing-contract";
+import { mockPlannerApi } from './fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -35,7 +36,10 @@ for (const motion of ["no-preference", "reduce"] as const) {
 }
 
 test("missing IntersectionObserver never hides the closing content", async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
   await prepareStory(page);
+  await mockPlannerApi(page, { preserveView: true });
   await page.addInitScript(() => { Object.defineProperty(window, "IntersectionObserver", { value: undefined, configurable: true }); });
   await page.goto("/");
   await storyReady(page);
@@ -44,4 +48,12 @@ test("missing IntersectionObserver never hides the closing content", async ({ pa
   await expect(closing.locator("img,a,button")).toHaveCount(0);
   await expect(closing.locator(".landing-closing-copy")).toHaveCSS("opacity", "1");
   await expect(closing.getByRole("heading")).toBeVisible();
+  await expect(page.locator('#story [data-region-photo]')).toHaveCount(18);
+  await page.goto('/planner');
+  const footer = page.locator('.naru-conversation-footer');
+  await footer.scrollIntoViewIfNeeded();
+  await expect(footer).toHaveAttribute('data-step', '4');
+  await expect(footer.getByRole('heading', { name: '나루와 함께해요', exact: true })).toBeVisible();
+  await expectNoOverflow(page);
+  expect(errors).toEqual([]);
 });

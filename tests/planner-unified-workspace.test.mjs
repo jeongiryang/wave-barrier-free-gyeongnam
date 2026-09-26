@@ -13,9 +13,9 @@ test("planner keeps photo restore secondary and uses one saved-place itinerary",
   ]);
   assert.doesNotMatch(page, /PhotoCourseRestore/);
   assert.match(page, /className="planner-journey-workspace"/);
-  assert.match(header, /<h1>여행 설계<\/h1>/);
-  assert.match(header, /여행지 찾기/);
-  assert.match(header, /내 일정\{savedCount > 0/);
+  assert.match(header, /<h1 className="sr-only">여행 설계/);
+  assert.doesNotMatch(header, /simple-planner-tabs|simple-planner-actions/);
+  assert.match(header, /onNavigate\("itinerary"\)/);
   assert.match(page, /<PlannerConditionsPanel/);
   assert.match(page, /<RecommendationWorkspace/);
   assert.match(page, /<PlannerItineraryWorkspace/);

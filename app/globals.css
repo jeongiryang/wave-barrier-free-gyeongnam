@@ -55,14 +55,9 @@ audio { display: none; }
 .route-state-page > div:last-child { margin-top: 28px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .route-state-page button,.route-state-page a { min-height: 48px; padding: 12px 17px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 13px; color: var(--ink); background: #fff; font: inherit; font-weight: 850; }
 .route-state-page button,.route-state-page a.primary { color: var(--on-blue); border-color: var(--blue); background: var(--blue); }
-.route-state-wave { width: 92px; height: 68px; position: relative; overflow: hidden; border-radius: 22px; background: var(--ink); }
-.route-state-wave i { width: 130%; height: 50%; position: absolute; left: -15%; bottom: -7%; border-radius: 48% 52% 0 0; background: #2e9eff; animation: route-state-wave 1.7s ease-in-out infinite alternate; }
-.route-state-wave i:nth-child(2) { bottom: -20%; background: #68c4ff; animation-delay: -.55s; }.route-state-wave i:nth-child(3) { bottom: -30%; background: var(--mint); animation-delay: -1.1s; }
-@keyframes route-state-wave { to { transform: translateY(-13px) rotate(4deg); } }
 html[data-theme="dark"] .route-state-page { background: radial-gradient(circle at 50% 22%,#103f53,transparent 34%),#061f2b; }
 html[data-theme="dark"] .route-state-page button,html[data-theme="dark"] .route-state-page a { color: #eaf5f9; border-color: #31596a; background: #0e3748; }
 html[data-theme="dark"] .route-state-page button,html[data-theme="dark"] .route-state-page a.primary { color: #032331; border-color: var(--mint); background: var(--mint); }
-@media (prefers-reduced-motion: reduce) { .route-state-wave i { animation: none; } }
 ::selection { color: var(--on-blue); background: var(--blue); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
@@ -73,9 +68,3 @@ html[data-theme="dark"] .route-state-page button,html[data-theme="dark"] .route-
   font-weight: 800; transition: top .2s ease;
 }
 .skip-link:focus { top: 18px; }
-.scroll-progress {
-  position: fixed; z-index: 101; inset: 0 auto auto 0;
-  width: var(--scroll-progress); height: 3px;
-  background: linear-gradient(90deg, var(--blue), var(--mint));
-  box-shadow: 0 0 14px rgba(23,176,255, .5);
-}

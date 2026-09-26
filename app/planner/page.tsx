@@ -7,6 +7,7 @@ import { saveSessionProfiles } from '../../lib/session-travel-profiles.js';
 import { emptyTrip } from '../../lib/current-trip-storage.js';
 import LoadingState from "../../components/LoadingState";
 import NaruLauncher from '../../components/NaruLauncher';
+import NaruLoadingPanel from '../../components/NaruLoadingPanel';
 import type { NaruJourney } from '../../lib/naru-journey.js';
 import { sanitizeSavedPlaceCatalog } from '../../lib/saved-place-catalog.js';
 import { REGION_KEY, THEMES_KEY } from '../../lib/current-trip-storage.js';
@@ -25,7 +26,7 @@ import { useSitePreferences } from "../../components/SitePreferences";
 import SkipLink from "../../components/SkipLink";
 import PlaceDecisionDialog from "../../features/planner/components/PlaceDecisionDialog";
 import PlannerConditionsPanel from "../../features/planner/components/PlannerConditionsPanel";
-import PlannerFooter from "../../features/planner/components/PlannerFooter";
+import NaruConversationFooter from "../../components/NaruConversationFooter";
 import RecommendationWorkspace from "../../features/planner/components/RecommendationWorkspace";
 import DepartureReadinessCard from "../../features/planner/components/DepartureReadinessCard";
 import TravelSignalsPanel from "../../features/planner/components/TravelSignalsPanel";
@@ -537,10 +538,10 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   return (
     <main role={embedded ? "presentation" : undefined} className={`planner-page journey-editorial planner-reference planner-simple wave-night`} lang={locale}>
       {!embedded && <SkipLink href="#planner">{t("skip", "본문으로 바로가기")}</SkipLink>}
-      {!embedded && <PlannerReferenceChrome storageSnapshot={storageSnapshot} interactive={hydrated && planController.criteriaReady && tripSelection.storageReady} savedCount={saved.length} activeStep={journey.activeStepId} onNavigate={journey.goToStep} onNew={startNewTrip} onAskNaru={showAssistant} />}
+      {!embedded && <PlannerReferenceChrome storageReady={tripSelection.storageReady} storageSnapshot={storageSnapshot} savedCount={saved.length} onNavigate={journey.goToStep} onNew={startNewTrip} />}
       {newTripError && <p role="alert">{newTripError}</p>}
       <section className="planner-journey-workspace" id="planner" aria-label="여행 만들기">
-        <div className="simple-workspace-body">{plannerStages}<button type="button" className="naru-tools-entry" onClick={() => openAssistantTool("comfort")}>나루와 걷기·휴식·여행 준비하기 ↗</button></div>
+        <div className="simple-workspace-body">{plannerStages}</div>
       </section>
 
       {alternatives.original && alternatives.request && <Suspense fallback={<LoadingState>대안을 비교할 화면을 준비하고 있어요.</LoadingState>}><AlternativeComparisonDialog
@@ -574,8 +575,8 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
       {regionChange.pending && <RegionChangeDialog region={regionChange.pending} en={locale === "en"} error={regionChange.error} onCancel={regionChange.cancel} onAdd={regionChange.add} onNew={regionChange.startNew} />}
       {!embedded && !assistantOpen && <NaruLauncher state={naruActivity.phase} buttonRef={mountAssistantLauncher} disabled={!hydrated || !planController.criteriaReady || !tripSelection.storageReady} onOpen={showAssistant} />}
 
-      {assistantMounted && <Suspense fallback={assistantOpen ? <div className="naru-panel"><LoadingState>나루와의 대화를 열고 있어요.</LoadingState></div> : null}><PlannerAssistant onNewTrip={startNewTrip} origin={origin} routeMinutes={itineraryRoutes.routeMinutes} launchRequest={reviewRequest?.sourceId === launchRequest.id ? reviewRequest : launchRequest} pageContext={pageContext} open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} guidance={guidance} onRegion={regionChange.request} onSearch={searchForNaru} onPlace={place => { resumeAssistant.current = true; setAssistantOpen(false); setSelectedPlace(place); }} onAlternative={(id, reason) => alternatives.open(id, reason)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
-      {!embedded && <PlannerFooter />}
+      {assistantMounted && <Suspense fallback={assistantOpen ? <NaruLoadingPanel /> : null}><PlannerAssistant onNewTrip={startNewTrip} origin={origin} routeMinutes={itineraryRoutes.routeMinutes} launchRequest={reviewRequest?.sourceId === launchRequest.id ? reviewRequest : launchRequest} pageContext={pageContext} open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} guidance={guidance} onRegion={regionChange.request} onSearch={searchForNaru} onPlace={place => { resumeAssistant.current = true; setAssistantOpen(false); setSelectedPlace(place); }} onAlternative={(id, reason) => alternatives.open(id, reason)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={openAssistantTool} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
+      {!embedded && <NaruConversationFooter onOpen={showAssistant} onTools={() => openAssistantTool("comfort")} />}
     </main>
   );
 }
