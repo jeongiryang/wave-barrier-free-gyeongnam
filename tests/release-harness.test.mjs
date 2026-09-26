@@ -96,4 +96,8 @@ test('deployment health binds successful configuration to a valid exact revision
   assert.match(health,/\^\[a-f0-9\]\{40\}\$/);
   assert.match(health,/env.WAVE_DEPLOYMENT_SHA : null/);
   assert.match(source('server/shared/env.ts'),/WAVE_DEPLOYMENT_SHA: values.WAVE_DEPLOYMENT_SHA/);
+  const cd=yaml.load(source('.github/workflows/cd.yml'));
+  const checks=cd.jobs.deploy.steps.filter(step=>step.run?.includes('node scripts/check-deployment-health.mjs'));
+  assert.equal(checks.length,2,'candidate and promoted Production are both checked');
+  for(const step of checks) assert.equal(step.env.DEPLOYMENT_SHA,'${{ github.event.workflow_run.head_sha || github.sha }}');
 });
