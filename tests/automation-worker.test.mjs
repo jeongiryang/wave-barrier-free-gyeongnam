@@ -1,3 +1,4 @@
+// Archived automation contract; current release CI is verified in release-harness.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
@@ -34,13 +35,13 @@ test("symlinks, submodules, credentials and path traversal cannot reach publish"
   for (const entry of [{ path: "docs/log.md", mode: "120000" }, { path: "lib/vendor", mode: "160000" }, { path: "../escape", mode: "100644" }, { path: ".npmrc", mode: "100644" }, { path: ".env.local", mode: "100644" }, { path: ".gitattributes", mode: "100644" }]) {
     assert.throws(() => validateEntries([entry], true));
   }
-  assert.throws(() => validateEntries([{ path: ".github/workflows/ci.yml", mode: "100644" }], false));
-  assert.equal(validateEntries([{ path: ".github/workflows/ci.yml", mode: "100644" }], true).publishable, false);
+  assert.throws(() => validateEntries([{ path: ".github/workflow-archive/2026-09-26/workflows/ci.yml", mode: "100644" }], false));
+  assert.equal(validateEntries([{ path: ".github/workflow-archive/2026-09-26/workflows/ci.yml", mode: "100644" }], true).publishable, false);
   assert.equal(validateEntries([{ path: "app/page.tsx", mode: "100644" }], false).publishable, true);
 });
 
 test("worker authorization, generation, credential-free validation and publication remain isolated", () => {
-  const workflow = yaml.load(readFileSync(".github/workflows/automation-codex-worker.yml", "utf8"));
+  const workflow = yaml.load(readFileSync(".github/workflow-archive/2026-09-26/workflows/automation-codex-worker.yml", "utf8"));
   assert.deepEqual(workflow.jobs.generate.needs, "authorize");
   assert.doesNotMatch(JSON.stringify(workflow.jobs.authorize), /secrets\./);
   assert.doesNotMatch(JSON.stringify(workflow.jobs.validate), /secrets\.|cache:|WAVE_GITHUB_AUTOMATION_TOKEN|OPENAI_API_KEY/);

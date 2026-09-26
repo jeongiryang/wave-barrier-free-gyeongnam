@@ -1,3 +1,4 @@
+// Archived automation contract; current release CI is verified in release-harness.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -32,7 +33,7 @@ test("Production smoke guards browser and API writes and reports both success an
   assert.match(source, /context\.route/);
   assert.match(source, /route\.abort/);
   assert.match(source, /new Proxy\(api/);
-  const workflow = yaml.load(readFileSync(".github/workflows/automation-post-deploy-qa.yml", "utf8"));
+  const workflow = yaml.load(readFileSync(".github/workflow-archive/2026-09-26/workflows/automation-post-deploy-qa.yml", "utf8"));
   assert.doesNotMatch(JSON.stringify(workflow.jobs.verify), /secrets\./);
   assert.match(workflow.jobs["notify-pm"].if, /always\(\)/);
   assert.ok(workflow.jobs["notify-pm"].steps.some(step => step.env?.QA_RESULT));

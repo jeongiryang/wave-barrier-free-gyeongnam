@@ -1,3 +1,4 @@
+// Archived automation contract; current release CI is verified in release-harness.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
@@ -36,7 +37,7 @@ test("API errors and unexpected trigger IDs cannot leak body or redirect credent
 });
 
 test("CI results explicitly return to PM without depending on GITHUB_TOKEN issue events", () => {
-  const workflow = yaml.load(readFileSync(".github/workflows/automation-pm-dispatch.yml", "utf8"));
+  const workflow = yaml.load(readFileSync(".github/workflow-archive/2026-09-26/workflows/automation-pm-dispatch.yml", "utf8"));
   for (const name of ["CI", "CD", "Codex Engineering Worker", "Independent AI QA Reviewer"]) assert.ok(workflow.on.workflow_run.workflows.includes(name));
   assert.ok(!workflow.on.workflow_run.workflows.includes(workflow.name));
   assert.doesNotMatch(JSON.stringify(workflow.jobs), /issue\.body|issue\.title/);

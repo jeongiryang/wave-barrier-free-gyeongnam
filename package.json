@@ -29,7 +29,12 @@
     "community:demo:dry-run": "node scripts/community-demo.mjs --dry-run",
     "update:restrooms": "node scripts/update-gyeongnam-restrooms.mjs",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vercel"
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vercel",
+    "harness": "node scripts/harness.mjs",
+    "test:e2e:quick": "node scripts/run-quick-browser.mjs",
+    "test:naru": "node scripts/run-domain-tests.mjs naru",
+    "test:api": "node scripts/run-domain-tests.mjs api",
+    "check:naru": "node scripts/check-naru-live.mjs"
   },
   "dependencies": {
     "@better-auth/core": "1.6.23",

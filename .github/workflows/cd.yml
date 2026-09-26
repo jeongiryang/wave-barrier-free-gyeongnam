@@ -21,8 +21,8 @@ jobs:
   deploy:
     if: >-
       (github.event_name == 'workflow_dispatch' && github.actor == github.repository_owner &&
-       (inputs.preflight_only || github.ref == 'refs/heads/main')) ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+       github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production
@@ -36,14 +36,11 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
 
-      - name: 수동 후보의 동일 SHA CI 성공 확인
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: Current main and all exact-commit CI jobs
         env:
           GH_TOKEN: ${{ github.token }}
-          DEPLOYMENT_SHA: ${{ github.sha }}
-        run: |
-          conclusion="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$DEPLOYMENT_SHA&per_page=1" --jq '.workflow_runs[0].conclusion')"
-          test "$conclusion" = success || { echo "Exact-SHA CI success is required before a production-environment candidate."; exit 1; }
+          DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: node scripts/verify-deployment-ci.mjs
 
       - name: Node.js 설정
         uses: actions/setup-node@v7
@@ -63,7 +60,7 @@ jobs:
           test -n "$VERCEL_PROJECT_ID" || { echo "VERCEL_PROJECT_ID secret이 필요합니다."; exit 1; }
 
       - name: 의존성 설치
-        run: npm ci
+        run: npm ci --no-audit --no-fund
 
       - name: Vercel 프로젝트 설정 동기화
         run: npx --yes vercel@59.16.0 pull --yes --environment=production
@@ -114,7 +111,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
-          url="$(npx --yes vercel@59.16.0 deploy --prebuilt --prod --skip-domain --meta githubCommitSha="$DEPLOYMENT_SHA" --env COMMUNITY_MIGRATION_TOKEN="$COMMUNITY_MIGRATION_TOKEN" | tail -n 1)"
+          url="$(npx --yes vercel@59.16.0 deploy --prebuilt --prod --skip-domain --meta githubCommitSha="$DEPLOYMENT_SHA" --env WAVE_DEPLOYMENT_SHA="$DEPLOYMENT_SHA" --env COMMUNITY_MIGRATION_TOKEN="$COMMUNITY_MIGRATION_TOKEN" | tail -n 1)"
           case "$url" in https://*.vercel.app) ;; *) echo "후보 배포 URL을 확인할 수 없습니다."; exit 1;; esac
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
@@ -128,6 +125,7 @@ jobs:
           response="$(npx --yes vercel@59.16.0 curl /api/health --deployment "$CANDIDATE_URL")"
           printf '%s\n' "$response"
           printf '%s' "$response" | grep -Fq '"checkedAt"'
+          printf '%s' "$response" | node scripts/check-deployment-health.mjs
 
       - name: 운영 DB 대상과 008 영향 읽기 전용 확인
         env:
@@ -174,6 +172,13 @@ jobs:
           printf '%s' "$response" | grep -Fq '"007_account_deletion.sql"'
           printf '%s' "$response" | grep -Fq '"008_review_date_integrity.sql"'
 
+      - name: Reject stale candidate before changing Production alias
+        if: ${{ !inputs.preflight_only }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: node scripts/verify-deployment-ci.mjs
+
       - name: 프로덕션 승격
         if: ${{ !inputs.preflight_only }}
         env:
@@ -190,7 +195,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          if ! curl --fail --silent --show-error --retry 3 --retry-all-errors https://wave-barrier-free-gyeongnam.vercel.app/api/health; then
+          if ! curl --fail --silent --show-error --retry 3 --retry-all-errors https://wave-barrier-free-gyeongnam.vercel.app/api/health | node scripts/check-deployment-health.mjs; then
             npx --yes vercel@59.16.0 rollback --yes --scope="$VERCEL_ORG_ID"
             exit 1
           fi
