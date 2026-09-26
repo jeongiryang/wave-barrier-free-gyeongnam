@@ -48,3 +48,11 @@ PR 검사에 유료 LLM이나 구독 인증을 제공하지 않는다. 기존 sa
 ## 근거
 
 [Playwright CLI](https://playwright.dev/docs/test-cli),[GitHub concurrency](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency),[Vercel promote](https://vercel.com/docs/cli/promote). 과거 CI 설계는 보관 폴더 `policy/ci-validation.md`에 남긴다.
+
+## 2026-09-26 실제 새 Actions 결과와 배포 연결 보완
+
+- 재구축 PR #712 CI 36244234804: 13:09:42–13:11:52 UTC, **2분10초**, quality·browser4개·validate 모두 성공. 이전 #709 13분56초보다 약84% 짧다. 이것은 일상 검증 범위를 집중한 결과이며 전체 E2E는 Release Audit에 남는다.
+- #712 squash: a72c9c89a45ed22e2d5246469e04951e7dfc1143. main CI 36244406054 성공.
+- 최초 CD 36244548062는 후보가 정확한 커밋을 반환했지만 health step에 기대 SHA 환경변수가 누락되어 승격 전에 실패했다. 운영 alias는 바꾸지 않았다.
+- 보완 PR #713: 후보/운영 health step 모두 기대 SHA를 전달하도록 수정하고 두 wiring을 회귀 검사에 포함. 관련18개 및 전체 새 CI 36244718958 성공. squash: 7d565884b59a28a73ce2d4fe5e4f97526ba5c154.
+- 설정 전체 롤백은 후속 수정과 재구축을 역순으로 되돌리는 PR이다: `git revert 7d565884b59a28a73ce2d4fe5e4f97526ba5c154 a72c9c89a45ed22e2d5246469e04951e7dfc1143`. 이후 제품 변경과 충돌하면 최신 제품을 보존하며 설정 충돌을 해결한다.
