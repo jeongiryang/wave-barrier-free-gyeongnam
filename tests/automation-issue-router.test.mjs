@@ -1,3 +1,4 @@
+// Archived automation contract; current release CI is verified in release-harness.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -6,7 +7,7 @@ import yaml from "js-yaml";
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 const core = { info() {}, notice() {}, warning() {} };
 function script(file) {
-  const workflow = yaml.load(readFileSync(`.github/workflows/${file}`, "utf8"));
+  const workflow = yaml.load(readFileSync(`.github/workflow-archive/2026-09-26/workflows/${file}`, "utf8"));
   return new AsyncFunction("github", "context", "core", workflow.jobs[Object.keys(workflow.jobs)[0]].steps[0].with.script);
 }
 

@@ -1,3 +1,4 @@
+// Archived automation contract; current release CI is verified in release-harness.test.mjs.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
@@ -6,7 +7,7 @@ import test from "node:test";
 import yaml from "js-yaml";
 import { fullValidationJobs } from "../scripts/verify-ci-reuse.mjs";
 
-const workflow = yaml.load(readFileSync(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8"));
+const workflow = yaml.load(readFileSync(new URL("../.github/workflow-archive/2026-09-26/workflows/ci.yml", import.meta.url), "utf8"));
 const archivedWorkflow = yaml.load(readFileSync(new URL("../.github/workflow-archive/ci-full-sandbox-pre-rc.yml", import.meta.url), "utf8"));
 
 test("the protected CI gate rejects failed, cancelled and skipped dependencies", () => {

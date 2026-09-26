@@ -1,0 +1,3 @@
+
+# Preserve submitted text extraction bytes for SHA-256 provenance.
+harness/submission-pages.json -text

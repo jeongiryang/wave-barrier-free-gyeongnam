@@ -81,9 +81,9 @@ test("manual preflight is Owner-only, exact-CI-gated and cannot mutate DB, alias
   const workflow = load(source);
   assert.equal(workflow.on.workflow_dispatch.inputs.preflight_only.default, true);
   assert.match(workflow.jobs.deploy.if, /github.actor == github.repository_owner/);
-  assert.match(workflow.jobs.deploy.if, /inputs.preflight_only \|\| github.ref == 'refs\/heads\/main'/);
+  assert.match(workflow.jobs.deploy.if, /github.ref == 'refs\/heads\/main'/);
   const steps = workflow.jobs.deploy.steps;
-  const ci = steps.findIndex((step) => step.name === "수동 후보의 동일 SHA CI 성공 확인");
+  const ci = steps.findIndex((step) => step.name === "Current main and all exact-commit CI jobs");
   assert.ok(ci > 0 && ci < steps.findIndex((step) => step.name === "의존성 설치"));
   const inspect = steps.findIndex((step) => /X-Wave-Migration-Mode: inspect/.test(step.run || ""));
   assert.ok(inspect > 0 && inspect < steps.findIndex((step) => step.name === "후보 환경 검증과 커뮤니티 migration"));

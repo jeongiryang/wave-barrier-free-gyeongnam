@@ -1,3 +1,5 @@
+> 과거 자동화 참고 기록(2026-09-26 보관). 현재 실행 절차는 [출시 하네스](release-harness.md)와 [CI 계약](ci-validation.md)를 따릅니다. 이 문서의 큐·에이전트·워크플로를 자동 활성화하지 않습니다.
+
 # W.A.V.E Automation Control Plane
 
 ## 목적

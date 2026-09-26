@@ -1,3 +1,4 @@
+// Archived automation contract; current release CI is verified in release-harness.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
@@ -14,9 +15,9 @@ test("unknown, exhausted or credit-backed usage cannot start subscription smoke"
 });
 
 test("every preserved API job is statically disabled, including recovery and publication", () => {
-  for (const file of readdirSync(".github/workflows")) {
+  for (const file of readdirSync(".github/workflow-archive/2026-09-26/workflows")) {
     if (!/^automation-(codex-worker|independent-qa|pm-dispatch|post-deploy-qa)\.yml$/.test(file)) continue;
-    const workflow = yaml.load(readFileSync(`.github/workflows/${file}`, "utf8"));
+    const workflow = yaml.load(readFileSync(`.github/workflow-archive/2026-09-26/workflows/${file}`, "utf8"));
     for (const [name, job] of Object.entries(workflow.jobs)) {
       if (file.includes("post-deploy") && name !== "notify-pm") continue;
       assert.match(job.if, /^false && \(/, `${file}:${name}`);

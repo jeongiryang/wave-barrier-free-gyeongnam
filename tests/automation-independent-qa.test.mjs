@@ -1,10 +1,11 @@
+// Archived automation contract; current release CI is verified in release-harness.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import yaml from "js-yaml";
 
 test("QA uses the trusted base workflow and inert PR diff, never PR checkout or install", () => {
-  const workflow = yaml.load(readFileSync(".github/workflows/automation-independent-qa.yml", "utf8"));
+  const workflow = yaml.load(readFileSync(".github/workflow-archive/2026-09-26/workflows/automation-independent-qa.yml", "utf8"));
   assert.ok(workflow.on.pull_request_target);
   assert.match(workflow.jobs.review.if, /head.repo.full_name == github.repository/);
   const steps = workflow.jobs.review.steps;
@@ -19,7 +20,7 @@ test("QA uses the trusted base workflow and inert PR diff, never PR checkout or 
 });
 
 test("stale QA cannot change current PR labels or post a current verdict", async () => {
-  const workflow = yaml.load(readFileSync(".github/workflows/automation-independent-qa.yml", "utf8"));
+  const workflow = yaml.load(readFileSync(".github/workflow-archive/2026-09-26/workflows/automation-independent-qa.yml", "utf8"));
   const body = workflow.jobs.publish.steps.find(step => step.uses?.startsWith("actions/github-script@")).with.script;
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
   let notices = 0;

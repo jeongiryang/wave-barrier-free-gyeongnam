@@ -123,7 +123,7 @@ for(const status of [200,429,502]) test(`mixed HTTP${status} stops after two app
 });
 
 test("API smoke and post-deploy QA serialize live calls, separate write permission and keep API model path disabled", () => {
-  const workflows = ["production-api-smoke","automation-post-deploy-qa"].map(name => yaml.load(readFileSync(`.github/workflows/${name}.yml`,"utf8")));
+  const workflows = ["production-api-smoke","automation-post-deploy-qa"].map(name => yaml.load(readFileSync(`.github/workflow-archive/2026-09-26/workflows/${name}.yml`,"utf8")));
   for (const workflow of workflows) {
     assert.equal(workflow.concurrency.group,"production-provider-smoke");
     assert.equal(workflow.jobs.verify.permissions.issues,"read");
