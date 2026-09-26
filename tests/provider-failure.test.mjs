@@ -23,6 +23,33 @@ test("public HTTP200 JSON/flat/XML quota cannot become a successful empty list",
   assert.equal(classify(publicData,{body:{resultCode:"10"}}).kind,"upstream_error");
   assert.equal(classify(publicData,{body:{response:{header:{resultCode:"0000"},body:{totalCount:0,items:""}}}}),null);
 });
+
+test("an explicit public-data response cannot borrow root error codes when malformed",()=>{
+  for(const response of [null,[],"private-sentinel",false,0,{}, {header:null}]) {
+    const body={response,header:{resultCode:"03"},resultCode:"22"};
+    assert.equal(classify(publicData,{body,raw:JSON.stringify(body)}),null);
+  }
+  assert.equal(classify(publicData,{body:{response:{header:{resultCode:"00"}},header:{resultCode:"03"}}}),null);
+  assert.equal(classify(publicData,{body:{response:{header:{resultCode:"22"}},header:{resultCode:"03"}}}).kind,"quota_exhausted");
+});
+
+test("flat and wrapped normal/no-data signals retain their classification",()=>{
+  for(const code of ["00","03"]) for(const body of [{resultCode:code},{header:{resultCode:code}},{response:{header:{resultCode:code}}}]) {
+    const result=classify(publicData,{body,raw:JSON.stringify(body)});
+    if(code==="00") assert.equal(result,null);
+    else { assert.equal(result.kind,"upstream_error");assert.equal(result.code,"03"); }
+  }
+});
+
+test("XML error fallback applies to an unparsed XML response, never XML text inside parsed JSON",()=>{
+  for(const code of ["03","22","30","05"]) {
+    const raw=`<OpenAPI_ServiceResponse><returnReasonCode>${code}</returnReasonCode></OpenAPI_ServiceResponse>`;
+    assert.equal(classify(publicData,{raw}).code,code);
+    for(const body of [{response:null,description:raw},{description:raw},raw,null]) {
+      assert.equal(classify(publicData,{body,raw:JSON.stringify(body)}),null);
+    }
+  }
+});
 test("Kakao documented negative code distinguishes quota from credentials",()=>{
   const ctx={provider:"kakao-mobility",operation:"directions",family:"kakao"};
   assert.equal(classify(ctx,{status:400,body:{code:-10,msg:"API limit has been exceeded."}}).kind,"quota_exhausted");
