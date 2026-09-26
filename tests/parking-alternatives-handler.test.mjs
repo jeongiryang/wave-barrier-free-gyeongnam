@@ -5,6 +5,7 @@ import ts from 'typescript';
 import * as coordinates from '../lib/map-coordinates.js';
 import * as parking from '../lib/parking-alternatives.js';
 import * as budgets from '../lib/request-budget.js';
+import * as failures from '../lib/provider-failure.js';
 
 const code = ts.transpileModule(readFileSync(new URL('../server/tourism/parking-alternatives.ts', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const place = { contentid: '1001', title: '공식 관광지', lDongRegnCd: '48', mapx: '128.691', mapy: '35.238' };
@@ -16,6 +17,7 @@ function harness({ places = [place], lots = [lot], providerStatus = 200, invalid
   new Function('module', 'exports', 'require', code)(mod, mod.exports, name => {
     if (name.endsWith('map-coordinates.js')) return coordinates;
     if (name.endsWith('parking-alternatives.js')) return parking;
+    if (name.endsWith('provider-failure.js')) return failures;
     if (name.endsWith('request-budget.js')) return timeout ? { ...budgets, SERVER_BUDGET_MS: { ...budgets.SERVER_BUDGET_MS, parkingAlternatives: 5 } } : budgets;
     if (name.endsWith('/bounded-snapshot')) return { createBoundedSnapshotCache: () => ({ get: async (key, _ttl, _remaining, work) => { if (cached.has(key)) return cached.get(key); if (inFlight.has(key)) return inFlight.get(key); const request = Promise.resolve(work()).then(value => value === null ? null : { value, checkedAt: new Date().toISOString(), expires: Infinity }); inFlight.set(key, request); const result = await request; inFlight.delete(key); if (result) cached.set(key, result); return result; }, clear: () => { cached.clear(); inFlight.clear(); } }) };
     if (name.endsWith('/http')) return { json: (body, status = 200) => ({ body, status }) };
