@@ -117,6 +117,7 @@ jobs:
 
       - name: 후보 health smoke test
         env:
+          DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -191,6 +192,7 @@ jobs:
       - name: 프로덕션 health와 실패 시 rollback
         if: ${{ !inputs.preflight_only }}
         env:
+          DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
