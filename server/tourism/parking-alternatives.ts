@@ -99,7 +99,10 @@ async function snapshot(key: string, ttl: number, remaining: () => number, sourc
 }
 
 function parkingPage(data: unknown, pageNo: number, expectedTotal?: number): ProviderResult {
-  const response = record(data) && record(data.response) ? data.response : null;
+  // The provider also returns root header/body. An explicit response property
+  // remains authoritative, even when malformed; never mask it with flat data.
+  const envelope = record(data) && !Object.hasOwn(data, 'response') ? data : knownField(data, 'response');
+  const response = record(envelope) ? envelope : null;
   const header = response && record(response.header) ? response.header : null;
   const body = response && record(response.body) ? response.body : null;
   if (!header || !body) throw malformed('envelope', { page: pageNo }, envelopeShape(data));

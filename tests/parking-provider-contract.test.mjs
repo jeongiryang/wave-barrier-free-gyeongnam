@@ -56,6 +56,42 @@ test('completed data is shared across different public places and never refetche
   await h.run('1622623'); assert.equal(h.requests.length, 1);
 });
 
+// Production 0425317's safe descriptor confirmed root header/body, code 00,
+// and no response property. These rows are synthetic; only the envelope is observed.
+test('observed flat envelope completes first and later pages before sharing the public cache', async () => {
+  const h = harness(async ({ page }) => Response.json(pageBody(page, 1001, pageItems(page, 1001).map(item => page === 1 ? { ...item, latitude: '37.5', longitude: '127' } : item)).response));
+  const results = await Promise.all([h.run('2783785'), h.run('753302')]);
+  for (const result of results) { assert.equal(result.status, 200); assert.equal(result.body.status, 'available'); assert.equal(result.body.items[0].id, 'P1000'); }
+  assert.deepEqual(h.requests.map(({ page }) => page), [1, 2]); assert.deepEqual(h.events, []);
+  assert.equal(results[0].body.checkedAt, results[1].body.checkedAt);
+  await h.run('1622623'); assert.equal(h.requests.length, 2);
+});
+
+for (const [name, wrapped] of [
+  ['null', null], ['array', []], ['string', 'private-sentinel'], ['boolean', false], ['number', 0], ['empty object', {}],
+  ['incomplete wrapped body', { header: { resultCode: '00' } }],
+  ['invalid wrapped total', { header: { resultCode: '00' }, body: { totalCount: 2, items: [lot(0)] } }],
+]) test(`an explicit ${name} response cannot borrow valid flat header and body`, async () => {
+  const h = harness(async () => Response.json({ ...pageBody(1, 1, [lot(0)]).response, response: wrapped }));
+  const result = await h.run();
+  assert.equal(result.status, 502); assert.equal(result.body.failure.kind, 'malformed_response');
+  assert.equal(result.body.failure.operation, 'tn_pubr_prkplce_info_api'); assert.equal(h.requests.length, 1);
+});
+
+test('an explicit valid wrapped response takes precedence over unrelated flat fields', async () => {
+  const h = harness(async () => Response.json({ ...pageBody(1, 1, [lot(0)]).response, response: pageBody(1, 0, []).response }));
+  const result = await h.run();
+  assert.equal(result.status, 200); assert.equal(result.body.status, 'empty'); assert.deepEqual(h.events, []);
+});
+
+for (const code of ['0', '0000']) test(`a flat response still requires the documented 00 code, not ${code}`, async () => {
+  const h = harness(async () => Response.json({ ...pageBody(1, 1, [lot(0)]).response, header: { resultCode: code } }));
+  const result = await h.run();
+  assert.equal(result.status, 502); assert.equal(result.body.failure.kind, 'malformed_response');
+  assert.deepEqual(h.events, [{ event: 'parking-response-rejected', reason: 'normal-code', page: 1 }]);
+});
+
+for (const format of ['wrapped', 'flat'])
 for (const [name, change, reason] of [
   ['missing last page rows', body => { body.response.body.items = []; }, 'row-count'],
   ['duplicate page number', body => { body.response.body.pageNo = 1; }, 'page-no'],
@@ -65,8 +101,8 @@ for (const [name, change, reason] of [
   ['unrecognized item envelope', body => { body.response.body.items = { unexpected: [] }; }, 'items-shape'],
   ['provider ignored Y filter', body => { body.response.body.items[0].pwdbsPpkZoneYn = 'N'; }, 'filter-value'],
   ['provider omitted accessible evidence', body => { delete body.response.body.items[0].pwdbsPpkZoneYn; }, 'filter-value'],
-]) test(`${name} cannot become an available or empty complete result`, async () => {
-  const h = harness(async ({ page }) => { const body = pageBody(page, 1001, pageItems(page, 1001)); if (page === 2) change(body); return Response.json(body); });
+]) test(`${format} ${name} cannot become an available or empty complete result`, async () => {
+  const h = harness(async ({ page }) => { const body = pageBody(page, 1001, pageItems(page, 1001)); if (page === 2) change(body); return Response.json(format === 'flat' ? body.response : body); });
   const result = await h.run();
   assert.equal(result.status, 502); assert.equal(result.body.status, 'provider-error');
   assert.equal(result.body.failure?.kind, 'malformed_response');
@@ -88,8 +124,9 @@ test('page concurrency is at most two and a completed set can confirm zero nearb
   assert.equal(h.requests.length, 5); assert.equal(h.maxActive(), 2);
 });
 
-for (const [code, kind] of [['20', 'auth_error'], ['22', 'quota_exhausted'], ['10', 'upstream_error']]) test(`provider ${code} survives the public boundary without secrets or retries`, async () => {
-  const h = harness(async ({ page }) => page === 1 ? Response.json(pageBody(1, 4000, pageItems(1, 4000))) : Response.json({ response: { header: { resultCode: code, resultMsg: 'private-sentinel' } } }));
+for (const format of ['wrapped', 'flat'])
+for (const [code, kind] of [['20', 'auth_error'], ['22', 'quota_exhausted'], ['10', 'upstream_error']]) test(`${format} provider ${code} survives the public boundary without secrets or retries`, async () => {
+  const h = harness(async ({ page }) => { const body = page === 1 ? pageBody(1, 4000, pageItems(1, 4000)) : { response: { header: { resultCode: code, resultMsg: 'private-sentinel' } } }; return Response.json(format === 'flat' ? body.response : body); });
   const result = await h.run();
   assert.equal(result.status, 502); assert.equal(result.body.failure.kind, kind); assert.equal(result.body.failure.code, code);
   assert.ok(h.requests.length <= 3); assert.doesNotMatch(JSON.stringify(result), /private-sentinel|noncredential-fixture|serviceKey/);
@@ -109,11 +146,12 @@ test('missing configuration never calls parking and remains distinguishable', as
   const result = await h.run(); assert.equal(result.status, 502); assert.equal(result.body.failure.kind, 'missing_config'); assert.equal(h.requests.length, 0);
 });
 
-test('documented no-data is empty only on the initial list page', async () => {
-  const empty = { response: { header: { resultCode: '03' } } };
+for (const format of ['wrapped', 'flat']) test(`${format} documented no-data is empty only on the initial list page`, async () => {
+  const noData = { response: { header: { resultCode: '03' } } };
+  const empty = format === 'flat' ? noData.response : noData;
   const first = harness(async () => Response.json(empty));
   assert.equal((await first.run()).body.status, 'empty');
-  const later = harness(async ({ page }) => Response.json(page === 1 ? pageBody(1, 1001, pageItems(1, 1001)) : empty));
+  const later = harness(async ({ page }) => { const full = pageBody(1, 1001, pageItems(1, 1001)); return Response.json(page === 1 ? format === 'flat' ? full.response : full : empty); });
   assert.equal((await later.run()).status, 502);
   assert.deepEqual(first.events, []);
   assert.deepEqual(later.events, [{ event: 'parking-response-rejected', reason: 'later-no-data', page: 2, expected: 1001, actual: 0 }]);
@@ -155,7 +193,7 @@ test('invalid JSON logs a fixed parsing reason without retaining the raw body', 
 
 for (const [name, body, scopes, codes] of [
   ['wrapped missing body', { response: { header: { resultCode: '00' } } }, ['object', 'object', 'missing', 'missing', 'object', 'missing'], ['missing', 'missing', 'missing', '00']],
-  ['flat success-shaped gateway', { header: { resultCode: '00' }, body: { items: ['private-sentinel'] } }, ['object', 'missing', 'object', 'object', 'missing', 'missing'], ['missing', 'missing', '00', 'missing']],
+  ['flat missing body', { header: { resultCode: '00' } }, ['object', 'missing', 'object', 'missing', 'missing', 'missing'], ['missing', 'missing', '00', 'missing']],
   ['root string', 'private-sentinel https://private-sentinel.test/?serviceKey=private-sentinel-key', ['string', 'missing', 'missing', 'missing', 'missing', 'missing'], ['missing', 'missing', 'missing', 'missing']],
   ['root array', [{ private: 'private-sentinel' }], ['array', 'missing', 'missing', 'missing', 'missing', 'missing'], ['missing', 'missing', 'missing', 'missing']],
   ['root null', null, ['null', 'missing', 'missing', 'missing', 'missing', 'missing'], ['missing', 'missing', 'missing', 'missing']],
