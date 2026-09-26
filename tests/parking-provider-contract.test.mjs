@@ -78,6 +78,15 @@ for (const [name, wrapped] of [
   assert.equal(result.body.failure.operation, 'tn_pubr_prkplce_info_api'); assert.equal(h.requests.length, 1);
 });
 
+for (const [name, response] of [['null', null], ['array', []], ['string', 'private-sentinel'], ['empty object', {}]])
+for (const codeLocation of ['root-header', 'json-xml-text']) test(`malformed ${name} response cannot become empty through ${codeLocation}`, async () => {
+  const h = harness(async () => Response.json({ response, ...(codeLocation === 'root-header' ? { header: { resultCode: '03' } } : { description: '<resultCode>03</resultCode>' }) }));
+  const result = await h.run();
+  assert.equal(result.status, 502); assert.equal(result.body.status, 'provider-error');
+  assert.equal(result.body.failure.kind, 'malformed_response'); assert.equal(result.body.failure.code, null);
+  assert.equal(h.events[0].reason, 'envelope'); assert.equal(h.requests.length, 1);
+});
+
 test('an explicit valid wrapped response takes precedence over unrelated flat fields', async () => {
   const h = harness(async () => Response.json({ ...pageBody(1, 1, [lot(0)]).response, response: pageBody(1, 0, []).response }));
   const result = await h.run();
