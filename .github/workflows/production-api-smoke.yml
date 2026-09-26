@@ -130,3 +130,30 @@ jobs:
             test-results/**/trace.zip
           retention-days: 7
           if-no-files-found: ignore
+
+  naru:
+    name: Naru live intent and grounded proposal
+    if: ${{ github.ref == 'refs/heads/main' && !inputs.preview_url && !inputs.preview_sha }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Bounded live Naru check
+        env:
+          WAVE_NARU_BASE_URL: https://wave-barrier-free-gyeongnam.vercel.app
+        run: npm run check:naru
+      - name: Preserve actual Naru results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: naru-live-result
+          path: naru-live-result.json
+          if-no-files-found: error
+          retention-days: 7

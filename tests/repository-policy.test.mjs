@@ -332,7 +332,7 @@ test("pull requests must be revalidated against the latest main", async () => {
 
 test("new issues receive an owner and a safe default label", async () => {
   const [workflow, rules] = await Promise.all([
-    source(".github/workflows/issue-triage.yml"),
+    source(".github/workflow-archive/2026-09-26/workflows/issue-triage.yml"),
     source("CLAUDE.md"),
   ]);
   assert.match(workflow, /issues:\s*write/);
@@ -360,8 +360,8 @@ test("semantic releases are created from merged main commits with least privileg
   const [backfill, current, backfillWorkflow, releaseWorkflow] = await Promise.all([
     source("scripts/backfill-releases.mjs"),
     source("scripts/release-current.mjs"),
-    source(".github/workflows/release-backfill.yml"),
-    source(".github/workflows/release.yml"),
+    source(".github/workflow-archive/2026-09-26/workflows/release-backfill.yml"),
+    source(".github/workflow-archive/2026-09-26/workflows/release.yml"),
   ]);
   assert.match(backfill, /\["v0\.7\.2", 37, "c71a9e9c25ec1f1b7491cf14c081f4c4e57dd3b1"/);
   assert.match(backfill, /\["v0\.7\.3", 38, "c0cf3f37ab4b689494c34477f990d76422dae84c"/);

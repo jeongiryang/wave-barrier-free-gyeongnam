@@ -21,6 +21,7 @@ export function handleHealthApi(env: Env) {
   return json({
     ok,
     scope: "configuration",
+    commit: /^[a-f0-9]{40}$/.test(env.WAVE_DEPLOYMENT_SHA || "") ? env.WAVE_DEPLOYMENT_SHA : null,
     checkedAt: new Date().toISOString(),
     keys,
   }, ok ? 200 : 503);

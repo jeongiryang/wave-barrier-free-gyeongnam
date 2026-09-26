@@ -1,3 +1,4 @@
+// Archived automation contract; current release CI is verified in release-harness.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
@@ -14,7 +15,7 @@ const executable = process.platform === "win32" ? "C:\\fixture\\codex.exe" : "/f
 test("generation cannot modify an undeclared file, executable documentation or duplicate path", () => {
   const valid = { summary: "Updated evidence", edits: [{ path: file, content: "Verified evidence\n" }] };
   assert.deepEqual(validateGeneratedEdits(valid, order, files), valid);
-  for (const edits of [[{ path: ".github/workflows/ci.yml", content: "bad" }], [{ path: file, content: "<script>alert(1)</script>" }], [...valid.edits, ...valid.edits]]) assert.throws(() => validateGeneratedEdits({ ...valid, edits }, order, files));
+  for (const edits of [[{ path: ".github/workflow-archive/2026-09-26/workflows/ci.yml", content: "bad" }], [{ path: file, content: "<script>alert(1)</script>" }], [...valid.edits, ...valid.edits]]) assert.throws(() => validateGeneratedEdits({ ...valid, edits }, order, files));
 });
 
 test("generation and QA are separate ephemeral tool-free ChatGPT executions with no publishing credentials", () => {

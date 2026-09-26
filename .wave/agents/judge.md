@@ -1,3 +1,5 @@
+> 과거 비활성 역할 계약입니다. 현재 9월30일 출시 작업은 [전문 하네스](../../docs/release-harness.md)와 `harness/personas/`를 사용합니다. 원문은 백업 태그와 보관 폴더에 있습니다.
+
 # W.A.V.E Independent Competition Judge Agent
 
 > 실행 상태: 문서 계약만 존재하며 미활성화입니다. 현재 사용자가 관리하는 ChatGPT Work PM 채팅이 공식 조사·Compliance Matrix·최종 판단을 담당합니다. 이 파일의 과거 기준은 PM의 최신 공식 근거와 대조하기 전 확정값으로 사용하지 않습니다. 별도 Agent/계정을 생성·게시하는 지시가 아닙니다.

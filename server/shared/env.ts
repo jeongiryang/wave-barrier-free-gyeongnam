@@ -1,4 +1,6 @@
 export interface Env {
+  /** Non-secret exact source revision set only by the Actions deployment. */
+  WAVE_DEPLOYMENT_SHA?: string;
   TOUR_API_SERVICE_KEY_ENCODED?: string;
   EXPRESSWAY_API_KEY?: string;
   ODSAY_API_KEY?: string;
@@ -17,6 +19,7 @@ export interface Env {
 export function portableEnv(): Env {
   const values: Record<string, string | undefined> = typeof process === "undefined" ? {} : process.env;
   return {
+    WAVE_DEPLOYMENT_SHA: values.WAVE_DEPLOYMENT_SHA,
     TOUR_API_SERVICE_KEY_ENCODED: values.TOUR_API_SERVICE_KEY_ENCODED,
     EXPRESSWAY_API_KEY: values.EXPRESSWAY_API_KEY,
     ODSAY_API_KEY: values.ODSAY_API_KEY,

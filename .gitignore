@@ -46,3 +46,8 @@ next-env.d.ts
 /.vinext/
 
 /test-results-simple*/
+
+# Local release evidence (only sanitized reports may be deliberately committed)
+/harness-results/
+/naru-live-result.json
+/provider-smoke-result.json

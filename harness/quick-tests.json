@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "description": "Bounded release-critical journeys on both public desktop and mobile. Full suite remains mandatory for final release.",
+  "tests": [
+    {"file":"e2e/core-journeys.spec.ts","title":"landing: first arrival is readable, dismissible and remembers completion"},
+    {"file":"e2e/core-journeys.spec.ts","title":"landing: reduced motion exposes the real planning action immediately without dismissal"},
+    {"file":"e2e/core-journeys.spec.ts","title":"planner supports decision, save, route-aware schedule and focus restoration"},
+    {"file":"e2e/core-journeys.spec.ts","title":"planner exposes honest recovery when the official plan request fails"},
+    {"file":"e2e/core-journeys.spec.ts","title":"community remains readable without login and protects writing"},
+    {"file":"e2e/core-journeys.spec.ts","title":"community moderation APIs fail closed without an authenticated operator"},
+    {"file":"e2e/core-journeys.spec.ts","title":"authenticated travelers can publish, like and comment without losing session state"},
+    {"file":"e2e/naru-workspace.spec.ts","title":"workspace tabs expose all 28 tools with keyboard and pointer targets"},
+    {"file":"e2e/naru-workspace.spec.ts","title":"travel preparation sends one complete request, previews changes and supports apply and undo"},
+    {"file":"e2e/naru-workspace.spec.ts","title":"gentle itinerary proposal preserves existing visits, waits for apply and undoes atomically"},
+    {"file":"e2e/naru-trip-upgrade.spec.ts","title":"NDJSON 일정안을 확인하고 적용한 뒤 장소·날짜·휴식·편의까지 되돌린다"},
+    {"file":"e2e/naru-trip-upgrade.spec.ts","title":"요청 중 편의 조건을 바꾸면 오래된 일정안의 적용을 차단한다"},
+    {"file":"e2e/naru-trip-upgrade.spec.ts","title":"중단한 요청의 늦은 NDJSON 결과는 일정이나 적용 버튼으로 남지 않는다"},
+    {"file":"e2e/naru-trip-upgrade.spec.ts","title":"일정안 저장이 실패하면 기존 여행을 보존하고 적용 완료로 표시하지 않는다"},
+    {"file":"e2e/simple-account-save.spec.ts","title":"계정 원본을 열면 ID·revision·순서를 유지하고 빈 날짜 확인 뒤 같은 행에 저장하고 다음 수정은 자동 저장된다"},
+    {"file":"e2e/simple-account-save.spec.ts","title":"401 저장 실패는 로그인 복구를 안내하고 초안을 유지한 채 같은 revision으로 재시도한다"},
+    {"file":"e2e/simple-account-save.spec.ts","title":"409 충돌은 원본과 수정 초안을 보존하고 명시적으로 수정본을 새 여행에 저장한다"},
+    {"file":"e2e/simple-live-share.spec.ts","title":"공유 메뉴·여행 파일·캘린더는 공개 링크를 만들지 않고 명시한 생성만 공개한다"},
+    {"file":"e2e/simple-live-share.spec.ts","title":"공유 종료 뒤 편집과 reload가 링크를 재생성하지 않고 기존 뷰어도 폐기된 내용을 숨긴다"},
+    {"file":"e2e/festival-trip-upgrade.spec.ts","title":"축제 상세 안에서 선택한 방문 날짜로 담고 기존 고정 방문과 휴식을 보존한다"},
+    {"file":"e2e/place-search-identity.spec.ts","title":"direct search reuses official evidence and ID while unrelated businesses remain unknown"},
+    {"file":"e2e/place-search-identity.spec.ts","title":"official lookup failure keeps external search usable and does not invent facilities"},
+    {"file":"e2e/submission-ui-completion.spec.ts","title":"나루 캘린더 도구가 공유 메뉴를 직접 열고 사용자 클릭으로 파일을 받는다"},
+    {"file":"e2e/submission-ui-completion.spec.ts","title":"나루 편의 비교가 선택 모드를 열고 비교할 시설은 여행 조건을 바꾸지 않는다"},
+    {"file":"e2e/planner-workspace-responsive.spec.ts","title":"workspace keeps two-screen navigation and one itinerary usable across desktop, half-window and mobile"},
+    {"file":"e2e/accessibility-final.spec.ts","title":"320px 공개 화면의 네 메뉴와 내 여행은 키보드로 접근할 수 있다"},
+    {"file":"e2e/accessibility-final.spec.ts","title":"skip-link는 스크롤뿐 아니라 본문 초점도 실제로 옮긴다"}
+  ]
+}

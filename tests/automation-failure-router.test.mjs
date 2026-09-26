@@ -1,3 +1,4 @@
+// Archived automation contract; current release CI is verified in release-harness.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -38,7 +39,7 @@ test("only a verified superseded cancellation with no real failure avoids issue 
   }
 });
 function script(file) {
-  const workflow = yaml.load(readFileSync(`.github/workflows/${file}`, "utf8"));
+  const workflow = yaml.load(readFileSync(`.github/workflow-archive/2026-09-26/workflows/${file}`, "utf8"));
   return new AsyncFunction("github", "context", "core", workflow.jobs[Object.keys(workflow.jobs)[0]].steps[0].with.script);
 }
 
@@ -105,7 +106,7 @@ test("verified provider-only failures do not create repeated code tasks; mixed, 
   await route(github,context,core);assert.equal(writes,4,"a timeout is not a verified provider-only result");
   jobs[0].conclusion="failure";
   for(const file of ["automation-post-deploy-qa.yml","production-api-smoke.yml"]) {
-    const workflow=yaml.load(readFileSync(`.github/workflows/${file}`,"utf8"));
+    const workflow=yaml.load(readFileSync(`.github/workflow-archive/2026-09-26/workflows/${file}`,"utf8"));
     const mixed=workflow.jobs.verify.steps.find(step=>step.name==="Preserve mixed provider failure for engineering triage");
     assert.ok(mixed);
     const before=writes;

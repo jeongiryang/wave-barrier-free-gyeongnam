@@ -1,58 +1,50 @@
-# CI·배포 검증 기록
+# 9월 30일 출시 CI·CD 계약
 
-2026-09-12 사용자 지시에 따라 전체 workflow 12개를 감사했다. 필수 검증을 줄이지 않고 중복 실행을 줄인다.
+2026-09-26 정이량의 지시로 개발 단계의 반복 대기와 에이전트 토큰 소모를 줄이고 AI 나루와 제출 기능 검증에 집중하도록 재구축했다. 작업 마감은 **2026-09-30 23:59 KST**, 10월 채점 대비다. 공식 제출 마감일을 새로 확정한 문서는 아니다.
 
-## 2026-09-19 마감 전 대기 단축
+## 실행 경로
 
-- 기준 실행: PR #598 / CI 35440167387은 13분47초, 가장 긴 desktop shard의 검사 단계는 11분55초. quality는 1분46초, boundary는 44초였다. 설치 캐시보다 브라우저 병렬 분산을 우선한다.
-- desktop/mobile 각각 8 shard(총 16개)로 분산한다. 각 runner의 2 workers와 모든 검사·retry·timeout·fail-on-flaky는 유지한다. runner 동시 실행 한도나 다른 작업에 의한 대기는 남을 수 있으며 실제 단축률은 새 실행에서 측정한다. 추가 runner 준비 비용과 총 runner 시간은 늘 수 있다.
-- main 증명도 16개 browser job 전부 성공을 요구한다. 예전 4 shard 증거는 재사용하지 않는다. frozen sandbox의 과거 4 shard archive는 변경하지 않는다.
-- 취소된 내부 PR CI는 같은 PR·branch·workflow·저장소의 더 최신 실행이 있고 실제 실패한 job/step이 없을 때만 실패 이슈 생성을 생략한다. 대체 실행 실패, 단독 취소, API 확인 실패는 계속 triage한다.
-- 작업 중에는 변경된 모듈의 `node --test tests/<관련 파일>.test.mjs`, `npm run test:e2e -- e2e/<관련 파일>.spec.ts`로 피드백을 받는다. 묶음 후보가 안정되면 한 번 push하여 전체 CI를 실행한다. 각 PR의 의도·기여·요구사항 매핑을 보존한 뒤 최종 validate 성공 후보만 병합한다.
-- PR #373의 Fast/Full 목표는 참고했으나 오래된 queue/bootstrap/CD 변경은 가져오지 않았다. draft PR도 현재 전체 CI를 실행하므로 draft만으로 시간 절감을 주장하지 않는다.
+| 실행 | 검사 | 의미 |
+|---|---|---|
+| PR·main의 CI | 전체 단위, lint, 타입, 의존성 보안, actionlint, 빌드, 성능 + 핵심 브라우저27여정 × desktop/mobile 각2 shard | 개발 후보의 필수 validate |
+| 수동 Release Audit | 같은 품질 검사 + 기존 모든 E2E × desktop/mobile 각8 shard | 최종 후보의 자동 전수 회귀 release-validate |
+| main CI 성공 후 CD | 최신 main SHA/필수6개 job 검증 → 후보 배포 → health → DB inspect/migration → 최신성 재확인 → 승격 → health/rollback | 검증한 개발 개선을 운영에 반영 |
+| Production API Smoke | 기존 일1회·수동 제공처 검사 + 독립된 제한 횟수의 실제 나루 의도/일정안 검사 | 운영 실측. 외부 hold와 제품 오류 구분 |
+| npm run harness -- release evidence.json | 현재 커밋의 최신 Release Audit 실조회 + 모든 요구의 증거·리뷰·렌더·나루 보고서 | 제출 준비 근거 확인 |
 
-분산 방식 근거: https://playwright.dev/docs/test-sharding . 로컬 목록 대조와 최종 Actions 결과는 해당 PR에 기록한다.
+**빠른 CI는 모든 기능/디자인의 최종 합격이 아니다.** 9월30일 후보는 전체 Release Audit, `harness/features.json`의31쪽 요구, 실제 API/계정/저장/공유 여정,1440·960·390px 렌더와 독립 QA가 모두 필요하다. 제출자료의 API 활용·향후 계획도 현재 구현과 대조한다.
 
-## 실제 지연과 변경
+## 비용과 대기
 
-- PR #500 CI [34686077830](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34686077830): 약12분16초.
-- 같은 변경의 main CI [34686623864](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/runs/34686623864): 약13분17초. 브라우저 설치21–25초, 실제 테스트529–711초로 반복 전체 브라우저 검증이 가장 컸다.
-- PR의 desktop/mobile ×8 shard, 각2 workers, fail-on-flaky, retry, timeout, axe, 성능 예산과 frozen boundary를 유지한다.
-- main의 보안 감사·lint·typecheck·단위·build·성능 검사는 항상 다시 실행한다. 브라우저·boundary만 아래 증명 조건으로 재사용한다. 단순 경로 필터·skip-ci·무조건 성공으로 생략하지 않는다.
-- npm 의존성 캐시를 유지한다. 설치20초를 줄이기 위한 큰 브라우저 캐시는 이번에 추가하지 않는다. 미완성 변경마다 원격 CI를 실행하지 않고 최종 후보를 검증한다.
+- 기준: PR #709 CI `36151024884`,2026-09-25 14:58:07–15:12:03 UTC, **13분56초**. 브라우저16개 job,quality,sandbox-boundary,certify,validate 구조였고 quality는2분25초였다.
+- 새 PR 브라우저4개 job에서27개 핵심 여정을 두 기기로 검사한다. 목록은 `harness/quick-tests.json`. 삭제/개명은 계약 검사 실패다. 테스트는 삭제하지 않으며 전수 실행에서 그대로 사용한다.
+- draft도 빠른 CI를 실행한다. 변경 중에는 관련 단위/E2E를 로컬에서 확인하고 의미 있는 수정이 쌓이면 push한다. 같은 로그 전체를 반복 읽거나 수초마다 Actions를 조회하지 않는다.
+- 이전 동일-tree 인증/재사용은 폐기했다. main도 핵심 검사를 다시 실행하므로 이전16-shard 증명과 새4-job 증명이 섞이지 않는다.
+- npm 캐시 유지,설치의 중복 audit/fund만 생략. 명시적 두 보안 감사와 성능 한도는 유지한다. 실제 속도는 새 Actions 실행으로 측정한다.
+- 과거 이슈 라우터·PM dispatch·API Codex/QA worker·release 발행 workflow는 보관했다. 하네스는 역할별 작업 지침과 검사 CLI이며 LLM 자동 반복 호출을 하지 않는다.
 
-## 동일 내용 검증 계약
+## 합격과 배포
 
-`scripts/verify-ci-reuse.mjs`가 GitHub REST API의 commit/PR/workflow/jobs 근거를 읽는다. 다음 조건을 모두 만족해야 한다.
+validate는 quality와 모든 browser matrix 작업의 성공을 요구한다. 실패·취소·skip·누락은 통과하지 못한다. Release Audit도 전수 결과를 같은 방식으로 집계하며 CD를 자동 호출하지 않는다.
 
-1. main push이며, 그 정확한 커밋으로 병합된 동일 저장소 PR이다.
-2. main과 PR head의 Git tree SHA가 완전히 같다. PR의 quality/browser/boundary는 명시적인 `github.sha`의 합성 merge commit을 검사한다.
-3. 같은 CI workflow의 PR head 실행이 최근7일 안에 완료·성공했다.
-4. 최신 PR 실행의 quality, validate, sandbox-boundary와 desktop/mobile 각각8개 browser job이 모두 존재하며 완료·성공했다. 새 실패·진행 중 실행 대신 과거 성공을 고르지 않는다. 누락·중복·부분 페이지·취소·skip은 인정하지 않는다.
-5. 같은 실행이 남긴 `ci-tree-proof.json`의 저장소·run·PR·head·base·event SHA·실제 checkout SHA/tree를 확인한다. 실제 Git 합성 merge commit의 tree와 부모까지 다시 조회한다. PR head만 비교하여 서로 다른 검사 tree를 재사용하지 않는다.
-6. main aggregate는 새 quality 성공과 certificate 성공 및 예상된 두 skip을 함께 요구한다. 실패한 browser/boundary를 certificate로 덮지 않는다.
+CD의 `scripts/verify-deployment-ci.mjs`는 현재 main SHA,동일 저장소,ci.yml,push 이벤트,최신 실행,모든 필수 job의 완료/성공을 검증한다. 과거 성공으로 새 실패를 덮지 않는다. 수동 preflight도 Owner·main·같은 CI 성공이 필요하며 DB/alias를 바꾸지 않는다. 후보 대기 중 main이 바뀌면 승격 직전에 차단한다. Vercel Git 자동 배포 비활성화와 Actions 단일 배포 경로를 유지한다.
 
-API 오류·불명확한 근거·직접 main push·다른 tree는 전체 검증으로 돌아간다. 기존 PR #500/main 쌍은 tree와 전체 job 성공이 같지만 checkout proof를 남기기 전 실행이므로 재사용하지 않는다. 병합 후 run.pull_requests가 비는 실제 API 동작도 확인하여 artifact에 원래 이벤트를 기록한다. 신규 Actions 시간은 최종 배포 후 기록한다.
+PR 검사에 유료 LLM이나 구독 인증을 제공하지 않는다. 기존 sandbox/bootstrap은 보존한다. 제품 인증·개인정보·오래된 응답·저장 실패 회귀는 계속 실행한다. 과거 자동화 테스트는 보관 원문을 검증하고 현재 CI 계약은 `tests/release-harness.test.mjs`가 검증한다.
 
-## 버전·트리거 감사
+## 현재 운영 제약
 
-- actions/checkout v7, setup-node v7은 현재 안정 버전 계열을 유지했다.
-- upload-artifact v7.0.1, download-artifact v8.0.1, github-script v9.0.0을 공식 release/ref로 확인해 갱신했다. 고정 SHA를 사용하는 자동화는 고정을 유지했다. github-script v9의 ESM 변경에 걸리는 `require('@actions/github')`나 `getOctokit` 재선언은 없었다.
-- Vercel CLI는 npm stable59.16.0으로 통일했다. 실제 CLI에서 prebuilt·skip-domain·native curl deployment 플래그를 확인했다. 인증은 step 환경 변수로 전달한다. 후보→health→DB inspect/migrate→promote→health/rollback 순서는 유지한다.
-- CD는 성공한 main CI 이후 한 번 실행된다. production-api-smoke는 배포 smoke와 별도로 하루 한 번 운영 제공처 상태를 살핀다. release/release-backfill은 릴리스 기록 경로다.
-- issue triage와 상태 routing은 읽은 이벤트를 분류하는 용도다. API 기반 Codex worker/독립 QA 자동화는 기존 비활성·Owner-only 경계를 유지했다. 유료 호출을 활성화하지 않았다. immutable bootstrap과 과거 sandbox archive는 변경하지 않았다.
+- 기존 ODsay searchPubTransPathT hold 이슈 #454가 종합 실 API 검사를 선행 중단한다. 실제 계정/한도 재확인과 제한된 재검증이 필요하며 빠른 CI나 다른 제공처 성공으로 해소됐다고 하지 않는다.
+- Naru job은 실제 승인 로컬 모델의 의도와 일정안까지만 확인한다. 화면의 적용/되돌리기,휴대전화·음성·GPS·보조기기 사용은 별도 증거가 필요하다.
 
-근거: [GitHub workflow REST API](https://docs.github.com/en/rest/actions/workflow-runs), [artifact release](https://github.com/actions/upload-artifact/releases/tag/v7.0.1), [github-script v9](https://github.com/actions/github-script/releases/tag/v9.0.0), [Vercel CLI](https://vercel.com/docs/cli).
+## 롤백
 
+- 기준 커밋 `8e23a9781f4d0ba151e9dd1c91559bd08792b41f`
+- 원격 태그 `backup/pre-release-harness-20260926`
+- 원문 `.github/workflow-archive/2026-09-26/`:12개 workflow와 기존 정책
+- 로컬 자료 `operations/pre-release-harness-20260926.zip`. 태그는 전체 저장소를 보존하며 ZIP은 운영 관련 사본이다.
 
-## 2026-09-21 승인된 인트로 의존성의 immutable pin 재등록
+설정 롤백은 **재구축 squash 커밋을 git revert한 PR**으로 한다. 충돌 시 최신 제품 코드를 보존하며 설정만 조정한다. 복원 workflow의 CI 성공 후 squash merge한다. 전체 원본이 필요하면 별도 checkout에서 `git switch --detach backup/pre-release-harness-20260926`를 사용한다. 보호 규칙 변경·force push·사용 중인 디렉터리 초기화를 하지 않는다. Production 긴급 복귀는 기존 CD의 Vercel rollback 경로다.
 
-- PR #667의 사용자 승인 인트로를 통합하면서 `three@0.186.0`, `@react-three/fiber@9.7.0`, `@types/three@0.183.1`과 전이 의존성이 추가됐다. 검토 대상 소스는 커밋 `208d47261c5702773d03827f86eb44bfa943e1fb`이다.
-- 기존 lock 대비 패키지 20개가 추가됐고 기존 패키지 항목은 변경되지 않았다(루트 의존성 목록만 추가). 추가 항목은 모두 `https://registry.npmjs.org/` 다운로드와 sha512 integrity가 있으며 install-script 플래그가 없다. 이는 코드의 무해성을 자동 보장하는 정책이 아니라 이번 승인 범위의 고정 의존성 검토 기록이다.
-- CI 35532800570은 후보 실행 전 `package-lock.json`의 기존 고정 해시와 새 lock이 달라 `BLOCKED_SANDBOX`로 거부했다. 외부 bootstrap의 SHA256은 정상이며 나머지 helper 12개와 추가 경계 파일 4개의 해시는 그대로 일치했다.
-- lock pin만 `ae0ef08fa49232fc4b36fc81c0c5328c563800767a353a9b810f185b6a3fb25b`에서 `93283120fe309e14434c83d452fe038ddf6a02c5d5b484e5bf1402a8bb48fb91`로 바꾼다. 다운로드 원본 SOURCE_SHA도 위 검토 커밋으로 고정한다. 검증 함수·권한·네트워크·격리·변조 거부 코드는 변경하지 않는다.
-- 배포본을 먼저 별도 immutable 커밋 A로 원격 고정하고, 후속 커밋 B에서 workflow URL과 SHA256을 A로 갱신한다. 후보 branch의 최신 내용을 자동으로 허용하거나 해시 검사를 제거하지 않는다. 이후 lock 변경도 별도 검토와 재배포가 필요하다.
+## 근거
 
-- 배포 커밋 A: `5b9c9c319b2d0c6893cb4d4d5f8edc6371069945`. 외부 bootstrap SHA256: `cfcde4821762a6c1b1d36e3a528ecbc379900b6521bb17cba76f6578b37c22b8`.
-- 원격 A의 고정 URL에서 bootstrap을 내려받아 위 해시를 검사한 뒤, checkout 밖 임시 디렉터리에서 Python `-I -B`로 실행했다. 검토 대상 파일 13개를 검사하고 17개 배포 파일의 다운로드 해시를 검증했다. 후보 코드는 실행하지 않았다.
-- 기존 고정 CI bootstrap 공격 테스트와 installed bootstrap 공격 테스트를 변경 없이 실행했다. helper·entrypoint·lockfile 변조는 다운로드/실행 이전에 거부됐고, 위조 배포 응답과 공개 sentinel/네트워크 접근 시도도 차단됐다. Linux bubblewrap/AppArmor·자원 경계의 최종 증거는 새 SHA의 GitHub Actions 결과로 남긴다.
+[Playwright CLI](https://playwright.dev/docs/test-cli),[GitHub concurrency](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency),[Vercel promote](https://vercel.com/docs/cli/promote). 과거 CI 설계는 보관 폴더 `policy/ci-validation.md`에 남긴다.

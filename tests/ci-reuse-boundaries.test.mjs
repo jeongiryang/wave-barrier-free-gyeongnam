@@ -1,3 +1,4 @@
+// Archived automation contract; current release CI is verified in release-harness.test.mjs.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
@@ -134,7 +135,7 @@ test('expired/deleted downloads, malformed JSON and Git lookup errors all fall b
   } })).verified, false);
 });
 
-const workflow = yaml.load(readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8'));
+const workflow = yaml.load(readFileSync(new URL('../.github/workflow-archive/2026-09-26/workflows/ci.yml', import.meta.url), 'utf8'));
 test('the exact checkout described by the proof is shared by every validation job', () => {
   for (const name of ['quality', 'browser', 'sandbox-boundary']) {
     const checkouts = workflow.jobs[name].steps.filter(step => step.uses?.startsWith('actions/checkout@'));

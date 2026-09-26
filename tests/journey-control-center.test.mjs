@@ -64,8 +64,8 @@ test("모든 GitHub workflow는 Node 24 런타임 기반 action을 사용한다"
   const workflows = await Promise.all([
     ".github/workflows/ci.yml",
     ".github/workflows/cd.yml",
-    ".github/workflows/release.yml",
-    ".github/workflows/release-backfill.yml",
+    ".github/workflows/release-audit.yml",
+    ".github/workflows/production-api-smoke.yml",
   ].map(source));
   for (const workflow of workflows) {
     assert.match(workflow, /actions\/checkout@v7/);
