@@ -4,7 +4,7 @@ import { naruDialog } from './naru-tool-fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
 const draft = '도구를 확인한 뒤 이어 쓸 여행 질문';
-async function setup(page: Page) {
+async function setup(page: Page, beforeNavigate?: () => Promise<void>) {
   const unexpected: string[] = [];
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
@@ -25,6 +25,7 @@ async function setup(page: Page) {
       'wave-trip-schedule-v1': JSON.stringify({ travelStart: '2026-10-14', travelEnd: '2026-10-14', dayStartTime: '09:00', travelMode: 'car', scheduleAssignments: {}, fixedVisits: {}, dayDeadlines: {}, comfort: { maxWalkMinutes: 15, breakEveryMinutes: 60, breakMinutes: 15 } }),
     } }));
   }, plan.places.map(place => ({ ...place, image: '' })));
+  await beforeNavigate?.();
   await page.goto('/planner');
   await expect(page.getByRole('combobox', { name: '여행 지역', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
@@ -44,6 +45,38 @@ async function back(page: Page) {
   await expect(chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true })).toHaveValue(draft);
 }
 const schedule = (page: Page) => page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem('wave-current-trip-v1')!).values['wave-trip-schedule-v1']));
+
+test('Naru save tool focuses the real save action when the pending session resolves', async ({ page }) => {
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  let sessionRequested = false;
+  await setup(page, async () => {
+    await page.route('**/api/auth/get-session', async route => {
+      sessionRequested = true;
+      await pending;
+      await route.fulfill({ json: null }).catch(() => {});
+    });
+  });
+  try {
+    const before = await schedule(page);
+    await choose(page, '내 여행에 저장');
+    const save = page.locator('[data-planner-tool="save"] > button');
+    await expect.poll(() => sessionRequested).toBe(true);
+    await expect(save).toBeDisabled();
+    // Let the tool mount and its first focus attempt finish before auth changes
+    // only the native disabled attribute (no new tool DOM is required).
+    await page.waitForTimeout(300);
+    release();
+    await expect(save).toBeEnabled();
+    await expect(save).toBeFocused();
+    await save.press('Enter');
+    const timing = page.getByRole('dialog', { name: '저장·공유 전 일정 확인', exact: true });
+    if (await timing.isVisible()) await timing.getByRole('button', { name: '확인하고 계속', exact: true }).click();
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('wave-travel-book-v1') || '[]').length)).toBe(1);
+    await back(page);
+    expect(await schedule(page)).toEqual(before);
+  } finally { release(); }
+});
 
 test('Naru region, facilities and places tools perform real condition actions and return with the unsent draft', async ({ page }) => {
   await setup(page);

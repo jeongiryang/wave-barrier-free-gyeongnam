@@ -403,7 +403,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
       const node = document.querySelector<HTMLElement>(tool === 'dates' && !travelStart ? '#itinerary-setup input' : selectors[tool] || '#planner');
       if (!node) return false;
       for (let parent = node.parentElement; parent; parent = parent.parentElement) if (parent instanceof HTMLDetailsElement) parent.open = true;
-      if (!node.getClientRects().length) return false;
+      if (!node.getClientRects().length || node.matches(':disabled')) return false;
       if (!node.matches('button,summary,a,input,select')) node.setAttribute('tabindex', '-1');
       node.scrollIntoView({ block: 'start', behavior: motion === 'calm' ? 'instant' : 'smooth' }); node.focus({ preventScroll: true });
       if (document.activeElement !== node) return false;
@@ -418,7 +418,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
     const scheduleFocus = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => { if (focusTarget()) cleanup(); }); };
     const observer = new MutationObserver(scheduleFocus);
     const timeout = setTimeout(cleanup, 5000);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'open', 'data-embedded'] });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'open', 'data-embedded', 'disabled'] });
     frame = requestAnimationFrame(scheduleFocus);
     assistantToolFocusCleanup.current = cleanup;
   }

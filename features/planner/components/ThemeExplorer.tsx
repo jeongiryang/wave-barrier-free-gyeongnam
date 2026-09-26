@@ -6,6 +6,7 @@ import { useTabListKeyboard } from "../hooks/useTabListKeyboard";
 import type { RichMode, RichSpot } from "../types";
 import { themeExplorerEnglish } from "../theme-explorer-copy";
 import { regionNames } from "../../../lib/gyeongnam-region-names";
+import PlaceVisitHours from "./PlaceVisitHours";
 
 interface ThemeExplorerProps {
   region: string;
@@ -32,6 +33,7 @@ export default function ThemeExplorer({
   const catalog = richCatalog.map(item => english ? { ...item, ...themeExplorerEnglish[item.id] } : item);
   const modeIds = useMemo(() => richCatalog.map((item) => item.id as RichMode), []);
   const { listRef, onKeyDown, tabProps } = useTabListKeyboard(modeIds, richMode, onRichModeChange);
+  const needsVisitConfirmation = richMode === "pet" || richMode === "wellness";
   return <div className="theme-explorer" data-reveal>
     {(richMode === "awards" || richMode === "rests") && <p className="condition-scope">{english ? "These records are located in Gyeongnam and may be outside your selected city or county. Check the address before visiting." : "조회된 자료 중 경남에 위치한 항목만 표시합니다. 선택한 시·군 밖의 경남 자료가 포함될 수 있으며, 도착 전 주소를 확인해 주세요."}</p>}
     {richMode === "language" && <p className="condition-scope">{english ? `Tourism information for ${regionLabel} in your selected language. This regional list is separate from the places in your itinerary and does not confirm on-site interpretation or guide services.` : `선택한 언어로 제공되는 ${region} 관광정보입니다. 내 일정의 장소와 별도로 조회한 지역 목록이며, 현장 통역이나 안내 인력의 제공 여부를 뜻하지 않습니다.`}</p>}
@@ -51,7 +53,16 @@ export default function ThemeExplorer({
         <SmartSpotImage src={spot.image} title={spot.title} region={region} tag={spot.tag} rank={index + 1} contentId={spot.id} showMeta={false} />
         <section>
           <small>{spot.source}</small><h3>{spot.title}</h3>
-          <p>{spot.address || spot.summary || (english ? `${spot.tag} travel information in ${regionLabel}` : `${region}에서 만나는 ${spot.tag} 여행 정보`)}</p>
+          {spot.address && <p>{spot.address}</p>}
+          {spot.summary && spot.summary !== spot.address && <p>{spot.summary}</p>}
+          {!spot.address && !spot.summary && <p>{english ? `${spot.tag} travel information in ${regionLabel}` : `${region}에서 만나는 ${spot.tag} 여행 정보`}</p>}
+          {needsVisitConfirmation && <>
+            {!spot.summary && <p>{english ? "A place description has not been provided." : "장소 설명이 제공되지 않았어요."}</p>}
+            <p className="modal-note">{richMode === "pet"
+              ? (english ? "Pet entry conditions are not confirmed by this listing. Ask the venue before visiting. Pet listings do not verify guide-dog access or accessibility facilities." : "이 목록만으로 반려동물 동반 조건이 확인되지는 않아요. 방문 전 운영기관에 문의해 주세요. 안내견 동반·무장애 편의와는 별도 정보예요.")
+              : (english ? "Ask the venue about programmes, reservations and visitor requirements. A wellness listing does not guarantee therapeutic effects or suitability for everyone." : "프로그램·예약·이용 조건은 운영기관에 확인해 주세요. 웰니스 분류는 치료 효과나 모든 이용자의 이용 가능성을 보장하지 않아요.")}</p>
+            {/^[1-9]\d{0,11}$/.test(spot.id) && <PlaceVisitHours id={spot.id} name={spot.title} en={english} />}
+          </>}
           <button type="button" disabled={!spot.mapX || !spot.mapY} onClick={() => onRouteFromSpot(spot)}>{spot.mapX && spot.mapY ? (english ? "View route on the map" : "지도에서 경로 보기") : (english ? "Coordinates unavailable" : "좌표 정보 미제공")}<span></span></button>
         </section>
       </article>)}
