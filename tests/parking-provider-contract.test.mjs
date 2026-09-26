@@ -18,7 +18,7 @@ const pageBody = (pageNo, total, items) => ({ response: { header: { resultCode: 
 const pageItems = (pageNo, total) => Array.from({ length: Math.min(1000, Math.max(0, total - (pageNo - 1) * 1000)) }, (_, index) => lot((pageNo - 1) * 1000 + index));
 
 function harness(reply, { budgetMs = 17500, key = 'noncredential-fixture' } = {}) {
-  const requests = [], events = [], requester = createProviderRequester();
+  const requests = [], events = [], progress = [], requester = createProviderRequester();
   let active = 0, maxActive = 0;
   const fetcher = async (url, options) => {
     const params = new URL(url).searchParams;
@@ -35,8 +35,8 @@ function harness(reply, { budgetMs = 17500, key = 'noncredential-fixture' } = {}
     if (name.endsWith('/http')) return { json: (body, status = 200) => ({ status, body }) };
     if (name.endsWith('/provider-data')) return { ...attempts, commonParams: () => ({ numOfRows: '1' }), fetchTourismData: async (_env, _service, _operation, params) => ({ items: [{ contentid: params.contentId, lDongRegnCd: '48', mapx: '128.691', mapy: '35.238' }], total: 1 }) };
     throw Error(name);
-  }, fetcher, { warn: serialized => events.push(JSON.parse(serialized)) });
-  return { requests, events, maxActive: () => maxActive, run: (id = '2783785') => adapter.handleParkingAlternatives(new URL(`https://example.test/api/wave?action=parking-alternatives&contentId=${id}`), { TOUR_API_SERVICE_KEY_ENCODED: key }) };
+  }, fetcher, { warn: serialized => events.push(JSON.parse(serialized)), info: serialized => progress.push(JSON.parse(serialized)) });
+  return { requests, events, progress, maxActive: () => maxActive, run: (id = '2783785') => adapter.handleParkingAlternatives(new URL(`https://example.test/api/wave?action=parking-alternatives&contentId=${id}`), { TOUR_API_SERVICE_KEY_ENCODED: key }) };
 }
 
 test('official page limit and exact accessible filter retrieve later pages before ranking', async () => {
@@ -65,6 +65,74 @@ test('observed flat envelope completes first and later pages before sharing the 
   assert.deepEqual(h.requests.map(({ page }) => page), [1, 2]); assert.deepEqual(h.events, []);
   assert.equal(results[0].body.checkedAt, results[1].body.checkedAt);
   await h.run('1622623'); assert.equal(h.requests.length, 2);
+});
+
+test('duplicate rows within one page count toward raw completeness and remain deduplicated for display', async () => {
+  const h = harness(async () => Response.json(pageBody(1, 3, [lot(0), lot(0), lot(1)]).response));
+  const result = await h.run();
+  assert.equal(result.status, 200); assert.equal(result.body.status, 'available'); assert.equal(result.body.items.length, 2);
+  assert.deepEqual(h.events, []);
+  assert.equal(h.progress[0].total, 3); assert.equal(h.progress[0].receivedRows, 3);
+  assert.equal(h.progress[1].completedPages, 1); assert.equal(h.progress[1].receivedRows, 3); assert.equal(h.progress[1].outcome, 'complete');
+  await h.run('753302'); assert.equal(h.requests.length, 1); assert.equal(h.progress.length, 2, 'a warm complete cache does not start another provider observation');
+});
+
+test('same management ID at different locations cannot discard the nearby row before ranking', async () => {
+  const h = harness(async () => Response.json(pageBody(1, 2, [{ ...lot(0), latitude: '37.5', longitude: '127' }, { ...lot(1), prkplceNo: 'P0' }]).response));
+  const result = await h.run();
+  assert.equal(result.status, 200); assert.equal(result.body.items[0].name, lot(1).prkplceNm);
+  assert.equal(h.progress.at(-1).receivedRows, 2); assert.equal(h.progress.at(-1).outcome, 'complete');
+});
+
+test('a single overlapping row across pages is not mistaken for a repeated entire page', async () => {
+  const h = harness(async ({ page }) => Response.json(pageBody(page, 1001, page === 1 ? pageItems(1, 1001) : [lot(0)]).response));
+  const result = await h.run();
+  assert.equal(result.status, 200); assert.equal(result.body.status, 'available'); assert.deepEqual(h.events, []);
+  assert.equal(h.progress.at(-1).completedPages, 2); assert.equal(h.progress.at(-1).receivedRows, 1001);
+});
+
+for (const reordered of [false, true]) test(`an entire repeated page is rejected even with reordered rows and keys=${reordered}`, async () => {
+  const h = harness(async ({ page }) => {
+    let items = pageItems(1, 2000).map(item => ({ ...item, notes: { a: 1, b: { x: 2, y: 3 } } }));
+    if (page === 2 && reordered) items = items.reverse().map(item => ({ ...Object.fromEntries(Object.entries(item).reverse()), notes: { b: { y: 3, x: 2 }, a: 1 } }));
+    return Response.json(pageBody(page, 2000, items).response);
+  });
+  const result = await h.run();
+  assert.equal(result.status, 502); assert.equal(result.body.status, 'provider-error'); assert.equal(result.body.failure.kind, 'malformed_response');
+  assert.deepEqual(h.events, [{ event: 'parking-response-rejected', reason: 'repeated-page', page: 2, expected: 1, actual: 2 }]);
+  assert.equal(h.progress.at(-1).outcome, 'repeated-page'); assert.equal(h.progress.at(-1).receivedRows, 2000);
+  await h.run('753302'); assert.equal(h.requests.length, 4, 'a repeated-page failure must not populate the shared completed cache');
+});
+
+test('page fingerprints preserve duplicate multiplicity rather than comparing a set of unique rows', async () => {
+  const h = harness(async ({ page }) => Response.json(pageBody(page, 2000, Array.from({ length: 1000 }, (_, index) => lot(index < 1000 - page ? 0 : 1))).response));
+  const result = await h.run();
+  assert.equal(result.status, 200); assert.equal(result.body.items.length, 2); assert.deepEqual(h.events, []);
+  assert.equal(h.progress.at(-1).receivedRows, 2000); assert.equal(h.progress.at(-1).outcome, 'complete');
+});
+
+test('progress logs contain only fixed events/outcomes and safe integer counts, never records or hashes', async () => {
+  const h = harness(async () => Response.json(pageBody(1, 1, [{ ...lot(0), prkplceNo: 'private-sentinel-id', prkplceNm: 'private-sentinel-name', phoneNumber: 'private-sentinel-phone' }]).response), { key: 'private-sentinel-key' });
+  assert.equal((await h.run()).status, 200);
+  assert.deepEqual(h.progress.map(item => item.event), ['parking-snapshot-started', 'parking-snapshot-finished']);
+  assert.deepEqual(Object.keys(h.progress[0]).sort(), ['event', 'total', 'plannedPages', 'pageSize', 'receivedRows', 'elapsedMs', 'remainingMs'].sort());
+  assert.deepEqual(Object.keys(h.progress[1]).sort(), ['event', 'completedPages', 'receivedRows', 'elapsedMs', 'outcome'].sort());
+  for (const entry of h.progress) for (const [key, value] of Object.entries(entry)) if (!['event', 'outcome'].includes(key)) assert.ok(Number.isSafeInteger(value) && value >= 0);
+  assert.equal(h.progress[0].total, 1); assert.equal(h.progress[0].plannedPages, 1); assert.equal(h.progress[0].pageSize, 1000);
+  assert.equal(h.progress[1].outcome, 'complete');
+  assert.doesNotMatch(JSON.stringify(h.progress), /private-sentinel|serviceKey|https?:|fingerprint|digest|hash|prkplce|phone/);
+});
+
+test('a deadline after a valid first page logs incomplete progress once without caching partial rows', async () => {
+  const h = harness(async ({ page, signal }) => {
+    if (page === 1) return Response.json(pageBody(1, 1001, pageItems(1, 1001)).response);
+    return new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
+  }, { budgetMs: 100 });
+  const result = await h.run();
+  assert.equal(result.status, 502); assert.equal(result.body.status, 'provider-error'); assert.equal(result.body.failure.kind, 'timeout');
+  await new Promise(resolve => setTimeout(resolve, 5));
+  const finishes = h.progress.filter(item => item.event === 'parking-snapshot-finished');
+  assert.equal(finishes.length, 1); assert.equal(finishes[0].completedPages, 1); assert.equal(finishes[0].receivedRows, 1000); assert.equal(finishes[0].outcome, 'timeout');
 });
 
 for (const [name, wrapped] of [
@@ -104,7 +172,6 @@ for (const format of ['wrapped', 'flat'])
 for (const [name, change, reason] of [
   ['missing last page rows', body => { body.response.body.items = []; }, 'row-count'],
   ['duplicate page number', body => { body.response.body.pageNo = 1; }, 'page-no'],
-  ['overlapping records', body => { body.response.body.items = [lot(0)]; }, 'duplicate-id'],
   ['changed total', body => { body.response.body.totalCount = 1002; }, 'total-changed'],
   ['missing total', body => { delete body.response.body.totalCount; }, 'total'],
   ['unrecognized item envelope', body => { body.response.body.items = { unexpected: [] }; }, 'items-shape'],
@@ -125,6 +192,7 @@ test('over-cap totals stop after page one without a fabricated empty or complete
   assert.equal(result.status, 502); assert.equal(result.body.status, 'provider-error');
   assert.equal(result.body.partial, true); assert.equal(result.body.unclassifiedFailure, true); assert.equal(h.requests.length, 1);
   assert.deepEqual(h.events, [{ event: 'parking-response-rejected', reason: 'page-cap', page: 1, expected: 20000, actual: 20001 }]);
+  assert.equal(h.progress[0].plannedPages, 21); assert.equal(h.progress.at(-1).outcome, 'page-cap');
 });
 
 test('page concurrency is at most two and a completed set can confirm zero nearby matches', async () => {
@@ -139,6 +207,7 @@ for (const [code, kind] of [['20', 'auth_error'], ['22', 'quota_exhausted'], ['1
   const result = await h.run();
   assert.equal(result.status, 502); assert.equal(result.body.failure.kind, kind); assert.equal(result.body.failure.code, code);
   assert.ok(h.requests.length <= 3); assert.doesNotMatch(JSON.stringify(result), /private-sentinel|noncredential-fixture|serviceKey/);
+  assert.equal(h.progress.at(-1).outcome, 'partial'); assert.equal(h.progress.at(-1).completedPages, 1);
   if (code === '10') assert.doesNotThrow(() => assertProviderAvailable(result.body), 'invalid parameters cannot be labeled a provider quota hold');
   else assert.throws(() => assertProviderAvailable(result.body), error => error instanceof ProviderBlocked && error.engineeringRequired === false);
 });
@@ -175,7 +244,6 @@ for (const [name, change, expected] of [
   ['null row', body => { body.response.body.items = [null]; }, { reason: 'row-object', actual: 1 }],
   ['nonstring row ID', body => { body.response.body.items[0].prkplceNo = { private: 'private-sentinel' }; }, { reason: 'row-id', actual: 1 }],
   ['unexpected filter value', body => { body.response.body.items[0].pwdbsPpkZoneYn = 'private-sentinel'; }, { reason: 'filter-value', actual: 1 }],
-  ['duplicate first page ID', body => { body.response.body.totalCount = 2; body.response.body.items.push({ ...body.response.body.items[0] }); }, { reason: 'duplicate-id', actual: 1 }],
 ]) test(`${name} logs only the fixed reason and safe numeric counts`, async () => {
   const h = harness(async () => {
     const body = pageBody(1, 1, [{ ...lot(0), prkplceNo: 'private-sentinel-id', prkplceNm: 'private-sentinel-name', rdnmadr: 'private-sentinel-address' }]);
@@ -197,6 +265,7 @@ test('invalid JSON logs a fixed parsing reason without retaining the raw body', 
   assert.equal(result.status, 502); assert.equal(result.body.failure.kind, 'malformed_response');
   assert.equal(result.body.failure.operation, 'tn_pubr_prkplce_info_api');
   assert.deepEqual(h.events, [{ event: 'parking-response-rejected', reason: 'json', page: 1 }]);
+  assert.deepEqual(h.progress.map(({ outcome, completedPages, receivedRows }) => ({ outcome, completedPages, receivedRows })), [{ outcome: 'error', completedPages: 0, receivedRows: 0 }]);
   assert.doesNotMatch(JSON.stringify({ events: h.events, response: result }), /private-sentinel|serviceKey|https?:/);
 });
 
