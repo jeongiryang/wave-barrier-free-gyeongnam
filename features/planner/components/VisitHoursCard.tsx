@@ -3,6 +3,29 @@ import { useEffect, useRef, useState } from "react";
 import { assessVisitHours, type PlannedVisit, type VisitInfo } from "../../../lib/visit-hours.js";
 import { formatScheduleTime } from "../optimization/itinerary-schedule.js";
 import { fetchVisitInfo } from "../services/visit-info";
+import { createParkingTelHref } from "../../../lib/parking-contact.js";
+
+/** Preserve the provider's wording; never concatenate separate or incomplete numbers. */
+export function visitContactParts(source: string): Array<{ text: string; href: string | null }> {
+  if (/(?:https?:\/\/|javascript:|tel:)/i.test(source)) return [{ text: source, href: null }];
+  const pattern = /(?:\+82[ -]?(?:2|[3-6]\d|1[016789]|70)[ -]?\d{3,4}[ -]?\d{4}|(?:\(0(?:2|[3-6]\d|1[016789]|70|80)\)|0(?:2|[3-6]\d|1[016789]|70|80))[ -]?\d{3,4}[ -]?\d{4}|1[568]\d{2}[ -]?\d{4})/g;
+  const parts: Array<{ text: string; href: string | null }> = [];
+  let cursor = 0;
+  for (const match of source.matchAll(pattern)) {
+    const start = match.index!, end = start + match[0].length;
+    const before = source.slice(0, start), after = source.slice(end);
+    if (/[\dA-Za-z+_.~～–-]$/.test(before) || /^[\dA-Za-z_.]/.test(after)
+      || /(?:팩스|fax)(?:\s*(?:번호|number|no\.?))?\s*[:：]?\s*$/i.test(before)
+      || /^[ \t]*(?:[~～–-]\s*\d|\/\s*\d{1,4}(?=$|[\s,;)])|[（(]?[ \t]*(?:내선|ext\b))/i.test(after)) continue;
+    const href = createParkingTelHref(match[0]);
+    if (!href) continue;
+    if (start > cursor) parts.push({ text: source.slice(cursor, start), href: null });
+    parts.push({ text: match[0], href });
+    cursor = end;
+  }
+  if (cursor < source.length) parts.push({ text: source.slice(cursor), href: null });
+  return parts;
+}
 
 const reasons: Record<string, [string, string]> = {
   "within-hours": ["등록된 이용시간 안에 머무는 일정이에요.", "Your planned visit fits the published hours."],
@@ -45,7 +68,9 @@ export default function VisitHoursCard({ id, name, visit, en = false }: { id: st
           {info.checkIn && <span><small>{c("체크인", "Check-in")}</small>{info.checkIn}</span>}
           {info.checkOut && <span><small>{c("체크아웃", "Check-out")}</small>{info.checkOut}</span>}
           {info.fees && <span><small>{c("이용요금", "Admission fees")}</small>{info.fees}</span>}
-          {info.phone && <span><small>{c("문의", "Contact")}</small>{/^[0-9+()\s-]{7,30}$/.test(info.phone) ? <a style={{ display: "inline-flex", alignItems: "center", minHeight: 44 }} href={`tel:${info.phone.replace(/[^+\d]/g, "")}`}>{info.phone}</a> : info.phone}</span>}
+          {info.phone && <span><small>{c("문의", "Contact")}</small>{visitContactParts(info.phone).map((part, index) => part.href
+            ? <a key={index} style={{ display: "inline-flex", alignItems: "center", minHeight: 44 }} href={part.href}>{part.text}</a>
+            : part.text)}</span>}
         </> : <p>{c("이 장소의 공식 이용 정보를 확인하지 못했어요. 시설에 운영시간과 휴무를 문의해 주세요.", "Official visiting information is unavailable. Ask the venue about hours and closing days.")}</p>}
         <p className="modal-note">{visit ? c("등록 정보와 예상 일정의 비교예요. ", "This compares published information with planned times. ") : c("한국관광공사에 등록된 이용 정보예요. ", "Visitor information published by the Korea Tourism Organization. ")}{c("당일 변경·예약 가능 여부는 시설에 확인해 주세요.", "Confirm same-day changes and reservations with the venue.")}</p>
         <p className="modal-note">{info.source} · {c("정보 조회", "Retrieved")} {new Date(info.checkedAt).toLocaleString(en ? "en-GB" : "ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} KST</p>
