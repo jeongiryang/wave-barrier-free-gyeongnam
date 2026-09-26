@@ -22,6 +22,8 @@
 
 `owner`는 요구사항의 담당 전문성이다. 구현과 독립된 검토자는 따로 기록한다. 자신의 구현 검사로 독립 QA를 대체하지 않는다. 여행자 역할 시뮬레이션을 실제 인터뷰·실제 보조기기 시험으로 쓰지 않는다.
 
+프론트 세 역할은 [PR 이력 기반 책임](../harness/frontend-responsibilities.md)의 관련 F규칙을 사용한다. [조사 보고서](frontend-pr-audit-20260926.md)는 원안의 머지·선택 통합·대체·현재 미노출을 구분한다. 일상 작업에서는 역할과 관련 규칙만 읽고, 과거 의도가 충돌할 때 해당 PR 기록만 확인한다. 이 연결은 CI job·모델 호출·정기 전수 조사를 추가하지 않는다.
+
 나루의 28개는 `PlannerAssistant.tsx`의 UI `toolGroups` 목록이다. 모델 실행 허용 목록 `ASSISTANT_TOOLS`는 24개이며, `experience`·`audio`·`coordinates`·`route-check`는 UI 도구 검색·직접 진입으로 확인한다. 숫자를 맞추려고 모델의 실행 권한을 늘리지 않는다.
 
 ## 매 작업과 PR
