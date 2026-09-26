@@ -91,7 +91,7 @@ test("모바일 지도 기본·추가 도구는 44px 영역과 빠짐없는 접�
     const box = node.getBoundingClientRect(), rect = button.getBoundingClientRect();
     return rect.left >= box.left - 1 && rect.right <= box.right + 1;
   }))).toBe(true);
-  await expect(commandBar.getByRole("button", { name: "↗ 페이지 링크", exact: true })).toBeVisible();
+  await expect(commandBar.getByRole("button", { name: "페이지 링크", exact: true })).toBeVisible();
 
   await openNaruTool(page, "출발 전 확인");
   for (const summary of await page.locator(".simple-readiness > details > summary").all()) await summary.click();

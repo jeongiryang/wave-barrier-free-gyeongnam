@@ -112,14 +112,8 @@ async function setup(page: Page, options: SetupOptions = {}) {
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('.landing-page .wave-header').getByRole('link', { name: 'WAVE 홈', exact: true })).toBeVisible();
     await expect(page.locator('.landing-page .wave-header nav a[href="/"]')).toHaveAttribute('aria-current', 'page');
-    // Fresh home entry opens a modal intro; finish it through the public action
-    // before focusing navigation behind it. These cases test voice lifecycle.
-    const arrival = page.getByRole('dialog', { name: 'WAVE 시작 이야기', exact: true });
-    if (!options.reduced) {
-      await expect(arrival).toBeVisible();
-      await arrival.getByRole('button', { name: '건너뛰기', exact: true }).click();
-    }
-    await expect(arrival).toBeHidden();
+    // Home now exposes navigation immediately without the retired arrival modal.
+    await expect(page.getByRole('dialog', { name: 'WAVE 시작 이야기', exact: true })).toHaveCount(0);
     await openSupportMenu(page);
     await expect(page.locator('.preference-controls')).toHaveAttribute('aria-busy', 'false');
     await page.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();

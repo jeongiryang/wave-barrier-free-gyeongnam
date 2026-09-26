@@ -64,7 +64,7 @@ test("문의 기능으로 가는 링크가 동작한다(#545, 새 화면을 만�
   const notice = dialog.locator(".place-arrival-preview .place-inquiry-entry").filter({ hasText: "휠체어 통행 정보" });
   await notice.getByRole("button", { name: "문의 카드 만들기", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "3. 시설", exact: true }).first()).toHaveAttribute("aria-pressed", "true");
-  await expect(dialog.locator(".place-inquiry-entry").filter({ hasText: "방문 전에 물어보세요" }).getByRole("button", { name: "문의 카드 만들기 ↗", exact: true }).first()).toBeVisible();
+  await expect(dialog.locator(".place-inquiry-entry").filter({ hasText: "방문 전에 물어보세요" }).getByRole("button", { name: "문의 카드 만들기", exact: true }).first()).toBeVisible();
 });
 
 test("1440/960/390px에서 가로 스크롤이 없고 axe 위반이 없다", async ({ page }) => {

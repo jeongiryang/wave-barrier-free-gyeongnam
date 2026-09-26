@@ -487,7 +487,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
                 onProfiles={planController.setSelected}
               />
       {travelStart && <PlannerToolPortal group="readiness"><details className="simple-departure" id="departure-readiness" open={departureDetailsOpen || journey.activeStepId === "departure-readiness"} onToggle={event => setDepartureDetailsOpen(event.currentTarget.open)}>
-        <summary><span>일정 점검</span><small>시간 · 휴식 · 날씨 · 운영정보</small><span aria-hidden="true">⌄</span></summary>
+        <summary><span>일정 점검</span><small>시간 · 휴식 · 날씨 · 운영정보</small></summary>
         <div>{(departureDetailsOpen || journey.activeStepId === 'departure-readiness') && <Suspense fallback={<LoadingState>점검 중</LoadingState>}>
           <NaruTripReview autoFocus={false} places={tripSelection.orderedSavedPlaces} days={tripSelection.tripDays} assignments={tripSelection.scheduleAssignments} startTime={tripSelection.dayStartTime} origin={origin} routeMinutes={itineraryRoutes.routeMinutes} visits={tripSelection.visitMinutesByPlaceId} breaks={tripSelection.breakMinutesByPlaceId} fixed={tripSelection.fixedVisits} deadlines={tripSelection.dayDeadlines} comfort={tripSelection.comfort} onTool={openAssistantTool} onDetails={inspectPlace} onAlternative={id => alternatives.open(id)} onRequest={prompt => { setReviewRequest({ id: Date.now(), sourceId: launchRequest.id, prompt }); showAssistant(); }} />
           <details><summary>비·휴무·피로에 대비하기</summary><TripResilienceLab trip={tripSelection} coverage={itineraryRoutes} requiredKeys={selected} weather={weather} onProfiles={planController.setSelected} onAlternative={id => alternatives.open(id)} onSelectPlace={inspectPlace}/></details>

@@ -100,7 +100,10 @@ test("English travel pages identify original Korean photography and community co
   await storyReady(page);
   await expect(page.locator(".landing-page")).toHaveAttribute("lang", "en");
   await expect(page.locator(".landing-opening .award-panorama img")).toHaveAttribute("alt", "");
-  await expect(page.locator("#regions .simple-region-credit")).toHaveCount(5);
+  const landingCards = page.locator('#regions .simple-region-link');
+  await expect(landingCards).toHaveCount(5);
+  await expect(landingCards.locator('span[lang="ko"]')).toHaveCount(5);
+  const shownPhotos = await landingCards.locator('img').evaluateAll(nodes => nodes.map(node => node.getAttribute('src')!));
   await expect(page.locator("#community h2")).toHaveText("Travel brings people together.");
   expect(await page.locator("#community .night-discover-photos span").first().evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");
   await page.goto("/planner");
@@ -108,12 +111,19 @@ test("English travel pages identify original Korean photography and community co
   const cards = page.locator(".simple-region-entry .simple-region");
   await expect(cards).toHaveCount(6);
   expect(await cards.locator("h3").allTextContents()).toEqual(["통영", "거제", "남해", "진주", "창원", "하동"]);
-  // The photos are decorative beside visible place names; Korean names and
-  // original photographer credits still need their own language boundary.
+  // Decorative photos keep Korean place-name boundaries; their original
+  // author and source are available on the shared credits page.
   expect(await cards.locator("img").evaluateAll(nodes => nodes.every(node => node.getAttribute("alt") === ""))).toBe(true);
-  expect(await cards.locator(".simple-region-link, .simple-region-credit").evaluateAll(nodes => nodes.every(node => node.closest("[lang]")?.getAttribute("lang") === "ko"))).toBe(true);
+  expect(await cards.locator(".simple-region-link").evaluateAll(nodes => nodes.every(node => node.closest("[lang]")?.getAttribute("lang") === "ko"))).toBe(true);
   await expect(page.getByRole("button", { name: "All 18 regions", exact: true })).toBeVisible();
   await page.goto("/community");
   await expect(page.locator(".night-community-toolbar")).toBeVisible();
   expect(await page.locator(".night-community-toolbar").evaluate(node => node.closest("[lang]")?.getAttribute("lang"))).toBe("ko");
+  await page.locator('.wave-balanced-footer a[href="/policies#content-credits"]').click();
+  for (const src of shownPhotos) {
+    const credit = page.locator('#regional-photo-credits li').filter({ has: page.locator(`img[src="${src}"]`) });
+    await expect(credit).toContainText('저작자:');
+    await expect(credit).toContainText('제공: ⓒ한국관광공사');
+    await expect(credit.locator(`a[href="${src}"]`)).toHaveAttribute('rel', 'noopener noreferrer');
+  }
 });

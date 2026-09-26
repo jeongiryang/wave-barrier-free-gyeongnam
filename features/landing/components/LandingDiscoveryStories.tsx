@@ -11,7 +11,7 @@ export default function LandingDiscoveryStories() {
         {en ? <p className="section-kicker">01 · Your needs</p> : <p className="section-kicker">01 · 여행 조건</p>}
         <h2>{en ? "Your needs first." : "내 여행 조건으로"}<br /><em>{en ? "Then the destination." : "장소를 만나보세요"}</em></h2>
         <p>{en ? "Choose a region and the facilities you need, then search. Change your conditions whenever you want to find a different trip." : "지역과 필요한 편의를 한 화면에서 살펴보며 내 여행에 맞는 장소를 찾을 수 있어요"}</p>
-        <a href="/planner#planner">{en ? "Start with my needs" : "내 조건으로 시작하기"} <span aria-hidden="true">→</span></a>
+        <a href="/planner#planner">{en ? "Start with my needs" : "내 조건으로 시작하기"} <span aria-hidden="true"></span></a>
       </div>
       <div className="product-preview condition-preview feature-motion" role="img" aria-label="필요한 이동과 편의 조건이 근거가 확인된 장소 추천으로 이어지는 흐름">
         <div className="feature-preview-stage" aria-hidden="true">
@@ -25,7 +25,7 @@ export default function LandingDiscoveryStories() {
               <span className="condition-option motion-choice choice-four"><AccessIcon name="baby" size={22} />영유아 동반</span>
             </div>
           </div>
-          <footer><span><small>선택한 지역</small><strong>경남 18개 시·군 중 선택</strong></span><i>→</i><span><small>추천 결과</small><strong>근거가 있는 장소 추천</strong></span></footer>
+          <footer><span><small>선택한 지역</small><strong>경남 18개 시·군 중 선택</strong></span><i></i><span><small>추천 결과</small><strong>근거가 있는 장소 추천</strong></span></footer>
         </div>
       </div>
     </article>
@@ -35,7 +35,7 @@ export default function LandingDiscoveryStories() {
         {en ? <p className="section-kicker">02 · The evidence</p> : <p className="section-kicker">02 · 추천 근거</p>}
         <h2>{en ? "Know the reason." : "추천에는"}<br /><em>{en ? "Know what is missing." : "확인 가능한 이유가 있습니다."}</em></h2>
         <p>{en ? "Read reported facilities and their source. Missing information and failed requests stay separate, so you know what still needs checking." : "공식 정보에서 확인한 시설과 출처를 살펴보세요. 정보가 없는 항목과 조회 실패를 구분해, 방문 전에 다시 확인할 내용을 알려드려요."}</p>
-        <a href="/planner#places">{en ? "Check the evidence" : "추천 근거 확인하기"} <span aria-hidden="true">→</span></a>
+        <a href="/planner#places">{en ? "Check the evidence" : "추천 근거 확인하기"} <span aria-hidden="true"></span></a>
       </div>
       <div className="product-preview access-preview feature-motion" role="img" aria-label="편의정보를 확인됨, 정보 없음, 조회 실패로 나누어 보여주는 추천 근거 예시">
         <div className="feature-preview-stage" aria-hidden="true">

@@ -138,25 +138,7 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 601, 
       await expect(card.locator("img")).toHaveAttribute("src", photo.image);
       await expect(card.locator(".simple-region-link > div > span")).toHaveAttribute("lang", "ko");
       await expect(card.locator(".simple-region-arrow")).toHaveCount(0);
-      const credit = card.locator(".simple-region-credit");
-      await expect(credit).toHaveAttribute("href", photo.image);
-      await expect(credit).toHaveAttribute("target", "_blank");
-      await expect(credit).toHaveAccessibleName(`${photo.title} 사진 원본, 새 탭`);
-      await expectUsableTarget(credit);
-      const overlay = await credit.evaluate(node => {
-        const source = node.getBoundingClientRect(), photo = node.parentElement!.querySelector("img")!.getBoundingClientRect();
-        return source.left >= photo.left - 1 && source.right <= photo.right + 1 && source.top >= photo.top - 1 && source.bottom <= photo.bottom + 1;
-      });
-      expect(overlay, 'The source must overlay the photograph without adding a footer').toBe(true);
-      const overlapsText = await credit.evaluate(node => {
-        const source = node.getBoundingClientRect();
-        return [...node.parentElement!.querySelectorAll('.simple-region-link h3, .simple-region-link > div > span')].some(text => {
-          const range = document.createRange();
-          range.selectNodeContents(text);
-          return [...range.getClientRects()].some(rect => Math.min(source.right, rect.right) > Math.max(source.left, rect.left) + 1 && Math.min(source.bottom, rect.bottom) > Math.max(source.top, rect.top) + 1);
-        });
-      });
-      expect(overlapsText, 'Photo credits must not cover city or photograph names').toBe(false);
+      await expect(card.locator(".simple-region-credit")).toHaveCount(0);
       const clippedText = await card.evaluate(node => {
         const card = node.getBoundingClientRect();
         return [...node.querySelectorAll('.simple-region-link h3, .simple-region-link > div > span')].some(text => {
@@ -179,6 +161,22 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 601, 
     await expect(cards).toHaveCount(firstRegions.length);
     await expect(region.getByRole("button", { name: en ? "View all 18 regions" : "18개 지역 모두 보기", exact: true })).toBeFocused();
     expect((await new AxeBuilder({ page }).include("#regions").analyze()).violations).toEqual([]);
+    await expectNoOverflow(page);
+    const credits = page.getByRole("link", { name: "데이터·사진 출처", exact: true });
+    await expect(credits).toHaveAttribute("href", "/policies#content-credits");
+    await credits.click();
+    await expect(page).toHaveURL(/\/policies#content-credits$/);
+    for (const name of allRegions) {
+      const photo = regionShowcaseAlbums[name][0];
+      const entry = page.locator("#regional-photo-credits > li").filter({ has: page.locator(`img[src="${photo.image}"]`) });
+      await expect(entry).toHaveCount(1);
+      await expectUsableTarget(entry.locator('a'));
+      await expect(entry.locator('a')).toHaveAttribute("href", photo.image);
+      await expect(entry.locator('a')).toHaveAttribute("target", "_blank");
+      await expect(entry.locator('a')).toHaveAccessibleName(`${name} · ${photo.title} — 사진 원본 (새 탭)`);
+      await expect(entry).toContainText(`저작자: ${photo.photographer || "개별 저작자 미확인"}`);
+      await expect(entry).toContainText("제공: ⓒ한국관광공사");
+    }
     await expectNoOverflow(page);
   });
 }

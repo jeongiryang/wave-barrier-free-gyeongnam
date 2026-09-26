@@ -6,7 +6,7 @@ export async function openNaruTool(page: Page, label: string) {
   if (!await chat.isVisible()) await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
   await expect(chat).toBeVisible();
   await chat.getByRole('tab', { name: '여행 도구', exact: true }).click();
-  const catalog = chat.getByRole('button', { name: '← 모든 여행 도구', exact: true });
+  const catalog = chat.getByRole('button', { name: '모든 여행 도구', exact: true });
   if (await catalog.isVisible()) await catalog.click();
   await chat.getByRole('region', { name: '모든 여행 도구', exact: true }).locator('.naru-tools').getByRole('button', { name: label, exact: true }).click();
   await expect(chat).toBeVisible();

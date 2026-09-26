@@ -42,7 +42,7 @@ for (const theme of ['light', 'dark']) test(`${theme} device bookmarks agree bet
   await accessible(page);
   await page.reload();
   await expect(page.locator('.detail-actions').getByRole('button', { name: '저장 해제', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('link', { name: '← 여행자 이야기', exact: true }).click();
+  await page.getByRole('link', { name: '여행자 이야기', exact: true }).click();
   await page.getByRole('button', { name: '저장한 글', exact: true }).click();
   const saved = page.locator('#community-saved-posts');
   await expect(saved.getByRole('link', { name: post.title, exact: true })).toHaveAttribute('href', `/community/${post.id}`);

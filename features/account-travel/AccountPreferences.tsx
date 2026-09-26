@@ -39,6 +39,6 @@ function Preferences({ selected, onApply }: { selected: string[]; onApply: (ids:
 export default function AccountPreferences(props: { selected: string[]; onApply: (ids: string[]) => void }) {
   const { data, isPending } = useHydratedSession();
   if (isPending) return null;
-  if (!data?.user?.id) return <p><Link href="/login?next=%2Fplanner">로그인하면 편의 조건을 여러 기기에서 불러올 수 있어요 →</Link></p>;
+  if (!data?.user?.id) return <p><Link href="/login?next=%2Fplanner">로그인하면 편의 조건을 여러 기기에서 불러올 수 있어요</Link></p>;
   return <Preferences key={data.user.id} {...props} />;
 }

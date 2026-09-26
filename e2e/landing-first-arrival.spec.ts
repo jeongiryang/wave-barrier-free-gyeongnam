@@ -1,27 +1,22 @@
 import { expect, test } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { arrivalPlaybackReady, freshArrival, openLandingTools, prepareStory, storyReady } from "./landing-contract";
-import { INTRO_DURATION_MS } from '../features/landing/intro/wave-timing';
+import { freshArrival, openLandingTools, prepareStory, storyReady } from "./landing-contract";
 
 for (const seenBefore of [false, true]) {
-  test(`a legacy marker ${seenBefore} does not suppress the current accessible intro`, async ({ page }) => {
+  test(`home opens immediately with legacy marker ${seenBefore}`, async ({ page }) => {
     await page.addInitScript(seen => {
       if (seen) sessionStorage.setItem("wave-intro-seen-v2", "1");
     }, seenBefore);
+    const requests: string[] = [];
+    page.on("request", request => requests.push(request.url()));
     await freshArrival(page);
-    const scene = page.locator(".arrival-scene");
-    await expect(scene).toHaveAttribute("open", "");
-    await arrivalPlaybackReady(page);
-    await expect(scene.locator('img, video')).toHaveCount(0);
-    await expect(scene.locator('.wave-intro canvas')).toBeVisible();
-    await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
+    await expect(page.locator("#arrival-boot,.arrival-scene,.wave-intro")).toHaveCount(0);
     const action = page.locator(".landing-actions a");
-    const elapsed = Number(await scene.locator('.wave-intro').getAttribute('data-time-ms'));
-    await page.clock.fastForward(INTRO_DURATION_MS - elapsed + 100);
-    await expect(scene).toBeHidden();
+    await expect(action).toBeVisible();
     await action.focus(); await expect(action).toBeFocused();
-    expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
+    expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBeNull();
+    expect(requests.filter(url => /wave-intro|LandingIntro/.test(url))).toEqual([]);
   });
 }
 

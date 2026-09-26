@@ -26,7 +26,7 @@ function TravelList({ userId }: { userId: string }) {
     <NicknameEditor name={session.data?.user.name || '여행자'} />
     <CurrentTripCard />
     <h2>계정에 보관한 여행</h2>
-    <div className="travel-book-actions"><Link className="primary" href="/planner">새 여행 계획하기 →</Link><Link href="/travel-book">기존 일정에서 골라 저장</Link><button type="button" onClick={() => void load()} disabled={loading}>목록 새로고침</button><Link href="/guide#account-travel">여행 저장·동행 도움말</Link></div>
+    <div className="travel-book-actions"><Link className="primary" href="/planner">새 여행 계획하기</Link><Link href="/travel-book">기존 일정에서 골라 저장</Link><button type="button" onClick={() => void load()} disabled={loading}>목록 새로고침</button><Link href="/guide#account-travel">여행 저장·동행 도움말</Link></div>
     <div role="status">{loading ? <LoadingState>저장한 여행을 불러오고 있어요.</LoadingState> : `${trips.length}개의 여행 · 계정에 저장한 일정은 여러 기기에서 이어집니다.`}</div>
     {error && <p role="alert">{error}</p>}
     {!loading && !error && !trips.length && <section className="travel-book-empty"><span aria-hidden="true">＋</span><h2>함께 떠날 첫 여행을 만들어 보세요.</h2><p>여행 계획에서 장소를 담고 ‘계정에 저장’을 누르세요.</p><small>기존 일정은 직접 고른 여행만 계정으로 가져옵니다.</small></section>}

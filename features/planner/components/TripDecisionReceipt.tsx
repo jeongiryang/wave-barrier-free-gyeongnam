@@ -56,7 +56,7 @@ export default function TripDecisionReceipt({ archiveContext, coverage, route, t
     <summary>
       <span><strong>선택한 편의 확인</strong></span>
       <span>{receipt.criteria.facilities.length ? `확인 ${receipt.totals.confirmed} · 미확인 ${receipt.totals.unknown}` : '편의 조건 선택 안 함'}</span>
-      <span aria-hidden="true">⌄</span>
+
     </summary>
     <div className="trip-decision-body">
 
@@ -74,7 +74,7 @@ export default function TripDecisionReceipt({ archiveContext, coverage, route, t
       </section>
       <section aria-labelledby="decision-routes-title">
         <div className="trip-decision-section-heading"><div><h3 id="decision-routes-title">이동 구간 근거</h3><p>{receipt.totals.confirmedRoutes}/{receipt.totals.routes}개 구간의 경로를 조회했습니다.</p></div></div>
-        <ul className="trip-decision-routes">{receipt.routes.map((item, index) => <li key={`${item.day}-${item.to}-${index}`}><span>{item.day} · {item.from} → {item.to}</span><b>{item.state === 'confirmed' ? `${item.provider} · 약 ${item.minutes}분` : item.state === 'private' ? '기기 안 출발지 · 외부 조회 안 함' : '경로 미확인'}</b></li>)}</ul>
+        <ul className="trip-decision-routes">{receipt.routes.map((item, index) => <li key={`${item.day}-${item.to}-${index}`}><span>{item.day} · {item.from} · {item.to}</span><b>{item.state === 'confirmed' ? `${item.provider} · 약 ${item.minutes}분` : item.state === 'private' ? '기기 안 출발지 · 외부 조회 안 함' : '경로 미확인'}</b></li>)}</ul>
         <p className="trip-decision-limit">경로 조회는 휠체어 통행, 경사, 엘리베이터 운영을 보장하지 않습니다. 미확인 항목은 방문 전에 운영기관에 확인해 주세요.</p>
       </section>
       <button className="trip-decision-download" type="button" onClick={downloadReceipt}>결정 근거 저장</button>

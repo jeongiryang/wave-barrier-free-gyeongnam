@@ -1,8 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
-import { arrivalPlaybackReady, pauseCurrentClock } from './landing-contract';
-import { INTRO_DURATION_MS } from '../features/landing/intro/wave-timing';
+import { storyReady } from './landing-contract';
 import { awardHeroImage, mockAwardHero } from './landing-photo-fixture';
 
 const firstRegions = ["통영", "거제", "남해", "하동", "산청"];
@@ -16,61 +15,41 @@ async function prepare(page: Page) {
   await mockAwardHero(page);
 }
 
-async function freshAnimatedArrival(page: Page) {
+async function freshEntry(page: Page) {
   await prepare(page);
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.clock.install({ time: new Date("2026-09-13T00:00:00Z") });
   await page.goto("/");
-  // Let the real streamed document finish hydration before freezing timers;
-  // otherwise the app's startup handoff cannot reveal the interactive page.
-  await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  await expect(page.locator(".arrival-scene")).toBeVisible();
-  await pauseCurrentClock(page);
-  await expect(page.locator(".arrival-scene")).toBeVisible();
+  await storyReady(page);
+  await expect(page.locator("#arrival-boot,.arrival-scene,.wave-intro")).toHaveCount(0);
 }
 
-test("approved arrival completes its 12.731-second playback and exposes keyboard dismissal", async ({ page }) => {
-  await freshAnimatedArrival(page);
-  const scene = page.locator(".arrival-scene");
+test("first visit and reload expose the planning link immediately", async ({ page }) => {
+  await freshEntry(page);
   const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
-  await expect(scene).toHaveAttribute("open", "");
-  await arrivalPlaybackReady(page);
-  await expect(scene.locator('img, video')).toHaveCount(0);
-  await expect(scene.getByRole('button')).toHaveCount(1);
-  await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
-  const elapsed = Number(await scene.locator('.wave-intro').getAttribute('data-time-ms'));
-  // Production advances its timeline by performance elapsed time. Jump to the
-  // boundary without synthesizing hundreds of expensive WebGL frames in CI.
-  await page.clock.fastForward(INTRO_DURATION_MS - elapsed - 100);
-  await expect(scene).toBeVisible();
-  await page.clock.runFor(200);
-  await expect(scene).toBeHidden();
+  await expect(action).toBeVisible();
   await action.focus(); await expect(action).toBeFocused();
-  expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
-  await page.clock.resume();
+  expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBeNull();
   await page.reload();
-  await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  await expect(page.locator(".landing-hero-split")).toBeVisible();
-  await pauseCurrentClock(page);
-  await page.clock.fastForward(INTRO_DURATION_MS + 100);
-  await expect(scene).toBeHidden();
+  await storyReady(page);
+  await expect(page.locator(".arrival-scene")).toHaveCount(0);
+  await expect(action).toBeVisible();
 });
 
-test("the skip action exposes the real planning link", async ({ page }) => {
-  await freshAnimatedArrival(page);
-  await page.locator(".arrival-scene").getByRole("button", { name: "건너뛰기" }).click();
+test("the planning link works without skipping an intro", async ({ page }) => {
+  await freshEntry(page);
   await page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true }).click();
   await expect(page).toHaveURL(url => url.pathname === "/planner");
-  expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
+  expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBeNull();
 });
 
-test("keyboard users can dismiss the arrival with Escape", async ({ page }) => {
+test("mobile keyboard users can enter planning without an arrival dialog", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await freshAnimatedArrival(page);
-  await page.keyboard.press("Escape");
-  await expect(page.locator(".arrival-scene")).toBeHidden();
+  await freshEntry(page);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
   await action.focus(); await expect(action).toBeFocused();
+  await action.press("Enter");
+  await expect(page).toHaveURL(url => url.pathname === "/planner");
 });
 
 for (const width of [1440, 960, 390]) test(`${width}px reduced motion keeps the photographic hero and all eighteen region choices usable`, async ({ page }, info) => {

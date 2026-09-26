@@ -20,7 +20,7 @@ export interface PlannerServiceStatusProps {
 export default function PlannerServiceStatus(props: PlannerServiceStatusProps) {
   const [open, setOpen] = useState(false);
   return <details lang="ko" className="planner-service-status" onToggle={event => setOpen(event.currentTarget.open)}>
-    <summary>정보 연결 상태<span aria-hidden="true">⌄</span></summary>
+    <summary>정보 연결 상태</summary>
     {open && <Suspense fallback={<LoadingState>상태 정보를 준비하고 있어요.</LoadingState>}><PlannerServiceDiagnostics {...props} /></Suspense>}
   </details>;
 }

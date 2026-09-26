@@ -17,7 +17,7 @@ test("공개 랜딩은 첫 화면에서 인증 세션을 요청하지 않고 계
   await page.waitForTimeout(500);
   expect(sessionRequests).toBe(0);
 
-  await page.locator(":is(.wave-header-actions,.wave-footer-tools) > a:is(.wave-profile-entry,.account-button)[href=\"/account\"]").hover();
+  await page.locator(".wave-header").getByRole("button", { name: "계정 관리", exact: true }).click();
   await expect.poll(() => sessionRequests).toBeGreaterThan(0);
 });
 
@@ -29,12 +29,17 @@ test("랜딩 로그인 의도로 세션을 확인해도 키보드 초점과 링�
   await page.goto("/");
   await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
   const account = page.locator('.wave-header .wave-profile-entry');
-  await expect(account).toHaveAttribute('href', '/account');
+  await expect(account).toHaveAttribute('type', 'button');
+  await expect(account).toHaveAccessibleName('계정 관리');
   await account.focus();
   await expect(account).toBeFocused();
   await account.press('Enter');
   await expect.poll(() => sessions).toBeGreaterThan(0);
   const login = page.locator('.wave-header').getByRole('link', { name: '로그인', exact: true });
+  const trigger = page.locator('.wave-header .account-menu:not(.wave-support-menu) > button');
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  await trigger.press('Tab');
   await expect(login).toBeFocused();
   await expect(login).toHaveAttribute('href', '/login');
   await login.press('Enter');

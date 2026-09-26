@@ -54,7 +54,7 @@ test('overlay keyboard leaves readable answers, reachable input and all optional
 
   // Reading earlier content must survive both keyboard and browser-toolbar changes.
   await chat.getByRole('log').evaluate(el => { el.scrollTop = 0; });
-  const latest = chat.getByRole('button', { name: '최신 답변으로 ↓', exact: true });
+  const latest = chat.getByRole('button', { name: '최신 답변으로', exact: true });
   await expect(latest).toBeVisible();
   await keyboard(page, 430, 0);
   await expect.poll(() => chat.getByRole('log').evaluate(el => el.scrollTop)).toBe(0);

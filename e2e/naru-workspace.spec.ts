@@ -1,6 +1,8 @@
 import { expect, test, type Page, type Locator } from '@playwright/test';
 import { mockPlannerApi, plan } from './fixtures';
 import type { NaruJourney } from '../lib/naru-journey.js';
+import { groundAssistantProposal } from '../lib/assistant-grounding.js';
+import { validateAssistantAction } from '../lib/assistant-actions.js';
 
 // All API and remote requests are synthetic; no real model or tourism provider is called.
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
@@ -52,7 +54,7 @@ async function setup(page: Page, withTrip = false, initialRegion = '창원') {
   return { chat: await open(page), prompts, journeys };
 }
 async function requestTrip(chat: Locator) {
-  await chat.getByRole('button', { name: '여행 준비 맡기기 →', exact: true }).click();
+  await chat.getByRole('button', { name: '여행 준비 맡기기', exact: true }).click();
   const form = chat.getByRole('form', { name: '여행 준비 맡기기', exact: true });
   await form.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
   await form.getByLabel('출발 날짜', { exact: true }).fill(start);
@@ -60,7 +62,7 @@ async function requestTrip(chat: Locator) {
   await form.getByRole('combobox', { name: '동행', exact: true }).selectOption('부모님과');
   await form.getByRole('combobox', { name: '이동수단', exact: true }).selectOption('car');
   await form.getByRole('radio', { name: '여유롭게 쉬어가기', exact: true }).check();
-  await form.getByRole('button', { name: '이 조건으로 여행 준비 맡기기 →', exact: true }).click();
+  await form.getByRole('button', { name: '이 조건으로 여행 준비 맡기기', exact: true }).click();
   const proposal = chat.getByRole('region', { name: '나루의 실제 일정안', exact: true });
   await expect(proposal).toContainText('작업공간 검증 장소 2');
   return proposal;
@@ -139,7 +141,7 @@ test('follow-up itinerary remains applicable when the first apply finishes its b
     await expect(adjustment).toContainText('기존 장소');
     await expect(adjustment.getByRole('button',{name:'이 일정으로 반영하기',exact:true})).toBeEnabled();
     if(!isMobile){
-      await chat.getByRole('button',{name:'변경안과 확인할 사항 보기 →',exact:true}).click();
+      await chat.getByRole('button',{name:'변경안과 확인할 사항 보기',exact:true}).click();
       await expect(adjustment.locator('header')).toBeInViewport();
     }
     expect(await state(page)).toEqual(before);
@@ -149,12 +151,18 @@ test('follow-up itinerary remains applicable when the first apply finishes its b
   } finally {releaseSearch();releaseJourney();}
 });
 
-test('gentle itinerary proposal preserves existing visits, waits for apply and undoes atomically', async ({page})=>{
+async function verifyGentleFollowup(page: Page, request: string) {
   const {chat}=await setup(page,true);
-  await page.route('**/api/assistant',route=>route.fulfill({json:route.request().method()==='GET'?{available:true}:{reply:'기존 장소를 유지하는 조정안을 준비했어요.',proposal:{action:'adapt-itinerary',reason:'fatigue',pace:'relaxed'}}}));
+  await page.route('**/api/assistant',route=>{
+    if(route.request().method()==='GET') return route.fulfill({json:{available:true}});
+    const body=route.request().postDataJSON();
+    // Synthetic model output passes through the actual server grounding guard.
+    const proposal=validateAssistantAction(groundAssistantProposal({action:'adapt-itinerary',reason:'fatigue',pace:'relaxed'},body.messages,body.context),body.context.places.map((place:{id:string})=>place.id));
+    return route.fulfill({json:{reply:'기존 장소를 유지하는 조정안을 준비했어요.',proposal}});
+  });
   await page.route('**/api/assistant/journey',route=>route.fulfill({contentType:'application/x-ndjson',body:JSON.stringify({type:'result',draft:{...draft(),action:'adapt-itinerary',stops:[],removed:[],restOnly:true,restDay:undefined}})+'\n'}));
   const before=await state(page);
-  await chat.getByRole('textbox',{name:'나루에게 여행 질문하기',exact:true}).fill('부모님이 피곤하니 담은 장소를 유지하고 더 여유롭게 바꿔줘');
+  await chat.getByRole('textbox',{name:'나루에게 여행 질문하기',exact:true}).fill(request);
   await chat.getByRole('button',{name:'나루에게 보내기',exact:true}).click();
   const proposal=chat.getByRole('region',{name:'나루의 실제 일정안',exact:true});
   await expect(proposal).toContainText(original.name);
@@ -164,8 +172,16 @@ test('gentle itinerary proposal preserves existing visits, waits for apply and u
   await expect.poll(async()=>(await state(page)).schedule.breakMinutesByPlaceId['1001']).toBe(20);
   expect((await state(page)).ids).toEqual(before.ids);
   expect((await state(page)).schedule.visitMinutesByPlaceId).toEqual(before.schedule.visitMinutesByPlaceId);
+  expect((await state(page)).schedule.travelStart).toEqual(before.schedule.travelStart);
+  expect((await state(page)).schedule.travelEnd).toEqual(before.schedule.travelEnd);
   await chat.getByRole('button',{name:'마지막 일정안 적용 되돌리기',exact:true}).click();
   await expect.poll(()=>state(page)).toEqual(before);
+}
+test('gentle itinerary proposal preserves existing visits, waits for apply and undoes atomically', async ({page})=>{
+  await verifyGentleFollowup(page, '부모님이 피곤하니 담은 장소를 유지하고 더 여유롭게 바꿔줘');
+});
+test('gentle followup preserves dates while adjusting route', async ({page})=>{
+  await verifyGentleFollowup(page, '담은 장소와 기존 날짜, 고정 방문은 모두 유지하고 더 여유롭게 휴식과 동선을 조정해줘');
 });
 
 test('travel preparation sends one complete request, previews changes and supports apply and undo', async ({ page }) => {

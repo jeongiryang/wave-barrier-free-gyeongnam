@@ -36,7 +36,7 @@ test("the second itinerary journey exports its own departure instead of the dail
   await expect(coverage.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
   await withRouteCoverage(page, async () => { await expect(coverage.getByRole("button", { name: "이 구간 지도에서 보기", exact: true })).toHaveCount(2); });
   const second = coverage.locator("li").nth(1);
-  await expect(second).toContainText("경남도립미술관 → 용지호수공원");
+  await expect(second).toContainText("경남도립미술관 · 용지호수공원");
   await withRouteCoverage(page, async () => { await second.getByRole("button", { name: "이 구간 지도에서 보기", exact: true }).click(); });
   await expect(page.locator('.route-compare-panel a[href^="https://map.kakao.com/"]')).toHaveAttribute("href", `https://map.kakao.com/link/by/car/${encodeURIComponent("경남도립미술관")},35.238,128.691/${encodeURIComponent("용지호수공원")},35.229,128.683`);
 });

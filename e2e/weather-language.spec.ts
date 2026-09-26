@@ -35,7 +35,7 @@ test("departure weather evidence opens the forecast with pointer and keyboard wi
   const weatherCard = page.locator(".simple-readiness > details").filter({ has: page.getByText("날씨", { exact: true }) });
   await weatherCard.locator(":scope > summary").click();
   await expect(weatherCard).toContainText("해당 날짜 예보가 없거나 예보 범위 밖입니다.");
-  const evidence = weatherCard.getByRole("link", { name: "상세 정보 확인 →", exact: true });
+  const evidence = weatherCard.getByRole("link", { name: "상세 정보 확인", exact: true });
   const panel = page.locator("#layers");
   const board = page.locator(".weather-board");
   await expect(panel).toHaveJSProperty("open", false);

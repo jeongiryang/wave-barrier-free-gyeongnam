@@ -1,4 +1,3 @@
-import { arrivalPlaybackReady } from './landing-contract';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -29,19 +28,14 @@ test.afterEach(async ({ page }) => {
   expect(pageErrors.get(page) || []).toEqual([]);
 });
 
-test("landing: first arrival is readable, dismissible and remembers completion", async ({ page }) => {
+test("landing: first arrival and reload are immediately readable and keyboard usable", async ({ page }) => {
   await freshArrival(page);
-  const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
-  await expect(scene).toHaveAttribute("open", "");
-  await arrivalPlaybackReady(page);
-  await expect(scene).toContainText("모두의 발걸음이 닿는 경상남도");
-  await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(scene).toBeHidden();
-  expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
-  await page.clock.resume();
+  const planning = page.locator(".landing-actions a");
+  await expect(page.locator("#arrival-boot,.arrival-scene,.wave-intro")).toHaveCount(0);
+  await expectUsableTarget(planning);
+  expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBeNull();
   await page.reload(); await storyReady(page);
-  await expect(scene).toBeHidden();
+  await expect(page.locator(".arrival-scene")).toHaveCount(0);
   await expectUsableTarget(planning);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expectNoSeriousA11yIssues(page);

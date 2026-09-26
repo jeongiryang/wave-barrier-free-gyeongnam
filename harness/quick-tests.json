@@ -2,7 +2,7 @@
   "version": 1,
   "description": "Bounded release-critical journeys on both public desktop and mobile. Full suite remains mandatory for final release.",
   "tests": [
-    {"file":"e2e/core-journeys.spec.ts","title":"landing: first arrival is readable, dismissible and remembers completion"},
+    {"file":"e2e/core-journeys.spec.ts","title":"landing: first arrival and reload are immediately readable and keyboard usable"},
     {"file":"e2e/core-journeys.spec.ts","title":"landing: reduced motion exposes the real planning action immediately without dismissal"},
     {"file":"e2e/core-journeys.spec.ts","title":"planner supports decision, save, route-aware schedule and focus restoration"},
     {"file":"e2e/core-journeys.spec.ts","title":"planner exposes honest recovery when the official plan request fails"},

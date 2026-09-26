@@ -42,7 +42,7 @@ test("말투를 바꿔도 버튼·메뉴 이름과 오류 문구가 바뀌지 �
   await (await sessionReady).finished();
   // The header's lazy fallback contains spans. Compare only after its real
   // anonymous-session links mount, so loading is not mistaken for a tone edit.
-  await expect(page.locator(".wave-header a.account-button")).toHaveAttribute("href", "/login?next=%2Fplanner");
+  await expect(page.locator(".wave-header .account-popover").getByRole('link', { name: '로그인', exact: true })).toHaveAttribute("href", "/login?next=%2Fplanner");
   await expect(page.locator(".wave-header .night-login, .wave-header .night-signup")).toHaveCount(0);
   // 말투 설정 자체는 현재 값을 읽어 주므로 비교에서 제외한다. 사투리로 적히지는 않는다.
   const names = async () => page.locator("main button:not([data-preference]), main a, header button:not([data-preference]), header a").evaluateAll(nodes => nodes.map(node => (node.getAttribute("aria-label") || node.textContent || "").trim()));
@@ -56,6 +56,8 @@ test("말투를 바꿔도 버튼·메뉴 이름과 오류 문구가 바뀌지 �
 });
 
 test("두 말투 모두 390·960·1440px에서 가로 넘침이 없고 axe 위반이 없다", async ({ page }) => {
+  // Audit fully readable dialogue; opacity transitions have separate motion coverage.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page, { plannerView: "guided" });
   await page.goto("/planner");
   for (const expected of ["standard", "gyeongnam"] as const) {

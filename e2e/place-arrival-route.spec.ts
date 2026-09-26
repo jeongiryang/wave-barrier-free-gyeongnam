@@ -64,7 +64,7 @@ test("문의 기능으로 가는 링크가 있고, 눌러도 서버 요청이 �
   // "문의 카드 만들기로 물어보세요" 링크는 3단계(시설)로 이동시킨다. 그 단계에는
   // PlaceInquiryCard의 "문의 카드 만들기" 버튼이 이미 있다(#545). 새 화면을 만들지 않는다.
   await expect(dialog.getByRole("button", { name: "3. 시설", exact: true }).first()).toHaveAttribute("aria-pressed", "true");
-  await expect(dialog.locator(".place-inquiry-entry").filter({ hasText: "방문 전에 물어보세요" }).getByRole("button", { name: "문의 카드 만들기 ↗", exact: true }).first()).toBeVisible();
+  await expect(dialog.locator(".place-inquiry-entry").filter({ hasText: "방문 전에 물어보세요" }).getByRole("button", { name: "문의 카드 만들기", exact: true }).first()).toBeVisible();
   expect(calls).toEqual([]);
 });
 
@@ -72,7 +72,7 @@ test("입구 단계에서 출입문 데이터 부재를 안내하고 문의·현
   const dialog = await openArrivalPreview(page, "unknown");
   const door = dialog.locator(".door-inquiry-entry");
   await expect(door).toContainText("미리 물어보거나 현장에서 화면으로 요청할 수 있어요.");
-  await door.getByRole("button", { name: "문의 카드 만들기 ↗", exact: true }).click();
+  await door.getByRole("button", { name: "문의 카드 만들기", exact: true }).click();
   const inquiry = page.getByRole("dialog", { name: "이렇게 물어보세요." });
   await expect(inquiry.getByRole("checkbox", { name: "출입문", exact: true })).toBeChecked();
   await expect(inquiry.locator(".inquiry-card-preview")).toContainText("출입문이 회전문인가요? 옆에 여닫이문이나 자동문이 있나요?");

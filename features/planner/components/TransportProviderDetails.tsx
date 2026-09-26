@@ -24,7 +24,7 @@ export default function TransportProviderDetails({ effectiveProviders, route, on
       <span><b>{english ? "Official booking" : "공식 예매"}</b><small>{english ? "Check services and pay with the provider" : "운행정보 확인 후 제공기관에서 결제"}</small></span>
       {officialBookingLinks.filter((link) => (link.modes as readonly string[]).includes(transportMode)).map((link) => {
         const label = english ? bookingEnglish[link.id][0] : link.label;
-        return <a key={link.id} href={link.href} target="_blank" rel="noreferrer" onClick={() => void onCopyBookingRoute(label)}><i aria-hidden="true">↗</i><strong>{label}</strong><small>{english ? bookingEnglish[link.id][1] + " · opens a new tab" : link.detail + " · 새 탭"}</small></a>;
+        return <a key={link.id} href={link.href} target="_blank" rel="noreferrer" onClick={() => void onCopyBookingRoute(label)}><i aria-hidden="true"></i><strong>{label}</strong><small>{english ? bookingEnglish[link.id][1] + " · opens a new tab" : link.detail + " · 새 탭"}</small></a>;
       })}
     </div>}
   </>;

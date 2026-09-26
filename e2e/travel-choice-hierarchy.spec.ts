@@ -47,7 +47,7 @@ for (const en of [false, true]) for (const theme of ['light', 'dark']) {
     await helper.getByRole('button', { name: en ? 'Apply selected changes' : '선택한 조건 적용', exact: true }).click();
     const unknown = page.locator('.simple-exploration .simple-place-row');
     await expect(unknown.locator('.simple-place-add')).toHaveAccessibleName(`용지호수공원 ${en ? 'review facilities' : '편의 확인'}`);
-    await expect(unknown.locator('.simple-place-add')).toHaveText('→');
+    await expect(unknown.locator('.simple-place-add')).toHaveText('');
     await expect(unknown.locator('.facility-unknown')).toContainText(en ? 'Access path not reported' : '접근로 정보 없음');
     for (const button of await card.getByRole('button').all()) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await card.scrollIntoViewIfNeeded();

@@ -264,7 +264,7 @@ export default function CompanionLauncher({
             target="_blank"
             rel="noopener noreferrer"
           >
-            동행 일정 열기 ↗
+            동행 일정 열기
           </Link>
           <button type="button" disabled={busy} onClick={() => void load()}>
             동행의 변경 확인

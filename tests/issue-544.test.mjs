@@ -28,22 +28,21 @@ test("issue 544 date control opens from the field and keyboard with a mobile tar
     source("features/planner/components/TripSettingsEditor.tsx"),
     source("features/planner/hooks/usePlannerStageView.ts"),
   ]);
-  assert.match(control, /showPicker/);
-  assert.match(control, /event\.key === "Enter" \|\| event\.key === " "/);
-  assert.match(control, /minHeight: 44/);
+  const calendar = await source("components/WaveDatePicker.tsx");
+  const styles = await source("components/wave-date-picker.css");
+  assert.match(control, /<WaveDatePicker/);
+  assert.match(calendar, /showModal/);
+  assert.match(calendar, /event\.key === 'ArrowDown' && event\.altKey/);
+  assert.match(calendar, /aria-haspopup="dialog" onClick=\{open\}/);
+  assert.match(styles, /min-height: 44px/);
   assert.match(settings, /<AccessibleDateInput required value=\{start\}/);
   assert.match(settings, /id="itinerary-setup"/);
   assert.match(stage, /id === "itinerary" \? document\.getElementById\("itinerary-setup"\)/);
 });
 
-test("approved PR 667 supersedes the old intro phrase while preserving isolated styles", async () => {
-  const [intro, css] = await Promise.all([
-    source("features/landing/components/LandingIntro.tsx"),
-    source("features/landing/components/LandingIntro.module.css"),
-  ]);
-  assert.match(intro, /모두의 발걸음이 닿는 경상남도/);
-  assert.match(intro, /import\("\.\.\/intro\/wave-intro"\)/);
-  assert.match(intro, /onCancel/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.doesNotMatch(css, /:root|--wave-|\.wave-header|\.simple-place-row/);
+test("landing enters the journey directly after the intro was removed", async () => {
+  const page = await source("app/page.tsx");
+  assert.doesNotMatch(page, /LandingIntro|wave-intro|<dialog/);
+  assert.match(page, /<LandingHero/);
+  assert.match(page, /<SkipLink href="#top"/);
 });

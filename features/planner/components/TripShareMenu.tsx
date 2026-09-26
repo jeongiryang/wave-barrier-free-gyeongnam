@@ -1,4 +1,5 @@
 "use client";
+import ActionIcon from '../../../components/ActionIcon';
 import { useCallback, useEffect, useState } from 'react';
 import { Spinner } from '../../../components/LoadingState';
 import KakaoIcon from '../../kakao-travel/KakaoIcon';
@@ -35,7 +36,7 @@ export default function TripShareMenu({ trip, participation, timingWarnings = []
       setNotice('캘린더 파일을 내려받았어요.');
     } catch { setNotice('캘린더를 만들지 못했어요. 여행 날짜와 시작 시각을 확인해 주세요.'); } finally { setBusy(false); }
   }
-  return <><button type="button" lang="ko" data-planner-tool="share" disabled={!trip.saved.length} onClick={() => { setNotice(''); setOpen(true); }}>공유</button>{!open && participation.shareState === 'error' && <span lang="ko" className="simple-share-error" role="status">공유 링크 갱신을 확인해 주세요.</span>}{open && <dialog ref={ref} lang="ko" className="simple-dialog simple-share-menu" aria-labelledby="share-menu-title"><header><h2 id="share-menu-title">여행 공유</h2><button type="button" aria-label="공유 닫기" onClick={close}>×</button></header><div className="simple-share-options">
+  return <><button type="button" lang="ko" data-planner-tool="share" disabled={!trip.saved.length} onClick={() => { setNotice(''); setOpen(true); }} aria-label="공유" title="공유"><ActionIcon label="공유" /></button>{!open && participation.shareState === 'error' && <span lang="ko" className="simple-share-error" role="status">공유 링크 갱신을 확인해 주세요.</span>}{open && <dialog ref={ref} lang="ko" className="simple-dialog simple-share-menu" aria-labelledby="share-menu-title"><header><h2 id="share-menu-title">여행 공유</h2><button type="button" aria-label="공유 닫기" onClick={close}>×</button></header><div className="simple-share-options">
     <button type="button" disabled={!sdk || !participation.shareIsCurrent} onClick={() => { try { if (!window.Kakao?.Share) throw new Error(); window.Kakao.Share.sendDefault(travelCard({ region: tripRegion, travelStart: trip.travelStart, travelEnd: trip.travelEnd, placeIds: trip.saved }, participation.shareUrl)); } catch { setNotice('카카오톡 공유 창을 열지 못했어요. 링크 복사를 이용해 주세요.'); } }}><KakaoIcon /><span>카카오톡</span></button>
     <button type="button" disabled={!participation.shareUrl || participation.shareState === 'saving'} onClick={() => { setNotice(''); void participation.sharePlan(); }}><ShareIcon kind="link"/><span>링크 복사</span></button>
     <button type="button" onClick={() => { try { const values = Object.fromEntries(CURRENT_TRIP_EXPORT_KEYS.map(key => [key, readTripValue(localStorage, key)])); download(JSON.stringify({ version: 1, values, format: CURRENT_TRIP_KEY }, null, 2), 'application/json', 'wave-trip.json'); setNotice('여행 파일을 내려받았어요.'); } catch { setNotice('여행 파일을 읽지 못했어요. 화면의 일정은 그대로예요.'); } }}><ShareIcon kind="file"/><span>여행 파일</span></button>

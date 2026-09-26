@@ -42,7 +42,7 @@ test("self-chat requires explicit consent and send; disabled taxi entry stays ab
   await page.route("**/api/kakao/message", route => { sends++; expect(route.request().postDataJSON()).toEqual({ tripId: id }); return route.fulfill({ status: sends === 1 ? 403 : 200, json: sends === 1 ? { code: "CONSENT_REQUIRED", error: "카카오 메시지 동의가 필요합니다." } : { ok: true } }); });
   await page.route("**/api/auth/link-social", route => { grants++; expect(route.request().postDataJSON().scopes).toEqual(["talk_message"]); return route.fulfill({ json: { redirect: false, url: "" } }); });
   await page.goto(`/my-trips/${id}`);
-  await expect(page.getByRole("link", { name: "카카오 T 열기 ↗" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "카카오 T 열기" })).toHaveCount(0);
   expect(sends).toBe(0);
   await page.getByRole("button", { name: "나와의 채팅에 보내기", exact: true }).click();
   await page.getByRole("button", { name: "카카오 메시지 전송 동의하기" }).click();

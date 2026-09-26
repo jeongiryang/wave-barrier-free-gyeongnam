@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { mockPublicShellApi } from './fixtures';
 
 function relativeLuminance([r, g, b]: number[]) {
   const channel = (value: number) => {
@@ -78,12 +79,12 @@ const TARGETS = [
   [".community-pagination button", "페이지 이동"],
   [".wave-balanced-footer p", "서비스 안내"],
   [".wave-balanced-footer a", "사용 방법과 출처 링크"],
-  [".wave-balanced-footer small", "독립 서비스 고지"],
 ] as const;
 
 for (const theme of ["light", "dark"] as const) {
   test(`${theme} 테마에서 커뮤니티 핵심 텍스트 대비를 지킨다`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
+    await mockPublicShellApi(page);
     await mockCommunity(page);
     await page.addInitScript((selectedTheme) => {
       window.localStorage.setItem("wave-theme", selectedTheme);
@@ -101,5 +102,10 @@ for (const theme of ["light", "dark"] as const) {
     await page.getByRole("group", { name: "게시글 보기 방식", exact: true }).getByRole("button", { name: "카드형", exact: true }).click();
     await expect(page.locator(".community-list")).toHaveAttribute("data-layout", "cards");
     await expect(story).toContainText("경남도립미술관");
+    // The independent-service notice now lives in the linked policy page.
+    // Preserve both its discoverability and the original 4.5:1 requirement.
+    await page.locator('.wave-balanced-footer .policy-footer-links a[href="/policies"]').click();
+    await expect(page.locator('.policy-summary > p')).toContainText('WAVE는 독립 서비스이며 한국관광공사·경상남도의 공식 운영 서비스가 아닙니다.');
+    await assertContrast(page, '.policy-summary > p', '독립 서비스 고지');
   });
 }

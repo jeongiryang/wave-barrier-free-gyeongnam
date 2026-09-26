@@ -51,7 +51,7 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
       await expect(panelFocusable.nth(index), 'Focus must stay inside the preferences panel until its last control').toBeFocused();
     }
     await page.keyboard.press("Tab");
-    await expect(page.getByRole("link", { name: locale === "ko" ? "계정 관리" : "Account", exact: true })).toBeFocused();
+    await expect(page.getByRole("button", { name: locale === "ko" ? "계정 관리" : "Account", exact: true })).toBeFocused();
     await expect(page.getByRole("button", { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ })).toHaveAttribute("aria-expanded", "false");
     await expect(details.locator(".preference-panel")).toBeHidden();
 

@@ -29,7 +29,7 @@ function modeNote(route: Parameters<typeof routeModeLabel>[0], english: boolean)
 function segmentSummary(route: { label: string; segments: Array<{ name: string }> }) {
   const names = route.segments.slice(0, 4).map((segment) => segment.name).filter(Boolean);
   if (!names.length) return "";
-  const summary = names.join(" → ");
+  const summary = names.join(" · ");
   return names.length === 1 && route.label.includes(names[0]) ? "" : summary;
 }
 
@@ -83,13 +83,13 @@ export default function RouteComparisonPanel({ route }: { route: ReturnType<type
     {transitStatus && (transitStatus.failure || transitStatus.detail) && transitStatus.state !== "connected" && <Suspense fallback={<LoadingState skeleton={false}>{english ? "Preparing transport information." : "교통정보를 정리하고 있습니다."}</LoadingState>}><TransitProviderNotice provider={transitStatus} english={english} /></Suspense>}
     <div className="route-options" aria-busy={routeLoading}>
       {routeLoading && [0, 1, 2].map((item) => <div className="route-option-skeleton" key={`route-skeleton-${item}`} aria-hidden="true"><i /><div><b /><span /></div><em /></div>)}
-      {!routeLoading && !routeDestination && <div className="route-empty"><span>↗</span><h3>{english ? "Choose a place to check routes." : "경로를 계산할 여행지를 선택하세요."}</h3><p>{english ? "Add a place to your itinerary, then check each journey leg. Times and routes appear only when available." : "장소를 일정에 추가한 뒤 이동 구간을 조회하세요. 확인된 이동수단만 시간과 경로를 표시합니다."}</p></div>}
-      {!routeLoading && routeDestination && !configuredRoutes.length && <div className="route-empty route-kakao-fallback"><span>↗</span><h3>{english ? `No verified journey time for ${selectedLabel}.` : `${selectedLabel} 예상 시간을 확인하지 못했습니다.`}</h3><p>{english ? "We do not invent missing times. Open this destination in Kakao Maps to check a route for your travel mode." : "확인되지 않은 시간을 임의로 표시하지 않습니다. 카카오맵에서 도착지를 그대로 열어 해당 이동수단 경로를 확인하세요."}</p><a href={kakaoHref} target="_blank" rel="noreferrer">{english ? `Check ${selectedLabel} in Kakao Maps` : `카카오맵에서 ${selectedLabel} 확인`} <b>↗</b></a></div>}
+      {!routeLoading && !routeDestination && <div className="route-empty"><span></span><h3>{english ? "Choose a place to check routes." : "경로를 계산할 여행지를 선택하세요."}</h3><p>{english ? "Add a place to your itinerary, then check each journey leg. Times and routes appear only when available." : "장소를 일정에 추가한 뒤 이동 구간을 조회하세요. 확인된 이동수단만 시간과 경로를 표시합니다."}</p></div>}
+      {!routeLoading && routeDestination && !configuredRoutes.length && <div className="route-empty route-kakao-fallback"><span></span><h3>{english ? `No verified journey time for ${selectedLabel}.` : `${selectedLabel} 예상 시간을 확인하지 못했습니다.`}</h3><p>{english ? "We do not invent missing times. Open this destination in Kakao Maps to check a route for your travel mode." : "확인되지 않은 시간을 임의로 표시하지 않습니다. 카카오맵에서 도착지를 그대로 열어 해당 이동수단 경로를 확인하세요."}</p><a href={kakaoHref} target="_blank" rel="noreferrer">{english ? `Check ${selectedLabel} in Kakao Maps` : `카카오맵에서 ${selectedLabel} 확인`} <b></b></a></div>}
       {!routeLoading && configuredRoutes.map((item, index) => { const payment = paymentDetails(item, english); const title = routeTitle(item, english); const note = modeNote(item, english); return <button type="button" key={item.id} className={(activeRoute?.id === item.id ? "active " : "") + "route-option"} aria-pressed={activeRoute?.id === item.id} onClick={() => setActiveRouteId(item.id)}>
         <span className="route-option-rank" aria-hidden="true">{activeRoute?.id === item.id ? "✓" : String(index + 1).padStart(2, "0")}</span><div><strong lang={originalLanguage(title)}>{title}</strong>{note && <small>{note}</small>}{item.provider === "ODsay" && <small className="route-provider-attribution">powered by www.ODsay.com</small>}</div><dl><div><dt>{english ? "Estimated time" : "예상 시간"}</dt><dd>{item.totalTime}{english ? " min" : "분"}</dd></div><div><dt>{payment.label}</dt><dd>{payment.value}</dd></div><div><dt>{english ? "Transfers" : "환승"}</dt><dd>{item.transfers}{english ? "" : "회"}</dd></div><div><dt>{english ? "Walking" : "도보"}</dt><dd>{`${item.totalWalk}${english ? " m" : "m"}`}</dd></div></dl>
         {segmentSummary(item) && <span className="segment-summary" lang={originalLanguage(segmentSummary(item))}>{segmentSummary(item)}</span>}
       </button>; })}
-      {!routeLoading && configuredRoutes.length > 0 && <a className="route-kakao-secondary" href={kakaoHref} target="_blank" rel="noreferrer">{english ? "Also check the route in Kakao Maps" : "카카오맵에서도 경로 확인"} ↗</a>}
+      {!routeLoading && configuredRoutes.length > 0 && <a className="route-kakao-secondary" href={kakaoHref} target="_blank" rel="noreferrer">{english ? "Also check the route in Kakao Maps" : "카카오맵에서도 경로 확인"}</a>}
       {!routeLoading && routeAlternatives.length > 0 && !configuredRoutes.length && !routeDestination && <p className="sr-only">{english ? "Only a connection preview is available." : "현재 경로 데이터는 미리보기만 제공합니다."}</p>}
     </div>
     {routeDestination && <KakaoTaxiLink destination={routeDestination} />}

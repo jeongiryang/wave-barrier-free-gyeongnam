@@ -46,13 +46,12 @@ export default function NaruConversationFooter({ onOpen, onTools }: { onOpen: ()
     <div className="naru-story-stage">
       <div className="naru-story-art" aria-hidden="true">
         <img className={shown === 0 ? 'is-visible naru-story-solo' : 'naru-story-solo'} src="/naru/naru-512.webp" alt="" width="512" height="512" loading="lazy" />
-        <img className={shown > 0 && shown < 3 ? 'is-visible' : ''} src="/naru/conversation-hello.webp" alt="" width="1536" height="1024" loading="lazy" ref={node => { if (node?.complete) setReady(true); }} onLoad={() => setReady(true)} onError={() => setReady(true)} />
-        <img className={shown >= 3 ? 'is-visible' : ''} src="/naru/conversation-map.webp" alt="" width="1536" height="1024" loading="lazy" />
+        <img className={shown > 0 && shown < 3 ? 'is-visible' : ''} src="/naru/conversation-hello-night.webp" alt="" width="1536" height="1024" loading="lazy" ref={node => { if (node?.complete) setReady(true); }} onLoad={() => setReady(true)} onError={() => setReady(true)} />
+        <img className={shown >= 3 ? 'is-visible' : ''} src="/naru/conversation-map-night.webp" alt="" width="1536" height="1024" loading="lazy" />
       </div>
       <ol className="naru-story-dialogue" aria-label="나루와 나누는 여행 대화 예시">{lines.map(([, line], i) => <li key={line} data-speaker={i % 2 ? 'naru' : 'child'} className={shown > i ? 'is-visible' : ''} aria-hidden={shown <= i}><NaruDialogueProfile speaker={i % 2 ? "naru" : "child"} /><p>{line}</p></li>)}</ol>
     </div>
-    <div className="naru-story-actions"><button type="button" className="wave-gradient-button" onClick={onOpen}>나루와 대화하기 ↗</button><button type="button" className="wave-gradient-button" onClick={onTools}>걷기·휴식 계획하기 ↗</button></div>
+    <div className="naru-story-actions"><button type="button" className="wave-gradient-button" onClick={onOpen}>나루와 대화하기</button><button type="button" className="wave-gradient-button" onClick={onTools}>걷기·휴식 계획하기</button></div>
     <SiteFooter />
-    <p className="naru-story-disclosure">나루와의 대화 예시예요. 캐릭터 장면은 AI로 만들었어요.</p>
   </section>;
 }

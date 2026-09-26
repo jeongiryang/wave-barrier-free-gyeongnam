@@ -1,6 +1,21 @@
 .panel { padding: 16px 0 4px; }
 .panel h3 { margin: 0 0 8px; font-size: 1.05rem; line-height: 1.5; }
 .panel > p { margin: 0 0 14px; font-size: 14px; line-height: 1.7; }
+.panel p,.panel small { line-height: 1.7; overflow-wrap: anywhere; }
+.layerButtons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.layerButtons button,.retry,.official button,.official a,.facilities a { min-height: 44px; padding: 10px 14px; border: 1px solid #7095b7; border-radius: 8px; color: #edf4ff; background: #0d3549; font: inherit; display: inline-flex; align-items: center; }
+.layerButtons button[aria-pressed=true] { border-color: #a8eddb; background: #13614f; }
+.panel button:focus-visible,.panel a:focus-visible,.markerIcon:focus-visible { outline: 3px solid #85eaff; outline-offset: 3px; }
+.mapFrame { position: relative; overflow: hidden; border: 1px solid #7095b7; border-radius: 8px; }
+.map { width: 100%; height: clamp(240px,35vw,300px); }
+.mapStatus { position: absolute; z-index: 500; inset: 50% 16px auto; margin: 0; padding: 10px; color: #173b50; background: #f1f8fb; transform: translateY(-50%); text-align: center; }
+.facilities { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 12px; }
+.facilities li { border: 1px solid #46677d; border-radius: 10px; padding: 14px; }
+.facilities h4 { margin: 0; font-size: 1rem; }
+.facilities p { margin: 6px 0; }
+.facilities small,.evidence { color: #c4d9e6; display: block; }
+.official { margin-top: 20px; padding-top: 14px; border-top: 1px solid #46677d; }
+.official a,.official button { margin: 0 8px 8px 0; }
 .markerIcon { border: 0; background: transparent; }
 .markerPin { width: 32px; height: 32px; display: block; border: 4px solid #fff; border-radius: 50%; background: #d52b2b; }
 .openButton { width: calc(100% - 48px); min-height: 46px; margin: 0 24px 24px; padding: 10px 14px; border: 1px solid #31596a; border-radius: 8px; color: #e9f8ff; background: #0d3549; font: inherit; font-weight: 700; }

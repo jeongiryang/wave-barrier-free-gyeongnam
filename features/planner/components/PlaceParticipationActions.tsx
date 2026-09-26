@@ -14,7 +14,7 @@ export default function PlaceParticipationActions({ place, location, feedbackTex
   const { locale } = useSitePreferences();
   const say = (ko: string, en: string) => locale === "en" ? en : ko;
   return <>
-    <a className="place-external-review" href={`https://map.kakao.com/link/search/${encodeURIComponent(`${place.name} ${place.address || location}`)}`} target="_blank" rel="noreferrer"><span><b>{say("방문 후기·사진", "Visitor reviews and photos")}</b><small>{say("카카오 장소 상세에서 최신 이용 후기를 확인합니다. 새 창으로 열립니다.", "Check recent reviews on Kakao Maps. Opens in a new tab; content may be Korean.")}</small></span><i aria-hidden="true">↗</i></a>
+    <a className="place-external-review" href={`https://map.kakao.com/link/search/${encodeURIComponent(`${place.name} ${place.address || location}`)}`} target="_blank" rel="noreferrer"><span><b>{say("방문 후기·사진", "Visitor reviews and photos")}</b><small>{say("카카오 장소 상세에서 최신 이용 후기를 확인합니다. 새 창으로 열립니다.", "Check recent reviews on Kakao Maps. Opens in a new tab; content may be Korean.")}</small></span><i aria-hidden="true"></i></a>
 
     <a className="place-field-report-link" href={`/community/new?category=review&placeId=${encodeURIComponent(place.id)}&placeName=${encodeURIComponent(place.name)}&region=${encodeURIComponent(location)}`}><span><b>{say("시설 이용 후기 쓰기", "Write a field report")}</b><small>{say("방문일과 항목별 확인 상태를 공식 근거와 분리해 남깁니다.", "Record your visit date and facility observations separately from official evidence.")}</small></span><i aria-hidden="true">＋</i></a>
     <div className="feedback-box">

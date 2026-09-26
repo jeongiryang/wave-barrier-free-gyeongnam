@@ -55,7 +55,7 @@ for (const source of ["archive", "shared"] as const) test(`${source}: restoring 
       plan, selections: { region: "창원", theme: "nature,food", themes: ["nature", "food"], profiles: [], travelStart: "2026-10-08", travelEnd: "2026-10-09" }, expiresAt: Date.now() + 86_400_000,
     } }));
     await page.goto("/trip/shared-theme");
-    await page.getByRole("button", { name: "이 조건으로 다시 설계하기 →", exact: true }).click();
+    await page.getByRole("button", { name: "이 조건으로 다시 설계하기", exact: true }).click();
   }
   await browse(page);
   await expect(page.getByRole("button", { name: "자연·휴양", exact: true })).toHaveAttribute("aria-pressed", "true");
@@ -143,7 +143,7 @@ for (const color of ["light", "dark"]) test(`shared redesign protects the curren
     expect(Date.parse(books[0].updatedAt)).toBeGreaterThanOrEqual(Date.parse(earliestUpdatedAt));
     return books[0];
   }
-  const trigger = page.getByRole("button", { name: "이 조건으로 다시 설계하기 →", exact: true });
+  const trigger = page.getByRole("button", { name: "이 조건으로 다시 설계하기", exact: true });
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "공유한 조건으로 새 여행을 시작할까요?" });
   await expect(dialog.getByRole("heading")).toBeFocused();

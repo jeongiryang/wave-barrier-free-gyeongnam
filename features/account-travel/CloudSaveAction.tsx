@@ -38,9 +38,9 @@ export default function CloudSaveAction({ book }: { book: TravelBook }) {
   let shareTrip;
   try { shareTrip = bookToAccountTrip(book) as AccountTripPayload; } catch { /* Legacy or incomplete local travel remains usable. */ }
   return <div className="account-trip-save">
-    <div className="travel-book-actions">{userId ? <button type="button" disabled={busy} onClick={() => timing.request(() => void save())}>{busy ? "계정에 저장 중…" : "계정에 저장"}</button> : <Link href="/login?next=%2Ftravel-book">로그인하고 여러 기기에서 이어가기 →</Link>}</div>
+    <div className="travel-book-actions">{userId ? <button type="button" disabled={busy} onClick={() => timing.request(() => void save())}>{busy ? "계정에 저장 중…" : "계정에 저장"}</button> : <Link href="/login?next=%2Ftravel-book">로그인하고 여러 기기에서 이어가기</Link>}</div>
     {userId && <small>여행 제목·장소·일정·메모를 저장합니다. 편의 조건은 별도로 선택해 저장할 수 있어요.</small>}
-    {userId && state.userId === userId && state.key === key && state.message && <p role="status">{state.message} {state.id && <Link href={`/my-trips/${state.id}`}>저장한 여행 열기 →</Link>}</p>}
+    {userId && state.userId === userId && state.key === key && state.message && <p role="status">{state.message} {state.id && <Link href={`/my-trips/${state.id}`}>저장한 여행 열기</Link>}</p>}
     {shareTrip && <KakaoTravelShare trip={shareTrip} />}
     {userId && state.userId === userId && state.key === key && state.id && <KakaoSendToSelf key={state.id} tripId={state.id} />}
     {timing.confirmation}

@@ -40,7 +40,7 @@ export default function ItineraryRouteCoverage({ coverage, route, trip, onOpenMa
     <ol>{coverage.legs.map((leg) => {
       const best = usableLegRoutes(coverage.data[leg.key], route.routeTravelMode)[0];
       const unavailable = leg.blocked ? (en ? "Device location is not sent. Choose a public departure point." : "현재 위치는 전송하지 않습니다. 공개 출발 거점을 선택하세요.") : !leg.from || !leg.to ? (en ? "Coordinates unavailable" : "좌표 미확인") : (en ? "Not verified — retry or check with the operator" : "미확인 — 재조회하거나 운영기관에 확인하세요");
-      return <li key={leg.key}><span>{leg.day} · <span lang={originalLanguage(leg.fromLabel)}>{leg.fromLabel}</span> → <span lang={originalLanguage(leg.place.name)}>{leg.place.name}</span></span><strong className="coverage-leg-evidence" data-reserve-text={unavailable}><span>{best ? `${best.totalTime}${en ? " min" : "분"} · ${best.provider || (en ? "Route provider" : "경로 제공처")}` : unavailable}</span></strong><button type="button" disabled={!best} onClick={() => {
+      return <li key={leg.key}><span>{leg.day} · <span lang={originalLanguage(leg.fromLabel)}>{leg.fromLabel}</span> · <span lang={originalLanguage(leg.place.name)}>{leg.place.name}</span></span><strong className="coverage-leg-evidence" data-reserve-text={unavailable}><span>{best ? `${best.totalTime}${en ? " min" : "분"} · ${best.provider || (en ? "Route provider" : "경로 제공처")}` : unavailable}</span></strong><button type="button" disabled={!best} onClick={() => {
         if (!best) return;
         trip.setActiveDay(leg.day);
         route.displayRouteData(leg.place, leg.from!, leg.fromLabel, coverage.data[leg.key]);

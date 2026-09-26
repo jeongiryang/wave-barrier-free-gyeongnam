@@ -2,6 +2,7 @@ import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi } from "./fixtures";
+import { travelStories } from '../features/community/travel-stories';
 
 test.beforeEach(async ({ page }) => {
   await mockPlannerApi(page);
@@ -20,12 +21,25 @@ test("WAVE starter stories open their full articles and leave member search inta
   await page.locator("details.community-guides > summary").click();
   const links = await page.locator(".community-travel-stories h3 a").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")!));
   expect(links).toHaveLength(3);
+  const creditsLink = page.locator('.wave-balanced-footer a[href="/policies#content-credits"]');
+  await expect(creditsLink).toBeVisible();
+  const creditsHref = (await creditsLink.getAttribute('href'))!;
   for(const href of links) {
+    const story = travelStories.find(story => href === `/community/stories/${story.slug}`)!;
+    expect(story).toBeTruthy();
     await page.goto(href);
-    await expect(page.locator(".community-travel-article h1")).toBeVisible();
+    await expect(page.locator(".community-travel-article h1")).toHaveText(story.title);
     await expect(page.locator(".community-article-body > p")).toHaveCount(3);
-    await expect(page.locator(".community-travel-article .editorial-photo a").first()).toHaveAttribute("href", /^https:\/\/commons.wikimedia.org/);
+    await expect(page.locator('.community-travel-article .editorial-photo img')).toHaveAttribute('src', story.photo.image);
+    await expect(page.locator('.community-travel-article .editorial-photo figcaption')).toHaveText(story.photo.title);
     expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
+  }
+  await page.goto(creditsHref);
+  for (const { photo } of travelStories) {
+    const credit = page.locator('#content-credits li').filter({ has: page.locator(`img[src="${photo.image}"]`) });
+    await expect(credit).toContainText(photo.photographer);
+    await expect(credit.locator(`a[href="${photo.sourceUrl}"]`)).toBeVisible();
+    await expect(credit.locator(`a[href="${photo.licenseUrl}"]`)).toHaveText(photo.license);
   }
   await page.goto("/community?placeId=1001&placeName=미술관&region=창원");
   await expect(page.locator("details.community-guides")).not.toHaveAttribute("open", "");

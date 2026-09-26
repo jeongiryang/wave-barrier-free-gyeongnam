@@ -95,7 +95,7 @@ export default function TodayPace({
       after: after?.entries.at(-1)?.endsAtLabel || "방문 없음",
       changes: Object.entries(breaks).map(
         ([id, n]) =>
-          `${trip.orderedSavedPlaces.find((p) => p.id === id)?.name}: 휴식 ${trip.breakMinutesByPlaceId[id] || 0} → ${n}분`,
+          `${trip.orderedSavedPlaces.find((p) => p.id === id)?.name}: 휴식 ${trip.breakMinutesByPlaceId[id] || 0} · ${n}분`,
       ),
       warning:
         deadline?.state === "over"
@@ -196,7 +196,7 @@ export default function TodayPace({
         <section className={styles.card} aria-label="오늘의 페이스 변경안">
           <h4>적용 전 확인</h4>
           <p>
-            마지막 방문 종료 {proposal.before} → {proposal.after} · 이동시간에는
+            마지막 방문 종료 {proposal.before} · {proposal.after} · 이동시간에는
             미확인·추정 구간이 포함될 수 있어요.
           </p>
           <ul>

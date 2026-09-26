@@ -40,7 +40,11 @@ for (const restored of [false, true]) for (const path of ["/", "/planner", "/com
     await expect(preferences.getByRole("combobox")).toHaveCount(0);
     await expect(preferences.getByRole("button", { name: /다크모드|라이트모드|Dark mode|Light mode/ })).toHaveCount(0);
     await expect(preferences).not.toContainText(/한국어 전체 지원|Some pages are in Korean|화면 색상|Appearance/);
-    await expect(preferences).toContainText("홈 화면");
+    const textSize = preferences.getByRole('radiogroup', { name: '글자 크기', exact: true });
+    await expect(textSize.getByRole('radio')).toHaveCount(3);
+    await expect(textSize.getByRole('radio', { name: '기본 16px', exact: true })).toBeChecked();
+    await expect(preferences.getByRole('button', { name: /^색 구분 보조/ })).toBeVisible();
+    await expect(preferences).toContainText('운영체제의 동작 줄이기 설정을 기본으로 따릅니다.');
     expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
     await preferences.locator(".preference-panel").screenshot({ path: testInfo.outputPath("public-preferences.png") });
     await page.keyboard.press("Escape");

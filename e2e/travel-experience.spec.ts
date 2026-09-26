@@ -275,7 +275,7 @@ test("a delayed companion creation never attaches to a different current trip", 
     page.getByText(/동행 일정을 만드는 동안 다른 여행/),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "동행 일정 열기 ↗" }),
+    page.getByRole("link", { name: "동행 일정 열기" }),
   ).toHaveCount(0);
   expect(
     await page.evaluate(

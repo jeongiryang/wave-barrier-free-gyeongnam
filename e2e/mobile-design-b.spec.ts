@@ -49,11 +49,11 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
     expect(lastRegion.y + lastRegion.height).toBeLessThanOrEqual(844);
     expect(lastRegion.height).toBeGreaterThanOrEqual(44);
     const metadata = page.locator('.simple-region-metadata').first();
-    await expect(metadata.locator('.simple-region-credit')).toBeHidden();
+    await expect(metadata.locator('.declining-region-notice')).toBeHidden();
     const metadataToggle = metadata.getByRole('button');
     await metadataToggle.focus(); await page.keyboard.press('Enter');
-    await expect(metadata.locator('.simple-region-credit')).toBeVisible();
-    expect(await metadata.locator('.simple-region-credit').getAttribute('href')).toMatch(/^https?:/);
+    await expect(metadata.locator('.declining-region-notice')).toBeVisible();
+    await expect(metadata.locator('.declining-region-notice')).toContainText('인구감소지역');
     await metadataToggle.click();
     await expect(page.locator('.night-planner-region-map')).toBeHidden();
     await page.getByRole('button', { name: '지도에서 지역 고르기', exact: false }).click();
@@ -83,6 +83,21 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
   const violations = (await new AxeBuilder({ page }).analyze()).violations.filter(item => ['serious', 'critical'].includes(item.impact || ''));
   expect(violations.map(item => ({ id: item.id, nodes: item.nodes.map(node => node.target) }))).toEqual([]);
   await page.screenshot({ path: info.outputPath(`${route.replaceAll('/', '') || 'home'}-390.png`), fullPage: true });
+  if (route === '/planner') {
+    // #715 moved photo attribution to policies. Follow the public link and
+    // verify the original URL for the exact region photograph shown above.
+    const image = await page.locator('#planner-region-options .simple-region-link img').first().getAttribute('src');
+    expect(image).toMatch(/^https?:/);
+    const creditsLink = page.getByRole('link', { name: '데이터·사진 출처', exact: true });
+    await expect(creditsLink).toHaveAttribute('href', '/policies#content-credits');
+    await creditsLink.click();
+    await expect(page).toHaveURL(/\/policies#content-credits$/);
+    const credit = page.locator('#regional-photo-credits li').filter({ has: page.locator(`img[src="${image}"]`) });
+    await expect(credit).toHaveCount(1);
+    await expect(credit.getByRole('link', { name: /사진 원본/ })).toHaveAttribute('href', image!);
+    await expect(credit).toContainText('저작자:');
+    await expect(credit).toContainText('한국관광공사');
+  }
 });
 
 test('festival duplicate confirmation preserves the trip until a date choice and opens the exact visit', async ({ page }) => {
@@ -95,7 +110,7 @@ test('festival duplicate confirmation preserves the trip until a date choice and
   await page.goto('/festivals');
   const card = page.locator('.festival-card').filter({ has: page.getByRole('heading', { name: festival.name, exact: true }) });
   await card.locator('.night-festival-more > summary').click();
-  await card.getByLabel('방문 날짜').fill('2026-09-21');
+  await card.getByLabel('방문 날짜', { exact: true }).fill('2026-09-21');
   const before = await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'));
   await card.getByRole('button', { name: '내 일정에 담기', exact: true }).click();
   const confirmation = page.getByRole('region', { name: '이미 담긴 축제' });

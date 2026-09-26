@@ -14,7 +14,6 @@ import LandingHeader from "../features/landing/components/LandingHeader";
 import LandingHero from "../features/landing/components/LandingHero";
 import LandingChapters from "../features/landing/components/LandingChapters";
 import LandingRegionStory from "../features/landing/components/LandingRegionStory";
-import LandingIntro from "../features/landing/components/LandingIntro";
 import LandingAssistantStory from "../features/landing/components/LandingAssistantStory";
 import LandingFeatureLinks from "../features/landing/components/LandingFeatureLinks";
 import LandingFeatureList from "../features/landing/components/LandingFeatureList";
@@ -32,7 +31,7 @@ export default function LandingPage() {
   const root = useRef<HTMLElement>(null);
   const compact = useSyncExternalStore(subscribeCompact, compactSnapshot, desktopSnapshot);
   useLandingReveal(root);
-  return <AwardPhotoProvider><LandingIntro /><main ref={root} className="landing-page horizon-edition simple-landing wave-night night-landing" lang={locale}>
+  return <AwardPhotoProvider><main ref={root} className="landing-page horizon-edition simple-landing wave-night night-landing" lang={locale}>
     <SkipLink href="#top">{t("skip", "본문으로 바로가기")}</SkipLink>
     <div className="landing-opening"><AwardPanorama /><LandingHeader scrolled={false} t={t} />
     <LandingHero /></div>

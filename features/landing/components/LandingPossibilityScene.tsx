@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { regionShowcaseAlbums } from "../region-showcase-photos";
-import { regionPhotoSource } from "../region-photo-sources";
 import LandingScreenCapture from "./LandingScreenCapture";
 
 export default function LandingPossibilityScene() {
@@ -12,7 +11,7 @@ export default function LandingPossibilityScene() {
   return <section id="recommendation" tabIndex={-1} className="recommendation-chapter" aria-labelledby="recommendation-title" data-cinematic="left">
     <figure className="destination-panorama">
       {!failed && <img src={photo.image} alt={photo.title} lang="ko" loading="lazy" decoding="async" onError={() => setFailed(true)} />}
-      <figcaption><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer"><span lang="ko">{photo.title}</span> · {en ? "Source: ⓒKorea Tourism Organization" : "출처: ⓒ한국관광공사"}</a></figcaption>
+      <figcaption lang="ko">{photo.title}</figcaption>
     </figure>
     <div className="destination-editorial">
       <div className="destination-copy">
@@ -26,7 +25,7 @@ export default function LandingPossibilityScene() {
       </div>
       <figure className="destination-product">
         <LandingScreenCapture name="places-two" width={833} height={546} alt="주남저수지와 대산플라워랜드의 실제 관광사진과 편의정보. 한국관광공사 사진 워터마크 유지." />
-        <figcaption>{en ? "Photos and facility records: ⓒKorea Tourism Organization" : "사진·편의정보 출처: ⓒ한국관광공사"}</figcaption>
+        <figcaption>{en ? "Place photos and facility information" : "여행지 사진과 편의정보"}</figcaption>
       </figure>
     </div>
   </section>;

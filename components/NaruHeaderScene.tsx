@@ -2,7 +2,7 @@
 import NaruDialogueProfile from './NaruDialogueProfile';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 const dialogue = [['꼬마 여행자', '나루야, 공룡 보러 가고 싶어!'], ['나루', '좋아! 경남의 공룡 여행지를 함께 찾아보자.'], ['꼬마 여행자', '걷다가 힘들면 쉬어 갈 수 있어?'], ['나루', '그럼! 쉬는 시간과 편의정보도 함께 확인하자.']];
-const frames = ['/naru/naru-512.webp', '/naru/conversation-hello.webp', '/naru/conversation-map.webp'];
+const frames = ['/naru/naru-512.webp', '/naru/conversation-hello-night.webp', '/naru/conversation-map-night.webp'];
 export default function NaruHeaderScene() {
   const root = useRef<HTMLDivElement>(null);
   const [frame, setFrame] = useState(0);

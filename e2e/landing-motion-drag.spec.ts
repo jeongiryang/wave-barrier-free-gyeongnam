@@ -3,8 +3,6 @@ import { mockPlannerApi } from './fixtures';
 import { expectNoOverflow, pauseCurrentClock, prepareStory, storyReady } from './landing-contract';
 import { closeNaruTool, naruDialog } from './naru-tool-fixtures';
 
-const phrases = ['더 넓은 세상을함께, WAVE', '나만의 속도로편안한 여행을', '새로운 경남을나루와 함께', '함께 떠날수록더 가까운 여행'];
-
 async function landing(page: Page, motion: 'reduce' | 'no-preference' = 'reduce') {
   await mockPlannerApi(page);
   await prepareStory(page);
@@ -15,58 +13,34 @@ async function landing(page: Page, motion: 'reduce' | 'no-preference' = 'reduce'
   await storyReady(page);
 }
 
-test('four headlines rotate while idle, keep one accessible title, and pause for hover, focus, explicit pause and reduced motion', async ({ page }) => {
+test('headline stays readable and stable without playback controls across motion preferences and viewports', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.clock.install();
   await landing(page, 'no-preference');
   const title = page.getByRole('heading', { level: 1, name: '더 넓은 세상을 함께, WAVE', exact: true });
   const phrase = page.locator('.night-hero-phrase');
   const search = page.getByRole('combobox', { name: '어디로 떠나고 싶으세요?', exact: true });
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'full');
   await search.focus();
-  await page.mouse.move(2, 2);
-  // Freeze the timer only after the OS motion preference has hydrated.
-  await expect(page.getByRole('button', { name: '대표 문구 전환 일시정지', exact: true })).toBeVisible();
   await pauseCurrentClock(page);
-  const initialPhrase = (await phrase.textContent())!;
-  const initialIndex = phrases.indexOf(initialPhrase);
-  expect(initialIndex).toBeGreaterThanOrEqual(0);
-  for (let step = 1; step <= 4; step++) {
-    await page.clock.runFor(6000);
-    await expect(phrase).toHaveText(phrases[(initialIndex + step) % 4]);
-    await expect(title).toHaveCount(1);
-    await expect(phrase).toHaveAttribute('aria-hidden', 'true');
-  }
-
-  await page.locator('.night-hero-headline').hover();
-  await page.clock.runFor(12000);
-  await expect(phrase).toHaveText(initialPhrase);
-  await page.getByRole('button', { name: '대표 문구 전환 일시정지', exact: true }).focus();
-  await page.mouse.move(2, 2);
-  await page.clock.runFor(12000);
-  await expect(phrase).toHaveText(initialPhrase);
-  await page.getByRole('button', { name: '대표 문구 전환 일시정지', exact: true }).click();
-  await search.focus(); await page.mouse.move(2, 2);
-  await page.clock.runFor(12000);
-  await expect(phrase).toHaveText(initialPhrase);
-  await page.getByRole('button', { name: '대표 문구 전환 재생', exact: true }).click();
-  await search.focus(); await page.mouse.move(2, 2);
-  await page.clock.runFor(6100);
-  await expect(phrase).toHaveText(phrases[(initialIndex + 1) % 4]);
+  await page.clock.runFor(24_000);
+  await expect(phrase).toHaveText('더 넓은 세상을함께, WAVE');
+  await expect(title).toHaveCount(1);
+  await expect(phrase).toHaveAttribute('aria-hidden', 'true');
+  await expect(search).toBeFocused();
+  await expect(page.locator('.night-hero-motion')).toHaveCount(0);
 
   for (const width of [320, 390, 960, 1440, 2560]) {
     await page.setViewportSize({ width, height: 960 });
-    const copyBox = (await title.boundingBox())!;
-    const controlBox = (await page.locator('.night-hero-motion').boundingBox())!;
-    expect(controlBox.y + controlBox.height).toBeLessThanOrEqual(copyBox.y);
-    expect(controlBox.y).toBeGreaterThanOrEqual(0);
+    const box = (await title.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width + 1);
     await expectNoOverflow(page);
   }
-
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(page.locator('.night-hero-motion')).toHaveCount(0);
-  await expect(phrase).toHaveText(phrases[0]);
-  await page.clock.runFor(12000);
-  await expect(phrase).toHaveText(phrases[0]);
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'calm');
+  await page.clock.runFor(12_000);
+  await expect(phrase).toHaveText('더 넓은 세상을함께, WAVE');
   expect(await phrase.evaluate(node => getComputedStyle(node).animationName)).toBe('none');
   await expect(title).toHaveCount(1);
 });

@@ -1,0 +1,45 @@
+/* Local visual refinement: one top-layer dropdown, shared night surfaces. */
+html:root body .header-dropdown { position:fixed;inset:auto;top:var(--dropdown-top,80px);left:var(--dropdown-left,12px);right:auto;bottom:auto;margin:0;width:min(352px,calc(100vw - 24px));max-height:var(--dropdown-height,70dvh);box-sizing:border-box;overflow:auto;overscroll-behavior:contain;color:#edf6ff;background:#10283d;border:1px solid #41617b;border-radius:16px;padding:14px;box-shadow:0 18px 48px #0006; }
+html:root body .header-dropdown:not(:popover-open) { display:none; }
+html:root body .header-dropdown:popover-open { display:grid;gap:8px; }
+html:root body .wave-header .account-menu>button { min-width:44px;min-height:44px;background:transparent;color:inherit;border:0; }
+html:root body .header-dropdown .preference-panel { position:static;inset:auto;width:auto;max-width:none;max-height:none;overflow:visible;box-shadow:none; }
+html:root body .color-assist-preview { display:flex;flex-wrap:wrap;gap:12px;padding:12px;color:inherit; }
+.color-assist-preview small { flex-basis:100%; }
+html:root body .landing-page .landing-opening>.wave-header { background:linear-gradient(#041422e6,#04142270,transparent);border:0; }
+html:root body .wave-night :is(.simple-footer,.simple-section,.landing-finale,.night-photo-footer) { border-top:0;border-bottom:0; }
+html:root body .wave-night :is(.planner-welcome-header,.naru-conversation-footer) { background:#061725 url('/naru/night-coast.webp') center/cover no-repeat;color:#e9f3ff; }
+html:root body .wave-night .planner-welcome-header>.naru-header-scene { background:transparent;color:#e9f3ff; }
+html:root body :is(.naru-header-writing,.naru-story-writing,.naru-dialogue-profile span,.naru-dialogue-profile small) { color:#d5e9ff; }
+html:root body :is(.naru-header-dialogue>div,.naru-story-dialogue li)>p { background:#15344c;color:#ecf5ff; }
+html:root body :is(.naru-header-dialogue>div,.naru-story-dialogue li)[data-speaker=naru]>p { background:#24344f;color:#ecf5ff; }
+html:root body .naru-launcher { background:#102b40;border:1px solid #416680;box-shadow:0 4px 20px #0005; }
+html:root body :is(form[role=search],.night-hero-search,.naru-tool-search):focus-within { box-shadow:0 0 0 2px #6dcad080; }
+html:root body :is(form[role=search],.night-hero-search,.naru-tool-search) :is(input,select):focus { outline:none;box-shadow:none;border-color:transparent; }
+html:root body :is(form[role=search],.night-hero-search,.naru-tool-search) :is(input,select) { background:transparent;border:0;border-radius:0;min-width:0; }
+html:root body :is(input[type=search],input[placeholder*="검색"]):focus-visible { outline:0;box-shadow:0 2px 0 #75d4dd; }
+html:root body :is(form[role=search],.night-hero-search,.naru-tool-search) :is(input,select):focus-visible { box-shadow:none; }
+html:root body .simple-region-arrow { display:none; }
+html:root body .wave-night input[type=checkbox] { appearance:none;width:20px;height:20px;min-width:20px;min-height:20px;border:1px solid #67849a;border-radius:6px;background:#11283b;display:inline-grid;place-content:center;vertical-align:middle;cursor:pointer; }
+html:root body .wave-night input[type=checkbox]:checked { background:#245570;border-color:#91c9dd; }
+html:root body .wave-night input[type=checkbox]:checked:after { content:'✓';color:#fff;font-size:15px;line-height:1; }
+html:root body .wave-night input[type=checkbox]:disabled { opacity:.5;cursor:default; }
+html:root body .wave-night input[type=checkbox]:focus-visible { outline:2px solid #91c9dd;outline-offset:3px; }
+@media(forced-colors:active){html:root body .wave-night input[type=checkbox]{appearance:auto}}
+html:root body .landing-page .landing-opening>.wave-header { background:linear-gradient(#041422cc,#04142240,transparent)!important; }
+html:root body .naru-discovery .naru-launcher,html:root body .planner-simple .naru-launcher { background:#102b40!important;border:1px solid #416680!important; }
+html:root body .naru-hint { background:#142d42;color:#e9f3ff;border:1px solid #365773; }
+html:root body .wave-night .night-hero-search { background:#102a3dde;border-color:#3b5b72;color:#e9f3ff; }
+html:root body .wave-night .night-hero-search select { color:#e9f3ff; }
+html:root body .wave-night .night-hero-search button { min-width:48px;min-height:44px;display:grid;place-items:center; }
+html:root body .wave-night .planner-welcome-header .wave-header :is(a,button,.wave-wordmark span,.wave-wordmark small) { color:#e2efff; }
+html:root body .wave-night .planner-welcome-header .wave-header nav a[aria-current=page] { color:#70d5e8; }
+html:root body .naru-discovery .naru-hint { background:#142d42!important;color:#e9f3ff!important;border:1px solid #365773!important; }
+html:root body .naru-discovery .naru-hint button { color:#e9f3ff!important; }
+@media(max-width:700px){html:root body .wave-night .planner-welcome-header { --wave-opening-height:700px; } }
+html:root body summary { list-style:none; }
+html:root body summary::-webkit-details-marker { display:none; }
+html:root body .official-exploration>summary::before { content:'+';transform:none; }
+html:root body .official-exploration[open]>summary::before { content:'−';transform:none; }
+html:root body :is(button,a):has(>.wave-action-icon) { min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center; }
+.wave-action-icon { flex-shrink:0; }

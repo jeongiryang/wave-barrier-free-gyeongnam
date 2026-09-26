@@ -11,7 +11,7 @@ export default function LandingExpansionScene() {
   return <div className="story-expansion" data-cinematic="center">
     <figure className="story-expansion-frame">
       {!failed && <img src={photo.image} width="1600" height="1067" loading="lazy" decoding="async" alt={`${photo.title} · ${photo.location}`} lang="ko" onError={() => setFailed(true)} />}
-      <figcaption>{photo.title} · {en ? "Source: ⓒKorea Tourism Organization" : "출처: ⓒ한국관광공사"} · {photo.photographer}</figcaption>
+      <figcaption>{photo.title}</figcaption>
     </figure>
     <div className="story-expansion-copy">
       <p>{en ? "More room for your journey" : "여행의 가능성을 넓히다"}</p>
