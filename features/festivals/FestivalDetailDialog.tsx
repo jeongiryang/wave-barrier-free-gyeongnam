@@ -67,7 +67,7 @@ export default function FestivalDetailDialog({ festival, websiteUrl, onClose, vi
           {festival.phone && <div style={ui.row}><dt style={ui.term}>문의</dt><dd style={ui.value}>{festival.phone}</dd></div>}
           <div style={ui.row}><dt style={ui.term}>지역</dt><dd style={ui.value}>{festival.city}</dd></div>
         </dl>
-        {primaryUrl && <a className={styles.officialLink} style={ui.officialLink} href={primaryUrl} target="_blank" rel="noopener noreferrer">공식 홈페이지 ↗</a>}
+        {primaryUrl && <a className={styles.officialLink} style={ui.officialLink} href={primaryUrl} target="_blank" rel="noopener noreferrer">공식 홈페이지</a>}
         <p style={ui.evidence}>일정과 운영 정보는 방문 전에 공식 홈페이지에서 다시 확인해 주세요.</p>
         {visitActions && <div className="festival-detail-visit">{visitActions}</div>}
       </section>

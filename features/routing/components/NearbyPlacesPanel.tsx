@@ -35,7 +35,7 @@ export default function NearbyPlacesPanel({ available, loading, activeCategory, 
         <div><strong>{place.place_name}</strong><span>{place.road_address_name || place.address_name || (english ? "Address unavailable" : "주소 정보 없음")}</span></div>
         <small>{place.distance ? `${Number(place.distance).toLocaleString(english ? "en" : "ko")}m` : (english ? "Distance unavailable" : "거리 정보 없음")}</small>
         <button type="button" aria-disabled={!available} onClick={() => { if (available) onChoosePlace(place); }}>{english ? "View on map" : "지도에서 보기"}</button>
-        {place.place_url && <a href={place.place_url} target="_blank" rel="noreferrer">{english ? "Place details and reviews ↗" : "장소 상세·후기 ↗"}</a>}
+        {place.place_url && <a href={place.place_url} target="_blank" rel="noreferrer">{english ? "Place details and reviews" : "장소 상세·후기"}</a>}
       </article>)}</div>
     </div>}
   </section>;

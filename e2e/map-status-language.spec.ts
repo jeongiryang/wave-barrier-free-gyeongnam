@@ -109,7 +109,7 @@ for (const theme of ["light", "dark"]) {
     await expect(details.getByRole("heading", { name: "검증 장소 1", exact: true })).toHaveAttribute("lang", "ko");
     await expect(details.getByRole("button", { name: "Set as departure", exact: true })).toBeEnabled();
     await expect(details.getByRole("button", { name: "Set as destination", exact: true })).toBeEnabled();
-    await expect(details.getByRole("link", { name: "Kakao place details and reviews ↗", exact: true })).toHaveAttribute("href", "https://place.map.kakao.com/1");
+    await expect(details.getByRole("link", { name: "Kakao place details and reviews", exact: true })).toHaveAttribute("href", "https://place.map.kakao.com/1");
     expect((await new AxeBuilder({ page }).include("#map-panel-place").analyze()).violations).toEqual([]);
   });
 }

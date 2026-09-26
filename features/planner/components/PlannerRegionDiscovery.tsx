@@ -2,7 +2,6 @@
 import { useState } from "react";
 import MobileDisclosure from "../../../components/MobileDisclosure";
 import { regionShowcasePhotos } from "../../landing/region-showcase-photos";
-import { regionPhotoSource } from "../../landing/region-photo-sources";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { DECLINING_REGION_LABEL, decliningRegionSourceLabel, decliningRegionsFirst, isDecliningRegion } from "../declining-regions";
 const featured = ["통영", "거제", "남해", "진주", "창원", "하동"];
@@ -20,12 +19,11 @@ export default function PlannerRegionGallery({ value, onChange, full = false, di
       return <article className="simple-region" key={name}>
         <button type="button" className="simple-region-link" lang="ko" disabled={disabled} onClick={() => onChange(name)} aria-label={`${name} 지역 선택`} aria-pressed={name === value}>
           <img ref={node => { if (node?.complete && !node.naturalWidth) node.style.visibility = "hidden"; }} onError={event => { event.currentTarget.style.visibility = "hidden"; }} src={photo.image} alt="" width="800" height="600" loading="lazy" decoding="async" />
-          <div><h3>{name}</h3></div><span className="simple-region-arrow" aria-hidden="true">{name === value ? "✓" : "→"}</span>
+          <div><h3>{name}</h3></div><span className="simple-region-arrow" aria-hidden="true">{name === value ? "✓" : ""}</span>
         </button>
-        <MobileDisclosure title={en ? "Photo & region" : "출처·정보"} className="simple-region-metadata">
-        {isDecliningRegion(name) && <div className="declining-region-notice" lang="ko"><p>{DECLINING_REGION_LABEL}</p><small>{decliningRegionSourceLabel()}</small></div>}
-        <a className="simple-region-credit" lang="ko" href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{photo.photographer || "한국관광공사"} · <span lang={en ? "en" : "ko"}>{en ? "Source" : "원본"}</span> ↗</a>
-        </MobileDisclosure>
+        {isDecliningRegion(name) && <MobileDisclosure title={en ? "Region information" : "지역 정보"} className="simple-region-metadata">
+          <div className="declining-region-notice" lang="ko"><p>{DECLINING_REGION_LABEL}</p><small>{decliningRegionSourceLabel()}</small></div>
+        </MobileDisclosure>}
       </article>;
     })}</div>
     {!decliningFirst && <button type="button" className="simple-show-regions" disabled={disabled} aria-expanded={expanded} aria-controls="planner-region-options" onClick={() => setExpanded(!expanded)}>{expanded ? en ? "Show fewer" : "접기" : en ? "All 18 regions" : "전체 18개 지역"}<span aria-hidden="true">{expanded ? "−" : "+"}</span></button>}

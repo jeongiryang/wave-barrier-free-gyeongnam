@@ -2,6 +2,7 @@
 
 import { useId, useRef, useState, useEffect } from 'react';
 import { useRegionApiPhotos } from '../features/landing/useRegionApiPhotos';
+import { rememberPhotoCredits } from '../features/landing/photo-credit-store';
 import { useSitePreferences } from './SitePreferences';
 import { regionBoundaries } from '../features/landing/region-boundaries';
 import { regionNames } from '../lib/gyeongnam-region-names';
@@ -19,6 +20,9 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
   const [preview, setPreview] = useState<{ name: string; x: number; y: number; below: boolean; maxHeight: number } | null>(null);
   const [visible, setVisible] = useState(false);
   const photos = useRegionApiPhotos(regionBoundaries.map(region => region.name), visible);
+  useEffect(() => {
+    rememberPhotoCredits(Object.values(photos).flatMap(entry => entry.photo ? [{ ...entry.photo, source: '한국관광공사 관광사진' }] : []));
+  }, [photos]);
   useEffect(() => {
     if (typeof IntersectionObserver !== 'function') {
       // Match the observer's asynchronous notification without requiring the API.
@@ -79,11 +83,11 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
           event.preventDefault(); dismissed.current = false; event.currentTarget.parentElement?.querySelectorAll('button')[next]?.focus();
         }} aria-pressed={value === name} aria-describedby={preview?.name === name ? previewId : undefined}><span>{label(name)}{value === name && <span aria-hidden="true"> ✓</span>}</span></button>)}</div>
     </div>
-    {compact && <details className="region-map-disclosure"><summary>{en ? 'See regions on the map' : '지도에서 지역 위치 보기'}<span aria-hidden="true">↗</span></summary>{map}</details>}
+    {compact && <details className="region-map-disclosure"><summary>{en ? 'See regions on the map' : '지도에서 지역 위치 보기'}</summary>{map}</details>}
     <small className="region-map-credit">{en ? 'SGIS 2020 · simplified boundaries / StatGarten' : '통계청 SGIS 2020 · 경계 단순화 / StatGarten'}</small>
     {preview && <div id={previewId} role="tooltip" className="region-photo-preview" data-below={preview.below} style={{ left: preview.x, top: preview.y, maxHeight: preview.maxHeight }}>
       {photo && !failedPhotos.includes(photo.image) && <img src={photo.image} alt={photo.title} onError={() => setFailedPhotos(previous => [...previous, photo.image])} />}
-      <div><strong>{label(preview.name)}</strong>{photo ? <><p>{photo.title}</p><span>{photo.location}</span>{photo.description && <span>{photo.description}</span>}<small>{photo.photographer ? `${photo.photographer} · ` : ''}ⓒ한국관광공사{failedPhotos.includes(photo.image) ? (en ? ' · Photo unavailable' : ' · 사진을 불러오지 못했어요') : ''}</small></> : <p>{!photos[preview.name] ? (en ? 'Loading photo…' : '관광사진을 불러오는 중…') : photos[preview.name].state === 'empty' ? (en ? 'No photo provided.' : '제공된 관광사진이 없어요.') : (en ? 'Photo temporarily unavailable.' : '관광사진을 불러오지 못했어요.')}</p>}</div>
+      <div><strong>{label(preview.name)}</strong>{photo ? <><p>{photo.title}</p><span>{photo.location}</span>{photo.description && <span>{photo.description}</span>}{failedPhotos.includes(photo.image) && <small>{en ? 'Photo unavailable' : '사진을 불러오지 못했어요'}</small>}</> : <p>{!photos[preview.name] ? (en ? 'Loading photo…' : '관광사진을 불러오는 중…') : photos[preview.name].state === 'empty' ? (en ? 'No photo provided.' : '제공된 관광사진이 없어요.') : (en ? 'Photo temporarily unavailable.' : '관광사진을 불러오지 못했어요.')}</p>}</div>
     </div>}
   </div>;
 }

@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { rememberPhotoCredits } from '../photo-credit-store';
 
 export type Photo = { id: string; title: string; address: string; image: string; source: string };
 const Photos = createContext<Photo[]>([]);
+export const useAwardPhotos = () => useContext(Photos);
 
 export function AwardPhotoProvider({ children }: { children: ReactNode }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -24,6 +26,7 @@ export function AwardPhotoProvider({ children }: { children: ReactNode }) {
         [pool[i], pool[j]] = [pool[j], pool[i]];
       }
       setPhotos(pool);
+      rememberPhotoCredits(pool.map(photo => ({ ...photo, location: photo.address })));
     }).catch(() => { /* Keep the readable gradient when the provider is unavailable. */ });
     return () => controller.abort();
   }, []);
@@ -81,7 +84,7 @@ export function PhotoPanorama({ photos, closing = false, credit = true, shuffle 
         onError={() => setFailed(previous => [...previous, photo.image])} />)}
     </div>
     {credit && current && ready.includes(current.image) && <div className="award-panorama-credit">
-      <span><strong>{current.title}</strong><small>{current.address} · 한국관광공사 관광공모전</small></span>
+      <span><strong>{current.title}</strong><small>{current.address}</small></span>
     </div>}
   </div>;
 }

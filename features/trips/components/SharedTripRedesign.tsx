@@ -44,7 +44,7 @@ export default function SharedTripRedesign({ selections }: { selections: SharedT
 
   const notice = error && <p role="alert">변경 내용을 저장하지 못했어요. 현재 여행은 유지됩니다. 저장 권한을 확인한 뒤 다시 시도해 주세요.</p>;
   return <>
-    <button className="shared-redesign" type="button" onClick={() => start()}>이 조건으로 다시 설계하기 →</button>
+    <button className="shared-redesign" type="button" onClick={() => start()}>이 조건으로 다시 설계하기</button>
     {!open && notice}
     {open && <dialog ref={dialogRef} className="region-change-dialog" aria-labelledby="shared-redesign-title" aria-describedby="shared-redesign-description">
       <h2 id="shared-redesign-title" tabIndex={-1}>공유한 조건으로 새 여행을 시작할까요?</h2>

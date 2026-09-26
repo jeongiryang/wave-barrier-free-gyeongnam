@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import AccessibleDateInput from '../../../components/AccessibleDateInput';
 import { GYEONGNAM_REGION_POINTS } from '../../../lib/gyeongnam-regions.js';
 import { validTripDate, boundedTripEnd } from '../../../lib/trip-dates.js';
 
@@ -18,7 +19,7 @@ export default function NaruWorkRequest({ region, start, end, transport, disable
   }}>
     <header><h3>어떤 여행을 준비할까요?</h3><button type="button" onClick={onClose} aria-label="여행 준비 입력 닫기">×</button></header>
     <label>여행 지역<select value={area} onChange={event => setArea(event.target.value)}>{['경남 전체', ...Object.keys(GYEONGNAM_REGION_POINTS).filter(name => name !== '경남 전체')].map(name => <option key={name}>{name}</option>)}</select></label>
-    <div><label>출발 날짜<input type="date" required value={from} onChange={event => { setFrom(event.target.value); if (!to || to < event.target.value) setTo(event.target.value); }} /></label><label>마지막 날짜<input type="date" required min={from} value={to} onChange={event => setTo(event.target.value)} /></label></div>
+    <div><label>출발 날짜<AccessibleDateInput required value={from} onChange={event => { setFrom(event.target.value); if (!to || to < event.target.value) setTo(event.target.value); }} /></label><label>마지막 날짜<AccessibleDateInput required min={from} value={to} onChange={event => setTo(event.target.value)} /></label></div>
     <label>동행<select value={party} onChange={event => setParty(event.target.value)}><option value="">선택하지 않음</option>{['혼자', '부모님과', '친구와', '아이와', '연인과'].map(value => <option key={value}>{value}</option>)}</select></label>
     <label>이동수단<select value={mode} onChange={event => setMode(event.target.value)}><option value="car">자동차</option><option value="transit">대중교통</option><option value="walk">도보</option><option value="bicycle">자전거</option></select></label>
     <fieldset className="naru-pace"><legend>어떤 속도로 여행할까요?</legend>{[
@@ -29,7 +30,7 @@ export default function NaruWorkRequest({ region, start, end, transport, disable
       <span><strong id={`${paceId}-title-${index}`}>{title}</strong><small id={`${paceId}-${index}`}>{description}</small></span>
     </label>)}</fieldset>
     {notice && <p role="status">{notice}</p>}
-    <button type="submit" disabled={disabled}>이 조건으로 여행 준비 맡기기 →</button>
+    <button type="submit" disabled={disabled}>이 조건으로 여행 준비 맡기기</button>
     <p>먼저 일정안을 보여드려요. 확인하고 적용할 수 있습니다.</p>
   </form>;
 }

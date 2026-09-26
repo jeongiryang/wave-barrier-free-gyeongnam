@@ -20,7 +20,7 @@ export default function MapExportPanel({ onClose, onExport, onShare, actionNotic
       <button type="button" aria-disabled={actionPending} onClick={() => onExport("jpeg")}><i>JPG</i>{en ? "Download JPG image" : "JPG 이미지 다운로드"}</button>
     </div>
     <p role="status" aria-live="polite" aria-atomic="true">{actionNotice}</p>
-    <button type="button" className="map-share-wide" aria-disabled={actionPending} onClick={onShare}>{en ? "Share page link ↗" : "페이지 링크 공유하기 ↗"}</button>
+    <button type="button" className="map-share-wide" aria-disabled={actionPending} onClick={onShare}>{en ? "Share page link" : "페이지 링크 공유하기"}</button>
     <p>{en ? "This page link does not include your saved itinerary. Use itinerary sharing for the whole trip." : "페이지 링크에는 저장한 일정이 포함되지 않습니다. 전체 여행은 내 일정의 공유 기능을 이용하세요."}</p>
   </section>;
 }

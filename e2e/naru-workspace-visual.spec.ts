@@ -48,7 +48,7 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 960, height: 800 
     const tabs = panel.getByRole('tablist', { name: '나루 작업공간' });
     await checkBounds(page, panel);
     await checkTargets(tabs.getByRole('tab'));
-    await panel.getByRole('button', { name: '여행 준비 맡기기 →', exact: true }).click();
+    await panel.getByRole('button', { name: '여행 준비 맡기기', exact: true }).click();
     const form = panel.getByRole('form', { name: '여행 준비 맡기기', exact: true });
     await form.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
     await form.getByLabel('출발 날짜', { exact: true }).fill('2026-10-03');
@@ -61,7 +61,7 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 960, height: 800 
     await page.screenshot({ path: testInfo.outputPath(`naru-workspace-${viewport.width}.png`) });
     const formA11y = await new AxeBuilder({ page }).include('.naru-panel').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
     expect(formA11y.violations).toEqual([]);
-    await form.getByRole('button', { name: '이 조건으로 여행 준비 맡기기 →', exact: true }).click();
+    await form.getByRole('button', { name: '이 조건으로 여행 준비 맡기기', exact: true }).click();
     await expect(panel.getByRole('log')).toContainText('선택한 지역과 여행 날짜를 확인했어요.');
     expect(requests).toHaveLength(1);
     expect(requests[0]).toContain('부모님과 창원');

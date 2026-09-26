@@ -1,0 +1,27 @@
+.wave-date-picker { display: inline-flex; align-items: center; min-width: 0; width: 100%; gap: 0; border: 1px solid #355469; border-radius: 14px; background: #102a3c; color: #e4f1fa; }
+.wave-date-picker:focus-within { border-color: #88cbdc; box-shadow: 0 0 0 2px #88cbdc22; }
+.wave-date-picker input { flex: 1; width: 100%; min-width: 0; min-height: 44px; padding: 10px 8px 10px 12px; font: inherit; color: inherit; background: transparent; border: 0; border-radius: 14px; }
+.wave-date-picker input:focus,.wave-date-picker input:focus-visible { outline: none !important; box-shadow: none !important; }
+.wave-date-picker .wave-date-open { display: grid; place-items: center; flex: 0 0 44px; min-width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 12px; color: #bedde8; background: transparent; }
+.wave-date-dialog { position: fixed; inset: 0; width: min(360px, calc(100vw - 24px)); max-width: none; max-height: calc(100dvh - 32px); margin: auto; padding: 16px; overflow: auto; border: 1px solid #395669; border-radius: 24px; background: #102638; color: #e9f3fa; box-shadow: 0 20px 70px #0009; font-family: inherit; font-size: 14px; line-height: 1.5; }
+.wave-date-dialog::backdrop { background: #03101d99; backdrop-filter: blur(3px); }
+.wave-date-dialog button { min-height: 44px; padding: 6px 10px; border: 0; border-radius: 12px; color: #e4f1fa; background: transparent; font: inherit; cursor: pointer; }
+.wave-date-dialog button:hover:not(:disabled) { background: #29485e; }
+.wave-date-dialog button:focus-visible { outline: 2px solid #a6ddeb; outline-offset: -3px; }
+.wave-date-dialog button:disabled { opacity: .35; cursor: default; }
+.wave-date-title,.wave-date-month,.wave-date-bottom { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.wave-date-title h2 { margin: 0; font-size: 17px; color: inherit; }
+.wave-date-title button { min-width: 44px; font-size: 22px; }
+.wave-date-month { margin: 10px 0; }
+.wave-date-month strong { font-size: 16px; white-space: nowrap; }
+.wave-date-grid { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.wave-date-grid th { height: 32px; font-weight: 400; color: #a9bfce; text-align: center; }
+.wave-date-grid td { padding: 0; text-align: center; }
+.wave-date-grid button { width: 100%; padding: 0; }
+.wave-date-grid [aria-selected=true] button { background: #a9d9e6; color: #102638; font-weight: 700; }
+.wave-date-grid [aria-current=date] { text-decoration: underline; text-underline-offset: 5px; }
+.wave-date-bottom { margin-top: 10px; color: #b1c6d5; font-size: 12px; }
+.night-date-pair:has(.wave-date-picker) { align-items: center; gap: 10px; }
+html:root body .night-festival-dates .wave-date-picker input,html:root body .festival-visit-date .wave-date-picker input { width: 100%; min-width: 0; min-height: 44px; padding: 10px 4px 10px 8px; background: transparent; border: 0; color: #e4f1fa; border-radius: 14px; }
+.night-festival-dates .night-date-pair { margin-top: 8px; }
+@media(max-width: 380px) { .wave-date-dialog { padding: 10px; } }

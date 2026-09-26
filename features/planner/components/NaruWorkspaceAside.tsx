@@ -25,16 +25,16 @@ export default function NaruWorkspaceAside(props: Props) {
     </section>}
     {(draft || places.length > 0) && <section className="naru-workspace-result" aria-label="여행 결과 요약">
       <h3>{draft ? '제안한 일정' : '현재 내 일정'}</h3>
-      {draft && <p>현재 {places.length}곳 → 제안 {draft.restOnly ? places.length - (draft.removed?.length || 0) : draft.stops.length}곳 · 적용 전</p>}
+      {draft && <p>현재 {places.length}곳 · 제안 {draft.restOnly ? places.length - (draft.removed?.length || 0) : draft.stops.length}곳 · 적용 전</p>}
       <ol>{(draft && !draft.restOnly ? draft.stops.map(stop => ({ id: stop.place.id, name: stop.place.name, detail: `${stop.date.slice(5)} · 체류 ${stop.minutes}분 · 휴식 ${stop.breakMinutes}분` })) : places.map(place => ({ ...place, detail: '' }))).map(place => <li key={place.id}><strong>{place.name}</strong>{place.detail && <small>{place.detail}</small>}</li>)}</ol>
-      <button type="button" onClick={draft ? props.onResult : () => props.onTool('itinerary')}>{draft ? '변경안과 확인할 사항 보기' : '내 일정 자세히 보기'} →</button>
+      <button type="button" onClick={draft ? props.onResult : () => props.onTool('itinerary')}>{draft ? '변경안과 확인할 사항 보기' : '내 일정 자세히 보기'}</button>
     </section>}
     <details className="naru-sidebar-tools"><summary>빠른 도구</summary>
     <div className="naru-workspace-actions" aria-label="빠른 도구">
-      <button type="button" disabled={props.busy} onClick={props.onPhoto}>사진에서 정보 읽기 <span aria-hidden="true">›</span></button>
-      <button type="button" disabled={props.busy} onClick={props.onReview}>내 일정 점검 <span aria-hidden="true">›</span></button>
-      <button type="button" onClick={() => props.onTool('facilities')}>편의시설 선택 <span aria-hidden="true">›</span></button>
-      <button type="button" onClick={() => props.onTool('places')}>일정에 담기 <span aria-hidden="true">›</span></button>
+      <button type="button" disabled={props.busy} onClick={props.onPhoto}>사진에서 정보 읽기 </button>
+      <button type="button" disabled={props.busy} onClick={props.onReview}>내 일정 점검 </button>
+      <button type="button" onClick={() => props.onTool('facilities')}>편의시설 선택 </button>
+      <button type="button" onClick={() => props.onTool('places')}>일정에 담기 </button>
     </div></details>
   </aside>;
 }

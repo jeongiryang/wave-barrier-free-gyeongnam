@@ -150,8 +150,8 @@ test("카카오 장소 검색은 버튼을 눌렀을 때만 실행되고, 외부
   await expect(list).toContainText("음식 종류: 음식점 > 한식");
   await expect(list).toContainText("편의시설: 확인되지 않음");
   // 상호와 거리가 둘 다 맞는 카카오 항목은 관광공사 항목을 남기고 지운다.
-  await expect(list.getByRole("link", { name: "장소 정보 보기 ↗", exact: true })).toHaveCount(1);
-  const link = list.getByRole("link", { name: "장소 정보 보기 ↗", exact: true });
+  await expect(list.getByRole("link", { name: "장소 정보 보기", exact: true })).toHaveCount(1);
+  const link = list.getByRole("link", { name: "장소 정보 보기", exact: true });
   await expect(link).toHaveAttribute("target", "_blank");
   await expect(link).toHaveAttribute("rel", "noopener noreferrer");
   await expect(link).toHaveAttribute("href", "https://place.map.kakao.com/11");
@@ -174,7 +174,7 @@ test("키보드만으로 목록을 열고 외부 링크까지 닿을 수 있다"
   await expect(more).toBeFocused();
   await page.keyboard.press("Enter");
   await deliverNearby(page, [kakaoPlace(11, "검색으로 찾은 분식", "120")]);
-  const link = list.getByRole("link", { name: "장소 정보 보기 ↗", exact: true });
+  const link = list.getByRole("link", { name: "장소 정보 보기", exact: true });
   await link.focus();
   await expect(link).toBeFocused();
   // 조작 영역은 44px 이상을 유지한다.

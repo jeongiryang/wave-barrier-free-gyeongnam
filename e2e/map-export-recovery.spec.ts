@@ -141,7 +141,7 @@ for (const en of [false, true]) for (const failure of ["denied", "missing", "can
     Object.defineProperty(navigator, "share", { configurable: true, value: kind === "cancelled" ? async () => { throw new DOMException("cancelled", "AbortError"); } : undefined });
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: kind === "missing" ? undefined : { writeText: async () => { throw new DOMException("denied", "NotAllowedError"); } } });
   }, failure);
-  const share = panel.getByRole("button", { name: en ? "Share page link ↗" : "페이지 링크 공유하기 ↗", exact: true });
+  const share = panel.getByRole("button", { name: en ? "Share page link" : "페이지 링크 공유하기", exact: true });
   await share.focus();
   await page.keyboard.press("Enter");
   await expect(panel.getByRole("status")).toContainText(failure === "cancelled"

@@ -7,7 +7,7 @@ import type { Place } from "../types";
 // 없어야 한다(오프라인에서도 항상 동작). PlaceInquiryDialog 안 행동 줄에서도 이 화면을 연다.
 import HelpRequestDialog from "./HelpRequestDialog";
 
-const InquiryDialog = lazy(() => import("./PlaceInquiryDialog").catch(() => ({ default: ({ onClose }: { onClose: () => void }) => <p role="alert">문의 카드를 열지 못했어요. <button type="button" onClick={onClose}>닫기</button></p> })));
+const InquiryDialog = lazy(() => import("./PlaceInquiryDialog").catch(() => ({ default: ({ onClose }: { onClose: () => void }) => <p role="alert">문의 카드를 열지 못했어요. <button type="button" onClick={onClose} title="닫기"><span aria-hidden="true">×</span><span className="sr-only">닫기</span></button></p> })));
 
 export default function PlaceInquiryCard({ place, en, suggestedOption, onsiteLabel, startMode }: { place: Place; en: boolean; suggestedOption?: string; onsiteLabel?: string; startMode?: "inquiry" | "communication" }) {
   const [open, setOpen] = useState(Boolean(startMode));
@@ -28,7 +28,7 @@ export default function PlaceInquiryCard({ place, en, suggestedOption, onsiteLab
   }
   return <section className="place-inquiry-entry">
     <div><h3>{en ? "Ask before you visit" : "방문 전에 물어보세요."}</h3><p>{en ? "Choose a question and show a Korean card, or keep it for your trip." : "필요한 질문을 골라 큰 글씨로 보여주거나 여행에 챙겨두세요."}</p></div>
-    <button type="button" onClick={() => openInquiry()}>{en ? "Make an inquiry card" : "문의 카드 만들기"} ↗</button>
+    <button type="button" onClick={() => openInquiry()}>{en ? "Make an inquiry card" : "문의 카드 만들기"}</button>
     {onsiteLabel && <button type="button" onClick={() => openInquiry(true)}>{onsiteLabel}</button>}
     {open && <Suspense fallback={<LoadingState>{en ? "Preparing your card…" : "문의 카드를 준비하고 있어요…"}</LoadingState>}><InquiryDialog place={place} en={en} selected={selected} extra={extra} onSelection={setSelected} onExtra={setExtra} onClose={close} onHelpRequest={openHelp} startCommunicating={startCommunicating} /></Suspense>}
     {helpOpen && <HelpRequestDialog placeName={place.name} placeAddress={place.address ?? null} placeRegion={place.city ?? null} onClose={closeHelp} />}

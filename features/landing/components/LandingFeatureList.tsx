@@ -11,6 +11,6 @@ export default function LandingFeatureList() {
     <div className="landing-feature-grid" data-land-reveal>{landingFeatures.map(feature => feature.href
       ? <Link className="landing-feature-card" href={feature.href} key={feature.id}><FeatureContents feature={feature} /></Link>
       : <article className="landing-feature-card" key={feature.id}><FeatureContents feature={feature} /></article>)}</div>
-    <Link className="simple-text-link landing-feature-guide" href="/guide">자세한 사용 방법 보기 <span aria-hidden="true">→</span></Link>
+    <Link className="simple-text-link landing-feature-guide" href="/guide">자세한 사용 방법 보기 <span aria-hidden="true"></span></Link>
   </section>;
 }

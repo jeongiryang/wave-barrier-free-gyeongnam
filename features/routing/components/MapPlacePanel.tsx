@@ -25,6 +25,6 @@ export default function MapPlacePanel({ place, onClose, onSetOrigin, onSetDestin
       <button type="button" onClick={() => onSetOrigin(place)}>{english ? "Set as departure" : "출발지로"}</button>
       <button type="button" onClick={() => onSetDestination(place)}>{english ? "Set as destination" : "목적지로"}</button>
     </div>
-    <a className="map-place-review-link" href={place.placeUrl || `https://map.kakao.com/link/search/${encodeURIComponent(place.name)}`} target="_blank" rel="noreferrer">{english ? "Kakao place details and reviews ↗" : "카카오 장소 상세·후기 보기 ↗"}</a>
+    <a className="map-place-review-link" href={place.placeUrl || `https://map.kakao.com/link/search/${encodeURIComponent(place.name)}`} target="_blank" rel="noreferrer">{english ? "Kakao place details and reviews" : "카카오 장소 상세·후기 보기"}</a>
   </section>;
 }

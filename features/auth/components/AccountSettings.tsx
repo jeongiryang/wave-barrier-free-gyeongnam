@@ -128,7 +128,7 @@ export default function AccountSettings({ nativeAuth = false }: { nativeAuth?: b
       {signOutError && <p className="auth-message" role="alert">{signOutError}</p>}
     </section>
     <NicknameEditor key={session.user.id} name={session.user.name || '여행자'} onSaved={() => router.refresh()} />
-    <section><h3>내 여행 이어가기</h3><p>여행을 계정에 저장하고, 여러 기기에서 편집하거나 동행자와 의견을 나눌 수 있습니다.</p><Link className="auth-primary-link" href="/my-trips">계정에 저장한 여행 →</Link></section>
+    <section><h3>내 여행 이어가기</h3><p>여행을 계정에 저장하고, 여러 기기에서 편집하거나 동행자와 의견을 나눌 수 있습니다.</p><Link className="auth-primary-link" href="/my-trips">계정에 저장한 여행</Link></section>
     <p className="auth-description"><strong>{session.user.name || session.user.email}</strong> 계정의 보안과 삭제를 직접 관리합니다.</p>
     {nativeAuth && <ConnectedLogins methods={methods} onUnlink={() => setMethods((current) => current ? { ...current, kakao: false } : current)} />}
     {(!nativeAuth || methods?.password) && <section aria-labelledby="change-password-title">

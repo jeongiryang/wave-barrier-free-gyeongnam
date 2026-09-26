@@ -52,7 +52,7 @@ async function setup(page: Page, withTrip = false, initialRegion = '창원') {
   return { chat: await open(page), prompts, journeys };
 }
 async function requestTrip(chat: Locator) {
-  await chat.getByRole('button', { name: '여행 준비 맡기기 →', exact: true }).click();
+  await chat.getByRole('button', { name: '여행 준비 맡기기', exact: true }).click();
   const form = chat.getByRole('form', { name: '여행 준비 맡기기', exact: true });
   await form.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
   await form.getByLabel('출발 날짜', { exact: true }).fill(start);
@@ -60,7 +60,7 @@ async function requestTrip(chat: Locator) {
   await form.getByRole('combobox', { name: '동행', exact: true }).selectOption('부모님과');
   await form.getByRole('combobox', { name: '이동수단', exact: true }).selectOption('car');
   await form.getByRole('radio', { name: '여유롭게 쉬어가기', exact: true }).check();
-  await form.getByRole('button', { name: '이 조건으로 여행 준비 맡기기 →', exact: true }).click();
+  await form.getByRole('button', { name: '이 조건으로 여행 준비 맡기기', exact: true }).click();
   const proposal = chat.getByRole('region', { name: '나루의 실제 일정안', exact: true });
   await expect(proposal).toContainText('작업공간 검증 장소 2');
   return proposal;
@@ -139,7 +139,7 @@ test('follow-up itinerary remains applicable when the first apply finishes its b
     await expect(adjustment).toContainText('기존 장소');
     await expect(adjustment.getByRole('button',{name:'이 일정으로 반영하기',exact:true})).toBeEnabled();
     if(!isMobile){
-      await chat.getByRole('button',{name:'변경안과 확인할 사항 보기 →',exact:true}).click();
+      await chat.getByRole('button',{name:'변경안과 확인할 사항 보기',exact:true}).click();
       await expect(adjustment.locator('header')).toBeInViewport();
     }
     expect(await state(page)).toEqual(before);

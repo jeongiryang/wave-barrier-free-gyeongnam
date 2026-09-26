@@ -10,6 +10,7 @@ import { localDistanceKilometres } from "../../../lib/device-location.js";
 import { supportedPlacePoint } from "../../../lib/map-coordinates.js";
 import type { Place } from "../types";
 import styles from "./TravelExperience.module.css";
+import AccessibleDateInput from '../../../components/AccessibleDateInput';
 const KEY = "wave-travel-passport-v1";
 export default function TravelPassport({
   places,
@@ -216,8 +217,7 @@ export default function TravelPassport({
         </label>
         <label>
           참여 날짜
-          <input
-            type="date"
+          <AccessibleDateInput
             value={date}
             max={communityToday()}
             onChange={(e) => setDate(e.target.value)}

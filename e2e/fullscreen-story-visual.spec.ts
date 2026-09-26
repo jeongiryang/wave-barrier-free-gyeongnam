@@ -1,23 +1,17 @@
-import { INTRO_DURATION_MS } from '../features/landing/intro/wave-timing';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { chapterIds, openLandingTools, freshArrival, arrivalPlaybackReady, expectNoOverflow } from "./landing-contract";
+import { chapterIds, openLandingTools, freshArrival, expectNoOverflow } from "./landing-contract";
 
 
 
 test.use({ video: "on" });
 
-test("the nonblocking arrival leads through a complete restored-section service introduction", async ({ page, isMobile }) => {
+test("immediate entry leads through a complete restored-section service introduction", async ({ page, isMobile }) => {
   await page.setViewportSize(isMobile ? { width: 390, height: 844 } : { width: 1440, height: 960 });
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await freshArrival(page);
-  await arrivalPlaybackReady(page);
-  await expect(page.locator(".arrival-scene")).toBeVisible();
-  await page.clock.fastForward(INTRO_DURATION_MS + 100);
-  await expect(page.locator(".arrival-scene")).toBeHidden();
-  await page.clock.resume();
-  await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
+  await expect(page.locator("#arrival-boot,.arrival-scene,.wave-intro,:modal")).toHaveCount(0);
   expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
   for (const id of chapterIds) {
     if (id === "naru") await openLandingTools(page);

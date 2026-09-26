@@ -84,7 +84,7 @@ test("확인된 편의가 전혀 없으면 등록된 시설 정보가 없다는 
   await dialog.getByRole("button", { name: "3. 시설", exact: true }).click();
   const detail = dialog.locator(".stay-facility-detail");
   await expect(detail).toHaveText("등록된 시설 정보가 없어요.");
-  await expect(dialog.getByRole("button", { name: "문의 카드 만들기 ↗", exact: true }).first()).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "문의 카드 만들기", exact: true }).first()).toBeVisible();
 });
 
 test("1440/960/390px에서 가로 스크롤이 없고 axe 위반이 없다", async ({ page }) => {

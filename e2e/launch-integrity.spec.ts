@@ -1,4 +1,3 @@
-import { arrivalPlaybackReady } from './landing-contract';
 import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
@@ -152,20 +151,15 @@ test("search failures stay visible and retry the same optional choices without r
   expect((await current(page)).facilities).toEqual(facilities);
 });
 
-test("landing: intro exposes its message and an immediate keyboard dismissal", async ({ page }) => {
+test("landing: immediate entry preserves keyboard focus and readable content", async ({ page }) => {
   const errors = trackRuntimeErrors(page);
   const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
   await page.setViewportSize({ width, height: 960 });
   await freshArrival(page);
-  const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
-  await arrivalPlaybackReady(page);
-  await expect(scene).toContainText("모두의 발걸음이 닿는 경상남도");
-  await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(scene).toBeHidden();
+  const planning = page.locator(".landing-actions a");
+  await expect(page.locator("#arrival-boot,.arrival-scene,.wave-intro")).toHaveCount(0);
   await planning.focus(); await expect(planning).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.clock.runFor(32);
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(planning).toBeFocused();
   for (const element of await page.locator(".landing-hero-copy, .landing-hero h1, .landing-actions a").all()) {

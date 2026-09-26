@@ -40,7 +40,7 @@ async function openInquiryDialog(page: Page) {
   await placeDialog.locator("summary").filter({ hasText: /^주차·입구·시설 미리보기$/ }).click();
   await placeDialog.getByRole("button", { name: "3. 시설", exact: true }).click();
   await expect(placeDialog.locator(".place-arrival-preview")).toContainText("자리 형태와 1인 주문 가능 여부는 공공데이터에 등록돼 있지 않아요.");
-  await placeDialog.getByRole("button", { name: "문의 카드 만들기 ↗", exact: true }).first().click();
+  await placeDialog.getByRole("button", { name: "문의 카드 만들기", exact: true }).first().click();
   const inquiry = page.locator("dialog.inquiry-dialog");
   await expect(inquiry).toBeVisible();
   return inquiry;

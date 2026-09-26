@@ -22,7 +22,7 @@ export default function PhotoCoursePage() {
       router.push(`/planner?${query.toString()}`);
     }} />
     <footer className="photo-course-page-footer">
-      <Link href="/travel-book">← 내 여행집으로 돌아가기</Link>
+      <Link href="/travel-book">내 여행집으로 돌아가기</Link>
     </footer>
   </main>;
 }

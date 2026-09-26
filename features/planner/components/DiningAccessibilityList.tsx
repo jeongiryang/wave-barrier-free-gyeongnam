@@ -74,7 +74,7 @@ function DiningCard({ item, requestedKeys }: { item: DiningPlace; requestedKeys:
         {hidden > 0 && <li className="access-badge" style={badgeStyle('unknown')}>+{hidden}</li>}
       </ul>
       : <p style={line}>편의시설: 확인되지 않음</p>}
-    {item.placeUrl && <p style={{ margin: '4px 0 0' }}><a style={externalLink} href={item.placeUrl} target="_blank" rel="noopener noreferrer">장소 정보 보기 ↗</a></p>}
+    {item.placeUrl && <p style={{ margin: '4px 0 0' }}><a style={externalLink} href={item.placeUrl} target="_blank" rel="noopener noreferrer">장소 정보 보기</a></p>}
     <p style={{ ...line, fontSize: '.8rem' }}>{item.source} · {item.checkedAt}</p>
   </li>;
 }

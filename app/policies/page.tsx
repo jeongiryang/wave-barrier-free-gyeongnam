@@ -4,6 +4,7 @@ import Link from "next/link";
 import { regionShowcaseAlbums } from "../../features/landing/region-showcase-photos";
 import { regionPhotoSource } from "../../features/landing/region-photo-sources";
 import { horizonPhotos } from "../../features/landing/horizon-photos";
+import PhotoCredits from "../../features/landing/components/PhotoCredits";
 
 export const metadata: Metadata = {
   title: "서비스 운영정책",
@@ -25,14 +26,14 @@ export default function PoliciesPage() {
 
     <section className="policy-summary" aria-labelledby="policy-summary-title">
       <div><p>운영 원칙</p><h2 id="policy-summary-title">정보의 출처와 한계를 숨기지 않습니다.</h2></div>
-      <p>WAVE는 공식 관광정보와 여행자 경험을 구분하고, 필요한 데이터만 처리하며, 신고와 장애를 확인 가능한 절차로 다룹니다. 중요한 정책 변경은 이 화면의 시행일과 변경 내용을 갱신해 알립니다.</p>
+      <p>WAVE는 독립 서비스이며 한국관광공사·경상남도의 공식 운영 서비스가 아닙니다. WAVE는 공식 관광정보와 여행자 경험을 구분하고, 필요한 데이터만 처리하며, 신고와 장애를 확인 가능한 절차로 다룹니다. 중요한 정책 변경은 이 화면의 시행일과 변경 내용을 갱신해 알립니다.</p>
     </section>
 
     <div className="policy-link-grid" aria-label="정책 문서 바로가기">
-      <Link href="/privacy"><span>01</span><strong>개인정보처리방침</strong><small>수집 항목 · 보관 · 파기 · 권리 행사</small><i aria-hidden="true">↗</i></Link>
-      <Link href="/terms"><span>02</span><strong>서비스 이용약관</strong><small>서비스 범위 · 계정 · 게시물 · 책임</small><i aria-hidden="true">↗</i></Link>
-      <a href="#community-policy"><span>03</span><strong>커뮤니티 운영정책</strong><small>작성 기준 · 신고 · 검토 · 이의제기</small><i aria-hidden="true">↓</i></a>
-      <a href="#service-policy"><span>04</span><strong>서비스 운영정책</strong><small>정보 신뢰 · 장애 · 변경 · 중단</small><i aria-hidden="true">↓</i></a>
+      <Link href="/privacy"><span>01</span><strong>개인정보처리방침</strong><small>수집 항목 · 보관 · 파기 · 권리 행사</small></Link>
+      <Link href="/terms"><span>02</span><strong>서비스 이용약관</strong><small>서비스 범위 · 계정 · 게시물 · 책임</small></Link>
+      <a href="#community-policy"><span>03</span><strong>커뮤니티 운영정책</strong><small>작성 기준 · 신고 · 검토 · 이의제기</small></a>
+      <a href="#service-policy"><span>04</span><strong>서비스 운영정책</strong><small>정보 신뢰 · 장애 · 변경 · 중단</small></a>
     </div>
 
     <article className="policy-article">
@@ -63,12 +64,20 @@ export default function PoliciesPage() {
         <h2>콘텐츠 출처 및 이용안내</h2><p>출처: ⓒ한국관광공사 · ⓒ한국관광콘텐츠랩. 관광정보·무장애 편의정보·축제 정보는 공공 관광 데이터를 연결해 제공합니다. 개별 사진의 저작자와 이용조건은 아래에서 확인할 수 있습니다.</p>
         <h3 id="horizon-photo-credits">소개 페이지의 풍경 사진</h3>
         <p>아래 사진은 Wikimedia Commons에 공개된 실제 관광 풍경입니다. 디자인 스튜디오에서 크기·압축을 조정한 파일을 사용하며, 화면 비율에 맞춰 잘라 표시하고 글자 가독성을 위한 음영을 얹습니다. 각 사진과 수정본은 표시된 동일조건변경허락 라이선스를 유지합니다.</p>
-        <ul>{Object.values(horizonPhotos).map(photo => <li key={photo.id}><a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer">{photo.title} — 원본 및 저작자</a><p>저작자: {photo.photographer} · <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a><br /><a href={photo.image}>현재 사용하는 사진 파일</a></p></li>)}</ul>
+        <ul className="photo-credits-grid">{Object.values(horizonPhotos).map(photo => <li key={photo.id}><img src={photo.image} alt={photo.title} loading="lazy" width="240" height="160" /><a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer">{photo.title} — 원본 및 저작자</a><p>제공: Wikimedia Commons · 저작자: {photo.photographer} · <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a><br /><a href={photo.image}>현재 사용하는 사진 파일</a></p></li>)}</ul>
         <h3>지역별 관광사진</h3>
         <p>지역 사진의 제공기관은 한국관광공사이며 저작권은 해당 권리자에게 있습니다. 아래 링크는 현재 사용한 사진의 원본 이미지입니다. 개별 게시 상세 페이지와 사진별 이용조건의 일치는 아직 확인 중이며, 원본 링크를 이용허락 증빙으로 대신하지 않습니다. 재사용·재배포 전 제공처의 개별 이용조건을 확인해 주세요.</p>
-        <ul id="regional-photo-credits">{Object.entries(regionShowcaseAlbums).flatMap(([region,photos]) => photos.map(photo => <li key={photo.id}><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{region} · {photo.title} — 사진 원본 (새 탭)</a><p>저작자: {photo.photographer || "개별 저작자 미확인"} · 제공: ⓒ한국관광공사<br />원문 상세/개별 이용조건: 확인 중. 사진 내 워터마크를 유지합니다.</p></li>))}</ul>
+        <ul id="regional-photo-credits" className="photo-credits-grid">{Object.entries(regionShowcaseAlbums).flatMap(([region,photos]) => photos.map(photo => <li key={photo.id}><img src={photo.image} alt={photo.title} loading="lazy" width="240" height="160" /><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{region} · {photo.title} — 사진 원본 (새 탭)</a><p>저작자: {photo.photographer || "개별 저작자 미확인"} · 제공: ⓒ한국관광공사<br />원문 상세/개별 이용조건: 확인 중. 사진 내 워터마크를 유지합니다.</p></li>))}</ul>
+        <PhotoCredits />
         <h3>브랜드 이미지와 제품 화면</h3>
-        <p>인트로의 브랜드 영상은 WAVE를 위해 제작한 이미지이며 실제 관광지·시설 기록이 아닙니다. 과거 소개에 사용한 생성 이미지, 추천 제품 화면, 편의 선택·커뮤니티 작성 시연은 원본과 사용 기록을 저장소에 보존합니다. 현재 소개의 풍경 사진은 위 저작자·이용조건을 따릅니다.</p>
+        <p>나루 캐릭터, 나루와 어린아이의 대화 장면과 밤바다 배경은 WAVE의 안내를 위해 AI로 제작한 그림입니다. 실제 인물·관광지 사진이나 실제 상담 기록이 아닙니다. 대화 문구는 이용 방법을 보여주는 예시입니다.</p>
+        <ul className="photo-credits-grid">{[
+          { image: '/naru/naru-512.webp', title: '나루 캐릭터' },
+          { image: '/naru/conversation-hello-night.webp', title: '나루와 인사하는 대화 장면' },
+          { image: '/naru/conversation-map-night.webp', title: '나루와 여행을 준비하는 대화 장면' },
+          { image: '/naru/night-coast.webp', title: '나루 안내 영역의 밤바다 배경' },
+        ].map(art => <li key={art.image}><img src={art.image} alt={art.title} loading="lazy" width="240" height="160" /><strong>{art.title}</strong><p>제작: WAVE · AI 생성 이미지</p><a href={art.image}>현재 사용하는 이미지 파일</a></li>)}</ul>
+        <p>보존된 인트로 브랜드 영상은 WAVE를 위해 제작한 이미지이며 실제 관광지·시설 기록이 아닙니다. 과거 소개에 사용한 생성 이미지, 추천 제품 화면, 편의 선택·커뮤니티 작성 시연은 원본과 사용 기록을 저장소에 보존합니다. 현재 소개의 풍경 사진은 위 저작자·이용조건을 따릅니다.</p>
         <p>보존된 일정·카카오 지도 화면은 2026년 9월 9일 06:55–06:58 KST 같은 여행에서 장소를 둘째 날로 옮긴 전후 기록입니다. 현재 소개에서는 보류 중이며, 지도 표기·워터마크와 원본 촬영 manifest를 보존합니다. 새 사용화면 검증 후 다시 제작합니다.</p>
       </section>
     </article>

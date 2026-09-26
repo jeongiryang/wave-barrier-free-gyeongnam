@@ -117,7 +117,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore, compareEnabled = 
         <small id={noteStatusId} className="travel-book-note-status" role="status" aria-live="polite">{noteState === "saved" ? "메모를 저장했습니다." : noteState === "editing" ? `편집 중 · ${note.length}/1,200자` : `${note.length}/1,200자`}</small>
       </label>
       <div className="travel-book-actions">
-        <button type="button" className="primary" onClick={() => onRestore(book)}>이 일정 다시 열기 <span aria-hidden="true">→</span></button>
+        <button type="button" className="primary" onClick={() => onRestore(book)}>이 일정 다시 열기 <span aria-hidden="true"></span></button>
         <Link href="/photo-course">사진으로 코스 되살리기</Link>
         <Link href={journalHref(book)}>여행 후기 초안</Link>
       </div>
@@ -191,7 +191,7 @@ export default function TravelBookPage() {
     <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
     {storageError && <p className="result-notice error" role="alert">{storageError}</p>}
     {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>저장한 여행을 불러오는 중입니다.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setCompareIds(current => current.filter(value => value !== id)); setAnnouncement(`${book.title} 여행을 여행집에서 삭제했습니다.`); }} onRestore={restore} compareEnabled={books.length >= 2} compareSelected={compareIds.includes(book.id)} onCompareToggle={id => setCompareIds(current => current.includes(id) ? current.filter(value => value !== id) : current.length < 2 ? [...current, id] : current)} />)}</section> : <section className="travel-book-empty">
-      <span aria-hidden="true">＋</span><p>저장한 여행이 없습니다.</p><h2>여행을 저장하면 여기서 다시 열 수 있습니다.</h2><small>일정의 ‘내 여행에 저장’을 눌러 주세요.</small><Link href="/planner">여행 설계하기 <span aria-hidden="true">→</span></Link>
+      <span aria-hidden="true">＋</span><p>저장한 여행이 없습니다.</p><h2>여행을 저장하면 여기서 다시 열 수 있습니다.</h2><small>일정의 ‘내 여행에 저장’을 눌러 주세요.</small><Link href="/planner">여행 설계하기 <span aria-hidden="true"></span></Link>
     </section>}
     <footer className="travel-book-footer"><Link href="/photo-course">사진으로 여행 찾기</Link><Link href="/community">여행자 후기 읽기</Link><Link href="/privacy">개인정보</Link><Link href="/terms">이용 안내</Link><GithubFooterLink /></footer>
     {!newTripReady && newTripError && <p role="alert">{newTripError}</p>}

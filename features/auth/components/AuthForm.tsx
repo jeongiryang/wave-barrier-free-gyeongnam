@@ -20,7 +20,7 @@ export default function AuthForm({ mode, returnTo, kakaoEnabled = false, publicP
   if (auth.session?.user) return <section className="auth-card auth-signed-in" aria-labelledby="auth-title">
     <p className="auth-kicker">WELCOME TO WAVE</p><h1 id="auth-title">여행을 이어가세요.</h1>
     <p>{auth.session.user.name || auth.session.user.email}님, 다시 만나 반가워요.</p>
-    <a className="auth-primary-link" href={auth.next}>계속하기 <span aria-hidden="true">→</span></a>
+    <a className="auth-primary-link" href={auth.next}>계속하기 <span aria-hidden="true"></span></a>
     <a className="auth-guest" href="/account">계정 관리</a>
   </section>;
 
@@ -38,10 +38,10 @@ export default function AuthForm({ mode, returnTo, kakaoEnabled = false, publicP
       {auth.registering && <div className="auth-field"><label htmlFor="auth-confirm-password">비밀번호 확인</label><input id="auth-confirm-password" name="confirmPassword" type={auth.showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} maxLength={16} required {...fieldProps("confirmPassword")} /></div>}
       {!auth.registering && <div className="auth-recovery-link"><span>나의 여행을 한곳에서</span><a href="/forgot-password">비밀번호 찾기</a></div>}
       <p id="auth-message" className={`auth-message${auth.success ? " success" : ""}`} role={auth.message ? "alert" : undefined} aria-live="polite">{auth.message}</p>
-      <button className="auth-submit" type="submit" disabled={auth.submitting || auth.isPending || auth.success}>{auth.success ? "이동하는 중…" : auth.submitting ? "처리하는 중…" : auth.registering ? "가입하고 시작하기" : <>로그인 <span aria-hidden="true">→</span></>}</button>
+      <button className="auth-submit" type="submit" disabled={auth.submitting || auth.isPending || auth.success}>{auth.success ? "이동하는 중…" : auth.submitting ? "처리하는 중…" : auth.registering ? "가입하고 시작하기" : <>로그인 <span aria-hidden="true"></span></>}</button>
     </HydratedAuthForm>
-    <div className="auth-switch">{auth.registering ? "이미 계정이 있나요?" : "WAVE가 처음이신가요?"} <a href={`${auth.registering ? "/login" : "/register"}?next=${encodeURIComponent(auth.next)}`}>{auth.registering ? "로그인" : "회원가입"} <span aria-hidden="true">↗</span></a></div>
+    <div className="auth-switch">{auth.registering ? "이미 계정이 있나요?" : "WAVE가 처음이신가요?"} <a href={`${auth.registering ? "/login" : "/register"}?next=${encodeURIComponent(auth.next)}`}>{auth.registering ? "로그인" : "회원가입"} <span aria-hidden="true"></span></a></div>
     {auth.registering && <p className="auth-legal">가입 전 <a href="/privacy">개인정보처리방침</a>과 <a href="/terms">이용약관</a>을 확인해 주세요.</p>}
-    <div className="auth-guest"><a href="/planner">로그인 없이 둘러보기 <span aria-hidden="true">↗</span></a><small>여행지 탐색과 일정 설계는 바로 이용할 수 있어요.</small></div>
+    <div className="auth-guest"><a href="/planner">로그인 없이 둘러보기 <span aria-hidden="true"></span></a><small>여행지 탐색과 일정 설계는 바로 이용할 수 있어요.</small></div>
   </section>;
 }

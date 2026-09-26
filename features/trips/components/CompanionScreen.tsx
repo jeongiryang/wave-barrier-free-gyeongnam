@@ -588,7 +588,7 @@ export default function CompanionScreen({ id }: { id: string }) {
                     {e.shares.map((s) => (
                       <li key={s.name}>
                         {s.name}: {s.amount.toLocaleString()}원{" "}
-                        {s.payer ? "(결제자 몫)" : `→ ${e.payer}에게 정산`}
+                        {s.payer ? "(결제자 몫)" : ` ${e.payer}에게 정산`}
                       </li>
                     ))}
                   </ul>

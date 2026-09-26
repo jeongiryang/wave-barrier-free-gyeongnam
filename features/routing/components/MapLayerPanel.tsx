@@ -27,7 +27,7 @@ export default function MapLayerPanel({ available, loading, onRetry, activeLayer
     <div className="map-utility-actions">
       <button type="button" onClick={onSave}><i aria-hidden="true">＋</i>{english ? "Add to itinerary" : "내 일정에 추가"}</button>
       <button type="button" onClick={() => window.print()}><i aria-hidden="true">▣</i>{english ? "Print" : "인쇄"}</button>
-      <button type="button" onClick={onShare}><i aria-hidden="true">↗</i>{english ? "Page link" : "페이지 링크"}</button>
+      <button type="button" onClick={onShare}><i aria-hidden="true"></i>{english ? "Page link" : "페이지 링크"}</button>
       <button type="button" aria-disabled={loading} onClick={() => { if (!loading) onRetry(); }}><i aria-hidden="true">↻</i>{english ? "Reload map" : "지도 다시 불러오기"}</button>
     </div>
   </section>;

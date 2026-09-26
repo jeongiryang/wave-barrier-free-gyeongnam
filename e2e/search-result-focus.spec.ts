@@ -39,7 +39,7 @@ async function openSignals(page: Page) {
   await openNaruTool(page, "출발 전 확인");
   const weather = page.locator(".simple-readiness details").filter({ has: page.locator("summary strong").getByText("날씨", { exact: true }) });
   await weather.locator("summary").click();
-  await weather.getByRole("link", { name: "상세 정보 확인 →", exact: true }).click();
+  await weather.getByRole("link", { name: "상세 정보 확인", exact: true }).click();
   await expect(page.locator("#layers")).toHaveAttribute("open");
   await expect(page).toHaveURL(/#layers$/);
 }
@@ -101,7 +101,7 @@ for (const action of ["nearby", "alternative"] as const) test("departure " + act
   await collectMuseum(page, en);
   await openSignals(page);
   const trigger = action === "nearby"
-    ? page.locator(".rich-card").getByRole("button", { name: en ? "View route on the map ↗" : "지도에서 경로 보기 ↗", exact: true })
+    ? page.locator(".rich-card").getByRole("button", { name: en ? "View route on the map" : "지도에서 경로 보기", exact: true })
     : page.getByRole("button", { name: en ? "Compare replacing with 용지호수공원" : "용지호수공원(으)로 교체 검토", exact: true });
   await expect(trigger).toBeVisible();
   await trigger.focus();

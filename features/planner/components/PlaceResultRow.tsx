@@ -27,7 +27,7 @@ export default function PlaceResultRow({ place, region, saved, current, en, unkn
       {compare && <label className="simple-compare-check"><input type="checkbox" checked={compare.selected} disabled={compare.disabled} onChange={compare.toggle} />{say("비교", "Compare")}</label>}
     </div>
     <button type="button" className="simple-place-add" disabled={!unknown && !saved && !current} aria-pressed={saved} onClick={saved ? onToggle : unknown ? onDetails : onToggle} aria-label={`${place.name} ${unknown && !saved ? say("편의 확인", "review facilities") : saved ? say("담았음 · 되돌리기", "added · undo") : say("일정에 담기", "add to itinerary")}`}>
-      <span aria-hidden="true">{saved ? "↶" : unknown ? "→" : "+"}</span>
+      <span aria-hidden="true">{saved ? "↶" : unknown ? "" : "+"}</span>
     </button>
   </article>;
 }

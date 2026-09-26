@@ -17,10 +17,10 @@ export default function FooterAccountLink({ iconOnly = false }: { iconOnly?: boo
   const en = useSitePreferences().locale === "en";
   const path = usePathname();
   const loginHref = path && path !== "/" ? `/login?next=${encodeURIComponent(path)}` : "/login";
-  const link = <a className={iconOnly ? "wave-profile-entry" : "account-button"} aria-label={en ? "Account" : "계정 관리"} href="/account" onPointerEnter={() => setReady(true)} onClick={(event) => {
+  const link = <button type="button" className={iconOnly ? "wave-profile-entry" : "account-button"} aria-label={en ? "Account" : "계정 관리"} aria-haspopup="true" onClick={(event) => {
     event.preventDefault();
     setOpen(true);
     setReady(true);
-  }}>{iconOnly ? <ProfileIcon /> : en ? "Account" : "계정 관리"}</a>;
+  }}>{iconOnly ? <ProfileIcon /> : en ? "Account" : "계정 관리"}</button>;
   return ready ? <Suspense fallback={link}><AccountMenu initialOpen={open} loginHref={loginHref} iconOnly={iconOnly} /></Suspense> : link;
 }

@@ -91,7 +91,6 @@ async function landingProductSource() {
   const paths = [
     "app/page.tsx",
     "features/landing/content.ts",
-    "features/landing/components/LandingIntro.tsx",
     "features/landing/components/LandingHeader.tsx",
     "features/landing/components/LandingHero.tsx",
     "features/landing/components/LandingChapters.tsx",
@@ -403,11 +402,10 @@ test("saved preferences survive a reload", async () => {
 });
 
 test("motion follows the OS, retires legacy storage and has no app preference control", async () => {
-  const [storage, controls, catalog, intro, regions, layout] = await Promise.all([
+  const [storage, controls, catalog, regions, layout] = await Promise.all([
     source("features/preferences/storage.ts"),
     source("features/preferences/PreferenceControls.tsx"),
     source("features/preferences/locale-catalog.ts"),
-    source("features/landing/components/LandingIntro.tsx"),
     source("features/landing/components/LandingRegionStory.tsx"),
     source("app/layout.tsx"),
   ]);
@@ -423,11 +421,7 @@ test("motion follows the OS, retires legacy storage and has no app preference co
   assert.match(controls, /\{open && <div className="preference-panel" id=\{panelId\}/);
   assert.match(controls, /event\.key !== "Escape"[\s\S]*setOpen\(false\);\s*trigger\.current\?\.focus\(\)/);
   assert.doesNotMatch(catalog, /motionCopy/);
-  for (const component of [intro, regions]) assert.match(component, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
-  assert.match(intro, /media\.matches \|\| document\.documentElement\.dataset\.motion === "calm"/);
-  assert.match(intro, /if \(media\.matches\) finish\(\)/);
-  assert.match(intro, /media\.addEventListener\("change", reduce\)/);
-  assert.match(intro, /media\.removeEventListener\("change", reduce\)/);
+  assert.match(regions, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(regions, /if \(!entry\.isIntersecting \|\| media\.matches \|\| revealed\.current\.has\(entry\.target\)\) return/);
   assert.match(regions, /if \(media\.matches\) \{ animations\.forEach\(animation => animation\.cancel\(\)\); animations\.clear\(\)/);
   assert.match(regions, /media\.addEventListener\('change', configure\)/);
@@ -435,7 +429,6 @@ test("motion follows the OS, retires legacy storage and has no app preference co
   assert.match(layout, /prefers-reduced-motion: reduce/);
   assert.match(layout, /d\.dataset\.motion=r\?'calm':'full'/);
   assert.doesNotMatch(layout, /LandingIntro|wave-intro-seen/);
-  assert.match(await source("features/landing/components/LandingIntro.module.css"), /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.scene\s*\{\s*display:\s*none/);
 });
 
 test("non-Korean locales are visibly marked as partial without breaking narrow headers", async () => {
@@ -779,24 +772,11 @@ test("route-map rendering delegates controller, provider adapters, controls and 
   assert.match(imageExport, /URL\.revokeObjectURL/);
 });
 
-test("arrival motion belongs to an isolated component and cleans up lifecycle listeners", async () => {
-  const [page, intro, css, renderer] = await Promise.all([
-    source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"),
-    source("features/landing/components/LandingIntro.module.css"),
-    source("features/landing/intro/wave-intro.tsx"),
-  ]);
-  assert.match(page, /<LandingIntro/);
-  assert.doesNotMatch(page, /requestAnimationFrame|createIntroMasks|useEffect|<WaveField/);
-  assert.match(intro, /useEffect\(\(\) =>/);
-  assert.match(intro, /clearTimeout\(watchdog\)/);
-  assert.match(renderer, /document\.removeEventListener\("visibilitychange", resetClock\)/);
-  assert.match(renderer, /cancelAnimationFrame\(frame\)/);
-  assert.match(renderer, /document\.hidden \|\| controls\.current\.paused \? 0/);
-  assert.match(intro, /media\.removeEventListener\("change", reduce\)/);
-  assert.match(intro, /node\.close\(\)/);
-  assert.match(intro, /if \(media\.matches\) finish\(\)/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.doesNotMatch(intro, /requestAnimationFrame|putImageData|createIntroMasks/);
+test("landing entry has no intro animation lifecycle or blocking dialog", async () => {
+  const page = await source("app/page.tsx");
+  assert.doesNotMatch(page, /LandingIntro|requestAnimationFrame|createIntroMasks|useEffect|<WaveField|<dialog/);
+  assert.match(page, /<SkipLink/);
+  assert.match(page, /<LandingHero/);
 });
 
 test("every user-facing footer exposes the repository with an accessible tooltip", async () => {

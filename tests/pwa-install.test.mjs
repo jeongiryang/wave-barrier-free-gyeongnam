@@ -6,7 +6,7 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
-test("PWA 설치는 기존 manifest와 환경설정 안의 명시적 요청만 사용한다", async () => {
+test("기존 PWA manifest를 보존하고 환경설정에 설치 요청을 표시하지 않는다", async () => {
   const [manifest, hook, controls, styles] = await Promise.all([
     source("app/manifest.ts"),
     source("features/preferences/useAppInstall.ts"),
@@ -24,7 +24,6 @@ test("PWA 설치는 기존 manifest와 환경설정 안의 명시적 요청만 �
   assert.match(hook, /const install = useCallback\(async \(\) =>/);
   assert.match(hook, /await event\.prompt\(\)/);
   assert.doesNotMatch(hook, /useEffect\([\s\S]{0,500}\.prompt\(\)/);
-  assert.match(controls, /aria-label=\{en \? "Install WAVE" : "WAVE 앱 설치"\}/);
-  assert.match(controls, /브라우저 메뉴에서 ‘홈 화면에 추가’를 선택하세요/);
+  assert.doesNotMatch(controls, /useAppInstall|WAVE 앱 설치|홈 화면에 추가|appInstall\.install/);
   assert.match(styles, /\.preference-row\.app-install/);
 });

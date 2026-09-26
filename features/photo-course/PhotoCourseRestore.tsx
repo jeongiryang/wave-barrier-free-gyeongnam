@@ -101,8 +101,8 @@ export default function PhotoCourseRestore({ onApply }: Props) {
                       <div className="photo-course-stop-main">
                         <div className="photo-course-stop-order">
                           <span className="photo-course-time">{stop.timeLabel}</span>
-                          <button type="button" disabled={stopIndex === 0} onClick={() => moveStop(dayIndex, stopIndex, -1)} aria-label={`${name} 순서를 위로`}>↑</button>
-                          <button type="button" disabled={stopIndex === day.stops.length - 1} onClick={() => moveStop(dayIndex, stopIndex, 1)} aria-label={`${name} 순서를 아래로`}>↓</button>
+                          <button type="button" disabled={stopIndex === 0} onClick={() => moveStop(dayIndex, stopIndex, -1)} aria-label={`${name} 순서를 위로`}>위로</button>
+                          <button type="button" disabled={stopIndex === day.stops.length - 1} onClick={() => moveStop(dayIndex, stopIndex, 1)} aria-label={`${name} 순서를 아래로`}>아래로</button>
                         </div>
 
                         <label className="photo-course-name">

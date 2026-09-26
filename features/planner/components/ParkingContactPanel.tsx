@@ -67,6 +67,6 @@ export default function ParkingContactPanel({ id, parkingName, phoneNumber, plac
         <button type="button" style={{ background: 'var(--paper)', border: '1px solid var(--line)', color: 'var(--ink)' }} onClick={selectQuestion}>전체 선택</button>
       </div>}
     </> : <p>문의 가능한 전화번호가 없어요.</p>}
-    <div className="parking-actions parking-contact-close"><button type="button" style={{ background: 'var(--paper)', border: '1px solid var(--line)', color: 'var(--ink)' }} aria-label="주차장 문의 닫기" onClick={onClose}>닫기</button></div>
+    <div className="parking-actions parking-contact-close"><button type="button" style={{ background: 'var(--paper)', border: '1px solid var(--line)', color: 'var(--ink)' }} aria-label="주차장 문의 닫기" onClick={onClose} title="닫기"><span aria-hidden="true">×</span><span className="sr-only">닫기</span></button></div>
   </section>;
 }

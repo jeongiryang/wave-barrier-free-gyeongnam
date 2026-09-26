@@ -69,7 +69,6 @@ async function landingProductSource() {
   const paths = [
     "app/page.tsx",
     "features/landing/content.ts",
-    "features/landing/components/LandingIntro.tsx",
     "features/landing/components/LandingHeader.tsx",
     "features/landing/components/LandingHero.tsx",
     "features/landing/components/LandingChapters.tsx",
@@ -263,8 +262,11 @@ test("account, storage and footer copy describe real boundaries and independent 
   assert.match(authForm, /fieldProps\("password", auth\.registering \? "auth-password-help" : undefined\)/);
   assert.match(authForm, /invalid \? "auth-message" : ""/);
   assert.match(account, /authClient\.signOut/);
-  assert.match(landing, /공식 운영 서비스가 아닙니다/);
-  assert.match(planner, /공식 운영 서비스가 아닙니다/);
+  const policy = await source("app/policies/page.tsx");
+  assert.match(policy, /공식 운영 서비스가 아닙니다/);
+  assert.match(landing, /policies#content-credits/);
+  const footer = await source("components/SiteFooter.tsx");
+  assert.match(footer, /policies#content-credits/);
   assert.match(planner, /placeDialogRef/);
 });
 
@@ -340,8 +342,13 @@ test("landing offers five fixed full-photo links then all eighteen and preserves
   assert.match(landing, /href=\{\x60\/planner\?region=\$\{encodeURIComponent\(name\)\}\x60\}/);
   assert.match(landing, /aria-controls="region-grid"/);
   assert.match(landing, /aria-expanded=\{expanded\}/);
-  assert.match(landing, /href=\{regionPhotoSource\(photo\)\.href\}/);
-  assert.match(landing, /className="simple-region-credit"/);
+  assert.doesNotMatch(landing, /simple-region-credit/);
+  const policy = await source("app/policies/page.tsx");
+  assert.match(policy, /Object\.entries\(regionShowcaseAlbums\)/);
+  assert.match(policy, /href=\{regionPhotoSource\(photo\)\.href\}/);
+  assert.match(policy, /photo\.photographer/);
+  assert.match(policy, /photo-credits-grid/);
+  assert.match(policy, /<PhotoCredits/);
   assert.doesNotMatch(landing, /simple-region-culture|declining-region-notice|simple-region-arrow/);
   assert.doesNotMatch(landing, /setTimeout|setInterval|setAutomatic|RegionMascot|upload\.wikimedia\.org/i);
   const surface = await source("features/landing/components/RegionBoundarySurface.tsx");
@@ -386,25 +393,13 @@ test("preserved feature previews retain their order and motion safety; current c
   }
 });
 
-test("arrival intro hosts the approved renderer with explicit playback and bounded recovery", async () => {
-  const [landing, intro, css] = await Promise.all([
-    source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"), source("features/landing/components/LandingIntro.module.css"),
-  ]);
-  assert.match(intro, /import\("\.\.\/intro\/wave-intro"\)/);
-  assert.doesNotMatch(intro, /EditorialPhoto|<img|<video/);
-  assert.match(landing, /<LandingIntro \/><main/);
-  assert.match(intro, /<dialog ref=\{dialog\}/);
-  assert.match(intro, /onCancel=/);
-  assert.match(intro, /건너뛰기/);
-  assert.match(intro, /prefers-reduced-motion: reduce/);
-  assert.match(intro, /onComplete=\{\(\)=>finishRef\.current\(\)\}/);
-  assert.match(intro, /watchdog\s*=\s*setTimeout\([\s\S]*!ready\.current[\s\S]*8000\)/);
-  assert.match(intro, /onFailure=\{\(\)=>finishRef\.current\(\)\}/);
-  assert.doesNotMatch(intro, /일시정지|이전 장면|다음 장면/);
-  assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
-  assert.match(intro, /clearTimeout\(watchdog\)/);
-  assert.match(css, /\.scene\s*\{[^}]*position:\s*fixed/);
+test("landing does not load intro playback or gate main content behind it", async () => {
+  const landing = await source("app/page.tsx");
+  assert.doesNotMatch(landing, /LandingIntro|wave-intro|arrival-scene|wave-arrival-session/);
   assert.doesNotMatch(landing, /<LandingSectionProgress|<LandingAccountStory/);
+  assert.match(landing, /<LandingHeader/);
+  assert.match(landing, /<LandingHero/);
+  assert.match(landing, /<LandingFeatureLinks/);
 });
 
 test("interactive help follows real sections on every public journey and remains accessible on mobile", async () => {
@@ -518,7 +513,7 @@ test("planner visual order follows browsing, itinerary and optional departure ch
 
 test("weather and concentration signals lead to accessible, provenance-aware actions", async () => {
   const planner = await plannerProductSource();
-  assert.match(planner, /상황 감지 → 일정 영향 → 대안/);
+  assert.match(planner, /상황 감지 · 일정 영향 · 대안/);
   assert.match(planner, /role="status" aria-live="polite"/);
   assert.doesNotMatch(planner, /impact-response[^>]+aria-live/);
   assert.match(planner, /정확한 실시간 방문자 수가 아닙니다/);

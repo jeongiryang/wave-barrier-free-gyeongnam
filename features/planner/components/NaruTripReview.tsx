@@ -53,7 +53,7 @@ export default function NaruTripReview(props: Props) {
             {estimate > 0 && <li>{estimate}개 이동 구간은 추정값이에요. 실제 교통편을 확인하면 시간표가 달라질 수 있어요.</li>}
             {rests.length > 0 && <li>설정한 휴식 간격에 따라 {rests.map(entry => entry.place.name).join(', ')} 방문 뒤 휴식을 검토해 주세요.</li>}
           </ul>
-          <details><summary>이 날의 시간표 요약</summary><p>{day.entries[0].startsAtLabel} 첫 방문 → {day.entries.at(-1)!.endsAtLabel} 마지막 휴식까지 · 체류 {day.entries.reduce((sum, entry) => sum + entry.visitMinutes, 0)}분 · 휴식 {day.entries.reduce((sum, entry) => sum + entry.breakMinutes, 0)}분</p></details>
+          <details><summary>이 날의 시간표 요약</summary><p>{day.entries[0].startsAtLabel} 첫 방문 · {day.entries.at(-1)!.endsAtLabel} 마지막 휴식까지 · 체류 {day.entries.reduce((sum, entry) => sum + entry.visitMinutes, 0)}분 · 휴식 {day.entries.reduce((sum, entry) => sum + entry.breakMinutes, 0)}분</p></details>
         </>}
       </article>;
     })}

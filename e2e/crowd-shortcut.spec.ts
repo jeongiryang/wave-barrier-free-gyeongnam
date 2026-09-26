@@ -41,7 +41,7 @@ for (const input of ["pointer", "keyboard"] as const) {
     expect(planRequests).toEqual(["창원"]);
     const crowdRow = page.locator(".simple-readiness > details").filter({ has: page.locator("summary > strong").filter({ hasText: /^관광 집중률$/ }) });
     await crowdRow.locator("summary").click();
-    const shortcut = crowdRow.getByRole("link", { name: "상세 정보 확인 →", exact: true });
+    const shortcut = crowdRow.getByRole("link", { name: "상세 정보 확인", exact: true });
     await expect(page.locator("#layers")).not.toHaveAttribute("open");
     if (input === "pointer") await shortcut.click();
     else { await shortcut.focus(); await page.keyboard.press("Enter"); }
@@ -72,7 +72,7 @@ for (const input of ["pointer", "keyboard"] as const) {
     await page.locator("#layers > summary").click();
     const weatherRow = page.locator(".simple-readiness > details").filter({ has: page.locator("summary > strong").filter({ hasText: /^날씨$/ }) });
     await weatherRow.locator("summary").click();
-    await weatherRow.getByRole("link", { name: "상세 정보 확인 →", exact: true }).click();
+    await weatherRow.getByRole("link", { name: "상세 정보 확인", exact: true }).click();
     await expect(page.locator("#layers > summary")).toBeFocused();
     await expect(page).toHaveURL(/#layers$/);
     expect(crowdRequests).toEqual(["창원:경남도립미술관"]);
@@ -135,7 +135,7 @@ for (const manualScroll of [false, true]) {
       const requestsBeforeShortcut = [...requests];
       const row = page.locator(".simple-readiness > details").filter({ has: page.locator("summary > strong").filter({ hasText: /^관광 집중률$/ }) });
       await row.locator("summary").click();
-      await row.getByRole("link", { name: "상세 정보 확인 →", exact: true }).click();
+      await row.getByRole("link", { name: "상세 정보 확인", exact: true }).click();
       const heading = page.locator(".impact-response h3");
       await expect(heading).toBeFocused();
       await expect(heading).toBeInViewport();

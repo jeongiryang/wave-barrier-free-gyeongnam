@@ -52,7 +52,7 @@ export default function ThemeExplorer({
         <section>
           <small>{spot.source}</small><h3>{spot.title}</h3>
           <p>{spot.address || spot.summary || (english ? `${spot.tag} travel information in ${regionLabel}` : `${region}에서 만나는 ${spot.tag} 여행 정보`)}</p>
-          <button type="button" disabled={!spot.mapX || !spot.mapY} onClick={() => onRouteFromSpot(spot)}>{spot.mapX && spot.mapY ? (english ? "View route on the map" : "지도에서 경로 보기") : (english ? "Coordinates unavailable" : "좌표 정보 미제공")}<span>↗</span></button>
+          <button type="button" disabled={!spot.mapX || !spot.mapY} onClick={() => onRouteFromSpot(spot)}>{spot.mapX && spot.mapY ? (english ? "View route on the map" : "지도에서 경로 보기") : (english ? "Coordinates unavailable" : "좌표 정보 미제공")}<span></span></button>
         </section>
       </article>)}
     </div>
