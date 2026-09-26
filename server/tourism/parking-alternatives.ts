@@ -16,7 +16,7 @@ const allowedQueries = new Set(['action', 'contentId']);
 const isGyeongnamPlace = (place: Record<string, unknown>) => String(place.lDongRegnCd || '') === '48' || String(place.areacode || '') === '36';
 const record = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const integer = (value: unknown) => (typeof value === 'number' || typeof value === 'string' && /^\d+$/.test(value)) && Number.isSafeInteger(Number(value)) && Number(value) >= 0 ? Number(value) : null;
-const rejectionReasons = ['json', 'envelope', 'normal-code', 'total', 'total-changed', 'page-no', 'rows-meta', 'items-shape', 'row-count', 'row-object', 'row-id', 'filter-value', 'duplicate-id', 'later-no-data', 'final-count', 'page-cap'] as const;
+const rejectionReasons = ['json', 'envelope', 'normal-code', 'total', 'total-changed', 'page-no', 'rows-meta', 'items-shape', 'row-count', 'row-object', 'row-id', 'filter-value', 'repeated-page', 'later-no-data', 'final-count', 'page-cap'] as const;
 type RejectionReason = typeof rejectionReasons[number];
 function valueShape(value: unknown) {
   const type = value === undefined ? 'missing' : value === null ? 'null' : Array.isArray(value) ? 'array'
@@ -70,6 +70,24 @@ function recordRejection(reason: RejectionReason, counts: { page?: number; expec
 function malformed(reason: RejectionReason, counts: { page?: number; expected?: number; actual?: number } = {}, shape?: ReturnType<typeof envelopeShape>) {
   recordRejection(reason, counts, shape);
   return new ProviderRequestError(providerFailure(context, 'malformed_response'));
+}
+
+type SnapshotOutcome = 'complete' | 'partial' | 'page-cap' | 'repeated-page' | 'timeout' | 'error';
+function recordProgress(event: 'parking-snapshot-started' | 'parking-snapshot-finished', counts: Record<string, number>, outcome?: SnapshotOutcome) {
+  const safeCounts = Object.fromEntries(['total', 'plannedPages', 'pageSize', 'completedPages', 'receivedRows', 'elapsedMs', 'remainingMs'].flatMap(name =>
+    Number.isSafeInteger(counts[name]) && counts[name] >= 0 ? [[name, counts[name]]] : []));
+  console.info(JSON.stringify({ event, ...safeCounts, ...(outcome ? { outcome } : {}) }));
+}
+function canonical(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonical);
+  return record(value) ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+}
+async function pageFingerprint(items: ProviderItem[]) {
+  // Full record multiset, including duplicate multiplicity. The digest is local
+  // to this lookup and neither it nor the canonical public records are logged.
+  const page = JSON.stringify(items.map(item => JSON.stringify(canonical(item))).sort());
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(page));
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
 type Lookup = { result: ProviderAttempt; checkedAt: string };
@@ -134,6 +152,16 @@ export async function fetchParkingData(env: Env, remaining = budgetClock(SERVER_
   const deadline = AbortSignal.timeout(Math.max(1, remaining()));
   const cancellation = new AbortController();
   const signal = AbortSignal.any([deadline, cancellation.signal]);
+  const startedAt = Date.now();
+  let completedPages = 0, receivedRows = 0, loggedFinish = false;
+  let outcome: SnapshotOutcome = 'error';
+  const finish = () => {
+    if (loggedFinish) return;
+    loggedFinish = true;
+    recordProgress('parking-snapshot-finished', { completedPages, receivedRows, elapsedMs: Date.now() - startedAt }, outcome);
+  };
+  const onDeadline = () => { outcome = 'timeout'; finish(); };
+  deadline.addEventListener('abort', onDeadline, { once: true });
   async function page(pageNo: number, expectedTotal?: number): Promise<ProviderResult> {
     const query = new URLSearchParams({ pageNo: String(pageNo), numOfRows: String(PAGE_SIZE), type: 'json', pwdbsPpkZoneYn: 'Y' });
     let response;
@@ -142,7 +170,7 @@ export async function fetchParkingData(env: Env, remaining = budgetClock(SERVER_
     } catch (error) {
       // Documented no-data is valid only before any positive total was received.
       if (error instanceof ProviderRequestError && error.failure.httpStatus === 200 && error.failure.code === '03') {
-        if (pageNo === 1) return { items: [], total: 0 };
+        if (pageNo === 1) { completedPages++; return { items: [], total: 0 }; }
         throw malformed('later-no-data', { page: pageNo, expected: expectedTotal, actual: 0 });
       }
       throw error;
@@ -150,44 +178,62 @@ export async function fetchParkingData(env: Env, remaining = budgetClock(SERVER_
     if (!response.ok) throw new ProviderRequestError(providerFailure(context, 'upstream_error', { status: response.status }));
     let data: unknown;
     try { data = JSON.parse(await response.text()); } catch { throw malformed('json', { page: pageNo }); }
-    return parkingPage(data, pageNo, expectedTotal);
+    const result = parkingPage(data, pageNo, expectedTotal);
+    completedPages++; receivedRows += result.items.length;
+    return result;
   }
-  const first = await page(1);
-  const count = Math.ceil(first.total / PAGE_SIZE);
-  if (count > MAX_PAGES) {
-    recordRejection('page-cap', { page: 1, expected: PAGE_SIZE * MAX_PAGES, actual: first.total });
-    return { ...first, partial: true, unclassifiedFailure: true };
-  }
-  const items = [...first.items];
-  const ids = new Set<string>();
-  const unique = (records: ProviderItem[], page: number) => {
-    for (const item of records) {
-      const id = String(item.prkplceNo).trim();
-      if (ids.has(id)) throw malformed('duplicate-id', { page, actual: 1 });
-      ids.add(id);
+  try {
+    const first = await page(1);
+    const count = Math.max(1, Math.ceil(first.total / PAGE_SIZE));
+    recordProgress('parking-snapshot-started', { total: first.total, plannedPages: count, pageSize: PAGE_SIZE, receivedRows, elapsedMs: Date.now() - startedAt, remainingMs: remaining() });
+    if (count > MAX_PAGES) {
+      outcome = 'page-cap';
+      recordRejection('page-cap', { page: 1, expected: PAGE_SIZE * MAX_PAGES, actual: first.total });
+      return { ...first, partial: true, unclassifiedFailure: true };
     }
-  };
-  unique(first.items, 1);
-  for (let start = 2; start <= count; start += 2) {
-    const pages = Array.from({ length: Math.min(2, count - start + 1) }, (_, index) => start + index);
-    const outcomes = await Promise.all(pages.map(async number => {
-      const result = await attemptProvider(page(number, first.total));
-      // A sibling abort is not an independent timeout. Distinct failures that
-      // already returned remain observable, including mixed quota/parser errors.
-      const cancelled = !result.ok && cancellation.signal.aborted && !deadline.aborted
-        && result.failure?.kind === 'timeout' && result.failure.httpStatus === null && result.failure.code === null;
-      if (!result.ok && !cancellation.signal.aborted) cancellation.abort();
-      return { result, cancelled, page: number };
-    }));
-    const attempts = outcomes.filter(outcome => !outcome.cancelled).map(outcome => outcome.result);
-    if (attempts.some(result => !result.ok)) {
-      const combined = combineProviderResults(items, [{ ok: true, value: first }, ...attempts]);
-      return { ...combined, total: first.total };
+    const items = [...first.items], fingerprints = new Map<string, number>();
+    const verifyPage = async (records: ProviderItem[], page: number) => {
+      if (!records.length) return;
+      const fingerprint = await pageFingerprint(records);
+      if (deadline.aborted || remaining() <= 0) throw new ProviderRequestError(providerFailure(context, 'timeout'));
+      const previousPage = fingerprints.get(fingerprint);
+      if (previousPage !== undefined) {
+        outcome = 'repeated-page';
+        throw malformed('repeated-page', { page, expected: previousPage, actual: page });
+      }
+      fingerprints.set(fingerprint, page);
+    };
+    await verifyPage(first.items, 1);
+    for (let start = 2; start <= count; start += 2) {
+      const pages = Array.from({ length: Math.min(2, count - start + 1) }, (_, index) => start + index);
+      const outcomes = await Promise.all(pages.map(async number => {
+        const result = await attemptProvider(page(number, first.total));
+        // A sibling abort is not an independent timeout. Distinct failures that
+        // already returned remain observable, including mixed quota/parser errors.
+        const cancelled = !result.ok && cancellation.signal.aborted && !deadline.aborted
+          && result.failure?.kind === 'timeout' && result.failure.httpStatus === null && result.failure.code === null;
+        if (!result.ok && !cancellation.signal.aborted) cancellation.abort();
+        return { result, cancelled, page: number };
+      }));
+      const attempts = outcomes.filter(outcome => !outcome.cancelled).map(outcome => outcome.result);
+      if (attempts.some(result => !result.ok)) {
+        outcome = deadline.aborted ? 'timeout' : 'partial';
+        const combined = combineProviderResults(items, [{ ok: true, value: first }, ...attempts]);
+        return { ...combined, total: first.total };
+      }
+      for (const result of outcomes) if (result.result.ok) { await verifyPage(result.result.value.items, result.page); items.push(...result.result.value.items); }
     }
-    for (const outcome of outcomes) if (outcome.result.ok) { unique(outcome.result.value.items, outcome.page); items.push(...outcome.result.value.items); }
+    if (items.length !== first.total) throw malformed('final-count', { expected: first.total, actual: items.length });
+    if (deadline.aborted || remaining() <= 0) throw new ProviderRequestError(providerFailure(context, 'timeout'));
+    outcome = 'complete';
+    return { items, total: first.total };
+  } catch (error) {
+    if (error instanceof ProviderRequestError && error.failure.kind === 'timeout') outcome = 'timeout';
+    throw error;
+  } finally {
+    deadline.removeEventListener('abort', onDeadline);
+    finish();
   }
-  if (items.length !== first.total) throw malformed('final-count', { expected: first.total, actual: items.length });
-  return { items, total: first.total };
 }
 
 function unavailable(contentId: string, result: ProviderAttempt, error: string) {
