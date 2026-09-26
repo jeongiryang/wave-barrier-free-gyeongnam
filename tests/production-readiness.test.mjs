@@ -145,8 +145,12 @@ test("Vercel applies baseline browser security headers", async () => {
   assert.ok(policy["script-src"].some((value) => value.includes("kakao")), "카카오 지도 SDK 출처가 필요하다");
   // 관광 사진은 제공기관이 주는 임의의 https 호스트에서 온다.
   assert.ok(policy["img-src"].includes("https:"));
-  // API 호출은 모두 같은 출처의 /api/* 를 지난다.
+  // API calls stay same-origin; official Odii playback/decoding uses this CDN.
   assert.ok(policy["connect-src"].includes("'self'"));
+  const officialAudioOrigin = "https://sfj608538-sfj608538.ktcdn.co.kr";
+  assert.deepEqual(policy["media-src"], ["'self'", officialAudioOrigin]);
+  assert.ok(policy["connect-src"].includes(officialAudioOrigin));
+  assert.ok(!policy["connect-src"].some(value => ["*", "https:"].includes(value)));
 });
 
 test("production metadata gives each route a canonical, social card and indexing boundary", async () => {

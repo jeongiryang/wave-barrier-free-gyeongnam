@@ -18,17 +18,57 @@ const record = (value: unknown): value is Record<string, unknown> => Boolean(val
 const integer = (value: unknown) => (typeof value === 'number' || typeof value === 'string' && /^\d+$/.test(value)) && Number.isSafeInteger(Number(value)) && Number(value) >= 0 ? Number(value) : null;
 const rejectionReasons = ['json', 'envelope', 'normal-code', 'total', 'total-changed', 'page-no', 'rows-meta', 'items-shape', 'row-count', 'row-object', 'row-id', 'filter-value', 'duplicate-id', 'later-no-data', 'final-count', 'page-cap'] as const;
 type RejectionReason = typeof rejectionReasons[number];
-function recordRejection(reason: RejectionReason, counts: { page?: number; expected?: number; actual?: number } = {}) {
+function valueShape(value: unknown) {
+  const type = value === undefined ? 'missing' : value === null ? 'null' : Array.isArray(value) ? 'array'
+    : record(value) ? 'object' : typeof value === 'string' ? 'string' : typeof value === 'number' ? 'number'
+      : typeof value === 'boolean' ? 'boolean' : 'missing';
+  return { type, ...(Array.isArray(value) && Number.isSafeInteger(value.length) ? { length: value.length } : {}) };
+}
+const knownField = (value: unknown, field: string) => record(value) ? value[field] : undefined;
+function codeShape(value: unknown) {
+  const code = knownField(value, 'resultCode');
+  return code === undefined ? 'missing' : code === 0 || code === '0' ? '0' : code === '00' ? '00' : code === '0000' ? '0000' : 'other';
+}
+// Mirrors the fixed public-data code list in provider-failure.js for diagnostics
+// only; a gateway shape still fails the parking response contract.
+const gatewayCodes = new Set(['0', '00', '0000', '01', '02', '03', '04', '05', '10', '11', '12', '20', '21', '22', '23', '29', '30', '31', '32', '33', '99']);
+function gatewayCodeShape(value: unknown) {
+  const code = knownField(value, 'returnReasonCode');
+  if (code === undefined) return 'missing';
+  return (typeof code === 'string' || typeof code === 'number') && gatewayCodes.has(String(code)) ? String(code) : 'other';
+}
+function containerShape(value: unknown) {
+  const total = integer(knownField(value, 'totalCount'));
+  return { ...valueShape(value), code: codeShape(value),
+    data: valueShape(knownField(value, 'data')), items: valueShape(knownField(value, 'items')),
+    results: valueShape(knownField(value, 'results')), records: valueShape(knownField(value, 'records')),
+    error: valueShape(knownField(value, 'error')), errors: valueShape(knownField(value, 'errors')),
+    ...(total === null ? {} : { totalCount: total }),
+  };
+}
+function envelopeShape(value: unknown) {
+  const response = knownField(value, 'response'), header = knownField(value, 'header'), responseHeader = knownField(response, 'header');
+  const serviceResponse = knownField(value, 'OpenAPI_ServiceResponse'), serviceMessageHeader = knownField(serviceResponse, 'cmmMsgHeader');
+  return {
+    root: containerShape(value), response: containerShape(response),
+    header: { ...valueShape(header), code: codeShape(header) }, body: valueShape(knownField(value, 'body')),
+    responseHeader: { ...valueShape(responseHeader), code: codeShape(responseHeader) }, responseBody: valueShape(knownField(response, 'body')),
+    serviceResponse: valueShape(serviceResponse), serviceMessageHeader: { ...valueShape(serviceMessageHeader), code: gatewayCodeShape(serviceMessageHeader) },
+  };
+}
+function recordRejection(reason: RejectionReason, counts: { page?: number; expected?: number; actual?: number } = {}, shape?: ReturnType<typeof envelopeShape>) {
   // Fixed field names and enum values only. Never retain raw response content,
   // provider messages, URLs, credentials, record identifiers or record values.
   const safeCounts = Object.fromEntries(['page', 'expected', 'actual'].flatMap(name => {
     const value = counts[name as keyof typeof counts];
     return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? [[name, value]] : [];
   }));
-  console.warn(JSON.stringify({ event: 'parking-response-rejected', reason: rejectionReasons.includes(reason) ? reason : 'envelope', ...safeCounts }));
+  console.warn(JSON.stringify({ event: 'parking-response-rejected', reason: rejectionReasons.includes(reason) ? reason : 'envelope', ...safeCounts,
+    ...(reason === 'envelope' && shape ? { shape } : {}),
+  }));
 }
-function malformed(reason: RejectionReason, counts: { page?: number; expected?: number; actual?: number } = {}) {
-  recordRejection(reason, counts);
+function malformed(reason: RejectionReason, counts: { page?: number; expected?: number; actual?: number } = {}, shape?: ReturnType<typeof envelopeShape>) {
+  recordRejection(reason, counts, shape);
   return new ProviderRequestError(providerFailure(context, 'malformed_response'));
 }
 
@@ -62,7 +102,7 @@ function parkingPage(data: unknown, pageNo: number, expectedTotal?: number): Pro
   const response = record(data) && record(data.response) ? data.response : null;
   const header = response && record(response.header) ? response.header : null;
   const body = response && record(response.body) ? response.body : null;
-  if (!header || !body) throw malformed('envelope', { page: pageNo });
+  if (!header || !body) throw malformed('envelope', { page: pageNo }, envelopeShape(data));
   if (String(header.resultCode) !== '00') throw malformed('normal-code', { page: pageNo });
   const total = integer(body.totalCount);
   if (total === null) throw malformed('total', { page: pageNo });
