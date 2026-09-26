@@ -1,108 +1,126 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { prepareLandingMedia } from './landing-contract';
 
+const hydrated = () => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT);
+
 async function holdStartup(page: Page, path = '/') {
-  let releaseApp = () => {}, releaseIntro = () => {}, requested = 0;
+  let releaseApp = () => {}, requested = 0;
   const app = new Promise<void>(resolve => { releaseApp = resolve; });
-  const intro = new Promise<void>(resolve => { releaseIntro = resolve; });
-  // Hold the actual app entry, before React/hydration; holding only WaveIntro
-  // would miss the first-paint gap this regression covers.
+  // Hold the real application entry so this checks server-rendered first paint,
+  // before React can reveal, move or replace the user's controls.
   await page.route(/entry-browser(?:[/?-]|$)/, async route => { requested++; await app; await route.continue(); });
-  await page.route(/\/features\/landing\/intro\/wave-intro\.tsx(?:\?|$)/, async route => { await intro; await route.continue(); });
   await prepareLandingMedia(page);
   await page.goto(path, { waitUntil: 'domcontentloaded' });
   await expect.poll(() => requested).toBeGreaterThan(0);
   await page.locator('main').first().waitFor({ state: 'attached' });
-  expect(await page.evaluate(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT))).toBe(false);
-  return { releaseApp, releaseIntro };
+  expect(await page.evaluate(hydrated)).toBe(false);
+  return { releaseApp };
 }
 
-for (const width of [390, 960, 1440]) test(`${width}px first paint starts with the opaque intro before app hydration`, async ({ page }, info) => {
+async function expectReadableLanding(page: Page) {
+  await expect(page.locator('#arrival-boot,.arrival-scene,.wave-intro,:modal')).toHaveCount(0);
+  await expect(page.locator('html')).not.toHaveAttribute('data-intro-pending');
+  await expect(page.locator('#landing-title')).toBeVisible();
+  await expect(page.locator('.landing-actions a')).toBeVisible();
+  await expect(page.getByRole('button', { name: '여행지 검색', exact: true })).toBeVisible();
+}
+
+async function tabTo(page: Page, target: Locator) {
+  for (let index = 0; index < 30; index++) {
+    if (await target.evaluate(node => node === document.activeElement)) break;
+    await page.keyboard.press('Tab');
+  }
+  await expect(target).toBeFocused();
+}
+
+for (const width of [390, 960, 1440]) test(`${width}px first paint exposes the real landing and preserves focus through delayed hydration`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 844 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const held = await holdStartup(page);
   try {
-    const cover = page.locator('#arrival-boot');
-    await expect(cover).toBeVisible();
-    const painted = await cover.evaluate(node => {
-      const box = node.getBoundingClientRect(), style = getComputedStyle(node);
-      return { width: box.width, height: box.height, color: style.backgroundColor, topmost: Boolean(document.elementFromPoint(innerWidth / 2, innerHeight / 2)?.closest('#arrival-boot')) };
+    await expectReadableLanding(page);
+    const planning = page.locator('.landing-actions a');
+    await tabTo(page, planning);
+    const painted = await planning.evaluate(node => {
+      const box = node.getBoundingClientRect();
+      return { width: box.width, height: box.height, uncovered: node.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)) };
     });
-    expect(painted).toEqual({ width, height: 844, color: 'rgb(2, 8, 23)', topmost: true });
-    await expect(page.locator('.landing-actions a')).toBeHidden();
+    expect(painted.height).toBeGreaterThanOrEqual(44);
+    expect(painted.uncovered).toBe(true);
     await page.screenshot({ path: info.outputPath(`before-hydration-${width}.png`) });
-    // A browser-restored scroll offset during this fresh root startup must
-    // not turn the handoff into an accidental intro skip.
-    await page.evaluate(() => scrollTo(0, 133));
+    // Startup must not replace a real control or steal the user's focus.
     held.releaseApp();
-    const scene = page.locator('.arrival-scene');
-    await expect(scene).toBeVisible();
-    await expect(cover).toBeHidden();
-    await expect(scene).toHaveCSS('background-color', 'rgb(2, 8, 23)');
-    await expect(scene.getByRole('button', { name: '건너뛰기', exact: true })).toBeFocused();
-    await page.keyboard.press('Escape');
-    await expect(scene).toBeHidden();
-    await expect(page.locator('.landing-actions a')).toBeVisible();
-  } finally { held.releaseApp(); held.releaseIntro(); }
+    await page.waitForFunction(hydrated);
+    await expectReadableLanding(page);
+    await expect(planning).toBeFocused();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  } finally { held.releaseApp(); }
 });
 
-for (const mode of ['seen', 'reduced'] as const) test(`${mode} visitors do not get an intro cover while app scripts are delayed`, async ({ page }) => {
+for (const mode of ['seen', 'reduced'] as const) test(`${mode} visitors can read the same landing while app scripts are delayed`, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: mode === 'reduced' ? 'reduce' : 'no-preference' });
   if (mode === 'seen') await page.addInitScript(() => sessionStorage.setItem('wave-arrival-session-v1', 'done'));
   const held = await holdStartup(page);
   try {
-    await expect(page.locator('#arrival-boot')).toBeHidden();
-    await expect(page.locator('.landing-actions a')).toBeVisible();
-  } finally { held.releaseApp(); held.releaseIntro(); }
+    await expectReadableLanding(page);
+    held.releaseApp();
+    await page.waitForFunction(hydrated);
+    await expectReadableLanding(page);
+    await expect(page.locator('html')).toHaveAttribute('data-motion', mode === 'reduced' ? 'calm' : 'full');
+  } finally { held.releaseApp(); }
 });
 
-for (const action of ['skip', 'Escape'] as const) test(`the pre-hydration cover can be dismissed with ${action} without waiting for app scripts`, async ({ page }) => {
+for (const action of ['planning link', 'region search'] as const) test(`keyboard ${action} works before app hydration without an intro dismissal`, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const held = await holdStartup(page);
   try {
-    const cover = page.locator('#arrival-boot');
-    await expect(cover).toBeVisible();
-    if (action === 'skip') {
-      const skip = cover.getByRole('button', { name: '건너뛰기', exact: true });
-      await page.keyboard.press('Tab'); await expect(skip).toBeFocused();
-      const box = (await skip.boundingBox())!;
-      expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
-      expect(box.x).toBeGreaterThanOrEqual(0); expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width);
-      await skip.press('Enter');
+    await expectReadableLanding(page);
+    if (action === 'planning link') {
+      const planning = page.locator('.landing-actions a');
+      await tabTo(page, planning);
+      await planning.press('Enter');
+      await expect(page).toHaveURL(/\/planner$/);
+    } else {
+      const region = page.getByRole('combobox', { name: '어디로 떠나고 싶으세요?', exact: true });
+      await tabTo(page, region);
+      await region.selectOption('창원');
+      await page.keyboard.press('Tab');
+      const search = page.getByRole('button', { name: '여행지 검색', exact: true });
+      await expect(search).toBeFocused();
+      await search.press('Enter');
+      await expect.poll(() => new URL(page.url()).searchParams.get('region')).toBe('창원');
+      expect(new URL(page.url()).pathname).toBe('/planner');
     }
-    else await page.keyboard.press('Escape');
-    await expect(cover).toBeHidden();
-    await expect(page.locator('.landing-actions a')).toBeVisible();
-    held.releaseApp();
-    await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-    await expect(page.locator('.arrival-scene')).toBeHidden();
-  } finally { held.releaseApp(); held.releaseIntro(); }
+  } finally { held.releaseApp(); }
 });
 
-for (const path of ['/login', '/#regions']) test(`${path} intentional navigation never gets an intro cover`, async ({ page }) => {
+for (const path of ['/login', '/#regions']) test(`${path} intentional navigation remains readable before and after hydration`, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const held = await holdStartup(page, path);
   try {
-    await expect(page.locator('#arrival-boot')).toBeHidden();
+    await expect(page.locator('#arrival-boot,.arrival-scene,.wave-intro')).toHaveCount(0);
     await expect(page.locator('html')).not.toHaveAttribute('data-intro-pending');
     await expect(page.locator('main').first()).toBeVisible();
     held.releaseApp();
-    await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-    await expect(page.locator('.arrival-scene')).toBeHidden();
-  } finally { held.releaseApp(); held.releaseIntro(); }
+    await page.waitForFunction(hydrated);
+    await expect(page.locator('#arrival-boot,.arrival-scene,.wave-intro')).toHaveCount(0);
+    await expect(page.locator('main').first()).toBeVisible();
+    expect(new URL(page.url()).pathname + new URL(page.url()).hash).toBe(path);
+  } finally { held.releaseApp(); }
 });
 
-test('failed app startup releases the cover within its watchdog and does not replay a late intro', async ({ page }) => {
+test('failed application and photo loading leave the first planning action usable without a watchdog', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.clock.install();
-  const held = await holdStartup(page);
-  try {
-    await expect(page.locator('#arrival-boot')).toBeVisible();
-    await page.clock.fastForward(8001);
-    await expect(page.locator('#arrival-boot')).toBeHidden();
-    await expect(page.locator('.landing-actions a')).toBeVisible();
-    held.releaseApp();
-    await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-    await expect(page.locator('.arrival-scene')).toBeHidden();
-  } finally { held.releaseApp(); held.releaseIntro(); }
+  let failedEntries = 0;
+  await page.route(/entry-browser(?:[/?-]|$)/, route => { failedEntries++; return route.abort('failed'); });
+  await prepareLandingMedia(page);
+  await page.route('**/*', route => route.request().resourceType() === 'image' ? route.abort('failed') : route.fallback());
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect.poll(() => failedEntries).toBeGreaterThan(0);
+  expect(await page.evaluate(hydrated)).toBe(false);
+  await expectReadableLanding(page);
+  const planning = page.locator('.landing-actions a');
+  await tabTo(page, planning);
+  await planning.press('Enter');
+  await expect(page).toHaveURL(/\/planner$/);
 });

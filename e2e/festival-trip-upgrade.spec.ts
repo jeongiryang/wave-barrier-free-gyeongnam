@@ -48,20 +48,48 @@ async function setup(page: Page, handler?: (route: Route) => Promise<void>) {
   return card;
 }
 
-test('축제 현장 편의 시연 지도는 임의 위치를 명시하고 쉬는 곳과 화장실을 전환한다', async ({ page }) => {
-  const card = await setup(page);
+// Official API-shaped fixtures only; these tests do not call a real provider.
+const restroomItem = { id: 'fixture-restroom-1', name: '합성 등록 화장실', address: '경상남도 창원시 중앙대로 1', openingHours: '09:00–18:00', distanceFromPlaceMeters: 210,
+  evidence: { accessibleToilet: 'confirmed' }, sources: [{ type: 'official', provider: '전국공중화장실표준데이터', referenceDate: '2026-09-15' }], destination: { latitude: 35.2385, longitude: 128.6915 } };
+const restroomResponse = { status: 'available', contentId: event.id, radiusKm: 5, checkedAt: '2026-09-15T14:04:23.624Z', source: '전국공중화장실표준데이터', items: [restroomItem] };
+async function restroomRoute(page: Page, handler: (route: Route) => Promise<void> = route => route.fulfill({ json: restroomResponse })) {
+  const requests: string[] = [];
+  await page.route('https://*.tile.openstreetmap.org/**', route => route.abort());
+  await page.route('**/api/wave?action=restroom-alternatives&**', route => { requests.push(route.request().url()); return handler(route); });
+  return requests;
+}
+
+test('축제 현장 편의 지도는 공식 응답의 위치와 같은 목록을 표시하고 쉼터는 미확인으로 남긴다', async ({ page }) => {
+  const beforeOpen: string[] = [];
+  page.on('request', request => { if (request.url().includes('action=restroom-alternatives')) beforeOpen.push(request.url()); });
+  const officialEvent = { ...event, websiteUrl: 'https://festival.example.org/guide', phone: '055-123-4567' };
+  const card = await setup(page, route => route.fulfill({ json: result([officialEvent]) }));
+  const safeTextItem = { ...restroomItem, name: '<img src=x onerror=alert(1)> 합성 화장실' };
+  const requests = await restroomRoute(page, route => route.fulfill({ json: { ...restroomResponse, items: [safeTextItem] } }));
+  expect(requests).toEqual([]);
+  expect(beforeOpen).toEqual([]);
   const opener = card.getByRole('button', { name: '현장 편의 지도', exact: true });
   await opener.click();
   const dialog = page.getByTestId('festival-amenity-dialog');
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole('heading', { name: `[시연] ${event.name} 현장 편의 지도`, exact: true })).toBeVisible();
-  await expect(dialog.getByRole('note')).toContainText('실제 시설 위치가 아닙니다.');
+  await expect(dialog.getByRole('heading', { name: `${event.name} 현장 편의 정보`, exact: true })).toBeVisible();
   await expect(dialog.getByTestId('festival-amenity-map')).toBeVisible();
-  await expect(dialog.locator('[data-amenity-marker="rest"]')).toHaveCount(3);
+  await expect(dialog.locator('[data-amenity-marker="restroom"]')).toHaveCount(1);
+  await expect(dialog.locator('[data-amenity-list-id]')).toHaveCount(1);
+  await expect(dialog).toContainText('직선거리 210m');
+  await expect(dialog).toContainText('기준일 2026-09-15');
+  await expect(dialog).toContainText('현재 운영 여부는 방문 전에 확인');
+  await dialog.getByRole('button', { name: `${safeTextItem.name} · 등록된 공중화장실`, exact: true }).click();
+  await expect(dialog.locator('.leaflet-popup-content')).toContainText(safeTextItem.name);
+  await expect(dialog.locator('.leaflet-popup-content img')).toHaveCount(0);
+  await expect(dialog.getByRole('link', { name: '축제 공식 안내 열기' })).toHaveAttribute('href', officialEvent.websiteUrl);
+  await dialog.getByRole('button', { name: '쉬는 곳', exact: true }).click();
+  await expect(dialog).toContainText('쉼터의 공식 위치는 확인되지 않았어요.');
+  await expect(dialog.getByTestId('festival-amenity-map')).toHaveCount(0);
+  await expect(dialog.locator('[data-amenity-marker="rest"]')).toHaveCount(0);
   await dialog.getByRole('button', { name: '화장실', exact: true }).click();
-  await expect(dialog.locator('[data-amenity-marker="restroom"]')).toHaveCount(3);
-  await expect(dialog.getByText('시연 · 임의 위치', { exact: true })).toHaveCount(0);
-  await expect(dialog.getByRole('note')).toHaveText('마커는 임의 위치이며 실제 시설 위치가 아닙니다.');
+  await expect(dialog.locator('[data-amenity-marker="restroom"]')).toHaveCount(1);
+  expect(requests).toHaveLength(1);
   await expect(dialog).toContainText('축제 주최 측의 공식 현장 지도');
   expect((await new AxeBuilder({ page }).include('[data-testid="festival-amenity-dialog"]').analyze()).violations).toEqual([]);
   for (const width of [390, 960, 1440]) {
@@ -71,6 +99,62 @@ test('축제 현장 편의 시연 지도는 임의 위치를 명시하고 쉬는
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(opener).toBeFocused();
+});
+
+test('축제 편의 조회의 정상 0건과 제공처 오류를 구분하고 오류 후 다시 확인한다', async ({ page }) => {
+  const card = await setup(page);
+  let fail = true;
+  const requests = await restroomRoute(page, route => fail ? route.fulfill({ status: 502, json: { status: 'provider-error', contentId: event.id } }) : route.fulfill({ json: { ...restroomResponse, status: 'empty', items: [] } }));
+  await card.getByRole('button', { name: '현장 편의 지도', exact: true }).click();
+  const dialog = page.getByTestId('festival-amenity-dialog');
+  await expect(dialog.getByRole('alert')).toContainText('조회 실패는 시설이 없다는 뜻이 아닙니다.');
+  await expect(dialog.getByTestId('festival-amenity-map')).toHaveCount(0);
+  fail = false;
+  await dialog.getByRole('button', { name: '다시 확인', exact: true }).click();
+  await expect(dialog).toContainText('5km 안에 확인된 화장실 기록이 없어요.');
+  await expect(dialog.getByRole('alert')).toHaveCount(0);
+  await expect(dialog.getByTestId('festival-amenity-map')).toHaveCount(0);
+  expect(requests).toHaveLength(2);
+});
+
+test('축제 좌표가 없으면 임의 중심 지도나 시설 조회를 만들지 않는다', async ({ page }) => {
+  const withoutPosition = { ...event, mapX: '', mapY: '', websiteUrl: 'javascript:alert(1)' };
+  const card = await setup(page, route => route.fulfill({ json: result([withoutPosition]) }));
+  const requests = await restroomRoute(page);
+  await card.getByRole('button', { name: '현장 편의 지도', exact: true }).click();
+  const dialog = page.getByTestId('festival-amenity-dialog');
+  await expect(dialog).toContainText('축제의 공식 위치를 확인할 수 없어');
+  await expect(dialog.getByTestId('festival-amenity-map')).toHaveCount(0);
+  await expect(dialog.getByRole('link', { name: '축제 공식 안내 열기' })).toHaveCount(0);
+  expect(requests).toEqual([]);
+});
+
+test('축제 편의 지도를 닫으면 조회를 취소하고 늦은 결과가 다시 연 화면을 덮지 않는다', async ({ page }) => {
+  const card = await setup(page);
+  const gate = deferred(), finished = deferred();
+  let calls = 0;
+  await restroomRoute(page, async route => {
+    if (++calls === 1) {
+      await gate.promise;
+      await route.fulfill({ json: restroomResponse }).catch(() => undefined);
+      finished.release();
+    } else await route.fulfill({ json: { ...restroomResponse, status: 'empty', items: [] } });
+  });
+  const opener = card.getByRole('button', { name: '현장 편의 지도', exact: true });
+  await opener.click();
+  const dialog = page.getByTestId('festival-amenity-dialog');
+  await expect.poll(() => calls).toBe(1);
+  const aborted = page.waitForEvent('requestfailed', request => request.url().includes('action=restroom-alternatives'));
+  await page.keyboard.press('Escape');
+  await aborted;
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+  await opener.click();
+  await expect(dialog).toContainText('5km 안에 확인된 화장실 기록이 없어요.');
+  gate.release(); await finished.promise;
+  await expect(dialog.locator('[data-amenity-list-id]')).toHaveCount(0);
+  await expect(dialog.getByTestId('festival-amenity-map')).toHaveCount(0);
+  await expect(dialog).toContainText('5km 안에 확인된 화장실 기록이 없어요.');
 });
 
 test('축제 포스터나 제목을 누르면 포스터와 기본 정보가 나란히 열린다', async ({ page }) => {
@@ -137,17 +221,24 @@ test('축제 상세 안에서 선택한 방문 날짜로 담고 기존 고정 �
   expect(current.comfort).toEqual(schedule.comfort);
 });
 
-test('날짜 입력칸 어디를 눌러도 달력 열기를 요청한다', async ({ page }) => {
+test('축제 날짜 입력과 달력 버튼은 같은 날짜를 사용하고 닫기 초점을 보존한다', async ({ page }) => {
   await setup(page);
-  await page.evaluate(() => {
-    HTMLInputElement.prototype.showPicker = function showPicker() { this.dataset.pickerOpened = 'true'; };
-  });
   const filters = page.getByRole('region', { name: '축제 찾기', exact: true });
   for (const name of ['언제부터', '언제까지']) {
     const input = filters.getByLabel(name, { exact: true });
     const box = await input.boundingBox();
     await input.click({ position: { x: 12, y: Math.max(2, (box?.height || 46) / 2) } });
-    await expect(input).toHaveAttribute('data-picker-opened', 'true');
+    await expect(input).toBeFocused();
+    const date = await input.inputValue();
+    const opener = filters.getByRole('button', { name: `${name} 달력 열기`, exact: true });
+    await opener.click();
+    const calendar = page.getByRole('dialog', { name: `${name} 날짜 선택`, exact: true });
+    await expect(calendar).toBeVisible();
+    await expect(calendar.locator('td[aria-selected="true"] button')).toHaveAttribute('data-date', date);
+    await page.keyboard.press('Escape');
+    await expect(calendar).not.toBeVisible();
+    await expect(opener).toBeFocused();
+    await expect(input).toHaveValue(date);
   }
 });
 

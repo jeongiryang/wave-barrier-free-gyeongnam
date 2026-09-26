@@ -14,17 +14,11 @@ async function expectHealthyPage(page: Page, path: string) {
   await expect(page.locator("body")).not.toContainText(/Application error|Internal Server Error|Unhandled Runtime Error/i);
 
   if (new URL(page.url()).pathname === "/") {
-    // Wait for hydration before using the real intro controls. The full intro
-    // now exceeds the generic assertion timeout; entry smoke tests its skip
-    // path, while reduced motion must still bypass the intro without a click.
+    // The release opens directly onto the real planning action.
     await expect(page.locator(".landing-page")).toBeVisible();
     await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
-    if (!await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)) {
-      const intro = page.getByRole("dialog", { name: "WAVE 시작 이야기", exact: true });
-      await expect(intro).toBeVisible();
-      await intro.getByRole("button", { name: "건너뛰기", exact: true }).click();
-    }
-    await expect(page.locator(".arrival-scene")).toBeHidden();
+    await expect(page.locator(".arrival-scene,.wave-intro,#arrival-boot")).toHaveCount(0);
+    await expect(page.locator(".landing-actions a")).toBeVisible();
   }
   await page.evaluate(() => document.fonts.ready);
   const overflow = await page.evaluate(() => ({
@@ -94,7 +88,8 @@ test("reduced motion keeps the public entry flow usable", async ({ page }) => {
   const trigger = preferences.getByLabel("환경설정 열기", { exact: true });
   await trigger.click();
   await expect(preferences.locator(".preference-panel")).toBeVisible();
-  await expect(preferences).toContainText("홈 화면");
+  await expect(preferences.getByRole("radiogroup", { name: "글자 크기", exact: true })).toBeVisible();
+  await expect(preferences.getByRole("button", { name: /색 구분 보조/ })).toBeVisible();
   await expect(preferences.getByRole("combobox", { includeHidden: true })).toHaveCount(0);
   await expect(preferences.getByRole("button", { name: /다크모드|라이트모드|Dark mode|Light mode/, includeHidden: true })).toHaveCount(0);
   await expectNoSeriousA11yIssues(page);

@@ -1,8 +1,41 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { mockPlannerApi } from './fixtures';
+import { mockPlannerApi, openItinerary } from './fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] } });
+
+test('여행 설정의 부분 날짜 입력은 일정을 바꾸거나 화면을 닫지 않고 수정·취소할 수 있다', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await mockPlannerApi(page, { preserveView: true });
+  await page.goto('/planner?region=창원');
+  await page.getByRole('button', { name: '경남도립미술관 일정에 담기', exact: true }).click();
+  await openItinerary(page, { start: '2026-10-03' });
+  await page.getByRole('button', { name: '여행 설정', exact: true }).click();
+  const settings = page.getByRole('dialog', { name: '여행 설정', exact: true });
+  const start = settings.getByLabel('시작일', { exact: true });
+  const end = settings.getByLabel('마지막 날', { exact: true });
+  await start.fill('');
+  await start.pressSequentially('2026-09-2');
+  await expect(start).toHaveValue('2026-09-2');
+  expect(await start.evaluate((node: HTMLInputElement) => node.checkValidity())).toBe(false);
+  await settings.getByRole('button', { name: '적용', exact: true }).click();
+  await expect(settings).toBeVisible();
+  await expect(end).toHaveValue('2026-10-03');
+  await start.fill('2026-10-05');
+  await expect(end).toHaveValue('2026-10-05');
+  await start.press('Alt+ArrowDown');
+  const calendar = page.getByRole('dialog', { name: '시작일 날짜 선택', exact: true });
+  await expect(calendar).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(calendar).not.toBeVisible();
+  await expect(settings).toBeVisible();
+  await expect(settings.getByRole('button', { name: '시작일 달력 열기', exact: true })).toBeFocused();
+  await settings.getByRole('button', { name: '취소', exact: true }).click();
+  await page.getByRole('button', { name: '여행 설정', exact: true }).click();
+  await expect(start).toHaveValue('2026-10-03');
+  expect(errors).toEqual([]);
+});
 
 test('축제 달력은 밤 테마와 키보드 탐색, 날짜 하한, 닫기 초점을 유지한다', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-09-26T03:00:00.000Z'));

@@ -3,7 +3,7 @@ import { useState, useSyncExternalStore, type ReactNode } from "react";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { TripTravelMode } from "../../../lib/trip-travel-mode.js";
 import { localDate } from "../utils";
-import { boundedTripEnd, offsetTripDate } from "../../../lib/trip-dates.js";
+import { boundedTripEnd, offsetTripDate, validTripDate } from "../../../lib/trip-dates.js";
 import { usePlaceDialogFocus } from "../hooks/usePlaceDialogFocus";
 import AccessibleDateInput from "../../../components/AccessibleDateInput";
 
@@ -15,6 +15,7 @@ function SettingsForm({ trip, onClose }: Props) {
   const [endDraft, setEndDraft] = useState<string | null>(trip.travelEnd || trip.travelStart || null);
   const start = startDraft ?? today;
   const end = endDraft ?? today;
+  const validStart = validTripDate(start);
   const [time, setTime] = useState(trip.dayStartTime);
   const [transport, setTransport] = useState<TripTravelMode>(trip.travelMode);
   const [error, setError] = useState('');
@@ -30,8 +31,8 @@ function SettingsForm({ trip, onClose }: Props) {
   }}>
     {initial && <p>날짜와 이동 수단을 정하면 담은 장소로 시간표를 만들어요.</p>}
     <div className="simple-settings-fields">
-      <label>시작일<AccessibleDateInput required value={start} onChange={event => { const day = event.target.value; setStartDraft(day); if (day) setEndDraft(boundedTripEnd(day, end)); }} /></label>
-      <label>마지막 날<AccessibleDateInput required min={start} max={start ? offsetTripDate(start, 6) : undefined} value={end} onChange={event => setEndDraft(event.target.value)} /></label>
+      <label>시작일<AccessibleDateInput required value={start} onChange={event => { const day = event.target.value; setStartDraft(day); if (validTripDate(day)) setEndDraft(boundedTripEnd(day, end)); }} /></label>
+      <label>마지막 날<AccessibleDateInput required min={validStart ? start : undefined} max={validStart ? offsetTripDate(start, 6) : undefined} value={end} onChange={event => setEndDraft(event.target.value)} /></label>
       <label>이동 수단<select value={transport} onChange={event => setTransport(event.target.value as TripTravelMode)}><option value="transit">대중교통</option><option value="car">자동차</option><option value="walk">도보</option><option value="bicycle">자전거</option></select></label>
       <label>하루 시작<input type="time" required value={time} onChange={event => setTime(event.target.value)} /></label>
     </div>

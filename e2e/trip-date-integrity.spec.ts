@@ -47,10 +47,13 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(end).toHaveAttribute("max", "2026-10-13");
     await end.fill("2026-10-16");
     await editor.getByRole("button", { name: "적용", exact: true }).click();
-    expect(await end.evaluate((element: HTMLInputElement) => element.validity.rangeOverflow)).toBe(true);
+    expect(await end.evaluate((element: HTMLInputElement) => ({ valid: element.checkValidity(), customError: element.validity.customError }))).toEqual({ valid: false, customError: true });
+    await expect(end).toHaveValue("2026-10-16");
+    await expect(editor).toBeVisible();
     await expect(end).toBeFocused();
     expect(await schedule(page)).toEqual(before);
     await end.fill("2026-10-08");
+    expect(await end.evaluate((element: HTMLInputElement) => element.checkValidity())).toBe(true);
     await editor.getByLabel("시작일", { exact: true }).fill("2026-10-10");
     await expect(end).toHaveValue("2026-10-10");
     await editor.getByRole("button", { name: "적용", exact: true }).click();

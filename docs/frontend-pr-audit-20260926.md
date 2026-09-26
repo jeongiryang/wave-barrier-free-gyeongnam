@@ -1,5 +1,7 @@
 # 프론트 PR 이력에 따른 하네스 책임 보강
 
+이 문서는 9월 26일 `main@a46ca03`까지의 이력 스냅샷이다. #715 이후의 밤 테마·인트로 제거·출처 이동·달력과 마감 수정은 [후속 기록](release-completion-20260927.md) 및 현행 공통 책임을 따른다.
+
 9월 30일 마감 작업의 기준은 현재 사용자의 요구, 기능설명서, 실제로 채택된 현행 화면이다. 과거 PR의 색·배치·기능 이름을 모두 누적하면 서로 모순되는 지침이 된다. 이번 조사는 원안과 후속 통합을 추적해 **프론트 UX·프론트 수정·디자인의 책임과 선택할 검증 기준**을 정리했다.
 
 기준 커밋은 `main@a46ca03c15fe21d563d7ca5e3aedfe13c28a6ef6`이다. 구현 결과는 [공통 책임 F01–F10](../harness/frontend-responsibilities.md)과 [UX](../harness/personas/frontend-ux.md)·[프론트 수정](../harness/personas/frontend-fix.md)·[디자인](../harness/personas/design.md) 역할에 반영했다. 애플리케이션·API·CI/CD 실행 코드는 변경하지 않는다.
