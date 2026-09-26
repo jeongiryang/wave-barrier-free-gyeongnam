@@ -149,8 +149,9 @@ test("로그아웃 실패는 복구할 수 있고 연속 요청을 보내지 않
   await page.route("**/api/community/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ posts: [], page: 1, hasMore: false }) }));
   await page.goto("/community");
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  await page.locator(":is(.wave-header-actions,.wave-footer-tools) > a:is(.wave-profile-entry,.account-button)[href='/account']").hover();
-  await page.getByRole("button", { name: /로컬 여행자 계정 메뉴/ }).click();
+  await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
+  await page.locator(".wave-header").getByRole("button", { name: "계정 관리", exact: true }).click();
+  await expect(page.getByRole("button", { name: /로컬 여행자 계정 메뉴/ })).toHaveAttribute("aria-expanded", "true");
   const signOut = page.getByRole("button", { name: "로그아웃", exact: true });
   await signOut.evaluate((button: HTMLButtonElement) => { button.click(); button.click(); });
   await expect(page.getByRole("alert")).toHaveText(/로그아웃을 완료하지 못했습니다/);
@@ -158,8 +159,9 @@ test("로그아웃 실패는 복구할 수 있고 연속 요청을 보내지 않
   await expect(signOut).toBeEnabled();
   await Promise.all([page.waitForEvent("domcontentloaded"), signOut.click()]);
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  await page.locator(":is(.wave-header-actions,.wave-footer-tools) > a:is(.wave-profile-entry,.account-button)[href='/account']").hover();
-  const accountLogin = page.locator(".wave-header-actions > a.account-button");
+  await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
+  await page.locator(".wave-header").getByRole("button", { name: "계정 관리", exact: true }).click();
+  const accountLogin = page.locator(".wave-header").getByRole("link", { name: "로그인", exact: true });
   await expect(accountLogin).toHaveAccessibleName("로그인");
   await expect(accountLogin).toHaveAttribute("href", "/login?next=%2Fcommunity");
   await expect(accountLogin).toBeVisible();
@@ -174,8 +176,10 @@ test("계정 메뉴 파일이 실패해도 계정 페이지로 이동할 수 있
   await page.route(/AccountMenu\.(?:tsx|js)(?:\?|$)/, route => route.abort());
   await page.goto("/guide");
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  const link = page.locator(":is(.wave-header-actions,.wave-footer-tools) > a:is(.wave-profile-entry,.account-button)[href='/account']");
-  await link.hover();
+  await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
+  const entry = page.locator(".wave-header").getByRole("button", { name: "계정 관리", exact: true });
+  await entry.focus();
+  await entry.press("Enter");
   const fallback = page.locator(":is(.wave-header-actions,.wave-footer-tools) > a[data-account-fallback]");
   await expect(fallback).toBeVisible();
   await fallback.focus();
@@ -209,4 +213,28 @@ test("ID login sends the chosen username to the username endpoint", async ({ pag
   await page.locator(".auth-submit").click();
   await expect.poll(() => username).toBe("openapi.review");
   await expect(page.locator("[role=alert]")).toHaveText("입력한 계정 정보를 확인한 뒤 다시 시도해 주세요.");
+});
+
+test("계정 버튼은 화면 준비 전 대기를 표시하고 준비 후 한 번에 열린다", async ({ page }) => {
+  await mockPublicShellApi(page);
+  let release!: () => void;
+  const entryReady = new Promise<void>(resolve => { release = resolve; });
+  let entries = 0, sessions = 0;
+  await page.route(/entry-browser(?:[/?-]|$)/, async route => { entries++; await entryReady; await route.continue(); });
+  page.on("request", request => { if (new URL(request.url()).pathname === "/api/auth/get-session") sessions++; });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const account = page.locator(".wave-header").getByRole("button", { name: "계정 관리", exact: true });
+  try {
+    await expect.poll(() => entries).toBeGreaterThan(0);
+    await expect(account).toBeVisible();
+    await expect(account).toBeDisabled();
+    await expect(account).toHaveAttribute("aria-busy", "true");
+    expect(sessions).toBe(0);
+    release();
+    await expect(account).toBeEnabled();
+    await expect(account).toHaveAttribute("aria-busy", "false");
+    await account.click();
+    await expect(page.locator(".wave-header").getByRole("link", { name: "로그인", exact: true })).toBeVisible();
+    await expect.poll(() => sessions).toBeGreaterThan(0);
+  } finally { release(); }
 });

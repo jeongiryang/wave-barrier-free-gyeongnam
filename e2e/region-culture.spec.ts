@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { storyReady } from "./landing-contract";
+import { prepareLandingMedia, storyReady } from "./landing-contract";
+import { regionShowcaseAlbums } from '../features/landing/region-showcase-photos';
 
 test.beforeEach(async ({ page }) => {
+  await prepareLandingMedia(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await storyReady(page);
@@ -15,12 +17,29 @@ test("지역 사진 카드는 별도 문화·출처 패널 없이 사진으로 �
   await expect(regions.locator(".simple-region-culture,.declining-region-notice,.simple-region-arrow")).toHaveCount(0);
   await regions.getByRole("button", { name: /18개 지역 모두 보기/ }).click();
   await expect(regions.locator(".simple-region-culture,.declining-region-notice,.simple-region-arrow")).toHaveCount(0);
-  await expect(regions.locator(".simple-region-credit")).toHaveCount(18);
+  const cards = regions.locator('.simple-region');
+  await expect(cards).toHaveCount(18);
+  const names = await cards.locator('h3').allTextContents();
+  for (const card of await cards.all()) {
+    const name = await card.locator('h3').innerText();
+    await expect(card.locator('img')).toHaveAttribute('src', regionShowcaseAlbums[name][0].image);
+    await expect(card.locator('.simple-region-link')).toHaveAttribute('href', `/planner?region=${encodeURIComponent(name)}`);
+  }
   const fill = await regions.locator(".simple-region").first().evaluate(node => {
     const card = node.getBoundingClientRect(), link = node.querySelector(".simple-region-link")!.getBoundingClientRect(), image = node.querySelector("img")!.getBoundingClientRect();
     return [Math.abs(card.height-link.height), Math.abs(link.height-image.height), Math.abs(link.width-image.width)];
   });
   expect(fill.every(gap => gap <= 2)).toBe(true);
+  // Credits are consolidated without dropping the exact displayed photo,
+  // photographer, or the distinction between an original and a verified license.
+  await page.locator('.wave-balanced-footer a[href="/policies#content-credits"]').click();
+  for (const name of names) {
+    const photo = regionShowcaseAlbums[name][0];
+    const credit = page.locator('#regional-photo-credits li').filter({ has: page.locator(`img[src="${photo.image}"]`) });
+    await expect(credit).toContainText(photo.photographer || '개별 저작자 미확인');
+    await expect(credit).toContainText('원문 상세/개별 이용조건: 확인 중');
+    await expect(credit.locator(`a[href="${photo.image}"]`)).toHaveText(`${name} · ${photo.title} — 사진 원본 (새 탭)`);
+  }
 });
 
 test("지역 문화 항목은 서버 API를 호출하거나 지역 선택 링크를 바꾸지 않는다", async ({ page }) => {

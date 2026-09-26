@@ -355,8 +355,8 @@ test("every ordered leg needs current route evidence while departure access stay
   const coverage = await routeTools(page);
   expect((await current(page)).schedule).toMatchObject({ travelStart: dates.start, travelEnd: dates.end, scheduleAssignments: { "1001": dates.start, "1002": dates.start } });
   await expect(coverage.getByRole("listitem", { includeHidden: true })).toHaveText([
-    /2026-10-08 · 창원중앙역 → 경남도립미술관/,
-    /2026-10-08 · 경남도립미술관 → 용지호수공원/,
+    /2026-10-08 · 창원중앙역 · 경남도립미술관/,
+    /2026-10-08 · 경남도립미술관 · 용지호수공원/,
   ]);
   await expect(coverage.getByRole("combobox", { name: "이동수단", exact: true })).toBeVisible();
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
@@ -394,8 +394,8 @@ test("every ordered leg needs current route evidence while departure access stay
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
   await expect.poll(() => requests.slice(beforeChanged).filter(url => url.searchParams.get("endLat") === "35.229").length).toBeGreaterThan(0);
   await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
-  await expect(coverage.getByRole("listitem", { includeHidden: true }).nth(1)).toContainText("2026-10-09 · 창원중앙역 → 용지호수공원");
-  await expect(coverage.getByRole("listitem", { includeHidden: true }).nth(1)).not.toContainText("경남도립미술관 → 용지호수공원");
+  await expect(coverage.getByRole("listitem", { includeHidden: true }).nth(1)).toContainText("2026-10-09 · 창원중앙역 · 용지호수공원");
+  await expect(coverage.getByRole("listitem", { includeHidden: true }).nth(1)).not.toContainText("경남도립미술관 · 용지호수공원");
   const nextPark = requests.slice(beforeChanged).find(url => url.searchParams.get("endLat") === "35.229")!;
   expect([nextPark.searchParams.get("startLat"), nextPark.searchParams.get("startLng")]).toEqual(["35.2422", "128.6982"]);
   await expect(transport.locator("summary")).toContainText("확인할 정보 있음");
@@ -420,8 +420,8 @@ test("the itinerary tab unlocks dated journeys and the shared transport control 
   await changeVisitDay(page, "용지호수공원", dates.end);
   const coverage = await routeTools(page);
   await expect(coverage.getByRole("listitem", { includeHidden: true })).toHaveText([
-    /2026-10-08 · 창원중앙역 → 경남도립미술관/,
-    /2026-10-09 · 창원중앙역 → 용지호수공원/,
+    /2026-10-08 · 창원중앙역 · 경남도립미술관/,
+    /2026-10-09 · 창원중앙역 · 용지호수공원/,
   ]);
   await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
   await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");

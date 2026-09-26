@@ -109,7 +109,7 @@ test("native share failure remains readable from the toolbar and can be retried 
       return new Promise<void>((_resolve, reject) => { state.release = () => reject(new DOMException("denied", "NotAllowedError")); });
     } });
   });
-  const share = page.locator(".map-command-bar").getByRole("button", { name: "↗ 페이지 링크", exact: true });
+  const share = page.locator(".map-command-bar").getByRole("button", { name: "페이지 링크", exact: true });
   await share.focus();
   await page.keyboard.press("Enter");
   await expect(share).toHaveAttribute("aria-disabled", "true");

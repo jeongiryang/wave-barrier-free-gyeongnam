@@ -4,12 +4,14 @@ import { mockPlannerApi, plan } from "./fixtures";
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: "reduce" } });
 
-test("불러온 후보 수를 표시하고 편의 초안은 적용할 때만 검색한다", async ({ page }, info) => {
+test("불러온 후보를 유지하고 편의 초안은 적용할 때만 검색한다", async ({ page }, info) => {
   await mockPlannerApi(page);
   const requests: URL[] = [];
   page.on('request', request => { const url = new URL(request.url()); if (url.pathname === '/api/wave' && url.searchParams.get('action') === 'plan') requests.push(url); });
   await page.goto('/planner?region=창원');
-  await expect(page.locator('.simple-results-heading')).toContainText('조건 충족 2곳 · 추가 확인 0곳 · 조건 불일치 0곳');
+  await expect(page.locator('.simple-results-heading h2')).toHaveText('창원 여행지');
+  await expect(page.locator('.simple-results .simple-place-row')).toHaveCount(2);
+  await expect(page.locator('.simple-results .simple-place-row h3')).toHaveText(plan.places.map(place => place.name));
   const before = requests.length;
   await page.locator('.simple-facility-trigger').click();
   await page.locator('.simple-facility-picker').getByRole('checkbox', { name: '접근로', exact: true }).check();
@@ -23,7 +25,9 @@ test("불러온 후보 수를 표시하고 편의 초안은 적용할 때만 검
   await page.locator('.simple-activity-filter').getByRole('button', { name: /문화/ }).click();
   await expect.poll(() => requests.at(-1)?.searchParams.get('themes')).toBe('history');
   expect(requests.at(-1)?.searchParams.get('facilityKeys')).toBe('route');
-  await expect(page.locator('.simple-results-heading')).toContainText('조건 충족 2곳 · 추가 확인 0곳 · 조건 불일치 0곳');
+  await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('.simple-results .simple-place-row')).toHaveCount(2);
+  await expect(page.locator('.simple-results .simple-place-row h3')).toHaveText(plan.places.map(place => place.name));
   expect((await new AxeBuilder({ page }).include('#conditions').analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

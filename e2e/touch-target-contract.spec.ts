@@ -13,13 +13,13 @@ import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
  */
 
 const CONTRACT: Array<{ path: string; selector: string; name: string }> = [
-  { path: "/", selector: ".account-button", name: "계정" },
+  { path: "/", selector: ".account-menu:not(.wave-support-menu) > button", name: "계정" },
   { path: "/", selector: ".help-button", name: "도움말" },
   { path: "/planner", selector: ".wave-header .wave-my-trips", name: "내 일정 탭" },
   { path: "/planner", selector: ".map-provider-badge button", name: "지도 제공자 재연결" },
   { path: "/planner", selector: ".map-command-bar button", name: "지도 도구" },
   { path: "/planner", selector: ".map-type-switch button", name: "지도 종류" },
-  { path: "/community", selector: ".account-button", name: "계정(커뮤니티)" },
+  { path: "/community", selector: ".account-menu:not(.wave-support-menu) > button", name: "계정(커뮤니티)" },
   { path: "/community", selector: ".help-button", name: "도움말(커뮤니티)" },
   { path: "/travel-book", selector: ".help-button", name: "도움말(여행집)" },
 ];
@@ -67,13 +67,17 @@ for (const width of [1440, 390]) {
       await openSupportMenu(page);
       await expect(page.getByRole("button", { name: "도움말", exact: true })).toBeVisible();
       await expect(page.locator(".preference-controls")).toHaveAttribute("aria-busy", "false");
-      const accountEntry = page.locator(":is(.wave-header-actions,.wave-footer-tools) > a:is(.wave-profile-entry,.account-button)[href='/account']");
+      const accountEntry = page.locator(":is(.wave-header-actions,.wave-footer-tools) > button:is(.wave-profile-entry,.account-button)");
+      await expect(accountEntry).toBeEnabled();
       const entryArea = await hitArea(accountEntry);
       expect(entryArea.covered).toBe(false);
       expect(entryArea.width).toBeGreaterThanOrEqual(44);
       expect(entryArea.height).toBeGreaterThanOrEqual(44);
-      await accountEntry.hover();
-      await expect(page.locator(".account-button")).toBeVisible();
+      await accountEntry.click();
+      const accountMenu = page.locator(".account-menu:not(.wave-support-menu) > button");
+      await expect(accountMenu).toBeVisible();
+      await accountMenu.press("Escape");
+      await openSupportMenu(page);
       if (path === "/planner") {
         await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
         await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();

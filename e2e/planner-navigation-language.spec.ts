@@ -10,7 +10,8 @@ test('English header navigation preserves the empty-trip destination, history an
   await expect(tabs).toHaveCount(2); await expect(tabs.nth(1)).toHaveAttribute("href", "/travel-book");
   await expect(page.getByRole('navigation', { name: 'Main menu', exact: true })).toBeVisible();
   await chooseTripConditions(page);
-  await expect(page.locator('.simple-results-heading')).toContainText('2 places loaded');
+  await expect(page.locator('.simple-results-heading h2')).toHaveText('창원 places');
+  await expect(page.locator('.simple-results .simple-place-row')).toHaveCount(2);
   await page.getByRole('button', { name: '경남도립미술관 add to itinerary', exact: true }).click();
   await expect(tabs.nth(1)).toBeEnabled();
   await openItinerary(page, { start: '2026-10-14' });

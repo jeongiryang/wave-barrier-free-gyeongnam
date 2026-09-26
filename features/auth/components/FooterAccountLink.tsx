@@ -14,10 +14,11 @@ const AccountMenu = lazy(() => import("./AccountMenu").catch(() => ({ default: A
 export default function FooterAccountLink({ iconOnly = false }: { iconOnly?: boolean }) {
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
-  const en = useSitePreferences().locale === "en";
+  const { locale, hydrated } = useSitePreferences();
+  const en = locale === "en";
   const path = usePathname();
   const loginHref = path && path !== "/" ? `/login?next=${encodeURIComponent(path)}` : "/login";
-  const link = <button type="button" className={iconOnly ? "wave-profile-entry" : "account-button"} aria-label={en ? "Account" : "계정 관리"} aria-haspopup="true" onClick={(event) => {
+  const link = <button type="button" className={iconOnly ? "wave-profile-entry" : "account-button"} aria-label={en ? "Account" : "계정 관리"} aria-haspopup="true" disabled={!hydrated} aria-busy={!hydrated} onClick={(event) => {
     event.preventDefault();
     setOpen(true);
     setReady(true);

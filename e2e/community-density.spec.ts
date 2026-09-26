@@ -1,6 +1,7 @@
 import { expect, test, type Locator } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPublicShellApi } from './fixtures';
+import { horizonPhotos } from '../features/landing/horizon-photos';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
 
@@ -136,8 +137,9 @@ test('community density changes both real post and editorial grids without chang
   await expect(list.locator('article')).toHaveCount(8);
   await expect(stories.locator('article')).toHaveCount(3);
   const storyLinks = await stories.locator('h3 a').evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).getAttribute('href')));
-  const credits = await stories.locator('figcaption a').evaluateAll(nodes => nodes.map(node => ({ href: (node as HTMLAnchorElement).href, text: node.textContent })));
-  expect(credits.length).toBeGreaterThan(0);
+  const photos = await stories.locator('.editorial-photo img').evaluateAll(nodes => nodes.map(node => ({ src: node.getAttribute('src'), alt: node.getAttribute('alt') })));
+  const captions = await stories.locator('figcaption').allTextContents();
+  expect(photos).toHaveLength(3); expect(captions).toHaveLength(3);
   const baseline = [...requests], view = page.getByRole('group', { name: '게시글 보기 방식', exact: true });
   for (const width of [1440, 960, 601, 600, 390]) {
     await page.setViewportSize({ width, height: 900 });
@@ -157,12 +159,22 @@ test('community density changes both real post and editorial grids without chang
       await expect(list.locator('h3')).toHaveText(posts.map(post => post.title));
       expect(await list.locator('article > a').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')))).toEqual(posts.map(post => `/community/${post.id}`));
       expect(await stories.locator('h3 a').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')))).toEqual(storyLinks);
-      expect(await stories.locator('figcaption a').evaluateAll(nodes => nodes.map(node => ({ href: (node as HTMLAnchorElement).href, text: node.textContent })))).toEqual(credits);
+      expect(await stories.locator('.editorial-photo img').evaluateAll(nodes => nodes.map(node => ({ src: node.getAttribute('src'), alt: node.getAttribute('alt') })))).toEqual(photos);
+      expect(await stories.locator('figcaption').allTextContents()).toEqual(captions);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), `${width}px ${layout} must fit the viewport`).toBeLessThanOrEqual(1);
       expect(requests).toEqual(baseline);
     }
     if (width === 1440 || width === 390) await page.locator('.community-workspace').screenshot({ path: test.info().outputPath(`community-density-${width}.png`) });
   }
   expect((await new AxeBuilder({ page }).include('.night-community-toolbar').include('.night-sortbar').include('.community-list').analyze()).violations).toEqual([]);
+  // Attribution moved to the shared source page; layout changes must retain
+  // the same photographs and the real author/license behind its visible link.
+  await page.locator('.wave-balanced-footer a[href="/policies#content-credits"]').click();
+  for (const photo of Object.values(horizonPhotos)) {
+    const credit = page.locator('#content-credits li').filter({ has: page.locator(`img[src="${photo.image}"]`) });
+    await expect(credit).toContainText(photo.photographer);
+    await expect(credit.locator(`a[href="${photo.sourceUrl}"]`)).toBeVisible();
+    await expect(credit.locator(`a[href="${photo.licenseUrl}"]`)).toHaveText(photo.license);
+  }
   expect(errors).toEqual([]);
 });

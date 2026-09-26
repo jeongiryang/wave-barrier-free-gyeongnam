@@ -103,7 +103,7 @@ for (const locale of ["ko", "en"]) {
         return Math.max(0, Math.min(badge.right, tools.right) - Math.max(badge.left, tools.left)) *
           Math.max(0, Math.min(badge.bottom, tools.bottom) - Math.max(badge.top, tools.top));
       }), { message: `${locale} ${width}px map status must not cover tools` }).toBe(0);
-      const share = nav.getByRole("button", { name: locale === "en" ? "↗ Page link" : "↗ 페이지 링크", exact: true });
+      const share = nav.getByRole("button", { name: locale === "en" ? "Page link" : "페이지 링크", exact: true });
       await share.focus();
       await expect(share).toBeFocused();
       await expect.poll(() => share.evaluate((node) => {
@@ -165,10 +165,9 @@ test("추가 도구에는 지도 유형·주변·표시·로드뷰·이미지·�
   await expect(options).toBeHidden();
   await nav.getByRole("button", { name: "지도 도구", exact: true }).click();
   await expect(options).toBeVisible();
-  // 이 검사의 뜻은 아래 도구가 모두 남아 있는지이므로, 완전 일치 대신 포함으로 확인해 도구가 늘어도 계약이 유지되게 한다.
-  const toolLabels = await options.getByRole("button").allTextContents();
-  for (const label of ["지도", "스카이뷰", "⌖ 주변", "▱ 지도 표시", "◉ 로드뷰", "⇩ 이미지", "↗ 페이지 링크"]) {
-    expect(toolLabels).toContain(label);
+  // 필수 도구의 접근 가능한 이름을 확인하되 전체 개수는 고정하지 않는다.
+  for (const label of ["지도", "스카이뷰", "⌖ 주변", "▱ 지도 표시", "◉ 로드뷰", "⇩ 이미지", "페이지 링크"]) {
+    await expect(options.getByRole("button", { name: label, exact: true })).toBeVisible();
   }
   for (const button of await options.getByRole("button").all()) {
     // Touch browsers do not consistently scroll a programmatically focused

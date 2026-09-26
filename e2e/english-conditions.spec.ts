@@ -9,7 +9,8 @@ for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const searches: URL[] = []; page.on('request', request => { const url = new URL(request.url()); if (url.pathname === '/api/wave' && url.searchParams.get('action') === 'plan') searches.push(url); });
     await page.goto('/planner?region=창원');
-    await expect(page.locator('.simple-results-heading')).toContainText('2 places loaded');
+    await expect(page.locator('.simple-results-heading h2')).toHaveText('창원 places');
+    await expect(page.locator('.simple-results .simple-place-row')).toHaveCount(2);
     await page.locator('.simple-facility-trigger').click();
     const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
     await expect(picker.getByRole('checkbox')).toHaveCount(16);

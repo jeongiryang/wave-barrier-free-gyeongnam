@@ -61,7 +61,7 @@ html[data-theme="dark"] .map-crowd-legend p { color: #b7cdd7; }
   .map-crowd-legend { width: calc(100% - 18px); min-height: 66px; left: 9px; bottom: 9px; grid-template-columns: 40px minmax(0,1fr) auto; border-radius: 15px; }
   .crowd-visual { width: 38px; height: 38px; }
   .map-crowd-legend p { display: none; }
-  .map-crowd-evidence { grid-column: 2 / -1; }
+  .map-crowd-evidence { grid-column: 1 / 3; }
 }
 @media (prefers-reduced-motion: reduce) { .wave-map-icon.crowd-aware::before,.crowd-visual i { animation: none; } }
 

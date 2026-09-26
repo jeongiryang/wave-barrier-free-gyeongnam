@@ -43,7 +43,7 @@ test('an internal route action dismisses Naru and exposes the selected shared jo
   await setup(page); const before = await stored(page);
   const chat = await openNaruTool(page, '이동 구간 확인');
   const second = chat.locator('.itinerary-route-coverage li').nth(1);
-  await expect(second).toContainText('경남도립미술관 → 용지호수공원');
+  await expect(second).toContainText('경남도립미술관 · 용지호수공원');
   await expect(second.getByRole('button', { name: '이 구간 지도에서 보기', exact: true })).toBeEnabled();
   await second.getByRole('button', { name: '이 구간 지도에서 보기', exact: true }).click();
   await expect(chat).toBeHidden(); await expect(page.locator('#navigation')).toBeVisible();

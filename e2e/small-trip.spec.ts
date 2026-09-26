@@ -26,7 +26,7 @@ test('anchor expansion previews one nearby stop, preserves the period, and undoe
  await page.getByText('한 장소에서 코스 이어 담기',{exact:true}).click();const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});
  const before=await tripState(page);
  const candidate=panel.getByRole('article').filter({has:page.getByRole('heading',{name:'용지호수공원',exact:true})});await candidate.getByRole('button',{name:'추가 미리보기',exact:true}).click();
- await expect(panel.getByRole('heading',{name:'경남도립미술관 → 용지호수공원',exact:true})).toBeFocused();await expect.poll(()=>tripState(page)).toEqual(before);
+ await expect(panel.getByRole('heading',{name:'경남도립미술관 · 용지호수공원',exact:true})).toBeFocused();await expect.poll(()=>tripState(page)).toEqual(before);
  await panel.getByRole('button',{name:'이 장소 이어 담기',exact:true}).click();await expect(page.locator('.simple-timeboard')).toContainText('용지호수공원');await panel.getByRole('button',{name:'방금 이어 담기 되돌리기',exact:true}).click();await expect.poll(()=>tripState(page)).toEqual(before);
  await panel.getByLabel('필요한 편의가 미확인인 곳도 살펴보기',{exact:true}).check();await expect(panel).toContainText('편의 미확인 공원');
  for(const width of info.project.name.includes('desktop')?[1440,960]:[390,320]){await page.setViewportSize({width,height:960});await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`course-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBe(0);expect((await new AxeBuilder({page}).include('[aria-label="한 장소에서 코스 확장"]').analyze()).violations).toEqual([]);}

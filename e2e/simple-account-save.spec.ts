@@ -157,8 +157,13 @@ async function freshTrip(page: Page) {
 }
 async function loadAccountMenu(page: Page) {
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
-  await page.locator(".wave-header-actions > a:is(.wave-profile-entry,.account-button)[href='/account']").hover();
-  await expect(page.getByRole("button", { name: `${userName} 계정 메뉴`, exact: true })).toBeVisible();
+  await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
+  await page.locator(".wave-header").getByRole("button", { name: "계정 관리", exact: true }).click();
+  const trigger = page.getByRole("button", { name: `${userName} 계정 메뉴`, exact: true });
+  await expect(trigger).toBeVisible();
+  await trigger.press("Escape");
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
 }
 test.afterEach(async ({ context }, info) => {
   const audits = [...new Set(context.pages().map(page => states.get(page)).filter((value): value is State => Boolean(value)))];
@@ -291,8 +296,10 @@ test("저장 응답 전에 다른 탭에서 로그아웃하면 열린 초안에 
   await other.getByRole("button", { name: "로그아웃", exact: true }).click();
   await expect.poll(() => state.signedIn).toBe(false);
   await page.bringToFront();
-  await expect(page.locator(".account-button")).toHaveAccessibleName("로그인");
-  await expect(page.locator(".account-button")).toBeVisible();
+  await page.locator(".wave-header .account-menu:not(.wave-support-menu) > button").click();
+  await expect(page.locator(".wave-header").getByRole("link", { name: "로그인", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: `${userName} 계정 메뉴`, exact: true })).toHaveCount(0);
+  await page.locator(".wave-header .account-menu:not(.wave-support-menu) > button").press("Escape");
   gate.release();
   await expect.poll(() => state.completed).toBe(1);
   await expect(page.getByRole("button", { name: "내 여행에 저장", exact: true })).toBeEnabled();

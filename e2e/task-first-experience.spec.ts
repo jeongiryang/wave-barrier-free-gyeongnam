@@ -19,7 +19,7 @@ test('task pages put actual collections first at desktop, tablet and mobile widt
       await expect(page.locator('.travel-book-landscapes')).toHaveCount(0);
     } else {
       await expect(page.locator('.night-community-sidebar').getByRole('heading',{name:'여행 준비 가이드'})).toBeVisible();
-      await expect(page.getByRole('link',{name:'커뮤니티 운영정책 보기'})).toHaveAttribute('href','/policies');
+      await expect(page.getByRole('link',{name:'운영정책',exact:true})).toHaveAttribute('href','/policies');
     }
     for (const width of info.project.name.startsWith('desktop') ? [1440,960] : [390]) {
       await page.setViewportSize({width,height:960});

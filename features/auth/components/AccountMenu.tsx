@@ -20,6 +20,7 @@ export default function AccountMenu({ loginHref = "/login", initialOpen = false,
   const panel = useRef<HTMLDivElement>(null);
   const panelId = useId();
   const [open, setOpen] = useState(initialOpen);
+  const initialFocusPending = useRef(initialOpen);
   useHeaderPopover(panel, entry, open, () => setOpen(false));
   useEffect(() => {
     const close = (event: PointerEvent) => {
@@ -29,8 +30,15 @@ export default function AccountMenu({ loginHref = "/login", initialOpen = false,
     return () => document.removeEventListener("pointerdown", close);
   }, []);
   useEffect(() => {
-    if (initialOpen && !isPending) entry.current?.focus();
-  }, [initialOpen, isPending]);
+    if (!initialFocusPending.current) return;
+    // Closing or leaving the menu cancels the initial focus request. A late
+    // session response must not pull focus out of the user's next task.
+    if (!open) { initialFocusPending.current = false; return; }
+    if (!isPending) {
+      initialFocusPending.current = false;
+      entry.current?.focus();
+    }
+  }, [isPending, open]);
 
   const label = session?.user?.name?.trim() || session?.user?.email || (en ? "Account" : "계정");
   async function signOut() {
