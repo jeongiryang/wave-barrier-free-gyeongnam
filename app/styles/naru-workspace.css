@@ -88,7 +88,7 @@ body .naru-panel.naru-workspace .naru-context-suggestions { width:auto;min-width
 body .naru-panel.naru-workspace .naru-context-suggestions>* { flex:0 1 auto;max-width:100%;white-space:normal;overflow-wrap:anywhere; }
 body .naru-panel.naru-workspace .naru-context-suggestions>.naru-trip-context { flex-basis:100%; }
 body .naru-panel.naru-workspace .naru-input { width:auto;flex-shrink:0;margin:14px 24px 20px;padding:10px;border-radius:18px;background:var(--surface);border-color:#a8bedb; }
-body .naru-panel.naru-workspace .naru-input textarea { background:transparent;color:var(--ink); }
+body .naru-panel.naru-workspace .naru-input textarea { background:transparent;color:var(--ink);min-height:max(44px,calc(1lh + 16px)); }
 body .naru-panel.naru-workspace .naru-input textarea::placeholder { color:var(--muted);opacity:1; }
 body .naru-panel.naru-workspace .naru-input button { border-radius:12px; }
 body .naru-panel.naru-workspace .naru-note { width:auto;margin:0;padding:0 24px 8px;background:transparent;color:var(--muted); }
@@ -132,12 +132,20 @@ body .naru-panel.naru-workspace .naru-sidebar-tools>.naru-workspace-actions { pa
   body .naru-panel.naru-workspace .naru-workspace-tabs>button { min-height:44px;padding:8px 6px;font-size:14px;gap:6px; }
   body .naru-panel.naru-workspace .naru-input { margin:8px 8px max(8px,env(safe-area-inset-bottom));padding:6px; }
 }
+/* Landscape phones and touch tablets can keep a wide layout viewport while
+   the keyboard leaves a short visual viewport. Use the measured height rather
+   than a layout-height media query, and retain desktop sizing when it recovers. */
+@media (pointer:coarse) {
+  body .naru-panel.naru-workspace[data-short-viewport=true]:is(.naru-large,.naru-compact) { inset:var(--naru-visible-top,0px) 0 auto;margin:0;width:100%;height:var(--naru-visible-height,100dvh);border:0;border-radius:0; }
+  body .naru-panel.naru-workspace[data-short-viewport=true] .naru-workspace-body { grid-template-columns:minmax(0,1fr); }
+  body .naru-panel.naru-workspace[data-short-viewport=true] .naru-workspace-sidebar { display:none; }
+}
 body .naru-panel.naru-workspace[data-short-viewport=true] .naru-heading { min-height:52px;padding-block:4px; }
 body .naru-panel.naru-workspace[data-short-viewport=true] .naru-heading small { display:none; }
 body .naru-panel.naru-workspace[data-short-viewport=true] .naru-workspace-tabs { padding-bottom:4px; }
 body .naru-panel.naru-workspace[data-short-viewport=true] .naru-workspace-tabs>button { min-height:44px;padding-block:6px; }
 body .naru-panel.naru-workspace[data-short-viewport=true] .naru-input { margin-block:4px; }
-body .naru-panel.naru-workspace[data-short-viewport=true] .naru-input textarea { max-height:64px; }
+body .naru-panel.naru-workspace[data-short-viewport=true] .naru-input textarea { max-height:max(64px,calc(1lh + 16px)); }
 
 body .naru-panel.naru-workspace .naru-photo-preview { flex-shrink:0;max-height:20%;overflow:auto; }
 
