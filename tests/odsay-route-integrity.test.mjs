@@ -87,7 +87,7 @@ async function api(body) {
   const mod = { exports: {} };
   const dependencies = {
     "./odsay": { fetchOdsayRoutes: () => run(body) }, "./kakao-route": { fetchKakaoRoute: async () => ({ alternative: null, provider: null }) },
-    "./public-context": { fetchTransportContext: async () => ({ providers: [{ id: "odsay", configured: true, state: "ready" }], context: {} }) },
+    "./public-context": { fetchTransportContext: async () => ({ providers: [{ id: "odsay", configured: true, state: "ready", queryStatus: "not-requested", resultCount: null }], context: {} }) },
     "./route-utils": utils.exports, "./health": {}, "../shared/observability": { recordOperationalEvent() {} },
     "../shared/http": { json: (value, status) => new Response(JSON.stringify(value), { status }) },
     "../shared/provider-data": { transportProvider() { throw Error("Legacy comparison must use the existing context provider records"); } },
@@ -97,6 +97,44 @@ async function api(body) {
 }
 test("API only confirms a complete city alternative", async () => {
   const result = await api(valid()); assert.equal(result.configured, true); assert.equal(result.alternatives[0].mode, "transit"); assert.equal(result.providers[0].state, "connected");
+});
+
+test("completed route queries replace not-requested metadata with the returned validated count", async () => {
+  const body = valid();
+  body.result.path = Array.from({ length: 6 }, () => structuredClone(body.result.path[0]));
+  body.result.path.unshift({ info: {} });
+  const result = await api(body);
+  assert.equal(result.alternatives.length, 4, "only the four returned, validated alternatives count");
+  assert.equal(result.providers[0].queryStatus, "success");
+  assert.equal(result.providers[0].resultCount, result.alternatives.length);
+  assert.equal(result.providers[0].state, "connected");
+});
+
+test("normal empty and documented no-route responses record completed zero-result queries", async () => {
+  for (const body of [{ result: { path: [] } }, ...[3, 4, 5, 6, -98, -99].map(code => ({ error: { code } }))]) {
+    const result = await api(body);
+    assert.equal(result.providers[0].queryStatus, "success");
+    assert.equal(result.providers[0].resultCount, 0);
+    assert.equal(result.providers[0].state, "ready");
+    assert.ok(result.alternatives.every(route => route.mode === "preview" && !route.configured));
+  }
+});
+
+test("invalid and failed route queries never claim completed zero results", async () => {
+  const invalid = valid(); delete invalid.result.path[0].subPath[1].startX;
+  for (const body of [null, {}, invalid, { error: { code: 500 } }, { result: { searchType: 1, path: [] } }]) {
+    const result = await api(body);
+    assert.equal(result.providers[0].queryStatus, "error");
+    assert.equal(result.providers[0].resultCount, null);
+    assert.equal(result.providers[0].state, "error");
+  }
+  for (const options of [{ status: 401 }, { status: 429 }, { status: 503 }, { fail: true }]) {
+    const result = await run(valid(), options);
+    assert.equal(result.provider.queryStatus, "error");
+    assert.equal(result.provider.resultCount, null);
+    assert.deepEqual(result.routes, []);
+  }
+  assert.equal((await run(valid(), { key: "" })).provider, null, "unrequested provider keeps its initial evidence");
 });
 
 for (const [name, change, message] of [

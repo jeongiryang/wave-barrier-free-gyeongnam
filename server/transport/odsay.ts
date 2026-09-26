@@ -147,7 +147,7 @@ export async function fetchOdsayRoutes(
     const failure = caughtProviderFailure(error,{provider:"odsay",operation:"searchPubTransPathT"});
     return {
       routes: [],
-      provider: {state:"error",detail:providerFailureMessage(failure),failure},
+      provider: {state:"error",detail:providerFailureMessage(failure),failure,queryStatus:"error",resultCount:null},
     };
   }
 }
