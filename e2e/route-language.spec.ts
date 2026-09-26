@@ -62,12 +62,22 @@ for (const theme of ["light", "dark"] as const) {
     for (const width of [320, 768, 960, 1024, 1366, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await ensureMapView(page);
-      for (const control of await panel.locator("button,a").all()) {
-        const box = await control.boundingBox();
-        expect(box!.width).toBeGreaterThanOrEqual(44);
-        expect(box!.height).toBeGreaterThanOrEqual(44);
-        expect(box!.x).toBeGreaterThanOrEqual(0);
-        expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+      await expect(panel.locator('.route-options')).toHaveAttribute('aria-busy', 'false');
+      await expect(panel.locator('.route-option[aria-pressed="true"]')).toContainText('40 min');
+      // Four modes, two verified routes and their external link must all remain.
+      // Read one layout snapshot instead of issuing a protocol wait and bounding
+      // box call for each nth locator while the responsive layout is settling.
+      await expect(panel.locator('button,a')).toHaveCount(7);
+      const targets = await panel.locator('button,a').evaluateAll(controls => controls.map(control => {
+        const box = control.getBoundingClientRect();
+        return { label: control.textContent, width: box.width, height: box.height, x: box.x, right: box.right };
+      }));
+      expect(targets).toHaveLength(7);
+      for (const box of targets) {
+        expect(box.width, `${width}px ${box.label}`).toBeGreaterThanOrEqual(44);
+        expect(box.height, `${width}px ${box.label}`).toBeGreaterThanOrEqual(44);
+        expect(box.x, `${width}px ${box.label}`).toBeGreaterThanOrEqual(0);
+        expect(box.right, `${width}px ${box.label}`).toBeLessThanOrEqual(width);
       }
       const overflowing = await modes.locator("button").evaluateAll((buttons) => buttons.map((button) => {
         const label = button.querySelector("div")!;

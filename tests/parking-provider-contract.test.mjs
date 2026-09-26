@@ -139,7 +139,7 @@ for (const [name, change, expected] of [
   const result = await h.run();
   assert.equal(result.status, 502); assert.equal(result.body.failure.kind, 'malformed_response');
   assert.equal(result.body.failure.operation, 'tn_pubr_prkplce_info_api');
-  assert.deepEqual(h.events, [{ event: 'parking-response-rejected', page: 1, ...expected }]);
+  assert.deepEqual(h.events.map(({ shape, ...event }) => { if (expected.reason === 'envelope') assert.ok(shape); else assert.equal(shape, undefined); return event; }), [{ event: 'parking-response-rejected', page: 1, ...expected }]);
   assert.doesNotMatch(JSON.stringify({ events: h.events, response: result }), /private-sentinel|serviceKey|https?:|"prkplce|resultMsg/);
   assert.equal(result.body.reason, undefined, 'server diagnostics must not expand the public response');
 });
@@ -151,6 +151,74 @@ test('invalid JSON logs a fixed parsing reason without retaining the raw body', 
   assert.equal(result.body.failure.operation, 'tn_pubr_prkplce_info_api');
   assert.deepEqual(h.events, [{ event: 'parking-response-rejected', reason: 'json', page: 1 }]);
   assert.doesNotMatch(JSON.stringify({ events: h.events, response: result }), /private-sentinel|serviceKey|https?:/);
+});
+
+for (const [name, body, scopes, codes] of [
+  ['wrapped missing body', { response: { header: { resultCode: '00' } } }, ['object', 'object', 'missing', 'missing', 'object', 'missing'], ['missing', 'missing', 'missing', '00']],
+  ['flat success-shaped gateway', { header: { resultCode: '00' }, body: { items: ['private-sentinel'] } }, ['object', 'missing', 'object', 'object', 'missing', 'missing'], ['missing', 'missing', '00', 'missing']],
+  ['root string', 'private-sentinel https://private-sentinel.test/?serviceKey=private-sentinel-key', ['string', 'missing', 'missing', 'missing', 'missing', 'missing'], ['missing', 'missing', 'missing', 'missing']],
+  ['root array', [{ private: 'private-sentinel' }], ['array', 'missing', 'missing', 'missing', 'missing', 'missing'], ['missing', 'missing', 'missing', 'missing']],
+  ['root null', null, ['null', 'missing', 'missing', 'missing', 'missing', 'missing'], ['missing', 'missing', 'missing', 'missing']],
+  ['root number', 17, ['number', 'missing', 'missing', 'missing', 'missing', 'missing'], ['missing', 'missing', 'missing', 'missing']],
+  ['root boolean', false, ['boolean', 'missing', 'missing', 'missing', 'missing', 'missing'], ['missing', 'missing', 'missing', 'missing']],
+  ['gateway explanation', { message: 'private-sentinel', privateField: 'private-sentinel' }, ['object', 'missing', 'missing', 'missing', 'missing', 'missing'], ['missing', 'missing', 'missing', 'missing']],
+  ['array header and string body', { response: { header: [{ resultCode: 'private-sentinel' }], body: 'private-sentinel' } }, ['object', 'object', 'missing', 'missing', 'array', 'string'], ['missing', 'missing', 'missing', 'missing']],
+  ['known numeric zero', { resultCode: 0 }, ['object', 'missing', 'missing', 'missing', 'missing', 'missing'], ['0', 'missing', 'missing', 'missing']],
+  ['known padded zero', { response: { resultCode: '0000' } }, ['object', 'object', 'missing', 'missing', 'missing', 'missing'], ['missing', '0000', 'missing', 'missing']],
+  ['unselected arbitrary code', { resultCode: 'private-sentinel', response: { header: { resultCode: '00' } } }, ['object', 'object', 'missing', 'missing', 'object', 'missing'], ['other', 'missing', 'missing', '00']],
+]) test(`envelope diagnostic distinguishes ${name} without exposing its values`, async () => {
+  const h = harness(async () => Response.json(body), { key: 'private-sentinel-key' });
+  const result = await h.run();
+  assert.equal(result.status, 502); assert.equal(result.body.failure.kind, 'malformed_response');
+  assert.equal(result.body.failure.operation, 'tn_pubr_prkplce_info_api');
+  assert.equal(h.events.length, 1); assert.equal(h.events[0].reason, 'envelope');
+  const { shape } = h.events[0];
+  assert.deepEqual(Object.keys(shape), ['root', 'response', 'header', 'body', 'responseHeader', 'responseBody', 'serviceResponse', 'serviceMessageHeader']);
+  assert.deepEqual(Object.values(shape).slice(0, 6).map(node => node.type), scopes);
+  assert.deepEqual(shape.serviceResponse, { type: 'missing' }); assert.deepEqual(shape.serviceMessageHeader, { type: 'missing', code: 'missing' });
+  assert.deepEqual([shape.root.code, shape.response.code, shape.header.code, shape.responseHeader.code], codes);
+  const visit = node => {
+    for (const [key, value] of Object.entries(node)) {
+      assert.ok(['type', 'code', 'data', 'items', 'results', 'records', 'error', 'errors', 'length', 'totalCount'].includes(key));
+      if (key === 'type') assert.ok(['object', 'array', 'null', 'string', 'number', 'boolean', 'missing'].includes(value));
+      else if (key === 'code') assert.ok(['0', '00', '0000', 'other', 'missing'].includes(value));
+      else if (typeof value === 'number') assert.ok(Number.isSafeInteger(value) && value >= 0);
+      else visit(value);
+    }
+  };
+  Object.values(shape).forEach(visit);
+  assert.equal(result.body.shape, undefined);
+  assert.doesNotMatch(JSON.stringify({ events: h.events, response: result }), /private-sentinel|privateField|message|serviceKey|https?:/);
+});
+
+test('envelope diagnostics count only known collection arrays and safe totals at fixed locations', async () => {
+  const h = harness(async () => Response.json({
+    data: [{ secret: 'private-sentinel' }, null], items: 'private-sentinel', results: false, records: null, totalCount: '12',
+    error: 'private-sentinel', errors: [{ secret: 'private-sentinel' }],
+    response: { data: { privateField: 'private-sentinel' }, items: ['private-sentinel'], results: [], records: 13, error: { secret: 'private-sentinel' }, errors: [], totalCount: '9007199254740992' },
+  }));
+  const result = await h.run();
+  assert.equal(result.status, 502);
+  const { root, response } = h.events[0].shape;
+  assert.deepEqual(root.data, { type: 'array', length: 2 }); assert.deepEqual(root.items, { type: 'string' });
+  assert.deepEqual(root.results, { type: 'boolean' }); assert.deepEqual(root.records, { type: 'null' }); assert.equal(root.totalCount, 12);
+  assert.deepEqual(response.data, { type: 'object' }); assert.deepEqual(response.items, { type: 'array', length: 1 });
+  assert.deepEqual(response.results, { type: 'array', length: 0 }); assert.deepEqual(response.records, { type: 'number' }); assert.equal(response.totalCount, undefined);
+  assert.deepEqual(root.error, { type: 'string' }); assert.deepEqual(root.errors, { type: 'array', length: 1 });
+  assert.deepEqual(response.error, { type: 'object' }); assert.deepEqual(response.errors, { type: 'array', length: 0 });
+  assert.doesNotMatch(JSON.stringify(h.events), /private-sentinel|privateField|secret|9007199254740992/);
+});
+
+for (const [code, expected] of [['20', '20'], [22, '22'], ['05', '05'], ['private-sentinel', 'other'], [{ privateField: 'private-sentinel' }, 'other']]) test(`known JSON gateway records a bounded ${expected} code without accepting the envelope`, async () => {
+  const h = harness(async () => Response.json({ OpenAPI_ServiceResponse: { cmmMsgHeader: { returnReasonCode: code, returnAuthMsg: 'private-sentinel', errMsg: 'private-sentinel https://private-sentinel.test/?serviceKey=private-sentinel-key' } } }));
+  const result = await h.run();
+  assert.equal(result.status, 502); assert.equal(result.body.failure.kind, 'malformed_response');
+  assert.equal(result.body.failure.operation, 'tn_pubr_prkplce_info_api'); assert.equal(result.body.failure.code, null);
+  assert.equal(h.events[0].reason, 'envelope');
+  assert.deepEqual(h.events[0].shape.serviceResponse, { type: 'object' });
+  assert.deepEqual(h.events[0].shape.serviceMessageHeader, { type: 'object', code: expected });
+  assert.equal(result.body.shape, undefined);
+  assert.doesNotMatch(JSON.stringify({ events: h.events, response: result }), /private-sentinel|privateField|returnAuthMsg|errMsg|serviceKey|https?:/);
 });
 
 test('a quota stops sibling work without misreporting cancellation as an independent timeout', async () => {
