@@ -16,6 +16,109 @@ test('fatigue today does not move a saved future period to today', () => {
   assert.equal(second.date, context.days[1]); assert.equal(second.start, undefined); assert.equal(second.end, undefined);
 });
 
+test('the exact whole-trip relaxation follow-up preserves a model adaptation and existing trip state', () => {
+  const ctx = {
+    ...context, today: '2026-09-27', days: ['2026-09-29'], transport: 'car',
+    savedIds: ['1622623', '753302', '229904'],
+    places: [{ id: '1622623', name: '통영시립도서관' }, { id: '753302', name: '강구안' }, { id: '229904', name: '청마문학관' }],
+    stops: [{ placeId: '1622623', date: '2026-09-29', minutes: 120 }],
+    fixedVisits: { '1622623': { kind: 'visit', position: 0, time: '' } },
+  };
+  const value = { action: 'adapt-itinerary', pace: 'relaxed', reason: 'change', start: '2027-01-01', end: '2027-01-01' };
+  const before = JSON.stringify({ value, ctx });
+  const text = '담은 장소와 기존 날짜, 고정 방문은 모두 유지하고 더 여유롭게 휴식과 동선을 조정해줘';
+  for (const said of [text, [user('2026-09-29 통영 당일 여행을 자동차로 준비해줘'), user(text)]]) {
+    const actual = ground(value, said, ctx);
+    assert.equal(actual?.action, 'adapt-itinerary');
+    assert.equal(actual.pace, 'relaxed');
+    assert.equal(actual.reason, 'change');
+    assert.equal(actual.start, undefined); assert.equal(actual.end, undefined);
+    assert.ok(actual.date === undefined || actual.date === ctx.days[0]);
+    assert.ok(validateAssistantAction(actual));
+  }
+  assert.equal(JSON.stringify({ value, ctx }), before);
+});
+
+test('preserved dates do not make an unrelated rest or route change a date edit', () => {
+  const value = { action: 'adapt-itinerary', pace: 'relaxed', reason: 'change' };
+  for (const text of [
+    '기존날짜유지하고 휴식을늘려줘',
+    '날짜는 유지하고 휴식을 늘려줘',
+    '여행 기간은 그대로 유지하며 휴식을 늘려줘',
+    '날짜와 고정 방문은 모두 유지하면서 동선을 조정해줘',
+    '날짜와 기간은 보존하고 휴식을 늘려줘',
+    '날짜별로 휴식과 동선을 조정해줘',
+    '기존 날짜 기준으로 동선을 조정해줘',
+  ]) {
+    assert.deepEqual(ground(value, text), value, text);
+  }
+});
+
+test('preservation wording does not bypass negative, questioning or actual mixed date edits', () => {
+  for (const text of [
+    '기존 날짜는 유지하고 휴식을 늘리지 마',
+    '기존 날짜는 유지하고 휴식을 늘려도 될까?',
+    '여행 날짜를 내일로 바꾸지 마',
+    '여행 날짜를 내일로 바꿀까?',
+    '날짜를 바꾸고 장소는 유지하고 휴식을 늘려줘',
+    '날짜를 내일로 바꿔주고 장소도 바꿔줘',
+    '날짜를 내일로 바꿔줘. 장소도 바꿔줘',
+    '날짜는 유지하고 여행 기간은 3일로 늘리고 장소도 바꿔줘',
+    '날짜는 유지하고 휴식을 늘려줘. 날짜는 내일로 바꿔줘',
+    '날짜를 유지하고 싶지 않아. 내일로 바꿔줘',
+    '여행 날짜를 정해줘',
+    '여행날짜를정해줘',
+    '날짜를 정해주고 장소도 바꿔줘',
+    '장소를 바꾸고 날짜를내일로정해줘',
+  ]) {
+    for (const action of ['adapt-itinerary', 'create-itinerary', 'set-dates']) {
+      assert.equal(ground({ action, pace: 'relaxed', start: '2027-01-01', end: '2027-01-01' }, text), null, `${action}: ${text}`);
+    }
+  }
+});
+
+test('explicit date assignments still use only the requested date, including compact Korean', () => {
+  for (const text of ['여행 날짜를 내일로 정해줘', '날짜를내일로정해줘', '내일로날짜를정해줘']) {
+    assert.deepEqual(ground({ action: 'adapt-itinerary', pace: 'relaxed' }, text), {
+      action: 'set-dates', start: '2026-09-13', end: '2026-09-13',
+    }, text);
+  }
+});
+
+test('a general relaxation request cannot invent a named break or an absent model action', () => {
+  const text = '담은 장소와 기존 날짜, 고정 방문은 모두 유지하고 더 여유롭게 휴식과 동선을 조정해줘';
+  const ctx = { ...context, savedIds: ['1622623'], places: [{ id: '1622623', name: '통영시립도서관' }] };
+  for (const action of ['visit', 'break']) {
+    assert.equal(ground({ action, placeId: '1622623', minutes: 30 }, text, ctx), null, action);
+  }
+  assert.equal(ground(null, text, ctx), null);
+});
+
+test('date preservation cannot authorize a model date change or a replacement itinerary', () => {
+  for (const text of [
+    '담은 장소와 기존 날짜, 고정 방문은 모두 유지하고 더 여유롭게 휴식과 동선을 조정해줘',
+    '날짜는 유지하고 휴식을 늘려줘',
+    '기존날짜유지하고 휴식을늘려줘',
+    '날짜는 유지하고 날짜만 내일로 바꿔줘',
+  ]) {
+    for (const action of ['set-dates', 'create-itinerary']) {
+      assert.equal(ground({ action, start: '2027-01-01', end: '2027-01-02' }, text), null, `${action}: ${text}`);
+    }
+  }
+  assert.equal(ground({ action: 'adapt-itinerary' }, '날짜는 유지하고 날짜만 내일로 바꿔줘'), null);
+});
+
+test('a preserved whole-trip adaptation cannot restore historical dates after direct editing', () => {
+  const ctx = { ...context, days: ['2026-09-29'], savedIds: ['1622623'] };
+  const value = { action: 'adapt-itinerary', pace: 'relaxed', reason: 'change', start: '2027-01-01', end: '2027-01-01', date: '2027-01-01' };
+  const before = JSON.stringify({ value, ctx });
+  for (const text of ['날짜는 유지하고 휴식을 늘려줘', '기존날짜유지하고 휴식을늘려줘']) {
+    const actual = ground(value, [user('2026-09-20부터 2026-09-21까지 통영 여행을 만들어줘'), user(text)], ctx);
+    assert.deepEqual(actual, { action: 'adapt-itinerary', pace: 'relaxed', reason: 'change' }, text);
+  }
+  assert.equal(JSON.stringify({ value, ctx }), before);
+});
+
 test('an unspecified journey cannot inherit model defaults for festival, departure, mode or dates', () => {
   const value = proposal({ festival: 'any', originRegion: '창원', transport: 'car', start: '2027-01-01', end: '2027-01-02', date: '2026-09-20', profiles: ['wheel'] });
   const before = JSON.stringify({ value, context });

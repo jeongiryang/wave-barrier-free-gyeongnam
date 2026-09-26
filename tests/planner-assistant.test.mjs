@@ -210,6 +210,25 @@ test('explicit Tongyeong count and exclusions repair a mistaken model region', (
 
 
 const fallbackEnv = { WAVE_AI_FALLBACK_BASE_URL: 'https://backup.example/v1', WAVE_AI_FALLBACK_MODEL: 'backup', WAVE_AI_FALLBACK_TOKEN: 'backup-test-token' };
+test('preserving dates while adjusting a route returns the grounded model proposal through the handler', async () => {
+  const modelProposal = { action: 'adapt-itinerary', pace: 'relaxed', reason: 'change' };
+  const h = handler(() => ({ choices: [{ message: { content: JSON.stringify({ reply: '조정안을 준비할게요.', proposal: modelProposal }) } }] }));
+  const response = await h.run(request({ messages: [{ role: 'user', content: '담은 장소와 기존 날짜, 고정 방문은 모두 유지하고 더 여유롭게 휴식과 동선을 조정해줘' }], context: { days: ['2026-09-29'], places: [{ id: '753302', name: '강구안' }], savedIds: ['753302'] } }));
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.deepEqual(result.proposal, modelProposal);
+  assert.doesNotMatch(result.reply, /한 가지만 구체적으로/);
+  assert.equal(h.calls.length, 1);
+});
+test('date context in a route request cannot authorize model-invented dates', async () => {
+  for (const content of ['기존 날짜 기준으로 동선을 조정해줘', '날짜별로 휴식과 동선을 조정해줘']) {
+    const h = handler(() => ({ choices: [{ message: { content: JSON.stringify({ reply: '바꿀게요.', proposal: { action: 'set-dates', start: '2027-01-01', end: '2027-01-01' } }) } }] }));
+    const response = await h.run(request({ messages: [{ role: 'user', content }], context: { days: ['2026-09-29'], places: [] } }));
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).proposal, null);
+  }
+});
+
 test('primary not-ready health falls back to the independently authenticated backup', async () => {
   const h = handler((_context, _options, url) => ({ ready: url.includes('backup.example') }), true, fallbackEnv);
   assert.equal((await (await h.run(new Request('https://wave.example/api/assistant'))).json()).available, true);
