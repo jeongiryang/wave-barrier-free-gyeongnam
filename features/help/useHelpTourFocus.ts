@@ -5,7 +5,9 @@ import { useLayoutEffect, type RefObject } from "react";
 export function useHelpTourFocus(open: boolean, dialogRef: RefObject<HTMLDivElement | null>, triggerRef: RefObject<HTMLButtonElement | null>, close: () => void) {
   useLayoutEffect(() => {
     if (!open) return;
-    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : triggerRef.current;
+    // Pointer activation need not focus a button (for example in WebKit).
+    // Return to the control that opened this tour, not an unrelated active node.
+    const previousFocus = triggerRef.current ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     const supportMenu = triggerRef.current?.closest<HTMLElement>('.wave-support-menu');
     const restoreMenu = supportMenu?.dataset.open === "true";
     if (restoreMenu) supportMenu?.dispatchEvent(new CustomEvent("wave:support-tour", { detail: true }));

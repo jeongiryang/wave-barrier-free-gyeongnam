@@ -6,6 +6,26 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
 });
 
+test('pointer activation without native button focus returns to the help trigger', async ({ page }) => {
+  await mockPlannerApi(page);
+  await page.goto('/planner');
+  await openSupportMenu(page);
+  const menu = page.getByRole('button', { name: 'WAVE 이용 안내 메뉴', exact: true });
+  await menu.focus();
+  const help = page.getByRole('button', { name: '도움말', exact: true });
+  // Preserve the click while reproducing browsers that do not focus buttons
+  // on pointer activation. The opener and current focus are intentionally different.
+  await help.evaluate(button => button.addEventListener('mousedown', event => event.preventDefault(), { once: true }));
+  await help.click();
+  const dialog = page.locator('.help-tour-dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('button', { name: '도움말 닫기', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  await expect(help).toBeFocused();
+});
+
 for (const locale of ["ko", "en"] as const) {
   test(`${locale} help establishes focus when shown and traps immediate reverse Tab on repeated opens`, async ({ page }) => {
     await mockPublicShellApi(page);

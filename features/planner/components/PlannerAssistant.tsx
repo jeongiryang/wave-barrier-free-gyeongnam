@@ -132,6 +132,14 @@ export default function PlannerAssistant(props: Props) {
   const shownPlaces = useRef<Place[]>([]), focusedPlace = useRef(''), scrollPosition = useRef(0);
   const setFocused = (id: string) => { focusedPlace.current = id; setFocusedPlaceId(id); };
   const inputRef = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null), follow = useRef(true);
+  const resizeInput = useCallback(() => {
+    const field = inputRef.current;
+    // A closed dialog has no layout: measuring it would lock an empty field to
+    // 44px even when browser minimum fonts need a taller first line.
+    if (!field?.getClientRects().length) return;
+    field.style.height = 'auto';
+    field.style.height = `${Math.min(128, Math.max(44, field.scrollHeight))}px`;
+  }, []);
   const returnFocus = useRef<HTMLElement | null>(null);
   const focusedLaunch = useRef<number | undefined>(undefined);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -168,6 +176,7 @@ export default function PlannerAssistant(props: Props) {
       settings?.close();
       if (dialog.open) dialog.close();
       if (media.matches || size === 'large') dialog.showModal(); else dialog.show();
+      resizeInput();
       settings?.showModal(); focused?.focus({ preventScroll: true });
     };
     present();
@@ -179,9 +188,9 @@ export default function PlannerAssistant(props: Props) {
     else inputRef.current?.focus({ preventScroll: true });
     if (log.current) log.current.scrollTop = scrollPosition.current;
     return () => { media.removeEventListener('change', present); if (dialog?.open) dialog.close(); if (returnFocus.current?.isConnected) returnFocus.current.focus({ preventScroll: true }); };
-  }, [props.open, cancelRequest, size, props.launchRequest?.prompt, props.launchRequest?.id]);
+  }, [props.open, cancelRequest, resizeInput, size, props.launchRequest?.prompt, props.launchRequest?.id]);
   useLayoutEffect(() => { if (follow.current && log.current) log.current.scrollTop = log.current.scrollHeight; }, [messages, busy, showEvidence, streamText]);
-  useLayoutEffect(() => { const field = inputRef.current; if (field) { field.style.height = 'auto'; field.style.height = `${Math.min(128, Math.max(44, field.scrollHeight))}px`; } }, [input, props.open]);
+  useLayoutEffect(() => { resizeInput(); }, [input, props.open, workspaceTab, resizeInput]);
   const { cancel: cancelVoice } = voice;
   useEffect(() => { if (!props.open) cancelVoice(); }, [props.open, cancelVoice]);
   useEffect(() => () => cancelVoice(), [pathname, cancelVoice]);

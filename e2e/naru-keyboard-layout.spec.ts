@@ -4,7 +4,9 @@ import { mockPlannerApi } from './fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
 
-async function setup(page: Page) {
+async function setup(page: Page, textPercent?: number) {
+  const origin = new URL(test.info().project.use.baseURL || 'http://127.0.0.1:4173').origin;
+  await page.route('**/*', route => new URL(route.request().url()).origin === origin ? route.fallback() : route.abort());
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => {
     localStorage.setItem('wave-naru-starter-v1', 'done');
@@ -23,9 +25,74 @@ async function setup(page: Page) {
   await page.route('**/api/assistant', route => route.fulfill({ json: route.request().method() === 'GET'
     ? { available: true } : { reply: '답변을 읽고 이어서 질문해 주세요.\n'.repeat(24) } }));
   await page.goto('/planner');
+  if (textPercent) await page.addStyleTag({ content: `html { font-size:${textPercent}% !important; }` });
   await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
   return page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
 }
+
+test('200% text keeps the empty composer readable from first open and after reopen', async ({ page }) => {
+  const chat = await setup(page, 200);
+  const input = chat.getByRole('textbox', { name: '나루에게 여행 질문하기' });
+  const unclipped = () => input.evaluate(node => ({ client: node.clientHeight, scroll: node.scrollHeight, line: Number.parseFloat(getComputedStyle(node).lineHeight) }));
+  await expect(input).toHaveValue('');
+  await expect.poll(async () => { const size = await unclipped(); return size.client + 1 >= size.scroll && size.line >= 50; }).toBe(true);
+  await input.fill('한글 입력');
+  await expect.poll(async () => { const size = await unclipped(); return size.client + 1 >= size.scroll; }).toBe(true);
+  await input.fill('');
+  await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
+  await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
+  await expect.poll(async () => { const size = await unclipped(); return size.client + 1 >= size.scroll; }).toBe(true);
+  await keyboard(page, 390);
+  const size = await unclipped();
+  expect(size.client).toBeGreaterThanOrEqual(size.line + 15);
+});
+
+test.describe('wide touch screens with an overlay keyboard', () => {
+  test.use({ hasTouch: true });
+  for (const size of [{ width: 844, height: 390, keyboard: 250 }, { width: 960, height: 600, keyboard: 300 }]) {
+    test(`${size.width}x${size.height} keeps composer and cancel above the measured keyboard`, async ({ page }) => {
+      const chat = await setup(page);
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await keyboard(page, size.height);
+      await expect.poll(() => page.evaluate(() => matchMedia('(pointer:coarse)').matches)).toBe(true);
+      let release!: () => void, started = false;
+      const pending = new Promise<void>(resolve => { release = resolve; });
+      await page.route('**/api/assistant', async route => {
+        if (route.request().method() === 'GET') return route.fulfill({ json: { available: true } });
+        started = true; await pending;
+        await route.fulfill({ json: { reply: '늦은 합성 응답', proposal: null } }).catch(() => {});
+      });
+      const input = chat.getByRole('textbox', { name: '나루에게 여행 질문하기' });
+      try {
+        await input.fill('여행 준비 순서를 자세히 설명해 줘');
+        await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).tap();
+        await expect.poll(() => started).toBe(true);
+        await keyboard(page, size.keyboard, 16);
+        await expect(chat).toHaveAttribute('data-short-viewport', 'true');
+        await expect.poll(async () => (await chat.boundingBox())!.height).toBeCloseTo(size.keyboard, 0);
+        expect((await chat.boundingBox())!.y).toBeCloseTo(16, 0);
+        await expect(chat.locator('.naru-workspace-sidebar')).toBeHidden();
+        for (const target of [input, chat.getByRole('button', { name: '중단', exact: true })]) {
+          const box = (await target.boundingBox())!;
+          expect(box.height).toBeGreaterThanOrEqual(44);
+          expect(box.y).toBeGreaterThanOrEqual(16);
+          expect(box.y + box.height).toBeLessThanOrEqual(16 + size.keyboard);
+          expect(await target.evaluate(node => { const rect = node.getBoundingClientRect(); return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)); })).toBe(true);
+        }
+        await chat.getByRole('button', { name: '중단', exact: true }).tap();
+        release();
+        await expect(chat.getByRole('log')).toContainText('답변을 중단했어요');
+        await expect(chat.getByRole('log')).not.toContainText('늦은 합성 응답');
+        await keyboard(page, size.height);
+        await expect(chat).toHaveAttribute('data-short-viewport', String(size.height < 560));
+        if (size.height >= 560) {
+          await expect(chat.locator('.naru-workspace-sidebar')).toBeVisible();
+          await expect.poll(async () => (await chat.boundingBox())!.height).toBeCloseTo(size.height - 48, 0);
+        }
+      } finally { release(); }
+    });
+  }
+});
 
 async function keyboard(page: Page, height: number, offsetTop = 0, scale = 1) {
   await page.evaluate(detail => window.dispatchEvent(new CustomEvent('test:naru-viewport', { detail })), { height, offsetTop, scale });
