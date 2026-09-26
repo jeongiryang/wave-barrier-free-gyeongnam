@@ -16,7 +16,21 @@ const allowedQueries = new Set(['action', 'contentId']);
 const isGyeongnamPlace = (place: Record<string, unknown>) => String(place.lDongRegnCd || '') === '48' || String(place.areacode || '') === '36';
 const record = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const integer = (value: unknown) => (typeof value === 'number' || typeof value === 'string' && /^\d+$/.test(value)) && Number.isSafeInteger(Number(value)) && Number(value) >= 0 ? Number(value) : null;
-const malformed = () => new ProviderRequestError(providerFailure(context, 'malformed_response'));
+const rejectionReasons = ['json', 'envelope', 'normal-code', 'total', 'total-changed', 'page-no', 'rows-meta', 'items-shape', 'row-count', 'row-object', 'row-id', 'filter-value', 'duplicate-id', 'later-no-data', 'final-count', 'page-cap'] as const;
+type RejectionReason = typeof rejectionReasons[number];
+function recordRejection(reason: RejectionReason, counts: { page?: number; expected?: number; actual?: number } = {}) {
+  // Fixed field names and enum values only. Never retain raw response content,
+  // provider messages, URLs, credentials, record identifiers or record values.
+  const safeCounts = Object.fromEntries(['page', 'expected', 'actual'].flatMap(name => {
+    const value = counts[name as keyof typeof counts];
+    return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? [[name, value]] : [];
+  }));
+  console.warn(JSON.stringify({ event: 'parking-response-rejected', reason: rejectionReasons.includes(reason) ? reason : 'envelope', ...safeCounts }));
+}
+function malformed(reason: RejectionReason, counts: { page?: number; expected?: number; actual?: number } = {}) {
+  recordRejection(reason, counts);
+  return new ProviderRequestError(providerFailure(context, 'malformed_response'));
+}
 
 type Lookup = { result: ProviderAttempt; checkedAt: string };
 const cache = new Map<string, { lookup: Lookup; expires: number }>();
@@ -48,17 +62,25 @@ function parkingPage(data: unknown, pageNo: number, expectedTotal?: number): Pro
   const response = record(data) && record(data.response) ? data.response : null;
   const header = response && record(response.header) ? response.header : null;
   const body = response && record(response.body) ? response.body : null;
-  if (!header || String(header.resultCode) !== '00' || !body) throw malformed();
+  if (!header || !body) throw malformed('envelope', { page: pageNo });
+  if (String(header.resultCode) !== '00') throw malformed('normal-code', { page: pageNo });
   const total = integer(body.totalCount);
-  if (total === null || expectedTotal !== undefined && total !== expectedTotal
-    || body.pageNo !== undefined && integer(body.pageNo) !== pageNo
-    || body.numOfRows !== undefined && integer(body.numOfRows) !== PAGE_SIZE) throw malformed();
+  if (total === null) throw malformed('total', { page: pageNo });
+  if (expectedTotal !== undefined && total !== expectedTotal) throw malformed('total-changed', { page: pageNo, expected: expectedTotal, actual: total });
+  if (body.pageNo !== undefined && integer(body.pageNo) !== pageNo) throw malformed('page-no', { page: pageNo, expected: pageNo, actual: integer(body.pageNo) ?? undefined });
+  if (body.numOfRows !== undefined && integer(body.numOfRows) !== PAGE_SIZE) throw malformed('rows-meta', { page: pageNo, expected: PAGE_SIZE, actual: integer(body.numOfRows) ?? undefined });
   const raw = body.items;
   const items = Array.isArray(raw) ? raw : record(raw) && Array.isArray(raw.item) ? raw.item
     : total === 0 && (raw === undefined || raw === null || raw === '') ? [] : null;
-  if (!items || items.length !== Math.min(PAGE_SIZE, Math.max(0, total - (pageNo - 1) * PAGE_SIZE))
-    || items.some(item => !record(item) || typeof item.prkplceNo !== 'string' || !item.prkplceNo.trim()
-      || String(item.pwdbsPpkZoneYn || '').trim().toUpperCase() !== 'Y')) throw malformed();
+  if (!items) throw malformed('items-shape', { page: pageNo });
+  const expected = Math.min(PAGE_SIZE, Math.max(0, total - (pageNo - 1) * PAGE_SIZE));
+  if (items.length !== expected) throw malformed('row-count', { page: pageNo, expected, actual: items.length });
+  const invalidObjects = items.filter(item => !record(item)).length;
+  if (invalidObjects) throw malformed('row-object', { page: pageNo, actual: invalidObjects });
+  const invalidIds = items.filter(item => typeof item.prkplceNo !== 'string' || !item.prkplceNo.trim()).length;
+  if (invalidIds) throw malformed('row-id', { page: pageNo, actual: invalidIds });
+  const unconfirmed = items.filter(item => String(item.pwdbsPpkZoneYn || '').trim().toUpperCase() !== 'Y').length;
+  if (unconfirmed) throw malformed('filter-value', { page: pageNo, actual: unconfirmed });
   return { items: items as ProviderItem[], total };
 }
 
@@ -78,28 +100,31 @@ export async function fetchParkingData(env: Env, remaining = budgetClock(SERVER_
       // Documented no-data is valid only before any positive total was received.
       if (error instanceof ProviderRequestError && error.failure.httpStatus === 200 && error.failure.code === '03') {
         if (pageNo === 1) return { items: [], total: 0 };
-        throw malformed();
+        throw malformed('later-no-data', { page: pageNo, expected: expectedTotal, actual: 0 });
       }
       throw error;
     }
     if (!response.ok) throw new ProviderRequestError(providerFailure(context, 'upstream_error', { status: response.status }));
     let data: unknown;
-    try { data = JSON.parse(await response.text()); } catch { throw malformed(); }
+    try { data = JSON.parse(await response.text()); } catch { throw malformed('json', { page: pageNo }); }
     return parkingPage(data, pageNo, expectedTotal);
   }
   const first = await page(1);
   const count = Math.ceil(first.total / PAGE_SIZE);
-  if (count > MAX_PAGES) return { ...first, partial: true, unclassifiedFailure: true };
+  if (count > MAX_PAGES) {
+    recordRejection('page-cap', { page: 1, expected: PAGE_SIZE * MAX_PAGES, actual: first.total });
+    return { ...first, partial: true, unclassifiedFailure: true };
+  }
   const items = [...first.items];
   const ids = new Set<string>();
-  const unique = (records: ProviderItem[]) => {
+  const unique = (records: ProviderItem[], page: number) => {
     for (const item of records) {
       const id = String(item.prkplceNo).trim();
-      if (ids.has(id)) throw malformed();
+      if (ids.has(id)) throw malformed('duplicate-id', { page, actual: 1 });
       ids.add(id);
     }
   };
-  unique(first.items);
+  unique(first.items, 1);
   for (let start = 2; start <= count; start += 2) {
     const pages = Array.from({ length: Math.min(2, count - start + 1) }, (_, index) => start + index);
     const outcomes = await Promise.all(pages.map(async number => {
@@ -109,16 +134,16 @@ export async function fetchParkingData(env: Env, remaining = budgetClock(SERVER_
       const cancelled = !result.ok && cancellation.signal.aborted && !deadline.aborted
         && result.failure?.kind === 'timeout' && result.failure.httpStatus === null && result.failure.code === null;
       if (!result.ok && !cancellation.signal.aborted) cancellation.abort();
-      return { result, cancelled };
+      return { result, cancelled, page: number };
     }));
     const attempts = outcomes.filter(outcome => !outcome.cancelled).map(outcome => outcome.result);
     if (attempts.some(result => !result.ok)) {
       const combined = combineProviderResults(items, [{ ok: true, value: first }, ...attempts]);
       return { ...combined, total: first.total };
     }
-    for (const result of attempts) if (result.ok) { unique(result.value.items); items.push(...result.value.items); }
+    for (const outcome of outcomes) if (outcome.result.ok) { unique(outcome.result.value.items, outcome.page); items.push(...outcome.result.value.items); }
   }
-  if (items.length !== first.total) throw malformed();
+  if (items.length !== first.total) throw malformed('final-count', { expected: first.total, actual: items.length });
   return { items, total: first.total };
 }
 

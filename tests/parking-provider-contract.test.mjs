@@ -11,14 +11,14 @@ import { assertProviderAvailable, ProviderBlocked } from '../scripts/provider-sm
 
 const compile = path => ts.transpileModule(readFileSync(new URL(path, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const code = compile('../server/tourism/parking-alternatives.ts');
-function moduleFrom(code, require, fetcher) { const mod = { exports: {} }; new Function('module', 'exports', 'require', 'fetch', code)(mod, mod.exports, require, fetcher); return mod.exports; }
+function moduleFrom(code, require, fetcher, logger = console) { const mod = { exports: {} }; new Function('module', 'exports', 'require', 'fetch', 'console', code)(mod, mod.exports, require, fetcher, logger); return mod.exports; }
 const attempts = moduleFrom(compile('../server/shared/provider-attempt.ts'), name => name.endsWith('provider-failure.js') ? failures : { clean: value => String(value) });
 const lot = id => ({ prkplceNo: `P${id}`, prkplceNm: `합성 주차장 ${id}`, rdnmadr: `경상남도 창원시 합성로 ${id}`, latitude: '35.2385', longitude: '128.6915', pwdbsPpkZoneYn: 'Y', referenceDate: '2026-09-01' });
 const pageBody = (pageNo, total, items) => ({ response: { header: { resultCode: '00' }, body: { pageNo, numOfRows: 1000, totalCount: total, items } } });
 const pageItems = (pageNo, total) => Array.from({ length: Math.min(1000, Math.max(0, total - (pageNo - 1) * 1000)) }, (_, index) => lot((pageNo - 1) * 1000 + index));
 
 function harness(reply, { budgetMs = 17500, key = 'noncredential-fixture' } = {}) {
-  const requests = [], requester = createProviderRequester();
+  const requests = [], events = [], requester = createProviderRequester();
   let active = 0, maxActive = 0;
   const fetcher = async (url, options) => {
     const params = new URL(url).searchParams;
@@ -35,8 +35,8 @@ function harness(reply, { budgetMs = 17500, key = 'noncredential-fixture' } = {}
     if (name.endsWith('/http')) return { json: (body, status = 200) => ({ status, body }) };
     if (name.endsWith('/provider-data')) return { ...attempts, commonParams: () => ({ numOfRows: '1' }), fetchTourismData: async (_env, _service, _operation, params) => ({ items: [{ contentid: params.contentId, lDongRegnCd: '48', mapx: '128.691', mapy: '35.238' }], total: 1 }) };
     throw Error(name);
-  }, fetcher);
-  return { requests, maxActive: () => maxActive, run: (id = '2783785') => adapter.handleParkingAlternatives(new URL(`https://example.test/api/wave?action=parking-alternatives&contentId=${id}`), { TOUR_API_SERVICE_KEY_ENCODED: key }) };
+  }, fetcher, { warn: serialized => events.push(JSON.parse(serialized)) });
+  return { requests, events, maxActive: () => maxActive, run: (id = '2783785') => adapter.handleParkingAlternatives(new URL(`https://example.test/api/wave?action=parking-alternatives&contentId=${id}`), { TOUR_API_SERVICE_KEY_ENCODED: key }) };
 }
 
 test('official page limit and exact accessible filter retrieve later pages before ranking', async () => {
@@ -44,6 +44,7 @@ test('official page limit and exact accessible filter retrieve later pages befor
   const result = await h.run();
   assert.deepEqual(h.requests.map(({ page, rows, accessible }) => ({ page, rows, accessible })), [{ page: 1, rows: 1000, accessible: 'Y' }, { page: 2, rows: 1000, accessible: 'Y' }]);
   assert.equal(result.status, 200); assert.equal(result.body.status, 'available'); assert.equal(result.body.items[0].id, 'P1000');
+  assert.deepEqual(h.events, []);
 });
 
 test('completed data is shared across different public places and never refetched on a warm lookup', async () => {
@@ -55,20 +56,22 @@ test('completed data is shared across different public places and never refetche
   await h.run('1622623'); assert.equal(h.requests.length, 1);
 });
 
-for (const [name, change] of [
-  ['missing last page rows', body => { body.response.body.items = []; }],
-  ['duplicate page number', body => { body.response.body.pageNo = 1; }],
-  ['overlapping records', body => { body.response.body.items = [lot(0)]; }],
-  ['changed total', body => { body.response.body.totalCount = 1002; }],
-  ['missing total', body => { delete body.response.body.totalCount; }],
-  ['unrecognized item envelope', body => { body.response.body.items = { unexpected: [] }; }],
-  ['provider ignored Y filter', body => { body.response.body.items[0].pwdbsPpkZoneYn = 'N'; }],
-  ['provider omitted accessible evidence', body => { delete body.response.body.items[0].pwdbsPpkZoneYn; }],
+for (const [name, change, reason] of [
+  ['missing last page rows', body => { body.response.body.items = []; }, 'row-count'],
+  ['duplicate page number', body => { body.response.body.pageNo = 1; }, 'page-no'],
+  ['overlapping records', body => { body.response.body.items = [lot(0)]; }, 'duplicate-id'],
+  ['changed total', body => { body.response.body.totalCount = 1002; }, 'total-changed'],
+  ['missing total', body => { delete body.response.body.totalCount; }, 'total'],
+  ['unrecognized item envelope', body => { body.response.body.items = { unexpected: [] }; }, 'items-shape'],
+  ['provider ignored Y filter', body => { body.response.body.items[0].pwdbsPpkZoneYn = 'N'; }, 'filter-value'],
+  ['provider omitted accessible evidence', body => { delete body.response.body.items[0].pwdbsPpkZoneYn; }, 'filter-value'],
 ]) test(`${name} cannot become an available or empty complete result`, async () => {
   const h = harness(async ({ page }) => { const body = pageBody(page, 1001, pageItems(page, 1001)); if (page === 2) change(body); return Response.json(body); });
   const result = await h.run();
   assert.equal(result.status, 502); assert.equal(result.body.status, 'provider-error');
   assert.equal(result.body.failure?.kind, 'malformed_response');
+  assert.equal(result.body.failure.operation, 'tn_pubr_prkplce_info_api');
+  assert.equal(h.events.length, 1); assert.equal(h.events[0].reason, reason); assert.equal(h.events[0].page, 2);
 });
 
 test('over-cap totals stop after page one without a fabricated empty or complete snapshot', async () => {
@@ -76,6 +79,7 @@ test('over-cap totals stop after page one without a fabricated empty or complete
   const result = await h.run();
   assert.equal(result.status, 502); assert.equal(result.body.status, 'provider-error');
   assert.equal(result.body.partial, true); assert.equal(result.body.unclassifiedFailure, true); assert.equal(h.requests.length, 1);
+  assert.deepEqual(h.events, [{ event: 'parking-response-rejected', reason: 'page-cap', page: 1, expected: 20000, actual: 20001 }]);
 });
 
 test('page concurrency is at most two and a completed set can confirm zero nearby matches', async () => {
@@ -111,6 +115,42 @@ test('documented no-data is empty only on the initial list page', async () => {
   assert.equal((await first.run()).body.status, 'empty');
   const later = harness(async ({ page }) => Response.json(page === 1 ? pageBody(1, 1001, pageItems(1, 1001)) : empty));
   assert.equal((await later.run()).status, 502);
+  assert.deepEqual(first.events, []);
+  assert.deepEqual(later.events, [{ event: 'parking-response-rejected', reason: 'later-no-data', page: 2, expected: 1001, actual: 0 }]);
+});
+
+for (const [name, change, expected] of [
+  ['missing envelope', body => { delete body.response.header; }, { reason: 'envelope' }],
+  ['missing normal code', body => { delete body.response.header.resultCode; }, { reason: 'normal-code' }],
+  ['unexpected row metadata', body => { body.response.body.numOfRows = 1; }, { reason: 'rows-meta', expected: 1000, actual: 1 }],
+  ['nonnumeric page metadata', body => { body.response.body.pageNo = 'private-sentinel'; }, { reason: 'page-no', expected: 1 }],
+  ['nonnumeric row metadata', body => { body.response.body.numOfRows = 'private-sentinel'; }, { reason: 'rows-meta', expected: 1000 }],
+  ['null row', body => { body.response.body.items = [null]; }, { reason: 'row-object', actual: 1 }],
+  ['nonstring row ID', body => { body.response.body.items[0].prkplceNo = { private: 'private-sentinel' }; }, { reason: 'row-id', actual: 1 }],
+  ['unexpected filter value', body => { body.response.body.items[0].pwdbsPpkZoneYn = 'private-sentinel'; }, { reason: 'filter-value', actual: 1 }],
+  ['duplicate first page ID', body => { body.response.body.totalCount = 2; body.response.body.items.push({ ...body.response.body.items[0] }); }, { reason: 'duplicate-id', actual: 1 }],
+]) test(`${name} logs only the fixed reason and safe numeric counts`, async () => {
+  const h = harness(async () => {
+    const body = pageBody(1, 1, [{ ...lot(0), prkplceNo: 'private-sentinel-id', prkplceNm: 'private-sentinel-name', rdnmadr: 'private-sentinel-address' }]);
+    body.response.header.resultMsg = 'private-sentinel-message https://private-sentinel.test/?serviceKey=private-sentinel-key';
+    change(body);
+    return Response.json(body);
+  }, { key: 'private-sentinel-key' });
+  const result = await h.run();
+  assert.equal(result.status, 502); assert.equal(result.body.failure.kind, 'malformed_response');
+  assert.equal(result.body.failure.operation, 'tn_pubr_prkplce_info_api');
+  assert.deepEqual(h.events, [{ event: 'parking-response-rejected', page: 1, ...expected }]);
+  assert.doesNotMatch(JSON.stringify({ events: h.events, response: result }), /private-sentinel|serviceKey|https?:|"prkplce|resultMsg/);
+  assert.equal(result.body.reason, undefined, 'server diagnostics must not expand the public response');
+});
+
+test('invalid JSON logs a fixed parsing reason without retaining the raw body', async () => {
+  const h = harness(async () => new Response('private-sentinel https://private-sentinel.test/?serviceKey=private-sentinel-key'), { key: 'private-sentinel-key' });
+  const result = await h.run();
+  assert.equal(result.status, 502); assert.equal(result.body.failure.kind, 'malformed_response');
+  assert.equal(result.body.failure.operation, 'tn_pubr_prkplce_info_api');
+  assert.deepEqual(h.events, [{ event: 'parking-response-rejected', reason: 'json', page: 1 }]);
+  assert.doesNotMatch(JSON.stringify({ events: h.events, response: result }), /private-sentinel|serviceKey|https?:/);
 });
 
 test('a quota stops sibling work without misreporting cancellation as an independent timeout', async () => {
