@@ -29,7 +29,7 @@ export function useCommunityDetail(postId: string) {
     authenticated: Boolean(session?.user),
     userId: session?.user?.id || '',
     onLogin: loginForCurrentPage,
-    reload: resource.load,
+    reload: () => resource.load(true),
     setMessage: resource.setMessage,
   });
   const reporting = useCommunityReport({

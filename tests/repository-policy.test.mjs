@@ -254,7 +254,9 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(component, /action: "spot-photo"/);
   assert.match(component, /contentId/);
   assert.match(component, /smart-image-skeleton/);
-  assert.match(component, /photo\.failed && <span className="smart-image-fallback"/);
+  assert.match(component, /photo\.failed &&/);
+  assert.match(component, /className="smart-image-fallback"/);
+  assert.match(component, /smart-image-fallback-compact/);
   assert.match(component, /en \? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"/);
   assert.match(planner, /className="simple-place-photo" onClick=\{onDetails\}/);
   assert.match(planner, /region=\{place\.city \|\| region\}/);

@@ -66,3 +66,7 @@ body:has(.wave-night) .naru-panel{--white:#0b2035}
 body:has(.wave-night) .naru-panel :is(.naru-more>div,.naru-extra-help>div,.naru-tool-card,.naru-tool-result,.access-badge,.naru-note){background:#0b2035;color:#c5d7ed;border-color:#315777}
 body:has(.wave-night) .naru-panel :is(.naru-tool-card strong,.naru-tool-card b,.naru-more>div>a){color:#edf5ff}
 @media(max-width:600px){html body .night-secondary .auth-layout{width:calc(100% - 24px);grid-template-columns:minmax(0,1fr);margin-top:20px}html body .night-secondary .auth-card{min-width:0;padding:24px 18px}html body .night-secondary .night-account-visual{display:none}html body .wave-night .wave-header{padding-inline:12px}html body .wave-night .wave-header nav{gap:12px}html body .wave-night .wave-header nav a{font-size:12px}html body .wave-night .wave-header-actions{gap:0}}
+
+.night-stop-photo .smart-image-fallback-compact { padding: 2px; align-items: center; text-align: center; }
+.night-stop-photo .smart-spot-image { min-height: 0; height: 100%; width: 100%; padding: 0; }
+.night-stop-photo .smart-image-fallback-compact small { color: #e3f5ff; font-size: 10px; line-height: 1.4; letter-spacing: 0; }

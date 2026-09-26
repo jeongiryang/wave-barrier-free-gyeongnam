@@ -13,6 +13,7 @@ type SmartSpotImageProps = {
   contentId?: string;
   className?: string;
   showMeta?: boolean;
+  compact?: boolean;
   children?: ReactNode;
 };
 
@@ -21,7 +22,7 @@ function languageOf(value: string, fallback: "ko" | "en") {
 }
 
 export default function SmartSpotImage({
-  src, title, region, tag, rank, contentId = "", className = "", showMeta = true, children,
+  src, title, region, tag, rank, contentId = "", className = "", showMeta = true, compact = false, children,
 }: SmartSpotImageProps) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
@@ -32,7 +33,7 @@ export default function SmartSpotImage({
     {/* eslint-disable-next-line @next/next/no-img-element */}
     {photo.image && <img src={photo.image} alt={en ? title : `${title} 관광사진`} lang={languageOf(title, fallbackLanguage)} width="800" height="600" loading="lazy" decoding="async" onLoad={photo.onLoad} onError={photo.onError} />}
     {photo.loading && <span className="smart-image-skeleton" role="status" lang={fallbackLanguage} aria-label={en ? "Loading official photo" : `${title} 관광사진 불러오는 중`}><i /><i /><i /><b /></span>}
-    {photo.failed && <span className="smart-image-fallback"><i aria-hidden="true" /><small lang={fallbackLanguage}>{en ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"}</small><b lang={languageOf(title, fallbackLanguage)}>{title}</b><span><span lang={languageOf(region, fallbackLanguage)}>{region}</span> · <span lang={languageOf(tag, fallbackLanguage)}>{tag}</span>{en ? null : <span lang="ko"> 여행</span>}</span></span>}
+    {photo.failed && (compact ? <span className="smart-image-fallback smart-image-fallback-compact" role="img" aria-label={`${title}: ${en ? 'Official photo unavailable' : '공식 사진을 확인할 수 없어요'}`}><small lang={fallbackLanguage}>{en ? <>No<br />photo</> : <>사진<br />미확인</>}</small></span> : <span className="smart-image-fallback"><i aria-hidden="true" /><small lang={fallbackLanguage}>{en ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"}</small><b lang={languageOf(title, fallbackLanguage)}>{title}</b><span><span lang={languageOf(region, fallbackLanguage)}>{region}</span> · <span lang={languageOf(tag, fallbackLanguage)}>{tag}</span>{en ? null : <span lang="ko"> 여행</span>}</span></span>)}
     {showMeta && <><em lang={languageOf(tag, fallbackLanguage)}>{tag}</em><strong>{String(rank).padStart(2, "0")}</strong></>}
     {children}
   </div>;

@@ -9,10 +9,10 @@ import * as coordinates from "../lib/map-coordinates.js";
 const source=readFileSync(new URL("../server/transport/kakao-route.ts",import.meta.url),"utf8");
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const valid=()=>({routes:[{result_code:0,summary:{duration:420,distance:2300,fare:{toll:0}},sections:[{roads:[{vertexes:[128.6819,35.2281,128.692,35.2384]}]}]}]});
-async function run(body,{status=200,throwRequest=false,invalidJson=false,start=[35.228,128.6818],end=[35.2385,128.6921]}={}){
+async function run(body,{status=200,throwRequest=false,invalidJson=false,key="fixture-not-a-real-key",start=[35.228,128.6818],end=[35.2385,128.6921]}={}){
   const mod={exports:{}};
   new Function("module","exports","require","fetch",code)(mod,mod.exports,name=>{if(name.endsWith("provider-failure.js"))return failures;if(name.endsWith("provider-request.js"))return {requestProvider:createProviderRequester()};if(name.endsWith("map-coordinates.js"))return coordinates;if(name.endsWith("request-budget.js"))return {UPSTREAM_TIMEOUT_MS:{transport:6000}};throw Error(name);},async()=>{if(throwRequest)throw Error("controlled timeout");return {ok:status>=200&&status<300,status,json:async()=>{if(invalidJson)throw Error("controlled malformed JSON");return body;}};});
-  return mod.exports.fetchKakaoRoute({KAKAO_REST_API_KEY:"fixture-not-a-real-key"},...start,...end);
+  return mod.exports.fetchKakaoRoute({KAKAO_REST_API_KEY:key},...start,...end);
 }
 
 test("8.2 km in 60 seconds cannot become a confirmed one-minute car journey",async()=>{
@@ -88,7 +88,7 @@ async function api(body){
   const mod={exports:{}};
   const dependencies={
     "./kakao-route":{fetchKakaoRoute:()=>run(body)},"./odsay":{fetchOdsayRoutes:async()=>({routes:[],provider:null})},
-    "./public-context":{fetchTransportContext:async()=>({providers:[{id:"kakao-drive",configured:true,state:"ready"}],context:{}})},
+    "./public-context":{fetchTransportContext:async()=>({providers:[{id:"kakao-drive",configured:true,state:"ready",queryStatus:"not-requested",resultCount:null}],context:{}})},
     "./route-utils":utils.exports,"./health":{},"../shared/observability":{recordOperationalEvent(){}},
     "../shared/http":{json:(value,status)=>new Response(JSON.stringify(value),{status})},
     "../shared/provider-data":{transportProvider(){throw Error("Legacy comparison must use the existing context provider records");}},
@@ -99,6 +99,28 @@ async function api(body){
 }
 test("API composition exposes a confirmed road only for a verified provider route",async()=>{
   const result=await api(valid());assert.equal(result.configured,true);assert.equal(result.alternatives.length,1);assert.equal(result.alternatives[0].mode,"car");assert.equal(result.providers[0].state,"connected");
+  assert.equal(result.providers[0].queryStatus,"success");assert.equal(result.providers[0].resultCount,1);
+});
+
+test("completed no-route queries replace the initial metadata with success and zero results",async()=>{
+  for(const result_code of [1,101,102,103,104,105,106,107]){
+    const result=await api({routes:[{result_code}]});
+    assert.equal(result.providers[0].state,"ready");assert.equal(result.providers[0].queryStatus,"success");assert.equal(result.providers[0].resultCount,0);
+    assert.ok(result.alternatives.every(route=>!route.configured));
+  }
+});
+
+test("failed and invalid queries do not masquerade as a completed empty result",async()=>{
+  const invalid=valid();invalid.routes[0].summary.duration=7;
+  for(const body of [null,{},invalid,{routes:[{result_code:999}]}]){
+    const result=await api(body);
+    assert.equal(result.providers[0].queryStatus,"error");assert.equal(result.providers[0].resultCount,null);
+  }
+  for(const options of [{status:401},{status:429},{status:503},{throwRequest:true},{invalidJson:true}]){
+    const result=await run(valid(),options);
+    assert.equal(result.provider.state,"error");assert.equal(result.provider.queryStatus,"error");assert.equal(result.provider.resultCount,null);
+  }
+  assert.equal((await run(valid(),{key:"",throwRequest:true})).provider,null,"missing credentials must not issue a request or mutate initial evidence");
 });
 test("API composition cannot mark inconsistent road measurements as confirmed",async()=>{
   const body=valid();body.routes[0].summary.duration=7;

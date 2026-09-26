@@ -30,7 +30,7 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS.transport),
     }, fetch);
     if (!response.ok) {
-      return { alternative: null, provider: { state: "error", detail: `카카오모빌리티 응답 ${response.status}` } };
+      return { alternative: null, provider: { state: "error", detail: `카카오모빌리티 응답 ${response.status}`, queryStatus: "error", resultCount: null } };
     }
 
     const body: unknown = await response.json();
@@ -38,7 +38,7 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
     const route = body.routes[0];
     // An HTTP success is not a successful route. These are documented no-route conditions.
     if ([1, 101, 102, 103, 104, 105, 106, 107].includes(route.result_code as number)) {
-      return { alternative: null, provider: { state: "ready", detail: "현재 출발지와 도착지의 자동차 경로를 찾지 못했습니다. 다른 지점을 선택하거나 외부 지도에서 확인해 주세요." } };
+      return { alternative: null, provider: { state: "ready", detail: "현재 출발지와 도착지의 자동차 경로를 찾지 못했습니다. 다른 지점을 선택하거나 외부 지도에서 확인해 주세요.", queryStatus: "success", resultCount: 0 } };
     }
     if (route.result_code !== 0 || !record(route.summary)) throw Error("Invalid route result");
     const summary = route.summary;
@@ -88,10 +88,10 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
         segments: [{ type: "car", name: "추천 자동차 경로", minutes: Math.max(1, Math.round(durationSeconds / 60)) }],
         geometry,
       },
-      provider: { state: "connected", detail: "카카오모빌리티 자동차 경로 응답을 확인했습니다." },
+      provider: { state: "connected", detail: "카카오모빌리티 자동차 경로 응답을 확인했습니다.", queryStatus: "success", resultCount: 1 },
     };
   } catch (error) {
     const failure = caughtProviderFailure(error,{provider:"kakao-mobility",operation:"directions"});
-    return { alternative: null, provider: { state: "error", detail: providerFailureMessage(failure), failure } };
+    return { alternative: null, provider: { state: "error", detail: providerFailureMessage(failure), failure, queryStatus: "error", resultCount: null } };
   }
 }
