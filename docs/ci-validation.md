@@ -29,6 +29,8 @@ validate는 quality와 모든 browser matrix 작업의 성공을 요구한다. �
 
 CD의 `scripts/verify-deployment-ci.mjs`는 현재 main SHA,동일 저장소,ci.yml,push 이벤트,최신 실행,모든 필수 job의 완료/성공을 검증한다. 과거 성공으로 새 실패를 덮지 않는다. 수동 preflight도 Owner·main·같은 CI 성공이 필요하며 DB/alias를 바꾸지 않는다. 후보 대기 중 main이 바뀌면 승격 직전에 차단한다. Vercel Git 자동 배포 비활성화와 Actions 단일 배포 경로를 유지한다.
 
+후보를 만들기 전에 canonical Production alias가 가리키는 배포 ID를 Vercel API에서 조회해 보존한다. 승격 후에는 최대60초 동안 HTTP 상태뿐 아니라 health의 정확한 커밋을 재확인한다. 계속 불일치하거나 오류가 나면 보존한 이전 배포 ID로 명시적 rollback하고 CD를 실패 처리한다. 암묵적인 최근 배포 선택은 사용하지 않는다. 이 절차는 코드 배포 복귀이며 DB migration을 역실행하지 않는다.
+
 PR 검사에 유료 LLM이나 구독 인증을 제공하지 않는다. 기존 sandbox/bootstrap은 보존한다. 제품 인증·개인정보·오래된 응답·저장 실패 회귀는 계속 실행한다. 과거 자동화 테스트는 보관 원문을 검증하고 현재 CI 계약은 `tests/release-harness.test.mjs`가 검증한다.
 
 ## 현재 운영 제약

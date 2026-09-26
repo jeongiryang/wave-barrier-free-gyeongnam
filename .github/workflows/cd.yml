@@ -102,6 +102,15 @@ jobs:
           echo "::add-mask::$token"
           echo "value=$token" >> "$GITHUB_OUTPUT"
 
+      - name: 현재 Production alias의 롤백 대상 보존
+        if: ${{ !inputs.preflight_only }}
+        id: previous_production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: node scripts/capture-production-deployment.mjs
+
       - name: 승격 전 Production 후보 배포
         id: candidate
         env:
@@ -193,11 +202,13 @@ jobs:
         if: ${{ !inputs.preflight_only }}
         env:
           DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          PREVIOUS_DEPLOYMENT_ID: ${{ steps.previous_production.outputs.deployment_id }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          if ! curl --fail --silent --show-error --retry 3 --retry-all-errors https://wave-barrier-free-gyeongnam.vercel.app/api/health | node scripts/check-deployment-health.mjs; then
-            npx --yes vercel@59.16.0 rollback --yes --scope="$VERCEL_ORG_ID"
+          if ! node scripts/check-deployment-health.mjs --wait; then
+            test -n "$PREVIOUS_DEPLOYMENT_ID"
+            npx --yes vercel@59.16.0 rollback "$PREVIOUS_DEPLOYMENT_ID" --yes --scope="$VERCEL_ORG_ID"
             exit 1
           fi
