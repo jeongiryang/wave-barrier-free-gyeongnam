@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test, type Locator } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
@@ -30,7 +31,7 @@ for (const locale of ["ko", "en"] as const) for (const theme of ["light", "dark"
     await page.goto("/planner");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
     await expect(region).toBeEnabled();
-    await region.selectOption("창원");
+    await chooseWaveOption(region, "창원");
     const rows = page.locator(".simple-place-row");
     await expect(rows).toHaveCount(2);
     const row = rows.first();
@@ -48,11 +49,11 @@ for (const locale of ["ko", "en"] as const) for (const theme of ["light", "dark"
     }
     const initialContrast = await contrast(add);
     expect(initialContrast).toBeGreaterThanOrEqual(4.5);
-    await photo.focus();
-    await photo.press("Tab");
-    await expect(title).toBeFocused();
-    await title.press("Tab");
-    await expect(add).toBeFocused();
+    const information = row.getByRole("button", { name: en ? "경남도립미술관 place information" : "경남도립미술관 상세정보", exact: true });
+    await title.focus();
+    await title.press("Tab"); await expect(photo).toBeFocused();
+    await photo.press("Tab"); await expect(information).toBeFocused();
+    await information.press("Tab"); await expect(add).toBeFocused();
     expect(await add.evaluate(element => getComputedStyle(element).outlineStyle)).not.toBe("none");
     const beforeUrl = page.url();
     await add.press("Enter");

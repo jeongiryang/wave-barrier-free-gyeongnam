@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { startNewTrip } from './planner-header-fixtures';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
@@ -193,8 +194,8 @@ for (const locale of ["ko", "en"] as const) {
       await expect.poll(() => requested).toBe(1);
       await closeNaruTool(page);
       await startNewTrip(page);
-      await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
-      await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("하동");
+      await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("");
+      await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "하동");
       const fresh = await snapshot(page);
       expect(fresh.identity.id).not.toBe(before.identity.id);
       expect(fresh.ids).toEqual([]);
@@ -205,7 +206,7 @@ for (const locale of ["ko", "en"] as const) {
       expect((await snapshot(page)).ids).toEqual([]);
       await page.reload();
       await expect(tripTab).toHaveAttribute("href", "/travel-book");
-      await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("하동");
+      await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("하동");
       await expect(page.locator("#itinerary")).toHaveCount(0);
       expect((await snapshot(page)).identity.id).toBe(fresh.identity.id);
       expect((await snapshot(page)).ids).toEqual([]);

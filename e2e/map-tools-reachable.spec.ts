@@ -1,4 +1,5 @@
 import { openSupportMenu } from "./support-menu";
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions, openFirstPlaceMap, showItineraryMap } from "./fixtures";
 
@@ -77,7 +78,7 @@ for (const locale of ["ko", "en"]) {
       await trigger.focus();
       await expect(trigger).toBeInViewport();
       await page.keyboard.press("Enter");
-      await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+      await chooseWaveOption(preferences.getByRole("combobox", { name: "언어", exact: true }), 'en');
       await openSupportMenu(page);
       await preferences.getByLabel("Open preferences", { exact: true }).click();
     }

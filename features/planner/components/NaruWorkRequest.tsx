@@ -1,3 +1,6 @@
+
+import NightIcon from '../../../components/NightIcon';
+import WaveSelect from "../../../components/WaveSelect";
 import { useId, useState } from 'react';
 import AccessibleDateInput from '../../../components/AccessibleDateInput';
 import { GYEONGNAM_REGION_POINTS } from '../../../lib/gyeongnam-regions.js';
@@ -17,11 +20,11 @@ export default function NaruWorkRequest({ region, start, end, transport, disable
     if (!validTripDate(from) || !validTripDate(to) || boundedTripEnd(from, to) !== to) { setNotice('여행 날짜를 7일 이내로 골라주세요.'); return; }
     onSubmit(`${party ? `${party} ${area}` : area} 여행 일정안을 만들어줘. 여행 날짜는 ${from}부터 ${to}까지야. ${mode === 'car' ? '자동차' : mode === 'transit' ? '대중교통' : mode === 'bicycle' ? '자전거' : '도보'}로 이동해. ${pace === '가볍게' ? '걷는 부담을 줄이고 휴식 시간을 넉넉히 넣어줘.' : '보통 속도로 둘러보고 싶어.'} 현재 선택한 필수 편의와 고정 방문을 유지하고, 실제 관광정보로 확인한 장소를 제안해줘.`);
   }}>
-    <header><h3>어떤 여행을 준비할까요?</h3><button type="button" onClick={onClose} aria-label="여행 준비 입력 닫기">×</button></header>
-    <label>여행 지역<select value={area} onChange={event => setArea(event.target.value)}>{['경남 전체', ...Object.keys(GYEONGNAM_REGION_POINTS).filter(name => name !== '경남 전체')].map(name => <option key={name}>{name}</option>)}</select></label>
+    <header><h3>어떤 여행을 준비할까요?</h3><button type="button" onClick={onClose} aria-label="여행 준비 입력 닫기" data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header>
+    <label>여행 지역<WaveSelect value={area} onChange={event => setArea(event.target.value)}>{['경남 전체', ...Object.keys(GYEONGNAM_REGION_POINTS).filter(name => name !== '경남 전체')].map(name => <option key={name}>{name}</option>)}</WaveSelect></label>
     <div><label>출발 날짜<AccessibleDateInput required value={from} onChange={event => { setFrom(event.target.value); if (!to || to < event.target.value) setTo(event.target.value); }} /></label><label>마지막 날짜<AccessibleDateInput required min={from} value={to} onChange={event => setTo(event.target.value)} /></label></div>
-    <label>동행<select value={party} onChange={event => setParty(event.target.value)}><option value="">선택하지 않음</option>{['혼자', '부모님과', '친구와', '아이와', '연인과'].map(value => <option key={value}>{value}</option>)}</select></label>
-    <label>이동수단<select value={mode} onChange={event => setMode(event.target.value)}><option value="car">자동차</option><option value="transit">대중교통</option><option value="walk">도보</option><option value="bicycle">자전거</option></select></label>
+    <label>동행<WaveSelect value={party} onChange={event => setParty(event.target.value)}><option value="">선택하지 않음</option>{['혼자', '부모님과', '친구와', '아이와', '연인과'].map(value => <option key={value}>{value}</option>)}</WaveSelect></label>
+    <label>이동수단<WaveSelect value={mode} onChange={event => setMode(event.target.value)}><option value="car">자동차</option><option value="transit">대중교통</option><option value="walk">도보</option><option value="bicycle">자전거</option></WaveSelect></label>
     <fieldset className="naru-pace"><legend>어떤 속도로 여행할까요?</legend>{[
       { value: '가볍게', title: '여유롭게 쉬어가기', description: '이동은 짧게, 쉬는 시간은 넉넉하게' },
       { value: '보통', title: '적당히 둘러보기', description: '보통 속도로 관광하고 중간중간 쉬기' },

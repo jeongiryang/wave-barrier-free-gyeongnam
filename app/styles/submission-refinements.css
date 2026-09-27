@@ -14,7 +14,6 @@ html body .landing-page.night-landing #closing {
 html body .landing-page.night-landing.simple-landing #closing .landing-closing-copy { padding: 0 24px; box-sizing: border-box; }
 html body .landing-page.night-landing #closing h2 { margin-block: 24px; }
 .landing-page.night-landing .night-journey-story { margin-block: 40px; }
-.landing-page.night-landing .night-itinerary-story { padding-top: 40px; margin-top: 0; }
 .landing-page.night-landing .night-discover-grid { margin-block: 40px; }
 
 @media (max-width: 600px) {

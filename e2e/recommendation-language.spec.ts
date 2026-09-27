@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -21,7 +22,7 @@ async function prepare(page: Page, locale: "ko" | "en" = "en") {
     mode: "live", generatedAt: place.checkedAt, baseYm: "202608", course: null, audio: null, places: [place], stops: [], statuses: [],
   } satisfies PlanData }));
   await page.goto("/planner");
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await page.locator('.simple-facility-trigger').click(); const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
   await picker.getByRole('checkbox', { name: '접근로', exact: true }).check();
   // Opening the previous region-only result during the automatic search debounce

@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { withRouteCoverage } from "./nearby-fixtures";
 import { openPlannerMap, openRouteDetails, changeMapLanguage, ensureMapView } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
@@ -20,7 +21,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) test
   await openRouteDetails(page);
   await withRouteCoverage(page);
   await expect(page.locator(".simple-stops > li")).toHaveCount(1);
-  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
+  await withRouteCoverage(page, async () => { await chooseWaveOption(page.locator(".itinerary-route-coverage select"), "car"); });
   await expect.poll(() => failures).toBeGreaterThan(0);
   if (english) {
     await changeMapLanguage(page, true);

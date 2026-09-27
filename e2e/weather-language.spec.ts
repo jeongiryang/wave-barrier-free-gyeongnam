@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
@@ -87,9 +88,9 @@ test("weather language changes keep the same forecast without another request", 
   const preferences = page.locator(".preference-controls:visible");
   await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
-  await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
+  await chooseWaveOption(preferences.getByRole('combobox', { name: "Language", ...{ exact: true } }), "ko");
   await expect(board).toContainText("체감 -2°");
-  await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+  await chooseWaveOption(preferences.getByRole('combobox', { name: "언어", ...{ exact: true } }), "en");
   await expect(board).toContainText("Feels like -2°");
   expect(requests).toBe(before);
 });
@@ -117,8 +118,10 @@ for (const theme of ["light", "dark"] as const) {
       await expect.poll(() => retry.evaluate((element) => {
         const rect = element.getBoundingClientRect();
         const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
-        return rect.top >= 0 && rect.bottom <= innerHeight && Boolean(hit && element.contains(hit));
-      })).toBe(true);
+        return { top: rect.top, bottom: rect.bottom, viewport: innerHeight,
+          hit: hit?.tagName, focused: document.activeElement === element,
+          usable: rect.top >= 0 && rect.bottom <= innerHeight && Boolean(hit && element.contains(hit)) };
+      })).toEqual(expect.objectContaining({ usable: true }));
       expect((await new AxeBuilder({ page }).include(".weather-board").include(".impact-response").analyze()).violations).toEqual([]);
       if ([390, 1366].includes(width)) await page.screenshot({ path: test.info().outputPath(`weather-${theme}-${width}.png`) });
     }

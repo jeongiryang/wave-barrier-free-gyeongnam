@@ -17,7 +17,7 @@ for (const width of [1366, 2560, 3840]) test(`immersive landing and planner use 
     return [...document.fonts].filter(font => ['WaveScript', 'WaveHand'].includes(font.family)).map(font => ({ family: font.family, status: font.status }));
   });
   expect(fontFaces).toEqual(expect.arrayContaining([{ family: 'WaveScript', status: 'loaded' }, { family: 'WaveHand', status: 'loaded' }]));
-  await expect(page.locator('.landing-hero .night-hero-signature')).toHaveCSS('font-family', /WaveScript/);
+  await expect(page.locator('.landing-hero .night-hero-signature')).toHaveCSS('font-family', /WaveHand/);
   await page.screenshot({ path: test.info().outputPath(`landing-${width}.png`) });
   await page.locator('#story').scrollIntoViewIfNeeded();
   await page.screenshot({ path: test.info().outputPath(`story-${width}.png`) });
@@ -30,7 +30,12 @@ for (const width of [1366, 2560, 3840]) test(`immersive landing and planner use 
   await page.goto('/planner');
   const workspace = page.locator('.simple-search-controls');
   await expect(workspace).toBeVisible();
-  expect.soft((await workspace.boundingBox())!.width).toBeGreaterThan(width * .9);
+  // The approved planner caps its form width on ultrawide displays so the
+  // controls stay readable; its surrounding scenery still fills the viewport.
+  const workspaceBox = (await workspace.boundingBox())!;
+  expect(workspaceBox.width).toBeGreaterThan(Math.min(width, 1366) * .9);
+  expect(workspaceBox.x).toBeGreaterThanOrEqual(0);
+  expect(workspaceBox.x + workspaceBox.width).toBeLessThanOrEqual(width);
   await expectNoOverflow(page);
   expect(await page.locator('.wave-night').first().evaluate(node => getComputedStyle(node, '::before').animationName)).toBe('none');
   await page.emulateMedia({ reducedMotion: 'no-preference' });

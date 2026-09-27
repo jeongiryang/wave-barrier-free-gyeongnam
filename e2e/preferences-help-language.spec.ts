@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -20,15 +21,16 @@ test("English preferences preserve locale choices, runtime reduced motion and CT
   expect(bounds).not.toBeNull();
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
-  await expect(preferences.getByLabel("Language", { exact: true }).locator("option")).toHaveCount(2);
+  await expect(waveSelectNative(preferences.getByRole('combobox', { name: "Language", ...{ exact: true } })).locator("option")).toHaveCount(2);
   await expect(preferences.getByText("Some pages are in Korean", { exact: true })).toBeVisible();
   await preferences.getByRole("button", { name: "Dark mode", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(preferences.getByRole("button", { name: /Motion|Replay/ })).toHaveCount(0);
   await openSupportMenu(page);
   await preferences.getByLabel("Open preferences", { exact: true }).click();
-  const cta = page.locator(".landing-actions a[href='/planner']");
-  await expect(page.locator(".landing-hero button")).toHaveCount(1);
+  const cta = page.locator(".night-hero-search button[type=submit]");
+  await expect(page.locator(".landing-hero button")).toHaveCount(2);
+  await expect(page.locator(".night-hero-search").getByRole("combobox")).toHaveCount(1);
   await expect(page.locator(".landing-hero").getByRole('button', { name: 'Find places', exact: true })).toBeVisible();
   await expect(page.locator(".landing-hero").getByRole('button', { name: 'Pause headline rotation', exact: true })).toHaveCount(0);
   await cta.focus();
@@ -41,9 +43,9 @@ test("English preferences preserve locale choices, runtime reduced motion and CT
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await expect(preferences).not.toContainText(/[가-힣]/);
   expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
-  await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
+  await chooseWaveOption(preferences.getByRole('combobox', { name: "Language", ...{ exact: true } }), "ko");
   await expect(preferences.getByLabel("환경설정 열기", { exact: true })).toBeVisible();
-  await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+  await chooseWaveOption(preferences.getByRole('combobox', { name: "언어", ...{ exact: true } }), "en");
   await expect(preferences.getByLabel("Open preferences", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("wave-locale"))).toBe("en");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

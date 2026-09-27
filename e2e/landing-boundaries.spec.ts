@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { expect, test, type Page, type Response } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockPlannerApi, mockPublicShellApi, plan } from "./fixtures";
@@ -36,7 +37,7 @@ async function expectRegion(page: Page, region: string, response: Promise<Respon
   const query = new URL(result.url()).searchParams;
   expect(query.get("themes") || "").toBe("");
   expect(query.get("facilityKeys") || "").toBe("");
-  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue(region);
+  await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue(region);
   await expect(page).toHaveURL(url => url.pathname === "/planner" && url.searchParams.get("region") === region);
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator(".simple-results h3")).toHaveText(`${region} 검증용 여행지`);
@@ -46,7 +47,7 @@ async function expectRegion(page: Page, region: string, response: Promise<Respon
 async function expandedPlannerRegions(page: Page, en = false) {
   const select = page.getByRole("combobox", { name: "여행 지역", exact: true });
   await expect(select).toBeEnabled();
-  await expect(select).toHaveValue("");
+  await expect(waveSelectNative(select)).toHaveValue("");
   const gallery = page.locator(".simple-region-discovery");
   await expect(gallery.locator(".simple-region h3")).toHaveText(["통영", "거제", "남해", "진주", "창원", "하동"]);
   const expand = gallery.getByRole("button", { name: en ? "All 18 regions" : "전체 18개 지역", exact: true });
@@ -69,7 +70,7 @@ for (const width of [390, 1366]) test(`regional entry: all 18 gallery choices an
   await page.goto("/planner");
   const { gallery, select } = await expandedPlannerRegions(page);
   expect((await gallery.locator("h3").allTextContents()).sort()).toEqual([...allRegions].sort());
-  const values = await select.locator("option").evaluateAll(nodes => nodes.map(node => (node as HTMLOptionElement).value));
+  const values = await waveSelectNative(select).locator("option").evaluateAll(nodes => nodes.map(node => (node as HTMLOptionElement).value));
   expect(values.filter(value => value && value !== "경남 전체").sort()).toEqual([...allRegions].sort());
   expect(values.filter(value => value === "경남 전체")).toHaveLength(1);
   for (const name of allRegions) {
@@ -97,7 +98,7 @@ for (const width of [390, 1366]) test(`regional entry: all 18 gallery choices an
   // The native selector remains after the entry gallery gives way to results.
   for (const name of allRegions.filter(name => name !== "통영")) {
     const response = regionResponse(page, name);
-    await select.focus(); await select.selectOption(name);
+    await select.focus(); await chooseWaveOption(select, name);
     await expectRegion(page, name, response);
     await expect(select).toBeFocused();
   }
@@ -207,7 +208,7 @@ test("regional entry: failed images leave every named gallery choice and the nat
   await expectRegion(page, "통영", chosen);
   for (const name of ["거창", "김해"]) {
     const response = regionResponse(page, name);
-    await select.selectOption(name);
+    await chooseWaveOption(select, name);
     await expectRegion(page, name, response);
   }
   await expectNoOverflow(page);
@@ -234,7 +235,7 @@ test("regional entry: pointer hover stays stable and coastal or inland choices m
       })).toBe(true);
       await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
       expect(Math.abs((await button.boundingBox())!.y - before.y), "hover must not scroll the target away").toBeLessThanOrEqual(1);
-      await expect(select).toHaveValue("");
+      await expect(waveSelectNative(select)).toHaveValue("");
       expect(searches).toEqual([]);
     }
     await expectNoOverflow(page);
@@ -247,7 +248,7 @@ test("regional entry: pointer hover stays stable and coastal or inland choices m
   await expectRegion(page, "거제", chosen);
   for (const name of ["진주", "김해"]) {
     const response = regionResponse(page, name);
-    await select.selectOption(name);
+    await chooseWaveOption(select, name);
     await expectRegion(page, name, response);
   }
   expect(searches).toEqual(["거제", "진주", "김해"]);

@@ -23,10 +23,15 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
   }
   await page.setViewportSize({ width: 390, height: 844 });
   if (route === '/') {
-    await expect(page.locator('.landing-opening .award-panorama')).toBeVisible();
+    const background = page.locator('.scenic-background-home .award-panorama');
+    await expect(background).toBeVisible();
+    await expect(background.locator('img.is-current')).toBeVisible();
+    const backgroundBox = (await background.boundingBox())!;
+    expect(backgroundBox.x).toBe(0); expect(backgroundBox.y).toBe(0);
+    expect(backgroundBox.width).toBe(390); expect(backgroundBox.height).toBe(844);
     await expect(page.locator('.landing-hero-copy h1')).toHaveCSS('font-size', '32px');
     const shortcuts = page.locator('.night-feature-links');
-    await expect.poll(() => shortcuts.evaluate(node => node.previousElementSibling?.classList.contains('landing-opening'))).toBe(true);
+    await expect.poll(() => shortcuts.evaluate(node => Boolean(node.compareDocumentPosition(document.querySelector('#regions')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
     for (const link of (await shortcuts.getByRole('link').all()).slice(0, 4)) {
       await link.scrollIntoViewIfNeeded();
       const box = (await link.boundingBox())!;
@@ -48,13 +53,10 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
     expect(lastRegion.y).toBeGreaterThanOrEqual(0);
     expect(lastRegion.y + lastRegion.height).toBeLessThanOrEqual(844);
     expect(lastRegion.height).toBeGreaterThanOrEqual(44);
-    const metadata = page.locator('.simple-region-metadata').first();
-    await expect(metadata.locator('.declining-region-notice')).toBeHidden();
-    const metadataToggle = metadata.getByRole('button');
-    await metadataToggle.focus(); await page.keyboard.press('Enter');
-    await expect(metadata.locator('.declining-region-notice')).toBeVisible();
-    await expect(metadata.locator('.declining-region-notice')).toContainText('인구감소지역');
-    await metadataToggle.click();
+    // Region cards now lead directly into selection; the removed disclosure
+    // is not a prerequisite for the visible map and region controls.
+    await expect(regionCards.first()).toHaveAccessibleName('통영 지역 선택');
+    await regionCards.first().focus(); await expect(regionCards.first()).toBeFocused();
     await expect(page.locator('.night-planner-region-map')).toBeHidden();
     await page.getByRole('button', { name: '지도에서 지역 고르기', exact: false }).click();
     await expect(page.locator('.night-planner-region-map')).toBeVisible();
@@ -65,8 +67,8 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
     const card = page.locator('.community-list article');
     const cover = page.locator('.community-story-cover');
     await expect(cover).toHaveCSS('position', 'absolute');
-    // The local-save action is outside the photographic story link.
-    const cardBounds = (await card.locator(':scope > a').boundingBox())!, coverBounds = (await cover.boundingBox())!;
+    // The photograph fills the full card; reaction actions remain outside its story link.
+    const cardBounds = (await card.boundingBox())!, coverBounds = (await cover.boundingBox())!;
     expect(Math.abs(coverBounds.height - cardBounds.height)).toBeLessThanOrEqual(2);
     expect(Math.abs(coverBounds.width - cardBounds.width)).toBeLessThanOrEqual(2);
     expect(cardBounds.height).toBeGreaterThanOrEqual(340);
@@ -109,7 +111,7 @@ test('festival duplicate confirmation preserves the trip until a date choice and
   await page.route('**/api/wave?**', route => new URL(route.request().url()).searchParams.get('action') === 'places' ? route.fulfill({ json: { places: [festival], missing: [] } }) : route.fallback());
   await page.goto('/festivals');
   const card = page.locator('.festival-card').filter({ has: page.getByRole('heading', { name: festival.name, exact: true }) });
-  await card.locator('.night-festival-more > summary').click();
+  await card.getByRole('button', { name: '일정 담기', exact: true }).click();
   await card.getByLabel('방문 날짜', { exact: true }).fill('2026-09-21');
   const before = await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'));
   await card.getByRole('button', { name: '내 일정에 담기', exact: true }).click();

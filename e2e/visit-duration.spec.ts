@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -27,7 +28,7 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await expect(board.locator(".simple-stop")).toHaveCount(2);
   await page.getByRole("button", { name: "여행 설정", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
-  await settings.getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("car");
+  await chooseWaveOption(settings.getByRole("combobox", { name: "이동 수단", exact: true }), "car");
   await settings.getByRole("button", { name: "적용", exact: true }).click();
   await expect(board.locator(".simple-leg-time")).toHaveText(["여기까지 이동 25분", "여기까지 이동 25분"]);
   await page.evaluate(() => document.fonts.ready);
@@ -36,13 +37,13 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
   const editor = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
   const choice = editor.getByRole("combobox", { name: "경남도립미술관 머무는 시간", exact: true });
-  await choice.selectOption("30");
+  await chooseWaveOption(choice, "30");
   // A stop editor is a draft: the timetable changes only after Apply.
   expect(minute((await board.locator(".simple-stop > time").nth(1).textContent())!)).toBe(previous);
   await editor.getByRole("button", { name: "적용", exact: true }).click();
   await expect.poll(async () => minute((await board.locator(".simple-stop > time").nth(1).textContent())!)).toBe(previous - 90);
   await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
-  await choice.selectOption("custom");
+  await chooseWaveOption(choice, "custom");
   const minutes = editor.getByRole("spinbutton", { name: "체류시간(분)", exact: true });
   await minutes.fill("0");
   await expect(minutes).toHaveAttribute("aria-invalid", "true");
@@ -50,16 +51,16 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await minutes.fill("137");
   await expect(minutes).not.toHaveAttribute("aria-invalid", "true");
   await editor.locator(".travel-book-actions").getByRole("button", { name: "취소", exact: true }).click();
-  await expect(choice).toHaveValue("30");
-  await choice.selectOption("custom");
+  await expect(waveSelectNative(choice)).toHaveValue("30");
+  await chooseWaveOption(choice, "custom");
   await minutes.fill("137");
   await minutes.press("Enter");
-  await expect(choice).toHaveValue("saved");
+  await expect(waveSelectNative(choice)).toHaveValue("saved");
   await expect(board.locator(".simple-stop-copy").first()).toContainText("30분 머묾");
   await editor.getByRole("button", { name: "적용", exact: true }).click();
   await expect(board.locator(".simple-stop-copy").first()).toContainText("137분 머묾");
   await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
-  await choice.selectOption("custom");
+  await chooseWaveOption(choice, "custom");
   const widths = info.project.name.startsWith("desktop") ? [1440, 960] : [390, 320];
   for (const width of widths) {
     await page.setViewportSize({ width, height: 960 });
@@ -83,8 +84,8 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await page.getByRole("button", { name: /이 일정 다시 열기/ }).click();
   await expect(board.locator(".simple-stop-copy").first()).toContainText("137분 머묾");
   await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
-  await choice.selectOption("default");
-  await expect(choice.locator("option:checked")).toHaveText("기본 · 약 120분");
+  await chooseWaveOption(choice, "default");
+  await expect(waveSelectNative(choice).locator("option:checked")).toHaveText("기본 · 약 120분");
   await editor.getByRole("button", { name: "적용", exact: true }).click();
   await expect(board.locator(".simple-stop-copy").first()).toContainText("120분 머묾");
   await expect.poll(async () => page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values["wave-trip-schedule-v1"]).visitMinutesByPlaceId)).toEqual({});
@@ -104,8 +105,8 @@ test("account duration edits are saved explicitly and visible to companions", as
   });
   await page.goto(`/my-trips/${id}`);
   const choice = page.getByRole("combobox", { name: "경남도립미술관 머무는 시간", exact: true });
-  await expect(choice).toHaveValue("saved");
-  await choice.selectOption("60");
+  await expect(waveSelectNative(choice)).toHaveValue("saved");
+  await chooseWaveOption(choice, "60");
   expect(payload.visitMinutesByPlaceId["1001"]).toBe(45);
   await page.getByRole("button", { name: "변경 사항 저장", exact: true }).click();
   await expect(page.getByText("여행 변경 사항을 계정에 저장했어요.")).toBeVisible();

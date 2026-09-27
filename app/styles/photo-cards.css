@@ -1,0 +1,127 @@
+/* Photographs fill each card; only the lettering receives contrast treatment. */
+html:root body .wave-night :is(.simple-place-row,.rich-card:not(.rich-loading),.official-exploration-card,.community-list article,.community-editorial-grid>article,.festival-card,.night-course-card),html:root body .scenic-page .journey-destination{position:relative;isolation:isolate;overflow:hidden;border-radius:20px;background:#244658;min-width:0;border:1px solid #bedfe333;color:#fff;text-shadow:0 1px 2px #081d3080}
+html:root body .wave-night :is(.simple-place-row,.rich-card,.official-exploration-card,.community-list article,.community-editorial-grid>article,.festival-card,.night-course-card)>*{position:relative;z-index:1}
+html:root body .wave-night :is(.simple-place-row,.rich-card,.official-exploration-card,.community-list article,.community-editorial-grid>article,.festival-card,.night-course-card) :is(h2,h3,p,small,time,.simple-place-city,.simple-place-address,.community-card-footer span){color:inherit;text-shadow:inherit}
+html:root body .wave-night :is(.simple-place-photo,.rich-card>.smart-spot-image,.official-exploration-photo,.community-list:not([data-layout=compact]) .community-story-cover,.community-editorial-grid .editorial-photo,.festival-card-photo,.night-course-card>span),html:root body .scenic-page .journey-photo-link{position:absolute;inset:0;z-index:0;display:block;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;border-radius:inherit;overflow:hidden;background:#244658;transform:none}
+html:root body .wave-night :is(.simple-place-photo,.rich-card>.smart-spot-image,.official-exploration-photo,.community-story-cover,.community-editorial-grid .editorial-photo,.festival-card-photo,.night-course-card>span) :is(img,.smart-spot-image),html:root body .wave-night .community-list:not([data-layout=compact]) .community-story-cover :is(.smart-spot-image,img){position:absolute;inset:0;width:100%;height:100%;min-height:0;max-height:none;aspect-ratio:auto;object-fit:cover;border-radius:0;opacity:1;filter:none}
+html:root body .wave-night :is(.simple-place-photo,.rich-card>.smart-spot-image,.official-exploration-photo,.community-story-cover,.community-editorial-grid .editorial-photo,.festival-card-photo,.night-course-card)::after{content:none}
+html:root body .wave-night .simple-place-row,html:root body .wave-night [data-place-view=grid] .simple-place-row{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-height:300px;padding:22px;grid-template-areas:none}
+html:root body .wave-night :is(.simple-place-heading,.simple-place-copy){min-width:0}
+html:root body .wave-night .simple-place-heading h3 button{color:#fff;text-shadow:inherit;background:none}
+html:root body .wave-night .simple-place-add{align-self:flex-end;flex:0 0 44px;display:grid;place-items:center;width:44px;height:44px;min-height:44px;padding:10px;text-shadow:none}
+html:root body .wave-night .simple-place-row:has(.simple-search-photo-placeholder) .simple-place-heading{padding-top:76px}
+html:root body .wave-night .official-exploration-card{min-height:300px;justify-content:flex-end;padding:22px;gap:14px}
+html:root body .wave-night .rich-card:not(.rich-loading){min-height:340px;display:flex;align-items:flex-end}
+html:root body .wave-night .rich-card>section{width:100%;background:none;box-sizing:border-box}
+html:root body .wave-night .community-list article{display:flex;flex-direction:column;min-height:360px;padding:0}
+html:root body .wave-night .community-list:not([data-layout=compact]) article>a{position:static;display:flex;flex-direction:column;flex:1;min-height:0}
+html:root body .wave-night .community-list article>a>:not(.community-story-cover){position:relative;z-index:1}
+html:root body .wave-night .community-list article>a>.community-card-copy{margin-top:auto}
+html:root body .wave-night .community-list .community-card-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 24px 16px;margin:0;font-size:12px}
+html:root body .wave-night .community-reactions{display:flex;align-items:center;gap:14px;flex-shrink:0}
+html:root body .wave-night .community-reactions>span{display:inline-flex;align-items:center;gap:5px}
+html:root body .wave-night .community-reactions button{background:#15394b88;color:#fff;border:1px solid #d7edf34d;text-shadow:none}
+html:root body .wave-night .community-editorial-grid>article{display:flex;min-height:340px;align-items:flex-end}
+html:root body .wave-night .community-editorial-grid>article>div{background:none}
+html:root body .wave-night.festival-page .festival-grid .festival-card,html:root body .wave-night.festival-page .night-festival-list .festival-card{display:flex;flex-direction:column;min-height:380px;gap:0;padding:0}
+html:root body .wave-night.festival-page .festival-title-open{color:#fff;text-shadow:inherit;background:none}
+html:root body .wave-night.festival-page .festival-card-copy{padding:12px 20px;background:none}
+html:root body .wave-night.festival-page .festival-card-photo{position:absolute;inset:0;width:100%;height:100%;min-height:0;border-radius:inherit;z-index:0}
+html:root body .wave-night.festival-page .festival-state{left:auto;right:16px;top:16px;bottom:auto;text-shadow:none}
+html:root body .wave-night .festival-card-tools{padding:0 20px 18px;margin-top:0}
+html:root body .wave-night .night-festival-more{background:#173b4fed;text-shadow:none}
+html:root body .wave-night .night-course-card{display:flex;align-items:flex-end;min-height:260px;padding:0}
+html:root body .wave-night .night-course-card>span{position:absolute;inset:0;height:100%;min-height:0}
+html:root body .wave-night .night-course-card>div{padding:24px;background:none}
+html:root body .scenic-page .journey-destination{min-height:300px;display:flex;justify-content:flex-end}
+html:root body .scenic-page .journey-place-copy{position:relative;z-index:1;margin-top:auto;padding:22px;background:none;pointer-events:none}
+html:root body .scenic-page .journey-place-copy :is(span,h3){color:#fff;text-shadow:inherit}
+html:root body .scenic-page .journey-place-copy button{pointer-events:auto;text-shadow:none}
+html:root body .scenic-page :is(.night-discover-photos>a,.night-festival-preview-cards>a,.simple-region-link),html:root body .landing-page.horizon-edition.night-landing.scenic-page .simple-region-link{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;min-height:220px;height:240px;padding:0;border-radius:18px;background:#244658;text-shadow:0 1px 2px #081d3080}
+html:root body .scenic-page :is(.night-discover-photos>a,.night-festival-preview-cards>a,.simple-region-link)>img,html:root body .landing-page.horizon-edition.night-landing.scenic-page .simple-region-link>img{position:absolute;inset:0;z-index:0;width:100%;height:100%;min-height:0;border-radius:0;object-fit:cover;transform:none}
+html:root body .scenic-page :is(.night-discover-photos>a,.night-festival-preview-cards>a,.simple-region-link)>:not(img),html:root body .landing-page.horizon-edition.night-landing.scenic-page .simple-region-link>div{position:relative!important;inset:auto;z-index:1;padding:18px;background:none!important;color:#fff;min-height:0;text-shadow:inherit}
+html:root body .scenic-page :is(.night-discover-photos>a,.night-festival-preview-cards>a,.simple-region-link) :is(strong,span,small,h3){color:#fff;text-shadow:inherit}
+html:root body .wave-night :is(.smart-image-fallback,.festival-photo-fallback,.simple-search-photo-placeholder,.official-photo-status){display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:22px;box-sizing:border-box;flex-direction:row;font-size:12px;background:none;color:#e4f1f5;text-shadow:none}
+html:root body .wave-night :is(.smart-image-fallback,.festival-photo-fallback,.official-photo-status){position:absolute;inset:0 auto auto 0;width:100%;height:auto;min-height:0;transform:none}
+html:root body .wave-night :is(.smart-image-fallback,.festival-photo-fallback,.official-photo-status) svg{flex:0 0 26px;width:26px;height:26px}
+html:root body .wave-night .simple-search-photo-placeholder{align-items:flex-start;padding-top:24px}
+html:root body .wave-night .smart-image-fallback small{font-size:12px}
+html:root body .wave-night .community-guides{margin-top:48px}.community-guides .community-travel-stories>header{display:block;margin-bottom:24px}
+@media(max-width:700px){html:root body .wave-night .community-list article{min-height:340px}html:root body .wave-night .community-list:not([data-layout=compact]) article>a{padding:20px 20px 10px}html:root body .wave-night .community-list .community-card-footer{padding:0 20px 14px}.community-reactions{gap:10px}html:root body .wave-night .simple-place-row{padding:18px}}
+
+html:root body .wave-night [data-place-view=grid] .simple-place-photo{position:absolute;inset:0;height:100%;aspect-ratio:auto;border-radius:inherit}html:root body .wave-night [data-place-view=grid] :is(.simple-place-heading,.simple-place-copy){padding-inline:0}html:root body .wave-night [data-place-view=grid] .simple-place-add{margin:0}
+html:root body .wave-night .official-exploration{border:0;padding:0;margin-top:40px;background:none}html:root body .wave-night .official-exploration>h2{font-size:20px;margin:0 0 16px}html:root body .wave-night .official-exploration-card:has([data-status=empty],[data-status=error]){min-height:210px}html:root body .wave-night .official-exploration-card:has([data-status=empty],[data-status=error]) h3{padding-top:52px}
+
+html:root body .simple-footer :is(p,a,span){color:#f5faff;text-shadow:0 1px 3px #102a46b3,0 2px 6px #102a4666}html:root body .simple-footer .github-footer-link{border:0;border-radius:0;background:none;box-shadow:none;transform:none;color:#f5faff;padding:0;width:44px;height:44px}html:root body .simple-footer .github-footer-link svg{width:38px;height:38px;filter:drop-shadow(0 1px 3px #102a4699)}html:root body .simple-footer .github-footer-link:is(:hover,:focus-visible){color:#87dfec;background:none;transform:none;border:0}
+
+.auth-policy-footer{display:flex;justify-content:center;padding:24px}.auth-policy-footer .policy-footer-links{justify-content:center}.auth-recovery-link{justify-content:flex-end}.auth-card .kakao-auth>p{font-size:13px}.auth-card .kakao-auth>.auth-primary-link{min-height:44px;width:fit-content;padding:8px 0;background:none;border:0;box-shadow:none;color:#9edfee}.auth-card .auth-message:empty{margin:0;min-height:12px}
+
+html:root body .wave-night .place-card-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:4px}
+html:root body .wave-night :is(.simple-place-heading,.journey-place-copy,.community-list article>a>h3,.festival-card-heading){text-shadow:0 1px 3px #081724,0 2px 6px #081724cc}html:root body .wave-night .community-card-meta>span{text-shadow:none}
+html:root body .simple-place-pane .modal-body{padding:20px;gap:12px}html:root body .simple-place-pane .modal-body>.place-save-action{display:inline-flex;width:44px;height:44px;min-height:44px;padding:10px;margin:0 0 8px;border-radius:50%;justify-content:center}html:root body .simple-place-pane .modal-body>.place-save-action::after{content:none}html:root body .simple-place-pane summary{padding:8px 10px;min-height:44px;border:0;background:none}html:root body .simple-place-pane details{margin:8px 0;border:0;border-bottom:1px solid #97cddd24;border-radius:0;padding:0;background:none}html:root body .simple-place-pane .modal-close-end{display:flex;justify-content:flex-end;margin-top:12px}.place-evidence-refresh{display:flex;align-items:center;gap:10px}.place-evidence-refresh p:empty{display:none}
+html:root body .wave-night .simple-stops>li{position:relative;isolation:isolate;overflow:hidden;background:#244658;min-height:230px;text-shadow:0 1px 2px #081d3080}html:root body .wave-night .simple-stop{position:static;grid-template-columns:52px minmax(0,1fr) auto}html:root body .wave-night .night-stop-photo{position:absolute;inset:0;z-index:-1;width:100%;height:100%;border-radius:inherit;opacity:1}html:root body .wave-night .night-stop-photo img{width:100%;height:100%;object-fit:cover}html:root body .wave-night .simple-stops :is(h3 button,p,time,.simple-place-city){color:#fff;text-shadow:inherit}html:root body .wave-night .simple-stop-details{position:relative;background:none}
+
+html:root body .wave-night .simple-place-list{display:grid;gap:20px}html:root body .wave-night .simple-direct-results{row-gap:20px}@media(max-width:700px){html:root body .wave-night .simple-place-list{gap:16px}}
+
+html:root body .wave-night :is(.place-card-info,.simple-place-add,.journey-map-zoom,.journey-place-copy button,.place-save-action){background:#10364eed;color:#a8edff;border:1px solid #3997b380;box-shadow:0 2px 6px #04172633;text-shadow:none}html:root body .wave-night :is(.place-card-info,.simple-place-add,.journey-map-zoom,.journey-place-copy button,.place-save-action):is(:hover,:focus-visible,[aria-pressed=true]){background:#13647b;color:#f2fdff;border-color:#59cee8}
+
+html:root body .wave-night .simple-place-row>:is(.simple-place-heading,.simple-place-copy){pointer-events:none}html:root body .wave-night .simple-place-row>:is(.simple-place-heading,.simple-place-copy) :is(button,a,label,input){pointer-events:auto}
+
+/* Secondary copy is still content: keep it legible over bright water and foliage. */
+html:root body .wave-night .community-list article footer.community-card-footer{color:#fff;font-size:14px;text-shadow:0 1px 2px #03182790}
+html:root body .wave-night .community-list article footer.community-card-footer span{color:#fff;text-shadow:inherit}
+html:root body .wave-night .community-list article footer.community-card-footer svg{color:#fff;filter:drop-shadow(0 1px 2px #031827)}
+html:root body .wave-night .community-editorial-grid>article .community-story-read{color:#fff;font-size:14px;font-weight:650;gap:8px;text-shadow:0 1px 2px #03182790}
+html:root body .wave-night .community-editorial-grid>article .community-story-read:hover{text-decoration:underline;text-underline-offset:4px}
+html:root body .wave-night :is(.simple-place-city,.simple-place-address,.festival-card-copy small,.community-card-meta time,.community-editorial-grid>article small){font-size:13px;color:#fff;text-shadow:0 1px 2px #03182790}
+
+html:root body .wave-night .community-list:not([data-layout=compact]) .community-story-cover .smart-image-fallback{top:54px;padding:12px 24px;max-width:100%;font-size:13px}
+
+/* Keep the frame clear; frost only the compact text and action groups. */
+html:root body .wave-night :is(.community-card-copy,.community-card-footer,.community-editorial-grid>article>div,.simple-place-heading,.simple-place-copy,.rich-card>section,.festival-card-heading,.festival-card-copy,.festival-card-tools,.night-course-card>div),html:root body .scenic-page .journey-place-copy{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;color:#fff;text-shadow:0 1px 3px #071c30b3}
+html:root body .wave-night .community-list:not([data-layout=compact]) article>a{padding:20px 0 0;gap:0}
+html:root body .wave-night .community-list article .community-card-meta{padding:0 20px;margin-bottom:80px}
+html:root body .wave-night .community-card-copy{padding:16px 20px 10px;border-radius:16px 16px 0 0}
+html:root body .wave-night .community-card-copy h3{padding:0;margin:0 0 10px}
+html:root body .wave-night .community-card-copy>p{margin:0 0 10px;line-height:1.7;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+html:root body .wave-night .community-list article footer.community-card-footer{padding:0 20px 12px;margin:0;border-radius:0}
+html:root body .wave-night .community-editorial-grid>article>div{width:100%;margin-top:110px;padding:18px 20px;border-radius:16px 16px 0 0}
+html:root body .wave-night .simple-place-row{gap:0}
+html:root body .wave-night .simple-place-row .simple-place-heading{margin-top:100px}
+html:root body .wave-night .simple-place-row .place-card-actions{margin-top:12px}
+html:root body .wave-night .rich-card>section{padding:18px;margin-top:100px;border-radius:16px 16px 0 0}
+html:root body .wave-night.festival-page .festival-card-heading{padding:16px 20px 0;border-radius:16px 16px 0 0;margin-top:150px}
+html:root body .wave-night .official-exploration-card h3{margin-top:100px}
+html:root body .wave-night .community-list[data-layout=compact] :is(.community-card-copy,.community-card-footer){background:none;backdrop-filter:none}
+html:root body .wave-night .community-list[data-layout=compact] .community-card-meta{margin-bottom:0;padding:0}
+html:root body .wave-night .community-list[data-layout=compact] .community-card-copy{padding:8px 0}
+
+html:root body .wave-night .community-card-meta time{padding:4px 8px;border-radius:8px;font-size:12px;line-height:1.5}
+
+/* Shared photo-card treatment: text-sized translucent blue glass, no full-width dark panel. */
+html:root body .wave-night :is(.community-card-copy>h3,.community-card-copy>p,.community-card-footer>span,.community-editorial-grid>article>div>:is(h3,p,small,a),.simple-place-heading,.simple-place-copy,.rich-card>section>:is(h3,p,small),.festival-card-heading>h2,.festival-card-copy>:is(p,small),.official-exploration-card>:is(h3,p),.night-course-card>div>:is(strong,p,small),.community-card-meta time,.simple-stop>div>:is(h3,p),.simple-stop-details>p),html:root body .scenic-page :is(.journey-place-copy>div,.night-discover-photos>a>span,.night-festival-preview-cards>a>div,.simple-region-link>div){width:fit-content;max-width:100%;overflow-wrap:anywhere;box-sizing:border-box;background:#103650d9!important;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);padding:6px 10px;border-radius:10px;color:#fff;text-shadow:0 1px 3px #041b2db3}
+html:root body .wave-night .simple-place-row :is(.simple-place-heading,.simple-place-copy){width:fit-content;max-width:100%;padding:6px 10px;border-radius:10px}
+html:root body .wave-night .simple-place-row .simple-place-copy{margin-top:4px}
+html:root body .wave-night .community-card-copy>h3{margin-bottom:6px}
+html:root body .wave-night .community-card-copy>p{padding:6px 10px;margin-bottom:6px}
+html:root body .wave-night .community-card-footer>span{min-width:0}
+html:root body .wave-night :is(.rich-card>section>small,.festival-card-copy>small,.night-course-card>div>:is(strong,small)){display:block}
+html:root body .scenic-page :is(.night-discover-photos>a>span,.night-festival-preview-cards>a>div,.simple-region-link>div){margin:12px;padding:8px 12px;max-width:calc(100% - 24px)}
+html:root body .wave-night .community-list[data-layout=compact] :is(.community-card-copy>h3,.community-card-copy>p,.community-card-footer>span){background:none!important;backdrop-filter:none;padding:0}
+
+.place-save-feedback{font-size:12px;color:#fff;text-shadow:0 1px 3px #041b2d}.place-save-feedback:empty{display:none}
+
+/* Loading follows the real card layout; photo-only loading never imitates text. */
+html:root body .wave-night .community-list .community-skeleton-card{padding:20px;gap:20px;background:linear-gradient(110deg,#1d455b 20%,#28566b 42%,#1d455b 64%);background-size:220% 100%;animation:region-photo-loading 2.8s ease-in-out infinite;pointer-events:none}
+.community-skeleton-card i{display:block;height:12px;border-radius:8px;background:#85eaff20}
+.skeleton-meta,.skeleton-footer{display:flex;justify-content:space-between;gap:24px}.skeleton-meta i{width:24%;height:24px}.skeleton-copy{display:grid;gap:14px;margin-top:auto}.skeleton-copy i:first-child{height:22px;width:72%}.skeleton-copy i:last-child{width:58%}.skeleton-footer i{width:24%;height:28px}
+html:root body .wave-night .community-skeletons[data-layout=compact] .community-skeleton-card{min-height:160px}
+@media(prefers-reduced-motion:reduce){html:root body .wave-night .community-list .community-skeleton-card{animation:none}}html:root[data-motion=calm] body .wave-night .community-list .community-skeleton-card{animation:none}
+
+html:root body .wave-night .festival-card-main{position:relative;isolation:isolate;display:flex;flex-direction:column;min-height:380px;width:100%;border-radius:inherit}
+html:root body .wave-night .festival-card-main>:not(.festival-card-photo){position:relative;z-index:1}
+html:root body .wave-night .festival-card-main .festival-card-tools{z-index:2}
+html:root body .wave-night .festival-icon-action::after{top:auto;bottom:calc(100% + 8px)}
+html:root body .wave-night .festival-actions button:first-child{display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+
+.wave-action-toast:popover-open{position:fixed;inset:auto 16px max(28px,env(safe-area-inset-bottom)) 16px;margin-inline:auto;width:fit-content;max-width:min(440px,calc(100% - 32px));padding:14px 22px;border:1px solid #6bcfe08c;border-radius:16px;background:#123650ed;color:#dff7ff;box-shadow:0 6px 28px #001a3960;font-size:16px;font-weight:600;line-height:1.5;text-align:center;pointer-events:none}

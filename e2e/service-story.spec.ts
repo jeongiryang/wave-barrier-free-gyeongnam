@@ -26,22 +26,25 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator("#story")).not.toContainText("WAVE TRAVEL PLANNER");
     await expect(page.locator("#story")).not.toContainText("YOUR TRAVEL, CONNECTED");
     await expect(page.locator("#story").getByRole("button", { name: "이 지역들 먼저 보기", exact: true })).toHaveCount(0);
-    await expect(page.locator(".simple-naru-example")).toContainText(locale === "en" ? "Example" : "대화 예시");
-    const photo = page.locator(".landing-opening .award-panorama");
+    const example = page.locator('.simple-naru-example');
+    await expect(example).toHaveAttribute('aria-label', locale === 'en' ? 'Example conversation' : '대화 예시');
+    await expect(example.locator('.example-user')).toHaveText(locale === 'en' ? 'Make my first visit 90 minutes.' : '첫 번째 장소에서 90분 머물게 해줘');
+    await expect(example.getByRole('button', { name: locale === 'en' ? 'Apply to example' : '예시 일정에 적용', exact: true })).toBeEnabled();
+    const photo = page.locator(".scenic-background-home .award-panorama");
+    await expect(photo).toBeVisible();
+    await expect.poll(() => photo.locator('img').evaluateAll(images => images.length > 0 && images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
     await expect(photo.locator("img")).toHaveAttribute("alt", "");
     await expect(page.locator("#regions .simple-region-arrow")).toHaveCount(0);
-    const heroAction = page.locator(".landing-actions a");
-    await expect(heroAction).toHaveCSS("border-radius", "12px");
-    // The centered opening uses a compact 220px action instead of the old
-    // full-column CTA; its text and keyboard target must remain intact.
-    expect((await heroAction.boundingBox())!.width).toBeGreaterThanOrEqual(220);
+    const heroAction = page.locator('.night-hero-search button[type="submit"]');
+    await expect(page.locator('.night-hero-search')).toHaveAttribute('action', '/planner');
+    await expect(heroAction).toHaveAccessibleName(locale === 'en' ? 'Find places' : '여행지 검색');
     expect(await heroAction.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
-    for (const selector of [".landing-actions a", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) await expectUsableTarget(page.locator(selector));
+    for (const selector of ['.night-hero-search button[type="submit"]', "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) await expectUsableTarget(page.locator(selector));
     await expectNoOverflow(page);
     expect((await new AxeBuilder({ page }).include("#story").include("#naru").analyze()).violations).toEqual([]);
-    const action = page.locator(locale === "en" ? "#naru .simple-text-link[href*=assistant]" : ".landing-actions a");
-    const expected = locale === "en" ? "/planner?assistant=naru" : "/planner";
-    await expect(action).toHaveAttribute("href", expected);
+    const action = locale === 'en' ? page.locator('#naru .simple-text-link[href*=assistant]') : heroAction;
+    if (locale === 'en') await expect(action).toHaveAttribute('href', '/planner?assistant=naru');
+    else await expect(action).toHaveAttribute('type', 'submit');
     await action.press("Enter");
     await expect(page).toHaveURL(url => url.pathname === "/planner");
     if (locale === "en") await expect(page.getByRole("dialog", { name: "WAVE 여행 가이드 나루와 대화", exact: true })).toBeVisible();
@@ -56,7 +59,7 @@ for (const locale of ["ko", "en"] as const) {
     const imageFailure = page.waitForEvent('requestfailed', request => request.url() === awardHeroImage);
     await page.goto("/"); await storyReady(page);
     await imageFailure;
-    const photo = page.locator(".landing-opening .award-panorama");
+    const photo = page.locator(".scenic-background-home .award-panorama");
     await expect(photo).toBeVisible();
     await expect(photo.locator("img")).toHaveCount(0);
     await expect(photo.locator('.award-panorama-credit')).toHaveCount(0);
@@ -65,7 +68,7 @@ for (const locale of ["ko", "en"] as const) {
     expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
     for (const width of [320, 1440]) {
       await page.setViewportSize({ width, height: 844 });
-      await expectUsableTarget(page.locator(".landing-actions a"));
+      await expectUsableTarget(page.locator('.night-hero-search button[type="submit"]'));
       await expectNoOverflow(page);
     }
     expect((await new AxeBuilder({ page }).include("#top").analyze()).violations).toEqual([]);
@@ -82,7 +85,7 @@ for (const connectionMode of ["available", "unsupported"] as const) {
     page.on("request", request => { if (/\.mp4(?:\?|$)/.test(request.url())) videos.push(request.url()); });
     await page.clock.install();
     await page.goto("/"); await storyReady(page);
-    const title = page.getByRole("heading", { level: 1 }), action = page.locator(".landing-actions a");
+    const title = page.getByRole("heading", { level: 1 }), action = page.locator('.night-hero-search button[type="submit"]');
     await action.focus();
     if (connectionMode === "available") await page.evaluate(() => {
       const connection = (navigator as Navigator & { connection?: EventTarget & { saveData: boolean } }).connection;

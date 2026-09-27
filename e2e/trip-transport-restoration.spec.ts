@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { readFile } from 'node:fs/promises';
@@ -42,7 +43,7 @@ async function settled(page: Page, mode: string) {
   await page.locator('#itinerary').waitFor();
   await openNaruTool(page, '이동 구간 확인');
   const coverage = page.locator('.itinerary-route-coverage');
-  await expect(coverage.locator('select')).toHaveValue(mode);
+  await expect(waveSelectNative(coverage.locator('select'))).toHaveValue(mode);
   await expect(coverage.getByRole('status')).toContainText('전체 2구간 중 2구간 확인');
   await expect(coverage.locator('.coverage-actions > button').first()).toHaveAttribute('aria-busy', 'false');
   await expect.poll(async () => (await stored(page)).schedule.travelMode).toBe(mode);
@@ -51,7 +52,7 @@ async function settled(page: Page, mode: string) {
 async function chooseMode(page: Page, mode: string) {
   await page.getByRole('button', { name: '여행 설정', exact: true }).click();
   const editor = page.getByRole('dialog', { name: '여행 설정', exact: true });
-  await editor.getByRole('combobox', { name: '이동 수단', exact: true }).selectOption(mode);
+  await chooseWaveOption(editor.getByRole('combobox', { name: '이동 수단', exact: true }), mode);
   await editor.getByRole('button', { name: '적용', exact: true }).click();
 }
 
@@ -82,7 +83,7 @@ test('the chosen car mode survives reload, archive restore, sharing and calendar
   await page.getByRole('group', { name: '일정 날짜', exact: true }).getByRole('button', { name: /^2일차/ }).click();
   await page.getByRole('button', { name: '경남도립미술관 일정 수정', exact: true }).click();
   const stop = page.getByRole('dialog', { name: '경남도립미술관 수정', exact: true });
-  await expect(stop.getByLabel('경남도립미술관 머무는 시간', { exact: true })).toHaveValue('120');
+  await expect(waveSelectNative(stop.getByRole('combobox', { name: '경남도립미술관 머무는 시간', ...{ exact: true } }))).toHaveValue('120');
   await stop.getByRole('button', { name: '취소', exact: true }).click();
   await openNaruTool(page, '이동 구간 확인');
   expect((await new AxeBuilder({ page }).include('.itinerary-route-coverage').analyze()).violations).toEqual([]);
@@ -223,8 +224,8 @@ test('a failed atomic transport edit preserves the itinerary and draft until ret
   await chooseMode(page, 'car');
   const editor = page.getByRole('dialog', { name: '여행 설정', exact: true });
   await expect(editor.getByRole('alert')).toHaveText('변경 내용을 저장하지 못했어요. 기존 일정은 그대로예요.');
-  await expect(editor.getByRole('combobox', { name: '이동 수단', exact: true })).toHaveValue('car');
-  await expect(page.locator('.itinerary-route-coverage select')).toHaveValue('transit');
+  await expect(waveSelectNative(editor.getByRole('combobox', { name: '이동 수단', exact: true }))).toHaveValue('car');
+  await expect(waveSelectNative(page.locator('.itinerary-route-coverage select'))).toHaveValue('transit');
   expect(await stored(page)).toEqual(before);
   // Cancel discards only the unapplied form draft, never the saved itinerary.
   await editor.getByRole('button', { name: '취소', exact: true }).click();
@@ -233,7 +234,7 @@ test('a failed atomic transport edit preserves the itinerary and draft until ret
   expect(await stored(page)).toEqual(before);
   await chooseMode(page, 'car');
   await expect(editor.getByRole('alert')).toHaveText('변경 내용을 저장하지 못했어요. 기존 일정은 그대로예요.');
-  await expect(editor.getByRole('combobox', { name: '이동 수단', exact: true })).toHaveValue('car');
+  await expect(waveSelectNative(editor.getByRole('combobox', { name: '이동 수단', exact: true }))).toHaveValue('car');
   expect(await stored(page)).toEqual(before);
   await page.evaluate(() => (window as unknown as { allowTravelSave: () => void }).allowTravelSave());
   await editor.getByRole('button', { name: '적용', exact: true }).click();

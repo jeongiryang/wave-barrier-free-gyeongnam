@@ -8,6 +8,12 @@ for (const path of ['/login', '/register', '/forgot-password', '/reset-password'
     await expect(page.locator('.wave-header')).toHaveCount(1);
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
     await expect(page.locator('.wave-night')).toBeVisible();
+    if (path === '/guide') {
+      // Reading the rotating hint pauses it through the actual pointer action.
+      // Measure its settled text, not an arbitrary frame of its 400ms fade-in.
+      await page.locator('.naru-welcome-bubble').hover();
+      await expect(page.locator('.naru-welcome-message span')).toHaveCSS('opacity', '1');
+    }
     const serious = (await new AxeBuilder({ page }).analyze()).violations.filter(v => v.impact === 'serious' || v.impact === 'critical');
     expect(serious.map(v => ({ id: v.id, nodes: v.nodes.map(n => ({ target: n.target, summary: n.failureSummary })) }))).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);

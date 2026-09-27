@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../components/NightIcon';
+
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -123,7 +125,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore, compareEnabled = 
       </div>
       <CloudSaveAction book={book} />
       <div className="travel-book-delete">
-        <button ref={deleteTriggerRef} type="button" aria-expanded={deleteReady} aria-controls={deletePanelId} onClick={() => deleteReady ? closeDelete() : setDeleteReady(true)}>여행집에서 삭제</button>
+        <button ref={deleteTriggerRef} type="button" aria-expanded={deleteReady} aria-controls={deletePanelId} onClick={() => deleteReady ? closeDelete() : setDeleteReady(true)} data-icon-action="" title="여행집에서 삭제"><NightIcon name="trash" size={20}/><span className="sr-only">여행집에서 삭제</span></button>
         {deleteReady && <div ref={deletePanelRef} id={deletePanelId} className="travel-book-delete-confirm" role="group" aria-label={`${book.title} 삭제 확인`}><span>이 여행을 삭제할까요?</span><button type="button" onClick={() => onRemove(book.id)}>삭제 확인</button><button type="button" onClick={closeDelete}>취소</button></div>}
       </div>
     </div>

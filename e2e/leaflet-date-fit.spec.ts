@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, plan } from "./fixtures";
 import { ensureMapView, openPlannerMap } from "./nearby-fixtures";
@@ -108,7 +109,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
       expect(pageErrors, "initial real Leaflet fitting must not throw").toEqual([]);
       await page.getByRole("button", { name: places[1].name + " 일정 수정", exact: true }).click();
       const editor = page.getByRole("dialog", { name: places[1].name + " 수정", exact: true });
-      await editor.getByRole("combobox", { name: "방문 날짜", exact: true }).selectOption(tomorrow);
+      await chooseWaveOption(editor.getByRole("combobox", { name: "방문 날짜", exact: true }), tomorrow);
       await editor.getByRole("button", { name: "적용", exact: true }).click();
       await expect.poll(() => page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values?.["wave-trip-schedule-v1"] || "{}").scheduleAssignments)).toEqual({ "1001": today, "1002": tomorrow });
       const selectDay = async (date: string) => {

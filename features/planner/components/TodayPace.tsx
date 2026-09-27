@@ -1,4 +1,5 @@
 "use client";
+import WaveSelect from "../../../components/WaveSelect";
 import { useState } from "react";
 import { useOpenNaru } from "../../../components/NaruContext";
 import { buildItinerarySchedule } from "../optimization/itinerary-schedule.js";
@@ -115,7 +116,7 @@ export default function TodayPace({
       <div className={styles.fields}>
         <label>
           오늘 편안한 연속 걷기
-          <select
+          <WaveSelect
             value={walk}
             onChange={(e) => {
               setWalk(e.target.value);
@@ -127,11 +128,11 @@ export default function TodayPace({
                 {n}분
               </option>
             ))}
-          </select>
+          </WaveSelect>
         </label>
         <label>
           쉬어 갈 시간
-          <select
+          <WaveSelect
             value={rest}
             onChange={(e) => {
               setRest(e.target.value);
@@ -143,11 +144,11 @@ export default function TodayPace({
                 {n}분
               </option>
             ))}
-          </select>
+          </WaveSelect>
         </label>
         <label>
           지금 원하는 분위기
-          <select value={mood} onChange={(e) => setMood(e.target.value)}>
+          <WaveSelect value={mood} onChange={(e) => setMood(e.target.value)}>
             {[
               "조용하게 쉬고 싶어",
               "이동을 줄이고 싶어",
@@ -156,7 +157,7 @@ export default function TodayPace({
             ].map((s) => (
               <option key={s}>{s}</option>
             ))}
-          </select>
+          </WaveSelect>
         </label>
       </div>
       <p>

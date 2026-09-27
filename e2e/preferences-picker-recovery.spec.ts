@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
@@ -16,15 +17,25 @@ for (const path of ["/planner", "/community"]) {
     const language = details.getByRole("combobox", { name: "언어", exact: true });
     await expect(language).toBeFocused();
     await page.keyboard.press("ArrowDown");
+    const menu = details.getByRole('listbox', { name: '언어', exact: true });
+    await expect(menu).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await expect(menu.getByRole('option', { name: /English/ })).toHaveAttribute('data-active', 'true');
     await page.keyboard.press("Enter");
-    await expect(details.getByRole("combobox", { name: "Language", exact: true })).toHaveValue("en");
+    await expect(waveSelectNative(details.getByRole("combobox", { name: "Language", exact: true }))).toHaveValue("en");
     await expect(details.getByText("Some pages are in Korean", { exact: true })).toBeVisible();
     // Original Korean content retains the document language; translated
     // sections carry their own language tags under the existing policy.
     await expect(page.locator("html")).toHaveAttribute("lang", "ko");
-    // The first Escape dismisses the native picker. The next leaves the
-    // preferences disclosure; do not hide a select while its picker is active.
+    // Reopen the custom listbox before testing nested dismissal. Enter has
+    // already committed the previous selection and closed its menu.
+    const englishLanguage = details.getByRole('combobox', { name: 'Language', exact: true });
+    await expect(englishLanguage).toBeFocused();
+    await englishLanguage.press('ArrowDown');
+    await expect(details.getByRole('listbox', { name: 'Language', exact: true })).toBeFocused();
     await page.keyboard.press("Escape");
+    await expect(details.getByRole('listbox')).toHaveCount(0);
+    await expect(englishLanguage).toBeFocused();
     await expect(details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ })).toHaveAttribute('aria-expanded', 'true');
     await page.keyboard.press("Escape");
     await expect(details.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ })).toHaveAttribute('aria-expanded', 'false');

@@ -1,3 +1,5 @@
+
+import NightIcon from '../../../components/NightIcon';
 import type { MapPickMode, RoutePoint } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
 
@@ -13,7 +15,7 @@ export default function RoutePointPanel({ origin, pickMode, onClose, onCurrentLo
   const { locale } = useSitePreferences();
   const english = locale === "en";
   return <section id="map-panel-route" lang={locale} className="map-tool-panel map-side-drawer map-route-panel" aria-label={english ? "Departure and destination settings" : "출발지와 목적지 설정"} tabIndex={-1}>
-    <header><div><strong>{english ? "Departure / destination" : "출발지 · 목적지"}</strong><span>{english ? "Choose a public departure point on the map" : "지도에서 공개 출발지를 선택하세요"}</span></div><button type="button" onClick={onClose} aria-label={english ? "Close departure and destination settings" : "출발지 목적지 설정 닫기"}>×</button></header>
+    <header><div><strong>{english ? "Departure / destination" : "출발지 · 목적지"}</strong><span>{english ? "Choose a public departure point on the map" : "지도에서 공개 출발지를 선택하세요"}</span></div><button type="button" onClick={onClose} aria-label={english ? "Close departure and destination settings" : "출발지 목적지 설정 닫기"} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header>
     <div className="map-route-status"><span><b>S</b> {english ? "Departure" : "출발지"}</span><strong>{origin.lat.toFixed(5)}, {origin.lng.toFixed(5)}</strong></div>
     <div className="map-route-actions">
       <button type="button" onClick={onCurrentLocation}><i aria-hidden="true">◎</i><strong>{english ? "Distance on this device" : "기기에서 거리 확인"}</strong><small>{english ? "Your coordinates stay on this device; departure stays the same" : "좌표는 기기 안에서만 사용하며 출발지는 유지"}</small></button>

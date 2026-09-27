@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { prepareStory, storyReady } from "./landing-contract";
 
-test("brand meaning is explained without replacing the Korean service promise", async ({ page }) => {
+test("the Korean service promise leads to the guide's brand explanation", async ({ page }) => {
   await prepareStory(page);
   await page.goto("/");
   await storyReady(page);
@@ -10,13 +10,21 @@ test("brand meaning is explained without replacing the Korean service promise", 
   const hero = page.locator("#top");
   await expect(hero.getByRole("heading", { level: 1 })).toHaveText("더 넓은 세상을함께, WAVE");
   await expect(hero.locator(".landing-hero-description")).toHaveText("장벽은 낮게, 더 많은 여행이 가능하게.경남의 새로운 여행을 경험하세요.");
-  await expect(hero.getByRole("link", { name: "여행지 둘러보기" })).toBeVisible();
+  await expect(hero.getByRole('button', { name: '여행지 검색', exact: true })).toBeVisible();
+  await expect(hero.getByRole('combobox', { name: '어디로 떠나고 싶으세요?', exact: true })).toBeEnabled();
+  await expect(hero.locator('.night-hero-search')).toHaveAttribute('action', '/planner');
   await expect(hero).not.toContainText("Way for All, Voyage for Everyone");
 
-  const meaning = page.locator("#closing .brand-meaning");
-  await expect(meaning).toContainText("모두를 위한 길, 모두를 위한 여행");
-  await expect(meaning.locator('[lang="en"]')).toHaveText("Way for All, Voyage for Everyone");
+  await expect(page.locator('#closing h2')).toHaveText('다음 풍경에서 만나요');
+  await expect(page.locator('#closing .landing-closing-copy > p')).toHaveText('나만의 속도로, 경남을 여행해요.');
   expect((await new AxeBuilder({ page }).include("#top").include("#closing").analyze()).violations).toEqual([]);
+  const guide = page.getByRole('navigation', { name: '서비스 도움말', exact: true }).getByRole('link', { name: '사용 방법', exact: true });
+  await expect(guide).toHaveAttribute('href', '/guide');
+  await guide.press('Enter');
+  await expect(page).toHaveURL(url => url.pathname === '/guide');
+  const meaning = page.locator('.guide-brand');
+  await expect(meaning).toContainText('모두를 위한 길, 모두를 위한 여행');
+  await expect(meaning.locator('[lang="en"]')).toHaveText('Way for All, Voyage for Everyone');
 });
 
 test("guide explains the same brand meaning once", async ({ page }) => {

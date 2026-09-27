@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
@@ -17,7 +18,7 @@ test('departure disclosures distinguish partial evidence and keyboard calendar k
   const card = await openDeparture(page); const weather = await departureItem(page, '날씨'); await expect(weather.locator('summary')).toContainText('조회한 정보 있음');
   const crowd = await departureItem(page, '관광 집중률'); await expect(crowd).toContainText('실시간 방문자 수가 아닙니다');
   const journeys = await departureItem(page, '이동 경로·시간'); await expect(journeys).toContainText('전체 1구간 중 0구간');
-  const coverage = await routeTools(page); await coverage.locator('select').selectOption('car'); await expect(journeys).toContainText('전체 1구간 중 1구간');
+  const coverage = await routeTools(page); await chooseWaveOption(coverage.locator('select'), 'car'); await expect(journeys).toContainText('전체 1구간 중 1구간');
   await expect(journeys.locator('summary')).toContainText('조회한 정보 있음'); const mobility = await departureItem(page, '이동 편의'); await expect(mobility.locator('summary')).toContainText('확인할 정보 있음');
   expect((await new AxeBuilder({ page }).include('.simple-readiness').analyze()).violations).toEqual([]);
   await closeNaruTool(page);

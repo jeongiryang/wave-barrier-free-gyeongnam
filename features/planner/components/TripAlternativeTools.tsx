@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { useTripAlternatives } from "../hooks/useTripAlternatives";
 
@@ -17,6 +19,6 @@ export default function TripAlternativeTools({ trip, alternatives }: {
 export function TripReplacementNotice({ alternatives }: { alternatives: ReturnType<typeof useTripAlternatives> }) {
   return (alternatives.notice || alternatives.canUndo) && <div className="result-notice">
       <p role="status">{alternatives.notice}</p>
-      {alternatives.canUndo && <button type="button" onClick={alternatives.undoReplacement}>방금 교체 되돌리기</button>}
+      {alternatives.canUndo && <button type="button" onClick={alternatives.undoReplacement} data-icon-action="" title="방금 교체 되돌리기"><NightIcon name="undo" size={20}/><span className="sr-only">방금 교체 되돌리기</span></button>}
     </div>;
 }

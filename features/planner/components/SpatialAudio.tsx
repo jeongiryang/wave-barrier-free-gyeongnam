@@ -1,4 +1,5 @@
 "use client";
+import WaveSelect from "../../../components/WaveSelect";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Opt-in positioning of supplied audio; never an obstacle or route guide. */
@@ -135,7 +136,7 @@ export default function SpatialAudio({
       </p>
       <label>
         해설이 들리는 위치
-        <select
+        <WaveSelect
           disabled={loading}
           value={direction}
           onChange={(e) => {
@@ -147,7 +148,7 @@ export default function SpatialAudio({
           <option value="0">앞쪽</option>
           <option value="-1">왼쪽</option>
           <option value="1">오른쪽</option>
-        </select>
+        </WaveSelect>
       </label>
       <button
         type="button"

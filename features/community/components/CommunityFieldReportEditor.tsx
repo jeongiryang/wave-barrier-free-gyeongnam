@@ -1,3 +1,4 @@
+import WaveSelect from "../../../components/WaveSelect";
 import type { Dispatch, SetStateAction } from "react";
 import {
   ACCESSIBILITY_REPORT_FIELDS,
@@ -39,10 +40,10 @@ export default function CommunityFieldReportEditor({ values, setValues }: {
         const report = values.fieldReports.find((item) => item.field === field.id);
         return <fieldset key={field.id}>
           <legend>{field.label}</legend>
-          <label><span className="sr-only">{field.label} 확인 상태</span><select aria-label={`${field.label} 확인 상태`} value={report?.status || ""} onChange={(event) => updateReport(field.id, { status: event.target.value })}>
+          <label><span className="sr-only">{field.label} 확인 상태</span><WaveSelect aria-label={`${field.label} 확인 상태`} value={report?.status || ""} onChange={(event) => updateReport(field.id, { status: event.target.value })}>
             <option value="">선택 안 함</option>
             {ACCESSIBILITY_REPORT_STATUSES.map((status) => <option key={status.id} value={status.id}>{status.label}</option>)}
-          </select></label>
+          </WaveSelect></label>
           <label><span className="sr-only">{field.label} 메모</span><input aria-label={`${field.label} 메모`} value={report?.note || ""} disabled={!report} maxLength={160} placeholder="선택 메모" onChange={(event) => updateReport(field.id, { note: event.target.value })} /></label>
         </fieldset>;
       })}

@@ -1,11 +1,9 @@
 /* WAVE Horizon — Owner reference Ten, with Eight's landscape chapters. */
 /* --accent/--onaccent/--wave-max/--wave-gutter는 뒤에 오는 simple-wave.css :root가 덮어써 계산에 쓰이지 않는다. */
 :root { --wave-space: clamp(48px,5.5vw,84px); }
-html { scroll-padding-top: 122px; }
-body { background: var(--surface); }
 input,textarea { font-family: inherit; }
 .wave-header,.community-page .community-editorial-grid > article,.trip-comfort-choices { --ink: #242b2a; --muted: #5c6865; --white: #fff; --paper: #ffffff; --line: #dce3e0; --blue: #12655b; color: var(--ink); }
-.wave-header { position: sticky; z-index: 50; display: grid; align-items: center; gap: 24px; color: var(--ink); }
+.wave-header { position: relative; z-index: 50; display: grid; align-items: center; gap: 24px; color: var(--ink); }
 .wave-wordmark { min-height: 44px; display: flex; align-items: center; font-size: 29px; font-weight: 800; letter-spacing: -.065em; line-height: 1; width: fit-content; padding-block: 10px; }
 .wave-header nav { display: flex; }
 .wave-header nav a { display: flex; align-items: center; justify-content: center; min-height: 44px; color: var(--muted); white-space: nowrap; }
@@ -32,7 +30,7 @@ html[data-theme=dark] .wave-header .account-popover { --ink: #eaf5f9; --muted: #
 .horizon-edition .landing-cta h2 { font-weight: 500; }
 .planner-reference .place-actions .primary:not(.saved) { color: #242b2a; background: white; border-color: var(--line); }
 .community-page .community-travel-stories { width: min(var(--wave-max),calc(100% - var(--wave-gutter)*2)); margin-inline: auto; }
-.community-page .community-editorial-grid { display: flex; gap: 30px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 0 0 16px; scrollbar-width: thin; }
+.community-page .community-editorial-grid { overflow-x: auto; padding: 0 0 16px; scrollbar-width: thin; }
 .community-page .community-editorial-grid > article { flex: 0 0 39%; min-width: 0; scroll-snap-align: start; border: 0; border-radius: 28px; overflow: hidden; background: white; }
 .community-page .community-editorial-grid .editorial-photo { height: 280px; aspect-ratio: auto; border-radius: 0; }
 .community-page .community-editorial-grid article > div { padding: 28px; }

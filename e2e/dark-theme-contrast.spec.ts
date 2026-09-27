@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
@@ -73,7 +74,7 @@ async function measureOpaqueGradient(page: Page, selector: string) {
   });
 }
 
-for (const theme of ["light", "dark"]) test(`랜딩 그라데이션의 모든 색상은 ${theme} 화면에서 흰 글자 대비를 유지한다`, async ({ page }) => {
+for (const theme of ["light", "dark"]) test(`랜딩 검색 아이콘은 ${theme} 화면에서 배경 대비와 조작 영역을 유지한다`, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
   await page.addInitScript(value => {
@@ -82,16 +83,24 @@ for (const theme of ["light", "dark"]) test(`랜딩 그라데이션의 모든 �
   }, theme);
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-  const selector = ".landing-actions a[href='/planner']";
-  await expect(page.locator(selector)).toBeVisible();
-  // Visibility and hydration do not promise that streamed route CSS is painted.
-  await expect(page.locator(selector)).toHaveCSS("background-image", /linear-gradient\(/);
-  const sample = await measureOpaqueGradient(page, selector);
+  const selector = '.night-hero-search > button[type="submit"]';
+  const search = page.locator(selector);
+  await expect(search).toBeVisible(); await expect(search).toHaveAccessibleName('여행지 검색');
+  const box = (await search.boundingBox())!;
+  expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
+  await expect(search.locator('svg')).toBeVisible();
+  const gradient = await search.evaluate(node => getComputedStyle(node).backgroundImage);
+  const sample = gradient === 'none' ? await measure(page, selector) : await measureOpaqueGradient(page, selector);
+  expect(sample).not.toBeNull();
+  if (!sample) return;
   expect(sample.color).toEqual([255, 255, 255]);
-  // With white text, the brightest stop is the worst contrast: luminance is
-  // convex along an opaque sRGB interpolation, so no interior is brighter.
-  const worst = Math.min(...sample.stops.map(stop => contrastRatio(sample.color, stop)));
-  expect(worst, `랜딩 시작 버튼 그라데이션 최소 대비 ${worst.toFixed(2)}`).toBeGreaterThanOrEqual(4.5);
+  const backgrounds = 'stops' in sample ? sample.stops : [sample.background];
+  const worst = Math.min(...backgrounds.map(stop => contrastRatio(sample.color, stop)));
+  // The control now has a labelled search icon, so its graphic needs 3:1;
+  // text controls retain their separate 4.5:1 checks below.
+  expect(worst, `검색 아이콘 최소 대비 ${worst.toFixed(2)}`).toBeGreaterThanOrEqual(3);
+  await search.focus(); await expect(search).toBeFocused();
+  expect(await search.evaluate(node => { const r = node.getBoundingClientRect(); return node.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)); })).toBe(true);
 });
 
 test("그라데이션 대비 측정은 밝은 중간 색상과 지원하지 않는 배경을 놓치지 않는다", async ({ page }) => {
@@ -112,7 +121,7 @@ async function openSample(page: Page, item: typeof CASES[number]) {
   // Reopening community three times and login twice adds unrelated SSR waits.
   if (changedPage) await page.goto(item.path, { waitUntil: "domcontentloaded" });
   if (changedPage && item.path === "/planner") {
-    await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+    await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
     await expect(page.locator(".simple-place-row").first()).toBeVisible();
     const add = page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true });
     if (await add.count()) await add.click();

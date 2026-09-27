@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -30,7 +31,7 @@ async function openFacilityStep(page: Page, place: Place) {
     checkIn: "15:00", checkOut: "11:00",
   } }));
   await page.goto("/planner");
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("통영");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "통영");
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator(".simple-place-row")).toHaveCount(1);
   await page.locator(".simple-place-row h3 button").click();
@@ -76,7 +77,7 @@ test("확인된 편의가 전혀 없으면 등록된 시설 정보가 없다는 
   await page.route("**/api/community/posts?*", (route) => route.fulfill({ json: { posts: [] } }));
   await page.route("**/api/wave?action=visit-info*", (route) => route.fulfill({ json: { id: place.id, status: "empty", checkedAt: "2026-09-19T00:00:00Z", source: "ⓒ한국관광공사" } }));
   await page.goto("/planner");
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("통영");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "통영");
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
   await page.locator(".simple-place-row h3 button").click();
   const dialog = page.getByRole("dialog");

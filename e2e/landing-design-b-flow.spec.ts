@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect,test } from '@playwright/test';
 import { mockPlannerApi } from './fixtures';
 import { openLandingTools, prepareStory,storyReady } from './landing-contract';
@@ -26,7 +27,7 @@ test('Design B destination, planning steps and Naru examples connect to the work
  await expect(page.locator('#naru-message')).toBeFocused();
  await page.keyboard.press('Escape');
  await expect(page.locator('dialog.naru-panel')).toBeHidden();
- await page.locator('#landing-region').selectOption('거제');
+ await chooseWaveOption(page.locator('#landing-region'), '거제');
  await page.getByRole('button',{name:'여행지 검색',exact:true}).click();
  await expect(page).toHaveURL(url=>url.pathname==='/planner'&&url.searchParams.get('region')==='거제');
 });

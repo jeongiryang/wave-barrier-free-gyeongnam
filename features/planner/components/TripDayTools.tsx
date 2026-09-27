@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 import LoadingState from "../../../components/LoadingState";
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import type { useTripSelection } from '../hooks/useTripSelection';
@@ -10,7 +12,7 @@ import { onTripIdentity, readOnTrip } from '../../../lib/on-trip.js';
 // 정적으로 불러온다: 이 도구 묶음이 이미 로드된 뒤에는 도움 요청 화면을 열 때
 // 새 네트워크 요청(코드 분할 청크 포함)이 없어야 한다. 오프라인에서도 항상 동작해야 한다.
 import HelpRequestDialog from './HelpRequestDialog';
-function DayToolUnavailable() { return <p role="alert">여행 도구를 불러오지 못했어요. 저장한 일정은 그대로입니다. <button type="button" onClick={()=>window.location.reload()}>화면 다시 불러오기</button></p>; }
+function DayToolUnavailable() { return <p role="alert">여행 도구를 불러오지 못했어요. 저장한 일정은 그대로입니다. <button type="button" onClick={()=>window.location.reload()} data-icon-action="" title="화면 다시 불러오기"><NightIcon name="refresh" size={20}/><span className="sr-only">화면 다시 불러오기</span></button></p>; }
 const OnTripGuide=lazy(()=>import('./OnTripGuide').catch(()=>({default:DayToolUnavailable})));
 const OfflineTripPack=lazy(()=>import('./OfflineTripPack').catch(()=>({default:DayToolUnavailable})));
 const ReturnTransport=lazy(()=>import('./ReturnTransport').catch(()=>({default:DayToolUnavailable})));

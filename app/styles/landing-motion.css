@@ -7,23 +7,9 @@
 /* Entry animations are transient: the photograph and copy stay visible by default. */
 
 /* 키커의 짧은 파란 선이 텍스트 등장 후 따라 그려진다. */
-.section-kicker { width: fit-content; position: relative; }
-.section-kicker::after {
-  content: "";
-  width: 30px; height: 2px;
-  position: absolute; left: calc(100% + 10px); top: 50%;
-  border-radius: 99px;
-  background: linear-gradient(90deg,var(--blue),var(--mint));
-  transform: scaleX(0) translateY(-50%);
-  transform-origin: left center;
-  transition: transform .65s .24s cubic-bezier(.16,1,.3,1);
-}
-.is-visible > .section-kicker::after,
-.section-kicker.is-visible::after { transform: scaleX(1) translateY(-50%); }
 
 @media (prefers-reduced-motion: reduce) {
   .landing-cta > * { opacity: 1; transform: none; transition: none; }
-  .section-kicker::after { transform: scaleX(1) translateY(-50%); transition: none; }
 }
 html[data-motion="calm"] .landing-hero-copy { translate: none !important; transform: none !important; scale: 1 !important; transition: none !important; }
 html[data-motion="calm"] [data-land-reveal],

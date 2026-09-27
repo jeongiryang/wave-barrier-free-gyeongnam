@@ -214,3 +214,10 @@ html[data-theme="dark"] .map-command-scroll::-webkit-scrollbar-thumb {
 .facility-card dt { color: var(--muted); }
 .facility-card dd { margin: 0; }
 .wave-map-facility-icon { border: 0; background: none; }
+
+/* The scenic workspace already supplies its mobile gutter. Do not subtract
+   that gutter again inside the itinerary and compress the map's drawers. */
+@media (max-width: 700px) {
+  html:root body .scenic-page .planner-journey-workspace .simple-itinerary-view { width: 100%; margin-inline: 0; }
+  .scenic-page .simple-itinerary-map .map-side-drawer { left: 6px; right: 6px; }
+}

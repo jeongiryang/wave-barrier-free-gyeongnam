@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi } from './fixtures';
@@ -41,6 +42,6 @@ test('new community categories survive entry into the existing editor', async ({
   await page.route('**/api/auth/get-session', route=>route.fulfill({json:{user:{id:'test-user',name:'여행자',email:'qa@example.test'},session:{id:'test-session'}}}));
   for(const category of ['tips','together']) {
     await page.goto('/community/new?category='+category);
-    await expect(page.getByRole('combobox',{name:'게시판',exact:true})).toHaveValue(category);
+    await expect(waveSelectNative(page.getByRole('combobox',{name:'게시판',exact:true}))).toHaveValue(category);
   }
 });

@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 import Link from 'next/link';
 import {useState} from 'react';
 import {createTravelBookSnapshot,upsertTravelBook,sanitizeTravelBooks,TRAVEL_BOOK_STORAGE_KEY,TRAVEL_BOOK_MAX_ITEMS,type TravelBookInput} from '../../../lib/travel-book.js';
@@ -20,5 +22,5 @@ export default function OutingArchive({input}:{input:TravelBookInput}){
    setNotice('짧은 나들이를 내 일정에 저장했어요. 출발·복귀 기준과 예상 시각은 여행 메모에서도 볼 수 있어요.');
   }catch{setNotice('일정을 저장하지 못했어요. 이 화면의 선택은 유지됩니다. 저장 공간과 브라우저 설정을 확인해 주세요.');}
  }
- return <div><div className="travel-book-actions" style={courseActions}><button type="button" style={coursePrimary} disabled={!book} onClick={save}>짧은 나들이 저장</button><Link href="/travel-book">저장한 일정 보기</Link></div><p role="status" style={courseCopy}>{notice}</p>{book&&<CloudSaveAction book={book}/>}</div>;
+ return <div><div className="travel-book-actions" style={courseActions}><button type="button" style={coursePrimary} disabled={!book} onClick={save} data-icon-action="" title="짧은 나들이 저장"><NightIcon name="save" size={20}/><span className="sr-only">짧은 나들이 저장</span></button><Link href="/travel-book">저장한 일정 보기</Link></div><p role="status" style={courseCopy}>{notice}</p>{book&&<CloudSaveAction book={book}/>}</div>;
 }

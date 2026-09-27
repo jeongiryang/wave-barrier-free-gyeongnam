@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test } from '@playwright/test';
 import { mockPlannerApi, mockPublicShellApi, plan } from './fixtures';
 
@@ -19,7 +20,7 @@ test('추천에 담은 실제 주소 형태의 미술관은 직접 검색에서�
     return route.fulfill({ json: { places: [searched, { ...searched, id: '10173325', name: '경남도립미술관 도서자료실' }], officialPlaces: [museum], officialState: 'available' } });
   });
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await page.locator('.simple-facility-trigger').click();
   const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
   await picker.getByRole('checkbox', { name: '장애인 화장실', exact: true }).check();

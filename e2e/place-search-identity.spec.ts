@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { test, expect } from '@playwright/test';
 import { mockPlannerApi, plan } from './fixtures';
 
@@ -9,7 +10,7 @@ test('direct search reuses official evidence and ID while unrelated businesses r
     return route.fulfill({json:{places:[{id:'shop',name:place.name+' 기프트숍',address:place.address,mapX:place.mapX,mapY:place.mapY,resultType:'other'}, {id:'kakao-venue',name:place.name,address:place.address,mapX:place.mapX,mapY:place.mapY,resultType:'tourism'}],officialPlaces:[place],officialState:'available'}});
   });
   await page.goto('/planner');
-  await page.getByRole('combobox', {name:'여행 지역',exact:true}).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', {name:'여행 지역',exact:true}), '창원');
   const query=page.getByRole('combobox',{name:'여행지 검색',exact:true});
   await query.fill(place.name); await query.press('Enter');
   const results=page.locator('#direct-place-results');
@@ -27,7 +28,7 @@ test('official lookup failure keeps external search usable and does not invent f
   await mockPlannerApi(page);
   await page.route('**/api/location-search?**',route=>route.fulfill({json:{places:[{id:'shop',name:'별도 카페',address:'경남 창원시',mapX:'128.68',mapY:'35.23',resultType:'cafe'}],officialPlaces:[],officialState:'error'}}));
   await page.goto('/planner');
-  await page.getByRole('combobox', {name:'여행 지역',exact:true}).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', {name:'여행 지역',exact:true}), '창원');
   const query=page.getByRole('combobox',{name:'여행지 검색',exact:true}); await query.fill('별도 카페');await query.press('Enter');
   await expect(page.getByRole('status').filter({hasText:'공식 관광정보 일부'})).toBeVisible();
   await expect(page.locator('#direct-place-results')).toContainText('공식 관광정보 연결 미확인 · 시설은 별도 확인');

@@ -1,9 +1,11 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 import LoadingState from "../../../components/LoadingState";
 import {lazy,Suspense,useState} from 'react';
 import type {useTripSelection} from '../hooks/useTripSelection';
 import type {useItineraryRoutes} from '../hooks/useItineraryRoutes';
-function BudgetUnavailable(){return <p role="alert">여행비 도구를 불러오지 못했어요. <button type="button" onClick={()=>window.location.reload()}>다시 불러오기</button></p>;}
+function BudgetUnavailable(){return <p role="alert">여행비 도구를 불러오지 못했어요. <button type="button" onClick={()=>window.location.reload()} data-icon-action="" title="다시 불러오기"><NightIcon name="refresh" size={20}/><span className="sr-only">다시 불러오기</span></button></p>;}
 const TripBudget=lazy(()=>import('./TripBudget').catch(()=>({default:BudgetUnavailable})));
 export default function TripBudgetEntry({trip,coverage,region}:{trip:ReturnType<typeof useTripSelection>;coverage:ReturnType<typeof useItineraryRoutes>;region:string}){
  const [opened,setOpened]=useState(false);

@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi } from './fixtures';
 
@@ -50,12 +51,12 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 960, height: 800 
     await checkTargets(tabs.getByRole('tab'));
     await panel.getByRole('button', { name: '여행 준비 맡기기', exact: true }).click();
     const form = panel.getByRole('form', { name: '여행 준비 맡기기', exact: true });
-    await form.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+    await chooseWaveOption(form.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
     await form.getByLabel('출발 날짜', { exact: true }).fill('2026-10-03');
     await form.getByLabel('마지막 날짜', { exact: true }).fill('2026-10-04');
-    await form.getByRole('combobox', { name: '동행', exact: true }).selectOption('부모님과');
+    await chooseWaveOption(form.getByRole('combobox', { name: '동행', exact: true }), '부모님과');
     await form.getByRole('radio', { name: '여유롭게 쉬어가기', exact: true }).check();
-    await checkTargets(form.locator('button,input:not([type=radio]),select,.naru-pace label'));
+    await checkTargets(form.locator('button,input:not([type=radio]),select:not([aria-hidden=true]),.naru-pace label'));
     await checkBounds(page, panel);
     await form.locator('.naru-pace').scrollIntoViewIfNeeded();
     await page.screenshot({ path: testInfo.outputPath(`naru-workspace-${viewport.width}.png`) });

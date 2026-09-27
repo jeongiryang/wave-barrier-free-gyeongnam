@@ -18,30 +18,28 @@ export default function AuthForm({ mode, returnTo, kakaoEnabled = false, publicP
   }
   if (auth.isPending) return <section className="auth-card" aria-label="계정 확인" aria-busy="true"><LoadingState>계정 정보를 확인하는 중…</LoadingState></section>;
   if (auth.session?.user) return <section className="auth-card auth-signed-in" aria-labelledby="auth-title">
-    <p className="auth-kicker">WELCOME TO WAVE</p><h1 id="auth-title">여행을 이어가세요.</h1>
+<h1 id="auth-title">여행을 이어가세요.</h1>
     <p>{auth.session.user.name || auth.session.user.email}님, 다시 만나 반가워요.</p>
     <a className="auth-primary-link" href={auth.next}>계속하기 <span aria-hidden="true"></span></a>
     <a className="auth-guest" href="/account">계정 관리</a>
   </section>;
 
   return <section className="auth-card" aria-labelledby="auth-title" aria-busy={auth.submitting}>
-    <p className="auth-kicker">WELCOME TO WAVE</p>
+
     <h1 id="auth-title">{auth.registering ? "우리의 여행을 시작해요." : "여행을 이어가세요."}</h1>
-    <p className="auth-description">{auth.registering ? <>마음에 드는 여행을 담고,<br />함께 나눌 이야기를 시작하세요.</> : <>저장한 여행과 나눈 이야기를<br />WAVE에서 다시 만나세요.</>}</p>
     {kakaoEnabled && <KakaoLogin returnTo={returnTo} />}
-    {!kakaoEnabled && publicPreview && <div className="kakao-auth"><p>로컬 미리보기에서는 계정 인증에 연결하지 않습니다. 카카오 로그인은 운영 WAVE에서 이용할 수 있어요.</p><a className="auth-primary-link" href={`https://wave-barrier-free-gyeongnam.vercel.app/login?next=${encodeURIComponent(auth.next)}`}>운영 WAVE에서 로그인</a><p className="kakao-auth-caption">운영 사이트에 로그인해도 이 미리보기의 로그인 상태는 바뀌지 않습니다.</p></div>}
+    {!kakaoEnabled && publicPreview && <div className="kakao-auth"><p>미리보기에서는 로그인할 수 없어요.</p><a className="auth-primary-link" href={`https://wave-barrier-free-gyeongnam.vercel.app/login?next=${encodeURIComponent(auth.next)}`}>운영 WAVE에서 로그인</a></div>}
     <HydratedAuthForm onSubmit={auth.submit} onInput={auth.clearError} noValidate>
       {auth.registering && <div className="auth-field"><label htmlFor="auth-name">표시 이름</label><input id="auth-name" name="name" autoComplete="name" placeholder="여행에서 사용할 이름" minLength={2} maxLength={40} required {...fieldProps("name", "auth-name-help")} /><small id="auth-name-help">2–40자로 입력해 주세요. 게시글과 댓글에 표시됩니다.</small></div>}
       <div className="auth-field"><label htmlFor="auth-email">{auth.registering ? "이메일" : "이메일 또는 ID"}</label><div className="auth-input-icon"><FieldIcon kind="email" /><input id="auth-email" name="email" type={auth.registering ? "email" : "text"} inputMode={auth.registering ? "email" : "text"} autoComplete="username" placeholder="hello@example.com" maxLength={254} required {...fieldProps("email")} /></div></div>
       {auth.registering && <div className="auth-field"><label htmlFor="auth-username">로그인 ID (선택)</label><input id="auth-username" name="username" autoComplete="username" minLength={4} maxLength={12} pattern="[a-zA-Z0-9_.]{4,12}" {...fieldProps("username")} /><small>영문·숫자·밑줄·마침표 4–12자. 이메일 대신 로그인할 수 있습니다.</small></div>}
       <div className="auth-field"><label htmlFor="auth-password">비밀번호</label><div className="password-field auth-input-icon"><FieldIcon kind="lock" /><input id="auth-password" name="password" type={auth.showPassword ? "text" : "password"} autoComplete={auth.registering ? "new-password" : "current-password"} placeholder="비밀번호를 입력하세요" minLength={8} maxLength={auth.registering ? 16 : 128} required {...fieldProps("password", auth.registering ? "auth-password-help" : undefined)} /><button type="button" aria-label={auth.showPassword ? "비밀번호 숨기기" : "비밀번호 표시"} aria-controls={auth.registering ? "auth-password auth-confirm-password" : "auth-password"} aria-pressed={auth.showPassword} disabled={auth.isPending} onClick={auth.togglePassword}><FieldIcon kind="eye" /></button></div>{auth.registering && <small id="auth-password-help">8–16자로 입력해 주세요.</small>}</div>
       {auth.registering && <div className="auth-field"><label htmlFor="auth-confirm-password">비밀번호 확인</label><input id="auth-confirm-password" name="confirmPassword" type={auth.showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} maxLength={16} required {...fieldProps("confirmPassword")} /></div>}
-      {!auth.registering && <div className="auth-recovery-link"><span>나의 여행을 한곳에서</span><a href="/forgot-password">비밀번호 찾기</a></div>}
+      {!auth.registering && <div className="auth-recovery-link"><a href="/forgot-password">비밀번호 찾기</a></div>}
       <p id="auth-message" className={`auth-message${auth.success ? " success" : ""}`} role={auth.message ? "alert" : undefined} aria-live="polite">{auth.message}</p>
       <button className="auth-submit" type="submit" disabled={auth.submitting || auth.isPending || auth.success}>{auth.success ? "이동하는 중…" : auth.submitting ? "처리하는 중…" : auth.registering ? "가입하고 시작하기" : <>로그인 <span aria-hidden="true"></span></>}</button>
     </HydratedAuthForm>
     <div className="auth-switch">{auth.registering ? "이미 계정이 있나요?" : "WAVE가 처음이신가요?"} <a href={`${auth.registering ? "/login" : "/register"}?next=${encodeURIComponent(auth.next)}`}>{auth.registering ? "로그인" : "회원가입"} <span aria-hidden="true"></span></a></div>
-    {auth.registering && <p className="auth-legal">가입 전 <a href="/privacy">개인정보처리방침</a>과 <a href="/terms">이용약관</a>을 확인해 주세요.</p>}
-    <div className="auth-guest"><a href="/planner">로그인 없이 둘러보기 <span aria-hidden="true"></span></a><small>여행지 탐색과 일정 설계는 바로 이용할 수 있어요.</small></div>
+    <div className="auth-guest"><a href="/planner">로그인 없이 둘러보기 <span aria-hidden="true"></span></a></div>
   </section>;
 }

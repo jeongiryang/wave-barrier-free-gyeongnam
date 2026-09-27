@@ -19,15 +19,17 @@ test('official candidate photos reject mismatched places and tolerate provider f
   await page.goto('/planner?region=' + encodeURIComponent('창원'));
   const disclosure = page.locator('.official-exploration');
   await expect(disclosure).toBeVisible();
-  expect(requested).toEqual([]);
-  await disclosure.locator('summary').click();
+  await expect(disclosure.locator('summary')).toHaveCount(0);
   const cards = disclosure.locator('.official-exploration-card');
   for (const card of await cards.all()) await card.scrollIntoViewIfNeeded();
   await expect.poll(() => requested.length).toBe(3);
   await expect(cards.nth(0).locator('.official-exploration-photo')).toHaveAttribute('data-loaded', 'true');
   await expect(cards.nth(1).locator('img')).toHaveCount(0);
   await expect(cards.nth(2).locator('img')).toHaveCount(0);
-  await expect(cards.nth(2).getByRole('button', { name: '이 관광지 검색' })).toBeEnabled();
+  await expect(cards.nth(1).getByRole('status')).toHaveText('등록된 사진 없음');
+  await expect(cards.nth(2).getByRole('status')).toHaveText('사진을 불러오지 못했어요');
+  expect(await cards.nth(0).evaluate(e=>{const a=e.getBoundingClientRect(),b=e.querySelector('img')!.getBoundingClientRect();return Math.abs(a.width-b.width)<3&&Math.abs(a.height-b.height)<3})).toBe(true);
+  await expect(cards.nth(2).getByRole('button', { name: '오류 장소 상세정보' })).toBeEnabled();
 });
 
 test('ended festival empty state offers a past range', async ({ page }) => {

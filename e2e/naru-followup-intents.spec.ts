@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page, type Locator } from '@playwright/test';
 import { mockPlannerApi, plan } from './fixtures';
@@ -94,7 +95,7 @@ test('이동수단만 바꾸면 새 일정 없이 저장한 장소·기간·순�
     gate.release(); await expect.poll(app.completed).toBe(5);
     await app.chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
     await openNaruTool(page, '이동 구간 확인');
-    await expect(page.locator('.itinerary-route-coverage').getByRole('combobox', { name: '이동수단', exact: true })).toHaveValue('car');
+    await expect(waveSelectNative(page.locator('.itinerary-route-coverage').getByRole('combobox', { name: '이동수단', exact: true }))).toHaveValue('car');
     await expect(page.locator('.itinerary-route-coverage')).toContainText('전체 2구간 중 2구간 확인');
     await page.locator('.itinerary-route-coverage').getByRole('button', { name: '이 구간 지도에서 보기', exact: true }).first().click();
     await page.locator('#navigation .reference-route-details > summary').click();

@@ -15,9 +15,10 @@ export async function prepareLandingMedia(page: Page) {
   await page.route("https://tong.visitkorea.or.kr/**", route => route.fulfill({ contentType: "image/webp", body: bitmap }));
 }
 
-/** Prepare the directly accessible landing page. */
+/** Post-arrival only. Fresh-entry suites exercise the real nonblocking scene. */
 export async function prepareStory(page: Page) {
   await prepareLandingMedia(page);
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
 }
 
 export async function storyReady(page: Page) {
@@ -45,13 +46,30 @@ export async function pauseCurrentClock(page: Page) {
   await page.clock.setSystemTime(now);
 }
 
-/** Fresh entry keeps all real timers and needs no intro/session handoff. */
+/** Do not pause startup timers before the streamed page has hydrated. */
 export async function freshArrival(page: Page) {
   await prepareLandingMedia(page);
   await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.clock.install();
   await page.goto("/");
   await storyReady(page);
-  await expect(page.locator("#arrival-boot,.arrival-scene,.wave-intro")).toHaveCount(0);
+  await expect(page.locator(".arrival-scene")).toBeVisible();
+  await pauseCurrentClock(page);
+  await expect(page.locator(".arrival-scene")).toBeVisible();
+}
+
+/** The WebGL renderer starts its clock only after its scene is ready. */
+export async function arrivalPlaybackReady(page: Page) {
+  // Both entry helpers leave the clock paused. Advance real rAF callbacks one
+  // frame at a time so slow WebGL/trace snapshots cannot consume the whole intro
+  // between observing its first frame and pausing it over the protocol.
+  // Renderer readiness still has the same eight-second wall-time bound.
+  await expect.poll(async () => {
+    await page.clock.runFor(16);
+    return page.locator('.wave-intro').evaluateAll(nodes => Number(nodes[0]?.getAttribute('data-time-ms')));
+  }, { timeout: 8_000, intervals: [50] }).toBeGreaterThan(0);
+  await expect(page.locator('.arrival-scene')).toBeVisible();
+  await expect(page.locator('.wave-intro canvas')).toBeVisible();
 }
 
 export async function expectUsableTarget(target: Locator) {
@@ -75,7 +93,7 @@ export async function expectNoOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 }
 
-export const chapterIds = ["top", "regions", "story", "community", "departure", "naru", "features", "closing"];
+export const chapterIds = ["top", "regions", "story", "departure", "community", "naru", "features", "closing"];
 export const chapterNames = {
   ko: ["처음", "이용 방법", "할 수 있는 일", "지역", "나루", "출발 전", "커뮤니티", "여행 시작"],
   en: ["Welcome", "How it works", "What you can do", "Regions", "Naru", "Before you go", "Community", "Plan a trip"],

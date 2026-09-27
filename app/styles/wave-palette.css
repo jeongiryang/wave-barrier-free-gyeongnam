@@ -1,0 +1,72 @@
+/* Logo source: WaveHeader SVG (#17d6ff / #1199ff / #85eaff).
+   Bright brand colors signal selection; deeper blue keeps white button labels readable. */
+:root{--wave-cyan:#17d6ff;--wave-blue:#1199ff;--wave-ice:#85eaff;--wave-action:#0766b5;--wave-action-hover:#08558f;--wave-night:#091e34;--wave-panel:#102d47;--wave-panel-raised:#163b59;--wave-border:#365d7a;--wave-text:#eef7ff;--wave-muted:#bad0e2}
+html:root body .wave-night{--ink:var(--wave-text);--ink-soft:#d6e8f7;--muted:var(--wave-muted);--paper:var(--wave-panel);--surface:var(--wave-panel-raised);--surface-deep:var(--wave-night);--line:var(--wave-border);--accent:var(--wave-cyan);--blue:var(--wave-ice);--blue-dark:var(--wave-action);--blue-soft:#123e63;--onaccent:#082940;--on-accent:#082940;--on-blue:#082940}
+html:root body .wave-night :is(.wave-gradient-button,.auth-submit,.auth-primary-link,.night-primary,.night-planner-submit>.primary,.recalculate-button,.photo-course-pick,.travel-book-actions .primary){background:linear-gradient(115deg,#0766b5,#087dba);color:#fff;border-color:#1199ff;box-shadow:0 3px 10px #061d3026}
+html:root body .wave-night :is(.auth-card,.account-settings,.travel-book-card,.travel-book-empty,.travel-account-welcome,.community-detail,.community-editor,.shared-places,.shared-itinerary,.photo-course){background:var(--wave-panel);border-color:var(--wave-border);color:var(--wave-text)}
+html:root body .wave-night :is(.wave-select-trigger,.account-popover,.wave-select-menu,.wave-date-popover){background:#102f4b;color:#e8f5fb;border-color:var(--wave-border)}
+html:root body .wave-night :is(.night-category-tabs,.simple-day-tabs,.night-sortbar,.festival-state-tabs) button{background:#153951;color:#cce4ef;border-color:var(--wave-border)}
+html:root body .wave-night :is(.night-category-tabs,.simple-day-tabs,.night-sortbar,.festival-state-tabs) button[aria-pressed=true]{background:var(--wave-action);color:#fff;border-color:var(--wave-cyan)}
+html:root body .wave-night :is(button,a,input,textarea,select,summary):focus-visible{outline-color:var(--wave-cyan)}
+html:root body .wave-night button[data-icon-action]{padding:10px!important;gap:0;box-sizing:border-box}
+html:root body .wave-night button[data-icon-action]>svg{flex:0 0 20px;width:20px;min-width:20px;height:20px}
+html:root body .wave-chat-demo{background:#eaf4fc;color:#15324e;border:1px solid #b6d3ee}
+html:root body .wave-chat-demo :is(header,aside,footer){background:#f4f9ff;color:#15324e}
+html:root body .wave-chat-demo .preview-trip-link{color:#0866a5}
+html:root body .wave-chat-demo :is(dt,dd){color:#254d6a}
+html:root body .wave-chat-demo .preview-question{background:#d6ecff;color:#15324e;border:1px solid #9fc7e8}
+html:root body .wave-chat-demo .preview-answer{background:#fff;color:#15324e;border:1px solid #b6d3ee;border-radius:18px 18px 18px 4px}
+html:root body .wave-chat-demo aside{border-left-color:#b6d3ee}.wave-chat-demo header strong{color:#15324e}.wave-chat-demo :is(header,footer) button{background:#d6ecff;color:#15324e}
+html:root body .wave-night .auth-card .kakao-auth>.auth-primary-link{background:none;color:var(--wave-ice);border:0;box-shadow:none}
+html:root body .naru-panel.naru-workspace{--ink:#122c45;--ink-soft:#39566e;--muted:#546d83;--surface:#f3f9ff;--surface-deep:#e6f1fa;--line:#c4daea;--accent:var(--wave-action);--blue:var(--wave-action);--blue-dark:var(--wave-action-hover);--on-blue:#fff;--on-accent:#fff}
+
+html:root body .wave-night :is(.declining-region-filter,.simple-naru-start,.simple-new-trip,.simple-direct-search-submit,.night-login,.night-signup,.night-planner-submit .primary,.night-festival-search,.community-publish,.simple-text-link){background:var(--wave-action);color:#fff;border-color:var(--wave-blue);box-shadow:none}
+html:root body .wave-night :is(.simple-planner-tabs,.region-picker-list,.simple-view-switch,.festival-view-switch,.simple-activity-filter) button[aria-pressed=true]{background:var(--wave-action);color:#fff;border-color:var(--wave-cyan);box-shadow:none}
+html:root body .wave-night .wave-header nav a[aria-current=page]{color:var(--wave-ice);border-color:var(--wave-cyan)}
+html:root body .wave-night :is(.journey-map-zoom,.journey-place-copy button,.place-save-action){background:#102f4bef;color:var(--wave-ice);border-color:#1199ff80}
+html:root body .wave-night :is(.journey-map-zoom,.journey-place-copy button,.place-save-action):is(:hover,:focus-visible,[aria-pressed=true]){background:var(--wave-action);color:#fff;border-color:var(--wave-cyan)}
+html:root body .scenic-page :is(.planner-journey-workspace,.community-workspace,.night-festival-workspace){background:#102d47f5}
+html:root body .wave-night :is(#landing-title em,.night-banner h1 em){width:fit-content;max-width:100%;padding-bottom:2px;background:linear-gradient(110deg,#b8f6ff 0%,#28d9f0 25%,#318dff 50%,#70dcff 75%,#b8f6ff 100%);background-size:180% 100%;background-clip:text;-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;animation:wave-title-flow 2.4s ease-in-out infinite alternate}
+html:root body .scenic-page .naru-welcome-copy{background:#eaf6ff;color:#143b5a}
+html:root body .scenic-page .naru-welcome-dialogue p:nth-child(2) .naru-welcome-copy{background:#cceeff;color:#143b5a}
+html:root body .naru-welcome-bubble{background:#e6f6ff;color:#143b5a}
+html:root body .wave-night .night-community-toolbar form{background:#133650;border-color:var(--wave-border)}
+html:root body .wave-night :is(.simple-place-pane,.simple-dialog,.region-change-dialog){background:var(--wave-panel);color:var(--wave-text);border-color:var(--wave-border)}
+html:root body .wave-night :is(.simple-place-pane,.simple-dialog,.region-change-dialog) :is(header,footer){background:var(--wave-panel);border-color:var(--wave-border)}
+html:root body .wave-night .simple-place-pane :is(details,.place-arrival-preview nav button){border-color:var(--wave-border)}
+html:root body .wave-night :is(.community-place-tag,.community-category-label){background:#153e5e;color:#d5f3ff}
+
+/* Bright accent fills always pair with navy text; primary actions use a darker blue. */
+html:root body .wave-night .travel-book-status>button[aria-pressed=true]{background:var(--wave-ice);color:#082940;border-color:var(--wave-cyan)}
+
+html:root body .wave-night .photo-course :is(.photo-course-kicker,.photo-course-time,.photo-course-badge.is-located,.photo-course-limits summary){color:var(--wave-ice)}
+html:root body .wave-night button[data-icon-action]{background:#102f4bef;color:var(--wave-ice);border-color:#1199ff80}
+html:root body .wave-night button[data-icon-action]:is(:hover,:focus-visible,[aria-pressed=true]){background:var(--wave-action);color:#fff;border-color:var(--wave-cyan)}
+html:root body .wave-night :is(.night-primary,.simple-text-link){border-radius:999px}
+
+/* The stop editor may mount in the top layer; align both fields independently of page ancestry. */
+html:root body .simple-dialog.simple-stop-editor[open]>.simple-settings-fields{align-items:start;gap:20px}
+html:root body .simple-dialog.simple-stop-editor[open]>.simple-settings-fields>:is(label,.auth-field){display:flex;flex-direction:column;gap:8px;margin:0;padding:0;font-size:14px;line-height:1.6}
+html:root body .simple-dialog.simple-stop-editor[open]>.simple-settings-fields>.auth-field>label{margin:0;padding:0;font-size:inherit;line-height:inherit}
+
+html:root body .wave-night .community-list article .community-card-footer{color:#fff}
+html:root body .wave-night .community-list article .community-card-footer span{color:inherit}
+html:root body .wave-night .festival-state-tabs{gap:8px;flex-wrap:wrap;background:transparent}
+html:root body .wave-night :is(.festival-grid,.community-list:not([data-layout=compact]),.community-editorial-grid){gap:20px}
+@media(max-width:700px){html:root body .wave-night :is(.festival-grid,.community-list:not([data-layout=compact]),.community-editorial-grid){gap:16px}}
+
+html:root body .wave-night .night-planner-form .simple-search-bar{align-items:end;gap:14px}
+html:root body .wave-night .night-planner-form .planner-region-field{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:0;padding:0!important;border:0;border-radius:0;background:none}
+html:root body .wave-night .night-planner-form .planner-region-field>span:not(.wave-select){display:block;font-size:12px;color:var(--wave-muted);padding-left:4px}
+html:root body .wave-night .planner-region-field .wave-select{width:100%;min-width:0}
+html:root body .wave-night .planner-region-field .wave-select-trigger{border:0;border-radius:14px;background:#173d5b;min-height:48px;padding:12px 38px 12px 16px;font-size:15px}
+html:root body .wave-night .planner-region-field .wave-select-trigger:is(:hover,[aria-expanded=true]){background:#1a4b70}
+
+@media(prefers-reduced-motion:reduce){html:root body .wave-night :is(#landing-title em,.night-banner h1 em){animation:none}}html[data-motion=calm] body .wave-night :is(#landing-title em,.night-banner h1 em){animation:none!important}
+html:root body .wave-night .festival-filters>label>span{display:flex;flex-direction:column;gap:10px}
+html:root body .wave-night .festival-filters input[type=search]{min-height:44px;padding:10px 12px;background:#133650;border:1px solid var(--wave-border);border-radius:10px;color:#f1f9ff;box-sizing:border-box}
+html:root body .wave-night .festival-filters input[type=search]::placeholder{color:#b9d0e0;opacity:1}
+html:root body .wave-night .festival-filters input[type=search]:focus{background:#193e58;border-color:#62dcff;outline:2px solid #62dcff;outline-offset:2px}
+
+html:root body .wave-night :is(.place-card-actions,.festival-card-tools,.community-bookmark) :is(.place-card-info,.simple-place-add,.festival-icon-action,button[data-icon-action]){display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-width:44px;height:44px;min-height:44px;padding:10px;border:1px solid #1199ff80;border-radius:50%;background:#102f4bc7;color:#8fe8ff;backdrop-filter:blur(2px);box-shadow:none;text-shadow:none}
+html:root body .wave-night :is(.place-card-actions,.festival-card-tools,.community-bookmark) :is(.place-card-info,.simple-place-add,.festival-icon-action,button[data-icon-action]):is(:hover,:focus-visible,[aria-pressed=true]){background:#0866b5cc;color:#effcff;border-color:#62dfff}

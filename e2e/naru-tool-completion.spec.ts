@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test, type Page } from '@playwright/test';
 import { mockPlannerApi, mockPublicShellApi, plan } from './fixtures';
 import { naruDialog } from './naru-tool-fixtures';
@@ -115,7 +116,7 @@ test('Naru dates and itinerary tools commit explicit edits to the shared schedul
   await expect(page.locator('#itinerary')).toBeFocused();
   await page.getByRole('button', { name: '경남도립미술관 일정 수정', exact: true }).click();
   const edit = page.getByRole('dialog', { name: '경남도립미술관 수정', exact: true });
-  await edit.getByRole('combobox', { name: '경남도립미술관 머무는 시간', exact: true }).selectOption('120');
+  await chooseWaveOption(edit.getByRole('combobox', { name: '경남도립미술관 머무는 시간', exact: true }), '120');
   await edit.getByRole('button', { name: '적용', exact: true }).click();
   await expect.poll(async () => (await schedule(page)).visitMinutesByPlaceId['1001']).toBe(120);
   await back(page); expect((await schedule(page)).travelStart).toBe('2026-10-14');

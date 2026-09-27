@@ -1,4 +1,5 @@
 import ActionIcon from '../../../components/ActionIcon';
+import NightIcon from '../../../components/NightIcon';
 import Link from "next/link";
 import { COMMUNITY_CATEGORY_LABELS, communityDate } from "../../../lib/community/types";
 import type { useCommunityDetail } from "../hooks/useCommunityDetail";
@@ -9,7 +10,7 @@ import CommunityAccessibilityReport from "./CommunityAccessibilityReport";
 import CommunityBookmarkButton from './CommunityBookmarkButton';
 
 export default function CommunityPostArticle({ detail }: { detail: ReturnType<typeof useCommunityDetail> }) {
-  const { post, message, sessionPending, toggleLike, deletePost, reportingTarget, reportTarget } = detail;
+  const { post, message, sessionPending, liking, toggleLike, deletePost, reportingTarget, reportTarget } = detail;
   if (!post) return null;
   return <>
     <header>
@@ -25,7 +26,7 @@ export default function CommunityPostArticle({ detail }: { detail: ReturnType<ty
     <CommunityVisitPhotos post={post} />
     <footer className="detail-actions">
       <CommunityBookmarkButton postId={post.id}/>
-      <button type="button" className={post.likedByMe ? "liked" : ""} aria-pressed={post.likedByMe} onClick={() => void toggleLike()} disabled={sessionPending}><span aria-hidden="true">♥</span>{post.likedByMe ? "공감했어요" : "도움이 됐어요"} <b>{post.likeCount}</b></button>
+      <button type="button" className={`community-like${post.likedByMe ? ' liked' : ''}`} title={post.likedByMe ? '좋아요 취소' : '좋아요'} aria-label={`${post.likedByMe ? '좋아요 취소' : '좋아요'} ${post.likeCount}`} aria-pressed={post.likedByMe} onClick={() => void toggleLike()} disabled={sessionPending || liking}><NightIcon name="heart" size={20}/><b>{post.likeCount}</b></button>
       {!post.isOwner && <CommunityReportControl label="게시글" busy={reportingTarget === `post:${post.id}`} onReport={(reason) => reportTarget("post", post.id, reason)} />}
       {post.isOwner && <div><Link href={`/community/${post.id}/edit`} aria-label="수정" title="수정"><ActionIcon label="수정" /></Link><button type="button" onClick={() => void deletePost()} aria-label="삭제" title="삭제"><ActionIcon label="삭제" /></button></div>}
     </footer>

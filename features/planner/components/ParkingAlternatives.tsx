@@ -1,4 +1,7 @@
 'use client';
+import NightIcon from '../../../components/NightIcon';
+
+import WaveSelect from "../../../components/WaveSelect";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Place } from '../types';
 import { optionalPlannerJson } from '../services/api';
@@ -76,7 +79,7 @@ export default function ParkingAlternatives({ place }: { place: Place }) {
     {expanded && data && <div className="parking-results" aria-live="polite">
       <header><strong>등록 정보가 있는 주차장 {data.items.length}곳</strong><span>조회 {new Date(data.checkedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span></header>
       {!!data.items.length && <div className="parking-sort-controls">
-        <label>기준 장소 선택<select value={reference === 'device' ? 'place' : reference} onChange={event => { setReference(event.target.value); setDevicePoint(null); }}><option value="place">{place.name}</option>{data.items.map(item => <option key={item.id} value={`parking:${item.id}`}>{item.name}</option>)}</select></label>
+        <label>기준 장소 선택<WaveSelect value={reference === 'device' ? 'place' : reference} onChange={event => { setReference(event.target.value); setDevicePoint(null); }}><option value="place">{place.name}</option>{data.items.map(item => <option key={item.id} value={`parking:${item.id}`}>{item.name}</option>)}</WaveSelect></label>
         <button type="button" onClick={useCurrentLocation}>현재 위치에서 가까운 순</button>
         {locationMessage && <p role="status">{locationMessage}</p>}
       </div>}
@@ -85,7 +88,7 @@ export default function ParkingAlternatives({ place }: { place: Place }) {
         <p><strong>장애인전용주차구역 보유 정보</strong><br />공식 데이터에 보유로 등록</p>
         <dl><dt>직선거리</dt><dd>관광지에서 직선 {item.distanceMeters.toLocaleString('ko-KR')}m</dd><dt>운영시간</dt><dd>{item.operatingHours || '확인 필요'}</dd><dt>요금</dt><dd>{item.feeInformation || '확인 필요'}</dd><dt>관리기관</dt><dd>{item.institutionName || '확인 필요'}</dd><dt>전화번호</dt><dd>{item.phoneNumber || '연락처 정보 없음'}</dd><dt>데이터 기준일</dt><dd>{item.referenceDate}</dd></dl>
         <small>{caution}</small>
-        <div className="parking-actions"><button type="button" aria-pressed={selected === item.id} onClick={() => setSelected(item.id)}>도착지로 선택</button><button className="parking-contact-trigger" style={{ background: 'var(--paper)', border: '1px solid var(--line)', color: 'var(--ink)' }} type="button" ref={node => { if (node) contactButtons.current.set(item.id, node); else contactButtons.current.delete(item.id); }} aria-expanded={openContactId === item.id} aria-controls={`parking-contact-${item.id}`} onClick={() => openContactId === item.id ? closeContact(item.id) : setOpenContactId(item.id)}>주차장에 문의하기</button><a target="_blank" rel="noopener noreferrer" href={`https://map.kakao.com/link/map/${encodeURIComponent(item.name)},${item.destination.latitude},${item.destination.longitude}`}>지도에서 보기</a></div>
+        <div className="parking-actions"><button type="button" aria-pressed={selected === item.id} onClick={() => setSelected(item.id)}>도착지로 선택</button><button className="parking-contact-trigger" style={{ background: 'var(--paper)', border: '1px solid var(--line)', color: 'var(--ink)' }} type="button" ref={node => { if (node) contactButtons.current.set(item.id, node); else contactButtons.current.delete(item.id); }} aria-expanded={openContactId === item.id} aria-controls={`parking-contact-${item.id}`} onClick={() => openContactId === item.id ? closeContact(item.id) : setOpenContactId(item.id)} data-icon-action="" title="주차장에 문의하기"><NightIcon name="phone" size={20}/><span className="sr-only">주차장에 문의하기</span></button><a target="_blank" rel="noopener noreferrer" href={`https://map.kakao.com/link/map/${encodeURIComponent(item.name)},${item.destination.latitude},${item.destination.longitude}`}>지도에서 보기</a></div>
         {selected === item.id && <p role="status">일정과 시간은 바꾸지 않고 도착 참고정보로 선택했어요.</p>}
         {openContactId === item.id && <ParkingContactPanel id={`parking-contact-${item.id}`} parkingName={item.name} phoneNumber={item.phoneNumber} placeName={place.name} onClose={() => closeContact(item.id)} />}
       </article>)}</div>}

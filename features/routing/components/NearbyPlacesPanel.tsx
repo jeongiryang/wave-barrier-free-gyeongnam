@@ -1,3 +1,5 @@
+
+import NightIcon from '../../../components/NightIcon';
 import { Spinner } from "../../../components/LoadingState";
 import { nearbyCategories } from "../constants";
 import type { KakaoPlace } from "../kakao-sdk";
@@ -24,7 +26,7 @@ export default function NearbyPlacesPanel({ available, loading, activeCategory, 
     // Keep keyboard targets clear of the drawer header and the fixed journey navigation.
     if (event.target !== event.currentTarget && event.target.matches(":focus-visible")) event.target.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
   }}>
-    <header><div><strong>{english ? "Nearby places" : "주변 장소"}</strong><span>{english ? "Within 10 km of the map centre when searched · by distance" : "검색 당시 지도 중심 반경 10km · 거리순"}</span></div><button type="button" onClick={onClose} aria-label={english ? "Close nearby places" : "주변 장소 닫기"}>×</button></header>
+    <header><div><strong>{english ? "Nearby places" : "주변 장소"}</strong><span>{english ? "Within 10 km of the map centre when searched · by distance" : "검색 당시 지도 중심 반경 10km · 거리순"}</span></div><button type="button" onClick={onClose} aria-label={english ? "Close nearby places" : "주변 장소 닫기"} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header>
     <p>{english ? "Choose a category to search. Names and addresses are supplied in their original language. Check the facilities you need before visiting." : "분류를 선택하면 검색합니다. 필요한 편의시설은 방문 전에 별도로 확인해 주세요."}</p>
     {!available && <p role="status" aria-live="polite">{loading && <Spinner />}{loading ? (english ? "Preparing the map. Choose a category when it is ready." : "지도를 준비하고 있어요. 준비되면 분류를 선택해 주세요.") : (english ? "Reconnect the main map to search nearby places." : "기본 지도를 다시 연결하면 주변 장소를 검색할 수 있어요.")}</p>}
     <div className="map-tool-grid">{nearbyCategories.map((category) => <button type="button" key={category.id} aria-disabled={!available} aria-pressed={activeCategory === category.id} className={activeCategory === category.id ? "active" : ""} onClick={() => { if (available) onSearch(category); }}><i aria-hidden="true">{category.icon}</i>{nearbyCategoryLabel(category, english)}{activeCategory === category.id && <b className="status-word" aria-hidden="true">{english ? "On" : "켜짐"}</b>}</button>)}</div>

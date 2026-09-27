@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { regionShowcaseAlbums, regionShowcasePhotos } from "../features/landing/region-showcase-photos";
-import { prepareStory, storyReady, firstRegions } from "./landing-contract";
+import { prepareStory, storyReady, firstRegions, allRegions } from "./landing-contract";
 
 for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choices load covers and visible map thumbnails, never speculative albums`, async ({ page }) => {
   await prepareStory(page);
@@ -22,11 +22,11 @@ for (const saveData of [false, true]) test(`saveData=${saveData}: collapsed choi
     await expect(card.locator("img")).toHaveAttribute("loading", "lazy");
   }
   const loadedPhotos = [...requested].filter(url => allPhotos.has(url));
-  const mapCovers = new Set(["거창", "창녕", "산청", "하동", "김해", "통영"].map(name => regionShowcasePhotos[name].image));
+  const mapCovers = new Set(allRegions.map(name => regionShowcasePhotos[name].image));
   const storyCovers = new Set(['통영', '거제', '하동'].map(name => regionShowcasePhotos[name].image));
   for (const cover of firstCovers) expect(loadedPhotos).toContain(cover);
   // The adjacent approved SVG map enters the lazy-loading margin on desktop.
-  // Map thumbnails and the adjacent itinerary cards are rendered covers,
+  // All 18 map thumbnails and the adjacent itinerary cards are rendered covers,
   // not speculative album slides.
   for (const url of loadedPhotos.filter(url => !firstCovers.has(url))) {
     expect(mapCovers.has(url) || storyCovers.has(url), url).toBe(true);

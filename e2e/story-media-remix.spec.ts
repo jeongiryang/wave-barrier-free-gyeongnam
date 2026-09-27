@@ -10,7 +10,8 @@ test("the current scenery stays loaded while retired videos, screenshots and bou
   const requests: string[] = [];
   page.on("request", request => requests.push(request.url()));
   await page.goto("/"); await storyReady(page);
-  const hero = page.locator(".landing-opening .award-panorama img.is-current");
+  const hero = page.locator(".scenic-background-home .award-panorama img.is-current");
+  await expect(hero).toBeVisible();
   await expect(hero).toHaveAttribute("src", awardHeroImage);
   await expect.poll(() => hero.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
   for (const id of chapterIds) { if(id === "naru") await openLandingTools(page); await page.locator(`#${id}`).scrollIntoViewIfNeeded(); }

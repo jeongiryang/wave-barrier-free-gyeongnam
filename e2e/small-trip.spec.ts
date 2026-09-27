@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import {test,expect,type Page} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
@@ -15,7 +16,7 @@ async function setPin(page:Page,name:string,value:string){
  await page.getByRole('button',{name:name+' 일정 수정',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:name+' 수정',exact:true});
  await dialog.locator('.simple-stop-options > summary').click();
- await dialog.getByRole('combobox',{name:name+' 장소 고정',exact:true}).selectOption(value);
+ await chooseWaveOption(dialog.getByRole('combobox',{name:name+' 장소 고정',exact:true}), value);
  await dialog.getByRole('button',{name:'적용',exact:true}).click();
  await expect(dialog).not.toBeVisible();
  if(reopen)await openNaruTool(page, "이동 구간 확인");
@@ -34,7 +35,7 @@ test('anchor expansion previews one nearby stop, preserves the period, and undoe
 test('a later pinned stop blocks course insertion and a new pin prevents undoing an edited addition',async({page})=>{
  await setup(page);await page.goto('/planner');await chooseTripConditions(page);for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();await openItinerary(page,{start:'2026-10-02'});await openNaruTool(page, '이동 구간 확인');
  const board=page.locator('.simple-timeboard');await setPin(page,'용지호수공원','visit');
- await page.getByText('한 장소에서 코스 이어 담기',{exact:true}).click();const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});await panel.getByRole('combobox',{name:'어느 장소 다음에 갈까요?',exact:true}).selectOption('1001');
+ await page.getByText('한 장소에서 코스 이어 담기',{exact:true}).click();const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});await chooseWaveOption(panel.getByRole('combobox',{name:'어느 장소 다음에 갈까요?',exact:true}), '1001');
  const park=panel.getByRole('article').filter({has:page.getByRole('heading',{name:'강변정원',exact:true})});await park.getByRole('button',{name:'추가 미리보기',exact:true}).click();await panel.getByRole('button',{name:'이 장소 이어 담기',exact:true}).click();await expect(panel).toContainText('고정 일정의 순서나 날짜를 지키기 위해 추가하지 않았어요');await expect(board.locator('.simple-stops > li')).toHaveCount(2);
  await setPin(page,'용지호수공원','');await panel.getByRole('button',{name:'이 장소 이어 담기',exact:true}).click();await expect(board.locator('.simple-stops > li')).toHaveCount(3);
  await setPin(page,'강변정원','visit');await panel.getByRole('button',{name:'방금 이어 담기 되돌리기',exact:true}).click();await expect(panel).toContainText('추가한 뒤 일정이 바뀌었어요');await expect(board.locator('.simple-stops > li')).toHaveCount(3);
@@ -47,7 +48,7 @@ test('a short outing has explicit search, time limits, separate save and retaine
  for(const name of ['경남도립미술관','용지호수공원']){const choice=page.getByRole('button',{name:name+' 나들이에 담기',exact:true});if(!await choice.count())await page.getByRole('button',{name:'다음 후보',exact:true}).click();await choice.click();}await page.getByRole('button',{name:'이 나들이 살펴보기',exact:true}).click();const review=page.getByRole('region',{name:'짧은 나들이 일정 확인',exact:true});await expect(review).toContainText('창원중앙역');
  await review.getByRole('button',{name:'짧은 나들이 저장',exact:true}).click();await expect(review).toContainText('짧은 나들이를 내 일정에 저장했어요');expect(await page.evaluate(()=>localStorage.getItem('wave-trip-schedule-v1'))).toBe(before);const books=await page.evaluate(()=>JSON.parse(localStorage.getItem('wave-travel-book-v1')||'[]'));expect(books).toHaveLength(1);expect(books[0].note).toContain('창원중앙역');expect(books[0].places).toHaveLength(2);expect(books[0].visitMinutesByPlaceId['1001']).toBe(45);
  for(const width of info.project.name.includes('desktop')?[1440,960]:[390,320]){await page.setViewportSize({width,height:960});await review.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`outing-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBe(0);expect((await new AxeBuilder({page}).include('main').analyze()).violations).toEqual([]);}
- await page.getByRole('button',{name:'조건 다시 정하기',exact:true}).click();await page.getByRole('combobox',{name:'쓸 수 있는 시간',exact:true}).selectOption('1');await expect(review).toHaveCount(0);await expect(page.getByRole('button',{name:'이 나들이 살펴보기',exact:true})).toHaveCount(0);expect(calls).toBe(1);
+ await page.getByRole('button',{name:'조건 다시 정하기',exact:true}).click();await chooseWaveOption(page.getByRole('combobox',{name:'쓸 수 있는 시간',exact:true}), '1');await expect(review).toHaveCount(0);await expect(page.getByRole('button',{name:'이 나들이 살펴보기',exact:true})).toHaveCount(0);expect(calls).toBe(1);
 });
 test('outing provider errors, changed preferences and blocked storage keep truthful state',async({page})=>{
  await setup(page);await page.goto('/outings');await page.getByRole('button',{name:'접근로',exact:true}).click();await page.getByLabel('여행 날짜',{exact:true}).fill('2026-10-08');
@@ -57,5 +58,5 @@ test('outing provider errors, changed preferences and blocked storage keep truth
  await expect(choices.locator('article img').first()).toHaveCSS('height','180px');await expect(choices.locator('article img').first()).toHaveCSS('border-radius','16px');
  await page.getByRole('button',{name:'경남도립미술관 나들이에 담기',exact:true}).click();await page.getByRole('button',{name:'이 나들이 살펴보기',exact:true}).click();await expect(page.getByRole('region',{name:'짧은 나들이 일정 확인'}).getByRole('status').filter({hasText:'일부 정보를 불러오지 못했어요'})).toBeVisible();
  await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='wave-travel-book-v1')throw new DOMException('Full','QuotaExceededError');return original.call(this,key,value);};});await page.getByRole('button',{name:'짧은 나들이 저장',exact:true}).click();await expect(page.getByRole('region',{name:'짧은 나들이 일정 확인'})).toContainText('일정을 저장하지 못했어요');
- await page.getByRole('button',{name:'조건 다시 정하기',exact:true}).click();await page.getByRole('combobox',{name:'여행 지역',exact:true}).selectOption('통영');await expect(page.getByRole('region',{name:'짧은 나들이 장소 고르기'})).toHaveCount(0);await expect(page.getByRole('region',{name:'짧은 나들이 일정 확인'})).toHaveCount(0);
+ await page.getByRole('button',{name:'조건 다시 정하기',exact:true}).click();await chooseWaveOption(page.getByRole('combobox',{name:'여행 지역',exact:true}), '통영');await expect(page.getByRole('region',{name:'짧은 나들이 장소 고르기'})).toHaveCount(0);await expect(page.getByRole('region',{name:'짧은 나들이 일정 확인'})).toHaveCount(0);
 });

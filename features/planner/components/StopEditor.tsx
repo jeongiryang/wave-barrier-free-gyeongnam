@@ -1,4 +1,7 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
+import WaveSelect from "../../../components/WaveSelect";
 import { useState } from "react";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { Place } from "../types";
@@ -29,13 +32,13 @@ export default function StopEditor({ place, trip, onClose }: { place: Place; tri
     onClose();
   }
   return <dialog ref={ref} lang="ko" className="simple-dialog simple-stop-editor" aria-labelledby="stop-editor-title">
-    <header><h2 id="stop-editor-title" tabIndex={-1}>{place.name} 수정</h2><button type="button" aria-label="일정 수정 닫기" onClick={onClose}>×</button></header>
-    <div className="simple-settings-fields"><label>방문 날짜<select value={day} onChange={event => setDay(event.target.value)} disabled={Boolean(fixed)}>{!trip.tripDays.includes(day) && <option value={day}>{day || '날짜 미정'}</option>}{trip.tripDays.map(date => <option key={date}>{date}</option>)}</select></label>
+    <header><h2 id="stop-editor-title" tabIndex={-1}>{place.name} 수정</h2><button type="button" aria-label="일정 수정 닫기" onClick={onClose} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header>
+    <div className="simple-settings-fields"><label>방문 날짜<WaveSelect value={day} onChange={event => setDay(event.target.value)} disabled={Boolean(fixed)}>{!trip.tripDays.includes(day) && <option value={day}>{day || '날짜 미정'}</option>}{trip.tripDays.map(date => <option key={date}>{date}</option>)}</WaveSelect></label>
       <VisitDurationControl name={place.name} value={minutes ?? undefined} defaultMinutes={visitDurationFor(place)} onChange={setMinutes} />
     </div>
     <details className="simple-stop-options"><summary>휴식·고정 방문</summary><div className="simple-settings-fields"><TripBreakControl name={place.name} value={rest ?? undefined} purpose={purpose ?? undefined} onChange={setRest} onPurpose={setPurpose} /><FixedVisitControl name={place.name} value={fixed ?? undefined} position={position} onChange={setFixed} /></div></details>
     {error && <p role="alert">{error}</p>}
-    <div className="simple-editor-footer"><button type="button" className="simple-remove" disabled={Boolean(fixed)} onClick={() => apply(true)}>일정에서 빼기</button><button type="button" onClick={onClose}>취소</button><button type="button" className="primary" onClick={() => apply()}>적용</button></div>
+    <div className="simple-editor-footer"><button type="button" className="simple-remove" disabled={Boolean(fixed)} onClick={() => apply(true)} data-icon-action="" title="일정에서 빼기"><NightIcon name="trash" size={20}/><span className="sr-only">일정에서 빼기</span></button><button type="button" onClick={onClose}>취소</button><button type="button" className="primary" onClick={() => apply()}>적용</button></div>
   </dialog>;
 }
 

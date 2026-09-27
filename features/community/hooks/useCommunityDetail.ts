@@ -21,6 +21,7 @@ export function useCommunityDetail(postId: string) {
     setPost: resource.setPost,
     setMessage: resource.setMessage,
     authenticated: Boolean(session?.user),
+    userId: session?.user?.id || '',
     onLogin: loginForCurrentPage,
     onDeleted: () => router.push("/community"),
   });

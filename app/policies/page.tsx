@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/policies" },
 };
 
+import { decliningRegionNotice } from "../../features/planner/declining-regions";
+
 const inquiryUrl = "https://github.com/jeongiryang/wave-barrier-free-gyeongnam/issues";
 
 export default function PoliciesPage() {
@@ -34,6 +36,7 @@ export default function PoliciesPage() {
       <Link href="/terms"><span>02</span><strong>서비스 이용약관</strong><small>서비스 범위 · 계정 · 게시물 · 책임</small></Link>
       <a href="#community-policy"><span>03</span><strong>커뮤니티 운영정책</strong><small>작성 기준 · 신고 · 검토 · 이의제기</small></a>
       <a href="#service-policy"><span>04</span><strong>서비스 운영정책</strong><small>정보 신뢰 · 장애 · 변경 · 중단</small></a>
+      <a href="#travel-information-policy"><span>05</span><strong>여행 정보 이용 기준</strong><small>관광 통계 · 이동 · 편의 · 테마 정보</small></a>
     </div>
 
     <article className="policy-article">
@@ -50,6 +53,7 @@ export default function PoliciesPage() {
         <aside className="policy-callout"><strong>조치 원칙</strong><p>최소한의 범위로 조치하고, 단순한 의견 차이만으로 삭제하지 않습니다. 다만 개인정보 노출, 구체적인 위해 가능성 또는 반복적인 서비스 방해는 즉시 숨김·이용 제한 대상이 될 수 있습니다.</p></aside>
       </section>
 
+      <section id="preview-policy"><h2>미리보기와 계정 이용</h2><p>로컬 미리보기는 계정 인증에 연결하지 않습니다. 로그인과 회원가입은 운영 WAVE에서 이용할 수 있으며, 운영 사이트에 로그인해도 미리보기의 로그인 상태는 바뀌지 않습니다.</p></section>
       <section id="service-policy">
         <p className="policy-section-kicker">OPERATIONS</p>
         <h2>서비스 운영정책</h2>
@@ -60,21 +64,36 @@ export default function PoliciesPage() {
           <section><h3>연락과 처리 기록</h3><p>오류·접근성 문제·정책 이의는 <a href={inquiryUrl} target="_blank" rel="noreferrer">WAVE 운영 문의</a>에서 접수합니다. 공개 문의에는 이메일, 전화번호, 비밀번호, 인증 링크 등 민감정보를 적지 않아야 합니다.</p></section>
         </div>
       </section>
+      <section id="travel-information-policy">
+        <h2>여행 정보 이용 기준</h2>
+        <div className="policy-detail-grid">
+          <section><h3>코스·관광 통계</h3><p>걷기 코스와 함께 살펴볼 관광지는 두루누비 공식 코스와 월별 관광 통계에서 제공한 정보입니다. 통계의 관광지 이름은 실제 장소 ID나 편의 확인 결과와 다릅니다. 상세정보에서 출처·기준월과 연결된 장소를 확인할 수 있고, 실제 장소 정보가 연결된 항목을 일정에 담을 수 있습니다.</p></section>
+          <section><h3>접근성과 이동 경로</h3><p>걷기 난이도가 쉽거나 경로가 조회됐다는 사실만으로 휠체어 통행, 경사, 저상버스·승강기 운영을 보장하지 않습니다. 예상 이동시간은 표시된 출발지와 도착지 구간의 값이며 전체 일정 시간과 구분합니다. 도보·자전거 경로는 외부 지도에서 확인할 수 있습니다.</p></section>
+          <section><h3>편의정보 상태</h3><p>확인됨·미확인·없음으로 기록·제공처 오류를 구분합니다. 미확인은 시설이 없다는 뜻이 아니며, 후보를 일정에 담아도 미확인 편의가 확인됨으로 바뀌지 않습니다. 장소마다 현재 상태와 확인할 항목을 표시합니다.</p></section>
+          <section><h3>반려동물·웰니스 정보</h3><p>반려동물 관광 목록은 동반 조건, 안내견 동반이나 무장애 편의를 확인한 결과가 아닙니다. 웰니스 분류는 치료 효과나 모든 이용자의 적합성을 보장하지 않습니다. 프로그램·예약·동반 조건은 운영기관에 확인해 주세요.</p></section>
+        </div>
+      </section>
       <section id="content-credits" className="content-credits">
         <h2>콘텐츠 출처 및 이용안내</h2><p>출처: ⓒ한국관광공사 · ⓒ한국관광콘텐츠랩. 관광정보·무장애 편의정보·축제 정보는 공공 관광 데이터를 연결해 제공합니다. 개별 사진의 저작자와 이용조건은 아래에서 확인할 수 있습니다.</p>
         <h3 id="horizon-photo-credits">소개 페이지의 풍경 사진</h3>
-        <p>아래 사진은 Wikimedia Commons에 공개된 실제 관광 풍경입니다. 디자인 스튜디오에서 크기·압축을 조정한 파일을 사용하며, 화면 비율에 맞춰 잘라 표시하고 글자 가독성을 위한 음영을 얹습니다. 각 사진과 수정본은 표시된 동일조건변경허락 라이선스를 유지합니다.</p>
+        <p>아래 사진은 Wikimedia Commons에 공개된 실제 관광 풍경입니다. 디자인 스튜디오에서 크기·압축을 조정한 파일을 사용하며, 화면 비율에 맞춰 잘라 표시합니다. 사진을 어둡게 덮는 효과는 사용하지 않습니다. 각 사진과 수정본은 표시된 동일조건변경허락 라이선스를 유지합니다.</p>
         <ul className="photo-credits-grid">{Object.values(horizonPhotos).map(photo => <li key={photo.id}><img src={photo.image} alt={photo.title} loading="lazy" width="240" height="160" /><a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer">{photo.title} — 원본 및 저작자</a><p>제공: Wikimedia Commons · 저작자: {photo.photographer} · <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a><br /><a href={photo.image}>현재 사용하는 사진 파일</a></p></li>)}</ul>
         <h3>지역별 관광사진</h3>
         <p>지역 사진의 제공기관은 한국관광공사이며 저작권은 해당 권리자에게 있습니다. 아래 링크는 현재 사용한 사진의 원본 이미지입니다. 개별 게시 상세 페이지와 사진별 이용조건의 일치는 아직 확인 중이며, 원본 링크를 이용허락 증빙으로 대신하지 않습니다. 재사용·재배포 전 제공처의 개별 이용조건을 확인해 주세요.</p>
         <ul id="regional-photo-credits" className="photo-credits-grid">{Object.entries(regionShowcaseAlbums).flatMap(([region,photos]) => photos.map(photo => <li key={photo.id}><img src={photo.image} alt={photo.title} loading="lazy" width="240" height="160" /><a href={regionPhotoSource(photo).href} target="_blank" rel="noopener noreferrer">{region} · {photo.title} — 사진 원본 (새 탭)</a><p>저작자: {photo.photographer || "개별 저작자 미확인"} · 제공: ⓒ한국관광공사<br />원문 상세/개별 이용조건: 확인 중. 사진 내 워터마크를 유지합니다.</p></li>))}</ul>
-        <PhotoCredits />
+        <PhotoCredits /><h3>지도 경계 자료</h3><p>통계청 SGIS 2020 행정경계를 StatGarten에서 단순화한 자료로, 지역 선택과 소개 지도에 사용합니다. 화면에 맞춰 색상과 크기를 조정했습니다. <a href="https://sgis.kostat.go.kr/" target="_blank" rel="noopener noreferrer">통계청 SGIS</a> · <a href="https://github.com/statgarten/maps" target="_blank" rel="noopener noreferrer">StatGarten 지도 자료</a></p>
         <h3>브랜드 이미지와 제품 화면</h3>
+        <h3>지역 우선 보기 기준</h3><p><a href={decliningRegionNotice.sourceUrl} target="_blank" rel="noreferrer">{decliningRegionNotice.source}</a> · 지정일 {decliningRegionNotice.noticedOn} · 자료 확인 {decliningRegionNotice.checkedOn}</p><p>{decliningRegionNotice.regions.join(" · ")}</p>
         <p>나루 캐릭터, 나루와 어린아이의 대화 장면과 밤바다 배경은 WAVE의 안내를 위해 AI로 제작한 그림입니다. 실제 인물·관광지 사진이나 실제 상담 기록이 아닙니다. 대화 문구는 이용 방법을 보여주는 예시입니다.</p>
         <ul className="photo-credits-grid">{[
+          { image: '/naru/night-journey-solo.webp', title: '나루의 밤 여행 인트로 (AI 제작)' },
+          { image: '/naru/night-journey-map.webp', title: '나루와 꼬마 여행자의 지도 대화 배경 (AI 제작)' },
+          { image: '/naru/night-journey-scene.webp', title: '나루와 꼬마 여행자의 밤 여행 배경 (AI 제작)' },
           { image: '/naru/naru-512.webp', title: '나루 캐릭터' },
           { image: '/naru/conversation-hello-night.webp', title: '나루와 인사하는 대화 장면' },
           { image: '/naru/conversation-map-night.webp', title: '나루와 여행을 준비하는 대화 장면' },
+          { image: '/naru/journey-preview-v3.webp', title: '나루와 꼬마여행자의 여행 준비 (AI 제작)' },
+          { image: '/naru/wave-travel-story.webp', title: '함께 여행하는 WAVE 브랜드 일러스트' },
           { image: '/naru/night-coast.webp', title: '나루 안내 영역의 밤바다 배경' },
         ].map(art => <li key={art.image}><img src={art.image} alt={art.title} loading="lazy" width="240" height="160" /><strong>{art.title}</strong><p>제작: WAVE · AI 생성 이미지</p><a href={art.image}>현재 사용하는 이미지 파일</a></li>)}</ul>
         <p>보존된 인트로 브랜드 영상은 WAVE를 위해 제작한 이미지이며 실제 관광지·시설 기록이 아닙니다. 과거 소개에 사용한 생성 이미지, 추천 제품 화면, 편의 선택·커뮤니티 작성 시연은 원본과 사용 기록을 저장소에 보존합니다. 현재 소개의 풍경 사진은 위 저작자·이용조건을 따릅니다.</p>

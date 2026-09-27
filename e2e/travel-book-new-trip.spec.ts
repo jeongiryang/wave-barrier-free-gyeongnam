@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -24,7 +25,7 @@ async function openSavedTravelBook(page: Page) {
 }
 
 async function expectEmptyConditions(page: Page) {
-  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
+  await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("");
   await expect(page.locator(".simple-stops li")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "하고 싶은 활동", exact: true }).locator('[aria-pressed="true"]')).toHaveCount(0);
   await page.getByRole("button", { name: /^필요한 편의/ }).click();

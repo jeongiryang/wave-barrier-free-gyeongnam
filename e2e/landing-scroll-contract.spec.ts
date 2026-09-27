@@ -5,27 +5,25 @@ import { openLandingTools, prepareStory, storyReady, chapterIds, expectNoOverflo
 
 test.beforeEach(async ({ page }) => { await prepareStory(page); });
 
-test("navigation hides downward, waits for deliberate upward scrolling and remains available on keyboard focus", async ({ page }) => {
+test("navigation scrolls in document flow and remains available on keyboard focus", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/"); await storyReady(page);
   const nav = page.locator(".wave-header");
-  await expect(nav).toHaveAttribute("data-hidden", "false");
+  await expect(nav).toHaveCSS("position", "relative");
   const top = (await nav.boundingBox())!;
   expect(top.x).toBe(0);
   expect(top.width).toBe(page.viewportSize()!.width);
   const hero = (await page.locator(".landing-hero-split").boundingBox())!;
   expect(hero.y).toBeGreaterThanOrEqual(top.y + top.height);
-  await page.evaluate(() => scrollTo({ top: 500, behavior: "instant" }));
-  await expect(nav).toHaveAttribute("data-hidden", "true");
-  await page.evaluate(() => scrollTo({ top: 460, behavior: "instant" }));
-  await expect(nav).toHaveAttribute("data-hidden", "true");
-  await page.evaluate(() => scrollTo({ top: 350, behavior: "instant" }));
-  await expect(nav).toHaveAttribute("data-hidden", "false");
-  await expect(nav).toBeInViewport();
+  for (const offset of [500, 460, 350, 900]) {
+    await page.evaluate(top => scrollTo({ top, behavior: "instant" }), offset);
+    const box = (await nav.boundingBox())!;
+    expect(Math.abs(box.y + offset - top.y)).toBeLessThanOrEqual(1);
+    await expect(nav).toHaveCSS("transform", "none");
+  }
   const home = nav.locator(".wave-wordmark");
   await home.focus(); await expect(home).toBeFocused();
-  await page.evaluate(() => scrollTo({ top: 900, behavior: "instant" }));
-  await expect(nav).toHaveAttribute("data-hidden", "false");
+  await expect(nav).toBeInViewport();
   await expect(nav.getByRole("navigation").getByRole("link")).toHaveText(page.viewportSize()!.width <= 600 ? ["여행 설계", "축제", "커뮤니티"] : ["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
   await expectUsableTarget(home);
   if (page.viewportSize()!.width <= 600) { await openSupportMenu(page); await expectUsableTarget(nav.locator(".mobile-menu-link[href='/travel-book']")); }
@@ -47,8 +45,18 @@ for (const width of [320, 390]) {
       await expectNoOverflow(page);
     }
     await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
-    await expect(page.locator(".simple-naru-example input,.simple-naru-example button")).toHaveCount(0);
-    await expectUsableTarget(page.locator(".landing-actions a"));
+    const example = page.locator(".simple-naru-example");
+    await expect(example.locator("input")).toHaveCount(0);
+    await expect(example.getByRole("button")).toHaveCount(1);
+    await expect(example.locator(".example-duration strong")).toHaveText("60분");
+    const apply = example.getByRole("button", { name: "예시 일정에 적용", exact: true });
+    await expectUsableTarget(apply);
+    await apply.press("Enter");
+    await expect(example.locator(".example-duration strong")).toHaveText("90분");
+    await expect(example.locator('[aria-live="polite"]')).toHaveText("예시 일정에 90분 체류를 적용했어요.");
+    await example.getByRole("button", { name: "되돌리기", exact: true }).press("Enter");
+    await expect(example.locator(".example-duration strong")).toHaveText("60분");
+    await expectUsableTarget(page.locator(".night-hero-search button[type=submit]"));
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
 }

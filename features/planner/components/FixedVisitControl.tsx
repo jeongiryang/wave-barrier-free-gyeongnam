@@ -1,4 +1,5 @@
 "use client";
+import WaveSelect from "../../../components/WaveSelect";
 import type { FixedVisit } from "../../../lib/trip-time-constraints.js";
 
 export const fixedVisitLabel = (kind: FixedVisit["kind"], en = false) => kind === "stay" ? en ? "Stay" : "숙소" : kind === "event" ? en ? "Reservation / event" : "예약·행사" : en ? "Must-visit" : "꼭 갈 곳";
@@ -7,9 +8,9 @@ export default function FixedVisitControl({ name, value, position, onChange, en 
   name: string; value?: FixedVisit; position: number; en?: boolean; onChange: (value: FixedVisit | null) => void;
 }) {
   return <div className="auth-field fixed-visit-control" style={{ width: "100%", minWidth: 0 }}>
-    <label>{en ? "Keep this place" : "장소 고정"}<select aria-label={`${name} ${en ? "fixed visit" : "장소 고정"}`} value={value?.kind || ""} onChange={event => onChange(event.target.value ? { kind: event.target.value as FixedVisit["kind"], time: value?.time || "", position: value?.position ?? position } : null)}>
+    <label>{en ? "Keep this place" : "장소 고정"}<WaveSelect aria-label={`${name} ${en ? "fixed visit" : "장소 고정"}`} value={value?.kind || ""} onChange={event => onChange(event.target.value ? { kind: event.target.value as FixedVisit["kind"], time: value?.time || "", position: value?.position ?? position } : null)}>
       <option value="">{en ? "Flexible" : "고정 안 함"}</option>{(["visit", "stay", "event"] as const).map(kind => <option value={kind} key={kind}>{fixedVisitLabel(kind, en)}</option>)}
-    </select></label>
+    </WaveSelect></label>
     {value && <><label>{en ? "Fixed arrival time (optional)" : "도착 시각 고정 (선택)"}<input type="time" aria-label={`${name} ${en ? "fixed arrival time" : "고정 도착 시각"}`} value={value.time} onChange={event => onChange({ ...value, time: event.target.value })} /></label><small>{en ? "The place, date and order stay when recommendations change. This does not make a reservation." : "재추천해도 장소·날짜·순서를 유지해요. 실제 예약은 별도로 진행하세요."}</small></>}
   </div>;
 }

@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { expect, test, type Locator } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPublicShellApi } from './fixtures';
@@ -79,7 +80,15 @@ test('community server controls wait for hydration before layout, filter and sea
     await expect(controls).toHaveAttribute('aria-busy', 'true');
     await expect(sortbar).toHaveAttribute('aria-busy', 'true');
     await expect(savedPosts).toBeDisabled();
-    for (const control of await sortbar.getByRole('button').all()) await expect(control).toBeDisabled();
+    for (const control of await sortbar.getByRole('group', { name: '게시글 정렬', exact: true }).getByRole('button').all()) await expect(control).toBeDisabled();
+    for (const control of await view.getByRole('button').all()) await expect(control).toBeDisabled();
+    // Native popover disclosure works before React; actions which mutate the
+    // search must still wait for their handlers to be ready.
+    await page.getByRole('button', { name: '지역별 이야기 찾기', exact: true }).click();
+    const regionPopover = page.locator('.community-tools-popover:popover-open');
+    await expect(regionPopover.getByRole('heading', { name: '지역별 이야기 찾기', exact: true })).toBeVisible();
+    for (const control of await regionPopover.locator('.community-region-shortcuts button').all()) await expect(control).toBeDisabled();
+    await regionPopover.getByRole('button', { name: '지역별 이야기 닫기', exact: true }).click();
     await expect(view.getByRole('button')).toHaveCount(2);
     for (const control of await controls.locator('button, input').all()) await expect(control).toBeDisabled();
     await expect(clearPlace).toBeDisabled();
@@ -120,6 +129,15 @@ test('community server controls wait for hydration before layout, filter and sea
   expect(requests.at(-1)?.searchParams.get('placeId')).toBeNull();
   await expect(list.locator('h3')).toHaveText(posts.map(post => post.title));
   await expect(list).toHaveAttribute('data-layout', 'list');
+  await page.getByRole('button', { name: '지역별 이야기 찾기', exact: true }).click();
+  const readyRegions = page.locator('.community-tools-popover:popover-open');
+  for (const control of await readyRegions.locator('.community-region-shortcuts button').all()) await expect(control).toBeEnabled();
+  await readyRegions.getByRole('button', { name: '통영', exact: true }).click();
+  await expect(readyRegions).toHaveCount(0);
+  await expect.poll(() => requests.at(-1)?.searchParams.get('search')).toBe('통영');
+  expect(requests.at(-1)?.searchParams.get('category')).toBeNull();
+  expect(requests.at(-1)?.searchParams.get('placeId')).toBeNull();
+  await expect(search).toHaveValue('통영');
   expect(errors).toEqual([]);
 });
 
@@ -133,7 +151,7 @@ test('community density changes both real post and editorial grids without chang
   });
   await page.goto('/community');
   const list = page.locator('.community-list'), stories = page.locator('.community-editorial-grid');
-  await page.locator('.community-guides > summary').filter({ hasText: /^여행 준비 가이드$/ }).click();
+  await expect(page.locator('.community-guides .community-travel-stories')).toBeVisible();
   await expect(list.locator('article')).toHaveCount(8);
   await expect(stories.locator('article')).toHaveCount(3);
   const storyLinks = await stories.locator('h3 a').evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).getAttribute('href')));
@@ -177,4 +195,50 @@ test('community density changes both real post and editorial grids without chang
     await expect(credit.locator(`a[href="${photo.licenseUrl}"]`)).toHaveText(photo.license);
   }
   expect(errors).toEqual([]);
+});
+
+test('structured service errors show readable recovery copy', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.route('**/api/community/posts?*', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'unavailable' } }) }));
+  await page.goto('/community');
+  const error = page.locator('.community-state[role=alert]');
+  await expect(error).toContainText('잠시 후 다시 시도해 주세요.');
+  await expect(error).not.toContainText('[object Object]');
+  await expect(error.getByRole('button', { name: '다시 시도' })).toBeEnabled();
+});
+
+
+test('loading cards match the final grid and photo loading never draws fake text behind a post', async ({page}, info) => {
+  await mockPublicShellApi(page);
+  let releasePosts = () => {}, releasePhoto = () => {};
+  const postGate = new Promise<void>(resolve => { releasePosts = resolve; });
+  const photoGate = new Promise<void>(resolve => { releasePhoto = resolve; });
+  await page.route('**/api/community/posts**', async route => { await postGate; await route.fulfill({json:{posts:posts.slice(0,4),page:1,hasMore:false}}); });
+  await page.route('**/api/wave?**', async route => {
+    if(new URL(route.request().url()).searchParams.get('action') !== 'spot-photo') return route.fallback();
+    await photoGate;await route.fulfill({json:{image:'https://tong.visitkorea.or.kr/loading-check.webp'}});
+  });
+  const bitmap = await readFile('public/media/wave-story/hero-coast-small.webp');
+  await page.route('https://tong.visitkorea.or.kr/loading-check.webp', route => route.fulfill({contentType:'image/webp',body:bitmap}));
+  try {
+    await page.goto('/community');
+    const loading=page.locator('.community-skeletons');await loading.scrollIntoViewIfNeeded();
+    await expect(loading.locator('article')).toHaveCount(4);
+    const columns=await loading.evaluate(e=>getComputedStyle(e).gridTemplateColumns);
+    await expect(loading.locator('article').first()).toHaveCSS('animation-name','none');
+    await loading.screenshot({path:info.outputPath('community-loading-grid.png')});
+    releasePosts();
+    const grid=page.locator('.community-list:not(.community-skeletons)');
+    await expect(grid.locator('article')).toHaveCount(4);
+    await expect(grid).toHaveCSS('grid-template-columns',columns);
+    await expect(grid.locator('.smart-image-skeleton')).toHaveCount(4);
+    await expect(grid.locator('.smart-image-skeleton i,.smart-image-skeleton b')).toHaveCount(0);
+    await expect(grid.getByRole('heading',{name:'여행자의 현장 기록 1'})).toBeVisible();
+    await grid.screenshot({path:info.outputPath('community-photo-loading.png')});
+    releasePhoto();
+    await expect(grid.locator('.smart-image-skeleton')).toHaveCount(0);
+    await expect(grid.locator('.smart-image-fallback')).toHaveCount(0);
+    expect(await grid.locator('img').first().evaluate(e=>(e as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  } finally {releasePosts();releasePhoto();}
 });

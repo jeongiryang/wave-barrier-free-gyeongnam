@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { expect, type Page } from '@playwright/test';
 import { openSupportMenu } from './support-menu';
 
@@ -20,6 +21,6 @@ export async function closeNewTripMenu(page: Page) {
 }
 
 export async function finishNewTrip(page: Page) {
-  await expect(page.getByRole('combobox', { name: '여행 지역', exact: true })).toHaveValue('');
+  await expect(waveSelectNative(page.getByRole('combobox', { name: '여행 지역', exact: true }))).toHaveValue('');
   await expect(page.locator('.wave-support-panel')).toBeHidden();
 }

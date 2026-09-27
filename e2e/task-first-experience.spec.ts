@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPublicShellApi, mockPlannerApi, openItinerary, plan } from './fixtures';
@@ -18,7 +19,9 @@ test('task pages put actual collections first at desktop, tablet and mobile widt
       await expect(page.getByText('일정의 ‘내 여행에 저장’을 눌러 주세요.', { exact: true })).toBeVisible();
       await expect(page.locator('.travel-book-landscapes')).toHaveCount(0);
     } else {
-      await expect(page.locator('.night-community-sidebar').getByRole('heading',{name:'여행 준비 가이드'})).toBeVisible();
+      await page.getByRole('button',{name:'여행 준비 도움말',exact:true}).click();
+      await expect(page.locator('.community-tools-popover:popover-open').getByRole('heading',{name:'여행 준비 가이드'})).toBeVisible();
+      await page.keyboard.press('Escape');
       await expect(page.getByRole('link',{name:'운영정책',exact:true})).toHaveAttribute('href','/policies');
     }
     for (const width of info.project.name.startsWith('desktop') ? [1440,960] : [390]) {
@@ -35,7 +38,7 @@ test('saved trip shows a short Naru start and the timetable before optional tool
   await mockPlannerApi(page, {preserveView:true}); await mockPublicShellApi(page);
   await page.route('**/api/assistant', route => route.fulfill({json:{available:false}}));
   await page.goto('/planner');
-  await page.getByRole('combobox',{name:'여행 지역',exact:true}).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox',{name:'여행 지역',exact:true}), '창원');
   await page.getByRole('button',{name:'경남도립미술관 일정에 담기',exact:true}).click();
   await openItinerary(page,{start:'2026-10-14'});
   await expect(page.locator('.simple-more-trip-tools')).toHaveCount(0);
@@ -48,7 +51,9 @@ test('saved trip shows a short Naru start and the timetable before optional tool
   await expect(chat.locator('.naru-suggestions')).not.toHaveAttribute('open', '');
   await chat.locator('.naru-suggestions > summary').click();
   await expect(chat.getByLabel('현재 여행에서 이어가기').getByRole('button')).toHaveCount(3);
-  await expect(chat.locator('.naru-extra-help')).not.toHaveAttribute('open','');
+  await expect(chat.locator('.naru-extra-help')).toHaveCount(0);
+  await expect(chat.getByRole('tab', { name: '대화', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(chat.locator('#naru-panel-tools')).toBeHidden();
   await expect(chat.getByText('지금 안내 방식:',{exact:false})).not.toBeVisible();
   for (const width of info.project.name.startsWith('desktop') ? [1440,960] : [390]) {
     await page.setViewportSize({width,height:960});
@@ -64,7 +69,7 @@ test('missing facility evidence can recover from an error without changing the s
   await mockPlannerApi(page, { preserveView: true });
   await mockPublicShellApi(page);
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await page.getByRole('button', { name: '경남도립미술관 일정에 담기', exact: true }).click();
   const saved = await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'));
   await page.locator('.simple-place-row h3 button').first().click();

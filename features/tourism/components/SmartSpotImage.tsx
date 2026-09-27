@@ -1,5 +1,7 @@
 "use client";
 
+import NightIcon from "../../../components/NightIcon";
+import { rememberPhotoCredits } from '../../landing/photo-credit-store';
 import type { ReactNode } from "react";
 import { useSitePreferences } from "../../preferences/context";
 import { useOfficialSpotImage } from "../hooks/useOfficialSpotImage";
@@ -31,9 +33,9 @@ export default function SmartSpotImage({
   return <div className={`smart-spot-image${className ? ` ${className}` : ""}${photo.loading ? " loading" : ""}${photo.failed ? " failed" : ""}`}>
     {/* 공식 관광사진 외부 URL은 HTTPS만 허용하며 정규화는 tourism domain에서 수행한다. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    {photo.image && <img src={photo.image} alt={en ? title : `${title} 관광사진`} lang={languageOf(title, fallbackLanguage)} width="800" height="600" loading="lazy" decoding="async" onLoad={photo.onLoad} onError={photo.onError} />}
-    {photo.loading && <span className="smart-image-skeleton" role="status" lang={fallbackLanguage} aria-label={en ? "Loading official photo" : `${title} 관광사진 불러오는 중`}><i /><i /><i /><b /></span>}
-    {photo.failed && (compact ? <span className="smart-image-fallback smart-image-fallback-compact" role="img" aria-label={`${title}: ${en ? 'Official photo unavailable' : '공식 사진을 확인할 수 없어요'}`}><small lang={fallbackLanguage}>{en ? <>No<br />photo</> : <>사진<br />미확인</>}</small></span> : <span className="smart-image-fallback"><i aria-hidden="true" /><small lang={fallbackLanguage}>{en ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"}</small><b lang={languageOf(title, fallbackLanguage)}>{title}</b><span><span lang={languageOf(region, fallbackLanguage)}>{region}</span> · <span lang={languageOf(tag, fallbackLanguage)}>{tag}</span>{en ? null : <span lang="ko"> 여행</span>}</span></span>)}
+    {photo.image && <img src={photo.image} alt={en ? title : `${title} 관광사진`} lang={languageOf(title, fallbackLanguage)} width="800" height="600" loading="lazy" decoding="async" onLoad={() => { photo.onLoad(); rememberPhotoCredits([{ title, image: photo.image, location: region, source: '한국관광공사 관광정보' }]); }} onError={photo.onError} />}
+    {photo.loading && <span className="smart-image-skeleton" role="status" lang={fallbackLanguage} aria-label={en ? "Loading official photo" : `${title} 관광사진 불러오는 중`} />}
+    {photo.failed && <span className={`smart-image-fallback${compact ? ' smart-image-fallback-compact' : ''}`} role="status"><NightIcon name="photo-off" size={26}/><small lang={fallbackLanguage}>{en ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"}</small></span>}
     {showMeta && <><em lang={languageOf(tag, fallbackLanguage)}>{tag}</em><strong>{String(rank).padStart(2, "0")}</strong></>}
     {children}
   </div>;

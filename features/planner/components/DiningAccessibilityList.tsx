@@ -1,4 +1,6 @@
 'use client';
+import NightIcon from '../../../components/NightIcon';
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { DiningAccessibilityResponse, DiningFacility, DiningPlace, Place } from '../types';
@@ -236,7 +238,7 @@ export default function DiningAccessibilityList({ place, onClose }: { place: Pla
       {state === 'loading' && <p>주변 음식점의 편의 정보를 확인하고 있어요.</p>}
       {state === 'provider-error' && <div>
         <p role="alert">음식점 정보를 받지 못했어요.</p>
-        <div style={actionRow}><button type="button" onClick={() => setAttempt(value => value + 1)}>다시 시도</button></div>
+        <div style={actionRow}><button type="button" onClick={() => setAttempt(value => value + 1)} data-icon-action="" title="다시 시도"><NightIcon name="refresh" size={20}/><span className="sr-only">다시 시도</span></button></div>
       </div>}
       {state === 'location-unconfirmed' && <p role="alert">이 여행지의 공개 좌표를 확인하지 못했어요.</p>}
       {state === 'empty' && <div>
@@ -260,7 +262,7 @@ export default function DiningAccessibilityList({ place, onClose }: { place: Pla
           <button type="button" onClick={() => officialLocalFilter.setExpanded(value => !value)}>{officialLocalFilter.expanded ? '접기' : '펼치기'}</button>
         </p>}
         {officialEmptyByFood
-          ? <div><p>고른 종류에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={officialFoodFilter.clear}>선택 지우기</button></div></div>
+          ? <div><p>고른 종류에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={officialFoodFilter.clear} data-icon-action="" title="선택 지우기"><NightIcon name="close" size={20}/><span className="sr-only">선택 지우기</span></button></div></div>
           : officialEmptyByLocal
             ? <div><p>조건에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={officialLocalFilter.toggle}>조건 끄기</button></div></div>
             : <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -292,7 +294,7 @@ export default function DiningAccessibilityList({ place, onClose }: { place: Pla
             <button type="button" onClick={() => nearbyLocalFilter.setExpanded(value => !value)}>{nearbyLocalFilter.expanded ? '접기' : '펼치기'}</button>
           </p>}
           {nearbyEmptyByFood
-            ? <div><p>고른 종류에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={nearbyFoodFilter.clear}>선택 지우기</button></div></div>
+            ? <div><p>고른 종류에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={nearbyFoodFilter.clear} data-icon-action="" title="선택 지우기"><NightIcon name="close" size={20}/><span className="sr-only">선택 지우기</span></button></div></div>
             : nearbyEmptyByLocal
               ? <div><p>조건에 맞는 곳이 없어요.</p><div style={actionRow}><button type="button" onClick={nearbyLocalFilter.toggle}>조건 끄기</button></div></div>
               : <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>

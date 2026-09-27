@@ -21,6 +21,7 @@ const eslintConfig = defineConfig([
     "test-results/**",
     "playwright-production-report/**",
     "test-results-production/**",
+    "harness-results/**",
   ]),
 ]);
 

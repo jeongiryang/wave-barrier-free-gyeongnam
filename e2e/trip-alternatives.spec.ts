@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
@@ -57,7 +58,7 @@ test("one-place comparison keeps dates/order, supports cancel and undo, and resp
   expect(await tripSnapshot(page)).toEqual(before);
   await expect(board).toContainText("180분 머묾"); await expect(board).toContainText("방문 뒤 15분 휴식");
   dialog = await open(page); await dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true }).click(); await dialog.getByRole("button", { name: "선택한 장소로 교체", exact: true }).click();
-  await board.getByLabel("시민문화쉼터 일정 수정", { exact: true }).click(); const editor=page.getByRole('dialog',{name:'시민문화쉼터 수정',exact:true});await editor.getByLabel("시민문화쉼터 머무는 시간", { exact: true }).selectOption("30"); await editor.getByRole('button',{name:'적용',exact:true}).click();
+  await board.getByLabel("시민문화쉼터 일정 수정", { exact: true }).click(); const editor=page.getByRole('dialog',{name:'시민문화쉼터 수정',exact:true});await chooseWaveOption(editor.getByRole('combobox', { name: "시민문화쉼터 머무는 시간", ...{ exact: true } }), "30"); await editor.getByRole('button',{name:'적용',exact:true}).click();
   const edited=await tripSnapshot(page);
   await page.getByRole("button", { name: "방금 교체 되돌리기", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "새 선택을 보존하기 위해" })).toBeVisible();
@@ -91,7 +92,7 @@ test("indoor evidence is checked explicitly and nearby discovery retains facilit
   await dialog.getByRole("button", { name: "다음 후보 보기", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true })).toHaveCount(0);
   await dialog.getByText("경남의 다른 후보 살펴보기", { exact: true }).click();
-  await dialog.getByRole("combobox", { name: "살펴볼 지역", exact: true }).selectOption("함안");
+  await chooseWaveOption(dialog.getByRole("combobox", { name: "살펴볼 지역", exact: true }), "함안");
   await dialog.getByRole("button", { name: "같은 편의로 후보 찾기", exact: true }).click();
   await expect(dialog.getByRole("status").filter({ hasText: "함안에서 후보" })).toBeVisible();
   expect(calls.filter(url => url.searchParams.get("action") === "plan")).toHaveLength(1);
@@ -142,7 +143,7 @@ test('optional facilities and activities do not block another-region alternative
   await page.locator(".wave-header").locator(".night-search-link").click();
   await page.getByRole('button',{name:'자연·휴양',exact:true}).click();await page.locator('.simple-facility-trigger').click();const picker=page.getByRole('dialog',{name:'필요한 편의',exact:true});await picker.getByRole('button',{name:'선택 해제',exact:true}).click();await picker.getByRole('button',{name:'적용',exact:true}).click();
   await expect.poll(()=>requests.some(url=>!url.searchParams.get('themes')&&!url.searchParams.get('facilityKeys')&&!url.searchParams.get('profiles'))).toBe(true);await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy','false');
-  await openItinerary(page);const before=await currentValues(page);const dialog=await open(page);await expect(dialog).toContainText('현재 여행의 편의 0개');await dialog.getByText('경남의 다른 후보 살펴보기',{exact:true}).click();await dialog.getByRole('combobox',{name:'살펴볼 지역',exact:true}).selectOption('함안');await dialog.getByRole('button',{name:'같은 편의로 후보 찾기',exact:true}).click();
+  await openItinerary(page);const before=await currentValues(page);const dialog=await open(page);await expect(dialog).toContainText('현재 여행의 편의 0개');await dialog.getByText('경남의 다른 후보 살펴보기',{exact:true}).click();await chooseWaveOption(dialog.getByRole('combobox',{name:'살펴볼 지역',exact:true}), '함안');await dialog.getByRole('button',{name:'같은 편의로 후보 찾기',exact:true}).click();
   await expect(dialog.getByRole('status').filter({hasText:'함안에서 후보'})).toBeVisible();const request=requests.filter(url=>url.searchParams.get('region')==='함안');expect(request).toHaveLength(1);expect(request[0].searchParams.get('themes')||'').toBe('');expect(request[0].searchParams.get('facilityKeys')||request[0].searchParams.get('profiles')||'').toBe('');
   await expect(dialog.getByRole('button',{name:'시민문화쉼터 선택',exact:true})).toBeVisible();await dialog.getByRole('button',{name:'현재 일정 유지',exact:true}).click();expect(await currentValues(page)).toEqual(before);
 });

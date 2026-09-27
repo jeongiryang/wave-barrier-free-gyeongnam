@@ -24,7 +24,7 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     if (locale === "en") await expect(details).toContainText("Original place information and some features may appear in Korean.");
     // 접근성 설정이 늘어나도 계약이 깨지지 않도록, 초점 대상 개수를 고정하지 않고 패널 안의 초점 가능한 요소를 실제로 질의해 마지막 컨트롤을 기준으로 검사한다.
     // Native radio groups have one Tab stop; arrow keys reach the other choices.
-    const panelFocusable = details.locator('.preference-panel').locator('a[href], button:not([disabled]), select, input:not([disabled]):not([type="radio"]), input[type="radio"]:checked, textarea, [tabindex]:not([tabindex="-1"])');
+    const panelFocusable = details.locator('.preference-panel').locator('a[href], button:not([disabled]), select:not([aria-hidden="true"]):not([tabindex="-1"]), input:not([disabled]):not([type="radio"]), input[type="radio"]:checked, textarea, [tabindex]:not([tabindex="-1"])');
     await page.keyboard.press("Tab");
     await expect(panelFocusable.first()).toBeFocused();
     await expect(details.getByRole("combobox")).toBeFocused();

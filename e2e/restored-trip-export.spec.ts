@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
@@ -22,7 +23,7 @@ for (const restoration of ["reload", "archive"] as const) {
     await settings.getByRole("button", { name: "적용", exact: true }).click();
     await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
     const stop = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
-    await stop.getByRole("combobox", { name: "방문 날짜", exact: true }).selectOption("2026-10-09");
+    await chooseWaveOption(stop.getByRole("combobox", { name: "방문 날짜", exact: true }), "2026-10-09");
     await stop.getByRole("button", { name: "적용", exact: true }).click();
     if (restoration === "archive") {
       await page.getByRole("button", { name: "내 여행에 저장", exact: true }).click();
@@ -43,7 +44,7 @@ for (const restoration of ["reload", "archive"] as const) {
     await page.getByRole("group", { name: "일정 날짜", exact: true }).getByRole("button", { name: /^2일차/ }).click();
     await expect(page.locator("#itinerary-stop-1001")).toBeVisible();
     await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
-    await expect(stop.getByRole("combobox", { name: "방문 날짜", exact: true })).toHaveValue("2026-10-09");
+    await expect(waveSelectNative(stop.getByRole("combobox", { name: "방문 날짜", exact: true }))).toHaveValue("2026-10-09");
     await stop.getByRole("button", { name: "취소", exact: true }).click();
     const snapshots: Array<{ selections: { selectedPlaceIds: string[]; dayStartTime: string; scheduleAssignments: Record<string, string>; profiles: string[] } }> = [];
     const shareId = "abcdef123456", expiresAt = Date.now() + 30 * 86_400_000;

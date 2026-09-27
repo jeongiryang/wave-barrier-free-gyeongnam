@@ -48,12 +48,12 @@ test('a late comment refresh cannot overwrite a newer successful like', async ({
   await page.getByRole('button', { name: '댓글 등록', exact: true }).click();
   try {
     await expect.poll(() => refreshStarted).toBe(true);
-    await page.getByRole('button', { name: /도움이 됐어요/ }).click();
-    await expect(page.getByRole('button', { name: /공감했어요/ })).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: /^좋아요 \d+$/ }).click();
+    await expect(page.getByRole('button', { name: /^좋아요 취소 \d+$/ })).toHaveAttribute('aria-pressed', 'true');
     release();
     await expect(page.locator('.comment-list')).toContainText('새 댓글 조회 결과');
-    await expect(page.getByRole('button', { name: /공감했어요/ })).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('button', { name: /공감했어요/ })).toContainText('1');
+    await expect(page.getByRole('button', { name: /^좋아요 취소 \d+$/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /^좋아요 취소 \d+$/ })).toContainText('1');
     expect(likeWrites).toBe(1); expect(commentWrites).toBe(1);
   } finally { release(); }
 });

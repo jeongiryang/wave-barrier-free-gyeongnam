@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi, mockPublicShellApi } from './fixtures';
 
@@ -10,11 +11,16 @@ test('place view preserves selection, survives reload and remains readable', asy
   await page.goto('/planner');
   const region = page.getByRole('combobox', { name: '여행 지역', exact: true });
   await expect(region).toBeEnabled();
-  await region.selectOption('창원');
+  await chooseWaveOption(region, '창원');
   await expect(page.locator('.simple-results .simple-place-row')).toHaveCount(2);
   const views = page.getByRole('group', { name: '여행지 보기 형식' });
   await expect(views.getByRole('button', { name: '목록형' })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: '경남도립미술관 일정에 담기', exact: true }).click();
+  await expect(views).toHaveText('');
+  const add = page.getByRole('button', { name: '경남도립미술관 일정에 담기', exact: true });
+  await expect(add).toHaveAttribute('title', '일정에 담기');
+  await expect(page.getByRole('button', { name: '경남도립미술관 상세정보', exact: true })).toHaveAttribute('title', '자세히 보기');
+  await add.click();
+  await expect(page.locator('.simple-results .place-save-feedback').filter({ hasText: '담았습니다' })).toHaveCount(1);
   await views.getByRole('button', { name: '격자형' }).focus();
   await page.keyboard.press('Enter');
   await expect(views.getByRole('button', { name: '격자형' })).toHaveAttribute('aria-pressed', 'true');
@@ -26,7 +32,7 @@ test('place view preserves selection, survives reload and remains readable', asy
       const photo = node.querySelector('.simple-place-photo')!.getBoundingClientRect();
       const copy = node.querySelector('.simple-place-copy')!.getBoundingClientRect();
       const add = node.querySelector('.simple-place-add')!.getBoundingClientRect();
-      return { contained: copy.top >= photo.top && copy.bottom <= photo.bottom && copy.left >= photo.left && copy.right <= photo.right, touch: add.height >= 44, overflow: node.scrollWidth > node.clientWidth + 1 };
+      return { contained: copy.top >= photo.top && copy.bottom <= photo.bottom && copy.width > 0 && node.querySelector('.simple-place-copy')!.scrollWidth <= node.querySelector('.simple-place-copy')!.clientWidth + 1 && copy.left >= photo.left && copy.right <= photo.right, touch: add.height >= 44, overflow: node.scrollWidth > node.clientWidth + 1 };
     }));
     expect(boxes.every(box => box.contained && box.touch && !box.overflow)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -38,7 +44,11 @@ test('place view preserves selection, survives reload and remains readable', asy
   await expect(page.getByRole('button', { name: '경남도립미술관 담았음 · 되돌리기', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await views.getByRole('button', { name: '목록형' }).click();
   await expect(views.getByRole('button', { name: '목록형' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByRole('button', { name: '경남도립미술관 담았음 · 되돌리기', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  const undo = page.getByRole('button', { name: '경남도립미술관 담았음 · 되돌리기', exact: true });
+  await expect(undo).toHaveAttribute('title', '담았습니다 · 되돌리기');
+  await undo.click();
+  await expect(page.locator('.simple-results .place-save-feedback').filter({ hasText: '담았습니다' })).toHaveCount(0);
+  await expect(add).toHaveAttribute('aria-pressed','false');
 });
 
 
@@ -52,11 +62,11 @@ test('grid also covers direct search when preference writes are blocked', async 
       original.call(this, key, value);
     };
   });
-  await page.route('**/api/location-search?**', route => route.fulfill({ json: { places: [{ id: 'search-1', name: '테스트 카페', mapX: '128.691', mapY: '35.238', address: '경남 창원시', resultType: 'cafe' }] } }));
+  await page.route('**/api/location-search?**', route => route.fulfill({ json: { places: [{ id: '987654321', name: '테스트 카페', mapX: '128.691', mapY: '35.238', address: '경남 창원시', resultType: 'cafe' }] } }));
   await page.goto('/planner');
   const region = page.getByRole('combobox', { name: '여행 지역', exact: true });
   await expect(region).toBeEnabled();
-  await region.selectOption('창원');
+  await chooseWaveOption(region, '창원');
   const views = page.getByRole('group', { name: '여행지 보기 형식' });
   await views.getByRole('button', { name: '격자형' }).click();
   await expect(views.getByRole('button', { name: '격자형' })).toHaveAttribute('aria-pressed', 'true');
@@ -69,5 +79,9 @@ test('grid also covers direct search when preference writes are blocked', async 
   await views.getByRole('button', { name: '목록형' }).click();
   await expect(views.getByRole('button', { name: '목록형' })).toHaveAttribute('aria-pressed', 'true');
   await expect(card).toContainText('테스트 카페');
+  await card.getByRole('button',{name:'테스트 카페 일정에 담기',exact:true}).click();
+  await expect(card.locator('.place-save-feedback')).toHaveText('담았습니다');
+  await card.getByRole('button',{name:'테스트 카페 담았음 · 되돌리기',exact:true}).click();
+  await expect(card.locator('.place-save-feedback')).toBeEmpty();
 });
 

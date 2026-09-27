@@ -36,9 +36,6 @@
 .motion-book-day { animation: featureDay 8s ease-in-out infinite both; }
 .book-day-two { animation-delay: -4s; }
 .motion-book-complete { animation: featureComplete 8s ease-in-out infinite both; }
-.community-feature-card { animation: featureCommunity 7s ease-in-out infinite both paused; }
-.landing-community.is-visible .community-feature-card { animation-play-state: running; }
-.community-feature-card:nth-child(2) { animation-delay: -3.5s; }
 
 @keyframes featureChoice { 0%,12%,100%{transform:translateY(0) scale(1);opacity:.68} 20%,38%{transform:translateY(-5px) scale(1.025);opacity:1} 50%,90%{transform:translateY(0) scale(1);opacity:.84} }
 @keyframes featureEvidence { 0%,10%,100%{transform:translateX(-14px);opacity:.45} 20%,48%{transform:translateX(0);opacity:1} 62%,90%{transform:translateX(0);opacity:.78} }
@@ -56,19 +53,18 @@
 @keyframes featureComplete { 0%,48%,100%{transform:translateX(-8px);opacity:.45} 60%,84%{transform:translateX(0);opacity:1} }
 @keyframes featureCommunity { 0%,12%,100%{transform:translateY(8px);opacity:.68} 24%,54%{transform:translateY(-5px);opacity:1} 68%,90%{transform:translateY(0);opacity:.82} }
 
-html[data-motion="calm"] .product-story *,html[data-motion="calm"] .product-story *::before,html[data-motion="calm"] .product-story *::after,
-html[data-motion="calm"] .landing-community *,html[data-motion="calm"] .landing-community *::before,html[data-motion="calm"] .landing-community *::after { animation: none !important; transition-duration: .01ms !important; }
+html[data-motion="calm"] .product-story *,html[data-motion="calm"] .product-story *::before,html[data-motion="calm"] .product-story *::after { animation: none !important; transition-duration: .01ms !important; }
 html[data-motion="calm"] .product-story .route-demo-path { stroke-dashoffset: 0; opacity: 1; }
 html[data-motion="calm"] .product-story .route-demo-path,html[data-motion="calm"] .product-story .route-demo-vehicle { animation: none !important; }
 html[data-motion="calm"] .product-story .route-demo-vehicle { transform: translate(327px,129px) rotate(-24deg); opacity: 1; }
-html[data-motion="calm"] .product-story [class*="motion-"],html[data-motion="calm"] .product-story .route-person,html[data-motion="calm"] .product-story .map-pin,html[data-motion="calm"] .community-feature-card { opacity: 1; }
+html[data-motion="calm"] .product-story [class*="motion-"],html[data-motion="calm"] .product-story .route-person,html[data-motion="calm"] .product-story .map-pin { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .product-story *,.product-story *::before,.product-story *::after,.landing-community *,.landing-community *::before,.landing-community *::after { animation: none !important; transition-duration: .01ms !important; }
+  .product-story *,.product-story *::before,.product-story *::after { animation: none !important; transition-duration: .01ms !important; }
   .product-story .route-demo-path { stroke-dashoffset: 0; opacity: 1; }
   .product-story .route-demo-path,.product-story .route-demo-vehicle { animation: none !important; }
   .product-story .route-demo-vehicle { transform: translate(327px,129px) rotate(-24deg); opacity: 1; }
-  .product-story [class*="motion-"],.product-story .route-person,.product-story .map-pin,.community-feature-card { opacity: 1; }
+  .product-story [class*="motion-"],.product-story .route-person,.product-story .map-pin { opacity: 1; }
 }
 
 @media (max-width: 680px) {

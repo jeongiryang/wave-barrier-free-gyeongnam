@@ -1,3 +1,5 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
+import { arrivalPlaybackReady } from "./landing-contract";
 import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
@@ -40,7 +42,7 @@ async function changeVisitDay(page: Page, name: string, day: string) {
   await timeboard(page);
   await page.getByRole("button", { name: `${name} 일정 수정`, exact: true }).click();
   const dialog = page.getByRole("dialog", { name: `${name} 수정`, exact: true });
-  await dialog.getByRole("combobox", { name: "방문 날짜", exact: true }).selectOption(day);
+  await chooseWaveOption(dialog.getByRole("combobox", { name: "방문 날짜", exact: true }), day);
   await dialog.getByRole("button", { name: "적용", exact: true }).click();
 }
 async function openDeparture(page: Page) {
@@ -65,7 +67,7 @@ test("first visit stays neutral with optional conditions and locked unsearched r
   await page.goto("/planner");
   await expect(page.getByRole("heading", { name: "경남, 모두의 여행지", exact: true })).toBeVisible();
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
-  await expect(region).toHaveValue("");
+  await expect(waveSelectNative(region)).toHaveValue("");
   await expect(page.getByRole("group", { name: "하고 싶은 활동", exact: true }).locator('[aria-pressed="true"]')).toHaveCount(0);
   await expect(page.locator(".simple-facility-trigger")).toBeEnabled();
   await expect(page.locator(".wave-header .night-search-link, .wave-header .wave-my-trips")).toHaveCount(2);
@@ -73,7 +75,7 @@ test("first visit stays neutral with optional conditions and locked unsearched r
   await expect(page.locator(".simple-results")).toHaveCount(0);
   expect(requests).toEqual([]);
   expect((await current(page)).facilities).toEqual([]);
-  await region.selectOption("창원");
+  await chooseWaveOption(region, "창원");
   await expect(add(page, "경남도립미술관")).toBeEnabled();
   expect(requests.length).toBeGreaterThan(0);
   for (const request of requests) {
@@ -137,7 +139,7 @@ test("search failures stay visible and retry the same optional choices without r
   await chooseTripConditions(page);
   const results = page.locator(".simple-results");
   await expect(results.getByRole("alert")).toBeVisible();
-  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("창원");
+  await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("창원");
   await expect(page.getByRole("button", { name: "자연·휴양", exact: true })).toHaveAttribute("aria-pressed", "true");
   expect((await current(page)).facilities).toEqual(facilities);
   const failed = requests.at(-1)!.searchParams.toString();
@@ -151,18 +153,23 @@ test("search failures stay visible and retry the same optional choices without r
   expect((await current(page)).facilities).toEqual(facilities);
 });
 
-test("landing: immediate entry preserves keyboard focus and readable content", async ({ page }) => {
+test("landing: intro exposes its message and an immediate keyboard dismissal", async ({ page }) => {
   const errors = trackRuntimeErrors(page);
   const width = test.info().project.name === "mobile-chromium" ? 390 : 1366;
   await page.setViewportSize({ width, height: 960 });
   await freshArrival(page);
-  const planning = page.locator(".landing-actions a");
-  await expect(page.locator("#arrival-boot,.arrival-scene,.wave-intro")).toHaveCount(0);
+  const scene = page.locator(".arrival-scene"), planning = page.locator(".night-hero-search button[type=submit]");
+  await arrivalPlaybackReady(page);
+  await expect(scene).toContainText("모두의 발걸음이 닿는 경상남도");
+  await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(scene).toBeHidden();
   await planning.focus(); await expect(planning).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.clock.runFor(32);
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
   await expect(planning).toBeFocused();
-  for (const element of await page.locator(".landing-hero-copy, .landing-hero h1, .landing-actions a").all()) {
+  for (const element of await page.locator(".landing-hero-copy, .landing-hero h1, .night-hero-search button[type=submit]").all()) {
     const box = (await element.boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(0);
     expect(box.x + box.width).toBeLessThanOrEqual(width + 1);
@@ -178,10 +185,10 @@ for (const locale of ["ko", "en"] as const) test(`landing: ${locale} fresh reduc
   await page.addInitScript(value => localStorage.setItem("wave-locale", value), locale);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/"); await storyReady(page);
-  const scene = page.locator(".arrival-scene"), planning = page.locator(".landing-actions a");
+  const scene = page.locator(".arrival-scene"), planning = page.locator(".night-hero-search button[type=submit]");
   await expect(scene).toBeHidden();
   await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
-  await expect(planning).toHaveAccessibleName(locale === "en" ? "Explore places" : "여행지 둘러보기");
+  await expect(planning).toHaveAccessibleName(locale === "en" ? "Find places" : "여행지 검색");
   await expectUsableTarget(planning);
   for (const motion of ["no-preference", "reduce"] as const) {
     await page.emulateMedia({ reducedMotion: motion });
@@ -249,7 +256,7 @@ test("old dated stops are kept separately and never become new-date markers", as
   await timeboard(page);
   await outside.getByRole("button", { name: "날짜 수정", exact: true }).click();
   const editor = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
-  await editor.getByRole("combobox", { name: "방문 날짜", exact: true }).selectOption("2026-10-14");
+  await chooseWaveOption(editor.getByRole("combobox", { name: "방문 날짜", exact: true }), "2026-10-14");
   await editor.getByRole("button", { name: "적용", exact: true }).click();
   await expect(page.locator(".simple-stops > li")).toHaveCount(1);
   expect((await current(page)).schedule.scheduleAssignments).toEqual({ "1001": "2026-10-14" });
@@ -359,7 +366,7 @@ test("every ordered leg needs current route evidence while departure access stay
     /2026-10-08 · 경남도립미술관 · 용지호수공원/,
   ]);
   await expect(coverage.getByRole("combobox", { name: "이동수단", exact: true })).toBeVisible();
-  await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
+  await chooseWaveOption(coverage.getByLabel("이동수단", { exact: true }), "car");
   await expect.poll(() => requests.filter(url => url.searchParams.get("endLat") === "35.229").length).toBeGreaterThan(0);
   await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
   await openDeparture(page);
@@ -382,7 +389,7 @@ test("every ordered leg needs current route evidence while departure access stay
   await openNaruTool(page, "이동 구간 확인");
   expect((await new AxeBuilder({ page }).include(".itinerary-route-coverage").analyze()).violations).toEqual([]);
   await coverage.screenshot({ path: test.info().outputPath(`all-journeys-${width}.png`) });
-  await coverage.getByLabel("이동수단", { exact: true }).selectOption("transit");
+  await chooseWaveOption(coverage.getByLabel("이동수단", { exact: true }), "transit");
   await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
   await expect(transport.locator("summary")).toContainText("확인할 정보 있음");
   // The changed date creates a new origin→park leg. Hold its fresh response so
@@ -391,7 +398,7 @@ test("every ordered leg needs current route evidence while departure access stay
   await changeVisitDay(page, "용지호수공원", dates.end);
   await openNaruTool(page, "이동 구간 확인");
   const beforeChanged = requests.length;
-  await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
+  await chooseWaveOption(coverage.getByLabel("이동수단", { exact: true }), "car");
   await expect.poll(() => requests.slice(beforeChanged).filter(url => url.searchParams.get("endLat") === "35.229").length).toBeGreaterThan(0);
   await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 0구간 확인");
   await expect(coverage.getByRole("listitem", { includeHidden: true }).nth(1)).toContainText("2026-10-09 · 창원중앙역 · 용지호수공원");
@@ -423,7 +430,7 @@ test("the itinerary tab unlocks dated journeys and the shared transport control 
     /2026-10-08 · 창원중앙역 · 경남도립미술관/,
     /2026-10-09 · 창원중앙역 · 용지호수공원/,
   ]);
-  await coverage.getByLabel("이동수단", { exact: true }).selectOption("car");
+  await chooseWaveOption(coverage.getByLabel("이동수단", { exact: true }), "car");
   await expect(coverage.getByRole("status", { includeHidden: true })).toHaveText("선택한 이동수단: 전체 2구간 중 2구간 확인");
   expect((await current(page)).schedule).toMatchObject({ travelMode: "car", scheduleAssignments: { "1001": dates.start, "1002": dates.end } });
   await openDeparture(page);

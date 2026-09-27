@@ -1,4 +1,7 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
+import WaveSelect from "../../../components/WaveSelect";
 import { useEffect, useRef, useState } from 'react';
 import type { useTripSelection } from '../hooks/useTripSelection';
 import type { useItineraryRoutes } from '../hooks/useItineraryRoutes';
@@ -41,17 +44,17 @@ export default function SplitReunion({ trip, coverage, origin }: { trip: ReturnT
   return <section aria-label="동행과 합류 계획" style={{ ...courseCard, marginTop: 20 }}>
     <h3 style={{ margin: 0, fontSize: 26 }}>잠깐 따로, 다시 함께</h3>
     <p style={courseCopy}>쉬어 가거나 조금 더 둘러본 뒤 같은 장소에서 만나요. A·B 일정은 함께 정하는 약속이며 위치를 추적하지 않습니다.</p>
-    <label style={courseLabel}>합류를 계획할 날짜<select style={courseInput} value={day} onChange={event => { trip.setActiveDay(event.target.value); setPreviewKey(''); }}>{trip.tripDays.map(value => <option key={value}>{value}</option>)}</select></label>
+    <label style={courseLabel}>합류를 계획할 날짜<WaveSelect style={courseInput} value={day} onChange={event => { trip.setActiveDay(event.target.value); setPreviewKey(''); }}>{trip.tripDays.map(value => <option key={value}>{value}</option>)}</WaveSelect></label>
     <p style={courseCopy}>원래 일정의 순서·체류·고정 약속은 유지됩니다. 분리 출발 전의 공통 일정은 원래 시간표에서 확인해 주세요.</p>
     {stale ? <div><p role="status" style={courseCopy}>원래 일정의 순서나 시간이 바뀌었어요. 저장본을 적용하지 않고 새 조건으로 다시 계획합니다.</p><div className="travel-book-actions" style={courseActions}><button type="button" onClick={() => edit(defaultSplitChoice(input, day))}>바뀐 일정으로 다시 계획</button></div></div> : places.length < 3 ? <p style={courseCopy}>같은 날짜에 장소를 세 곳 이상 담으면 중간 방문을 나눌 수 있어요. 앞·뒤 장소에서는 모두 함께 만납니다.</p> : <>
       <div style={courseGrid}>
-        <label style={courseLabel}>함께 출발할 장소<select style={courseInput} value={choice.startId} onChange={event => changeEnds('startId', event.target.value)}>{places.slice(0, -2).map(place => <option key={place.id} value={place.id}>{place.name}</option>)}</select></label>
-        <label style={courseLabel}>다시 만날 장소<select style={courseInput} value={choice.reunionId} onChange={event => changeEnds('reunionId', event.target.value)}>{places.slice(2).map(place => <option key={place.id} value={place.id}>{place.name}</option>)}</select></label>
+        <label style={courseLabel}>함께 출발할 장소<WaveSelect style={courseInput} value={choice.startId} onChange={event => changeEnds('startId', event.target.value)}>{places.slice(0, -2).map(place => <option key={place.id} value={place.id}>{place.name}</option>)}</WaveSelect></label>
+        <label style={courseLabel}>다시 만날 장소<WaveSelect style={courseInput} value={choice.reunionId} onChange={event => changeEnds('reunionId', event.target.value)}>{places.slice(2).map(place => <option key={place.id} value={place.id}>{place.name}</option>)}</WaveSelect></label>
         <label style={courseLabel}>따로 출발할 시각<input style={courseInput} type="time" value={choice.departureTime} onChange={event => edit({ ...choice, departureTime: event.target.value })}/></label>
         <label style={courseLabel}>다시 만날 시각<input style={courseInput} type="time" value={choice.reunionTime} onChange={event => edit({ ...choice, reunionTime: event.target.value })}/></label>
-        {(['A', 'B'] as const).map(group => <label key={group} style={courseLabel}>{group} 출발 장소에서 더 머무는 시간<select style={courseInput} value={group === 'A' ? choice.waitA : choice.waitB} onChange={event => edit({ ...choice, [group === 'A' ? 'waitA' : 'waitB']: Number(event.target.value) })}>{[0,15,30,45,60,90,120,180,240].map(value => <option key={value} value={value}>{value ? `${value}분 머물기` : '바로 이동'}</option>)}</select></label>)}
+        {(['A', 'B'] as const).map(group => <label key={group} style={courseLabel}>{group} 출발 장소에서 더 머무는 시간<WaveSelect style={courseInput} value={group === 'A' ? choice.waitA : choice.waitB} onChange={event => edit({ ...choice, [group === 'A' ? 'waitA' : 'waitB']: Number(event.target.value) })}>{[0,15,30,45,60,90,120,180,240].map(value => <option key={value} value={value}>{value ? `${value}분 머물기` : '바로 이동'}</option>)}</WaveSelect></label>)}
       </div>
-      <fieldset style={{ border: 0, padding: 0, margin: 0 }}><legend style={{ fontSize: 18, marginBottom: 12 }}>중간 장소를 어떻게 나눌까요?</legend><div style={courseGrid}>{middle.map(place => <label key={place.id} style={courseLabel}>{place.name}<select style={courseInput} value={choice.assignments[place.id] || 'A'} onChange={event => edit({ ...choice, assignments: { ...choice.assignments, [place.id]: event.target.value as 'A' | 'B' } })}><option value="A">A 일정에 방문</option><option value="B">B 일정에 방문</option></select></label>)}</div></fieldset>
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}><legend style={{ fontSize: 18, marginBottom: 12 }}>중간 장소를 어떻게 나눌까요?</legend><div style={courseGrid}>{middle.map(place => <label key={place.id} style={courseLabel}>{place.name}<WaveSelect style={courseInput} value={choice.assignments[place.id] || 'A'} onChange={event => edit({ ...choice, assignments: { ...choice.assignments, [place.id]: event.target.value as 'A' | 'B' } })}><option value="A">A 일정에 방문</option><option value="B">B 일정에 방문</option></WaveSelect></label>)}</div></fieldset>
       <p style={courseCopy}>각 장소는 한 일정에 남겨 두고 원래 체류·휴식 시간을 사용합니다. 중간에 고정한 장소는 나누지 않습니다. 방문할 중간 장소가 없는 쪽은 출발 장소에서 더 머물거나 합류 장소로 바로 이동할 수 있어요.</p>
       <div className="travel-book-actions" style={courseActions}><button type="button" style={coursePrimary} disabled={!trip.storageReady || !result.ok} onClick={() => { setPreviewKey(key); requestAnimationFrame(() => heading.current?.focus()); }}>A·B 합류 계획 보기</button>{draft && <button type="button" onClick={() => { setDrafts(values => Object.fromEntries(Object.entries(values).filter(([id]) => id !== identity))); setPreviewKey(''); setNotice('편집을 취소하고 저장한 선택으로 돌아왔어요.'); }}>편집 취소</button>}</div>
       {!result.ok && <p role="status" style={courseCopy}>{result.error}</p>}
@@ -61,7 +64,7 @@ export default function SplitReunion({ trip, coverage, origin }: { trip: ReturnT
         <div style={courseGrid}>{result.branches.map(branch => <section key={branch.group} aria-label={`${branch.group}의 나뉜 일정`} style={courseCard}><h5 style={{ fontSize: 24, margin: 0 }}>{branch.group} 일정</h5><p style={courseCopy}>출발 장소에서 {branch.group === 'A' ? choice.waitA : choice.waitB}분 더 머뭅니다.</p><ol style={{ margin: 0, paddingLeft: 22 }}>{branch.entries.map(entry => <li key={entry.place.id} style={{ paddingBlock: 12 }}><strong>{formatScheduleTime(entry.arrivesAt)} {entry.place.name}</strong><p style={courseCopy}>이동 {entry.travelMinutes}분 · {entry.travelSource === 'route' ? '조회한 동일 구간' : entry.travelSource === 'estimate' ? '거리 기반 추정' : '이동 미확인·계산용 참고'}{entry.visitMinutes ? ` · 체류 ${entry.visitMinutes}분` : ''}{entry.breakMinutes ? ` · 휴식 ${entry.breakMinutes}분` : ''}</p></li>)}</ol><p style={{ ...courseCopy, color: 'var(--ink)' }}>{branch.lateMinutes ? `합류 약속보다 약 ${branch.lateMinutes}분 늦어요.` : `합류 장소에서 약 ${branch.waitingMinutes}분 기다리는 계획이에요.`}</p>{branch.unknown > 0 && <p style={courseCopy}>이동을 확인하지 못한 구간 {branch.unknown}곳이 있어 실제 도착 가능 여부는 미확인입니다.</p>}</section>)}</div>
         {[...result.notes,...result.warnings].map(warning => <p key={warning} style={courseCopy}>{warning}</p>)}
         {!result.canSave && <p role="status" style={courseCopy}>합류 시각이나 공통 약속에 맞게 시간을 바꾼 뒤 저장해 주세요.</p>}
-        <div className="travel-book-actions" style={courseActions}><button type="button" style={coursePrimary} disabled={!ready || !result.canSave} onClick={save}>합류 약속 저장</button></div>
+        <div className="travel-book-actions" style={courseActions}><button type="button" style={coursePrimary} disabled={!ready || !result.canSave} onClick={save} data-icon-action="" title="합류 약속 저장"><NightIcon name="save" size={20}/><span className="sr-only">합류 약속 저장</span></button></div>
       </section>}
     </>}
     {hasUnsaved && <p style={courseCopy}>아직 저장하지 않은 선택이 있어요. 날짜와 여행 도구를 바꿔도 유지되며, 화면을 떠나기 전에 합류 약속을 저장해 주세요.</p>}

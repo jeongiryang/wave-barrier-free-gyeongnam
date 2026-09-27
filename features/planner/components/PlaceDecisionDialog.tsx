@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 import LoadingState from "../../../components/LoadingState";
 
 import { lazy, Suspense, useState, type RefObject } from "react";
@@ -42,7 +44,7 @@ function PlaceSaveAction({ saved, canSave, explorationAction, onToggleSaved, en 
       <p id="place-unknown-notice" role="status"><strong>{explorationAction.providerError ? say("편의정보 제공처에 연결하지 못했어요.", "The facility information provider could not be reached.") : say("필요한 편의가 아직 미확인이에요.", "Some required facilities are still unverified.")}</strong><br />{say("시설이 없다는 뜻은 아니에요. 방문 전에 시설에 확인해 주세요.", "Missing information does not mean a facility is absent. Your needs stay selected, and saving this candidate does not verify its facilities. Check with the venue before visiting.")}</p>
       <label><input type="checkbox" checked={acknowledged} onChange={event => setAcknowledged(event.target.checked)} aria-describedby="place-unknown-notice" /><span>{say("방문 전 확인할 후보로 담기", "Save as a candidate whose unverified facilities I will check before visiting")}</span></label>
     </div>}
-    <button type="button" aria-pressed={saved} disabled={!saved && canSave === false && !(needsAcknowledgement && acknowledged)} onClick={() => onToggleSaved(needsAcknowledgement && acknowledged ? explorationAction.key : undefined)}>{saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary")}<span aria-hidden="true">{saved ? "−" : "+"}</span></button>
+    <button type="button" className="place-save-action" data-icon-action="" title={saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary")} aria-label={saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary")} aria-pressed={saved} disabled={!saved && canSave === false && !(needsAcknowledgement && acknowledged)} onClick={() => onToggleSaved(needsAcknowledgement && acknowledged ? explorationAction.key : undefined)}><NightIcon name={saved ? "bookmark-remove" : "plus"} size={20}/></button>
     {!saved && canSave === false && !needsAcknowledgement && <p>{mismatch ? say("필요한 편의가 제공되지 않는 것으로 기록된 장소는 추가할 수 없어요. 다른 후보를 살펴봐 주세요.", "This place reports a required facility as unavailable and cannot be added. Please consider another candidate.") : say("현재 검색의 장소를 확인한 뒤 담을 수 있어요. 조건이나 검색 결과가 바뀌었다면 다시 찾아 이용 정보를 열어 주세요.", "Open a place from your current search before adding it. If your preferences or results changed, search again and reopen its details.")}</p>}
   </>;
 }
@@ -53,8 +55,8 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
   const en = locale === "en";
   const location = place.city || region;
   return <dialog className="place-modal native-place-dialog simple-place-pane" aria-labelledby="place-modal-title" ref={dialogRef}>
-      <button className="modal-close" type="button" onClick={onClose} aria-label={en ? "Close" : "닫기"}>×</button>
-      <div className="modal-visual" style={place.image ? { backgroundImage: `linear-gradient(180deg, transparent, rgba(4,25,44,.72)), url("${place.image}")` } : undefined}><span lang={originalLanguage(location)}>{location}</span></div>
+      <button className="modal-close" type="button" onClick={onClose} aria-label={en ? "Close" : "닫기"} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button>
+      <div className="modal-visual" style={place.image ? { backgroundImage: `url("${place.image}")` } : undefined}><span lang={originalLanguage(location)}>{location}</span></div>
       <div className="modal-body">
         <h2 id="place-modal-title" lang={originalLanguage(place.name)} tabIndex={-1}>{place.name}</h2><p lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
         {en && <p className="original-language-note">Place names, addresses and facility evidence are shown in their original language, which may be Korean. Visitor stories are not translated.</p>}
@@ -69,7 +71,7 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
             화면 낭독기 사용자가 어느 것인지 구분할 수 없다.
             `.modal-body > button` 은 기존 계약이 세는 주요 조작이므로, 감싸서
             그 선택자에 걸리지 않게 둔다. */}
-        <div className="modal-close-end"><button type="button" onClick={onClose}>{en ? "Close this dialog" : "이 창 닫기"}</button></div>
+        <div className="modal-close-end"><button type="button" onClick={onClose} data-icon-action="" aria-label={en ? "Close this dialog" : "이 창 닫기"} title={en ? "Close" : "닫기"}><NightIcon name="close" size={20}/></button></div>
       </div>
   </dialog>;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { showActionToast } from "../../../lib/action-toast";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { journeyDays, validateJourneyApplication, type NaruJourney } from '../../../lib/naru-journey.js';
 import { resolveSavedPlaces, sanitizeSavedPlaceCatalog } from "../../../lib/saved-place-catalog.js";
@@ -117,6 +118,8 @@ export function useTripSelection({ schedule, activePlaces, origin, accessibility
     restoreSavedSnapshot(nextPlaces); restoreVoiceSchedule(after, after.days[0] || '', after.days.at(-1) || '');
     optimized.restoreOrderSnapshot(after.mode, after.manualOrder); setActiveDay(after.activeDay);
     setCommandReceipt(receipt); setCommandNotice(receipt.label);
+    if (after.saved.some(id => !receipt.before.saved.includes(id))) showActionToast("일정에 담았습니다.");
+    else if (receipt.before.saved.some(id => !after.saved.includes(id))) showActionToast("일정에서 뺐습니다.");
     return receipt;
   };
   const undoCommand = (receipt = commandReceipt) => {
@@ -131,7 +134,12 @@ export function useTripSelection({ schedule, activePlaces, origin, accessibility
     optimized.restoreOrderSnapshot(before.mode, before.manualOrder); setActiveDay(before.activeDay);
     setCommandReceipt(null); setCommandNotice('변경을 되돌렸어요.'); return true;
   };
-  const toggleSaved = (id: string, snapshot?: Place) => applyTripCommand(saved.includes(id) ? { type: 'remove', id } : { type: 'add', id, day: activeDay }, snapshot ? [snapshot] : activePlaces).ok;
+  const toggleSaved = (id: string, snapshot?: Place) => {
+    const removing = saved.includes(id);
+    const result = applyTripCommand(removing ? { type: 'remove', id } : { type: 'add', id, day: activeDay }, snapshot ? [snapshot] : activePlaces);
+    if (!result.ok) showActionToast(result.reason);
+    return result.ok;
+  };
   const savePlaceIds = (ids: string[]) => {
     const additions = [...new Set(ids)].filter(id => !saved.includes(id) && activePlaces.some(place => place.id === id));
     return additions.length && applyTripCommand(additions.map(id => ({ type: 'add', id, day: activeDay }))).ok ? additions.length : 0;

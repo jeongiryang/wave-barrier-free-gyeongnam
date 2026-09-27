@@ -54,7 +54,10 @@ test("door topic works offline without a network request and restores focus", as
 test("keyboard, Escape and rotation work at a 320px reflow viewport", async ({ page }) => {
   const board = await openOnsiteCommunication(page);
   await page.setViewportSize({ width: 320, height: 740 });
-  await board.getByRole("button", { name: "직원에게 보여주기", exact: true }).focus();
+  const show = board.getByRole("button", { name: "직원에게 보여주기", exact: true });
+  await expect(show).toBeFocused();
+  await show.scrollIntoViewIfNeeded();
+  expect(await show.evaluate(node => { const box = node.getBoundingClientRect(); return node.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)); })).toBe(true);
   await page.keyboard.press("Enter");
   await expect(board.getByRole("button", { name: "왼쪽에 있어요", exact: true })).toBeVisible();
   await board.getByRole("button", { name: "화면 돌리기", exact: true }).click();

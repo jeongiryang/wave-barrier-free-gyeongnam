@@ -1,3 +1,5 @@
+
+import NightIcon from '../../../components/NightIcon';
 import type { NaruJourney } from '../../../lib/naru-journey.js';
 
 type Props = {
@@ -12,7 +14,6 @@ export default function NaruWorkspaceAside(props: Props) {
   const { draft, places } = props;
   return <aside className="naru-workspace-sidebar" aria-label="함께 준비하는 여행">
     <h2>함께 준비하는 여행</h2>
-    <p>대화에서 정한 조건과 일정을 함께 살펴보세요.</p>
     <dl className="naru-workspace-summary">
       <div><dt>지역</dt><dd>{draft?.region || props.region || '아직 정하지 않았어요'}</dd></div>
       <div><dt>동행</dt><dd>{props.companion || '아직 정하지 않았어요'}</dd></div>
@@ -34,7 +35,7 @@ export default function NaruWorkspaceAside(props: Props) {
       <button type="button" disabled={props.busy} onClick={props.onPhoto}>사진에서 정보 읽기 </button>
       <button type="button" disabled={props.busy} onClick={props.onReview}>내 일정 점검 </button>
       <button type="button" onClick={() => props.onTool('facilities')}>편의시설 선택 </button>
-      <button type="button" onClick={() => props.onTool('places')}>일정에 담기 </button>
+      <button type="button" onClick={() => props.onTool('places')} data-icon-action="" title="일정에 담기"><NightIcon name="plus" size={20}/><span className="sr-only">일정에 담기</span></button>
     </div></details>
   </aside>;
 }

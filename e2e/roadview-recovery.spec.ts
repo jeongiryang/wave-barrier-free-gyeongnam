@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { ensureMapView, openNearby } from "./nearby-fixtures";
@@ -46,8 +47,8 @@ async function choose(page:Page,english=false){
   const trigger=page.getByRole("button",{name:english ? "◉ Roadview":"◉ 로드뷰",exact:true});await trigger.focus();await page.keyboard.press("Enter");
   const choice=page.locator("#map-roadview-choice");await expect(choice).toBeVisible();
   await expect(choice.getByRole("button",{name:english ? "Cancel Roadview selection":"로드뷰 위치 선택 취소",exact:true})).toBeFocused();
-  await page.keyboard.press("Tab");const select=choice.getByLabel(english ? "Itinerary place":"일정 장소",{exact:true});await expect(select).toBeFocused();await expect(select).toHaveValue("");
-  await select.selectOption({index:1});await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");const select=choice.getByRole('combobox', { name: english ? "Itinerary place":"일정 장소", ...{exact:true} });await expect(select).toBeFocused();await expect(waveSelectNative(select)).toHaveValue("");
+  await chooseWaveOption(select, {index:1});await page.keyboard.press("Tab");
   const open=choice.getByRole("button",{name:english ? "Open selected place Roadview":"선택한 장소 로드뷰 열기",exact:true});await expect(open).toBeFocused();await page.keyboard.press("Enter");
   const panel=page.locator("#map-roadview-panel");await expect(panel).toBeVisible();await expect(panel.getByRole("button",{name:english ? "Close Roadview":"로드뷰 닫기",exact:true})).toBeFocused();return panel;
 }
@@ -100,7 +101,7 @@ for(const english of [false,true])for(const theme of ["light","dark"])test(`Road
 for(const english of [false,true])for(const theme of ["light","dark"])test(`Roadview location selection stays reachable ${english ? "English":"Korean"} ${theme}`,async({page},testInfo)=>{
   await prepare(page,english,theme);await page.getByRole("button",{name:english ? "◉ Roadview":"◉ 로드뷰",exact:true}).click();const choice=page.locator("#map-roadview-choice");
   for(const [width,height] of [[320,568],[360,640],[390,844],[430,932],[768,1024],[1024,768],[1280,720],[1366,768],[1440,900],[1920,1080],[2560,1440]]){
-    await page.setViewportSize({width,height});await ensureMapView(page);const controls=choice.locator("button,select");await expect(controls).toHaveCount(3);await controls.last().focus();await page.keyboard.press("Shift+Tab");await page.keyboard.press("Shift+Tab");
+    await page.setViewportSize({width,height});await ensureMapView(page);const controls=choice.locator("button");await expect(controls).toHaveCount(3);await controls.last().focus();await page.keyboard.press("Shift+Tab");await page.keyboard.press("Shift+Tab");
     for(let index=0;index<3;index++){
       if(index)await page.keyboard.press("Tab");await expect(controls.nth(index)).toBeFocused();
       expect(await controls.nth(index).evaluate(b=>{const r=b.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return [{width:r.width,height:r.height,overflow:b.scrollWidth-b.clientWidth,verticalOverflow:b.scrollHeight-b.clientHeight,reachable:b.contains(hit),hit:hit?.className}].filter(v=>v.width<44||v.height<44||v.overflow>1||v.verticalOverflow>1||!v.reachable);}),`${width}px choice control ${index}`).toEqual([]);

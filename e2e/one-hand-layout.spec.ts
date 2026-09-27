@@ -39,7 +39,7 @@ test("390px 장소 상세는 내용 맨 아래에도 닫기를 두고 초점을 
   // 이름이 같으면 화면 낭독기 사용자가 어느 것인지 구분할 수 없다.
   const bottomClose = dialog.locator(".modal-close-end > button");
   await expect(bottomClose).toBeVisible();
-  await expect(bottomClose).toHaveText("이 창 닫기");
+  await expect(bottomClose).toHaveAccessibleName("이 창 닫기");
   await expect(dialog.getByRole("button", { name: "이 창 닫기", exact: true })).toHaveCount(1);
   // 위 닫기는 여전히 이름으로 하나만 특정된다. 기존 계약이 이 형태를 쓴다.
   await expect(dialog.getByRole("button", { name: "닫기", exact: true })).toHaveCount(1);
@@ -70,16 +70,20 @@ test("390px 장소 상세는 내용 맨 아래에도 닫기를 두고 초점을 
 });
 
 for (const width of [768, 960, 1440]) {
-  test(`${width}px 배치는 그대로다. 아래 닫기가 보이지 않고 초점 순서에도 없다`, async ({ page }) => {
+  test(`${width}px 아래 닫기 아이콘은 이름과 키보드 복귀를 유지한다`, async ({ page }) => {
     await openPlanner(page, width);
     await page.getByRole("button", { name: "경남도립미술관 상세 보기", exact: true }).click();
     const dialog = placeDialog(page);
     await expect(dialog.locator(".modal-close")).toBeVisible();
-    // display:none 이므로 그려지지 않고 Tab 순서에도 들어가지 않는다.
-    await expect(dialog.locator(".modal-close-end > button")).toBeHidden();
-    await expect(dialog.getByRole("button", { name: "이 창 닫기", exact: true })).toHaveCount(0);
+    const close = dialog.getByRole("button", { name: "이 창 닫기", exact: true });
+    await expect(close).toBeVisible();
+    await close.scrollIntoViewIfNeeded(); await close.focus();
+    await expect(close).toBeFocused();
+    expect((await close.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await expect(dialog.getByRole("button", { name: "닫기", exact: true })).toHaveCount(1);
     expect((await new AxeBuilder({ page }).include(".native-place-dialog").analyze()).violations).toEqual([]);
+    await close.press("Enter"); await expect(dialog).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "경남도립미술관 상세 보기", exact: true })).toBeFocused();
   });
 }
 

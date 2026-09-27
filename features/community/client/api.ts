@@ -29,8 +29,9 @@ export class CommunityRequestError extends Error {
   readonly kind: CommunityRequestErrorKind;
   readonly status: number;
 
-  constructor(kind: CommunityRequestErrorKind, message: string, status = 0, options?: ErrorOptions) {
-    super(message, options);
+  constructor(kind: CommunityRequestErrorKind, message: unknown, status = 0, options?: ErrorOptions) {
+    const detail = typeof message === "object" && message !== null && "message" in message ? message.message : message;
+    super(typeof detail === "string" && detail.trim() && detail !== "[object Object]" ? detail : "일시적으로 연결하지 못했어요. 잠시 후 다시 시도해 주세요.", options);
     this.name = "CommunityRequestError";
     this.kind = kind;
     this.status = status;

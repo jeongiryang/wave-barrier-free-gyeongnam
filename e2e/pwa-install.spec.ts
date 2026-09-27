@@ -3,6 +3,8 @@ import { openSupportMenu } from './support-menu';
 import { mockPublicShellApi } from './fixtures';
 for (const installAvailable of [false,true]) test(`preferences omit install prompts (browser support: ${installAvailable})`,async({page})=>{
   await mockPublicShellApi(page);
+  // This covers post-arrival preferences, not the separate first-visit intro.
+  await page.addInitScript(() => sessionStorage.setItem('wave-arrival-session-v1', 'done'));
   await page.goto('/');
   await openSupportMenu(page);
   if(installAvailable) await page.evaluate(()=>window.dispatchEvent(new Event('beforeinstallprompt')));

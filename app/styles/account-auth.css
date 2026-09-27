@@ -1,7 +1,5 @@
 /* --- 정식 계정 화면과 헤더 계정 상태 --- */
 .account-button,.account-loading,.account-menu > :is(summary,.wave-support-trigger) { padding: 8px 13px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: rgba(255,255,255,.9); font-size: .74rem; font-weight: 850; }
-.account-loading { width: 44px; padding: 0; }
-.account-loading i { width: 13px; height: 13px; border: 2px solid #bdd4df; border-top-color: var(--blue); border-radius: 50%; animation: accountSpin .8s linear infinite; }
 @keyframes accountSpin { to { transform: rotate(360deg); } }
 .account-menu { position: relative; display: block; }
 .account-menu > :is(summary,.wave-support-trigger) { max-width: 160px; gap: 8px; list-style: none; cursor: pointer; }

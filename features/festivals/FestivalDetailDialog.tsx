@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../components/NightIcon';
+
 
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
@@ -50,7 +52,7 @@ export default function FestivalDetailDialog({ festival, websiteUrl, onClose, vi
   const dialog = usePlaceDialogFocus(true, onClose);
   const primaryUrl = websiteUrl || festival.websiteUrl || festival.officialUrl;
   return <dialog ref={dialog} className={styles.dialog} style={ui.dialog} aria-labelledby={`festival-detail-${festival.id}`} data-testid="festival-detail-dialog">
-    <button type="button" className={styles.close} style={ui.close} aria-label="축제 상세 정보 닫기" onClick={onClose}>×</button>
+    <button type="button" className={styles.close} style={ui.close} aria-label="축제 상세 정보 닫기" onClick={onClose} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button>
     <div className={styles.layout} style={ui.layout}>
       <div className={styles.poster} style={ui.poster}>
         {festival.image

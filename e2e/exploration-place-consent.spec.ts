@@ -55,6 +55,10 @@ async function stored(page: Page) {
 for (const theme of ["light", "dark"]) test(`${theme}: a provider failure candidate requires consent, keeps unknown evidence and restores dates and needs`, async ({ page }, info) => {
   await page.addInitScript(value => localStorage.setItem("wave-theme", value), theme);
   const errors = await setup(page);
+  const candidate = page.locator('.simple-exploration article').filter({has:page.getByRole('heading',{name:unknown.name,exact:true})});
+  await expect(candidate.locator('.place-card-actions button')).toHaveCount(2);
+  await expect(candidate.locator('.place-card-info')).toHaveCount(1);
+  await expect(candidate.locator('.simple-place-add')).toHaveAccessibleName(`${unknown.name} 편의 확인`);
   let dialog = await open(page);
   await expect(dialog.getByRole("button", { name: "일정에 추가", exact: true })).toBeDisabled();
   await expect(dialog.getByLabel(consentName, { exact: true })).not.toBeChecked();
@@ -81,6 +85,9 @@ for (const theme of ["light", "dark"]) test(`${theme}: a provider failure candid
   await dialog.getByLabel(consentName, { exact: true }).check();
   await dialog.getByRole("button", { name: "일정에 추가", exact: true }).click();
   await expect(dialog).toHaveCount(0);
+  await expect(candidate.locator('.place-card-actions button')).toHaveCount(2);
+  await expect(candidate.locator('.place-card-info')).toHaveCount(1);
+  await expect(candidate.locator('.place-save-feedback')).toHaveText('담았습니다');
   await expect.poll(() => stored(page).then(value => value.ids)).toEqual(["1001"]);
   const before = await stored(page);
   expect(before.profiles).toEqual(keys);

@@ -98,7 +98,9 @@ for (const theme of ["light", "dark"] as const) {
     await expect(story).toHaveAttribute("href", "/community/contrast-post");
     await page.getByRole("button", { name: "목록형", exact: true }).click();
     await expect(page.locator(".community-list")).toHaveAttribute("data-layout", "list");
-    await expect(story).toContainText("좋아요 4 · 댓글 2");
+    const article = page.locator('.community-list article').filter({ has: story });
+    await expect(article.locator('[aria-label="좋아요 4"]')).toHaveText('4');
+    await expect(article.locator('[aria-label="댓글 2"]')).toHaveText('2');
     await page.getByRole("group", { name: "게시글 보기 방식", exact: true }).getByRole("button", { name: "카드형", exact: true }).click();
     await expect(page.locator(".community-list")).toHaveAttribute("data-layout", "cards");
     await expect(story).toContainText("경남도립미술관");

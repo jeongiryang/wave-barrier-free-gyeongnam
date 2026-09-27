@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { helpMessage, helpSituations } from "../../../lib/help-request.js";
@@ -88,7 +90,7 @@ export default function HelpRequestDialog({ placeName, placeAddress, placeRegion
               <p className="section-kicker">WAVE · 도움 요청</p>
               <h2 id="help-request-title" tabIndex={-1}>도움이 필요할 때</h2>
             </div>
-            <button type="button" onClick={onClose} aria-label="도움 요청 닫기">×</button>
+            <button type="button" onClick={onClose} aria-label="도움 요청 닫기" data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button>
           </header>
 
           <section aria-label="지금 있는 곳">
@@ -135,7 +137,7 @@ export default function HelpRequestDialog({ placeName, placeAddress, placeRegion
 
           <div className="inquiry-actions">
             <button type="button" ref={primaryButtonRef} onClick={showScreen}>이 화면 보여주기</button>
-            <button type="button" onClick={() => void copyMessage()}>문장 복사하기</button>
+            <button type="button" onClick={() => void copyMessage()} data-icon-action="" title="문장 복사하기"><NightIcon name="copy" size={20}/><span className="sr-only">문장 복사하기</span></button>
           </div>
           {notice && <p role="status">{notice}</p>}
           {copyFallback && (

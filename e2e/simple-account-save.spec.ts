@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { closeNewTripMenu, newTripAction, startNewTrip } from './planner-header-fixtures';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
@@ -129,7 +130,7 @@ async function openSource(page: Page, state: State) {
 async function editVisit(page: Page, minutes = "180") {
   await page.getByRole("button", { name: `${museum} 일정 수정`, exact: true }).click();
   const dialog = page.getByRole("dialog", { name: `${museum} 수정`, exact: true });
-  await dialog.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }).selectOption(minutes);
+  await chooseWaveOption(dialog.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }), minutes);
   await dialog.getByRole("button", { name: "적용", exact: true }).click();
   await expect(page.locator("#itinerary-stop-1001")).toContainText(`${minutes}분 머묾`);
   await expect.poll(async () => (await stored(page)).schedule.visitMinutesByPlaceId["1001"]).toBe(Number(minutes));
@@ -144,13 +145,13 @@ async function reviewPausedSave(page: Page) {
 }
 async function freshTrip(page: Page) {
   await page.goto("/planner");
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
   await page.getByRole("button", { name: `${museum} 일정에 담기`, exact: true }).click();
   await page.locator(".wave-header").locator(".wave-my-trips").click();
   const setup = page.locator(".simple-initial-setup");
   await setup.getByLabel("시작일", { exact: true }).fill(start);
   await setup.getByLabel("마지막 날", { exact: true }).fill(end);
-  await setup.getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("car");
+  await chooseWaveOption(setup.getByRole("combobox", { name: "이동 수단", exact: true }), "car");
   await setup.getByRole("button", { name: "시간표 만들기", exact: true }).click();
   await expect(page.locator("#itinerary-stop-1001")).toBeVisible();
   await expect(page.getByRole("button", { name: "내 여행에 저장", exact: true })).toBeEnabled();
@@ -321,7 +322,7 @@ test("저장 응답 전에 다른 여행으로 전환하면 이전 응답은 새
   await newTripAction(other); await closeNewTripMenu(other);
   await startNewTrip(other);
   await newTripAction(other); await closeNewTripMenu(other);
-  await expect(other.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
+  await expect(waveSelectNative(other.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("");
   const fresh = await stored(other);
   expect(fresh.identity?.id).not.toBe(before.identity?.id);
   expect(fresh.identity?.binding).toBeNull();

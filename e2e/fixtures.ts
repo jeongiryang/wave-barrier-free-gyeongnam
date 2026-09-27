@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import type { PlanData } from "../features/planner/types";
 
 const places = [
@@ -89,8 +90,7 @@ export async function mockPublicShellApi(page: Page) {
 /** Real UI actions; tests no longer rely on automatic disability assumptions. */
 export async function chooseTripConditions(page: Page) {
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
-  await region.waitFor();
-  await page.waitForFunction(() => !document.querySelector<HTMLSelectElement>('[aria-label="여행 지역"]')?.disabled);
+  await expect(waveSelectNative(region)).toHaveCount(1);
   let completed = false;
   const onResponse = async (response: import('@playwright/test').Response) => {
     const url = new URL(response.url());
@@ -102,8 +102,8 @@ export async function chooseTripConditions(page: Page) {
   };
   page.on('response', onResponse);
   try {
-    let changed = await region.inputValue() !== '창원';
-    await region.selectOption('창원');
+    let changed = await waveSelectNative(region).inputValue() !== '창원';
+    await chooseWaveOption(region, '창원');
     const nature = page.getByRole('button', { name: '자연·휴양', exact: true });
     if (await nature.getAttribute('aria-pressed') !== 'true') { changed = true; await nature.click(); }
     await page.locator('.simple-facility-trigger').click();

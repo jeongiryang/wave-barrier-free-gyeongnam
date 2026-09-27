@@ -1,3 +1,5 @@
+import { arrivalPlaybackReady } from "./landing-contract";
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -28,14 +30,19 @@ test.afterEach(async ({ page }) => {
   expect(pageErrors.get(page) || []).toEqual([]);
 });
 
-test("landing: first arrival and reload are immediately readable and keyboard usable", async ({ page }) => {
+test("landing: first arrival is readable, dismissible and remembers completion", async ({ page }) => {
   await freshArrival(page);
-  const planning = page.locator(".landing-actions a");
-  await expect(page.locator("#arrival-boot,.arrival-scene,.wave-intro")).toHaveCount(0);
-  await expectUsableTarget(planning);
-  expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBeNull();
+  const scene = page.locator(".arrival-scene"), planning = page.locator(".night-hero-search button[type=submit]");
+  await expect(scene).toHaveAttribute("open", "");
+  await arrivalPlaybackReady(page);
+  await expect(scene).toContainText("모두의 발걸음이 닿는 경상남도");
+  await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(scene).toBeHidden();
+  expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
+  await page.clock.resume();
   await page.reload(); await storyReady(page);
-  await expect(page.locator(".arrival-scene")).toHaveCount(0);
+  await expect(scene).toBeHidden();
   await expectUsableTarget(planning);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expectNoSeriousA11yIssues(page);
@@ -47,10 +54,10 @@ test("landing: reduced motion exposes the real planning action immediately witho
   await page.goto("/"); await storyReady(page);
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
-  const planning = page.locator(".landing-actions a");
+  const planning = page.locator(".night-hero-search button[type=submit]");
   await expectUsableTarget(planning);
-  await expect(planning).toHaveAccessibleName("여행지 둘러보기");
-  await expect(planning).toHaveAttribute("href", "/planner");
+  await expect(planning).toHaveAccessibleName("여행지 검색");
+  await expect(page.locator(".night-hero-search")).toHaveAttribute("action", "/planner");
   await page.keyboard.press("Tab");
   await expect(planning).not.toBeFocused();
   expect(await page.evaluate(() => document.activeElement?.closest(".arrival-scene"))).toBeNull();
@@ -71,13 +78,13 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await page.goto("/planner");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
     await expect(region).toBeEnabled();
-    await region.selectOption("창원");
+    await chooseWaveOption(region, "창원");
     const museumCard = page.locator(".simple-place-row").filter({ has: page.getByRole("heading", { name: "경남도립미술관" }) });
     const parkCard = page.locator(".simple-place-row").filter({ has: page.getByRole("heading", { name: "용지호수공원" }) });
     await expect(museumCard.getByRole("img", { name: "경남도립미술관 관광사진" })).toBeVisible();
     await expect(parkCard.getByText("공식 사진을 확인할 수 없어요", { exact: true })).toBeVisible();
 
-    const detailButton = museumCard.getByRole("button", { name: "경남도립미술관 상세 보기", exact: true });
+    const detailButton = museumCard.getByRole("button", { name: "경남도립미술관 상세정보", exact: true });
     await detailButton.focus(); await detailButton.click();
     const dialog = page.getByRole("dialog", { name: "경남도립미술관", exact: true });
     await expect(dialog.getByRole("heading", { name: "경남도립미술관", exact: true })).toBeFocused();
@@ -102,7 +109,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await setup.getByLabel("시작일", { exact: true }).fill("2026-09-20");
     await setup.getByLabel("마지막 날", { exact: true }).fill("2026-09-20");
     await setup.getByLabel("하루 시작", { exact: true }).fill("10:00");
-    await setup.getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("car");
+    await chooseWaveOption(setup.getByRole("combobox", { name: "이동 수단", exact: true }), "car");
     await setup.getByRole("button", { name: "시간표 만들기", exact: true }).click();
     // Mobile hides the same timetable while the map is selected; inspect its
     // shared schedule now and require it to be visible when returning below.
@@ -167,17 +174,17 @@ test("planner exposes honest recovery when the official plan request fails", asy
   await mockPlannerApi(page, { failPlan: true });
   await page.goto("/planner");
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
-  await expect(region).toBeEnabled(); await region.selectOption("창원");
+  await expect(region).toBeEnabled(); await chooseWaveOption(region, "창원");
   await expect(page.locator("#places").getByRole("alert")).toContainText("서버가 요청을 처리하지 못했어요.");
   await expect(page.getByRole("button", { name: "같은 조건으로 다시 시도", exact: true })).toBeVisible();
-  await expect(region).toHaveValue("창원");
+  await expect(region).toHaveText("창원");
 });
 
 test("planner announces a delayed request and replaces its skeleton with official results", async ({ page }) => {
   await mockPlannerApi(page, { slowPlan: true });
   await page.goto("/planner");
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
-  await expect(region).toBeEnabled(); await region.selectOption("창원");
+  await expect(region).toBeEnabled(); await chooseWaveOption(region, "창원");
   await expect(page.getByRole("status").filter({ hasText: "여행지를 찾고 있어요." })).toBeAttached();
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "true");
   await expect(page.locator(".simple-place-skeleton")).toHaveCount(3);
@@ -274,16 +281,16 @@ test("authenticated travelers can publish, like and comment without losing sessi
 
   await page.goto("/community/new");
   await expect(page.getByRole("heading", { name: "경남 여행 후기와 질문을 남겨 주세요" })).toBeVisible();
-  await page.getByLabel("게시판").selectOption("review");
-  await page.getByLabel("지역").selectOption("창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "게시판", exact: true }), "review");
+  await chooseWaveOption(page.getByRole("combobox", { name: "지역", exact: true }), "창원");
   await page.getByLabel("제목").fill("휠체어로 둘러본 미술관 동선");
   await page.getByLabel("내용").fill("입구에서 전시장까지 직접 이동해 본 경험을 공유합니다.");
   await page.getByRole("button", { name: "후기 등록" }).click();
   await expect(page).toHaveURL(/\/community\/owned-post$/);
   await expect(page.getByRole("heading", { name: "휠체어로 둘러본 미술관 동선" })).toBeVisible();
 
-  await page.getByRole("button", { name: /도움이 됐어요/ }).click();
-  await expect(page.getByRole("button", { name: /공감했어요/ })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: /^좋아요 \d+$/ }).click();
+  await expect(page.getByRole("button", { name: /^좋아요 취소 \d+$/ })).toHaveAttribute("aria-pressed", "true");
   const commentInput = page.getByLabel("댓글 남기기");
   await commentInput.fill("로그인한 계정의 댓글 초안입니다.");
   await page.reload();

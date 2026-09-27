@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RegionSound } from "../region-sound";
@@ -25,7 +27,7 @@ function AvailableRegionSoundPlayer({ sound }: { sound: RegionSound }) {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const connection = (navigator as Navigator & { connection?: Connection }).connection;
     const sync = () => {
-      const next = !media.matches
+      const next = typeof IntersectionObserver === "function" && !media.matches
         && document.documentElement.dataset.motion !== "calm"
         && connection?.saveData !== true;
       setAllowed(next);
@@ -85,7 +87,7 @@ function AvailableRegionSoundPlayer({ sound }: { sound: RegionSound }) {
   return <div data-region-sound-player ref={root} aria-label="지역 배경 소리" style={{ margin: "0 0 28px", color: "var(--ink-soft)" }}>
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
       <button style={buttonStyle} type="button" onClick={() => void play()} disabled={playing || failed}>{failed ? "지금은 들을 수 없어요." : "지역 소리 재생"}</button>
-      <button style={buttonStyle} type="button" onClick={() => stop()} disabled={!playing}>정지</button>
+      <button style={buttonStyle} type="button" onClick={() => stop()} disabled={!playing} data-icon-action="" title="정지"><NightIcon name="stop" size={20}/><span className="sr-only">정지</span></button>
       {playing && <span role="status">소리 재생 중</span>}
     </div>
     <p style={{ margin: "8px 0 0", color: "var(--muted)" }}><strong style={{ display: "block" }}>{sound.title}</strong><small style={{ display: "block", fontSize: ".75rem" }}>{sound.credit} · <a href={sound.licenseUrl} target="_blank" rel="noopener noreferrer">{sound.license}</a> · {sound.checkedOn} 확인</small></p>

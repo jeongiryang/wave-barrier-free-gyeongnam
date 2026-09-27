@@ -86,7 +86,7 @@ test('mouse header dragging stays bounded and resets on size, close and compact 
   await expect(panel).not.toHaveAttribute('data-moved', 'true');
   await withinViewport(page, panel);
   await panel.getByRole('button', { name: '대화창 작게 보기', exact: true }).click();
-  await drag(page, panel.getByRole('button', { name: '저장한 여행 작업 열기', exact: true }), 65, 50);
+  await drag(page, panel.getByRole('button', { name: '나루 대화 닫기', exact: true }), -65, 50);
   await expect(panel).not.toHaveAttribute('data-moved', 'true');
   await drag(page, handle, -80, 15);
   await expect(panel).toHaveAttribute('data-moved', 'true');

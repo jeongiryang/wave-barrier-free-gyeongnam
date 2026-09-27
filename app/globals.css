@@ -1,19 +1,18 @@
 @import "leaflet/dist/leaflet.css";
 
-/* Horizon — Owner의 10번 시안. 기존 의미 토큰 이름을 유지한다.
-   경고·혼잡·성공 상태색과 보류된 다크 모드 토큰은 별도로 관리한다. */
+/* WAVE logo palette. Semantic success/warning/error colors remain distinct. */
 :root {
-  --abyss: #04202f;
-  --ink: #242b2a;
-  --ink-soft: #43504d;
-  --blue: #12655b;
-  --blue-dark: #0a4d45;
-  --surf: #17b8d4;
-  --mint: #6fe3d0;
-  --sky: #edf4f1;
+  --abyss: #071e35;
+  --ink: #122c45;
+  --ink-soft: #39566e;
+  --blue: #0766b5;
+  --blue-dark: #064e8c;
+  --surf: #17d6ff;
+  --mint: #85eaff;
+  --sky: #edf7ff;
   --paper: #ffffff;
-  --line: #dce3e0;
-  --muted: #5c6865;
+  --line: #c4daea;
+  --muted: #546d83;
   --white: #fff;
   /* 파란 배경 위에 얹는 글자. 어두운 화면에서는 --blue가 밝아지므로 흰색을
      그대로 두면 대비가 2.47까지 떨어진다. 배경 토큰과 짝으로 뒤집는다. */
@@ -21,7 +20,7 @@
   --foam: #f7fcfe;
   /* 전 구역이 공유하는 바탕 */
   --surface: #ffffff;
-  --surface-deep: #e8eeec;
+  --surface-deep: #e6f1fa;
   --scroll-progress: 0%;
   --scroll-shift: 0px;
   --layout-max: 1840px;

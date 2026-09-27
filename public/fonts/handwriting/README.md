@@ -3,3 +3,5 @@ Decorative signatures use Nanum Pen Script and Caveat, subset from https://githu
 The modified subsets use the internal family names WaveHand and WaveScript; upstream copyright and license notices remain intact.
 
 2026-09-24: extended WaveHand subset with every character in “나루와 함께해요”, using the same upstream Nanum Pen Script.
+
+2026-09-27: rebuilt WaveHand from upstream NanumPenScript-Regular.ttf to cover Hangul in all current TSX copy (729 total glyph mappings). The previous 94-character subset missed hero letters, causing mixed fallback handwriting. Upstream license preserved.

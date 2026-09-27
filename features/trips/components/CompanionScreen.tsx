@@ -1,4 +1,7 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
+import WaveSelect from "../../../components/WaveSelect";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import WaveHeader from "../../../components/WaveHeader";
@@ -260,9 +263,7 @@ export default function CompanionScreen({ id }: { id: string }) {
                             setNotice("주소를 직접 선택해 복사해 주세요."),
                           );
                       }}
-                    >
-                      초대 주소 복사
-                    </button>
+                     data-icon-action="" title="초대 주소 복사"><NightIcon name="copy" size={20}/><span className="sr-only">초대 주소 복사</span></button>
                   </label>
                 )}
                 <button
@@ -462,9 +463,7 @@ export default function CompanionScreen({ id }: { id: string }) {
                               proposalId: p.id,
                             })
                           }
-                        >
-                          제안 닫기
-                        </button>
+                         data-icon-action="" title="제안 닫기"><NightIcon name="close" size={20}/><span className="sr-only">제안 닫기</span></button>
                         {p.revision !== state.revision && (
                           <p>
                             이후 변경이 있어요. 최신 일정에서 다시 제안해
@@ -488,7 +487,7 @@ export default function CompanionScreen({ id }: { id: string }) {
                   <div className={styles.fields}>
                     <label>
                       도착 장소
-                      <select
+                      <WaveSelect
                         value={toId}
                         onChange={(e) => setToId(e.target.value)}
                       >
@@ -498,11 +497,11 @@ export default function CompanionScreen({ id }: { id: string }) {
                             {name(stopId)}까지
                           </option>
                         ))}
-                      </select>
+                      </WaveSelect>
                     </label>
                     <label>
                       이동 수단
-                      <select
+                      <WaveSelect
                         value={mode}
                         onChange={(e) => setMode(e.target.value)}
                       >
@@ -511,11 +510,11 @@ export default function CompanionScreen({ id }: { id: string }) {
                             {v}
                           </option>
                         ))}
-                      </select>
+                      </WaveSelect>
                     </label>
                     <label>
                       상태(동행 확인)
-                      <select
+                      <WaveSelect
                         value={status}
                         onChange={(e) => setStatus(e.target.value)}
                       >
@@ -524,7 +523,7 @@ export default function CompanionScreen({ id }: { id: string }) {
                             {v}
                           </option>
                         ))}
-                      </select>
+                      </WaveSelect>
                     </label>
                     <label>
                       총액(원)

@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test } from '@playwright/test';
 import { mockPlannerApi, mockPublicShellApi, plan } from './fixtures';
 import { placeFrom } from '../server/tourism/accessibility-model';
@@ -20,7 +21,7 @@ test('시설 상세는 제공처 서식을 텍스트로 읽고 없음과 미확�
     return route.fallback();
   });
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await page.getByRole('button', { name: place.name, exact: true }).click();
   const pane = page.locator('.simple-place-pane[open]');
   const evidence = pane.locator('.facility-evidence-list');

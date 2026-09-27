@@ -24,9 +24,10 @@ for (const restored of [false, true]) for (const path of ["/", "/planner", "/com
       await storyReady(page);
       await expect(page.locator(".arrival-scene")).toBeHidden();
       await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
-      const planning = page.locator(".landing-actions a");
-      await expect(planning).toHaveAccessibleName("여행지 둘러보기");
-      await expect(planning).toHaveAttribute("href", "/planner");
+      const planning = page.locator(".night-hero-search button[type=submit]");
+      await expect(planning).toHaveAccessibleName("여행지 검색");
+      await expect(page.locator(".night-hero-search")).toHaveAttribute("action", "/planner");
+      await expect(planning).toHaveAttribute("type", "submit");
       await expectUsableTarget(planning);
     }
     await openSupportMenu(page);

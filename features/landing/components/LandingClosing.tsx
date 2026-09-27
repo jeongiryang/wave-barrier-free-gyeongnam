@@ -1,7 +1,7 @@
 import SiteFooter from "../../../components/SiteFooter";
 import type { LandingTranslate } from "../content";
 import { useSitePreferences } from "../../../components/SitePreferences";
-import { brandMeaning } from "../content";
+
 
 export function LandingEvidenceStory({ t }: { t: LandingTranslate }) {
   return <section className="evidence-story" id="evidence" aria-labelledby="data-principles-title">
@@ -18,10 +18,9 @@ export function LandingCallToAction({}: { t: LandingTranslate }) {
   const en = useSitePreferences().locale === "en";
   return <section id="closing" tabIndex={-1} aria-labelledby="closing-title" className="landing-cta">
     <div className="landing-closing-copy" data-land-reveal>
-    <div className="brand-meaning"><p>{brandMeaning.ko}</p><p lang="en">{brandMeaning.en}</p></div>
-    <span className="closing-eyebrow">{en ? "YOUR NEXT HORIZON" : "이제, 당신의 경남을 만날 차례"}</span>
-    <h2 id="closing-title">{en ? "See you at" : "다음 풍경에서"}<br /><em>{en ? "the next horizon." : "만나요"}</em></h2>
-    <p>{en ? "Gyeongnam, at our own pace." : "경남, 우리의 속도로"}</p>
+
+    <h2 id="closing-title">{en ? "See you at the next horizon" : "다음 풍경에서 만나요"}</h2>
+    <p>{en ? "Explore Gyeongnam at your own pace." : "나만의 속도로, 경남을 여행해요."}</p>
     </div>
   </section>;
 }

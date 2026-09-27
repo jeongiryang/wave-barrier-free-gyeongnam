@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from '@axe-core/playwright';
 import {test,expect,type Page} from '@playwright/test';
@@ -19,7 +20,7 @@ async function setup(page:Page){
  await openItinerary(page, { start: '2026-10-08' });
  await openNaruTool(page, '이동 구간 확인');
  await page.getByRole('button',{name:'돌아가는 교통 확인',exact:true}).click();
- const panel=page.getByRole('region',{name:'돌아가는 교통 확인',exact:true});await panel.getByRole('combobox',{name:'어디에서 이동하나요?',exact:true}).selectOption('1001');return panel;
+ const panel=page.getByRole('region',{name:'돌아가는 교통 확인',exact:true});await chooseWaveOption(panel.getByRole('combobox',{name:'어디에서 이동하나요?',exact:true}), '1001');return panel;
 }
 test('return transport is explicit, relates subsequent stops to a saved place and keeps the itinerary',async({page},info)=>{
  const calls:string[]=[];await page.route('**/api/wave?action=return-transport*',r=>{calls.push(r.request().url());return r.fulfill({json:response(new URL(r.request().url()).searchParams)});});
@@ -28,7 +29,7 @@ test('return transport is explicit, relates subsequent stops to a saved place an
  await panel.getByRole('button',{name:'이 정류장의 버스 확인',exact:true}).click();await expect(panel.getByRole('region',{name:'선택한 정류장의 도착 정보'})).toContainText('약 5분 뒤 도착 예상');await expect(panel).toContainText('그다음 차');expect(calls).toHaveLength(2);
  await panel.getByRole('button',{name:'이 노선의 진행 방향 확인',exact:true}).click();await expect(panel).toContainText('미술관 앞 · 호수공원 앞 방면');await expect(panel).toContainText('기점 출발 첫차 05:30 · 막차 23:00');await expect(panel).toContainText('이 정류장의 막차 도착 시각은 별도 확인');
  await expect(panel.getByRole('heading',{name:'미술관 앞 · 호수공원 앞 방면',exact:true})).toBeFocused();
- await panel.getByRole('combobox',{name:'다음 이동 장소와 비교',exact:true}).selectOption('1002');await expect(panel).toContainText('용지호수공원까지 직선거리');expect(calls).toHaveLength(3);
+ await chooseWaveOption(panel.getByRole('combobox',{name:'다음 이동 장소와 비교',exact:true}), '1002');await expect(panel).toContainText('용지호수공원까지 직선거리');expect(calls).toHaveLength(3);
  await panel.getByText('이후 정류장 1곳',{exact:true}).click();await expect(panel.getByRole('listitem').filter({hasText:'호수공원 앞'}).first()).toBeVisible();
  for(const width of info.project.name.includes('desktop')?[1440,960]:[390,320]){await page.setViewportSize({width,height:960});await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`return-transport-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBe(0);expect((await new AxeBuilder({page}).include('[aria-label="돌아가는 교통 확인"]').analyze()).violations).toEqual([]);}
  expect(calls).toHaveLength(3);expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('wave-current-trip-v1') || '{}').values?.['wave-trip-schedule-v1'])).toBe(before);
@@ -42,6 +43,6 @@ test('empty, unavailable, missing next vehicle and stale arrivals never imply th
 test('switching saved places aborts pending transport and cannot mix an old response into the new place',async({page})=>{
  let release!:()=>void;const pending=new Promise<void>(resolve=>{release=resolve;});let calls=0;
  await page.route('**/api/wave?action=return-transport*',async r=>{calls++;const params=new URL(r.request().url()).searchParams;if(params.get('contentId')==='1001')await pending;try{await r.fulfill({json:{...response(params),stops:[{...stop,name:params.get('contentId')==='1001'?'늦은 이전 장소':'새 장소 정류장'}]}});}catch{/* explicitly cancelled old request */}});
- const panel=await setup(page);await panel.getByRole('button',{name:'주변 정류장 확인',exact:true}).click();await expect(panel.getByRole('button',{name:'교통 정보 확인 중…',exact:true})).toBeDisabled();await panel.getByRole('combobox',{name:'어디에서 이동하나요?',exact:true}).selectOption('1002');await panel.getByRole('button',{name:'주변 정류장 확인',exact:true}).click();await expect(panel).toContainText('새 장소 정류장');release();await expect(panel).not.toContainText('늦은 이전 장소');expect(calls).toBe(2);
+ const panel=await setup(page);await panel.getByRole('button',{name:'주변 정류장 확인',exact:true}).click();await expect(panel.getByRole('button',{name:'교통 정보 확인 중…',exact:true})).toBeDisabled();await chooseWaveOption(panel.getByRole('combobox',{name:'어디에서 이동하나요?',exact:true}), '1002');await panel.getByRole('button',{name:'주변 정류장 확인',exact:true}).click();await expect(panel).toContainText('새 장소 정류장');release();await expect(panel).not.toContainText('늦은 이전 장소');expect(calls).toBe(2);
  await expect(panel.getByRole('link',{name:'카카오맵에서 교통편 보기',exact:true})).toHaveAttribute('href',/map\.kakao\.com\/link\/search\//);
 });

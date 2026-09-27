@@ -6,13 +6,8 @@ html:root body .wave-header .account-menu>button { min-width:44px;min-height:44p
 html:root body .header-dropdown .preference-panel { position:static;inset:auto;width:auto;max-width:none;max-height:none;overflow:visible;box-shadow:none; }
 html:root body .color-assist-preview { display:flex;flex-wrap:wrap;gap:12px;padding:12px;color:inherit; }
 .color-assist-preview small { flex-basis:100%; }
-html:root body .landing-page .landing-opening>.wave-header { background:linear-gradient(#041422e6,#04142270,transparent);border:0; }
 html:root body .wave-night :is(.simple-footer,.simple-section,.landing-finale,.night-photo-footer) { border-top:0;border-bottom:0; }
 html:root body .wave-night :is(.planner-welcome-header,.naru-conversation-footer) { background:#061725 url('/naru/night-coast.webp') center/cover no-repeat;color:#e9f3ff; }
-html:root body .wave-night .planner-welcome-header>.naru-header-scene { background:transparent;color:#e9f3ff; }
-html:root body :is(.naru-header-writing,.naru-story-writing,.naru-dialogue-profile span,.naru-dialogue-profile small) { color:#d5e9ff; }
-html:root body :is(.naru-header-dialogue>div,.naru-story-dialogue li)>p { background:#15344c;color:#ecf5ff; }
-html:root body :is(.naru-header-dialogue>div,.naru-story-dialogue li)[data-speaker=naru]>p { background:#24344f;color:#ecf5ff; }
 html:root body .naru-launcher { background:#102b40;border:1px solid #416680;box-shadow:0 4px 20px #0005; }
 html:root body :is(form[role=search],.night-hero-search,.naru-tool-search):focus-within { box-shadow:0 0 0 2px #6dcad080; }
 html:root body :is(form[role=search],.night-hero-search,.naru-tool-search) :is(input,select):focus { outline:none;box-shadow:none;border-color:transparent; }
@@ -26,16 +21,12 @@ html:root body .wave-night input[type=checkbox]:checked:after { content:'✓';co
 html:root body .wave-night input[type=checkbox]:disabled { opacity:.5;cursor:default; }
 html:root body .wave-night input[type=checkbox]:focus-visible { outline:2px solid #91c9dd;outline-offset:3px; }
 @media(forced-colors:active){html:root body .wave-night input[type=checkbox]{appearance:auto}}
-html:root body .landing-page .landing-opening>.wave-header { background:linear-gradient(#041422cc,#04142240,transparent)!important; }
-html:root body .naru-discovery .naru-launcher,html:root body .planner-simple .naru-launcher { background:#102b40!important;border:1px solid #416680!important; }
-html:root body .naru-hint { background:#142d42;color:#e9f3ff;border:1px solid #365773; }
+html:root body .naru-discovery .naru-launcher,html:root body .planner-simple .naru-launcher { background:linear-gradient(145deg,#d1edf0,#b9b4e7)!important;border:1px solid #d9e4fb!important; }
 html:root body .wave-night .night-hero-search { background:#102a3dde;border-color:#3b5b72;color:#e9f3ff; }
 html:root body .wave-night .night-hero-search select { color:#e9f3ff; }
 html:root body .wave-night .night-hero-search button { min-width:48px;min-height:44px;display:grid;place-items:center; }
 html:root body .wave-night .planner-welcome-header .wave-header :is(a,button,.wave-wordmark span,.wave-wordmark small) { color:#e2efff; }
 html:root body .wave-night .planner-welcome-header .wave-header nav a[aria-current=page] { color:#70d5e8; }
-html:root body .naru-discovery .naru-hint { background:#142d42!important;color:#e9f3ff!important;border:1px solid #365773!important; }
-html:root body .naru-discovery .naru-hint button { color:#e9f3ff!important; }
 @media(max-width:700px){html:root body .wave-night .planner-welcome-header { --wave-opening-height:700px; } }
 html:root body summary { list-style:none; }
 html:root body summary::-webkit-details-marker { display:none; }

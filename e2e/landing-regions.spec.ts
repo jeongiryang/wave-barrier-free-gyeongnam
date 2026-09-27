@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { expectOnlyLandingReads } from "./landing-contract";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -39,17 +40,17 @@ test("regional entry: all 18 landing links and the planner selector use the same
   await (await opened).finished();
   await expect(page).toHaveURL(url => url.pathname === "/planner" && url.searchParams.get("region") === "거창");
   const select = page.getByRole("combobox", { name: "여행 지역", exact: true });
-  await expect(select).toHaveValue("거창");
-  const options = await select.locator("option").evaluateAll(nodes => nodes.map(node => (node as HTMLOptionElement).value).filter(value => value && value !== "경남 전체"));
+  await expect(waveSelectNative(select)).toHaveValue("거창");
+  const options = await waveSelectNative(select).locator("option").evaluateAll(nodes => nodes.map(node => (node as HTMLOptionElement).value).filter(value => value && value !== "경남 전체"));
   expect(options.sort()).toEqual(destinations);
   await expect(page.locator(".simple-results h2")).toHaveText("거창 여행지");
   const changed = page.waitForResponse(response => {
     const url = new URL(response.url());
     return url.pathname === "/api/wave" && url.searchParams.get("action") === "plan" && url.searchParams.get("region") === "통영";
   });
-  await select.focus(); await select.selectOption("통영");
+  await select.focus(); await chooseWaveOption(select, "통영");
   await (await changed).finished();
-  await expect(select).toHaveValue("통영");
+  await expect(waveSelectNative(select)).toHaveValue("통영");
   await expect(select).toBeFocused();
   await expect(page).toHaveURL(url => url.pathname === "/planner" && url.searchParams.get("region") === "통영");
   await expect(page.locator(".simple-results h2")).toHaveText("통영 여행지");
@@ -73,8 +74,13 @@ test("landing: labelled itinerary and conversation examples preserve restored-se
   await expect(page.locator(".night-journey-preview")).toContainText("순서 바꾸기");
   await openLandingTools(page);
   await page.locator("#naru").scrollIntoViewIfNeeded();
-  await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
-  await expect(page.locator(".simple-naru-example").locator("input,button,form,textarea,[contenteditable=true]")).toHaveCount(0);
+  const example = page.locator(".simple-naru-example");
+  await expect(example).toHaveAttribute("aria-label", "대화 예시");
+  await expect(example.locator("input,form,textarea,[contenteditable=true]")).toHaveCount(0);
+  await example.getByRole("button", { name: "예시 일정에 적용", exact: true }).click();
+  await expect(example.locator(".example-duration strong")).toHaveText("90분");
+  await example.getByRole("button", { name: "되돌리기", exact: true }).click();
+  await expect(example.locator(".example-duration strong")).toHaveText("60분");
   expect(writes).toEqual([]); expectOnlyLandingReads(requests);
 });
 
@@ -83,7 +89,7 @@ test("landing: reduced motion keeps every section readable through forward scrol
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/"); await storyReady(page);
   await openLandingTools(page);
-  const planning = page.locator(".landing-actions a");
+  const planning = page.locator(".night-hero-search button[type=submit]");
   await planning.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");

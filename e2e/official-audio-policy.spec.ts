@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { mockPlannerApi, mockPublicShellApi } from './fixtures';
@@ -43,7 +44,7 @@ for (const permitted of [true, false]) test(`production CSP ${permitted ? 'plays
   });
   const documentResponse = await page.goto('/planner');
   expect(documentResponse!.headers()['content-security-policy']).toBe(policy);
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await page.locator('.simple-place-row h3 button').first().click();
   const detail = page.locator('dialog.place-modal');
   await detail.locator('.place-audio-guide > summary').click();

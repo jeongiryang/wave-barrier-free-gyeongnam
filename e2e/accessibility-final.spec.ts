@@ -73,7 +73,8 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
   // Measure the displayed, interactive page while retaining every target and size check.
   await expect(page.locator(".wave-header .wave-wordmark")).toBeVisible();
   await expect(page.locator(".wave-header .wave-my-trips")).toBeVisible();
-  const targets = page.locator(".wave-header .wave-wordmark, .wave-header nav a, .wave-header .wave-my-trips, .landing-actions a[href='/planner']");
+  await expect(page.locator('.night-hero-search > button[type="submit"]')).toHaveAccessibleName('여행지 검색');
+  const targets = page.locator('.wave-header .wave-wordmark, .wave-header nav a, .wave-header .wave-my-trips, .night-hero-search > button[type="submit"]');
   const sizes = await targets.evaluateAll((nodes) => nodes.map((node) => {
     const rect = node.getBoundingClientRect();
     return { name: node.textContent?.trim() || node.getAttribute("aria-label") || "조작", width: rect.width, height: rect.height };
@@ -83,7 +84,7 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "전체 18개 지역", exact: true }).click();
   await expect(page.locator(".simple-region-link")).toHaveCount(18);
-  sizes.push(...await page.locator(".simple-region-link, .simple-search-bar select, .simple-facility-trigger").evaluateAll(nodes => nodes.map(node => {
+  sizes.push(...await page.locator('.simple-region-link, .simple-search-bar [role="combobox"], .simple-facility-trigger').evaluateAll(nodes => nodes.map(node => {
     const rect = node.getBoundingClientRect();
     return { name: node.textContent?.trim() || "지역", width: rect.width, height: rect.height };
   })));
@@ -173,10 +174,55 @@ test("플래너 헤더는 스크롤 뒤에도 키보드로 돌아갈 수 있다"
   await page.getByRole("heading", { name: "경남도립미술관" }).first().waitFor();
 
   const header = page.locator(".wave-header");
+  const home = header.getByRole("link", { name: "WAVE 홈" });
+  // A flow-positioned header can scroll away while its link retains focus.
+  // Test a real new keyboard focus transition, not focus() on the same link.
+  const nextLink = header.getByRole("navigation").getByRole("link").first();
+  await nextLink.focus();
+  await expect(nextLink).toBeFocused();
   await page.evaluate(() => window.scrollTo(0, 1_500));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
-  const home = header.getByRole("link", { name: "WAVE 홈" });
-  await home.focus();
+  await page.keyboard.press("Shift+Tab");
   await expect(home).toBeFocused();
   await expect(home).toBeInViewport();
+});
+
+test("지역 미리보기는 화면 아래에서 페이지를 강제 스크롤하지 않고 위에 열린다", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 720 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockPlannerApi(page);
+  await page.goto("/planner");
+  const region = page.locator('.night-planner-region-map [data-region-photo="거제"]');
+  // SSR's visible map is inert until saved criteria hydrate. Hovering it earlier
+  // makes Playwright re-scroll during hit-target retries and changes this edge.
+  await expect(page.locator('#conditions')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('.night-planner-region-map')).not.toHaveAttribute('inert', '');
+  await expect(region).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  await region.evaluate(node => window.scrollBy({ top: node.getBoundingClientRect().bottom - innerHeight + 60, behavior: 'instant' }));
+  const target = (await region.boundingBox())!;
+  expect(target.y + target.height).toBeGreaterThanOrEqual(659);
+  expect(target.y + target.height).toBeLessThanOrEqual(661);
+  expect(await region.evaluate(node => {
+    const rect = node.getBoundingClientRect();
+    return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+  })).toBe(true);
+  const before = await page.evaluate(() => scrollY);
+  // Physical pointer movement has no auto-scroll retry that could relocate the
+  // explicitly verified edge. The preceding hit test must succeed first.
+  await page.mouse.move(target.x + target.width / 2, target.y + target.height / 2);
+  const preview = page.locator('.night-planner-region-map [role="tooltip"]');
+  await expect(preview).toBeVisible();
+  await expect(preview).toHaveAttribute('data-below', 'false');
+  expect(await page.evaluate(() => scrollY)).toBe(before);
+  const bounds = (await preview.boundingBox())!;
+  expect(bounds.y).toBeGreaterThanOrEqual(0);
+  expect(bounds.y + bounds.height).toBeLessThanOrEqual(720);
+  const choice = page.locator('.night-planner-region-map .region-picker-list').getByRole('button', { name: '거제', exact: true });
+  await choice.focus();
+  await page.keyboard.press('Tab');
+  await expect(preview).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(preview).toHaveCount(0);
+  await expect(choice).toBeFocused();
 });

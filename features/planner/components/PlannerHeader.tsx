@@ -9,7 +9,8 @@ export default function PlannerReferenceChrome({ savedCount, storageReady, onNav
   onNavigate: (step: JourneyStepId) => void; onNew: () => void;
 }) {
   return <><div className="planner-welcome-header"><WaveHeader current="planner" savedReady={storageReady} onSearch={() => onNavigate("places")} onNew={onNew} savedCount={savedCount} onSaved={savedCount ? () => onNavigate("itinerary") : undefined} />
-    <h1 className="sr-only">여행 설계</h1><NaruHeaderScene />
+    <h1 className="sr-only">여행 설계</h1>
+    <NaruHeaderScene />
     </div><div className="simple-storage-notice"><TripStorageNotice snapshot={storageSnapshot} /></div>
   </>;
 }

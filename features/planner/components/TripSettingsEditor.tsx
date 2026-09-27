@@ -1,4 +1,7 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
+import WaveSelect from "../../../components/WaveSelect";
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import type { useTripSelection } from "../hooks/useTripSelection";
 import type { TripTravelMode } from "../../../lib/trip-travel-mode.js";
@@ -33,7 +36,7 @@ function SettingsForm({ trip, onClose }: Props) {
     <div className="simple-settings-fields">
       <label>시작일<AccessibleDateInput required value={start} onChange={event => { const day = event.target.value; setStartDraft(day); if (validTripDate(day)) setEndDraft(boundedTripEnd(day, end)); }} /></label>
       <label>마지막 날<AccessibleDateInput required min={validStart ? start : undefined} max={validStart ? offsetTripDate(start, 6) : undefined} value={end} onChange={event => setEndDraft(event.target.value)} /></label>
-      <label>이동 수단<select value={transport} onChange={event => setTransport(event.target.value as TripTravelMode)}><option value="transit">대중교통</option><option value="car">자동차</option><option value="walk">도보</option><option value="bicycle">자전거</option></select></label>
+      <label>이동 수단<WaveSelect value={transport} onChange={event => setTransport(event.target.value as TripTravelMode)}><option value="transit">대중교통</option><option value="car">자동차</option><option value="walk">도보</option><option value="bicycle">자전거</option></WaveSelect></label>
       <label>하루 시작<input type="time" required value={time} onChange={event => setTime(event.target.value)} /></label>
     </div>
     {error && <p role="alert">{error}</p>}
@@ -45,5 +48,5 @@ export function InitialTripSetup({ trip, children }: Props & { children?: ReactN
 }
 export default function TripSettingsEditor({ trip, onClose }: Props & { onClose: () => void }) {
   const ref = usePlaceDialogFocus(true, onClose);
-  return <dialog ref={ref} lang="ko" className="simple-dialog" aria-labelledby="trip-settings-title"><header><h2 id="trip-settings-title" tabIndex={-1}>여행 설정</h2><button type="button" aria-label="여행 설정 닫기" onClick={onClose}>×</button></header><SettingsForm trip={trip} onClose={onClose} /></dialog>;
+  return <dialog ref={ref} lang="ko" className="simple-dialog" aria-labelledby="trip-settings-title"><header><h2 id="trip-settings-title" tabIndex={-1}>여행 설정</h2><button type="button" aria-label="여행 설정 닫기" onClick={onClose} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header><SettingsForm trip={trip} onClose={onClose} /></dialog>;
 }

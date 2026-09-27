@@ -48,6 +48,15 @@ test('축제 달력은 밤 테마와 키보드 탐색, 날짜 하한, 닫기 초
   const dialog = page.getByRole('dialog', { name: '언제부터 날짜 선택' });
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveCSS('border-radius', '24px');
+  await expect(dialog.getByRole('button',{name:'오늘',exact:true})).toHaveCount(0);
+  const controls=await dialog.locator('.wave-date-month > *').evaluateAll(nodes=>nodes.map(e=>e.getBoundingClientRect().toJSON()));
+  for(let index=1;index<controls.length;index++) expect(controls[index].left).toBeGreaterThanOrEqual(controls[index-1].right+3);
+  await dialog.getByRole('button',{name:'다음 달',exact:true}).click();
+  await expect(dialog.getByRole('grid')).toHaveAttribute('aria-label','2026년 10월');
+  await dialog.getByRole('button',{name:'이전 달',exact:true}).click();
+  await expect(dialog.getByRole('grid')).toHaveAttribute('aria-label','2026년 9월');
+  await dialog.getByRole('button',{name:'달력 닫기',exact:true}).click();
+  await expect(opener).toBeFocused();await opener.click();
   expect((await new AxeBuilder({ page }).include('.wave-date-dialog[open]').analyze()).violations).toEqual([]);
   const day = dialog.locator('[data-date="2026-09-26"]');
   await expect(day).toBeFocused();

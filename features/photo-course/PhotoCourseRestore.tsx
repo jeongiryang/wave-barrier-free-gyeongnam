@@ -1,6 +1,9 @@
 "use client";
+import NightIcon from '../../components/NightIcon';
+
 
 /* eslint-disable @next/next/no-img-element -- 한국관광공사 API가 반환하는 가변 HTTPS CDN URL을 서버에서 검증한 뒤 지연 렌더링한다. */
+import WaveSelect from "../../components/WaveSelect";
 import { useCallback, useId, useRef, useState, useSyncExternalStore } from "react";
 import { MAX_PHOTOS, usePhotoCourse } from "./usePhotoCourse";
 import { usePlaceDialogFocus } from '../planner/hooks/usePlaceDialogFocus';
@@ -40,7 +43,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
       </header>
 
       {helpOpen && <dialog ref={helpRef} className="simple-dialog photo-course-help" aria-labelledby="photo-course-help-title">
-        <header><h2 id="photo-course-help-title" tabIndex={-1}>사진 코스 사용 방법</h2><button type="button" aria-label="사용 방법 닫기" onClick={closeHelp}>×</button></header>
+        <header><h2 id="photo-course-help-title" tabIndex={-1}>사진 코스 사용 방법</h2><button type="button" aria-label="사용 방법 닫기" onClick={closeHelp} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header>
         <ol>
           <li><strong>원본 사진을 고르세요.</strong><span>촬영 날짜와 위치가 남은 JPG·PNG·WebP·TIFF를 최대 {MAX_PHOTOS}장까지 읽습니다.</span></li>
           <li><strong>장소명과 지역을 확인하세요.</strong><span>사진 순서를 자동으로 만들며, 잘못 보이는 이름과 시·군은 직접 고칠 수 있습니다.</span></li>
@@ -101,8 +104,8 @@ export default function PhotoCourseRestore({ onApply }: Props) {
                       <div className="photo-course-stop-main">
                         <div className="photo-course-stop-order">
                           <span className="photo-course-time">{stop.timeLabel}</span>
-                          <button type="button" disabled={stopIndex === 0} onClick={() => moveStop(dayIndex, stopIndex, -1)} aria-label={`${name} 순서를 위로`}>위로</button>
-                          <button type="button" disabled={stopIndex === day.stops.length - 1} onClick={() => moveStop(dayIndex, stopIndex, 1)} aria-label={`${name} 순서를 아래로`}>아래로</button>
+                          <button type="button" disabled={stopIndex === 0} onClick={() => moveStop(dayIndex, stopIndex, -1)} aria-label={`${name} 순서를 위로`} data-icon-action="" title="위로"><NightIcon name="up" size={20}/><span className="sr-only">위로</span></button>
+                          <button type="button" disabled={stopIndex === day.stops.length - 1} onClick={() => moveStop(dayIndex, stopIndex, 1)} aria-label={`${name} 순서를 아래로`} data-icon-action="" title="아래로"><NightIcon name="down" size={20}/><span className="sr-only">아래로</span></button>
                         </div>
 
                         <label className="photo-course-name">
@@ -112,10 +115,10 @@ export default function PhotoCourseRestore({ onApply }: Props) {
 
                         <label className="photo-course-region">
                           <span>시·군</span>
-                          <select value={stop.region} onChange={(event) => changeStopRegion(dayIndex, stop.id, event.target.value)}>
+                          <WaveSelect value={stop.region} onChange={(event) => changeStopRegion(dayIndex, stop.id, event.target.value)}>
                             <option value="">직접 선택</option>
                             {REGIONS.map((region) => <option key={region} value={region}>{region}</option>)}
-                          </select>
+                          </WaveSelect>
                         </label>
 
                         <div className="photo-course-stop-meta">
@@ -163,8 +166,8 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         </p>}
 
         <div className="photo-course-export">
-          <button type="button" onClick={saveToDevice}>사진 코스 저장</button>
-          <button type="button" onClick={() => void share()}>좌표 없이 코스 공유</button>
+          <button type="button" onClick={saveToDevice} data-icon-action="" title="사진 코스 저장"><NightIcon name="save" size={20}/><span className="sr-only">사진 코스 저장</span></button>
+          <button type="button" onClick={() => void share()} data-icon-action="" title="좌표 없이 코스 공유"><NightIcon name="share" size={20}/><span className="sr-only">좌표 없이 코스 공유</span></button>
           <p>저장·공유 파일에는 날짜, 직접 확인한 장소명, 확인된 한국관광공사 공식정보 번호만 들어가며 원본 사진과 GPS는 포함되지 않습니다.</p>
         </div>
         {exportNotice && <p className="photo-course-applied" role="status" aria-live="polite">{exportNotice}</p>}

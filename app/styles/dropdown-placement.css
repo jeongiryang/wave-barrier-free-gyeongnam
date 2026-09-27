@@ -1,0 +1,8 @@
+/* Button-linked information always follows its trigger; dialogs keep their own layout. */
+html:root body .preference-controls .preference-panel { position:static;inset:auto;width:min(328px,calc(100vw - 48px));max-width:100%;max-height:min(480px,60dvh);overflow:auto;margin-top:10px; }
+html:root body .header-dropdown .preference-controls .preference-panel { width:auto;max-height:none;overflow:visible; }
+html:root body .wave-footer-tools { align-items:flex-start!important; }
+html:root body .community-report-control>div { position:relative;inset:auto;max-height:50dvh;overflow:auto; }
+html:root body .region-picker-preview .region-photo-preview[data-below] { transform:translateX(-50%);min-height:0;height:250px;display:block;overscroll-behavior:contain; }
+html:root body .github-footer-link::after { top:calc(100% + 9px);bottom:auto;transform:translate(-50%,-5px); }
+html:root body .github-footer-link:is(:hover,:focus-visible)::after { transform:translate(-50%,0); }

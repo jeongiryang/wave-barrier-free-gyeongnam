@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -38,7 +39,7 @@ test("장소 후기에서 구조화 현장 제보를 작성하고 개별 경험�
   await page.getByLabel("제목").fill("미술관 현장 접근성 확인");
   await page.getByLabel("내용").fill("입구부터 전시실까지 직접 이동하며 확인했습니다.");
   await page.getByLabel("방문일 (선택)").fill("2026-08-30");
-  await page.getByLabel("출입 경로 확인 상태").selectOption("changed");
+  await chooseWaveOption(page.getByRole('combobox', { name: "출입 경로 확인 상태" }), "changed");
   await page.getByLabel("출입 경로 메모").fill("정문 경사로가 공사 중이었습니다.");
   expect((await new AxeBuilder({ page }).analyze()).violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);
   await page.getByRole("button", { name: "후기 등록" }).click();

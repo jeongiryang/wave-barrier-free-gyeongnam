@@ -1,3 +1,5 @@
+
+import NightIcon from '../../../components/NightIcon';
 import type { FacilityLayerSelection } from "../../../lib/facility-layers";
 import type { FacilityMapMarker } from "../types";
 import { FACILITY_LAYER_LIMIT, derivedFacilityLayers, facilityLayers, officialFacilityLayers, placeSearchFacilityLayers, type FacilityLayer } from "../constants";
@@ -73,7 +75,7 @@ export default function FacilityLayerPanel({
         <strong>{english ? "Show facilities" : "편의 표시"}</strong>
         <span>{english ? `Up to ${FACILITY_LAYER_LIMIT} at once · public data uses the selected destination` : `한 번에 ${FACILITY_LAYER_LIMIT}개까지 · 공식 정보는 선택한 여행지 기준`}</span>
       </div>
-      <button type="button" onClick={onClose} aria-label={english ? "Close facility display" : "편의 표시 닫기"}>×</button>
+      <button type="button" onClick={onClose} aria-label={english ? "Close facility display" : "편의 표시 닫기"} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button>
     </header>
 
     {!available && <p role="status" aria-live="polite">{loading
@@ -94,7 +96,7 @@ export default function FacilityLayerPanel({
             {state === "location-unconfirmed" && <small>{english ? "The public coordinates for this destination could not be confirmed." : "이 여행지의 공개 좌표를 확인하지 못했어요."}</small>}
             {failed && <><small>{layer?.source === "official" ? (english ? "Location information could not be loaded." : "위치 정보를 받지 못했어요.") : (english ? "Could not load" : "불러오지 못함")}</small>
               <button type="button" onClick={() => onRetryLayer(id)}>{english ? "Try again" : "다시 시도"}</button></>}
-            <button type="button" onClick={() => onToggleLayer(id)} aria-label={english ? `Turn off ${layer ? layerName(layer, english) : id}` : `${layer ? layer.label : id} 끄기`}>×</button>
+            <button type="button" onClick={() => onToggleLayer(id)} aria-label={english ? `Turn off ${layer ? layerName(layer, english) : id}` : `${layer ? layer.label : id} 끄기`} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button>
           </li>;
         })}
         <li><button type="button" className="facility-clear-all" onClick={onClearAll}>{english ? "Turn all off" : "모두 끄기"}</button></li>
@@ -134,7 +136,7 @@ export default function FacilityLayerPanel({
           <strong>{selectedFacility.name}</strong>
           <span>{selectedFacility.address || (english ? "Address unavailable" : "주소 정보 없음")}</span>
         </div>
-        <button type="button" onClick={onCloseFacility} aria-label={english ? "Close facility card" : "편의시설 정보 닫기"}>×</button>
+        <button type="button" onClick={onCloseFacility} aria-label={english ? "Close facility card" : "편의시설 정보 닫기"} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button>
       </header>
       <dl>
         {selectedFacility.kind && <div><dt>{english ? "Type" : "종류"}</dt><dd>{selectedFacility.kind}</dd></div>}
