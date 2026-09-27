@@ -34,7 +34,8 @@ test('regional covers remain selectable when the photo API fails, and image fail
   await page.goto('/planner');
   const toggle = page.getByRole('button', { name: '지도에서 지역 고르기' });
   if (await toggle.isVisible()) await toggle.click();
-  const picker = page.locator('.region-picker-preview').first();
+  const picker = page.locator('.night-planner-region-map .region-picker-preview');
+  await expect(page.locator('#conditions')).toHaveAttribute('aria-busy', 'false');
   await picker.scrollIntoViewIfNeeded();
   await expect(picker.locator('[data-region-photo] image')).toHaveCount(18);
   await picker.getByRole('button', { name: '진주', exact: true }).click();
@@ -55,7 +56,7 @@ test('Naru welcome remains available after scrolling and opens the real conversa
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/planner');
   const bubble = page.locator('.naru-welcome-bubble');
-  await expect(bubble).toContainText('나루와 언제든 대화할 수 있어요');
+  await expect(bubble).toContainText('언제든 나루에게 물어보세요. 함께 여행을 준비해요.');
   await page.locator('.simple-footer').scrollIntoViewIfNeeded();
   await expect(bubble).toBeVisible();
   await bubble.locator('.naru-welcome-message').click();

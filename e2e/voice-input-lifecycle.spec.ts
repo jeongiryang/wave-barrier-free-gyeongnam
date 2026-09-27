@@ -86,6 +86,9 @@ async function installMicrophoneDoubles(page: Page, options: SetupOptions) {
 }
 
 async function setup(page: Page, options: SetupOptions = {}) {
+  // Arrival playback has its own suite; exercise voice ownership after a visitor
+  // has completed that scene, including real client navigation through home.
+  await page.addInitScript(() => sessionStorage.setItem('wave-arrival-session-v1', 'done'));
   await page.emulateMedia({ reducedMotion: options.reduced ? 'reduce' : 'no-preference' });
   await installMicrophoneDoubles(page, options);
   // Every API request is synthetic, including accidental assistant/journey requests.
@@ -112,7 +115,7 @@ async function setup(page: Page, options: SetupOptions = {}) {
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('.landing-page .wave-header').getByRole('link', { name: 'WAVE 홈', exact: true })).toBeVisible();
     await expect(page.locator('.landing-page .wave-header nav a[href="/"]')).toHaveAttribute('aria-current', 'page');
-    // Home now exposes navigation immediately without the retired arrival modal.
+    // A returning visitor keeps immediate access to the public navigation.
     await expect(page.getByRole('dialog', { name: 'WAVE 시작 이야기', exact: true })).toHaveCount(0);
     await openSupportMenu(page);
     await expect(page.locator('.preference-controls')).toHaveAttribute('aria-busy', 'false');

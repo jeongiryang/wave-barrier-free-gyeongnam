@@ -6,8 +6,7 @@ test("Naru reveals restored and keyboard focus without moving a control during a
   await page.setViewportSize({ width: 412, height: 839 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
-  // The initial conditions view intentionally keeps the static discovery hint.
-  // Mobile search results hide the hint while retaining the avatar (density suite).
+  // Reduced motion keeps the welcome bubble available without rotating copy.
   await page.goto("/planner");
   const activity = page.getByRole("button", { name: "자연·휴양", exact: true });
   await expect(activity).toBeEnabled();
@@ -22,21 +21,23 @@ test("Naru reveals restored and keyboard focus without moving a control during a
   const alignWithLauncher = () => activity.evaluate(element => {
     const launcher = document.querySelector(".naru-discovery")!;
     const target = element.getBoundingClientRect(), floating = launcher.getBoundingClientRect();
-    window.scrollBy({ top: target.top - floating.top - 8, behavior: "instant" });
+    const bubble = launcher.querySelector(".naru-welcome-bubble")?.getBoundingClientRect();
+    window.scrollBy({ top: target.top - Math.min(floating.top, bubble?.top ?? floating.top) - 8, behavior: "instant" });
   });
   // Reduced motion keeps the new discovery hint visible but static. Its entire
   // footprint must reveal keyboard focus, not just the avatar underneath it.
-  await expect(page.locator('.naru-hint')).toBeVisible();
+  await expect(page.locator('.naru-welcome-bubble')).toBeVisible();
   await alignWithLauncher();
   await activity.evaluate(element => (element as HTMLElement).focus({ preventScroll: true }));
   await expect(activity).toBeFocused();
   await expect.poll(() => activity.evaluate(element => {
     const target = element.getBoundingClientRect(), floating = document.querySelector('.naru-discovery')!.getBoundingClientRect();
-    return target.bottom > floating.top && target.top < floating.bottom && target.right > floating.left && target.left < floating.right;
+    const bubble = document.querySelector('.naru-welcome-bubble')!.getBoundingClientRect();
+    return target.bottom > Math.min(floating.top, bubble.top) && target.top < floating.bottom && target.right > Math.min(floating.left, bubble.left) && target.left < floating.right;
   })).toBe(false);
-  await expect(page.locator('.naru-hint')).toBeVisible();
-  await page.getByRole('button', { name: '나루 안내 그만 보기' }).click();
-  await expect(page.locator('.naru-hint')).toHaveCount(0);
+  await expect(page.locator('.naru-welcome-bubble')).toBeVisible();
+  await page.getByRole('button', { name: '나루 안내 잠시 닫기' }).click();
+  await expect(page.locator('.naru-welcome-bubble')).toHaveCount(0);
   await alignWithLauncher();
   const before = (await activity.boundingBox())!;
   const floating = (await page.locator(".naru-discovery").boundingBox())!;

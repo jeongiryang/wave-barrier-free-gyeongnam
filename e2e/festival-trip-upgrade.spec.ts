@@ -2,6 +2,7 @@ import { expect, test, type Page, type Route } from '@playwright/test';
 import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi, plan, showItineraryMap } from './fixtures';
+import { paintedContrast } from './painted-contrast';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
 
@@ -284,7 +285,9 @@ for (const fresh of [false, true]) test(`축제 ${fresh ? '새 여행' : '일정
 
 for (const width of [390, 960, 1440]) test(`festival photo cards and compact actions at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 900 });
-  const card = await setup(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const card = await setup(page, route => route.fulfill({ json: result([{ ...event, image: '/media/night/festival.webp' }]) }));
+  await expect.poll(() => card.locator('.festival-card-photo img').evaluate(node => (node as HTMLImageElement).complete && (node as HTMLImageElement).naturalWidth > 0)).toBe(true);
   const info = card.getByRole('button', { name: '행사 정보', exact: true });
   await info.click();
   await expect(info).toHaveAttribute('aria-expanded', 'true');
@@ -292,16 +295,28 @@ for (const width of [390, 960, 1440]) test(`festival photo cards and compact act
   const buttonBox = await info.boundingBox(), panelBox = await panel.boundingBox();
   expect(panelBox!.y).toBeGreaterThanOrEqual(buttonBox!.y + buttonBox!.height);
   for (const name of ['행사 정보', '일정 담기', '현장 편의 지도']) {
-    const box = await card.getByRole('button', { name, exact: true }).boundingBox();
+    const button = card.getByRole('button', { name, exact: true });
+    await button.scrollIntoViewIfNeeded();
+    const box = await button.boundingBox();
     expect(box!.width).toBeGreaterThanOrEqual(44);
     expect(box!.height).toBeGreaterThanOrEqual(44);
+    expect(await button.evaluate(node => { const r = node.getBoundingClientRect(); return node.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)); })).toBe(true);
   }
   const geometry = await card.evaluate(el => {
     const photo = el.querySelector('.festival-card-photo')!, copy = el.querySelector('.festival-card-copy')!;
     const imageBox = photo.getBoundingClientRect(), copyBox = copy.getBoundingClientRect();
-    return { height: imageBox.height, photoBottom: imageBox.bottom, textTop: copyBox.top };
+    return { height: imageBox.height, photo: imageBox.toJSON(), text: copyBox.toJSON() };
   });
   expect(geometry.height).toBeGreaterThanOrEqual(240);
-  expect(geometry.textTop).toBeGreaterThanOrEqual(geometry.photoBottom - 1);
+  // The approved card overlays its copy on a full-card photograph.
+  expect(geometry.text.top).toBeGreaterThanOrEqual(geometry.photo.top);
+  expect(geometry.text.bottom).toBeLessThanOrEqual(geometry.photo.bottom + 1);
+  expect(geometry.text.left).toBeGreaterThanOrEqual(geometry.photo.left);
+  expect(geometry.text.right).toBeLessThanOrEqual(geometry.photo.right + 1);
+  const period = card.locator('.festival-period');
+  await period.scrollIntoViewIfNeeded();
+  const contrast = await paintedContrast(page, '.festival-card .festival-period', true);
+  expect(contrast.pixels).toBeGreaterThan(0);
+  expect(contrast.minimum).toBeGreaterThanOrEqual(4.5);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

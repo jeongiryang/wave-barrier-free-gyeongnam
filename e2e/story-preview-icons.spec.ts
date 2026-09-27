@@ -59,10 +59,14 @@ test('conversation reveals one message each second with its link in the header',
 test('festival icon sort still opens below and keeps selected option',async({page})=>{
  await mockPlannerApi(page);await page.goto('/festivals');
  expect(await page.getByRole('button',{name:'목록형으로 보기'}).locator('svg').evaluate(e=>e.getBoundingClientRect().width)).toBe(20);
- const sort=page.getByRole('combobox',{name:'축제 정렬'});await sort.click();
+ const sort=page.getByRole('combobox',{name:'축제 정렬'});
+ // This case measures the enhanced listbox, after the usable SSR native field
+ // has handed off to its custom trigger. Keep the real menu interaction.
+ await expect(sort).toHaveJSProperty('tagName','BUTTON');await sort.click();
  const menu=page.getByRole('listbox',{name:'축제 정렬'});await expect(menu).toBeVisible();
  const a=await sort.boundingBox(),b=await menu.boundingBox();expect(b!.y).toBeGreaterThanOrEqual(a!.y+a!.height);
  await menu.getByRole('option',{name:'이름순',exact:true}).click();await expect(sort).toHaveAttribute('title','축제 정렬: 이름순');
+ await expect(menu).toHaveCount(0);await expect(sort).toBeFocused();
  const filters=page.getByRole('button',{name:'축제 검색 조건',exact:true});
  if(await filters.isVisible() && await filters.getAttribute('aria-expanded')==='false') await filters.click();
  await expect(page.getByRole('button',{name:'축제 검색하기',exact:true})).toHaveAttribute('data-icon-action','');

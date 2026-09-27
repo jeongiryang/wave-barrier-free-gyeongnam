@@ -9,7 +9,7 @@ for(const width of [390,960,1440]) test(`local night artwork and source catalog 
  await page.goto('/planner');
  await expect(page.locator('.naru-header-scene')).toHaveAttribute('data-frame','4');
  const background=page.locator('.scenic-background img.is-current');
- await expect(background).toHaveAttribute('src','/naru/night-journey-map.webp');
+ await expect(background).toHaveAttribute('src','/naru/planner-harbor-map-desktop-v1.webp');
  await expect.poll(()=>background.evaluate((el:HTMLImageElement)=>el.complete&&el.naturalWidth>0)).toBe(true);
  await expect(page.locator('.scenic-background')).toHaveCSS('position','fixed');
  await expect(page.locator('.naru-launcher').first()).not.toHaveCSS('background-color','rgb(255, 255, 255)');

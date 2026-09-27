@@ -120,3 +120,15 @@ test("solid-colour measurement rejects transparent fill and composited foregroun
     await expect(paintedContrast(page, '#probe', true)).rejects.toThrow(/Solid-text measurement requires/);
   }
 });
+
+test("rounded fractional text masks exclude surrounding light pixels without dropping descenders", async ({ page }) => {
+  await page.setContent('<div style="background:white;padding:20.5px"><p id="probe" style="font:13px/15.5px Arial;color:white;background:black;border-radius:12px;padding:6.25px 10px;width:190.5px;margin:0">gypqj 2026-09-19 – 2026-09-22</p></div>');
+  const readable = await paintedContrast(page, '#probe', true);
+  expect(readable.pixels).toBeGreaterThan(0);
+  expect(readable.minimum).toBeGreaterThan(20);
+  await page.locator('#probe').evaluate(node => { (node as HTMLElement).style.background = 'white'; });
+  const invisible = await paintedContrast(page, '#probe', true);
+  expect(invisible.pixels).toBe(readable.pixels);
+  expect(invisible.minimum).toBe(1);
+  await expect(page.locator('#probe')).toHaveCSS('border-radius', '12px');
+});

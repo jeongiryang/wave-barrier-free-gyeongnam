@@ -17,6 +17,7 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
   const keyboardHintId = `${clipPrefix}-keyboard-hint`;
   const previewId = `${clipPrefix}-preview`;
   const root = useRef<HTMLDivElement>(null);
+  const previewOpener = useRef<HTMLButtonElement | null>(null);
   const dismissed = useRef(false);
   const [preview, setPreview] = useState<{ name: string; x: number; y: number; below: boolean; maxHeight: number } | null>(null);
   const [visible, setVisible] = useState(false);
@@ -61,7 +62,12 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
   useEffect(() => {
     const close = () => setPreview(null);
     const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) close(); };
-    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape' && preview) { dismissed.current = true; close(); } };
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape' && preview) {
+      const restore = root.current?.querySelector('[role="tooltip"]')?.contains(document.activeElement);
+      const trigger = previewOpener.current?.isConnected ? previewOpener.current : root.current?.querySelector<HTMLButtonElement>('button[aria-describedby]');
+      dismissed.current = true; close();
+      if (restore) trigger?.focus({ preventScroll: true });
+    } };
     document.addEventListener('pointerdown', outside); document.addEventListener('keydown', escape, true);
     window.addEventListener('resize', close);
     return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape, true); window.removeEventListener('resize', close); };
@@ -81,7 +87,7 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
       </g>)}
     </svg>
   </div>;
-  return <div ref={root} className={`region-picker region-picker-preview${compact ? ' region-picker-compact' : ''}`} onMouseLeave={() => { dismissed.current = false; setPreview(null); }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) { dismissed.current = false; setPreview(null); } }}>
+  return <div ref={root} className={`region-picker region-picker-preview${compact ? ' region-picker-compact' : ''}`} onMouseLeave={() => { if (!root.current?.contains(document.activeElement)) { dismissed.current = false; setPreview(null); } }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) { dismissed.current = false; setPreview(null); } }}>
     {!compact && map}
     <div><p className="sr-only" id={keyboardHintId}>{en ? 'Use arrow keys to preview regions, then Enter to choose.' : '방향키로 지역 소개를 확인하고 Enter로 선택할 수 있습니다.'}</p>
       <div className="region-picker-list" role="group" aria-describedby={keyboardHintId} aria-label={en ? 'Choose a region' : '여행 지역 선택'}>{orderedNames.map((name, index) => <button type="button" key={name} tabIndex={value === name || (!orderedNames.includes(value) && index === 0) ? 0 : -1}
@@ -94,7 +100,7 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
         }} aria-pressed={value === name} aria-describedby={preview?.name === name ? previewId : undefined}><span>{label(name)}{value === name && <span aria-hidden="true"> ✓</span>}</span></button>)}</div>
     </div>
     {compact && <details className="region-map-disclosure"><summary>{en ? 'See regions on the map' : '지도에서 지역 위치 보기'}</summary>{map}</details>}
-    {preview && <div id={previewId} role="tooltip" className="region-photo-preview" data-below={preview.below} style={{ left: preview.x, top: preview.y, maxHeight: preview.maxHeight, transform: preview.below ? undefined : 'translate(-50%,-100%)' }}>
+    {preview && <div id={previewId} role="tooltip" tabIndex={0} onFocus={event => { previewOpener.current = event.relatedTarget instanceof HTMLButtonElement && root.current?.contains(event.relatedTarget) ? event.relatedTarget : null; }} className="region-photo-preview" data-below={preview.below} style={{ left: preview.x, top: preview.y, maxHeight: preview.maxHeight, transform: preview.below ? undefined : 'translate(-50%,-100%)' }}>
       {photo && !failedPhotos.includes(photo.image) && <img src={photo.image} alt={photo.title} onError={() => setFailedPhotos(previous => [...previous, photo.image])} />}
       <div><strong>{label(preview.name)}</strong>{photo ? <><p>{photo.title}</p><span>{photo.location}</span>{displayedPhotos[preview.name]?.representative && <small>{en ? 'Regional cover photo · Korea Tourism Organization' : '지역 대표 사진 · 한국관광공사'}</small>}{photo.description && <span>{photo.description}</span>}{failedPhotos.includes(photo.image) && <small>{en ? 'Photo unavailable' : '사진을 불러오지 못했어요'}</small>}</> : <p>{!photos[preview.name] ? (en ? 'Loading photo…' : '관광사진을 불러오는 중…') : photos[preview.name].state === 'empty' ? (en ? 'No photo provided.' : '제공된 관광사진이 없어요.') : (en ? 'Photo temporarily unavailable.' : '관광사진을 불러오지 못했어요.')}</p>}</div>
     </div>}

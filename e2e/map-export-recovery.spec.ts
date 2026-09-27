@@ -77,6 +77,14 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) test(`ima
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     const box = await button.boundingBox();
     const drawer = await panel.boundingBox();
+    if (drawer!.width < Math.min(width - 70, 260)) await testInfo.attach('map-drawer-width-ancestors', { contentType: 'application/json', body: JSON.stringify(await panel.evaluate(element => {
+      const layers = [];
+      for (let node: Element | null = element; node; node = node.parentElement) {
+        const style = getComputedStyle(node), rect = node.getBoundingClientRect();
+        layers.push({ tag: node.tagName, class: node.className, width: rect.width, left: rect.left, padding: style.padding, margin: style.margin, position: style.position });
+      }
+      return layers;
+    }), null, 2) });
     expect(drawer!.width, `readable image drawer at ${width}px`).toBeGreaterThanOrEqual(Math.min(width - 70, 260));
     expect(await panel.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
     const coveredByMapControls = await panel.evaluate((element) => {

@@ -6,6 +6,7 @@ import { test, type Page } from "@playwright/test";
  * pixels: white-on-white must fail rather than disappear from the sample. */
 export async function paintedContrast(page: Page, selector: string, solidText = false) {
   const target = page.locator(selector).first();
+  await page.evaluate(() => document.fonts.ready);
   await target.scrollIntoViewIfNeeded();
   const solidColor = solidText ? await target.evaluate(node => {
     const style = getComputedStyle(node), color = (style.color.match(/[\d.]+/g) || []).map(Number);
@@ -22,7 +23,17 @@ export async function paintedContrast(page: Page, selector: string, solidText = 
     }
     return color.slice(0, 3);
   }) : null;
-  const painted = await target.screenshot({ animations: "disabled" });
+  const geometry = () => target.evaluate(node => {
+    const box = node.getBoundingClientRect();
+    return [box.x, box.y, box.width, box.height, scrollX, scrollY];
+  });
+  const origin = await geometry();
+  const capture = async () => {
+    const shot = await target.screenshot({ animations: "disabled" });
+    if (JSON.stringify(await geometry()) !== JSON.stringify(origin)) throw new Error('Contrast captures changed position or scroll');
+    return shot;
+  };
+  const painted = await capture();
   const styles = await target.evaluate(node => [node, ...node.querySelectorAll("*")].map(el => el.getAttribute("style")));
   let background: Buffer, mask: Buffer;
   try {
@@ -32,7 +43,7 @@ export async function paintedContrast(page: Page, selector: string, solidText = 
       style.setProperty("color", "transparent", "important");
       style.setProperty("-webkit-text-fill-color", "transparent", "important");
     }));
-    background = await target.screenshot({ animations: "disabled" });
+    background = await capture();
     await target.evaluate(node => {
       [node, ...node.querySelectorAll<HTMLElement>("*")].forEach(el => {
         const style = (el as HTMLElement).style;
@@ -40,8 +51,15 @@ export async function paintedContrast(page: Page, selector: string, solidText = 
       });
       (node as HTMLElement).style.setProperty("background-color", "#000", "important");
       (node as HTMLElement).style.setProperty("background-clip", "border-box", "important");
+      // The mask is only glyph geometry. Rounded corners and fractional capture
+      // padding must not expose a bright photograph and masquerade as glyphs.
+      // The outer shadow paints behind overflowing descenders; an outline would
+      // cover their last pixels. Keep every row rather than cropping the edge.
+      (node as HTMLElement).style.setProperty("border-radius", "0", "important");
+      (node as HTMLElement).style.setProperty("outline", "none", "important");
+      (node as HTMLElement).style.setProperty("box-shadow", "0 0 0 2px #000", "important");
     });
-    mask = await target.screenshot({ animations: "disabled" });
+    mask = await capture();
   } finally {
     await target.evaluate((node, saved) => [node, ...node.querySelectorAll("*")].forEach((el, i) => saved[i] === null ? el.removeAttribute("style") : el.setAttribute("style", saved[i]!)), styles);
   }

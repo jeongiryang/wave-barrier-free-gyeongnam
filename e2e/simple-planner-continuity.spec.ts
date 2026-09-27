@@ -280,8 +280,10 @@ test("다른 탭에서 새 여행을 열면 기존 편집 초안과 자동 저�
     await dialog.accept();
   });
   await page.getByRole("button", { name: "현재 여행 불러오기", exact: true }).click();
+  await expect(page).toHaveURL(url => !['region', 'theme', 'themes', 'travelStart', 'travelEnd'].some(key => url.searchParams.has(key)));
   await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("");
   expect(await current(page)).toEqual(fresh);
+  expect(await books(page)).toEqual(backedUp);
 });
 
 test("여행 설정 취소·적용·되돌리기가 날짜와 이동을 보존하고 시간표와 지도는 화면 안에 맞는다", async ({ page }, info) => {

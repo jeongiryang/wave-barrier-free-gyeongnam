@@ -68,11 +68,28 @@ test('소개 마지막 영역과 푸터가 화면 폭에 맞고 수평 넘침이
   expect(Math.abs(measured.left)).toBeLessThanOrEqual(1);
   expect(Math.abs(measured.right - measured.width)).toBeLessThanOrEqual(1);
   expect(measured.overflow).toBe(false); expect(measured.background).toBe('rgba(0, 0, 0, 0)');
-  const closingPadding = await page.locator('.landing-finale').evaluate(node => ({
-    top: getComputedStyle(node).paddingTop, bottom: getComputedStyle(node).paddingBottom, mobile: window.innerWidth <= 600,
-  }));
-  expect(closingPadding.top).toBe(closingPadding.mobile ? '40px' : '64px');
-  expect(closingPadding.bottom).toBe(closingPadding.top);
+  // The scenic layout uses a compact closing edge. Check readable containment
+  // and separation from the footer instead of restoring the previous padding.
+  const closingGeometry = await page.locator('.landing-finale').evaluate(node => {
+    const finale = node.getBoundingClientRect();
+    const closing = node.querySelector('#closing')!.getBoundingClientRect();
+    const footer = node.querySelector('.wave-balanced-footer')!.getBoundingClientRect();
+    const copy = Array.from(node.querySelectorAll('#closing h2, #closing p')).map(element => {
+      const box = element.getBoundingClientRect();
+      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom, height: box.height };
+    });
+    return { top: finale.top, bottom: finale.bottom, closingBottom: closing.bottom, footerTop: footer.top, footerBottom: footer.bottom, width: innerWidth, copy };
+  });
+  expect(closingGeometry.copy).toHaveLength(2);
+  for (const copy of closingGeometry.copy) {
+    expect(copy.height).toBeGreaterThan(0);
+    expect(copy.left).toBeGreaterThanOrEqual(16);
+    expect(copy.right).toBeLessThanOrEqual(closingGeometry.width - 16);
+    expect(copy.top).toBeGreaterThanOrEqual(closingGeometry.top);
+    expect(copy.bottom).toBeLessThanOrEqual(closingGeometry.closingBottom + 1);
+  }
+  expect(closingGeometry.footerTop).toBeGreaterThanOrEqual(closingGeometry.closingBottom - 1);
+  expect(closingGeometry.bottom - closingGeometry.footerBottom).toBeGreaterThanOrEqual(16);
   await expect(page.locator('#closing .landing-closing-copy')).toHaveCSS('padding-top', '0px');
   expect((await new AxeBuilder({ page }).include('.landing-page').analyze()).violations).toEqual([]);
 });

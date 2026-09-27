@@ -136,6 +136,7 @@ test('나루 패널을 닫아도 진행 중인 일정 요청이 완료되고 다
     await expect(chat).toBeHidden();
     gate.release();
     await expect(launcher).toHaveAttribute('data-state', 'done');
+    await expect(launcher.locator('.naru-character')).toHaveAttribute('data-state', 'done');
     expect(await snapshot(page)).toEqual(before);
     await launcher.click();
     const proposal = chat.getByRole('region', { name: '나루의 실제 일정안', exact: true });
@@ -232,6 +233,7 @@ test('이미 실내인 일정은 읽기 전용 성공으로 표시하고 앞선 
   await page.screenshot({ path: test.info().outputPath('naru-unchanged.png') });
   await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
   await expect(launcher).toHaveAttribute('data-state', 'done');
+  await expect(launcher.locator('.naru-character')).toHaveAttribute('data-state', 'done');
   await launcher.click();
   await expect(oldApply).toBeEnabled();
   await oldApply.click();
@@ -268,4 +270,5 @@ test('빈 결과는 경고문에 실내라는 표현이 있어도 읽기 전용 
   expect(await snapshot(page)).toEqual(before);
   await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
   await expect(launcher).toHaveAttribute('data-state', 'warning');
+  await expect(launcher.locator('.naru-character')).toHaveAttribute('data-state', 'warning');
 });

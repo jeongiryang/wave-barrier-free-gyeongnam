@@ -118,8 +118,10 @@ for (const theme of ["light", "dark"] as const) {
       await expect.poll(() => retry.evaluate((element) => {
         const rect = element.getBoundingClientRect();
         const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
-        return rect.top >= 0 && rect.bottom <= innerHeight && Boolean(hit && element.contains(hit));
-      })).toBe(true);
+        return { top: rect.top, bottom: rect.bottom, viewport: innerHeight,
+          hit: hit?.tagName, focused: document.activeElement === element,
+          usable: rect.top >= 0 && rect.bottom <= innerHeight && Boolean(hit && element.contains(hit)) };
+      })).toEqual(expect.objectContaining({ usable: true }));
       expect((await new AxeBuilder({ page }).include(".weather-board").include(".impact-response").analyze()).violations).toEqual([]);
       if ([390, 1366].includes(width)) await page.screenshot({ path: test.info().outputPath(`weather-${theme}-${width}.png`) });
     }

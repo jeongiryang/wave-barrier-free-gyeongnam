@@ -17,7 +17,7 @@ test("커뮤니티와 여행집 도움말은 페이지 맥락을 설명하고 �
   ]) {
     await page.goto(journey.path);
     await openSupportMenu(page);
-    const helpButton = page.getByRole("button", { name: "도움말" });
+    const helpButton = page.getByRole("button", { name: "도움말", exact: true });
     await expect(helpButton).toBeEnabled();
     await helpButton.click();
     const dialog = page.getByRole("dialog", { name: journey.title });

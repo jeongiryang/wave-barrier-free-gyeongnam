@@ -4,6 +4,7 @@ import { writeFile } from "node:fs/promises";
 import { findLowContrastText, formatFindings } from "./contrast";
 import { mockPlannerApi } from "./fixtures";
 import { prepareLandingMedia, storyReady } from "./landing-contract";
+import { paintedContrast } from "./painted-contrast";
 
 /**
  * 화면 어디에나 있는 공통 요소(환경설정 토글, 지역 칩)와 주요 공개 화면의 글자가
@@ -18,37 +19,32 @@ async function closingTextContrast(page: Page) {
   await expect(closing).toBeVisible();
   await expect(page.locator(".landing-finale img,.landing-finale .award-panorama")).toHaveCount(0);
   await expect(closing.locator("img,figcaption,a,button")).toHaveCount(0);
-  await expect(closing.locator("h2 em")).toHaveCSS("-webkit-text-fill-color", "rgb(236, 244, 255)");
   const samples = await closing.evaluate(root => {
-    const rgba = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
-    const luminance = (rgb: number[]) => rgb.slice(0, 3).map(value => {
-      const s = value / 255;
-      return s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4;
-    }).reduce((sum, channel, i) => sum + channel * [.2126, .7152, .0722][i], 0);
-    let painted: Element = root;
-    while (getComputedStyle(painted).backgroundColor === "rgba(0, 0, 0, 0)" && painted.parentElement) painted = painted.parentElement;
-    const surface = getComputedStyle(painted);
     const frame = root.getBoundingClientRect();
-    return [...root.querySelectorAll(".brand-meaning p,h2,h2 em,.closing-eyebrow,.landing-closing-copy > p")].map(node => {
+    return [...root.querySelectorAll("h2,.landing-closing-copy > p")].map(node => {
       const foreground = getComputedStyle(node), box = node.getBoundingClientRect();
-      const background = rgba(surface.backgroundColor);
-      const light = luminance(rgba(foreground.color)), dark = luminance(background);
       return { text: node.textContent, color: foreground.color, opacity: foreground.opacity,
-        background: surface.backgroundColor, backgroundImage: surface.backgroundImage,
-        covered: box.left >= frame.left && box.right <= frame.right && box.top >= frame.top && box.bottom <= frame.bottom,
-        ratio: (Math.max(light, dark) + .05) / (Math.min(light, dark) + .05) };
+        covered: box.left >= frame.left && box.right <= frame.right && box.top >= frame.top && box.bottom <= frame.bottom };
     });
   });
-  expect(samples).toHaveLength(4);
+  expect(samples).toHaveLength(2);
   for (const sample of samples) {
-    expect(sample.backgroundImage).toBe("none");
     expect(sample.opacity).toBe("1");
     expect(sample.covered).toBe(true);
-    expect(sample.ratio, `${sample.text}: text-only closing contrast`).toBeGreaterThanOrEqual(4.5);
+  }
+  // The approved closing uses a gradient title. Measure its painted glyphs and
+  // backdrop rather than treating its transparent text-fill as a solid colour.
+  const contrast = [];
+  for (const selector of ["#closing h2", "#closing .landing-closing-copy > p"]) {
+    await expect(page.locator(selector)).toHaveCount(1);
+    const sample = await paintedContrast(page, selector);
+    expect(sample.pixels, selector).toBeGreaterThan(0);
+    expect(sample.minimum, `${selector}: text-only closing contrast`).toBeGreaterThanOrEqual(4.5);
+    contrast.push({ selector, ...sample });
   }
   await closing.screenshot({ path: test.info().outputPath("closing-text.png") });
   const evidencePath = test.info().outputPath("closing-text-contrast.json");
-  await writeFile(evidencePath, JSON.stringify(samples, null, 2));
+  await writeFile(evidencePath, JSON.stringify({ samples, contrast }, null, 2));
   await test.info().attach("closing-text-contrast", { path: evidencePath, contentType: "application/json" });
 }
 

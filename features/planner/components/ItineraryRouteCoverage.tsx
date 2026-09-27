@@ -51,6 +51,7 @@ export default function ItineraryRouteCoverage({ coverage, route, trip, onOpenMa
       }}>{en ? "Show this journey" : "이 구간 지도에서 보기"}</button></li>;
     })}</ol>
     <p className="coverage-notice" data-reserve-text={completeNotice}><span>{notice}</span></p>
+    <p>{en ? "Route availability does not confirm wheelchair access. Check conditions before visiting." : "경로가 있어도 휠체어 통행을 보장하지 않습니다. 방문 전 현장 조건을 확인해 주세요."}</p>
 
   </section>;
 }

@@ -51,3 +51,27 @@ Final local build and performance checks passed with CSS gzip 104.99/105 KiB, la
 Firefox and WebKit both pass the new static no-observer and nested on-site dialog rotation checks (four engine/case pairs). The WebKit fixture waits for all 18 synthetic region-photo responses before full navigation, avoiding old-document request cancellation being reported as an access-control error. A first WebKit focus-return failure was reproduced and fixed in the inquiry opener; original failing logs remain preserved.
 
 The final frontend pass resolves 16 representative cases, plus one new upward-tooltip/no-scroll regression and two mobile high-density contrast cases. A stationary pointer could trigger region hover while keyboard navigation returned to the header; the preview previously scrolled the page away again. It now chooses available space above or below without scrolling the document. Bright-photo tests first confirm image decode, and the solid-colour contrast path rejects transparent/different fills and opacity/filter/blending that would invalidate its measurement.
+
+## Completed audit and final repair candidate
+
+The full Audit on `3ff254d` completed: 2,342 passed, 99 failed, one flaky, and two existing device-duplicate skips across 2,444 cases. Thirty files contained failures. The run remains a failure, and its complete logs and per-case classification are preserved locally in `release-audit-status.json`. Quick CI separately rejected a first-arrival test that passed only on retry. No failure or retry was waived for merging.
+
+The additional audit exposed these product defects, now covered by bounded regressions:
+
+- Loading a different tab's current trip reapplied the old tab's region/date URL. Explicit recovery now clears only the obsolete travel criteria before loading the stored trip; current state and the archived prior trip remain checked.
+- Naru's welcome animation masked running/completed/warning avatar states. Only an idle assistant now greets, preserving its actual execution state.
+- On viewport changes, a focused weather action could move behind Naru's tabs. The viewport hook reveals that control within its own scrolling pane, preserving focus, page position and pinch zoom.
+- Duplicate mobile itinerary gutters compressed the image-export drawer. Removing that duplicate gutter preserves the original minimum drawer width, export/retry, keyboard, touch-target and axe checks.
+- Long English transport labels can wrap within their columns. Selected comparison actions and Naru's day-progress, budget, split/reunion and return-transport surfaces use their actual local palette instead of mixing dark and light tokens.
+- Scrollable regional previews now support keyboard focus and Escape return. Tests wait for interactive controls before positioning a bottom-edge hover, rather than measuring an inert server copy.
+- Itinerary coverage and the decision receipt retain a short wheelchair-access limitation beside the actual route evidence.
+
+The revised UI contracts retain approved photographs, overlays, Korean handwriting, compact closing spacing and readable maximum form width on ultrawide screens. Their tests still verify containment, rendered contrast, actions, error recovery, and data preservation. Voice lifecycle tests explicitly use a returning visitor; first-arrival behavior remains separately covered.
+
+The arrival clock failure was traced to real playback continuing during slow protocol/trace snapshots. Readiness now steps actual animation callbacks while paused, retaining the eight-second readiness bound, positive playback evidence and the exact completion boundary. Desktop/mobile dismissal, session memory, automatic completion and reduced-motion cases passed without retries.
+
+The contrast mask also checks unchanged capture coordinates. Rounded/fractional edges are blackened behind the glyphs without dropping any rows. An experimental outline was rejected by independent QA because it hid the clipped-comma failure. The final shadow-based mask preserves the original failure and sample counts at all three high-density widths; restoring the product's two-pixel padding passes each width. Original paint/background captures remain unchanged.
+
+Before the final remote candidate, local units passed 1,821/1,821, type checking passed, and lint had zero errors/33 existing warnings. Root's focused weather, voice and route matrix passed all 14 combinations across its initial 13 successes and one final route-selection recheck; the original failed local run and its CSS hot-update trace are retained. Fourteen visual follow-ups and the six mobile closing/public-page cases passed. QA's arrival, recovery, drawer and search-focus checks passed 28 cases. Naru/API and frontend owner reports preserve their own exact runs and initial failures separately.
+
+The current local production build measures CSS gzip 104.99/105 KiB, landing initial JavaScript 152.26/155 KiB and planner initial JavaScript 250.21/270 KiB. The old Naru palette and overwritten declarations were removed; budgets remain unchanged. The final remote CI and complete Release Audit are still required for the new commit. Merge, exact-main CI/CD and Production UI plus real-model proposal/apply/undo verification follow only after those results pass.

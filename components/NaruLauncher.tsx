@@ -17,6 +17,7 @@ export default function NaruLauncher({ onOpen, context = '여행 설계', disabl
   const [hint, setHint] = useState(0);
   const [reading, setReading] = useState(false);
   const showHint = !dismissed && !unavailable;
+  const avatarState = showHint && state === 'idle' ? 'wave' : state;
   const dismissHint = () => { hintDismissed = true; try { sessionStorage.setItem(hintKey, 'yes'); } catch { /* Keep closed in this document if tab storage is unavailable. */ } window.dispatchEvent(new Event(hintKey)); };
   useEffect(() => {
     if (!showHint || reading) return;
@@ -55,10 +56,10 @@ export default function NaruLauncher({ onOpen, context = '여행 설계', disabl
     return () => { cancelAnimationFrame(frame); document.removeEventListener('pointerdown', beginPointer, true); window.removeEventListener('pointerup', endPointer, true); window.removeEventListener('pointercancel', endPointer, true); window.removeEventListener('blur', endPointer); document.removeEventListener('focusin', revealFocusedControl); window.removeEventListener('resize', revealFocusedControl); };
   }, []);
   return <aside ref={discovery} className="naru-discovery" aria-label="나루 여행 도움">
-    {showHint && <div className="naru-welcome-bubble" onMouseEnter={() => setReading(true)} onMouseLeave={() => setReading(false)} onFocusCapture={() => setReading(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setReading(false); }}>
+    {showHint && <div className="naru-welcome-bubble" aria-live="off" onMouseEnter={() => setReading(true)} onMouseLeave={() => setReading(false)} onFocusCapture={() => setReading(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setReading(false); }}>
       <button className="naru-welcome-message" type="button" onClick={() => onOpen()}><span key={hint}>{hints[hint]}</span></button>
       <button className="naru-welcome-close" type="button" aria-label="나루 안내 잠시 닫기" title="닫기" onClick={dismissHint}><NightIcon name="close" size={18}/></button>
     </div>}
-    <button ref={buttonRef} data-state={showHint ? 'wave' : state} className="naru-launcher" type="button" disabled={unavailable} aria-label="WAVE 여행 가이드 나루와 대화 열기" title={`${context} · 나루`} onClick={() => onOpen()}><NaruAvatar key={showHint ? hint : 'idle'} state={showHint ? 'wave' : state} /></button>
+    <button ref={buttonRef} data-state={avatarState} className="naru-launcher" type="button" disabled={unavailable} aria-label="WAVE 여행 가이드 나루와 대화 열기" title={`${context} · 나루`} onClick={() => onOpen()}><NaruAvatar key={avatarState === 'wave' ? hint : avatarState} state={avatarState} /></button>
   </aside>;
 }
