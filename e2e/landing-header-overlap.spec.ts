@@ -5,6 +5,7 @@ test.use({ contextOptions: { reducedMotion: 'reduce' } });
 for (const width of [390, 960, 1440]) test(`navigation stays in document flow and returns to keyboard focus at ${width}px`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 900 });
   await mockPlannerApi(page);
+  await page.addInitScript(() => sessionStorage.setItem('wave-arrival-session-v1', 'done'));
   await page.goto('/');
   const header = page.locator('.landing-page > .wave-header');
   await expect(header).toBeVisible();

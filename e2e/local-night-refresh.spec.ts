@@ -7,6 +7,7 @@ for (const width of [390, 960, 1440]) test(`night dropdowns remain readable and 
   await page.setViewportSize({ width, height: 900 });
   await mockPlannerApi(page);
   await page.route('**/api/auth/**', route => route.fulfill({json:null}));
+  await page.addInitScript(() => sessionStorage.setItem('wave-arrival-session-v1', 'done'));
   await page.goto('/');
   await expect(page.locator('#arrival-boot')).toHaveCount(0);
   await expect(page.locator('.arrival-scene')).toBeHidden();

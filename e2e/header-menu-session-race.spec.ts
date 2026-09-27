@@ -4,6 +4,7 @@ import { openSupportMenu } from './support-menu';
 
 for (const authenticated of [false, true]) test(`late ${authenticated ? 'signed-in' : 'guest'} session cannot steal focus or close a subsequently opened support menu`, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
   await mockPublicShellApi(page);
   let release!: () => void;
   const ready = new Promise<void>(resolve => { release = resolve; });

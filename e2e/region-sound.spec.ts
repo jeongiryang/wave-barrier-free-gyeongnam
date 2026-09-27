@@ -1,6 +1,11 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
+// These checks concern regional sound after the separate first-arrival flow.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('wave-arrival-session-v1', 'done'));
+});
+
 async function installSoundProbe(page: Page, saveData = false) {
   await page.addInitScript(value => {
     Object.defineProperty(navigator, 'connection', { configurable: true, value: Object.assign(new EventTarget(), { saveData: value }) });

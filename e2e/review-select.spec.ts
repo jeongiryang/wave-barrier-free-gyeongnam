@@ -5,6 +5,7 @@ test.use({contextOptions:{reducedMotion:'reduce'}});
 for (const width of [390,960,1440]) test(`review select keyboard form and placement ${width}`,async({page})=>{
   await page.setViewportSize({width,height:650});
   await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true});
+  await page.addInitScript(()=>sessionStorage.setItem('wave-arrival-session-v1','done'));
   await page.goto('/');
   const select=page.getByRole('combobox',{name:'어디로 떠나고 싶으세요?',exact:true});
   await expect(select).toHaveJSProperty('tagName', 'BUTTON');
@@ -28,6 +29,7 @@ for (const width of [390,960,1440]) test(`review select keyboard form and placem
 for (const width of [390,960,1440]) test(`review nested preference select ${width}`,async({page})=>{
  await page.setViewportSize({width,height:844});await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true});
  await page.addInitScript(()=>localStorage.setItem('wave-dev-presentation','enabled'));
+ await page.addInitScript(()=>sessionStorage.setItem('wave-arrival-session-v1','done'));
  await page.goto('/');await page.getByRole('button',{name:'WAVE 이용 안내 메뉴',exact:true}).click();
  await page.getByRole('button',{name:'환경설정 열기',exact:true}).click();
  const combo=page.locator('.preference-panel [role=combobox]').first();await combo.click();

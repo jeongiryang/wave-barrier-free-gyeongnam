@@ -406,7 +406,6 @@ test("arrival intro hosts the approved renderer with explicit playback and bound
   assert.match(intro, /<dialog ref=\{dialog\}/);
   assert.match(intro, /onCancel=/);
   assert.match(intro, /건너뛰기/);
-  assert.match(intro, /prefers-reduced-motion: reduce/);
   assert.match(intro, /onComplete=\{\(\)=>finishRef\.current\(\)\}/);
   assert.match(intro, /watchdog\s*=\s*setTimeout\([\s\S]*!ready\.current[\s\S]*8000\)/);
   assert.match(intro, /onFailure=\{\(\)=>finishRef\.current\(\)\}/);

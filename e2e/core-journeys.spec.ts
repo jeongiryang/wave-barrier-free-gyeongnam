@@ -48,11 +48,15 @@ test("landing: first arrival is readable, dismissible and remembers completion",
   await expectNoSeriousA11yIssues(page);
 });
 
-test("landing: reduced motion exposes the real planning action immediately without dismissal", async ({ page }) => {
+test("landing: reduced motion shows a dismissible intro and preserves the real planning action", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await prepareLandingMedia(page);
   await page.goto("/"); await storyReady(page);
-  await expect(page.locator(".arrival-scene")).toBeHidden();
+  const scene = page.locator(".arrival-scene");
+  await expect(scene).toBeVisible();
+  await expect(scene.getByRole("button", { name: "건너뛰기", exact: true })).toBeFocused();
+  await scene.getByRole("button", { name: "건너뛰기", exact: true }).press("Enter");
+  await expect(scene).toBeHidden();
   await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
   const planning = page.locator(".night-hero-search button[type=submit]");
   await expectUsableTarget(planning);

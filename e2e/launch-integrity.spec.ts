@@ -186,7 +186,12 @@ for (const locale of ["ko", "en"] as const) test(`landing: ${locale} fresh reduc
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/"); await storyReady(page);
   const scene = page.locator(".arrival-scene"), planning = page.locator(".night-hero-search button[type=submit]");
+  await expect(scene).toBeVisible();
+  const skip = scene.getByRole("button", { name: "건너뛰기", exact: true });
+  await expect(skip).toBeFocused();
+  await skip.press("Enter");
   await expect(scene).toBeHidden();
+  expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
   await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
   await expect(planning).toHaveAccessibleName(locale === "en" ? "Find places" : "여행지 검색");
   await expectUsableTarget(planning);

@@ -82,6 +82,10 @@ for (const mode of ['seen', 'reduced'] as const) test(`${mode} visitors can read
     await expectReadableLanding(page);
     held.releaseApp();
     await page.waitForFunction(hydrated);
+    if (mode === 'reduced') {
+      await expect(page.locator('.arrival-scene')).toBeVisible();
+      await page.locator('.arrival-scene').getByRole('button', { name: '건너뛰기', exact: true }).press('Enter');
+    }
     await expectReadableLanding(page);
     await expect(page.locator('html')).toHaveAttribute('data-motion', mode === 'reduced' ? 'calm' : 'full');
   } finally { held.releaseApp(); }

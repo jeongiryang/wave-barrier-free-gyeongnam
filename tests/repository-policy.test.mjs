@@ -774,9 +774,8 @@ test("route-map rendering delegates controller, provider adapters, controls and 
 });
 
 test("arrival motion belongs to an isolated component and cleans up lifecycle listeners", async () => {
-  const [page, intro, css, renderer] = await Promise.all([
+  const [page, intro, renderer] = await Promise.all([
     source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"),
-    source("features/landing/components/LandingIntro.module.css"),
     source("features/landing/intro/wave-intro.tsx"),
   ]);
   assert.match(page, /<LandingIntro/);
@@ -786,10 +785,8 @@ test("arrival motion belongs to an isolated component and cleans up lifecycle li
   assert.match(renderer, /document\.removeEventListener\("visibilitychange", resetClock\)/);
   assert.match(renderer, /cancelAnimationFrame\(frame\)/);
   assert.match(renderer, /document\.hidden \|\| controls\.current\.paused \? 0/);
-  assert.match(intro, /media\.removeEventListener\("change", reduce\)/);
+  assert.match(renderer, /media\.removeEventListener\("change", update\)/);
   assert.match(intro, /node\.close\(\)/);
-  assert.match(intro, /if \(media\.matches\) finish\(\)/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(intro, /requestAnimationFrame|putImageData|createIntroMasks/);
 });
 
