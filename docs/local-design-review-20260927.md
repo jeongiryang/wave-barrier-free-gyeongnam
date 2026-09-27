@@ -105,7 +105,7 @@ Local preview only; API-shaped controlled fixtures for behavior, no Production c
 - Removed the retired footer component and stale test references. Updated the quick-suite title and exercised custom selects through their visible options, retaining form-value assertions.
 - Naru focus recovery now includes the welcome bubble bounds so restored/keyboard focus is not covered. Responsive checks exercise actual focus at 1440/1180/960/641/390.
 - Full unit suite: 1,821 passed. TypeScript passed. Full ESLint: zero errors, 33 warnings; touched follow-up files also passed focused lint. Harness check passed. npm audit: zero vulnerabilities.
-- Production build and performance passed. CSS gzip 104.97 KiB, landing initial JS 152.11 KiB, planner initial JS 249.72 KiB before the final tiny focus-bound calculation; final measurements are in the PR log.
+- Production build and performance passed. CSS gzip 104.97 KiB, landing initial JS 152.11 KiB, planner initial JS 249.76 KiB after the final focus-bound calculation.
 - Whole-PR CSS budget is explicitly 96 -> 105 KiB for the cumulative redesign. Earlier 'unchanged' statements refer only to later follow-ups. JavaScript budgets are unchanged. Removed unused CSS instead of raising the 105 KiB limit after integrating main.
 - Quick browser suite: 52/54 passed; the two responsive failures were corrected, then both passed in their targeted rerun. Controlled provider/auth fixtures, local Chromium. CI reruns the complete 54-case contract after push.
 - No release-wide audit or live Production certification is claimed. Five unreferenced image experiments remain local and are excluded from the PR.
