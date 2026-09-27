@@ -14,7 +14,6 @@ async function plannerProductSource() {
     "features/planner/components/PlannerServiceStatus.tsx",
     "features/planner/components/PlannerServiceDiagnostics.tsx",
     "features/planner/components/PlannerHeader.tsx",
-    "components/NaruConversationFooter.tsx",
     "components/SiteFooter.tsx",
     "features/planner/components/PlannerConditionsPanel.tsx",
     "features/planner/components/PlannerRegionDiscovery.tsx",

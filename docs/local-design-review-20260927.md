@@ -97,3 +97,15 @@ Local preview only; API-shaped controlled fixtures for behavior, no Production c
 - TypeScript and production build PASS. Focused ESLint: 0 errors, 6 existing image/internal-navigation warnings; the zero-warning command did not pass and is not claimed to have passed.
 - Final unchanged performance limits PASS: CSS gzip 104.98 KiB (limit 105); initial landing JS 152.09 KiB (limit 155); planner JS 249.70 KiB (limit 270). Removed superseded rules; no budget increase.
 - Logs: C:/Users/admin/wave-current-browser.log, wave-feedback-regression.log, wave-toast-final.log, wave-hint-session.log, wave-complete-types.log, wave-complete-lint.log, wave-final-ui-build.log, wave-final-ui-performance.log.
+
+
+## PR preparation against current main (2026-09-27)
+
+- Rebased the complete owner-approved design onto origin/main 1c2dd5fb, retaining the upstream Naru textarea height and accessibility fixes. Matched calendar next/previous chevrons.
+- Removed the retired footer component and stale test references. Updated the quick-suite title and exercised custom selects through their visible options, retaining form-value assertions.
+- Naru focus recovery now includes the welcome bubble bounds so restored/keyboard focus is not covered. Responsive checks exercise actual focus at 1440/1180/960/641/390.
+- Full unit suite: 1,821 passed. TypeScript passed. Full ESLint: zero errors, 33 warnings; touched follow-up files also passed focused lint. Harness check passed. npm audit: zero vulnerabilities.
+- Production build and performance passed. CSS gzip 104.97 KiB, landing initial JS 152.11 KiB, planner initial JS 249.72 KiB before the final tiny focus-bound calculation; final measurements are in the PR log.
+- Whole-PR CSS budget is explicitly 96 -> 105 KiB for the cumulative redesign. Earlier 'unchanged' statements refer only to later follow-ups. JavaScript budgets are unchanged. Removed unused CSS instead of raising the 105 KiB limit after integrating main.
+- Quick browser suite: 52/54 passed; the two responsive failures were corrected, then both passed in their targeted rerun. Controlled provider/auth fixtures, local Chromium. CI reruns the complete 54-case contract after push.
+- No release-wide audit or live Production certification is claimed. Five unreferenced image experiments remain local and are excluded from the PR.

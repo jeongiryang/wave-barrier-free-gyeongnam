@@ -39,7 +39,9 @@ export default function NaruLauncher({ onOpen, context = '여행 설계', disabl
         const launcher = discovery.current;
         if (pointerActive || !(target instanceof HTMLElement) || !launcher || launcher.contains(target) || !target.matches('a,button,input,select,textarea,summary')) return;
         const control = target.getBoundingClientRect(), floating = launcher.getBoundingClientRect();
-        if (control.bottom > floating.top && control.top < floating.bottom && control.right > floating.left && control.left < floating.right) {
+        const bubble = launcher.querySelector(".naru-welcome-bubble")?.getBoundingClientRect();
+        const top = Math.min(floating.top, bubble?.top ?? floating.top), left = Math.min(floating.left, bubble?.left ?? floating.left);
+        if (control.bottom > top && control.top < floating.bottom && control.right > left && control.left < floating.right) {
           target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
         }
       });

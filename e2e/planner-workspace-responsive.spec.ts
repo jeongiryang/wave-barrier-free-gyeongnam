@@ -1,9 +1,12 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 
 async function expectTouchable(action: Locator) {
   await action.scrollIntoViewIfNeeded();
+  await action.focus();
+  await action.page().clock.runFor(50);
   const size = (await action.boundingBox())!;
   expect(size.width).toBeGreaterThanOrEqual(44);
   expect(size.height).toBeGreaterThanOrEqual(44);
@@ -35,7 +38,7 @@ test("workspace keeps two-screen navigation and one itinerary usable across desk
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
   await expect(region).toBeEnabled();
   await expect(page.locator(".simple-region-entry .simple-region")).toHaveCount(6);
-  await region.selectOption("창원");
+  await chooseWaveOption(region, "창원");
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-09-20" });
   const before = await tripSnapshot(page);
